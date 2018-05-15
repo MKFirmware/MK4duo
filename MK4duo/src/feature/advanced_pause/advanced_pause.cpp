@@ -232,7 +232,7 @@
     do_pause_e_move(-unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);
 
     // Disable extruders steppers for manual filament changing
-    stepper.disable_e_steppers();
+    stepper.disable_E();
     printer.safe_delay(100);
 
     return true;

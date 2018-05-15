@@ -111,7 +111,8 @@ class Printer {
 
     static uint8_t  progress;
 
-    static watch_t  max_inactivity_watch;
+    static watch_t  max_inactivity_watch,
+                    move_watch;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static watch_t  host_keepalive_watch;
@@ -164,8 +165,9 @@ class Printer {
     static void setup_for_endstop_or_probe_move();
     static void clean_up_after_endstop_or_probe_move();
 
-    static void kill(const char *);
     static void quickstop_stepper();
+
+    static void kill(const char *);
     static void Stop();
 
     static void idle(const bool ignore_stepper_queue=false);

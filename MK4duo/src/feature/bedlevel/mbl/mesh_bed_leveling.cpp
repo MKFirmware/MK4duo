@@ -67,7 +67,7 @@
       return;
     }
 
-    #define MBL_SEGMENT_END(A) (mechanics.current_position[A ##_AXIS] + (mechanics.destination[A ##_AXIS] - mechanics.current_position[A ##_AXIS]) * normalized_dist)
+    #define MBL_SEGMENT_END(A) (mechanics.current_position[_AXIS(A)] + (mechanics.destination[_AXIS(A)] - mechanics.current_position[_AXIS(A)]) * normalized_dist)
 
     float normalized_dist, end[XYZE];
     const int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);

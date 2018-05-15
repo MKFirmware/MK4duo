@@ -61,8 +61,6 @@ class Stepper {
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
-    static watch_t move_watch;
-
   private: /** Private Parameters */
 
     static uint8_t last_direction_bits;   // The next stepping-bits to be output
@@ -163,9 +161,9 @@ class Stepper {
     static void init();
 
     /**
-     * Interrupt Service Routines
+     * This is called by the interrupt service routine to execute steps.
      */
-    static hal_timer_t isr();
+    static hal_timer_t Step();
 
     /**
      * Set direction bits for all steppers
@@ -189,6 +187,89 @@ class Stepper {
     static void wake_up();
 
     /**
+     * Enabled or Disable one or all stepper driver
+     */
+    static void enable_X();
+    static void disable_X();
+    static void enable_Y();
+    static void disable_Y();
+    static void enable_Z();
+    static void disable_Z();
+    static void enable_E();
+    static void disable_E();
+    static void enable_all();
+    static void disable_all();
+
+    /**
+     * Enabled or Disable Extruder Stepper Driver
+     */
+    static void enable_E0();
+    static void disable_E0();
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      FORCE_INLINE static void enable_E1() { /* nada */ }
+      FORCE_INLINE static void enable_E2() { /* nada */ }
+      FORCE_INLINE static void enable_E3() { /* nada */ }
+      FORCE_INLINE static void enable_E4() { /* nada */ }
+      FORCE_INLINE static void enable_E5() { /* nada */ }
+      FORCE_INLINE static void disable_E1() { /* nada */ }
+      FORCE_INLINE static void disable_E2() { /* nada */ }
+      FORCE_INLINE static void disable_E3() { /* nada */ }
+      FORCE_INLINE static void disable_E4() { /* nada */ }
+      FORCE_INLINE static void disable_E5() { /* nada */ }
+    #else
+      FORCE_INLINE static void enable_E1() {
+        #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
+          E1_ENABLE_WRITE(E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void disable_E1() {
+        #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
+          E1_ENABLE_WRITE(!E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void enable_E2() {
+        #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
+          E2_ENABLE_WRITE(E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void disable_E2() {
+        #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
+          E2_ENABLE_WRITE(!E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void enable_E3() {
+        #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
+          E3_ENABLE_WRITE(E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void disable_E3() {
+        #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
+          E3_ENABLE_WRITE(!E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void enable_E4() {
+        #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
+          E4_ENABLE_WRITE(E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void disable_E4() {
+        #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
+          E4_ENABLE_WRITE(!E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void enable_E5() {
+        #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
+          E5_ENABLE_WRITE(E_ENABLE_ON);
+        #endif
+      }
+      FORCE_INLINE static void disable_E5() {
+        #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
+          E5_ENABLE_WRITE(!E_ENABLE_ON);
+        #endif
+      }
+    #endif
+
+    /**
      * Quickly stop all steppers and clear the blocks queue
      */
     static void quick_stop();
@@ -202,10 +283,6 @@ class Stepper {
      * The direction of a single motor
      */
     FORCE_INLINE static bool motor_direction(const AxisEnum axis) { return TEST(last_direction_bits, axis); }
-
-    static void enable_all_steppers();
-    static void disable_e_steppers();
-    static void disable_all_steppers();
 
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digitalPotWrite(int address, int value);
@@ -252,14 +329,14 @@ class Stepper {
   private: /** Private Function */
 
     /**
-     * Pulse phase ISR
+     * Pulse phase Step
      */
-    static void pulse_phase_isr();
+    static void pulse_phase_step();
 
     /**
-     * Block phase ISR
+     * Block phase Step
      */
-    static uint32_t block_phase_isr();
+    static uint32_t block_phase_step();
 
     /**
      * Set current position in steps
@@ -267,8 +344,8 @@ class Stepper {
     static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
 
     #if ENABLED(LIN_ADVANCE)
-      // The Linear advance stepper ISR
-      static uint32_t lin_advance_isr();
+      // The Linear advance stepper Step
+      static uint32_t lin_advance_step();
     #endif
 
     FORCE_INLINE static hal_timer_t calc_timer_interval(hal_timer_t step_rate) {

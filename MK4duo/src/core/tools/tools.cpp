@@ -322,7 +322,7 @@
     void Tools::MK_multi_tool_change(const uint8_t e) {
 
       planner.synchronize(); // Finish all movement
-      stepper.disable_e_steppers();
+      stepper.disable_E();
 
       #if (EXTRUDERS == 4) && HAS_E0E2 && HAS_E1E3 && (DRIVER_EXTRUDERS == 2)
 
@@ -409,7 +409,7 @@
     void Tools::MK_multi_tool_change(const uint8_t e) {
 
       planner.synchronize(); // Finish all movement
-      stepper.disable_e_steppers();
+      stepper.disable_E();
 
       #if (EXTRUDERS == 2) && HAS_EX1 && (DRIVER_EXTRUDERS == 1)
 

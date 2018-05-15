@@ -253,7 +253,7 @@ uint8_t u8g_WriteEscSeqP_2_wire(u8g_t *u8g, u8g_dev_t *dev, const uint8_t *esc_s
       else if (value >= 0x0F0) {
         /* not yet used, do nothing */
       }
-      else if (value >= 0xE0) {
+      else if (value >= 0xE0 ) {
         u8g_SetAddress(u8g, dev, value & 0x0F);
       }
       else if (value >= 0xD0) {
@@ -268,7 +268,7 @@ uint8_t u8g_WriteEscSeqP_2_wire(u8g_t *u8g, u8g_dev_t *dev, const uint8_t *esc_s
         u8g_SetResetHigh(u8g, dev);
         u8g_Delay(value);
       }
-      else if (value >= 0xbe) {                       /* not yet implemented */
+      else if (value >= 0xBE) {                       /* not yet implemented */
         /* u8g_SetVCC(u8g, dev, value & 0x01); */
       }
       else if (value <= 127) {

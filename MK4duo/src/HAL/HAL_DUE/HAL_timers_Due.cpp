@@ -161,4 +161,27 @@ bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
   return (pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IMR & TC_IMR_CPCS);
 }
 
+/**
+ * Interrupt Service Routines
+ */
+STEPPER_TIMER_ISR {
+
+  HAL_timer_isr_prologue(STEPPER_TIMER);
+
+  // Set timer to maximum period
+  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
+
+  // Call the Step
+  hal_timer_t ticks = stepper.Step();
+
+  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
+  NOLESS(ticks, minticks);
+
+  // Schedule next interrupt
+  HAL_timer_set_count(STEPPER_TIMER, ticks);
+
+  HAL_timer_isr_epilogue(STEPPER_TIMER);
+
+}
+
 #endif // ARDUINO_ARCH_SAM

@@ -112,7 +112,7 @@
     #else
       mechanics.home(true, true, false);
       printer.setZHomed(true);
-      enable_Z();
+      stepper.enable_Z();
     #endif
 
     #if EXTRUDERS > 1

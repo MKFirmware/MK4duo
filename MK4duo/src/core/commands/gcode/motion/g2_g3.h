@@ -126,7 +126,7 @@
 
         // Send an arc to the planner
         mechanics.plan_arc(mechanics.destination, arc_offset, clockwise);
-        stepper.move_watch.start();
+        printer.move_watch.start();
       }
       else {
         // Bad arguments

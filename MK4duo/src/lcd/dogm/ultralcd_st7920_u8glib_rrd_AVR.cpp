@@ -101,10 +101,10 @@ static void ST7920_SWSPI_SND_8BIT(uint8_t val) {
   ST7920_SND_BIT; // 8
 }
 
-#if defined(DOGM_SPI_DELAY_US) && DOGM_SPI_DELAY_US > 0
-  #define U8G_DELAY() delayMicroseconds(DOGM_SPI_DELAY_US)
+#if DOGM_SPI_DELAY_US > 0
+  #define U8G_DELAY() DELAY_US(DOGM_SPI_DELAY_US)
 #else
-  #define U8G_DELAY() u8g_10MicroDelay()
+  #define U8G_DELAY() DELAY_US(10)
 #endif
 
 #define ST7920_CS()              { WRITE(ST7920_CS_PIN,1); U8G_DELAY(); }

@@ -232,7 +232,7 @@
                                               EN_REPRAPWORLD_KEYPAD_LEFT) \
                                             )
 
-  #elif ENABLED(NEWPANEL)
+  #elif ENABLED(EN_C)
 
     #if ENABLED(INVERT_CLICK_BUTTON)
       #define LCD_CLICKED !(buttons & EN_C)

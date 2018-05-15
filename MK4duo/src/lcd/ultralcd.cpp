@@ -24,6 +24,8 @@
 
 #if ENABLED(ULTRA_LCD)
 
+#include <stdarg.h>
+
 #if DISABLED(CHARSIZE)
   #define CHARSIZE 2
 #endif
@@ -4857,7 +4859,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       callbackFunc = callback; \
       liveEdit = live; \
     } \
-    typedef void _name
+    typedef void _name##_void
 
   DEFINE_MENU_EDIT_TYPE(uint32_t, long5, ftostr5rj, 0.01);
   DEFINE_MENU_EDIT_TYPE(uint16_t, uint3, itostr3, 1);
