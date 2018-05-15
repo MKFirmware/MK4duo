@@ -113,12 +113,12 @@ const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-	Tc *tc = TimerConfig [timer_num].pTimerRegs;
-	IRQn_Type irq = TimerConfig [timer_num].IRQ_Id;
-	uint32_t channel = TimerConfig [timer_num].channel;
+  Tc *tc = TimerConfig[timer_num].pTimerRegs;
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  uint32_t channel = TimerConfig[timer_num].channel;
 
   // Disable interrupt, just in case it was already enabled
-  NVIC_DisableIRQ(irq);
+  NVIC_DisableIRQ(IRQn);
 
   // Disable timer interrupt
   tc->TC_CHANNEL[channel].TC_IDR = TC_IDR_CPCS;
@@ -126,9 +126,9 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   // Stop timer, just in case, to be able to reconfigure it
   TC_Stop(tc, channel);
 
-	pmc_set_writeprotect(false);
-	pmc_enable_periph_clk((uint32_t)irq);
-  NVIC_SetPriority (irq, TimerConfig [timer_num].priority);
+  pmc_set_writeprotect(false);
+  pmc_enable_periph_clk((uint32_t)IRQn);
+  NVIC_SetPriority(IRQn, TimerConfig[timer_num].priority);
 
   // wave mode, reset counter on match with RC,
   TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_EEVT_XC0);
@@ -143,22 +143,8 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
 
   // Finally, enable IRQ
-	NVIC_EnableIRQ(irq);
-}
+  NVIC_EnableIRQ(IRQn);
 
-void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IER = TC_IER_CPCS;
-}
-
-void HAL_timer_disable_interrupt (const uint8_t timer_num) {
-	const tTimerConfig * const pConfig = &TimerConfig [timer_num];
-	pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IDR = TC_IDR_CPCS;
-}
-
-bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  return (pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IMR & TC_IMR_CPCS);
 }
 
 /**
@@ -179,8 +165,6 @@ STEPPER_TIMER_ISR {
 
   // Schedule next interrupt
   HAL_timer_set_count(STEPPER_TIMER, ticks);
-
-  HAL_timer_isr_epilogue(STEPPER_TIMER);
 
 }
 
