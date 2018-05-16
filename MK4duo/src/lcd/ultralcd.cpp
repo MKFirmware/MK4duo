@@ -5689,23 +5689,37 @@ void lcd_eeprom_allert() {
     { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },     // F3
     {  18,  32, BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },   // LEFT
     { 118, 138, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
-    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
-    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
+    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
+    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
     {  70,  90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 }, // ENTER
   };
 
   uint8_t get_ADC_keyValue(void) {
+    static uint8_t ADCKey_count = 0;
     const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_PIN] >> 2);
     #if ENABLED(ADC_KEYPAD_DEBUG)
       SERIAL_EV(currentkpADCValue);
     #endif
-    if (currentkpADCValue < 250) {
-      for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {
-        const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
-                       hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
-        if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
+
+    if (ADCKey_count < 5) {
+      if (currentkpADCValue > 250)
+        // ADC Key release
+        ADCKey_count = 0;
+      else
+        ADCKey_count++;
+    }
+
+    if (ADCKey_count >= 5) {
+      ADCKey_count = 0;
+      if (currentkpADCValue < 250) {
+        for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {
+          const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
+                         hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
+          if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
+        }
       }
     }
+
     return 0;
   }
 #endif
