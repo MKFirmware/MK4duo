@@ -100,8 +100,9 @@
       // L or V display the map info
       if (parser.seen('L') || parser.seen('V')) {
         ubl.display_map(parser.byteval('T'));
-        SERIAL_EMV("ubl.mesh_is_valid = ", ubl.mesh_is_valid());
-        SERIAL_EMV("ubl.storage_slot = ", ubl.storage_slot);
+        SERIAL_MSG("Mesh is ");
+        if (!ubl.mesh_is_valid()) SERIAL_MSG("in");
+        SERIAL_EMV("valid\nStorage slot: ", ubl.storage_slot);
       }
 
     #endif // AUTO_BED_LEVELING_UBL
