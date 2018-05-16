@@ -78,19 +78,19 @@ void pciSetup(const pin_t pin) {
 
 // Handlers for pin change interrupts
 #ifdef PCINT0_vect
-  ISR(PCINT0_vect) { endstop_ISR_worker(); }
+  ISR(PCINT0_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT1_vect
-  ISR(PCINT1_vect) { endstop_ISR_worker(); }
+  ISR(PCINT1_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT2_vect
-  ISR(PCINT2_vect) { endstop_ISR_worker(); }
+  ISR(PCINT2_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT3_vect
-  ISR(PCINT3_vect) { endstop_ISR_worker(); }
+  ISR(PCINT3_vect) { endstop_ISR(); }
 #endif
 
 void Endstops::setup_endstop_interrupts(void) {

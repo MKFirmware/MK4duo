@@ -89,13 +89,15 @@ class Endstops {
 
     static volatile char hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
-    static volatile uint8_t e_hit;  // Different from 0 when the endstops shall be tested in detail.
-                                    // Must be reset to 0 by the test function when the tests are finished.
-
     static uint16_t logic_bits,
                     pullup_bits,
                     current_bits,
                     old_bits;
+
+    // Debugging of endstops
+    #if ENABLED(PINS_DEBUGGING)
+      static bool monitor_flag;
+    #endif
 
   private: /** Private Parameters */
 
@@ -139,7 +141,14 @@ class Endstops {
     #endif
 
     #if ENABLED(PINS_DEBUGGING)
-      static void endstop_monitor();
+      static void monitor();
+      FORCE_INLINE static void run_monitor() {
+        if (!monitor_flag) return;
+        static uint8_t monitor_count = 16;  // offset this check from the others
+        monitor_count += _BV(1);            //  15 Hz
+        monitor_count &= 0x7F;
+        if (!monitor_count) monitor();      // report changes in endstop status
+      }
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {

@@ -359,7 +359,6 @@ class InterruptProtectedBlock {
 
 void HAL_stepper_timer_start();
 void HAL_temp_timer_start();
-void HAL_temp_isr();
 
 class HAL {
 

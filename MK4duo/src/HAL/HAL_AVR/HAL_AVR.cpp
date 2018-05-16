@@ -255,41 +255,6 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-/**
- * Timer 0 is is called 3906 timer per second.
- * It is used to update pwm values for heater and some other frequent jobs.
- *
- *  - Manage PWM to all the heaters and fan
- *  - Prepare or Measure one of the raw ADC sensor values
- *  - Step the babysteps value for each axis towards 0
- *  - For PINS_DEBUGGING, monitor and report endstop pins
- *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
- */
-HAL_TEMP_TIMER_ISR {
-  if (!printer.isRunning()) return;
-  TEMP_OCR += 64;
-  HAL_temp_isr();
-}
-
-/**
- * Interrupt Service Routines
- */
-HAL_STEPPER_TIMER_ISR {
-
-  // Set timer to maximum period
-  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
-
-  // Call the ISR
-  hal_timer_t ticks = stepper.Step();
-
-  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
-  NOLESS(ticks, minticks);
-
-  // Schedule next interrupt
-  HAL_timer_set_count(STEPPER_TIMER, ticks);
-
-}
-
 void HAL_temp_isr() {
 
   static uint16_t cycle_100ms       = 0;
@@ -386,22 +351,47 @@ void HAL_temp_isr() {
   pwm_count_fan     += FAN_PWM_STEP;
 
   #if ENABLED(PINS_DEBUGGING)
-    extern bool endstop_monitor_flag;
-    // run the endstop monitor at 15Hz
-    static uint8_t endstop_monitor_count = 16;  // offset this check from the others
-    if (endstop_monitor_flag) {
-      endstop_monitor_count += _BV(1);  //  15 Hz
-      endstop_monitor_count &= 0x7F;
-      if (!endstop_monitor_count) endstops.endstop_monitor();  // report changes in endstop status
-    }
+    endstops.run_monitor();  // report changes in endstop status
   #endif
 
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (endstops.e_hit && ENDSTOPS_ENABLED) {
-      endstops.update();  // call endstop update routine
-      endstops.e_hit--;
-    }
+  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    if (ENDSTOPS_ENABLED) endstops.update();
   #endif
+
+}
+
+/**
+ * Timer 0 is is called 3906 timer per second.
+ * It is used to update pwm values for heater and some other frequent jobs.
+ *
+ *  - Manage PWM to all the heaters and fan
+ *  - Prepare or Measure one of the raw ADC sensor values
+ *  - Step the babysteps value for each axis towards 0
+ *  - For PINS_DEBUGGING, monitor and report endstop pins
+ *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
+ */
+HAL_TEMP_TIMER_ISR {
+  if (!printer.isRunning()) return;
+  TEMP_OCR += 64;
+  HAL_temp_isr();
+}
+
+/**
+ * Interrupt Service Routines
+ */
+HAL_STEPPER_TIMER_ISR {
+
+  // Set timer to maximum period
+  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
+
+  // Call the ISR
+  hal_timer_t ticks = stepper.Step();
+
+  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
+  NOLESS(ticks, minticks);
+
+  // Schedule next interrupt
+  HAL_timer_set_count(STEPPER_TIMER, ticks);
 
 }
 
