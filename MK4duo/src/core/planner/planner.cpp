@@ -689,9 +689,8 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
   // reach the final_rate exactly at the end of this block.
   if (plateau_steps < 0) {
     float accelerate_steps_float = CEIL(intersection_distance(initial_rate, final_rate, accel, block->step_event_count));
-    NOLESS(accelerate_steps_float, 0);          // Check limits due to numerical round-off
-    accelerate_steps = accelerate_steps_float;  //(We can cast here to unsigned, because the above line ensures that we are above zero)
-    accelerate_steps = MIN(accelerate_steps, block->step_event_count);
+    NOLESS(accelerate_steps_float, 0);
+    accelerate_steps = MIN(uint32_t(accelerate_steps_float), block->step_event_count);
     plateau_steps = 0;
 
     #if ENABLED(BEZIER_JERK_CONTROL)

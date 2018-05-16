@@ -163,7 +163,7 @@
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
       return !!abl.bilinear_grid_spacing[X_AXIS];
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
-      return true;
+      return ubl.mesh_is_valid();
     #else // 3POINT, LINEAR
       return true;
     #endif

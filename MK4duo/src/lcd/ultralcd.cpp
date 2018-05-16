@@ -5695,17 +5695,33 @@ void lcd_eeprom_allert() {
   };
 
   uint8_t get_ADC_keyValue(void) {
+
+    static uint8_t ADCKey_count = 0;
     const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_PIN] >> 2);
+
     #if ENABLED(ADC_KEYPAD_DEBUG)
       SERIAL_EV(currentkpADCValue);
     #endif
-    if (currentkpADCValue < 250) {
-      for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {
-        const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
-                       hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
-        if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
+
+    if (ADCKey_count < 3) {
+      if (currentkpADCValue > 250)
+        // ADC Key release
+        ADCKey_count = 0;
+      else
+        ADCKey_count++;
+    }
+
+    if (ADCKey_count >= 3) {
+      ADCKey_count = 0;
+      if (currentkpADCValue < 250) {
+        for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {
+          const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
+                         hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
+          if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
+        }
       }
     }
+
     return 0;
   }
 #endif
