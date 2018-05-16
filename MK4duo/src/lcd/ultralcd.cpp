@@ -5689,19 +5689,21 @@ void lcd_eeprom_allert() {
     { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F3 + 1 },     // F3
     {  18,  32, BLEN_REPRAPWORLD_KEYPAD_LEFT + 1 },   // LEFT
     { 118, 138, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1 },  // RIGHT
-    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
-    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
+    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_UP + 1 },     // UP
+    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1 },   // DOWN
     {  70,  90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1 }, // ENTER
   };
 
   uint8_t get_ADC_keyValue(void) {
+
     static uint8_t ADCKey_count = 0;
     const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_PIN] >> 2);
+
     #if ENABLED(ADC_KEYPAD_DEBUG)
       SERIAL_EV(currentkpADCValue);
     #endif
 
-    if (ADCKey_count < 5) {
+    if (ADCKey_count < 3) {
       if (currentkpADCValue > 250)
         // ADC Key release
         ADCKey_count = 0;
@@ -5709,7 +5711,7 @@ void lcd_eeprom_allert() {
         ADCKey_count++;
     }
 
-    if (ADCKey_count >= 5) {
+    if (ADCKey_count >= 3) {
       ADCKey_count = 0;
       if (currentkpADCValue < 250) {
         for (uint8_t i = 0; i < ADC_KEY_NUM; i++) {

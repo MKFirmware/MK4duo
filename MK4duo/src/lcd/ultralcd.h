@@ -176,9 +176,9 @@
 
   bool lcd_blink();
 
-  #if ENABLED(REPRAPWORLD_KEYPAD) || ENABLED(ADC_KEYPAD) // is also ULTIPANEL and NEWPANEL or ANET display
+  #if ENABLED(REPRAPWORLD_KEYPAD)     // is also ULTIPANEL and NEWPANEL or ANET display
 
-    #define REPRAPWORLD_BTN_OFFSET 0 // bit offset into buttons for shift register values
+    #define REPRAPWORLD_BTN_OFFSET 0  // bit offset into buttons for shift register values
 
     #define BLEN_REPRAPWORLD_KEYPAD_F3     0
     #define BLEN_REPRAPWORLD_KEYPAD_F2     1
