@@ -44,12 +44,6 @@ enum BlockFlagBit {
   // The block is busy, being interpreted by the stepper ISR
   BLOCK_BIT_BUSY,
 
-  // The block forces a Stepper hold: The stepper will wait until this bit is cleared
-  BLOCK_BIT_HOLD,
-
-  // The block is segment 2+ of a longer move
-  BLOCK_BIT_CONTINUED,
-
   // Sync the stepper counts from the block
   BLOCK_BIT_SYNC_POSITION
 };
@@ -58,8 +52,6 @@ enum BlockFlag : char {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
-  BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
-  BLOCK_FLAG_HOLD                 = _BV(BLOCK_BIT_HOLD),
   BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
 };
 
@@ -76,11 +68,17 @@ typedef struct {
 
   uint8_t flag;                             // Block flags (See BlockFlag enum above)
 
-  unsigned char active_extruder;            // The extruder to move (if E move)
-  unsigned char active_driver;              // Selects the active driver for E
+  uint8_t active_extruder,                  // The extruder to move (if E move)
+          active_driver;                    // Selects the active driver for E
 
-  // Fields used by the Bresenham algorithm for tracing the line
-  int32_t steps[NUM_AXIS];                  // Step count along each axis
+  // Data used by all move blocks
+  union {
+    // Fields used by the Bresenham algorithm for tracing the line
+    uint32_t steps[NUM_AXIS];               // Step count along each axis
+    // Data used by all sync blocks
+    int32_t position[NUM_AXIS];             // New position to force when this sync block is executed
+  };
+
   uint32_t step_event_count;                // The number of step events required to complete this block
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
@@ -172,7 +170,9 @@ class Planner {
     static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
                             block_buffer_tail;        // Index of the busy block, if any
 
-    static int16_t          cleaning_buffer_counter;  // A counter to disable queuing of blocks
+    static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
+
+    static uint8_t delay_before_delivering;           // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
     #if ENABLED(LIN_ADVANCE)
       static float  extruder_advance_K,
@@ -243,10 +243,14 @@ class Planner {
      */
     FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
 
-    FORCE_INLINE static void clear_block_buffer() { block_buffer_head = block_buffer_tail = 0; }
-
+    /**
+     * Check if movement queue is full
+     */
     FORCE_INLINE static bool is_full() { return block_buffer_tail == next_block_index(block_buffer_head); }
 
+    /**
+     * Get count of movement slots free
+     */
     FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - movesplanned(); }
 
     /**
@@ -422,18 +426,7 @@ class Planner {
      * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
-      if (has_blocks_queued())
-        block_buffer_tail = BLOCK_MOD(block_buffer_tail + 1);
-    }
-
-    /**
-     * "Discard" the next block if it's continued.
-     * Called after an interrupted move to throw away the rest of the move.
-     */
-    FORCE_INLINE static bool discard_continued_block() {
-      const bool discard = has_blocks_queued() && TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_CONTINUED);
-      if (discard) discard_current_block();
-      return discard;
+      block_buffer_tail = BLOCK_MOD(block_buffer_tail + 1);
     }
 
     /**
@@ -442,13 +435,28 @@ class Planner {
      * WARNING: Called from Stepper ISR context!
      */
     static block_t* get_current_block() {
-      if (has_blocks_queued()) {
+
+      // Get the number of moves in the planner queue so far
+      uint8_t nr_moves = movesplanned();
+
+      // If there are any moves queued ...
+      if (nr_moves) {
+
+        // If there is still delay of delivery of blocks running, decrement it
+        if (delay_before_delivering) {
+          --delay_before_delivering;
+          // If the number of movements queued is less than 3, and there is still time
+          //  to wait, do not deliver anything
+          if (nr_moves < 3 && delay_before_delivering) return NULL;
+          delay_before_delivering = 0;
+        }
+
+        // If we are here, there is no excuse to deliver the block
         block_t * const block = &block_buffer[block_buffer_tail];
 
-        // The HOLD flag usually means the planner needs to replan this block
-        if ( TEST(block->flag, BLOCK_BIT_HOLD)
-          || TEST(block->flag, BLOCK_BIT_RECALCULATE) // No trapezoid calculated? Don't execute yet.
-          || (movesplanned() > 1 && TEST(block_buffer[next_block_index(block_buffer_tail)].flag, BLOCK_BIT_RECALCULATE))
+        // No trapezoid calculated? Don't execute yet.
+        if ( TEST(block->flag, BLOCK_BIT_RECALCULATE) || (movesplanned() > 1
+          && TEST(block_buffer[next_block_index(block_buffer_tail)].flag, BLOCK_BIT_RECALCULATE))
         ) return NULL;
 
         #if ENABLED(ULTRA_LCD)

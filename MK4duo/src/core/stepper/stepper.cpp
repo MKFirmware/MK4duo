@@ -69,9 +69,17 @@ uint16_t Stepper::direction_flag = 0;
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
 
+uint8_t Stepper::step_loops = 0;
+
 // private:
 
-uint8_t Stepper::last_direction_bits = 0;        // The next stepping-bits to be output
+uint8_t Stepper::last_direction_bits = 0;           // The next stepping-bits to be output
+
+uint8_t Stepper::last_extruder = 0xFF;              // Last movement extruder, as computed when the last movement was fetched from planner
+
+bool    Stepper::last_movement_non_null[NUM_AXIS];  // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
+
+bool    Stepper::abort_current_block;               // Signals to the stepper that current block should be aborted
 
 #if ENABLED(X_TWO_ENDSTOPS)
   bool Stepper::locked_x_motor = false, Stepper::locked_x2_motor = false;
@@ -123,6 +131,9 @@ bool Stepper::all_steps_done = false;
 
 #endif // LIN_ADVANCE
 
+uint32_t  Stepper::acceleration_time  = 0,
+          Stepper::deceleration_time  = 0;
+
 volatile int32_t      Stepper::count_position[NUM_AXIS]   = { 0 };
 volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
@@ -137,17 +148,13 @@ volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
   #endif // LASER_RASTER
 #endif // LASER
 
-uint32_t  Stepper::acceleration_time  = 0,
-          Stepper::deceleration_time  = 0;
-
 hal_timer_t   Stepper::ticks_nominal = 0;
 
 #if DISABLED(BEZIER_JERK_CONTROL)
   hal_timer_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
-uint8_t Stepper::step_loops         = 0,
-        Stepper::step_loops_nominal = 0;
+uint8_t Stepper::step_loops_nominal = 0;
 
 volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
@@ -1162,6 +1169,15 @@ hal_timer_t Stepper::Step() {
 
 void Stepper::pulse_phase_step() {
 
+  // If we must abort the current block, do so!
+  if (abort_current_block) {
+    abort_current_block = false;
+    if (current_block) {
+      current_block = NULL;
+      planner.discard_current_block();
+    }
+  }
+
   // If there is no current block, do nothing
   if (!current_block) return;
 
@@ -1488,8 +1504,8 @@ uint32_t Stepper::block_phase_step() {
       // Sync block? Sync the stepper counts and return
       while (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
         set_position(
-          current_block->steps[A_AXIS], current_block->steps[B_AXIS],
-          current_block->steps[C_AXIS], current_block->steps[E_AXIS]
+          current_block->position[A_AXIS], current_block->position[B_AXIS],
+          current_block->position[C_AXIS], current_block->position[E_AXIS]
         );
         planner.discard_current_block();
 
@@ -1497,8 +1513,8 @@ uint32_t Stepper::block_phase_step() {
         if (!(current_block = planner.get_current_block())) return interval;
       }
 
-      // Initialize the trapezoid generator from the current block.
-      static int8_t last_extruder = -1;
+      // Compute movement direction for proper endstop handling
+      LOOP_XYZE(axis) last_movement_non_null[axis] = current_block->steps[axis] != 0;
 
       #if ENABLED(LIN_ADVANCE)
         #if EXTRUDERS > 1
@@ -1559,16 +1575,12 @@ uint32_t Stepper::block_phase_step() {
           counter_m[i] = -(current_block->mix_event_count[i] >> 1);
       #endif
 
-      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        endstops.e_hit = 2; // Needed for the case an endstop is already triggered before the new move begins.
-                            // No 'change' can be detected.
-      #endif
-
       #if ENABLED(Z_LATE_ENABLE)
-        // If delayed Z enable, postpone move for 1mS
-        if (current_block->steps[Z_AXIS] > 0) {
+        // If delayed Z enable, enable it now. This option will severely interfere with
+        //  timing between pulses when chaining motion between blocks, and it could lead
+        //  to lost steps in both X and Y axis, so avoid using it unless strictly necessary!!
+        if (current_block->steps[Z_AXIS])
           enable_Z();
-        }
       #endif
 
       #if ENABLED(LASER) && ENABLED(LASER_RASTER)
@@ -1577,16 +1589,6 @@ uint32_t Stepper::block_phase_step() {
 
     }
   }
-
-  // Update endstops state, if enabled
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (endstops.e_hit && ENDSTOPS_ENABLED) {
-      endstops.update();
-      endstops.e_hit--;
-    }
-  #else
-    if (ENDSTOPS_ENABLED) endstops.update();
-  #endif
 
   // Continuous firing of the laser during a move happens here, PPM and raster happen further down
   #if ENABLED(LASER)
@@ -2272,42 +2274,6 @@ void Stepper::disable_E0() {
   #endif
 }
 
-/**
- * Quickly stop all steppers and clear the blocks queue
- */
-void Stepper::quick_stop() {
-
-  // Disable stepper ISR
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
-
-  if (current_block) {
-    step_events_completed = current_block->step_event_count;
-    current_block = NULL;
-  }
-
-  // Reenable Stepper ISR
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
-
-}
-
-/**
- * Kill current block
- */
-void Stepper::kill_current_block() {
-
-  // Disable stepper ISR
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
-
-  if (current_block)
-    step_events_completed = current_block->step_event_count;
-
-  // Reenable Stepper ISR
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
-
-}
-
 void Stepper::endstop_triggered(const AxisEnum axis) {
 
   // Disable stepper ISR
@@ -2328,10 +2294,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   #endif // !COREXY && !COREXZ && !COREYZ
 
   // Discard the rest of the move if there is a current block
-  if (current_block) {
-    step_events_completed = current_block->step_event_count;
-    current_block = NULL;
-  }
+  quick_stop();
 
   // Reenable Stepper ISR
   if (isr_enabled) ENABLE_STEPPER_INTERRUPT();

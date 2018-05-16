@@ -574,21 +574,11 @@ void HAL::Tick() {
   #endif
 
   #if ENABLED(PINS_DEBUGGING)
-    extern bool endstop_monitor_flag;
-    // run the endstop monitor at 15Hz
-    static uint8_t endstop_monitor_count = 16;  // offset this check from the others
-    if (endstop_monitor_flag) {
-      endstop_monitor_count += _BV(1);  //  15 Hz
-      endstop_monitor_count &= 0x7F;
-      if (!endstop_monitor_count) endstops.endstop_monitor();  // report changes in endstop status
-    }
+    endstops.run_monitor();  // report changes in endstop status
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (endstops.e_hit && ENDSTOPS_ENABLED) {
-      endstops.update();  // call endstop update routine
-      endstops.e_hit--;
-    }
+    if (ENDSTOPS_ENABLED) endstops.update();
   #endif
 
 }

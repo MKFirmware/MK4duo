@@ -61,9 +61,17 @@ class Stepper {
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
+    static uint8_t  step_loops;
+
   private: /** Private Parameters */
 
-    static uint8_t last_direction_bits;   // The next stepping-bits to be output
+    static uint8_t last_direction_bits;           // The next stepping-bits to be output
+
+    static uint8_t last_extruder;                 // Last movement extruder, as computed when the last movement was fetched from planner
+
+    static bool last_movement_non_null[NUM_AXIS]; // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
+
+    static bool abort_current_block;              // Signals to the stepper that current block should be aborted
 
     #if ENABLED(X_TWO_ENDSTOPS)
       static bool locked_x_motor, locked_x2_motor;
@@ -113,7 +121,7 @@ class Stepper {
     #endif // !LIN_ADVANCE
 
     static uint32_t acceleration_time, deceleration_time;
-    static uint8_t  step_loops, step_loops_nominal;
+    static uint8_t  step_loops_nominal;
 
     static hal_timer_t ticks_nominal;
     #if DISABLED(BEZIER_JERK_CONTROL)
@@ -164,11 +172,6 @@ class Stepper {
      * This is called by the interrupt service routine to execute steps.
      */
     static hal_timer_t Step();
-
-    /**
-     * Set direction bits for all steppers
-     */
-    static void set_directions();
 
     /**
      * Get the position of a stepper, in steps
@@ -272,17 +275,32 @@ class Stepper {
     /**
      * Quickly stop all steppers and clear the blocks queue
      */
-    static void quick_stop();
-
-    /**
-     * Kill current block
-     */
-    static void kill_current_block();
+    FORCE_INLINE static void quick_stop() { abort_current_block = true; }
 
     /**
      * The direction of a single motor
      */
     FORCE_INLINE static bool motor_direction(const AxisEnum axis) { return TEST(last_direction_bits, axis); }
+
+    /**
+     * The last movement direction was not null on the specified axis. Note that motor direction is not necessarily the same.
+     */
+    FORCE_INLINE static bool movement_non_null(const AxisEnum axis) { return last_movement_non_null[axis]; }
+
+    /**
+     * The extruder associated to the last movement
+     */
+    FORCE_INLINE static uint8_t last_movement_e() { return last_extruder; }
+
+    /**
+     * Handle a triggered endstop
+     */
+    static void endstop_triggered(const AxisEnum axis);
+
+    /**
+     * Triggered position of an axis in steps
+     */
+    static int32_t triggered_position(const AxisEnum axis);
 
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digitalPotWrite(int address, int value);
@@ -309,16 +327,6 @@ class Stepper {
     #endif
 
     /**
-     * Handle a triggered endstop
-     */
-    static void endstop_triggered(const AxisEnum axis);
-
-    /**
-     * Triggered position of an axis in steps
-     */
-    static int32_t triggered_position(const AxisEnum axis);
-
-    /**
      * Flag Stepper direction function
      */
     FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
@@ -342,6 +350,11 @@ class Stepper {
      * Set current position in steps
      */
     static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+
+    /**
+     * Set direction bits for all steppers
+     */
+    static void set_directions();
 
     #if ENABLED(LIN_ADVANCE)
       // The Linear advance stepper Step
