@@ -391,7 +391,6 @@
     if (!isOK()) mount();
     
     if (isOK()) {
-      SERIAL_EM("Sono qui in autostart");
       char autoname[10];
       sprintf_P(autoname, PSTR("auto%i.g"), autostart_index);
       dir_t p;
