@@ -421,7 +421,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
    * the software endstop positions must be refreshed to remain
    * at the same positions relative to the machine.
    */
-  void Endstops::check_software(const AxisEnum axis) {
+  void Endstops::update_software_endstops(const AxisEnum axis) {
     const float offs = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
     mechanics.workspace_offset[axis] = offs;
