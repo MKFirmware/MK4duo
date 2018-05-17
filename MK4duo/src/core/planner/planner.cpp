@@ -674,8 +674,8 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
            final_rate   = CEIL(exit_factor  * block->nominal_rate); // (steps per second)
 
   // Limit minimal step rate (Otherwise the timer will overflow.)
-  NOLESS(initial_rate, MINIMAL_STEP_RATE);
-  NOLESS(final_rate, MINIMAL_STEP_RATE);
+  NOLESS(initial_rate,  uint32_t(MINIMAL_STEP_RATE));
+  NOLESS(final_rate,    uint32_t(MINIMAL_STEP_RATE));
 
   #if ENABLED(BEZIER_JERK_CONTROL)
     uint32_t cruise_rate = initial_rate;
@@ -695,7 +695,7 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
   // reach the final_rate exactly at the end of this block.
   if (plateau_steps < 0) {
     float accelerate_steps_float = CEIL(intersection_distance(initial_rate, final_rate, accel, block->step_event_count));
-    NOLESS(accelerate_steps_float, 0);          // Check limits due to numerical round-off
+    NOLESS(accelerate_steps_float, 0U);         // Check limits due to numerical round-off
     accelerate_steps = accelerate_steps_float;  //(We can cast here to unsigned, because the above line ensures that we are above zero)
     accelerate_steps = MIN(accelerate_steps, block->step_event_count);
     plateau_steps = 0;
@@ -725,7 +725,7 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 
   // Disable stepper ISR
   const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
   // Don't update variables if block is busy: It is being interpreted by the planner
   if (!TEST(block->flag, BLOCK_BIT_BUSY)) {
@@ -1028,6 +1028,10 @@ void Planner::quick_stop() {
   // That is why we set head to tail!
   block_buffer_head = block_buffer_tail;
 
+  // And restart the block delay for the first movement - As the queue was
+  // forced to empty, there is no risk the ISR could touch this variable.
+  delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;
+
   #if ENABLED(ULTRA_LCD)
     // Clear the accumulated runtime
     clear_block_buffer_runtime();
@@ -1064,7 +1068,7 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 
       // Disable stepper ISR
       const bool isr_enabled = STEPPER_ISR_ENABLED();
-      DISABLE_STEPPER_INTERRUPT();
+      if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
       // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
       // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
@@ -1670,7 +1674,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(ULTRA_LCD)
     // Disable stepper ISR
     const bool isr_enabled = STEPPER_ISR_ENABLED();
-    DISABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
     block_buffer_runtime_us += segment_time_us;
 

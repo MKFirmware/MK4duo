@@ -35,8 +35,6 @@
  *
  */
 
-bool endstop_monitor_flag = false;
-
 // first pass - put the name strings into FLASH
 
 #define _ADD_PIN_2(PIN_NAME, ENTRY_NAME)    static const char ENTRY_NAME[] PROGMEM = { PIN_NAME };

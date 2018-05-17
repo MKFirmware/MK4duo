@@ -350,13 +350,8 @@ void HAL_temp_isr() {
   pwm_count_heater  += HEATER_PWM_STEP;
   pwm_count_fan     += FAN_PWM_STEP;
 
-  #if ENABLED(PINS_DEBUGGING)
-    endstops.run_monitor();  // report changes in endstop status
-  #endif
-
-  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (ENDSTOPS_ENABLED) endstops.update();
-  #endif
+  // Tick endstops state, if required
+  endstops.Tick();
 
 }
 

@@ -168,12 +168,12 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
   #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                           \
     if (printer.isHoming()) {                                                                                                   \
       if (A##_HOME_DIR < 0) {                                                                                                   \
-        if (!(TEST(endstops.old_bits, A##_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
-        if (!(TEST(endstops.old_bits, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+        if (!(TEST(endstops.current_bits, A##_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
+        if (!(TEST(endstops.current_bits, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
       }                                                                                                                         \
       else {                                                                                                                    \
-        if (!(TEST(endstops.old_bits, A##_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
-        if (!(TEST(endstops.old_bits, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+        if (!(TEST(endstops.current_bits, A##_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);     \
+        if (!(TEST(endstops.current_bits, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
       }                                                                                                                         \
     }                                                                                                                           \
     else {                                                                                                                      \
@@ -1537,6 +1537,9 @@ uint32_t Stepper::block_phase_step() {
         set_directions();
       }
 
+      // Endstop Tick
+      endstops.Tick();
+
       // No acceleration / deceleration time elapsed so far
       acceleration_time = deceleration_time = 0;
 
@@ -2071,7 +2074,7 @@ int32_t Stepper::position(const AxisEnum axis) {
   #if ENABLED(__AVR__)
     // Protect the access to the variable. Only required for AVR.
     const bool isr_enabled = STEPPER_ISR_ENABLED();
-    DISABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
 
   const int32_t machine_pos = count_position[axis];
@@ -2278,7 +2281,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
 
   // Disable stepper ISR
   const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
   #if IS_CORE
 
@@ -2306,7 +2309,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
     // Protect the access to the variable. Only required for AVR.
     // Disable stepper ISR
     const bool isr_enabled = STEPPER_ISR_ENABLED();
-    DISABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
 
   const int32_t v = endstops_trigsteps[axis];
@@ -2323,7 +2326,7 @@ void Stepper::report_positions() {
 
   // Disable stepper ISR
   const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
   const int32_t xpos = count_position[X_AXIS],
                 ypos = count_position[Y_AXIS],

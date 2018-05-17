@@ -169,7 +169,7 @@
     NOMORE(segments, cartesian_mm * 4);
 
     // At least one segment is required
-    NOLESS(segments, 1);
+    NOLESS(segments, 1U);
 
     // The approximate length of each segment
     const float inv_segments = 1.0 / float(segments),

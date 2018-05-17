@@ -127,6 +127,11 @@ FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
 FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
   NVIC_DisableIRQ(IRQn);
+
+  // We NEED memory barriers to ensure Interrupts are actually disabled!
+  // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+  __DSB();
+  __ISB();
 }
 
 FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {

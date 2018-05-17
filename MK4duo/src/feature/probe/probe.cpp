@@ -83,7 +83,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  if (endstops.isProbeEndstop() == deploy) return false;
+  if (endstops.isProbeEnabled() == deploy) return false;
 
   // Make room for probe
   float z_dest = _Z_PROBE_DEPLOY_HEIGHT;
@@ -122,7 +122,7 @@ bool Probe::set_deployed(const bool deploy) {
                                                         // Would a goto be less ugly?
       //while (!_TRIGGERED_WHEN_STOWED_TEST) { printer.idle();  // would offer the opportunity
                                                         // for a triggered when stowed manual probe.
-      if (!deploy) endstops.setProbeEndstop(false);  // Switch off triggered when stowed probes early
+      if (!deploy) endstops.setProbeEnabled(false);  // Switch off triggered when stowed probes early
                                                     // otherwise an Allen-Key probe can't be stowed.
   #endif
 
@@ -150,7 +150,7 @@ bool Probe::set_deployed(const bool deploy) {
   #endif
 
   mechanics.do_blocking_move_to(oldXpos, oldYpos, mechanics.current_position[Z_AXIS]); // return to position before deploy
-  endstops.setProbeEndstop(deploy);
+  endstops.setProbeEnabled(deploy);
   return false;
 }
 

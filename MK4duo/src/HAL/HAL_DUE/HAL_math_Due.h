@@ -34,6 +34,9 @@ static FORCE_INLINE uint32_t MultiU32X32toH32(uint32_t longIn1,uint32_t longIn2)
 #undef MIN
 #undef MAX
 #undef ABS
+#undef NOMORE
+#undef NOLESS
+#undef LIMIT
 #undef ATAN2
 #undef POW
 #undef SQRT
@@ -54,15 +57,25 @@ static FORCE_INLINE uint32_t MultiU32X32toH32(uint32_t longIn1,uint32_t longIn2)
 #define SIN(x)      sinf(x)
 #define LOG(x)      logf(x)
 
-// Avoid double evaluation of arguments on MIN/MAX/ABS
 template <class A, class B> static inline constexpr auto MIN(const A a, const B b) -> decltype(a + b) {
   return a < b ? a : b;
 }
 template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b){
   return a > b ? a : b;
 }
-template <class T> static inline constexpr const T ABS(const T v) {
-  return v >= 0 ? v : -v;
+template <class A> static inline constexpr const A ABS(const A a) {
+  return a >= 0 ? a : -a;
+}
+
+template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) {
+  if (a < b) a = b;
+}
+template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) {
+  if (a > b) a = b;
+}
+template <class A, class B, class C> static inline constexpr void LIMIT(A& a, const B b, const C c) {
+  if (a < b) a = b;
+  else if (a > c) a = c;
 }
 
 // Class to perform averaging of values read from the ADC

@@ -30,8 +30,14 @@
   #include "../../HAL/HAL_endstop_interrupts.h"
 #endif
 
-// TEST_ENDSTOP: test the old and the current status of an endstop
-#define TEST_ENDSTOP(ENDSTOP) (TEST(current_bits & old_bits, ENDSTOP))
+// TEST_ENDSTOP: test the current status of an endstop
+#define TEST_ENDSTOP(ENDSTOP) (TEST(current_bits, ENDSTOP))
+
+#if HAS_BED_PROBE
+  #define ENDSTOPS_ENABLED  (endstops.isEnabled() || endstops.isProbeEnabled())
+#else
+  #define ENDSTOPS_ENABLED  endstops.isEnabled()
+#endif
 
 Endstops endstops;
 
@@ -54,12 +60,11 @@ Endstops endstops;
   float Endstops::z_endstop_adj = 0.0;
 #endif
 
-volatile char Endstops::hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+volatile uint8_t Endstops::hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 uint16_t  Endstops::logic_bits    = 0,
           Endstops::pullup_bits   = 0,
-          Endstops::current_bits  = 0,
-          Endstops::old_bits      = 0;
+          Endstops::current_bits  = 0;
 
 // Private
 uint8_t   Endstops::flag1_bits    = 0;
@@ -129,9 +134,26 @@ void Endstops::init() {
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    setup_endstop_interrupts();
+    setup_interrupts();
   #endif
 
+  setGlobally(
+    #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
+      false
+    #else
+      true
+    #endif
+  );
+
+}
+
+// Called from HAL::Tick or Temperature ISR: call endstop state if required
+void Endstops::Tick() {
+  #if ENABLED(PINS_DEBUGGING)
+    run_monitor();  // report changes in endstop status
+  #endif
+
+  if (ENDSTOPS_ENABLED) update();
 }
 
 void Endstops::setup_pullup() {
@@ -361,7 +383,7 @@ void Endstops::report_state() {
 /**
  * Constrain the given coordinates to the software endstops.
  */
-void Endstops::clamp_to_software_endstops(float target[XYZ]) {
+void Endstops::clamp_to_software(float target[XYZ]) {
 
   if (!isSoftEndstop()) return;
 
@@ -399,7 +421,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
    * the software endstop positions must be refreshed to remain
    * at the same positions relative to the machine.
    */
-  void Endstops::update_software_endstops(const AxisEnum axis) {
+  void Endstops::check_software(const AxisEnum axis) {
     const float offs = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
     mechanics.workspace_offset[axis] = offs;
@@ -448,7 +470,13 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
 #if ENABLED(PINS_DEBUGGING)
 
-  bool Endstops::monitor_flag = false;
+  void Endstops::run_monitor() {
+    if (!isMonitorEnabled()) return;
+    static uint8_t monitor_count = 16;  // offset this check from the others
+    monitor_count += _BV(1);            //  15 Hz
+    monitor_count &= 0x7F;
+    if (!monitor_count) monitor();      // report changes in endstop status
+  }
 
   /**
    * monitors endstops & Z probe for changes
@@ -553,7 +581,7 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 
 #endif // PINS_DEBUGGING
 
-// Check endstops - Called from ISR!
+// update endstops - Called from ISR!
 void Endstops::update() {
 
   #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
@@ -747,7 +775,7 @@ void Endstops::update() {
           test_two_z_endstops(Z_MIN, Z2_MIN);
         #else
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (isProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
+            if (isProbeEnabled()) UPDATE_ENDSTOP(Z, MIN);
           #else
             UPDATE_ENDSTOP(Z, MIN);
           #endif
@@ -756,7 +784,7 @@ void Endstops::update() {
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (isProbeEndstop()) {
+        if (isProbeEnabled()) {
           UPDATE_ENDSTOP(Z, PROBE);
           if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_bits, Z_PROBE);
         }
@@ -779,7 +807,4 @@ void Endstops::update() {
       #endif
     }
   }
-
-  old_bits = current_bits;
-
 } // Endstops::update()

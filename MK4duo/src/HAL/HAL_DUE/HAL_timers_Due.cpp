@@ -120,6 +120,11 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   // Disable interrupt, just in case it was already enabled
   NVIC_DisableIRQ(IRQn);
 
+  // We NEED memory barriers to ensure Interrupts are actually disabled!
+  // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+  __DSB();
+  __ISB();
+
   // Disable timer interrupt
   tc->TC_CHANNEL[channel].TC_IDR = TC_IDR_CPCS;
 

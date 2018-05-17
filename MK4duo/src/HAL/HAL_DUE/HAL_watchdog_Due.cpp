@@ -69,6 +69,11 @@
         // Initialize WDT with the given parameters
         WDT_Enable(WDT, value);
 
+        // We NEED memory barriers to ensure Interrupts are actually disabled!
+        // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+        __DSB();
+        __ISB();
+
         // Configure and enable WDT interrupt.
         NVIC_ClearPendingIRQ(WDT_IRQn);
         NVIC_SetPriority(WDT_IRQn, 0); // Use highest priority, so we detect all kinds of lockups
