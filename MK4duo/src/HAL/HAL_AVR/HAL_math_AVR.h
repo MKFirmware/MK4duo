@@ -117,6 +117,9 @@ static FORCE_INLINE uint16_t MultiU16X8toH16(uint8_t charIn1, uint16_t intIn2) {
 #undef MIN
 #undef MAX
 #undef ABS
+#undef NOMORE
+#undef NOLESS
+#undef LIMIT
 #undef ATAN2
 #undef POW
 #undef SQRT
@@ -146,6 +149,17 @@ template <class A, class B> static inline constexpr auto MAX(const A a, const B 
 }
 template <class T> static inline constexpr const T ABS(const T v) {
   return v >= 0 ? v : -v;
+}
+
+template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) {
+  if (a < b) a = b;
+}
+template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) {
+  if (a > b) a = b;
+}
+template <class A, class B, class C> static inline constexpr void LIMIT(A& a, const B b, const C c) {
+  if (a < b) a = b;
+  else if (a > c) a = c;
 }
 
 #endif /* _HAL_MATH_AVR_H_ */

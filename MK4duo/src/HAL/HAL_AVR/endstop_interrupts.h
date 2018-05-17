@@ -24,8 +24,8 @@
  * Endstop Interrupts
  *
  * Without endstop interrupts the endstop pins must be polled continually in
- * the stepper-ISR via endstops.update(), most of the time finding no change.
- * With this feature endstops.update() is called only when we know that at
+ * the stepper-ISR via endstop_ISR(), most of the time finding no change.
+ * With this feature endstop_ISR() is called only when we know that at
  * least one endstop has changed state, saving valuable CPU cycles.
  *
  * This feature only works when all used endstop pins can generate either an
@@ -93,7 +93,7 @@ void pciSetup(const pin_t pin) {
   ISR(PCINT3_vect) { endstop_ISR(); }
 #endif
 
-void Endstops::setup_endstop_interrupts(void) {
+void Endstops::setup_interrupts(void) {
 
   #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt
@@ -177,11 +177,11 @@ void Endstops::setup_endstop_interrupts(void) {
 
   #if HAS_Z_PROBE_PIN
     #if (digitalPinToInterrupt(Z_PROBE_PIN) != NOT_AN_INTERRUPT)
-      attachInterrupt(digitalPinToInterrupt(Z_MIN_PROBE_PIN), endstop_ISR, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(Z_PROBE_PIN), endstop_ISR, CHANGE);
     #else
       // Not all used endstop/probe -pins can raise interrupts. Please deactivate ENDSTOP_INTERRUPTS or change the pin configuration!
-      static_assert(digitalPinToPCICR(Z_MIN_PROBE_PIN) != NULL, "Z_MIN_PROBE_PIN is not interrupt-capable");
-      pciSetup(Z_MIN_PROBE_PIN);
+      static_assert(digitalPinToPCICR(Z_PROBE_PIN) != NULL, "Z_PROBE_PIN is not interrupt-capable");
+      pciSetup(Z_PROBE_PIN);
     #endif
   #endif
 

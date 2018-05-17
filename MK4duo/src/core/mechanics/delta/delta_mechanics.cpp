@@ -169,7 +169,7 @@
       uint16_t segments = delta_segments_per_second * seconds;
 
       // At least one segment is required
-      NOLESS(segments, 1);
+      NOLESS(segments, 1U);
 
       // The approximate length of each segment
       const float inv_segments = 1.0 / float(segments),

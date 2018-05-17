@@ -364,7 +364,7 @@ class Stepper {
     FORCE_INLINE static hal_timer_t calc_timer_interval(hal_timer_t step_rate) {
       hal_timer_t timer;
 
-      NOMORE(step_rate, MAX_STEP_FREQUENCY);
+      NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
 
       #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
         step_loops = 1;
@@ -387,7 +387,7 @@ class Stepper {
         timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
         NOLESS(timer, min_time_per_step);
       #else
-        NOLESS(step_rate, F_CPU / 500000);
+        NOLESS(step_rate, uint32_t(F_CPU / 500000U));
         step_rate -= F_CPU / 500000;  // Correct for minimal speed
         if (step_rate >= (8 * 256)) { // higher step rate
           uint8_t tmp_step_rate = (step_rate & 0x00FF);

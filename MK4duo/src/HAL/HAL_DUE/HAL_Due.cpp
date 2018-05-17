@@ -573,13 +573,8 @@ void HAL::Tick() {
 
   #endif
 
-  #if ENABLED(PINS_DEBUGGING)
-    endstops.run_monitor();  // report changes in endstop status
-  #endif
-
-  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (ENDSTOPS_ENABLED) endstops.update();
-  #endif
+  // Tick endstops state, if required
+  endstops.Tick();
 
 }
 

@@ -674,8 +674,8 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
            final_rate   = CEIL(exit_factor  * block->nominal_rate); // (steps per second)
 
   // Limit minimal step rate (Otherwise the timer will overflow.)
-  NOLESS(initial_rate, MINIMAL_STEP_RATE);
-  NOLESS(final_rate, MINIMAL_STEP_RATE);
+  NOLESS(initial_rate,  uint32_t(MINIMAL_STEP_RATE));
+  NOLESS(final_rate,    uint32_t(MINIMAL_STEP_RATE));
 
   #if ENABLED(BEZIER_JERK_CONTROL)
     uint32_t cruise_rate = initial_rate;
@@ -695,7 +695,7 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
   // reach the final_rate exactly at the end of this block.
   if (plateau_steps < 0) {
     float accelerate_steps_float = CEIL(intersection_distance(initial_rate, final_rate, accel, block->step_event_count));
-    NOLESS(accelerate_steps_float, 0);          // Check limits due to numerical round-off
+    NOLESS(accelerate_steps_float, 0U);         // Check limits due to numerical round-off
     accelerate_steps = accelerate_steps_float;  //(We can cast here to unsigned, because the above line ensures that we are above zero)
     accelerate_steps = MIN(accelerate_steps, block->step_event_count);
     plateau_steps = 0;

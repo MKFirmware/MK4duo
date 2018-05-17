@@ -475,9 +475,7 @@ void Commands::enqueue_and_echo_now_P(const char * const cmd) {
  * Clear the MK4duo command buffer_ring
  */
 void Commands::clear_queue() {
-  buffer_index_r = buffer_index_w = 0;
-  buffer_lenght = 0;
-  ZERO(buffer_ring[buffer_index_r]);
+  buffer_index_r = buffer_index_w = buffer_lenght = 0;
 }
 
 /**

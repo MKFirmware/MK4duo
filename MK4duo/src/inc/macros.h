@@ -140,10 +140,6 @@
 #define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
 
 // Macros to contrain values
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
-#define LIMIT(v,n1,n2)    do{ if (v < n1) v = n1; else if (v > n2) v = n2; }while(0)
-
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
 #define DECIMAL(a)        (NUMERIC(a) || a == '.')

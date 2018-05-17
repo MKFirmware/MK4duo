@@ -23,8 +23,8 @@
 #ifndef _HAL_ENDSTOP_INTERRUPTS_H_
 #define _HAL_ENDSTOP_INTERRUPTS_H_
 
-// One ISR for all EXT-Interrupts
-void endstop_ISR(void) { if (ENDSTOPS_ENABLED) endstops.update(); }
+// One ISR for all Endstop Interrupts
+void endstop_ISR(void) { endstops.Tick(); }
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include "HAL_DUE/endstop_interrupts.h"

@@ -24,8 +24,8 @@
  * Endstop Interrupts
  *
  * Without endstop interrupts the endstop pins must be polled continually in
- * the stepper-ISR via endstops.update(), most of the time finding no change.
- * With this feature endstops.update() is called only when we know that at
+ * the stepper-ISR via endstop_ISR(), most of the time finding no change.
+ * With this feature endstop_ISR() is called only when we know that at
  * least one endstop has changed state, saving valuable CPU cycles.
  *
  * This feature only works when all used endstop pins can generate an 'external interrupt'.
@@ -39,7 +39,7 @@
  *  On Due, all pins support external interrupt capability.
  */
 
-void Endstops::setup_endstop_interrupts(void) {
+void Endstops::setup_interrupts(void) {
 
   #if HAS_X_MAX
     attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it

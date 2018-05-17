@@ -570,7 +570,7 @@
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
-      endstops.update_software_endstops(axis);
+      endstops.check_software(axis);
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)

@@ -55,7 +55,7 @@
                   seglimit = lroundf(cartesian_xy_mm * (1.0 / (DELTA_SEGMENT_MIN_LENGTH))); // number of segments at minimum segment length
 
       NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)
-      NOLESS(segments, 1);        // must have at least one segment
+      NOLESS(segments, 1U);       // must have at least one segment
 
       const float inv_segments = 1.0 / segments;  // divide once, multiply thereafter
 

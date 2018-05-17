@@ -32,7 +32,8 @@ enum Flag1Enum : char {
   flag1_endstop_globally,
   flag1_soft_endstop,
   flag1_probe_endstop,
-  flag1_g38_endstop_hit
+  flag1_g38_endstop_hit,
+  flag1_monitor_flag
 };
   
 enum EndstopEnum : char {
@@ -58,15 +59,7 @@ class Endstops {
 
   public: /** Constructor */
 
-    Endstops() {
-      setGlobally(
-        #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-          false
-        #else
-          true
-        #endif
-      );
-    };
+    Endstops() {}
 
   public: /** Public Parameters */
 
@@ -87,17 +80,11 @@ class Endstops {
       static float z_endstop_adj;
     #endif
 
-    static volatile char hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
+    static volatile uint8_t hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
     static uint16_t logic_bits,
                     pullup_bits,
-                    current_bits,
-                    old_bits;
-
-    // Debugging of endstops
-    #if ENABLED(PINS_DEBUGGING)
-      static bool monitor_flag;
-    #endif
+                    current_bits;
 
   private: /** Private Parameters */
 
@@ -108,20 +95,20 @@ class Endstops {
     /**
      * Initialize the endstop pins
      */
-    void init();
+    static void init();
 
     /**
      * Setup Pullup
      */
-    void setup_pullup();
+    static void setup_pullup();
 
     /**
-     * Update the endstops bits from the pins
+     * Periodic call to Tick endstops if required.
      */
-    static void update();
+    static void Tick();
 
     /**
-     * Print logicl and pullup
+     * Print logical and pullup
      */
     static void report();
 
@@ -134,21 +121,14 @@ class Endstops {
     static void hit_on_purpose() { hit_bits = 0; }
 
     // Constrain the given coordinates to the software endstops.
-    void clamp_to_software_endstops(float target[XYZ]);
+    void clamp_to_software(float target[XYZ]);
 
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-      void update_software_endstops(const AxisEnum axis);
+      void check_software(const AxisEnum axis);
     #endif
 
     #if ENABLED(PINS_DEBUGGING)
-      static void monitor();
-      FORCE_INLINE static void run_monitor() {
-        if (!monitor_flag) return;
-        static uint8_t monitor_count = 16;  // offset this check from the others
-        monitor_count += _BV(1);            //  15 Hz
-        monitor_count &= 0x7F;
-        if (!monitor_count) monitor();      // report changes in endstop status
-      }
+      static void run_monitor();
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
@@ -163,6 +143,10 @@ class Endstops {
 
     FORCE_INLINE static void setEnabled(const bool onoff) {
       SET_BIT(flag1_bits, flag1_endstop_enabled, onoff);
+      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+        // If enabling endstops, make sure to update their state
+        if (onoff) update();
+      #endif
     }
     FORCE_INLINE static bool isEnabled() { return TEST(flag1_bits, flag1_endstop_enabled); }
 
@@ -177,23 +161,33 @@ class Endstops {
     }
     FORCE_INLINE static bool isSoftEndstop() { return TEST(flag1_bits, flag1_soft_endstop); }
 
-    FORCE_INLINE static void setProbeEndstop(const bool onoff) {
+    FORCE_INLINE static void setProbeEnabled(const bool onoff) {
       SET_BIT(flag1_bits, flag1_probe_endstop, onoff);
     }
-    FORCE_INLINE static bool isProbeEndstop() { return TEST(flag1_bits, flag1_probe_endstop); }
+    FORCE_INLINE static bool isProbeEnabled() { return TEST(flag1_bits, flag1_probe_endstop); }
 
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
       SET_BIT(flag1_bits, flag1_g38_endstop_hit, onoff);
     }
     FORCE_INLINE static bool isG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
 
+    FORCE_INLINE static void setMonitorEnabled(const bool onoff) {
+      SET_BIT(flag1_bits, flag1_monitor_flag, onoff);
+    }
+    FORCE_INLINE static bool isMonitorEnabled() { return TEST(flag1_bits, flag1_monitor_flag); }
+
     // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     FORCE_INLINE static void setNotHoming() { setEnabled(isGlobally()); }
 
   private: /** Private Function */
 
+    /**
+     * Update the endstops bits from the pins
+     */
+    static void update();
+
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-      static void setup_endstop_interrupts(void);
+      static void setup_interrupts(void);
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
@@ -206,14 +200,12 @@ class Endstops {
       static void test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2);
     #endif
 
+    #if ENABLED(PINS_DEBUGGING)
+      static void monitor();
+    #endif
+
 };
 
 extern Endstops endstops;
-
-#if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (endstops.isEnabled() || endstops.isProbeEndstop())
-#else
-  #define ENDSTOPS_ENABLED  endstops.isEnabled()
-#endif
 
 #endif /* _ENDSTOPS_H_ */

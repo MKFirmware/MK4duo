@@ -55,7 +55,7 @@ inline void gcode_G92(void) {
             mechanics.current_position[E_AXIS] = v; // When using coordinate spaces, only E is set directly
           else {
             mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
-            endstops.update_software_endstops((AxisEnum)i);
+            endstops.check_software((AxisEnum)i);
           }
         #else
           mechanics.current_position[i] = v;

@@ -221,9 +221,9 @@
 
     // Enable or disable endstop monitoring
     if (parser.seen('E')) {
-      endstop_monitor_flag = parser.value_bool();
+      endstops.setMonitorEnabled(parser.value_bool());
       SERIAL_MSG("endstop monitor ");
-      SERIAL_TXT(endstop_monitor_flag ? "en" : "dis");
+      SERIAL_TXT(endstops.isMonitorEnabled() ? "en" : "dis");
       SERIAL_EM("abled");
       return;
     }

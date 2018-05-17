@@ -259,7 +259,7 @@ void EEPROM::Postprocess() {
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
     // Software endstops depend on home_offset
-    LOOP_XYZ(i) endstops.update_software_endstops((AxisEnum)i);
+    LOOP_XYZ(i) endstops.check_software((AxisEnum)i);
   #endif
 
   #if HAS_LEVELING && ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

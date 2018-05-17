@@ -145,7 +145,7 @@ void Mechanics::line_to_destination(float fr_mm_s) {
  * do smaller moves for DELTA, SCARA, mesh moves, etc.
  */
 void Mechanics::prepare_move_to_destination() {
-  endstops.clamp_to_software_endstops(destination);
+  endstops.clamp_to_software(destination);
 
   #if ENABLED(DUAL_X_CARRIAGE)
     if (dual_x_carriage_unpark()) return;
@@ -694,7 +694,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
       raw[l_axis] += linear_per_segment;
       raw[E_AXIS] += extruder_per_segment;
 
-      endstops.clamp_to_software_endstops(raw);
+      endstops.clamp_to_software(raw);
 
       if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
         break;
@@ -719,7 +719,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
     home_offset[axis] = v;
-    endstops.update_software_endstops(axis);
+    endstops.check_software(axis);
   }
 
   float Mechanics::native_to_logical(const float pos, const AxisEnum axis) {
