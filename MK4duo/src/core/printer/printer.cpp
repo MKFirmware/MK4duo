@@ -186,7 +186,7 @@ void Printer::setup() {
 
   mechanics.init();
 
-  // Init endstops and pullups
+  // Init endstops
   endstops.init();
 
   // Load data from EEPROM if available (or use defaults)
@@ -380,6 +380,12 @@ void Printer::check_periodical_actions() {
       #if ENABLED(NEXTION)
         nextion_draw_update();
       #endif
+      if (planner.cleaning_buffer_flag) {
+        planner.cleaning_buffer_flag = false;
+        #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
+          commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+        #endif
+      }
     }
 
     // Event 2.5 Second
