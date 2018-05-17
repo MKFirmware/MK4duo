@@ -577,7 +577,7 @@ void HAL::Tick() {
     endstops.run_monitor();  // report changes in endstop status
   #endif
 
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
     if (ENDSTOPS_ENABLED) endstops.update();
   #endif
 
