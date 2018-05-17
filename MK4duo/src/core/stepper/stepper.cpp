@@ -1537,6 +1537,9 @@ uint32_t Stepper::block_phase_step() {
         set_directions();
       }
 
+      // Update Endstops
+      if (ENDSTOPS_ENABLED) endstops.update();
+
       // No acceleration / deceleration time elapsed so far
       acceleration_time = deceleration_time = 0;
 
@@ -2071,7 +2074,7 @@ int32_t Stepper::position(const AxisEnum axis) {
   #if ENABLED(__AVR__)
     // Protect the access to the variable. Only required for AVR.
     const bool isr_enabled = STEPPER_ISR_ENABLED();
-    DISABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
 
   const int32_t machine_pos = count_position[axis];
@@ -2278,7 +2281,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
 
   // Disable stepper ISR
   const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
   #if IS_CORE
 
@@ -2306,7 +2309,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
     // Protect the access to the variable. Only required for AVR.
     // Disable stepper ISR
     const bool isr_enabled = STEPPER_ISR_ENABLED();
-    DISABLE_STEPPER_INTERRUPT();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
 
   const int32_t v = endstops_trigsteps[axis];
@@ -2323,7 +2326,7 @@ void Stepper::report_positions() {
 
   // Disable stepper ISR
   const bool isr_enabled = STEPPER_ISR_ENABLED();
-  DISABLE_STEPPER_INTERRUPT();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
   const int32_t xpos = count_position[X_AXIS],
                 ypos = count_position[Y_AXIS],
