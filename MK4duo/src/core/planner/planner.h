@@ -481,7 +481,7 @@ class Planner {
         #if ENABLED(__AVR__)
           // Protect the access to the variable. Only required for AVR.
           const bool isr_enabled = STEPPER_ISR_ENABLED();
-          DISABLE_STEPPER_INTERRUPT();
+          if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
         #endif
 
         millis_t bbru = block_buffer_runtime_us;
@@ -504,7 +504,7 @@ class Planner {
         #if ENABLED(__AVR__)
           // Protect the access to the variable. Only required for AVR.
           const bool isr_enabled = STEPPER_ISR_ENABLED();
-          DISABLE_STEPPER_INTERRUPT();
+          if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
         #endif
 
         block_buffer_runtime_us = 0;
