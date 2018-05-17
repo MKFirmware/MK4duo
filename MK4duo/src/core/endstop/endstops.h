@@ -124,7 +124,7 @@ class Endstops {
     void clamp_to_software(float target[XYZ]);
 
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-      void check_software(const AxisEnum axis);
+      void update_software_endstops(const AxisEnum axis);
     #endif
 
     #if ENABLED(PINS_DEBUGGING)

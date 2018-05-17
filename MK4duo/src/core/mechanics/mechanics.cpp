@@ -719,7 +719,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
     home_offset[axis] = v;
-    endstops.check_software(axis);
+    endstops.update_software_endstops(axis);
   }
 
   float Mechanics::native_to_logical(const float pos, const AxisEnum axis) {
