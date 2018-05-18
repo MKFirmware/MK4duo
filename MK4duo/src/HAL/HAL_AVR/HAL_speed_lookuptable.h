@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _SPEED_LOOKUPTABLE_H_
-#define _SPEED_LOOKUPTABLE_H_
+#ifndef _HAL_SPEED_LOOKUPTABLE_H_
+#define _HAL_SPEED_LOOKUPTABLE_H_
 
 #if F_CPU == 16000000
 
@@ -169,4 +169,4 @@
 
 #endif
 
-#endif /* _SPEED_LOOKUPTABLE_H_ */
+#endif /* _HAL_SPEED_LOOKUPTABLE_H_ */

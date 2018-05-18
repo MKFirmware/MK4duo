@@ -149,7 +149,7 @@ class Planner {
 
   public: /** Constructor */
 
-    Planner();
+    Planner() {}
 
   public: /** Public Parameters */
 
@@ -169,6 +169,7 @@ class Planner {
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
                             block_buffer_tail;        // Index of the busy block, if any
+    static uint8_t          block_buffer_planned;     // Index of the optimally planned block
 
     static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
 
@@ -227,8 +228,6 @@ class Planner {
     #endif
 
   public: /** Public Function */
-
-    void init();
 
     static void reset_acceleration_rates();
     static void refresh_positioning();
@@ -372,11 +371,6 @@ class Planner {
     FORCE_INLINE static void set_e_position_mm(const float &e) { set_position_mm(E_AXIS, e); }
 
     /**
-     * Sync from the stepper positions. (e.g., after an interrupted move)
-     */
-    static void sync_from_steppers();
-
-    /**
      * Get an axis position according to stepper position(s)
      * For CORE machines apply translation from ABC to XYZ.
      */
@@ -426,7 +420,14 @@ class Planner {
      * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
-      block_buffer_tail = BLOCK_MOD(block_buffer_tail + 1);
+      if (block_buffer_head != block_buffer_tail) { // Discard non-empty buffer.
+        uint8_t block_index = next_block_index( block_buffer_tail );
+        // Push block_buffer_planned pointer, if encountered.
+        if (block_buffer_tail == block_buffer_planned) {
+          block_buffer_planned = block_index;
+        }
+        block_buffer_tail = block_index;
+      }
     }
 
     /**
@@ -455,9 +456,7 @@ class Planner {
         block_t * const block = &block_buffer[block_buffer_tail];
 
         // No trapezoid calculated? Don't execute yet.
-        if ( TEST(block->flag, BLOCK_BIT_RECALCULATE) || (movesplanned() > 1
-          && TEST(block_buffer[next_block_index(block_buffer_tail)].flag, BLOCK_BIT_RECALCULATE))
-        ) return NULL;
+        if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return NULL;
 
         #if ENABLED(ULTRA_LCD)
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
@@ -529,8 +528,8 @@ class Planner {
     /**
      * Get the index of the next / previous block in the ring buffer
      */
-    static constexpr int8_t next_block_index(const int8_t block_index) { return BLOCK_MOD(block_index + 1); }
-    static constexpr int8_t prev_block_index(const int8_t block_index) { return BLOCK_MOD(block_index - 1); }
+    static constexpr uint8_t next_block_index(const uint8_t block_index) { return BLOCK_MOD(block_index + 1); }
+    static constexpr uint8_t prev_block_index(const uint8_t block_index) { return BLOCK_MOD(block_index - 1); }
 
     /**
      * Calculate the distance (not time) it takes to accelerate
@@ -575,7 +574,7 @@ class Planner {
     static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
 
     static void reverse_pass_kernel(block_t* const current, const block_t * const next);
-    static void forward_pass_kernel(const block_t * const previous, block_t* const current);
+    static void forward_pass_kernel(const block_t * const previous, block_t* const current, uint8_t block_index);
 
     static void reverse_pass();
     static void forward_pass();

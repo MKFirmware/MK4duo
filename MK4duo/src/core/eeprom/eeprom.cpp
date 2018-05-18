@@ -2231,12 +2231,12 @@ void EEPROM::Factory_Settings() {
     SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
     SERIAL_MV(" Y", (int)stepper.isStepDir(Y_AXIS));
     SERIAL_MV(" Z", (int)stepper.isStepDir(Z_AXIS));
-    #if EXTRUDERS == 1
+    #if DRIVER_EXTRUDERS == 1
       SERIAL_MV(" T0 E", (int)stepper.isStepDir(E_AXIS));
     #endif
     SERIAL_EOL();
-    #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
+    #if DRIVER_EXTRUDERS > 1
+      for (int8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
         SERIAL_SMV(CFG, "  M569 T", i);
         SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
       }
