@@ -57,10 +57,6 @@
 #include "../../../MK4duo.h"
 #include "stepper.h"
 
-#if ENABLED(__AVR__)
-  #include "speed_lookuptable.h"
-#endif
-
 Stepper stepper;
 
 // public:
@@ -110,24 +106,24 @@ uint32_t Stepper::step_events_completed = 0; // The number of step events execut
   bool Stepper::bezier_2nd_half;    // =false If Bézier curve has been initialized or not
 #endif
 
-hal_timer_t Stepper::nextMainISR = 0;
+uint32_t Stepper::nextMainISR = 0;
+
 bool Stepper::all_steps_done = false;
 
 #if ENABLED(LIN_ADVANCE)
 
-  uint32_t    Stepper::LA_decelerate_after;
+  uint32_t  Stepper::LA_decelerate_after  = 0,
+            Stepper::nextAdvanceISR       = HAL_TIMER_TYPE_MAX,
+            Stepper::eISR_Rate            = HAL_TIMER_TYPE_MAX;
 
-  hal_timer_t Stepper::nextAdvanceISR = HAL_TIMER_TYPE_MAX,
-              Stepper::eISR_Rate      = HAL_TIMER_TYPE_MAX;
+  uint16_t  Stepper::current_adv_steps    = 0,
+            Stepper::final_adv_steps      = 0,
+            Stepper::max_adv_steps        = 0;
 
-  uint16_t    Stepper::current_adv_steps  = 0,
-              Stepper::final_adv_steps    = 0,
-              Stepper::max_adv_steps      = 0;
+  int8_t    Stepper::e_steps              = 0,
+            Stepper::LA_active_extruder   = 0;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-  int8_t      Stepper::e_steps            = 0,
-              Stepper::LA_active_extruder = 0;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
-
-  bool        Stepper::use_advance_lead   = false;
+  bool      Stepper::use_advance_lead     = false;
 
 #endif // LIN_ADVANCE
 
@@ -148,10 +144,10 @@ volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
   #endif // LASER_RASTER
 #endif // LASER
 
-hal_timer_t   Stepper::ticks_nominal = 0;
+uint32_t Stepper::ticks_nominal = 0;
 
 #if DISABLED(BEZIER_JERK_CONTROL)
-  hal_timer_t Stepper::acc_step_rate = 0; // needed for deceleration start point
+  uint32_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
 uint8_t Stepper::step_loops_nominal = 0;
@@ -1127,7 +1123,7 @@ void Stepper::set_directions() {
 
 hal_timer_t Stepper::Step() {
 
-  hal_timer_t interval;
+  uint32_t interval;
 
   // Run main stepping pulse phase ISR
   if (!nextMainISR) pulse_phase_step();
@@ -1163,7 +1159,7 @@ hal_timer_t Stepper::Step() {
       nextAdvanceISR -= interval;
   #endif
 
-  return interval;
+  return (hal_timer_t)interval;
 
 }
 
@@ -1304,7 +1300,7 @@ void Stepper::pulse_phase_step() {
 
     // For a minimum pulse time wait before stopping pulses
     #if EXTRA_CYCLES_AXIS > 20
-      while (EXTRA_CYCLES_AXIS > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+      while (EXTRA_CYCLES_AXIS > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
       pulse_start = HAL_timer_get_current_count(STEPPER_TIMER);
     #elif EXTRA_CYCLES_AXIS > 0
       HAL::delayNanoseconds(EXTRA_CYCLES_AXIS * NS_PER_CYCLE);
@@ -1370,7 +1366,7 @@ void Stepper::pulse_phase_step() {
 
     // For minimum pulse time wait after stopping pulses also
     #if EXTRA_CYCLES_AXIS > 20
-      if (step) while (EXTRA_CYCLES_AXIS > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+      if (step) while (EXTRA_CYCLES_AXIS > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
     #elif EXTRA_CYCLES_AXIS > 0
       if (step) HAL::delayNanoseconds(EXTRA_CYCLES_AXIS * NS_PER_CYCLE);
     #endif
@@ -1382,7 +1378,7 @@ void Stepper::pulse_phase_step() {
 uint32_t Stepper::block_phase_step() {
 
   // If no queued movements, just wait 1ms for the next move
-  hal_timer_t interval = (HAL_TIMER_RATE / 1000);
+  uint32_t interval = (HAL_TIMER_RATE / 1000);
 
   // If there is a current block
   if (current_block) {
@@ -1392,7 +1388,7 @@ uint32_t Stepper::block_phase_step() {
 
       #if ENABLED(BEZIER_JERK_CONTROL)
         // Get the next speed to use (Jerk limited!)
-        hal_timer_t acc_step_rate =
+        uint32_t acc_step_rate =
           acceleration_time < current_block->acceleration_time
             ? _eval_bezier_curve(acceleration_time)
             : current_block->cruise_rate;
@@ -1402,7 +1398,7 @@ uint32_t Stepper::block_phase_step() {
       #endif
 
       // step_rate to timer interval
-      interval = calc_timer_interval(acc_step_rate);
+      interval = HAL_calc_timer_interval(acc_step_rate);
       acceleration_time += interval;
 
       #if ENABLED(LIN_ADVANCE)
@@ -1421,7 +1417,7 @@ uint32_t Stepper::block_phase_step() {
       #endif // ENABLED(LIN_ADVANCE)
     }
     else if (step_events_completed > (uint32_t)current_block->decelerate_after) {
-      hal_timer_t step_rate;
+      uint32_t step_rate;
 
       #if ENABLED(BEZIER_JERK_CONTROL)
         // If this is the 1st time we process the 2nd half of the trapezoid...
@@ -1451,7 +1447,7 @@ uint32_t Stepper::block_phase_step() {
       #endif
 
       // step_rate to timer interval
-      interval = calc_timer_interval(step_rate);
+      interval = HAL_calc_timer_interval(step_rate);
       deceleration_time += interval;
 
       #if ENABLED(LIN_ADVANCE)
@@ -1547,7 +1543,7 @@ uint32_t Stepper::block_phase_step() {
       step_events_completed = 0;
 
       // step_rate to timer interval
-      ticks_nominal = calc_timer_interval(current_block->nominal_rate);
+      ticks_nominal = HAL_calc_timer_interval(current_block->nominal_rate);
 
       // make a note of the number of step loops required at nominal speed
       step_loops_nominal = step_loops;
@@ -1630,7 +1626,7 @@ uint32_t Stepper::block_phase_step() {
   // Timer interrupt for E. e_steps is set in the main routine;
   uint32_t Stepper::lin_advance_step() {
 
-    hal_timer_t interval;
+    uint32_t interval;
 
     #if ENABLED(DUAL_X_CARRIAGE)
       #define SET_E_STEP_DIR(INDEX) do{ if (e_steps) { if (e_steps < 0) REV_E_DIR(); else NORM_E_DIR(); } }while(0)
@@ -1740,7 +1736,7 @@ uint32_t Stepper::block_phase_step() {
 
       // For minimum pulse time wait before looping
       #if EXTRA_CYCLES_E > 20
-        if (e_steps) while (EXTRA_CYCLES_E > (hal_timer_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+        if (e_steps) while (EXTRA_CYCLES_E > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
       #elif EXTRA_CYCLES_E > 0
         if (e_steps) HAL::delayNanoseconds(EXTRA_CYCLES_E * NS_PER_CYCLE);
       #endif

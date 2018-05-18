@@ -152,6 +152,34 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
 }
 
+uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
+
+  NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
+
+  #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
+    stepper.step_loops = 1;
+  #else
+    if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
+      step_rate >>= 2;
+      stepper.step_loops = 4;
+    }
+    else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+      step_rate >>= 1;
+      stepper.step_loops = 2;
+    }
+    else
+      stepper.step_loops = 1;
+  #endif
+
+  // In case of high-performance processor, it is able to calculate in real-time
+  const uint32_t min_time_per_step = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
+  uint32_t timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
+  NOLESS(timer, min_time_per_step);
+
+  return timer;
+
+}
+
 /**
  * Interrupt Service Routines
  */
@@ -165,7 +193,7 @@ STEPPER_TIMER_ISR {
   // Call the Step
   hal_timer_t ticks = stepper.Step();
 
-  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
+  const hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
   NOLESS(ticks, minticks);
 
   // Schedule next interrupt

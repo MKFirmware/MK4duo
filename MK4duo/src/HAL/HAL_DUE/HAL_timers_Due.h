@@ -119,6 +119,8 @@ extern const tTimerConfig TimerConfig[];
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
+uint32_t HAL_calc_timer_interval(uint32_t step_rate);
+
 FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
   NVIC_EnableIRQ(IRQn);
@@ -139,23 +141,23 @@ FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num)
   return (NVIC->ISER[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)));
 }
 
-FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
+FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
 }
 
-FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_timer_t count) {
+FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
 }
 
-FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
+FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
 }
 
 FORCE_INLINE static void HAL_timer_restricts(const uint8_t timer_num, const uint16_t interval_ticks) {
-  const hal_timer_t mincmp = HAL_timer_get_current_count(timer_num) + interval_ticks;
+  const uint32_t mincmp = HAL_timer_get_current_count(timer_num) + interval_ticks;
   if (HAL_timer_get_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
 }
 

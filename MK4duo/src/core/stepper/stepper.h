@@ -43,10 +43,6 @@
 #ifndef _STEPPER_H_
 #define _STEPPER_H_
 
-#if ENABLED(__AVR__)
-  #include "speed_lookuptable.h"
-#endif
-
 #include "stepper_indirection.h"
 
 class Stepper {
@@ -99,33 +95,33 @@ class Stepper {
       static bool bezier_2nd_half;  // If Bézier curve has been initialized or not
     #endif
 
-    static hal_timer_t nextMainISR; // time remaining for the next Step ISR
+    static uint32_t nextMainISR;    // time remaining for the next Step ISR
+
     static bool all_steps_done;     // all steps done
 
     #if ENABLED(LIN_ADVANCE)
 
-      static uint32_t     LA_decelerate_after;  // Copy from current executed block. Needed because current_block is set to NULL "too early".
+      static uint32_t LA_decelerate_after,  // Copy from current executed block. Needed because current_block is set to NULL "too early".
+                      nextAdvanceISR,
+                      eISR_Rate;
 
-      static hal_timer_t  nextAdvanceISR,
-                          eISR_Rate;
+      static uint16_t current_adv_steps,
+                      final_adv_steps,
+                      max_adv_steps;        // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-      static uint16_t     current_adv_steps,
-                          final_adv_steps,
-                          max_adv_steps;        // Copy from current executed block. Needed because current_block is set to NULL "too early".
+      static int8_t   e_steps,
+                      LA_active_extruder;   // Copy from current executed block. Needed because current_block is set to NULL "too early".
 
-      static int8_t       e_steps,
-                          LA_active_extruder;   // Copy from current executed block. Needed because current_block is set to NULL "too early".
-
-      static bool         use_advance_lead;
+      static bool     use_advance_lead;
 
     #endif // !LIN_ADVANCE
 
     static uint32_t acceleration_time, deceleration_time;
     static uint8_t  step_loops_nominal;
 
-    static hal_timer_t ticks_nominal;
+    static uint32_t ticks_nominal;
     #if DISABLED(BEZIER_JERK_CONTROL)
-      static hal_timer_t acc_step_rate; // needed for deceleration start point
+      static uint32_t acc_step_rate; // needed for deceleration start point
     #endif
 
     static volatile int32_t endstops_trigsteps[XYZ];
@@ -360,57 +356,6 @@ class Stepper {
       // The Linear advance stepper Step
       static uint32_t lin_advance_step();
     #endif
-
-    FORCE_INLINE static hal_timer_t calc_timer_interval(hal_timer_t step_rate) {
-      hal_timer_t timer;
-
-      NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
-
-      #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
-        step_loops = 1;
-      #else
-        if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
-          step_rate >>= 2;
-          step_loops = 4;
-        }
-        else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
-          step_rate >>= 1;
-          step_loops = 2;
-        }
-        else
-          step_loops = 1;
-      #endif
-
-      #if ENABLED(CPU_32_BIT)
-        // In case of high-performance processor, it is able to calculate in real-time
-        const uint32_t min_time_per_step = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
-        timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
-        NOLESS(timer, min_time_per_step);
-      #else
-        NOLESS(step_rate, uint32_t(F_CPU / 500000U));
-        step_rate -= F_CPU / 500000;  // Correct for minimal speed
-        if (step_rate >= (8 * 256)) { // higher step rate
-          uint8_t tmp_step_rate = (step_rate & 0x00FF);
-          uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0];
-          uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
-          timer = MultiU16X8toH16(tmp_step_rate, gain);
-          timer = (uint16_t)pgm_read_word_near(table_address) - timer;
-        }
-        else { // lower step rates
-          uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
-          table_address += ((step_rate) >> 1) & 0xFFFC;
-          timer = (uint16_t)pgm_read_word_near(table_address);
-          timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
-        }
-
-        if (timer < 100) { // (20kHz this should never happen)
-          timer = 100;
-          SERIAL_EMV("Steprate too high: ", step_rate);
-        }
-      #endif
-
-      return timer;
-    }
 
     #if ENABLED(BABYSTEPPING)
       static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention

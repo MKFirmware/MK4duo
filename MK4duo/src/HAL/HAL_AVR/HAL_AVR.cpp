@@ -105,6 +105,52 @@ void HAL_temp_timer_start() {
   TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
 }
 
+uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
+
+  uint32_t timer = 0;
+
+  NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
+
+  #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
+    stepper.step_loops = 1;
+  #else
+    if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
+      step_rate >>= 2;
+      stepper.step_loops = 4;
+    }
+    else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+      step_rate >>= 1;
+      stepper.step_loops = 2;
+    }
+    else
+      stepper.step_loops = 1;
+  #endif
+
+  NOLESS(step_rate, uint32_t(F_CPU / 500000U));
+  step_rate -= F_CPU / 500000;  // Correct for minimal speed
+  if (step_rate >= (8 * 256)) { // higher step rate
+    uint8_t tmp_step_rate = (step_rate & 0x00FF);
+    uint16_t table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0];
+    uint16_t gain = (uint16_t)pgm_read_word_near(table_address + 2);
+    timer = MultiU16X8toH16(tmp_step_rate, gain);
+    timer = (uint16_t)pgm_read_word_near(table_address) - timer;
+  }
+  else { // lower step rates
+    uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
+    table_address += ((step_rate) >> 1) & 0xFFFC;
+    timer = (uint16_t)pgm_read_word_near(table_address);
+    timer -= (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
+  }
+
+  if (timer < 100) { // (20kHz this should never happen)
+    timer = 100;
+    SERIAL_EMV("Steprate too high: ", step_rate);
+  }
+
+  return timer;
+
+}
+
 bool HAL::execute_100ms = false;
 
 // Return available memory
@@ -382,7 +428,7 @@ HAL_STEPPER_TIMER_ISR {
   // Call the ISR
   hal_timer_t ticks = stepper.Step();
 
-  hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
+  const hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
   NOLESS(ticks, minticks);
 
   // Schedule next interrupt

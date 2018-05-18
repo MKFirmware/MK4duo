@@ -82,6 +82,7 @@ typedef uint16_t  ptr_int_t;
 #include "HAL_math_AVR.h"
 #include "HAL_delay_AVR.h"
 #include "HAL_watchdog_AVR.h"
+#include "HAL_speed_lookuptable.h"
 
 // Serial
 //#define EXTERNALSERIAL  // Force using arduino serial
@@ -359,6 +360,8 @@ class InterruptProtectedBlock {
 
 void HAL_stepper_timer_start();
 void HAL_temp_timer_start();
+
+uint32_t HAL_calc_timer_interval(uint32_t step_rate);
 
 class HAL {
 

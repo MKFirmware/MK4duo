@@ -47,13 +47,17 @@ inline void gcode_M569(void) {
   SERIAL_MT(" Y dir:", stepper.isStepDir(Y_AXIS) ? "true" : "false");
   SERIAL_MV(" Z dir:", stepper.isStepDir(Z_AXIS) ? "true" : "false");
 
-  #if EXTRUDERS == 1
+  #if DRIVER_EXTRUDERS == 1
     SERIAL_EMV(" E dir:", stepper.isStepDir(E_AXIS) ? "true" : "false");
   #endif
 
-  #if EXTRUDERS > 1
-    for (int8_t i = 0; i < EXTRUDERS; i++) {
-      SERIAL_MV(" Extruder:", (int)i);
+  #if DRIVER_EXTRUDERS > 1
+    for (int8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
+      #if HAS_MKMULTI_TOOLS
+        SERIAL_MV(" Driver Extruder:", (int)i);
+      #else
+        SERIAL_MV(" Extruder:", (int)i);
+      #endif
       SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)(E_AXIS + i)) ? "true" : "false");
     }
   #endif
