@@ -46,13 +46,6 @@ char* i8tostr3(const uint8_t i) {
   return &conv[4];
 }
 
-// Convert unsigned int to string with 12 format
-char* itostr2(const uint8_t i) {
-  conv[5] = DIGIMOD(i, 10);
-  conv[6] = DIGIMOD(i, 1);
-  return &conv[5];
-}
-
 // Convert signed int to rj string with 123 or -12 format
 char* itostr3(int i) {
   conv[4] = MINUSOR(i, RJDIGIT(i, 100));
@@ -113,7 +106,7 @@ char* ftostr12ns(const float &f) {
 }
 
 // Convert signed float to fixed-length string with 023.45 / -23.45 format
-char* ftostr32(const float &f) {
+char* ftostr52(const float &f) {
   long i = (f * 1000 + (f < 0 ? -5: 5)) / 10;
   conv[1] = MINUSOR(i, DIGIMOD(i, 10000));
   conv[2] = DIGIMOD(i, 1000);
