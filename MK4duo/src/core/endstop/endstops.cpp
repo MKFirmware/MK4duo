@@ -566,7 +566,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 #endif // PINS_DEBUGGING
 
 #if ENABLED(X_TWO_ENDSTOPS)
-  void Endstops::test_dual_x_endstops(const EndstopEnum es1, const EndstopEnum es2) {
+  void Endstops::test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte x_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for X, bit 1 for X2
     if (x_test && stepper.movement_non_null(X_AXIS)) {
       SBI(hit_bits, X_MIN);
@@ -576,7 +576,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   }
 #endif
 #if ENABLED(Y_TWO_ENDSTOPS)
-  void Endstops::test_dual_y_endstops(const EndstopEnum es1, const EndstopEnum es2) {
+  void Endstops::test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte y_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Y, bit 1 for Y2
     if (y_test && stepper.movement_non_null(Y_AXIS)) {
       SBI(hit_bits, Y_MIN);
@@ -586,7 +586,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   }
 #endif
 #if ENABLED(Z_TWO_ENDSTOPS)
-  void Endstops::test_dual_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
+  void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
     if (z_test && stepper.movement_non_null(Z_AXIS)) {
       SBI(hit_bits, Z_MIN);
@@ -721,7 +721,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, X_MIN, X2_MIN);
           #endif
-          test_dual_x_endstops(X_MIN, X2_MIN);
+          test_two_x_endstops(X_MIN, X2_MIN);
         #else
           if (X_MIN_TEST) UPDATE_ENDSTOP(X, MIN);
         #endif
@@ -736,7 +736,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, X_MAX, X2_MAX);
           #endif
-          test_dual_x_endstops(X_MAX, X2_MAX);
+          test_two_x_endstops(X_MAX, X2_MAX);
         #else
           if (X_MAX_TEST) UPDATE_ENDSTOP(X, MAX);
         #endif
@@ -754,7 +754,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, Y_MIN, Y2_MIN);
           #endif
-          test_dual_y_endstops(Y_MIN, Y2_MIN);
+          test_two_y_endstops(Y_MIN, Y2_MIN);
         #else
           UPDATE_ENDSTOP(Y, MIN);
         #endif
@@ -769,7 +769,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, Y_MAX, Y2_MAX);
           #endif
-          test_dual_y_endstops(Y_MAX, Y2_MAX);
+          test_two_y_endstops(Y_MAX, Y2_MAX);
         #else
           UPDATE_ENDSTOP(Y, MAX);
         #endif
@@ -787,7 +787,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, Z_MIN, Z2_MIN);
           #endif
-          test_dual_z_endstops(Z_MIN, Z2_MIN);
+          test_two_z_endstops(Z_MIN, Z2_MIN);
         #else
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
             if (isProbeEnabled()) UPDATE_ENDSTOP(Z, MIN);
@@ -815,7 +815,7 @@ void Endstops::update() {
           #else
             COPY_BIT(current_bits, Z_MAX, Z2_MAX);
           #endif
-          test_dual_z_endstops(Z_MAX, Z2_MAX);
+          test_two_z_endstops(Z_MAX, Z2_MAX);
         #else
           UPDATE_ENDSTOP(Z, MAX);
         #endif
