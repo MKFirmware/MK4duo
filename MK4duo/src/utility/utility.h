@@ -43,9 +43,6 @@ void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
 // Convert uint8_t to string with 123 format
 char* i8tostr3(const uint8_t i);
 
-// Convert unsigned int to string with 12 format
-char* itostr2(const uint8_t i);
-
 // Convert signed int to rj string with 123 or -12 format
 char* itostr3(int i);
 
@@ -59,7 +56,7 @@ char* itostr4sign(const int i);
 char* ftostr12ns(const float &f);
 
 // Convert signed float to fixed-length string with 023.45 / -23.45 format
-char* ftostr32(const float &f);
+char* ftostr52(const float &f);
 
 // Convert float to fixed-length string with +123.4 / -123.4 format
 char* ftostr41sign(const float &f);
