@@ -80,15 +80,16 @@ class Endstops {
       static float z_endstop_adj;
     #endif
 
-    static volatile uint8_t hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
-
     static uint16_t logic_bits,
-                    pullup_bits,
-                    current_bits;
+                    pullup_bits;
 
   private: /** Private Parameters */
 
     static uint8_t  flag1_bits;
+
+    static uint16_t current_bits;
+
+    static volatile uint8_t hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
   public: /** Public Function */
 
@@ -103,9 +104,24 @@ class Endstops {
     static void setup_pullup();
 
     /**
+     * A change was detected or presumed to be in endstops pins.
+     */
+    static void check();
+
+    /**
      * Periodic call to Tick endstops if required.
      */
     static void Tick();
+
+    /**
+     * Get Endstop hit state.
+     */
+    static uint8_t get_hit_state() { return hit_bits; }
+
+    /**
+     * Get current endstops state
+     */
+    static uint16_t get_current_state() { return current_bits; }
 
     /**
      * Print logical and pullup
@@ -118,13 +134,13 @@ class Endstops {
     static void report_state(); // call from somewhere to create an serial error message with the locations the endstops where hit, in case they were triggered
 
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
-    static void hit_on_purpose() { hit_bits = 0; }
+    static void hit_on_purpose();
 
     // Constrain the given coordinates to the software endstops.
-    void clamp_to_software(float target[XYZ]);
+    static void clamp_to_software(float target[XYZ]);
 
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-      void update_software_endstops(const AxisEnum axis);
+      static void update_software_endstops(const AxisEnum axis);
     #endif
 
     #if ENABLED(PINS_DEBUGGING)
@@ -190,6 +206,10 @@ class Endstops {
       static void setup_interrupts(void);
     #endif
 
+    #if ENABLED(PINS_DEBUGGING)
+      static void monitor();
+    #endif
+
     #if ENABLED(X_TWO_ENDSTOPS)
       static void test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2);
     #endif
@@ -198,10 +218,6 @@ class Endstops {
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
       static void test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2);
-    #endif
-
-    #if ENABLED(PINS_DEBUGGING)
-      static void monitor();
     #endif
 
 };

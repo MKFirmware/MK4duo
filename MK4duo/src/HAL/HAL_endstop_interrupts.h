@@ -24,7 +24,7 @@
 #define _HAL_ENDSTOP_INTERRUPTS_H_
 
 // One ISR for all Endstop Interrupts
-void endstop_ISR(void) { endstops.Tick(); }
+void endstop_ISR(void) { endstops.check(); }
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include "HAL_DUE/endstop_interrupts.h"
