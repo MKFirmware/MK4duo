@@ -201,7 +201,7 @@
  * M207 - Set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
  * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
  * M209 - S<1=true/0=false> enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
- * M218 - Set hotend offset (in mm): T<extruder_number> X<offset_on_X> Y<offset_on_Y>
+ * M218 - Set hotend offset (in mm): H<hotend_number> X<offset_on_X> Y<offset_on_Y> Z<offset_on_Z>
  * M220 - Set speed factor override percentage: S<factor in percent>
  * M221 - T<extruder> S<factor in percent> - set extrude factor override percentage
  * M222 - T<extruder> S<factor in percent> - set density extrude factor percentage for purge

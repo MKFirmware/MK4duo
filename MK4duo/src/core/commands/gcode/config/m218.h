@@ -31,7 +31,7 @@
 /**
  * M218 - set hotend offset (in linear units)
  *
- *   T<tool>
+ *   H<hotend>
  *   X<xoffset>
  *   Y<yoffset>
  *   Z<zoffset>
