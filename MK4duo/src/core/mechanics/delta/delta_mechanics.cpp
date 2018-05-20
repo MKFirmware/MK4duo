@@ -614,7 +614,7 @@
 
     // If an endstop was not hit, then damage can occur if homing is continued.
     // This can occur if the delta height not set correctly.
-    if (!(endstops.hit_bits && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
+    if (!(endstops.get_endstops_hit_state() && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
       LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
       SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
       return false;

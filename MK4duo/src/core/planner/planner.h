@@ -86,17 +86,17 @@ typedef struct {
   #endif
 
   // Settings for the trapezoid generator
-  int32_t accelerate_until,                 // The index of the step event on which to stop acceleration
-          decelerate_after;                 // The index of the step event on which to start decelerating
+  uint32_t  accelerate_until,               // The index of the step event on which to stop acceleration
+            decelerate_after;               // The index of the step event on which to start decelerating
 
   #if ENABLED(BEZIER_JERK_CONTROL)
-    uint32_t  cruise_rate;                  // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
-    uint32_t  acceleration_time,            // Acceleration time and deceleration time in STEP timer counts
-              deceleration_time;
-    uint32_t  acceleration_time_inverse,    // Inverse of acceleration and deceleration periods, expressed as integer. Scale depends on CPU being used
+    uint32_t  cruise_rate,                  // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
+              acceleration_time,            // Acceleration time and deceleration time in STEP timer counts
+              deceleration_time,
+              acceleration_time_inverse,    // Inverse of acceleration and deceleration periods, expressed as integer. Scale depends on CPU being used
               deceleration_time_inverse;
   #else
-    int32_t   acceleration_rate;            // The acceleration rate used for acceleration calculation
+    uint32_t  acceleration_rate;            // The acceleration rate used for acceleration calculation
   #endif
 
   uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
@@ -169,11 +169,10 @@ class Planner {
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
                             block_buffer_tail;        // Index of the busy block, if any
-    static uint8_t          block_buffer_planned;     // Index of the optimally planned block
+    static uint8_t          block_buffer_planned,     // Index of the optimally planned block
+                            delay_before_delivering;  // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
     static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
-
-    static uint8_t delay_before_delivering;           // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
     #if ENABLED(LIN_ADVANCE)
       static float  extruder_advance_K,
@@ -240,7 +239,7 @@ class Planner {
     /**
      * Number of moves currently in the planner
      */
-    FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail + BLOCK_BUFFER_SIZE); }
+    FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail); }
 
     /**
      * Check if movement queue is full
@@ -259,7 +258,7 @@ class Planner {
      * - Wait for the number of spaces to open up in the planner
      * - Return the first head block
      */
-    FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, uint8_t count = 1) {
+    FORCE_INLINE static block_t* get_next_free_block(uint8_t &next_buffer_head, const uint8_t count=1) {
       // Wait until there are enough slots free
       while (moves_free() < count) { printer.idle(); }
 
@@ -352,7 +351,7 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static bool buffer_line_kinematic(const float cart[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    static bool buffer_line_kinematic(const float (&cart)[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
     /**
      * Set the planner.position and individual stepper positions.
@@ -422,10 +421,10 @@ class Planner {
     FORCE_INLINE static void discard_current_block() {
       if (block_buffer_head != block_buffer_tail) { // Discard non-empty buffer.
         uint8_t block_index = next_block_index( block_buffer_tail );
+
         // Push block_buffer_planned pointer, if encountered.
-        if (block_buffer_tail == block_buffer_planned) {
-          block_buffer_planned = block_index;
-        }
+        if (!has_blocks_queued()) block_buffer_planned = block_index;
+
         block_buffer_tail = block_index;
       }
     }
@@ -466,12 +465,13 @@ class Planner {
         SBI(block->flag, BLOCK_BIT_BUSY);
         return block;
       }
-      else {
-        #if ENABLED(ULTRA_LCD)
-          clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
-        #endif
-        return NULL;
-      }
+
+      // The queue became empty
+      #if ENABLED(ULTRA_LCD)
+        clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
+      #endif
+
+      return NULL;
     }
 
     #if ENABLED(ULTRA_LCD)
