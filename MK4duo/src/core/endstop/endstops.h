@@ -116,12 +116,12 @@ class Endstops {
     /**
      * Get Endstop hit state.
      */
-    static uint8_t get_endstops_hit_state() { return hit_bits; }
+    static uint8_t get_hit_state() { return hit_bits; }
 
     /**
      * Get current endstops state
      */
-    static uint16_t get_endstops_state() { return current_bits; }
+    static uint16_t get_current_state() { return current_bits; }
 
     /**
      * Print logical and pullup
