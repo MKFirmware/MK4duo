@@ -344,7 +344,7 @@
           float adj = ABS(endstops.x_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          do_homing_move(axis, adj);
+          mechanics.do_homing_move(axis, adj);
           if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
           printer.setHoming(false);
         }
@@ -355,7 +355,7 @@
           float adj = ABS(endstops.y_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          do_homing_move(axis, adj);
+          mechanics.do_homing_move(axis, adj);
           if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
           printer.setHoming(false);
         }
@@ -366,7 +366,7 @@
           float adj = ABS(endstops.z_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          do_homing_move(axis, adj);
+          mechanics.do_homing_move(axis, adj);
           if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
           printer.setHoming(false);
         }
