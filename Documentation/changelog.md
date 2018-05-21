@@ -2,6 +2,7 @@
 * Make class Mechanics to static
 * Add Junction Deviation instead of traditional Jerk limiting
 * Add Bézier Jerk Control
+* Add Safety Timer, after 30 minutes if not printing (SD or M530 S1) the heaters switch off.
 * Rewrite SD Restart for auto restart when power loss and return.
 * Add command gcode M569 for setting Stepper Driver DIR.
 * Fix and clear code
