@@ -31,7 +31,7 @@
 #endif
 
 // TEST_ENDSTOP: test the current status of an endstop
-#define TEST_ENDSTOP(ENDSTOP) (TEST(current_bits, ENDSTOP))
+#define TEST_ENDSTOP(ENDSTOP) (TEST(live_state, ENDSTOP))
 
 #if HAS_BED_PROBE
   #define ENDSTOPS_ENABLED  (endstops.isEnabled() || endstops.isProbeEnabled())
@@ -66,9 +66,9 @@ uint16_t  Endstops::logic_bits    = 0,
 // Private
 uint8_t   Endstops::flag1_bits    = 0;
 
-uint16_t  Endstops::current_bits  = 0;
+uint16_t  Endstops::live_state  = 0;
 
-volatile uint8_t Endstops::hit_bits = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+volatile uint8_t Endstops::hit_state = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 /**
  * Class and Instance Methods
@@ -164,7 +164,7 @@ void Endstops::Tick() {
 
 // Clear endstops (i.e., they were hit intentionally) to suppress the report
 void Endstops::hit_on_purpose() {
-  hit_bits = 0;
+  hit_state = 0;
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     if (ENDSTOPS_ENABLED) update();
@@ -324,7 +324,7 @@ void Endstops::report() {
 }
 
 void Endstops::report_state() {
-  if (hit_bits) {
+  if (hit_state) {
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -337,7 +337,7 @@ void Endstops::report_state() {
       _SET_STOP_CHAR(A,C); }while(0)
 
     #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(hit_bits, A##_MIN) || TEST(hit_bits, A##_MAX)) \
+      if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
     SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
@@ -347,7 +347,7 @@ void Endstops::report_state() {
 
     #if HAS_Z_PROBE_PIN
       #define P_AXIS Z_AXIS
-      if (TEST(hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+      if (TEST(hit_state, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
     SERIAL_EOL();
 
@@ -569,7 +569,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   void Endstops::test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte x_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for X, bit 1 for X2
     if (x_test && stepper.movement_non_null(X_AXIS)) {
-      SBI(hit_bits, X_MIN);
+      SBI(hit_state, X_MIN);
       if (!printer.isHoming() || (x_test == 0x3))  //if not home or if both endstops were trigged during homing...
         stepper.quick_stop();
     }
@@ -579,7 +579,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   void Endstops::test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte y_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Y, bit 1 for Y2
     if (y_test && stepper.movement_non_null(Y_AXIS)) {
-      SBI(hit_bits, Y_MIN);
+      SBI(hit_state, Y_MIN);
       if (!printer.isHoming() || (y_test == 0x3))  // if not home or if both endstops were trigged during homing...
         stepper.quick_stop();
     }
@@ -589,7 +589,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
     const byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
     if (z_test && stepper.movement_non_null(Z_AXIS)) {
-      SBI(hit_bits, Z_MIN);
+      SBI(hit_state, Z_MIN);
       if (!printer.isHoming() || (z_test == 0x3))  // if not home or if both endstops were trigged during homing...
         stepper.quick_stop();
     }
@@ -601,10 +601,10 @@ void Endstops::update() {
 
   #define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
   #define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_bits, _ENDSTOP(AXIS, MINMAX))
+  #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
 
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
-  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
+  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
   #define COPY_BIT(DST, SRC_BIT, DST_BIT)   SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
 
@@ -719,7 +719,7 @@ void Endstops::update() {
           #if HAS_X2_MIN
             UPDATE_ENDSTOP_BIT(X2, MIN);
           #else
-            COPY_BIT(current_bits, X_MIN, X2_MIN);
+            COPY_BIT(live_state, X_MIN, X2_MIN);
           #endif
           test_two_x_endstops(X_MIN, X2_MIN);
         #else
@@ -734,7 +734,7 @@ void Endstops::update() {
           #if HAS_X2_MAX
             UPDATE_ENDSTOP_BIT(X2, MAX);
           #else
-            COPY_BIT(current_bits, X_MAX, X2_MAX);
+            COPY_BIT(live_state, X_MAX, X2_MAX);
           #endif
           test_two_x_endstops(X_MAX, X2_MAX);
         #else
@@ -752,7 +752,7 @@ void Endstops::update() {
           #if HAS_Y2_MIN
             UPDATE_ENDSTOP_BIT(Y2, MIN);
           #else
-            COPY_BIT(current_bits, Y_MIN, Y2_MIN);
+            COPY_BIT(live_state, Y_MIN, Y2_MIN);
           #endif
           test_two_y_endstops(Y_MIN, Y2_MIN);
         #else
@@ -767,7 +767,7 @@ void Endstops::update() {
           #if HAS_Y2_MAX
             UPDATE_ENDSTOP_BIT(Y2, MAX);
           #else
-            COPY_BIT(current_bits, Y_MAX, Y2_MAX);
+            COPY_BIT(live_state, Y_MAX, Y2_MAX);
           #endif
           test_two_y_endstops(Y_MAX, Y2_MAX);
         #else
@@ -785,7 +785,7 @@ void Endstops::update() {
           #if HAS_Z2_MIN
             UPDATE_ENDSTOP_BIT(Z2, MIN);
           #else
-            COPY_BIT(current_bits, Z_MIN, Z2_MIN);
+            COPY_BIT(live_state, Z_MIN, Z2_MIN);
           #endif
           test_two_z_endstops(Z_MIN, Z2_MIN);
         #else
@@ -801,7 +801,7 @@ void Endstops::update() {
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
         if (isProbeEnabled()) {
           UPDATE_ENDSTOP(Z, PROBE);
-          if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_bits, Z_PROBE);
+          if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_state, Z_PROBE);
         }
       #endif
     }
@@ -813,7 +813,7 @@ void Endstops::update() {
           #if HAS_Z2_MAX
             UPDATE_ENDSTOP_BIT(Z2, MAX);
           #else
-            COPY_BIT(current_bits, Z_MAX, Z2_MAX);
+            COPY_BIT(live_state, Z_MAX, Z2_MAX);
           #endif
           test_two_z_endstops(Z_MAX, Z2_MAX);
         #else

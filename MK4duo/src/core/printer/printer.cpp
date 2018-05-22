@@ -867,15 +867,17 @@ void Printer::handle_interrupt_events() {
  */
 void Printer::handle_safety_watch() {
 
-  static watch_t safety_watch(30 * 60 * 1000UL);
+  static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
-  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || !thermalManager.heaters_isON()))
+  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isON()))
     safety_watch.stop();
   else if (!safety_watch.isRunning() && thermalManager.heaters_isON())
     safety_watch.start();
-  else if (safety_watch.isRunning() && safety_watch.elapsed())
+  else if (safety_watch.isRunning() && safety_watch.elapsed()) {
+    safety_watch.stop();
     thermalManager.disable_all_heaters();
-
+    SERIAL_EM("Max inactivity time (30 minutes) Heaters switch off!");
+  }
 }
 
 /**
