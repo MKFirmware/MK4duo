@@ -87,9 +87,9 @@ class Endstops {
 
     static uint8_t  flag1_bits;
 
-    static uint16_t current_bits;
+    static uint16_t live_state;
 
-    static volatile uint8_t hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
+    static volatile uint8_t hit_state; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
   public: /** Public Function */
 
@@ -116,12 +116,12 @@ class Endstops {
     /**
      * Get Endstop hit state.
      */
-    static uint8_t get_hit_state() { return hit_bits; }
+    FORCE_INLINE static uint8_t trigger_state() { return hit_state; }
 
     /**
-     * Get current endstops state
+     * Get endstops live state
      */
-    static uint16_t get_current_state() { return current_bits; }
+    FORCE_INLINE static uint16_t state() { return live_state; }
 
     /**
      * Print logical and pullup
@@ -160,7 +160,6 @@ class Endstops {
     FORCE_INLINE static void setEnabled(const bool onoff) {
       SET_BIT(flag1_bits, flag1_endstop_enabled, onoff);
       #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        // If enabling endstops, make sure to update their state
         if (onoff) update();
       #endif
     }
@@ -179,6 +178,9 @@ class Endstops {
 
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
       SET_BIT(flag1_bits, flag1_probe_endstop, onoff);
+      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+        if (onoff) update();
+      #endif
     }
     FORCE_INLINE static bool isProbeEnabled() { return TEST(flag1_bits, flag1_probe_endstop); }
 

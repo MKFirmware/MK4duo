@@ -34,14 +34,14 @@
   Delta_Mechanics mechanics;
 
   /** Public Parameters */
-  float Delta_Mechanics::delta_diagonal_rod             = DELTA_DIAGONAL_ROD,
+  float Delta_Mechanics::delta[ABC]                     = { 0.0 },
+        Delta_Mechanics::delta_diagonal_rod             = DELTA_DIAGONAL_ROD,
         Delta_Mechanics::delta_radius                   = DELTA_RADIUS,
         Delta_Mechanics::delta_segments_per_second      = DELTA_SEGMENTS_PER_SECOND,
         Delta_Mechanics::delta_print_radius             = DELTA_PRINTABLE_RADIUS,
         Delta_Mechanics::delta_probe_radius             = DELTA_PROBEABLE_RADIUS,
         Delta_Mechanics::delta_height                   = DELTA_HEIGHT,
         Delta_Mechanics::delta_clip_start_height        = DELTA_HEIGHT,
-        Delta_Mechanics::delta[ABC]                     = { 0.0 },
         Delta_Mechanics::delta_endstop_adj[ABC]         = { TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ },
         Delta_Mechanics::delta_tower_angle_adj[ABC]     = { TOWER_A_ANGLE_ADJ, TOWER_B_ANGLE_ADJ, TOWER_C_ANGLE_ADJ },
         Delta_Mechanics::delta_tower_radius_adj[ABC]    = { TOWER_A_RADIUS_ADJ, TOWER_B_RADIUS_ADJ, TOWER_C_RADIUS_ADJ },
@@ -614,7 +614,7 @@
 
     // If an endstop was not hit, then damage can occur if homing is continued.
     // This can occur if the delta height not set correctly.
-    if (!(endstops.get_hit_state() && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
+    if (!(endstops.trigger_state() && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
       LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
       SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
       return false;

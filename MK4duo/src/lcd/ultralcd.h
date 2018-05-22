@@ -92,7 +92,36 @@
   #define BUTTON_EXISTS(BN) (ENABLED(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN) !READ(BTN_## BN)
 
-  #if ENABLED(ULTIPANEL)
+  #if ENABLED(ULTIPANEL) // LCD with a click-wheel input
+
+    #if ENABLED(NEWPANEL) // Uses digital switches, not a shift register
+
+      // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
+      #define BLEN_A 0
+      #define BLEN_B 1
+
+      #define EN_A (_BV(BLEN_A))
+      #define EN_B (_BV(BLEN_B))
+
+      #if BUTTON_EXISTS(ENC)
+        #define BLEN_C 2
+        #define EN_C (_BV(BLEN_C))
+      #endif
+
+      #if BUTTON_EXISTS(BACK)
+        #define BLEN_D 3
+        #define EN_D (_BV(BLEN_D))
+        #if ENABLED(INVERT_BACK_BUTTON)
+          #define LCD_BACK_CLICKED !(buttons&EN_D)
+        #else
+          #define LCD_BACK_CLICKED (buttons&EN_D)
+        #endif
+      #endif
+
+    #endif // NEWPANEL
+
+    extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
+    void lcd_buttons_update();
 
     extern bool defer_return_to_status;
 
@@ -116,31 +145,6 @@
 
     void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder=0);
 
-    // Encoder click is directly connected
-
-    #define BLEN_A 0
-    #define BLEN_B 1
-
-    #define EN_A (_BV(BLEN_A))
-    #define EN_B (_BV(BLEN_B))
-
-    #if BUTTON_EXISTS(ENC)
-      #define BLEN_C 2
-      #define EN_C (_BV(BLEN_C))
-    #endif
-
-    #if BUTTON_EXISTS(BACK)
-      #define BLEN_D 3
-      #define EN_D (_BV(BLEN_D))
-      #if ENABLED(INVERT_BACK_BUTTON)
-        #define LCD_BACK_CLICKED !(buttons&EN_D)
-      #else
-        #define LCD_BACK_CLICKED (buttons&EN_D)
-      #endif
-    #endif
-
-    extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
-    void lcd_buttons_update();
     void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -258,7 +262,6 @@
   constexpr bool lcd_wait_for_move = false;
 
   inline void lcd_refresh() {}
-  inline void lcd_buttons_update() {}
   inline bool lcd_hasstatus() { return false; }
   
   inline void lcd_eeprom_allert() {}
