@@ -2456,7 +2456,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif // AUTO_BED_LEVELING_UBL
 
   #if ENABLED(LCD_BED_LEVELING) || (PLANNER_LEVELING && DISABLED(SLIM_LCD_MENUS))
-    void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(new_level_state); }
+    void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(!bedlevel.leveling_active); }
   #endif
 
   #if ENABLED(LCD_BED_LEVELING)
