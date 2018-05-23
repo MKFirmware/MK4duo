@@ -2590,7 +2590,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
       #endif
       if (bedlevel.leveling_is_valid()) {
-        bool new_level_state = bedlevel..leveling_active;
+        bool new_level_state = bedlevel.leveling_active;
         MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
       }
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
