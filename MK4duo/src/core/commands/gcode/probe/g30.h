@@ -57,7 +57,7 @@
 
     printer.setup_for_endstop_or_probe_move();
 
-    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_NONE;
+    const ProbePtRaise raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
     const float measured_z = probe.check_pt(xpos, ypos, raise_after, 1);
 
     if (!isnan(measured_z)) {
