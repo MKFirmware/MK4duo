@@ -525,7 +525,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
               current_position[X_AXIS] + duplicate_hotend_x_offset,
               current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
               max_feedrate_mm_s[X_AXIS], 1
-            ) break;
+            )) break;
             planner.synchronize();
             sync_plan_position();
             hotend_duplication_enabled = true;
