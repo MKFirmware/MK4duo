@@ -2870,29 +2870,29 @@ void lcd_quick_feedback(const bool clear_buttons) {
             max = mechanics.current_position[axis] + 1000;
 
       // Limit to software endstops, if enabled
-      #if ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS)
+      #if HAS_SOFTWARE_ENDSTOPS
         if (soft_endstops_enabled) switch (axis) {
           case X_AXIS:
-            #if ENABLED(MIN_SOFTWARE_ENDSTOP_X)
+            #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
               min = endstops.soft_endstop_min[X_AXIS];
             #endif
-            #if ENABLED(MAX_SOFTWARE_ENDSTOP_X)
+            #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
               max = endstops.soft_endstop_max[X_AXIS];
             #endif
             break;
           case Y_AXIS:
-            #if ENABLED(MIN_SOFTWARE_ENDSTOP_Y)
+            #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
               min = endstops.soft_endstop_min[Y_AXIS];
             #endif
-            #if ENABLED(MAX_SOFTWARE_ENDSTOP_Y)
+            #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
               max = endstops.soft_endstop_max[Y_AXIS];
             #endif
             break;
           case Z_AXIS:
-            #if ENABLED(MIN_SOFTWARE_ENDSTOP_Z)
+            #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
               min = endstops.soft_endstop_min[Z_AXIS];
             #endif
-            #if ENABLED(MAX_SOFTWARE_ENDSTOP_Z)
+            #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
               max = endstops.soft_endstop_max[Z_AXIS];
             #endif
           default: break;
