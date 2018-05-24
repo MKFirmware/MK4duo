@@ -76,14 +76,14 @@
       #endif
     ;
 
+    // Lift Z axis
+    if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
+
     // Move XY axes to filament change position or given position
     if (parser.seenval('X')) park_point.x = parser.linearval('X');
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
-    // Lift Z axis
-    if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
-
-    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
+    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
       park_point.x += (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0);
       park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
     #endif
@@ -92,9 +92,12 @@
     const float unload_length = ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
                                                        : filament_change_unload_length[tools.active_extruder]);
 
+    // Slow load filament
+    constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
+
     // Load filament
-    const float load_length   = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                      : filament_change_load_length[tools.active_extruder]);
+    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+                                                          : filament_change_load_length[tools.active_extruder]);
 
     int16_t temp = 0;
     if (parser.seenval('S')) temp = parser.value_celsius();
@@ -111,7 +114,7 @@
 
     if (pause_print(retract, park_point, unload_length, temp, true)) {
       wait_for_filament_reload(beep_count);
-      resume_print(load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
+      resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }
 
     #if EXTRUDERS > 1

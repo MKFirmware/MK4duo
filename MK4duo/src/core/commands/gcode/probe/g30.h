@@ -36,6 +36,7 @@
    *    G30 <X#> <Y#> <S#> <Z#> <P#>
    *      X   Probe X position (default=current probe position)
    *      Y   Probe Y position (default=current probe position)
+   *      E   Engage the probe for each probe (default 1)
    *      Z   <bool> with a non-zero value will apply the result to current delta_height (ONLY DELTA)
    *      P   <bool> with a non-zero value will apply the result to current offset[Z_AXIS] (ONLY DELTA)
    */
@@ -56,7 +57,8 @@
 
     printer.setup_for_endstop_or_probe_move();
 
-    const float measured_z = probe.check_pt(xpos, ypos, PROBE_PT_STOW, 1);
+    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_NONE;
+    const float measured_z = probe.check_pt(xpos, ypos, raise_after, 1);
 
     if (!isnan(measured_z)) {
       SERIAL_MV(MSG_BED_LEVELING_Z, measured_z, 3);
@@ -81,7 +83,7 @@
     printer.clean_up_after_endstop_or_probe_move();
 
     #if Z_PROBE_AFTER_PROBING > 0
-      probe.move_z_after_probing();
+      if (raise_after == PROBE_PT_STOW) probe.move_z_after_probing();
     #endif
 
     mechanics.report_current_position();

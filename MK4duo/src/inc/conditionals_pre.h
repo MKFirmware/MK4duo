@@ -458,9 +458,11 @@
   #define HOTEND_OFFSET_X   { 0 }
   #define HOTEND_OFFSET_Y   { 0 }
   #define HOTEND_OFFSET_Z   { 0 }
+  #define TARGET_HOTEND     0
 #else
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
+  #define TARGET_HOTEND     tools.target_extruder
 #endif
 
 /**

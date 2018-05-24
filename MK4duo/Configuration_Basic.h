@@ -103,6 +103,11 @@
 //#define FASTER_GCODE_PARSER
 
 /**
+ * Spend more bytes of SRAM to optimize the GCode execute
+ */
+//#define FASTER_GCODE_EXECUTE
+
+/**
  * Host Keepalive
  *
  * When enabled MK4duo will send a busy status message to the host

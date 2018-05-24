@@ -229,9 +229,11 @@
 #include "units/m83.h"
 #include "units/m149.h"
 
-// Table for G and M code
-#include "table_gcode.h"
-#include "table_mcode.h"
+#if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
+  // Table for G and M code
+  #include "table_gcode.h"
+  #include "table_mcode.h"
 
-// Include m44 post define table for debugging
-#include "debug/m44_post_table.h"
+  // Include m44 post define table for debugging
+  #include "debug/m44_post_table.h"
+#endif
