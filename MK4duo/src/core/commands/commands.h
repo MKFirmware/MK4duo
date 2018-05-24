@@ -86,6 +86,7 @@ class Commands {
     #endif
 
     static void process_next();
+    static void process_parsed();
     static void commit(bool say_ok);
     static void unknown_error();
     static void gcode_line_error(const char* err);

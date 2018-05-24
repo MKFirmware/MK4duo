@@ -42,7 +42,7 @@
     };
   #endif
 
-  enum LsAction { LS_Count, LS_GetFilename };
+  enum LsAction : char { LS_Count, LS_GetFilename };
 
   enum FlagCardReader : char {
     flag_SD_OK,
@@ -64,7 +64,6 @@
       static SdFat      fat;
       static SdFile     gcode_file;
       static SdBaseFile root,
-                        *curDir,
                         workDir,
                         workDirParents[SD_MAX_FOLDER_DEPTH];
 
@@ -88,8 +87,6 @@
 
       static uint16_t nrFile_index;
 
-      static Sd2Card card;
-
       #if HAS_SD_RESTART
         static SdFile restart_file;
       #endif
@@ -104,7 +101,7 @@
 
       static uint16_t workDirDepth,
                       nrFiles;              // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
-      static LsAction  lsAction;            // stored for recursion.
+      static LsAction lsAction;             // stored for recursion.
 
       // Sort files and folders alphabetically.
       #if ENABLED(SDCARD_SORT_ALPHA)

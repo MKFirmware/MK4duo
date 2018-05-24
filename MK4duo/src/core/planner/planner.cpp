@@ -2232,10 +2232,10 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
   const int32_t target[XYZE] = {
-    LROUND(a * mechanics.axis_steps_per_mm[X_AXIS]),
-    LROUND(b * mechanics.axis_steps_per_mm[Y_AXIS]),
-    LROUND(c * mechanics.axis_steps_per_mm[Z_AXIS]),
-    LROUND(e * mechanics.axis_steps_per_mm[E_AXIS_N])
+    static_cast<int32_t>(FLOOR(a * mechanics.axis_steps_per_mm[X_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(b * mechanics.axis_steps_per_mm[Y_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(c * mechanics.axis_steps_per_mm[Z_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_AXIS_N] + 0.5f))
   };
 
   #if ENABLED(LIN_ADVANCE)
@@ -2368,10 +2368,10 @@ bool Planner::buffer_line_kinematic(const float (&cart)[XYZE], const float &fr_m
  */
 void Planner::_set_position_mm(const float &a, const float &b, const float &c, const float &e) {
 
-  position[A_AXIS] = LROUND(a * mechanics.axis_steps_per_mm[A_AXIS]),
-  position[B_AXIS] = LROUND(b * mechanics.axis_steps_per_mm[B_AXIS]),
-  position[C_AXIS] = LROUND(c * mechanics.axis_steps_per_mm[C_AXIS]),
-  position[E_AXIS] = LROUND(e * mechanics.axis_steps_per_mm[E_INDEX]);
+  position[A_AXIS] = static_cast<int32_t>(FLOOR(a * mechanics.axis_steps_per_mm[A_AXIS] + 0.5f)),
+  position[B_AXIS] = static_cast<int32_t>(FLOOR(b * mechanics.axis_steps_per_mm[B_AXIS] + 0.5f)),
+  position[C_AXIS] = static_cast<int32_t>(FLOOR(c * mechanics.axis_steps_per_mm[C_AXIS] + 0.5f)),
+  position[E_AXIS] = static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_INDEX] + 0.5f));
 
   #if ENABLED(LIN_ADVANCE)
     position_float[A_AXIS] = a;
@@ -2413,7 +2413,7 @@ void Planner::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
 
 void Planner::set_position_mm(const AxisEnum axis, const float &v) {
   const uint8_t axis_index = axis + (axis == E_AXIS ? tools.active_extruder : 0);
-  position[axis] = LROUND(v * mechanics.axis_steps_per_mm[axis_index]);
+  position[axis] = static_cast<int32_t>(FLOOR(v * mechanics.axis_steps_per_mm[axis_index] + 0.5f));
   #if ENABLED(LIN_ADVANCE)
     position_float[axis] = v;
   #endif

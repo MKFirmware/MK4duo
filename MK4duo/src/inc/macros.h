@@ -110,16 +110,16 @@
 
 // Macros for bit masks
 #undef _BV
-#define _BV(b)                  (1<<(b))
-#define TEST(n,b)               !!((n)&_BV(b))
-#define SBI(n,b)                (n |= _BV(b))
-#define CBI(n,b)                (n &= ~_BV(b))
-#define SET_BIT(n,b,value)      (n)^=((-value)^(n))&(_BV(b))
+#define _BV(b)          (1<<(b))
+#define TEST(n,b)       !!((n)&_BV(b))
+#define SBI(n,b)        (n |= _BV(b))
+#define CBI(n,b)        (n &= ~_BV(b))
+#define SET_BIT(N,B,TF) do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
 
-#define _BV32(b)                (1UL << (b))
-#define TEST32(n,b)             !!((n) & _BV32(b))
-#define SBI32(n,b)              (n |= _BV32(b))
-#define CBI32(n,b)              (n &= ~_BV32(b))
+#define _BV32(b)        (1UL<< (b))
+#define TEST32(n,b)     !!((n)&_BV32(b))
+#define SBI32(n,b)      (n |= _BV32(b))
+#define CBI32(n,b)      (n &= ~_BV32(b))
 
 // Macros for maths shortcuts
 #ifndef M_PI 

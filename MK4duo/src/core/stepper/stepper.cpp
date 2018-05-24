@@ -69,11 +69,9 @@ uint8_t Stepper::step_loops = 0;
 
 // private:
 
-uint8_t Stepper::last_direction_bits = 0;           // The next stepping-bits to be output
-
-uint8_t Stepper::last_extruder = 0xFF;              // Last movement extruder, as computed when the last movement was fetched from planner
-
-bool    Stepper::last_movement_non_null[NUM_AXIS];  // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
+uint8_t Stepper::last_direction_bits    = 0,
+        Stepper::last_movement_extruder = 0xFF,
+        Stepper::axis_did_move          = 0;
 
 bool    Stepper::abort_current_block;               // Signals to the stepper that current block should be aborted
 
@@ -1509,12 +1507,79 @@ uint32_t Stepper::block_phase_step() {
         if (!(current_block = planner.get_current_block())) return interval;
       }
 
-      // Compute movement direction for proper endstop handling
-      LOOP_XYZE(axis) last_movement_non_null[axis] = current_block->steps[axis] != 0;
+      // Flag all moving axes for proper endstop handling
+
+      #if IS_CORE
+        // Define conditions for checking endstops
+        #define S_(N) current_block->steps[CORE_AXIS_##N]
+        #define D_(N) TEST(current_block->direction_bits, CORE_AXIS_##N)
+      #endif
+
+      #if CORE_IS_XY || CORE_IS_XZ
+        /**
+         * Head direction in -X axis for CoreXY and CoreXZ bots.
+         *
+         * If steps differ, both axes are moving.
+         * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z, handled below)
+         * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X)
+         */
+        #if MECH(COREXY) || MECH(COREXZ)
+          #define X_CMP ==
+        #else
+          #define X_CMP !=
+        #endif
+        #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
+      #else
+        #define X_MOVE_TEST !!current_block->steps[X_AXIS]
+      #endif
+
+      #if CORE_IS_XY || CORE_IS_YZ
+        /**
+         * Head direction in -Y axis for CoreXY / CoreYZ bots.
+         *
+         * If steps differ, both axes are moving
+         * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y)
+         * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z)
+         */
+        #if MECH(COREYX) || MECH(COREYZ)
+          #define Y_CMP ==
+        #else
+          #define Y_CMP !=
+        #endif
+        #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
+      #else
+        #define Y_MOVE_TEST !!current_block->steps[Y_AXIS]
+      #endif
+
+      #if CORE_IS_XZ || CORE_IS_YZ
+        /**
+         * Head direction in -Z axis for CoreXZ or CoreYZ bots.
+         *
+         * If steps differ, both axes are moving
+         * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y, already handled above)
+         * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Z)
+         */
+        #if MECH(COREZX) || MECH(COREZY)
+          #define Z_CMP ==
+        #else
+          #define Z_CMP !=
+        #endif
+        #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
+      #else
+        #define Z_MOVE_TEST !!current_block->steps[Z_AXIS]
+      #endif
+
+      SET_BIT(axis_did_move, X_AXIS, X_MOVE_TEST);
+      SET_BIT(axis_did_move, Y_AXIS, Y_MOVE_TEST);
+      SET_BIT(axis_did_move, Z_AXIS, Z_MOVE_TEST);
+      SET_BIT(axis_did_move, E_AXIS, !!current_block->steps[E_AXIS]);
+      SET_BIT(axis_did_move, X_HEAD, !!current_block->steps[X_HEAD]);
+      SET_BIT(axis_did_move, Y_HEAD, !!current_block->steps[Y_HEAD]);
+      SET_BIT(axis_did_move, Z_HEAD, !!current_block->steps[Z_HEAD]);
 
       #if ENABLED(LIN_ADVANCE)
         #if EXTRUDERS > 1
-          if (current_block->active_extruder != last_extruder) {
+          if (current_block->active_extruder != last_movement_extruder) {
             current_adv_steps = 0; // If the now active extruder wasn't in use during the last move, its pressure is most likely gone.
             LA_active_extruder = current_block->active_extruder;
           }
@@ -1527,9 +1592,9 @@ uint32_t Stepper::block_phase_step() {
         }
       #endif
 
-      if (current_block->direction_bits != last_direction_bits || current_block->active_extruder != last_extruder) {
+      if (current_block->direction_bits != last_direction_bits || current_block->active_extruder != last_movement_extruder) {
         last_direction_bits = current_block->direction_bits;
-        last_extruder = current_block->active_extruder;
+        last_movement_extruder = current_block->active_extruder;
         set_directions();
       }
 

@@ -79,7 +79,7 @@
     #endif
 
     printer.setWaitForHeatUp(true);
-    while (printer.isWaitForHeatUp() && heaters[TARGET_EXTRUDER].wait_for_heating()) printer.idle();
+    while (printer.isWaitForHeatUp() && heaters[TARGET_HOTEND].wait_for_heating()) printer.idle();
     const bool status = printer.isWaitForHeatUp();
     printer.setWaitForHeatUp(false);
 
@@ -106,7 +106,7 @@
    *
    * Returns 'true' if load was completed, 'false' for abort
    */
-  bool load_filament(const float &load_length/*=0*/, const float &purge_length/*=0*/, const int8_t max_beep_count/*=0*/,
+  bool load_filament(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=0*/, const int8_t max_beep_count/*=0*/,
                      const bool show_lcd/*=false*/, const bool pause_for_user/*=false*/,
                      const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/
   ) {
@@ -152,8 +152,11 @@
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, mode);
     #endif
 
-    // Load filament
-    if (load_length) do_pause_e_move(load_length, PAUSE_PARK_LOAD_FEEDRATE);
+    // Slow Load filament
+    if (slow_load_length) do_pause_e_move(slow_load_length, PAUSE_PARK_SLOW_LOAD_FEEDRATE);
+
+    // Fast Load Filament
+    if (fast_load_length) do_pause_e_move(fast_load_length, PAUSE_PARK_FAST_LOAD_FEEDRATE);
 
     do {
       if (purge_length > 0) {
@@ -232,8 +235,10 @@
     do_pause_e_move(-unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);
 
     // Disable extruders steppers for manual filament changing
-    stepper.disable_E();
-    printer.safe_delay(100);
+    #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
+      stepper.disable_E();
+      printer.safe_delay(100);
+    #endif
 
     return true;
   }
@@ -355,6 +360,8 @@
         filament_change_beep(max_beep_count);
       #endif
 
+      // If the nozzle has timed out, wait for the user to press the button to re-heat the nozzle, then
+      // re-heat the nozzle, re-show the insert screen, restart the idle timers, and start over
       if (!nozzle_timed_out)
         LOOP_HOTEND()
           nozzle_timed_out |= heaters[h].isIdle();
@@ -455,7 +462,7 @@
    * - Send host action for resume, if configured
    * - Resume the current SD print job, if any
    */
-  void resume_print(const float &load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_EXTRUDE_LENGTH*/, const int8_t max_beep_count/*=0*/) {
+  void resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_EXTRUDE_LENGTH*/, const int8_t max_beep_count/*=0*/) {
     if (!did_pause_print) return;
 
     // Re-enable the heaters if they timed out
@@ -474,7 +481,7 @@
 
     if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(TARGET_EXTRUDER)) {
       // Load the new filament
-      load_filament(load_length, purge_length, max_beep_count, true, nozzle_timed_out);
+      load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out);
     }
 
     #if HAS_LCD

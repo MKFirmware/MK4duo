@@ -94,35 +94,6 @@
 
   #if ENABLED(ULTIPANEL) // LCD with a click-wheel input
 
-    #if ENABLED(NEWPANEL) // Uses digital switches, not a shift register
-
-      // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
-      #define BLEN_A 0
-      #define BLEN_B 1
-
-      #define EN_A (_BV(BLEN_A))
-      #define EN_B (_BV(BLEN_B))
-
-      #if BUTTON_EXISTS(ENC)
-        #define BLEN_C 2
-        #define EN_C (_BV(BLEN_C))
-      #endif
-
-      #if BUTTON_EXISTS(BACK)
-        #define BLEN_D 3
-        #define EN_D (_BV(BLEN_D))
-        #if ENABLED(INVERT_BACK_BUTTON)
-          #define LCD_BACK_CLICKED !(buttons&EN_D)
-        #else
-          #define LCD_BACK_CLICKED (buttons&EN_D)
-        #endif
-      #endif
-
-    #endif // NEWPANEL
-
-    extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
-    void lcd_buttons_update();
-
     extern bool defer_return_to_status;
 
     // Function pointer to menu functions.
@@ -167,10 +138,6 @@
     #if ENABLED(PROBE_MANUALLY)
       float lcd_probe_pt(const float &rx, const float &ry);
     #endif
-
-  #else
-
-    inline void lcd_buttons_update() {}
 
   #endif
 
@@ -219,12 +186,6 @@
     #define REPRAPWORLD_KEYPAD_MOVE_HOME    (buttons_reprapworld_keypad & KEYPAD_HOME)
     #define REPRAPWORLD_KEYPAD_MOVE_MENU    (buttons_reprapworld_keypad & KEYPAD_EN_C)
 
-    #if BUTTON_EXISTS(ENC)
-      #define LCD_CLICKED ((buttons & EN_C) || REPRAPWORLD_KEYPAD_MOVE_MENU)
-    #else
-      #define LCD_CLICKED REPRAPWORLD_KEYPAD_MOVE_MENU
-    #endif
-
     #define REPRAPWORLD_KEYPAD_PRESSED      (buttons_reprapworld_keypad & ( \
                                               EN_REPRAPWORLD_KEYPAD_F3 | \
                                               EN_REPRAPWORLD_KEYPAD_F2 | \
@@ -235,18 +196,6 @@
                                               EN_REPRAPWORLD_KEYPAD_UP | \
                                               EN_REPRAPWORLD_KEYPAD_LEFT) \
                                             )
-
-  #elif ENABLED(EN_C)
-
-    #if ENABLED(INVERT_CLICK_BUTTON)
-      #define LCD_CLICKED !(buttons & EN_C)
-    #else
-      #define LCD_CLICKED (buttons & EN_C)
-    #endif
-
-  #else
-
-    #define LCD_CLICKED false
 
   #endif
 
@@ -267,6 +216,59 @@
   inline void lcd_eeprom_allert() {}
 
 #endif // ULTRA_LCD
+
+#if ENABLED(ULTIPANEL)
+
+  #if ENABLED(NEWPANEL) // Uses digital switches, not a shift register
+
+    // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
+    #define BLEN_A 0
+    #define BLEN_B 1
+
+    #define EN_A (_BV(BLEN_A))
+    #define EN_B (_BV(BLEN_B))
+
+    #if BUTTON_EXISTS(ENC)
+      #define BLEN_C 2
+      #define EN_C (_BV(BLEN_C))
+    #endif
+
+    #if BUTTON_EXISTS(BACK)
+      #define BLEN_D 3
+      #define EN_D (_BV(BLEN_D))
+      #if ENABLED(INVERT_BACK_BUTTON)
+        #define LCD_BACK_CLICKED !(buttons&EN_D)
+      #else
+        #define LCD_BACK_CLICKED (buttons&EN_D)
+      #endif
+    #endif
+
+  #endif // NEWPANEL
+
+  extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
+  void lcd_buttons_update();
+
+#else
+
+  inline void lcd_buttons_update() {}
+
+#endif    
+
+#if ENABLED(REPRAPWORLD_KEYPAD)
+  #if BUTTON_EXISTS(ENC)
+    #define LCD_CLICKED ((buttons & EN_C) || REPRAPWORLD_KEYPAD_MOVE_MENU)
+  #else
+    #define LCD_CLICKED REPRAPWORLD_KEYPAD_MOVE_MENU
+  #endif
+#elif ENABLED(EN_C)
+  #if ENABLED(INVERT_CLICK_BUTTON)
+    #define LCD_CLICKED !(buttons & EN_C)
+  #else
+    #define LCD_CLICKED (buttons & EN_C)
+  #endif
+#else
+  #define LCD_CLICKED false
+#endif
 
 #define LCD_MESSAGEPGM(x)      lcd_setstatusPGM(PSTR(x))
 #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatusPGM(PSTR(x))

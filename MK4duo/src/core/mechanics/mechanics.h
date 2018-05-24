@@ -32,14 +32,11 @@
 /**
  * Axis indices as enumerated constants
  *
- * Special axis:
- *  A_AXIS and B_AXIS are used by COREXY or COREYX printers
- *  A_AXIS and C_AXIS are used by COREXZ or COREZX printers
- *  X_HEAD and Y_HEAD and Z_HEAD is used for systems that don't have a 1:1 relationship between X_AXIS and X Head movement, like CoreXY bots.
- *  A_AXIS and B_AXIS and C_AXIS is used for DELTA system.
+ *  - X_AXIS, Y_AXIS, and Z_AXIS should be used for axes in Cartesian space
+ *  - A_AXIS, B_AXIS, and C_AXIS should be used for Steppers, corresponding to XYZ on Cartesians
+ *  - X_HEAD, Y_HEAD, and Z_HEAD should be used for Steppers on Core kinematics
  */
-enum AxisEnum {
-  NO_AXIS = -1,
+enum AxisEnum : unsigned char{
   X_AXIS  = 0,
   A_AXIS  = 0,
   Y_AXIS  = 1,
@@ -56,7 +53,8 @@ enum AxisEnum {
   E3_AXIS = 6,
   E4_AXIS = 7,
   E5_AXIS = 8,
-  ALL_AXES = 100
+  ALL_AXES  = 0xFE,
+  NO_AXIS   = 0xFF
 };
 
 /**

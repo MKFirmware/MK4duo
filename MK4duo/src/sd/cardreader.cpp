@@ -34,7 +34,6 @@
   SdFat       CardReader::fat;
   SdFile      CardReader::gcode_file;
   SdBaseFile  CardReader::root,
-              *CardReader::curDir,
               CardReader::workDir,
               CardReader::workDirParents[SD_MAX_FOLDER_DEPTH];
 
@@ -57,8 +56,6 @@
   uint8_t CardReader::card_flag = 0;
 
   uint16_t CardReader::nrFile_index = 0;
-
-  Sd2Card CardReader::card;
 
   #if HAS_SD_RESTART
     SdFile CardReader::restart_file;
@@ -159,7 +156,6 @@
     root.openRoot(fat.vol());
     root.ls();
     workDir = root;
-    curDir = &workDir;
   }
 
   void CardReader::getfilename(uint16_t nr, const char* const match/*=NULL*/) {
@@ -176,7 +172,7 @@
         return;
       }
     #endif // SDSORT_CACHE_NAMES
-    curDir = &workDir;
+    SdBaseFile *curDir = &workDir;
     lsAction = LS_GetFilename;
     nrFile_index = nr;
     curDir->rewind();
@@ -255,6 +251,7 @@
   void CardReader::startWrite(char *filename, const bool silent/*=false*/) {
     if (!isOK()) return;
 
+    SdBaseFile *curDir = &workDir;
     if (!gcode_file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, filename);
     }
@@ -409,7 +406,6 @@
 
   void CardReader::setroot() {
     workDir = root;
-    curDir = &workDir;
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();
     #endif
@@ -438,8 +434,7 @@
 
     if (!isOK()) return false;
 
-    curDir = &workDir; // Relative paths start in current directory
-
+    SdBaseFile *curDir = &workDir;
     if (gcode_file.open(curDir, filename, O_READ)) {
       if ((fname = strrchr(filename, '/')) != NULL)
         fname++;
@@ -479,7 +474,7 @@
   }
 
   uint16_t CardReader::getnrfilenames() {
-    curDir = &workDir;
+    SdBaseFile *curDir = &workDir;
     lsAction = LS_Count;
     nrFiles = 0;
     curDir->rewind();

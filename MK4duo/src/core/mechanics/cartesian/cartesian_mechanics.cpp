@@ -684,7 +684,14 @@
     }
 
     void Cartesian_Mechanics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
-      long target[NUM_AXIS] = {x * axis_steps_per_mm[X_AXIS], y * axis_steps_per_mm[Y_AXIS], z * axis_steps_per_mm[Z_AXIS], e * axis_steps_per_mm[E_AXIS + tools.active_extruder]};
+
+      int32_t target[NUM_AXIS] = {
+        static_cast<int32_t>(FLOOR(x * axis_steps_per_mm[X_AXIS] + 0.5f)),
+        static_cast<int32_t>(FLOOR(y * axis_steps_per_mm[Y_AXIS] + 0.5f)),
+        static_cast<int32_t>(FLOOR(z * axis_steps_per_mm[Z_AXIS] + 0.5f)),
+        static_cast<int32_t>(FLOOR(e * axis_steps_per_mm[E_AXIS_N] + 0.5f))
+      };
+
       uint8_t direction_bits = calc_direction_bits(planner.position, target);
       uint8_t move_bits = calc_move_bits(planner.position, target);
 

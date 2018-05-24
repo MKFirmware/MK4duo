@@ -1741,7 +1741,7 @@ void EEPROM::Factory_Settings() {
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     for (uint8_t e = 0; e < DRIVER_EXTRUDERS; e++) {
       filament_change_unload_length[e] = PAUSE_PARK_UNLOAD_LENGTH;
-      filament_change_load_length[e] = PAUSE_PARK_LOAD_LENGTH;
+      filament_change_load_length[e] = PAUSE_PARK_FAST_LOAD_LENGTH;
     }
   #endif
 

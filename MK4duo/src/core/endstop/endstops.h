@@ -212,16 +212,6 @@ class Endstops {
       static void monitor();
     #endif
 
-    #if ENABLED(X_TWO_ENDSTOPS)
-      static void test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2);
-    #endif
-    #if ENABLED(Y_TWO_ENDSTOPS)
-      static void test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2);
-    #endif
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      static void test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2);
-    #endif
-
 };
 
 extern Endstops endstops;
