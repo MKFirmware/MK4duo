@@ -2870,7 +2870,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
             max = mechanics.current_position[axis] + 1000;
 
       // Limit to software endstops, if enabled
-      #if HAS_SOFTWARE_ENDSTOPS
+      #if HAS_SOFTWARE_ENDSTOPS && !MECH(DELTA)
+
         if (soft_endstops_enabled) switch (axis) {
           case X_AXIS:
             #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
@@ -2897,15 +2898,16 @@ void lcd_quick_feedback(const bool clear_buttons) {
             #endif
           default: break;
         }
-      #endif // MIN_SOFTWARE_ENDSTOPS || MAX_SOFTWARE_ENDSTOPS
 
-      // Delta limits XY based on the current offset from center
-      // This assumes the center is 0,0
-      #if IS_DELTA
+      #elif IS_DELTA
+
+        // Delta limits XY based on the current offset from center
+        // This assumes the center is 0,0
         if (axis != Z_AXIS) {
           max = SQRT(sq((float)(mechanics.delta_print_radius)) - sq(mechanics.current_position[Y_AXIS - axis]));
           min = -max;
         }
+
       #endif
 
       // Get the new position
