@@ -529,31 +529,6 @@
   #define BLTOUCH_SELFTEST 120
   #define BLTOUCH_RESET    160
 
-  #if HAS_Z_PROBE_PIN
-    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
-  #else
-    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
-  #endif
 #endif
-
-/**
- * Set a flag for a servo probe
- */
-#define HAS_Z_SERVO_PROBE (HAS_SERVOS && ENABLED(Z_PROBE_SERVO_NR) && Z_PROBE_SERVO_NR >= 0)
-
-/**
- * Set flags for enabled probes
- */
-#define HAS_BED_PROBE         (ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE)
-#define PROBE_SELECTED        (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
-#define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
-
-#if ENABLED(Z_PROBE_ALLEN_KEY)
-  #define PROBE_IS_TRIGGERED_WHEN_STOWED_TEST
-#endif
-
-#define HOMING_Z_WITH_PROBE (HAS_BED_PROBE && Z_HOME_DIR < 0 && DISABLED(Z_TWO_ENDSTOPS))
-
-#define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
 
 #endif /* _CONDITIONALS_PRE_H_ */

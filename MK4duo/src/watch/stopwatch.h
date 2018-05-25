@@ -23,8 +23,6 @@
 #ifndef _STOPWATCH_H_
 #define _STOPWATCH_H_
 
-//#define DEBUG_STOPWATCH
-
 /**
  * @brief Stopwatch class
  * @details This class acts as a timer proving stopwatch functionality including
@@ -41,9 +39,10 @@ class Stopwatch {
     };
 
     static Stopwatch::State state;
+
+    static watch_t  Timestamp;
+
     static millis_t accumulator;
-    static millis_t startTimestamp;
-    static millis_t stopTimestamp;
 
   public: /** Public Function */
 
@@ -108,16 +107,6 @@ class Stopwatch {
      * @return the delta since starting the stopwatch
      */
     static millis_t duration();
-
-    #if ENABLED(DEBUG_STOPWATCH)
-
-      /**
-       * @brief Prints a debug message
-       * @details Prints a simple debug message "Stopwatch::function"
-       */
-      static void debug(const char func[]);
-
-    #endif
 
 };
 

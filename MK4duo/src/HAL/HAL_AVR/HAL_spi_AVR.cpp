@@ -82,20 +82,19 @@
   }
 
 #else // HARDWARE_SPI
-  
-  void HAL::spiBegin(void) {
-    #if SS_PIN >= 0
-      SET_INPUT(MISO_PIN);
-      SET_OUTPUT(MOSI_PIN);
-      SET_OUTPUT(SCK_PIN);
-      // set SS high - may be chip select for another SPI device
-    #endif
-  }
 
   // make sure SPCR rate is in expected bits
   #if (SPR0 != 0 || SPR1 != 1)
     #error "unexpected SPCR bits"
   #endif
+
+  void HAL::spiBegin(void) {
+    #if SS_PIN >= 0
+      SET_INPUT(MISO_PIN);
+      SET_OUTPUT(MOSI_PIN);
+      SET_OUTPUT(SCK_PIN);
+    #endif
+  }
 
   /**
    * Initialize hardware SPI

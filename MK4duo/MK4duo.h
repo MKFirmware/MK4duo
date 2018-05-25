@@ -112,10 +112,13 @@ typedef int8_t    pin_t;
 #include "src/inc/conditionals_post.h"
 #include "src/inc/sanitycheck.h"
 #include "src/inc/point_t.h"
-#include "src/inc/watch.h"
 
-// HAL Modules
+// HAL modules
 #include "src/HAL/HAL.h"
+
+// Watch modules
+#include "src/watch/watch.h"
+#include "src/watch/stopwatch.h"
 
 // Core modules
 #include "src/core/mechanics/mechanics.h"
