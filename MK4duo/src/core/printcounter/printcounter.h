@@ -23,7 +23,6 @@
 #ifndef _PRINTCOUNTER_H_
 #define _PRINTCOUNTER_H_
 
-#include "stopwatch.h"
 #include "duration_t.h"
 
 //#define DEBUG_PRINTCOUNTER

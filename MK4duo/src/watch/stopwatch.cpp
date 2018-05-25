@@ -20,84 +20,62 @@
  *
  */
 
-#include "../../../MK4duo.h"
-#include "stopwatch.h"
+#include "../../MK4duo.h"
 
-Stopwatch::State Stopwatch::state;
-millis_t Stopwatch::accumulator;
-millis_t Stopwatch::startTimestamp;
-millis_t Stopwatch::stopTimestamp;
+Stopwatch::State Stopwatch::state = STOPPED;
+
+watch_t Stopwatch::Timestamp;
+
+millis_t Stopwatch::accumulator = 0;
 
 bool Stopwatch::stop() {
-  #if ENABLED(DEBUG_STOPWATCH)
-    Stopwatch::debug(PSTR("stop"));
-  #endif
-
   if (isRunning() || isPaused()) {
     state = STOPPED;
-    stopTimestamp = millis();
+    Timestamp.stopwatch = millis();
     return true;
   }
-  else return false;
+  else
+    return false;
 }
 
 bool Stopwatch::pause() {
-  #if ENABLED(DEBUG_STOPWATCH)
-    Stopwatch::debug(PSTR("pause"));
-  #endif
-
   if (isRunning()) {
     state = PAUSED;
-    stopTimestamp = millis();
+    Timestamp.stopwatch = millis();
     return true;
   }
-  else return false;
+  else
+    return false;
 }
 
 bool Stopwatch::start() {
-  #if ENABLED(DEBUG_STOPWATCH)
-    Stopwatch::debug(PSTR("start"));
-  #endif
-
   if (!isRunning()) {
-    if (isPaused()) accumulator = duration();
-    else reset();
+
+    if (isPaused())
+      accumulator = duration();
+    else
+      reset();
 
     state = RUNNING;
-    startTimestamp = millis();
+    Timestamp.start();
     return true;
   }
-  else return false;
+  else
+    return false;
 }
 
 void Stopwatch::resume(const millis_t duration) {
-  #if ENABLED(DEBUG_STOPWATCH)
-    Stopwatch::debug(PSTR("resume"));
-  #endif
-
   reset();
   if ((accumulator = duration)) state = RUNNING;
 }
 
 void Stopwatch::reset() {
-  #if ENABLED(DEBUG_STOPWATCH)
-    Stopwatch::debug(PSTR("reset"));
-  #endif
-
   state = STOPPED;
-  startTimestamp = 0;
-  stopTimestamp = 0;
+  Timestamp.stop();
   accumulator = 0;
 }
 
 millis_t Stopwatch::duration() {
-  return (((isRunning()) ? millis() : stopTimestamp)
-          - startTimestamp) / 1000UL + accumulator;
+  return (((isRunning()) ? millis() : Timestamp.stopwatch)
+          - Timestamp.startwatch) / 1000UL + accumulator;
 }
-
-#if ENABLED(DEBUG_STOPWATCH)
-  void Stopwatch::debug(const char func[]) {
-    SERIAL_MT("Stopwatch:", func);
-    SERIAL_EM("()");
-  }
-#endif
