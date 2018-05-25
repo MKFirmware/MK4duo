@@ -129,12 +129,12 @@ class Endstops {
     static void report();
 
     /**
-     * Print an error message reporting the position when the endstops were last hit.
+     * Report endstop hits to serial. Called from loop().
      */
-    static void report_state(); // call from somewhere to create an serial error message with the locations the endstops where hit, in case they were triggered
+    static void report_state();
 
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
-    static void hit_on_purpose();
+    FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
 
     // Constrain the given coordinates to the software endstops.
     static void clamp_to_software(float target[XYZ]);
