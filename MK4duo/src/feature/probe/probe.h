@@ -29,15 +29,6 @@
 #ifndef _PROBE_H_
 #define _PROBE_H_
 
-// TRIGGERED_WHEN_STOWED_TEST can easily be extended to servo probes, ... if needed.
-#if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
-  #if HAS_Z_PROBE_PIN
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
-  #else
-    #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
-  #endif
-#endif
-
 #if HAS_Z_SERVO_PROBE
   #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_PROBE_SERVO_NR, probe.z_servo_angle[0])
   #define STOW_Z_SERVO()   MOVE_SERVO(Z_PROBE_SERVO_NR, probe.z_servo_angle[1])
@@ -52,9 +43,9 @@
 #endif
 
 enum ProbePtRaise : unsigned char {
-  PROBE_PT_NONE,  // No raise or stow after run_z_probe
-  PROBE_PT_STOW,  // Do a complete stow after run_z_probe
-  PROBE_PT_RAISE  // Raise to "between" clearance after run_z_probe
+  PROBE_PT_NONE,  // No raise or stow after run_probing
+  PROBE_PT_STOW,  // Do a complete stow after run_probing
+  PROBE_PT_RAISE  // Raise to "between" clearance after run_probing
 };
 
 class Probe {
@@ -114,22 +105,11 @@ class Probe {
 
   private: /** Private Function */
 
-    /**
-     * @brief Used by run_z_probe to do a single Z probe move.
-     *
-     * @param  z        Z destination
-     * @param  fr_mm_s  Feedrate in mm/s
-     * @return true to indicate an error
-     */
     static bool move_to_z(const float z, const float fr_mm_s);
 
-    /**
-     * @details Used by check_pt to do a single Z probe.
-     *          Leaves current_position[Z_AXIS] at the height where the probe triggered.
-     *
-     * @return The raw Z position where the probe was triggered
-     */
-    static float run_z_probe();
+    static void do_raise(const float z_raise);
+
+    static float run_probing();
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();

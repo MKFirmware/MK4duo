@@ -1167,6 +1167,7 @@ void Stepper::pulse_phase_step() {
   if (abort_current_block) {
     abort_current_block = false;
     if (current_block) {
+      axis_did_move = 0;
       current_block = NULL;
       planner.discard_current_block();
     }
@@ -1479,6 +1480,7 @@ uint32_t Stepper::block_phase_step() {
 
     // If current block is finished, reset pointer
     if (all_steps_done) {
+      axis_did_move = 0;
       current_block = NULL;
       planner.discard_current_block();
 
@@ -1569,13 +1571,14 @@ uint32_t Stepper::block_phase_step() {
         #define Z_MOVE_TEST !!current_block->steps[Z_AXIS]
       #endif
 
-      SET_BIT(axis_did_move, X_AXIS, X_MOVE_TEST);
-      SET_BIT(axis_did_move, Y_AXIS, Y_MOVE_TEST);
-      SET_BIT(axis_did_move, Z_AXIS, Z_MOVE_TEST);
-      SET_BIT(axis_did_move, E_AXIS, !!current_block->steps[E_AXIS]);
-      SET_BIT(axis_did_move, X_HEAD, !!current_block->steps[X_HEAD]);
-      SET_BIT(axis_did_move, Y_HEAD, !!current_block->steps[Y_HEAD]);
-      SET_BIT(axis_did_move, Z_HEAD, !!current_block->steps[Z_HEAD]);
+      axis_did_move = 0;
+      if (X_MOVE_TEST) SBI(axis_did_move, A_AXIS);
+      if (Y_MOVE_TEST) SBI(axis_did_move, B_AXIS);
+      if (Z_MOVE_TEST) SBI(axis_did_move, C_AXIS);
+      //if (!!current_block->steps[E_AXIS]) SBI(axis_did_move, E_AXIS);
+      //if (!!current_block->steps[A_AXIS]) SBI(axis_did_move, X_HEAD);
+      //if (!!current_block->steps[B_AXIS]) SBI(axis_did_move, Y_HEAD);
+      //if (!!current_block->steps[C_AXIS]) SBI(axis_did_move, Z_HEAD);
 
       #if ENABLED(LIN_ADVANCE)
         #if EXTRUDERS > 1

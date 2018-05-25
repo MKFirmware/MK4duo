@@ -159,15 +159,6 @@ void Endstops::Tick() {
   #endif
 }
 
-// Clear endstops (i.e., they were hit intentionally) to suppress the report
-void Endstops::hit_on_purpose() {
-  hit_state = 0;
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (ENDSTOPS_ENABLED) update();
-  #endif
-}
-
 void Endstops::setup_pullup() {
 
   #if HAS_X_MIN

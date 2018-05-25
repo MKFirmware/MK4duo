@@ -37,7 +37,7 @@
     #if ENABLED(PROBE_MANUALLY)
       + 1
     #endif
-    #if ENABLED(FIX_MOUNTED_PROBE)
+    #if ENABLED(Z_PROBE_FIX_MOUNTED)
       + 1
     #endif
     #if HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
@@ -52,7 +52,7 @@
     #if ENABLED(Z_PROBE_SLED)
       + 1
     #endif
-    , "DEPENDENCY ERROR: Please enable only one probe: FIX_MOUNTED_PROBE, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
+    , "DEPENDENCY ERROR: Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
   );
 
   // Z_PROBE_SLED is incompatible with DELTA
