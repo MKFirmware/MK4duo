@@ -308,14 +308,17 @@ class Stepper {
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_homing_flag_x(const bool state) { printer.setHoming(state); }
       FORCE_INLINE static void set_x_lock(const bool state) { locked_x_motor = state; }
       FORCE_INLINE static void set_x2_lock(const bool state) { locked_x2_motor = state; }
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_homing_flag_y(const bool state) { printer.setHoming(state); }
       FORCE_INLINE static void set_y_lock(const bool state) { locked_y_motor = state; }
       FORCE_INLINE static void set_y2_lock(const bool state) { locked_y2_motor = state; }
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
+      FORCE_INLINE static void set_homing_flag_z(const bool state) { printer.setHoming(state); }
       FORCE_INLINE static void set_z_lock(const bool state) { locked_z_motor = state; }
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_z2_motor = state; }
     #endif

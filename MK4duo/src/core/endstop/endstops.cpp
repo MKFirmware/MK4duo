@@ -345,9 +345,13 @@ void Endstops::report_state() {
 
     hit_on_purpose();
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
-      if (planner.abort_on_endstop_hit && !printer.isHoming())
-        printer.setAbortSDprinting(true);
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SDSUPPORT
+      if (planner.abort_on_endstop_hit) {
+        card.setSDprinting(false);
+        card.closeFile();
+        printer.quickstop_stepper();
+        thermalManager.disable_all_heaters();
+      }
     #endif
   }
 } // Endstops::report_state
