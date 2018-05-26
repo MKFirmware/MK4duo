@@ -297,8 +297,14 @@
     #endif
 
     // Set flags for X, Y, Z motor locking
-    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-      printer.setHoming(true);
+    #if ENABLED(X_TWO_ENDSTOPS)
+      if (axis == X_AXIS) stepper.set_homing_flag_x(true);
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      if (axis == Y_AXIS) stepper.set_homing_flag_y(true);
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) stepper.set_homing_flag_z(true);
     #endif
 
     // Fast move towards endstop until triggered
@@ -346,7 +352,7 @@
           if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
           mechanics.do_homing_move(axis, adj);
           if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_x(false);
         }
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
@@ -357,7 +363,7 @@
           if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
           mechanics.do_homing_move(axis, adj);
           if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_y(false);
         }
       #endif
       #if ENABLED(Z_TWO_ENDSTOPS)
@@ -368,7 +374,7 @@
           if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
           mechanics.do_homing_move(axis, adj);
           if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_z(false);
         }
       #endif
     #endif
