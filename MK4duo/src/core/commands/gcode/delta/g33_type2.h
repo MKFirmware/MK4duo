@@ -134,10 +134,10 @@
     return 0.00001;
   }
 
-  static bool probe_calibration_points(float z_pt[NPP + 1], const int8_t probe_points, const bool towers_set, const bool stow_after_each) {
+  static bool probe_calibration_points(float z_pt[NPP + 1], const uint8_t probe_points, const bool towers_set, const bool stow_after_each) {
 
     const bool  _0p_calibration      = probe_points == 0,
-                _1p_calibration      = probe_points == 1 || probe_points == -1,
+                _1p_calibration      = probe_points == 1,
                 _4p_calibration      = probe_points == 2,
                 _4p_opposite_points  = _4p_calibration && !towers_set,
                 _7p_calibration      = probe_points >= 3 || probe_points == 0,
@@ -209,10 +209,7 @@
         }
 
         // goto centre
-        const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-        mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
         mechanics.do_blocking_move_to_xy(0, 0);
-        mechanics.feedrate_mm_s = old_feedrate_mm_s;
       }
     }
     return true;
@@ -352,17 +349,13 @@
    */
   inline void gcode_G33(void) {
 
-    const int8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
+    const uint8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
     if (!WITHIN(probe_points, 0, 10)) {
       SERIAL_EM("?(P)oints is implausible (0-10).");
       return;
     }
 
-    const int8_t verbose_level = parser.byteval('V', 1);
-    if (!WITHIN(verbose_level, 0, 3)) {
-      SERIAL_EM("?(V)erbose Level is implausible (0-3).");
-      return;
-    }
+    const bool towers_set = !parser.seen('T');
 
     const float calibration_precision = parser.floatval('C', 0.0);
     if (calibration_precision < 0) {
@@ -376,16 +369,22 @@
       return;
     }
 
-    const bool  towers_set          = !parser.boolval('T'),
-                stow_after_each     = parser.boolval('E'),
-                _0p_calibration     = probe_points == 0,
+    const int8_t verbose_level = parser.byteval('V', 1);
+    if (!WITHIN(verbose_level, 0, 3)) {
+      SERIAL_EM("?(V)erbose Level is implausible (0-3).");
+      return;
+    }
+
+    const bool stow_after_each = parser.seen('E');
+
+    const bool  _0p_calibration     = probe_points == 0,
                 _1p_calibration     = probe_points == 1,
                 _4p_calibration     = probe_points == 2,
                 _4p_opposite_points = _4p_calibration && !towers_set,
                 _7p_9_centre        = probe_points >= 8,
                 _tower_results      = (_4p_calibration && towers_set) || probe_points >= 3,
                 _opposite_results   = (_4p_calibration && !towers_set) || probe_points >= 3,
-                _endstop_results    = probe_points != 1 && probe_points != -1 && probe_points != 0,
+                _endstop_results    = probe_points != 1 && probe_points != 0,
                 _angle_results      = probe_points >= 3  && towers_set;
 
     const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";

@@ -41,8 +41,7 @@ constexpr uint8_t debug_simulation          = 128;
 enum Flag1HomeEnum : char {
   flag1_x_homed,
   flag1_y_homed,
-  flag1_z_homed,
-  flag1_homing
+  flag1_z_homed
 };
 
 enum Flag2VariousEnum : char {
@@ -246,11 +245,6 @@ class Printer {
       CBI(mk_1_flag, flag1_z_homed);
     }
     FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
-
-    FORCE_INLINE static void setHoming(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_homing, onoff);
-    }
-    FORCE_INLINE static bool isHoming() { return TEST(mk_1_flag, flag1_homing); }
 
     // Flag2 Various function
     FORCE_INLINE static void setRunning(const bool onoff) {

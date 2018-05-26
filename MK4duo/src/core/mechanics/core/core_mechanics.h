@@ -100,7 +100,7 @@
        * Set sensorless homing if the axis has it.
        */
       #if ENABLED(SENSORLESS_HOMING)
-        static void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true) override;
+        void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true) override;
       #endif
 
     private: /** Private Function */
