@@ -57,13 +57,12 @@ Endstops endstops;
   float Endstops::z_endstop_adj = 0.0;
 #endif
 
-uint16_t  Endstops::logic_bits    = 0,
-          Endstops::pullup_bits   = 0;
+uint16_t  Endstops::logic_bits  = 0,
+          Endstops::pullup_bits = 0,
+          Endstops::live_state  = 0;
 
 // Private
 uint8_t   Endstops::flag1_bits    = 0;
-
-uint16_t  Endstops::live_state  = 0;
 
 volatile uint8_t Endstops::hit_state = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 

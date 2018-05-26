@@ -81,13 +81,12 @@ class Endstops {
     #endif
 
     static uint16_t logic_bits,
-                    pullup_bits;
+                    pullup_bits,
+                    live_state;
 
   private: /** Private Parameters */
 
     static uint8_t  flag1_bits;
-
-    static uint16_t live_state;
 
     static volatile uint8_t hit_state; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
@@ -117,11 +116,6 @@ class Endstops {
      * Get Endstop hit state.
      */
     FORCE_INLINE static uint8_t trigger_state() { return hit_state; }
-
-    /**
-     * Get endstops live state
-     */
-    FORCE_INLINE static uint16_t state() { return live_state; }
 
     /**
      * Print logical and pullup
