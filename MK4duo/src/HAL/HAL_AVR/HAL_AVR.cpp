@@ -428,9 +428,6 @@ HAL_STEPPER_TIMER_ISR {
   // Call the ISR
   hal_timer_t ticks = stepper.Step();
 
-  const hal_timer_t minticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL);
-  NOLESS(ticks, minticks);
-
   // Schedule next interrupt
   HAL_timer_set_count(STEPPER_TIMER, ticks);
 

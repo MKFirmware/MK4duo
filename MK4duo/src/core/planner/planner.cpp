@@ -2041,7 +2041,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
         // TODO: Technically, the acceleration used in calculation needs to be limited by the minimum of the
         // two junctions. However, this shouldn't be a significant problem except in extreme circumstances.
-        vmax_junction_sqr = ((JUNCTION_DEVIATION_ACC_FACTOR) * (JUNCTION_DEVIATION_FACTOR) * sin_theta_d2) / (1.0 - sin_theta_d2);
+        vmax_junction_sqr = ((JUNCTION_DEVIATION_ACCELERATION) * (JUNCTION_DEVIATION_MM) * sin_theta_d2) / (1.0 - sin_theta_d2);
         if (block->millimeters < 1.0) {
 
           // Fast acos approximation, minus the error bar to be safe
@@ -2049,7 +2049,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
           // If angle is greater than 135 degrees (octagon), find speed for approximate arc
           if (junction_theta > RADIANS(135)) {
-            const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * (JUNCTION_DEVIATION_ACC_FACTOR);
+            const float limit_sqr = block->millimeters / (RADIANS(180) - junction_theta) * (JUNCTION_DEVIATION_ACCELERATION);
             NOMORE(vmax_junction_sqr, limit_sqr);
           }
         }
