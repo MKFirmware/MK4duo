@@ -233,7 +233,7 @@
 
     const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
-    if (!position_is_reachable(rx, ry)) return;
+    if (!mechanics.position_is_reachable(rx, ry)) return;
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
