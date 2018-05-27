@@ -46,10 +46,9 @@
  */
 
 /**
- * Jerk controlled movements planner added by Eduardo José Tagle in April
- * 2018, Equations based on Synthethos TinyG2 sources, but the fixed-point
- * implementation is a complete new one, as we are running the ISR with a
- * variable period.
+ * Jerk controlled movements planner added Apr 2018 by Eduardo José Tagle.
+ * Equations based on Synthethos TinyG2 sources, but the fixed-point
+ * implementation is new, as we are running the ISR with a variable period.
  * Also implemented the Bézier velocity curve evaluation in ARM assembler,
  * to avoid impacting ISR speed.
  */
@@ -84,6 +83,234 @@ bool    Stepper::abort_current_block;               // Signals to the stepper th
 #if ENABLED(Z_TWO_ENDSTOPS)
   bool Stepper::performing_homing = false, Stepper::locked_z_motor = false, Stepper::locked_z2_motor = false;
 #endif
+
+/**
+ * MK4duo uses the Bresenham algorithm. For a detailed explanation of theory and
+ * method see https://www.cs.helsinki.fi/group/goa/mallinnus/lines/bresenh.html
+ *
+ * The basic Bresenham algorithm:
+ *
+ * Consider drawing a line on a raster grid where we restrict the allowable
+ * slopes of the line to the range 0 <= m <= 1
+ *
+ * If we further restrict the line-drawing routine so that it always increments
+ * x as it plots, it becomes clear that, having plotted a point at (x,y), the
+ * routine has a severely limited range of options as to where it may put the
+ * next point on the line:
+ *
+ *  -It may plot the point (x+1,y), or:
+ *  -It may plot the point (x+1,y+1).
+ *
+ * So, working in the first positive octant of the plane, line drawing becomes
+ * a matter of deciding between two possibilities at each step.
+ * We can draw a diagram of the situation which the plotting program finds itself
+ * in having plotted (x,y).
+ *
+ *
+ * y+1 +--------------*
+ *     |             /
+ *     |            /
+ *     |           /
+ *     |          /
+ *     |    y+e+m*--------+-
+ *     |        /| ^    |
+ *     |       / | |m   |
+ *     |      /  | |    |
+ *     |     /   | v    |
+ *     | y+e*----|-----   |m+ε
+ *     |   /|    | ^    |
+ *     |  / |    | |ε   |
+ *     | /  |    | |    |
+ *     |/   |    | v    v
+ *   y *----+----+----------+--
+ *          x   x+1
+ *
+ *
+ * In plotting (x,y) the line drawing routine will, in general, be making a
+ * compromise between what it would like to draw and what the resolution of
+ * the stepper motors actually allows it to draw. Usually the plotted point
+ * (x,y) will be in error, the actual, mathematical point on the line will
+ * not be addressable on the pixel grid. So we associate an error, ε ,
+ * with each y ordinate, the real value of y should be y+ε . This error will
+ * range from -0.5 to just under +0.5.
+ *
+ * In moving from x to x+1 we increase the value of the true (mathematical)
+ * y-ordinate by an amount equal to the slope of the line, m. We will choose
+ * to plot (x+1,y) if the difference between this new value and y is less than
+ * 0.5
+ *
+ *  y + ε + m < y + 0.5
+ *
+ * Otherwise we will plot (x+1,y+1). It should be clear that by so doing we
+ * minimise the total error between the mathematical line segment and what
+ * actually gets drawn on the display.
+ *
+ * The error resulting from this new point can now be written back into ε,
+ * this will allow us to repeat the whole process for the next point along
+ * the line, at x+2.
+ *
+ * The new value of error can adopt one of two possible values, depending
+ * on what new point is plotted. If (x+1,y) is chosen, the new value of error
+ * is given by:
+ *
+ *  ε[new] = (y + ε + m) - y
+ *
+ * Otherwise, it is:
+ *
+ *  ε[new] = (y + ε + m) - (y + 1)
+ *
+ * This gives an algorithm for a DDA which avoids rounding operations,
+ * instead using the error variable ε to control plotting:
+ *
+ *  ε = 0, y = y[1]
+ *  for x = x1 to x2 do
+ *    Plot point at (x,y)
+ *    if (ε + m < 0.5)
+ *      ε = ε + m
+ *    else
+ *      y = y + 1, ε = ε + m - 1
+ *    endif
+ *  endfor
+ *
+ * This still employs floating point values. Consider, however, what happens
+ * if we multiply across both sides of the plotting test by Δx and then by 2:
+ *
+ *          ε + m < 0.5
+ *      ε + Δy/Δx < 0.5
+ *  2.ε.Δx + 2.Δy < Δx
+ *
+ * All quantities in this inequality are now integral.
+ *
+ * Substitute ε' for ε.Δx . The test becomes:
+ *
+ *  2.(ε' + Δy) < Δx
+ *
+ * This gives an integer-only test for deciding which point to plot.
+ *
+ * The update rules for the error on each step may also be cast into ε' form:
+ * Consider the floating-point versions of the update rules:
+ *
+ *  ε = ε + m
+ *  ε = ε + m - 1
+ *
+ * Multiplying through by Δx yields:
+ *
+ *  ε.Δx = ε.Δx + Δy
+ *  ε.Δx = ε.Δx + Δy - Δx
+ *
+ * Which is in ε' form:
+ *
+ *  ε' = ε' + Δy
+ *  ε' = ε' + Δy - Δx
+ *
+ * Using this new ``error'' value, ε'  with the new test and update equations
+ * gives Bresenham's integer-only line drawing algorithm:
+ *
+ *  ε' = 0, y = y[1]
+ *  for x = x1 to x2 do
+ *    Plot point at (x,y)
+ *    if (2.(ε' + Δy) < Δx)
+ *      ε' = ε' + Δy
+ *    else
+ *      y = y + 1, ε' = ε' + Δy - Δx
+ *    endif
+ *  endfor
+ *
+ * It is a Integer only algorithm - hence efficient (fast). And the Multiplication
+ * by 2 can be implemented by left-shift.  0 <= m <= 1
+ *
+ * A possible implementation in C:
+ *
+ *  void bresenham(Screen &s,
+ *            unsigned x1, unsigned y1,
+ *            unsigned x2, unsigned y2,
+ *            unsigned char colour )
+ *  {
+ *    int dx  = x2 - x1,
+ *        dy  = y2 - y1,
+ *         y  = y1,
+ *        eps = 0;
+ *
+ *    for ( int x = x1; x <= x2; x++ )  {
+ *      s.Plot(x,y,colour);
+ *      eps += dy;
+ *      if ( (eps << 1) >= dx )  {
+ *        y++;  eps -= dx;
+ *      }
+ *    }
+ * }
+ *
+ * We can optimize it a bit, by noting that
+ *  (eps << 1) >= dx
+ *
+ * Is equivalent to:
+ *  eps >= (dx / 2)
+ *
+ * Even if it would seem that right shifting dx would lose the least significant
+ * bit, we can handle it by proper rounding: eps is an integer variable, so only has
+ * integer values. dx is also an integer value, so after dividing by 2, either the
+ * value was an integer, or we missed by 0.5 less than true value.
+ *
+ *  1] If, after the division, the value was exactly an integer, then the following holds true:
+ *
+ *    (eps << 1) >= dx is equal to eps >= (dx>>1)       [ for dx even ]
+ *
+ *  2] If, after the division, the result was truncation of the last bit of dx, then
+ *
+ *    (eps << 1) >= dx is equal to eps >= (dx>>1)+0.5   [ for dx odd ]
+ *
+ *  But, as eps is an integer, we can rewrite the expression as:
+ *
+ *    (eps << 1) >= dx is equal to eps >   (dx>>1)       [ for dx odd ]
+ *    (eps << 1) >= dx is equal to eps >=  (dx>>1)+1     [ for dx odd ]
+ *
+ *  Now, the algorithm can be rewritten as:
+ *
+ *    void bresenham2(Screen &s,
+ *              unsigned x1, unsigned y1,
+ *              unsigned x2, unsigned y2,
+ *              unsigned char colour )
+ *    {
+ *      int dx  = x2 - x1,
+ *          dy  = y2 - y1,
+ *          y   = y1,
+ *          eps = 0,
+ *          limit = (dx>>1) + (dx&1);
+ *
+ *      for ( int x = x1; x <= x2; x++ )  {
+ *        s.Plot(x,y,colour);
+ *        eps += dy;
+ *        if ( eps >= limit )  {
+ *          y++;  eps -= dx;
+ *        }
+ *      }
+ *    }
+ *
+ *
+ *  The last thing we can do to improve the algorithm, is instead of initializing
+ *  eps to 0, we can initialize it to -((dx>>1) + (dx&1)) , so the algorithm becomes:
+ *
+ *    void bresenham3(Screen &s,
+ *              unsigned x1, unsigned y1,
+ *              unsigned x2, unsigned y2,
+ *              unsigned char colour )
+ *    {
+ *      int dx  = x2 - x1,
+ *          dy  = y2 - y1,
+ *          y   = y1,
+ *          eps = -((dx>>1) + (dx&1));
+ *
+ *      for ( int x = x1; x <= x2; x++ )  {
+ *        s.Plot(x,y,colour);
+ *        eps += dy;
+ *        if ( eps >= 0 )  {
+ *          y++;  eps -= dx;
+ *        }
+ *      }
+ *    }
+ *
+ *  And this is exactly the algorithm implemented by MK4duo
+ */
 
 int32_t Stepper::counter_X = 0,
         Stepper::counter_Y = 0,
@@ -357,15 +584,15 @@ void Stepper::set_directions() {
 
 #if ENABLED(BEZIER_JERK_CONTROL)
   /**
-   *   We are using a quintic (fifth-degree) Bézier polynomial for the velocity curve.
-   *  This gives us a "linear pop" velocity curve; with pop being the sixth derivative of position:
+   *  This uses a quintic (fifth-degree) Bézier polynomial for the velocity curve, giving
+   *  a "linear pop" velocity curve; with pop being the sixth derivative of position:
    *  velocity - 1st, acceleration - 2nd, jerk - 3rd, snap - 4th, crackle - 5th, pop - 6th
    *
    *  The Bézier curve takes the form:
    *
    *  V(t) = P_0 * B_0(t) + P_1 * B_1(t) + P_2 * B_2(t) + P_3 * B_3(t) + P_4 * B_4(t) + P_5 * B_5(t)
    *
-   *   Where 0 <= t <= 1, and V(t) is the velocity. P_0 through P_5 are the control points, and B_0(t)
+   *  Where 0 <= t <= 1, and V(t) is the velocity. P_0 through P_5 are the control points, and B_0(t)
    *  through B_5(t) are the Bernstein basis as follows:
    *
    *        B_0(t) =   (1-t)^5        =   -t^5 +  5t^4 - 10t^3 + 10t^2 -  5t   +   1
@@ -378,12 +605,12 @@ void Stepper::set_directions() {
    *                                      |       |       |       |       |       |
    *                                      A       B       C       D       E       F
    *
-   *   Unfortunately, we cannot use forward-differencing to calculate each position through
-   *  the curve, as MK4duo uses variable timer periods. So, we require a formula of the form:
+   *  Unfortunately, we cannot use forward-differencing to calculate each position through
+   *  the curve, as Marlin uses variable timer periods. So, we require a formula of the form:
    *
    *        V_f(t) = A*t^5 + B*t^4 + C*t^3 + D*t^2 + E*t + F
    *
-   *   Looking at the above B_0(t) through B_5(t) expanded forms, if we take the coefficients of t^5
+   *  Looking at the above B_0(t) through B_5(t) expanded forms, if we take the coefficients of t^5
    *  through t of the Bézier form of V(t), we can determine that:
    *
    *        A =    -P_0 +  5*P_1 - 10*P_2 + 10*P_3 -  5*P_4 +  P_5
@@ -393,7 +620,7 @@ void Stepper::set_directions() {
    *        E = - 5*P_0 +  5*P_1
    *        F =     P_0
    *
-   *   Now, since we will (currently) *always* want the initial acceleration and jerk values to be 0,
+   *  Now, since we will (currently) *always* want the initial acceleration and jerk values to be 0,
    *  We set P_i = P_0 = P_1 = P_2 (initial velocity), and P_t = P_3 = P_4 = P_5 (target velocity),
    *  which, after simplification, resolves to:
    *
@@ -404,14 +631,14 @@ void Stepper::set_directions() {
    *        E = 0
    *        F = P_i
    *
-   *   As the t is evaluated in non uniform steps here, there is no other way rather than evaluating
+   *  As the t is evaluated in non uniform steps here, there is no other way rather than evaluating
    *  the Bézier curve at each point:
    *
    *        V_f(t) = A*t^5 + B*t^4 + C*t^3 + F          [0 <= t <= 1]
    *
-   *   Floating point arithmetic execution time cost is prohibitive, so we will transform the math to
+   * Floating point arithmetic execution time cost is prohibitive, so we will transform the math to
    * use fixed point values to be able to evaluate it in realtime. Assuming a maximum of 250000 steps
-   * per second (driver pulses should at least be 2uS hi/2uS lo), and allocating 2 bits to avoid
+   * per second (driver pulses should at least be 2µS hi/2µS lo), and allocating 2 bits to avoid
    * overflows on the evaluation of the Bézier curve, means we can use
    *
    *   t: unsigned Q0.32 (0 <= t < 1) |range 0 to 0xFFFFFFFF unsigned
@@ -420,7 +647,7 @@ void Stepper::set_directions() {
    *   C:   signed Q24.7 ,            |range = +/- 250000 *10 * 128 = +/- 320000000 = 0x1312D000 | 29 bits + sign
    *   F:   signed Q24.7 ,            |range = +/- 250000     * 128 =      32000000 = 0x01E84800 | 25 bits + sign
    *
-   *  The trapezoid generator state contains the following information, that we will use to create and evaluate
+   * The trapezoid generator state contains the following information, that we will use to create and evaluate
    * the Bézier curve:
    *
    *  blk->step_event_count [TS] = The total count of steps for this movement. (=distance)
@@ -432,7 +659,7 @@ void Stepper::set_directions() {
    *
    *  For Any 32bit CPU:
    *
-   *    At the start of each trapezoid, we calculate the coefficients A,B,C,F and Advance [AV], as follows:
+   *    At the start of each trapezoid, calculate the coefficients A,B,C,F and Advance [AV], as follows:
    *
    *      A =  6*128*(VF - VI) =  768*(VF - VI)
    *      B = 15*128*(VI - VF) = 1920*(VI - VF)
@@ -440,7 +667,7 @@ void Stepper::set_directions() {
    *      F =    128*VI        =  128*VI
    *     AV = (1<<32)/TS      ~= 0xFFFFFFFF / TS (To use ARM UDIV, that is 32 bits) (this is computed at the planner, to offload expensive calculations from the ISR)
    *
-   *   And for each point, we will evaluate the curve with the following sequence:
+   *    And for each point, evaluate the curve with the following sequence:
    *
    *      void lsrs(uint32_t& d, uint32_t s, int cnt) {
    *        d = s >> cnt;
@@ -493,10 +720,10 @@ void Stepper::set_directions() {
    *        return alo;
    *      }
    *
-   *    This will be rewritten in ARM assembly to get peak performance and will take 43 cycles to execute
+   *  This is rewritten in ARM assembly for optimal performance (43 cycles to execute).
    *
-   *  For AVR, we scale precision of coefficients to make it possible to evaluate the Bézier curve in
-   *    realtime: Let's reduce precision as much as possible. After some experimentation we found that:
+   *  For AVR, the precision of coefficients is scaled so the Bézier curve can be evaluated in real-time:
+   *  Let's reduce precision as much as possible. After some experimentation we found that:
    *
    *    Assume t and AV with 24 bits is enough
    *       A =  6*(VF - VI)
@@ -505,9 +732,9 @@ void Stepper::set_directions() {
    *       F =     VI
    *      AV = (1<<24)/TS   (this is computed at the planner, to offload expensive calculations from the ISR)
    *
-   *     Instead of storing sign for each coefficient, we will store its absolute value,
+   *    Instead of storing sign for each coefficient, we will store its absolute value,
    *    and flag the sign of the A coefficient, so we can save to store the sign bit.
-   *     It always holds that sign(A) = - sign(B) = sign(C)
+   *    It always holds that sign(A) = - sign(B) = sign(C)
    *
    *     So, the resulting range of the coefficients are:
    *
@@ -517,7 +744,7 @@ void Stepper::set_directions() {
    *       C:   signed Q24 , range = 250000 *10 = 2500000 = 0x1312D0 | 21 bits
    *       F:   signed Q24 , range = 250000     =  250000 = 0x0ED090 | 20 bits
    *
-   *    And for each curve, we estimate its coefficients with:
+   *    And for each curve, estimate its coefficients with:
    *
    *      void _calc_bezier_curve_coeffs(int32_t v0, int32_t v1, uint32_t av) {
    *       // Calculate the Bézier coefficients
@@ -536,7 +763,7 @@ void Stepper::set_directions() {
    *       bezier_F = v0;
    *      }
    *
-   *    And for each point, we will evaluate the curve with the following sequence:
+   *    And for each point, evaluate the curve with the following sequence:
    *
    *      // unsigned multiplication of 24 bits x 24bits, return upper 16 bits
    *      void umul24x24to16hi(uint16_t& r, uint24_t op1, uint24_t op2) {
@@ -561,34 +788,33 @@ void Stepper::set_directions() {
    *        uint16_t f = t;
    *        umul16x16to16hi(f, f, t);           // Range 16 bits (unsigned)
    *        umul16x16to16hi(f, f, t);           // Range 16 bits : f = t^3  (unsigned)
-   *        uint24_t acc = bezier_F;          // Range 20 bits (unsigned)
+   *        uint24_t acc = bezier_F;            // Range 20 bits (unsigned)
    *        if (A_negative) {
    *          uint24_t v;
-   *          umul16x24to24hi(v, f, bezier_C);    // Range 21bits
+   *          umul16x24to24hi(v, f, bezier_C);  // Range 21bits
    *          acc -= v;
    *          umul16x16to16hi(f, f, t);         // Range 16 bits : f = t^4  (unsigned)
-   *          umul16x24to24hi(v, f, bezier_B);    // Range 22bits
+   *          umul16x24to24hi(v, f, bezier_B);  // Range 22bits
    *          acc += v;
    *          umul16x16to16hi(f, f, t);         // Range 16 bits : f = t^5  (unsigned)
-   *          umul16x24to24hi(v, f, bezier_A);    // Range 21bits + 15 = 36bits (plus sign)
+   *          umul16x24to24hi(v, f, bezier_A);  // Range 21bits + 15 = 36bits (plus sign)
    *          acc -= v;
    *        }
    *        else {
    *          uint24_t v;
-   *          umul16x24to24hi(v, f, bezier_C);    // Range 21bits
+   *          umul16x24to24hi(v, f, bezier_C);  // Range 21bits
    *          acc += v;
-   *          umul16x16to16hi(f, f, t);       // Range 16 bits : f = t^4  (unsigned)
-   *          umul16x24to24hi(v, f, bezier_B);    // Range 22bits
+   *          umul16x16to16hi(f, f, t);         // Range 16 bits : f = t^4  (unsigned)
+   *          umul16x24to24hi(v, f, bezier_B);  // Range 22bits
    *          acc -= v;
-   *          umul16x16to16hi(f, f, t);               // Range 16 bits : f = t^5  (unsigned)
-   *          umul16x24to24hi(v, f, bezier_A);    // Range 21bits + 15 = 36bits (plus sign)
+   *          umul16x16to16hi(f, f, t);         // Range 16 bits : f = t^5  (unsigned)
+   *          umul16x24to24hi(v, f, bezier_A);  // Range 21bits + 15 = 36bits (plus sign)
    *          acc += v;
    *        }
    *        return acc;
    *      }
-   *    Those functions will be translated into assembler to get peak performance. coefficient calculations takes 70 cycles,
-   *    Bezier point evaluation takes 150 cycles
-   *
+   *    These functions are translated to assembler for optimal performance.
+   *    Coefficient calculation takes 70 cycles. Bezier point evaluation takes 150 cycles.
    */
 
   #if ENABLED(__AVR__)
@@ -1249,12 +1475,12 @@ void Stepper::pulse_phase_step() {
     // Advance the Bresenham counter; start a pulse if the axis needs a step
     #define PULSE_START(AXIS) do{ \
       _COUNTER(AXIS) += current_block->steps[_AXIS(AXIS)]; \
-      if (_COUNTER(AXIS) > 0) { _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); } \
+      if (_COUNTER(AXIS) >= 0) { _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS),0); } \
     }while(0)
 
     // Advance the Bresenham counter; start a pulse if the axis needs a step
     #define STEP_TICK(AXIS) do { \
-      if (_COUNTER(AXIS) > 0) { \
+      if (_COUNTER(AXIS) >= 0) { \
         _COUNTER(AXIS) -= current_block->step_event_count; \
         count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
       } \
@@ -1282,7 +1508,7 @@ void Stepper::pulse_phase_step() {
     #if ENABLED(LIN_ADVANCE)
 
       counter_E += current_block->steps[E_AXIS];
-      if (counter_E > 0) {
+      if (counter_E >= 0) {
         #if DISABLED(COLOR_MIXING_EXTRUDER)
           // Don't step E here for mixing extruder
           motor_direction(E_AXIS) ? --e_steps : ++e_steps;
@@ -1293,7 +1519,7 @@ void Stepper::pulse_phase_step() {
         // Step mixing steppers proportionally
         MIXING_STEPPERS_LOOP(j) {
           counter_m[j] += current_block->steps[E_AXIS];
-          if (counter_m[j] > 0) {
+          if (counter_m[j] >= 0) {
             counter_m[j] -= current_block->mix_event_count[j];
             motor_direction(E_AXIS) ? --e_steps : ++e_steps;
           }
@@ -1310,7 +1536,7 @@ void Stepper::pulse_phase_step() {
           // Step mixing steppers (proportionally)
           counter_m[j] += current_block->steps[E_AXIS];
           // Step when the counter goes over zero
-          if (counter_m[j] > 0) En_STEP_WRITE(j, !INVERT_E_STEP_PIN);
+          if (counter_m[j] >= 0) En_STEP_WRITE(j, !INVERT_E_STEP_PIN);
         }
       #else // !COLOR_MIXING_EXTRUDER
         PULSE_START(E);
@@ -1319,7 +1545,7 @@ void Stepper::pulse_phase_step() {
     #endif // !LIN_ADVANCE
 
     #if HAS_EXT_ENCODER
-      if (counter_E > 0) {
+      if (counter_E >= 0) {
         switch(tools.active_extruder) {
           case 0:
             TEST_EXTRUDER_ENC0; break;
@@ -1380,7 +1606,7 @@ void Stepper::pulse_phase_step() {
     #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         MIXING_STEPPERS_LOOP(j) {
-          if (counter_m[j] > 0) {
+          if (counter_m[j] >= 0) {
             counter_m[j] -= current_block->mix_event_count[j];
             En_STEP_WRITE(j, INVERT_E_STEP_PIN);
           }
@@ -1392,7 +1618,7 @@ void Stepper::pulse_phase_step() {
 
     #if ENABLED(LASER)
       counter_L += current_block->steps_l;
-      if (counter_L > 0) {
+      if (counter_L >= 0) {
         if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
           laser.fire(current_block->laser_intensity);
           if (laser.diagnostics) {
@@ -1691,8 +1917,8 @@ uint32_t Stepper::block_phase_step() {
         bezier_2nd_half = false;
       #endif
 
-      // Initialize Bresenham counters to 1/2 the ceiling
-      counter_X = counter_Y = counter_Z = counter_E = -(current_block->step_event_count >> 1);
+      // Initialize Bresenham counters to 1/2 the ceiling, with proper roundup (as explained in the article linked above)
+      counter_X = counter_Y = counter_Z = counter_E = -int32_t((current_block->step_event_count + 1) >> 1);
 
       #if ENABLED(LASER)
         counter_L = counter_X;
@@ -1701,7 +1927,7 @@ uint32_t Stepper::block_phase_step() {
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         MIXING_STEPPERS_LOOP(i)
-          counter_m[i] = -(current_block->mix_event_count[i] >> 1);
+          counter_m[i] = -int32_t((current_block->mix_event_count[i] + 1) >> 1);
       #endif
 
       #if ENABLED(Z_LATE_ENABLE)

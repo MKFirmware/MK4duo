@@ -33,7 +33,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const
   const char * const str = itostr3(temp);
   lcd_moveto(x - (str[0] != ' ' ? 0 : str[1] != ' ' ? 1 : 2) * DOG_CHAR_WIDTH / 2, y);
   lcd_put_u8str(str);
-  lcd_put_u8str_rom(PSTR(LCD_STR_DEGREE " "));
+  lcd_put_u8str_P(PSTR(LCD_STR_DEGREE " "));
 }
 
 #if DISABLED(HEAT_INDICATOR_X)
@@ -94,36 +94,77 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
 inline void lcd_implementation_status_message(const bool blink) {
   #if ENABLED(STATUS_MESSAGE_SCROLLING)
     static bool last_blink = false;
-    const uint8_t slen = utf8_strlen(lcd_status_message);
-    const char *stat = lcd_status_message + status_scroll_pos;
-    if (slen <= LCD_WIDTH)
-      lcd_put_u8str(stat);                                          // The string isn't scrolling
+
+    // Get the UTF8 character count of the string
+    uint8_t slen = utf8_strlen(lcd_status_message);
+
+    // If the string fits into the LCD, just print it and do not scroll it
+    if (slen <= LCD_WIDTH) {
+
+      // The string isn't scrolling and may not fill the screen
+      lcd_put_u8str(lcd_status_message);
+
+      // Fill the rest with spaces
+      while (slen < LCD_WIDTH) {
+        lcd_put_wchar(' ');
+        ++slen;
+      }
+    }
     else {
-      if (status_scroll_pos <= slen - LCD_WIDTH)
-        lcd_put_u8str(stat);                                        // The string fills the screen
+      // String is larger than the available space in screen.
+
+      // Get a pointer to the next valid UTF8 character
+      const char *stat = lcd_status_message + status_scroll_offset;
+
+      // Get the string remaining length
+      const uint8_t rlen = utf8_strlen(stat);
+
+      // If we have enough characters to display
+      if (rlen >= LCD_WIDTH) {
+        // The remaining string fills the screen - Print it
+        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);
+      }
       else {
-        uint8_t chars = LCD_WIDTH;
-        if (status_scroll_pos < slen) {                             // First string still visible
-          lcd_put_u8str(stat);                                      // The string leaves space
-          chars -= slen - status_scroll_pos;                        // Amount of space left
-        }
-        lcd_put_wchar('.');                                         // Always at 1+ spaces left, draw a dot
-        if (--chars) {
-          if (status_scroll_pos < slen + 1)                         // Draw a second dot if there's space
-            --chars, lcd_put_wchar('.');
-          if (chars) lcd_put_u8str_max(lcd_status_message, chars);  // Print a second copy of the message
+        // The remaining string does not completely fill the screen
+        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);         // The string leaves space
+        uint8_t chars = LCD_WIDTH - rlen;                 // Amount of space left in characters
+
+        lcd_put_wchar('.');                               // Always at 1+ spaces left, draw a dot
+        if (--chars) {                                    // Draw a second dot if there's space
+          lcd_put_wchar('.');
+          if (--chars) {
+            // Print a second copy of the message
+            lcd_put_u8str_max(lcd_status_message, LCD_PIXEL_WIDTH - ((rlen+2) * DOG_CHAR_WIDTH)); 
+          }
         }
       }
       if (last_blink != blink) {
         last_blink = blink;
-        // Skip any non-printing bytes
-        if (status_scroll_pos < slen) while (!PRINTABLE(lcd_status_message[status_scroll_pos])) status_scroll_pos++;
-        if (++status_scroll_pos >= slen + 2) status_scroll_pos = 0;
+
+        // Adjust by complete UTF8 characters
+        if (status_scroll_offset < slen) {
+          status_scroll_offset++;
+          while (!START_OF_UTF8_CHAR(lcd_status_message[status_scroll_offset]))
+            status_scroll_offset++;
+        }
+        else
+          status_scroll_offset = 0;
       }
     }
   #else
     UNUSED(blink);
-    lcd_put_u8str(lcd_status_message);
+
+    // Get the UTF8 character count of the string
+    uint8_t slen = utf8_strlen(lcd_status_message);
+
+    // Just print the string to the LCD
+    lcd_put_u8str_max(lcd_status_message, LCD_PIXEL_WIDTH);
+
+    // Fill the rest with spaces if there are missing spaces
+    while (slen < LCD_WIDTH) {
+      lcd_put_wchar(' ');
+      ++slen;
+    }
   #endif
 }
 
@@ -155,11 +196,11 @@ static void lcd_implementation_status_screen() {
       lcd_moveto(3,6);
       if (stepper.current_block->laser_status == LASER_ON) {
         u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-        lcd_put_wchar(itostr3(stepper.current_block->laser_intensity));
-        lcd_put_u8str_rom(PSTR("%"));
+        lcd_put_u8str(itostr3(stepper.current_block->laser_intensity));
+        lcd_put_u8str_P(PSTR("%"));
       } else {
         u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
-        lcd_put_u8str_rom(PSTR("---%"));
+        lcd_put_u8str_P(PSTR("---%"));
       }
     }
     else
@@ -235,11 +276,9 @@ static void lcd_implementation_status_screen() {
   }
 
   #if HAS_SDSUPPORT
-
     //
     // SD Card Symbol
     //
-
     if (card.isFileOpen() && PAGE_CONTAINS(42 - (TALL_FONT_CORRECTION), 51 - (TALL_FONT_CORRECTION))) {
       // Upper box
       u8g.drawBox(42, 42 - (TALL_FONT_CORRECTION), 8, 7);     // 42-48 (or 41-47)
@@ -250,8 +289,7 @@ static void lcd_implementation_status_screen() {
       // Corner pixel
       u8g.drawPixel(50, 43 - (TALL_FONT_CORRECTION));         // 43 (or 42)
     }
-
-  #endif
+  #endif // SDSUPPORT
 
   //
   // Progress bar frame
@@ -418,7 +456,7 @@ static void lcd_implementation_status_screen() {
       lcd_put_wchar('%');
       lcd_setFont(FONT_MENU);
       lcd_moveto(47, 50);
-      lcd_put_wchar(LCD_STR_FILAM_DIA[0]); // lcd_put_u8str_rom(PSTR(LCD_STR_FILAM_DIA));
+      lcd_put_wchar(LCD_STR_FILAM_DIA[0]); // lcd_put_u8str_P(PSTR(LCD_STR_FILAM_DIA));
       lcd_moveto(93, 50);
       lcd_put_wchar(LCD_STR_FILAM_MUL[0]);
     #endif
@@ -445,22 +483,22 @@ static void lcd_implementation_status_screen() {
           else
         #endif
           {
-            lcd_put_u8str_rom(PSTR("P:"));
+            lcd_put_u8str_P(PSTR("P:"));
             lcd_put_u8str(ftostr31(powerManager.consumption_meas));
-            lcd_put_u8str_rom(PSTR("W C:"));
+            lcd_put_u8str_P(PSTR("W C:"));
             lcd_put_u8str(ltostr7(powerManager.consumption_hour));
-            lcd_put_u8str_rom(PSTR("Wh"));
+            lcd_put_u8str_P(PSTR("Wh"));
           }
       #endif
 
       #if HAS_LCD_FILAMENT_SENSOR && HAS_SDSUPPORT
         else {
-          lcd_put_u8str_rom(PSTR(LCD_STR_FILAM_DIA));
+          lcd_put_u8str_P(PSTR(LCD_STR_FILAM_DIA));
           lcd_put_wchar(':');
-          lcd_put_u8str(ftostr12ns(filament_width_meas));
-          lcd_put_u8str_rom(PSTR("  " LCD_STR_FILAM_MUL));
+          lcd_put_u8str(wstring);
+          lcd_put_u8str_P(PSTR("  " LCD_STR_FILAM_MUL));
           lcd_put_wchar(':');
-          lcd_put_u8str(itostr3(100.0 * tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]));
+          lcd_put_u8str(mstring);
           lcd_put_wchar('%');
         }
       #endif
