@@ -140,7 +140,7 @@
           #endif
 
           #if HAS_DONDOLO
-            mechanics.current_position[Z_AXIS] -= zdiff;
+            mechanics.current_position[Z_AXIS] -= z_diff;
           #endif
 
           // Tell the planner the new "current position"
@@ -168,7 +168,7 @@
           #if HAS_DONDOLO
             else {
               // Move back down. (Including when the new tool is higher.)
-              mechanics.do_blocking_move_to_z(destination[Z_AXIS], planner.max_feedrate_mm_s[Z_AXIS]);
+              mechanics.do_blocking_move_to_z(mechanics.destination[Z_AXIS], mechanics.max_feedrate_mm_s[Z_AXIS]);
             }
           #endif
         } // (tmp_extruder != active_extruder)
