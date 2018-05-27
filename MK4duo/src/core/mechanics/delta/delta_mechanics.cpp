@@ -233,7 +233,7 @@
 
     const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
-    if (!position_is_reachable(rx, ry)) return;
+    if (!mechanics.position_is_reachable(rx, ry)) return;
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
@@ -903,9 +903,9 @@
      * Set sensorless homing.
      */
     void Delta_Mechanics::sensorless_homing(const bool on/*=true*/) {
-      sensorless_homing_per_axis(A_AXIS, on);
-      sensorless_homing_per_axis(B_AXIS, on);
-      sensorless_homing_per_axis(C_AXIS, on);
+      mechanics.sensorless_homing_per_axis(A_AXIS, on);
+      mechanics.sensorless_homing_per_axis(B_AXIS, on);
+      mechanics.sensorless_homing_per_axis(C_AXIS, on);
     }
 
   #endif // SENSORLESS_HOMING

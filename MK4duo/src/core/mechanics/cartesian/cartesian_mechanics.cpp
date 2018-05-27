@@ -455,8 +455,8 @@
                   fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(X_AXIS);
-        sensorless_homing_per_axis(Y_AXIS);
+        mechanics.sensorless_homing_per_axis(X_AXIS);
+        mechanics.sensorless_homing_per_axis(Y_AXIS);
       #endif
 
       do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * home_dir[Y_AXIS], fr_mm_s);
@@ -464,8 +464,8 @@
       current_position[X_AXIS] = current_position[Y_AXIS] = 0.0;
 
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(X_AXIS, false);
-        sensorless_homing_per_axis(Y_AXIS, false);
+        mechanics.sensorless_homing_per_axis(X_AXIS, false);
+        mechanics.sensorless_homing_per_axis(Y_AXIS, false);
       #endif
     }
 

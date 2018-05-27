@@ -289,7 +289,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(axis);
+      mechanics.sensorless_homing_per_axis(axis);
     #endif
   }
 
@@ -319,7 +319,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(axis, false);
+      mechanics.sensorless_homing_per_axis(axis, false);
     #endif
   }
 
