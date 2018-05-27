@@ -281,6 +281,9 @@ float Probe::run_probing() {
 
   float probe_z = 0.0;
 
+  // Stop the probe before it goes too low to prevent damage.
+  #define Z_PROBE_LOW_POINT (-2 - offset[Z_AXIS])
+
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
   #endif
@@ -298,7 +301,7 @@ float Probe::run_probing() {
   for (uint8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
 
     // move down slowly to find bed
-    if (move_to_z(-10, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) return NAN;
+    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) return NAN;
 
     probe_z += mechanics.current_position[Z_AXIS];
 
