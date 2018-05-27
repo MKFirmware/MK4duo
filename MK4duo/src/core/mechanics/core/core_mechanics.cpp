@@ -424,8 +424,8 @@
                   fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
-        mechanics.sensorless_homing_per_axis(X_AXIS);
-        mechanics.sensorless_homing_per_axis(Y_AXIS);
+        sensorless_homing_per_axis(X_AXIS);
+        sensorless_homing_per_axis(Y_AXIS);
       #endif
 
       do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * home_dir[Y_AXIS], fr_mm_s);
@@ -433,8 +433,8 @@
       current_position[X_AXIS] = current_position[Y_AXIS] = 0.0;
 
       #if ENABLED(SENSORLESS_HOMING)
-        mechanics.sensorless_homing_per_axis(X_AXIS, false);
-        mechanics.sensorless_homing_per_axis(Y_AXIS, false);
+        sensorless_homing_per_axis(X_AXIS, false);
+        sensorless_homing_per_axis(Y_AXIS, false);
         printer.safe_delay(500);
       #endif
     }
@@ -631,48 +631,5 @@
     }
 
   #endif
-
-  #if ENABLED(SENSORLESS_HOMING)
-
-    /**
-     * Set sensorless homing if the axis has it, accounting for Core Kinematics.
-     */
-    void Core_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
-      switch (axis) {
-        default: break;
-        #if X_SENSORLESS
-          case X_AXIS:
-            tmc_sensorless_homing(stepperX, enable);
-            #if CORE_IS_XY && Y_SENSORLESS
-              tmc_sensorless_homing(stepperY, enable);
-            #elif CORE_IS_XZ && Z_SENSORLESS
-              tmc_sensorless_homing(stepperZ, enable);
-            #endif
-            break;
-        #endif
-        #if Y_SENSORLESS
-          case Y_AXIS:
-            tmc_sensorless_homing(stepperY, enable);
-            #if CORE_IS_XY && X_SENSORLESS
-              tmc_sensorless_homing(stepperX, enable);
-            #elif CORE_IS_YZ && Z_SENSORLESS
-              tmc_sensorless_homing(stepperZ, enable);
-            #endif
-            break;
-        #endif
-        #if Z_SENSORLESS
-          case Z_AXIS:
-            tmc_sensorless_homing(stepperZ, enable);
-            #if CORE_IS_XZ && X_SENSORLESS
-              tmc_sensorless_homing(stepperX, enable);
-            #elif CORE_IS_YZ && Y_SENSORLESS
-              tmc_sensorless_homing(stepperY, enable);
-            #endif
-            break;
-        #endif
-      }
-    }
-
-  #endif // SENSORLESS_HOMING
 
 #endif // IS_CORE

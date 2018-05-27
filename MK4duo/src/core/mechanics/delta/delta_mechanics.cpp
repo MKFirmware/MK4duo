@@ -903,9 +903,9 @@
      * Set sensorless homing.
      */
     void Delta_Mechanics::sensorless_homing(const bool on/*=true*/) {
-      mechanics.sensorless_homing_per_axis(A_AXIS, on);
-      mechanics.sensorless_homing_per_axis(B_AXIS, on);
-      mechanics.sensorless_homing_per_axis(C_AXIS, on);
+      sensorless_homing_per_axis(A_AXIS, on);
+      sensorless_homing_per_axis(B_AXIS, on);
+      sensorless_homing_per_axis(C_AXIS, on);
     }
 
   #endif // SENSORLESS_HOMING
