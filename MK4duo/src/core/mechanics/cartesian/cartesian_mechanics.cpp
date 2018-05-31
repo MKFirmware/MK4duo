@@ -43,7 +43,6 @@
   #if ENABLED(HYSTERESIS)
     float   Cartesian_Mechanics::m_hysteresis_axis_shift[XYZE]    = { 0.0 },
             Cartesian_Mechanics::m_hysteresis_mm[XYZE]            = DEFAULT_HYSTERESIS_MM;
-    long    Cartesian_Mechanics::m_hysteresis_steps[XYZE]         = { 0.0 };
     uint8_t Cartesian_Mechanics::m_hysteresis_prev_direction_bits = 0,
             Cartesian_Mechanics::m_hysteresis_bits                = 0;
   #endif
@@ -659,13 +658,6 @@
                         | ((m_hysteresis_mm[Y_AXIS] != 0.0f) ? (1 << Y_AXIS) : 0)
                         | ((m_hysteresis_mm[Z_AXIS] != 0.0f) ? (1 << Z_AXIS) : 0)
                         | ((m_hysteresis_mm[E_AXIS] != 0.0f) ? (1 << E_AXIS) : 0);
-
-      calc_hysteresis_steps();
-    }
-
-    void Cartesian_Mechanics::calc_hysteresis_steps() {
-      for (uint8_t i = 0; i < NUM_AXIS; i++)
-        m_hysteresis_steps[i] = (long)(m_hysteresis_mm[i] * axis_steps_per_mm[i]);
     }
 
     void Cartesian_Mechanics::set_hysteresis_axis(uint8_t axis, float mm) {
@@ -674,7 +666,6 @@
       if (mm != 0.0f) m_hysteresis_bits |=  ( 1 << axis);
       else            m_hysteresis_bits &= ~( 1 << axis);
 
-      calc_hysteresis_steps();
       report_hysteresis();
     }
 
@@ -691,60 +682,60 @@
 
     void Cartesian_Mechanics::insert_hysteresis_correction(const float x, const float y, const float z, const float e) {
 
-      int32_t target[NUM_AXIS] = {
-        static_cast<int32_t>(FLOOR(x * axis_steps_per_mm[X_AXIS] + 0.5f)),
-        static_cast<int32_t>(FLOOR(y * axis_steps_per_mm[Y_AXIS] + 0.5f)),
-        static_cast<int32_t>(FLOOR(z * axis_steps_per_mm[Z_AXIS] + 0.5f)),
-        static_cast<int32_t>(FLOOR(e * axis_steps_per_mm[E_AXIS_N] + 0.5f))
+      const float target_mm[NUM_AXIS] = { x, y, z, e };
+      const float position_mm[NUM_AXIS] = { planner.get_axis_position_mm(X_AXIS),
+                                            planner.get_axis_position_mm(Y_AXIS),
+                                            planner.get_axis_position_mm(Z_AXIS),
+                                            planner.get_axis_position_mm(E_AXIS)
       };
 
-      uint8_t direction_bits = calc_direction_bits(planner.position, target);
-      uint8_t move_bits = calc_move_bits(planner.position, target);
+      uint8_t direction_bits  = calc_direction_bits(position_mm, target_mm),
+              move_bits       = calc_move_bits(position_mm, target_mm);
 
       // if the direction has changed in any of the axis that need hysteresis corrections...
       uint8_t direction_change_bits = (direction_bits ^ m_hysteresis_prev_direction_bits) & move_bits;
 
       if ((direction_change_bits & m_hysteresis_bits) != 0 ) {
         // calculate the position to move to that will fix the hysteresis
-        for (uint8_t axis = 0; axis < NUM_AXIS; axis++) {
+        LOOP_XYZE(axis) {
           // if this axis changed direction...
           if (direction_change_bits & (1 << axis)) {
-            long fix = (((direction_bits & (1 << axis)) != 0) ? -m_hysteresis_steps[axis] : m_hysteresis_steps[axis]);
+            const float fix = (((direction_bits & (1 << axis)) != 0) ? -m_hysteresis_mm[axis] : m_hysteresis_mm[axis]);
             //... add the hysteresis: move the current position in the opposite direction so that the next travel move is longer
-            planner.position[axis] -= fix;
+            planner.set_position_mm((AxisEnum)axis, position_mm[axis] - fix);
             m_hysteresis_axis_shift[axis] += fix;
           }
         }
       }
       m_hysteresis_prev_direction_bits = (direction_bits & move_bits) | (m_hysteresis_prev_direction_bits & ~move_bits);
     }
-    
+
     // direction 0: positive, 1: negative
-    uint8_t Cartesian_Mechanics::calc_direction_bits(const long *position, const long *target) {
+    uint8_t Cartesian_Mechanics::calc_direction_bits(const float (&position_mm)[XYZE], const float (&target_mm)[XYZE]) {
       unsigned char direction_bits = 0;
 
-      if (target[X_AXIS] < position[X_AXIS])
+      if (target_mm[X_AXIS] < position_mm[X_AXIS])
         direction_bits |= (1 << X_AXIS);
-      if (target[Y_AXIS] < position[Y_AXIS])
+      if (target_mm[Y_AXIS] < position_mm[Y_AXIS])
         direction_bits |= (1 << Y_AXIS);
-      if (target[Z_AXIS] < position[Z_AXIS])
+      if (target_mm[Z_AXIS] < position_mm[Z_AXIS])
         direction_bits |= (1 << Z_AXIS);
-      if (target[E_AXIS] < position[E_AXIS])
+      if (target_mm[E_AXIS] < position_mm[E_AXIS])
         direction_bits |= (1 << E_AXIS);
 
       return direction_bits;
     }
 
-    uint8_t Cartesian_Mechanics::calc_move_bits(const long *position, const long *target) {
+    uint8_t Cartesian_Mechanics::calc_move_bits(const float (&position_mm)[XYZE], const float (&target_mm)[XYZE]) {
       uint8_t move_bits = 0;
 
-      if (target[X_AXIS] != position[X_AXIS])
+      if (target_mm[X_AXIS] != position_mm[X_AXIS])
         move_bits |= (1 << X_AXIS);
-      if (target[Y_AXIS] != position[Y_AXIS])
+      if (target_mm[Y_AXIS] != position_mm[Y_AXIS])
         move_bits |= (1 << Y_AXIS);
-      if (target[Z_AXIS] != position[Z_AXIS])
+      if (target_mm[Z_AXIS] != position_mm[Z_AXIS])
         move_bits |= (1 << Z_AXIS);
-      if (target[E_AXIS] != position[E_AXIS])
+      if (target_mm[E_AXIS] != position_mm[E_AXIS])
         move_bits |= (1 << E_AXIS);
 
       return move_bits;

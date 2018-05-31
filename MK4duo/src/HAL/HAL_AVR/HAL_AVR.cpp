@@ -111,9 +111,7 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
 
   NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
 
-  #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
-    stepper.step_loops = 1;
-  #else
+  #if DISABLED(DISABLE_DOUBLE_QUAD_STEPPING)
     if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
       step_rate >>= 2;
       stepper.step_loops = 4;
@@ -123,11 +121,12 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
       stepper.step_loops = 2;
     }
     else
-      stepper.step_loops = 1;
   #endif
+      stepper.step_loops = 1;
 
-  NOLESS(step_rate, uint32_t(F_CPU / 500000U));
-  step_rate -= F_CPU / 500000;  // Correct for minimal speed
+  constexpr uint32_t min_step_rate = F_CPU / 500000U;
+  NOLESS(step_rate, min_step_rate);
+  step_rate -= min_step_rate;   // Correct for minimal speed
   if (step_rate >= (8 * 256)) { // higher step rate
     const uint8_t   tmp_step_rate = (step_rate & 0x00FF);
     const uint16_t  table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0],

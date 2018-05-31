@@ -274,10 +274,6 @@ void EEPROM::Postprocess() {
     fwretract.refresh_autoretract();
   #endif
 
-  #if ENABLED(HYSTERESIS)
-    mechanics.calc_hysteresis_steps();
-  #endif
-
   // Setup Endstops pullup
   endstops.setup_pullup();
 
