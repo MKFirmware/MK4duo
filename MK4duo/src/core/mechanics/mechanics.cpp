@@ -64,6 +64,10 @@ const float Mechanics::homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_
 uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 },
           Mechanics::max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
 
+#if ENABLED(JUNCTION_DEVIATION)
+  float Mechanics::junction_mm = JUNCTION_DEVIATION_MM;
+#endif
+
 const signed char Mechanics::home_dir[XYZ] = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
 millis_t Mechanics::min_segment_time_us = 0;

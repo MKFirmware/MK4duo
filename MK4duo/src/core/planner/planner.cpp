@@ -2052,7 +2052,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
                     sin_theta_d2 = SQRT(0.5 * (1.0 - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * JUNCTION_DEVIATION_MM * sin_theta_d2) / (1.0 - sin_theta_d2);
+        vmax_junction_sqr = (junction_acceleration * mechanics.junction_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
         if (block->millimeters < 1.0) {
 
           // Fast acos approximation, minus the error bar to be safe

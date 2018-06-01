@@ -129,6 +129,16 @@ class Mechanics {
     static uint32_t max_acceleration_steps_per_s2[XYZE_N],
                     max_acceleration_mm_per_s2[XYZE_N];
 
+    /**
+     * Junction Deviation
+     */
+    #if ENABLED(JUNCTION_DEVIATION)
+      static float junction_mm;
+    #endif
+
+    /**
+     * Home dir
+     */
     static const signed char home_dir[XYZ];
 
     /**
