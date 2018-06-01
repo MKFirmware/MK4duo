@@ -128,8 +128,13 @@ typedef uint32_t  ptr_int_t;
 #define EEPROM_OFFSET 10
 
 // CRITICAL SECTION
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+#define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
+
+// ISR function
+#define ISRS_ENABLED()          (!__get_PRIMASK())
+#define ENABLE_ISRS()           __enable_irq()
+#define DISABLE_ISRS()          __disable_irq()
 
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3

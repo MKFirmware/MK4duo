@@ -59,6 +59,10 @@ class Stepper {
 
     static uint8_t  step_loops;
 
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+      static bool performing_homing;
+    #endif
+
   private: /** Private Parameters */
 
     static uint8_t  last_direction_bits,    // The next stepping-bits to be output
@@ -68,13 +72,13 @@ class Stepper {
     static bool     abort_current_block;    // Signals to the stepper that current block should be aborted
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      static bool performing_homing, locked_x_motor, locked_x2_motor;
+      static bool locked_x_motor, locked_x2_motor;
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      static bool performing_homing, locked_y_motor, locked_y2_motor;
+      static bool locked_y_motor, locked_y2_motor;
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      static bool performing_homing, locked_z_motor, locked_z2_motor;
+      static bool locked_z_motor, locked_z2_motor;
     #endif
 
     // Counter variables for the Bresenham line tracer
@@ -165,7 +169,7 @@ class Stepper {
     /**
      * This is called by the interrupt service routine to execute steps.
      */
-    static hal_timer_t Step();
+    static void Step();
 
     /**
      * Get the position of a stepper, in steps
