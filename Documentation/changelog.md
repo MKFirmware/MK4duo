@@ -1,6 +1,7 @@
 ### Version 4.3.6
 * Make class Mechanics to static
 * Add Junction Deviation instead of traditional Jerk limiting
+* Add M205 J - Set Junction Deviation mm
 * Add Bézier Jerk Control
 * Add Safety Timer, after 30 minutes if not printing (SD or M530 S1) the heaters switch off.
 * Rewrite SD Restart for auto restart when power loss and return.

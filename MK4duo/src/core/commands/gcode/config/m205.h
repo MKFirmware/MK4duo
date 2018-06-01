@@ -38,6 +38,7 @@
  *    Y = Max Y Jerk (units/sec^2)
  *    Z = Max Z Jerk (units/sec^2)
  *    E = Max E Jerk (units/sec^2)
+ *    J = Junction Deviation mm
  */
 inline void gcode_M205(void) {
 
@@ -61,4 +62,9 @@ inline void gcode_M205(void) {
       #endif
     }
   }
+
+  #if ENABLED(JUNCTION_DEVIATION)
+    if (parser.seen('J')) mechanics.junction_mm = parser.value_float();
+  #endif
+
 }

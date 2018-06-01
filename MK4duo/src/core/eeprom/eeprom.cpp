@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV46"
+#define EEPROM_VERSION "MKV47"
 
 /**
- * MKV46 EEPROM Layout:
+ * MKV47 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -59,6 +59,7 @@
  *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRUDERS](float x6)
+ *  M205  J               mechanics.junction_mm                 (float)
  *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
@@ -335,6 +336,9 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_segment_time_us);
     EEPROM_WRITE(mechanics.max_jerk);
+    #if ENABLED(JUNCTION_DEVIATION)
+      EEPROM_WRITE(mechanics.junction_mm);
+    #endif
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
     #endif
@@ -782,6 +786,9 @@ void EEPROM::Postprocess() {
       EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
       EEPROM_READ(mechanics.min_segment_time_us);
       EEPROM_READ(mechanics.max_jerk);
+      #if ENABLED(JUNCTION_DEVIATION)
+        EEPROM_READ(mechanics.junction_mm);
+      #endif
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
       #endif
@@ -1353,6 +1360,10 @@ void EEPROM::Factory_Settings() {
   mechanics.max_jerk[Y_AXIS]          = DEFAULT_YJERK;
   mechanics.max_jerk[Z_AXIS]          = DEFAULT_ZJERK;
 
+  #if ENABLED(JUNCTION_DEVIATION)
+    mechanics.junction_mm = JUNCTION_DEVIATION_MM;
+  #endif
+
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0;
   #endif
@@ -1917,6 +1928,11 @@ void EEPROM::Factory_Settings() {
         SERIAL_SMV(CFG, "  M205 T", i);
         SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
       }
+    #endif
+
+    #if ENABLED(JUNCTION_DEVIATION)
+      CONFIG_MSG_START_E("Advanced variables: J<Junction deviation mm>:");
+      SERIAL_LMV(CFG, "  M205 J", mechanics.junction_mm);
     #endif
 
     #if HOTENDS > 0
