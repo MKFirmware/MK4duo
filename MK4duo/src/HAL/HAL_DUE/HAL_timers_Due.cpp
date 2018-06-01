@@ -187,14 +187,8 @@ STEPPER_TIMER_ISR {
 
   HAL_timer_isr_prologue(STEPPER_TIMER);
 
-  // Set timer to maximum period
-  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
-
   // Call the Step
-  hal_timer_t ticks = stepper.Step();
-
-  // Schedule next interrupt
-  HAL_timer_set_count(STEPPER_TIMER, ticks);
+  stepper.Step();
 
 }
 

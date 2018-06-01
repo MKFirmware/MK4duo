@@ -298,17 +298,22 @@ float Probe::run_probing() {
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
   }
 
-  for (uint8_t r = 0; r < Z_PROBE_REPETITIONS; r++) {
+  for (uint8_t r = Z_PROBE_REPETITIONS + 1; --r;) {
 
     // move down slowly to find bed
-    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) return NAN;
+    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) {
+          SERIAL_EM("SLOW Probe fail!");
+          DEBUG_POS("<<< probe.run_probing", mechanics.current_position);
+        }
+      #endif
+      return NAN;
+    }
 
     probe_z += mechanics.current_position[Z_AXIS];
+    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
-    if (r + 1 < Z_PROBE_REPETITIONS) {
-      // move up to probe between height
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
-    }
   }
 
   return probe_z * (1.0 / (Z_PROBE_REPETITIONS));
@@ -384,16 +389,16 @@ float Probe::run_probing() {
         SERIAL_EOL();
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
-      #endif
-
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
       if (isnan(measured_z)) {
         LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
       }
+
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
+      #endif
 
       return measured_z;
 

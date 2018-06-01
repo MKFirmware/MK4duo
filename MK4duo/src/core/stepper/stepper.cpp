@@ -66,6 +66,10 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 
 uint8_t Stepper::step_loops = 0;
 
+#if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+  bool Stepper::performing_homing = false;
+#endif
+
 // private:
 
 uint8_t Stepper::last_direction_bits    = 0,
@@ -75,13 +79,13 @@ uint8_t Stepper::last_direction_bits    = 0,
 bool    Stepper::abort_current_block;               // Signals to the stepper that current block should be aborted
 
 #if ENABLED(X_TWO_ENDSTOPS)
-  bool Stepper::performing_homing = false, Stepper::locked_x_motor = false, Stepper::locked_x2_motor = false;
+  bool Stepper::locked_x_motor = false, Stepper::locked_x2_motor = false;
 #endif
 #if ENABLED(Y_TWO_ENDSTOPS)
-  bool Stepper::performing_homing = false, Stepper::locked_y_motor = false, Stepper::locked_y2_motor = false;
+  bool Stepper::locked_y_motor = false, Stepper::locked_y2_motor = false;
 #endif
 #if ENABLED(Z_TWO_ENDSTOPS)
-  bool Stepper::performing_homing = false, Stepper::locked_z_motor = false, Stepper::locked_z2_motor = false;
+  bool Stepper::locked_z_motor = false, Stepper::locked_z2_motor = false;
 #endif
 
 /**
@@ -1345,9 +1349,15 @@ void Stepper::set_directions() {
  * This is called by the interrupt service routine to execute steps.
  */
 
-hal_timer_t Stepper::Step() {
+void Stepper::Step() {
 
-  uint32_t interval;
+  // Disable interrupts, to avoid ISR preemption while we reprogram the period
+  DISABLE_ISRS();
+
+  // Program timer compare for the maximum period, so it does NOT
+  // flag an interrupt while this ISR is running - So changes from small
+  // periods to big periods are respected and the timer does not reset to 0
+  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
 
   // Count of ticks for the next ISR
   hal_timer_t next_isr_ticks = 0;
@@ -1359,6 +1369,9 @@ hal_timer_t Stepper::Step() {
   hal_timer_t min_ticks;
 
   do {
+
+    // Enable ISRs so the USART processing latency is reduced
+    ENABLE_ISRS();
 
     // Run main stepping pulse phase ISR if we have to
     if (!nextMainISR) pulse_phase_step();
@@ -1373,10 +1386,10 @@ hal_timer_t Stepper::Step() {
 
     #if ENABLED(LIN_ADVANCE)
       // Select the closest interval in time
-      interval = (nextAdvanceISR <= nextMainISR) ? nextAdvanceISR : nextMainISR;
+      uint32_t interval = MIN(nextAdvanceISR, nextMainISR)
     #else
       // The interval is just the remaining time to the stepper ISR
-      interval = nextMainISR;
+      uint32_t interval = nextMainISR;
     #endif
 
     // Limit the value to the maximum possible value of the timer
@@ -1417,6 +1430,16 @@ hal_timer_t Stepper::Step() {
     next_isr_ticks += interval;
 
     /**
+     * The following section must be done with global interrupts disabled.
+     * We want nothing to interrupt it, as that could mess the calculations
+     * we do for the next value to program in the period register of the
+     * stepper timer and lead to skipped ISRs (if the value we happen to program
+     * is less than the current count due to something preempting between the
+     * read and the write of the new period value).
+     */
+    DISABLE_ISRS();
+
+    /**
      * Get the current tick value + margin
      * Assuming at least 6µs between calls to this ISR...
      * On AVR the ISR epilogue is estimated at 40 instructions - close to 2.5µS.
@@ -1437,8 +1460,11 @@ hal_timer_t Stepper::Step() {
     // Advance pulses if not enough time to wait for the next ISR
   } while (next_isr_ticks < min_ticks);
 
-  // Return the count of ticks for the next ISR
-  return (hal_timer_t)next_isr_ticks;
+  // Schedule next interrupt
+  HAL_timer_set_count(STEPPER_TIMER, hal_timer_t(next_isr_ticks));
+
+  // Don't forget to finally reenable interrupts
+  ENABLE_ISRS();
 
 }
 

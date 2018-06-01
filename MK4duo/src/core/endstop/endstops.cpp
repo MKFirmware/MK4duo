@@ -716,11 +716,12 @@ void Endstops::update() {
       } \
     }while(0)
 
-  // Call the endstop triggered routine for single endstops
+  // Call the endstop triggered routine for dual endstops
   #define PROCESS_DUAL_ENDSTOP(AXIS1, AXIS2, MINMAX) do { \
       if (TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) || TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX))) { \
         _ENDSTOP_HIT(AXIS1, MINMAX); \
-        planner.endstop_triggered(_AXIS(AXIS1)); \
+        if (!stepper.performing_homing || (TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) && TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)))) \
+          planner.endstop_triggered(_AXIS(AXIS1)); \
       } \
     }while(0)
 

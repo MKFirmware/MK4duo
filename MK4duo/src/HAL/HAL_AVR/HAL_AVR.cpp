@@ -419,17 +419,6 @@ HAL_TEMP_TIMER_ISR {
 /**
  * Interrupt Service Routines
  */
-HAL_STEPPER_TIMER_ISR {
-
-  // Set timer to maximum period
-  HAL_timer_set_count(STEPPER_TIMER, HAL_TIMER_TYPE_MAX);
-
-  // Call the ISR
-  hal_timer_t ticks = stepper.Step();
-
-  // Schedule next interrupt
-  HAL_timer_set_count(STEPPER_TIMER, ticks);
-
-}
+HAL_STEPPER_TIMER_ISR { stepper.Step(); }
 
 #endif // __AVR__
