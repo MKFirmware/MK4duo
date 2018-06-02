@@ -163,9 +163,9 @@
 #if ENABLED(ULTRA_LCD)
 
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-    #define LCD_PINS_RS       49 //CS chip select /SS chip slave select
-    #define LCD_PINS_ENABLE   51 //SID (MOSI)
-    #define LCD_PINS_D4       52 //SCK (CLK) clock
+    #define LCD_PINS_RS       49
+    #define LCD_PINS_ENABLE   51
+    #define LCD_PINS_D4       52
   #elif ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
     #define LCD_PINS_RS       40
     #define LCD_PINS_ENABLE   42
@@ -213,14 +213,14 @@
       #define BTN_ENC           63
       #define SD_DETECT_PIN     42
     #elif ENABLED(LCD_I2C_PANELOLU2)
-      #define BTN_EN1           47  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           47
       #define BTN_EN2           43
       #define BTN_ENC           32
       #define LCD_SDSS          53
       #define SD_DETECT_PIN     NoPin
       #define KILL_PIN          41
     #elif ENABLED(LCD_I2C_VIKI)
-      #define BTN_EN1           22  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           22
       #define BTN_EN2            7
       #define BTN_ENC           NoPin
       #define LCD_SDSS          53
@@ -238,7 +238,7 @@
       #define BTN_ENC           39
 
       #define SDSS              53
-      #define SD_DETECT_PIN     NoPin  // Pin 49 for display sd interface, 72 for easy adapter board
+      #define SD_DETECT_PIN     NoPin
 
       #define KILL_PIN          31
 
@@ -247,7 +247,7 @@
         #define STAT_LED_BLUE_PIN 35
       #endif
     #elif ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
-      #define BTN_EN1           35  // reverse if the encoder turns the wrong way.
+      #define BTN_EN1           35
       #define BTN_EN2           37
       #define BTN_ENC           31
       #define SD_DETECT_PIN     49
@@ -262,7 +262,7 @@
       // Pins for DOGM SPI LCD Support
       #define DOGLCD_A0         44
       #define DOGLCD_CS         66
-      #define LCD_BACKLIGHT_PIN 65 // backlight LED on A11/D65
+      #define LCD_BACKLIGHT_PIN 65
       #define SDSS              53
 
       #define KILL_PIN          64
@@ -282,31 +282,31 @@
     #else
 
       // arduino pin which triggers an piezzo beeper
-      #define ORIG_BEEPER_PIN   33  // Beeper on AUX-4
+      #define ORIG_BEEPER_PIN   33
 
       // buttons are directly attached using AUX-2
       #if ENABLED(REPRAPWORLD_KEYPAD)
-        #define BTN_EN1         64  // encoder
-        #define BTN_EN2         59  // encoder
-        #define BTN_ENC         63  // enter button
-        #define SHIFT_OUT       40  // shift register
-        #define SHIFT_CLK       44  // shift register
-        #define SHIFT_LD        42  // shift register
+        #define BTN_EN1         64
+        #define BTN_EN2         59
+        #define BTN_ENC         63
+        #define SHIFT_OUT       40
+        #define SHIFT_CLK       44
+        #define SHIFT_LD        42
       #elif ENABLED(PANEL_ONE)
-        #define BTN_EN1         59  // AUX2 PIN 3
-        #define BTN_EN2         63  // AUX2 PIN 4
-        #define BTN_ENC         49  // AUX3 PIN 7
+        #define BTN_EN1         59
+        #define BTN_EN2         63
+        #define BTN_ENC         49
       #else
         #define BTN_EN1         37
         #define BTN_EN2         35
-        #define BTN_ENC         31  // the click
+        #define BTN_ENC         31
       #endif
 
       #if ENABLED(G3D_PANEL)
         #define SD_DETECT_PIN   49
         #define KILL_PIN        41
       #else
-        #define SD_DETECT_PIN   NoPin  // Ramps does not use this port
+        #define SD_DETECT_PIN   NoPin
       #endif
 
     #endif
@@ -403,8 +403,8 @@
 
 // SPI for Max6675 or Max31855 Thermocouple
 #if DISABLED(SDSUPPORT)
-  #define MAX6675_SS_PIN            66 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+  #define MAX6675_SS_PIN            66
 #else
-  #define MAX6675_SS_PIN            66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+  #define MAX6675_SS_PIN            66
 #endif
 //@@@
