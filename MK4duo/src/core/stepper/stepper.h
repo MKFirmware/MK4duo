@@ -72,13 +72,13 @@ class Stepper {
     static bool     abort_current_block;    // Signals to the stepper that current block should be aborted
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      static bool locked_x_motor, locked_x2_motor;
+      static bool locked_X_motor, locked_X2_motor;
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      static bool locked_y_motor, locked_y2_motor;
+      static bool locked_Y_motor, locked_Y2_motor;
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      static bool locked_z_motor, locked_z2_motor;
+      static bool locked_Z_motor, locked_Z2_motor;
     #endif
 
     // Counter variables for the Bresenham line tracer
@@ -313,19 +313,23 @@ class Stepper {
 
     #if ENABLED(X_TWO_ENDSTOPS)
       FORCE_INLINE static void set_homing_flag_x(const bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_x_lock(const bool state) { locked_x_motor = state; }
-      FORCE_INLINE static void set_x2_lock(const bool state) { locked_x2_motor = state; }
+      FORCE_INLINE static void set_x_lock(const bool state) { locked_X_motor = state; }
+      FORCE_INLINE static void set_x2_lock(const bool state) { locked_X2_motor = state; }
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
       FORCE_INLINE static void set_homing_flag_y(const bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_y_lock(const bool state) { locked_y_motor = state; }
-      FORCE_INLINE static void set_y2_lock(const bool state) { locked_y2_motor = state; }
+      FORCE_INLINE static void set_y_lock(const bool state) { locked_Y_motor = state; }
+      FORCE_INLINE static void set_y2_lock(const bool state) { locked_Y2_motor = state; }
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
       FORCE_INLINE static void set_homing_flag_z(const bool state) { performing_homing = state; }
-      FORCE_INLINE static void set_z_lock(const bool state) { locked_z_motor = state; }
-      FORCE_INLINE static void set_z2_lock(const bool state) { locked_z2_motor = state; }
+      FORCE_INLINE static void set_z_lock(const bool state) { locked_Z_motor = state; }
+      FORCE_INLINE static void set_z2_lock(const bool state) { locked_Z2_motor = state; }
     #endif
+
+    // Set the current position in steps
+    static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+    static void set_position(const AxisEnum a, const int32_t &v);
 
     /**
      * Flag Stepper direction function
@@ -350,7 +354,7 @@ class Stepper {
     /**
      * Set current position in steps
      */
-    static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+    static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
 
     /**
      * Set direction bits for all steppers

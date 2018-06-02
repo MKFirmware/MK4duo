@@ -79,13 +79,13 @@ uint8_t Stepper::last_direction_bits    = 0,
 bool    Stepper::abort_current_block;               // Signals to the stepper that current block should be aborted
 
 #if ENABLED(X_TWO_ENDSTOPS)
-  bool Stepper::locked_x_motor = false, Stepper::locked_x2_motor = false;
+  bool Stepper::locked_X_motor = false, Stepper::locked_X2_motor = false;
 #endif
 #if ENABLED(Y_TWO_ENDSTOPS)
-  bool Stepper::locked_y_motor = false, Stepper::locked_y2_motor = false;
+  bool Stepper::locked_Y_motor = false, Stepper::locked_Y2_motor = false;
 #endif
 #if ENABLED(Z_TWO_ENDSTOPS)
-  bool Stepper::locked_z_motor = false, Stepper::locked_z2_motor = false;
+  bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
 /**
@@ -384,21 +384,15 @@ uint8_t Stepper::step_loops_nominal = 0;
 volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-  #define LOCKED_X_MOTOR  locked_x_motor
-  #define LOCKED_Y_MOTOR  locked_y_motor
-  #define LOCKED_Z_MOTOR  locked_z_motor
-  #define LOCKED_X2_MOTOR locked_x2_motor
-  #define LOCKED_Y2_MOTOR locked_y2_motor
-  #define LOCKED_Z2_MOTOR locked_z2_motor
   #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                             \
     if (performing_homing) {                                                                                                      \
       if (A##_HOME_DIR < 0) {                                                                                                     \
-        if (!(TEST(endstops.live_state, A##_MIN)  && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);    \
-        if (!(TEST(endstops.live_state, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+        if (!(TEST(endstops.live_state, A##_MIN)  && count_direction[_AXIS(A)] < 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
+        if (!(TEST(endstops.live_state, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V);  \
       }                                                                                                                           \
       else {                                                                                                                      \
-        if (!(TEST(endstops.live_state, A##_MAX)  && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##_MOTOR) A##_STEP_WRITE(V);    \
-        if (!(TEST(endstops.live_state, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !LOCKED_##A##2_MOTOR) A##2_STEP_WRITE(V);  \
+        if (!(TEST(endstops.live_state, A##_MAX)  && count_direction[_AXIS(A)] > 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
+        if (!(TEST(endstops.live_state, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V);  \
       }                                                                                                                           \
     }                                                                                                                             \
     else {                                                                                                                        \
@@ -1386,7 +1380,7 @@ void Stepper::Step() {
 
     #if ENABLED(LIN_ADVANCE)
       // Select the closest interval in time
-      uint32_t interval = MIN(nextAdvanceISR, nextMainISR)
+      uint32_t interval = MIN(nextAdvanceISR, nextMainISR);
     #else
       // The interval is just the remaining time to the stepper ISR
       uint32_t interval = nextMainISR;
@@ -1813,7 +1807,7 @@ uint32_t Stepper::block_phase_step() {
 
       // Sync block? Sync the stepper counts and return
       while (TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
-        set_position(
+        _set_position(
           current_block->position[A_AXIS], current_block->position[B_AXIS],
           current_block->position[C_AXIS], current_block->position[E_AXIS]
         );
@@ -2407,6 +2401,38 @@ void Stepper::init() {
   set_directions(); // Init directions to last_direction_bits = 0
 }
 
+void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
+  planner.synchronize();
+
+  // Disable stepper interrupts, to ensure atomic setting of all the position variables
+  const bool isr_enabled = STEPPER_ISR_ENABLED();
+  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+
+  // Set position
+  _set_position(a, b, c, e);
+
+  // Reenable Stepper ISR
+  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+}
+    
+void Stepper::set_position(const AxisEnum a, const int32_t &v) {
+  planner.synchronize();
+
+  #if ENABLED(__AVR__)
+    // Protect the access to the variable. Only required for AVR.
+    // Disable stepper ISR
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  #endif
+
+  count_position[a] = v;
+
+  #if ENABLED(__AVR__)
+    // Reenable Stepper ISR
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #endif
+}
+
 /**
  * Set the stepper positions directly in steps
  *
@@ -2416,7 +2442,7 @@ void Stepper::init() {
  * This allows get_axis_position_mm to correctly
  * derive the current XYZ position later on.
  */
-void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
+void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
 
   #if CORE_IS_XY
     // corexy positioning

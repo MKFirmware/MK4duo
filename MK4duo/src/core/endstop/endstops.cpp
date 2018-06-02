@@ -710,20 +710,21 @@ void Endstops::update() {
 
   // Call the endstop triggered routine for single endstops
   #define PROCESS_ENDSTOP(AXIS,MINMAX) do { \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
-        _ENDSTOP_HIT(AXIS, MINMAX); \
-        planner.endstop_triggered(_AXIS(AXIS)); \
-      } \
-    }while(0)
+    if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
+      _ENDSTOP_HIT(AXIS, MINMAX); \
+      planner.endstop_triggered(_AXIS(AXIS)); \
+    } \
+  }while(0)
 
   // Call the endstop triggered routine for dual endstops
   #define PROCESS_DUAL_ENDSTOP(AXIS1, AXIS2, MINMAX) do { \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) || TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX))) { \
-        _ENDSTOP_HIT(AXIS1, MINMAX); \
-        if (!stepper.performing_homing || (TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) && TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)))) \
-          planner.endstop_triggered(_AXIS(AXIS1)); \
-      } \
-    }while(0)
+    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
+    if (dual_hit) { \
+      _ENDSTOP_HIT(AXIS1, MINMAX); \
+      if (!stepper.performing_homing || dual_hit == 0x3) \
+        planner.endstop_triggered(_AXIS(AXIS1)); \
+    } \
+  }while(0)
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
