@@ -397,9 +397,8 @@ void Endstops::clamp_to_software(float target[XYZ]) {
    * at the same positions relative to the machine.
    */
   void Endstops::update_software_endstops(const AxisEnum axis) {
-    const float offs = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
-    mechanics.workspace_offset[axis] = offs;
+    mechanics.workspace_offset[axis] = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
@@ -409,24 +408,24 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 
         if (tools.active_extruder != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-          soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
-          soft_endstop_max[X_AXIS] = dual_max_x + offs;
+          soft_endstop_min[X_AXIS] = X2_MIN_POS;
+          soft_endstop_max[X_AXIS] = dual_max_x;
         }
         else if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
           // In Duplication Mode, T0 can move as far left as X_MIN_POS
           // but not so far to the right that T1 would move past the end
-          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS] + offs;
-          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset) + offs;
+          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS];
+          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset);
         }
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-          soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
-          soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
+          soft_endstop_min[axis] = mechanics.base_min_pos[axis];
+          soft_endstop_max[axis] = mechanics.base_max_pos[axis];
         }
       }
     #else
-      soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
-      soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
+      soft_endstop_min[axis] = mechanics.base_min_pos[axis];
+      soft_endstop_max[axis] = mechanics.base_max_pos[axis];
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -564,7 +563,7 @@ void Endstops::update() {
   #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
 
   // TEST_ENDSTOP: test the current status of an endstop
-  #define TEST_ENDSTOP(ENDSTOP) (TEST(live_state, ENDSTOP))
+  #define TEST_ENDSTOP(ENDSTOP)             (TEST(live_state, ENDSTOP))
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
@@ -577,12 +576,12 @@ void Endstops::update() {
 
   // With Dual X, endstops are only checked in the homing direction for the active extruder
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E0_ACTIVE stepper.movement_extruder() == 0
-    #define X_MIN_TEST ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
-    #define X_MAX_TEST ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
+    #define E0_ACTIVE   stepper.movement_extruder() == 0
+    #define X_MIN_TEST  ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
+    #define X_MAX_TEST  ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
   #else
-    #define X_MIN_TEST true
-    #define X_MAX_TEST true
+    #define X_MIN_TEST  true
+    #define X_MAX_TEST  true
   #endif
 
   // Use HEAD for core axes, AXIS for others
@@ -721,7 +720,7 @@ void Endstops::update() {
     const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
     if (dual_hit) { \
       _ENDSTOP_HIT(AXIS1, MINMAX); \
-      if (!stepper.performing_homing || dual_hit == 0x3) \
+      if (!stepper.homing_dual_axis || dual_hit == 0x3) \
         planner.endstop_triggered(_AXIS(AXIS1)); \
     } \
   }while(0)

@@ -29,6 +29,8 @@
 #ifndef LANGUAGE_ZH_TW_H
 #define LANGUAGE_ZH_TW_H
 
+//#define TALL_FONT_CORRECTION (1)
+
 #define CHARSIZE 3
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT("已就緒.")  //" ready."
@@ -140,8 +142,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("一步步UBL") // "Step-By-Step UBL"
 
 #define MSG_LED_CONTROL                     _UxGT("灯管控制") // "LED Control")
-#define MSG_LEDS_ON                         _UxGT("灯亮") // "Lights On")
-#define MSG_LEDS_OFF                        _UxGT("灯灭") // "Lights Off")
+#define MSG_LEDS                            _UxGT("灯") // "Lights")
 #define MSG_LED_PRESETS                     _UxGT("灯预置") // "Light Presets")
 #define MSG_SET_LEDS_RED                    _UxGT("红") // "Red")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("橙") // "Orange")
@@ -248,7 +249,6 @@
 #define MSG_DWELL                           _UxGT("休眠 ...")  //"Sleep..."
 #define MSG_USERWAIT                        _UxGT("點擊繼續 ...")  //"Click to resume..."
 #define MSG_PRINT_PAUSED                    _UxGT("列印已暫停") // "Print paused"
-#define MSG_RESUMING                        _UxGT("恢復列印中")  //"Resuming print"
 #define MSG_PRINT_ABORTED                   _UxGT("已取消列印")  //"Print aborted"
 #define MSG_NO_MOVE                         _UxGT("無移動")  //"No move."
 #define MSG_KILLED                          _UxGT("已砍掉")  //"KILLED. "
@@ -296,9 +296,7 @@
 #define MSG_SHORT_HOUR                      _UxGT("時")  //"h" // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("分")  //"m" // One character only
 #define MSG_HEATING                         _UxGT("加熱中 ...")  //"Heating..."
-#define MSG_HEATING_COMPLETE                _UxGT("加熱完成")  //"Heating done."
-#define MSG_BED_HEATING                     _UxGT("加熱熱床中")  //"Bed Heating."
-#define MSG_BED_DONE                        _UxGT("完成加熱熱床")  //"Bed done."
+#define MSG_BED_HEATING                     _UxGT("加熱熱床中 ...")  //"Bed Heating..."
 #define MSG_DELTA_CALIBRATE                 _UxGT("⊿校準")  //"Delta Calibration"
 #define MSG_DELTA_CALIBRATE_X               _UxGT("⊿校準X")  //"Calibrate X"
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("⊿校準Y")  //"Calibrate Y"

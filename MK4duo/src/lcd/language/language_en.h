@@ -388,11 +388,8 @@
 #ifndef MSG_LED_CONTROL
   #define MSG_LED_CONTROL                     _UxGT("LED Control")
 #endif
-#ifndef MSG_LEDS_ON
-  #define MSG_LEDS_ON                         _UxGT("Lights On")
-#endif
-#ifndef MSG_LEDS_OFF
-  #define MSG_LEDS_OFF                        _UxGT("Lights Off")
+#ifndef MSG_LEDS   
+  #define MSG_LEDS                            _UxGT("Lights")
 #endif
 #ifndef MSG_LED_PRESETS
   #define MSG_LED_PRESETS                     _UxGT("Light Presets")
@@ -900,22 +897,22 @@
   #define MSG_COOLING_COMPLETE                _UxGT("Cooling done.")
 #endif
 #ifndef MSG_BED_HEATING
-  #define MSG_BED_HEATING                     _UxGT("Bed heating.")
+  #define MSG_BED_HEATING                     _UxGT("Bed heating...")
 #endif
 #ifndef MSG_BED_COOLING
-  #define MSG_BED_COOLING                     _UxGT("Bed cooling.")
+  #define MSG_BED_COOLING                     _UxGT("Bed cooling...")
 #endif
 #ifndef MSG_BED_DONE
   #define MSG_BED_DONE                        _UxGT("Bed done.")
 #endif
 #ifndef MSG_CHAMBER_HEATING
-  #define MSG_CHAMBER_HEATING                 _UxGT("Chamber Heating.")
+  #define MSG_CHAMBER_HEATING                 _UxGT("Chamber heating.")
 #endif
 #ifndef MSG_CHAMBER_DONE
   #define MSG_CHAMBER_DONE                    _UxGT("Chamber done.")
 #endif
 #ifndef MSG_COOLER_COOLING
-  #define MSG_COOLER_COOLING                  _UxGT("Cooler Cooling.")
+  #define MSG_COOLER_COOLING                  _UxGT("Cooler vooling.")
 #endif
 #ifndef MSG_COOLER_DONE
   #define MSG_COOLER_DONE                     _UxGT("Cooler done.")

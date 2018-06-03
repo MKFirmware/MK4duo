@@ -33,7 +33,12 @@
 #ifndef LANGUAGE_SK_UTF_H
 #define LANGUAGE_SK_UTF_H
 
-#define MAPPER_C3C4C5_SK
+// Put characters here that should be displayed with M117
+//_UxGT("aäAÄaáAÁeéEÉiíIÍlĺLĹ")
+//_UxGT("oóOÓoôOÔrŕRŔuúUÚyýYÝ")
+//_UxGT("cčCČdďDĎlľLĽnňNŇsšSŠ")
+//_UxGT("tťTŤzžZŽ")
+
 #define DISPLAY_CHARSET_ISO10646_SK
 #define CHARSIZE 2
 
@@ -147,8 +152,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("UBL Postupne")
 
 #define MSG_LED_CONTROL                     _UxGT("Nastavenie LED")
-#define MSG_LEDS_ON                         _UxGT("Zapnúť svetlo")
-#define MSG_LEDS_OFF                        _UxGT("Vypnúť svetlo")
+#define MSG_LEDS                            _UxGT("Svetlo")
 #define MSG_LED_PRESETS                     _UxGT("Prednastavené farby")
 #define MSG_SET_LEDS_RED                    _UxGT("Červená")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Oranžová")
@@ -256,7 +260,6 @@
 #define MSG_DWELL                           _UxGT("Spím...")
 #define MSG_USERWAIT                        _UxGT("Čakám...")
 #define MSG_PRINT_PAUSED                    _UxGT("Tlač pozastavená")
-#define MSG_RESUMING                        _UxGT("Obnovovanie tlače")
 #define MSG_PRINT_ABORTED                   _UxGT("Tlač zrušená")
 #define MSG_NO_MOVE                         _UxGT("Žiadny pohyb.")
 #define MSG_KILLED                          _UxGT("PRERUŠENÉ. ")
@@ -307,12 +310,10 @@
 #define MSG_SHORT_HOUR                      _UxGT("h")
 #define MSG_SHORT_MINUTE                    _UxGT("m")
 #define MSG_HEATING                         _UxGT("Ohrev...")
-#define MSG_HEATING_COMPLETE                _UxGT("Ohrev prebehol.")
 #define MSG_COOLING                         _UxGT("Ochladzovanie...")
 #define MSG_COOLING_COMPLETE                _UxGT("Ochladzovanie prebehlo.")
-#define MSG_BED_HEATING                     _UxGT("Ohrev podl.")
-#define MSG_BED_COOLING                     _UxGT("Ochladzovanie podl.")
-#define MSG_BED_DONE                        _UxGT("Podložka hotová.")
+#define MSG_BED_HEATING                     _UxGT("Ohrev podl...")
+#define MSG_BED_COOLING                     _UxGT("Ochladzovanie podl...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Kalibrácia")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibrovať X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibrovať Y")

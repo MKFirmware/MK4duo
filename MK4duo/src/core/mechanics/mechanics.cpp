@@ -264,9 +264,15 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
     if (printer.debugLeveling()) {
       SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
       SERIAL_MV(", ", distance);
-      SERIAL_MV(", ", fr_mm_s);
-      SERIAL_MV(" [", fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis]);
-      SERIAL_EM("])");
+      SERIAL_MSG(", ");
+      if (fr_mm_s)
+        SERIAL_VAL(fr_mm_s);
+      else {
+        SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
+        SERIAL_CHR(']');
+      }
+      SERIAL_CHR(')');
+      SERIAL_EOL();
     }
   #endif
 

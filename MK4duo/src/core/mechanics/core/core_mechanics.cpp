@@ -285,11 +285,12 @@
       }
     #endif
 
-    const int axis_home_dir =
+    const int axis_home_dir = (
       #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
+        axis == X_AXIS ? x_home_dir(tools.active_extruder) :
       #endif
-      home_dir[axis];
+      home_dir[axis]
+    );
 
     // Homing Z towards the bed? Deploy the Z probe or endstop.
     #if HOMING_Z_WITH_PROBE
@@ -298,21 +299,19 @@
 
     // Set flags for X, Y, Z motor locking
     #if ENABLED(X_TWO_ENDSTOPS)
-      if (axis == X_AXIS) stepper.set_homing_flag_x(true);
+      if (axis == X_AXIS) stepper.set_homing_dual_axis(true);
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      if (axis == Y_AXIS) stepper.set_homing_flag_y(true);
+      if (axis == Y_AXIS) stepper.set_homing_dual_axis(true);
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      if (axis == Z_AXIS) stepper.set_homing_flag_z(true);
+      if (axis == Z_AXIS) stepper.set_homing_dual_axis(true);
     #endif
 
     // Fast move towards endstop until triggered
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
     #endif
-
-    // Fast move towards endstop until triggered
     mechanics.do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
 
     // When homing Z with probe respect probe clearance
@@ -346,37 +345,32 @@
       const bool pos_dir = axis_home_dir > 0;
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
-          const bool lock_x1 = pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0);
-          float adj = ABS(endstops.x_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          mechanics.do_homing_move(axis, adj);
-          if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
-          stepper.set_homing_flag_x(false);
+          const float adj = ABS(endstops.x_endstop_adj);
+          if (pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? adj : -adj);
+          stepper.set_x_lock(false);
+          stepper.set_x2_lock(false);
         }
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
         if (axis == Y_AXIS) {
-          const bool lock_y1 = pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0);
-          float adj = ABS(endstops.y_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          mechanics.do_homing_move(axis, adj);
-          if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
-          stepper.set_homing_flag_y(false);
+          const float adj = ABS(endstops.y_endstop_adj);
+          if (pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? adj : -adj);
+          stepper.set_y_lock(false);
+          stepper.set_y2_lock(false);
         }
       #endif
       #if ENABLED(Z_TWO_ENDSTOPS)
         if (axis == Z_AXIS) {
-          const bool lock_z1 = pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0);
-          float adj = ABS(endstops.z_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          mechanics.do_homing_move(axis, adj);
-          if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
-          stepper.set_homing_flag_z(false);
+          const float adj = ABS(endstops.z_endstop_adj);
+          if (pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? adj : -adj);
+          stepper.set_z_lock(false);
+          stepper.set_z2_lock(false);
         }
       #endif
+      stepper.set_homing_dual_axis(false);
     #endif
 
     // For cartesian machines,
@@ -391,7 +385,7 @@
       if (axis == Z_AXIS && STOW_PROBE()) return;
     #endif
 
-    // Clear z_lift if homing the Z axis
+    // Clear retracted status if homing the Z axis
     #if ENABLED(FWRETRACT)
       if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
     #endif
@@ -399,7 +393,8 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
+        SERIAL_CHR(')');
+        SERIAL_EOL();
       }
     #endif
   }
