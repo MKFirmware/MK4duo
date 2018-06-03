@@ -34,7 +34,6 @@
 #ifndef LANGUAGE_CZ_UTF_H
 #define LANGUAGE_CZ_UTF_H
 
-#define MAPPER_C3C4C5_CZ
 #define DISPLAY_CHARSET_ISO10646_CZ
 #define CHARSIZE 2
 
@@ -148,8 +147,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("UBL Postupne")
 
 #define MSG_LED_CONTROL                     _UxGT("LED Nastavení")
-#define MSG_LEDS_ON                         _UxGT("Svetla Zap")
-#define MSG_LEDS_OFF                        _UxGT("Svetla Vyp")
+#define MSG_LEDS                            _UxGT("Svetla")
 #define MSG_LED_PRESETS                     _UxGT("Svetla Predvolby")
 #define MSG_SET_LEDS_RED                    _UxGT("Cervená")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Oranžová")
@@ -257,7 +255,6 @@
 #define MSG_DWELL                           _UxGT("Uspáno...")
 #define MSG_USERWAIT                        _UxGT("Cekání na uživ...")
 #define MSG_PRINT_PAUSED                    _UxGT("Tisk pozastaven")
-#define MSG_RESUMING                        _UxGT("Obnovování tisku")
 #define MSG_PRINT_ABORTED                   _UxGT("Tisk zrušen")
 #define MSG_NO_MOVE                         _UxGT("Žádný pohyb.")
 #define MSG_KILLED                          _UxGT("PRERUSENO. ")
@@ -306,9 +303,7 @@
 #define MSG_SHORT_HOUR                      _UxGT("h")
 #define MSG_SHORT_MINUTE                    _UxGT("m")
 #define MSG_HEATING                         _UxGT("Zahrívání...")
-#define MSG_HEATING_COMPLETE                _UxGT("Zahráti hotovo.")
-#define MSG_BED_HEATING                     _UxGT("Zahrívání podl.")
-#define MSG_BED_DONE                        _UxGT("Podložka hotova.")
+#define MSG_BED_HEATING                     _UxGT("Zahrívání podl...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Kalibrace")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibrovat X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibrovat Y")

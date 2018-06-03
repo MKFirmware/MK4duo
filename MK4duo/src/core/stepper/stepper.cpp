@@ -67,7 +67,7 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 uint8_t Stepper::step_loops = 0;
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-  bool Stepper::performing_homing = false;
+  bool Stepper::homing_dual_axis = false;
 #endif
 
 // private:
@@ -359,8 +359,9 @@ bool Stepper::all_steps_done = false;
 uint32_t  Stepper::acceleration_time  = 0,
           Stepper::deceleration_time  = 0;
 
-volatile int32_t      Stepper::count_position[NUM_AXIS]   = { 0 };
-volatile signed char  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
+volatile int32_t  Stepper::count_position[NUM_AXIS]   = { 0 };
+
+int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   int32_t Stepper::counter_m[MIXING_STEPPERS]  = { 0 };
@@ -385,7 +386,7 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
   #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                             \
-    if (performing_homing) {                                                                                                      \
+    if (homing_dual_axis) {                                                                                                       \
       if (A##_HOME_DIR < 0) {                                                                                                     \
         if (!(TEST(endstops.live_state, A##_MIN)  && count_direction[_AXIS(A)] < 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
         if (!(TEST(endstops.live_state, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V);  \
@@ -1364,7 +1365,7 @@ void Stepper::Step() {
 
   do {
 
-    // Enable ISRs so the USART processing latency is reduced
+    // Enable ISRs to reduce USART processing latency
     ENABLE_ISRS();
 
     // Run main stepping pulse phase ISR if we have to
@@ -1379,11 +1380,9 @@ void Stepper::Step() {
     if (!nextMainISR) nextMainISR = block_phase_step();
 
     #if ENABLED(LIN_ADVANCE)
-      // Select the closest interval in time
-      uint32_t interval = MIN(nextAdvanceISR, nextMainISR);
+      uint32_t interval = MIN(nextAdvanceISR, nextMainISR); // Nearest time interval
     #else
-      // The interval is just the remaining time to the stepper ISR
-      uint32_t interval = nextMainISR;
+      uint32_t interval = nextMainISR;                      // Remaining stepper ISR time
     #endif
 
     // Limit the value to the maximum possible value of the timer

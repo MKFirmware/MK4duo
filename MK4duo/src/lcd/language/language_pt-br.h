@@ -31,8 +31,9 @@
 #ifndef LANGUAGE_PT_BR_UTF_H
 #define LANGUAGE_PT_BR_UTF_H
 
-#define MAPPER_C2C3
-#define DISPLAY_CHARSET_ISO10646_1
+// Put characters here that should be displayed with M117
+//_UxGT("·„‡Á…ÈÍÌÛı")
+
 #define CHARSIZE 2
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronto.")
@@ -147,8 +148,7 @@
 #define MSG_UBL_Z_OFFSET_STOPPED            _UxGT("CompensaÁ„o Z parou")
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("UBL passo a passo")
 #define MSG_LED_CONTROL                     _UxGT("Controle do LED")
-#define MSG_LEDS_ON                         _UxGT("Luz Acesa")
-#define MSG_LEDS_OFF                        _UxGT("Luz Apagada")
+#define MSG_LEDS                            _UxGT("Luz")
 #define MSG_LED_PRESETS                     _UxGT("ConfiguraÁ„o da Luz")
 #define MSG_SET_LEDS_RED                    _UxGT("Luz Vermelha")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Luz Laranja")
@@ -258,7 +258,6 @@
 #define MSG_NO_CARD                         _UxGT("Sem cart„o SD")
 #define MSG_DWELL                           _UxGT("ZzZzZz...")
 #define MSG_USERWAIT                        _UxGT("Clique para retomar")
-#define MSG_RESUMING                        _UxGT("Resumindo Impress„o")
 #define MSG_PRINT_ABORTED                   _UxGT("Impress„o Abortada")
 #define MSG_NO_MOVE                         _UxGT("Sem movimento")
 #define MSG_KILLED                          _UxGT("PARADA DE EMERG NCIA")
@@ -297,9 +296,7 @@
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Erro:Temp Mesa M·x")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Erro:Temp Mesa MÌn")
 #define MSG_HEATING                         _UxGT("Aquecendo...")
-#define MSG_HEATING_COMPLETE                _UxGT("Aquecida.")
-#define MSG_BED_HEATING                     _UxGT("Aquecendo base..")
-#define MSG_BED_DONE                        _UxGT("Base aquecida.")
+#define MSG_BED_HEATING                     _UxGT("Aquecendo base...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Calibrar Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Calibrar X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Calibrar Y")

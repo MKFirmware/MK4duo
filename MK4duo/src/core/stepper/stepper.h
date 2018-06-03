@@ -60,7 +60,7 @@ class Stepper {
     static uint8_t  step_loops;
 
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-      static bool performing_homing;
+      static bool homing_dual_axis;
     #endif
 
   private: /** Private Parameters */
@@ -143,7 +143,7 @@ class Stepper {
     /**
      * Current direction of stepper motors (+1 or -1)
      */
-    static volatile signed char count_direction[NUM_AXIS];
+    static int8_t count_direction[NUM_AXIS];
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       static int32_t counter_m[MIXING_STEPPERS];
@@ -312,17 +312,17 @@ class Stepper {
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag_x(const bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
       FORCE_INLINE static void set_x_lock(const bool state) { locked_X_motor = state; }
       FORCE_INLINE static void set_x2_lock(const bool state) { locked_X2_motor = state; }
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag_y(const bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
       FORCE_INLINE static void set_y_lock(const bool state) { locked_Y_motor = state; }
       FORCE_INLINE static void set_y2_lock(const bool state) { locked_Y2_motor = state; }
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_flag_z(const bool state) { performing_homing = state; }
+      FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
       FORCE_INLINE static void set_z_lock(const bool state) { locked_Z_motor = state; }
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_Z2_motor = state; }
     #endif
