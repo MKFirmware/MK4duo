@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_COOLER
+#if HAS_HEATER_COOLER
 
   #define CODE_M192
 
@@ -44,4 +44,4 @@
     thermalManager.wait_heater(&heaters[COOLER_INDEX], no_wait_for_heating);
   }
 
-#endif // HAS_TEMP_COOLER
+#endif // HAS_HEATER_COOLER
