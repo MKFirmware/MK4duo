@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_CHAMBER
+#if HAS_HEATER_CHAMBER
 
   #define CODE_M191
 
@@ -44,4 +44,4 @@
     thermalManager.wait_heater(&heaters[CHAMBER_INDEX], no_wait_for_cooling);
   }
 
-#endif // HAS_TEMP_CHAMBER
+#endif // HAS_HEATER_CHAMBER

@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_CHAMBER
+#if HAS_HEATER_CHAMBER
 
   #define CODE_M141
 
