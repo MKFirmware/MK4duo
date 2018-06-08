@@ -2113,8 +2113,8 @@ void EEPROM::Factory_Settings() {
         if (bedlevel.leveling_is_valid()) {
           for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
-              SERIAL_SMV(CFG, "  G29 W I", (int)px + 1);
-              SERIAL_MV(" J", (int)py + 1);
+              SERIAL_SMV(CFG, "  G29 W I", (int)px);
+              SERIAL_MV(" J", (int)py);
               SERIAL_MV(" Z", LINEAR_UNIT(abl.z_values[px][py]), 5);
               SERIAL_EOL();
             }

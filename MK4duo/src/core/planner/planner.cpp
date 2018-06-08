@@ -1893,7 +1893,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   if (speed_factor < 1.0) {
     LOOP_XYZE(i) current_speed[i] *= speed_factor;
     block->nominal_rate *= speed_factor;
-    block->nominal_speed_sqr = block->nominal_speed_sqr * sq(speed_factor);
+    block->nominal_speed_sqr *= sq(speed_factor);
   }
 
   // Compute and limit the acceleration rate for the trapezoid generator.
@@ -2105,14 +2105,14 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       // If this maximum velocity allowed is lower than the minimum of the entry / exit safe velocities,
       // then the machine is not coasting anymore and the safe entry / exit velocities shall be used.
 
+      // Factor to multiply the previous / current nominal velocities to get componentwise limited velocities.
+      float v_factor = 1;
+      limited = 0;
+
       // The junction velocity will be shared between successive segments. Limit the junction velocity to their minimum.
       // Pick the smaller of the nominal speeds. Higher speed shall not be achieved at the junction during coasting.
       const float previous_nominal_speed = SQRT(previous_nominal_speed_sqr);
       vmax_junction = MIN(nominal_speed, previous_nominal_speed);
-
-      // Factor to multiply the previous / current nominal velocities to get componentwise limited velocities.
-      float v_factor = 1;
-      limited = 0;
 
       // Now limit the jerk in all axes.
       const float smaller_speed_factor = vmax_junction / previous_nominal_speed;
@@ -2210,9 +2210,9 @@ void Planner::buffer_sync_block() {
 
   // If this is the first added movement, reload the delay, otherwise, cancel it.
   if (block_buffer_head == block_buffer_tail) {
-    //  If it was the first queued block, restart the 1st block delivery delay, to
+    // If it was the first queued block, restart the 1st block delivery delay, to
     // give the planner an opportunity to queue more movements and plan them
-    //  As there are no queued movements, the Stepper ISR will not touch this
+    // As there are no queued movements, the Stepper ISR will not touch this
     // variable, so there is no risk setting this here (but it MUST be done
     // before the following line!!)
     delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;

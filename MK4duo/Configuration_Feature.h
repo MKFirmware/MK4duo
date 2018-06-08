@@ -92,11 +92,10 @@
  * ADVANCED MOTION FEATURES:
  * - Stepper auto deactivation
  * - Double / Quad Stepping
- * - Low speed stepper
+ * - Minimum stepper pulse
  * - Microstepping
  * - Motor's current
  * - I2C DIGIPOT
- * - Toshiba steppers
  * - TMC26X motor drivers
  * - Trinamic TMC2130 motor drivers
  * - Trinamic TMC2208 motor drivers
@@ -1832,17 +1831,19 @@
 /***********************************************************************/
 
 
-/***********************************************************************
- ************************* Low speed stepper ***************************
- ***********************************************************************
- *                                                                     *
- * Set this if you find stepping unreliable,                           *
- * or if using a very fast CPU.                                        *
- *                                                                     *
- ***********************************************************************/
-// (µs) The smallest stepper pulse allowed
+/***************************************************************************************
+ ******************************** Minimum stepper pulse ********************************
+ ***************************************************************************************
+ *                                                                                     *
+ * The minimum pulse width (in µs) for stepping a stepper.                             *
+ *  0 : Smallest possible width the BOARD can produce, compatible with TMC2xxx drivers *
+ *  2 : The minimum value for reliable stepping if using the DRV8825 motor driver      *
+ *  3 : The minimum value for reliable stepping if using the TB6600 motor driver       *
+ * 30 : The minimum value for reliable stepping if using the TB6560 motor driver       *
+ *                                                                                     *
+ ***************************************************************************************/
 #define MINIMUM_STEPPER_PULSE 0
-/***********************************************************************/
+/***************************************************************************************/
 
 
 /***********************************************************************
@@ -1891,17 +1892,6 @@
 #define DIGIPOT_I2C_NUM_CHANNELS 8
 // actual motor currents in Amps, need as many here as DIGIPOT_I2C_NUM_CHANNELS
 #define DIGIPOT_I2C_MOTOR_CURRENTS {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}
-/***********************************************************************/
-
-
-/***********************************************************************
- *************************** Toshiba steppers **************************
- ***********************************************************************
- *                                                                     *
- * Support for Toshiba steppers                                        *
- *                                                                     *
- ***********************************************************************/
-//#define CONFIG_STEPPERS_TOSHIBA
 /***********************************************************************/
 
 

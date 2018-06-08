@@ -332,28 +332,28 @@
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E1();
+            stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E2();
+            stepper.enable_E();
             break;
           case 3:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
             active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E3();
+            stepper.enable_E();
             break;
         }
 
@@ -364,19 +364,19 @@
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E1();
+            stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
         }
 
@@ -387,13 +387,13 @@
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
         }
 
@@ -418,13 +418,13 @@
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
         }
 
@@ -436,21 +436,21 @@
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
             active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
         }
 
@@ -469,21 +469,21 @@
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
             active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
             active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
-            stepper.enable_E0();
+            stepper.enable_E();
             break;
           default:
             SERIAL_LM(ER, "More Driver Extruders");

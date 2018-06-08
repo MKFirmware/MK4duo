@@ -68,8 +68,12 @@ typedef struct {
 
   uint8_t flag;                             // Block flags (See BlockFlag enum above)
 
-  uint8_t active_extruder,                  // The extruder to move (if E move)
-          active_driver;                    // Selects the active driver for E
+  // Fields used by the motion planner to manage acceleration
+  float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
+        entry_speed_sqr,                    // Entry speed at previous-current junction in (mm/sec)^2
+        max_entry_speed_sqr,                // Maximum allowable junction entry speed in (mm/sec)^2
+        millimeters,                        // The total travel of this block in mm
+        acceleration;                       // acceleration mm/sec^2
 
   // Data used by all move blocks
   union {
@@ -80,6 +84,9 @@ typedef struct {
   };
 
   uint32_t step_event_count;                // The number of step events required to complete this block
+
+  uint8_t active_extruder,                  // The extruder to move (if E move)
+          active_driver;                    // Selects the active driver for E
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     uint32_t mix_event_count[MIXING_STEPPERS]; // Scaled step_event_count for the mixing steppers
@@ -104,18 +111,11 @@ typedef struct {
   // Advance extrusion
   #if ENABLED(LIN_ADVANCE)
     bool      use_advance_lead;
-    uint16_t  advance_speed,                // Timer value for extruder speed offset
+    uint16_t  advance_speed,                // STEP timer value for extruder speed offset ISR
               max_adv_steps,                // max. advance steps to get cruising speed pressure (not always nominal_speed!)
               final_adv_steps;              // advance steps due to exit speed
     float     e_D_ratio;
   #endif
-
-  // Fields used by the motion planner to manage acceleration
-  float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
-        entry_speed_sqr,                    // Entry speed at previous-current junction in (mm/sec)^2
-        max_entry_speed_sqr,                // Maximum allowable junction entry speed in (mm/sec)^2
-        millimeters,                        // The total travel of this block in mm
-        acceleration;                       // acceleration mm/sec^2
 
   uint32_t  nominal_rate,                   // The nominal step rate for this block in step_events/sec
             initial_rate,                   // The jerk-adjusted step rate at start of block
