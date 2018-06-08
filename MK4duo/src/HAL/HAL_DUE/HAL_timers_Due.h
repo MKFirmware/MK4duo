@@ -68,8 +68,8 @@
 #define NvicPriorityUart    1
 #define NvicPrioritySystick 2
 
-constexpr uint32_t  HAL_TIMER_RATE        = ((VARIANT_MCK) / 2); // 42 MHz
-constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE));
+#define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
+#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE))
 
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
@@ -87,7 +87,6 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 * 256.0 / (HAL_TIME
 
 #define ADC_ISR_EOC(channel)        (0x1u << channel)
 
-#define HAL_STEPPER_TIMER_START()   HAL_timer_start(STEPPER_TIMER, 122)
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)

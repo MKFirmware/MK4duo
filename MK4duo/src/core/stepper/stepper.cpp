@@ -46,6 +46,29 @@
  */
 
 /**
+ *         __________________________
+ *        /|                        |\     _________________         ^
+ *       / |                        | \   /|               |\        |
+ *      /  |                        |  \ / |               | \       s
+ *     /   |                        |   |  |               |  \      p
+ *    /    |                        |   |  |               |   \     e
+ *   +-----+------------------------+---+--+---------------+----+    e
+ *   |               BLOCK 1            |      BLOCK 2          |    d
+ *
+ *                           time ----->
+ *
+ *  The trapezoid is the shape the speed curve over time. It starts at block->initial_rate, accelerates
+ *  first block->accelerate_until step_events_completed, then keeps going at constant speed until
+ *  step_events_completed reaches block->decelerate_after after which it decelerates until the trapezoid generator is reset.
+ *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
+ */
+
+/**
+ * MK4duo uses the Bresenham algorithm. For a detailed explanation of theory and
+ * method see https://www.cs.helsinki.fi/group/goa/mallinnus/lines/bresenh.html
+ */
+
+/**
  * Jerk controlled movements planner added Apr 2018 by Eduardo José Tagle.
  * Equations based on Synthethos TinyG2 sources, but the fixed-point
  * implementation is new, as we are running the ISR with a variable period.
@@ -403,7 +426,7 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 #endif
 
 #if ENABLED(X_TWO_STEPPER_DRIVERS)
-  #define X_APPLY_DIR(v,Q)  do{ X_DIR_WRITE(v); X2_DIR_WRITE(v != INVERT_X2_VS_X_DIR); }while(0)
+  #define X_APPLY_DIR(v,Q)  do{ X_DIR_WRITE(v); X2_DIR_WRITE((v) != INVERT_X2_VS_X_DIR); }while(0)
   #if ENABLED(X_TWO_ENDSTOPS)
     #define X_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(X,v)
   #else
@@ -432,7 +455,7 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 #endif
 
 #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-  #define Y_APPLY_DIR(v,Q)  do{ Y_DIR_WRITE(v); Y2_DIR_WRITE(v != INVERT_Y2_VS_Y_DIR); }while(0)
+  #define Y_APPLY_DIR(v,Q)  do{ Y_DIR_WRITE(v); Y2_DIR_WRITE((v) != INVERT_Y2_VS_Y_DIR); }while(0)
   #if ENABLED(Y_TWO_ENDSTOPS)
     #define Y_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(Y,v)
   #else
@@ -444,7 +467,7 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 #endif
 
 #if ENABLED(Z_TWO_STEPPER_DRIVERS)
-  #define Z_APPLY_DIR(v,Q) do{ Z_DIR_WRITE(v); Z2_DIR_WRITE(v != INVERT_Z2_VS_Z_DIR); }while(0)
+  #define Z_APPLY_DIR(v,Q) do{ Z_DIR_WRITE(v); Z2_DIR_WRITE((v) != INVERT_Z2_VS_Z_DIR); }while(0)
   #if ENABLED(Z_TWO_ENDSTOPS)
     #define Z_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(Z,v)
   #else
@@ -516,23 +539,6 @@ volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
 #endif // HAS_EXT_ENCODER
 
-/**
- *         __________________________
- *        /|                        |\     _________________         ^
- *       / |                        | \   /|               |\        |
- *      /  |                        |  \ / |               | \       s
- *     /   |                        |   |  |               |  \      p
- *    /    |                        |   |  |               |   \     e
- *   +-----+------------------------+---+--+---------------+----+    e
- *   |               BLOCK 1            |      BLOCK 2          |    d
- *
- *                           time ----->
- *
- *  The trapezoid is the shape the speed curve over time. It starts at block->initial_rate, accelerates
- *  first block->accelerate_until step_events_completed, then keeps going at constant speed until
- *  step_events_completed reaches block->decelerate_after after which it decelerates until the trapezoid generator is reset.
- *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
- */
 void Stepper::wake_up() { ENABLE_STEPPER_INTERRUPT(); }
 
 /**
@@ -1287,7 +1293,7 @@ void Stepper::set_directions() {
         A("add %3,r0")
         A("adc %4,r1")              /* %4:%3:%2:%9 += HI(bezier_A) * LO(f) << 16*/
         L("2")
-        " clr __zero_reg__"              /* C runtime expects r1 = __zero_reg__ = 0 */
+        " clr __zero_reg__"         /* C runtime expects r1 = __zero_reg__ = 0 */
         : "+r"(r0),
           "+r"(r1),
           "+r"(r2),
@@ -1346,8 +1352,11 @@ void Stepper::set_directions() {
 
 void Stepper::Step() {
 
-  // Disable interrupts, to avoid ISR preemption while we reprogram the period
-  DISABLE_ISRS();
+  #if DISABLED(__AVR__)
+    // Disable interrupts, to avoid ISR preemption while we reprogram the period
+    // (AVR enters the ISR with global interrupts disabled, so no need to do it here)
+    DISABLE_ISRS();
+  #endif
 
   // Program timer compare for the maximum period, so it does NOT
   // flag an interrupt while this ISR is running - So changes from small
@@ -1435,10 +1444,8 @@ void Stepper::Step() {
     /**
      * Get the current tick value + margin
      * Assuming at least 6µs between calls to this ISR...
-     * On AVR the ISR epilogue is estimated at 40 instructions - close to 2.5µS.
-     * On ARM the ISR epilogue is estimated at 10 instructions - close to 200nS.
-     * In either case leave at least 8µS for other tasks to execute - That allows
-     * up to 100khz stepping rates
+     * On AVR the ISR epilogue+prologue is estimated at 100 instructions - Give 8µs as margin
+     * On ARM the ISR epilogue+prologue is estimated at 20 instructions - Give 1µs as margin
      */
     min_ticks = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_TIMER_MAX_INTERVAL); // ISR never takes more than 1ms, so this shouldn't cause trouble
 
@@ -2267,9 +2274,9 @@ void Stepper::init() {
     #endif
   #endif
 
-  #define _STEP_INIT(AXIS) AXIS ##_STEP_INIT
-  #define _WRITE_STEP(AXIS, HIGHLOW) AXIS ##_STEP_WRITE(HIGHLOW)
-  #define _DISABLE(AXIS) disable_## AXIS()
+  #define _STEP_INIT(AXIS)            AXIS ##_STEP_INIT
+  #define _WRITE_STEP(AXIS, HIGHLOW)  AXIS ##_STEP_WRITE(HIGHLOW)
+  #define _DISABLE(AXIS)              disable_## AXIS()
 
   #define AXIS_INIT(AXIS, PIN) \
     _STEP_INIT(AXIS); \
@@ -2303,22 +2310,22 @@ void Stepper::init() {
     AXIS_INIT(Z, Z);
   #endif
 
-  #if HAS_E0_STEP
+  #if DRIVER_EXTRUDERS > 0 && HAS_E0_STEP
     E_AXIS_INIT(0);
   #endif
-  #if HAS_E1_STEP
+  #if DRIVER_EXTRUDERS > 1 && HAS_E1_STEP
     E_AXIS_INIT(1);
   #endif
-  #if HAS_E2_STEP
+  #if DRIVER_EXTRUDERS > 2 && HAS_E2_STEP
     E_AXIS_INIT(2);
   #endif
-  #if HAS_E3_STEP
+  #if DRIVER_EXTRUDERS > 3 && HAS_E3_STEP
     E_AXIS_INIT(3);
   #endif
-  #if HAS_E4_STEP
+  #if DRIVER_EXTRUDERS > 4 && HAS_E4_STEP
     E_AXIS_INIT(4);
   #endif
-  #if HAS_E5_STEP
+  #if DRIVER_EXTRUDERS > 5 && HAS_E5_STEP
     E_AXIS_INIT(5);
   #endif
 
@@ -2391,7 +2398,8 @@ void Stepper::init() {
   #endif // HAS_EXT_ENCODER
 
   // Init Stepper ISR to 122 Hz for quick starting
-  HAL_STEPPER_TIMER_START();
+  HAL_timer_start(STEPPER_TIMER, 122);
+
   ENABLE_STEPPER_INTERRUPT();
 
   endstops.setEnabled(true); // Start with endstops active. After homing they can be disabled
@@ -2400,17 +2408,12 @@ void Stepper::init() {
   set_directions(); // Init directions to last_direction_bits = 0
 }
 
+// Set the current position in steps
 void Stepper::set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e) {
   planner.synchronize();
-
-  // Disable stepper interrupts, to ensure atomic setting of all the position variables
   const bool isr_enabled = STEPPER_ISR_ENABLED();
   if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
-
-  // Set position
   _set_position(a, b, c, e);
-
-  // Reenable Stepper ISR
   if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
 }
     
@@ -2475,19 +2478,20 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 int32_t Stepper::position(const AxisEnum axis) {
 
   #if ENABLED(__AVR__)
-    // Protect the access to the variable. Only required for AVR.
+    // Protect the access to the position. Only required for AVR, as
+    //  any 32bit CPU offers atomic access to 32bit variables
     const bool isr_enabled = STEPPER_ISR_ENABLED();
     if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
 
-  const int32_t machine_pos = count_position[axis];
+  const int32_t v = count_position[axis];
 
   #if ENABLED(__AVR__)
     // Reenable Stepper ISR
     if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
   #endif
 
-  return machine_pos;
+  return v;
 }
 
 /**
@@ -2709,8 +2713,8 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
 
 int32_t Stepper::triggered_position(const AxisEnum axis) {
   #if ENABLED(__AVR__)
-    // Protect the access to the variable. Only required for AVR.
-    // Disable stepper ISR
+    // Protect the access to the position. Only required for AVR, as
+    //  any 32bit CPU offers atomic access to 32bit variables
     const bool isr_enabled = STEPPER_ISR_ENABLED();
     if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
   #endif
@@ -2777,10 +2781,10 @@ void Stepper::report_positions() {
   #endif
   #define EXTRA_CYCLES_BABYSTEP (STEPPER_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
 
-  #define _ENABLE(AXIS) enable_## AXIS()
-  #define _READ_DIR(AXIS) AXIS ##_DIR_READ
-  #define _INVERT_DIR(AXIS) isStepDir(AXIS ##_AXIS)
-  #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
+  #define _ENABLE(AXIS)             enable_## AXIS()
+  #define _READ_DIR(AXIS)           AXIS ##_DIR_READ
+  #define _INVERT_DIR(AXIS)         isStepDir(AXIS ##_AXIS)
+  #define _APPLY_DIR(AXIS, INVERT)  AXIS ##_APPLY_DIR(INVERT, true)
 
   #if EXTRA_CYCLES_BABYSTEP > 20
     #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
@@ -2801,9 +2805,9 @@ void Stepper::report_positions() {
   #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {            \
       const uint8_t old_dir = _READ_DIR(AXIS);          \
       _ENABLE(AXIS);                                    \
-      _SAVE_START;                                      \
       _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^DIR^INVERT);   \
-      _PULSE_WAIT;                                      \
+      DELAY_NS(400); /* DRV8825 */                      \
+      _SAVE_START;                                      \
       _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
       _PULSE_WAIT;                                      \
       _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true);  \
@@ -2873,6 +2877,8 @@ void Stepper::report_positions() {
           X_DIR_WRITE(isStepDir(X_AXIS) ^ z_direction);
           Y_DIR_WRITE(isStepDir(Y_AXIS) ^ z_direction);
           Z_DIR_WRITE(isStepDir(Z_AXIS) ^ z_direction);
+
+          DELAY_NS(400); // DRV8825
 
           _SAVE_START;
 

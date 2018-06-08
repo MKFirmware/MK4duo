@@ -155,8 +155,8 @@ typedef uint16_t  ptr_int_t;
 // Timer
 // --------------------------------------------------------------------------
 
-constexpr uint32_t  HAL_TIMER_RATE        = ((F_CPU) / 8);
-constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE));
+#define HAL_TIMER_RATE              ((F_CPU) / 8)
+#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 
 #define STEPPER_TIMER_PRESCALE      8
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
@@ -183,9 +183,6 @@ constexpr float     HAL_ACCELERATION_RATE = (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 #define TIMER_COUNTER_1             TCNT1
 
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
-
-#define HAL_STEPPER_TIMER_START()   HAL_stepper_timer_start()
-#define HAL_TEMP_TIMER_START()      HAL_temp_timer_start()
 
 #define ENABLE_STEPPER_INTERRUPT()  SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT() CBI(STEPPER_TIMSK, STEPPER_OCIE)
@@ -361,8 +358,7 @@ class InterruptProtectedBlock {
     }
 };
 
-void HAL_stepper_timer_start();
-void HAL_temp_timer_start();
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
 uint32_t HAL_calc_timer_interval(uint32_t step_rate);
 

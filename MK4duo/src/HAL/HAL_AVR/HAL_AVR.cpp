@@ -77,32 +77,36 @@ HAL::~HAL() {
   // dtor
 }
 
-void HAL_stepper_timer_start() {
-  // waveform generation = 0100 = CTC
-  CBI(TCCR1B, WGM13);
-  SBI(TCCR1B, WGM12);
-  CBI(TCCR1A, WGM11);
-  CBI(TCCR1A, WGM10);
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-  // output mode = 00 (disconnected)
-  TCCR1A &= ~(3 << COM1A0);
-  TCCR1A &= ~(3 << COM1B0);
+  UNUSED(frequency);
 
-  // Set the timer pre-scaler
-  // Generally we use a divider of 8, resulting in a 2MHz timer
-  // frequency on a 16MHz MCU. If you are going to change this, be
-  // sure to regenerate speed_lookuptable.h with
-  // create_speed_lookuptable.py
-  TCCR1B = (TCCR1B & ~(0x07 << CS10)) | (2 << CS10);
+  switch (timer_num) {
 
-  // Init Stepper ISR to 122 Hz for quick starting
-  OCR1A = 0x4000;
-  TCNT1 = 0;
-}
+    case STEPPER_TIMER:
+      // waveform generation = 0100 = CTC
+      SET_WGM(1, CTC_OCRnA);
 
-void HAL_temp_timer_start() {
-  TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
-  TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+      // output mode = 00 (disconnected)
+      SET_COMA(1, NORMAL);
+
+      // Set the timer pre-scaler
+      // Generally we use a divider of 8, resulting in a 2MHz timer
+      // frequency on a 16MHz MCU. If you are going to change this, be
+      // sure to regenerate speed_lookuptable.h with
+      // create_speed_lookuptable.py
+      SET_CS(1, PRESCALER_8);  //  CS 2 = 1/8 prescaler
+
+      // Init Stepper ISR to 122 Hz for quick starting
+      OCR1A = 0x4000;
+      TCNT1 = 0;
+      break;
+
+    case TEMP_TIMER:
+      TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
+      TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+      break;
+  }
 }
 
 uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
@@ -221,7 +225,8 @@ void HAL::showStartReason() {
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
-    HAL_TEMP_TIMER_START();
+    HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY);
+
     ENABLE_TEMP_INTERRUPT();
 
   }
