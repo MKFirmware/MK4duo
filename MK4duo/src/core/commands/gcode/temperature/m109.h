@@ -46,14 +46,14 @@
     const bool no_wait_for_cooling = parser.seenval('S');
     if (no_wait_for_cooling || parser.seenval('R')) {
       const int16_t temp = parser.value_celsius();
-      heaters[EXTRUDER_IDX].target_temperature = temp;
+      heaters[TRG_EXTRUDER_IDX].target_temperature = temp;
 
       #if ENABLED(DUAL_X_CARRIAGE)
         if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
           heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
       #endif
 
-      const bool heating = heaters[EXTRUDER_IDX].isHeating();
+      const bool heating = heaters[TRG_EXTRUDER_IDX].isHeating();
       if (heating || !no_wait_for_cooling) {
         #if HOTENDS > 1
           lcd_status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_EXTRUDER);
@@ -68,7 +68,7 @@
       planner.autotemp_M104_M109();
     #endif
 
-    thermalManager.wait_heater(&heaters[EXTRUDER_IDX], no_wait_for_cooling);
+    thermalManager.wait_heater(&heaters[TRG_EXTRUDER_IDX], no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_HOTEND
