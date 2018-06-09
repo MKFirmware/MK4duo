@@ -352,7 +352,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t hotend=ACT_HOTEND_IDX) {
+    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t hotend=TARGET_HOTEND) {
       row_y1 = row * row_height + 1;
       row_y2 = row_y1 + row_height - 1;
 
@@ -360,7 +360,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
       lcd_moveto(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
       lcd_put_wchar('H');
-      lcd_put_wchar((char)('0' + ACT_HOTEND_IDX));
+      lcd_put_wchar((char)('0' + TARGET_HOTEND));
       lcd_put_wchar(' ');
       lcd_put_u8str(itostr3(heaters[hotend].current_temperature));
       lcd_put_wchar('/');
