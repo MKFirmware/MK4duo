@@ -97,7 +97,7 @@ static const uint8_t u8g_dev_st7565_64128n_HAL_init_seq[] PROGMEM = {
   ST7565_POWER_CONTROL(0x4),  // power control: turn on voltage converter
   U8G_ESC_DLY(50),            // delay 50 ms
 
-  ST7565_POWER_CONTROL(0x6)   // power control: turn on voltage regulator
+  ST7565_POWER_CONTROL(0x6),  // power control: turn on voltage regulator
   U8G_ESC_DLY(50),            // delay 50 ms
 
   ST7565_POWER_CONTROL(0x7),  // power control: turn on voltage follower
