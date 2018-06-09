@@ -4815,10 +4815,10 @@ void lcd_quick_feedback(const bool clear_buttons) {
     void lcd_advanced_pause_show_message(
       const AdvancedPauseMessage message,
       const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
-      const uint8_t extruder/*=tools.active_extruder*/
+      const uint8_t hotend/*=ACT_HOTEND_IDX*/
     ) {
       advanced_pause_mode = mode;
-      hotend_status_extruder = extruder;
+      hotend_status_extruder = hotend;
       const screenFunc_t next_screen = ap_message_screen(message);
       if (next_screen) {
         defer_return_to_status = true;
