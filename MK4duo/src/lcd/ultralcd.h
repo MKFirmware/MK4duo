@@ -121,7 +121,7 @@
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
                                            const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
-                                           const uint8_t extruder=tools.active_extruder);
+                                           const uint8_t hotend=ACT_HOTEND_IDX);
     #endif // ADVANCED_PAUSE_FEATURE
 
     #if ENABLED(G26_MESH_VALIDATION)

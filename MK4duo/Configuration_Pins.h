@@ -81,7 +81,6 @@
   #define E0_ENABLE_PIN     ORIG_E0_ENABLE_PIN
   #define E0_CS_PIN         ORIG_E0_CS_PIN
   #define SOL0_PIN          ORIG_SOL0_PIN
-  #define E0_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 1
@@ -90,7 +89,6 @@
   #define E1_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define E1_CS_PIN         ORIG_E1_CS_PIN
   #define SOL1_PIN          ORIG_SOL1_PIN
-  #define E1_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 2
@@ -99,7 +97,6 @@
   #define E2_ENABLE_PIN     ORIG_E2_ENABLE_PIN
   #define E2_CS_PIN         ORIG_E2_CS_PIN
   #define SOL2_PIN          ORIG_SOL2_PIN
-  #define E2_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 3
@@ -108,7 +105,6 @@
   #define E3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
   #define E3_CS_PIN         ORIG_E3_CS_PIN
   #define SOL3_PIN          ORIG_SOL3_PIN
-  #define E3_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 4
@@ -117,7 +113,6 @@
   #define E4_ENABLE_PIN     ORIG_E4_ENABLE_PIN
   #define E4_CS_PIN         ORIG_E4_CS_PIN
   #define SOL4_PIN          ORIG_SOL4_PIN
-  #define E4_ENC_PIN        NoPin
 #endif
 
 #if DRIVER_EXTRUDERS > 5
@@ -126,10 +121,9 @@
   #define E5_ENABLE_PIN     ORIG_E5_ENABLE_PIN
   #define E5_CS_PIN         ORIG_E5_CS_PIN
   #define SOL5_PIN          ORIG_SOL5_PIN
-  #define E5_ENC_PIN        NoPin
 #endif
 
-// ENDSTOP pin
+// ENDSTOP pins
 #define X_MIN_PIN           ORIG_X_MIN_PIN
 #define X_MAX_PIN           ORIG_X_MAX_PIN
 #define Y_MIN_PIN           ORIG_Y_MIN_PIN
@@ -144,7 +138,7 @@
 #define Z2_MAX_PIN          NoPin
 #define Z_PROBE_PIN         NoPin
 
-// HEATER pin
+// HEATER pins
 #define HEATER_0_PIN        ORIG_HEATER_0_PIN
 #define HEATER_1_PIN        ORIG_HEATER_1_PIN
 #define HEATER_2_PIN        ORIG_HEATER_2_PIN
@@ -153,7 +147,7 @@
 #define HEATER_CHAMBER_PIN  NoPin
 #define HEATER_COOLER_PIN   NoPin
 
-// TEMP pin
+// TEMP pins
 #define TEMP_0_PIN          ORIG_TEMP_0_PIN
 #define TEMP_1_PIN          ORIG_TEMP_1_PIN
 #define TEMP_2_PIN          ORIG_TEMP_2_PIN
@@ -162,7 +156,7 @@
 #define TEMP_CHAMBER_PIN    NoPin
 #define TEMP_COOLER_PIN     NoPin
 
-// FAN pin
+// FAN pins
 #define FAN0_PIN            ORIG_FAN0_PIN
 #define FAN1_PIN            ORIG_FAN1_PIN
 #define FAN2_PIN            ORIG_FAN2_PIN
@@ -187,6 +181,15 @@
 #elif ENABLED(MKR6) || ENABLED(MKR12)
   #define EX1_CHOICE_PIN  NoPin
   #define EX2_CHOICE_PIN  NoPin
+#endif
+
+#if ENABLED(EXTRUDER_ENCODER_CONTROL)
+  #define E0_ENC_PIN NoPin
+  #define E1_ENC_PIN NoPin
+  #define E2_ENC_PIN NoPin
+  #define E3_ENC_PIN NoPin
+  #define E4_ENC_PIN NoPin
+  #define E5_ENC_PIN NoPin
 #endif
 
 #if ENABLED(LASER)
