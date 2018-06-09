@@ -33,7 +33,7 @@
  */
 inline void gcode_M569(void) {
 
-  GET_TARGET_EXTRUDER(569);
+  if (commands.get_target_tool(569)) return;
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {

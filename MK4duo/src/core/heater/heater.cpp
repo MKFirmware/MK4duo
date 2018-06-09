@@ -122,7 +122,7 @@
         pidTerm += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (ID == EXTRUDER_IDX) {
+          if (ID == ACTIVE_HOTEND) {
             long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;
@@ -153,7 +153,7 @@
     }
 
     #if ENABLED(PID_DEBUG)
-      SERIAL_SMV(ECHO, MSG_PID_DEBUG, HOTEND_INDEX);
+      SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
       SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
     #endif // PID_DEBUG

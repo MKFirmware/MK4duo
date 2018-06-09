@@ -54,7 +54,7 @@
 
     // Show initial "wait for start" message
     #if HAS_LCD
-      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.target_extruder);
+      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, TARGET_HOTEND);
     #endif
 
     #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)

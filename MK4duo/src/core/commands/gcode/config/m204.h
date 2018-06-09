@@ -39,7 +39,7 @@
  */
 inline void gcode_M204(void) {
 
-  GET_TARGET_EXTRUDER(204);
+  if (commands.get_target_tool(204)) return;
 
   if (parser.seen('S')) {  // Kept for legacy compatibility. Should NOT BE USED for new developments.
     mechanics.travel_acceleration = mechanics.acceleration = parser.value_linear_units();

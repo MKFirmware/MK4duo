@@ -487,41 +487,43 @@ constexpr uint32_t MAX_STEP_FREQUENCY = (DOUBLE_STEP_FREQUENCY * 4);  // Max ste
 #define HAS_E0_STEP         (PIN_EXISTS(E0_STEP))
 #define HAS_E0_MICROSTEPS   (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E0_MS1))
 #define HAS_SOLENOID_0      (PIN_EXISTS(SOL0))
-#define HAS_E0_ENC          (PIN_EXISTS(E0_ENC))
 
 #define HAS_E1_ENABLE       (PIN_EXISTS(E1_ENABLE))
 #define HAS_E1_DIR          (PIN_EXISTS(E1_DIR))
 #define HAS_E1_STEP         (PIN_EXISTS(E1_STEP))
 #define HAS_E1_MICROSTEPS   (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E1_MS1))
 #define HAS_SOLENOID_1      (PIN_EXISTS(SOL1))
-#define HAS_E1_ENC          (PIN_EXISTS(E1_ENC))
 
 #define HAS_E2_ENABLE       (PIN_EXISTS(E2_ENABLE))
 #define HAS_E2_DIR          (PIN_EXISTS(E2_DIR))
 #define HAS_E2_STEP         (PIN_EXISTS(E2_STEP))
 #define HAS_E2_MICROSTEPS   (ENABLED(USE_MICROSTEPS) && PIN_EXISTS(E2_MS1))
 #define HAS_SOLENOID_2      (PIN_EXISTS(SOL2))
-#define HAS_E2_ENC          (PIN_EXISTS(E2_ENC))
 
 #define HAS_E3_ENABLE       (PIN_EXISTS(E3_ENABLE))
 #define HAS_E3_DIR          (PIN_EXISTS(E3_DIR))
 #define HAS_E3_STEP         (PIN_EXISTS(E3_STEP))
 #define HAS_E3_MICROSTEPS   (PIN_EXISTS(E3_MS1))
 #define HAS_SOLENOID_3      (PIN_EXISTS(SOL3))
-#define HAS_E3_ENC          (PIN_EXISTS(E3_ENC))
 
 #define HAS_E4_ENABLE       (PIN_EXISTS(E4_ENABLE))
 #define HAS_E4_DIR          (PIN_EXISTS(E4_DIR))
 #define HAS_E4_STEP         (PIN_EXISTS(E4_STEP))
 #define HAS_E4_MICROSTEPS   (PIN_EXISTS(E4_MS1))
 #define HAS_SOLENOID_4      (PIN_EXISTS(SOL4))
-#define HAS_E4_ENC          (PIN_EXISTS(E4_ENC))
 
 #define HAS_E5_ENABLE       (PIN_EXISTS(E5_ENABLE))
 #define HAS_E5_DIR          (PIN_EXISTS(E5_DIR))
 #define HAS_E5_STEP         (PIN_EXISTS(E5_STEP))
 #define HAS_E5_MICROSTEPS   (PIN_EXISTS(E5_MS1))
 #define HAS_SOLENOID_5      (PIN_EXISTS(SOL5))
+
+// Extruder Encoder
+#define HAS_E0_ENC          (PIN_EXISTS(E0_ENC))
+#define HAS_E1_ENC          (PIN_EXISTS(E1_ENC))
+#define HAS_E2_ENC          (PIN_EXISTS(E2_ENC))
+#define HAS_E3_ENC          (PIN_EXISTS(E3_ENC))
+#define HAS_E4_ENC          (PIN_EXISTS(E4_ENC))
 #define HAS_E5_ENC          (PIN_EXISTS(E5_ENC))
 
 // Trinamic Stepper Drivers

@@ -448,7 +448,8 @@
 
 #define TOOL_DE_INDEX       current_block->active_driver
 
-#if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
+// One hotend, multi-extruder
+#if ENABLED(SINGLENOZZLE) || (HOTENDS <= 1)
   #undef HOTENDS
   #define HOTENDS           1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
@@ -458,10 +459,14 @@
   #define HOTEND_OFFSET_X   { 0 }
   #define HOTEND_OFFSET_Y   { 0 }
   #define HOTEND_OFFSET_Z   { 0 }
+  #define HOTEND_INDEX      0
+  #define ACTIVE_HOTEND     0
   #define TARGET_HOTEND     0
 #else
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
+  #define HOTEND_INDEX      h
+  #define ACTIVE_HOTEND     tools.active_extruder
   #define TARGET_HOTEND     tools.target_extruder
 #endif
 
@@ -469,35 +474,23 @@
  * Multi-extruders support
  */
 #if EXTRUDERS > 1
-  #define XYZE_N    3 + EXTRUDERS
-  #define E_AXIS_N  (E_AXIS + extruder)
-  #define E_INDEX   (E_AXIS + tools.active_extruder)
-  #define GET_TARGET_EXTRUDER(CMD) if (commands.get_target_tool(CMD)) return
+  #define XYZE_N          (3 + EXTRUDERS)
+  #define E_AXIS_N        (E_AXIS + extruder)
+  #define E_INDEX         (E_AXIS + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
-  #define XYZE_N    XYZE
-  #define E_AXIS_N  E_AXIS
-  #define E_INDEX   E_AXIS
-  #define GET_TARGET_EXTRUDER(CMD) NOOP
+  #define XYZE_N          XYZE
+  #define E_AXIS_N        E_AXIS
+  #define E_INDEX         E_AXIS
   #define TARGET_EXTRUDER 0
 #elif EXTRUDERS == 0
   #undef PIDTEMP
-  #define PIDTEMP false
+  #define PIDTEMP         false
   #undef FWRETRACT
-  #define XYZE_N    XYZ
-  #define E_AXIS_N  0
-  #define E_INDEX   0
-  #define GET_TARGET_EXTRUDER(CMD) NOOP
+  #define XYZE_N          XYZ
+  #define E_AXIS_N        0
+  #define E_INDEX         0
   #define TARGET_EXTRUDER 0
-#endif
-
-/**
- * Multi-hotends support
- */
-#if HOTENDS > 1
-  #define GET_TARGET_HOTEND(CMD) if (commands.get_target_tool(CMD)) return
-#else
-  #define GET_TARGET_HOTEND(CMD) NOOP
 #endif
 
 /**

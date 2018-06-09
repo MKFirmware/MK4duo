@@ -156,7 +156,7 @@
 
     inline void gcode_M913(void) {
 
-      GET_TARGET_EXTRUDER(913);
+      if (commands.get_target_tool(913)) return;
 
       #define TMC_SAY_PWMTHRS(P,Q) tmc_get_pwmthrs(stepper##Q, TMC_##Q, mechanics.axis_steps_per_mm[P##_AXIS])
       #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
@@ -192,7 +192,7 @@
               #endif
               break;
             case E_AXIS: {
-              switch (tools.target_extruder) {
+              switch (TARGET_EXTRUDER) {
                 #if E0_IS_TRINAMIC
                   case 0: TMC_SET_PWMTHRS_E(0); break;
                 #endif

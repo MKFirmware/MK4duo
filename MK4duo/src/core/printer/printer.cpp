@@ -687,7 +687,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
     static watch_t extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
 
-    if (heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP
+    if (heaters[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
       && extruder_runout_watch.elapsed()
       && !planner.has_blocks_queued()
     ) {
@@ -761,12 +761,12 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (planner.has_blocks_queued()) axis_last_activity = millis();
-    if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+    if (heaters[ACTIVE_HOTEND].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
       {
-        if (heaters[EXTRUDER_IDX].target_temperature < IDLE_OOZING_MINTEMP) {
+        if (heaters[ACTIVE_HOTEND].target_temperature < IDLE_OOZING_MINTEMP) {
           IDLE_OOZING_retract(false);
         }
         else if ((millis() - axis_last_activity) >  IDLE_OOZING_SECONDS * 1000UL) {

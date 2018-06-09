@@ -27,16 +27,6 @@
 #ifndef _HEATER_H_
 #define _HEATER_H_
 
-#if HOTENDS <= 1
-  #define HOTEND_INDEX      0
-  #define EXTRUDER_IDX      0
-  #define TRG_EXTRUDER_IDX  0
-#else
-  #define HOTEND_INDEX      h
-  #define EXTRUDER_IDX      tools.active_extruder
-  #define TRG_EXTRUDER_IDX  tools.target_extruder
-#endif
-
 #include "sensor/sensor.h"
 
 #if HEATER_COUNT > 0

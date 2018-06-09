@@ -623,7 +623,7 @@ bool Temperature::heaters_isON() {
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if HAS_TEMP_HOTEND
-    print_heater_state(&heaters[TRG_EXTRUDER_IDX], false, showRaw);
+    print_heater_state(&heaters[ACTIVE_HOTEND], false, showRaw);
   #endif
 
   #if HAS_TEMP_BED
@@ -641,7 +641,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if HAS_TEMP_HOTEND
-    SERIAL_MV(" @:", (int)heaters[TRG_EXTRUDER_IDX].soft_pwm);
+    SERIAL_MV(" @:", (int)heaters[ACTIVE_HOTEND].soft_pwm);
   #endif
 
   #if HOTENDS > 1
