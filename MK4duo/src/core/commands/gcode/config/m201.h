@@ -35,7 +35,7 @@
  */
 inline void gcode_M201(void) {
 
-  GET_TARGET_EXTRUDER(201);
+  if (commands.get_target_tool(201)) return;
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {

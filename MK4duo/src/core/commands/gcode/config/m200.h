@@ -38,7 +38,7 @@
    */
   inline void gcode_M200(void) {
 
-    GET_TARGET_EXTRUDER(200);
+    if (commands.get_target_tool(200)) return;
 
     if (parser.seen('D')) {
       // setting any extruder filament size disables volumetric on the assumption that

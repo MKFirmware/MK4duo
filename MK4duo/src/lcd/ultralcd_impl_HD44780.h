@@ -896,7 +896,7 @@ static void lcd_implementation_status_screen() {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t hotend=ACT_HOTEND_IDX) {
+    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t hotend=TARGET_HOTEND) {
       if (row < LCD_HEIGHT) {
         lcd_moveto(LCD_WIDTH - 9, row);
         _draw_heater_status(hotend, LCD_STR_THERMOMETER[0], lcd_blink());

@@ -33,8 +33,6 @@
  */
 inline void gcode_M105(void) {
 
-  GET_TARGET_HOTEND(105);
-
   const bool showRaw = parser.boolval('X');
 
   #if HEATER_COUNT > 0

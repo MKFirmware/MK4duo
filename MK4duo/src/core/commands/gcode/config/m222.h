@@ -35,7 +35,7 @@
    */
   inline void gcode_M222(void) {
 
-    GET_TARGET_EXTRUDER(222);
+    if (commands.get_target_tool(222)) return;
 
     if (parser.seenval('S')) {
       tools.density_percentage[TARGET_EXTRUDER] = parser.value_int();

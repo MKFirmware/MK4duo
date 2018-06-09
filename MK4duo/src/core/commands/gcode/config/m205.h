@@ -42,7 +42,7 @@
  */
 inline void gcode_M205(void) {
 
-  GET_TARGET_EXTRUDER(205);
+  if (commands.get_target_tool(205)) return;
 
   if (parser.seen('S')) mechanics.min_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('V')) mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
