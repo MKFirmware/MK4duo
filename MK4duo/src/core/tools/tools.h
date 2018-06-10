@@ -41,8 +41,7 @@
 
       static uint8_t  active_extruder,
                       previous_extruder,
-                      target_extruder,
-                      active_driver;
+                      target_extruder;
 
       static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                       density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder

@@ -152,31 +152,41 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
 }
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
 
-  NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
+  uint8_t multistep = 1;
 
-  #if ENABLED(DISABLE_DOUBLE_QUAD_STEPPING)
-    stepper.step_loops = 1;
-  #else
-    if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
-      step_rate >>= 2;
-      stepper.step_loops = 4;
-    }
-    else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+  // Scale the frequency, as requested by the caller
+  step_rate <<= scale;
+
+  #if DISABLED(DISABLE_DOUBLE_QUAD_STEPPING)
+    // The stepping frequency limits for each multistepping rate
+    static const uint32_t limit[] {
+      (  MAX_1X_STEP_ISR_FREQUENCY     ),
+      (  MAX_2X_STEP_ISR_FREQUENCY >> 1),
+      (  MAX_4X_STEP_ISR_FREQUENCY >> 2),
+      (  MAX_8X_STEP_ISR_FREQUENCY >> 3),
+      ( MAX_16X_STEP_ISR_FREQUENCY >> 4),
+      ( MAX_32X_STEP_ISR_FREQUENCY >> 5),
+      ( MAX_64X_STEP_ISR_FREQUENCY >> 6),
+      (MAX_128X_STEP_ISR_FREQUENCY >> 7)
+    };
+
+    // Select the proper multistepping
+    uint8_t idx = 0;
+    while (idx < 7 && step_rate > limit[idx]) {
       step_rate >>= 1;
-      stepper.step_loops = 2;
-    }
-    else
-      stepper.step_loops = 1;
+      multistep <<= 1;
+      ++idx;
+    };
+  #else
+    NOMORE(step_rate, uint32_t(MAX_1X_STEP_ISR_FREQUENCY));
   #endif
 
-  // In case of high-performance processor, it is able to calculate in real-time
-  const uint32_t min_time_per_step = (HAL_TIMER_RATE) / (MAX_STEP_FREQUENCY);
-  uint32_t timer = (uint32_t)(HAL_TIMER_RATE) / step_rate;
-  NOLESS(timer, min_time_per_step);
+  *loops = multistep;
 
-  return timer;
+  // In case of high-performance processor, it is able to calculate in real-time
+  return uint32_t(HAL_TIMER_RATE) / step_rate;
 
 }
 

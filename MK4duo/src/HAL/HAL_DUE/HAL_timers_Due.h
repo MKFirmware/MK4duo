@@ -74,9 +74,9 @@
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
 #define STEPPER_TIMER_TICKS_PER_US  ((HAL_TIMER_RATE) / 1000000)                              // 42 - stepper timer ticks per µs
-#define STEPPER_TIMER_MIN_INTERVAL  4                                                         // minimum time in µs between stepper interrupts
+#define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)                 // Stepper pulse duration, in cycles
+#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * STEPPER_TIMER_TICKS_PER_US)    // Stepper pulse duration, in cycles
 #define STEPPER_TIMER_ISR           void TC4_Handler()
 
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
@@ -118,7 +118,7 @@ extern const tTimerConfig TimerConfig[];
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate);
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale);
 
 FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;

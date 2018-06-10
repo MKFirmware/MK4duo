@@ -109,24 +109,39 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   }
 }
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
 
   uint32_t timer = 0;
+  uint8_t multistep = 1;
 
-  NOMORE(step_rate, uint32_t(MAX_STEP_FREQUENCY));
+  // Scale the frequency, as requested by the caller
+  step_rate <<= scale;
 
-  #if DISABLED(DISABLE_DOUBLE_QUAD_STEPPING)
-    if (step_rate > (2 * DOUBLE_STEP_FREQUENCY)) { // If steprate > (2 * DOUBLE_STEP_FREQUENCY) Hz >> step 4 times
-      step_rate >>= 2;
-      stepper.step_loops = 4;
-    }
-    else if (step_rate > DOUBLE_STEP_FREQUENCY) { // If steprate > DOUBLE_STEP_FREQUENCY >> step 2 times
+  #if DISABLED(DISABLE_MULTI_STEPPING)
+
+    // The stepping frequency limits for each multistepping rate
+    static const uint32_t limit[] PROGMEM = {
+      (  MAX_1X_STEP_ISR_FREQUENCY     ),
+      (  MAX_2X_STEP_ISR_FREQUENCY >> 1),
+      (  MAX_4X_STEP_ISR_FREQUENCY >> 2),
+      (  MAX_8X_STEP_ISR_FREQUENCY >> 3),
+      ( MAX_16X_STEP_ISR_FREQUENCY >> 4),
+      ( MAX_32X_STEP_ISR_FREQUENCY >> 5),
+      ( MAX_64X_STEP_ISR_FREQUENCY >> 6),
+      (MAX_128X_STEP_ISR_FREQUENCY >> 7)
+    };
+
+    // Select the proper multistepping
+    uint8_t idx = 0;
+    while (idx < 7 && step_rate > (uint32_t)pgm_read_dword(&limit[idx])) {
       step_rate >>= 1;
-      stepper.step_loops = 2;
-    }
-    else
+      multistep <<= 1;
+      ++idx;
+    };
+  #else
+    NOMORE(step_rate, uint32_t(MAX_1X_STEP_ISR_FREQUENCY));
   #endif
-      stepper.step_loops = 1;
+  *loops = multistep;
 
   constexpr uint32_t min_step_rate = F_CPU / 500000U;
   NOLESS(step_rate, min_step_rate);
@@ -143,11 +158,6 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate) {
     table_address += ((step_rate) >> 1) & 0xFFFC;
     timer = (uint16_t)pgm_read_word_near(table_address)
           - (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
-  }
-
-  if (timer < 100) { // (20kHz this should never happen)
-    timer = 100;
-    SERIAL_EMV("Steprate too high: ", step_rate);
   }
 
   return timer;

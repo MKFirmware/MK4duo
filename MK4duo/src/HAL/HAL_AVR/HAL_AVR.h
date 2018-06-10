@@ -162,7 +162,7 @@ typedef uint16_t  ptr_int_t;
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
 #define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)                 // Stepper pulse duration, in cycles
+#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * STEPPER_TIMER_TICKS_PER_US)                 // Stepper pulse duration, in cycles
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
@@ -360,7 +360,7 @@ class InterruptProtectedBlock {
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate);
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale);
 
 class HAL {
 

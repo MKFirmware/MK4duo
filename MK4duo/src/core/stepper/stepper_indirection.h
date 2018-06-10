@@ -541,64 +541,41 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 /**
  * Extruder indirection for the single E axis
  */
-#if ENABLED(COLOR_MIXING_EXTRUDER)
-  #define E_STEP_WRITE(v) NOOP /* not used for mixing extruders! */
-  #if MIXING_STEPPERS > 5
-    #define En_STEP_WRITE(n,v)  do{ switch (n) { case 0: E0_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 3: E3_STEP_WRITE(v); break; case 4: E4_STEP_WRITE(v); break; case 5: E5_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); E2_DIR_WRITE(!isStepDir(E2_AXIS)); E3_DIR_WRITE(!isStepDir(E3_AXIS)); E4_DIR_WRITE(!isStepDir(E4_AXIS)); E5_DIR_WRITE(!isStepDir(E5_AXIS)); }while(0)
-    #define REV_E_DIR()         do{ E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); E2_DIR_WRITE( isStepDir(E2_AXIS)); E3_DIR_WRITE( isStepDir(E3_AXIS)); E4_DIR_WRITE( isStepDir(E4_AXIS)); E5_DIR_WRITE( isStepDir(E5_AXIS)); }while(0)
-  #elif MIXING_STEPPERS > 4
-    #define En_STEP_WRITE(n,v)  do{ switch (n) { case 0: E0_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 3: E3_STEP_WRITE(v); break; case 4: E4_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); E2_DIR_WRITE(!isStepDir(E2_AXIS)); E3_DIR_WRITE(!isStepDir(E3_AXIS)); E4_DIR_WRITE(!isStepDir(E4_AXIS)); }while(0)
-    #define REV_E_DIR()         do{ E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); E2_DIR_WRITE( isStepDir(E2_AXIS)); E3_DIR_WRITE( isStepDir(E3_AXIS)); E4_DIR_WRITE( isStepDir(E4_AXIS)); }while(0)
-  #elif MIXING_STEPPERS > 3
-    #define En_STEP_WRITE(n,v)  do{ switch (n) { case 0: E0_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 3: E3_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); E2_DIR_WRITE(!isStepDir(E2_AXIS)); E3_DIR_WRITE(!isStepDir(E3_AXIS)); }while(0)
-    #define REV_E_DIR()         do{ E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); E2_DIR_WRITE( isStepDir(E2_AXIS)); E3_DIR_WRITE( isStepDir(E3_AXIS)); }while(0)
-  #elif MIXING_STEPPERS > 2
-    #define En_STEP_WRITE(n,v)  do{ switch (n) { case 0: E0_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); E2_DIR_WRITE(!isStepDir(E2_AXIS)); }while(0)
-    #define REV_E_DIR()         do{ E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); E2_DIR_WRITE( isStepDir(E2_AXIS)); }while(0)
-  #else
-    #define En_STEP_WRITE(n,v)  do{ switch (n) { case 0: E0_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); }while(0)
-    #define REV_E_DIR()         do{ E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); }while(0)
-  #endif
-#elif DRIVER_EXTRUDERS > 5
-  #define E_STEP_WRITE(v)       do{ switch(TOOL_DE_INDEX) { case 5: E5_STEP_WRITE(v); break; case 4: E4_STEP_WRITE(v); break; case 3: E3_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 0: E0_STEP_WRITE(v); break; } }while(0)
-  #define NORM_E_DIR()          do{ switch(TOOL_DE_INDEX) { case 5: E5_DIR_WRITE(!isStepDir(E5_AXIS)); break; case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; } }while(0)
-  #define REV_E_DIR()           do{ switch(TOOL_DE_INDEX) { case 5: E5_DIR_WRITE( isStepDir(E5_AXIS)); break; case 4: E4_DIR_WRITE( isStepDir(E4_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; } }while(0)
+#if DRIVER_EXTRUDERS > 5
+  #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); break; case 4: E4_STEP_WRITE(V); break; case 5: E5_STEP_WRITE(V); } }while(0)
+  #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); break; case 5: E5_DIR_WRITE(!isStepDir(E5_AXIS)); } }while(0)
+  #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE( isStepDir(E4_AXIS)); break; case 5: E5_DIR_WRITE( isStepDir(E5_AXIS)); } }while(0)
 #elif DRIVER_EXTRUDERS > 4
-  #define E_STEP_WRITE(v)       do{ switch(TOOL_DE_INDEX) { case 4: E4_STEP_WRITE(v); break; case 3: E3_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 0: E0_STEP_WRITE(v); break; } }while(0)
-  #define NORM_E_DIR()          do{ switch(TOOL_DE_INDEX) { case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; } }while(0)
-  #define REV_E_DIR()           do{ switch(TOOL_DE_INDEX) { case 4: E4_DIR_WRITE( isStepDir(E4_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; } }while(0)
-#elif DRIVER_EXTRUDERS > 3
-  #define E_STEP_WRITE(v)       do{ switch(TOOL_DE_INDEX) { case 3: E3_STEP_WRITE(v); break; case 2: E2_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 0: E0_STEP_WRITE(v); break; } }while(0)
-  #define NORM_E_DIR()          do{ switch(TOOL_DE_INDEX) { case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; } }while(0)
-  #define REV_E_DIR()           do{ switch(TOOL_DE_INDEX) { case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; } }while(0)
-#elif DRIVER_EXTRUDERS > 2
-  #define E_STEP_WRITE(v)       do{ switch(TOOL_DE_INDEX) { case 2: E2_STEP_WRITE(v); break; case 1: E1_STEP_WRITE(v); break; case 0: E0_STEP_WRITE(v); break; } }while(0)
-  #define NORM_E_DIR()          do{ switch(TOOL_DE_INDEX) { case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; } }while(0)
-  #define REV_E_DIR()           do{ switch(TOOL_DE_INDEX) { case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; } }while(0)
+  #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); break; case 4: E4_STEP_WRITE(V); } }while(0)
+  #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); } }while(0)
+  #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE( isStepDir(E4_AXIS)); } }while(0)
+#elif E_STEPPERS > 3
+  #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); } }while(0)
+  #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); } }while(0)
+  #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); } }while(0)
+#elif E_STEPPERS > 2
+  #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); } }while(0)
+  #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); } }while(0)
+  #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); } }while(0)
 #elif DRIVER_EXTRUDERS > 1
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E_STEP_WRITE(v)     do{ if(mechanics.hotend_duplication_enabled) { E0_STEP_WRITE(v); E1_STEP_WRITE(v); } else if(TOOL_DE_INDEX == 0) { E0_STEP_WRITE(v); } else { E1_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ if(mechanics.hotend_duplication_enabled) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
-    #define REV_E_DIR()         do{ if(mechanics.hotend_duplication_enabled) { E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); } else if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
+    #define E_STEP_WRITE(E,V)   do{ if (mechanics.hotend_duplication_enabled) { E0_STEP_WRITE(V); E1_STEP_WRITE(V); } else if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
+    #define   NORM_E_DIR(E)     do{ if (mechanics.hotend_duplication_enabled) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); } else if (E == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
+    #define    REV_E_DIR(E)     do{ if (mechanics.hotend_duplication_enabled) { E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); } else if (E == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
   #else
-    #define E_STEP_WRITE(v)     do{ if(TOOL_DE_INDEX == 0) { E0_STEP_WRITE(v); } else { E1_STEP_WRITE(v); } }while(0)
-    #define NORM_E_DIR()        do{ if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
-    #define REV_E_DIR()         do{ if(TOOL_DE_INDEX == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
+    #define E_STEP_WRITE(E,V)   do{ if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
+    #define   NORM_E_DIR(E)     do{ if (E == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
+    #define    REV_E_DIR(E)     do{ if (E == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
   #endif
 #elif DRIVER_EXTRUDERS > 0
   #if ENABLED(DONDOLO_SINGLE_MOTOR)
-    #define E_STEP_WRITE(v)     E0_STEP_WRITE(v)
-    #define NORM_E_DIR()        E0_DIR_WRITE(current_block->active_extruder ?  isStepDir(E0_AXIS) : !isStepDir(E0_AXIS))
-    #define REV_E_DIR()         E0_DIR_WRITE(current_block->active_extruder ? !isStepDir(E0_AXIS) :  isStepDir(E0_AXIS))
+    #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(v)
+    #define NORM_E_DIR(E)       do{ E0_DIR_WRITE(E ?  isStepDir(E0_AXIS) : !isStepDir(E0_AXIS)); }while(0)
+    #define  REV_E_DIR(E)       do{ E0_DIR_WRITE(E ? !isStepDir(E0_AXIS) :  isStepDir(E0_AXIS)); }while(0)
   #else
-    #define E_STEP_WRITE(v)     E0_STEP_WRITE(v)
-    #define NORM_E_DIR()        E0_DIR_WRITE(!isStepDir(E0_AXIS))
-    #define REV_E_DIR()         E0_DIR_WRITE( isStepDir(E0_AXIS))
+    #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(V)
+    #define   NORM_E_DIR(E)     E0_DIR_WRITE(!isStepDir(E0_AXIS))
+    #define    REV_E_DIR(E)     E0_DIR_WRITE( isStepDir(E0_AXIS))
   #endif
 #endif // DRIVER_EXTRUDERS
 

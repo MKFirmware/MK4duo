@@ -57,8 +57,6 @@ class Stepper {
 
     static block_t* current_block;  // A pointer to the block currently being traced
 
-    static uint8_t  step_loops;
-
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
       static bool homing_dual_axis;
     #endif
@@ -66,10 +64,13 @@ class Stepper {
   private: /** Private Parameters */
 
     static uint8_t  last_direction_bits,    // The next stepping-bits to be output
-                    last_movement_extruder, // Last movement extruder, as computed when the last movement was fetched from planner
                     axis_did_move;          // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
 
     static bool     abort_current_block;    // Signals to the stepper that current block should be aborted
+
+    #if DISABLED(COLOR_MIXING_EXTRUDER)
+      static uint8_t last_moved_extruder;   // Last-moved extruder, as set when the last movement was fetched from planner
+    #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
       static bool locked_X_motor, locked_X2_motor;
@@ -81,59 +82,55 @@ class Stepper {
       static bool locked_Z_motor, locked_Z2_motor;
     #endif
 
-    // Counter variables for the Bresenham line tracer
-    static int32_t counter_X, counter_Y, counter_Z, counter_E;
-    static uint32_t step_events_completed; // The number of step events executed in the current block
+    static uint32_t acceleration_time, deceleration_time; // time measured in Stepper Timer ticks
+    static uint8_t  steps_per_isr;                        // Count of steps to perform per Stepper ISR call
+
+    // Delta error variables for the Bresenham line tracer
+    static int32_t  delta_error[XYZE];
+    static uint32_t advance_dividend[XYZE],
+                    advance_divisor,
+                    step_events_completed,  // The number of step events executed in the current block
+                    accelerate_until,       // The point from where we need to stop acceleration
+                    decelerate_after,       // The point from where we need to start decelerating
+                    step_event_count;       // The total event count for the current block
+
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static int32_t  delta_error_m[MIXING_STEPPERS];
+      static uint32_t advance_dividend_m[MIXING_STEPPERS],
+                      advance_divisor_m;
+      #define MIXING_STEPPERS_LOOP(VAR) \
+        for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++)
+    #else
+      static uint8_t  active_extruder,        // Active extruder
+                      active_extruder_driver; // Active extruder driver
+    #endif
 
     #if ENABLED(BEZIER_JERK_CONTROL)
-      static int32_t  bezier_A,     // A coefficient in BÃ©zier speed curve
-                      bezier_B,     // B coefficient in BÃ©zier speed curve
-                      bezier_C;     // C coefficient in BÃ©zier speed curve
-      static uint32_t bezier_F,     // F coefficient in BÃ©zier speed curve
-                      bezier_AV;    // AV coefficient in BÃ©zier speed curve
+      static int32_t  bezier_A,     // A coefficient in Bézier speed curve
+                      bezier_B,     // B coefficient in Bézier speed curve
+                      bezier_C;     // C coefficient in Bézier speed curve
+      static uint32_t bezier_F,     // F coefficient in Bézier speed curve
+                      bezier_AV;    // AV coefficient in Bézier speed curve
       #if ENABLED(__AVR__)
         static bool A_negative;     // If A coefficient was negative
       #endif
-      static bool bezier_2nd_half;  // If BÃ©zier curve has been initialized or not
+      static bool bezier_2nd_half;  // If Bézier curve has been initialized or not
     #endif
 
     static uint32_t nextMainISR;    // time remaining for the next Step ISR
-
-    static bool all_steps_done;     // all steps done
-
     #if ENABLED(LIN_ADVANCE)
-
-      static uint32_t LA_decelerate_after,  // Copy from current executed block. Needed because current_block is set to NULL "too early".
-                      nextAdvanceISR,
-                      eISR_Rate;
-
-      static uint16_t current_adv_steps,
-                      final_adv_steps,
-                      max_adv_steps;        // Copy from current executed block. Needed because current_block is set to NULL "too early".
-
-      static int8_t   e_steps,
-                      LA_active_extruder;   // Copy from current executed block. Needed because current_block is set to NULL "too early".
-
-      static bool     use_advance_lead;
-
+      static uint32_t nextAdvanceISR, LA_isr_rate;
+      static uint16_t LA_current_adv_steps, LA_final_adv_steps, LA_max_adv_steps;
+      static int8_t   LA_steps;
+      static bool     LA_use_advance_lead;
     #endif // !LIN_ADVANCE
 
-    static uint32_t acceleration_time, deceleration_time;
-    static uint8_t  step_loops_nominal;
-
-    static uint32_t ticks_nominal;
+    static int32_t ticks_nominal;
     #if DISABLED(BEZIER_JERK_CONTROL)
       static uint32_t acc_step_rate; // needed for deceleration start point
     #endif
 
     static volatile int32_t endstops_trigsteps[XYZ];
-
-    #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
-      #ifndef PWM_MOTOR_CURRENT
-        #define PWM_MOTOR_CURRENT DEFAULT_PWM_MOTOR_CURRENT
-      #endif
-      static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
-    #endif
 
     /**
      * Positions of stepper motors, in step units
@@ -145,11 +142,11 @@ class Stepper {
      */
     static int8_t count_direction[NUM_AXIS];
 
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      static int32_t counter_m[MIXING_STEPPERS];
-      #define MIXING_STEPPERS_LOOP(VAR) \
-        for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++) \
-          if (current_block->mix_event_count[VAR])
+    #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
+      #ifndef PWM_MOTOR_CURRENT
+        #define PWM_MOTOR_CURRENT DEFAULT_PWM_MOTOR_CURRENT
+      #endif
+      static constexpr int motor_current_setting[3] = PWM_MOTOR_CURRENT;
     #endif
 
     #if ENABLED(LASER)
@@ -288,7 +285,15 @@ class Stepper {
     /**
      * The extruder associated to the last movement
      */
-    FORCE_INLINE static uint8_t movement_extruder() { return last_movement_extruder; }
+    FORCE_INLINE static uint8_t movement_extruder() {
+      return
+        #if ENABLED(COLOR_MIXING_EXTRUDER)
+          0
+        #else
+          last_moved_extruder
+        #endif
+      ;
+    }
 
     /**
      * Handle a triggered endstop
@@ -300,8 +305,11 @@ class Stepper {
      */
     static int32_t triggered_position(const AxisEnum axis);
 
-    #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
+    #if HAS_DIGIPOTSS
       static void digitalPotWrite(int address, int value);
+    #endif
+
+    #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digipot_current(uint8_t driver, int current);
     #endif
 
@@ -352,27 +360,63 @@ class Stepper {
     static uint32_t block_phase_step();
 
     /**
-     * Set current position in steps
+     * Pulse tick Start
      */
-    static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+    static void pulse_tick_start();
+
+    /**
+     * Pulse tick Stop
+     */
+    static void pulse_tick_stop();
+
+    /**
+     * Start step X Y Z
+     */
+    static void start_X_step();
+    static void start_Y_step();
+    static void start_Z_step();
+
+    /**
+     * Stop step X Y Z
+     */
+    static void stop_X_step();
+    static void stop_Y_step();
+    static void stop_Z_step();
 
     /**
      * Set direction bits for all steppers
      */
     static void set_directions();
 
+    /**
+     * Set X Y Z direction
+     */
+    static void set_X_dir(const bool dir);
+    static void set_Y_dir(const bool dir);
+    static void set_Z_dir(const bool dir);
+
+    /**
+     * Set current position in steps
+     */
+    static void _set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
+    
+    #if DISABLED(COLOR_MIXING_EXTRUDER)
+      // Get active driver
+      static uint8_t get_active_extruder_driver();
+    #endif
+
     #if ENABLED(LIN_ADVANCE)
       // The Linear advance stepper Step
       static uint32_t lin_advance_step();
     #endif
 
-    #if ENABLED(BABYSTEPPING)
-      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
-    #endif
-
     #if ENABLED(BEZIER_JERK_CONTROL)
       static void _calc_bezier_curve_coeffs(const int32_t v0, const int32_t v1, const uint32_t av);
       static int32_t _eval_bezier_curve(const uint32_t curr_step);
+    #endif
+
+    #if ENABLED(BABYSTEPPING)
+      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
     #endif
 
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
@@ -383,12 +427,20 @@ class Stepper {
       static void microstep_init();
     #endif
 
+    #if HAS_EXT_ENCODER
+      static void test_extruder_encoder();
+    #endif
+
     #if HAS_STEPPER_RESET
       /**
        * Stepper Reset (RigidBoard, et.al.)
        */
-      static void disableStepperDrivers();
-      static void enableStepperDrivers();
+      FORCE_INLINE static void disableStepperDrivers() {
+        OUT_WRITE(STEPPER_RESET_PIN, LOW);  // drive it down to hold in reset motor driver chips
+      }
+      FORCE_INLINE static void enableStepperDrivers() {
+        SET_INPUT(STEPPER_RESET_PIN);       // set to input, which allows it to be pulled high by pullups
+      }
     #endif
 
 };

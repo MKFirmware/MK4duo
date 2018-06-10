@@ -34,8 +34,7 @@
 
   uint8_t Tools::active_extruder    = 0,
           Tools::previous_extruder  = 0,
-          Tools::target_extruder    = 0,
-          Tools::active_driver      = 0;
+          Tools::target_extruder    = 0;
 
   int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
           Tools::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
@@ -125,12 +124,7 @@
 
             // Set the new active extruder
             previous_extruder = active_extruder;
-            #if ENABLED(DONDOLO_SINGLE_MOTOR)
-              active_extruder = tmp_extruder;
-              active_driver = 0;
-            #else
-              active_extruder = active_driver = tmp_extruder;
-            #endif
+            active_extruder = tmp_extruder;
 
           #endif // !DUAL_X_CARRIAGE
 
@@ -192,12 +186,11 @@
         #else
           // Set the new active extruder
           previous_extruder = active_extruder;
-          active_driver = active_extruder = tmp_extruder;
+          active_extruder = tmp_extruder;
         #endif
 
       #endif // HOTENDS <= 1
 
-      SERIAL_LMV(ECHO, MSG_ACTIVE_DRIVER, (int)active_driver);
       SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 
     #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
@@ -314,7 +307,6 @@
       // Set the new active extruder
       previous_extruder = active_extruder;
       active_extruder = e;
-      active_driver = 0;
     }
 
   #elif ENABLED(MKR4)
@@ -330,28 +322,24 @@
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 3:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
-            active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -362,19 +350,16 @@
         switch(e) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-            active_driver = 1;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -385,13 +370,11 @@
         switch(e) {
           case 0:
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -416,13 +399,11 @@
         switch(e) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -434,21 +415,18 @@
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-            active_driver = 0;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -467,21 +445,18 @@
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-            active_driver = driver;
             printer.safe_delay(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
@@ -575,7 +550,7 @@
       mechanics.current_position[Z_AXIS] -= hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
 
       // Activate the new extruder
-      active_extruder = active_driver = tmp_extruder;
+      active_extruder = tmp_extruder;
 
       // This function resets the max/min values - the current position may be overwritten below.
       mechanics.set_axis_is_at_home(X_AXIS);
