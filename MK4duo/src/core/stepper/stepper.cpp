@@ -1161,14 +1161,8 @@ void Stepper::pulse_phase_step() {
   if (!current_block) return;
 
   // Compute the count of pending loops
-  uint32_t pending_events = step_event_count - step_events_completed;
-  uint8_t events_to_do;
-
-  // If more events than allowed per iteration, limit them
-  if (pending_events > steps_per_isr)
-    events_to_do = steps_per_isr;
-  else
-    events_to_do = pending_events;
+  const uint32_t pending_events = step_event_count - step_events_completed;
+  uint8_t events_to_do = MIN(pending_events, steps_per_isr);
 
   // Just update the value we will get at the end of the loop
   step_events_completed += events_to_do;
@@ -1497,7 +1491,13 @@ uint32_t Stepper::block_phase_step() {
       decelerate_after = current_block->decelerate_after << oversampling_factor;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        uint32_t e_steps = current_block->steps[E_AXIS];
+        const uint32_t e_steps = (
+          #if ENABLED(LIN_ADVANCE)
+            current_block->steps[E_AXIS]
+          #else
+            step_event_count
+          #endif
+        );
         MIXING_STEPPERS_LOOP(i) {
           delta_error_m[i] = -int32_t(e_steps);
           advance_dividend_m[i] = current_block->mix_steps[i] << 1;
