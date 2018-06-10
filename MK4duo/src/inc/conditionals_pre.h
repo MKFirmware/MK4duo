@@ -446,8 +446,6 @@
   #define TOOL_E_INDEX      current_block->active_extruder
 #endif
 
-#define TOOL_DE_INDEX       current_block->active_driver
-
 // One hotend, multi-extruder
 #if ENABLED(SINGLENOZZLE) || (HOTENDS <= 1)
   #undef HOTENDS

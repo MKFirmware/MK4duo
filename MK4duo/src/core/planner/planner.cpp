@@ -1452,12 +1452,6 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       powerManager.power_on();
   #endif
 
-  #if HAS_MKMULTI_TOOLS
-    block->active_driver = tools.active_driver;
-  #else
-    block->active_driver = extruder;
-  #endif
-
   // Enable active axes
   #if CORE_IS_XY
     if (block->steps[A_AXIS] || block->steps[B_AXIS]) {
@@ -1521,7 +1515,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
             stepper.enable_E0();
             g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
             #if ENABLED(DUAL_X_CARRIAGE)
-              if (extruder_duplication_enabled) {
+              if (mechanics.hotend_duplication_enabled) {
                 stepper.enable_E1();
                 g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
               }

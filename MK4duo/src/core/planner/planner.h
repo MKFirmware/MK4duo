@@ -85,8 +85,7 @@ typedef struct {
 
   uint32_t step_event_count;                // The number of step events required to complete this block
 
-  uint8_t active_extruder,                  // The extruder to move (if E move)
-          active_driver;                    // Selects the active driver for E
+  uint8_t active_extruder;                  // The extruder to move (if E move)
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     uint32_t mix_event_count[MIXING_STEPPERS]; // Scaled step_event_count for the mixing steppers
@@ -419,8 +418,8 @@ class Planner {
      * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
-      if (block_buffer_head != block_buffer_tail) { // Discard non-empty buffer.
-        uint8_t block_index = next_block_index( block_buffer_tail );
+      if (has_blocks_queued()) { // Discard non-empty buffer.
+        uint8_t block_index = next_block_index(block_buffer_tail);
 
         // Push block_buffer_planned pointer, if encountered.
         if (!has_blocks_queued()) block_buffer_planned = block_index;

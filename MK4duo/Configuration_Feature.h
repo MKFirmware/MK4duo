@@ -43,8 +43,7 @@
  * - Extruder Advance Linear Pressure Control
  * MOTION FEATURES:
  * - Workspace offsets
- * - Junction Deviation
- * - Bézier Jerk Control
+ * - Stepper auto deactivation
  * - Software endstops
  * - Endstops only for homing
  * - Abort on endstop hit feature
@@ -90,9 +89,13 @@
  * - CNC Router
  * - Case Light
  * ADVANCED MOTION FEATURES:
- * - Stepper auto deactivation
  * - Double / Quad Stepping
+ * - Junction Deviation
+ * - Bézier Jerk Control
  * - Minimum stepper pulse
+ * - Maximum stepper rate
+ * - Direction Stepper Delay
+ * - Adaptive Step Smoothing
  * - Microstepping
  * - Motor's current
  * - I2C DIGIPOT
@@ -445,34 +448,22 @@
 /**************************************************************************/
 
 
-/**************************************************************************
- ************************* Junction Deviation *****************************
- **************************************************************************
- *                                                                        *
- * Use Junction Deviation instead of traditional Jerk limiting            *
- *                                                                        *
- * By Scott Latherine @Thinkyhead  and @ejtagle                           *
- *                                                                        *
- **************************************************************************/
-//#define JUNCTION_DEVIATION
-
-#define JUNCTION_DEVIATION_MM 0.02  // (mm) Distance from real junction edge
-//#define JUNCTION_DEVIATION_INCLUDE_E
-/**************************************************************************/
-
-
-/****************************************************************************
- ************************** Bézier Jerk Control *****************************
- ****************************************************************************
- *                                                                          *
- * This option eliminates vibration during printing by fitting a Bézier     *
- * curve to move acceleration, producing much smoother direction changes.   *
- *                                                                          *
- * https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained *
- *                                                                          *
- ****************************************************************************/
-//#define BEZIER_JERK_CONTROL
-/****************************************************************************/
+/***********************************************************************
+ ********************* Stepper auto deactivation ***********************
+ ***********************************************************************
+ *                                                                     *
+ * Default stepper release if idle. Set to 0 to deactivate.            *
+ * Steppers will shut down DEFAULT_STEPPER_DEACTIVE_TIME seconds after *
+ * the last move when DISABLE_INACTIVE_? is defined.                   *
+ * Time can be set by M18 and M84.                                     *
+ *                                                                     *
+ ***********************************************************************/
+#define DEFAULT_STEPPER_DEACTIVE_TIME 120
+#define DISABLE_INACTIVE_X
+#define DISABLE_INACTIVE_Y
+#define DISABLE_INACTIVE_Z
+#define DISABLE_INACTIVE_E
+/***********************************************************************/
 
 
 /**************************************************************************
@@ -1803,24 +1794,6 @@
 //===========================================================================
 
 /***********************************************************************
- ********************* Stepper auto deactivation ***********************
- ***********************************************************************
- *                                                                     *
- * Default stepper release if idle. Set to 0 to deactivate.            *
- * Steppers will shut down DEFAULT_STEPPER_DEACTIVE_TIME seconds after *
- * the last move when DISABLE_INACTIVE_? is defined.                   *
- * Time can be set by M18 and M84.                                     *
- *                                                                     *
- ***********************************************************************/
-#define DEFAULT_STEPPER_DEACTIVE_TIME 120
-#define DISABLE_INACTIVE_X
-#define DISABLE_INACTIVE_Y
-#define DISABLE_INACTIVE_Z
-#define DISABLE_INACTIVE_E
-/***********************************************************************/
-
-
-/***********************************************************************
  ********************** Double / Quad Stepping *************************
  ***********************************************************************
  *                                                                     *
@@ -1829,6 +1802,36 @@
  ***********************************************************************/
 //#define DISABLE_DOUBLE_QUAD_STEPPING
 /***********************************************************************/
+
+
+/**************************************************************************
+ ************************* Junction Deviation *****************************
+ **************************************************************************
+ *                                                                        *
+ * Use Junction Deviation instead of traditional Jerk limiting            *
+ *                                                                        *
+ * By Scott Latherine @Thinkyhead  and @ejtagle                           *
+ *                                                                        *
+ **************************************************************************/
+//#define JUNCTION_DEVIATION
+
+#define JUNCTION_DEVIATION_MM 0.02  // (mm) Distance from real junction edge
+//#define JUNCTION_DEVIATION_INCLUDE_E
+/**************************************************************************/
+
+
+/****************************************************************************
+ ************************** Bézier Jerk Control *****************************
+ ****************************************************************************
+ *                                                                          *
+ * This option eliminates vibration during printing by fitting a Bézier     *
+ * curve to move acceleration, producing much smoother direction changes.   *
+ *                                                                          *
+ * https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained *
+ *                                                                          *
+ ****************************************************************************/
+//#define BEZIER_JERK_CONTROL
+/****************************************************************************/
 
 
 /***************************************************************************************
@@ -1844,6 +1847,50 @@
  ***************************************************************************************/
 #define MINIMUM_STEPPER_PULSE 0
 /***************************************************************************************/
+
+
+/***************************************************************************************
+ ********************************* Maximum stepper rate ********************************
+ ***************************************************************************************
+ *                                                                                     *
+ * The maximum stepping rate (in Hz) the motor stepper driver allows                   *
+ * If non defined, it defaults to 1000000 / (2 * MINIMUM STEPPER PULSE)                *
+ * 500000 : The maximum value for reliable stepping if using the A4988 motor driver    *
+ * 400000 : The maximum value for reliable stepping if using the TMC2xxx motor drivers *
+ * 250000 : The maximum value for reliable stepping if using the DRV8825 motor driver  *
+ * 150000 : The maximum value for reliable stepping if using the TB6600 motor driver   *
+ *  15000 : The maximum value for reliable stepping if using the TB6560 motor driver   *
+ *                                                                                     *
+ ***************************************************************************************/
+#define MAXIMUM_STEPPER_RATE 500000
+/***************************************************************************************/
+
+
+/***********************************************************************
+ ********************** Direction Stepper Delay ************************
+ ***********************************************************************
+ *                                                                     *
+ * Direction Stepper Delay                                             *
+ *                                                                     *
+ ***********************************************************************/
+#define DIRECTION_STEPPER_DELAY 0
+/***********************************************************************/
+
+
+/***********************************************************************
+ ********************** Adaptive Step Smoothing ************************
+ ***********************************************************************
+ *                                                                     *
+ * Adaptive Step Smoothing increases the resolution of multiaxis moves,*
+ * particularly at step frequencies below 1kHz (for AVR) or            *
+ * 10kHz (for ARM), where aliasing between axes in multiaxis moves     *
+ * causes audible vibration and surface artifacts.                     *
+ * The algorithm adapts to provide the best possible step smoothing    *
+ * at the lowest stepping frequencies.                                 *
+ *                                                                     *
+ ***********************************************************************/
+//#define ADAPTIVE_STEP_SMOOTHING
+/***********************************************************************/
 
 
 /***********************************************************************
