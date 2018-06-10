@@ -1839,10 +1839,11 @@
  ***************************************************************************************
  *                                                                                     *
  * The minimum pulse width (in µs) for stepping a stepper.                             *
- *  0 : Smallest possible width the BOARD can produce, compatible with TMC2xxx drivers *
- *  2 : The minimum value for reliable stepping if using the DRV8825 motor driver      *
- *  3 : The minimum value for reliable stepping if using the TB6600 motor driver       *
- * 30 : The minimum value for reliable stepping if using the TB6560 motor driver       *
+ *  0 : Smallest possible width the MCU can produce, compatible with TMC2xxx drivers   *
+ *  1 : Minimum for LV8729 stepper drivers                                             *
+ *  2 : Minimum for DRV8825 stepper drivers                                            *
+ *  3 : Minimum for TB6600 stepper drivers                                             *
+ * 30 : Minimum for TB6560 stepper drivers                                             *
  *                                                                                     *
  ***************************************************************************************/
 #define MINIMUM_STEPPER_PULSE 0
@@ -1855,11 +1856,12 @@
  *                                                                                     *
  * The maximum stepping rate (in Hz) the motor stepper driver allows                   *
  * If non defined, it defaults to 1000000 / (2 * MINIMUM STEPPER PULSE)                *
- * 500000 : The maximum value for reliable stepping if using the A4988 motor driver    *
- * 400000 : The maximum value for reliable stepping if using the TMC2xxx motor drivers *
- * 250000 : The maximum value for reliable stepping if using the DRV8825 motor driver  *
- * 150000 : The maximum value for reliable stepping if using the TB6600 motor driver   *
- *  15000 : The maximum value for reliable stepping if using the TB6560 motor driver   *
+ *  500000 : Maximum for A4988 stepper driver                                          *
+ *  400000 : Maximum for TMC2xxx stepper driver                                        *
+ *  250000 : Maximum for DRV8825 stepper driver                                        *
+ *  150000 : Maximum for TB6600 stepper driver                                         *
+ *  130000 : Maximum for LV8729 stepper driver                                         *
+ *   15000 : Maximum for TB6560 stepper driver                                         *
  *                                                                                     *
  ***************************************************************************************/
 #define MAXIMUM_STEPPER_RATE 500000

@@ -1572,16 +1572,21 @@
 
 // If linear advance is disabled, then the loop also handles them
 #if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
-  #define ISR_MIXING_STEPPER_CYCLES (MIXING_STEPPERS * ISR_STEPPER_CYCLES)
+  #define ISR_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * ISR_STEPPER_CYCLES)
 #else
   #define ISR_MIXING_STEPPER_CYCLES 0UL
 #endif
 
 // And the total minimum loop time is, without including the base
-#define MIN_ISR_LOOP_CYCLES (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_BEZIER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
+#define MIN_ISR_LOOP_CYCLES (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
 
 // Calculate the minimum MPU cycles needed per pulse to enforce not surpassing the maximum stepper rate
-#define MIN_STEPPER_PULSE_CYCLES MAX((F_CPU) / (MAXIMUM_STEPPER_RATE), ((F_CPU) / 500000UL) * MINIMUM_STEPPER_PULSE)
+#define _MIN_STEPPER_PULSE_CYCLES(N) MAX((F_CPU) / (MAXIMUM_STEPPER_RATE), ((F_CPU) / 500000UL) * (N))
+#if MINIMUM_STEPPER_PULSE
+  #define MIN_STEPPER_PULSE_CYCLES _MIN_STEPPER_PULSE_CYCLES(MINIMUM_STEPPER_PULSE)
+#else
+  #define MIN_STEPPER_PULSE_CYCLES _MIN_STEPPER_PULSE_CYCLES(1)
+#endif
 
 // But the user could be enforcing a minimum time, so the loop time is
 #define ISR_LOOP_CYCLES (ISR_LOOP_BASE_CYCLES + MAX(MIN_STEPPER_PULSE_CYCLES, MIN_ISR_LOOP_CYCLES))
@@ -1591,7 +1596,7 @@
 
   // Estimate the minimum LA loop time
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    #define MIN_ISR_LA_LOOP_CYCLES  (MIXING_STEPPERS * ISR_STEPPER_CYCLES)
+    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
   #else
     #define MIN_ISR_LA_LOOP_CYCLES  ISR_STEPPER_CYCLES
   #endif
@@ -1604,7 +1609,7 @@
 #endif
 
 // Now estimate the total ISR execution time in cycles given a step per ISR multiplier
-#define ISR_EXECUTION_CYCLES(rate)  (((ISR_BASE_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES)) / rate)
+#define ISR_EXECUTION_CYCLES(rate)  (((ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES)) / rate)
 
 // The maximum allowable stepping frequency when doing x128-x1 stepping (in Hz)
 #define MAX_128X_STEP_ISR_FREQUENCY (F_CPU / ISR_EXECUTION_CYCLES(128))
