@@ -108,6 +108,11 @@
   #undef WORKSPACE_OFFSETS
   #undef LEVEL_BED_CORNERS
 
+  // DOGM SPI DELAY
+  #if DISABLED(DOGM_SPI_DELAY_US)
+    #define DOGM_SPI_DELAY_US 50
+  #endif
+
 #else // !MECH(DELTA)
 
   #if ((X_MIN_POS) <= 0)

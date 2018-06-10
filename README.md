@@ -27,6 +27,7 @@
     * [Hardware](/Documentation/Hardware.md)
     * [GCodes](/Documentation/GCodes.md)
   * Notes
+    * [Bresenham Algorithm](/Documentation/Bresenham.md)
     * [Auto Bed Leveling](/Documentation/BedLeveling.md)
     * [Filament Sensor](/Documentation/FilamentSensor.md)
     * [Ramps Servo Power](/Documentation/RampsServoPower.md)
