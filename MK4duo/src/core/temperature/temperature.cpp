@@ -219,6 +219,10 @@ void Temperature::spin() {
 
   millis_t ms = millis();
 
+  #if ENABLED(EMERGENCY_PARSER)
+    if (emergency_parser.killed_by_M112) printer.kill(PSTR(MSG_KILLED));
+  #endif
+
   LOOP_HEATER() {
 
     Heater *act = &heaters[h];
