@@ -282,7 +282,11 @@ float Probe::run_probing() {
   float probe_z = 0.0;
 
   // Stop the probe before it goes too low to prevent damage.
-  #define Z_PROBE_LOW_POINT (-2 - offset[Z_AXIS])
+  #if offset[Z_AXIS] > 0
+    #define Z_PROBE_LOW_POINT -10
+  #else
+    #define Z_PROBE_LOW_POINT (-2 - offset[Z_AXIS])
+  #endif
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (printer.debugLeveling()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
