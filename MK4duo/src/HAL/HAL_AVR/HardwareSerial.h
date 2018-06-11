@@ -42,10 +42,11 @@
  * Modified  3 March      2015 by MagoKimbra
  * Modified 14 February   2016 by Andreas Hardtung (added tx buffer)
  * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
+ * Modified 10 June       2018 by Eduardo José Tagle
  */
 
-#ifndef HardwareSerial_H
-#define HardwareSerial_H
+#ifndef _HARDWARESERIAL_H_
+#define _HARDWARESERIAL_H_
 
 #ifndef SERIAL_PORT
   #define SERIAL_PORT 0
@@ -65,8 +66,7 @@
   #define SERIAL_REGNAME_INTERNAL(registerbase,number,suffix) registerbase##number##suffix
 #endif
 
-// Registers used by MarlinSerial class (these are expanded
-// depending on selected serial port
+// Registers used by HardwareSerial class (expanded depending on selected serial port)
 #define M_UCSRxA            SERIAL_REGNAME(UCSR,SERIAL_PORT,A) // defines M_UCSRxA to be UCSRnA where n is the serial port number
 #define M_UCSRxB            SERIAL_REGNAME(UCSR,SERIAL_PORT,B)
 #define M_RXENx             SERIAL_REGNAME(RXEN,SERIAL_PORT,)
@@ -74,6 +74,9 @@
 #define M_TXCx              SERIAL_REGNAME(TXC,SERIAL_PORT,)
 #define M_RXCIEx            SERIAL_REGNAME(RXCIE,SERIAL_PORT,)
 #define M_UDREx             SERIAL_REGNAME(UDRE,SERIAL_PORT,)
+#define M_FEx               SERIAL_REGNAME(FE,SERIAL_PORT,)
+#define M_DORx              SERIAL_REGNAME(DOR,SERIAL_PORT,)
+#define M_UPEx              SERIAL_REGNAME(UPE,SERIAL_PORT,)
 #define M_UDRIEx            SERIAL_REGNAME(UDRIE,SERIAL_PORT,)
 #define M_UDRx              SERIAL_REGNAME(UDR,SERIAL_PORT,)
 #define M_UBRRxH            SERIAL_REGNAME(UBRR,SERIAL_PORT,H)
@@ -89,11 +92,9 @@
 #define BIN 2
 #define BYTE 0
 
-// Define constants and variables for buffering incoming serial data.  We're
-// using a ring buffer (I think), in which rx_buffer_head is the index of the
-// location to which to write the next incoming character and rx_buffer_tail
-// is the index of the location from which to read.
-// 256 is the max limit due to uint8_t head and tail. Use only powers of 2. (...,16,32,64,128,256)
+// We're using a ring buffer (I think), in which rx_buffer_head is the index of the
+// location to which to write the next incoming character and rx_buffer_tail is the
+// index of the location from which to read.
 #ifndef RX_BUFFER_SIZE
   #define RX_BUFFER_SIZE 128
 #endif
@@ -120,7 +121,15 @@
 #endif
 
 #if ENABLED(SERIAL_STATS_DROPPED_RX)
-  extern uint8_t rx_dropped_bytes;
+    extern uint8_t rx_dropped_bytes;
+#endif
+
+#if ENABLED(SERIAL_STATS_RX_BUFFER_OVERRUNS)
+  extern uint8_t rx_buffer_overruns;
+#endif
+
+#if ENABLED(SERIAL_STATS_RX_FRAMING_ERRORS)
+  extern uint8_t rx_framing_errors;
 #endif
 
 #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
@@ -142,12 +151,18 @@ class MKHardwareSerial { //: public Stream
     static void flush(void);
     static ring_buffer_pos_t available(void);
     static void write(const uint8_t c);
-    #if TX_BUFFER_SIZE > 0
-      static void flushTX(void);
-    #endif
+    static void flushTX(void);
 
     #if ENABLED(SERIAL_STATS_DROPPED_RX)
-      FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }
+        FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }
+    #endif
+
+    #if ENABLED(SERIAL_STATS_RX_BUFFER_OVERRUNS)
+      FORCE_INLINE static uint32_t buffer_overruns() { return rx_buffer_overruns; }
+    #endif
+
+    #if ENABLED(SERIAL_STATS_RX_FRAMING_ERRORS)
+      FORCE_INLINE static uint32_t framing_errors() { return rx_framing_errors; }
     #endif
 
     #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
@@ -177,6 +192,7 @@ class MKHardwareSerial { //: public Stream
     static void println(unsigned long, int = DEC);
     static void println(double, int = 2);
     static void println(void);
+    operator bool() { return true; }
 
   private: /** Private Function */
 
@@ -187,4 +203,4 @@ class MKHardwareSerial { //: public Stream
 
 extern MKHardwareSerial MKSerial;
 
-#endif // HardwareSerial_H
+#endif /* _HARDWARESERIAL_H_ */

@@ -150,6 +150,7 @@ typedef int8_t    pin_t;
 #include "src/utility/bezier.h"
 
 // Feature modules
+#include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"

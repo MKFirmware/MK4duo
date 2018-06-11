@@ -3681,12 +3681,16 @@ void lcd_quick_feedback(const bool clear_buttons) {
       START_MENU();
       MENU_BACK(MSG_MOTION);
 
-      #if IS_DELTA
-        MENU_ITEM_EDIT_CALLBACK(float3, MSG_JERK, &mechanics.max_jerk[X_AXIS], 1, 990, _mechanics_set_jerk);
+      #if ENABLED(JUNCTION_DEVIATION)
+        MENU_ITEM_EDIT(float3, MSG_JUNCTION_DEVIATION, &mechanics.junction_mm, 0.01, 0.3);
       #else
-        MENU_ITEM_EDIT(float3, MSG_VA_JERK, &mechanics.max_jerk[X_AXIS], 1, 990);
-        MENU_ITEM_EDIT(float3, MSG_VB_JERK, &mechanics.max_jerk[Y_AXIS], 1, 990);
-        MENU_ITEM_EDIT(float52, MSG_VC_JERK, &mechanics.max_jerk[Z_AXIS], 0.1, 990);
+        #if IS_DELTA
+          MENU_ITEM_EDIT_CALLBACK(float3, MSG_JERK, &mechanics.max_jerk[X_AXIS], 1, 990, _mechanics_set_jerk);
+        #else
+          MENU_ITEM_EDIT(float3, MSG_VA_JERK, &mechanics.max_jerk[X_AXIS], 1, 990);
+          MENU_ITEM_EDIT(float3, MSG_VB_JERK, &mechanics.max_jerk[Y_AXIS], 1, 990);
+          MENU_ITEM_EDIT(float52, MSG_VC_JERK, &mechanics.max_jerk[Z_AXIS], 0.1, 990);
+        #endif
       #endif
 
       #if EXTRUDERS > 1
