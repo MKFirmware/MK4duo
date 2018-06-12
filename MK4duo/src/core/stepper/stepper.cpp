@@ -1167,10 +1167,8 @@ void Stepper::pulse_phase_step() {
   // Just update the value we will get at the end of the loop
   step_events_completed += events_to_do;
 
-  #if MINIMUM_STEPPER_PULSE > 0
-    // Get the timer count and estimate the end of the pulse
-    hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
-  #endif
+  // Get the timer count and estimate the end of the pulse
+  hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
 
   // Take multiple steps per interrupt (For high speed moves)
   do {
@@ -1181,9 +1179,10 @@ void Stepper::pulse_phase_step() {
     #if MINIMUM_STEPPER_PULSE > 0
       // Just wait for the requested pulse time.
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
-      // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-      pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES) - hal_timer_t(STEPPER_PULSE_CYCLES);
     #endif
+
+    // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
+    pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES/STEPPER_TIMER_PRESCALE) - hal_timer_t(STEPPER_PULSE_CYCLES);
 
     // Stop an active pulse
     pulse_tick_stop();
@@ -1226,15 +1225,15 @@ void Stepper::pulse_phase_step() {
     // Decrement the count of pending pulses to do
     --events_to_do;
 
-    #if MINIMUM_STEPPER_PULSE > 0
-      // For minimum pulse time wait after stopping pulses also
-      // Just wait for the requested pulse time.
-      if (events_to_do) {
-        while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
+    // For minimum pulse time wait after stopping pulses also
+    // Just wait for the requested pulse time.
+    if (events_to_do) {
+      while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
+      #if MINIMUM_STEPPER_PULSE > 0
         // Add to the value, the time that the pulse must be active (to be used on the next loop)
         pulse_end += hal_timer_t(STEPPER_PULSE_CYCLES);
-      }
-    #endif
+      #endif
+    }
 
   } while (events_to_do);
 }
@@ -1242,7 +1241,7 @@ void Stepper::pulse_phase_step() {
 uint32_t Stepper::block_phase_step() {
 
   // If no queued movements, just wait 1ms for the next move
-  uint32_t interval = (HAL_TIMER_RATE / 1000);
+  uint32_t interval = (STEPPER_TIMER_RATE / 1000);
 
   // If there is a current block
   if (current_block) {
@@ -2066,12 +2065,10 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         REV_E_DIR(active_extruder_driver);
     #endif
 
+    hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
+
     // Step E stepper if we have steps
     while (LA_steps) {
-
-      #if MINIMUM_STEPPER_PULSE > 0
-        hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
-      #endif
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         MIXING_STEPPERS_LOOP(j) {
@@ -2087,9 +2084,10 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       #if MINIMUM_STEPPER_PULSE > 0
         // Just wait for the requested pulse time.
         while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
-        // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-        pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES) - hal_timer_t(STEPPER_PULSE_CYCLES);
       #endif
+
+      // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
+      pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES/STEPPER_TIMER_PRESCALE) - hal_timer_t(STEPPER_PULSE_CYCLES);
 
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
@@ -2104,12 +2102,15 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         E_STEP_WRITE(active_extruder_driver, INVERT_E_STEP_PIN);
       #endif
 
-      #if MINIMUM_STEPPER_PULSE > 0
-        // For minimum pulse time wait before looping
-        // Just wait for the requested pulse time.
-        if (LA_steps) while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
-      #endif
-
+      // For minimum pulse time wait before looping
+      // Just wait for the requested pulse time.
+      if (LA_steps) {
+        while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
+        #if MINIMUM_STEPPER_PULSE > 0
+          // Add to the value, the time that the pulse must be active (to be used on the next loop)
+          pulse_end += hal_timer_t(STEPPER_PULSE_CYCLES);
+        #endif
+      }
     } // LA_steps
 
     return interval;
@@ -2953,7 +2954,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
   #if EXTRA_CYCLES_BABYSTEP > 20
     #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (PULSE_TIMER_PRESCALE)) { /* nada */ }
+    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
   #else
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0

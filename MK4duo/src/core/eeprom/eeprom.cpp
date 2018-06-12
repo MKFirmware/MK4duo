@@ -55,11 +55,15 @@
  *  M205  S               mechanics.min_feedrate_mm_s           (float)
  *  M205  T               mechanics.min_travel_feedrate_mm_s    (float)
  *  M205  B               mechanics.min_segment_time_us         (ulong)
+ *
+ * Junction Deviation:
+ *  M205  J               mechanics.junction_deviation_mm       (float)
+ * or Jerk:
  *  M205  X               mechanics.max_jerk[X_AXIS]            (float)
  *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRUDERS](float x6)
- *  M205  J               mechanics.junction_mm                 (float)
+ *
  *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
@@ -275,6 +279,10 @@ void EEPROM::Postprocess() {
     fwretract.refresh_autoretract();
   #endif
 
+  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+    mechanics.recalculate_max_e_jerk_factor();
+  #endif
+
   // Setup Endstops pullup
   endstops.setup_pullup();
 
@@ -308,7 +316,8 @@ void EEPROM::Postprocess() {
    * M500 - Store Configuration
    */
   bool EEPROM::Store_Settings() {
-    char ver[6] = "00000";
+    float dummy = 0.0f;
+    char ver[6] = "ERROR";
 
     uint16_t working_crc = 0;
 
@@ -335,10 +344,13 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(mechanics.min_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_segment_time_us);
-    EEPROM_WRITE(mechanics.max_jerk);
+
     #if ENABLED(JUNCTION_DEVIATION)
-      EEPROM_WRITE(mechanics.junction_mm);
+      EEPROM_WRITE(mechanics.junction_deviation_mm);
+    #else
+      EEPROM_WRITE(mechanics.max_jerk);
     #endif
+
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
     #endif
@@ -785,10 +797,13 @@ void EEPROM::Postprocess() {
       EEPROM_READ(mechanics.min_feedrate_mm_s);
       EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
       EEPROM_READ(mechanics.min_segment_time_us);
-      EEPROM_READ(mechanics.max_jerk);
+
       #if ENABLED(JUNCTION_DEVIATION)
-        EEPROM_READ(mechanics.junction_mm);
+        EEPROM_READ(mechanics.junction_deviation_mm);
+      #else
+        EEPROM_READ(mechanics.max_jerk);
       #endif
+
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
       #endif
@@ -1335,10 +1350,8 @@ void EEPROM::Factory_Settings() {
     mechanics.max_acceleration_mm_per_s2[i] = pgm_read_dword_near(&tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1]);
   }
 
-  for (uint8_t i = 0; i < EXTRUDERS; i++) {
-    mechanics.retract_acceleration[i]       = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
-    mechanics.max_jerk[E_AXIS + i]          = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
-  }
+  for (uint8_t i = 0; i < EXTRUDERS; i++)
+    mechanics.retract_acceleration[i] = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
 
   constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
   LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
@@ -1356,12 +1369,15 @@ void EEPROM::Factory_Settings() {
   mechanics.min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
   mechanics.min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
   mechanics.min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
-  mechanics.max_jerk[X_AXIS]          = DEFAULT_XJERK;
-  mechanics.max_jerk[Y_AXIS]          = DEFAULT_YJERK;
-  mechanics.max_jerk[Z_AXIS]          = DEFAULT_ZJERK;
 
   #if ENABLED(JUNCTION_DEVIATION)
-    mechanics.junction_mm = JUNCTION_DEVIATION_MM;
+    mechanics.junction_deviation_mm = JUNCTION_DEVIATION_MM;
+  #else
+    mechanics.max_jerk[X_AXIS]  = DEFAULT_XJERK;
+    mechanics.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
+    mechanics.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+    for (uint8_t i = 0; i < EXTRUDERS; i++)
+      mechanics.max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -1912,27 +1928,29 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    CONFIG_MSG_START_E("Advanced variables: S<min_feedrate> V<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
-    SERIAL_SMV(CFG, "  M205 S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
-    SERIAL_MV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
-    SERIAL_MV(" B", mechanics.min_segment_time_us);
-    SERIAL_MV(" X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", LINEAR_UNIT(mechanics.max_jerk[E_AXIS]), 3);
-    #endif
-    SERIAL_EOL();
-    #if (EXTRUDERS > 1)
-      for(int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M205 T", i);
-        SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
-      }
-    #endif
+    CONFIG_MSG_START_E("Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
+    SERIAL_SMV(CFG, " M205 B", mechanics.min_segment_time_us);
+    SERIAL_MV(" S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
+    SERIAL_EMV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
 
     #if ENABLED(JUNCTION_DEVIATION)
-      CONFIG_MSG_START_E("Advanced variables: J<Junction deviation mm>:");
-      SERIAL_LMV(CFG, "  M205 J", mechanics.junction_mm);
+      CONFIG_MSG_START_E("Junction Deviation: J<Junction deviation mm>:");
+      SERIAL_LMV(CFG, "  M205 J", mechanics.junction_deviation_mm, 3);
+    #else
+      CONFIG_MSG_START_E("Jerk: X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
+      SERIAL_SMV(CFG, " M205 X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);
+      #if EXTRUDERS == 1
+        SERIAL_MV(" T0 E", LINEAR_UNIT(mechanics.max_jerk[E_AXIS]), 3);
+      #endif
+      SERIAL_EOL();
+      #if (EXTRUDERS > 1)
+        for(int8_t i = 0; i < EXTRUDERS; i++) {
+          SERIAL_SMV(CFG, "  M205 T", i);
+          SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
+        }
+      #endif
     #endif
 
     #if HOTENDS > 0

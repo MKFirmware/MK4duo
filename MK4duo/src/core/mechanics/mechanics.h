@@ -120,20 +120,24 @@ class Mechanics {
                   steps_to_mm[XYZE_N];
 
     /**
-     * Acceleration and Jerk
+     * Acceleration
      */
     static float    acceleration,
                     travel_acceleration,
-                    retract_acceleration[EXTRUDERS],
-                    max_jerk[XYZE_N];
+                    retract_acceleration[EXTRUDERS];
     static uint32_t max_acceleration_steps_per_s2[XYZE_N],
                     max_acceleration_mm_per_s2[XYZE_N];
 
     /**
-     * Junction Deviation
+     * Junction Deviation or Jerk
      */
     #if ENABLED(JUNCTION_DEVIATION)
-      static float junction_mm;
+      static float junction_deviation_mm;
+      #if ENABLED(LIN_ADVANCE)
+        static float max_e_jerk_factor;
+      #endif
+    #else
+      static float max_jerk[XYZE_N];
     #endif
 
     /**
@@ -355,6 +359,14 @@ class Mechanics {
     #else
       FORCE_INLINE static float native_to_logical(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
       FORCE_INLINE static float logical_to_native(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
+    #endif
+
+    #if ENABLED(JUNCTION_DEVIATION)
+      FORCE_INLINE static void recalculate_max_e_jerk_factor() {
+        #if ENABLED(LIN_ADVANCE)
+          max_e_jerk_factor = SQRT(SQRT(0.5) * junction_deviation_mm) * RECIPROCAL(1.0 - SQRT(0.5));
+        #endif
+      }
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)

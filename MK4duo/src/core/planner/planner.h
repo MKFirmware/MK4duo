@@ -165,7 +165,7 @@ class Planner {
      *  Writer of head is Planner::buffer_segment().
      *  Reader of tail is Stepper::isr(). Always consider tail busy / read-only
      */
-    static block_t block_buffer[BLOCK_BUFFER_SIZE];
+    static block_t          block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
                             block_buffer_tail;        // Index of the busy block, if any
     static uint8_t          block_buffer_planned,     // Index of the optimally planned block

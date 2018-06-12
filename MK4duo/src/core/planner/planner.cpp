@@ -701,8 +701,8 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 
   #if ENABLED(BEZIER_JERK_CONTROL)
     // Jerk controlled speed requires to express speed versus time, NOT steps
-    uint32_t  acceleration_time = ((float)(cruise_rate - initial_rate) / accel) * (HAL_TIMER_RATE),
-              deceleration_time = ((float)(cruise_rate - final_rate) / accel) * (HAL_TIMER_RATE);
+    uint32_t  acceleration_time = ((float)(cruise_rate - initial_rate) / accel) * (STEPPER_TIMER_RATE),
+              deceleration_time = ((float)(cruise_rate - final_rate) / accel) * (STEPPER_TIMER_RATE);
 
     // And to offload calculations from the ISR, we also calculate the inverse of those times here
     uint32_t  acceleration_time_inverse = get_period_inverse(acceleration_time),
@@ -1919,6 +1919,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     accel = CEIL((esteps ? mechanics.acceleration : mechanics.travel_acceleration) * steps_per_mm);
 
     #if ENABLED(LIN_ADVANCE)
+
+      #if ENABLED(JUNCTION_DEVIATION)
+        #define MAX_E_JERK (mechanics.max_e_jerk_factor * max_acceleration_mm_per_s2[E_AXIS_N])
+      #else
+        #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N]
+      #endif
+
       /**
        *
        * Use LIN_ADVANCE for blocks if all these are true:
@@ -1949,10 +1956,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         if (block->e_D_ratio > 3.0)
           block->use_advance_lead = false;
         else {
-          const uint32_t max_accel_steps_per_s2 = mechanics.max_jerk[E_AXIS] / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
+          const uint32_t max_accel_steps_per_s2 = MAX_E_JERK / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
           #if ENABLED(LA_DEBUG)
-            if (accel > max_accel_steps_per_s2)
-              SERIAL_EM("Acceleration limited.");
+            if (accel > max_accel_steps_per_s2) SERIAL_EM("Acceleration limited.");
           #endif
           NOMORE(accel, max_accel_steps_per_s2);
         }
@@ -1980,7 +1986,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = (HAL_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N]);
+      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N]);
       #if ENABLED(LA_DEBUG)
         if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
           SERIAL_EM("More than 2 steps per eISR loop executed.");
@@ -2046,7 +2052,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
                     sin_theta_d2 = SQRT(0.5 * (1.0 - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * mechanics.junction_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
+        vmax_junction_sqr = (junction_acceleration * mechanics.junction_deviation_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
         if (block->millimeters < 1.0) {
 
           // Fast acos approximation, minus the error bar to be safe
