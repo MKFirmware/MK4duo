@@ -39,11 +39,19 @@ float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
       Mechanics::acceleration                             = 0.0,
       Mechanics::travel_acceleration                      = 0.0,
       Mechanics::retract_acceleration[EXTRUDERS]          = { 0.0 },
-      Mechanics::max_jerk[XYZE_N]                         = { 0.0 },
       Mechanics::current_position[XYZE]                   = { 0.0 },
       Mechanics::cartesian_position[XYZ]                  = { 0.0 },
       Mechanics::destination[XYZE]                        = { 0.0 },
       Mechanics::stored_position[NUM_POSITON_SLOTS][XYZE] = { { 0.0 } };
+
+#if ENABLED(JUNCTION_DEVIATION)
+  float Mechanics::junction_deviation_mm = 0.0;
+  #if ENABLED(LIN_ADVANCE)
+    float Mechanics::max_e_jerk_factor = 0.0;
+  #endif
+#else
+  float Mechanics::max_jerk[XYZE_N] = { 0.0 };
+#endif
 
 #if ENABLED(DUAL_X_CARRIAGE)
   DualXMode Mechanics::dual_x_carriage_mode         = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -63,10 +71,6 @@ const float Mechanics::homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_
    
 uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 },
           Mechanics::max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
-
-#if ENABLED(JUNCTION_DEVIATION)
-  float Mechanics::junction_mm = JUNCTION_DEVIATION_MM;
-#endif
 
 const signed char Mechanics::home_dir[XYZ] = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 

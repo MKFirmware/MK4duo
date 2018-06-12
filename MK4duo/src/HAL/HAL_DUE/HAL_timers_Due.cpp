@@ -186,7 +186,7 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8
   *loops = multistep;
 
   // In case of high-performance processor, it is able to calculate in real-time
-  return uint32_t(HAL_TIMER_RATE) / step_rate;
+  return uint32_t(STEPPER_TIMER_RATE) / step_rate;
 
 }
 

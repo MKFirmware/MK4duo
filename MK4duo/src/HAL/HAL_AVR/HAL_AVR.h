@@ -158,11 +158,14 @@ typedef uint16_t  ptr_int_t;
 #define HAL_TIMER_RATE              ((F_CPU) / 8)
 #define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 
+#define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_PRESCALE      8
-#define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)
+#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)
 #define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * STEPPER_TIMER_TICKS_PER_US)                 // Stepper pulse duration, in cycles
+#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * STEPPER_TIMER_TICKS_PER_US)    // Stepper pulse duration, in cycles
+
+#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
 
@@ -181,8 +184,6 @@ typedef uint16_t  ptr_int_t;
 #define TIMER_OCR_1                 OCR1A
 #define TIMER_COUNTER_0             TCNT0
 #define TIMER_COUNTER_1             TCNT1
-
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define ENABLE_STEPPER_INTERRUPT()  SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT() CBI(STEPPER_TIMSK, STEPPER_OCIE)

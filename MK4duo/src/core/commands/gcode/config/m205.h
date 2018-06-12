@@ -51,25 +51,27 @@ inline void gcode_M205(void) {
   #if ENABLED(JUNCTION_DEVIATION)
     if (parser.seen('J')) {
       const float junc_dev = parser.value_linear_units();
-      if (WITHIN(junc_dev, 0.01, 0.3))
-        mechanics.junction_mm = junc_dev;
+      if (WITHIN(junc_dev, 0.01, 0.3)) {
+        mechanics.junction_deviation_mm = junc_dev;
+        mechanics.recalculate_max_e_jerk_factor();
+      }
       else
         SERIAL_LM(ER, "?J out of range (0.01 to 0.3)");
     }
-  #endif
-
-  LOOP_XYZE(i) {
-    if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      #if MECH(DELTA)
-        const float value = parser.value_per_axis_unit((AxisEnum)a);
-        if (i == E_AXIS)
-          mechanics.max_jerk[a] = value;
-        else
-          LOOP_XYZ(axis) mechanics.max_jerk[axis] = value;
-      #else
-        mechanics.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
-      #endif
+  #else
+    LOOP_XYZE(i) {
+      if (parser.seen(axis_codes[i])) {
+        const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+        #if MECH(DELTA)
+          const float value = parser.value_per_axis_unit((AxisEnum)a);
+          if (i == E_AXIS)
+            mechanics.max_jerk[a] = value;
+          else
+            LOOP_XYZ(axis) mechanics.max_jerk[axis] = value;
+        #else
+          mechanics.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
+        #endif
+      }
     }
-  }
+  #endif
 }

@@ -45,7 +45,9 @@ inline void gcode_M92(void) {
       if (i == E_AXIS) {
         if (value < 20.0) {
           float factor = mechanics.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
-          mechanics.max_jerk[a] *= factor;
+          #if DISABLED(JUNCTION_DEVIATION)
+            mechanics.max_jerk[a] *= factor;
+          #endif
           mechanics.max_feedrate_mm_s[a] *= factor;
           mechanics.max_acceleration_steps_per_s2[a] *= factor;
         }
