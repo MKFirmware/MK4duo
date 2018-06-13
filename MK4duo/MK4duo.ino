@@ -47,7 +47,7 @@
  * G21  - Set input units to millimeters
  * G26  - Mesh Validation Pattern (Requires G26_MESH_VALIDATION) 
  * G27  - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
- * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
+ * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point. O Home only if position is unknown.
  * G29  - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
  *          Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30  - Single Z probe, probes bed at X Y location (defaults to current XY location)
