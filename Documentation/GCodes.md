@@ -18,7 +18,7 @@
 |  G21 | Set input units to millimeters
 |  G26 | Mesh Validation Pattern. (Requires G26_MESH_VALIDATION & **AUTO_BED_LEVELING_UBL** or **MESH_BED_LEVELING** or **AUTO_BED_LEVELING_BILINEAR**) 
 |  G27 | Nozzle Park
-|  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
+|  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point. O Home only if position is unknown
 |  G29 | Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.<br/>`G29   Fyyy Lxxx Rxxx Byyy` for customer grid.
 |  G30 | Single Z Probe, probes bed at current XY location.
 |  G31 | Dock Z Probe sled (if enabled)
