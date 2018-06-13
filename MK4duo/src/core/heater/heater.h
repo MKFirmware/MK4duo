@@ -100,14 +100,14 @@
       #endif
 
       FORCE_INLINE void updateCurrentTemperature() { this->current_temperature = this->sensor.getTemperature(); }
-      FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > 0); }
+      FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > TEMP_HYSTERESIS); }
       FORCE_INLINE bool isOFF()       { return (!isON()); }
       FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
       FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
       FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
 
       FORCE_INLINE bool wait_for_heating() {
-        return this->isON() && this->target_temperature > (this->current_temperature + TEMP_HYSTERESIS);
+        return this->isON() && ABS(this->current_temperature - this->target_temperature) > TEMP_HYSTERESIS;
       }
 
       #if WATCH_THE_HEATER
