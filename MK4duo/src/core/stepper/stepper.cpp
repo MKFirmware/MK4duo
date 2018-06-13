@@ -1168,7 +1168,9 @@ void Stepper::pulse_phase_step() {
   step_events_completed += events_to_do;
 
   // Get the timer count and estimate the end of the pulse
-  hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
+  hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(MIN_PULSE_TICKS);
+
+  const hal_timer_t add_pulse_ticks = hal_timer_t(ADD_PULSE_TICKS);
 
   // Take multiple steps per interrupt (For high speed moves)
   do {
@@ -1182,7 +1184,7 @@ void Stepper::pulse_phase_step() {
     #endif
 
     // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-    pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES/STEPPER_TIMER_PRESCALE) - hal_timer_t(STEPPER_PULSE_CYCLES);
+    if (signed(add_pulse_ticks) > 0) pulse_end += add_pulse_ticks;
 
     // Stop an active pulse
     pulse_tick_stop();
@@ -1231,7 +1233,7 @@ void Stepper::pulse_phase_step() {
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
       #if MINIMUM_STEPPER_PULSE > 0
         // Add to the value, the time that the pulse must be active (to be used on the next loop)
-        pulse_end += hal_timer_t(STEPPER_PULSE_CYCLES);
+        pulse_end += hal_timer_t(MIN_PULSE_TICKS);
       #endif
     }
 
@@ -2065,7 +2067,10 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         REV_E_DIR(active_extruder_driver);
     #endif
 
-    hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(STEPPER_PULSE_CYCLES);
+    // Get the timer count and estimate the end of the pulse
+    hal_timer_t pulse_end = HAL_timer_get_current_count(STEPPER_TIMER) + hal_timer_t(MIN_PULSE_TICKS);
+
+    const hal_timer_t add_pulse_ticks = hal_timer_t(ADD_PULSE_TICKS);
 
     // Step E stepper if we have steps
     while (LA_steps) {
@@ -2086,8 +2091,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
       #endif
 
-      // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-      pulse_end += hal_timer_t(MIN_STEPPER_PULSE_CYCLES/STEPPER_TIMER_PRESCALE) - hal_timer_t(STEPPER_PULSE_CYCLES);
+      // Add the delay needed to ensure the maximum driver rate is enforced
+      if (signed(add_pulse_ticks) > 0) pulse_end += add_pulse_ticks;
 
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
@@ -2108,7 +2113,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
         #if MINIMUM_STEPPER_PULSE > 0
           // Add to the value, the time that the pulse must be active (to be used on the next loop)
-          pulse_end += hal_timer_t(STEPPER_PULSE_CYCLES);
+          pulse_end += hal_timer_t(MIN_PULSE_TICKS);
         #endif
       }
     } // LA_steps
@@ -2884,7 +2889,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   #else
     #define CYCLES_EATEN_BABYSTEP 0
   #endif
-  #define EXTRA_CYCLES_BABYSTEP (STEPPER_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
+  #define EXTRA_CYCLES_BABYSTEP (MIN_PULSE_TICKS - (CYCLES_EATEN_BABYSTEP))
 
   #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
     #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
@@ -2959,7 +2964,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0
       #define _PULSE_WAIT DELAY_NS(EXTRA_CYCLES_BABYSTEP * NS_PER_CYCLE)
-    #elif STEPPER_PULSE_CYCLES > 0
+    #elif MIN_PULSE_TICKS > 0
       #define _PULSE_WAIT NOOP
     #elif MECH(DELTA)
       #define _PULSE_WAIT DELAY_US(2);

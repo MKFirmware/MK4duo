@@ -80,18 +80,6 @@
 
       /**
        * Home all axes according to settings
-       *
-       * Parameters
-       *
-       *  None  Home to all axes with no parameters.
-       *        With QUICK_HOME enabled XY will home together, then Z.
-       *
-       * Cartesian parameters
-       *
-       *  X   Home to the X endstop
-       *  Y   Home to the Y endstop
-       *  Z   Home to the Z endstop
-       *
        */
       static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
 

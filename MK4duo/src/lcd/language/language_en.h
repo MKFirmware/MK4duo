@@ -539,6 +539,9 @@
 #ifndef MSG_JERK
   #define MSG_JERK                            _UxGT("Jerk")
 #endif
+#ifndef MSG_JUNCTION_DEVIATION
+  #define MSG_JUNCTION_DEVIATION              _UxGT("Junction Dev")
+#endif
 #if IS_KINEMATIC
   #ifndef MSG_VA_JERK
     #define MSG_VA_JERK                       _UxGT("Va-jerk")
@@ -563,8 +566,8 @@
 #ifndef MSG_VE_JERK
   #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #endif
-#ifndef MSG_JUNCTION_DEVIATION
-  #define MSG_JUNCTION_DEVIATION              _UxGT("Junction Dev")
+#ifndef MSG_JUNCTION_MM
+  #define MSG_JUNCTION_MM                     _UxGT("Junction mm")
 #endif
 #ifndef MSG_VELOCITY
   #define MSG_VELOCITY                        _UxGT("Velocity")

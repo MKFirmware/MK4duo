@@ -71,15 +71,13 @@
 #define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
 #define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE))
 
+#define STEPPER_TIMER_ISR           void TC4_Handler()
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_PRESCALE      2.0
-#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                              // 42 - stepper timer ticks per µs
+#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                          // 42 - stepper timer ticks per µs
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_PULSE_CYCLES        ((MINIMUM_STEPPER_PULSE) * STEPPER_TIMER_TICKS_PER_US)    // Stepper pulse duration, in cycles
-#define STEPPER_TIMER_ISR           void TC4_Handler()
-
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 

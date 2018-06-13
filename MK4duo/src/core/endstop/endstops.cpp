@@ -62,7 +62,7 @@ uint16_t  Endstops::logic_bits  = 0,
           Endstops::live_state  = 0;
 
 // Private
-uint8_t   Endstops::flag1_bits    = 0;
+uint8_t   Endstops::flag_bits = 0;
 
 volatile uint8_t Endstops::hit_state = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
@@ -607,7 +607,7 @@ void Endstops::update() {
   if (stepper.axis_is_moving(X_AXIS)) {
     if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
       #if HAS_X_MIN
-        #if ENABLED(X_TWO_ENDSTOPS)
+        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR < 0
           UPDATE_ENDSTOP_BIT(X, MIN);
           #if HAS_X2_MIN
             UPDATE_ENDSTOP_BIT(X2, MIN);
@@ -621,7 +621,7 @@ void Endstops::update() {
     }
     else {  // +direction
       #if HAS_X_MAX
-        #if ENABLED(X_TWO_ENDSTOPS)
+        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR > 0
           UPDATE_ENDSTOP_BIT(X, MAX);
           #if HAS_X2_MAX
             UPDATE_ENDSTOP_BIT(X2, MAX);
@@ -637,7 +637,7 @@ void Endstops::update() {
 
   if (stepper.axis_is_moving(Y_AXIS)) {
     if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
-      #if HAS_Y_MIN
+      #if HAS_Y_MIN && Y_HOME_DIR < 0
         #if ENABLED(Y_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Y, MIN);
           #if HAS_Y2_MIN
@@ -651,7 +651,7 @@ void Endstops::update() {
       #endif
     }
     else {  // +direction
-      #if HAS_Y_MAX
+      #if HAS_Y_MAX && Y_HOME_DIR > 0
         #if ENABLED(Y_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Y, MAX);
           #if HAS_Y2_MAX
@@ -669,19 +669,17 @@ void Endstops::update() {
   if (stepper.axis_is_moving(Z_AXIS)) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
       #if HAS_Z_MIN
-        #if ENABLED(Z_TWO_ENDSTOPS)
+        #if ENABLED(Z_TWO_ENDSTOPS) && Z_HOME_DIR < 0
           UPDATE_ENDSTOP_BIT(Z, MIN);
           #if HAS_Z2_MIN
             UPDATE_ENDSTOP_BIT(Z2, MIN);
           #else
             COPY_BIT(live_state, Z_MIN, Z2_MIN);
           #endif
-        #else
-          #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, MIN);
-          #else
-            UPDATE_ENDSTOP_BIT(Z, MIN);
-          #endif
+        #elif HAS_BED_PROBE && !HAS_Z_PROBE_PIN
+          if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, MIN);
+        #elif Z_HOME_DIR < 0
+          UPDATE_ENDSTOP_BIT(Z, MIN);
         #endif
       #endif
 
@@ -691,7 +689,7 @@ void Endstops::update() {
       #endif
     }
     else { // Z +direction. Gantry up, bed down.
-      #if HAS_Z_MAX
+      #if HAS_Z_MAX && Z_HOME_DIR > 0
         // Check both Z two endstops
         #if ENABLED(Z_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Z, MAX);
