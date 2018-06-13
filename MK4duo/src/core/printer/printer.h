@@ -38,27 +38,21 @@ constexpr uint8_t debug_leveling            = 32;
 constexpr uint8_t debug_mesh_adjust         = 64;
 constexpr uint8_t debug_simulation          = 128;
 
-enum Flag1HomeEnum : char {
-  flag1_x_homed,
-  flag1_y_homed,
-  flag1_z_homed
-};
-
-enum Flag2VariousEnum : char {
-  flag2_running,
-  flag2_printing,
-  flag2_pos_saved,
-  flag2_relative_mode,
-  flag2_volumetric_enabled,
-  flag2_wait_for_user,
-  flag2_wait_for_heatup,
-  flag2_allow_cold_extrude,
-  flag2_autoreport_temp,
-  flag2_autoreport_sd,
-  flag2_suspend_autoreport,
-  flag2_abort_sd_printing,
-  flag2_filament_out,
-  flag2_g38_move
+enum VariousBits : char {
+  bit_running,
+  bit_printing,
+  bit_pos_saved,
+  bit_relative_mode,
+  bit_volumetric_enabled,
+  bit_wait_for_user,
+  bit_wait_for_heatup,
+  bit_allow_cold_extrude,
+  bit_autoreport_temp,
+  bit_autoreport_sd,
+  bit_suspend_autoreport,
+  bit_abort_sd_printing,
+  bit_filament_out,
+  bit_g38_move
 };
 
 enum PrinterMode : char {
@@ -144,9 +138,9 @@ class Printer {
   private: /** Private Parameters */
 
     static uint8_t  mk_debug_flag,  // For debug
-                    mk_1_flag;      // For Homed
+                    mk_home_flag;   // For Homed
 
-    static uint16_t mk_2_flag;      // For various
+    static uint16_t mk_various_flag;      // For various
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -210,19 +204,19 @@ class Printer {
 
     // Flag1 Home function
     FORCE_INLINE static void setXHomed(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_x_homed, onoff);
+      SET_BIT(mk_home_flag, _BV(X_AXIS), onoff);
     }
-    FORCE_INLINE static bool isXHomed() { return TEST(mk_1_flag, flag1_x_homed); }
+    FORCE_INLINE static bool isXHomed() { return TEST(mk_home_flag, _BV(X_AXIS)); }
 
     FORCE_INLINE static void setYHomed(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_y_homed, onoff);
+      SET_BIT(mk_home_flag, _BV(Y_AXIS), onoff);
     }
-    FORCE_INLINE static bool isYHomed() { return TEST(mk_1_flag, flag1_y_homed); }
+    FORCE_INLINE static bool isYHomed() { return TEST(mk_home_flag, _BV(Y_AXIS)); }
 
     FORCE_INLINE static void setZHomed(const bool onoff) {
-      SET_BIT(mk_1_flag, flag1_z_homed, onoff);
+      SET_BIT(mk_home_flag, _BV(Z_AXIS), onoff);
     }
-    FORCE_INLINE static bool isZHomed() { return TEST(mk_1_flag, flag1_z_homed); }
+    FORCE_INLINE static bool isZHomed() { return TEST(mk_home_flag, _BV(Z_AXIS)); }
 
     FORCE_INLINE static void setAxisHomed(const AxisEnum axis, const bool onoff) {
       switch (axis) {
@@ -240,81 +234,81 @@ class Printer {
     }
 
     FORCE_INLINE static void unsetHomedAll() {
-      CBI(mk_1_flag, flag1_x_homed);
-      CBI(mk_1_flag, flag1_y_homed);
-      CBI(mk_1_flag, flag1_z_homed);
+      CBI(mk_home_flag, _BV(X_AXIS));
+      CBI(mk_home_flag, _BV(Y_AXIS));
+      CBI(mk_home_flag, _BV(Z_AXIS));
     }
     FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
 
-    // Flag2 Various function
+    // Flag1 Various function
     FORCE_INLINE static void setRunning(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_running, onoff);
+      SET_BIT(mk_various_flag, bit_running, onoff);
     }
-    FORCE_INLINE static bool isRunning() { return TEST(mk_2_flag, flag2_running); }
+    FORCE_INLINE static bool isRunning() { return TEST(mk_various_flag, bit_running); }
 
     FORCE_INLINE static void setPosSaved(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_pos_saved, onoff);
+      SET_BIT(mk_various_flag, bit_pos_saved, onoff);
     }
-    FORCE_INLINE static bool isPosSaved() { return TEST(mk_2_flag, flag2_pos_saved); }
+    FORCE_INLINE static bool isPosSaved() { return TEST(mk_various_flag, bit_pos_saved); }
 
     FORCE_INLINE static void setRelativeMode(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_relative_mode, onoff);
+      SET_BIT(mk_various_flag, bit_relative_mode, onoff);
     }
-    FORCE_INLINE static bool isRelativeMode() { return TEST(mk_2_flag, flag2_relative_mode); }
+    FORCE_INLINE static bool isRelativeMode() { return TEST(mk_various_flag, bit_relative_mode); }
 
     FORCE_INLINE static void setVolumetric(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_volumetric_enabled, onoff);
+      SET_BIT(mk_various_flag, bit_volumetric_enabled, onoff);
     }
-    FORCE_INLINE static bool isVolumetric() { return TEST(mk_2_flag, flag2_volumetric_enabled); }
+    FORCE_INLINE static bool isVolumetric() { return TEST(mk_various_flag, bit_volumetric_enabled); }
 
     FORCE_INLINE static void setWaitForUser(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_wait_for_user, onoff);
+      SET_BIT(mk_various_flag, bit_wait_for_user, onoff);
     }
-    FORCE_INLINE static bool isWaitForUser() { return TEST(mk_2_flag, flag2_wait_for_user); }
+    FORCE_INLINE static bool isWaitForUser() { return TEST(mk_various_flag, bit_wait_for_user); }
 
     FORCE_INLINE static void setWaitForHeatUp(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_wait_for_heatup, onoff);
+      SET_BIT(mk_various_flag, bit_wait_for_heatup, onoff);
     }
-    FORCE_INLINE static bool isWaitForHeatUp() { return TEST(mk_2_flag, flag2_wait_for_heatup); }
+    FORCE_INLINE static bool isWaitForHeatUp() { return TEST(mk_various_flag, bit_wait_for_heatup); }
 
     FORCE_INLINE static void setAllowColdExtrude(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_allow_cold_extrude, onoff);
+      SET_BIT(mk_various_flag, bit_allow_cold_extrude, onoff);
     }
-    FORCE_INLINE static bool isAllowColdExtrude() { return TEST(mk_2_flag, flag2_allow_cold_extrude); }
+    FORCE_INLINE static bool isAllowColdExtrude() { return TEST(mk_various_flag, bit_allow_cold_extrude); }
 
     FORCE_INLINE static void setAutoreportTemp(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_autoreport_temp, onoff);
+      SET_BIT(mk_various_flag, bit_autoreport_temp, onoff);
     }
-    FORCE_INLINE static bool isAutoreportTemp() { return TEST(mk_2_flag, flag2_autoreport_temp); }
+    FORCE_INLINE static bool isAutoreportTemp() { return TEST(mk_various_flag, bit_autoreport_temp); }
 
     FORCE_INLINE static void setAutoreportSD(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_autoreport_sd, onoff);
+      SET_BIT(mk_various_flag, bit_autoreport_sd, onoff);
     }
-    FORCE_INLINE static bool isAutoreportSD() { return TEST(mk_2_flag, flag2_autoreport_sd); }
+    FORCE_INLINE static bool isAutoreportSD() { return TEST(mk_various_flag, bit_autoreport_sd); }
 
     FORCE_INLINE static void setSuspendAutoreport(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_suspend_autoreport, onoff);
+      SET_BIT(mk_various_flag, bit_suspend_autoreport, onoff);
     }
-    FORCE_INLINE static bool isSuspendAutoreport() { return TEST(mk_2_flag, flag2_suspend_autoreport); }
+    FORCE_INLINE static bool isSuspendAutoreport() { return TEST(mk_various_flag, bit_suspend_autoreport); }
 
     FORCE_INLINE static void setAbortSDprinting(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_abort_sd_printing, onoff);
+      SET_BIT(mk_various_flag, bit_abort_sd_printing, onoff);
     }
-    FORCE_INLINE static bool isAbortSDprinting() { return TEST(mk_2_flag, flag2_abort_sd_printing); }
+    FORCE_INLINE static bool isAbortSDprinting() { return TEST(mk_various_flag, bit_abort_sd_printing); }
 
     FORCE_INLINE static void setFilamentOut(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_filament_out, onoff);
+      SET_BIT(mk_various_flag, bit_filament_out, onoff);
     }
-    FORCE_INLINE static bool isFilamentOut() { return TEST(mk_2_flag, flag2_filament_out); }
+    FORCE_INLINE static bool isFilamentOut() { return TEST(mk_various_flag, bit_filament_out); }
 
     FORCE_INLINE static void setG38Move(const bool onoff) {
-      SET_BIT(mk_2_flag, flag2_running, onoff);
-      mk_2_flag = (onoff ? mk_2_flag | flag2_g38_move : mk_2_flag & ~flag2_g38_move);
+      SET_BIT(mk_various_flag, bit_running, onoff);
+      mk_various_flag = (onoff ? mk_various_flag | bit_g38_move : mk_various_flag & ~bit_g38_move);
     }
-    FORCE_INLINE static bool IsG38Move() { return mk_2_flag & flag2_g38_move; }
+    FORCE_INLINE static bool IsG38Move() { return mk_various_flag & bit_g38_move; }
 
-    FORCE_INLINE static bool resetFlag1() { mk_1_flag = 0; }
-    FORCE_INLINE static bool resetFlag2() { mk_2_flag = 0; }
+    FORCE_INLINE static bool reset_home_flag() { mk_home_flag = 0; }
+    FORCE_INLINE static bool reset_various_flag() { mk_various_flag = 0; }
 
   private: /** Private Function */
 

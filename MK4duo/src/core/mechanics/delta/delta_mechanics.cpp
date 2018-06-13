@@ -540,13 +540,6 @@
       return true;
     }
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_EM(">>> G28");
-        log_machine_info();
-      }
-    #endif
-
     #if HAS_POWER_SWITCH
       powerManager.power_on(); // Power On if power is off
     #endif

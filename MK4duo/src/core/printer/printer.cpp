@@ -95,9 +95,9 @@ PrinterMode Printer::mode =
 // Private
 
 uint8_t   Printer::mk_debug_flag  = 0, // For debug
-          Printer::mk_1_flag      = 0; // For Homed
+          Printer::mk_home_flag   = 0; // For Homed
 
-uint16_t  Printer::mk_2_flag      = 0; // For various
+uint16_t  Printer::mk_various_flag  = 0; // For various
 
 /**
  * Public Function
