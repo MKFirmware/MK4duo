@@ -445,7 +445,7 @@ float Probe::run_probing() {
 
 #if ENABLED(BLTOUCH)
 
-  void Probe::bltouch_command(int angle) {
+  void Probe::bltouch_command(const int angle) {
     MOVE_SERVO(Z_PROBE_SERVO_NR, angle);  // Give the BL-Touch the command and wait
     printer.safe_delay(BLTOUCH_DELAY);
   }

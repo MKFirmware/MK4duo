@@ -88,7 +88,7 @@ typedef struct {
   uint8_t active_extruder;                  // The extruder to move (if E move)
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    uint32_t mix_event_count[MIXING_STEPPERS]; // Scaled step_event_count for the mixing steppers
+    uint32_t mix_steps[MIXING_STEPPERS];    // Scaled step_event_count for the mixing steppers
   #endif
 
   // Settings for the trapezoid generator

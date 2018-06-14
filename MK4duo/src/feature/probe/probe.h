@@ -91,7 +91,7 @@ class Probe {
     #endif
 
     #if ENABLED(BLTOUCH)
-      static void bltouch_command(int angle);
+      static void bltouch_command(const int angle);
       static bool set_bltouch_deployed(const bool deploy);
       FORCE_INLINE void bltouch_init() {
         // Make sure any BLTouch error condition is cleared

@@ -1883,7 +1883,7 @@ void Stepper::set_directions() {
   #endif
 
   #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
-    #if ENABLED(MIXING_EXTRUDER)
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (motor_direction(E_AXIS)) {
         MIXING_STEPPERS_LOOP(j) REV_E_DIR(j);
         count_direction[E_AXIS] = -1;
