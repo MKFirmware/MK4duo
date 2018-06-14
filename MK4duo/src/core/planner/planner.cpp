@@ -1437,7 +1437,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // For a mixing extruder, get a magnified step_event_count for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      block->mix_event_count[i] = mixing_factor[i] * block->step_event_count;
+      block->mix_steps[i] = mixing_factor[i] * (
+        #if ENABLED(LIN_ADVANCE)
+          esteps
+        #else
+          block->step_event_count
+        #endif
+      );
   #endif
 
   #if ENABLED(BARICUDA)

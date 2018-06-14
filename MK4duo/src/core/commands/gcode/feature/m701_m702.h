@@ -52,10 +52,6 @@
     // Z axis lift
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
-    // Load filament
-    const float load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
-                                                      filament_change_load_length[tools.target_extruder]);
-
     // Show initial "wait for load" message
     #if HAS_LCD
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, ADVANCED_PAUSE_MODE_LOAD_FILAMENT, tools.target_extruder);
@@ -72,8 +68,13 @@
     if (park_point.z > 0)
       mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
-    load_filament(load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS, true,
-                  heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT);
+    // Load filament
+    constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
+    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
+                                                      filament_change_load_length[tools.target_extruder]);
+
+    load_filament(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
+                  true, heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT);
 
     // Restore Z axis
     if (park_point.z > 0)
