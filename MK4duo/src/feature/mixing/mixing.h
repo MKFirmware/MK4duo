@@ -34,7 +34,7 @@
   extern float mixing_factor[MIXING_STEPPERS];
 
   #if MIXING_VIRTUAL_TOOLS  > 1
-    static float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
+    extern float mixing_virtual_tool_mix[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
     void mixing_tools_init();
   #endif
 
