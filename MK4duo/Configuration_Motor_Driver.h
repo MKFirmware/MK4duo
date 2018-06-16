@@ -74,6 +74,10 @@
 //#define E4_IS_TMC2130
 //#define E5_IS_TMC2130
 
+#define R_SENSE           0.11  // R_sense resistor for SilentStepStick2130
+#define HOLD_MULTIPLIER    0.5  // Scales down the holding current from run current
+#define INTERPOLATE       true  // Interpolate X/Y/Z_MICROSTEPS to 256
+
 #define X_SENSE_RESISTOR  91
 #define X2_SENSE_RESISTOR 91
 #define Y_SENSE_RESISTOR  91
