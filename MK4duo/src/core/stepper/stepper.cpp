@@ -3176,7 +3176,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       #endif
     #endif
 
-    static const uint8_t microstep_modes[] = MICROSTEP_MODES;
+    static const uint8_t microstep_modes[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS };
     for (uint16_t i = 0; i < COUNT(microstep_modes); i++)
       microstep_mode(i, microstep_modes[i]);
   }

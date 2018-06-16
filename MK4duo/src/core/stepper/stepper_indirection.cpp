@@ -584,7 +584,7 @@ void reset_stepper_drivers() {
     delay(100);
     tmc2208_init_to_defaults();
   #endif
-  #ifdef TMC_ADV
+  #if ENABLED(TMC_ADV)
     TMC_ADV()
   #endif
   #if ENABLED(HAVE_L6470DRIVER)
