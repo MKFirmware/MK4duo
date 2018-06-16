@@ -309,7 +309,7 @@ void EEPROM::Postprocess() {
   bool EEPROM::eeprom_error = false;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
-    int16_t EEPROM::meshes_begin = 0;
+    uint16_t EEPROM::meshes_begin = 0;
   #endif
 
   /**
@@ -1236,7 +1236,7 @@ void EEPROM::Postprocess() {
           #if ENABLED(EEPROM_CHITCHAT)
             ubl_invalid_slot(a);
             SERIAL_MV("E2END=", E2END);
-            SERIAL_MV(" meshes_end=", meshes_end);
+            SERIAL_MV(" meshes_end=", (int)meshes_end);
             SERIAL_EMV(" slot=", slot);
           #endif
           return;
@@ -1339,7 +1339,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    const float tmp13[] = MOTOR_CURRENT;
+    const float tmp13[] = { X_CURRENT / 1000, Y_CURRENT / 1000, Z_CURRENT / 1000, E0_CURRENT / 1000, E1_CURRENT / 1000, E2_CURRENT / 1000, E3_CURRENT /1000 };
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       externaldac.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif

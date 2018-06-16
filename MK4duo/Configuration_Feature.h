@@ -1899,25 +1899,46 @@
  *************************** Microstepping *****************************
  ***********************************************************************
  *                                                                     *
- * Microstep setting (Only functional when stepper driver              *
- * microstep pins are connected to MCU.                                *
+ * Microstep setting - Only functional when stepper driver microstep   *
+ * pins are connected to MCU.                                          *
  *                                                                     *
  * Alligator Board support 16 or 32 only value                         *
  *                                                                     *
+ * [1,2,4,8,16,32]                                                     *
+ *                                                                     *
  ***********************************************************************/
-//#define USE_MICROSTEPS
-
-// X Y Z E - [1,2,4,8,16,32]
-#define MICROSTEP_MODES {16, 16, 16, 16}
+#define X_MICROSTEPS  16
+#define X2_MICROSTEPS 16
+#define Y_MICROSTEPS  16
+#define Y2_MICROSTEPS 16
+#define Z_MICROSTEPS  16
+#define Z2_MICROSTEPS 16
+#define E0_MICROSTEPS 16
+#define E1_MICROSTEPS 16
+#define E2_MICROSTEPS 16
+#define E3_MICROSTEPS 16
+#define E4_MICROSTEPS 16
+#define E5_MICROSTEPS 16
 /***********************************************************************/
 
 
 /***********************************************************************
  ************************** Motor's current ****************************
  ***********************************************************************/
-// Motor Current setting (Only functional on ALLIGATOR BOARD)
-// X Y Z E0 E1 E2 E3 - Values 0 - 2.5 A
-#define MOTOR_CURRENT {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}
+// Motor Current setting
+// X Y Z E0 E1 E2 E3 - Values 100 - 3000 in mA
+#define X_CURRENT   800
+#define X2_CURRENT  800
+#define Y_CURRENT   800
+#define Y2_CURRENT  800
+#define Z_CURRENT   800
+#define Z2_CURRENT  800
+#define E0_CURRENT  800
+#define E1_CURRENT  800
+#define E2_CURRENT  800
+#define E3_CURRENT  800
+#define E4_CURRENT  800
+#define E5_CURRENT  800
 
 // Motor Current setting (Only functional when motor driver current
 // ref pins are connected to a digital trimpot on supported boards)
