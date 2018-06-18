@@ -447,7 +447,7 @@
 #endif
 
 // One hotend, multi-extruder
-#if ENABLED(SINGLENOZZLE) || (HOTENDS <= 1)
+#if ENABLED(SINGLENOZZLE) || (EXTRUDERS <= 1)
   #undef HOTENDS
   #define HOTENDS           1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
