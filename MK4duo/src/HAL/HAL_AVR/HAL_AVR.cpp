@@ -50,13 +50,54 @@
  * ARDUINO_ARCH_ARM
  */
 
+#include "../../../MK4duo.h"
+
+#if ENABLED(__AVR__)
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
 
-#include "../../../MK4duo.h"
+#include "HAL_AVR.h"
 
-#if ENABLED(__AVR__)
+// --------------------------------------------------------------------------
+// Externals
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Local defines
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Public Variables
+// --------------------------------------------------------------------------
+
+uint16_t  HAL_min_pulse_cycle     = 0,
+          HAL_min_pulse_tick      = 0,
+          HAL_add_pulse_ticks     = 0;
+
+uint32_t  HAL_min_isr_frequency   = 0,
+          HAL_frequency_limit[8]  = { 0 };
+
+// --------------------------------------------------------------------------
+// Private Variables
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Function prototypes
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Private functions
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Public functions
+// --------------------------------------------------------------------------
 
 #if ANALOG_INPUTS > 0
   int32_t AnalogInputRead[ANALOG_INPUTS];
@@ -109,6 +150,27 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   }
 }
 
+uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
+  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
+}
+
+void HAL_calc_pulse_cycle() {
+  HAL_min_pulse_cycle   = MAX((F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * stepper.minimum_pulse);
+  HAL_min_pulse_tick    = stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US);
+  HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
+
+  // The stepping frequency limits for each multistepping rate
+  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))   >> 0;
+  HAL_frequency_limit[1] = ((F_CPU) / HAL_isr_execuiton_cycle(2))   >> 1;
+  HAL_frequency_limit[2] = ((F_CPU) / HAL_isr_execuiton_cycle(4))   >> 2;
+  HAL_frequency_limit[3] = ((F_CPU) / HAL_isr_execuiton_cycle(8))   >> 3;
+  HAL_frequency_limit[4] = ((F_CPU) / HAL_isr_execuiton_cycle(16))  >> 4;
+  HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
+  HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
+  HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
+}
+
 uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
 
   uint32_t timer = 0;
@@ -118,29 +180,17 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8
   step_rate <<= scale;
 
   #if DISABLED(DISABLE_MULTI_STEPPING)
-
-    // The stepping frequency limits for each multistepping rate
-    static const uint32_t limit[] PROGMEM = {
-      (  MAX_1X_STEP_ISR_FREQUENCY     ),
-      (  MAX_2X_STEP_ISR_FREQUENCY >> 1),
-      (  MAX_4X_STEP_ISR_FREQUENCY >> 2),
-      (  MAX_8X_STEP_ISR_FREQUENCY >> 3),
-      ( MAX_16X_STEP_ISR_FREQUENCY >> 4),
-      ( MAX_32X_STEP_ISR_FREQUENCY >> 5),
-      ( MAX_64X_STEP_ISR_FREQUENCY >> 6),
-      (MAX_128X_STEP_ISR_FREQUENCY >> 7)
-    };
-
     // Select the proper multistepping
     uint8_t idx = 0;
-    while (idx < 7 && step_rate > (uint32_t)pgm_read_dword(&limit[idx])) {
+    while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
       step_rate >>= 1;
       multistep <<= 1;
       ++idx;
     };
   #else
-    NOMORE(step_rate, uint32_t(MAX_1X_STEP_ISR_FREQUENCY));
+    NOMORE(step_rate, HAL_min_isr_frequency);
   #endif
+
   *loops = multistep;
 
   constexpr uint32_t min_step_rate = F_CPU / 500000U;

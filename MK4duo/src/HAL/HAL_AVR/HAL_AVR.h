@@ -198,6 +198,84 @@ typedef uint16_t  ptr_int_t;
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
 #define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 
+// Estimate the amount of time the ISR will take to execute
+// The base ISR takes 752 cycles
+#define ISR_BASE_CYCLES         752UL
+
+// Linear advance base time is 32 cycles
+#if ENABLED(LIN_ADVANCE)
+  #define ISR_LA_BASE_CYCLES    32UL
+#else
+  #define ISR_LA_BASE_CYCLES    0UL
+#endif
+
+// Bezier interpolation adds 160 cycles
+#if ENABLED(BEZIER_JERK_CONTROL)
+  #define ISR_BEZIER_CYCLES     160UL
+#else
+  #define ISR_BEZIER_CYCLES     0UL
+#endif
+
+// Stepper Loop base cycles
+#define ISR_LOOP_BASE_CYCLES    32UL
+
+// And each stepper takes 88 cycles
+#define ISR_STEPPER_CYCLES      88UL
+
+// For each stepper, we add its time
+#if HAS_X_STEP
+  #define ISR_X_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_X_STEPPER_CYCLES  0UL
+#endif
+
+// For each stepper, we add its time
+#if HAS_Y_STEP
+  #define ISR_Y_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_Y_STEPPER_CYCLES  0UL
+#endif
+
+// For each stepper, we add its time
+#if HAS_Z_STEP
+  #define ISR_Z_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_Z_STEPPER_CYCLES  0UL
+#endif
+
+// E is always interpolated
+#define ISR_E_STEPPER_CYCLES    ISR_STEPPER_CYCLES
+
+// If linear advance is disabled, then the loop also handles them
+#if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
+  #define ISR_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * ISR_STEPPER_CYCLES)
+#else
+  #define ISR_MIXING_STEPPER_CYCLES 0UL
+#endif
+
+// And the total minimum loop time is, without including the base
+#define MIN_ISR_LOOP_CYCLES (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
+
+// But the user could be enforcing a minimum time, so the loop time is
+#define ISR_LOOP_CYCLES (ISR_LOOP_BASE_CYCLES + MAX(HAL_min_pulse_cycle, MIN_ISR_LOOP_CYCLES))
+
+// If linear advance is enabled, then it is handled separately
+#if ENABLED(LIN_ADVANCE)
+
+  // Estimate the minimum LA loop time
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
+  #else
+    #define MIN_ISR_LA_LOOP_CYCLES  ISR_STEPPER_CYCLES
+  #endif
+
+  // And the real loop time
+  #define ISR_LA_LOOP_CYCLES  MAX(HAL_min_pulse_cycle, MIN_ISR_LA_LOOP_CYCLES)
+
+#else
+  #define ISR_LA_LOOP_CYCLES  0UL
+#endif
+
 /* 18 cycles maximum latency */
 #define HAL_STEPPER_TIMER_ISR \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
@@ -337,6 +415,25 @@ void TIMER0_COMPB_vect (void) { \
 } \
 void TIMER0_COMPB_vect_bottom(void)
 
+// --------------------------------------------------------------------------
+// Public Variables
+// --------------------------------------------------------------------------
+
+extern uint16_t HAL_min_pulse_cycle,
+                HAL_min_pulse_tick,
+                HAL_add_pulse_ticks;
+
+extern uint32_t HAL_min_isr_frequency,
+                HAL_frequency_limit[8];
+
+// --------------------------------------------------------------------------
+// Private Variables
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Public functions
+// --------------------------------------------------------------------------
+
 class InterruptProtectedBlock {
   uint8_t sreg;
   public:
@@ -359,6 +456,8 @@ class InterruptProtectedBlock {
 };
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
+
+void HAL_calc_pulse_cycle();
 
 uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale);
 

@@ -61,6 +61,9 @@ class Stepper {
       static bool homing_dual_axis;
     #endif
 
+    static uint8_t  minimum_pulse;
+    static uint32_t maximum_rate;
+
   private: /** Private Parameters */
 
     static uint8_t  last_direction_bits,    // The next stepping-bits to be output
