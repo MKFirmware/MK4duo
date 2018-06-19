@@ -6,7 +6,7 @@
 * Add Bézier Jerk Control
 * Add Safety Timer, after 30 minutes if not printing (SD or M530 S1) the heaters switch off.
 * Rewrite SD Restart for auto restart when power loss and return.
-* Add command gcode M569 for setting Stepper Driver DIR.
+* Add command gcode M569 for Stepper driver control: Dir, minimum pulse and maximum rate.
 * Fix and clear code
 
 ### Version 4.3.5 Stable

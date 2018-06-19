@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV47"
+#define EEPROM_VERSION "MKV48"
 
 /**
- * MKV47 EEPROM Layout:
+ * MKV48 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -169,8 +169,10 @@
  *
  *  M???  S               printer.IDLE_OOZING_enabled
  *
- * Stepper driver direction
- *  M569  XYZ T0-5 E     stepper.direction_flag                 (uint16_t)
+ * Stepper driver control
+ *  M569  XYZ T0-5 E      stepper.direction_flag                (uint16_t)
+ *  M569  P               stepper.minimum_pulse                 (uint8_t)
+ *  M569  R-L             stepper.maximum_rate                  (uint32_t)
  *
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current                         (float x7)
@@ -230,6 +232,9 @@ void EEPROM::Postprocess() {
     mechanics.current_position[Y_AXIS],
     mechanics.current_position[Z_AXIS]
   };
+
+  // Recalculate pulse cycle
+  HAL_calc_pulse_cycle();
 
   // steps per s2 needs to be updated to agree with units per s2
   planner.reset_acceleration_rates();
@@ -529,6 +534,8 @@ void EEPROM::Postprocess() {
     #endif
 
     EEPROM_WRITE(stepper.direction_flag);
+    EEPROM_WRITE(stepper.minimum_pulse);
+    EEPROM_WRITE(stepper.maximum_rate);
 
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       EEPROM_WRITE(externaldac.motor_current);
@@ -993,6 +1000,8 @@ void EEPROM::Postprocess() {
       #endif
 
       EEPROM_READ(stepper.direction_flag);
+      EEPROM_READ(stepper.minimum_pulse);
+      EEPROM_READ(stepper.maximum_rate);
 
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
         EEPROM_READ(externaldac.motor_current);
@@ -1355,6 +1364,9 @@ void EEPROM::Factory_Settings() {
 
   constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
   LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
+
+  stepper.minimum_pulse = MINIMUM_STEPPER_PULSE;
+  stepper.maximum_rate  = MAXIMUM_STEPPER_RATE;
 
   static_assert(
     tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
@@ -2255,7 +2267,7 @@ void EEPROM::Factory_Settings() {
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**
-     * Stepper Direction
+     * Stepper driver control
      */
     CONFIG_MSG_START_E("Stepper Direction:");
     SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
@@ -2271,6 +2283,9 @@ void EEPROM::Factory_Settings() {
         SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
       }
     #endif
+    CONFIG_MSG_START_E("Stepper driver control:");
+    SERIAL_SMV(CFG, "  M569 P", stepper.minimum_pulse);
+    SERIAL_EMV(" R", stepper.maximum_rate);
 
     /**
      * Alligator current drivers M906

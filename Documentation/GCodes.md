@@ -174,7 +174,7 @@
 | M531 | ? | filename - Define filename being printed
 | M532 | ? | ```X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L```
 | M540 | ABORT_ON_ENDSTOP_HIT _FEATURE_ENABLED | Use S[0\|1] to enable or disable the stop print on endstop hit
-| M569 | ? | Set Stepper Direction X<bool> Y<bool> Z<bool> T<extruders> E<bool>
+| M569 | ? | Stepper driver control X<bool> Y<bool> Z<bool> T<extruders> E<bool> set direction, P<int> set minimum pulse, R<long> set maximum rate.
 | M595 | ? | Set hotend AD595 offset and gain
 | M600 | ADVANCED_PAUSE_FEATURE | Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift] E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
 | M603 | ADVANCED_PAUSE_FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
