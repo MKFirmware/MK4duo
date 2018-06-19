@@ -278,6 +278,7 @@
  * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
  * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
  * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+ * M915 - TMC Z axis calibration routine. (Requires TMC)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
