@@ -1927,7 +1927,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #if ENABLED(LIN_ADVANCE)
 
       #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK (mechanics.max_e_jerk_factor * max_acceleration_mm_per_s2[E_AXIS_N])
+        #define MAX_E_JERK (mechanics.max_e_jerk_factor * mechanics.max_acceleration_mm_per_s2[E_AXIS_N])
       #else
         #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N]
       #endif
