@@ -2355,7 +2355,7 @@
  ********************************* Start / Stop Gcode ************************************
  *****************************************************************************************
  *                                                                                       *
- * Start - Stop Gcode use when Start or Stop printing width M530 command                 *
+ * Start - Stop Gcode use when Start or Stop printing with M530 command                 *
  *                                                                                       *
  *****************************************************************************************/
 //#define START_GCODE

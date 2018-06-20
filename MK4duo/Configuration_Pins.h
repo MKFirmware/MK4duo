@@ -136,7 +136,7 @@
 #define X2_MAX_PIN          NoPin
 #define Y2_MAX_PIN          NoPin
 #define Z2_MAX_PIN          NoPin
-#define Z_PROBE_PIN         NoPin
+#define Z_PROBE_PIN         ORIG_Z_PROBE_PIN
 
 // HEATER pins
 #define HEATER_0_PIN        ORIG_HEATER_0_PIN
@@ -144,7 +144,7 @@
 #define HEATER_2_PIN        ORIG_HEATER_2_PIN
 #define HEATER_3_PIN        ORIG_HEATER_3_PIN
 #define HEATER_BED_PIN      ORIG_HEATER_BED_PIN
-#define HEATER_CHAMBER_PIN  NoPin
+#define HEATER_CHAMBER_PIN  ORIG_HEATER_CHAMBER_PIN
 #define HEATER_COOLER_PIN   NoPin
 
 // TEMP pins
@@ -153,7 +153,7 @@
 #define TEMP_2_PIN          ORIG_TEMP_2_PIN
 #define TEMP_3_PIN          ORIG_TEMP_3_PIN
 #define TEMP_BED_PIN        ORIG_TEMP_BED_PIN
-#define TEMP_CHAMBER_PIN    NoPin
+#define TEMP_CHAMBER_PIN    ORIG_TEMP_CHAMBER_PIN
 #define TEMP_COOLER_PIN     NoPin
 
 // FAN pins
@@ -236,7 +236,7 @@
 #endif
 
 #if ENABLED(CASE_LIGHT)
-  #define CASE_LIGHT_PIN NoPin
+  #define CASE_LIGHT_PIN          ORIG_CASE_LIGHT_PIN
 #endif
 
 #if ENABLED(DOOR_OPEN)
