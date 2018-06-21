@@ -3563,7 +3563,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       }
     #endif
 
-    #if IS_DELTA
+    #if IS_DELTA && DISABLED(JUNCTION_DEVIATION)
       void _mechanics_set_jerk() {
         mechanics.max_jerk[Y_AXIS] = mechanics.max_jerk[Z_AXIS] = mechanics.max_jerk[X_AXIS];
       }
