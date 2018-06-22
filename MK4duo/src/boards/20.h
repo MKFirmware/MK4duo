@@ -131,7 +131,7 @@
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN              NoPin
+#define ORIG_FAN0_PIN              31
 #define ORIG_FAN1_PIN              NoPin
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
@@ -160,13 +160,4 @@
 
 //###UNKNOWN_PINS
 #define BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE
-//@@@
-
-//###IF_BLOCKS
-#if (GEN7_VERSION >= 13)
-  // Gen7 v1.3 removed the fan pin
-  #define ORIG_FAN0_PIN NoPin
-#else
-  #define ORIG_FAN0_PIN 31
-#endif
 //@@@
