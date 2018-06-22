@@ -43,7 +43,7 @@ static void i2c_send(byte addr, byte a, byte b) {
 
 // This is for the MCP4451 I2C based digipot
 void digipot_i2c_set_current(int channel, float current) {
-  current = min((float) max(current, 0.0f), DIGIPOT_I2C_MAX_CURRENT);
+  current = min((float) MAX(current, 0.0f), DIGIPOT_I2C_MAX_CURRENT);
   // these addresses are specific to Azteeg X3 Pro, can be set to others,
   // In this case first digipot is at address A0=0, A1= 0, second one is at A0=0, A1= 1
   byte addr = 0x2C; // channel 0-3
@@ -53,8 +53,8 @@ void digipot_i2c_set_current(int channel, float current) {
   }
 
   // Initial setup
-  i2c_send(addr, 0x40, 0xff);
-  i2c_send(addr, 0xA0, 0xff);
+  i2c_send(addr, 0x40, 0xFF);
+  i2c_send(addr, 0xA0, 0xFF);
 
   // Set actual wiper value
   byte addresses[4] = { 0x00, 0x10, 0x60, 0x70 };

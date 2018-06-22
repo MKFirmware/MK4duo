@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+#if ENABLED(ABORT_ON_ENDSTOP_HIT)
 
   #define CODE_M540
 
@@ -34,7 +34,7 @@
    * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
    */
   inline void gcode_M540(void) {
-    if (parser.seen('S')) stepper.abort_on_endstop_hit = parser.value_bool();
+    if (parser.seen('S')) planner.abort_on_endstop_hit = parser.value_bool();
   }
 
-#endif // ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+#endif // ENABLED(ABORT_ON_ENDSTOP_HIT)

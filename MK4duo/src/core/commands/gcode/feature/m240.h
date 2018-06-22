@@ -36,7 +36,7 @@
   inline void gcode_M240(void) {
     #if HAS_CHDK
        OUT_WRITE(CHDK_PIN, HIGH);
-       printer.chdkHigh = millis();
+       printer.chdk_watch.start();
        printer.chdkActive = true;
     #elif HAS_PHOTOGRAPH
       const uint8_t NUM_PULSES = 16;

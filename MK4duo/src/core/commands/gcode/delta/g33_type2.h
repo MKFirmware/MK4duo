@@ -134,10 +134,10 @@
     return 0.00001;
   }
 
-  static bool probe_calibration_points(float z_pt[NPP + 1], const int8_t probe_points, const bool towers_set, const bool stow_after_each) {
+  static bool probe_calibration_points(float z_pt[NPP + 1], const uint8_t probe_points, const bool towers_set, const bool stow_after_each) {
 
     const bool  _0p_calibration      = probe_points == 0,
-                _1p_calibration      = probe_points == 1 || probe_points == -1,
+                _1p_calibration      = probe_points == 1,
                 _4p_calibration      = probe_points == 2,
                 _4p_opposite_points  = _4p_calibration && !towers_set,
                 _7p_calibration      = probe_points >= 3 || probe_points == 0,
@@ -158,7 +158,7 @@
     if (!_0p_calibration) {
 
       if (!_7p_no_intermediates && !_7p_4_intermediates && !_7p_11_intermediates) { // probe the center
-        z_pt[CEN] += probe.check_pt(0, 0, stow_after_each, 0, false);
+        z_pt[CEN] += probe.check_pt(0, 0, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
         if (isnan(z_pt[CEN])) return false;
       }
 
@@ -168,7 +168,7 @@
         I_LOOP_CAL_PT(rad, start, steps) {
           const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                       r = mechanics.delta_probe_radius * 0.1;
-          z_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+          z_pt[CEN] += probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
           if (isnan(z_pt[CEN])) return false;
         }
         z_pt[CEN] /= float(_7p_2_intermediates ? 7 : probe_points);
@@ -193,7 +193,7 @@
             const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                         r = mechanics.delta_probe_radius * (1 - 0.1 * (zig_zag ? offset - circle : circle)),
                         interpol = FMOD(rad, 1);
-            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each, 0, false);
+            const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
             if (isnan(z_temp)) return false;
             // split probe point to neighbouring calibration points
             z_pt[uint8_t(round(rad - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
@@ -209,10 +209,7 @@
         }
 
         // goto centre
-        const float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-        mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
         mechanics.do_blocking_move_to_xy(0, 0);
-        mechanics.feedrate_mm_s = old_feedrate_mm_s;
       }
     }
     return true;
@@ -220,7 +217,6 @@
 
   /**
    * kinematics routines and auto tune matrix scaling parameters:
-   * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
    *  - formulae for approximative forward kinematics in the end-stop displacement matrix
    *  - definition of the matrix scaling parameters
    */
@@ -353,17 +349,13 @@
    */
   inline void gcode_G33(void) {
 
-    const int8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
+    const uint8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
     if (!WITHIN(probe_points, 0, 10)) {
       SERIAL_EM("?(P)oints is implausible (0-10).");
       return;
     }
 
-    const int8_t verbose_level = parser.byteval('V', 1);
-    if (!WITHIN(verbose_level, 0, 3)) {
-      SERIAL_EM("?(V)erbose Level is implausible (0-3).");
-      return;
-    }
+    const bool towers_set = !parser.seen('T');
 
     const float calibration_precision = parser.floatval('C', 0.0);
     if (calibration_precision < 0) {
@@ -377,16 +369,22 @@
       return;
     }
 
-    const bool  towers_set          = !parser.boolval('T'),
-                stow_after_each     = parser.boolval('E'),
-                _0p_calibration     = probe_points == 0,
+    const int8_t verbose_level = parser.byteval('V', 1);
+    if (!WITHIN(verbose_level, 0, 3)) {
+      SERIAL_EM("?(V)erbose Level is implausible (0-3).");
+      return;
+    }
+
+    const bool stow_after_each = parser.seen('E');
+
+    const bool  _0p_calibration     = probe_points == 0,
                 _1p_calibration     = probe_points == 1,
                 _4p_calibration     = probe_points == 2,
                 _4p_opposite_points = _4p_calibration && !towers_set,
                 _7p_9_centre        = probe_points >= 8,
                 _tower_results      = (_4p_calibration && towers_set) || probe_points >= 3,
                 _opposite_results   = (_4p_calibration && !towers_set) || probe_points >= 3,
-                _endstop_results    = probe_points != 1 && probe_points != -1 && probe_points != 0,
+                _endstop_results    = probe_points != 1 && probe_points != 0,
                 _angle_results      = probe_points >= 3  && towers_set;
 
     const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
@@ -445,7 +443,7 @@
 
     Report_settings(_endstop_results, _angle_results);
 
-    stepper.synchronize();
+    planner.synchronize();
     printer.setup_for_endstop_or_probe_move();
     if (!_0p_calibration && !mechanics.home()) return;
 
@@ -487,7 +485,6 @@
 
         /**
          * convergence matrices:
-         * see https://github.com/LVD-AC/Marlin-AC/tree/1.1.x-AC/documentation for  
          *  - definition of the matrix scaling parameters
          *  - matrices for 4 and 7 point calibration
          */

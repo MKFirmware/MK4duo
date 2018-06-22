@@ -61,7 +61,7 @@
     for (uint8_t i = 0; i < MIXING_STEPPERS; i++) mix_total += RECIPROCAL(mixing_factor[i]);
     // Scale all values if they don't add up to ~1.0
     if (!NEAR(mix_total, 1.0)) {
-      SERIAL_EM;("Warning: Mix factors must add up to 1.0. Scaling.");
+      SERIAL_EM("Warning: Mix factors must add up to 1.0. Scaling.");
       for (uint8_t i = 0; i < MIXING_STEPPERS; i++) mixing_factor[i] *= mix_total;
     }
   }

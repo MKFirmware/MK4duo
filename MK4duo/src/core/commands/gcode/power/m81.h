@@ -35,7 +35,7 @@
  */
 inline void gcode_M81(void) {
   thermalManager.disable_all_heaters();
-  stepper.finish_and_disable();
+  planner.finish_and_disable();
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
@@ -59,7 +59,6 @@ inline void gcode_M81(void) {
   printer.safe_delay(1000); // Wait 1 second before switching off
 
   #if HAS_SUICIDE
-    stepper.synchronize();
     printer.suicide();
   #elif HAS_POWER_SWITCH
     powerManager.power_off();

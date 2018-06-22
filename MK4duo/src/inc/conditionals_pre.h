@@ -28,6 +28,10 @@
 #ifndef _CONDITIONALS_PRE_H_
 #define _CONDITIONALS_PRE_H_
 
+#if DISABLED(STRING_CONFIG_H_AUTHOR)
+  #define STRING_CONFIG_H_AUTHOR "(none, default config)"
+#endif
+
 #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 #if ENABLED(NEXTION)
@@ -138,13 +142,13 @@
 
   #define REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
   #ifndef ST7920_DELAY_1
-    #define ST7920_DELAY_1 DELAY_2_NOP
+    #define ST7920_DELAY_1 DELAY_NS(125)
   #endif
   #ifndef ST7920_DELAY_2
-    #define ST7920_DELAY_2 DELAY_2_NOP
+    #define ST7920_DELAY_2 DELAY_NS(125)
   #endif
   #ifndef ST7920_DELAY_3
-    #define ST7920_DELAY_3 DELAY_2_NOP
+    #define ST7920_DELAY_3 DELAY_NS(125)
   #endif
 
 #elif ENABLED(MKS_12864OLED)
@@ -317,6 +321,10 @@
   #endif
 #endif
 
+#if ENABLED(NO_LCD_MENUS)
+  #undef ULTIPANEL
+#endif
+
 #if ENABLED(ULTIPANEL)
   #define NEWPANEL  // Disable this if you actually have no click-encoder panel
   #define ULTRA_LCD
@@ -403,9 +411,6 @@
   #define BOOTSCREEN_TIMEOUT 2500
 #endif
 
-#define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
-#define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
-
 /**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
@@ -416,7 +421,7 @@
  *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
  *
  */
-#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends 
+#if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends
   #undef SINGLENOZZLE
   #undef EXTRUDERS
   #undef DRIVER_EXTRUDERS
@@ -441,9 +446,8 @@
   #define TOOL_E_INDEX      current_block->active_extruder
 #endif
 
-#define TOOL_DE_INDEX       current_block->active_driver
-
-#if ENABLED(SINGLENOZZLE)                 // One hotend, multi-extruder
+// One hotend, multi-extruder
+#if ENABLED(SINGLENOZZLE) || (EXTRUDERS <= 1)
   #undef HOTENDS
   #define HOTENDS           1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
@@ -453,48 +457,39 @@
   #define HOTEND_OFFSET_X   { 0 }
   #define HOTEND_OFFSET_Y   { 0 }
   #define HOTEND_OFFSET_Z   { 0 }
+  #define HOTEND_INDEX      0
+  #define ACTIVE_HOTEND     0
+  #define TARGET_HOTEND     0
 #else
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
+  #define HOTEND_INDEX      h
+  #define ACTIVE_HOTEND     tools.active_extruder
+  #define TARGET_HOTEND     tools.target_extruder
 #endif
 
 /**
  * Multi-extruders support
  */
 #if EXTRUDERS > 1
-  #define XYZE_N    3 + EXTRUDERS
-  #define E_AXIS_N  (E_AXIS + extruder)
-  #define E_INDEX   (E_AXIS + tools.active_extruder)
-  #define GET_TARGET_EXTRUDER(CMD) if (commands.get_target_tool(CMD)) return
+  #define XYZE_N          (3 + EXTRUDERS)
+  #define E_AXIS_N        (E_AXIS + extruder)
+  #define E_INDEX         (E_AXIS + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
-  #define XYZE_N    XYZE
-  #define E_AXIS_N  E_AXIS
-  #define E_INDEX   E_AXIS
-  #define GET_TARGET_EXTRUDER(CMD) NOOP
+  #define XYZE_N          XYZE
+  #define E_AXIS_N        E_AXIS
+  #define E_INDEX         E_AXIS
   #define TARGET_EXTRUDER 0
 #elif EXTRUDERS == 0
   #undef PIDTEMP
-  #define PIDTEMP false
+  #define PIDTEMP         false
   #undef FWRETRACT
-  #define XYZE_N    XYZ
-  #define E_AXIS_N  0
-  #define E_INDEX   0
-  #define GET_TARGET_EXTRUDER(CMD) NOOP
+  #define XYZE_N          XYZ
+  #define E_AXIS_N        0
+  #define E_INDEX         0
   #define TARGET_EXTRUDER 0
 #endif
-
-/**
- * Multi-hotends support
- */
-#if HOTENDS > 1
-  #define GET_TARGET_HOTEND(CMD) if (commands.get_target_tool(CMD)) return
-#else
-  #define GET_TARGET_HOTEND(CMD) NOOP
-#endif
-
-#define HAS_SOFTWARE_ENDSTOPS (ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS))
-#define HAS_RESUME_CONTINUE   (HAS_LCD || ENABLED(EMERGENCY_PARSER))
 
 /**
  * The BLTouch Probe emulates a servo probe
@@ -503,13 +498,13 @@
   #if DISABLED(ENABLE_SERVOS)
     #define ENABLE_SERVOS
   #endif
-  #if Z_ENDSTOP_SERVO_NR < 0
-    #undef Z_ENDSTOP_SERVO_NR
-    #define Z_ENDSTOP_SERVO_NR 0
+  #if Z_PROBE_SERVO_NR < 0
+    #undef Z_PROBE_SERVO_NR
+    #define Z_PROBE_SERVO_NR 0
   #endif
   #if NUM_SERVOS < 1
     #undef NUM_SERVOS
-    #define NUM_SERVOS (Z_ENDSTOP_SERVO_NR + 1)
+    #define NUM_SERVOS (Z_PROBE_SERVO_NR + 1)
   #endif
   #undef DEACTIVATE_SERVOS_AFTER_MOVE
   #undef SERVO_DEACTIVATION_DELAY
@@ -517,18 +512,14 @@
   #if DISABLED(BLTOUCH_DELAY)
     #define BLTOUCH_DELAY 375
   #endif
-  #undef Z_ENDSTOP_SERVO_ANGLES
-  #define Z_ENDSTOP_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
+  #undef Z_SERVO_ANGLES
+  #define Z_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
 
   #define BLTOUCH_DEPLOY    10
   #define BLTOUCH_STOW      90
   #define BLTOUCH_SELFTEST 120
   #define BLTOUCH_RESET    160
-#endif
 
-/**
- * RGB Leds
- */
-#define HAS_COLOR_LEDS  (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_LED))
+#endif
 
 #endif /* _CONDITIONALS_PRE_H_ */

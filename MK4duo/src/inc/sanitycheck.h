@@ -44,9 +44,6 @@
 #if DISABLED(BAUDRATE)
   #error "DEPENDENCY ERROR: Missing setting BAUDRATE."
 #endif
-#if DISABLED(STRING_CONFIG_H_AUTHOR)
-  #define STRING_CONFIG_H_AUTHOR "(none, default config)"
-#endif
 #if DISABLED(MACHINE_UUID)
   #error "DEPENDENCY ERROR: Missing setting MACHINE_UUID."
 #endif
@@ -83,20 +80,22 @@
 #include "../lcd/sanitycheck.h"
 #include "../sd/sanitycheck.h"
 
-#include "../feature/laser/sanitycheck.h"
-#include "../feature/cncrouter/sanitycheck.h"
-#include "../feature/mixing/sanitycheck.h"
-#include "../feature/power/sanitycheck.h"
-#include "../feature/rgbled/sanitycheck.h"
-#include "../feature/servo/sanitycheck.h"
-#include "../feature/probe/sanitycheck.h"
+#include "../feature/advanced_pause/sanitycheck.h"
 #include "../feature/bedlevel/sanitycheck.h"
+#include "../feature/caselight/sanitycheck.h"
+#include "../feature/cncrouter/sanitycheck.h"
 #include "../feature/filament/sanitycheck.h"
 #include "../feature/filamentrunout/sanitycheck.h"
 #include "../feature/flowmeter/sanitycheck.h"
 #include "../feature/fwretract/sanitycheck.h"
-#include "../feature/advanced_pause/sanitycheck.h"
-#include "../feature/caselight/sanitycheck.h"
+#include "../feature/laser/sanitycheck.h"
+#include "../feature/mixing/sanitycheck.h"
+#include "../feature/power/sanitycheck.h"
+#include "../feature/probe/sanitycheck.h"
+#include "../feature/restart/sanitycheck.h"
+#include "../feature/rgbled/sanitycheck.h"
+#include "../feature/servo/sanitycheck.h"
+#include "../feature/tmc/sanitycheck.h"
 
 // CONTROLLI ANCORA DA RICOLLOCARE...
 

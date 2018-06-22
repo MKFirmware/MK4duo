@@ -67,7 +67,7 @@
       return;
     }
 
-    const bool stow_probe_after_each = parser.seen('E');
+    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     float X_current = mechanics.current_position[X_AXIS],
           Y_current = mechanics.current_position[Y_AXIS];
@@ -121,7 +121,7 @@
     double mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     // Move to the first point, deploy, and probe
-    const float t = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, verbose_level);
+    const float t = probe.check_pt(X_probe_location, Y_probe_location, raise_after, verbose_level);
     bool probing_good = !isnan(t);
 
     if (probing_good) {
@@ -137,7 +137,7 @@
               (int)(0.1250000000 * mechanics.delta_probe_radius),
               (int)(0.3333333333 * mechanics.delta_probe_radius)
             #else
-              5, (int)(0.125 * min(X_MAX_LENGTH, Y_MAX_LENGTH))
+              5, (int)(0.125 * MIN(X_MAX_LENGTH, Y_MAX_LENGTH))
             #endif
           );
 
@@ -198,7 +198,7 @@
         } // n_legs
 
         // Probe a single point
-        sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, stow_probe_after_each, 0);
+        sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, raise_after, 0);
 
         // Break the loop if the probe fails
         probing_good = !isnan(sample_set[n]);

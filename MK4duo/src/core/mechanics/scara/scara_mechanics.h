@@ -92,7 +92,7 @@
       void set_axis_is_at_home(const AxisEnum axis);
 
       void set_position_mm_kinematic(const float position[NUM_AXIS]);
-      void sync_plan_position_kinematic();
+      void sync_plan_position_mech_specific();
 
       void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
       bool position_is_reachable(const float &rx, const float &ry) override;

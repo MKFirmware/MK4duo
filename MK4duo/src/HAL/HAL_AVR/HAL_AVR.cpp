@@ -50,13 +50,54 @@
  * ARDUINO_ARCH_ARM
  */
 
+#include "../../../MK4duo.h"
+
+#if ENABLED(__AVR__)
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
 
-#include "../../../MK4duo.h"
+#include "HAL_AVR.h"
 
-#if ENABLED(__AVR__)
+// --------------------------------------------------------------------------
+// Externals
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Local defines
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Public Variables
+// --------------------------------------------------------------------------
+
+uint16_t  HAL_min_pulse_cycle     = 0,
+          HAL_min_pulse_tick      = 0,
+          HAL_add_pulse_ticks     = 0;
+
+uint32_t  HAL_min_isr_frequency   = 0,
+          HAL_frequency_limit[8]  = { 0 };
+
+// --------------------------------------------------------------------------
+// Private Variables
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Function prototypes
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Private functions
+// --------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------
+// Public functions
+// --------------------------------------------------------------------------
 
 #if ANALOG_INPUTS > 0
   int32_t AnalogInputRead[ANALOG_INPUTS];
@@ -77,32 +118,100 @@ HAL::~HAL() {
   // dtor
 }
 
-void HAL_stepper_timer_start() {
-  // waveform generation = 0100 = CTC
-  CBI(TCCR1B, WGM13);
-  SBI(TCCR1B, WGM12);
-  CBI(TCCR1A, WGM11);
-  CBI(TCCR1A, WGM10);
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-  // output mode = 00 (disconnected)
-  TCCR1A &= ~(3 << COM1A0);
-  TCCR1A &= ~(3 << COM1B0);
+  UNUSED(frequency);
 
-  // Set the timer pre-scaler
-  // Generally we use a divider of 8, resulting in a 2MHz timer
-  // frequency on a 16MHz MCU. If you are going to change this, be
-  // sure to regenerate speed_lookuptable.h with
-  // create_speed_lookuptable.py
-  TCCR1B = (TCCR1B & ~(0x07 << CS10)) | (2 << CS10);
+  switch (timer_num) {
 
-  // Init Stepper ISR to 122 Hz for quick starting
-  OCR1A = 0x4000;
-  TCNT1 = 0;
+    case STEPPER_TIMER:
+      // waveform generation = 0100 = CTC
+      SET_WGM(1, CTC_OCRnA);
+
+      // output mode = 00 (disconnected)
+      SET_COMA(1, NORMAL);
+
+      // Set the timer pre-scaler
+      // Generally we use a divider of 8, resulting in a 2MHz timer
+      // frequency on a 16MHz MCU. If you are going to change this, be
+      // sure to regenerate speed_lookuptable.h with
+      // create_speed_lookuptable.py
+      SET_CS(1, PRESCALER_8);  //  CS 2 = 1/8 prescaler
+
+      // Init Stepper ISR to 122 Hz for quick starting
+      OCR1A = 0x4000;
+      TCNT1 = 0;
+      break;
+
+    case TEMP_TIMER:
+      TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
+      TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+      break;
+  }
 }
 
-void HAL_temp_timer_start() {
-  TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
-  TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
+  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
+}
+
+void HAL_calc_pulse_cycle() {
+  HAL_min_pulse_cycle   = MAX((F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * stepper.minimum_pulse);
+  HAL_min_pulse_tick    = stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US);
+  HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
+
+  // The stepping frequency limits for each multistepping rate
+  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))   >> 0;
+  HAL_frequency_limit[1] = ((F_CPU) / HAL_isr_execuiton_cycle(2))   >> 1;
+  HAL_frequency_limit[2] = ((F_CPU) / HAL_isr_execuiton_cycle(4))   >> 2;
+  HAL_frequency_limit[3] = ((F_CPU) / HAL_isr_execuiton_cycle(8))   >> 3;
+  HAL_frequency_limit[4] = ((F_CPU) / HAL_isr_execuiton_cycle(16))  >> 4;
+  HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
+  HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
+  HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
+}
+
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
+
+  uint32_t timer = 0;
+  uint8_t multistep = 1;
+
+  // Scale the frequency, as requested by the caller
+  step_rate <<= scale;
+
+  #if DISABLED(DISABLE_MULTI_STEPPING)
+    // Select the proper multistepping
+    uint8_t idx = 0;
+    while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
+      step_rate >>= 1;
+      multistep <<= 1;
+      ++idx;
+    };
+  #else
+    NOMORE(step_rate, HAL_min_isr_frequency);
+  #endif
+
+  *loops = multistep;
+
+  constexpr uint32_t min_step_rate = F_CPU / 500000U;
+  NOLESS(step_rate, min_step_rate);
+  step_rate -= min_step_rate;   // Correct for minimal speed
+  if (step_rate >= (8 * 256)) { // higher step rate
+    const uint8_t   tmp_step_rate = (step_rate & 0x00FF);
+    const uint16_t  table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0],
+                    gain = (uint16_t)pgm_read_word_near(table_address + 2);
+    timer = MultiU16X8toH16(tmp_step_rate, gain);
+    timer = (uint16_t)pgm_read_word_near(table_address) - timer;
+  }
+  else { // lower step rates
+    uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
+    table_address += ((step_rate) >> 1) & 0xFFFC;
+    timer = (uint16_t)pgm_read_word_near(table_address)
+          - (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
+  }
+
+  return timer;
+
 }
 
 bool HAL::execute_100ms = false;
@@ -176,7 +285,8 @@ void HAL::showStartReason() {
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
-    HAL_TEMP_TIMER_START();
+    HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY);
+
     ENABLE_TEMP_INTERRUPT();
 
   }
@@ -255,24 +365,7 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-/**
- * Timer 0 is is called 3906 timer per second.
- * It is used to update pwm values for heater and some other frequent jobs.
- *
- *  - Manage PWM to all the heaters and fan
- *  - Prepare or Measure one of the raw ADC sensor values
- *  - Step the babysteps value for each axis towards 0
- *  - For PINS_DEBUGGING, monitor and report endstop pins
- *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
- */
-HAL_TEMP_TIMER_ISR {
-
-  TEMP_OCR += 64;
-
-  if (!printer.isRunning()) return;
-
-  // Allow UART ISRs
-  HAL_DISABLE_ISRs();
+void HAL_temp_isr() {
 
   static uint16_t cycle_100ms       = 0;
 
@@ -334,9 +427,14 @@ HAL_TEMP_TIMER_ISR {
       channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
       AnalogInputRead[adcSamplePos] += ADCW;
       if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
-        HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+
+        // update temperatures only when values have been read
+        if (!HAL::execute_100ms || adcSamplePos >= ANALOG_INPUTS)
+          HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+
         AnalogInputRead[adcSamplePos] = 0;
         adcCounter[adcSamplePos] = 0;
+
         // Start next conversion
         if (++adcSamplePos >= ANALOG_INPUTS) {
           adcSamplePos = 0;
@@ -362,37 +460,30 @@ HAL_TEMP_TIMER_ISR {
   pwm_count_heater  += HEATER_PWM_STEP;
   pwm_count_fan     += FAN_PWM_STEP;
 
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      int curTodo = mechanics.babystepsTodo[axis]; // get rid of volatile for performance
+  // Tick endstops state, if required
+  endstops.Tick();
 
-      if (curTodo) {
-        stepper.babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif //BABYSTEPPING
-
-  #if ENABLED(PINS_DEBUGGING)
-    extern bool endstop_monitor_flag;
-    // run the endstop monitor at 15Hz
-    static uint8_t endstop_monitor_count = 16;  // offset this check from the others
-    if (endstop_monitor_flag) {
-      endstop_monitor_count += _BV(1);  //  15 Hz
-      endstop_monitor_count &= 0x7F;
-      if (!endstop_monitor_count) endstops.endstop_monitor();  // report changes in endstop status
-    }
-  #endif
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (endstops.e_hit && ENDSTOPS_ENABLED) {
-      endstops.update();  // call endstop update routine
-      endstops.e_hit--;
-    }
-  #endif
-
-  HAL_ENABLE_ISRs(); // re-enable ISRs
 }
+
+/**
+ * Timer 0 is is called 3906 timer per second.
+ * It is used to update pwm values for heater and some other frequent jobs.
+ *
+ *  - Manage PWM to all the heaters and fan
+ *  - Prepare or Measure one of the raw ADC sensor values
+ *  - Step the babysteps value for each axis towards 0
+ *  - For PINS_DEBUGGING, monitor and report endstop pins
+ *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
+ */
+HAL_TEMP_TIMER_ISR {
+  if (!printer.isRunning()) return;
+  TEMP_OCR += 64;
+  HAL_temp_isr();
+}
+
+/**
+ * Interrupt Service Routines
+ */
+HAL_STEPPER_TIMER_ISR { stepper.Step(); }
 
 #endif // __AVR__

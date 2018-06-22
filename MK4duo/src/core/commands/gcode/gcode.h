@@ -61,6 +61,7 @@
 #include "config/m305.h"                  // Set thermistor and ADC parameters
 #include "config/m306.h"                  // Set Heaters
 #include "config/m595.h"                  // Set AD595 offset & Gain
+#include "config/m569.h"                  // Set Stepper Direction
 #include "config/m900.h"                  // Set and/or Get advance K factor
 #include "config/m906.h"                  // Set Alligator motor currents or Set motor current in milliamps with have a TMC2130 driver
 #include "config/m907.h"                  // Set digital trimpot motor current
@@ -228,9 +229,11 @@
 #include "units/m83.h"
 #include "units/m149.h"
 
-// Table for G and M code
-#include "table_gcode.h"
-#include "table_mcode.h"
+#if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
+  // Table for G and M code
+  #include "table_gcode.h"
+  #include "table_mcode.h"
 
-// Include m44 post define table for debugging
-#include "debug/m44_post_table.h"
+  // Include m44 post define table for debugging
+  #include "debug/m44_post_table.h"
+#endif

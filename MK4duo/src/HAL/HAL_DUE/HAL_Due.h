@@ -50,8 +50,8 @@
  * ARDUINO_ARCH_SAM
  */
 
-#ifndef _HAL_DUE_H
-#define _HAL_DUE_H
+#ifndef _HAL_DUE_H_
+#define _HAL_DUE_H_
 
 // --------------------------------------------------------------------------
 // Includes
@@ -66,21 +66,12 @@
 typedef uint32_t  hal_timer_t;
 typedef uint32_t  ptr_int_t;
 
-//#define MOVE_DEBUG
-#if ENABLED(MOVE_DEBUG)
-  extern unsigned int numInterruptsScheduled,
-                      numInterruptsExecuted;
-  extern uint32_t     nextInterruptTime,
-                      nextInterruptScheduledAt,
-                      lastInterruptTime,
-                      acceleration_step_rate,
-                      deceleration_step_rate;
-#endif
-
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
 #include "fastio_Due.h"
+#include "HAL_math_Due.h"
+#include "HAL_delay_Due.h"
 #include "HAL_watchdog_Due.h"
 #include "HAL_timers_Due.h"
 
@@ -136,31 +127,14 @@ typedef uint32_t  ptr_int_t;
 // EEPROM START
 #define EEPROM_OFFSET 10
 
-// MATH
-#undef ATAN2
-#undef FABS
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2f(y, x)
-#define FABS(x)     fabsf(x)
-#define POW(x, y)   powf(x, y)
-#define SQRT(x)     sqrtf(x)
-#define CEIL(x)     ceilf(x)
-#define FLOOR(x)    floorf(x)
-#define LROUND(x)   lroundf(x)
-#define FMOD(x, y)  fmodf(x, y)
-#define COS(x)      cosf(x)
-#define SIN(x)      sinf(x)
-#define LOG(x)      logf(x)
-
-#define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
+// CRITICAL SECTION
+#define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
+
+// ISR function
+#define ISRS_ENABLED()          (!__get_PRIMASK())
+#define ENABLE_ISRS()           __enable_irq()
+#define DISABLE_ISRS()          __disable_irq()
 
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3
@@ -184,13 +158,10 @@ typedef uint32_t  ptr_int_t;
 #undef HIGH
 #define HIGH        1
 
-#define MultiU32X32toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2) >> 32
-#define MultiU32X24toH32(intRes, longIn1, longIn2)  intRes = ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24
-
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(intRes, longIn1, longIn2) MultiU32X32toH32(intRes, longIn1, longIn2)
+#define HAL_MULTI_ACC(A,B)  MultiU32X32toH32(A,B)
 
-#define ADV_NEVER 0xFFFFFFFF
+#define HAL_TIMER_TYPE_MAX  0xFFFFFFFF
 
 // TEMPERATURE
 #undef analogInputToDigitalPin
@@ -204,7 +175,6 @@ typedef uint32_t  ptr_int_t;
 
 #define ABS_ZERO  -273.15
 #define NUM_ADC_SAMPLES 32
-#define MAX_ANALOG_PIN_NUMBER 11
 #define ADC_TEMPERATURE_SENSOR 15
 
 #define HARDWARE_PWM true
@@ -224,49 +194,6 @@ volatile static uint32_t debug_counter;
 extern "C" char *sbrk(int i);
 extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
 
-// Class to perform averaging of values read from the ADC
-// numAveraged should be a power of 2 for best efficiency
-template <size_t numAveraged> class AveragingFilter {
-
-  public: /** Constructor */
-
-    AveragingFilter() { Init(0); }
-
-  private: /** Private Parameters */
-
-    uint16_t  readings[numAveraged];
-    size_t    index;
-    uint32_t  sum;
-    bool      isValid;
-
-  public: /** Public Function */
-
-    void Init(uint16_t val) volatile {
-
-      irqflags_t flags = cpu_irq_save();
-      sum = (uint32_t)val * (uint32_t)numAveraged;
-      index = 0;
-      isValid = false;
-      for (size_t i = 0; i < numAveraged; ++i)
-        readings[i] = val;
-      cpu_irq_restore(flags);
-    }
-
-    void ProcessReading(const uint16_t read) {
-      sum = sum - readings[index] + read;
-      readings[index] = read;
-      if (++index == numAveraged) {
-        index = 0;
-        isValid = true;
-      }
-    }
-
-    uint32_t GetSum() const volatile { return sum; }
-
-    bool IsValid() const volatile	{ return isValid; }
-
-};
-
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
 
 class HAL {
@@ -279,11 +206,8 @@ class HAL {
 
   public: /** Public Parameters */
 
-    #if ANALOG_INPUTS > 0
-      static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
-      static bool Analog_is_ready;
-    #endif
-
+    static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
+    static bool Analog_is_ready;
     static bool execute_100ms;
 
   private: /** Private Parameters */
@@ -344,14 +268,11 @@ class HAL {
       }
     }
 
-    FORCE_INLINE static void delayMicroseconds(uint32_t delayUs) {
-      uint32_t n = delayUs * (F_CPU / 3000000);
-      asm volatile(
-        "L2_%=_delayMicroseconds:"       "\n\t"
-        "subs   %0, #1"                 "\n\t"
-        "bge    L2_%=_delayMicroseconds" "\n"
-        : "+r" (n) :
-      );
+    FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
+      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000L);
+    }
+    FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
+      HAL_delay_cycles(delayUs * (CYCLES_PER_US));
     }
     FORCE_INLINE static void delayMilliseconds(uint16_t delayMs) {
       uint16_t del;
@@ -362,7 +283,7 @@ class HAL {
         watchdog.reset();
       }
     }
-    FORCE_INLINE static unsigned long timeInMilliseconds() {
+    FORCE_INLINE static uint32_t timeInMilliseconds() {
       return millis();
     }
 
@@ -451,4 +372,4 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n);
 void eeprom_write_byte(uint8_t* pos, uint8_t value);
 void eeprom_update_block(const void* pos, void* eeprom_address, size_t n);
 
-#endif // HAL_SAM_H
+#endif /* _HAL_DUE_H_ */

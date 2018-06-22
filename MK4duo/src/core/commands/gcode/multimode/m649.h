@@ -36,7 +36,7 @@
     if (parser.seen('D') && printer.isRunning()) laser.diagnostics = parser.value_bool();
 
     // Wait for the rest
-    // stepper.synchronize();
+    // planner.synchronize();
     if (parser.seen('S') && printer.isRunning()) {
       laser.intensity = parser.value_float();
       #if ENABLED(LASER_RASTER)

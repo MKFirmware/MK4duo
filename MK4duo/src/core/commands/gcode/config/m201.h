@@ -35,7 +35,7 @@
  */
 inline void gcode_M201(void) {
 
-  GET_TARGET_EXTRUDER(201);
+  if (commands.get_target_tool(201)) return;
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
@@ -52,5 +52,5 @@ inline void gcode_M201(void) {
     }
   }
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
-  mechanics.reset_acceleration_rates();
+  planner.reset_acceleration_rates();
 }

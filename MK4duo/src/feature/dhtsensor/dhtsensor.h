@@ -51,9 +51,6 @@
                     Humidity;
     private: /** Private Parameters */
 
-      static millis_t lastReadTime,
-                      lastOperationTime;
-
       static enum SensorState {
         Init,
         Wait_250ms,

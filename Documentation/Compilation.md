@@ -1,6 +1,6 @@
 # Configuring and compilation
 
-  1. Install the LATEST non-beta Arduino IDE: http://www.arduino.cc/en/Main/Software and download board SAM 1.6.6!
+  1. Install the LATEST non-beta Arduino IDE: http://www.arduino.cc/en/Main/Software and download LATEST board SAM!
   2. Download the MK4duo firmware: https://github.com/MagoKimbra/MK4duo (Use the green "Download Zip" button on the right)
   3. Some boards require special files and/or libraries from the Arduino directory.
   For Alligator Board add this link in Arduino IDE File -> Preferences -> Additional Boards Manager URLs: http://www.chew-z.it/download/alligator/package_Alligator_r2_index.json

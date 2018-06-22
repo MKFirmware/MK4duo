@@ -18,7 +18,7 @@
 |  G21 | Set input units to millimeters
 |  G26 | Mesh Validation Pattern. (Requires G26_MESH_VALIDATION & **AUTO_BED_LEVELING_UBL** or **MESH_BED_LEVELING** or **AUTO_BED_LEVELING_BILINEAR**) 
 |  G27 | Nozzle Park
-|  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
+|  G28 | X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point. O Home only if position is unknown
 |  G29 | Detailed Z probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.<br/>`G29   Fyyy Lxxx Rxxx Byyy` for customer grid.
 |  G30 | Single Z Probe, probes bed at current XY location.
 |  G31 | Dock Z Probe sled (if enabled)
@@ -56,7 +56,6 @@
 |  M30 | SDCARD | Delete file from SD (M30 filename.g)
 |  M31 | SDCARD | Output time since last M109 or SD card start to serial
 |  M32 | SDCARD | Make directory
-|  M33 | SDCARD | Stop printing, close file and save restart.gcode
 |  M34 | SDCARD | Set SD Card Sorting Options
 |  M35 | NEXTION | Upload Firmware to Nextion from SD
 |  M36 | SDCARD | Set SD Card Sorting Options
@@ -122,12 +121,12 @@
 | M201 | ? | Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000 Z1000 E0 S1000 E1 S1000 E2 S1000 E3 S1000) in mm/sec^2
 | M203 | ? | Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E0 S1000 E1 S1000 E2 S1000 E3 S1000) in mm/sec
 | M204 | ? | Set Accelerations in mm/sec^2: S printing moves, R Retract moves(only E), T travel moves (M204 P1200 R3000 T2500) im mm/sec^2  also sets minimum segment time in ms (B20000) to prevent buffer underruns and M20 minimum feedrate.
-| M205 | ? | advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk
+| M205 | ? | Set Advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk, J=Junction deviation mm
 | M206 | ? | set additional homing offset
 | M207 | ? | set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
 | M208 | ? | set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
 | M209 | ? | S[1=true/0=false] enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
-| M218 | ? | set hotend offset (in mm): T[extruder_number] X[offset_on_X] Y[offset_on_Y]
+| M218 | ? | set hotend offset (in mm): H[hotend_number] X[offset_on_X] Y[offset_on_Y]> Z[offset_on_Z]
 | M220 | ? | S[factor in percent] - set speed factor override percentage
 | M221 | ? | T<extruder> S<factor in percent> - set extrude factor override percentage
 | M222 | ? | T<extruder> S<factor in percent> - set density extrude factor percentage for purge
@@ -175,6 +174,7 @@
 | M531 | ? | filename - Define filename being printed
 | M532 | ? | ```X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L```
 | M540 | ABORT_ON_ENDSTOP_HIT _FEATURE_ENABLED | Use S[0\|1] to enable or disable the stop print on endstop hit
+| M569 | ? | Stepper driver control X<bool> Y<bool> Z<bool> T<extruders> E<bool> set direction, P<int> set minimum pulse, R<long> set maximum rate.
 | M595 | ? | Set hotend AD595 offset and gain
 | M600 | ADVANCED_PAUSE_FEATURE | Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift] E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
 | M603 | ADVANCED_PAUSE_FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]

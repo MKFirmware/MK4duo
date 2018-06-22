@@ -43,14 +43,14 @@
    *    Note: the X axis should be homed after changing dual x-carriage mode.
    */
   inline void gcode_M605(void) {
-    stepper.synchronize();
+    planner.synchronize();
     if (parser.seen('S')) mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
     switch(mechanics.dual_x_carriage_mode) {
       case DXC_FULL_CONTROL_MODE:
       case DXC_AUTO_PARK_MODE:
         break;
       case DXC_DUPLICATION_MODE:
-        if (parser.seen('X')) mechanics.duplicate_hotend_x_offset = max(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
+        if (parser.seen('X')) mechanics.duplicate_hotend_x_offset = MAX(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
         if (parser.seen('R')) mechanics.duplicate_hotend_temp_offset = parser.value_celsius_diff();
         SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
         SERIAL_CHR(' ');

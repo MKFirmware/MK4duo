@@ -44,7 +44,7 @@
     #endif
 
     #if IS_SCARA
-      mechanics.sync_plan_position_kinematic();
+      mechanics.sync_plan_position_mech_specific();
     #else
       mechanics.sync_plan_position();
     #endif

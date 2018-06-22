@@ -35,7 +35,8 @@
    */
   inline void gcode_M522(void) {
 
-    GET_TARGET_EXTRUDER(522);
+    if (commands.get_target_tool(522)) return;
+
     if (!printer.RFID_ON) return;
 
     if (parser.seen('R')) {

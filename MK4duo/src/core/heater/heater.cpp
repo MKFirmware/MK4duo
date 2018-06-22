@@ -122,7 +122,7 @@
         pidTerm += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (ID == EXTRUDER_IDX) {
+          if (ID == ACTIVE_HOTEND) {
             long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;
@@ -146,14 +146,14 @@
     }
     else if (ELAPSED(ms, next_check_ms)) {
       next_check_ms = ms + temp_check_interval[type];
-      if (tempisrange())
-        soft_pwm = isHeating() ? pidMax : 0;
-      else
+      if (current_temperature <= target_temperature - temp_hysteresis[type])
+        soft_pwm = pidMax;
+      else if (current_temperature >= target_temperature + temp_hysteresis[type])
         soft_pwm = 0;
     }
 
     #if ENABLED(PID_DEBUG)
-      SERIAL_SMV(ECHO, MSG_PID_DEBUG, HOTEND_INDEX);
+      SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
       SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
     #endif // PID_DEBUG

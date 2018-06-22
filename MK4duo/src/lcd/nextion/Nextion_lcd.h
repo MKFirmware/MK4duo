@@ -67,16 +67,9 @@
   void setgcodePopCallback(void *ptr);
   void sendPopCallback(void *ptr);
   void filamentPopCallback(void *ptr);
-  void lcd_key_touch_update();
   void nextion_draw_update();
-  void lcd_init();
-  void lcd_setstatus(const char* message, const bool persist=false);
-  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
-  void lcd_setstatusPGM(const char* message, const int8_t level=0);
-  void lcd_setalertstatusPGM(const char * const message);
-  void lcd_reset_alert_level();
   void lcd_scrollinfo(const char* titolo, const char* message);
-  void lcd_yesno(const char* msg1="", const char* msg2="", const char* msg3="");
+  void lcd_yesno(const uint8_t val, const char* msg1="", const char* msg2="", const char* msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);
@@ -119,13 +112,6 @@
     void rfidPopCallback(void *ptr);
     void rfid_setText(const char* message, uint32_t color = 65535);
   #endif
-
-  FORCE_INLINE bool lcd_hasstatus() { return false; }
-  FORCE_INLINE void lcd_draw_update() {}
-  FORCE_INLINE void lcd_refresh() {}
-  FORCE_INLINE void lcd_eeprom_allert() {}
-
-  constexpr bool lcd_wait_for_move = false;
 
 #endif // ENABLED(NEXTION)
 

@@ -29,8 +29,6 @@
 #ifndef LANGUAGE_DE_H
 #define LANGUAGE_DE_H
 
-#define MAPPER_C2C3
-#define DISPLAY_CHARSET_ISO10646_1
 #define CHARSIZE 2
 
 #define THIS_LANGUAGES_SPECIAL_SYMBOLS      _UxGT("ÄäÖöÜüß²³")
@@ -112,13 +110,13 @@
 #define MSG_ACC                             _UxGT("A")
 #define MSG_JERK                            _UxGT("Jerk")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("V A Jerk")
-  #define MSG_VY_JERK                       _UxGT("V B Jerk")
-  #define MSG_VZ_JERK                       _UxGT("V C Jerk")
+  #define MSG_VA_JERK                       _UxGT("V A Jerk")
+  #define MSG_VB_JERK                       _UxGT("V B Jerk")
+  #define MSG_VC_JERK                       _UxGT("V C Jerk")
 #else
-  #define MSG_VX_JERK                       _UxGT("V X Jerk")
-  #define MSG_VY_JERK                       _UxGT("V Y Jerk")
-  #define MSG_VZ_JERK                       _UxGT("V Z Jerk")
+  #define MSG_VA_JERK                       _UxGT("V X Jerk")
+  #define MSG_VB_JERK                       _UxGT("V Y Jerk")
+  #define MSG_VC_JERK                       _UxGT("V Z Jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("V E Jerk")
 #define MSG_VELOCITY                        _UxGT("Geschwindigkeit")
@@ -131,13 +129,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A Leerfahrt")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("A Steps/mm")
-  #define MSG_YSTEPS                        _UxGT("B Steps/mm")
-  #define MSG_ZSTEPS                        _UxGT("C Steps/mm")
+  #define MSG_ASTEPS                        _UxGT("A Steps/mm")
+  #define MSG_BSTEPS                        _UxGT("B Steps/mm")
+  #define MSG_CSTEPS                        _UxGT("C Steps/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("X Steps/mm")
-  #define MSG_YSTEPS                        _UxGT("Y Steps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Z Steps/mm")
+  #define MSG_ASTEPS                        _UxGT("X Steps/mm")
+  #define MSG_BSTEPS                        _UxGT("Y Steps/mm")
+  #define MSG_CSTEPS                        _UxGT("Z Steps/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("E Steps/mm")
 #define MSG_E1STEPS                         _UxGT("E1 Steps/mm")
@@ -170,7 +168,6 @@
 #define MSG_DWELL                           _UxGT("Warten...")
 #define MSG_USERWAIT                        _UxGT("Warte auf Nutzer")
 #define MSG_PRINT_PAUSED                    _UxGT("Druck pausiert")
-#define MSG_RESUMING                        _UxGT("Druckfortsetzung")
 #define MSG_PRINT_ABORTED                   _UxGT("Druck abgebrochen")
 #define MSG_NO_MOVE                         _UxGT("Motoren eingeschaltet")
 #define MSG_KILLED                          _UxGT("ABGEBROCHEN")
@@ -212,16 +209,14 @@
 #define MSG_ERR_MINTEMP                     LCD_STR_THERMOMETER _UxGT(" UNTERSCHRITTEN")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("BETT ") LCD_STR_THERMOMETER _UxGT(" ÜBERSCHRITTEN")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("BETT ") LCD_STR_THERMOMETER _UxGT(" UNTERSCHRITTEN")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z verboten")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("DRUCKER STOPP")
 #define MSG_PLEASE_RESET                    _UxGT("Bitte Resetten")
 #define MSG_SHORT_DAY                       _UxGT("t") // One character only
 #define MSG_SHORT_HOUR                      _UxGT("h") // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("m") // One character only
 #define MSG_HEATING                         _UxGT("Extr. heizt...")
-#define MSG_HEATING_COMPLETE                _UxGT("Extr. aufgeheizt")
 #define MSG_BED_HEATING                     _UxGT("Bett heizt...")
-#define MSG_BED_DONE                        _UxGT("Bett aufgeheizt")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta kalibrieren")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibriere X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibriere Y")
@@ -313,8 +308,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU         _UxGT("Schrittweises UBL")
 
 #define MSG_LED_CONTROL                     _UxGT("LED Kontrolle")
-#define MSG_LEDS_ON                         _UxGT("Licht an")
-#define MSG_LEDS_OFF                        _UxGT("Licht aus")
+#define MSG_LEDS                            _UxGT("Licht")
 #define MSG_LED_PRESETS                     _UxGT("Licht Einstellungen")
 #define MSG_SET_LEDS_RED                    _UxGT("Rot")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Orange")

@@ -103,13 +103,13 @@
 #define MSG_ACC                             _UxGT("Versn")
 #define MSG_JERK                            _UxGT("Jerk")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-jerk")
-  #define MSG_VY_JERK                       _UxGT("Vb-jerk")
-  #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+  #define MSG_VA_JERK                       _UxGT("Va-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
 #else
-  #define MSG_VX_JERK                       _UxGT("Vx-jerk")
-  #define MSG_VY_JERK                       _UxGT("Vy-jerk")
-  #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VMAX                            _UxGT("Vmax ")
@@ -120,13 +120,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-travel")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Asteps/mm")
-  #define MSG_YSTEPS                        _UxGT("Bsteps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Csteps/mm")
+  #define MSG_ASTEPS                        _UxGT("Asteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Bsteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Csteps/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xsteps/mm")
-  #define MSG_YSTEPS                        _UxGT("Ysteps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Zsteps/mm")
+  #define MSG_ASTEPS                        _UxGT("Xsteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Ysteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Zsteps/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("Esteps/mm")
 #define MSG_E1STEPS                         _UxGT("E1steps/mm")
@@ -155,7 +155,6 @@
 #define MSG_NO_CARD                         _UxGT("Geen SD kaart")
 #define MSG_DWELL                           _UxGT("Slapen...")
 #define MSG_USERWAIT                        _UxGT("Wachten...")
-#define MSG_RESUMING                        _UxGT("Print hervatten")
 #define MSG_PRINT_ABORTED                   _UxGT("Print afgebroken")
 #define MSG_NO_MOVE                         _UxGT("Geen beweging.")
 #define MSG_KILLED                          _UxGT("Afgebroken. ")
@@ -188,16 +187,14 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Err: Min. temp")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: Max.tmp bed")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: Min.tmp bed")
-#define MSG_ERR_Z_HOMING                    _UxGT("Fout Z homing")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("PRINTER GESTOPT")
 #define MSG_PLEASE_RESET                    _UxGT("Reset A.U.B.")
 #define MSG_SHORT_DAY                       _UxGT("d") //  One character only. Keep English standard
 #define MSG_SHORT_HOUR                      _UxGT("h") //  One character only
 #define MSG_SHORT_MINUTE                    _UxGT("m") //  One character only
 #define MSG_HEATING                         _UxGT("Voorwarmen...")
-#define MSG_HEATING_COMPLETE                _UxGT("Voorverw. kompl.")
-#define MSG_BED_HEATING                     _UxGT("Bed voorverw.")
-#define MSG_BED_DONE                        _UxGT("Bed is voorverw.")
+#define MSG_BED_HEATING                     _UxGT("Bed voorverw...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Calibratie")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibreer X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibreer Y")

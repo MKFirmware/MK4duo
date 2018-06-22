@@ -20,40 +20,38 @@
  *
  */
 
-/*
-
-  based on u8g_com_st7920_hw_spi.c
-
-  Universal 8bit Graphics Library
-
-  Copyright (c) 2011, olikraus@gmail.com
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without modification,
-  are permitted provided that the following conditions are met:
-
-  * Redistributions of source code must retain the above copyright notice, this list
-    of conditions and the following disclaimer.
-
-  * Redistributions in binary form must reproduce the above copyright notice, this
-    list of conditions and the following disclaimer in the documentation and/or other
-    materials provided with the distribution.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*/
+/**
+ * Based on u8g_com_st7920_hw_spi.c
+ *
+ * Universal 8bit Graphics Library
+ *
+ * Copyright (c) 2011, olikraus@gmail.com
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this list
+ *    of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *    list of conditions and the following disclaimer in the documentation and/or other
+ *    materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include "../../../MK4duo.h"
 
@@ -74,30 +72,6 @@ void u8g_SetPILevel_DUE(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
   else port->PIO_CODR = mask;
 }
 
-#define nop() __asm__ __volatile__("nop;\n\t":::)
-
-void __delay_4cycles(uint32_t cy) __attribute__ ((weak));
-
-FORCE_INLINE void __delay_4cycles(uint32_t cy) { // +1 cycle
-  #if ARCH_PIPELINE_RELOAD_CYCLES<2
-    #define EXTRA_NOP_CYCLES "nop"
-  #else
-    #define EXTRA_NOP_CYCLES ""
-  #endif
-
-  __asm__ __volatile__(
-    ".syntax unified" "\n\t" // is to prevent CM0,CM1 non-unified syntax
-
-    "loop%=:" "\n\t"
-    " subs %[cnt],#1" "\n\t"
-    EXTRA_NOP_CYCLES "\n\t"
-    " bne loop%=" "\n\t"
-    : [cnt]"+r"(cy) // output: +r means input+output
-    : // input:
-    : "cc" // clobbers:
-  );
-}
-
 Pio *SCK_pPio, *MOSI_pPio;
 uint32_t SCK_dwMask, MOSI_dwMask;
 
@@ -107,9 +81,9 @@ static void spiSend_sw_DUE(uint8_t val) { // 800KHz
       MOSI_pPio->PIO_SODR = MOSI_dwMask;
     else
       MOSI_pPio->PIO_CODR = MOSI_dwMask;
-    __delay_4cycles(1);
+    DELAY_NS(48);
     SCK_pPio->PIO_SODR = SCK_dwMask;
-    __delay_4cycles(19);
+    DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
     val <<= 1;
     SCK_pPio->PIO_CODR = SCK_dwMask;
   }
@@ -130,8 +104,7 @@ static void u8g_com_DUE_st7920_write_byte_sw_spi(uint8_t rs, uint8_t val) {
        /* data */
       spiSend_sw_DUE(0x0FA);
 
-    for (i = 0; i < 4; i++)   // give the controller some time to process the data
-      u8g_10MicroDelay();     // 2 is bad, 3 is OK, 4 is safe
+    DELAY_US(40); // give the controller some time to process the data: 20 is bad, 30 is OK, 40 is safe
   }
 
   spiSend_sw_DUE(val & 0x0F0);
@@ -158,6 +131,7 @@ uint8_t u8g_com_HAL_DUE_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
       MOSI_pPio->PIO_CODR = MOSI_dwMask;  // MOSI low - needed at power up but not after reset
 
       u8g_Delay(5);
+
       u8g->pin_list[U8G_PI_A0_STATE] = 0;       /* inital RS state: command mode */
       break;
 

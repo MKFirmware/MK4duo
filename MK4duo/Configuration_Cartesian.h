@@ -44,7 +44,8 @@
  * - Manual home positions
  * - Axis steps per unit
  * - Axis feedrate
- * - Axis accelleration
+ * - Axis acceleration
+ * - Axis jerk
  * - Homing feedrate
  * - Hotend offset
  * - Cartesian Correction
@@ -158,8 +159,8 @@
 // Z Servo Endstop
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_ENDSTOP_SERVO_NR -1
-#define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define Z_PROBE_SERVO_NR -1
+#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling without a probe.
 // Use Host or LCD for adjust Z height.
@@ -214,6 +215,7 @@
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 #define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
 #define Z_PROBE_BETWEEN_HEIGHT 5  // Z position for travel between points
+#define Z_PROBE_AFTER_PROBING  0  // Z position after probing is done
 
 // For M851 give a range for adjusting the Probe Z Offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
@@ -235,6 +237,8 @@
 
 // Add a menu item to move between bed corners for manual bed adjustment
 //#define LEVEL_BED_CORNERS
+#define LEVEL_CORNERS_INSET 30    // (mm) An inset for corner leveling
+//#define LEVEL_CENTER_TOO        // Move to the center after the last corner
 /*****************************************************************************************/
 
 
@@ -581,7 +585,7 @@
 
 
 /*****************************************************************************************
- ******************************** Axis accelleration *************************************
+ ******************************** Axis acceleration **************************************
  *****************************************************************************************/
 //  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
 #define DEFAULT_MAX_ACCELERATION              {3000, 3000, 50, 1000, 1000, 1000, 1000}

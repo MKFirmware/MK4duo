@@ -1,9 +1,9 @@
 /**
- * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
- * Based on Sprinter and grbl.
+ * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,11 +12,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -55,7 +55,7 @@
                   seglimit = lroundf(cartesian_xy_mm * (1.0 / (DELTA_SEGMENT_MIN_LENGTH))); // number of segments at minimum segment length
 
       NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)
-      NOLESS(segments, 1);        // must have at least one segment
+      NOLESS(segments, 1U);       // must have at least one segment
 
       const float inv_segments = 1.0 / segments;  // divide once, multiply thereafter
 
@@ -184,7 +184,7 @@
       return false; // caller will update current_position
     }
 
-  #else !UBL_DELTA
+  #else
 
     void unified_bed_leveling::line_to_destination_cartesian(const float &feed_rate, uint8_t extruder) {
       /**
@@ -438,7 +438,8 @@
               z_position = end[Z_AXIS];
             }
 
-            planner.buffer_segment(rx, ry, z_position + z0, e_position, feed_rate, extruder);
+            if (!planner.buffer_segment(rx, ry, z_position + z0, e_position, feed_rate, extruder))
+              break;
           } //else printf("FIRST MOVE PRUNED  ");
         }
 
@@ -497,7 +498,8 @@
             e_position = end[E_AXIS];
             z_position = end[Z_AXIS];
           }
-          planner.buffer_segment(rx, next_mesh_line_y, z_position + z0, e_position, feed_rate, extruder);
+          if (!planner.buffer_segment(rx, next_mesh_line_y, z_position + z0, e_position, feed_rate, extruder))
+            break;
           current_yi += dyi;
           yi_cnt--;
         }
@@ -525,12 +527,13 @@
             z_position = end[Z_AXIS];
           }
 
-          planner.buffer_segment(next_mesh_line_x, ry, z_position + z0, e_position, feed_rate, extruder);
+          if (!planner.buffer_segment(next_mesh_line_x, ry, z_position + z0, e_position, feed_rate, extruder))
+            break;
           current_xi += dxi;
           xi_cnt--;
         }
 
-        if (xi_cnt < 0 || yi_cnt < 0) break; // we've gone too far, so exit the loop and move on to FINAL_MOVE
+        if (xi_cnt < 0 || yi_cnt < 0) break; // Too far! Exit the loop and go to FINAL_MOVE
       }
 
       if (bedlevel.g26_debug_flag)

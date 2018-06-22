@@ -76,7 +76,7 @@
         }
       #endif
 
-      fan->Speed = fan->min_Speed + (speed * (255 - fan->min_Speed)) / 255;
+      fan->Speed = MAX(fan->min_Speed, speed);
 
       if (!parser.seen('S')) {
         char response[70];

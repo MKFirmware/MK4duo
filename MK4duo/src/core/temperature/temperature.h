@@ -43,10 +43,6 @@ class Temperature {
       static int16_t  mcu_current_temperature_raw;
     #endif
 
-    #if ENABLED(ADC_KEYPAD)
-      static int16_t  current_ADCKey_raw;
-    #endif
-
     #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
       static float    redundant_temperature;
     #endif
@@ -98,6 +94,11 @@ class Temperature {
      * Switch off all heaters, set all target temperatures to 0
      */
     static void disable_all_heaters();
+
+    /**
+     * Check if there are heaters on
+     */
+    static bool heaters_isON();
 
     #if HAS_FILAMENT_SENSOR
       static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio

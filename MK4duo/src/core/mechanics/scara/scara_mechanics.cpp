@@ -48,13 +48,13 @@
 
     stepper.report_positions();
 
-    SERIAL_MV("SCARA Theta:", stepper.get_axis_position_degrees(A_AXIS));
-    SERIAL_EMV("   Psi+Theta:", stepper.get_axis_position_degrees(B_AXIS));
+    SERIAL_MV("SCARA Theta:", planner.get_axis_position_degrees(A_AXIS));
+    SERIAL_EMV("   Psi+Theta:", planner.get_axis_position_degrees(B_AXIS));
   }
 
   void Scara_Mechanics::report_current_position_detail() {
 
-    stepper.synchronize();
+    planner.synchronize();
 
     SERIAL_MSG("\nLogical:");
     report_xyze(current_position);
@@ -87,12 +87,12 @@
     report_xyze((float*)step_count, 4, 0);
 
     SERIAL_MSG("Degrees:");
-    const float deg[XYZ] = { stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) };
+    const float deg[XYZ] = { planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) };
     report_xyze(deg, 2);
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {
@@ -117,8 +117,8 @@
    * suitable for current_position, etc.
    */
   void Scara_Mechanics::get_cartesian_from_steppers() {
-    forward_kinematics_SCARA( stepper.get_axis_position_degrees(A_AXIS), stepper.get_axis_position_degrees(B_AXIS) );
-    cartesian_position[Z_AXIS] = stepper.get_axis_position_mm(Z_AXIS);
+    forward_kinematics_SCARA( planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) );
+    cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
   }
 
    /**
@@ -153,7 +153,7 @@
     float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
     // If the move is very short, check the E move distance
-    if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
+    if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = ABS(difference[E_AXIS]);
 
     // No E move either? Game over.
     if (UNEAR_ZERO(cartesian_mm)) return true;
@@ -169,7 +169,7 @@
     NOMORE(segments, cartesian_mm * 4);
 
     // At least one segment is required
-    NOLESS(segments, 1);
+    NOLESS(segments, 1U);
 
     // The approximate length of each segment
     const float inv_segments = 1.0 / float(segments),
@@ -186,10 +186,10 @@
 
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       // SCARA needs to scale the feed rate from mm/s to degrees/s
-      const float inv_segment_length = min(10.0, float(segments) / cartesian_mm), // 1/mm/segs
+      const float inv_segment_length = MIN(10.0, float(segments) / cartesian_mm), // 1/mm/segs
                   feed_factor = inv_segment_length * _feedrate_mm_s;
-      float oldA = stepper.get_axis_position_degrees(A_AXIS),
-            oldB = stepper.get_axis_position_degrees(B_AXIS);
+      float oldA = planner.get_axis_position_degrees(A_AXIS),
+            oldB = planner.get_axis_position_degrees(B_AXIS);
     #endif
 
     // Get the current position as starting point
@@ -214,9 +214,9 @@
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         // For SCARA scale the feed rate from mm/s to degrees/s
         // Use ratio between the length of the move and the larger angle change
-        const float adiff = abs(delta[A_AXIS] - oldA),
-                    bdiff = abs(delta[B_AXIS] - oldB);
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, tools.active_extruder);
+        const float adiff = ABS(delta[A_AXIS] - oldA),
+                    bdiff = ABS(delta[B_AXIS] - oldB);
+        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], MAX(adiff, bdiff) * feed_factor, tools.active_extruder);
         oldA = delta[A_AXIS];
         oldB = delta[B_AXIS];
       #else
@@ -232,9 +232,9 @@
       // With segments > 1 length is 1 segment, otherwise total length
       inverse_kinematics(rtarget);
       ADJUST_DELTA(rtarget);
-      const float adiff = abs(delta[A_AXIS] - oldA),
-                  bdiff = abs(delta[B_AXIS] - oldB);
-      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], max(adiff, bdiff) * feed_factor, tools.active_extruder);
+      const float adiff = ABS(delta[A_AXIS] - oldA),
+                  bdiff = ABS(delta[B_AXIS] - oldB);
+      planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], MAX(adiff, bdiff) * feed_factor, tools.active_extruder);
     #else
       planner.buffer_line_kinematic(rtarget, _feedrate_mm_s, tools.active_extruder);
     #endif
@@ -281,7 +281,7 @@
     // When homing Z with probe respect probe clearance
     const float bump = axis_home_dir * (
       #if HOMING_Z_WITH_PROBE
-        (axis == Z_AXIS) ? max(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
       #endif
       home_bump_mm[axis]
     );
@@ -306,40 +306,40 @@
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
           const bool lock_x1 = pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0);
-          float adj = FABS(endstops.x_endstop_adj);
+          float adj = ABS(endstops.x_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
           do_homing_move(axis, adj);
           if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_x(false);
         }
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
         if (axis == Y_AXIS) {
           const bool lock_y1 = pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0);
-          float adj = FABS(endstops.y_endstop_adj);
+          float adj = ABS(endstops.y_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
           do_homing_move(axis, adj);
           if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_y(false);
         }
       #endif
       #if ENABLED(Z_TWO_ENDSTOPS)
         if (axis == Z_AXIS) {
           const bool lock_z1 = pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0);
-          float adj = FABS(endstops.z_endstop_adj);
+          float adj = ABS(endstops.z_endstop_adj);
           if (pos_dir) adj = -adj;
           if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
           do_homing_move(axis, adj);
           if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
-          printer.setHoming(false);
+          stepper.set_homing_flag_z(false);
         }
       #endif
     #endif
 
     set_axis_is_at_home(axis);
-    sync_plan_position_kinematic();
+    sync_plan_position_mech_specific();
 
     // Put away the Z probe
     #if HOMING_Z_WITH_PROBE
@@ -377,12 +377,12 @@
     // Tell the planner we're at Z=0
     current_position[axis] = 0;
 
-    sync_plan_position_kinematic();
+    sync_plan_position_mech_specific();
     current_position[axis] = distance;
     inverse_kinematics(current_position);
     planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.tools.active_extruder);
 
-    stepper.synchronize();
+    planner.synchronize();
 
     #if QUIET_PROBING
       if (axis == Z_AXIS) probe.probing_pause(false);
@@ -414,9 +414,9 @@
     _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   }
 
-  void Scara_Mechanics::sync_plan_position_kinematic() {
+  void Scara_Mechanics::sync_plan_position_mech_specific() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_kinematic", current_position);
+      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
     #endif
     set_position_mm_kinematic(current_position);
   }
@@ -439,7 +439,7 @@
     // If Z needs to raise, do it before moving XY
     if (destination[Z_AXIS] < lz) {
       destination[Z_AXIS] = lz;
-      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
     destination[X_AXIS] = lx;
@@ -449,10 +449,10 @@
     // If Z needs to lower, do it after moving XY
     if (destination[Z_AXIS] > lz) {
       destination[Z_AXIS] = lz;
-      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+      prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS]);
     }
 
-    stepper.synchronize();
+    planner.synchronize();
 
     feedrate_mm_s = old_feedrate_mm_s;
 
@@ -485,8 +485,6 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
     #endif
-
-    commands.refresh_cmd_timeout();
 
     if ( current_position[X_AXIS] == destination[X_AXIS]
       && current_position[Y_AXIS] == destination[Y_AXIS]

@@ -41,7 +41,7 @@
    *      B - Set mode
    */
   void gcode_M3_M4(bool clockwise) {
-    stepper.synchronize();
+    planner.synchronize();
 
     switch (printer.mode) {
 

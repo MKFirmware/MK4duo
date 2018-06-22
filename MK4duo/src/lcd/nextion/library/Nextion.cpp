@@ -482,8 +482,7 @@
 
     bool NexUpload::_checkFile(void) {
       SERIAL_EMT("Start checkFile ", _file_name);
-      card.setroot();
-      if (!nextion_file.open(card.curDir, _file_name, O_READ)) {
+      if (!nextion_file.open(&card.root, _file_name, O_READ)) {
         SERIAL_LM(ER, "file is not exit");
         return false;
       }
@@ -693,7 +692,7 @@
   void recvRetString(char *buffer, uint16_t len) {
     uint16_t ret = 0;
     bool str_start_flag = false;
-    uint8_t cnt_0xff = 0;
+    uint8_t cnt_0xFF = 0;
     String temp = String("");
     uint8_t c = 0;
     millis_t start;
@@ -706,8 +705,8 @@
         c = nexSerial.read();
         if (str_start_flag) {
           if (c == 0xFF) {
-            cnt_0xff++;                    
-            if (cnt_0xff >= 3) break;
+            cnt_0xFF++;                    
+            if (cnt_0xFF >= 3) break;
           }
           else
             temp += (char)c;
@@ -716,7 +715,7 @@
           str_start_flag = true;
       }
     
-      if (cnt_0xff >= 3) break;
+      if (cnt_0xFF >= 3) break;
     }
 
     ret = temp.length();

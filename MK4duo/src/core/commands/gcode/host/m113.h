@@ -36,13 +36,10 @@
    *   S<seconds> Optional. Set the keepalive interval.
    */
   inline void gcode_M113(void) {
-    if (parser.seenval('S')) {
-      printer.host_keepalive_interval = parser.value_byte();
-      NOMORE(printer.host_keepalive_interval, 60);
-    }
-    else {
-      SERIAL_EMV("M113 S", (unsigned long)printer.host_keepalive_interval);
-    }
+    if (parser.seenval('S'))
+      printer.host_keepalive_watch.stopwatch = parser.value_millis_from_seconds();
+    else
+      SERIAL_EMV("M113 S", (millis_t)printer.host_keepalive_watch.stopwatch / 1000UL);
   }
 
 #endif

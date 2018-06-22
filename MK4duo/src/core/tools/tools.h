@@ -41,8 +41,7 @@
 
       static uint8_t  active_extruder,
                       previous_extruder,
-                      target_extruder,
-                      active_driver;
+                      target_extruder;
 
       static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                       density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
@@ -67,7 +66,7 @@
       #endif
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        static int lpq_len;
+        static int16_t lpq_len;
       #endif
 
     public: /** Public Function */
@@ -95,14 +94,6 @@
 
       #endif
 
-      #if HAS_MKMULTI_TOOLS
-        static void MK_multi_tool_change(const uint8_t e);
-      #endif
-
-      #if HAS_DONDOLO
-        static void move_extruder_servo(const uint8_t e);
-      #endif
-
       #if ENABLED(EXT_SOLENOID)
         static void enable_solenoid(const uint8_t e);
         static void enable_solenoid_on_active_extruder();
@@ -115,6 +106,22 @@
 
       #if ENABLED(VOLUMETRIC_EXTRUSION)
         static float calculate_volumetric_multiplier(const float diameter);
+      #endif
+
+      #if HAS_MKMULTI_TOOLS
+        static void MK_multi_tool_change(const uint8_t e);
+      #endif
+
+      #if HAS_DONDOLO
+        static void move_extruder_servo(const uint8_t e);
+      #endif
+
+      #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+        static void mixing_tool_change(const uint8_t tmp_extruder);
+      #endif
+
+      #if ENABLED(DUAL_X_CARRIAGE)
+        static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
       #endif
 
   };

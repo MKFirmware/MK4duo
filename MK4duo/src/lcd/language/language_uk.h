@@ -29,7 +29,6 @@
 #ifndef LANGUAGE_UK_H
 #define LANGUAGE_UK_H
 
-#define MAPPER_D0D1                // For Cyrillic
 #define DISPLAY_CHARSET_ISO10646_5
 #define CHARSIZE 2
 
@@ -97,13 +96,13 @@
 #define MSG_ACC                             _UxGT("Приск.")
 #define MSG_JERK                            _UxGT("Ривок")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-ривок")
-  #define MSG_VY_JERK                       _UxGT("Vb-ривок")
-  #define MSG_VZ_JERK                       _UxGT("Vc-ривок")
+  #define MSG_VA_JERK                       _UxGT("Va-ривок")
+  #define MSG_VB_JERK                       _UxGT("Vb-ривок")
+  #define MSG_VC_JERK                       _UxGT("Vc-ривок")
 #else
-  #define MSG_VX_JERK                       _UxGT("Vx-ривок")
-  #define MSG_VY_JERK                       _UxGT("Vy-ривок")
-  #define MSG_VZ_JERK                       _UxGT("Vz-ривок")
+  #define MSG_VA_JERK                       _UxGT("Vx-ривок")
+  #define MSG_VB_JERK                       _UxGT("Vy-ривок")
+  #define MSG_VC_JERK                       _UxGT("Vz-ривок")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-ривок")
 #define MSG_VMAX                            _UxGT("Vмакс")
@@ -114,13 +113,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-руху")
 #define MSG_STEPS_PER_MM                    _UxGT("Кроків/мм")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Aкроків/мм")
-  #define MSG_YSTEPS                        _UxGT("Bкроків/мм")
-  #define MSG_ZSTEPS                        _UxGT("Cкроків/мм")
+  #define MSG_ASTEPS                        _UxGT("Aкроків/мм")
+  #define MSG_BSTEPS                        _UxGT("Bкроків/мм")
+  #define MSG_CSTEPS                        _UxGT("Cкроків/мм")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xкроків/мм")
-  #define MSG_YSTEPS                        _UxGT("Yкроків/мм")
-  #define MSG_ZSTEPS                        _UxGT("Zкроків/мм")
+  #define MSG_ASTEPS                        _UxGT("Xкроків/мм")
+  #define MSG_BSTEPS                        _UxGT("Yкроків/мм")
+  #define MSG_CSTEPS                        _UxGT("Zкроків/мм")
 #endif
 #define MSG_ESTEPS                          _UxGT("Eкроків/мм")
 #define MSG_E1STEPS                         _UxGT("E1кроків/мм")
@@ -148,7 +147,6 @@
 #define MSG_NO_CARD                         _UxGT("Відсутня SD карт.")
 #define MSG_DWELL                           _UxGT("Сплячка...")
 #define MSG_USERWAIT                        _UxGT("Очікування дій...")
-#define MSG_RESUMING                        _UxGT("Відновлення друку")
 #define MSG_PRINT_ABORTED                   _UxGT("Друк скасовано")
 #define MSG_NO_MOVE                         _UxGT("Немає руху.")
 #define MSG_KILLED                          _UxGT("ПЕРЕРВАНО. ")
@@ -168,16 +166,14 @@
 #define MSG_ENDSTOP_ABORT                   _UxGT("невдача кінцевика")
 #define MSG_HEATING_FAILED_LCD              _UxGT("Невдалий нагрів")
 #define MSG_THERMAL_RUNAWAY                 _UxGT("ЗБІЙ ТЕМПЕРАТУРИ")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Відмовлено")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("ПРИНТЕР ЗУПИНЕНО")
 #define MSG_PLEASE_RESET                    _UxGT("Перезавантажте")
 #define MSG_SHORT_DAY                       _UxGT("д") // One character only
 #define MSG_SHORT_HOUR                      _UxGT("г") // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("х") // One character only
 #define MSG_HEATING                         _UxGT("Нагрівання...")
-#define MSG_HEATING_COMPLETE                _UxGT("Нагріто.")
-#define MSG_BED_HEATING                     _UxGT("Нагрівання столу.")
-#define MSG_BED_DONE                        _UxGT("Стіл нагрітий.")
+#define MSG_BED_HEATING                     _UxGT("Нагрівання столу...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Калібр. Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Калібрування X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Калібрування Y")

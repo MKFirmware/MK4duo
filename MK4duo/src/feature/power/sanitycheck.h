@@ -29,11 +29,6 @@
 #ifndef _POWER_SANITYCHECK_H_
 #define _POWER_SANITYCHECK_H_
 
-// Power supply
-#if DISABLED(POWER_SUPPLY)
-  #define POWER_SUPPLY 0
-#endif
-
 // Power consumption sensor
 #if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
   #error "DEPENDENCY ERROR: You have to set POWER_CONSUMPTION_PIN to a valid pin if you enable POWER_CONSUMPTION."

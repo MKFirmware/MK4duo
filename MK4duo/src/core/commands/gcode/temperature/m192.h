@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_COOLER
+#if HAS_HEATER_COOLER
 
   #define CODE_M192
 
@@ -41,7 +41,7 @@
     bool no_wait_for_heating = parser.seen('S');
     if (no_wait_for_heating || parser.seen('R')) heaters[COOLER_INDEX].setTarget(parser.value_celsius());
 
-    thermalManager.wait_heater(&heaters[COOLER_INDEX], no_wait_for_cooling);
+    thermalManager.wait_heater(&heaters[COOLER_INDEX], no_wait_for_heating);
   }
 
-#endif // HAS_TEMP_COOLER
+#endif // HAS_HEATER_COOLER

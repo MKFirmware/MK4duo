@@ -410,7 +410,7 @@
 #if ENABLED(LIN_ADVANCE)
   static_assert(
     WITHIN(LIN_ADVANCE_K, 0, 10),
-    "LIN_ADVANCE_K must be a value from 0 to 10."
+    "DEPENDENCY ERROR: LIN_ADVANCE_K must be a value from 0 to 10."
   );
 #endif
 

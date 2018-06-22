@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV45"
+#define EEPROM_VERSION "MKV48"
 
 /**
- * MKV45 EEPROM Layout:
+ * MKV48 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -55,10 +55,15 @@
  *  M205  S               mechanics.min_feedrate_mm_s           (float)
  *  M205  T               mechanics.min_travel_feedrate_mm_s    (float)
  *  M205  B               mechanics.min_segment_time_us         (ulong)
+ *
+ * Junction Deviation:
+ *  M205  J               mechanics.junction_deviation_mm       (float)
+ * or Jerk:
  *  M205  X               mechanics.max_jerk[X_AXIS]            (float)
  *  M205  Y               mechanics.max_jerk[Y_AXIS]            (float)
  *  M205  Z               mechanics.max_jerk[Z_AXIS]            (float)
  *  M205  E   E0 ...      mechanics.max_jerk[E_AXIS * EXTRUDERS](float x6)
+ *
  *  M206  XYZ             mechanics.home_offset                 (float x3)
  *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
@@ -164,6 +169,11 @@
  *
  *  M???  S               printer.IDLE_OOZING_enabled
  *
+ * Stepper driver control
+ *  M569  XYZ T0-5 E      stepper.direction_flag                (uint16_t)
+ *  M569  P               stepper.minimum_pulse                 (uint8_t)
+ *  M569  R-L             stepper.maximum_rate                  (uint32_t)
+ *
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current                         (float x7)
  *
@@ -223,8 +233,11 @@ void EEPROM::Postprocess() {
     mechanics.current_position[Z_AXIS]
   };
 
+  // Recalculate pulse cycle
+  HAL_calc_pulse_cycle();
+
   // steps per s2 needs to be updated to agree with units per s2
-  mechanics.reset_acceleration_rates();
+  planner.reset_acceleration_rates();
 
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
@@ -271,8 +284,8 @@ void EEPROM::Postprocess() {
     fwretract.refresh_autoretract();
   #endif
 
-  #if ENABLED(HYSTERESIS)
-    mechanics.calc_hysteresis_steps();
+  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+    mechanics.recalculate_max_e_jerk_factor();
   #endif
 
   // Setup Endstops pullup
@@ -280,7 +293,7 @@ void EEPROM::Postprocess() {
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
-  mechanics.refresh_positioning();
+  planner.refresh_positioning();
 
   if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
     mechanics.report_current_position();
@@ -301,14 +314,15 @@ void EEPROM::Postprocess() {
   bool EEPROM::eeprom_error = false;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
-    int16_t EEPROM::meshes_begin = 0;
+    uint16_t EEPROM::meshes_begin = 0;
   #endif
 
   /**
    * M500 - Store Configuration
    */
   bool EEPROM::Store_Settings() {
-    char ver[6] = "00000";
+    float dummy = 0.0f;
+    char ver[6] = "ERROR";
 
     uint16_t working_crc = 0;
 
@@ -335,7 +349,13 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE(mechanics.min_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_travel_feedrate_mm_s);
     EEPROM_WRITE(mechanics.min_segment_time_us);
-    EEPROM_WRITE(mechanics.max_jerk);
+
+    #if ENABLED(JUNCTION_DEVIATION)
+      EEPROM_WRITE(mechanics.junction_deviation_mm);
+    #else
+      EEPROM_WRITE(mechanics.max_jerk);
+    #endif
+
     #if ENABLED(WORKSPACE_OFFSETS)
       EEPROM_WRITE(mechanics.home_offset);
     #endif
@@ -513,6 +533,10 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(printer.IDLE_OOZING_enabled);
     #endif
 
+    EEPROM_WRITE(stepper.direction_flag);
+    EEPROM_WRITE(stepper.minimum_pulse);
+    EEPROM_WRITE(stepper.maximum_rate);
+
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
       EEPROM_WRITE(externaldac.motor_current);
     #endif
@@ -589,67 +613,73 @@ void EEPROM::Postprocess() {
       //
       // Save TMC2130 or TMC2208 Hybrid Threshold, and placeholder values
       //
-      uint16_t tmc_hybrid_threshold[TMC_AXES] = {
-        #if X_IS_TRINAMIC
-          TMC_GET_PWMTHRS(X, X),
-        #else
-          X_HYBRID_THRESHOLD,
-        #endif
-        #if Y_IS_TRINAMIC
-          TMC_GET_PWMTHRS(Y, Y),
-        #else
-          Y_HYBRID_THRESHOLD,
-        #endif
-        #if Z_IS_TRINAMIC
-          TMC_GET_PWMTHRS(Z, Z),
-        #else
-          Z_HYBRID_THRESHOLD,
-        #endif
-        #if X2_IS_TRINAMIC
-          TMC_GET_PWMTHRS(X, X2),
-        #else
-          X2_HYBRID_THRESHOLD,
-        #endif
-        #if Y2_IS_TRINAMIC
-          TMC_GET_PWMTHRS(Y, Y2),
-        #else
-          Y2_HYBRID_THRESHOLD,
-        #endif
-        #if Z2_IS_TRINAMIC
-          TMC_GET_PWMTHRS(Z, Z2),
-        #else
-          Z2_HYBRID_THRESHOLD,
-        #endif
-        #if E0_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E0),
-        #else
-          E0_HYBRID_THRESHOLD,
-        #endif
-        #if E1_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E1),
-        #else
-          E1_HYBRID_THRESHOLD,
-        #endif
-        #if E2_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E2),
-        #else
-          E2_HYBRID_THRESHOLD,
-        #endif
-        #if E3_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E3),
-        #else
-          E3_HYBRID_THRESHOLD,
-        #endif
-        #if E4_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E4)
-        #else
-          E4_HYBRID_THRESHOLD
-        #endif
-        #if E5_IS_TRINAMIC
-          TMC_GET_PWMTHRS(E, E5)
-        #else
-          E5_HYBRID_THRESHOLD
-        #endif
+      uint32_t tmc_hybrid_threshold[TMC_AXES] = {
+        #if ENABLED(HYBRID_THRESHOLD)
+          #if X_IS_TRINAMIC
+            TMC_GET_PWMTHRS(X, X),
+          #else
+            X_HYBRID_THRESHOLD,
+          #endif
+          #if Y_IS_TRINAMIC
+            TMC_GET_PWMTHRS(Y, Y),
+          #else
+            Y_HYBRID_THRESHOLD,
+          #endif
+          #if Z_IS_TRINAMIC
+            TMC_GET_PWMTHRS(Z, Z),
+          #else
+            Z_HYBRID_THRESHOLD,
+          #endif
+          #if X2_IS_TRINAMIC
+            TMC_GET_PWMTHRS(X, X2),
+          #else
+            X2_HYBRID_THRESHOLD,
+          #endif
+          #if Y2_IS_TRINAMIC
+            TMC_GET_PWMTHRS(Y, Y2),
+          #else
+            Y2_HYBRID_THRESHOLD,
+          #endif
+          #if Z2_IS_TRINAMIC
+            TMC_GET_PWMTHRS(Z, Z2),
+          #else
+            Z2_HYBRID_THRESHOLD,
+          #endif
+          #if E0_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E0),
+          #else
+            E0_HYBRID_THRESHOLD,
+          #endif
+          #if E1_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E1),
+          #else
+            E1_HYBRID_THRESHOLD,
+          #endif
+          #if E2_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E2),
+          #else
+            E2_HYBRID_THRESHOLD,
+          #endif
+          #if E3_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E3),
+          #else
+            E3_HYBRID_THRESHOLD,
+          #endif
+          #if E4_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E4),
+          #else
+            E4_HYBRID_THRESHOLD,
+          #endif
+          #if E5_IS_TRINAMIC
+            TMC_GET_PWMTHRS(E, E5)
+          #else
+            E5_HYBRID_THRESHOLD
+          #endif
+        #else // !HYBRID_THRESHOLD
+          100, 100, 3,            // X, Y, Z
+          100, 100, 3,            // X2, Y2, Z2
+          30, 30, 30, 30, 30, 30  // E0, E1, E2, E3, E4, E5
+        #endif // |HYBRID_THRESHOLD
       };
       EEPROM_WRITE(tmc_hybrid_threshold);
 
@@ -774,7 +804,13 @@ void EEPROM::Postprocess() {
       EEPROM_READ(mechanics.min_feedrate_mm_s);
       EEPROM_READ(mechanics.min_travel_feedrate_mm_s);
       EEPROM_READ(mechanics.min_segment_time_us);
-      EEPROM_READ(mechanics.max_jerk);
+
+      #if ENABLED(JUNCTION_DEVIATION)
+        EEPROM_READ(mechanics.junction_deviation_mm);
+      #else
+        EEPROM_READ(mechanics.max_jerk);
+      #endif
+
       #if ENABLED(WORKSPACE_OFFSETS)
         EEPROM_READ(mechanics.home_offset);
       #endif
@@ -963,6 +999,10 @@ void EEPROM::Postprocess() {
         EEPROM_READ(printer.IDLE_OOZING_enabled);
       #endif
 
+      EEPROM_READ(stepper.direction_flag);
+      EEPROM_READ(stepper.minimum_pulse);
+      EEPROM_READ(stepper.maximum_rate);
+
       #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
         EEPROM_READ(externaldac.motor_current);
       #endif
@@ -1012,50 +1052,53 @@ void EEPROM::Postprocess() {
           SET_CURR(E5);
         #endif
 
-        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
-        uint16_t tmc_hybrid_threshold[TMC_AXES];
+        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
+        uint32_t tmc_hybrid_threshold[TMC_AXES];
         EEPROM_READ(tmc_hybrid_threshold);
-        #if X_IS_TRINAMIC
-          TMC_SET_PWMTHRS(X, X);
-        #endif
-        #if Y_IS_TRINAMIC
-          TMC_SET_PWMTHRS(Y, Y);
-        #endif
-        #if Z_IS_TRINAMIC
-          TMC_SET_PWMTHRS(Z, Z);
-        #endif
-        #if X2_IS_TRINAMIC
-          TMC_SET_PWMTHRS(X, X2);
-        #endif
-        #if Y2_IS_TRINAMIC
-          TMC_SET_PWMTHRS(Y, Y2);
-        #endif
-        #if Z2_IS_TRINAMIC
-          TMC_SET_PWMTHRS(Z, Z2);
-        #endif
-        #if E0_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E0);
-        #endif
-        #if E1_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E1);
-        #endif
-        #if E2_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E2);
-        #endif
-        #if E3_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E3);
-        #endif
-        #if E4_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E4);
-        #endif
-        #if E4_IS_TRINAMIC
-          TMC_SET_PWMTHRS(E, E5);
+        #if ENABLED(HYBRID_THRESHOLD)
+          #if X_IS_TRINAMIC
+            TMC_SET_PWMTHRS(X, X);
+          #endif
+          #if Y_IS_TRINAMIC
+            TMC_SET_PWMTHRS(Y, Y);
+          #endif
+          #if Z_IS_TRINAMIC
+            TMC_SET_PWMTHRS(Z, Z);
+          #endif
+          #if X2_IS_TRINAMIC
+            TMC_SET_PWMTHRS(X, X2);
+          #endif
+          #if Y2_IS_TRINAMIC
+            TMC_SET_PWMTHRS(Y, Y2);
+          #endif
+          #if Z2_IS_TRINAMIC
+            TMC_SET_PWMTHRS(Z, Z2);
+          #endif
+          #if E0_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E0);
+          #endif
+          #if E1_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E1);
+          #endif
+          #if E2_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E2);
+          #endif
+          #if E3_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E3);
+          #endif
+          #if E4_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E4);
+          #endif
+          #if E4_IS_TRINAMIC
+            TMC_SET_PWMTHRS(E, E5);
+          #endif
         #endif
 
         /*
          * TMC2130 Sensorless homing threshold.
          * X and X2 use the same value
          * Y and Y2 use the same value
+         * Z and Z2 use the same value
          */
         int16_t tmc_sgt[XYZ];
         EEPROM_READ(tmc_sgt);
@@ -1202,7 +1245,7 @@ void EEPROM::Postprocess() {
           #if ENABLED(EEPROM_CHITCHAT)
             ubl_invalid_slot(a);
             SERIAL_MV("E2END=", E2END);
-            SERIAL_MV(" meshes_end=", meshes_end);
+            SERIAL_MV(" meshes_end=", (int)meshes_end);
             SERIAL_EMV(" slot=", slot);
           #endif
           return;
@@ -1305,7 +1348,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    const float tmp13[] = MOTOR_CURRENT;
+    const float tmp13[] = { X_CURRENT / 1000, Y_CURRENT / 1000, Z_CURRENT / 1000, E0_CURRENT / 1000, E1_CURRENT / 1000, E2_CURRENT / 1000, E3_CURRENT /1000 };
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       externaldac.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif
@@ -1316,10 +1359,14 @@ void EEPROM::Factory_Settings() {
     mechanics.max_acceleration_mm_per_s2[i] = pgm_read_dword_near(&tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1]);
   }
 
-  for (uint8_t i = 0; i < EXTRUDERS; i++) {
-    mechanics.retract_acceleration[i]       = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
-    mechanics.max_jerk[E_AXIS + i]          = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
-  }
+  for (uint8_t i = 0; i < EXTRUDERS; i++)
+    mechanics.retract_acceleration[i] = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
+
+  constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
+  LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
+
+  stepper.minimum_pulse = MINIMUM_STEPPER_PULSE;
+  stepper.maximum_rate  = MAXIMUM_STEPPER_RATE;
 
   static_assert(
     tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
@@ -1334,9 +1381,16 @@ void EEPROM::Factory_Settings() {
   mechanics.min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
   mechanics.min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
   mechanics.min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
-  mechanics.max_jerk[X_AXIS]          = DEFAULT_XJERK;
-  mechanics.max_jerk[Y_AXIS]          = DEFAULT_YJERK;
-  mechanics.max_jerk[Z_AXIS]          = DEFAULT_ZJERK;
+
+  #if ENABLED(JUNCTION_DEVIATION)
+    mechanics.junction_deviation_mm = JUNCTION_DEVIATION_MM;
+  #else
+    mechanics.max_jerk[X_AXIS]  = DEFAULT_XJERK;
+    mechanics.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
+    mechanics.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+    for (uint8_t i = 0; i < EXTRUDERS; i++)
+      mechanics.max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
+  #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0;
@@ -1377,6 +1431,10 @@ void EEPROM::Factory_Settings() {
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     tools.lpq_len = 20; // default last-position-queue size
   #endif
+
+  // Reset Printer Flag
+  printer.reset_home_flag();
+  printer.reset_various_flag();
 
   // Heaters
   #if HEATER_COUNT > 0
@@ -1419,6 +1477,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1453,6 +1512,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1487,6 +1547,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1521,6 +1582,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
       #if HAS_EEPROM
@@ -1558,6 +1620,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPBED);
       heat->setHWInverted(INVERTED_BED_PIN);
       #if HAS_EEPROM
@@ -1595,6 +1658,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPCHAMBER);
       heat->setHWInverted(INVERTED_CHAMBER_PIN);
       #if HAS_EEPROM
@@ -1632,6 +1696,7 @@ void EEPROM::Factory_Settings() {
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
+      heat->resetFlag();
       heat->setUsePid(PIDTEMPCOOLER);
       heat->setHWInverted(INVERTED_COOLER_PIN);
       #if HAS_EEPROM
@@ -1652,6 +1717,7 @@ void EEPROM::Factory_Settings() {
       fan->freq           = 250;
       fan->min_Speed      = FAN_MIN_PWM;
       fan->autoMonitored  = 0;
+      fan->FanFlag        = 0;
       fan->SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
       fan->setHWInverted(FAN_INVERTED);
     }
@@ -1701,107 +1767,7 @@ void EEPROM::Factory_Settings() {
     printer.IDLE_OOZING_enabled = true;
   #endif
 
-  #if X_IS_TRINAMIC
-    stepperX.setCurrent(X_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if Y_IS_TRINAMIC
-    stepperY.setCurrent(Y_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if Z_IS_TRINAMIC
-    stepperZ.setCurrent(Z_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if X2_IS_TRINAMIC
-    stepperX2.setCurrent(X2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if Y2_IS_TRINAMIC
-    stepperY2.setCurrent(Y2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if Z2_IS_TRINAMIC
-    stepperZ2.setCurrent(Z2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E0_IS_TRINAMIC
-    stepperE0.setCurrent(E0_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E1_IS_TRINAMIC
-    stepperE1.setCurrent(E1_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E2_IS_TRINAMIC
-    stepperE2.setCurrent(E2_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E3_IS_TRINAMIC
-    stepperE3.setCurrent(E3_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E4_IS_TRINAMIC
-    stepperE4.setCurrent(E4_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-  #if E5_IS_TRINAMIC
-    stepperE5.setCurrent(E5_CURRENT, R_SENSE, HOLD_MULTIPLIER);
-  #endif
-
-  #define TMC_INIT_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, Q##_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[P##_AXIS])
-  #if X_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperX, TMC_X, X_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[X_AXIS]);
-  #endif
-  #if Y_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperY, TMC_Y, Y_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Y_AXIS]);
-  #endif
-  #if Z_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperZ, TMC_Z, Z_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Z_AXIS]);
-  #endif
-  #if X2_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperX2, TMC_X2, X2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[X_AXIS]);
-  #endif
-  #if Y2_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperY2, TMC_Y2, Y2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Y_AXIS]);
-  #endif
-  #if Z2_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperZ2, TMC_Z2, Z2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[Z_AXIS]);
-  #endif
-  #if E0_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE0, TMC_E0, E0_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 0]);
-  #endif
-  #if E1_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE1, TMC_E1, E1_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 1]);
-  #endif
-  #if E2_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE2, TMC_E2, E2_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 2]);
-  #endif
-  #if E3_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE3, TMC_E3, E3_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 3]);
-  #endif
-  #if E4_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE4, TMC_E4, E4_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 4]);
-  #endif
-  #if E5_IS_TRINAMIC
-    tmc_set_pwmthrs(stepperE5, TMC_E5, E5_HYBRID_THRESHOLD, mechanics.axis_steps_per_mm[E_AXIS + 5]);
-  #endif
-
-  #if ENABLED(SENSORLESS_HOMING)
-    #if ENABLED(X_HOMING_SENSITIVITY)
-      #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-        stepperX.sgt(X_HOMING_SENSITIVITY);
-      #endif
-      #if ENABLED(X2_IS_TMC2130)
-        stepperX2.sgt(X_HOMING_SENSITIVITY);
-      #endif
-    #endif
-    #if ENABLED(Y_HOMING_SENSITIVITY)
-      #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-        stepperY.sgt(Y_HOMING_SENSITIVITY);
-      #endif
-      #if ENABLED(Y2_IS_TMC2130)
-        stepperY2.sgt(Y_HOMING_SENSITIVITY);
-      #endif
-    #endif
-    #if ENABLED(Z_HOMING_SENSITIVITY)
-      #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
-        stepperZ.sgt(Z_HOMING_SENSITIVITY);
-      #endif
-      #if ENABLED(Z2_IS_TMC2130)
-        stepperZ2.sgt(Z_HOMING_SENSITIVITY);
-      #endif
-    #endif
-  #endif
+  reset_stepper_drivers();
 
   #if ENABLED(LIN_ADVANCE)
     planner.extruder_advance_K = LIN_ADVANCE_K;
@@ -1810,7 +1776,7 @@ void EEPROM::Factory_Settings() {
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     for (uint8_t e = 0; e < DRIVER_EXTRUDERS; e++) {
       filament_change_unload_length[e] = PAUSE_PARK_UNLOAD_LENGTH;
-      filament_change_load_length[e] = PAUSE_PARK_LOAD_LENGTH;
+      filament_change_load_length[e] = PAUSE_PARK_FAST_LOAD_LENGTH;
     }
   #endif
 
@@ -1829,8 +1795,8 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
+    endstops.setLogic(DOOR_OPEN_SENSOR, !DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK_SENSOR, !POWER_CHECK_LOGIC);
   #else
     endstops.setLogic(X_MIN, X_MIN_ENDSTOP_LOGIC);
     endstops.setLogic(Y_MIN, Y_MIN_ENDSTOP_LOGIC);
@@ -1846,8 +1812,8 @@ void EEPROM::Factory_Settings() {
     endstops.setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
     endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     endstops.setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
+    endstops.setLogic(DOOR_OPEN_SENSOR, DOOR_OPEN_LOGIC);
+    endstops.setLogic(POWER_CHECK_SENSOR, POWER_CHECK_LOGIC);
   #endif
 
   endstops.setPullup(X_MIN, ENDSTOPPULLUP_XMIN);
@@ -1864,8 +1830,10 @@ void EEPROM::Factory_Settings() {
   endstops.setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
   endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
-  endstops.setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
-  endstops.setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
+  endstops.setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
+  endstops.setPullup(POWER_CHECK_SENSOR, PULLUP_POWER_CHECK);
+
+  watchdog.reset();
 
   Postprocess();
 
@@ -1874,7 +1842,19 @@ void EEPROM::Factory_Settings() {
 
 #if DISABLED(DISABLE_M503)
 
-  #define CONFIG_MSG_START(str) do{ if (!forReplay) SERIAL_STR(CFG); SERIAL_EM(str); }while(0)
+  #define CONFIG_MSG_START(str)   do{ if (!forReplay) SERIAL_STR(CFG); SERIAL_MSG(str); }while(0)
+  #define CONFIG_MSG_START_E(str) do{ if (!forReplay) SERIAL_STR(CFG); SERIAL_EM(str); }while(0)
+
+  inline void print_units(const bool colon) {
+    SERIAL_PS(
+      #if ENABLED(INCH_MODE_SUPPORT)
+        parser.linear_unit_factor != 1.0 ? PSTR(" (in)") :
+      #endif
+      PSTR(" (mm)")
+    );
+    if (colon) SERIAL_EM(":");
+  }
+  #define SERIAL_UNITS(COLON) print_units(COLON)
 
   /**
    * M503 - Print Configuration
@@ -1885,20 +1865,23 @@ void EEPROM::Factory_Settings() {
     /**
      * Announce current units, in case inches are being displayed
      */
+    CONFIG_MSG_START("");
     #if ENABLED(INCH_MODE_SUPPORT)
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
       #define VOLUMETRIC_UNIT(N) ((N) / (tools.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
-      SERIAL_SM(CFG, "  G2");
+      SERIAL_MSG("  G2");
       SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
-      SERIAL_MSG(" ; Units in ");
-      SERIAL_PS(parser.linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
+      SERIAL_MSG(" ;");
+      SERIAL_UNITS(false);
     #else
       #define LINEAR_UNIT(N) N
       #define VOLUMETRIC_UNIT(N) N
-      SERIAL_LM(CFG, "  G21 ; Units in mm");
+      SERIAL_MSG("  G21    ; Units in");
+      SERIAL_UNITS(false);
     #endif
+    SERIAL_EOL();
 
-    CONFIG_MSG_START("Steps per unit:");
+    CONFIG_MSG_START_E("Steps per unit:");
     SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(mechanics.axis_steps_per_mm[X_AXIS]), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(mechanics.axis_steps_per_mm[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(mechanics.axis_steps_per_mm[Z_AXIS]), 3);
@@ -1913,7 +1896,7 @@ void EEPROM::Factory_Settings() {
       }
     #endif // EXTRUDERS > 1
 
-    CONFIG_MSG_START("Maximum feedrates (units/s):");
+    CONFIG_MSG_START_E("Maximum feedrates (units/s):");
     SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(mechanics.max_feedrate_mm_s[X_AXIS]), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_feedrate_mm_s[Y_AXIS]), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_feedrate_mm_s[Z_AXIS]), 3);
@@ -1928,7 +1911,7 @@ void EEPROM::Factory_Settings() {
       }
     #endif // EXTRUDERS > 1
 
-    CONFIG_MSG_START("Maximum Acceleration (units/s2):");
+    CONFIG_MSG_START_E("Maximum Acceleration (units/s2):");
     SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[X_AXIS]));
     SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[Y_AXIS]));
     SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_acceleration_mm_per_s2[Z_AXIS]));
@@ -1943,7 +1926,7 @@ void EEPROM::Factory_Settings() {
       }
     #endif // EXTRUDERS > 1
 
-    CONFIG_MSG_START("Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>");
+    CONFIG_MSG_START_E("Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>:");
     SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(mechanics.acceleration), 3);
     SERIAL_MV(" V", LINEAR_UNIT(mechanics.travel_acceleration), 3);
     #if EXTRUDERS == 1
@@ -1957,26 +1940,33 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    CONFIG_MSG_START("Advanced variables: S<min_feedrate> V<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>");
-    SERIAL_SMV(CFG, "  M205 S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
-    SERIAL_MV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
-    SERIAL_MV(" B", mechanics.min_segment_time_us);
-    SERIAL_MV(" X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", LINEAR_UNIT(mechanics.max_jerk[E_AXIS]), 3);
-    #endif
-    SERIAL_EOL();
-    #if (EXTRUDERS > 1)
-      for(int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M205 T", i);
-        SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
-      }
+    CONFIG_MSG_START_E("Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
+    SERIAL_SMV(CFG, " M205 B", mechanics.min_segment_time_us);
+    SERIAL_MV(" S", LINEAR_UNIT(mechanics.min_feedrate_mm_s), 3);
+    SERIAL_EMV(" V", LINEAR_UNIT(mechanics.min_travel_feedrate_mm_s), 3);
+
+    #if ENABLED(JUNCTION_DEVIATION)
+      CONFIG_MSG_START_E("Junction Deviation: J<Junction deviation mm>:");
+      SERIAL_LMV(CFG, "  M205 J", mechanics.junction_deviation_mm, 3);
+    #else
+      CONFIG_MSG_START_E("Jerk: X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
+      SERIAL_SMV(CFG, " M205 X", LINEAR_UNIT(mechanics.max_jerk[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(mechanics.max_jerk[Y_AXIS]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(mechanics.max_jerk[Z_AXIS]), 3);
+      #if EXTRUDERS == 1
+        SERIAL_MV(" T0 E", LINEAR_UNIT(mechanics.max_jerk[E_AXIS]), 3);
+      #endif
+      SERIAL_EOL();
+      #if (EXTRUDERS > 1)
+        for(int8_t i = 0; i < EXTRUDERS; i++) {
+          SERIAL_SMV(CFG, "  M205 T", i);
+          SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
+        }
+      #endif
     #endif
 
     #if HOTENDS > 0
-      CONFIG_MSG_START("Hotend Sensor parameters: H<Hotend> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>");
+      CONFIG_MSG_START_E("Hotend Sensor parameters: H<Hotend> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
       LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M305 H", h);
         SERIAL_MV(" P", heaters[h].sensor.pin);
@@ -1988,7 +1978,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_EMV(" O", heaters[h].sensor.adcHighOffset);
       }
 
-      CONFIG_MSG_START("Hotend Heater parameters: H<Hotend> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>");
+      CONFIG_MSG_START_E("Hotend Heater parameters: H<Hotend> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M306 H", h);
         SERIAL_MV(" P", heaters[h].pin);
@@ -2003,7 +1993,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if HAS_TEMP_BED
-      CONFIG_MSG_START("Bed Sensor parameters: P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>");
+      CONFIG_MSG_START_E("Bed Sensor parameters: P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
       SERIAL_SM(CFG, "  M305 H-1");
       SERIAL_MV(" P", heaters[BED_INDEX].sensor.pin);
       SERIAL_MV(" A", heaters[BED_INDEX].sensor.r25, 1);
@@ -2013,7 +2003,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" L", heaters[BED_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[BED_INDEX].sensor.adcHighOffset);
 
-      CONFIG_MSG_START("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>");
+      CONFIG_MSG_START_E("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       LOOP_HOTEND() {
         SERIAL_SM(CFG, "  M306 H-1");
         SERIAL_MV(" P", heaters[BED_INDEX].pin);
@@ -2027,13 +2017,13 @@ void EEPROM::Factory_Settings() {
       }
     #endif
 
-    CONFIG_MSG_START("PID settings:");
+    CONFIG_MSG_START_E("PID settings:");
     #if HOTENDS == 1
       heaters[0].print_PID();
     #elif HOTENDS > 1
       LOOP_HOTEND() heaters[h].print_PID();
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        SERIAL_LMV(CFG, "  M301 L", tools.lpq_len);
+        SERIAL_LMV(CFG, "  M301 L", (int)tools.lpq_len);
       #endif
     #endif
     #if (HAS_HEATER_BED)
@@ -2047,7 +2037,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if HEATER_USES_AD595
-      CONFIG_MSG_START("AD595 Offset and Gain:");
+      CONFIG_MSG_START_E("AD595 Offset and Gain:");
       LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M595 H", h);
         SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
@@ -2056,7 +2046,7 @@ void EEPROM::Factory_Settings() {
     #endif // HEATER_USES_AD595
 
     #if HOTENDS > 1
-      CONFIG_MSG_START("Hotend offset (mm):");
+      CONFIG_MSG_START_E("Hotend offset (mm):");
       for (int8_t h = 1; h < HOTENDS; h++) {
         SERIAL_SMV(CFG, "  M218 H", h);
         SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
@@ -2066,7 +2056,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if FAN_COUNT > 0
-      CONFIG_MSG_START("Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> H<Auto mode> I<Hardware Inverted 0-1>");
+      CONFIG_MSG_START_E("Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> H<Auto mode> I<Hardware Inverted 0-1>:");
       LOOP_FAN() {
         SERIAL_SMV(CFG, "  M106 P", f);
         SERIAL_MV(" U", fans[f].pin);
@@ -2081,7 +2071,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)
-      CONFIG_MSG_START("Home offset:");
+      CONFIG_MSG_START_E("Home offset:");
       SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(mechanics.home_offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(mechanics.home_offset[Y_AXIS]), 3);
       SERIAL_EMV(" Z", LINEAR_UNIT(mechanics.home_offset[Z_AXIS]), 3);
@@ -2105,7 +2095,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if HAS_LCD_CONTRAST
-      CONFIG_MSG_START("LCD Contrast:");
+      CONFIG_MSG_START_E("LCD Contrast:");
       SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
     #endif
 
@@ -2115,11 +2105,11 @@ void EEPROM::Factory_Settings() {
     #if HAS_LEVELING
 
       #if ENABLED(MESH_BED_LEVELING)
-        CONFIG_MSG_START("Mesh Bed Leveling:");
+        CONFIG_MSG_START_E("Mesh Bed Leveling:");
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        CONFIG_MSG_START("Unified Bed Leveling:");
+        CONFIG_MSG_START_E("Unified Bed Leveling:");
       #elif HAS_ABL
-        CONFIG_MSG_START("Auto Bed Leveling:");
+        CONFIG_MSG_START_E("Auto Bed Leveling:");
       #endif
 
       SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_is_valid() ? 1 : 0);
@@ -2146,15 +2136,15 @@ void EEPROM::Factory_Settings() {
         SERIAL_LMV(CFG, "  Active Mesh Slot: ", ubl.storage_slot);
         SERIAL_SMV(CFG, "  EEPROM can hold ", calc_num_meshes());
         SERIAL_EM(" meshes.");
-        ubl.report_current_mesh();
+        //ubl.report_current_mesh();
 
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
         if (bedlevel.leveling_is_valid()) {
           for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
-              SERIAL_SMV(CFG, "  G29 W I", (int)px + 1);
-              SERIAL_MV(" J", (int)py + 1);
+              SERIAL_SMV(CFG, "  G29 W I", (int)px);
+              SERIAL_MV(" J", (int)py);
               SERIAL_MV(" Z", LINEAR_UNIT(abl.z_values[px][py]), 5);
               SERIAL_EOL();
             }
@@ -2167,16 +2157,16 @@ void EEPROM::Factory_Settings() {
 
     #if IS_DELTA
 
-      CONFIG_MSG_START("Endstop adjustment:");
+      CONFIG_MSG_START_E("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" X", LINEAR_UNIT(mechanics.delta_endstop_adj[A_AXIS]));
       SERIAL_MV(" Y", LINEAR_UNIT(mechanics.delta_endstop_adj[B_AXIS]));
       SERIAL_MV(" Z", LINEAR_UNIT(mechanics.delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
-      CONFIG_MSG_START("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
-      CONFIG_MSG_START("                     R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
-      CONFIG_MSG_START("                     O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
+      CONFIG_MSG_START_E("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
+      CONFIG_MSG_START_E("                     R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
+      CONFIG_MSG_START_E("                     O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[1]), 3);
@@ -2199,7 +2189,7 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
 
-      CONFIG_MSG_START("Endstop adjustment:");
+      CONFIG_MSG_START_E("Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
       #if ENABLED(X_TWO_ENDSTOPS)
         SERIAL_MV(" X", LINEAR_UNIT(endstops.x_endstop_adj));
@@ -2218,7 +2208,8 @@ void EEPROM::Factory_Settings() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      CONFIG_MSG_START("Probe Offset:");
+      CONFIG_MSG_START("Probe Offset");
+      SERIAL_UNITS(true);
       SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
       SERIAL_MV(" Z", LINEAR_UNIT(probe.offset[Z_AXIS]), 3);
@@ -2226,7 +2217,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(ULTIPANEL)
-      CONFIG_MSG_START("Material heatup parameters:");
+      CONFIG_MSG_START_E("Material heatup parameters:");
       for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
@@ -2237,18 +2228,18 @@ void EEPROM::Factory_Settings() {
     #endif // ULTIPANEL
 
     #if ENABLED(FWRETRACT)
-      CONFIG_MSG_START("Retract: S<length> F<units/m> Z<lift>");
+      CONFIG_MSG_START_E("Retract: S<length> F<units/m> Z<lift>:");
       SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.retract_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_feedrate_mm_s)));
       SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.retract_zlift));
 
-      CONFIG_MSG_START("Recover: S<length> F<units/m>");
+      CONFIG_MSG_START_E("Recover: S<length> F<units/m>:");
       SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.retract_recover_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_recover_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_recover_feedrate_mm_s)));
 
-      CONFIG_MSG_START("Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");
+      CONFIG_MSG_START_E("Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover:");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
@@ -2276,10 +2267,31 @@ void EEPROM::Factory_Settings() {
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**
+     * Stepper driver control
+     */
+    CONFIG_MSG_START_E("Stepper Direction:");
+    SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
+    SERIAL_MV(" Y", (int)stepper.isStepDir(Y_AXIS));
+    SERIAL_MV(" Z", (int)stepper.isStepDir(Z_AXIS));
+    #if DRIVER_EXTRUDERS == 1
+      SERIAL_MV(" T0 E", (int)stepper.isStepDir(E_AXIS));
+    #endif
+    SERIAL_EOL();
+    #if DRIVER_EXTRUDERS > 1
+      for (int8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
+        SERIAL_SMV(CFG, "  M569 T", i);
+        SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
+      }
+    #endif
+    CONFIG_MSG_START_E("Stepper driver control:");
+    SERIAL_SMV(CFG, "  M569 P", stepper.minimum_pulse);
+    SERIAL_EMV(" R", stepper.maximum_rate);
+
+    /**
      * Alligator current drivers M906
      */
     #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-      CONFIG_MSG_START("Motor current:");
+      CONFIG_MSG_START_E("Motor current:");
       SERIAL_SMV(CFG, "  M906 X", externaldac.motor_current[X_AXIS], 2);
       SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS], 2);
       SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS], 2);
@@ -2300,7 +2312,7 @@ void EEPROM::Factory_Settings() {
       /**
        * TMC2130 or TMC2208 stepper driver current
        */
-      CONFIG_MSG_START("Stepper driver current:");
+      CONFIG_MSG_START_E("Stepper driver current:");
       SERIAL_SM(CFG, "  M906");
       #if X_IS_TRINAMIC
         SERIAL_MV(" X", stepperX.getCurrent());
@@ -2343,51 +2355,53 @@ void EEPROM::Factory_Settings() {
       /**
        * TMC2130 or TMC2208 Hybrid Threshold
        */
-      CONFIG_MSG_START("Hybrid Threshold:");
-      SERIAL_SM(CFG, "  M913");
-      #if X_IS_TRINAMIC
-        SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
-      #endif
-      #if X2_IS_TRINAMIC
-        SERIAL_MV(" I1 X", TMC_GET_PWMTHRS(X, X2));
-      #endif
-      #if Y_IS_TRINAMIC
-        SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
-      #endif
-      #if Y2_IS_TRINAMIC
-        SERIAL_MV(" I1 Y", TMC_GET_PWMTHRS(Y, Y2));
-      #endif
-      #if Z_IS_TRINAMIC
-        SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
-      #endif
-      #if Z2_IS_TRINAMIC
-        SERIAL_MV(" I1 Z", TMC_GET_PWMTHRS(Z, Z2));
-      #endif
-      #if E0_IS_TRINAMIC
-        SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E, E0));
-      #endif
-      #if E1_IS_TRINAMIC
-        SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E, E1));
-      #endif
-      #if E2_IS_TRINAMIC
-        SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E, E2));
-      #endif
-      #if E3_IS_TRINAMIC
-        SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E, E3));
-      #endif
-      #if E4_IS_TRINAMIC
-        SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E, E4));
-      #endif
-      #if E5_IS_TRINAMIC
-        SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E, E5));
-      #endif
-      SERIAL_EOL();
+      #if ENABLED(HYBRID_THRESHOLD)
+        CONFIG_MSG_START_E("Hybrid Threshold:");
+        SERIAL_SM(CFG, "  M913");
+        #if X_IS_TRINAMIC
+          SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
+        #endif
+        #if X2_IS_TRINAMIC
+          SERIAL_MV(" I1 X", TMC_GET_PWMTHRS(X, X2));
+        #endif
+        #if Y_IS_TRINAMIC
+          SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
+        #endif
+        #if Y2_IS_TRINAMIC
+          SERIAL_MV(" I1 Y", TMC_GET_PWMTHRS(Y, Y2));
+        #endif
+        #if Z_IS_TRINAMIC
+          SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
+        #endif
+        #if Z2_IS_TRINAMIC
+          SERIAL_MV(" I1 Z", TMC_GET_PWMTHRS(Z, Z2));
+        #endif
+        #if E0_IS_TRINAMIC
+          SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E, E0));
+        #endif
+        #if E1_IS_TRINAMIC
+          SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E, E1));
+        #endif
+        #if E2_IS_TRINAMIC
+          SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E, E2));
+        #endif
+        #if E3_IS_TRINAMIC
+          SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E, E3));
+        #endif
+        #if E4_IS_TRINAMIC
+          SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E, E4));
+        #endif
+        #if E5_IS_TRINAMIC
+          SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E, E5));
+        #endif
+        SERIAL_EOL();
+      #endif // HYBRID_THRESHOLD
 
       /**
        * TMC2130 Sensorless homing thresholds
        */
       #if ENABLED(SENSORLESS_HOMING)
-        CONFIG_MSG_START("Sensorless homing threshold:");
+        CONFIG_MSG_START_E("Sensorless homing threshold:");
         SERIAL_SM(CFG, "  M914");
         #if ENABLED(X_HOMING_SENSITIVITY)
           #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
@@ -2422,7 +2436,7 @@ void EEPROM::Factory_Settings() {
      * Linear Advance
      */
     #if ENABLED(LIN_ADVANCE)
-      CONFIG_MSG_START("Linear Advance:");
+      CONFIG_MSG_START_E("Linear Advance:");
       SERIAL_LMV(CFG, "  M900 K", planner.extruder_advance_K);
     #endif
 
@@ -2430,7 +2444,7 @@ void EEPROM::Factory_Settings() {
      * Advanced Pause filament load & unload lengths
      */
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      CONFIG_MSG_START("Filament load/unload lengths:");
+      CONFIG_MSG_START_E("Filament load/unload lengths:");
       #if EXTRUDERS == 1
         SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(filament_change_load_length[0]), 2);
         SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[0]), 2);

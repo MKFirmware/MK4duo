@@ -29,7 +29,6 @@
 #ifndef LANGUAGE_DA_H
 #define LANGUAGE_DA_H
 
-#define MAPPER_C2C3
 #define DISPLAY_CHARSET_ISO10646_1
 #define CHARSIZE 2
 
@@ -98,13 +97,13 @@
 #define MSG_ACC                             _UxGT("Accel")
 #define MSG_JERK                            _UxGT("Jerk")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-jerk")
-  #define MSG_VY_JERK                       _UxGT("Vb-jerk")
-  #define MSG_VZ_JERK                       _UxGT("Vc-jerk")
+  #define MSG_VA_JERK                       _UxGT("Va-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
 #else
-  #define MSG_VX_JERK                       _UxGT("Vx-jerk")
-  #define MSG_VY_JERK                       _UxGT("Vy-jerk")
-  #define MSG_VZ_JERK                       _UxGT("Vz-jerk")
+  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VMAX                            _UxGT("Vmax ")
@@ -115,13 +114,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-rejse")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Asteps/mm")
-  #define MSG_YSTEPS                        _UxGT("Bsteps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Csteps/mm")
+  #define MSG_ASTEPS                        _UxGT("Asteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Bsteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Csteps/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xsteps/mm")
-  #define MSG_YSTEPS                        _UxGT("Ysteps/mm")
-  #define MSG_ZSTEPS                        _UxGT("Zsteps/mm")
+  #define MSG_ASTEPS                        _UxGT("Xsteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Ysteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Zsteps/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("Esteps/mm")
 #define MSG_E1STEPS                         _UxGT("E1steps/mm")
@@ -149,7 +148,6 @@
 #define MSG_NO_CARD                         _UxGT("Intet SD kort")
 #define MSG_DWELL                           _UxGT("Dvale...")
 #define MSG_USERWAIT                        _UxGT("Venter på bruger...")
-#define MSG_RESUMING                        _UxGT("Forsætter printet")
 #define MSG_PRINT_ABORTED                   _UxGT("Print annulleret")
 #define MSG_NO_MOVE                         _UxGT("Ingen bevægelse.")
 #define MSG_KILLED                          _UxGT("DRÆBT. ")
@@ -182,16 +180,14 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Fejl: Min temp")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Fejl: Maks Plade temp")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Fejl: Min Plade temp")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Forbudt")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("PRINTER STOPPET")
 #define MSG_PLEASE_RESET                    _UxGT("Reset Venligst")
 #define MSG_SHORT_DAY                       _UxGT("d") // Kun et bogstav
 #define MSG_SHORT_HOUR                      _UxGT("h") // Kun et bogstav
 #define MSG_SHORT_MINUTE                    _UxGT("m") // Kun et bogstav
 #define MSG_HEATING                         _UxGT("Opvarmer...")
-#define MSG_HEATING_COMPLETE                _UxGT("Opvarmet")
-#define MSG_BED_HEATING                     _UxGT("Opvarmer plade")
-#define MSG_BED_DONE                        _UxGT("Plade opvarmet")
+#define MSG_BED_HEATING                     _UxGT("Opvarmer plade...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Kalibrering")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibrer X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibrer Y")

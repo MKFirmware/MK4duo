@@ -43,8 +43,12 @@ char    Printer::printName[21] = "";   // max. 20 chars + 0
 uint8_t Printer::progress = 0;
 
 // Inactivity shutdown
-millis_t  Printer::max_inactive_time        = 0,
-          Printer::host_keepalive_interval  = DEFAULT_KEEPALIVE_INTERVAL;
+watch_t Printer::max_inactivity_watch,
+        Printer::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
+
+#if ENABLED(HOST_KEEPALIVE_FEATURE)
+  watch_t Printer::host_keepalive_watch(DEFAULT_KEEPALIVE_INTERVAL * 1000UL);
+#endif
 
 // Interrupt Event
 MK4duoInterruptEvent Printer::interruptEvent = INTERRUPT_EVENT_NONE;
@@ -84,16 +88,16 @@ PrinterMode Printer::mode =
 #endif
 
 #if HAS_CHDK
-  millis_t  Printer::chdkHigh   = 0;
-  bool      Printer::chdkActive = false;
+  watch_t Printer::chdk_watch(CHDK_DELAY);
+  bool    Printer::chdkActive = false;
 #endif
 
 // Private
 
 uint8_t   Printer::mk_debug_flag  = 0, // For debug
-          Printer::mk_1_flag      = 0; // For Homed
+          Printer::mk_home_flag   = 0; // For Homed
 
-uint16_t  Printer::mk_2_flag      = 0; // For various
+uint16_t  Printer::mk_various_flag  = 0; // For various
 
 /**
  * Public Function
@@ -182,7 +186,7 @@ void Printer::setup() {
 
   mechanics.init();
 
-  // Init endstops and pullups
+  // Init endstops
   endstops.init();
 
   // Load data from EEPROM if available (or use defaults)
@@ -197,7 +201,7 @@ void Printer::setup() {
   #endif
 
   // Vital to init stepper/planner equivalent for current_position
-  mechanics.sync_plan_position();
+  mechanics.sync_plan_position_mech_specific();
 
   thermalManager.init();  // Initialize temperature loop
 
@@ -274,7 +278,7 @@ void Printer::setup() {
   setRunning(true);
 
   #if ENABLED(DELTA_HOME_ON_POWER)
-    mechanics.home(true);
+    mechanics.home();
   #endif
 
   #if FAN_COUNT > 0
@@ -282,6 +286,10 @@ void Printer::setup() {
   #endif
 
   if (!eeprom_loaded) lcd_eeprom_allert();
+
+  #if HAS_SD_RESTART
+    restart.do_print_job();
+  #endif
 }
 
 /**
@@ -289,9 +297,6 @@ void Printer::setup() {
  *
  *  - Save or log commands to SD
  *  - Process available commands (if not saving)
- *  - Call heater manager
- *  - Call Fans manager
- *  - Call inactivity manager
  *  - Call endstop manager
  *  - Call LCD update
  */
@@ -299,21 +304,56 @@ void Printer::loop() {
 
   printer.keepalive(NotBusy);
 
-  commands.get_available();
-
   #if HAS_SDSUPPORT
-    card.checkautostart(false);
-  #endif
 
+    card.checkautostart();
+
+    if (isAbortSDprinting()) {
+      setAbortSDprinting(false);
+
+      #if HAS_SD_RESTART
+        // Save Job for restart
+        if (IS_SD_PRINTING) restart.save_data(true);
+      #endif
+
+      // Stop SD printing
+      card.stopSDPrint();
+
+      // Clear all command in quee
+      commands.clear_queue();
+
+      // Stop all stepper
+      quickstop_stepper();
+
+      // Auto home
+      #if Z_HOME_DIR > 0
+        mechanics.home();
+      #else
+        mechanics.home(true, true, false);
+      #endif
+
+      // Disabled Heaters and Fan
+      thermalManager.disable_all_heaters();
+      #if FAN_COUNT > 0
+        LOOP_FAN() fans[f].Speed = 0;
+      #endif
+
+      // Stop printer job timer
+      print_job_counter.stop();
+    }
+
+  #endif // HAS_SDSUPPORT
+
+  commands.get_available();
   commands.advance_queue();
-
   endstops.report_state();
   idle();
 }
 
 void Printer::check_periodical_actions() {
 
-  static uint8_t cycle_1000ms  = 10;  // Event 1.0 Second
+  static uint8_t  cycle_1000ms = 10,  // Event 1.0 Second
+                  cycle_2500ms = 25;  // Event 2.5 Second
 
   // Control interrupt events
   handle_interrupt_events();
@@ -326,10 +366,11 @@ void Printer::check_periodical_actions() {
     HAL::execute_100ms = false;
     planner.check_axes_activity();
     thermalManager.spin();
+
+    // Event 1.0 Second
     if (--cycle_1000ms == 0) {
-      // Event 1.0 Second
       cycle_1000ms = 10;
-      if (isAutoreportTemp()) {
+      if (!isSuspendAutoreport() && isAutoreportTemp()) {
         thermalManager.report_temperatures();
         SERIAL_EOL();
       }
@@ -338,6 +379,23 @@ void Printer::check_periodical_actions() {
       #endif
       #if ENABLED(NEXTION)
         nextion_draw_update();
+      #endif
+      if (planner.cleaning_buffer_flag) {
+        planner.cleaning_buffer_flag = false;
+        #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
+          commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+        #endif
+      }
+    }
+
+    // Event 2.5 Second
+    if (--cycle_2500ms == 0) {
+      cycle_2500ms = 25;
+      #if FAN_COUNT > 0
+        LOOP_FAN() fans[f].spin();
+      #endif
+      #if HAS_POWER_SWITCH
+        powerManager.spin();
       #endif
     }
   }
@@ -373,17 +431,22 @@ void Printer::bracket_probe_move(const bool before) {
     saved_feedrate_mm_s = mechanics.feedrate_mm_s;
     saved_feedrate_percentage = mechanics.feedrate_percentage;
     mechanics.feedrate_percentage = 100;
-    commands.refresh_cmd_timeout();
   }
   else {
     mechanics.feedrate_mm_s = saved_feedrate_mm_s;
     mechanics.feedrate_percentage = saved_feedrate_percentage;
-    commands.refresh_cmd_timeout();
   }
 }
 
 void Printer::setup_for_endstop_or_probe_move()       { bracket_probe_move(true); }
 void Printer::clean_up_after_endstop_or_probe_move()  { bracket_probe_move(false); }
+
+void Printer::quickstop_stepper() {
+  planner.quick_stop();
+  planner.synchronize();
+  mechanics.set_current_from_steppers_for_axis(ALL_AXES);
+  mechanics.sync_plan_position_mech_specific();
+}
 
 /**
  * Kill all activity and lock the machine.
@@ -393,7 +456,7 @@ void Printer::kill(const char* lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
   thermalManager.disable_all_heaters();
-  stepper.disable_all_steppers();
+  stepper.disable_all();
 
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
@@ -428,7 +491,7 @@ void Printer::kill(const char* lcd_msg) {
   #endif
 
   #if HAS_POWER_SWITCH
-    SET_INPUT(PS_ON_PIN);
+    powerManager.power_off();
   #endif
 
   #if HAS_SUICIDE
@@ -498,41 +561,29 @@ void Printer::Stop() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
-  const millis_t ms = millis();
-
-  #if ENABLED(NEXTION)
-    lcd_key_touch_update();
-  #else
-    lcd_update();
-  #endif
+  lcd_update();
 
   check_periodical_actions();
 
   commands.get_available();
 
-  if (max_inactive_time && ELAPSED(ms, commands.previous_cmd_ms + max_inactive_time)) {
+  handle_safety_watch();
+
+  if (max_inactivity_watch.stopwatch && max_inactivity_watch.elapsed()) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
 
-  #if HAS_POWER_SWITCH
-    powerManager.spin();
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.spin();
   #endif
 
   #if ENABLED(CNCROUTER)
     cnc.manage();
   #endif
 
-  #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].spin();
-  #endif
-
   #if HAS_FIL_RUNOUT
     filamentrunout.spin();
-  #endif
-
-  #if ENABLED(DHT_SENSOR)
-    dhtsensor.spin();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
@@ -555,37 +606,40 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     #define MOVE_AWAY_TEST true
   #endif
 
-  if (MOVE_AWAY_TEST && stepper.stepper_inactive_time && ELAPSED(ms, commands.previous_cmd_ms + stepper.stepper_inactive_time)
-      && !ignore_stepper_queue && !planner.blocks_queued()) {
-    #if ENABLED(DISABLE_INACTIVE_X)
-      disable_X();
-    #endif
-    #if ENABLED(DISABLE_INACTIVE_Y)
-      disable_Y();
-    #endif
-    #if ENABLED(DISABLE_INACTIVE_Z)
-      disable_Z();
-    #endif
-    #if ENABLED(DISABLE_INACTIVE_E)
-      stepper.disable_e_steppers();
-    #endif
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
-      if (ubl.lcd_map_control) ubl.lcd_map_control = defer_return_to_status = false;
-    #endif
-    #if ENABLED(LASER)
-      if (laser.time / 60000 > 0) {
-        laser.lifetime += laser.time / 60000; // convert to minutes
-        laser.time = 0;
-      }
-      laser.extinguish();
-      #if ENABLED(LASER_PERIPHERALS)
-        laser.peripherals_off();
+  if (move_watch.stopwatch) {
+    if (planner.has_blocks_queued())
+      move_watch.start(); // reset stepper move watch to keep steppers powered
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_watch.elapsed()) {
+      #if ENABLED(DISABLE_INACTIVE_X)
+        stepper.disable_X();
       #endif
-    #endif
+      #if ENABLED(DISABLE_INACTIVE_Y)
+        stepper.disable_Y();
+      #endif
+      #if ENABLED(DISABLE_INACTIVE_Z)
+        stepper.disable_Z();
+      #endif
+      #if ENABLED(DISABLE_INACTIVE_E)
+        stepper.disable_E();
+      #endif
+      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
+        if (ubl.lcd_map_control) ubl.lcd_map_control = defer_return_to_status = false;
+      #endif
+      #if ENABLED(LASER)
+        if (laser.time / 60000 > 0) {
+          laser.lifetime += laser.time / 60000; // convert to minutes
+          laser.time = 0;
+        }
+        laser.extinguish();
+        #if ENABLED(LASER_PERIPHERALS)
+          laser.peripherals_off();
+        #endif
+      #endif
+    }
   }
 
   #if HAS_CHDK // Check if pin should be set to LOW after M240 set it to HIGH
-    if (chdkActive && ELAPSED(ms, chdkHigh + CHDK_DELAY)) {
+    if (chdkActive && chdk_watch.elapsed()) {
       chdkActive = false;
       WRITE(CHDK_PIN, LOW);
     }
@@ -630,9 +684,12 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    if (heaters[EXTRUDER_IDX].current_temperature > EXTRUDER_RUNOUT_MINTEMP
-      && ELAPSED(ms, commands.previous_cmd_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && !planner.blocks_queued()
+
+    static watch_t extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
+
+    if (heaters[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
+      && extruder_runout_watch.elapsed()
+      && !planner.has_blocks_queued()
     ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         const bool oldstatus = E0_ENABLE_READ;
@@ -659,14 +716,12 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
         }
       #endif // !DONDOLO_SINGLE_MOTOR
 
-      commands.previous_cmd_ms = ms; // commands.refresh_cmd_timeout()
-
       const float olde = mechanics.current_position[E_AXIS];
       mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
       planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.active_extruder);
       mechanics.current_position[E_AXIS] = olde;
-      mechanics.set_e_position_mm(olde);
-      stepper.synchronize();
+      planner.set_e_position_mm(olde);
+      planner.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
       #else
@@ -689,12 +744,14 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
           #endif // DRIVER_EXTRUDERS > 1
         }
       #endif // !DONDOLO_SINGLE_MOTOR
+
+      extruder_runout_watch.start();
     }
   #endif // EXTRUDER_RUNOUT_PREVENT
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (mechanics.delayed_move_time && ELAPSED(ms, mechanics.delayed_move_time + 1000UL) && isRunning()) {
+    if (mechanics.delayed_move_time && ELAPSED(millis(), mechanics.delayed_move_time + 1000UL) && isRunning()) {
       // travel moves have been received so enact them
       mechanics.delayed_move_time = 0xFFFFFFFFUL; // force moves to be done
       mechanics.set_destination_to_current();
@@ -703,13 +760,13 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (planner.blocks_queued()) axis_last_activity = millis();
-    if (heaters[EXTRUDER_IDX].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+    if (planner.has_blocks_queued()) axis_last_activity = millis();
+    if (heaters[ACTIVE_HOTEND].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
       {
-        if (heaters[EXTRUDER_IDX].target_temperature < IDLE_OOZING_MINTEMP) {
+        if (heaters[ACTIVE_HOTEND].target_temperature < IDLE_OOZING_MINTEMP) {
           IDLE_OOZING_retract(false);
         }
         else if ((millis() - axis_last_activity) >  IDLE_OOZING_SECONDS * 1000UL) {
@@ -762,14 +819,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     monitor_tmc_driver();
   #endif
 
-  #if ENABLED(MOVE_DEBUG)
-    char buf[100] = { 0 };
-    sprintf(buf, "Interrupts scheduled %u, done %u, last %u, next %u sched at %u, now %u\n",
-      numInterruptsScheduled, numInterruptsExecuted, lastInterruptTime, nextInterruptTime, nextInterruptScheduledAt, HAL_timer_get_count(STEPPER_TIMER));
-    SERIAL_PS(buf);
-    SERIAL_EOL();
-  #endif
-
 }
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
@@ -790,7 +839,7 @@ void Printer::handle_interrupt_events() {
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
           commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-          stepper.synchronize();
+          planner.synchronize();
         }
         break;
     #endif
@@ -799,7 +848,7 @@ void Printer::handle_interrupt_events() {
       case INTERRUPT_EVENT_ENC_DETECT:
         if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
           setFilamentOut(true);
-          stepper.synchronize();
+          planner.synchronize();
 
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             commands.enqueue_and_echo_P(PSTR("M600"));
@@ -810,6 +859,24 @@ void Printer::handle_interrupt_events() {
 
     default:
       break;
+  }
+}
+
+/**
+ * Turn off heating after 30 minutes of inactivity
+ */
+void Printer::handle_safety_watch() {
+
+  static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
+
+  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isON()))
+    safety_watch.stop();
+  else if (!safety_watch.isRunning() && thermalManager.heaters_isON())
+    safety_watch.start();
+  else if (safety_watch.isRunning() && safety_watch.elapsed()) {
+    safety_watch.stop();
+    thermalManager.disable_all_heaters();
+    SERIAL_EM("Max inactivity time (30 minutes) Heaters switch off!");
   }
 }
 
@@ -945,7 +1012,7 @@ void Printer::setup_pinout() {
         #endif
       ;
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
-      mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      planner.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[tools.active_extruder] = true;
@@ -963,7 +1030,7 @@ void Printer::setup_pinout() {
       ;
 
       mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
-      mechanics.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      planner.set_e_position_mm(mechanics.current_position[E_AXIS]);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[tools.active_extruder] = false;
@@ -989,16 +1056,12 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
 
-  static millis_t next_busy_signal_ms = 0;
-
   /**
    * Output a "busy" message at regular intervals
    * while the machine is not accepting
    */
   void Printer::keepalive(const MK4duoBusyState state) {
-    const millis_t now = millis();
-    if (host_keepalive_interval && state != NotBusy) {
-      if (now - next_busy_signal_ms < host_keepalive_interval * 1000UL) return;
+    if (!isSuspendAutoreport() && host_keepalive_watch.stopwatch && host_keepalive_watch.elapsed()) {
       switch (state) {
         case InHandler:
         case InProcess:
@@ -1019,8 +1082,8 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
         default:
           break;
       }
+      host_keepalive_watch.start();
     }
-    next_busy_signal_ms = now;
   }
 
 #endif // HOST_KEEPALIVE_FEATURE

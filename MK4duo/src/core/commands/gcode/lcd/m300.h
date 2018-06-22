@@ -38,7 +38,7 @@
     uint16_t duration = parser.seen('P') ? parser.value_ushort() : 1000;
 
     // Limits the tone duration to 0-5 seconds.
-    NOMORE(duration, 5000);
+    NOMORE(duration, 5000U);
 
     BUZZ(duration, frequency);
   }

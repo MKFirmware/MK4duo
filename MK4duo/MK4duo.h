@@ -113,8 +113,12 @@ typedef int8_t    pin_t;
 #include "src/inc/sanitycheck.h"
 #include "src/inc/point_t.h"
 
-// HAL Modules
+// HAL modules
 #include "src/HAL/HAL.h"
+
+// Watch modules
+#include "src/watch/watch.h"
+#include "src/watch/stopwatch.h"
 
 // Core modules
 #include "src/core/mechanics/mechanics.h"
@@ -146,6 +150,7 @@ typedef int8_t    pin_t;
 #include "src/utility/bezier.h"
 
 // Feature modules
+#include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
@@ -166,6 +171,7 @@ typedef int8_t    pin_t;
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
 #include "src/feature/caselight/caselight.h"
+#include "src/feature/restart/restart.h"
 
 /**
  * External libraries loading

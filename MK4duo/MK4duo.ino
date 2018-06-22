@@ -47,7 +47,7 @@
  * G21  - Set input units to millimeters
  * G26  - Mesh Validation Pattern (Requires G26_MESH_VALIDATION) 
  * G27  - Park Nozzle (Requires NOZZLE_PARK_FEATURE)
- * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point
+ * G28  - X Y Z Home all Axis. M for bed manual setting with LCD. B return to back point. O Home only if position is unknown.
  * G29  - Detailed Z-Probe, probes the bed at 3 or more points. Will fail if you haven't homed yet.
  *          Fyyy Lxxx Rxxx Byyy for customer grid.
  * G30  - Single Z probe, probes bed at X Y location (defaults to current XY location)
@@ -106,11 +106,11 @@
  *
  * M43         - report name and state of pin(s)
  *                 P<pin>  Pin to read or watch. If omitted, reads all pins.
- *                 I       Flag to ignore Marlin's pin protection.
+ *                 I       Flag to ignore MK4duo's pin protection.
  *
  * M43 W       - Watch pins -reporting changes- until reset, click, or M108.
  *                 P<pin>  Pin to read or watch. If omitted, read/watch all pins.
- *                 I       Flag to ignore Marlin's pin protection.
+ *                 I       Flag to ignore MK4duo's pin protection.
  *
  * M43 E<bool> - Enable / disable background endstop monitoring
  *                 - Machine continues to operate
@@ -121,7 +121,7 @@
  * M43 T       - Toggle pin(s) and report which pin is being toggled
  *                 S<pin>  - Start Pin number.   If not given, will default to 0
  *                 L<pin>  - End Pin number.   If not given, will default to last pin defined for this board
- *                 I       - Flag to ignore Marlin's pin protection.   Use with caution!!!!
+ *                 I       - Flag to ignore MK4duo's pin protection.   Use with caution!!!!
  *                 R       - Repeat pulses on each pin this number of times before continueing to next pin
  *                 W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
  *
@@ -193,15 +193,14 @@
  *        Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D<millimeters>- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
- * M202 - Set max acceleration in units/s^2 for travel moves (M202 X1000 Y1000) Unused in Marlin!!
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
- * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and T for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
- * M205 -  advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk
+ * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and V for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
+ * M205 - Set advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk, J=Junction mm
  * M206 - Set additional homing offset
  * M207 - Set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
  * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
  * M209 - S<1=true/0=false> enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
- * M218 - Set hotend offset (in mm): T<extruder_number> X<offset_on_X> Y<offset_on_Y>
+ * M218 - Set hotend offset (in mm): H<hotend_number> X<offset_on_X> Y<offset_on_Y> Z<offset_on_Z>
  * M220 - Set speed factor override percentage: S<factor in percent>
  * M221 - T<extruder> S<factor in percent> - set extrude factor override percentage
  * M222 - T<extruder> S<factor in percent> - set density extrude factor percentage for purge
@@ -213,7 +212,7 @@
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
  * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *          P[float] Kp term, I[float] Ki term, D[float] Kd term
- *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[float] LPQ length
+ *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[int] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S<temperature>.
  * M303 - PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
  *        S<temperature> sets the target temperature (default target temperature = 150C), C<cycles>, U<Apply result>,
@@ -241,7 +240,7 @@
  * M410 - Quickstop. Abort all the planned moves
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
  *        Z<height> for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
- * M421 - Set a single Z coordinate in the Mesh Leveling grid. M421 X<mm> Y<mm> Z<mm>' or 'M421 I<xindex> J<yindex> Z<mm> (Requires MBL, UBL or ABL BILINEAR)
+ * M421 - Set a single Z coordinate in the Mesh Leveling grid. X<units> Y<units> Z<units> (Requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL)
  * M428 - Set the home_offset logically based on the current_position
  * M450 - Report Printer Mode
  * M451 - Select FFF Printer Mode
@@ -257,6 +256,7 @@
  * M531 - filename - Define filename being printed
  * M532 - X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+ * M569 - Set Stepper Direction X<bool> Y<bool> Z<bool> T<extruders> E<bool>
  * M595 - Set hotend AD595 O<offset> and S<gain>
  * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
  *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
@@ -278,6 +278,7 @@
  * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires HAVE_TMC2130)
  * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
  * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+ * M915 - TMC Z axis calibration routine. (Requires TMC)
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)

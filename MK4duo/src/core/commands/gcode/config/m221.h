@@ -35,10 +35,17 @@
    */
   inline void gcode_M221(void) {
 
-    GET_TARGET_EXTRUDER(221);
+    if (commands.get_target_tool(221)) return;
+
     if (parser.seenval('S')) {
       tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
       tools.refresh_e_factor(TARGET_EXTRUDER);
+    }
+    else {
+      SERIAL_SMV(ECHO, "E", TARGET_EXTRUDER);
+      SERIAL_MV(" Flow: ", tools.flow_percentage[TARGET_EXTRUDER]);
+      SERIAL_CHR('%');
+      SERIAL_EOL();
     }
   }
 

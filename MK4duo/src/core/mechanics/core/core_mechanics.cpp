@@ -33,34 +33,40 @@
 
   Core_Mechanics mechanics;
 
+  /** Public Parameters */
+  const float Core_Mechanics::base_max_pos[XYZ]   = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+              Core_Mechanics::base_min_pos[XYZ]   = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+              Core_Mechanics::base_home_pos[XYZ]  = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
+              Core_Mechanics::max_length[XYZ]     = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
+
   void Core_Mechanics::init() { }
+
+  void Core_Mechanics::sync_plan_position_mech_specific() {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
+    #endif
+    sync_plan_position();
+  }
 
   /**
    * Home Core
    */
-  void Core_Mechanics::home(const bool always_home_all) {
+  void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/, const bool homeZ/*=false*/) {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-        Nextion_gfx_clear();
+        mechanics.Nextion_gfx_clear();
       #endif
       return;
     }
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_EM(">>> gcode_G28");
-        log_machine_info();
-      }
-    #endif
-
     #if HAS_POWER_SWITCH
-      if (!powerManager.lastPowerOn) powerManager.power_on(); // Power On if power is off
+      powerManager.power_on(); // Power On if power is off
     #endif
 
     // Wait for planner moves to finish!
-    stepper.synchronize();
+    planner.synchronize();
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
@@ -72,9 +78,7 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-        const bool ubl_state_at_entry = bedlevel.leveling_active;
-      #endif
+      const bool leveling_was_active = bedlevel.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -106,57 +110,35 @@
       COPY_ARRAY(lastpos, current_position);
     }
 
-    #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
-      const bool  homeZ = always_home_all || parser.seen('Z'),
-                  homeX = always_home_all || homeZ || parser.seen('X'),
-                  homeY = always_home_all || homeZ || parser.seen('Y');
-    #else
-      const bool  homeX = always_home_all || parser.seen('X'),
-                  homeY = always_home_all || parser.seen('Y'),
-                  homeZ = always_home_all || parser.seen('Z');
-    #endif
-
     const bool home_all = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
 
     set_destination_to_current();
 
     #if Z_HOME_DIR > 0  // If homing away from BED do Z first
-
-      if (home_all || homeZ) {
-        homeaxis(Z_AXIS);
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("> homeaxis(Z_AXIS)", current_position);
-        #endif
-      }
-
-    #else
-
-      if (home_all || homeX || homeY) {
-        // Raise Z before homing any other axes and z is not already high enough (never lower z)
-        destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
-        if (destination[Z_AXIS] > current_position[Z_AXIS]) {
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (printer.debugLeveling())
-              SERIAL_EMV("Raise Z (before homing) to ", destination[Z_AXIS]);
-          #endif
-          do_blocking_move_to_z(destination[Z_AXIS]);
-        }
-      }
-
+      if (home_all || homeZ) homeaxis(Z_AXIS);
     #endif
+
+    const float z_homing_height = printer.isZHomed() ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+
+    if (z_homing_height && (home_all || homeX || homeY)) {
+      // Raise Z before homing any other axes and z is not already high enough (never lower z)
+      destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
+      if (destination[Z_AXIS] > current_position[Z_AXIS]) {
+        #if ENABLED(DEBUG_LEVELING_FEATURE)
+          if (printer.debugLeveling())
+            SERIAL_EMV("Raise Z (before homing) to ", destination[Z_AXIS]);
+        #endif
+        do_blocking_move_to_z(destination[Z_AXIS]);
+      }
+    }
 
     #if ENABLED(QUICK_HOME)
       if (home_all || (homeX && homeY)) quick_home_xy();
     #endif
 
     #if ENABLED(HOME_Y_BEFORE_X)
-      // Home Y
-      if (home_all || homeY) {
-        homeaxis(Y_AXIS);
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("> homeY", current_position);
-        #endif
-      }
+      // Home Y (before X)
+      if (home_all || homeY) homeaxis(Y_AXIS);
     #endif
 
     // Home X
@@ -180,19 +162,11 @@
       #else
         homeaxis(X_AXIS);
       #endif
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) DEBUG_POS("> homeX", current_position);
-      #endif
     }
 
     #if DISABLED(HOME_Y_BEFORE_X)
-      // Home Y
-      if (home_all || homeY) {
-        homeaxis(Y_AXIS);
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("> homeY", current_position);
-        #endif
-      }
+      // Home Y (after X)
+      if (home_all || homeY) homeaxis(Y_AXIS);
     #endif
 
     // Home Z last if homing towards the bed
@@ -203,13 +177,12 @@
         #else
           homeaxis(Z_AXIS);
         #endif // !Z_SAFE_HOMING
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("> (home_all || homeZ) > final", current_position);
-        #endif
-      }
+      } // home_all || homeZ
+      #if HOMING_Z_WITH_PROBE && Z_PROBE_AFTER_PROBING > 0
+        probe.move_z_after_probing();
+      #endif
     #elif ENABLED(DOUBLE_Z_HOMING)
-      if (home_all || homeZ)
-        double_home_z();
+      if (home_all || homeZ) double_home_z();
     #endif
 
     sync_plan_position();
@@ -223,16 +196,16 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
+      mechanics.Nextion_gfx_clear();
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
+    #if HAS_LEVELING
+      bedlevel.set_bed_leveling_enabled(leveling_was_active);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();
 
-    stepper.synchronize();
+    planner.synchronize();
 
     // Restore the active tool after homing
     #if HOTENDS > 1
@@ -241,237 +214,23 @@
 
     lcd_refresh();
 
-    report_current_position();
+    mechanics.report_current_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< gcode_G28");
+      if (printer.debugLeveling()) SERIAL_EM("<<< G28");
     #endif
 
-  }
-
-  /**
-   * Prepare a single move and get ready for the next one
-   */
-  bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
-
-    #if ENABLED(DUAL_X_CARRIAGE)
-      if (prepare_move_to_destination_dualx() || prepare_move_to_destination_cartesian()) return true;
-    #else
-      if (prepare_move_to_destination_cartesian()) return true;
-    #endif
-
-    set_current_to_destination();
-    return false;
-  }
-
-  #if ENABLED(DUAL_X_CARRIAGE)
-
-    /**
-     * Prepare a linear move in a dual X axis setup
-     */
-    bool Core_Mechanics::prepare_move_to_destination_dualx() {
-      if (active_hotend_parked) {
-        switch (dual_x_carriage_mode) {
-          case DXC_FULL_CONTROL_MODE:
-            break;
-          case DXC_AUTO_PARK_MODE:
-            if (current_position[E_AXIS] == destination[E_AXIS]) {
-              // This is a travel move (with no extrusion)
-              // Skip it, but keep track of the current position
-              // (so it can be used as the start of the next non-travel move)
-              if (delayed_move_time != 0xFFFFFFFFUL) {
-                set_current_to_destination();
-                NOLESS(raised_parked_position[Z_AXIS], destination[Z_AXIS]);
-                delayed_move_time = millis();
-                return true;
-              }
-            }
-            // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
-            for (uint8_t i = 0; i < 3; i++)
-              planner.buffer_line(
-                i == 0 ? raised_parked_position[X_AXIS] : current_position[X_AXIS],
-                i == 0 ? raised_parked_position[Y_AXIS] : current_position[Y_AXIS],
-                i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
-                current_position[E_AXIS],
-                i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
-                tools.active_extruder
-              );
-            delayed_move_time = 0;
-            active_hotend_parked = false;
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (printer.debugLeveling()) SERIAL_EM("Clear active_hotend_parked");
-            #endif
-            break;
-          case DXC_DUPLICATION_MODE:
-            if (tools.active_extruder == 0) {
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) {
-                  SERIAL_MV("Set planner X", inactive_hotend_x_pos);
-                  SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_hotend_x_offset);
-                }
-              #endif
-              // move duplicate extruder into correct duplication position.
-              set_position_mm(
-                inactive_hotend_x_pos,
-                current_position[Y_AXIS],
-                current_position[Z_AXIS],
-                current_position[E_AXIS]
-              );
-              planner.buffer_line(
-                current_position[X_AXIS] + duplicate_hotend_x_offset,
-                current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS],
-                max_feedrate_mm_s[X_AXIS], 1
-              );
-              sync_plan_position();
-              stepper.synchronize();
-              hotend_duplication_enabled = true;
-              active_hotend_parked = false;
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) SERIAL_EM("Set hotend_duplication_enabled\nClear active_hotend_parked");
-              #endif
-            }
-            else {
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) SERIAL_EM("Active extruder not 0");
-              #endif
-            }
-            break;
-        }
-      }
-      return false;
-    }
-
-  #endif
-
-  void Core_Mechanics::homeaxis(const AxisEnum axis) {
-
-    #define CAN_HOME(A) \
-      (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
-    if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
-
-    const int axis_home_dir =
-      #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(tools.active_extruder) :
-      #endif
-      home_dir[axis];
-
-    // Homing Z towards the bed? Deploy the Z probe or endstop.
-    #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && DEPLOY_PROBE()) return;
-    #endif
-
-    // Set flags for X, Y, Z motor locking
-    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-      printer.setHoming(true);
-    #endif
-
-    // Fast move towards endstop until triggered
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
-    #endif
-
-    // Fast move towards endstop until triggered
-    do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
-
-    // When homing Z with probe respect probe clearance
-    const float bump = axis_home_dir * (
-      #if HOMING_Z_WITH_PROBE
-        (axis == Z_AXIS) ? max(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
-      #endif
-      home_bump_mm[axis]
-    );
-
-    // If a second homing move is configured...
-    if (bump) {
-      // Move away from the endstop by the axis HOME_BUMP_MM
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
-      #endif
-      do_homing_move(axis, -bump);
-
-      // Slow move towards endstop until triggered
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
-      #endif
-      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
-    }
-
-    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-      const bool pos_dir = axis_home_dir > 0;
-      #if ENABLED(X_TWO_ENDSTOPS)
-        if (axis == X_AXIS) {
-          const bool lock_x1 = pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0);
-          float adj = FABS(endstops.x_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_x1) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          do_homing_move(axis, adj);
-          if (lock_x1) stepper.set_x_lock(false); else stepper.set_x2_lock(false);
-          printer.setHoming(false);
-        }
-      #endif
-      #if ENABLED(Y_TWO_ENDSTOPS)
-        if (axis == Y_AXIS) {
-          const bool lock_y1 = pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0);
-          float adj = FABS(endstops.y_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_y1) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          do_homing_move(axis, adj);
-          if (lock_y1) stepper.set_y_lock(false); else stepper.set_y2_lock(false);
-          printer.setHoming(false);
-        }
-      #endif
-      #if ENABLED(Z_TWO_ENDSTOPS)
-        if (axis == Z_AXIS) {
-          const bool lock_z1 = pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0);
-          float adj = FABS(endstops.z_endstop_adj);
-          if (pos_dir) adj = -adj;
-          if (lock_z1) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          do_homing_move(axis, adj);
-          if (lock_z1) stepper.set_z_lock(false); else stepper.set_z2_lock(false);
-          printer.setHoming(false);
-        }
-      #endif
-    #endif
-
-    // For cartesian machines,
-    // set the axis to its home position
-    set_axis_is_at_home(axis);
-    sync_plan_position();
-
-    destination[axis] = current_position[axis];
-
-    // Put away the Z probe
-    #if HOMING_Z_WITH_PROBE
-      if (axis == Z_AXIS && STOW_PROBE()) return;
-    #endif
-
-    // Clear z_lift if homing the Z axis
-    #if ENABLED(FWRETRACT)
-      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
-    #endif
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
   }
 
   /**
    * Prepare a linear move in a Cartesian setup.
-   * Bed Leveling will be applied to the move if enabled.
+   *
+   * When a mesh-based leveling system is active, moves are segmented
+   * according to the configuration of the leveling system.
    *
    * Returns true if current_position[] was set to destination[]
    */
-  bool Core_Mechanics::prepare_move_to_destination_cartesian() {
+  bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
       if (current_position[E_AXIS] < destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))
@@ -506,6 +265,133 @@
     return false;
   }
 
+  void Core_Mechanics::homeaxis(const AxisEnum axis) {
+
+    #define CAN_HOME(A) \
+      (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
+    if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    const int axis_home_dir = (
+      #if ENABLED(DUAL_X_CARRIAGE)
+        axis == X_AXIS ? x_home_dir(tools.active_extruder) :
+      #endif
+      home_dir[axis]
+    );
+
+    // Homing Z towards the bed? Deploy the Z probe or endstop.
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && DEPLOY_PROBE()) return;
+    #endif
+
+    // Set flags for X, Y, Z motor locking
+    #if ENABLED(X_TWO_ENDSTOPS)
+      if (axis == X_AXIS) stepper.set_homing_dual_axis(true);
+    #endif
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      if (axis == Y_AXIS) stepper.set_homing_dual_axis(true);
+    #endif
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      if (axis == Z_AXIS) stepper.set_homing_dual_axis(true);
+    #endif
+
+    // Fast move towards endstop until triggered
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
+    #endif
+    mechanics.do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
+
+    // When homing Z with probe respect probe clearance
+    const float bump = axis_home_dir * (
+      #if HOMING_Z_WITH_PROBE
+        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      #endif
+      home_bump_mm[axis]
+    );
+
+    // If a second homing move is configured...
+    if (bump) {
+      // Move away from the endstop by the axis HOME_BUMP_MM
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
+      #endif
+      mechanics.do_homing_move(axis, -bump
+        #if HOMING_Z_WITH_PROBE
+          , axis == Z_AXIS ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) : 0.0
+        #endif
+      );
+
+      // Slow move towards endstop until triggered
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
+      #endif
+      mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+    }
+
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+      const bool pos_dir = axis_home_dir > 0;
+      #if ENABLED(X_TWO_ENDSTOPS)
+        if (axis == X_AXIS) {
+          const float adj = ABS(endstops.x_endstop_adj);
+          if (pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+          stepper.set_x_lock(false);
+          stepper.set_x2_lock(false);
+        }
+      #endif
+      #if ENABLED(Y_TWO_ENDSTOPS)
+        if (axis == Y_AXIS) {
+          const float adj = ABS(endstops.y_endstop_adj);
+          if (pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+          stepper.set_y_lock(false);
+          stepper.set_y2_lock(false);
+        }
+      #endif
+      #if ENABLED(Z_TWO_ENDSTOPS)
+        if (axis == Z_AXIS) {
+          const float adj = ABS(endstops.z_endstop_adj);
+          if (pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+          stepper.set_z_lock(false);
+          stepper.set_z2_lock(false);
+        }
+      #endif
+      stepper.set_homing_dual_axis(false);
+    #endif
+
+    // For cartesian machines,
+    // set the axis to its home position
+    set_axis_is_at_home(axis);
+    sync_plan_position();
+
+    destination[axis] = current_position[axis];
+
+    // Put away the Z probe
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && STOW_PROBE()) return;
+    #endif
+
+    // Clear retracted status if homing the Z axis
+    #if ENABLED(FWRETRACT)
+      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')');
+        SERIAL_EOL();
+      }
+    #endif
+  }
+
   #if ENABLED(QUICK_HOME)
 
     void Core_Mechanics::quick_home_xy() {
@@ -523,7 +409,7 @@
       const float mlx = max_length[X_AXIS],
                   mly = max_length[Y_AXIS],
                   mlratio = mlx > mly ? mly / mlx : mlx / mly,
-                  fr_mm_s = min(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
+                  fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
         sensorless_homing_per_axis(X_AXIS);
@@ -572,7 +458,7 @@
         destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
-      if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
+      if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (printer.debugLeveling()) DEBUG_POS("Z_SAFE_HOMING", destination);
@@ -631,7 +517,7 @@
         destination[Y_AXIS] -= probe.offset[Y_AXIS];
       #endif
 
-      if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
+      if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (printer.debugLeveling()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
@@ -733,48 +619,5 @@
     }
 
   #endif
-
-  #if ENABLED(SENSORLESS_HOMING)
-
-    /**
-     * Set sensorless homing if the axis has it, accounting for Core Kinematics.
-     */
-    void Core_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
-      switch (axis) {
-        default: break;
-        #if X_SENSORLESS
-          case X_AXIS:
-            tmc_sensorless_homing(stepperX, enable);
-            #if CORE_IS_XY && Y_SENSORLESS
-              tmc_sensorless_homing(stepperY, enable);
-            #elif CORE_IS_XZ && Z_SENSORLESS
-              tmc_sensorless_homing(stepperZ, enable);
-            #endif
-            break;
-        #endif
-        #if Y_SENSORLESS
-          case Y_AXIS:
-            tmc_sensorless_homing(stepperY, enable);
-            #if CORE_IS_XY && X_SENSORLESS
-              tmc_sensorless_homing(stepperX, enable);
-            #elif CORE_IS_YZ && Z_SENSORLESS
-              tmc_sensorless_homing(stepperZ, enable);
-            #endif
-            break;
-        #endif
-        #if Z_SENSORLESS
-          case Z_AXIS:
-            tmc_sensorless_homing(stepperZ, enable);
-            #if CORE_IS_XZ && X_SENSORLESS
-              tmc_sensorless_homing(stepperX, enable);
-            #elif CORE_IS_YZ && Y_SENSORLESS
-              tmc_sensorless_homing(stepperY, enable);
-            #endif
-            break;
-        #endif
-      }
-    }
-
-  #endif // SENSORLESS_HOMING
 
 #endif // IS_CORE

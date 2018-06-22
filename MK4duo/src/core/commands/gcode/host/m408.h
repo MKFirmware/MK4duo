@@ -64,7 +64,7 @@
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
-      SERIAL_CHR(powerManager.lastPowerOn ? '1' : '0');
+      SERIAL_CHR(powerManager.is_on() ? '1' : '0');
     #else
       SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif
@@ -164,7 +164,7 @@
         SERIAL_EM(",");
         SERIAL_MSG("\"printer.currentLayer\":");
         #if HAS_SDSUPPORT
-          if (card.sdprinting && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
+          if (IS_SD_PRINTING && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
             SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
           }
           else SERIAL_VAL(0);
@@ -180,7 +180,7 @@
         }
         SERIAL_MSG("],");
         #if HAS_SDSUPPORT
-          if (card.sdprinting) {
+          if (IS_SD_PRINTING) {
             SERIAL_MSG("\"fractionPrinted\":");
             float fractionprinted;
             if (card.fileSize < 2000000) {
@@ -193,7 +193,7 @@
         #endif
         SERIAL_MSG("\"firstLayerHeight\":");
         #if HAS_SDSUPPORT
-          if (card.sdprinting) SERIAL_VAL(card.firstlayerHeight);
+          if (IS_SD_PRINTING) SERIAL_VAL(card.firstlayerHeight);
           else SERIAL_MSG("0");
         #else
           SERIAL_MSG("0");

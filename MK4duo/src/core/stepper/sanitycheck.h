@@ -30,12 +30,6 @@
 #define _STEPPER_SANITYCHECK_H_
 
 // Advanced motion
-#if ENABLED(USE_MICROSTEPS)
-  #if DISABLED(MICROSTEP_MODES)
-    #error "DEPENDENCY ERROR: Missing setting MICROSTEP_MODES."
-  #endif
-#endif
-
 #if DISABLED(DEFAULT_STEPPER_DEACTIVE_TIME)
   #error "DEPENDENCY ERROR: Missing setting DEFAULT_STEPPER_DEACTIVE_TIME."
 #endif

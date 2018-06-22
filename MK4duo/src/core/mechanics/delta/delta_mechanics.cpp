@@ -33,28 +33,65 @@
 
   Delta_Mechanics mechanics;
 
-  void Delta_Mechanics::init() {
-    delta_diagonal_rod              = (float)DELTA_DIAGONAL_ROD;
-    delta_radius                    = (float)DELTA_RADIUS;
-    delta_segments_per_second       = (float)DELTA_SEGMENTS_PER_SECOND;
-    delta_print_radius              = (float)DELTA_PRINTABLE_RADIUS;
-    delta_probe_radius              = (float)DELTA_PROBEABLE_RADIUS;
-    delta_height                    = (float)DELTA_HEIGHT;
-    delta_endstop_adj[A_AXIS]       = (float)TOWER_A_ENDSTOP_ADJ;
-    delta_endstop_adj[B_AXIS]       = (float)TOWER_B_ENDSTOP_ADJ;
-    delta_endstop_adj[C_AXIS]       = (float)TOWER_C_ENDSTOP_ADJ;
-    delta_tower_angle_adj[A_AXIS]   = (float)TOWER_A_ANGLE_ADJ;
-    delta_tower_angle_adj[B_AXIS]   = (float)TOWER_B_ANGLE_ADJ;
-    delta_tower_angle_adj[C_AXIS]   = (float)TOWER_C_ANGLE_ADJ;
-    delta_tower_radius_adj[A_AXIS]  = (float)TOWER_A_RADIUS_ADJ;
-    delta_tower_radius_adj[B_AXIS]  = (float)TOWER_B_RADIUS_ADJ;
-    delta_tower_radius_adj[C_AXIS]  = (float)TOWER_C_RADIUS_ADJ;
-    delta_diagonal_rod_adj[A_AXIS]  = (float)TOWER_A_DIAGROD_ADJ;
-    delta_diagonal_rod_adj[B_AXIS]  = (float)TOWER_B_DIAGROD_ADJ;
-    delta_diagonal_rod_adj[C_AXIS]  = (float)TOWER_C_DIAGROD_ADJ;
-    delta_clip_start_height         = (float)DELTA_HEIGHT;
+  /** Public Parameters */
+  float Delta_Mechanics::delta[ABC]                     = { 0.0 },
+        Delta_Mechanics::delta_diagonal_rod             = DELTA_DIAGONAL_ROD,
+        Delta_Mechanics::delta_radius                   = DELTA_RADIUS,
+        Delta_Mechanics::delta_segments_per_second      = DELTA_SEGMENTS_PER_SECOND,
+        Delta_Mechanics::delta_print_radius             = DELTA_PRINTABLE_RADIUS,
+        Delta_Mechanics::delta_probe_radius             = DELTA_PROBEABLE_RADIUS,
+        Delta_Mechanics::delta_height                   = DELTA_HEIGHT,
+        Delta_Mechanics::delta_clip_start_height        = DELTA_HEIGHT,
+        Delta_Mechanics::delta_endstop_adj[ABC]         = { TOWER_A_ENDSTOP_ADJ, TOWER_B_ENDSTOP_ADJ, TOWER_C_ENDSTOP_ADJ },
+        Delta_Mechanics::delta_tower_angle_adj[ABC]     = { TOWER_A_ANGLE_ADJ, TOWER_B_ANGLE_ADJ, TOWER_C_ANGLE_ADJ },
+        Delta_Mechanics::delta_tower_radius_adj[ABC]    = { TOWER_A_RADIUS_ADJ, TOWER_B_RADIUS_ADJ, TOWER_C_RADIUS_ADJ },
+        Delta_Mechanics::delta_diagonal_rod_adj[ABC]    = { TOWER_A_DIAGROD_ADJ, TOWER_B_DIAGROD_ADJ, TOWER_C_DIAGROD_ADJ };
 
+  /** Private Parameters */
+  float Delta_Mechanics::delta_diagonal_rod_2[ABC] = { 0.0 },  // Diagonal rod 2
+        Delta_Mechanics::towerX[ABC]               = { 0.0 },  // The X coordinate of each tower
+        Delta_Mechanics::towerY[ABC]               = { 0.0 },  // The Y coordinate of each tower
+        Delta_Mechanics::Xbc                       = 0.0,
+        Delta_Mechanics::Xca                       = 0.0,
+        Delta_Mechanics::Xab                       = 0.0,
+        Delta_Mechanics::Ybc                       = 0.0,
+        Delta_Mechanics::Yca                       = 0.0,
+        Delta_Mechanics::Yab                       = 0.0,
+        Delta_Mechanics::coreFa                    = 0.0,
+        Delta_Mechanics::coreFb                    = 0.0,
+        Delta_Mechanics::coreFc                    = 0.0,
+        Delta_Mechanics::Q                         = 0.0,
+        Delta_Mechanics::Q2                        = 0.0,
+        Delta_Mechanics::D2                        = 0.0;
+
+  void Delta_Mechanics::init() {
+    delta_diagonal_rod              = DELTA_DIAGONAL_ROD;
+    delta_radius                    = DELTA_RADIUS;
+    delta_segments_per_second       = DELTA_SEGMENTS_PER_SECOND;
+    delta_print_radius              = DELTA_PRINTABLE_RADIUS;
+    delta_probe_radius              = DELTA_PROBEABLE_RADIUS;
+    delta_height                    = DELTA_HEIGHT;
+    delta_clip_start_height         = DELTA_HEIGHT;
+    delta_endstop_adj[A_AXIS]       = TOWER_A_ENDSTOP_ADJ;
+    delta_endstop_adj[B_AXIS]       = TOWER_B_ENDSTOP_ADJ;
+    delta_endstop_adj[C_AXIS]       = TOWER_C_ENDSTOP_ADJ;
+    delta_tower_angle_adj[A_AXIS]   = TOWER_A_ANGLE_ADJ;
+    delta_tower_angle_adj[B_AXIS]   = TOWER_B_ANGLE_ADJ;
+    delta_tower_angle_adj[C_AXIS]   = TOWER_C_ANGLE_ADJ;
+    delta_tower_radius_adj[A_AXIS]  = TOWER_A_RADIUS_ADJ;
+    delta_tower_radius_adj[B_AXIS]  = TOWER_B_RADIUS_ADJ;
+    delta_tower_radius_adj[C_AXIS]  = TOWER_C_RADIUS_ADJ;
+    delta_diagonal_rod_adj[A_AXIS]  = TOWER_A_DIAGROD_ADJ;
+    delta_diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
+    delta_diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
     recalc_delta_settings();
+  }
+
+  void Delta_Mechanics::sync_plan_position_mech_specific() {
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
+    #endif
+    planner.set_position_mm_kinematic(current_position);
   }
 
   // Return true if the given point is within the printable area
@@ -65,21 +102,6 @@
   bool Delta_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     return position_is_reachable(rx, ry)
         && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
-  }
-
-  void Delta_Mechanics::set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e) {
-    _set_position_mm(rx, ry, rz, e);
-  }
-
-  void Delta_Mechanics::set_position_mm(const float position[NUM_AXIS]) {
-    #if PLANNER_LEVELING
-      float lpos[XYZ] = { position[X_AXIS], position[Y_AXIS], position[Z_AXIS] };
-      bedlevel.apply_leveling(lpos);
-    #else
-      const float * const lpos = position;
-    #endif
-    Transform(lpos);
-    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   }
 
   /**
@@ -93,9 +115,9 @@
    */
   void Delta_Mechanics::get_cartesian_from_steppers() {
     InverseTransform(
-      stepper.get_axis_position_mm(A_AXIS),
-      stepper.get_axis_position_mm(B_AXIS),
-      stepper.get_axis_position_mm(C_AXIS),
+      planner.get_axis_position_mm(A_AXIS),
+      planner.get_axis_position_mm(B_AXIS),
+      planner.get_axis_position_mm(C_AXIS),
       cartesian_position
     );
   }
@@ -128,13 +150,13 @@
       }
 
       // Fail if attempting move outside printable radius
-      if (endstops.isSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
+      if (endstops.isSoftEndstop() && !mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
       // Get the linear distance in XYZ
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
       // If the move is very short, check the E move distance
-      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = FABS(difference[E_AXIS]);
+      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = ABS(difference[E_AXIS]);
 
       // No E move either? Game over.
       if (UNEAR_ZERO(cartesian_mm)) return true;
@@ -147,7 +169,7 @@
       uint16_t segments = delta_segments_per_second * seconds;
 
       // At least one segment is required
-      NOLESS(segments, 1);
+      NOLESS(segments, 1U);
 
       // The approximate length of each segment
       const float inv_segments = 1.0 / float(segments),
@@ -186,7 +208,8 @@
           }
         #endif
 
-        planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
+        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
+          break;
 
       }
 
@@ -210,7 +233,7 @@
 
     const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
-    if (!position_is_reachable(rx, ry)) return;
+    if (!mechanics.position_is_reachable(rx, ry)) return;
 
     feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
@@ -262,13 +285,14 @@
       #endif
     }
 
-    stepper.synchronize();
-
     feedrate_mm_s = old_feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
+
+    planner.synchronize();
+
   }
 
   /**
@@ -278,8 +302,6 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
     #endif
-
-    commands.refresh_cmd_timeout();
 
     #if UBL_DELTA
       // ubl segmented line will do z-only moves in single segment
@@ -441,7 +463,7 @@
     float distance = delta[A_AXIS];
     cartesian[Y_AXIS] = delta_print_radius;
     Transform(cartesian);
-    delta_clip_start_height = delta_height - FABS(distance - delta[A_AXIS]);
+    delta_clip_start_height = delta_height - ABS(distance - delta[A_AXIS]);
   }
 
   void Delta_Mechanics::homeaxis(const AxisEnum axis) {
@@ -460,7 +482,7 @@
     #endif
     
     // Fast move towards endstop until triggered
-    do_homing_move(axis, 1.5 * delta_height);
+    mechanics.do_homing_move(axis, 1.5 * delta_height);
 
     // When homing Z with probe respect probe clearance
     const float bump = home_bump_mm[axis];
@@ -471,13 +493,13 @@
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (printer.debugLeveling()) SERIAL_EM("Move Away:");
       #endif
-      do_homing_move(axis, -bump);
+      mechanics.do_homing_move(axis, -bump);
 
       // Slow move towards endstop until triggered
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
       #endif
-      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+      mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
     }
 
     // Delta has already moved all three towers up in G28
@@ -489,7 +511,7 @@
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (printer.debugLeveling()) SERIAL_EM("delta_endstop_adj:");
       #endif
-      do_homing_move(axis, delta_endstop_adj[axis] - 0.1);
+      mechanics.do_homing_move(axis, delta_endstop_adj[axis] - 0.1);
     }
 
     // Clear z_lift if homing the Z axis
@@ -508,31 +530,22 @@
   /**
    * Home Delta
    */
-  bool Delta_Mechanics::home(const bool always_home_all) {
-
-    UNUSED(always_home_all);
+  bool Delta_Mechanics::home() {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-        Nextion_gfx_clear();
+        mechanics.Nextion_gfx_clear();
       #endif
       return true;
     }
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_EM(">>> gcode_G28");
-        log_machine_info();
-      }
-    #endif
-
     #if HAS_POWER_SWITCH
-      if (!powerManager.lastPowerOn) powerManager.power_on(); // Power On if power is off
+      powerManager.power_on(); // Power On if power is off
     #endif
 
     // Wait for planner moves to finish!
-    stepper.synchronize();
+    planner.synchronize();
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
@@ -544,10 +557,13 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-        const bool ubl_state_at_entry = bedlevel.leveling_active;
-      #endif
+      const bool leveling_was_active = bedlevel.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
+    #endif
+
+    #if ENABLED(BLTOUCH)
+      probe.bltouch_command(BLTOUCH_RESET);
+      probe.set_bltouch_deployed(false);
     #endif
 
     // Always home with tool 0 active
@@ -574,36 +590,29 @@
       if (printer.debugLeveling()) DEBUG_POS(">>> home_delta", current_position);
     #endif
 
-    // Disable stealthChop if used. Enable diag1 pin on driver.
-    #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(A_AXIS);
-      sensorless_homing_per_axis(B_AXIS);
-      sensorless_homing_per_axis(C_AXIS);
-    #endif
-
     // Init the current position of all carriages to 0,0,0
     ZERO(current_position);
-    set_position_mm(current_position[A_AXIS], current_position[B_AXIS], current_position[C_AXIS], current_position[E_AXIS]);
+    mechanics.sync_plan_position();
+
+    // Disable stealthChop if used. Enable diag1 pin on driver.
+    #if ENABLED(SENSORLESS_HOMING)
+      mechanics.sensorless_homing();
+    #endif
 
     // Move all carriages together linearly until an endstop is hit.
     current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    line_to_current_position();
-    stepper.synchronize();
+    mechanics.line_to_current_position();
+    planner.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing_per_axis(A_AXIS, false);
-      sensorless_homing_per_axis(B_AXIS, false);
-      sensorless_homing_per_axis(C_AXIS, false);
+      sensorless_homing(false);
     #endif
 
     // If an endstop was not hit, then damage can occur if homing is continued.
-    // This can occur if the delta height is
-    // not set correctly.
-    if (!(TEST(endstops.hit_bits, X_MAX) ||
-          TEST(endstops.hit_bits, Y_MAX) ||
-          TEST(endstops.hit_bits, Z_MAX))) {
+    // This can occur if the delta height not set correctly.
+    if (!(endstops.trigger_state() && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
       LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
       SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
       return false;
@@ -623,7 +632,7 @@
     // give the impression that they are the same.
     LOOP_XYZ(i) set_axis_is_at_home((AxisEnum)i);
 
-    sync_plan_position();
+    sync_plan_position_mech_specific();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) DEBUG_POS("<<< home_delta", current_position);
@@ -633,7 +642,7 @@
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(delta_clip_start_height);
+      mechanics.do_blocking_move_to_z(delta_clip_start_height);
     #endif
 
     if (come_back) {
@@ -644,16 +653,16 @@
     }
 
     #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
+      mechanics.Nextion_gfx_clear();
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
+    #if HAS_LEVELING
+      bedlevel.set_bed_leveling_enabled(leveling_was_active);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();
 
-    stepper.synchronize();
+    planner.synchronize();
 
     // Restore the active tool after homing
     #if HOTENDS > 1
@@ -662,10 +671,10 @@
 
     lcd_refresh();
 
-    report_current_position();
+    mechanics.report_current_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< gcode_G28");
+      if (printer.debugLeveling()) SERIAL_EM("<<< G28");
     #endif
 
     return true;
@@ -696,8 +705,6 @@
   // Report detail current position to host
   void Delta_Mechanics::report_current_position_detail() {
 
-    stepper.synchronize();
-
     SERIAL_MSG("\nLogical:");
     const float logical[XYZ] = {
       LOGICAL_X_POSITION(current_position[X_AXIS]),
@@ -725,6 +732,8 @@
     Transform(leveled);
     report_xyz(delta);
 
+    planner.synchronize();
+
     SERIAL_MSG("Stepper:");
     LOOP_XYZE(i) {
       SERIAL_CHR(' ');
@@ -737,7 +746,7 @@
 
     SERIAL_MSG("FromStp:");
     get_cartesian_from_steppers();
-    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], stepper.get_axis_position_mm(E_AXIS) };
+    const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
     report_xyze(from_steppers);
 
     const float diff[XYZE] = {
@@ -764,48 +773,115 @@
     // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
     float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
       const float perturb = 0.2;      // perturbation amount in mm or degrees
-      Delta_Mechanics hiParams(*this), loParams(*this);
+      float zHi, zLo, newPos[ABC];
 
       switch(deriv) {
         case 0:
         case 1:
         case 2:
           // Endstop corrections
+          InverseTransform((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
+          zHi = newPos[C_AXIS];
+          InverseTransform((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
+          zLo = newPos[C_AXIS];
           break;
 
-        case 3:
-          hiParams.delta_radius += perturb;
-          loParams.delta_radius -= perturb;
-          break;
+        case 3: {
+          const float old_delta_radius = delta_radius;
 
-        case 4:
-          hiParams.delta_tower_angle_adj[A_AXIS] += perturb;
-          loParams.delta_tower_angle_adj[A_AXIS] -= perturb;
-          break;
+          // Calc High parameters
+          delta_radius += perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zHi = newPos[C_AXIS];
 
-        case 5:
-          hiParams.delta_tower_angle_adj[B_AXIS] += perturb;
-          loParams.delta_tower_angle_adj[B_AXIS] -= perturb;
-          break;
+          // Reset Delta Radius
+          delta_radius = old_delta_radius;
 
-        case 6:
-          hiParams.delta_diagonal_rod += perturb;
-          loParams.delta_diagonal_rod -= perturb;
+          // Calc Low parameters
+          delta_radius -= perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zLo = newPos[C_AXIS];
+
+          // Reset Delta Radius
+          delta_radius = old_delta_radius;
           break;
+        }
+
+        case 4: {
+          const float old_delta_tower_angle_adj = delta_tower_angle_adj[A_AXIS];
+
+          // Calc High parameters
+          delta_tower_angle_adj[A_AXIS] += perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zHi = newPos[C_AXIS];
+
+          // Reset Delta tower Alpha angle adj 
+          delta_tower_angle_adj[A_AXIS] = old_delta_tower_angle_adj;
+
+          // Calc Low parameters
+          delta_tower_angle_adj[A_AXIS] -= perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zLo = newPos[C_AXIS];
+
+          // Reset Delta tower Alpha angle adj 
+          delta_tower_angle_adj[A_AXIS] = old_delta_tower_angle_adj;
+          break;
+        }
+
+        case 5: {
+          const float old_delta_tower_angle_adj = delta_tower_angle_adj[B_AXIS];
+
+          // Calc High parameters
+          delta_tower_angle_adj[B_AXIS] += perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zHi = newPos[C_AXIS];
+
+          // Reset Delta tower Beta angle adj 
+          delta_tower_angle_adj[B_AXIS] = old_delta_tower_angle_adj;
+
+          // Calc Low parameters
+          delta_tower_angle_adj[B_AXIS] -= perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zLo = newPos[C_AXIS];
+
+          // Reset Delta tower Beta angle adj 
+          delta_tower_angle_adj[B_AXIS] = old_delta_tower_angle_adj;
+          break;
+        }
+
+        case 6: {
+          const float old_delta_diagonal_rod = delta_diagonal_rod;
+
+          // Calc High parameters
+          delta_diagonal_rod += perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zHi = newPos[C_AXIS];
+
+          // Reset Delta Diagonal Rod
+          delta_diagonal_rod = old_delta_diagonal_rod;
+
+          // Calc Low parameters
+          delta_diagonal_rod -= perturb;
+          recalc_delta_settings();
+          InverseTransform(ha, hb, hc, newPos);
+          zLo = newPos[C_AXIS];
+
+          // Reset Delta Diagonal Rod
+          delta_diagonal_rod = old_delta_diagonal_rod;
+          break;
+        }
       }
 
-      hiParams.recalc_delta_settings();
-      loParams.recalc_delta_settings();
+      recalc_delta_settings();
 
-      float newPos[ABC];
-
-      hiParams.InverseTransform((deriv == 0) ? ha + perturb : ha, (deriv == 1) ? hb + perturb : hb, (deriv == 2) ? hc + perturb : hc, newPos);
-      const float zHi = newPos[C_AXIS];
-
-      loParams.InverseTransform((deriv == 0) ? ha - perturb : ha, (deriv == 1) ? hb - perturb : hb, (deriv == 2) ? hc - perturb : hc, newPos);
-      const float zLo = newPos[C_AXIS];
-
-      return ((float)zHi - (float)zLo) / (2 * perturb);
+      return (zHi - zLo) / (2 * perturb);
     }
   
   #endif // ENABLED(DELTA_AUTO_CALIBRATION_1)
@@ -822,14 +898,12 @@
   #if ENABLED(SENSORLESS_HOMING)
 
     /**
-     * Set sensorless homing if the axis has it.
+     * Set sensorless homing.
      */
-    void Delta_Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
-      switch (axis) {
-        case X_AXIS: tmc_sensorless_homing(stepperX, enable); break;
-        case Y_AXIS: tmc_sensorless_homing(stepperY, enable); break;
-        case Z_AXIS: tmc_sensorless_homing(stepperZ, enable); break;
-      }
+    void Delta_Mechanics::sensorless_homing(const bool on/*=true*/) {
+      sensorless_homing_per_axis(A_AXIS, on);
+      sensorless_homing_per_axis(B_AXIS, on);
+      sensorless_homing_per_axis(C_AXIS, on);
     }
 
   #endif // SENSORLESS_HOMING

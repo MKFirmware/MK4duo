@@ -24,15 +24,12 @@
  * Endstop Interrupts
  *
  * Without endstop interrupts the endstop pins must be polled continually in
- * the stepper-ISR via endstops.update(), most of the time finding no change.
- * With this feature endstops.update() is called only when we know that at
+ * the stepper-ISR via endstop_ISR(), most of the time finding no change.
+ * With this feature endstop_ISR() is called only when we know that at
  * least one endstop has changed state, saving valuable CPU cycles.
  *
  * This feature only works when all used endstop pins can generate either an
  * 'external interrupt' or a 'pin change interrupt'.
- *
- * Test whether pins issue interrupts on your board by flashing 'pin_interrupt_test.ino'.
- * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
 #ifndef _ENDSTOP_INTERRUPTS_H_
@@ -81,22 +78,22 @@ void pciSetup(const pin_t pin) {
 
 // Handlers for pin change interrupts
 #ifdef PCINT0_vect
-  ISR(PCINT0_vect) { endstop_ISR_worker(); }
+  ISR(PCINT0_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT1_vect
-  ISR(PCINT1_vect) { endstop_ISR_worker(); }
+  ISR(PCINT1_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT2_vect
-  ISR(PCINT2_vect) { endstop_ISR_worker(); }
+  ISR(PCINT2_vect) { endstop_ISR(); }
 #endif
 
 #ifdef PCINT3_vect
-  ISR(PCINT3_vect) { endstop_ISR_worker(); }
+  ISR(PCINT3_vect) { endstop_ISR(); }
 #endif
 
-void Endstops::setup_endstop_interrupts(void) {
+void Endstops::setup_interrupts(void) {
 
   #if HAS_X_MAX
     #if (digitalPinToInterrupt(X_MAX_PIN) != NOT_AN_INTERRUPT) // if pin has an external interrupt
@@ -180,11 +177,11 @@ void Endstops::setup_endstop_interrupts(void) {
 
   #if HAS_Z_PROBE_PIN
     #if (digitalPinToInterrupt(Z_PROBE_PIN) != NOT_AN_INTERRUPT)
-      attachInterrupt(digitalPinToInterrupt(Z_MIN_PROBE_PIN), endstop_ISR, CHANGE);
+      attachInterrupt(digitalPinToInterrupt(Z_PROBE_PIN), endstop_ISR, CHANGE);
     #else
       // Not all used endstop/probe -pins can raise interrupts. Please deactivate ENDSTOP_INTERRUPTS or change the pin configuration!
-      static_assert(digitalPinToPCICR(Z_MIN_PROBE_PIN) != NULL, "Z_MIN_PROBE_PIN is not interrupt-capable");
-      pciSetup(Z_MIN_PROBE_PIN);
+      static_assert(digitalPinToPCICR(Z_PROBE_PIN) != NULL, "Z_PROBE_PIN is not interrupt-capable");
+      pciSetup(Z_PROBE_PIN);
     #endif
   #endif
 

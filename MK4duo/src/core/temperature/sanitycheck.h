@@ -96,7 +96,7 @@
   #if DISABLED(COOLER_MINTEMP)
     #error "DEPENDENCY ERROR: Missing setting COOLER_MINTEMP."
   #endif
-  #if !HAS_COOLER
+  #if !HAS_HEATER_COOLER
     #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_COOLER and not COOLER_PIN."
   #endif
 #endif

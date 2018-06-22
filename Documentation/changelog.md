@@ -1,3 +1,14 @@
+### Version 4.3.6
+* Make class Mechanics to static
+* Add Junction Deviation instead of traditional Jerk limiting
+* Add Adaptive multiaxis step smoothing
+* Add M205 J - Set Junction Deviation mm
+* Add Bézier Jerk Control
+* Add Safety Timer, after 30 minutes if not printing (SD or M530 S1) the heaters switch off.
+* Rewrite SD Restart for auto restart when power loss and return.
+* Add command gcode M569 for Stepper driver control: Dir, minimum pulse and maximum rate.
+* Fix and clear code
+
 ### Version 4.3.5 Stable
 * Now if a heater does not have a sensor or fails, it will not be used, but it will not kill.
 * If the PID autotune is not done, the firmware will not switch the heater on until the autotune is performed. Only if have EEPROM.

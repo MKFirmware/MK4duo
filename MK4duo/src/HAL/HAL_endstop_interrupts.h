@@ -23,13 +23,8 @@
 #ifndef _HAL_ENDSTOP_INTERRUPTS_H_
 #define _HAL_ENDSTOP_INTERRUPTS_H_
 
-// This is what is really done inside the interrupts.
-FORCE_INLINE void endstop_ISR_worker( void ) {
-  endstops.e_hit = 2; // Because the detection of a e-stop hit has a 1 step debouncer it has to be called at least twice.
-}
-
-// One ISR for all EXT-Interrupts
-void endstop_ISR(void) { endstop_ISR_worker(); }
+// One ISR for all Endstop Interrupts
+void endstop_ISR(void) { endstops.check(); }
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #include "HAL_DUE/endstop_interrupts.h"

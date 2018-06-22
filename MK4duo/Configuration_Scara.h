@@ -75,9 +75,9 @@
 /*****************************************************************************************
  ************************************* Scara settings *************************************
 /****************************************************************************************/
-// MORGAN_SCARA for Marlin was developed by QHARLEY in ZA in 2012/2013. Implemented
+// MORGAN_SCARA for MK4duo was developed by QHARLEY in ZA in 2012/2013. Implemented
 // and slightly reworked by JCERNY in 06/2014 with the goal to bring it into Master-Branch
-// QHARLEYS Autobedlevelling has not been ported, because Marlin has now Bed-levelling
+// QHARLEYS Autobedlevelling has not been ported, because MK4duo has now Bed-levelling
 // You might need Z-Min endstop on SCARA-Printer to use this feature. Actually untested!
 
 //#define DEBUG_SCARA_KINEMATICS
@@ -178,8 +178,8 @@
 // Z Servo Endstop
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_ENDSTOP_SERVO_NR -1
-#define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define Z_PROBE_SERVO_NR -1
+#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.

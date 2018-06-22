@@ -45,7 +45,7 @@
   // M650: Set peel distance
   inline void gcode_M650(void) {
 
-    stepper.synchronize();
+    planner.synchronize();
 
     peel_distance   = (parser.seen('D') ? parser.value_float() : 2.0);
     peel_speed      = (parser.seen('S') ? parser.value_float() : 2.0);
@@ -67,12 +67,12 @@
     if (peel_distance > 0) {
       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, tools.active_extruder);
       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, tools.active_extruder);
-      stepper.synchronize();
+      planner.synchronize();
       if (peel_pause > 0) printer.safe_delay(peel_pause);
     }
 
     planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
-    stepper.synchronize();
+    planner.synchronize();
   }
 
   // M653: Execute tilt move
@@ -80,7 +80,7 @@
     // Double tilts are not allowed.
     if (!tilted) {
       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + tilt_distance, mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
-      stepper.synchronize();
+      planner.synchronize();
     }
   }
 
@@ -94,7 +94,7 @@
        planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
        // And save it away as our current position, because we're there.
        mechanics.set_current_to_destination();
-       stepper.synchronize();
+       planner.synchronize();
        tilted = false;
     }
   }

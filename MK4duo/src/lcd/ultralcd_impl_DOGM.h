@@ -23,7 +23,7 @@
 /**
  * ultralcd_impl_DOGM.h
  *
- * Graphics LCD implementation for 128x64 pixel LCDs by STB for ErikZalm/Marlin
+ * Graphics LCD implementation for 128x64 pixel LCDs by STB
  * Demonstrator: http://www.reprap.org/wiki/STB_Electronics
  * License: http://opensource.org/licenses/BSD-3-Clause
  *
@@ -59,6 +59,10 @@
 #endif
 
 #include <U8glib.h>
+
+#include "fontutils.h"
+#include "u8g_fontutf8.h"
+
 #include "dogm/HAL_LCD_class_defines.h"
 
 #if ENABLED(SHOW_BOOTSCREEN) && ENABLED(SHOW_CUSTOM_BOOTSCREEN)
@@ -74,61 +78,24 @@
 #if ENABLED(USE_SMALL_INFOFONT)
   #include "dogm/dogm_font_data_6x9_mk4duo.h"
   #define FONT_STATUSMENU_NAME u8g_font_6x9
+  #define INFO_FONT_HEIGHT 7
 #else
   #define FONT_STATUSMENU_NAME FONT_MENU_NAME
+  #define INFO_FONT_HEIGHT 8
 #endif
 
-#include "dogm/dogm_font_data_mk4duo_symbols.h"   // The MK4duo special symbols
-#define FONT_SPECIAL_NAME MK4duo_symbols
+// The MK4duo special symbols is now in the dogm_font_data_ISO10646_1.h
+#define FONT_SPECIAL_NAME ISO10646_1_5x7
 
-#if DISABLED(SIMULATE_ROMFONT)
-  #if ENABLED(DISPLAY_CHARSET_ISO10646_1)
-    #include "dogm/dogm_font_data_ISO10646_1.h"
-    #define FONT_MENU_NAME ISO10646_1_5x7
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_PL)
-    #include "dogm/dogm_font_data_ISO10646_1_PL.h"
-    #define FONT_MENU_NAME ISO10646_1_PL_5x7
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_5)
-    #include "dogm/dogm_font_data_ISO10646_5_Cyrillic.h"
-    #define FONT_MENU_NAME ISO10646_5_Cyrillic_5x7
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_KANA)
-    #include "dogm/dogm_font_data_ISO10646_Kana.h"
-    #define FONT_MENU_NAME ISO10646_Kana_5x7
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_GREEK)
-    #include "dogm/dogm_font_data_ISO10646_Greek.h"
-    #define FONT_MENU_NAME ISO10646_Greek_5x7
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_CN)
-    #include "dogm/dogm_font_data_ISO10646_CN.h"
-    #define FONT_MENU_NAME ISO10646_CN
-    #define TALL_FONT_CORRECTION 1
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_TR)
-    #include "dogm/dogm_font_data_ISO10646_1_tr.h"
-    #define FONT_MENU_NAME ISO10646_TR
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_CZ)
-    #include "dogm/dogm_font_data_ISO10646_CZ.h"
-    #define FONT_MENU_NAME ISO10646_CZ
-  #elif ENABLED(DISPLAY_CHARSET_ISO10646_SK)
-    #include "dogm/dogm_font_data_ISO10646_SK.h"
-    #define FONT_MENU_NAME ISO10646_SK
-  #else // fall-back
-    #include "dogm/dogm_font_data_ISO10646_1.h"
-    #define FONT_MENU_NAME ISO10646_1_5x7
-  #endif
-#else // SIMULATE_ROMFONT
-  #if DISPLAY_CHARSET_HD44780 == JAPANESE
-    #include "dogm/dogm_font_data_HD44780_J.h"
-    #define FONT_MENU_NAME HD44780_J_5x7
-  #elif DISPLAY_CHARSET_HD44780 == WESTERN
-    #include "dogm/dogm_font_data_HD44780_W.h"
-    #define FONT_MENU_NAME HD44780_W_5x7
-  #elif DISPLAY_CHARSET_HD44780 == CYRILLIC
-    #include "dogm/dogm_font_data_HD44780_C.h"
-    #define FONT_MENU_NAME HD44780_C_5x7
-  #else // fall-back
-    #include "dogm/dogm_font_data_ISO10646_1.h"
-    #define FONT_MENU_NAME ISO10646_1_5x7
-  #endif
-#endif // SIMULATE_ROMFONT
+#define LANGUAGE_DATA_INCL_(L)  STRINGIFY_(dogm/language_data_##L.h)
+#define LANGUAGE_DATA_INCL(L)   LANGUAGE_DATA_INCL_(L)
+#define INCLUDE_LANGUAGE_DATA   LANGUAGE_DATA_INCL(LCD_LANGUAGE)
+
+#include INCLUDE_LANGUAGE_DATA
+#define TALL_FONT_CORRECTION 1
+
+#include "dogm/dogm_font_data_ISO10646_1.h"
+#define FONT_MENU_NAME ISO10646_1_5x7
 
 //#define FONT_STATUSMENU_NAME FONT_MENU_NAME
 
@@ -186,8 +153,9 @@
     U8GLIB_LM6059_2X u8g(DOGLCD_CS, DOGLCD_A0); // 4 stripes
 
 #elif ENABLED(U8GLIB_ST7565_64128N)
-  // The MaKrPanel, Mini Viki, and Viki 2.0, ST7565 controller
-  #if DOGLCD_SCK == SCK_PIN && DOGLCD_MOSI == MOSI_PIN
+  // The MaKrPanel, Mini Viki, Viki 2.0 & AZSMZ 12864 ST7565 controller
+  #define SMART_RAMPS (MB(RAMPS_SMART_HFB) || MB(RAMPS_SMART_HHB) || MB(RAMPS_SMART_HFF) || MB(RAMPS_SMART_HHF))
+  #if DOGLCD_SCK == SCK_PIN && DOGLCD_MOSI == MOSI_PIN && !SMART_RAMPS
     U8GLIB_64128N_2X_HAL u8g(DOGLCD_CS, DOGLCD_A0);  // using HW-SPI
   #else
     U8GLIB_64128N_2X_HAL u8g(DOGLCD_SCK, DOGLCD_MOSI, DOGLCD_CS, DOGLCD_A0);  // using SW-SPI
@@ -224,6 +192,8 @@
     U8GLIB_DOGM128_2X u8g(DOGLCD_CS, DOGLCD_A0);  // HW-SPI Com: CS, A0 // 4 stripes
 #endif
 
+U8GLIB *pu8g = &u8g;
+
 #ifndef LCD_PIXEL_WIDTH
   #define LCD_PIXEL_WIDTH 128
 #endif
@@ -231,7 +201,7 @@
   #define LCD_PIXEL_HEIGHT 64
 #endif
 
-#include "utf_mapper.h"
+#include "lcdprint.h"
 
 uint8_t lcd_contrast; // Initialized by eeprom.load()
 static char currentfont = 0;
@@ -246,48 +216,11 @@ u8g_page_t &page = ((u8g_pb_t *)((u8g.getU8g())->dev->dev_mem))->p;
 static void lcd_setFont(const char font_nr) {
   switch (font_nr) {
     case FONT_STATUSMENU : {u8g.setFont(FONT_STATUSMENU_NAME); currentfont = FONT_STATUSMENU;}; break;
+    default:
     case FONT_MENU       : {u8g.setFont(FONT_MENU_NAME); currentfont = FONT_MENU;}; break;
     case FONT_SPECIAL    : {u8g.setFont(FONT_SPECIAL_NAME); currentfont = FONT_SPECIAL;}; break;
     case FONT_MENU_EDIT  : {u8g.setFont(FONT_MENU_EDIT_NAME); currentfont = FONT_MENU_EDIT;}; break;
-    break;
   }
-}
-
-void lcd_print(const char c) {
-  if (WITHIN(c, 1, LCD_STR_SPECIAL_MAX)) {
-    u8g.setFont(FONT_SPECIAL_NAME);
-    u8g.print(c);
-    lcd_setFont(currentfont);
-  }
-  else charset_mapper(c);
-}
-
-char lcd_print_and_count(const char c) {
-  if (WITHIN(c, 1, LCD_STR_SPECIAL_MAX)) {
-    u8g.setFont(FONT_SPECIAL_NAME);
-    u8g.print(c);
-    lcd_setFont(currentfont);
-    return 1;
-  }
-  else return charset_mapper(c);
-}
-
-/**
- * Core LCD printing functions
- * On DOGM all strings go through a filter for utf
- * But only use lcd_print_utf and lcd_printPGM_utf for translated text
- */
-void lcd_print(const char *str) { while (*str) lcd_print(*str++); }
-void lcd_printPGM(const char *str) { while (const char c = pgm_read_byte(str)) lcd_print(c), ++str; }
-
-void lcd_print_utf(const char *str, uint8_t n=LCD_WIDTH) {
-  char c;
-  while (n && (c = *str)) n -= charset_mapper(c), ++str;
-}
-
-void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
-  char c;
-  while (n && (c = pgm_read_byte(str))) n -= charset_mapper(c), ++str;
 }
 
 #if ENABLED(SHOW_BOOTSCREEN)
@@ -353,7 +286,7 @@ void lcd_printPGM_utf(const char *str, uint8_t n=LCD_WIDTH) {
 
 #endif // SHOW_BOOTSCREEN
 
-#include "dogm/dogm_status_screen.h"
+#include "dogm/status_screen_DOGM.h"
 
 // Initialize or re-initialize the LCD
 static void lcd_implementation_init() {
@@ -391,6 +324,8 @@ static void lcd_implementation_init() {
   #elif ENABLED(LCD_SCREEN_ROT_270)
     u8g.setRot270();  // Rotate screen by 270°
   #endif
+
+  uxg_SetUtf8Fonts (g_fontinfo, NUM_ARRAY(g_fontinfo));
 }
 
 // The kill screen is displayed for unrecoverable conditions
@@ -399,12 +334,12 @@ void lcd_kill_screen() {
   u8g.firstPage();
   do {
     lcd_setFont(FONT_MENU);
-    u8g.setPrintPos(0, h4 * 1);
-    lcd_print_utf(lcd_status_message);
-    u8g.setPrintPos(0, h4 * 2);
-    lcd_printPGM(PSTR(MSG_HALTED));
-    u8g.setPrintPos(0, h4 * 3);
-    lcd_printPGM(PSTR(MSG_PLEASE_RESET));
+    lcd_moveto(0, h4 * 1);
+    lcd_put_u8str(lcd_status_message);
+    lcd_moveto(0, h4 * 2);
+    lcd_put_u8str_P(PSTR(MSG_HALTED));
+    lcd_moveto(0, h4 * 3);
+    lcd_put_u8str_P(PSTR(MSG_PLEASE_RESET));
   } while (u8g.nextPage());
 }
 
@@ -417,31 +352,31 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t extruder=tools.active_extruder) {
+    static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t hotend=TARGET_HOTEND) {
       row_y1 = row * row_height + 1;
       row_y2 = row_y1 + row_height - 1;
 
       if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
 
-      u8g.setPrintPos(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
-      lcd_print('H');
-      lcd_print((char)('0' + tools.active_extruder));
-      lcd_print(' ');
-      lcd_print(itostr3(heaters[extruder].current_temperature));
-      lcd_print('/');
+      lcd_moveto(LCD_PIXEL_WIDTH - 11 * (DOG_CHAR_WIDTH), row_y2);
+      lcd_put_wchar('H');
+      lcd_put_wchar((char)('0' + TARGET_HOTEND));
+      lcd_put_wchar(' ');
+      lcd_put_u8str(itostr3(heaters[hotend].current_temperature));
+      lcd_put_wchar('/');
 
-      if (lcd_blink() || !heaters[extruder].isIdle())
-        lcd_print(itostr3(heaters[extruder].target_temperature));
+      if (lcd_blink() || !heaters[hotend].isIdle())
+        lcd_put_u8str(itostr3(heaters[hotend].target_temperature));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
-  static void lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
+  static bool lcd_implementation_mark_as_selected(const uint8_t row, const bool isSelected) {
     row_y1 = row * row_height + 1;
     row_y2 = row_y1 + row_height - 1;
 
-    if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
+    if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return false;
 
     if (isSelected) {
       #if ENABLED(MENU_HOLLOW_FRAME)
@@ -458,51 +393,46 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
         u8g.setColorIndex(1); // unmarked text is black on white
       }
     #endif
-    u8g.setPrintPos((START_COL) * (DOG_CHAR_WIDTH), row_y2);
+
+    if (!PAGE_CONTAINS(row_y1, row_y2)) return false;
+
+    lcd_moveto((START_COL) * (DOG_CHAR_WIDTH), row_y2);
+    return true;
   }
 
   // Draw a static line of text in the same idiom as a menu item
   static void lcd_implementation_drawmenu_static(const uint8_t row, const char* pstr, const bool center=true, const bool invert=false, const char* valstr=NULL) {
 
-    lcd_implementation_mark_as_selected(row, invert);
+    if (lcd_implementation_mark_as_selected(row, invert)) {
 
-    if (!PAGE_CONTAINS(row_y1, row_y2)) return;
+      uint8_t n = LCD_PIXEL_WIDTH - (DOG_CHAR_WIDTH) * (START_COL); // pixel width of string allowed
 
-    char c;
-    int8_t n = LCD_WIDTH - (START_COL);
+      if (center && !valstr) {
+        int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
+        while (--pad >= 0) { lcd_put_wchar(' '); n--; }
+      }
+      n -= lcd_put_u8str_max_P(pstr, n);
+      if (NULL != valstr) {
+        n -= lcd_put_u8str_max(valstr, n);
+      }
 
-    if (center && !valstr) {
-      int8_t pad = (LCD_WIDTH - lcd_strlen_P(pstr)) / 2;
-      while (--pad >= 0) { u8g.print(' '); n--; }
+      while (n - DOG_CHAR_WIDTH > 0) { n -= lcd_put_wchar(' '); }
     }
-    while (n > 0 && (c = pgm_read_byte(pstr))) {
-      n -= lcd_print_and_count(c);
-      pstr++;
-    }
-    if (valstr) while (n > 0 && (c = *valstr)) {
-      n -= lcd_print_and_count(c);
-      valstr++;
-    }
-    while (n-- > 0) u8g.print(' ');
   }
 
   // Draw a generic menu item
   static void lcd_implementation_drawmenu_generic(const bool isSelected, const uint8_t row, const char* pstr, const char pre_char, const char post_char) {
     UNUSED(pre_char);
 
-    lcd_implementation_mark_as_selected(row, isSelected);
-
-    if (!PAGE_CONTAINS(row_y1, row_y2)) return;
-
-    uint8_t n = LCD_WIDTH - (START_COL) - 2;
-    while (char c = pgm_read_byte(pstr)) {
-      n -= lcd_print_and_count(c);
-      pstr++;
+    if (lcd_implementation_mark_as_selected(row, isSelected)) {
+      uint8_t n = LCD_WIDTH - (START_COL) - 2;
+      n *= DOG_CHAR_WIDTH;
+      n -= lcd_put_u8str_max_P(pstr, n);
+      while (n - DOG_CHAR_WIDTH > 0) { n -= lcd_put_wchar(' '); }
+      lcd_moveto(LCD_PIXEL_WIDTH - (DOG_CHAR_WIDTH), row_y2);
+      lcd_put_wchar(post_char);
+      lcd_put_wchar(' ');
     }
-    while (n--) u8g.print(' ');
-    u8g.setPrintPos(LCD_PIXEL_WIDTH - (DOG_CHAR_WIDTH), row_y2);
-    lcd_print(post_char);
-    u8g.print(' ');
   }
 
   // Macros for specific types of menu items
@@ -513,22 +443,16 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
   // Draw a menu item with an editable value
   static void _drawmenu_setting_edit_generic(const bool isSelected, const uint8_t row, const char* pstr, const char* const data, const bool pgm) {
-
-    lcd_implementation_mark_as_selected(row, isSelected);
-
-    if (!PAGE_CONTAINS(row_y1, row_y2)) return;
-
-    const uint8_t vallen = (pgm ? lcd_strlen_P(data) : (lcd_strlen((char*)data)));
-    uint8_t n = LCD_WIDTH - (START_COL) - 2 - vallen;
-
-    while (char c = pgm_read_byte(pstr)) {
-      n -= lcd_print_and_count(c);
-      pstr++;
+    if (lcd_implementation_mark_as_selected(row, isSelected)) {
+      const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
+      uint8_t n = LCD_WIDTH - (START_COL) - 2 - vallen;
+      n *= DOG_CHAR_WIDTH;
+      n -= lcd_put_u8str_max_P(pstr, n);
+      lcd_put_wchar(':');
+      while (n - DOG_CHAR_WIDTH > 0) { n -= lcd_put_wchar(' '); }
+      lcd_moveto(LCD_PIXEL_WIDTH - (DOG_CHAR_WIDTH) * vallen, row_y2);
+      if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str((char*)data);
     }
-    u8g.print(':');
-    while (n--) u8g.print(' ');
-    u8g.setPrintPos(LCD_PIXEL_WIDTH - (DOG_CHAR_WIDTH) * vallen, row_y2);
-    if (pgm)  lcd_printPGM(data);  else  lcd_print((char*)data);
   }
 
   // Macros for edit items
@@ -539,8 +463,8 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   #define DRAW_BOOL_SETTING(sel, row, pstr, data) lcd_implementation_drawmenu_setting_edit_generic_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
   void lcd_implementation_drawedit(const char* const pstr, const char* const value=NULL) {
-    const uint8_t labellen  = lcd_strlen_P(pstr),
-                  vallen    = lcd_strlen(value);
+    const uint8_t labellen = utf8_strlen_P(pstr),
+                  vallen = utf8_strlen(value);
 
     uint8_t rows = (labellen > LCD_WIDTH - 2 - vallen) ? 2 : 1;
 
@@ -560,8 +484,8 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
         lcd_setFont(FONT_MENU);
       }
     #else
-      constexpr uint8_t lcd_width   = LCD_WIDTH - (START_COL),
-                        char_width  = DOG_CHAR_WIDTH;
+      constexpr uint8_t lcd_width = LCD_WIDTH - (START_COL),
+                        char_width = DOG_CHAR_WIDTH;
     #endif
 
     // Center either one or two rows
@@ -570,20 +494,20 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
     bool onpage = PAGE_CONTAINS(baseline + 1 - (DOG_CHAR_HEIGHT_EDIT), baseline);
     if (onpage) {
-      u8g.setPrintPos(0, baseline);
-      lcd_printPGM(pstr);
+      lcd_moveto(0, baseline);
+      lcd_put_u8str_P(pstr);
     }
 
     if (value != NULL) {
-      u8g.print(':');
+      lcd_put_wchar(':');
       if (rows == 2) {
         baseline += segmentHeight;
         onpage = PAGE_CONTAINS(baseline + 1 - (DOG_CHAR_HEIGHT_EDIT), baseline);
       }
       if (onpage) {
-        u8g.setPrintPos(((lcd_width - 1) - (vallen + 1)) * char_width, baseline); // Right-justified, leaving padded by spaces
-        u8g.print(' '); // overwrite char if value gets shorter
-        lcd_print(value);
+        lcd_moveto(((lcd_width - 1) - (vallen + 1)) * char_width, baseline); // Right-justified, leaving padded by spaces
+        lcd_put_wchar(' '); // overwrite char if value gets shorter
+        lcd_put_u8str(value);
       }
     }
   }
@@ -606,7 +530,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
             name_hash = ((name_hash << 1) | (name_hash >> 7)) ^ longFilename[l];  // rotate, xor
           if (filename_scroll_hash != name_hash) {                                // If the hash changed...
             filename_scroll_hash = name_hash;                                     // Save the new hash
-            filename_scroll_max = max(0, lcd_strlen(longFilename) - maxlen);      // Update the scroll limit
+            filename_scroll_max = MAX(0, utf8_strlen(longFilename) - maxlen);      // Update the scroll limit
             filename_scroll_pos = 0;                                              // Reset scroll to the start
             lcd_status_update_delay = 8;                                          // Don't scroll right away
           }
@@ -614,15 +538,12 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
         }
       #endif
 
-      if (isDir) lcd_print(LCD_STR_FOLDER[0]);
+      if (isDir) lcd_put_wchar(LCD_STR_FOLDER[0]);
 
-      char c;
-      uint8_t n = maxlen;
-      while (n && (c = *outstr)) {
-        n -= lcd_print_and_count(c);
-        ++outstr;
-      }
-      while (n) { --n; u8g.print(' '); }
+      int n;
+      n = lcd_put_u8str_max(outstr, maxlen * (DOG_CHAR_WIDTH));
+      n = maxlen * (DOG_CHAR_WIDTH) - n;
+      while (n - DOG_CHAR_WIDTH > 0) { n -= lcd_put_wchar(' '); }
     }
 
     #define lcd_implementation_drawmenu_sdfile(sel, row, pstr, longFilename) _drawmenu_sd(sel, row, pstr, longFilename, false)
@@ -689,30 +610,30 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
       // Show X and Y positions at top of screen
       u8g.setColorIndex(1);
       if (PAGE_UNDER(7)) {
-        u8g.setPrintPos(5, 7);
-        lcd_print("X:");
-        lcd_print(ftostr32(LOGICAL_X_POSITION(pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]))));
-        u8g.setPrintPos(74, 7);
-        lcd_print("Y:");
-        lcd_print(ftostr32(LOGICAL_Y_POSITION(pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]))));
+        lcd_moveto(5, 7);
+        lcd_put_u8str("X:");
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]))));
+        lcd_moveto(74, 7);
+        lcd_put_u8str("Y:");
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]))));
       }
 
       // Print plot position
       if (PAGE_CONTAINS(LCD_PIXEL_HEIGHT - (INFO_FONT_HEIGHT - 1), LCD_PIXEL_HEIGHT)) {
-        u8g.setPrintPos(5, LCD_PIXEL_HEIGHT);
-        lcd_print('(');
+        lcd_moveto(5, LCD_PIXEL_HEIGHT);
+        lcd_put_wchar('(');
         u8g.print(x_plot);
-        lcd_print(',');
+        lcd_put_wchar(',');
         u8g.print(y_plot);
-        lcd_print(')');
+        lcd_put_wchar(')');
 
         // Show the location value
-        u8g.setPrintPos(74, LCD_PIXEL_HEIGHT);
-        lcd_print("Z:");
+        lcd_moveto(74, LCD_PIXEL_HEIGHT);
+        lcd_put_u8str("Z:");
         if (!isnan(ubl.z_values[x_plot][y_plot]))
-          lcd_print(ftostr43sign(ubl.z_values[x_plot][y_plot]));
+          lcd_put_u8str(ftostr43sign(ubl.z_values[x_plot][y_plot]));
         else
-          lcd_printPGM(PSTR(" -----"));
+          lcd_put_u8str_P(PSTR(" -----"));
       }
 
     }

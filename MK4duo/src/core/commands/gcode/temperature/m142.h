@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_COOLER
+#if HAS_HEATER_COOLER
 
   #define CODE_M142
 

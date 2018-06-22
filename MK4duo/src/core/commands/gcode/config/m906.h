@@ -35,7 +35,7 @@
    */
   inline void gcode_M906(void) {
 
-    GET_TARGET_EXTRUDER(906);
+    if (commands.get_target_tool(906)) return;
 
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
@@ -56,10 +56,10 @@
    */
   inline void gcode_M906(void) {
 
-    GET_TARGET_EXTRUDER(906);
+    if (commands.get_target_tool(906)) return;
 
     #define TMC_SAY_CURRENT(Q) tmc_get_current(stepper##Q, TMC_##Q)
-    #define TMC_SET_CURRENT(Q) tmc_set_current(stepper##Q, TMC_##Q, value)
+    #define TMC_SET_CURRENT(Q) tmc_set_current(stepper##Q, value)
 
     const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {
@@ -89,7 +89,7 @@
           #endif
           break;
         case E_AXIS: {
-          switch (tools.target_extruder) {
+          switch (TARGET_EXTRUDER) {
             #if E0_IS_TRINAMIC
               case 0: TMC_SET_CURRENT(E0); break;
             #endif

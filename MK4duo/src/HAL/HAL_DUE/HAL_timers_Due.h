@@ -60,6 +60,115 @@
 #include <stdint.h>
 
 // --------------------------------------------------------------------------
+// Defines
+// --------------------------------------------------------------------------
+
+#define NUM_HARDWARE_TIMERS 9
+
+#define NvicPriorityUart    1
+#define NvicPrioritySystick 2
+
+#define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
+#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE))
+
+#define STEPPER_TIMER               4
+#define STEPPER_TIMER_ISR           void TC4_Handler()
+#define STEPPER_TIMER_RATE          HAL_TIMER_RATE
+#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                          // 42 - stepper timer ticks per µs
+#define STEPPER_TIMER_PRESCALE      ((F_CPU / 1000000L) / STEPPER_TIMER_TICKS_PER_US)         // 2
+#define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
+#define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
+#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
+
+#define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
+#define AD_TRACKING_CYCLES          4   // 0 - 15     + 1 adc clock cycles
+#define AD_TRANSFER_CYCLES          1   // 0 - 3      * 2 + 3 adc clock cycles
+
+#define ADC_ISR_EOC(channel)        (0x1u << channel)
+
+#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
+#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
+#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
+
+// Estimate the amount of time the ISR will take to execute
+// The base ISR takes 792 cycles
+#define ISR_BASE_CYCLES         792UL
+
+// Linear advance base time is 64 cycles
+#if ENABLED(LIN_ADVANCE)
+  #define ISR_LA_BASE_CYCLES    64UL
+#else
+  #define ISR_LA_BASE_CYCLES    0UL
+#endif
+
+// Bezier interpolation adds 40 cycles
+#if ENABLED(BEZIER_JERK_CONTROL)
+  #define ISR_BEZIER_CYCLES     40UL
+#else
+  #define ISR_BEZIER_CYCLES     0UL
+#endif
+
+// Stepper Loop base cycles
+#define ISR_LOOP_BASE_CYCLES    4UL
+
+// And each stepper takes 16 cycles
+#define ISR_STEPPER_CYCLES      16UL
+
+// For each stepper, we add its time
+#if HAS_X_STEP
+  #define ISR_X_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_X_STEPPER_CYCLES  0UL
+#endif
+
+// For each stepper, we add its time
+#if HAS_Y_STEP
+  #define ISR_Y_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_Y_STEPPER_CYCLES  0UL
+#endif
+
+// For each stepper, we add its time
+#if HAS_Z_STEP
+  #define ISR_Z_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+#else
+  #define ISR_Z_STEPPER_CYCLES  0UL
+#endif
+
+// E is always interpolated
+#define ISR_E_STEPPER_CYCLES    ISR_STEPPER_CYCLES
+
+// If linear advance is disabled, then the loop also handles them
+#if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
+  #define ISR_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * ISR_STEPPER_CYCLES)
+#else
+  #define ISR_MIXING_STEPPER_CYCLES 0UL
+#endif
+
+// And the total minimum loop time is, without including the base
+#define MIN_ISR_LOOP_CYCLES (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
+
+// But the user could be enforcing a minimum time, so the loop time is
+#define ISR_LOOP_CYCLES (ISR_LOOP_BASE_CYCLES + MAX(HAL_min_pulse_cycle, MIN_ISR_LOOP_CYCLES))
+
+// If linear advance is enabled, then it is handled separately
+#if ENABLED(LIN_ADVANCE)
+
+  // Estimate the minimum LA loop time
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
+  #else
+    #define MIN_ISR_LA_LOOP_CYCLES  ISR_STEPPER_CYCLES
+  #endif
+
+  // And the real loop time
+  #define ISR_LA_LOOP_CYCLES  MAX(HAL_min_pulse_cycle, MIN_ISR_LA_LOOP_CYCLES)
+
+#else
+  #define ISR_LA_LOOP_CYCLES  0UL
+#endif
+
+// --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
 
@@ -71,137 +180,72 @@ typedef struct {
 } tTimerConfig;
 
 // --------------------------------------------------------------------------
-// Defines
-// --------------------------------------------------------------------------
-
-#define NUM_HARDWARE_TIMERS 9
-
-#define NvicPriorityUart    1
-#define NvicPrioritySystick 2
-
-constexpr uint32_t  HAL_STEPPER_TIMER_RATE  = ((F_CPU) / 2); // 42 MHz
-constexpr float     HAL_ACCELERATION_RATE   = (4096.0 * 4096.0 * 256.0 / (HAL_STEPPER_TIMER_RATE));
-
-#define STEPPER_TIMER               4
-#define STEPPER_TIMER_PRESCALE      2.0
-#define STEPPER_TIMER_TICKS_PER_US  ((HAL_STEPPER_TIMER_RATE) / 1000000)  // 42 - stepper timer ticks per µs
-#define STEPPER_TIMER_MIN_INTERVAL  2 // minimum time in µs between stepper interrupts
-#define HAL_STEP_TIMER_ISR          void TC4_Handler()
-
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
-
-#define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
-#define AD_TRACKING_CYCLES          4   // 0 - 15     + 1 adc clock cycles
-#define AD_TRANSFER_CYCLES          1   // 0 - 3      * 2 + 3 adc clock cycles
-
-#define ADC_ISR_EOC(channel)        (0x1u << channel)
-
-#define HAL_STEPPER_TIMER_START()   HAL_timer_start(STEPPER_TIMER)
-#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
-#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
-#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
-
-#define HAL_ENABLE_ISRs()           ENABLE_STEPPER_INTERRUPT()
-#define HAL_DISABLE_ISRs()          DISABLE_STEPPER_INTERRUPT()
-
-// Clock speed factor
-#define CYCLES_PER_US               ((F_CPU) / 1000000L) // 84
-// Stepper pulse duration, in cycles
-#define STEP_PULSE_CYCLES           ((MINIMUM_STEPPER_PULSE) * CYCLES_PER_US)
-
-// Highly granular delays for step pulses, etc.
-#define DELAY_0_NOP   NOOP
-#define DELAY_1_NOP   __asm__("nop\n\t")
-#define DELAY_2_NOP   DELAY_1_NOP;  DELAY_1_NOP
-#define DELAY_3_NOP   DELAY_2_NOP;  DELAY_1_NOP
-#define DELAY_4_NOP   DELAY_3_NOP;  DELAY_1_NOP
-#define DELAY_5_NOP   DELAY_4_NOP;  DELAY_1_NOP
-#define DELAY_10_NOP  DELAY_5_NOP;  DELAY_5_NOP
-#define DELAY_20_NOP  DELAY_10_NOP; DELAY_10_NOP
-#define DELAY_40_NOP  DELAY_20_NOP; DELAY_20_NOP
-#define DELAY_80_NOP  DELAY_40_NOP; DELAY_40_NOP
-
-#define DELAY_NOPS(X) \
-  switch (X) { \
-    case 20: DELAY_1_NOP; case 19: DELAY_1_NOP; \
-    case 18: DELAY_1_NOP; case 17: DELAY_1_NOP; \
-    case 16: DELAY_1_NOP; case 15: DELAY_1_NOP; \
-    case 14: DELAY_1_NOP; case 13: DELAY_1_NOP; \
-    case 12: DELAY_1_NOP; case 11: DELAY_1_NOP; \
-    case 10: DELAY_1_NOP; case 9:  DELAY_1_NOP; \
-    case 8:  DELAY_1_NOP; case 7:  DELAY_1_NOP; \
-    case 6:  DELAY_1_NOP; case 5:  DELAY_1_NOP; \
-    case 4:  DELAY_1_NOP; case 3:  DELAY_1_NOP; \
-    case 2:  DELAY_1_NOP; case 1:  DELAY_1_NOP; \
-  }
-
-#define DELAY_1US   DELAY_80_NOP; DELAY_4_NOP
-#define DELAY_2US   DELAY_1US;    DELAY_1US
-#define DELAY_3US   DELAY_1US;    DELAY_2US
-#define DELAY_4US   DELAY_1US;    DELAY_3US
-#define DELAY_5US   DELAY_1US;    DELAY_4US
-#define DELAY_6US   DELAY_1US;    DELAY_5US
-#define DELAY_7US   DELAY_1US;    DELAY_6US
-#define DELAY_8US   DELAY_1US;    DELAY_7US
-#define DELAY_9US   DELAY_1US;    DELAY_8US
-#define DELAY_10US  DELAY_1US;    DELAY_9US
-
-// --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
+
+extern const tTimerConfig TimerConfig[];
+
+extern uint32_t HAL_min_pulse_cycle,
+                HAL_min_pulse_tick,
+                HAL_add_pulse_ticks,
+                HAL_min_isr_frequency,
+                HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Private Variables
 // --------------------------------------------------------------------------
 
-static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
-  { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
-  { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
-  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
-  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
-  { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
-  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
-  { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
-  { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
-  { TC2, 2, TC8_IRQn, 0 },  // 8 - Pin TC 11 - 12
-};
-
 // --------------------------------------------------------------------------
 // Public functions
 // --------------------------------------------------------------------------
 
-void HAL_timer_start(const uint8_t timer_num);
-void HAL_timer_enable_interrupt(const uint8_t timer_num);
-void HAL_timer_disable_interrupt(const uint8_t timer_num);
-bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num);
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
-FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
+void HAL_calc_pulse_cycle();
+
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale);
+
+FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  NVIC_EnableIRQ(IRQn);
+}
+
+FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  NVIC_DisableIRQ(IRQn);
+
+  // We NEED memory barriers to ensure Interrupts are actually disabled!
+  // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+  __DSB();
+  __ISB();
+}
+
+FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  return (NVIC->ISER[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)));
+}
+
+FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
 }
 
-FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const hal_timer_t count) {
+FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;
-
-  #if ENABLED(MOVE_DEBUG)
-		++numInterruptsScheduled;
-		nextInterruptTime = count;
-		nextInterruptScheduledAt = HAL_timer_get_count(STEPPER_TIMER);
-  #endif
 }
 
-FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
+FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
 }
 
 FORCE_INLINE static void HAL_timer_restricts(const uint8_t timer_num, const uint16_t interval_ticks) {
-  const hal_timer_t mincmp = HAL_timer_get_count(timer_num) + interval_ticks;
-  if (HAL_timer_get_current_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
+  const uint32_t mincmp = HAL_timer_get_current_count(timer_num) + interval_ticks;
+  if (HAL_timer_get_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
 }
 
-FORCE_INLINE static void HAL_timer_isr_prologue(uint8_t timer_num) {
+FORCE_INLINE static void HAL_timer_isr_prologue(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   // Reading the status register clears the interrupt flag
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_SR;

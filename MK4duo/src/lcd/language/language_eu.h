@@ -141,8 +141,7 @@
 //#define MSG_UBL_Z_OFFSET_STOPPED          _UxGT("Z-Offset Stopped")
 //#define MSG_UBL_STEP_BY_STEP_MENU         _UxGT("Step-By-Step UBL")
 #define MSG_LED_CONTROL                     _UxGT("LED ezarpenak")
-#define MSG_LEDS_ON                         _UxGT("Argiak piztu")
-#define MSG_LEDS_OFF                        _UxGT("Argiak itzali")
+#define MSG_LEDS                            _UxGT("Argiak")
 #define MSG_LED_PRESETS                     _UxGT("Argi aurrehautaketak")
 #define MSG_SET_LEDS_RED                    _UxGT("Gorria")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Laranja")
@@ -190,13 +189,13 @@
 #define MSG_ACC                             _UxGT("Azelerazioa")
 #define MSG_JERK                            _UxGT("Astindua")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-astindua")
-  #define MSG_VY_JERK                       _UxGT("Vb-astindua")
-  #define MSG_VZ_JERK                       _UxGT("Vc-astindua")
+  #define MSG_VA_JERK                       _UxGT("Va-astindua")
+  #define MSG_VB_JERK                       _UxGT("Vb-astindua")
+  #define MSG_VC_JERK                       _UxGT("Vc-astindua")
 #else
-  #define MSG_VX_JERK                       _UxGT("Vx-astindua")
-  #define MSG_VY_JERK                       _UxGT("Vy-astindua")
-  #define MSG_VZ_JERK                       _UxGT("Vz-astindua")
+  #define MSG_VA_JERK                       _UxGT("Vx-astindua")
+  #define MSG_VB_JERK                       _UxGT("Vy-astindua")
+  #define MSG_VC_JERK                       _UxGT("Vz-astindua")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-astindua")
 //#define MSG_VELOCITY                      _UxGT("Velocity")
@@ -209,13 +208,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-bidaia")
 #define MSG_STEPS_PER_MM                    _UxGT("Pausoak/mm")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("A pausoak/mm")
-  #define MSG_YSTEPS                        _UxGT("B pausoak/mm")
-  #define MSG_ZSTEPS                        _UxGT("C pausoak/mm")
+  #define MSG_ASTEPS                        _UxGT("A pausoak/mm")
+  #define MSG_BSTEPS                        _UxGT("B pausoak/mm")
+  #define MSG_CSTEPS                        _UxGT("C pausoak/mm")
 #else
-  #define MSG_XSTEPS                        _UxGT("X pausoak/mm")
-  #define MSG_YSTEPS                        _UxGT("Y pausoak/mm")
-  #define MSG_ZSTEPS                        _UxGT("Z pausoak/mm")
+  #define MSG_ASTEPS                        _UxGT("X pausoak/mm")
+  #define MSG_BSTEPS                        _UxGT("Y pausoak/mm")
+  #define MSG_CSTEPS                        _UxGT("Z pausoak/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("E pausoak/mm")
 #define MSG_E1STEPS                         _UxGT("E1 pausoak/mm")
@@ -248,7 +247,6 @@
 #define MSG_DWELL                           _UxGT("Lo egin...")
 #define MSG_USERWAIT                        _UxGT("Aginduak zain...")
 #define MSG_PRINT_PAUSED                    _UxGT("Inprim. geldi.")
-#define MSG_RESUMING                        _UxGT("Inprim. jarraitu.")
 #define MSG_PRINT_ABORTED                   _UxGT("Inprim. deusezta.")
 #define MSG_NO_MOVE                         _UxGT("Mugimendu gabe.")
 #define MSG_KILLED                          _UxGT("AKABATUTA. ")
@@ -289,16 +287,14 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Err: Tenp Minimoa")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: Ohe Tenp Max")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: Ohe Tenp Min")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Debekatua")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("INPRIMA. GELDIRIK")
 #define MSG_PLEASE_RESET                    _UxGT("Berrabia. Mesedez")
 #define MSG_SHORT_DAY                       _UxGT("d") // One character only
 #define MSG_SHORT_HOUR                      _UxGT("h") // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("m") // One character only
 #define MSG_HEATING                         _UxGT("Berotzen...")
-#define MSG_HEATING_COMPLETE                _UxGT("Berotzea prest.")
-#define MSG_BED_HEATING                     _UxGT("Ohea Berotzen.")
-#define MSG_BED_DONE                        _UxGT("Ohea Berotuta.")
+#define MSG_BED_HEATING                     _UxGT("Ohea Berotzen...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Kalibraketa")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibratu X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibratu Y")

@@ -35,9 +35,6 @@
     void _lcd_ubl_output_map_lcd();
   #endif
 
-  extern float meshedit_done;
-  extern long babysteps_done;
-
   #define SIZE_OF_LITTLE_RAISE 1
   #define BIG_RAISE_NOT_NEEDED 0
 
@@ -127,10 +124,8 @@
    *                    a subsequent G or T leveling operation for backward compatibility.
    *
    *   P1    Phase 1    Invalidate entire Mesh and continue with automatic generation of the Mesh data using
-   *                    the Z-Probe. Usually the probe can't reach all areas that the nozzle can reach. On
-   *                    Cartesian printers, points within the probe.offset[X_AXIS] and probe.offset[Y_AXIS]
-   *                    area cannot be automatically probed. For Delta printers the area in which DELTA_PROBEABLE_RADIUS
-   *                    and DELTA_PRINTABLE_RADIUS do not overlap will not be automatically probed.
+   *                    the Z-Probe. Usually the probe can't reach all areas that the nozzle can reach. For delta
+   *                    printers only the areas where the probe and nozzle can both reach will be automatically probed.
    *
    *                    Unreachable points will be handled in Phase 2 and Phase 3.
    *
@@ -193,8 +188,8 @@
    *                    adhesion.
    *
    *                    P4 moves to the closest Mesh Point (and/or the given X Y), raises the nozzle above the mesh height
-   *                    by the given 'H' offset (or default Z_PROBE_BETWEEN_HEIGHT), and waits while the controller is
-   *                    used to adjust the nozzle height. On click the displayed height is saved in the mesh.
+   *                    by the given 'H' offset (or default 0), and waits while the controller is used to adjust the nozzle
+   *                    height. On click the displayed height is saved in the mesh.
    *
    *                    Start Phase 4 at a specific location with X and Y. Adjust a specific number of Mesh Points with
    *                    the 'R' (Repeat) parameter. (If 'R' is left out, the whole matrix is assumed.) This command can be
@@ -235,9 +230,7 @@
    *                    for subsequent Load and Store operations. Valid storage slot numbers begin at 0 and
    *                    extend to a limit related to the available EEPROM storage.
    *
-   *   S -1  Store      Store the current Mesh as a print out that is suitable to be feed back into the system
-   *                    at a later date. The GCode output can be saved and later replayed by the host software
-   *                    to reconstruct the current mesh on another machine.
+   *   S -1  Store      Print the current Mesh as G-code that can be used to restore the mesh anytime.
    *
    *   T     Topology   Display the Mesh Map Topology.
    *                    'T' can be used alone (e.g., G29 T) or in combination with most of the other commands.
@@ -262,26 +255,22 @@
    *   You MUST do M502, M500 to initialize the storage. Failure to do this will cause all
    *   kinds of problems. Enabling EEPROM Storage is required.
    *
-   *   When you do a G28 and then a G29 P1 to automatically build your first mesh, you are going to notice
-   *   the Unified Bed Leveling probes points further and further away from the starting location. (The
-   *   starting location defaults to the center of the bed.)   The original Grid and Mesh leveling used
-   *   a Zig Zag pattern. The new pattern is better, especially for people with Delta printers. This
-   *   allows you to get the center area of the Mesh populated (and edited) quicker. This allows you to
-   *   perform a small print and check out your settings quicker. You do not need to populate the
-   *   entire mesh to use it. (You don't want to spend a lot of time generating a mesh only to realize
-   *   you don't have the resolution or zprobe_zoffset set correctly. The Mesh generation
-   *   gathers points closest to where the nozzle is located unless you specify an (X,Y) coordinate pair.
+   *   When you do a G28 and G29 P1 to automatically build your first mesh, you are going to notice that
+   *   UBL probes points increasingly further from the starting location. (The starting location defaults
+   *   to the center of the bed.) In contrast, ABL and MBL follow a zigzag pattern. The spiral pattern is
+   *   especially better for Delta printers, since it populates the center of the mesh first, allowing for
+   *   a quicker test print to verify settings. You don't need to populate the entire mesh to use it.
+   *   After all, you don't want to spend a lot of time generating a mesh only to realize the resolution
+   *   or zprobe_zoffset are incorrect. Mesh-generation gathers points starting closest to the nozzle unless
+   *   an (X,Y) coordinate pair is given.
    *
-   *   The Unified Bed Leveling uses a lot of EEPROM storage to hold its data. And it takes some effort
-   *   to get this Mesh data correct for a user's printer. We do not want this data destroyed as
-   *   new versions of Marlin add or subtract to the items stored in EEPROM. So, for the benefit of
-   *   the users, we store the Mesh data at the end of the EEPROM and do not keep it contiguous with the
-   *   other data stored in the EEPROM. (For sure the developers are going to complain about this, but
-   *   this is going to be helpful to the users!)
+   *   Unified Bed Leveling uses a lot of EEPROM storage to hold its data, and it takes some effort to get
+   *   the mesh just right. To prevent this valuable data from being destroyed as the EEPROM structure
+   *   evolves, UBL stores all mesh data at the end of EEPROM.
    *
-   *   The foundation of this Bed Leveling System is built on Epatel's Mesh Bed Leveling code. A big
-   *   'Thanks!' to him and the creators of 3-Point and Grid Based leveling. Combining their contributions
-   *   we now have the functionality and features of all three systems combined.
+   *   UBL is founded on Edward Patel's Mesh Bed Leveling code. A big 'Thanks!' to him and the creators of
+   *   3-Point and Grid Based leveling. Combining their contributions we now have the functionality and
+   *   features of all three systems combined.
    */
 
   void unified_bed_leveling::G29() {
@@ -297,7 +286,7 @@
     if (mechanics.axis_unhomed_error()) {
       const int8_t p_val = parser.intval('P', -1);
       if (p_val == 1 || p_val == 2 || p_val == 4 || parser.seen('J'))
-        mechanics.home(true);
+        mechanics.home();
     }
 
     // Invalidate Mesh Points. This command is a little bit asymmetrical because
@@ -444,7 +433,7 @@
 
             if (parser.seen('B')) {
               g29_card_thickness = parser.has_value() ? parser.value_float() : measure_business_card_thickness((float)Z_PROBE_BETWEEN_HEIGHT);
-              if (FABS(g29_card_thickness) > 1.5) {
+              if (ABS(g29_card_thickness) > 1.5) {
                 SERIAL_EM("?Error in Business Card measurement.");
                 return;
               }
@@ -498,7 +487,7 @@
           }
           else {
             const float cvf = parser.value_float();
-            switch((int)truncf(cvf * 10.0) - 30) {   // 3.1 -> 1
+            switch ((int)truncf(cvf * 10.0) - 30) {   // 3.1 -> 1
               #if ENABLED(UBL_G29_P31)
                 case 1: {
 
@@ -532,7 +521,7 @@
           #endif
           break;
 
-        case 5: find_mean_mesh_height(); break;
+        case 5: adjust_mesh_to_mean(g29_c_flag, g29_constant); break;
 
         case 6: shift_mesh_height(); break;
       }
@@ -558,6 +547,9 @@
 
     if (parser.seen('L')) {     // Load Current Mesh Data
       g29_storage_slot = parser.has_value() ? parser.value_int() : storage_slot;
+
+      if (g29_storage_slot == -1)                     // Special case, the user wants to 'Export' the mesh to the
+        return report_current_mesh();                 // host program to be saved on the user's computer
 
       int16_t a = eeprom.calc_num_meshes();
 
@@ -622,7 +614,7 @@
     return;
   }
 
-  void unified_bed_leveling::find_mean_mesh_height() {
+  void unified_bed_leveling::adjust_mesh_to_mean(const bool cflag, const float value) {
     float sum = 0.0;
     int n = 0;
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
@@ -655,14 +647,11 @@
     const float sigma = SQRT(sum_of_diff_squared / (n + 1));
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
 
-    if (g29_c_flag) {
-      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+    if (cflag)
+      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
           if (!isnan(z_values[x][y]))
-            z_values[x][y] -= mean + g29_constant;
-        }
-      }
-    }
+            z_values[x][y] -= mean + value;
   }
 
   void unified_bed_leveling::shift_mesh_height() {
@@ -744,13 +733,18 @@
           const float rawx = mesh_index_to_xpos(location.x_index),
                       rawy = mesh_index_to_ypos(location.y_index);
 
-          const float measured_z = probe.check_pt(rawx, rawy, stow_probe, g29_verbose_level); // TODO: Needs error handling
+          const float measured_z = probe.check_pt(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
           z_values[location.x_index][location.y_index] = measured_z;
         }
         HAL::serialFlush(); // Prevent host M105 buffer overrun.
       } while (location.x_index >= 0 && --count);
 
       STOW_PROBE();
+
+      #if Z_PROBE_AFTER_PROBING > 0
+        probe.move_z_after_probing();
+      #endif
+
       restore_ubl_active_state_and_leave();
 
       mechanics.do_blocking_move_to_xy(
@@ -768,7 +762,7 @@
       wait_for_release();
       while (!is_lcd_clicked()) {
         printer.idle();
-        commands.refresh_cmd_timeout();
+        printer.move_watch.start(); // Keep steppers powered
         if (encoder_diff) {
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
           encoder_diff = 0;
@@ -790,7 +784,7 @@
       save_ubl_active_state_and_disable();   // Disable bed level correction for probing
 
       mechanics.do_blocking_move_to(0.5 * (UBL_MESH_MAX_X - (UBL_MESH_MIN_X)), 0.5 * (UBL_MESH_MAX_Y - (UBL_MESH_MIN_Y)), in_height);
-      stepper.synchronize();
+      planner.synchronize();
 
       SERIAL_MSG("Place shim under nozzle");
       LCD_MESSAGEPGM(MSG_UBL_BC_INSERT);
@@ -799,7 +793,7 @@
 
       const float z1 = measure_point_with_encoder();
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + SIZE_OF_LITTLE_RAISE);
-      stepper.synchronize();
+      planner.synchronize();
 
       SERIAL_MSG("Remove shim");
       LCD_MESSAGEPGM(MSG_UBL_BC_REMOVE);
@@ -809,7 +803,7 @@
 
       mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT);
 
-      const float thickness = abs(z1 - z2);
+      const float thickness = ABS(z1 - z2);
 
       if (g29_verbose_level > 1) {
         SERIAL_MSG("Business Card is ");
@@ -1070,7 +1064,7 @@
       SERIAL_EMV("bedlevel.z_fade_height : ", bedlevel.z_fade_height, 4);
     #endif
 
-    find_mean_mesh_height();
+    adjust_mesh_to_mean(g29_c_flag, g29_constant);
 
     #if HAS_BED_PROBE
       SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);
@@ -1225,7 +1219,7 @@
 
           found_a_NAN = true;
 
-          int8_t closest_x=-1, closest_y=-1;
+          int8_t closest_x = -1, closest_y = -1;
           float d1, d2 = 99999.9;
           for (int8_t k = 0; k < GRID_MAX_POINTS_X; k++) {
             for (int8_t l = 0; l < GRID_MAX_POINTS_Y; l++) {
@@ -1329,12 +1323,11 @@
 
     void unified_bed_leveling::fine_tune_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map) {
       if (!parser.seen('R'))    // fine_tune_mesh() is special. If no repetition count flag is specified
-        g29_repetition_cnt = 1;   // do exactly one mesh location. Otherwise use what the parser decided.
+        g29_repetition_cnt = 1; // do exactly one mesh location. Otherwise use what the parser decided.
 
       #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
-        const bool is_offset = parser.seen('H');
-        const float h_offset = is_offset ? parser.value_linear_units() : Z_PROBE_BETWEEN_HEIGHT;
-        if (is_offset && !WITHIN(h_offset, 0, 10)) {
+        const float h_offset = parser.seenval('H') ? parser.value_linear_units() : 0;
+        if (!WITHIN(h_offset, 0, 10)) {
           SERIAL_EM("Offset out of bounds. (0 to 10mm)\n");
           return;
         }
@@ -1350,64 +1343,63 @@
       save_ubl_active_state_and_disable();
 
       LCD_MESSAGEPGM(MSG_UBL_FINE_TUNE_MESH);
+      lcd_external_control = true;                                          // Take over control of the LCD encoder
 
-      mechanics.do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
-      mechanics.do_blocking_move_to_xy(rx, ry);
+      mechanics.do_blocking_move_to(rx, ry, Z_PROBE_BETWEEN_HEIGHT);        // Move to the given XY with probe clearance
+
+      #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
+        mechanics.do_blocking_move_to_z(h_offset);                          // Move Z to the given 'H' offset
+      #endif
 
       uint16_t not_done[16];
       memset(not_done, 0xFF, sizeof(not_done));
       do {
         location = find_closest_mesh_point_of_type(SET_IN_BITMAP, rx, ry, USE_NOZZLE_AS_REFERENCE, not_done);
 
-        if (location.x_index < 0) break; // stop when we can't find any more reachable points.
+        if (location.x_index < 0) break;                                    // stop when we can't find any more reachable points.
 
-        bitmap_clear(not_done, location.x_index, location.y_index); // Mark this location as 'adjusted' so we will find a
-                                                                    // different location the next time through the loop
+        bitmap_clear(not_done, location.x_index, location.y_index);         // Mark this location as 'adjusted' so we will find a
+                                                                            // different location the next time through the loop
 
         const float rawx = mesh_index_to_xpos(location.x_index),
                     rawy = mesh_index_to_ypos(location.y_index);
 
-        if (!mechanics.position_is_reachable(rawx, rawy)) // SHOULD NOT OCCUR because find_closest_mesh_point_of_type will only return reachable
-          break;
+        //if (!mechanics.position_is_reachable(rawx, rawy)) break;            // SHOULD NOT OCCUR because find_closest_mesh_point_of_type will only return reachable
 
-        mechanics.do_blocking_move_to(rawx, rawy, Z_PROBE_BETWEEN_HEIGHT); // Move the nozzle to the edit point
+        mechanics.do_blocking_move_to(rawx, rawy, Z_PROBE_BETWEEN_HEIGHT);  // Move the nozzle to the edit point
+
+        #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
+          mechanics.do_blocking_move_to_z(h_offset);                        // Move Z to the given 'H' offset before editing
+        #endif
 
         printer.keepalive(PausedforUser);
-        lcd_external_control = true;
 
-        if (do_ubl_mesh_map) display_map(g29_map_type);  // show the user which point is being adjusted
+        if (do_ubl_mesh_map) display_map(g29_map_type);                     // Display the current point
 
         lcd_refresh();
 
         float new_z = z_values[location.x_index][location.y_index];
-        if (isnan(new_z)) new_z = 0.0;          // Set invalid mesh points to 0.0 so they can be edited
-        new_z = FLOOR(new_z * 1000.0) * 0.001;  // Chop off digits after the 1000ths place
+        if (isnan(new_z)) new_z = 0.0;                                      // Invalid points begin at 0
+        new_z = FLOOR(new_z * 1000.0) * 0.001;                              // Chop off digits after the 1000ths place
 
         lcd_mesh_edit_setup(new_z);
 
         do {
           new_z = lcd_mesh_edit();
           #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
-            mechanics.do_blocking_move_to_z(h_offset + new_z); // Move the nozzle as the point is edited
+            mechanics.do_blocking_move_to_z(h_offset + new_z);              // Move the nozzle as the point is edited
           #endif
           printer.idle();
-          HAL::serialFlush(); // Prevent host M105 buffer overrun.
+          HAL::serialFlush();                                               // Prevent host M105 buffer overrun.
         } while (!is_lcd_clicked());
 
-        if (!lcd_map_control) lcd_return_to_status();
+        if (!lcd_map_control) lcd_return_to_status();                       // Just editing a single point? Return to status
 
-        // The technique used here generates a race condition for the encoder click.
-        // It could get detected in lcd_mesh_edit (actually _lcd_mesh_fine_tune) or here.
-        // Let's work on specifying a proper API for the LCD ASAP, OK?
-        lcd_external_control = true;
+        if (click_and_hold(abort_fine_tune)) goto FINE_TUNE_EXIT;           // If the click is held down, abort editing
 
-        if (click_and_hold(abort_fine_tune))
-          goto FINE_TUNE_EXIT;
+        z_values[location.x_index][location.y_index] = new_z;               // Save the updated Z value
 
-        printer.safe_delay(20);                       // We don't want any switch noise.
-
-        z_values[location.x_index][location.y_index] = new_z;
-
+        printer.safe_delay(20);                                             // No switch noise
         lcd_refresh();
 
       } while (location.x_index >= 0 && --g29_repetition_cnt > 0);
@@ -1485,10 +1477,10 @@
   #if HAS_BED_PROBE
 
     void unified_bed_leveling::tilt_mesh_based_on_probed_grid(const bool do_3_pt_leveling) {
-      int16_t x_min = max(MIN_PROBE_X, UBL_MESH_MIN_X),
-              x_max = min(MAX_PROBE_X, UBL_MESH_MAX_X),
-              y_min = max(MIN_PROBE_Y, UBL_MESH_MIN_Y),
-              y_max = min(MAX_PROBE_Y, UBL_MESH_MAX_Y);
+      int16_t x_min = MAX(MIN_PROBE_X, UBL_MESH_MIN_X),
+              x_max = MIN(MAX_PROBE_X, UBL_MESH_MAX_X),
+              y_min = MAX(MIN_PROBE_Y, UBL_MESH_MIN_Y),
+              y_max = MIN(MAX_PROBE_Y, UBL_MESH_MAX_Y);
 
       bool abort_flag = false;
 
@@ -1504,7 +1496,7 @@
       incremental_LSF_reset(&lsf_results);
 
       if (do_3_pt_leveling) {
-        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, false, g29_verbose_level);
+        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
         else {
@@ -1518,7 +1510,7 @@
         }
 
         if (!abort_flag) {
-          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, false, g29_verbose_level);
+          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
           //z2 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1533,7 +1525,7 @@
         }
 
         if (!abort_flag) {
-          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, true, g29_verbose_level);
+          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1561,7 +1553,7 @@
             const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
 
             if (!abort_flag) {
-              measured_z = probe.check_pt(rx, ry, parser.seen('E'), g29_verbose_level); // TODO: Needs error handling
+              measured_z = probe.check_pt(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
 
               abort_flag = isnan(measured_z);
 
@@ -1593,13 +1585,17 @@
                 }
               #endif
 
+              if (g29_verbose_level > 3) {
+                SERIAL_SP(16);
+                SERIAL_MV("Corrected_Z=", measured_z);
+              }
               incremental_LSF(&lsf_results, rx, ry, measured_z);
             }
           }
 
           zig_zag ^= true;
         }
-
+        STOW_PROBE();
       }
 
       if (abort_flag || finish_incremental_LSF(&lsf_results)) {
@@ -1753,7 +1749,7 @@
 
       SERIAL_MSG("Extrapolating mesh...");
 
-      const float weight_scaled = weight_factor * max(MESH_X_DIST, MESH_Y_DIST);
+      const float weight_scaled = weight_factor * MAX(MESH_X_DIST, MESH_Y_DIST);
 
       for (uint8_t jx = 0; jx < GRID_MAX_POINTS_X; jx++)
         for (uint8_t jy = 0; jy < GRID_MAX_POINTS_Y; jy++)

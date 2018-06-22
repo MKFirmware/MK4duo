@@ -89,7 +89,7 @@
         SERIAL_EOL();
       }
 
-      stepper.synchronize();
+      planner.synchronize();
 
       #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
         if (raise_z) {
@@ -130,7 +130,7 @@
           mechanics.do_blocking_move_to_z(saved_z);
       #endif
 
-      stepper.synchronize();
+      planner.synchronize();
 
       if (wait) {
         printer.keepalive(InHandler);

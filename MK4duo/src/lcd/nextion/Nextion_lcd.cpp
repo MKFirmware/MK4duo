@@ -333,7 +333,7 @@
     &tenter,
 
     // Page 12 touch listen
-    &Yes,
+    &Yes, &No,
 
     // Page 13 touch listen
     &FilLoad, &FilUnload, &FilExtr,
@@ -447,8 +447,11 @@
 
     #if HAS_SDSUPPORT
       card.mount();
-      if (card.cardOK)
+      printer.safe_delay(500);
+      if (card.isOK()) {
         SDstatus = SD_INSERT;
+        card.beginautostart();  // Initial boot
+      }
       else
         SDstatus = SD_NO_INSERT;
       SD.setValue(SDstatus, "printer");
@@ -537,7 +540,7 @@
   #if HAS_SDSUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED || card.cardOK) {
+      if (IS_SD_INSERTED || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
         lcd_init();
@@ -582,7 +585,7 @@
             #else
               card.getfilename(i);
             #endif
-            printrowsd(row, card.filenameIsDir, card.fileName);
+            printrowsd(row, card.isFilenameIsDir(), card.fileName);
           } else {
             printrowsd(row, false, "");
           }
@@ -623,7 +626,7 @@
     void sdmountdismountPopCallback(void *ptr) {
       if (ptr == &sd_mount) {
         card.mount();
-        if (card.cardOK)
+        if (card.isOK())
           SDstatus = SD_INSERT;
         else
           SDstatus = SD_NO_INSERT;
@@ -690,10 +693,13 @@
     void PlayPausePopCallback(void *ptr) {
       UNUSED(ptr);
 
-      if (card.cardOK && card.isFileOpen()) {
+      if (card.isOK() && card.isFileOpen()) {
         if (IS_SD_PRINTING) {
           card.pauseSDPrint();
           print_job_counter.pause();
+          #if ENABLED(PARK_HEAD_ON_PAUSE)
+            commands.enqueue_and_echo_P(PSTR("M125"));
+          #endif
         }
         else {
           card.startFileprint();
@@ -927,7 +933,7 @@
         mechanics.prepare_move_to_destination(); // will call set_current_from_destination()
         mechanics.feedrate_mm_s = old_feedrate;
 
-        stepper.synchronize();
+        planner.synchronize();
       }
       else if (ptr == &ProbeSend) {
         #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
@@ -992,7 +998,7 @@
     ZERO(buffer);
     Tgcode.getText(buffer, sizeof(buffer), "gcode");
     Tgcode.setText("", "gcode");
-    commands.enqueue_and_echo_P(buffer);
+    commands.enqueue_and_echo(buffer);
   }
 
   #if FAN_COUNT > 0
@@ -1063,23 +1069,47 @@
     }
   }
 
-  void YesPopCallback(void *ptr) {
-    UNUSED(ptr);
+  void YesNoPopCallback(void *ptr) {
 
-    switch(Vyes.getValue()) {
-      #if HAS_SDSUPPORT
-        case 1: // Stop Print
-          card.stopSDPrint();
+    if (ptr == &Yes) {
+      switch(Vyes.getValue()) {
+        #if HAS_SDSUPPORT
+          case 1: // Stop Print
+            printer.setAbortSDprinting(true);
+            lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
+            Pprinter.show();
+            break;
+          case 2: // Upload Firmware
+            UploadNewFirmware(); break;
+        #endif
+        #if HAS_SD_RESTART
+          case 3: // Restart file
+            Pprinter.show();
+            restart.start_job();
+            break;
+        #endif
+        case 4: // Unconditional stop
+          printer.setWaitForUser(false);
           Pprinter.show();
           break;
-        case 2: // Upload Firmware
-          UploadNewFirmware(); break;
-      #endif
-      case 4: // Unconditional stop
-        printer.setWaitForUser(false);
-        Pprinter.show();
-        break;
-      default: break;
+        default: break;
+      }
+    }
+    else {
+      switch(Vyes.getValue()) {
+        #if HAS_SDSUPPORT
+          case 2:
+            Psetup.show(); break;
+        #endif
+        #if HAS_SD_RESTART
+          case 3:
+            card.printingHasFinished();
+            Pprinter.show();
+            break;
+        #endif
+        default:
+          Pprinter.show(); break;
+      }
     }
   }
 
@@ -1182,7 +1212,8 @@
       Retract.attachPop(setmovePopCallback);
       MotorOff.attachPop(motoroffPopCallback);
       Send.attachPop(setgcodePopCallback);
-      Yes.attachPop(YesPopCallback);
+      Yes.attachPop(YesNoPopCallback, &Yes);
+      No.attachPop(YesNoPopCallback, &No);
       LcdSend.attachPop(sendPopCallback);
       FilLoad.attachPop(filamentPopCallback);
       FilUnload.attachPop(filamentPopCallback);
@@ -1192,6 +1223,8 @@
       startimer.enable();
     }
   }
+
+  bool lcd_detected() { return NextionON; }
 
   static void degtoLCD(const uint8_t h, float temp) {
 
@@ -1252,7 +1285,7 @@
     }
   }
 
-  void lcd_key_touch_update() {
+  void lcd_update() {
     if (!NextionON) return;
     nexLoop(nex_listen_list);
   }
@@ -1380,16 +1413,23 @@
               SD.setValue(SDstatus);
             }
           }
-          else if (card.cardOK && SDstatus != SD_INSERT) {
+          else if (card.isOK() && SDstatus != SD_INSERT) {
             SDstatus = SD_INSERT;
             SD.setValue(SDstatus);
           }
-          else if (!card.cardOK && SDstatus != SD_NO_INSERT) {
+          else if (!card.isOK() && SDstatus != SD_NO_INSERT) {
             SDstatus = SD_NO_INSERT;
             SD.setValue(SDstatus);
           }
 
-        #endif // SDSUPPORT
+        #endif // HAS_SDSUPPORT
+
+        #if HAS_SD_RESTART
+          if (restart.count && restart.job_phase == RESTART_IDLE) {
+            restart.job_phase = RESTART_MAYBE; // Waiting for a response
+            lcd_yesno(3, MSG_RESTART_PRINT, "", MSG_USERWAIT);
+          }
+        #endif
 
         break;
       #if HAS_SDSUPPORT
@@ -1448,8 +1488,8 @@
     ScrollText.setText(message);
   }
 
-  void lcd_yesno(const char* msg1, const char* msg2, const char* msg3) {
-    Vyes.setValue(4, "yesno");
+  void lcd_yesno(const uint8_t val, const char* msg1, const char* msg2, const char* msg3) {
+    Vyes.setValue(val, "yesno");
     Pyesno.show();
     Riga0.setText(msg1);
     Riga1.setText(msg2);

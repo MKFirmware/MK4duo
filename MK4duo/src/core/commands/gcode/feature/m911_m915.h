@@ -35,17 +35,41 @@
    * The flag is held by the library and persist until manually cleared by M912
    */
   inline void gcode_M911(void) {
-    #if ENABLED(X_IS_TMC2130) || (ENABLED(X_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX)) || ENABLED(IS_TRAMS)
+    #if X_IS_TRINAMIC
       tmc_report_otpw(stepperX, TMC_X);
     #endif
-    #if ENABLED(Y_IS_TMC2130) || (ENABLED(Y_IS_TMC2208) && PIN_EXISTS(Y_SERIAL_RX)) || ENABLED(IS_TRAMS)
+    #if X2_IS_TRINAMIC
+      tmc_report_otpw(stepperX2, TMC_X2);
+    #endif
+    #if Y_IS_TRINAMIC
       tmc_report_otpw(stepperY, TMC_Y);
     #endif
-    #if ENABLED(Z_IS_TMC2130) || (ENABLED(Z_IS_TMC2208) && PIN_EXISTS(Z_SERIAL_RX)) || ENABLED(IS_TRAMS)
+    #if Y2_IS_TRINAMIC
+      tmc_report_otpw(stepperY2, TMC_Y2);
+    #endif
+    #if Z_IS_TRINAMIC
       tmc_report_otpw(stepperZ, TMC_Z);
     #endif
-    #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX)) || ENABLED(IS_TRAMS)
+    #if Z2_IS_TRINAMIC
+      tmc_report_otpw(stepperZ2, TMC_Z2);
+    #endif
+    #if E0_IS_TRINAMIC
       tmc_report_otpw(stepperE0, TMC_E0);
+    #endif
+    #if E1_IS_TRINAMIC
+      tmc_report_otpw(stepperE1, TMC_E1);
+    #endif
+    #if E2_IS_TRINAMIC
+      tmc_report_otpw(stepperE2, TMC_E2);
+    #endif
+    #if E3_IS_TRINAMIC
+      tmc_report_otpw(stepperE3, TMC_E3);
+    #endif
+    #if E4_IS_TRINAMIC
+      tmc_report_otpw(stepperE4, TMC_E4);
+    #endif
+    #if E5_IS_TRINAMIC
+      tmc_report_otpw(stepperE5, TMC_E5);
     #endif
   }
 
@@ -53,49 +77,74 @@
 
   /**
    * M912: Clear TMC stepper driver overtemperature pre-warn flag held by the library
+   *       Specify one or more axes with X, Y, Z, X1, Y1, Z1, X2, Y2, Z2, and E[index].
+   *       If no axes are given, clear all.
+   *
+   * Examples:
+   *       M912 X   ; clear X and X2
+   *       M912 X1  ; clear X1 only
+   *       M912 X2  ; clear X2 only
+   *       M912 X E ; clear X, X2, and all E
+   *       M912 E1  ; clear E1 only
    */
   inline void gcode_M912(void) {
-    const bool clearX = parser.seen(axis_codes[X_AXIS]), clearY = parser.seen(axis_codes[Y_AXIS]), clearZ = parser.seen(axis_codes[Z_AXIS]), clearE = parser.seen(axis_codes[E_AXIS]),
-             clearAll = (!clearX && !clearY && !clearZ && !clearE) || (clearX && clearY && clearZ && clearE);
-    #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS) || (ENABLED(X_IS_TMC2208) && PIN_EXISTS(X_SERIAL_RX))
-      if (clearX || clearAll) tmc_clear_otpw(stepperX, TMC_X);
-    #endif
-    #if ENABLED(X2_IS_TMC2130) || (ENABLED(X2_IS_TMC2208) && PIN_EXISTS(X2_SERIAL_RX))
-      if (clearX || clearAll) tmc_clear_otpw(stepperX2, TMC_X2);
+    const bool  hasX = parser.seen(axis_codes[X_AXIS]),
+                hasY = parser.seen(axis_codes[Y_AXIS]),
+                hasZ = parser.seen(axis_codes[Z_AXIS]),
+                hasE = parser.seen(axis_codes[E_AXIS]),
+                hasNone = !hasX && !hasY && !hasZ && !hasE;
+
+    #if X_IS_TRINAMIC || X2_IS_TRINAMIC
+      const uint8_t xval = parser.byteval(axis_codes[X_AXIS], 10);
+      #if X_IS_TRINAMIC
+        if (hasNone || xval == 1 || (hasX && xval == 10)) tmc_clear_otpw(stepperX, TMC_X);
+      #endif
+      #if X2_IS_TRINAMIC
+        if (hasNone || xval == 2 || (hasX && xval == 10)) tmc_clear_otpw(stepperX2, TMC_X2);
+      #endif
     #endif
 
-    #if ENABLED(Y_IS_TMC2130) || (ENABLED(Y_IS_TMC2208) && PIN_EXISTS(Y_SERIAL_RX))
-      if (clearY || clearAll) tmc_clear_otpw(stepperY, TMC_Y);
-    #endif
-    #if ENABLED(Y2_IS_TMC2130) || (ENABLED(Y2_IS_TMC2208) && PIN_EXISTS(Y2_SERIAL_RX))
-      if (clearY || clearAll) tmc_clear_otpw(stepperY2, TMC_Y2);
-    #endif
-
-    #if ENABLED(Z_IS_TMC2130) || (ENABLED(Z_IS_TMC2208) && PIN_EXISTS(Z_SERIAL_RX))
-      if (clearZ || clearAll) tmc_clear_otpw(stepperZ, TMC_Z);
-    #endif
-    #if ENABLED(Z2_IS_TMC2130) || (ENABLED(Z2_IS_TMC2208) && PIN_EXISTS(Z2_SERIAL_RX))
-      if (clearZ || clearAll) tmc_clear_otpw(stepperZ2, extended_axis_codes[TMC_Z2]);
+    #if Y_IS_TRINAMIC || Y2_IS_TRINAMIC
+      const uint8_t yval = parser.byteval(axis_codes[Y_AXIS], 10);
+      #if Y_IS_TRINAMIC
+        if (hasNone || yval == 1 || (hasY && yval == 10)) tmc_clear_otpw(stepperY, TMC_Y);
+      #endif
+      #if Y2_IS_TRINAMIC
+        if (hasNone || yval == 2 || (hasY && yval == 10)) tmc_clear_otpw(stepperY2, TMC_Y2);
+      #endif
     #endif
 
-    #if ENABLED(E0_IS_TMC2130) || (ENABLED(E0_IS_TMC2208) && PIN_EXISTS(E0_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE0, TMC_E0);
+    #if Z_IS_TRINAMIC || Z2_IS_TRINAMIC
+      const uint8_t zval = parser.byteval(axis_codes[Z_AXIS], 10);
+      #if Z_IS_TRINAMIC
+        if (hasNone || zval == 1 || (hasZ && zval == 10)) tmc_clear_otpw(stepperZ, TMC_Z);
+      #endif
+      #if Z2_IS_TRINAMIC
+        if (hasNone || zval == 2 || (hasZ && zval == 10)) tmc_clear_otpw(stepperZ2, TMC_Z2);
+      #endif
     #endif
-    #if ENABLED(E1_IS_TMC2130) || (ENABLED(E1_IS_TMC2208) && PIN_EXISTS(E1_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE1, TMC_E1);
+
+    const uint8_t eval = parser.byteval(axis_codes[E_AXIS], 10);
+
+    #if E0_IS_TRINAMIC
+      if (hasNone || eval == 0 || (hasE && eval == 10)) tmc_clear_otpw(stepperE0, TMC_E0);
     #endif
-    #if ENABLED(E2_IS_TMC2130) || (ENABLED(E2_IS_TMC2208) && PIN_EXISTS(E2_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE2, TMC_E2);
+    #if E1_IS_TRINAMIC
+      if (hasNone || eval == 1 || (hasE && eval == 10)) tmc_clear_otpw(stepperE1, TMC_E1);
     #endif
-    #if ENABLED(E3_IS_TMC2130) || (ENABLED(E3_IS_TMC2208) && PIN_EXISTS(E3_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE3, TMC_E3);
+    #if E2_IS_TRINAMIC
+      if (hasNone || eval == 2 || (hasE && eval == 10)) tmc_clear_otpw(stepperE2, TMC_E2);
     #endif
-    #if ENABLED(E4_IS_TMC2130) || (ENABLED(E4_IS_TMC2208) && PIN_EXISTS(E4_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE4, TMC_E4);
+    #if E3_IS_TRINAMIC
+      if (hasNone || eval == 3 || (hasE && eval == 10)) tmc_clear_otpw(stepperE3, TMC_E3);
     #endif
-    #if ENABLED(E5_IS_TMC2130) || (ENABLED(E5_IS_TMC2208) && PIN_EXISTS(E5_SERIAL_RX))
-      if (clearE || clearAll) tmc_clear_otpw(stepperE5, TMC_E5);
+    #if E4_IS_TRINAMIC
+      if (hasNone || eval == 4 || (hasE && eval == 10)) tmc_clear_otpw(stepperE4, TMC_E4);
     #endif
+    #if E5_IS_TRINAMIC
+      if (hasNone || eval == 5 || (hasE && eval == 10)) tmc_clear_otpw(stepperE5, TMC_E5);
+    #endif
+
   }
 
   /**
@@ -107,12 +156,12 @@
 
     inline void gcode_M913(void) {
 
-      GET_TARGET_EXTRUDER(913);
+      if (commands.get_target_tool(913)) return;
 
       #define TMC_SAY_PWMTHRS(P,Q) tmc_get_pwmthrs(stepper##Q, TMC_##Q, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
       #define TMC_SAY_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_get_pwmthrs(stepperE##E, TMC_E##E, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
-      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_set_pwmthrs(stepperE##E, TMC_E##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
+      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_set_pwmthrs(stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {
@@ -143,7 +192,7 @@
               #endif
               break;
             case E_AXIS: {
-              switch (tools.target_extruder) {
+              switch (TARGET_EXTRUDER) {
                 #if E0_IS_TRINAMIC
                   case 0: TMC_SET_PWMTHRS_E(0); break;
                 #endif
@@ -227,7 +276,7 @@
     inline void gcode_M914(void) {
 
       #define TMC_SAY_SGT(Q) tmc_get_sgt(stepper##Q, TMC_##Q)
-      #define TMC_SET_SGT(Q) tmc_set_sgt(stepper##Q, TMC_##Q, value)
+      #define TMC_SET_SGT(Q) tmc_set_sgt(stepper##Q, value)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZ(i) {
@@ -303,8 +352,8 @@
 
     inline void gcode_M915(void) {
 
-      uint16_t _rms = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT;
-      uint16_t _z = parser.seenval('Z') ? parser.value_int() : CALIBRATION_EXTRA_HEIGHT;
+      const uint16_t  _rms  = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
+                      _z    = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;
 
       if (!printer.isZHomed()) {
         SERIAL_EM("\nPlease home Z axis first");

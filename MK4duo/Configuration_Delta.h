@@ -43,7 +43,8 @@
  * - Delta Home Safe Zone
  * - Axis steps per unit
  * - Axis feedrate
- * - Axis accelleration
+ * - Axis acceleration
+ * - Axis jerk
  * - Homing feedrate
  * - Hotend offset
  *
@@ -228,8 +229,8 @@
 // Z Servo Endstop
 // Remember active servos in Configuration_Feature.h
 // Define nr servo for endstop -1 not define. Servo index start 0
-#define Z_ENDSTOP_SERVO_NR -1
-#define Z_ENDSTOP_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
+#define Z_PROBE_SERVO_NR -1
+#define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
 // The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
 // Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
@@ -286,8 +287,9 @@
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
 
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
-#define Z_PROBE_DEPLOY_HEIGHT  30  // Z position for the probe to deploy/stow
-#define Z_PROBE_BETWEEN_HEIGHT 10  // Z position for travel between points
+#define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
+#define Z_PROBE_BETWEEN_HEIGHT 5  // Z position for travel between points
+#define Z_PROBE_AFTER_PROBING  0  // Z position after probing is done
 
 // For M851 give a range for adjusting the Probe Z Offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
@@ -422,9 +424,6 @@
 // enable a graphics overly while editing the mesh from auto-level
 //#define MESH_EDIT_GFX_OVERLAY
 
-// Mesh inset margin on print area
-#define MESH_INSET 10
-
 // Enable the G26 Mesh Validation Pattern tool.
 //#define G26_MESH_VALIDATION
 #define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
@@ -447,9 +446,6 @@
 // Works best with 5 or more points in each dimension.
 #define GRID_MAX_POINTS_X 7
 #define GRID_MAX_POINTS_Y 7
-
-// The Z probe minimum outer margin (to validate G29 parameters).
-#define MIN_PROBE_EDGE 10
 
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
@@ -551,7 +547,7 @@
 
 
 /*****************************************************************************************
- ******************************** Axis accelleration *************************************
+ ******************************** Axis acceleration **************************************
  *****************************************************************************************/
 //  Maximum start speed for accelerated moves.    X,    Y,    Z,   E0...(per extruder)
 #define DEFAULT_MAX_ACCELERATION              {5000, 5000, 5000, 1000, 1000, 1000, 1000}

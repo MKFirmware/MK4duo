@@ -49,6 +49,8 @@
       hasS = ms > 0;
     }
 
+    planner.synchronize();
+
     #if ENABLED(ULTIPANEL)
 
       if (!hasP && !hasS && args && *args)
@@ -63,9 +65,9 @@
     #elif ENABLED(NEXTION)
 
       if (!hasP && !hasS && args && *args)
-        lcd_yesno(args, "", MSG_USERWAIT);
+        lcd_yesno(4, args, "", MSG_USERWAIT);
       else
-        lcd_yesno(MSG_USERWAIT);
+        lcd_yesno(4, MSG_USERWAIT);
 
     #else
 
@@ -77,23 +79,18 @@
     printer.setWaitForUser(true);
     printer.keepalive(PausedforUser);
 
-    stepper.synchronize();
-    commands.refresh_cmd_timeout();
-
     if (ms > 0) {
-      ms += commands.previous_cmd_ms;  // wait until this time for a click
-      while (PENDING(millis(), ms) && printer.isWaitForUser()) printer.idle();
+      watch_t watch(ms);
+      while (!watch.elapsed() && printer.isWaitForUser()) printer.idle();
     }
     else {
       #if ENABLED(ULTIPANEL)
-        if (lcd_detected()) {
-          while (printer.isWaitForUser()) printer.idle();
-          IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
-        }
-      #else
-        while (printer.isWaitForUser()) printer.idle();
+        if (lcd_detected())
       #endif
+        while (printer.isWaitForUser()) printer.idle();
     }
+
+    IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
 
     printer.setWaitForUser(false);
     printer.keepalive(InHandler);

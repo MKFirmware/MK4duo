@@ -27,21 +27,11 @@
 #ifndef _HEATER_H_
 #define _HEATER_H_
 
-#if HOTENDS <= 1
-  #define HOTEND_INDEX      0
-  #define EXTRUDER_IDX      0
-  #define TRG_EXTRUDER_IDX  0
-#else
-  #define HOTEND_INDEX      h
-  #define EXTRUDER_IDX      tools.active_extruder
-  #define TRG_EXTRUDER_IDX  tools.target_extruder
-#endif
-
 #include "sensor/sensor.h"
 
 #if HEATER_COUNT > 0
 
-  enum FlagHeaters {
+  enum FlagHeaters : char {
     heater_flag_use_pid,
     heater_flag_tuning,
     heater_flag_hardware_inverted,
@@ -50,7 +40,8 @@
 
   typedef enum { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 } Heater_type;
 
-  constexpr uint16_t temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
+  constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
+  constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
 
   class Heater {
 
@@ -109,14 +100,14 @@
       #endif
 
       FORCE_INLINE void updateCurrentTemperature() { this->current_temperature = this->sensor.getTemperature(); }
-      FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > 0); }
+      FORCE_INLINE bool isON()        { return (this->sensor.type != 0 && this->target_temperature > TEMP_HYSTERESIS); }
       FORCE_INLINE bool isOFF()       { return (!isON()); }
       FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->mintemp, this->maxtemp)); }
       FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
       FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
 
       FORCE_INLINE bool wait_for_heating() {
-        return this->isON() && this->target_temperature > (this->current_temperature + TEMP_HYSTERESIS);
+        return this->isON() && ABS(this->current_temperature - this->target_temperature) > TEMP_HYSTERESIS;
       }
 
       #if WATCH_THE_HEATER
@@ -142,6 +133,8 @@
         SET_BIT(HeaterFlag, heater_flag_idle, onoff);
       }
       FORCE_INLINE bool isIdle() { return TEST(HeaterFlag, heater_flag_idle); }
+
+      FORCE_INLINE bool resetFlag() { HeaterFlag = 0; }
 
       #if HEATER_IDLE_HANDLER
         void start_idle_timer(const millis_t timeout_ms);

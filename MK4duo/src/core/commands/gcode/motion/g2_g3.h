@@ -126,7 +126,7 @@
 
         // Send an arc to the planner
         mechanics.plan_arc(mechanics.destination, arc_offset, clockwise);
-        commands.refresh_cmd_timeout();
+        printer.move_watch.start();
       }
       else {
         // Bad arguments

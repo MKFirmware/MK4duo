@@ -36,6 +36,7 @@
    * Usage:
    *   M421 I<xindex> J<yindex> Z<linear>
    *   M421 I<xindex> J<yindex> Q<offset>
+   *   M421 I<xindex> J<yindex> N
    *   M421 C Z<linear>
    *   M421 C Q<offset>
    */
@@ -44,6 +45,7 @@
     const bool  hasI = ix >= 0,
                 hasJ = iy >= 0,
                 hasC = parser.seen('C'),
+                hasN = parser.seen('N'),
                 hasZ = parser.seen('Z'),
                 hasQ = !hasZ && parser.seen('Q');
 
@@ -53,12 +55,12 @@
       iy = location.y_index;
     }
 
-    if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ))
+    if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ || hasN))
       SERIAL_LM(ER, MSG_ERR_M421_PARAMETERS);
     else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))
       SERIAL_LM(ER, MSG_ERR_MESH_XY);
     else
-      ubl.z_values[ix][iy] = parser.value_linear_units() + (hasQ ? ubl.z_values[ix][iy] : 0);
+      ubl.z_values[ix][iy] = hasN ? NAN : parser.value_linear_units() + (hasQ ? ubl.z_values[ix][iy] : 0);
   }
 
 #endif // ENABLED(MESH_BED_LEVELING)

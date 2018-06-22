@@ -64,22 +64,11 @@
 // --------------------------------------------------------------------------
 // Public Variables
 // --------------------------------------------------------------------------
-#if ENABLED(MOVE_DEBUG)
-  unsigned int  numInterruptsScheduled    = 0,
-                numInterruptsExecuted     = 0;
-  uint32_t      nextInterruptTime         = 0,
-                nextInterruptScheduledAt  = 0,
-                lastInterruptTime         = 0,
-                acceleration_step_rate    = 0,
-                deceleration_step_rate    = 0;
-#endif
 
 uint8_t MCUSR;
 
-#if ANALOG_INPUTS > 0
-  int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
-  bool    HAL::Analog_is_ready = false;
-#endif
+int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
+bool    HAL::Analog_is_ready = false;
 
 #if HEATER_COUNT > 0
   ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];
@@ -550,7 +539,7 @@ void HAL::Tick() {
             ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
             currentFilter.ProcessReading(AnalogInReadPin(heaters[h].sensor.pin));
             if (currentFilter.IsValid()) {
-              AnalogInputValues[heaters[h].sensor.pin] = currentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+              AnalogInputValues[heaters[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
               Analog_is_ready = true;
             }
           }
@@ -560,19 +549,19 @@ void HAL::Tick() {
       #if HAS_FILAMENT_SENSOR
         const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
         if (filamentFilter.IsValid())
-          AnalogInputValues[FILWIDTH_PIN] = filamentFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+          AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
       #endif
 
       #if HAS_POWER_CONSUMPTION_SENSOR
         const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
         if (powerFilter.IsValid())
-          AnalogInputValues[POWER_CONSUMPTION_PIN] = powerFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+          AnalogInputValues[POWER_CONSUMPTION_PIN] = (powerFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
       #endif
 
       #if HAS_MCU_TEMPERATURE
         const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
         if (mcuFilter.IsValid())
-          thermalManager.mcu_current_temperature_raw = mcuFilter.GetSum() / (NUM_ADC_SAMPLES >> OVERSAMPLENR);
+          thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
       #endif
 
     }
@@ -584,35 +573,8 @@ void HAL::Tick() {
 
   #endif
 
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      int curTodo = mechanics.babystepsTodo[axis]; //get rid of volatile for performance
-
-      if (curTodo) {
-        stepper.babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif //BABYSTEPPING
-
-  #if ENABLED(PINS_DEBUGGING)
-    extern bool endstop_monitor_flag;
-    // run the endstop monitor at 15Hz
-    static uint8_t endstop_monitor_count = 16;  // offset this check from the others
-    if (endstop_monitor_flag) {
-      endstop_monitor_count += _BV(1);  //  15 Hz
-      endstop_monitor_count &= 0x7F;
-      if (!endstop_monitor_count) endstops.endstop_monitor();  // report changes in endstop status
-    }
-  #endif
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (endstops.e_hit && ENDSTOPS_ENABLED) {
-      endstops.update();  // call endstop update routine
-      endstops.e_hit--;
-    }
-  #endif
+  // Tick endstops state, if required
+  endstops.Tick();
 
 }
 

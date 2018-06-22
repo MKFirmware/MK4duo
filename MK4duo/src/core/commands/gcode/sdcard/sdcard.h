@@ -40,7 +40,6 @@
   #define CODE_M29
   #define CODE_M30
   #define CODE_M32
-  #define CODE_M33
 
   /**
    * M20: List SD card to serial output
@@ -73,12 +72,17 @@
     // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere
     //for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
     card.selectFile(parser.string_arg);
+    lcd_setstatus(card.fileName);
   }
 
   /**
    * M24: Start or Resume SD Print
    */
   inline void gcode_M24(void) {
+    #if HAS_SD_RESTART
+      card.delete_restart_file();
+    #endif
+
     #if ENABLED(PARK_HEAD_ON_PAUSE)
       resume_print();
     #endif
@@ -108,7 +112,7 @@
    * M26: Set SD Card file index
    */
   inline void gcode_M26(void) {
-    if (card.cardOK && parser.seen('S'))
+    if (card.isOK() && parser.seen('S'))
       card.setIndex(parser.value_long());
   }
 
@@ -134,13 +138,13 @@
    * M29: Stop SD Write
    * Processed in write to file routine above
    */
-  inline void gcode_M29(void) { card.saving = false; }
+  inline void gcode_M29(void) { card.setSaving(false); }
 
   /**
    * M30 <filename>: Delete SD Card file
    */
   inline void gcode_M30(void) {
-    if (card.cardOK) {
+    if (card.isOK()) {
       card.closeFile();
       card.deleteFile(parser.string_arg);
     }
@@ -150,9 +154,9 @@
    * M32: Select file and start SD print
    */
   inline void gcode_M32(void) {
-    if (card.sdprinting) stepper.synchronize();
+    if (IS_SD_PRINTING) planner.synchronize();
 
-    if (card.cardOK) {
+    if (card.isOK()) {
       card.closeFile();
 
       char* namestartpos = parser.string_arg ; // default name position
@@ -171,11 +175,6 @@
       #endif
     }
   }
-
-  /**
-   * M33: Close File and store position restart.gcode
-   */
-  inline void gcode_M33(void) { card.stopSDPrint(); }
 
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
 

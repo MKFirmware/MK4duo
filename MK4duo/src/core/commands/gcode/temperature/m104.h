@@ -35,7 +35,7 @@
    */
   inline void gcode_M104(void) {
 
-    GET_TARGET_EXTRUDER(104);
+    if (commands.get_target_tool(104)) return;
 
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
@@ -45,15 +45,20 @@
 
     if (parser.seenval('S')) {
       const int16_t temp = parser.value_celsius();
-      heaters[TRG_EXTRUDER_IDX].setTarget(temp);
+      heaters[TARGET_HOTEND].setTarget(temp);
 
       #if ENABLED(DUAL_X_CARRIAGE)
         if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
           heaters[1].setTarget(temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
       #endif
 
-      if (temp > heaters[TRG_EXTRUDER_IDX].current_temperature)
-        lcd_status_printf_P(0, PSTR("H%i %s"), TRG_EXTRUDER_IDX, MSG_HEATING);
+      if (temp > heaters[TARGET_HOTEND].current_temperature) {
+        #if HOTENDS > 1
+          lcd_status_printf_P(0, PSTR("H%i " MSG_HEATING), TARGET_HOTEND);
+        #else
+          LCD_MESSAGEPGM("H " MSG_HEATING);
+        #endif
+      }
     }
 
     #if ENABLED(AUTOTEMP)

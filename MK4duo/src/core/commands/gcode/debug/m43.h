@@ -69,11 +69,11 @@
 
     #elif !HAS_Z_SERVO_PROBE
 
-      SERIAL_LM(ER, "Z_ENDSTOP_SERVO_NR not setup");
+      SERIAL_LM(ER, "Z_PROBE_SERVO_NR not setup");
 
     #else // HAS_Z_SERVO_PROBE
 
-      const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_ENDSTOP_SERVO_NR;
+      const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_PROBE_SERVO_NR;
 
       SERIAL_EM("Servo probe test");
       SERIAL_EMV(".  Using index:  ", probe_index);
@@ -128,7 +128,7 @@
       } while (++i < 4);
       if (probe_logic != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
-      commands.refresh_cmd_timeout();
+      printer.move_watch.start();
 
       if (deploy_state != stow_state) {
         SERIAL_EM("BLTouch clone detected");
@@ -157,7 +157,7 @@
           printer.safe_delay(2);
 
           if (0 == j % (500 * 1)) // keep cmd_timeout happy
-            commands.refresh_cmd_timeout();
+            printer.move_watch.start();
 
           if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) { // probe triggered
 
@@ -221,9 +221,9 @@
 
     // Enable or disable endstop monitoring
     if (parser.seen('E')) {
-      endstop_monitor_flag = parser.value_bool();
+      endstops.setMonitorEnabled(parser.value_bool());
       SERIAL_MSG("endstop monitor ");
-      SERIAL_TXT(endstop_monitor_flag ? "en" : "dis");
+      SERIAL_TXT(endstops.isMonitorEnabled() ? "en" : "dis");
       SERIAL_EM("abled");
       return;
     }

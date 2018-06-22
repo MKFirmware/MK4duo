@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.5 Stable.
+## Version 4.3.6.
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -27,6 +27,7 @@
     * [Hardware](/Documentation/Hardware.md)
     * [GCodes](/Documentation/GCodes.md)
   * Notes
+    * [Bresenham Algorithm](/Documentation/Bresenham.md)
     * [Auto Bed Leveling](/Documentation/BedLeveling.md)
     * [Filament Sensor](/Documentation/FilamentSensor.md)
     * [Ramps Servo Power](/Documentation/RampsServoPower.md)
@@ -70,12 +71,13 @@ The new features are:
 * Added CNC Router
 * Addes Mesh Bed Level (MBL)
 * Added Stop and Save for Restart (SSR)
+* Added Restart for recovery jov when power loss an return
 * Added Nozzle Clean Features
 * Added Nozzle Park Features
 * Added RGB LED
 * Added Case Light
 * Added ABL or MBL leveling fade height
-* Added save in EEPROM ABL or MBL
+* Added save in EEPROM ABL, MBL or UBL
 * Added Door switch
 * Added TMC2130 motor driver
 * Added TMC2208 motor driver
@@ -88,6 +90,8 @@ The new features are:
 * Added Adafruit Neopixel LED
 * Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
 * Added Universal Bed Leveling (UBL) by Official Marlin
+* Added Junction Deviation instead of traditional Jerk limiting
+* Added Bézier Jerk Control see https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
 
 
 ## Credits

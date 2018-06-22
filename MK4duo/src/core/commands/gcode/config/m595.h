@@ -35,10 +35,10 @@
    */
   inline void gcode_M595(void) {
 
-    GET_TARGET_HOTEND(595);
+    if (commands.get_target_tool(595)) return;
 
-    heaters[TARGET_EXTRUDER].sensor.ad595_offset = parser.floatval('O');
-    heaters[TARGET_EXTRUDER].sensor.ad595_gain   = parser.floatval('S', 1);
+    heaters[TARGET_HOTEND].sensor.ad595_offset = parser.floatval('O');
+    heaters[TARGET_HOTEND].sensor.ad595_gain   = parser.floatval('S', 1);
 
     SERIAL_EM(MSG_AD595);
 

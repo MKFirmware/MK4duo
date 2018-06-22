@@ -31,19 +31,20 @@
 /**
  * M218 - set hotend offset (in linear units)
  *
- *   T<tool>
+ *   H<hotend>
  *   X<xoffset>
  *   Y<yoffset>
  *   Z<zoffset>
  */
 inline void gcode_M218(void) {
 
-  GET_TARGET_HOTEND(218);
-  if (TARGET_EXTRUDER == 0) return;
+  if (commands.get_target_tool(218)) return;
 
-  if (parser.seenval('X')) tools.hotend_offset[X_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
-  if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
-  if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][TARGET_EXTRUDER] = parser.value_linear_units();
+  if (TARGET_HOTEND == 0) return;
+
+  if (parser.seenval('X')) tools.hotend_offset[X_AXIS][TARGET_HOTEND] = parser.value_linear_units();
+  if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][TARGET_HOTEND] = parser.value_linear_units();
+  if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][TARGET_HOTEND] = parser.value_linear_units();
 
   SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
   LOOP_HOTEND() {

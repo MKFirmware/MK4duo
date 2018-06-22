@@ -28,7 +28,7 @@
 
 Temperature thermalManager;
 
-constexpr bool      thermal_protection[HEATER_TYPE]   = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
+constexpr bool thermal_protection[HEATER_TYPE] = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
 // public:
 
@@ -113,7 +113,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    commands.refresh_cmd_timeout(); // to prevent stepper.stepper_inactive_time from running out
+    printer.move_watch.start(); // Keep steppers powered
 
     const float temp = act->current_temperature;
 
@@ -150,7 +150,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 
     #if TEMP_RESIDENCY_TIME > 0
 
-      const float temp_diff = FABS(act->target_temperature - temp);
+      const float temp_diff = ABS(act->target_temperature - temp);
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
@@ -177,7 +177,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
   if (printer.isWaitForHeatUp()) {
-    LCD_MESSAGEPGM(MSG_HEATING_COMPLETE);
+    lcd_setstatusPGM(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
     #if ENABLED(PRINTER_EVENT_LEDS)
       leds.set_white();
     #endif
@@ -218,6 +218,10 @@ void Temperature::spin() {
   if (++cycle_1_second == 10) cycle_1_second = 0;
 
   millis_t ms = millis();
+
+  #if ENABLED(EMERGENCY_PARSER)
+    if (emergency_parser.killed_by_M112) printer.kill(PSTR(MSG_KILLED));
+  #endif
 
   LOOP_HEATER() {
 
@@ -274,7 +278,7 @@ void Temperature::spin() {
       const float nom_meas_ratio = 1.0 + 0.01 * measurement_delay[meas_shift_index],
                   ratio_2 = sq(nom_meas_ratio);
 
-      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = tools.volumetric_enabled
+      tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = printer.isVolumetric()
         ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5) // Volumetric uses a true volumetric multiplier
         : ratio_2;                                            // Linear squares the ratio, which scales the volume
 
@@ -357,10 +361,6 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
     printer.keepalive(WaitHeater);
 
     act->updateCurrentTemperature();
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].spin();
-    #endif
 
     const millis_t time = millis();
     currentTemp = act->current_temperature;
@@ -455,7 +455,9 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       }
     }
 
-    #define MAX_OVERSHOOT_PID_AUTOTUNE 40
+    #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
+      #define MAX_OVERSHOOT_PID_AUTOTUNE 20
+    #endif
     if (currentTemp > temp + MAX_OVERSHOOT_PID_AUTOTUNE
       #if HAS_TEMP_COOLER
         && act->type != IS_COOLER
@@ -475,8 +477,11 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       }
     #endif
 
-    // Timeout after 20 minutes since the last undershoot/overshoot cycle
-    if (((time - t1) + (time - t2)) > (20L * 60L * 1000L)) {
+    // Timeout after MAX_CYCLE_TIME_PID_AUTOTUNE minutes since the last undershoot/overshoot cycle
+    #if DISABLED(MAX_CYCLE_TIME_PID_AUTOTUNE)
+      #define MAX_CYCLE_TIME_PID_AUTOTUNE 20L
+    #endif
+    if (((time - t1) + (time - t2)) > (MAX_CYCLE_TIME_PID_AUTOTUNE * 60L * 1000L)) {
       SERIAL_LM(ER, MSG_PID_TIMEOUT);
       LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
       pid_pointer = 255;
@@ -529,11 +534,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       break;
     }
 
-    #if ENABLED(NEXTION)
-      lcd_key_touch_update();
-    #else
-      lcd_update();
-    #endif
+    lcd_update();
 
   }
 
@@ -542,6 +543,9 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   disable_all_heaters();
 }
 
+/**
+ * Switch off all heaters, set all target temperatures to 0
+ */
 void Temperature::disable_all_heaters() {
 
   #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
@@ -575,6 +579,16 @@ void Temperature::disable_all_heaters() {
 
 }
 
+/**
+ * Check if there are heaters on
+ */
+bool Temperature::heaters_isON() {
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() if (heaters[h].isON()) return true;
+  #endif
+  return false;
+}
+
 #if ENABLED(FILAMENT_SENSOR)
 
   // Convert raw Filament Width to millimeters
@@ -591,7 +605,7 @@ void Temperature::disable_all_heaters() {
    * a return value of 1.
    */
   int8_t Temperature::widthFil_to_size_ratio() {
-    if (FABS(filament_width_nominal - filament_width_meas) <= FILWIDTH_ERROR_MARGIN)
+    if (ABS(filament_width_nominal - filament_width_meas) <= FILWIDTH_ERROR_MARGIN)
       return int(100.0 * filament_width_nominal / filament_width_meas) - 100;
     return 0;
   }
@@ -613,7 +627,7 @@ void Temperature::disable_all_heaters() {
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if HAS_TEMP_HOTEND
-    print_heater_state(&heaters[TRG_EXTRUDER_IDX], false, showRaw);
+    print_heater_state(&heaters[ACTIVE_HOTEND], false, showRaw);
   #endif
 
   #if HAS_TEMP_BED
@@ -631,7 +645,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if HAS_TEMP_HOTEND
-    SERIAL_MV(" @:", (int)heaters[TRG_EXTRUDER_IDX].soft_pwm);
+    SERIAL_MV(" @:", (int)heaters[ACTIVE_HOTEND].soft_pwm);
   #endif
 
   #if HOTENDS > 1
@@ -669,7 +683,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 // Temperature Error Handlers
 void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg) {
   if (!heaters[h].isIdle()) {
-    SERIAL_ST(ER, serial_msg);
+    SERIAL_STR(ER);
+    SERIAL_PS(serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
     switch (heaters[h].type) {
       case IS_HOTEND:

@@ -30,8 +30,11 @@
   #include "../../HAL/HAL_endstop_interrupts.h"
 #endif
 
-// TEST_ENDSTOP: test the old and the current status of an endstop
-#define TEST_ENDSTOP(ENDSTOP) (TEST(current_bits & old_bits, ENDSTOP))
+#if HAS_BED_PROBE
+  #define ENDSTOPS_ENABLED  (isEnabled() || isProbeEnabled())
+#else
+  #define ENDSTOPS_ENABLED  isEnabled()
+#endif
 
 Endstops endstops;
 
@@ -54,18 +57,14 @@ Endstops endstops;
   float Endstops::z_endstop_adj = 0.0;
 #endif
 
-volatile char Endstops::hit_bits; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
-
-volatile uint8_t Endstops::e_hit = 0; // Different from 0 when the endstops shall be tested in detail.
-                                      // Must be reset to 0 by the test function when the tests are finished.
-
-uint16_t  Endstops::logic_bits    = 0,
-          Endstops::pullup_bits   = 0,
-          Endstops::current_bits  = 0,
-          Endstops::old_bits      = 0;
+uint16_t  Endstops::logic_bits  = 0,
+          Endstops::pullup_bits = 0,
+          Endstops::live_state  = 0;
 
 // Private
-uint8_t   Endstops::flag1_bits    = 0;
+uint8_t   Endstops::flag_bits = 0;
+
+volatile uint8_t Endstops::hit_state = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
 
 /**
  * Class and Instance Methods
@@ -132,9 +131,31 @@ void Endstops::init() {
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    setup_endstop_interrupts();
+    setup_interrupts();
   #endif
 
+  setGlobally(
+    #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
+      false
+    #else
+      true
+    #endif
+  );
+
+}
+
+// A change was detected or presumed to be in endstops pins.
+void Endstops::check() { if (ENDSTOPS_ENABLED) update(); }
+
+// Called from HAL::Tick or Temperature ISR: Check endstop state if required
+void Endstops::Tick() {
+  #if ENABLED(PINS_DEBUGGING)
+    run_monitor();  // report changes in endstop status
+  #endif
+
+  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    if (ENDSTOPS_ENABLED) update();
+  #endif
 }
 
 void Endstops::setup_pullup() {
@@ -190,11 +211,11 @@ void Endstops::setup_pullup() {
   #endif
 
   #if HAS_DOOR_OPEN
-    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN));
+    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN_SENSOR));
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
-    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK));
+    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK_SENSOR));
   #endif
 
 }
@@ -277,20 +298,20 @@ void Endstops::report() {
 
   #if HAS_DOOR_OPEN
     // Door Open
-    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN) ? "true" : "false");
+    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN_SENSOR) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN_SENSOR) ? "true" : "false");
   #endif
 
   #if HAS_POWER_CHECK && HAS_SDSUPPORT
     // Power Check
-    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK) ? "true" : "false");
+    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK_SENSOR) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK_SENSOR) ? "true" : "false");
   #endif
 
 }
-    
+
 void Endstops::report_state() {
-  if (hit_bits) {
+  if (hit_state) {
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -299,11 +320,11 @@ void Endstops::report_state() {
     #endif
 
     #define _ENDSTOP_HIT_ECHO(A,C) do{ \
-      SERIAL_MV(STRINGIFY(A) ":", stepper.triggered_position_mm(A ##_AXIS)); \
+      SERIAL_MV(STRINGIFY(A) ":", planner.triggered_position_mm(_AXIS(A))); \
       _SET_STOP_CHAR(A,C); }while(0)
 
     #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(hit_bits, A ##_MIN) || TEST(hit_bits, A ##_MAX)) \
+      if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
     SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
@@ -313,7 +334,7 @@ void Endstops::report_state() {
 
     #if HAS_Z_PROBE_PIN
       #define P_AXIS Z_AXIS
-      if (TEST(hit_bits, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+      if (TEST(hit_state, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
     #endif
     SERIAL_EOL();
 
@@ -323,52 +344,21 @@ void Endstops::report_state() {
 
     hit_on_purpose();
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && HAS_SDSUPPORT
-      if (stepper.abort_on_endstop_hit) {
-        card.sdprinting = false;
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SDSUPPORT
+      if (planner.abort_on_endstop_hit) {
+        card.setSDprinting(false);
         card.closeFile();
-        stepper.quickstop_stepper();
-        thermalManager.disable_all_heaters(); // switch off all heaters.
+        printer.quickstop_stepper();
+        thermalManager.disable_all_heaters();
       }
     #endif
   }
 } // Endstops::report_state
 
-#if ENABLED(X_TWO_ENDSTOPS)
-  void Endstops::test_two_x_endstops(const EndstopEnum es1, const EndstopEnum es2) {
-    const byte x_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for X, bit 1 for X2
-    if (x_test && stepper.current_block->steps[X_AXIS] > 0) {
-      SBI(hit_bits, X_MIN);
-      if (!printer.isHoming() || (x_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
-        stepper.kill_current_block();
-    }
-  }
-#endif
-#if ENABLED(Y_TWO_ENDSTOPS)
-  void Endstops::test_two_y_endstops(const EndstopEnum es1, const EndstopEnum es2) {
-    const byte y_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Y, bit 1 for Y2
-    if (y_test && stepper.current_block->steps[Y_AXIS] > 0) {
-      SBI(hit_bits, Y_MIN);
-      if (!printer.isHoming() || (y_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
-        stepper.kill_current_block();
-    }
-  }
-#endif
-#if ENABLED(Z_TWO_ENDSTOPS)
-  void Endstops::test_two_z_endstops(const EndstopEnum es1, const EndstopEnum es2) {
-    const byte z_test = TEST_ENDSTOP(es1) | (TEST_ENDSTOP(es2) << 1); // bit 0 for Z, bit 1 for Z2
-    if (z_test && stepper.current_block->steps[Z_AXIS] > 0) {
-      SBI(hit_bits, Z_MIN);
-      if (!printer.isHoming() || (z_test == 0x3))  // if not performing home or if both endstops were trigged during homing...
-        stepper.kill_current_block();
-    }
-  }
-#endif
-
 /**
  * Constrain the given coordinates to the software endstops.
  */
-void Endstops::clamp_to_software_endstops(float target[XYZ]) {
+void Endstops::clamp_to_software(float target[XYZ]) {
 
   if (!isSoftEndstop()) return;
 
@@ -407,36 +397,35 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
    * at the same positions relative to the machine.
    */
   void Endstops::update_software_endstops(const AxisEnum axis) {
-    const float offs = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
-    mechanics.workspace_offset[axis] = offs;
+    mechanics.workspace_offset[axis] = mechanics.home_offset[axis] + mechanics.position_shift[axis];
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
 
         // In Dual X mode tools.hotend_offset[X] is T1's home position
-        float dual_max_x = max(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
+        float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
         if (tools.active_extruder != 0) {
           // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-          soft_endstop_min[X_AXIS] = X2_MIN_POS + offs;
-          soft_endstop_max[X_AXIS] = dual_max_x + offs;
+          soft_endstop_min[X_AXIS] = X2_MIN_POS;
+          soft_endstop_max[X_AXIS] = dual_max_x;
         }
         else if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
           // In Duplication Mode, T0 can move as far left as X_MIN_POS
           // but not so far to the right that T1 would move past the end
-          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS] + offs;
-          soft_endstop_max[X_AXIS] = min(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset) + offs;
+          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS];
+          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset);
         }
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-          soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
-          soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
+          soft_endstop_min[axis] = mechanics.base_min_pos[axis];
+          soft_endstop_max[axis] = mechanics.base_max_pos[axis];
         }
       }
     #else
-      soft_endstop_min[axis] = mechanics.base_min_pos[axis] + offs;
-      soft_endstop_max[axis] = mechanics.base_max_pos[axis] + offs;
+      soft_endstop_min[axis] = mechanics.base_min_pos[axis];
+      soft_endstop_max[axis] = mechanics.base_max_pos[axis];
     #endif
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -454,6 +443,15 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
 #endif // ENABLED(WORKSPACE_OFFSETS) || DUAL_X_CARRIAGE
 
 #if ENABLED(PINS_DEBUGGING)
+
+  void Endstops::run_monitor() {
+    if (!isMonitorEnabled()) return;
+    static uint8_t monitor_count = 16;  // offset this check from the others
+    monitor_count += _BV(1);            //  15 Hz
+    monitor_count &= 0x7F;
+    if (!monitor_count) monitor();      // report changes in endstop status
+  }
+
   /**
    * monitors endstops & Z probe for changes
    *
@@ -464,7 +462,8 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
    * that won't matter because this is all manual.
    *
    */
-  void Endstops::endstop_monitor() {
+  void Endstops::monitor() {
+
     static uint16_t old_bits_local = 0;
     uint16_t current_bits_local = 0;
     #if HAS_X_MIN
@@ -553,236 +552,261 @@ void Endstops::clamp_to_software_endstops(float target[XYZ]) {
       old_bits_local = current_bits_local;
     }
   }
+
 #endif // PINS_DEBUGGING
 
-// Check endstops - Called from ISR!
+// update endstops - Called from ISR!
 void Endstops::update() {
 
-  #define _ENDSTOP(AXIS, MINMAX) AXIS ##_## MINMAX
-  #define _ENDSTOP_PIN(AXIS, MINMAX) AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_HIT(AXIS, MINMAX) SBI(hit_bits, _ENDSTOP(AXIS, MINMAX))
+  #define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
+  #define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
+  #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
 
+  // TEST_ENDSTOP: test the current status of an endstop
+  #define TEST_ENDSTOP(ENDSTOP)             (TEST(live_state, ENDSTOP))
   // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
-  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT(current_bits, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
+  #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
-  #define COPY_BIT(DST, SRC_BIT, DST_BIT) SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
-
-  #define UPDATE_ENDSTOP(AXIS,MINMAX) do { \
-      UPDATE_ENDSTOP_BIT(AXIS, MINMAX); \
-      if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
-        _ENDSTOP_HIT(AXIS, MINMAX); \
-        stepper.endstop_triggered(AXIS ##_AXIS); \
-      } \
-    } while(0)
+  #define COPY_BIT(DST, SRC_BIT, DST_BIT)   SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
-    if (printer.IsG38Move()) {
-      UPDATE_ENDSTOP_BIT(Z, PROBE);
-      if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
-        if      (stepper.current_block->steps[X_AXIS] > 0) { _ENDSTOP_HIT(X, MIN); stepper.endstop_triggered(X_AXIS); }
-        else if (stepper.current_block->steps[Y_AXIS] > 0) { _ENDSTOP_HIT(Y, MIN); stepper.endstop_triggered(Y_AXIS); }
-        else if (stepper.current_block->steps[Z_AXIS] > 0) { _ENDSTOP_HIT(Z, MIN); stepper.endstop_triggered(Z_AXIS); }
-        setG38EndstopHit(true);
-      }
-    }
-  #endif
-
-  /**
-   * Define conditions for checking endstops
-   */
-
-  #if IS_CORE
-    #define S_(N) stepper.current_block->steps[CORE_AXIS_##N]
-    #define D_(N) stepper.motor_direction(CORE_AXIS_##N)
-  #endif
-
-  #if CORE_IS_XY || CORE_IS_XZ
-    /**
-     * Head direction in -X axis for CoreXY and CoreXZ bots.
-     *
-     * If steps differ, both axes are moving.
-     * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z, handled below)
-     * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X)
-     */
-    #if MECH(COREXY) || MECH(COREXZ)
-      #define X_CMP ==
-    #else
-      #define X_CMP !=
-    #endif
-    #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
-    #define X_AXIS_HEAD X_HEAD
-  #else
-    #define X_MOVE_TEST stepper.current_block->steps[X_AXIS] > 0
-    #define X_AXIS_HEAD X_AXIS
-  #endif
-
-  #if CORE_IS_XY || CORE_IS_YZ
-    /**
-     * Head direction in -Y axis for CoreXY / CoreYZ bots.
-     *
-     * If steps differ, both axes are moving
-     * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y)
-     * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Y or Z)
-     */
-    #if MECH(COREYX) || MECH(COREYZ)
-      #define Y_CMP ==
-    #else
-      #define Y_CMP !=
-    #endif
-    #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
-    #define Y_AXIS_HEAD Y_HEAD
-  #else
-    #define Y_MOVE_TEST stepper.current_block->steps[Y_AXIS] > 0
-    #define Y_AXIS_HEAD Y_AXIS
-  #endif
-
-  #if CORE_IS_XZ || CORE_IS_YZ
-    /**
-     * Head direction in -Z axis for CoreXZ or CoreYZ bots.
-     *
-     * If steps differ, both axes are moving
-     * If DeltaA ==  DeltaB, the movement is only in the 1st axis (X or Y, already handled above)
-     * If DeltaA == -DeltaB, the movement is only in the 2nd axis (Z)
-     */
-    #if MECH(COREZX) || MECH(COREZY)
-      #define Z_CMP ==
-    #else
-      #define Z_CMP !=
-    #endif
-    #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
-    #define Z_AXIS_HEAD Z_HEAD
-  #else
-    #define Z_MOVE_TEST stepper.current_block->steps[Z_AXIS] > 0
-    #define Z_AXIS_HEAD Z_AXIS
+    if (printer.IsG38Move()) UPDATE_ENDSTOP_BIT(Z, PROBE);
   #endif
 
   // With Dual X, endstops are only checked in the homing direction for the active extruder
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E0_ACTIVE stepper.current_block->active_extruder == 0
-    #define X_MIN_TEST ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
-    #define X_MAX_TEST ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
+    #define E0_ACTIVE   stepper.movement_extruder() == 0
+    #define X_MIN_TEST  ((X_HOME_DIR < 0 && E0_ACTIVE) || (X2_HOME_DIR < 0 && !E0_ACTIVE))
+    #define X_MAX_TEST  ((X_HOME_DIR > 0 && E0_ACTIVE) || (X2_HOME_DIR > 0 && !E0_ACTIVE))
   #else
-    #define X_MIN_TEST true
-    #define X_MAX_TEST true
+    #define X_MIN_TEST  true
+    #define X_MAX_TEST  true
+  #endif
+
+  // Use HEAD for core axes, AXIS for others
+  #if CORE_IS_XY || CORE_IS_XZ
+    #define X_AXIS_HEAD X_HEAD
+  #else
+    #define X_AXIS_HEAD X_AXIS
+  #endif
+  #if CORE_IS_XY || CORE_IS_YZ
+    #define Y_AXIS_HEAD Y_HEAD
+  #else
+    #define Y_AXIS_HEAD Y_AXIS
+  #endif
+  #if CORE_IS_XZ || CORE_IS_YZ
+    #define Z_AXIS_HEAD Z_HEAD
+  #else
+    #define Z_AXIS_HEAD Z_AXIS
   #endif
 
   /**
    * Check and update endstops according to conditions
    */
-
-  if (X_MOVE_TEST) {
+  if (stepper.axis_is_moving(X_AXIS)) {
     if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
       #if HAS_X_MIN
-        #if ENABLED(X_TWO_ENDSTOPS)
+        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR < 0
           UPDATE_ENDSTOP_BIT(X, MIN);
           #if HAS_X2_MIN
             UPDATE_ENDSTOP_BIT(X2, MIN);
           #else
-            COPY_BIT(current_bits, X_MIN, X2_MIN);
+            COPY_BIT(live_state, X_MIN, X2_MIN);
           #endif
-          test_two_x_endstops(X_MIN, X2_MIN);
         #else
-          if (X_MIN_TEST) UPDATE_ENDSTOP(X, MIN);
+          if (X_MIN_TEST) UPDATE_ENDSTOP_BIT(X, MIN);
         #endif
       #endif
     }
     else {  // +direction
       #if HAS_X_MAX
-        #if ENABLED(X_TWO_ENDSTOPS)
+        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR > 0
           UPDATE_ENDSTOP_BIT(X, MAX);
           #if HAS_X2_MAX
             UPDATE_ENDSTOP_BIT(X2, MAX);
           #else
-            COPY_BIT(current_bits, X_MAX, X2_MAX);
+            COPY_BIT(live_state, X_MAX, X2_MAX);
           #endif
-          test_two_x_endstops(X_MAX, X2_MAX);
         #else
-          if (X_MAX_TEST) UPDATE_ENDSTOP(X, MAX);
+          if (X_MAX_TEST) UPDATE_ENDSTOP_BIT(X, MAX);
         #endif
       #endif
     }
   }
 
-  if (Y_MOVE_TEST) {
+  if (stepper.axis_is_moving(Y_AXIS)) {
     if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
-      #if HAS_Y_MIN
+      #if HAS_Y_MIN && Y_HOME_DIR < 0
         #if ENABLED(Y_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Y, MIN);
           #if HAS_Y2_MIN
             UPDATE_ENDSTOP_BIT(Y2, MIN);
           #else
-            COPY_BIT(current_bits, Y_MIN, Y2_MIN);
+            COPY_BIT(live_state, Y_MIN, Y2_MIN);
           #endif
-          test_two_y_endstops(Y_MIN, Y2_MIN);
         #else
-          UPDATE_ENDSTOP(Y, MIN);
+          UPDATE_ENDSTOP_BIT(Y, MIN);
         #endif
       #endif
     }
     else {  // +direction
-      #if HAS_Y_MAX
+      #if HAS_Y_MAX && Y_HOME_DIR > 0
         #if ENABLED(Y_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Y, MAX);
           #if HAS_Y2_MAX
             UPDATE_ENDSTOP_BIT(Y2, MAX);
           #else
-            COPY_BIT(current_bits, Y_MAX, Y2_MAX);
+            COPY_BIT(live_state, Y_MAX, Y2_MAX);
           #endif
-          test_two_y_endstops(Y_MAX, Y2_MAX);
         #else
-          UPDATE_ENDSTOP(Y, MAX);
+          UPDATE_ENDSTOP_BIT(Y, MAX);
         #endif
       #endif
     }
   }
 
-  if (Z_MOVE_TEST) {
+  if (stepper.axis_is_moving(Z_AXIS)) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
       #if HAS_Z_MIN
-        #if ENABLED(Z_TWO_ENDSTOPS)
+        #if ENABLED(Z_TWO_ENDSTOPS) && Z_HOME_DIR < 0
           UPDATE_ENDSTOP_BIT(Z, MIN);
           #if HAS_Z2_MIN
             UPDATE_ENDSTOP_BIT(Z2, MIN);
           #else
-            COPY_BIT(current_bits, Z_MIN, Z2_MIN);
+            COPY_BIT(live_state, Z_MIN, Z2_MIN);
           #endif
-          test_two_z_endstops(Z_MIN, Z2_MIN);
-        #else
-          #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (isProbeEndstop()) UPDATE_ENDSTOP(Z, MIN);
-          #else
-            UPDATE_ENDSTOP(Z, MIN);
-          #endif
+        #elif HAS_BED_PROBE && !HAS_Z_PROBE_PIN
+          if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, MIN);
+        #elif Z_HOME_DIR < 0
+          UPDATE_ENDSTOP_BIT(Z, MIN);
         #endif
       #endif
 
       // When closing the gap check the enabled probe
       #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (isProbeEndstop()) {
-          UPDATE_ENDSTOP(Z, PROBE);
-          if (TEST_ENDSTOP(Z_PROBE)) SBI(hit_bits, Z_PROBE);
-        }
+        if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, PROBE);
       #endif
     }
     else { // Z +direction. Gantry up, bed down.
-      #if HAS_Z_MAX
+      #if HAS_Z_MAX && Z_HOME_DIR > 0
         // Check both Z two endstops
         #if ENABLED(Z_TWO_ENDSTOPS)
           UPDATE_ENDSTOP_BIT(Z, MAX);
           #if HAS_Z2_MAX
             UPDATE_ENDSTOP_BIT(Z2, MAX);
           #else
-            COPY_BIT(current_bits, Z_MAX, Z2_MAX);
+            COPY_BIT(live_state, Z_MAX, Z2_MAX);
           #endif
-          test_two_z_endstops(Z_MAX, Z2_MAX);
         #else
-          UPDATE_ENDSTOP(Z, MAX);
+          UPDATE_ENDSTOP_BIT(Z, MAX);
         #endif
       #endif
     }
   }
 
-  old_bits = current_bits;
+  // Call the endstop triggered routine for single endstops
+  #define PROCESS_ENDSTOP(AXIS,MINMAX) do { \
+    if (TEST_ENDSTOP(_ENDSTOP(AXIS, MINMAX))) { \
+      _ENDSTOP_HIT(AXIS, MINMAX); \
+      planner.endstop_triggered(_AXIS(AXIS)); \
+    } \
+  }while(0)
+
+  // Call the endstop triggered routine for dual endstops
+  #define PROCESS_DUAL_ENDSTOP(AXIS1, AXIS2, MINMAX) do { \
+    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
+    if (dual_hit) { \
+      _ENDSTOP_HIT(AXIS1, MINMAX); \
+      if (!stepper.homing_dual_axis || dual_hit == 0x3) \
+        planner.endstop_triggered(_AXIS(AXIS1)); \
+    } \
+  }while(0)
+
+  #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
+    // If G38 command is active check Z_MIN_PROBE for ALL movement
+    if (printer.IsG38Move()) {
+      if (TEST_ENDSTOP(_ENDSTOP(Z, PROBE))) {
+        if      (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); }
+        else if (stepper.axis_is_moving(Y_AXIS)) { _ENDSTOP_HIT(Y, MIN); planner.endstop_triggered(Y_AXIS); }
+        else if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); }
+        setG38EndstopHit(true);
+      }
+    }
+  #endif
+
+  // Now, we must signal, after validation, if an endstop limit is pressed or not
+  if (stepper.axis_is_moving(X_AXIS)) {
+    if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
+      #if HAS_X_MIN
+        #if ENABLED(X_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(X, X2, MIN);
+        #else
+          if (X_MIN_TEST) PROCESS_ENDSTOP(X, MIN);
+        #endif
+      #endif
+    }
+    else {  // +direction
+      #if HAS_X_MAX
+        #if ENABLED(X_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(X, X2, MAX);
+        #else
+          if (X_MAX_TEST) PROCESS_ENDSTOP(X, MAX);
+        #endif
+      #endif
+    }
+  }
+
+  if (stepper.axis_is_moving(Y_AXIS)) {
+    if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
+      #if HAS_Y_MIN
+        #if ENABLED(Y_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(Y, Y2, MIN);
+        #else
+          PROCESS_ENDSTOP(Y, MIN);
+        #endif
+      #endif
+    }
+    else {  // +direction
+      #if HAS_Y_MAX
+        #if ENABLED(Y_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(Y, Y2, MAX);
+        #else
+          PROCESS_ENDSTOP(Y, MAX);
+        #endif
+      #endif
+    }
+  }
+
+  if (stepper.axis_is_moving(Z_AXIS)) {
+    if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
+      #if HAS_Z_MIN
+        #if ENABLED(Z_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
+        #else
+          #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
+            if (isProbeEnabled()) PROCESS_ENDSTOP(Z, MIN);
+          #else
+            PROCESS_ENDSTOP(Z, MIN);
+          #endif
+        #endif
+      #endif
+
+      // When closing the gap check the enabled probe
+      #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
+        if (isProbeEnabled()) PROCESS_ENDSTOP(Z, PROBE);
+      #endif
+    }
+    else { // Z +direction. Gantry up, bed down.
+      #if HAS_Z_MAX
+        // Check both Z two endstops
+        #if ENABLED(Z_TWO_ENDSTOPS)
+          PROCESS_DUAL_ENDSTOP(Z, Z2, MAX);
+        #else
+          PROCESS_ENDSTOP(Z, MAX);
+        #endif
+      #endif
+    }
+  }
 
 } // Endstops::update()

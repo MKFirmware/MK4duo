@@ -37,7 +37,7 @@
 #define ABC       3
 #define XYZ       3
 
-#define _AXIS(AXIS) AXIS ##_AXIS
+#define _AXIS(A)  (A##_AXIS)
 
 // Function macro
 #define _FORCE_INLINE_  __attribute__((__always_inline__)) __inline__
@@ -48,6 +48,21 @@
 #define _O1             __attribute__((optimize("O1")))
 #define _O2             __attribute__((optimize("O2")))
 #define _O3             __attribute__((optimize("O3")))
+
+// Clock speed factor
+#define CYCLES_PER_US   ((F_CPU) / 1000000L)
+
+// Nanoseconds per cycle
+#define NS_PER_CYCLE    (1000000000.0 / (F_CPU))
+
+// Remove compiler warning on an unused variable
+#define UNUSED(x)       (void)(x)
+
+/**
+ * Macrof for Delay
+ */
+#define DELAY_NS(x) HAL::delayNanoseconds(x)
+#define DELAY_US(x) HAL::delayMicroseconds(x)
 
 /**
  * Macros for mechanics type
@@ -80,14 +95,13 @@
 #define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
 
 #define IS_MUVE3D     (MECH(MUVE3D))
-/********************************************************************/
-
-// Compiler warning on unused varable.
-#define UNUSED(x) (void) (x)
 
 // Macros to make a string from a macro
 #define STRINGIFY_(M) #M
 #define STRINGIFY(M)  STRINGIFY_(M)
+
+#define A(CODE)       " " CODE "\n\t"
+#define L(CODE)       CODE ":\n\t"
 
 // Macros for communication
 #define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
@@ -96,27 +110,28 @@
 
 // Macros for bit masks
 #undef _BV
-#define _BV(b)                  (1 << (b))
-#define TEST(n,b)               !!((n) & _BV(b))
-#define SBI(n,b)                (n |= _BV(b))
-#define CBI(n,b)                (n &= ~_BV(b))
-#define SET_BIT(n,b,value)      (n) ^= ((-value)^(n)) & (_BV(b))
-#define _BV32(b)                (1UL << (b))
-#define TEST32(n,b)             !!((n) & _BV32(b))
-#define SBI32(n,b)              (n |= _BV32(b))
-#define CBI32(n,b)              (n &= ~_BV32(b))
+#define _BV(b)          (1<<(b))
+#define TEST(n,b)       !!((n)&_BV(b))
+#define SBI(n,b)        (n |= _BV(b))
+#define CBI(n,b)        (n &= ~_BV(b))
+#define SET_BIT(N,B,TF) do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
+
+#define _BV32(b)        (1UL<< (b))
+#define TEST32(n,b)     !!((n)&_BV32(b))
+#define SBI32(n,b)      (n |= _BV32(b))
+#define CBI32(n,b)      (n &= ~_BV32(b))
 
 // Macros for maths shortcuts
 #ifndef M_PI 
-  #define M_PI      3.14159265358979323846
+  #define M_PI            3.14159265358979323846
 #endif
-#define RADIANS(d)  ((d)*M_PI/180.0)
-#define DEGREES(r)  ((r)*180.0/M_PI)
-#define HYPOT2(x,y) (sq(x)+sq(y))
-#define HYPOT(x,y)  SQRT(HYPOT2(x,y))
-#define SQUARE(x)   ((x)*(x))
-#define SIN_60      0.8660254037844386
-#define COS_60      0.5
+#define RADIANS(d)        ((d)*M_PI/180.0)
+#define DEGREES(r)        ((r)*180.0/M_PI)
+#define HYPOT2(x,y)       (sq(x)+sq(y))
+#define HYPOT(x,y)        SQRT(HYPOT2(x,y))
+#define SQUARE(x)         ((x)*(x))
+#define SIN_60            0.8660254037844386
+#define COS_60            0.5
 
 #define CIRCLE_AREA(R)    (M_PI * sq(R))
 #define CIRCLE_CIRC(R)    (2.0 * M_PI * (R))
@@ -125,18 +140,14 @@
 #define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
 
 // Macros to contrain values
-#define NOLESS(v,n)       do{ if (v < n) v = n; }while(0)
-#define NOMORE(v,n)       do{ if (v > n) v = n; }while(0)
-#define LIMIT(v,n1,n2)    do{ if (v < n1) v = n1; else if (v > n2) v = n2; }while(0)
-
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
 #define DECIMAL(a)        (NUMERIC(a) || a == '.')
 #define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
 #define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
 #define COUNT(a)          (sizeof(a)/sizeof(*a))
-#define ZERO(a)           memset(a, 0, sizeof(a))
-#define COPY_ARRAY(a,b)   memcpy(a, b, min(sizeof(a), sizeof(b)))
+#define ZERO(a)           memset(a,0,sizeof(a))
+#define COPY_ARRAY(a,b)   memcpy(a,b,MIN(sizeof(a),sizeof(b)))
 
 // Macros for initializing arrays
 #define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  { v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 }
@@ -153,45 +164,47 @@
 #define ARRAY_1(v1, ...)                                                  { v1 }
 #define ARRAY_0(...)                                                      { }
 
-#define _ARRAY_N(N, ...) ARRAY_ ##N(__VA_ARGS__)
-#define ARRAY_N(N, ...) _ARRAY_N(N, __VA_ARGS__)
+#define _ARRAY_N(N, ...)        ARRAY_ ##N(__VA_ARGS__)
+#define ARRAY_N(N, ...)         _ARRAY_N(N, __VA_ARGS__)
 
 // ARRAY_BY_N based
-#define ARRAY_BY_N_N(N, ...) ARRAY_N(N, __VA_ARGS__)
-#define ARRAY_BY_N(N, v1) ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_N_N(N, ...)    ARRAY_N(N, __VA_ARGS__)
+#define ARRAY_BY_N(N, v1)       ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_EXTRUDERS based on EXTRUDERS
 #define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
-#define ARRAY_BY_EXTRUDERS(v1) ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_EXTRUDERS(v1)  ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_HOTENDS based on HOTENDS
 #define ARRAY_BY_HOTENDS_N(...) ARRAY_N(HOTENDS, __VA_ARGS__)
-#define ARRAY_BY_HOTENDS(v1) ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_HOTENDS(v1)    ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_FAN based on FAN_COUNT
-#define ARRAY_BY_FANS_N(...) ARRAY_N(FAN_COUNT, __VA_ARGS__)
-#define ARRAY_BY_FANS(v1) ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
+#define ARRAY_BY_FANS_N(...)    ARRAY_N(FAN_COUNT, __VA_ARGS__)
+#define ARRAY_BY_FANS(v1)       ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
-#define PIN_EXISTS(PN) (defined(PN##_PIN) && PN##_PIN > NoPin)
+#define PIN_EXISTS(PN)          (defined(PN##_PIN) && PN##_PIN > NoPin)
 
-#define PENDING(NOW,SOON) ((long)(NOW-(SOON))<0)
-#define ELAPSED(NOW,SOON) (!PENDING(NOW,SOON))
+#define PENDING(NOW,SOON)       ((long)(NOW-(SOON))<0)
+#define ELAPSED(NOW,SOON)       (!PENDING(NOW,SOON))
 
-#define NOOP              do{}while(0)
+#define NOOP                    do{}while(0)
 
-#define CEILING(x,y)      (((x) + (y) - 1) / (y))
+#define CEILING(x,y)            (((x) + (y) - 1) / (y))
 
-#define MIN3(a, b, c)     min(min(a, b), c)
-#define MIN4(a, b, c, d)  min(min(a, b), min(c, d))
-#define MAX3(a, b, c)     max(max(a, b), c)
-#define MAX4(a, b, c, d)  max(max(a, b), max(c, d))
+#define MIN3(a, b, c)           MIN(MIN(a, b), c)
+#define MIN4(a, b, c, d)        MIN(MIN3(a, b, c), d)
+#define MIN5(a, b, c, d, e)     MIN(MIN4(a, b, c, d), e)
+#define MAX3(a, b, c)           MAX(MAX(a, b), c)
+#define MAX4(a, b, c, d)        MAX(MAX3(a, b, c), d)
+#define MAX5(a, b, c, d, e)     MAX(MAX4(a, b, c, d), e)
 
-#define UNEAR_ZERO(x)     ((x) < 0.000001)
-#define NEAR_ZERO(x)      ((x) > -0.000001 && (x) < 0.000001)
-#define NEAR(x,y)         NEAR_ZERO((x)-(y))
+#define UNEAR_ZERO(x)           ((x) < 0.000001)
+#define NEAR_ZERO(x)            WITHIN(x, -0.000001, 0.000001)
+#define NEAR(x,y)               NEAR_ZERO((x)-(y))
 
-#define RECIPROCAL(x)     (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
-#define FIXFLOAT(f)       (f + 0.00001)
+#define RECIPROCAL(x)           (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
+#define FIXFLOAT(f)             (f + (f < 0.0 ? -0.00005 : 0.00005))
 
 // LOOP MACROS
 #define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)
@@ -212,8 +225,8 @@
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion
-#define MMM_TO_MMS(MM_M) ((MM_M) / 60.0)
-#define MMS_TO_MMM(MM_S) ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S) ((MM_S) * mechanics.feedrate_percentage * 0.01)
+#define MMM_TO_MMS(MM_M)        ((MM_M) / 60.0)
+#define MMS_TO_MMM(MM_S)        ((MM_S) * 60.0)
+#define MMS_SCALED(MM_S)        ((MM_S) * mechanics.feedrate_percentage * 0.01)
 
 #endif //__MACROS_H

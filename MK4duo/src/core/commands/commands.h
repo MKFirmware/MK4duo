@@ -39,11 +39,13 @@ class Commands {
 
   public: /** Public Parameters */
 
+    static uint8_t  buffer_lenght,  // Number of commands in the Buffer Ring
+                    buffer_index_r, // Read position in Buffer Ring
+                    buffer_index_w; // Write position in Buffer Ring
+
     static char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
     static long gcode_LastN;
-
-    static millis_t previous_cmd_ms;
 
   private: /** Private Parameters */
 
@@ -51,16 +53,11 @@ class Commands {
 
     static bool send_ok[BUFSIZE];
 
-    static uint8_t  buffer_index_r, // Read position in Buffer Ring
-                    buffer_index_w; // Write position in Buffer Ring
-
-    static volatile uint8_t buffer_lenght; // Number of commands in the Buffer Ring
-
     static int serial_count;
 
     static const char *injected_commands_P;
 
-    static millis_t last_command_time;
+    static watch_t last_command_watch;
 
   public: /** Public Function */
 
@@ -70,17 +67,16 @@ class Commands {
     static void advance_queue();
     static void clear_queue();
 
-    static bool enqueue_and_echo(const char* cmd, bool say_ok=false);
+    static bool enqueue_and_echo(const char* cmd);
     static void enqueue_and_echo_P(const char * const pgcode);
-    static void enqueue_and_echo_now(const char* cmd, bool say_ok=false);
-    static void enqueue_and_echo_P_now(const char * const pgcode);
+    static void enqueue_and_echo_now(const char* cmd);
+    static void enqueue_and_echo_now_P(const char * const cmd);
 
     static void get_destination();
     static bool get_target_tool(const uint16_t code);
     static bool get_target_heater(int8_t &h);
 
     FORCE_INLINE static void setup() { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
-    FORCE_INLINE static void refresh_cmd_timeout() { previous_cmd_ms = millis(); }
 
   private: /** Private Function */
 
@@ -90,6 +86,7 @@ class Commands {
     #endif
 
     static void process_next();
+    static void process_parsed();
     static void commit(bool say_ok);
     static void unknown_error();
     static void gcode_line_error(const char* err);
@@ -97,6 +94,9 @@ class Commands {
     static bool enqueue(const char* cmd, bool say_ok=false);
     static bool drain_injected_P();
 
+    #if HAS_SD_RESTART
+      static bool enqueue_restart();
+    #endif
 };
 
 extern Commands commands;

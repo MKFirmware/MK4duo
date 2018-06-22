@@ -76,6 +76,24 @@
 // Public Variables
 // --------------------------------------------------------------------------
 
+const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
+  { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
+  { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
+  { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
+  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
+  { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
+  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
+  { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
+  { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
+  { TC2, 2, TC8_IRQn, 0 },  // 8 - Pin TC 11 - 12
+};
+
+uint32_t  HAL_min_pulse_cycle     = 0,
+          HAL_min_pulse_tick      = 0,
+          HAL_add_pulse_ticks     = 0,
+          HAL_min_isr_frequency   = 0,
+          HAL_frequency_limit[8]  = { 0 };
+
 // --------------------------------------------------------------------------
 // Private Variables
 // --------------------------------------------------------------------------
@@ -99,36 +117,104 @@
   Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-void HAL_timer_start(const uint8_t timer_num) {
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-	Tc *tc = TimerConfig [timer_num].pTimerRegs;
-	IRQn_Type irq = TimerConfig [timer_num].IRQ_Id;
-	uint32_t channel = TimerConfig [timer_num].channel;
+  Tc *tc = TimerConfig[timer_num].pTimerRegs;
+  IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
+  uint32_t channel = TimerConfig[timer_num].channel;
 
-	pmc_set_writeprotect(false);
-	pmc_enable_periph_clk((uint32_t)irq);
+  // Disable interrupt, just in case it was already enabled
+  NVIC_DisableIRQ(IRQn);
+
+  // We NEED memory barriers to ensure Interrupts are actually disabled!
+  // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+  __DSB();
+  __ISB();
+
+  // Disable timer interrupt
+  tc->TC_CHANNEL[channel].TC_IDR = TC_IDR_CPCS;
+
+  // Stop timer, just in case, to be able to reconfigure it
+  TC_Stop(tc, channel);
+
+  pmc_set_writeprotect(false);
+  pmc_enable_periph_clk((uint32_t)IRQn);
+  NVIC_SetPriority(IRQn, TimerConfig[timer_num].priority);
+
+  // wave mode, reset counter on match with RC,
   TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_EEVT_XC0);
-  TC_SetRC(tc, channel, VARIANT_MCK / 2 / 128);
-  tc->TC_CHANNEL[channel].TC_IDR = ~(uint32_t)0;            // interrupts disabled for now
+
+  // Set compare value
+  TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
+
+  // And start timer
   TC_Start(tc, channel);
-  TC_GetStatus(tc, channel);                                // clear any pending interrupt
-  NVIC_SetPriority (irq, TimerConfig [timer_num].priority); // set high priority for this IRQ; it's time-critical
-	NVIC_EnableIRQ(irq);
+
+  // enable interrupt on RC compare
+  tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
+
+  // Finally, enable IRQ
+  NVIC_EnableIRQ(IRQn);
+
 }
 
-void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IER = TC_IER_CPCS;
+uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
+  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
-void HAL_timer_disable_interrupt (const uint8_t timer_num) {
-	const tTimerConfig * const pConfig = &TimerConfig [timer_num];
-	pConfig->pTimerRegs->TC_CHANNEL [pConfig->channel].TC_IDR = TC_IDR_CPCS;
+void HAL_calc_pulse_cycle() {
+  HAL_min_pulse_cycle   = MAX((F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * stepper.minimum_pulse);
+  HAL_min_pulse_tick    = stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US);
+  HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
+
+  // The stepping frequency limits for each multistepping rate
+  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))   >> 0;
+  HAL_frequency_limit[1] = ((F_CPU) / HAL_isr_execuiton_cycle(2))   >> 1;
+  HAL_frequency_limit[2] = ((F_CPU) / HAL_isr_execuiton_cycle(4))   >> 2;
+  HAL_frequency_limit[3] = ((F_CPU) / HAL_isr_execuiton_cycle(8))   >> 3;
+  HAL_frequency_limit[4] = ((F_CPU) / HAL_isr_execuiton_cycle(16))  >> 4;
+  HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
+  HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
+  HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
 }
 
-bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  return (pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_IMR & TC_IMR_CPCS);
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
+
+  uint8_t multistep = 1;
+
+  // Scale the frequency, as requested by the caller
+  step_rate <<= scale;
+
+  #if DISABLED(DISABLE_DOUBLE_QUAD_STEPPING)
+    // Select the proper multistepping
+    uint8_t idx = 0;
+    while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
+      step_rate >>= 1;
+      multistep <<= 1;
+      ++idx;
+    };
+  #else
+    NOMORE(step_rate, HAL_min_isr_frequency);
+  #endif
+
+  *loops = multistep;
+
+  // In case of high-performance processor, it is able to calculate in real-time
+  return uint32_t(STEPPER_TIMER_RATE) / step_rate;
+
+}
+
+/**
+ * Interrupt Service Routines
+ */
+STEPPER_TIMER_ISR {
+
+  HAL_timer_isr_prologue(STEPPER_TIMER);
+
+  // Call the Step
+  stepper.Step();
+
 }
 
 #endif // ARDUINO_ARCH_SAM

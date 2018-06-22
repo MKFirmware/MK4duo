@@ -29,7 +29,6 @@
 #ifndef LANGUAGE_RU_H
 #define LANGUAGE_RU_H
 
-#define MAPPER_D0D1                // For Cyrillic
 #define DISPLAY_CHARSET_ISO10646_5
 #define CHARSIZE 2
 
@@ -37,7 +36,8 @@
 #define MSG_BACK                            _UxGT("Назад")
 #define MSG_SD_INSERTED                     _UxGT("Карта вставлена")
 #define MSG_SD_REMOVED                      _UxGT("Карта извлечена")
-#define MSG_LCD_ENDSTOPS                    _UxGT("Эндстопы")
+#define MSG_LCD_ENDSTOPS                    _UxGT("Эндстопы") // Max length 8 characters
+#define MSG_LCD_SOFT_ENDSTOPS               _UxGT("Прогр. эндстопы")
 #define MSG_MAIN                            _UxGT("Меню")
 #define MSG_AUTOSTART                       _UxGT("Автостарт")
 #define MSG_DISABLE_STEPPERS                _UxGT("Выкл. двигатели")
@@ -143,8 +143,7 @@
 #define MSG_UBL_STEP_BY_STEP_MENU           _UxGT("Пошаговое UBL")
 
 #define MSG_LED_CONTROL                     _UxGT("Настройки LED")
-#define MSG_LEDS_ON                         _UxGT("Включить подсветку")
-#define MSG_LEDS_OFF                        _UxGT("Выключить подсветку")
+#define MSG_LEDS                            _UxGT("Подсветку")
 #define MSG_LED_PRESETS                     _UxGT("Предустановки света")
 #define MSG_SET_LEDS_RED                    _UxGT("Красный свет")
 #define MSG_SET_LEDS_ORANGE                 _UxGT("Оранжевый свет")
@@ -193,9 +192,9 @@
 #define MSG_ACC                             _UxGT("Ускорение")
 #define MSG_JERK                            _UxGT("Рывок")
 #if IS_KINEMATIC
-  #define MSG_VX_JERK                       _UxGT("Va-рывок")
-  #define MSG_VY_JERK                       _UxGT("Vb-рывок")
-  #define MSG_VZ_JERK                       _UxGT("Vc-рывок")
+  #define MSG_VA_JERK                       _UxGT("Va-рывок")
+  #define MSG_VB_JERK                       _UxGT("Vb-рывок")
+  #define MSG_VC_JERK                       _UxGT("Vc-рывок")
 #else
   #define MSG_VX_JERK                       _UxGT("Vx-рывок")
   #define MSG_VY_JERK                       _UxGT("Vy-рывок")
@@ -212,13 +211,13 @@
 #define MSG_A_TRAVEL                        _UxGT("A-путеш.")
 #define MSG_STEPS_PER_MM                    _UxGT("Шаг/мм")
 #if IS_KINEMATIC
-  #define MSG_XSTEPS                        _UxGT("Aшаг/мм")
-  #define MSG_YSTEPS                        _UxGT("Bшаг/мм")
-  #define MSG_ZSTEPS                        _UxGT("Cшаг/мм")
+  #define MSG_ASTEPS                        _UxGT("Aшаг/мм")
+  #define MSG_BSTEPS                        _UxGT("Bшаг/мм")
+  #define MSG_CSTEPS                        _UxGT("Cшаг/мм")
 #else
-  #define MSG_XSTEPS                        _UxGT("Xшаг/мм")
-  #define MSG_YSTEPS                        _UxGT("Yшаг/мм")
-  #define MSG_ZSTEPS                        _UxGT("Zшаг/мм")
+  #define MSG_ASTEPS                        _UxGT("Xшаг/мм")
+  #define MSG_BSTEPS                        _UxGT("Yшаг/мм")
+  #define MSG_CSTEPS                        _UxGT("Zшаг/мм")
 #endif
 #define MSG_ESTEPS                          _UxGT("Eшаг/мм")
 #define MSG_E1STEPS                         _UxGT("E1шаг/мм")
@@ -251,7 +250,6 @@
 #define MSG_DWELL                           _UxGT("Сон...")
 #define MSG_USERWAIT                        _UxGT("Продолжить...")
 #define MSG_PRINT_PAUSED                    _UxGT("Печать на паузе")
-#define MSG_RESUMING                        _UxGT("Возобновление...")
 #define MSG_PRINT_ABORTED                   _UxGT("Печать отменена")
 #define MSG_NO_MOVE                         _UxGT("Нет движения.")
 #define MSG_KILLED                          _UxGT("УБИТО. ")
@@ -278,7 +276,7 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Сброс BLTouch")
 #define MSG_BLTOUCH_DEPLOY                  _UxGT("Установка BLTouch")
 #define MSG_BLTOUCH_STOW                    _UxGT("Набивка BLTouch")
-#define MSG_HOME                            _UxGT("Паркуй")
+#define MSG_HOME                            _UxGT("Паркуй") // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
 #define MSG_FIRST                           _UxGT("первый")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("Смещение Z")
 #define MSG_BABYSTEP_X                      _UxGT("Микрошаг X")
@@ -286,6 +284,7 @@
 #define MSG_BABYSTEP_Z                      _UxGT("Микрошаг Z")
 #define MSG_ENDSTOP_ABORT                   _UxGT("Сработал концевик")
 #define MSG_HEATING_FAILED_LCD              _UxGT("Разогрев не удался")
+#define MSG_HEATING_FAILED_LCD_BED          _UxGT("Разогр. стола не уд.")
 #define MSG_ERR_REDUNDANT_TEMP              _UxGT("Ошибка: Избыточная Т")
 #define MSG_THERMAL_RUNAWAY                 _UxGT("УБЕГАНИЕ ТЕПЛА")
 #define MSG_THERMAL_RUNAWAY_BED             _UxGT("УБЕГАНИЕ ТЕПЛА СТОЛА")
@@ -293,16 +292,17 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Ошибка: Т мин.")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Ошибка: Т стола макс")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Ошибка: Т стола мин.")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Запрещено")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("ПРИНТЕР ОСТАНОВЛЕН")
 #define MSG_PLEASE_RESET                    _UxGT("Сделайте сброс")
-#define MSG_SHORT_DAY                       _UxGT("д")
-#define MSG_SHORT_HOUR                      _UxGT("ч")
-#define MSG_SHORT_MINUTE                    _UxGT("м")
+#define MSG_SHORT_DAY                       _UxGT("д") // One character only
+#define MSG_SHORT_HOUR                      _UxGT("ч") // One character only
+#define MSG_SHORT_MINUTE                    _UxGT("м") // One character only
 #define MSG_HEATING                         _UxGT("Нагрев...")
-#define MSG_HEATING_COMPLETE                _UxGT("Нагрев выполнен")
-#define MSG_BED_HEATING                     _UxGT("Нагрев стола")
-#define MSG_BED_DONE                        _UxGT("Стол разогрет")
+#define MSG_COOLING                         _UxGT("Охлаждение...")
+#define MSG_COOLING_COMPLETE                _UxGT("Охлаждение выполнено")
+#define MSG_BED_HEATING                     _UxGT("Нагрев стола...")
+#define MSG_BED_COOLING                     _UxGT("Охлаждение стола...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Калибровка Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Калибровать X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Калибровать Y")
@@ -311,6 +311,7 @@
 #define MSG_DELTA_SETTINGS                  _UxGT("Настройки Delta")
 #define MSG_DELTA_AUTO_CALIBRATE            _UxGT("Авто калибровка")
 #define MSG_DELTA_HEIGHT_CALIBRATE          _UxGT("Задать высоту Delta")
+#define MSG_DELTA_Z_OFFSET_CALIBRATE        _UxGT("Задать Z-смещение")
 #define MSG_DELTA_DIAG_ROD                  _UxGT("Диаг. стержень")
 #define MSG_DELTA_HEIGHT                    _UxGT("Высота")
 #define MSG_DELTA_RADIUS                    _UxGT("Радиус")
