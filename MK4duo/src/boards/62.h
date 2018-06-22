@@ -20,25 +20,25 @@
 //###X_AXIS
 #define ORIG_X_STEP_PIN            15
 #define ORIG_X_DIR_PIN             21
-#define ORIG_X_ENABLE_PIN          NoPin
+#define ORIG_X_ENABLE_PIN          14
 #define ORIG_X_CS_PIN              NoPin
 
 //###Y_AXIS
 #define ORIG_Y_STEP_PIN            22
 #define ORIG_Y_DIR_PIN             23
-#define ORIG_Y_ENABLE_PIN          NoPin
+#define ORIG_Y_ENABLE_PIN          14
 #define ORIG_Y_CS_PIN              NoPin
 
 //###Z_AXIS
 #define ORIG_Z_STEP_PIN             3
 #define ORIG_Z_DIR_PIN              2
-#define ORIG_Z_ENABLE_PIN          NoPin
+#define ORIG_Z_ENABLE_PIN          26
 #define ORIG_Z_CS_PIN              NoPin
 
 //###EXTRUDER_0
 #define ORIG_E0_STEP_PIN            1
 #define ORIG_E0_DIR_PIN             0
-#define ORIG_E0_ENABLE_PIN         NoPin
+#define ORIG_E0_ENABLE_PIN         14
 #define ORIG_E0_CS_PIN             NoPin
 #define ORIG_SOL0_PIN              NoPin
 
@@ -116,7 +116,7 @@
 #define ORIG_HEATER_1_PIN          NoPin
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN        NoPin
+#define ORIG_HEATER_BED_PIN        12
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
@@ -159,39 +159,8 @@
 
 
 //###IF_BLOCKS
-#if !MB(SANGUINOLOLU_11)
-  #define SANGUINOLOLU_V_1_2
-#endif
-
-#if MB(AZTEEG_X1) || MB(STB_11) || MB(MELZI)
-  #define ORIG_FAN0_PIN           4 // Works for Panelolu2 too
-  #if MB(MELZI)
-    #define LED_PIN             27
-  #elif MB(STB_11)
-    #define LCD_BACKLIGHT_PIN   17 // LCD backlight LED
-  #endif
-#endif
-
-#if ENABLED(SANGUINOLOLU_V_1_2)
-
-  #define ORIG_HEATER_BED_PIN   12 // (bed)
-  #define ORIG_X_ENABLE_PIN     14
-  #define ORIG_Y_ENABLE_PIN     14
-  #define ORIG_Z_ENABLE_PIN     26
-  #define ORIG_E0_ENABLE_PIN    14
-
-  #if ENABLED(LCD_I2C_PANELOLU2)
-    #define ORIG_FAN0_PIN         4 // Uses Transistor1 (PWM) on Panelolu2's Sanguino Adapter Board to drive the fan
-  #endif
-
-#else
-
-  #define ORIG_HEATER_BED_PIN   14  // (bed)
-  #define ORIG_X_ENABLE_PIN     NoPin
-  #define ORIG_Y_ENABLE_PIN     NoPin
-  #define ORIG_Z_ENABLE_PIN     NoPin
-  #define ORIG_E0_ENABLE_PIN    NoPin
-
+#if ENABLED(LCD_I2C_PANELOLU2)
+  #define ORIG_FAN0_PIN         4 // Uses Transistor1 (PWM) on Panelolu2's Sanguino Adapter Board to drive the fan
 #endif
 
 /**
@@ -209,19 +178,12 @@
   #if ENABLED(DOGLCD)
 
     #if ENABLED(U8GLIB_ST7920)
-      #if MB(MELZI)
-        #define LCD_PINS_RS     30
-        #define LCD_PINS_ENABLE 29
-        #define LCD_PINS_D4     17
-        #define ORIG_BEEPER_PIN 27
-      #else
-        #define LCD_PINS_RS      4
-        #define LCD_PINS_ENABLE 17
-        #define LCD_PINS_D4     30
-        #define LCD_PINS_D5     29
-        #define LCD_PINS_D6     28
-        #define LCD_PINS_D7     27
-      #endif
+      #define LCD_PINS_RS      4
+      #define LCD_PINS_ENABLE 17
+      #define LCD_PINS_D4     30
+      #define LCD_PINS_D5     29
+      #define LCD_PINS_D6     28
+      #define LCD_PINS_D7     27
     #else
 
       #define DOGLCD_A0         30
@@ -248,12 +210,7 @@
   #define BTN_EN1               11
   #define BTN_EN2               10
   #if ENABLED(LCD_I2C_PANELOLU2)
-    #if MB(MELZI)
-      #define BTN_ENC           29
-      #define LCD_SDSS          30
-    #else
-      #define BTN_ENC           30
-    #endif
+    #define BTN_ENC           30
   #else
     #define BTN_ENC             16
     #define LCD_SDSS            28
