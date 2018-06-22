@@ -159,7 +159,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define LCD_PINS_RS      18
 #define LCD_PINS_ENABLE  17
@@ -171,4 +170,3 @@
 #define BTN_EN2          10
 #define BTN_ENC          12  //the click
 //@@@
-

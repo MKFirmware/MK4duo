@@ -157,7 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN          9
 
-
 //###UNKNOWN_PINS
 // Microstepping pins - Mapping not from fastio.h (?)
 #define X_MS1_PIN           40

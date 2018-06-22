@@ -157,7 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define SHIFT_CLK           63
 #define SHIFT_LD            42

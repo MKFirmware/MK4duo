@@ -156,8 +156,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
-
 //###IF_BLOCKS
 #define LCD_PINS_RS               28 // st9720 CS
 #define LCD_PINS_ENABLE           17 // st9720 DAT

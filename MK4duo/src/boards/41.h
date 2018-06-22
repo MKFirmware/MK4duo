@@ -157,9 +157,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN            58 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+#define MAX6675_SS_PIN             58
 //@@@
 
 //###IF_BLOCKS

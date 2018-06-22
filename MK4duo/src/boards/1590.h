@@ -168,7 +168,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #undef NUM_DIGITAL_PINS
 #define NUM_DIGITAL_PINS 108
