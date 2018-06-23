@@ -62,129 +62,6 @@
 
   } // toggle_pins
 
-  inline void servo_probe_test(){
-    #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
-
-      SERIAL_LM(ER, "SERVO not setup");
-
-    #elif !HAS_Z_SERVO_PROBE
-
-      SERIAL_LM(ER, "Z_PROBE_SERVO_NR not setup");
-
-    #else // HAS_Z_SERVO_PROBE
-
-      const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_PROBE_SERVO_NR;
-
-      SERIAL_EM("Servo probe test");
-      SERIAL_EMV(".  Using index:  ", probe_index);
-      SERIAL_EMV(".  Deploy angle: ", probe.z_servo_angle[0]);
-      SERIAL_EMV(".  Stow angle:   ", probe.z_servo_angle[1]);
-
-      bool probe_logic;
-
-      #if HAS_Z_PROBE_PIN
-
-        #define PROBE_TEST_PIN Z_PROBE_PIN
-
-        SERIAL_EMV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-        SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-        SERIAL_MSG(".  Z_PROBE_ENDSTOP_LOGIC: ");
-
-        if (endstops.isLogic(Z_PROBE))
-          SERIAL_EM("true");
-        else
-          SERIAL_EM("false");
-
-        probe_logic = endstops.isLogic(Z_PROBE);
-
-      #elif HAS_Z_MIN
-
-        #define PROBE_TEST_PIN Z_MIN_PIN
-
-        SERIAL_EMV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
-        SERIAL_EM(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-        SERIAL_MSG(".  Z_MIN_ENDSTOP_LOGIC: ");
-
-        if (endstops.isLogic(Z_MIN))
-          SERIAL_EM("true");
-        else
-          SERIAL_EM("false");
-
-        probe_logic = endstops.isLogic(Z_MIN);
-
-      #endif
-
-      SERIAL_EM("Deploy & stow 4 times");
-      SET_INPUT_PULLUP(PROBE_TEST_PIN);
-      uint8_t i = 0;
-      bool deploy_state, stow_state;
-      do {
-        MOVE_SERVO(probe_index, probe.z_servo_angle[0]); //deploy
-        printer.safe_delay(500);
-        deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
-        MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
-        printer.safe_delay(500);
-        stow_state = HAL::digitalRead(PROBE_TEST_PIN);
-      } while (++i < 4);
-      if (probe_logic != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
-
-      printer.move_watch.start();
-
-      if (deploy_state != stow_state) {
-        SERIAL_EM("BLTouch clone detected");
-        if (deploy_state) {
-          SERIAL_EM(".  DEPLOYED state: HIGH (logic 1)");
-          SERIAL_EM(".  STOWED (triggered) state: LOW (logic 0)");
-        }
-        else {
-          SERIAL_EM(".  DEPLOYED state: LOW (logic 0)");
-          SERIAL_EM(".  STOWED (triggered) state: HIGH (logic 1)");
-        }
-        #if ENABLED(BLTOUCH)
-          SERIAL_EM("ERROR: BLTOUCH enabled - set this device up as a Z Servo Probe with inverting as true.");
-        #endif
-
-      }
-      else {                                        // measure active signal length
-        MOVE_SERVO(probe_index, probe.z_servo_angle[0]);  // deploy
-        printer.safe_delay(500);
-        SERIAL_EM("please trigger probe");
-        uint16_t probe_counter = 0;
-
-        // Allow 30 seconds max for operator to trigger probe
-        for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
-
-          printer.safe_delay(2);
-
-          if (0 == j % (500 * 1)) // keep cmd_timeout happy
-            printer.move_watch.start();
-
-          if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) { // probe triggered
-
-            for (probe_counter = 1; probe_counter < 50 && (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)); probe_counter ++)
-              printer.safe_delay(2);
-
-            if (probe_counter == 50)
-              SERIAL_EM("Z Servo Probe detected");   // >= 100mS active time
-            else if (probe_counter >= 2 )
-              SERIAL_EMV("BLTouch compatible probe detected - pulse width (+/- 4mS): ", probe_counter * 2 );   // allow 4 - 100mS pulse
-            else
-              SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
-
-            MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
-
-          } // pulse detected
-
-        } // for loop waiting for trigger
-
-        if (probe_counter == 0) SERIAL_EM("trigger not detected");
-
-      } // measure active signal length
-
-    #endif // HAS_Z_SERVO_PROBE
-
-  } // servo_probe_test
-
   /**
    * M43: Pin debug - report pin state, watch pins, toggle pins and servo probe test/report
    *
@@ -229,7 +106,7 @@
     }
 
     if (parser.seen('S')) {
-      servo_probe_test();
+      probe.servo_test();
       return;
     }
 
@@ -297,4 +174,16 @@
     }
   }
 
-#endif // ENABLED(PINS_DEBUGGING)
+#else // DISABLED(PINS_DEBUGGING)
+
+  #define CODE_M43
+
+  /**
+   * M43: Servo probe test/report
+   *
+   *  M43 S       - Servo probe test
+   *                  P<index> - Probe index (optional - defaults to 0)
+   */
+  inline void gcode_M43(void) { if (parser.seen('S')) probe.servo_test(); }
+
+#endif // DISABLED(PINS_DEBUGGING)

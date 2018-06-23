@@ -101,7 +101,7 @@ class Probe {
       }
     #endif
 
-  private: /** Private Parameters */
+    static void servo_test();
 
   private: /** Private Function */
 
