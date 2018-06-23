@@ -157,7 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define BTN_EN1                 44
 #define BTN_EN2                 45

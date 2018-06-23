@@ -157,7 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define SLEEP_WAKE_PIN        26  // This feature still needs work
 #define PHOTOGRAPH_PIN        29

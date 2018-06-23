@@ -157,8 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
-
 //###IF_BLOCKS
 #if TEMP_SENSOR_0 == NoPin
   #define ORIG_TEMP_0_PIN          8   // ANALOG NUMBERING

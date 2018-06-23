@@ -157,7 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define X_MS1_PIN 40
 #define X_MS2_PIN 41
