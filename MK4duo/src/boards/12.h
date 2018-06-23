@@ -157,8 +157,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define BOGUS_TEMPERATURE_FAILSAFE_OVERRIDE
 //@@@
-

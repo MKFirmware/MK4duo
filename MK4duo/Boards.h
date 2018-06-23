@@ -88,7 +88,6 @@
 #define BOARD_MELZI             63    // Melzi
 #define BOARD_STB_11            64    // STB V1.1
 #define BOARD_AZTEEG_X1         65    // Azteeg X1
-#define BOARD_MELZI_MAKR3D      66    // Melzi with ATmega1284 (MaKr3d version)
 #define BOARD_MELZI_CREALITY    89    // Melzi Creality3D board (for CR-10 etc)
 
 /**
@@ -102,7 +101,6 @@
 #define BOARD_GEN7_14           13    // Gen7 v1.4
 #define BOARD_SETHI             20    // Sethi 3D_1
 #define BOARD_GEN3_MONOLITHIC   22    // Gen3 Monolithic Electronics
-#define BOARD_GEN6_DELUXE       51    // Gen6 deluxe
 #define BOARD_OMCA_A            90    // Alpha OMCA board
 #define BOARD_OMCA              91    // Final OMCA board
 

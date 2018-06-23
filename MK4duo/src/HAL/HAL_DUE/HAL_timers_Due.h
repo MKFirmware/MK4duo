@@ -92,73 +92,84 @@
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 792 cycles
-#define ISR_BASE_CYCLES         792UL
+#define ISR_BASE_CYCLES               792UL
 
 // Linear advance base time is 64 cycles
 #if ENABLED(LIN_ADVANCE)
-  #define ISR_LA_BASE_CYCLES    64UL
+  #define ISR_LA_BASE_CYCLES          64UL
 #else
-  #define ISR_LA_BASE_CYCLES    0UL
+  #define ISR_LA_BASE_CYCLES          0UL
 #endif
 
 // Bezier interpolation adds 40 cycles
 #if ENABLED(BEZIER_JERK_CONTROL)
-  #define ISR_BEZIER_CYCLES     40UL
+  #define ISR_BEZIER_CYCLES           40UL
 #else
-  #define ISR_BEZIER_CYCLES     0UL
+  #define ISR_BEZIER_CYCLES           0UL
 #endif
 
 // Stepper Loop base cycles
-#define ISR_LOOP_BASE_CYCLES    4UL
+#define ISR_LOOP_BASE_CYCLES          4UL
 
-// And each stepper takes 16 cycles
-#define ISR_STEPPER_CYCLES      16UL
+// To start the step pulse, in the worst case takes
+#define ISR_START_STEPPER_CYCLES      13UL
+
+// And each stepper (start + stop pulse) takes in worst case
+#define ISR_STEPPER_CYCLES            16UL
 
 // For each stepper, we add its time
 #if HAS_X_STEP
-  #define ISR_X_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+  #define ISR_START_X_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
+  #define ISR_X_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_X_STEPPER_CYCLES  0UL
+  #define ISR_START_X_STEPPER_CYCLES  0UL
+  #define ISR_X_STEPPER_CYCLES        0UL
 #endif
-
-// For each stepper, we add its time
 #if HAS_Y_STEP
-  #define ISR_Y_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+  #define ISR_START_Y_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
+  #define ISR_Y_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_Y_STEPPER_CYCLES  0UL
+  #define ISR_START_Y_STEPPER_CYCLES  0UL
+  #define ISR_Y_STEPPER_CYCLES        0UL
 #endif
-
-// For each stepper, we add its time
 #if HAS_Z_STEP
-  #define ISR_Z_STEPPER_CYCLES  ISR_STEPPER_CYCLES
+  #define ISR_START_Z_STEPPER_CYCLES  ISR_START_STEPPER_CYCLES
+  #define ISR_Z_STEPPER_CYCLES        ISR_STEPPER_CYCLES
 #else
-  #define ISR_Z_STEPPER_CYCLES  0UL
+  #define ISR_START_Z_STEPPER_CYCLES  0UL
+  #define ISR_Z_STEPPER_CYCLES        0UL
 #endif
 
 // E is always interpolated
-#define ISR_E_STEPPER_CYCLES    ISR_STEPPER_CYCLES
+#define ISR_START_E_STEPPER_CYCLES    ISR_START_STEPPER_CYCLES
+#define ISR_E_STEPPER_CYCLES          ISR_STEPPER_CYCLES
 
 // If linear advance is disabled, then the loop also handles them
 #if DISABLED(LIN_ADVANCE) && ENABLED(COLOR_MIXING_EXTRUDER)
-  #define ISR_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * ISR_STEPPER_CYCLES)
+  #define ISR_START_MIXING_STEPPER_CYCLES ((MIXING_STEPPERS) * 13UL)
+  #define ISR_MIXING_STEPPER_CYCLES       ((MIXING_STEPPERS) * 16UL)
 #else
-  #define ISR_MIXING_STEPPER_CYCLES 0UL
+  #define ISR_START_MIXING_STEPPER_CYCLES 0UL
+  #define ISR_MIXING_STEPPER_CYCLES       0UL
 #endif
 
+// Calculate the minimum time to start all stepper pulses in the ISR loop
+#define MIN_ISR_START_LOOP_CYCLES     (ISR_START_X_STEPPER_CYCLES + ISR_START_Y_STEPPER_CYCLES + ISR_START_Z_STEPPER_CYCLES + ISR_START_E_STEPPER_CYCLES + ISR_START_MIXING_STEPPER_CYCLES)
+
 // And the total minimum loop time is, without including the base
-#define MIN_ISR_LOOP_CYCLES (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
+#define MIN_ISR_LOOP_CYCLES           (ISR_X_STEPPER_CYCLES + ISR_Y_STEPPER_CYCLES + ISR_Z_STEPPER_CYCLES + ISR_E_STEPPER_CYCLES + ISR_MIXING_STEPPER_CYCLES)
 
 // But the user could be enforcing a minimum time, so the loop time is
-#define ISR_LOOP_CYCLES (ISR_LOOP_BASE_CYCLES + MAX(HAL_min_pulse_cycle, MIN_ISR_LOOP_CYCLES))
+#define ISR_LOOP_CYCLES               (ISR_LOOP_BASE_CYCLES + MAX(HAL_min_pulse_cycle, MIN_ISR_LOOP_CYCLES))
 
 // If linear advance is enabled, then it is handled separately
 #if ENABLED(LIN_ADVANCE)
 
   // Estimate the minimum LA loop time
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * (ISR_STEPPER_CYCLES))
+    #define MIN_ISR_LA_LOOP_CYCLES  ((MIXING_STEPPERS) * 16UL)
   #else
-    #define MIN_ISR_LA_LOOP_CYCLES  ISR_STEPPER_CYCLES
+    #define MIN_ISR_LA_LOOP_CYCLES  16UL
   #endif
 
   // And the real loop time

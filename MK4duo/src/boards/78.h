@@ -159,7 +159,7 @@
 
 
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN              66
+#define MAX6675_SS_PIN             66
 //@@@
 
 //###IF_BLOCKS

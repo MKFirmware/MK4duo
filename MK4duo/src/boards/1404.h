@@ -158,7 +158,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN             53
 #define EEPROM_I2C

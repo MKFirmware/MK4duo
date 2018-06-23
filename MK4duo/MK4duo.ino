@@ -144,10 +144,7 @@
  *        or use S<seconds> to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
  * M85  - Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
  * M92  - Set axis_steps_per_unit - same syntax as G92
- * M96  - Print ZWobble value
- * M97  - Set ZWobble parameter M97 A<Amplitude_in_mm> W<period_in_mm> P<phase_in_degrees>
- * M98  - Print Hysteresis value
- * M99  - Set Hysteresis parameter M99 X<in mm> Y<in mm> Z<in mm> E<in mm>
+ * M99  - Set Hysteresis parameter X<in mm> Y<in mm> Z<in mm> E<in mm> F<float> Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
  * M100 - Watch Free Memory (For Debugging Only)
  * M104 - Set hotend target temp
  * M105 - Read current temp

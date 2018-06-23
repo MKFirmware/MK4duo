@@ -166,7 +166,6 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-
 //###UNKNOWN_PINS
 #define NUM_DIGITAL_PINS 111
 #define SPI_CHAN_DAC 1

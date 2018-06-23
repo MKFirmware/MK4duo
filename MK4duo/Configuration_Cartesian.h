@@ -48,7 +48,7 @@
  * - Axis jerk
  * - Homing feedrate
  * - Hotend offset
- * - Cartesian Correction
+ * - Hysteresis Feature
  *
  * Basic-settings can be found in Configuration_Basic.h
  * Temperature-settings can be found in Configuration_Temperature.h
@@ -653,38 +653,20 @@
 
 
 /*****************************************************************************************
- ******************************** CARTESIAN CORRECTION ***********************************
+ ******************************** Hysteresis Feature *************************************
  *****************************************************************************************
- *                                                                                       *
- * New functions, Hysteresis and Zwobble.                                                *
  *                                                                                       *
  * Hysteresis:                                                                           *
  * These are the extra distances that are performed when an axis changes direction       *
  * to compensate for any mechanical hysteresis your printer has.                         *
- * Set the parameters width M99 X<in mm> Y<in mm> Z<in mm> E<in mm>                      *
- *                                                                                       *
- * ZWobble:                                                                              *
- * How to use it:                                                                        *
- * Set the parameters with M97 A<Amplitude_in_mm> W<period_in_mm> P<phase_in_degrees>    *
- * KNOWN LIMITATION (by design): if you redefine the Z value during your print           *
- * (with a G92 for example), the correction *will* screw up                              *
- * How does it work?                                                                     *
- * This class compensates for a wobble of the Z axis that makes the translation          *
- * rod movement->bed (extruder) movement nonlinear.                                      *
- * Instead of assuming Zactual = Zrod, the function assumes that                         *
- * Zaxtual = Zrod + A*sin(w*Zrod + phase). Since the user wants to specify Zactual,      *
- * we need to invert the formula to obtain Zrod, which is the value that will serve      *
- * as the input of the motor.                                                            *
+ * Set the parameters width M99 X<in mm> Y<in mm> Z<in mm>                               *
  *                                                                                       *
  *****************************************************************************************/
-//#define HYSTERESIS
-//#define ZWOBBLE
+//#define HYSTERESIS_FEATURE
 
- // X, Y, Z, E hysteresis in mm.
-#define DEFAULT_HYSTERESIS_MM { 0, 0, 0, 0 }
-
-// A, W, P
-#define DEFAULT_ZWOBBLE       { 0, 0, 0 }
+// Define values for hysteresis distance and correction.
+#define HYSTERESIS_AXIS_MM    { 0, 0, 0 } // mm
+#define HYSTERESIS_CORRECTION 0.0         // 0.0 = no correction; 1.0 = full correction
 /*****************************************************************************************/
 
 #endif /* _CONFIGURATION_CARTESIAN_H_ */

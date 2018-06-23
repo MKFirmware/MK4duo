@@ -44,25 +44,6 @@
                           base_home_pos[XYZ],
                           max_length[XYZ];
 
-    private: /** Private Parameters */
-
-      #if ENABLED(HYSTERESIS)
-        static float    m_hysteresis_axis_shift[XYZE],
-                        m_hysteresis_mm[XYZE];
-        static uint8_t  m_hysteresis_prev_direction_bits,
-                        m_hysteresis_bits;
-      #endif
-
-      #if ENABLED(ZWOBBLE)
-        static float  m_zwobble_amplitude, m_zwobble_puls, m_zwobble_phase,
-                      zwobble_zLut[STEPS_IN_ZLUT][2],
-                      zwobble_lastZ, zwobble_lastZRod,
-                      m_zwobble_scalingFactor;
-        static bool   m_zwobble_consistent,
-                      m_zwobble_sinusoidal;
-        static int    zwobble_lutSize;
-      #endif
-
     public: /** Public Function */
 
       /**
@@ -103,35 +84,6 @@
        */
       static void set_axis_is_at_home(const AxisEnum axis);
 
-      #if ENABLED(HYSTERESIS)
-        static void set_hysteresis_axis(uint8_t axis, float mm);
-        static void report_hysteresis();
-        static void insert_hysteresis_correction(const float x, const float y, const float z, const float e);
-      #endif
-
-      #if ENABLED(ZWOBBLE)
-        #define STEPS_IN_ZLUT 50
-        #define ZWOBBLE_MIN_Z 0.1
-        // minimum distance within which two distances in mm are considered equal
-        #define TOLERANCE_MM 0.01
-        #define DISTANCE(_A,_B) ABS((_A) - (_B))
-        #define EQUAL_WITHIN_TOLERANCE(_A, _B) (DISTANCE(_A, _B) < TOLERANCE_MM)
-        #define TWOPI 6.28318530718
-        #define ZACTUAL_IS_SCALED(_I) (zwobble_zLut[_I][1] < 0)
-        #define ZACTUAL(_I) (zwobble_zLut[_I][1] < 0 ? -zwobble_zLut[_I][1] * m_zwobble_scalingFactor : zwobble_zLut[_I][1])
-        #define ZROD(_I) zwobble_zLut[_I][0]
-        #define SET_ZACTUAL(_I,_V) zwobble_zLut[_I][1] = _V
-        #define SET_ZROD(_I,_V) zwobble_zLut[_I][0] = _V
-        static void report_zwobble();
-        static void insert_zwobble_correction(const float targetZ);
-        static void set_zwobble_amplitude(float _amplitude);
-        static void set_zwobble_period(float _period);
-        static void set_zwobble_phase(float _phase);
-        static void set_zwobble_sample(float zRod, float zActual);
-        static void set_zwobble_scaledsample(float zRod, float zScaledLength);
-        static void set_zwobble_scalingfactor(float zActualPerScaledLength);
-      #endif
-
     private: /** Private Function */
 
       /**
@@ -157,21 +109,6 @@
 
       #if ENABLED(DOUBLE_Z_HOMING)
         static void double_home_z();
-      #endif
-
-      #if ENABLED(HYSTERESIS)
-        static void     set_hysteresis(float x_mm, float y_mm, float z_mm, float e_mm);
-        static uint8_t  calc_direction_bits(const float (&position_mm)[XYZE], const float (&target_mm)[XYZE]);
-        static uint8_t  calc_move_bits(const float (&position_mm)[XYZE], const float (&target_mm)[XYZE]);
-      #endif
-
-      #if ENABLED(ZWOBBLE)
-        static void  calculateLut();
-        static void  initLinearLut();
-        static void  insertInLut(float, float);
-        static float findInLut(float);
-        static float findZRod(float);
-        static bool  areParametersConsistent();
       #endif
 
   };

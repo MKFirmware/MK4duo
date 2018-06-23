@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV48"
+#define EEPROM_VERSION "MKV49"
 
 /**
- * MKV48 EEPROM Layout:
+ * MKV49 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -199,9 +199,13 @@
  * LIN_ADVANCE:
  *  M900  K               planner.extruder_advance_K            (float)
  *
+ * HYSTERESIS FEATURE:
+ *  M99   XYZ             planner.hysteresis_mm                 (float x3)
+ *  M99   F               planner.hysteresis_correction         (float)
+ *
  * ADVANCED_PAUSE_FEATURE:
- *  M603 U                filament_change_unload_length         (float)
- *  M603 L                filament_change_load_length           (float)
+ *  M603  U               filament_change_unload_length         (float)
+ *  M603  L               filament_change_load_length           (float)
  *
  * ========================================================================
  * meshes_begin (between max and min end-point, directly above)
@@ -719,6 +723,14 @@ void EEPROM::Postprocess() {
     #endif
 
     //
+    // Hysteresis Feature
+    //
+    #if ENABLED(HYSTERESIS_FEATURE)
+      EEPROM_WRITE(planner.hysteresis_mm);
+      EEPROM_WRITE(planner.hysteresis_correction);
+    #endif
+
+    //
     // Advanced Pause
     //
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -1139,6 +1151,14 @@ void EEPROM::Postprocess() {
       #endif
 
       //
+      // Hysteresis Feature
+      //
+      #if ENABLED(HYSTERESIS_FEATURE)
+        EEPROM_READ(planner.hysteresis_mm);
+        EEPROM_READ(planner.hysteresis_correction);
+      #endif
+
+      //
       // Advanced Pause
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -1348,7 +1368,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    const float tmp13[] = { X_CURRENT / 1000, Y_CURRENT / 1000, Z_CURRENT / 1000, E0_CURRENT / 1000, E1_CURRENT / 1000, E2_CURRENT / 1000, E3_CURRENT /1000 };
+    static const float tmp13[] = { X_CURRENT / 1000, Y_CURRENT / 1000, Z_CURRENT / 1000, E0_CURRENT / 1000, E1_CURRENT / 1000, E2_CURRENT / 1000, E3_CURRENT /1000 };
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       externaldac.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif
@@ -1771,6 +1791,12 @@ void EEPROM::Factory_Settings() {
 
   #if ENABLED(LIN_ADVANCE)
     planner.extruder_advance_K = LIN_ADVANCE_K;
+  #endif
+
+  #if ENABLED(HYSTERESIS_FEATURE)
+    static const float tmp14[] PROGMEM = HYSTERESIS_AXIS_MM;
+    LOOP_XYZ(i) planner.hysteresis_mm[i] = pgm_read_float(&tmp14[i]);
+    planner.hysteresis_correction  = HYSTERESIS_CORRECTION;
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -2438,6 +2464,18 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(LIN_ADVANCE)
       CONFIG_MSG_START_E("Linear Advance:");
       SERIAL_LMV(CFG, "  M900 K", planner.extruder_advance_K);
+    #endif
+
+    /**
+     * Hysteresis Feature
+     */
+    #if ENABLED(HYSTERESIS_FEATURE)
+      CONFIG_MSG_START_E("Hysteresis Correction:");
+      SERIAL_SMV(CFG, "  M99 X", planner.hysteresis_mm[X_AXIS]);
+      SERIAL_MV(" Y", planner.hysteresis_mm[Y_AXIS]);
+      SERIAL_MV(" Z", planner.hysteresis_mm[Z_AXIS]);
+      SERIAL_MV(" F", planner.hysteresis_correction);
+      SERIAL_EOL();
     #endif
 
     /**
