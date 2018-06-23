@@ -79,7 +79,7 @@ enum AxisEnum : unsigned char{
 #define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
-#if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+#if PLANNER_LEVELING || ENABLED(Z_WOBBLE_FEATURE)
   #define ARG_X float rx
   #define ARG_Y float ry
   #define ARG_Z float rz
@@ -364,7 +364,7 @@ class Mechanics {
     #if ENABLED(JUNCTION_DEVIATION)
       FORCE_INLINE static void recalculate_max_e_jerk_factor() {
         #if ENABLED(LIN_ADVANCE)
-          max_e_jerk_factor = SQRT(SQRT(0.5) * junction_deviation_mm) * RECIPROCAL(1.0 - SQRT(0.5));
+          max_e_jerk_factor = SQRT(SQRT(0.5) * junction_deviation_mm * RECIPROCAL(1.0 - SQRT(0.5)));
         #endif
       }
     #endif

@@ -103,14 +103,16 @@ class Endstops {
     static void setup_pullup();
 
     /**
-     * A change was detected or presumed to be in endstops pins.
-     */
-    static void check();
-
-    /**
      * Periodic call to Tick endstops if required.
      */
     static void Tick();
+
+    /**
+     * Update endstops bits from the pins. Apply filtering to get a verified state.
+     * If should_check() and moving towards a triggered switch, abort the current move.
+     * Called from ISR contexts.
+     */
+    static void update();
 
     /**
      * Get Endstop hit state.
@@ -154,7 +156,7 @@ class Endstops {
     FORCE_INLINE static void setEnabled(const bool onoff) {
       SET_BIT(flag_bits, bit_endstop_enabled, onoff);
       #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        if (onoff) update();
+        update();
       #endif
     }
     FORCE_INLINE static bool isEnabled() { return TEST(flag_bits, bit_endstop_enabled); }
@@ -173,7 +175,7 @@ class Endstops {
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
       SET_BIT(flag_bits, bit_probe_endstop, onoff);
       #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        if (onoff) update();
+        update();
       #endif
     }
     FORCE_INLINE static bool isProbeEnabled() { return TEST(flag_bits, bit_probe_endstop); }
@@ -192,11 +194,6 @@ class Endstops {
     FORCE_INLINE static void setNotHoming() { setEnabled(isGlobally()); }
 
   private: /** Private Function */
-
-    /**
-     * Update the endstops bits from the pins
-     */
-    static void update();
 
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
       static void setup_interrupts(void);

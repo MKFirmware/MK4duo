@@ -1542,7 +1542,7 @@ uint32_t Stepper::block_phase_step() {
       // done against the endstop. So, check the limits here: If the movement
       // is against the limits, the block will be marked as to be killed, and
       // on the next call to this ISR, will be discarded.
-      endstops.check();
+      endstops.update();
 
       #if ENABLED(Z_LATE_ENABLE)
         // If delayed Z enable, enable it now. This option will severely interfere with

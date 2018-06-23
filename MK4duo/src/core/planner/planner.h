@@ -105,7 +105,7 @@ typedef struct {
     uint32_t  acceleration_rate;            // The acceleration rate used for acceleration calculation
   #endif
 
-  uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+  uint8_t direction_bits;                   // The direction bit set for this block
 
   // Advance extrusion
   #if ENABLED(LIN_ADVANCE)
@@ -182,6 +182,11 @@ class Planner {
       static bool abort_on_endstop_hit;
     #endif
 
+    #if ENABLED(HYSTERESIS_FEATURE)
+      static float  hysteresis_mm[XYZ],
+                    hysteresis_correction;
+    #endif
+
   private: /** Private Parameters */
 
     /**
@@ -216,7 +221,7 @@ class Planner {
       // Used for the frequency limit
       #define MAX_FREQ_TIME_US (uint32_t)(1000000.0 / XY_FREQUENCY_LIMIT)
       // Old direction bits. Used for speed calculations
-      static unsigned char old_direction_bits;
+      static uint8_t old_direction_bits;
       // Segment times (in µs). Used for speed calculations
       static uint32_t axis_segment_time_us[2][3];
     #endif
@@ -608,6 +613,10 @@ class Planner {
       }
 
     #endif // JUNCTION_DEVIATION
+
+    #if ENABLED(HYSTERESIS_FEATURE)
+      static void insert_hysteresis_correction(const int32_t dx, const int32_t dy, const int32_t dz, block_t * block, float delta_mm[]);
+    #endif
 
 };
 

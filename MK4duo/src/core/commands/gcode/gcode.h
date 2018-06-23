@@ -105,8 +105,7 @@
 #include "feature/g27.h"
 #include "feature/g60.h"
 #include "feature/g61.h"
-#include "feature/m96_m97.h"
-#include "feature/m98_m99.h"
+#include "feature/m99.h"                  // Hysteresis feature
 #include "feature/m100.h"                 // Free Memory Watcher
 #include "feature/m125.h"
 #include "feature/m126_m129.h"            // Solenoid feature

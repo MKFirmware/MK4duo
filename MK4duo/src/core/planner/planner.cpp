@@ -102,7 +102,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
 
 #if ENABLED(XY_FREQUENCY_LIMIT)
   // Old direction bits. Used for speed calculations
-  unsigned char Planner::old_direction_bits = 0;
+  uint8_t Planner::old_direction_bits = 0;
   // Segment times (in µs). Used for speed calculations
   uint32_t Planner::axis_segment_time_us[2][3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
 #endif
@@ -118,6 +118,11 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
   #else
     bool Planner::abort_on_endstop_hit = false;
   #endif
+#endif
+
+#if ENABLED(HYSTERESIS_FEATURE)
+  float Planner::hysteresis_mm[XYZ]     = { 0.0 },
+        Planner::hysteresis_correction  = 0.0;
 #endif
 
 #if ENABLED(ULTRA_LCD)
@@ -713,7 +718,11 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
   const bool isr_enabled = STEPPER_ISR_ENABLED();
   if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
-  // Don't update variables if block is busy: It is being interpreted by the planner
+  // Don't update variables if block is busy; it is being interpreted by the planner.
+  // If this happens, there's a problem... The block speed is inconsistent. Some values
+  // have already been updated, but the Stepper ISR is already using the block. Fortunately,
+  // the values being used by the Stepper ISR weren't touched, so just stop here...
+  // TODO: There may be a way to update a running block, depending on the stepper ISR position.
   if (!TEST(block->flag, BLOCK_BIT_BUSY)) {
     block->accelerate_until = accelerate_steps;
     block->decelerate_after = accelerate_steps + plateau_steps;
@@ -820,10 +829,13 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t* const n
         ? max_entry_speed_sqr
         : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next ? next->entry_speed_sqr : sq(MINIMUM_PLANNER_SPEED), current->millimeters));
       if (current->entry_speed_sqr != new_entry_speed_sqr) {
-        current->entry_speed_sqr = new_entry_speed_sqr;
 
-        // Need to recalculate the block speed
+        // Need to recalculate the block speed - Mark it now, so the stepper
+        // ISR does not consume the block before being recalculated
         SBI(current->flag, BLOCK_BIT_RECALCULATE);
+
+        // Set the new entry speed
+        current->entry_speed_sqr = new_entry_speed_sqr;
       }
     }
   }
@@ -886,14 +898,15 @@ void Planner::forward_pass_kernel(const block_t* const previous, block_t* const 
       // If true, current block is full-acceleration and we can move the planned pointer forward.
       if (new_entry_speed_sqr < current->entry_speed_sqr) {
 
+        // Mark we need to recompute the trapezoidal shape, and do it now,
+        // so the stepper ISR does not consume the block before being recalculated
+        SBI(current->flag, BLOCK_BIT_RECALCULATE);
+
         // Always <= max_entry_speed_sqr. Backward pass sets this.
         current->entry_speed_sqr = new_entry_speed_sqr; // Always <= max_entry_speed_sqr. Backward pass sets this.
 
         // Set optimal plan pointer.
         block_buffer_planned = block_index;
-
-        // And mark we need to recompute the trapezoidal shape
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
       }
     }
 
@@ -982,6 +995,12 @@ void Planner::recalculate_trapezoids() {
       if (current) {
         // Recalculate if current block entry or exit junction speed has changed.
         if (TEST(current->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
+
+          // Mark the current block as RECALCULATE, to protect it from the Stepper ISR running it.
+          // Note that due to the above condition, there's a chance the current block isn't marked as
+          // RECALCULATE yet, but the next one is. That's the reason for the following line.
+          SBI(current->flag, BLOCK_BIT_RECALCULATE);
+
           // NOTE: Entry and exit factors always > 0 by all previous logic operations.
           const float current_nominal_speed = SQRT(current->nominal_speed_sqr),
                       nomr = 1.0 / current_nominal_speed;
@@ -993,7 +1012,10 @@ void Planner::recalculate_trapezoids() {
               current->final_adv_steps = next_entry_speed * comp;
             }
           #endif
-          CBI(current->flag, BLOCK_BIT_RECALCULATE); // Reset current only to ensure next trapezoid is computed
+
+          // Reset current only to ensure next trapezoid is computed - The
+          // stepper is free to use the block from now on.
+          CBI(current->flag, BLOCK_BIT_RECALCULATE);
         }
       }
 
@@ -1006,6 +1028,12 @@ void Planner::recalculate_trapezoids() {
 
   // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
   if (next) {
+
+    // Mark the next(last) block as RECALCULATE, to prevent the Stepper ISR running it.
+    // As the last block is always recalculated here, there is a chance the block isn't
+    // marked as RECALCULATE yet. That's the reason for the following line.
+    SBI(next->flag, BLOCK_BIT_RECALCULATE);
+
     const float next_nominal_speed = SQRT(next->nominal_speed_sqr),
                 nomr = 1.0 / next_nominal_speed;
     calculate_trapezoid_for_block(next, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
@@ -1016,6 +1044,9 @@ void Planner::recalculate_trapezoids() {
         next->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
       }
     #endif
+
+    // Reset next only to ensure its trapezoid is computed - The stepper is free to use
+    // the block from now on.
     CBI(next->flag, BLOCK_BIT_RECALCULATE);
   }
 
@@ -1027,13 +1058,10 @@ void Planner::recalculate() {
 
   // If there is just one block, no planning can be done. Avoid it!
   if (block_index != block_buffer_planned) {
-    // Perform the reverse pass
     reverse_pass();
-    // Perform the forward pass
     forward_pass();
   }
 
-  // Recalculate trapezoids
   recalculate_trapezoids();
 }
 
@@ -1710,6 +1738,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     block->millimeters = ABS(delta_mm[E_AXIS]);
   }
   else if (!millimeters) {
+    #if ENABLED(HYSTERESIS_FEATURE)
+      insert_hysteresis_correction(dx, dy, dz, block, delta_mm);
+    #endif
+
     block->millimeters = SQRT(
       #if CORE_IS_XY
         sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_AXIS])
@@ -1855,7 +1887,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(XY_FREQUENCY_LIMIT)
 
     // Check and limit the xy direction change frequency
-    const unsigned char direction_change = block->direction_bits ^ old_direction_bits;
+    const uint8_t direction_change = block->direction_bits ^ old_direction_bits;
     old_direction_bits = block->direction_bits;
     segment_time_us = LROUND((float)segment_time_us / speed_factor);
 
@@ -2331,15 +2363,12 @@ bool Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
   #if PLANNER_LEVELING && (IS_CARTESIAN || IS_CORE)
     bedlevel.apply_leveling(rx, ry, rz);
   #endif
-  #if ENABLED(ZWOBBLE)
+  #if ENABLED(Z_WOBBLE_FEATURE)
     // Calculate ZWobble
     mechanics.insert_zwobble_correction(rz);
   #endif
-  #if ENABLED(HYSTERESIS)
-    // Calculate Hysteresis
-    mechanics.insert_hysteresis_correction(rx, ry, rz, e);
-  #endif
-   return buffer_segment(rx, ry, rz, e, fr_mm_s, extruder, millimeters);
+
+  return buffer_segment(rx, ry, rz, e, fr_mm_s, extruder, millimeters);
 }
 
 /**
@@ -2352,18 +2381,14 @@ bool Planner::buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_m
  *  extruder  - target extruder
  */
 bool Planner::buffer_line_kinematic(const float (&cart)[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters/*= 0.0*/) {
-  #if PLANNER_LEVELING || ENABLED(ZWOBBLE) || ENABLED(HYSTERESIS)
+  #if PLANNER_LEVELING || ENABLED(Z_WOBBLE_FEATURE)
     float raw[XYZ]={ cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
     #if PLANNER_LEVELING
       bedlevel.apply_leveling(raw);
     #endif
-    #if ENABLED(ZWOBBLE)
+    #if ENABLED(Z_WOBBLE_FEATURE)
       // Calculate ZWobble
       mechanics.insert_zwobble_correction(raw[Z_AXIS]);
-    #endif
-    #if ENABLED(HYSTERESIS)
-      // Calculate Hysteresis
-      mechanics.insert_hysteresis_correction(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS]);
     #endif
   #else
     const float (&raw)[XYZE] = cart;
@@ -2478,6 +2503,34 @@ void Planner::refresh_positioning() {
     if ((autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();
     if (parser.seen('S')) autotemp_min = parser.value_celsius();
     if (parser.seen('B')) autotemp_max = parser.value_celsius();
+  }
+
+#endif
+
+#if ENABLED(HYSTERESIS_FEATURE)
+
+  void Planner::insert_hysteresis_correction(const int32_t dx, const int32_t dy, const int32_t dz, block_t * block, float delta_mm[]) {
+
+    static uint8_t last_direction_bits;
+    const bool positive_movement[XYZ] = {dx > 0, dy > 0, dz > 0};
+    uint8_t direction_change = last_direction_bits ^ block->direction_bits;
+
+    if (dx == 0) CBI(direction_change, X_AXIS);
+    if (dy == 0) CBI(direction_change, Y_AXIS);
+    if (dz == 0) CBI(direction_change, Z_AXIS);
+    last_direction_bits ^= direction_change;
+
+    if (hysteresis_correction == 0.0 || !direction_change) return;
+
+    LOOP_XYZ(axis) {
+      if (hysteresis_mm[axis] != 0 && TEST(direction_change, axis)) {
+        const int32_t residual_error = hysteresis_correction * (positive_movement[axis] ? 1.0f : -1.0f) * hysteresis_mm[axis] * mechanics.axis_steps_per_mm[axis];
+        if (residual_error != 0) {
+          block->steps[axis] += ABS(residual_error);
+          delta_mm[axis] = (positive_movement[axis] ? 1.0f : -1.0f) * block->steps[axis] * mechanics.steps_to_mm[axis];
+        }
+      }
+    }
   }
 
 #endif

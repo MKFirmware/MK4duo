@@ -30,12 +30,6 @@
   #include "../../HAL/HAL_endstop_interrupts.h"
 #endif
 
-#if HAS_BED_PROBE
-  #define ENDSTOPS_ENABLED  (isEnabled() || isProbeEnabled())
-#else
-  #define ENDSTOPS_ENABLED  isEnabled()
-#endif
-
 Endstops endstops;
 
 // public:
@@ -144,9 +138,6 @@ void Endstops::init() {
 
 }
 
-// A change was detected or presumed to be in endstops pins.
-void Endstops::check() { if (ENDSTOPS_ENABLED) update(); }
-
 // Called from HAL::Tick or Temperature ISR: Check endstop state if required
 void Endstops::Tick() {
   #if ENABLED(PINS_DEBUGGING)
@@ -154,7 +145,7 @@ void Endstops::Tick() {
   #endif
 
   #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    if (ENDSTOPS_ENABLED) update();
+    update();
   #endif
 }
 
@@ -557,6 +548,8 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 
 // update endstops - Called from ISR!
 void Endstops::update() {
+
+  if (!isEnabled() && !isProbeEnabled()) return;
 
   #define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
   #define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
