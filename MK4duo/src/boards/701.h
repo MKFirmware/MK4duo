@@ -158,26 +158,26 @@
 #define ORIG_LASER_PWM_PIN         NoPin
 
 //###UNKNOWN_PINS
-#define SHIFT_CLK           63
-#define SHIFT_LD            42
-#define SHIFT_OUT           17
-#define SHIFT_EN            17
+#define SHIFT_CLK                  63
+#define SHIFT_LD                   42
+#define SHIFT_OUT                  17
+#define SHIFT_EN                   17
 //@@@
 
 //###IF_BLOCKS
-#if TEMP_SENSOR_0 ==        NoPin
+#if TEMP_SENSOR_0 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_0_PIN    4
 #else
   #define ORIG_TEMP_0_PIN   13
 #endif
 
-#if TEMP_SENSOR_1 == NoPin
+#if TEMP_SENSOR_1 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_1_PIN    8
 #else
   #define ORIG_TEMP_1_PIN   15
 #endif
 
-#if TEMP_SENSOR_BED ==      NoPin
+#if TEMP_SENSOR_BED == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_BED_PIN  8
 #else
   #define ORIG_TEMP_BED_PIN 14
