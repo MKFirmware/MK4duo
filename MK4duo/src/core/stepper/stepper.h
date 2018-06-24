@@ -62,7 +62,8 @@ class Stepper {
     #endif
 
     static uint8_t  minimum_pulse;
-    static uint32_t maximum_rate;
+    static uint32_t maximum_rate,
+                    direction_delay;
 
   private: /** Private Parameters */
 

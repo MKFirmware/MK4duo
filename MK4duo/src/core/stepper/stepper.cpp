@@ -90,8 +90,9 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
   bool Stepper::homing_dual_axis = false;
 #endif
 
-uint8_t   Stepper::minimum_pulse = 0;
-uint32_t  Stepper::maximum_rate = 0;
+uint8_t   Stepper::minimum_pulse    = 0;
+uint32_t  Stepper::maximum_rate     = 0,
+          Stepper::direction_delay  = 0;
 
 /** Private Parameters */
 uint8_t Stepper::last_direction_bits  = 0,
@@ -1910,9 +1911,7 @@ void Stepper::set_directions() {
   #endif
 
   // After changing directions, an small delay could be needed.
-  #if DIRECTION_STEPPER_DELAY > 0
-    DELAY_NS(DIRECTION_STEPPER_DELAY);
-  #endif
+  if (direction_delay > 0) HAL::delayNanoseconds(direction_delay);
 
 }
 

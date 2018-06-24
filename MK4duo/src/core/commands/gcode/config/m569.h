@@ -38,6 +38,7 @@
  *
  *  P[int]            - Set minimum pulse
  *  R[long]           - Set maximum rate
+ *  D[long]           - Set Direction delay
  *
  */
 inline void gcode_M569(void) {
@@ -53,8 +54,9 @@ inline void gcode_M569(void) {
     }
   }
 
-  if (parser.seen('P')) stepper.minimum_pulse = parser.value_byte();
-  if (parser.seen('R')) stepper.maximum_rate = parser.value_ulong();
+  if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
+  if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();
+  if (parser.seen('R')) stepper.maximum_rate    = parser.value_ulong();
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -79,6 +81,7 @@ inline void gcode_M569(void) {
     }
   #endif
 
+  SERIAL_MV(" Direction delay(ns):", stepper.direction_delay);
   SERIAL_MV(" Minimum pulse(us):", stepper.minimum_pulse);
   SERIAL_MV(" Maximum rate(Hz):", stepper.maximum_rate);
 
