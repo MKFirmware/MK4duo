@@ -81,7 +81,7 @@
 
 Stepper stepper;
 
-// public parameters:
+/** Public Parameters */
 uint16_t Stepper::direction_flag = 0;
 
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
@@ -93,11 +93,11 @@ block_t* Stepper::current_block = NULL;  // A pointer to the block currently bei
 uint8_t   Stepper::minimum_pulse = 0;
 uint32_t  Stepper::maximum_rate = 0;
 
-// private parameters:
-uint8_t Stepper::last_direction_bits    = 0,
-        Stepper::axis_did_move          = 0;
+/** Private Parameters */
+uint8_t Stepper::last_direction_bits  = 0,
+        Stepper::axis_did_move        = 0;
 
-bool    Stepper::abort_current_block;
+bool    Stepper::abort_current_block  = false;
 
 #if DISABLED(COLOR_MIXING_EXTRUDER)
   uint8_t Stepper::last_moved_extruder = 0xFF;
@@ -190,7 +190,7 @@ int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
   #endif // LASER_RASTER
 #endif // LASER
 
-// public function:
+/** Public Function */
 void Stepper::init() {
 
   // Init Digipot Motor Current
@@ -1140,7 +1140,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   #endif
 }
 
-// private function:
+/** Private Function */
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -1909,8 +1909,9 @@ void Stepper::set_directions() {
     tools.encLastDir[active_extruder] = count_direction[E_AXIS];
   #endif
 
+  // After changing directions, an small delay could be needed.
   #if DIRECTION_STEPPER_DELAY > 0
-    HAL::delayMicroseconds(DIRECTION_STEPPER_DELAY);
+    DELAY_NS(DIRECTION_STEPPER_DELAY);
   #endif
 
 }
