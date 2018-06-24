@@ -87,11 +87,6 @@
       workspace_plane = PLANE_XY;
     #endif
 
-    #if ENABLED(BLTOUCH)
-      probe.bltouch_command(BLTOUCH_RESET);
-      probe.set_bltouch_deployed(false);
-    #endif
-
     // Always home with tool 0 active
     #if HOTENDS > 1
       const uint8_t old_tool_index = tools.active_extruder;
