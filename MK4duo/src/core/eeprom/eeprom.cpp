@@ -171,8 +171,9 @@
  *
  * Stepper driver control
  *  M569  XYZ T0-5 E      stepper.direction_flag                (uint16_t)
+ *  M569  D               stepper.direction_delay               (uint32_t)
  *  M569  P               stepper.minimum_pulse                 (uint8_t)
- *  M569  R-L             stepper.maximum_rate                  (uint32_t)
+ *  M569  R               stepper.maximum_rate                  (uint32_t)
  *
  * ALLIGATOR:
  *  M906  XYZ T0-4 E      Motor current                         (float x7)
@@ -538,6 +539,7 @@ void EEPROM::Postprocess() {
     #endif
 
     EEPROM_WRITE(stepper.direction_flag);
+    EEPROM_WRITE(stepper.direction_delay);
     EEPROM_WRITE(stepper.minimum_pulse);
     EEPROM_WRITE(stepper.maximum_rate);
 
@@ -1012,6 +1014,7 @@ void EEPROM::Postprocess() {
       #endif
 
       EEPROM_READ(stepper.direction_flag);
+      EEPROM_READ(stepper.direction_delay);
       EEPROM_READ(stepper.minimum_pulse);
       EEPROM_READ(stepper.maximum_rate);
 
@@ -1385,8 +1388,9 @@ void EEPROM::Factory_Settings() {
   constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
   LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
 
-  stepper.minimum_pulse = MINIMUM_STEPPER_PULSE;
-  stepper.maximum_rate  = MAXIMUM_STEPPER_RATE;
+  stepper.direction_delay = DIRECTION_STEPPER_DELAY;
+  stepper.minimum_pulse   = MINIMUM_STEPPER_PULSE;
+  stepper.maximum_rate    = MAXIMUM_STEPPER_RATE;
 
   static_assert(
     tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
@@ -2190,9 +2194,8 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" Z", LINEAR_UNIT(mechanics.delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
-      CONFIG_MSG_START_E("Geometry adjustment: ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
-      CONFIG_MSG_START_E("                     R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
-      CONFIG_MSG_START_E("                     O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
+      CONFIG_MSG_START_E("Delta Geometry adjustment:");
+      CONFIG_MSG_START_E("ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(mechanics.delta_diagonal_rod_adj[1]), 3);
@@ -2203,9 +2206,15 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" U", LINEAR_UNIT(mechanics.delta_tower_radius_adj[0]), 3);
       SERIAL_MV(" V", LINEAR_UNIT(mechanics.delta_tower_radius_adj[1]), 3);
       SERIAL_MV(" W", LINEAR_UNIT(mechanics.delta_tower_radius_adj[2]), 3);
+      SERIAL_EOL();
+      CONFIG_MSG_START_E("R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
+      SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" R", LINEAR_UNIT(mechanics.delta_radius));
       SERIAL_MV(" D", LINEAR_UNIT(mechanics.delta_diagonal_rod));
       SERIAL_MV(" S", mechanics.delta_segments_per_second);
+      SERIAL_EOL();
+      CONFIG_MSG_START_E("O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
+      SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" O", LINEAR_UNIT(mechanics.delta_print_radius));
       SERIAL_MV(" P", LINEAR_UNIT(mechanics.delta_probe_radius));
       SERIAL_MV(" H", LINEAR_UNIT(mechanics.delta_height), 3);
@@ -2310,8 +2319,10 @@ void EEPROM::Factory_Settings() {
       }
     #endif
     CONFIG_MSG_START_E("Stepper driver control:");
-    SERIAL_SMV(CFG, "  M569 P", stepper.minimum_pulse);
-    SERIAL_EMV(" R", stepper.maximum_rate);
+    SERIAL_SMV(CFG, "  M569 D", stepper.direction_delay);
+    SERIAL_MV(" P", stepper.minimum_pulse);
+    SERIAL_MV(" R", stepper.maximum_rate);
+    SERIAL_EOL();
 
     /**
      * Alligator current drivers M906
