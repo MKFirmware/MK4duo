@@ -43,7 +43,7 @@ class TemperatureSensor {
             shB,
             shC;
 
-    #if HEATER_USES_AD
+    #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
       float ad595_offset,
             ad595_gain;
     #endif

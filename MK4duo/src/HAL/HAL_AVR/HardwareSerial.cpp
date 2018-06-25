@@ -83,9 +83,6 @@
     ring_buffer_pos_t rx_max_enqueued = 0;
   #endif
 
-  // A SW memory barrier, to ensure GCC does not overoptimize loops
-  #define sw_barrier() asm volatile("": : :"memory")
-
   // "Atomically" read the RX head index value without disabling interrupts:
   // This MUST be called with RX interrupts enabled, and CAN'T be called
   // from the RX ISR itself!

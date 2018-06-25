@@ -76,6 +76,12 @@ typedef uint16_t  hal_timer_t;
 typedef uint16_t  ptr_int_t;
 
 // --------------------------------------------------------------------------
+// Defines
+// --------------------------------------------------------------------------
+// A SW memory barrier, to ensure GCC does not overoptimize loops
+#define sw_barrier() asm volatile("": : :"memory")
+
+// --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
 #include "fastio.h"
@@ -96,7 +102,6 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
-
 #ifndef CRITICAL_SECTION_START
   #define CRITICAL_SECTION_START  unsigned char _sreg = SREG; cli();
   #define CRITICAL_SECTION_END    SREG = _sreg;

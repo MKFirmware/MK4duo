@@ -254,7 +254,7 @@
  * M532 - X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
  * M569 - Stepper driver control X<bool> Y<bool> Z<bool> T<extruders> E<bool> set direction, D<long> set direction delay, P<int> set minimum pulse, R<long> set maximum rate.
- * M595 - Set hotend AD595 O<offset> and S<gain>
+ * M595 - Set AD595 or AD8495 O<offset> and S<gain>
  * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
  *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
  * M603 - Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
