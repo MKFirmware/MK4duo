@@ -478,7 +478,7 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(heaters[h].sensor.beta);
         EEPROM_WRITE(heaters[h].sensor.pullupR);
         EEPROM_WRITE(heaters[h].sensor.shC);
-        #if HEATER_USES_AD595
+        #if HEATER_USES_AD
           EEPROM_WRITE(heaters[h].sensor.ad595_offset);
           EEPROM_WRITE(heaters[h].sensor.ad595_gain);
         #endif
@@ -952,7 +952,7 @@ void EEPROM::Postprocess() {
           EEPROM_READ(heaters[h].sensor.beta);
           EEPROM_READ(heaters[h].sensor.pullupR);
           EEPROM_READ(heaters[h].sensor.shC);
-          #if HEATER_USES_AD595
+          #if HEATER_USES_AD
             EEPROM_READ(heaters[h].sensor.ad595_offset);
             EEPROM_READ(heaters[h].sensor.ad595_gain);
             if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = TEMP_SENSOR_AD595_GAIN;
@@ -1497,7 +1497,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1532,7 +1532,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1567,7 +1567,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1602,7 +1602,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1640,7 +1640,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1678,7 +1678,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -1716,7 +1716,7 @@ void EEPROM::Factory_Settings() {
       sens->shC               = 0.0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
-      #if HEATER_USES_AD595
+      #if HEATER_USES_AD
         sens->ad595_offset    = TEMP_SENSOR_AD595_OFFSET;
         sens->ad595_gain      = TEMP_SENSOR_AD595_GAIN;
       #endif
@@ -2066,14 +2066,14 @@ void EEPROM::Factory_Settings() {
       heaters[COOLER_INDEX].print_PID();
     #endif
 
-    #if HEATER_USES_AD595
-      CONFIG_MSG_START_E("AD595 Offset and Gain:");
+    #if HEATER_USES_AD
+      CONFIG_MSG_START_E("AD595 or AD8495 Offset and Gain:");
       LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M595 H", h);
         SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
         SERIAL_EMV(", S", heaters[h].sensor.ad595_gain);
       }
-    #endif // HEATER_USES_AD595
+    #endif // HEATER_USES_AD
 
     #if HOTENDS > 1
       CONFIG_MSG_START_E("Hotend offset (mm):");
