@@ -143,11 +143,11 @@ float TemperatureSensor::getTemperature() {
     if (s_type == -3)
       return 0.25 * read_max6675(pin);
   #endif
-  #if HEATER_USES_AD8495
+  #if ENABLED(SUPPORT_AD8495)
     if (s_type == -2)
       return (adcReading * 660.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
-  #if HEATER_USES_AD595
+  #if ENABLED(SUPPORT_AD595)
     if (s_type == -1)
       return (adcReading * 500.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
@@ -178,12 +178,12 @@ float TemperatureSensor::getTemperature() {
     return (recipT > 0.0) ? (1.0 / recipT) + (ABS_ZERO) : 2000.0;
   }
 
-  #if ENABLED(DHT_SENSOR)
+  #if ENABLED(SUPPORT_DHT11)
     if (s_type == 11)
       return dhtsensor.Temperature;
   #endif
 
-  #if HEATER_USES_AMPLIFIER
+  #if ENABLED(SUPPORT_AMPLIFIER)
 
     #define PGM_RD_W(x) (short)pgm_read_word(&x)
     static uint8_t  ttbllen_map = COUNT(temptable_amplifier);
@@ -207,7 +207,7 @@ float TemperatureSensor::getTemperature() {
       return celsius;
     }
 
-  #endif // HEATER_USES_AMPLIFIER
+  #endif // ENABLED(SUPPORT_AMPLIFIER)
 
   if (s_type == 998) return DUMMY_THERMISTOR_998_VALUE;
   if (s_type == 999) return DUMMY_THERMISTOR_999_VALUE;

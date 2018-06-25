@@ -26,12 +26,12 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_USES_AD
+#if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
 
   #define CODE_M595
 
   /**
-   * M595 - set Hotend AD595 offset & Gain H<hotend_number> O<offset> S<gain>
+   * M595 - set AD595 or AD8495 offset & Gain H<hotend_number> O<offset> S<gain>
    */
   inline void gcode_M595(void) {
 
@@ -54,4 +54,4 @@
     }
   }
 
-#endif // HEATER_USES_AD
+#endif // ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)

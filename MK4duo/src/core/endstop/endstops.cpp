@@ -546,21 +546,16 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 
 #endif // PINS_DEBUGGING
 
+#define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
+#define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
+
 // update endstops - Called from ISR!
 void Endstops::update() {
 
   if (!isEnabled() && !isProbeEnabled()) return;
 
-  #define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
-  #define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
-  #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
-
-  // TEST_ENDSTOP: test the current status of an endstop
-  #define TEST_ENDSTOP(ENDSTOP)             (TEST(live_state, ENDSTOP))
-  // UPDATE_ENDSTOP_BIT: set the current endstop bits for an endstop to its status
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
-  // COPY_BIT: copy the value of SRC_BIT to DST_BIT in DST
-  #define COPY_BIT(DST, SRC_BIT, DST_BIT)   SET_BIT(DST, DST_BIT, TEST(DST, SRC_BIT))
+  #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
   #if ENABLED(G38_PROBE_TARGET) && HAS_Z_PROBE_PIN && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
@@ -595,108 +590,99 @@ void Endstops::update() {
   #endif
 
   /**
-   * Check and update endstops according to conditions
+   * Check and update endstops
    */
-  if (stepper.axis_is_moving(X_AXIS)) {
-    if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
-      #if HAS_X_MIN
-        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR < 0
-          UPDATE_ENDSTOP_BIT(X, MIN);
-          #if HAS_X2_MIN
-            UPDATE_ENDSTOP_BIT(X2, MIN);
-          #else
-            COPY_BIT(live_state, X_MIN, X2_MIN);
-          #endif
-        #else
-          if (X_MIN_TEST) UPDATE_ENDSTOP_BIT(X, MIN);
-        #endif
+  #if HAS_X_MIN
+    #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR < 0
+      UPDATE_ENDSTOP_BIT(X, MIN);
+      #if HAS_X2_MIN
+        UPDATE_ENDSTOP_BIT(X2, MIN);
+      #else
+        COPY_LIVE_STATE(X_MIN, X2_MIN);
       #endif
-    }
-    else {  // +direction
-      #if HAS_X_MAX
-        #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR > 0
-          UPDATE_ENDSTOP_BIT(X, MAX);
-          #if HAS_X2_MAX
-            UPDATE_ENDSTOP_BIT(X2, MAX);
-          #else
-            COPY_BIT(live_state, X_MAX, X2_MAX);
-          #endif
-        #else
-          if (X_MAX_TEST) UPDATE_ENDSTOP_BIT(X, MAX);
-        #endif
-      #endif
-    }
-  }
+    #else
+      UPDATE_ENDSTOP_BIT(X, MIN);
+    #endif
+  #endif
 
-  if (stepper.axis_is_moving(Y_AXIS)) {
-    if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
-      #if HAS_Y_MIN && Y_HOME_DIR < 0
-        #if ENABLED(Y_TWO_ENDSTOPS)
-          UPDATE_ENDSTOP_BIT(Y, MIN);
-          #if HAS_Y2_MIN
-            UPDATE_ENDSTOP_BIT(Y2, MIN);
-          #else
-            COPY_BIT(live_state, Y_MIN, Y2_MIN);
-          #endif
-        #else
-          UPDATE_ENDSTOP_BIT(Y, MIN);
-        #endif
+  #if HAS_X_MAX
+    #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR > 0
+      UPDATE_ENDSTOP_BIT(X, MAX);
+      #if HAS_X2_MAX
+        UPDATE_ENDSTOP_BIT(X2, MAX);
+      #else
+        COPY_LIVE_STATE(X_MAX, X2_MAX);
       #endif
-    }
-    else {  // +direction
-      #if HAS_Y_MAX && Y_HOME_DIR > 0
-        #if ENABLED(Y_TWO_ENDSTOPS)
-          UPDATE_ENDSTOP_BIT(Y, MAX);
-          #if HAS_Y2_MAX
-            UPDATE_ENDSTOP_BIT(Y2, MAX);
-          #else
-            COPY_BIT(live_state, Y_MAX, Y2_MAX);
-          #endif
-        #else
-          UPDATE_ENDSTOP_BIT(Y, MAX);
-        #endif
-      #endif
-    }
-  }
+    #else
+      UPDATE_ENDSTOP_BIT(X, MAX);
+    #endif
+  #endif
 
-  if (stepper.axis_is_moving(Z_AXIS)) {
-    if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
-      #if HAS_Z_MIN
-        #if ENABLED(Z_TWO_ENDSTOPS) && Z_HOME_DIR < 0
-          UPDATE_ENDSTOP_BIT(Z, MIN);
-          #if HAS_Z2_MIN
-            UPDATE_ENDSTOP_BIT(Z2, MIN);
-          #else
-            COPY_BIT(live_state, Z_MIN, Z2_MIN);
-          #endif
-        #elif HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-          if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, MIN);
-        #elif Z_HOME_DIR < 0
-          UPDATE_ENDSTOP_BIT(Z, MIN);
-        #endif
+  #if HAS_Y_MIN && Y_HOME_DIR < 0
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      UPDATE_ENDSTOP_BIT(Y, MIN);
+      #if HAS_Y2_MIN
+        UPDATE_ENDSTOP_BIT(Y2, MIN);
+      #else
+        COPY_LIVE_STATE(Y_MIN, Y2_MIN);
       #endif
+    #else
+      UPDATE_ENDSTOP_BIT(Y, MIN);
+    #endif
+  #endif
 
-      // When closing the gap check the enabled probe
-      #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
-        if (isProbeEnabled()) UPDATE_ENDSTOP_BIT(Z, PROBE);
+  #if HAS_Y_MAX && Y_HOME_DIR > 0
+    #if ENABLED(Y_TWO_ENDSTOPS)
+      UPDATE_ENDSTOP_BIT(Y, MAX);
+      #if HAS_Y2_MAX
+        UPDATE_ENDSTOP_BIT(Y2, MAX);
+      #else
+        COPY_LIVE_STATE(Y_MAX, Y2_MAX);
       #endif
-    }
-    else { // Z +direction. Gantry up, bed down.
-      #if HAS_Z_MAX && Z_HOME_DIR > 0
-        // Check both Z two endstops
-        #if ENABLED(Z_TWO_ENDSTOPS)
-          UPDATE_ENDSTOP_BIT(Z, MAX);
-          #if HAS_Z2_MAX
-            UPDATE_ENDSTOP_BIT(Z2, MAX);
-          #else
-            COPY_BIT(live_state, Z_MAX, Z2_MAX);
-          #endif
-        #else
-          UPDATE_ENDSTOP_BIT(Z, MAX);
-        #endif
+    #else
+      UPDATE_ENDSTOP_BIT(Y, MAX);
+    #endif
+  #endif
+
+  #if HAS_Z_MIN
+    #if ENABLED(Z_TWO_ENDSTOPS) && Z_HOME_DIR < 0
+      UPDATE_ENDSTOP_BIT(Z, MIN);
+      #if HAS_Z2_MIN
+        UPDATE_ENDSTOP_BIT(Z2, MIN);
+      #else
+        COPY_LIVE_STATE(Z_MIN, Z2_MIN);
       #endif
-    }
-  }
+    #elif HAS_BED_PROBE && !HAS_Z_PROBE_PIN
+      UPDATE_ENDSTOP_BIT(Z, MIN);
+    #elif Z_HOME_DIR < 0
+      UPDATE_ENDSTOP_BIT(Z, MIN);
+    #endif
+  #endif
+
+  // When closing the gap check the enabled probe
+  #if HAS_BED_PROBE && HAS_Z_PROBE_PIN
+    UPDATE_ENDSTOP_BIT(Z, PROBE);
+  #endif
+
+  #if HAS_Z_MAX && Z_HOME_DIR > 0
+    // Check both Z two endstops
+    #if ENABLED(Z_TWO_ENDSTOPS)
+      UPDATE_ENDSTOP_BIT(Z, MAX);
+      #if HAS_Z2_MAX
+        UPDATE_ENDSTOP_BIT(Z2, MAX);
+      #else
+        COPY_LIVE_STATE(Z_MAX, Z2_MAX);
+      #endif
+    #else
+      UPDATE_ENDSTOP_BIT(Z, MAX);
+    #endif
+  #endif
+
+  // Test the current status of an endstop
+  #define TEST_ENDSTOP(ENDSTOP)       (TEST(live_state, ENDSTOP))
+
+  // Record endstop was hit
+  #define _ENDSTOP_HIT(AXIS, MINMAX)  SBI(hit_state, _ENDSTOP(AXIS, MINMAX))
 
   // Call the endstop triggered routine for single endstops
   #define PROCESS_ENDSTOP(AXIS,MINMAX) do { \
@@ -792,7 +778,6 @@ void Endstops::update() {
     }
     else { // Z +direction. Gantry up, bed down.
       #if HAS_Z_MAX
-        // Check both Z two endstops
         #if ENABLED(Z_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MAX);
         #else
