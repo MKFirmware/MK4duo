@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_USES_AD595
+#if HEATER_USES_AD
 
   #define CODE_M595
 
@@ -35,10 +35,12 @@
    */
   inline void gcode_M595(void) {
 
-    if (commands.get_target_tool(595)) return;
+    int8_t hh = parser.seen('H') ? parser.value_int() : 0;
 
-    heaters[TARGET_HOTEND].sensor.ad595_offset = parser.floatval('O');
-    heaters[TARGET_HOTEND].sensor.ad595_gain   = parser.floatval('S', 1);
+    if (!commands.get_target_heater(hh)) return;
+
+    heaters[hh].sensor.ad595_offset = parser.floatval('O');
+    heaters[hh].sensor.ad595_gain   = parser.floatval('S', 1);
 
     SERIAL_EM(MSG_AD595);
 
@@ -46,10 +48,10 @@
 
       if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = 1.0;
 
-      SERIAL_MV(" T", h);
+      SERIAL_MV(" H", h);
       SERIAL_MV(" Offset: ", heaters[h].sensor.ad595_offset, 3);
       SERIAL_EMV(", Gain: ", heaters[h].sensor.ad595_gain, 3);
     }
   }
 
-#endif // HEATER_USES_AD595
+#endif // HEATER_USES_AD

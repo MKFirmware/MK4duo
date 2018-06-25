@@ -136,16 +136,20 @@ float TemperatureSensor::getTemperature() {
                 adcReading  = raw;
 
   #if ENABLED(SUPPORT_MAX31855)
-    if (s_type == -3)
+    if (s_type == -4)
       return 0.25 * read_max31855(pin);
   #endif
   #if ENABLED(SUPPORT_MAX6675)
-    if (s_type == -2)
+    if (s_type == -3)
       return 0.25 * read_max6675(pin);
+  #endif
+  #if HEATER_USES_AD8495
+    if (s_type == -2)
+      return (adcReading * 660.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
   #if HEATER_USES_AD595
     if (s_type == -1)
-      return ((adcReading * (((HAL_VOLTAGE_PIN) * 100.0) / (AD_RANGE))) * ad595_gain) + ad595_offset;
+      return (adcReading * 500.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
 
   if (WITHIN(s_type, 1, 9)) {
