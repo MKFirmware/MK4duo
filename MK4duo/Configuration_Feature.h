@@ -257,8 +257,8 @@
  ************************* Multiextruder MKR4 **************************
  ***********************************************************************
  *                                                                     *
- * Setting for more extruder width relay system                        *
- * This is old system for 4 extruder and 8 relay.                      *
+ * Setting for more extruders with relay system                        *
+ * This is an old system for 4 extruders and 8 relays.                 *
  * See Configuration_pins.h for pin command relay                      *
  *                                                                     *
  * Uncomment MKR4 to enable this feature                               *
@@ -274,8 +274,8 @@
  ************************* Multiextruder MKR6 **************************
  ***********************************************************************
  *                                                                     *
- * Setting for more extruder width relay system                        *
- * This is new system for 6 extruder width 2 driver and 8 relay.       *
+ * Setting for more extruders with relay system                        *
+ * This is a new system for 6 extruders with 2 drivers and 8 relays.   *
  * See Configuration_pins.h for pin command relay                      *
  *                                                                     *
  * Uncomment MKR6 to enable this feature                               *
@@ -291,8 +291,8 @@
  ************************* Multiextruder MKR12 *************************
  ***********************************************************************
  *                                                                     *
- * Setting for more extruder width relay system                        *
- * This is new system for 12 extruder width 4 driver and 16 relay.     *
+ * Setting for more extruders with relay system                        *
+ * This is a new system for 12 extruders with 4 drivers and 16 relays. *
  * See Configuration_pins.h for pin command relay                      *
  *                                                                     *
  * Uncomment MKR12 to enable this feature                              *
@@ -308,8 +308,8 @@
  ************************* Multiextruder MKSE6 *************************
  ***********************************************************************
  *                                                                     *
- * Setting for more extruder width servo system                        *
- * This is new system for 6 extruder width 1 driver and 1 servo.       *
+ * Setting for more extruders with servo system                        *
+ * This is a new system for 6 extruders with 1 driver and 1 servo.     *
  *                                                                     *
  * Uncomment MKSE6 to enable this feature                              *
  *                                                                     *
@@ -1637,7 +1637,7 @@
  *********************** RIFD module card reader **************************
  **************************************************************************
  *                                                                        *
- * Support RFID module card reader width UART interface.                  *
+ * Support RFID module card reader with UART interface.                   *
  * This module mount chip MFRC522 designed to communicate with            *
  * ISO/IEC 14443 A/MIFARE cards and transponders without additional       *
  * active circuitry                                                       *

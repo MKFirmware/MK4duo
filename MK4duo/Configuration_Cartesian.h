@@ -659,7 +659,7 @@
  * Hysteresis:                                                                           *
  * These are the extra distances that are performed when an axis changes direction       *
  * to compensate for any mechanical hysteresis your printer has.                         *
- * Set the parameters width M99 X<in mm> Y<in mm> Z<in mm>                               *
+ * Set the parameters with M99 X<in mm> Y<in mm> Z<in mm>                                *
  *                                                                                       *
  *****************************************************************************************/
 //#define HYSTERESIS_FEATURE

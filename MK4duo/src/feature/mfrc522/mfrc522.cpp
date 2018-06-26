@@ -22,7 +22,7 @@
 
 /**
  * MFRC522 Serial
- * Designed for module MFRC522 width UART
+ * Designed for module MFRC522 with UART
  *
  * Copyright (C) 2016 Alberto Cotronei MagoKimbra
  *
@@ -155,9 +155,9 @@
   }
 
   /**
-   * Description： Comunication between MFRC522 and ISO14443.
+   * Description: Comunication between MFRC522 and ISO14443.
    * Command Format: Header + Lenght + Command + (Data)
-   * Return： Return STATUS_OK if success.
+   * Return: Return STATUS_OK if success.
    */
   bool MFRC522::communicate(uint8_t sendDataLength, uint8_t command, uint8_t* sendData) {
 
@@ -273,15 +273,15 @@
 
   // Private
   /*
-   * Description：Write a byte data into MFRC522.
+   * Description: Write a byte data into MFRC522.
    */
   void MFRC522::write(uint8_t value) {
     RFID.write(value);
 }
 
   /*
-   * Description：Read a byte data of MFRC522
-   * Return：Return the read value.
+   * Description: Read a byte data of MFRC522
+   * Return: Return the read value.
    */
   byte MFRC522::read() {
     return RFID.read();
@@ -292,7 +292,7 @@
   }
 
   /*
-   * Description：Returns true if detect card in MFRC522.
+   * Description: Returns true if detect card in MFRC522.
    */
   bool MFRC522::available() {
     return (RFID.available() > 0);

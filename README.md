@@ -50,9 +50,9 @@ The new features are:
 * The possibility of having only one hotend independently from the extruders that you have.
 * The addition of the 6th extruder.
 * Management Color Mixing Extruder
-* System Management MKr4 for 4 extruders width just two drivers and 8 relay.
-* System Management MKr6 for 6 extruders width just two drivers and 8 relay.
-* System Management MKr12 for 12 extruders width just four drivers and 16 relay.
+* System Management MKr4 for 4 extruders with just two drivers and 8 relays.
+* System Management MKr6 for 6 extruders with just two drivers and 8 relays.
+* System Management MKr12 for 12 extruders with just four drivers and 16 relays.
 * Management Dual Extruder DONDOLO.
 * Step per unit varied for each extruder as well as the feedrate and the acceleration.
 * Added commands to facilitate purging of hotend. 
@@ -64,7 +64,7 @@ The new features are:
 * Added total filament printed writed in SD CARD.
 * Added anti extruder idle oozing system.
 * Added Hysteresis and Z-Wobble correction (only cartesian printers).
-* Added support reader TAG width MFRC522
+* Added support reader TAG with MFRC522
 * Added support NEXTION lcd touch
 * Added Cooler and Hot Chamber
 * Added Laser beam and raster base64

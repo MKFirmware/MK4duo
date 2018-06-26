@@ -167,7 +167,7 @@
 | M502 | ? | reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
 | M503 | ? | print the current settings (from memory not from EEPROM)
 | M512 | ? | Print Extruder Encoder status Pin. (Requires Extruder Encoder)
-| M522 | ? | Use for reader o writer tag width MFRC522. M522 T[extruder] R(read) W(write) L(print list data on tag)
+| M522 | ? | Use for reader o writer tag with MFRC522. M522 T[extruder] R(read) W(write) L(print list data on tag)
 | M530 | ? | Enables explicit printing mode (S1) or disables it (S0). L can set layer count
 | M531 | ? | filename - Define filename being printed
 | M532 | ? | X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L

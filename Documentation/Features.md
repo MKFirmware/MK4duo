@@ -41,7 +41,7 @@ NEED UPGRADE
 *   Setting PID for any extruder
 *   Real-time filament diameter measurement and control
 *   COLOR MIXING EXTRUDE
-*   MKR4 suppport for 4 extruder but width only one driver
+*   MKR4 support for 4 extruders with only one driver
 *   Singlenozzle support
 *   NPr2 support, multiextruder by NicolaP http://www.3dmakerlab.it/extruder-npr2.html
 *   Laserbeam support
