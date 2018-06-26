@@ -247,16 +247,16 @@
             #if E0_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(0);
             #endif
-            #if E_STEPPERS > 1 && E1_IS_TRINAMIC
+            #if DRIVER_EXTRUDERS > 1 && E1_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(1);
             #endif
-            #if E_STEPPERS > 2 && E2_IS_TRINAMIC
+            #if DRIVER_EXTRUDERS > 2 && E2_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(2);
             #endif
-            #if E_STEPPERS > 3 && E3_IS_TRINAMIC
+            #if DRIVER_EXTRUDERS > 3 && E3_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(3);
             #endif
-            #if E_STEPPERS > 4 && E4_IS_TRINAMIC
+            #if DRIVER_EXTRUDERS > 4 && E4_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(4);
             #endif
             break;
