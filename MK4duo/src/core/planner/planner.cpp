@@ -1959,7 +1959,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #if ENABLED(LIN_ADVANCE)
 
       #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK (mechanics.max_e_jerk_factor * mechanics.max_acceleration_mm_per_s2[E_AXIS_N])
+        #define MAX_E_JERK mechanics.max_e_jerk[tools.active_extruder]
       #else
         #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N]
       #endif
@@ -2475,17 +2475,26 @@ void Planner::set_position_mm(const AxisEnum axis, const float &v) {
  * Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
  */
 void Planner::reset_acceleration_rates() {
+
   #if EXTRUDERS > 1
     #define AXIS_CONDITION  (i < E_AXIS || i == E_INDEX)
   #else
     #define AXIS_CONDITION  true
   #endif
+
   uint32_t highest_rate = 1;
+
   LOOP_XYZE_N(i) {
     mechanics.max_acceleration_steps_per_s2[i] = mechanics.max_acceleration_mm_per_s2[i] * mechanics.axis_steps_per_mm[i];
     if (AXIS_CONDITION ) NOLESS(highest_rate, mechanics.max_acceleration_steps_per_s2[i]);
   }
+
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
+
+  #if ENABLED(JUNCTION_DEVIATION)
+    mechanics.recalculate_max_e_jerk();
+  #endif
+
 }
 
 /**
