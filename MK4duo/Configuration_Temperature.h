@@ -48,7 +48,7 @@
  ******************************** Temperature Units Support *************************
  ************************************************************************************
  *                                                                                  *
- * Enable TEMPERATURE UNITS SUPPORT for change unit width command Gcode M149        *
+ * Enable TEMPERATURE UNITS SUPPORT for change unit with command Gcode M149         *
  *                                                                                  *
  ************************************************************************************/
 //#define TEMPERATURE_UNITS_SUPPORT
