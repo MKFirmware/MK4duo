@@ -22,7 +22,7 @@
 
 /**
  * MFRC522 Serial
- * Designed for module MFRC522 width UART
+ * Designed for module MFRC522 with UART
  *
  * Copyright (C) 2016 Alberto Cotronei MagoKimbra
  *
