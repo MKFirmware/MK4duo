@@ -290,7 +290,7 @@ void EEPROM::Postprocess() {
   #endif
 
   #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-    mechanics.recalculate_max_e_jerk_factor();
+    mechanics.recalculate_max_e_jerk();
   #endif
 
   // Setup Endstops pullup

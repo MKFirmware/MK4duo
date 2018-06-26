@@ -134,7 +134,7 @@ class Mechanics {
     #if ENABLED(JUNCTION_DEVIATION)
       static float junction_deviation_mm;
       #if ENABLED(LIN_ADVANCE)
-        static float max_e_jerk_factor;
+        static float max_e_jerk[EXTRUDERS];
       #endif
     #else
       static float max_jerk[XYZE_N];
@@ -362,9 +362,15 @@ class Mechanics {
     #endif
 
     #if ENABLED(JUNCTION_DEVIATION)
-      FORCE_INLINE static void recalculate_max_e_jerk_factor() {
+      FORCE_INLINE static void recalculate_max_e_jerk() {
         #if ENABLED(LIN_ADVANCE)
-          max_e_jerk_factor = SQRT(SQRT(0.5) * junction_deviation_mm * RECIPROCAL(1.0 - SQRT(0.5)));
+          LOOP_EXTRUDER() {
+            max_e_jerk[e] = SQRT(SQRT(0.5) *
+              junction_deviation_mm *
+              max_acceleration_mm_per_s2[E_AXIS + e] *
+              RECIPROCAL(1.0 - SQRT(0.5))
+            );
+          }
         #endif
       }
     #endif

@@ -47,7 +47,7 @@ float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
 #if ENABLED(JUNCTION_DEVIATION)
   float Mechanics::junction_deviation_mm = 0.0;
   #if ENABLED(LIN_ADVANCE)
-    float Mechanics::max_e_jerk_factor = 0.0;
+    float Mechanics::max_e_jerk[EXTRUDERS] = { 0.0 };
   #endif
 #else
   float Mechanics::max_jerk[XYZE_N] = { 0.0 };

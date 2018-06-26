@@ -53,7 +53,7 @@ inline void gcode_M205(void) {
       const float junc_dev = parser.value_linear_units();
       if (WITHIN(junc_dev, 0.01, 0.3)) {
         mechanics.junction_deviation_mm = junc_dev;
-        mechanics.recalculate_max_e_jerk_factor();
+        mechanics.recalculate_max_e_jerk();
       }
       else
         SERIAL_LM(ER, "?J out of range (0.01 to 0.3)");
