@@ -549,11 +549,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); break; case 4: E4_STEP_WRITE(V); } }while(0)
   #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); } }while(0)
   #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); break; case 4: E4_DIR_WRITE( isStepDir(E4_AXIS)); } }while(0)
-#elif E_STEPPERS > 3
+#elif DRIVER_EXTRUDERS > 3
   #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); } }while(0)
   #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); } }while(0)
   #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); break; case 3: E3_DIR_WRITE( isStepDir(E3_AXIS)); } }while(0)
-#elif E_STEPPERS > 2
+#elif DRIVER_EXTRUDERS > 2
   #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); } }while(0)
   #define   NORM_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); } }while(0)
   #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); } }while(0)

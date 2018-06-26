@@ -698,7 +698,7 @@ void Stepper::enable_Y() {
 void Stepper::disable_Y() {
   #if HAS_Y2_ENABLE
     Y_ENABLE_WRITE( !Y_ENABLE_ON);
-    y2_ENABLE_WRITE(!Y_ENABLE_ON);
+    Y2_ENABLE_WRITE(!Y_ENABLE_ON);
     printer.setYHomed(false);
   #elif HAS_Y_ENABLE
     Y_ENABLE_WRITE(!Y_ENABLE_ON);
