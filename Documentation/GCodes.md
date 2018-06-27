@@ -184,11 +184,11 @@
 | M702 | ADVANCED PAUSE FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
 | M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)
 | M900 | LIN ADVANCE | K[factor] Set Linear Advance K-factor.
-| M906 | ALLIGATOR or HAVE TMC2130 | Set motor currents XYZ T0-4 E. Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires )
+| M906 | ALLIGATOR or TRINAMIC | Set motor currents XYZ T0-4 E. Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.
 | M907 | a board with digital trimpots | Set digital trimpot motor current using axis codes
 | M908 | DIGIPOTSS PIN | Control digital trimpot directly
-| M911 | HAVE TMC2130 | Report stepper driver overtemperature pre-warn condition
-| M912 | HAVE TMC2130 | Clear stepper driver overtemperature pre-warn condition flag
+| M911 | TRINAMIC | Report stepper driver overtemperature pre-warn condition
+| M912 | TRINAMIC | Clear stepper driver overtemperature pre-warn condition flag
 | M913 | HYBRID THRESHOLD | Set HYBRID THRESHOLD speed
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M928 | ? | Start SD logging (M928 filename.g) - ended by M29

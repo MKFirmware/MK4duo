@@ -24,29 +24,7 @@
 #define _CONFIGURATION_MOTOR_DRIVER_H_
 
 /**********************************************************************************
- **************************** TMC26X motor drivers ********************************
- **********************************************************************************
- *                                                                                *
- * Support for TMC26X motor drivers                                               *
- *                                                                                *
- **********************************************************************************/
-//#define X_IS_TMC
-//#define X2_IS_TMC
-//#define Y_IS_TMC
-//#define Y2_IS_TMC
-//#define Z_IS_TMC
-//#define Z2_IS_TMC
-//#define E0_IS_TMC
-//#define E1_IS_TMC
-//#define E2_IS_TMC
-//#define E3_IS_TMC
-//#define E4_IS_TMC
-//#define E5_IS_TMC
-/**********************************************************************************/
-
-
-/**********************************************************************************
- *********************** Trinamic TMC2130 motor drivers ***************************
+ **************** Trinamic TMC2130 - TMC2208 - TMC2660 motor drivers **************
  **********************************************************************************
  *                                                                                *
  * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper      *
@@ -57,23 +35,19 @@
  *                                                                                *
  * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to        *
  * the hardware SPI interface on your board and define the required CS pins       *
- * in your `MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,       *
- * Y_CS_PIN 49`, etc.).                                                           *
+ * in configuration_pins.h                                                        *
+ *                                                                                *
+ * Enable this for SilentStepStick Trinamic TMC2208 UART-configurable stepper     *
+ * drivers.                                                                       *
+ * Connect #_SERIAL_TX_PIN to the driver side PDN_UART pin.                       *
+ * To use the reading capabilities, also connect #_SERIAL_RX_PIN                  *
+ * to #_SERIAL_TX_PIN with a 1K resistor.                                         *
+ * The drivers can also be used with hardware serial.                             *
+ *                                                                                *
+ * You'll also need the TMC2208Stepper Arduino library                            *
+ * (https://github.com/teemuatlut/TMC2208Stepper).                                *
  *                                                                                *
  **********************************************************************************/
-//#define X_IS_TMC2130
-//#define X2_IS_TMC2130
-//#define Y_IS_TMC2130
-//#define Y2_IS_TMC2130
-//#define Z_IS_TMC2130
-//#define Z2_IS_TMC2130
-//#define E0_IS_TMC2130
-//#define E1_IS_TMC2130
-//#define E2_IS_TMC2130
-//#define E3_IS_TMC2130
-//#define E4_IS_TMC2130
-//#define E5_IS_TMC2130
-
 #define R_SENSE           0.11  // R_sense resistor for SilentStepStick2130
 #define HOLD_MULTIPLIER    0.5  // Scales down the holding current from run current
 #define INTERPOLATE       true  // Interpolate X/Y/Z_MICROSTEPS to 256
@@ -117,38 +91,45 @@
 //#define TMC_Z_CALIBRATION
 #define CALIBRATION_CURRENT 250
 #define CALIBRATION_EXTRA_HEIGHT 10
-/**********************************************************************************/
+
+// Use Trinamic's ultra quiet stepping mode.
+// When disabled, MK4duo will use spreadCycle stepping mode.
+#define STEALTHCHOP
+
+// The driver will switch to spreadCycle when stepper speed is over HYBRID_THRESHOLD.
+// This mode allows for faster movements at the expense of higher noise levels.
+// STEALTHCHOP needs to be enabled.
+// M913 X/Y/Z/E to live tune the setting [mm/s]
+//#define HYBRID_THRESHOLD
+
+#define X_HYBRID_THRESHOLD     100
+#define X2_HYBRID_THRESHOLD    100
+#define Y_HYBRID_THRESHOLD     100
+#define Y2_HYBRID_THRESHOLD    100
+#define Z_HYBRID_THRESHOLD       2
+#define Z2_HYBRID_THRESHOLD      2
+#define E0_HYBRID_THRESHOLD     30
+#define E1_HYBRID_THRESHOLD     30
+#define E2_HYBRID_THRESHOLD     30
+#define E3_HYBRID_THRESHOLD     30
+#define E4_HYBRID_THRESHOLD     30
+#define E5_HYBRID_THRESHOLD     30
+
+/**
+ * You can set your own advanced settings by filling in predefined functions.
+ * A list of available functions can be found on the library github page
+ * https://github.com/teemuatlut/TMC2130Stepper
+ *
+ * Example:
+ * #define TMC_ADV() { \
+ *   stepperX.diag0_temp_prewarn(1); \
+ *   stepperY.interpolate(0); \
+ * }
+ */
+#define  TMC_ADV() {  }
 
 
-/**********************************************************************************
- *********************** Trinamic TMC2208 motor drivers ***************************
- **********************************************************************************
- *                                                                                *
- * Enable this for SilentStepStick Trinamic TMC2208 UART-configurable stepper     *
- * drivers.                                                                       *
- * Connect #_SERIAL_TX_PIN to the driver side PDN_UART pin.                       *
- * To use the reading capabilities, also connect #_SERIAL_RX_PIN                  *
- * to #_SERIAL_TX_PIN with a 1K resistor.                                         *
- * The drivers can also be used with hardware serial.                             *
- *                                                                                *
- * You'll also need the TMC2208Stepper Arduino library                            *
- * (https://github.com/teemuatlut/TMC2208Stepper).                                *
- *                                                                                *
- **********************************************************************************/
-//#define X_IS_TMC2208
-//#define X2_IS_TMC2208
-//#define Y_IS_TMC2208
-//#define Y2_IS_TMC2208
-//#define Z_IS_TMC2208
-//#define Z2_IS_TMC2208
-//#define E0_IS_TMC2208
-//#define E1_IS_TMC2208
-//#define E2_IS_TMC2208
-//#define E3_IS_TMC2208
-//#define E4_IS_TMC2208
-//#define E5_IS_TMC2208
-
-// Hardware serial communication ports.
+// Hardware serial communication ports for TMC2208
 // If undefined software serial is used according to the pins below
 //#define X_HARDWARE_SERIAL  Serial1
 //#define X2_HARDWARE_SERIAL Serial1
@@ -201,17 +182,6 @@
  * You need to import the L6470 library into the arduino IDE for this.            *
  *                                                                                *
  **********************************************************************************/
-//#define X_IS_L6470
-//#define X2_IS_L6470
-//#define Y_IS_L6470
-//#define Y2_IS_L6470
-//#define Z_IS_L6470
-//#define Z2_IS_L6470
-//#define E0_IS_L6470
-//#define E1_IS_L6470
-//#define E2_IS_L6470
-//#define E3_IS_L6470
-
 #define X_K_VAL           50 // 0 - 255, Higher values, are higher power. Be careful not to go too high
 #define X_OVERCURRENT   2000 // maxc current in mA. If the current goes over this value, the driver will switch off
 #define X_STALLCURRENT  1500 // current in mA where the driver will detect a stall
@@ -261,45 +231,4 @@
 #define E5_STALLCURRENT 1500
 /**********************************************************************************/
 
-
-// Use Trinamic's ultra quiet stepping mode.
-// When disabled, MK4duo will use spreadCycle stepping mode.
-#define STEALTHCHOP
-
-// The driver will switch to spreadCycle when stepper speed is over HYBRID_THRESHOLD.
-// This mode allows for faster movements at the expense of higher noise levels.
-// STEALTHCHOP needs to be enabled.
-// M913 X/Y/Z/E to live tune the setting [mm/s]
-//#define HYBRID_THRESHOLD
-
-#define X_HYBRID_THRESHOLD     100
-#define X2_HYBRID_THRESHOLD    100
-#define Y_HYBRID_THRESHOLD     100
-#define Y2_HYBRID_THRESHOLD    100
-#define Z_HYBRID_THRESHOLD       2
-#define Z2_HYBRID_THRESHOLD      2
-#define E0_HYBRID_THRESHOLD     30
-#define E1_HYBRID_THRESHOLD     30
-#define E2_HYBRID_THRESHOLD     30
-#define E3_HYBRID_THRESHOLD     30
-#define E4_HYBRID_THRESHOLD     30
-#define E5_HYBRID_THRESHOLD     30
-
-// Enable M922 debugging command for TMC stepper drivers.
-// M922 S0/1 will enable continous reporting.
-//#define TMC_DEBUG
-
-/**
- * You can set your own advanced settings by filling in predefined functions.
- * A list of available functions can be found on the library github page
- * https://github.com/teemuatlut/TMC2130Stepper
- *
- * Example:
- * #define TMC_ADV() { \
- *   stepperX.diag0_temp_prewarn(1); \
- *   stepperY.interpolate(0); \
- * }
- */
-#define  TMC_ADV() {  }
-  
 #endif /* _CONFIGURATION_MOTOR_DRIVER_H_ */

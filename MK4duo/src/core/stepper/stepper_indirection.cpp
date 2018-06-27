@@ -37,44 +37,47 @@
 //
 // TMC26X Driver objects and inits
 //
-#if ENABLED(HAVE_TMCDRIVER)
+#if HAVE_DRV(TMC26X)
 
   #include <TMC26XStepper.h>
 
   #define _TMC26X_DEFINE(ST) TMC26XStepper stepper##ST(200, ST##_ENABLE_PIN, ST##_STEP_PIN, ST##_DIR_PIN, ST##_MAX_CURRENT, ST##_SENSE_RESISTOR)
 
-  #if ENABLED(X_IS_TMC)
+  #if X_IS_DRV(TMC26X)
     _TMC26X_DEFINE(X);
   #endif
-  #if ENABLED(X2_IS_TMC)
+  #if X2_IS_DRV(TMC26X)
     _TMC26X_DEFINE(X2);
   #endif
-  #if ENABLED(Y_IS_TMC)
+  #if Y_IS_DRV(TMC26X)
     _TMC26X_DEFINE(Y);
   #endif
-  #if ENABLED(Y2_IS_TMC)
+  #if Y2_IS_DRV(TMC26X)
     _TMC26X_DEFINE(Y2);
   #endif
-  #if ENABLED(Z_IS_TMC)
+  #if Z_IS_DRV(TMC26X)
     _TMC26X_DEFINE(Z);
   #endif
-  #if ENABLED(Z2_IS_TMC)
+  #if Z2_IS_DRV(TMC26X)
     _TMC26X_DEFINE(Z2);
   #endif
-  #if ENABLED(E0_IS_TMC)
+  #if E0_IS_DRV(TMC26X)
     _TMC26X_DEFINE(E0);
   #endif
-  #if ENABLED(E1_IS_TMC)
+  #if E1_IS_DRV(TMC26X)
     _TMC26X_DEFINE(E1);
   #endif
-  #if ENABLED(E2_IS_TMC)
+  #if E2_IS_DRV(TMC26X)
     _TMC26X_DEFINE(E2);
   #endif
-  #if ENABLED(E3_IS_TMC)
+  #if E3_IS_DRV(TMC26X)
     _TMC26X_DEFINE(E3);
   #endif
-  #if ENABLED(E4_IS_TMC)
+  #if E4_IS_DRV(TMC26X)
     _TMC26X_DEFINE(E4);
+  #endif
+  #if E5_IS_DRV(TMC26X)
+    _TMC26X_DEFINE(E5);
   #endif
 
   #define _TMC26X_INIT(A) do{ \
@@ -83,47 +86,50 @@
   } while(0)
 
   void tmc26x_init_to_defaults() {
-    #if ENABLED(X_IS_TMC)
+    #if X_IS_DRV(TMC26X)
       _TMC26X_INIT(X);
     #endif
-    #if ENABLED(X2_IS_TMC)
+    #if X2_IS_DRV(TMC26X)
       _TMC26X_INIT(X2);
     #endif
-    #if ENABLED(Y_IS_TMC)
+    #if Y_IS_DRV(TMC26X)
       _TMC26X_INIT(Y);
     #endif
-    #if ENABLED(Y2_IS_TMC)
+    #if Y2_IS_DRV(TMC26X)
       _TMC26X_INIT(Y2);
     #endif
-    #if ENABLED(Z_IS_TMC)
+    #if Z_IS_DRV(TMC26X)
       _TMC26X_INIT(Z);
     #endif
-    #if ENABLED(Z2_IS_TMC)
+    #if Z2_IS_DRV(TMC26X)
       _TMC26X_INIT(Z2);
     #endif
-    #if ENABLED(E0_IS_TMC)
+    #if E0_IS_DRV(TMC26X)
       _TMC26X_INIT(E0);
     #endif
-    #if ENABLED(E1_IS_TMC)
+    #if E1_IS_DRV(TMC26X)
       _TMC26X_INIT(E1);
     #endif
-    #if ENABLED(E2_IS_TMC)
+    #if E2_IS_DRV(TMC26X)
       _TMC26X_INIT(E2);
     #endif
-    #if ENABLED(E3_IS_TMC)
+    #if E3_IS_DRV(TMC26X)
       _TMC26X_INIT(E3);
     #endif
-    #if ENABLED(E4_IS_TMC)
+    #if E4_IS_DRV(TMC26X)
       _TMC26X_INIT(E4);
+    #endif
+    #if E5_IS_DRV(TMC26X)
+      _TMC26X_INIT(E5);
     #endif
   }
 
-#endif // HAVE_TMCDRIVER
+#endif // HAVE_DRV(TMC26X)
 
 //
 // TMC2130 Driver objects and inits
 //
-#if ENABLED(HAVE_TMC2130)
+#if HAVE_DRV(TMC2130)
 
   #include <TMC2130Stepper.h>
 
@@ -138,40 +144,40 @@
   #endif
 
   // Stepper objects of TMC2130 steppers used
-  #if ENABLED(X_IS_TMC2130)
+  #if X_IS_DRV(TMC2130)
     _TMC2130_DEFINE(X);
   #endif
-  #if ENABLED(X2_IS_TMC2130)
+  #if X2_IS_DRV(TMC2130)
     _TMC2130_DEFINE(X2);
   #endif
-  #if ENABLED(Y_IS_TMC2130)
+  #if Y_IS_DRV(TMC2130)
     _TMC2130_DEFINE(Y);
   #endif
-  #if ENABLED(Y2_IS_TMC2130)
+  #if Y2_IS_DRV(TMC2130)
     _TMC2130_DEFINE(Y2);
   #endif
-  #if ENABLED(Z_IS_TMC2130)
+  #if Z_IS_DRV(TMC2130)
     _TMC2130_DEFINE(Z);
   #endif
-  #if ENABLED(Z2_IS_TMC2130)
+  #if Z2_IS_DRV(TMC2130)
     _TMC2130_DEFINE(Z2);
   #endif
-  #if ENABLED(E0_IS_TMC2130)
+  #if E0_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E0);
   #endif
-  #if ENABLED(E1_IS_TMC2130)
+  #if E1_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E1);
   #endif
-  #if ENABLED(E2_IS_TMC2130)
+  #if E2_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E2);
   #endif
-  #if ENABLED(E3_IS_TMC2130)
+  #if E3_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E3);
   #endif
-  #if ENABLED(E4_IS_TMC2130)
+  #if E4_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E4);
   #endif
-  #if ENABLED(E5_IS_TMC2130)
+  #if E5_IS_DRV(TMC2130)
     _TMC2130_DEFINE(E5);
   #endif
 
@@ -208,65 +214,65 @@
   #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM)
 
   void tmc2130_init_to_defaults() {
-    #if ENABLED(X_IS_TMC2130)
+    #if X_IS_DRV(TMC2130)
       _TMC2130_INIT( X, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
-    #if ENABLED(X2_IS_TMC2130)
+    #if X2_IS_DRV(TMC2130)
       _TMC2130_INIT(X2, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
-    #if ENABLED(Y_IS_TMC2130)
+    #if Y_IS_DRV(TMC2130)
       _TMC2130_INIT( Y, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
-    #if ENABLED(Y2_IS_TMC2130)
+    #if Y2_IS_DRV(TMC2130)
       _TMC2130_INIT(Y2, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
-    #if ENABLED(Z_IS_TMC2130)
+    #if Z_IS_DRV(TMC2130)
       _TMC2130_INIT( Z, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if ENABLED(Z2_IS_TMC2130)
+    #if Z2_IS_DRV(TMC2130)
       _TMC2130_INIT(Z2, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if ENABLED(E0_IS_TMC2130)
+    #if E0_IS_DRV(TMC2130)
       _TMC2130_INIT(E0, mechanics.axis_steps_per_mm[E_AXIS]);
     #endif
-    #if ENABLED(E1_IS_TMC2130)
+    #if E1_IS_DRV(TMC2130)
       _TMC2130_INIT(E1, mechanics.axis_steps_per_mm[E_AXIS + 1]);
     #endif
-    #if ENABLED(E2_IS_TMC2130)
+    #if E2_IS_DRV(TMC2130)
       _TMC2130_INIT(E2, mechanics.axis_steps_per_mm[E_AXIS + 2]);
     #endif
-    #if ENABLED(E3_IS_TMC2130)
+    #if E3_IS_DRV(TMC2130)
       _TMC2130_INIT(E3, mechanics.axis_steps_per_mm[E_AXIS + 3]);
     #endif
-    #if ENABLED(E4_IS_TMC2130)
+    #if E4_IS_DRV(TMC2130)
       _TMC2130_INIT(E4, mechanics.axis_steps_per_mm[E_AXIS + 4]);
     #endif
-    #if ENABLED(E5_IS_TMC2130)
+    #if E5_IS_DRV(TMC2130)
       _TMC2130_INIT(E5, mechanics.axis_steps_per_mm[E_AXIS + 5]);
     #endif
 
     #if ENABLED(SENSORLESS_HOMING)
       #if ENABLED(X_HOMING_SENSITIVITY)
-        #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+        #if X_IS_DRV(TMC2130)
           stepperX.sgt(X_HOMING_SENSITIVITY);
         #endif
-        #if ENABLED(X2_IS_TMC2130)
+        #if X2_IS_DRV(TMC2130)
           stepperX2.sgt(X_HOMING_SENSITIVITY);
         #endif
       #endif
       #if ENABLED(Y_HOMING_SENSITIVITY)
-        #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+        #if Y_IS_DRV(TMC2130)
           stepperY.sgt(Y_HOMING_SENSITIVITY);
         #endif
-        #if ENABLED(Y2_IS_TMC2130)
+        #if Y2_IS_DRV(TMC2130)
           stepperY2.sgt(Y_HOMING_SENSITIVITY);
         #endif
       #endif
       #if ENABLED(Z_HOMING_SENSITIVITY)
-        #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+        #if Z_IS_DRV(TMC2130)
           stepperZ.sgt(Z_HOMING_SENSITIVITY);
         #endif
-        #if ENABLED(Z2_IS_TMC2130)
+        #if Z2_IS_DRV(TMC2130)
           stepperZ2.sgt(Z_HOMING_SENSITIVITY);
         #endif
       #endif
@@ -276,47 +282,50 @@
   #define SET_CS_PIN(st) OUT_WRITE(st##_CS_PIN, HIGH)
 
   void tmc_init_cs_pins() {
-    #if ENABLED(X_IS_TMC2130)
+    #if X_IS_DRV(TMC2130)
       SET_CS_PIN(X);
     #endif
-    #if ENABLED(Y_IS_TMC2130)
+    #if Y_IS_DRV(TMC2130)
       SET_CS_PIN(Y);
     #endif
-    #if ENABLED(Z_IS_TMC2130)
+    #if Z_IS_DRV(TMC2130)
       SET_CS_PIN(Z);
     #endif
-    #if ENABLED(X2_IS_TMC2130)
+    #if X2_IS_DRV(TMC2130)
       SET_CS_PIN(X2);
     #endif
-    #if ENABLED(Y2_IS_TMC2130)
+    #if Y2_IS_DRV(TMC2130)
       SET_CS_PIN(Y2);
     #endif
-    #if ENABLED(Z2_IS_TMC2130)
+    #if Z2_IS_DRV(TMC2130)
       SET_CS_PIN(Z2);
     #endif
-    #if ENABLED(E0_IS_TMC2130)
+    #if E0_IS_DRV(TMC2130)
       SET_CS_PIN(E0);
     #endif
-    #if ENABLED(E1_IS_TMC2130)
+    #if E1_IS_DRV(TMC2130)
       SET_CS_PIN(E1);
     #endif
-    #if ENABLED(E2_IS_TMC2130)
+    #if E2_IS_DRV(TMC2130)
       SET_CS_PIN(E2);
     #endif
-    #if ENABLED(E3_IS_TMC2130)
+    #if E3_IS_DRV(TMC2130)
       SET_CS_PIN(E3);
     #endif
-    #if ENABLED(E4_IS_TMC2130)
+    #if E4_IS_DRV(TMC2130)
       SET_CS_PIN(E4);
+    #endif
+    #if E5_IS_DRV(TMC2130)
+      SET_CS_PIN(E5);
     #endif
   }
 
-#endif // HAVE_TMC2130
+#endif // HAVE_DRV(TMC2130)
 
 //
 // TMC2208 Driver objects and inits
 //
-#if ENABLED(HAVE_TMC2208)
+#if HAVE_DRV(TMC2208)
 
   #if ENABLED(__AVR__)
     #include <SoftwareSerial.h>
@@ -334,84 +343,84 @@
                                        TMC2208Stepper stepper##ST(&ST##_HARDWARE_SERIAL, ST##_SERIAL_RX_PIN > -1)
 
   // Stepper objects of TMC2208 steppers used
-  #if ENABLED(X_IS_TMC2208)
+  #if X_IS_DRV(TMC2208)
     #if ENABLED(X_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(X);
     #else
       _TMC2208_DEFINE_SOFTWARE(X);
     #endif
   #endif
-  #if ENABLED(X2_IS_TMC2208)
+  #if X2_IS_DRV(TMC2208)
     #if ENABLED(X2_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(X2);
     #else
       _TMC2208_DEFINE_SOFTWARE(X2);
     #endif
   #endif
-  #if ENABLED(Y_IS_TMC2208)
+  #if Y_IS_DRV(TMC2208)
     #if ENABLED(Y_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(Y);
     #else
       _TMC2208_DEFINE_SOFTWARE(Y);
     #endif
   #endif
-  #if ENABLED(Y2_IS_TMC2208)
+  #if Y2_IS_DRV(TMC2208)
     #if ENABLED(Y2_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(Y2);
     #else
       _TMC2208_DEFINE_SOFTWARE(Y2);
     #endif
   #endif
-  #if ENABLED(Z_IS_TMC2208)
+  #if Z_IS_DRV(TMC2208)
     #if ENABLED(Z_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(Z);
     #else
       _TMC2208_DEFINE_SOFTWARE(Z);
     #endif
   #endif
-  #if ENABLED(Z2_IS_TMC2208)
+  #if Z2_IS_DRV(TMC2208)
     #if ENABLED(Z2_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(Z2);
     #else
       _TMC2208_DEFINE_SOFTWARE(Z2);
     #endif
   #endif
-  #if ENABLED(E0_IS_TMC2208)
+  #if E0_IS_DRV(TMC2208)
     #if ENABLED(E0_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E0);
     #else
       _TMC2208_DEFINE_SOFTWARE(E0);
     #endif
   #endif
-  #if ENABLED(E1_IS_TMC2208)
+  #if E1_IS_DRV(TMC2208)
     #if ENABLED(E1_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E1);
     #else
       _TMC2208_DEFINE_SOFTWARE(E1);
     #endif
   #endif
-  #if ENABLED(E2_IS_TMC2208)
+  #if E2_IS_DRV(TMC2208)
     #if ENABLED(E2_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E2);
     #else
       _TMC2208_DEFINE_SOFTWARE(E2);
     #endif
   #endif
-  #if ENABLED(E3_IS_TMC2208)
+  #if E3_IS_DRV(TMC2208)
     #if ENABLED(E3_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E3);
     #else
       _TMC2208_DEFINE_SOFTWARE(E3);
     #endif
   #endif
-  #if ENABLED(E4_IS_TMC2208)
+  #if E4_IS_DRV(TMC2208)
     #if ENABLED(E4_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E4);
     #else
       _TMC2208_DEFINE_SOFTWARE(E4);
     #endif
   #endif
-  #if ENABLED(E5_IS_TMC2208)
+  #if E5_IS_DRV(TMC2208)
     #if ENABLED(E5_HARDWARE_SERIAL)
       _TMC2208_DEFINE_HARDWARE(E5);
     #else
@@ -420,40 +429,40 @@
   #endif
 
   void tmc2208_serial_begin() {
-    #if ENABLED(X_IS_TMC2208)
+    #if X_IS_DRV(TMC2208)
       X_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(X2_IS_TMC2208)
+    #if X2_IS_DRV(TMC2208)
       X2_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(Y_IS_TMC2208)
+    #if Y_IS_DRV(TMC2208)
       Y_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(Y2_IS_TMC2208)
+    #if Y2_IS_DRV(TMC2208)
       Y2_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(Z_IS_TMC2208)
+    #if Z_IS_DRV(TMC2208)
       Z_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(Z2_IS_TMC2208)
+    #if Z2_IS_DRV(TMC2208)
       Z2_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E0_IS_TMC2208)
+    #if E0_IS_DRV(TMC2208)
       E0_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E1_IS_TMC2208)
+    #if E1_IS_DRV(TMC2208)
       E1_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E2_IS_TMC2208)
+    #if E2_IS_DRV(TMC2208)
       E2_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E3_IS_TMC2208)
+    #if E3_IS_DRV(TMC2208)
       E3_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E4_IS_TMC2208)
+    #if E4_IS_DRV(TMC2208)
       E4_HARDWARE_SERIAL.begin(115200);
     #endif
-    #if ENABLED(E5_IS_TMC2208)
+    #if E5_IS_DRV(TMC2208)
       E5_HARDWARE_SERIAL.begin(115200);
     #endif
   }
@@ -497,44 +506,44 @@
   #define _TMC2208_INIT(ST, SPMM) tmc2208_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM)
 
   void tmc2208_init_to_defaults() {
-    #if ENABLED(X_IS_TMC2208)
+    #if X_IS_DRV(TMC2208)
       _TMC2208_INIT(X, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
-    #if ENABLED(X2_IS_TMC2208)
+    #if X2_IS_DRV(TMC2208)
       _TMC2208_INIT(X2, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
-    #if ENABLED(Y_IS_TMC2208)
+    #if Y_IS_DRV(TMC2208)
       _TMC2208_INIT(Y, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
-    #if ENABLED(Y2_IS_TMC2208)
+    #if Y2_IS_DRV(TMC2208)
       _TMC2208_INIT(Y2, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
-    #if ENABLED(Z_IS_TMC2208)
+    #if Z_IS_DRV(TMC2208)
       _TMC2208_INIT(Z, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if ENABLED(Z2_IS_TMC2208)
+    #if Z2_IS_DRV(TMC2208)
       _TMC2208_INIT(Z2, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if ENABLED(E0_IS_TMC2208)
+    #if E0_IS_DRV(TMC2208)
       _TMC2208_INIT(E0, mechanics.axis_steps_per_mm[E_AXIS]);
     #endif
-    #if ENABLED(E1_IS_TMC2208)
+    #if E1_IS_DRV(TMC2208)
       _TMC2208_INIT(E1, mechanics.axis_steps_per_mm[E_AXIS + 1]);
     #endif
-    #if ENABLED(E2_IS_TMC2208)
+    #if E2_IS_DRV(TMC2208)
       _TMC2208_INIT(E2, mechanics.axis_steps_per_mm[E_AXIS + 2]);
     #endif
-    #if ENABLED(E3_IS_TMC2208)
+    #if E3_IS_DRV(TMC2208)
       _TMC2208_INIT(E3, mechanics.axis_steps_per_mm[E_AXIS + 3]);
     #endif
-    #if ENABLED(E4_IS_TMC2208)
+    #if E4_IS_DRV(TMC2208)
       _TMC2208_INIT(E4, mechanics.axis_steps_per_mm[E_AXIS + 4]);
     #endif
-    #if ENABLED(E5_IS_TMC2208)
+    #if E5_IS_DRV(TMC2208)
       _TMC2208_INIT(E5, mechanics.axis_steps_per_mm[E_AXIS + 5]);
     #endif
   }
-#endif // HAVE_TMC2208
+#endif // HAVE_DRV(TMC2208)
 
 void restore_stepper_drivers() {
   #if X_IS_TRINAMIC
@@ -573,66 +582,67 @@ void restore_stepper_drivers() {
 }
 
 void reset_stepper_drivers() {
-  #if ENABLED(HAVE_TMC26X)
+  #if HAVE_DRV(TMC26X)
     tmc26x_init_to_defaults();
   #endif
-  #if ENABLED(HAVE_TMC2130)
+  #if HAVE_DRV(TMC2130)
     delay(100);
     tmc2130_init_to_defaults();
   #endif
-  #if ENABLED(HAVE_TMC2208)
+  #if HAVE_DRV(TMC2208)
     delay(100);
     tmc2208_init_to_defaults();
   #endif
+  #if HAVE_DRV(L6470)
+    L6470_init_to_defaults();
+  #endif
+
   #if ENABLED(TMC_ADV)
     TMC_ADV()
-  #endif
-  #if ENABLED(HAVE_L6470DRIVER)
-    L6470_init_to_defaults();
   #endif
 }
 
 //
 // L6470 Driver objects and inits
 //
-#if ENABLED(HAVE_L6470DRIVER)
+#if HAVE_DRV(L6470)
 
   #include <L6470.h>
 
   #define _L6470_DEFINE(ST) L6470 stepper##ST(ST##_ENABLE_PIN)
 
   // L6470 Stepper objects
-  #if ENABLED(X_IS_L6470)
+  #if X_IS_DRV(L6470)
     _L6470_DEFINE(X);
   #endif
-  #if ENABLED(X2_IS_L6470)
+  #if X2_IS_DRV(L6470)
     _L6470_DEFINE(X2);
   #endif
-  #if ENABLED(Y_IS_L6470)
+  #if Y_IS_DRV(L6470)
     _L6470_DEFINE(Y);
   #endif
-  #if ENABLED(Y2_IS_L6470)
+  #if Y2_IS_DRV(L6470)
     _L6470_DEFINE(Y2);
   #endif
-  #if ENABLED(Z_IS_L6470)
+  #if Z_IS_DRV(L6470)
     _L6470_DEFINE(Z);
   #endif
-  #if ENABLED(Z2_IS_L6470)
+  #if Z2_IS_DRV(L6470)
     _L6470_DEFINE(Z2);
   #endif
-  #if ENABLED(E0_IS_L6470)
+  #if E0_IS_DRV(L6470)
     _L6470_DEFINE(E0);
   #endif
-  #if ENABLED(E1_IS_L6470)
+  #if E1_IS_DRV(L6470)
     _L6470_DEFINE(E1);
   #endif
-  #if ENABLED(E2_IS_L6470)
+  #if E2_IS_DRV(L6470)
     _L6470_DEFINE(E2);
   #endif
-  #if ENABLED(E3_IS_L6470)
+  #if E3_IS_DRV(L6470)
     _L6470_DEFINE(E3);
   #endif
-  #if ENABLED(E4_IS_L6470)
+  #if E4_IS_DRV(L6470)
     _L6470_DEFINE(E4);
   #endif
 
@@ -645,39 +655,39 @@ void reset_stepper_drivers() {
   } while(0)
 
   void L6470_init_to_defaults() {
-    #if ENABLED(X_IS_L6470)
+    #if X_IS_DRV(L6470)
       _L6470_INIT(X);
     #endif
-    #if ENABLED(X2_IS_L6470)
+    #if X2_IS_DRV(L6470)
       _L6470_INIT(X2);
     #endif
-    #if ENABLED(Y_IS_L6470)
+    #if Y_IS_DRV(L6470)
       _L6470_INIT(Y);
     #endif
-    #if ENABLED(Y2_IS_L6470)
+    #if Y2_IS_DRV(L6470)
       _L6470_INIT(Y2);
     #endif
-    #if ENABLED(Z_IS_L6470)
+    #if Z_IS_DRV(L6470)
       _L6470_INIT(Z);
     #endif
-    #if ENABLED(Z2_IS_L6470)
+    #if Z2_IS_DRV(L6470)
       _L6470_INIT(Z2);
     #endif
-    #if ENABLED(E0_IS_L6470)
+    #if E0_IS_DRV(L6470)
       _L6470_INIT(E0);
     #endif
-    #if ENABLED(E1_IS_L6470)
+    #if E1_IS_DRV(L6470)
       _L6470_INIT(E1);
     #endif
-    #if ENABLED(E2_IS_L6470)
+    #if E2_IS_DRV(L6470)
       _L6470_INIT(E2);
     #endif
-    #if ENABLED(E3_IS_L6470)
+    #if E3_IS_DRV(L6470)
       _L6470_INIT(E3);
     #endif
-    #if ENABLED(E4_IS_L6470)
+    #if E4_IS_DRV(L6470)
       _L6470_INIT(E4);
     #endif
   }
 
-#endif // HAVE_L6470DRIVER
+#endif // HAVE_DRV(L6470)

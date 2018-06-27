@@ -60,6 +60,7 @@ typedef int8_t    pin_t;
 
 
 #include "src/inc/macros.h"
+#include "src/inc/driver_types.h"
 #include "Boards.h"
 
 /**
@@ -98,7 +99,7 @@ typedef int8_t    pin_t;
   #include "Configuration_CNCRouter.h"
 #endif
 
-#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_TMC2208) || ENABLED(HAVE_L6470DRIVER)
+#if HAVE_DRV(TMC26X) || HAVE_DRV(TMC2130) || HAVE_DRV(TMC2208) || HAVE_DRV(L6470)
   #include "Configuration_Motor_Driver.h"
 #endif
 
@@ -177,19 +178,19 @@ typedef int8_t    pin_t;
  * External libraries loading
  */
 
-#if ENABLED(HAVE_TMCDRIVER)
+#if HAVE_DRV(TMC26X)
   #include <TMC26XStepper.h>
 #endif
 
-#if ENABLED(HAVE_TMC2130)
+#if HAVE_DRV(TMC2130)
   #include <TMC2130Stepper.h>
 #endif
 
-#if ENABLED(HAVE_TMC2208)
+#if HAVE_DRV(TMC2208)
   #include <TMC2208Stepper.h>
 #endif
 
-#if ENABLED(HAVE_L6470DRIVER)
+#if HAVE_DRV(L6470)
   #include <L6470.h>
 #endif
 

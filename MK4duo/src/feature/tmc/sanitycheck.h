@@ -30,69 +30,38 @@
 #define _TMC_SANITYCHECK_H_
 
 /**
- * Make sure HAVE_TMC26X is warranted
- */
-#if ENABLED(HAVE_TMC26X) && !( \
-         ENABLED( X_IS_TMC26X) \
-      || ENABLED(X2_IS_TMC26X) \
-      || ENABLED( Y_IS_TMC26X) \
-      || ENABLED(Y2_IS_TMC26X) \
-      || ENABLED( Z_IS_TMC26X) \
-      || ENABLED(Z2_IS_TMC26X) \
-      || ENABLED(E0_IS_TMC26X) \
-      || ENABLED(E1_IS_TMC26X) \
-      || ENABLED(E2_IS_TMC26X) \
-      || ENABLED(E3_IS_TMC26X) \
-      || ENABLED(E4_IS_TMC26X) \
-      || ENABLED(E5_IS_TMC26X) \
-  )
-  #error "DEPENDENCY ERROR: HAVE_TMC26X requires at least one TMC26X stepper to be set."
-#endif
-
-/**
  * TMC2130 Requirements
  */
-#if ENABLED(HAVE_TMC2130)
-  #if !( ENABLED( X_IS_TMC2130) \
-      || ENABLED(X2_IS_TMC2130) \
-      || ENABLED( Y_IS_TMC2130) \
-      || ENABLED(Y2_IS_TMC2130) \
-      || ENABLED( Z_IS_TMC2130) \
-      || ENABLED(Z2_IS_TMC2130) \
-      || ENABLED(E0_IS_TMC2130) \
-      || ENABLED(E1_IS_TMC2130) \
-      || ENABLED(E2_IS_TMC2130) \
-      || ENABLED(E3_IS_TMC2130) \
-      || ENABLED(E4_IS_TMC2130) \
-      || ENABLED(E5_IS_TMC2130) \
-    )
-    #error "DEPENDENCY ERROR: HAVE_TMC2130 requires at least one TMC2130 stepper to be set."
-  #elif ENABLED(HYBRID_THRESHOLD) && DISABLED(STEALTHCHOP)
+#if HAVE_DRV(TMC2130)
+
+  #if ENABLED(HYBRID_THRESHOLD) && DISABLED(STEALTHCHOP)
     #error "DEPENDENCY ERROR: Enable STEALTHCHOP to use HYBRID_THRESHOLD."
   #endif
 
-  #if ENABLED(X_IS_TMC2130) && !PIN_EXISTS(X_CS)
+  #if X_IS_DRV(TMC2130) && !PIN_EXISTS(X_CS)
     #error "DEPENDENCY ERROR: X_CS_PIN is required for X_IS_TMC2130. Define X_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(X2_IS_TMC2130) && !PIN_EXISTS(X2_CS)
+  #elif X2_IS_DRV(TMC2130) && !PIN_EXISTS(X2_CS)
     #error "DEPENDENCY ERROR: X2_CS_PIN is required for X2_IS_TMC2130. Define X2_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(Y_IS_TMC2130) && !PIN_EXISTS(Y_CS)
+  #elif Y_IS_DRV(TMC2130) && !PIN_EXISTS(Y_CS)
     #error "DEPENDENCY ERROR: Y_CS_PIN is required for Y_IS_TMC2130. Define Y_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(Y2_IS_TMC2130) && !PIN_EXISTS(Y2_CS)
+  #elif Y2_IS_DRV(TMC2130) && !PIN_EXISTS(Y2_CS)
     #error "DEPENDENCY ERROR: Y2_CS_PIN is required for Y2_IS_TMC2130. Define Y2_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(Z_IS_TMC2130) && !PIN_EXISTS(Z_CS)
+  #elif Z_IS_DRV(TMC2130) && !PIN_EXISTS(Z_CS)
     #error "DEPENDENCY ERROR: Z_CS_PIN is required for Z_IS_TMC2130. Define Z_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(Z2_IS_TMC2130) && !PIN_EXISTS(Z2_CS)
+  #elif Z2_IS_DRV(TMC2130) && !PIN_EXISTS(Z2_CS)
     #error "DEPENDENCY ERROR: Z2_CS_PIN is required for Z2_IS_TMC2130. Define Z2_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(E0_IS_TMC2130) && !PIN_EXISTS(E0_CS)
+  #elif E0_IS_DRV(TMC2130) && !PIN_EXISTS(E0_CS)
     #error "DEPENDENCY ERROR: E0_CS_PIN is required for E0_IS_TMC2130. Define E0_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(E1_IS_TMC2130) && !PIN_EXISTS(E1_CS)
+  #elif E1_IS_DRV(TMC2130) && !PIN_EXISTS(E1_CS)
     #error "DEPENDENCY ERROR: E1_CS_PIN is required for E1_IS_TMC2130. Define E1_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(E2_IS_TMC2130) && !PIN_EXISTS(E2_CS)
+  #elif E2_IS_DRV(TMC2130) && !PIN_EXISTS(E2_CS)
     #error "DEPENDENCY ERROR: E2_CS_PIN is required for E2_IS_TMC2130. Define E2_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(E3_IS_TMC2130) && !PIN_EXISTS(E3_CS)
+  #elif E3_IS_DRV(TMC2130) && !PIN_EXISTS(E3_CS)
     #error "DEPENDENCY ERROR: E3_CS_PIN is required for E3_IS_TMC2130. Define E3_CS_PIN in Configuration_Pins.h."
-  #elif ENABLED(E4_IS_TMC2130) && !PIN_EXISTS(E4_CS)
+  #elif E4_IS_DRV(TMC2130) && !PIN_EXISTS(E4_CS)
     #error "DEPENDENCY ERROR: E4_CS_PIN is required for E4_IS_TMC2130. Define E4_CS_PIN in Configuration_Pins.h."
+  #elif E5_IS_DRV(TMC2130) && !PIN_EXISTS(E5_CS)
+    #error "DEPENDENCY ERROR: E5_CS_PIN is required for E5_IS_TMC2130. Define E5_CS_PIN in Configuration_Pins.h."
   #endif
 
   // Require STEALTHCHOP for SENSORLESS_HOMING on DELTA as the transition from spreadCycle to stealthChop
@@ -121,22 +90,9 @@
 /**
  * TMC2208 Requirements
  */
-#if ENABLED(HAVE_TMC2208)
-  #if !( ENABLED( X_IS_TMC2208) \
-      || ENABLED(X2_IS_TMC2208) \
-      || ENABLED( Y_IS_TMC2208) \
-      || ENABLED(Y2_IS_TMC2208) \
-      || ENABLED( Z_IS_TMC2208) \
-      || ENABLED(Z2_IS_TMC2208) \
-      || ENABLED(E0_IS_TMC2208) \
-      || ENABLED(E1_IS_TMC2208) \
-      || ENABLED(E2_IS_TMC2208) \
-      || ENABLED(E3_IS_TMC2208) \
-      || ENABLED(E4_IS_TMC2208) \
-      || ENABLED(E5_IS_TMC2208) \
-    )
-    #error "DEPENDENCY ERROR: HAVE_TMC2208 requires at least one TMC2208 stepper to be set."
-  #elif ENABLED(ENDSTOP_INTERRUPTS_FEATURE) && \
+#if HAVE_DRV(TMC2208)
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE) && \
       !( defined( X_HARDWARE_SERIAL) \
       || defined(X2_HARDWARE_SERIAL) \
       || defined( Y_HARDWARE_SERIAL) \
@@ -160,107 +116,6 @@
 
 #if ENABLED(TMC_Z_CALIBRATION) && !Z_IS_TRINAMIC && !Z2_IS_TRINAMIC
   #error "DEPENDENCY ERROR: TMC_Z_CALIBRATION requires at least one TMC driver on Z axis"
-#endif
-
-/**
- * Make sure HAVE_L6470DRIVER is warranted
- */
-#if ENABLED(HAVE_L6470DRIVER) && !( \
-       ENABLED( X_IS_L6470) \
-    || ENABLED(X2_IS_L6470) \
-    || ENABLED( Y_IS_L6470) \
-    || ENABLED(Y2_IS_L6470) \
-    || ENABLED( Z_IS_L6470) \
-    || ENABLED(Z2_IS_L6470) \
-    || ENABLED(E0_IS_L6470) \
-    || ENABLED(E1_IS_L6470) \
-    || ENABLED(E2_IS_L6470) \
-    || ENABLED(E3_IS_L6470) \
-    || ENABLED(E4_IS_L6470) \
-    || ENABLED(E5_IS_L6470) \
-  )
-  #error "DEPENDENCY ERROR: HAVE_L6470DRIVER requires at least one L6470 stepper to be set."
-#endif
-
-/**
- * Check that each axis has only one driver selected
- */
-#if 1 < 0 \
-  + ENABLED(X_IS_TMC26X) \
-  + ENABLED(X_IS_TMC2130) \
-  + ENABLED(X_IS_TMC2208) \
-  + ENABLED(X_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the X axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(X2_IS_TMC26X) \
-  + ENABLED(X2_IS_TMC2130) \
-  + ENABLED(X2_IS_TMC2208) \
-  + ENABLED(X2_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the X2 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(Y_IS_TMC26X) \
-  + ENABLED(Y_IS_TMC2130) \
-  + ENABLED(Y_IS_TMC2208) \
-  + ENABLED(Y_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the Y axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(Y2_IS_TMC26X) \
-  + ENABLED(Y2_IS_TMC2130) \
-  + ENABLED(Y2_IS_TMC2208) \
-  + ENABLED(Y2_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the Y2 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(Z_IS_TMC26X) \
-  + ENABLED(Z_IS_TMC2130) \
-  + ENABLED(Z_IS_TMC2208) \
-  + ENABLED(Z_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the Z axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(Z2_IS_TMC26X) \
-  + ENABLED(Z2_IS_TMC2130) \
-  + ENABLED(Z2_IS_TMC2208) \
-  + ENABLED(Z2_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the Z2 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(E0_IS_TMC26X) \
-  + ENABLED(E0_IS_TMC2130) \
-  + ENABLED(E0_IS_TMC2208) \
-  + ENABLED(E0_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the E0 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(E1_IS_TMC26X) \
-  + ENABLED(E1_IS_TMC2130) \
-  + ENABLED(E1_IS_TMC2208) \
-  + ENABLED(E1_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the E1 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(E2_IS_TMC26X) \
-  + ENABLED(E2_IS_TMC2130) \
-  + ENABLED(E2_IS_TMC2208) \
-  + ENABLED(E2_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the E2 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(E3_IS_TMC26X) \
-  + ENABLED(E3_IS_TMC2130) \
-  + ENABLED(E3_IS_TMC2208) \
-  + ENABLED(E3_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the E3 axis."
-#endif
-#if 1 < 0 \
-  + ENABLED(E4_IS_TMC26X) \
-  + ENABLED(E4_IS_TMC2130) \
-  + ENABLED(E4_IS_TMC2208) \
-  + ENABLED(E4_IS_L6470)
-  #error "DEPENDENCY ERROR: Please enable only one stepper driver for the E4 axis."
 #endif
 
 #endif /* _TMC_SANITYCHECK_H_ */
