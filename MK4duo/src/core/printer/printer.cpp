@@ -146,11 +146,8 @@ void Printer::setup() {
   SERIAL_INIT(BAUDRATE);
   SERIAL_L(START);
 
-  // Init TMC stepper drivers CS or Serial
-  #if ENABLED(HAVE_TMC2130)
-    tmc_init_cs_pins();
-  #endif
-  #if ENABLED(HAVE_TMC2208)
+  // Init TMC stepper drivers Serial
+  #if HAVE_DRV(TMC2208)
     tmc2208_serial_begin();
   #endif
 
@@ -961,6 +958,10 @@ void Printer::setup_pinout() {
   #endif
   #if HAS_MAX31855_SS3
     OUT_WRITE(MAX31855_SS3_PIN, HIGH);
+  #endif
+
+  #if HAVE_DRV(TMC2130)
+    tmc_init_cs_pins();
   #endif
 
   #if HAS_SUICIDE

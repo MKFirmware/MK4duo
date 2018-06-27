@@ -25,8 +25,11 @@
  *
  * This configuration file contains all features that can be enabled.
  *
- * EXTRUDER FEATURES:
+ * DRIVER FEATURES:
+ * - Driver types
+ * FAN FEATURES:
  * - Fan configuration
+ * EXTRUDER FEATURES:
  * - Volumetric extrusion
  * - Filament Diameter
  * - Single nozzle
@@ -99,10 +102,6 @@
  * - Microstepping
  * - Motor's current
  * - I2C DIGIPOT
- * - TMC26X motor drivers
- * - Trinamic TMC2130 motor drivers
- * - Trinamic TMC2208 motor drivers
- * - L6470 motor drivers
  * ADVANCED FEATURES:
  * - Buffer stuff
  * - Nozzle Clean Feature
@@ -127,9 +126,52 @@
 #ifndef _CONFIGURATION_FEATURE_H_
 #define _CONFIGURATION_FEATURE_H_
 
-/**************************************************************************
- **************************** Fan configuration ***************************
- **************************************************************************/
+//===========================================================================
+//============================= DRIVER FEATURES =============================
+//===========================================================================
+
+/****************************************************************************
+ ******************************** Driver types ******************************
+ ****************************************************************************
+ *                                                                          *
+ * Set driver type:                                                         *
+ *  - A4988                                                                 *
+ *  - DRV8825                                                               *
+ *  - TMC26X                                                                *
+ *  - L6470                                                                 *
+ *  - TB6560                                                                *
+ *  - TB6600                                                                *
+ *  - TMC2100                                                               *
+ *  - TMC2130                                                               *
+ *  - TMC2208                                                               *
+ *  - TMC2660                                                               *
+ *  - TMC5130                                                               *
+ *                                                                          *
+ * See Configuration_Motor_Driver.h for configuration Motor Driver          *
+ *                                                                          *
+ ****************************************************************************/
+#define  X_DRIVER_TYPE  A4988
+#define  Y_DRIVER_TYPE  A4988
+#define  Z_DRIVER_TYPE  A4988
+#define X2_DRIVER_TYPE  A4988
+#define Y2_DRIVER_TYPE  A4988
+#define Z2_DRIVER_TYPE  A4988
+#define E0_DRIVER_TYPE  A4988
+#define E1_DRIVER_TYPE  A4988
+#define E2_DRIVER_TYPE  A4988
+#define E3_DRIVER_TYPE  A4988
+#define E4_DRIVER_TYPE  A4988
+#define E5_DRIVER_TYPE  A4988
+/****************************************************************************/
+
+
+//===========================================================================
+//=============================== FAN FEATURES ==============================
+//===========================================================================
+
+/****************************************************************************
+ ***************************** Fan configuration ****************************
+ ****************************************************************************/
 // FAN PWM speed
 // 0 -  15Hz 256 values
 // 1 -  30Hz 128 values
@@ -165,8 +207,12 @@
 #define CONTROLLERFAN_SECS           60 // How many seconds, after all motors were disabled, the fan should run
 #define CONTROLLERFAN_SPEED         255 // 255 = full speed
 #define CONTROLLERFAN_MIN_SPEED       0
-/**************************************************************************/
+/****************************************************************************/
 
+
+//===========================================================================
+//============================ EXTRUDER FEATURES ============================
+//===========================================================================
 
 /***********************************************************************
  ************************ Volumetric extrusion *************************
@@ -1973,75 +2019,6 @@
 // actual motor currents in Amps, need as many here as DIGIPOT_I2C_NUM_CHANNELS
 #define DIGIPOT_I2C_MOTOR_CURRENTS {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}
 /***********************************************************************/
-
-
-/**********************************************************************************
- **************************** TMC26X motor drivers ********************************
- **********************************************************************************
- *                                                                                *
- * Support for TMC26X motor drivers                                               *
- * See Configuration_Motor_Driver.h for configuration stepper driver              *
- *                                                                                *
- **********************************************************************************/
-//#define HAVE_TMCDRIVER
-/**********************************************************************************/
-
-
-/**********************************************************************************
- *********************** Trinamic TMC2130 motor drivers ***************************
- **********************************************************************************
- *                                                                                *
- * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper      *
- * drivers.                                                                       *
- *                                                                                *
- * You'll also need the TMC2130Stepper Arduino library                            *
- * (https://github.com/teemuatlut/TMC2130Stepper).                                *
- *                                                                                *
- * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to        *
- * the hardware SPI interface on your board and define the required CS pins       *
- * in your `MYBOARD.h` file. (e.g., RAMPS 1.4 uses AUX3 pins `X_CS_PIN 53`,       *
- * Y_CS_PIN 49`, etc.).                                                           *
- *                                                                                *
- * See Configuration_Motor_Driver.h for configuration stepper driver              *
- *                                                                                *
- **********************************************************************************/
-//#define HAVE_TMC2130
-/**********************************************************************************/
-
-
-/**********************************************************************************
- *********************** Trinamic TMC2208 motor drivers ***************************
- **********************************************************************************
- *                                                                                *
- * Enable this for SilentStepStick Trinamic TMC2208 UART-configurable stepper     *
- * drivers.                                                                       *
- * Connect #_SERIAL_TX_PIN to the driver side PDN_UART pin with a 1K resistor.    *
- * To use the reading capabilities, also connect #_SERIAL_RX_PIN                  *
- * to PDN_UART without a resistor.                                                *
- * The drivers can also be used with hardware serial.                             *
- *                                                                                *
- * You'll also need the TMC2208Stepper Arduino library                            *
- * (https://github.com/teemuatlut/TMC2208Stepper).                                *
- *                                                                                *
- * See Configuration_Motor_Driver.h for configuration stepper driver              *
- *                                                                                *
- **********************************************************************************/
-//#define HAVE_TMC2208
-/**********************************************************************************/
-
-
-/**********************************************************************************
- ****************************** L6470 motor drivers *******************************
- **********************************************************************************
- *                                                                                *
- * Support for L6470 motor drivers                                                *
- * You need to import the L6470 library into the arduino IDE for this.            *
- *                                                                                *
- * See Configuration_Motor_Driver.h for configuration stepper driver              *
- *                                                                                *
- **********************************************************************************/
-//#define HAVE_L6470DRIVER
-/**********************************************************************************/
 
 
 //===========================================================================

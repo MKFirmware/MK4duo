@@ -114,7 +114,7 @@
 #include "feature/m600.h"                 // Advanced Pause change filament
 #include "feature/m603.h"                 // Configure filament change
 #include "feature/m701_m702.h"            // Load / Unload filament
-#include "feature/m911_m915.h"            // Set TMC2130 driver
+#include "feature/m911_m915.h"            // Set TRINAMIC driver
 #include "feature/m922.h"                 // TMC DEBUG
 
 // Geometry Commands
