@@ -84,8 +84,6 @@ Stepper stepper;
 /** Public Parameters */
 uint16_t Stepper::direction_flag = 0;
 
-block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
-
 #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
   bool Stepper::homing_dual_axis = false;
 #endif
@@ -95,6 +93,8 @@ uint32_t  Stepper::maximum_rate     = 0,
           Stepper::direction_delay  = 0;
 
 /** Private Parameters */
+block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
+
 uint8_t Stepper::last_direction_bits  = 0,
         Stepper::axis_did_move        = 0;
 
@@ -204,18 +204,18 @@ void Stepper::init() {
     microstep_init();
   #endif
 
-  // Init TMC Steppers
-  #if ENABLED(HAVE_TMCDRIVER)
+  // Init TMC26x Steppers
+  #if HAVE_DRV(TMC26X)
     tmc26x_init_to_defaults();
   #endif
 
   // Init TMC2130 Steppers
-  #if ENABLED(HAVE_TMC2130)
+  #if HAVE_DRV(TMC2130)
     tmc2130_init_to_defaults();
   #endif
 
   // Init TMC2208 Steppers
-  #if ENABLED(HAVE_TMC2208)
+  #if HAVE_DRV(TMC2208)
     tmc2208_init_to_defaults();
   #endif
 
@@ -225,7 +225,7 @@ void Stepper::init() {
   #endif
 
   // Init L6470 Steppers
-  #if ENABLED(HAVE_L6470DRIVER)
+  #if HAVE_DRV(L6470)
     L6470_init_to_defaults();
   #endif
 
@@ -595,6 +595,39 @@ void Stepper::Step() {
 
   // Don't forget to finally reenable interrupts
   ENABLE_ISRS();
+
+}
+
+/**
+ * Check if the given block is busy or not - Must not be called from ISR contexts
+ * The current_block could change in the middle of the read by an Stepper ISR, so
+ * we must explicitly prevent that!
+ */
+bool Stepper::is_block_busy(const block_t* const block) {
+
+  #if ENABLED(__AVR__)
+
+    // Keep reading until 2 consecutive reads return the same value,
+    // meaning there was no update in-between caused by an interrupt.
+    // This works because stepper ISRs happen at a slower rate than
+    // successive reads of a variable, so 2 consecutive reads with
+    // the same value means no interrupt updated it.
+    block_t* vold, *vnew = current_block;
+    sw_barrier();
+    do {
+      vold = vnew;
+      vnew = current_block;
+      sw_barrier();
+    } while (vold != vnew);
+
+  #else // CPU 32 BIT
+
+    block_t *vnew = current_block;
+
+  #endif
+
+  // Return if the block is busy or not
+  return block == vnew;
 
 }
 
@@ -1186,7 +1219,7 @@ void Stepper::pulse_phase_step() {
     }
 
     // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-    pulse_end += HAL_add_pulse_ticks;
+    if (signed(HAL_add_pulse_ticks) > 0) pulse_end += HAL_add_pulse_ticks;
 
     // Stop an active pulse
     pulse_tick_stop();

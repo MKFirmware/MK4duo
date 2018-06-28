@@ -41,9 +41,6 @@ enum BlockFlagBit {
   // from a safe speed (in consideration of jerking from zero speed).
   BLOCK_BIT_NOMINAL_LENGTH,
 
-  // The block is busy, being interpreted by the stepper ISR
-  BLOCK_BIT_BUSY,
-
   // Sync the stepper counts from the block
   BLOCK_BIT_SYNC_POSITION
 };
@@ -51,7 +48,6 @@ enum BlockFlagBit {
 enum BlockFlag : char {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
-  BLOCK_FLAG_BUSY                 = _BV(BLOCK_BIT_BUSY),
   BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
 };
 
@@ -66,7 +62,7 @@ enum BlockFlag : char {
  */
 typedef struct {
 
-  uint8_t flag;                             // Block flags (See BlockFlag enum above)
+  volatile uint8_t flag;                    // Block flags (See BlockFlag enum above) - Modified by ISR and main thread!
 
   // Fields used by the motion planner to manage acceleration
   float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
@@ -167,9 +163,10 @@ class Planner {
      */
     static block_t          block_buffer[BLOCK_BUFFER_SIZE];
     static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
+                            block_buffer_nonbusy,     // Index of the first non busy block
+                            block_buffer_planned,     // Index of the optimally planned block
                             block_buffer_tail;        // Index of the busy block, if any
-    static uint8_t          block_buffer_planned,     // Index of the optimally planned block
-                            delay_before_delivering;  // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
+    static uint8_t          delay_before_delivering;  // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
     static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
 
@@ -241,9 +238,19 @@ class Planner {
     static void check_axes_activity();
 
     /**
-     * Number of moves currently in the planner
+     * Number of moves currently in the planner including the busy block, if any
      */
     FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail); }
+
+    /**
+     * Number of nonbusy moves currently in the planner
+     */
+    FORCE_INLINE static uint8_t nonbusy_movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_nonbusy); }
+
+    /**
+     * Remove all blocks from the buffer
+     */
+    FORCE_INLINE static void clear_block_buffer() { block_buffer_nonbusy = block_buffer_planned = block_buffer_head = block_buffer_tail = 0; }
 
     /**
      * Check if movement queue is full
@@ -423,14 +430,8 @@ class Planner {
      * NB: There MUST be a current block to call this function!!
      */
     FORCE_INLINE static void discard_current_block() {
-      if (has_blocks_queued()) { // Discard non-empty buffer.
-        uint8_t block_index = next_block_index(block_buffer_tail);
-
-        // Push block_buffer_planned pointer, if encountered.
-        if (!has_blocks_queued()) block_buffer_planned = block_index;
-
-        block_buffer_tail = block_index;
-      }
+      if (has_blocks_queued())
+        block_buffer_tail = next_block_index(block_buffer_tail);
     }
 
     /**
@@ -441,7 +442,7 @@ class Planner {
     static block_t* get_current_block() {
 
       // Get the number of moves in the planner queue so far
-      uint8_t nr_moves = movesplanned();
+      const uint8_t nr_moves = movesplanned();
 
       // If there are any moves queued ...
       if (nr_moves) {
@@ -465,8 +466,14 @@ class Planner {
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif
 
-        // Mark the block as busy, so the planner does not attempt to replan it
-        SBI(block->flag, BLOCK_BIT_BUSY);
+        // As this block is busy, advance the nonbusy block pointer
+        block_buffer_nonbusy = next_block_index(block_buffer_tail);
+
+        // Push block_buffer_planned pointer, if encountered.
+        if (block_buffer_tail == block_buffer_planned)
+          block_buffer_planned = block_buffer_nonbusy;
+
+        // Return the block
         return block;
       }
 
