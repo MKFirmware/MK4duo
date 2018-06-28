@@ -765,6 +765,8 @@ void Endstops::update() {
         #else
           #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
             if (isProbeEnabled()) PROCESS_ENDSTOP(Z, MIN);
+          #elif HAS_BED_PROBE && HAS_Z_PROBE_PIN
+            if (!isProbeEnabled()) PROCESS_ENDSTOP(Z, MIN);
           #else
             PROCESS_ENDSTOP(Z, MIN);
           #endif

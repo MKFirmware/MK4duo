@@ -55,8 +55,6 @@ class Stepper {
 
     static uint16_t direction_flag; // Driver Stepper direction flag
 
-    static block_t* current_block;  // A pointer to the block currently being traced
-
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
       static bool homing_dual_axis;
     #endif
@@ -66,6 +64,8 @@ class Stepper {
                     direction_delay;
 
   private: /** Private Parameters */
+
+    static block_t* current_block;          // A pointer to the block currently being traced
 
     static uint8_t  last_direction_bits,    // The next stepping-bits to be output
                     axis_did_move;          // Last Movement in the given direction is not null, as computed when the last movement was fetched from planner
@@ -171,6 +171,11 @@ class Stepper {
      * This is called by the interrupt service routine to execute steps.
      */
     static void Step();
+
+    /**
+     * Check if the given block is busy or not - Must not be called from ISR contexts
+     */
+    static bool is_block_busy(const block_t* const block);
 
     /**
      * Get the position of a stepper, in steps

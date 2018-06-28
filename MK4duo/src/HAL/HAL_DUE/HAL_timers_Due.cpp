@@ -163,8 +163,8 @@ uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
 }
 
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle   = MAX((F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * stepper.minimum_pulse);
-  HAL_min_pulse_tick    = (stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (PULSE_TIMER_PRESCALE));
+  HAL_min_pulse_cycle   = MAX((uint32_t)((F_CPU) / stepper.maximum_rate), ((F_CPU) / 500000UL) * (uint32_t)stepper.minimum_pulse);
+  HAL_min_pulse_tick    = ((uint32_t)stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (uint32_t)(PULSE_TIMER_PRESCALE));
   HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
   HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
 

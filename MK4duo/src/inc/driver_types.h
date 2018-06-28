@@ -26,17 +26,17 @@
 #pragma once
 
 // Models
-#define A4988     4988
-#define DRV8825   8825
-#define TMC26X    26
-#define L6470     6470
-#define TB6560    6560
-#define TB6600    6600
-#define TMC2100   2100
-#define TMC2130   2130
-#define TMC2208   2208
-#define TMC2660   2660
-#define TMC5130   5130
+#define A4988     0
+#define DRV8825   1
+#define L6470     2
+#define TB6560    3
+#define TB6600    4
+#define TMC26X    5
+#define TMC2100   6
+#define TMC2130   7
+#define TMC2208   8
+#define TMC2660   9
+#define TMC5130  10
 
 // Type
 #define  X_IS_DRV(TYPE)   ( X_DRIVER_TYPE == TYPE)
