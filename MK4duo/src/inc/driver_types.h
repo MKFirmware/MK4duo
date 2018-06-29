@@ -28,15 +28,16 @@
 // Models
 #define A4988     0
 #define DRV8825   1
-#define L6470     2
-#define TB6560    3
-#define TB6600    4
-#define TMC26X    5
+#define LV8729    2
+#define L6470     3
+#define TB6560    4
+#define TB6600    5
 #define TMC2100   6
 #define TMC2130   7
 #define TMC2208   8
-#define TMC2660   9
-#define TMC5130  10
+#define TMC26X    9
+#define TMC2660  10
+#define TMC5130  11
 
 // Type
 #define  X_IS_DRV(TYPE)   ( X_DRIVER_TYPE == TYPE)
@@ -72,7 +73,7 @@
 #define E4_HAS_STEALTHCHOP  (E4_IS_DRV(TMC2130) || E4_IS_DRV(TMC2208))
 #define E5_HAS_STEALTHCHOP  (E5_IS_DRV(TMC2130) || E5_IS_DRV(TMC2208))
 
-#define    HAS_STALLGUARD   ( HAVE_DRV(TMC2130) ||  HAVE_DRV(TMC2660  ||  HAVE_DRV(TMC5130))
+#define    HAS_STALLGUARD   ( HAVE_DRV(TMC2130) ||  HAVE_DRV(TMC2660) ||  HAVE_DRV(TMC5130))
 #define  X_HAS_STALLGUARD   ( X_IS_DRV(TMC2130) ||  X_IS_DRV(TMC2660) ||  X_IS_DRV(TMC5130))
 #define  Y_HAS_STALLGUARD   ( Y_IS_DRV(TMC2130) ||  Y_IS_DRV(TMC2660) ||  Y_IS_DRV(TMC5130))
 #define  Z_HAS_STALLGUARD   ( Z_IS_DRV(TMC2130) ||  Z_IS_DRV(TMC2660) ||  Z_IS_DRV(TMC5130))
