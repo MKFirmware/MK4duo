@@ -177,7 +177,7 @@
   // ramps-fd lcd adaptor
 
   #if ENABLED(DOGLCD)
-    #define BEEPER_PIN          37
+    #define ORIG_BEEPER_PIN     37
     #define BTN_EN1             33
     #define BTN_EN2             31
     #define BTN_ENC             35

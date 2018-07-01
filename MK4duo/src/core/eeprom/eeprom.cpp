@@ -694,17 +694,17 @@ void EEPROM::Postprocess() {
       //
       int16_t tmc_sgt[XYZ] = {
         #if ENABLED(SENSORLESS_HOMING)
-          #if X_IS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
+          #if X_HAS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
             stepperX.sgt(),
           #else
             0,
           #endif
-          #if Y_IS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
+          #if Y_HAS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
             stepperY.sgt(),
           #else
             0,
           #endif
-          #if Z_IS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+          #if Z_HAS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
             stepperZ.sgt()
           #else
             0
@@ -1119,26 +1119,26 @@ void EEPROM::Postprocess() {
         EEPROM_READ(tmc_sgt);
         #if ENABLED(SENSORLESS_HOMING)
           #if ENABLED(X_HOMING_SENSITIVITY)
-            #if X_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+            #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
               stepperX.sgt(tmc_sgt[0]);
             #endif
-            #if X2_IS_DRV(TMC2130)
+            #if X2_HAS_DRV(TMC2130)
               stepperX2.sgt(tmc_sgt[0]);
             #endif
           #endif
           #if ENABLED(Y_HOMING_SENSITIVITY)
-            #if Y_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+            #if Y_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
               stepperY.sgt(tmc_sgt[1]);
             #endif
-            #if Y2_IS_DRV(TMC2130)
+            #if Y2_HAS_DRV(TMC2130)
               stepperY2.sgt(tmc_sgt[1]);
             #endif
           #endif
           #if ENABLED(Z_HOMING_SENSITIVITY)
-            #if Z_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+            #if Z_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
               stepperZ.sgt(tmc_sgt[2]);
             #endif
-            #if Z2_IS_DRV(TMC2130)
+            #if Z2_HAS_DRV(TMC2130)
               stepperZ2.sgt(tmc_sgt[2]);
             #endif
           #endif
@@ -2441,26 +2441,26 @@ void EEPROM::Factory_Settings() {
         CONFIG_MSG_START_E("Sensorless homing threshold:");
         SERIAL_SM(CFG, "  M914");
         #if ENABLED(X_HOMING_SENSITIVITY)
-          #if X_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+          #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
             SERIAL_MV(" X", stepperX.sgt());
           #endif
-          #if X2_IS_DRV(TMC2130)
+          #if X2_HAS_DRV(TMC2130)
             SERIAL_MV(" I1 X", stepperX2.sgt());
           #endif
         #endif
         #if ENABLED(Y_HOMING_SENSITIVITY)
-          #if Y_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+          #if Y_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
             SERIAL_MV(" Y", stepperY.sgt());
           #endif
-          #if X2_IS_DRV(TMC2130)
+          #if X2_HAS_DRV(TMC2130)
             SERIAL_MV(" I1 Y", stepperY2.sgt());
           #endif
         #endif
         #if ENABLED(Z_HOMING_SENSITIVITY)
-          #if Z_IS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+          #if Z_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
             SERIAL_MV(" Z", stepperZ.sgt());
           #endif
-          #if Z2_IS_DRV(TMC2130)
+          #if Z2_HAS_DRV(TMC2130)
             SERIAL_MV(" I1 Z", stepperZ2.sgt());
           #endif
         #endif

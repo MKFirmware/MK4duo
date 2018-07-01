@@ -530,14 +530,14 @@
   /**
    * Home Delta
    */
-  bool Delta_Mechanics::home() {
+  void Delta_Mechanics::home() {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
       #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
         mechanics.Nextion_gfx_clear();
       #endif
-      return true;
+      return;
     }
 
     #if HAS_POWER_SWITCH
@@ -605,15 +605,7 @@
       sensorless_homing(false);
     #endif
 
-    // If an endstop was not hit, then damage can occur if homing is continued.
-    // This can occur if the delta height not set correctly.
-    if (!(endstops.trigger_state() && (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX)))) {
-      LCD_MESSAGEPGM(MSG_ERR_HOMING_FAILED);
-      SERIAL_LM(ER, MSG_ERR_HOMING_FAILED);
-      return false;
-    }
-
-    endstops.hit_on_purpose(); // clear endstop hit flags
+    endstops.validate_homing_move();
 
     // At least one carriage has reached the top.
     // Now re-home each carriage separately.
@@ -672,7 +664,6 @@
       if (printer.debugLeveling()) SERIAL_EM("<<< G28");
     #endif
 
-    return true;
   }
 
   void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {

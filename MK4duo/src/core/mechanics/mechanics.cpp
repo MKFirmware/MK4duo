@@ -329,7 +329,7 @@ void Mechanics::do_homing_move(const AxisEnum axis, const float distance, const 
       #endif
     }
 
-    endstops.hit_on_purpose();
+    endstops.validate_homing_move();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)

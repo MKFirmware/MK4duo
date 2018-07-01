@@ -124,7 +124,7 @@
       /**
        * Home Delta
        */
-      static bool home();
+      static void home();
 
       /**
        * Set an axis' current position to its home position (after homing).

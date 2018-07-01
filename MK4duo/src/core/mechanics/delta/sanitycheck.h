@@ -143,7 +143,7 @@
    * TMC2130
    */
   #if HAVE_DRV(TMC2130)
-    #if !(X_IS_DRV(TMC2130) && Y_IS_DRV(TMC2130) && Z_IS_DRV(TMC2130))
+    #if !(X_HAS_DRV(TMC2130) && Y_HAS_DRV(TMC2130) && Z_HAS_DRV(TMC2130))
       #error "DEPENDENCY ERROR: For delta there must be all three XYZ TMC2130 drivers"
     #endif
   #endif

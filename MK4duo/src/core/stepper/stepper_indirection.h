@@ -72,7 +72,7 @@ void restore_stepper_drivers();  // Called by PSU_ON
 void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // X Stepper
-#if X_IS_DRV(L6470)
+#if X_HAS_DRV(L6470)
   extern L6470 stepperX;
   #define X_ENABLE_INIT               NOOP
   #define X_ENABLE_WRITE(STATE)       do{ if(STATE) stepperX.Step_Clock(stepperX.getStatus() & STATUS_HIZ); else stepperX.softFree(); }while(0)
@@ -81,15 +81,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define X_DIR_WRITE(STATE)          stepperX.Step_Clock(STATE)
   #define X_DIR_READ                  (stepperX.getStatus() & STATUS_DIR)
 #else
-  #if X_IS_DRV(TMC26X)
+  #if X_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperX;
     #define X_ENABLE_INIT             NOOP
     #define X_ENABLE_WRITE(STATE)     stepperX.setEnabled(STATE)
     #define X_ENABLE_READ             stepperX.isEnabled()
   #else
-    #if X_IS_DRV(TMC2130)
+    #if X_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperX;
-    #elif X_IS_DRV(TMC2208)
+    #elif X_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperX;
     #endif
     #define X_ENABLE_INIT             SET_OUTPUT(X_ENABLE_PIN)
@@ -105,7 +105,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define X_STEP_READ                   READ(X_STEP_PIN)
 
 // Y Stepper
-#if Y_IS_DRV(L6470)
+#if Y_HAS_DRV(L6470)
   extern L6470 stepperY;
   #define Y_ENABLE_INIT               NOOP
   #define Y_ENABLE_WRITE(STATE)       do{ if(STATE) stepperY.Step_Clock(stepperY.getStatus() & STATUS_HIZ); else stepperY.softFree(); }while(0)
@@ -114,15 +114,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Y_DIR_WRITE(STATE)          stepperY.Step_Clock(STATE)
   #define Y_DIR_READ                  (stepperY.getStatus() & STATUS_DIR)
 #else
-  #if Y_IS_DRV(TMC26X)
+  #if Y_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperY;
     #define Y_ENABLE_INIT             NOOP
     #define Y_ENABLE_WRITE(STATE)     stepperY.setEnabled(STATE)
     #define Y_ENABLE_READ             stepperY.isEnabled()
   #else
-    #if Y_IS_DRV(TMC2130)
+    #if Y_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperY;
-    #elif Y_IS_DRV(TMC2208)
+    #elif Y_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperY;
     #endif
     #define Y_ENABLE_INIT             SET_OUTPUT(Y_ENABLE_PIN)
@@ -138,7 +138,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define Y_STEP_READ                   READ(Y_STEP_PIN)
 
 // Z Stepper
-#if Z_IS_DRV(L6470)
+#if Z_HAS_DRV(L6470)
   extern L6470 stepperZ;
   #define Z_ENABLE_INIT               NOOP
   #define Z_ENABLE_WRITE(STATE)       do{ if(STATE) stepperZ.Step_Clock(stepperZ.getStatus() & STATUS_HIZ); else stepperZ.softFree(); }while(0)
@@ -147,15 +147,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Z_DIR_WRITE(STATE)          stepperZ.Step_Clock(STATE)
   #define Z_DIR_READ                  (stepperZ.getStatus() & STATUS_DIR)
 #else
-  #if Z_IS_DRV(TMC26X)
+  #if Z_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperZ;
     #define Z_ENABLE_INIT             NOOP
     #define Z_ENABLE_WRITE(STATE)     stepperZ.setEnabled(STATE)
     #define Z_ENABLE_READ             stepperZ.isEnabled()
   #else
-    #if Z_IS_DRV(TMC2130)
+    #if Z_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperZ;
-    #elif Z_IS_DRV(TMC2208)
+    #elif Z_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperZ;
     #endif
     #define Z_ENABLE_INIT             SET_OUTPUT(Z_ENABLE_PIN)
@@ -172,7 +172,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // X2 Stepper
 #if HAS_X2_ENABLE
-  #if X2_IS_DRV(L6470)
+  #if X2_HAS_DRV(L6470)
     extern L6470 stepperX2;
     #define X2_ENABLE_INIT            NOOP
     #define X2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperX2.Step_Clock(stepperX2.getStatus() & STATUS_HIZ); else stepperX2.softFree(); }while(0)
@@ -181,15 +181,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define X2_DIR_WRITE(STATE)       stepperX2.Step_Clock(STATE)
     #define X2_DIR_READ               (stepperX2.getStatus() & STATUS_DIR)
   #else
-    #if X2_IS_DRV(TMC26X)
+    #if X2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperX2;
       #define X2_ENABLE_INIT          NOOP
       #define X2_ENABLE_WRITE(STATE)  stepperX2.setEnabled(STATE)
       #define X2_ENABLE_READ          stepperX2.isEnabled()
     #else
-      #if X2_IS_DRV(TMC2130)
+      #if X2_HAS_DRV(TMC2130)
         extern TMC2130Stepper stepperX2;
-      #elif X2_IS_DRV(TMC2208)
+      #elif X2_HAS_DRV(TMC2208)
         extern TMC2208Stepper stepperX2;
       #endif
       #define X2_ENABLE_INIT          SET_OUTPUT(X2_ENABLE_PIN)
@@ -207,7 +207,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // Y2 Stepper
 #if HAS_Y2_ENABLE
-  #if Y2_IS_DRV(L6470)
+  #if Y2_HAS_DRV(L6470)
     extern L6470 stepperY2;
     #define Y2_ENABLE_INIT            NOOP
     #define Y2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperY2.Step_Clock(stepperY2.getStatus() & STATUS_HIZ); else stepperY2.softFree(); }while(0)
@@ -216,15 +216,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Y2_DIR_WRITE(STATE)       stepperY2.Step_Clock(STATE)
     #define Y2_DIR_READ               (stepperY2.getStatus() & STATUS_DIR)
   #else
-    #if Y2_IS_DRV(TMC26X)
+    #if Y2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperY2;
       #define Y2_ENABLE_INIT          NOOP
       #define Y2_ENABLE_WRITE(STATE)  stepperY2.setEnabled(STATE)
       #define Y2_ENABLE_READ          stepperY2.isEnabled()
     #else
-      #if Y2_IS_DRV(TMC2130)
+      #if Y2_HAS_DRV(TMC2130)
         extern TMC2130Stepper stepperY2;
-      #elif Y2_IS_DRV(TMC2208)
+      #elif Y2_HAS_DRV(TMC2208)
         extern TMC2208Stepper stepperY2;
       #endif
       #define Y2_ENABLE_INIT          SET_OUTPUT(Y2_ENABLE_PIN)
@@ -242,7 +242,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // Z2 Stepper
 #if HAS_Z2_ENABLE
-  #if Z2_IS_DRV(L6470)
+  #if Z2_HAS_DRV(L6470)
     extern L6470 stepperZ2;
     #define Z2_ENABLE_INIT            NOOP
     #define Z2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ2.Step_Clock(stepperZ2.getStatus() & STATUS_HIZ); else stepperZ2.softFree(); }while(0)
@@ -251,15 +251,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z2_DIR_WRITE(STATE)       stepperZ2.Step_Clock(STATE)
     #define Z2_DIR_READ               (stepperZ2.getStatus() & STATUS_DIR)
   #else
-    #if Z2_IS_DRV(TMC26X)
+    #if Z2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperZ2;
       #define Z2_ENABLE_INIT          NOOP
       #define Z2_ENABLE_WRITE(STATE)  stepperZ2.setEnabled(STATE)
       #define Z2_ENABLE_READ          stepperZ2.isEnabled()
     #else
-      #if Z2_IS_DRV(TMC2130)
+      #if Z2_HAS_DRV(TMC2130)
         extern TMC2130Stepper stepperZ2;
-      #elif Z2_IS_DRV(TMC2208)
+      #elif Z2_HAS_DRV(TMC2208)
         extern TMC2208Stepper stepperZ2;
       #endif
       #define Z2_ENABLE_INIT          SET_OUTPUT(Z2_ENABLE_PIN)
@@ -277,7 +277,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // Z3 Stepper
 #if HAS_Z3_ENABLE
-  #if Z3_IS_DRV(L6470)
+  #if Z3_HAS_DRV(L6470)
     extern L6470 stepperZ3;
     #define Z3_ENABLE_INIT            NOOP
     #define Z3_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ3.Step_Clock(stepperZ3.getStatus() & STATUS_HIZ); else stepperZ3.softFree(); }while(0)
@@ -286,7 +286,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z3_DIR_WRITE(STATE)       stepperZ3.Step_Clock(STATE)
     #define Z3_DIR_READ               (stepperZ3.getStatus() & STATUS_DIR)
   #else
-    #if Z3_IS_DRV(TMC26X)
+    #if Z3_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperZ3;
       #define Z3_ENABLE_INIT          NOOP
       #define Z3_ENABLE_WRITE(STATE)  stepperZ3.setEnabled(STATE)
@@ -307,7 +307,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 
 // Z4 Stepper
 #if HAS_Z4_ENABLE
-  #if Z4_IS_DRV(L6470)
+  #if Z4_HAS_DRV(L6470)
     extern L6470 stepperZ4;
     #define Z4_ENABLE_INIT            NOOP
     #define Z4_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ4.Step_Clock(stepperZ4.getStatus() & STATUS_HIZ); else stepperZ4.softFree(); }while(0)
@@ -316,7 +316,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z4_DIR_WRITE(STATE)       stepperZ4.Step_Clock(STATE)
     #define Z4_DIR_READ               (stepperZ4.getStatus() & STATUS_DIR)
   #else
-    #if Z4_IS_DRV(TMC26X)
+    #if Z4_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperZ4;
       #define Z4_ENABLE_INIT          NOOP
       #define Z4_ENABLE_WRITE(STATE)  stepperZ4.setEnabled(STATE)
@@ -335,7 +335,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Z4_STEP_READ                READ(Z4_STEP_PIN)
 #endif
 
-#if E0_IS_DRV(L6470)
+#if E0_HAS_DRV(L6470)
   extern L6470 stepperE0;
   #define E0_ENABLE_INIT              NOOP
   #define E0_ENABLE_WRITE(STATE)      do{ if(STATE) stepperE0.Step_Clock(stepperE0.getStatus() & STATUS_HIZ); else stepperE0.softFree(); }while(0)
@@ -344,15 +344,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E0_DIR_WRITE(STATE)         stepperE0.Step_Clock(STATE)
   #define E0_DIR_READ                 (stepperE0.getStatus() & STATUS_DIR)
 #else
-  #if E0_IS_DRV(TMC26X)
+  #if E0_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE0;
     #define E0_ENABLE_INIT            NOOP
     #define E0_ENABLE_WRITE(STATE)    stepperE0.setEnabled(STATE)
     #define E0_ENABLE_READ            stepperE0.isEnabled()
   #else
-    #if E0_IS_DRV(TMC2130)
+    #if E0_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE0;
-    #elif E0_IS_DRV(TMC2208)
+    #elif E0_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE0;
     #endif
     #define E0_ENABLE_INIT            SET_OUTPUT(E0_ENABLE_PIN)
@@ -374,7 +374,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #endif
 
 // E1 Stepper
-#if E1_IS_DRV(L6470)
+#if E1_HAS_DRV(L6470)
   extern L6470 stepperE1;
   #define E1_ENABLE_INIT              NOOP
   #define E1_ENABLE_WRITE(STATE)      do{if(STATE) stepperE1.Step_Clock(stepperE1.getStatus() & STATUS_HIZ); else stepperE1.softFree();}while(0)
@@ -383,15 +383,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E1_DIR_WRITE(STATE)         stepperE1.Step_Clock(STATE)
   #define E1_DIR_READ                 (stepperE1.getStatus() & STATUS_DIR)
 #else
-  #if E1_IS_DRV(TMC26X)
+  #if E1_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE1;
     #define E1_ENABLE_INIT            NOOP
     #define E1_ENABLE_WRITE(STATE)    stepperE1.setEnabled(STATE)
     #define E1_ENABLE_READ            stepperE1.isEnabled()
   #else
-    #if E1_IS_DRV(TMC2130)
+    #if E1_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE1;
-    #elif E1_IS_DRV(TMC2208)
+    #elif E1_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE1;
     #endif
     #define E1_ENABLE_INIT            SET_OUTPUT(E1_ENABLE_PIN)
@@ -407,7 +407,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define E1_STEP_READ                  READ(E1_STEP_PIN)
 
 // E2 Stepper
-#if E2_IS_DRV(L6470)
+#if E2_HAS_DRV(L6470)
   extern L6470 stepperE2;
   #define E2_ENABLE_INIT              NOOP
   #define E2_ENABLE_WRITE(STATE)      do{if(STATE) stepperE2.Step_Clock(stepperE2.getStatus() & STATUS_HIZ); else stepperE2.softFree();}while(0)
@@ -416,15 +416,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E2_DIR_WRITE(STATE)         stepperE2.Step_Clock(STATE)
   #define E2_DIR_READ                 (stepperE2.getStatus() & STATUS_DIR)
 #else
-  #if E2_IS_DRV(TMC26X)
+  #if E2_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE2;
     #define E2_ENABLE_INIT            NOOP
     #define E2_ENABLE_WRITE(STATE)    stepperE2.setEnabled(STATE)
     #define E2_ENABLE_READ            stepperE2.isEnabled()
   #else
-    #if E2_IS_DRV(TMC2130)
+    #if E2_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE2;
-    #elif E2_IS_DRV(TMC2208)
+    #elif E2_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE2;
     #endif
     #define E2_ENABLE_INIT            SET_OUTPUT(E2_ENABLE_PIN)
@@ -440,7 +440,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define E2_STEP_READ                  READ(E2_STEP_PIN)
 
 // E3 Stepper
-#if E3_IS_DRV(L6470)
+#if E3_HAS_DRV(L6470)
   extern L6470 stepperE3;
   #define E3_ENABLE_INIT              NOOP
   #define E3_ENABLE_WRITE(STATE)      do{if(STATE) stepperE3.Step_Clock(stepperE3.getStatus() & STATUS_HIZ); else stepperE3.softFree();}while(0)
@@ -449,15 +449,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E3_DIR_WRITE(STATE)         stepperE3.Step_Clock(STATE)
   #define E3_DIR_READ                 (stepperE3.getStatus() & STATUS_DIR)
 #else
-  #if E3_IS_DRV(TMC26X)
+  #if E3_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE3;
     #define E3_ENABLE_INIT            NOOP
     #define E3_ENABLE_WRITE(STATE)    stepperE3.setEnabled(STATE)
     #define E3_ENABLE_READ            stepperE3.isEnabled()
   #else
-    #if E3_IS_DRV(TMC2130)
+    #if E3_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE3;
-    #elif E3_IS_DRV(TMC2208)
+    #elif E3_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE3;
     #endif
     #define E3_ENABLE_INIT            SET_OUTPUT(E3_ENABLE_PIN)
@@ -473,7 +473,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define E3_STEP_READ                  READ(E3_STEP_PIN)
 
 // E4 Stepper
-#if E4_IS_DRV(L6470)
+#if E4_HAS_DRV(L6470)
   extern L6470 stepperE4;
   #define E4_ENABLE_INIT              NOOP
   #define E4_ENABLE_WRITE(STATE)      do{ if (STATE) stepperE4.Step_Clock(stepperE4.getStatus() & STATUS_HIZ); else stepperE4.softFree(); }while(0)
@@ -482,15 +482,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E4_DIR_WRITE(STATE)         stepperE4.Step_Clock(STATE)
   #define E4_DIR_READ                 (stepperE4.getStatus() & STATUS_DIR)
 #else
-  #if E4_IS_DRV(TMC26X)
+  #if E4_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE4;
     #define E4_ENABLE_INIT            NOOP
     #define E4_ENABLE_WRITE(STATE)    stepperE4.setEnabled(STATE)
     #define E4_ENABLE_READ            stepperE4.isEnabled()
   #else
-    #if E4_IS_DRV(TMC2130)
+    #if E4_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE4;
-    #elif E4_IS_DRV(TMC2208)
+    #elif E4_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE4;
     #endif
     #define E4_ENABLE_INIT            SET_OUTPUT(E4_ENABLE_PIN)
@@ -506,7 +506,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define E4_STEP_READ                  READ(E4_STEP_PIN)
 
 // E5 Stepper
-#if E5_IS_DRV(L6470)
+#if E5_HAS_DRV(L6470)
   extern L6470 stepperE5;
   #define E5_ENABLE_INIT              NOOP
   #define E5_ENABLE_WRITE(STATE)      do{if(STATE) stepperE5.Step_Clock(stepperE5.getStatus() & STATUS_HIZ); else stepperE5.softFree();}while(0)
@@ -515,15 +515,15 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E5_DIR_WRITE(STATE)         stepperE5.Step_Clock(STATE)
   #define E5_DIR_READ                 (stepperE5.getStatus() & STATUS_DIR)
 #else
-  #if E5_IS_DRV(TMC26X)
+  #if E5_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE5;
     #define E5_ENABLE_INIT            NOOP
     #define E5_ENABLE_WRITE(STATE)    stepperE5.setEnabled(STATE)
     #define E5_ENABLE_READ            stepperE5.isEnabled()
   #else
-    #if E5_IS_DRV(TMC2130)
+    #if E5_HAS_DRV(TMC2130)
       extern TMC2130Stepper stepperE5;
-    #elif E5_IS_DRV(TMC2208)
+    #elif E5_HAS_DRV(TMC2208)
       extern TMC2208Stepper stepperE5;
     #endif
     #define E5_ENABLE_INIT            SET_OUTPUT(E5_ENABLE_PIN)

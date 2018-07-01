@@ -38,29 +38,29 @@
     #error "DEPENDENCY ERROR: Enable STEALTHCHOP to use HYBRID_THRESHOLD."
   #endif
 
-  #if X_IS_DRV(TMC2130) && !PIN_EXISTS(X_CS)
+  #if X_HAS_DRV(TMC2130) && !PIN_EXISTS(X_CS)
     #error "DEPENDENCY ERROR: X_CS_PIN is required for X_IS_TMC2130. Define X_CS_PIN in Configuration_Pins.h."
-  #elif X2_IS_DRV(TMC2130) && !PIN_EXISTS(X2_CS)
+  #elif X2_HAS_DRV(TMC2130) && !PIN_EXISTS(X2_CS)
     #error "DEPENDENCY ERROR: X2_CS_PIN is required for X2_IS_TMC2130. Define X2_CS_PIN in Configuration_Pins.h."
-  #elif Y_IS_DRV(TMC2130) && !PIN_EXISTS(Y_CS)
+  #elif Y_HAS_DRV(TMC2130) && !PIN_EXISTS(Y_CS)
     #error "DEPENDENCY ERROR: Y_CS_PIN is required for Y_IS_TMC2130. Define Y_CS_PIN in Configuration_Pins.h."
-  #elif Y2_IS_DRV(TMC2130) && !PIN_EXISTS(Y2_CS)
+  #elif Y2_HAS_DRV(TMC2130) && !PIN_EXISTS(Y2_CS)
     #error "DEPENDENCY ERROR: Y2_CS_PIN is required for Y2_IS_TMC2130. Define Y2_CS_PIN in Configuration_Pins.h."
-  #elif Z_IS_DRV(TMC2130) && !PIN_EXISTS(Z_CS)
+  #elif Z_HAS_DRV(TMC2130) && !PIN_EXISTS(Z_CS)
     #error "DEPENDENCY ERROR: Z_CS_PIN is required for Z_IS_TMC2130. Define Z_CS_PIN in Configuration_Pins.h."
-  #elif Z2_IS_DRV(TMC2130) && !PIN_EXISTS(Z2_CS)
+  #elif Z2_HAS_DRV(TMC2130) && !PIN_EXISTS(Z2_CS)
     #error "DEPENDENCY ERROR: Z2_CS_PIN is required for Z2_IS_TMC2130. Define Z2_CS_PIN in Configuration_Pins.h."
-  #elif E0_IS_DRV(TMC2130) && !PIN_EXISTS(E0_CS)
+  #elif E0_HAS_DRV(TMC2130) && !PIN_EXISTS(E0_CS)
     #error "DEPENDENCY ERROR: E0_CS_PIN is required for E0_IS_TMC2130. Define E0_CS_PIN in Configuration_Pins.h."
-  #elif E1_IS_DRV(TMC2130) && !PIN_EXISTS(E1_CS)
+  #elif E1_HAS_DRV(TMC2130) && !PIN_EXISTS(E1_CS)
     #error "DEPENDENCY ERROR: E1_CS_PIN is required for E1_IS_TMC2130. Define E1_CS_PIN in Configuration_Pins.h."
-  #elif E2_IS_DRV(TMC2130) && !PIN_EXISTS(E2_CS)
+  #elif E2_HAS_DRV(TMC2130) && !PIN_EXISTS(E2_CS)
     #error "DEPENDENCY ERROR: E2_CS_PIN is required for E2_IS_TMC2130. Define E2_CS_PIN in Configuration_Pins.h."
-  #elif E3_IS_DRV(TMC2130) && !PIN_EXISTS(E3_CS)
+  #elif E3_HAS_DRV(TMC2130) && !PIN_EXISTS(E3_CS)
     #error "DEPENDENCY ERROR: E3_CS_PIN is required for E3_IS_TMC2130. Define E3_CS_PIN in Configuration_Pins.h."
-  #elif E4_IS_DRV(TMC2130) && !PIN_EXISTS(E4_CS)
+  #elif E4_HAS_DRV(TMC2130) && !PIN_EXISTS(E4_CS)
     #error "DEPENDENCY ERROR: E4_CS_PIN is required for E4_IS_TMC2130. Define E4_CS_PIN in Configuration_Pins.h."
-  #elif E5_IS_DRV(TMC2130) && !PIN_EXISTS(E5_CS)
+  #elif E5_HAS_DRV(TMC2130) && !PIN_EXISTS(E5_CS)
     #error "DEPENDENCY ERROR: E5_CS_PIN is required for E5_IS_TMC2130. Define E5_CS_PIN in Configuration_Pins.h."
   #endif
 
