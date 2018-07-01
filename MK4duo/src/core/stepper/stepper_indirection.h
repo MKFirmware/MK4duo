@@ -275,6 +275,8 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Z2_STEP_READ                READ(Z2_STEP_PIN)
 #endif
 
+// Now Z3 & Z4 disabled
+/*
 // Z3 Stepper
 #if HAS_Z3_ENABLE
   #if Z3_HAS_DRV(L6470)
@@ -334,6 +336,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Z4_STEP_WRITE(STATE)        WRITE(Z4_STEP_PIN,STATE)
   #define Z4_STEP_READ                READ(Z4_STEP_PIN)
 #endif
+*/
 
 #if E0_HAS_DRV(L6470)
   extern L6470 stepperE0;
