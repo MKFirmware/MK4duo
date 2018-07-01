@@ -26,9 +26,6 @@ PrintCounter print_job_counter;
 
 printStatistics PrintCounter::data;
 
-const uint16_t  PrintCounter::updateInterval  = 10,
-                PrintCounter::saveInterval    = (SD_CFG_SECONDS);
-
 millis_t PrintCounter::lastDuration;
 bool PrintCounter::loaded = false;
 
@@ -112,25 +109,21 @@ void PrintCounter::tick() {
 
   millis_t now = millis();
 
-  // Trying to get the amount of calculations down to the bare min
-  const static uint16_t interval = updateInterval * 1000UL;
-
-  if (now - update_last >= interval) {
+  if (now - update_last >= 10000UL) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
       debug(PSTR("tick"));
     #endif
-    data.printer_usage += updateInterval;
+    data.printer_usage += 10;
     data.printTime += deltaDuration();
     update_last = now;
   }
 
   #if HAS_SDSUPPORT && ENABLED(SD_SETTINGS)
-    const static millis_t sdinterval = saveInterval * 1000UL;
     if (!loaded) {
       loadStats();
       saveStats();
     }
-    else if (now - config_last >= sdinterval) {
+    else if (now - config_last >= ((SD_CFG_SECONDS) * 1000UL)) {
       config_last = now;
       saveStats();
     }

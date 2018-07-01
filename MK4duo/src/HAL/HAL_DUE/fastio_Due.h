@@ -167,7 +167,7 @@ FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
     Fastio[pin].base_address->PIO_CODR = MASK(Fastio[pin].shift_count);
 }
 FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
-  volatile Pio* port = g_APinDescription[pin].pPort;
+  volatile Pio* port = digitalPinToPort(pin);
   uint32_t mask = g_APinDescription[pin].ulPin;
   if (flag)
     port->PIO_SODR = mask;

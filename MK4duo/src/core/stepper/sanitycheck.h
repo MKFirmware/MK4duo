@@ -50,7 +50,7 @@
 #endif
 
 #if HAVE_DRV(TMC26X)
-  #if X_IS_DRV(TMC26X)
+  #if X_HAS_DRV(TMC26X)
     #if DISABLED(X_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting X_CURRENT."
     #endif
@@ -61,7 +61,7 @@
       #error "DEPENDENCY ERROR: Missing setting X_MICROSTEPS."
     #endif
   #endif
-  #if X2_IS_DRV(TMC26X)
+  #if X2_HAS_DRV(TMC26X)
     #if DISABLED(X2_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting X2_CURRENT."
     #endif
@@ -72,7 +72,7 @@
       #error "DEPENDENCY ERROR: Missing setting X2_MICROSTEPS."
     #endif
   #endif
-  #if Y_IS_DRV(TMC26X)
+  #if Y_HAS_DRV(TMC26X)
     #if DISABLED(Y_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting Y_CURRENT."
     #endif
@@ -83,7 +83,7 @@
       #error "DEPENDENCY ERROR: Missing setting Y_MICROSTEPS."
     #endif
   #endif
-  #if Y2_IS_DRV(TMC26X)
+  #if Y2_HAS_DRV(TMC26X)
     #if DISABLED(Y2_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting Y2_CURRENT."
     #endif
@@ -94,7 +94,7 @@
       #error "DEPENDENCY ERROR: Missing setting Y2_MICROSTEPS."
     #endif
   #endif
-  #if Z_IS_DRV(TMC26X)
+  #if Z_HAS_DRV(TMC26X)
     #if DISABLED(Z_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting Z_CURRENT."
     #endif
@@ -105,7 +105,7 @@
       #error "DEPENDENCY ERROR: Missing setting Z_MICROSTEPS."
     #endif
   #endif
-  #if Z2_IS_DRV(TMC26X)
+  #if Z2_HAS_DRV(TMC26X)
     #if DISABLED(Z2_MAX_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting Z2_MAX_CURRENT."
     #endif
@@ -116,7 +116,7 @@
       #error "DEPENDENCY ERROR: Missing setting Z2_MICROSTEPS."
     #endif
   #endif
-  #if E0_IS_DRV(TMC26X)
+  #if E0_HAS_DRV(TMC26X)
     #if DISABLED(E0_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting E0_CURRENT."
     #endif
@@ -127,7 +127,7 @@
       #error "DEPENDENCY ERROR: Missing setting E0_MICROSTEPS."
     #endif
   #endif
-  #if E1_IS_DRV(TMC26X)
+  #if E1_HAS_DRV(TMC26X)
     #if DISABLED(E1_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting E1_CURRENT."
     #endif
@@ -138,7 +138,7 @@
       #error "DEPENDENCY ERROR: Missing setting E1_MICROSTEPS."
     #endif
   #endif
-  #if E2_IS_DRV(TMC26X)
+  #if E2_HAS_DRV(TMC26X)
     #if DISABLED(E2_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting E2_CURRENT."
     #endif
@@ -149,7 +149,7 @@
       #error "DEPENDENCY ERROR: Missing setting E2_MICROSTEPS."
     #endif
   #endif
-  #if E3_IS_DRV(TMC26X)
+  #if E3_HAS_DRV(TMC26X)
     #if DISABLED(E3_CURRENT)
       #error "DEPENDENCY ERROR: Missing setting E3_CURRENT."
     #endif
@@ -162,7 +162,7 @@
   #endif
 #endif
 #if HAVE_DRV(L6470)
-  #if X_IS_DRV(L6470)
+  #if X_HAS_DRV(L6470)
     #if DISABLED(X_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting X_MICROSTEPS."
     #endif
@@ -176,7 +176,7 @@
       #error "DEPENDENCY ERROR: Missing setting X_STALLCURRENT."
     #endif
   #endif
-  #if X2_IS_DRV(L6470)
+  #if X2_HAS_DRV(L6470)
     #if DISABLED(X2_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting X2_MICROSTEPS."
     #endif
@@ -190,7 +190,7 @@
       #error "DEPENDENCY ERROR: Missing setting X2_STALLCURRENT."
     #endif
   #endif
-  #if Y_IS_DRV(L6470)
+  #if Y_HAS_DRV(L6470)
     #if DISABLED(Y_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting Y_MICROSTEPS."
     #endif
@@ -204,7 +204,7 @@
       #error "DEPENDENCY ERROR: Missing setting Y_STALLCURRENT."
     #endif
   #endif
-  #if Y2_IS_DRV(L6470)
+  #if Y2_HAS_DRV(L6470)
     #if DISABLED(Y2_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting Y2_MICROSTEPS."
     #endif
@@ -218,7 +218,7 @@
       #error "DEPENDENCY ERROR: Missing setting Y2_STALLCURRENT."
     #endif
   #endif
-  #if Z_IS_DRV(L6470)
+  #if Z_HAS_DRV(L6470)
     #if DISABLED(Z_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting Z_MICROSTEPS."
     #endif
@@ -232,7 +232,7 @@
       #error "DEPENDENCY ERROR: Missing setting Z_STALLCURRENT."
     #endif
   #endif
-  #if Z2_IS_DRV(L6470)
+  #if Z2_HAS_DRV(L6470)
     #if DISABLED(Z2_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting Z2_MICROSTEPS."
     #endif
@@ -246,7 +246,7 @@
       #error "DEPENDENCY ERROR: Missing setting Z2_STALLCURRENT."
     #endif
   #endif
-  #if E0_IS_DRV(L6470)
+  #if E0_HAS_DRV(L6470)
     #if DISABLED(E0_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting E0_MICROSTEPS."
     #endif
@@ -260,7 +260,7 @@
       #error "DEPENDENCY ERROR: Missing setting E0_STALLCURRENT."
     #endif
   #endif
-  #if E1_IS_DRV(L6470)
+  #if E1_HAS_DRV(L6470)
     #if DISABLED(E1_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting E1_MICROSTEPS."
     #endif
@@ -274,7 +274,7 @@
       #error "DEPENDENCY ERROR: Missing setting E1_STALLCURRENT."
     #endif
   #endif
-  #if E2_IS_DRV(L6470)
+  #if E2_HAS_DRV(L6470)
     #if DISABLED(E2_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting E2_MICROSTEPS."
     #endif
@@ -288,7 +288,7 @@
       #error "DEPENDENCY ERROR: Missing setting E2_STALLCURRENT."
     #endif
   #endif
-  #if E3_IS_DRV(L6470)
+  #if E3_HAS_DRV(L6470)
     #if DISABLED(E3_MICROSTEPS)
       #error "DEPENDENCY ERROR: Missing setting E3_MICROSTEPS."
     #endif

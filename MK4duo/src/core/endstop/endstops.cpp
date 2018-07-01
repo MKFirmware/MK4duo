@@ -346,6 +346,12 @@ void Endstops::report_state() {
   }
 } // Endstops::report_state
 
+// If the last move failed to trigger an endstop, call kill
+void Endstops::validate_homing_move() {
+  if (!trigger_state()) printer.kill(PSTR(MSG_ERR_HOMING_FAILED));
+  hit_on_purpose();
+}
+
 /**
  * Constrain the given coordinates to the software endstops.
  */
@@ -593,7 +599,7 @@ void Endstops::update() {
    * Check and update endstops
    */
   #if HAS_X_MIN
-    #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR < 0
+    #if ENABLED(X_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(X, MIN);
       #if HAS_X2_MIN
         UPDATE_ENDSTOP_BIT(X2, MIN);
@@ -606,7 +612,7 @@ void Endstops::update() {
   #endif
 
   #if HAS_X_MAX
-    #if ENABLED(X_TWO_ENDSTOPS) && X_HOME_DIR > 0
+    #if ENABLED(X_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(X, MAX);
       #if HAS_X2_MAX
         UPDATE_ENDSTOP_BIT(X2, MAX);
@@ -618,7 +624,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MIN && Y_HOME_DIR < 0
+  #if HAS_Y_MIN
     #if ENABLED(Y_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Y, MIN);
       #if HAS_Y2_MIN
@@ -631,7 +637,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MAX && Y_HOME_DIR > 0
+  #if HAS_Y_MAX
     #if ENABLED(Y_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Y, MAX);
       #if HAS_Y2_MAX
@@ -645,7 +651,7 @@ void Endstops::update() {
   #endif
 
   #if HAS_Z_MIN
-    #if ENABLED(Z_TWO_ENDSTOPS) && Z_HOME_DIR < 0
+    #if ENABLED(Z_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MIN);
       #if HAS_Z2_MIN
         UPDATE_ENDSTOP_BIT(Z2, MIN);
@@ -664,7 +670,7 @@ void Endstops::update() {
     UPDATE_ENDSTOP_BIT(Z, PROBE);
   #endif
 
-  #if HAS_Z_MAX && Z_HOME_DIR > 0
+  #if HAS_Z_MAX
     // Check both Z two endstops
     #if ENABLED(Z_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MAX);

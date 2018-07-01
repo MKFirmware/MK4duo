@@ -1467,7 +1467,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     lcd_return_to_status();
   }
 
-  #if HAS_TEMP_0
+  #if HAS_TEMP_HOTEND
     void lcd_preheat_m1_h0_only() { _lcd_preheat(0, lcd_preheat_hotend_temp[0], -1, lcd_preheat_fan_speed[0]); }
     void lcd_preheat_m2_h0_only() { _lcd_preheat(0, lcd_preheat_hotend_temp[1], -1, lcd_preheat_fan_speed[1]); }
     void lcd_preheat_m3_h0_only() { _lcd_preheat(0, lcd_preheat_hotend_temp[2], -1, lcd_preheat_fan_speed[2]); }

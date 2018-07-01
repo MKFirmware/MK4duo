@@ -1861,8 +1861,8 @@
  **************************************************************************/
 //#define JUNCTION_DEVIATION
 
-#define JUNCTION_DEVIATION_MM 0.02  // (mm) Distance from real junction edge
-//#define JUNCTION_DEVIATION_INCLUDE_E
+// (mm) Distance from real junction edge
+#define JUNCTION_DEVIATION_MM 0.02
 /**************************************************************************/
 
 

@@ -392,7 +392,7 @@
       if (deploy_bltouch) probe.set_bltouch_deployed(false);
     #endif
 
-    endstops.hit_on_purpose();
+    endstops.validate_homing_move();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) {

@@ -2091,21 +2091,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(JUNCTION_DEVIATION)
 
     // Unit vector of previous path line segment
-    static float previous_unit_vec[
-      #if ENABLED(JUNCTION_DEVIATION_INCLUDE_E)
-        XYZE
-      #else
-        XYZ
-      #endif
-    ];
+    static float previous_unit_vec[XYZE];
 
     float unit_vec[] = {
       delta_mm[A_AXIS] * inverse_millimeters,
       delta_mm[B_AXIS] * inverse_millimeters,
-      delta_mm[C_AXIS] * inverse_millimeters
-      #if ENABLED(JUNCTION_DEVIATION_INCLUDE_E)
-        , delta_mm[E_AXIS] * inverse_millimeters
-      #endif
+      delta_mm[C_AXIS] * inverse_millimeters,
+      delta_mm[E_AXIS] * inverse_millimeters
     };
 
     // Skip first block or when previous_nominal_speed is used as a flag for homing and offset cycles.
@@ -2115,9 +2107,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       float junction_cos_theta = -previous_unit_vec[X_AXIS] * unit_vec[X_AXIS]
                                  -previous_unit_vec[Y_AXIS] * unit_vec[Y_AXIS]
                                  -previous_unit_vec[Z_AXIS] * unit_vec[Z_AXIS]
-                                  #if ENABLED(JUNCTION_DEVIATION_INCLUDE_E)
-                                    -previous_unit_vec[E_AXIS] * unit_vec[E_AXIS]
-                                  #endif
+                                 -previous_unit_vec[E_AXIS] * unit_vec[E_AXIS]
                                 ;
 
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
@@ -2128,15 +2118,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       else {
         NOLESS(junction_cos_theta, -0.999999);  // Check for numerical round-off to avoid divide by zero.
 
-        float junction_unit_vec[JD_AXES] = {
+        float junction_unit_vec[XYZE] = {
           unit_vec[X_AXIS] - previous_unit_vec[X_AXIS],
           unit_vec[Y_AXIS] - previous_unit_vec[Y_AXIS],
-          unit_vec[Z_AXIS] - previous_unit_vec[Z_AXIS]
-          #if ENABLED(JUNCTION_DEVIATION_INCLUDE_E)
-            , unit_vec[E_AXIS] - previous_unit_vec[E_AXIS]
-          #endif
+          unit_vec[Z_AXIS] - previous_unit_vec[Z_AXIS],
+          unit_vec[E_AXIS] - previous_unit_vec[E_AXIS]
         };
-        // Convert delta vector to unit vector
         normalize_junction_vector(junction_unit_vec);
 
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),

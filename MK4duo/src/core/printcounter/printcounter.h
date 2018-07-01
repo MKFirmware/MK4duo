@@ -115,19 +115,6 @@ class PrintCounter: public Stopwatch {
   private: /** Private Function */
 
     /**
-     * @brief Interval in seconds between counter updates
-     * @details This const value defines what will be the time between each
-     * accumulator update.
-     */
-    static const uint16_t updateInterval;
-
-    /**
-     * @brief Interval in seconds between SDCARD saves
-     * @details This const value defines what will be the time between each
-     */
-    static const uint16_t saveInterval;
-
-    /**
      * @brief Timestamp of the last call to deltaDuration()
      * @details Stores the timestamp of the last deltaDuration(), this is
      * required due to the updateInterval cycle.
