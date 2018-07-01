@@ -162,8 +162,6 @@
 // I2C EEPROM with 32K of space
 #define EEPROM_I2C
 #define E2END 0x7FFF
-#define MAX31855_SS0_PIN            5
-#define MAX31855_SS1_PIN            6
 //@@@
 
 //###IF_BLOCKS
