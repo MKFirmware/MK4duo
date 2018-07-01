@@ -321,7 +321,7 @@
   #define COOLER_BETA 0.0
 #endif
 
-#if SUPPORT_AMPLIFIER
+#if ENABLED(SUPPORT_AMPLIFIER)
   #include "thermistoramplifier.h"
 #endif
 
