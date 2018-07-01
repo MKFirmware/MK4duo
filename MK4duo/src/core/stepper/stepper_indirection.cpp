@@ -279,44 +279,42 @@
     #endif
   }
 
-  #define SET_CS_PIN(st) OUT_WRITE(st##_CS_PIN, HIGH)
-
   void tmc_init_cs_pins() {
     #if X_HAS_DRV(TMC2130)
-      SET_CS_PIN(X);
+      OUT_WRITE(X_CS_PIN, HIGH);
     #endif
     #if Y_HAS_DRV(TMC2130)
-      SET_CS_PIN(Y);
+      OUT_WRITE(Y_CS_PIN, HIGH);
     #endif
     #if Z_HAS_DRV(TMC2130)
-      SET_CS_PIN(Z);
+      OUT_WRITE(Z_CS_PIN, HIGH);
     #endif
     #if X2_HAS_DRV(TMC2130)
-      SET_CS_PIN(X2);
+      OUT_WRITE(X2_CS_PIN, HIGH);
     #endif
     #if Y2_HAS_DRV(TMC2130)
-      SET_CS_PIN(Y2);
+      OUT_WRITE(Y2_CS_PIN, HIGH);
     #endif
     #if Z2_HAS_DRV(TMC2130)
-      SET_CS_PIN(Z2);
+      OUT_WRITE(Z2_CS_PIN, HIGH);
     #endif
     #if E0_HAS_DRV(TMC2130)
-      SET_CS_PIN(E0);
+      OUT_WRITE(E0_CS_PIN, HIGH);
     #endif
     #if E1_HAS_DRV(TMC2130)
-      SET_CS_PIN(E1);
+      OUT_WRITE(E1_CS_PIN, HIGH);
     #endif
     #if E2_HAS_DRV(TMC2130)
-      SET_CS_PIN(E2);
+      OUT_WRITE(E2_CS_PIN, HIGH);
     #endif
     #if E3_HAS_DRV(TMC2130)
-      SET_CS_PIN(E3);
+      OUT_WRITE(E3_CS_PIN, HIGH);
     #endif
     #if E4_HAS_DRV(TMC2130)
-      SET_CS_PIN(E4);
+      OUT_WRITE(E4_CS_PIN, HIGH);
     #endif
     #if E5_HAS_DRV(TMC2130)
-      SET_CS_PIN(E5);
+      OUT_WRITE(E5_CS_PIN, HIGH);
     #endif
   }
 
