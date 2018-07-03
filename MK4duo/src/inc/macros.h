@@ -110,31 +110,31 @@
 
 // Macros for bit masks
 #undef _BV
-#define _BV(b)          (1<<(b))
-#define TEST(n,b)       !!((n)&_BV(b))
-#define SBI(n,b)        (n |= _BV(b))
-#define CBI(n,b)        (n &= ~_BV(b))
-#define SET_BIT(N,B,TF) do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
+#define _BV(b)            (1<<(b))
+#define TEST(n,b)         !!((n)&_BV(b))
+#define SBI(n,b)          (n |= _BV(b))
+#define CBI(n,b)          (n &= ~_BV(b))
+#define SET_BIT(N,B,TF)   do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
 
-#define _BV32(b)        (1UL<< (b))
-#define TEST32(n,b)     !!((n)&_BV32(b))
-#define SBI32(n,b)      (n |= _BV32(b))
-#define CBI32(n,b)      (n &= ~_BV32(b))
+#define _BV32(b)          (1UL << (b))
+#define TEST32(n,b)       !!((n)&_BV32(b))
+#define SBI32(n,b)        (n |= _BV32(b))
+#define CBI32(n,b)        (n &= ~_BV32(b))
 
 // Macros for maths shortcuts
-#ifndef M_PI 
-  #define M_PI            3.14159265358979323846
-#endif
-#define RADIANS(d)        ((d)*M_PI/180.0)
-#define DEGREES(r)        ((r)*180.0/M_PI)
+#undef M_PI
+#define M_PI              3.14159265358979323846f
+
+#define RADIANS(d)        ((d)*float(M_PI)/180.0f)
+#define DEGREES(r)        ((r)*180.0f/float(M_PI))
 #define HYPOT2(x,y)       (sq(x)+sq(y))
 #define HYPOT(x,y)        SQRT(HYPOT2(x,y))
 #define SQUARE(x)         ((x)*(x))
-#define SIN_60            0.8660254037844386
-#define COS_60            0.5
+#define SIN_60            0.8660254037844386f
+#define COS_60            0.5f
 
-#define CIRCLE_AREA(R)    (M_PI * sq(R))
-#define CIRCLE_CIRC(R)    (2.0 * M_PI * (R))
+#define CIRCLE_AREA(R)    (float(M_PI) * sq(float(R)))
+#define CIRCLE_CIRC(R)    (2 * float(M_PI) * float(R))
 
 #define SIGN(a)           ((a>0)-(a<0))
 #define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
@@ -199,12 +199,12 @@
 #define MAX4(a, b, c, d)        MAX(MAX3(a, b, c), d)
 #define MAX5(a, b, c, d, e)     MAX(MAX4(a, b, c, d), e)
 
-#define UNEAR_ZERO(x)           ((x) < 0.000001)
-#define NEAR_ZERO(x)            WITHIN(x, -0.000001, 0.000001)
+#define UNEAR_ZERO(x)           ((x) < 0.000001f)
+#define NEAR_ZERO(x)            WITHIN(x, -0.000001f, 0.000001f)
 #define NEAR(x,y)               NEAR_ZERO((x)-(y))
 
-#define RECIPROCAL(x)           (NEAR_ZERO(x) ? 0.0 : 1.0 / (x))
-#define FIXFLOAT(f)             (f + (f < 0.0 ? -0.00005 : 0.00005))
+#define RECIPROCAL(x)           (NEAR_ZERO(x) ? 0 : (1 / float(x)))
+#define FIXFLOAT(f)             (f + (f < 0 ? -0.00005f : 0.00005f))
 
 // LOOP MACROS
 #define LOOP_S_LE_N(VAR, S, N)  for (uint8_t VAR=S; VAR<=N; VAR++)
@@ -226,8 +226,8 @@
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 
 // Feedrate scaling and conversion
-#define MMM_TO_MMS(MM_M)        ((MM_M) / 60.0)
-#define MMS_TO_MMM(MM_S)        ((MM_S) * 60.0)
-#define MMS_SCALED(MM_S)        ((MM_S) * mechanics.feedrate_percentage * 0.01)
+#define MMM_TO_MMS(MM_M)        ((MM_M)/60.0f)
+#define MMS_TO_MMM(MM_S)        ((MM_S)*60.0f)
+#define MMS_SCALED(MM_S)        ((MM_S)*mechanics.feedrate_percentage*0.01)
 
 #endif //__MACROS_H

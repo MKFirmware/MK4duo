@@ -88,6 +88,7 @@ typedef int8_t    pin_t;
 
   #include "Configuration_Temperature.h"
   #include "Configuration_Feature.h"
+  #include "Configuration_Motor_Driver.h"
   #include "Configuration_Overall.h"
 #endif
 
@@ -97,10 +98,6 @@ typedef int8_t    pin_t;
 
 #if ENABLED(CNCROUTER)
   #include "Configuration_CNCRouter.h"
-#endif
-
-#if HAVE_DRV(TMC26X) || HAVE_DRV(TMC2130) || HAVE_DRV(TMC2208) || HAVE_DRV(L6470)
-  #include "Configuration_Motor_Driver.h"
 #endif
 
 /**

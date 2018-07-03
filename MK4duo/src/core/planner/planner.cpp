@@ -1851,7 +1851,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #endif // LASER
 
-  const float inverse_millimeters = 1.0 / block->millimeters;  // Inverse millimeters to remove multiple divides
+  const float inverse_millimeters = RECIPROCAL(block->millimeters);  // Inverse millimeters to remove multiple divides
 
   // Calculate inverse time for this move. No divide by zero due to previous checks.
   // Example: At 120mm/s a 60mm move takes 0.5s. So this will give 2.0.
@@ -1863,7 +1863,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || ENABLED(XY_FREQUENCY_LIMIT)
     // Segment time im micro seconds
-    uint32_t segment_time_us = LROUND(1000000.0 / inverse_secs);
+    uint32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
   #endif
 
   #if ENABLED(SLOWDOWN)
@@ -1871,7 +1871,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       if (segment_time_us < mechanics.min_segment_time_us) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
         const uint32_t nst = segment_time_us + LROUND(2 * (mechanics.min_segment_time_us - segment_time_us) / moves_queued);
-        inverse_secs = 1000000.0 / nst;
+        inverse_secs = 1000000.0f / nst;
         #if ENABLED(XY_FREQUENCY_LIMIT) || ENABLED(ULTRA_LCD)
           segment_time_us = nst;
         #endif
@@ -2540,7 +2540,7 @@ void Planner::reset_acceleration_rates() {
  * Recalculate position, steps_to_mm if axis_steps_per_mm changes!
  */
 void Planner::refresh_positioning() {
-  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = 1.0 / mechanics.axis_steps_per_mm[i];
+  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = RECIPROCAL(mechanics.axis_steps_per_mm[i]);
   set_position_mm_kinematic(mechanics.current_position);
   reset_acceleration_rates();
 }

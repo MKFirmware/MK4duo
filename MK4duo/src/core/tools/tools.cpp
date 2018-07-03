@@ -270,8 +270,7 @@
      * Return 1.0 with volumetric off or a diameter of 0.0.
      */
     float Tools::calculate_volumetric_multiplier(const float diameter) {
-      if (!printer.isVolumetric() || diameter == 0) return 1.0;
-      return 1.0 / CIRCLE_AREA(diameter * 0.5);
+      return (printer.isVolumetric() && diameter) ? RECIPROCAL(CIRCLE_AREA(diameter * 0.5)) : 1.0;
     }
 
     /**

@@ -81,6 +81,9 @@ typedef uint16_t  ptr_int_t;
 // A SW memory barrier, to ensure GCC does not overoptimize loops
 #define sw_barrier() asm volatile("": : :"memory")
 
+// AVR compatibility
+#define strtof strtod
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------

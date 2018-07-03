@@ -1357,7 +1357,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    new_z_fade_height = 0.0;
+    new_z_fade_height = 0.0f;
   #endif
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
@@ -1367,11 +1367,11 @@ void EEPROM::Factory_Settings() {
       HOTEND_OFFSET_Z
     };
   #else
-    constexpr float tmp12[XYZ][HOTENDS] = { 0.0 };
+    constexpr float tmp12[XYZ][HOTENDS] = { 0.0f };
   #endif
 
   #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    static const float tmp13[] = { X_CURRENT / 1000, Y_CURRENT / 1000, Z_CURRENT / 1000, E0_CURRENT / 1000, E1_CURRENT / 1000, E2_CURRENT / 1000, E3_CURRENT /1000 };
+    static const float tmp13[] = { float(X_CURRENT / 1000), float(Y_CURRENT / 1000), float(Z_CURRENT / 1000), float(E0_CURRENT / 1000), float(E1_CURRENT / 1000), float(E2_CURRENT / 1000), float(E3_CURRENT /1000) };
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
       externaldac.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
   #endif
@@ -1417,7 +1417,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    bedlevel.z_fade_height = 0.0;
+    bedlevel.z_fade_height = 0.0f;
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
@@ -1494,7 +1494,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT0_R25;
       sens->beta              = HOT0_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1529,7 +1529,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT1_R25;
       sens->beta              = HOT1_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1564,7 +1564,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT2_R25;
       sens->beta              = HOT2_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1599,7 +1599,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = HOT3_R25;
       sens->beta              = HOT3_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1637,7 +1637,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = BED_R25;
       sens->beta              = BED_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1675,7 +1675,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = CHAMBER_R25;
       sens->beta              = CHAMBER_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1713,7 +1713,7 @@ void EEPROM::Factory_Settings() {
       sens->r25               = COOLER_R25;
       sens->beta              = COOLER_BETA;
       sens->pullupR           = THERMISTOR_SERIES_RS;
-      sens->shC               = 0.0;
+      sens->shC               = 0;
       sens->adcLowOffset      = 0;
       sens->adcHighOffset     = 0;
       #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
@@ -1778,13 +1778,13 @@ void EEPROM::Factory_Settings() {
   );
 
   #if ENABLED(X_TWO_ENDSTOPS)
-    endstops.x_endstop_adj = 0.0;
+    endstops.x_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Y_TWO_ENDSTOPS)
-    endstops.y_endstop_adj = 0.0;
+    endstops.y_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Z_TWO_ENDSTOPS)
-    endstops.z_endstop_adj = 0.0;
+    endstops.z_endstop_adj = 0.0f;
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
@@ -1878,7 +1878,7 @@ void EEPROM::Factory_Settings() {
   inline void print_units(const bool colon) {
     SERIAL_PS(
       #if ENABLED(INCH_MODE_SUPPORT)
-        parser.linear_unit_factor != 1.0 ? PSTR(" (in)") :
+        parser.linear_unit_factor != 1 ? PSTR(" (in)") :
       #endif
       PSTR(" (mm)")
     );
@@ -1900,7 +1900,7 @@ void EEPROM::Factory_Settings() {
       #define LINEAR_UNIT(N) ((N) / parser.linear_unit_factor)
       #define VOLUMETRIC_UNIT(N) ((N) / (tools.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_MSG("  G2");
-      SERIAL_CHR(parser.linear_unit_factor == 1.0 ? '1' : '0');
+      SERIAL_CHR(parser.linear_unit_factor == 1 ? '1' : '0');
       SERIAL_MSG(" ;");
       SERIAL_UNITS(false);
     #else

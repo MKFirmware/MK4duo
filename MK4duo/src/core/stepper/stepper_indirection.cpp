@@ -280,40 +280,40 @@
   }
 
   void tmc_init_cs_pins() {
-    #if X_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(X_CS)
       OUT_WRITE(X_CS_PIN, HIGH);
     #endif
-    #if Y_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(Y_CS)
       OUT_WRITE(Y_CS_PIN, HIGH);
     #endif
-    #if Z_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(Z_CS)
       OUT_WRITE(Z_CS_PIN, HIGH);
     #endif
-    #if X2_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(X2_CS)
       OUT_WRITE(X2_CS_PIN, HIGH);
     #endif
-    #if Y2_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(Y2_CS)
       OUT_WRITE(Y2_CS_PIN, HIGH);
     #endif
-    #if Z2_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(Z2_CS)
       OUT_WRITE(Z2_CS_PIN, HIGH);
     #endif
-    #if E0_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E0_CS)
       OUT_WRITE(E0_CS_PIN, HIGH);
     #endif
-    #if E1_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E1_CS)
       OUT_WRITE(E1_CS_PIN, HIGH);
     #endif
-    #if E2_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E2_CS)
       OUT_WRITE(E2_CS_PIN, HIGH);
     #endif
-    #if E3_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E3_CS)
       OUT_WRITE(E3_CS_PIN, HIGH);
     #endif
-    #if E4_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E4_CS)
       OUT_WRITE(E4_CS_PIN, HIGH);
     #endif
-    #if E5_HAS_DRV(TMC2130)
+    #if PIN_EXISTS(E5_CS)
       OUT_WRITE(E5_CS_PIN, HIGH);
     #endif
   }

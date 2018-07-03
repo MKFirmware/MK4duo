@@ -44,7 +44,7 @@
       // setting any extruder filament size disables volumetric on the assumption that
       // slicers either generate in extruder values as cubic mm or as as filament feeds
       // for all extruders
-      printer.setVolumetric(parser.value_linear_units() != 0.0);
+      printer.setVolumetric(parser.value_linear_units() != 0);
       if (printer.isVolumetric())
         tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
     }

@@ -134,7 +134,7 @@
           S2 += sq(z_pt[rad]);
           N++;
         }
-        return round(SQRT(S2 / N) * 1000.0) / 1000.0 + 0.00001;
+        return LROUND(SQRT(S2 / N) * 1000) / 1000 + 0.00001f;
       }
     }
     return 0.00001;
@@ -202,8 +202,8 @@
             const float z_temp = probe.check_pt(COS(a) * r, SIN(a) * r, stow_after_each ? PROBE_PT_STOW : PROBE_PT_RAISE, 0, false);
             if (isnan(z_temp)) return false;
             // split probe point to neighbouring calibration points
-            z_pt[uint8_t(round(rad - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
-            z_pt[uint8_t(round(rad - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
+            z_pt[uint8_t(LROUND(rad - interpol + NPP - 1)) % NPP + 1] += z_temp * sq(COS(RADIANS(interpol * 90)));
+            z_pt[uint8_t(LROUND(rad - interpol))           % NPP + 1] += z_temp * sq(SIN(RADIANS(interpol * 90)));
           }
           zig_zag = !zig_zag;
         }
@@ -562,9 +562,9 @@
 
         // Normalise angles to least squares
         if (_angle_results) {
-          float a_sum = 0.0;
+          float a_sum = 0;
           LOOP_XYZ(axis) a_sum += mechanics.delta_tower_angle_adj[axis];
-          LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] -= a_sum / 3.0;
+          LOOP_XYZ(axis) mechanics.delta_tower_angle_adj[axis] -= a_sum / 3;
         }
 
         // Adjust delta_height and endstops by the max amount
@@ -596,9 +596,9 @@
           char mess[21];
           strcpy_P(mess, PSTR("Calibration sd:"));
           if (zero_std_dev_min < 1)
-            sprintf_P(&mess[15], PSTR("0.%03i"), (int)round(zero_std_dev_min * 1000.0));
+            sprintf_P(&mess[15], PSTR("0.%03i"), (int)LROUND(zero_std_dev_min * 1000));
           else
-            sprintf_P(&mess[15], PSTR("%03i.x"), (int)round(zero_std_dev_min));
+            sprintf_P(&mess[15], PSTR("%03i.x"), (int)LROUND(zero_std_dev_min));
           lcd_setstatus(mess);
           Report_settings(_endstop_results, _angle_results);
           SERIAL_PS(save_message);
@@ -628,9 +628,9 @@
         strcpy_P(mess, enddryrun);
         strcpy_P(&mess[11], PSTR(" sd:"));
         if (zero_std_dev < 1)
-          sprintf_P(&mess[15], PSTR("0.%03i"), (int)round(zero_std_dev * 1000.0));
+          sprintf_P(&mess[15], PSTR("0.%03i"), (int)LROUND(zero_std_dev * 1000));
         else
-          sprintf_P(&mess[15], PSTR("%03i.x"), (int)round(zero_std_dev));
+          sprintf_P(&mess[15], PSTR("%03i.x"), (int)LROUND(zero_std_dev));
         lcd_setstatus(mess);
       }
 

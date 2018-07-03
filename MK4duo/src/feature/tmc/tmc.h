@@ -33,7 +33,9 @@
 
   #if HAVE_DRV(TMC2130)
     #include <TMC2130Stepper.h>
-  #elif HAVE_DRV(TMC2208)
+  #endif
+
+  #if HAVE_DRV(TMC2208)
     #include <TMC2208Stepper.h>
   #endif
 

@@ -57,7 +57,7 @@
       NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)
       NOLESS(segments, 1U);       // must have at least one segment
 
-      const float inv_segments = 1.0 / segments;  // divide once, multiply thereafter
+      const float inv_segments = RECIPROCAL(segments);  // divide once, multiply thereafter
 
       const float diff[XYZE] = {
         total[X_AXIS] * inv_segments,

@@ -177,7 +177,7 @@ inline void gcode_G29(void) {
   #endif
 
   ABL_VAR int verbose_level = 0;
-  ABL_VAR float xProbe = 0.0, yProbe = 0.0, measured_z = 0.0;
+  ABL_VAR float xProbe = 0, yProbe = 0, measured_z = 0;
   ABL_VAR bool dryrun = false, abl_should_enable = false;
 
   #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)

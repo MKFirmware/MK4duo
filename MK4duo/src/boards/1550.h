@@ -166,7 +166,7 @@
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
-  // RADDS LCD panel
+
   #if ENABLED(RADDS_DISPLAY) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
     #define LCD_PINS_RS     63
     #define LCD_PINS_ENABLE 64
@@ -184,8 +184,9 @@
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
-    #define LCD_PINS_RS     63
-    #define LCD_PINS_ENABLE 64
+
+    #define LCD_PINS_RS     52
+    #define LCD_PINS_ENABLE 53
     #define LCD_PINS_D4     48
     #define LCD_PINS_D5     50
     #define LCD_PINS_D6     52
@@ -206,7 +207,7 @@
     #define SD_DETECT_PIN   51
 
     #define ORIG_BEEPER_PIN 62
-    #define LCD_SDSS         4
+    #define LCD_SDSS        10
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
 
