@@ -699,6 +699,80 @@ void Stepper::report_positions() {
 void Stepper::wake_up() { ENABLE_STEPPER_INTERRUPT(); }
 
 /**
+ * Set the stepper direction of each axis
+ *
+ *   COREXY: X_AXIS=A_AXIS and Y_AXIS=B_AXIS
+ *   COREYX: X_AXIS=A_AXIS and Y_AXIS=B_AXIS
+ *   COREXZ: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
+ *   COREZX: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
+ */
+void Stepper::set_directions() {
+
+  #if HAS_X_DIR
+    if (motor_direction(X_AXIS)) {
+      set_X_dir(isStepDir(X_AXIS));
+      count_direction[X_AXIS] = -1;
+    }
+    else {
+      set_X_dir(!isStepDir(X_AXIS));
+      count_direction[X_AXIS] = 1;
+    }
+  #endif
+
+  #if HAS_Y_DIR
+    if (motor_direction(Y_AXIS)) {
+      set_Y_dir(isStepDir(Y_AXIS));
+      count_direction[Y_AXIS] = -1;
+    }
+    else {
+      set_Y_dir(!isStepDir(Y_AXIS));
+      count_direction[Y_AXIS] = 1;
+    }
+  #endif
+
+  #if HAS_Z_DIR
+    if (motor_direction(Z_AXIS)) {
+      set_Z_dir(isStepDir(Z_AXIS));
+      count_direction[Z_AXIS] = -1;
+    }
+    else {
+      set_Z_dir(!isStepDir(Z_AXIS));
+      count_direction[Z_AXIS] = 1;
+    }
+  #endif
+
+  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      if (motor_direction(E_AXIS)) {
+        MIXING_STEPPERS_LOOP(j) REV_E_DIR(j);
+        count_direction[E_AXIS] = -1;
+      }
+      else {
+        MIXING_STEPPERS_LOOP(j) NORM_E_DIR(j);
+        count_direction[E_AXIS] = 1;
+      }
+    #else
+      if (motor_direction(E_AXIS)) {
+        REV_E_DIR(active_extruder_driver);
+        count_direction[E_AXIS] = -1;
+      }
+      else {
+        NORM_E_DIR(active_extruder_driver);
+        count_direction[E_AXIS] = 1;
+      }
+    #endif
+  #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+
+  #if HAS_EXT_ENCODER
+    tools.encLastDir[active_extruder] = count_direction[E_AXIS];
+  #endif
+
+  // After changing directions, an small delay could be needed.
+  if (direction_delay > 0) HAL::delayNanoseconds(direction_delay);
+
+}
+
+/**
  * Enabled or Disable one axis or all stepper driver
  */
 void Stepper::enable_X() {
@@ -1872,80 +1946,6 @@ void Stepper::stop_Z_step() {
   #if ENABLED(Z_TWO_STEPPER_DRIVERS)
     Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
   #endif
-}
-
-/**
- * Set the stepper direction of each axis
- *
- *   COREXY: X_AXIS=A_AXIS and Y_AXIS=B_AXIS
- *   COREYX: X_AXIS=A_AXIS and Y_AXIS=B_AXIS
- *   COREXZ: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
- *   COREZX: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
- */
-void Stepper::set_directions() {
-
-  #if HAS_X_DIR
-    if (motor_direction(X_AXIS)) {
-      set_X_dir(isStepDir(X_AXIS));
-      count_direction[X_AXIS] = -1;
-    }
-    else {
-      set_X_dir(!isStepDir(X_AXIS));
-      count_direction[X_AXIS] = 1;
-    }
-  #endif
-
-  #if HAS_Y_DIR
-    if (motor_direction(Y_AXIS)) {
-      set_Y_dir(isStepDir(Y_AXIS));
-      count_direction[Y_AXIS] = -1;
-    }
-    else {
-      set_Y_dir(!isStepDir(Y_AXIS));
-      count_direction[Y_AXIS] = 1;
-    }
-  #endif
-
-  #if HAS_Z_DIR
-    if (motor_direction(Z_AXIS)) {
-      set_Z_dir(isStepDir(Z_AXIS));
-      count_direction[Z_AXIS] = -1;
-    }
-    else {
-      set_Z_dir(!isStepDir(Z_AXIS));
-      count_direction[Z_AXIS] = 1;
-    }
-  #endif
-
-  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      if (motor_direction(E_AXIS)) {
-        MIXING_STEPPERS_LOOP(j) REV_E_DIR(j);
-        count_direction[E_AXIS] = -1;
-      }
-      else {
-        MIXING_STEPPERS_LOOP(j) NORM_E_DIR(j);
-        count_direction[E_AXIS] = 1;
-      }
-    #else
-      if (motor_direction(E_AXIS)) {
-        REV_E_DIR(active_extruder_driver);
-        count_direction[E_AXIS] = -1;
-      }
-      else {
-        NORM_E_DIR(active_extruder_driver);
-        count_direction[E_AXIS] = 1;
-      }
-    #endif
-  #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
-
-  #if HAS_EXT_ENCODER
-    tools.encLastDir[active_extruder] = count_direction[E_AXIS];
-  #endif
-
-  // After changing directions, an small delay could be needed.
-  if (direction_delay > 0) HAL::delayNanoseconds(direction_delay);
-
 }
 
 /**

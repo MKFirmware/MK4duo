@@ -128,6 +128,10 @@ void Printer::setup() {
 
   HAL::hwSetup();
 
+  #if ENABLED(MB_SETUP)
+    MB_SETUP;
+  #endif
+
   setup_pinout();
 
   #if HAS_POWER_SWITCH
@@ -143,10 +147,13 @@ void Printer::setup() {
   #endif
 
   // Init Serial for HOST
-  SERIAL_INIT(BAUDRATE);
+  MKSERIAL.begin(BAUDRATE);
+  HAL::delayMilliseconds(1000);
   SERIAL_L(START);
 
-  // Init TMC stepper drivers Serial
+  #if HAVE_DRV(TMC2130)
+    tmc_init_cs_pins();
+  #endif
   #if HAVE_DRV(TMC2208)
     tmc2208_serial_begin();
   #endif
@@ -174,6 +181,15 @@ void Printer::setup() {
 
   // Send "ok" after commands by default
   commands.setup();
+
+  lcd_init();
+  LCD_MESSAGEPGM(WELCOME_MSG);
+
+  #if ENABLED(SHOW_BOOTSCREEN)
+    #if ENABLED(DOGLCD) || ENABLED(ULTRA_LCD)
+      lcd_bootscreen(); // Show MK4duo boot screen
+    #endif
+  #endif
 
   #if HAS_SDSUPPORT
     card.mount();
@@ -252,15 +268,6 @@ void Printer::setup() {
     RFID_ON = rfid522.init();
     if (RFID_ON)
       SERIAL_EM("RFID CONNECT");
-  #endif
-
-  lcd_init();
-  LCD_MESSAGEPGM(WELCOME_MSG);
-
-  #if ENABLED(SHOW_BOOTSCREEN)
-    #if ENABLED(DOGLCD) || ENABLED(ULTRA_LCD)
-      lcd_bootscreen(); // Show MK4duo boot screen
-    #endif
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
@@ -899,69 +906,29 @@ void Printer::suicide() {
 
 void Printer::setup_pinout() {
 
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-
-    // All SPI chip-select HIGH
-    OUT_WRITE(DAC0_SYNC_PIN, HIGH);
-    #if EXTRUDERS > 1
-      OUT_WRITE(DAC1_SYNC_PIN, HIGH);
-    #endif
-    OUT_WRITE(SPI_EEPROM1_CS, HIGH);
-    OUT_WRITE(SPI_EEPROM2_CS, HIGH);
-    OUT_WRITE(SPI_FLASH_CS, HIGH);
-    SET_INPUT(MOTOR_FAULT_PIN);
-    #if MB(ALLIGATOR_V3)
-      SET_INPUT(MOTOR_FAULT_PIGGY_PIN);
-      SET_INPUT(FTDI_COM_RESET_PIN);
-      SET_INPUT(ESP_WIFI_MODULE_RESET_PIN);
-      OUT_WRITE(EXP1_OUT_ENABLE_PIN, HIGH);
-    #elif MB(ALLIGATOR)
-      // Init Expansion Port Voltage logic Selector
-      OUT_WRITE(EXP_VOLTAGE_LEVEL_PIN, UI_VOLTAGE_LEVEL);
-    #endif
-
-    #if HAS_BUZZER
-      BUZZ(10,10);
-    #endif
-
-  #elif MB(ULTRATRONICS)
-
-    /* avoid floating pins */
-    OUT_WRITE(ORIG_FAN0_PIN, LOW);
-    OUT_WRITE(ORIG_FAN1_PIN, LOW);
-
-    OUT_WRITE(ORIG_HEATER_0_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_1_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_2_PIN, LOW);
-    OUT_WRITE(ORIG_HEATER_3_PIN, LOW);
-
-    OUT_WRITE(ENC424_SS_PIN, HIGH);
-
+  #if HAS_BUZZER
+    BUZZ(10,10);
   #endif
 
   #if PIN_EXISTS(SS)
     OUT_WRITE(SS_PIN, HIGH);
   #endif
 
-  #if HAS_MAX6675_SS
+  #if PIN_EXISTS(MAX6675_SS)
     OUT_WRITE(MAX6675_SS_PIN, HIGH);
   #endif
 
-  #if HAS_MAX31855_SS0
+  #if PIN_EXISTS(MAX31855_SS0)
     OUT_WRITE(MAX31855_SS0_PIN, HIGH);
   #endif
-  #if HAS_MAX31855_SS1
+  #if PIN_EXISTS(MAX31855_SS1)
     OUT_WRITE(MAX31855_SS1_PIN, HIGH);
   #endif
-  #if HAS_MAX31855_SS2
+  #if PIN_EXISTS(MAX31855_SS2)
     OUT_WRITE(MAX31855_SS2_PIN, HIGH);
   #endif
-  #if HAS_MAX31855_SS3
+  #if PIN_EXISTS(MAX31855_SS3)
     OUT_WRITE(MAX31855_SS3_PIN, HIGH);
-  #endif
-
-  #if HAVE_DRV(TMC2130)
-    tmc_init_cs_pins();
   #endif
 
   #if HAS_SUICIDE

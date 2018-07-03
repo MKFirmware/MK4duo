@@ -53,11 +53,12 @@ inline void gcode_M569(void) {
       stepper.setStepDir((AxisEnum)a, parser.value_bool());
     }
   }
+  // Set actually direction
+  stepper.set_directions();
 
   if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
   if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();
   if (parser.seen('R')) stepper.maximum_rate    = parser.value_ulong();
-
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
 

@@ -194,6 +194,11 @@ class Stepper {
     static void wake_up();
 
     /**
+     * Set direction bits for all steppers
+     */
+    static void set_directions();
+
+    /**
      * Enabled or Disable one or all stepper driver
      */
     static void enable_X();
@@ -391,11 +396,6 @@ class Stepper {
     static void stop_X_step();
     static void stop_Y_step();
     static void stop_Z_step();
-
-    /**
-     * Set direction bits for all steppers
-     */
-    static void set_directions();
 
     /**
      * Set X Y Z direction

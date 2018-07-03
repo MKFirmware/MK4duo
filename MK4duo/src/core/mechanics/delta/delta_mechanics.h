@@ -173,7 +173,7 @@
        */
       static void Set_clip_start_height();
 
-      #if ENABLED(DELTA_FAST_SQRT) && DISABLED(MATH_USE_HAL)
+      #if ENABLED(DELTA_FAST_SQRT) && ENABLED(__AVR__)
         static float Q_rsqrt(float number);
       #endif
 

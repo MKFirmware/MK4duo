@@ -97,13 +97,13 @@
                     p1 = mechanics.current_position[X_AXIS], q1 = mechanics.current_position[Y_AXIS],
                     p2 = mechanics.destination[X_AXIS],      q2 = mechanics.destination[Y_AXIS];
         if (r && (p2 != p1 || q2 != q1)) {
-          const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
-                      dx = p2 - p1, dy = q2 - q1,                 // X and Y differences
-                      d = HYPOT(dx, dy),                          // Linear distance between the points
-                      h = SQRT(sq(r) - sq(d * 0.5)),              // Distance to the arc pivot-point
-                      mx = (p1 + p2) * 0.5, my = (q1 + q2) * 0.5, // Point between the two points
-                      sx = -dy / d, sy = dx / d,                  // Slope of the perpendicular bisector
-                      cx = mx + e * h * sx, cy = my + e * h * sy; // Pivot-point of the arc
+          const float e = clockwise ^ (r < 0) ? -1 : 1,             // clockwise -1/1, counterclockwise 1/-1
+                      dx = p2 - p1, dy = q2 - q1,                   // X and Y differences
+                      d = HYPOT(dx, dy),                            // Linear distance between the points
+                      h = SQRT(sq(r) - sq(d * 0.5f)),               // Distance to the arc pivot-point
+                      mx = (p1 + p2) * 0.5f, my = (q1 + q2) * 0.5f, // Point between the two points
+                      sx = -dy / d, sy = dx / d,                    // Slope of the perpendicular bisector
+                      cx = mx + e * h * sx, cy = my + e * h * sy;   // Pivot-point of the arc
           arc_offset[0] = cx - p1;
           arc_offset[1] = cy - q1;
         }

@@ -617,7 +617,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
 
     const float flat_mm = radius * angular_travel,
                 mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : ABS(flat_mm);
-    if (mm_of_travel < 0.001) return;
+    if (mm_of_travel < 0.001f) return;
 
     uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
     if (segments == 0) segments = 1;
@@ -654,7 +654,7 @@ bool Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry)
                 linear_per_segment = linear_travel / segments,
                 extruder_per_segment = extruder_travel / segments,
                 sin_T = theta_per_segment,
-                cos_T = 1 - 0.5 * sq(theta_per_segment); // Small angle approximation
+                cos_T = 1 - 0.5f * sq(theta_per_segment); // Small angle approximation
 
     // Initialize the linear axis
     raw[l_axis] = current_position[l_axis];

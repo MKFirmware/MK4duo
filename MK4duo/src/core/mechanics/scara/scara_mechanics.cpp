@@ -172,7 +172,7 @@
     NOLESS(segments, 1U);
 
     // The approximate length of each segment
-    const float inv_segments = 1.0 / float(segments),
+    const float inv_segments = RECIPROCAL(segments),
                 segment_distance[XYZE] = {
                   difference[X_AXIS] * inv_segments,
                   difference[Y_AXIS] * inv_segments,
