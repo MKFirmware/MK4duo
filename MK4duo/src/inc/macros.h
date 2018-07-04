@@ -50,10 +50,10 @@
 #define _O3             __attribute__((optimize("O3")))
 
 // Clock speed factor
-#define CYCLES_PER_US   ((F_CPU) / 1000000L)
+#define CYCLES_PER_US   ((F_CPU)/1000000L)
 
 // Nanoseconds per cycle
-#define NS_PER_CYCLE    (1000000000.0 / (F_CPU))
+#define NS_PER_CYCLE    (1000000000.0/(F_CPU))
 
 // Remove compiler warning on an unused variable
 #define UNUSED(x)       (void)(x)
