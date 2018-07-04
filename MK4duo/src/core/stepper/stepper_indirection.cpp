@@ -252,7 +252,7 @@
     #endif
 
     #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(X_HOMING_SENSITIVITY)
+      #if X_SENSORLESS
         #if X_HAS_DRV(TMC2130)
           stepperX.sgt(X_HOMING_SENSITIVITY);
         #endif
@@ -260,7 +260,7 @@
           stepperX2.sgt(X_HOMING_SENSITIVITY);
         #endif
       #endif
-      #if ENABLED(Y_HOMING_SENSITIVITY)
+      #if Y_SENSORLESS
         #if Y_HAS_DRV(TMC2130)
           stepperY.sgt(Y_HOMING_SENSITIVITY);
         #endif
@@ -268,7 +268,7 @@
           stepperY2.sgt(Y_HOMING_SENSITIVITY);
         #endif
       #endif
-      #if ENABLED(Z_HOMING_SENSITIVITY)
+      #if Z_SENSORLESS
         #if Z_HAS_DRV(TMC2130)
           stepperZ.sgt(Z_HOMING_SENSITIVITY);
         #endif

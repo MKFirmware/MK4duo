@@ -165,50 +165,50 @@
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {
-        if (uint16_t value = parser.intval(axis_codes[i])) {
+        if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
-              #if X_HAS_STEALTHCHOP
+              #if X_IS_TRINAMIC
                 if (index == 0) TMC_SET_PWMTHRS(X,X);
               #endif
-              #if X2_HAS_STEALTHCHOP
+              #if X2_IS_TRINAMIC
                 if (index == 1) TMC_SET_PWMTHRS(X,X2);
               #endif
               break;
             case Y_AXIS:
-              #if Y_HAS_STEALTHCHOP
+              #if Y_IS_TRINAMIC
                 if (index == 0) TMC_SET_PWMTHRS(Y,Y);
               #endif
-              #if Y2_HAS_STEALTHCHOP
+              #if Y2_IS_TRINAMIC
                 if (index == 1) TMC_SET_PWMTHRS(Y,Y2);
               #endif
               break;
             case Z_AXIS:
-              #if Z_HAS_STEALTHCHOP
+              #if Z_IS_TRINAMIC
                 if (index == 0) TMC_SET_PWMTHRS(Z,Z);
               #endif
-              #if Z2_HAS_STEALTHCHOP
+              #if Z2_IS_TRINAMIC
                 if (index == 1) TMC_SET_PWMTHRS(Z,Z2);
               #endif
               break;
             case E_AXIS: {
               switch (TARGET_EXTRUDER) {
-                #if E0_HAS_STEALTHCHOP
+                #if E0_IS_TRINAMIC
                   case 0: TMC_SET_PWMTHRS_E(0); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 1 && E1_HAS_STEALTHCHOP
+                #if DRIVER_EXTRUDERS > 1 && E1_IS_TRINAMIC
                   case 1: TMC_SET_PWMTHRS_E(1); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 2 && E2_HAS_STEALTHCHOP
+                #if DRIVER_EXTRUDERS > 2 && E2_IS_TRINAMIC
                   case 2: TMC_SET_PWMTHRS_E(2); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 3 && E3_HAS_STEALTHCHOP
+                #if DRIVER_EXTRUDERS > 3 && E3_IS_TRINAMIC
                   case 3: TMC_SET_PWMTHRS_E(3); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 4 && E4_HAS_STEALTHCHOP
+                #if DRIVER_EXTRUDERS > 4 && E4_IS_TRINAMIC
                   case 4: TMC_SET_PWMTHRS_E(4); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 5 && E5_HAS_STEALTHCHOP
+                #if DRIVER_EXTRUDERS > 5 && E5_IS_TRINAMIC
                   case 5: TMC_SET_PWMTHRS_E(5); break;
                 #endif
               }
@@ -220,46 +220,46 @@
       LOOP_XYZE(i) {
         switch (i) {
           case X_AXIS:
-            #if X_HAS_STEALTHCHOP
+            #if X_IS_TRINAMIC
               TMC_SAY_PWMTHRS(X,X);
             #endif
-            #if X2_HAS_STEALTHCHOP
+            #if X2_IS_TRINAMIC
               TMC_SAY_PWMTHRS(X,X2);
             #endif
             break;
           case Y_AXIS:
-            #if Y_HAS_STEALTHCHOP
+            #if Y_IS_TRINAMIC
               TMC_SAY_PWMTHRS(Y,Y);
             #endif
-            #if Y2_HAS_STEALTHCHOP
+            #if Y2_IS_TRINAMIC
               TMC_SAY_PWMTHRS(Y,Y2);
             #endif
             break;
           case Z_AXIS:
-            #if Z_HAS_STEALTHCHOP
+            #if Z_IS_TRINAMIC
               TMC_SAY_PWMTHRS(Z,Z);
             #endif
-            #if Z2_HAS_STEALTHCHOP
+            #if Z2_IS_TRINAMIC
               TMC_SAY_PWMTHRS(Z,Z2);
             #endif
             break;
           case E_AXIS:
-            #if E0_HAS_STEALTHCHOP
+            #if E0_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(0);
             #endif
-            #if DRIVER_EXTRUDERS > 1 && E1_HAS_STEALTHCHOP
+            #if DRIVER_EXTRUDERS > 1 && E1_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(1);
             #endif
-            #if DRIVER_EXTRUDERS > 2 && E2_HAS_STEALTHCHOP
+            #if DRIVER_EXTRUDERS > 2 && E2_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(2);
             #endif
-            #if DRIVER_EXTRUDERS > 3 && E3_HAS_STEALTHCHOP
+            #if DRIVER_EXTRUDERS > 3 && E3_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(3);
             #endif
-            #if DRIVER_EXTRUDERS > 4 && E4_HAS_STEALTHCHOP
+            #if DRIVER_EXTRUDERS > 4 && E4_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(4);
             #endif
-            #if DRIVER_EXTRUDERS > 5 && E5_HAS_STEALTHCHOP
+            #if DRIVER_EXTRUDERS > 5 && E5_IS_TRINAMIC
               TMC_SAY_PWMTHRS_E(5);
             #endif
             break;
@@ -284,62 +284,74 @@
       const uint8_t index = parser.byteval('I');
       LOOP_XYZ(i) {
         if (parser.seen(axis_codes[i])) {
-          const uint8_t value = parser.value_int();
+          const int8_t value = (int8_t)constrain(parser.value_int(), -64, 63);
           switch (i) {
-            case X_AXIS:
-              #if X_HAS_STALLGUARD
-                if (index == 0) TMC_SET_SGT(X);
-              #endif
-              #if X2_HAS_STALLGUARD
-                if (index == 1) TMC_SET_SGT(X2);
-              #endif
-              break;
-            case Y_AXIS:
-              #if Y_HAS_STALLGUARD
-                if (index == 0) TMC_SET_SGT(Y);
-              #endif
-              #if Y2_HAS_STALLGUARD
-                if (index == 1) TMC_SET_SGT(Y2);
-              #endif
-              break;
-            case Z_AXIS:
-              #if Z_HAS_STALLGUARD
-                if (index == 0) TMC_SET_SGT(Z);
-              #endif
-              #if Z2_HAS_STALLGUARD
-                if (index == 1) TMC_SET_SGT(Z2);
-              #endif
-              break;
+            #if X_SENSORLESS
+              case X_AXIS:
+                #if X_HAS_STALLGUARD
+                  if (index == 0) TMC_SET_SGT(X);
+                #endif
+                #if X2_HAS_STALLGUARD
+                  if (index == 1) TMC_SET_SGT(X2);
+                #endif
+                break;
+            #endif
+            #if Y_SENSORLESS
+              case Y_AXIS:
+                #if Y_HAS_STALLGUARD
+                  if (index == 0) TMC_SET_SGT(Y);
+                #endif
+                #if Y2_HAS_STALLGUARD
+                  if (index == 1) TMC_SET_SGT(Y2);
+                #endif
+                break;
+            #endif
+            #if Z_SENSORLESS
+              case Z_AXIS:
+                #if Z_HAS_STALLGUARD
+                  if (index == 0) TMC_SET_SGT(Z);
+                #endif
+                #if Z2_HAS_STALLGUARD
+                  if (index == 1) TMC_SET_SGT(Z2);
+                #endif
+                break;
+            #endif
           }
         }
       }
 
       LOOP_XYZ(i) {
         switch (i) {
-          case X_AXIS:
-            #if X_HAS_STALLGUARD
-              TMC_SAY_SGT(X);
-            #endif
-            #if X2_HAS_STALLGUARD
-              TMC_SAY_SGT(X2);
-            #endif
-            break;
-          case Y_AXIS:
-            #if Y_HAS_STALLGUARD
-              TMC_SAY_SGT(Y);
-            #endif
-            #if Y2_HAS_STALLGUARD
-              TMC_SAY_SGT(Y2);
-            #endif
-            break;
-          case Z_AXIS:
-            #if Z_HAS_STALLGUARD
-              TMC_SAY_SGT(Z);
-            #endif
-            #if Z2_HAS_STALLGUARD
-              TMC_SAY_SGT(Z2);
-            #endif
-            break;
+          #if X_SENSORLESS
+            case X_AXIS:
+              #if X_HAS_STALLGUARD
+                TMC_SAY_SGT(X);
+              #endif
+              #if X2_HAS_STALLGUARD
+                TMC_SAY_SGT(X2);
+              #endif
+              break;
+          #endif
+          #if Y_SENSORLESS
+            case Y_AXIS:
+              #if Y_HAS_STALLGUARD
+                TMC_SAY_SGT(Y);
+              #endif
+              #if Y2_HAS_STALLGUARD
+                TMC_SAY_SGT(Y2);
+              #endif
+              break;
+          #endif
+          #if Z_SENSORLESS
+            case Z_AXIS:
+              #if Z_HAS_STALLGUARD
+                TMC_SAY_SGT(Z);
+              #endif
+              #if Z2_HAS_STALLGUARD
+                TMC_SAY_SGT(Z2);
+              #endif
+              break;
+          #endif
         }
       }
     }
