@@ -1923,7 +1923,7 @@
  * the Stepper driver to the stepper driver pulse edge                 *
  * expressed in nS (nanoseconds)                                       *
  *      0 : No delay at all - But, at least 10uS are expected          *
- *     20 : Minimum for TMC2xxx drivers                                *
+ *     50 : Minimum for TMC2xxx drivers                                *
  *    200 : Minimum for A4988 drivers                                  *
  *    500 : Minimum for LV8729 drivers (guess, no info in datasheet)   *
  *    650 : Minimum for DRV8825 drivers                                *
