@@ -81,7 +81,7 @@ static void spiSend_sw_DUE(uint8_t val) { // 800KHz
       MOSI_pPio->PIO_SODR = MOSI_dwMask;
     else
       MOSI_pPio->PIO_CODR = MOSI_dwMask;
-    DELAY_NS(48);
+    DELAY_NS(50);
     SCK_pPio->PIO_SODR = SCK_dwMask;
     DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
     val <<= 1;

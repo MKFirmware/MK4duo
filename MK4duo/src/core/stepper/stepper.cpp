@@ -768,7 +768,8 @@ void Stepper::set_directions() {
   #endif
 
   // After changing directions, an small delay could be needed.
-  if (direction_delay > 0) HAL::delayNanoseconds(direction_delay);
+  // Min delay is 50 Nanoseconds
+  if (direction_delay >= 50) HAL::delayNanoseconds(direction_delay);
 
 }
 
