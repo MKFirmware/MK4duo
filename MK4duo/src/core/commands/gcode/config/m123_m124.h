@@ -114,7 +114,7 @@ inline void gcode_M123(void) {
 }
 
 /**
- * M123: Set Endstop Pullup
+ * M124: Set Endstop Pullup
  *
  *  X<bool> - Endstop X min or max dependent HOME DIR set false or true
  *  Y<bool> - Endstop Y min or max dependent HOME DIR set false or true

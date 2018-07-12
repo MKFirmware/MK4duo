@@ -58,7 +58,7 @@ uint16_t  Endstops::logic_bits  = 0,
 // Private
 uint8_t   Endstops::flag_bits = 0;
 
-volatile uint8_t Endstops::hit_state = 0; // use X_MIN, Y_MIN, Z_MIN and Z_MIN_PROBE as BIT value
+volatile uint8_t Endstops::hit_state = 0;
 
 /**
  * Class and Instance Methods
@@ -302,7 +302,11 @@ void Endstops::report() {
 }
 
 void Endstops::report_state() {
-  if (hit_state) {
+
+  static uint8_t prev_hit_state = 0;
+
+  if (hit_state && hit_state != prev_hit_state) {
+
     #if ENABLED(ULTRA_LCD)
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
@@ -333,8 +337,6 @@ void Endstops::report_state() {
       lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
-    hit_on_purpose();
-
     #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SDSUPPORT
       if (planner.abort_on_endstop_hit) {
         card.setSDprinting(false);
@@ -344,12 +346,15 @@ void Endstops::report_state() {
       }
     #endif
   }
+
+  prev_hit_state = hit_state;
+
 } // Endstops::report_state
 
 // If the last move failed to trigger an endstop, call kill
 void Endstops::validate_homing_move() {
-  if (!trigger_state()) printer.kill(PSTR(MSG_ERR_HOMING_FAILED));
-  hit_on_purpose();
+  if (trigger_state()) hit_on_purpose();
+  else printer.kill(PSTR(MSG_ERR_HOMING_FAILED));
 }
 
 /**
@@ -703,7 +708,7 @@ void Endstops::update() {
     const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
     if (dual_hit) { \
       _ENDSTOP_HIT(AXIS1, MINMAX); \
-      if (!stepper.homing_dual_axis || dual_hit == 0x3) \
+      if (!stepper.homing_dual_axis || dual_hit == 0b11) \
         planner.endstop_triggered(_AXIS(AXIS1)); \
     } \
   }while(0)

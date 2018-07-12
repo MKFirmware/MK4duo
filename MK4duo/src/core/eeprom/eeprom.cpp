@@ -1457,8 +1457,7 @@ void EEPROM::Factory_Settings() {
   #endif
 
   // Reset Printer Flag
-  printer.reset_home_flag();
-  printer.reset_various_flag();
+  printer.reset_flag();
 
   // Heaters
   #if HEATER_COUNT > 0

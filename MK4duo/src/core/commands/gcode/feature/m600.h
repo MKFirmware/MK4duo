@@ -99,8 +99,7 @@
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
                                                           : filament_change_load_length[tools.active_extruder]);
 
-    int16_t temp = 0;
-    if (parser.seenval('S')) temp = parser.value_celsius();
+    if (parser.seenval('S')) heaters[ACTIVE_HOTEND].setTarget(parser.value_celsius());
 
     const int beep_count = parser.intval('B',
       #if ENABLED(PAUSE_PARK_NUMBER_OF_ALERT_BEEPS)
@@ -112,7 +111,7 @@
 
     const bool job_running = print_job_counter.isRunning();
 
-    if (pause_print(retract, park_point, unload_length, temp, true)) {
+    if (pause_print(retract, park_point, unload_length, true)) {
       wait_for_filament_reload(beep_count);
       resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
     }

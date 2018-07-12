@@ -65,7 +65,7 @@
   extern uint8_t did_pause_print;
 
   bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0,
-                   const int16_t new_temp=0, const bool show_lcd=false);
+                   const bool show_lcd=false);
 
   void wait_for_filament_reload(const int8_t max_beep_count=0);
 
