@@ -137,10 +137,10 @@ class Printer {
 
   private: /** Private Parameters */
 
-    static uint8_t  mk_debug_flag,  // For debug
-                    mk_home_flag;   // For Homed
+    static uint8_t  mk_debug_flag,    // For debug
+                    mk_home_flag;     // For Homed
 
-    static uint16_t mk_various_flag;      // For various
+    static uint16_t mk_various_flag;  // For various
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -307,8 +307,7 @@ class Printer {
     }
     FORCE_INLINE static bool IsG38Move() { return mk_various_flag & bit_g38_move; }
 
-    FORCE_INLINE static bool reset_home_flag() { mk_home_flag = 0; }
-    FORCE_INLINE static bool reset_various_flag() { mk_various_flag = 0; }
+    FORCE_INLINE static bool reset_flag() { mk_home_flag = 0; mk_various_flag = 0; }
 
   private: /** Private Function */
 

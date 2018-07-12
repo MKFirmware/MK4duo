@@ -206,7 +206,7 @@ void Temperature::set_current_temp_raw() {
  * Spin Manage heating activities for heaters, bed, chamber and cooler
  *  - Is called every 100ms.
  *  - Acquire updated temperature readings
- *    - Also resets the watchdog timer
+ *  - Also resets the watchdog timer
  *  - Invoke thermal runaway protection
  *  - Apply filament width to the extrusion rate (may move)
  *  - Update the heated bed PID output value
@@ -755,9 +755,11 @@ void Temperature::max_temp_error(const uint8_t h) {
   Temperature::TRState Temperature::thermal_runaway_state_machine[HEATER_COUNT] = { TRInactive };
   millis_t Temperature::thermal_runaway_timer[HEATER_COUNT] = { 0 };
 
-  void Temperature::thermal_runaway_protection(Temperature::TRState* state, millis_t* timer, float temperature, float target_temperature, const uint8_t h, int period_seconds, int hysteresis_degc) {
+  void Temperature::thermal_runaway_protection(Temperature::TRState* state, millis_t* timer, const uint8_t h, int period_seconds, int hysteresis_degc) {
 
     static float tr_target_temperature[HEATER_COUNT] = { 0.0 };
+
+    Heater *act = &heaters[h];
 
     /*
         SERIAL_MSG("Thermal Thermal Runaway Running. Heater ID: ");
@@ -770,16 +772,16 @@ void Temperature::max_temp_error(const uint8_t h) {
    
     #if HEATER_IDLE_HANDLER
       // If the heater idle timeout expires, restart
-      if (heaters[h].isIdle()) {
+      if (act->isIdle()) {
         *state = TRInactive;
         tr_target_temperature[h] = 0;
       }
       else
     #endif
     // If the target temperature changes, restart
-    if (tr_target_temperature[h] != target_temperature) {
-      tr_target_temperature[h] = target_temperature;
-      *state = target_temperature > 0 ? TRFirstHeating : TRInactive;
+    if (tr_target_temperature[h] != act->target_temperature) {
+      tr_target_temperature[h] = act->target_temperature);
+      *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
     }
 
     switch (*state) {
@@ -787,11 +789,11 @@ void Temperature::max_temp_error(const uint8_t h) {
       case TRInactive: break;
       // When first heating, wait for the temperature to be reached then go to Stable state
       case TRFirstHeating:
-        if (temperature < tr_target_temperature[h]) break;
+        if (act->current_temperature < tr_target_temperature[h]) break;
         *state = TRStable;
       // While the temperature is stable watch for a bad temperature
       case TRStable:
-        if (temperature >= tr_target_temperature[h] - hysteresis_degc) {
+        if (act->current_temperature >= tr_target_temperature[h] - hysteresis_degc) {
           *timer = millis() + period_seconds * 1000UL;
           break;
         }

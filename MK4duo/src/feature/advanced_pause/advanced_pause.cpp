@@ -261,7 +261,7 @@
   uint8_t did_pause_print = 0;
 
   bool pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/,
-                   const int16_t new_temp/*=0*/, const bool show_lcd/*=false*/
+                   const bool show_lcd/*=false*/
   ) {
 
     if (did_pause_print) return false; // already paused
