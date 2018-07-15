@@ -163,7 +163,7 @@
 
     printer.setup_for_endstop_or_probe_move();
     endstops.setEnabled(true);
-    if (!mechanics.home()) return;
+    mechanics.home();
     endstops.setNotHoming();
     DEPLOY_PROBE();
 
@@ -329,7 +329,7 @@
     SERIAL_EOL();
 
     endstops.setEnabled(true);
-    if (!mechanics.home()) return;
+    mechanics.home();
     endstops.setNotHoming();
 
     CALIBRATION_CLEANUP();
