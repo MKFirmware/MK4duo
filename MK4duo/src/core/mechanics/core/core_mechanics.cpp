@@ -122,7 +122,7 @@
 
     if (z_homing_height && (home_all || homeX || homeY)) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      destination[Z_AXIS] = MIN_Z_HEIGHT_FOR_HOMING;
+      destination[Z_AXIS] = z_homing_height;
       if (destination[Z_AXIS] > current_position[Z_AXIS]) {
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (printer.debugLeveling())
@@ -339,28 +339,34 @@
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
           const float adj = ABS(endstops.x_endstop_adj);
-          if (pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_x_lock(false);
-          stepper.set_x2_lock(false);
+          if (adj) {
+            if (pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_x_lock(false);
+            stepper.set_x2_lock(false);
+          }
         }
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
         if (axis == Y_AXIS) {
           const float adj = ABS(endstops.y_endstop_adj);
-          if (pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_y_lock(false);
-          stepper.set_y2_lock(false);
+          if (adj) {
+            if (pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_y_lock(false);
+            stepper.set_y2_lock(false);
+          }
         }
       #endif
       #if ENABLED(Z_TWO_ENDSTOPS)
         if (axis == Z_AXIS) {
           const float adj = ABS(endstops.z_endstop_adj);
-          if (pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_z_lock(false);
-          stepper.set_z2_lock(false);
+          if (adj) {
+            if (pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_z_lock(false);
+            stepper.set_z2_lock(false);
+          }
         }
       #endif
       stepper.set_homing_dual_axis(false);
@@ -425,7 +431,6 @@
       #if ENABLED(SENSORLESS_HOMING)
         sensorless_homing_per_axis(X_AXIS, false);
         sensorless_homing_per_axis(Y_AXIS, false);
-        printer.safe_delay(500);
       #endif
     }
 
@@ -606,20 +611,5 @@
       }
     #endif
   }
-
-  #if ENABLED(DUAL_X_CARRIAGE)
-
-    float Core_Mechanics::x_home_pos(const int extruder) {
-      if (extruder == 0)
-        return base_home_pos[X_AXIS];
-      else
-        // In dual carriage mode the extruder offset provides an override of the
-        // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
-        // This allow soft recalibration of the second extruder offset position without firmware reflash
-        // (through the M218 command).
-        return tools.hotend_offset[X_AXIS][1] > 0 ? tools.hotend_offset[X_AXIS][1] : X2_HOME_POS;
-    }
-
-  #endif
 
 #endif // IS_CORE
