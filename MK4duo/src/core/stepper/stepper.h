@@ -191,7 +191,7 @@ class Stepper {
      * The stepper subsystem goes to sleep when it runs out of things to execute. Call this
      * to notify the subsystem that it is time to go to work.
      */
-    static void wake_up();
+    FORCE_INLINE static void wake_up() { ENABLE_STEPPER_INTERRUPT(); }
 
     /**
      * Set direction bits for all steppers

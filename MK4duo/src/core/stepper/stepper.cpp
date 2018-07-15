@@ -696,8 +696,6 @@ void Stepper::report_positions() {
   SERIAL_EOL();
 }
 
-void Stepper::wake_up() { ENABLE_STEPPER_INTERRUPT(); }
-
 /**
  * Set the stepper direction of each axis
  *
@@ -1288,6 +1286,11 @@ void Stepper::pulse_phase_step() {
     // Start an active pulse
     pulse_tick_start();
 
+    // Test Encoder if exist
+    #if HAS_EXT_ENCODER
+      test_extruder_encoder();
+    #endif
+
     if (minimum_pulse) {
       // Just wait for the requested pulse time.
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
@@ -1298,11 +1301,6 @@ void Stepper::pulse_phase_step() {
 
     // Stop an active pulse
     pulse_tick_stop();
-
-    // Test Encoder if exist
-    #if HAS_EXT_ENCODER
-      test_extruder_encoder();
-    #endif
 
     #if ENABLED(LASER)
       counter_L += current_block->steps_l;
