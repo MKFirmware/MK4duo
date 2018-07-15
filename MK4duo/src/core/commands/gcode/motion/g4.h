@@ -41,6 +41,8 @@ inline void gcode_G4(void) {
 
   if (!lcd_hasstatus()) LCD_MESSAGEPGM(MSG_DWELL);
 
+  dwell_ms += millis();
+
   while (PENDING(millis(), dwell_ms)) {
     printer.keepalive(InProcess);
     printer.idle();
