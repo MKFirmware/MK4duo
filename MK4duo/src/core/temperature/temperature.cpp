@@ -236,7 +236,7 @@ void Temperature::spin() {
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
       if (thermal_protection[act->type])
-        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], act->current_temperature, act->target_temperature, h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
+        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
     #endif
 
     // Ignore heater we are currently testing
