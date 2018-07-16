@@ -158,6 +158,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define EEPROM_SD
 #define MAX6675_SS_PIN    65
@@ -167,17 +168,6 @@
 #define MAX31855_SS3_PIN  50
 #define ENC424_SS_PIN     61
 #define HAVE_MCU_TEMPERATURE
-//@@@
-
-//###MB_SETUP
-#define MB_SETUP                      \
-  OUT_WRITE(ORIG_FAN0_PIN, LOW);      \
-  OUT_WRITE(ORIG_FAN1_PIN, LOW);      \
-  OUT_WRITE(ORIG_HEATER_0_PIN, LOW);  \
-  OUT_WRITE(ORIG_HEATER_1_PIN, LOW);  \
-  OUT_WRITE(ORIG_HEATER_2_PIN, LOW);  \
-  OUT_WRITE(ORIG_HEATER_3_PIN, LOW);  \
-  OUT_WRITE(ENC424_SS_PIN, HIGH)
 //@@@
 
 //###IF_BLOCKS
@@ -193,4 +183,15 @@
   #define BTN_ENC             64
 
 #endif // REPRAPWORLD_GRAPHICAL_LCD
+//@@@
+
+//###MB_SETUP
+#define MB_SETUP                      \
+  OUT_WRITE(ORIG_FAN0_PIN, LOW);      \
+  OUT_WRITE(ORIG_FAN1_PIN, LOW);      \
+  OUT_WRITE(ORIG_HEATER_0_PIN, LOW);  \
+  OUT_WRITE(ORIG_HEATER_1_PIN, LOW);  \
+  OUT_WRITE(ORIG_HEATER_2_PIN, LOW);  \
+  OUT_WRITE(ORIG_HEATER_3_PIN, LOW);  \
+  OUT_WRITE(ENC424_SS_PIN, HIGH)
 //@@@
