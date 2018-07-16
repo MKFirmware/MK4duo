@@ -236,7 +236,7 @@ void Temperature::spin() {
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
       if (thermal_protection[act->type])
-        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], act->current_temperature, act->target_temperature, h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
+        thermal_runaway_protection(&thermal_runaway_state_machine[h], &thermal_runaway_timer[h], h, THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
     #endif
 
     // Ignore heater we are currently testing
@@ -778,10 +778,12 @@ void Temperature::max_temp_error(const uint8_t h) {
       }
       else
     #endif
-    // If the target temperature changes, restart
-    if (tr_target_temperature[h] != act->target_temperature) {
-      tr_target_temperature[h] = act->target_temperature);
-      *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
+    {
+      // If the target temperature changes, restart
+      if (tr_target_temperature[h] != act->target_temperature) {
+        tr_target_temperature[h] = act->target_temperature;
+        *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
+      }
     }
 
     switch (*state) {

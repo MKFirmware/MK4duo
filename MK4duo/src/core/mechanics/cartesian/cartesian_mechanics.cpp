@@ -178,10 +178,13 @@
         #else
           homeaxis(Z_AXIS);
         #endif // !Z_SAFE_HOMING
+
+        #if HOMING_Z_WITH_PROBE && Z_PROBE_AFTER_PROBING > 0
+          probe.move_z_after_probing();
+        #endif
+
       } // home_all || homeZ
-      #if HOMING_Z_WITH_PROBE && Z_PROBE_AFTER_PROBING > 0
-        probe.move_z_after_probing();
-      #endif
+
     #elif ENABLED(DOUBLE_Z_HOMING)
       if (home_all || homeZ) double_home_z();
     #endif
