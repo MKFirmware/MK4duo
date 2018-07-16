@@ -181,7 +181,7 @@
        * Set sensorless homing.
        */
       #if ENABLED(SENSORLESS_HOMING)
-        static void sensorless_homing(const bool on=true) {
+        static void sensorless_homing(const bool on=true);
       #endif
 
   };

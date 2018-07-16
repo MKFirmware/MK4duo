@@ -591,7 +591,7 @@
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      mechanics.sensorless_homing();
+      sensorless_homing();
     #endif
 
     // Move all carriages together linearly until an endstop is hit.
