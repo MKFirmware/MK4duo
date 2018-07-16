@@ -82,6 +82,10 @@
 #define Y_HOMING_SENSITIVITY  8
 #define Z_HOMING_SENSITIVITY  8
 
+// Enable M122 debugging command for TMC stepper drivers.
+// M922 S0/1 will enable continous reporting.
+//#define TMC_DEBUG
+
 // M915 Z Axis Calibration
 // - Adjust Z stepper current,
 // - Drive the Z axis to its physical maximum, and
@@ -95,6 +99,20 @@
 // Use Trinamic's ultra quiet stepping mode.
 // When disabled, MK4duo will use spreadCycle stepping mode.
 #define STEALTHCHOP
+
+// Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
+// like overtemperature and short to ground. TMC2208 requires hardware serial.
+// In the case of overtemperature Marlin can decrease the driver current until error condition clears.
+// Other detected conditions can be used to stop the current print.
+// Relevant g-codes:
+// M906 - Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.
+// M911 - Report stepper driver overtemperature pre-warn condition.
+// M912 - Clear stepper driver overtemperature pre-warn condition flag.
+// M922 S0/1 - Report driver parameters (Requires TMC_DEBUG)
+//#define MONITOR_DRIVER_STATUS
+//#define CURRENT_STEP_DOWN     50  // [mA]
+//#define REPORT_CURRENT_CHANGE
+//#define STOP_ON_ERROR
 
 // The driver will switch to spreadCycle when stepper speed is over HYBRID_THRESHOLD.
 // This mode allows for faster movements at the expense of higher noise levels.
