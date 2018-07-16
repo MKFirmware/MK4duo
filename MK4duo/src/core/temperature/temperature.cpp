@@ -778,10 +778,12 @@ void Temperature::max_temp_error(const uint8_t h) {
       }
       else
     #endif
-    // If the target temperature changes, restart
-    if (tr_target_temperature[h] != act->target_temperature) {
-      tr_target_temperature[h] = act->target_temperature);
-      *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
+    {
+      // If the target temperature changes, restart
+      if (tr_target_temperature[h] != act->target_temperature) {
+        tr_target_temperature[h] = act->target_temperature;
+        *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
+      }
     }
 
     switch (*state) {
