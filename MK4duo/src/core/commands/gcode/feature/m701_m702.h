@@ -133,9 +133,9 @@
     // Unload filament
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
-        HOTEND_LOOP() {
-          if (h != tools.active_extruder) tools.change(h, 0, true);
-          unload_filament(-filament_change_unload_length[h], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
+        LOOP_EXTRUDER() {
+          if (e != tools.active_extruder) tools.change(e, 0, true);
+          unload_filament(-filament_change_unload_length[e], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
       else
