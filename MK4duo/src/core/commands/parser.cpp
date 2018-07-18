@@ -231,6 +231,14 @@ pin_t GCodeParser::value_pin() {
   return printer.pin_is_protected(pin) ? NoPin : pin;
 }
 
+#if ENABLED(INCH_MODE_SUPPORT)
+
+  float GCodeParser::axis_unit_factor(const AxisEnum axis) {
+    return (axis >= E_AXIS && printer.isVolumetric() ? volumetric_unit_factor : linear_unit_factor);
+  }
+
+#endif
+
 #if ENABLED(DEBUG_GCODE_PARSER)
 
   void GCodeParser::debug() {

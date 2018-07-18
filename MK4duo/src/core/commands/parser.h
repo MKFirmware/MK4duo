@@ -89,7 +89,7 @@ class GCodeParser {
   public: /** Public Function */
 
     #if ENABLED(DEBUG_GCODE_PARSER)
-      void debug();
+      static void debug();
     #endif
 
     // Reset is done before parsing
@@ -218,13 +218,11 @@ class GCodeParser {
 
     #if ENABLED(INCH_MODE_SUPPORT)
 
+      static float axis_unit_factor(const AxisEnum axis);
+
       inline static void set_input_linear_units(float factor) {
         linear_unit_factor = factor;
         volumetric_unit_factor = POW(linear_unit_factor, 3);
-      }
-
-      inline static float axis_unit_factor(const AxisEnum axis) {
-        return (axis >= E_AXIS && printer.isVolumetric() ? volumetric_unit_factor : linear_unit_factor);
       }
 
       inline static float value_linear_units()                     { return value_float() * linear_unit_factor; }
