@@ -75,10 +75,9 @@
             strcpy(buffer_ring[index++], PSTR("M117 Printing..."));
           #endif
 
-          uint8_t read = job_info.buffer_index_r;
-          while (job_info.buffer_lenght) {
+          uint8_t read = job_info.buffer_index_r, c = job_info.buffer_lenght;
+          while (c--) {
             strcpy(buffer_ring[index++], job_info.buffer_ring[read]);
-            job_info.buffer_lenght--;
             read = (read + 1) % BUFSIZE;
           }
 
@@ -153,9 +152,12 @@
 
     static watch_t save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
 
-    if (save_restart_watch.elapsed() || force_save) {
+    if (save_restart_watch.elapsed() || force_save ||
+        // Save on every new Z height
+        (mechanics.current_position[Z_AXIS] > 0 && mechanics.current_position[Z_AXIS] > job_info.current_position[Z_AXIS])
+    ) {
 
-      job_info.valid_head = random(1, 256);
+      if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
       job_info.valid_foot = job_info.valid_head;
 
       // Mechanics state
