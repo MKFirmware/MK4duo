@@ -685,11 +685,11 @@ bool Commands::drain_injected_P() {
 #if HAS_SD_RESTART
 
   bool Commands::enqueue_restart() {
-    static uint8_t index = 0;
-    if (restart.count > 0) {
-      if (enqueue(restart.buffer_ring[index])) {
-        index++;
-        restart.count--;
+    static uint8_t restart_commands_index = 0;
+    if (restart.count) {
+      if (enqueue(restart.buffer_ring[restart_commands_index])) {
+        ++restart_commands_index;
+        if (!--restart.count) restart.job_phase = RESTART_DONE;
       }
       return true;
     }

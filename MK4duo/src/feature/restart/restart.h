@@ -53,8 +53,8 @@
     #endif
 
     // Command buffer
-    uint8_t buffer_index_r;
-    uint8_t buffer_lenght;
+    uint8_t buffer_index_r,
+            buffer_lenght;
     char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
     // Job elapsed time
@@ -71,7 +71,8 @@
   enum restart_phase : unsigned char {
     RESTART_IDLE,
     RESTART_MAYBE,
-    RESTART_YES
+    RESTART_YES,
+    RESTART_DONE
   };
 
   class Restart {
