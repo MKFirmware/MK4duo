@@ -158,6 +158,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 // I2C EEPROM with 8K of space
 #define EEPROM_I2C
@@ -202,3 +203,4 @@
    #endif 
 #endif // ULTRA_LCD
 //@@@
+

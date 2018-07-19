@@ -182,3 +182,7 @@
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
+
+
+
+

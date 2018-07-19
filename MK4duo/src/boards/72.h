@@ -157,6 +157,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN            13
 #define SAFETY_TRIGGERED_PIN      28
@@ -185,3 +186,4 @@
   #define LCD_RESET_PIN            5
 #endif
 //@@@
+

@@ -3,11 +3,6 @@
 * Mini Rambo 1.0a
 ****************************************************************************************/
 
-//###CHIP
-#if DISABLED(__AVR_ATmega2560__)
-  #error "Oops!  Make sure you have 'Rambo' selected from the 'Tools -> Boards' menu."
-#endif
-//@@@
 
 #define KNOWN_BOARD 1
 
@@ -157,6 +152,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN          9
 
+
 //###UNKNOWN_PINS
 // Microstepping pins - Mapping not from fastio.h (?)
 #define X_MS1_PIN           40
@@ -207,3 +203,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

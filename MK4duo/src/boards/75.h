@@ -157,6 +157,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
+
 //###IF_BLOCKS
 #if ENABLED(ULTIMAKERCONTROLLER) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) || ENABLED(G3D_PANEL) || ENABLED(MKS_MINI_12864)
   #define SDSUPPORT   // Force SD Card support on for these displays
@@ -203,3 +205,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

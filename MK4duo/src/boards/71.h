@@ -157,6 +157,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define LCD_PINS_RS 24
 #define LCD_PINS_ENABLE 22
@@ -165,3 +166,5 @@
 #define LCD_PINS_D6 32
 #define LCD_PINS_D7 30
 //@@@
+
+

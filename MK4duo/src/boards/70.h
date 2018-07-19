@@ -157,6 +157,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
+
 //###IF_BLOCKS
 #if TEMP_SENSOR_0 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_0_PIN           8
@@ -188,3 +190,4 @@
 
 #endif //ULTRA_LCD
 //@@@
+

@@ -130,7 +130,7 @@
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN               4 // Works for Panelolu2 too
+#define ORIG_FAN0_PIN               4
 #define ORIG_FAN1_PIN              NoPin
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
@@ -155,6 +155,8 @@
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
+
+
 
 //###IF_BLOCKS
 /**
@@ -233,3 +235,4 @@
 
 #endif // MAKRPANEL
 //@@@
+

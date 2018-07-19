@@ -183,7 +183,10 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define I2C_SCL       16
 #define I2C_SDA       17
 //@@@
+
+

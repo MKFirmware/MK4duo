@@ -156,8 +156,9 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
-//###IF_BLOCKS
 
+
+//###IF_BLOCKS
 //#define SDSS               24
 
 #if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
@@ -231,3 +232,4 @@
 
 #endif // MAKRPANEL
 //@@@
+
