@@ -156,6 +156,8 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
+
 //###IF_BLOCKS
 #if ENABLED(LCD_I2C_PANELOLU2)
   #define ORIG_FAN0_PIN         4 // Uses Transistor1 (PWM) on Panelolu2's Sanguino Adapter Board to drive the fan
@@ -238,3 +240,4 @@
 
 #endif // MAKRPANEL
 //@@@
+

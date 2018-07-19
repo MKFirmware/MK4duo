@@ -114,7 +114,7 @@
 
 //###HEATER
 #define ORIG_HEATER_0_PIN          10
-#define ORIG_HEATER_1_PIN          7
+#define ORIG_HEATER_1_PIN           7
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN         8
@@ -156,6 +156,7 @@
 //###LASER
 #define ORIG_LASER_PWR_PIN          5
 #define ORIG_LASER_PWM_PIN          6
+
 
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN             66
@@ -403,3 +404,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

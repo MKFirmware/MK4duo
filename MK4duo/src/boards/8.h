@@ -5,14 +5,6 @@
 * http://www.pjrc.com/teensy/teensyduino.html
 ****************************************************************************************/
 
-//###CHIP
-#if DISABLED(__AVR_AT90USB1286__)
-  #error Oops!  Make sure you have 'Teensy++ 2.0' selected from the 'Tools -> Boards' menu.
-#endif
-#if ENABLED(AT90USBxx_TEENSYPP_ASSIGNMENTS)
-  #error These Teensylu/Printrboard assignments depend on traditional MK4duo assignments, not AT90USBxx_TEENSYPP_ASSIGNMENTS in fastio.h
-#endif
-//@@@
 
 #define KNOWN_BOARD 1
 
@@ -162,6 +154,9 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define AT90USB 1286  // Disable MarlinSerial etc.
 //@@@
+
+

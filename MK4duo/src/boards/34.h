@@ -158,6 +158,7 @@
 #define ORIG_LASER_PWR_PIN          5
 #define ORIG_LASER_PWM_PIN          6
 
+
 //###UNKNOWN_PINS
 #define MAX6675_SS_PIN             66
 //@@@
@@ -404,3 +405,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

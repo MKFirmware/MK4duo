@@ -192,7 +192,7 @@ void Printer::setup() {
   #endif
 
   #if HAS_SDSUPPORT
-    card.mount();
+    if (!card.isOK()) card.mount();
   #endif
 
   print_job_counter.init();

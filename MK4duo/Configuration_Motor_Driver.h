@@ -82,7 +82,7 @@
 #define Y_HOMING_SENSITIVITY  8
 #define Z_HOMING_SENSITIVITY  8
 
-// Enable M122 debugging command for TMC stepper drivers.
+// Enable M922 debugging command for TMC stepper drivers.
 // M922 S0/1 will enable continous reporting.
 //#define TMC_DEBUG
 

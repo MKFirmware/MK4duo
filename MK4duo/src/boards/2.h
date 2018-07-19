@@ -157,6 +157,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define LCD_PINS_RS NoPin
 #define LCD_PINS_ENABLE NoPin
@@ -171,3 +172,5 @@
 #define BLEN_B 1
 #define BLEN_A 0
 //@@@
+
+

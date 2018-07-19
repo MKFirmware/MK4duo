@@ -116,7 +116,7 @@ uint16_t max_display_update_time = 0;
   int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
 
   #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
-    bool lcd_external_control; // = false
+    bool lcd_external_control = false;
   #endif
 
   #if ENABLED(BABYSTEPPING)

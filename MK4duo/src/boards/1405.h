@@ -65,7 +65,7 @@
 #define ORIG_E3_CS_PIN             NoPin
 #define ORIG_SOL3_PIN              NoPin
 
-//###EXTRUDER_4 used for front door
+//###EXTRUDER_4
 #define ORIG_E4_STEP_PIN           33
 #define ORIG_E4_DIR_PIN            32
 #define ORIG_E4_ENABLE_PIN         30
@@ -106,7 +106,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -116,29 +115,27 @@
 
 //###HEATER
 #define ORIG_HEATER_0_PIN          11
-#define ORIG_HEATER_1_PIN          7
-#define ORIG_HEATER_2_PIN          4
-#define ORIG_HEATER_3_PIN          3
+#define ORIG_HEATER_1_PIN           7
+#define ORIG_HEATER_2_PIN           4
+#define ORIG_HEATER_3_PIN           3
 #define ORIG_HEATER_BED_PIN        39
-#define ORIG_HEATER_CHAMBER_PIN    36 // moet nog
+#define ORIG_HEATER_CHAMBER_PIN    36
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN            0
-#define ORIG_TEMP_1_PIN            9
+#define ORIG_TEMP_0_PIN             0
+#define ORIG_TEMP_1_PIN             9
 #define ORIG_TEMP_2_PIN            10
 #define ORIG_TEMP_3_PIN            11
-#define ORIG_TEMP_BED_PIN          5
-#define ORIG_TEMP_CHAMBER_PIN      2
+#define ORIG_TEMP_BED_PIN           5
+#define ORIG_TEMP_CHAMBER_PIN       2
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN              NoPin    
+#define ORIG_FAN0_PIN              NoPin
 #define ORIG_FAN1_PIN              10
 #define ORIG_FAN2_PIN              28
 #define ORIG_FAN3_PIN              28
-#define ORIG_FAN4_PIN              28
-#define ORIG_FAN5_PIN              28
 
 //###SERVO
 #define SERVO0_PIN                 NoPin
@@ -148,7 +145,7 @@
 
 //###MISC
 #define ORIG_PS_ON_PIN             NoPin
-#define ORIG_BEEPER_PIN            5
+#define ORIG_BEEPER_PIN             5
 #define LED_PIN                    NoPin
 #define SDPOWER_PIN                NoPin
 #define SD_DETECT_PIN              14
@@ -156,17 +153,15 @@
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
-#define ORIG_FIL_RUNOUT_PIN        NoPin
-#define ORIG_CASE_LIGHT_PIN        13
-#define ORIG_DOOR_PIN              NoPin
-#define STAT_LED_BLUE_PIN          NoPin
-#define STAT_LED_RED_PIN           51
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define I2C_EEPROM
 #define E2END 0x2000
 //@@@
+
+

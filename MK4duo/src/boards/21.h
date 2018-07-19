@@ -157,6 +157,7 @@
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+
 //###UNKNOWN_PINS
 #define SLEEP_WAKE_PIN        26  // This feature still needs work
 #define PHOTOGRAPH_PIN        29
@@ -209,3 +210,4 @@
   //#define TRANS_ARRAY {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15} //backwards
 #endif //RA_LIGHTING
 //@@@
+
