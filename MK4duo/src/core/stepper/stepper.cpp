@@ -466,8 +466,8 @@ void Stepper::init() {
 
   #endif // HAS_EXT_ENCODER
 
-  // Init Stepper ISR to 122 Hz for quick starting
-  HAL_timer_start(STEPPER_TIMER, 122);
+  // Init Stepper ISR to 128 Hz for quick starting
+  HAL_timer_start(STEPPER_TIMER, 128);
 
   ENABLE_STEPPER_INTERRUPT();
 
