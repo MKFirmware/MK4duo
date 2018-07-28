@@ -1506,7 +1506,7 @@
 // With this option MK4duo will first show your custom screen followed
 // by the standard MK4duo logo with version number and web URL.
 // We encourage you to take advantage of this new feature and we also
-// respecfully request that you retain the unmodified MK4duo boot screen.
+// respectfully request that you retain the unmodified MK4duo boot screen.
 //
 
 // Enable to show the bitmap in MK4duo/src/lcd/custom_bootscreen.h on startup.
@@ -1723,7 +1723,7 @@
  * luminance values can be set from 0 to 255.                             *
  *                                                                        *
  * *** CAUTION ***                                                        *
- *  LED Strips require a MOFSET Chip between PWM lines and LEDs,          *
+ *  LED Strips require a MOSFET Chip between PWM lines and LEDs,          *
  *  as the Arduino cannot handle the current the LEDs will require.       *
  *  Failure to follow this precaution can destroy your Arduino!           *
  * *** CAUTION ***                                                        *

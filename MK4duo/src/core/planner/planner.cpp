@@ -649,7 +649,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
 
     // This routine, for all the other archs, returns 0x100000000 / d ~= 0xFFFFFFFF / d
     static FORCE_INLINE uint32_t get_period_inverse(const uint32_t d) {
-      return 0xFFFFFFFF / d;
+      return d ? 0xFFFFFFFF / d : 0xFFFFFFFF;
     }
 
   #endif // ! __AVR__

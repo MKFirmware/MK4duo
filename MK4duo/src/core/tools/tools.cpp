@@ -62,6 +62,8 @@
 
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
+    planner.synchronize();
+
     #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
 
       mixing_tool_change(tmp_extruder);
@@ -83,9 +85,6 @@
             no_move = true;
           }
 
-          // Save current position to mechanics.destination, for use later
-          mechanics.set_destination_to_current();
-
           #if HAS_LEVELING
             // Set current position to the physical position
             const bool leveling_was_active = bedlevel.leveling_active;
@@ -94,16 +93,23 @@
 
           #if ENABLED(DUAL_X_CARRIAGE)
 
+            if (mechanics.current_position[X_AXIS] != mechanics.x_home_pos(active_extruder))
+              mechanics.set_destination_to_current();
+            else
+              no_move = true;
+
             dualx_tool_change(tmp_extruder, no_move); // Can modify no_move
 
           #else // !DUAL_X_CARRIAGE
+
+            // Save current position to destination, for use later
+            mechanics.set_destination_to_current();
 
             #if HAS_DONDOLO
               // Always raise by at least 1 to avoid workpiece
               const float z_diff  = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
               mechanics.current_position[Z_AXIS] += (z_diff > 0.0 ? z_diff : 0.0) + 1;
               planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
-              planner.synchronize();
               move_extruder_servo(tmp_extruder);
             #endif
 
