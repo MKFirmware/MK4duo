@@ -197,8 +197,6 @@ void Printer::setup() {
 
   print_job_counter.init();
 
-  mechanics.init();
-
   // Init endstops
   endstops.init();
 
@@ -306,58 +304,63 @@ void Printer::setup() {
  */
 void Printer::loop() {
 
-  printer.keepalive(NotBusy);
+  for (;;) {
 
-  #if HAS_SDSUPPORT
+    printer.keepalive(NotBusy);
 
-    card.checkautostart();
+    #if HAS_SDSUPPORT
 
-    if (isAbortSDprinting()) {
-      setAbortSDprinting(false);
+      card.checkautostart();
 
-      #if HAS_SD_RESTART
-        // Save Job for restart
-        if (IS_SD_PRINTING) restart.save_data(true);
-      #endif
+      if (isAbortSDprinting()) {
+        setAbortSDprinting(false);
 
-      // Stop SD printing
-      card.stopSDPrint();
+        #if HAS_SD_RESTART
+          // Save Job for restart
+          if (IS_SD_PRINTING) restart.save_data(true);
+        #endif
 
-      // Clear all command in quee
-      commands.clear_queue();
+        // Stop SD printing
+        card.stopSDPrint();
 
-      // Stop all stepper
-      quickstop_stepper();
+        // Clear all command in quee
+        commands.clear_queue();
 
-      // Auto home
-      #if Z_HOME_DIR > 0
-        mechanics.home();
-      #else
-        mechanics.home(true, true, false);
-      #endif
+        // Stop printer job timer
+        print_job_counter.stop();
 
-      // Disabled Heaters and Fan
-      thermalManager.disable_all_heaters();
-      #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].Speed = 0;
-      #endif
+        // Stop all stepper
+        quickstop_stepper();
 
-      // Stop printer job timer
-      print_job_counter.stop();
-    }
+        // Auto home
+        #if Z_HOME_DIR > 0
+          mechanics.home();
+        #else
+          mechanics.home(true, true, false);
+        #endif
 
-  #endif // HAS_SDSUPPORT
+        // Disabled Heaters and Fan
+        thermalManager.disable_all_heaters();
+        #if FAN_COUNT > 0
+          LOOP_FAN() fans[f].Speed = 0;
+        #endif
 
-  commands.get_available();
-  commands.advance_queue();
-  endstops.report_state();
-  idle();
+      }
+
+    #endif // HAS_SDSUPPORT
+
+    commands.get_available();
+    commands.advance_queue();
+    endstops.report_state();
+    idle();
+
+  }
 }
 
 void Printer::check_periodical_actions() {
 
-  static uint8_t  cycle_1000ms = 10,  // Event 1.0 Second
-                  cycle_2500ms = 25;  // Event 2.5 Second
+  static millis_t cycle_1s = 0;
+  const millis_t now = millis();
 
   // Control interrupt events
   handle_interrupt_events();
@@ -365,45 +368,40 @@ void Printer::check_periodical_actions() {
   // Tick timer job counter
   print_job_counter.tick();
 
-  // Event 100 Ms - 10Hz
-  if (HAL::execute_100ms) {
-    HAL::execute_100ms = false;
+  // Event 1.0 Second
+  if (ELAPSED(now, cycle_1s)) {
+
+    cycle_1s = now + 1000UL;
     planner.check_axes_activity();
-    thermalManager.spin();
 
-    // Event 1.0 Second
-    if (--cycle_1000ms == 0) {
-      cycle_1000ms = 10;
-      if (!isSuspendAutoreport() && isAutoreportTemp()) {
-        thermalManager.report_temperatures();
-        SERIAL_EOL();
-      }
-      #if HAS_SDSUPPORT
-        if (isAutoreportSD()) card.printStatus();
-      #endif
-      #if ENABLED(NEXTION)
-        nextion_draw_update();
-      #endif
-      if (planner.cleaning_buffer_flag) {
-        planner.cleaning_buffer_flag = false;
-        #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
-          commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-        #endif
-      }
+    if (!isSuspendAutoreport() && isAutoreportTemp()) {
+      thermalManager.report_temperatures();
+      SERIAL_EOL();
     }
 
-    // Event 2.5 Second
-    if (--cycle_2500ms == 0) {
-      cycle_2500ms = 25;
-      #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].spin();
-      #endif
-      #if HAS_POWER_SWITCH
-        powerManager.spin();
+    #if HAS_SDSUPPORT
+      if (isAutoreportSD()) card.printStatus();
+    #endif
+
+    #if ENABLED(NEXTION)
+      nextion_draw_update();
+    #endif
+
+    if (planner.cleaning_buffer_flag) {
+      planner.cleaning_buffer_flag = false;
+      #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
+        commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
       #endif
     }
+
+    #if FAN_COUNT > 0
+      LOOP_FAN() fans[f].spin();
+    #endif
+
+    #if HAS_POWER_SWITCH
+      powerManager.spin();
+    #endif
   }
-
 }
 
 void Printer::safe_delay(millis_t ms) {
@@ -873,9 +871,9 @@ void Printer::handle_safety_watch() {
 
   static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
-  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isON()))
+  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
-  else if (!safety_watch.isRunning() && thermalManager.heaters_isON())
+  else if (!safety_watch.isRunning() && thermalManager.heaters_isActive())
     safety_watch.start();
   else if (safety_watch.isRunning() && safety_watch.elapsed()) {
     safety_watch.stop();

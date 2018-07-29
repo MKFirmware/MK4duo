@@ -63,8 +63,6 @@ static_assert(1 >= 0
     #error "DEPENDENCY ERROR: AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
   #elif DISABLED(EEPROM_SETTINGS)
     #error "DEPENDENCY ERROR: AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS. Please update your configuration."
-  #elif ENABLED(EEPROM_SD)
-    #error "DEPENDENCY ERROR: AUTO_BED_LEVELING_UBL requires EEPROM on SPI, I2C or FLASH, not EEPROM_SD."
   #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
     #error "DEPENDENCY ERROR: GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
   #endif

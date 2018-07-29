@@ -123,6 +123,7 @@ typedef int8_t    pin_t;
 #include "src/core/tools/tools.h"
 #include "src/core/tools/nozzle.h"
 #include "src/core/fan/fan.h"
+#include "src/core/fan/tachometric.h"
 #include "src/core/commands/commands.h"
 #include "src/core/eeprom/eeprom.h"
 #include "src/core/printer/printer.h"

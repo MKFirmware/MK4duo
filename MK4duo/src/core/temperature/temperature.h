@@ -96,9 +96,9 @@ class Temperature {
     static void disable_all_heaters();
 
     /**
-     * Check if there are heaters on
+     * Check if there are heaters Active
      */
-    static bool heaters_isON();
+    static bool heaters_isActive();
 
     #if HAS_FILAMENT_SENSOR
       static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio

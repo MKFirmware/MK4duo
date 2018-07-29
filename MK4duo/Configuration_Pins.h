@@ -174,6 +174,15 @@
 
 //================================= FEATURE ==================================
 
+#if ENABLED(TACHOMETRIC)
+  #define TACHO0_PIN NoPin
+  #define TACHO1_PIN NoPin
+  #define TACHO2_PIN NoPin
+  #define TACHO3_PIN NoPin
+  #define TACHO4_PIN NoPin
+  #define TACHO5_PIN NoPin
+#endif
+
 #if ENABLED(MKR4)
   #define E0E1_CHOICE_PIN NoPin
   #define E0E2_CHOICE_PIN NoPin

@@ -477,6 +477,15 @@ void Stepper::init() {
   set_directions(); // Init directions to last_direction_bits = 0
 }
 
+void Stepper::factory_parameters() {
+  constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
+  LOOP_XYZE_N(axis) setStepDir((AxisEnum)axis, tmpdir[axis]);
+
+  direction_delay = DIRECTION_STEPPER_DELAY;
+  minimum_pulse   = MINIMUM_STEPPER_PULSE;
+  maximum_rate    = MAXIMUM_STEPPER_RATE;
+}
+
 /**
  * This is called by the interrupt service routine to execute steps.
  */

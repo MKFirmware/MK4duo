@@ -214,8 +214,6 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8
 
 }
 
-bool HAL::execute_100ms = false;
-
 // Return available memory
 int HAL::getFreeRam() {
   int freeram = 0;
@@ -409,10 +407,10 @@ void HAL_temp_isr() {
   #endif
 
   // Calculation cycle approximate a 100ms
-  cycle_100ms++;
-  if (cycle_100ms >= (F_CPU / 40960)) {
+  if (++cycle_100ms >= (F_CPU / 40960)) {
     cycle_100ms = 0;
-    HAL::execute_100ms = true;
+    // Temperature Spin
+    thermalManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
       LOOP_FAN() {
         if (fans[f].Kickstart) fans[f].Kickstart--;
@@ -428,9 +426,8 @@ void HAL_temp_isr() {
       AnalogInputRead[adcSamplePos] += ADCW;
       if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
 
-        // update temperatures only when values have been read
-        if (!HAL::execute_100ms || adcSamplePos >= ANALOG_INPUTS)
-          HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+        // update temperatures
+        HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
 
         AnalogInputRead[adcSamplePos] = 0;
         adcCounter[adcSamplePos] = 0;

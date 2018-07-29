@@ -73,9 +73,9 @@
     public: /** Public Function */
 
       /**
-       * Initialize Delta parameters
+       * Initialize Factory parameters
        */
-      static void init();
+      static void factory_parameters();
 
       /**
        * sync_plan_position_mech_specific

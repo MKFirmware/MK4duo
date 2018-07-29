@@ -72,10 +72,6 @@
 #include "../core/tools/sanitycheck.h"
 #include "../core/endstop/sanitycheck.h"
 #include "../core/mechanics/sanitycheck.h"
-#include "../core/mechanics/cartesian/sanitycheck.h"
-#include "../core/mechanics/core/sanitycheck.h"
-#include "../core/mechanics/delta/sanitycheck.h"
-#include "../core/mechanics/scara/sanitycheck.h"
 
 #include "../lcd/sanitycheck.h"
 #include "../sd/sanitycheck.h"

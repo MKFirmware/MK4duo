@@ -213,11 +213,7 @@ void Temperature::set_current_temp_raw() {
  */
 void Temperature::spin() {
 
-  static uint8_t cycle_1_second = 0;
-
-  if (++cycle_1_second == 10) cycle_1_second = 0;
-
-  millis_t ms = millis();
+  millis_t now = millis();
 
   #if ENABLED(EMERGENCY_PARSER)
     if (emergency_parser.killed_by_M112) printer.kill(PSTR(MSG_KILLED));
@@ -230,8 +226,8 @@ void Temperature::spin() {
     // Update Current Temperature
     act->updateCurrentTemperature();
 
-    if (act->isON() && act->current_temperature > act->maxtemp) max_temp_error(act->ID);
-    if (act->isON() && act->current_temperature < act->mintemp) min_temp_error(act->ID);
+    if (act->isActive() && act->current_temperature > act->maxtemp) max_temp_error(act->ID);
+    if (act->isActive() && act->current_temperature < act->mintemp) min_temp_error(act->ID);
 
     // Check for thermal runaway
     #if HAS_THERMALLY_PROTECTED_HEATER
@@ -242,11 +238,11 @@ void Temperature::spin() {
     // Ignore heater we are currently testing
     if (pid_pointer == act->ID) continue;
 
-    act->get_pid_output(cycle_1_second == 0);
+    act->get_pid_output();
 
     #if WATCH_THE_HEATER
       // Make sure temperature is increasing
-      if (act->watch_next_ms && ELAPSED(ms, act->watch_next_ms)) {
+      if (act->watch_next_ms && ELAPSED(now, act->watch_next_ms)) {
         if (act->current_temperature < act->watch_target_temp)
           _temp_error(h, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
         else
@@ -580,11 +576,11 @@ void Temperature::disable_all_heaters() {
 }
 
 /**
- * Check if there are heaters on
+ * Check if there are heaters Active
  */
-bool Temperature::heaters_isON() {
+bool Temperature::heaters_isActive() {
   #if HEATER_COUNT > 0
-    LOOP_HEATER() if (heaters[h].isON()) return true;
+    LOOP_HEATER() if (heaters[h].isActive()) return true;
   #endif
   return false;
 }
@@ -682,7 +678,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
 // Temperature Error Handlers
 void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg) {
-  if (!heaters[h].isIdle()) {
+  if (heaters[h].isActive()) {
     SERIAL_STR(ER);
     SERIAL_PS(serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
@@ -710,7 +706,7 @@ void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, co
   }
 
   lcd_setstatusPGM(lcd_msg);
-  heaters[h].setIdle(true);
+  heaters[h].setFault();
 
 }
 void Temperature::min_temp_error(const uint8_t h) {
@@ -769,21 +765,16 @@ void Temperature::max_temp_error(const uint8_t h) {
         SERIAL_MV(" ;  Temperature:", temperature);
         SERIAL_EMV(" ;  Target Temp:", target_temperature);
     */
-   
-    #if HEATER_IDLE_HANDLER
-      // If the heater idle timeout expires, restart
-      if (act->isIdle()) {
-        *state = TRInactive;
-        tr_target_temperature[h] = 0;
-      }
-      else
-    #endif
-    {
-      // If the target temperature changes, restart
-      if (tr_target_temperature[h] != act->target_temperature) {
-        tr_target_temperature[h] = act->target_temperature;
-        *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
-      }
+
+    // If the heater idle timeout expires, restart
+    if (act->isIdle()) {
+      *state = TRInactive;
+      tr_target_temperature[h] = act->idle_temperature;
+    }
+    // If the target temperature changes, restart
+    else if (tr_target_temperature[h] != act->target_temperature) {
+      tr_target_temperature[h] = act->target_temperature;
+      *state = tr_target_temperature[h] > 0 ? TRFirstHeating : TRInactive;
     }
 
     switch (*state) {
@@ -835,9 +826,10 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
     if (act->type == IS_COOLER) SERIAL_CHR('C');
   #endif
 
+  const int16_t targetTemperature = act->isIdle() ? act->idle_temperature : act->target_temperature;
   SERIAL_CHR(':');
   SERIAL_VAL(act->current_temperature, 2);
-  SERIAL_MV(" /" , act->target_temperature);
+  SERIAL_MV(" /" , targetTemperature);
   if (showRaw) {
     SERIAL_MV(" (", act->sensor.raw);
     SERIAL_CHR(')');

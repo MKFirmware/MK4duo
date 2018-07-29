@@ -403,7 +403,6 @@
   #error "DEPENDENCY ERROR: You have to set X2_ENABLE_PIN, X2_STEP_PIN and X2_DIR_PIN to a valid pin if you enable X2_IS_TMC."
 #endif
 
-
 /**
  * Linear Advance 1.5 - Check K value range
  */
@@ -413,5 +412,199 @@
     "DEPENDENCY ERROR: LIN_ADVANCE_K must be a value from 0 to 10."
   );
 #endif
+
+// Z late enable
+#if MECH(COREXZ) && ENABLED(Z_LATE_ENABLE)
+  #error "DEPENDENCY ERROR: Z_LATE_ENABLE can't be used with COREXZ."
+#endif
+
+// Core factor
+#if IS_CORE
+
+  #if DISABLED(CORE_FACTOR)
+    #error "DEPENDENCY ERROR: Missing setting CORE_FACTOR."
+  #endif
+
+  /**
+   * TWO STEPPER DRIVERS
+   */
+  #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(Y_TWO_STEPPER_DRIVERS)
+    #error "DEPENDENCY ERROR: TWO Stepper Driver XY for Core is imposible"
+  #endif
+
+  /**
+   * TWO ENDSTOPS
+   */
+  #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS)
+    #error "DEPENDENCY ERROR: TWO ENDSTOPS XY for Core is imposible"
+  #endif
+
+#endif // IS_CORE
+
+// Delta requirements
+#if MECH(DELTA)
+
+  #if ABL_GRID
+    #if (GRID_MAX_POINTS_X & 1) == 0  || (GRID_MAX_POINTS_Y & 1) == 0
+      #error "DEPENDENCY ERROR: DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be odd numbers."
+    #elif GRID_MAX_POINTS_X < 3 || GRID_MAX_POINTS_Y < 3
+      #error "DEPENDENCY ERROR: DELTA requires GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y to be 3 or higher."
+    #endif
+  #endif
+
+  static_assert(1 >= 0
+    #if ENABLED(DELTA_AUTO_CALIBRATION_1)
+      +1
+    #endif
+    #if ENABLED(DELTA_AUTO_CALIBRATION_2)
+      +1
+    #endif
+    , "DEPENDENCY ERROR: Select only one between DELTA_AUTO_CALIBRATION_1 and DELTA_AUTO_CALIBRATION_2."
+  );
+
+  #if DISABLED(DELTA_DIAGONAL_ROD)
+    #error "DEPENDENCY ERROR: Missing setting DELTA_DIAGONAL_ROD."
+  #endif
+  #if DISABLED(DELTA_SMOOTH_ROD_OFFSET)
+    #error "DEPENDENCY ERROR: Missing setting DELTA_SMOOTH_ROD_OFFSET."
+  #endif
+  #if DISABLED(DELTA_CARRIAGE_OFFSET)
+    #error "DEPENDENCY ERROR: Missing setting DELTA_CARRIAGE_OFFSET."
+  #endif
+  #if DISABLED(DELTA_PRINTABLE_RADIUS)
+    #error "DEPENDENCY ERROR: Missing setting DELTA_PRINTABLE_RADIUS."
+  #endif
+  #if DISABLED(TOWER_A_ENDSTOP_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_A_ENDSTOP_ADJ."
+  #endif
+  #if DISABLED(TOWER_B_ENDSTOP_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_B_ENDSTOP_ADJ."
+  #endif
+  #if DISABLED(TOWER_C_ENDSTOP_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_C_ENDSTOP_ADJ."
+  #endif
+  #if DISABLED(TOWER_A_RADIUS_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_A_RADIUS_ADJ."
+  #endif
+  #if DISABLED(TOWER_B_RADIUS_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_B_RADIUS_ADJ."
+  #endif
+  #if DISABLED(TOWER_C_RADIUS_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_C_RADIUS_ADJ."
+  #endif
+  #if DISABLED(TOWER_A_ANGLE_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_A_ANGLE_ADJ."
+  #endif
+  #if DISABLED(TOWER_B_ANGLE_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_B_ANGLE_ADJ."
+  #endif
+  #if DISABLED(TOWER_C_ANGLE_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_C_ANGLE_ADJ."
+  #endif
+  #if DISABLED(TOWER_A_DIAGROD_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_A_DIAGROD_ADJ."
+  #endif
+  #if DISABLED(TOWER_B_DIAGROD_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_B_DIAGROD_ADJ."
+  #endif
+  #if DISABLED(TOWER_C_DIAGROD_ADJ)
+    #error "DEPENDENCY ERROR: Missing setting TOWER_C_DIAGROD_ADJ."
+  #endif
+
+  #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+    #if DISABLED(XY_PROBE_SPEED)
+      #error "DEPENDENCY ERROR: Missing setting XY_PROBE_SPEED."
+    #endif
+    #if DISABLED(Z_PROBE_SPEED)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_SPEED."
+    #endif
+    #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
+      #error "DEPENDENCY ERROR: Missing setting X_PROBE_OFFSET_FROM_NOZZLE."
+    #endif
+    #if DISABLED(Y_PROBE_OFFSET_FROM_NOZZLE)
+      #error "DEPENDENCY ERROR: Missing setting Y_PROBE_OFFSET_FROM_NOZZLE."
+    #endif
+    #if DISABLED(Z_PROBE_OFFSET_FROM_NOZZLE)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_OFFSET_FROM_NOZZLE."
+    #endif
+    #if DISABLED(Z_PROBE_DEPLOY_START_LOCATION)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_DEPLOY_START_LOCATION."
+    #endif
+    #if DISABLED(Z_PROBE_DEPLOY_END_LOCATION)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_DEPLOY_END_LOCATION."
+    #endif
+    #if DISABLED(Z_PROBE_RETRACT_START_LOCATION)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_RETRACT_START_LOCATION."
+    #endif
+    #if DISABLED(Z_PROBE_RETRACT_END_LOCATION)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_RETRACT_END_LOCATION."
+    #endif
+    #if DISABLED(Z_PROBE_BETWEEN_HEIGHT)
+      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_BETWEEN_HEIGHT."
+    #endif
+  #endif
+
+  /**
+   * Babystepping
+   */
+  #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_XY)
+    #error "DEPENDENCY ERROR: BABYSTEPPING only implemented for Z axis on deltabots."
+  #endif
+
+  /**
+   * TMC2130
+   */
+  #if HAVE_DRV(TMC2130)
+    #if !(X_HAS_DRV(TMC2130) && Y_HAS_DRV(TMC2130) && Z_HAS_DRV(TMC2130))
+      #error "DEPENDENCY ERROR: For delta there must be all three XYZ TMC2130 drivers"
+    #endif
+  #endif
+
+  /**
+   * TWO STEPPER DRIVERS
+   */
+  #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(Y_TWO_STEPPER_DRIVERS) || ENABLED(Z_TWO_STEPPER_DRIVERS)
+    #error "DEPENDENCY ERROR: TWO Stepper Driver for Delta is imposible"
+  #endif
+
+  /**
+   * TWO ENDSTOPS
+   */
+  #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+    #error "DEPENDENCY ERROR: TWO ENDSTOPS for Delta is imposible"
+  #endif
+
+#endif // MECH(DELTA)
+
+// Scara settings
+#if IS_SCARA
+
+  #if DISABLED(SCARA_LINKAGE_1)
+    #error "DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_1."
+  #endif
+  #if DISABLED(SCARA_LINKAGE_2)
+    #error "DEPENDENCY ERROR: Missing setting SCARA_LINKAGE_2."
+  #endif
+  #if DISABLED(SCARA_OFFSET_X)
+    #error "DEPENDENCY ERROR: Missing setting SCARA_OFFSET_X."
+  #endif
+  #if DISABLED(SCARA_OFFSET_Y)
+    #error "DEPENDENCY ERROR: Missing setting SCARA_OFFSET_Y."
+  #endif
+  #if DISABLED(THETA_HOMING_OFFSET)
+    #error "DEPENDENCY ERROR: Missing setting THETA_HOMING_OFFSET."
+  #endif
+  #if DISABLED(PSI_HOMING_OFFSET)
+    #error "DEPENDENCY ERROR: Missing setting PSI_HOMING_OFFSET."
+  #endif
+
+  /**
+   * Babystepping
+   */
+  #if ENABLED(BABYSTEPPING)
+    #error "DEPENDENCY ERROR: BABYSTEPPING is not implemented for SCARA yet."
+  #endif
+
+#endif // IS_SCARA
 
 #endif /* _MECH_SANITYCHECK_H_ */

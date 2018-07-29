@@ -495,8 +495,6 @@ class HAL {
       static bool Analog_is_ready;
     #endif
 
-    static bool execute_100ms;
-
   public: /** Public Function */
 
     #if ANALOG_INPUTS > 0

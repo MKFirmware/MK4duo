@@ -52,7 +52,7 @@
 
   }
 
-  void Fan::SetAutoMonitored(const int8_t h) {
+  void Fan::setAutoMonitored(const int8_t h) {
     if (WITHIN(h, 0, HOTENDS - 1) || h == 7)
       SBI(autoMonitored, (uint8_t)h);
     else      
@@ -82,7 +82,7 @@
     if (TEST(autoMonitored, 7)) {
 
       // Check Heaters
-      if (thermalManager.heaters_isON()) controller_fan_watch.start();
+      if (thermalManager.heaters_isActive()) controller_fan_watch.start();
 
       // Check Motors
       if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON

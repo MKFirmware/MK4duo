@@ -85,6 +85,9 @@
             no_move = true;
           }
 
+          // Save current position to destination, for use later
+          mechanics.set_destination_to_current();
+
           #if HAS_LEVELING
             // Set current position to the physical position
             const bool leveling_was_active = bedlevel.leveling_active;
@@ -93,17 +96,9 @@
 
           #if ENABLED(DUAL_X_CARRIAGE)
 
-            if (mechanics.current_position[X_AXIS] != mechanics.x_home_pos(active_extruder))
-              mechanics.set_destination_to_current();
-            else
-              no_move = true;
-
             dualx_tool_change(tmp_extruder, no_move); // Can modify no_move
 
           #else // !DUAL_X_CARRIAGE
-
-            // Save current position to destination, for use later
-            mechanics.set_destination_to_current();
 
             #if HAS_DONDOLO
               // Always raise by at least 1 to avoid workpiece
@@ -164,6 +159,9 @@
             #endif
             // Move back to the original (or tweaked) position
             mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+            #if ENABLED(DUAL_X_CARRIAGE)
+              mechanics.active_hotend_parked = false;
+            #endif
           }
           #if HAS_DONDOLO
             else {

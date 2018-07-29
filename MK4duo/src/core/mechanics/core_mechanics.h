@@ -21,21 +21,21 @@
  */
 
 /**
- * cartesian_mechanics.h
+ * core_mechanics.h
  *
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _CARTESIAN_MECHANICS_H_
-#define _CARTESIAN_MECHANICS_H_
+#ifndef _CORE_MECHANICS_H_
+#define _CORE_MECHANICS_H_
 
-#if IS_CARTESIAN
+#if IS_CORE
 
-  class Cartesian_Mechanics : public Mechanics {
+  class Core_Mechanics: public Mechanics {
 
     public: /** Constructor */
 
-      Cartesian_Mechanics() {}
+      Core_Mechanics() {}
 
     public: /** Public Parameters */
 
@@ -47,9 +47,9 @@
     public: /** Public Function */
 
       /**
-       * Initialize Cartesian parameters
+       * Initialize Factory parameters
        */
-      static void init();
+      static void factory_parameters();
 
       /**
        * sync_plan_position_mech_specific
@@ -61,6 +61,18 @@
 
       /**
        * Home all axes according to settings
+       *
+       * Parameters
+       *
+       *  None  Home to all axes with no parameters.
+       *        With QUICK_HOME enabled XY will home together, then Z.
+       *
+       * Cartesian parameters
+       *
+       *  X   Home to the X endstop
+       *  Y   Home to the Y endstop
+       *  Z   Home to the Z endstop
+       *
        */
       static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
 
@@ -77,7 +89,7 @@
       /**
        * Set an axis' current position to its home position (after homing).
        *
-       * For Cartesian robots this applies one-to-one when an
+       * For Core robots this applies one-to-one when an
        * individual axis has been homed.
        *
        * Callers must sync the planner position after calling this!
@@ -90,14 +102,6 @@
        *  Home axis
        */
       static void homeaxis(const AxisEnum axis);
-
-      /**
-       * Prepare a linear move in a Cartesian setup.
-       * Bed Leveling will be applied to the move if enabled.
-       *
-       * Returns true if current_position[] was set to destination[]
-       */
-      static bool prepare_move_to_destination_cartesian();
 
       #if ENABLED(QUICK_HOME)
         static void quick_home_xy();
@@ -113,8 +117,8 @@
 
   };
 
-  extern Cartesian_Mechanics mechanics;
+  extern Core_Mechanics mechanics;
 
-#endif // IS_CARTESIAN
+#endif // IS_CORE
 
-#endif /* _CARTESIAN_MECHANICS_H_ */
+#endif /* _CORE_MECHANICS_H_ */

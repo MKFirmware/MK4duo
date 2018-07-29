@@ -22,45 +22,16 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(__AVR__) && ENABLED(EEPROM_SETTINGS)
 
-#if ENABLED(EEPROM_SETTINGS)
+  namespace MemoryStore {
 
-  extern void eeprom_flush(void);
+    bool access_start(const bool read)  { UNUSED(read); return false; }
+    bool access_finish(const bool read) { UNUSED(read); return false; }
 
-  bool EEPROM::access_start(const bool read) {
+    bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
 
-    #if HAS_EEPROM_SD
-      return card.open_eeprom_sd(read);
-    #else
-      UNUSED(read);
-    #endif
-
-    return false;
-  }
-
-  bool EEPROM::access_finish(){
-    #if HAS_EEPROM_FLASH
-      eeprom_flush();
-    #elif HAS_EEPROM_SD
-      card.close_eeprom_sd();
-    #endif
-    return false;
-  }
-
-  bool EEPROM::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-
-    while(size--) {
-
-      #if HAS_EEPROM_SD
-
-        uint8_t v = *value;
-        if (!card.write_eeprom_data(v)) {
-          SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-          return true;
-        }
-
-      #else
+      while(size--) {
 
         uint8_t * const p = (uint8_t * const)pos;
         uint8_t v = *value;
@@ -73,29 +44,25 @@
             return true;
           }
         }
-      #endif
 
-      crc16(crc, &v, 1);
-      pos++;
-      value++;
-    };
-    return false;
-  }
+        crc16(crc, &v, 1);
+        pos++;
+        value++;
+      };
+      return false;
+    }
 
-  bool EEPROM::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
-    do {
-      #if HAS_EEPROM_SD
-        uint8_t c = card.read_eeprom_data();
-      #else
+    bool read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+      do {
         uint8_t c = eeprom_read_byte((unsigned char*)pos);
-      #endif
-      *value = c;
-      crc16(crc, &c, 1);
-      pos++;
-      value++;
-    } while (--size);
-    return false;
+        *value = c;
+        crc16(crc, &c, 1);
+        pos++;
+        value++;
+      } while (--size);
+      return false;
+    }
+
   }
 
-#endif // EEPROM_SETTINGS
-#endif // ARDUINO_ARCH_SAM
+#endif // ENABLED(__AVR__) && EEPROM_SETTINGS
