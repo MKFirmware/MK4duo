@@ -742,9 +742,7 @@ void Endstops::update() {
       #else
         COPY_LIVE_STATE(Z_MIN, Z2_MIN);
       #endif
-    #elif HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-      UPDATE_ENDSTOP_BIT(Z, MIN);
-    #elif Z_HOME_DIR < 0
+    #else
       UPDATE_ENDSTOP_BIT(Z, MIN);
     #endif
   #endif
@@ -853,13 +851,7 @@ void Endstops::update() {
         #if ENABLED(Z_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
         #else
-          #if HAS_BED_PROBE && !HAS_Z_PROBE_PIN
-            if (isProbeEnabled()) PROCESS_ENDSTOP(Z, MIN);
-          #elif HAS_BED_PROBE && HAS_Z_PROBE_PIN
-            if (!isProbeEnabled()) PROCESS_ENDSTOP(Z, MIN);
-          #else
-            PROCESS_ENDSTOP(Z, MIN);
-          #endif
+          PROCESS_ENDSTOP(Z, MIN);
         #endif
       #endif
 

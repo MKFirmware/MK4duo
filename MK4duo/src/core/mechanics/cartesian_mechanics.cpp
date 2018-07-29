@@ -352,7 +352,7 @@
       if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
     #endif
 
-    mechanics.do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
+    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * axis_home_dir);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
