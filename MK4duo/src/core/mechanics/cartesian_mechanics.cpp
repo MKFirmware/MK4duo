@@ -346,7 +346,18 @@
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
     #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      // BLTOUCH needs to be deployed every time
+      if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
+    #endif
+
     mechanics.do_homing_move(axis, 1.5 * max_length[axis] * axis_home_dir);
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      // BLTOUCH needs to be deployed every time
+      if (axis == Z_AXIS) probe.set_bltouch_deployed(false);
+    #endif
 
     // When homing Z with probe respect probe clearance
     const float bump = axis_home_dir * (
@@ -372,7 +383,18 @@
       #if ENABLED(DEBUG_LEVELING_FEATURE)
         if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
       #endif
+
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+        // BLTOUCH needs to be deployed every time
+        if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
+      #endif
+
       mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+        // BLTOUCH needs to be deployed every time
+        if (axis == Z_AXIS) probe.set_bltouch_deployed(false);
+      #endif
     }
 
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
