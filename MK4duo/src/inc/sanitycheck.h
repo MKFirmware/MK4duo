@@ -64,14 +64,15 @@
 #endif
 
 // Other sanitycheck files
-#include "../core/temperature/sanitycheck.h"
+#include "../core/eeprom/sanitycheck.h"
+#include "../core/endstop/sanitycheck.h"
+#include "../core/fan/sanitycheck.h"
 #include "../core/heater/sanitycheck.h"
 #include "../core/heater/sensor/sanitycheck.h"
-#include "../core/fan/sanitycheck.h"
-#include "../core/stepper/sanitycheck.h"
-#include "../core/tools/sanitycheck.h"
-#include "../core/endstop/sanitycheck.h"
 #include "../core/mechanics/sanitycheck.h"
+#include "../core/stepper/sanitycheck.h"
+#include "../core/temperature/sanitycheck.h"
+#include "../core/tools/sanitycheck.h"
 
 #include "../lcd/sanitycheck.h"
 #include "../sd/sanitycheck.h"
