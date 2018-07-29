@@ -262,7 +262,12 @@ void EEPROM::Postprocess() {
   #endif
 
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].init();
+    LOOP_FAN() {
+      fans[f].init();
+      #if ENABLED(TACHOMETRIC)
+        tachometrics[f].init(f);
+      #endif
+    }
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -307,12 +312,13 @@ void EEPROM::Postprocess() {
 
 #if HAS_EEPROM
 
-  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(true)
-  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = access_start(false)
-  #define EEPROM_FINISH()       access_finish()
+  #define EEPROM_READ_START()   int eeprom_index = EEPROM_OFFSET; eeprom_error = MemoryStore::access_start(true)
+  #define EEPROM_WRITE_START()  int eeprom_index = EEPROM_OFFSET; eeprom_error = MemoryStore::access_start(false)
+  #define EEPROM_READ_FINISH()  eeprom_error = MemoryStore::access_finish(true)
+  #define EEPROM_WRITE_FINISH() eeprom_error = MemoryStore::access_finish(false)
   #define EEPROM_SKIP(VAR)      eeprom_index += sizeof(VAR)
-  #define EEPROM_WRITE(VAR)     eeprom_error = write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_READ(VAR)      eeprom_error = read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_WRITE(VAR)     MemoryStore::write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
+  #define EEPROM_READ(VAR)      MemoryStore::read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
 
   const char version[6] = EEPROM_VERSION;
 
@@ -334,14 +340,11 @@ void EEPROM::Postprocess() {
     EEPROM_WRITE_START();
 
     #if HAS_EEPROM_FLASH
-      EEPROM_SKIP(ver);         // Flash doesn't allow rewriting without erase
-      EEPROM_SKIP(working_crc); // Skip the checksum slot
-    #elif HAS_EEPROM_SD
-      EEPROM_WRITE(version);
+      EEPROM_SKIP(ver);       // Flash doesn't allow rewriting without erase
     #else
-      EEPROM_WRITE(ver);        // invalidate data first
-      EEPROM_SKIP(working_crc); // Skip the checksum slot
+      EEPROM_WRITE(ver);      // invalidate data first
     #endif
+    EEPROM_SKIP(working_crc); // Skip the checksum slot
 
     working_crc = 0; // clear before first "real data"
 
@@ -501,6 +504,9 @@ void EEPROM::Postprocess() {
         EEPROM_WRITE(fans[f].min_Speed);
         EEPROM_WRITE(fans[f].autoMonitored);
         EEPROM_WRITE(fans[f].FanFlag);
+        #if ENABLED(TACHOMETRIC)
+          EEPROM_WRITE(tachometrics[f].pin);
+        #endif
       }
     #endif
 
@@ -740,10 +746,12 @@ void EEPROM::Postprocess() {
       EEPROM_WRITE(filament_change_load_length);
     #endif
 
+    //
+    // Validate CRC and Data Size
+    //
     if (!eeprom_error) {
-      const int eeprom_size = eeprom_index;
-
-      const uint16_t final_crc = working_crc;
+      const uint16_t  eeprom_size = eeprom_index - (EEPROM_OFFSET),
+                      final_crc = working_crc;
 
       // Write the EEPROM header
       eeprom_index = EEPROM_OFFSET;
@@ -757,14 +765,18 @@ void EEPROM::Postprocess() {
         SERIAL_MV(" bytes; crc ", final_crc);
         SERIAL_EM(")");
       #endif
+
+      //
+      // UBL Mesh
+      //
+      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
+        if (ubl.storage_slot >= 0)
+          store_mesh(ubl.storage_slot);
+      #endif
+
+      EEPROM_WRITE_FINISH();
+
     }
-
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
-      if (ubl.storage_slot >= 0)
-        store_mesh(ubl.storage_slot);
-    #endif
-
-    EEPROM_FINISH();
 
     return !eeprom_error;
   }
@@ -781,12 +793,8 @@ void EEPROM::Postprocess() {
 
     EEPROM_READ_START();
 
-    #if HAS_EEPROM_SD
-      EEPROM_READ(stored_ver);
-    #else
-      EEPROM_READ(stored_ver);
-      EEPROM_READ(stored_crc);
-    #endif
+    EEPROM_READ(stored_ver);
+    EEPROM_READ(stored_crc);
 
     if (strncmp(version, stored_ver, 5) != 0) {
       if (stored_ver[0] != 'M') {
@@ -976,6 +984,9 @@ void EEPROM::Postprocess() {
           EEPROM_READ(fans[f].min_Speed);
           EEPROM_READ(fans[f].autoMonitored);
           EEPROM_READ(fans[f].FanFlag);
+          #if ENABLED(TACHOMETRIC)
+            EEPROM_READ(tachometrics[f].pin);
+          #endif
         }
       #endif
 
@@ -1168,13 +1179,6 @@ void EEPROM::Postprocess() {
         EEPROM_READ(filament_change_unload_length);
         EEPROM_READ(filament_change_load_length);
       #endif
-    
-      #if HAS_EEPROM_SD
-        // Read last two field
-        uint16_t temp_crc;
-        read_data(eeprom_index, (uint8_t*)&stored_ver, sizeof(stored_ver), &temp_crc);
-        read_data(eeprom_index, (uint8_t*)&stored_crc, sizeof(stored_crc), &temp_crc);
-      #endif
 
       if (working_crc == stored_crc) {
         #if ENABLED(EEPROM_CHITCHAT)
@@ -1209,6 +1213,7 @@ void EEPROM::Postprocess() {
           #endif
         }
         else {
+          eeprom_error = true;
           #if ENABLED(EEPROM_CHITCHAT)
             SERIAL_MSG("?Can't enable ");
             ubl.echo_name();
@@ -1237,7 +1242,7 @@ void EEPROM::Postprocess() {
       Print_Settings();
     #endif
 
-    EEPROM_FINISH();
+    EEPROM_READ_FINISH();
 
     return !eeprom_error;
   }
@@ -1277,7 +1282,7 @@ void EEPROM::Postprocess() {
         uint16_t crc = 0;
         int pos = mesh_slot_offset(slot);
 
-        const bool status = write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
+        const bool status = MemoryStore::write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
         if (status)
           SERIAL_MSG("?Unable to save mesh data.\n");
@@ -1307,11 +1312,13 @@ void EEPROM::Postprocess() {
           return;
         }
 
-        uint16_t crc = 0;
         int pos = mesh_slot_offset(slot);
+        uint16_t crc = 0;
         uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
 
-        const bool status = read_data(pos, dest, sizeof(ubl.z_values), &crc);
+        MemoryStore::access_start(true);
+        const bool status = MemoryStore::read_data(pos, dest, sizeof(ubl.z_values), &crc);
+        MemoryStore::access_finish(true);
 
         if (status)
           SERIAL_MSG("?Unable to load mesh data.\n");
@@ -1341,19 +1348,14 @@ void EEPROM::Postprocess() {
  */
 void EEPROM::Factory_Settings() {
 
-  static const float    tmp1[] PROGMEM  = DEFAULT_AXIS_STEPS_PER_UNIT,
-                        tmp2[] PROGMEM  = DEFAULT_MAX_FEEDRATE;
-  static const uint32_t tmp3[] PROGMEM  = DEFAULT_MAX_ACCELERATION,
-                        tmp4[] PROGMEM  = DEFAULT_RETRACT_ACCELERATION;
-  static const float    tmp5[] PROGMEM  = DEFAULT_EJERK,
-                        tmp6[] PROGMEM  = DEFAULT_Kp,
-                        tmp7[] PROGMEM  = DEFAULT_Ki,
-                        tmp8[] PROGMEM  = DEFAULT_Kd,
-                        tmp9[] PROGMEM  = DEFAULT_Kc;
+  static const float    tmp1[] PROGMEM  = DEFAULT_Kp,
+                        tmp2[] PROGMEM  = DEFAULT_Ki,
+                        tmp3[] PROGMEM  = DEFAULT_Kd,
+                        tmp4[] PROGMEM  = DEFAULT_Kc;
 
   #if FAN_COUNT > 0
-    static const pin_t  tmp10[] PROGMEM = FANS_CHANNELS;
-    static const int8_t tmp11[] PROGMEM = AUTO_FAN;
+    static const pin_t  tmp5[] PROGMEM = FANS_CHANNELS;
+    static const int8_t tmp6[] PROGMEM = AUTO_FAN;
   #endif
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -1361,67 +1363,43 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    constexpr float tmp12[XYZ][4] = {
+    constexpr float tmp7[XYZ][4] = {
       HOTEND_OFFSET_X,
       HOTEND_OFFSET_Y,
       HOTEND_OFFSET_Z
     };
   #else
-    constexpr float tmp12[XYZ][HOTENDS] = { 0.0f };
+    constexpr float tmp7[XYZ][HOTENDS] = { 0.0f };
   #endif
-
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    static const float tmp13[] = { float(X_CURRENT / 1000), float(Y_CURRENT / 1000), float(Z_CURRENT / 1000), float(E0_CURRENT / 1000), float(E1_CURRENT / 1000), float(E2_CURRENT / 1000), float(E3_CURRENT /1000) };
-    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      externaldac.motor_current[i] = tmp13[i < COUNT(tmp13) ? i : COUNT(tmp13) - 1];
-  #endif
-
-  LOOP_XYZE_N(i) {
-    mechanics.axis_steps_per_mm[i]          = pgm_read_float(&tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1]);
-    mechanics.max_feedrate_mm_s[i]          = pgm_read_float(&tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1]);
-    mechanics.max_acceleration_mm_per_s2[i] = pgm_read_dword_near(&tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1]);
-  }
-
-  for (uint8_t i = 0; i < EXTRUDERS; i++)
-    mechanics.retract_acceleration[i] = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
-
-  constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
-  LOOP_XYZE_N(axis) stepper.setStepDir((AxisEnum)axis, tmpdir[axis]);
-
-  stepper.direction_delay = DIRECTION_STEPPER_DELAY;
-  stepper.minimum_pulse   = MINIMUM_STEPPER_PULSE;
-  stepper.maximum_rate    = MAXIMUM_STEPPER_RATE;
 
   static_assert(
-    tmp12[X_AXIS][0] == 0 && tmp12[Y_AXIS][0] == 0 && tmp12[Z_AXIS][0] == 0,
+    tmp7[X_AXIS][0] == 0 && tmp7[Y_AXIS][0] == 0 && tmp7[Z_AXIS][0] == 0,
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp12[i][h];
+    LOOP_HOTEND() tools.hotend_offset[i][h] = tmp7[i][h];
   }
 
-  mechanics.acceleration              = DEFAULT_ACCELERATION;
-  mechanics.travel_acceleration       = DEFAULT_TRAVEL_ACCELERATION;
-  mechanics.min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
-  mechanics.min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
-  mechanics.min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
-
-  #if ENABLED(JUNCTION_DEVIATION)
-    mechanics.junction_deviation_mm = JUNCTION_DEVIATION_MM;
-  #else
-    mechanics.max_jerk[X_AXIS]  = DEFAULT_XJERK;
-    mechanics.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
-    mechanics.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
-    for (uint8_t i = 0; i < EXTRUDERS; i++)
-      mechanics.max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
+  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+    constexpr float tmp8[] = { float(X_CURRENT / 1000), float(Y_CURRENT / 1000), float(Z_CURRENT / 1000), float(E0_CURRENT / 1000), float(E1_CURRENT / 1000), float(E2_CURRENT / 1000), float(E3_CURRENT /1000) };
+    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
+      externaldac.motor_current[i] = tmp8[i < COUNT(tmp8) ? i : COUNT(tmp8) - 1];
   #endif
+
+  // Call Mechanic Factory parameters
+  mechanics.factory_parameters();
+
+  // Call Stepper Factory parameters
+  stepper.factory_parameters();
+
+  // Call Endstop Factory parameters
+  endstops.factory_parameters();
+
+  // Reset Printer Flag
+  printer.reset_flag();
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0f;
-  #endif
-
-  #if ENABLED(WORKSPACE_OFFSETS)
-    ZERO(mechanics.home_offset);
   #endif
 
   #if HAS_LEVELING
@@ -1433,8 +1411,6 @@ void EEPROM::Factory_Settings() {
     probe.offset[Y_AXIS] = Y_PROBE_OFFSET_FROM_NOZZLE;
     probe.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
-
-  mechanics.init();
 
   #if ENABLED(ULTIPANEL)
     lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
@@ -1456,9 +1432,6 @@ void EEPROM::Factory_Settings() {
     tools.lpq_len = 20; // default last-position-queue size
   #endif
 
-  // Reset Printer Flag
-  printer.reset_flag();
-
   // Heaters
   #if HEATER_COUNT > 0
 
@@ -1468,10 +1441,10 @@ void EEPROM::Factory_Settings() {
     #if HOTENDS > 0
       LOOP_HOTEND() {
         heat = &heaters[h];
-        heat->Kp  = pgm_read_float(&tmp6[h < COUNT(tmp6) ? h : COUNT(tmp6) - 1]);
-        heat->Ki  = pgm_read_float(&tmp7[h < COUNT(tmp7) ? h : COUNT(tmp7) - 1]);
-        heat->Kd  = pgm_read_float(&tmp8[h < COUNT(tmp8) ? h : COUNT(tmp8) - 1]);
-        heat->Kc  = pgm_read_float(&tmp9[h < COUNT(tmp9) ? h : COUNT(tmp9) - 1]);
+        heat->Kp  = pgm_read_float(&tmp1[h < COUNT(tmp1) ? h : COUNT(tmp1) - 1]);
+        heat->Ki  = pgm_read_float(&tmp2[h < COUNT(tmp2) ? h : COUNT(tmp2) - 1]);
+        heat->Kd  = pgm_read_float(&tmp3[h < COUNT(tmp3) ? h : COUNT(tmp3) - 1]);
+        heat->Kc  = pgm_read_float(&tmp4[h < COUNT(tmp4) ? h : COUNT(tmp4) - 1]);
       }
     #endif
 
@@ -1731,19 +1704,28 @@ void EEPROM::Factory_Settings() {
 
   #endif // HEATER_COUNT > 0
 
-  // Fans
+  // Fans && Tachometric
   #if FAN_COUNT > 0
+
+    #if ENABLED(TACHOMETRIC)
+      constexpr pin_t tacho_temp_pin[] = { TACHO0_PIN, TACHO1_PIN, TACHO2_PIN, TACHO3_PIN, TACHO4_PIN, TACHO5_PIN };
+    #endif
+
     Fan *fan;
     LOOP_FAN() {
       fan = &fans[f];
-      fan->pin            = (int8_t)pgm_read_byte(&tmp10[f]);
+      fan->pin            = (int8_t)pgm_read_byte(&tmp5[f]);
       fan->freq           = 250;
       fan->min_Speed      = FAN_MIN_PWM;
       fan->autoMonitored  = 0;
       fan->FanFlag        = 0;
-      fan->SetAutoMonitored((int8_t)pgm_read_byte(&tmp11[f]));
+      fan->setAutoMonitored((int8_t)pgm_read_byte(&tmp6[f]));
       fan->setHWInverted(FAN_INVERTED);
+      #if ENABLED(TACHOMETRIC)
+        tachometrics[f].pin = tacho_temp_pin[f];
+      #endif
     }
+
   #endif
 
   #if ENABLED(DHT_SENSOR)
@@ -1768,24 +1750,6 @@ void EEPROM::Factory_Settings() {
 
   #endif
 
-  endstops.setGlobally(
-    #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-      (false)
-    #else
-      (true)
-    #endif
-  );
-
-  #if ENABLED(X_TWO_ENDSTOPS)
-    endstops.x_endstop_adj = 0.0f;
-  #endif
-  #if ENABLED(Y_TWO_ENDSTOPS)
-    endstops.y_endstop_adj = 0.0f;
-  #endif
-  #if ENABLED(Z_TWO_ENDSTOPS)
-    endstops.z_endstop_adj = 0.0f;
-  #endif
-
   #if ENABLED(IDLE_OOZING_PREVENT)
     printer.IDLE_OOZING_enabled = true;
   #endif
@@ -1797,8 +1761,8 @@ void EEPROM::Factory_Settings() {
   #endif
 
   #if ENABLED(HYSTERESIS_FEATURE)
-    static const float tmp14[] PROGMEM = HYSTERESIS_AXIS_MM;
-    LOOP_XYZ(i) planner.hysteresis_mm[i] = pgm_read_float(&tmp14[i]);
+    static const float tmp9[] PROGMEM = HYSTERESIS_AXIS_MM;
+    LOOP_XYZ(i) planner.hysteresis_mm[i] = pgm_read_float(&tmp9[i]);
     planner.hysteresis_correction  = HYSTERESIS_CORRECTION;
   #endif
 
@@ -1809,64 +1773,11 @@ void EEPROM::Factory_Settings() {
     }
   #endif
 
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
-    endstops.setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Y_MIN, !Y_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_MIN, !Z_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(X_MAX, !X_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Y_MAX, !Y_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_MAX, !Z_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(X2_MIN, !X2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Y2_MIN, !Y2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z2_MIN, !Z2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(X2_MAX, !X2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Y2_MAX, !Y2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
-    endstops.setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN_SENSOR, !DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK_SENSOR, !POWER_CHECK_LOGIC);
-  #else
-    endstops.setLogic(X_MIN, X_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Y_MIN, Y_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_MIN, Z_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(X_MAX, X_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Y_MAX, Y_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_MAX, Z_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(X2_MIN, X2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Y2_MIN, Y2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(Z2_MIN, Z2_MIN_ENDSTOP_LOGIC);
-    endstops.setLogic(X2_MAX, X2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Y2_MAX, Y2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
-    endstops.setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
-    endstops.setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
-    endstops.setLogic(DOOR_OPEN_SENSOR, DOOR_OPEN_LOGIC);
-    endstops.setLogic(POWER_CHECK_SENSOR, POWER_CHECK_LOGIC);
-  #endif
-
-  endstops.setPullup(X_MIN, ENDSTOPPULLUP_XMIN);
-  endstops.setPullup(Y_MIN, ENDSTOPPULLUP_YMIN);
-  endstops.setPullup(Z_MIN, ENDSTOPPULLUP_ZMIN);
-  endstops.setPullup(X_MAX, ENDSTOPPULLUP_XMAX);
-  endstops.setPullup(Y_MAX, ENDSTOPPULLUP_YMAX);
-  endstops.setPullup(Z_MAX, ENDSTOPPULLUP_ZMAX);
-  endstops.setPullup(X2_MIN, ENDSTOPPULLUP_X2MIN);
-  endstops.setPullup(Y2_MIN, ENDSTOPPULLUP_Y2MIN);
-  endstops.setPullup(Z2_MIN, ENDSTOPPULLUP_Z2MIN);
-  endstops.setPullup(X2_MAX, ENDSTOPPULLUP_X2MAX);
-  endstops.setPullup(Y2_MAX, ENDSTOPPULLUP_Y2MAX);
-  endstops.setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
-  endstops.setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
-  endstops.setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
-  endstops.setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
-  endstops.setPullup(POWER_CHECK_SENSOR, PULLUP_POWER_CHECK);
-
   watchdog.reset();
 
   Postprocess();
 
-  SERIAL_LM(ECHO, "Hardcoded Default Settings Loaded");
+  SERIAL_LM(ECHO, "Factory Settings Loaded");
 }
 
 #if DISABLED(DISABLE_M503)

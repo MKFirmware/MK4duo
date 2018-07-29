@@ -26,7 +26,7 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../../MK4duo.h"
+#include "../../../MK4duo.h"
 #include "scara_mechanics.h"
 
 #if IS_SCARA

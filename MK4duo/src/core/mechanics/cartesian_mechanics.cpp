@@ -26,7 +26,7 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../../MK4duo.h"
+#include "../../../MK4duo.h"
 #include "cartesian_mechanics.h"
 
 #if IS_CARTESIAN
@@ -40,7 +40,44 @@
               Cartesian_Mechanics::max_length[XYZ]    = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
   /** Public Function */
-  void Cartesian_Mechanics::init() { }
+  void Cartesian_Mechanics::factory_parameters() {
+
+    static const float    tmp1[] PROGMEM  = DEFAULT_AXIS_STEPS_PER_UNIT,
+                          tmp2[] PROGMEM  = DEFAULT_MAX_FEEDRATE;
+    static const uint32_t tmp3[] PROGMEM  = DEFAULT_MAX_ACCELERATION,
+                          tmp4[] PROGMEM  = DEFAULT_RETRACT_ACCELERATION;
+
+    LOOP_XYZE_N(i) {
+      axis_steps_per_mm[i]          = pgm_read_float(&tmp1[i < COUNT(tmp1) ? i : COUNT(tmp1) - 1]);
+      max_feedrate_mm_s[i]          = pgm_read_float(&tmp2[i < COUNT(tmp2) ? i : COUNT(tmp2) - 1]);
+      max_acceleration_mm_per_s2[i] = pgm_read_dword_near(&tmp3[i < COUNT(tmp3) ? i : COUNT(tmp3) - 1]);
+    }
+
+    for (uint8_t i = 0; i < EXTRUDERS; i++)
+      retract_acceleration[i] = pgm_read_dword_near(&tmp4[i < COUNT(tmp4) ? i : COUNT(tmp4) - 1]);
+
+    acceleration              = DEFAULT_ACCELERATION;
+    travel_acceleration       = DEFAULT_TRAVEL_ACCELERATION;
+    min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
+    min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
+    min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
+
+    #if ENABLED(JUNCTION_DEVIATION)
+      junction_deviation_mm = JUNCTION_DEVIATION_MM;
+    #else
+      static const float tmp5[] PROGMEM = DEFAULT_EJERK;
+      max_jerk[X_AXIS]  = DEFAULT_XJERK;
+      max_jerk[Y_AXIS]  = DEFAULT_YJERK;
+      max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+      for (uint8_t i = 0; i < EXTRUDERS; i++)
+        max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
+    #endif
+
+    #if ENABLED(WORKSPACE_OFFSETS)
+      ZERO(mechanics.home_offset);
+    #endif
+
+  }
 
   void Cartesian_Mechanics::sync_plan_position_mech_specific() {
     #if ENABLED(DEBUG_LEVELING_FEATURE)

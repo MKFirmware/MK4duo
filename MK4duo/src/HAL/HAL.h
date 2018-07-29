@@ -34,6 +34,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "HAL_memory_store.h"
+
 #if ENABLED(ARDUINO_ARCH_SAM)
   #define CPU_32_BIT
   #include "HAL_DUE/spi_pins_Due.h"

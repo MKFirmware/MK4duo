@@ -41,9 +41,6 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const
 #endif
 
 FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, const bool blink) {
-  #if !HEATER_IDLE_HANDLER
-    UNUSED(blink);
-  #endif
 
   #if HAS_TEMP_BED
     const bool isBed = (heater == BED_INDEX);
@@ -52,15 +49,13 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
   #endif
 
   if (PAGE_UNDER(7)) {
-    #if HEATER_IDLE_HANDLER
-      const bool isIdle = heaters[heater].isIdle();
-
-      if (blink || !isIdle)
-    #endif
-    _draw_centered_temp((isBed ? heaters[heater].target_temperature : heaters[heater].target_temperature) + 0.5, x, 7); }
+    const int16_t targetTemperature = heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature;
+    if (blink || !heaters[heater].isIdle())
+      _draw_centered_temp((float)targetTemperature, x, 7);
+  }
 
   if (PAGE_CONTAINS(21, 28))
-    _draw_centered_temp((isBed ? heaters[heater].current_temperature : heaters[heater].current_temperature) + 0.5, x, 28);
+    _draw_centered_temp(heaters[heater].current_temperature + 0.5, x, 28);
 
   if (PAGE_CONTAINS(17, 20)) {
     const uint8_t h = isBed ? 7 : HEAT_INDICATOR_X,

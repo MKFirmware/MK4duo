@@ -129,8 +129,8 @@
 #define BOARD_RAMPS_SMART_HFF 1413    // RAMPS-SMART (Power outputs: Hotend, Fan0, Fan1)
 #define BOARD_RAMPS_SMART_HHF 1414    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Fan)
 #define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
-#define BOARD_ALLIGATOR       1502    // ALLIGATOR R2 ARM 32 bit board
-#define BOARD_ALLIGATOR_V3    1503    // ALLIGATOR R3 ARM 32 bit board
+#define BOARD_ALLIGATOR_R2    1502    // ALLIGATOR R2 ARM 32 bit board
+#define BOARD_ALLIGATOR_R3    1503    // ALLIGATOR R3 ARM 32 bit board
 #define BOARD_RURAMPS4D_V11   1550    // RuRAMPS4Duo v1.1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_RURAMPS4D_V13   1551    // RuRAMPS4Duo v1.3 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_ARCHIM2         1590    // UltiMachine Archim2 (with TMC2130 drivers)

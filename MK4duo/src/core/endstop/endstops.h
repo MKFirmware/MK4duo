@@ -98,6 +98,11 @@ class Endstops {
     static void init();
 
     /**
+     * Initialize Factory parameters
+     */
+    static void factory_parameters();
+
+    /**
      * Setup Pullup
      */
     static void setup_pullup();

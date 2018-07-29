@@ -538,33 +538,21 @@
 
   #if HAS_EEPROM_SD
 
-    bool CardReader::open_eeprom_sd(const bool read) {
+    void CardReader::open_eeprom_sd(const bool read) {
 
-      if (!IS_SD_INSERTED || !isOK()) {
-        SERIAL_LM(ER, MSG_NO_CARD);
-        return true;
-      }
+      if (!isOK()) mount();
+
+      if (!isOK()) SERIAL_LM(ER, MSG_NO_CARD);
+
+      if (eeprom_file.isOpen()) eeprom_file.close();
 
       if (!eeprom_file.open(&root, "eeprom.bin", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
         SERIAL_EM("eeprom.bin");
-        return true;
       }
-      else
-        return false;
     }
 
     void CardReader::close_eeprom_sd() { eeprom_file.close(); }
-
-    bool CardReader::write_eeprom_data(const uint8_t value) {
-      watchdog.reset();
-      if (eeprom_file.write(value) < 0)
-        return false;
-      else
-        return true;
-    }
-
-    uint8_t CardReader::read_eeprom_data() { return (char)eeprom_file.read(); }
 
   #endif
 

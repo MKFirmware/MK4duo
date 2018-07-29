@@ -446,8 +446,8 @@
     }
 
     #if HAS_SDSUPPORT
-      card.mount();
-      printer.safe_delay(500);
+      if (!card.isOK()) card.mount();
+      HAL::delayMilliseconds(500);
       if (card.isOK()) {
         SDstatus = SD_INSERT;
         card.beginautostart();  // Initial boot
@@ -1114,7 +1114,6 @@
   }
 
   void lcd_init() {
-    HAL::delayMilliseconds(2000);
 
     for (uint8_t i = 0; i < 10; i++) {
       ZERO(buffer);

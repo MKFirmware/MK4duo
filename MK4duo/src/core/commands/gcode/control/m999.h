@@ -42,7 +42,7 @@ inline void gcode_M999(void) {
   printer.setRunning(true);
   lcd_reset_alert_level();
 
-  LOOP_HEATER() heaters[h].setIdle(false);
+  LOOP_HEATER() heaters[h].ResetFault();
 
   if (parser.boolval('S')) return;
 

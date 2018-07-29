@@ -529,26 +529,20 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
 FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, const bool blink) {
 
   const float t1 = (heaters[heater].current_temperature),
-              t2 = (heaters[heater].target_temperature);
+              t2 = (heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature);
 
   if (prefix >= 0) lcd_put_wchar(prefix);
 
   lcd_put_u8str(itostr3(t1 + 0.5));
   lcd_put_wchar('/');
 
-  #if !HEATER_IDLE_HANDLER
-    UNUSED(blink);
-  #else
-    const bool isIdle = heaters[heater].isIdle();
-
-    if (!blink && isIdle) {
-      lcd_put_wchar(' ');
-      if (t2 >= 10) lcd_put_wchar(' ');
-      if (t2 >= 100) lcd_put_wchar(' ');
-    }
-    else
-  #endif
-      lcd_put_u8str(itostr3left(t2 + 0.5));
+  if (!blink && heaters[heater].isIdle()) {
+    lcd_put_wchar(' ');
+    if (t2 >= 10) lcd_put_wchar(' ');
+    if (t2 >= 100) lcd_put_wchar(' ');
+  }
+  else
+    lcd_put_u8str(itostr3left(t2 + 0.5));
 
   if (prefix >= 0) {
     lcd_put_wchar(LCD_DEGREE_CHAR);

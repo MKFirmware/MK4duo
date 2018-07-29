@@ -168,6 +168,11 @@ class Stepper {
     static void init();
 
     /**
+     * Initialize Factory parameters
+     */
+    static void factory_parameters();
+
+    /**
      * This is called by the interrupt service routine to execute steps.
      */
     static void Step();

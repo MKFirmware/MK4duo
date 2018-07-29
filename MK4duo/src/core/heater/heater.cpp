@@ -46,17 +46,19 @@
     soft_pwm              = 0;
     pwm_pos               = 0;
     target_temperature    = 0;
+    idle_temperature      = 0;
     current_temperature   = 25.0;
     sensor.raw            = 0;
     last_temperature      = 0.0;
     temperature_1s        = 0.0;
 
+    setActive(false);
+    setIdle(false);
+
     #if WATCH_THE_HEATER
       watch_target_temp   = 0;
       watch_next_ms       = 0;
     #endif
-
-    setIdle(false);
 
     sensor.CalcDerivedParameters();
 
@@ -75,11 +77,24 @@
   void Heater::setTarget(int16_t celsius) {
 
     NOMORE(celsius, maxtemp);
-    target_temperature = celsius;
 
-    #if WATCH_THE_HEATER
-      start_watching();
-    #endif
+    if (!isTuning()) {
+      SERIAL_LM(ER, " Need Tuning PID");
+      LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
+    }
+    else if (isFault())
+      SERIAL_LM(ER, " Heater not switched on to temperature fault.");
+    else if (celsius == 0)
+      SwitchOff();
+    else {
+      setActive(true);
+      if (isActive()) {
+        target_temperature = celsius;
+        #if WATCH_THE_HEATER
+          start_watching();
+        #endif
+      }
+    }
   }
 
   void Heater::updatePID() {
@@ -89,75 +104,71 @@
     }
   }
 
-  void Heater::get_pid_output(const bool cycle_1s) {
+  void Heater::get_pid_output() {
 
-    const float difference = (float)target_temperature - current_temperature;
+    static millis_t cycle_1s = 0;
+    millis_t now = millis();
 
-    millis_t ms = millis();
+    if (!isIdle() && idle_timeout_ms && ELAPSED(now, idle_timeout_ms)) setIdle(true);
 
-    #if HEATER_IDLE_HANDLER
-      if (!isIdle() && idle_timeout_ms && ELAPSED(ms, idle_timeout_ms))
-        setIdle(true);
-    #endif
+    if (isActive()) {
 
-    if (isOFF() || isIdle())
-      soft_pwm = 0;
-    else if (isUsePid()) {
-      if (!isTuning()) {
-        SERIAL_LM(ER, " Need Tuning PID");
-        LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
-        setTarget(0);
-      }
-      else if (difference > PID_FUNCTIONAL_RANGE) {
-        soft_pwm = pidMax;
-        tempIState = tempIStateLimitMin;
-      }
-      else if (difference < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0)
-        soft_pwm = 0;
-      else {
-        float pidTerm = Kp * difference;
-        tempIState = constrain(tempIState + difference, tempIStateLimitMin, tempIStateLimitMax);
-        pidTerm += Ki * tempIState * 0.1; // 0.1 = 10Hz
-        float dgain = Kd * (last_temperature - temperature_1s);
-        pidTerm += dgain;
+      // Get the target temperature and the error
+			const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
+      const float error = targetTemperature - current_temperature;
 
-        #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (ID == ACTIVE_HOTEND) {
-            long e_position = stepper.position(E_AXIS);
-            if (e_position > last_e_position) {
-              lpq[lpq_ptr] = e_position - last_e_position;
-              last_e_position = e_position;
+      if (isUsePid()) {
+        if (error > PID_FUNCTIONAL_RANGE) {
+          soft_pwm = pidMax;
+          tempIState = tempIStateLimitMin;
+        }
+        else if (error < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0)
+          soft_pwm = 0;
+        else {
+          float pidTerm = Kp * error;
+          tempIState = constrain(tempIState + error, tempIStateLimitMin, tempIStateLimitMax);
+          pidTerm += Ki * tempIState * 0.1;
+          float dgain = Kd * (last_temperature - temperature_1s);
+          pidTerm += dgain;
+
+          #if ENABLED(PID_ADD_EXTRUSION_RATE)
+            if (ID == ACTIVE_HOTEND) {
+              long e_position = stepper.position(E_AXIS);
+              if (e_position > last_e_position) {
+                lpq[lpq_ptr] = e_position - last_e_position;
+                last_e_position = e_position;
+              }
+              else {
+                lpq[lpq_ptr] = 0;
+              }
+              if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
+              pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
             }
-            else {
-              lpq[lpq_ptr] = 0;
-            }
-            if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
-            pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
-          }
-        #endif // PID_ADD_EXTRUSION_RATE
+          #endif // PID_ADD_EXTRUSION_RATE
 
-        soft_pwm = constrain((int)pidTerm, 0, PID_MAX);
+          soft_pwm = constrain((int)pidTerm, 0, PID_MAX);
+        }
+
+        if (ELAPSED(now, cycle_1s)) {
+          cycle_1s = now + 1000UL;
+          last_temperature = temperature_1s;
+          temperature_1s = current_temperature;
+        }
+      }
+      else if (ELAPSED(now, next_check_ms)) {
+        next_check_ms = now + temp_check_interval[type];
+        if (current_temperature <= targetTemperature - temp_hysteresis[type])
+          soft_pwm = pidMax;
+        else if (current_temperature >= targetTemperature + temp_hysteresis[type])
+          soft_pwm = 0;
       }
 
-      if (cycle_1s) {
-        last_temperature = temperature_1s;
-        temperature_1s = current_temperature;
-      }
+      #if ENABLED(PID_DEBUG)
+        SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
+        SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
+        SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
+      #endif // PID_DEBUG
     }
-    else if (ELAPSED(ms, next_check_ms)) {
-      next_check_ms = ms + temp_check_interval[type];
-      if (current_temperature <= target_temperature - temp_hysteresis[type])
-        soft_pwm = pidMax;
-      else if (current_temperature >= target_temperature + temp_hysteresis[type])
-        soft_pwm = 0;
-    }
-
-    #if ENABLED(PID_DEBUG)
-      SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
-      SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
-      SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
-    #endif // PID_DEBUG
-
   }
 
   void Heater::print_PID() {
@@ -238,6 +249,22 @@
 
   }
 
+  void Heater::start_idle_timer(const millis_t timeout_ms) {
+    idle_timeout_ms = millis() + timeout_ms;
+    setIdle(false);
+  }
+
+  void Heater::reset_idle_timer() {
+    idle_timeout_ms = 0;
+    setIdle(false);
+    #if WATCH_THE_HOTEND
+      if (type == IS_HOTEND) start_watching();
+    #endif
+    #if WATCH_THE_BED
+      if (type == IS_BED) start_watching();
+    #endif
+  }
+
   #if HARDWARE_PWM
     void Heater::SetHardwarePwm() {
       uint8_t pwm_val = 0;
@@ -258,30 +285,13 @@
      * This is called when the temperature is set.
      */
     void Heater::start_watching() {
-      if (isON() && current_temperature < target_temperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
+      const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
+      if (isActive() && current_temperature < targetTemperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
         watch_target_temp = current_temperature + WATCH_TEMP_INCREASE;
         watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
       }
       else
         watch_next_ms = 0;
-    }
-  #endif
-
-  #if HEATER_IDLE_HANDLER
-    void Heater::start_idle_timer(const millis_t timeout_ms) {
-      idle_timeout_ms = millis() + timeout_ms;
-      setIdle(false);
-    }
-
-    void Heater::reset_idle_timer() {
-      idle_timeout_ms = 0;
-      setIdle(false);
-      #if WATCH_THE_HOTEND
-        if (type == IS_HOTEND) start_watching();
-      #endif
-      #if WATCH_THE_BED
-        if (type == IS_BED) start_watching();
-      #endif
     }
   #endif
 

@@ -59,7 +59,7 @@
     public: /** Public Function */
 
       void init();
-      void SetAutoMonitored(const int8_t h);
+      void setAutoMonitored(const int8_t h);
       void spin();
 
       FORCE_INLINE void setHWInverted(const bool onoff) {

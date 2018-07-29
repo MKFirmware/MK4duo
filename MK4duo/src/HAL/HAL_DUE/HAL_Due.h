@@ -208,7 +208,6 @@ class HAL {
 
     static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
     static bool Analog_is_ready;
-    static bool execute_100ms;
 
   private: /** Private Parameters */
 

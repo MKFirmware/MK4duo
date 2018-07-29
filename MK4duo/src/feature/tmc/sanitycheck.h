@@ -68,7 +68,7 @@
   // is necessary in order to reset the stallGuard indication between the initial movement of all three
   // towers to +Z and the individual homing of each tower. This restriction can be removed once a means of
   // clearing the stallGuard activated status is found.
-  #if ENABLED(SENSORLESS_HOMING) && ENABLED(DELTA) && !ENABLED(STEALTHCHOP)
+  #if ENABLED(SENSORLESS_HOMING) && MECH(DELTA) && !ENABLED(STEALTHCHOP)
     #error "DEPENDENCY ERROR: SENSORLESS_HOMING on DELTA currently requires STEALTHCHOP."
   #endif
 

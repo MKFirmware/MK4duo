@@ -64,7 +64,7 @@
         fan->setHWInverted(parser.value_bool());
 
       if (parser.seen('H'))
-        fan->SetAutoMonitored(parser.value_int());
+        fan->setAutoMonitored(parser.value_int());
 
       fan->min_Speed  = parser.byteval('L', fan->min_Speed);
       fan->freq       = parser.ushortval('F', fan->freq);

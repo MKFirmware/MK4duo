@@ -79,7 +79,7 @@
     bool Power::is_power_needed() {
 
       #if HEATER_COUNT > 0
-        if (thermalManager.heaters_isON()) return true;
+        if (thermalManager.heaters_isActive()) return true;
       #endif
 
       #if FAN_COUNT > 0

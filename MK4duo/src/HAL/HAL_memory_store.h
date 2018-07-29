@@ -20,14 +20,16 @@
  *
  */
 
-/**
- * sanitycheck.h
- *
- * Test configuration values for errors at compile-time.
- */
+#ifndef _HAL_MEMORY_STORE_H_
+#define _HAL_MEMORY_STORE_H_
 
-#ifndef _MECH_CARTESIAN_SANITYCHECK_H_
-#define _MECH_CARTESIAN_SANITYCHECK_H_
-// There's nothing here...
+namespace MemoryStore {
 
-#endif /* _MECH_CARTESIAN_SANITYCHECK_H_ */
+  bool access_start(const bool read);
+  bool access_finish(const bool read);
+  bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
+  bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc);
+
+} // MemoryStore
+
+#endif /* _HAL_MEMORY_STORE_H_ */
