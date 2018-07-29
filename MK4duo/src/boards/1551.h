@@ -1,7 +1,7 @@
 /****************************************************************************************
 * 1550
 *
-* RURAMPS4DUE V1.1  (Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
+* RURAMPS4DUE V1.3  (Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 ****************************************************************************************/
 
 //###CHIP
@@ -14,7 +14,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "RuRAMPS4Due v1.1"
+  #define BOARD_NAME "RuRAMPS4Due v1.3"
 #endif
 //@@@
 
@@ -22,46 +22,46 @@
 //###X_AXIS
 #define ORIG_X_STEP_PIN            37
 #define ORIG_X_DIR_PIN             36
-#define ORIG_X_ENABLE_PIN          38
-#define ORIG_X_CS_PIN              NoPin
+#define ORIG_X_ENABLE_PIN          31
+#define ORIG_X_CS_PIN              38
 
 //###Y_AXIS
 #define ORIG_Y_STEP_PIN            32
 #define ORIG_Y_DIR_PIN             35
-#define ORIG_Y_ENABLE_PIN          34
-#define ORIG_Y_CS_PIN              NoPin
+#define ORIG_Y_ENABLE_PIN          31
+#define ORIG_Y_CS_PIN              34
 
 //###Z_AXIS
 #define ORIG_Z_STEP_PIN            30
 #define ORIG_Z_DIR_PIN              2
-#define ORIG_Z_ENABLE_PIN          33
-#define ORIG_Z_CS_PIN              NoPin
+#define ORIG_Z_ENABLE_PIN          31
+#define ORIG_Z_CS_PIN              10
 
 //###EXTRUDER_0
 #define ORIG_E0_STEP_PIN           29
 #define ORIG_E0_DIR_PIN            28
-#define ORIG_E0_ENABLE_PIN         31
-#define ORIG_E0_CS_PIN             NoPin
+#define ORIG_E0_ENABLE_PIN         33
+#define ORIG_E0_CS_PIN             14
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
 #define ORIG_E1_STEP_PIN           22
 #define ORIG_E1_DIR_PIN            24
 #define ORIG_E1_ENABLE_PIN         26
-#define ORIG_E1_CS_PIN             NoPin
+#define ORIG_E1_CS_PIN             15
 #define ORIG_SOL1_PIN              NoPin
 
 //###EXTRUDER_2
 #define ORIG_E2_STEP_PIN           25
 #define ORIG_E2_DIR_PIN            23
 #define ORIG_E2_ENABLE_PIN         27
-#define ORIG_E2_CS_PIN             NoPin
+#define ORIG_E2_CS_PIN             61
 #define ORIG_SOL2_PIN              NoPin
 
 //###EXTRUDER_3
-#define ORIG_E3_STEP_PIN           15
-#define ORIG_E3_DIR_PIN            14
-#define ORIG_E3_ENABLE_PIN         61
+#define ORIG_E3_STEP_PIN           NoPin
+#define ORIG_E3_DIR_PIN            NoPin
+#define ORIG_E3_ENABLE_PIN         NoPin
 #define ORIG_E3_CS_PIN             NoPin
 #define ORIG_SOL3_PIN              NoPin
 
@@ -162,7 +162,7 @@
 //###UNKNOWN_PINS
 // I2C EEPROM with 32K of space
 #define EEPROM_I2C
-#define E2END 0x7FFF
+#define E2END 0x8000
 //@@@
 
 //###IF_BLOCKS
@@ -212,7 +212,12 @@
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
 
-    #error "Oops! SPARK_FULL_GRAPHICS not supported with RURAMPS4D."
+    #define LCD_PINS_D4     29
+    #define LCD_PINS_ENABLE 27
+    #define LCD_PINS_RS     25
+    #define BTN_EN1         35
+    #define BTN_EN2         33
+    #define BTN_ENC         37
 
   #endif // SPARK_FULL_GRAPHICS
 
