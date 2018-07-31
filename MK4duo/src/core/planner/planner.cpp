@@ -1851,7 +1851,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #endif // LASER
 
-  const float inverse_millimeters = RECIPROCAL(block->millimeters);  // Inverse millimeters to remove multiple divides
+  const float inverse_millimeters = 1.0f / block->millimeters;  // Inverse millimeters to remove multiple divides
 
   // Calculate inverse time for this move. No divide by zero due to previous checks.
   // Example: At 120mm/s a 60mm move takes 0.5s. So this will give 2.0.
@@ -2153,10 +2153,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #else // Classic Jerk Limiting
 
+    const float nominal_speed = SQRT(block->nominal_speed_sqr);
+
     // Exit speed limited by a jerk to full halt of a previous last segment
     static float previous_safe_speed;
 
-    float nominal_speed = SQRT(block->nominal_speed_sqr);
+    // Start with a safe speed (from which the machine may halt to stop immediately).
     float safe_speed = nominal_speed;
 
     uint8_t limited = 0;
@@ -2170,8 +2172,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           if (jerk * safe_speed > mjerk) safe_speed = mjerk / jerk;
         }
         else {
+          safe_speed *= maxj / jerk;
           ++limited;
-          safe_speed = maxj;
         }
       }
     }
@@ -2540,7 +2542,7 @@ void Planner::reset_acceleration_rates() {
  * Recalculate position, steps_to_mm if axis_steps_per_mm changes!
  */
 void Planner::refresh_positioning() {
-  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = RECIPROCAL(mechanics.axis_steps_per_mm[i]);
+  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = 1.0f / mechanics.axis_steps_per_mm[i];
   set_position_mm_kinematic(mechanics.current_position);
   reset_acceleration_rates();
 }

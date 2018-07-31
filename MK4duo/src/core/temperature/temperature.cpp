@@ -271,12 +271,12 @@ void Temperature::spin() {
       // Convert the ratio value given by the filament width sensor
       // into a volumetric multiplier. Conversion differs when using
       // linear extrusion vs volumetric extrusion.
-      const float nom_meas_ratio = 1.0 + 0.01 * measurement_delay[meas_shift_index],
+      const float nom_meas_ratio = 1.0 + 0.01f * measurement_delay[meas_shift_index],
                   ratio_2 = sq(nom_meas_ratio);
 
       tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM] = printer.isVolumetric()
-        ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5) // Volumetric uses a true volumetric multiplier
-        : ratio_2;                                            // Linear squares the ratio, which scales the volume
+        ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5f)  // Volumetric uses a true volumetric multiplier
+        : ratio_2;                                              // Linear squares the ratio, which scales the volume
 
       tools.refresh_e_factor(FILAMENT_SENSOR_EXTRUDER_NUM);
     }
