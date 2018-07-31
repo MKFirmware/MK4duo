@@ -39,7 +39,7 @@
   inline void gcode_M404(void) {
     if (parser.seen('W')) {
       filament_width_nominal = parser.value_linear_units();
-      tools.volumetric_area_nominal = CIRCLE_AREA(filament_width_nominal * 0.5);
+      tools.volumetric_area_nominal = CIRCLE_AREA(filament_width_nominal * 0.5f);
     }
     else {
       SERIAL_EMV("Filament dia (nominal mm):", filament_width_nominal);
