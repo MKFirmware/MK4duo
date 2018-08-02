@@ -1830,9 +1830,9 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M92 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS + i]), 3);
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M92 T", e);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS + e]), 3);
       }
     #endif // EXTRUDERS > 1
 
@@ -1845,9 +1845,9 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M203 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS + i]), 3);
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M203 T", e);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS + e]), 3);
       }
     #endif // EXTRUDERS > 1
 
@@ -1860,9 +1860,9 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M201 T", i);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]));
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M201 T", e);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS + e]));
       }
     #endif // EXTRUDERS > 1
 
@@ -1874,9 +1874,9 @@ void EEPROM::Factory_Settings() {
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
-      for (int8_t i = 0; i < EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M204 T", i);
-        SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[i]), 3);
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M204 T", e);
+        SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[e]), 3);
       }
     #endif
 
@@ -1898,9 +1898,9 @@ void EEPROM::Factory_Settings() {
       #endif
       SERIAL_EOL();
       #if (EXTRUDERS > 1)
-        for(int8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_SMV(CFG, "  M205 T", i);
-          SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + i]), 3);
+        LOOP_EXTRUDER() {
+          SERIAL_SMV(CFG, "  M205 T", e);
+          SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + e]), 3);
         }
       #endif
     #endif
@@ -1987,7 +1987,7 @@ void EEPROM::Factory_Settings() {
 
     #if HOTENDS > 1
       CONFIG_MSG_START_E("Hotend offset (mm):");
-      for (int8_t h = 1; h < HOTENDS; h++) {
+      LOOP_HOTEND() {
         SERIAL_SMV(CFG, "  M218 H", h);
         SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(tools.hotend_offset[Y_AXIS][h]), 3);
@@ -2203,9 +2203,9 @@ void EEPROM::Factory_Settings() {
       #if EXTRUDERS == 1
         SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
       #elif EXTRUDERS > 1
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
-          SERIAL_SMV(CFG, "  M200 T", (int)i);
-          SERIAL_EMV(" D", tools.filament_size[i], 3);
+        LOOP_EXTRUDER() {
+          SERIAL_SMV(CFG, "  M200 T", (int)e);
+          SERIAL_EMV(" D", tools.filament_size[e], 3);
         }
       #endif
 
@@ -2408,7 +2408,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(filament_change_load_length[0]), 2);
         SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[0]), 2);
       #else // EXTRUDERS != 1
-        for (uint8_t e = 0; e < EXTRUDERS; e++) {
+        LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M603 T", (int)e);
           SERIAL_MV(" L", LINEAR_UNIT(filament_change_load_length[e]), 2);
           SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[e]), 2);
