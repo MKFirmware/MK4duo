@@ -2007,6 +2007,13 @@ void EEPROM::Factory_Settings() {
       SERIAL_EMV(" I", heaters[COOLER_INDEX].isHWInverted());
     #endif
 
+    #if ENABLED(DHT_SENSOR)
+      CONFIG_MSG_START_E(DHT sensor parameters: P<Pin> S<type 11-21-22>:");
+      SERIAL_SM(CFG, "  M305 D0");
+      SERIAL_MV(" P", dhtsensor.pin);
+      SERIAL_EMV(" S", dhtsensor.type);
+    #endif
+
     CONFIG_MSG_START_E("PID settings:");
     #if HOTENDS == 1
       heaters[0].print_PID();
