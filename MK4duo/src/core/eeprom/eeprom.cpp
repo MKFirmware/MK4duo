@@ -1831,7 +1831,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M92 T", e);
+        SERIAL_SMV(CFG, "  M92 T", (int)e);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.axis_steps_per_mm[E_AXIS + e]), 3);
       }
     #endif // EXTRUDERS > 1
@@ -1846,7 +1846,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M203 T", e);
+        SERIAL_SMV(CFG, "  M203 T", (int)e);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_feedrate_mm_s[E_AXIS + e]), 3);
       }
     #endif // EXTRUDERS > 1
@@ -1861,7 +1861,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M201 T", e);
+        SERIAL_SMV(CFG, "  M201 T", (int)e);
         SERIAL_EMV(" E", VOLUMETRIC_UNIT(mechanics.max_acceleration_mm_per_s2[E_AXIS + e]));
       }
     #endif // EXTRUDERS > 1
@@ -1875,7 +1875,7 @@ void EEPROM::Factory_Settings() {
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M204 T", e);
+        SERIAL_SMV(CFG, "  M204 T", (int)e);
         SERIAL_EMV(" R", LINEAR_UNIT(mechanics.retract_acceleration[e]), 3);
       }
     #endif
@@ -1899,7 +1899,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_EOL();
       #if (EXTRUDERS > 1)
         LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M205 T", e);
+          SERIAL_SMV(CFG, "  M205 T", (int)e);
           SERIAL_EMV(" E" , LINEAR_UNIT(mechanics.max_jerk[E_AXIS + e]), 3);
         }
       #endif
@@ -1908,7 +1908,7 @@ void EEPROM::Factory_Settings() {
     #if HOTENDS > 0
       CONFIG_MSG_START_E("Hotend Sensor parameters: H<Hotend> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
       LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M305 H", h);
+        SERIAL_SMV(CFG, "  M305 H", (int)h);
         SERIAL_MV(" P", heaters[h].sensor.pin);
         SERIAL_MV(" A", heaters[h].sensor.r25, 1);
         SERIAL_MV(" B", heaters[h].sensor.beta, 1);
@@ -1920,7 +1920,7 @@ void EEPROM::Factory_Settings() {
 
       CONFIG_MSG_START_E("Hotend Heater parameters: H<Hotend> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M306 H", h);
+        SERIAL_SMV(CFG, "  M306 H", (int)h);
         SERIAL_MV(" P", heaters[h].pin);
         SERIAL_MV(" A", heaters[h].pidDriveMin);
         SERIAL_MV(" B", heaters[h].pidDriveMax);
@@ -1942,9 +1942,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" R", heaters[BED_INDEX].sensor.pullupR, 1);
       SERIAL_MV(" L", heaters[BED_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[BED_INDEX].sensor.adcHighOffset);
-    #endif
 
-    #if HAS_HEATER_BED
       CONFIG_MSG_START_E("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       SERIAL_SM(CFG, "  M306 H-1");
       SERIAL_MV(" P", heaters[BED_INDEX].pin);
@@ -1967,9 +1965,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" R", heaters[CHAMBER_INDEX].sensor.pullupR, 1);
       SERIAL_MV(" L", heaters[CHAMBER_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[CHAMBER_INDEX].sensor.adcHighOffset);
-    #endif
 
-    #if HAS_HEATER_CHAMBER
       CONFIG_MSG_START_E("Chamber Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       SERIAL_SM(CFG, "  M306 H-2");
       SERIAL_MV(" P", heaters[CHAMBER_INDEX].pin);
@@ -1992,9 +1988,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" R", heaters[COOLER_INDEX].sensor.pullupR, 1);
       SERIAL_MV(" L", heaters[COOLER_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[COOLER_INDEX].sensor.adcHighOffset);
-    #endif
 
-    #if HAS_HEATER_COOLER
       CONFIG_MSG_START_E("Cooler Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
       SERIAL_SM(CFG, "  M306 H-3");
       SERIAL_MV(" P", heaters[COOLER_INDEX].pin);
@@ -2036,7 +2030,7 @@ void EEPROM::Factory_Settings() {
     #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
       CONFIG_MSG_START_E("AD595 or AD8495 Offset and Gain:");
       LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M595 H", h);
+        SERIAL_SMV(CFG, "  M595 H", (int)h);
         SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
         SERIAL_EMV(", S", heaters[h].sensor.ad595_gain);
       }
@@ -2045,7 +2039,7 @@ void EEPROM::Factory_Settings() {
     #if HOTENDS > 1
       CONFIG_MSG_START_E("Hotend offset (mm):");
       LOOP_HOTEND() {
-        SERIAL_SMV(CFG, "  M218 H", h);
+        SERIAL_SMV(CFG, "  M218 H", (int)h);
         SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(tools.hotend_offset[Y_AXIS][h]), 3);
         SERIAL_EMV(" Z", LINEAR_UNIT(tools.hotend_offset[Z_AXIS][h]), 3);
