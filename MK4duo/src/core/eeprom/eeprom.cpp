@@ -1942,19 +1942,19 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" R", heaters[BED_INDEX].sensor.pullupR, 1);
       SERIAL_MV(" L", heaters[BED_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[BED_INDEX].sensor.adcHighOffset);
-	#endif
+    #endif
 
-	#if HAS_HEATER_BED
+    #if HAS_HEATER_BED
       CONFIG_MSG_START_E("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
-	  SERIAL_SM(CFG, "  M306 H-1");
-	  SERIAL_MV(" P", heaters[BED_INDEX].pin);
-	  SERIAL_MV(" A", heaters[BED_INDEX].pidDriveMin);
-	  SERIAL_MV(" B", heaters[BED_INDEX].pidDriveMax);
-	  SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
-	  SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
-	  SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
-	  SERIAL_MV(" U", heaters[BED_INDEX].isUsePid());
-	  SERIAL_EMV(" I", heaters[BED_INDEX].isHWInverted());
+      SERIAL_SM(CFG, "  M306 H-1");
+      SERIAL_MV(" P", heaters[BED_INDEX].pin);
+      SERIAL_MV(" A", heaters[BED_INDEX].pidDriveMin);
+      SERIAL_MV(" B", heaters[BED_INDEX].pidDriveMax);
+      SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
+      SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
+      SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
+      SERIAL_MV(" U", heaters[BED_INDEX].isUsePid());
+      SERIAL_EMV(" I", heaters[BED_INDEX].isHWInverted());
     #endif
 
     #if HAS_TEMP_CHAMBER
