@@ -260,4 +260,34 @@
   #endif
 #endif
 
+/**
+ * MK4duo supports only one DHT sensor
+ */
+#if ENABLED(DHT_SENSOR)
+  static_assert(1 >= 0
+    #if TEMP_SENSOR_0 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_1 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_2 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_3 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_BED == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_CHAMBER == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_COOLER == DHT_TYPE
+      + 1
+    #endif
+    , "DEPENDENCY ERROR: only one DHT sensor is supported!"
+  );
+#endif
+
 #endif /* _TEMPERATURE_SANITYCHECK_H_ */
