@@ -1942,19 +1942,69 @@ void EEPROM::Factory_Settings() {
       SERIAL_MV(" R", heaters[BED_INDEX].sensor.pullupR, 1);
       SERIAL_MV(" L", heaters[BED_INDEX].sensor.adcLowOffset);
       SERIAL_EMV(" O", heaters[BED_INDEX].sensor.adcHighOffset);
+	#endif
 
+	#if HAS_HEATER_BED
       CONFIG_MSG_START_E("Bed Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
-      LOOP_HOTEND() {
-        SERIAL_SM(CFG, "  M306 H-1");
-        SERIAL_MV(" P", heaters[BED_INDEX].pin);
-        SERIAL_MV(" A", heaters[BED_INDEX].pidDriveMin);
-        SERIAL_MV(" B", heaters[BED_INDEX].pidDriveMax);
-        SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
-        SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
-        SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
-        SERIAL_MV(" U", heaters[BED_INDEX].isUsePid());
-        SERIAL_EMV(" I", heaters[BED_INDEX].isHWInverted());
-      }
+	  SERIAL_SM(CFG, "  M306 H-1");
+	  SERIAL_MV(" P", heaters[BED_INDEX].pin);
+	  SERIAL_MV(" A", heaters[BED_INDEX].pidDriveMin);
+	  SERIAL_MV(" B", heaters[BED_INDEX].pidDriveMax);
+	  SERIAL_MV(" C", heaters[BED_INDEX].pidMax);
+	  SERIAL_MV(" L", heaters[BED_INDEX].mintemp);
+	  SERIAL_MV(" O", heaters[BED_INDEX].maxtemp);
+	  SERIAL_MV(" U", heaters[BED_INDEX].isUsePid());
+	  SERIAL_EMV(" I", heaters[BED_INDEX].isHWInverted());
+    #endif
+
+    #if HAS_TEMP_CHAMBER
+      CONFIG_MSG_START_E("Chamber Sensor parameters: P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+      SERIAL_SM(CFG, "  M305 H-2");
+      SERIAL_MV(" P", heaters[CHAMBER_INDEX].sensor.pin);
+      SERIAL_MV(" A", heaters[CHAMBER_INDEX].sensor.r25, 1);
+      SERIAL_MV(" B", heaters[CHAMBER_INDEX].sensor.beta, 1);
+      SERIAL_MV(" C", heaters[CHAMBER_INDEX].sensor.shC, 10);
+      SERIAL_MV(" R", heaters[CHAMBER_INDEX].sensor.pullupR, 1);
+      SERIAL_MV(" L", heaters[CHAMBER_INDEX].sensor.adcLowOffset);
+      SERIAL_EMV(" O", heaters[CHAMBER_INDEX].sensor.adcHighOffset);
+    #endif
+
+    #if HAS_HEATER_CHAMBER
+      CONFIG_MSG_START_E("Chamber Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
+      SERIAL_SM(CFG, "  M306 H-2");
+      SERIAL_MV(" P", heaters[CHAMBER_INDEX].pin);
+      SERIAL_MV(" A", heaters[CHAMBER_INDEX].pidDriveMin);
+      SERIAL_MV(" B", heaters[CHAMBER_INDEX].pidDriveMax);
+      SERIAL_MV(" C", heaters[CHAMBER_INDEX].pidMax);
+      SERIAL_MV(" L", heaters[CHAMBER_INDEX].mintemp);
+      SERIAL_MV(" O", heaters[CHAMBER_INDEX].maxtemp);
+      SERIAL_MV(" U", heaters[CHAMBER_INDEX].isUsePid());
+      SERIAL_EMV(" I", heaters[CHAMBER_INDEX].isHWInverted());
+    #endif
+
+    #if HAS_TEMP_COOLER
+      CONFIG_MSG_START_E("Cooler Sensor parameters: P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+      SERIAL_SM(CFG, "  M305 H-3");
+      SERIAL_MV(" P", heaters[COOLER_INDEX].sensor.pin);
+      SERIAL_MV(" A", heaters[COOLER_INDEX].sensor.r25, 1);
+      SERIAL_MV(" B", heaters[COOLER_INDEX].sensor.beta, 1);
+      SERIAL_MV(" C", heaters[COOLER_INDEX].sensor.shC, 10);
+      SERIAL_MV(" R", heaters[COOLER_INDEX].sensor.pullupR, 1);
+      SERIAL_MV(" L", heaters[COOLER_INDEX].sensor.adcLowOffset);
+      SERIAL_EMV(" O", heaters[COOLER_INDEX].sensor.adcHighOffset);
+    #endif
+
+    #if HAS_HEATER_COOLER
+      CONFIG_MSG_START_E("Cooler Heater parameters: P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
+      SERIAL_SM(CFG, "  M306 H-3");
+      SERIAL_MV(" P", heaters[COOLER_INDEX].pin);
+      SERIAL_MV(" A", heaters[COOLER_INDEX].pidDriveMin);
+      SERIAL_MV(" B", heaters[COOLER_INDEX].pidDriveMax);
+      SERIAL_MV(" C", heaters[COOLER_INDEX].pidMax);
+      SERIAL_MV(" L", heaters[COOLER_INDEX].mintemp);
+      SERIAL_MV(" O", heaters[COOLER_INDEX].maxtemp);
+      SERIAL_MV(" U", heaters[COOLER_INDEX].isUsePid());
+      SERIAL_EMV(" I", heaters[COOLER_INDEX].isHWInverted());
     #endif
 
     CONFIG_MSG_START_E("PID settings:");
@@ -2183,6 +2233,7 @@ void EEPROM::Factory_Settings() {
       SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.retract_recover_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_recover_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_recover_feedrate_mm_s)));
+      SERIAL_MV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.swap_retract_recover_feedrate_mm_s)));
 
       CONFIG_MSG_START_E("Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover:");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
