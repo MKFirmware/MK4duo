@@ -158,7 +158,7 @@ void Endstops::factory_parameters() {
     z_endstop_adj = 0.0f;
   #endif
   
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
     setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
     setLogic(Y_MIN, !Y_MIN_ENDSTOP_LOGIC);

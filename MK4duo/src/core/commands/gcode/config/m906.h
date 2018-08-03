@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
   #define CODE_M906
 

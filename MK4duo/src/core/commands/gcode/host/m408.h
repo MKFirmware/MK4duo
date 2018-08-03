@@ -226,7 +226,7 @@
         }
         SERIAL_MSG("],");
 
-        #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+        #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
           SERIAL_MSG("\"currents\":[");
           SERIAL_VAL(externaldac.motor_current[X_AXIS]);
           SERIAL_CHR(',');
@@ -243,10 +243,10 @@
         SERIAL_MSG("\"firmwareElectronics\":\"");
         #if MB(RAMPS_13_HFB) || MB(RAMPS_13_HHB) || MB(RAMPS_13_HFF) || MB(RAMPS_13_HHF) || MB(RAMPS_13_HHH)
           SERIAL_MSG("RAMPS");
-        #elif MB(ALLIGATOR)
-          SERIAL_MSG("ALLIGATOR");
-        #elif MB(ALLIGATOR_V3)
-          SERIAL_MSG("ALLIGATOR_V3");
+        #elif MB(ALLIGATOR_R2)
+          SERIAL_MSG("ALLIGATOR_R2");
+        #elif MB(ALLIGATOR_R3)
+          SERIAL_MSG("ALLIGATOR_R3");
         #elif MB(RADDS) || MB(RAMPS_FD_V1) || MB(RAMPS_FD_V2) || MB(SMART_RAMPS) || MB(RAMPS4DUE)
           SERIAL_MSG("Arduino due");
         #elif MB(ULTRATRONICS)

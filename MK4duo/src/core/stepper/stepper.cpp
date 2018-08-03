@@ -1093,7 +1093,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
         case 8: WRITE(E5_MS1_PIN, ms1); break;
       #endif
     }
-    #if !MB(ALLIGATOR) && !MB(ALLIGATOR_V3)
+    #if !MB(ALLIGATOR_R2) && !MB(ALLIGATOR_R3)
       if (ms2 >= 0) switch (driver) {
         #if HAS_X_MICROSTEPS
           case 0: WRITE(X_MS2_PIN, ms2); break;
@@ -1135,7 +1135,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       case 4: microstep_ms(driver,  MICROSTEP4); break;
       case 8: microstep_ms(driver,  MICROSTEP8); break;
       case 16: microstep_ms(driver, MICROSTEP16); break;
-      #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+      #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
         case 32: microstep_ms(driver, MICROSTEP32); break;
       #endif
     }
@@ -3186,7 +3186,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       SET_OUTPUT(E5_MS1_PIN);
     #endif
 
-    #if !MB(ALLIGATOR) && !MB(ALLIGATOR_V3)
+    #if !MB(ALLIGATOR_R2) && !MB(ALLIGATOR_R3)
       #if HAS_X_MICROSTEPS
         SET_OUTPUT(X_MS2_PIN);
       #endif

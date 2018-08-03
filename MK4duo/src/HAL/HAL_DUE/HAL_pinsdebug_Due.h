@@ -61,7 +61,7 @@
  *    included just in case.
  */
 
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
   #define NUMBER_PINS_TOTAL 100
 #else
   #define NUMBER_PINS_TOTAL PINS_COUNT

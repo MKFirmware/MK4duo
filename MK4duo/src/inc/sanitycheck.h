@@ -57,7 +57,7 @@
 #endif
 
 // Alligatorboard
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
   #if DISABLED(UI_VOLTAGE_LEVEL)
     #error "DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL."
   #endif

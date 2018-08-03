@@ -23,7 +23,7 @@
 #ifndef _EXTERNAL_DAC_H_
 #define _EXTERNAL_DAC_H_
 
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
   class ExternalDac {
 
@@ -48,6 +48,6 @@
 
   extern ExternalDac externaldac;
 
-#endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#endif // MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
 #endif /* _EXTERNAL_DAC_H_ */

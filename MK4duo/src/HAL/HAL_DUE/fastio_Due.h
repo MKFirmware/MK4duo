@@ -105,15 +105,15 @@ static constexpr Fastio_Param Fastio[] = {
     // D108 to D110
     { PIOB, 7 }, { PIOB, 8 }, { PIOB, 11 }
 
-  #elif MB(ALLIGATOR)
+  #elif MB(ALLIGATOR_R2)
 
     // D92 to D99
     { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
 
-    // D100 to D107
+    // D100
     { PIOC, 11 }
 
-  #elif MB(ALLIGATOR_V3)
+  #elif MB(ALLIGATOR_R3)
 
     // D92 to D99
     { PIOA,  5 }, { PIOB, 12 }, { PIOB, 22 }, { PIOB, 23 }, { PIOB, 24 }, { PIOC, 20 }, { PIOC, 27 }, { PIOC, 10 },
