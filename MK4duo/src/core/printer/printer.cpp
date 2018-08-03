@@ -218,7 +218,7 @@ void Printer::setup() {
 
   stepper.init(); // Initialize stepper, this enables interrupts!
 
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     externaldac.begin();
     externaldac.set_driver_current();
   #endif

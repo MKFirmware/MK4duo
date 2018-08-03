@@ -28,7 +28,7 @@
 
 #include "../../../MK4duo.h"
 
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
   ExternalDac externaldac;
 

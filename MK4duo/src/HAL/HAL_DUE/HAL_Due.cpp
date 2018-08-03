@@ -217,7 +217,7 @@ uint16_t AnalogInReadPin(const pin_t r_pin) {
 // Initialize ADC channels
 void HAL::analogStart(void) {
 
-  #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     PIO_Configure(
       g_APinDescription[58].pPort,
       g_APinDescription[58].ulPinType,
@@ -228,7 +228,7 @@ void HAL::analogStart(void) {
       g_APinDescription[59].ulPinType,
       g_APinDescription[59].ulPin,
       g_APinDescription[59].ulPinConfiguration);
-  #endif // MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+  #endif // MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
   // ensure we can write to ADC registers
   ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
