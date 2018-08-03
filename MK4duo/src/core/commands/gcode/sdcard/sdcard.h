@@ -40,6 +40,7 @@
   #define CODE_M29
   #define CODE_M30
   #define CODE_M32
+  #define CODE_M33
 
   /**
    * M20: List SD card to serial output
@@ -174,6 +175,14 @@
         powerManager.startpower = powerManager.consumption_hour;
       #endif
     }
+  }
+
+  /**
+   * M33: Stop printing, close file and save restart.gcode
+   */
+  inline void gcode_M33(void) {
+    if (card.isOK() && IS_SD_PRINTING)
+      printer.setAbortSDprinting(true);
   }
 
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
