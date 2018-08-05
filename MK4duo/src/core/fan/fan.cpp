@@ -114,6 +114,18 @@
     }
   }
 
+  void Fan::print_parameters() {
+    SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> :");
+    SERIAL_SMV(CFG, "  M106 P", (int)ID);
+    SERIAL_MV(" U", pin);
+    SERIAL_MV(" L", min_Speed);
+    SERIAL_MV(" F", freq);
+    SERIAL_MV(" I", isHWInverted());
+    LOOP_HOTEND() if (TEST(autoMonitored, h)) SERIAL_MV(" H", (int)h);
+    if (TEST(autoMonitored, 7)) SERIAL_MSG(" H7");
+    SERIAL_EOL();
+  }
+
   #if HARDWARE_PWM
     void Fan::SetHardwarePwm() {
       if (pin > NoPin) {

@@ -42,11 +42,11 @@ inline void gcode_M500(void) { (void)eeprom.Store_Settings(); }
 inline void gcode_M501(void) { (void)eeprom.Load_Settings(); }
 
 /**
- * M502: Revert to default settings
+ * M502: Revert to factory settings
  */
 inline void gcode_M502(void) { (void)eeprom.Factory_Settings(); }
 
 /**
  * M503: print settings currently in memory
  */
-inline void gcode_M503(void) { (void)eeprom.Print_Settings(parser.seen('S') && !parser.value_bool()); }
+inline void gcode_M503(void) { (void)eeprom.Print_Settings(); }

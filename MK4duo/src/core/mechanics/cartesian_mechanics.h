@@ -84,6 +84,13 @@
        */
       static void set_axis_is_at_home(const AxisEnum axis);
 
+      /**
+       * Print mechanics parameters in memory
+       */
+      #if DISABLED(DISABLE_M503)
+        static void print_parameters();
+      #endif
+
     private: /** Private Function */
 
       /**

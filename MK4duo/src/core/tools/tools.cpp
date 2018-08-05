@@ -199,7 +199,16 @@
 
     #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
   }
-  
+
+  void Tools::print_parameters(const uint8_t h) {
+    SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");
+    SERIAL_SMV(CFG, "  M218 H", (int)h);
+    SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(tools.hotend_offset[Y_AXIS][h]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(tools.hotend_offset[Z_AXIS][h]), 3);
+    SERIAL_EOL();
+  }
+
   #if ENABLED(EXT_SOLENOID)
 
     void Tools::enable_solenoid(const uint8_t e) {

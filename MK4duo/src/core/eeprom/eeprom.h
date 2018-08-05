@@ -86,9 +86,9 @@ class EEPROM {
     #endif
 
     #if DISABLED(DISABLE_M503)
-      static void Print_Settings(const bool forReplay=false);
+      static void Print_Settings();
     #else
-      FORCE_INLINE static void Print_Settings(const bool forReplay=false) { UNUSED(forReplay); }
+      FORCE_INLINE static void Print_Settings() { }
     #endif
 
   private: /** Private Function */

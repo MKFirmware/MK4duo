@@ -37,20 +37,10 @@
  *   Z<zoffset>
  */
 inline void gcode_M218(void) {
-
-  if (commands.get_target_tool(218)) return;
-
-  if (TARGET_HOTEND == 0) return;
-
-  if (parser.seenval('X')) tools.hotend_offset[X_AXIS][TARGET_HOTEND] = parser.value_linear_units();
-  if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][TARGET_HOTEND] = parser.value_linear_units();
-  if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][TARGET_HOTEND] = parser.value_linear_units();
-
-  SERIAL_SM(ECHO, MSG_HOTEND_OFFSET);
-  LOOP_HOTEND() {
-    SERIAL_MV(" ", tools.hotend_offset[X_AXIS][h]);
-    SERIAL_MV(",", tools.hotend_offset[Y_AXIS][h]);
-    SERIAL_MV(",", tools.hotend_offset[Z_AXIS][h]);
-  }
-  SERIAL_EOL();
+  int8_t h = 0;
+  if (!commands.get_target_heater(h, true)) return;
+  if (parser.seenval('X')) tools.hotend_offset[X_AXIS][h] = parser.value_linear_units();
+  if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][h] = parser.value_linear_units();
+  if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][h] = parser.value_linear_units();
+  tools.print_parameters(h);
 }

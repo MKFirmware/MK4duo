@@ -44,9 +44,7 @@
  */
 inline void gcode_M301(void) {
 
-  // multi-hotend PID patch: M301 updates or prints a single hotend's PID values
-  // default behaviour (omitting H parameter) is to update for hotend 0 only
-  int8_t h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
+  int8_t h = parser.seen('H') ? parser.value_int() : 0;
 
   if (!commands.get_target_heater(h)) return;
 
@@ -61,7 +59,7 @@ inline void gcode_M301(void) {
   #endif
 
   heaters[h].updatePID();
-  heaters[h].print_PID();
+  heaters[h].print_PID_parameters();
   heaters[h].setTuning(true);
 
 }

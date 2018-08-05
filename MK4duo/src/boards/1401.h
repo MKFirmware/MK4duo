@@ -23,39 +23,39 @@
 #define ORIG_X_STEP_PIN            24
 #define ORIG_X_DIR_PIN             23
 #define ORIG_X_ENABLE_PIN          26
-#define ORIG_X_CS_PIN              NoPin
+#define ORIG_X_CS_PIN              25
 
 //###Y_AXIS
 #define ORIG_Y_STEP_PIN            17
 #define ORIG_Y_DIR_PIN             16
 #define ORIG_Y_ENABLE_PIN          22
-#define ORIG_Y_CS_PIN              NoPin
+#define ORIG_Y_CS_PIN              27
 
 //###Z_AXIS
 #define ORIG_Z_STEP_PIN             2
 #define ORIG_Z_DIR_PIN              3
 #define ORIG_Z_ENABLE_PIN          15
-#define ORIG_Z_CS_PIN              NoPin
+#define ORIG_Z_CS_PIN              29
 
 //###EXTRUDER_0
 #define ORIG_E0_STEP_PIN           61
 #define ORIG_E0_DIR_PIN            60
 #define ORIG_E0_ENABLE_PIN         62
-#define ORIG_E0_CS_PIN             NoPin
+#define ORIG_E0_CS_PIN             31
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
 #define ORIG_E1_STEP_PIN           64
 #define ORIG_E1_DIR_PIN            63
 #define ORIG_E1_ENABLE_PIN         65
-#define ORIG_E1_CS_PIN             NoPin
+#define ORIG_E1_CS_PIN             33
 #define ORIG_SOL1_PIN              NoPin
 
 //###EXTRUDER_2
 #define ORIG_E2_STEP_PIN           51
 #define ORIG_E2_DIR_PIN            53
 #define ORIG_E2_ENABLE_PIN         49
-#define ORIG_E2_CS_PIN             NoPin
+#define ORIG_E2_CS_PIN             35
 #define ORIG_SOL2_PIN              NoPin
 
 //###EXTRUDER_3

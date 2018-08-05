@@ -356,7 +356,7 @@
     }
   }
 
-  void CardReader::ResetDefault() {
+  void CardReader::reset_default() {
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.consumption_hour = 0;
     #endif
@@ -364,7 +364,7 @@
     SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
   }
 
-  void CardReader::PrintSettings() {
+  void CardReader::print_settings() {
     // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
     #if HAS_POWER_CONSUMPTION_SENSOR

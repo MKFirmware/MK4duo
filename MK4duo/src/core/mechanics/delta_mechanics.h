@@ -155,6 +155,13 @@
         void Nextion_gfx_clear() override;
       #endif
 
+      /**
+       * Print mechanics parameters in memory
+       */
+      #if DISABLED(DISABLE_M503)
+        static void print_parameters();
+      #endif
+
     private: /** Private Function */
 
       /**
