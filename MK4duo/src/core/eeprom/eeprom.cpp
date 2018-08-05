@@ -2002,7 +2002,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(DHT_SENSOR)
-      CONFIG_MSG_START_E(DHT sensor parameters: P<Pin> S<type 11-21-22>:");
+      CONFIG_MSG_START_E("DHT sensor parameters: P<Pin> S<type 11-21-22>:");
       SERIAL_SM(CFG, "  M305 D0");
       SERIAL_MV(" P", dhtsensor.pin);
       SERIAL_EMV(" S", dhtsensor.type);
