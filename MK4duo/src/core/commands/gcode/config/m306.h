@@ -71,7 +71,7 @@
     }
 
     act->updatePID();
-    act->print_parameters();
+    act->print_heater_parameters();
 
  }
 

@@ -171,8 +171,8 @@
       static void closeFile();
       static void printingHasFinished();
       static void chdir(const char* relpath);
-      static void ResetDefault();
-      static void PrintSettings();
+      static void reset_default();
+      static void print_settings();
       static void beginautostart();
       static void checkautostart();
       static void setroot();
@@ -213,7 +213,7 @@
         static void unparseKeyLine(const char* key, char* value);
         static int  KeyIndex(char* key);
       #else
-        inline static void RetrieveSettings() { ResetDefault(); }
+        inline static void RetrieveSettings() { reset_default(); }
       #endif
 
       #if ENABLED(SDCARD_SORT_ALPHA)

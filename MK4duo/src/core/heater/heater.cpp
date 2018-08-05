@@ -78,7 +78,7 @@
 
     NOMORE(celsius, maxtemp);
 
-    if (!isTuning()) {
+    if (!isTuning() && isUsePid()) {
       SERIAL_LM(ER, " Need Tuning PID");
       LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
     }
@@ -171,83 +171,67 @@
     }
   }
 
-  void Heater::print_PID() {
+  void Heater::print_sensor_parameters() {
+    const int8_t heater_id = type == 0 ? ID : type;
+    SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+    SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
+    SERIAL_MV(" P", sensor.pin);
+    SERIAL_MV(" A", sensor.r25, 1);
+    SERIAL_MV(" B", sensor.beta, 1);
+    SERIAL_MV(" C", sensor.shC, 10);
+    SERIAL_MV(" R", sensor.pullupR, 1);
+    SERIAL_MV(" L", sensor.adcLowOffset);
+    SERIAL_MV(" O", sensor.adcHighOffset);
+    SERIAL_EOL();
+  }
 
+  void Heater::print_heater_parameters() {
+    const int8_t heater_id = type == IS_HOTEND ? ID : type;
+    SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
+    SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
+    SERIAL_MV(" P", pin);
+    SERIAL_MV(" A", pidDriveMin);
+    SERIAL_MV(" B", pidDriveMax);
+    SERIAL_MV(" C", pidMax);
+    SERIAL_MV(" L", mintemp);
+    SERIAL_MV(" O", maxtemp);
+    SERIAL_MV(" U", isUsePid());
+    SERIAL_MV(" I", isHWInverted());
+    SERIAL_EOL();
+  }
+
+  void Heater::print_PID_parameters() {
+    const int8_t heater_id = type == IS_HOTEND ? ID : type;
     if (isUsePid()) {
-      if (type == IS_HOTEND) SERIAL_SMV(CFG, "  M301 H", (int)ID);
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
-      else return;
-
+      SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
+      #if ENABLED(PID_ADD_EXTRUSION_RATE)
+        if (type == IS_HOTEND) SERIAL_MSG(" C<Kc term> L<LPQ length>");
+      #endif
+      SERIAL_CHR(':');
+      SERIAL_EOL();
+      SERIAL_SMV(CFG, "  M301 H", heater_id);
       SERIAL_MV(" P", Kp);
       SERIAL_MV(" I", Ki);
       SERIAL_MV(" D", Kd);
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        SERIAL_MV(" C", Kc);
+        if (type == IS_HOTEND) {
+          SERIAL_MV(" C", Kc);
+          SERIAL_MV(" L", (int)tools.lpq_len);
+        }
       #endif
       SERIAL_EOL();
     }
   }
 
-  void Heater::print_parameters() {
-
-    if (type == IS_HOTEND)
-      SERIAL_SMV(CFG, "  M306 H", (int)ID);
-    #if HAS_HEATER_BED
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M306 H-1");
-    #endif
-    #if HAS_HEATER_CHAMBER
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M306 H-2");
-    #endif
-    #if HAS_HEATER_COOLER
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M306 H-3");
-    #endif
-    else return;
-
-    SERIAL_EM(" Heater");
-    SERIAL_LMV(CFG, " Pin:", pin);
-    SERIAL_LMV(CFG, " Min temp:", (int)mintemp);
-    SERIAL_LMV(CFG, " Max temp:", (int)maxtemp);
-    SERIAL_LMT(CFG, " Use PID:", isUsePid() ? "On" : "Off");
-    if (isUsePid()) {
-      SERIAL_LMV(CFG, " PID drive min:", (int)pidDriveMin);
-      SERIAL_LMV(CFG, " PID drive max:", (int)pidDriveMax);
-      SERIAL_LMV(CFG, " PID max:", (int)pidMax);
-      if (!isTuning())
-        SERIAL_LM(CFG, " NOT TUNING PID");
+  #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
+    void Heater::print_AD595_parameters() {
+      SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend> O<Offset> S<Gain>:");
+      SERIAL_SMV(CFG, "  M595 H", (int)ID);
+      SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
+      SERIAL_MV(" S", heaters[h].sensor.ad595_gain);
+      SERIAL_EOL();
     }
-    SERIAL_LMT(CFG, " Hardware inverted:", isHWInverted() ? "On" : "Off");
-
-  }
-
-  void Heater::sensor_print_parameters() {
-
-    if (type == IS_HOTEND)
-      SERIAL_SMV(CFG, "  M305 H", (int)ID);
-    #if HAS_HEATER_BED
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M305 H-1");
-    #endif
-    #if HAS_HEATER_CHAMBER
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
-    #endif
-    #if HAS_HEATER_COOLER
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
-    #endif
-    else return;
-
-    SERIAL_EM(" Sensor");
-    SERIAL_LMV(CFG, " Pin:", sensor.pin);
-    SERIAL_LMV(CFG, " Thermistor resistance at 25 C:", sensor.r25, 1);
-    SERIAL_LMV(CFG, " BetaK value:", sensor.beta, 1);
-    SERIAL_LMV(CFG, " Steinhart-Hart A coefficien:", sensor.shA, 10);
-    SERIAL_LMV(CFG, " Steinhart-Hart B coefficien:", sensor.shB, 10);
-    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien:", sensor.shC, 10);
-    SERIAL_LMV(CFG, " Pullup resistor value:", sensor.pullupR, 1);
-    SERIAL_LMV(CFG, " ADC low offset correction:", sensor.adcLowOffset);
-    SERIAL_LMV(CFG, " ADC high offset correction:", sensor.adcHighOffset);
-
-  }
+  #endif
 
   void Heater::start_idle_timer(const millis_t timeout_ms) {
     idle_timeout_ms = millis() + timeout_ms;

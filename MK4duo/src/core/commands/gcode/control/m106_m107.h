@@ -78,26 +78,8 @@
 
       fan->Speed = MAX(fan->min_Speed, speed);
 
-      if (!parser.seen('S')) {
-        char response[70];
-        sprintf_P(response, PSTR("Fan: %i pin: %i frequency: %uHz min: %i inverted: %s"),
-            (int)f,
-            (int)fan->pin,
-            (uint16_t)fan->freq,
-            (int)fan->min_Speed,
-            (fan->isHWInverted()) ? "true" : "false"
-        );
-        SERIAL_TXT(response);
+      if (!parser.seen('S')) fan->print_parameters();
 
-        // Auto Fan
-        if (fan->autoMonitored) SERIAL_MSG(" Autofan on:");
-        LOOP_HOTEND() {
-          if (TEST(fan->autoMonitored, h)) SERIAL_MV(" H", (int)h);
-        }
-        if (TEST(fan->autoMonitored, 7)) SERIAL_MSG(" Controller");
-
-        SERIAL_EOL();
-      }
     }
   }
 

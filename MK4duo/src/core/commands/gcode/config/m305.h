@@ -87,7 +87,7 @@
     }
 
     act->sensor.CalcDerivedParameters();
-    act->sensor_print_parameters();
+    act->print_sensor_parameters();
 
  }
 
