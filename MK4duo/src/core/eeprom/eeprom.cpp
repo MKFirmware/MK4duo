@@ -1785,9 +1785,6 @@ void EEPROM::Factory_Settings() {
 
 #if DISABLED(DISABLE_M503)
 
-  #define CONFIG_MSG_START(str)   SERIAL_STR(CFG); SERIAL_MSG(str);
-  #define CONFIG_MSG_START_E(str) SERIAL_STR(CFG); SERIAL_EM(str);
-
   inline void print_units(const bool colon) {
     SERIAL_PS(
       #if ENABLED(INCH_MODE_SUPPORT)
@@ -1883,7 +1880,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if HAS_LCD_CONTRAST
-      CONFIG_MSG_START_E("LCD Contrast:");
+      SERIAL_LM(CFG, "LCD Contrast:");
       SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
     #endif
 
@@ -1893,11 +1890,11 @@ void EEPROM::Factory_Settings() {
     #if HAS_LEVELING
 
       #if ENABLED(MESH_BED_LEVELING)
-        CONFIG_MSG_START_E("Mesh Bed Leveling:");
+        SERIAL_LM(CFG, "Mesh Bed Leveling:");
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        CONFIG_MSG_START_E("Unified Bed Leveling:");
+        SERIAL_LM(CFG, "Unified Bed Leveling:");
       #elif HAS_ABL
-        CONFIG_MSG_START_E("Auto Bed Leveling:");
+        SERIAL_LM(CFG, "Auto Bed Leveling:");
       #endif
 
       SERIAL_SMV(CFG, "  M420 S", bedlevel.leveling_is_valid() ? 1 : 0);
@@ -1945,7 +1942,7 @@ void EEPROM::Factory_Settings() {
 
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
 
-      CONFIG_MSG_START_E("Endstop adjustment:");
+      SERIAL_LM(CFG, "Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
       #if ENABLED(X_TWO_ENDSTOPS)
         SERIAL_MV(" X", LINEAR_UNIT(endstops.x_endstop_adj));
@@ -1964,7 +1961,7 @@ void EEPROM::Factory_Settings() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      CONFIG_MSG_START("Probe Offset");
+      SERIAL_SM(CFG, "Probe Offset");
       SERIAL_UNITS(true);
       SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
@@ -1973,7 +1970,7 @@ void EEPROM::Factory_Settings() {
     #endif
 
     #if ENABLED(ULTIPANEL)
-      CONFIG_MSG_START_E("Material heatup parameters:");
+      SERIAL_LM(CFG, "Material heatup parameters:");
       for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
         SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
@@ -1984,19 +1981,19 @@ void EEPROM::Factory_Settings() {
     #endif // ULTIPANEL
 
     #if ENABLED(FWRETRACT)
-      CONFIG_MSG_START_E("Retract: S<length> F<units/m> Z<lift>:");
+      SERIAL_LM(CFG, "Retract: S<length> F<units/m> Z<lift>:");
       SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.retract_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_feedrate_mm_s)));
       SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.retract_zlift));
 
-      CONFIG_MSG_START_E("Recover: S<length> F<units/m>:");
+      SERIAL_LM(CFG, "Recover: S<length> F<units/m>:");
       SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.retract_recover_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_recover_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_recover_feedrate_mm_s)));
       SERIAL_MV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.swap_retract_recover_feedrate_mm_s)));
 
-      CONFIG_MSG_START_E("Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover:");
+      SERIAL_LM(CFG, "Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover:");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
 
@@ -2026,7 +2023,7 @@ void EEPROM::Factory_Settings() {
     /**
      * Stepper driver control
      */
-    CONFIG_MSG_START_E("Stepper Direction:");
+    SERIAL_LM(CFG, "Stepper Direction:");
     SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
     SERIAL_MV(" Y", (int)stepper.isStepDir(Y_AXIS));
     SERIAL_MV(" Z", (int)stepper.isStepDir(Z_AXIS));
@@ -2040,7 +2037,7 @@ void EEPROM::Factory_Settings() {
         SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
       }
     #endif
-    CONFIG_MSG_START_E("Stepper driver control:");
+    SERIAL_LM(CFG, "Stepper driver control:");
     SERIAL_SMV(CFG, "  M569 D", stepper.direction_delay);
     SERIAL_MV(" P", stepper.minimum_pulse);
     SERIAL_MV(" R", stepper.maximum_rate);
@@ -2050,7 +2047,7 @@ void EEPROM::Factory_Settings() {
      * Alligator current drivers M906
      */
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-      CONFIG_MSG_START_E("Motor current:");
+      SERIAL_LM(CFG, "Motor current:");
       SERIAL_SMV(CFG, "  M906 X", externaldac.motor_current[X_AXIS], 2);
       SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS], 2);
       SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS], 2);
@@ -2071,7 +2068,7 @@ void EEPROM::Factory_Settings() {
       /**
        * TMC2130 or TMC2208 stepper driver current
        */
-      CONFIG_MSG_START_E("Stepper driver current:");
+      SERIAL_LM(CFG, "Stepper driver current:");
       SERIAL_SM(CFG, "  M906");
       #if X_IS_TRINAMIC
         SERIAL_MV(" X", stepperX.getCurrent());
@@ -2115,7 +2112,7 @@ void EEPROM::Factory_Settings() {
        * TMC2130 or TMC2208 Hybrid Threshold
        */
       #if ENABLED(HYBRID_THRESHOLD)
-        CONFIG_MSG_START_E("Hybrid Threshold:");
+        SERIAL_LM(CFG, "Hybrid Threshold:");
         SERIAL_SM(CFG, "  M913");
         #if X_IS_TRINAMIC
           SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
@@ -2160,7 +2157,7 @@ void EEPROM::Factory_Settings() {
        * TMC2130 Sensorless homing thresholds
        */
       #if ENABLED(SENSORLESS_HOMING)
-        CONFIG_MSG_START_E("Sensorless homing threshold:");
+        SERIAL_LM(CFG, "Sensorless homing threshold:");
         SERIAL_SM(CFG, "  M914");
         #if ENABLED(X_HOMING_SENSITIVITY)
           #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
@@ -2195,7 +2192,7 @@ void EEPROM::Factory_Settings() {
      * Linear Advance
      */
     #if ENABLED(LIN_ADVANCE)
-      CONFIG_MSG_START_E("Linear Advance:");
+      SERIAL_LM(CFG, "Linear Advance:");
       SERIAL_LMV(CFG, "  M900 K", planner.extruder_advance_K);
     #endif
 
@@ -2203,7 +2200,7 @@ void EEPROM::Factory_Settings() {
      * Hysteresis Feature
      */
     #if ENABLED(HYSTERESIS_FEATURE)
-      CONFIG_MSG_START_E("Hysteresis Correction:");
+      SERIAL_LM(CFG, "Hysteresis Correction:");
       SERIAL_SMV(CFG, "  M99 X", planner.hysteresis_mm[X_AXIS]);
       SERIAL_MV(" Y", planner.hysteresis_mm[Y_AXIS]);
       SERIAL_MV(" Z", planner.hysteresis_mm[Z_AXIS]);
@@ -2215,7 +2212,7 @@ void EEPROM::Factory_Settings() {
      * Advanced Pause filament load & unload lengths
      */
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      CONFIG_MSG_START_E("Filament load/unload lengths:");
+      SERIAL_LM(CFG, "Filament load/unload lengths:");
       #if EXTRUDERS == 1
         SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(filament_change_load_length[0]), 2);
         SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[0]), 2);
