@@ -3017,7 +3017,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       const uint8_t old_dir = _READ_DIR(AXIS);          \
       _ENABLE(AXIS);                                    \
       _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^DIR^INVERT);   \
-      DELAY_NS(400); /* DRV8825 */                      \
+      if (direction_delay >= 50)                        \
+        HAL::delayNanoseconds(direction_delay);         \
       _SAVE_START;                                      \
       _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
       _PULSE_WAIT;                                      \
@@ -3089,7 +3090,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
           Y_DIR_WRITE(isStepDir(Y_AXIS) ^ z_direction);
           Z_DIR_WRITE(isStepDir(Z_AXIS) ^ z_direction);
 
-          DELAY_NS(400); // DRV8825
+          if (direction_delay >= 50)
+            HAL::delayNanoseconds(direction_delay);
 
           _SAVE_START;
 
