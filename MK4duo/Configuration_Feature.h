@@ -1091,6 +1091,10 @@
 //#define EEPROM_SD
 //#define EEPROM_FLASH
 //#define DISABLE_M503
+
+// Arduino Due has two different I2C ports. If you have a SAM3X8E based board and you installed an external I2C EEPROM,
+// please select to which one of the I2C ports you connected it: port 0 or port 1.
+#define EEPROM_I2C_PORT 0
 /************************************************************************************************************************/
 
 

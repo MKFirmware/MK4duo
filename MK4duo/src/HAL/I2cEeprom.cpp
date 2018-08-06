@@ -36,6 +36,18 @@
 #include "HAL.h"
 #include <Wire.h>
 
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #if DISABLED(EEPROM_I2C_PORT) || (EEPROM_I2C_PORT == 0)
+    #define WIRE Wire
+  #elif EEPROM_I2C_PORT == 1
+    #define WIRE Wire1
+  #else
+    #error "Arduino Due only has two I2C ports. Please select port 0 or 1!"
+  #endif
+#else
+  #define WIRE Wire
+#endif
+
 // --------------------------------------------------------------------------
 // Externals
 // --------------------------------------------------------------------------
@@ -77,7 +89,7 @@ static uint8_t eeprom_device_address = 0x50;
 static void eeprom_init(void) {
   static bool eeprom_initialised = false;
   if (!eeprom_initialised) {
-    Wire.begin();
+    WIRE.begin();
     eeprom_initialised = true;
   }
 }
@@ -87,11 +99,11 @@ void eeprom_write_byte(uint8_t* pos, uint8_t value) {
 
   eeprom_init();
 
-  Wire.beginTransmission(eeprom_device_address);
-  Wire.write((int)(eeprom_address >> 8));   // MSB
-  Wire.write((int)(eeprom_address & 0xFF)); // LSB
-  Wire.write(value);
-  Wire.endTransmission();
+  WIRE.beginTransmission(eeprom_device_address);
+  WIRE.write((int)(eeprom_address >> 8));   // MSB
+  WIRE.write((int)(eeprom_address & 0xFF)); // LSB
+  WIRE.write(value);
+  WIRE.endTransmission();
 
   // wait for write cycle to complete
   // this could be done more efficiently with "acknowledge polling"
@@ -104,23 +116,23 @@ void eeprom_update_block(const void* pos, void* eeprom_address, size_t n) {
 
   eeprom_init();
 
-  Wire.beginTransmission(eeprom_device_address);
-  Wire.write((int)((unsigned)eeprom_address >> 8));   // MSB
-  Wire.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
-  Wire.endTransmission();
+  WIRE.beginTransmission(eeprom_device_address);
+  WIRE.write((int)((unsigned)eeprom_address >> 8));   // MSB
+  WIRE.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
+  WIRE.endTransmission();
 
   uint8_t *ptr = (uint8_t*)pos;
   uint8_t flag = 0;
-  Wire.requestFrom(eeprom_device_address, (byte)n);
-  for (byte c = 0; c < n && Wire.available(); c++)
-    flag |= Wire.read() ^ ptr[c];
+  WIRE.requestFrom(eeprom_device_address, (byte)n);
+  for (byte c = 0; c < n && WIRE.available(); c++)
+    flag |= WIRE.read() ^ ptr[c];
 
   if (flag) {
-    Wire.beginTransmission(eeprom_device_address);
-    Wire.write((int)((unsigned)eeprom_address >> 8));   // MSB
-    Wire.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
-    Wire.write((uint8_t*)(pos), n);
-    Wire.endTransmission();
+    WIRE.beginTransmission(eeprom_device_address);
+    WIRE.write((int)((unsigned)eeprom_address >> 8));   // MSB
+    WIRE.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
+    WIRE.write((uint8_t*)(pos), n);
+    WIRE.endTransmission();
 
     // wait for write cycle to complete
     // this could be done more efficiently with "acknowledge polling"
@@ -134,25 +146,25 @@ uint8_t eeprom_read_byte(uint8_t* pos) {
 
   eeprom_init ();
 
-  Wire.beginTransmission(eeprom_device_address);
-  Wire.write((int)(eeprom_address >> 8));   // MSB
-  Wire.write((int)(eeprom_address & 0xFF)); // LSB
-  Wire.endTransmission();
-  Wire.requestFrom(eeprom_device_address, (byte)1);
-  return Wire.available() ? Wire.read() : 0xFF;
+  WIRE.beginTransmission(eeprom_device_address);
+  WIRE.write((int)(eeprom_address >> 8));   // MSB
+  WIRE.write((int)(eeprom_address & 0xFF)); // LSB
+  WIRE.endTransmission();
+  WIRE.requestFrom(eeprom_device_address, (byte)1);
+  return WIRE.available() ? WIRE.read() : 0xFF;
 }
 
 // maybe let's not read more than 30 or 32 bytes at a time!
 void eeprom_read_block(void* pos, const void* eeprom_address, size_t n) {
   eeprom_init();
 
-  Wire.beginTransmission(eeprom_device_address);
-  Wire.write((int)((unsigned)eeprom_address >> 8));   // MSB
-  Wire.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
-  Wire.endTransmission();
-  Wire.requestFrom(eeprom_device_address, (byte)n);
+  WIRE.beginTransmission(eeprom_device_address);
+  WIRE.write((int)((unsigned)eeprom_address >> 8));   // MSB
+  WIRE.write((int)((unsigned)eeprom_address & 0xFF)); // LSB
+  WIRE.endTransmission();
+  WIRE.requestFrom(eeprom_device_address, (byte)n);
   for (byte c = 0; c < n; c++ )
-    if (Wire.available()) *((uint8_t*)pos + c) = Wire.read();
+    if (WIRE.available()) *((uint8_t*)pos + c) = WIRE.read();
 }
 
 #endif // HAS_EEPROM_I2C
