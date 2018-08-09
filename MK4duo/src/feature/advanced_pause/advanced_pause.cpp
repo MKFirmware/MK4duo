@@ -260,9 +260,7 @@
    */
   uint8_t did_pause_print = 0;
 
-  bool pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/,
-                   const bool show_lcd/*=false*/
-  ) {
+  bool pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/) {
 
     if (did_pause_print) return false; // already paused
 
@@ -307,7 +305,7 @@
 
     // Initial retract before move to filament change position
     if (retract && !thermalManager.tooColdToExtrude(ACTIVE_HOTEND))
-      do_pause_e_move(-retract, PAUSE_PARK_RETRACT_FEEDRATE);
+      do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
     // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
     Nozzle::park(2, park_point);
