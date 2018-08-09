@@ -43,10 +43,14 @@
 // --------------------------------------------------------------------------
 // Local defines
 // --------------------------------------------------------------------------
-#if MB(ULTRATRONICS)
-  #define WIRE	Wire1
-#else	
-  #define WIRE	Wire
+#ifndef WIRE_PORT
+  #define WIRE_PORT 1
+#endif
+
+#if (WIRE_PORT == 2)
+  #define WIRE  Wire1
+#else
+  #define WIRE  Wire
 #endif
 
 // --------------------------------------------------------------------------
