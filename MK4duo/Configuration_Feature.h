@@ -1081,15 +1081,26 @@
  *                                                                                                                      *
  * Uncomment EEPROM SETTINGS to enable this feature.                                                                    *
  * Uncomment EEPROM CHITCHAT to enable EEPROM Serial responses.                                                         *
+ * Uncomment EEPROM I2C if your board mount I2C EEPROM (Already enabled for cards that mount this eeprom by default)    *
+ * Uncomment EEPROM SPI if your board mount SPI EEPROM (Already enabled for cards that mount this eeprom by default)    *
  * Uncomment EEPROM SD for use writing EEPROM on SD  (Only for DUE)                                                     *
  * Uncomment EEPROM FLASH for use writing EEPROM on Flash Memory (Only for DUE)                                         *
  *                                                                                                                      *
  ************************************************************************************************************************/
 //#define EEPROM_SETTINGS
 
-//#define EEPROM_CHITCHAT // Uncomment this to enable EEPROM Serial responses.
+// Uncomment this to enable EEPROM Serial responses.
+//#define EEPROM_CHITCHAT
+
+// Type EEPROM Hardware
+//  Caution!!! The cards that mount the eeprom by default
+//  have already enabled the correct define, do not touch this.
+//#define EEPROM_I2C
+//#define EEPROM_SPI
 //#define EEPROM_SD
 //#define EEPROM_FLASH
+
+// Disabled M503 report
 //#define DISABLE_M503
 /************************************************************************************************************************/
 
