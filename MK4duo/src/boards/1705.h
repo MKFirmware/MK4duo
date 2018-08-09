@@ -161,13 +161,14 @@
 
 //###UNKNOWN_PINS
 #define EEPROM_SD
-#define E2END 0x1FFF
+#define E2END             0x1FFF
 #define MAX6675_SS_PIN    65
 #define MAX31855_SS0_PIN  65
 #define MAX31855_SS1_PIN  52
 #define MAX31855_SS2_PIN  51
 #define MAX31855_SS3_PIN  50
 #define ENC424_SS_PIN     61
+#define WIRE_PORT          2
 #define HAVE_MCU_TEMPERATURE
 //@@@
 
