@@ -1864,7 +1864,7 @@ void Stepper::start_X_step() {
       X2_STEP_WRITE(!INVERT_X_STEP_PIN);
     #endif
   #elif ENABLED(DUAL_X_CARRIAGE)
-    if (mechanics.hotend_duplication_enabled || ALWAYS) {
+    if (mechanics.hotend_duplication_enabled) {
       X_STEP_WRITE(!INVERT_X_STEP_PIN);
       X2_STEP_WRITE(!INVERT_X_STEP_PIN);
     }
@@ -1964,7 +1964,7 @@ void Stepper::set_X_dir(const bool dir) {
     X_DIR_WRITE(dir);
     X2_DIR_WRITE((dir) != INVERT_X2_VS_X_DIR);
   #elif ENABLED(DUAL_X_CARRIAGE)
-    if (mechanics.hotend_duplication_enabled || ALWAYS) {
+    if (mechanics.hotend_duplication_enabled) {
       X_DIR_WRITE(dir);
       X2_DIR_WRITE(dir);
     }

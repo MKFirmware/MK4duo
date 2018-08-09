@@ -130,10 +130,6 @@
       tools.change(0, 0, true);
     #endif
 
-    #if ENABLED(DUAL_X_CARRIAGE)
-      hotend_duplication_enabled = false;
-    #endif
-
     printer.setup_for_endstop_or_probe_move();
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) SERIAL_EM("> endstops.setEnabled(true)");
@@ -180,27 +176,7 @@
     #endif
 
     // Home X
-    if (home_all || homeX) {
-      #if ENABLED(DUAL_X_CARRIAGE)
-        // Always home the 2nd (right) extruder first
-        tools.active_extruder = 1;
-        homeaxis(X_AXIS);
-
-        // Remember this extruder's position for later tool change
-        inactive_hotend_x_pos = current_position[X_AXIS];
-
-        // Home the 1st (left) extruder
-        tools.active_extruder = 0;
-        homeaxis(X_AXIS);
-
-        // Consider the active extruder to be parked
-        COPY_ARRAY(raised_parked_position, current_position);
-        delayed_move_time = 0;
-        active_hotend_parked = true;
-      #else
-        homeaxis(X_AXIS);
-      #endif
-    }
+    if (home_all || homeX) homeaxis(X_AXIS);
 
     #if DISABLED(HOME_Y_BEFORE_X)
       // Home Y (after X)
@@ -319,13 +295,6 @@
       }
     #endif
 
-    const int axis_home_dir = (
-      #if ENABLED(DUAL_X_CARRIAGE)
-        axis == X_AXIS ? x_home_dir(tools.active_extruder) :
-      #endif
-      home_dir[axis]
-    );
-
     // Homing Z towards the bed? Deploy the Z probe or endstop.
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS && DEPLOY_PROBE()) return;
@@ -352,7 +321,7 @@
       if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
     #endif
 
-    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * axis_home_dir);
+    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * home_dir[axis]);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
@@ -360,7 +329,7 @@
     #endif
 
     // When homing Z with probe respect probe clearance
-    const float bump = axis_home_dir * (
+    const float bump = home_dir[axis] * (
       #if HOMING_Z_WITH_PROBE
         (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
       #endif
@@ -398,7 +367,7 @@
     }
 
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-      const bool pos_dir = axis_home_dir > 0;
+      const bool pos_dir = home_dir[axis] > 0;
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
           const float adj = ABS(endstops.x_endstop_adj);
@@ -469,12 +438,6 @@
       current_position[X_AXIS] = current_position[Y_AXIS] = 0;
       sync_plan_position();
 
-      #if ENABLED(DUAL_X_CARRIAGE)
-        const int x_axis_home_dir = x_home_dir(tools.active_extruder);
-      #else
-        const int x_axis_home_dir = home_dir[X_AXIS];
-      #endif
-
       const float mlx = max_length[X_AXIS],
                   mly = max_length[Y_AXIS],
                   mlratio = mlx > mly ? mly / mlx : mlx / mly,
@@ -485,7 +448,7 @@
         sensorless_homing_per_axis(Y_AXIS);
       #endif
 
-      do_blocking_move_to_xy(1.5 * mlx * x_axis_home_dir, 1.5 * mly * home_dir[Y_AXIS], fr_mm_s);
+      do_blocking_move_to_xy(1.5 * mlx * home_dir[X_AXIS], 1.5 * mly * home_dir[Y_AXIS], fr_mm_s);
 
       endstops.validate_homing_move();
 
@@ -532,11 +495,6 @@
 
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (printer.debugLeveling()) DEBUG_POS("Z_SAFE_HOMING", destination);
-        #endif
-
-        // This causes the carriage on Dual X to unpark
-        #if ENABLED(DUAL_X_CARRIAGE)
-          active_hotend_parked = false;
         #endif
 
         #if ENABLED(SENSORLESS_HOMING)
@@ -635,13 +593,6 @@
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
       endstops.update_software_endstops(axis);
-    #endif
-
-    #if ENABLED(DUAL_X_CARRIAGE)
-      if (axis == X_AXIS && (tools.active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
-        current_position[X_AXIS] = x_home_pos(tools.active_extruder);
-        return;
-      }
     #endif
 
     current_position[axis] = base_home_pos[axis];

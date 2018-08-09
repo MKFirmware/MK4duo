@@ -179,17 +179,6 @@ class Mechanics {
      */
     static float destination[XYZE];
 
-    #if ENABLED(DUAL_X_CARRIAGE)
-      static DualXMode  dual_x_carriage_mode;
-      static float      inactive_hotend_x_pos,            // used in mode 0 & 1
-                        raised_parked_position[NUM_AXIS], // used in mode 1
-                        duplicate_hotend_x_offset;        // used in mode 2
-      static int16_t    duplicate_hotend_temp_offset;     // used in mode 2
-      static millis_t   delayed_move_time;                // used in mode 1
-      static bool       active_hotend_parked,             // used in mode 1 & 2
-                        hotend_duplication_enabled;       // used in mode 2
-    #endif
-
     /**
      * Workspace Offset
      */
@@ -320,15 +309,6 @@ class Mechanics {
      */
     virtual bool position_is_reachable(const float &rx, const float &ry);
     virtual bool position_is_reachable_by_probe(const float &rx, const float &ry);
-
-    /**
-     * Prepare a linear move in a dual X axis setup
-     */
-    #if ENABLED(DUAL_X_CARRIAGE)
-      static float  x_home_pos(const int extruder);
-      static bool   dual_x_carriage_unpark();
-      FORCE_INLINE static int x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
-    #endif
 
     /**
      * Plan an arc in 2 dimensions
