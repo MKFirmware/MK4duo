@@ -136,6 +136,7 @@
  *                                                                          *
  * Set driver type:                                                         *
  *  - A4988                                                                 *
+ *  - A5984                                                                 *
  *  - DRV8825                                                               *
  *  - TMC26X                                                                *
  *  - L6470                                                                 *
@@ -1898,10 +1899,9 @@
  ******************************** Minimum stepper pulse ********************************
  ***************************************************************************************
  *                                                                                     *
- * The minimum pulse width (in µs) for stepping a stepper.                             *
+ * Minimum stepper driver pulse width (in µs)                                          *
  *  0 : Smallest possible width the MCU can produce, compatible with TMC2xxx drivers   *
- *  1 : Minimum for A4988 stepper drivers                                              *
- *  1 : Minimum for LV8729 stepper drivers                                             *
+ *  1 : Minimum for A4988, A5984, and LV8729 stepper drivers                           *
  *  2 : Minimum for DRV8825 stepper drivers                                            *
  *  3 : Minimum for TB6600 stepper drivers                                             *
  * 30 : Minimum for TB6560 stepper drivers                                             *
@@ -1933,12 +1933,11 @@
  ********************** Direction Stepper Delay ************************
  ***********************************************************************
  *                                                                     *
- * Minimum delay between changing the Direction pin in                 *
- * the Stepper driver to the stepper driver pulse edge                 *
- * expressed in nS (nanoseconds)                                       *
+ * Minimum delay after setting the stepper DIR (in ns)                 *
  *      0 : No delay at all - But, at least 10uS are expected          *
  *     50 : Minimum for TMC2xxx drivers                                *
  *    200 : Minimum for A4988 drivers                                  *
+ *    400 : Minimum for A5984 drivers                                  *
  *    500 : Minimum for LV8729 drivers (guess, no info in datasheet)   *
  *    650 : Minimum for DRV8825 drivers                                *
  *   1500 : Minimum for TB6600 drivers (guess, no info in datasheet)   *
