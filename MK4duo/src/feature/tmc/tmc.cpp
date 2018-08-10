@@ -152,7 +152,7 @@ bool report_tmc_status = false;
     }
   }
 
-  #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || ST##_HAS_DRV(TMC2660) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
+  #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
 
   void monitor_tmc_driver() {
     static millis_t next_cOT = 0;

@@ -24,13 +24,13 @@
 #define _CONFIGURATION_MOTOR_DRIVER_H_
 
 /**********************************************************************************
- **************** Trinamic TMC2130 - TMC2208 - TMC2660 motor drivers **************
+ ********************* Trinamic TMC2130 - TMC2208 motor drivers *******************
  **********************************************************************************
  *                                                                                *
  * Enable this for SilentStepStick Trinamic TMC2130 SPI-configurable stepper      *
  * drivers.                                                                       *
  *                                                                                *
- * You'll also need the TMC2130Stepper Arduino library                            *
+ * You'll also need the TMC2130 Stepper Arduino library                           *
  * (https://github.com/teemuatlut/TMC2130Stepper).                                *
  *                                                                                *
  * To use TMC2130 stepper drivers in SPI mode connect your SPI2130 pins to        *
@@ -44,7 +44,7 @@
  * to #_SERIAL_TX_PIN with a 1K resistor.                                         *
  * The drivers can also be used with hardware serial.                             *
  *                                                                                *
- * You'll also need the TMC2208Stepper Arduino library                            *
+ * You'll also need the TMC2208 Stepper Arduino library                           *
  * (https://github.com/teemuatlut/TMC2208Stepper).                                *
  *                                                                                *
  **********************************************************************************/
