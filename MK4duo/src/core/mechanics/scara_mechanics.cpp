@@ -340,20 +340,8 @@
     set_current_to_destination();
   }
 
-  bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
-    if (printer.isRunning()) {
-      InverseTransform(delta_a, delta_b, cartesian_position);
-      destination[X_AXIS] = cartesian_position[X_AXIS];
-      destination[Y_AXIS] = cartesian_position[Y_AXIS];
-      destination[Z_AXIS] = current_position[Z_AXIS];
-      prepare_move_to_destination();
-      return true;
-    }
-    return false;
-  }
-
   /**
-   * Morgan SCARA InverseTransform. Results in cartesian[].
+   * SCARA InverseTransform. Results in cartesian[].
    * Maths and first version by QHARLEY.
    * Integrated into Marlin and slightly restructured by Joachim Cerny.
    */
@@ -370,7 +358,7 @@
   }
 
   /**
-   * Morgan SCARA Transform. Results in delta[].
+   * SCARA Transform. Results in delta[].
    *
    * See http://forums.reprap.org/read.php?185,283327
    *
@@ -408,74 +396,19 @@
 
   }
 
-  void Scara_Mechanics::homeaxis(const AxisEnum axis) {
-
-    // Only Z homing (with probe) is permitted
-    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
+  #if MECH(MORGAN_SCARA)
+    bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
+      if (printer.isRunning()) {
+        InverseTransform(delta_a, delta_b, cartesian_position);
+        destination[X_AXIS] = cartesian_position[X_AXIS];
+        destination[Y_AXIS] = cartesian_position[Y_AXIS];
+        destination[Z_AXIS] = current_position[Z_AXIS];
+        prepare_move_to_destination();
+        return true;
       }
-    #endif
-
-    // Homing Z towards the bed? Deploy the Z probe or endstop.
-    #if HOMING_Z_WITH_PROBE
-      if (probe.set_deployed(true)) return;
-    #endif
-
-    // Fast move towards endstop until triggered
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
-    #endif
-
-    // Fast move towards endstop until triggered
-    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * home_dir[axis]);
-
-    // When homing Z with probe respect probe clearance
-    const float bump = home_dir[axis] * (
-      #if HOMING_Z_WITH_PROBE
-        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
-      #endif
-      home_bump_mm[axis]
-    );
-
-    // If a second homing move is configured...
-    if (bump) {
-      // Move away from the endstop by the axis HOME_BUMP_MM
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
-      #endif
-      mechanics.do_homing_move(axis, -bump);
-
-      // Slow move towards endstop until triggered
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
-      #endif
-      mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+      return false;
     }
-
-    set_axis_is_at_home(axis);
-    sync_plan_position_mech_specific();
-
-    // Put away the Z probe
-    #if HOMING_Z_WITH_PROBE
-      if (probe.set_deployed(false)) return;
-    #endif
-
-    // Clear retracted status if homing the Z axis
-    #if ENABLED(FWRETRACT)
-      fwretract.hop_amount = 0.0;
-    #endif
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
-  }
+  #endif
 
   /**
    * Home Scara
@@ -624,7 +557,7 @@
 
     printer.setAxisHomed(axis, true);
 
-    #if ENABLED(MORGAN_SCARA)
+    #if MECH(MORGAN_SCARA)
 
       /**
        * Morgan SCARA homes XY at the same time
@@ -906,5 +839,75 @@
     }
 
   #endif // DISABLED(DISABLE_M503)
+
+  /** Private Function */
+  void Scara_Mechanics::homeaxis(const AxisEnum axis) {
+
+    // Only Z homing (with probe) is permitted
+    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+
+    // Homing Z towards the bed? Deploy the Z probe or endstop.
+    #if HOMING_Z_WITH_PROBE
+      if (probe.set_deployed(true)) return;
+    #endif
+
+    // Fast move towards endstop until triggered
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
+    #endif
+
+    // Fast move towards endstop until triggered
+    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * home_dir[axis]);
+
+    // When homing Z with probe respect probe clearance
+    const float bump = home_dir[axis] * (
+      #if HOMING_Z_WITH_PROBE
+        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      #endif
+      home_bump_mm[axis]
+    );
+
+    // If a second homing move is configured...
+    if (bump) {
+      // Move away from the endstop by the axis HOME_BUMP_MM
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
+      #endif
+      mechanics.do_homing_move(axis, -bump);
+
+      // Slow move towards endstop until triggered
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
+      #endif
+      mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+    }
+
+    set_axis_is_at_home(axis);
+    sync_plan_position_mech_specific();
+
+    // Put away the Z probe
+    #if HOMING_Z_WITH_PROBE
+      if (probe.set_deployed(false)) return;
+    #endif
+
+    // Clear retracted status if homing the Z axis
+    #if ENABLED(FWRETRACT)
+      fwretract.hop_amount = 0.0;
+    #endif
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
+    #endif
+  }
 
 #endif // IS_SCARA

@@ -63,7 +63,7 @@ class Endstops {
 
   public: /** Public Parameters */
 
-    #if IS_KINEMATIC
+    #if IS_DELTA
       static float  soft_endstop_radius_2;
     #else
       static float  soft_endstop_min[XYZ],
