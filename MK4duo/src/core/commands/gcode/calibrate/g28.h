@@ -64,12 +64,12 @@ inline void gcode_G28(void) {
     return;
   }
 
-  #if MECH(DELTA)
+  #if IS_KINEMATIC
 
     (void)mechanics.home();
 
   #else
-    
+
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
       const bool  homeZ = parser.seen('Z'),
                   homeX = homeZ || parser.seen('X'),

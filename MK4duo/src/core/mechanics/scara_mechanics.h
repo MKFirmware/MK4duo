@@ -39,46 +39,76 @@
 
     public: /** Public Parameters */
 
-      // Float constants for SCARA calculations
-      const float L1 = SCARA_LINKAGE_1, L2 = SCARA_LINKAGE_2,
-                  L1_2 = sq(float(L1)), L1_2_2 = 2.0 * L1_2,
-                  L2_2 = sq(float(L2));
+      static const float  base_max_pos[XYZ],
+                          base_min_pos[XYZ],
+                          base_home_pos[XYZ],
+                          max_length[XYZ],
+                          L1, L2,
+                          L1_2, L1_2_2,
+                          L2_2;
 
-      float delta_segments_per_second = SCARA_SEGMENTS_PER_SECOND,
-            delta[ABC];
+      static float  delta[ABC],
+                    delta_segments_per_second;
 
     public: /** Public Function */
 
       /**
-       * Initialize Scara parameters
+       * Initialize Factory parameters
        */
-      void Init();
+      static void factory_parameters();
 
       /**
-       * Report current position to host
+       * sync_plan_position_mech_specific
+       *
+       * Set the planner/stepper positions directly from current_position with
+       * no kinematic translation. Used for homing axes.
        */
-      void report_current_position() override;
-      void report_current_position_detail() override;
-      
+      static void sync_plan_position_mech_specific();
+
+      /**
+       * Get the stepper positions in the cartesian_position[] array.
+       * Forward kinematics are applied for SCARA.
+       *
+       * The result is in the current coordinate space with
+       * leveling applied. The coordinates need to be run through
+       * unapply_leveling to obtain the "ideal" coordinates
+       * suitable for current_position, etc.
+       */
       void get_cartesian_from_steppers() override;
 
-      /**
-       * Prepare a linear move in a SCARA setup.
-       *
-       * This calls planner.buffer_line several times, adding
-       * small incremental moves for SCARA.
-       */
-      bool prepare_move_to_destination_mech_specific();
+      #if DISABLED(AUTO_BED_LEVELING_UBL)
+        /**
+         * Prepare a linear move in a SCARA setup.
+         *
+         * This calls buffer_line several times, adding
+         * small incremental moves for DELTA.
+         */
+        static bool prepare_move_to_destination_mech_specific();
+      #endif
 
       /**
-       * Home an individual linear axis
+       *  Plan a move to (X, Y, Z) and set the current_position
+       *  The final current_position may not be the one that was requested
        */
-      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0) override;
+      void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0) override;
 
       /**
        * Calculate delta, start a line, and set current_position to destination
        */
-      void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+      static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+
+      /**
+       * SCARA function
+       */
+      static bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
+      static void InverseTransform(const float Ha, const float Hb, float cartesian[XYZ]);
+      static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], cartesian); }
+      static void Transform(const float raw[XYZ]);
+
+      /**
+       * Home Scara
+       */
+      static void home();
 
       /**
        * Set an axis' current position to its home position (after homing).
@@ -89,19 +119,26 @@
        *
        * Callers must sync the planner position after calling this!
        */
-      void set_axis_is_at_home(const AxisEnum axis);
+      static void set_axis_is_at_home(const AxisEnum axis);
 
-      void set_position_mm_kinematic(const float position[NUM_AXIS]);
-      void sync_plan_position_mech_specific();
-
-      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
       bool position_is_reachable(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
 
-      #if MECH(MORGAN_SCARA)
-        bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
-        void forward_kinematics_SCARA(const float &a, const float &b);
-        void inverse_kinematics_SCARA(const float logical[XYZ]);
+      /**
+       * Report current position to host
+       */
+      void report_current_position_detail() override;
+
+      /**
+       * Home an individual linear axis
+       */
+      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0) override;
+
+      /**
+       * Print mechanics parameters in memory
+       */
+      #if DISABLED(DISABLE_M503)
+        static void print_parameters();
       #endif
 
     private: /** Private Function */
@@ -109,7 +146,14 @@
       /**
        *  Home axis
        */
-      void homeaxis(const AxisEnum axis);
+      static void homeaxis(const AxisEnum axis);
+
+      /**
+       * Set sensorless homing.
+       */
+      #if ENABLED(SENSORLESS_HOMING)
+        static void sensorless_homing(const bool on=true);
+      #endif
 
   };
 
