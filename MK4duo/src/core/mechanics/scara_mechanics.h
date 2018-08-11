@@ -100,10 +100,16 @@
       /**
        * SCARA function
        */
-      static bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
       static void InverseTransform(const float Ha, const float Hb, float cartesian[XYZ]);
       static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], cartesian); }
       static void Transform(const float raw[XYZ]);
+
+      /**
+       * MORGAN SCARA function
+       */
+      #if MECH(MORGAN_SCARA)
+        static bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
+      #endif
 
       /**
        * Home Scara
@@ -147,13 +153,6 @@
        *  Home axis
        */
       static void homeaxis(const AxisEnum axis);
-
-      /**
-       * Set sensorless homing.
-       */
-      #if ENABLED(SENSORLESS_HOMING)
-        static void sensorless_homing(const bool on=true);
-      #endif
 
   };
 

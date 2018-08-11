@@ -34,7 +34,7 @@ Endstops endstops;
 
 // public:
 
-#if IS_KINEMATIC
+#if IS_DELTA
   float Endstops::soft_endstop_radius_2 = 0.0;
 #else
   float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
@@ -443,23 +443,15 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 
   if (!isSoftEndstop()) return;
 
-  #if IS_KINEMATIC
+  #if IS_DELTA
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
     if (dist_2 > soft_endstop_radius_2) {
-      #if IS_DELTA
-        const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
-      #elif IS_SCARA
-        const float ratio = SQRT(soft_endstop_radius_2) / SQRT(dist_2);
-      #endif
+      const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
       target[X_AXIS] *= ratio;
       target[Y_AXIS] *= ratio;
     }
     NOLESS(target[Z_AXIS], 0);
-    #if IS_DELTA
-      NOMORE(target[Z_AXIS], mechanics.delta_height);
-    #elif IS_SCARA
-      NOMORE(target[Z_AXIS], Z_MAX_POS);
-    #endif
+    NOMORE(target[Z_AXIS], mechanics.delta_height);
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
