@@ -46,13 +46,13 @@
 
       float delta_segments_per_second = SCARA_SEGMENTS_PER_SECOND,
             delta[ABC];
-
+            
+      const float Scara_Mechanics::base_max_pos[XYZ]  = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
+                  Scara_Mechanics::base_min_pos[XYZ]  = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
+                  Scara_Mechanics::base_home_pos[XYZ] = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
+                  Scara_Mechanics::max_length[XYZ]    = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
+              
     public: /** Public Function */
-
-      /**
-       * Initialize Scara parameters
-       */
-      void Init();
 
       /**
        * Report current position to host
@@ -62,6 +62,9 @@
       
       void get_cartesian_from_steppers() override;
 
+      void print_parameters();
+      void factory_parameters();
+
       /**
        * Prepare a linear move in a SCARA setup.
        *
@@ -69,6 +72,11 @@
        * small incremental moves for SCARA.
        */
       bool prepare_move_to_destination_mech_specific();
+      
+      /**
+       * Home Scara
+       */
+      void home();
 
       /**
        * Home an individual linear axis
@@ -94,14 +102,14 @@
       void set_position_mm_kinematic(const float position[NUM_AXIS]);
       void sync_plan_position_mech_specific();
 
-      void do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) override;
+      void do_blocking_move_to(const float lx, const float ly, const float lz, const float &fr_mm_s=0.0) override;
       bool position_is_reachable(const float &rx, const float &ry) override;
       bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
 
       #if MECH(MORGAN_SCARA)
         bool move_to_cal(uint8_t delta_a, uint8_t delta_b);
-        void forward_kinematics_SCARA(const float &a, const float &b);
-        void inverse_kinematics_SCARA(const float logical[XYZ]);
+        void Transform(const float &a, const float &b);
+        void InverseTransform(const float logical[XYZ]);
       #endif
 
     private: /** Private Function */

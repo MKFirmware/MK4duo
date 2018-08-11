@@ -2436,7 +2436,11 @@ bool Planner::buffer_line_kinematic(const float (&cart)[XYZE], const float &fr_m
   #endif
 
   #if IS_KINEMATIC
-    mechanics.Transform(raw);
+    #if IS_DELTA
+      mechanics.Transform(raw);
+    #elif IS_SCARA
+      mechanics.Transform(raw[A_AXIS], raw[B_AXIS]);
+    #endif
     return buffer_segment(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters);
   #else
     return buffer_segment(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters);
@@ -2481,7 +2485,11 @@ void Planner::set_position_mm_kinematic(const float (&cart)[XYZE]) {
     const float (&raw)[XYZE] = cart;
   #endif
   #if IS_KINEMATIC
-    mechanics.Transform(raw);
+    #if IS_DELTA
+      mechanics.Transform(raw);
+    #elif IS_SCARA
+      mechanics.Transform(raw[A_AXIS], raw[B_AXIS]);
+    #endif
     _set_position_mm(mechanics.delta[A_AXIS], mechanics.delta[B_AXIS], mechanics.delta[C_AXIS], cart[E_AXIS]);
   #else
     _set_position_mm(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], cart[E_AXIS]);

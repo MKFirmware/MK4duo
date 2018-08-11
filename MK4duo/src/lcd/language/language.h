@@ -69,8 +69,10 @@
   #define MACHINE_TYPE                      "CoreZY"
 #elif MECH(DELTA)
   #define MACHINE_TYPE                      "Delta"
-#elif MECH(SCARA)
-  #define MACHINE_TYPE                      "Scara"
+#elif MECH(MORGAN_SCARA)
+  #define MACHINE_TYPE                      "Morgan Scara"
+#elif MECH(MAKERARM_SCARA)
+  #define MACHINE_TYPE                      "MakerArm Scara"
 #elif MECH(MUVE3D)
   #define MACHINE_TYPE                      "Muve3D"
 #endif  
