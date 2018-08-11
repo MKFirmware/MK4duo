@@ -73,8 +73,8 @@
 
 
 /*****************************************************************************************
- ************************************* Scara settings *************************************
-/****************************************************************************************/
+ ************************************* Scara settings ************************************
+ ****************************************************************************************/
 // MORGAN_SCARA for MK4duo was developed by QHARLEY in ZA in 2012/2013. Implemented
 // and slightly reworked by JCERNY in 06/2014 with the goal to bring it into Master-Branch
 // QHARLEYS Autobedlevelling has not been ported, because MK4duo has now Bed-levelling

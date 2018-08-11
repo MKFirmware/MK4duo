@@ -446,12 +446,20 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   #if IS_KINEMATIC
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
     if (dist_2 > soft_endstop_radius_2) {
-      const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
+      #if IS_DELTA
+        const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
+      #elif IS_SCARA
+        const float ratio = SQRT(soft_endstop_radius_2) / SQRT(dist_2);
+      #endif
       target[X_AXIS] *= ratio;
       target[Y_AXIS] *= ratio;
     }
     NOLESS(target[Z_AXIS], 0);
-    NOMORE(target[Z_AXIS], mechanics.delta_height);
+    #if IS_DELTA
+      NOMORE(target[Z_AXIS], mechanics.delta_height);
+    #elif IS_SCARA
+      NOMORE(target[Z_AXIS], Z_MAX_POS);
+    #endif
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);

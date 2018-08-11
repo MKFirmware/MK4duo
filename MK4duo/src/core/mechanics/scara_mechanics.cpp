@@ -33,10 +33,10 @@
 
   Scara_Mechanics mechanics;
 
-  void Scara_Mechanics::Init() {
-    // TODO!!!
-  }
-
+  //SCARA has no values saved in EEPROM up to now!
+  void Scara_Mechanics::print_parameters() {};
+  void Scara_Mechanics::factory_parameters() {};
+  
   /**
    * Report current position to host
    */
@@ -79,7 +79,7 @@
     #endif
 
     SERIAL_MSG("ScaraK: ");
-    inverse_kinematics_SCARA(leveled);  // writes delta[]
+    InverseTransform(leveled);  // writes delta[]
     report_xyz(delta);
 
     SERIAL_MSG("Stepper:");
@@ -117,7 +117,7 @@
    * suitable for current_position, etc.
    */
   void Scara_Mechanics::get_cartesian_from_steppers() {
-    forward_kinematics_SCARA( planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) );
+    Transform( planner.get_axis_position_degrees(A_AXIS), planner.get_axis_position_degrees(B_AXIS) );
     cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
   }
 
@@ -194,7 +194,7 @@
 
     // Get the current position as starting point
     float raw[XYZE];
-    COPY(raw, current_position);
+    COPY_ARRAY(raw, current_position);
 
     // Drop one segment so the last move is to the exact target.
     // If there's only 1 segment, loops will be skipped entirely.
@@ -203,7 +203,7 @@
     // Calculate and execute the segments
     for (uint16_t s = segments + 1; --s;) {
       LOOP_XYZE(i) raw[i] += segment_distance[i];
-      inverse_kinematics(raw);
+      InverseTransform(raw);
 
       // Adjust Z if bed leveling is enabled
       #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -230,17 +230,155 @@
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       // For SCARA scale the feed rate from mm/s to degrees/s
       // With segments > 1 length is 1 segment, otherwise total length
-      inverse_kinematics(rtarget);
-      ADJUST_DELTA(rtarget);
+      inverse_kinematics(destination);
+      ADJUST_DELTA(destination);
       const float adiff = ABS(delta[A_AXIS] - oldA),
                   bdiff = ABS(delta[B_AXIS] - oldB);
       planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], MAX(adiff, bdiff) * feed_factor, tools.active_extruder);
     #else
-      planner.buffer_line_kinematic(rtarget, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
     #endif
 
     return false;
   }
+
+  /**
+   * Home Scara
+   */
+  void Scara_Mechanics::home() {
+
+    if (printer.debugSimulation()) {
+      LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
+      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+        Nextion_gfx_clear();
+      #endif
+      return true;
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_EM(">>> gcode_G28");
+        log_machine_info();
+      }
+    #endif
+
+    #if HAS_POWER_SWITCH
+      if (!powerManager.lastPowerOn) powerManager.power_on(); // Power On if power is off
+    #endif
+
+    // Wait for planner moves to finish!
+    planner.synchronize();
+
+    // Cancel the active G29 session
+    #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
+      bedlevel.g29_in_progress = false;
+      #if HAS_NEXTION_MANUAL_BED
+        Nextion_ProbeOn();
+      #endif
+    #endif
+
+    // Disable the leveling matrix before homing
+    #if HAS_LEVELING
+      #if ENABLED(AUTO_BED_LEVELING_UBL)
+        const bool ubl_state_at_entry = bedlevel.leveling_active;
+      #endif
+      bedlevel.set_bed_leveling_enabled(false);
+    #endif
+
+    // Always home with tool 0 active
+    #if HOTENDS > 1
+      const uint8_t old_tool_index = tools.active_extruder;
+      tools.change(0, 0, true);
+    #endif
+
+    printer.setup_for_endstop_or_probe_move();
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEnabled(true)");
+    #endif
+    endstops.setEnabled(true); // Enable endstops for next homing move
+
+    bool come_back = parser.boolval('B');
+    float lastpos[NUM_AXIS];
+    float old_feedrate_mm_s;
+    if (come_back) {
+      old_feedrate_mm_s = mechanics.feedrate_mm_s;
+      COPY_ARRAY(lastpos, mechanics.current_position);
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) DEBUG_POS(">>> home_scara", current_position);
+    #endif
+
+    const bool  homeA = parser.seen('X'),
+                homeB = parser.seen('Y'),
+                homeZ = parser.seen('Z');
+
+    const bool home_all = (!homeA && !homeB && !homeZ) || (homeA && homeB && homeZ);
+
+    // Home A
+    if (home_all || homeA) {
+      homeaxis(A_AXIS);
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) DEBUG_POS("> homeA", current_position);
+      #endif
+    }
+
+    // Home B
+    if (home_all || homeB) {
+      homeaxis(B_AXIS);
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) DEBUG_POS("> homeB", current_position);
+      #endif
+    }
+    
+    // Home Z
+    if (home_all || homeZ) {
+      homeaxis(Z_AXIS);
+      #if ENABLED(DEBUG_LEVELING_FEATURE)
+        if (printer.debugLeveling()) DEBUG_POS("> homeZ", current_position);
+      #endif
+    }
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) DEBUG_POS("<<< home_scara", current_position);
+    #endif
+    sync_plan_position();
+    endstops.setNotHoming();
+
+    if (come_back) {
+      feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
+      COPY_ARRAY(destination, lastpos);
+      prepare_move_to_destination();
+      feedrate_mm_s = old_feedrate_mm_s;
+    }
+
+    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      Nextion_gfx_clear();
+    #endif
+
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
+    #endif
+
+    printer.clean_up_after_endstop_or_probe_move();
+
+    planner.synchronize();
+
+    // Restore the active tool after homing
+    #if HOTENDS > 1
+      tools.change(old_tool_index, 0, true);
+    #endif
+
+    lcd_refresh();
+
+    report_current_position();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) SERIAL_EM("<<< gcode_G28");
+    #endif
+  }
+
+
 
   void Scara_Mechanics::homeaxis(const AxisEnum axis) {
 
@@ -379,8 +517,8 @@
 
     sync_plan_position_mech_specific();
     current_position[axis] = distance;
-    inverse_kinematics(current_position);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s(axis), tools.tools.active_extruder);
+    InverseTransform(current_position);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
     planner.synchronize();
 
@@ -410,8 +548,8 @@
       const float * const lpos = position;
     #endif
     
-    inverse_kinematics(lpos);
-    _set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
+    InverseTransform(lpos);
+    planner.set_position_mm(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], position[E_AXIS]);
   }
 
   void Scara_Mechanics::sync_plan_position_mech_specific() {
@@ -425,7 +563,7 @@
    *  Plan a move to (X, Y, Z) and set the current_position
    *  The final current_position may not be the one that was requested
    */
-  void Scara_Mechanics::do_blocking_move_to(const float &lx, const float &ly, const float &lz, const float &fr_mm_s/*=0.0*/) {
+  void Scara_Mechanics::do_blocking_move_to(const float lx, const float ly, const float lz, const float &fr_mm_s=0.0) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -475,7 +613,7 @@
     // This won't work on SCARA since the probe offset rotates with the arm.
     // TODO: fix this
     return position_is_reachable(rx, ry)
-        && position_is_reachable(rx - X_PROBE_OFFSET_FROM_EXTRUDER, ry - Y_PROBE_OFFSET_FROM_EXTRUDER);
+        && position_is_reachable(rx - X_PROBE_OFFSET_FROM_NOZZLE, ry - Y_PROBE_OFFSET_FROM_NOZZLE);
   }
 
  /**
@@ -525,7 +663,7 @@
       if (axis == X_AXIS || axis == Y_AXIS) {
 
         float homeposition[XYZ];
-        LOOP_XYZ(i) homeposition[i] = LOGICAL_POSITION(base_home_pos((AxisEnum)i), i);
+        LOOP_XYZ(i) homeposition[i] = base_home_pos[(AxisEnum)i];
 
         // SERIAL_ECHOPAIR("homeposition X:", homeposition[X_AXIS]);
         // SERIAL_ECHOLNPAIR(" Y:", homeposition[Y_AXIS]);
@@ -540,19 +678,19 @@
         // SERIAL_ECHOPAIR("Cartesian X:", cartes[X_AXIS]);
         // SERIAL_ECHOLNPAIR(" Y:", cartes[Y_AXIS]);
 
-        current_position[axis] = LOGICAL_POSITION(cartes[axis], axis);
+        current_position[axis] = cartes[axis];
 
         /**
          * SCARA home positions are based on configuration since the actual
          * limits are determined by the inverse kinematic transform.
          */
-        soft_endstop_min[axis] = base_min_pos(axis); // + (cartes[axis] - base_home_pos(axis));
-        soft_endstop_max[axis] = base_max_pos(axis); // + (cartes[axis] - base_home_pos(axis));
+        soft_endstop_min[axis] = base_min_pos[axis]; // + (cartes[axis] - base_home_pos(axis));
+        soft_endstop_max[axis] = base_max_pos[axis]; // + (cartes[axis] - base_home_pos(axis));
       }
       else
     #endif
     {
-      current_position[axis] = LOGICAL_POSITION(base_home_pos(axis), axis);
+      current_position[axis] = base_home_pos[axis];
     }
 
     /**
@@ -593,11 +731,11 @@
     #endif
   }
 
-#if ENABLED(MORGAN_SCARA)
+#if MECH(MORGAN_SCARA)
 
   bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     if (printer.isRunning()) {
-      forward_kinematics_SCARA(delta_a, delta_b);
+      Transform(delta_a, delta_b);
       destination[X_AXIS] = cartesian_position[X_AXIS];
       destination[Y_AXIS] = cartesian_position[Y_AXIS];
       destination[Z_AXIS] = current_position[Z_AXIS];
@@ -612,15 +750,15 @@
    * Maths and first version by QHARLEY.
    * Integrated into Marlin and slightly restructured by Joachim Cerny.
    */
-  void Scara_Mechanics::forward_kinematics_SCARA(const float &a, const float &b) {
+  void Scara_Mechanics::Transform(const float &a, const float &b) {
 
     float a_sin = sin(RADIANS(a)) * L1,
           a_cos = cos(RADIANS(a)) * L1,
           b_sin = sin(RADIANS(b)) * L2,
           b_cos = cos(RADIANS(b)) * L2;
 
-    cartes[X_AXIS] = a_cos + b_cos + SCARA_OFFSET_X;  //theta
-    cartes[Y_AXIS] = a_sin + b_sin + SCARA_OFFSET_Y;  //theta+phi
+    cartesian_position[X_AXIS] = a_cos + b_cos + SCARA_OFFSET_X;  //theta
+    cartesian_position[Y_AXIS] = a_sin + b_sin + SCARA_OFFSET_Y;  //theta+phi
 
     /*
       SERIAL_ECHOPAIR("SCARA FK Angle a=", a);
@@ -642,7 +780,7 @@
    * Maths and first version by QHARLEY.
    * Integrated into Marlin and slightly restructured by Joachim Cerny.
    */
-  void Scara_Mechanics::inverse_kinematics_SCARA(const float logical[XYZ]) {
+  void Scara_Mechanics::InverseTransform(const float logical[XYZ]) {
 
     static float C2, S2, SK1, SK2, THETA, PSI;
 
