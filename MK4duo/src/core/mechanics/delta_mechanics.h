@@ -81,7 +81,7 @@
        * sync_plan_position_mech_specific
        *
        * Set the planner/stepper positions directly from current_position with
-       * kinematic translation. Used for homing axes and cartesian/core syncing.
+       * kinematic translation. Used for homing axes.
        */
       static void sync_plan_position_mech_specific();
 
