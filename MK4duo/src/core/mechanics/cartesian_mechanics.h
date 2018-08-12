@@ -71,9 +71,33 @@
       static void sync_plan_position_mech_specific();
 
       /**
+       * Get the stepper positions in the cartesian_position[] array.
+       *
+       * The result is in the current coordinate space with
+       * leveling applied. The coordinates need to be run through
+       * unapply_leveling to obtain the "ideal" coordinates
+       * suitable for current_position, etc.
+       */
+      static void get_cartesian_from_steppers();
+
+      /**
+       *  Plan a move to (X, Y, Z) and set the current_position
+       *  The final current_position may not be the one that was requested
+       */
+      static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
+
+      /**
        * Home all axes according to settings
        */
       static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
+
+      /**
+       * Home an individual linear axis
+       */
+      static void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
 
       /**
        * Prepare a linear move in a Cartesian setup.
@@ -95,6 +119,27 @@
        */
       static void set_axis_is_at_home(const AxisEnum axis);
 
+      static bool position_is_reachable(const float &rx, const float &ry);
+      static bool position_is_reachable_by_probe(const float &rx, const float &ry);
+
+      /**
+       * Report current position to host
+       */
+      static void report_current_position_detail();
+
+      /**
+       * Plan an arc in 2 dimensions
+       *
+       * The arc is approximated by generating many small linear segments.
+       * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+       * Arcs should only be made relatively large (over 5mm), as larger arcs with
+       * larger segments will tend to be more efficient. Your slicer should have
+       * options for G2/G3 arc generation. In future these options may be GCode tunable.
+       */
+      #if ENABLED(ARC_SUPPORT)
+        static void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise);
+      #endif
+
       /**
        * Prepare a linear move in a dual X axis setup
        */
@@ -111,20 +156,16 @@
         static void print_parameters();
       #endif
 
+      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+        static void Nextion_gfx_clear();
+      #endif
+
     private: /** Private Function */
 
       /**
        *  Home axis
        */
       static void homeaxis(const AxisEnum axis);
-
-      /**
-       * Prepare a linear move in a Cartesian setup.
-       * Bed Leveling will be applied to the move if enabled.
-       *
-       * Returns true if current_position[] was set to destination[]
-       */
-      static bool prepare_move_to_destination_cartesian();
 
       #if ENABLED(QUICK_HOME)
         static void quick_home_xy();

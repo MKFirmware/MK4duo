@@ -96,21 +96,6 @@
     planner.set_position_mm_kinematic(current_position);
   }
 
-  // Return true if the given point is within the printable area
-  bool Scara_Mechanics::position_is_reachable(const float &rx, const float &ry) {
-    #if MIDDLE_DEAD_ZONE_R > 0
-      const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
-      return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
-    #else
-      return HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y) <= sq(L1 + L2);
-    #endif
-  }
-  // Return true if the both nozzle and the probe can reach the given point.
-  bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
-    return position_is_reachable(rx, ry)
-        && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
-  }
-
   /**
    * Get the stepper positions in the cartesian_position[] array.
    * Forward kinematics are applied for SCARA.
@@ -134,7 +119,7 @@
     /**
      * Prepare a linear move in a SCARA setup.
      *
-     * This calls planner.buffer_line several times, adding
+     * This calls buffer_line several times, adding
      * small incremental moves for SCARA.
      */
      bool Scara_Mechanics::prepare_move_to_destination_mech_specific() {
@@ -157,7 +142,7 @@
       }
 
       // Fail if attempting move outside printable radius
-      if (endstops.isSoftEndstop() && !mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
+      if (endstops.isSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
       // Get the linear distance in XYZ
       float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
@@ -172,7 +157,7 @@
       const float seconds = cartesian_mm / _feedrate_mm_s;
 
       // The number of segments-per-second times the duration
-      // gives the number of segments
+      // gives the number of segments we should produce
       uint16_t segments = delta_segments_per_second * seconds;
 
       // For SCARA minimum segment size is 0.5mm
@@ -271,7 +256,7 @@
         planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
       #endif
 
-      return false;
+      return false; // caller will update current_position
     }
 
   #endif // DISABLED(AUTO_BED_LEVELING_UBL)
@@ -281,7 +266,6 @@
    *  The final current_position may not be the one that was requested
    */
   void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
-
     const float old_feedrate_mm_s = feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -319,25 +303,14 @@
     planner.synchronize();
 
   }
-
-  /**
-   * Calculate delta, start a line, and set current_position to destination
-   */
-  void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
-    #endif
-
-    if ( current_position[X_AXIS] == destination[X_AXIS]
-      && current_position[Y_AXIS] == destination[Y_AXIS]
-      && current_position[Z_AXIS] == destination[Z_AXIS]
-      && current_position[E_AXIS] == destination[E_AXIS]
-    ) return;
-
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
-
-    set_current_to_destination();
+  void Scara_Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+  }
+  void Scara_Mechanics::do_blocking_move_to_z(const float &rz, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], rz, fr_mm_s);
+  }
+  void Scara_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s/*=0.0*/) {
+    do_blocking_move_to(rx, ry, current_position[Z_AXIS], fr_mm_s);
   }
 
   /**
@@ -515,8 +488,8 @@
       Nextion_gfx_clear();
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      bedlevel.set_bed_leveling_enabled(ubl_state_at_entry);
+    #if HAS_LEVELING
+      bedlevel.set_bed_leveling_enabled(leveling_was_active);
     #endif
 
     printer.clean_up_after_endstop_or_probe_move();
@@ -530,10 +503,66 @@
 
     lcd_refresh();
 
-    mechanics.report_current_position();
+    report_current_position();
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< gcode_G28");
+      if (printer.debugLeveling()) SERIAL_EM("<<< G28");
+    #endif
+
+  }
+
+  void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
+        SERIAL_MV(", ", distance);
+        SERIAL_MSG(", ");
+        if (fr_mm_s)
+          SERIAL_VAL(fr_mm_s);
+        else {
+          SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
+          SERIAL_CHR(']');
+        }
+        SERIAL_CHR(')');
+        SERIAL_EOL();
+      }
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
+      if (deploy_bltouch) probe.set_bltouch_deployed(true);
+    #endif
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(true);
+    #endif
+
+    // Tell the planner we're at Z=0
+    current_position[axis] = 0;
+
+    sync_plan_position_mech_specific();
+    current_position[axis] = distance;
+    Transform(current_position);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
+
+    planner.synchronize();
+
+    #if QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(false);
+    #endif
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      if (deploy_bltouch) probe.set_bltouch_deployed(false);
+    #endif
+
+    endstops.validate_homing_move();
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) {
+        SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
+        SERIAL_CHR(')'); SERIAL_EOL();
+      }
     #endif
   }
 
@@ -627,6 +656,41 @@
 
   }
 
+  // Return true if the given point is within the printable area
+  bool Scara_Mechanics::position_is_reachable(const float &rx, const float &ry) {
+    #if MIDDLE_DEAD_ZONE_R > 0
+      const float R2 = HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y);
+      return R2 >= sq(float(MIDDLE_DEAD_ZONE_R)) && R2 <= sq(L1 + L2);
+    #else
+      return HYPOT2(rx - SCARA_OFFSET_X, ry - SCARA_OFFSET_Y) <= sq(L1 + L2);
+    #endif
+  }
+  // Return true if the both nozzle and the probe can reach the given point.
+  bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
+    return position_is_reachable(rx, ry)
+        && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
+  }
+
+  /**
+   * Calculate delta, start a line, and set current_position to destination
+   */
+  void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
+
+    #if ENABLED(DEBUG_LEVELING_FEATURE)
+      if (printer.debugLeveling()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
+    #endif
+
+    if ( current_position[X_AXIS] == destination[X_AXIS]
+      && current_position[Y_AXIS] == destination[Y_AXIS]
+      && current_position[Z_AXIS] == destination[Z_AXIS]
+      && current_position[E_AXIS] == destination[E_AXIS]
+    ) return;
+
+    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+
+    set_current_to_destination();
+  }
+
   // Report detail current position to host
   void Scara_Mechanics::report_current_position_detail() {
 
@@ -693,60 +757,188 @@
 
   }
 
-  void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+  #if ENABLED(ARC_SUPPORT)
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
-        SERIAL_MV(", ", distance);
-        SERIAL_MSG(", ");
-        if (fr_mm_s)
-          SERIAL_VAL(fr_mm_s);
-        else {
-          SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
-          SERIAL_CHR(']');
+    #if N_ARC_CORRECTION < 1
+      #undef N_ARC_CORRECTION
+      #define N_ARC_CORRECTION 1
+    #endif
+
+    /**
+     * Plan an arc in 2 dimensions
+     *
+     * The arc is approximated by generating many small linear segments.
+     * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+     * Arcs should only be made relatively large (over 5mm), as larger arcs with
+     * larger segments will tend to be more efficient. Your slicer should have
+     * options for G2/G3 arc generation. In future these options may be GCode tunable.
+     */
+    void Scara_Mechanics::plan_arc(
+      const float (&cart)[XYZE],  // Destination position
+      const float (&offset)[2],   // Center of rotation relative to current_position
+      const uint8_t clockwise     // Clockwise?
+    ) {
+
+      // Radius vector from center to current location
+      float r_P = -offset[0], r_Q = -offset[1];
+
+      const float radius = HYPOT(r_P, r_Q),
+                  center_P = current_position[X_AXIS] - r_P,
+                  center_Q = current_position[Y_AXIS] - r_Q,
+                  rt_X = cart[X_AXIS] - center_P,
+                  rt_Y = cart[Y_AXIS] - center_Q,
+                  linear_travel = cart[Z_AXIS] - current_position[Z_AXIS],
+                  extruder_travel = cart[E_AXIS] - current_position[E_AXIS];
+
+      // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
+      float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
+      if (angular_travel < 0) angular_travel += RADIANS(360);
+      if (clockwise) angular_travel -= RADIANS(360);
+
+      // Make a circle if the angular rotation is 0
+      if (angular_travel == 0 && current_position[X_AXIS] == cart[X_AXIS] && current_position[Y_AXIS] == cart[Y_AXIS])
+        angular_travel += RADIANS(360);
+
+      const float flat_mm = radius * angular_travel,
+                  mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : ABS(flat_mm);
+      if (mm_of_travel < 0.001f) return;
+
+      uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
+      if (segments == 0) segments = 1;
+
+      /**
+       * Vector rotation by transformation matrix: r is the original vector, r_T is the rotated vector,
+       * and phi is the angle of rotation. Based on the solution approach by Jens Geisler.
+       *     r_T = [cos(phi) -sin(phi);
+       *            sin(phi)  cos(phi] * r ;
+       *
+       * For arc generation, the center of the circle is the axis of rotation and the radius vector is
+       * defined from the circle center to the initial position. Each line segment is formed by successive
+       * vector rotations. This requires only two cos() and sin() computations to form the rotation
+       * matrix for the duration of the entire arc. Error may accumulate from numerical round-off, since
+       * all double numbers are single precision on the Arduino. (True double precision will not have
+       * round off issues for CNC applications.) Single precision error can accumulate to be greater than
+       * tool precision in some cases. Therefore, arc path correction is implemented.
+       *
+       * Small angle approximation may be used to reduce computation overhead further. This approximation
+       * holds for everything, but very small circles and large MM_PER_ARC_SEGMENT values. In other words,
+       * theta_per_segment would need to be greater than 0.1 rad and N_ARC_CORRECTION would need to be large
+       * to cause an appreciable drift error. N_ARC_CORRECTION~=25 is more than small enough to correct for
+       * numerical drift error. N_ARC_CORRECTION may be on the order a hundred(s) before error becomes an
+       * issue for CNC machines with the single precision Arduino calculations.
+       *
+       * This approximation also allows plan_arc to immediately insert a line segment into the planner
+       * without the initial overhead of computing cos() or sin(). By the time the arc needs to be applied
+       * a correction, the planner should have caught up to the lag caused by the initial plan_arc overhead.
+       * This is important when there are successive arc motions.
+       */
+      // Vector rotation matrix values
+      float raw[XYZE];
+      const float theta_per_segment = angular_travel / segments,
+                  linear_per_segment = linear_travel / segments,
+                  extruder_per_segment = extruder_travel / segments,
+                  sin_T = theta_per_segment,
+                  cos_T = 1 - 0.5f * sq(theta_per_segment); // Small angle approximation
+
+      // Initialize the linear axis
+      raw[Z_AXIS] = current_position[Z_AXIS];
+
+      // Initialize the extruder axis
+      raw[E_AXIS] = current_position[E_AXIS];
+
+      const float fr_mm_s = MMS_SCALED(feedrate_mm_s);
+
+      millis_t next_idle_ms = millis() + 200UL;
+
+      #if ENABLED(SCARA_FEEDRATE_SCALING)
+        // SCARA needs to scale the feed rate from mm/s to degrees/s
+        const float inv_segment_length = 1.0f / float(MM_PER_ARC_SEGMENT),
+                    inverse_secs = inv_segment_length * fr_mm_s;
+        float oldA = planner.position_float[A_AXIS],
+              oldB = planner.position_float[B_AXIS];
+      #endif
+
+      #if N_ARC_CORRECTION > 1
+        int8_t arc_recalc_count = N_ARC_CORRECTION;
+      #endif
+
+      for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
+
+        printer.check_periodical_actions();
+        if (ELAPSED(millis(), next_idle_ms)) {
+          next_idle_ms = millis() + 200UL;
+          printer.idle();
         }
-        SERIAL_CHR(')');
-        SERIAL_EOL();
+
+        #if N_ARC_CORRECTION > 1
+          if (--arc_recalc_count) {
+            // Apply vector rotation matrix to previous r_P / 1
+            const float r_new_Y = r_P * sin_T + r_Q * cos_T;
+            r_P = r_P * cos_T - r_Q * sin_T;
+            r_Q = r_new_Y;
+          }
+          else
+        #endif
+        {
+          #if N_ARC_CORRECTION > 1
+            arc_recalc_count = N_ARC_CORRECTION;
+          #endif
+
+          // Arc correction to radius vector. Computed only every N_ARC_CORRECTION increments.
+          // Compute exact location by applying transformation matrix from initial radius vector(=-offset).
+          // To reduce stuttering, the sin and cos could be computed at different times.
+          // For now, compute both at the same time.
+          const float cos_Ti = cos(i * theta_per_segment),
+                      sin_Ti = sin(i * theta_per_segment);
+          r_P = -offset[0] * cos_Ti + offset[1] * sin_Ti;
+          r_Q = -offset[0] * sin_Ti - offset[1] * cos_Ti;
+        }
+
+        // Update raw location
+        raw[X_AXIS] = center_P + r_P;
+        raw[Y_AXIS] = center_Q + r_Q;
+        raw[Z_AXIS] += linear_per_segment;
+        raw[E_AXIS] += extruder_per_segment;
+
+        endstops.clamp_to_software(raw);
+
+        #if ENABLED(SCARA_FEEDRATE_SCALING)
+          Transform(raw);
+          // For SCARA scale the feed rate from mm/s to degrees/s
+          // i.e., Complete the angular vector in the given time.
+          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], raw[Z_AXIS], raw[E_AXIS], HYPOT(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB) * inverse_secs, tools.active_extruder))
+            break;
+          oldA = delta[A_AXIS]; oldB = delta[B_AXIS];
+        #elif HAS_UBL_AND_CURVES
+          float pos[XYZ] = { raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS] };
+          bedlevel.apply_leveling(pos);
+          if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder))
+            break;
+        #else
+          if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
+            break;
+        #endif
       }
-    #endif
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
-      if (deploy_bltouch) probe.set_bltouch_deployed(true);
-    #endif
+      // Ensure last segment arrives at target location.
+      #if ENABLED(SCARA_FEEDRATE_SCALING)
+        Transform(cart);
+        const float diff2 = HYPOT2(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB);
+        if (diff2)
+          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], cart[Z_AXIS], cart[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder);
+      #elif HAS_UBL_AND_CURVES
+        float pos[XYZ] = { cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
+        bedlevel.apply_leveling(pos);
+        planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder);
+      #else
+        planner.buffer_line_kinematic(cart, fr_mm_s, tools.active_extruder);
+      #endif
 
-    #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(true);
-    #endif
+      COPY_ARRAY(current_position, cart);
 
-    // Tell the planner we're at Z=0
-    current_position[axis] = 0;
+    }
 
-    sync_plan_position_mech_specific();
-    current_position[axis] = distance;
-    Transform(current_position);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
-
-    planner.synchronize();
-
-    #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(false);
-    #endif
-
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      if (deploy_bltouch) probe.set_bltouch_deployed(false);
-    #endif
-
-    endstops.validate_homing_move();
-
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
-        SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
-  }
+  #endif // ENABLED(ARC_SUPPORT)
 
   #if DISABLED(DISABLE_M503)
 

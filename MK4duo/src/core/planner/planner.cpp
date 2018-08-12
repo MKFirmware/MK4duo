@@ -109,8 +109,11 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
 #endif
 
 #if ENABLED(LIN_ADVANCE)
-  float Planner::extruder_advance_K   = LIN_ADVANCE_K,
-        Planner::position_float[XYZE] = { 0.0 };
+  float Planner::extruder_advance_K   = LIN_ADVANCE_K;
+#endif
+
+#if HAS_POSITION_FLOAT
+  float Planner::position_float[XYZE] = { 0.0 };
 #endif
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT)
@@ -1321,7 +1324,7 @@ void Planner::finish_and_disable() {
  * Returns true if movement was properly queued, false otherwise
  */
 bool Planner::buffer_steps(const int32_t (&target)[XYZE]
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     , const float (&target_float)[XYZE]
   #endif
   , float fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
@@ -1336,7 +1339,7 @@ bool Planner::buffer_steps(const int32_t (&target)[XYZE]
 
   // Fill the block with the specified movement
   if (!fill_block(block, false, target
-    #if ENABLED(LIN_ADVANCE)
+    #if HAS_POSITION_FLOAT
       , target_float
     #endif
     , fr_mm_s, extruder, millimeters
@@ -1379,7 +1382,7 @@ bool Planner::buffer_steps(const int32_t (&target)[XYZE]
  */
 bool Planner::fill_block(block_t * const block, bool split_move,
   const int32_t (&target)[XYZE]
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     , const float (&target_float)[XYZE]
   #endif
   , float fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
@@ -1413,7 +1416,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         if (thermalManager.tooColdToExtrude(extruder)) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
-          #if ENABLED(LIN_ADVANCE)
+          #if HAS_POSITION_FLOAT
             position_float[E_AXIS] = target_float[E_AXIS];
           #endif
           de = 0; // no difference
@@ -1423,7 +1426,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
-          #if ENABLED(LIN_ADVANCE)
+          #if HAS_POSITION_FLOAT
             position_float[E_AXIS] = target_float[E_AXIS];
           #endif
           de = 0; // no difference
@@ -2259,7 +2262,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // Update the position (only when a move was queued)
   static_assert(COUNT(target) > 1, "Parameter to buffer_steps must be (&target)[XYZE]!");
   COPY_ARRAY(position, target);
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     COPY_ARRAY(position_float, target_float);
   #endif
 
@@ -2328,14 +2331,14 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
     static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_AXIS_N] + 0.5f))
   };
 
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     const float target_float[XYZE] = { a, b, c, e };
   #endif
 
   // DRYRUN or Simulation prevents E moves from taking place
   if (printer.debugDryrun() || printer.debugSimulation()) {
     position[E_AXIS] = target[E_AXIS];
-    #if ENABLED(LIN_ADVANCE)
+    #if HAS_POSITION_FLOAT
       position_float[E_AXIS] = e;
     #endif
   }
@@ -2376,7 +2379,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
 
   // Queue the movement
   if (!buffer_steps(target
-    #if ENABLED(LIN_ADVANCE)
+    #if HAS_POSITION_FLOAT
       , target_float
     #endif
     , fr_mm_s, extruder, millimeters
@@ -2463,7 +2466,7 @@ void Planner::_set_position_mm(const float &a, const float &b, const float &c, c
 
   position[E_AXIS] = static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_INDEX] + 0.5f));
 
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     position_float[A_AXIS] = a;
     position_float[B_AXIS] = b;
     position_float[C_AXIS] = c;
@@ -2515,7 +2518,7 @@ void Planner::set_position_mm(const AxisEnum axis, const float &v) {
   #endif
       position[axis] = static_cast<int32_t>(FLOOR(v * mechanics.axis_steps_per_mm[axis_index] + 0.5f));
 
-  #if ENABLED(LIN_ADVANCE)
+  #if HAS_POSITION_FLOAT
     position_float[axis] = v;
   #endif
   if (has_blocks_queued()) {

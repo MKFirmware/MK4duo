@@ -171,8 +171,11 @@ class Planner {
     static bool cleaning_buffer_flag;                 // A flag to disable queuing of blocks
 
     #if ENABLED(LIN_ADVANCE)
-      static float  extruder_advance_K,
-                    position_float[XYZE];
+      static float  extruder_advance_K;
+    #endif
+
+    #if HAS_POSITION_FLOAT
+      static float  position_float[XYZE];
     #endif
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT)
@@ -291,7 +294,7 @@ class Planner {
      * Return true if movement was buffered, false otherwise
      */
     static bool buffer_steps(const int32_t (&target)[XYZE]
-      #if ENABLED(LIN_ADVANCE)
+      #if HAS_POSITION_FLOAT
         , const float (&target_float)[XYZE]
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
@@ -311,7 +314,7 @@ class Planner {
      */
     static bool fill_block(block_t * const block, bool split_move,
         const int32_t (&target)[XYZE]
-      #if ENABLED(LIN_ADVANCE)
+      #if HAS_POSITION_FLOAT
         , const float (&target_float)[XYZE]
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
