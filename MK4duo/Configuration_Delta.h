@@ -81,6 +81,9 @@
 // if you want use new function comment this (using // at the start of the line)
 #define DELTA_SEGMENTS_PER_SECOND 200
 
+// Convert feedrates to apply to the Effector instead of the Carriages
+//#define DELTA_FEEDRATE_SCALING
+
 // NOTE: All following values for DELTA_* MUST be floating point,
 // so always have a decimal point in them.
 //

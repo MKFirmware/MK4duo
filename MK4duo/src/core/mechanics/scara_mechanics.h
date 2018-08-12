@@ -74,14 +74,14 @@
        * unapply_leveling to obtain the "ideal" coordinates
        * suitable for current_position, etc.
        */
-      void get_cartesian_from_steppers() override;
+      static void get_cartesian_from_steppers();
 
       #if DISABLED(AUTO_BED_LEVELING_UBL)
         /**
          * Prepare a linear move in a SCARA setup.
          *
          * This calls buffer_line several times, adding
-         * small incremental moves for DELTA.
+         * small incremental moves for SCARA.
          */
         static bool prepare_move_to_destination_mech_specific();
       #endif
@@ -90,12 +90,10 @@
        *  Plan a move to (X, Y, Z) and set the current_position
        *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0) override;
-
-      /**
-       * Calculate delta, start a line, and set current_position to destination
-       */
-      static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+      static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
       /**
        * SCARA function
@@ -117,6 +115,11 @@
       static void home();
 
       /**
+       * Home an individual linear axis
+       */
+      static void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+
+      /**
        * Set an axis' current position to its home position (after homing).
        *
        * SCARA should wait until all XY homing is done before setting the XY
@@ -127,18 +130,31 @@
        */
       static void set_axis_is_at_home(const AxisEnum axis);
 
-      bool position_is_reachable(const float &rx, const float &ry) override;
-      bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
+      static bool position_is_reachable(const float &rx, const float &ry);
+      static bool position_is_reachable_by_probe(const float &rx, const float &ry);
+
+      /**
+       * Calculate delta, start a line, and set current_position to destination
+       */
+      static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
 
       /**
        * Report current position to host
        */
-      void report_current_position_detail() override;
+      static void report_current_position_detail();
 
       /**
-       * Home an individual linear axis
+       * Plan an arc in 2 dimensions
+       *
+       * The arc is approximated by generating many small linear segments.
+       * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+       * Arcs should only be made relatively large (over 5mm), as larger arcs with
+       * larger segments will tend to be more efficient. Your slicer should have
+       * options for G2/G3 arc generation. In future these options may be GCode tunable.
        */
-      void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0) override;
+      #if ENABLED(ARC_SUPPORT)
+        static void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise);
+      #endif
 
       /**
        * Print mechanics parameters in memory

@@ -94,7 +94,7 @@
        * unapply_leveling to obtain the "ideal" coordinates
        * suitable for current_position, etc.
        */
-      void get_cartesian_from_steppers() override;
+      static void get_cartesian_from_steppers();
 
       #if DISABLED(AUTO_BED_LEVELING_UBL)
         /**
@@ -110,7 +110,10 @@
        *  Plan a move to (X, Y, Z) and set the current_position
        *  The final current_position may not be the one that was requested
        */
-      void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0) override;
+      static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
+      static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
       /**
        * Delta function
@@ -127,6 +130,11 @@
       static void home();
 
       /**
+       * Home an individual linear axis
+       */
+      static void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+
+      /**
        * Set an axis' current position to its home position (after homing).
        *
        * DELTA should wait until all homing is done before setting the XYZ
@@ -139,20 +147,29 @@
        */
       static void set_axis_is_at_home(const AxisEnum axis);
 
-      bool position_is_reachable(const float &rx, const float &ry) override;
-      bool position_is_reachable_by_probe(const float &rx, const float &ry) override;
+      static bool position_is_reachable(const float &rx, const float &ry);
+      static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
       /**
        * Report current position to host
        */
-      void report_current_position_detail() override;
+      static void report_current_position_detail();
+
+      /**
+       * Plan an arc in 2 dimensions
+       *
+       * The arc is approximated by generating many small linear segments.
+       * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
+       * Arcs should only be made relatively large (over 5mm), as larger arcs with
+       * larger segments will tend to be more efficient. Your slicer should have
+       * options for G2/G3 arc generation. In future these options may be GCode tunable.
+       */
+      #if ENABLED(ARC_SUPPORT)
+        static void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise);
+      #endif
 
       #if ENABLED(DELTA_AUTO_CALIBRATION_1)
         static float ComputeDerivative(unsigned int deriv, float ha, float hb, float hc);
-      #endif
-
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
-        void Nextion_gfx_clear() override;
       #endif
 
       /**
@@ -160,6 +177,10 @@
        */
       #if DISABLED(DISABLE_M503)
         static void print_parameters();
+      #endif
+
+      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+        static void Nextion_gfx_clear();
       #endif
 
     private: /** Private Function */
