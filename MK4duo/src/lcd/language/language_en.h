@@ -918,7 +918,7 @@
   #define MSG_CHAMBER_DONE                    _UxGT("Chamber done.")
 #endif
 #ifndef MSG_COOLER_COOLING
-  #define MSG_COOLER_COOLING                  _UxGT("Cooler vooling.")
+  #define MSG_COOLER_COOLING                  _UxGT("Cooler cooling.")
 #endif
 #ifndef MSG_COOLER_DONE
   #define MSG_COOLER_DONE                     _UxGT("Cooler done.")
