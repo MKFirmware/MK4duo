@@ -2002,13 +2002,11 @@ void EEPROM::Factory_Settings() {
       /**
        * Volumetric extrusion M200
        */
-      if (!forReplay) {
-        SERIAL_SM(CFG, "Filament settings:");
-        if (printer.isVolumetric())
-          SERIAL_EOL();
-        else
-          SERIAL_EM(" Disabled");
-      }
+      SERIAL_SM(CFG, "Filament settings:");
+      if (printer.isVolumetric())
+        SERIAL_EOL();
+      else
+        SERIAL_EM(" Disabled");
       #if EXTRUDERS == 1
         SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
       #elif EXTRUDERS > 1
@@ -2061,7 +2059,7 @@ void EEPROM::Factory_Settings() {
           SERIAL_EMV(" E", externaldac.motor_current[E_AXIS + i], 2);
         }
       #endif // DRIVER_EXTRUDERS > 1
-    #endif // ALLIGATOR_R2 || 
+    #endif // ALLIGATOR_R2 || ALLIGATOR_R3
 
     #if HAS_TRINAMIC
 
