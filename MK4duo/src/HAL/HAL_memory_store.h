@@ -23,13 +23,47 @@
 #ifndef _HAL_MEMORY_STORE_H_
 #define _HAL_MEMORY_STORE_H_
 
-namespace MemoryStore {
+#if ENABLED(E2END)
+  #define EEPROM_SIZE E2END
+#else
+  #define EEPROM_SIZE 4096
+#endif
 
-  bool access_start(const bool read);
-  bool access_finish(const bool read);
-  bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
-  bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc);
+class MemoryStore {
 
-} // MemoryStore
+  public: /** Constructor */
+
+    MemoryStore() {}
+
+  private: /** Private Parameters */
+
+    #if HAS_EEPROM_SD
+      static char eeprom_data[EEPROM_SIZE];
+    #endif
+
+  public: /** Public Function */
+
+    static bool access_start(const bool read);
+    static bool access_finish(const bool read);
+    static bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
+    static bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc);
+
+    static size_t capacity();
+
+    static inline bool write_data(const int pos, uint8_t* value, const size_t size) {
+      int data_pos = pos;
+      uint16_t crc = 0;
+      return write_data(data_pos, value, size, &crc);
+    }
+
+    static inline bool read_data(const int pos, uint8_t* value, const size_t size) {
+      int data_pos = pos;
+      uint16_t crc = 0;
+      return read_data(data_pos, value, size, &crc);
+    }
+
+};
+
+extern MemoryStore memorystore;
 
 #endif /* _HAL_MEMORY_STORE_H_ */

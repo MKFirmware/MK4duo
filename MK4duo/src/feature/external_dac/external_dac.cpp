@@ -32,7 +32,7 @@
 
   ExternalDac externaldac;
 
-  float ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
+  uint16_t ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
 
   void ExternalDac::begin() {
     uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
@@ -69,7 +69,7 @@
   void ExternalDac::set_driver_current() {
     uint8_t digipot_motor = 0;
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-      digipot_motor = 255 * motor_current[i] / 3.3;
+      digipot_motor = 255 * motor_current[i] / 1000 / 3.3;
       setValue(i, digipot_motor);
     }
   }
