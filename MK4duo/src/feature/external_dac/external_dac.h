@@ -33,7 +33,7 @@
 
     public: /** Public Parameters */
 
-      static float motor_current[3 + DRIVER_EXTRUDERS];
+      static uint16_t motor_current[3 + DRIVER_EXTRUDERS];
 
     public: /** Public Function */
 

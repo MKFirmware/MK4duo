@@ -37,11 +37,11 @@ class EEPROM {
 
       static bool eeprom_error;
  
-      #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
-                                         // That can store is enabled
+      #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
+                                          // That can store is enabled
         static uint16_t meshes_begin;
-        static constexpr uint16_t meshes_end = E2END - 128; // 128 is a placeholder for the size of the MAT; the MAT will always
-                                                            // live at the very end of the eeprom
+        static const uint16_t meshes_end; // 128 is a placeholder for the size of the MAT; the MAT will always
+                                          // live at the very end of the eeprom
 
       #endif
     #endif
@@ -64,7 +64,7 @@ class EEPROM {
     }
 
     static void Factory_Settings();
-    static bool Store_Settings();
+    static bool Store_Settings();   // Return 'true' if data was saved
 
     #if HAS_EEPROM
       static bool Load_Settings();  // Return 'true' if data was loaded ok

@@ -40,7 +40,7 @@
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
         const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-        externaldac.motor_current[a] = parser.value_float();
+        externaldac.motor_current[a] = parser.value_ushort();
       }
     }
     externaldac.set_driver_current();

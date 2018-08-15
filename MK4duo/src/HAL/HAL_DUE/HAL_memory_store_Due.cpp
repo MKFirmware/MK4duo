@@ -24,107 +24,102 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM) && ENABLED(EEPROM_SETTINGS)
 
-  #if ENABLED(E2END)
-    #define EEPROM_SIZE E2END
+MemoryStore memorystore;
+
+extern void eeprom_flush(void);
+
+#if HAS_EEPROM_SD
+  char MemoryStore::eeprom_data[EEPROM_SIZE];
+#endif
+
+bool MemoryStore::access_start(const bool read) {
+  #if HAS_EEPROM_SD
+    if (read) {
+      int16_t bytes_read = 0;
+      card.open_eeprom_sd(true);
+      bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
+      if (bytes_read < 0) {
+        card.close_eeprom_sd();
+        return true;
+      }
+      card.close_eeprom_sd();
+    }
   #else
-    #define EEPROM_SIZE 4096
+    UNUSED(read);
   #endif
 
-  extern void eeprom_flush(void);
+  return false;
+}
 
-  namespace MemoryStore {
+bool MemoryStore::access_finish(const bool read) {
+  #if HAS_EEPROM_FLASH
+    UNUSED(read);
+    eeprom_flush();
+    return false;
+  #elif HAS_EEPROM_SD
+    if (!read) {
+      card.open_eeprom_sd(false);
+      int16_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
+      card.close_eeprom_sd();
+      return (bytes_written != EEPROM_SIZE);
+    }
+  #else
+    UNUSED(read);
+    return false;
+  #endif
+}
 
-    #if HAS_EEPROM_SD
-      char eeprom_data[EEPROM_SIZE];
-    #endif
+bool MemoryStore::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
 
-    bool access_start(const bool read) {
-      #if HAS_EEPROM_SD
-        if (read) {
-          int16_t bytes_read = 0;
-          card.open_eeprom_sd(true);
-          bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
-          if (bytes_read < 0) {
-            card.close_eeprom_sd();
-            return true;
-          }
-          card.close_eeprom_sd();
+  #if HAS_EEPROM_SD
+    for (int i = 0; i < size; i++)
+      eeprom_data[pos + i] = value[i];
+    crc16(crc, value, size);
+    pos += size;
+  #else
+    while(size--) {
+      uint8_t * const p = (uint8_t * const)pos;
+      uint8_t v = *value;
+      // EEPROM has only ~100,000 write cycles,
+      // so only write bytes that have changed!
+      if (v != eeprom_read_byte(p)) {
+        eeprom_write_byte(p, v);
+        if (eeprom_read_byte(p) != v) {
+          SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
+          return true;
         }
-      #else
-        UNUSED(read);
-      #endif
+      }
+      crc16(crc, &v, 1);
+      pos++;
+      value++;
+    };
+  #endif
 
-      return false;
+  return false;
+}
+
+bool MemoryStore::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+
+  #if HAS_EEPROM_SD
+    for (int i = 0; i < size; i++) {
+      uint8_t c = eeprom_data[pos + i];
+      value[i] = c;
+      crc16(crc, &c, 1);
     }
+    pos += size;
+  #else
+    do {
+      uint8_t c = eeprom_read_byte((unsigned char*)pos);
+      *value = c;
+      crc16(crc, &c, 1);
+      pos++;
+      value++;
+    } while (--size);
+  #endif
 
-    bool access_finish(const bool read) {
-      #if HAS_EEPROM_FLASH
-        UNUSED(read);
-        eeprom_flush();
-        return false;
-      #elif HAS_EEPROM_SD
-        if (!read) {
-          card.open_eeprom_sd(false);
-          int16_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
-          card.close_eeprom_sd();
-          return (bytes_written != EEPROM_SIZE);
-        }
-      #else
-        UNUSED(read);
-        return false;
-      #endif
-    }
+  return false;
+}
 
-    bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-
-      #if HAS_EEPROM_SD
-        for (int i = 0; i < size; i++)
-          eeprom_data[pos + i] = value[i];
-        crc16(crc, value, size);
-        pos += size;
-      #else
-        while(size--) {
-          uint8_t * const p = (uint8_t * const)pos;
-          uint8_t v = *value;
-          // EEPROM has only ~100,000 write cycles,
-          // so only write bytes that have changed!
-          if (v != eeprom_read_byte(p)) {
-            eeprom_write_byte(p, v);
-            if (eeprom_read_byte(p) != v) {
-              SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
-              return true;
-            }
-          }
-          crc16(crc, &v, 1);
-          pos++;
-          value++;
-        };
-      #endif
-
-      return false;
-    }
-
-    bool read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
-
-      #if HAS_EEPROM_SD
-        for (int i = 0; i < size; i++) {
-          uint8_t c = eeprom_data[pos + i];
-          value[i] = c;
-          crc16(crc, &c, 1);
-        }
-        pos += size;
-      #else
-        do {
-          uint8_t c = eeprom_read_byte((unsigned char*)pos);
-          *value = c;
-          crc16(crc, &c, 1);
-          pos++;
-          value++;
-        } while (--size);
-      #endif
-
-      return false;
-    }
-  }
+size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
 
 #endif // ARDUINO_ARCH_SAM && EEPROM_SETTINGS
