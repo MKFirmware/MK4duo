@@ -69,7 +69,7 @@ bool MemoryStore::access_finish(const bool read) {
   #endif
 }
 
-bool MemoryStore::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
+bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
   #if HAS_EEPROM_SD
     for (int i = 0; i < size; i++)
@@ -98,7 +98,7 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, uint16_t size, uint
   return false;
 }
 
-bool MemoryStore::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc) {
 
   #if HAS_EEPROM_SD
     for (int i = 0; i < size; i++) {

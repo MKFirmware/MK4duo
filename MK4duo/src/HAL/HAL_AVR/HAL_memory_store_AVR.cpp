@@ -29,7 +29,7 @@ MemoryStore memorystore;
 bool MemoryStore::access_start(const bool read)  { UNUSED(read); return false; }
 bool MemoryStore::access_finish(const bool read) { UNUSED(read); return false; }
 
-bool MemoryStore::write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
+bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
   while(size--) {
 
@@ -52,7 +52,7 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, uint16_t size, uint
   return false;
 }
 
-bool MemoryStore::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *crc) {
+bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc) {
   do {
     uint8_t c = eeprom_read_byte((unsigned char*)pos);
     *value = c;
@@ -63,6 +63,6 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, uint16_t size, uint16_t *c
   return false;
 }
 
-size_t MemoryStore::capacity() { return E2END + 1; }
+size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
 
 #endif // ENABLED(__AVR__) && EEPROM_SETTINGS
