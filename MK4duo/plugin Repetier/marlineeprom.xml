@@ -1409,17 +1409,17 @@
     <detect>M569.*T5 E(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
-    <description unit="">Stepper direction delay</description>
+    <description unit="[ns]">Stepper direction delay</description>
     <set>M569 D@</set>
     <detect>M569.*D(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
-    <description unit="">Stepper minimum pulse time</description>
+    <description unit="[µs]">Stepper minimum pulse time</description>
     <set>M569 P@</set>
     <detect>M569.*P(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
-    <description unit="">Stepper maximum rate</description>
+    <description unit="[Hz]">Stepper maximum rate</description>
     <set>M569 R@</set>
     <detect>M569.*R(-?\d*)</detect>
   </entry>
@@ -1644,63 +1644,63 @@
     <detect>M900.*R(-?\d*\.?\d*)</detect>
   </entry>
   <!-- M906: Motor Current -->
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">X motor current</description>
-    <set>M906 I0 X@</set>
-    <detect>M906(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
+  <entry type="int" min="100">
+    <description unit="[mA]">X motor current</description>
+    <set>M906 X@</set>
+    <detect>M906.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">Y motor current</description>
-    <set>M906 I0 Y@</set>
-    <detect>M906(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
+  <entry type="int" min="100">
+    <description unit="[mA]">Y motor current</description>
+    <set>M906 Y@</set>
+    <detect>M906.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">Z motor current</description>
-    <set>M906 I0 Z@</set>
-    <detect>M906(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
+  <entry type="int" min="100">
+    <description unit="[mA]">Z motor current</description>
+    <set>M906 Z@</set>
+    <detect>M906.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">X2 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">X2 motor current</description>
     <set>M906 I1 X@</set>
     <detect>M906.*I1.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">Y2 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">Y2 motor current</description>
     <set>M906 I1 Y@</set>
     <detect>M906.*I1.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">Z2 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">Z2 motor current</description>
     <set>M906 I1 Z@</set>
     <detect>M906.*I1.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E0 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E0 motor current</description>
     <set>M906 T0 E@</set>
     <detect>M906.*T0 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E1 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E1 motor current</description>
     <set>M906 T1 E@</set>
     <detect>M906 T1.*E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E2 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E2 motor current</description>
     <set>M906 T2 E@</set>
     <detect>M906 T2.*E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E3 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E3 motor current</description>
     <set>M906 T3 E@</set>
     <detect>M906 T3.*E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E4 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E4 motor current</description>
     <set>M906 T4 E@</set>
     <detect>M906 T4.*E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0" max="2.5">
-    <description unit="[A]">E5 motor current</description>
+  <entry type="int" min="100">
+    <description unit="[mA]">E5 motor current</description>
     <set>M906 T5 E@</set>
     <detect>M906 T5.*E(-?\d*\.?\d*)</detect>
   </entry>
