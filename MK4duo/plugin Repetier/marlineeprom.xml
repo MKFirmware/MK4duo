@@ -1,14 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!-- EEPROM definitions for RRFirmwares plugin (Repetier Host).
      This provides the knowledge needed to recognize EEPROM-stored
      values from M503 output.
      
 	 Type:    RegExp:
 	 _______________________
-	 bool   | ([01])
 	 int    | (-?\d*)
 	 float  | (-?\d*\.?\d*)
-	 string | (.*)
 	 _______________________
 -->
 <eeprom>
@@ -74,10 +72,10 @@
     <set>M99 Z@</set>
     <detect>M99.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hysteresis correction: is active</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hysteresis correction: is active</description>
     <set>M99 F@</set>
-    <detect>M99.*F([01])</detect>
+    <detect>M99.*F(-?\d*)</detect>
   </entry>
   <!-- M106: Fan parameters -->
   <entry type="int" min="0">
@@ -100,10 +98,10 @@
     <set>M106 P0 L@</set>
     <detect>M106 P0.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 0 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 0 inverted logic</description>
     <set>M106 P0 I@</set>
-    <detect>M106 P0.*I([01])</detect>
+    <detect>M106 P0.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 0 autofan mode</description>
@@ -131,10 +129,10 @@
     <set>M106 P1 L@</set>
     <detect>M106 P1.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 1 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 1 inverted logic</description>
     <set>M106 P1 I@</set>
-    <detect>M106 P1.*I([01])</detect>
+    <detect>M106 P1.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 1 autofan mode</description>
@@ -162,10 +160,10 @@
     <set>M106 P2 L@</set>
     <detect>M106 P2.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 2 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 2 inverted logic</description>
     <set>M106 P2 I@</set>
-    <detect>M106 P2.*I([01])</detect>
+    <detect>M106 P2.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 2 autofan mode</description>
@@ -193,10 +191,10 @@
     <set>M106 P3 L@</set>
     <detect>M106 P3.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 3 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 3 inverted logic</description>
     <set>M106 P3 I@</set>
-    <detect>M106 P3.*I([01])</detect>
+    <detect>M106 P3.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 3 autofan mode</description>
@@ -224,10 +222,10 @@
     <set>M106 P4 L@</set>
     <detect>M106 P4.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 4 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 4 inverted logic</description>
     <set>M106 P4 I@</set>
-    <detect>M106 P4.*I([01])</detect>
+    <detect>M106 P4.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 4 autofan mode</description>
@@ -255,10 +253,10 @@
     <set>M106 P5 L@</set>
     <detect>M106 P5.*L(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Fan 5 inverted logic</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Fan 5 inverted logic</description>
     <set>M106 P5 I@</set>
-    <detect>M106 P5.*I([01])</detect>
+    <detect>M106 P5.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
     <description unit="[(-1)-7]">Fan 5 autofan mode</description>
@@ -593,10 +591,10 @@
     <set>M208 F@</set>
     <detect>M208.*F(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Autoretract enabled</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Autoretract enabled</description>
     <set>M209 S@</set>
-    <detect>M209.*S([01])</detect>
+    <detect>M209.*S(-?\d*)</detect>
   </entry>
   <!-- M218: Hotend offset -->
   <entry type="float">
@@ -1091,15 +1089,15 @@
     <set>M306 H0 O@</set>
     <detect>M306 H0.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 0 use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 0 use PID/BangBang</description>
     <set>M306 H0 U@</set>
-    <detect>M306 H0.*U([01])</detect>
+    <detect>M306 H0.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 0 hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 0 hardware inverted</description>
     <set>M306 H0 I@</set>
-    <detect>M306 H0.*I([01])</detect>
+    <detect>M306 H0.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 0 heater pin</description>
@@ -1132,15 +1130,15 @@
     <set>M306 H1 O@</set>
     <detect>M306 H1.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 1 use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 1 use PID/BangBang</description>
     <set>M306 H1 U@</set>
-    <detect>M306 H1.*U([01])</detect>
+    <detect>M306 H1.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 1 hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 1 hardware inverted</description>
     <set>M306 H1 I@</set>
-    <detect>M306 H1.*I([01])</detect>
+    <detect>M306 H1.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 1 heater pin</description>
@@ -1173,15 +1171,15 @@
     <set>M306 H2 O@</set>
     <detect>M306 H2.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 2 use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 2 use PID/BangBang</description>
     <set>M306 H2 U@</set>
-    <detect>M306 H2.*U([01])</detect>
+    <detect>M306 H2.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 2 hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 2 hardware inverted</description>
     <set>M306 H2 I@</set>
-    <detect>M306 H2.*I([01])</detect>
+    <detect>M306 H2.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 2 heater pin</description>
@@ -1214,15 +1212,15 @@
     <set>M306 H3 O@</set>
     <detect>M306 H3.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 3 use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 3 use PID/BangBang</description>
     <set>M306 H3 U@</set>
-    <detect>M306 H3.*U([01])</detect>
+    <detect>M306 H3.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Hotend 3 hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 3 hardware inverted</description>
     <set>M306 H3 I@</set>
-    <detect>M306 H3.*I([01])</detect>
+    <detect>M306 H3.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 3 heater pin</description>
@@ -1255,15 +1253,15 @@
     <set>M306 H-1 O@</set>
     <detect>M306 H-1.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Bed use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Bed use PID/BangBang</description>
     <set>M306 H-1 U@</set>
-    <detect>M306 H-1.*U([01])</detect>
+    <detect>M306 H-1.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Bed hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Bed hardware inverted</description>
     <set>M306 H-1 I@</set>
-    <detect>M306 H-1.*I([01])</detect>
+    <detect>M306 H-1.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Bed heater pin</description>
@@ -1296,15 +1294,15 @@
     <set>M306 H-2 O@</set>
     <detect>M306 H-2.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Chamber use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Chamber use PID/BangBang</description>
     <set>M306 H-2 U@</set>
-    <detect>M306 H-2.*U([01])</detect>
+    <detect>M306 H-2.*U(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Chamber hardware inverted</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Chamber hardware inverted</description>
     <set>M306 H-2 I@</set>
-    <detect>M306 H-2.*I([01])</detect>
+    <detect>M306 H-2.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Chamber heater pin</description>
@@ -1337,15 +1335,14 @@
     <set>M306 H-3 O@</set>
     <detect>M306 H-3.*O(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Cooler use PID/BangBang</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Cooler use PID/BangBang</description>
     <set>M306 H-3 U@</set>
-	ù
-    <detect>M306 H-3.*U([01])</detect></entry>
-  <entry type="bool">
-    <description unit="">Cooler hardware inverted</description>
+    <detect>M306 H-3.*U(-?\d*)</detect></entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Cooler hardware inverted</description>
     <set>M306 H-3 I@</set>
-    <detect>M306 H-3.*I([01])</detect>
+    <detect>M306 H-3.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Cooler heater pin</description>
@@ -1353,10 +1350,10 @@
     <detect>M306 H-3.*P(-?\d*)</detect>
   </entry>
   <!--  M420: Bed Leveling -->
-  <entry type="bool">
-    <description unit="">Bed leveling: is active</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Bed leveling: is active</description>
     <set>M420 S@</set>
-    <detect>M420.*S([01])</detect>
+    <detect>M420.*S(-?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">Bed leveling: Z fade height</description>
@@ -1369,45 +1366,45 @@
     <set>M569 X@</set>
     <detect>M569.*X(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Y stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y stepper direction</description>
     <set>M569 Y@</set>
-    <detect>M569.*Y([01])</detect>
+    <detect>M569.*Y(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">Z stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z stepper direction</description>
     <set>M569 Z@</set>
-    <detect>M569.*Z([01])</detect>
+    <detect>M569.*Z(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">E0 stepper direction</description>
     <set>M569 T0 E@</set>
     <detect>M569.*T0 E(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">E1 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E1 stepper direction</description>
     <set>M569 T1 E@</set>
-    <detect>M569.*T1 E([01])</detect>
+    <detect>M569.*T1 E(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">E2 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E2 stepper direction</description>
     <set>M569 T2 E@</set>
-    <detect>M569.*T2 E([01])</detect>
+    <detect>M569.*T2 E(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">E3 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E3 stepper direction</description>
     <set>M569 T3 E@</set>
-    <detect>M569.*T3 E([01])</detect>
+    <detect>M569.*T3 E(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">E4 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E4 stepper direction</description>
     <set>M569 T4 E@</set>
-    <detect>M569.*T4 E([01])</detect>
+    <detect>M569.*T4 E(-?\d*)</detect>
   </entry>
-  <entry type="bool">
-    <description unit="">E5 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E5 stepper direction</description>
     <set>M569 T5 E@</set>
-    <detect>M569.*T5 E([01])</detect>
+    <detect>M569.*T5 E(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Stepper direction delay</description>
