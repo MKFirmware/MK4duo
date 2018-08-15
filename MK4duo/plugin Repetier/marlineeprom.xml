@@ -1,8 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <!-- EEPROM definitions for RRFirmwares plugin (Repetier Host).
-     This provides the knowledge needed to recognize EEPROM-stored
-     values from M503 output.
-     
+
+     INSTRUCTIONS:
+     Replace Repetier-Host/plugins/RRFirmwares/marlineeprom.xml with THIS file.
+     This provides the knowledge needed to recognize EEPROM-stored values from MK4duo's M503 output.
+	 
 	 Type:    RegExp:
 	 _______________________
 	 int    | (-?\d*)
@@ -104,7 +106,7 @@
     <detect>M106 P0.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 0 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 0 autofan mode</description>
     <set>M106 P0 H@</set>
     <detect>M106 P0.*H(-?\d*)</detect>
   </entry>
@@ -135,7 +137,7 @@
     <detect>M106 P1.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 1 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 1 autofan mode</description>
     <set>M106 P1 H@</set>
     <detect>M106 P1.*H(-?\d*)</detect>
   </entry>
@@ -166,7 +168,7 @@
     <detect>M106 P2.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 2 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 2 autofan mode</description>
     <set>M106 P2 H@</set>
     <detect>M106 P2.*H(-?\d*)</detect>
   </entry>
@@ -197,7 +199,7 @@
     <detect>M106 P3.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 3 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 3 autofan mode</description>
     <set>M106 P3 H@</set>
     <detect>M106 P3.*H(-?\d*)</detect>
   </entry>
@@ -228,7 +230,7 @@
     <detect>M106 P4.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 4 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 4 autofan mode</description>
     <set>M106 P4 H@</set>
     <detect>M106 P4.*H(-?\d*)</detect>
   </entry>
@@ -259,7 +261,7 @@
     <detect>M106 P5.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="-1" max="7">
-    <description unit="[(-1)-7]">Fan 5 autofan mode</description>
+    <description unit="[0-7] (-1 to disable)">Fan 5 autofan mode</description>
     <set>M106 P5 H@</set>
     <detect>M106 P5.*H(-?\d*)</detect>
   </entry>
@@ -1361,8 +1363,8 @@
     <detect>M420.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <!-- M569: Stepper Direction, Direction_delay, minimum_pulse e maximum_rate -->
-  <entry type="int">
-    <description unit="">X stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X stepper direction</description>
     <set>M569 X@</set>
     <detect>M569.*X(-?\d*)</detect>
   </entry>
@@ -1376,8 +1378,8 @@
     <set>M569 Z@</set>
     <detect>M569.*Z(-?\d*)</detect>
   </entry>
-  <entry type="int">
-    <description unit="">E0 stepper direction</description>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E0 stepper direction</description>
     <set>M569 T0 E@</set>
     <detect>M569.*T0 E(-?\d*)</detect>
   </entry>
