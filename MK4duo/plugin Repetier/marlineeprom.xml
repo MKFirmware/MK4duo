@@ -1,189 +1,481 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- EEPROM definitions for RRFirmwares plugin (Repetier Host).
+     This provides the knowledge needed to recognize EEPROM-stored
+     values from M503 output.
+     
+	 Type:    RegExp:
+	 _______________________
+	 bool   | ([01])
+	 int    | (-?\d*)
+	 float  | (-?\d*\.?\d*)
+	 string | (.*)
+	 _______________________
+-->
 <eeprom>
-  <!-- Axis Resolution -->
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">X axis resolution</description>
+  <!-- M92: Axis resolution -->
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">X resolution</description>
     <set>M92 X@</set>
     <detect>M92.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">Y axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">Y resolution</description>
     <set>M92 Y@</set>
     <detect>M92.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">Z axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">Z resolution</description>
     <set>M92 Z@</set>
     <detect>M92.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E0 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E0 resolution</description>
     <set>M92 T0 E@</set>
     <detect>M92.*T0 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E1 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E1 resolution</description>
     <set>M92 T1 E@</set>
-    <detect>M92 T1 E(-?\d*\.?\d*)</detect>
+    <detect>M92.*T1 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E2 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E2 resolution</description>
     <set>M92 T2 E@</set>
-    <detect>M92 T2 E(-?\d*\.?\d*)</detect>
+    <detect>M92.*T2 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E3 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E3 resolution</description>
     <set>M92 T3 E@</set>
-    <detect>M92 T3 E(-?\d*\.?\d*)</detect>
+    <detect>M92.*T3 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E4 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E4 resolution</description>
     <set>M92 T4 E@</set>
-    <detect>M92 T4 E(-?\d*\.?\d*)</detect>
+    <detect>M92.*T4 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[Steps/unit]">E5 axis resolution</description>
+  <entry type="float" min="0">
+    <description unit="[Steps/unit]">E5 resolution</description>
     <set>M92 T5 E@</set>
-    <detect>M92 T5 E(-?\d*\.?\d*)</detect>
+    <detect>M92.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Axis Feedrate -->
+  <!-- M99: Hysteresis Correction -->
+  <entry type="float">
+    <description unit="[unit]">X hysteresis correction</description>
+    <set>M99 X@</set>
+    <detect>M99.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Y hysteresis correction</description>
+    <set>M99 Y@</set>
+    <detect>M99.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Z hysteresis correction</description>
+    <set>M99 Z@</set>
+    <detect>M99.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hysteresis correction: is active</description>
+    <set>M99 F@</set>
+    <detect>M99.*F([01])</detect>
+  </entry>
+  <!-- M106: Fan parameters -->
+  <entry type="int" min="0">
+    <description unit="">Fan 0 pin</description>
+    <set>M106 P0 U@</set>
+    <detect>M106 P0.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 0 speed</description>
+    <set>M106 P0 S@</set>
+    <detect>M106 P0.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 0 frequency</description>
+    <set>M106 P0 F@</set>
+    <detect>M106 P0.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 0 min speed</description>
+    <set>M106 P0 L@</set>
+    <detect>M106 P0.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 0 inverted logic</description>
+    <set>M106 P0 I@</set>
+    <detect>M106 P0.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 0 autofan mode</description>
+    <set>M106 P0 H@</set>
+    <detect>M106 P0.*H(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">Fan 1 pin</description>
+    <set>M106 P1 U@</set>
+    <detect>M106 P1.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 1 speed</description>
+    <set>M106 P1 S@</set>
+    <detect>M106 P1.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 1 frequency</description>
+    <set>M106 P1 F@</set>
+    <detect>M106 P1.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 1 min speed</description>
+    <set>M106 P1 L@</set>
+    <detect>M106 P1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 1 inverted logic</description>
+    <set>M106 P1 I@</set>
+    <detect>M106 P1.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 1 autofan mode</description>
+    <set>M106 P1 H@</set>
+    <detect>M106 P1.*H(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">Fan 2 pin</description>
+    <set>M106 P2 U@</set>
+    <detect>M106 P2.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 2 speed</description>
+    <set>M106 P2 S@</set>
+    <detect>M106 P2.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 2 frequency</description>
+    <set>M106 P2 F@</set>
+    <detect>M106 P2.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 2 min speed</description>
+    <set>M106 P2 L@</set>
+    <detect>M106 P2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 2 inverted logic</description>
+    <set>M106 P2 I@</set>
+    <detect>M106 P2.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 2 autofan mode</description>
+    <set>M106 P2 H@</set>
+    <detect>M106 P2.*H(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">Fan 3 pin</description>
+    <set>M106 P3 U@</set>
+    <detect>M106 P3.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 3 speed</description>
+    <set>M106 P3 S@</set>
+    <detect>M106 P3.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 3 frequency</description>
+    <set>M106 P3 F@</set>
+    <detect>M106 P3.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 3 min speed</description>
+    <set>M106 P3 L@</set>
+    <detect>M106 P3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 3 inverted logic</description>
+    <set>M106 P3 I@</set>
+    <detect>M106 P3.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 3 autofan mode</description>
+    <set>M106 P3 H@</set>
+    <detect>M106 P3.*H(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">Fan 4 pin</description>
+    <set>M106 P4 U@</set>
+    <detect>M106 P4.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 4 speed</description>
+    <set>M106 P4 S@</set>
+    <detect>M106 P4.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 4 frequency</description>
+    <set>M106 P4 F@</set>
+    <detect>M106 P4.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 4 min speed</description>
+    <set>M106 P4 L@</set>
+    <detect>M106 P4.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 4 inverted logic</description>
+    <set>M106 P4 I@</set>
+    <detect>M106 P4.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 4 autofan mode</description>
+    <set>M106 P4 H@</set>
+    <detect>M106 P4.*H(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">Fan 5 pin</description>
+    <set>M106 P5 U@</set>
+    <detect>M106 P5.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 5 speed</description>
+    <set>M106 P5 S@</set>
+    <detect>M106 P5.*S(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="Hz">Fan 5 frequency</description>
+    <set>M106 P5 F@</set>
+    <detect>M106 P5.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Fan 5 min speed</description>
+    <set>M106 P5 L@</set>
+    <detect>M106 P5.*L(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Fan 5 inverted logic</description>
+    <set>M106 P5 I@</set>
+    <detect>M106 P5.*I([01])</detect>
+  </entry>
+  <entry type="int" min="-1" max="7">
+    <description unit="[(-1)-7]">Fan 5 autofan mode</description>
+    <set>M106 P5 H@</set>
+    <detect>M106 P5.*H(-?\d*)</detect>
+  </entry>
+  <!-- M145: Preheat Temperature -->
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 1 Hotend temperature</description>
+    <set>M145 S0 H@</set>
+    <detect>M145 S0.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 1 Bed temperature</description>
+    <set>M145 S0 B@</set>
+    <detect>M145 S0.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Preheat 1 Fan speed</description>
+    <set>M145 S0 F@</set>
+    <detect>M145 S0.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 2 Hotend temperature</description>
+    <set>M145 S1 H@</set>
+    <detect>M145 S1.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 2 Bed temperature</description>
+    <set>M145 S1 B@</set>
+    <detect>M145 S1.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Preheat 2 Fan speed</description>
+    <set>M145 S1 F@</set>
+    <detect>M145 S1.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 3 Hotend temperature</description>
+    <set>M145 S2 H@</set>
+    <detect>M145 S2.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[°C]">Preheat 3 Bed temperature</description>
+    <set>M145 S2 B@</set>
+    <detect>M145 S2.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Preheat 3 Fan speed</description>
+    <set>M145 S2 F@</set>
+    <detect>M145 S2.*F(-?\d*)</detect>
+  </entry>
+  <!-- M200: Filament Diameter -->
   <entry type="float" min="0">
-    <description unit="[unit/s]">X axis max. feedrate</description>
-    <set>M203 X@</set>
-    <detect>M203.*X(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">E0 Filament diameter</description>
+    <set>M200 T0 D@</set>
+    <detect>M200 T0.*D(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s]">Y axis max. feedrate</description>
-    <set>M203 Y@</set>
-    <detect>M203.*Y(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">E1 Filament diameter</description>
+    <set>M200 T1 D@</set>
+    <detect>M200 T1.*D(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s]">Z axis max. feedrate</description>
-    <set>M203 Z@</set>
-    <detect>M203.*Z(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">E2 Filament diameter</description>
+    <set>M200 T2 D@</set>
+    <detect>M200 T2.*D(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E0 axis max. feedrate</description>
-    <set>M203 T0 E@</set>
-    <detect>M203.*T0 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E1 axis max. feedrate</description>
-    <set>M203 T1 E@</set>
-    <detect>M203 T1 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E2 axis max. feedrate</description>
-    <set>M203 T2 E@</set>
-    <detect>M203 T2 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E3 axis max. feedrate</description>
-    <set>M203 T3 E@</set>
-    <detect>M203 T3 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E4 axis max. feedrate</description>
-    <set>M203 T4 E@</set>
-    <detect>M203 T4 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">E5 axis max. feedrate</description>
-    <set>M203 T5 E@</set>
-    <detect>M203 T5 E(-?\d*\.?\d*)</detect>
-  </entry>
-
-  <!-- Axis Acceleration -->
   <entry type="float" min="0">
-    <description unit="[unit/s²]">X axis max. acceleration</description>
+    <description unit="[unit]">E3 Filament diameter</description>
+    <set>M200 T3 D@</set>
+    <detect>M200 T3.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit]">E4 Filament diameter</description>
+    <set>M200 T4 D@</set>
+    <detect>M200 T4.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit]">E5 Filament diameter</description>
+    <set>M200 T5 D@</set>
+    <detect>M200 T5.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M201: Maximum axis acceleration -->
+  <entry type="float" min="0">
+    <description unit="[unit/s²]">X maximum acceleration</description>
     <set>M201 X@</set>
     <detect>M201.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">Y axis max. acceleration</description>
+    <description unit="[unit/s²]">Y maximum acceleration</description>
     <set>M201 Y@</set>
     <detect>M201.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">Z axis max. acceleration</description>
+    <description unit="[unit/s²]">Z maximum acceleration</description>
     <set>M201 Z@</set>
     <detect>M201.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E0 axis max. acceleration</description>
+    <description unit="[unit/s²]">E0 maximum acceleration</description>
     <set>M201 T0 E@</set>
     <detect>M201.*T0 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E1 axis max. acceleration</description>
+    <description unit="[unit/s²]">E1 maximum acceleration</description>
     <set>M201 T1 E@</set>
-    <detect>M201 T1 E(-?\d*\.?\d*)</detect>
+    <detect>M201.*T1 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E2 axis max. acceleration</description>
+    <description unit="[unit/s²]">E2 maximum acceleration</description>
     <set>M201 T2 E@</set>
-    <detect>M201 T2 E(-?\d*\.?\d*)</detect>
+    <detect>M201.*T2 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E3 axis max. acceleration</description>
+    <description unit="[unit/s²]">E3 maximum acceleration</description>
     <set>M201 T3 E@</set>
-    <detect>M201 T3 E(-?\d*\.?\d*)</detect>
+    <detect>M201.*T3 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E4 axis max. acceleration</description>
+    <description unit="[unit/s²]">E4 maximum acceleration</description>
     <set>M201 T4 E@</set>
-    <detect>M201 T4 E(-?\d*\.?\d*)</detect>
+    <detect>M201.*T4 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E5 axis max. acceleration</description>
+    <description unit="[unit/s²]">E5 maximum acceleration</description>
     <set>M201 T5 E@</set>
-    <detect>M201 T5 E(-?\d*\.?\d*)</detect>
+    <detect>M201.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Accleration -->
+  <!-- M203: Maximum axis feedrate -->
   <entry type="float" min="0">
-    <description unit="[unit/s²]">Acceleration printing</description>
+    <description unit="[unit/s]">X maximum feedrate</description>
+    <set>M203 X@</set>
+    <detect>M203.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">Y maximum feedrate</description>
+    <set>M203 Y@</set>
+    <detect>M203.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">Z maximum feedrate</description>
+    <set>M203 Z@</set>
+    <detect>M203.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E0 maximum feedrate</description>
+    <set>M203 T0 E@</set>
+    <detect>M203.*T0 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E1 maximum feedrate</description>
+    <set>M203 T1 E@</set>
+    <detect>M203.*T1 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E2 maximum feedrate</description>
+    <set>M203 T2 E@</set>
+    <detect>M203.*T2 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E3 maximum feedrate</description>
+    <set>M203 T3 E@</set>
+    <detect>M203.*T3 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E4 maximum feedrate</description>
+    <set>M203 T4 E@</set>
+    <detect>M203.*T4 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E5 maximum feedrate</description>
+    <set>M203 T5 E@</set>
+    <detect>M203.*T5 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M204: Default acceleration -->
+  <entry type="float" min="0">
+    <description unit="[unit/s²]">Printing acceleration</description>
     <set>M204 P@</set>
     <detect>M204.*P(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">Acceleration travel</description>
+    <description unit="[unit/s²]">Travel acceleration</description>
     <set>M204 V@</set>
     <detect>M204.*V(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E0 Acceleration retract</description>
+    <description unit="[unit/s²]">E0 retract acceleration</description>
     <set>M204 T0 R@</set>
     <detect>M204.*T0 R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E1 Acceleration retract</description>
+    <description unit="[unit/s²]">E1 retract acceleration</description>
     <set>M204 T1 R@</set>
-    <detect>M204 T1 R(-?\d*\.?\d*)</detect>
+    <detect>M204.*T1 R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E2 Acceleration retract</description>
+    <description unit="[unit/s²]">E2 retract acceleration</description>
     <set>M204 T2 R@</set>
-    <detect>M204 T2 R(-?\d*\.?\d*)</detect>
+    <detect>M204.*T2 R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E3 Acceleration retract</description>
+    <description unit="[unit/s²]">E3 retract acceleration</description>
     <set>M204 T3 R@</set>
-    <detect>M204 T3 R(-?\d*\.?\d*)</detect>
+    <detect>M204.*T3 R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E4 Acceleration retract</description>
+    <description unit="[unit/s²]">E4 retract acceleration</description>
     <set>M204 T4 R@</set>
-    <detect>M204 T4 R(-?\d*\.?\d*)</detect>
+    <detect>M204.*T4 R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s²]">E5 Acceleration retract</description>
+    <description unit="[unit/s²]">E5 retract acceleration</description>
     <set>M204 T5 R@</set>
-    <detect>M204 T5 R(-?\d*\.?\d*)</detect>
+    <detect>M204.*T5 R(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- General Feedrate and Axis Jerk -->
+  <!-- M205: Minimum feedrate and Axis maximum jerk -->
   <entry type="float" min="0">
     <description unit="[unit/s]">Minimum feedrate</description>
     <set>M205 S@</set>
@@ -200,130 +492,939 @@
     <detect>M205.*B(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s]">Maximum X jerk</description>
+    <description unit="[unit/s]">X maximum jerk</description>
     <set>M205 X@</set>
     <detect>M205.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s]">Maximum Y jerk</description>
+    <description unit="[unit/s]">Y maximum jerk</description>
     <set>M205 Y@</set>
     <detect>M205.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit/s]">Maximum Z jerk</description>
+    <description unit="[unit/s]">Z maximum jerk</description>
     <set>M205 Z@</set>
     <detect>M205.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[mm/s]">Maximum E0 jerk</description>
+    <description unit="[mm/s]">E0 maximum jerk</description>
     <set>M205 T0 E@</set>
     <detect>M205.*T0 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">Maximum E1 jerk</description>
-    <set>M205 T1 E@</set>
-    <detect>M205 T1 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">Maximum E2 jerk</description>
-    <set>M205 T2 E@</set>
-    <detect>M205 T2 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">Maximum E3 jerk</description>
-    <set>M205 T3 E@</set>
-    <detect>M205 T3 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">Maximum E4 jerk</description>
-    <set>M205 T4 E@</set>
-    <detect>M205 T4 E(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="1">
-    <description unit="[unit/s]">Maximum E5 jerk</description>
-    <set>M205 T5 E@</set>
-    <detect>M205 T5 E(-?\d*\.?\d*)</detect>
-  </entry>
-
-  <!-- Home offset -->
   <entry type="float" min="0">
-    <description unit="[unit]">Home offset X</description>
+    <description unit="[unit/s]">E1 maximum jerk</description>
+    <set>M205 T1 E@</set>
+    <detect>M205.*T1 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E2 maximum jerk</description>
+    <set>M205 T2 E@</set>
+    <detect>M205.*T2 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E3 maximum jerk</description>
+    <set>M205 T3 E@</set>
+    <detect>M205.*T3 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E4 maximum jerk</description>
+    <set>M205 T4 E@</set>
+    <detect>M205.*T4 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit/s]">E5 maximum jerk</description>
+    <set>M205 T5 E@</set>
+    <detect>M205.*T5 E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[unit]">Junction Deviation mm</description>
+    <set>M205 J@</set>
+    <detect>M205.*J(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M206: Home offset -->
+  <entry type="float">
+    <description unit="[unit]">X home offset</description>
     <set>M206 X@</set>
     <detect>M206.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">Home offset Y</description>
+  <entry type="float">
+    <description unit="[unit]">Y home offset</description>
     <set>M206 Y@</set>
     <detect>M206.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">Home offset Z</description>
+  <entry type="float">
+    <description unit="[unit]">Z home offset</description>
     <set>M206 Z@</set>
     <detect>M206.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  
-  <!-- Hotend offset -->
-  <entry type="float" min="0">
+  <!-- M207-M208-M209: Auto retract -->
+  <entry type="float">
+    <description unit="[unit]">FWRetract length</description>
+    <set>M207 S@</set>
+    <detect>M207.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">FWRetract swap length</description>
+    <set>M207 W@</set>
+    <detect>M207.*W(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit/s]">FWRetract feedrate</description>
+    <set>M207 F@</set>
+    <detect>M207.*F(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">FWRetract z lift</description>
+    <set>M207 Z@</set>
+    <detect>M207.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">FWRetract recover length</description>
+    <set>M208 S@</set>
+    <detect>M208.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">FWRetract recover swap length</description>
+    <set>M208 W@</set>
+    <detect>M208.*W(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit/s]">FWRetract recover feedrate</description>
+    <set>M208 F@</set>
+    <detect>M208.*F(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Autoretract enabled</description>
+    <set>M209 S@</set>
+    <detect>M209.*S([01])</detect>
+  </entry>
+  <!-- M218: Hotend offset -->
+  <entry type="float">
     <description unit="[unit]">H1 X offset</description>
     <set>M218 H1 X@</set>
     <detect>M218 H1.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H1 Y offset</description>
     <set>M218 H1 Y@</set>
     <detect>M218 H1.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H1 Z offset</description>
     <set>M218 H1 Z@</set>
     <detect>M218 H1.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H2 X offset</description>
     <set>M218 H2 X@</set>
     <detect>M218 H2.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H2 Y offset</description>
     <set>M218 H2 Y@</set>
     <detect>M218 H2.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H2 Z offset</description>
     <set>M218 H2 Z@</set>
     <detect>M218 H2.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H3 X offset</description>
     <set>M218 H3 X@</set>
     <detect>M218 H3.*X(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H3 Y offset</description>
     <set>M218 H3 Y@</set>
     <detect>M218 H3.*Y(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float">
     <description unit="[unit]">H3 Z offset</description>
     <set>M218 H3 Z@</set>
     <detect>M218 H3.*Z(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Mesh Bed Leveling -->
+  <!-- M250: LCD Contrast -->
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">LCD contrast</description>
+    <set>M250 C@</set>
+    <detect>M250.*C(-?\d*)</detect>
+  </entry>
+  <!-- M301: Pid Temp -->
   <entry type="float" min="0">
-    <description unit="[unit]">MBL Z fade height</description>
+    <description unit="">lpq_len</description>
+    <set>M301 L@</set>
+    <detect>M301.*L(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 0 PID P</description>
+    <set>M301 H0 P@</set>
+    <detect>M301 H0.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 0 PID I</description>
+    <set>M301 H0 I@</set>
+    <detect>M301 H0.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 0 PID D</description>
+    <set>M301 H0 D@</set>
+    <detect>M301 H0.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 0 PID C</description>
+    <set>M301 H0 C@</set>
+    <detect>M301 H0.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Hotend 1 PID P</description>
+    <set>M301 H1 P@</set>
+    <detect>M301 H1.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 1 PID I</description>
+    <set>M301 H1 I@</set>
+    <detect>M301 H1.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 1 PID D</description>
+    <set>M301 H1 D@</set>
+    <detect>M301 H1.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 1 PID C</description>
+    <set>M301 H1 C@</set>
+    <detect>M301 H1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Hotend 2 PID P</description>
+    <set>M301 H2 P@</set>
+    <detect>M301 H2.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 2 PID I</description>
+    <set>M301 H2 I@</set>
+    <detect>M301 H2.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 2 PID D</description>
+    <set>M301 H2 D@</set>
+    <detect>M301 H2.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 2 PID C</description>
+    <set>M301 H2 C@</set>
+    <detect>M301 H2.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Hotend 3 PID P</description>
+    <set>M301 H3 P@</set>
+    <detect>M301 H3.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 3 PID I</description>
+    <set>M301 H3 I@</set>
+    <detect>M301 H3.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 3 PID D</description>
+    <set>M301 H3 D@</set>
+    <detect>M301 H3.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 3 PID C</description>
+    <set>M301 H3 C@</set>
+    <detect>M301 H3.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Bed PID P</description>
+    <set>M301 H-1 P@</set>
+    <detect>M301 H-1.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed PID I</description>
+    <set>M301 H-1 I@</set>
+    <detect>M301 H-1.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed PID D</description>
+    <set>M301 H-1 D@</set>
+    <detect>M301 H-1.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed PID C</description>
+    <set>M301 H-1 C@</set>
+    <detect>M301 H-1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Chamber PID P</description>
+    <set>M301 H-2 P@</set>
+    <detect>M301 H-2.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Chamber PID I</description>
+    <set>M301 H-2 I@</set>
+    <detect>M301 H-2.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Chamber PID D</description>
+    <set>M301 H-2 D@</set>
+    <detect>M301 H-2.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Chamber PID C</description>
+    <set>M301 H-2 C@</set>
+    <detect>M301 H-2.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Cooler PID P</description>
+    <set>M301 H-3 P@</set>
+    <detect>M301 H-3.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Cooler PID I</description>
+    <set>M301 H-3 I@</set>
+    <detect>M301 H-3.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Cooler PID D</description>
+    <set>M301 H-3 D@</set>
+    <detect>M301 H-3.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Cooler PID C</description>
+    <set>M301 H-3 C@</set>
+    <detect>M301 H-3.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M305: Heater sensors parameters -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 0 thermistor resistance at 25C</description>
+    <set>M305 H0 A@</set>
+    <detect>M305 H0.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 0 BetaK value</description>
+    <set>M305 H0 B@</set>
+    <detect>M305 H0.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Hotend 0 Steinhart-Hart C coefficient</description>
+    <set>M305 H0 C@</set>
+    <detect>M305 H0.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 0 PullUp resistor value</description>
+    <set>M305 H0 R@</set>
+    <detect>M305 H0.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 0 ADC low offset correction</description>
+    <set>M305 H0 L@</set>
+    <detect>M305 H0.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 0 ADC high offset correction</description>
+    <set>M305 H0 O@</set>
+    <detect>M305 H0.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 0 sensor pin</description>
+    <set>M305 H0 P@</set>
+    <detect>M305 H0.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 1 thermistor resistance at 25C</description>
+    <set>M305 H1 A@</set>
+    <detect>M305 H1.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 1 BetaK value</description>
+    <set>M305 H1 B@</set>
+    <detect>M305 H1.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Hotend 1 Steinhart-Hart C coefficient</description>
+    <set>M305 H1 C@</set>
+    <detect>M305 H1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 1 PullUp resistor value</description>
+    <set>M305 H1 R@</set>
+    <detect>M305 H1.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 1 ADC low offset correction</description>
+    <set>M305 H1 L@</set>
+    <detect>M305 H1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 1 ADC high offset correction</description>
+    <set>M305 H1 O@</set>
+    <detect>M305 H1.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 1 sensor pin</description>
+    <set>M305 H1 P@</set>
+    <detect>M305 H1.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 2 thermistor resistance at 25C</description>
+    <set>M305 H2 A@</set>
+    <detect>M305 H2.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 2 BetaK value</description>
+    <set>M305 H2 B@</set>
+    <detect>M305 H2.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Hotend 2 Steinhart-Hart C coefficient</description>
+    <set>M305 H2 C@</set>
+    <detect>M305 H2.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 2 PullUp resistor value</description>
+    <set>M305 H2 R@</set>
+    <detect>M305 H2.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 2 ADC low offset correction</description>
+    <set>M305 H2 L@</set>
+    <detect>M305 H2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 2 ADC high offset correction</description>
+    <set>M305 H2 O@</set>
+    <detect>M305 H2.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 2 sensor pin</description>
+    <set>M305 H2 P@</set>
+    <detect>M305 H2.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 3 thermistor resistance at 25C</description>
+    <set>M305 H3 A@</set>
+    <detect>M305 H3.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 3 BetaK value</description>
+    <set>M305 H3 B@</set>
+    <detect>M305 H3.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Hotend 3 Steinhart-Hart C coefficient</description>
+    <set>M305 H3 C@</set>
+    <detect>M305 H3.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Hotend 3 PullUp resistor value</description>
+    <set>M305 H3 R@</set>
+    <detect>M305 H3.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 3 ADC low offset correction</description>
+    <set>M305 H3 L@</set>
+    <detect>M305 H3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 3 ADC high offset correction</description>
+    <set>M305 H3 O@</set>
+    <detect>M305 H3.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 3 sensor pin</description>
+    <set>M305 H3 P@</set>
+    <detect>M305 H3.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Bed thermistor resistance at 25C</description>
+    <set>M305 H-1 A@</set>
+    <detect>M305 H-1.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed BetaK value</description>
+    <set>M305 H-1 B@</set>
+    <detect>M305 H-1.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Bed Steinhart-Hart C coefficient</description>
+    <set>M305 H-1 C@</set>
+    <detect>M305 H-1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Bed PullUp resistor value</description>
+    <set>M305 H-1 R@</set>
+    <detect>M305 H-1.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Bed ADC low offset correction</description>
+    <set>M305 H-1 L@</set>
+    <detect>M305 H-1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Bed ADC high offset correction</description>
+    <set>M305 H-1 O@</set>
+    <detect>M305 H-1.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Bed sensor pin</description>
+    <set>M305 H-1 P@</set>
+    <detect>M305 H-1.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Chamber thermistor resistance at 25C</description>
+    <set>M305 H-2 A@</set>
+    <detect>M305 H-2.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Chamber BetaK value</description>
+    <set>M305 H-2 B@</set>
+    <detect>M305 H-2.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Chamber Steinhart-Hart C coefficient</description>
+    <set>M305 H-2 C@</set>
+    <detect>M305 H-2.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Chamber PullUp resistor value</description>
+    <set>M305 H-2 R@</set>
+    <detect>M305 H-2.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Chamber ADC low offset correction</description>
+    <set>M305 H-2 L@</set>
+    <detect>M305 H-2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Chamber ADC high offset correction</description>
+    <set>M305 H-2 O@</set>
+    <detect>M305 H-2.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Chamber sensor pin</description>
+    <set>M305 H-2 P@</set>
+    <detect>M305 H-2.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Cooler thermistor resistance at 25C</description>
+    <set>M305 H-3 A@</set>
+    <detect>M305 H-3.*A(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Cooler BetaK value</description>
+    <set>M305 H-3 B@</set>
+    <detect>M305 H-3.*B(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Cooler Steinhart-Hart C coefficient</description>
+    <set>M305 H-3 C@</set>
+    <detect>M305 H-3.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="[Ohm]">Cooler PullUp resistor value</description>
+    <set>M305 H-3 R@</set>
+    <detect>M305 H-3.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Cooler ADC low offset correction</description>
+    <set>M305 H-3 L@</set>
+    <detect>M305 H-3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Cooler ADC high offset correction</description>
+    <set>M305 H-3 O@</set>
+    <detect>M305 H-3.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Cooler sensor pin</description>
+    <set>M305 H-3 P@</set>
+    <detect>M305 H-3.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="">DHT sensor pin</description>
+    <set>M305 D0 P@</set>
+    <detect>M305 D0.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="11" max="22">
+    <description unit="[11,21,22]">DHT sensor type</description>
+    <set>M305 D0 S@</set>
+    <detect>M305 D0.*S(-?\d*)</detect>
+  </entry>
+  <!-- M306: Heaters parameters -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 0 PID drive min</description>
+    <set>M306 H0 A@</set>
+    <detect>M306 H0.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 0 PID drive max</description>
+    <set>M306 H0 B@</set>
+    <detect>M306 H0.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 0 PID max</description>
+    <set>M306 H0 C@</set>
+    <detect>M306 H0.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 0 min temperature</description>
+    <set>M306 H0 L@</set>
+    <detect>M306 H0.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 0 max temperature</description>
+    <set>M306 H0 O@</set>
+    <detect>M306 H0.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 0 use PID/BangBang</description>
+    <set>M306 H0 U@</set>
+    <detect>M306 H0.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 0 hardware inverted</description>
+    <set>M306 H0 I@</set>
+    <detect>M306 H0.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 0 heater pin</description>
+    <set>M306 H0 P@</set>
+    <detect>M306 H0.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 1 PID drive min</description>
+    <set>M306 H1 A@</set>
+    <detect>M306 H1.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 1 PID drive max</description>
+    <set>M306 H1 B@</set>
+    <detect>M306 H1.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 1 PID max</description>
+    <set>M306 H1 C@</set>
+    <detect>M306 H1.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 1 min temperature</description>
+    <set>M306 H1 L@</set>
+    <detect>M306 H1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 1 max temperature</description>
+    <set>M306 H1 O@</set>
+    <detect>M306 H1.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 1 use PID/BangBang</description>
+    <set>M306 H1 U@</set>
+    <detect>M306 H1.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 1 hardware inverted</description>
+    <set>M306 H1 I@</set>
+    <detect>M306 H1.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 1 heater pin</description>
+    <set>M306 H1 P@</set>
+    <detect>M306 H1.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 2 PID drive min</description>
+    <set>M306 H2 A@</set>
+    <detect>M306 H2.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 2 PID drive max</description>
+    <set>M306 H2 B@</set>
+    <detect>M306 H2.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 2 PID max</description>
+    <set>M306 H2 C@</set>
+    <detect>M306 H2.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 2 min temperature</description>
+    <set>M306 H2 L@</set>
+    <detect>M306 H2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 2 max temperature</description>
+    <set>M306 H2 O@</set>
+    <detect>M306 H2.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 2 use PID/BangBang</description>
+    <set>M306 H2 U@</set>
+    <detect>M306 H2.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 2 hardware inverted</description>
+    <set>M306 H2 I@</set>
+    <detect>M306 H2.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 2 heater pin</description>
+    <set>M306 H2 P@</set>
+    <detect>M306 H2.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 3 PID drive min</description>
+    <set>M306 H3 A@</set>
+    <detect>M306 H3.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 3 PID drive max</description>
+    <set>M306 H3 B@</set>
+    <detect>M306 H3.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 3 PID max</description>
+    <set>M306 H3 C@</set>
+    <detect>M306 H3.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 3 min temperature</description>
+    <set>M306 H3 L@</set>
+    <detect>M306 H3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 3 max temperature</description>
+    <set>M306 H3 O@</set>
+    <detect>M306 H3.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 3 use PID/BangBang</description>
+    <set>M306 H3 U@</set>
+    <detect>M306 H3.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Hotend 3 hardware inverted</description>
+    <set>M306 H3 I@</set>
+    <detect>M306 H3.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 3 heater pin</description>
+    <set>M306 H3 P@</set>
+    <detect>M306 H3.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Bed PID drive min</description>
+    <set>M306 H-1 A@</set>
+    <detect>M306 H-1.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Bed PID drive max</description>
+    <set>M306 H-1 B@</set>
+    <detect>M306 H-1.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Bed PID max</description>
+    <set>M306 H-1 C@</set>
+    <detect>M306 H-1.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Bed min temperature</description>
+    <set>M306 H-1 L@</set>
+    <detect>M306 H-1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Bed max temperature</description>
+    <set>M306 H-1 O@</set>
+    <detect>M306 H-1.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Bed use PID/BangBang</description>
+    <set>M306 H-1 U@</set>
+    <detect>M306 H-1.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Bed hardware inverted</description>
+    <set>M306 H-1 I@</set>
+    <detect>M306 H-1.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Bed heater pin</description>
+    <set>M306 H-1 P@</set>
+    <detect>M306 H-1.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Chamber PID drive min</description>
+    <set>M306 H-2 A@</set>
+    <detect>M306 H-2.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Chamber PID drive max</description>
+    <set>M306 H-2 B@</set>
+    <detect>M306 H-2.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Chamber PID max</description>
+    <set>M306 H-2 C@</set>
+    <detect>M306 H-2.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Chamber min temperature</description>
+    <set>M306 H-2 L@</set>
+    <detect>M306 H-2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Chamber max temperature</description>
+    <set>M306 H-2 O@</set>
+    <detect>M306 H-2.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Chamber use PID/BangBang</description>
+    <set>M306 H-2 U@</set>
+    <detect>M306 H-2.*U([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Chamber hardware inverted</description>
+    <set>M306 H-2 I@</set>
+    <detect>M306 H-2.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Chamber heater pin</description>
+    <set>M306 H-2 P@</set>
+    <detect>M306 H-2.*P(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Cooler PID drive min</description>
+    <set>M306 H-3 A@</set>
+    <detect>M306 H-3.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Cooler PID drive max</description>
+    <set>M306 H-3 B@</set>
+    <detect>M306 H-3.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Cooler PID max</description>
+    <set>M306 H-3 C@</set>
+    <detect>M306 H-3.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Cooler min temperature</description>
+    <set>M306 H-3 L@</set>
+    <detect>M306 H-3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Cooler max temperature</description>
+    <set>M306 H-3 O@</set>
+    <detect>M306 H-3.*O(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Cooler use PID/BangBang</description>
+    <set>M306 H-3 U@</set>
+	ù
+    <detect>M306 H-3.*U([01])</detect></entry>
+  <entry type="bool">
+    <description unit="">Cooler hardware inverted</description>
+    <set>M306 H-3 I@</set>
+    <detect>M306 H-3.*I([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Cooler heater pin</description>
+    <set>M306 H-3 P@</set>
+    <detect>M306 H-3.*P(-?\d*)</detect>
+  </entry>
+  <!--  M420: Bed Leveling -->
+  <entry type="bool">
+    <description unit="">Bed leveling: is active</description>
+    <set>M420 S@</set>
+    <detect>M420.*S([01])</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Bed leveling: Z fade height</description>
     <set>M420 Z@</set>
     <detect>M420.*Z(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Auto Bed Leveling -->
-  <entry type="float" min="0">
-    <description unit="[unit]">ABL Z fade height</description>
-    <set>M320 Z@</set>
-    <detect>M320.*Z(-?\d*\.?\d*)</detect>
+  <!-- M569: Stepper Direction, Direction_delay, minimum_pulse e maximum_rate -->
+  <entry type="int">
+    <description unit="">X stepper direction</description>
+    <set>M569 X@</set>
+    <detect>M569.*X(-?\d*)</detect>
   </entry>
-
-  <!-- AD595 Offset and Gain -->
+  <entry type="bool">
+    <description unit="">Y stepper direction</description>
+    <set>M569 Y@</set>
+    <detect>M569.*Y([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">Z stepper direction</description>
+    <set>M569 Z@</set>
+    <detect>M569.*Z([01])</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">E0 stepper direction</description>
+    <set>M569 T0 E@</set>
+    <detect>M569.*T0 E(-?\d*)</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">E1 stepper direction</description>
+    <set>M569 T1 E@</set>
+    <detect>M569.*T1 E([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">E2 stepper direction</description>
+    <set>M569 T2 E@</set>
+    <detect>M569.*T2 E([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">E3 stepper direction</description>
+    <set>M569 T3 E@</set>
+    <detect>M569.*T3 E([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">E4 stepper direction</description>
+    <set>M569 T4 E@</set>
+    <detect>M569.*T4 E([01])</detect>
+  </entry>
+  <entry type="bool">
+    <description unit="">E5 stepper direction</description>
+    <set>M569 T5 E@</set>
+    <detect>M569.*T5 E([01])</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Stepper direction delay</description>
+    <set>M569 D@</set>
+    <detect>M569.*D(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Stepper minimum pulse time</description>
+    <set>M569 P@</set>
+    <detect>M569.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Stepper maximum rate</description>
+    <set>M569 R@</set>
+    <detect>M569.*R(-?\d*)</detect>
+  </entry>
+  <!-- M595: AD595 Offset and Gain -->
   <entry type="float" min="0">
     <description unit="">H0 AD595 Offset</description>
     <set>M595 H0 O@</set>
@@ -364,185 +1465,68 @@
     <set>M595 H3 S@</set>
     <detect>M595 H3.*S(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Preheat Temperature -->
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 1 Hotend temperature</description>
-    <set>M145 S0 H@</set>
-    <detect>M145 S0 .*H(\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 1 Bed temperature</description>
-    <set>M145 S0 B@</set>
-    <detect>M145 S0 .*B(\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Preheat 1 Fan speed</description>
-    <set>M145 S0 F@</set>
-    <detect>M145 S0 .*F(\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 2 Hotend temperature</description>
-    <set>M145 S1 H@</set>
-    <detect>M145 S1 .*H(\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 2 Bed temperature</description>
-    <set>M145 S1 B@</set>
-    <detect>M145 S1 .*B(\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Preheat 2 Fan speed</description>
-    <set>M145 S1 F@</set>
-    <detect>M145 S1 .*F(\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 3 Hotend temperature</description>
-    <set>M145 S2 H@</set>
-    <detect>M145 S2 .*H(\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="[°C]">Preheat 3 Bed temperature</description>
-    <set>M145 S2 B@</set>
-    <detect>M145 S2 .*B(\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Preheat 3 Fan speed</description>
-    <set>M145 S2 F@</set>
-    <detect>M145 S2.*F(\d*)</detect>
-  </entry>
-
-  <!-- Pid Temp -->
+  <!-- M603: Filament load/unload lengths -->
   <entry type="float" min="0">
-    <description unit="">Hotend 0 PID P</description>
-    <set>M301 H0 P@</set>
-    <detect>M301 H0.*P(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E0 Extrude distance</description>
+    <set>M603 T0 L@</set>
+    <detect>M603 T0.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 0 PID I</description>
-    <set>M301 H0 I@</set>
-    <detect>M301 H0.*I(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E0 Retract distance</description>
+    <set>M603 T0 U@</set>
+    <detect>M603 T0.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 0 PID D</description>
-    <set>M301 H0 D@</set>
-    <detect>M301 H0.*D(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E1 Extrude distance</description>
+    <set>M603 T1 L@</set>
+    <detect>M603 T1.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 0 PID C</description>
-    <set>M301 H0 C@</set>
-    <detect>M301 H0.*C(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E1 Retract distance</description>
+    <set>M603 T1 U@</set>
+    <detect>M603 T1.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 1 PID P</description>
-    <set>M301 H1 P@</set>
-    <detect>M301 H1.*P(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E2 Extrude distance</description>
+    <set>M603 T2 L@</set>
+    <detect>M603 T2.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 1 PID I</description>
-    <set>M301 H1 I@</set>
-    <detect>M301 H1.*I(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E2 Retract distance</description>
+    <set>M603 T2 U@</set>
+    <detect>M603 T2.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 1 PID D</description>
-    <set>M301 H1 D@</set>
-    <detect>M301 H1.*D(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E3 Extrude distance</description>
+    <set>M603 T3 L@</set>
+    <detect>M603 T3.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 1 PID C</description>
-    <set>M301 H1 C@</set>
-    <detect>M301 H1.*C(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E3 Retract distance</description>
+    <set>M603 T3 U@</set>
+    <detect>M603 T3.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 2 PID P</description>
-    <set>M301 H2 P@</set>
-    <detect>M301 H2.*P(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E4 Extrude distance</description>
+    <set>M603 T4 L@</set>
+    <detect>M603 T4.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 2 PID I</description>
-    <set>M301 H2 I@</set>
-    <detect>M301 H2.*I(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E4 Retract distance</description>
+    <set>M603 T4 U@</set>
+    <detect>M603 T4.*U(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 2 PID D</description>
-    <set>M301 H2 D@</set>
-    <detect>M301 H2.*D(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E5 Extrude distance</description>
+    <set>M603 T5 L@</set>
+    <detect>M603 T5.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="">Hotend 2 PID C</description>
-    <set>M301 H2 C@</set>
-    <detect>M301 H2.*C(-?\d*\.?\d*)</detect>
+    <description unit="[unit]">Advanced Pause E5 Retract distance</description>
+    <set>M603 T5 U@</set>
+    <detect>M603 T5.*U(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
-    <description unit="">Hotend 3 PID P</description>
-    <set>M301 H3 P@</set>
-    <detect>M301 H3.*P(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Hotend 3 PID I</description>
-    <set>M301 H3 I@</set>
-    <detect>M301 H3.*I(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Hotend 3 PID D</description>
-    <set>M301 H3 D@</set>
-    <detect>M301 H3.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Hotend 3 PID C</description>
-    <set>M301 H3 C@</set>
-    <detect>M301 H3.*C(-?\d*\.?\d*)</detect>
-  </entry>
-
-  <entry type="float" min="0">
-    <description unit="">Heated bed PID P</description>
-    <set>M304 P@</set>
-    <detect>M304 .*P(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Heated bed PID I</description>
-    <set>M304 I@</set>
-    <detect>M304 .*I(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Heated bed PID D</description>
-    <set>M304 D@</set>
-    <detect>M304 .*D(-?\d*\.?\d*)</detect>
-  </entry>
-
-  <!-- Filament Diameter -->
-  <entry type="float" min="0">
-    <description unit="[unit]">E0 Filament diameter</description>
-    <set>M200 T0 D@</set>
-    <detect>M200 T0.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">E1 Filament diameter</description>
-    <set>M200 T1 D@</set>
-    <detect>M200 T1.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">E2 Filament diameter</description>
-    <set>M200 T2 D@</set>
-    <detect>M200 T2.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">E3 Filament diameter</description>
-    <set>M200 T3 D@</set>
-    <detect>M200 T3.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">E4 Filament diameter</description>
-    <set>M200 T4 D@</set>
-    <detect>M200 T4.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[unit]">E5 Filament diameter</description>
-    <set>M200 T5 D@</set>
-    <detect>M200 T5.*D(-?\d*\.?\d*)</detect>
-  </entry>
-
-  <!-- Delta Parameter M666 -->
+  <!-- M666: Delta geometry parameters -->
   <entry type="float">
     <description unit="[unit]">X endstop adjustment</description>
     <set>M666 X@</set>
@@ -616,63 +1600,80 @@
   <entry type="float" min="0">
     <description unit="[1/s]">Delta segments per second</description>
     <set>M666 S@</set>
-    <detect>M666.*S(\d*\.?\d*)</detect>
+    <detect>M666.*S(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit]">Print Radius</description>
+    <description unit="[unit]">Delta Print Radius</description>
     <set>M666 O@</set>
-    <detect>M666.*O(\d*\.?\d*)</detect>
+    <detect>M666.*O(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
-    <description unit="[unit]">Probe Radius</description>
+    <description unit="[unit]">Delta Probe Radius</description>
     <set>M666 P@</set>
-    <detect>M666.*P(\d*\.?\d*)</detect>
+    <detect>M666.*P(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="[unit]">Delta Height</description>
     <set>M666 H@</set>
-    <detect>M666.*H(\d*\.?\d*)</detect>
+    <detect>M666.*H(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Z Probe offset -->
+  <!-- M851: Z Probe offset -->
   <entry type="float">
-    <description unit="[unit]">Probe X Offset</description>
+    <description unit="[unit]">X Probe Offset</description>
     <set>M851 X@</set>
     <detect>M851.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Probe Y Offset</description>
+    <description unit="[unit]">Y Probe Offset</description>
     <set>M851 Y@</set>
     <detect>M851.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Probe Z Offset</description>
+    <description unit="[unit]">Z Probe Offset</description>
     <set>M851 Z@</set>
     <detect>M851.*Z(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- LCD Contrast -->
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">LCD contrast</description>
-    <set>M250 C@</set>
-    <detect>M250.*C(\d*\.?\d*)</detect>
+  <!-- M900: Linear Advance -->
+  <entry type="float">
+    <description unit="[unit]">Linear Advance K factor</description>
+    <set>M900 K@</set>
+    <detect>M900.*K(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Motor Current -->
+  <entry type="float">
+    <description unit="[unit]">Linear Advance Extrusion-Distance ratio</description>
+    <set>M900 R@</set>
+    <detect>M900.*R(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M906: Motor Current -->
   <entry type="float" min="0" max="2.5">
     <description unit="[A]">X motor current</description>
-    <set>M906 X@</set>
-    <detect>M906.*X(\d*\.?\d*)</detect>
+    <set>M906 I0 X@</set>
+    <detect>M906(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0" max="2.5">
     <description unit="[A]">Y motor current</description>
-    <set>M906 Y@</set>
-    <detect>M906.*Y(\d*\.?\d*)</detect>
+    <set>M906 I0 Y@</set>
+    <detect>M906(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0" max="2.5">
     <description unit="[A]">Z motor current</description>
-    <set>M906 Z@</set>
-    <detect>M906.*Z(\d*\.?\d*)</detect>
+    <set>M906 I0 Z@</set>
+    <detect>M906(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <description unit="[A]">X2 motor current</description>
+    <set>M906 I1 X@</set>
+    <detect>M906.*I1.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <description unit="[A]">Y2 motor current</description>
+    <set>M906 I1 Y@</set>
+    <detect>M906.*I1.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="2.5">
+    <description unit="[A]">Z2 motor current</description>
+    <set>M906 I1 Z@</set>
+    <detect>M906.*I1.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0" max="2.5">
     <description unit="[A]">E0 motor current</description>
@@ -704,46 +1705,96 @@
     <set>M906 T5 E@</set>
     <detect>M906 T5.*E(-?\d*\.?\d*)</detect>
   </entry>
-
-  <!-- Auto retract -->
-  <entry type="bool">
-    <description unit="[0/1]">Autoretract enabled</description>
-    <set>M209 S@</set>
-    <detect>M209.*S(\d*)</detect>
+  <!-- M913: Hybrid Threshold-->
+  <entry type="float">
+    <description unit="">X motor Hybrid Threshold</description>
+    <set>M913 I0 X@</set>
+    <detect>M913(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Retract length</description>
-    <set>M207 S@</set>
-    <detect>M207.*S(-?\d*\.?\d*)</detect>
+    <description unit="">Y motor Hybrid Threshold</description>
+    <set>M913 I0 Y@</set>
+    <detect>M913(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Retract swap length</description>
-    <set>M207 W@</set>
-    <detect>M207.*W(-?\d*\.?\d*)</detect>
+    <description unit="">Z motor Hybrid Threshold</description>
+    <set>M913 I0 Z@</set>
+    <detect>M913(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit/s]">Retract feedrate</description>
-    <set>M207 F@</set>
-    <detect>M207.*F(-?\d*\.?\d*)</detect>
+    <description unit="">X2 motor Hybrid Threshold</description>
+    <set>M913 I1 X@</set>
+    <detect>M913.*I1.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Retract z lift</description>
-    <set>M207 Z@</set>
-    <detect>M207.*Z(-?\d*\.?\d*)</detect>
+    <description unit="">Y2 motor Hybrid Threshold</description>
+    <set>M913 I1 Y@</set>
+    <detect>M913.*I1.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Retract recover length</description>
-    <set>M208 S@</set>
-    <detect>M208.*S(-?\d*\.?\d*)</detect>
+    <description unit="">Z2 motor Hybrid Threshold</description>
+    <set>M913 I1 Z@</set>
+    <detect>M913.*I1.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit]">Retract recover swap length</description>
-    <set>M208 W@</set>
-    <detect>M208.*W(-?\d*\.?\d*)</detect>
+    <description unit="">E0 motor Hybrid Threshold</description>
+    <set>M913 T0 E@</set>
+    <detect>M913.*T0 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="[unit/s]">Retract recover feedrate</description>
-    <set>M208 F@</set>
-    <detect>M208.*F(-?\d*\.?\d*)</detect>
+    <description unit="">E1 motor Hybrid Threshold</description>
+    <set>M913 T1 E@</set>
+    <detect>M913 T1.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">E2 motor Hybrid Threshold</description>
+    <set>M913 T2 E@</set>
+    <detect>M913 T2.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">E3 motor Hybrid Threshold</description>
+    <set>M913 T3 E@</set>
+    <detect>M913 T3.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">E4 motor Hybrid Threshold</description>
+    <set>M913 T4 E@</set>
+    <detect>M913 T4.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">E5 motor Hybrid Threshold</description>
+    <set>M913 T5 E@</set>
+    <detect>M913 T5.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- M914: Sensorless homing threshold-->
+  <entry type="float">
+    <description unit="">X motor Sensorless homing threshold</description>
+    <set>M914 I0 X@</set>
+    <detect>M914(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Y motor Sensorless homing threshold</description>
+    <set>M914 I0 Y@</set>
+    <detect>M914(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Z motor Sensorless homing threshold</description>
+    <set>M914 I0 Z@</set>
+    <detect>M914(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">X2 motor Sensorless homing threshold</description>
+    <set>M914 I1 X@</set>
+    <detect>M914.*I1.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Y2 motor Sensorless homing threshold</description>
+    <set>M914 I1 Y@</set>
+    <detect>M914.*I1.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="">Z2 motor Sensorless homing threshold</description>
+    <set>M914 I1 Z@</set>
+    <detect>M914.*I1.*Z(-?\d*\.?\d*)</detect>
   </entry>
 </eeprom>
