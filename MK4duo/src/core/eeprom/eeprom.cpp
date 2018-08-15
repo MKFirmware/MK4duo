@@ -1276,7 +1276,7 @@ void EEPROM::Postprocess() {
         if (!WITHIN(slot, 0, a - 1)) {
           #if ENABLED(EEPROM_CHITCHAT)
             ubl_invalid_slot(a);
-            SERIAL_MV("E2END=", memorystore.capacity() - 1);
+            SERIAL_MV("E2END=", (int)(memorystore.capacity() - 1));
             SERIAL_MV(" meshes_end=", (int)meshes_end);
             SERIAL_EMV(" slot=", slot);
           #endif

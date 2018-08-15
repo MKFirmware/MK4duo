@@ -213,7 +213,7 @@
         static void unparseKeyLine(const char* key, char* value);
         static int  KeyIndex(char* key);
       #else
-        inline static void RetrieveSettings() { reset_default(); }
+        static inline void RetrieveSettings() { reset_default(); }
       #endif
 
       #if ENABLED(SDCARD_SORT_ALPHA)
