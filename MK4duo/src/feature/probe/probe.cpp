@@ -598,7 +598,7 @@ float Probe::run_probing() {
     // Move to trigger deployment
     do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
-  void run_stow_moves_script() {
+  void Probe::run_stow_moves_script() {
 
     const float z_probe_retract_start_location[] = Z_PROBE_RETRACT_START_LOCATION,
                 z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;

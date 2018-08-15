@@ -113,6 +113,7 @@ class Probe {
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();
+      static void run_stow_moves_script();
     #endif
 
     #if HAS_Z_PROBE_SLED
