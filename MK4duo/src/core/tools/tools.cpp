@@ -64,6 +64,12 @@
 
     planner.synchronize();
 
+    #if HAS_LEVELING
+      // Set current position to the physical position
+      const bool leveling_was_active = bedlevel.leveling_active;
+      bedlevel.set_bed_leveling_enabled(false);
+    #endif
+
     #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
 
       mixing_tool_change(tmp_extruder);
@@ -87,12 +93,6 @@
 
           // Save current position to destination, for use later
           mechanics.set_destination_to_current();
-
-          #if HAS_LEVELING
-            // Set current position to the physical position
-            const bool leveling_was_active = bedlevel.leveling_active;
-            bedlevel.set_bed_leveling_enabled(false);
-          #endif
 
           #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -128,11 +128,6 @@
             active_extruder = tmp_extruder;
 
           #endif // !DUAL_X_CARRIAGE
-
-          #if HAS_LEVELING
-            // Restore leveling to re-establish the logical position
-            bedlevel.set_bed_leveling_enabled(leveling_was_active);
-          #endif
 
           #if HAS_DONDOLO
             mechanics.current_position[Z_AXIS] -= z_diff;
@@ -194,6 +189,12 @@
         #endif
 
       #endif // HOTENDS <= 1
+
+      #if HAS_LEVELING
+        planner.synchronize();
+        // Restore leveling to re-establish the logical position
+        bedlevel.set_bed_leveling_enabled(leveling_was_active);
+      #endif
 
       SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 
