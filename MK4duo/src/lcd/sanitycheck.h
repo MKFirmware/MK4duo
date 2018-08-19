@@ -250,31 +250,6 @@ static_assert(1 >= 0
   #error "DEPENDENCY ERROR: ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
 #endif
 
-// Easy load
-#if ENABLED(EASY_LOAD)
-  #if DISABLED(BOWDEN_LENGTH)
-    #error "DEPENDENCY ERROR: Missing setting BOWDEN_LENGTH."
-  #endif
-  #if DISABLED(LCD_PURGE_LENGTH)
-    #error "DEPENDENCY ERROR: Missing setting LCD_PURGE_LENGTH."
-  #endif
-  #if DISABLED(LCD_RETRACT_LENGTH)
-    #error "DEPENDENCY ERROR: Missing setting LCD_RETRACT_LENGTH."
-  #endif
-  #if DISABLED(LCD_PURGE_FEEDRATE)
-    #error "DEPENDENCY ERROR: Missing setting LCD_PURGE_FEEDRATE."
-  #endif
-  #if DISABLED(LCD_RETRACT_FEEDRATE)
-    #error "DEPENDENCY ERROR: Missing setting LCD_RETRACT_FEEDRATE."
-  #endif
-  #if DISABLED(LCD_LOAD_FEEDRATE)
-    #error "DEPENDENCY ERROR: Missing setting LCD_LOAD_FEEDRATE."
-  #endif
-  #if DISABLED(LCD_UNLOAD_FEEDRATE)
-    #error "DEPENDENCY ERROR: Missing setting LCD_UNLOAD_FEEDRATE."
-  #endif
-#endif
-
 // Babystepping
 #if ENABLED(BABYSTEPPING) && DISABLED(ULTRA_LCD)
   #error "DEPENDENCY ERROR: BABYSTEPPING requires an LCD controller."
