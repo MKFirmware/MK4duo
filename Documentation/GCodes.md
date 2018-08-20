@@ -191,6 +191,8 @@
 | M912 | TRINAMIC | Clear stepper driver overtemperature pre-warn condition flag
 | M913 | HYBRID THRESHOLD | Set HYBRID THRESHOLD speed
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
+| M915 | TRINAMIC | TMC Z axis calibration routine
+| M922 | TRINAMIC | S[1/0] Enable/disable TMC debug
 | M928 | ? | Start SD logging (M928 filename.g) - ended by M29
 | M995 | ? | X Y Z Set origin for graphic in NEXTION
 | M996 | ? | S[scale] Set scale for graphic in NEXTION
