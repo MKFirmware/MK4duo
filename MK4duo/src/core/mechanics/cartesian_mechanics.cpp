@@ -50,6 +50,9 @@
               Cartesian_Mechanics::hotend_duplication_enabled   = false;                        // used in mode 2
   #endif
 
+  /** Private Parameters */
+  constexpr float slop = 0.0001;
+
   /** Public Function */
   void Cartesian_Mechanics::factory_parameters() {
 
@@ -533,16 +536,22 @@
 
   // Return true if the given position is within the machine bounds.
   bool Cartesian_Mechanics::position_is_reachable(const float &rx, const float &ry) {
-    // Add 0.001 margin to deal with float imprecision
-    return WITHIN(rx, X_MIN_POS - 0.001, X_MAX_POS + 0.001)
-        && WITHIN(ry, Y_MIN_POS - 0.001, Y_MAX_POS + 0.001);
+    if (!WITHIN(ry, Y_MIN_POS - slop, Y_MAX_POS + slop)) return false;
+    #if ENABLED(DUAL_X_CARRIAGE)
+      if (active_extruder)
+        return WITHIN(rx, X2_MIN_POS - slop, X2_MAX_POS + slop);
+      else
+        return WITHIN(rx, X1_MIN_POS - slop, X1_MAX_POS + slop);
+    #else
+      return WITHIN(rx, X_MIN_POS - slop, X_MAX_POS + slop);
+    #endif
   }
   // Return whether the given position is within the bed, and whether the nozzle
   //  can reach the position required to put the probe at the given position.
   bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     return position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS])
-        && WITHIN(rx, MIN_PROBE_X - 0.001, MAX_PROBE_X + 0.001)
-        && WITHIN(ry, MIN_PROBE_Y - 0.001, MAX_PROBE_Y + 0.001);
+        && WITHIN(rx, MIN_PROBE_X - slop, MAX_PROBE_X + slop)
+        && WITHIN(ry, MIN_PROBE_Y - slop, MAX_PROBE_Y + slop);
   }
 
   // Report detail current position to host

@@ -146,7 +146,7 @@
             }
           #endif // PID_ADD_EXTRUSION_RATE
 
-          soft_pwm = constrain((int)pidTerm, 0, PID_MAX);
+          soft_pwm = constrain((int)pidTerm, 0, pidMax);
         }
 
         if (ELAPSED(now, cycle_1s)) {

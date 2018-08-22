@@ -59,7 +59,7 @@
  * - Force Home XY before Home Z
  * - Babystepping
  * - Firmware retract
- * - Dual X-carriage
+ * - Dual X Carriage
  * - X-axis two driver
  * - Y-axis two driver
  * - Z-axis two driver
@@ -733,22 +733,25 @@
 
 
 /*****************************************************************************************
- ************************************ Dual X-carriage ************************************
+ ************************************ Dual X Carriage ************************************
  *****************************************************************************************
  *                                                                                       *
- * A dual x-carriage design has the advantage that the inactive extruder can be parked   *
- * which prevents hot-end ooze contaminating the print. It also reduces the weight of    *
- * each x-carriage allowing faster printing speeds.                                      *
+ * This setup has two X carriages that can move independently, each with its own hotend. *
+ * The carriages can be used to print an object with two colors or materials, or in      *
+ * "duplication mode" it can print two identical or X-mirrored objects simultaneously.   *
+ * The inactive carriage is parked automatically to prevent oozing.                      *
+ * X1 is the left carriage, X2 the right. They park and home at opposite ends            *
+ * of the X axis.                                                                        *
+ * By default the X2 stepper is assigned to the first unused E plug on the board.        *
  *                                                                                       *
  *****************************************************************************************/
 //#define DUAL_X_CARRIAGE
 
-// Configuration for second X-carriage
-// Note: the first x-carriage is defined as the x-carriage which homes to the minimum endstop;
-// the second x-carriage always homes to the maximum endstop.
-#define X2_MIN_POS 80     // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
-#define X2_MAX_POS 353    // set maximum to the distance between toolheads when both heads are homed
-#define X2_HOME_DIR 1     // the second X-carriage always homes to the maximum endstop position
+#define X1_MIN_POS X_MIN_POS  // set minimum to ensure first x-carriage doesn't hit the parked second X-carriage
+#define X1_MAX_POS X_BED_SIZE // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
+#define X2_MIN_POS 80         // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
+#define X2_MAX_POS 353        // set maximum to the distance between toolheads when both heads are homed
+#define X2_HOME_DIR 1         // the second X-carriage always homes to the maximum endstop position
 #define X2_HOME_POS X2_MAX_POS // default home position is the maximum carriage position
 // However: In this mode the HOTEND_OFFSET_X value for the second extruder provides a software
 // override for X2_HOME_POS. This also allow recalibration of the distance between the two endstops
