@@ -42,8 +42,6 @@
 #ifndef _NEXTION_LCD_H_
 #define _NEXTION_LCD_H_
 
-#define LCD_DECIMAL_SMALL_XY
-
 // For debug Connect
 //#define NEXTION_CONNECT_DEBUG
 

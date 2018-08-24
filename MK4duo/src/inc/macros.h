@@ -84,16 +84,13 @@
 #define NOMECH(mech)  (MECHANISM != MECH_##mech)
 
 #define IS_CARTESIAN  (MECH(CARTESIAN))
-
 #define IS_DELTA      (MECH(DELTA))
 #define IS_SCARA      (MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA))
 #define IS_KINEMATIC  (IS_DELTA || IS_SCARA)
-
 #define CORE_IS_XY    (MECH(COREXY) || MECH(COREYX))
 #define CORE_IS_XZ    (MECH(COREXZ) || MECH(COREZX))
 #define CORE_IS_YZ    (MECH(COREYZ) || MECH(COREZY))
 #define IS_CORE       (CORE_IS_XY || CORE_IS_XZ || CORE_IS_YZ)
-
 #define IS_MUVE3D     (MECH(MUVE3D))
 
 // Macros to inch mode support
@@ -233,6 +230,7 @@
 #define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
 #define LOOP_HEATER()           LOOP_L_N(h, HEATER_COUNT)
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
+#define LOOP_SERVO()            LOOP_L_N(s, NUM_SERVOS)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M)        ((MM_M)/60.0f)

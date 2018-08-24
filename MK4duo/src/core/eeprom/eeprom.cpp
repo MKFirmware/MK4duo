@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV50"
+#define EEPROM_VERSION "MKV51"
 
 /**
- * MKV50 EEPROM Layout:
+ * MKV51 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -151,6 +151,9 @@
  *
  * DOGLCD:
  *  M250  C               lcd_contrast                                  (uint16_t)
+ *
+ * SERVO ANGLES:
+ *  M281  P   LU          servo.angle                                   (int x2)
  *
  * FWRETRACT:
  *  M209  S               fwretract.autoretract_enabled                 (bool)
@@ -513,6 +516,10 @@ void EEPROM::Postprocess() {
 
     #if HAS_LCD_CONTRAST
       EEPROM_WRITE(lcd_contrast);
+    #endif
+
+    #if HAS_SERVOS
+      LOOP_SERVO() EEPROM_WRITE(servo[s].angle);
     #endif
 
     #if ENABLED(FWRETRACT)
@@ -996,6 +1003,10 @@ void EEPROM::Postprocess() {
         EEPROM_READ(lcd_contrast);
       #endif
 
+      #if HAS_SERVOS
+        LOOP_SERVO() EEPROM_READ(servo[s].angle);
+      #endif
+
       #if ENABLED(FWRETRACT)
         EEPROM_READ(fwretract.autoretract_enabled);
         EEPROM_READ(fwretract.retract_length);
@@ -1432,6 +1443,22 @@ void EEPROM::Factory_Settings() {
     lcd_contrast = DEFAULT_LCD_CONTRAST;
   #endif
 
+  #if HAS_SERVOS
+
+    #if HAS_DONDOLO
+      constexpr int16_t angles[] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
+      servo[DONDOLO_SERVO_INDEX].angle[0] = angles[0];
+      servo[DONDOLO_SERVO_INDEX].angle[0] = angles[1];
+    #endif
+
+    #if HAS_Z_SERVO_PROBE
+      constexpr uint8_t z_probe_angles[2] = Z_SERVO_ANGLES;
+      servo[Z_PROBE_SERVO_NR].angle[0] = z_probe_angles[0];
+      servo[Z_PROBE_SERVO_NR].angle[1] = z_probe_angles[1];
+    #endif
+
+  #endif
+  
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     tools.lpq_len = 20; // default last-position-queue size
   #endif
@@ -1884,6 +1911,10 @@ void EEPROM::Factory_Settings() {
     #if HAS_LCD_CONTRAST
       SERIAL_LM(CFG, "LCD Contrast:");
       SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
+    #endif
+
+    #if HAS_SERVOS
+      LOOP_SERVO() servo[s].print_parameters();
     #endif
 
     /**

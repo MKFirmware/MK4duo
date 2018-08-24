@@ -33,10 +33,6 @@ Probe probe;
 /** Public Parameters */
 float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE };
 
-#if HAS_Z_SERVO_PROBE
-  const int Probe::z_servo_angle[2] = Z_SERVO_ANGLES;
-#endif
-
 /** Public Function */
 
 // returns false for ok and true for failure
@@ -105,7 +101,7 @@ bool Probe::set_deployed(const bool deploy) {
       #elif ENABLED(BLTOUCH) && MECH(DELTA)
         if (set_bltouch_deployed(deploy)) return true;
       #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
-        MOVE_SERVO(Z_PROBE_SERVO_NR, z_servo_angle[deploy ? 0 : 1]);
+        MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
       #elif ENABLED(Z_PROBE_ALLEN_KEY)
         deploy ? run_deploy_moves_script() : run_stow_moves_script();
       #endif
@@ -323,8 +319,8 @@ void Probe::servo_test() {
       SERIAL_EM("Servo probe test");
     #endif
     SERIAL_EMV(".  Using index:  ", probe_index);
-    SERIAL_EMV(".  Deploy angle: ", probe.z_servo_angle[0]);
-    SERIAL_EMV(".  Stow angle:   ", probe.z_servo_angle[1]);
+    SERIAL_EMV(".  Deploy angle: ", servo[probe_index].angle[0]);
+    SERIAL_EMV(".  Stow angle:   ", servo[probe_index].angle[1]);
 
     bool probe_logic;
 
@@ -366,10 +362,10 @@ void Probe::servo_test() {
     bool deploy_state, stow_state;
 
     do {
-      MOVE_SERVO(probe_index, probe.z_servo_angle[0]); //deploy
+      MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // deploy
       printer.safe_delay(500);
       deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
-      MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
+      MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // stow
       printer.safe_delay(500);
       stow_state = HAL::digitalRead(PROBE_TEST_PIN);
     } while (++i < 4);
@@ -392,8 +388,8 @@ void Probe::servo_test() {
         SERIAL_EM("ERROR: BLTOUCH enabled - set this device up as a Z Servo Probe with inverting as true.");
       #endif
     }
-    else {                                        // measure active signal length
-      MOVE_SERVO(probe_index, probe.z_servo_angle[0]);  // deploy
+    else {    // measure active signal length
+      MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // deploy
       printer.safe_delay(500);
       SERIAL_EM("please trigger probe");
       uint16_t probe_counter = 0;
@@ -418,7 +414,7 @@ void Probe::servo_test() {
           else
             SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
 
-          MOVE_SERVO(probe_index, probe.z_servo_angle[1]); //stow
+          MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // stow
 
         } // pulse detected
 

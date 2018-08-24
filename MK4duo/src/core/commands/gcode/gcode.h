@@ -78,7 +78,6 @@
 #include "control/m121.h"
 #include "control/m122.h"
 #include "control/m226.h"                 // Wait until a pin
-#include "control/m280.h"                 // Servo
 #include "control/m350_m351.h"            // Microstep
 #include "control/m355.h"                 // Set Case Light
 #include "control/m380_m381.h"            // Extruder Solenoid
@@ -184,6 +183,10 @@
 
 // Rfid Commands
 #include "rfid/m522.h"                    // Rfid read and write
+
+// Servo Commands
+#include "servo/m280.h"                   // Servo move
+#include "servo/m281.h"                   // Servo Angles
 
 // Scara Commands
 #include "scara/m360_m364.h"

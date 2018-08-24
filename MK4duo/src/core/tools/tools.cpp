@@ -490,9 +490,8 @@
   #if HAS_DONDOLO
 
     void Tools::move_extruder_servo(const uint8_t e) {
-      constexpr int16_t angles[] = { DONDOLO_SERVOPOS_E0, DONDOLO_SERVOPOS_E1 };
       planner.synchronize();
-      MOVE_SERVO(DONDOLO_SERVO_INDEX, angles[e]);
+      MOVE_SERVO(DONDOLO_SERVO_INDEX, servo[DONDOLO_SERVO_INDEX].angle[e]);
       #if (DONDOLO_SERVO_DELAY > 0)
         printer.safe_delay(DONDOLO_SERVO_DELAY);
       #endif

@@ -20,14 +20,37 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * mcode
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.6"
-#define FIRMWARE_REVISION         "25082018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+#if HAS_SERVOS
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+  #define CODE_M281
+
+  /**
+   * M281: Set servo min|max position
+   *  P<index>
+   *  L<min>
+   *  U<max>
+   */
+  inline void gcode_M281(void) {
+
+    if (!parser.seen('P')) return;
+    const int servo_index = parser.value_int();
+
+    if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
+      if (parser.seen('L')) servo[servo_index].angle[0] = parser.value_int();
+      if (parser.seen('U')) servo[servo_index].angle[1] = parser.value_int();
+      servo[servo_index].print_parameters();
+    }
+    else {
+      SERIAL_SMV(ER, "Servo ", servo_index);
+      SERIAL_EM(" out of range");
+    }
+
+  }
+
+#endif // NUM_SERVOS > 0
