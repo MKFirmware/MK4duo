@@ -56,7 +56,7 @@
   #error "DEPENDENCY ERROR: You have to set a valid MOTHERBOARD."
 #endif
 
-// Alligatorboard
+// Alligator board
 #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
   #if DISABLED(UI_VOLTAGE_LEVEL)
     #error "DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL."

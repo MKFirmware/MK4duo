@@ -34,16 +34,17 @@
    * M280: Get or set servo position. P<index> S<angle>
    */
   inline void gcode_M280(void) {
+
     if (!parser.seen('P')) return;
     const int servo_index = parser.value_int();
 
     #if HAS_DONDOLO
+
       int servo_position = 0;
       if (parser.seenval('S')) {
         servo_position = parser.value_int();
-        if (servo_index >= 0 && servo_index < NUM_SERVOS && servo_index != DONDOLO_SERVO_INDEX) {
+        if (servo_index >= 0 && servo_index < NUM_SERVOS && servo_index != DONDOLO_SERVO_INDEX)
           MOVE_SERVO(servo_index, servo_position);
-        }
         else if (servo_index == DONDOLO_SERVO_INDEX) {
           Servo *srv = &servo[servo_index];
           srv->attach(0);
@@ -58,7 +59,9 @@
           SERIAL_EM(" out of range");
         }
       }
-    #else
+
+    #else // !HAS_DONDOLO
+    
       if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
         if (parser.seenval('S'))
           MOVE_SERVO(servo_index, parser.value_int());
@@ -71,7 +74,9 @@
         SERIAL_SMV(ER, "Servo ", servo_index);
         SERIAL_EM(" out of range");
       }
-    #endif
+
+    #endif // !HAS_DONDOLO
+
   }
 
 #endif // NUM_SERVOS > 0

@@ -113,9 +113,21 @@
 
   class Servo {
 
-    public:
+    public: /** Constructor */
 
       Servo();
+
+    public: /** Public Parameters */
+
+      int angle[2];
+
+    private: /** Private Parameters */
+
+      uint8_t index;  // index into the channel data for this servo
+      int8_t  min,    // minimum is this value times 4 added to MIN_PULSE_WIDTH
+              max;    // maximum is this value times 4 added to MAX_PULSE_WIDTH
+
+    public: /** Public Function */
 
       int8_t attach(const pin_t pin);                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
       int8_t attach(const pin_t pin, int min, int max); // as above but also sets min and max values for writes.
@@ -129,11 +141,7 @@
       int readMicroseconds();             // returns current pulse width in microseconds for this servo (was read_us() in first release)
       bool attached();                    // return true if this servo is attached, otherwise false
 
-    private:
-
-      uint8_t servoIndex; // index into the channel data for this servo
-      int8_t min;         // minimum is this value times 4 added to MIN_PULSE_WIDTH
-      int8_t max;         // maximum is this value times 4 added to MAX_PULSE_WIDTH
+      void print_parameters();
 
   };
 

@@ -204,7 +204,8 @@
  * M226 - Wait until the specified pin reaches the state required: P[pin number] S[pin state]
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C[contrast value] (value 0..63)
- * M280 - Set servo position absolute. P: servo index, S: angle or microseconds
+ * M280 - Set servo position absolute. P<index> S<angle or microseconds>. (Requires servos)
+ * M281 - Set servo low|up angles position. P<index> L<low> U<up>. (Requires servos)
  * M290 - Babystepping (Requires BABYSTEPPING)
  * M300 - Play beep sound S[frequency Hz] P[duration ms]
  * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,

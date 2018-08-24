@@ -129,7 +129,8 @@
 | M221 | ? | T[extruder] S[factor in percent] - set extrude factor override percentage
 | M222 | ? | T[extruder] S[factor in percent] - set density extrude factor percentage for purge
 | M240 | ? | Trigger a camera to take a photograph
-| M280 | ? | Position an RC Servo P[index] S[angle/microseconds], ommit S to report back current angle
+| M280 | SERVO | Position an RC Servo P[index] S[angle/microseconds], ommit S to report back current angle
+| M281 | SERVO | Set servo low|up angles position. P[index] L[low] U[up]
 | M300 | ? | Play beep sound S[frequency Hz] P[duration ms]
 | M301 | ? | Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, P[float] Kp term, I[float] Ki term, D[float] Kd term. With PID ADD EXTRUSION RATE: C[float] Kc term, L[float] LPQ length
 | M302 | ? | Allow cold extrudes, or set the minimum extrude S[temperature>.
