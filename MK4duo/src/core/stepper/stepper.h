@@ -341,7 +341,6 @@ class Stepper {
     #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
       FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
     #endif
-	
     #if ENABLED(X_TWO_ENDSTOPS)
       FORCE_INLINE static void set_x_lock(const bool state) { locked_X_motor = state; }
       FORCE_INLINE static void set_x2_lock(const bool state) { locked_X2_motor = state; }
