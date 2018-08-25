@@ -338,18 +338,18 @@ class Stepper {
       static void microstep_readings();
     #endif
 
-    #if ENABLED(X_TWO_ENDSTOPS)
+    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
       FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
+    #endif
+    #if ENABLED(X_TWO_ENDSTOPS)
       FORCE_INLINE static void set_x_lock(const bool state) { locked_X_motor = state; }
       FORCE_INLINE static void set_x2_lock(const bool state) { locked_X2_motor = state; }
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
       FORCE_INLINE static void set_y_lock(const bool state) { locked_Y_motor = state; }
       FORCE_INLINE static void set_y2_lock(const bool state) { locked_Y2_motor = state; }
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      FORCE_INLINE static void set_homing_dual_axis(const bool state) { homing_dual_axis = state; }
       FORCE_INLINE static void set_z_lock(const bool state) { locked_Z_motor = state; }
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_Z2_motor = state; }
     #endif

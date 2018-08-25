@@ -12,6 +12,7 @@
 	 _______________________
 -->
 <eeprom>
+
   <!-- M92: Axis resolution -->
   <entry type="float" min="0">
     <description unit="[Steps/unit]">X resolution</description>
@@ -58,6 +59,7 @@
     <set>M92 T5 E@</set>
     <detect>M92.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M99: Hysteresis Correction -->
   <entry type="float">
     <description unit="[unit]">X hysteresis correction</description>
@@ -79,6 +81,7 @@
     <set>M99 F@</set>
     <detect>M99.*F(-?\d*)</detect>
   </entry>
+
   <!-- M106: Fan parameters -->
   <entry type="int" min="0">
     <description unit="">Fan 0 pin</description>
@@ -265,6 +268,7 @@
     <set>M106 P5 H@</set>
     <detect>M106 P5.*H(-?\d*)</detect>
   </entry>
+
   <!-- M145: Preheat Temperature -->
   <entry type="int" min="0">
     <description unit="[°C]">Preheat 1 Hotend temperature</description>
@@ -311,6 +315,7 @@
     <set>M145 S2 F@</set>
     <detect>M145 S2.*F(-?\d*)</detect>
   </entry>
+
   <!-- M200: Filament Diameter -->
   <entry type="float" min="0">
     <description unit="[unit]">E0 Filament diameter</description>
@@ -342,6 +347,7 @@
     <set>M200 T5 D@</set>
     <detect>M200 T5.*D(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M201: Maximum axis acceleration -->
   <entry type="float" min="0">
     <description unit="[unit/s²]">X maximum acceleration</description>
@@ -388,6 +394,7 @@
     <set>M201 T5 E@</set>
     <detect>M201.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M203: Maximum axis feedrate -->
   <entry type="float" min="0">
     <description unit="[unit/s]">X maximum feedrate</description>
@@ -434,6 +441,7 @@
     <set>M203 T5 E@</set>
     <detect>M203.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M204: Default acceleration -->
   <entry type="float" min="0">
     <description unit="[unit/s²]">Printing acceleration</description>
@@ -475,6 +483,7 @@
     <set>M204 T5 R@</set>
     <detect>M204.*T5 R(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M205: Minimum feedrate and Axis maximum jerk -->
   <entry type="float" min="0">
     <description unit="[unit/s]">Minimum feedrate</description>
@@ -541,6 +550,7 @@
     <set>M205 J@</set>
     <detect>M205.*J(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M206: Home offset -->
   <entry type="float">
     <description unit="[unit]">X home offset</description>
@@ -557,6 +567,7 @@
     <set>M206 Z@</set>
     <detect>M206.*Z(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M207-M208-M209: Auto retract -->
   <entry type="float">
     <description unit="[unit]">FWRetract length</description>
@@ -598,6 +609,7 @@
     <set>M209 S@</set>
     <detect>M209.*S(-?\d*)</detect>
   </entry>
+
   <!-- M218: Hotend offset -->
   <entry type="float">
     <description unit="[unit]">H1 X offset</description>
@@ -644,12 +656,56 @@
     <set>M218 H3 Z@</set>
     <detect>M218 H3.*Z(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M250: LCD Contrast -->
   <entry type="int" min="0" max="255">
     <description unit="[0-255]">LCD contrast</description>
     <set>M250 C@</set>
     <detect>M250.*C(-?\d*)</detect>
   </entry>
+
+  <!-- M281: Servo angles -->
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 0 low angle</description>
+    <set>M281 P0 L@</set>
+    <detect>M281 P0.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 0 up angle</description>
+    <set>M281 P0 U@</set>
+    <detect>M281 P0.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 1 low angle</description>
+    <set>M281 P1 L@</set>
+    <detect>M281 P1.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 1 up angle</description>
+    <set>M281 P1 U@</set>
+    <detect>M281 P1.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 2 low angle</description>
+    <set>M281 P2 L@</set>
+    <detect>M281 P2.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 2 up angle</description>
+    <set>M281 P2 U@</set>
+    <detect>M281 P2.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 3 low angle</description>
+    <set>M281 P3 L@</set>
+    <detect>M281 P3.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="360">
+    <description unit="[0°-360°]">Servo 3 up angle</description>
+    <set>M281 P3 U@</set>
+    <detect>M281 P3.*U(-?\d*)</detect>
+  </entry>
+  
   <!-- M301: Pid Temp -->
   <entry type="float" min="0">
     <description unit="">lpq_len</description>
@@ -802,6 +858,7 @@
     <set>M301 H-3 C@</set>
     <detect>M301 H-3.*C(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M305: Heater sensors parameters -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Hotend 0 thermistor resistance at 25C</description>
@@ -1065,6 +1122,7 @@
     <set>M305 D0 S@</set>
     <detect>M305 D0.*S(-?\d*)</detect>
   </entry>
+
   <!-- M306: Heaters parameters -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Hotend 0 PID drive min</description>
@@ -1351,6 +1409,7 @@
     <set>M306 H-3 P@</set>
     <detect>M306 H-3.*P(-?\d*)</detect>
   </entry>
+
   <!--  M420: Bed Leveling -->
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Bed leveling: is active</description>
@@ -1362,6 +1421,7 @@
     <set>M420 Z@</set>
     <detect>M420.*Z(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M569: Stepper Direction, Direction_delay, minimum_pulse e maximum_rate -->
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">X stepper direction</description>
@@ -1423,6 +1483,7 @@
     <set>M569 R@</set>
     <detect>M569.*R(-?\d*)</detect>
   </entry>
+
   <!-- M595: AD595 Offset and Gain -->
   <entry type="float" min="0">
     <description unit="">H0 AD595 Offset</description>
@@ -1464,6 +1525,7 @@
     <set>M595 H3 S@</set>
     <detect>M595 H3.*S(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M603: Filament load/unload lengths -->
   <entry type="float" min="0">
     <description unit="[unit]">Advanced Pause E0 Extrude distance</description>
@@ -1525,6 +1587,7 @@
     <set>M603 T5 U@</set>
     <detect>M603 T5.*U(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M666: Delta geometry parameters -->
   <entry type="float">
     <description unit="[unit]">X endstop adjustment</description>
@@ -1616,6 +1679,7 @@
     <set>M666 H@</set>
     <detect>M666.*H(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M851: Z Probe offset -->
   <entry type="float">
     <description unit="[unit]">X Probe Offset</description>
@@ -1632,6 +1696,7 @@
     <set>M851 Z@</set>
     <detect>M851.*Z(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M900: Linear Advance -->
   <entry type="float">
     <description unit="[unit]">Linear Advance K factor</description>
@@ -1643,6 +1708,7 @@
     <set>M900 R@</set>
     <detect>M900.*R(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M906: Motor Current -->
   <entry type="int" min="100">
     <description unit="[mA]">X motor current</description>
@@ -1704,6 +1770,7 @@
     <set>M906 T5 E@</set>
     <detect>M906 T5.*E(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M913: Hybrid Threshold-->
   <entry type="float">
     <description unit="">X motor Hybrid Threshold</description>
@@ -1765,6 +1832,7 @@
     <set>M913 T5 E@</set>
     <detect>M913 T5.*E(-?\d*\.?\d*)</detect>
   </entry>
+
   <!-- M914: Sensorless homing threshold-->
   <entry type="float">
     <description unit="">X motor Sensorless homing threshold</description>
@@ -1796,4 +1864,5 @@
     <set>M914 I1 Z@</set>
     <detect>M914.*I1.*Z(-?\d*\.?\d*)</detect>
   </entry>
+
 </eeprom>
