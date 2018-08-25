@@ -1249,13 +1249,13 @@ void EEPROM::Postprocess() {
           #endif
         }
       #endif
+
+      EEPROM_READ_FINISH();
     }
 
     #if ENABLED(EEPROM_CHITCHAT)
       Print_Settings();
     #endif
-
-    EEPROM_READ_FINISH();
 
     return !eeprom_error;
   }
