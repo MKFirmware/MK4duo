@@ -538,7 +538,7 @@
   bool Cartesian_Mechanics::position_is_reachable(const float &rx, const float &ry) {
     if (!WITHIN(ry, Y_MIN_POS - slop, Y_MAX_POS + slop)) return false;
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (active_extruder)
+      if (tools.active_extruder)
         return WITHIN(rx, X2_MIN_POS - slop, X2_MAX_POS + slop);
       else
         return WITHIN(rx, X1_MIN_POS - slop, X1_MAX_POS + slop);
