@@ -128,7 +128,8 @@
 #define BOARD_RAMPS_SMART_HHB 1412    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Bed)
 #define BOARD_RAMPS_SMART_HFF 1413    // RAMPS-SMART (Power outputs: Hotend, Fan0, Fan1)
 #define BOARD_RAMPS_SMART_HHF 1414    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Fan)
-#define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
+#define BOARD_RAMPS4DUE       1430    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
+#define BOARD_RAMPS_17_HFB    1433    // RAMPS 1.7 (Power outputs: Hotend, Fan, Bed)
 #define BOARD_ALLIGATOR_R2    1502    // ALLIGATOR R2 ARM 32 bit board
 #define BOARD_ALLIGATOR_R3    1503    // ALLIGATOR R3 ARM 32 bit board
 #define BOARD_RURAMPS4D_V11   1550    // RuRAMPS4Duo v1.1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
