@@ -91,25 +91,24 @@
             no_move = true;
           }
 
-          // Save current position to destination, for use later
-          mechanics.set_destination_to_current();
-
           #if ENABLED(DUAL_X_CARRIAGE)
 
             dualx_tool_change(tmp_extruder, no_move); // Can modify no_move
 
           #else // !DUAL_X_CARRIAGE
 
+            mechanics.set_destination_to_current();
+
+            const float x_diff = hotend_offset[X_AXIS][tmp_extruder] - hotend_offset[X_AXIS][active_extruder],
+                        y_diff = hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][active_extruder],
+                        z_diff = hotend_offset[Z_AXIS][tmp_extruder] - hotend_offset[Z_AXIS][active_extruder];
+
             #if HAS_DONDOLO
               // Always raise by at least 1 to avoid workpiece
-              const float z_diff  = hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder];
-              mechanics.current_position[Z_AXIS] += (z_diff > 0.0 ? z_diff : 0.0) + 1;
+              mechanics.current_position[Z_AXIS] += (z_diff < 0.0 ? -z_diff : 0.0) + 1;
               planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
               move_extruder_servo(tmp_extruder);
             #endif
-
-            const float x_diff = hotend_offset[X_AXIS][tmp_extruder] - hotend_offset[X_AXIS][active_extruder],
-                        y_diff = hotend_offset[Y_AXIS][tmp_extruder] - hotend_offset[Y_AXIS][active_extruder];
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (printer.debugLeveling()) {
@@ -122,6 +121,7 @@
             // The newly-selected extruder XY is actually at...
             mechanics.current_position[X_AXIS] += x_diff;
             mechanics.current_position[Y_AXIS] += y_diff;
+            mechanics.current_position[Z_AXIS] += z_diff;
 
             // Set the new active extruder
             previous_extruder = active_extruder;
@@ -130,7 +130,8 @@
           #endif // !DUAL_X_CARRIAGE
 
           #if HAS_DONDOLO
-            mechanics.current_position[Z_AXIS] -= z_diff;
+            // The newly-selected extruder Z is actually at...
+            mechanics.current_position[Z_AXIS] -= zdiff;
           #endif
 
           // Tell the planner the new "current position"

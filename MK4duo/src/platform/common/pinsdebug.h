@@ -20,14 +20,15 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+#ifndef _PINSDEBUG_H_
+#define _PINSDEBUG_H_
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.6"
-#define FIRMWARE_REVISION         "31082018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #include "../HAL_DUE/pinsdebug.h"
+#elif ENABLED(__AVR__)
+  #include "../HAL_AVR/pinsdebug.h"
+#else
+  #error "Unsupported Platform!"
+#endif
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+#endif /* _PINSDEBUG_H_ */

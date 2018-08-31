@@ -63,6 +63,35 @@
   #endif
 #endif
 
+// Limited number of servos
+#if NUM_SERVOS > 4
+  #error "DEPENDENCY ERROR: The maximum number of SERVOS in MK4duo is 4."
+#endif
+#if ENABLED(ENABLE_SERVOS)
+  #if NUM_SERVOS < 1
+    #error "DEPENDENCY ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS."
+  #endif
+  #if Z_PROBE_SERVO_NR >= 0
+    #if Z_PROBE_SERVO_NR >= NUM_SERVOS
+      #error "DEPENDENCY ERROR: Z_PROBE_SERVO_NR must be smaller than NUM_SERVOS."
+    #endif
+  #endif
+#endif
+#if ENABLED(ENABLE_SERVOS)
+  #if NUM_SERVOS > 0 && !(HAS_SERVO_0)
+    #error "DEPENDENCY ERROR: You have to set SERVO0_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 1 && !(HAS_SERVO_1)
+    #error "DEPENDENCY ERROR: You have to set SERVO1_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 2 && !(HAS_SERVO_2)
+    #error "DEPENDENCY ERROR: You have to set SERVO2_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 3 && !(HAS_SERVO_3)
+    #error "DEPENDENCY ERROR: You have to set SERVO3_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+#endif
+
 // Other sanitycheck files
 #include "../core/eeprom/sanitycheck.h"
 #include "../core/endstop/sanitycheck.h"
@@ -91,7 +120,6 @@
 #include "../feature/probe/sanitycheck.h"
 #include "../feature/restart/sanitycheck.h"
 #include "../feature/rgbled/sanitycheck.h"
-#include "../feature/servo/sanitycheck.h"
 #include "../feature/tmc/sanitycheck.h"
 
 // CONTROLLI ANCORA DA RICOLLOCARE...

@@ -20,14 +20,22 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+// Arduino Due core now has watchdog support
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.6"
-#define FIRMWARE_REVISION         "31082018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+class Watchdog {
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+  public: /** Constructor */
+
+    Watchdog() {}
+
+  public: /** Public Function */
+
+    // Initialize watchdog with a 4 second interrupt time
+    static void init(void);
+
+    // Reset watchdog. MUST be called at least every 4 seconds.
+    static void reset(void);
+
+};
+
+extern Watchdog watchdog;

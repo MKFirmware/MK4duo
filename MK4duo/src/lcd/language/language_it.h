@@ -38,6 +38,8 @@
 #define MSG_SD_REMOVED                      _UxGT("SD Card rimossa")
 #define MSG_LCD_ENDSTOPS                    _UxGT("Endstop")
 #define MSG_MAIN                            _UxGT("Menu principale")
+#define MSG_ADVANCED_SETTINGS               _UxGT("Setting Avanzati")
+#define MSG_CONFIGURATION                   _UxGT("Configurazione")
 #define MSG_AUTOSTART                       _UxGT("Autostart")
 #define MSG_DISABLE_STEPPERS                _UxGT("Disabilita Motori")
 #define MSG_DEBUG_MENU                      _UxGT("Menu di debug")
