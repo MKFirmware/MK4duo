@@ -201,7 +201,7 @@
   }
 
   void Heater::print_PID_parameters() {
-    const int8_t heater_id = type == IS_HOTEND ? ID : type;
+    const uint8_t heater_id = type == IS_HOTEND ? ID : -1;
     if (isUsePid()) {
       SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -227,8 +227,8 @@
     void Heater::print_AD595_parameters() {
       SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend> O<Offset> S<Gain>:");
       SERIAL_SMV(CFG, "  M595 H", (int)ID);
-      SERIAL_MV(" O", heaters[h].sensor.ad595_offset);
-      SERIAL_MV(" S", heaters[h].sensor.ad595_gain);
+      SERIAL_MV(" O", sensor.ad595_offset);
+      SERIAL_MV(" S", sensor.ad595_gain);
       SERIAL_EOL();
     }
   #endif
