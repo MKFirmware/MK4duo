@@ -291,6 +291,17 @@
 #endif
 
 /**
+ * SPI_SPEED SPEED
+ */
+#if ENABLED(SDEXTRASLOW)
+  #define SPI_SPEED SPI_QUARTER_SPEED
+#elif ENABLED(SDSLOW)
+  #define SPI_SPEED SPI_HALF_SPEED
+#else
+  #define SPI_SPEED SPI_FULL_SPEED
+#endif
+
+/**
  * SD DETECT
  */
 #if ENABLED(SD_DISABLED_DETECT)

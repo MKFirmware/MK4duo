@@ -25,10 +25,7 @@
  */
 
 #include "../../../MK4duo.h"
-
-#if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-  #include "../../HAL/HAL_endstop_interrupts.h"
-#endif
+#include "../../platform/common/endstop_interrupts.h"
 
 Endstops endstops;
 

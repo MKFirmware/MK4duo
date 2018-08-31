@@ -20,14 +20,33 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * Description:
+ *
+ * Supports platforms:
+ *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
+ *    __AVR__           : For all Atmel AVR boards
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.6"
-#define FIRMWARE_REVISION         "31082018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+#include "common/memory_store.h"
+#include "common/servo.h"
+
+#if ENABLED(ARDUINO_ARCH_SAM)
+  #define CPU_32_BIT
+  #include "HAL_DUE/spi_pins.h"
+  #include "HAL_DUE/HAL.h"
+  #include "HAL_DUE/communication.h"
+#elif ENABLED(__AVR__)
+  #include "HAL_AVR/spi_pins.h"
+  #include "HAL_AVR/HAL.h"
+  #include "HAL_AVR/communication.h"
+#else
+  #error "Unsupported Platform!"
+#endif
+
+
+
+#endif /* _PLATFORM_H_ */

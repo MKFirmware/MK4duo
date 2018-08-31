@@ -43,6 +43,8 @@
 #include <string.h>
 #include <inttypes.h>
 #include <binary.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __AVR__
   #include <avr/pgmspace.h>
@@ -58,15 +60,14 @@
 typedef uint32_t  millis_t;
 typedef int8_t    pin_t;
 
-
+/**
+ * Include file
+ */
 #include "src/inc/macros.h"
 #include "src/inc/driver_types.h"
 #include "Boards.h"
 
-/**
- * Configuration settings loading
- */
-
+// Configuration settings loading
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
 
@@ -100,23 +101,25 @@ typedef int8_t    pin_t;
   #include "Configuration_CNCRouter.h"
 #endif
 
-/**
- * Modules loading
- */
-
-// Include modules
 #include "src/inc/conditionals_pre.h"
 #include "src/inc/pins.h"
 #include "src/inc/conditionals_post.h"
-#include "src/inc/sanitycheck.h"
-#include "src/inc/point_t.h"
 
-// HAL modules
-#include "src/HAL/HAL.h"
+// Sanity Check
+#include "src/inc/sanitycheck.h"
+
+// Platform modules
+#include "src/platform/platform.h"
 
 // Watch modules
 #include "src/watch/watch.h"
 #include "src/watch/stopwatch.h"
+
+// Utility modules
+#include "src/utility/utility.h"
+#include "src/utility/point_t.h"
+#include "src/utility/hex_print_routines.h"
+#include "src/utility/bezier.h"
 
 // Core modules
 #include "src/core/mechanics/mechanics.h"
@@ -143,18 +146,12 @@ typedef int8_t    pin_t;
 // SD modules
 #include "src/sd/cardreader.h"
 
-// Utility modules
-#include "src/utility/utility.h"
-#include "src/utility/hex_print_routines.h"
-#include "src/utility/bezier.h"
-
 // Feature modules
 #include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/tmc/tmc.h"
-#include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
 #include "src/feature/buzzer/buzzer.h"
 #include "src/feature/mixing/mixing.h"

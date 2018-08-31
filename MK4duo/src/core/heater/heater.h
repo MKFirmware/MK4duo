@@ -40,7 +40,7 @@
     heater_flag_fault
   };
 
-  enum Heater_type : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
+  enum heater_t : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
 
   constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
   constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
@@ -49,31 +49,31 @@
 
     public: /** Public Parameters */
 
-      Heater_type type;
-      pin_t       pin;
-      uint8_t     ID,
-                  soft_pwm,
-                  pwm_pos,
-                  pidDriveMin,
-                  pidDriveMax,
-                  pidMax;
-      int16_t     target_temperature,
-                  idle_temperature,
-                  mintemp,
-                  maxtemp;
-      float       current_temperature,
-                  Kp,
-                  Ki,
-                  Kd,
-                  Kc,
-                  tempIState,
-                  tempIStateLimitMin,
-                  tempIStateLimitMax,
-                  last_temperature,
-                  temperature_1s;
-      millis_t    next_check_ms,
-                  idle_timeout_ms;
-      uint8_t     HeaterFlag;
+      heater_t  type;
+      pin_t     pin;
+      uint8_t   ID,
+                soft_pwm,
+                pwm_pos,
+                pidDriveMin,
+                pidDriveMax,
+                pidMax;
+      int16_t   target_temperature,
+                idle_temperature,
+                mintemp,
+                maxtemp;
+      float     current_temperature,
+                Kp,
+                Ki,
+                Kd,
+                Kc,
+                tempIState,
+                tempIStateLimitMin,
+                tempIStateLimitMax,
+                last_temperature,
+                temperature_1s;
+      millis_t  next_check_ms,
+                idle_timeout_ms;
+      uint8_t   HeaterFlag;
 
       #if WATCH_THE_HEATER
         uint16_t  watch_target_temp;
