@@ -47,7 +47,7 @@
     const bool no_wait_for_cooling = parser.seenval('S');
     if (no_wait_for_cooling || parser.seenval('R')) {
       const int16_t temp = parser.value_celsius();
-      heaters[TARGET_HOTEND].target_temperature = temp;
+      heaters[TARGET_HOTEND].setTarget(temp);
 
       #if ENABLED(DUAL_X_CARRIAGE)
         if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)

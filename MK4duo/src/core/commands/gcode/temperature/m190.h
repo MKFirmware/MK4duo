@@ -38,9 +38,8 @@
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     const bool no_wait_for_cooling = parser.seen('S');
-    if (no_wait_for_cooling || parser.seen('R')) {
-      heaters[BED_INDEX].target_temperature = parser.value_celsius();
-    }
+    if (no_wait_for_cooling || parser.seen('R'))
+      heaters[BED_INDEX].setTarget(parser.value_celsius());
     else return;
 
     lcd_setstatusPGM(heaters[BED_INDEX].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
