@@ -112,8 +112,9 @@
 
             #if ENABLED(DEBUG_LEVELING_FEATURE)
               if (printer.debugLeveling()) {
-                SERIAL_MV("Offset Tool XY by { ", x_diff);
+                SERIAL_MV("Offset Tool XYZ by { ", x_diff);
                 SERIAL_MV(", ", y_diff);
+                SERIAL_MV(", ", z_diff);
                 SERIAL_EM(" }");
               }
             #endif
@@ -128,11 +129,6 @@
             active_extruder = tmp_extruder;
 
           #endif // !DUAL_X_CARRIAGE
-
-          #if HAS_DONDOLO
-            // The newly-selected extruder Z is actually at...
-            mechanics.current_position[Z_AXIS] -= zdiff;
-          #endif
 
           // Tell the planner the new "current position"
           mechanics.sync_plan_position_mech_specific();
