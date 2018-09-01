@@ -109,7 +109,7 @@
 
     public: /** Public Function */
 
-      #if PLANNER_LEVELING
+      #if PLANNER_LEVELING || HAS_UBL_AND_CURVES
         /**
          * Apply leveling to transform a cartesian position
          * as it will be given to the planner and steppers.
