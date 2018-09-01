@@ -585,6 +585,24 @@ bool Temperature::heaters_isActive() {
   return false;
 }
 
+#if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+
+  void Temperature::getTemperature_SPI() {
+    LOOP_HEATER() {
+      Heater *act = &heaters[h];
+      #if ENABLED(SUPPORT_MAX31855)
+        if (act->sensor.type == -4)
+          act->sensor.raw = act->sensor.read_max31855();
+      #endif
+      #if ENABLED(SUPPORT_MAX6675)
+        if (act->sensor.type == -3)
+          act->sensor.raw = act->sensor.read_max6675();
+      #endif
+    }
+  }
+
+#endif
+
 #if ENABLED(FILAMENT_SENSOR)
 
   // Convert raw Filament Width to millimeters

@@ -100,6 +100,10 @@ class Temperature {
      */
     static bool heaters_isActive();
 
+    #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+      static void getTemperature_SPI();
+    #endif
+
     #if HAS_FILAMENT_SENSOR
       static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio
     #endif    

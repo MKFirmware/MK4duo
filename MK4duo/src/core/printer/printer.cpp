@@ -576,6 +576,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     kill(PSTR(MSG_KILLED));
   }
 
+  #if ENABLED(SUPPORT_MAX31855) || ENABLED(SUPPORT_MAX6675)
+    thermalManager.getTemperature_SPI();
+  #endif
+
   #if ENABLED(DHT_SENSOR)
     dhtsensor.spin();
   #endif
