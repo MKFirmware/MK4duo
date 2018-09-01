@@ -1260,40 +1260,64 @@ void lcd_quick_feedback(const bool clear_buttons) {
    * Watch temperature callbacks
    */
   #if HAS_TEMP_HOTEND
-    #if WATCH_THE_HOTEND
-      #define _WATCH_FUNC(N) heaters[N].start_watching()
-    #else
-      #define _WATCH_FUNC(N) NOOP
-    #endif
-    void watch_temp_callback_E0() { _WATCH_FUNC(0); }
+    void watch_temp_callback_E0() {
+      heaters[0].setTarget(heaters[0].target_temperature);
+      #if WATCH_THE_HOTEND
+        heaters[0].start_watching();
+      #endif
+    }
     #if HOTENDS > 1
-      void watch_temp_callback_E1() { _WATCH_FUNC(1); }
+      void watch_temp_callback_E1() {
+        heaters[1].setTarget(heaters[1].target_temperature);
+        #if WATCH_THE_HOTEND
+          heaters[1].start_watching();
+        #endif
+      }
       #if HOTENDS > 2
-        void watch_temp_callback_E2() { _WATCH_FUNC(2); }
+        void watch_temp_callback_E2() {
+          heaters[2].setTarget(heaters[2].target_temperature);
+          #if WATCH_THE_HOTEND
+            heaters[2].start_watching();
+          #endif
+        }
         #if HOTENDS > 3
-          void watch_temp_callback_E3() { _WATCH_FUNC(3); }
+          void watch_temp_callback_E3() {
+            heaters[3].setTarget(heaters[3].target_temperature);
+            #if WATCH_THE_HOTEND
+              heaters[3].start_watching();
+            #endif
+          }
         #endif // HOTENDS > 3
       #endif // HOTENDS > 2
     #endif // HOTENDS > 1
   #endif // HAS_TEMP_HOTEND
 
-  void watch_temp_callback_bed() {
-    #if WATCH_THE_BED
-      thermalManager.start_watching(&heaters[BED_INDEX]);
-    #endif
-  }
+  #if HAS_TEMP_BED
+    void watch_temp_callback_bed() {
+      heaters[BED_INDEX].setTarget(heaters[BED_INDEX].target_temperature);
+      #if WATCH_THE_BED
+        heaters[BED_INDEX].start_watching();
+      #endif
+    }
+  #endif
 
-  void watch_temp_callback_chamber() {
-    #if WATCH_THE_CHAMBER
-      thermalManager.start_watching(&heaters[CHAMBER_INDEX]);
-    #endif
-  }
+  #if HAS_TEMP_CHAMBER
+    void watch_temp_callback_chamber() {
+      heaters[CHAMBER_INDEX].setTarget(heaters[CHAMBER_INDEX].target_temperature);
+      #if WATCH_THE_CHAMBER
+        heaters[CHAMBER_INDEX].start_watching();
+      #endif
+    }
+  #endif
 
-  void watch_temp_callback_cooler() {
-    #if WATCH_THE_COOLER
-      thermalManager.start_watching(&heaters[COOLER_INDEX]);
-    #endif
-  }
+  #if HAS_TEMP_COOLER
+    void watch_temp_callback_cooler() {
+      heaters[COOLER_INDEX].setTarget(heaters[COOLER_INDEX].target_temperature);
+      #if WATCH_THE_COOLER
+        heaters[COOLER_INDEX].start_watching();
+      #endif
+    }
+  #endif
 
   // Refresh the E factor after changing flow
   inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
