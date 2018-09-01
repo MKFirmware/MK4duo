@@ -291,14 +291,14 @@
 #endif
 
 /**
- * SPI_SPEED SPEED
+ * SPI_SPEED
  */
 #if ENABLED(SDEXTRASLOW)
-  #define SPI_SPEED SPI_QUARTER_SPEED
+  #define SPI_SPEED 2
 #elif ENABLED(SDSLOW)
-  #define SPI_SPEED SPI_HALF_SPEED
+  #define SPI_SPEED 1
 #else
-  #define SPI_SPEED SPI_FULL_SPEED
+  #define SPI_SPEED 0
 #endif
 
 /**
