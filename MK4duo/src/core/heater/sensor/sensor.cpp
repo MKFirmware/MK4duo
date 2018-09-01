@@ -32,7 +32,7 @@
   #define MAX6675_ERROR_MASK      4
   #define MAX6675_DISCARD_BITS    3
 
-  int16_t TemperatureSensor::read_max6675(const pin_t cs_pin) {
+  int16_t TemperatureSensor::read_max6675() {
 
     static millis_t next_max6675_ms = 0;
     static uint16_t max6675_temp = 2000;
@@ -56,7 +56,7 @@
       SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
     #endif
 
-    HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX6675
+    HAL::digitalWrite(pin, LOW); // enable TT_MAX6675
 
     // ensure 100ns delay
     HAL::delayNanoseconds(100);
@@ -74,7 +74,7 @@
       if (i > 0) max6675_temp <<= 8; // shift left if not the last byte
     }
 
-    HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX6675
+    HAL::digitalWrite(pin, HIGH); // disable TT_MAX6675
 
     if (max6675_temp & MAX6675_ERROR_MASK) {
       SERIAL_LM(ER, "MAX6675 Temp measurement error!");
@@ -93,14 +93,12 @@
 
   #define MAX31855_DISCARD_BITS 18
 
-  int16_t TemperatureSensor::read_max31855(const pin_t cs_pin) {
+  int16_t TemperatureSensor::read_max31855() {
 
     uint32_t data = 0;
     int16_t temperature;
 
-    HAL::spiBegin();
-
-    HAL::digitalWrite(cs_pin, LOW); // enable TT_MAX31855
+    HAL::digitalWrite(pin, LOW); // enable TT_MAX31855
 
     // ensure 100ns delay
     HAL::delayNanoseconds(100);
@@ -110,7 +108,7 @@
       data |= HAL::spiReceive();
     }
 
-    HAL::digitalWrite(cs_pin, HIGH); // disable TT_MAX31855
+    HAL::digitalWrite(pin, HIGH); // disable TT_MAX31855
 
     // Process temp
     if (data & 0x00010000)
@@ -132,35 +130,28 @@
 
 float TemperatureSensor::getTemperature() {
 
-  const int16_t s_type      = type,
-                adcReading  = raw;
-
-  #if ENABLED(SUPPORT_MAX31855)
-    if (s_type == -4)
-      return 0.25 * read_max31855(pin);
-  #endif
-  #if ENABLED(SUPPORT_MAX6675)
-    if (s_type == -3)
-      return 0.25 * read_max6675(pin);
+  #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+    if (type == -4 || type == -3)
+      return 0.25 * raw;
   #endif
   #if ENABLED(SUPPORT_AD8495)
-    if (s_type == -2)
-      return (adcReading * 660.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
+    if (type == -2)
+      return (raw * 660.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
   #if ENABLED(SUPPORT_AD595)
-    if (s_type == -1)
-      return (adcReading * 500.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
+    if (type == -1)
+      return (raw * 500.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
   #endif
 
-  if (WITHIN(s_type, 1, 9)) {
+  if (WITHIN(type, 1, 9)) {
     const int32_t averagedVssaReading = 2 * adcLowOffset,
                   averagedVrefReading = AD_RANGE + 2 * adcHighOffset;
 
     // Calculate the resistance
-    const float denom = (float)(averagedVrefReading - adcReading) - 0.5;
+    const float denom = (float)(averagedVrefReading - raw) - 0.5;
     if (denom <= 0.0) return ABS_ZERO;
 
-    const float resistance = pullupR * ((float)(adcReading - averagedVssaReading) + 0.5) / denom;
+    const float resistance = pullupR * ((float)(raw - averagedVssaReading) + 0.5) / denom;
     const float logResistance = LOG(resistance);
     const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 
@@ -179,7 +170,7 @@ float TemperatureSensor::getTemperature() {
   }
 
   #if ENABLED(SUPPORT_DHT11)
-    if (s_type == 11)
+    if (type == 11)
       return dhtsensor.Temperature;
   #endif
 
@@ -190,11 +181,11 @@ float TemperatureSensor::getTemperature() {
     float celsius = 0;
     uint8_t i;
 
-    if (s_type == 20) {
+    if (type == 20) {
       for (i = 1; i < ttbllen_map; i++) {
-        if (PGM_RD_W(temptable_amplifier[i][0]) > adcReading) {
+        if (PGM_RD_W(temptable_amplifier[i][0]) > raw) {
           celsius = PGM_RD_W(temptable_amplifier[i - 1][1]) +
-                    (adcReading - PGM_RD_W(temptable_amplifier[i - 1][0])) *
+                    (raw - PGM_RD_W(temptable_amplifier[i - 1][0])) *
                     (float)(PGM_RD_W(temptable_amplifier[i][1]) - PGM_RD_W(temptable_amplifier[i - 1][1])) /
                     (float)(PGM_RD_W(temptable_amplifier[i][0]) - PGM_RD_W(temptable_amplifier[i - 1][0]));
           break;
@@ -209,8 +200,8 @@ float TemperatureSensor::getTemperature() {
 
   #endif // ENABLED(SUPPORT_AMPLIFIER)
 
-  if (s_type == 998) return DUMMY_THERMISTOR_998_VALUE;
-  if (s_type == 999) return DUMMY_THERMISTOR_999_VALUE;
+  if (type == 998) return DUMMY_THERMISTOR_998_VALUE;
+  if (type == 999) return DUMMY_THERMISTOR_999_VALUE;
 
   return 25;
 }

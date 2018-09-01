@@ -53,14 +53,12 @@ class TemperatureSensor {
     void CalcDerivedParameters();
     float getTemperature();
 
-  private: /** Private Function */
-
     #if ENABLED(SUPPORT_MAX6675)
-      int16_t read_max6675(const pin_t cs_pin);
+      int16_t read_max6675();
     #endif
 
     #if ENABLED(SUPPORT_MAX31855)
-      int16_t read_max31855(const pin_t cs_pin);
+      int16_t read_max31855();
     #endif
 
 };
