@@ -297,7 +297,7 @@
     feedrate_mm_s = old_feedrate_mm_s;
 
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_ECHOLNPGM("<<< do_blocking_move_to");
+      if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
 
     planner.synchronize();
@@ -578,8 +578,8 @@
   void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (printer.debugLeveling()) {
-        SERIAL_ECHOPAIR(">>> set_axis_is_at_home(", axis_codes[axis]);
-        SERIAL_CHAR(')');
+        SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
+        SERIAL_CHR(')');
         SERIAL_EOL();
       }
     #endif
