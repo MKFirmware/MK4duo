@@ -95,8 +95,15 @@
 
   int16_t TemperatureSensor::read_max31855() {
 
+    static millis_t next_max31855_ms = 0;
+    static int16_t max31855_temp = 2000;
     uint32_t data = 0;
-    int16_t temperature;
+
+    millis_t ms = millis();
+
+    if (PENDING(ms, next_max31855_ms)) return max31855_temp;
+
+    next_max31855_ms = ms + 250u;
 
     HAL::digitalWrite(pin, LOW); // enable TT_MAX31855
 
@@ -115,15 +122,15 @@
       return 20000; // Some form of error.
     else {
       data = data >> MAX31855_DISCARD_BITS;
-      temperature = data & 0x00001FFF;
+      max31855_temp = data & 0x00001FFF;
 
       if (data & 0x00002000) {
         data = ~data;
-        temperature = -1 * ((data & 0x00001FFF) + 1);
+        max31855_temp = -1 * ((data & 0x00001FFF) + 1);
       }
     }
 
-    return temperature;
+    return max31855_temp;
   }
 
 #endif
