@@ -3775,6 +3775,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     #endif // !SLIM_LCD_MENUS
 
     if (printer.mode == PRINTER_MODE_FFF) {
+      MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_advanced_temperature_menu);
       #if ENABLED(VOLUMETRIC_EXTRUSION) || ENABLED(ADVANCED_PAUSE_FEATURE)
         MENU_ITEM(submenu, MSG_FILAMENT, lcd_advanced_filament_menu);
       #elif ENABLED(LIN_ADVANCE)
