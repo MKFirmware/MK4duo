@@ -189,7 +189,10 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 void Temperature::set_current_temp_raw() {
 
   #if ANALOG_INPUTS > 0
-    LOOP_HEATER() heaters[h].sensor.raw = HAL::AnalogInputValues[heaters[h].sensor.pin];
+    LOOP_HEATER() {
+      if (WITHIN(heaters[h].sensor.pin, 0, 15))
+        heaters[h].sensor.raw = HAL::AnalogInputValues[heaters[h].sensor.pin];
+    }
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
