@@ -659,12 +659,17 @@ void Commands::gcode_line_error(const char* err) {
  * Enqueue with Serial Echo
  */
 bool Commands::enqueue_and_echo(const char* cmd) {
+
+  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
+    return true;
+
   if (enqueue(cmd)) {
     SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
     SERIAL_CHR('"');
     SERIAL_EOL();
     return true;
   }
+
   return false;
 }
 

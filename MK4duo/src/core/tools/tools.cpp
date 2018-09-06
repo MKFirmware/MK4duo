@@ -62,6 +62,12 @@
 
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
+    #if ENABLED(DUAL_X_CARRIAGE)
+      // Only T0 allowed in DXC_DUPLICATION_MODE
+      if (tmp_extruder != 0 && mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE)
+         return invalid_extruder_error(tmp_extruder);
+    #endif
+
     planner.synchronize();
 
     #if HAS_LEVELING
@@ -518,9 +524,8 @@
         if (printer.debugLeveling()) {
           SERIAL_MSG("Dual X Carriage Mode ");
           switch (mechanics.dual_x_carriage_mode) {
-            case DXC_DUPLICATION_MODE: SERIAL_EM("DXC_DUPLICATION_MODE"); break;
-            case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
             case DXC_FULL_CONTROL_MODE: SERIAL_EM("DXC_FULL_CONTROL_MODE"); break;
+            case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
           }
         }
       #endif
@@ -542,15 +547,15 @@
           }
         #endif
         // Park old head: 1) raise 2) move to park position 3) lower
-        for (uint8_t i = 0; i < 3; i++)
-          planner.buffer_line(
-            i == 0 ? mechanics.current_position[X_AXIS] : xhome,
-            mechanics.current_position[Y_AXIS],
-            i == 2 ? mechanics.current_position[Z_AXIS] : raised_z,
-            mechanics.current_position[E_AXIS],
-            mechanics.max_feedrate_mm_s[i == 1 ? X_AXIS : Z_AXIS],
-            active_extruder
-          );
+        #define CUR_X mechanics.current_position[X_AXIS]
+        #define CUR_Y mechanics.current_position[Y_AXIS]
+        #define CUR_Z mechanics.current_position[Z_AXIS]
+        #define CUR_E mechanics.current_position[E_AXIS]
+
+        planner.buffer_line( CUR_X, CUR_Y, raised_z, CUR_E, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+        planner.buffer_line( xhome, CUR_Y, raised_z, CUR_E, mechanics.max_feedrate_mm_s[X_AXIS], active_extruder);
+        planner.buffer_line( xhome, CUR_Y, CUR_Z,    CUR_E, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+
         planner.synchronize();
       }
 
@@ -587,24 +592,6 @@
           #endif
           mechanics.active_hotend_parked = true;
           mechanics.delayed_move_time = 0;
-          break;
-        case DXC_DUPLICATION_MODE:
-          // If the new hotend is the left one, set it "parked"
-          // This triggers the second hotend to move into the duplication position
-          mechanics.active_hotend_parked = (active_extruder == 0);
-
-          if (mechanics.active_hotend_parked)
-            mechanics.current_position[X_AXIS] = mechanics.inactive_hotend_x_pos;
-          else
-            mechanics.current_position[X_AXIS] = mechanics.destination[X_AXIS] + mechanics.duplicate_hotend_x_offset;
-          mechanics.inactive_hotend_x_pos = mechanics.destination[X_AXIS];
-          mechanics.hotend_duplication_enabled = false;
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (printer.debugLeveling()) {
-              SERIAL_EMV("Set inactive_hotend_x_pos=", mechanics.inactive_hotend_x_pos);
-              SERIAL_EM("Clear hotend_duplication_enabled");
-            }
-          #endif
           break;
       }
 

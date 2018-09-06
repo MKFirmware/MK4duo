@@ -42,12 +42,12 @@
   #if ENABLED(DUAL_X_CARRIAGE)
     DualXMode Cartesian_Mechanics::dual_x_carriage_mode         = DEFAULT_DUAL_X_CARRIAGE_MODE;
     float     Cartesian_Mechanics::inactive_hotend_x_pos        = X2_MAX_POS,                   // used in mode 0 & 1
-              Cartesian_Mechanics::raised_parked_position[NUM_AXIS],                            // used in mode 1
+              Cartesian_Mechanics::raised_parked_position[XYZE],                                // used in mode 1
               Cartesian_Mechanics::duplicate_hotend_x_offset    = DEFAULT_DUPLICATION_X_OFFSET; // used in mode 2
     int16_t   Cartesian_Mechanics::duplicate_hotend_temp_offset = 0;                            // used in mode 2
     millis_t  Cartesian_Mechanics::delayed_move_time            = 0;                            // used in mode 1
     bool      Cartesian_Mechanics::active_hotend_parked         = false,                        // used in mode 1 & 2
-              Cartesian_Mechanics::hotend_duplication_enabled   = false;                        // used in mode 2
+              Cartesian_Mechanics::hotend_duplication_enabled   = false;                        // used in mode 2 & 3
   #endif
 
   /** Private Parameters */
@@ -178,6 +178,11 @@
       return;
     }
 
+    #if ENABLED(DUAL_X_CARRIAGE)
+      const bool DXC_saved_duplication_state = hotend_duplication_enabled;
+      DualXMode DXC_saved_mode = dual_x_carriage_mode;
+    #endif
+
     #if HAS_POWER_SWITCH
       powerManager.power_on(); // Power On if power is off
     #endif
@@ -306,6 +311,32 @@
     #endif
 
     sync_plan_position();
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+
+      if (dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+
+        // Always home the 2nd (right) extruder first
+        tools.active_extruder = 1;
+        homeaxis(X_AXIS);
+
+        // Remember this extruder's position for later tool change
+        inactive_hotend_x_pos = current_position[X_AXIS];
+
+        // Home the 1st (left) extruder
+        tools.active_extruder = 0;
+        homeaxis(X_AXIS);
+
+        // Consider the active extruder to be parked
+        COPY_ARRAY(raised_parked_position, current_position);
+        delayed_move_time = 0;
+        active_hotend_parked = true;
+        hotend_duplication_enabled  = DXC_saved_duplication_state;
+        dual_x_carriage_mode        = DXC_saved_mode;
+      }
+
+    #endif // DUAL_X_CARRIAGE
+
     endstops.setNotHoming();
 
     if (come_back) {
@@ -819,15 +850,16 @@
               }
             }
             // unpark extruder: 1) raise, 2) move into starting XY position, 3) lower
-            for (uint8_t i = 0; i < 3; i++)
-              planner.buffer_line(
-                i == 0 ? raised_parked_position[X_AXIS] : current_position[X_AXIS],
-                i == 0 ? raised_parked_position[Y_AXIS] : current_position[Y_AXIS],
-                i == 2 ? current_position[Z_AXIS] : raised_parked_position[Z_AXIS],
-                current_position[E_AXIS],
-                i == 1 ? PLANNER_XY_FEEDRATE() : max_feedrate_mm_s[Z_AXIS],
-                tools.active_extruder
-              );
+            #define CUR_X    current_position[X_AXIS]
+            #define CUR_Y    current_position[Y_AXIS]
+            #define CUR_Z    current_position[Z_AXIS]
+            #define CUR_E    current_position[E_AXIS]
+            #define RAISED_X raised_parked_position[X_AXIS]
+            #define RAISED_Y raised_parked_position[Y_AXIS]
+            #define RAISED_Z raised_parked_position[Z_AXIS]
+            if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, max_feedrate_mm_s[Z_AXIS], tools.active_extruder))
+              if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     tools.active_extruder))
+                  planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, max_feedrate_mm_s[Z_AXIS], tools.active_extruder);
             delayed_move_time = 0;
             active_hotend_parked = false;
             #if ENABLED(DEBUG_LEVELING_FEATURE)
