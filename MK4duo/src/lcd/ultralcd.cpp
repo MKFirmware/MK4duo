@@ -70,7 +70,7 @@ uint8_t lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; // Set when the LCD needs to 
 uint16_t max_display_update_time = 0;
 
 #if HAS_SOFTWARE_ENDSTOPS
-  bool soft_endstops_enabled = endstops.isSoftEndstop();
+  static bool soft_endstops_enabled = endstops.isSoftEndstop();
   void lcd_set_soft_endstops() { endstops.setSoftEndstop(soft_endstops_enabled); }
 #endif
 
@@ -469,6 +469,10 @@ uint16_t max_display_update_time = 0;
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         // Shadow for editing the fade height
         new_z_fade_height = bedlevel.z_fade_height;
+      #endif
+
+      #if HAS_SOFTWARE_ENDSTOPS
+        soft_endstops_enabled = endstops.isSoftEndstop();
       #endif
 
       #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)

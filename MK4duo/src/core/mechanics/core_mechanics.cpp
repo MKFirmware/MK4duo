@@ -793,7 +793,7 @@
       #endif
 
       SERIAL_LM(CFG, "Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
-      SERIAL_SMV(CFG, " M205 B", min_segment_time_us);
+      SERIAL_SMV(CFG, "  M205 B", min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(min_travel_feedrate_mm_s), 3);
 
