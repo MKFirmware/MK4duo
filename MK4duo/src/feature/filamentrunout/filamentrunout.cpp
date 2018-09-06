@@ -87,6 +87,8 @@
           filament_switch_time = millis() + FILAMENT_RUNOUT_DOUBLE_CHECK;
         }
       }
+      else
+        filament_double_check = false;
     #else
       if ((IS_SD_PRINTING || print_job_counter.isRunning()) && read())
         printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
