@@ -273,7 +273,7 @@
         #if ENABLED(DELTA_FEEDRATE_SCALING)
           // For DELTA scale the feed rate from Effector mm/s to Carriage mm/s
           // i.e., Complete the linear vector in the given time.
-          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs, tools.active_extruder))
+          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs, tools.active_extruder, segment_length))
             break;
           /*
           SERIAL_ECHO(segments);
@@ -305,7 +305,7 @@
 
         const float diff2 = sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC);
         if (diff2)
-          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder);
+          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder, segment_length);
 
       #else
 
@@ -988,13 +988,13 @@
         #if ENABLED(DELTA_FEEDRATE_SCALING)
           // For DELTA scale the feed rate from Effector mm/s to Carriage mm/s
           // i.e., Complete the linear vector in the given time.
-          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs, tools.active_extruder))
+          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs, tools.active_extruder, MM_PER_ARC_SEGMENT))
             break;
           oldA = delta[A_AXIS]; oldB = delta[B_AXIS]; oldC = delta[C_AXIS];
         #elif HAS_UBL_AND_CURVES
           float pos[XYZ] = { raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS] };
           bedlevel.apply_leveling(pos);
-          if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder))
+          if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT))
             break;
         #else
           if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
@@ -1019,11 +1019,11 @@
       #if ENABLED(DELTA_FEEDRATE_SCALING)
         const float diff2 = sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC);
         if (diff2)
-          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], cart[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder);
+          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], cart[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder, MM_PER_ARC_SEGMENT);
       #elif HAS_UBL_AND_CURVES
         float pos[XYZ] = { cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
         bedlevel.apply_leveling(pos);
-        planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder);
+        planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT);
       #else
         planner.buffer_line_kinematic(cart, fr_mm_s, tools.active_extruder);
       #endif
@@ -1223,7 +1223,7 @@
       #endif
 
       SERIAL_LM(CFG, "Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
-      SERIAL_SMV(CFG, " M205 B", min_segment_time_us);
+      SERIAL_SMV(CFG, "  M205 B", min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(min_travel_feedrate_mm_s), 3);
 

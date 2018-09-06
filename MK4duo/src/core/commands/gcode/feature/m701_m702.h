@@ -135,15 +135,15 @@
       if (!parser.seenval('T')) {
         LOOP_EXTRUDER() {
           if (e != tools.active_extruder) tools.change(e, 0, true);
-          unload_filament(-filament_change_unload_length[e], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
+          unload_filament(filament_change_unload_length[e], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
       else
     #endif
     {
       // Unload length
-      const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) :
-                                                          filament_change_unload_length[tools.target_extruder]);
+      const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
+                                                        : filament_change_unload_length[tools.target_extruder]);
 
       unload_filament(unload_length, true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
     }

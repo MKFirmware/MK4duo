@@ -70,7 +70,7 @@
     #endif
 
     // Initial retract before move to pause park position
-    const float retract = -ABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0)
+    const float retract = ABS(parser.seen('E') ? parser.value_axis_units(E_AXIS) : 0)
       #if ENABLED(PAUSE_PARK_RETRACT_LENGTH) && PAUSE_PARK_RETRACT_LENGTH > 0
         + (PAUSE_PARK_RETRACT_LENGTH)
       #endif
@@ -89,15 +89,15 @@
     #endif
 
     // Unload filament
-    const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                       : filament_change_unload_length[tools.active_extruder]);
+    const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
+                                                      : filament_change_unload_length[tools.active_extruder]);
 
     // Slow load filament
     constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
 
     // Load filament
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                          : filament_change_load_length[tools.active_extruder]);
+                                                        : filament_change_load_length[tools.active_extruder]);
 
     if (parser.seenval('S')) heaters[ACTIVE_HOTEND].setTarget(parser.value_celsius());
 
