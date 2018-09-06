@@ -186,6 +186,18 @@
 #ifndef MSG_MOVE_AXIS
   #define MSG_MOVE_AXIS                       _UxGT("Move axis")
 #endif
+#ifndef MSG_DXC_MENU
+  #define MSG_DXC_MENU                        _UxGT("DXC Mode")
+#endif
+#ifndef MSG_DXC_MODE_AUTOPARK
+  #define MSG_DXC_MODE_AUTOPARK               _UxGT("Auto-Park")
+#endif
+#ifndef MSG_DXC_MODE_DUPLICATE
+  #define MSG_DXC_MODE_DUPLICATE              _UxGT("Duplication")
+#endif
+#ifndef MSG_DXC_MODE_FULL_CTRL
+  #define MSG_DXC_MODE_FULL_CTRL              _UxGT("Full control")
+#endif
 #ifndef MSG_BED_LEVELING
   #define MSG_BED_LEVELING                    _UxGT("Bed Leveling")
 #endif

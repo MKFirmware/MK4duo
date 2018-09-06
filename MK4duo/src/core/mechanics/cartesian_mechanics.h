@@ -46,13 +46,13 @@
 
       #if ENABLED(DUAL_X_CARRIAGE)
         static DualXMode  dual_x_carriage_mode;
-        static float      inactive_hotend_x_pos,            // used in mode 0 & 1
-                          raised_parked_position[NUM_AXIS], // used in mode 1
-                          duplicate_hotend_x_offset;        // used in mode 2
-        static int16_t    duplicate_hotend_temp_offset;     // used in mode 2
-        static millis_t   delayed_move_time;                // used in mode 1
-        static bool       active_hotend_parked,             // used in mode 1 & 2
-                          hotend_duplication_enabled;       // used in mode 2
+        static float      inactive_hotend_x_pos,        // used in mode 0 & 1
+                          raised_parked_position[XYZE], // used in mode 1
+                          duplicate_hotend_x_offset;    // used in mode 2
+        static int16_t    duplicate_hotend_temp_offset; // used in mode 2
+        static millis_t   delayed_move_time;            // used in mode 1
+        static bool       active_hotend_parked,         // used in mode 1 & 2
+                          hotend_duplication_enabled;   // used in mode 2 & 3
       #endif
 
     public: /** Public Function */

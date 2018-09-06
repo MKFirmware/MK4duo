@@ -916,6 +916,23 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
   #endif // HAS_DEBUG_MENU
 
+  /**
+   * DXC submenu
+   */
+  #if ENABLED(DUAL_X_CARRIAGE)
+    static void DXC_menu() {
+      START_MENU();
+      MENU_BACK(MSG_MAIN);
+      MENU_ITEM(gcode, MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
+      if (!printer.isYHomed() || !printer.isZHomed())
+        MENU_ITEM(gcode, MSG_DXC_MODE_DUPLICATE, PSTR("T0\nG28\nM605 S2 X200\nG28 X\nG1 X100"));  // If Y or Z is not homed, a full G28 is done first.
+      else
+        MENU_ITEM(gcode, MSG_DXC_MODE_DUPLICATE, PSTR("T0\nM605 S2 X200\nG28 X\nG1 X100"));       // If Y and Z is homed, a full G28 is not needed first.
+      MENU_ITEM(gcode, MSG_DXC_MODE_FULL_CTRL, PSTR("M605 S0\nG28 X"));
+      END_MENU();
+    }
+  #endif // DUAL_X_CARRIAGE
+
   #if ENABLED(CUSTOM_USER_MENUS)
 
     #ifdef USER_SCRIPT_DONE
@@ -986,6 +1003,10 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     #if ENABLED(CUSTOM_USER_MENUS)
       MENU_ITEM(submenu, MSG_USER_MENU, _lcd_user_menu);
+    #endif
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      MENU_ITEM(submenu, MSG_DXC_MENU, DXC_menu);
     #endif
 
     //
