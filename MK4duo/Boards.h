@@ -138,7 +138,7 @@
 #define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 
 /**
- * SAMD21J18 
+ * SAMD21J18
  */
 #define BOARD_MINITRONICS_V2  2706    // Minitronics v2.0
 
