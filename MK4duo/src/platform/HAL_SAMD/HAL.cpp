@@ -135,10 +135,7 @@ bool HAL::execute_100ms = false;
 
 // do any hardware-specific initialization here
 void HAL::hwSetup(void) {
-  while (!SerialUSB) {
-  
-  }
-  
+
   
 
 
@@ -173,7 +170,7 @@ void AnalogInEnablePin(const pin_t r_pin, const bool enable) {
 
 // Read the most recent 12-bit result from a pin
 uint16_t AnalogInReadPin(const pin_t r_pin) {
-SerialUSB.println("Temp read!");
+
   return 800;
 }
 
@@ -203,13 +200,6 @@ static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for 
 static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
 
 static inline uint32_t ConvertRange(const float f, const uint32_t top) { return LROUND(f * (float)top); }
-
-// AnalogWritePwm to a PWM pin
-// Return true if successful, false if we need to call software pwm
-static void AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
-
-  return;
-}
 
 
 // AnalogWriteTc to a TC pin
@@ -394,7 +384,8 @@ PinDescription pinDesc = g_APinDescription[pin];
  */
 void HAL::Tick() {
  
-  static uint8_t  cycle_100ms = 0;
+  static millis_t cycle_check_temp = 0;
+	millis_t now = millis();
 
   if (!printer.isRunning()) return;
 
@@ -408,21 +399,23 @@ void HAL::Tick() {
   #endif
 
   // Calculation cycle approximate a 100ms
-  cycle_100ms++;
-  if (cycle_100ms >= 100) {
-    cycle_100ms = 0;
-    execute_100ms = true;
+  // Calculation cycle temp a 100ms
+  if (ELAPSED(now, cycle_check_temp)) {
+    cycle_check_temp = now + 100UL;
+    // Temperature Spin
+    thermalManager.spin();
   }
 
   // read analog values
   #if ANALOG_INPUTS > 0
-  
+
     for (uint8_t h = 0; h < HEATER_COUNT; h++) {
     
       AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin)*16);
   
     }
-    
+  
+
     Analog_is_ready = true;
     AnalogInStartConversion();
 
