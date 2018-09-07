@@ -284,10 +284,10 @@ class HAL {
       }
     }
 
-    static void showStartReason();
+    static inline void showStartReason() {}
 
     static int getFreeRam();
-    static void resetHardware();
+    static inline void resetHardware() {}
 
     // SPI related functions
     #if ENABLED(SOFTWARE_SPI)
