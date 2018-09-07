@@ -20,38 +20,24 @@
  *
  */
 
-/**
- * Description:
- *
- * Supports platforms:
- *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
- *    __AVR__           : For all Atmel AVR boards
- */
+#ifndef WATCHDOG_SAMD_H
+#define WATCHDOG_SAMD_H
 
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
+class Watchdog {
 
-#include "common/memory_store.h"
-#include "common/servo.h"
+  public: /** Constructor */
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #define CPU_32_BIT
-  #include "HAL_DUE/spi_pins.h"
-  #include "HAL_DUE/HAL.h"
-  #include "HAL_DUE/communication.h"
-#elif ENABLED(ARDUINO_ARCH_SAMD)
-  #define CPU_32_BIT
-  #include "HAL_SAMD/spi_pins.h"
-  #include "HAL_SAMD/HAL.h"
-  #include "HAL_SAMD/communication.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/spi_pins.h"
-  #include "HAL_AVR/HAL.h"
-  #include "HAL_AVR/communication.h"
-#else
-  #error "Unsupported Platform!"
-#endif
+    Watchdog() {}
 
+  public: /** Public Function */
 
+    // Initialize watchdog with a 4 second interrupt time
+    static void init(void);
 
-#endif /* _PLATFORM_H_ */
+    // Reset watchdog. MUST be called at least every 4 seconds.
+    static void reset(void);
+
+};
+
+extern Watchdog watchdog;
+#endif // WATCHDOG_SAMD_H
