@@ -160,19 +160,15 @@
 
 
 //###UNKNOWN_PINS
-//#define EEPROM_SD
-
-
-//#define HAVE_MCU_TEMPERATURE
 #define STAT_LED_RED_PIN 13
 //@@@
 
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
-  #define LCD_PINS_RS         SS  // CS chip select / SS chip slave select
-  #define LCD_PINS_ENABLE     MOSI  // SID (MOSI)
-  #define LCD_PINS_D4         SCK  // SCK (CLK) clock
+  #define LCD_PINS_RS         SS
+  #define LCD_PINS_ENABLE     MOSI
+  #define LCD_PINS_D4         SCK
   #define ORIG_BEEPER_PIN     NoPin
 
   #define BTN_EN1             33
