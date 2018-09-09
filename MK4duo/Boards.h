@@ -137,4 +137,9 @@
 #define BOARD_ARCHIM2         1590    // UltiMachine Archim2 (with TMC2130 drivers)
 #define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 
+/**
+ * SAMD21J18
+ */
+#define BOARD_MINITRONICS_V2  2706    // Minitronics v2.0
+
 #endif /* _BOARD_H_ */
