@@ -52,6 +52,4 @@
   #error "Unsupported Platform!"
 #endif
 
-
-
 #endif /* _PLATFORM_H_ */

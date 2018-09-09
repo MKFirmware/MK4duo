@@ -130,11 +130,6 @@ HAL::~HAL() {
 
 bool HAL::execute_100ms = false;
 
-// do any hardware-specific initialization here
-void HAL::hwSetup(void) {
-  while (!SerialUSB) {}
-}
-
 // Return available memory
 int HAL::getFreeRam() {
   struct mallinfo memstruct = mallinfo();
@@ -155,18 +150,6 @@ static const uint32_t PwmFastClock =  25000 * 255;        // fast PWM clock for 
 static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to allow us to get slow speeds
 
 static inline uint32_t ConvertRange(const float f, const uint32_t top) { return LROUND(f * (float)top); }
-
-// AnalogWritePwm to a PWM pin
-// Return true if successful, false if we need to call software pwm
-static void AnalogWritePwm(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
-  return;
-}
-
-// AnalogWriteTc to a TC pin
-// Return true if successful, false if we need to call software pwm
-static void AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
-  return;
-}
 
 bool HAL::pwm_status(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
@@ -336,8 +319,9 @@ void HAL::analogWrite(pin_t pin,  uint32_t value, const uint16_t freq/*=1000*/) 
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 void HAL::Tick() {
- 
-  static uint8_t  cycle_100ms = 0;
+
+  static millis_t cycle_check_temp = 0;
+	millis_t now = millis();
 
   if (!printer.isRunning()) return;
 
@@ -350,25 +334,19 @@ void HAL::Tick() {
     //LOOP_FAN() fans[f].SetHardwarePwm();
   #endif
 
-  // Calculation cycle approximate a 100ms
-  cycle_100ms++;
-  if (cycle_100ms >= 100) {
-    cycle_100ms = 0;
-    execute_100ms = true;
+  // Calculation cycle temp a 100ms
+  if (ELAPSED(now, cycle_check_temp)) {
+    cycle_check_temp = now + 100UL;
+    // Temperature Spin
+    thermalManager.spin();
   }
 
   // read analog values
   #if ANALOG_INPUTS > 0
-  
-    for (uint8_t h = 0; h < HEATER_COUNT; h++) {
-      AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin) * 16);
-    }
-
+    LOOP_HEATER() AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin) * 16);
     Analog_is_ready = true;
-
     // Update the raw values if they've been read. Else we could be updating them during reading.
-    if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
-
+    thermalManager.set_current_temp_raw();
   #endif
 
   #if ENABLED(BABYSTEPPING)
@@ -386,7 +364,6 @@ void HAL::Tick() {
   endstops.Tick();
 
 }
-
 
 char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
   asm(".global _printf_float");
