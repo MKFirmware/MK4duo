@@ -618,7 +618,7 @@ class Planner {
     #endif // JUNCTION_DEVIATION
 
     #if ENABLED(HYSTERESIS_FEATURE)
-      static void insert_hysteresis_correction(const int32_t dx, const int32_t dy, const int32_t dz, block_t * block, float delta_mm[]);
+      static void insert_hysteresis_correction(const int32_t dx, const int32_t dy, const int32_t dz, block_t * const block, float (&delta_mm)[XYZE]);
     #endif
 
 };

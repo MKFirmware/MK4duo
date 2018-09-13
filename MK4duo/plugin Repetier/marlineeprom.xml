@@ -895,6 +895,11 @@
     <set>M305 H0 P@</set>
     <detect>M305 H0.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="-4">
+    <description unit="">Hotend 0 sensor type</description>
+    <set>M305 H0 T@</set>
+    <detect>M305 H0.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Hotend 1 thermistor resistance at 25C</description>
@@ -930,6 +935,11 @@
     <description unit="">Hotend 1 sensor pin</description>
     <set>M305 H1 P@</set>
     <detect>M305 H1.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="-4">
+    <description unit="">Hotend 1 sensor type</description>
+    <set>M305 H1 T@</set>
+    <detect>M305 H1.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
@@ -967,6 +977,11 @@
     <set>M305 H2 P@</set>
     <detect>M305 H2.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="-4">
+    <description unit="">Hotend 2 sensor type</description>
+    <set>M305 H2 T@</set>
+    <detect>M305 H2.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Hotend 3 thermistor resistance at 25C</description>
@@ -1002,6 +1017,11 @@
     <description unit="">Hotend 3 sensor pin</description>
     <set>M305 H3 P@</set>
     <detect>M305 H3.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="-4">
+    <description unit="">Hotend 3 sensor type</description>
+    <set>M305 H3 T@</set>
+    <detect>M305 H3.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
@@ -1039,6 +1059,11 @@
     <set>M305 H-1 P@</set>
     <detect>M305 H-1.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="-4">
+    <description unit="">Bed sensor type</description>
+    <set>M305 H-1 T@</set>
+    <detect>M305 H-1.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Chamber thermistor resistance at 25C</description>
@@ -1075,6 +1100,11 @@
     <set>M305 H-2 P@</set>
     <detect>M305 H-2.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="-4">
+    <description unit="">Chamber sensor type</description>
+    <set>M305 H-2 T@</set>
+    <detect>M305 H-2.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Cooler thermistor resistance at 25C</description>
@@ -1110,6 +1140,11 @@
     <description unit="">Cooler sensor pin</description>
     <set>M305 H-3 P@</set>
     <detect>M305 H-3.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="-4">
+    <description unit="">Cooler sensor type</description>
+    <set>M305 H-3 T@</set>
+    <detect>M305 H-3.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
