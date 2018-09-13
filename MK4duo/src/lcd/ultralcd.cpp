@@ -1345,9 +1345,11 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif
 
   // Refresh the E factor after changing flow
-  inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
-  #if EXTRUDERS > 1
-    inline void _lcd_refresh_e_factor() { tools.refresh_e_factor(tools.active_extruder); }
+  #if EXTRUDERS == 1
+    inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
+  #elif EXTRUDERS > 1
+    inline void _lcd_refresh_e_factor()   { tools.refresh_e_factor(tools.active_extruder); }
+    inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
     inline void _lcd_refresh_e_factor_1() { tools.refresh_e_factor(1); }
     #if EXTRUDERS > 2
       inline void _lcd_refresh_e_factor_2() { tools.refresh_e_factor(2); }
@@ -1462,7 +1464,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     //
     #if EXTRUDERS == 1
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
-    #else // EXTRUDERS > 1
+    #elif EXTRUDERS > 1
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[tools.active_extruder], 10, 999, _lcd_refresh_e_factor);
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N1, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N2, &tools.flow_percentage[1], 10, 999, _lcd_refresh_e_factor_1);
@@ -2974,8 +2976,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
     }
   }
 
-  void lcd_move_e() { _lcd_move_e(); }
-  #if EXTRUDERS > 1
+  #if EXTRUDERS == 1
+    void lcd_move_e() { _lcd_move_e(); }
+  #elif EXTRUDERS > 1
     void lcd_move_e0() { _lcd_move_e(0); }
     void lcd_move_e1() { _lcd_move_e(1); }
     #if EXTRUDERS > 2
@@ -3034,8 +3037,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
   void lcd_move_get_x_amount()            { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
   void lcd_move_get_y_amount()            { _lcd_move_distance_menu(Y_AXIS, lcd_move_y); }
   void lcd_move_get_z_amount()            { _lcd_move_distance_menu(Z_AXIS, lcd_move_z); }
-  void lcd_move_get_e_amount()            { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
-  #if EXTRUDERS > 1
+  #if EXTRUDERS == 1
+    void lcd_move_get_e_amount()          { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
+  #elif EXTRUDERS > 1
     void lcd_move_get_e0_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e0); }
     void lcd_move_get_e1_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e1); }
     #if EXTRUDERS > 2
@@ -3106,8 +3110,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     #endif
 
-    MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_get_e_amount);
-    #if EXTRUDERS > 1
+    #if EXTRUDERS == 1
+      MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_get_e_amount);
+    #elif EXTRUDERS > 1
       MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
       MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
       #if EXTRUDERS > 2
