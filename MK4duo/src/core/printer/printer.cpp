@@ -191,7 +191,7 @@ void Printer::setup() {
     #endif
   #endif
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
     if (!card.isOK()) card.mount();
   #endif
 
@@ -308,7 +308,7 @@ void Printer::loop() {
 
     printer.keepalive(NotBusy);
 
-    #if HAS_SDSUPPORT
+    #if HAS_SD_SUPPORT
 
       card.checkautostart();
 
@@ -347,7 +347,7 @@ void Printer::loop() {
 
       }
 
-    #endif // HAS_SDSUPPORT
+    #endif // HAS_SD_SUPPORT
 
     commands.get_available();
     commands.advance_queue();
@@ -379,7 +379,7 @@ void Printer::check_periodical_actions() {
       SERIAL_EOL();
     }
 
-    #if HAS_SDSUPPORT
+    #if HAS_SD_SUPPORT
       if (isAutoreportSD()) card.printStatus();
     #endif
 
@@ -426,8 +426,8 @@ void Printer::safe_delay(millis_t ms) {
 void Printer::bracket_probe_move(const bool before) {
   static float saved_feedrate_mm_s;
   static int16_t saved_feedrate_percentage;
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS("bracket_probe_move", mechanics.current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS("bracket_probe_move", mechanics.current_position);
   #endif
   if (before) {
     saved_feedrate_mm_s = mechanics.feedrate_mm_s;

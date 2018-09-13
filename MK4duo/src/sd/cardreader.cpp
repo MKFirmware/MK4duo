@@ -22,7 +22,7 @@
 
 #include "../../MK4duo.h"
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   #if ENABLED(ARDUINO_ARCH_SAM)
     #include <avr/dtostrf.h>

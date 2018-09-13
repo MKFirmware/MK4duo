@@ -43,7 +43,7 @@ void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg
 
 void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
 
-#if ENABLED(DEBUG_LEVELING_FEATURE)
+#if ENABLED(DEBUG_FEATURE)
 
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
     SERIAL_PS(prefix);
@@ -67,6 +67,6 @@ void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (c
     }
   #endif
 
-#endif // ENABLED(DEBUG_LEVELING_FEATURE)
+#endif // ENABLED(DEBUG_FEATURE)
 
 #endif // __AVR__

@@ -38,8 +38,8 @@
  */
 inline void gcode_T(const uint8_t tool_id) {
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       SERIAL_MV(">>> T(", tool_id);
       SERIAL_CHR(')');
       SERIAL_EOL();
@@ -86,8 +86,8 @@ inline void gcode_T(const uint8_t tool_id) {
 
   #endif
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       DEBUG_POS("AFTER", mechanics.current_position);
       SERIAL_EM("<<< T()");
     }

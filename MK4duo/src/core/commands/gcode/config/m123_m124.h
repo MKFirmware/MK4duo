@@ -106,7 +106,7 @@ inline void gcode_M123(void) {
     if (parser.seen('D')) endstops.setLogic(DOOR_OPEN_SENSOR, parser.value_bool());
   #endif
 
-  #if HAS_POWER_CHECK && HAS_SDSUPPORT
+  #if HAS_POWER_CHECK && HAS_SD_SUPPORT
     if (parser.seen('W')) endstops.setLogic(POWER_CHECK_SENSOR, parser.value_bool());
   #endif
 
@@ -190,7 +190,7 @@ inline void gcode_M124(void) {
     if (parser.seen('D')) endstops.setPullup(DOOR_OPEN_SENSOR, parser.value_bool());
   #endif
 
-  #if HAS_POWER_CHECK && HAS_SDSUPPORT
+  #if HAS_POWER_CHECK && HAS_SD_SUPPORT
     if (parser.seen('W')) endstops.setPullup(POWER_CHECK_SENSOR, parser.value_bool());
   #endif
 

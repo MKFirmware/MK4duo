@@ -248,7 +248,7 @@ static void lcd_set_custom_characters(
 
   #endif // LCD_PROGRESS_BAR
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     // CHARSET_MENU
     const static PROGMEM byte refresh[8] = {
@@ -302,7 +302,7 @@ static void lcd_set_custom_characters(
       #endif
         {
           createChar_P(LCD_UPLEVEL_CHAR, uplevel);
-          #if HAS_SDSUPPORT
+          #if HAS_SD_SUPPORT
             // SD Card sub-menu special characters
             createChar_P(LCD_STR_REFRESH[0], refresh);
             createChar_P(LCD_STR_FOLDER[0], folder);
@@ -668,7 +668,7 @@ static void lcd_implementation_status_screen() {
 
     #if LCD_WIDTH < 20
 
-      #if HAS_SDSUPPORT
+      #if HAS_SD_SUPPORT
         lcd_moveto(0, 2);
         lcd_put_u8str_P(PSTR("SD"));
         if (IS_SD_PRINTING)
@@ -731,7 +731,7 @@ static void lcd_implementation_status_screen() {
     lcd_put_u8str(itostr3(mechanics.feedrate_percentage));
     lcd_put_wchar('%');
 
-    #if LCD_WIDTH >= 20 && HAS_SDSUPPORT
+    #if LCD_WIDTH >= 20 && HAS_SD_SUPPORT
 
       lcd_moveto(7, 2);
       lcd_put_u8str_P(PSTR("SD"));
@@ -780,7 +780,7 @@ static void lcd_implementation_status_screen() {
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
 
-    #if HAS_LCD_FILAMENT_SENSOR && HAS_SDSUPPORT
+    #if HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
       // After allowing lcd_status_message to show for 5 seconds
       if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
@@ -956,7 +956,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     static void lcd_implementation_drawmenu_sd(const bool sel, const uint8_t row, const char* const pstr, const char* longFilename, const uint8_t concat, const char post_char) {
       UNUSED(pstr);

@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   #define CODE_M20
   #define CODE_M21
@@ -203,4 +203,4 @@
 
   #endif // SDCARD_SORT_ALPHA && SDSORT_GCODE
 
-#endif // HAS_SDSUPPORT
+#endif // HAS_SD_SUPPORT

@@ -34,7 +34,7 @@ constexpr uint8_t debug_info                = 2;
 constexpr uint8_t debug_error               = 4;
 constexpr uint8_t debug_dryrun              = 8;
 constexpr uint8_t debug_communication       = 16;
-constexpr uint8_t debug_leveling            = 32;
+constexpr uint8_t debug_feature             = 32;
 constexpr uint8_t debug_mesh_adjust         = 64;
 constexpr uint8_t debug_simulation          = 128;
 
@@ -188,7 +188,7 @@ class Printer {
     FORCE_INLINE static bool debugError()         { return mk_debug_flag & debug_error; }
     FORCE_INLINE static bool debugDryrun()        { return mk_debug_flag & debug_dryrun; }
     FORCE_INLINE static bool debugCommunication() { return mk_debug_flag & debug_communication; }
-    FORCE_INLINE static bool debugLeveling()      { return mk_debug_flag & debug_leveling; }
+    FORCE_INLINE static bool debugFeature()       { return mk_debug_flag & debug_feature; }
     FORCE_INLINE static bool debugMesh()          { return mk_debug_flag & debug_mesh_adjust; }
     FORCE_INLINE static bool debugSimulation()    { return mk_debug_flag & debug_simulation; }
 

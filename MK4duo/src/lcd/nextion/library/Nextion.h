@@ -360,7 +360,7 @@ class NexObject {
 /**
  * Class NexUpload
  */
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   class NexUpload {
 

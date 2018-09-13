@@ -310,7 +310,7 @@ class Mechanics {
       }
     #endif
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
+    #if ENABLED(DEBUG_FEATURE)
       static void log_machine_info();
     #endif
 

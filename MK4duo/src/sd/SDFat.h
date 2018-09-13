@@ -46,7 +46,7 @@
 #ifndef _SDFAT_H_
 #define _SDFAT_H_
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   /**
    * \file
@@ -2139,6 +2139,6 @@
 
   };
 
-#endif  // HAS_SDSUPPORT
+#endif  // HAS_SD_SUPPORT
 
 #endif  /* _SDFAT_H_ */

@@ -94,8 +94,8 @@
   }
 
   void Cartesian_Mechanics::sync_plan_position_mech_specific() {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
     #endif
     sync_plan_position();
   }
@@ -121,8 +121,8 @@
   void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
     const float old_feedrate_mm_s = feedrate_mm_s;
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
     const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
@@ -148,8 +148,8 @@
 
     feedrate_mm_s = old_feedrate_mm_s;
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< do_blocking_move_to");
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) SERIAL_EM("<<< do_blocking_move_to");
     #endif
 
     planner.synchronize();
@@ -219,8 +219,8 @@
     #endif
 
     printer.setup_for_endstop_or_probe_move();
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("> endstops.setEnabled(true)");
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) SERIAL_EM("> endstops.setEnabled(true)");
     #endif
     endstops.setEnabled(true); // Enable endstops for next homing move
 
@@ -246,8 +246,8 @@
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
       destination[Z_AXIS] = z_homing_height;
       if (destination[Z_AXIS] > current_position[Z_AXIS]) {
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling())
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature())
             SERIAL_EMV("Raise Z (before homing) to ", destination[Z_AXIS]);
         #endif
         do_blocking_move_to_z(destination[Z_AXIS]);
@@ -367,8 +367,8 @@
 
     mechanics.report_current_position();
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("<<< G28");
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) SERIAL_EM("<<< G28");
     #endif
 
   }
@@ -378,8 +378,8 @@
    */
   void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
         SERIAL_MV(", ", distance);
         SERIAL_MSG(", ");
@@ -451,8 +451,8 @@
       #endif
     }
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -513,8 +513,8 @@
    */
   void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -543,8 +543,8 @@
       if (axis == Z_AXIS) {
         current_position[Z_AXIS] -= probe.offset[Z_AXIS];
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) {
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) {
             SERIAL_EM("*** Z HOMED WITH PROBE ***");
             SERIAL_EMV("zprobe_zoffset = ", probe.offset[Z_AXIS]);
           }
@@ -552,8 +552,8 @@
       }
     #endif
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         #if ENABLED(WORKSPACE_OFFSETS)
           SERIAL_MV("> home_offset[", axis_codes[axis]);
           SERIAL_EMV("] = ", home_offset[axis]);
@@ -862,14 +862,14 @@
                   planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, max_feedrate_mm_s[Z_AXIS], tools.active_extruder);
             delayed_move_time = 0;
             active_hotend_parked = false;
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (printer.debugLeveling()) SERIAL_EM("Clear active_hotend_parked");
+            #if ENABLED(DEBUG_FEATURE)
+              if (printer.debugFeature()) SERIAL_EM("Clear active_hotend_parked");
             #endif
             break;
           case DXC_DUPLICATION_MODE:
             if (tools.active_extruder == 0) {
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) {
+              #if ENABLED(DEBUG_FEATURE)
+                if (printer.debugFeature()) {
                   SERIAL_MV("Set planner X", inactive_hotend_x_pos);
                   SERIAL_EMV(" ... Line to X", current_position[X_AXIS] + duplicate_hotend_x_offset);
                 }
@@ -890,13 +890,13 @@
               sync_plan_position();
               hotend_duplication_enabled = true;
               active_hotend_parked = false;
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) SERIAL_EM("Set hotend_duplication_enabled\nClear active_hotend_parked");
+              #if ENABLED(DEBUG_FEATURE)
+                if (printer.debugFeature()) SERIAL_EM("Set hotend_duplication_enabled\nClear active_hotend_parked");
               #endif
             }
             else {
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) SERIAL_EM("Active extruder not 0");
+              #if ENABLED(DEBUG_FEATURE)
+                if (printer.debugFeature()) SERIAL_EM("Active extruder not 0");
               #endif
             }
             break;
@@ -1022,8 +1022,8 @@
       (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
     if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -1053,8 +1053,8 @@
     #endif
 
     // Fast move towards endstop until triggered
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("Home 1 Fast:");
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) SERIAL_EM("Home 1 Fast:");
     #endif
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
@@ -1080,8 +1080,8 @@
     // If a second homing move is configured...
     if (bump) {
       // Move away from the endstop by the axis HOME_BUMP_MM
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Move Away:");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("Move Away:");
       #endif
       mechanics.do_homing_move(axis, -bump
         #if HOMING_Z_WITH_PROBE
@@ -1090,8 +1090,8 @@
       );
 
       // Slow move towards endstop until triggered
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Home 2 Slow:");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("Home 2 Slow:");
       #endif
 
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
@@ -1162,8 +1162,8 @@
       if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
     #endif
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
         SERIAL_CHR(')');
         SERIAL_EOL();
@@ -1220,8 +1220,8 @@
         return;
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("Z_SAFE_HOMING >>>");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("Z_SAFE_HOMING >>>");
       #endif
 
       sync_plan_position();
@@ -1240,8 +1240,8 @@
 
       if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("Z_SAFE_HOMING", destination);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) DEBUG_POS("Z_SAFE_HOMING", destination);
         #endif
 
         // This causes the carriage on Dual X to unpark
@@ -1261,8 +1261,8 @@
         SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("<<< Z_SAFE_HOMING");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("<<< Z_SAFE_HOMING");
       #endif
     }
 
@@ -1279,8 +1279,8 @@
         return;
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("DOUBLE_Z_HOMING >>>");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("DOUBLE_Z_HOMING >>>");
       #endif
 
       sync_plan_position();
@@ -1299,8 +1299,8 @@
 
       if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
         #endif
 
         const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.offset[Z_AXIS]);
@@ -1316,8 +1316,8 @@
         SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("<<< DOUBLE_Z_HOMING");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("<<< DOUBLE_Z_HOMING");
       #endif
     }
 

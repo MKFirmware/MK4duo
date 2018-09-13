@@ -1561,8 +1561,8 @@
 
               abort_flag = isnan(measured_z);
 
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) {
+              #if ENABLED(DEBUG_FEATURE)
+                if (printer.debugFeature()) {
                   SERIAL_CHR('(');
                   SERIAL_VAL(rx, 7);
                   SERIAL_CHR(',');
@@ -1581,8 +1581,8 @@
 
               measured_z -= get_z_correction(rx, ry) /* + zprobe_zoffset */ ;
 
-              #if ENABLED(DEBUG_LEVELING_FEATURE)
-                if (printer.debugLeveling()) {
+              #if ENABLED(DEBUG_FEATURE)
+                if (printer.debugFeature()) {
                   SERIAL_MSG("   final >>>---> ");
                   SERIAL_VAL(measured_z, 7);
                   SERIAL_EOL();
@@ -1627,8 +1627,8 @@
                 y_tmp = mesh_index_to_ypos(j),
                 z_tmp = z_values[i][j];
 
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (printer.debugLeveling()) {
+          #if ENABLED(DEBUG_FEATURE)
+            if (printer.debugFeature()) {
               SERIAL_MSG("before rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -1642,8 +1642,8 @@
 
           apply_rotation_xyz(rotation, x_tmp, y_tmp, z_tmp);
 
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (printer.debugLeveling()) {
+          #if ENABLED(DEBUG_FEATURE)
+            if (printer.debugFeature()) {
               SERIAL_MSG("after rotation = [");
               SERIAL_VAL(x_tmp, 7);
               SERIAL_CHR(',');
@@ -1659,8 +1659,8 @@
         }
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           rotation.debug(PSTR("rotation matrix:"));
           SERIAL_MSG("LSF Results A=");
           SERIAL_VAL(lsf_results.A, 7);
@@ -1732,7 +1732,7 @@
           SERIAL_VAL(get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT), 6);
           SERIAL_EOL();
           #endif
-        } // printer.debugLeveling()
+        } // printer.debugFeature()
       #endif
 
     }

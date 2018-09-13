@@ -28,7 +28,7 @@
 
 #if ENABLED(NEXTION)
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     #define CODE_M35
 

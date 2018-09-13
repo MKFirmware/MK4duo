@@ -270,7 +270,7 @@ static void lcd_implementation_status_screen() {
     }
   }
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
     //
     // SD Card Symbol
     //
@@ -486,7 +486,7 @@ static void lcd_implementation_status_screen() {
           }
       #endif
 
-      #if HAS_LCD_FILAMENT_SENSOR && HAS_SDSUPPORT
+      #if HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT
         else {
           lcd_put_u8str_P(PSTR(LCD_STR_FILAM_DIA));
           lcd_put_wchar(':');
