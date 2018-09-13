@@ -42,7 +42,7 @@
 #endif
 
 // addon
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
   #if DISABLED(SD_FINISHED_STEPPERRELEASE)
     #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE."
   #endif

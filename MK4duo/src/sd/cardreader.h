@@ -23,7 +23,7 @@
 #ifndef CARDREADER_H
 #define CARDREADER_H
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   #if ENABLED(SD_SETTINGS)
     /**

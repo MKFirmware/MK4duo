@@ -163,7 +163,7 @@
       case 3:
         SERIAL_EM(",");
         SERIAL_MSG("\"printer.currentLayer\":");
-        #if HAS_SDSUPPORT
+        #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
             SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
           }
@@ -179,7 +179,7 @@
           firstOccurrence = false;
         }
         SERIAL_MSG("],");
-        #if HAS_SDSUPPORT
+        #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING) {
             SERIAL_MSG("\"fractionPrinted\":");
             float fractionprinted;
@@ -192,7 +192,7 @@
           }
         #endif
         SERIAL_MSG("\"firstLayerHeight\":");
-        #if HAS_SDSUPPORT
+        #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING) SERIAL_VAL(card.firstlayerHeight);
           else SERIAL_MSG("0");
         #else

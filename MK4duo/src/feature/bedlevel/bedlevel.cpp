@@ -284,8 +284,8 @@
    * Reset calibration results to zero.
    */
   void Bedlevel::reset() {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) SERIAL_EM("Reset Bed Level");
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) SERIAL_EM("Reset Bed Level");
     #endif
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)

@@ -512,7 +512,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
     }
   }
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     static void _drawmenu_sd(const bool isSelected, const uint8_t row, const char* const pstr, const char* longFilename, const bool isDir) {
       UNUSED(pstr);

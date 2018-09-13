@@ -106,7 +106,7 @@ void serial_print_pair(const char* msg, void *v);
 
 void serial_spaces(uint8_t count);
 
-#if ENABLED(DEBUG_LEVELING_FEATURE)
+#if ENABLED(DEBUG_FEATURE)
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
   void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
   #if HAS_PLANAR

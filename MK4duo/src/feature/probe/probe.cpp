@@ -47,8 +47,8 @@ bool Probe::set_deployed(const bool deploy) {
     #endif
   #endif
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       DEBUG_POS("probe.set_deployed", mechanics.current_position);
       SERIAL_EMV("deploy: ", deploy);
     }
@@ -155,8 +155,8 @@ bool Probe::set_deployed(const bool deploy) {
 
     #if HAS_BED_PROBE
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
           SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
           SERIAL_MT(", ", raise_after == PROBE_PT_RAISE ? "raise" : raise_after == PROBE_PT_STOW ? "stow" : "none");
@@ -214,8 +214,8 @@ bool Probe::set_deployed(const bool deploy) {
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("<<< check_pt");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("<<< check_pt");
       #endif
 
       return measured_z;
@@ -287,8 +287,8 @@ bool Probe::set_deployed(const bool deploy) {
 
     bltouch_command(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
 
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV("set_bltouch_deployed(", deploy);
         SERIAL_CHR(')'); SERIAL_EOL();
       }
@@ -438,8 +438,8 @@ void Probe::servo_test() {
  * @return true to indicate an error
  */
 bool Probe::move_to_z(const float z, const float fr_mm_s) {
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
   #endif
 
   // Deploy BLTouch at the start of any probe
@@ -498,8 +498,8 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   // Tell the planner where we actually are
   mechanics.sync_plan_position_mech_specific();
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
   #endif
 
   return !probe_triggered;
@@ -509,8 +509,8 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
  * Raise Z to a minimum height to make room for a probe to move
  */
 void Probe::do_raise(const float z_raise) {
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       SERIAL_MV("probe.do_raise(", z_raise);
       SERIAL_CHR(')');
       SERIAL_EOL();
@@ -539,8 +539,8 @@ float Probe::run_probing() {
   // Stop the probe before it goes too low to prevent damage.
   #define Z_PROBE_LOW_POINT (-2 - offset[Z_AXIS])
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
   #endif
 
   // If the nozzle is well over the travel height then
@@ -557,8 +557,8 @@ float Probe::run_probing() {
 
     // move down slowly to find bed
     if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           SERIAL_EM("SLOW Probe fail!");
           DEBUG_POS("<<< probe.run_probing", mechanics.current_position);
         }
@@ -624,8 +624,8 @@ float Probe::run_probing() {
    *              If true, move to MAX_X and release the solenoid
    */
   void Probe::dock_sled(bool stow) {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MV("dock_sled(", stow);
         SERIAL_CHR(')'); SERIAL_EOL();
       }

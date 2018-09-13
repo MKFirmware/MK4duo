@@ -173,8 +173,8 @@ void Mechanics::prepare_move_to_destination() {
  * no kinematic translation. Used for homing axes and cartesian/core syncing.
  */
 void Mechanics::sync_plan_position() {
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS("sync_plan_position", current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS("sync_plan_position", current_position);
   #endif
   planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
@@ -266,7 +266,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #endif
 
-#if ENABLED(DEBUG_LEVELING_FEATURE)
+#if ENABLED(DEBUG_FEATURE)
 
   void Mechanics::log_machine_info() {
     SERIAL_MSG("Machine Type: ");
@@ -396,7 +396,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
   }
 
-#endif // DEBUG_LEVELING_FEATURE
+#endif // DEBUG_FEATURE
 
 #if ENABLED(BABYSTEPPING)
 

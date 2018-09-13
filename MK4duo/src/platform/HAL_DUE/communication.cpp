@@ -120,7 +120,7 @@ void Com::print(long value) {
   printNumber(value);
 }
 
-#if ENABLED(DEBUG_LEVELING_FEATURE)
+#if ENABLED(DEBUG_FEATURE)
 
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
     SERIAL_PS(prefix);
@@ -144,6 +144,6 @@ void Com::print(long value) {
     }
   #endif
 
-#endif // ENABLED(DEBUG_LEVELING_FEATURE)
+#endif // ENABLED(DEBUG_FEATURE)
 
 #endif // ARDUINO_ARCH_SAM

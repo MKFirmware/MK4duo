@@ -42,6 +42,7 @@
    *    L[int]    ADC low offset correction
    *    O[int]    ADC high offset correction
    *    P[int]    Sensor Pin
+   *    T[int]    Sensor Type
    *
    *  D DHT parameters
    *    S[int]    Type Sensor
@@ -73,6 +74,7 @@
     act->sensor.pullupR       = parser.floatval('R', act->sensor.pullupR);
     act->sensor.adcLowOffset  = parser.intval('L', act->sensor.adcLowOffset);
     act->sensor.adcHighOffset = parser.intval('O', act->sensor.adcHighOffset);
+    act->sensor.type          = parser.intval('T', act->sensor.type);
 
     if (parser.seen('P')) {
       // Put off the heaters

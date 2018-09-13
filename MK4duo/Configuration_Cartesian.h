@@ -421,11 +421,6 @@
 //#define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_3POINT
 
-// Enable detailed logging of G28, G29, G30, M48, etc.
-// Turn on with the command 'M111 S32'.
-// NOTE: Requires a lot of PROGMEM!
-//#define DEBUG_LEVELING_FEATURE
-
 // enable a graphics overly while editing the mesh from auto-level
 //#define MESH_EDIT_GFX_OVERLAY
 

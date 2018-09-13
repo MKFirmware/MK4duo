@@ -43,7 +43,7 @@
 
 #include "../../MK4duo.h"
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
 #include "Arduino.h"
 #include "SDFat.h"

@@ -88,7 +88,7 @@ void out_of_range_error(const char* p_edge) {
  *  L  Set the Left limit of the probing grid
  *  R  Set the Right limit of the probing grid
  *
- * Parameters with DEBUG_LEVELING_FEATURE only:
+ * Parameters with DEBUG_FEATURE only:
  *
  *  C  Make a totally fake grid with no actual probing.
  *     For use in testing when no probing is possible.
@@ -124,17 +124,17 @@ void out_of_range_error(const char* p_edge) {
  */
 inline void gcode_G29(void) {
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE) || ENABLED(PROBE_MANUALLY)
+  #if ENABLED(DEBUG_FEATURE) || ENABLED(PROBE_MANUALLY)
     const bool seenQ = parser.seen('Q');
   #else
     constexpr bool seenQ = false;
   #endif
 
   // G29 Q is also available if debugging
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
+  #if ENABLED(DEBUG_FEATURE)
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (seenQ) printer.debugSet(debug_leveling);
-    if (printer.debugLeveling()) {
+    if (seenQ) printer.debugSet(debug_feature);
+    if (printer.debugFeature()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();
     }
@@ -152,7 +152,7 @@ inline void gcode_G29(void) {
 
   const bool no_action = seenA || seenQ;
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE) && DISABLED(PROBE_MANUALLY)
+  #if ENABLED(DEBUG_FEATURE) && DISABLED(PROBE_MANUALLY)
     const bool faux = parser.boolval('C');
   #else
     const bool faux = no_action;
@@ -436,8 +436,8 @@ inline void gcode_G29(void) {
 
     #if ENABLED(AUTO_BED_LEVELING_3POINT)
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM("> 3-point Leveling");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM("> 3-point Leveling");
       #endif
 
       // Probe at 3 arbitrary points
@@ -518,8 +518,8 @@ inline void gcode_G29(void) {
 
         abl.z_values[xCount][yCount] = measured_z + zoffset;
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) {
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) {
             SERIAL_MV("Save X", xCount);
             SERIAL_MV(" Y", yCount);
             SERIAL_EMV(" Z", abl.z_values[xCount][yCount]);
@@ -748,8 +748,8 @@ inline void gcode_G29(void) {
   // return or loop before this point.
   //
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) DEBUG_POS("> probing complete", mechanics.current_position);
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) DEBUG_POS("> probing complete", mechanics.current_position);
   #endif
 
   #if ENABLED(PROBE_MANUALLY)
@@ -886,8 +886,8 @@ inline void gcode_G29(void) {
         // Correct the current XYZ position based on the tilted plane.
         //
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("G29 uncorrected XYZ", mechanics.current_position);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) DEBUG_POS("G29 uncorrected XYZ", mechanics.current_position);
         #endif
 
         float converted[XYZ];
@@ -902,8 +902,8 @@ inline void gcode_G29(void) {
           && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.offset[Y_AXIS])
         ) {
           float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
-          #if ENABLED(DEBUG_LEVELING_FEATURE)
-            if (printer.debugLeveling()) {
+          #if ENABLED(DEBUG_FEATURE)
+            if (printer.debugFeature()) {
               SERIAL_MV("Z from Probe:", simple_z);
               SERIAL_MV("  Matrix:", converted[Z_AXIS]);
               SERIAL_EMV("  Discrepancy:", simple_z - converted[Z_AXIS]);
@@ -915,32 +915,32 @@ inline void gcode_G29(void) {
         // The rotated XY and corrected Z are now current_position
         COPY_ARRAY(mechanics.current_position, converted);
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) DEBUG_POS("G29 corrected XYZ", mechanics.current_position);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) DEBUG_POS("G29 corrected XYZ", mechanics.current_position);
         #endif
       }
 
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (!dryrun) {
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) SERIAL_EMV("G29 uncorrected Z:", mechanics.current_position[Z_AXIS]);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) SERIAL_EMV("G29 uncorrected Z:", mechanics.current_position[Z_AXIS]);
         #endif
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z
         mechanics.current_position[Z_AXIS] -= abl.bilinear_z_offset(mechanics.current_position);
 
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) SERIAL_EMV(" corrected Z:", mechanics.current_position[Z_AXIS]);
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) SERIAL_EMV(" corrected Z:", mechanics.current_position[Z_AXIS]);
         #endif
       }
 
     #endif // ABL_PLANAR
 
     #if ENABLED(Z_PROBE_END_SCRIPT)
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           SERIAL_MSG("Z Probe End Script: ");
           SERIAL_EM(Z_PROBE_END_SCRIPT);
         }
@@ -960,8 +960,8 @@ inline void gcode_G29(void) {
   // Restore state after probing
   if (!faux) printer.clean_up_after_endstop_or_probe_move();
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) SERIAL_EM("<<< G29");
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) SERIAL_EM("<<< G29");
   #endif
 
   mechanics.report_current_position();

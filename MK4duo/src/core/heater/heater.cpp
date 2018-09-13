@@ -173,15 +173,18 @@
 
   void Heater::print_sensor_parameters() {
     const int8_t heater_id = type == 0 ? ID : -type;
-    SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+    SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> T<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
     SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
     SERIAL_MV(" P", sensor.pin);
-    SERIAL_MV(" A", sensor.r25, 1);
-    SERIAL_MV(" B", sensor.beta, 1);
-    SERIAL_MV(" C", sensor.shC, 10);
-    SERIAL_MV(" R", sensor.pullupR, 1);
-    SERIAL_MV(" L", sensor.adcLowOffset);
-    SERIAL_MV(" O", sensor.adcHighOffset);
+    SERIAL_MV(" T", sensor.type);
+    if (WITHIN(sensor.type, 1, 9)) {
+      SERIAL_MV(" A", sensor.r25, 1);
+      SERIAL_MV(" B", sensor.beta, 1);
+      SERIAL_MV(" C", sensor.shC, 10);
+      SERIAL_MV(" R", sensor.pullupR, 1);
+      SERIAL_MV(" L", sensor.adcLowOffset);
+      SERIAL_MV(" O", sensor.adcHighOffset);
+    }
     SERIAL_EOL();
   }
 

@@ -81,7 +81,7 @@ class Commands {
   private: /** Private Function */
 
     static void get_serial();
-    #if HAS_SDSUPPORT
+    #if HAS_SD_SUPPORT
       static void get_sdcard();
     #endif
 

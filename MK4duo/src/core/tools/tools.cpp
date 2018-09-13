@@ -116,8 +116,8 @@
               move_extruder_servo(tmp_extruder);
             #endif
 
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (printer.debugLeveling()) {
+            #if ENABLED(DEBUG_FEATURE)
+              if (printer.debugFeature()) {
                 SERIAL_MV("Offset Tool XYZ by { ", x_diff);
                 SERIAL_MV(", ", y_diff);
                 SERIAL_MV(", ", z_diff);
@@ -152,8 +152,8 @@
               mechanics.current_position[Z_AXIS] += 1.0;
               planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
             #endif
-            #if ENABLED(DEBUG_LEVELING_FEATURE)
-              if (printer.debugLeveling()) DEBUG_POS("Move back", mechanics.destination);
+            #if ENABLED(DEBUG_FEATURE)
+              if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
             #endif
             // Move back to the original (or tweaked) position
             mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
@@ -520,8 +520,8 @@
   #if ENABLED(DUAL_X_CARRIAGE)
 
     void Tools::dualx_tool_change(const uint8_t tmp_extruder, bool &no_move) {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           SERIAL_MSG("Dual X Carriage Mode ");
           switch (mechanics.dual_x_carriage_mode) {
             case DXC_FULL_CONTROL_MODE: SERIAL_EM("DXC_FULL_CONTROL_MODE"); break;
@@ -539,8 +539,8 @@
         #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
           NOMORE(raised_z, endstops.soft_endstop_max[Z_AXIS]);
         #endif
-        #if ENABLED(DEBUG_LEVELING_FEATURE)
-          if (printer.debugLeveling()) {
+        #if ENABLED(DEBUG_FEATURE)
+          if (printer.debugFeature()) {
             SERIAL_EMV("Raise to ", raised_z);
             SERIAL_EMV("MoveX to ", xhome);
             SERIAL_EMV("Lower to ", mechanics.current_position[Z_AXIS]);
@@ -569,8 +569,8 @@
       // This function resets the max/min values - the current position may be overwritten below.
       mechanics.set_axis_is_at_home(X_AXIS);
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) DEBUG_POS("New Extruder", mechanics.current_position);
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.current_position);
       #endif
 
       // Only when auto-parking are carriages safe to move
@@ -595,8 +595,8 @@
           break;
       }
 
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) {
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) {
           SERIAL_EMV("Active hotend parked: ", mechanics.active_hotend_parked ? "yes" : "no");
           DEBUG_POS("New hotend (parked)", mechanics.current_position);
         }
