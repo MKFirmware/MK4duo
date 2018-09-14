@@ -1549,7 +1549,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   }
   else {
     #if ENABLED(HYSTERESIS_FEATURE)
-      insert_hysteresis_correction(dx, dy, dz, block, delta_mm);
+      insert_hysteresis_correction(block, delta_mm);
     #endif
     if (millimeters)
       block->millimeters = millimeters;
@@ -1942,7 +1942,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(XY_FREQUENCY_LIMIT)
 
     // Check and limit the xy direction change frequency
-    const uint8_t direction_change = block->direction_bits ^ old_direction_bits;
+    const uint8_t direction_change_bits = block->direction_bits ^ old_direction_bits;
     old_direction_bits = block->direction_bits;
     segment_time_us = LROUND((float)segment_time_us / speed_factor);
 
@@ -1953,14 +1953,14 @@ bool Planner::fill_block(block_t * const block, bool split_move,
               ys1 = axis_segment_time_us[Y_AXIS][1],
               ys2 = axis_segment_time_us[Y_AXIS][2];
 
-    if (TEST(direction_change, X_AXIS)) {
+    if (TEST(direction_change_bits, X_AXIS)) {
       xs2 = axis_segment_time_us[X_AXIS][2] = xs1;
       xs1 = axis_segment_time_us[X_AXIS][1] = xs0;
       xs0 = 0;
     }
     xs0 = axis_segment_time_us[X_AXIS][0] = xs0 + segment_time_us;
 
-    if (TEST(direction_change, Y_AXIS)) {
+    if (TEST(direction_change_bits, Y_AXIS)) {
       ys2 = axis_segment_time_us[Y_AXIS][2] = axis_segment_time_us[Y_AXIS][1];
       ys1 = axis_segment_time_us[Y_AXIS][1] = axis_segment_time_us[Y_AXIS][0];
       ys0 = 0;
@@ -2576,26 +2576,24 @@ void Planner::refresh_positioning() {
 
 #if ENABLED(HYSTERESIS_FEATURE)
 
-  void Planner::insert_hysteresis_correction(const int32_t dx, const int32_t dy, const int32_t dz, block_t * const block, float (&delta_mm)[XYZE]) {
+  void Planner::insert_hysteresis_correction(block_t * const block, float (&delta_mm)[XYZE]) {
 
-    static uint8_t last_direction_bits;
-    const bool positive_movement[XYZ] = {dx > 0, dy > 0, dz > 0};
-    uint8_t direction_change = last_direction_bits ^ block->direction_bits;
+    static uint8_t last_direction_bits = 0;
+    uint8_t direction_change_bits = last_direction_bits ^ block->direction_bits;
 
-    if (dx == 0) CBI(direction_change, X_AXIS);
-    if (dy == 0) CBI(direction_change, Y_AXIS);
-    if (dz == 0) CBI(direction_change, Z_AXIS);
+    LOOP_XYZ(axis)
+      if (!block->steps[axis]) CBI(direction_change_bits, axis);
 
-    last_direction_bits ^= direction_change;
+    last_direction_bits ^= direction_change_bits;
 
-    if (hysteresis_correction == 0.0f || !direction_change) return;
+    if (hysteresis_correction == 0.0f || !direction_change_bits) return;
 
     LOOP_XYZ(axis) {
-      if (hysteresis_mm[axis] && TEST(direction_change, axis)) {
-        const int32_t fix = hysteresis_correction * (positive_movement[axis] ? 1.0f : -1.0f) * hysteresis_mm[axis] * mechanics.axis_steps_per_mm[axis];
+      if (hysteresis_mm[axis] && TEST(direction_change_bits, axis)) {
+        const uint32_t fix = hysteresis_correction * hysteresis_mm[axis] * mechanics.axis_steps_per_mm[axis];
         if (fix) {
-          block->steps[axis] += ABS(fix);
-          delta_mm[axis] = (positive_movement[axis] ? 1.0f : -1.0f) * block->steps[axis] * mechanics.steps_to_mm[axis];
+          block->steps[axis] += fix;
+          delta_mm[axis] = (TEST(block->direction_bits, axis) ? -1.0f : 1.0f) * block->steps[axis] * mechanics.steps_to_mm[axis];
         }
       }
     }
