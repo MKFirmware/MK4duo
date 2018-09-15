@@ -594,10 +594,10 @@ void reset_stepper_drivers() {
   #if HAVE_DRV(L6470)
     L6470_init_to_defaults();
   #endif
-
   #if ENABLED(TMC_ADV)
     TMC_ADV()
   #endif
+  stepper.set_directions();
 }
 
 //

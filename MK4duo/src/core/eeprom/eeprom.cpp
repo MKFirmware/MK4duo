@@ -1195,8 +1195,8 @@ void EEPROM::Postprocess() {
 
       if (working_crc == stored_crc) {
         #if ENABLED(EEPROM_CHITCHAT)
-          SERIAL_VAL(version);
-          SERIAL_MV(" stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
+          SERIAL_ST(ECHO, version);
+          SERIAL_MV(" Stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
           SERIAL_MV(" bytes; crc ", working_crc);
           SERIAL_EM(")");
         #endif
@@ -1834,8 +1834,6 @@ void EEPROM::Factory_Settings() {
      * Announce current units, in case inches are being displayed
      */
     SERIAL_STR(CFG);
-    SERIAL_EOL();
-
     #if ENABLED(INCH_MODE_SUPPORT)
       SERIAL_MSG("  G2");
       SERIAL_CHR(parser.linear_unit_factor == 1 ? '1' : '0');
