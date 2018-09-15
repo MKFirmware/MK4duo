@@ -529,14 +529,18 @@
       }
     #endif
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
-      if (deploy_bltouch) probe.set_bltouch_deployed(true);
-    #endif
+    const bool is_home_dir = (home_dir[axis] > 0) == (distance > 0);
 
-    #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(true);
-    #endif
+    if (is_home_dir) {
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+        const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
+        if (deploy_bltouch) probe.set_bltouch_deployed(true);
+      #endif
+
+      #if QUIET_PROBING
+        if (axis == Z_AXIS) probe.probing_pause(true);
+      #endif
+    }
 
     // Tell the planner we're at Z=0
     current_position[axis] = 0;
@@ -548,15 +552,17 @@
 
     planner.synchronize();
 
-    #if QUIET_PROBING
-      if (axis == Z_AXIS) probe.probing_pause(false);
-    #endif
+    if (is_home_dir) {
+      #if QUIET_PROBING
+        if (axis == Z_AXIS) probe.probing_pause(false);
+      #endif
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      if (deploy_bltouch) probe.set_bltouch_deployed(false);
-    #endif
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+        if (deploy_bltouch) probe.set_bltouch_deployed(false);
+      #endif
 
-    endstops.validate_homing_move();
+      endstops.validate_homing_move();
+    }
 
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) {
