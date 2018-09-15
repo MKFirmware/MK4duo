@@ -681,7 +681,7 @@
 
         settings_file.sync();
         settings_file.close();
-        SERIAL_LM(ECHO, " Statistics stored");
+        SERIAL_LM(ECHO, "Statistics stored");
       }
 
     }
@@ -745,7 +745,7 @@
       }
 
       print_job_counter.loaded = true;
-      SERIAL_LM(ECHO, " Statistics retrived");
+      SERIAL_LM(ECHO, "Statistics retrived");
 
     }
 
