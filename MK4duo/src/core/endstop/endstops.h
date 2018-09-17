@@ -50,6 +50,8 @@ enum EndstopEnum : char {
   Y2_MAX,
   Z2_MIN,
   Z2_MAX,
+  Z3_MIN,
+  Z3_MAX,
   FIL_RUNOUT,
   DOOR_OPEN_SENSOR,
   POWER_CHECK_SENSOR
@@ -71,13 +73,17 @@ class Endstops {
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      static float x_endstop_adj;
+      static float  x2_endstop_adj;
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      static float y_endstop_adj;
+      static float  y2_endstop_adj;
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      static float z_endstop_adj;
+      static float  z2_endstop_adj;
+    #endif
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      static float  z2_endstop_adj,
+                    z3_endstop_adj;
     #endif
 
     static uint16_t logic_bits,

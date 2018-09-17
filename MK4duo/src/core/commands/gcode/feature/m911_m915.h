@@ -31,8 +31,8 @@
   #define CODE_M911
 
   /**
-   * M911: Report TMC stepper driver overtemperature pre-warn flag
-   * The flag is held by the library and persist until manually cleared by M912
+   * M911:  Report TMC stepper driver overtemperature pre-warn flag
+   *        The flag is held by the library and persist until manually cleared by M912
    */
   inline void gcode_M911(void) {
     #if X_IS_TRINAMIC
@@ -52,6 +52,9 @@
     #endif
     #if Z2_IS_TRINAMIC
       tmc_report_otpw(stepperZ2, TMC_Z2);
+    #endif
+    #if Z3_IS_TRINAMIC
+      tmc_report_otpw(stepperZ3, TMC_Z3);
     #endif
     #if E0_IS_TRINAMIC
       tmc_report_otpw(stepperE0, TMC_E0);
@@ -95,54 +98,57 @@
                 hasNone = !hasX && !hasY && !hasZ && !hasE;
 
     #if X_IS_TRINAMIC || X2_IS_TRINAMIC
-      const uint8_t xval = parser.byteval(axis_codes[X_AXIS], 10);
+      const int8_t xval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
       #if X_IS_TRINAMIC
-        if (hasNone || xval == 1 || (hasX && xval == 10)) tmc_clear_otpw(stepperX, TMC_X);
+        if (hasNone || xval == 1 || (hasX && xval < 0)) tmc_clear_otpw(stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        if (hasNone || xval == 2 || (hasX && xval == 10)) tmc_clear_otpw(stepperX2, TMC_X2);
+        if (hasNone || xval == 2 || (hasX && xval < 0)) tmc_clear_otpw(stepperX2, TMC_X2);
       #endif
     #endif
 
     #if Y_IS_TRINAMIC || Y2_IS_TRINAMIC
-      const uint8_t yval = parser.byteval(axis_codes[Y_AXIS], 10);
+      const int8_t yval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
       #if Y_IS_TRINAMIC
-        if (hasNone || yval == 1 || (hasY && yval == 10)) tmc_clear_otpw(stepperY, TMC_Y);
+        if (hasNone || yval == 1 || (hasY && yval < 0)) tmc_clear_otpw(stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        if (hasNone || yval == 2 || (hasY && yval == 10)) tmc_clear_otpw(stepperY2, TMC_Y2);
+        if (hasNone || yval == 2 || (hasY && yval < 0)) tmc_clear_otpw(stepperY2, TMC_Y2);
       #endif
     #endif
 
-    #if Z_IS_TRINAMIC || Z2_IS_TRINAMIC
-      const uint8_t zval = parser.byteval(axis_codes[Z_AXIS], 10);
+    #if Z_IS_TRINAMIC || Z2_IS_TRINAMIC || Z3_IS_TRINAMIC
+      const int8_t zval = int8_t(parser.byteval(axis_codes[Z_AXIS], 0xFF));
       #if Z_IS_TRINAMIC
-        if (hasNone || zval == 1 || (hasZ && zval == 10)) tmc_clear_otpw(stepperZ, TMC_Z);
+        if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        if (hasNone || zval == 2 || (hasZ && zval == 10)) tmc_clear_otpw(stepperZ2, TMC_Z2);
+        if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ2, TMC_Z2);
+      #endif
+      #if Z3_IS_TRINAMIC
+        if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ3, TMC_Z3);
       #endif
     #endif
 
-    const uint8_t eval = parser.byteval(axis_codes[E_AXIS], 10);
+    const uint8_t eval = int8_t(parser.byteval(axis_codes[E_AXIS], 0xFF));
 
     #if E0_IS_TRINAMIC
-      if (hasNone || eval == 0 || (hasE && eval == 10)) tmc_clear_otpw(stepperE0, TMC_E0);
+      if (hasNone || eval == 0 || (hasE && eval < 0)) tmc_clear_otpw(stepperE0, TMC_E0);
     #endif
     #if E1_IS_TRINAMIC
-      if (hasNone || eval == 1 || (hasE && eval == 10)) tmc_clear_otpw(stepperE1, TMC_E1);
+      if (hasNone || eval == 1 || (hasE && eval < 0)) tmc_clear_otpw(stepperE1, TMC_E1);
     #endif
     #if E2_IS_TRINAMIC
-      if (hasNone || eval == 2 || (hasE && eval == 10)) tmc_clear_otpw(stepperE2, TMC_E2);
+      if (hasNone || eval == 2 || (hasE && eval < 0)) tmc_clear_otpw(stepperE2, TMC_E2);
     #endif
     #if E3_IS_TRINAMIC
-      if (hasNone || eval == 3 || (hasE && eval == 10)) tmc_clear_otpw(stepperE3, TMC_E3);
+      if (hasNone || eval == 3 || (hasE && eval < 0)) tmc_clear_otpw(stepperE3, TMC_E3);
     #endif
     #if E4_IS_TRINAMIC
-      if (hasNone || eval == 4 || (hasE && eval == 10)) tmc_clear_otpw(stepperE4, TMC_E4);
+      if (hasNone || eval == 4 || (hasE && eval < 0)) tmc_clear_otpw(stepperE4, TMC_E4);
     #endif
     #if E5_IS_TRINAMIC
-      if (hasNone || eval == 5 || (hasE && eval == 10)) tmc_clear_otpw(stepperE5, TMC_E5);
+      if (hasNone || eval == 5 || (hasE && eval < 0)) tmc_clear_otpw(stepperE5, TMC_E5);
     #endif
 
   }
@@ -168,47 +174,50 @@
         if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
-              #if X_IS_TRINAMIC
+              #if X_HAS_STEALTHCHOP
                 if (index < 2) TMC_SET_PWMTHRS(X,X);
               #endif
-              #if X2_IS_TRINAMIC
+              #if X2_HAS_STEALTHCHOP
                 if (!(index & 1)) TMC_SET_PWMTHRS(X,X2);
               #endif
               break;
             case Y_AXIS:
-              #if Y_IS_TRINAMIC
+              #if Y_HAS_STEALTHCHOP
                 if (index < 2) TMC_SET_PWMTHRS(Y,Y);
               #endif
-              #if Y2_IS_TRINAMIC
+              #if Y2_HAS_STEALTHCHOP
                 if (!(index & 1)) TMC_SET_PWMTHRS(Y,Y2);
               #endif
               break;
             case Z_AXIS:
-              #if Z_IS_TRINAMIC
+              #if Z_HAS_STEALTHCHOP
                 if (index < 2) TMC_SET_PWMTHRS(Z,Z);
               #endif
-              #if Z2_IS_TRINAMIC
-                if (!(index & 1)) TMC_SET_PWMTHRS(Z,Z2);
+              #if Z2_HAS_STEALTHCHOP
+                if (index == 0 || index == 2) TMC_SET_PWMTHRS(Z,Z2);
+              #endif
+              #if Z3_HAS_STEALTHCHOP
+                if (index == 0 || index == 3) TMC_SET_PWMTHRS(Z,Z3);
               #endif
               break;
             case E_AXIS: {
               switch (TARGET_EXTRUDER) {
-                #if E0_IS_TRINAMIC
+                #if E0_HAS_STEALTHCHOP
                   case 0: TMC_SET_PWMTHRS_E(0); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 1 && E1_IS_TRINAMIC
+                #if E1_HAS_STEALTHCHOP
                   case 1: TMC_SET_PWMTHRS_E(1); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 2 && E2_IS_TRINAMIC
+                #if E2_HAS_STEALTHCHOP
                   case 2: TMC_SET_PWMTHRS_E(2); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 3 && E3_IS_TRINAMIC
+                #if E3_HAS_STEALTHCHOP
                   case 3: TMC_SET_PWMTHRS_E(3); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 4 && E4_IS_TRINAMIC
+                #if E4_HAS_STEALTHCHOP
                   case 4: TMC_SET_PWMTHRS_E(4); break;
                 #endif
-                #if DRIVER_EXTRUDERS > 5 && E5_IS_TRINAMIC
+                #if E5_HAS_STEALTHCHOP
                   case 5: TMC_SET_PWMTHRS_E(5); break;
                 #endif
               }
@@ -217,40 +226,43 @@
         }
       }
 
-      #if X_IS_TRINAMIC
+      #if X_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(X,X);
       #endif
-      #if X2_IS_TRINAMIC
+      #if X2_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(X,X2);
       #endif
-      #if Y_IS_TRINAMIC
+      #if Y_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(Y,Y);
       #endif
-      #if Y2_IS_TRINAMIC
+      #if Y2_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(Y,Y2);
       #endif
-      #if Z_IS_TRINAMIC
+      #if Z_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(Z,Z);
       #endif
-      #if Z2_IS_TRINAMIC
+      #if Z2_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS(Z,Z2);
       #endif
-      #if E0_IS_TRINAMIC
+      #if Z3_HAS_STEALTHCHOP
+        TMC_SAY_PWMTHRS(Z,Z3);
+      #endif
+      #if E0_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(0);
       #endif
-      #if DRIVER_EXTRUDERS > 1 && E1_IS_TRINAMIC
+      #if E1_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(1);
       #endif
-      #if DRIVER_EXTRUDERS > 2 && E2_IS_TRINAMIC
+      #if E2_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(2);
       #endif
-      #if DRIVER_EXTRUDERS > 3 && E3_IS_TRINAMIC
+      #if E3_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(3);
       #endif
-      #if DRIVER_EXTRUDERS > 4 && E4_IS_TRINAMIC
+      #if E4_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(4);
       #endif
-      #if DRIVER_EXTRUDERS > 5 && E5_IS_TRINAMIC
+      #if E5_HAS_STEALTHCHOP
         TMC_SAY_PWMTHRS_E(5);
       #endif
 
@@ -301,7 +313,10 @@
                   if (index < 2) TMC_SET_SGT(Z);
                 #endif
                 #if Z2_HAS_STALLGUARD
-                  if (!(index & 1)) TMC_SET_SGT(Z2);
+                  if (index == 0 || index == 2) TMC_SET_SGT(Z2);
+                #endif
+                #if Z2_HAS_STALLGUARD
+                  if (index == 0 || index == 3) TMC_SET_SGT(Z3);
                 #endif
                 break;
             #endif
@@ -332,6 +347,9 @@
         #if Z2_HAS_STALLGUARD
           TMC_SAY_SGT(Z2);
         #endif
+        #if Z3_HAS_STALLGUARD
+          TMC_SAY_SGT(Z3);
+        #endif
       #endif
 
     }
@@ -356,12 +374,16 @@
       }
 
       #if Z_IS_TRINAMIC
-        uint16_t Z_current_1 = stepperZ.getCurrent();
+        const uint16_t Z_current_1 = stepperZ.getCurrent();
         stepperZ.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
       #endif
       #if Z2_IS_TRINAMIC
-        uint16_t Z2_current_1 = stepperZ2.getCurrent();
+        const uint16_t Z2_current_1 = stepperZ2.getCurrent();
         stepperZ2.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
+      #endif
+      #if Z3_IS_TRINAMIC
+        const uint16_t Z3_current_1 = stepperZ3.getCurrent();
+        stepperZ3.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
       #endif
 
       SERIAL_MV("\nCalibration current: Z", _rms);
@@ -375,6 +397,9 @@
       #endif
       #if Z2_IS_TRINAMIC
         stepperZ2.setCurrent(Z2_current_1, R_SENSE, HOLD_MULTIPLIER);
+      #endif
+      #if Z3_IS_TRINAMIC
+        stepperZ3.setCurrent(Z3_current_1, R_SENSE, HOLD_MULTIPLIER);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS);

@@ -383,6 +383,10 @@
 #define HAS_Z2_DIR          (PIN_EXISTS(Z2_DIR))
 #define HAS_Z2_STEP         (PIN_EXISTS(Z2_STEP))
 
+#define HAS_Z3_ENABLE       (PIN_EXISTS(Z3_ENABLE))
+#define HAS_Z3_DIR          (PIN_EXISTS(Z3_DIR))
+#define HAS_Z3_STEP         (PIN_EXISTS(Z3_STEP))
+
 // Extruder steppers and solenoids
 #define HAS_E0_ENABLE       (PIN_EXISTS(E0_ENABLE))
 #define HAS_E0_DIR          (PIN_EXISTS(E0_DIR))
@@ -448,10 +452,15 @@
 #define HAS_X2_MIN          (PIN_EXISTS(X2_MIN))
 #define HAS_Y2_MIN          (PIN_EXISTS(Y2_MIN))
 #define HAS_Z2_MIN          (PIN_EXISTS(Z2_MIN))
+#define HAS_Z3_MIN          (PIN_EXISTS(Z3_MIN))
 #define HAS_X2_MAX          (PIN_EXISTS(X2_MAX))
 #define HAS_Y2_MAX          (PIN_EXISTS(Y2_MAX))
 #define HAS_Z2_MAX          (PIN_EXISTS(Z2_MAX))
+#define HAS_Z3_MAX          (PIN_EXISTS(Z3_MAX))
 #define HAS_Z_PROBE_PIN     (PIN_EXISTS(Z_PROBE))
+
+// Multi endstop
+#define HAS_MULTI_ENDSTOP   (ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS))
 
 // Utility
 #define HAS_DOOR_OPEN       (ENABLED(DOOR_OPEN) && PIN_EXISTS(DOOR_OPEN))
@@ -676,6 +685,9 @@
 #if DISABLED(ENDSTOPPULLUP_Z2MIN)
   #define ENDSTOPPULLUP_Z2MIN   false
 #endif
+#if DISABLED(ENDSTOPPULLUP_Z3MIN)
+  #define ENDSTOPPULLUP_Z3MIN   false
+#endif
 #if DISABLED(ENDSTOPPULLUP_X2MAX)
   #define ENDSTOPPULLUP_X2MAX   false
 #endif
@@ -684,6 +696,9 @@
 #endif
 #if DISABLED(ENDSTOPPULLUP_Z2MAX)
   #define ENDSTOPPULLUP_Z2MAX   false
+#endif
+#if DISABLED(ENDSTOPPULLUP_Z3MAX)
+  #define ENDSTOPPULLUP_Z3MAX   false
 #endif
 #if DISABLED(ENDSTOPPULLUP_ZPROBE)
   #define ENDSTOPPULLUP_ZPROBE  false
@@ -716,6 +731,9 @@
 #if DISABLED(Z2_MIN_ENDSTOP_LOGIC)
   #define Z2_MIN_ENDSTOP_LOGIC  false
 #endif
+#if DISABLED(Z3_MIN_ENDSTOP_LOGIC)
+  #define Z3_MIN_ENDSTOP_LOGIC  false
+#endif
 #if DISABLED(X2_MAX_ENDSTOP_LOGIC)
   #define X2_MAX_ENDSTOP_LOGIC  false
 #endif
@@ -724,6 +742,9 @@
 #endif
 #if DISABLED(Z2_MAX_ENDSTOP_LOGIC)
   #define Z2_MAX_ENDSTOP_LOGIC  false
+#endif
+#if DISABLED(Z3_MAX_ENDSTOP_LOGIC)
+  #define Z3_MAX_ENDSTOP_LOGIC  false
 #endif
 #if DISABLED(Z_PROBE_ENDSTOP_LOGIC)
   #define Z_PROBE_ENDSTOP_LOGIC false

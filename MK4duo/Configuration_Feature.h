@@ -63,6 +63,7 @@
  * - X-axis two driver
  * - Y-axis two driver
  * - Z-axis two driver
+ * - Z-axis three driver
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
@@ -158,6 +159,7 @@
 #define X2_DRIVER_TYPE  A4988
 #define Y2_DRIVER_TYPE  A4988
 #define Z2_DRIVER_TYPE  A4988
+#define Z3_DRIVER_TYPE  A4988
 #define E0_DRIVER_TYPE  A4988
 #define E1_DRIVER_TYPE  A4988
 #define E2_DRIVER_TYPE  A4988
@@ -837,6 +839,27 @@
 
 #define INVERT_Z2_VS_Z_DIR false
 //#define Z_TWO_ENDSTOPS
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ********************************** Z-axis three driver **********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * This section will allow you to use extra drivers to drive a second or third motor Z   *
+ * Uncomment this define to utilize a separate stepper driver for each Z axis motor.     *
+ * If the motors need to spin in opposite directions set INVERT Z2 VS Z DIR.             *
+ * If the second motor needs its own endstop set Z TWO ENDSTOPS.                         *
+ * Extra endstops will appear in the output of 'M119'.                                   *
+ *                                                                                       *
+ * Only Cartesian & Core                                                                 *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define Z_THREE_STEPPER_DRIVERS
+
+#define INVERT_Z2_VS_Z_DIR false
+#define INVERT_Z3_VS_Z_DIR false
+//#define Z_THREE_ENDSTOPS
 /*****************************************************************************************/
 
 

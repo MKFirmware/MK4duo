@@ -39,13 +39,16 @@ Endstops endstops;
 #endif
 
 #if ENABLED(X_TWO_ENDSTOPS)
-  float Endstops::x_endstop_adj = 0.0;
+  float Endstops::x2_endstop_adj = 0.0;
 #endif
 #if ENABLED(Y_TWO_ENDSTOPS)
-  float Endstops::y_endstop_adj = 0.0;
+  float Endstops::y2_endstop_adj = 0.0;
 #endif
-#if ENABLED(Z_TWO_ENDSTOPS)
-  float Endstops::z_endstop_adj = 0.0;
+#if ENABLED(Z_THREE_ENDSTOPS)
+  float Endstops::z2_endstop_adj = 0.0,
+        Endstops::z3_endstop_adj = 0.0;
+#elif ENABLED(Z_TWO_ENDSTOPS)
+  float Endstops::z2_endstop_adj = 0.0;
 #endif
 
 uint16_t  Endstops::logic_bits  = 0,
@@ -83,6 +86,9 @@ void Endstops::init() {
   #if HAS_Z2_MIN
     SET_INPUT(Z2_MIN_PIN);
   #endif
+  #if HAS_Z3_MIN
+    SET_INPUT(Z3_MIN_PIN);
+  #endif
 
   #if HAS_X_MAX
     SET_INPUT(X_MAX_PIN);
@@ -103,6 +109,9 @@ void Endstops::init() {
   #endif
   #if HAS_Z2_MAX
     SET_INPUT(Z2_MAX_PIN);
+  #endif
+  #if HAS_Z3_MAX
+    SET_INPUT(Z3_MAX_PIN);
   #endif
 
   #if HAS_Z_PROBE_PIN
@@ -146,13 +155,13 @@ void Endstops::factory_parameters() {
   );
 
   #if ENABLED(X_TWO_ENDSTOPS)
-    x_endstop_adj = 0.0f;
+    x2_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Y_TWO_ENDSTOPS)
-    y_endstop_adj = 0.0f;
+    y2_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Z_TWO_ENDSTOPS)
-    z_endstop_adj = 0.0f;
+    z2_endstop_adj = 0.0f;
   #endif
   
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
@@ -166,9 +175,11 @@ void Endstops::factory_parameters() {
     setLogic(X2_MIN, !X2_MIN_ENDSTOP_LOGIC);
     setLogic(Y2_MIN, !Y2_MIN_ENDSTOP_LOGIC);
     setLogic(Z2_MIN, !Z2_MIN_ENDSTOP_LOGIC);
+    setLogic(Z3_MIN, !Z3_MIN_ENDSTOP_LOGIC);
     setLogic(X2_MAX, !X2_MAX_ENDSTOP_LOGIC);
     setLogic(Y2_MAX, !Y2_MAX_ENDSTOP_LOGIC);
     setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
+    setLogic(Z3_MAX, !Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
     setLogic(DOOR_OPEN_SENSOR, !DOOR_OPEN_LOGIC);
@@ -185,9 +196,11 @@ void Endstops::factory_parameters() {
     setLogic(X2_MIN, X2_MIN_ENDSTOP_LOGIC);
     setLogic(Y2_MIN, Y2_MIN_ENDSTOP_LOGIC);
     setLogic(Z2_MIN, Z2_MIN_ENDSTOP_LOGIC);
+    setLogic(Z3_MIN, Z3_MIN_ENDSTOP_LOGIC);
     setLogic(X2_MAX, X2_MAX_ENDSTOP_LOGIC);
     setLogic(Y2_MAX, Y2_MAX_ENDSTOP_LOGIC);
     setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
+    setLogic(Z3_MAX, Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
     setLogic(DOOR_OPEN_SENSOR, DOOR_OPEN_LOGIC);
@@ -204,9 +217,11 @@ void Endstops::factory_parameters() {
   setPullup(X2_MIN, ENDSTOPPULLUP_X2MIN);
   setPullup(Y2_MIN, ENDSTOPPULLUP_Y2MIN);
   setPullup(Z2_MIN, ENDSTOPPULLUP_Z2MIN);
+  setPullup(Z3_MIN, ENDSTOPPULLUP_Z3MIN);
   setPullup(X2_MAX, ENDSTOPPULLUP_X2MAX);
   setPullup(Y2_MAX, ENDSTOPPULLUP_Y2MAX);
   setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
+  setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
   setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
   setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
@@ -247,6 +262,9 @@ void Endstops::setup_pullup() {
   #if HAS_Z2_MIN
     HAL::setInputPullup(Z2_MIN_PIN, isPullup(Z2_MIN));
   #endif
+  #if HAS_Z3_MIN
+    HAL::setInputPullup(Z3_MIN_PIN, isPullup(Z3_MIN));
+  #endif
 
   #if HAS_X_MAX
     HAL::setInputPullup(X_MAX_PIN, isPullup(X_MAX));
@@ -267,6 +285,9 @@ void Endstops::setup_pullup() {
   #endif
   #if HAS_Z2_MAX
     HAL::setInputPullup(Z2_MAX_PIN, isPullup(Z2_MAX));
+  #endif
+  #if HAS_Z3_MAX
+    HAL::setInputPullup(Z3_MAX_PIN, isPullup(Z2_MAX));
   #endif
 
   #if HAS_Z_PROBE_PIN
@@ -340,6 +361,10 @@ void Endstops::report() {
       SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MIN)   ? "true" : "false");
       SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MIN)  ? "true" : "false");
     #endif
+    #if HAS_Z3_MIN
+      SERIAL_MT(" Z3 Logic:",   isLogic(Z3_MIN)   ? "true" : "false");
+      SERIAL_MT(" Z3 Pullup:",  isPullup(Z3_MIN)  ? "true" : "false");
+    #endif
   }
   else {
     SERIAL_MT(" Z Logic:",  isLogic(Z_MAX)  ? "true" : "false");
@@ -347,6 +372,10 @@ void Endstops::report() {
     #if HAS_Z2_MAX
       SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MAX)   ? "true" : "false");
       SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MAX)  ? "true" : "false");
+    #endif
+    #if HAS_Z3_MAX
+      SERIAL_MT(" Z3 Logic:",   isLogic(Z3_MAX)   ? "true" : "false");
+      SERIAL_MT(" Z3 Pullup:",  isPullup(Z3_MAX)  ? "true" : "false");
     #endif
   }
   SERIAL_EOL();
@@ -583,6 +612,12 @@ void Endstops::clamp_to_software(float target[XYZ]) {
     #if HAS_Z2_MAX
       if (READ(Z2_MAX_PIN)) SBI(current_bits_local, Z2_MAX);
     #endif
+    #if HAS_Z3_MIN
+      if (READ(Z3_MIN_PIN)) SBI(current_bits_local, Z3_MIN);
+    #endif
+    #if HAS_Z3_MAX
+      if (READ(Z3_MAX_PIN)) SBI(current_bits_local, Z3_MAX);
+    #endif
 
     uint16_t endstop_change = current_bits_local ^ old_bits_local;
 
@@ -625,6 +660,12 @@ void Endstops::clamp_to_software(float target[XYZ]) {
       #endif
       #if HAS_Z2_MAX
         if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", TEST(current_bits_local, Z2_MAX));
+      #endif
+      #if HAS_Z3_MIN
+        if (TEST(endstop_change, Z3_MIN)) SERIAL_MV("  Z3_MIN:", TEST(current_bits_local, Z3_MIN));
+      #endif
+      #if HAS_Z3_MAX
+        if (TEST(endstop_change, Z3_MAX)) SERIAL_MV("  Z3_MAX:", TEST(current_bits_local, Z3_MAX));
       #endif
       SERIAL_MSG("\n\n");
       old_bits_local = current_bits_local;
@@ -732,7 +773,19 @@ void Endstops::update() {
   #endif
 
   #if HAS_Z_MIN
-    #if ENABLED(Z_TWO_ENDSTOPS)
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      UPDATE_ENDSTOP_BIT(Z, MIN);
+      #if HAS_Z3_MIN
+        UPDATE_ENDSTOP_BIT(Z3, MIN);
+      #else
+        COPY_LIVE_STATE(Z_MIN, Z3_MIN);
+      #endif
+      #if HAS_Z2_MIN
+        UPDATE_ENDSTOP_BIT(Z2, MIN);
+      #else
+        COPY_LIVE_STATE(Z_MIN, Z2_MIN);
+      #endif
+    #elif ENABLED(Z_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MIN);
       #if HAS_Z2_MIN
         UPDATE_ENDSTOP_BIT(Z2, MIN);
@@ -750,8 +803,19 @@ void Endstops::update() {
   #endif
 
   #if HAS_Z_MAX
-    // Check both Z two endstops
-    #if ENABLED(Z_TWO_ENDSTOPS)
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      UPDATE_ENDSTOP_BIT(Z, MAX);
+      #if HAS_Z3_MAX
+        UPDATE_ENDSTOP_BIT(Z3, MAX);
+      #else
+        COPY_LIVE_STATE(Z_MAX, Z3_MAX);
+      #endif
+      #if HAS_Z2_MAX
+        UPDATE_ENDSTOP_BIT(Z2, MAX);
+      #else
+        COPY_LIVE_STATE(Z_MAX, Z2_MAX);
+      #endif
+    #elif ENABLED(Z_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MAX);
       #if HAS_Z2_MAX
         UPDATE_ENDSTOP_BIT(Z2, MAX);
@@ -782,7 +846,17 @@ void Endstops::update() {
     const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
     if (dual_hit) { \
       _ENDSTOP_HIT(AXIS1, MINMAX); \
-      if (!stepper.homing_dual_axis || dual_hit == 0b11) \
+      if (!stepper.separate_multi_axis || dual_hit == 0b11) \
+        planner.endstop_triggered(_AXIS(AXIS1)); \
+    } \
+  }while(0)
+
+  #define PROCESS_TRIPLE_ENDSTOP(AXIS1, AXIS2, AXIS3, MINMAX) do { \
+    const byte triple_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1) | (TEST_ENDSTOP(_ENDSTOP(AXIS3, MINMAX)) << 2); \
+    if (triple_hit) { \
+      _ENDSTOP_HIT(AXIS1, MINMAX); \
+      /* if not performing home or if both endstops were trigged during homing... */ \
+      if (!stepper.separate_multi_axis || triple_hit == 0x7) \
         planner.endstop_triggered(_AXIS(AXIS1)); \
     } \
   }while(0)
@@ -845,7 +919,9 @@ void Endstops::update() {
   if (stepper.axis_is_moving(Z_AXIS)) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
       #if HAS_Z_MIN
-        #if ENABLED(Z_TWO_ENDSTOPS)
+        #if ENABLED(Z_THREE_ENDSTOPS)
+          PROCESS_TRIPLE_ENDSTOP(Z, Z2, Z3, MIN);
+        #elif ENABLED(Z_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
         #else
           PROCESS_ENDSTOP(Z, MIN);
@@ -859,7 +935,9 @@ void Endstops::update() {
     }
     else { // Z +direction. Gantry up, bed down.
       #if HAS_Z_MAX
-        #if ENABLED(Z_TWO_ENDSTOPS)
+        #if ENABLED(Z_THREE_ENDSTOPS)
+          PROCESS_TRIPLE_ENDSTOP(Z, Z2, Z3, MAX);
+        #elif ENABLED(Z_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MAX);
         #else
           PROCESS_ENDSTOP(Z, MAX);

@@ -1044,13 +1044,13 @@
 
     // Set flags for X, Y, Z motor locking
     #if ENABLED(X_TWO_ENDSTOPS)
-      if (axis == X_AXIS) stepper.set_homing_dual_axis(true);
+      if (axis == X_AXIS) stepper.set_separate_multi_axis(true);
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      if (axis == Y_AXIS) stepper.set_homing_dual_axis(true);
+      if (axis == Y_AXIS) stepper.set_separate_multi_axis(true);
     #endif
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      if (axis == Z_AXIS) stepper.set_homing_dual_axis(true);
+    #if ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS)
+      if (axis == Z_AXIS) stepper.set_separate_multi_axis(true);
     #endif
 
     // Fast move towards endstop until triggered
@@ -1112,9 +1112,9 @@
       const bool pos_dir = axis_home_dir > 0;
       #if ENABLED(X_TWO_ENDSTOPS)
         if (axis == X_AXIS) {
-          const float adj = ABS(endstops.x_endstop_adj);
+          const float adj = ABS(endstops.x2_endstop_adj);
           if (adj) {
-            if (pos_dir ? (endstops.x_endstop_adj > 0) : (endstops.x_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+            if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
             mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_x_lock(false);
             stepper.set_x2_lock(false);
@@ -1123,27 +1123,74 @@
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
         if (axis == Y_AXIS) {
-          const float adj = ABS(endstops.y_endstop_adj);
+          const float adj = ABS(endstops.y2_endstop_adj);
           if (adj) {
-            if (pos_dir ? (endstops.y_endstop_adj > 0) : (endstops.y_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+            if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
             mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_y_lock(false);
             stepper.set_y2_lock(false);
           }
         }
       #endif
-      #if ENABLED(Z_TWO_ENDSTOPS)
+      #if ENABLED(Z_THREE_ENDSTOPS)
         if (axis == Z_AXIS) {
-          const float adj = ABS(endstops.z_endstop_adj);
+          // we push the function pointers for the stepper lock function into an array
+          void (*lock[3]) (bool)= { &stepper.set_z_lock, &stepper.set_z2_lock, &stepper.set_z3_lock };
+          float adj[3] = { 0, endstops.z2_endstop_adj, endstops.z3_endstop_adj };
+
+          void (*tempLock) (bool);
+          float tempAdj;
+
+          // manual bubble sort by adjust value
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+          if (adj[2] < adj[1]) {
+            tempLock = lock[1], tempAdj = adj[1];
+            lock[1] = lock[2], adj[1] = adj[2];
+            lock[2] = tempLock, adj[2] = tempAdj;
+          }
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+
+          if (pos_dir) {
+            // normalize adj to smallest value and do the first move
+            (*lock[0])(true);
+            mechanics.do_homing_move(axis, adj[1] - adj[0]);
+            // lock the second stepper for the final correction
+            (*lock[1])(true);
+            mechanics.do_homing_move(axis, adj[2] - adj[1]);
+          }
+          else {
+            (*lock[2])(true);
+            mechanics.do_homing_move(axis, adj[1] - adj[2]);
+            (*lock[1])(true);
+            mechanics.do_homing_move(axis, adj[0] - adj[1]);
+          }
+
+          stepper.set_z_lock(false);
+          stepper.set_z2_lock(false);
+          stepper.set_z3_lock(false);
+        }
+      #elif ENABLED(Z_TWO_ENDSTOPS)
+        if (axis == Z_AXIS) {
+          const float adj = ABS(endstops.z2_endstop_adj);
           if (adj) {
-            if (pos_dir ? (endstops.z_endstop_adj > 0) : (endstops.z_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+            if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
             mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_z_lock(false);
             stepper.set_z2_lock(false);
           }
         }
       #endif
-      stepper.set_homing_dual_axis(false);
+
+      stepper.set_separate_multi_axis(false);
+
     #endif
 
     // For cartesian machines,

@@ -448,13 +448,16 @@ void EEPROM::post_process() {
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.x_endstop_adj);
+      EEPROM_WRITE(endstops.x2_endstop_adj);
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.y_endstop_adj);
+      EEPROM_WRITE(endstops.y2_endstop_adj);
     #endif
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.z_endstop_adj);
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      EEPROM_WRITE(endstops.z2_endstop_adj);
+      EEPROM_WRITE(endstops.z3_endstop_adj);
+    #elif ENABLED(Z_TWO_ENDSTOPS)
+      EEPROM_WRITE(endstops.z2_endstop_adj);
     #endif
 
     #if ENABLED(ULTIPANEL)
@@ -934,13 +937,16 @@ void EEPROM::post_process() {
       #endif
 
       #if ENABLED(X_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.x_endstop_adj);
+        EEPROM_READ(endstops.x2_endstop_adj);
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.y_endstop_adj);
+        EEPROM_READ(endstops.y2_endstop_adj);
       #endif
-      #if ENABLED(Z_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.z_endstop_adj);
+      #if ENABLED(Z_THREE_ENDSTOPS)
+        EEPROM_READ(endstops.z2_endstop_adj);
+        EEPROM_READ(endstops.z3_endstop_adj);
+      #elif ENABLED(Z_TWO_ENDSTOPS)
+        EEPROM_READ(endstops.z2_endstop_adj);
       #endif
 
       #if ENABLED(ULTIPANEL)
@@ -1977,18 +1983,22 @@ void EEPROM::reset() {
 
     #endif // HAS_LEVELING
 
-    #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
+    #if HAS_MULTI_ENDSTOP
 
       SERIAL_LM(CFG, "Endstop adjustment");
       SERIAL_SM(CFG, "  M666");
       #if ENABLED(X_TWO_ENDSTOPS)
-        SERIAL_MV(" X", LINEAR_UNIT(endstops.x_endstop_adj));
+        SERIAL_MV(" X", LINEAR_UNIT(endstops.x2_endstop_adj));
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
-        SERIAL_MV(" Y", LINEAR_UNIT(endstops.y_endstop_adj));
+        SERIAL_MV(" Y", LINEAR_UNIT(endstops.y2_endstop_adj));
       #endif
-      #if ENABLED(Z_TWO_ENDSTOPS)
-        SERIAL_MV(" Z", LINEAR_UNIT(endstops.z_endstop_adj));
+      #if ENABLED(Z_THREE_ENDSTOPS)
+        SERIAL_EOL();
+        SERIAL_LMV(CFG, "  M666 S2 Z", LINEAR_UNIT(endstops.z2_endstop_adj));
+        SERIAL_SMV(CFG, "  M666 S3 Z", LINEAR_UNIT(endstops.z3_endstop_adj));
+      #elif ENABLED(Z_TWO_ENDSTOPS)
+        SERIAL_MV(" Z", LINEAR_UNIT(endstops.z2_endstop_adj));
       #endif
       SERIAL_EOL();
 
