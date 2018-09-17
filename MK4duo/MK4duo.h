@@ -65,6 +65,7 @@ typedef int8_t    pin_t;
  */
 #include "src/inc/macros.h"
 #include "src/inc/driver_types.h"
+#include "src/inc/circular_queue.h"
 #include "Boards.h"
 
 // Configuration settings loading

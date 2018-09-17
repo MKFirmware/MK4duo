@@ -79,16 +79,6 @@ enum AxisEnum : unsigned char{
 #define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
-#if PLANNER_LEVELING || ENABLED(Z_WOBBLE_FEATURE)
-  #define ARG_X float rx
-  #define ARG_Y float ry
-  #define ARG_Z float rz
-#else
-  #define ARG_X const float &rx
-  #define ARG_Y const float &ry
-  #define ARG_Z const float &rz
-#endif
-
 class Mechanics {
 
   public: /** Constructor */
@@ -136,8 +126,14 @@ class Mechanics {
       #if ENABLED(LIN_ADVANCE)
         static float max_e_jerk[EXTRUDERS];
       #endif
-    #else
-      static float max_jerk[XYZE_N];
+    #endif
+
+    #if HAS_CLASSIC_JERK
+      #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+        static float max_jerk[XYZ];
+      #else
+        static float max_jerk[XYZE_N];
+      #endif
     #endif
 
     /**
@@ -336,9 +332,14 @@ class Mechanics {
 
 };
 
-#include "cartesian_mechanics.h"
-#include "core_mechanics.h"
-#include "delta_mechanics.h"
-#include "scara_mechanics.h"
+#if IS_CARTESIAN
+  #include "cartesian_mechanics.h"
+#elif IS_CORE
+  #include "core_mechanics.h"
+#elif IS_DELTA
+  #include "delta_mechanics.h"
+#elif IS_SCARA
+  #include "scara_mechanics.h"
+#endif
 
 #endif /* _MECHANICS_H_ */

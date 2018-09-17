@@ -26,8 +26,7 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _DELTA_MECHANICS_H_
-#define _DELTA_MECHANICS_H_
+#pragma once
 
 #if IS_DELTA
 
@@ -78,14 +77,6 @@
       static void factory_parameters();
 
       /**
-       * sync_plan_position_mech_specific
-       *
-       * Set the planner/stepper positions directly from current_position with
-       * kinematic translation. Used for homing axes.
-       */
-      static void sync_plan_position_mech_specific();
-
-      /**
        * Get the stepper positions in the cartesian_position[] array.
        * Forward kinematics are applied for DELTA.
        *
@@ -120,8 +111,8 @@
        */
       static void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
       static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
-      static void Transform(const float raw[]);
-      static void Transform_buffer_segment(const float raw[], const float fr);
+      static void Transform(const float (&raw)[XYZ]);
+      static void Transform(const float (&raw)[XYZE]);
       static void recalc_delta_settings();
 
       /**
@@ -217,5 +208,3 @@
   extern Delta_Mechanics mechanics;
 
 #endif // IS_DELTA
-
-#endif /* _DELTA_MECHANICS_H_ */

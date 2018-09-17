@@ -109,15 +109,15 @@
 
     public: /** Public Function */
 
-      #if PLANNER_LEVELING || HAS_UBL_AND_CURVES
-        /**
-         * Apply leveling to transform a cartesian position
-         * as it will be given to the planner and steppers.
-         */
-        static void apply_leveling(float &rx, float &ry, float &rz);
-        static void apply_leveling(float raw[XYZ]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
-        static void unapply_leveling(float raw[XYZ]);
-      #endif
+      /**
+       * Apply leveling to transform a cartesian position
+       * as it will be given to the planner and steppers.
+       */
+      static void apply_leveling(float &rx, float &ry, float &rz);
+      FORCE_INLINE static void apply_leveling(float (&raw)[XYZ])  { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+      FORCE_INLINE static void apply_leveling(float (&raw)[XYZE]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+
+      static void unapply_leveling(float raw[XYZ]);
 
       static bool leveling_is_valid();
       static void set_bed_leveling_enabled(const bool enable=true);

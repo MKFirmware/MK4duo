@@ -27,7 +27,6 @@
  */
 
 #include "../../../MK4duo.h"
-#include "cartesian_mechanics.h"
 
 #if IS_CARTESIAN
 
@@ -72,32 +71,27 @@
 
     acceleration              = DEFAULT_ACCELERATION;
     travel_acceleration       = DEFAULT_TRAVEL_ACCELERATION;
-    min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
-    min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
-    min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
+    min_feedrate_mm_s         = DEFAULT_MIN_FEEDRATE;
+    min_segment_time_us       = DEFAULT_MIN_SEGMENT_TIME;
+    min_travel_feedrate_mm_s  = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
     #if ENABLED(JUNCTION_DEVIATION)
-      junction_deviation_mm = JUNCTION_DEVIATION_MM;
+      junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
     #else
       static const float tmp5[] PROGMEM = DEFAULT_EJERK;
       max_jerk[X_AXIS]  = DEFAULT_XJERK;
       max_jerk[Y_AXIS]  = DEFAULT_YJERK;
       max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
-      for (uint8_t i = 0; i < EXTRUDERS; i++)
-        max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
+      #if DISABLED(LIN_ADVANCE)
+        for (uint8_t i = 0; i < EXTRUDERS; i++)
+          max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
+      #endif
     #endif
 
     #if ENABLED(WORKSPACE_OFFSETS)
       ZERO(mechanics.home_offset);
     #endif
 
-  }
-
-  void Cartesian_Mechanics::sync_plan_position_mech_specific() {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
-    #endif
-    sync_plan_position();
   }
 
   /**
@@ -421,12 +415,13 @@
       #endif
     }
 
-    // Tell the planner we're at Z=0
-    current_position[axis] = 0;
+    float target[ABCE] = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    target[axis] = 0;
+    planner.set_machine_position_mm(target);
+    target[axis] = distance;
 
-    sync_plan_position();
-    current_position[axis] = distance; // Set delta/cartesian axes directly
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
+    // Set cartesian axes directly
+    planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
     planner.synchronize();
 
@@ -601,7 +596,7 @@
 
     float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
-    #if PLANNER_LEVELING
+    #if HAS_LEVELING
       SERIAL_MSG("Leveled:");
       bedlevel.apply_leveling(leveled);
       report_xyz(leveled);
@@ -789,26 +784,24 @@
 
         endstops.clamp_to_software(raw);
 
-        #if HAS_UBL_AND_CURVES
-          float pos[XYZ] = { raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS] };
-          bedlevel.apply_leveling(pos);
-          if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder))
-            break;
-        #else
-          if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
-            break;
+        #if HAS_LEVELING && !PLANNER_LEVELING
+          bedlevel.apply_leveling(raw);
         #endif
+
+        if (!planner.buffer_line(raw, fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT))
+          break;
       }
 
-      #if HAS_UBL_AND_CURVES
-        float pos[XYZ] = { cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS] };
-        bedlevel.apply_leveling(pos);
-        planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder);
-      #else
-        planner.buffer_line_kinematic(cart, fr_mm_s, tools.active_extruder);
+      // Ensure last segment arrives at target location.
+      COPY_ARRAY(raw, cart);
+
+      #if HAS_LEVELING && !PLANNER_LEVELING
+        bedlevel.apply_leveling(raw);
       #endif
 
-      COPY_ARRAY(current_position, cart);
+      planner.buffer_line(raw, fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT);
+
+      COPY_ARRAY(current_position, raw);
 
     }
 
@@ -956,7 +949,7 @@
         }
       #endif // EXTRUDERS > 1
 
-      SERIAL_LM(CFG, "Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>:");
+      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(travel_acceleration), 3);
       #if EXTRUDERS == 1
@@ -970,28 +963,36 @@
         }
       #endif
 
-      SERIAL_LM(CFG, "Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
+      SERIAL_LM(CFG, "Advanced: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
       SERIAL_SMV(CFG, "  M205 B", min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(min_travel_feedrate_mm_s), 3);
 
       #if ENABLED(JUNCTION_DEVIATION)
-        SERIAL_LM(CFG, "Junction Deviation: J<Junction deviation mm>:");
+        SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>");
         SERIAL_LMV(CFG, "  M205 J", junction_deviation_mm, 3);
       #else
-        SERIAL_LM(CFG, "Jerk: X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
-        SERIAL_SMV(CFG, " M205 X", LINEAR_UNIT(max_jerk[X_AXIS]), 3);
-        SERIAL_MV(" Y", LINEAR_UNIT(max_jerk[Y_AXIS]), 3);
-        SERIAL_MV(" Z", LINEAR_UNIT(max_jerk[Z_AXIS]), 3);
-        #if EXTRUDERS == 1
-          SERIAL_MV(" T0 E", LINEAR_UNIT(max_jerk[E_AXIS]), 3);
+        SERIAL_SM(CFG, "Jerk: X<DEFAULT_XJERK> Y<DEFAULT_YJERK> Z<max_z_jerk>");
+        #if DISABLED(LIN_ADVANCE)
+          SERIAL_MSG(" T* E<DEFAULT_EJERK>");
         #endif
         SERIAL_EOL();
-        #if (EXTRUDERS > 1)
-          LOOP_EXTRUDER() {
-            SERIAL_SMV(CFG, "  M205 T", (int)e);
-            SERIAL_EMV(" E" , LINEAR_UNIT(max_jerk[E_AXIS + e]), 3);
-          }
+
+        SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(max_jerk[X_AXIS]), 3);
+        SERIAL_MV(" Y", LINEAR_UNIT(max_jerk[Y_AXIS]), 3);
+        SERIAL_MV(" Z", LINEAR_UNIT(max_jerk[Z_AXIS]), 3);
+
+        #if DISABLED(LIN_ADVANCE)
+          #if EXTRUDERS == 1
+            SERIAL_MV(" T0 E", LINEAR_UNIT(max_jerk[E_AXIS]), 3);
+          #endif
+          SERIAL_EOL();
+          #if (EXTRUDERS > 1)
+            LOOP_EXTRUDER() {
+              SERIAL_SMV(CFG, "  M205 T", (int)e);
+              SERIAL_EMV(" E" , LINEAR_UNIT(max_jerk[E_AXIS + e]), 3);
+            }
+          #endif
         #endif
       #endif
 
@@ -1159,7 +1160,7 @@
 
     // Clear retracted status if homing the Z axis
     #if ENABLED(FWRETRACT)
-      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
+      if (axis == Z_AXIS) fwretract.current_hop = 0.0;
     #endif
 
     #if ENABLED(DEBUG_FEATURE)

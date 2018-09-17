@@ -26,8 +26,7 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _CARTESIAN_MECHANICS_H_
-#define _CARTESIAN_MECHANICS_H_
+#pragma once
 
 #if IS_CARTESIAN
 
@@ -61,14 +60,6 @@
        * Initialize Factory parameters
        */
       static void factory_parameters();
-
-      /**
-       * sync_plan_position_mech_specific
-       *
-       * Set the planner/stepper positions directly from current_position with
-       * no kinematic translation. Used for homing axes and cartesian/core syncing.
-       */
-      static void sync_plan_position_mech_specific();
 
       /**
        * Get the stepper positions in the cartesian_position[] array.
@@ -184,5 +175,3 @@
   extern Cartesian_Mechanics mechanics;
 
 #endif // IS_CARTESIAN
-
-#endif /* _CARTESIAN_MECHANICS_H_ */

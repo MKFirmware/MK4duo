@@ -54,7 +54,7 @@ inline void gcode_M569(void) {
     }
   }
   // Set actually direction
-  stepper.set_directions();
+  reset_stepper_drivers();
 
   if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
   if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();

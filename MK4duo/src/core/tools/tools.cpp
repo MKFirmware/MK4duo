@@ -112,7 +112,7 @@
             #if HAS_DONDOLO
               // Always raise by at least 1 to avoid workpiece
               mechanics.current_position[Z_AXIS] += (z_diff < 0.0 ? -z_diff : 0.0) + 1;
-              planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              planner.buffer_line(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
               move_extruder_servo(tmp_extruder);
             #endif
 
@@ -137,7 +137,7 @@
           #endif // !DUAL_X_CARRIAGE
 
           // Tell the planner the new "current position"
-          mechanics.sync_plan_position_mech_specific();
+          mechanics.sync_plan_position();
 
           #if ENABLED(DELTA)
             const bool safe_to_move = mechanics.current_position[Z_AXIS] < mechanics.delta_clip_start_height - 1;
@@ -150,7 +150,7 @@
             #if !HAS_DONDOLO
               // Do a small lift to avoid the workpiece in the move back (below)
               mechanics.current_position[Z_AXIS] += 1.0;
-              planner.buffer_line_kinematic(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              planner.buffer_line(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
             #endif
             #if ENABLED(DEBUG_FEATURE)
               if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);

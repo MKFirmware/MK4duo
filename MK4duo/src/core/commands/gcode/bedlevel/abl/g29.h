@@ -964,17 +964,16 @@ inline void gcode_G29(void) {
     if (printer.debugFeature()) SERIAL_EM("<<< G29");
   #endif
 
-  mechanics.report_current_position();
-
   printer.keepalive(InHandler);
 
   if (bedlevel.leveling_active)
-    mechanics.sync_plan_position_mech_specific();
+    mechanics.sync_plan_position();
 
   #if HAS_BED_PROBE && Z_PROBE_AFTER_PROBING > 0
     probe.move_z_after_probing();
   #endif
 
+  mechanics.report_current_position();
 }
 
 #endif // OLD_ABL

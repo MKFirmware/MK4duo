@@ -23,22 +23,66 @@
 #ifndef __BUZZER_H__
 #define __BUZZER_H__
 
-#if HAS_BUZZER
+#if ENABLED(LCD_USE_I2C_BUZZER)
+
+  #define BUZZ(duration,freq) lcd_buzz(duration,freq)
+
+#elif PIN_EXISTS(BEEPER)
+
+  #define TONE_QUEUE_LENGTH 4
+
+  struct tone_t {
+    uint16_t duration;
+    uint16_t frequency;
+  };
 
   class Buzzer {
 
+    public: /** Public Parameters */
+
+      typedef struct {
+        tone_t   tone;
+        uint32_t endtime;
+      } state_t;
+
+    private: /** Private Parameters */
+
+      static state_t state;
+
+    protected: /** Protected Parameters */
+
+      static Circular_Queue<tone_t, TONE_QUEUE_LENGTH> buffer;
+
+      FORCE_INLINE static void off()  { WRITE(BEEPER_PIN, LOW);   }
+      FORCE_INLINE static void on()   { WRITE(BEEPER_PIN, HIGH);  }
+
+      static inline void reset() {
+        off();
+        state.endtime = 0;
+      }
+
+    public: /** Constructor */
+
+      Buzzer() {
+        SET_OUTPUT(BEEPER_PIN);
+        reset();
+      }
+
     public: /** Public Function */
 
-      static void buzz(long duration, uint16_t freq);
+      static void tone(const uint16_t duration, const uint16_t freq);
+      static void tick();
 
   };
 
-  #define BUZZ(duration, freq) Buzzer::buzz(duration, freq)
+  extern Buzzer buzzer;
 
-#else
+  #define BUZZ(duration,freq) buzzer.tone(duration,freq)
 
-  #define BUZZ(duration, freq) { /* NOOP */ }
+#else // No buzz capability
 
-#endif /* HAS_BUFFER */
+  #define BUZZ(duration,freq) NOOP
+
+#endif
 
 #endif // __BUZZER_H__

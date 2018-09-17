@@ -27,7 +27,6 @@
  */
 
 #include "../../../MK4duo.h"
-#include "delta_mechanics.h"
 
 #if IS_DELTA
 
@@ -89,17 +88,19 @@
 
     acceleration              = DEFAULT_ACCELERATION;
     travel_acceleration       = DEFAULT_TRAVEL_ACCELERATION;
-    min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
-    min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
-    min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
+    min_feedrate_mm_s         = DEFAULT_MIN_FEEDRATE;
+    min_segment_time_us       = DEFAULT_MIN_SEGMENT_TIME;
+    min_travel_feedrate_mm_s  = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
     #if ENABLED(JUNCTION_DEVIATION)
-      junction_deviation_mm = JUNCTION_DEVIATION_MM;
-    #else
-      static const float tmp5[] PROGMEM = DEFAULT_EJERK;
-      max_jerk[X_AXIS]  = DEFAULT_XJERK;
-      max_jerk[Y_AXIS]  = DEFAULT_YJERK;
-      max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+      junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
+    #endif
+
+    static const float tmp5[] PROGMEM = DEFAULT_EJERK;
+    max_jerk[X_AXIS]  = DEFAULT_XJERK;
+    max_jerk[Y_AXIS]  = DEFAULT_YJERK;
+    max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+    #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       for (uint8_t i = 0; i < EXTRUDERS; i++)
         max_jerk[E_AXIS + i] = pgm_read_float(&tmp5[i < COUNT(tmp5) ? i : COUNT(tmp5) - 1]);
     #endif
@@ -124,13 +125,6 @@
     delta_diagonal_rod_adj[B_AXIS]  = TOWER_B_DIAGROD_ADJ;
     delta_diagonal_rod_adj[C_AXIS]  = TOWER_C_DIAGROD_ADJ;
 
-  }
-
-  void Delta_Mechanics::sync_plan_position_mech_specific() {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
-    #endif
-    planner.set_position_mm_kinematic(current_position);
   }
 
   /**
@@ -174,7 +168,7 @@
 
       // If the move is only in Z/E don't split up the move
       if (!difference[X_AXIS] && !difference[Y_AXIS]) {
-        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
         return false; // caller will update current_position
       }
 
@@ -207,46 +201,16 @@
                     difference[Y_AXIS] * inv_segments,
                     difference[Z_AXIS] * inv_segments,
                     difference[E_AXIS] * inv_segments
-                  };
-
-      #if DISABLED(DELTA_FEEDRATE_SCALING)
-        const float cartesian_segment_mm = cartesian_mm * inv_segments;
-      #endif
+                  },
+                  cartesian_segment_mm = cartesian_mm * inv_segments;
 
       /*
       SERIAL_MV("mm=", cartesian_mm);
       SERIAL_MV(" seconds=", seconds);
       SERIAL_MV(" segments=", segments);
-      #if DISABLED(DELTA_FEEDRATE_SCALING)
-        SERIAL_MV(" segment_mm=", cartesian_segment_mm);
-      #endif
+      SERIAL_MV(" segment_mm=", cartesian_segment_mm);
       SERIAL_EOL();
       //*/
-
-      #if ENABLED(DELTA_FEEDRATE_SCALING)
-        // DELTA needs to scale the feed rate from mm/s to degrees/s
-        // i.e., Complete the angular vector in the given time.
-        const float segment_length = cartesian_mm * inv_segments,
-                    inv_segment_length = 1.0f / segment_length, // 1/mm/segs
-                    inverse_secs = inv_segment_length * _feedrate_mm_s;
-
-        float oldA = planner.position_float[A_AXIS],
-              oldB = planner.position_float[B_AXIS],
-              oldC = planner.position_float[C_AXIS];
-
-        /*
-        SERIAL_MSG("Scaled kinematic move: ");
-        SERIAL_MV(" segment_length (inv)=", segment_length);
-        SERIAL_MV(" (", inv_segment_length);
-        SERIAL_MV(") _feedrate_mm_s=", _feedrate_mm_s);
-        SERIAL_MV(" inverse_secs=", inverse_secs);
-        SERIAL_MV(" oldA=", oldA);
-        SERIAL_MV(" oldB=", oldB);
-        SERIAL_MV(" oldC=", oldC);
-        SERIAL_EOL();
-        //*/
-
-      #endif // ENABLED(DELTA_FEEDRATE_SCALING)
 
       // Get the current position as starting point
       float raw[XYZE];
@@ -258,60 +222,13 @@
         printer.check_periodical_actions();
 
         LOOP_XYZE(i) raw[i] += segment_distance[i];
-        Transform(raw);
 
-        // Adjust Z if bed leveling is enabled
-        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (bedlevel.leveling_active) {
-            const float zadj = abl.bilinear_z_offset(raw);
-            delta[A_AXIS] += zadj;
-            delta[B_AXIS] += zadj;
-            delta[C_AXIS] += zadj;
-          }
-        #endif
-
-        #if ENABLED(DELTA_FEEDRATE_SCALING)
-          // For DELTA scale the feed rate from Effector mm/s to Carriage mm/s
-          // i.e., Complete the linear vector in the given time.
-          if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs, tools.active_extruder, segment_length))
-            break;
-          /*
-          SERIAL_ECHO(segments);
-          SERIAL_ECHOPAIR(": X=", raw[X_AXIS]); SERIAL_ECHOPAIR(" Y=", raw[Y_AXIS]);
-          SERIAL_ECHOPAIR(" A=", delta[A_AXIS]); SERIAL_ECHOPAIR(" B=", delta[B_AXIS]); SERIAL_ECHOPAIR(" C=", delta[C_AXIS]);
-          SERIAL_ECHOLNPAIR(" F", SQRT(sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC)) * inverse_secs * 60);
-          safe_delay(5);
-          //*/
-          oldA = delta[A_AXIS]; oldB = delta[B_AXIS]; oldC = delta[C_AXIS];
-        #else
-          if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
-            break;
-        #endif
+        if (!planner.buffer_line(raw, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
+          break;
 
       }
 
-      #if ENABLED(DELTA_FEEDRATE_SCALING)
-        Transform(destination);
-
-        // Adjust Z if bed leveling is enabled
-        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (bedlevel.leveling_active) {
-            const float zadj = abl.bilinear_z_offset(destination);
-            delta[A_AXIS] += zadj;
-            delta[B_AXIS] += zadj;
-            delta[C_AXIS] += zadj;
-          }
-        #endif
-
-        const float diff2 = sq(delta[A_AXIS] - oldA) + sq(delta[B_AXIS] - oldB) + sq(delta[C_AXIS] - oldC);
-        if (diff2)
-          planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder, segment_length);
-
-      #else
-
-        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
-
-      #endif
+      planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
 
       return false; // caller will update current_position
 
@@ -464,7 +381,7 @@
    * roots per segmented linear move, and strains the limits
    * of a Mega2560 with a Graphical Display.
    */
-  void Delta_Mechanics::Transform(const float raw[]) {
+  void Delta_Mechanics::Transform(const float (&raw)[XYZ]) {
 
     #if HOTENDS > 1
       // Delta hotend offsets must be applied in Cartesian space
@@ -484,9 +401,9 @@
 
   }
 
-  void Delta_Mechanics::Transform_buffer_segment(const float raw[], const float fr) {
-    Transform(raw);
-    planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], fr, tools.active_extruder);
+  void Delta_Mechanics::Transform(const float (&raw)[XYZE]) {
+    const float raw_xyz[XYZ] = { raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS] };
+    Transform(raw_xyz);
   }
 
   void Delta_Mechanics::recalc_delta_settings() {
@@ -582,11 +499,12 @@
     }
 
     #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS(">>> home_delta", current_position);
+      if (printer.debugFeature()) DEBUG_POS(">>> home", current_position);
     #endif
 
     // Init the current position of all carriages to 0,0,0
     ZERO(current_position);
+    ZERO(destination);
     sync_plan_position();
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
@@ -595,9 +513,8 @@
     #endif
 
     // Move all carriages together linearly until an endstop is hit.
-    current_position[A_AXIS] = current_position[B_AXIS] = current_position[C_AXIS] = delta_height + 10;
-    feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    line_to_current_position();
+    destination[Z_AXIS] = delta_height + 10;
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], homing_feedrate_mm_s[X_AXIS], tools.active_extruder);
     planner.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -619,10 +536,10 @@
     // give the impression that they are the same.
     LOOP_XYZ(i) set_axis_is_at_home((AxisEnum)i);
 
-    sync_plan_position_mech_specific();
+    sync_plan_position();
 
     #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("<<< home_delta", current_position);
+      if (printer.debugFeature()) DEBUG_POS("<<< home", current_position);
     #endif
 
     endstops.setNotHoming();
@@ -658,12 +575,11 @@
 
     lcd_refresh();
 
-    report_current_position();
-
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) SERIAL_EM("<<< G28");
     #endif
 
+    report_current_position();
   }
 
   /**
@@ -697,12 +613,22 @@
       #endif
     }
 
-    // Tell the planner we're at Z=0
-    current_position[axis] = 0;
+    float target[ABCE] = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    target[axis] = 0;
+    planner.set_machine_position_mm(target);
+    target[axis] = distance;
 
-    sync_plan_position();
-    current_position[axis] = distance; // Set delta/cartesian axes directly
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
+    #if ENABLED(JUNCTION_DEVIATION)
+      const float delta_mm_cart[XYZE] = {0, 0, 0, 0};
+    #endif
+
+    // Set delta axes directly
+    planner.buffer_segment(target
+      #if ENABLED(JUNCTION_DEVIATION)
+        , delta_mm_cart
+      #endif
+      , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder
+    );
 
     planner.synchronize();
 
@@ -997,7 +923,7 @@
           if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT))
             break;
         #else
-          if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
+          if (!planner.buffer_line(raw, fr_mm_s, tools.active_extruder))
             break;
         #endif
       }
@@ -1025,7 +951,7 @@
         bedlevel.apply_leveling(pos);
         planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT);
       #else
-        planner.buffer_line_kinematic(cart, fr_mm_s, tools.active_extruder);
+        planner.buffer_line(cart, fr_mm_s, tools.active_extruder);
       #endif
 
       COPY_ARRAY(current_position, cart);
@@ -1208,7 +1134,7 @@
         }
       #endif // EXTRUDERS > 1
 
-      SERIAL_LM(CFG, "Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>:");
+      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>:");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(travel_acceleration), 3);
       #if EXTRUDERS == 1
@@ -1222,19 +1148,25 @@
         }
       #endif
 
-      SERIAL_LM(CFG, "Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
+      SERIAL_LM(CFG, "Advanced: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
       SERIAL_SMV(CFG, "  M205 B", min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(min_travel_feedrate_mm_s), 3);
 
       #if ENABLED(JUNCTION_DEVIATION)
-        SERIAL_LM(CFG, "Junction Deviation: J<Junction deviation mm>:");
+        SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>");
         SERIAL_LMV(CFG, "  M205 J", junction_deviation_mm, 3);
-      #else
-        SERIAL_LM(CFG, "Jerk: X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
-        SERIAL_SMV(CFG, " M205 X", LINEAR_UNIT(max_jerk[X_AXIS]), 3);
-        SERIAL_MV(" Y", LINEAR_UNIT(max_jerk[Y_AXIS]), 3);
-        SERIAL_MV(" Z", LINEAR_UNIT(max_jerk[Z_AXIS]), 3);
+      #endif
+
+      SERIAL_SM(CFG, "Jerk: X<DEFAULT_XJERK>");
+      #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+        SERIAL_MSG(" T* E<DEFAULT_EJERK>");
+      #endif
+      SERIAL_EOL();
+
+      SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(max_jerk[X_AXIS]), 3);
+
+      #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
         #if EXTRUDERS == 1
           SERIAL_MV(" T0 E", LINEAR_UNIT(max_jerk[E_AXIS]), 3);
         #endif
@@ -1254,8 +1186,7 @@
       SERIAL_MV(" Z", LINEAR_UNIT(delta_endstop_adj[C_AXIS]));
       SERIAL_EOL();
 
-      SERIAL_LM(CFG, "Delta Geometry adjustment:");
-      SERIAL_LM(CFG, "ABC=TOWER_DIAGROD_ADJ, IJK=TOWER_ANGLE_ADJ, UVW=TOWER_RADIUS_ADJ");
+      SERIAL_LM(CFG, "Delta Geometry adjustment: ABC<TOWER_*_DIAGROD_ADJ> IJK<TOWER_*_ANGLE_ADJ> UVW<TOWER_*_RADIUS_ADJ>");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" A", LINEAR_UNIT(delta_diagonal_rod_adj[0]), 3);
       SERIAL_MV(" B", LINEAR_UNIT(delta_diagonal_rod_adj[1]), 3);
@@ -1267,13 +1198,13 @@
       SERIAL_MV(" V", LINEAR_UNIT(delta_tower_radius_adj[1]), 3);
       SERIAL_MV(" W", LINEAR_UNIT(delta_tower_radius_adj[2]), 3);
       SERIAL_EOL();
-      SERIAL_LM(CFG, "R=DELTA_RADIUS, D=DELTA_DIAGONAL_ROD, S=DELTA_SEGMENTS_PER_SECOND");
+      SERIAL_LM(CFG, "Delta Geometry adjustment: R<DELTA_RADIUS> D<DELTA_DIAGONAL_ROD> S<DELTA_SEGMENTS_PER_SECOND>");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" R", LINEAR_UNIT(delta_radius));
       SERIAL_MV(" D", LINEAR_UNIT(delta_diagonal_rod));
       SERIAL_MV(" S", delta_segments_per_second);
       SERIAL_EOL();
-      SERIAL_LM(CFG, "O=DELTA_PRINTABLE_RADIUS, P=DELTA_PROBEABLE_RADIUS, H=DELTA_HEIGHT");
+      SERIAL_LM(CFG, "Delta Geometry adjustment: O<DELTA_PRINTABLE_RADIUS> P<DELTA_PROBEABLE_RADIUS> H<DELTA_HEIGHT>");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" O", LINEAR_UNIT(delta_print_radius));
       SERIAL_MV(" P", LINEAR_UNIT(delta_probe_radius));
@@ -1344,7 +1275,7 @@
 
     // Clear z_lift if homing the Z axis
     #if ENABLED(FWRETRACT)
-      if (axis == Z_AXIS) fwretract.hop_amount = 0.0;
+      if (axis == Z_AXIS) fwretract.current_hop = 0.0;
     #endif
 
     #if ENABLED(DEBUG_FEATURE)
@@ -1373,7 +1304,7 @@
         && current_position[E_AXIS] == destination[E_AXIS]
       ) return;
 
-      planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+      planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
     #endif
 
     set_current_to_destination();

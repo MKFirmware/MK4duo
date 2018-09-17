@@ -22,35 +22,38 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_BUZZER
+#if DISABLED(LCD_USE_I2C_BUZZER) && PIN_EXISTS(BEEPER)
 
-  void Buzzer::buzz(long duration, uint16_t freq) {
-    if (freq > 0) {
-      #if ENABLED(LCD_USE_I2C_BUZZER)
-        lcd_buzz(duration, freq);
-      #elif PIN_EXISTS(BEEPER) // on-board buzzers have no further condition
-        SET_OUTPUT(BEEPER_PIN);
-        #if ENABLED(SPEAKER) // a speaker needs a AC or a pulsed DC
-          //tone(BEEPER_PIN, freq, duration); // needs a PWMable pin
-          unsigned int delay = 1000000 / freq / 2;
-          int i = duration * freq / 1000;
-          while (i--) {
-            WRITE(BEEPER_PIN, HIGH);
-            HAL::delayMicroseconds(delay);
-            WRITE(BEEPER_PIN, LOW);
-            HAL::delayMicroseconds(delay);
-          }
-        #else // buzzer has its own resonator - needs a DC
-          tone(BEEPER_PIN, freq, duration);
-          HAL::delayMilliseconds(1 + duration);
-        #endif
-      #else
-        HAL::delayMilliseconds(duration);
-      #endif
-    }
-    else {
-      HAL::delayMilliseconds(duration);
-    }
+  Buzzer::state_t Buzzer::state;
+  Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Buzzer::buffer;
+  Buzzer buzzer;
+
+  void Buzzer::tone(const uint16_t duration, const uint16_t frequency/*=0*/) {
+    while (buffer.isFull()) printer.idle(true);
+    tone_t tone = { duration, frequency };
+    buffer.enqueue(tone);
   }
 
-#endif /* HAS_BUZZER */
+  void Buzzer::tick() {
+    const millis_t now = millis();
+
+    if (!state.endtime) {
+      if (buffer.isEmpty()) return;
+
+      state.tone = buffer.dequeue();
+      state.endtime = now + state.tone.duration;
+
+      if (state.tone.frequency > 0) {
+        #if ENABLED(SPEAKER)
+          CRITICAL_SECTION_START
+          ::tone(BEEPER_PIN, state.tone.frequency, state.tone.duration);
+          CRITICAL_SECTION_END
+        #else
+          on();
+        #endif
+      }
+    }
+    else if (ELAPSED(now, state.endtime)) reset();
+  }
+
+#endif // DISABLED(LCD_USE_I2C_BUZZER) && PIN_EXISTS(BEEPER)

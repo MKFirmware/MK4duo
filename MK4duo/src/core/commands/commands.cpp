@@ -54,11 +54,7 @@ bool Commands::send_ok[BUFSIZE];
  * the main loop. The process_next function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::buffer_lenght   = 0,  // Number of commands in the Buffer Ring
-        Commands::buffer_index_r  = 0,  // Read position in Buffer Ring
-        Commands::buffer_index_w  = 0;  // Write position in Buffer Ring
-
-char Commands::buffer_ring[BUFSIZE][MAX_CMD_SIZE];
+Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 
 /**
  * Private Parameters
@@ -96,7 +92,7 @@ void Commands::get_serial() {
   #endif
 
   // Buffer Ring is full
-  if (buffer_lenght >= BUFSIZE) {
+  if (buffer_ring.isFull()) {
     printer.keepalive(InProcess);
     return;
   }
@@ -104,7 +100,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_lenght == 0 && !MKSERIAL.available() && last_command_watch.elapsed()) {
+    if (buffer_ring.isEmpty() && !MKSERIAL.available() && last_command_watch.elapsed()) {
       SERIAL_STR(WT);
       SERIAL_EOL();
       last_command_watch.start();
@@ -114,7 +110,7 @@ void Commands::get_serial() {
   /**
    * Loop while serial characters are incoming and the buffer_ring is not full
    */
-  while (buffer_lenght < BUFSIZE && HAL::serialByteAvailable()) {
+  while (!buffer_ring.isFull() && HAL::serialByteAvailable()) {
     int c;
 
     last_command_watch.start();
@@ -237,6 +233,8 @@ void Commands::get_serial() {
    * can also interrupt buffering.
    */
   void Commands::get_sdcard() {
+
+    static char sd_line_buffer[MAX_CMD_SIZE];
     static bool stop_buffering = false,
                 sd_comment_mode = false;
 
@@ -263,11 +261,11 @@ void Commands::get_serial() {
      * due to checksums, however, no checksums are used in SD printing.
      */
 
-    if (buffer_lenght == 0) stop_buffering = false;
+    if (buffer_ring.isEmpty()) stop_buffering = false;
 
     uint16_t sd_count = 0;
     bool card_eof = card.eof();
-    while (buffer_lenght < BUFSIZE && !card_eof && !stop_buffering) {
+    while (!buffer_ring.isFull() && !card_eof && !stop_buffering) {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
@@ -313,10 +311,11 @@ void Commands::get_serial() {
         // Skip empty lines and comments
         if (!sd_count) { printer.check_periodical_actions(); continue; }
 
-        buffer_ring[buffer_index_w][sd_count] = '\0'; // terminate string
+        sd_line_buffer[sd_count] = '\0'; // terminate string
         sd_count = 0; // clear sd line buffer
 
-        commit(false);
+        enqueue(sd_line_buffer, false);
+
       }
       else if (sd_count >= MAX_CMD_SIZE - 1) {
         /**
@@ -326,7 +325,7 @@ void Commands::get_serial() {
       }
       else {
         if (sd_char == ';') sd_comment_mode = true;
-        if (!sd_comment_mode) buffer_ring[buffer_index_w][sd_count++] = sd_char;
+        if (!sd_comment_mode) sd_line_buffer[sd_count++] = sd_char;
       }
     }
 
@@ -355,18 +354,18 @@ void Commands::flush_and_request_resend() {
  *   B<int>  Block queue space remaining
  */
 void Commands::ok_to_send() {
-  if (!send_ok[buffer_index_r]) return;
+  if (!send_ok[buffer_ring.head()]) return;
   SERIAL_STR(OK);
   #if ENABLED(ADVANCED_OK)
-    char* p = buffer_ring[buffer_index_r];
-    if (*p == 'N') {
+    gcode_t p = buffer_ring.peek();
+    if (*p.gcode == 'N') {
       SERIAL_CHR(' ');
-      SERIAL_CHR(*p++);
-      while (NUMERIC_SIGNED(*p))
-        SERIAL_CHR(*p++);
+      SERIAL_CHR(*p.gcode++);
+      while (NUMERIC_SIGNED(*p.gcode))
+        SERIAL_CHR(*p.gcode++);
     }
     SERIAL_MV(" P", (int)(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
-    SERIAL_MV(" B", BUFSIZE - buffer_lenght);
+    SERIAL_MV(" B", BUFSIZE - buffer_ring.count());
   #endif
   SERIAL_EOL();
 }
@@ -379,7 +378,7 @@ void Commands::ok_to_send() {
  */
 void Commands::get_available() {
 
-  if (buffer_lenght >= BUFSIZE) return;
+  if (buffer_ring.isFull()) return;
 
   // if any immediate commands remain, don't get other commands yet
   if (drain_injected_P()) return;
@@ -400,13 +399,13 @@ void Commands::get_available() {
  */
 void Commands::advance_queue() {
 
-  if (!buffer_lenght) return;
+  if (!buffer_ring.count()) return;
 
   #if HAS_SD_SUPPORT
 
     if (card.isSaving()) {
-      char* command = buffer_ring[buffer_index_r];
-      if (strstr_P(command, PSTR("M29"))) {
+      gcode_t command = buffer_ring.peek();
+      if (strstr_P(command.gcode, PSTR("M29"))) {
         // M29 closes the file
         card.finishWrite();
 
@@ -422,7 +421,7 @@ void Commands::advance_queue() {
       }
       else {
         // Write the string from the read buffer to SD
-        card.write_command(command);
+        card.write_command(command.gcode);
         ok_to_send();
       }
     }
@@ -440,10 +439,8 @@ void Commands::advance_queue() {
   #endif // !HAS_SD_SUPPORT
 
   // The buffer_ring may be reset by a command handler or by code invoked by idle() within a handler
-  if (buffer_lenght) {
-    --buffer_lenght;
-    if (++buffer_index_r >= BUFSIZE) buffer_index_r = 0;
-  }
+  buffer_ring.dequeue();
+
 }
 
 /**
@@ -475,7 +472,7 @@ void Commands::enqueue_and_echo_now_P(const char * const cmd) {
  * Clear the MK4duo command buffer_ring
  */
 void Commands::clear_queue() {
-  buffer_index_r = buffer_index_w = buffer_lenght = 0;
+  buffer_ring.clear();
 }
 
 /**
@@ -484,9 +481,11 @@ void Commands::clear_queue() {
  * Return false for a full buffer, or if the 'command' is a comment.
  */
 bool Commands::enqueue(const char* cmd, bool say_ok/*=false*/) {
-  if (*cmd == ';' || buffer_lenght >= BUFSIZE) return false;
-  strcpy(buffer_ring[buffer_index_w], cmd);
-  commit(say_ok);
+  if (*cmd == ';' || buffer_ring.isFull()) return false;
+  send_ok[buffer_ring.tail()] = say_ok;
+  gcode_t temp_cmd;
+  strcpy(temp_cmd.gcode, cmd);
+  buffer_ring.enqueue(temp_cmd);
   return true;
 }
 
@@ -620,25 +619,16 @@ bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
  */
 void Commands::process_next() {
 
-  char * const current_command = buffer_ring[buffer_index_r];
+  gcode_t cmd = buffer_ring.peek();
 
-  if (printer.debugEcho()) SERIAL_LT(ECHO, current_command);
+  if (printer.debugEcho()) SERIAL_LT(ECHO, cmd.gcode);
 
   printer.move_watch.start(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
-  parser.parse(current_command);
+  parser.parse(cmd.gcode);
   process_parsed();
 
-}
-
-/**
- * Once a new command is in the ring buffer, call this to commit it
- */
-void Commands::commit(bool say_ok) {
-  send_ok[buffer_index_w] = say_ok;
-  if (++buffer_index_w >= BUFSIZE) buffer_index_w = 0;
-  buffer_lenght++;
 }
 
 void Commands::unknown_error() {

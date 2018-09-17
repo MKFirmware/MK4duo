@@ -199,11 +199,6 @@ class Stepper {
     FORCE_INLINE static void wake_up() { ENABLE_STEPPER_INTERRUPT(); }
 
     /**
-     * Set direction bits for all steppers
-     */
-    static void set_directions();
-
-    /**
      * Enabled or Disable one or all stepper driver
      */
     static void enable_X();
@@ -367,6 +362,16 @@ class Stepper {
     FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
   private: /** Private Function */
+
+    /**
+     * Set direction bits for all steppers
+     */
+    static void set_directions();
+
+    /**
+     * Allow reset_stepper_drivers to access private set_directions
+     */
+    friend void reset_stepper_drivers();
 
     /**
      * Pulse phase Step

@@ -34,17 +34,17 @@
 /**
  * M500: Store settings in EEPROM
  */
-inline void gcode_M500(void) { (void)eeprom.Store_Settings(); }
+inline void gcode_M500(void) { (void)eeprom.store(); }
 
 /**
  * M501: Read settings from EEPROM
  */
-inline void gcode_M501(void) { (void)eeprom.Load_Settings(); }
+inline void gcode_M501(void) { (void)eeprom.load(); }
 
 /**
  * M502: Revert to factory settings
  */
-inline void gcode_M502(void) { (void)eeprom.Factory_Settings(); }
+inline void gcode_M502(void) { (void)eeprom.reset(); }
 
 /**
  * M503: print settings currently in memory

@@ -781,7 +781,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   }
 
   inline void line_to_current_z() {
-    planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), tools.active_extruder);
+    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), tools.active_extruder);
   }
 
   inline void line_to_z(const float &z) {
@@ -1767,8 +1767,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.Store_Settings()); }
-    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.Load_Settings()); }
+    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.store()); }
+    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.load()); }
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)
@@ -1800,7 +1800,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
             break;
         #endif
       }
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.active_extruder);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.active_extruder);
       line_to_z(0);
       if (++bed_corner > 3
         #if ENABLED(LEVEL_CENTER_TOO)
@@ -2337,7 +2337,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     void ubl_map_move_to_xy() {
       mechanics.current_position[X_AXIS] = pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]);
       mechanics.current_position[Y_AXIS] = pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]);
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
     }
 
     /**
@@ -2814,7 +2814,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
       #else
 
-        planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.active_extruder);
+        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.active_extruder);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif
@@ -3148,7 +3148,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif
 
   static void lcd_factory_settings() {
-    eeprom.Factory_Settings();
+    eeprom.reset();
     lcd_completion_feedback();
   }
 
@@ -3683,8 +3683,14 @@ void lcd_quick_feedback(const bool clear_buttons) {
       MENU_BACK(MSG_MOTION);
 
       #if ENABLED(JUNCTION_DEVIATION)
-        MENU_ITEM_EDIT_CALLBACK(float43, MSG_JUNCTION_MM, &mechanics.junction_deviation_mm, 0.01f, 0.3f, mechanics.recalculate_max_e_jerk);
-      #else // DISABLED(JUNCTION_DEVIATION)
+        #if ENABLED(LIN_ADVANCE)
+          MENU_ITEM_EDIT_CALLBACK(float43, MSG_JUNCTION_MM, &mechanics.junction_deviation_mm, 0.01f, 0.3f, mechanics.recalculate_max_e_jerk);
+        #else
+          MENU_ITEM_EDIT(float43, MSG_JUNCTION_MM, &mechanics.junction_deviation_mm, 0.01f, 0.3f);
+        #endif
+      #endif
+
+      #if HAS_CLASSIC_JERK
         #if IS_DELTA
           MENU_ITEM_EDIT_CALLBACK(float3, MSG_JERK, &mechanics.max_jerk[X_AXIS], 1, 990, _mechanics_set_jerk);
         #else
@@ -3693,26 +3699,28 @@ void lcd_quick_feedback(const bool clear_buttons) {
           MENU_MULTIPLIER_ITEM_EDIT(float52sign, MSG_VC_JERK, &mechanics.max_jerk[Z_AXIS], 0.1, 990);
         #endif
 
-        #if EXTRUDERS > 1
-          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.max_jerk[E_AXIS + tools.active_extruder], 1, 990);
-          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E1, &mechanics.max_jerk[E_AXIS], 1, 990);
-          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E2, &mechanics.max_jerk[E_AXIS + 1], 1, 990);
-          #if EXTRUDERS > 2
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E3, &mechanics.max_jerk[E_AXIS + 2], 1, 990);
-            #if EXTRUDERS > 3
-              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E4, &mechanics.max_jerk[E_AXIS + 3], 1, 990);
-              #if EXTRUDERS > 4
-                MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E5, &mechanics.max_jerk[E_AXIS + 4], 1, 990);
-                #if EXTRUDERS > 5
-                  MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E6, &mechanics.max_jerk[E_AXIS + 5], 1, 990);
-                #endif // EXTRUDERS > 5
-              #endif // EXTRUDERS > 4
-            #endif // EXTRUDERS > 3
-          #endif // EXTRUDERS > 2
-        #else
-          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK, &mechanics.max_jerk[E_AXIS], 1, 990);
-        #endif
-      #endif // DISABLED(JUNCTION_DEVIATION)
+        #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+          #if EXTRUDERS > 1
+            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.max_jerk[E_AXIS + tools.active_extruder], 1, 990);
+            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E1, &mechanics.max_jerk[E_AXIS], 1, 990);
+            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E2, &mechanics.max_jerk[E_AXIS + 1], 1, 990);
+            #if EXTRUDERS > 2
+              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E3, &mechanics.max_jerk[E_AXIS + 2], 1, 990);
+              #if EXTRUDERS > 3
+                MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E4, &mechanics.max_jerk[E_AXIS + 3], 1, 990);
+                #if EXTRUDERS > 4
+                  MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E5, &mechanics.max_jerk[E_AXIS + 4], 1, 990);
+                  #if EXTRUDERS > 5
+                    MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E6, &mechanics.max_jerk[E_AXIS + 5], 1, 990);
+                  #endif // EXTRUDERS > 5
+                #endif // EXTRUDERS > 4
+              #endif // EXTRUDERS > 3
+            #endif // EXTRUDERS > 2
+          #else
+            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK, &mechanics.max_jerk[E_AXIS], 1, 990);
+          #endif
+        #endif // DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+      #endif // AS_CLASSIC_JERK
 
       END_MENU();
     }

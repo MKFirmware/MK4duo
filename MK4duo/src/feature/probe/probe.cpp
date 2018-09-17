@@ -496,7 +496,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   #endif
 
   // Tell the planner where we actually are
-  mechanics.sync_plan_position_mech_specific();
+  mechanics.sync_plan_position();
 
   #if ENABLED(DEBUG_FEATURE)
     if (printer.debugFeature()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);

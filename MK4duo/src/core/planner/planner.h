@@ -178,6 +178,10 @@ class Planner {
       static float  position_float[XYZE];
     #endif
 
+    #if IS_KINEMATIC
+      static float position_cart[XYZE];
+    #endif
+
     #if ENABLED(ABORT_ON_ENDSTOP_HIT)
       static bool abort_on_endstop_hit;
     #endif
@@ -240,6 +244,41 @@ class Planner {
      */
     static void check_axes_activity();
 
+    #if ENABLED(FWRETRACT)
+
+      static void apply_retract(float &rz, float &e);
+      FORCE_INLINE static void apply_retract(float (&raw)[XYZE]) { apply_retract(raw[Z_AXIS], raw[E_AXIS]); }
+      static void unapply_retract(float &rz, float &e);
+      FORCE_INLINE static void unapply_retract(float (&raw)[XYZE]) { unapply_retract(raw[Z_AXIS], raw[E_AXIS]); }
+  
+    #endif
+
+    #if HAS_POSITION_MODIFIERS
+
+      static void apply_modifiers(float (&pos)[XYZE]
+        #if HAS_LEVELING
+          , bool leveling =
+          #if PLANNER_LEVELING
+            true
+          #else
+            false
+          #endif
+        #endif
+      );
+
+      static void unapply_modifiers(float (&pos)[XYZE]
+        #if HAS_LEVELING
+          , bool leveling =
+          #if PLANNER_LEVELING
+            true
+          #else
+            false
+          #endif
+        #endif
+      );
+
+    #endif // HAS_POSITION_MODIFIERS
+
     /**
      * Number of moves currently in the planner including the busy block, if any
      */
@@ -286,16 +325,20 @@ class Planner {
      *
      * Add a new linear movement to the buffer (in terms of steps).
      *
-     *  target      - target position in steps units
-     *  fr_mm_s     - (target) speed of the move
-     *  extruder    - target extruder
-     *  millimeters - the length of the movement, if known
+     *  target        - target position in steps units
+     *  target_float  - target position in direct (mm, degrees) units. optional
+     *  fr_mm_s       - (target) speed of the move
+     *  extruder      - target extruder
+     *  millimeters   - the length of the movement, if known
      *
-     * Return true if movement was buffered, false otherwise
+     * Returns true if movement was properly queued, false otherwise
      */
     static bool buffer_steps(const int32_t (&target)[XYZE]
       #if HAS_POSITION_FLOAT
         , const float (&target_float)[XYZE]
+      #endif
+      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+        , const float (&delta_mm_cart)[XYZE]
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -316,6 +359,9 @@ class Planner {
         const int32_t (&target)[XYZE]
       #if HAS_POSITION_FLOAT
         , const float (&target_float)[XYZE]
+      #endif
+      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+        , const float (&delta_mm_cart)[XYZE]
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -338,7 +384,25 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static bool buffer_segment(const float &a, const float &b, const float &c, const float &e, const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0);
+    static bool buffer_segment(const float &a, const float &b, const float &c, const float &e
+      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+        , const float (&delta_mm_cart)[XYZE]
+      #endif
+      , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+    );
+
+    FORCE_INLINE static bool buffer_segment(const float (&abce)[ABCE]
+      #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+        , const float (&delta_mm_cart)[XYZE]
+      #endif
+      , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+    ) {
+      return buffer_segment(abce[A_AXIS], abce[B_AXIS], abce[C_AXIS], abce[E_AXIS]
+        #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
+          , delta_mm_cart
+        #endif
+        , fr_mm_s, extruder, millimeters);
+    }
 
     /**
      * Add a new linear movement to the buffer.
@@ -353,35 +417,45 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static bool buffer_line(ARG_X, ARG_Y, ARG_Z, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
-    /**
-     * Add a new linear movement to the buffer.
-     * The target is cartesian, it's translated to delta/scara if
-     * needed.
-     *
-     *  cart        - x,y,z,e CARTESIAN target in mm
-     *  fr_mm_s     - (target) speed of the move (mm/s)
-     *  extruder    - target extruder
-     *  millimeters - the length of the movement, if known
-     */
-    static bool buffer_line_kinematic(const float (&cart)[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    FORCE_INLINE static bool buffer_line(const float (&cart)[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
+      #if ENABLED(SCARA_FEEDRATE_SCALING)
+        , const float &inv_duration=0.0
+      #endif
+    ) {
+      return buffer_line(cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters
+        #if ENABLED(SCARA_FEEDRATE_SCALING)
+          , inv_duration
+        #endif
+      );
+    }
 
     /**
      * Set the planner.position and individual stepper positions.
      * Used by G92, G28, G29, and other procedures.
+     * 
+     * The supplied position is in the cartesian coordinate space and is
+     * translated in to machine space as needed. Modifiers such as leveling
+     * and skew are also applied.
      *
      * Multiplies by axis_steps_per_mm[] and does necessary conversion
      * for COREXY / COREXZ / COREYZ to set the corresponding stepper positions.
      *
      * Clears previous speed values.
      */
-    static void _set_position_mm(const float &a, const float &b, const float &c, const float &e);
-    static void set_position_mm(ARG_X, ARG_Y, ARG_Z, const float &e);
-    static void set_position_mm(const AxisEnum axis, const float &v);
-    static void set_position_mm_kinematic(const float (&cart)[XYZE]);
-    FORCE_INLINE static void set_z_position_mm(const float &z) { set_position_mm(Z_AXIS, z); }
-    FORCE_INLINE static void set_e_position_mm(const float &e) { set_position_mm(E_AXIS, e); }
+    static void set_position_mm(const float &rx, const float &ry, const float &rz, const float &e);
+    FORCE_INLINE static void set_position_mm(const float (&cart)[XYZE]) { set_position_mm(cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS], cart[E_AXIS]); }
+    static void set_e_position_mm(const float &e);
+
+    /**
+     * Set the planner.position and individual stepper positions.
+     * 
+     * The supplied position is in machine space, and no additional
+     * conversions are applied.
+     */
+    static void set_machine_position_mm(const float &a, const float &b, const float &c, const float &e);
+    FORCE_INLINE static void set_machine_position_mm(const float (&abce)[ABCE]) { set_machine_position_mm(abce[A_AXIS], abce[B_AXIS], abce[C_AXIS], abce[E_AXIS]); }
 
     /**
      * Get an axis position according to stepper position(s)

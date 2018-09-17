@@ -49,8 +49,14 @@ float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
   #if ENABLED(LIN_ADVANCE)
     float Mechanics::max_e_jerk[EXTRUDERS] = { 0.0 };
   #endif
-#else
-  float Mechanics::max_jerk[XYZE_N] = { 0.0 };
+#endif
+
+#if HAS_CLASSIC_JERK
+  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
+    float Mechanics::max_jerk[XYZ] = { 0.0 };
+  #else
+    float Mechanics::max_jerk[XYZE_N] = { 0.0 };
+  #endif
 #endif
 
 int16_t Mechanics::feedrate_percentage       = 100;
@@ -87,16 +93,25 @@ millis_t Mechanics::min_segment_time_us = 0;
  * may have been applied.
  *
  * To prevent small shifts in axis position always call
- * sync_plan_position_mech_specific after updating axes with this.
+ * sync_plan_position after updating axes with this.
  *
  * To keep hosts in sync, always call report_current_position
  * after updating the current_position.
  */
 void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
+
   mechanics.get_cartesian_from_steppers();
-  #if PLANNER_LEVELING
-    bedlevel.unapply_leveling(cartesian_position);
+
+  #if HAS_POSITION_MODIFIERS
+    float pos[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], current_position[E_AXIS] };
+    planner.unapply_modifiers(pos
+      #if HAS_LEVELING
+        , true
+      #endif
+    );
+    const float (&cartesian_position)[XYZE] = pos;
   #endif
+
   if (axis == ALL_AXES)
     COPY_ARRAY(current_position, cartesian_position);
   else

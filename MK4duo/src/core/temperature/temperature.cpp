@@ -528,7 +528,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       act->setTuning(true);
       act->updatePID();
 
-      if (storeValues) eeprom.Store_Settings();
+      if (storeValues) eeprom.store();
 
       break;
     }

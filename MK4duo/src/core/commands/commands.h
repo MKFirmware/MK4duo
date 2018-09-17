@@ -31,6 +31,10 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
+struct gcode_t {
+  char gcode[MAX_CMD_SIZE];
+};
+
 class Commands {
 
   public: /** Constructor */
@@ -39,11 +43,7 @@ class Commands {
 
   public: /** Public Parameters */
 
-    static uint8_t  buffer_lenght,  // Number of commands in the Buffer Ring
-                    buffer_index_r, // Read position in Buffer Ring
-                    buffer_index_w; // Write position in Buffer Ring
-
-    static char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
+    static Circular_Queue<gcode_t, BUFSIZE> buffer_ring;
 
     static long gcode_LastN;
 
@@ -87,7 +87,6 @@ class Commands {
 
     static void process_next();
     static void process_parsed();
-    static void commit(bool say_ok);
     static void unknown_error();
     static void gcode_line_error(const char* err);
 

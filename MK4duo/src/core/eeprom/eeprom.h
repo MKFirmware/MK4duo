@@ -50,11 +50,11 @@ class EEPROM {
 
     FORCE_INLINE static bool Init() {
       bool success = true;
-      Factory_Settings();
+      reset();
       #if HAS_EEPROM
-        if ((success = Store_Settings())) {
+        if ((success = store())) {
           #if ENABLED(AUTO_BED_LEVELING_UBL)
-            success = Load_Settings(); // UBL uses load() to know the end of EEPROM
+            success = load(); // UBL uses load() to know the end of EEPROM
           #elif ENABLED(EEPROM_CHITCHAT)
             Print_Settings();
           #endif
@@ -63,11 +63,11 @@ class EEPROM {
       return success;
     }
 
-    static void Factory_Settings();
-    static bool Store_Settings();   // Return 'true' if data was saved
+    static void reset();
+    static bool store();    // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
-      static bool Load_Settings();  // Return 'true' if data was loaded ok
+      static bool load();   // Return 'true' if data was loaded ok
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled
@@ -82,7 +82,7 @@ class EEPROM {
         //static void defrag_meshes();  // "
       #endif
     #else
-      FORCE_INLINE static bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
+      FORCE_INLINE static bool load() { reset(); Print_Settings(); return true; }
     #endif
 
     #if DISABLED(DISABLE_M503)
@@ -93,7 +93,7 @@ class EEPROM {
 
   private: /** Private Function */
 
-    static void Postprocess();
+    static void post_process();
 
 };
 

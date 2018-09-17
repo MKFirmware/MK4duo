@@ -27,7 +27,6 @@
  */
 
 #include "../../../MK4duo.h"
-#include "scara_mechanics.h"
 
 #if IS_SCARA
 
@@ -66,9 +65,9 @@
 
     acceleration              = DEFAULT_ACCELERATION;
     travel_acceleration       = DEFAULT_TRAVEL_ACCELERATION;
-    min_feedrate_mm_s         = DEFAULT_MINIMUMFEEDRATE;
-    min_segment_time_us       = DEFAULT_MINSEGMENTTIME;
-    min_travel_feedrate_mm_s  = DEFAULT_MINTRAVELFEEDRATE;
+    min_feedrate_mm_s         = DEFAULT_MIN_FEEDRATE;
+    min_segment_time_us       = DEFAULT_MIN_SEGMENT_TIME;
+    min_travel_feedrate_mm_s  = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
     #if ENABLED(JUNCTION_DEVIATION)
       junction_deviation_mm = JUNCTION_DEVIATION_MM;
@@ -87,13 +86,6 @@
       ZERO(mechanics.home_offset);
     #endif
 
-  }
-
-  void Scara_Mechanics::sync_plan_position_mech_specific() {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("sync_plan_position_mech_specific", current_position);
-    #endif
-    planner.set_position_mm_kinematic(current_position);
   }
 
   /**
@@ -137,7 +129,7 @@
 
       // If the move is only in Z/E don't split up the move
       if (!difference[X_AXIS] && !difference[Y_AXIS]) {
-        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
         return false; // caller will update current_position
       }
 
@@ -253,7 +245,7 @@
         if (diff2)
           planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination[Z_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder);
       #else
-        planner.buffer_line_kinematic(destination, _feedrate_mm_s, tools.active_extruder);
+        planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
       #endif
 
       return false; // caller will update current_position
@@ -692,7 +684,7 @@
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line_kinematic(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
 
     set_current_to_destination();
   }
@@ -921,7 +913,7 @@
           if (!planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], raw[E_AXIS], fr_mm_s, tools.active_extruder))
             break;
         #else
-          if (!planner.buffer_line_kinematic(raw, fr_mm_s, tools.active_extruder))
+          if (!planner.buffer_line(raw, fr_mm_s, tools.active_extruder))
             break;
         #endif
       }
@@ -937,7 +929,7 @@
         bedlevel.apply_leveling(pos);
         planner.buffer_segment(pos[X_AXIS], pos[Y_AXIS], pos[Z_AXIS], cart[E_AXIS], fr_mm_s, tools.active_extruder);
       #else
-        planner.buffer_line_kinematic(cart, fr_mm_s, tools.active_extruder);
+        planner.buffer_line(cart, fr_mm_s, tools.active_extruder);
       #endif
 
       COPY_ARRAY(current_position, cart);
@@ -995,7 +987,7 @@
         }
       #endif // EXTRUDERS > 1
 
-      SERIAL_LM(CFG, "Acceleration (units/s2): P<print_accel> V<travel_accel> T* R<retract_accel>:");
+      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>:");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(travel_acceleration), 3);
       #if EXTRUDERS == 1
@@ -1009,16 +1001,16 @@
         }
       #endif
 
-      SERIAL_LM(CFG, "Advanced variables: B<min_segment_time_us> S<min_feedrate> V<min_travel_feedrate>:");
+      SERIAL_LM(CFG, "Advanced variables: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>:");
       SERIAL_SMV(CFG, " M205 B", min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(min_travel_feedrate_mm_s), 3);
 
       #if ENABLED(JUNCTION_DEVIATION)
-        SERIAL_LM(CFG, "Junction Deviation: J<Junction deviation mm>:");
+        SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>:");
         SERIAL_LMV(CFG, "  M205 J", junction_deviation_mm, 3);
       #else
-        SERIAL_LM(CFG, "Jerk: X<max_xy_jerk> Z<max_z_jerk> T* E<max_e_jerk>:");
+        SERIAL_LM(CFG, "Jerk: X<DEFAULT_XJERK> Y<DEFAULT_YJERK> Z<max_z_jerk> T* E<DEFAULT_EJERK>:");
         SERIAL_SMV(CFG, " M205 X", LINEAR_UNIT(max_jerk[X_AXIS]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(max_jerk[Y_AXIS]), 3);
         SERIAL_MV(" Z", LINEAR_UNIT(max_jerk[Z_AXIS]), 3);
@@ -1097,7 +1089,7 @@
 
     // Clear retracted status if homing the Z axis
     #if ENABLED(FWRETRACT)
-      fwretract.hop_amount = 0.0;
+      fwretract.current_hop = 0.0;
     #endif
 
     #if ENABLED(DEBUG_FEATURE)

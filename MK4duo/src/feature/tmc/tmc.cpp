@@ -244,8 +244,47 @@ void _tmc_say_pwmthrs(const TMC_AxisEnum axis, const uint32_t thrs) {
 }
 void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
   _tmc_say_axis(axis);
-  SERIAL_MSG(" homing sensitivity: ");
-  SERIAL_EV((int)sgt);
+  SERIAL_EMV(" homing sensitivity: ", (int)sgt);
+}
+void _tmc_say_off_time(const TMC_AxisEnum axis, const uint8_t off_time) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" off_time: ", off_time);
+}
+void _tmc_say_fast_decay_time(const TMC_AxisEnum axis, const uint8_t fast_decay_time) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" fast_decay_time: ", fast_decay_time);
+}
+void _tmc_say_blank_time(const TMC_AxisEnum axis, const uint8_t blank_time) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" blank_time: ", blank_time);
+}
+void _tmc_say_hysteresis_end(const TMC_AxisEnum axis, const int8_t hysteresis_end) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" hysteresis_end: ", hysteresis_end);
+}
+void _tmc_say_hysteresis_start(const TMC_AxisEnum axis, const uint8_t hysteresis_start) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" hysteresis_start: ", hysteresis_start);
+}
+void _tmc_say_stealth_gradient(const TMC_AxisEnum axis, const uint8_t stealth_gradient) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" stealth_gradient: ", stealth_gradient);
+}
+void _tmc_say_stealth_amplitude(const TMC_AxisEnum axis, const uint8_t stealth_amplitude) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" stealth_amplitude: ", stealth_amplitude);
+}
+void _tmc_say_stealth_freq(const TMC_AxisEnum axis, const uint8_t stealth_freq) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" stealth_freq: ", stealth_freq);
+}
+void _tmc_say_stealth_autoscale(const TMC_AxisEnum axis, const bool stealth_autoscale) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" stealth_autoscale: ", stealth_autoscale);
+}
+void _tmc_say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I_comparator) {
+  _tmc_say_axis(axis);
+  SERIAL_EMV(" disable_I_comparator: ", disable_I_comparator);
 }
 
 #if ENABLED(TMC_DEBUG)
@@ -391,7 +430,7 @@ void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
         break;
       case TMC_OTPW: SERIAL_PS(st.otpw() ? PSTR("true") : PSTR("false")); break;
       case TMC_OTPW_TRIGGERED: SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false")); break;
-      case TMC_TOFF: SERIAL_VAL(st.toff()); break;
+      case TMC_TOFF: SERIAL_VAL(st.off_time()); break;
       case TMC_TBL: SERIAL_VAL(st.blank_time()); break;
       case TMC_HEND: SERIAL_VAL(st.hysteresis_end()); break;
       case TMC_HSTRT: SERIAL_VAL(st.hysteresis_start()); break;

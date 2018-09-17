@@ -2091,7 +2091,7 @@
 #define NUM_POSITON_SLOTS 2
 
 // minimum time in microseconds that a movement needs to take if the buffer is emptied.
-#define DEFAULT_MINSEGMENTTIME 20000
+#define DEFAULT_MIN_SEGMENT_TIME 20000
 
 //
 // G2/G3 Arc Support

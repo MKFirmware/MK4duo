@@ -57,7 +57,9 @@
       NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)
       NOLESS(segments, 1U);       // must have at least one segment
 
-      const float inv_segments = RECIPROCAL(segments);  // divide once, multiply thereafter
+      const float inv_segments = 1.0f / segments;  // divide once, multiply thereafter
+
+      const float segment_xyz_mm = HYPOT(cartesian_xy_mm, total[Z_AXIS]) * inv_segments;    // length of each segment
 
       const float diff[XYZE] = {
         total[X_AXIS] * inv_segments,
@@ -80,9 +82,9 @@
       if (!bedlevel.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
         while (--segments) {
           LOOP_XYZE(i) raw[i] += diff[i];
-          mechanics.Transform_buffer_segment(raw, feedrate);
+          planner.buffer_line(raw, feedrate, active_extruder, segment_xyz_mm);
         }
-        mechanics.Transform_buffer_segment(rtarget, feedrate);
+        planner.buffer_line(rtarget, feedrate, active_extruder, segment_xyz_mm);
         return false; // moved but did not set_current_from_destination();
       }
 
@@ -158,7 +160,7 @@
 
           const float z = raw[Z_AXIS];
           raw[Z_AXIS] += z_cxcy;
-          mechanics.Transform_buffer_segment(raw, feedrate);
+          planner.buffer_line(raw, feedrate, active_extruder, segment_xyz_mm);
           raw[Z_AXIS] = z;
 
           if (segments == 0)                        // done with last segment

@@ -202,7 +202,7 @@ void Printer::setup() {
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
-  const bool eeprom_loaded = eeprom.Load_Settings();
+  const bool eeprom_loaded = eeprom.load();
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on home_offset
@@ -212,7 +212,7 @@ void Printer::setup() {
   #endif
 
   // Vital to init stepper/planner equivalent for current_position
-  mechanics.sync_plan_position_mech_specific();
+  mechanics.sync_plan_position();
 
   thermalManager.init();  // Initialize temperature loop
 
@@ -447,7 +447,7 @@ void Printer::quickstop_stepper() {
   planner.quick_stop();
   planner.synchronize();
   mechanics.set_current_from_steppers_for_axis(ALL_AXES);
-  mechanics.sync_plan_position_mech_specific();
+  mechanics.sync_plan_position();
 }
 
 /**
@@ -592,6 +592,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     filamentrunout.spin();
   #endif
 
+  #if HAS_BUZZER && DISABLED(LCD_USE_I2C_BUZZER)
+    buzzer.tick();
+  #endif
+
   #if ENABLED(FLOWMETER_SENSOR)
 
     flowmeter.flowrate_manage();
@@ -724,7 +728,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
       const float olde = mechanics.current_position[E_AXIS];
       mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
-      planner.buffer_line_kinematic(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.active_extruder);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.active_extruder);
       mechanics.current_position[E_AXIS] = olde;
       planner.set_e_position_mm(olde);
       planner.synchronize();
@@ -907,10 +911,6 @@ void Printer::suicide() {
  */
 
 void Printer::setup_pinout() {
-
-  #if HAS_BUZZER
-    BUZZ(10,10);
-  #endif
 
   #if PIN_EXISTS(SS)
     OUT_WRITE(SS_PIN, HIGH);

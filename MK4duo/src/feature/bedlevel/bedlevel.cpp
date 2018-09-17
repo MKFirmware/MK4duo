@@ -186,70 +186,26 @@
 
     if (can_change && enable != leveling_active) {
 
-      #if ENABLED(MESH_BED_LEVELING)
+      planner.synchronize();
 
-        if (!enable)
-          apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
+      #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+        // Force abl.bilinear_z_offset to re-calculate next time
+        const float reset[XYZ] = { -9999.999, -9999.999, 0 };
+        (void)abl.bilinear_z_offset(reset);
+      #endif
 
-        const bool enabling = enable && leveling_is_valid();
-        leveling_active = enabling;
-        if (enabling) unapply_leveling(mechanics.current_position);
+      if (leveling_active) {      // leveling from on to off
+        // change unleveled current_position to physical current_position without moving steppers.
+        apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
+        leveling_active = false;  // disable only AFTER calling apply_leveling
+      }
+      else {                      // leveling from off to on
+        leveling_active = true;   // enable BEFORE calling unapply_leveling, otherwise ignored
+        // change physical current_position to unleveled current_position without moving steppers.
+        unapply_leveling(mechanics.current_position);
+      }
 
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
-
-        #if PLANNER_LEVELING
-          if (leveling_active) {                        // leveling from on to off
-            // change unleveled current_position to physical current_position without moving steppers.
-            apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
-            leveling_active = false;                    // disable only AFTER calling apply_leveling
-          }
-          else {                                        // leveling from off to on
-            leveling_active = true;                     // enable BEFORE calling unapply_leveling, otherwise ignored
-            // change physical current_position to unleveled current_position without moving steppers.
-            unapply_leveling(mechanics.current_position);
-          }
-        #else
-          // UBL equivalents for apply/unapply_leveling
-          const float (&pos)[XYZE] = mechanics.current_position;
-          if (leveling_active) {
-            mechanics.current_position[Z_AXIS] += ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
-            leveling_active = false;
-          }
-          else {
-            leveling_active = true;
-            mechanics.current_position[Z_AXIS] -= ubl.get_z_correction(pos[X_AXIS], pos[Y_AXIS]);
-          }
-        #endif
-
-      #else // OLD_ABL
-
-        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          // Force abl.bilinear_z_offset to re-calculate next time
-          const float reset[XYZ] = { -9999.999, -9999.999, 0 };
-          (void)abl.bilinear_z_offset(reset);
-        #endif
-
-        // Enable or disable leveling compensation in the planner
-        leveling_active = enable;
-
-        if (!enable)
-          // When disabling just get the current position from the steppers.
-          // This will yield the smallest error when first converted back to steps.
-          mechanics.set_current_from_steppers_for_axis(
-            #if ABL_PLANAR
-              ALL_AXES
-            #else
-              Z_AXIS
-            #endif
-          );
-        else
-          // When enabling, remove compensation from the current position,
-          // so compensation will give the right stepper counts.
-          unapply_leveling(mechanics.current_position);
-
-        mechanics.sync_plan_position_mech_specific();
-
-      #endif // OLD_ABL
+      mechanics.sync_plan_position();
     }
   }
 
