@@ -433,7 +433,7 @@ class Planner {
     /**
      * Set the planner.position and individual stepper positions.
      * Used by G92, G28, G29, and other procedures.
-     * 
+     *
      * The supplied position is in the cartesian coordinate space and is
      * translated in to machine space as needed. Modifiers such as leveling
      * and skew are also applied.
@@ -449,7 +449,7 @@ class Planner {
 
     /**
      * Set the planner.position and individual stepper positions.
-     * 
+     *
      * The supplied position is in machine space, and no additional
      * conversions are applied.
      */
