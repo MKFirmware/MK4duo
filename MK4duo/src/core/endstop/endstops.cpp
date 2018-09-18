@@ -51,9 +51,10 @@ Endstops endstops;
   float Endstops::z2_endstop_adj = 0.0;
 #endif
 
-uint16_t  Endstops::logic_bits  = 0,
-          Endstops::pullup_bits = 0,
-          Endstops::live_state  = 0;
+uint32_t  Endstops::logic_bits  = 0,
+          Endstops::pullup_bits = 0;
+
+uint16_t  Endstops::live_state  = 0;
 
 // Private
 uint8_t   Endstops::flag_bits = 0;
@@ -160,7 +161,10 @@ void Endstops::factory_parameters() {
   #if ENABLED(Y_TWO_ENDSTOPS)
     y2_endstop_adj = 0.0f;
   #endif
-  #if ENABLED(Z_TWO_ENDSTOPS)
+  #if ENABLED(Z_THREE_ENDSTOPS)
+    z2_endstop_adj = 0.0f;
+    z3_endstop_adj = 0.0f;
+  #elif ENABLED(Z_TWO_ENDSTOPS)
     z2_endstop_adj = 0.0f;
   #endif
   
@@ -182,8 +186,8 @@ void Endstops::factory_parameters() {
     setLogic(Z3_MAX, !Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
     setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
-    setLogic(DOOR_OPEN_SENSOR, !DOOR_OPEN_LOGIC);
-    setLogic(POWER_CHECK_SENSOR, !POWER_CHECK_LOGIC);
+    setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
+    setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
 
   #else
 
@@ -203,8 +207,8 @@ void Endstops::factory_parameters() {
     setLogic(Z3_MAX, Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
     setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
-    setLogic(DOOR_OPEN_SENSOR, DOOR_OPEN_LOGIC);
-    setLogic(POWER_CHECK_SENSOR, POWER_CHECK_LOGIC);
+    setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
+    setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
 
   #endif
 
@@ -224,8 +228,8 @@ void Endstops::factory_parameters() {
   setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
   setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
   setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
-  setPullup(DOOR_OPEN_SENSOR, PULLUP_DOOR_OPEN);
-  setPullup(POWER_CHECK_SENSOR, PULLUP_POWER_CHECK);
+  setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
+  setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
 
 }
 
@@ -299,11 +303,11 @@ void Endstops::setup_pullup() {
   #endif
 
   #if HAS_DOOR_OPEN
-    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN_SENSOR));
+    HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN));
   #endif
 
   #if HAS_POWER_CHECK && HAS_SD_SUPPORT
-    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK_SENSOR));
+    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK));
   #endif
 
 }
@@ -394,14 +398,14 @@ void Endstops::report() {
 
   #if HAS_DOOR_OPEN
     // Door Open
-    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN_SENSOR) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN_SENSOR) ? "true" : "false");
+    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN) ? "true" : "false");
   #endif
 
   #if HAS_POWER_CHECK && HAS_SD_SUPPORT
     // Power Check
-    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK_SENSOR) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK_SENSOR) ? "true" : "false");
+    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK) ? "true" : "false");
+    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK) ? "true" : "false");
   #endif
 
 }

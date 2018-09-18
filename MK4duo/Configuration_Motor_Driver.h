@@ -58,6 +58,7 @@
 #define Y2_SENSE_RESISTOR 91
 #define Z_SENSE_RESISTOR  91
 #define Z2_SENSE_RESISTOR 91
+#define Z3_SENSE_RESISTOR 91
 #define E0_SENSE_RESISTOR 91
 #define E1_SENSE_RESISTOR 91
 #define E2_SENSE_RESISTOR 91
@@ -126,6 +127,7 @@
 #define Y2_HYBRID_THRESHOLD    100
 #define Z_HYBRID_THRESHOLD       2
 #define Z2_HYBRID_THRESHOLD      2
+#define Z3_HYBRID_THRESHOLD      2
 #define E0_HYBRID_THRESHOLD     30
 #define E1_HYBRID_THRESHOLD     30
 #define E2_HYBRID_THRESHOLD     30
@@ -155,6 +157,7 @@
 //#define Y2_HARDWARE_SERIAL Serial1
 //#define Z_HARDWARE_SERIAL  Serial1
 //#define Z2_HARDWARE_SERIAL Serial1
+//#define Z3_HARDWARE_SERIAL Serial1
 //#define E0_HARDWARE_SERIAL Serial1
 //#define E1_HARDWARE_SERIAL Serial1
 //#define E2_HARDWARE_SERIAL Serial1
@@ -176,6 +179,8 @@
 #define Z_SERIAL_RX_PIN   NoPin
 #define Z2_SERIAL_TX_PIN  NoPin
 #define Z2_SERIAL_RX_PIN  NoPin
+#define Z3_SERIAL_TX_PIN  NoPin
+#define Z3_SERIAL_RX_PIN  NoPin
 
 #define E0_SERIAL_TX_PIN  NoPin
 #define E0_SERIAL_RX_PIN  NoPin
@@ -223,6 +228,10 @@
 #define Z2_K_VAL          50
 #define Z2_OVERCURRENT  2000
 #define Z2_STALLCURRENT 1500
+
+#define Z3_K_VAL          50
+#define Z3_OVERCURRENT  2000
+#define Z3_STALLCURRENT 1500
 
 #define E0_K_VAL          50
 #define E0_OVERCURRENT  2000

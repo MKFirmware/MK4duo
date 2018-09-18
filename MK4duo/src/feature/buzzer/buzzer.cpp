@@ -46,7 +46,7 @@
       if (state.tone.frequency > 0) {
         #if ENABLED(SPEAKER)
           CRITICAL_SECTION_START
-          ::tone(BEEPER_PIN, state.tone.frequency, state.tone.duration);
+            ::tone(BEEPER_PIN, state.tone.frequency, state.tone.duration);
           CRITICAL_SECTION_END
         #else
           on();

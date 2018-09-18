@@ -32,7 +32,7 @@
 
 bool report_tmc_status = false;
 
-/*
+/**
  * Check for over temperature or short to ground error flags.
  * Report and log warning of overtemperature condition.
  * Reduce driver current in a persistent otpw condition.
@@ -40,13 +40,16 @@ bool report_tmc_status = false;
  * and so we don't repeatedly report warning before the condition is cleared.
  */
 #if ENABLED(MONITOR_DRIVER_STATUS)
+
   struct TMC_driver_data {
     uint32_t drv_status;
     bool is_otpw;
     bool is_ot;
     bool is_error;
   };
+
   #if HAVE_DRV(TMC2130)
+
     static uint32_t get_pwm_scale(TMC2130Stepper &st) { return st.PWM_SCALE(); }
     static uint8_t get_status_response(TMC2130Stepper &st) { return st.status_response & 0xF; }
     static TMC_driver_data get_driver_data(TMC2130Stepper &st) {
@@ -63,8 +66,11 @@ bool report_tmc_status = false;
       data.is_error = (st.status_response & DRIVER_ERROR_bm) >> DRIVER_ERROR_bp;
       return data;
     }
+
   #endif
+
   #if HAVE_DRV(TMC2208)
+
     static uint32_t get_pwm_scale(TMC2208Stepper &st) { return st.pwm_scale_sum(); }
     static uint8_t get_status_response(TMC2208Stepper &st) {
       uint32_t drv_status = st.DRV_STATUS();
@@ -74,6 +80,7 @@ bool report_tmc_status = false;
       response |= gstat & 0b11;
       return response;
     }
+
     static TMC_driver_data get_driver_data(TMC2208Stepper &st) {
       constexpr uint32_t OTPW_bm = 0b1ul;
       constexpr uint8_t OTPW_bp = 0;
@@ -86,6 +93,7 @@ bool report_tmc_status = false;
       data.is_error = st.drv_err();
       return data;
     }
+
   #endif
 
   template<typename TMC>
@@ -120,6 +128,7 @@ bool report_tmc_status = false;
       SERIAL_VAL(st.getCurrent());
       SERIAL_EM("mA)");
     }
+
     #if CURRENT_STEP_DOWN > 0
       // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
       if (data.is_otpw && st.isEnabled() && otpw_cnt > 4) {
@@ -182,6 +191,10 @@ bool report_tmc_status = false;
         static uint8_t z2_otpw_cnt = 0;
         monitor_tmc_driver(stepperZ2, TMC_Z, z2_otpw_cnt);
       #endif
+      #if HAS_HW_COMMS(Z3)
+        static uint8_t z3_otpw_cnt = 0;
+        monitor_tmc_driver(stepperZ3, TMC_Z, z3_otpw_cnt);
+      #endif
       #if HAS_HW_COMMS(E0)
         static uint8_t e0_otpw_cnt = 0;
         monitor_tmc_driver(stepperE0, TMC_E0, e0_otpw_cnt);
@@ -214,14 +227,73 @@ bool report_tmc_status = false;
 #endif // MONITOR_DRIVER_STATUS
 
 void _tmc_say_axis(const TMC_AxisEnum axis) {
-  const static char ext_X[]  PROGMEM = "X",  ext_X2[] PROGMEM = "X2",
-                    ext_Y[]  PROGMEM = "Y",  ext_Y2[] PROGMEM = "Y2",
-                    ext_Z[]  PROGMEM = "Z",  ext_Z2[] PROGMEM = "Z2",
-                    ext_E0[] PROGMEM = "E0", ext_E1[] PROGMEM = "E1",
-                    ext_E2[] PROGMEM = "E2", ext_E3[] PROGMEM = "E3",
-                    ext_E4[] PROGMEM = "E4", ext_E5[] PROGMEM = "E5";
-  const static char* const tmc_axes[] PROGMEM = { ext_X, ext_Y, ext_Z, ext_X2, ext_Y2, ext_Z2, ext_E0, ext_E1, ext_E2, ext_E3, ext_E4, ext_E5 };
+  static const char ext_X[] PROGMEM = "X", ext_Y[] PROGMEM = "Y", ext_Z[] PROGMEM = "Z"
+    #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
+      , ext_X2[] PROGMEM = "X2"
+    #endif
+    #if ENABLED(Y_TWO_STEPPER_DRIVERS)
+      , ext_Y2[] PROGMEM = "Y2"
+    #endif
+    #if ENABLED(Z_THREE_STEPPER_DRIVERS)
+      , ext_Z2[] PROGMEM = "Z2", ext_Z3[] PROGMEM = "Z3"
+    #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
+      , ext_Z2[] PROGMEM = "Z2"
+    #endif
+    #if DRIVER_EXTRUDER > 0
+      , ext_E0[] PROGMEM = "E0"
+      #if DRIVER_EXTRUDER > 1
+        , ext_E1[] PROGMEM = "E1"
+        #if DRIVER_EXTRUDER > 2
+          , ext_E2[] PROGMEM = "E2"
+          #if DRIVER_EXTRUDER > 3
+            , ext_E3[] PROGMEM = "E3"
+            #if DRIVER_EXTRUDER > 4
+              , ext_E4[] PROGMEM = "E4"
+              #if DRIVER_EXTRUDER > 5
+                , ext_E5[] PROGMEM = "E5"
+              #endif // DRIVER_EXTRUDER > 5
+            #endif // DRIVER_EXTRUDER > 4
+          #endif // DRIVER_EXTRUDER > 3
+        #endif // DRIVER_EXTRUDER > 2
+      #endif // DRIVER_EXTRUDER > 1
+    #endif // DRIVER_EXTRUDER > 0
+  ;
+
+  static const char* const tmc_axes[] PROGMEM = {
+    ext_X, ext_Y, ext_Z
+    #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
+      , ext_X2
+    #endif
+    #if ENABLED(Y_TWO_STEPPER_DRIVERS)
+      , ext_Y2
+    #endif
+    #if ENABLED(Z_THREE_STEPPER_DRIVERS)
+      , ext_Z2, ext_Z3
+    #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
+      , ext_Z2
+    #endif
+    #if DRIVER_EXTRUDER > 0
+      , ext_E0
+      #if DRIVER_EXTRUDER > 1
+        , ext_E1
+        #if DRIVER_EXTRUDER > 2
+          , ext_E2
+          #if DRIVER_EXTRUDER > 3
+            , ext_E3
+            #if DRIVER_EXTRUDER > 4
+              , ext_E4
+              #if DRIVER_EXTRUDER > 5
+                , ext_E5
+              #endif // DRIVER_EXTRUDER > 5
+            #endif // DRIVER_EXTRUDER > 4
+          #endif // DRIVER_EXTRUDER > 3
+        #endif // DRIVER_EXTRUDER > 2
+      #endif // DRIVER_EXTRUDER > 1
+    #endif // DRIVER_EXTRUDER > 0
+  };
+
   SERIAL_PS((char*)pgm_read_ptr(&tmc_axes[axis]));
+
 }
 
 void _tmc_say_current(const TMC_AxisEnum axis, const uint16_t curr) {
@@ -477,6 +549,9 @@ void _tmc_say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I
     #if Z2_IS_TRINAMIC
       tmc_status(stepperZ2, TMC_Z2, i, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
+    #if AXIS_IS_TMC(Z3)
+      tmc_status(stepperZ3, TMC_Z3, i, mechanics.axis_steps_per_mm[Z_AXIS]);
+    #endif
 
     #if E0_IS_TRINAMIC
       tmc_status(stepperE0, TMC_E0, i, mechanics.axis_steps_per_mm[E_AXIS]);
@@ -521,6 +596,9 @@ void _tmc_say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I
     #if Z2_IS_TRINAMIC
       tmc_parse_drv_status(stepperZ2, TMC_Z2, i);
     #endif
+    #if AXIS_IS_TMC(Z3)
+      tmc_parse_drv_status(stepperZ3, TMC_Z3, i);
+    #endif
 
     #if E0_IS_TRINAMIC
       tmc_parse_drv_status(stepperE0, TMC_E0, i);
@@ -563,7 +641,7 @@ void _tmc_say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I
     TMC_REPORT("Run current",        TMC_IRUN);
     TMC_REPORT("Hold current",       TMC_IHOLD);
     TMC_REPORT("CS actual\t",        TMC_CS_ACTUAL);
-    TMC_REPORT("PWM scale",          TMC_PWM_SCALE);
+    TMC_REPORT("PWM scale\t",        TMC_PWM_SCALE);
     TMC_REPORT("vsense\t",           TMC_VSENSE);
     TMC_REPORT("stealthChop",        TMC_STEALTHCHOP);
     TMC_REPORT("msteps\t",           TMC_MICROSTEPS);

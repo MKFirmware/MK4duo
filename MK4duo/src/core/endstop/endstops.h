@@ -37,24 +37,24 @@ enum Flag1Enum : char {
 };
   
 enum EndstopEnum : char {
-  X_MIN,
-  Y_MIN,
-  Z_MIN,
-  Z_PROBE,
-  X_MAX,
-  Y_MAX,
-  Z_MAX,
-  X2_MIN,
-  X2_MAX,
-  Y2_MIN,
-  Y2_MAX,
-  Z2_MIN,
-  Z2_MAX,
-  Z3_MIN,
-  Z3_MAX,
-  FIL_RUNOUT,
-  DOOR_OPEN_SENSOR,
-  POWER_CHECK_SENSOR
+  X_MIN,        // Bit 0
+  Y_MIN,        // Bit 1
+  Z_MIN,        // Bit 2
+  Z_PROBE,      // Bit 3
+  X_MAX,        // Bit 4
+  Y_MAX,        // Bit 5
+  Z_MAX,        // Bit 6
+  X2_MIN,       // Bit 7
+  X2_MAX,       // Bit 8
+  Y2_MIN,       // Bit 9
+  Y2_MAX,       // Bit 10
+  Z2_MIN,       // Bit 11
+  Z2_MAX,       // Bit 12
+  Z3_MIN,       // Bit 13
+  Z3_MAX,       // Bit 14
+  FIL_RUNOUT,   // Bit 15
+  DOOR_OPEN,    // Bit 16
+  POWER_CHECK   // Bit 17
 };
 
 class Endstops {
@@ -86,9 +86,10 @@ class Endstops {
                     z3_endstop_adj;
     #endif
 
-    static uint16_t logic_bits,
-                    pullup_bits,
-                    live_state;
+    static uint32_t logic_bits,
+                    pullup_bits;
+
+    static uint16_t live_state;
 
   private: /** Private Parameters */
 

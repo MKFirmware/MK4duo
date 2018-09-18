@@ -70,6 +70,14 @@ void Endstops::setup_interrupts(void) {
     attachInterrupt(digitalPinToInterrupt(Z2_MIN_PIN), endstop_ISR, CHANGE); // assign it
   #endif
 
+  #if HAS_Z3_MAX
+    attachInterrupt(digitalPinToInterrupt(Z3_MAX_PIN), endstop_ISR, CHANGE); // assign it
+  #endif
+
+  #if HAS_Z3_MIN
+    attachInterrupt(digitalPinToInterrupt(Z3_MIN_PIN), endstop_ISR, CHANGE); // assign it
+  #endif
+
   #if HAS_Z_PROBE_PIN
     attachInterrupt(digitalPinToInterrupt(Z_PROBE_PIN), endstop_ISR, CHANGE); // assign it
   #endif

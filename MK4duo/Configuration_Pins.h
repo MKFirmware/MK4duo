@@ -133,9 +133,11 @@
 #define X2_MIN_PIN          NoPin
 #define Y2_MIN_PIN          NoPin
 #define Z2_MIN_PIN          NoPin
+#define Z3_MIN_PIN          NoPin
 #define X2_MAX_PIN          NoPin
 #define Y2_MAX_PIN          NoPin
 #define Z2_MAX_PIN          NoPin
+#define Z3_MAX_PIN          NoPin
 #define Z_PROBE_PIN         ORIG_Z_PROBE_PIN
 
 // HEATER pins

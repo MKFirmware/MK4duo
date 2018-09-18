@@ -85,7 +85,7 @@ void Commands::get_serial() {
   static bool serial_comment_mode = false;
 
   #if HAS_DOOR_OPEN
-    if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN_SENSOR)) {
+    if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
       printer.keepalive(DoorOpen);
       return;  // do nothing while door is open
     }
@@ -241,14 +241,14 @@ void Commands::get_serial() {
     if (!IS_SD_PRINTING) return;
 
     #if HAS_DOOR_OPEN
-      if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN_SENSOR)) {
+      if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
         printer.keepalive(DoorOpen);
         return;  // do nothing while door is open
       }
     #endif
 
     #if HAS_POWER_CHECK
-      if (READ(POWER_CHECK_PIN) != endstops.isLogic(POWER_CHECK_SENSOR)) {
+      if (READ(POWER_CHECK_PIN) != endstops.isLogic(POWER_CHECK)) {
         printer.setAbortSDprinting(true);
         return;
       }

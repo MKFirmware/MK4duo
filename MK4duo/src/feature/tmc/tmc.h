@@ -39,12 +39,42 @@
     #include <TMC2208Stepper.h>
   #endif
 
-  #define TMC_AXES (12)
+  #define TMC_AXES (13)
 
   extern bool report_tmc_status;
 
   enum TMC_AxisEnum : char {
-    TMC_X, TMC_Y, TMC_Z, TMC_X2, TMC_Y2, TMC_Z2, TMC_E0, TMC_E1, TMC_E2, TMC_E3, TMC_E4, TMC_E5
+    TMC_X, TMC_Y, TMC_Z
+    #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
+      , TMC_X2
+    #endif
+      #if ENABLED(Y_TWO_STEPPER_DRIVERS)
+      , TMC_Y2
+    #endif
+    #if ENABLED(Z_THREE_STEPPER_DRIVERS)
+      , TMC_Z2, TMC_Z3
+    #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
+      , TMC_Z2
+    #endif
+    #if DRIVER_EXTRUDER > 0
+      , TMC_E0
+      #if DRIVER_EXTRUDER > 1
+        , TMC_E1
+        #if DRIVER_EXTRUDER > 2
+          , TMC_E2
+          #if DRIVER_EXTRUDER > 3
+            , TMC_E3
+            #if DRIVER_EXTRUDER > 4
+              , TMC_E4
+              #if DRIVER_EXTRUDER > 5
+                , TMC_E5
+              #endif // DRIVER_EXTRUDER > 5
+            #endif // DRIVER_EXTRUDER > 4
+          #endif // DRIVER_EXTRUDER > 3
+        #endif // DRIVER_EXTRUDER > 2
+      #endif // DRIVER_EXTRUDER > 1
+    #endif // DRIVER_EXTRUDER > 0
+
   };
 
   constexpr uint32_t _tmc_thrs(const uint16_t msteps, const int32_t thrs, const uint32_t spmm) {

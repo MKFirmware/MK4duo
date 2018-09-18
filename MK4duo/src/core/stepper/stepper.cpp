@@ -797,11 +797,10 @@ void Stepper::disable_X() {
   #if HAS_X2_ENABLE
     X_ENABLE_WRITE( !X_ENABLE_ON);
     X2_ENABLE_WRITE(!X_ENABLE_ON);
-    printer.setXHomed(false);
   #elif HAS_X_ENABLE
     X_ENABLE_WRITE(!X_ENABLE_ON);
-    printer.setXHomed(false);
   #endif
+  printer.setXHomed(false);
 }
 
 void Stepper::enable_Y() {
@@ -816,11 +815,10 @@ void Stepper::disable_Y() {
   #if HAS_Y2_ENABLE
     Y_ENABLE_WRITE( !Y_ENABLE_ON);
     Y2_ENABLE_WRITE(!Y_ENABLE_ON);
-    printer.setYHomed(false);
   #elif HAS_Y_ENABLE
     Y_ENABLE_WRITE(!Y_ENABLE_ON);
-    printer.setYHomed(false);
   #endif
+  printer.setYHomed(false);
 }
 
 void Stepper::enable_Z() {
@@ -846,20 +844,17 @@ void Stepper::disable_Z() {
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
     Z3_ENABLE_WRITE(!Z_ENABLE_ON);
     Z4_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z3_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
     Z3_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z2_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
-    printer.setZHomed(false);
   #endif
+  printer.setZHomed(false);
 }
 
 void Stepper::enable_E() {
@@ -1005,6 +1000,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
  * Triggered position of an axis in steps
  */
 int32_t Stepper::triggered_position(const AxisEnum axis) {
+
   #if ENABLED(__AVR__)
     // Protect the access to the position. Only required for AVR, as
     //  any 32bit CPU offers atomic access to 32bit variables
@@ -1034,6 +1030,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
     WRITE(DIGIPOTSS_PIN, HIGH); // take the SS pin high to de-select the chip:
     //HAL::delayMilliseconds(10);
   }
+
 #endif
 
 #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM

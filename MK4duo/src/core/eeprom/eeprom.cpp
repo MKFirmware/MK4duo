@@ -38,10 +38,10 @@
 
 #include "../../../MK4duo.h"
 
-#define EEPROM_VERSION "MKV51"
+#define EEPROM_VERSION "MKV52"
 
 /**
- * MKV51 EEPROM Layout:
+ * MKV52 EEPROM Layout:
  *
  *  Version                                                     (char x6)
  *  EEPROM Checksum                                             (uint16_t)
@@ -68,8 +68,8 @@
  *  M218  T   XY          tools.hotend_offset                   (float x6)
  *
  * ENDSTOPS:
- *                        endstops.logic_bits                   (uint16_t)
- *                        endstops.pullup_bits                  (uint16_t)
+ *                        endstops.logic_bits                   (uint32_t)
+ *                        endstops.pullup_bits                  (uint32_t)
  *
  * Global Leveling:
  *                        z_fade_height                         (float)
@@ -602,6 +602,11 @@ void EEPROM::post_process() {
         #else
           0,
         #endif
+        #if Z3_IS_TRINAMIC
+          stepperZ3.getCurrent(),
+        #else
+          0,
+        #endif
         #if E0_IS_TRINAMIC
           stepperE0.getCurrent(),
         #else
@@ -670,6 +675,11 @@ void EEPROM::post_process() {
           #else
             Z2_HYBRID_THRESHOLD,
           #endif
+          #if Z3_IS_TRINAMIC
+            TMC_GET_PWMTHRS(Z, Z3),
+          #else
+            Z3_HYBRID_THRESHOLD,
+          #endif
           #if E0_IS_TRINAMIC
             TMC_GET_PWMTHRS(E, E0),
           #else
@@ -702,7 +712,7 @@ void EEPROM::post_process() {
           #endif
         #else // !HYBRID_THRESHOLD
           100, 100, 3,            // X, Y, Z
-          100, 100, 3,            // X2, Y2, Z2
+          100, 100, 3, 3,         // X2, Y2, Z2, Z3
           30, 30, 30, 30, 30, 30  // E0, E1, E2, E3, E4, E5
         #endif // |HYBRID_THRESHOLD
       };
@@ -1084,6 +1094,9 @@ void EEPROM::post_process() {
         #if Z2_IS_TRINAMIC
           SET_CURR(Z2);
         #endif
+        #if Z3_IS_TRINAMIC
+          SET_CURR(Z3);
+        #endif
         #if E0_IS_TRINAMIC
           SET_CURR(E0);
         #endif
@@ -1124,6 +1137,9 @@ void EEPROM::post_process() {
           #endif
           #if Z2_IS_TRINAMIC
             TMC_SET_PWMTHRS(Z, Z2);
+          #endif
+          #if Z3_IS_TRINAMIC
+            TMC_SET_PWMTHRS(Z, Z3);
           #endif
           #if E0_IS_TRINAMIC
             TMC_SET_PWMTHRS(E, E0);
@@ -1176,6 +1192,9 @@ void EEPROM::post_process() {
             #endif
             #if Z2_HAS_DRV(TMC2130)
               stepperZ2.sgt(tmc_sgt[2]);
+            #endif
+            #if Z3_HAS_DRV(TMC2130)
+              stepperZ3.sgt(tmc_sgt[2]);
             #endif
           #endif
         #endif
@@ -2122,19 +2141,22 @@ void EEPROM::reset() {
         SERIAL_MV(" X", stepperX.getCurrent());
       #endif
       #if X2_IS_TRINAMIC
-        SERIAL_MV(" I1 X", stepperX2.getCurrent());
+        SERIAL_MV(" I2 X", stepperX2.getCurrent());
       #endif
       #if Y_IS_TRINAMIC
         SERIAL_MV(" Y", stepperY.getCurrent());
       #endif
       #if Y2_IS_TRINAMIC
-        SERIAL_MV(" I1 Y", stepperY2.getCurrent());
+        SERIAL_MV(" I2 Y", stepperY2.getCurrent());
       #endif
       #if Z_IS_TRINAMIC
         SERIAL_MV(" Z", stepperZ.getCurrent());
       #endif
       #if Z2_IS_TRINAMIC
-        SERIAL_MV(" I1 Z", stepperZ2.getCurrent());
+        SERIAL_MV(" I2 Z", stepperZ2.getCurrent());
+      #endif
+      #if Z3_IS_TRINAMIC
+        SERIAL_MV(" I3 Z", stepperZ3.getCurrent());
       #endif
       #if E0_IS_TRINAMIC
         SERIAL_MV(" T0 E", stepperE0.getCurrent());
@@ -2166,19 +2188,22 @@ void EEPROM::reset() {
           SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
         #endif
         #if X2_IS_TRINAMIC
-          SERIAL_MV(" I1 X", TMC_GET_PWMTHRS(X, X2));
+          SERIAL_MV(" I2 X", TMC_GET_PWMTHRS(X, X2));
         #endif
         #if Y_IS_TRINAMIC
           SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
         #endif
         #if Y2_IS_TRINAMIC
-          SERIAL_MV(" I1 Y", TMC_GET_PWMTHRS(Y, Y2));
+          SERIAL_MV(" I2 Y", TMC_GET_PWMTHRS(Y, Y2));
         #endif
         #if Z_IS_TRINAMIC
           SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
         #endif
         #if Z2_IS_TRINAMIC
-          SERIAL_MV(" I1 Z", TMC_GET_PWMTHRS(Z, Z2));
+          SERIAL_MV(" I2 Z", TMC_GET_PWMTHRS(Z, Z2));
+        #endif
+        #if Z3_IS_TRINAMIC
+          SERIAL_MV(" I3 Z", TMC_GET_PWMTHRS(Z, Z3));
         #endif
         #if E0_IS_TRINAMIC
           SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E, E0));
@@ -2212,7 +2237,7 @@ void EEPROM::reset() {
             SERIAL_MV(" X", stepperX.sgt());
           #endif
           #if X2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I1 X", stepperX2.sgt());
+            SERIAL_MV(" I2 X", stepperX2.sgt());
           #endif
         #endif
         #if ENABLED(Y_HOMING_SENSITIVITY)
@@ -2220,7 +2245,7 @@ void EEPROM::reset() {
             SERIAL_MV(" Y", stepperY.sgt());
           #endif
           #if X2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I1 Y", stepperY2.sgt());
+            SERIAL_MV(" I2 Y", stepperY2.sgt());
           #endif
         #endif
         #if ENABLED(Z_HOMING_SENSITIVITY)
@@ -2228,7 +2253,10 @@ void EEPROM::reset() {
             SERIAL_MV(" Z", stepperZ.sgt());
           #endif
           #if Z2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I1 Z", stepperZ2.sgt());
+            SERIAL_MV(" I2 Z", stepperZ2.sgt());
+          #endif
+          #if Z3_HAS_DRV(TMC2130)
+            SERIAL_MV(" I3 Z", stepperZ3.sgt());
           #endif
         #endif
         SERIAL_EOL();
