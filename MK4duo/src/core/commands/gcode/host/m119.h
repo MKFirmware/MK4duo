@@ -63,7 +63,7 @@ inline void gcode_M119(void) {
     ES_REPORT(Y2_MIN);
   #endif
   #if HAS_Y_MAX
-    SES_REPORT(Y_MAX);
+    ES_REPORT(Y_MAX);
   #endif
   #if HAS_Y2_MAX
     ES_REPORT(Y2_MAX);

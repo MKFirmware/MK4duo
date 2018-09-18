@@ -405,15 +405,14 @@ class Planner {
     }
 
     /**
-     * Add a new linear movement to the buffer.
-     * The target is NOT translated to delta/scara
+     * Planner::buffer_segment
      *
-     * Leveling will be applied to input on cartesians.
-     * Kinematic machines should call buffer_line_kinematic (for leveled moves).
-     * (Cartesians may also call buffer_line_kinematic.)
+     * Add a new linear movement to the buffer in axis units.
      *
-     *  rx,ry,rz,e  - target position in mm or degrees
-     *  fr_mm_s     - (target) speed of the move (mm/s)
+     * Leveling and kinematics should be applied ahead of calling this.
+     *
+     *  a,b,c,e     - target positions in mm and/or degrees
+     *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
