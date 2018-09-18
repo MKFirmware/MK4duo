@@ -52,6 +52,19 @@
 
     if (commands.get_target_tool(600)) return;
 
+    #if ENABLED(DUAL_X_CARRIAGE)
+      int8_t DXC_ext = tools.target_extruder;
+      if (!parser.seen('T')) {  // If no tool index is specified, M600 was (probably) sent in response to filament runout.
+                                // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+          if (mechanics.dxc_is_duplicating())
+            DXC_ext = (READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
+        #else
+          DXC_ext = tools.active_extruder;
+        #endif
+      }
+    #endif
+
     // Show initial "wait for start" message
     #if HAS_LCD
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, TARGET_HOTEND);
@@ -65,8 +78,11 @@
     #if EXTRUDERS > 1
       // Change toolhead if specified
       uint8_t active_extruder_before_filament_change = tools.active_extruder;
-      if (tools.active_extruder != tools.target_extruder)
-        tools.change(tools.target_extruder, 0, true);
+      if (tools.active_extruder != tools.target_extruder
+        #if ENABLED(DUAL_X_CARRIAGE)
+          && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_SCALED_DUPLICATION_MODE
+        #endif
+      ) tools.change(tools.target_extruder, 0, true);
     #endif
 
     // Initial retract before move to pause park position
@@ -111,9 +127,9 @@
 
     const bool job_running = print_job_counter.isRunning();
 
-    if (pause_print(retract, park_point, unload_length, true)) {
-      wait_for_filament_reload(beep_count);
-      resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count);
+    if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
+      wait_for_filament_reload(beep_count DXC_PASS);
+      resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
     }
 
     #if EXTRUDERS > 1

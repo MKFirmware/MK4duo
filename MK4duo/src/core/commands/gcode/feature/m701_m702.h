@@ -74,7 +74,11 @@
                                                       filament_change_load_length[tools.target_extruder]);
 
     load_filament(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
-                  true, heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT);
+                  true, heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT
+                  #if ENABLED(DUAL_X_CARRIAGE)
+                    , tools.target_extruder
+                  #endif
+    );
 
     // Restore Z axis
     if (park_point.z > 0)

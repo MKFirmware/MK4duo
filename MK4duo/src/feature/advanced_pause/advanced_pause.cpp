@@ -109,6 +109,7 @@
   bool load_filament(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=0*/, const int8_t max_beep_count/*=0*/,
                      const bool show_lcd/*=false*/, const bool pause_for_user/*=false*/,
                      const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/
+                     DXC_ARGS
   ) {
     #if !HAS_LCD
       UNUSED(show_lcd);
@@ -152,11 +153,24 @@
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, mode);
     #endif
 
+    #if ENABLED(DUAL_X_CARRIAGE)
+      const int8_t saved_ext        = tools.active_extruder;
+      const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
+      tools.active_extruder = DXC_ext;
+      mechanics.extruder_duplication_enabled = false;
+    #endif
+
     // Slow Load filament
     if (slow_load_length) do_pause_e_move(slow_load_length, PAUSE_PARK_SLOW_LOAD_FEEDRATE);
 
     // Fast Load Filament
     if (fast_load_length) do_pause_e_move(fast_load_length, PAUSE_PARK_FAST_LOAD_FEEDRATE);
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      tools.active_extruder = saved_ext;
+      mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
+      stepper.set_directions();
+    #endif
 
     do {
       if (purge_length > 0) {
@@ -260,7 +274,7 @@
    */
   uint8_t did_pause_print = 0;
 
-  bool pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/) {
+  bool pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
 
     if (did_pause_print) return false; // already paused
 
@@ -310,9 +324,22 @@
     // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
     Nozzle::park(2, park_point);
 
+    #if ENABLED(DUAL_X_CARRIAGE)
+      const int8_t saved_ext        = tools.active_extruder;
+      const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
+      tools.active_extruder = DXC_ext;
+      mechanics.extruder_duplication_enabled = false;
+    #endif
+
     // Unload the filament
     if (unload_length)
       unload_filament(unload_length, show_lcd);
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      tools.active_extruder = saved_ext;
+      mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
+      stepper.set_directions();
+    #endif
 
     return true;
   }
@@ -324,7 +351,7 @@
    *
    * Used by M125 and M600
    */
-  void wait_for_filament_reload(const int8_t max_beep_count/*=0*/) {
+  void wait_for_filament_reload(const int8_t max_beep_count/*=0*/ DXC_ARGS) {
     bool nozzle_timed_out = false,
          bed_timed_out = false;
 
@@ -348,6 +375,13 @@
 
     #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
       heaters[BED_INDEX].start_idle_timer(bed_timeout);
+    #endif
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      const int8_t saved_ext        = tools.active_extruder;
+      const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
+      tools.active_extruder = DXC_ext;
+      mechanics.extruder_duplication_enabled = false;
     #endif
 
     // Wait for filament insert by user and press button
@@ -439,6 +473,13 @@
 
       printer.idle(true);
     }
+
+    #if ENABLED(DUAL_X_CARRIAGE)
+      tools.active_extruder = saved_ext;
+      mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
+      stepper.set_directions();
+    #endif
+
     printer.keepalive(InHandler);
   }
 
@@ -460,7 +501,8 @@
    * - Send host action for resume, if configured
    * - Resume the current SD print job, if any
    */
-  void resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_EXTRUDE_LENGTH*/, const int8_t max_beep_count/*=0*/) {
+  void resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_EXTRUDE_LENGTH*/, const int8_t max_beep_count/*=0*/ DXC_ARGS) {
+
     if (!did_pause_print) return;
 
     // Re-enable the heaters if they timed out
@@ -479,12 +521,11 @@
 
     if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(TARGET_EXTRUDER)) {
       // Load the new filament
-      load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out);
+      load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, ADVANCED_PAUSE_MODE_PAUSE_PRINT DXC_PASS);
     }
 
     #if HAS_LCD
-      // "Wait for print to resume"
-      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_RESUME);
+      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_RESUME); // "Wait for print to resume"
     #endif
 
     // Intelligent resuming
@@ -493,6 +534,7 @@
       if (fwretract.retracted[tools.active_extruder])
         do_pause_e_move(-fwretract.retract_length, fwretract.retract_feedrate_mm_s);
     #endif
+
     // If resume_position is negative
     if (resume_position[E_AXIS] < 0) do_pause_e_move(resume_position[E_AXIS], PAUSE_PARK_RETRACT_FEEDRATE);
 

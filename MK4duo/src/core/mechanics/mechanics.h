@@ -64,7 +64,8 @@ enum AxisEnum : unsigned char{
   enum DualXMode {
     DXC_FULL_CONTROL_MODE,
     DXC_AUTO_PARK_MODE,
-    DXC_DUPLICATION_MODE
+    DXC_DUPLICATION_MODE,
+    DXC_SCALED_DUPLICATION_MODE
   };
 #endif
 

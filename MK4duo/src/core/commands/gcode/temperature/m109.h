@@ -50,8 +50,8 @@
       heaters[TARGET_HOTEND].setTarget(temp);
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
+        if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
+          heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
       #endif
 
       const bool heating = heaters[TARGET_HOTEND].isHeating();

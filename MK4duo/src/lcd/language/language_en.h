@@ -231,8 +231,23 @@
 #ifndef MSG_DXC_MODE_DUPLICATE
   #define MSG_DXC_MODE_DUPLICATE              _UxGT("Duplication")
 #endif
+#ifndef MSG_DXC_MODE_SCALED_COPY
+  #define MSG_DXC_MODE_SCALED_COPY            _UxGT("Scaled copy")
+#endif
 #ifndef MSG_DXC_MODE_FULL_CTRL
   #define MSG_DXC_MODE_FULL_CTRL              _UxGT("Full control")
+#endif
+#ifndef MSG_DXC_X_OFFSET
+  #define MSG_DXC_X_OFFSET                    _UxGT("2nd nozzle X")
+#endif
+#ifndef MSG_DXC_Y_OFFSET
+  #define MSG_DXC_Y_OFFSET                    _UxGT("2nd nozzle Y")
+#endif
+#ifndef MSG_DXC_Z_OFFSET
+  #define MSG_DXC_Z_OFFSET                    _UxGT("2nd nozzle Z")
+#endif
+#ifndef MSG_DXC_SAVE_OFFSETS
+  #define MSG_DXC_SAVE_OFFSETS                _UxGT("Save Offsets")
 #endif
 #ifndef MSG_UBL_MANUAL_MESH
   #define MSG_UBL_MANUAL_MESH                 _UxGT("Manually Build Mesh")

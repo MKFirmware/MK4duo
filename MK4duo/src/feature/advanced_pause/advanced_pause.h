@@ -64,15 +64,25 @@
 
   extern uint8_t did_pause_print;
 
+  #if ENABLED(DUAL_X_CARRIAGE)
+    #define DXC_PARAMS , const int8_t DXC_ext=-1
+    #define DXC_ARGS   , const int8_t DXC_ext
+    #define DXC_PASS   , DXC_ext
+  #else
+    #define DXC_PARAMS
+    #define DXC_ARGS
+    #define DXC_PASS
+  #endif
+
   bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0,
-                   const bool show_lcd=false);
+                   const bool show_lcd=false DXC_PARAMS);
 
-  void wait_for_filament_reload(const int8_t max_beep_count=0);
+  void wait_for_filament_reload(const int8_t max_beep_count=0 DXC_PARAMS);
 
-  void resume_print(const float &slow_load_length=0, const float &fast_load_length=0, const float &purge_length=PAUSE_PARK_EXTRUDE_LENGTH, const int8_t max_beep_count=0);
+  void resume_print(const float &slow_load_length=0, const float &fast_load_length=0, const float &purge_length=PAUSE_PARK_EXTRUDE_LENGTH, const int8_t max_beep_count=0 DXC_PARAMS);
 
   bool load_filament(const float &slow_load_length=0, const float &fast_load_length=0, const float &purge_length=0, const int8_t max_beep_count=0, const bool show_lcd=false,
-                     const bool pause_for_user=false, const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
+                     const bool pause_for_user=false, const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT DXC_PARAMS);
 
   bool unload_filament(const float &unload_length, const bool show_lcd=false, const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
 

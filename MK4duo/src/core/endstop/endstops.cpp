@@ -522,11 +522,11 @@ void Endstops::clamp_to_software(float target[XYZ]) {
           soft_endstop_min[X_AXIS] = X2_MIN_POS;
           soft_endstop_max[X_AXIS] = dual_max_x;
         }
-        else if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE) {
+        else if (mechanics.dxc_is_duplicating()) {
           // In Duplication Mode, T0 can move as far left as X_MIN_POS
           // but not so far to the right that T1 would move past the end
           soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS];
-          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_hotend_x_offset);
+          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_extruder_x_offset);
         }
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS

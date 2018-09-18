@@ -579,9 +579,9 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define    REV_E_DIR(E)       do{ switch (E) { case 0: E0_DIR_WRITE( isStepDir(E0_AXIS)); break; case 1: E1_DIR_WRITE( isStepDir(E1_AXIS)); break; case 2: E2_DIR_WRITE( isStepDir(E2_AXIS)); } }while(0)
 #elif DRIVER_EXTRUDERS > 1
   #if ENABLED(DUAL_X_CARRIAGE)
-    #define E_STEP_WRITE(E,V)   do{ if (mechanics.hotend_duplication_enabled) { E0_STEP_WRITE(V); E1_STEP_WRITE(V); } else if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
-    #define   NORM_E_DIR(E)     do{ if (mechanics.hotend_duplication_enabled) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); } else if (E == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
-    #define    REV_E_DIR(E)     do{ if (mechanics.hotend_duplication_enabled) { E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); } else if (E == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
+    #define E_STEP_WRITE(E,V)   do{ if (mechanics.extruder_duplication_enabled) { E0_STEP_WRITE(V); E1_STEP_WRITE(V); } else if ((E) == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
+    #define   NORM_E_DIR(E)     do{ if (mechanics.extruder_duplication_enabled) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); E1_DIR_WRITE(!isStepDir(E1_AXIS)); } else if ((E) == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)
+    #define    REV_E_DIR(E)     do{ if (mechanics.extruder_duplication_enabled) { E0_DIR_WRITE( isStepDir(E0_AXIS)); E1_DIR_WRITE( isStepDir(E1_AXIS)); } else if ((E) == 0) { E0_DIR_WRITE( isStepDir(E0_AXIS)); } else { E1_DIR_WRITE( isStepDir(E1_AXIS)); } }while(0)
   #else
     #define E_STEP_WRITE(E,V)   do{ if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
     #define   NORM_E_DIR(E)     do{ if (E == 0) { E0_DIR_WRITE(!isStepDir(E0_AXIS)); } else { E1_DIR_WRITE(!isStepDir(E1_AXIS)); } }while(0)

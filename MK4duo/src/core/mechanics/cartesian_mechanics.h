@@ -45,13 +45,14 @@
 
       #if ENABLED(DUAL_X_CARRIAGE)
         static DualXMode  dual_x_carriage_mode;
-        static float      inactive_hotend_x_pos,        // used in mode 0 & 1
-                          raised_parked_position[XYZE], // used in mode 1
-                          duplicate_hotend_x_offset;    // used in mode 2
-        static int16_t    duplicate_hotend_temp_offset; // used in mode 2
-        static millis_t   delayed_move_time;            // used in mode 1
-        static bool       active_hotend_parked,         // used in mode 1 & 2
-                          hotend_duplication_enabled;   // used in mode 2 & 3
+        static float      inactive_extruder_x_pos,        // used in mode 0 & 1
+                          raised_parked_position[XYZE],   // used in mode 1
+                          duplicate_extruder_x_offset;    // used in mode 2 & 3
+        static int16_t    duplicate_extruder_temp_offset; // used in mode 2 & 3
+        static millis_t   delayed_move_time;              // used in mode 1
+        static bool       active_extruder_parked,         // used in mode 1, 2 & 3
+                          extruder_duplication_enabled,   // used in mode 2
+                          scaled_duplication_mode;        // used in mode 3
       #endif
 
     public: /** Public Function */
@@ -135,6 +136,7 @@
        * Prepare a linear move in a dual X axis setup
        */
       #if ENABLED(DUAL_X_CARRIAGE)
+        FORCE_INLINE static bool dxc_is_duplicating() { return dual_x_carriage_mode >= DXC_DUPLICATION_MODE; }
         static float  x_home_pos(const int extruder);
         static bool   dual_x_carriage_unpark();
         FORCE_INLINE static int x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }

@@ -37,9 +37,9 @@
 #define WARNING     "Warning:"              // warning for host
 #define TNAN        "NAN"                   // NAN for host
 #define TINF        "INF"                   // INF for host
-#define PAUSE       "// action:pause"       // command for host that support action
-#define RESUME      "// action:resume"      // command for host that support action
-#define DISCONNECT  "// action:disconnect"  // command for host that support action
+#define PAUSE       "//action:pause"        // command for host that support action
+#define RESUME      "//action:resume"       // command for host that support action
+#define DISCONNECT  "//action:disconnect"   // command for host that support action
 
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 

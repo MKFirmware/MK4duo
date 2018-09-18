@@ -62,13 +62,13 @@
 
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
-    #if ENABLED(DUAL_X_CARRIAGE)
+    planner.synchronize();
+
+    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
       // Only T0 allowed in DXC_DUPLICATION_MODE
-      if (tmp_extruder != 0 && mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE)
+      if (tmp_extruder != 0 && mechanics.dxc_is_duplicating())
          return invalid_extruder_error(tmp_extruder);
     #endif
-
-    planner.synchronize();
 
     #if HAS_LEVELING
       // Set current position to the physical position
@@ -158,7 +158,7 @@
             // Move back to the original (or tweaked) position
             mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
             #if ENABLED(DUAL_X_CARRIAGE)
-              mechanics.active_hotend_parked = false;
+              mechanics.active_extruder_parked = false;
             #endif
           }
           #if HAS_DONDOLO
@@ -524,8 +524,10 @@
         if (printer.debugFeature()) {
           SERIAL_MSG("Dual X Carriage Mode ");
           switch (mechanics.dual_x_carriage_mode) {
-            case DXC_FULL_CONTROL_MODE: SERIAL_EM("DXC_FULL_CONTROL_MODE"); break;
-            case DXC_AUTO_PARK_MODE: SERIAL_EM("DXC_AUTO_PARK_MODE"); break;
+            case DXC_FULL_CONTROL_MODE:       SERIAL_EM("DXC_FULL_CONTROL_MODE");       break;
+            case DXC_AUTO_PARK_MODE:          SERIAL_EM("DXC_AUTO_PARK_MODE");          break;
+            case DXC_DUPLICATION_MODE:        SERIAL_EM("DXC_DUPLICATION_MODE");        break;
+            case DXC_SCALED_DUPLICATION_MODE: SERIAL_EM("DXC_SCALED_DUPLICATION_MODE"); break;
           }
         }
       #endif
@@ -579,9 +581,9 @@
       switch (mechanics.dual_x_carriage_mode) {
         case DXC_FULL_CONTROL_MODE:
           // New current position is the position of the activated hotend
-          mechanics.current_position[X_AXIS] = mechanics.inactive_hotend_x_pos;
+          mechanics.current_position[X_AXIS] = mechanics.inactive_extruder_x_pos;
           // Save the inactive hotend's position (from the old mechanics.current_position)
-          mechanics.inactive_hotend_x_pos = mechanics.destination[X_AXIS];
+          mechanics.inactive_extruder_x_pos = mechanics.destination[X_AXIS];
           break;
         case DXC_AUTO_PARK_MODE:
           // record raised toolhead position for use by unpark
@@ -590,14 +592,14 @@
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
             NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
           #endif
-          mechanics.active_hotend_parked = true;
+          mechanics.active_extruder_parked = true;
           mechanics.delayed_move_time = 0;
           break;
       }
 
       #if ENABLED(DEBUG_FEATURE)
         if (printer.debugFeature()) {
-          SERIAL_EMV("Active hotend parked: ", mechanics.active_hotend_parked ? "yes" : "no");
+          SERIAL_EMV("Active hotend parked: ", mechanics.active_extruder_parked ? "yes" : "no");
           DEBUG_POS("New hotend (parked)", mechanics.current_position);
         }
       #endif
