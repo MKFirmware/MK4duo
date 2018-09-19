@@ -906,6 +906,14 @@ void Printer::suicide() {
   #endif
 }
 
+void Printer::completion_audio_feedback(const bool good/*=true*/) {
+  if (good) {
+    BUZZ(100, 659);
+    BUZZ(100, 698);
+  }
+  else BUZZ(20, 440);
+}
+
 /**
  * Private Function
  */

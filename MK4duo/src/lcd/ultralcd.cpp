@@ -772,14 +772,6 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
 #if ENABLED(ULTIPANEL)
 
-  void lcd_completion_feedback(const bool good/*=true*/) {
-    if (good) {
-      BUZZ(100, 659);
-      BUZZ(100, 698);
-    }
-    else BUZZ(20, 440);
-  }
-
   inline void line_to_current_z() {
     planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), tools.active_extruder);
   }
@@ -961,7 +953,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     void _lcd_user_gcode(const char * const cmd) {
       commands.enqueue_and_echo_P(cmd);
-      lcd_completion_feedback();
+      printer.completion_audio_feedback();
     }
 
     #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
@@ -1781,8 +1773,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    static void lcd_store_settings()   { lcd_completion_feedback(eeprom.store()); }
-    static void lcd_load_settings()    { lcd_completion_feedback(eeprom.load()); }
+    static void lcd_store_settings()   { printer.completion_audio_feedback(eeprom.store()); }
+    static void lcd_load_settings()    { printer.completion_audio_feedback(eeprom.load()); }
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)
@@ -1885,7 +1877,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
           lcd_synchronize(PSTR(MSG_LEVEL_BED_DONE));
         #endif
         lcd_goto_previous_menu_no_defer();
-        lcd_completion_feedback();
+        printer.completion_audio_feedback();
       }
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_DONE));
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
@@ -3163,13 +3155,13 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
   static void lcd_factory_settings() {
     eeprom.reset();
-    lcd_completion_feedback();
+    printer.completion_audio_feedback();
   }
 
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)
 
     static void lcd_init_eeprom() {
-      lcd_completion_feedback(eeprom.Init());
+      printer.completion_audio_feedback(eeprom.Init());
       lcd_goto_previous_menu();
     }
 
@@ -5783,7 +5775,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 void lcd_eeprom_allert() {
   #if ENABLED(ULTIPANEL)
     lcd_goto_screen(_lcd_eeprom_allert);
-    lcd_completion_feedback(true);
+    printer.completion_audio_feedback();
     printer.keepalive(PausedforUser);
     defer_return_to_status = true;
     printer.setWaitForUser(true);

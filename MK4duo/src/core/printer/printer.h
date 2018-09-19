@@ -170,6 +170,8 @@ class Printer {
 
     static void suicide();
 
+    static void completion_audio_feedback(const bool good=true);
+
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
     #endif

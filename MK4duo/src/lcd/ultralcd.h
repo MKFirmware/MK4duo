@@ -116,8 +116,6 @@
 
     void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder=0);
 
-    void lcd_completion_feedback(const bool good=true);
-
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
                                            const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
@@ -206,7 +204,7 @@
 
   void lcd_eeprom_allert();
 
-#else // NEXTION or no LCD
+#else // no NEXTION or no LCD
 
   constexpr bool lcd_wait_for_move = false;
 
