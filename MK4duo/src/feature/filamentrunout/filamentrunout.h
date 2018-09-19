@@ -46,37 +46,46 @@
     private: /** Private Function */
 
       FORCE_INLINE static bool read() {
-        // Read the sensor for the active extruder
-        #if ENABLED(DUAL_X_CARRIAGE)
-          bool is_out;
-          const bool out1 = READ(FIL_RUNOUT0_PIN) == endstops.isLogic(FIL_RUNOUT),
-                     out2 = READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT);
-          if (mechanics.extruder_duplication_enabled)
-            is_out = out1 || out2;
-          else
-            is_out = tools.active_extruder ? out2 : out1;
-          return is_out;
-        #else
-          switch (tools.active_extruder) {
-            case 0: return READ(FIL_RUNOUT0_PIN) == endstops.isLogic(FIL_RUNOUT);
-            #if HAS_FIL_RUNOUT1
-              case 1: return READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT);
+
+        #if (PIN_EXISTS(FIL_RUNOUT1)
+
+          // Read the sensor for the active extruder
+          #if ENABLED(DUAL_X_CARRIAGE)
+            bool is_out;
+            const bool out1 = READ(FIL_RUNOUT0_PIN) ^ endstops.isLogic(FIL_RUNOUT),
+                       out2 = READ(FIL_RUNOUT1_PIN) ^ endstops.isLogic(FIL_RUNOUT);
+            if (mechanics.extruder_duplication_enabled)
+              is_out = out1 || out2;
+            else
+              is_out = tools.active_extruder ? out2 : out1;
+            return is_out;
+          #else
+            switch (tools.active_extruder) {
+              case 0: return READ(FIL_RUNOUT0_PIN) ^ endstops.isLogic(FIL_RUNOUT);
+              case 1: return READ(FIL_RUNOUT1_PIN) ^ endstops.isLogic(FIL_RUNOUT);
               #if HAS_FIL_RUNOUT2
-                case 2: return READ(FIL_RUNOUT2_PIN) == endstops.isLogic(FIL_RUNOUT);
+                case 2: return READ(FIL_RUNOUT2_PIN) ^ endstops.isLogic(FIL_RUNOUT);
                 #if HAS_FIL_RUNOUT3
-                  case 3: return READ(FIL_RUNOUT3_PIN) == endstops.isLogic(FIL_RUNOUT);
+                  case 3: return READ(FIL_RUNOUT3_PIN) ^ endstops.isLogic(FIL_RUNOUT);
                   #if HAS_FIL_RUNOUT4
-                    case 4: return READ(FIL_RUNOUT4_PIN) == endstops.isLogic(FIL_RUNOUT);
+                    case 4: return READ(FIL_RUNOUT4_PIN) ^ endstops.isLogic(FIL_RUNOUT);
                     #if HAS_FIL_RUNOUT5
-                      case 5: return READ(FIL_RUNOUT5_PIN) == endstops.isLogic(FIL_RUNOUT);
+                      case 5: return READ(FIL_RUNOUT5_PIN) ^ endstops.isLogic(FIL_RUNOUT);
                     #endif
                   #endif
                 #endif
               #endif
-            #endif
-          }
+              default: return false;
+            }
+          #endif
+
+        #else
+
+          // A single sensor applying to all extruders
+          return READ(FIL_RUNOUT0_PIN) ^ endstops.isLogic(FIL_RUNOUT);
+
         #endif
-        return false;
+
       }
 
   };

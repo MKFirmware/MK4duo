@@ -56,7 +56,7 @@
       int8_t DXC_ext = tools.target_extruder;
       if (!parser.seen('T')) {  // If no tool index is specified, M600 was (probably) sent in response to filament runout.
                                 // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT1)
           if (mechanics.dxc_is_duplicating())
             DXC_ext = (READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
         #else
