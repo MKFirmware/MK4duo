@@ -801,6 +801,8 @@ void EEPROM::post_process() {
 
     }
 
+    printer.completion_audio_feedback(!eeprom_error);
+
     return !eeprom_error;
   }
 
@@ -1287,6 +1289,8 @@ void EEPROM::post_process() {
     #if ENABLED(EEPROM_CHITCHAT)
       Print_Settings();
     #endif
+
+    printer.completion_audio_feedback(!eeprom_error);
 
     return !eeprom_error;
   }
