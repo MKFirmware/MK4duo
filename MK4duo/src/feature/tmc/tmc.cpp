@@ -631,7 +631,7 @@ void _tmc_say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I
   }
 
   void tmc_report_all() {
-    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); tmc_debug_loop(ITEM);  }while(0)
+    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL);  tmc_debug_loop(ITEM); }while(0)
     #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); drv_status_loop(ITEM); }while(0)
     TMC_REPORT("\t",                 TMC_CODES);
     TMC_REPORT("Enabled\t",          TMC_ENABLED);
