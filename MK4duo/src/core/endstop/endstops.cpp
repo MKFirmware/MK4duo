@@ -463,7 +463,7 @@ void Endstops::report_state() {
 // If the last move failed to trigger an endstop, call kill
 void Endstops::validate_homing_move() {
   if (trigger_state()) hit_on_purpose();
-  else printer.kill(PSTR(MSG_ERR_HOMING_FAILED));
+  else SERIAL_LM(REQUESTPAUSE, MSG_ERR_HOMING_FAILED);
 }
 
 /**

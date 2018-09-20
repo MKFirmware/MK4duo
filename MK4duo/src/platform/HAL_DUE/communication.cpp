@@ -41,6 +41,7 @@ FSTRINGVALUE(Com::tINF,"INF")
 FSTRINGVALUE(Com::tPauseCommunication,"// action:pause")
 FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
 FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
+FSTRINGVALUE(Com::tRequestPauseCommunication,"RequestPause:")
 
 void Com::printInfoLN(FSTRINGPARAM(text)) {
   serialprintPGM(tInfo);

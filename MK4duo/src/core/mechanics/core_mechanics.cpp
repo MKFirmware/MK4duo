@@ -884,7 +884,7 @@
       if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
     #endif
 
-    mechanics.do_homing_move(axis, 1.5f * max_length[axis] * home_dir[axis]);
+    do_homing_move(axis, 1.5f * max_length[axis] * home_dir[axis]);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
@@ -905,7 +905,7 @@
       #if ENABLED(DEBUG_FEATURE)
         if (printer.debugFeature()) SERIAL_EM("Move Away:");
       #endif
-      mechanics.do_homing_move(axis, -bump
+      do_homing_move(axis, -bump
         #if HOMING_Z_WITH_PROBE
           , axis == Z_AXIS ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) : 0.0
         #endif
@@ -921,7 +921,7 @@
         if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
       #endif
 
-      mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
         // BLTOUCH needs to be deployed every time
@@ -936,7 +936,7 @@
           const float adj = ABS(endstops.x2_endstop_adj);
           if (adj) {
             if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_x_lock(false);
             stepper.set_x2_lock(false);
           }
@@ -947,7 +947,7 @@
           const float adj = ABS(endstops.y2_endstop_adj);
           if (adj) {
             if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_y_lock(false);
             stepper.set_y2_lock(false);
           }
@@ -982,16 +982,16 @@
           if (pos_dir) {
             // normalize adj to smallest value and do the first move
             (*lock[0])(true);
-            mechanics.do_homing_move(axis, adj[1] - adj[0]);
+            do_homing_move(axis, adj[1] - adj[0]);
             // lock the second stepper for the final correction
             (*lock[1])(true);
-            mechanics.do_homing_move(axis, adj[2] - adj[1]);
+            do_homing_move(axis, adj[2] - adj[1]);
           }
           else {
             (*lock[2])(true);
-            mechanics.do_homing_move(axis, adj[1] - adj[2]);
+            do_homing_move(axis, adj[1] - adj[2]);
             (*lock[1])(true);
-            mechanics.do_homing_move(axis, adj[0] - adj[1]);
+            do_homing_move(axis, adj[0] - adj[1]);
           }
 
           stepper.set_z_lock(false);
@@ -1003,7 +1003,7 @@
           const float adj = ABS(endstops.z2_endstop_adj);
           if (adj) {
             if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-            mechanics.do_homing_move(axis, pos_dir ? -adj : adj);
+            do_homing_move(axis, pos_dir ? -adj : adj);
             stepper.set_z_lock(false);
             stepper.set_z2_lock(false);
           }
