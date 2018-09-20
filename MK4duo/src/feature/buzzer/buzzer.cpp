@@ -24,36 +24,45 @@
 
 #if DISABLED(LCD_USE_I2C_BUZZER) && PIN_EXISTS(BEEPER)
 
-  Buzzer::state_t Buzzer::state;
   Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Buzzer::buffer;
   Buzzer buzzer;
 
-  void Buzzer::tone(const uint16_t duration, const uint16_t frequency/*=0*/) {
+  void Buzzer::playTone(const uint16_t duration, const uint16_t frequency/*=0*/) {
     while (buffer.isFull()) printer.idle(true);
     tone_t tone = { duration, frequency };
     buffer.enqueue(tone);
   }
 
   void Buzzer::tick() {
-    const millis_t now = millis();
+    static tone_t tone = { 0, 0 };
+    static watch_t tone_watch;
 
-    if (!state.endtime) {
+    if (tone_watch.elapsed(tone.duration)) {
+
+      #if ENABLED(SPEAKER)
+        CRITICAL_SECTION_START
+          ::noTone(BEEPER_PIN);
+        CRITICAL_SECTION_END
+      #else
+        off();
+      #endif
+
+      tone_watch.start();
+
       if (buffer.isEmpty()) return;
 
-      state.tone = buffer.dequeue();
-      state.endtime = now + state.tone.duration;
+      tone = buffer.dequeue();
 
-      if (state.tone.frequency > 0) {
+      if (tone.frequency > 0) {
         #if ENABLED(SPEAKER)
           CRITICAL_SECTION_START
-            ::tone(BEEPER_PIN, state.tone.frequency, state.tone.duration);
+            ::tone(BEEPER_PIN, tone.frequency, tone.duration);
           CRITICAL_SECTION_END
         #else
           on();
         #endif
       }
     }
-    else if (ELAPSED(now, state.endtime)) reset();
   }
 
 #endif // DISABLED(LCD_USE_I2C_BUZZER) && PIN_EXISTS(BEEPER)

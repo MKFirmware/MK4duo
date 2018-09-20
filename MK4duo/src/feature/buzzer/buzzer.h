@@ -25,7 +25,7 @@
 
 #if ENABLED(LCD_USE_I2C_BUZZER)
 
-  #define BUZZ(duration,freq) lcd_buzz(duration,freq)
+  #define BUZZ(duration,freq) lcd.buzz(duration,freq)
 
 #elif PIN_EXISTS(BEEPER)
 
@@ -38,16 +38,12 @@
 
   class Buzzer {
 
-    public: /** Public Parameters */
+    public: /** Constructor */
 
-      typedef struct {
-        tone_t   tone;
-        uint32_t endtime;
-      } state_t;
-
-    private: /** Private Parameters */
-
-      static state_t state;
+      Buzzer() {
+        SET_OUTPUT(BEEPER_PIN);
+        off();
+      }
 
     protected: /** Protected Parameters */
 
@@ -56,28 +52,16 @@
       FORCE_INLINE static void off()  { WRITE(BEEPER_PIN, LOW);   }
       FORCE_INLINE static void on()   { WRITE(BEEPER_PIN, HIGH);  }
 
-      static inline void reset() {
-        off();
-        state.endtime = 0;
-      }
-
-    public: /** Constructor */
-
-      Buzzer() {
-        SET_OUTPUT(BEEPER_PIN);
-        reset();
-      }
-
     public: /** Public Function */
 
-      static void tone(const uint16_t duration, const uint16_t freq);
+      static void playTone(const uint16_t duration, const uint16_t freq);
       static void tick();
 
   };
 
   extern Buzzer buzzer;
 
-  #define BUZZ(duration,freq) buzzer.tone(duration,freq)
+  #define BUZZ(duration,freq) buzzer.playTone(duration,freq)
 
 #else // No buzz capability
 
