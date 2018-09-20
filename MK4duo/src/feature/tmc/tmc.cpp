@@ -514,7 +514,7 @@ void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
   }
 
   void tmc_report_all() {
-    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); tmc_debug_loop(ITEM);  }while(0)
+    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL);  tmc_debug_loop(ITEM); }while(0)
     #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL); drv_status_loop(ITEM); }while(0)
     TMC_REPORT("\t",                 TMC_CODES);
     TMC_REPORT("Enabled\t",          TMC_ENABLED);
@@ -524,7 +524,7 @@ void _tmc_say_sgt(const TMC_AxisEnum axis, const int8_t sgt) {
     TMC_REPORT("Run current",        TMC_IRUN);
     TMC_REPORT("Hold current",       TMC_IHOLD);
     TMC_REPORT("CS actual\t",        TMC_CS_ACTUAL);
-    TMC_REPORT("PWM scale",          TMC_PWM_SCALE);
+    TMC_REPORT("PWM scale\t",        TMC_PWM_SCALE);
     TMC_REPORT("vsense\t",           TMC_VSENSE);
     TMC_REPORT("stealthChop",        TMC_STEALTHCHOP);
     TMC_REPORT("msteps\t",           TMC_MICROSTEPS);
