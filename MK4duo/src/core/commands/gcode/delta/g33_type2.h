@@ -134,7 +134,7 @@
           S2 += sq(z_pt[rad]);
           N++;
         }
-        return LROUND(SQRT(S2 / N) * 1000) / 1000 + 0.00001f;
+        return LROUND(SQRT(S2 / N) * 1000.0f) / 1000.0f + 0.00001f;
       }
     }
     return 0.00001;
@@ -285,43 +285,43 @@
   static float auto_tune_h() {
     const float r_quot = mechanics.delta_probe_radius / mechanics.delta_radius;
 
-    float h_fac = r_quot / (2.0 / 3.0);
-    h_fac = 1.0 / h_fac; // (2/3)/CR
+    float h_fac = r_quot / (2.0f / 3.0f);
+    h_fac = 1.0f / h_fac; // (2/3)/CR
 
     return h_fac;
   }
 
   static float auto_tune_r() {
-    const float diff    = 0.01;
-    float r_fac         = 0.0,
+    const float diff    = 0.01f;
+    float r_fac         = 0.0f,
           delta_r       = diff,
-          z_pt[NPP + 1] = { 0.0 },
-          delta_e[ABC]  = { 0.0 },
-          delta_t[ABC]  = { 0.0 };
+          z_pt[NPP + 1] = { 0.0f },
+          delta_e[ABC]  = { 0.0f },
+          delta_t[ABC]  = { 0.0f };
 
     calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
     r_fac = -(z_pt[__A] + z_pt[__B] + z_pt[__C] + z_pt[_BC] + z_pt[_CA] + z_pt[_AB]) / 6.0;
-    r_fac = diff / r_fac / 3.0; // 1/(3*delta_Z)
+    r_fac = diff / r_fac / 3.0f; // 1/(3*delta_Z)
 
     return r_fac;
   }
 
   static float auto_tune_a() {
-    const float diff = 0.01;
-    float a_fac = 0.0,
-          z_pt[NPP + 1] = { 0.0 },
-          delta_e[ABC] = {0.0},
-          delta_r = {0.0},
-          delta_t[ABC] = {0.0};
+    const float diff    = 0.01f;
+    float a_fac         = 0.0f,
+          z_pt[NPP + 1] = { 0.0f },
+          delta_e[ABC]  = { 0.0f },
+          delta_r       = { 0.0f },
+          delta_t[ABC]  = { 0.0f };
 
     LOOP_XYZ(axis) {
-      LOOP_XYZ(axis_2) delta_t[axis_2] = 0.0;
+      LOOP_XYZ(axis_2) delta_t[axis_2] = 0.0f;
       delta_t[axis] = diff;
       calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
-      a_fac += z_pt[uint8_t((axis * _4P_STEP) - _7P_STEP + NPP) % NPP + 1] / 6.0;
-      a_fac -= z_pt[uint8_t((axis * _4P_STEP) + 1 + _7P_STEP)] / 6.0;
+      a_fac += z_pt[uint8_t((axis * _4P_STEP) - _7P_STEP + NPP) % NPP + 1] / 6.0f;
+      a_fac -= z_pt[uint8_t((axis * _4P_STEP) + 1 + _7P_STEP)] / 6.0f;
     }
-    a_fac = diff / a_fac / 3.0; // 1/(3*delta_Z)
+    a_fac = diff / a_fac / 3.0f; // 1/(3*delta_Z)
 
     return a_fac;
   }
@@ -391,7 +391,7 @@
                 _tower_results      = (_4p_calibration && towers_set) || probe_points >= 3,
                 _opposite_results   = (_4p_calibration && !towers_set) || probe_points >= 3,
                 _endstop_results    = probe_points != 1 && probe_points != 0,
-                _angle_results      = probe_points >= 3  && towers_set;
+                _angle_results      = probe_points >= 3 && towers_set;
 
     const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
 
