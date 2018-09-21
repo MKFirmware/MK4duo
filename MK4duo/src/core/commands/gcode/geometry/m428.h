@@ -52,7 +52,7 @@
       if (!WITHIN(diff[i], -20, 20)) {
         SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
         LCD_ALERTMESSAGEPGM("Err: Too far!");
-        BUZZ(200, 40);
+        sound.feedback(false); // BUZZ(200, 40);
         return;
       }
     }
@@ -60,8 +60,7 @@
     LOOP_XYZ(i) mechanics.set_home_offset((AxisEnum)i, diff[i]);
     mechanics.report_current_position();
     LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-    BUZZ(100, 659);
-    BUZZ(100, 698);
+    sound.feedback();
   }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)

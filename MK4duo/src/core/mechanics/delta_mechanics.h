@@ -118,7 +118,7 @@
       /**
        * Home Delta
        */
-      static void home();
+      static void home(const bool report_position=true);
 
       /**
        * Home an individual linear axis

@@ -52,15 +52,15 @@ void serialprintPGM(const char* str);
 
 #define SERIAL_STR(str)                     SERIAL_PGM(str)
 #define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
-#define SERIAL_TXT(txt)                     (serial_print(txt))
-#define SERIAL_VAL(val, ...)                (serial_print(val, ## __VA_ARGS__))
-#define SERIAL_CHR(c)                       ((void)MKSERIAL.write(c))
-#define SERIAL_EOL()                        ((void)MKSERIAL.write('\n'))
+#define SERIAL_TXT(txt)                     (MKSERIAL.print(txt))
+#define SERIAL_VAL(val, ...)                (MKSERIAL.print(val, ## __VA_ARGS__))
+#define SERIAL_CHR(c)                       (MKSERIAL.write(c))
+#define SERIAL_EOL()                        (MKSERIAL.write('\n'))
 
 #define SERIAL_SP(C)                        serial_spaces(C)
 
-#define SERIAL_MT(msg, txt)                 (serial_print_pair(PSTR(msg), txt))
-#define SERIAL_MV(msg, val, ...)            (serial_print_pair(PSTR(msg), val, ## __VA_ARGS__))
+#define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
+#define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__);  }while(0)
 
 #define SERIAL_SM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); }while(0)
 #define SERIAL_ST(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); }while(0)
@@ -80,30 +80,6 @@ void serialprintPGM(const char* str);
 #define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 #define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
 #define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-
-FORCE_INLINE void serial_print(const char *v)   { MKSERIAL.print(v); }
-FORCE_INLINE void serial_print(char v)          { MKSERIAL.print(v); }
-FORCE_INLINE void serial_print(int v)           { MKSERIAL.print(v); }
-FORCE_INLINE void serial_print(long v)          { MKSERIAL.print(v); }
-FORCE_INLINE void serial_print(double v)        { MKSERIAL.print(v); }
-FORCE_INLINE void serial_print(float v, int n)  { MKSERIAL.print(v, n); }
-FORCE_INLINE void serial_print(uint8_t v)       { MKSERIAL.print((int)v); }
-FORCE_INLINE void serial_print(uint16_t v)      { MKSERIAL.print((int)v); }
-FORCE_INLINE void serial_print(uint32_t v)      { MKSERIAL.print((long)v); }
-FORCE_INLINE void serial_print(bool v)          { MKSERIAL.print((int)v); }
-FORCE_INLINE void serial_print(void *v)         { MKSERIAL.print((long)v); }
-
-void serial_print_pair(const char* msg, const char *v);
-void serial_print_pair(const char* msg, char v);
-void serial_print_pair(const char* msg, int v);
-void serial_print_pair(const char* msg, long v);
-void serial_print_pair(const char* msg, float v, int n);
-void serial_print_pair(const char* msg, double v);
-void serial_print_pair(const char* msg, uint8_t v);
-void serial_print_pair(const char* msg, uint16_t v);
-void serial_print_pair(const char* msg, uint32_t v);
-void serial_print_pair(const char* msg, bool v);
-void serial_print_pair(const char* msg, void *v);
 
 void serial_spaces(uint8_t count);
 

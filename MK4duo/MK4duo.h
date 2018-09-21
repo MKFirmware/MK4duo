@@ -138,6 +138,7 @@ typedef int8_t    pin_t;
 #include "src/core/heater/heater.h"
 #include "src/core/temperature/temperature.h"
 #include "src/core/printcounter/printcounter.h"
+#include "src/core/sound/sound.h"
 
 // LCD modules
 #include "src/lcd/language/language.h"
@@ -154,7 +155,6 @@ typedef int8_t    pin_t;
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/tmc/tmc.h"
 #include "src/feature/power/power.h"
-#include "src/feature/buzzer/buzzer.h"
 #include "src/feature/mixing/mixing.h"
 #include "src/feature/filament/filament.h"
 #include "src/feature/filamentrunout/filamentrunout.h"

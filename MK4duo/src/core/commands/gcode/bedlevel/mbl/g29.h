@@ -129,8 +129,7 @@
           // After recording the last point, activate the mbl and home
           mbl_probe_index = -1;
           SERIAL_EM("Mesh probing done.");
-          BUZZ(100, 659);
-          BUZZ(100, 698);
+          buzzer.feedback();
 
           mechanics.home();
           bedlevel.set_bed_leveling_enabled(true);

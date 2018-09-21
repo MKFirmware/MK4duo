@@ -562,6 +562,8 @@ void EEPROM::post_process() {
     EEPROM_WRITE(stepper.minimum_pulse);
     EEPROM_WRITE(stepper.maximum_rate);
 
+    EEPROM_WRITE(sound.mode);
+
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
       EEPROM_WRITE(externaldac.motor_current);
     #endif
@@ -801,7 +803,7 @@ void EEPROM::post_process() {
 
     }
 
-    printer.completion_audio_feedback(!eeprom_error);
+    sound.feedback(!eeprom_error);
 
     return !eeprom_error;
   }
@@ -1064,6 +1066,8 @@ void EEPROM::post_process() {
       EEPROM_READ(stepper.minimum_pulse);
       EEPROM_READ(stepper.maximum_rate);
 
+      EEPROM_READ(sound.mode);
+
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
         EEPROM_READ(externaldac.motor_current);
       #endif
@@ -1290,7 +1294,7 @@ void EEPROM::post_process() {
       Print_Settings();
     #endif
 
-    printer.completion_audio_feedback(!eeprom_error);
+    sound.feedback(!eeprom_error);
 
     return !eeprom_error;
   }
@@ -1447,6 +1451,9 @@ void EEPROM::reset() {
 
   // Reset Printer Flag
   printer.reset_flag();
+
+  // Reset sound mode
+  sound.mode = SOUND_MODE_ON;
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0f;
@@ -1845,6 +1852,8 @@ void EEPROM::reset() {
   post_process();
 
   SERIAL_LM(ECHO, "Factory Settings Loaded");
+
+  sound.feedback();
 }
 
 #if DISABLED(DISABLE_M503)

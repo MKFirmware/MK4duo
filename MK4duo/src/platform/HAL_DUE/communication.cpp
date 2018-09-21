@@ -24,103 +24,6 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
-FSTRINGVALUE(Com::tStart,"start")
-FSTRINGVALUE(Com::tOk,"ok")
-FSTRINGVALUE(Com::tOkSpace,"ok ")
-FSTRINGVALUE(Com::tError,"Error:")
-FSTRINGVALUE(Com::tWait,"wait")
-FSTRINGVALUE(Com::tEcho,"Echo:")
-FSTRINGVALUE(Com::tConfig,"Config:")
-FSTRINGVALUE(Com::tCap,"Cap:")
-FSTRINGVALUE(Com::tInfo,"Info:")
-FSTRINGVALUE(Com::tBusy,"busy:")
-FSTRINGVALUE(Com::tResend,"Resend:")
-FSTRINGVALUE(Com::tWarning,"Warning:")
-FSTRINGVALUE(Com::tNAN,"NAN")
-FSTRINGVALUE(Com::tINF,"INF")
-FSTRINGVALUE(Com::tPauseCommunication,"// action:pause")
-FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
-FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
-FSTRINGVALUE(Com::tRequestPauseCommunication,"RequestPause:")
-
-void Com::printInfoLN(FSTRINGPARAM(text)) {
-  serialprintPGM(tInfo);
-  serialprintPGM(text);
-  println();
-}
-
-void Com::serialprintPGM(FSTRINGPARAM(ptr)) {
-  char c;
-  while ((c = HAL::readFlashByte(ptr++)) != 0)
-    HAL::serialWriteByte(c);
-}
-
-void Com::printNumber(uint32_t n) {
-  char buf[11]; // Assumes 8-bit chars plus zero byte.
-  char *str = &buf[10];
-  *str = '\0';
-  do {
-    unsigned long m = n;
-    n /= 10;
-    *--str = '0' + (m - 10 * n);
-  } while(n);
-
-  print(str);
-}
-
-void Com::printFloat(float number, uint8_t digits) {
-  if (isnan(number)) {
-    serialprintPGM(TNAN);
-    return;
-  }
-  if (isinf(number)) {
-    serialprintPGM(TINF);
-    return;
-  }
-  // Handle negative numbers
-  if (number < 0.0) {
-    print('-');
-    number = -number;
-  }
-  // Round correctly so that print(1.999, 2) prints as "2.00"
-  float rounding = 0.5;
-  for (uint8_t i = 0; i < digits; ++i)
-    rounding /= 10.0;
-
-  number += rounding;
-
-  // Extract the integer part of the number and print it
-  unsigned long int_part = (unsigned long)number;
-  float remainder = number - (float)int_part;
-  printNumber(int_part);
-
-  // Print the decimal point, but only if there are digits beyond
-  if (digits > 0)
-    print('.');
-
-  // Extract digits from the remainder one at a time
-  while (digits-- > 0) {
-    remainder *= 10.0;
-    int toPrint = int(remainder);
-    print(toPrint);
-    remainder -= toPrint;
-  }
-}
-
-void Com::print(const char* text) {
-  while(*text) {
-    HAL::serialWriteByte(*text++);
-  }
-}
-
-void Com::print(long value) {
-  if (value < 0) {
-    HAL::serialWriteByte('-');
-    value = -value;
-  }
-  printNumber(value);
-}
-
 #if ENABLED(DEBUG_FEATURE)
 
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
@@ -146,5 +49,123 @@ void Com::print(long value) {
   #endif
 
 #endif // ENABLED(DEBUG_FEATURE)
+
+FSTRINGVALUE(Com::tStart,"start")
+FSTRINGVALUE(Com::tOk,"ok")
+FSTRINGVALUE(Com::tOkSpace,"ok ")
+FSTRINGVALUE(Com::tError,"Error:")
+FSTRINGVALUE(Com::tWait,"wait")
+FSTRINGVALUE(Com::tEcho,"Echo:")
+FSTRINGVALUE(Com::tConfig,"Config:")
+FSTRINGVALUE(Com::tCap,"Cap:")
+FSTRINGVALUE(Com::tInfo,"Info:")
+FSTRINGVALUE(Com::tBusy,"busy:")
+FSTRINGVALUE(Com::tResend,"Resend:")
+FSTRINGVALUE(Com::tWarning,"Warning:")
+FSTRINGVALUE(Com::tNAN,"NAN")
+FSTRINGVALUE(Com::tINF,"INF")
+FSTRINGVALUE(Com::tPauseCommunication,"// action:pause")
+FSTRINGVALUE(Com::tContinueCommunication,"// action:resume")
+FSTRINGVALUE(Com::tDisconnectCommunication,"// action:disconnect")
+FSTRINGVALUE(Com::tRequestPauseCommunication,"RequestPause:")
+
+void Com::serialprintPGM(FSTRINGPARAM(str)) {
+  while (char c = HAL::readFlashByte(str++)) HAL::serialWriteByte(c);
+}
+
+void Com::print(char c, int base) {
+  print((long)c, base);
+}
+
+void Com::print(unsigned char b, int base) {
+  print((unsigned long)b, base);
+}
+
+void Com::print(int n, int base) {
+  print((long)n, base);
+}
+
+void Com::print(unsigned int n, int base) {
+  print((unsigned long)n, base);
+}
+
+void Com::print(long n, int base) {
+  if (base == 0) write(n);
+  else if (base == 10) {
+    if (n < 0) { print('-'); n = -n; }
+    printNumber(n, 10);
+  }
+  else
+    printNumber(n, base);
+}
+
+void Com::print(unsigned long n, int base) {
+  if (base == 0) write(n);
+  else printNumber(n, base);
+}
+
+void Com::print(double n, int digits) {
+  printFloat(n, digits);
+}
+
+void Com::println(void) {
+  print('\r');
+  print('\n');
+}
+
+// Private Function
+void Com::printNumber(unsigned long n, uint8_t base) {
+  if (n) {
+    unsigned char buf[8 * sizeof(long)]; // Enough space for base 2
+    int8_t i = 0;
+    while (n) {
+      buf[i++] = n % base;
+      n /= base;
+    }
+    while (i--)
+      print((char)(buf[i] + (buf[i] < 10 ? '0' : 'A' - 10)));
+  }
+  else
+    print('0');
+}
+
+void Com::printFloat(double number, uint8_t digits) {
+  if (isnan(number)) {
+    serialprintPGM(TNAN);
+    return;
+  }
+  if (isinf(number)) {
+    serialprintPGM(TINF);
+    return;
+  }
+
+  // Handle negative numbers
+  if (number < 0.0) {
+    print('-');
+    number = -number;
+  }
+
+  // Round correctly so that print(1.999, 2) prints as "2.00"
+  double rounding = 0.5;
+  for (uint8_t i = 0; i < digits; ++i) rounding *= 0.1;
+  number += rounding;
+
+  // Extract the integer part of the number and print it
+  unsigned long int_part = (unsigned long)number;
+  double remainder = number - (double)int_part;
+  print(int_part);
+
+  // Print the decimal point, but only if there are digits beyond
+  if (digits) {
+    print('.');
+    // Extract digits from the remainder one at a time
+    while (digits--) {
+      remainder *= 10.0;
+      int toPrint = int(remainder);
+      print(toPrint);
+      remainder -= toPrint;
+    }
+  }
+}
 
 #endif // ARDUINO_ARCH_SAM

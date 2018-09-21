@@ -50,7 +50,7 @@
 
   void ac_home() {
     endstops.setEnabled(true);
-    mechanics.home();
+    mechanics.home(false);
     endstops.setNotHoming();
   }
 
@@ -70,7 +70,7 @@
   }
 
   static void Report_signed_float(const char * const prefix, const float &f) {
-    SERIAL_MSG("  ");
+    SERIAL_MSG("\t");
     SERIAL_PS(prefix);
     SERIAL_CHR(':');
     if (f >= 0) SERIAL_CHR('+');
@@ -83,18 +83,18 @@
   static void Report_settings(const bool end_stops, const bool tower_angles) {
     SERIAL_MV(".Height:", mechanics.delta_height, 2);
     if (end_stops) {
-      Report_signed_float(PSTR("  Ex"), mechanics.delta_endstop_adj[A_AXIS]);
+      Report_signed_float(PSTR("Ex"), mechanics.delta_endstop_adj[A_AXIS]);
       Report_signed_float(PSTR("Ey"), mechanics.delta_endstop_adj[B_AXIS]);
       Report_signed_float(PSTR("Ez"), mechanics.delta_endstop_adj[C_AXIS]);
-      SERIAL_MV("    Radius:", mechanics.delta_radius, 2);
+      SERIAL_MV("\tRadius:", mechanics.delta_radius, 2);
     }
     SERIAL_EOL();
     if (tower_angles) {
-      SERIAL_MSG(".Tower angle :  ");
+      SERIAL_MSG(".Tower  angle:");
       Report_signed_float(PSTR("Tx"), mechanics.delta_tower_angle_adj[A_AXIS]);
       Report_signed_float(PSTR("Ty"), mechanics.delta_tower_angle_adj[B_AXIS]);
       Report_signed_float(PSTR("Tz"), mechanics.delta_tower_angle_adj[C_AXIS]);
-      SERIAL_EMV("       Rod:", mechanics.delta_diagonal_rod, 2);
+      SERIAL_EMV("\t   Rod:", mechanics.delta_diagonal_rod, 2);
     }
   }
 
@@ -102,20 +102,19 @@
    * Print the probe results
    */
   static void Report_results(const float z_pt[NPP + 1], const bool tower_points, const bool opposite_points) {
-    SERIAL_MSG(".    ");
-    Report_signed_float(PSTR("c"), z_pt[CEN]);
+    Report_signed_float(PSTR(".      c"), z_pt[CEN]);
     if (tower_points) {
-      Report_signed_float(PSTR("   x"), z_pt[__A]);
+      Report_signed_float(PSTR(" x"), z_pt[__A]);
       Report_signed_float(PSTR(" y"), z_pt[__B]);
       Report_signed_float(PSTR(" z"), z_pt[__C]);
     }
     if (tower_points && opposite_points) {
       SERIAL_EOL();
       SERIAL_CHR('.');
-      SERIAL_SP(13);
+      SERIAL_SP(12);
     }
     if (opposite_points) {
-      Report_signed_float(PSTR("  yz"), z_pt[_BC]);
+      Report_signed_float(PSTR("yz"), z_pt[_BC]);
       Report_signed_float(PSTR("zx"), z_pt[_CA]);
       Report_signed_float(PSTR("xy"), z_pt[_AB]);
     }
@@ -134,7 +133,7 @@
           S2 += sq(z_pt[rad]);
           N++;
         }
-        return LROUND(SQRT(S2 / N) * 1000) / 1000 + 0.00001f;
+        return LROUND(SQRT(S2 / N) * 1000.0f) / 1000.0f + 0.00001f;
       }
     }
     return 0.00001;
@@ -285,43 +284,41 @@
   static float auto_tune_h() {
     const float r_quot = mechanics.delta_probe_radius / mechanics.delta_radius;
 
-    float h_fac = r_quot / (2.0 / 3.0);
-    h_fac = 1.0 / h_fac; // (2/3)/CR
+    float h_fac = r_quot / (2.0f / 3.0f);
+    h_fac = 1.0f / h_fac; // (2/3)/CR
 
     return h_fac;
   }
 
   static float auto_tune_r() {
-    const float diff    = 0.01;
-    float r_fac         = 0.0,
-          delta_r       = diff,
-          z_pt[NPP + 1] = { 0.0 },
-          delta_e[ABC]  = { 0.0 },
-          delta_t[ABC]  = { 0.0 };
+    float r_fac         = 0.0f,
+          delta_r       = 0.01f,
+          z_pt[NPP + 1] = { 0.0f },
+          delta_e[ABC]  = { 0.0f },
+          delta_t[ABC]  = { 0.0f };
 
     calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
     r_fac = -(z_pt[__A] + z_pt[__B] + z_pt[__C] + z_pt[_BC] + z_pt[_CA] + z_pt[_AB]) / 6.0;
-    r_fac = diff / r_fac / 3.0; // 1/(3*delta_Z)
+    r_fac = 0.01f / r_fac / 3.0f; // 1/(3*delta_Z)
 
     return r_fac;
   }
 
   static float auto_tune_a() {
-    const float diff = 0.01;
-    float a_fac = 0.0,
-          z_pt[NPP + 1] = { 0.0 },
-          delta_e[ABC] = {0.0},
-          delta_r = {0.0},
-          delta_t[ABC] = {0.0};
+    float a_fac         = 0.0f,
+          z_pt[NPP + 1] = { 0.0f },
+          delta_e[ABC]  = { 0.0f },
+          delta_r       = { 0.0f },
+          delta_t[ABC]  = { 0.0f };
 
     LOOP_XYZ(axis) {
-      LOOP_XYZ(axis_2) delta_t[axis_2] = 0.0;
-      delta_t[axis] = diff;
+      LOOP_XYZ(axis_2) delta_t[axis_2] = 0.0f;
+      delta_t[axis] = 0.01f;
       calc_kinematics_diff_probe_points(z_pt, delta_e, delta_r, delta_t);     
-      a_fac += z_pt[uint8_t((axis * _4P_STEP) - _7P_STEP + NPP) % NPP + 1] / 6.0;
-      a_fac -= z_pt[uint8_t((axis * _4P_STEP) + 1 + _7P_STEP)] / 6.0;
+      a_fac += z_pt[uint8_t((axis * _4P_STEP) - _7P_STEP + NPP) % NPP + 1] / 6.0f;
+      a_fac -= z_pt[uint8_t((axis * _4P_STEP) + 1 + _7P_STEP)] / 6.0f;
     }
-    a_fac = diff / a_fac / 3.0; // 1/(3*delta_Z)
+    a_fac = 0.01f / a_fac / 3.0f; // 1/(3*delta_Z)
 
     return a_fac;
   }
@@ -391,7 +388,7 @@
                 _tower_results      = (_4p_calibration && towers_set) || probe_points >= 3,
                 _opposite_results   = (_4p_calibration && !towers_set) || probe_points >= 3,
                 _endstop_results    = probe_points != 1 && probe_points != 0,
-                _angle_results      = probe_points >= 3  && towers_set;
+                _angle_results      = probe_points >= 3 && towers_set;
 
     const static char save_message[] PROGMEM = "Save with M500 and/or copy to configuration_delta.h";
 
@@ -582,7 +579,7 @@
       if (verbose_level != 0) {                                    // !dry run
         if ((zero_std_dev >= test_precision && iterations > force_iterations) || zero_std_dev <= calibration_precision) {  // end iterations
           SERIAL_MSG("Calibration OK");
-          SERIAL_SP(36);
+          SERIAL_SP(44);
           #if HAS_BED_PROBE
             if (zero_std_dev >= test_precision && !_1p_calibration && !_0p_calibration)
               SERIAL_MSG("rolling back.");
@@ -611,7 +608,7 @@
           else
             strcpy_P(mess, PSTR("No convergence"));
           SERIAL_TXT(mess);
-          SERIAL_SP(36);
+          SERIAL_SP(44);
           SERIAL_EMV("std dev:", zero_std_dev, 3);
           lcd_setstatus(mess);
           if (verbose_level > 1)

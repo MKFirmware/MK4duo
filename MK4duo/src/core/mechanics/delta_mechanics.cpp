@@ -447,7 +447,7 @@
   /**
    * Home Delta
    */
-  void Delta_Mechanics::home() {
+  void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
@@ -579,7 +579,7 @@
       if (printer.debugFeature()) SERIAL_EM("<<< G28");
     #endif
 
-    report_current_position();
+    if (report_position) report_current_position();
   }
 
   /**

@@ -175,7 +175,7 @@ class MKHardwareSerial { //: public Stream
     FORCE_INLINE static void print(const char* str) { write(str); }
 
     static void print(char, int = BYTE);
-    static void print(unsigned char, int = BYTE);
+    static void print(unsigned char, int = DEC);
     static void print(int, int = DEC);
     static void print(unsigned int, int = DEC);
     static void print(long, int = DEC);

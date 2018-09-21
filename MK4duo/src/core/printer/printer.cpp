@@ -576,6 +576,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     kill(PSTR(MSG_KILLED));
   }
 
+  sound.spin();
+
   #if ENABLED(SUPPORT_MAX31855) || ENABLED(SUPPORT_MAX6675)
     thermalManager.getTemperature_SPI();
   #endif
@@ -590,10 +592,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if HAS_FIL_RUNOUT
     filamentrunout.spin();
-  #endif
-
-  #if HAS_BUZZER && DISABLED(LCD_USE_I2C_BUZZER)
-    buzzer.tick();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
@@ -904,14 +902,6 @@ void Printer::suicide() {
   #if HAS_SUICIDE
     OUT_WRITE(SUICIDE_PIN, LOW);
   #endif
-}
-
-void Printer::completion_audio_feedback(const bool good/*=true*/) {
-  if (good) {
-    BUZZ(100, 659);
-    BUZZ(100, 698);
-  }
-  else BUZZ(20, 440);
 }
 
 /**

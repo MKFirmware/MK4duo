@@ -29,18 +29,6 @@ void serialprintPGM(const char* str) {
   while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);
 }
 
-void serial_print_pair(const char* msg, const char *v)   { serialprintPGM(msg); MKSERIAL.print(v); }
-void serial_print_pair(const char* msg, char v)          { serialprintPGM(msg); MKSERIAL.print(v); }
-void serial_print_pair(const char* msg, int v)           { serialprintPGM(msg); MKSERIAL.print(v); }
-void serial_print_pair(const char* msg, long v)          { serialprintPGM(msg); MKSERIAL.print(v); }
-void serial_print_pair(const char* msg, float v, int n)  { serialprintPGM(msg); MKSERIAL.print(v, n); }
-void serial_print_pair(const char* msg, double v)        { serialprintPGM(msg); MKSERIAL.print(v); }
-void serial_print_pair(const char* msg, uint8_t v)       { serial_print_pair(msg, (int)v); }
-void serial_print_pair(const char* msg, uint16_t v)      { serial_print_pair(msg, (int)v); }
-void serial_print_pair(const char* msg, uint32_t v)      { serial_print_pair(msg, (long)v); }
-void serial_print_pair(const char* msg, bool v)          { serial_print_pair(msg, (int)v); }
-void serial_print_pair(const char* msg, void *v)         { serial_print_pair(msg, (uint32_t)v); }
-
 void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
 
 #if ENABLED(DEBUG_FEATURE)

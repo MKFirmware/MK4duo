@@ -51,7 +51,7 @@
       if (ELAPSED(ms, next_buzz)) {
         if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
           next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000 : 500);
-          BUZZ(50, 880 - (runout_beep & 1) * 220);
+          sound.playTone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);
           runout_beep++;
         }
       }

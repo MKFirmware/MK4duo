@@ -1291,6 +1291,17 @@
   #define MSG_RFID_SPOOL_LENGHT               _UxGT("Spool Lenght: ")
 #endif
 
+// Sound
+#ifndef MSG_SOUND_MODE_ON
+  #define MSG_SOUND_MODE_ON                   _UxGT("Sound           [on]")
+#endif
+#ifndef MSG_SOUND_MODE_SILENT
+  #define MSG_SOUND_MODE_SILENT               _UxGT("Sound       [silent]")
+#endif
+#ifndef MSG_SOUND_MODE_MUTE
+  #define MSG_SOUND_MODE_MUTE                 _UxGT("Sound         [mute]")
+#endif
+
 // EEPROM Allert
 #ifndef MSG_EEPROM_CHANGED_ALLERT_1
   #define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENTION...")

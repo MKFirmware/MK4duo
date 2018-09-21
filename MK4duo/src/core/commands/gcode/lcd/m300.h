@@ -26,21 +26,17 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_BUZZER
+#define CODE_M300
 
-  #define CODE_M300
+/**
+ * M300: Play beep sound S<frequency Hz> P<duration ms>
+ */
+inline void gcode_M300(void) {
+  uint16_t const frequency = parser.seen('S') ? parser.value_ushort() : 260;
+  uint16_t duration = parser.seen('P') ? parser.value_ushort() : 1000;
 
-  /**
-   * M300: Play beep sound S<frequency Hz> P<duration ms>
-   */
-  inline void gcode_M300(void) {
-    uint16_t const frequency = parser.seen('S') ? parser.value_ushort() : 260;
-    uint16_t duration = parser.seen('P') ? parser.value_ushort() : 1000;
+  // Limits the tone duration to 0-5 seconds.
+  NOMORE(duration, 5000U);
 
-    // Limits the tone duration to 0-5 seconds.
-    NOMORE(duration, 5000U);
-
-    BUZZ(duration, frequency);
-  }
-
-#endif // HAS_BUZZER
+  sound.playTone(duration, frequency);
+}

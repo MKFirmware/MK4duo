@@ -761,7 +761,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif
 
   // Buzz and wait. The delay is needed for buttons to settle!
-  BUZZ(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+  sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
 
   #if ENABLED(ULTIPANEL)
     #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -953,7 +953,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
     void _lcd_user_gcode(const char * const cmd) {
       commands.enqueue_and_echo_P(cmd);
-      printer.completion_audio_feedback();
+      sound.feedback();
     }
 
     #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
@@ -1872,7 +1872,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
           lcd_synchronize(PSTR(MSG_LEVEL_BED_DONE));
         #endif
         lcd_goto_previous_menu_no_defer();
-        printer.completion_audio_feedback();
+        sound.feedback();
       }
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_DONE));
       lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NEXT;
@@ -3148,15 +3148,10 @@ void lcd_quick_feedback(const bool clear_buttons) {
     void lcd_callback_set_contrast() { set_lcd_contrast(lcd_contrast); }
   #endif
 
-  static void lcd_factory_settings() {
-    eeprom.reset();
-    printer.completion_audio_feedback();
-  }
-
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)
 
     static void lcd_init_eeprom() {
-      printer.completion_audio_feedback(eeprom.Init());
+      sound.feedback(eeprom.Init());
       lcd_goto_previous_menu();
     }
 
@@ -3207,12 +3202,25 @@ void lcd_quick_feedback(const bool clear_buttons) {
       #endif
     }
 
+    switch(sound.mode) {
+      case SOUND_MODE_ON:
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+        break;
+      case SOUND_MODE_SILENT:
+        MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cycleState);
+        break;
+      case SOUND_MODE_MUTE:
+        MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cycleState);
+        break;
+      default:
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+    }
+
     #if ENABLED(EEPROM_SETTINGS)
       MENU_ITEM(function, MSG_STORE_EEPROM, eeprom.store);
       MENU_ITEM(function, MSG_LOAD_EEPROM, eeprom.load);
     #endif
-
-    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, lcd_factory_settings);
+    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, eeprom.reset);
 
     END_MENU();
   }
@@ -5744,7 +5752,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
   #if ENABLED(G26_MESH_VALIDATION)
     void lcd_chirp() {
-      BUZZ(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+      sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
     }
   #endif
 
@@ -5770,7 +5778,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 void lcd_eeprom_allert() {
   #if ENABLED(ULTIPANEL)
     lcd_goto_screen(_lcd_eeprom_allert);
-    printer.completion_audio_feedback();
+    sound.feedback();
     printer.keepalive(PausedforUser);
     defer_return_to_status = true;
     printer.setWaitForUser(true);

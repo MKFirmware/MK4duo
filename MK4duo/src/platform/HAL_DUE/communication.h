@@ -23,6 +23,11 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
+#define DEC 10
+#define HEX 16
+#define OCT 8
+#define BIN 2
+
 #if ENABLED(DEBUG_FEATURE)
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
   void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
@@ -35,7 +40,7 @@
 
 class Com {
 
-  public:
+  public: /** Public Parameters */
 
     FSTRINGVAR(tStart)                    // start for host
     FSTRINGVAR(tOk)                       // ok answer for host
@@ -56,22 +61,31 @@ class Com {
     FSTRINGVAR(tDisconnectCommunication)  // command for host that support action
     FSTRINGVAR(tRequestPauseCommunication)// command for host that support action
 
-    static void printInfoLN(FSTRINGPARAM(text));
-    static void serialprintPGM(FSTRINGPARAM(text));
-    static void printNumber(uint32_t n);
-    static void printFloat(float number, uint8_t digits);
-    static void print(const char* text);
-    static void print(long value);
-    static inline void print(char c) { HAL::serialWriteByte(c); }
-    static inline void print(uint32_t value) { printNumber(value); }
-    static inline void print(int value) { print((long)value); }
-    static inline void print(uint16_t value) { print((long)value); }
-    static inline void print(float number) { printFloat(number, 6); }
-    static inline void print(float number, uint8_t digits) { printFloat(number, digits); }
-    static inline void print(double number) { printFloat(number, 6); }
-    static inline void print(double number, uint8_t digits) { printFloat(number, digits); }
-    static inline void println() { HAL::serialWriteByte('\r'); HAL::serialWriteByte('\n'); }
-    static inline void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) HAL::serialWriteByte(' '); }
+  public: /** Public Function */
+
+    static void serialprintPGM(FSTRINGPARAM(str));
+
+    FORCE_INLINE static void write(const uint8_t c) { HAL::serialWriteByte(c); }
+    FORCE_INLINE static void write(const char* str) { while (*str) write(*str++); }
+    FORCE_INLINE static void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
+    FORCE_INLINE static void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
+    FORCE_INLINE static void print(const char* str) { write(str); }
+    FORCE_INLINE static void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) HAL::serialWriteByte(' '); }
+
+    static void print(char, int = 0);
+    static void print(unsigned char, int = DEC);
+    static void print(int, int = DEC);
+    static void print(unsigned int, int = DEC);
+    static void print(long, int = DEC);
+    static void print(unsigned long, int = DEC);
+    static void print(double, int = 2);
+    static void println(void);
+    operator bool() { return true; }
+
+  private: /** Private Function */
+
+    static void printNumber(unsigned long, const uint8_t);
+    static void printFloat(double, uint8_t);
 
 };
 
@@ -99,8 +113,8 @@ class Com {
 #define SERIAL_PS(message)                  (Com::serialprintPGM(message))
 #define SERIAL_PGM(message)                 (Com::serialprintPGM(PSTR(message)))
 
-#define SERIAL_STR(str)                     (Com::serialprintPGM(PSTR(str)))
-#define SERIAL_MSG(msg)                     (Com::serialprintPGM(PSTR(msg)))
+#define SERIAL_STR(str)                     SERIAL_PGM(str)
+#define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
 #define SERIAL_CHR(c)                       (Com::print(c))

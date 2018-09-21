@@ -294,11 +294,11 @@
  * SPI_SPEED
  */
 #if ENABLED(SDEXTRASLOW)
-  #define SPI_SPEED 2
+  #define SPI_SPEED 4
 #elif ENABLED(SDSLOW)
-  #define SPI_SPEED 1
+  #define SPI_SPEED 2
 #else
-  #define SPI_SPEED 0
+  #define SPI_SPEED 1
 #endif
 
 /**
