@@ -100,6 +100,21 @@
 // Use Trinamic's ultra quiet stepping mode.
 // When disabled, MK4duo will use spreadCycle stepping mode.
 #define STEALTHCHOP
+#define X_STEALTHCHOP   false
+#define X2_STEALTHCHOP  false
+#define Y_STEALTHCHOP   false
+#define Y2_STEALTHCHOP  false
+#define Z_STEALTHCHOP   false
+#define Z2_STEALTHCHOP  false
+#define Z3_STEALTHCHOP  false
+#define E0_STEALTHCHOP  false
+#define E1_STEALTHCHOP  false
+#define E2_STEALTHCHOP  false
+#define E3_STEALTHCHOP  false
+#define E4_STEALTHCHOP  false
+#define E5_STEALTHCHOP  false
+
+//#define CHOP_CALIBRATION
 
 // Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
 // like overtemperature and short to ground. TMC2208 requires hardware serial.

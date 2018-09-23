@@ -1,4 +1,28 @@
 ### Version 4.3.6
+* Add CHOP_CALIBRATION (TMC2130)
+* Add MSLUT_CALIBRATION (MicroStepping LookUpTable) (TMC2130)
+* Add Command:
+* M930: TMC set blank_time.
+* M931: TMC set off_time.
+* M932: TMC set hysteresis_start.
+* M933: TMC set hysteresis_end/sine_offset (chm = 0/1).
+* M934: TMC set fast_decay_time (chm = 1).
+* M935: TMC set disable_I_comparator (chm = 1).
+* M936: TMC set stealth_gradient.
+* M937: TMC set stealth_amplitude.
+* M938: TMC set stealth_freq.
+* M939: TMC switch stealth_autoscale.
+* M941: TMC set MSLUT.
+* M942: TMC reset MSLUT.
+* M943: TMC set preset MSLUT.
+* M945: TMC switch StealthChop.
+* M946: TMC switch ChopperMode.
+* M947: TMC switch interpolation.
+* Add sound function
+* Add LCD menu for switch Sound [on - silent - off]
+* Fix and clear code
+
+### Version 4.3.6
 * Make class Mechanics to static
 * Add Junction Deviation instead of traditional Jerk limiting
 * Add Adaptive multiaxis step smoothing

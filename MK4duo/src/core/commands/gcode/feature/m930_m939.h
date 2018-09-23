@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(TMC_CHOP_CALIBRATION)
+#if ENABLED(CHOP_CALIBRATION)
 
   #define CODE_M930
   #define CODE_M931
@@ -909,4 +909,4 @@
     }
   }
 
-#endif // HAS_TRINAMIC
+#endif // CHOP_CALIBRATION

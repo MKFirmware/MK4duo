@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(TMC_MSLUT_CALIBRATION) && ENABLED(TMC2130_LINEARITY_CORRECTION)
+#if ENABLED(MSLUT_CALIBRATION)
 
   #define CODE_M941
   #define CODE_M942
@@ -137,9 +137,9 @@
     }
   }
 
-#endif // TMC_MSLUT_CALIBRATION && TMC2130_LINEARITY_CORRECTION
+#endif // MSLUT_CALIBRATION
 
-#if ENABLED(TMC_CHOP_MODE)
+#if ENABLED(STEALTHCHOP)
 
   #define CODE_M945
   #define CODE_M946
@@ -250,4 +250,4 @@
     }
   }
 
-#endif // TMC_CHOP_MODE
+#endif // STEALTHCHOP
