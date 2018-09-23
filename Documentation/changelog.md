@@ -1,4 +1,4 @@
-### Version 4.3.6
+### Version 4.3.7
 * Add CHOP_CALIBRATION (TMC2130)
 * Add MSLUT_CALIBRATION (MicroStepping LookUpTable) (TMC2130)
 * Add Command:
