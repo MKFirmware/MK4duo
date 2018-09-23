@@ -80,8 +80,8 @@
       // Put off the heaters
       act->setTarget(0);
 
-      const pin_t new_pin = parser.value_pin();
-      if (WITHIN(new_pin, 0 , NUM_ANALOG_INPUTS)) {
+      const pin_t new_pin = parser.analog_value_pin();
+      if (new_pin != NoPin) {
         const pin_t old_pin = act->sensor.pin;
         act->sensor.pin = new_pin;
         HAL::AdcChangePin(old_pin, act->sensor.pin);

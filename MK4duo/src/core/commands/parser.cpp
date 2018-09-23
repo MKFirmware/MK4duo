@@ -231,6 +231,11 @@ pin_t GCodeParser::value_pin() {
   return printer.pin_is_protected(pin) ? NoPin : pin;
 }
 
+pin_t GCodeParser::analog_value_pin() {
+  const pin_t pin = (int8_t)value_int();
+  return WITHIN(pin, 0 , NUM_ANALOG_INPUTS) ? pin : NoPin;
+}
+
 #if ENABLED(INCH_MODE_SUPPORT)
 
   float GCodeParser::axis_unit_factor(const AxisEnum axis) {
