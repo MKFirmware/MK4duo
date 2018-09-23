@@ -213,6 +213,7 @@ class GCodeParser {
 
     // Pin value
     static pin_t value_pin();
+    static pin_t analog_value_pin();
 
     // Units modes: Inches, Fahrenheit, Kelvin
 
