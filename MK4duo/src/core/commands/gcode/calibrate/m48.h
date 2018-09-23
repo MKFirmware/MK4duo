@@ -226,7 +226,7 @@
         if (verbose_level > 0) {
           if (verbose_level > 1) {
             SERIAL_VAL(n + 1);
-            SERIAL_MV(" of ", (int)n_samples);
+            SERIAL_MV(" of ", n_samples);
             SERIAL_MV(": z: ", sample_set[n], 3);
             if (verbose_level > 2) {
               SERIAL_MV(" mean: ", mean, 4);

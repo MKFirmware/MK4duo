@@ -226,6 +226,7 @@
 #define LOOP_ABC(VAR)           LOOP_S_LE_N(VAR, A_AXIS, C_AXIS)
 #define LOOP_ABCE(VAR)          LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)
 #define LOOP_ABCE_N(VAR)        LOOP_S_L_N(VAR, A_AXIS, XYZE_N)
+#define LOOP_DRV_EXTRUDER()     LOOP_L_N(d, DRIVER_EXTRUDERS)
 #define LOOP_EXTRUDER()         LOOP_L_N(e, EXTRUDERS)
 #define LOOP_HOTEND()           LOOP_L_N(h, HOTENDS)
 #define LOOP_HEATER()           LOOP_L_N(h, HEATER_COUNT)

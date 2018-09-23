@@ -352,8 +352,6 @@ void cli(void);
 // Enable interrupts
 void sei(void);
 
-int freeMemory(void);
-
 // SPI: Extended functions which take a channel number (hardware SPI only)
 /** Write single byte to specified SPI channel */
 void spiSend(uint32_t chan, byte b);

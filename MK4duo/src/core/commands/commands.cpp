@@ -364,8 +364,8 @@ void Commands::ok_to_send() {
       while (NUMERIC_SIGNED(*p.gcode))
         SERIAL_CHR(*p.gcode++);
     }
-    SERIAL_MV(" P", (int)(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
-    SERIAL_MV(" B", BUFSIZE - buffer_ring.count());
+    SERIAL_MV(" P", (BLOCK_BUFFER_SIZE - planner.movesplanned() - 1), DEC);
+    SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);
   #endif
   SERIAL_EOL();
 }

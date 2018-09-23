@@ -25,8 +25,9 @@
 
 #define DEC 10
 #define HEX 16
-#define OCT 8
-#define BIN 2
+#define OCT  8
+#define BIN  2
+#define BYTE 0
 
 #if ENABLED(DEBUG_FEATURE)
   void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
@@ -72,7 +73,7 @@ class Com {
     FORCE_INLINE static void print(const char* str) { write(str); }
     FORCE_INLINE static void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) HAL::serialWriteByte(' '); }
 
-    static void print(char, int = 0);
+    static void print(char, int = BYTE);
     static void print(unsigned char, int = DEC);
     static void print(int, int = DEC);
     static void print(unsigned int, int = DEC);
@@ -117,7 +118,7 @@ class Com {
 #define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
-#define SERIAL_CHR(c)                       (Com::print(c))
+#define SERIAL_CHR(c)                       (Com::write(c))
 #define SERIAL_EOL()                        (Com::println())
 
 #define SERIAL_SP(C)                        (Com::print_spaces(C))
