@@ -94,6 +94,7 @@
 // Delta Commands
 #include "delta/g33_type1.h"              // Autocalibration 7 point
 #include "delta/g33_type2.h"              // Autocalibration matrix
+#include "delta/g34.h"                    // Set Delta Height
 #include "delta/m666.h"                   // Set delta parameters
 
 // EEPROM Commands
