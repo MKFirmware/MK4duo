@@ -18,6 +18,7 @@
 * M945: TMC switch StealthChop.
 * M946: TMC switch ChopperMode.
 * M947: TMC switch interpolation.
+* G34: Set Delta Height calculated from toolhead position (only DELTA)
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation

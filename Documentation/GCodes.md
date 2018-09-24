@@ -24,6 +24,7 @@
 |  G31 | Dock Z Probe sled (if enabled)
 |  G32 | Undock Z Probe sled (if enabled)
 |  G33 | Delta geometry Autocalibration[br/>F[nfactor] P[npoint] Q[debugging> (Requires **DELTA AUTO CALIBRATION 1**)<br/>P[npoints] V[nverbose> (Requires **DELTA AUTO CALIBRATION 2**)
+|  G33 | Set Delta Height calculated from toolhead position (only DELTA)
 |  G38 | Probe target - similar to **G28** except it uses the Z MIN endstop for all three axes
 |  G42 | Coordinated move to a mesh point. (Requires **MESH BED LEVELING** or **AUTO BED LEVELING BILINEAR**)
 |  G60 | Save current position coordinates (all axes, for active extruder).<br/>S[SLOT] - specifies memory slot # (0-based) to save into (default 0)
@@ -194,7 +195,22 @@
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
 | M922 | TRINAMIC | S[1/0] Enable/disable TMC debug
-| M928 | ? | Start SD logging (M928 filename.g) - ended by M29
-| M995 | ? | X Y Z Set origin for graphic in NEXTION
-| M996 | ? | S[scale] Set scale for graphic in NEXTION
-| M999 | ? | Restart after being stopped by error
+| M930 | TRINAMIC | TMC set blank_time. (Requires CHOP_CALIBRATION)
+| M931 | TRINAMIC | TMC set off_time. (Requires CHOP_CALIBRATION)
+| M932 | TRINAMIC | TMC set hysteresis_start. (Requires CHOP_CALIBRATION)
+| M933 | TRINAMIC | TMC set hysteresis_end/sine_offset (chm = 0/1). (Requires CHOP_CALIBRATION)
+| M934 | TRINAMIC | TMC set fast_decay_time (chm = 1). (Requires CHOP_CALIBRATION)
+| M935 | TRINAMIC | TMC set disable_I_comparator (chm = 1). (Requires CHOP_CALIBRATION)
+| M936 | TRINAMIC | TMC set stealth_gradient. (Requires CHOP_CALIBRATION)
+| M937 | TRINAMIC | TMC set stealth_amplitude. (Requires CHOP_CALIBRATION)
+| M938 | TRINAMIC | TMC set stealth_freq. (Requires CHOP_CALIBRATION)
+| M939 | TRINAMIC | TMC switch stealth_autoscale. (Requires CHOP_CALIBRATION)
+| M941 | TRINAMIC | TMC set MSLUT. (Requires MSLUT_CALIBRATION)
+| M942 | TRINAMIC | TMC reset MSLUT. (Requires MSLUT_CALIBRATION)
+| M943 | TRINAMIC | TMC set preset MSLUT. (Requires MSLUT_CALIBRATION)
+| M945 | TRINAMIC | TMC switch StealthChop. (Requires STEALTHCHOP)
+| M946 | TRINAMIC | TMC switch ChopperMode. (Requires STEALTHCHOP)
+| M947 | TRINAMIC | TMC switch interpolation. (Requires STEALTHCHOP)
+| M995 | NEXTION | X Y Z Set origin for graphic in NEXTION
+| M996 | NEXTION | S[scale] Set scale for graphic in NEXTION
+| M999 | NOPE | Restart after being stopped by error
