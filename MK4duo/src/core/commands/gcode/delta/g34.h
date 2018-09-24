@@ -40,7 +40,6 @@
     mechanics.delta_height -= mechanics.current_position[Z_AXIS];
     mechanics.recalc_delta_settings();
     SERIAL_EMV("  New delta height:", mechanics.delta_height, 3);
-    sound.feedback();
 
   }
 
