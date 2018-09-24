@@ -23,7 +23,7 @@
 |  G30 | Single Z Probe, probes bed at current XY location.
 |  G31 | Dock Z Probe sled (if enabled)
 |  G32 | Undock Z Probe sled (if enabled)
-|  G33 | Delta geometry Autocalibration[br/>F[nfactor] P[npoint] Q[debugging> (Requires **DELTA AUTO CALIBRATION 1**)<br/>P[npoints] V[nverbose> (Requires **DELTA AUTO CALIBRATION 2**)
+|  G34 | Delta geometry Autocalibration[br/>F[nfactor] P[npoint] Q[debugging> (Requires **DELTA AUTO CALIBRATION 1**)<br/>P[npoints] V[nverbose> (Requires **DELTA AUTO CALIBRATION 2**)
 |  G33 | Set Delta Height calculated from toolhead position (only DELTA)
 |  G38 | Probe target - similar to **G28** except it uses the Z MIN endstop for all three axes
 |  G42 | Coordinated move to a mesh point. (Requires **MESH BED LEVELING** or **AUTO BED LEVELING BILINEAR**)
