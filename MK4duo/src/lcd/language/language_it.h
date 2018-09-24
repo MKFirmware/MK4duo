@@ -295,6 +295,8 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Resetta BLTouch")
 #define MSG_BLTOUCH_DEPLOY                  _UxGT("Estendi BLTouch")
 #define MSG_BLTOUCH_STOW                    _UxGT("Ritrai BLTouch")
+#define MSG_MANUAL_DEPLOY                   _UxGT("Estendi Z-Probe")
+#define MSG_MANUAL_STOW                     _UxGT("Ritrai Z-Probe")
 #define MSG_HOME                            _UxGT("Home")
 #define MSG_FIRST                           _UxGT("prima")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")

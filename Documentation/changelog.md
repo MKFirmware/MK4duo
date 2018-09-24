@@ -20,6 +20,7 @@
 * M947: TMC switch interpolation.
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
+* Add pause before deploy/stow for user confirmation
 * Fix and clear code
 
 ### Version 4.3.6

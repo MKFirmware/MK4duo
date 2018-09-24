@@ -39,7 +39,7 @@ float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZ
 bool Probe::set_deployed(const bool deploy) {
 
   // Can be extended to servo probes, if needed.
-  #if ENABLED(PROBE_IS_TRIGGERED_WHEN_STOWED_TEST)
+  #if ENABLED(Z_PROBE_ALLEN_KEY)
     #if HAS_Z_PROBE_PIN
       #define _TRIGGERED_WHEN_STOWED_TEST (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
     #else
@@ -70,12 +70,14 @@ bool Probe::set_deployed(const bool deploy) {
   #if ENABLED(Z_PROBE_SLED)
     if (mechanics.axis_unhomed_error(true, false, false)) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
+      sound.feedback(false);
       printer.Stop();
       return true;
     }
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     if (mechanics.axis_unhomed_error(true, true,  true )) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
+      sound.feedback(false);
       printer.Stop();
       return true;
     }
@@ -96,6 +98,23 @@ bool Probe::set_deployed(const bool deploy) {
                                                                 // otherwise an Allen-Key probe can't be stowed.
   #endif
 
+      #if ENABLED(PAUSE_BEFORE_DEPLOY_STOW)
+
+        sound.feedback();
+
+        const char * const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
+        lcd_setalertstatusPGM(ds_str);
+        SERIAL_PS(ds_str);
+        SERIAL_EOL();
+
+        printer.setWaitForUser(true);
+        printer.keepalive(PausedforUser);
+        while (printer.isWaitForUser()) printer.idle();
+        lcd_reset_status();
+        printer.keepalive(InHandler);
+
+      #endif // PAUSE_BEFORE_DEPLOY_STOW
+
       #if ENABLED(Z_PROBE_SLED)
         dock_sled(!deploy);
       #elif ENABLED(BLTOUCH) && MECH(DELTA)
@@ -113,7 +132,8 @@ bool Probe::set_deployed(const bool deploy) {
 
       if (printer.isRunning()) {
         SERIAL_LM(ER, "Z-Probe failed");
-        LCD_ALERTMESSAGEPGM("Err: ZPROBE");
+        LCD_ALERTMESSAGEPGM("Err: Z-Probe");
+        sound.feedback(false);
       }
       printer.Stop();
       return true;
@@ -201,7 +221,7 @@ bool Probe::set_deployed(const bool deploy) {
       }
 
       if (verbose_level > 2) {
-        SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
+        SERIAL_MV(MSG_BED_LEVELING_Z, measured_z, 3);
         SERIAL_MV(MSG_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
         SERIAL_MV(MSG_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
         SERIAL_EOL();
@@ -210,8 +230,9 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
       if (isnan(measured_z)) {
-        LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
+        LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
+        sound.feedback(false);
       }
 
       #if ENABLED(DEBUG_FEATURE)
@@ -280,6 +301,7 @@ bool Probe::set_deployed(const bool deploy) {
                                          //   after reset, deploy & stow sequence
       if (TEST_BLTOUCH()) {              // If it still claims to be triggered...
         SERIAL_LM(ER, MSG_STOP_BLTOUCH);
+        sound.feedback(false);
         printer.Stop();
         return true;
       }
