@@ -193,47 +193,32 @@
   // Use internal reference voltage for current calculations. This is the default.
   // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
   // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
-  void tmc2130_init(TMC2130Stepper &st, const uint16_t mA, const uint16_t microsteps, const uint32_t thrs, const float spmm, const bool intpol=INTERPOLATE, const float holdmult=HOLD_MULTIPLIER,
-                    const uint8_t tblank=24, const uint8_t toff=5, const uint8_t hstart=3, const int8_t hend=2, const uint8_t sync=0, const int8_t sgt=0,
-                    const bool stealth=false, const uint8_t pwmfreq=1, const bool pwmauto=true, const uint8_t pwmgrad=5, const uint8_t pwmampl=255, const bool pwmsym=false,
-                    const uint8_t wave=0
-  ) {
+  void tmc2130_init(TMC2130Stepper &st, const uint16_t mA, const uint16_t microsteps, const uint32_t thrs, const float spmm, const bool tmc_stealthchop=false) {
+    while(!st.stst()); // Wait for motor stand-still
     #if DISABLED(STEALTHCHOP) || DISABLED(HYBRID_THRESHOLD)
       UNUSED(thrs);
       UNUSED(spmm);
     #endif
     st.begin();
-    st.setCurrent(mA, R_SENSE, holdmult);
+    st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
-    st.blank_time(tblank);
-    st.off_time(toff);
-    st.interpolate(intpol);
-    st.power_down_delay(128); // ~2s until driver lowers to hold current
-    st.hysteresis_start(hstart);
-    st.hysteresis_end(hend);
-    st.sync_phases(sync);
-    st.stealth_freq(pwmfreq);
-    st.stealth_autoscale(pwmauto);
-    st.stealth_gradient(pwmgrad);
-    st.stealth_amplitude(pwmampl);
-    st.stealth_symmetric(pwmsym);
-    st.sgt(sgt);
-    #if ENABLED(STEALTHCHOP)
-      st.stealthChop(stealth);
-      #if ENABLED(HYBRID_THRESHOLD)
-        st.stealth_max_speed(12650000UL * microsteps / (256 * thrs * spmm));
-      #endif
+    st.interpolate(INTERPOLATE);
+    st.stealth_amplitude(STEALTH_AMPL);
+    st.stealth_gradient(STEALTH_GRAD);
+    st.stealth_autoscale(STEALTH_AUTOSCALE);
+    st.stealth_freq(STEALTH_FREQ);
+    st.stealthChop(tmc_stealthchop);
+    st.sgt(0);
+    #if ENABLED(HYBRID_THRESHOLD)
+      st.stealth_max_speed(12650000UL * microsteps / (256 * thrs * spmm));
     #endif
     #if ENABLED(TMC2130_LINEARITY_CORRECTION_PRESET)
       tmc2130_set_fixed_wave(st, wave);
     #endif
-    st.GSTAT(); // Clear GSTAT
+    st.reset(); // Clear GSTAT
   }
 
-  #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM, INTERPOLATE, ST##_HOLD_MULTIPLIER,  \
-                                               ST##_TBL, ST##_TOFF, ST##_HSTRT, ST##_HEND, ST##_SYNC, ST##_SGT,                                             \
-                                               ST##_STEALTHCHOP, ST##_SFREQ, ST##_SAUTO, ST##_SGRAD, ST##_SAMPL, ST##_SSYM,                                 \
-                                               ST##_TMC2130_LINEARITY_CORRECTION_WAVE)
+  #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM, ST##_STEALTHCHOP)
 
   void tmc2130_init_to_defaults() {
     #if X_HAS_DRV(TMC2130)

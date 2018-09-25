@@ -69,7 +69,7 @@
 // Select this if use software SPI. Choose pins in Configuration_pins.h
 //#define SOFT_SPI_TMC2130
 
-// Use stallGuard2 to sense an obstacle and trigger an endstop.
+// Use stallGuard to sense an obstacle and trigger an endstop.
 // You need to place a wire from the driver's DIAG1 pin to the X/Y endstop pin.
 // X, Y and Z homing will always be done in spreadCycle mode.
 // X/Y/Z HOMING SENSITIVITY is used for tuning the trigger sensitivity.
@@ -113,6 +113,13 @@
 #define E3_STEALTHCHOP  false
 #define E4_STEALTHCHOP  false
 #define E5_STEALTHCHOP  false
+
+// STEALTH values for chopper tuning
+//  only change if you know what you're doing
+#define STEALTH_AMPL      255
+#define STEALTH_GRAD        1
+#define STEALTH_AUTOSCALE   1
+#define STEALTH_FREQ        2
 
 //#define CHOP_CALIBRATION
 
