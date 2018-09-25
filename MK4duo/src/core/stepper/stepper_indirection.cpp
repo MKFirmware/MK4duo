@@ -193,16 +193,11 @@
     st.begin();
     st.setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
-    st.blank_time(24);
-    st.off_time(5); // Only enables the driver if used with stealthChop
     st.interpolate(INTERPOLATE);
-    st.power_down_delay(128); // ~2s until driver lowers to hold current
-    st.hysteresis_start(3);
-    st.hysteresis_end(2);
-    st.pwm_ampl(255);
-    st.pwm_grad(1);
-    st.pwm_autoscale(1);
-    st.pwm_freq(2); 
+    st.stealth_amplitude(255);
+    st.stealth_gradient(1);
+    st.stealth_autoscale(1);
+    st.stealth_freq(2);
     #if ENABLED(STEALTHCHOP)
       st.stealthChop(true);
       #if ENABLED(HYBRID_THRESHOLD)
@@ -211,6 +206,7 @@
     #else
       st.stealthChop(false);
     #endif
+    st.sgt(0);
     st.GSTAT(); // Clear GSTAT
   }
 
