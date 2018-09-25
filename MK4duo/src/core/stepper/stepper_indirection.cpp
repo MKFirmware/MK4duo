@@ -185,6 +185,7 @@
   // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
   // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
   void tmc2130_init(TMC2130Stepper &st, const uint16_t mA, const uint16_t microsteps, const uint32_t thrs, const float spmm) {
+    while(!st.stst()); // Wait for motor stand-still
     #if DISABLED(STEALTHCHOP) || DISABLED(HYBRID_THRESHOLD)
       UNUSED(thrs);
       UNUSED(spmm);
@@ -198,15 +199,17 @@
     st.power_down_delay(128); // ~2s until driver lowers to hold current
     st.hysteresis_start(3);
     st.hysteresis_end(2);
+    st.pwm_ampl(255);
+    st.pwm_grad(1);
+    st.pwm_autoscale(1);
+    st.pwm_freq(2); 
     #if ENABLED(STEALTHCHOP)
-      st.stealth_freq(1); // f_pwm = 2/683 f_clk
-      st.stealth_autoscale(1);
-      st.stealth_gradient(5);
-      st.stealth_amplitude(255);
-      st.stealthChop(1);
+      st.stealthChop(true);
       #if ENABLED(HYBRID_THRESHOLD)
         st.stealth_max_speed(12650000UL * microsteps / (256 * thrs * spmm));
       #endif
+    #else
+      st.stealthChop(false);
     #endif
     st.GSTAT(); // Clear GSTAT
   }
