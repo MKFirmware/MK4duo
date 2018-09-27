@@ -207,7 +207,7 @@
       st.stealthChop(false);
     #endif
     st.sgt(0);
-    st.reset(); // Clear GSTAT
+    st.GSTAT(); // Clear GSTAT
   }
 
   #define _TMC2130_INIT(ST, SPMM) tmc2130_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, SPMM)
