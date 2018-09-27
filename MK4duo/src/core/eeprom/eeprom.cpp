@@ -1046,6 +1046,8 @@ void EEPROM::Postprocess() {
         EEPROM_READ(externaldac.motor_current);
       #endif
 
+      reset_stepper_drivers();
+
       //
       // TMC2130 or TMC2208 Stepper Current
       //
