@@ -62,21 +62,21 @@
 #define ORIG_E3_STEP_PIN           35
 #define ORIG_E3_DIR_PIN            33
 #define ORIG_E3_ENABLE_PIN         37
-#define ORIG_E3_CS_PIN             NoPin
+#define ORIG_E3_CS_PIN              6
 #define ORIG_SOL3_PIN              NoPin
 
 //###EXTRUDER_4
 #define ORIG_E4_STEP_PIN           29
 #define ORIG_E4_DIR_PIN            27
 #define ORIG_E4_ENABLE_PIN         31
-#define ORIG_E4_CS_PIN             NoPin
+#define ORIG_E4_CS_PIN             39
 #define ORIG_SOL4_PIN              NoPin
 
 //###EXTRUDER_5
-#define ORIG_E5_STEP_PIN           NoPin
-#define ORIG_E5_DIR_PIN            NoPin
-#define ORIG_E5_ENABLE_PIN         NoPin
-#define ORIG_E5_CS_PIN             NoPin
+#define ORIG_E5_STEP_PIN           67
+#define ORIG_E5_DIR_PIN            66
+#define ORIG_E5_ENABLE_PIN         68
+#define ORIG_E5_CS_PIN              6
 #define ORIG_SOL5_PIN              NoPin
 
 //###EXTRUDER_6
@@ -148,11 +148,13 @@
 #define ORIG_BEEPER_PIN            41
 #define LED_PIN                    NoPin
 #define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
+#define SD_DETECT_PIN              14
 #define SDSS                        4
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
+#define RADDS_EXT_VDD_PIN          25
+#define RADDS_EXT_VDD2_PIN         66
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
@@ -167,8 +169,9 @@
 
 //###IF_BLOCKS
 #if ENABLED(ULTRA_LCD)
-  // RADDS LCD panel
+
   #if ENABLED(RADDS_DISPLAY)
+
     #define LCD_PINS_RS 		42
     #define LCD_PINS_ENABLE 43
     #define LCD_PINS_D4 		44
@@ -185,7 +188,7 @@
     #define BTN_BACK        71
 
     #undef SDSS
-    #define SDSS            10 // 4,10,52 if using HW SPI.
+    #define SDSS            10
     #define SD_DETECT_PIN   14
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
@@ -203,6 +206,7 @@
     #define BTN_ENC         48
 
   #elif ENABLED(SSD1306_OLED_I2C_CONTROLLER)
+
     #define BTN_EN1         50
     #define BTN_EN2         52
     #define BTN_ENC         48
@@ -212,6 +216,7 @@
     #define KILL_PIN        NoPin
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
+
     #define LCD_PINS_D4     29
     #define LCD_PINS_ENABLE 27
     #define LCD_PINS_RS     25
@@ -223,7 +228,14 @@
     #define KILL_PIN        NoPin
     #undef ORIG_BEEPER_PIN
     #define ORIG_BEEPER_PIN NoPin
+
 	#endif // SPARK_FULL_GRAPHICS
+
 #endif // ULTRA_LCD
 //@@@
 
+//###MB_SETUP
+#define MB_SETUP                      \
+  OUT_WRITE(RADDS_EXT_VDD_PIN, HIGH); \
+  OUT_WRITE(RADDS_EXT_VDD2_PIN, HIGH);
+//@@@
