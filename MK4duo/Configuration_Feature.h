@@ -2000,6 +2000,8 @@
  * Microstep setting - Only functional when stepper driver microstep   *
  * pins are connected to MCU or TMC DRIVER.                            *
  *                                                                     *
+ * [1, 2, 4, 8, 16, 32, 64, 128]                                       *
+ *                                                                     *
  * Alligator Board support 16 or 32 only value                         *
  *                                                                     *
  ***********************************************************************/

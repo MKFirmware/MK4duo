@@ -57,9 +57,9 @@
   #if ENABLED(TMC2130_LINEARITY_CORRECTION) // TMC2130_LINEARITY_CORRECTION
     #define TMC2130_WAVE_FAC1000_MIN  -200
     #define TMC2130_WAVE_FAC1000_MAX   400
-    extern void tmc2130_reset_wave(TMC2130Stepper &st);
-    extern void tmc2130_set_fixed_wave(TMC2130Stepper &st, const uint8_t i);
-    extern void tmc2130_set_wave( TMC2130Stepper &st, const uint8_t amp, int16_t fac1000,
+    extern void tmc2130_reset_wave(TMC2130Stepper &tmc_driver);
+    extern void tmc2130_set_fixed_wave(TMC2130Stepper &tmc_driver, const uint8_t i);
+    extern void tmc2130_set_wave( TMC2130Stepper &tmc_driver, const uint8_t amp, int16_t fac1000,
                                   const int8_t xoff=0, const int8_t yoff=10, const uint8_t wavetype=0,
                                   const bool config=0, const uint8_t addto=0
     );
