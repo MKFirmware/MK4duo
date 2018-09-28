@@ -208,9 +208,9 @@
 | M941 | TRINAMIC | TMC set MSLUT. (Requires MSLUT_CALIBRATION)
 | M942 | TRINAMIC | TMC reset MSLUT. (Requires MSLUT_CALIBRATION)
 | M943 | TRINAMIC | TMC set preset MSLUT. (Requires MSLUT_CALIBRATION)
-| M945 | TRINAMIC | TMC switch StealthChop. (Requires STEALTHCHOP)
-| M946 | TRINAMIC | TMC switch ChopperMode. (Requires STEALTHCHOP)
-| M947 | TRINAMIC | TMC switch interpolation. (Requires STEALTHCHOP)
+| M945 | TRINAMIC | TMC switch StealthChop.
+| M946 | TRINAMIC | TMC switch ChopperMode.
+| M947 | TRINAMIC | TMC switch interpolation.
 | M995 | NEXTION | X Y Z Set origin for graphic in NEXTION
 | M996 | NEXTION | S[scale] Set scale for graphic in NEXTION
 | M999 | NOPE | Restart after being stopped by error

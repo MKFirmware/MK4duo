@@ -171,22 +171,26 @@ void Commands::get_serial() {
         gcode_LastN = gcode_N;
       }
       #if HAS_SD_SUPPORT
-        else if (card.isSaving()) {
+        else if (card.isSaving() && strcmp(command, "M29") != 0) { // No line number with M29 in Pronterface
           gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
           return;
         }
       #endif
 
       // Movement commands alert when stopped
-      if (!printer.isRunning()) {
-        char *gpos = strchr(command, 'G');
+      if (printer.isStopped()) {
+        char *gpos = strrchr(command, 'G');
         if (gpos) {
-          const int codenum = strtol(gpos + 1, NULL, 10);
-          switch (codenum) {
+          switch (strtol(gpos + 1, NULL, 10)) {
             case 0:
             case 1:
-            case 2:
-            case 3:
+            #if ENABLED(ARC_SUPPORT)
+              case 2:
+              case 3:
+            #endif
+            #if ENABLED(G5_BEZIER)
+              case 5:
+            #endif
               SERIAL_LM(ER, MSG_ERR_STOPPED);
               LCD_MESSAGEPGM(MSG_STOPPED);
               break;
@@ -357,12 +361,13 @@ void Commands::ok_to_send() {
   if (!send_ok[buffer_ring.head()]) return;
   SERIAL_STR(OK);
   #if ENABLED(ADVANCED_OK)
-    gcode_t p = buffer_ring.peek();
-    if (*p.gcode == 'N') {
+    gcode_t tmp = buffer_ring.peek();
+    char* p = tmp.gcode;
+    if (*p == 'N') {
       SERIAL_CHR(' ');
-      SERIAL_CHR(*p.gcode++);
-      while (NUMERIC_SIGNED(*p.gcode))
-        SERIAL_CHR(*p.gcode++);
+      SERIAL_CHR(*p++);
+      while (NUMERIC_SIGNED(*p))
+        SERIAL_CHR(*p++);
     }
     SERIAL_MV(" P", (BLOCK_BUFFER_SIZE - planner.movesplanned() - 1), DEC);
     SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);

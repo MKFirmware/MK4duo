@@ -59,7 +59,7 @@
         OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
         #if HAS_TRINAMIC
           HAL::delayMilliseconds(100); // Wait for power to settle
-          restore_stepper_drivers();
+          tmc.restore();
         #endif
         HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
         powersupply_on = true;

@@ -227,7 +227,7 @@ EEPROM eeprom;
 #endif
 
 #if HAS_TRINAMIC
-  #define TMC_GET_PWMTHRS(P,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), mechanics.axis_steps_per_mm[P##_AXIS])
+  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(tmc.stepper##ST->microsteps(), tmc.stepper##ST->TPWMTHRS(), mechanics.axis_steps_per_mm[P##_AXIS])
 #endif
 
 /**
@@ -575,67 +575,67 @@ void EEPROM::post_process() {
 
       uint16_t tmc_stepper_current[TMC_AXES] = {
         #if X_IS_TRINAMIC
-          stepperX.getCurrent(),
+          tmc.stepperX->getCurrent(),
         #else
           0,
         #endif
         #if Y_IS_TRINAMIC
-          stepperY.getCurrent(),
+          tmc.stepperY->getCurrent(),
         #else
           0,
         #endif
         #if Z_IS_TRINAMIC
-          stepperZ.getCurrent(),
+          tmc.stepperZ->getCurrent(),
         #else
           0,
         #endif
         #if X2_IS_TRINAMIC
-          stepperX2.getCurrent(),
+          tmc.stepperX2->getCurrent(),
         #else
           0,
         #endif
         #if Y2_IS_TRINAMIC
-          stepperY2.getCurrent(),
+          tmc.stepperY2->getCurrent(),
         #else
           0,
         #endif
         #if Z2_IS_TRINAMIC
-          stepperZ2.getCurrent(),
+          tmc.stepperZ2->getCurrent(),
         #else
           0,
         #endif
         #if Z3_IS_TRINAMIC
-          stepperZ3.getCurrent(),
+          tmc.stepperZ3->getCurrent(),
         #else
           0,
         #endif
         #if E0_IS_TRINAMIC
-          stepperE0.getCurrent(),
+          tmc.stepperE0->getCurrent(),
         #else
           0,
         #endif
         #if E1_IS_TRINAMIC
-          stepperE1.getCurrent(),
+          tmc.stepperE1->getCurrent(),
         #else
           0,
         #endif
         #if E2_IS_TRINAMIC
-          stepperE2.getCurrent(),
+          tmc.stepperE2->getCurrent(),
         #else
           0,
         #endif
         #if E3_IS_TRINAMIC
-          stepperE3.getCurrent(),
+          tmc.stepperE3->getCurrent(),
         #else
           0,
         #endif
         #if E4_IS_TRINAMIC
-          stepperE4.getCurrent(),
+          tmc.stepperE4->getCurrent(),
         #else
           0,
         #endif
         #if E5_IS_TRINAMIC
-          stepperE5.getCurrent()
+          tmc.stepperE5->getCurrent()
         #else
           0
         #endif
@@ -723,20 +723,20 @@ void EEPROM::post_process() {
       //
       // TMC2130 Sensorless homing threshold
       //
-      int16_t tmc_sgt[XYZ] = {
+      int8_t tmc_sgt[XYZ] = {
         #if ENABLED(SENSORLESS_HOMING)
           #if X_HAS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
-            stepperX.sgt(),
+            tmc.stepperX->sgt(),
           #else
             0,
           #endif
           #if Y_HAS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
-            stepperY.sgt(),
+            tmc.stepperY->sgt(),
           #else
             0,
           #endif
           #if Z_HAS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
-            stepperZ.sgt()
+            tmc.stepperZ->sgt()
           #else
             0
           #endif
@@ -1079,7 +1079,7 @@ void EEPROM::post_process() {
       //
       #if HAS_TRINAMIC
 
-        #define SET_CURR(Q) stepper##Q.setCurrent(currents[TMC_##Q] ? currents[TMC_##Q] : Q##_CURRENT, R_SENSE, HOLD_MULTIPLIER)
+        #define SET_CURR(ST) tmc.set_current(tmc.stepper##ST, (currents[TMC_##ST] ? currents[TMC_##ST] : ST##_CURRENT))
         uint16_t currents[TMC_AXES];
         EEPROM_READ(currents);
         #if X_IS_TRINAMIC
@@ -1122,7 +1122,7 @@ void EEPROM::post_process() {
           SET_CURR(E5);
         #endif
 
-        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, tmc_hybrid_threshold[TMC_##Q], mechanics.axis_steps_per_mm[P##_AXIS])
+        #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(tmc.stepper##ST, tmc_hybrid_threshold[TMC_##ST], mechanics.axis_steps_per_mm[P##_AXIS])
         uint32_t tmc_hybrid_threshold[TMC_AXES];
         EEPROM_READ(tmc_hybrid_threshold);
         #if ENABLED(HYBRID_THRESHOLD)
@@ -1177,30 +1177,30 @@ void EEPROM::post_process() {
         EEPROM_READ(tmc_sgt);
         #if ENABLED(SENSORLESS_HOMING)
           #if ENABLED(X_HOMING_SENSITIVITY)
-            #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-              stepperX.sgt(tmc_sgt[0]);
+            #if X_HAS_DRV(TMC2130)
+              tmc.stepperX->sgt(tmc_sgt[0]);
             #endif
             #if X2_HAS_DRV(TMC2130)
-              stepperX2.sgt(tmc_sgt[0]);
+              tmc.stepperX2->sgt(tmc_sgt[0]);
             #endif
           #endif
           #if ENABLED(Y_HOMING_SENSITIVITY)
-            #if Y_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-              stepperY.sgt(tmc_sgt[1]);
+            #if Y_HAS_DRV(TMC2130)
+              tmc.stepperY->sgt(tmc_sgt[1]);
             #endif
             #if Y2_HAS_DRV(TMC2130)
-              stepperY2.sgt(tmc_sgt[1]);
+              tmc.stepperY2->sgt(tmc_sgt[1]);
             #endif
           #endif
           #if ENABLED(Z_HOMING_SENSITIVITY)
-            #if Z_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-              stepperZ.sgt(tmc_sgt[2]);
+            #if Z_HAS_DRV(TMC2130)
+              tmc.stepperZ->sgt(tmc_sgt[2]);
             #endif
             #if Z2_HAS_DRV(TMC2130)
-              stepperZ2.sgt(tmc_sgt[2]);
+              tmc.stepperZ2->sgt(tmc_sgt[2]);
             #endif
             #if Z3_HAS_DRV(TMC2130)
-              stepperZ3.sgt(tmc_sgt[2]);
+              tmc.stepperZ3->sgt(tmc_sgt[2]);
             #endif
           #endif
         #endif
@@ -1828,6 +1828,10 @@ void EEPROM::reset() {
     printer.IDLE_OOZING_enabled = true;
   #endif
 
+  #if HAVE_DRV(TMC2130) || HAVE_DRV(TMC2208)
+    tmc.current_init_to_defaults();
+  #endif
+
   reset_stepper_drivers();
 
   #if ENABLED(LIN_ADVANCE)
@@ -2151,43 +2155,43 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Stepper driver current (mA)");
       SERIAL_SM(CFG, "  M906");
       #if X_IS_TRINAMIC
-        SERIAL_MV(" X", stepperX.getCurrent());
+        SERIAL_MV(" X", tmc.stepperX->getCurrent());
       #endif
       #if X2_IS_TRINAMIC
-        SERIAL_MV(" I2 X", stepperX2.getCurrent());
+        SERIAL_MV(" I2 X", tmc.stepperX2->getCurrent());
       #endif
       #if Y_IS_TRINAMIC
-        SERIAL_MV(" Y", stepperY.getCurrent());
+        SERIAL_MV(" Y", tmc.stepperY->getCurrent());
       #endif
       #if Y2_IS_TRINAMIC
-        SERIAL_MV(" I2 Y", stepperY2.getCurrent());
+        SERIAL_MV(" I2 Y", tmc.stepperY2->getCurrent());
       #endif
       #if Z_IS_TRINAMIC
-        SERIAL_MV(" Z", stepperZ.getCurrent());
+        SERIAL_MV(" Z", tmc.stepperZ->getCurrent());
       #endif
       #if Z2_IS_TRINAMIC
-        SERIAL_MV(" I2 Z", stepperZ2.getCurrent());
+        SERIAL_MV(" I2 Z", tmc.stepperZ2->getCurrent());
       #endif
       #if Z3_IS_TRINAMIC
-        SERIAL_MV(" I3 Z", stepperZ3.getCurrent());
+        SERIAL_MV(" I3 Z", tmc.stepperZ3->getCurrent());
       #endif
       #if E0_IS_TRINAMIC
-        SERIAL_MV(" T0 E", stepperE0.getCurrent());
+        SERIAL_MV(" T0 E", tmc.stepperE0->getCurrent());
       #endif
       #if E1_IS_TRINAMIC
-        SERIAL_MV(" T1 E", stepperE1.getCurrent());
+        SERIAL_MV(" T1 E", tmc.stepperE1->getCurrent());
       #endif
       #if E2_IS_TRINAMIC
-        SERIAL_MV(" T2 E", stepperE2.getCurrent());
+        SERIAL_MV(" T2 E", tmc.stepperE2->getCurrent());
       #endif
       #if E3_IS_TRINAMIC
-        SERIAL_MV(" T3 E", stepperE3.getCurrent());
+        SERIAL_MV(" T3 E", tmc.stepperE3->getCurrent());
       #endif
       #if E4_IS_TRINAMIC
-        SERIAL_MV(" T4 E", stepperE4.getCurrent());
+        SERIAL_MV(" T4 E", tmc.stepperE4->getCurrent());
       #endif
       #if E5_IS_TRINAMIC
-        SERIAL_MV(" T5 E", stepperE5.getCurrent());
+        SERIAL_MV(" T5 E", tmc.stepperE5->getCurrent());
       #endif
       SERIAL_EOL();
 
@@ -2247,29 +2251,29 @@ void EEPROM::reset() {
         SERIAL_SM(CFG, "  M914");
         #if ENABLED(X_HOMING_SENSITIVITY)
           #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-            SERIAL_MV(" X", stepperX.sgt());
+            SERIAL_MV(" X", tmc.stepperX->sgt());
           #endif
           #if X2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I2 X", stepperX2.sgt());
+            SERIAL_MV(" I2 X", tmc.stepperX2->sgt());
           #endif
         #endif
         #if ENABLED(Y_HOMING_SENSITIVITY)
           #if Y_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-            SERIAL_MV(" Y", stepperY.sgt());
+            SERIAL_MV(" Y", tmc.stepperY->sgt());
           #endif
           #if X2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I2 Y", stepperY2.sgt());
+            SERIAL_MV(" I2 Y", tmc.stepperY2->sgt());
           #endif
         #endif
         #if ENABLED(Z_HOMING_SENSITIVITY)
           #if Z_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
-            SERIAL_MV(" Z", stepperZ.sgt());
+            SERIAL_MV(" Z", tmc.stepperZ->sgt());
           #endif
           #if Z2_HAS_DRV(TMC2130)
-            SERIAL_MV(" I2 Z", stepperZ2.sgt());
+            SERIAL_MV(" I2 Z", tmc.stepperZ2->sgt());
           #endif
           #if Z3_HAS_DRV(TMC2130)
-            SERIAL_MV(" I3 Z", stepperZ3.sgt());
+            SERIAL_MV(" I3 Z", tmc.stepperZ3->sgt());
           #endif
         #endif
         SERIAL_EOL();

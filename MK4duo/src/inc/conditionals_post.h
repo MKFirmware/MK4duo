@@ -434,12 +434,17 @@
 
 // Disable Z axis sensorless homing if a probe is used to home the Z axis
 #if ENABLED(SENSORLESS_HOMING)
+  #if HOMING_Z_WITH_PROBE
+    #undef Z_HOMING_SENSITIVITY
+    #define Z_HOMING_SENSITIVITY 0
+  #endif
   #define X_SENSORLESS (X_HAS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY))
   #define Y_SENSORLESS (Y_HAS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY))
   #define Z_SENSORLESS (Z_HAS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY))
-  #if HOMING_Z_WITH_PROBE
-    #undef Z_HOMING_SENSITIVITY
-  #endif
+#else
+  #define X_HOMING_SENSITIVITY 0
+  #define Y_HOMING_SENSITIVITY 0
+  #define Z_HOMING_SENSITIVITY 0
 #endif
 
 // Endstops and bed probe

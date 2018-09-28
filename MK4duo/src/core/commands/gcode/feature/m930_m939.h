@@ -45,83 +45,83 @@
   inline void gcode_M930(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_blank_time(stepperX, parser.value_int());
+        tmc.set_blank_time(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_blank_time(stepperX2, parser.value_int());
+        tmc.set_blank_time(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_blank_time(stepperY, parser.value_int());
+        tmc.set_blank_time(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_blank_time(stepperY2, parser.value_int());
+        tmc.set_blank_time(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_blank_time(stepperZ, parser.value_int());
+        tmc.set_blank_time(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_blank_time(stepperZ2, parser.value_int());
+        tmc.set_blank_time(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_blank_time(stepperE0, parser.value_int());
+        tmc.set_blank_time(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_blank_time(stepperX, TMC_X);
+        tmc.get_blank_time(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_blank_time(stepperX2, TMC_X);
+        tmc.get_blank_time(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_blank_time(stepperY, TMC_Y);
+        tmc.get_blank_time(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_blank_time(stepperY2, TMC_Y2);
+        tmc.get_blank_time(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_blank_time(stepperZ, TMC_Z);
+        tmc.get_blank_time(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_blank_time(stepperZ2, TMC_Z2);
+        tmc.get_blank_time(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_blank_time(stepperE0, TMC_E0);
+        tmc.get_blank_time(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_blank_time(stepperX, TMC_X);
+        tmc.get_blank_time(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_blank_time(stepperY, TMC_Y);
+        tmc.get_blank_time(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_blank_time(stepperZ, TMC_Z);
+        tmc.get_blank_time(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_blank_time(stepperX2, TMC_X2);
+        tmc.get_blank_time(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_blank_time(stepperY2, TMC_Y2);
+        tmc.get_blank_time(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_blank_time(stepperZ2, TMC_Z2);
+        tmc.get_blank_time(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_blank_time(stepperE0, TMC_E0);
+        tmc.get_blank_time(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -132,83 +132,83 @@
   inline void gcode_M931(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_off_time(stepperX, parser.value_int());
+        tmc.set_off_time(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_off_time(stepperX2, parser.value_int());
+        tmc.set_off_time(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_off_time(stepperY, parser.value_int());
+        tmc.set_off_time(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_off_time(stepperY2, parser.value_int());
+        tmc.set_off_time(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_off_time(stepperZ, parser.value_int());
+        tmc.set_off_time(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_off_time(stepperZ2, parser.value_int());
+        tmc.set_off_time(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_off_time(stepperE0, parser.value_int());
+        tmc.set_off_time(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_off_time(stepperX, TMC_X);
+        tmc.get_off_time(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_off_time(stepperX2, TMC_X);
+        tmc.get_off_time(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_off_time(stepperY, TMC_Y);
+        tmc.get_off_time(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_off_time(stepperY2, TMC_Y2);
+        tmc.get_off_time(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_off_time(stepperZ, TMC_Z);
+        tmc.get_off_time(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_off_time(stepperZ2, TMC_Z2);
+        tmc.get_off_time(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_off_time(stepperE0, TMC_E0);
+        tmc.get_off_time(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_off_time(stepperX, TMC_X);
+        tmc.get_off_time(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_off_time(stepperY, TMC_Y);
+        tmc.get_off_time(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_off_time(stepperZ, TMC_Z);
+        tmc.get_off_time(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_off_time(stepperX2, TMC_X2);
+        tmc.get_off_time(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_off_time(stepperY2, TMC_Y2);
+        tmc.get_off_time(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_off_time(stepperZ2, TMC_Z2);
+        tmc.get_off_time(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_off_time(stepperE0, TMC_E0);
+        tmc.get_off_time(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -219,83 +219,83 @@
   inline void gcode_M932(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperX, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperX2, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperY, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperY2, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperZ, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperZ2, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_hysteresis_start(stepperE0, parser.value_int());
+        tmc.set_hysteresis_start(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperX, TMC_X);
+        tmc.get_hysteresis_start(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperX2, TMC_X);
+        tmc.get_hysteresis_start(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperY, TMC_Y);
+        tmc.get_hysteresis_start(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperY2, TMC_Y2);
+        tmc.get_hysteresis_start(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperZ, TMC_Z);
+        tmc.get_hysteresis_start(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperZ2, TMC_Z2);
+        tmc.get_hysteresis_start(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperE0, TMC_E0);
+        tmc.get_hysteresis_start(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperX, TMC_X);
+        tmc.get_hysteresis_start(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperY, TMC_Y);
+        tmc.get_hysteresis_start(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperZ, TMC_Z);
+        tmc.get_hysteresis_start(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperX2, TMC_X2);
+        tmc.get_hysteresis_start(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperY2, TMC_Y2);
+        tmc.get_hysteresis_start(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperZ2, TMC_Z2);
+        tmc.get_hysteresis_start(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_hysteresis_start(stepperE0, TMC_E0);
+        tmc.get_hysteresis_start(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -306,83 +306,83 @@
   inline void gcode_M933(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperX, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperX2, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperY, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperY2, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperZ, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperZ2, parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_hysteresis_end(stepperE0, parser.value_int());
+        tmc.set_hysteresis_end(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperX, TMC_X);
+        tmc.get_hysteresis_end(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperX2, TMC_X);
+        tmc.get_hysteresis_end(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperY, TMC_Y);
+        tmc.get_hysteresis_end(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperY2, TMC_Y2);
+        tmc.get_hysteresis_end(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperZ, TMC_Z);
+        tmc.get_hysteresis_end(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperZ2, TMC_Z2);
+        tmc.get_hysteresis_end(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperE0, TMC_E0);
+        tmc.get_hysteresis_end(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperX, TMC_X);
+        tmc.get_hysteresis_end(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperY, TMC_Y);
+        tmc.get_hysteresis_end(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperZ, TMC_Z);
+        tmc.get_hysteresis_end(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperX2, TMC_X2);
+        tmc.get_hysteresis_end(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperY2, TMC_Y2);
+        tmc.get_hysteresis_end(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperZ2, TMC_Z2);
+        tmc.get_hysteresis_end(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_hysteresis_end(stepperE0, TMC_E0);
+        tmc.get_hysteresis_end(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -393,83 +393,83 @@
   inline void gcode_M934(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperX, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperX, (uint8_t)parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperX2, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperX2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperY, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperY, (uint8_t)parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperY2, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperY2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperZ, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperZ, (uint8_t)parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperZ2, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperZ2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_fast_decay_time(stepperE0, (uint8_t)parser.value_int());
+        tmc.set_fast_decay_time(tmc.stepperE0, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperX, TMC_X);
+        tmc.get_fast_decay_time(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperX2, TMC_X);
+        tmc.get_fast_decay_time(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperY, TMC_Y);
+        tmc.get_fast_decay_time(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperY2, TMC_Y2);
+        tmc.get_fast_decay_time(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperZ, TMC_Z);
+        tmc.get_fast_decay_time(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperZ2, TMC_Z2);
+        tmc.get_fast_decay_time(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperE0, TMC_E0);
+        tmc.get_fast_decay_time(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperX, TMC_X);
+        tmc.get_fast_decay_time(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperY, TMC_Y);
+        tmc.get_fast_decay_time(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperZ, TMC_Z);
+        tmc.get_fast_decay_time(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperX2, TMC_X2);
+        tmc.get_fast_decay_time(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperY2, TMC_Y2);
+        tmc.get_fast_decay_time(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperZ2, TMC_Z2);
+        tmc.get_fast_decay_time(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_fast_decay_time(stepperE0, TMC_E0);
+        tmc.get_fast_decay_time(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -480,83 +480,83 @@
   inline void gcode_M935(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperX, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperX2, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperY, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperY2, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperZ, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperZ2, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_disable_I_comparator(stepperE0, parser.value_int());
+        tmc.set_disable_I_comparator(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperX, TMC_X);
+        tmc.get_disable_I_comparator(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperX2, TMC_X);
+        tmc.get_disable_I_comparator(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperY, TMC_Y);
+        tmc.get_disable_I_comparator(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperY2, TMC_Y2);
+        tmc.get_disable_I_comparator(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperZ, TMC_Z);
+        tmc.get_disable_I_comparator(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperZ2, TMC_Z2);
+        tmc.get_disable_I_comparator(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperE0, TMC_E0);
+        tmc.get_disable_I_comparator(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperX, TMC_X);
+        tmc.get_disable_I_comparator(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperY, TMC_Y);
+        tmc.get_disable_I_comparator(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperZ, TMC_Z);
+        tmc.get_disable_I_comparator(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperX2, TMC_X2);
+        tmc.get_disable_I_comparator(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperY2, TMC_Y2);
+        tmc.get_disable_I_comparator(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperZ2, TMC_Z2);
+        tmc.get_disable_I_comparator(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_disable_I_comparator(stepperE0, TMC_E0);
+        tmc.get_disable_I_comparator(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -567,83 +567,83 @@
   inline void gcode_M936(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperX, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperX2, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperY, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperY2, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperZ, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperZ2, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_stealth_gradient(stepperE0, parser.value_int());
+        tmc.set_stealth_gradient(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperX, TMC_X);
+        tmc.get_stealth_gradient(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperX2, TMC_X);
+        tmc.get_stealth_gradient(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperY, TMC_Y);
+        tmc.get_stealth_gradient(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperY2, TMC_Y2);
+        tmc.get_stealth_gradient(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperZ, TMC_Z);
+        tmc.get_stealth_gradient(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperZ2, TMC_Z2);
+        tmc.get_stealth_gradient(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperE0, TMC_E0);
+        tmc.get_stealth_gradient(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperX, TMC_X);
+        tmc.get_stealth_gradient(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperY, TMC_Y);
+        tmc.get_stealth_gradient(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperZ, TMC_Z);
+        tmc.get_stealth_gradient(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperX2, TMC_X2);
+        tmc.get_stealth_gradient(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperY2, TMC_Y2);
+        tmc.get_stealth_gradient(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperZ2, TMC_Z2);
+        tmc.get_stealth_gradient(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_gradient(stepperE0, TMC_E0);
+        tmc.get_stealth_gradient(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -654,83 +654,83 @@
   inline void gcode_M937(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperX, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperX2, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperY, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperY2, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperZ, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperZ2, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_stealth_amplitude(stepperE0, parser.value_int());
+        tmc.set_stealth_amplitude(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperX, TMC_X);
+        tmc.get_stealth_amplitude(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperX2, TMC_X);
+        tmc.get_stealth_amplitude(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperY, TMC_Y);
+        tmc.get_stealth_amplitude(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperY2, TMC_Y2);
+        tmc.get_stealth_amplitude(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperZ, TMC_Z);
+        tmc.get_stealth_amplitude(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperZ2, TMC_Z2);
+        tmc.get_stealth_amplitude(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperE0, TMC_E0);
+        tmc.get_stealth_amplitude(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperX, TMC_X);
+        tmc.get_stealth_amplitude(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperY, TMC_Y);
+        tmc.get_stealth_amplitude(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperZ, TMC_Z);
+        tmc.get_stealth_amplitude(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperX2, TMC_X2);
+        tmc.get_stealth_amplitude(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperY2, TMC_Y2);
+        tmc.get_stealth_amplitude(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperZ2, TMC_Z2);
+        tmc.get_stealth_amplitude(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_amplitude(stepperE0, TMC_E0);
+        tmc.get_stealth_amplitude(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -741,83 +741,83 @@
   inline void gcode_M938(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperX, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperX2, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperY, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperY2, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperZ, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperZ2, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_stealth_freq(stepperE0, parser.value_int());
+        tmc.set_stealth_freq(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperX, TMC_X);
+        tmc.get_stealth_freq(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperX2, TMC_X);
+        tmc.get_stealth_freq(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperY, TMC_Y);
+        tmc.get_stealth_freq(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperY2, TMC_Y2);
+        tmc.get_stealth_freq(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperZ, TMC_Z);
+        tmc.get_stealth_freq(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperZ2, TMC_Z2);
+        tmc.get_stealth_freq(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperE0, TMC_E0);
+        tmc.get_stealth_freq(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperX, TMC_X);
+        tmc.get_stealth_freq(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperY, TMC_Y);
+        tmc.get_stealth_freq(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperZ, TMC_Z);
+        tmc.get_stealth_freq(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperX2, TMC_X2);
+        tmc.get_stealth_freq(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperY2, TMC_Y2);
+        tmc.get_stealth_freq(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperZ2, TMC_Z2);
+        tmc.get_stealth_freq(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_freq(stepperE0, TMC_E0);
+        tmc.get_stealth_freq(tmc.stepperE0, TMC_E0);
       #endif
     }
   }
@@ -828,83 +828,83 @@
   inline void gcode_M939(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperX, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperX, parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperX2, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperX2, parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperY, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperY, parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperY2, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperY2, parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperZ, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperZ, parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperZ2, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperZ2, parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc_set_stealth_autoscale(stepperE0, parser.value_int());
+        tmc.set_stealth_autoscale(tmc.stepperE0, parser.value_int());
       #endif
     }
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperX, TMC_X);
+        tmc.get_stealth_autoscale(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperX2, TMC_X);
+        tmc.get_stealth_autoscale(tmc.stepperX2, TMC_X);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperY, TMC_Y);
+        tmc.get_stealth_autoscale(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperY2, TMC_Y2);
+        tmc.get_stealth_autoscale(tmc.stepperY2, TMC_Y2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperZ, TMC_Z);
+        tmc.get_stealth_autoscale(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperZ2, TMC_Z2);
+        tmc.get_stealth_autoscale(tmc.stepperZ2, TMC_Z2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperE0, TMC_E0);
+        tmc.get_stealth_autoscale(tmc.stepperE0, TMC_E0);
       #endif
     }
     if (!parser.seen_axis()) {
       #if X_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperX, TMC_X);
+        tmc.get_stealth_autoscale(tmc.stepperX, TMC_X);
       #endif
       #if Y_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperY, TMC_Y);
+        tmc.get_stealth_autoscale(tmc.stepperY, TMC_Y);
       #endif
       #if Z_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperZ, TMC_Z);
+        tmc.get_stealth_autoscale(tmc.stepperZ, TMC_Z);
       #endif
       #if X2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperX2, TMC_X2);
+        tmc.get_stealth_autoscale(tmc.stepperX2, TMC_X2);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperY2, TMC_Y2);
+        tmc.get_stealth_autoscale(tmc.stepperY2, TMC_Y2);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperZ2, TMC_Z2);
+        tmc.get_stealth_autoscale(tmc.stepperZ2, TMC_Z2);
       #endif
       #if E0_IS_TRINAMIC
-        tmc_get_stealth_autoscale(stepperE0, TMC_E0);
+        tmc.get_stealth_autoscale(tmc.stepperE0, TMC_E0);
       #endif
     }
   }

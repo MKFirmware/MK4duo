@@ -323,7 +323,7 @@ void HAL::Tick() {
   static millis_t cycle_check_temp = 0;
 	millis_t now = millis();
 
-  if (!printer.isRunning()) return;
+  if (printer.isStopped()) return;
 
   #if HEATER_COUNT > 0
   

@@ -245,6 +245,7 @@ class Printer {
       SET_BIT(mk_various_flag, bit_running, onoff);
     }
     FORCE_INLINE static bool isRunning() { return TEST(mk_various_flag, bit_running); }
+    FORCE_INLINE static bool isStopped() { return !isRunning(); }
 
     FORCE_INLINE static void setPosSaved(const bool onoff) {
       SET_BIT(mk_various_flag, bit_pos_saved, onoff);

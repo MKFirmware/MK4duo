@@ -52,7 +52,7 @@
     #endif
 
     HAL::delayMilliseconds(100); // Wait for power to settle
-    restore_stepper_drivers();
+    tmc.restore();
 
     #if ENABLED(LASER) && ENABLED(LASER_PERIPHERALS)
       laser.peripherals_on();

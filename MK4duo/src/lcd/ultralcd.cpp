@@ -1772,6 +1772,12 @@ void lcd_quick_feedback(const bool clear_buttons) {
 
   #endif
 
+  #if ENABLED(EEPROM_SETTINGS)
+    static void lcd_store_settings()  { eeprom.store(); }
+    static void lcd_load_settings()   { eeprom.load(); }
+  #endif
+  static void lcd_reset_settings()    { eeprom.reset(); }
+
   #if ENABLED(LEVEL_BED_CORNERS)
 
     /**
@@ -2580,8 +2586,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
       #endif
 
       #if ENABLED(EEPROM_SETTINGS)
-        MENU_ITEM(function, MSG_STORE_EEPROM, eeprom.store);
-        MENU_ITEM(function, MSG_LOAD_EEPROM, eeprom.load);
+        MENU_ITEM(function, MSG_STORE_EEPROM, lcd_load_settings);
+        MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_store_settings);
       #endif
       END_MENU();
     }
@@ -2756,8 +2762,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
           MENU_ITEM(gcode, MSG_DELTA_HEIGHT_CALIBRATE, PSTR("G33 P1"));
         #endif
         #if ENABLED(EEPROM_SETTINGS)
-          MENU_ITEM(function, MSG_STORE_EEPROM, eeprom.store);
-          MENU_ITEM(function, MSG_LOAD_EEPROM, eeprom.load);
+          MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+          MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
         #endif
       #endif
       MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
@@ -3217,10 +3223,10 @@ void lcd_quick_feedback(const bool clear_buttons) {
     }
 
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EEPROM, eeprom.store);
-      MENU_ITEM(function, MSG_LOAD_EEPROM, eeprom.load);
+      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
     #endif
-    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, eeprom.reset);
+    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, lcd_reset_settings);
 
     END_MENU();
   }
@@ -3488,7 +3494,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         MENU_ITEM_EDIT(int3, MSG_BED, &lcd_preheat_bed_temp[material], BED_MINTEMP, BED_MAXTEMP - 15);
       #endif
       #if ENABLED(EEPROM_SETTINGS)
-        MENU_ITEM(function, MSG_STORE_EEPROM, eeprom.store);
+        MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
       #endif
       END_MENU();
     }
@@ -3573,7 +3579,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       }
     #endif
 
-    #if IS_DELTA && DISABLED(JUNCTION_DEVIATION)
+    #if HAS_CLASSIC_JERK
       void _mechanics_set_jerk() {
         mechanics.max_jerk[Y_AXIS] = mechanics.max_jerk[Z_AXIS] = mechanics.max_jerk[X_AXIS];
       }

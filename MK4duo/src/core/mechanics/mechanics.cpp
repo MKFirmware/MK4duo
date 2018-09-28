@@ -461,31 +461,31 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       default: break;
       #if X_SENSORLESS
         case X_AXIS:
-          tmc_sensorless_homing(stepperX, enable);
+          tmc.sensorless_homing(tmc.stepperX, enable);
           #if CORE_IS_XY && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
+            tmc.sensorless_homing(tmc.stepperY, enable);
           #elif CORE_IS_XZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
+            tmc.sensorless_homing(tmc.stepperZ, enable);
           #endif
           break;
       #endif
       #if Y_SENSORLESS
         case Y_AXIS:
-          tmc_sensorless_homing(stepperY, enable);
+          tmc.sensorless_homing(tmc.stepperY, enable);
           #if CORE_IS_XY && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
+            tmc.sensorless_homing(tmc.stepperX, enable);
           #elif CORE_IS_YZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
+            tmc.sensorless_homing(tmc.stepperZ, enable);
           #endif
           break;
       #endif
       #if Z_SENSORLESS
         case Z_AXIS:
-          tmc_sensorless_homing(stepperZ, enable);
+          tmc.sensorless_homing(tmc.stepperZ, enable);
           #if CORE_IS_XZ && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
+            tmc.sensorless_homing(tmc.stepperX, enable);
           #elif CORE_IS_YZ && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
+            tmc.sensorless_homing(tmc.stepperY, enable);
           #endif
           break;
       #endif

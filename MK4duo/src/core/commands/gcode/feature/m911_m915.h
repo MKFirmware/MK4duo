@@ -36,43 +36,43 @@
    */
   inline void gcode_M911(void) {
     #if X_IS_TRINAMIC
-      tmc_report_otpw(stepperX, TMC_X);
+      tmc.report_otpw(tmc.stepperX, TMC_X);
     #endif
     #if X2_IS_TRINAMIC
-      tmc_report_otpw(stepperX2, TMC_X2);
+      tmc.report_otpw(tmc.stepperX2, TMC_X2);
     #endif
     #if Y_IS_TRINAMIC
-      tmc_report_otpw(stepperY, TMC_Y);
+      tmc.report_otpw(tmc.stepperY, TMC_Y);
     #endif
     #if Y2_IS_TRINAMIC
-      tmc_report_otpw(stepperY2, TMC_Y2);
+      tmc.report_otpw(tmc.stepperY2, TMC_Y2);
     #endif
     #if Z_IS_TRINAMIC
-      tmc_report_otpw(stepperZ, TMC_Z);
+      tmc.report_otpw(tmc.stepperZ, TMC_Z);
     #endif
     #if Z2_IS_TRINAMIC
-      tmc_report_otpw(stepperZ2, TMC_Z2);
+      tmc.report_otpw(tmc.stepperZ2, TMC_Z2);
     #endif
     #if Z3_IS_TRINAMIC
-      tmc_report_otpw(stepperZ3, TMC_Z3);
+      tmc.report_otpw(tmc.stepperZ3, TMC_Z3);
     #endif
     #if E0_IS_TRINAMIC
-      tmc_report_otpw(stepperE0, TMC_E0);
+      tmc.report_otpw(tmc.stepperE0, TMC_E0);
     #endif
     #if E1_IS_TRINAMIC
-      tmc_report_otpw(stepperE1, TMC_E1);
+      tmc.report_otpw(tmc.stepperE1, TMC_E1);
     #endif
     #if E2_IS_TRINAMIC
-      tmc_report_otpw(stepperE2, TMC_E2);
+      tmc.report_otpw(tmc.stepperE2, TMC_E2);
     #endif
     #if E3_IS_TRINAMIC
-      tmc_report_otpw(stepperE3, TMC_E3);
+      tmc.report_otpw(tmc.stepperE3, TMC_E3);
     #endif
     #if E4_IS_TRINAMIC
-      tmc_report_otpw(stepperE4, TMC_E4);
+      tmc.report_otpw(tmc.stepperE4, TMC_E4);
     #endif
     #if E5_IS_TRINAMIC
-      tmc_report_otpw(stepperE5, TMC_E5);
+      tmc.report_otpw(tmc.stepperE5, TMC_E5);
     #endif
   }
 
@@ -100,55 +100,55 @@
     #if X_IS_TRINAMIC || X2_IS_TRINAMIC
       const int8_t xval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
       #if X_IS_TRINAMIC
-        if (hasNone || xval == 1 || (hasX && xval < 0)) tmc_clear_otpw(stepperX, TMC_X);
+        if (hasNone || xval == 1 || (hasX && xval < 0)) tmc.clear_otpw(tmc.stepperX, TMC_X);
       #endif
       #if X2_IS_TRINAMIC
-        if (hasNone || xval == 2 || (hasX && xval < 0)) tmc_clear_otpw(stepperX2, TMC_X2);
+        if (hasNone || xval == 2 || (hasX && xval < 0)) tmc.clear_otpw(tmc.stepperX2, TMC_X2);
       #endif
     #endif
 
     #if Y_IS_TRINAMIC || Y2_IS_TRINAMIC
       const int8_t yval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
       #if Y_IS_TRINAMIC
-        if (hasNone || yval == 1 || (hasY && yval < 0)) tmc_clear_otpw(stepperY, TMC_Y);
+        if (hasNone || yval == 1 || (hasY && yval < 0)) tmc.clear_otpw(tmc.stepperY, TMC_Y);
       #endif
       #if Y2_IS_TRINAMIC
-        if (hasNone || yval == 2 || (hasY && yval < 0)) tmc_clear_otpw(stepperY2, TMC_Y2);
+        if (hasNone || yval == 2 || (hasY && yval < 0)) tmc.clear_otpw(tmc.stepperY2, TMC_Y2);
       #endif
     #endif
 
     #if Z_IS_TRINAMIC || Z2_IS_TRINAMIC || Z3_IS_TRINAMIC
       const int8_t zval = int8_t(parser.byteval(axis_codes[Z_AXIS], 0xFF));
       #if Z_IS_TRINAMIC
-        if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ, TMC_Z);
+        if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc.clear_otpw(tmc.stepperZ, TMC_Z);
       #endif
       #if Z2_IS_TRINAMIC
-        if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ2, TMC_Z2);
+        if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc.clear_otpw(tmc.stepperZ2, TMC_Z2);
       #endif
       #if Z3_IS_TRINAMIC
-        if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc_clear_otpw(stepperZ3, TMC_Z3);
+        if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc.clear_otpw(tmc.stepperZ3, TMC_Z3);
       #endif
     #endif
 
     const uint8_t eval = int8_t(parser.byteval(axis_codes[E_AXIS], 0xFF));
 
     #if E0_IS_TRINAMIC
-      if (hasNone || eval == 0 || (hasE && eval < 0)) tmc_clear_otpw(stepperE0, TMC_E0);
+      if (hasNone || eval == 0 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE0, TMC_E0);
     #endif
     #if E1_IS_TRINAMIC
-      if (hasNone || eval == 1 || (hasE && eval < 0)) tmc_clear_otpw(stepperE1, TMC_E1);
+      if (hasNone || eval == 1 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE1, TMC_E1);
     #endif
     #if E2_IS_TRINAMIC
-      if (hasNone || eval == 2 || (hasE && eval < 0)) tmc_clear_otpw(stepperE2, TMC_E2);
+      if (hasNone || eval == 2 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE2, TMC_E2);
     #endif
     #if E3_IS_TRINAMIC
-      if (hasNone || eval == 3 || (hasE && eval < 0)) tmc_clear_otpw(stepperE3, TMC_E3);
+      if (hasNone || eval == 3 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE3, TMC_E3);
     #endif
     #if E4_IS_TRINAMIC
-      if (hasNone || eval == 4 || (hasE && eval < 0)) tmc_clear_otpw(stepperE4, TMC_E4);
+      if (hasNone || eval == 4 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE4, TMC_E4);
     #endif
     #if E5_IS_TRINAMIC
-      if (hasNone || eval == 5 || (hasE && eval < 0)) tmc_clear_otpw(stepperE5, TMC_E5);
+      if (hasNone || eval == 5 || (hasE && eval < 0)) tmc.clear_otpw(tmc.stepperE5, TMC_E5);
     #endif
 
   }
@@ -164,10 +164,10 @@
 
       if (commands.get_target_tool(913)) return;
 
-      #define TMC_SAY_PWMTHRS(P,Q) tmc_get_pwmthrs(stepper##Q, TMC_##Q, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SAY_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_get_pwmthrs(stepperE##E, TMC_E##E, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
-      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc_set_pwmthrs(stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
+      #define TMC_SAY_PWMTHRS(P,Q) tmc.get_pwmthrs(tmc.stepper##Q, TMC_##Q, mechanics.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SET_PWMTHRS(P,Q) tmc.set_pwmthrs(tmc.stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SAY_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc.get_pwmthrs(tmc.stepperE##E, TMC_E##E, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
+      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc.set_pwmthrs(tmc.stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {
@@ -279,8 +279,8 @@
 
     inline void gcode_M914(void) {
 
-      #define TMC_SAY_SGT(Q) tmc_get_sgt(stepper##Q, TMC_##Q)
-      #define TMC_SET_SGT(Q) tmc_set_sgt(stepper##Q, value)
+      #define TMC_SAY_SGT(Q) tmc.get_sgt(tmc.stepper##Q, TMC_##Q)
+      #define TMC_SET_SGT(Q) tmc.set_sgt(tmc.stepper##Q, value)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZ(i) {
@@ -374,16 +374,16 @@
       }
 
       #if Z_IS_TRINAMIC
-        const uint16_t Z_current_1 = stepperZ.getCurrent();
-        stepperZ.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
+        const uint16_t Z_current_1 = tmc.stepperZ->getCurrent();
+        tmc.set_current(tmc.stepperZ, _rms);
       #endif
       #if Z2_IS_TRINAMIC
-        const uint16_t Z2_current_1 = stepperZ2.getCurrent();
-        stepperZ2.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
+        const uint16_t Z2_current_1 = tmc.stepperZ2->getCurrent();
+        tmc.set_current(tmc.stepperZ2, _rms);
       #endif
       #if Z3_IS_TRINAMIC
-        const uint16_t Z3_current_1 = stepperZ3.getCurrent();
-        stepperZ3.setCurrent(_rms, R_SENSE, HOLD_MULTIPLIER);
+        const uint16_t Z3_current_1 = tmc.stepperZ3->getCurrent();
+        tmc.set_current(tmc.stepperZ3, _rms);
       #endif
 
       SERIAL_MV("\nCalibration current: Z", _rms);
@@ -393,13 +393,13 @@
       mechanics.do_blocking_move_to_z(Z_MAX_POS + _z);
 
       #if Z_IS_TRINAMIC
-        stepperZ.setCurrent(Z_current_1, R_SENSE, HOLD_MULTIPLIER);
+        tmc.set_current(tmc.stepperZ, Z_current_1);
       #endif
       #if Z2_IS_TRINAMIC
-        stepperZ2.setCurrent(Z2_current_1, R_SENSE, HOLD_MULTIPLIER);
+        tmc.set_current(tmc.stepperZ2, Z2_current_1);
       #endif
       #if Z3_IS_TRINAMIC
-        stepperZ3.setCurrent(Z3_current_1, R_SENSE, HOLD_MULTIPLIER);
+        tmc.set_current(tmc.stepperZ3, Z3_current_1);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS);

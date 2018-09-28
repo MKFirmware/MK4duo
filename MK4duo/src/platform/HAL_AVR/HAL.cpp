@@ -471,7 +471,7 @@ void HAL_temp_isr() {
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 HAL_TEMP_TIMER_ISR {
-  if (!printer.isRunning()) return;
+  if (printer.isStopped()) return;
   TEMP_OCR += 64;
   HAL_temp_isr();
 }

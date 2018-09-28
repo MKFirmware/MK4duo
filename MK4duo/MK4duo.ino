@@ -292,9 +292,9 @@
  * M941 - TMC set MSLUT. (Requires MSLUT_CALIBRATION)
  * M942 - TMC reset MSLUT. (Requires MSLUT_CALIBRATION)
  * M943 - TMC set preset MSLUT. (Requires MSLUT_CALIBRATION)
- * M945 - TMC switch StealthChop. (Requires STEALTHCHOP)
- * M946 - TMC switch ChopperMode. (Requires STEALTHCHOP)
- * M947 - TMC switch interpolation. (Requires STEALTHCHOP)
+ * M945 - TMC switch StealthChop.
+ * M946 - TMC switch ChopperMode.
+ * M947 - TMC switch interpolation.
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)

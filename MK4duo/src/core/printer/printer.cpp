@@ -151,11 +151,8 @@ void Printer::setup() {
   HAL::delayMilliseconds(1000);
   SERIAL_L(START);
 
-  #if HAVE_DRV(TMC2130)
-    tmc_init_cs_pins();
-  #endif
-  #if HAVE_DRV(TMC2208)
-    tmc2208_serial_begin();
+  #if HAS_TRINAMIC
+    tmc.init();
   #endif
 
   #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
@@ -824,7 +821,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(MONITOR_DRIVER_STATUS)
-    monitor_tmc_driver();
+    tmc.monitor_driver();
   #endif
 
 }
