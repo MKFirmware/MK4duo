@@ -32,6 +32,8 @@
   #define CODE_M942
   #define CODE_M943
 
+  #define TMC2130_LINEARITY_CORRECTION_AMPL 247
+
   /**
    * M941: TMC set MSLUT.
    */

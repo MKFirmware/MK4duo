@@ -408,17 +408,33 @@ void TMC_Stepper::restore() {
 
 #if HAVE_DRV(TMC2130) && ENABLED(SENSORLESS_HOMING)
 
-  void TMC_Stepper::sensorless_homing(TMC2130Stepper* st, const bool enable/*=true*/) {
-    st->coolstep_min_speed(enable ? 1024UL * 1024UL - 1UL : 0);
-    #if ENABLED(STEALTHCHOP)
-      st->stealthChop(!enable);
-    #endif
-    st->diag1_stall(enable ? 1 : 0);
+  void TMC_Stepper::sensorless_homing(TMC2130Stepper* st, const uint32_t coolstep_sp_min, const bool enable/*=true*/) {
+    static uint32_t coolstep_speed,
+                    stealth_max_sp;
+    static bool     stealth_state;
+
+    while(!st->stst()); // Wait for motor stand-still
+
+    if (enable) {
+      coolstep_speed = st->coolstep_min_speed();
+      stealth_max_sp = st->stealth_max_speed();
+      stealth_state = st->stealthChop();
+      st->stealth_max_speed(0);               // Upper speed limit for stealthChop
+      st->stealthChop(false);                 // Turn off stealthChop
+      st->coolstep_min_speed(coolstep_sp_min);// Minimum speed for StallGuard triggering
+      st->sg_filter(false);                   // Turn off StallGuard filtering
+      st->diag1_stall(true);                  // Signal StallGuard on DIAG1 pin
+    }
+    else {
+      st->coolstep_min_speed(coolstep_speed);
+      st->stealth_max_speed(stealth_max_sp);
+      st->stealthChop(stealth_state);
+    }
   }
 
 #endif // SENSORLESS_HOMING
 
-#if HAVE_DRV(TMC2130) && ENABLED(TMC2130_LINEARITY_CORRECTION)
+#if HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)
 
   void TMC_Stepper::reset_wave(TMC_TYPE* st) {
     SERIAL_EM(" MSLUT RESET ");
@@ -517,7 +533,7 @@ void TMC_Stepper::restore() {
            dA;                     // Delta value
     int i;                         // Microstep index
     uint32_t reg;                  // TMC2130 register
-    set_mslutstart(tmc_driver, 0, amp);
+    set_mslutstart(st, 0, amp);
     // Set first W-Bit
     if (wavetype == 1)   // Cycle
       w[0] = uint8_t((amp - 1) * pow(1 - pow(float(xoff) / 256 - 1, 2), fac / 2) + yoff / 10);
@@ -579,11 +595,11 @@ void TMC_Stepper::restore() {
       if (b == 1) reg |= 0x80000000;
 
       if ((i & 0x1F) == 0x1F)
-        tmc2130_wr_MSLUT(tmc_driver, (uint8_t)(i >> 5), reg);
+        set_mslut(st, (uint8_t)(i >> 5), reg);
       else
         reg >>= 1;
     }
-    tmc2130_wr_MSLUTSEL(tmc_driver, x[0], x[1], x[2], w[0], w[1], w[2], w[3]);
+    set_mslutsel(st, x[0], x[1], x[2], w[0], w[1], w[2], w[3]);
     SERIAL_MV(" X = ", x[0]);
     SERIAL_MV(" - ", x[1]);
     SERIAL_MV(" - ", x[2]);
@@ -591,10 +607,10 @@ void TMC_Stepper::restore() {
     SERIAL_MV(" - ", w[1]);
     SERIAL_MV(" - ", w[2]);
     SERIAL_MV(" - ", w[3]);
-    SERIL_EOL();
+    SERIAL_EOL();
   }
 
-#endif
+#endif // HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)
 
 #if ENABLED(MONITOR_DRIVER_STATUS)
 

@@ -222,20 +222,18 @@ class TMC_Stepper {
      * Defined here because of limitations with templates and headers.
      */
     #if HAVE_DRV(TMC2130) && ENABLED(SENSORLESS_HOMING)
-      static void sensorless_homing(TMC2130Stepper* st, const bool enable=true);
+      static void sensorless_homing(TMC2130Stepper* st, const uint32_t coolstep_sp_min, const bool enable=true);
     #endif
 
-    #if HAVE_DRV(TMC2130)
-      #if ENABLED(TMC2130_LINEARITY_CORRECTION)
-        #define TMC2130_WAVE_FAC1000_MIN  -200
-        #define TMC2130_WAVE_FAC1000_MAX   400
-        static void reset_wave(TMC_TYPE* st);
-        static void set_fixed_wave(TMC_TYPE* st, const uint8_t i);
-        static void set_wave( TMC_TYPE* st, const uint8_t amp, int16_t fac1000,
-                              const int8_t xoff=0, const int8_t yoff=10, const uint8_t wavetype=0,
-                              const bool config=0, const uint8_t addto=0
-        );
-      #endif
+    #if HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)
+      #define TMC2130_WAVE_FAC1000_MIN   30
+      #define TMC2130_WAVE_FAC1000_MAX  200
+      static void reset_wave(TMC_TYPE* st);
+      static void set_fixed_wave(TMC_TYPE* st, const uint8_t i);
+      static void set_wave( TMC_TYPE* st, const uint8_t amp, int16_t fac1000,
+                            const int8_t xoff=0, const int8_t yoff=10, const uint8_t wavetype=0,
+                            const bool config=0, const uint8_t addto=0
+      );
     #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)

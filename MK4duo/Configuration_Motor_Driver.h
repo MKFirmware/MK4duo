@@ -83,6 +83,16 @@
 #define Y_HOMING_SENSITIVITY  8
 #define Z_HOMING_SENSITIVITY  8
 
+// Minimum speeds for stall detection.
+//
+// These values may need to be adjusted if SENSORLESS_HOMING is enabled,
+// but endstops trigger prematurely or don't trigger at all.
+// The exact value is dependent on the duration of one microstep,
+// but good approximations can be determined by experimentation.
+#define TMC2130_TCOOLTHRS_X 300
+#define TMC2130_TCOOLTHRS_Y 300
+#define TMC2130_TCOOLTHRS_Z 300
+
 // Enable M922 debugging command for TMC stepper drivers.
 // M922 S0/1 will enable continous reporting.
 //#define TMC_DEBUG
@@ -122,6 +132,9 @@
 #define STEALTH_FREQ        2
 
 //#define CHOP_CALIBRATION
+
+// MicroStepping LookUpTable
+//#define MSLUT_CALIBRATION
 
 // Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
 // like overtemperature and short to ground. TMC2208 requires hardware serial.
