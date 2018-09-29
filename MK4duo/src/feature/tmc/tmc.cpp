@@ -408,28 +408,28 @@ void TMC_Stepper::restore() {
 
 #if HAVE_DRV(TMC2130) && ENABLED(SENSORLESS_HOMING)
 
-  void TMC_Stepper::sensorless_homing(TMC2130Stepper* st, const uint32_t coolstep_sp_min, const bool enable/*=true*/) {
-    static uint32_t coolstep_speed,
-                    stealth_max_sp;
-    static bool     stealth_state;
+  void TMC_Stepper::sensorless_homing(TMC2130Stepper* st, const uint8_t index, const uint32_t coolstep_sp_min, const bool enable/*=true*/) {
+    static uint32_t coolstep_speed[3],
+                    stealth_max_sp[3];
+    static bool     stealth_state[3];
 
     while(!st->stst()); // Wait for motor stand-still
 
     if (enable) {
-      coolstep_speed = st->coolstep_min_speed();
-      stealth_max_sp = st->stealth_max_speed();
-      stealth_state = st->stealthChop();
-      st->stealth_max_speed(0);               // Upper speed limit for stealthChop
-      st->stealthChop(false);                 // Turn off stealthChop
-      st->coolstep_min_speed(coolstep_sp_min);// Minimum speed for StallGuard triggering
-      st->sg_filter(false);                   // Turn off StallGuard filtering
-      st->diag1_stall(true);                  // Signal StallGuard on DIAG1 pin
+      coolstep_speed[index] = st->coolstep_min_speed();
+      stealth_max_sp[index] = st->stealth_max_speed();
+      stealth_state[index]  = st->stealthChop();
+      st->stealth_max_speed(0);                 // Upper speed limit for stealthChop
+      st->stealthChop(false);                   // Turn off stealthChop
+      st->coolstep_min_speed(coolstep_sp_min);  // Minimum speed for StallGuard triggering
+      st->sg_filter(false);                     // Turn off StallGuard filtering
     }
     else {
-      st->coolstep_min_speed(coolstep_speed);
-      st->stealth_max_speed(stealth_max_sp);
-      st->stealthChop(stealth_state);
+      st->coolstep_min_speed(coolstep_speed[index]);
+      st->stealth_max_speed(stealth_max_sp[index]);
+      st->stealthChop(stealth_state[index]);
     }
+    st->diag1_stall(enable ? 1 : 0);
   }
 
 #endif // SENSORLESS_HOMING
@@ -772,13 +772,13 @@ void TMC_Stepper::restore() {
 
   void TMC_Stepper::config(TMC2208Stepper* st, const bool tmc_stealthchop/*=false*/) {
 
-    st->pdn_disable(true); // Use UART
+    st->pdn_disable(true);      // Use UART
     st->mstep_reg_select(true); // Select microsteps with UART
     st->I_scale_analog(false);
     st->blank_time(24);
     st->toff(5);
     st->intpol(INTERPOLATE);
-    st->TPOWERDOWN(128); // ~2s until driver lowers to hold current
+    st->TPOWERDOWN(128);        // ~2s until driver lowers to hold current
     st->hysteresis_start(3);
     st->hysteresis_end(2);
 

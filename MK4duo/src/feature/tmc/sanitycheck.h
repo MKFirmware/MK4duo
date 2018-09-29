@@ -34,8 +34,8 @@
  */
 #if HAVE_DRV(TMC2130)
 
-  #if ENABLED(HYBRID_THRESHOLD) && DISABLED(STEALTHCHOP)
-    #error "DEPENDENCY ERROR: Enable STEALTHCHOP to use HYBRID_THRESHOLD."
+  #if ENABLED(HYBRID_THRESHOLD) && !HAS_STEALTHCHOP
+    #error "DEPENDENCY ERROR: Enable STEALTHCHOP on axis to use HYBRID_THRESHOLD."
   #endif
 
   #if X_HAS_DRV(TMC2130) && !PIN_EXISTS(X_CS)
@@ -68,8 +68,8 @@
   // is necessary in order to reset the stallGuard indication between the initial movement of all three
   // towers to +Z and the individual homing of each tower. This restriction can be removed once a means of
   // clearing the stallGuard activated status is found.
-  #if ENABLED(SENSORLESS_HOMING) && MECH(DELTA) && !ENABLED(STEALTHCHOP)
-    #error "DEPENDENCY ERROR: SENSORLESS_HOMING on DELTA currently requires STEALTHCHOP."
+  #if ENABLED(SENSORLESS_HOMING) && MECH(DELTA) && !HAS_STEALTHCHOP
+    #error "DEPENDENCY ERROR: SENSORLESS_HOMING on DELTA currently requires STEALTHCHOP on all axis."
   #endif
 
   // Sensorless homing is required for both combined steppers in an H-bot
@@ -108,10 +108,6 @@
     )
     #error "DEPENDENCY ERROR: Select *_HARDWARE_SERIAL to use both TMC2208 and ENDSTOP_INTERRUPTS_FEATURE."
   #endif
-#endif
-
-#if ENABLED(HYBRID_THRESHOLD) && DISABLED(STEALTHCHOP)
-  #error "DEPENDENCY ERROR: Enable STEALTHCHOP to use HYBRID_THRESHOLD."
 #endif
 
 #if ENABLED(TMC_Z_CALIBRATION) && !Z_IS_TRINAMIC && !Z2_IS_TRINAMIC

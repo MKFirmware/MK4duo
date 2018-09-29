@@ -222,7 +222,7 @@ class TMC_Stepper {
      * Defined here because of limitations with templates and headers.
      */
     #if HAVE_DRV(TMC2130) && ENABLED(SENSORLESS_HOMING)
-      static void sensorless_homing(TMC2130Stepper* st, const uint32_t coolstep_sp_min, const bool enable=true);
+      static void sensorless_homing(TMC2130Stepper* st, const uint8_t index, const uint32_t coolstep_sp_min, const bool enable=true);
     #endif
 
     #if HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)

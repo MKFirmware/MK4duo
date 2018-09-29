@@ -461,31 +461,31 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       default: break;
       #if X_SENSORLESS
         case X_AXIS:
-          tmc.sensorless_homing(tmc.stepperX, TMC2130_TCOOLTHRS_X, enable);
+          tmc.sensorless_homing(tmc.stepperX, 0, TMC2130_TCOOLTHRS_X, enable);
           #if CORE_IS_XY && Y_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperY, TMC2130_TCOOLTHRS_Y, enable);
+            tmc.sensorless_homing(tmc.stepperY, 1, TMC2130_TCOOLTHRS_Y, enable);
           #elif CORE_IS_XZ && Z_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperZ, TMC2130_TCOOLTHRS_Z, enable);
+            tmc.sensorless_homing(tmc.stepperZ, 2, TMC2130_TCOOLTHRS_Z, enable);
           #endif
           break;
       #endif
       #if Y_SENSORLESS
         case Y_AXIS:
-          tmc.sensorless_homing(tmc.stepperY, TMC2130_TCOOLTHRS_Y, enable);
+          tmc.sensorless_homing(tmc.stepperY, 1, TMC2130_TCOOLTHRS_Y, enable);
           #if CORE_IS_XY && X_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperX, TMC2130_TCOOLTHRS_X, enable);
+            tmc.sensorless_homing(tmc.stepperX, 0, TMC2130_TCOOLTHRS_X, enable);
           #elif CORE_IS_YZ && Z_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperZ, TMC2130_TCOOLTHRS_Z, enable);
+            tmc.sensorless_homing(tmc.stepperZ, 2, TMC2130_TCOOLTHRS_Z, enable);
           #endif
           break;
       #endif
       #if Z_SENSORLESS
         case Z_AXIS:
-          tmc.sensorless_homing(tmc.stepperZ, TMC2130_TCOOLTHRS_Z, enable);
+          tmc.sensorless_homing(tmc.stepperZ, 2, TMC2130_TCOOLTHRS_Z, enable);
           #if CORE_IS_XZ && X_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperX, TMC2130_TCOOLTHRS_X, enable);
+            tmc.sensorless_homing(tmc.stepperX, 0, TMC2130_TCOOLTHRS_X, enable);
           #elif CORE_IS_YZ && Y_SENSORLESS
-            tmc.sensorless_homing(tmc.stepperY, TMC2130_TCOOLTHRS_Y, enable);
+            tmc.sensorless_homing(tmc.stepperY, 1, TMC2130_TCOOLTHRS_Y, enable);
           #endif
           break;
       #endif

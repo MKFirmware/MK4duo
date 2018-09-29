@@ -447,6 +447,13 @@
   #define Z_HOMING_SENSITIVITY 0
 #endif
 
+// STEALTHCHOP
+#if IS_DELTA
+  #define HAS_STEALTHCHOP   (X_STEALTHCHOP && Y_STEALTHCHOP && Z_STEALTHCHOP)
+#else
+  #define HAS_STEALTHCHOP   (X_STEALTHCHOP || Y_STEALTHCHOP || Z_STEALTHCHOP)
+#endif
+
 // Endstops and bed probe
 #define HAS_X_MIN           (PIN_EXISTS(X_MIN))
 #define HAS_X_MAX           (PIN_EXISTS(X_MAX))

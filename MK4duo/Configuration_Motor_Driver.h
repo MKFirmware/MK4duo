@@ -109,7 +109,6 @@
 
 // Use Trinamic's ultra quiet stepping mode.
 // When disabled, MK4duo will use spreadCycle stepping mode.
-#define STEALTHCHOP
 #define X_STEALTHCHOP   false
 #define X2_STEALTHCHOP  false
 #define Y_STEALTHCHOP   false
@@ -152,10 +151,9 @@
 
 // The driver will switch to spreadCycle when stepper speed is over HYBRID_THRESHOLD.
 // This mode allows for faster movements at the expense of higher noise levels.
-// STEALTHCHOP needs to be enabled.
+// STEALTHCHOP for axis needs to be enabled.
 // M913 X/Y/Z/E to live tune the setting [mm/s]
 //#define HYBRID_THRESHOLD
-
 #define X_HYBRID_THRESHOLD     100
 #define X2_HYBRID_THRESHOLD    100
 #define Y_HYBRID_THRESHOLD     100
