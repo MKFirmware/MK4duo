@@ -92,30 +92,6 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 // EEPROM START
 #define EEPROM_OFFSET 10
 
-// MATH
-#define MATH_USE_HAL
-#undef ATAN2
-#undef FABS
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2f(y, x)
-#define FABS(x)     fabsf(x)
-#define POW(x, y)   powf(x, y)
-#define SQRT(x)     sqrtf(x)
-#define CEIL(x)     ceilf(x)
-#define FLOOR(x)    floorf(x)
-#define LROUND(x)   lroundf(x)
-#define FMOD(x, y)  fmodf(x, y)
-#define COS(x)      cosf(x)
-#define SIN(x)      sinf(x)
-#define LOG(x)      logf(x)
-
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
 

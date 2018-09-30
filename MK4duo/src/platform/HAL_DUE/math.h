@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _HAL_MATH_DUE_H_
-#define _HAL_MATH_DUE_H_
+#pragma once
 
 /**
  * Optimized math functions for DUE
@@ -46,13 +45,14 @@ static FORCE_INLINE uint32_t MultiU32X32toH32(uint32_t longIn1,uint32_t longIn2)
 #undef FMOD
 #undef COS
 #undef SIN
-#define ATAN2(y, x) atan2f(y, x)
+#define ATAN2(y,x)  atan2f(y, x)
 #define POW(x, y)   powf(x, y)
 #define SQRT(x)     sqrtf(x)
+#define RSQRT(x)    (1 / sqrtf(x))
 #define CEIL(x)     ceilf(x)
 #define FLOOR(x)    floorf(x)
 #define LROUND(x)   lroundf(x)
-#define FMOD(x, y)  fmodf(x, y)
+#define FMOD(x,y)   fmodf(x, y)
 #define COS(x)      cosf(x)
 #define SIN(x)      sinf(x)
 #define LOG(x)      logf(x)
@@ -60,9 +60,12 @@ static FORCE_INLINE uint32_t MultiU32X32toH32(uint32_t longIn1,uint32_t longIn2)
 template <class A, class B> static inline constexpr auto MIN(const A a, const B b) -> decltype(a + b) {
   return a < b ? a : b;
 }
-template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b){
+template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b) {
   return a > b ? a : b;
 }
+template<class T, class ... Ts> static inline constexpr const T MIN(T V, Ts... Vs) { return MIN(V, MIN(Vs...)); }
+template<class T, class ... Ts> static inline constexpr const T MAX(T V, Ts... Vs) { return MAX(V, MAX(Vs...)); }
+
 template <class A> static inline constexpr const A ABS(const A a) {
   return a >= 0 ? a : -a;
 }
@@ -120,5 +123,3 @@ template <size_t numAveraged> class AveragingFilter {
     bool IsValid() const volatile	{ return valid; }
 
 };
-
-#endif /* _HAL_MATH_DUE_H_ */

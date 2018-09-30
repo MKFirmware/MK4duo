@@ -69,29 +69,31 @@
 // Select this if use software SPI. Choose pins in Configuration_pins.h
 //#define SOFT_SPI_TMC2130
 
-// Use stallGuard to sense an obstacle and trigger an endstop.
-// You need to place a wire from the driver's DIAG1 pin to the X/Y endstop pin.
-// X, Y and Z homing will always be done in spreadCycle mode.
-// X/Y/Z HOMING SENSITIVITY is used for tuning the trigger sensitivity.
+// Use StallGuard2 to sense an obstacle and trigger an endstop.
+// Connect the stepper driver's DIAG1 pin to the X/Y/Z endstop pin.
+// X, Y, and Z homing will always be done in spreadCycle mode.
+//
+// X/Y/Z_STALL_SENSITIVITY is used for tuning the trigger sensitivity.
 // Higher values make the system LESS sensitive.
 // Lower value make the system MORE sensitive.
 // Too low values can lead to false positives, while too high values will collide the axis without triggering.
-// It is advised to set X/Y/Z HOME BUMP MM to 0.
+// It is advised to set X/Y/Z_HOME_BUMP_MM to 0.
 // M914 X/Y/Z to live tune the setting
+// TMC2130 or TMC5130 only
 //#define SENSORLESS_HOMING
-#define X_HOMING_SENSITIVITY  8
-#define Y_HOMING_SENSITIVITY  8
-#define Z_HOMING_SENSITIVITY  8
+#define X_STALL_SENSITIVITY 8
+#define Y_STALL_SENSITIVITY 8
+#define Z_STALL_SENSITIVITY 8
 
 // Minimum speeds for stall detection.
 //
-// These values may need to be adjusted if SENSORLESS_HOMING is enabled,
+// These values may need to be adjusted if SENSORLESS_HOMING or SENSORLESS_PROBING is enabled,
 // but endstops trigger prematurely or don't trigger at all.
 // The exact value is dependent on the duration of one microstep,
 // but good approximations can be determined by experimentation.
-#define TMC2130_TCOOLTHRS_X 300
-#define TMC2130_TCOOLTHRS_Y 300
-#define TMC2130_TCOOLTHRS_Z 300
+#define X_STALL_MIN_SPEED 300
+#define Y_STALL_MIN_SPEED 300
+#define Z_STALL_MIN_SPEED 300
 
 // Enable M922 debugging command for TMC stepper drivers.
 // M922 S0/1 will enable continous reporting.

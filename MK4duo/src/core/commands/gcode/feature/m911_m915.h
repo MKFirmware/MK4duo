@@ -271,9 +271,9 @@
   #endif // HYBRID_THRESHOLD
 
   /**
-   * M914: Set SENSORLESS_HOMING sensitivity.
+   * M914: Set StallGuard sensitivity.
    */
-  #if ENABLED(SENSORLESS_HOMING)
+  #if HAS_SENSORLESS
 
     #define CODE_M914
 
@@ -354,7 +354,7 @@
 
     }
 
-  #endif // SENSORLESS_HOMING
+  #endif // HAS_SENSORLESS
 
   /**
    * TMC Z axis calibration routine

@@ -25,8 +25,7 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#ifndef _CONDITIONALS_PRE_H_
-#define _CONDITIONALS_PRE_H_
+#pragma once
 
 #if DISABLED(STRING_CONFIG_H_AUTHOR)
   #define STRING_CONFIG_H_AUTHOR "(none, default config)"
@@ -523,5 +522,3 @@
   #define BLTOUCH_RESET    160
 
 #endif
-
-#endif /* _CONDITIONALS_PRE_H_ */

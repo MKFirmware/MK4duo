@@ -252,6 +252,13 @@
 // Deploys by touching z-axis belt. Retracts by pushing the probe down.
 //#define Z_PROBE_ALLEN_KEY
 
+// If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.
+//
+// CAUTION: This could cause damage to machines that use a lead screw or threaded rod
+//          to move the Z axis. Take extreme care when attempting to enable this feature.
+//
+//#define Z_PROBE_SENSORLESS
+
 // Start and end location values are used to deploy/retract the probe (will move from start to end and back again)
 #define Z_PROBE_DEPLOY_START_LOCATION   {0, 0, 30}  // X, Y, Z, start location for z-probe deployment sequence
 #define Z_PROBE_DEPLOY_END_LOCATION     {0, 0, 30}  // X, Y, Z, end location for z-probe deployment sequence

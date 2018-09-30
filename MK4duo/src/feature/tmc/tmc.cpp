@@ -91,31 +91,31 @@ void TMC_Stepper::init() {
     // Stepper objects of TMC2130 steppers used
     #if X_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(X);
-      config(stepperX, X_STEALTHCHOP, X_HOMING_SENSITIVITY);
+      config(stepperX, X_STEALTHCHOP, X_STALL_SENSITIVITY);
     #endif
     #if X2_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(X2);
-      config(stepperX2, X2_STEALTHCHOP, X_HOMING_SENSITIVITY);
+      config(stepperX2, X2_STEALTHCHOP, X_STALL_SENSITIVITY);
     #endif
     #if Y_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(Y);
-      config(stepperY, Y_STEALTHCHOP, Y_HOMING_SENSITIVITY);
+      config(stepperY, Y_STEALTHCHOP, Y_STALL_SENSITIVITY);
     #endif
     #if Y2_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(Y2);
-      config(stepperY2, Y2_STEALTHCHOP, Y_HOMING_SENSITIVITY);
+      config(stepperY2, Y2_STEALTHCHOP, Y_STALL_SENSITIVITY);
     #endif
     #if Z_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(Z);
-      config(stepperZ, Z_STEALTHCHOP, Z_HOMING_SENSITIVITY);
+      config(stepperZ, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
     #endif
     #if Z2_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(Z2);
-      config(stepperZ2, Z2_STEALTHCHOP, Z_HOMING_SENSITIVITY);
+      config(stepperZ2, Z2_STEALTHCHOP, Z_STALL_SENSITIVITY);
     #endif
     #if Z3_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(Z3);
-      config(stepperZ3, Z3_STEALTHCHOP, Z_HOMING_SENSITIVITY);
+      config(stepperZ3, Z3_STEALTHCHOP, Z_STALL_SENSITIVITY);
     #endif
     #if E0_HAS_DRV(TMC2130)
       _TMC2130_DEFINE(E0);
@@ -406,33 +406,33 @@ void TMC_Stepper::restore() {
   #endif
 }
 
-#if HAVE_DRV(TMC2130) && ENABLED(SENSORLESS_HOMING)
+#if HAS_SENSORLESS
 
-  void TMC_Stepper::sensorless_homing(TMC2130Stepper* st, const uint8_t index, const uint32_t coolstep_sp_min, const bool enable/*=true*/) {
-    static uint32_t coolstep_speed[3],
-                    stealth_max_sp[3];
-    static bool     stealth_state[3];
+  void TMC_Stepper::set_stallguard(TMC2130Stepper* st, const uint8_t index, const uint32_t coolstep_speed_min, const bool enable/*=true*/) {
+    static uint32_t old_coolstep_speed[3],
+                    old_stealth_max_sp[3];
+    static bool     old_stealth_state[3];
 
     while(!st->stst()); // Wait for motor stand-still
 
     if (enable) {
-      coolstep_speed[index] = st->coolstep_min_speed();
-      stealth_max_sp[index] = st->stealth_max_speed();
-      stealth_state[index]  = st->stealthChop();
-      st->stealth_max_speed(0);                 // Upper speed limit for stealthChop
-      st->stealthChop(false);                   // Turn off stealthChop
-      st->coolstep_min_speed(coolstep_sp_min);  // Minimum speed for StallGuard triggering
-      st->sg_filter(false);                     // Turn off StallGuard filtering
+      old_coolstep_speed[index] = st->coolstep_min_speed();
+      old_stealth_max_sp[index] = st->stealth_max_speed();
+      old_stealth_state[index]  = st->stealthChop();
+      st->stealth_max_speed(0);                   // Upper speed limit for stealthChop
+      st->stealthChop(false);                     // Turn off stealthChop
+      st->coolstep_min_speed(coolstep_speed_min); // Minimum speed for StallGuard triggering
+      st->sg_filter(false);                       // Turn off StallGuard filtering
     }
     else {
-      st->coolstep_min_speed(coolstep_speed[index]);
-      st->stealth_max_speed(stealth_max_sp[index]);
-      st->stealthChop(stealth_state[index]);
+      st->coolstep_min_speed(old_coolstep_speed[index]);
+      st->stealth_max_speed(old_stealth_max_sp[index]);
+      st->stealthChop(old_stealth_state[index]);
     }
     st->diag1_stall(enable ? 1 : 0);
   }
 
-#endif // SENSORLESS_HOMING
+#endif // HAS_SENSORLESS
 
 #if HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)
 

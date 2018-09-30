@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef __CIRCULAR_QUEUE_H__
-#define __CIRCULAR_QUEUE_H__
+#pragma once
 
 /**
  * @brief   Circular Queue class
@@ -110,5 +109,3 @@ class Circular_Queue {
     }
 
 };
-
-#endif /* __CIRCULAR_QUEUE_H__ */

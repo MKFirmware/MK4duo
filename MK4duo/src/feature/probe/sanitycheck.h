@@ -52,7 +52,10 @@
     #if ENABLED(Z_PROBE_SLED)
       + 1
     #endif
-    , "DEPENDENCY ERROR: Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, or Z_PROBE_SLED."
+    #if ENABLED(Z_PROBE_SENSORLESS)
+      + 1
+    #endif
+    , "DEPENDENCY ERROR: Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_SENSORLESS."
   );
 
   // Z_PROBE_SLED is incompatible with DELTA
@@ -70,8 +73,16 @@
   #endif
 
   // A probe needs a pin
-  #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
+  #if (DISABLED(PROBE_MANUALLY) || DISABLED(Z_PROBE_SENSORLESS)) && !PROBE_PIN_CONFIGURED
     #error "DEPENDENCY ERROR: A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
+  #endif
+
+  #if ENABLED(Z_PROBE_SENSORLESS)
+    #if MECH(DELTA) && (!X_HAS_STALLGUARD || !Y_HAS_STALLGUARD || !Z_HAS_STALLGUARD)
+      #error "Z_PROBE_SENSORLESS requires TMC2130 drivers on X, Y, and Z."
+    #elif !Z_HAS_STALLGUARD
+      #error "Z_PROBE_SENSORLESS requires a TMC2130 driver on Z."
+    #endif
   #endif
 
   // Make sure Z raise values are set

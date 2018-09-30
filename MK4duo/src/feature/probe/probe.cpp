@@ -460,6 +460,7 @@ void Probe::servo_test() {
  * @return true to indicate an error
  */
 bool Probe::move_to_z(const float z, const float fr_mm_s) {
+
   #if ENABLED(DEBUG_FEATURE)
     if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
   #endif
@@ -469,9 +470,22 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
      if (set_bltouch_deployed(true)) return true;
   #endif
 
+  // Disable stealthChop if used. Enable diag1 pin on driver.
+  #if ENABLED(Z_PROBE_SENSORLESS)
+    #if MECH(DELTA)
+      tmc.set_stallguard(tmc.stepperX, 0, X_STALL_MIN_SPEED);
+      tmc.set_stallguard(tmc.stepperY, 1, Y_STALL_MIN_SPEED);
+      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED);
+    #else
+      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED);
+    #endif
+  #endif
+
   #if QUIET_PROBING
     probing_pause(true);
   #endif
+
+  endstops.setEnabled(true);
 
   #if MECH(DELTA)
     const float z_start = mechanics.current_position[Z_AXIS];
@@ -486,13 +500,19 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   mechanics.do_blocking_move_to_z(z, fr_mm_s);
 
   // Check to see if the probe was triggered
-  const bool probe_triggered = TEST(endstops.trigger_state(),
-    #if HAS_Z_PROBE_PIN
-      Z_PROBE
+  const bool probe_triggered =
+    #if MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+      endstops.trigger_state() & (_BV(X_MIN) | _BV(Y_MIN) | _BV(Z_MIN))
     #else
-      Z_MIN
+      TEST(endstops.trigger_state(),
+        #if HAS_Z_PROBE_PIN
+          Z_PROBE
+        #else
+          Z_MIN
+        #endif
+      )
     #endif
-  );
+  ;
 
   #if QUIET_PROBING
     probing_pause(false);
@@ -501,6 +521,17 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   // Retract BLTouch immediately after a probe if it was triggered
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)
     if (probe_triggered && set_bltouch_deployed(false)) return true;
+  #endif
+
+  // Re-enable stealthChop if used. Disable diag1 pin on driver.
+  #if ENABLED(Z_PROBE_SENSORLESS)
+    #if MECH(DELTA)
+      tmc.set_stallguard(tmc.stepperX, 0, X_STALL_MIN_SPEED, false);
+      tmc.set_stallguard(tmc.stepperY, 1, Y_STALL_MIN_SPEED, false);
+      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED, false);
+    #else
+      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED, false);
+    #endif
   #endif
 
   // Clear endstop flags

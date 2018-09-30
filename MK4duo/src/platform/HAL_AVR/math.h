@@ -20,6 +20,8 @@
  *
  */
 
+#pragma once
+
 /**
  * Optimized math functions for AVR
  */
@@ -126,13 +128,14 @@ static FORCE_INLINE uint16_t MultiU16X8toH16(uint8_t charIn1, uint16_t intIn2) {
 #undef FMOD
 #undef COS
 #undef SIN
-#define ATAN2(y, x) atan2(y, x)
+#define ATAN2(y,x)  atan2(y, x)
 #define POW(x, y)   pow(x, y)
 #define SQRT(x)     sqrt(x)
+#define RSQRT(x)    (1 / sqrt(x))
 #define CEIL(x)     ceil(x)
 #define FLOOR(x)    floor(x)
 #define LROUND(x)   lround(x)
-#define FMOD(x, y)  fmod(x, y)
+#define FMOD(x,y)   fmod(x, y)
 #define COS(x)      cos(x)
 #define SIN(x)      sin(x)
 #define LOG(x)      log(x)
@@ -141,9 +144,12 @@ static FORCE_INLINE uint16_t MultiU16X8toH16(uint8_t charIn1, uint16_t intIn2) {
 template <class A, class B> static inline constexpr auto MIN(const A a, const B b) -> decltype(a + b) {
   return a < b ? a : b;
 }
-template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b){
+template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b) {
   return a > b ? a : b;
 }
+template<class T, class ... Ts> static inline constexpr const T MIN(T V, Ts... Vs) { return MIN(V, MIN(Vs...)); }
+template<class T, class ... Ts> static inline constexpr const T MAX(T V, Ts... Vs) { return MAX(V, MAX(Vs...)); }
+
 template <class T> static inline constexpr const T ABS(const T v) {
   return v >= 0 ? v : -v;
 }

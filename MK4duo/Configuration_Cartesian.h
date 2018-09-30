@@ -181,6 +181,13 @@
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
+// If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.
+//
+// CAUTION: This could cause damage to machines that use a lead screw or threaded rod
+//          to move the Z axis. Take extreme care when attempting to enable this feature.
+//
+//#define Z_PROBE_SENSORLESS
+
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
 // The extra distance the X axis must travel to pick up the sled.

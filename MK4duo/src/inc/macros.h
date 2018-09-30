@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef MACROS_H
-#define MACROS_H
+#pragma once
 
 // NoPin
 #define NoPin     -1
@@ -198,13 +197,6 @@
 
 #define CEILING(x,y)            (((x) + (y) - 1) / (y))
 
-#define MIN3(a, b, c)           MIN(MIN(a, b), c)
-#define MIN4(a, b, c, d)        MIN(MIN3(a, b, c), d)
-#define MIN5(a, b, c, d, e)     MIN(MIN4(a, b, c, d), e)
-#define MAX3(a, b, c)           MAX(MAX(a, b), c)
-#define MAX4(a, b, c, d)        MAX(MAX3(a, b, c), d)
-#define MAX5(a, b, c, d, e)     MAX(MAX4(a, b, c, d), e)
-
 #define UNEAR_ZERO(x)           ((x) < 0.000001f)
 #define NEAR_ZERO(x)            WITHIN(x, -0.000001f, 0.000001f)
 #define NEAR(x,y)               NEAR_ZERO((x)-(y))
@@ -237,5 +229,3 @@
 #define MMM_TO_MMS(MM_M)        ((MM_M)/60.0f)
 #define MMS_TO_MMM(MM_S)        ((MM_S)*60.0f)
 #define MMS_SCALED(MM_S)        ((MM_S)*mechanics.feedrate_percentage*0.01)
-
-#endif //__MACROS_H

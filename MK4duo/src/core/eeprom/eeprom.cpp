@@ -721,21 +721,21 @@ void EEPROM::post_process() {
       EEPROM_WRITE(tmc_hybrid_threshold);
 
       //
-      // TMC2130 Sensorless homing threshold
+      // TMC2130 StallGuard threshold
       //
       int8_t tmc_sgt[XYZ] = {
-        #if ENABLED(SENSORLESS_HOMING)
-          #if X_HAS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY)
+        #if HAS_SENSORLESS
+          #if X_SENSORLESS
             tmc.stepperX->sgt(),
           #else
             0,
           #endif
-          #if Y_HAS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY)
+          #if Y_SENSORLESS
             tmc.stepperY->sgt(),
           #else
             0,
           #endif
-          #if Z_HAS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY)
+          #if Z_SENSORLESS
             tmc.stepperZ->sgt()
           #else
             0
@@ -1171,35 +1171,35 @@ void EEPROM::post_process() {
          * TMC2130 Sensorless homing threshold.
          * X and X2 use the same value
          * Y and Y2 use the same value
-         * Z and Z2 use the same value
+         * Z, Z2 and Z3 use the same value
          */
         int16_t tmc_sgt[XYZ];
         EEPROM_READ(tmc_sgt);
-        #if ENABLED(SENSORLESS_HOMING)
-          #if ENABLED(X_HOMING_SENSITIVITY)
-            #if X_HAS_DRV(TMC2130)
+        #if HAS_SENSORLESS
+          #if ENABLED(X_STALL_SENSITIVITY)
+            #if X_HAS_STALLGUARD
               tmc.stepperX->sgt(tmc_sgt[0]);
             #endif
-            #if X2_HAS_DRV(TMC2130)
+            #if X2_HAS_STALLGUARD
               tmc.stepperX2->sgt(tmc_sgt[0]);
             #endif
           #endif
-          #if ENABLED(Y_HOMING_SENSITIVITY)
-            #if Y_HAS_DRV(TMC2130)
+          #if ENABLED(Y_STALL_SENSITIVITY)
+            #if Y_HAS_STALLGUARD
               tmc.stepperY->sgt(tmc_sgt[1]);
             #endif
-            #if Y2_HAS_DRV(TMC2130)
+            #if Y2_HAS_STALLGUARD
               tmc.stepperY2->sgt(tmc_sgt[1]);
             #endif
           #endif
-          #if ENABLED(Z_HOMING_SENSITIVITY)
-            #if Z_HAS_DRV(TMC2130)
+          #if ENABLED(Z_STALL_SENSITIVITY)
+            #if Z_HAS_STALLGUARD
               tmc.stepperZ->sgt(tmc_sgt[2]);
             #endif
-            #if Z2_HAS_DRV(TMC2130)
+            #if Z2_HAS_STALLGUARD
               tmc.stepperZ2->sgt(tmc_sgt[2]);
             #endif
-            #if Z3_HAS_DRV(TMC2130)
+            #if Z3_HAS_STALLGUARD
               tmc.stepperZ3->sgt(tmc_sgt[2]);
             #endif
           #endif
@@ -2244,40 +2244,40 @@ void EEPROM::reset() {
       #endif // HYBRID_THRESHOLD
 
       /**
-       * TMC2130 Sensorless homing thresholds
+       * TMC2130 StallGuard threshold
        */
-      #if ENABLED(SENSORLESS_HOMING)
-        SERIAL_LM(CFG, "Sensorless homing threshold");
+      #if HAS_SENSORLESS
+        SERIAL_LM(CFG, "TMC2130 StallGuard threshold:");
         SERIAL_SM(CFG, "  M914");
-        #if ENABLED(X_HOMING_SENSITIVITY)
-          #if X_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+        #if X_SENSORLESS
+          #if X_HAS_STALLGUARD
             SERIAL_MV(" X", tmc.stepperX->sgt());
           #endif
-          #if X2_HAS_DRV(TMC2130)
+          #if X2_HAS_STALLGUARD
             SERIAL_MV(" I2 X", tmc.stepperX2->sgt());
           #endif
         #endif
-        #if ENABLED(Y_HOMING_SENSITIVITY)
-          #if Y_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+        #if Y_SENSORLESS
+          #if Y_HAS_STALLGUARD
             SERIAL_MV(" Y", tmc.stepperY->sgt());
           #endif
-          #if X2_HAS_DRV(TMC2130)
+          #if Y2_HAS_STALLGUARD
             SERIAL_MV(" I2 Y", tmc.stepperY2->sgt());
           #endif
         #endif
-        #if ENABLED(Z_HOMING_SENSITIVITY)
-          #if Z_HAS_DRV(TMC2130) || ENABLED(IS_TRAMS)
+        #if Z_SENSORLESS
+          #if Z_HAS_STALLGUARD
             SERIAL_MV(" Z", tmc.stepperZ->sgt());
           #endif
-          #if Z2_HAS_DRV(TMC2130)
+          #if Z2_HAS_STALLGUARD
             SERIAL_MV(" I2 Z", tmc.stepperZ2->sgt());
           #endif
-          #if Z3_HAS_DRV(TMC2130)
+          #if Z3_HAS_STALLGUARD
             SERIAL_MV(" I3 Z", tmc.stepperZ3->sgt());
           #endif
         #endif
         SERIAL_EOL();
-      #endif
+      #endif // HAS_SENSORLESS
 
     #endif // HAS_TRINAMIC
 

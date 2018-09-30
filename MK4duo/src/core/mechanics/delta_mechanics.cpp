@@ -971,7 +971,7 @@
     // 6 = delta_diagonal_rod rod length
     // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
     float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
-      const float perturb = 0.2;      // perturbation amount in mm or degrees
+      constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
       float zHi, zLo, newPos[ABC];
 
       switch(deriv) {
@@ -1080,9 +1080,9 @@
 
       recalc_delta_settings();
 
-      return (zHi - zLo) / (2 * perturb);
+      return (zHi - zLo) / (2.0f * perturb);
     }
-  
+
   #endif // ENABLED(DELTA_AUTO_CALIBRATION_1)
 
   #if DISABLED(DISABLE_M503)

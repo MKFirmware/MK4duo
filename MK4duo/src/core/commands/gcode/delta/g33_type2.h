@@ -565,7 +565,7 @@
         }
 
         // Adjust delta_height and endstops by the max amount
-        const float z_temp = MAX3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
+        const float z_temp = MAX(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
         mechanics.delta_height -= z_temp;
         LOOP_XYZ(axis) mechanics.delta_endstop_adj[axis] -= z_temp;
       }

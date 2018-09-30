@@ -276,7 +276,7 @@
  * M911 - Report stepper driver overtemperature pre-warn condition. (Requires TRINAMIC)
  * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires TRINAMIC)
  * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
- * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+ * M914 - Set StallGuard sensitivity. (Requires SENSORLESS_HOMING)
  * M915 - TMC Z axis calibration routine. (Requires TMC)
  * M922 - S[1/0] Enable/disable TMC debug. (Requires TMC)
  * M930 - TMC set blank_time. (Requires CHOP_CALIBRATION)

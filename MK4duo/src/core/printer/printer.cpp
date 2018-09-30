@@ -1064,10 +1064,10 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
       next_status_led_update_ms += 500; // Update every 0.5s
       float max_temp = 0.0;
         #if HAS_TEMP_BED
-          max_temp = MAX3(max_temp, heaters[BED_INDEX].target_temperature, heaters[BED_INDEX].current_temperature);
+          max_temp = MAX(max_temp, heaters[BED_INDEX].target_temperature, heaters[BED_INDEX].current_temperature);
         #endif
       LOOP_HOTEND()
-        max_temp = MAX3(max_temp, heaters[h].current_temperature, heaters[h].target_temperature);
+        max_temp = MAX(max_temp, heaters[h].current_temperature, heaters[h].target_temperature);
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;
