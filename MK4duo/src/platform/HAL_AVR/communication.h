@@ -45,7 +45,7 @@
 #define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
 
 // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
-void serialprintPGM(const char* str);
+void serialprintPGM(PGM_P str);
 
 #define SERIAL_PS(message)                  (serialprintPGM(message))
 #define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
@@ -84,10 +84,10 @@ void serialprintPGM(const char* str);
 void serial_spaces(uint8_t count);
 
 #if ENABLED(DEBUG_FEATURE)
-  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
-  void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
   #if HAS_PLANAR
-    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+    void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
   #endif
   #define DEBUG_POS(SUFFIX,VAR)       do{ \
     print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)

@@ -66,7 +66,7 @@
 #define REPORT_NAME_ANALOG(COUNTER, NAME)         _ADD_PIN(analogInputToDigitalPin(NAME), COUNTER, false)
 
 typedef struct {
-  const char * const name;
+  PGM_P const name;
   pin_t pin;
   bool is_digital;
 } PinInfo;
@@ -105,7 +105,7 @@ static void print_input_or_output(const bool isout) {
 }
 
 // pretty report with PWM info
-inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = false, const char *start_string = "") {
+inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = false, PGM_P start_string = "") {
   char buffer[MAX_NAME_LENGTH + 1];   // for the sprintf statements
   bool found = false, multi_name_pin = false;
 

@@ -97,15 +97,15 @@ class GCodeParser {
 
     #define LETTER_BIT(N) ((N) - 'A')
 
-    FORCE_INLINE static bool valid_signless(const char * const p) {
+    FORCE_INLINE static bool valid_signless(PGM_P const p) {
       return NUMERIC(p[0]) || (p[0] == '.' && NUMERIC(p[1])); // .?[0-9]
     }
 
-    FORCE_INLINE static bool valid_float(const char * const p) {
+    FORCE_INLINE static bool valid_float(PGM_P const p) {
       return valid_signless(p) || ((p[0] == '-' || p[0] == '+') && valid_signless(&p[1])); // [-+]?.?[0-9]
     }
 
-    FORCE_INLINE static bool valid_int(const char * const p) {
+    FORCE_INLINE static bool valid_int(PGM_P const p) {
       return NUMERIC(p[0]) || ((p[0] == '-' || p[0] == '+') && NUMERIC(p[1])); // [-+]?[0-9]
     }
 

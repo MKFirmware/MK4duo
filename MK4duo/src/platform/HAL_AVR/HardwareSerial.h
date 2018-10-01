@@ -169,10 +169,10 @@ class MKHardwareSerial { //: public Stream
       FORCE_INLINE static ring_buffer_pos_t rxMaxEnqueued() { return rx_max_enqueued; }
     #endif
 
-    FORCE_INLINE static void write(const char* str) { while (*str) write(*str++); }
+    FORCE_INLINE static void write(PGM_P str) { while (*str) write(*str++); }
     FORCE_INLINE static void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
     FORCE_INLINE static void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
-    FORCE_INLINE static void print(const char* str) { write(str); }
+    FORCE_INLINE static void print(PGM_P str) { write(str); }
 
     static void print(char, int = BYTE);
     static void print(unsigned char, int = DEC);

@@ -26,7 +26,7 @@
 
   #include "Nextion.h"
 
-  NexObject::NexObject(uint8_t pid, uint8_t cid, const char *name) {
+  NexObject::NexObject(uint8_t pid, uint8_t cid, PGM_P name) {
     this->__pid = pid;
     this->__cid = cid;
     this->__name = name;
@@ -101,7 +101,7 @@
     recvRetCommandFinished();
   }
 
-  void NexObject::getText(char *buffer, uint16_t len, const char *pname) {
+  void NexObject::getText(char *buffer, uint16_t len, PGM_P pname) {
     String cmd;
     cmd += "get ";
     if (pname) {
@@ -114,7 +114,7 @@
     recvRetString(buffer, len);
   }
 
-  void NexObject::setText(const char *buffer, const char *pname) {
+  void NexObject::setText(PGM_P buffer, PGM_P pname) {
     String cmd;
     if (pname) {
       cmd += pname;
@@ -128,7 +128,7 @@
     recvRetCommandFinished();
   }
 
-  uint16_t NexObject::getValue(const char *pname) {
+  uint16_t NexObject::getValue(PGM_P pname) {
     String cmd;
     cmd += "get ";
     if (pname) {
@@ -141,7 +141,7 @@
     return recvRetNumber();
   }
 
-  void NexObject::setValue(const uint16_t number, const char *pname) {
+  void NexObject::setValue(const uint16_t number, PGM_P pname) {
     char buf[10] = {0};
     String cmd;
     utoa(number, buf, 10);
@@ -438,7 +438,7 @@
 
     SdFile nextion_file;
 
-    NexUpload::NexUpload(const char *file_name, uint32_t upload_baudrate) {
+    NexUpload::NexUpload(PGM_P file_name, uint32_t upload_baudrate) {
       _file_name = file_name;
       _upload_baudrate = upload_baudrate;
     }
@@ -723,7 +723,7 @@
     strncpy(buffer, temp.c_str(), ret);
   }
 
-  void sendCommand(const char* cmd) {
+  void sendCommand(PGM_P cmd) {
     while (nexSerial.available()) nexSerial.read();
     nexSerial.print(cmd);
     nexSerial.write(0xFF);

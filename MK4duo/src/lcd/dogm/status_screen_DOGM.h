@@ -30,7 +30,7 @@
 #define _STATUS_SCREEN_DOGM_H_
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
-  const char * const str = itostr3(temp);
+  PGM_P const str = itostr3(temp);
   lcd_moveto(x - (str[0] != ' ' ? 0 : str[1] != ' ' ? 1 : 2) * DOG_CHAR_WIDTH / 2, y);
   lcd_put_u8str(str);
   lcd_put_u8str_P(PSTR(LCD_STR_DEGREE " "));
@@ -75,7 +75,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, con
 // Before homing, blink '123' <-> '???'.
 // Homed and known, display constantly.
 //
-FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const bool blink) {
+FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool blink) {
   if (blink)
     lcd_put_u8str(value);
   else {
@@ -109,7 +109,7 @@ inline void lcd_implementation_status_message(const bool blink) {
       // String is larger than the available space in screen.
 
       // Get a pointer to the next valid UTF8 character
-      const char *stat = lcd_status_message + status_scroll_offset;
+      PGM_P stat = lcd_status_message + status_scroll_offset;
 
       // Get the string remaining length
       const uint8_t rlen = utf8_strlen(stat);

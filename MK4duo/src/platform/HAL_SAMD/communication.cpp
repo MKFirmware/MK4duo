@@ -106,7 +106,7 @@ void Com::printFloat(float number, uint8_t digits) {
   }
 }
 
-void Com::print(const char* text) {
+void Com::print(PGM_P text) {
   while(*text) {
     HAL::serialWriteByte(*text++);
   }
@@ -122,7 +122,7 @@ void Com::print(long value) {
 
 #if ENABLED(DEBUG_FEATURE)
 
-  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z) {
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
     SERIAL_PS(prefix);
     SERIAL_CHR('(');
     SERIAL_VAL(x);
@@ -134,12 +134,12 @@ void Com::print(long value) {
     else SERIAL_EOL();
   }
 
-  void print_xyz(const char* prefix, const char* suffix, const float xyz[]) {
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
     print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
   }
 
   #if HAS_PLANAR
-    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz) {
+    void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz) {
       print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
     }
   #endif

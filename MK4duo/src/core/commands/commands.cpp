@@ -68,7 +68,7 @@ watch_t Commands::last_command_watch(NO_TIMEOUTS);
  * Used by MK4duo internally to ensure that commands initiated from within
  * are enqueued ahead of any pending serial or sd card
  */
-const char *Commands::injected_commands_P = NULL;
+PGM_P Commands::injected_commands_P = NULL;
 
 /**
  * Public Function
@@ -453,7 +453,7 @@ void Commands::advance_queue() {
  * Aborts the current queue, if any.
  * Note: drain_injected_P() must be called repeatedly to drain the commands afterwards
  */
-void Commands::enqueue_and_echo_P(const char * const pgcode) {
+void Commands::enqueue_and_echo_P(PGM_P const pgcode) {
   injected_commands_P = pgcode;
   (void)drain_injected_P(); // first command executed asap (when possible)
 }
@@ -461,14 +461,14 @@ void Commands::enqueue_and_echo_P(const char * const pgcode) {
 /**
  * Enqueue and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now(const char* cmd) {
+void Commands::enqueue_and_echo_now(PGM_P cmd) {
   while (!enqueue_and_echo(cmd)) printer.idle();
 }
 
 /**
  * Enqueue from program memory and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now_P(const char * const cmd) {
+void Commands::enqueue_and_echo_now_P(PGM_P const cmd) {
   enqueue_and_echo_P(cmd);
   while (drain_injected_P()) printer.idle();
 }
@@ -485,7 +485,7 @@ void Commands::clear_queue() {
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
  */
-bool Commands::enqueue(const char* cmd, bool say_ok/*=false*/) {
+bool Commands::enqueue(PGM_P cmd, bool say_ok/*=false*/) {
   if (*cmd == ';' || buffer_ring.isFull()) return false;
   send_ok[buffer_ring.tail()] = say_ok;
   gcode_t temp_cmd;
@@ -642,7 +642,7 @@ void Commands::unknown_error() {
   SERIAL_EOL();
 }
 
-void Commands::gcode_line_error(const char* err) {
+void Commands::gcode_line_error(PGM_P err) {
   SERIAL_STR(ER);
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
@@ -653,7 +653,7 @@ void Commands::gcode_line_error(const char* err) {
 /**
  * Enqueue with Serial Echo
  */
-bool Commands::enqueue_and_echo(const char* cmd) {
+bool Commands::enqueue_and_echo(PGM_P cmd) {
 
   if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
     return true;

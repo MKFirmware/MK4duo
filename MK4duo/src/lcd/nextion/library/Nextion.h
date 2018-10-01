@@ -88,7 +88,7 @@ class NexObject {
      * @param cid - component id.
      * @param name - pointer to an unique name in range of all components.
      */
-    NexObject(uint8_t pid, uint8_t cid, const char *name);
+    NexObject(uint8_t pid, uint8_t cid, PGM_P name);
 
     /**
      * iterate search pid, cid or event in list
@@ -150,7 +150,7 @@ class NexObject {
      * @param buffer - buffer storing text returned.
      * @param len - length of buffer.
      */
-    void getText(char *buffer, uint16_t len, const char *pname=NULL);
+    void getText(char *buffer, uint16_t len, PGM_P pname=NULL);
 
     /**
      * Set text attribute of component.
@@ -158,7 +158,7 @@ class NexObject {
      * @param buffer - text buffer terminated with '\0'.
      * @param pname  - To set page name
      */
-    void setText(const char *buffer, const char *pname=NULL);
+    void setText(PGM_P buffer, PGM_P pname=NULL);
 
     /**
      * Get val attribute of component
@@ -166,7 +166,7 @@ class NexObject {
      * @param number - buffer storing data return
      * @param pname  - To set page name
      */
-    uint16_t getValue(const char *pname=NULL);
+    uint16_t getValue(PGM_P pname=NULL);
 
     /**
      * Set val attribute of component
@@ -174,7 +174,7 @@ class NexObject {
      * @param number - To set up the data
      * @param pname  - To set page name
      */
-    void setValue(const uint16_t number, const char *pname=NULL);
+    void setValue(const uint16_t number, PGM_P pname=NULL);
 
     /**
      * Add value to show.
@@ -347,7 +347,7 @@ class NexObject {
 
     uint8_t __pid;
     uint8_t __cid;
-    const char *__name;
+    PGM_P __name;
     bool __vis;
 
     NexTouchEventCb __cb_push;
@@ -372,7 +372,7 @@ class NexObject {
        * @param file_name - tft file name.
        * @upload_baudrate - set upload baudrate.
        */
-      NexUpload(const char *file_name, uint32_t upload_baudrate);
+      NexUpload(PGM_P file_name, uint32_t upload_baudrate);
 
       /**
        * Constructor.
@@ -448,10 +448,10 @@ class NexObject {
 
     private:
 
-      uint32_t _baudrate; /*nextion serail baudrate*/
-      const char *_file_name; /*nextion tft file name*/
-      uint32_t _unuploadByte; /*unupload byte of tft file*/
-      uint32_t _upload_baudrate; /*upload baudrate*/
+      uint32_t _baudrate;         /* nextion serial baudrate */
+      PGM_P _file_name;           /* nextion tft file name */
+      uint32_t _unuploadByte;     /* unupload byte of tft file */
+      uint32_t _upload_baudrate;  /* upload baudrate */
     };
 
 #endif // SDSUPPORT
@@ -480,7 +480,7 @@ bool nexInit(char *buffer);
 void nexLoop(NexObject *nex_listen_list[]);
 
 void recvRetString(char *buffer, uint16_t len);
-void sendCommand(const char* cmd);
+void sendCommand(PGM_P cmd);
 void recvRetCommandFinished();
 
 uint16_t recvRetNumber();

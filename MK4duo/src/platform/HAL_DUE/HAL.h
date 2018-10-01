@@ -82,7 +82,7 @@ typedef uint32_t  ptr_int_t;
 // do not use program space memory with Due
 #define PROGMEM
 #ifndef PGM_P
-  #define PGM_P const char*
+  #define PGM_P PGM_P
 #endif
 #undef PSTR
 #define PSTR(s) s

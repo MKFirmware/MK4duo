@@ -154,7 +154,7 @@ uint8_t* get_utf8_value_cb(uint8_t *pstart, read_byte_cb_t cb_read_byte, wchar_t
   return p;
 }
 
-static inline uint8_t utf8_strlen_cb(const char *pstart, read_byte_cb_t cb_read_byte) {
+static inline uint8_t utf8_strlen_cb(PGM_P pstart, read_byte_cb_t cb_read_byte) {
 
   uint8_t cnt = 0;
   uint8_t *pnext = (uint8_t *)pstart;
@@ -167,10 +167,10 @@ static inline uint8_t utf8_strlen_cb(const char *pstart, read_byte_cb_t cb_read_
   return cnt;
 }
 
-uint8_t utf8_strlen(const char *pstart) {
+uint8_t utf8_strlen(PGM_P pstart) {
   return utf8_strlen_cb(pstart, read_byte_ram);
 }
 
-uint8_t utf8_strlen_P(const char *pstart) {
+uint8_t utf8_strlen_P(PGM_P pstart) {
   return utf8_strlen_cb(pstart, read_byte_rom);
 }

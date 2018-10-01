@@ -35,9 +35,9 @@
 // ubl.cpp
 
 #if ENABLED(UBL_DEVEL_DEBUGGING)
-  void debug_current_and_destination(const char * const title);
+  void debug_current_and_destination(PGM_P const title);
 #else
-  FORCE_INLINE void debug_current_and_destination(const char * const title) { UNUSED(title); }
+  FORCE_INLINE void debug_current_and_destination(PGM_P const title) { UNUSED(title); }
 #endif
 
 // ubl_G29.cpp

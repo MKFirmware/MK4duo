@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-void out_of_range_error(const char* p_edge) {
+void out_of_range_error(PGM_P p_edge) {
   SERIAL_MSG("?Probe ");
   SERIAL_PS(p_edge);
   SERIAL_EM(" position out of range.");

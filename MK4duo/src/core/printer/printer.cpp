@@ -451,7 +451,7 @@ void Printer::quickstop_stepper() {
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
  */
-void Printer::kill(const char* lcd_msg) {
+void Printer::kill(PGM_P lcd_msg) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
   thermalManager.disable_all_heaters();

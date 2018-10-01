@@ -834,7 +834,7 @@ void TMC_Stepper::say_axis(const TMC_AxisEnum axis) {
     #endif // DRIVER_EXTRUDERS > 0
   ;
 
-  static const char* const tmc_axes[] PROGMEM = {
+  static PGM_P const tmc_axes[] PROGMEM = {
     ext_X, ext_Y, ext_Z
     #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
       , ext_X2

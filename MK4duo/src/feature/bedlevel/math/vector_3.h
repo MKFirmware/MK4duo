@@ -59,7 +59,7 @@
     float get_length() const;
     vector_3 get_normal() const;
 
-    void debug(const char * const title);
+    void debug(PGM_P const title);
 
     void apply_rotation(const matrix_3x3 matrix);
   };
@@ -73,7 +73,7 @@
 
     void set_to_identity();
 
-    void debug(const char * const title);
+    void debug(PGM_P const title);
   };
 
   void apply_rotation_xyz(const matrix_3x3 &rotationMatrix, float &x, float &y, float &z);

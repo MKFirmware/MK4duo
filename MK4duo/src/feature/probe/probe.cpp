@@ -102,7 +102,7 @@ bool Probe::set_deployed(const bool deploy) {
 
         sound.feedback();
 
-        const char * const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
+        PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
         lcd_setstatusPGM(ds_str);
         SERIAL_PS(ds_str);
         SERIAL_EOL();

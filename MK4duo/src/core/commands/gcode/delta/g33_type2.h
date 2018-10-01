@@ -69,7 +69,7 @@
     #endif
   }
 
-  static void Report_signed_float(const char * const prefix, const float &f) {
+  static void Report_signed_float(PGM_P const prefix, const float &f) {
     SERIAL_MSG("\t");
     SERIAL_PS(prefix);
     SERIAL_CHR(':');
@@ -616,7 +616,7 @@
         }
       }
       else { // dry run
-        const char *enddryrun = PSTR("End DRY-RUN");
+        PGM_P enddryrun = PSTR("End DRY-RUN");
         SERIAL_PS(enddryrun);
         SERIAL_SP(35);
         SERIAL_EMV("std dev:", zero_std_dev, 3);

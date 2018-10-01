@@ -547,7 +547,7 @@
       }
     }
 
-    void printrowsd(uint8_t row, const bool folder, const char* filename) {
+    void printrowsd(uint8_t row, const bool folder, PGM_P filename) {
       if (folder) {
         folder_list[row]->SetVisibility(true);
         row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
@@ -594,12 +594,12 @@
       sendCommand("ref 0");
     }
 
-    static void menu_action_sdfile(const char* filename) {
+    static void menu_action_sdfile(PGM_P filename) {
       card.openAndPrintFile(filename);
       Pprinter.show();
     }
 
-    static void menu_action_sddirectory(const char* filename) {
+    static void menu_action_sddirectory(PGM_P filename) {
       card.chdir(filename);
       setpageSD();
     }
@@ -714,7 +714,7 @@
 
     static AdvancedPauseMode advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
 
-    static const char* advanced_pause_header() {
+    static PGM_P advanced_pause_header() {
       switch (advanced_pause_mode) {
         case ADVANCED_PAUSE_MODE_LOAD_FILAMENT:
           return PSTR(MSG_FILAMENT_CHANGE_HEADER_LOAD);
@@ -904,7 +904,7 @@
       commands.enqueue_and_echo(buffer);
     }
 
-    void rfid_setText(const char* message, uint32_t color /* = 65535 */) {
+    void rfid_setText(PGM_P message, uint32_t color /* = 65535 */) {
       char Rfid_status_message[25];
       strncpy(Rfid_status_message, message, 30);
       RfidText.Set_font_color_pco(color);
@@ -1450,14 +1450,14 @@
     PreviousPage = PageID;
   }
 
-  void lcd_setstatus(const char* message, bool persist) {
+  void lcd_setstatus(PGM_P message, bool persist) {
     UNUSED(persist);
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setstatusPGM(const char* message, int8_t level) {
+  void lcd_setstatusPGM(PGM_P message, int8_t level) {
     if (level < 0) level = lcd_status_message_level = 0;
     if (level < lcd_status_message_level || !NextionON) return;
     strncpy_P(lcd_status_message, message, 30);
@@ -1465,7 +1465,7 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
+  void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
     if (level < lcd_status_message_level || !NextionON) return;
     lcd_status_message_level = level;
     va_list args;
@@ -1475,19 +1475,19 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setalertstatusPGM(const char * const message) {
+  void lcd_setalertstatusPGM(PGM_P const message) {
     lcd_setstatusPGM(message, 1);
   }
 
   void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
-  void lcd_scrollinfo(const char* titolo, const char* message) {
+  void lcd_scrollinfo(PGM_P titolo, PGM_P message) {
     Pinfo.show();
     InfoText.setText(titolo);
     ScrollText.setText(message);
   }
 
-  void lcd_yesno(const uint8_t val, const char* msg1, const char* msg2, const char* msg3) {
+  void lcd_yesno(const uint8_t val, PGM_P msg1, PGM_P msg2, PGM_P msg3) {
     Vyes.setValue(val, "yesno");
     Pyesno.show();
     Riga0.setText(msg1);

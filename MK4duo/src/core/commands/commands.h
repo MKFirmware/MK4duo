@@ -55,7 +55,7 @@ class Commands {
 
     static int serial_count;
 
-    static const char *injected_commands_P;
+    static PGM_P injected_commands_P;
 
     static watch_t last_command_watch;
 
@@ -67,10 +67,10 @@ class Commands {
     static void advance_queue();
     static void clear_queue();
 
-    static bool enqueue_and_echo(const char* cmd);
-    static void enqueue_and_echo_P(const char * const pgcode);
-    static void enqueue_and_echo_now(const char* cmd);
-    static void enqueue_and_echo_now_P(const char * const cmd);
+    static bool enqueue_and_echo(PGM_P cmd);
+    static void enqueue_and_echo_P(PGM_P const pgcode);
+    static void enqueue_and_echo_now(PGM_P cmd);
+    static void enqueue_and_echo_now_P(PGM_P const cmd);
 
     static void get_destination();
     static bool get_target_tool(const uint16_t code);
@@ -88,9 +88,9 @@ class Commands {
     static void process_next();
     static void process_parsed();
     static void unknown_error();
-    static void gcode_line_error(const char* err);
+    static void gcode_line_error(PGM_P err);
 
-    static bool enqueue(const char* cmd, bool say_ok=false);
+    static bool enqueue(PGM_P cmd, bool say_ok=false);
     static bool drain_injected_P();
 
     #if HAS_SD_RESTART

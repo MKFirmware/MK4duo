@@ -66,7 +66,7 @@
         SERIAL_VAL(mechanics.destination[X_AXIS], 6);
     }
 
-    void debug_current_and_destination(const char *title) {
+    void debug_current_and_destination(PGM_P title) {
 
       // if the title message starts with a '!' it is so important, we are going to
       // ignore the status of the bedlevel.g26_debug_flag

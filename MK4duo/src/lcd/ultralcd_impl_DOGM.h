@@ -401,7 +401,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a static line of text in the same idiom as a menu item
-  static void lcd_implementation_drawmenu_static(const uint8_t row, const char* pstr, const bool center=true, const bool invert=false, const char* valstr=NULL) {
+  static void lcd_implementation_drawmenu_static(const uint8_t row, PGM_P pstr, const bool center=true, const bool invert=false, PGM_P valstr=NULL) {
 
     if (lcd_implementation_mark_as_selected(row, invert)) {
 
@@ -421,7 +421,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a generic menu item
-  static void lcd_implementation_drawmenu_generic(const bool isSelected, const uint8_t row, const char* pstr, const char pre_char, const char post_char) {
+  static void lcd_implementation_drawmenu_generic(const bool isSelected, const uint8_t row, PGM_P pstr, const char pre_char, const char post_char) {
     UNUSED(pre_char);
 
     if (lcd_implementation_mark_as_selected(row, isSelected)) {
@@ -442,7 +442,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   #define lcd_implementation_drawmenu_function(sel, row, pstr, data) lcd_implementation_drawmenu_generic(sel, row, pstr, '>', ' ')
 
   // Draw a menu item with an editable value
-  static void _drawmenu_setting_edit_generic(const bool isSelected, const uint8_t row, const char* pstr, const char* const data, const bool pgm) {
+  static void _drawmenu_setting_edit_generic(const bool isSelected, const uint8_t row, PGM_P pstr, PGM_P const data, const bool pgm) {
     if (lcd_implementation_mark_as_selected(row, isSelected)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
       uint8_t n = LCD_WIDTH - (START_COL) - 2 - vallen;
@@ -462,7 +462,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   #define DRAWMENU_SETTING_EDIT_GENERIC(_src) lcd_implementation_drawmenu_setting_edit_generic(sel, row, pstr, _src)
   #define DRAW_BOOL_SETTING(sel, row, pstr, data) lcd_implementation_drawmenu_setting_edit_generic_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
-  void lcd_implementation_drawedit(const char* const pstr, const char* const value=NULL) {
+  void lcd_implementation_drawedit(PGM_P const pstr, PGM_P const value=NULL) {
     const uint8_t labellen = utf8_strlen_P(pstr),
                   vallen = utf8_strlen(value);
 
@@ -514,7 +514,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
 
   #if HAS_SD_SUPPORT
 
-    static void _drawmenu_sd(const bool isSelected, const uint8_t row, const char* const pstr, const char* longFilename, const bool isDir) {
+    static void _drawmenu_sd(const bool isSelected, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir) {
       UNUSED(pstr);
 
       lcd_implementation_mark_as_selected(row, isSelected);
@@ -522,7 +522,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
       if (!PAGE_CONTAINS(row_y1, row_y2)) return;
 
       constexpr uint8_t maxlen = LCD_WIDTH - (START_COL) - 1;
-      const char *outstr = longFilename;
+      PGM_P outstr = longFilename;
       #if ENABLED(SCROLL_LONG_FILENAMES)
         if (isSelected) {
           uint8_t name_hash = row;

@@ -80,7 +80,7 @@ void vector_3::apply_rotation(const matrix_3x3 &matrix) {
   z = _x * matrix.matrix[3 * 0 + 2] + _y * matrix.matrix[3 * 1 + 2] + z * matrix.matrix[3 * 2 + 2];
 }
 
-void vector_3::debug(const char * const title) {
+void vector_3::debug(PGM_P const title) {
   SERIAL_PS(title);
   SERIAL_MV(" x: ", x, 6);
   SERIAL_MV(" y: ", y, 6);
@@ -137,7 +137,7 @@ matrix_3x3 matrix_3x3::transpose(const matrix_3x3 &original) {
   return new_matrix;
 }
 
-void matrix_3x3::debug(const char * const title) {
+void matrix_3x3::debug(PGM_P const title) {
   if (title != NULL) {
     SERIAL_PS(title);
     SERIAL_EOL();

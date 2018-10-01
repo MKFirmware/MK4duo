@@ -698,7 +698,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 #endif
 
 // Temperature Error Handlers
-void Temperature::_temp_error(const uint8_t h, const char * const serial_msg, const char * const lcd_msg) {
+void Temperature::_temp_error(const uint8_t h, PGM_P const serial_msg, PGM_P const lcd_msg) {
   if (heaters[h].isActive()) {
     SERIAL_STR(ER);
     SERIAL_PS(serial_msg);

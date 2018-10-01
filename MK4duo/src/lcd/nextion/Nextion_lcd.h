@@ -66,8 +66,8 @@
   void sendPopCallback(void *ptr);
   void filamentPopCallback(void *ptr);
   void nextion_draw_update();
-  void lcd_scrollinfo(const char* titolo, const char* message);
-  void lcd_yesno(const uint8_t val, const char* msg1="", const char* msg2="", const char* msg3="");
+  void lcd_scrollinfo(PGM_P titolo, PGM_P message);
+  void lcd_yesno(const uint8_t val, PGM_P msg1="", PGM_P msg2="", PGM_P msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);
@@ -108,7 +108,7 @@
 
   #if ENABLED(RFID_MODULE)
     void rfidPopCallback(void *ptr);
-    void rfid_setText(const char* message, uint32_t color = 65535);
+    void rfid_setText(PGM_P message, uint32_t color = 65535);
   #endif
 
 #endif // ENABLED(NEXTION)

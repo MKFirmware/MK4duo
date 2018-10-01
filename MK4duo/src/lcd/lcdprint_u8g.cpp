@@ -45,7 +45,7 @@ int lcd_put_wchar_max(wchar_t c, pixel_len_t max_length) {
   return ret;
 }
 
-int lcd_put_u8str_max(const char * utf8_str, pixel_len_t max_length) {
+int lcd_put_u8str_max(PGM_P utf8_str, pixel_len_t max_length) {
   unsigned int x = pu8g->getPrintCol(),
                y = pu8g->getPrintRow(),
                ret = uxg_DrawUtf8Str(pu8g->getU8g(), x, y, utf8_str, max_length);
@@ -53,7 +53,7 @@ int lcd_put_u8str_max(const char * utf8_str, pixel_len_t max_length) {
   return ret;
 }
 
-int lcd_put_u8str_max_P(const char * utf8_str_P, pixel_len_t max_length) {
+int lcd_put_u8str_max_P(PGM_P utf8_str_P, pixel_len_t max_length) {
   unsigned int x = pu8g->getPrintCol(),
                y = pu8g->getPrintRow(),
                ret = uxg_DrawUtf8StrP(pu8g->getU8g(), x, y, utf8_str_P, max_length);

@@ -160,7 +160,7 @@ class Printer {
 
     static void quickstop_stepper();
 
-    static void kill(const char *);
+    static void kill(PGM_P);
     static void Stop();
 
     static void idle(const bool ignore_stepper_queue=false);

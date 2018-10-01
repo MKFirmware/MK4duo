@@ -157,10 +157,10 @@
       static void mount();
       static void unmount();
       static void ls();
-      static void getfilename(uint16_t nr, const char* const match=NULL);
+      static void getfilename(uint16_t nr, PGM_P const match=NULL);
       static void getAbsFilename(char* name);
       static void startFileprint();
-      static void openAndPrintFile(const char* name);
+      static void openAndPrintFile(PGM_P name);
       static void stopSDPrint();
       static void write_command(char* buf);
       static void printStatus();
@@ -170,7 +170,7 @@
       static void makeDirectory(char* filename);
       static void closeFile();
       static void printingHasFinished();
-      static void chdir(const char* relpath);
+      static void chdir(PGM_P relpath);
       static void reset_default();
       static void print_settings();
       static void beginautostart();
@@ -178,9 +178,9 @@
       static void setroot();
       static void setlast();
 
-      static void printEscapeChars(const char* s);
+      static void printEscapeChars(PGM_P s);
 
-      static bool selectFile(const char* filename);
+      static bool selectFile(PGM_P filename);
 
       static int8_t updir();
       static uint16_t getnrfilenames();
@@ -210,7 +210,7 @@
         static void StoreSettings();
         static void RetrieveSettings(bool addValue = false);
         static void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
-        static void unparseKeyLine(const char* key, char* value);
+        static void unparseKeyLine(PGM_P key, char* value);
         static int  KeyIndex(char* key);
       #else
         static inline void RetrieveSettings() { reset_default(); }
@@ -258,7 +258,7 @@
 
     private: /** Private Function */
 
-      static void lsDive(SdBaseFile parent, const char* const match = NULL);
+      static void lsDive(SdBaseFile parent, PGM_P const match = NULL);
       static void parsejson(SdBaseFile &parser_file);
       static bool findGeneratedBy(char* buf, char* genBy);
       static bool findFirstLayerHeight(char* buf, float &firstlayerHeight);

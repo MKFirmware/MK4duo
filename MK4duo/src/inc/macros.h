@@ -229,3 +229,89 @@
 #define MMM_TO_MMS(MM_M)        ((MM_M)/60.0f)
 #define MMS_TO_MMM(MM_S)        ((MM_S)*60.0f)
 #define MMS_SCALED(MM_S)        ((MM_S)*mechanics.feedrate_percentage*0.01)
+
+// Maths macros
+#undef MIN
+#undef MAX
+#undef ABS
+#undef NOMORE
+#undef NOLESS
+#undef LIMIT
+#undef ATAN2
+#undef POW
+#undef SQRT
+#undef CEIL
+#undef FLOOR
+#undef LROUND
+#undef FMOD
+#undef COS
+#undef SIN
+#define ATAN2(y,x)  atan2f(y, x)
+#define POW(x, y)   powf(x, y)
+#define SQRT(x)     sqrtf(x)
+#define RSQRT(x)    (1 / sqrtf(x))
+#define CEIL(x)     ceilf(x)
+#define FLOOR(x)    floorf(x)
+#define LROUND(x)   lroundf(x)
+#define FMOD(x,y)   fmodf(x, y)
+#define COS(x)      cosf(x)
+#define SIN(x)      sinf(x)
+#define LOG(x)      logf(x)
+
+#ifdef __cplusplus
+
+  extern "C++" {
+
+    template <class A, class B> static inline constexpr auto MIN(const A a, const B b) -> decltype(a + b) {
+      return a < b ? a : b;
+    }
+    template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b) {
+      return a > b ? a : b;
+    }
+    template<class T, class ... Ts> static inline constexpr const T MIN(T V, Ts... Vs) { return MIN(V, MIN(Vs...)); }
+    template<class T, class ... Ts> static inline constexpr const T MAX(T V, Ts... Vs) { return MAX(V, MAX(Vs...)); }
+
+    template <class A> static inline constexpr const A ABS(const A a) { return a >= 0 ? a : -a; }
+
+    template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) { if (a < b) a = b; }
+    template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) { if (a > b) a = b; }
+    template <class A, class B, class C> static inline constexpr void LIMIT(A& a, const B b, const C c) {
+      if (a < b) a = b;
+      else if (a > c) a = c;
+    }
+  }
+
+#else
+
+  // NUM_ARGS(...) evaluates to the number of arguments
+  #define _NUM_ARGS(X,X6,X5,X4,X3,X2,X1,N,...) N
+  #define NUM_ARGS(...)     _NUM_ARGS(0, __VA_ARGS__ ,6,5,4,3,2,1,0)
+
+  #define MIN_2(a,b)        ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b;})
+  #define MIN_3(a,...)      MIN_2(a,MIN_2(__VA_ARGS__))
+  #define MIN_4(a,...)      MIN_2(a,MIN_3(__VA_ARGS__))
+  #define MIN_5(a,...)      MIN_2(a,MIN_4(__VA_ARGS__))
+  #define MIN_6(a,...)      MIN_2(a,MIN_5(__VA_ARGS__))
+  #define __MIN_N(N, ...)   MIN_ ## N(__VA_ARGS__)
+  #define _MIN_N(N, ...)    __MIN_N(N, __VA_ARGS__)
+  #define MIN(...)          _MIN_N(NUM_ARGS(__VA_ARGS__), __VA_ARGS__)
+
+  #define MAX_2(a,b)        ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b;})
+  #define MAX_3(a,...)      MAX_2(a,MAX_2(__VA_ARGS__))
+  #define MAX_4(a,...)      MAX_2(a,MAX_3(__VA_ARGS__))
+  #define MAX_5(a,...)      MAX_2(a,MAX_4(__VA_ARGS__))
+  #define MAX_6(a,...)      MAX_2(a,MAX_5(__VA_ARGS__))
+  #define __MAX_N(N, ...)   MAX_ ## N(__VA_ARGS__)
+  #define _MAX_N(N, ...)    __MAX_N(N, __VA_ARGS__)
+  #define MAX(...)          _MAX_N(NUM_ARGS(__VA_ARGS__), __VA_ARGS__)
+
+  #define ABS(a)            ({__typeof__(a) _a = (a); _a >= 0 ? _a : -_a;})
+
+  #define NOLESS(v, n)      do { __typeof__(n) _n = (n); if (v < _n) v = _n; } while(0)
+  #define NOMORE(v, n)      do { __typeof__(n) _n = (n); if (v > _n) v = _n; } while(0)
+  #define LIMIT(v, n1, n2)  do { __typeof__(n1) _n1 = (n1); __typeof__(n2) _n2 = (n2); \
+                                if (v < _n1) v = _n1; \
+                                else if (v > _n2) v = _n2; \
+                            } while(0)
+
+#endif

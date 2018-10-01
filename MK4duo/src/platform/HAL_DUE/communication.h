@@ -30,10 +30,10 @@
 #define BYTE 0
 
 #if ENABLED(DEBUG_FEATURE)
-  void print_xyz(const char* prefix, const char* suffix, const float x, const float y, const float z);
-  void print_xyz(const char* prefix, const char* suffix, const float xyz[]);
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
+  void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
   #if HAS_PLANAR
-    void print_xyz(const char* prefix, const char* suffix, const vector_3 &xyz);
+    void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
   #endif
   #define DEBUG_POS(SUFFIX,VAR)       do{ \
     print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
@@ -67,10 +67,10 @@ class Com {
     static void serialprintPGM(FSTRINGPARAM(str));
 
     FORCE_INLINE static void write(const uint8_t c) { HAL::serialWriteByte(c); }
-    FORCE_INLINE static void write(const char* str) { while (*str) write(*str++); }
+    FORCE_INLINE static void write(PGM_P str) { while (*str) write(*str++); }
     FORCE_INLINE static void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
     FORCE_INLINE static void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
-    FORCE_INLINE static void print(const char* str) { write(str); }
+    FORCE_INLINE static void print(PGM_P str) { write(str); }
     FORCE_INLINE static void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) HAL::serialWriteByte(' '); }
 
     static void print(char, int = BYTE);
