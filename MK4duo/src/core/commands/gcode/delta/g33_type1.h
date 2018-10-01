@@ -166,9 +166,13 @@
     #endif
 
     printer.setup_for_endstop_or_probe_move();
-    endstops.setEnabled(true);
-    mechanics.home();
-    endstops.setNotHoming();
+
+    if (!printer.isHomedAll()) {
+      endstops.setEnabled(true);
+      mechanics.home();
+      endstops.setNotHoming();
+    }
+
     DEPLOY_PROBE();
 
     Calc_homed_height();
@@ -370,6 +374,14 @@
 
     mechanics.recalc_delta_settings();
 
+    endstops.setEnabled(true);
+    mechanics.home();
+    endstops.setNotHoming();
+
+    const float measured_z = probe.check_pt(0, 0, PROBE_PT_RAISE, 0);
+    mechanics.delta_height -= measured_z;
+    mechanics.recalc_delta_settings();
+
     SERIAL_MV("Endstops X", mechanics.delta_endstop_adj[A_AXIS], 3);
     SERIAL_MV(" Y", mechanics.delta_endstop_adj[B_AXIS], 3);
     SERIAL_MV(" Z", mechanics.delta_endstop_adj[C_AXIS], 3);
@@ -380,10 +392,6 @@
     SERIAL_MV(" J", mechanics.delta_tower_angle_adj[B_AXIS], 2);
     SERIAL_MV(" K", mechanics.delta_tower_angle_adj[C_AXIS], 2);
     SERIAL_EOL();
-
-    endstops.setEnabled(true);
-    mechanics.home();
-    endstops.setNotHoming();
 
     CALIBRATION_CLEANUP();
 
