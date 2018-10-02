@@ -2087,7 +2087,6 @@
 // For Arduino DUE setting to 8
 #define BUFSIZE 4
 
-/** START Function only for 8 bit proccesor */
 // Transmission to Host Buffer Size
 // To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
 // To buffer a simple "ok" you need 4 bytes.
@@ -2114,7 +2113,6 @@
 // Enable this option to collect and display the number
 // of dropped bytes after a file transfer to SD.
 //#define SERIAL_STATS_DROPPED_RX
-/** END Function only for 8 bit proccesor */
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
 // The values should not be less than 1
