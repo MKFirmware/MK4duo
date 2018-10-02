@@ -56,8 +56,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
   uint8_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_framing_errors = 0;
 
 template<int portNr, int RX_SIZE, int TX_SIZE>
-  typename MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::ring_buffer_pos_t
-    MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_max_enqueued = 0;
+  uint16_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_max_enqueued = 0;
 
 #define sw_barrier() asm volatile("": : :"memory");
 
@@ -69,13 +68,13 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     #endif
 
     // Get the tail pointer - Nothing can alter its value while we are at this ISR
-    const ring_buffer_pos_t t = rx_buffer.tail;
+    const uint16_t t = rx_buffer.tail;
 
     // Get the head pointer - This ISR is the only one that modifies its value, so it's safe to read here
-    ring_buffer_pos_t h = rx_buffer.head;
+    uint16_t h = rx_buffer.head;
 
     // Get the next element
-    ring_buffer_pos_t i = (ring_buffer_pos_t)(h + 1) & (ring_buffer_pos_t)(RX_SIZE - 1);
+    uint16_t i = (h + 1) & (RX_SIZE - 1);
 
     // Read the character from the USART
     uint8_t c = HWUART->UART_RHR;
@@ -95,7 +94,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       else if (!++rx_dropped_bytes) --rx_dropped_bytes;
     #endif
 
-    const ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(h - t) & (ring_buffer_pos_t)(RX_SIZE - 1);
+    const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
     // Calculate count of bytes stored into the RX buffer
 
     #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
@@ -108,7 +107,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XON_CHAR) {
 
         // Bytes stored into the RX buffer
-        const ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(h - t) & (ring_buffer_pos_t)(RX_SIZE - 1);
+        const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
 
         // If over 12.5% of RX buffer capacity, send XOFF before running out of
         // RX buffer space .. 325 bytes @ 250kbits/s needed to let the host react
@@ -133,7 +132,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
 
-              i = (ring_buffer_pos_t)(h + 1) & (ring_buffer_pos_t)(RX_SIZE - 1);
+              i = (h + 1) & (RX_SIZE - 1);
 
               // Read the character from the USART
               c = HWUART->UART_RHR;
@@ -170,7 +169,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
 
-              i = (ring_buffer_pos_t)(h + 1) & (ring_buffer_pos_t)(RX_SIZE - 1);
+              i = (h + 1) & (RX_SIZE - 1);
 
               // Read the character from the USART
               c = HWUART->UART_RHR;
@@ -352,13 +351,13 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
 template<int portNr, int RX_SIZE, int TX_SIZE>
   int MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::read(void) {
 
-    const ring_buffer_pos_t h = rx_buffer.head;
-    ring_buffer_pos_t t = rx_buffer.tail;
+    const uint16_t h = rx_buffer.head;
+    uint16_t t = rx_buffer.tail;
 
     if (h == t) return -1;
 
     int v = rx_buffer.buffer[t];
-    t = (ring_buffer_pos_t)(t + 1) & (RX_SIZE - 1);
+    t = (t + 1) & (RX_SIZE - 1);
 
     // Advance tail
     rx_buffer.tail = t;
@@ -368,7 +367,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       // If the XOFF char was sent, or about to be sent...
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
         // Get count of bytes in the RX buffer
-        const ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(h - t) & (ring_buffer_pos_t)(RX_SIZE - 1);
+        const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
         // When below 10% of RX buffer capacity, send XON before running out of RX buffer bytes
         if (rx_count < (RX_SIZE) / 10) {
           if (TX_SIZE > 0) {
@@ -392,10 +391,9 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
   }
 
 template<int portNr, int RX_SIZE, int TX_SIZE>
-  typename MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::ring_buffer_pos_t
-    MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::available(void) {
-      const ring_buffer_pos_t h = rx_buffer.head, t = rx_buffer.tail;
-      return (ring_buffer_pos_t)(RX_SIZE + h - t) & (RX_SIZE - 1);
+  uint16_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::available(void) {
+      const uint16_t h = rx_buffer.head, t = rx_buffer.tail;
+      return (RX_SIZE + h - t) & (RX_SIZE - 1);
     }
 
 template<int portNr, int RX_SIZE, int TX_SIZE>

@@ -30,60 +30,33 @@
   #define TX_BUFFER_SIZE 32
 #endif
 
-template <bool b, typename T, typename F> struct TypeSelector { typedef T type; };
-template <typename T, typename F> struct TypeSelector<false, T, F> { typedef F type; };
-
 template <typename S, unsigned int addr> struct ApplyAddrReg {
   constexpr ApplyAddrReg(int) {}
-  S* operator->() const { return (S*)addr; }
-};
-
-template <int IDPort> struct MKHardwareSerialInfo {};
-
-template <> struct MKHardwareSerialInfo<0> {
-  static constexpr unsigned int ADDR_REG = 0x400E0800U;  // UART
-  static constexpr IRQn_Type IRQ = UART_IRQn;
-  static constexpr int IRQ_ID = ID_UART;
-};
-
-template <> struct MKHardwareSerialInfo<1> {
-  static constexpr unsigned int ADDR_REG = 0x40098000U;  // USART0
-  static constexpr IRQn_Type IRQ = USART0_IRQn;
-  static constexpr int IRQ_ID = ID_USART0;
-};
-
-template <> struct MKHardwareSerialInfo<2> {
-  static constexpr unsigned int ADDR_REG = 0x4009C000U;  // USART1
-  static constexpr IRQn_Type IRQ = USART1_IRQn;
-  static constexpr int IRQ_ID = ID_USART1;
-};
-
-template <> struct MKHardwareSerialInfo<3> {
-  static constexpr unsigned int ADDR_REG = 0x400A0000U;  // USART2
-  static constexpr IRQn_Type IRQ = USART2_IRQn;
-  static constexpr int IRQ_ID = ID_USART2;
-};
-
-template <> struct MKHardwareSerialInfo<4> { 
-  static constexpr unsigned int ADDR_REG = 0x400A4000U;  // USART3
-  static constexpr IRQn_Type IRQ = USART3_IRQn;
-  static constexpr int IRQ_ID = ID_USART3;
+  FORCE_INLINE S* operator->() const { return (S*)addr; }
 };
 
 template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
   class MKHardwareSerial {
 
+    public: /** Constructor */
+
+      MKHardwareSerial() {}
+
+    private: /** Private Parameters */
+
+      static constexpr uint32_t   ADDR_REG[]  = { 0x400E0800U,  0x40098000U,  0x4009C000U,  0x400A0000U,  0x400A4000U };
+      static constexpr IRQn_Type  IRQ[]       = { UART_IRQn,    USART0_IRQn,  USART1_IRQn,  USART2_IRQn,  USART3_IRQn };
+      static constexpr int        IRQ_ID[]    = { ID_UART,      ID_USART0,    ID_USART1,    ID_USART2,    ID_USART3 };
+
     protected: /** Protected Function */
 
-      static constexpr ApplyAddrReg<Uart, MKHardwareSerialInfo<IDPort>::ADDR_REG> HWUART = 0;
-      static constexpr IRQn_Type HWUART_IRQ = MKHardwareSerialInfo<IDPort>::IRQ;
-      static constexpr int HWUART_IRQ_ID = MKHardwareSerialInfo<IDPort>::IRQ_ID;
-
-      typedef typename TypeSelector<(RX_SIZE > 256), uint16_t, uint8_t>::type ring_buffer_pos_t;
+      static constexpr ApplyAddrReg<Uart, ADDR_REG[IDPort]> HWUART = 0;
+      static constexpr IRQn_Type HWUART_IRQ = IRQ[IDPort];
+      static constexpr int HWUART_IRQ_ID    = IRQ_ID[IDPort];
 
       struct ring_buffer_r {
         unsigned char buffer[RX_SIZE];
-        volatile ring_buffer_pos_t head, tail;
+        volatile uint16_t head, tail;
       };
 
       struct ring_buffer_t {
@@ -107,16 +80,12 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
                       rx_buffer_overruns,
                       rx_framing_errors;
 
-      static ring_buffer_pos_t rx_max_enqueued;
+      static uint16_t rx_max_enqueued;
 
       static void store_rxd_char();
       static void _tx_thr_empty_irq(void);
       
       static void UART_ISR(void);
-
-    public: /** Constructor */
-
-      MKHardwareSerial() {}
 
     public: /** Public Function */
 
@@ -125,7 +94,7 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
       static int peek(void);
       static int read(void);
       static void flush(void);
-      static ring_buffer_pos_t available(void);
+      static uint16_t available(void);
       static void write(const uint8_t c);
       static void flushTX(void);
 
@@ -142,7 +111,7 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
       #endif
 
       #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
-        FORCE_INLINE static ring_buffer_pos_t rxMaxEnqueued() { return rx_max_enqueued; }
+        FORCE_INLINE static uint16_t rxMaxEnqueued() { return rx_max_enqueued; }
       #endif
 
       FORCE_INLINE static void write(PGM_P str) { while (*str) write(*str++); }
