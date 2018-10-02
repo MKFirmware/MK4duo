@@ -20,6 +20,9 @@
  *
  */
 
+#ifndef _DRIVER_TYPES_H_
+#define _DRIVER_TYPES_H_
+
 #pragma once
 
 // Models
@@ -103,3 +106,5 @@
 #define E3_IS_TRINAMIC      (E3_HAS_DRV(TMC2130)  || E3_HAS_DRV(TMC2208)  || E3_HAS_DRV(TMC5130))
 #define E4_IS_TRINAMIC      (E4_HAS_DRV(TMC2130)  || E4_HAS_DRV(TMC2208)  || E4_HAS_DRV(TMC5130))
 #define E5_IS_TRINAMIC      (E5_HAS_DRV(TMC2130)  || E5_HAS_DRV(TMC2208)  || E5_HAS_DRV(TMC5130))
+
+#endif /* _DRIVER_TYPES_H_ */

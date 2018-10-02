@@ -49,7 +49,7 @@
     #include "../feature/advanced_pause/advanced_pause.h"
   #endif
 
-  enum LCDViewAction {
+  enum LCDViewAction : uint8_t {
     LCDVIEW_NONE,
     LCDVIEW_REDRAW_NOW,
     LCDVIEW_CALL_REDRAW_NEXT,
@@ -64,7 +64,7 @@
   void lcd_kill_screen();
   void kill_screen(PGM_P lcd_msg);
 
-  extern uint8_t lcdDrawUpdate;
+  extern LCDViewAction lcdDrawUpdate;
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
   extern void lcd_move_z_probe();

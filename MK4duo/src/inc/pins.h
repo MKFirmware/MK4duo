@@ -20,7 +20,8 @@
  *
  */
 
-#pragma once
+#ifndef _PINS_H_
+#define _PINS_H_
 
 #define AS_QUOTED_STRING(S) #S
 #define INCLUDE_BY_MB(M)    AS_QUOTED_STRING(../boards/M.h)
@@ -351,3 +352,5 @@
                         Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, \
                         _E0_PINS _E1_PINS _E2_PINS _E3_PINS _E4_PINS _E5_PINS \
                        }
+
+#endif /* _PINS_H_ */
