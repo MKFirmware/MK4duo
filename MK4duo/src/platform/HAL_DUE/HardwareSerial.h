@@ -46,13 +46,13 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
 
       static constexpr uint32_t   ADDR_REG[]  = { 0x400E0800U,  0x40098000U,  0x4009C000U,  0x400A0000U,  0x400A4000U };
       static constexpr IRQn_Type  IRQ[]       = { UART_IRQn,    USART0_IRQn,  USART1_IRQn,  USART2_IRQn,  USART3_IRQn };
-      static constexpr int        IRQ_ID[]    = { ID_UART,      ID_USART0,    ID_USART1,    ID_USART2,    ID_USART3 };
+      static constexpr uint32_t   IRQ_ID[]    = { ID_UART,      ID_USART0,    ID_USART1,    ID_USART2,    ID_USART3 };
 
     protected: /** Protected Function */
 
-      static constexpr ApplyAddrReg<Uart, ADDR_REG[IDPort]> HWUART = 0;
-      static constexpr IRQn_Type HWUART_IRQ = IRQ[IDPort];
-      static constexpr int HWUART_IRQ_ID    = IRQ_ID[IDPort];
+      static constexpr ApplyAddrReg<Uart, ADDR_REG[IDPort]> _pUart = 0;
+      static constexpr IRQn_Type  _dwIrq  = IRQ[IDPort];
+      static constexpr uint32_t   _dwId   = IRQ_ID[IDPort];
 
       struct ring_buffer_r {
         unsigned char buffer[RX_SIZE];

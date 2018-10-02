@@ -77,7 +77,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     uint16_t i = (h + 1) & (RX_SIZE - 1);
 
     // Read the character from the USART
-    uint8_t c = HWUART->UART_RHR;
+    uint8_t c = _pUart->UART_RHR;
 
     #if ENABLED(EMERGENCY_PARSER)
       emergency_parser.update(emergency_state, c);
@@ -127,7 +127,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
           // - While waiting for the TX register to empty, the RX register could receive a new
           //   character. This must also handle that situation!
           uint32_t status;
-          while (!((status = HWUART->UART_SR) & UART_SR_TXRDY)) {
+          while (!((status = _pUart->UART_SR) & UART_SR_TXRDY)) {
 
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
@@ -135,7 +135,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
               i = (h + 1) & (RX_SIZE - 1);
 
               // Read the character from the USART
-              c = HWUART->UART_RHR;
+              c = _pUart->UART_RHR;
 
               #if ENABLED(EMERGENCY_PARSER)
                 emergency_parser.update(emergency_state, c);
@@ -155,7 +155,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             sw_barrier();
           }
 
-          HWUART->UART_THR = XOFF_CHAR;
+          _pUart->UART_THR = XOFF_CHAR;
 
           // At this point there could be a race condition between the write() function
           // and this sending of the XOFF char. This interrupt could happen between the
@@ -164,7 +164,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
           // sure the write() function will succeed is to wait for the XOFF char to be
           // completely sent. Since an extra character could be received during the wait
           // it must also be handled!
-          while (!((status = HWUART->UART_SR) & UART_SR_TXRDY)) {
+          while (!((status = _pUart->UART_SR) & UART_SR_TXRDY)) {
 
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
@@ -172,7 +172,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
               i = (h + 1) & (RX_SIZE - 1);
 
               // Read the character from the USART
-              c = HWUART->UART_RHR;
+              c = _pUart->UART_RHR;
 
               #if ENABLED(EMERGENCY_PARSER)
                 emergency_parser.update(emergency_state, c);
@@ -217,13 +217,13 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
         if (xon_xoff_state == XON_CHAR) {
     
           // Send the character
-          HWUART->UART_THR = XON_CHAR;
+          _pUart->UART_THR = XON_CHAR;
     
           // Remember we sent it.
           xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
     
           // If nothing else to transmit, just disable TX interrupts.
-          if (h == t) HWUART->UART_IDR = UART_IDR_TXRDY;
+          if (h == t) _pUart->UART_IDR = UART_IDR_TXRDY;
     
           return;
         }
@@ -234,18 +234,18 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       // happen as the result of the non atomicity of the disabling of RX
       // interrupts that could end reenabling TX interrupts as a side effect.
       if (h == t) {
-        HWUART->UART_IDR = UART_IDR_TXRDY;
+        _pUart->UART_IDR = UART_IDR_TXRDY;
         return;
       }
 
       // There is something to TX, Send the next byte
       const uint8_t c = tx_buffer.buffer[t];
       t = (t + 1) & (TX_SIZE - 1);
-      HWUART->UART_THR = c;
+      _pUart->UART_THR = c;
       tx_buffer.tail = t;
 
       // Disable interrupts if there is nothing to transmit following this byte
-      if (h == t) HWUART->UART_IDR = UART_IDR_TXRDY;
+      if (h == t) _pUart->UART_IDR = UART_IDR_TXRDY;
 
     #endif // TX_BUFFER_SIZE > 0
   }
@@ -253,14 +253,14 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
 template<int portNr, int RX_SIZE, int TX_SIZE>
   void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::UART_ISR(void) {
 
-    const uint32_t status = HWUART->UART_SR;
+    const uint32_t status = _pUart->UART_SR;
 
     // Data received?
     if (status & UART_SR_RXRDY) store_rxd_char();
 
     if (TX_SIZE > 0) {
       // Something to send, and TX interrupts are enabled (meaning something to send)?
-      if ((status & UART_SR_TXRDY) && (HWUART->UART_IMR & UART_IMR_TXRDY)) _tx_thr_empty_irq();
+      if ((status & UART_SR_TXRDY) && (_pUart->UART_IMR & UART_IMR_TXRDY)) _tx_thr_empty_irq();
     }
 
     // Acknowledge errors
@@ -272,7 +272,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
         if (status & UART_SR_OVRE && !++rx_buffer_overruns) --rx_buffer_overruns;
       #endif
       // TODO: error reporting outside ISR
-      HWUART->UART_CR = UART_CR_RSTSTA;
+      _pUart->UART_CR = UART_CR_RSTSTA;
     }
   }
 
@@ -281,7 +281,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
   void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::begin(const long baud) {
 
     // Disable UART interrupt in NVIC
-    NVIC_DisableIRQ( HWUART_IRQ );
+    NVIC_DisableIRQ( _dwIrq );
 
     // We NEED memory barriers to ensure Interrupts are actually disabled!
     // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
@@ -289,40 +289,40 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     __ISB();
 
     // Disable clock
-    pmc_disable_periph_clk( HWUART_IRQ_ID );
+    pmc_disable_periph_clk( _dwId );
 
     // Configure PMC
-    pmc_enable_periph_clk( HWUART_IRQ_ID );
+    pmc_enable_periph_clk( _dwId );
 
     // Disable PDC channel
-    HWUART->UART_PTCR = UART_PTCR_RXTDIS | UART_PTCR_TXTDIS;
+    _pUart->UART_PTCR = UART_PTCR_RXTDIS | UART_PTCR_TXTDIS;
 
     // Reset and disable receiver and transmitter
-    HWUART->UART_CR = UART_CR_RSTRX | UART_CR_RSTTX | UART_CR_RXDIS | UART_CR_TXDIS;
+    _pUart->UART_CR = UART_CR_RSTRX | UART_CR_RSTTX | UART_CR_RXDIS | UART_CR_TXDIS;
 
     // Configure mode: 8bit, No parity, 1 bit stop
-    HWUART->UART_MR = UART_MR_CHMODE_NORMAL | US_MR_CHRL_8_BIT | US_MR_NBSTOP_1_BIT | UART_MR_PAR_NO;
+    _pUart->UART_MR = UART_MR_CHMODE_NORMAL | US_MR_CHRL_8_BIT | US_MR_NBSTOP_1_BIT | UART_MR_PAR_NO;
 
     // Configure baudrate (asynchronous, no oversampling)
-    HWUART->UART_BRGR = (SystemCoreClock / (baud << 4));
+    _pUart->UART_BRGR = (SystemCoreClock / (baud << 4));
 
     // Configure interrupts
-    HWUART->UART_IDR = 0xFFFFFFFF;
-    HWUART->UART_IER = UART_IER_RXRDY | UART_IER_OVRE | UART_IER_FRAME;
+    _pUart->UART_IDR = 0xFFFFFFFF;
+    _pUart->UART_IER = UART_IER_RXRDY | UART_IER_OVRE | UART_IER_FRAME;
 
     // Install interrupt handler
-    install_isr(HWUART_IRQ, UART_ISR);
+    install_isr(_dwIrq, UART_ISR);
 
     // Configure priority. We need a very high priority to avoid losing characters
     // and we need to be able to preempt the Stepper ISR and everything else!
     // (this could probably be fixed by using DMA with the Serial port)
-    NVIC_SetPriority(HWUART_IRQ, 1);
+    NVIC_SetPriority(_dwIrq, 1);
 
     // Enable UART interrupt in NVIC
-    NVIC_EnableIRQ(HWUART_IRQ);
+    NVIC_EnableIRQ(_dwIrq);
 
     // Enable receiver and transmitter
-    HWUART->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
+    _pUart->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
 
     #if TX_BUFFER_SIZE > 0
       _written = false;
@@ -332,14 +332,14 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
 template<int portNr, int RX_SIZE, int TX_SIZE>
   void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::end() {
     // Disable UART interrupt in NVIC
-    NVIC_DisableIRQ( HWUART_IRQ );
+    NVIC_DisableIRQ( _dwIrq );
 
     // We NEED memory barriers to ensure Interrupts are actually disabled!
     // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
     __DSB();
     __ISB();
 
-    pmc_disable_periph_clk( HWUART_IRQ_ID );
+    pmc_disable_periph_clk( _dwId );
   }
 
 template<int portNr, int RX_SIZE, int TX_SIZE>
@@ -374,13 +374,13 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             // Signal we want an XON character to be sent.
             xon_xoff_state = XON_CHAR;
             // Enable TX isr.
-            HWUART->UART_IER = UART_IER_TXRDY;
+            _pUart->UART_IER = UART_IER_TXRDY;
           }
           else {
             // If not using TX interrupts, we must send the XON char now
             xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
-            while (!(HWUART->UART_SR & UART_SR_TXRDY)) sw_barrier();
-            HWUART->UART_THR = XON_CHAR;
+            while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
+            _pUart->UART_THR = XON_CHAR;
           }
         }
       }
@@ -407,13 +407,13 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
           // Signal we want an XON character to be sent.
           xon_xoff_state = XON_CHAR;
           // Enable TX isr.
-          HWUART->UART_IER = UART_IER_TXRDY;
+          _pUart->UART_IER = UART_IER_TXRDY;
         }
         else {
           // If not using TX interrupts, we must send the XON char now
           xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
-          while (!(HWUART->UART_SR & UART_SR_TXRDY)) sw_barrier();
-          HWUART->UART_THR = XON_CHAR;
+          while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
+          _pUart->UART_THR = XON_CHAR;
         }
       }
 
@@ -426,8 +426,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     _written = true;
 
     if (TX_SIZE == 0) {
-      while (!(HWUART->UART_SR & UART_SR_TXRDY)) sw_barrier();
-      HWUART->UART_THR = c;
+      while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
+      _pUart->UART_THR = c;
     }
     else {
    
@@ -438,8 +438,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       // interrupt overhead becomes a slowdown.
       // Yes, there is a race condition between the sending of the
       // XOFF char at the RX isr, but it is properly handled there
-      if (!(HWUART->UART_IMR & UART_IMR_TXRDY) && (HWUART->UART_SR & UART_SR_TXRDY)) {
-        HWUART->UART_THR = c;
+      if (!(_pUart->UART_IMR & UART_IMR_TXRDY) && (_pUart->UART_SR & UART_SR_TXRDY)) {
+        _pUart->UART_THR = c;
         return;
       }
     
@@ -451,7 +451,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
         // Make room by polling if it is possible to transmit, and do so!
         while (i == tx_buffer.tail) {
           // If we can transmit another byte, do it.
-          if (HWUART->UART_SR & UART_SR_TXRDY) _tx_thr_empty_irq();
+          if (_pUart->UART_SR & UART_SR_TXRDY) _tx_thr_empty_irq();
           // Make sure compiler rereads tx_buffer.tail
           sw_barrier();
         }
@@ -466,7 +466,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       tx_buffer.head = i;
     
       // Enable TX isr - Non atomic, but it will eventually enable TX isr
-      HWUART->UART_IER = UART_IER_TXRDY;
+      _pUart->UART_IER = UART_IER_TXRDY;
     }
   }
 
@@ -480,7 +480,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       if (!_written) return;
 
       // Wait until everything was transmitted
-      while (!(HWUART->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
+      while (!(_pUart->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
 
     }
     else {
@@ -493,16 +493,16 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       if (!ISRS_ENABLED()) {
     
         // Wait until everything was transmitted - We must do polling, as interrupts are disabled
-        while (tx_buffer.head != tx_buffer.tail || !(HWUART->UART_SR & UART_SR_TXEMPTY)) {
+        while (tx_buffer.head != tx_buffer.tail || !(_pUart->UART_SR & UART_SR_TXEMPTY)) {
           // If there is more space, send an extra character
-          if (HWUART->UART_SR & UART_SR_TXRDY) _tx_thr_empty_irq();
+          if (_pUart->UART_SR & UART_SR_TXRDY) _tx_thr_empty_irq();
           sw_barrier();
         }
     
       }
       else {
         // Wait until everything was transmitted
-        while (tx_buffer.head != tx_buffer.tail || !(HWUART->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
+        while (tx_buffer.head != tx_buffer.tail || !(_pUart->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
       }
     }
   }
