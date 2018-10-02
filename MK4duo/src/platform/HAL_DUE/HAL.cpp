@@ -86,6 +86,48 @@ bool    HAL::Analog_is_ready = false;
   ADCAveragingFilter  HAL::mcuFilter;
 #endif
 
+__attribute__ ((aligned(256)))
+static DeviceVectors ram_tab = { NULL };
+
+static pfnISR_Handler* get_relocated_table_addr(void) {
+  // Get the address of the interrupt/exception table
+  uint32_t isrtab = SCB->VTOR;
+
+  // If already relocated, we are done!
+  if (isrtab >= IRAM0_ADDR)
+    return (pfnISR_Handler*)isrtab;
+
+  // Get the address of the table stored in FLASH
+  const pfnISR_Handler* romtab = (const pfnISR_Handler*)isrtab;
+
+  // Copy it to SRAM
+  memcpy(&ram_tab, romtab, sizeof(ram_tab));
+
+  CRITICAL_SECTION_START
+    // Set the vector table base address to the SRAM copy
+    SCB->VTOR = (uint32_t)(&ram_tab);
+  CRITICAL_SECTION_END;
+
+  return (pfnISR_Handler*)(&ram_tab);
+}
+
+pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler) {
+  // Get the address of the relocated table
+  pfnISR_Handler *isrtab = get_relocated_table_addr();
+
+  CRITICAL_SECTION_START
+
+    // Get the original handler
+    pfnISR_Handler oldHandler = isrtab[irq + 16];
+
+    // Install the new one
+    isrtab[irq + 16] = newHandler;
+
+  CRITICAL_SECTION_END
+
+  return oldHandler;
+}
+
 // disable interrupts
 void cli(void) {
   noInterrupts();

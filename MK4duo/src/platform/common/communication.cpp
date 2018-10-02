@@ -22,14 +22,30 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(__AVR__)
+FSTRINGVALUE(START, "start");
+FSTRINGVALUE(OK, "ok");
+FSTRINGVALUE(OKSPACE, "ok ");
+FSTRINGVALUE(ER, "Error:");
+FSTRINGVALUE(WT, "wait");
+FSTRINGVALUE(ECHO, "echo:");
+FSTRINGVALUE(CFG, "Config:");
+FSTRINGVALUE(CAP, "Cap:");
+FSTRINGVALUE(INFO, "Info:");
+FSTRINGVALUE(BUSY, "busy:");
+FSTRINGVALUE(RESEND, "Resend:");
+FSTRINGVALUE(WARNING, "Warning:");
+FSTRINGVALUE(TNAN, "NAN");
+FSTRINGVALUE(TINF, "INF");
+FSTRINGVALUE(PAUSE, "// action:pause");
+FSTRINGVALUE(RESUME, "// action:resume");
+FSTRINGVALUE(DISCONNECT, "// action:disconnect");
+FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 
-// Things to write to serial from Program memory. Saves 400 to 2k of RAM.
 void serialprintPGM(PGM_P str) {
-  while (char ch = pgm_read_byte(str++)) MKSERIAL.write(ch);
+  while (char c = pgm_read_byte(str++)) MKSERIAL.write(c);
 }
 
-void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
+void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
 
 #if ENABLED(DEBUG_FEATURE)
 
@@ -56,5 +72,3 @@ void serial_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (c
   #endif
 
 #endif // ENABLED(DEBUG_FEATURE)
-
-#endif // __AVR__

@@ -1,5 +1,5 @@
 /**
- * MK & MK4due 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -20,68 +20,38 @@
  *
  */
 
-#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+#ifndef _COMMUNICATION_H_
+#define _COMMUNICATION_H_
 
-#define START         "start"                 // start for host
-#define OK            "ok"                    // ok answer for host
-#define OKSPACE       "ok "                   // ok plus space 
-#define ER            "Error:"                // error for host
-#define WT            "wait"                  // wait for host
-#define ECHO          "Echo:"                 // message for user
-#define CFG           "Config:"               // config for host
-#define CAP           "Cap:"                  // capabilities for host
-#define INFO          "Info:"                 // info for host
-#define BUSY          "busy:"                 // buys for host
-#define RESEND        "Resend:"               // resend for host
-#define WARNING       "Warning:"              // warning for host
-#define TNAN          "NAN"                   // NAN for host
-#define TINF          "INF"                   // INF for host
-#define PAUSE         "// action:pause"       // command for host that support action
-#define RESUME        "// action:resume"      // command for host that support action
-#define DISCONNECT    "// action:disconnect"  // command for host that support action
-#define REQUESTPAUSE  "RequestPause:"         // command for host that support request
+#define DEC 10
+#define HEX 16
+#define OCT  8
+#define BIN  2
+#define BYTE 0
 
-#define SERIAL_INIT(baud)                   do{ MKSERIAL.begin(baud); HAL::delayMilliseconds(1); }while(0)
+FSTRINGVAR(START);        // start for host
+FSTRINGVAR(OK);           // ok answer for host
+FSTRINGVAR(OKSPACE);      // ok space answer for host
+FSTRINGVAR(ER);           // error for host
+FSTRINGVAR(WT);           // wait for host
+FSTRINGVAR(ECHO);         // message for user
+FSTRINGVAR(CFG);          // config for host
+FSTRINGVAR(CAP);          // capabilities for host
+FSTRINGVAR(INFO);         // info for host
+FSTRINGVAR(BUSY);         // buys for host
+FSTRINGVAR(RESEND);       // resend for host
+FSTRINGVAR(WARNING);      // warning for host
+FSTRINGVAR(TNAN);         // NAN for host
+FSTRINGVAR(TINF);         // INF for host
+FSTRINGVAR(PAUSE);        // command for host that support action
+FSTRINGVAR(RESUME);       // command for host that support action
+FSTRINGVAR(DISCONNECT);   // command for host that support action
+FSTRINGVAR(REQUESTPAUSE); // command for host that support action
 
 // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
 void serialprintPGM(PGM_P str);
 
-#define SERIAL_PS(message)                  (serialprintPGM(message))
-#define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
-
-#define SERIAL_STR(str)                     SERIAL_PGM(str)
-#define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
-#define SERIAL_TXT(txt)                     (MKSERIAL.print(txt))
-#define SERIAL_VAL(val, ...)                (MKSERIAL.print(val, ## __VA_ARGS__))
-#define SERIAL_CHR(c)                       (MKSERIAL.write(c))
-#define SERIAL_EOL()                        (MKSERIAL.write('\n'))
-
-#define SERIAL_SP(C)                        serial_spaces(C)
-
-#define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
-#define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__);  }while(0)
-
-#define SERIAL_SM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); }while(0)
-#define SERIAL_ST(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); }while(0)
-#define SERIAL_SV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
-#define SERIAL_SMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); }while(0)
-#define SERIAL_SMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
-
-#define SERIAL_EM(msg)                      (serialprintPGM(PSTR(msg "\n")))
-#define SERIAL_ET(txt)                      do{ SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
-#define SERIAL_EV(val, ...)                 do{ SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-#define SERIAL_EMT(msg, txt)                do{ SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
-#define SERIAL_EMV(msg, val, ...)           do{ SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-
-#define SERIAL_L(str)                       do{ SERIAL_STR(str); SERIAL_EOL(); }while(0)
-#define SERIAL_LM(str, msg)                 do{ SERIAL_STR(str); SERIAL_EM(msg); }while(0)
-#define SERIAL_LT(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-#define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
-#define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-
-void serial_spaces(uint8_t count);
+void print_spaces(uint8_t count);
 
 #if ENABLED(DEBUG_FEATURE)
   void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
@@ -93,4 +63,41 @@ void serial_spaces(uint8_t count);
     print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
 #endif
 
-#endif /* COMMUNICATION_H */
+// MACRO FOR SERIAL
+#define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
+
+#define SERIAL_PS(message)                  (serialprintPGM(message))
+#define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
+
+#define SERIAL_STR(str)                     SERIAL_PS(str)
+#define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
+#define SERIAL_TXT(txt)                     (MKSERIAL.print(txt))
+#define SERIAL_VAL(val, ...)                (MKSERIAL.print(val, ## __VA_ARGS__))
+#define SERIAL_CHR(c)                       (MKSERIAL.write(c))
+#define SERIAL_EOL()                        (MKSERIAL.println())
+
+#define SERIAL_SP(C)                        (print_spaces(C))
+
+#define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
+#define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
+
+#define SERIAL_SM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); }while(0)
+#define SERIAL_ST(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); }while(0)
+#define SERIAL_SV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)
+#define SERIAL_SMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); }while(0)
+#define SERIAL_SMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); }while(0)
+
+#define SERIAL_EM(msg)                      do{ SERIAL_MSG(msg); SERIAL_EOL(); }while(0)
+#define SERIAL_ET(txt)                      do{ SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
+#define SERIAL_EV(val, ...)                 do{ SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_EMT(msg, txt)                do{ SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
+#define SERIAL_EMV(msg, val, ...)           do{ SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+
+#define SERIAL_L(str)                       do{ SERIAL_STR(str); SERIAL_EOL(); }while(0)
+#define SERIAL_LM(str, msg)                 do{ SERIAL_STR(str); SERIAL_MSG(msg); SERIAL_EOL(); }while(0)
+#define SERIAL_LT(str, txt)                 do{ SERIAL_STR(str); SERIAL_TXT(txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+#define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
+#define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+
+#endif /* _COMMUNICATION_H_ */

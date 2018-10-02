@@ -112,16 +112,17 @@ typedef uint32_t  ptr_int_t;
 #endif
 
 // SERIAL
+#include "HardwareSerial.h"
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
-  #define MKSERIAL Serial
+  #define MKSERIAL MKSerial
 #elif SERIAL_PORT == 1
-  #define MKSERIAL Serial1
+  #define MKSERIAL MKSerial1
 #elif SERIAL_PORT == 2
-  #define MKSERIAL Serial2
+  #define MKSERIAL MKSerial2
 #elif SERIAL_PORT == 3
-  #define MKSERIAL Serial3
+  #define MKSERIAL MKSerial3
 #endif
 
 // EEPROM START
@@ -195,6 +196,12 @@ extern "C" char *sbrk(int i);
 extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
 
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
+
+// ISR handler type
+typedef void (*pfnISR_Handler)(void);
+
+// Install a new interrupt vector handler for the given irq, returning the old one
+pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler);
 
 class HAL {
 

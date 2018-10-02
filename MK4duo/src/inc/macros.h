@@ -20,7 +20,8 @@
  *
  */
 
-#pragma once
+#ifndef _MACROS_H_
+#define _MACROS_H_
 
 // NoPin
 #define NoPin     -1
@@ -55,7 +56,7 @@
 #define NS_PER_CYCLE    (1000000000.0/(F_CPU))
 
 // Remove compiler warning on an unused variable
-#define UNUSED(x)       (void)(x)
+#define UNUSED(x)       ((void)(x))
 
 /**
  * Macrof for Delay
@@ -109,9 +110,8 @@
 #define L(CODE)       CODE ":\n\t"
 
 // Macros for communication
-#define FSTRINGVALUE(var,value) const char var[] PROGMEM = value;
-#define FSTRINGVAR(var)         static const char var[] PROGMEM;
-#define FSTRINGPARAM(var)       PGM_P var
+#define FSTRINGVALUE(var,value) const char var[] PROGMEM = value
+#define FSTRINGVAR(var)         extern const char var[] PROGMEM
 
 // Macros for bit masks
 #undef _BV
@@ -287,7 +287,7 @@
   #define _NUM_ARGS(X,X6,X5,X4,X3,X2,X1,N,...) N
   #define NUM_ARGS(...)     _NUM_ARGS(0, __VA_ARGS__ ,6,5,4,3,2,1,0)
 
-  #define MIN_2(a,b)        ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b;})
+  #define MIN_2(a,b)        ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); _a < _b ? _a : _b;})
   #define MIN_3(a,...)      MIN_2(a,MIN_2(__VA_ARGS__))
   #define MIN_4(a,...)      MIN_2(a,MIN_3(__VA_ARGS__))
   #define MIN_5(a,...)      MIN_2(a,MIN_4(__VA_ARGS__))
@@ -315,3 +315,5 @@
                             } while(0)
 
 #endif
+
+#endif /* _MACROS_H_ */
