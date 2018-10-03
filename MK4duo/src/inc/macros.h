@@ -126,24 +126,6 @@
 #define SBI32(n,b)        (n |= _BV32(b))
 #define CBI32(n,b)        (n &= ~_BV32(b))
 
-// Macros for maths shortcuts
-#undef M_PI
-#define M_PI              3.14159265358979323846f
-
-#define RADIANS(d)        ((d)*float(M_PI)/180.0f)
-#define DEGREES(r)        ((r)*180.0f/float(M_PI))
-#define HYPOT2(x,y)       (sq(x)+sq(y))
-#define HYPOT(x,y)        SQRT(HYPOT2(x,y))
-#define SQUARE(x)         ((x)*(x))
-#define SIN_60            0.8660254037844386f
-#define COS_60            0.5f
-
-#define CIRCLE_AREA(R)    (float(M_PI) * sq(float(R)))
-#define CIRCLE_CIRC(R)    (2 * float(M_PI) * float(R))
-
-#define SIGN(a)           ((a>0)-(a<0))
-#define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
-
 // Macros to contrain values
 #define WITHIN(V,L,H)     ((V) >= (L) && (V) <= (H))
 #define NUMERIC(a)        WITHIN(a, '0', '9')
@@ -230,7 +212,24 @@
 #define MMS_TO_MMM(MM_S)        ((MM_S)*60.0f)
 #define MMS_SCALED(MM_S)        ((MM_S)*mechanics.feedrate_percentage*0.01)
 
-// Maths macros
+// Macros for maths shortcuts
+#undef M_PI
+#define M_PI              3.14159265358979323846f
+
+#define RADIANS(d)        ((d)*float(M_PI)/180.0f)
+#define DEGREES(r)        ((r)*180.0f/float(M_PI))
+#define HYPOT2(x,y)       (sq(x)+sq(y))
+#define HYPOT(x,y)        SQRT(HYPOT2(x,y))
+#define SQUARE(x)         ((x)*(x))
+#define SIN_60            0.8660254037844386f
+#define COS_60            0.5f
+
+#define CIRCLE_AREA(R)    (float(M_PI) * sq(float(R)))
+#define CIRCLE_CIRC(R)    (2 * float(M_PI) * float(R))
+
+#define SIGN(a)           ((a>0)-(a<0))
+#define IS_POWER_OF_2(x)  ((x) && !((x) & ((x) - 1)))
+
 #undef MIN
 #undef MAX
 #undef ABS
