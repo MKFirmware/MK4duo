@@ -147,9 +147,7 @@ void Printer::setup() {
   #endif
 
   // Init Serial for HOST
-  MKSERIAL.begin(BAUDRATE);
-  HAL::delayMilliseconds(1000);
-  SERIAL_L(START);
+  Com::SetBaudrate();
 
   #if HAS_TRINAMIC
     tmc.init();
@@ -175,9 +173,6 @@ void Printer::setup() {
 
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
-
-  // Send "ok" after commands by default
-  commands.setup();
 
   lcd_init();
   LCD_MESSAGEPGM(WELCOME_MSG);

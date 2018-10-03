@@ -48,35 +48,71 @@ FSTRINGVAR(RESUME);       // command for host that support action
 FSTRINGVAR(DISCONNECT);   // command for host that support action
 FSTRINGVAR(REQUESTPAUSE); // command for host that support action
 
-// Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
-void serialprintPGM(PGM_P str);
+class Com {
 
-void print_spaces(uint8_t count);
+  public: /** Public Parameters */
 
-#if ENABLED(DEBUG_FEATURE)
-  void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
-  void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
-  #if HAS_PLANAR
-    void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
-  #endif
-  #define DEBUG_POS(SUFFIX,VAR)       do{ \
-    print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
-#endif
+    static int8_t port;
+
+  public: /** Public Function */
+
+    static void SetBaudrate();
+
+    static void serialFlush();
+
+    // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
+    static void printPGM(PGM_P);
+
+    static void write(char);
+    static void write(PGM_P);
+    static void write(const uint8_t* buffer, size_t size);
+    static void print(const String& s);
+    static void print(PGM_P);
+
+    static void print(char, int = BYTE);
+    static void print(unsigned char, int = DEC);
+    static void print(int, int = DEC);
+    static void print(unsigned int, int = DEC);
+    static void print(long, int = DEC);
+    static void print(unsigned long, int = DEC);
+    static void print(double, int = 2);
+
+    static void println(void);
+    operator bool() { return true; }
+
+    static void print_spaces(uint8_t count);
+
+    #if ENABLED(DEBUG_FEATURE)
+      static void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
+      static void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
+      #if HAS_PLANAR
+        static void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
+      #endif
+      #define DEBUG_POS(SUFFIX,VAR)       do{ \
+        Com::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
+    #endif
+
+  private: /** Private Function */
+
+      static void printNumber(unsigned long, const uint8_t);
+      static void printFloat(double, uint8_t);
+
+};
 
 // MACRO FOR SERIAL
-#define SERIAL_INIT(baud)                   HAL::serialSetBaudrate(baud)
+#define SERIAL_PORT(a)                      (Com::port = a)
 
-#define SERIAL_PS(message)                  (serialprintPGM(message))
-#define SERIAL_PGM(message)                 (serialprintPGM(PSTR(message)))
+#define SERIAL_PS(message)                  (Com::printPGM(message))
+#define SERIAL_PGM(message)                 (Com::printPGM(PSTR(message)))
 
 #define SERIAL_STR(str)                     SERIAL_PS(str)
 #define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
-#define SERIAL_TXT(txt)                     (MKSERIAL.print(txt))
-#define SERIAL_VAL(val, ...)                (MKSERIAL.print(val, ## __VA_ARGS__))
-#define SERIAL_CHR(c)                       (MKSERIAL.write(c))
-#define SERIAL_EOL()                        (MKSERIAL.println())
+#define SERIAL_TXT(txt)                     (Com::print(txt))
+#define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
+#define SERIAL_CHR(c)                       (Com::write(c))
+#define SERIAL_EOL()                        (Com::println())
 
-#define SERIAL_SP(C)                        (print_spaces(C))
+#define SERIAL_SP(C)                        (Com::print_spaces(C))
 
 #define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
 #define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)

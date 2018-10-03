@@ -194,7 +194,7 @@ static bool ee_PageWrite(uint16_t page, const void* data) {
     SERIAL_LMV(ECHO, "EEPROM PageWrite  ", page);
     SERIAL_LMV(ECHO, " in FLASH address ", (uint32_t)addrflash);
     SERIAL_LMV(ECHO, " base address     ", (uint32_t)getFlashStorage(0));
-    HAL::serialFlush();
+    Com::serialFlush();
   #endif
 
   // Get the page relative to the start of the EFC controller, and the EFC controller to use
@@ -321,7 +321,7 @@ static bool ee_PageErase(uint16_t page) {
     SERIAL_LMV(ECHO, "EEPROM PageErase  ", page);
     SERIAL_LMV(ECHO, " in FLASH address ", (uint32_t)addrflash);
     SERIAL_LMV(ECHO, " base address     ", (uint32_t)getFlashStorage(0));
-    HAL::serialFlush();
+    Com::serialFlush();
   #endif
 
   // Get the page relative to the start of the EFC controller, and the EFC controller to use
@@ -914,7 +914,7 @@ static void ee_Init() {
 
   #if ENABLED(EE_EMU_DEBUG)
     SERIAL_LMV(ECHO, "EEPROM Current Group: ", curGroup);
-    HAL::serialFlush();
+    Com::serialFlush();
   #endif
 
   // Now, validate that all the other group pages are empty
@@ -926,7 +926,7 @@ static void ee_Init() {
         #if ENABLED(EE_EMU_DEBUG)
           SERIAL_SMV(ECHO, "EEPROM Page ", page);
           SERIAL_EMV(" not clean on group ", grp);
-          HAL::serialFlush();
+          Com::serialFlush();
         #endif
         ee_PageErase(grp * PagesPerGroup + page);
       }
@@ -946,7 +946,7 @@ static void ee_Init() {
 
   #if ENABLED(EE_EMU_DEBUG)
     SERIAL_LMV(ECHO, "EEPROM Active page: ", curPage);
-    HAL::serialFlush();
+    Com::serialFlush();
   #endif
 
   // Make sure the pages following the first clean one are also clean
@@ -955,7 +955,7 @@ static void ee_Init() {
       #if ENABLED(EE_EMU_DEBUG)
         SERIAL_SMV(ECHO, "EEPROM Page ", page);
         SERIAL_EMV(" not clean on active group ", curGroup);
-        HAL::serialFlush();
+        Com::serialFlush();
         ee_Dump(curGroup * PagesPerGroup + page, getFlashStorage(curGroup * PagesPerGroup + page));
       #endif
       ee_PageErase(curGroup * PagesPerGroup + page);

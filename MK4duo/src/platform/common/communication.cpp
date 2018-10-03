@@ -41,15 +41,130 @@ FSTRINGVALUE(RESUME, "// action:resume");
 FSTRINGVALUE(DISCONNECT, "// action:disconnect");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 
-void serialprintPGM(PGM_P str) {
-  while (char c = pgm_read_byte(str++)) MKSERIAL.write(c);
+// Public Parameters
+int8_t Com::port = -1;
+
+// Public Function
+void Com::SetBaudrate() {
+  MKSERIAL.begin(BAUDRATE);
+  HAL::delayMilliseconds(1000);
+  #if NUM_SERIAL > 1
+    MKSERIAL2.begin(BAUDRATE_2);
+    HAL::delayMilliseconds(1000);
+  #endif
+  SERIAL_STR(START);
+  SERIAL_EOL();
 }
 
-void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (count--) MKSERIAL.write(' '); }
+void Com::serialFlush() {
+  if (port == -1 || port == 0) MKSERIAL.flush();
+  #if NUM_SERIAL > 1
+    if (port == -1 || port == 1) MKSERIAL2.flush();
+  #endif
+}
+
+void Com::printPGM(PGM_P str) {
+  while (char c = pgm_read_byte(str++)) {
+    if (port == -1 || port == 0) MKSERIAL.write(c);
+    #if NUM_SERIAL > 1
+      if (port == -1 || port == 1) MKSERIAL2.write(c);
+    #endif
+  }
+}
+
+void Com::write(char c) {
+  if (port == -1 || port == 0) MKSERIAL.write(c);
+  #if NUM_SERIAL > 1
+    if (port == -1 || port == 1) MKSERIAL2.write(c);
+  #endif
+}
+
+void Com::write(PGM_P str) {
+  while (*str) {
+    if (port == -1 || port == 0) MKSERIAL.write(*str);
+    #if NUM_SERIAL > 1
+    if (port == -1 || port == 1) MKSERIAL2.write(*str);
+    #endif
+    str++;
+  }
+}
+
+void Com::write(const uint8_t* buffer, size_t size) {
+  while (size--) {
+    if (port == -1 || port == 0) MKSERIAL.write(*buffer);
+    #if NUM_SERIAL > 1
+      if (port == -1 || port == 1) MKSERIAL2.write(*buffer);
+    #endif
+    buffer++;
+  }
+}
+
+void Com::print(const String& s) {
+  for (int i = 0; i < (int)s.length(); i++) {
+    if (port == -1 || port == 0) MKSERIAL.write(s[i]);
+    #if NUM_SERIAL > 1
+      if (port == -1 || port == 1) MKSERIAL2.write(s[i]);
+    #endif
+  }
+}
+
+void Com::print(PGM_P str) {
+  write(str);
+}
+
+void Com::print(char c, int base) {
+  print((long)c, base);
+}
+
+void Com::print(unsigned char b, int base) {
+  print((unsigned long)b, base);
+}
+
+void Com::print(int n, int base) {
+  print((long)n, base);
+}
+
+void Com::print(unsigned int n, int base) {
+  print((unsigned long)n, base);
+}
+
+void Com::print(long n, int base) {
+  if (base == 0) write(n);
+  else if (base == 10) {
+    if (n < 0) { print('-'); n = -n; }
+    printNumber(n, 10);
+  }
+  else
+    printNumber(n, base);
+}
+
+void Com::print(unsigned long n, int base) {
+  if (base == 0) write(n);
+  else printNumber(n, base);
+}
+
+void Com::print(double n, int digits) {
+  printFloat(n, digits);
+}
+
+void Com::println(void) {
+  print('\r');
+  print('\n');
+}
+
+void Com::print_spaces(uint8_t count) {
+  count *= (PROPORTIONAL_FONT_RATIO);
+  while (count--) {
+    if (port == -1 || port == 0) MKSERIAL.write(' ');
+    #if NUM_SERIAL > 1
+      if (port == -1 || port == 1) MKSERIAL2.write(' ');
+    #endif
+  }
+}
 
 #if ENABLED(DEBUG_FEATURE)
 
-  void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
+  void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
     SERIAL_PS(prefix);
     SERIAL_CHR('(');
     SERIAL_VAL(x);
@@ -61,14 +176,60 @@ void print_spaces(uint8_t count) { count *= (PROPORTIONAL_FONT_RATIO); while (co
     else SERIAL_EOL();
   }
 
-  void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
+  void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
     print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
   }
 
   #if HAS_PLANAR
-    void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz) {
+    void Com::print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz) {
       print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
     }
   #endif
 
 #endif // ENABLED(DEBUG_FEATURE)
+
+// Private function
+void Com::printNumber(unsigned long n, uint8_t base) {
+  if (n) {
+    unsigned char buf[8 * sizeof(long)]; // Enough space for base 2
+    int8_t i = 0;
+    while (n) {
+      buf[i++] = n % base;
+      n /= base;
+    }
+    while (i--)
+      print((char)(buf[i] + (buf[i] < 10 ? '0' : 'A' - 10)));
+  }
+  else
+    print('0');
+}
+
+void Com::printFloat(double number, uint8_t digits) {
+  // Handle negative numbers
+  if (number < 0.0) {
+    print('-');
+    number = -number;
+  }
+
+  // Round correctly so that print(1.999, 2) prints as "2.00"
+  double rounding = 0.5;
+  for (uint8_t i = 0; i < digits; ++i) rounding *= 0.1;
+  number += rounding;
+
+  // Extract the integer part of the number and print it
+  unsigned long int_part = (unsigned long)number;
+  double remainder = number - (double)int_part;
+  print(int_part);
+
+  // Print the decimal point, but only if there are digits beyond
+  if (digits) {
+    print('.');
+    // Extract digits from the remainder one at a time
+    while (digits--) {
+      remainder *= 10.0;
+      int toPrint = int(remainder);
+      print(toPrint);
+      remainder -= toPrint;
+    }
+  }
+}

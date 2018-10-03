@@ -114,36 +114,6 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
         FORCE_INLINE static uint16_t rxMaxEnqueued() { return rx_max_enqueued; }
       #endif
 
-      FORCE_INLINE static void write(PGM_P str) { while (*str) write(*str++); }
-      FORCE_INLINE static void write(const uint8_t* buffer, size_t size) { while (size--) write(*buffer++); }
-      FORCE_INLINE static void print(const String& s) { for (int i = 0; i < (int)s.length(); i++) write(s[i]); }
-      FORCE_INLINE static void print(PGM_P str) { write(str); }
-
-      static void print(char, int = BYTE);
-      static void print(unsigned char, int = DEC);
-      static void print(int, int = DEC);
-      static void print(unsigned int, int = DEC);
-      static void print(long, int = DEC);
-      static void print(unsigned long, int = DEC);
-      static void print(double, int = 2);
-
-      static void println(const String& s);
-      static void println(const char[]);
-      static void println(char, int = BYTE);
-      static void println(unsigned char, int = BYTE);
-      static void println(int, int = DEC);
-      static void println(unsigned int, int = DEC);
-      static void println(long, int = DEC);
-      static void println(unsigned long, int = DEC);
-      static void println(double, int = 2);
-      static void println(void);
-      operator bool() { return true; }
-
-    private: /** Private Function */
-
-      static void printNumber(unsigned long, const uint8_t);
-      static void printFloat(double, uint8_t);
-
   };
 
 extern MKHardwareSerial<0, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial;

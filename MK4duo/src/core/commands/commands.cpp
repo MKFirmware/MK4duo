@@ -43,8 +43,6 @@ Commands commands;
 long  Commands::gcode_N             = 0,
       Commands::gcode_LastN         = 0;
 
-bool Commands::send_ok[BUFSIZE];
-
 /**
  * GCode Command Buffer Ring
  * A simple ring buffer of BUFSIZE command strings.
@@ -59,7 +57,7 @@ Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 /**
  * Private Parameters
  */
-int Commands::serial_count = 0;
+int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 watch_t Commands::last_command_watch(NO_TIMEOUTS);
 
@@ -81,8 +79,8 @@ PGM_P Commands::injected_commands_P = NULL;
  */
 void Commands::get_serial() {
 
-  static char serial_line_buffer[MAX_CMD_SIZE];
-  static bool serial_comment_mode = false;
+  static char serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
+  static bool serial_comment_mode[NUM_SERIAL] = { false };
 
   #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
@@ -100,7 +98,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_ring.isEmpty() && !MKSERIAL.available() && last_command_watch.elapsed()) {
+    if (buffer_ring.isEmpty() && !serial_data_available() && last_command_watch.elapsed()) {
       SERIAL_STR(WT);
       SERIAL_EOL();
       last_command_watch.start();
@@ -110,122 +108,126 @@ void Commands::get_serial() {
   /**
    * Loop while serial characters are incoming and the buffer_ring is not full
    */
-  while (!buffer_ring.isFull() && HAL::serialByteAvailable()) {
-    int c;
+  while (!buffer_ring.isFull() && serial_data_available()) {
 
-    last_command_watch.start();
-    printer.max_inactivity_watch.start();
+    for (uint8_t i = 0; i < NUM_SERIAL; ++i) {
 
-    if ((c = MKSERIAL.read()) < 0) continue;
+      int c;
 
-    char serial_char = c;
+      last_command_watch.start();
+      printer.max_inactivity_watch.start();
 
-    /**
-     * If the character ends the line
-     */
-    if (serial_char == '\n' || serial_char == '\r') {
+      if ((c = read_serial(i)) < 0) continue;
 
-      serial_comment_mode = false;                      // end of line == end of comment
+      char serial_char = c;
 
-      // Skip empty lines and comments
-      if (!serial_count) { printer.check_periodical_actions(); continue; }
+      /**
+       * If the character ends the line
+       */
+      if (serial_char == '\n' || serial_char == '\r') {
 
-      serial_line_buffer[serial_count] = 0;             // Terminate string
-      serial_count = 0;                                 // Reset buffer
+        serial_comment_mode[i] = false;                      // end of line == end of comment
 
-      char *command = serial_line_buffer;
+        // Skip empty lines and comments
+        if (!serial_count[i]) { printer.check_periodical_actions(); continue; }
 
-      while (*command == ' ') command++;                // Skip leading spaces
-      char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
+        serial_line_buffer[i][serial_count[i]] = 0;       // Terminate string
+        serial_count[i] = 0;                              // Reset buffer
 
-      if (npos) {
+        char *command = serial_line_buffer[i];
 
-        bool M110 = strstr_P(command, PSTR("M110")) != NULL;
+        while (*command == ' ') command++;                // Skip leading spaces
+        char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
 
-        if (M110) {
-          char *n2pos = strchr(command + 4, 'N');
-          if (n2pos) npos = n2pos;
-        }
+        if (npos) {
 
-        gcode_N = strtol(npos + 1, NULL, 10);
+          bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
-        if (gcode_N != gcode_LastN + 1 && !M110) {
-          gcode_line_error(PSTR(MSG_ERR_LINE_NO));
-          return;
-        }
+          if (M110) {
+            char *n2pos = strchr(command + 4, 'N');
+            if (n2pos) npos = n2pos;
+          }
 
-        char *apos = strrchr(command, '*');
-        if (apos) {
-          uint8_t checksum = 0, count = uint8_t(apos - command);
-          while (count) checksum ^= command[--count];
-          if (strtol(apos + 1, NULL, 10) != checksum) {
-            gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH));
+          gcode_N = strtol(npos + 1, NULL, 10);
+
+          if (gcode_N != gcode_LastN + 1 && !M110) {
+            gcode_line_error(PSTR(MSG_ERR_LINE_NO), i);
             return;
           }
-        }
-        else {
-          gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
-          return;
-        }
 
-        gcode_LastN = gcode_N;
-      }
-      #if HAS_SD_SUPPORT
-        else if (card.isSaving() && strcmp(command, "M29") != 0) { // No line number with M29 in Pronterface
-          gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
-          return;
-        }
-      #endif
+          char *apos = strrchr(command, '*');
+          if (apos) {
+            uint8_t checksum = 0, count = uint8_t(apos - command);
+            while (count) checksum ^= command[--count];
+            if (strtol(apos + 1, NULL, 10) != checksum) {
+              gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH), i);
+              return;
+            }
+          }
+          else {
+            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            return;
+          }
 
-      // Movement commands alert when stopped
-      if (printer.isStopped()) {
-        char *gpos = strrchr(command, 'G');
-        if (gpos) {
-          switch (strtol(gpos + 1, NULL, 10)) {
-            case 0:
-            case 1:
-            #if ENABLED(ARC_SUPPORT)
-              case 2:
-              case 3:
-            #endif
-            #if ENABLED(G5_BEZIER)
-              case 5:
-            #endif
-              SERIAL_LM(ER, MSG_ERR_STOPPED);
-              LCD_MESSAGEPGM(MSG_STOPPED);
-              break;
+          gcode_LastN = gcode_N;
+        }
+        #if HAS_SD_SUPPORT
+          else if (card.isSaving() && strcmp(command, "M29") != 0) { // No line number with M29 in Pronterface
+            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            return;
+          }
+        #endif
+
+        // Movement commands alert when stopped
+        if (printer.isStopped()) {
+          char *gpos = strrchr(command, 'G');
+          if (gpos) {
+            switch (strtol(gpos + 1, NULL, 10)) {
+              case 0:
+              case 1:
+              #if ENABLED(ARC_SUPPORT)
+                case 2:
+                case 3:
+              #endif
+              #if ENABLED(G5_BEZIER)
+                case 5:
+              #endif
+                SERIAL_LM(ER, MSG_ERR_STOPPED);
+                LCD_MESSAGEPGM(MSG_STOPPED);
+                break;
+            }
           }
         }
+
+        #if DISABLED(EMERGENCY_PARSER)
+          // If command was e-stop process now
+          if (strcmp(command, "M108") == 0) {
+            printer.setWaitForHeatUp(false);
+            #if ENABLED(ULTIPANEL)
+              printer.setWaitForUser(false);
+            #endif
+          }
+          if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
+          if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
+        #endif
+
+        // Add the command to the buffer_ring
+        enqueue(serial_line_buffer[i], i);
       }
-
-      #if DISABLED(EMERGENCY_PARSER)
-        // If command was e-stop process now
-        if (strcmp(command, "M108") == 0) {
-          printer.setWaitForHeatUp(false);
-          #if ENABLED(ULTIPANEL)
-            printer.setWaitForUser(false);
-          #endif
-        }
-        if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
-      #endif
-
-      // Add the command to the buffer_ring
-      enqueue(serial_line_buffer, true);
-    }
-    else if (serial_count >= MAX_CMD_SIZE - 1) {
-      // Keep fetching, but ignore normal characters beyond the max length
-      // The command will be injected when EOL is reached
-    }
-    else if (serial_char == '\\') { // Handle escapes
-      // if we have one more character, copy it over
-      if ((c = MKSERIAL.read()) >= 0 && !serial_comment_mode)
-        serial_line_buffer[serial_count++] = (char)c;
-    }
-    else { // its not a newline, carriage return or escape char
-      if (serial_char == ';') serial_comment_mode = true;
-      if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
-    }
+      else if (serial_count[i] >= MAX_CMD_SIZE - 1) {
+        // Keep fetching, but ignore normal characters beyond the max length
+        // The command will be injected when EOL is reached
+      }
+      else if (serial_char == '\\') { // Handle escapes
+        // if we have one more character, copy it over
+        if ((c = read_serial(i)) >= 0 && !serial_comment_mode[i])
+          serial_line_buffer[i][serial_count[i]++] = (char)c;
+      }
+      else { // its not a newline, carriage return or escape char
+        if (serial_char == ';') serial_comment_mode[i] = true;
+        if (!serial_comment_mode[i]) serial_line_buffer[i][serial_count[i]++] = serial_char;
+      }
+    } // for NUM_SERIAL
   }
 }
 
@@ -318,7 +320,7 @@ void Commands::get_serial() {
         sd_line_buffer[sd_count] = '\0'; // terminate string
         sd_count = 0; // clear sd line buffer
 
-        enqueue(sd_line_buffer, false);
+        enqueue(sd_line_buffer, -2); // Port -2 for SD non answer and no send ok.
 
       }
       else if (sd_count >= MAX_CMD_SIZE - 1) {
@@ -343,7 +345,7 @@ void Commands::get_serial() {
  * indicate that a command needs to be re-sent.
  */
 void Commands::flush_and_request_resend() {
-  HAL::serialFlush();
+  Com::serialFlush();
   SERIAL_LV(RESEND, gcode_LastN + 1);
   ok_to_send();
 }
@@ -358,10 +360,16 @@ void Commands::flush_and_request_resend() {
  *   B<int>  Block queue space remaining
  */
 void Commands::ok_to_send() {
-  if (!send_ok[buffer_ring.head()]) return;
+
+  gcode_t tmp = buffer_ring.peek();
+
+  if (tmp.port < 0) return;
+
+  SERIAL_PORT(tmp.port);
   SERIAL_STR(OK);
+
   #if ENABLED(ADVANCED_OK)
-    gcode_t tmp = buffer_ring.peek();
+    //gcode_t tmp = buffer_ring.peek();
     char* p = tmp.gcode;
     if (*p == 'N') {
       SERIAL_CHR(' ');
@@ -369,10 +377,12 @@ void Commands::ok_to_send() {
       while (NUMERIC_SIGNED(*p))
         SERIAL_CHR(*p++);
     }
-    SERIAL_MV(" P", (BLOCK_BUFFER_SIZE - planner.movesplanned() - 1), DEC);
+    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.movesplanned() - 1, DEC);
     SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);
   #endif
+
   SERIAL_EOL();
+  SERIAL_PORT(-1);
 }
 
 /**
@@ -485,11 +495,11 @@ void Commands::clear_queue() {
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
  */
-bool Commands::enqueue(PGM_P cmd, bool say_ok/*=false*/) {
+bool Commands::enqueue(PGM_P cmd, int8_t port/*=-2*/) {
   if (*cmd == ';' || buffer_ring.isFull()) return false;
-  send_ok[buffer_ring.tail()] = say_ok;
   gcode_t temp_cmd;
   strcpy(temp_cmd.gcode, cmd);
+  temp_cmd.port = port;
   buffer_ring.enqueue(temp_cmd);
   return true;
 }
@@ -618,6 +628,24 @@ bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
   #define EXECUTE_G0_G1(NUM) gcode_G0_G1()
 #endif
 
+int Commands::read_serial(const int index) {
+  switch (index) {
+    case 0: return MKSERIAL.read();
+    #if NUM_SERIAL > 1
+      case 1: return MKSERIAL2.read();
+    #endif
+    default: return -1;
+  }
+}
+
+bool Commands::serial_data_available() {
+  return (MKSERIAL.available() ? true :
+    #if NUM_SERIAL > 1
+      MKSERIAL2.available() ? true :
+    #endif
+    false);
+}
+
 /**
  * Process a single command and dispatch it to its handler
  * This is called from the main loop()
@@ -626,7 +654,10 @@ void Commands::process_next() {
 
   gcode_t cmd = buffer_ring.peek();
 
-  if (printer.debugEcho()) SERIAL_LT(ECHO, cmd.gcode);
+  if (printer.debugEcho()) {
+    SERIAL_PORT(cmd.port);
+    SERIAL_LT(ECHO, cmd.gcode);
+  }
 
   printer.move_watch.start(); // Keep steppers powered
 
@@ -637,17 +668,24 @@ void Commands::process_next() {
 }
 
 void Commands::unknown_error() {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = buffer_ring.peek();
+    SERIAL_PORT(tmp.port);
+  #endif
   SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');
   SERIAL_EOL();
+  SERIAL_PORT(-1);
 }
 
-void Commands::gcode_line_error(PGM_P err) {
+void Commands::gcode_line_error(PGM_P err, const int8_t port) {
+  SERIAL_PORT(port);
   SERIAL_STR(ER);
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
   flush_and_request_resend();
-  serial_count = 0;
+  serial_count[port] = 0;
+  SERIAL_PORT(-1);
 }
 
 /**

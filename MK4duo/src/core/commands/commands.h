@@ -32,7 +32,10 @@
 #define _COMMANDS_H_
 
 struct gcode_t {
-  char gcode[MAX_CMD_SIZE];
+  char    gcode[MAX_CMD_SIZE];  // Char for gcode
+  int8_t  port = -1;            // Port serial for print information:
+                                //    -1 for all port
+                                //    -2 for SD or null port
 };
 
 class Commands {
@@ -51,9 +54,7 @@ class Commands {
 
     static long gcode_N;
 
-    static bool send_ok[BUFSIZE];
-
-    static int serial_count;
+    static int serial_count[NUM_SERIAL];
 
     static PGM_P injected_commands_P;
 
@@ -76,8 +77,6 @@ class Commands {
     static bool get_target_tool(const uint16_t code);
     static bool get_target_heater(int8_t &h, const bool only_hotend=false);
 
-    FORCE_INLINE static void setup() { for (uint8_t i = 0; i < COUNT(send_ok); i++) send_ok[i] = true; }
-
   private: /** Private Function */
 
     static void get_serial();
@@ -85,12 +84,16 @@ class Commands {
       static void get_sdcard();
     #endif
 
+    static int read_serial(const int index);
+
+    static bool serial_data_available();
+
     static void process_next();
     static void process_parsed();
     static void unknown_error();
-    static void gcode_line_error(PGM_P err);
+    static void gcode_line_error(PGM_P err, const int8_t tmp_port);
 
-    static bool enqueue(PGM_P cmd, bool say_ok=false);
+    static bool enqueue(PGM_P cmd, int8_t port=-2);
     static bool drain_injected_P();
 
     #if HAS_SD_RESTART

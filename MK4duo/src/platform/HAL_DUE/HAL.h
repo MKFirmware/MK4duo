@@ -111,8 +111,11 @@ typedef uint32_t  ptr_int_t;
   #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
 #endif
 
-// SERIAL
+// SERIAL ports
 #include "HardwareSerial.h"
+#if !WITHIN(SERIAL_PORT, -1, 3)
+  #error "SERIAL_PORT must be from -1 to 3"
+#endif
 #if SERIAL_PORT == -1
   #define MKSERIAL SerialUSB
 #elif SERIAL_PORT == 0
@@ -123,6 +126,31 @@ typedef uint32_t  ptr_int_t;
   #define MKSERIAL MKSerial2
 #elif SERIAL_PORT == 3
   #define MKSERIAL MKSerial3
+#endif
+
+#if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
+  #if !WITHIN(SERIAL_PORT_2, -1, 3)
+    #error "SERIAL_PORT_2 must be from -1 to 3"
+  #elif SERIAL_PORT_2 == SERIAL_PORT
+    #error "SERIAL_PORT_2 must be different than SERIAL_PORT"
+  #elif SERIAL_PORT_2 == -1
+    #define MKSERIAL2 SerialUSB
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 0
+    #define MKSERIAL2 MKSerial
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 1
+    #define MKSERIAL2 MKSerial1
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 2
+    #define MKSERIAL2 MKSeria2
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 3
+    #define MKSERIAL2 MKSerial3
+    #define NUM_SERIAL 2
+  #endif
+#else
+  #define NUM_SERIAL 1
 #endif
 
 // EEPROM START
@@ -291,27 +319,6 @@ class HAL {
     }
     FORCE_INLINE static uint32_t timeInMilliseconds() {
       return millis();
-    }
-
-    // Serial communication
-    FORCE_INLINE static char readFlashByte(PGM_P ptr) {
-      return pgm_read_byte(ptr);
-    }
-    FORCE_INLINE static void serialSetBaudrate(const long baud) {
-      MKSERIAL.begin(baud);
-      HAL::delayMilliseconds(1);
-    }
-    FORCE_INLINE static bool serialByteAvailable() {
-      return MKSERIAL.available() > 0;
-    }
-    FORCE_INLINE static uint8_t serialReadByte() {
-      return MKSERIAL.read();
-    }
-    FORCE_INLINE static void serialWriteByte(char c) {
-      MKSERIAL.write(c);
-    }
-    FORCE_INLINE static void serialFlush() {
-      MKSERIAL.flush();
     }
 
     static void showStartReason();

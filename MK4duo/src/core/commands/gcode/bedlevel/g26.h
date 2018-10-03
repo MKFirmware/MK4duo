@@ -415,7 +415,7 @@ inline bool turn_on_heaters() {
             if (is_lcd_clicked()) return exit_from_g26();
           #endif
           printer.idle();
-          HAL::serialFlush(); // Prevent host M105 buffer overrun.
+          Com::serialFlush(); // Prevent host M105 buffer overrun.
         }
     #if ENABLED(ULTRA_LCD)
       }
@@ -431,7 +431,7 @@ inline bool turn_on_heaters() {
       if (is_lcd_clicked()) return exit_from_g26();
     #endif
     printer.idle();
-    HAL::serialFlush(); // Prevent host M105 buffer overrun.
+    Com::serialFlush(); // Prevent host M105 buffer overrun.
   }
 
   #if ENABLED(ULTRA_LCD)
@@ -776,12 +776,12 @@ inline void gcode_G26(void) {
         #endif
 
         print_line_from_here_to_there(rx, ry, g26_layer_height, xe, ye, g26_layer_height);
-        HAL::serialFlush(); // Prevent host M105 buffer overrun.
+        Com::serialFlush(); // Prevent host M105 buffer overrun.
       }
       if (look_for_lines_to_connect())
         goto LEAVE;
     }
-    HAL::serialFlush(); // Prevent host M105 buffer overrun.
+    Com::serialFlush(); // Prevent host M105 buffer overrun.
   } while (--g26_repeats && location.x_index >= 0 && location.y_index >= 0);
 
 LEAVE:
