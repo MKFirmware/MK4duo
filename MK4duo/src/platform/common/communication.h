@@ -52,7 +52,7 @@ class Com {
 
   public: /** Public Parameters */
 
-    static int8_t port;
+    static int8_t serial_port;
 
   public: /** Public Function */
 
@@ -100,7 +100,7 @@ class Com {
 };
 
 // MACRO FOR SERIAL
-#define SERIAL_PORT(a)                      (Com::port = a)
+#define SERIAL_PORT(p)                      (Com::serial_port = p)
 
 #define SERIAL_PS(message)                  (Com::printPGM(message))
 #define SERIAL_PGM(message)                 (Com::printPGM(PSTR(message)))

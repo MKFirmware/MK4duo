@@ -363,9 +363,9 @@ void Commands::ok_to_send() {
 
   gcode_t tmp = buffer_ring.peek();
 
-  if (tmp.port < 0) return;
+  if (tmp.s_port < 0) return;
 
-  SERIAL_PORT(tmp.port);
+  SERIAL_PORT(tmp.s_port);
   SERIAL_STR(OK);
 
   #if ENABLED(ADVANCED_OK)
@@ -499,7 +499,7 @@ bool Commands::enqueue(PGM_P cmd, int8_t port/*=-2*/) {
   if (*cmd == ';' || buffer_ring.isFull()) return false;
   gcode_t temp_cmd;
   strcpy(temp_cmd.gcode, cmd);
-  temp_cmd.port = port;
+  temp_cmd.s_port = port;
   buffer_ring.enqueue(temp_cmd);
   return true;
 }
@@ -655,7 +655,7 @@ void Commands::process_next() {
   gcode_t cmd = buffer_ring.peek();
 
   if (printer.debugEcho()) {
-    SERIAL_PORT(cmd.port);
+    SERIAL_PORT(cmd.s_port);
     SERIAL_LT(ECHO, cmd.gcode);
   }
 
@@ -670,7 +670,7 @@ void Commands::process_next() {
 void Commands::unknown_error() {
   #if NUM_SERIAL > 1
     gcode_t tmp = buffer_ring.peek();
-    SERIAL_PORT(tmp.port);
+    SERIAL_PORT(tmp.s_port);
   #endif
   SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');

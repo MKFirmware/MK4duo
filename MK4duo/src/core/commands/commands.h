@@ -33,7 +33,7 @@
 
 struct gcode_t {
   char    gcode[MAX_CMD_SIZE];  // Char for gcode
-  int8_t  port = -1;            // Port serial for print information:
+  int8_t  s_port = -1;          // Serial port for print information:
                                 //    -1 for all port
                                 //    -2 for SD or null port
 };

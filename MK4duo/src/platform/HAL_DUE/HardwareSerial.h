@@ -35,7 +35,7 @@ template <typename S, unsigned int addr> struct ApplyAddrReg {
   FORCE_INLINE S* operator->() const { return (S*)addr; }
 };
 
-template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
+template <int IDPort>
   class MKHardwareSerial {
 
     public: /** Constructor */
@@ -55,12 +55,12 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
       static constexpr uint32_t   _dwId   = IRQ_ID[IDPort];
 
       struct ring_buffer_r {
-        unsigned char buffer[RX_SIZE];
+        unsigned char buffer[RX_BUFFER_SIZE];
         volatile uint16_t head, tail;
       };
 
       struct ring_buffer_t {
-        unsigned char buffer[TX_SIZE];
+        unsigned char buffer[TX_BUFFER_SIZE];
         volatile uint8_t head, tail;
       };
 
@@ -116,9 +116,9 @@ template <int IDPort, int RX_SIZE = 128, int TX_SIZE = 32>
 
   };
 
-extern MKHardwareSerial<0, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial;
-extern MKHardwareSerial<1, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial1;
-extern MKHardwareSerial<2, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial2;
-extern MKHardwareSerial<3, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial3;
+extern MKHardwareSerial<0> MKSerial;
+extern MKHardwareSerial<1> MKSerial1;
+extern MKHardwareSerial<2> MKSerial2;
+extern MKHardwareSerial<3> MKSerial3;
 
 #endif /* _HARDWARESERIAL_H_ */

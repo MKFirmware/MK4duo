@@ -32,36 +32,36 @@
 
 #ifdef ARDUINO_ARCH_SAM
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  typename MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::ring_buffer_r
-    MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_buffer;
+template<int portNr>
+  typename MKHardwareSerial<portNr>::ring_buffer_r
+    MKHardwareSerial<portNr>::rx_buffer;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  typename MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::ring_buffer_t
-  MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::tx_buffer;
+template<int portNr>
+  typename MKHardwareSerial<portNr>::ring_buffer_t
+  MKHardwareSerial<portNr>::tx_buffer;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  bool MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::_written = false;
+template<int portNr>
+  bool MKHardwareSerial<portNr>::_written = false;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint8_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::xon_xoff_state = MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::XON_XOFF_CHAR_SENT | MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::XON_CHAR;
+template<int portNr>
+  uint8_t MKHardwareSerial<portNr>::xon_xoff_state = MKHardwareSerial<portNr>::XON_XOFF_CHAR_SENT | MKHardwareSerial<portNr>::XON_CHAR;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint8_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_dropped_bytes = 0;
+template<int portNr>
+  uint8_t MKHardwareSerial<portNr>::rx_dropped_bytes = 0;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint8_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_buffer_overruns = 0;
+template<int portNr>
+  uint8_t MKHardwareSerial<portNr>::rx_buffer_overruns = 0;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint8_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_framing_errors = 0;
+template<int portNr>
+  uint8_t MKHardwareSerial<portNr>::rx_framing_errors = 0;
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint16_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::rx_max_enqueued = 0;
+template<int portNr>
+  uint16_t MKHardwareSerial<portNr>::rx_max_enqueued = 0;
 
 #define sw_barrier() asm volatile("": : :"memory");
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::store_rxd_char() {
+template<int portNr>
+  void MKHardwareSerial<portNr>::store_rxd_char() {
 
     #if ENABLED(EMERGENCY_PARSER)
       static EmergencyParser::State emergency_state; // = EP_RESET
@@ -74,7 +74,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     uint16_t h = rx_buffer.head;
 
     // Get the next element
-    uint16_t i = (h + 1) & (RX_SIZE - 1);
+    uint16_t i = (h + 1) & (RX_BUFFER_SIZE - 1);
 
     // Read the character from the USART
     uint8_t c = _pUart->UART_RHR;
@@ -94,7 +94,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       else if (!++rx_dropped_bytes) --rx_dropped_bytes;
     #endif
 
-    const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
+    const uint16_t rx_count = (h - t) & (RX_BUFFER_SIZE - 1);
     // Calculate count of bytes stored into the RX buffer
 
     #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
@@ -107,12 +107,12 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XON_CHAR) {
 
         // Bytes stored into the RX buffer
-        const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
+        const uint16_t rx_count = (h - t) & (RX_BUFFER_SIZE - 1);
 
         // If over 12.5% of RX buffer capacity, send XOFF before running out of
         // RX buffer space .. 325 bytes @ 250kbits/s needed to let the host react
         // and stop sending bytes. This translates to 13mS propagation time.
-        if (rx_count >= (RX_SIZE) / 8) {
+        if (rx_count >= (RX_BUFFER_SIZE) / 8) {
 
           // At this point, definitely no TX interrupt was executing, since the TX ISR can't be preempted.
           // Don't enable the TX interrupt here as a means to trigger the XOFF char, because if it happens
@@ -132,7 +132,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
 
-              i = (h + 1) & (RX_SIZE - 1);
+              i = (h + 1) & (RX_BUFFER_SIZE - 1);
 
               // Read the character from the USART
               c = _pUart->UART_RHR;
@@ -169,7 +169,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
             if (status & UART_SR_RXRDY) {
               // A char arrived while waiting for the TX buffer to be empty - Receive and process it!
 
-              i = (h + 1) & (RX_SIZE - 1);
+              i = (h + 1) & (RX_BUFFER_SIZE - 1);
 
               // Read the character from the USART
               c = _pUart->UART_RHR;
@@ -202,8 +202,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     rx_buffer.head = h;
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::_tx_thr_empty_irq(void) {
+template<int portNr>
+  void MKHardwareSerial<portNr>::_tx_thr_empty_irq(void) {
 
     #if TX_BUFFER_SIZE > 0
 
@@ -240,7 +240,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
 
       // There is something to TX, Send the next byte
       const uint8_t c = tx_buffer.buffer[t];
-      t = (t + 1) & (TX_SIZE - 1);
+      t = (t + 1) & (TX_BUFFER_SIZE - 1);
       _pUart->UART_THR = c;
       tx_buffer.tail = t;
 
@@ -250,18 +250,18 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     #endif // TX_BUFFER_SIZE > 0
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::UART_ISR(void) {
+template<int portNr>
+  void MKHardwareSerial<portNr>::UART_ISR(void) {
 
     const uint32_t status = _pUart->UART_SR;
 
     // Data received?
     if (status & UART_SR_RXRDY) store_rxd_char();
 
-    if (TX_SIZE > 0) {
+    #if TX_BUFFER_SIZE > 0
       // Something to send, and TX interrupts are enabled (meaning something to send)?
       if ((status & UART_SR_TXRDY) && (_pUart->UART_IMR & UART_IMR_TXRDY)) _tx_thr_empty_irq();
-    }
+    #endif
 
     // Acknowledge errors
     if ((status & UART_SR_OVRE) || (status & UART_SR_FRAME)) {
@@ -277,8 +277,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
   }
 
 // Public Function
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::begin(const long baud) {
+template<int portNr>
+  void MKHardwareSerial<portNr>::begin(const long baud) {
 
     // Disable UART interrupt in NVIC
     NVIC_DisableIRQ( _dwIrq );
@@ -329,8 +329,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     #endif
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::end() {
+template<int portNr>
+  void MKHardwareSerial<portNr>::end() {
     // Disable UART interrupt in NVIC
     NVIC_DisableIRQ( _dwIrq );
 
@@ -342,14 +342,14 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     pmc_disable_periph_clk( _dwId );
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  int MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::peek(void) {
+template<int portNr>
+  int MKHardwareSerial<portNr>::peek(void) {
     const int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
     return v;
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  int MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::read(void) {
+template<int portNr>
+  int MKHardwareSerial<portNr>::read(void) {
 
     const uint16_t h = rx_buffer.head;
     uint16_t t = rx_buffer.tail;
@@ -357,7 +357,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     if (h == t) return -1;
 
     int v = rx_buffer.buffer[t];
-    t = (t + 1) & (RX_SIZE - 1);
+    t = (t + 1) & (RX_BUFFER_SIZE - 1);
 
     // Advance tail
     rx_buffer.tail = t;
@@ -367,21 +367,20 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       // If the XOFF char was sent, or about to be sent...
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
         // Get count of bytes in the RX buffer
-        const uint16_t rx_count = (h - t) & (RX_SIZE - 1);
+        const uint16_t rx_count = (h - t) & (RX_BUFFER_SIZE - 1);
         // When below 10% of RX buffer capacity, send XON before running out of RX buffer bytes
-        if (rx_count < (RX_SIZE) / 10) {
-          if (TX_SIZE > 0) {
+        if (rx_count < (RX_BUFFER_SIZE) / 10) {
+          #if TX_BUFFER_SIZE > 0
             // Signal we want an XON character to be sent.
             xon_xoff_state = XON_CHAR;
             // Enable TX isr.
             _pUart->UART_IER = UART_IER_TXRDY;
-          }
-          else {
+          #else
             // If not using TX interrupts, we must send the XON char now
             xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
             while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
             _pUart->UART_THR = XON_CHAR;
-          }
+          #endif
         }
       }
 
@@ -390,47 +389,47 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     return v;
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  uint16_t MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::available(void) {
+template<int portNr>
+  uint16_t MKHardwareSerial<portNr>::available(void) {
       const uint16_t h = rx_buffer.head, t = rx_buffer.tail;
-      return (RX_SIZE + h - t) & (RX_SIZE - 1);
+      return (RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
     }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::flush(void) {
+template<int portNr>
+  void MKHardwareSerial<portNr>::flush(void) {
     rx_buffer.tail = rx_buffer.head;
 
     #if ENABLED(SERIAL_XON_XOFF)
 
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
-        if (TX_SIZE > 0) {
+        #if TX_BUFFER_SIZE > 0
           // Signal we want an XON character to be sent.
           xon_xoff_state = XON_CHAR;
           // Enable TX isr.
           _pUart->UART_IER = UART_IER_TXRDY;
-        }
-        else {
+        #else
           // If not using TX interrupts, we must send the XON char now
           xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
           while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
           _pUart->UART_THR = XON_CHAR;
-        }
+        #endif
       }
 
     #endif
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::write(const uint8_t c) {
+template<int portNr>
+  void MKHardwareSerial<portNr>::write(const uint8_t c) {
 
     _written = true;
 
-    if (TX_SIZE == 0) {
+    #if TX_BUFFER_SIZE == 0
+
       while (!(_pUart->UART_SR & UART_SR_TXRDY)) sw_barrier();
       _pUart->UART_THR = c;
-    }
-    else {
-   
+
+    #else
+
       // If the TX interrupts are disabled and the data register
       // is empty, just write the byte to the data register and
       // be done. This shortcut helps significantly improve the
@@ -443,7 +442,7 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
         return;
       }
     
-      const uint8_t i = (tx_buffer.head + 1) & (TX_SIZE - 1);
+      const uint8_t i = (tx_buffer.head + 1) & (TX_BUFFER_SIZE - 1);
     
       // If global interrupts are disabled (as the result of being called from an ISR)...
       if (!ISRS_ENABLED()) {
@@ -467,14 +466,17 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
     
       // Enable TX isr - Non atomic, but it will eventually enable TX isr
       _pUart->UART_IER = UART_IER_TXRDY;
-    }
+
+    #endif
+
   }
 
-template<int portNr, int RX_SIZE, int TX_SIZE>
-  void MKHardwareSerial<portNr, RX_SIZE, TX_SIZE>::flushTX(void) {
-    // TX
+template<int portNr>
+  void MKHardwareSerial<portNr>::flushTX(void) {
 
-    if (TX_SIZE == 0) {
+    // TX
+    #if TX_BUFFER_SIZE == 0
+
       // No bytes written, no need to flush. This special case is needed since there's
       // no way to force the TXC (transmit complete) bit to 1 during initialization.
       if (!_written) return;
@@ -482,8 +484,8 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
       // Wait until everything was transmitted
       while (!(_pUart->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
 
-    }
-    else {
+    #else
+
       // If we have never written a byte, no need to flush. This special
       // case is needed since there is no way to force the TXC (transmit
       // complete) bit to 1 during initialization
@@ -504,17 +506,18 @@ template<int portNr, int RX_SIZE, int TX_SIZE>
         // Wait until everything was transmitted
         while (tx_buffer.head != tx_buffer.tail || !(_pUart->UART_SR & UART_SR_TXEMPTY)) sw_barrier();
       }
-    }
+
+    #endif
   }
 
-template class MKHardwareSerial<0, RX_BUFFER_SIZE, TX_BUFFER_SIZE>;
-template class MKHardwareSerial<1, RX_BUFFER_SIZE, TX_BUFFER_SIZE>;
-template class MKHardwareSerial<2, RX_BUFFER_SIZE, TX_BUFFER_SIZE>;
-template class MKHardwareSerial<3, RX_BUFFER_SIZE, TX_BUFFER_SIZE>;
+template class MKHardwareSerial<0>;
+template class MKHardwareSerial<1>;
+template class MKHardwareSerial<2>;
+template class MKHardwareSerial<3>;
 
-MKHardwareSerial<0, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial;
-MKHardwareSerial<1, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial1;
-MKHardwareSerial<2, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial2;
-MKHardwareSerial<3, RX_BUFFER_SIZE, TX_BUFFER_SIZE> MKSerial3;
+MKHardwareSerial<0> MKSerial;
+MKHardwareSerial<1> MKSerial1;
+MKHardwareSerial<2> MKSerial2;
+MKHardwareSerial<3> MKSerial3;
 
 #endif // ARDUINO_ARCH_SAM
