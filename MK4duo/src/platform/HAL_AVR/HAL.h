@@ -98,6 +98,7 @@ typedef uint16_t  ptr_int_t;
 #else
   #define MKSERIAL Serial
 #endif
+#define NUM_SERIAL 1
 
 // --------------------------------------------------------------------------
 // Defines
