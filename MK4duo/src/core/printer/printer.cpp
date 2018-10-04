@@ -147,7 +147,7 @@ void Printer::setup() {
   #endif
 
   // Init Serial for HOST
-  Com::SetBaudrate();
+  Com::setBaudrate();
 
   #if HAS_TRINAMIC
     tmc.init();
