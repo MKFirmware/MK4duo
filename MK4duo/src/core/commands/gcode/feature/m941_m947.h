@@ -40,31 +40,31 @@
   inline void gcode_M941(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperX, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperX, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperX2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperX2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperY, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperY, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperY2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperY2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperZ, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperZ, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperZ2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperZ2, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc.set_wave(tmc.stepperE0, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
+        tmc.set_wave(stepperE0, TMC2130_LINEARITY_CORRECTION_AMPL, (int16_t)parser.value_int());
       #endif
     }
   }
@@ -75,31 +75,31 @@
   inline void gcode_M942(void) {
     if (parser.seen('X')) {
       #if X_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperX);
+        tmc.reset_wave(stepperX);
       #endif
       #if X2_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperX2);
+        tmc.reset_wave(stepperX2);
       #endif
     }
     if (parser.seen('Y')) {
       #if Y_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperY);
+        tmc.reset_wave(stepperY);
       #endif
       #if Y2_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperY2);
+        tmc.reset_wave(stepperY2);
       #endif
     }
     if (parser.seen('Z')) {
       #if Z_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperZ);
+        tmc.reset_wave(stepperZ);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperZ2);
+        tmc.reset_wave(stepperZ2);
       #endif
     }
     if (parser.seen('E')) {
       #if E0_IS_TRINAMIC
-        tmc.reset_wave(tmc.stepperE0);
+        tmc.reset_wave(stepperE0);
       #endif
     }
   }
@@ -110,31 +110,31 @@
   inline void gcode_M943(void) {
     if (parser.seenval('X')) {
       #if X_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperX, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperX, (uint8_t)parser.value_int());
       #endif
       #if X2_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperX2, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperX2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Y')) {
       #if Y_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperY, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperY, (uint8_t)parser.value_int());
       #endif
       #if Y2_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperY2, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperY2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('Z')) {
       #if Z_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperZ, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperZ, (uint8_t)parser.value_int());
       #endif
       #if Z2_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperZ2, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperZ2, (uint8_t)parser.value_int());
       #endif
     }
     if (parser.seenval('E')) {
       #if E0_IS_TRINAMIC
-        tmc.set_fixed_wave(tmc.stepperE0, (uint8_t)parser.value_int());
+        tmc.set_fixed_wave(stepperE0, (uint8_t)parser.value_int());
       #endif
     }
   }
@@ -151,49 +151,49 @@
 inline void gcode_M945(void) {
   if (parser.seenval('X')) {
     #if X_IS_TRINAMIC
-      tmc.stepperX->stealthChop(parser.value_bool());
+      stepperX.en_pwm_mode(parser.value_bool());
     #endif
     #if X2_IS_TRINAMIC
-      tmc.stepperX2->stealthChop(parser.value_bool());
+      stepperX2->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
     #if Y_IS_TRINAMIC
-      tmc.stepperY->stealthChop(parser.value_bool());
+      stepperY.en_pwm_mode(parser.value_bool());
     #endif
     #if Y2_IS_TRINAMIC
-      tmc.stepperY2->stealthChop(parser.value_bool());
+      stepperY2->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
     #if Z_IS_TRINAMIC
-      tmc.stepperZ->stealthChop(parser.value_bool());
+      stepperZ.en_pwm_mode(parser.value_bool());
     #endif
     #if Z2_IS_TRINAMIC
-      tmc.stepperZ2->stealthChop(parser.value_bool());
+      stepperZ2->en_pwm_mode(parser.value_bool());
     #endif
     #if Z3_IS_TRINAMIC
-      tmc.stepperZ3->stealthChop(parser.value_bool());
+      stepperZ3->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if E0_IS_TRINAMIC
-      tmc.stepperE0->stealthChop(parser.value_bool());
+      stepperE0->en_pwm_mode(parser.value_bool());
     #endif
     #if E1_IS_TRINAMIC
-      tmc.stepperE1->stealthChop(parser.value_bool());
+      stepperE1->en_pwm_mode(parser.value_bool());
     #endif
     #if E2_IS_TRINAMIC
-      tmc.stepperE2->stealthChop(parser.value_bool());
+      stepperE2->en_pwm_mode(parser.value_bool());
     #endif
     #if E3_IS_TRINAMIC
-      tmc.stepperE3->stealthChop(parser.value_bool());
+      stepperE3->en_pwm_mode(parser.value_bool());
     #endif
     #if E4_IS_TRINAMIC
-      tmc.stepperE4->stealthChop(parser.value_bool());
+      stepperE4->en_pwm_mode(parser.value_bool());
     #endif
     #if E5_IS_TRINAMIC
-      tmc.stepperE5->stealthChop(parser.value_bool());
+      stepperE5->en_pwm_mode(parser.value_bool());
     #endif
   }
 }
@@ -204,49 +204,49 @@ inline void gcode_M945(void) {
 inline void gcode_M946(void) {
   if (parser.seenval('X')) {
     #if X_IS_TRINAMIC
-      tmc.stepperX->chopper_mode(parser.value_bool());
+      stepperX.chm(parser.value_bool());
     #endif
     #if X2_IS_TRINAMIC
-      tmc.stepperX2->chopper_mode(parser.value_bool());
+      stepperX2->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
     #if Y_IS_TRINAMIC
-      tmc.stepperY->chopper_mode(parser.value_bool());
+      stepperY.chm(parser.value_bool());
     #endif
     #if Y2_IS_TRINAMIC
-      tmc.stepperY2->chopper_mode(parser.value_bool());
+      stepperY2->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
     #if Z_IS_TRINAMIC
-      tmc.stepperZ->chopper_mode(parser.value_bool());
+      stepperZ.chm(parser.value_bool());
     #endif
     #if Z2_IS_TRINAMIC
-      tmc.stepperZ2->chopper_mode(parser.value_bool());
+      stepperZ2->chm(parser.value_bool());
     #endif
     #if Z3_IS_TRINAMIC
-      tmc.stepperZ3->chopper_mode(parser.value_bool());
+      stepperZ3->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if E0_IS_TRINAMIC
-      tmc.stepperE0->chopper_mode(parser.value_bool());
+      stepperE0->chm(parser.value_bool());
     #endif
     #if E1_IS_TRINAMIC
-      tmc.stepperE1->chopper_mode(parser.value_bool());
+      stepperE1->chm(parser.value_bool());
     #endif
     #if E2_IS_TRINAMIC
-      tmc.stepperE2->chopper_mode(parser.value_bool());
+      stepperE2->chm(parser.value_bool());
     #endif
     #if E3_IS_TRINAMIC
-      tmc.stepperE3->chopper_mode(parser.value_bool());
+      stepperE3->chm(parser.value_bool());
     #endif
     #if E4_IS_TRINAMIC
-      tmc.stepperE4->chopper_mode(parser.value_bool());
+      stepperE4->chm(parser.value_bool());
     #endif
     #if E5_IS_TRINAMIC
-      tmc.stepperE5->chopper_mode(parser.value_bool());
+      stepperE5->chm(parser.value_bool());
     #endif
   }
 }
@@ -257,49 +257,49 @@ inline void gcode_M946(void) {
 inline void gcode_M947(void) {
   if (parser.seenval('X')) {
     #if X_IS_TRINAMIC
-      tmc.stepperX->interpolate(parser.value_bool());
+      stepperX.intpol(parser.value_bool());
     #endif
     #if X2_IS_TRINAMIC
-      tmc.stepperX2->interpolate(parser.value_bool());
+      stepperX2->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
     #if Y_IS_TRINAMIC
-      tmc.stepperY->interpolate(parser.value_bool());
+      stepperY.intpol(parser.value_bool());
     #endif
     #if Y2_IS_TRINAMIC
-      tmc.stepperY2->interpolate(parser.value_bool());
+      stepperY2->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
     #if Z_IS_TRINAMIC
-      tmc.stepperZ->interpolate(parser.value_bool());
+      stepperZ.intpol(parser.value_bool());
     #endif
     #if Z2_IS_TRINAMIC
-      tmc.stepperZ2->interpolate(parser.value_bool());
+      stepperZ2->intpol(parser.value_bool());
     #endif
     #if Z3_IS_TRINAMIC
-      tmc.stepperZ3->interpolate(parser.value_bool());
+      stepperZ3->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if E0_IS_TRINAMIC
-      tmc.stepperE0->interpolate(parser.value_bool());
+      stepperE0->intpol(parser.value_bool());
     #endif
     #if E1_IS_TRINAMIC
-      tmc.stepperE1->interpolate(parser.value_bool());
+      stepperE1->intpol(parser.value_bool());
     #endif
     #if E2_IS_TRINAMIC
-      tmc.stepperE2->interpolate(parser.value_bool());
+      stepperE2->intpol(parser.value_bool());
     #endif
     #if E3_IS_TRINAMIC
-      tmc.stepperE3->interpolate(parser.value_bool());
+      stepperE3->intpol(parser.value_bool());
     #endif
     #if E4_IS_TRINAMIC
-      tmc.stepperE4->interpolate(parser.value_bool());
+      stepperE4->intpol(parser.value_bool());
     #endif
     #if E5_IS_TRINAMIC
-      tmc.stepperE5->interpolate(parser.value_bool());
+      stepperE5->intpol(parser.value_bool());
     #endif
   }
 }

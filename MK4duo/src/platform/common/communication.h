@@ -56,9 +56,13 @@ class Com {
 
   public: /** Public Function */
 
-    static void SetBaudrate();
+    static void setBaudrate();
 
     static void serialFlush();
+
+    static int serialRead(const uint8_t index);
+
+    static bool serialDataAvailable();
 
     // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
     static void printPGM(PGM_P);

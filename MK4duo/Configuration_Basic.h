@@ -49,7 +49,7 @@
  *
  * Valid values are -1 to 3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
  */
-#define SERIAL_PORT 0
+#define SERIAL_PORT_1 0
 
 /**
  * This setting determines the communication speed of the printer on primary port.
@@ -60,7 +60,7 @@
  *
  * 2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000
  */
-#define BAUDRATE 250000
+#define BAUDRATE_1 250000
 
 /**
  * Select a secondary serial port on the board to use for communication with the host.

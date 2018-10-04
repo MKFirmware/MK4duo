@@ -174,22 +174,6 @@ typedef int8_t    pin_t;
  * External libraries loading
  */
 
-#if HAVE_DRV(TMC26X)
-  #include <TMC26XStepper.h>
-#endif
-
-#if HAVE_DRV(TMC2130)
-  #include <TMC2130Stepper.h>
-#endif
-
-#if HAVE_DRV(TMC2208)
-  #include <TMC2208Stepper.h>
-#endif
-
-#if HAVE_DRV(L6470)
-  #include <L6470.h>
-#endif
-
 #if ENABLED(ULTRA_LCD)
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>

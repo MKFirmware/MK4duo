@@ -227,8 +227,11 @@ EEPROM eeprom;
 #endif
 
 #if HAS_TRINAMIC
-  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(tmc.stepper##ST->microsteps(), tmc.stepper##ST->TPWMTHRS(), mechanics.axis_steps_per_mm[P##_AXIS])
+  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(stepper##ST->microsteps(), stepper##ST->TPWMTHRS(), mechanics.axis_steps_per_mm[P##_AXIS])
 #endif
+typedef struct { uint16_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_stepper_current_t;
+typedef struct { uint32_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_hybrid_threshold_t;
+typedef struct {  int16_t X, Y, Z;                                         } tmc_sgt_t;
 
 /**
  * Post-process after Retrieve or Reset
@@ -573,177 +576,145 @@ void EEPROM::post_process() {
     //
     #if HAS_TRINAMIC
 
-      uint16_t tmc_stepper_current[TMC_AXES] = {
-        #if X_IS_TRINAMIC
-          tmc.stepperX->getCurrent(),
-        #else
-          0,
-        #endif
-        #if Y_IS_TRINAMIC
-          tmc.stepperY->getCurrent(),
-        #else
-          0,
-        #endif
-        #if Z_IS_TRINAMIC
-          tmc.stepperZ->getCurrent(),
-        #else
-          0,
-        #endif
-        #if X2_IS_TRINAMIC
-          tmc.stepperX2->getCurrent(),
-        #else
-          0,
-        #endif
-        #if Y2_IS_TRINAMIC
-          tmc.stepperY2->getCurrent(),
-        #else
-          0,
-        #endif
-        #if Z2_IS_TRINAMIC
-          tmc.stepperZ2->getCurrent(),
-        #else
-          0,
-        #endif
-        #if Z3_IS_TRINAMIC
-          tmc.stepperZ3->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E0_IS_TRINAMIC
-          tmc.stepperE0->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E1_IS_TRINAMIC
-          tmc.stepperE1->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E2_IS_TRINAMIC
-          tmc.stepperE2->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E3_IS_TRINAMIC
-          tmc.stepperE3->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E4_IS_TRINAMIC
-          tmc.stepperE4->getCurrent(),
-        #else
-          0,
-        #endif
-        #if E5_IS_TRINAMIC
-          tmc.stepperE5->getCurrent()
-        #else
-          0
-        #endif
-      };
+      tmc_stepper_current_t tmc_stepper_current = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+      
+      #if X_IS_TRINAMIC
+        tmc_stepper_current.X = stepperX.getMilliamps();
+      #endif
+      #if Y_IS_TRINAMIC
+        tmc_stepper_current.Y = stepperY.getMilliamps();
+      #endif
+      #if Z_IS_TRINAMIC
+        tmc_stepper_current.Z = stepperZ.getMilliamps();
+      #endif
+      #if X2_IS_TRINAMIC
+        tmc_stepper_current.X2 = stepperX2.getMilliamps();
+      #endif
+      #if Y2_IS_TRINAMIC
+        tmc_stepper_current.Y2 = stepperY2.getMilliamps();
+      #endif
+      #if Z2_IS_TRINAMIC
+        tmc_stepper_current.Z2 = stepperZ2.getMilliamps();
+      #endif
+      #if Z3_IS_TRINAMIC
+        tmc_stepper_current.Z3 = stepperZ3.getMilliamps();
+      #endif
+      #if E0_IS_TRINAMIC
+        tmc_stepper_current.E0 = stepperE0.getMilliamps();
+      #endif
+      #if E1_IS_TRINAMIC
+        tmc_stepper_current.E1 = stepperE1.getMilliamps();
+      #endif
+      #if E2_IS_TRINAMIC
+        tmc_stepper_current.E2 = stepperE2.getMilliamps();
+      #endif
+      #if E3_IS_TRINAMIC
+        tmc_stepper_current.E3 = stepperE3.getMilliamps();
+      #endif
+      #if E4_IS_TRINAMIC
+        tmc_stepper_current.E4 = stepperE4.getMilliamps();
+      #endif
+      #if E5_IS_TRINAMIC
+        tmc_stepper_current.E5 = stepperE5.getMilliamps();
+      #endif
+
       EEPROM_WRITE(tmc_stepper_current);
 
       //
       // Save TMC2130 or TMC2208 Hybrid Threshold, and placeholder values
       //
-      uint32_t tmc_hybrid_threshold[TMC_AXES] = {
-        #if ENABLED(HYBRID_THRESHOLD)
-          #if X_IS_TRINAMIC
-            TMC_GET_PWMTHRS(X, X),
-          #else
-            X_HYBRID_THRESHOLD,
-          #endif
-          #if Y_IS_TRINAMIC
-            TMC_GET_PWMTHRS(Y, Y),
-          #else
-            Y_HYBRID_THRESHOLD,
-          #endif
-          #if Z_IS_TRINAMIC
-            TMC_GET_PWMTHRS(Z, Z),
-          #else
-            Z_HYBRID_THRESHOLD,
-          #endif
-          #if X2_IS_TRINAMIC
-            TMC_GET_PWMTHRS(X, X2),
-          #else
-            X2_HYBRID_THRESHOLD,
-          #endif
-          #if Y2_IS_TRINAMIC
-            TMC_GET_PWMTHRS(Y, Y2),
-          #else
-            Y2_HYBRID_THRESHOLD,
-          #endif
-          #if Z2_IS_TRINAMIC
-            TMC_GET_PWMTHRS(Z, Z2),
-          #else
-            Z2_HYBRID_THRESHOLD,
-          #endif
-          #if Z3_IS_TRINAMIC
-            TMC_GET_PWMTHRS(Z, Z3),
-          #else
-            Z3_HYBRID_THRESHOLD,
-          #endif
-          #if E0_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E0),
-          #else
-            E0_HYBRID_THRESHOLD,
-          #endif
-          #if E1_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E1),
-          #else
-            E1_HYBRID_THRESHOLD,
-          #endif
-          #if E2_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E2),
-          #else
-            E2_HYBRID_THRESHOLD,
-          #endif
-          #if E3_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E3),
-          #else
-            E3_HYBRID_THRESHOLD,
-          #endif
-          #if E4_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E4),
-          #else
-            E4_HYBRID_THRESHOLD,
-          #endif
-          #if E5_IS_TRINAMIC
-            TMC_GET_PWMTHRS(E, E5)
-          #else
-            E5_HYBRID_THRESHOLD
-          #endif
-        #else // !HYBRID_THRESHOLD
-          100, 100, 3,            // X, Y, Z
-          100, 100, 3, 3,         // X2, Y2, Z2, Z3
-          30, 30, 30, 30, 30, 30  // E0, E1, E2, E3, E4, E5
-        #endif // |HYBRID_THRESHOLD
-      };
+      #if ENABLED(HYBRID_THRESHOLD)
+        tmc_hybrid_threshold_t tmc_hybrid_threshold = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        #if X_IS_TRINAMIC
+          tmc_hybrid_threshold.X = TMC_GET_PWMTHRS(X, X);
+        #else
+          tmc_hybrid_threshold.X = X_HYBRID_THRESHOLD;
+        #endif
+        #if Y_IS_TRINAMIC
+          tmc_hybrid_threshold.Y = TMC_GET_PWMTHRS(Y, Y);
+        #else
+          tmc_hybrid_threshold.Y = Y_HYBRID_THRESHOLD;
+        #endif
+        #if Z_IS_TRINAMIC
+          tmc_hybrid_threshold.Z = TMC_GET_PWMTHRS(Z, Z);
+        #else
+          tmc_hybrid_threshold.Z = Z_HYBRID_THRESHOLD;
+        #endif
+        #if X2_IS_TRINAMIC
+          tmc_hybrid_threshold.X2 = TMC_GET_PWMTHRS(X, X2);
+        #else
+          tmc_hybrid_threshold.X2 = X2_HYBRID_THRESHOLD;
+        #endif
+        #if Y2_IS_TRINAMIC
+          tmc_hybrid_threshold.Y2 = TMC_GET_PWMTHRS(Y, Y2);
+        #else
+          mc_hybrid_threshold.Y2 = Y2_HYBRID_THRESHOLD;
+        #endif
+        #if Z2_IS_TRINAMIC
+          tmc_hybrid_threshold.Z2 = TMC_GET_PWMTHRS(Z, Z2);
+        #else
+          tmc_hybrid_threshold.Z2 = Z2_HYBRID_THRESHOLD;
+        #endif
+        #if Z3_IS_TRINAMIC
+          tmc_hybrid_threshold.Z3 = TMC_GET_PWMTHRS(Z, Z3);
+        #else
+          tmc_hybrid_threshold.Z3 = Z3_HYBRID_THRESHOLD;
+        #endif
+        #if E0_IS_TRINAMIC
+          tmc_hybrid_threshold.E0 = TMC_GET_PWMTHRS(E, E0);
+        #else
+          tmc_hybrid_threshold.E0 = E0_HYBRID_THRESHOLD;
+        #endif
+        #if E1_IS_TRINAMIC
+          tmc_hybrid_threshold.E1 = TMC_GET_PWMTHRS(E, E1);
+        #else
+          tmc_hybrid_threshold.E1 = E1_HYBRID_THRESHOLD;
+        #endif
+        #if E2_IS_TRINAMIC
+          tmc_hybrid_threshold.E2 = TMC_GET_PWMTHRS(E, E2);
+        #else
+          tmc_hybrid_threshold.E2 = E2_HYBRID_THRESHOLD;
+        #endif
+        #if E3_IS_TRINAMIC
+          tmc_hybrid_threshold.E3 = TMC_GET_PWMTHRS(E, E3);
+        #else
+          tmc_hybrid_threshold.E3 = E3_HYBRID_THRESHOLD;
+        #endif
+        #if E4_IS_TRINAMIC
+          tmc_hybrid_threshold.E4 = TMC_GET_PWMTHRS(E, E4);
+        #else
+          tmc_hybrid_threshold.E4 = E4_HYBRID_THRESHOLD;
+        #endif
+        #if E5_IS_TRINAMIC
+          tmc_hybrid_threshold.E5 = TMC_GET_PWMTHRS(E, E5)
+        #else
+          tmc_hybrid_threshold.E5 = E5_HYBRID_THRESHOLD
+        #endif
+      #else // !HYBRID_THRESHOLD
+        const tmc_hybrid_threshold_t tmc_hybrid_threshold = {
+          .X  = 100, .Y  = 100, .Z  =   3,
+          .X2 = 100, .Y2 = 100, .Z2 =   3, .Z3 =   3,
+          .E0 =  30, .E1 =  30, .E2 =  30,
+          .E3 =  30, .E4 =  30, .E5 =  30
+        };
+      #endif // |HYBRID_THRESHOLD
       EEPROM_WRITE(tmc_hybrid_threshold);
 
       //
       // TMC2130 StallGuard threshold
       //
-      int8_t tmc_sgt[XYZ] = {
-        #if HAS_SENSORLESS
-          #if X_SENSORLESS
-            tmc.stepperX->sgt(),
-          #else
-            0,
-          #endif
-          #if Y_SENSORLESS
-            tmc.stepperY->sgt(),
-          #else
-            0,
-          #endif
-          #if Z_SENSORLESS
-            tmc.stepperZ->sgt()
-          #else
-            0
-          #endif
-        #else
-          0
+      tmc_sgt_t tmc_sgt = { 0, 0, 0 };
+      #if HAS_SENSORLESS
+        #if X_SENSORLESS
+          tmc_sgt.X = stepperX.sgt();
         #endif
-      };
+        #if Y_SENSORLESS
+          tmc_sgt.Y = stepperY.sgt();
+        #endif
+        #if Z_SENSORLESS
+          tmc_sgt.Z = stepperZ.sgt();
+        #endif
+      #endif
       EEPROM_WRITE(tmc_sgt);
 
     #endif // HAS_TRINAMIC
@@ -1079,8 +1050,8 @@ void EEPROM::post_process() {
       //
       #if HAS_TRINAMIC
 
-        #define SET_CURR(ST) tmc.set_current(tmc.stepper##ST, (currents[TMC_##ST] ? currents[TMC_##ST] : ST##_CURRENT))
-        uint16_t currents[TMC_AXES];
+        #define SET_CURR(ST) stepper##ST.rms_current(currents.ST ? currents.ST : ST##_CURRENT)
+        tmc_stepper_current_t currents;
         EEPROM_READ(currents);
         #if X_IS_TRINAMIC
           SET_CURR(X);
@@ -1122,8 +1093,8 @@ void EEPROM::post_process() {
           SET_CURR(E5);
         #endif
 
-        #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(tmc.stepper##ST, tmc_hybrid_threshold[TMC_##ST], mechanics.axis_steps_per_mm[P##_AXIS])
-        uint32_t tmc_hybrid_threshold[TMC_AXES];
+        #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(stepper##ST, tmc_hybrid_threshold.ST, mechanics.axis_steps_per_mm[P##_AXIS])
+        tmc_hybrid_threshold_t tmc_hybrid_threshold;
         EEPROM_READ(tmc_hybrid_threshold);
         #if ENABLED(HYBRID_THRESHOLD)
           #if X_IS_TRINAMIC
@@ -1173,34 +1144,34 @@ void EEPROM::post_process() {
          * Y and Y2 use the same value
          * Z, Z2 and Z3 use the same value
          */
-        int16_t tmc_sgt[XYZ];
+        tmc_sgt_t tmc_sgt;
         EEPROM_READ(tmc_sgt);
         #if HAS_SENSORLESS
           #if ENABLED(X_STALL_SENSITIVITY)
             #if X_HAS_STALLGUARD
-              tmc.stepperX->sgt(tmc_sgt[0]);
+              stepperX.sgt(tmc_sgt.X);
             #endif
             #if X2_HAS_STALLGUARD
-              tmc.stepperX2->sgt(tmc_sgt[0]);
+              stepperX2.sgt(tmc_sgt.X);
             #endif
           #endif
           #if ENABLED(Y_STALL_SENSITIVITY)
             #if Y_HAS_STALLGUARD
-              tmc.stepperY->sgt(tmc_sgt[1]);
+              stepperY.sgt(tmc_sgt.Y);
             #endif
             #if Y2_HAS_STALLGUARD
-              tmc.stepperY2->sgt(tmc_sgt[1]);
+              stepperY2.sgt(tmc_sgt.Y);
             #endif
           #endif
           #if ENABLED(Z_STALL_SENSITIVITY)
             #if Z_HAS_STALLGUARD
-              tmc.stepperZ->sgt(tmc_sgt[2]);
+              stepperZ.sgt(tmc_sgt.Z);
             #endif
             #if Z2_HAS_STALLGUARD
-              tmc.stepperZ2->sgt(tmc_sgt[2]);
+              stepperZ2.sgt(tmc_sgt.Z);
             #endif
             #if Z3_HAS_STALLGUARD
-              tmc.stepperZ3->sgt(tmc_sgt[2]);
+              stepperZ3.sgt(tmc_sgt.Z);
             #endif
           #endif
         #endif
@@ -2155,43 +2126,43 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Stepper driver current (mA)");
       SERIAL_SM(CFG, "  M906");
       #if X_IS_TRINAMIC
-        SERIAL_MV(" X", tmc.stepperX->getCurrent());
+        SERIAL_MV(" X", stepperX.getMilliamps());
       #endif
       #if X2_IS_TRINAMIC
-        SERIAL_MV(" I2 X", tmc.stepperX2->getCurrent());
+        SERIAL_MV(" I2 X", stepperX2->getMilliamps());
       #endif
       #if Y_IS_TRINAMIC
-        SERIAL_MV(" Y", tmc.stepperY->getCurrent());
+        SERIAL_MV(" Y", stepperY.getMilliamps());
       #endif
       #if Y2_IS_TRINAMIC
-        SERIAL_MV(" I2 Y", tmc.stepperY2->getCurrent());
+        SERIAL_MV(" I2 Y", stepperY2->getMilliamps());
       #endif
       #if Z_IS_TRINAMIC
-        SERIAL_MV(" Z", tmc.stepperZ->getCurrent());
+        SERIAL_MV(" Z", stepperZ.getMilliamps());
       #endif
       #if Z2_IS_TRINAMIC
-        SERIAL_MV(" I2 Z", tmc.stepperZ2->getCurrent());
+        SERIAL_MV(" I2 Z", stepperZ2->getMilliamps());
       #endif
       #if Z3_IS_TRINAMIC
-        SERIAL_MV(" I3 Z", tmc.stepperZ3->getCurrent());
+        SERIAL_MV(" I3 Z", stepperZ3->getMilliamps());
       #endif
       #if E0_IS_TRINAMIC
-        SERIAL_MV(" T0 E", tmc.stepperE0->getCurrent());
+        SERIAL_MV(" T0 E", stepperE0->getMilliamps());
       #endif
       #if E1_IS_TRINAMIC
-        SERIAL_MV(" T1 E", tmc.stepperE1->getCurrent());
+        SERIAL_MV(" T1 E", stepperE1->getMilliamps());
       #endif
       #if E2_IS_TRINAMIC
-        SERIAL_MV(" T2 E", tmc.stepperE2->getCurrent());
+        SERIAL_MV(" T2 E", stepperE2->getMilliamps());
       #endif
       #if E3_IS_TRINAMIC
-        SERIAL_MV(" T3 E", tmc.stepperE3->getCurrent());
+        SERIAL_MV(" T3 E", stepperE3->getMilliamps());
       #endif
       #if E4_IS_TRINAMIC
-        SERIAL_MV(" T4 E", tmc.stepperE4->getCurrent());
+        SERIAL_MV(" T4 E", stepperE4->getMilliamps());
       #endif
       #if E5_IS_TRINAMIC
-        SERIAL_MV(" T5 E", tmc.stepperE5->getCurrent());
+        SERIAL_MV(" T5 E", stepperE5->getMilliamps());
       #endif
       SERIAL_EOL();
 
@@ -2251,29 +2222,29 @@ void EEPROM::reset() {
         SERIAL_SM(CFG, "  M914");
         #if X_SENSORLESS
           #if X_HAS_STALLGUARD
-            SERIAL_MV(" X", tmc.stepperX->sgt());
+            SERIAL_MV(" X", stepperX.sgt());
           #endif
           #if X2_HAS_STALLGUARD
-            SERIAL_MV(" I2 X", tmc.stepperX2->sgt());
+            SERIAL_MV(" I2 X", stepperX2->sgt());
           #endif
         #endif
         #if Y_SENSORLESS
           #if Y_HAS_STALLGUARD
-            SERIAL_MV(" Y", tmc.stepperY->sgt());
+            SERIAL_MV(" Y", stepperY.sgt());
           #endif
           #if Y2_HAS_STALLGUARD
-            SERIAL_MV(" I2 Y", tmc.stepperY2->sgt());
+            SERIAL_MV(" I2 Y", stepperY2->sgt());
           #endif
         #endif
         #if Z_SENSORLESS
           #if Z_HAS_STALLGUARD
-            SERIAL_MV(" Z", tmc.stepperZ->sgt());
+            SERIAL_MV(" Z", stepperZ.sgt());
           #endif
           #if Z2_HAS_STALLGUARD
-            SERIAL_MV(" I2 Z", tmc.stepperZ2->sgt());
+            SERIAL_MV(" I2 Z", stepperZ2->sgt());
           #endif
           #if Z3_HAS_STALLGUARD
-            SERIAL_MV(" I3 Z", tmc.stepperZ3->sgt());
+            SERIAL_MV(" I3 Z", stepperZ3->sgt());
           #endif
         #endif
         SERIAL_EOL();

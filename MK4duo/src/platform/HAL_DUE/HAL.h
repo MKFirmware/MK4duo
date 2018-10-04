@@ -113,26 +113,26 @@ typedef uint32_t  ptr_int_t;
 
 // SERIAL ports
 #include "HardwareSerial.h"
-#if !WITHIN(SERIAL_PORT, -1, 3)
-  #error "SERIAL_PORT must be from -1 to 3"
+#if !WITHIN(SERIAL_PORT_1, -1, 3)
+  #error "SERIAL_PORT_1 must be from -1 to 3"
 #endif
-#if SERIAL_PORT == -1
-  #define MKSERIAL SerialUSB
-#elif SERIAL_PORT == 0
-  #define MKSERIAL MKSerial
-#elif SERIAL_PORT == 1
-  #define MKSERIAL MKSerial1
-#elif SERIAL_PORT == 2
-  #define MKSERIAL MKSerial2
-#elif SERIAL_PORT == 3
-  #define MKSERIAL MKSerial3
+#if SERIAL_PORT_1 == -1
+  #define MKSERIAL1 SerialUSB
+#elif SERIAL_PORT_1 == 0
+  #define MKSERIAL1 MKSerial
+#elif SERIAL_PORT_1 == 1
+  #define MKSERIAL1 MKSerial1
+#elif SERIAL_PORT_1 == 2
+  #define MKSERIAL1 MKSerial2
+#elif SERIAL_PORT_1 == 3
+  #define MKSERIAL1 MKSerial3
 #endif
 
 #if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
   #if !WITHIN(SERIAL_PORT_2, -1, 3)
     #error "SERIAL_PORT_2 must be from -1 to 3"
-  #elif SERIAL_PORT_2 == SERIAL_PORT
-    #error "SERIAL_PORT_2 must be different than SERIAL_PORT"
+  #elif SERIAL_PORT_2 == SERIAL_PORT_1
+    #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #elif SERIAL_PORT_2 == -1
     #define MKSERIAL2 SerialUSB
     #define NUM_SERIAL 2

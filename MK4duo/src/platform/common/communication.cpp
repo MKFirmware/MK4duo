@@ -45,8 +45,8 @@ FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 int8_t Com::serial_port = -1;
 
 // Public Function
-void Com::SetBaudrate() {
-  MKSERIAL.begin(BAUDRATE);
+void Com::setBaudrate() {
+  MKSERIAL1.begin(BAUDRATE_1);
   HAL::delayMilliseconds(1000);
   #if NUM_SERIAL > 1
     MKSERIAL2.begin(BAUDRATE_2);
@@ -57,15 +57,34 @@ void Com::SetBaudrate() {
 }
 
 void Com::serialFlush() {
-  if (serial_port == -1 || serial_port == 0) MKSERIAL.flush();
+  if (serial_port == -1 || serial_port == 0) MKSERIAL1.flush();
   #if NUM_SERIAL > 1
     if (serial_port == -1 || serial_port == 1) MKSERIAL2.flush();
   #endif
 }
 
+int Com::serialRead(const uint8_t index) {
+  switch (index) {
+    case 0: return MKSERIAL1.read();
+    #if NUM_SERIAL > 1
+      case 1: return MKSERIAL2.read();
+    #endif
+    default: return -1;
+  }
+}
+
+bool Com::serialDataAvailable() {
+  return (MKSERIAL1.available() ? true :
+    #if NUM_SERIAL > 1
+      MKSERIAL2.available() ? true :
+    #endif
+    false);
+}
+
+// Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
 void Com::printPGM(PGM_P str) {
   while (char c = pgm_read_byte(str++)) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL.write(c);
+    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(c);
     #if NUM_SERIAL > 1
       if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(c);
     #endif
@@ -73,7 +92,7 @@ void Com::printPGM(PGM_P str) {
 }
 
 void Com::write(char c) {
-  if (serial_port == -1 || serial_port == 0) MKSERIAL.write(c);
+  if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(c);
   #if NUM_SERIAL > 1
     if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(c);
   #endif
@@ -81,7 +100,7 @@ void Com::write(char c) {
 
 void Com::write(PGM_P str) {
   while (*str) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL.write(*str);
+    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(*str);
     #if NUM_SERIAL > 1
     if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(*str);
     #endif
@@ -91,7 +110,7 @@ void Com::write(PGM_P str) {
 
 void Com::write(const uint8_t* buffer, size_t size) {
   while (size--) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL.write(*buffer);
+    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(*buffer);
     #if NUM_SERIAL > 1
       if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(*buffer);
     #endif
@@ -101,7 +120,7 @@ void Com::write(const uint8_t* buffer, size_t size) {
 
 void Com::print(const String& s) {
   for (int i = 0; i < (int)s.length(); i++) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL.write(s[i]);
+    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(s[i]);
     #if NUM_SERIAL > 1
       if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(s[i]);
     #endif
@@ -155,7 +174,7 @@ void Com::println(void) {
 void Com::print_spaces(uint8_t count) {
   count *= (PROPORTIONAL_FONT_RATIO);
   while (count--) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL.write(' ');
+    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(' ');
     #if NUM_SERIAL > 1
       if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(' ');
     #endif

@@ -51,7 +51,7 @@
     };
   #endif
 
-  #if UART_PRESENT(SERIAL_PORT)
+  #if UART_PRESENT(SERIAL_PORT_1)
     ring_buffer_r rx_buffer = { { 0 }, 0, 0 };
     #if TX_BUFFER_SIZE > 0
       ring_buffer_t tx_buffer = { { 0 }, 0, 0 };
@@ -377,7 +377,7 @@
     uint16_t baud_setting;
     bool useU2X = true;
 
-    #if F_CPU == 16000000UL && SERIAL_PORT == 0
+    #if F_CPU == 16000000UL && SERIAL_PORT_1 == 0
       // Hard-coded exception for compatibility with the bootloader shipped
       // with the Duemilanove and previous boards, and the firmware on the
       // 8U2 on the Uno and Mega 2560.

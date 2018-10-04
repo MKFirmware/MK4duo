@@ -77,16 +77,16 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 #endif
 
 // SERIAL
-#if SERIAL_PORT == -1
-  #define MKSERIAL SerialUSB
-#elif SERIAL_PORT == 0
-  #define MKSERIAL Serial
-#elif SERIAL_PORT == 1
-  #define MKSERIAL Serial1
-#elif SERIAL_PORT == 2
-  #define MKSERIAL Serial2
-#elif SERIAL_PORT == 3
-  #define MKSERIAL Serial3
+#if SERIAL_PORT_1 == -1
+  #define MKSERIAL1 SerialUSB
+#elif SERIAL_PORT_1 == 0
+  #define MKSERIAL1 Serial
+#elif SERIAL_PORT_1 == 1
+  #define MKSERIAL1 Serial1
+#elif SERIAL_PORT_1 == 2
+  #define MKSERIAL1 Serial2
+#elif SERIAL_PORT_1 == 3
+  #define MKSERIAL1 Serial3
 #endif
 
 // EEPROM START
@@ -230,27 +230,7 @@ class HAL {
     FORCE_INLINE static unsigned long timeInMilliseconds() {
       return millis();
     }
-    // Serial communication
-    FORCE_INLINE static char readFlashByte(PGM_P ptr) {
-      return pgm_read_byte(ptr);
-    }
-    FORCE_INLINE static void serialSetBaudrate(long baud) {
-      MKSERIAL.begin(baud);
-      HAL::delayMilliseconds(1);
-    }
-    FORCE_INLINE static bool serialByteAvailable() {
-      return MKSERIAL.available() > 0;
-    }
-    FORCE_INLINE static uint8_t serialReadByte() {
-      return MKSERIAL.read();
-    }
-    FORCE_INLINE static void serialWriteByte(char c) {
-      MKSERIAL.write(c);
-    }
-    FORCE_INLINE static void serialFlush() {
-      MKSERIAL.flush();
-    }
-    
+
     FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
       const PinDescription& pinDesc = g_APinDescription[pin];
       if (pinDesc.ulPinType != PIO_NOT_A_PIN) {

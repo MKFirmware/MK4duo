@@ -31,70 +31,159 @@
 
 #if HAS_TRINAMIC
 
-#if HAVE_DRV(TMC2130)
+#include <TMCStepper.h>
 
-  #include <TMC2130Stepper.h>
-
-  #if TMC2130STEPPER_VERSION < 0x020201
-    #error "DEPENDENCY ERROR: Update TMC2130Stepper library to 2.2.1 or newer."
-  #endif
-
-  #define TMC_TYPE TMC2130Stepper
-
-#elif HAVE_DRV(TMC2208)
-
-  #include <TMC2208Stepper.h>
-  #if ENABLED(__AVR__)
-    #include <SoftwareSerial.h>
-    #include <HardwareSerial.h>
-  #endif
-
-  #if TMC2208STEPPER_VERSION < 0x000101
-    #error "DEPENDENCY ERROR: Update TMC2208Stepper library to 0.1.1 or newer."
-  #endif
-
-  #define TMC_TYPE TMC2208Stepper
-
+#if TMCSTEPPER_VERSION < 0x000001
+  #error "Update TMCStepper library to 0.0.1 or newer."
 #endif
 
-#define TMC_AXES (13)
+#define __TMC_CLASS(MODEL, A, I)  TMCMK4duo<TMC##MODEL##Stepper, A, I>
+#define _TMC_CLASS(MODEL, L)      __TMC_CLASS(MODEL, L)
+#define TMC_CLASS(ST)             _TMC_CLASS(ST##_DRIVER_TYPE, TMC_##ST##_LABEL)
+
+#define TMC_X_LABEL 'X', 0
+#define TMC_Y_LABEL 'Y', 1
+#define TMC_Z_LABEL 'Z', 2
+
+#define TMC_X2_LABEL 'X2', 3
+#define TMC_Y2_LABEL 'Y2', 4
+#define TMC_Z2_LABEL 'Z2', 5
+#define TMC_Z3_LABEL 'Z3', 6
+
+#define TMC_E0_LABEL 'E0', 10
+#define TMC_E1_LABEL 'E1', 11
+#define TMC_E2_LABEL 'E2', 12
+#define TMC_E3_LABEL 'E3', 13
+#define TMC_E4_LABEL 'E4', 14
+#define TMC_E5_LABEL 'E5', 15
+
+#define TMC_AXES 13
 
 extern bool report_tmc_status;
 
-enum TMC_AxisEnum : char {
-  TMC_X, TMC_Y, TMC_Z
-  #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
-    , TMC_X2
-  #endif
-  #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-    , TMC_Y2
-  #endif
-  #if ENABLED(Z_THREE_STEPPER_DRIVERS)
-    , TMC_Z2, TMC_Z3
-  #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
-    , TMC_Z2
-  #endif
-  #if DRIVER_EXTRUDERS > 0
-    , TMC_E0
-    #if DRIVER_EXTRUDERS > 1
-      , TMC_E1
-      #if DRIVER_EXTRUDERS > 2
-        , TMC_E2
-        #if DRIVER_EXTRUDERS > 3
-          , TMC_E3
-          #if DRIVER_EXTRUDERS > 4
-            , TMC_E4
-            #if DRIVER_EXTRUDERS > 5
-              , TMC_E5
-            #endif // DRIVER_EXTRUDERS > 5
-          #endif // DRIVER_EXTRUDERS > 4
-        #endif // DRIVER_EXTRUDERS > 3
-      #endif // DRIVER_EXTRUDERS > 2
-    #endif // DRIVER_EXTRUDERS > 1
-  #endif // DRIVER_EXTRUDERS > 0
+template<char AXIS_LETTER, uint8_t DRIVER_ID>
+  class TMCStorage {
 
-};
+    protected:
 
+      // Only a child class has access to constructor => Don't create on its own! "Poor man's abstract class"
+      TMCStorage() {}
+
+      uint16_t val_mA = 0;
+
+    public:
+
+      uint8_t id = DRIVER_ID;
+
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        uint8_t otpw_count = 0;
+        bool flag_otpw = false;
+        bool getOTPW() { return flag_otpw; }
+        void clear_otpw() { flag_otpw = 0; }
+      #endif
+
+      uint16_t getMilliamps() { return val_mA; }
+
+      void printLabel() {
+        SERIAL_TXT(AXIS_LETTER);
+      }
+
+  };
+
+template<class TMC, char AXIS_LETTER, uint8_t DRIVER_ID>
+  class TMCMK4duo : public TMC, public TMCStorage<AXIS_LETTER, DRIVER_ID> {
+
+   public: /** Constructor */
+
+      TMCMK4duo(uint16_t cs_pin, float RS) :
+        TMC(cs_pin, RS) {}
+
+      TMCMK4duo(uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
+        TMC(CS, RS, pinMOSI, pinMISO, pinSCK) {}
+
+    public: /** Public Function */
+
+      uint16_t rms_current() { return TMC::rms_current(); }
+
+      void rms_current(uint16_t mA) {
+        this->val_mA = mA;
+        TMC::rms_current(mA);
+      }
+
+      void rms_current(uint16_t mA, float mult) {
+        this->val_mA = mA;
+        TMC::rms_current(mA, mult);
+      }
+
+  };
+
+template<char AXIS_LETTER, uint8_t DRIVER_ID>
+  class TMCMK4duo<TMC2208Stepper, AXIS_LETTER, DRIVER_ID> : public TMC2208Stepper, public TMCStorage<AXIS_LETTER, DRIVER_ID> {
+
+    public: /** Constructor */
+
+      TMCMK4duo(Stream * SerialPort, float RS, bool has_rx=true) :
+        TMC2208Stepper(SerialPort, RS, has_rx=true) {}
+
+      TMCMK4duo(uint16_t RX, uint16_t TX, float RS, bool has_rx=true) :
+        TMC2208Stepper(RX, TX, RS, has_rx=true) {}
+
+    public: /** Public Function */
+
+      uint16_t rms_current() { return TMC2208Stepper::rms_current(); }
+
+      void rms_current(uint16_t mA) {
+        this->val_mA = mA;
+        TMC2208Stepper::rms_current(mA);
+      }
+
+      void rms_current(uint16_t mA, float mult) {
+        this->val_mA = mA;
+        TMC2208Stepper::rms_current(mA, mult);
+      }
+
+  };
+
+#if X_IS_TRINAMIC
+  extern TMC_CLASS(X)   stepperX;
+#endif
+#if X2_IS_TRINAMIC
+  extern TMC_CLASS(X2)  stepperX2;
+#endif
+#if Y_IS_TRINAMIC
+  extern TMC_CLASS(Y)   stepperY;
+#endif
+#if Y2_IS_TRINAMIC
+  extern TMC_CLASS(Y2)  stepperY2;
+#endif
+#if Z_IS_TRINAMIC
+  extern TMC_CLASS(Z)   stepperZ;
+#endif
+#if Z2_IS_TRINAMIC
+  extern TMC_CLASS(Z2)  stepperZ2;
+#endif
+#if Z3_IS_TRINAMIC
+  extern TMC_CLASS(Z3)  stepperZ3;
+#endif
+#if E0_IS_TRINAMIC
+  extern TMC_CLASS(E0)  stepperE0;
+#endif
+#if E1_IS_TRINAMIC
+  extern TMC_CLASS(E1)  stepperE1;
+#endif
+#if E2_IS_TRINAMIC
+  extern TMC_CLASS(E2)  stepperE2;
+#endif
+#if E3_IS_TRINAMIC
+  extern TMC_CLASS(E3)  stepperE3;
+#endif
+#if E4_IS_TRINAMIC
+  extern TMC_CLASS(E4)  stepperE4;
+#endif
+#if E5_IS_TRINAMIC
+  extern TMC_CLASS(E5)  stepperE5;
+#endif
+    
 struct TMC_driver_data {
   uint32_t drv_status;
   bool is_otpw;
@@ -162,46 +251,6 @@ class TMC_Stepper {
 
   public: /** Public Parameters */
 
-    #if X_IS_TRINAMIC
-      static TMC_TYPE* stepperX;
-    #endif
-    #if X2_IS_TRINAMIC
-      static TMC_TYPE* stepperX2;
-    #endif
-    #if Y_IS_TRINAMIC
-      static TMC_TYPE* stepperY;
-    #endif
-    #if Y2_IS_TRINAMIC
-      static TMC_TYPE* stepperY2;
-    #endif
-    #if Z_IS_TRINAMIC
-      static TMC_TYPE* stepperZ;
-    #endif
-    #if Z2_IS_TRINAMIC
-      static TMC_TYPE* stepperZ2;
-    #endif
-    #if Z3_IS_TRINAMIC
-      static TMC_TYPE* stepperZ3;
-    #endif
-    #if E0_IS_TRINAMIC
-      static TMC_TYPE* stepperE0;
-    #endif
-    #if E1_IS_TRINAMIC
-      static TMC_TYPE* stepperE1;
-    #endif
-    #if E2_IS_TRINAMIC
-      static TMC_TYPE* stepperE2;
-    #endif
-    #if E3_IS_TRINAMIC
-      static TMC_TYPE* stepperE3;
-    #endif
-    #if E4_IS_TRINAMIC
-      static TMC_TYPE* stepperE4;
-    #endif
-    #if E5_IS_TRINAMIC
-      static TMC_TYPE* stepperE5;
-    #endif
-
   private: /** Private Parameters */
 
     static bool report_status;
@@ -213,28 +262,6 @@ class TMC_Stepper {
     static void microstep_init_to_defaults();
 
     static void restore();
-
-    /**
-     * TMC2130 specific sensorless homing using stallGuard2.
-     * stallGuard2 only works when in spreadCycle mode.
-     * spreadCycle and stealthChop are mutually exclusive.
-     *
-     * Defined here because of limitations with templates and headers.
-     */
-    #if HAS_SENSORLESS
-      static void set_stallguard(TMC2130Stepper* st, const uint8_t index, const uint32_t coolstep_speed_min, const bool enable=true);
-    #endif
-
-    #if HAVE_DRV(TMC2130) && ENABLED(MSLUT_CALIBRATION)
-      #define TMC2130_WAVE_FAC1000_MIN   30
-      #define TMC2130_WAVE_FAC1000_MAX  200
-      static void reset_wave(TMC_TYPE* st);
-      static void set_fixed_wave(TMC_TYPE* st, const uint8_t i);
-      static void set_wave( TMC_TYPE* st, const uint8_t amp, int16_t fac1000,
-                            const int8_t xoff=0, const int8_t yoff=10, const uint8_t wavetype=0,
-                            const bool config=0, const uint8_t addto=0
-      );
-    #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
       static void monitor_driver();
@@ -249,180 +276,211 @@ class TMC_Stepper {
       return 12650000UL * tmc_msteps / (256 * tmc_thrs * tmc_spmm);
     }
 
-    FORCE_INLINE static void get_current(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_current(axis, st->getCurrent());
-    }
-    FORCE_INLINE static void set_current(TMC_TYPE* st, const uint16_t mA) {
-      st->setCurrent(mA, R_SENSE, HOLD_MULTIPLIER);
+    template<typename TMC>
+      FORCE_INLINE static void get_current(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" driver current: ", st.getMilliamps());
+      }
+
+    template<typename TMC>
+      FORCE_INLINE static void set_current(TMC &st, const uint16_t mA) {
+        st.rms_current(mA);
+      }
+
+    template<typename TMC>
+      FORCE_INLINE static void get_microstep(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" driver microstep: ", st.microsteps());
+      }
+
+    template<typename TMC>
+    FORCE_INLINE static void set_microstep(TMC &st, const uint16_t ms) {
+      st.microsteps(ms);
     }
 
-    FORCE_INLINE static void get_microstep(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_microstep(axis, st->microsteps());
-    }
-    FORCE_INLINE static void set_microstep(TMC_TYPE* st, const uint16_t ms) {
-      st->microsteps(ms);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void report_otpw(TMC &st) {
+        st.printLabel();
+        SERIAL_MSG(" temperature prewarn triggered: ");
+        SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
+        SERIAL_EOL();
+      }
 
-    FORCE_INLINE static void report_otpw(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_otpw(axis, st->getOTPW());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void clear_otpw(TMC &st) {
+        st.clear_otpw();
+        st.printLabel();
+        SERIAL_EM(" prewarn flag cleared");
+      }
 
-    FORCE_INLINE static void clear_otpw(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      st->clear_otpw();
-      say_otpw_cleared(axis);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_pwmthrs(TMC &st, const uint32_t tmc_spmm) {
+        st.printLabel();
+        SERIAL_EMV(" stealthChop max speed: ", thrs(st.microsteps(), st.TPWMTHRS(), tmc_spmm));
+      }
 
-    FORCE_INLINE static void get_pwmthrs(TMC_TYPE* st, const TMC_AxisEnum axis, const uint32_t tmc_spmm) {
-      say_pwmthrs(axis, thrs(st->microsteps(), st->stealth_max_speed(), tmc_spmm));
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_pwmthrs(TMC &st, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
+        st.TPWMTHRS(thrs(st.microsteps(), tmc_thrs, tmc_spmm));
+      }
 
-    FORCE_INLINE static void set_pwmthrs(TMC_TYPE* st, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
-      st->stealth_max_speed(thrs(st->microsteps(), tmc_thrs, tmc_spmm));
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_sgt(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" homing sensitivity: ", st.sgt(), DEC);
+      }
 
-    FORCE_INLINE static void get_sgt(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_sgt(axis, st->sgt());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_sgt(TMC &st, const int8_t sgt_val) {
+        st.sgt(sgt_val);
+      }
 
-    FORCE_INLINE static void set_sgt(TMC_TYPE* st, const int8_t sgt_val) {
-      st->sgt(sgt_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_off_time(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" off_time: ", st.toff());
+      }
 
-    FORCE_INLINE static void get_off_time(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_off_time(axis, st->off_time());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_off_time(TMC &st, const uint8_t off_time_val) {
+        st.toff(off_time_val);
+      }
 
-    FORCE_INLINE static void set_off_time(TMC_TYPE* st, const uint8_t off_time_val) {
-      st->off_time(off_time_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_blank_time(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" blank_time: ", st.blank_time());
+      }
 
-    FORCE_INLINE static void get_fast_decay_time(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_fast_decay_time(axis, st->fast_decay_time());
-      say_fast_decay_time(axis, st->hysteresis_start());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_blank_time(TMC &st, const uint8_t blank_time_val) {
+        st.blank_time(blank_time_val);
+      }
 
-    FORCE_INLINE static void set_fast_decay_time(TMC_TYPE* st, const uint8_t fast_decay_time_val) {
-      st->fast_decay_time(fast_decay_time_val);
-      st->hysteresis_start(fast_decay_time_val << 1);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_hysteresis_end(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" hysteresis_end: ", st.hysteresis_end());
+      }
 
-    FORCE_INLINE static void get_blank_time(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_blank_time(axis, st->blank_time());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_hysteresis_end(TMC &st, const int8_t hysteresis_end_val) {
+        st.hysteresis_end(hysteresis_end_val);
+      }
 
-    FORCE_INLINE static void set_blank_time(TMC_TYPE* st, const uint8_t blank_time_val) {
-      st->blank_time(blank_time_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_hysteresis_start(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" hysteresis_start: ", st.hysteresis_start());
+      }
 
-    FORCE_INLINE static void get_hysteresis_end(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_hysteresis_end(axis, st->hysteresis_end());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_hysteresis_start(TMC &st, const uint8_t hysteresis_start_val) {
+        st.hysteresis_start(hysteresis_start_val);
+      }
 
-    FORCE_INLINE static void set_hysteresis_end(TMC_TYPE* st, const int8_t hysteresis_end_val) {
-      st->hysteresis_end(hysteresis_end_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_stealth_gradient(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" stealth_gradient: ", st.pwm_grad());
+      }
 
-    FORCE_INLINE static void get_hysteresis_start(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_hysteresis_start(axis, st->hysteresis_start());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_stealth_gradient(TMC &st, const uint8_t stealth_gradient_val) {
+        st.pwm_grad(stealth_gradient_val);
+      }
 
-    FORCE_INLINE static void set_hysteresis_start(TMC_TYPE* st, const uint8_t hysteresis_start_val) {
-      st->hysteresis_start(hysteresis_start_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_stealth_amplitude(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" stealth_amplitude: ", st.pwm_ampl());
+      }
 
-    FORCE_INLINE static void get_stealth_gradient(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_stealth_gradient(axis, st->stealth_gradient());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_stealth_amplitude(TMC &st, const uint8_t stealth_amplitude_val) {
+        st.pwm_ampl(stealth_amplitude_val);
+      }
 
-    FORCE_INLINE static void set_stealth_gradient(TMC_TYPE* st, const uint8_t stealth_gradient_val) {
-      st->stealth_gradient(stealth_gradient_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_stealth_freq(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" stealth_freq: ", st.pwm_freq());
+      }
 
-    FORCE_INLINE static void get_stealth_amplitude(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_stealth_amplitude(axis, st->stealth_amplitude());
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_stealth_freq(TMC &st, const uint8_t stealth_freq_val) {
+        st.pwm_freq(stealth_freq_val);
+      }
 
-    FORCE_INLINE static void set_stealth_amplitude(TMC_TYPE* st, const uint8_t stealth_amplitude_val) {
-      st->stealth_amplitude(stealth_amplitude_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void get_stealth_autoscale(TMC &st) {
+        st.printLabel();
+        SERIAL_EMV(" stealth_autoscale: ", st.pwm_autoscale());
+      }
 
-    FORCE_INLINE static void get_stealth_freq(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_stealth_freq(axis, st->stealth_freq());
-    }
-
-    FORCE_INLINE static void set_stealth_freq(TMC_TYPE* st, const uint8_t stealth_freq_val) {
-      st->stealth_freq(stealth_freq_val);
-    }
-
-    FORCE_INLINE static void get_stealth_autoscale(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_stealth_autoscale(axis, st->stealth_autoscale());
-    }
-
-    FORCE_INLINE static void set_stealth_autoscale(TMC_TYPE* st, const bool stealth_autoscale_val) {
-      st->stealth_autoscale(stealth_autoscale_val);
-    }
-
-    FORCE_INLINE static void get_disable_I_comparator(TMC_TYPE* st, const TMC_AxisEnum axis) {
-      say_disable_I_comparator(axis, st->disable_I_comparator());
-    }
-
-    FORCE_INLINE static void set_disable_I_comparator(TMC_TYPE* st, const bool disable_I_comparator_val) {
-      st->disable_I_comparator(disable_I_comparator_val);
-    }
+    template<typename TMC>
+      FORCE_INLINE static void set_stealth_autoscale(TMC &st, const bool stealth_autoscale_val) {
+        st.pwm_autoscale(stealth_autoscale_val);
+      }
 
   private: /** Private Function */
 
     #if HAVE_DRV(TMC2130)
-      static void config(TMC_TYPE* st, const bool tmc_stealthchop=false, const int8_t tmc_sgt=0);
+      static void config(TMC2130Stepper &st, const bool tmc_stealthchop=false, const int8_t tmc_sgt=0);
     #elif HAVE_DRV(TMC2208)
-      static void config(TMC_TYPE* st, const bool tmc_stealthchop=false);
+      static void config(TMC2208Stepper &st, const bool tmc_stealthchop=false);
     #endif
-
-    static void say_axis(const TMC_AxisEnum axis);
-    static void say_current(const TMC_AxisEnum axis, const uint16_t tmc_curr);
-    static void say_microstep(const TMC_AxisEnum axis, const uint16_t tmc_ms);
-    static void say_otpw(const TMC_AxisEnum axis, const bool tmc_otpw);
-    static void say_otpw_cleared(const TMC_AxisEnum axis);
-    static void say_pwmthrs(const TMC_AxisEnum axis, const uint32_t tmc_thrs);
-    static void say_sgt(const TMC_AxisEnum axis, const int8_t tmc_sgt);
-    static void say_off_time(const TMC_AxisEnum axis, const uint8_t off_time);
-    static void say_fast_decay_time(const TMC_AxisEnum axis, const uint8_t fast_decay_time);
-    static void say_blank_time(const TMC_AxisEnum axis, const uint8_t blank_time);
-    static void say_hysteresis_end(const TMC_AxisEnum axis, const int8_t hysteresis_end);
-    static void say_hysteresis_start(const TMC_AxisEnum axis, const uint8_t hysteresis_start);
-    static void say_stealth_gradient(const TMC_AxisEnum axis, const uint8_t stealth_gradien);
-    static void say_stealth_amplitude(const TMC_AxisEnum axis, const uint8_t stealth_amplitude);
-    static void say_stealth_freq(const TMC_AxisEnum axis, const uint8_t stealth_freq);
-    static void say_stealth_autoscale(const TMC_AxisEnum axis, const bool stealth_autoscale);
-    static void say_disable_I_comparator(const TMC_AxisEnum axis, const bool disable_I_comparator);
-    static void set_mslutstart(TMC_TYPE* st, const uint8_t start_sin, const uint8_t start_sin90);
-    static void set_mslutsel(TMC_TYPE* st, uint8_t x1, uint8_t x2, uint8_t x3, int8_t w0, int8_t w1, int8_t w2, int8_t w3);
-    static void set_mslut(TMC_TYPE* st, const uint8_t i, const uint32_t val);
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
       #if HAVE_DRV(TMC2130)
-        static TMC_driver_data get_driver_data(TMC2130Stepper* st);
-        FORCE_INLINE static uint8_t get_status_response(TMC2130Stepper* st) { return st->status_response & 0xF; }
-        FORCE_INLINE static uint32_t get_pwm_scale(TMC2130Stepper* st) { return st->PWM_SCALE(); }
+
+        template<typename TMC>
+          static TMC_driver_data get_driver_data(TMC &st);
+
+        template<typename TMC>
+          FORCE_INLINE static uint8_t get_status_response(TMC &st) { return st.status_response & 0xF; }
+
+        template<typename TMC>
+          FORCE_INLINE static uint32_t get_pwm_scale(TMC &st) { return st.PWM_SCALE(); }
+
       #elif HAVE_DRV(TMC2208)
-        static TMC_driver_data get_driver_data(TMC2208Stepper* st);
-        static uint8_t get_status_response(TMC2208Stepper* st);
-        FORCE_INLINE static uint32_t get_pwm_scale(TMC2208Stepper* st) { return st->pwm_scale_sum(); }
+
+        template<typename TMC>
+          static TMC_driver_data get_driver_data(TMC &st);
+
+        template<typename TMC>
+          static uint8_t get_status_response(TMC2208Stepper& st);
+        
+        template<typename TMC>
+          FORCE_INLINE static uint32_t get_pwm_scale(TMC2208Stepper& st) { return st.pwm_scale_sum(); }
+
       #endif
 
-      static void monitor_driver(TMC_TYPE* st, const TMC_AxisEnum axis, uint8_t &otpw_cnt);
+      template<typename TMC>
+        static void monitor_driver(TMC &st);
 
     #endif
 
     #if ENABLED(TMC_DEBUG)
-      static void drv_status_print_hex(const TMC_AxisEnum axis, const uint32_t drv_status);
-      static void status(TMC_TYPE* st, const TMC_debug_enum i);
-      static void status(TMC_TYPE* st, const TMC_AxisEnum axis, const TMC_debug_enum i, const float tmc_spmm);
-      static void parse_drv_status(TMC_TYPE* st, const TMC_drv_status_enum i);
-      static void parse_drv_status(TMC_TYPE* st, const TMC_AxisEnum axis, const TMC_drv_status_enum i);
+
+      template<typename TMC>
+        FORCE_INLINE static void print_vsense(TMC &st) { SERIAL_PS(st.vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+
+      static void drv_status_print_hex(const uint32_t drv_status);
+
+      template<typename TMC>
+        static void status(TMC &st, const TMC_debug_enum i);
+
+      template<typename TMC>
+        static void status(TMC &st, const TMC_debug_enum i, const float tmc_spmm);
+
+      template<typename TMC>
+        static void parse_drv_status(TMC &st, const TMC_drv_status_enum i);
+
       static void debug_loop(const TMC_debug_enum i);
       static void status_loop(const TMC_drv_status_enum i);
+
     #endif
 
 };

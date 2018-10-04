@@ -46,7 +46,7 @@
 #line 47
 
 // manually add pins that have names that are macros which don't play well with these macros
-#if SERIAL_PORT == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
+#if SERIAL_PORT_1 == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
   static const char RXD_NAME[] PROGMEM = { "RXD" };
   static const char TXD_NAME[] PROGMEM = { "TXD" };
 #endif
@@ -83,7 +83,7 @@ const PinInfo pin_array[] PROGMEM = {
    */
 
   // manually add pins ...
-  #if SERIAL_PORT == 0
+  #if SERIAL_PORT_1 == 0
     #if (AVR_ATmega2560_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
       { RXD_NAME, 0, true },
       { TXD_NAME, 1, true },

@@ -94,9 +94,9 @@ typedef uint16_t  ptr_int_t;
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
   #include "HardwareSerial.h"
-  #define MKSERIAL MKSerial
+  #define MKSERIAL1 MKSerial
 #else
-  #define MKSERIAL Serial
+  #define MKSERIAL1 Serial
 #endif
 #define NUM_SERIAL 1
 
@@ -556,23 +556,6 @@ class HAL {
     }
     static inline uint32_t timeInMilliseconds() {
       return millis();
-    }
-
-    static inline void serialSetBaudrate(const uint16_t baud) {
-      MKSERIAL.begin(baud);
-      HAL::delayMilliseconds(1);
-    }
-    static inline bool serialByteAvailable() {
-      return MKSERIAL.available() > 0;
-    }
-    static inline uint8_t serialReadByte() {
-      return MKSERIAL.read();
-    }
-    static inline void serialWriteByte(const char b) {
-      MKSERIAL.write(b);
-    }
-    static inline void serialFlush() {
-      MKSERIAL.flush();
     }
 
     // SPI related functions

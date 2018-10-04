@@ -58,8 +58,8 @@
 
     if (commands.get_target_tool(906)) return;
 
-    #define TMC_SAY_CURRENT(Q) tmc.get_current(tmc.stepper##Q, TMC_##Q)
-    #define TMC_SET_CURRENT(Q) tmc.set_current(tmc.stepper##Q, value)
+    #define TMC_SAY_CURRENT(Q) tmc.get_current(stepper##Q)
+    #define TMC_SET_CURRENT(Q) tmc.set_current(stepper##Q, value)
 
     const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {

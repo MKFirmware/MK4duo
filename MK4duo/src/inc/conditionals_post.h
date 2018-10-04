@@ -25,7 +25,8 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#pragma once
+#ifndef _CONDITIONALS_POST_H_
+#define _CONDITIONALS_POST_H_
 
 /**
  * SAM3X8E
@@ -1406,3 +1407,5 @@
 #if DISABLED(MAXIMUM_STEPPER_RATE)
   #define MAXIMUM_STEPPER_RATE (500000UL)
 #endif
+
+#endif /* _CONDITIONALS_POST_H_ */

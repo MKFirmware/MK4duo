@@ -98,7 +98,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_ring.isEmpty() && !serial_data_available() && last_command_watch.elapsed()) {
+    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_watch.elapsed()) {
       SERIAL_STR(WT);
       SERIAL_EOL();
       last_command_watch.start();
@@ -108,7 +108,7 @@ void Commands::get_serial() {
   /**
    * Loop while serial characters are incoming and the buffer_ring is not full
    */
-  while (!buffer_ring.isFull() && serial_data_available()) {
+  while (!buffer_ring.isFull() && Com::serialDataAvailable()) {
 
     for (uint8_t i = 0; i < NUM_SERIAL; ++i) {
 
@@ -117,7 +117,7 @@ void Commands::get_serial() {
       last_command_watch.start();
       printer.max_inactivity_watch.start();
 
-      if ((c = read_serial(i)) < 0) continue;
+      if ((c = Com::serialRead(i)) < 0) continue;
 
       char serial_char = c;
 
@@ -220,7 +220,7 @@ void Commands::get_serial() {
       }
       else if (serial_char == '\\') { // Handle escapes
         // if we have one more character, copy it over
-        if ((c = read_serial(i)) >= 0 && !serial_comment_mode[i])
+        if ((c = Com::serialRead(i)) >= 0 && !serial_comment_mode[i])
           serial_line_buffer[i][serial_count[i]++] = (char)c;
       }
       else { // its not a newline, carriage return or escape char
@@ -425,11 +425,11 @@ void Commands::advance_queue() {
         card.finishWrite();
 
         #if ENABLED(SERIAL_STATS_DROPPED_RX)
-          SERIAL_EMV("Dropped bytes: ", MKSERIAL.dropped());
+          SERIAL_EMV("Dropped bytes: ", MKSERIAL1.dropped());
         #endif
 
         #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
-          SERIAL_EMV("Max RX Queue Size: ", MKSERIAL.rxMaxEnqueued());
+          SERIAL_EMV("Max RX Queue Size: ", MKSERIAL1.rxMaxEnqueued());
         #endif
 
         ok_to_send();
@@ -627,24 +627,6 @@ bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
 #else
   #define EXECUTE_G0_G1(NUM) gcode_G0_G1()
 #endif
-
-int Commands::read_serial(const int index) {
-  switch (index) {
-    case 0: return MKSERIAL.read();
-    #if NUM_SERIAL > 1
-      case 1: return MKSERIAL2.read();
-    #endif
-    default: return -1;
-  }
-}
-
-bool Commands::serial_data_available() {
-  return (MKSERIAL.available() ? true :
-    #if NUM_SERIAL > 1
-      MKSERIAL2.available() ? true :
-    #endif
-    false);
-}
 
 /**
  * Process a single command and dispatch it to its handler

@@ -84,10 +84,6 @@ class Commands {
       static void get_sdcard();
     #endif
 
-    static int read_serial(const int index);
-
-    static bool serial_data_available();
-
     static void process_next();
     static void process_parsed();
     static void unknown_error();
