@@ -30,7 +30,11 @@
 
 #if HAS_TRINAMIC
 
+//
+// TMC2130 Driver objects and inits
+//
 #if HAVE_DRV(TMC2130)
+
   #if ENABLED(SOFT_SPI_TMC2130)
     #define _TMC2130_DEFINE(ST, L)  TMCMK4duo<TMC2130Stepper, L> stepper##ST(ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK)
     #define TMC2130_DEFINE(ST)      _TMC2130_DEFINE(ST, TMC_##ST##_LABEL)
@@ -79,7 +83,115 @@
     TMC2130_DEFINE(E5);
   #endif
 
-#endif
+#endif // HAVE_DRV(TMC2130)
+
+//
+// TMC2208 Driver objects and inits
+//
+#if HAVE_DRV(TMC2208)
+
+  #include <HardwareSerial.h>
+
+  #define _TMC2208_DEFINE_HARDWARE(ST, L) TMCMK4duo<TMC2208Stepper, L> stepper##ST(&ST##_HARDWARE_SERIAL, R_SENSE)
+  #define TMC2208_DEFINE_HARDWARE(ST)     _TMC2208_DEFINE_HARDWARE(ST, TMC_##ST##_LABEL)
+
+  #define _TMC2208_DEFINE_SOFTWARE(ST, L) TMCMK4duo<TMC2208Stepper, L> stepper##ST(ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > -1)
+  #define TMC2208_DEFINE_SOFTWARE(ST)     _TMC2208_DEFINE_SOFTWARE(ST, TMC_##ST##_LABEL)
+
+  // Stepper objects of TMC2208 steppers used
+  #if X_HAS_DRV(TMC2208)
+    #if ENABLED(X_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(X);
+    #else
+      TMC2208_DEFINE_SOFTWARE(X);
+    #endif
+  #endif
+  #if X2_HAS_DRV(TMC2208)
+    #if ENABLED(X2_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(X2);
+    #else
+      TMC2208_DEFINE_SOFTWARE(X2);
+    #endif
+  #endif
+  #if Y_HAS_DRV(TMC2208)
+    #if ENABLED(Y_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(Y);
+    #else
+      TMC2208_DEFINE_SOFTWARE(Y);
+    #endif
+  #endif
+  #if Y2_HAS_DRV(TMC2208)
+    #if ENABLED(Y2_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(Y2);
+    #else
+      TMC2208_DEFINE_SOFTWARE(Y2);
+    #endif
+  #endif
+  #if Z_HAS_DRV(TMC2208)
+    #if ENABLED(Z_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(Z);
+    #else
+      TMC2208_DEFINE_SOFTWARE(Z);
+    #endif
+  #endif
+  #if Z2_HAS_DRV(TMC2208)
+    #if ENABLED(Z2_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(Z2);
+    #else
+      TMC2208_DEFINE_SOFTWARE(Z2);
+    #endif
+  #endif
+  #if Z3_HAS_DRV(TMC2208)
+    #if ENABLED(Z3_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(Z3);
+    #else
+      TMC2208_DEFINE_SOFTWARE(Z3);
+    #endif
+  #endif
+  #if E0_HAS_DRV(TMC2208)
+    #if ENABLED(E0_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E0);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E0);
+    #endif
+  #endif
+  #if E1_HAS_DRV(TMC2208)
+    #if ENABLED(E1_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E1);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E1);
+    #endif
+  #endif
+  #if E2_HAS_DRV(TMC2208)
+    #if ENABLED(E2_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E2);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E2);
+    #endif
+  #endif
+  #if E3_HAS_DRV(TMC2208)
+    #if ENABLED(E3_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E3);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E3);
+    #endif
+  #endif
+  #if E4_HAS_DRV(TMC2208)
+    #if ENABLED(E4_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E4);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E4);
+    #endif
+  #endif
+  #if E5_HAS_DRV(TMC2208)
+    #if ENABLED(E5_HARDWARE_SERIAL)
+      TMC2208_DEFINE_HARDWARE(E5);
+    #else
+      TMC2208_DEFINE_SOFTWARE(E5);
+    #endif
+  #endif
+  
+#endif // HAVE_DRV(TMC2208)
 
 TMC_Stepper tmc;
 
@@ -138,129 +250,110 @@ void TMC_Stepper::init() {
 
   #elif HAVE_DRV(TMC2208)
 
-    #define _TMC2208_DEFINE_HARDWARE(ST)  TMC2208Stepper stepper##ST(&ST##_HARDWARE_SERIAL)
-    #define _TMC2208_DEFINE_SOFTWARE(ST)  SoftwareSerial ST##_HARDWARE_SERIAL = SoftwareSerial(ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN); \
-                                          TMC2208Stepper stepper##ST(&ST##_HARDWARE_SERIAL, ST##_SERIAL_RX_PIN > -1)
-
-    #define _TMC2208_CONFIG(ST)           config(stepper##ST, ST##_STEALTHCHOP)
-
     // Stepper objects of TMC2208 steppers used
     #if X_HAS_DRV(TMC2208)
       #if ENABLED(X_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(X);
+        X_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(X);
+        stepperX.beginSerial(115200);
       #endif
-      X_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(X);
+      config(stepperX, X_STEALTHCHOP);
     #endif
     #if X2_HAS_DRV(TMC2208)
       #if ENABLED(X2_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(X2);
+        X2_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(X2);
+        stepperX2.beginSerial(115200);
       #endif
-      X2_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(X2);
+      config(stepperX2, X2_STEALTHCHOP);
     #endif
     #if Y_HAS_DRV(TMC2208)
       #if ENABLED(Y_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(Y);
+        Y_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(Y);
+        stepperY.beginSerial(115200);
       #endif
-      Y_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(Y);
+      config(stepperY, Y_STEALTHCHOP);
     #endif
     #if Y2_HAS_DRV(TMC2208)
       #if ENABLED(Y2_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(Y2);
+        Y2_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(Y2);
+        stepperY2.beginSerial(115200);
       #endif
-      Y2_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(Y2);
+      config(stepperY2, Y2_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2208)
       #if ENABLED(Z_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(Z);
+        Z_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(Z);
+        stepperZ.beginSerial(115200);
       #endif
-      Z_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(Z);
+      config(stepperZ, Z_STEALTHCHOP);
     #endif
     #if Z2_HAS_DRV(TMC2208)
       #if ENABLED(Z2_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(Z2);
+        Z2_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(Z2);
+        stepperZ2.beginSerial(115200);
       #endif
-      Z2_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(Z2);
+      config(stepperZ2, Z2_STEALTHCHOP);
     #endif
     #if Z3_HAS_DRV(TMC2208)
       #if ENABLED(Z3_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(Z3);
+        Z3_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(Z3);
+        stepperZ3.beginSerial(115200);
       #endif
-      Z3_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(Z3);
+      config(stepperZ3, Z3_STEALTHCHOP);
     #endif
     #if E0_HAS_DRV(TMC2208)
       #if ENABLED(E0_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E0);
+        E0_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E0);
+        stepperE0.beginSerial(115200);
       #endif
-      E0_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E0);
+      config(stepperE0, E0_STEALTHCHOP);
     #endif
     #if E1_HAS_DRV(TMC2208)
       #if ENABLED(E1_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E1);
+        E1_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E1);
+        stepperE1.beginSerial(115200);
       #endif
-      E1_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E1);
+      config(stepperE1, E1_STEALTHCHOP);
     #endif
     #if E2_HAS_DRV(TMC2208)
       #if ENABLED(E2_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E2);
+        E2_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E2);
+        stepperE2.beginSerial(115200);
       #endif
-      E2_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E2);
+      config(stepperE2, E2_STEALTHCHOP);
     #endif
     #if E3_HAS_DRV(TMC2208)
       #if ENABLED(E3_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E3);
+        E3_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E3);
+        stepperE3.beginSerial(115200);
       #endif
-      E3_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E3);
+      config(stepperE3, E3_STEALTHCHOP);
     #endif
     #if E4_HAS_DRV(TMC2208)
       #if ENABLED(E4_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E4);
+        E4_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E4);
+        stepperE4.beginSerial(115200);
       #endif
-      E4_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E4);
+      config(stepperE4, E4_STEALTHCHOP);
     #endif
     #if E5_HAS_DRV(TMC2208)
       #if ENABLED(E5_HARDWARE_SERIAL)
-        _TMC2208_DEFINE_HARDWARE(E5);
+        E5_HARDWARE_SERIAL.begin(115200);
       #else
-        _TMC2208_DEFINE_SOFTWARE(E5);
+        stepperE5.beginSerial(115200);
       #endif
-      E5_HARDWARE_SERIAL.begin(115200);
-      _TMC2208_CONFIG(E5);
+      config(stepperE5, E5_STEALTHCHOP);
     #endif
 
   #endif // HAVE_DRV(TMC2208)
