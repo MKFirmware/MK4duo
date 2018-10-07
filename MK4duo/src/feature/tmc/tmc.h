@@ -114,7 +114,7 @@ extern bool report_tmc_status;
         bool getOTPW() { return flag_otpw; }
         void clear_otpw() { flag_otpw = 0; }
       #endif
-      
+
   };
 
 #elif HAVE_DRV(TMC2208)
@@ -147,6 +147,11 @@ extern bool report_tmc_status;
       const char* axis_letter;
       const uint8_t id;
 
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        uint8_t otpw_count = 0;
+        bool flag_otpw = false;
+      #endif
+
     public: /** Public Function */
 
       uint16_t getMilliamps() { return val_mA; }
@@ -164,6 +169,11 @@ extern bool report_tmc_status;
         this->val_mA = mA;
         TMC2208Stepper::rms_current(mA, mult);
       }
+
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        bool getOTPW() { return flag_otpw; }
+        void clear_otpw() { flag_otpw = 0; }
+      #endif
 
   };
 
