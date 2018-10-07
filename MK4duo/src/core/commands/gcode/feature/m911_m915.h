@@ -374,16 +374,16 @@
       }
 
       #if Z_IS_TRINAMIC
-        const uint16_t Z_current_1 = stepperZ.getCurrent();
-        tmc.set_current(stepperZ, _rms);
+        const uint16_t Z_current_1 = stepperZ.rms_current();
+        stepperZ.rms_current(_rms);
       #endif
       #if Z2_IS_TRINAMIC
-        const uint16_t Z2_current_1 = stepperZ2.getCurrent();
-        tmc.set_current(stepperZ2, _rms);
+        const uint16_t Z2_current_1 = stepperZ2.rms_current();
+        stepperZ2.rms_current(_rms);
       #endif
       #if Z3_IS_TRINAMIC
-        const uint16_t Z3_current_1 = stepperZ3.getCurrent();
-        tmc.set_current(stepperZ3, _rms);
+        const uint16_t Z3_current_1 = stepperZ3.rms_current();
+        stepperZ3.rms_current(_rms);
       #endif
 
       SERIAL_MV("\nCalibration current: Z", _rms);
@@ -393,13 +393,13 @@
       mechanics.do_blocking_move_to_z(Z_MAX_POS + _z);
 
       #if Z_IS_TRINAMIC
-        tmc.set_current(stepperZ, Z_current_1);
+        stepperZ.rms_current(Z_current_1);
       #endif
       #if Z2_IS_TRINAMIC
-        tmc.set_current(stepperZ2, Z2_current_1);
+        stepperZ.rms_current(Z2_current_1);
       #endif
       #if Z3_IS_TRINAMIC
-        tmc.set_current(stepperZ3, Z3_current_1);
+        stepperZ.rms_current(Z3_current_1);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS);

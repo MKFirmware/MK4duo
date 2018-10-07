@@ -80,7 +80,7 @@
 
       mixing_tool_change(tmp_extruder);
 
-    #else // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+    #else // !COLOR_MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
 
       if (tmp_extruder >= EXTRUDERS)
         return invalid_extruder_error(tmp_extruder);
@@ -201,7 +201,7 @@
 
       SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 
-    #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+    #endif // !COLOR_MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
   }
 
   void Tools::print_parameters(const uint8_t h) {
@@ -502,7 +502,7 @@
 
   #endif
 
-  #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
 
     void Tools::mixing_tool_change(const uint8_t tmp_extruder) {
       if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)

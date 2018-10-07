@@ -87,10 +87,8 @@
   }
 
   void do_pause_e_move(const float &length, const float fr) {
-    mechanics.set_destination_to_current();
-    mechanics.destination[E_AXIS] += length / tools.e_factor[tools.active_extruder];
-    planner.buffer_line(mechanics.destination, fr, tools.active_extruder);
-    mechanics.set_current_to_destination();
+    mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.active_extruder];
+    planner.buffer_line(mechanics.current_position, fr, tools.active_extruder);
     planner.synchronize();
   }
 

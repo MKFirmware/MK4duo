@@ -1988,9 +1988,21 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
 
   // Calculate and limit speed in mm/sec for each axis
-  float current_speed[NUM_AXIS], speed_factor = 1.0; // factor <1 decreases speed
+  float current_speed[NUM_AXIS], speed_factor = 1.0f; // factor <1 decreases speed
   LOOP_XYZE(i) {
-    const float cs = ABS((current_speed[i] = delta_mm[i] * inverse_secs));
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      float delta_mm_i = 0;
+      if (i == E_AXIS) {
+        for (uint8_t s = 0; s < MIXING_STEPPERS; s++) {
+          const float delta_mm_s = mixing_factor[s] * delta_mm[i];
+          if (ABS(delta_mm_s) > ABS(delta_mm_i)) delta_mm_i = delta_mm_s;
+        }
+      }
+      else delta_mm_i = delta_mm[i];
+    #else
+      const float delta_mm_i = delta_mm[i];
+    #endif
+    const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
     if (i == E_AXIS) i += extruder;
     if (cs > mechanics.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
   }

@@ -83,13 +83,11 @@
     TMC2130_DEFINE(E5);
   #endif
 
-#endif // HAVE_DRV(TMC2130)
+#elif HAVE_DRV(TMC2208)
 
-//
-// TMC2208 Driver objects and inits
-//
-#if HAVE_DRV(TMC2208)
-
+  //
+  // TMC2208 Driver objects and inits
+  //
   #include <HardwareSerial.h>
 
   #define _TMC2208_DEFINE_HARDWARE(ST, L) MKTMC stepper##ST(L, ST##_HARDWARE_SERIAL, R_SENSE)
@@ -357,6 +355,7 @@ void TMC_Stepper::init() {
     #endif
 
   #endif // HAVE_DRV(TMC2208)
+
 }
 
 // Use internal reference voltage for current calculations. This is the default.
@@ -667,7 +666,13 @@ void TMC_Stepper::restore() {
 
   #if HAVE_DRV(TMC2130)
 
-    TMC_driver_data TMC_Stepper::get_driver_data(MKTMC &st) {
+    #if ENABLED(TMC_DEBUG)
+      uint8_t TMC_Stepper::get_status_response(MKTMC &st) {
+        return st.status_response & 0xF;
+      }
+    #endif
+
+    TMC_driver_data TMC_Stepper::get_driver_data(TMC2130Stepper &st) {
       constexpr uint32_t OTPW_bm = 0x4000000UL;
       constexpr uint8_t OTPW_bp = 26;
       constexpr uint32_t OT_bm = 0x2000000UL;
@@ -678,11 +683,22 @@ void TMC_Stepper::restore() {
       data.drv_status = st.DRV_STATUS();
       data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
       data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      //data.is_error = (get_status_response(st) & DRIVER_ERROR_bm) >> DRIVER_ERROR_bp;
+      data.is_error = (st.status_response & DRIVER_ERROR_bm) >> DRIVER_ERROR_bp;
       return data;
     }
 
   #elif HAVE_DRV(TMC2208)
+
+    #if ENABLED(TMC_DEBUG)
+      uint8_t TMC_Stepper::get_status_response(MKTMC &st) {
+        uint32_t drv_status = st.DRV_STATUS();
+        uint8_t gstat = st.GSTAT();
+        uint8_t response = 0;
+        response |= (drv_status >> (31-3)) & 0B1000;
+        response |= gstat & 0B11;
+        return response;
+      }
+    #endif
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC &st) {
       constexpr uint32_t OTPW_bm = 0B1UL;
@@ -695,15 +711,6 @@ void TMC_Stepper::restore() {
       data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
       data.is_error = st.drv_err();
       return data;
-    }
-
-    uint8_t TMC_Stepper::get_status_response(MKTMC &st) {
-      uint32_t drv_status = st.DRV_STATUS();
-      uint8_t gstat = st.GSTAT();
-      uint8_t response = 0;
-      response |= (drv_status >> (31-3)) & 0B1000;
-      response |= gstat & 0B11;
-      return response;
     }
 
   #endif
@@ -801,11 +808,12 @@ void TMC_Stepper::restore() {
       }
     }
 
-    void TMC_Stepper::parse_drv_status(MKTMC &st, const TMC_drv_status_enum i) {
+    void TMC_Stepper::parse_type_drv_status(MKTMC &st, const TMC_drv_status_enum i) {
       switch(i) {
         case TMC_STALLGUARD: if (st.stallguard()) SERIAL_CHR('X');  break;
-        case TMC_SG_RESULT:  SERIAL_VAL(st.sg_result());       break;
-        case TMC_FSACTIVE:   if (st.fsactive())   SERIAL_CHR('X');  break;
+        case TMC_SG_RESULT:  SERIAL_VAL(st.sg_result());            break;
+        case TMC_FSACTIVE:   if (st.fsactive())   SERIAL_CHR('X'); break;
+        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st.cs_actual());  break;
         default: break;
       }
     }
@@ -823,19 +831,20 @@ void TMC_Stepper::restore() {
       }
     }
 
-    void TMC_Stepper::parse_drv_status(MKTMC &st, const TMC_drv_status_enum i) {
+    void TMC_Stepper::parse_type_drv_status(MKTMC &st, const TMC_drv_status_enum i) {
       switch(i) {
         case TMC_T157: if (st.t157()) SERIAL_CHR('X'); break;
         case TMC_T150: if (st.t150()) SERIAL_CHR('X'); break;
         case TMC_T143: if (st.t143()) SERIAL_CHR('X'); break;
         case TMC_T120: if (st.t120()) SERIAL_CHR('X'); break;
+        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st.cs_actual()); break;
         default: break;
       }
     }
 
   #endif // HAVE_DRV(TMC2208)
 
-  void TMC_Stepper::status(TMC_TYPE& st, const TMC_AxisEnum axis, const TMC_debug_enum i, const float tmc_spmm) {
+  void TMC_Stepper::status(MKTMC &st, const TMC_debug_enum i, const float tmc_spmm) {
     SERIAL_CHR('\t');
     switch(i) {
       case TMC_CODES: st.printLabel(); break;
@@ -873,8 +882,10 @@ void TMC_Stepper::restore() {
           }
         break;
       case TMC_OTPW: SERIAL_PS(st.otpw() ? PSTR("true") : PSTR("false")); break;
-      case TMC_OTPW_TRIGGERED: SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false")); break;
-      case TMC_TOFF: SERIAL_VAL(st.off_time()); break;
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        case TMC_OTPW_TRIGGERED: SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false")); break;
+      #endif
+      case TMC_TOFF: SERIAL_VAL(st.toff()); break;
       case TMC_TBL: SERIAL_VAL(st.blank_time()); break;
       case TMC_HEND: SERIAL_VAL(st.hysteresis_end()); break;
       case TMC_HSTRT: SERIAL_VAL(st.hysteresis_start()); break;
@@ -882,10 +893,10 @@ void TMC_Stepper::restore() {
     }
   }
 
-  void TMC_Stepper::parse_drv_status(TMC_TYPE& st, const TMC_AxisEnum axis, const TMC_drv_status_enum i) {
+  void TMC_Stepper::parse_drv_status(MKTMC &st, const TMC_drv_status_enum i) {
     SERIAL_CHR('\t');
     switch(i) {
-      case TMC_DRV_CODES:     t.printLabel();                         break;
+      case TMC_DRV_CODES:     st.printLabel();                         break;
       case TMC_STST:          if (st.stst())         SERIAL_CHR('X'); break;
       case TMC_OLB:           if (st.olb())          SERIAL_CHR('X'); break;
       case TMC_OLA:           if (st.ola())          SERIAL_CHR('X'); break;
@@ -899,7 +910,7 @@ void TMC_Stepper::restore() {
         SERIAL_MSG("\t0x");
         drv_status_print_hex(st.DRV_STATUS());
         break;
-      default: parse_drv_status(st, i); break;
+      default: parse_type_drv_status(st, i); break;
     }
   }
 

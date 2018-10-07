@@ -443,19 +443,18 @@ class TMC_Stepper {
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
       #if HAVE_DRV(TMC2130)
-
-        static TMC_driver_data get_driver_data(MKTMC &st);
-        FORCE_INLINE static uint8_t get_status_response(MKTMC &st) { }//return st.status_response & 0xF; }
-        FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.PWM_SCALE(); }
-
+        #if ENABLED(TMC_DEBUG)
+          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.PWM_SCALE(); }
+          static uint8_t get_status_response(MKTMC &st);
+        #endif
       #elif HAVE_DRV(TMC2208)
-
-        static TMC_driver_data get_driver_data(MKTMC &st);
-        static uint8_t get_status_response(MKTMC &st);
-        FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.pwm_scale_sum(); }
-
+        #if ENABLED(TMC_DEBUG)
+          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.pwm_scale_sum(); }
+          static uint8_t get_status_response(MKTMC &st);
+        #endif
       #endif
 
+      static TMC_driver_data get_driver_data(TMC2130Stepper &st);
       static void monitor_driver(MKTMC &st);
 
     #endif
@@ -467,6 +466,7 @@ class TMC_Stepper {
       static void drv_status_print_hex(const uint32_t drv_status);
       static void status(MKTMC &st, const TMC_debug_enum i);
       static void status(MKTMC &st, const TMC_debug_enum i, const float tmc_spmm);
+      static void parse_type_drv_status(MKTMC &st, const TMC_drv_status_enum i);
       static void parse_drv_status(MKTMC &st, const TMC_drv_status_enum i);
       static void debug_loop(const TMC_debug_enum i);
       static void status_loop(const TMC_drv_status_enum i);
