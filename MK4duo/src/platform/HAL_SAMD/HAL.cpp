@@ -138,24 +138,6 @@ HAL::~HAL() {
 
 bool HAL::execute_100ms = false;
 
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
-=======
-// do any hardware-specific initialization here
-void HAL::hwSetup(void) {
-
-  
-
-
-}
-
-// Print apparent cause of start/restart
-void HAL::showStartReason() {
-
-
-
-}
-
->>>>>>> Fix temperature after merge
 // Return available memory
 int HAL::getFreeRam() {
   struct mallinfo memstruct = mallinfo();
@@ -165,41 +147,6 @@ int HAL::getFreeRam() {
   return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
 }
 
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
-=======
-
-// Start converting the enabled channels
-void AnalogInStartConversion() {
-
-}
-
-// Enable or disable a channel.
-void AnalogInEnablePin(const pin_t r_pin, const bool enable) {
- 
-}   
-
-// Read the most recent 12-bit result from a pin
-uint16_t AnalogInReadPin(const pin_t r_pin) {
-
-  return 800;
-}
-
-// Initialize ADC channels
-void HAL::analogStart(void) {
-
-}
-
-void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
-
-}
-
-// Reset peripherals and cpu
-void HAL::resetHardware() {
-
-
-}
-
->>>>>>> Fix temperature after merge
 // --------------------------------------------------------------------------
 // Analogic write to a PWM Pin
 // --------------------------------------------------------------------------
@@ -212,18 +159,6 @@ static const uint32_t PwmSlowClock = (25000 * 255) / 256; // slow PWM clock to a
 
 static inline uint32_t ConvertRange(const float f, const uint32_t top) { return LROUND(f * (float)top); }
 
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
-=======
-
-// AnalogWriteTc to a TC pin
-// Return true if successful, false if we need to call software pwm
-static void AnalogWriteTc(const PinDescription& pinDesc, const float ulValue, const uint16_t freq) {
-
-  
-  return;
-}
-
->>>>>>> Fix temperature after merge
 bool HAL::pwm_status(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   const uint32_t attr = pinDesc.ulPinAttribute;
@@ -392,12 +327,6 @@ void HAL::analogWrite(pin_t pin,  uint32_t value, const uint16_t freq/*=1000*/) 
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 void HAL::Tick() {
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
-=======
- 
-  static millis_t cycle_check_temp = 0;
-	millis_t now = millis();
->>>>>>> Fix temperature after merge
 
   static millis_t cycle_check_temp = 0;
 	millis_t now = millis();
@@ -413,10 +342,6 @@ void HAL::Tick() {
     //LOOP_FAN() fans[f].SetHardwarePwm();
   #endif
 
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
-=======
-  // Calculation cycle approximate a 100ms
->>>>>>> Fix temperature after merge
   // Calculation cycle temp a 100ms
   if (ELAPSED(now, cycle_check_temp)) {
     cycle_check_temp = now + 100UL;
@@ -426,18 +351,7 @@ void HAL::Tick() {
 
   // read analog values
   #if ANALOG_INPUTS > 0
-<<<<<<< 2219809d8966325da167acb0355696c26c76e210
     LOOP_HEATER() AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin) * 16);
-=======
-
-    for (uint8_t h = 0; h < HEATER_COUNT; h++) {
-    
-      AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin)*16);
-  
-    }
-  
-
->>>>>>> Fix temperature after merge
     Analog_is_ready = true;
     // Update the raw values if they've been read. Else we could be updating them during reading.
     thermalManager.set_current_temp_raw();
@@ -469,3 +383,4 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
 }
 
 #endif // ARDUINO_ARCH_SAMD
+
