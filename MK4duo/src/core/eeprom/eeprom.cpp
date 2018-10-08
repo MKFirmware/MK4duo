@@ -259,7 +259,7 @@ void EEPROM::post_process() {
   #if HEATER_COUNT > 0
     LOOP_HEATER() {
       heaters[h].init();
-      heaters[h].updatePID();
+      heaters[h].pid.update();
     }
   #endif
 
@@ -474,15 +474,15 @@ void EEPROM::post_process() {
         EEPROM_WRITE(heaters[h].type);
         EEPROM_WRITE(heaters[h].pin);
         EEPROM_WRITE(heaters[h].ID);
-        EEPROM_WRITE(heaters[h].pidDriveMin);
-        EEPROM_WRITE(heaters[h].pidDriveMax);
-        EEPROM_WRITE(heaters[h].pidMax);
         EEPROM_WRITE(heaters[h].mintemp);
         EEPROM_WRITE(heaters[h].maxtemp);
-        EEPROM_WRITE(heaters[h].Kp);
-        EEPROM_WRITE(heaters[h].Ki);
-        EEPROM_WRITE(heaters[h].Kd);
-        EEPROM_WRITE(heaters[h].Kc);
+        EEPROM_WRITE(heaters[h].pid.Kp);
+        EEPROM_WRITE(heaters[h].pid.Ki);
+        EEPROM_WRITE(heaters[h].pid.Kd);
+        EEPROM_WRITE(heaters[h].pid.Kc);
+        EEPROM_WRITE(heaters[h].pid.DriveMin);
+        EEPROM_WRITE(heaters[h].pid.DriveMax);
+        EEPROM_WRITE(heaters[h].pid.Max);
         EEPROM_WRITE(heaters[h].HeaterFlag);
         EEPROM_WRITE(heaters[h].sensor.pin);
         EEPROM_WRITE(heaters[h].sensor.type);
@@ -945,15 +945,15 @@ void EEPROM::post_process() {
           EEPROM_READ(heaters[h].type);
           EEPROM_READ(heaters[h].pin);
           EEPROM_READ(heaters[h].ID);
-          EEPROM_READ(heaters[h].pidDriveMin);
-          EEPROM_READ(heaters[h].pidDriveMax);
-          EEPROM_READ(heaters[h].pidMax);
           EEPROM_READ(heaters[h].mintemp);
           EEPROM_READ(heaters[h].maxtemp);
-          EEPROM_READ(heaters[h].Kp);
-          EEPROM_READ(heaters[h].Ki);
-          EEPROM_READ(heaters[h].Kd);
-          EEPROM_READ(heaters[h].Kc);
+          EEPROM_READ(heaters[h].pid.Kp);
+          EEPROM_READ(heaters[h].pid.Ki);
+          EEPROM_READ(heaters[h].pid.Kd);
+          EEPROM_READ(heaters[h].pid.Kc);
+          EEPROM_READ(heaters[h].pid.DriveMin);
+          EEPROM_READ(heaters[h].pid.DriveMax);
+          EEPROM_READ(heaters[h].pid.Max);
           EEPROM_READ(heaters[h].HeaterFlag);
           EEPROM_READ(heaters[h].sensor.pin);
           EEPROM_READ(heaters[h].sensor.type);
@@ -1485,10 +1485,10 @@ void EEPROM::reset() {
     #if HOTENDS > 0
       LOOP_HOTEND() {
         heat = &heaters[h];
-        heat->Kp  = pgm_read_float(&tmp1[h < COUNT(tmp1) ? h : COUNT(tmp1) - 1]);
-        heat->Ki  = pgm_read_float(&tmp2[h < COUNT(tmp2) ? h : COUNT(tmp2) - 1]);
-        heat->Kd  = pgm_read_float(&tmp3[h < COUNT(tmp3) ? h : COUNT(tmp3) - 1]);
-        heat->Kc  = pgm_read_float(&tmp4[h < COUNT(tmp4) ? h : COUNT(tmp4) - 1]);
+        heat->pid.Kp  = pgm_read_float(&tmp1[h < COUNT(tmp1) ? h : COUNT(tmp1) - 1]);
+        heat->pid.Ki  = pgm_read_float(&tmp2[h < COUNT(tmp2) ? h : COUNT(tmp2) - 1]);
+        heat->pid.Kd  = pgm_read_float(&tmp3[h < COUNT(tmp3) ? h : COUNT(tmp3) - 1]);
+        heat->pid.Kc  = pgm_read_float(&tmp4[h < COUNT(tmp4) ? h : COUNT(tmp4) - 1]);
       }
     #endif
 
@@ -1499,11 +1499,12 @@ void EEPROM::reset() {
       heat->type              = IS_HOTEND;
       heat->pin               = HEATER_0_PIN;
       heat->ID                = 0;
-      heat->pidDriveMin       = PID_DRIVE_MIN;
-      heat->pidDriveMax       = PID_DRIVE_MAX;
-      heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_0_MINTEMP;
       heat->maxtemp           = HEATER_0_MAXTEMP;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
       // Sensor
       sens->pin               = TEMP_0_PIN;
       sens->type              = TEMP_SENSOR_0;
@@ -1534,11 +1535,12 @@ void EEPROM::reset() {
       heat->type              = IS_HOTEND;
       heat->pin               = HEATER_1_PIN;
       heat->ID                = 1;
-      heat->pidDriveMin       = PID_DRIVE_MIN;
-      heat->pidDriveMax       = PID_DRIVE_MAX;
-      heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_1_MINTEMP;
       heat->maxtemp           = HEATER_1_MAXTEMP;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
       // Sensor
       sens->pin               = TEMP_1_PIN;
       sens->type              = TEMP_SENSOR_1;
@@ -1569,11 +1571,12 @@ void EEPROM::reset() {
       heat->type              = IS_HOTEND;
       heat->pin               = HEATER_2_PIN;
       heat->ID                = 2;
-      heat->pidDriveMin       = PID_DRIVE_MIN;
-      heat->pidDriveMax       = PID_DRIVE_MAX;
-      heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_2_MINTEMP;
       heat->maxtemp           = HEATER_2_MAXTEMP;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
       // Sensor
       sens->pin               = TEMP_2_PIN;
       sens->type              = TEMP_SENSOR_2;
@@ -1604,11 +1607,12 @@ void EEPROM::reset() {
       heat->type              = IS_HOTEND;
       heat->pin               = HEATER_3_PIN;
       heat->ID                = 3;
-      heat->pidDriveMin       = PID_DRIVE_MIN;
-      heat->pidDriveMax       = PID_DRIVE_MAX;
-      heat->pidMax            = PID_MAX;
       heat->mintemp           = HEATER_3_MINTEMP;
       heat->maxtemp           = HEATER_3_MAXTEMP;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
       // Sensor
       sens->pin               = TEMP_3_PIN;
       sens->type              = TEMP_SENSOR_3;
@@ -1639,14 +1643,15 @@ void EEPROM::reset() {
       heat->type              = IS_BED;
       heat->pin               = HEATER_BED_PIN;
       heat->ID                = BED_INDEX;
-      heat->pidDriveMin       = BED_PID_DRIVE_MIN;
-      heat->pidDriveMax       = BED_PID_DRIVE_MAX;
-      heat->pidMax            = BED_PID_MAX;
       heat->mintemp           = BED_MINTEMP;
       heat->maxtemp           = BED_MAXTEMP;
-      heat->Kp                = DEFAULT_bedKp;
-      heat->Ki                = DEFAULT_bedKi;
-      heat->Kd                = DEFAULT_bedKd;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
+      heat->pid.Kp            = DEFAULT_bedKp;
+      heat->pid.Ki            = DEFAULT_bedKi;
+      heat->pid.Kd            = DEFAULT_bedKd;
       // Sensor
       sens->pin               = TEMP_BED_PIN;
       sens->type              = TEMP_SENSOR_BED;
@@ -1677,14 +1682,15 @@ void EEPROM::reset() {
       heat->type              = IS_CHAMBER;
       heat->pin               = HEATER_CHAMBER_PIN;
       heat->ID                = CHAMBER_INDEX;
-      heat->pidDriveMin       = CHAMBER_PID_DRIVE_MIN;
-      heat->pidDriveMax       = CHAMBER_PID_DRIVE_MAX;
-      heat->pidMax            = CHAMBER_PID_MAX;
       heat->mintemp           = CHAMBER_MINTEMP;
       heat->maxtemp           = CHAMBER_MAXTEMP;
-      heat->Kp                = DEFAULT_chamberKp;
-      heat->Ki                = DEFAULT_chamberKi;
-      heat->Kd                = DEFAULT_chamberKd;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
+      heat->pid.Kp            = DEFAULT_chamberKp;
+      heat->pid.Ki            = DEFAULT_chamberKi;
+      heat->pid.Kd            = DEFAULT_chamberKd;
       // Sensor
       sens->pin               = TEMP_CHAMBER_PIN;
       sens->type              = TEMP_SENSOR_CHAMBER;
@@ -1715,14 +1721,15 @@ void EEPROM::reset() {
       heat->type              = IS_COOLER;
       heat->pin               = HEATER_COOLER_PIN;
       heat->ID                = COOLER_INDEX;
-      heat->pidDriveMin       = COOLER_PID_DRIVE_MIN;
-      heat->pidDriveMax       = COOLER_PID_DRIVE_MAX;
-      heat->pidMax            = COOLER_PID_MAX;
       heat->mintemp           = COOLER_MINTEMP;
       heat->maxtemp           = COOLER_MAXTEMP;
-      heat->Kp                = DEFAULT_coolerKp;
-      heat->Ki                = DEFAULT_coolerKi;
-      heat->Kd                = DEFAULT_coolerKd;
+      // Pid
+      heat->pid.DriveMin      = PID_DRIVE_MIN;
+      heat->pid.DriveMax      = PID_DRIVE_MAX;
+      heat->pid.Max           = PID_MAX;
+      heat->pid.Kp            = DEFAULT_coolerKp;
+      heat->pid.Ki            = DEFAULT_coolerKi;
+      heat->pid.Kd            = DEFAULT_coolerKd;
       // Sensor
       sens->pin               = TEMP_COOLER_PIN;
       sens->type              = TEMP_SENSOR_COOLER;

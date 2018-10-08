@@ -28,6 +28,7 @@
 #define _HEATER_H_
 
 #include "sensor/sensor.h"
+#include "pid/pid.h"
 
 #if HEATER_COUNT > 0
 
@@ -53,24 +54,13 @@
       pin_t     pin;
       uint8_t   ID,
                 soft_pwm,
-                pwm_pos,
-                pidDriveMin,
-                pidDriveMax,
-                pidMax;
+                pwm_pos;
       int16_t   target_temperature,
                 idle_temperature,
                 mintemp,
                 maxtemp;
-      float     current_temperature,
-                Kp,
-                Ki,
-                Kd,
-                Kc,
-                tempIState,
-                tempIStateLimitMin,
-                tempIStateLimitMax,
-                last_temperature,
-                temperature_1s;
+      float     current_temperature;
+      PID_t     pid;
       millis_t  next_check_ms,
                 idle_timeout_ms;
       uint8_t   HeaterFlag;
@@ -89,8 +79,7 @@
       void init();
 
       void setTarget(int16_t celsius);
-      void updatePID();
-      void get_pid_output();
+      void get_output();
       void print_sensor_parameters();
       void print_heater_parameters();
       void print_PID_parameters();

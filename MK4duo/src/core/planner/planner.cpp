@@ -1487,7 +1487,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         }
       #endif
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N] * (EXTRUDE_MAXLENGTH)) {
+        if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N(extruder)] * (EXTRUDE_MAXLENGTH)) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           #if HAS_POSITION_FLOAT
             position_float[E_AXIS] = target_float[E_AXIS];
@@ -1605,7 +1605,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm[Y_AXIS];
     delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm[Z_AXIS];
   #endif
-  delta_mm[E_AXIS] = esteps_float * mechanics.steps_to_mm[E_AXIS_N];
+  delta_mm[E_AXIS] = esteps_float * mechanics.steps_to_mm[E_AXIS_N(extruder)];
 
   if (block->steps[X_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Y_AXIS] < MIN_STEPS_PER_SEGMENT && block->steps[Z_AXIS] < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = ABS(delta_mm[E_AXIS]);
@@ -2083,9 +2083,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #if ENABLED(LIN_ADVANCE)
 
       #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK mechanics.max_e_jerk[tools.active_extruder]
+        #define MAX_E_JERK mechanics.max_e_jerk[extruder]
       #else
-        #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N]
+        #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N(extruder)]
       #endif
 
       /**
@@ -2148,7 +2148,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N]);
+      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N(extruder)]);
       #if ENABLED(LA_DEBUG)
         if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
           SERIAL_EM("More than 2 steps per eISR loop executed.");
@@ -2428,7 +2428,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
     static_cast<int32_t>(FLOOR(a * mechanics.axis_steps_per_mm[X_AXIS] + 0.5f)),
     static_cast<int32_t>(FLOOR(b * mechanics.axis_steps_per_mm[Y_AXIS] + 0.5f)),
     static_cast<int32_t>(FLOOR(c * mechanics.axis_steps_per_mm[Z_AXIS] + 0.5f)),
-    static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_AXIS_N] + 0.5f))
+    static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_AXIS_N(extruder)] + 0.5f))
   };
 
   #if HAS_POSITION_FLOAT

@@ -3272,7 +3272,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   #endif //PID_AUTOTUNE_MENU
 
   #define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
-    void updatePID_H ## N() { heaters[N].updatePID(); } \
+    void updatePID_H ## N() { heaters[N].pid.update(); } \
 
   #if ENABLED(PID_AUTOTUNE_MENU)
     #if HAS_HEATER_BED
@@ -3437,9 +3437,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
     // PID-P H4, PID-I H4, PID-D H4, PID-C H4, PID Autotune H4
     //
     #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-      MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].Kp, 1, 9990); \
-      MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &heaters[hindex].Ki, 0.01f, 9990, updatePID_H ## hindex); \
-      MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &heaters[hindex].Kd, 1, 9990)
+      MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].pid.Kp, 1, 9990); \
+      MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &heaters[hindex].pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
+      MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &heaters[hindex].pid.Kd, 1, 9990)
 
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       #define _PID_MENU_ITEMS(HLABEL, hindex) \

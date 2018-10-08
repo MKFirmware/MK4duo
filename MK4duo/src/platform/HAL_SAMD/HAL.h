@@ -78,7 +78,7 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 
 
 #include "HardwareSerial.h"
-#if !WITHIN(SERIAL_PORT_1, -1, 3)
+#if !WITHIN(SERIAL_PORT_1, -1, 2)
   #error "SERIAL_PORT_1 must be from -1 to 2"
 #endif
 // SERIAL
@@ -90,29 +90,24 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
   #define MKSERIAL1 Serial1
 #elif SERIAL_PORT_1 == 2
   #define MKSERIAL1 Serial2
-#elif SERIAL_PORT_1 == 3
-  #define MKSERIAL1 Serial3
 #endif
 
 #if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
-  #if !WITHIN(SERIAL_PORT_2, -1, 3)
-    #error "SERIAL_PORT_2 must be from -1 to 3"
+  #if !WITHIN(SERIAL_PORT_2, -1, 2)
+    #error "SERIAL_PORT_2 must be from -1 to 2"
   #elif SERIAL_PORT_2 == SERIAL_PORT_1
     #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #elif SERIAL_PORT_2 == -1
     #define MKSERIAL2 SerialUSB
     #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 0
-    #define MKSERIAL2 MKSerial
+    #define MKSERIAL2 Serial
     #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 1
-    #define MKSERIAL2 MKSerial1
+    #define MKSERIAL2 Serial1
     #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 2
-    #define MKSERIAL2 MKSerial2
-    #define NUM_SERIAL 2
-  #elif SERIAL_PORT_2 == 3
-    #define MKSERIAL2 MKSerial3
+    #define MKSERIAL2 Serial2
     #define NUM_SERIAL 2
   #endif
 #else

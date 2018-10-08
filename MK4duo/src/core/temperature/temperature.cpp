@@ -241,7 +241,7 @@ void Temperature::spin() {
     // Ignore heater we are currently testing
     if (pid_pointer == act->ID) continue;
 
-    act->get_pid_output();
+    act->get_output();
 
     #if WATCH_THE_HEATER
       // Make sure temperature is increasing
@@ -333,14 +333,14 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   int32_t   t_high = 0,
             t_low = 0;
   float     Ku,
-            Tu,
+            Pu,
             workKp = 0,
             workKi = 0,
             workKd = 0,
             maxTemp = 20.0,
             minTemp = 20.0;
 
-  const uint8_t pidMax = act->pidMax;
+  const uint8_t pidMax = act->pid.Max;
   act->soft_pwm = pidMax;
 
   int32_t bias  = pidMax >> 1;
@@ -401,38 +401,38 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
           SERIAL_EMV(MSG_T_MAX, maxTemp, 2);
           if (cycles > 2) {
             Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
-            Tu = ((float)(t_low + t_high) * 0.001);
+            Pu = ((float)(t_low + t_high) * 0.001);
             SERIAL_MV(MSG_KU, Ku, 2);
-            SERIAL_EMV(MSG_TU, Tu, 2);
+            SERIAL_EMV(MSG_TU, Pu, 2);
 
             if (method == 0) {
-              workKp = 0.6 * Ku;
-              workKi = workKp * 2.0 / Tu;
-              workKd = workKp * Tu * 0.125;
+              workKp = 0.6f * Ku;
+              workKi = 1.2f * Ku / Pu;
+              workKd = 0.075f * Ku * Pu;
               SERIAL_EM(MSG_CLASSIC_PID);
             }
             else if (method == 1) {
-              workKp = 0.33 * Ku;
-              workKi = workKp * 2.0 / Tu;
-              workKd = workKp * Tu / 3.0;
+              workKp = 0.33f * Ku;
+              workKi = 0.66f * Ku / Pu;
+              workKd = 0.11f * Ku * Pu;
               SERIAL_EM(MSG_SOME_OVERSHOOT_PID);
             }
             else if (method == 2) {
-              workKp = 0.2 * Ku;
-              workKi = workKp * 2.0 / Tu;
-              workKd = workKp * Tu / 3.0;
+              workKp = 0.2f * Ku;
+              workKi = 0.4f * Ku / Pu;
+              workKd = 0.2f * Ku * Pu / 3.0f;
               SERIAL_EM(MSG_NO_OVERSHOOT_PID);
             }
             else if (method == 3) {
-              workKp = 0.7 * Ku;
-              workKi = workKp * 2.5 / Tu;
-              workKd = workKp * Tu * 3.0 / 20.0;
+              workKp = 0.7f * Ku;
+              workKi = 1.75f * Ku / Pu;
+              workKd = 0.105f * Ku * Pu;
               SERIAL_EM(MSG_PESSEN_PID);
             }
             else if (method == 4) {
               workKp = 0.4545f * Ku;
-              workKi = workKp / Tu / 2.2f;
-              workKd = workKp * Tu / 6.3f;
+              workKi = 0.4545f * Ku / Pu / 2.2f;
+              workKd = 0.4545f * Ku * Pu / 6.3f;
               SERIAL_EM(MSG_TYREUS_LYBEN_PID);
             }
             SERIAL_EMV(MSG_KP, workKp, 2);
@@ -522,11 +522,12 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
         }
       #endif
 
-      act->Kp = workKp;
-      act->Ki = workKi;
-      act->Kd = workKd;
+      act->pid.Kp = workKp;
+      act->pid.Ki = workKi;
+      act->pid.Kd = workKd;
+      act->pid.update();
+
       act->setTuning(true);
-      act->updatePID();
 
       if (storeValues) eeprom.store();
 

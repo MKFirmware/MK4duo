@@ -31,12 +31,6 @@
 
   Heater heaters[HEATER_COUNT];
 
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    static long last_e_position   = 0,
-                lpq[LPQ_MAX_LEN]  = { 0 };
-    static int  lpq_ptr           = 0;
-  #endif
-
   /**
    * Initialize Heater
    */
@@ -49,8 +43,6 @@
     idle_temperature      = 0;
     current_temperature   = 25.0;
     sensor.raw            = 0;
-    last_temperature      = 0.0;
-    temperature_1s        = 0.0;
 
     setActive(false);
     setIdle(false);
@@ -97,16 +89,8 @@
     }
   }
 
-  void Heater::updatePID() {
-    if (isUsePid() && Ki != 0) {
-      tempIStateLimitMin = (float)pidDriveMin * 10.0f / Ki;
-      tempIStateLimitMax = (float)pidDriveMax * 10.0f / Ki;
-    }
-  }
+  void Heater::get_output() {
 
-  void Heater::get_pid_output() {
-
-    static millis_t cycle_1s = 0;
     millis_t now = millis();
 
     if (!isIdle() && idle_timeout_ms && ELAPSED(now, idle_timeout_ms)) setIdle(true);
@@ -115,50 +99,18 @@
 
       // Get the target temperature and the error
 			const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
-      const float error = targetTemperature - current_temperature;
 
       if (isUsePid()) {
-        if (error > PID_FUNCTIONAL_RANGE) {
-          soft_pwm = pidMax;
-          tempIState = tempIStateLimitMin;
-        }
-        else if (error < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0)
-          soft_pwm = 0;
-        else {
-          float pidTerm = Kp * error;
-          tempIState = constrain(tempIState + error, tempIStateLimitMin, tempIStateLimitMax);
-          pidTerm += Ki * tempIState * 0.1;
-          float dgain = Kd * (last_temperature - temperature_1s);
-          pidTerm += dgain;
-
+        soft_pwm = pid.get_output(targetTemperature, current_temperature, now
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            if (ID == ACTIVE_HOTEND) {
-              long e_position = stepper.position(E_AXIS);
-              if (e_position > last_e_position) {
-                lpq[lpq_ptr] = e_position - last_e_position;
-                last_e_position = e_position;
-              }
-              else {
-                lpq[lpq_ptr] = 0;
-              }
-              if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
-              pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
-            }
-          #endif // PID_ADD_EXTRUSION_RATE
-
-          soft_pwm = constrain((int)pidTerm, 0, pidMax);
-        }
-
-        if (ELAPSED(now, cycle_1s)) {
-          cycle_1s = now + 1000UL;
-          last_temperature = temperature_1s;
-          temperature_1s = current_temperature;
-        }
+            , ID
+          #endif
+        );
       }
       else if (ELAPSED(now, next_check_ms)) {
         next_check_ms = now + temp_check_interval[type];
         if (current_temperature <= targetTemperature - temp_hysteresis[type])
-          soft_pwm = pidMax;
+          soft_pwm = pid.Max;
         else if (current_temperature >= targetTemperature + temp_hysteresis[type])
           soft_pwm = 0;
       }
@@ -193,9 +145,9 @@
     SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
     SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
     SERIAL_MV(" P", pin);
-    SERIAL_MV(" A", pidDriveMin);
-    SERIAL_MV(" B", pidDriveMax);
-    SERIAL_MV(" C", pidMax);
+    SERIAL_MV(" A", pid.DriveMin);
+    SERIAL_MV(" B", pid.DriveMax);
+    SERIAL_MV(" C", pid.Max);
     SERIAL_MV(" L", mintemp);
     SERIAL_MV(" O", maxtemp);
     SERIAL_MV(" U", isUsePid());
@@ -213,12 +165,12 @@
       SERIAL_CHR(':');
       SERIAL_EOL();
       SERIAL_SMV(CFG, "  M301 H", heater_id);
-      SERIAL_MV(" P", Kp);
-      SERIAL_MV(" I", Ki);
-      SERIAL_MV(" D", Kd);
+      SERIAL_MV(" P", pid.Kp);
+      SERIAL_MV(" I", pid.Ki);
+      SERIAL_MV(" D", pid.Kd);
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         if (type == IS_HOTEND) {
-          SERIAL_MV(" C", Kc);
+          SERIAL_MV(" C", pid.Kc);
           SERIAL_MV(" L", (int)tools.lpq_len);
         }
       #endif

@@ -2030,7 +2030,7 @@
     SdFile() {}
     SdFile(PGM_P name, uint8_t oflag);
 
-    #ifdef ENABLED(ARDUINO_ARCH_SAMD) || ENABLED(ARDUINO_ARCH_SAMD)
+    #if ENABLED(CPU_32_BIT)
       #if DESTRUCTOR_CLOSES_FILE
         ~SdFile() {}
       #endif  // DESTRUCTOR_CLOSES_FILE

@@ -21,7 +21,7 @@
  */
 
 /**
- * sensor.cpp - heater object
+ * sensor.cpp - sensor object
  */
 
 #include "../../../../MK4duo.h"

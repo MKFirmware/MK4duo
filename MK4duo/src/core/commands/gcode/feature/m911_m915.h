@@ -166,8 +166,8 @@
 
       #define TMC_SAY_PWMTHRS(P,Q) tmc.get_pwmthrs(stepper##Q, mechanics.axis_steps_per_mm[P##_AXIS])
       #define TMC_SET_PWMTHRS(P,Q) tmc.set_pwmthrs(stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SAY_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc.get_pwmthrs(stepperE##E, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
-      #define TMC_SET_PWMTHRS_E(E) do{ const uint8_t extruder = E; tmc.set_pwmthrs(stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N]); }while(0)
+      #define TMC_SAY_PWMTHRS_E(E) do{ tmc.get_pwmthrs(stepperE##E, mechanics.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
+      #define TMC_SET_PWMTHRS_E(E) do{ tmc.set_pwmthrs(stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {

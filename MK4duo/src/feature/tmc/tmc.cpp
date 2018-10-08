@@ -627,6 +627,12 @@ void TMC_Stepper::restore() {
     st.en_pwm_mode(tmc_stealthchop);
     st.sgt(tmc_sgt);
     st.GSTAT(); // Clear GSTAT
+
+    // Test connection
+    SERIAL_SM(ECHO, "stepper");
+    st.printLabel();
+    SERIAL_EM(st.test_connection() ? " Connect" : " Not connect");
+
   }
 
 #elif HAVE_DRV(TMC2208)
@@ -940,22 +946,22 @@ void TMC_Stepper::restore() {
     #endif
 
     #if E0_IS_TRINAMIC
-      status(stepperE0, i, mechanics.axis_steps_per_mm[E_AXIS]);
+      status(stepperE0, i, mechanics.axis_steps_per_mm[E_AXIS_N(0)]);
     #endif
     #if E1_IS_TRINAMIC
-      status(stepperE1, i, mechanics.axis_steps_per_mm[E_AXIS+1]);
+      status(stepperE1, i, mechanics.axis_steps_per_mm[E_AXIS_N(1)]);
     #endif
     #if E2_IS_TRINAMIC
-      status(stepperE2, i, mechanics.axis_steps_per_mm[E_AXIS+2]);
+      status(stepperE2, i, mechanics.axis_steps_per_mm[E_AXIS_N(2)]);
     #endif
     #if E3_IS_TRINAMIC
-      status(stepperE3, i, mechanics.axis_steps_per_mm[E_AXIS+3]);
+      status(stepperE3, i, mechanics.axis_steps_per_mm[E_AXIS_N(3)]);
     #endif
     #if E4_IS_TRINAMIC
-      status(stepperE4, i, mechanics.axis_steps_per_mm[E_AXIS+4]);
+      status(stepperE4, i, mechanics.axis_steps_per_mm[E_AXIS_N(4)]);
     #endif
     #if E5_IS_TRINAMIC
-      status(stepperE5, i, mechanics.axis_steps_per_mm[E_AXIS+5]);
+      status(stepperE5, i, mechanics.axis_steps_per_mm[E_AXIS_N(5)]);
     #endif
 
     SERIAL_EOL();

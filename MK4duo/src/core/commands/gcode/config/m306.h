@@ -53,9 +53,9 @@
 
     Heater *act = &heaters[h];
 
-    act->pidDriveMin  = parser.intval('A', act->pidDriveMin);
-    act->pidDriveMax  = parser.intval('B', act->pidDriveMax);
-    act->pidMax       = parser.intval('C', act->pidMax);
+    act->pid.DriveMin = parser.intval('A', act->pid.DriveMin);
+    act->pid.DriveMax = parser.intval('B', act->pid.DriveMax);
+    act->pid.Max      = parser.intval('C', act->pid.Max);
     act->mintemp      = parser.intval('L', act->mintemp);
     act->maxtemp      = parser.intval('O', act->maxtemp);
 
@@ -70,7 +70,7 @@
       act->pin = parser.value_pin();
     }
 
-    act->updatePID();
+    act->pid.update();
     act->print_heater_parameters();
 
  }

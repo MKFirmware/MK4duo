@@ -21,11 +21,10 @@
  */
 
 /**
- * sensor.h - heater object
+ * sensor.h - sensor object
  */
 
-#ifndef _SENSOR_H_
-#define _SENSOR_H_
+#pragma once
 
 class TemperatureSensor {
 
@@ -62,5 +61,3 @@ class TemperatureSensor {
     #endif
 
 };
-
-#endif /* _SENSOR_H_ */

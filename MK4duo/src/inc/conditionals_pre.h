@@ -475,12 +475,12 @@
  */
 #if EXTRUDERS > 1
   #define XYZE_N          (3 + EXTRUDERS)
-  #define E_AXIS_N        (E_AXIS + extruder)
+  #define E_AXIS_N(E)     (E_AXIS + E)
   #define E_INDEX         (E_AXIS + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
   #define XYZE_N          XYZE
-  #define E_AXIS_N        E_AXIS
+  #define E_AXIS_N(E)     E_AXIS
   #define E_INDEX         E_AXIS
   #define TARGET_EXTRUDER 0
 #elif EXTRUDERS == 0
@@ -488,7 +488,7 @@
   #define PIDTEMP         false
   #undef FWRETRACT
   #define XYZE_N          XYZ
-  #define E_AXIS_N        0
+  #define E_AXIS_N(E)     0
   #define E_INDEX         0
   #define TARGET_EXTRUDER 0
 #endif
