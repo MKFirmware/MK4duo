@@ -148,8 +148,8 @@
 //#define ORIG_BEEPER_PIN            27
 #define LED_PIN                    13
 #define SDPOWER_PIN                NoPin
-//#define SD_DETECT_PIN              60
-#define SDSS                       4
+#define SD_DETECT_PIN              22
+#define SDSS                       2
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
@@ -166,7 +166,7 @@
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
-  #define LCD_PINS_RS         SS
+  #define LCD_PINS_RS         18
   #define LCD_PINS_ENABLE     MOSI
   #define LCD_PINS_D4         SCK
   #define ORIG_BEEPER_PIN     NoPin

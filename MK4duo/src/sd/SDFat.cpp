@@ -4196,7 +4196,7 @@ int SdFile::write(const void* buf, size_t nbyte) {
  * Use getWriteError to check for errors.
  * \return 1 for success and 0 for failure.
  */
-#ifdef ARDUINO_ARCH_SAM
+#ifdef ENABLED(ARDUINO_ARCH_SAMD) || ENABLED(ARDUINO_ARCH_SAMD)
   #ifdef COMPAT_PRE1
     void SdFile::write(uint8_t b) {
       dBaseFile::write(&b, 1);
