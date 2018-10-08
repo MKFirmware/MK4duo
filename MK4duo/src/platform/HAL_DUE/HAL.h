@@ -143,7 +143,7 @@ typedef uint32_t  ptr_int_t;
     #define MKSERIAL2 MKSerial1
     #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 2
-    #define MKSERIAL2 MKSeria2
+    #define MKSERIAL2 MKSerial2
     #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 3
     #define MKSERIAL2 MKSerial3
