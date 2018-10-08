@@ -72,5 +72,3 @@ template <size_t numAveraged> class AveragingFilter {
     bool IsValid() const volatile	{ return valid; }
 
 };
-
-#endif /* _HAL_MATH_SAMD_H_ */

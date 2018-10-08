@@ -68,6 +68,14 @@ uint8_t MCUSR;
 #if ANALOG_INPUTS > 0
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool    HAL::Analog_is_ready = false;
+
+  void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
+   
+  }
+
+  void HAL::analogStart() {
+
+  }
 #endif
 
 // Wait for synchronization of registers between the clock domains
@@ -375,3 +383,4 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
 }
 
 #endif // ARDUINO_ARCH_SAMD
+
