@@ -63,9 +63,10 @@ typedef int8_t    pin_t;
 /**
  * Include file
  */
-#include "src/inc/macros.h"
-#include "src/inc/driver_types.h"
-#include "src/inc/circular_queue.h"
+#include "src/lib/macros.h"
+#include "src/lib/circular_queue.h"
+#include "src/lib/driver_types.h"
+#include "src/lib/watch.h"
 #include "Boards.h"
 
 // Configuration settings loading
@@ -112,12 +113,9 @@ typedef int8_t    pin_t;
 // Platform modules
 #include "src/platform/platform.h"
 
-// Watch modules
-#include "src/watch/watch.h"
-#include "src/watch/stopwatch.h"
-
 // Utility modules
 #include "src/utility/utility.h"
+#include "src/utility/stopwatch.h"
 #include "src/utility/point_t.h"
 #include "src/utility/hex_print_routines.h"
 #include "src/utility/bezier.h"
