@@ -1,4 +1,4 @@
-### Version 4.3.7
+### Version 4.3.7 beta
 * Add Command:
 * M930: TMC set blank_time.
 * M931: TMC set off_time.
