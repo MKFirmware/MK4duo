@@ -476,32 +476,32 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   void Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
     switch (axis) {
       default: break;
-      #if X_SENSORLESS
+      #if X_HAS_SENSORLESS
         case X_AXIS:
           set_stallguard(stepperX, enable);
-          #if CORE_IS_XY && Y_SENSORLESS
+          #if CORE_IS_XY && Y_HAS_SENSORLESS
             set_stallguard(stepperY, enable);
-          #elif CORE_IS_XZ && Z_SENSORLESS
+          #elif CORE_IS_XZ && Z_HAS_SENSORLESS
             set_stallguard(stepperZ, enable);
           #endif
           break;
       #endif
-      #if Y_SENSORLESS
+      #if Y_HAS_SENSORLESS
         case Y_AXIS:
           set_stallguard(stepperY, enable);
-          #if CORE_IS_XY && X_SENSORLESS
+          #if CORE_IS_XY && X_HAS_SENSORLESS
             set_stallguard(stepperX, enable);
-          #elif CORE_IS_YZ && Z_SENSORLESS
+          #elif CORE_IS_YZ && Z_HAS_SENSORLESS
             set_stallguard(stepperZ, enable);
           #endif
           break;
       #endif
-      #if Z_SENSORLESS
+      #if Z_HAS_SENSORLESS
         case Z_AXIS:
           set_stallguard(stepperZ, enable);
-          #if CORE_IS_XZ && X_SENSORLESS
+          #if CORE_IS_XZ && X_HAS_SENSORLESS
             set_stallguard(stepperX, enable);
-          #elif CORE_IS_YZ && Y_SENSORLESS
+          #elif CORE_IS_YZ && Y_HAS_SENSORLESS
             set_stallguard(stepperY, enable);
           #endif
           break;

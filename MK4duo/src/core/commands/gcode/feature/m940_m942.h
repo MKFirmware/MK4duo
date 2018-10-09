@@ -35,49 +35,49 @@
  */
 inline void gcode_M940(void) {
   if (parser.seenval('X')) {
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       stepperX.en_pwm_mode(parser.value_bool());
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       stepperX2->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       stepperY.en_pwm_mode(parser.value_bool());
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       stepperY2->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       stepperZ.en_pwm_mode(parser.value_bool());
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       stepperZ2->en_pwm_mode(parser.value_bool());
     #endif
-    #if Z3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
       stepperZ3->en_pwm_mode(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E0)
       stepperE0->en_pwm_mode(parser.value_bool());
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       stepperE1->en_pwm_mode(parser.value_bool());
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       stepperE2->en_pwm_mode(parser.value_bool());
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       stepperE3->en_pwm_mode(parser.value_bool());
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       stepperE4->en_pwm_mode(parser.value_bool());
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       stepperE5->en_pwm_mode(parser.value_bool());
     #endif
   }
@@ -88,49 +88,49 @@ inline void gcode_M940(void) {
  */
 inline void gcode_M941(void) {
   if (parser.seenval('X')) {
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       stepperX.chm(parser.value_bool());
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       stepperX2->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       stepperY.chm(parser.value_bool());
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       stepperY2->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       stepperZ.chm(parser.value_bool());
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       stepperZ2->chm(parser.value_bool());
     #endif
-    #if Z3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
       stepperZ3->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E0)
       stepperE0->chm(parser.value_bool());
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       stepperE1->chm(parser.value_bool());
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       stepperE2->chm(parser.value_bool());
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       stepperE3->chm(parser.value_bool());
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       stepperE4->chm(parser.value_bool());
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       stepperE5->chm(parser.value_bool());
     #endif
   }
@@ -141,49 +141,49 @@ inline void gcode_M941(void) {
  */
 inline void gcode_M942(void) {
   if (parser.seenval('X')) {
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       stepperX.intpol(parser.value_bool());
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       stepperX2->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       stepperY.intpol(parser.value_bool());
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       stepperY2->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       stepperZ.intpol(parser.value_bool());
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       stepperZ2->intpol(parser.value_bool());
     #endif
-    #if Z3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
       stepperZ3->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E0)
       stepperE0->intpol(parser.value_bool());
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       stepperE1->intpol(parser.value_bool());
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       stepperE2->intpol(parser.value_bool());
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       stepperE3->intpol(parser.value_bool());
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       stepperE4->intpol(parser.value_bool());
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       stepperE5->intpol(parser.value_bool());
     #endif
   }

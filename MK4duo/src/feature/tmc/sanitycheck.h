@@ -34,7 +34,7 @@
  */
 #if HAVE_DRV(TMC2130)
 
-  #if ENABLED(HYBRID_THRESHOLD) && !HAS_STEALTHCHOP
+  #if ENABLED(HYBRID_THRESHOLD) && !TMC_HAS_STEALTHCHOP
     #error "DEPENDENCY ERROR: Enable STEALTHCHOP on axis to use HYBRID_THRESHOLD."
   #endif
 
@@ -68,16 +68,16 @@
   // is necessary in order to reset the stallGuard indication between the initial movement of all three
   // towers to +Z and the individual homing of each tower. This restriction can be removed once a means of
   // clearing the stallGuard activated status is found.
-  #if ENABLED(SENSORLESS_HOMING) && MECH(DELTA) && (!X_HAS_STALLGUARD || !Y_HAS_STALLGUARD || !Z_HAS_STALLGUARD)
+  #if ENABLED(SENSORLESS_HOMING) && MECH(DELTA) && (!AXIS_HAS_STALLGUARD(X) || !AXIS_HAS_STALLGUARD(Y) || !AXIS_HAS_STALLGUARD(Z))
     #error "DEPENDENCY ERROR: SENSORLESS_HOMING on DELTA currently requires STEALTHCHOP on all axis."
   #endif
 
   // Sensorless homing is required for both combined steppers in an H-bot
-  #if CORE_IS_XY && X_SENSORLESS != Y_SENSORLESS
+  #if CORE_IS_XY && X_HAS_SENSORLESS != Y_HAS_SENSORLESS
     #error "DEPENDENCY ERROR: CoreXY requires both X and Y to use sensorless homing if either does."
-  #elif CORE_IS_XZ && X_SENSORLESS != Z_SENSORLESS
+  #elif CORE_IS_XZ && X_HAS_SENSORLESS != Z_HAS_SENSORLESS
     #error "DEPENDENCY ERROR: CoreXZ requires both X and Z to use sensorless homing if either does."
-  #elif CORE_IS_YZ && Y_SENSORLESS != Z_SENSORLESS
+  #elif CORE_IS_YZ && Y_HAS_SENSORLESS != Z_HAS_SENSORLESS
     #error "DEPENDENCY ERROR: CoreYZ requires both Y and Z to use sensorless homing if either does."
   #endif
 
@@ -110,8 +110,12 @@
   #endif
 #endif
 
-#if ENABLED(TMC_Z_CALIBRATION) && !Z_IS_TRINAMIC && !Z2_IS_TRINAMIC
+#if ENABLED(TMC_Z_CALIBRATION) && !AXIS_HAS_TMC(Z) && !AXIS_HAS_TMC(Z2)
   #error "DEPENDENCY ERROR: TMC_Z_CALIBRATION requires at least one TMC driver on Z axis"
+#endif
+
+#if !HAS_TRINAMIC && ENABLED(MONITOR_DRIVER_STATUS)
+  #error "DEPENDENCY ERROR: MONITOR_DRIVER_STATUS requires at least one TMC driver"
 #endif
 
 #endif /* _TMC_SANITYCHECK_H_ */
