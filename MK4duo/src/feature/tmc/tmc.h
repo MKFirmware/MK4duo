@@ -396,6 +396,15 @@ class TMC_Stepper {
       st.hysteresis_start(hysteresis_start_val);
     }
 
+    FORCE_INLINE static void get_disable_I_comparator(MKTMC &st) {
+      st.printLabel();
+      SERIAL_EMV(" disable_I_comparator: ", st.disfdcc());
+    }
+
+    FORCE_INLINE static void set_disable_I_comparator(MKTMC &st, const bool onoff) {
+      st.disfdcc(onoff);
+    }
+
     FORCE_INLINE static void get_stealth_gradient(MKTMC &st) {
       st.printLabel();
       SERIAL_EMV(" stealth_gradient: ", st.pwm_grad());
@@ -428,8 +437,8 @@ class TMC_Stepper {
       SERIAL_EMV(" stealth_autoscale: ", st.pwm_autoscale());
     }
 
-    FORCE_INLINE static void set_stealth_autoscale(MKTMC &st, const bool stealth_autoscale_val) {
-      st.pwm_autoscale(stealth_autoscale_val);
+    FORCE_INLINE static void set_stealth_autoscale(MKTMC &st, const bool onoff) {
+      st.pwm_autoscale(onoff);
     }
 
   private: /** Private Function */

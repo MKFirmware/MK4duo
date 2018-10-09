@@ -279,22 +279,19 @@
  * M914 - Set StallGuard sensitivity. (Requires SENSORLESS_HOMING)
  * M915 - TMC Z axis calibration routine. (Requires TMC)
  * M922 - S[1/0] Enable/disable TMC debug. (Requires TMC)
- * M930 - TMC set blank_time. (Requires CHOP_CALIBRATION)
- * M931 - TMC set off_time. (Requires CHOP_CALIBRATION)
- * M932 - TMC set hysteresis_start. (Requires CHOP_CALIBRATION)
- * M933 - TMC set hysteresis_end/sine_offset (chm = 0/1). (Requires CHOP_CALIBRATION)
- * M934 - TMC set fast_decay_time (chm = 1). (Requires CHOP_CALIBRATION)
- * M935 - TMC set disable_I_comparator (chm = 1). (Requires CHOP_CALIBRATION)
- * M936 - TMC set stealth_gradient. (Requires CHOP_CALIBRATION)
- * M937 - TMC set stealth_amplitude. (Requires CHOP_CALIBRATION)
- * M938 - TMC set stealth_freq. (Requires CHOP_CALIBRATION)
- * M939 - TMC switch stealth_autoscale. (Requires CHOP_CALIBRATION)
- * M941 - TMC set MSLUT. (Requires MSLUT_CALIBRATION)
- * M942 - TMC reset MSLUT. (Requires MSLUT_CALIBRATION)
- * M943 - TMC set preset MSLUT. (Requires MSLUT_CALIBRATION)
- * M945 - TMC switch StealthChop.
- * M946 - TMC switch ChopperMode.
- * M947 - TMC switch interpolation.
+ * M930 - TMC set blank_time.
+ * M931 - TMC set off_time.
+ * M932 - TMC set hysteresis_start.
+ * M933 - TMC set hysteresis_end/sine_offset (chm = 0/1).
+ * M934 - TMC set fast_decay_time (chm = 1).
+ * M935 - TMC set disable_I_comparator (chm = 1).
+ * M936 - TMC set stealth_gradient.
+ * M937 - TMC set stealth_amplitude.
+ * M938 - TMC set stealth_freq.
+ * M939 - TMC switch stealth_autoscale.
+ * M940 - TMC switch StealthChop.
+ * M941 - TMC switch ChopperMode.
+ * M942 - TMC switch interpolation.
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)

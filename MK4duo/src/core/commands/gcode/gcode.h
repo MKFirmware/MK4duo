@@ -116,7 +116,7 @@
 #include "feature/m701_m702.h"            // Load / Unload filament
 #include "feature/m911_m915.h"            // Set TRINAMIC driver
 #include "feature/m930_m939.h"            // Set TRINAMIC driver
-#include "feature/m941_m947.h"            // Set TRINAMIC driver
+#include "feature/m940_m942.h"            // Set TRINAMIC driver
 #include "feature/m922.h"                 // TMC DEBUG
 
 // Geometry Commands

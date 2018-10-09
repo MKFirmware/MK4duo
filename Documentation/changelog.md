@@ -1,6 +1,4 @@
 ### Version 4.3.7
-* Add CHOP_CALIBRATION (TMC2130)
-* Add MSLUT_CALIBRATION (MicroStepping LookUpTable) (TMC2130)
 * Add Command:
 * M930: TMC set blank_time.
 * M931: TMC set off_time.
@@ -12,16 +10,14 @@
 * M937: TMC set stealth_amplitude.
 * M938: TMC set stealth_freq.
 * M939: TMC switch stealth_autoscale.
-* M941: TMC set MSLUT.
-* M942: TMC reset MSLUT.
-* M943: TMC set preset MSLUT.
-* M945: TMC switch StealthChop.
-* M946: TMC switch ChopperMode.
-* M947: TMC switch interpolation.
+* M940: TMC switch StealthChop.
+* M941: TMC switch ChopperMode.
+* M942: TMC switch interpolation.
 * G34: Set Delta Height calculated from toolhead position (only DELTA)
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation
+* Add second serial for arduino due
 * Fix and clear code
 
 ### Version 4.3.6

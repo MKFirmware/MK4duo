@@ -195,22 +195,18 @@
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
 | M922 | TRINAMIC | S[1/0] Enable/disable TMC debug
-| M930 | TRINAMIC | TMC set blank_time. (Requires CHOP_CALIBRATION)
-| M931 | TRINAMIC | TMC set off_time. (Requires CHOP_CALIBRATION)
-| M932 | TRINAMIC | TMC set hysteresis_start. (Requires CHOP_CALIBRATION)
-| M933 | TRINAMIC | TMC set hysteresis_end/sine_offset (chm = 0/1). (Requires CHOP_CALIBRATION)
-| M934 | TRINAMIC | TMC set fast_decay_time (chm = 1). (Requires CHOP_CALIBRATION)
-| M935 | TRINAMIC | TMC set disable_I_comparator (chm = 1). (Requires CHOP_CALIBRATION)
-| M936 | TRINAMIC | TMC set stealth_gradient. (Requires CHOP_CALIBRATION)
-| M937 | TRINAMIC | TMC set stealth_amplitude. (Requires CHOP_CALIBRATION)
-| M938 | TRINAMIC | TMC set stealth_freq. (Requires CHOP_CALIBRATION)
-| M939 | TRINAMIC | TMC switch stealth_autoscale. (Requires CHOP_CALIBRATION)
-| M941 | TRINAMIC | TMC set MSLUT. (Requires MSLUT_CALIBRATION)
-| M942 | TRINAMIC | TMC reset MSLUT. (Requires MSLUT_CALIBRATION)
-| M943 | TRINAMIC | TMC set preset MSLUT. (Requires MSLUT_CALIBRATION)
-| M945 | TRINAMIC | TMC switch StealthChop.
-| M946 | TRINAMIC | TMC switch ChopperMode.
-| M947 | TRINAMIC | TMC switch interpolation.
+| M930 | TRINAMIC | TMC set blank_time.
+| M931 | TRINAMIC | TMC set off_time.
+| M932 | TRINAMIC | TMC set hysteresis_start.
+| M933 | TRINAMIC | TMC set hysteresis_end.
+| M935 | TRINAMIC | TMC set disable_I_comparator.
+| M936 | TRINAMIC | TMC set stealth_gradient.
+| M937 | TRINAMIC | TMC set stealth_amplitude.
+| M938 | TRINAMIC | TMC set stealth_freq.
+| M939 | TRINAMIC | TMC switch stealth_autoscale.
+| M940 | TRINAMIC | TMC switch StealthChop.
+| M941 | TRINAMIC | TMC switch ChopperMode.
+| M942 | TRINAMIC | TMC switch interpolation.
 | M995 | NEXTION | X Y Z Set origin for graphic in NEXTION
 | M996 | NEXTION | S[scale] Set scale for graphic in NEXTION
 | M999 | NOPE | Restart after being stopped by error

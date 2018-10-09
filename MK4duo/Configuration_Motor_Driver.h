@@ -132,11 +132,6 @@
 #define STEALTH_AUTOSCALE   1
 #define STEALTH_FREQ        2
 
-//#define CHOP_CALIBRATION
-
-// MicroStepping LookUpTable
-//#define MSLUT_CALIBRATION
-
 // Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
 // like overtemperature and short to ground. TMC2208 requires hardware serial.
 // In the case of overtemperature Marlin can decrease the driver current until error condition clears.
