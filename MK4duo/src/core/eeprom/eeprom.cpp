@@ -2136,40 +2136,40 @@ void EEPROM::reset() {
         SERIAL_MV(" X", stepperX.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(X2)
-        SERIAL_MV(" I2 X", stepperX2->getMilliamps());
+        SERIAL_MV(" I2 X", stepperX2.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Y)
         SERIAL_MV(" Y", stepperY.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        SERIAL_MV(" I2 Y", stepperY2->getMilliamps());
+        SERIAL_MV(" I2 Y", stepperY2.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z)
         SERIAL_MV(" Z", stepperZ.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        SERIAL_MV(" I2 Z", stepperZ2->getMilliamps());
+        SERIAL_MV(" I2 Z", stepperZ2.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        SERIAL_MV(" I3 Z", stepperZ3->getMilliamps());
+        SERIAL_MV(" I3 Z", stepperZ3.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E0)
-        SERIAL_MV(" T0 E", stepperE0->getMilliamps());
+        SERIAL_MV(" T0 E", stepperE0.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E1)
-        SERIAL_MV(" T1 E", stepperE1->getMilliamps());
+        SERIAL_MV(" T1 E", stepperE1.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E2)
-        SERIAL_MV(" T2 E", stepperE2->getMilliamps());
+        SERIAL_MV(" T2 E", stepperE2.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E3)
-        SERIAL_MV(" T3 E", stepperE3->getMilliamps());
+        SERIAL_MV(" T3 E", stepperE3.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E4)
-        SERIAL_MV(" T4 E", stepperE4->getMilliamps());
+        SERIAL_MV(" T4 E", stepperE4.getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E5)
-        SERIAL_MV(" T5 E", stepperE5->getMilliamps());
+        SERIAL_MV(" T5 E", stepperE5.getMilliamps());
       #endif
       SERIAL_EOL();
 
@@ -2232,7 +2232,7 @@ void EEPROM::reset() {
             SERIAL_MV(" X", stepperX.sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(X2)
-            SERIAL_MV(" I2 X", stepperX2->sgt());
+            SERIAL_MV(" I2 X", stepperX2.sgt());
           #endif
         #endif
         #if Y_HAS_SENSORLESS
@@ -2240,7 +2240,7 @@ void EEPROM::reset() {
             SERIAL_MV(" Y", stepperY.sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Y2)
-            SERIAL_MV(" I2 Y", stepperY2->sgt());
+            SERIAL_MV(" I2 Y", stepperY2.sgt());
           #endif
         #endif
         #if Z_HAS_SENSORLESS
@@ -2248,10 +2248,10 @@ void EEPROM::reset() {
             SERIAL_MV(" Z", stepperZ.sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Z2)
-            SERIAL_MV(" I2 Z", stepperZ2->sgt());
+            SERIAL_MV(" I2 Z", stepperZ2.sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Z3)
-            SERIAL_MV(" I3 Z", stepperZ3->sgt());
+            SERIAL_MV(" I3 Z", stepperZ3.sgt());
           #endif
         #endif
         SERIAL_EOL();
