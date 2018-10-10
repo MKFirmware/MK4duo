@@ -198,7 +198,6 @@ typedef uint16_t  ptr_int_t;
 #define DISABLE_TEMP_INTERRUPT()    CBI(TEMP_TIMSK, TEMP_OCIE)
 #define TEMP_ISR_ENABLED()          TEST(TEMP_TIMSK, TEMP_OCIE)
 
-#define _CAT(a, ...) a ## __VA_ARGS__
 #define HAL_timer_set_count(timer, count)           (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                  _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
