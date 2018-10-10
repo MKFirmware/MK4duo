@@ -460,37 +460,37 @@ void TMC_Stepper::restore() {
     stepperX.push();
   #endif
   #if AXIS_HAS_TMC(X2)
-    stepperX2->push();
+    stepperX2.push();
   #endif
   #if AXIS_HAS_TMC(Y)
     stepperY.push();
   #endif
   #if AXIS_HAS_TMC(Y2)
-    stepperY2->push();
+    stepperY2.push();
   #endif
   #if AXIS_HAS_TMC(Z)
     stepperZ.push();
   #endif
   #if AXIS_HAS_TMC(Z2)
-    stepperZ2->push();
+    stepperZ2.push();
   #endif
   #if AXIS_HAS_TMC(Z3)
-    stepperZ3->push();
+    stepperZ3.push();
   #endif
   #if AXIS_HAS_TMC(E0)
-    stepperE0->push();
+    stepperE0.push();
   #endif
   #if AXIS_HAS_TMC(E1)
-    stepperE1->push();
+    stepperE1.push();
   #endif
   #if AXIS_HAS_TMC(E2)
-    stepperE2->push();
+    stepperE2.push();
   #endif
   #if AXIS_HAS_TMC(E3)
-    stepperE3->push();
+    stepperE3.push();
   #endif
   #if AXIS_HAS_TMC(E4)
-    stepperE4->push();
+    stepperE4.push();
   #endif
 }
 
