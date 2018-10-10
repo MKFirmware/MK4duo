@@ -26,6 +26,9 @@
 // NoPin
 #define NoPin     -1
 
+// Macros for CAT args
+#define _CAT(a, ...) a ## __VA_ARGS__
+
 // Macros to support option testing
 #define ENABLED   defined
 #define DISABLED !defined
