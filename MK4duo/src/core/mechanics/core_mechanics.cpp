@@ -784,7 +784,7 @@
         }
       #endif // EXTRUDERS > 1
 
-      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>"");
+      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(data.acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
       #if EXTRUDERS == 1
@@ -798,7 +798,7 @@
         }
       #endif
 
-      SERIAL_LM(CFG, "Advanced variables: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>"");
+      SERIAL_LM(CFG, "Advanced variables: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
       SERIAL_SMV(CFG, "  M205 B", data.min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(data.min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(data.min_travel_feedrate_mm_s), 3);
