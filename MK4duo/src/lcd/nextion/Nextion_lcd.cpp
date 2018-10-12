@@ -1142,7 +1142,7 @@
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "4832")) {  // Model 4.3" Normal or Enhanced
+      else if (strstr(buffer, "4832")) {  // Model 3.5" Normal or Enhanced
         SERIAL_MSG(" 3.5");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
@@ -1314,7 +1314,7 @@
           lcd_setstatus(lcd_status_message);
           #if ENABLED(NEXTION_GFX)
             #if MECH(DELTA)
-              gfx_clear(mechanics.delta_print_radius * 2, mechanics.delta_print_radius * 2, mechanics.delta_height);
+              gfx_clear(mechanics.delta_data.print_radius * 2, mechanics.delta_data.print_radius * 2, mechanics.delta_data.height);
             #else
               gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
             #endif

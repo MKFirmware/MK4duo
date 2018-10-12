@@ -195,8 +195,8 @@ void Printer::setup() {
   const bool eeprom_loaded = eeprom.load();
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    // Initialize current position based on home_offset
-    COPY_ARRAY(mechanics.current_position, mechanics.home_offset);
+    // Initialize current position based on data.home_offset
+    COPY_ARRAY(mechanics.current_position, mechanics.data.home_offset);
   #else
     ZERO(mechanics.current_position);
   #endif

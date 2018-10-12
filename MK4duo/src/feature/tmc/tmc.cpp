@@ -930,46 +930,46 @@ void TMC_Stepper::restore() {
 
   void TMC_Stepper::debug_loop(const TMC_debug_enum i) {
     #if AXIS_HAS_TMC(X)
-      status(stepperX, i, mechanics.axis_steps_per_mm[X_AXIS]);
+      status(stepperX, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
     #endif
     #if AXIS_HAS_TMC(X2)
-      status(stepperX2, i, mechanics.axis_steps_per_mm[X_AXIS]);
+      status(stepperX2, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
     #endif
 
     #if AXIS_HAS_TMC(Y)
-      status(stepperY, i, mechanics.axis_steps_per_mm[Y_AXIS]);
+      status(stepperY, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      status(stepperY2, i, mechanics.axis_steps_per_mm[Y_AXIS]);
+      status(stepperY2, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
     #endif
 
     #if AXIS_HAS_TMC(Z)
-      status(stepperZ, i, mechanics.axis_steps_per_mm[Z_AXIS]);
+      status(stepperZ, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      status(stepperZ2,i, mechanics.axis_steps_per_mm[Z_AXIS]);
+      status(stepperZ2,i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
     #endif
     #if AXIS_HAS_TMC(Z3)
-      status(stepperZ3, i, mechanics.axis_steps_per_mm[Z_AXIS]);
+      status(stepperZ3, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
     #endif
 
     #if AXIS_HAS_TMC(E0)
-      status(stepperE0, i, mechanics.axis_steps_per_mm[E_AXIS_N(0)]);
+      status(stepperE0, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(0)]);
     #endif
     #if AXIS_HAS_TMC(E1)
-      status(stepperE1, i, mechanics.axis_steps_per_mm[E_AXIS_N(1)]);
+      status(stepperE1, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(1)]);
     #endif
     #if AXIS_HAS_TMC(E2)
-      status(stepperE2, i, mechanics.axis_steps_per_mm[E_AXIS_N(2)]);
+      status(stepperE2, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(2)]);
     #endif
     #if AXIS_HAS_TMC(E3)
-      status(stepperE3, i, mechanics.axis_steps_per_mm[E_AXIS_N(3)]);
+      status(stepperE3, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(3)]);
     #endif
     #if AXIS_HAS_TMC(E4)
-      status(stepperE4, i, mechanics.axis_steps_per_mm[E_AXIS_N(4)]);
+      status(stepperE4, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(4)]);
     #endif
     #if AXIS_HAS_TMC(E5)
-      status(stepperE5, i, mechanics.axis_steps_per_mm[E_AXIS_N(5)]);
+      status(stepperE5, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(5)]);
     #endif
 
     SERIAL_EOL();

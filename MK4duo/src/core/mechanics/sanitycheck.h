@@ -257,7 +257,7 @@
 #endif
 
 
-// Velocity and acceleration
+// Velocity and data.acceleration
 #if DISABLED(DEFAULT_MIN_TRAVEL_FEEDRATE)
   #error "DEPENDENCY ERROR: Missing setting DEFAULT_MIN_TRAVEL_FEEDRATE."
 #endif

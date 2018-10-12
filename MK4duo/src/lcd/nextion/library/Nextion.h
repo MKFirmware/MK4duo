@@ -480,13 +480,14 @@ bool nexInit(char *buffer);
 void nexLoop(NexObject *nex_listen_list[]);
 
 void recvRetString(char *buffer, uint16_t len);
-void sendCommand(PGM_P cmd);
+void sendCommand(PGM_P);
+void sendCommandPGM(PGM_P);
 void recvRetCommandFinished();
 
 uint16_t recvRetNumber();
 
 uint8_t Nextion_PageID();
-void setCurrentBrightness(uint8_t dimValue);
+void setCurrentBrightness(uint8_t);
 void sendRefreshAll(void);
 
 #endif /* __NEXTION_H__ */

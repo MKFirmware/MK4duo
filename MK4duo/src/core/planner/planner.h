@@ -195,7 +195,7 @@ class Planner {
 
     /**
      * The current position of the tool in absolute steps
-     * Recalculated if any axis_steps_per_mm are changed by gcode
+     * Recalculated if any data.axis_steps_per_mm are changed by gcode
      */
     static int32_t position[NUM_AXIS];
 
@@ -438,7 +438,7 @@ class Planner {
      * translated in to machine space as needed. Modifiers such as leveling
      * and skew are also applied.
      *
-     * Multiplies by axis_steps_per_mm[] and does necessary conversion
+     * Multiplies by data.axis_steps_per_mm[] and does necessary conversion
      * for COREXY / COREXZ / COREYZ to set the corresponding stepper positions.
      *
      * Clears previous speed values.
@@ -683,7 +683,7 @@ class Planner {
         float limit_value = max_value;
         LOOP_XYZE(idx) {
           if (unit_vec[idx]) // Avoid divide by zero
-            NOMORE(limit_value, ABS(mechanics.max_acceleration_mm_per_s2[idx] / unit_vec[idx]));
+            NOMORE(limit_value, ABS(mechanics.data.max_acceleration_mm_per_s2[idx] / unit_vec[idx]));
         }
         return limit_value;
       }
@@ -696,7 +696,7 @@ class Planner {
 
 };
 
-#define PLANNER_XY_FEEDRATE() (MIN(mechanics.max_feedrate_mm_s[X_AXIS], mechanics.max_feedrate_mm_s[Y_AXIS]))
+#define PLANNER_XY_FEEDRATE() (MIN(mechanics.data.max_feedrate_mm_s[X_AXIS], mechanics.data.max_feedrate_mm_s[Y_AXIS]))
 
 extern Planner planner;
 

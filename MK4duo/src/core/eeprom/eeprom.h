@@ -35,7 +35,8 @@ class EEPROM {
 
     #if HAS_EEPROM
 
-      static bool eeprom_error;
+      static bool eeprom_error,
+                  validating;
  
       #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
                                           // That can store is enabled
@@ -63,11 +64,14 @@ class EEPROM {
       return success;
     }
 
+    static uint16_t datasize();
+
     static void reset();
-    static bool store();    // Return 'true' if data was stored ok
+    static bool store();      // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
-      static bool load();   // Return 'true' if data was loaded ok
+      static bool load();     // Return 'true' if data was loaded ok
+      static bool validate(); // Return 'true' if EEPROM data is ok
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled
@@ -94,6 +98,11 @@ class EEPROM {
   private: /** Private Function */
 
     static void post_process();
+
+    #if HAS_EEPROM
+      static bool _load();
+      static bool size_error(const uint16_t size);
+    #endif
 
 };
 

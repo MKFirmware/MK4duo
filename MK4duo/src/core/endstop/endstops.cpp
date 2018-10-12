@@ -318,7 +318,7 @@ void Endstops::report() {
 
   // X Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir[X_AXIS] == -1) {
+  if (mechanics.data.home_dir[X_AXIS] == -1) {
     SERIAL_MT(" X Logic:",  isLogic(X_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(X_MIN) ? "true" : "false");
     #if HAS_X2_MIN
@@ -338,7 +338,7 @@ void Endstops::report() {
 
   // Y Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir[Y_AXIS] == -1) {
+  if (mechanics.data.home_dir[Y_AXIS] == -1) {
     SERIAL_MT(" Y Logic:",  isLogic(Y_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(Y_MIN) ? "true" : "false");
     #if HAS_Y2_MIN
@@ -358,7 +358,7 @@ void Endstops::report() {
 
   // Z Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir[Z_AXIS] == -1) {
+  if (mechanics.data.home_dir[Z_AXIS] == -1) {
     SERIAL_MT(" Z Logic:",  isLogic(Z_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(Z_MIN) ? "true" : "false");
     #if HAS_Z2_MIN
@@ -479,12 +479,12 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   #if IS_DELTA
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
     if (dist_2 > soft_endstop_radius_2) {
-      const float ratio = mechanics.delta_print_radius / SQRT(dist_2);
+      const float ratio = mechanics.delta_data.print_radius / SQRT(dist_2);
       target[X_AXIS] *= ratio;
       target[Y_AXIS] *= ratio;
     }
     NOLESS(target[Z_AXIS], 0);
-    NOMORE(target[Z_AXIS], mechanics.delta_height);
+    NOMORE(target[Z_AXIS], mechanics.delta_data.height);
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
@@ -512,7 +512,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
    */
   void Endstops::update_software_endstops(const AxisEnum axis) {
 
-    mechanics.workspace_offset[axis] = mechanics.home_offset[axis] + mechanics.position_shift[axis];
+    mechanics.workspace_offset[axis] = mechanics.data.home_offset[axis] + mechanics.position_shift[axis];
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
@@ -545,7 +545,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) {
         SERIAL_MV("For ", axis_codes[axis]);
-        SERIAL_MV(" axis:\n home_offset = ", mechanics.home_offset[axis]);
+        SERIAL_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
         SERIAL_MV("\n position_shift = ", mechanics.position_shift[axis]);
         SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
         SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);

@@ -31,7 +31,7 @@
   #define CODE_M428
 
   /**
-   * M428: Set home_offset based on the distance between the
+   * M428: Set data.home_offset based on the distance between the
    *       current_position and the nearest "reference point."
    *       If an axis is past center its Endstop position
    *       is the reference-point. Otherwise it uses 0. This allows
@@ -47,7 +47,7 @@
     float diff[XYZ];
     LOOP_XYZ(i) {
       diff[i] = mechanics.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
-      if (WITHIN(diff[i], -20, 20) && mechanics.home_dir[(AxisEnum)i] > 0)
+      if (WITHIN(diff[i], -20, 20) && mechanics.data.home_dir[(AxisEnum)i] > 0)
         diff[i] = -mechanics.current_position[i];
       if (!WITHIN(diff[i], -20, 20)) {
         SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);

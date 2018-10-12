@@ -189,7 +189,7 @@
 #define MSG_PID_D                           _UxGT("PID-D")  //"PID-D"
 #define MSG_PID_C                           _UxGT("PID-C")  //"PID-C"
 #define MSG_SELECT                          _UxGT("选择")  //"Select"
-#define MSG_ACC                             _UxGT("加速度")  //"Accel" acceleration
+#define MSG_ACC                             _UxGT("加速度")  //"Accel" data.acceleration
 #define MSG_JERK                            _UxGT("抖动速率")  // "Jerk"
 #if IS_KINEMATIC
   #define MSG_VA_JERK                       _UxGT("A轴抖动速率")  //"Va-jerk"
@@ -202,14 +202,14 @@
 #endif
 #define MSG_VE_JERK                         _UxGT("挤出机抖动速率")  //"Ve-jerk"
 #define MSG_VELOCITY                        _UxGT("速度")          // "Velocity"
-#define MSG_VMAX                            _UxGT("最大进料速率")  //"Vmax " max_feedrate_mm_s
-#define MSG_VMIN                            _UxGT("最小进料速率")  //"Vmin"  min_feedrate_mm_s
-#define MSG_VTRAV_MIN                       _UxGT("最小移动速率")  //"VTrav min" min_travel_feedrate_mm_s, (target) speed of the move
+#define MSG_VMAX                            _UxGT("最大进料速率")  //"Vmax " data.max_feedrate_mm_s
+#define MSG_VMIN                            _UxGT("最小进料速率")  //"Vmin"  data.min_feedrate_mm_s
+#define MSG_VTRAV_MIN                       _UxGT("最小移动速率")  //"VTrav min" data.min_travel_feedrate_mm_s, (target) speed of the move
 #define MSG_ACCELERATION                    _UxGT("加速度")       // "Acceleration"
-#define MSG_AMAX                            _UxGT("最大打印加速度")  //"Amax " max_acceleration_mm_per_s2, acceleration in units/s^2 for print moves
-#define MSG_A_RETRACT                       _UxGT("收进加速度")  //"A-retract" retract_acceleration, E acceleration in mm/s^2 for retracts
-#define MSG_A_TRAVEL                        _UxGT("非打印移动加速度")  //"A-travel" travel_acceleration, X, Y, Z acceleration in mm/s^2 for travel (non printing) moves
-#define MSG_STEPS_PER_MM                    _UxGT("轴步数/mm")  //"Steps/mm" axis_steps_per_mm, axis steps-per-unit G92
+#define MSG_AMAX                            _UxGT("最大打印加速度")  //"Amax " data.max_acceleration_mm_per_s2, data.acceleration in units/s^2 for print moves
+#define MSG_A_RETRACT                       _UxGT("收进加速度")  //"A-retract" data.retract_acceleration, E data.acceleration in mm/s^2 for retracts
+#define MSG_A_TRAVEL                        _UxGT("非打印移动加速度")  //"A-travel" data.travel_acceleration, X, Y, Z data.acceleration in mm/s^2 for travel (non printing) moves
+#define MSG_STEPS_PER_MM                    _UxGT("轴步数/mm")  //"Steps/mm" data.axis_steps_per_mm, axis steps-per-unit G92
 #if IS_KINEMATIC
   #define MSG_ASTEPS                        _UxGT("A轴步数/mm")  //"Asteps/mm"
   #define MSG_BSTEPS                        _UxGT("B轴步数/mm")  //"Bsteps/mm"

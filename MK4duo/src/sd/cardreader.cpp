@@ -911,7 +911,7 @@
                 char *name2 = fileName; // use the string in-place
               #endif // !SDSORT_USES_RAM
 
-              // Sort the current pair according to settings.
+              // Sort the current pair according to data.
               if (
                 #if HAS_FOLDER_SORTING
                   #if ENABLED(SDSORT_GCODE)

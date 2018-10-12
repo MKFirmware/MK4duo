@@ -51,7 +51,7 @@
 
     const float cartesian_xy_mm = HYPOT(total[X_AXIS], total[Y_AXIS]),                    // total horizontal xy distance
                 seconds = cartesian_xy_mm / feedrate;                                     // seconds to move xy distance at requested rate
-    uint16_t    segments = LROUND(mechanics.delta_segments_per_second * seconds),         // preferred number of segments for distance @ feedrate
+    uint16_t    segments = LROUND(mechanics.delta_data.segments_per_second * seconds),         // preferred number of segments for distance @ feedrate
                 seglimit = LROUND(cartesian_xy_mm * (1.0f / (DELTA_SEGMENT_MIN_LENGTH))); // number of segments at minimum segment length
 
     NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)

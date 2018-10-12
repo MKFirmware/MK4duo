@@ -60,7 +60,7 @@
  *  The trapezoid is the shape the speed curve over time. It starts at block->initial_rate, accelerates
  *  first block->accelerate_until step_events_completed, then keeps going at constant speed until
  *  step_events_completed reaches block->decelerate_after after which it decelerates until the trapezoid generator is reset.
- *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
+ *  The slope of data.acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
 
 /**
@@ -126,7 +126,7 @@ int32_t   Stepper::delta_error[XYZE] = { 0 };
 uint32_t  Stepper::advance_dividend[XYZE] = { 0 },
           Stepper::advance_divisor        = 0,
           Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
-          Stepper::accelerate_until       = 0,  // The point from where we need to stop acceleration
+          Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
           Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
           Stepper::step_event_count       = 0;  // The total event count for the current block
 
@@ -1349,7 +1349,7 @@ uint32_t Stepper::block_phase_step() {
         laser.extinguish();
       #endif
     }
-    // Are we in acceleration phase
+    // Are we in data.acceleration phase
     else if (step_events_completed <= accelerate_until) {
 
       #if ENABLED(BEZIER_JERK_CONTROL)
@@ -1538,7 +1538,7 @@ uint32_t Stepper::block_phase_step() {
       //if (!!current_block->steps[B_AXIS]) SBI(axis_did_move, Y_HEAD);
       //if (!!current_block->steps[C_AXIS]) SBI(axis_did_move, Z_HEAD);
 
-      // No acceleration / deceleration time elapsed so far
+      // No data.acceleration / deceleration time elapsed so far
       acceleration_time = deceleration_time = 0;
 
       #if ENABLED(ADAPTIVE_STEP_SMOOTHING)
@@ -1570,7 +1570,7 @@ uint32_t Stepper::block_phase_step() {
       // No step events completed so far
       step_events_completed = 0;
 
-      // Compute the acceleration and deceleration points
+      // Compute the data.acceleration and deceleration points
       accelerate_until = current_block->accelerate_until << oversampling_factor;
       decelerate_after = current_block->decelerate_after << oversampling_factor;
 
@@ -2162,7 +2162,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 /**
  *  This uses a quintic (fifth-degree) Bézier polynomial for the velocity curve, giving
  *  a "linear pop" velocity curve; with pop being the sixth derivative of position:
- *  velocity - 1st, acceleration - 2nd, jerk - 3rd, snap - 4th, crackle - 5th, pop - 6th
+ *  velocity - 1st, data.acceleration - 2nd, jerk - 3rd, snap - 4th, crackle - 5th, pop - 6th
  *
  *  The Bézier curve takes the form:
  *
@@ -2196,7 +2196,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
  *        E = - 5*P_0 +  5*P_1
  *        F =     P_0
  *
- *  Now, since we will (currently) *always* want the initial acceleration and jerk values to be 0,
+ *  Now, since we will (currently) *always* want the initial data.acceleration and jerk values to be 0,
  *  We set P_i = P_0 = P_1 = P_2 (initial velocity), and P_t = P_3 = P_4 = P_5 (target velocity),
  *  which, after simplification, resolves to:
  *

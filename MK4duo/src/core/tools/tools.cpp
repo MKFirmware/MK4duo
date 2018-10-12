@@ -112,7 +112,7 @@
             #if HAS_DONDOLO
               // Always raise by at least 1 to avoid workpiece
               mechanics.current_position[Z_AXIS] += (z_diff < 0.0 ? -z_diff : 0.0) + 1;
-              planner.buffer_line(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[Z_AXIS], active_extruder);
               move_extruder_servo(tmp_extruder);
             #endif
 
@@ -150,7 +150,7 @@
             #if !HAS_DONDOLO
               // Do a small lift to avoid the workpiece in the move back (below)
               mechanics.current_position[Z_AXIS] += 1.0;
-              planner.buffer_line(mechanics.current_position, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+              planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[Z_AXIS], active_extruder);
             #endif
             #if ENABLED(DEBUG_FEATURE)
               if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
@@ -164,7 +164,7 @@
           #if HAS_DONDOLO
             else {
               // Move back down. (Including when the new tool is higher.)
-              mechanics.do_blocking_move_to_z(mechanics.destination[Z_AXIS], mechanics.max_feedrate_mm_s[Z_AXIS]);
+              mechanics.do_blocking_move_to_z(mechanics.destination[Z_AXIS], mechanics.data.max_feedrate_mm_s[Z_AXIS]);
             }
           #endif
         } // (tmp_extruder != active_extruder)
@@ -554,9 +554,9 @@
         #define CUR_Z mechanics.current_position[Z_AXIS]
         #define CUR_E mechanics.current_position[E_AXIS]
 
-        planner.buffer_line( CUR_X, CUR_Y, raised_z, CUR_E, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
-        planner.buffer_line( xhome, CUR_Y, raised_z, CUR_E, mechanics.max_feedrate_mm_s[X_AXIS], active_extruder);
-        planner.buffer_line( xhome, CUR_Y, CUR_Z,    CUR_E, mechanics.max_feedrate_mm_s[Z_AXIS], active_extruder);
+        planner.buffer_line( CUR_X, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s[Z_AXIS], active_extruder);
+        planner.buffer_line( xhome, CUR_Y, raised_z, CUR_E, mechanics.data.max_feedrate_mm_s[X_AXIS], active_extruder);
+        planner.buffer_line( xhome, CUR_Y, CUR_Z,    CUR_E, mechanics.data.max_feedrate_mm_s[Z_AXIS], active_extruder);
 
         planner.synchronize();
       }

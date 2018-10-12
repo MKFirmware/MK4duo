@@ -26,40 +26,86 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _TACHOMETRIC_H_
-#define _TACHOMETRIC_H_
+#pragma once
 
-#if FAN_COUNT > 0 && ENABLED(TACHOMETRIC)
+extern void tacho_interrupt0();
+#if FAN_COUNT > 1
+  extern void tacho_interrupt1();
+  #if FAN_COUNT > 2
+    void tacho_interrupt2() { fans[2].tacho.interrupt(); }
+    #if FAN_COUNT > 3
+      void tacho_interrupt3() { fans[3].tacho.interrupt(); }
+      #if FAN_COUNT > 4
+        void tacho_interrupt4() { fans[4].tacho.interrupt(); }
+        #if FAN_COUNT > 5
+          void tacho_interrupt5() { fans[5].tacho.interrupt(); }
+        #endif
+      #endif
+    #endif
+  #endif
+#endif
 
-  class Tachometric {
+typedef struct {
+  void (* function) ();	
+} tacho_interrupt_t;
 
-    public: /** Constructor */
+constexpr tacho_interrupt_t tacho_table[FAN_COUNT] = {
+  tacho_interrupt0,
+  #if FAN_COUNT > 1
+    tacho_interrupt1,
+    #if FAN_COUNT > 2
+      tacho_interrupt2,
+      #if FAN_COUNT > 3
+        tacho_interrupt3,
+        #if FAN_COUNT > 4
+          tacho_interrupt4,
+          #if FAN_COUNT > 5
+            tacho_interrupt5
+          #endif
+        #endif
+      #endif
+    #endif
+  #endif
+};
 
-      Tachometric();
+// Struct Tacho data
+typedef struct {
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      pin_t   pin;
+    pin_t   pin;
 
-    private: /** Private Parameters */
+  private: /** Private Parameters */
 
-      static constexpr uint32_t MaxInterruptCount = 32;  // number of tacho interrupts that we average over
+    static constexpr uint32_t MaxInterruptCount = 32;  // number of tacho interrupts that we average over
 
-      uint32_t InterruptCount;          // accessed only in ISR, so no need to declare it volatile
-      volatile millis_t LastResetTime,  // time (microseconds) at which we last reset the interrupt count, accessed inside and outside ISR
-                        Interval;       // written by ISR, read outside the ISR
+    uint32_t InterruptCount;          // accessed only in ISR, so no need to declare it volatile
+    volatile millis_t LastResetTime,  // time (microseconds) at which we last reset the interrupt count, accessed inside and outside ISR
+                      Interval;       // written by ISR, read outside the ISR
 
-    public: /** Public Function */
+  public: /** Public Function */
 
-      void init(const uint8_t tacho);
-      void Interrupt();
+    void init(const uint8_t index) {
+      if (pin > 0) {
+        HAL::pinMode(pin, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(pin), tacho_table[index].function, FALLING);
+      }
+    }
 
-      uint32_t GetRPM();
+    void interrupt() {
+      ++InterruptCount;
+      if (InterruptCount == MaxInterruptCount) {
+        const uint32_t now = HAL_timer_get_current_count(STEPPER_TIMER);
+        Interval = now - LastResetTime;
+        LastResetTime = now;
+        InterruptCount = 0;
+      }
+    }
 
-  };
+    uint32_t GetRPM() {
+      return (Interval != 0 && HAL_timer_get_current_count(STEPPER_TIMER) - LastResetTime < 3 * STEPPER_CLOCK_RATE)
+        ? (STEPPER_CLOCK_RATE * MaxInterruptCount) / (2 * Interval)
+        : 0;
+    }
 
-  extern Tachometric tachometrics[FAN_COUNT];
-
-#endif // FAN_COUNT > 0 && ENABLED(TACHOMETRIC)
-
-#endif /* _TACHOMETRIC_H_ */
+} tacho_data_t;

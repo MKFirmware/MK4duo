@@ -241,7 +241,7 @@
     printer.safe_delay(FILAMENT_UNLOAD_DELAY);
 
     // Quickly purge
-    do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, mechanics.max_feedrate_mm_s[E_AXIS]);
+    do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, mechanics.data.max_feedrate_mm_s[E_AXIS]);
 
     // Unload filament
     do_pause_e_move(-unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);

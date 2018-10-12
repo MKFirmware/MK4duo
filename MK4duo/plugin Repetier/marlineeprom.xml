@@ -113,6 +113,11 @@
     <set>M106 P0 H@</set>
     <detect>M106 P0.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 0 trig temp</description>
+    <set>M106 P0 T@</set>
+    <detect>M106 P0.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 1 pin</description>
@@ -143,6 +148,11 @@
     <description unit="[0-7] (-1 to disable)">Fan 1 autofan mode</description>
     <set>M106 P1 H@</set>
     <detect>M106 P1.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 1 trig temp</description>
+    <set>M106 P1 T@</set>
+    <detect>M106 P1.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
@@ -175,6 +185,11 @@
     <set>M106 P2 H@</set>
     <detect>M106 P2.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 2 trig temp</description>
+    <set>M106 P2 T@</set>
+    <detect>M106 P2.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 3 pin</description>
@@ -205,6 +220,11 @@
     <description unit="[0-7] (-1 to disable)">Fan 3 autofan mode</description>
     <set>M106 P3 H@</set>
     <detect>M106 P3.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 3 trig temp</description>
+    <set>M106 P3 T@</set>
+    <detect>M106 P3.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
@@ -237,6 +257,11 @@
     <set>M106 P4 H@</set>
     <detect>M106 P4.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 4 trig temp</description>
+    <set>M106 P4 T@</set>
+    <detect>M106 P4.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 5 pin</description>
@@ -267,6 +292,11 @@
     <description unit="[0-7] (-1 to disable)">Fan 5 autofan mode</description>
     <set>M106 P5 H@</set>
     <detect>M106 P5.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 5 trig temp</description>
+    <set>M106 P5 T@</set>
+    <detect>M106 P5.*T(-?\d*)</detect>
   </entry>
 
   <!-- M145: Preheat Temperature -->

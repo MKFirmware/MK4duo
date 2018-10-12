@@ -28,6 +28,22 @@
 
 #pragma once
 
+// Struct Delta Settings
+typedef struct {
+
+  float diagonal_rod,
+        radius,
+        segments_per_second,
+        print_radius,
+        probe_radius,
+        height,
+        diagonal_rod_adj[ABC],
+        endstop_adj[ABC],
+        tower_angle_adj[ABC],
+        tower_radius_adj[ABC];
+
+} delta_data_t;
+
 #if IS_DELTA
 
   class Delta_Mechanics : public Mechanics {
@@ -38,18 +54,10 @@
 
     public: /** Public Parameters */
 
+      static delta_data_t delta_data;
+
       static float  delta[ABC],
-                    delta_diagonal_rod,
-                    delta_radius,
-                    delta_segments_per_second,
-                    delta_print_radius,
-                    delta_probe_radius,
-                    delta_height,
-                    delta_clip_start_height,
-                    delta_diagonal_rod_adj[ABC],
-                    delta_endstop_adj[ABC],
-                    delta_tower_angle_adj[ABC],
-                    delta_tower_radius_adj[ABC];
+                    delta_clip_start_height;
 
     private: /** Private Parameters */
 

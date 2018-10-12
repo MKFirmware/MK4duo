@@ -29,7 +29,7 @@
   int   AutoBedLevel::bilinear_grid_spacing[2],
         AutoBedLevel::bilinear_start[2];
   float AutoBedLevel::bilinear_grid_factor[2],
-        AutoBedLevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+        AutoBedLevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y] = { 0, 0 };
 
   /**
    * Extrapolate a single point from its neighbors

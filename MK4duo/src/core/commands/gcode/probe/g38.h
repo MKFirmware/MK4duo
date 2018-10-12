@@ -38,7 +38,7 @@
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
       float dist = mechanics.destination[i] - mechanics.current_position[i];
-      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.data.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
     planner.synchronize();  // wait until the machine is idle
@@ -102,7 +102,7 @@
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
       if (ABS(mechanics.destination[i] - mechanics.current_position[i]) >= G38_MINIMUM_MOVE) {
-        if (!parser.seenval('F')) mechanics.feedrate_mm_s = mechanics.homing_feedrate_mm_s[i];
+        if (!parser.seenval('F')) mechanics.feedrate_mm_s = mechanics.data.homing_feedrate_mm_s[i];
         // If G38.2 fails throw an error
         if (!G38_run_probe() && is_38_2) {
           SERIAL_LM(ER, "Failed to reach target");

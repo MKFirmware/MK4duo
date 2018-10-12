@@ -215,14 +215,14 @@
         SERIAL_CHR(',');
         SERIAL_VAL((int) Z_MAX_POS);
         SERIAL_MSG("],\"planner.accelerations\":[");
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Z_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[E_AXIS + i]);
         }
         SERIAL_MSG("],");
 
@@ -266,14 +266,14 @@
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[Z_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_feedrate_mm_s[E_AXIS + i]);
         }
         SERIAL_CHR(']');
         break;

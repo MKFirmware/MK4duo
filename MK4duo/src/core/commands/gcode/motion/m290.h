@@ -45,7 +45,7 @@
       for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
         if (parser.seenval(axis_codes[a]) || (a == Z_AXIS && parser.seenval('S'))) {
           const float offs = constrain(parser.value_axis_units((AxisEnum)a), -2, 2);
-          mechanics.babystep_axis((AxisEnum)a, offs * mechanics.axis_steps_per_mm[a]);
+          mechanics.babystep_axis((AxisEnum)a, offs * mechanics.data.axis_steps_per_mm[a]);
           #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
             if (a == Z_AXIS && parser.boolval('P')) mod_probe_zoffset(offs);
           #endif
@@ -53,7 +53,7 @@
     #else
       if (parser.seenval('Z') || parser.seenval('S')) {
         const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
-        mechanics.babystep_axis(Z_AXIS, offs * mechanics.axis_steps_per_mm[Z_AXIS]);
+        mechanics.babystep_axis(Z_AXIS, offs * mechanics.data.axis_steps_per_mm[Z_AXIS]);
         #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
           if (parser.boolval('P')) mod_probe_zoffset(offs);
         #endif

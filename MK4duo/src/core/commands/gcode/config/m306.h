@@ -56,8 +56,8 @@
     act->pid.DriveMin = parser.intval('A', act->pid.DriveMin);
     act->pid.DriveMax = parser.intval('B', act->pid.DriveMax);
     act->pid.Max      = parser.intval('C', act->pid.Max);
-    act->mintemp      = parser.intval('L', act->mintemp);
-    act->maxtemp      = parser.intval('O', act->maxtemp);
+    act->data.mintemp      = parser.intval('L', act->data.mintemp);
+    act->data.maxtemp      = parser.intval('O', act->data.maxtemp);
 
     if (parser.seen('U'))
       act->setUsePid(parser.value_bool());
@@ -67,7 +67,7 @@
     if (parser.seen('P')) {
       // Put off the heaters
       act->setTarget(0);
-      act->pin = parser.value_pin();
+      act->data.pin = parser.value_pin();
     }
 
     act->pid.update();

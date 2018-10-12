@@ -42,19 +42,19 @@ inline void gcode_M204(void) {
   if (commands.get_target_tool(204)) return;
 
   if (parser.seen('S')) {  // Kept for legacy compatibility. Should NOT BE USED for new developments.
-    mechanics.travel_acceleration = mechanics.acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Print and Travel acceleration: ", mechanics.acceleration );
+    mechanics.data.travel_acceleration = mechanics.data.acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Print and Travel data.acceleration: ", mechanics.data.acceleration );
   }
   if (parser.seen('P')) {
-    mechanics.acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Print acceleration: ", mechanics.acceleration );
+    mechanics.data.acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Print data.acceleration: ", mechanics.data.acceleration );
   }
   if (parser.seen('R')) {
-    mechanics.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
-    SERIAL_EMV("Setting Retract acceleration: ", mechanics.retract_acceleration[TARGET_EXTRUDER]);
+    mechanics.data.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
+    SERIAL_EMV("Setting Retract data.acceleration: ", mechanics.data.retract_acceleration[TARGET_EXTRUDER]);
   }
   if (parser.seen('V')) {
-    mechanics.travel_acceleration = parser.value_linear_units();
-    SERIAL_EMV("Setting Travel acceleration: ", mechanics.travel_acceleration );
+    mechanics.data.travel_acceleration = parser.value_linear_units();
+    SERIAL_EMV("Setting Travel data.acceleration: ", mechanics.data.travel_acceleration );
   }
 }

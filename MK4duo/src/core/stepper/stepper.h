@@ -96,7 +96,7 @@ class Stepper {
     static uint32_t advance_dividend[XYZE],
                     advance_divisor,
                     step_events_completed,  // The number of step events executed in the current block
-                    accelerate_until,       // The point from where we need to stop acceleration
+                    accelerate_until,       // The point from where we need to stop data.acceleration
                     decelerate_after,       // The point from where we need to start decelerating
                     step_event_count;       // The total event count for the current block
 

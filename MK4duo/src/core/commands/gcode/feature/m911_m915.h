@@ -168,10 +168,10 @@
 
       if (commands.get_target_tool(913)) return;
 
-      #define TMC_SAY_PWMTHRS(P,Q) tmc.get_pwmthrs(stepper##Q, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SET_PWMTHRS(P,Q) tmc.set_pwmthrs(stepper##Q, value, mechanics.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SAY_PWMTHRS_E(E) do{ tmc.get_pwmthrs(stepperE##E, mechanics.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
-      #define TMC_SET_PWMTHRS_E(E) do{ tmc.set_pwmthrs(stepperE##E, value, mechanics.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
+      #define TMC_SAY_PWMTHRS(P,Q) tmc.get_pwmthrs(stepper##Q, mechanics.data.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SET_PWMTHRS(P,Q) tmc.set_pwmthrs(stepper##Q, value, mechanics.data.axis_steps_per_mm[P##_AXIS])
+      #define TMC_SAY_PWMTHRS_E(E) do{ tmc.get_pwmthrs(stepperE##E, mechanics.data.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
+      #define TMC_SET_PWMTHRS_E(E) do{ tmc.set_pwmthrs(stepperE##E, value, mechanics.data.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
 
       const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {

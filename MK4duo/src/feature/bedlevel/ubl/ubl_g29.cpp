@@ -259,7 +259,7 @@
    *   UBL probes points increasingly further from the starting location. (The starting location defaults
    *   to the center of the bed.) In contrast, ABL and MBL follow a zigzag pattern. The spiral pattern is
    *   especially better for Delta printers, since it populates the center of the mesh first, allowing for
-   *   a quicker test print to verify settings. You don't need to populate the entire mesh to use it.
+   *   a quicker test print to verify data. You don't need to populate the entire mesh to use it.
    *   After all, you don't want to spend a lot of time generating a mesh only to realize the resolution
    *   or zprobe_zoffset are incorrect. Mesh-generation gathers points starting closest to the nozzle unless
    *   an (X,Y) coordinate pair is given.
@@ -862,7 +862,7 @@
         SERIAL_PS(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                 // existing behavior: 0.01mm per click, occasionally step
-        //const float z_step = mechanics.axis_steps_per_mm[Z_AXIS]; // approx one step each click
+        //const float z_step = mechanics.data.axis_steps_per_mm[Z_AXIS]; // approx one step each click
 
         move_z_with_encoder(z_step);
 

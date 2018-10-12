@@ -1057,7 +1057,7 @@ void Planner::recalculate_trapezoids() {
             calculate_trapezoid_for_block(current, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current->use_advance_lead) {
-                const float comp = current->e_D_ratio * extruder_advance_K * mechanics.axis_steps_per_mm[E_INDEX];
+                const float comp = current->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
                 current->max_adv_steps = current_nominal_speed * comp;
                 current->final_adv_steps = next_entry_speed * comp;
               }
@@ -1096,7 +1096,7 @@ void Planner::recalculate_trapezoids() {
       calculate_trapezoid_for_block(next, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next->use_advance_lead) {
-          const float comp = next->e_D_ratio * extruder_advance_K * mechanics.axis_steps_per_mm[E_INDEX];
+          const float comp = next->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
           next->max_adv_steps = next_nominal_speed * comp;
           next->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }
@@ -1487,7 +1487,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         }
       #endif
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.axis_steps_per_mm[E_AXIS_N(extruder)] * (EXTRUDE_MAXLENGTH)) {
+        if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.data.axis_steps_per_mm[E_AXIS_N(extruder)] * (EXTRUDE_MAXLENGTH)) {
           position[E_AXIS] = target[E_AXIS]; // Behave as if the move really took place, but ignore E part
           #if HAS_POSITION_FLOAT
             position_float[E_AXIS] = target_float[E_AXIS];
@@ -1864,9 +1864,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   }
 
   if (esteps)
-    NOLESS(fr_mm_s, mechanics.min_feedrate_mm_s);
+    NOLESS(fr_mm_s, mechanics.data.min_feedrate_mm_s);
   else
-    NOLESS(fr_mm_s, mechanics.min_travel_feedrate_mm_s);
+    NOLESS(fr_mm_s, mechanics.data.min_travel_feedrate_mm_s);
 
   #if ENABLED(LASER)
 
@@ -1928,9 +1928,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #if ENABLED(SLOWDOWN)
     if (WITHIN(moves_queued, 2, (BLOCK_BUFFER_SIZE) / 2 - 1)) {
-      if (segment_time_us < mechanics.min_segment_time_us) {
+      if (segment_time_us < mechanics.data.min_segment_time_us) {
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
-        const uint32_t nst = segment_time_us + LROUND(2 * (mechanics.min_segment_time_us - segment_time_us) / moves_queued);
+        const uint32_t nst = segment_time_us + LROUND(2 * (mechanics.data.min_segment_time_us - segment_time_us) / moves_queued);
         inverse_secs = 1000000.0f / nst;
         #if ENABLED(XY_FREQUENCY_LIMIT) || ENABLED(ULTRA_LCD)
           segment_time_us = nst;
@@ -2004,7 +2004,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #endif
     const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
     if (i == E_AXIS) i += extruder;
-    if (cs > mechanics.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.max_feedrate_mm_s[i] / cs);
+    if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
   }
 
   // Max segment time in Âµs.
@@ -2057,7 +2057,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   uint32_t accel;
   if (!block->steps[X_AXIS] && !block->steps[Y_AXIS] && !block->steps[Z_AXIS]) {
     // convert to: acceleration steps/sec^2
-    accel = CEIL(mechanics.retract_acceleration[extruder] * steps_per_mm);
+    accel = CEIL(mechanics.data.retract_acceleration[extruder] * steps_per_mm);
     #if ENABLED(LIN_ADVANCE)
       block->use_advance_lead = false;
     #endif
@@ -2078,14 +2078,14 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     }while(0)
 
     // Start with print or travel acceleration
-    accel = CEIL((esteps ? mechanics.acceleration : mechanics.travel_acceleration) * steps_per_mm);
+    accel = CEIL((esteps ? mechanics.data.acceleration : mechanics.data.travel_acceleration) * steps_per_mm);
 
     #if ENABLED(LIN_ADVANCE)
 
       #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK mechanics.max_e_jerk[extruder]
+        #define MAX_E_JERK mechanics.data.max_e_jerk[extruder]
       #else
-        #define MAX_E_JERK mechanics.max_jerk[E_AXIS_N(extruder)]
+        #define MAX_E_JERK mechanics.data.max_jerk[E_AXIS_N(extruder)]
       #endif
 
       /**
@@ -2148,7 +2148,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.axis_steps_per_mm[E_AXIS_N(extruder)]);
+      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.data.axis_steps_per_mm[E_AXIS_N(extruder)]);
       #if ENABLED(LA_DEBUG)
         if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
           SERIAL_EM("More than 2 steps per eISR loop executed.");
@@ -2210,7 +2210,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
                     sin_theta_d2 = SQRT(0.5 * (1.0 - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * mechanics.junction_deviation_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
+        vmax_junction_sqr = (junction_acceleration * mechanics.data.junction_deviation_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
         if (block->millimeters < 1.0) {
 
           // Fast acos approximation, minus the error bar to be safe
@@ -2252,7 +2252,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #endif
     {
       const float jerk = ABS(current_speed[i]),
-                  maxj = (i == E_AXIS) ? mechanics.max_jerk[i + extruder] : mechanics.max_jerk[i];
+                  maxj = (i == E_AXIS) ? mechanics.data.max_jerk[i + extruder] : mechanics.data.max_jerk[i];
 
       if (jerk > maxj) {
         if (limited) {
@@ -2304,7 +2304,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
             : // v_exit <= v_entry                coasting             axis reversal
               ( (v_entry < 0 || v_exit > 0) ? (v_entry - v_exit) : MAX(-v_exit, v_entry) );
 
-        const float maxj = (axis == E_AXIS) ? mechanics.max_jerk[axis + extruder] : mechanics.max_jerk[axis];
+        const float maxj = (axis == E_AXIS) ? mechanics.data.max_jerk[axis + extruder] : mechanics.data.max_jerk[axis];
         if (jerk > maxj) {
           v_factor *= maxj / jerk;
           ++limited;
@@ -2425,10 +2425,10 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
   const int32_t target[XYZE] = {
-    static_cast<int32_t>(FLOOR(a * mechanics.axis_steps_per_mm[X_AXIS] + 0.5f)),
-    static_cast<int32_t>(FLOOR(b * mechanics.axis_steps_per_mm[Y_AXIS] + 0.5f)),
-    static_cast<int32_t>(FLOOR(c * mechanics.axis_steps_per_mm[Z_AXIS] + 0.5f)),
-    static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_AXIS_N(extruder)] + 0.5f))
+    static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm[X_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm[Y_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm[Z_AXIS] + 0.5f)),
+    static_cast<int32_t>(FLOOR(e * mechanics.data.axis_steps_per_mm[E_AXIS_N(extruder)] + 0.5f))
   };
 
   #if HAS_POSITION_FLOAT
@@ -2569,10 +2569,10 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
  */
 void Planner::set_machine_position_mm(const float &a, const float &b, const float &c, const float &e) {
 
-  position[A_AXIS] = static_cast<int32_t>(FLOOR(a * mechanics.axis_steps_per_mm[A_AXIS] + 0.5f));
-  position[B_AXIS] = static_cast<int32_t>(FLOOR(b * mechanics.axis_steps_per_mm[B_AXIS] + 0.5f));
-  position[C_AXIS] = static_cast<int32_t>(FLOOR(c * mechanics.axis_steps_per_mm[C_AXIS] + 0.5f));
-  position[E_AXIS] = static_cast<int32_t>(FLOOR(e * mechanics.axis_steps_per_mm[E_INDEX] + 0.5f));
+  position[A_AXIS] = static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm[A_AXIS] + 0.5f));
+  position[B_AXIS] = static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm[B_AXIS] + 0.5f));
+  position[C_AXIS] = static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm[C_AXIS] + 0.5f));
+  position[E_AXIS] = static_cast<int32_t>(FLOOR(e * mechanics.data.axis_steps_per_mm[E_INDEX] + 0.5f));
 
   #if HAS_POSITION_FLOAT
     position_float[A_AXIS] = a;
@@ -2626,7 +2626,7 @@ void Planner::set_e_position_mm(const float &e) {
     const float e_new = e;
   #endif
 
-  position[E_AXIS] = static_cast<int32_t>(FLOOR(e_new * mechanics.axis_steps_per_mm[axis_index] + 0.5f));
+  position[E_AXIS] = static_cast<int32_t>(FLOOR(e_new * mechanics.data.axis_steps_per_mm[axis_index] + 0.5f));
 
   #if HAS_POSITION_FLOAT
     position_float[E_AXIS] = e_new;
@@ -2657,7 +2657,7 @@ void Planner::reset_acceleration_rates() {
   uint32_t highest_rate = 1;
 
   LOOP_XYZE_N(i) {
-    mechanics.max_acceleration_steps_per_s2[i] = mechanics.max_acceleration_mm_per_s2[i] * mechanics.axis_steps_per_mm[i];
+    mechanics.max_acceleration_steps_per_s2[i] = mechanics.data.max_acceleration_mm_per_s2[i] * mechanics.data.axis_steps_per_mm[i];
     if (AXIS_CONDITION ) NOLESS(highest_rate, mechanics.max_acceleration_steps_per_s2[i]);
   }
 
@@ -2670,10 +2670,10 @@ void Planner::reset_acceleration_rates() {
 }
 
 /**
- * Recalculate position, steps_to_mm if axis_steps_per_mm changes!
+ * Recalculate position, steps_to_mm if data.axis_steps_per_mm changes!
  */
 void Planner::refresh_positioning() {
-  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = 1.0f / mechanics.axis_steps_per_mm[i];
+  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = 1.0f / mechanics.data.axis_steps_per_mm[i];
   set_position_mm(mechanics.current_position);
   reset_acceleration_rates();
 }
@@ -2704,7 +2704,7 @@ void Planner::refresh_positioning() {
 
     LOOP_XYZ(axis) {
       if (hysteresis_mm[axis] && TEST(direction_change_bits, axis)) {
-        const uint32_t fix = hysteresis_correction * hysteresis_mm[axis] * mechanics.axis_steps_per_mm[axis];
+        const uint32_t fix = hysteresis_correction * hysteresis_mm[axis] * mechanics.data.axis_steps_per_mm[axis];
         if (fix) {
           block->steps[axis] += fix;
           delta_mm[axis] = (TEST(block->direction_bits, axis) ? -1.0f : 1.0f) * block->steps[axis] * mechanics.steps_to_mm[axis];

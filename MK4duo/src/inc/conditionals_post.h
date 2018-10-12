@@ -71,16 +71,16 @@
 
   // Set the rectangle in which to probe
   #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
-  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
-  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
-  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
-  #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
+  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_data.probe_radius)
+  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_data.probe_radius)
+  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_data.probe_radius)
+  #define BACK_PROBE_BED_POSITION    (mechanics.delta_data.probe_radius)
 
-  #define X_MIN_POS -(mechanics.delta_print_radius)
-  #define X_MAX_POS  (mechanics.delta_print_radius)
-  #define Y_MIN_POS -(mechanics.delta_print_radius)
-  #define Y_MAX_POS  (mechanics.delta_print_radius)
-  #define Z_MAX_POS  (mechanics.delta_height)
+  #define X_MIN_POS -(mechanics.delta_data.print_radius)
+  #define X_MAX_POS  (mechanics.delta_data.print_radius)
+  #define Y_MIN_POS -(mechanics.delta_data.print_radius)
+  #define Y_MAX_POS  (mechanics.delta_data.print_radius)
+  #define Z_MAX_POS  (mechanics.delta_data.height)
   #define Z_MIN_POS 0
   #define E_MIN_POS 0
 
@@ -794,10 +794,10 @@
  * These can be further constrained in code for Delta and SCARA
  */
 #if IS_DELTA
-  #define MIN_PROBE_X -(mechanics.delta_print_radius)
-  #define MAX_PROBE_X  (mechanics.delta_print_radius)
-  #define MIN_PROBE_Y -(mechanics.delta_print_radius)
-  #define MAX_PROBE_Y  (mechanics.delta_print_radius)
+  #define MIN_PROBE_X -(mechanics.delta_data.print_radius)
+  #define MAX_PROBE_X  (mechanics.delta_data.print_radius)
+  #define MIN_PROBE_Y -(mechanics.delta_data.print_radius)
+  #define MAX_PROBE_Y  (mechanics.delta_data.print_radius)
 #elif IS_SCARA
   #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
   #define MIN_PROBE_X (X_CENTER - (SCARA_PRINTABLE_RADIUS) + (MIN_PROBE_EDGE))

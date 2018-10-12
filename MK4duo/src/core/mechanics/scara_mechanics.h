@@ -47,7 +47,7 @@
                           L2_2;
 
       static float  delta[ABC],
-                    delta_segments_per_second;
+                    delta_data.segments_per_second;
 
     public: /** Public Function */
 

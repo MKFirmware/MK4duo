@@ -30,54 +30,22 @@
 #include "mechanics.h"
 
 /** Public Parameters */
+mechanics_data_t Mechanics::data;
+
 float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
-      Mechanics::min_feedrate_mm_s                        = 0.0,
-      Mechanics::max_feedrate_mm_s[XYZE_N]                = { 0.0 },
-      Mechanics::min_travel_feedrate_mm_s                 = 0.0,
-      Mechanics::axis_steps_per_mm[XYZE_N]                = { 0.0 },
       Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },
-      Mechanics::acceleration                             = 0.0,
-      Mechanics::travel_acceleration                      = 0.0,
-      Mechanics::retract_acceleration[EXTRUDERS]          = { 0.0 },
       Mechanics::current_position[XYZE]                   = { 0.0 },
       Mechanics::cartesian_position[XYZ]                  = { 0.0 },
       Mechanics::destination[XYZE]                        = { 0.0 },
       Mechanics::stored_position[NUM_POSITON_SLOTS][XYZE] = { { 0.0 } };
 
-#if ENABLED(JUNCTION_DEVIATION)
-  float Mechanics::junction_deviation_mm = 0.0;
-  #if ENABLED(LIN_ADVANCE)
-    float Mechanics::max_e_jerk[EXTRUDERS] = { 0.0 };
-  #endif
-#endif
-
-#if HAS_CLASSIC_JERK
-  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-    float Mechanics::max_jerk[XYZ] = { 0.0 };
-  #else
-    float Mechanics::max_jerk[XYZE_N] = { 0.0 };
-  #endif
-#endif
-
 int16_t Mechanics::feedrate_percentage       = 100;
 
-const float Mechanics::homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-            Mechanics::home_bump_mm[XYZ]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
-   
-uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 },
-          Mechanics::max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
-
-const int8_t Mechanics::home_dir[XYZ] = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
-
-millis_t Mechanics::min_segment_time_us = 0;
+uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
   float Mechanics::position_shift[XYZ] = { 0.0 };
-
-  // This offset is added to the configured home position.
-  // Set by M206, M428, or menu item. Saved to EEPROM.
-  float Mechanics::home_offset[XYZ] = { 0.0 };
 
   // The above two are combined to save on computes
   float Mechanics::workspace_offset[XYZ] = { 0.0 };
@@ -231,7 +199,7 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
     hbd = 10;
     SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");
   }
-  return homing_feedrate_mm_s[axis] / hbd;
+  return data.homing_feedrate_mm_s[axis] / hbd;
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
@@ -264,7 +232,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
    * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
-    home_offset[axis] = v;
+    data.home_offset[axis] = v;
     endstops.update_software_endstops(axis);
   }
 
