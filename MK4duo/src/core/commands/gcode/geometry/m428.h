@@ -31,7 +31,7 @@
   #define CODE_M428
 
   /**
-   * M428: Set data.home_offset based on the distance between the
+   * M428: Set home_offset based on the distance between the
    *       current_position and the nearest "reference point."
    *       If an axis is past center its Endstop position
    *       is the reference-point. Otherwise it uses 0. This allows

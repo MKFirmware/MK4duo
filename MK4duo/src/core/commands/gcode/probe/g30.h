@@ -38,7 +38,7 @@
    *      Y   Probe Y position (default=current probe position)
    *      E   Engage the probe for each probe (default 1)
    *      Z   <bool> with a non-zero value will apply the result to current delta_data.height (ONLY DELTA)
-   *      P   <bool> with a non-zero value will apply the result to current offset[Z_AXIS] (ONLY DELTA)
+   *      P   <bool> with a non-zero value will apply the result to current probe offset[Z_AXIS] (ONLY DELTA)
    */
   inline void gcode_G30(void) {
 
