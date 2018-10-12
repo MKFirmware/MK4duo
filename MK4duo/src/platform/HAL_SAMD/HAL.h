@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <Reset.h>
+#include <cstdarg>
+
 
 // --------------------------------------------------------------------------
 // Types
