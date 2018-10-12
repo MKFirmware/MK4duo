@@ -101,7 +101,7 @@ bool tcIsSyncing()
 }
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) { /* moet nog iets met freq */
-    SerialUSB.println("Init stepper");
+
     GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID( GCM_TC4_TC5 )) ;
     while (GCLK->STATUS.bit.SYNCBUSY);
     
