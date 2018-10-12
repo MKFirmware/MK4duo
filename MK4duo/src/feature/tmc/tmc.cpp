@@ -203,6 +203,10 @@ void TMC_Stepper::init() {
 
   #if HAVE_DRV(TMC2130)
 
+    #if DISABLED(SOFT_SPI_TMC2130)
+      HAL::spiBegin();
+    #endif
+
     // Stepper objects of TMC2130 steppers used
     #if X_HAS_DRV(TMC2130)
       config(stepperX, X_STEALTHCHOP, X_STALL_SENSITIVITY);
@@ -365,43 +369,43 @@ void TMC_Stepper::current_init_to_defaults() {
 
   #define TMC_CURRENT_INIT(ST)  set_current(stepper##ST, ST##_CURRENT)
 
-  #if X_IS_TRINAMIC
+  #if AXIS_HAS_TMC(X)
     TMC_CURRENT_INIT(X);
   #endif
-  #if X2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(X2)
     TMC_CURRENT_INIT(X2);
   #endif
-  #if Y_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Y)
     TMC_CURRENT_INIT(Y);
   #endif
-  #if Y2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Y2)
     TMC_CURRENT_INIT(Y2);
   #endif
-  #if Z_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z)
     TMC_CURRENT_INIT(Z);
   #endif
-  #if Z2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z2)
     TMC_CURRENT_INIT(Z2);
   #endif
-  #if Z3_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z3)
     TMC_CURRENT_INIT(Z3);
   #endif
-  #if E0_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E0)
     TMC_CURRENT_INIT(E0);
   #endif
-  #if E1_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E1)
     TMC_CURRENT_INIT(E1);
   #endif
-  #if E2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E2)
     TMC_CURRENT_INIT(E2);
   #endif
-  #if E3_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E3)
     TMC_CURRENT_INIT(E3);
   #endif
-  #if E4_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E4)
     TMC_CURRENT_INIT(E4);
   #endif
-  #if E5_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E5)
     TMC_CURRENT_INIT(E5);
   #endif
 }
@@ -410,83 +414,83 @@ void TMC_Stepper::microstep_init_to_defaults() {
 
   #define TMC_MICROSTEP_INIT(ST)  set_microstep(stepper##ST, ST##_MICROSTEPS)
 
-  #if X_IS_TRINAMIC
+  #if AXIS_HAS_TMC(X)
     TMC_MICROSTEP_INIT(X);
   #endif
-  #if X2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(X2)
     TMC_MICROSTEP_INIT(X2);
   #endif
-  #if Y_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Y)
     TMC_MICROSTEP_INIT(Y);
   #endif
-  #if Y2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Y2)
     TMC_MICROSTEP_INIT(Y2);
   #endif
-  #if Z_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z)
     TMC_MICROSTEP_INIT(Z);
   #endif
-  #if Z2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z2)
     TMC_MICROSTEP_INIT(Z2);
   #endif
-  #if Z3_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z3)
     TMC_MICROSTEP_INIT(Z3);
   #endif
-  #if E0_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E0)
     TMC_MICROSTEP_INIT(E0);
   #endif
-  #if E1_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E1)
     TMC_MICROSTEP_INIT(E1);
   #endif
-  #if E2_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E2)
     TMC_MICROSTEP_INIT(E2);
   #endif
-  #if E3_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E3)
     TMC_MICROSTEP_INIT(E3);
   #endif
-  #if E4_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E4)
     TMC_MICROSTEP_INIT(E4);
   #endif
-  #if E5_IS_TRINAMIC
+  #if AXIS_HAS_TMC(E5)
     TMC_MICROSTEP_INIT(E5);
   #endif
 }
 
 void TMC_Stepper::restore() {
-  #if X_IS_TRINAMIC
+  #if AXIS_HAS_TMC(X)
     stepperX.push();
   #endif
-  #if X2_IS_TRINAMIC
-    stepperX2->push();
+  #if AXIS_HAS_TMC(X2)
+    stepperX2.push();
   #endif
-  #if Y_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Y)
     stepperY.push();
   #endif
-  #if Y2_IS_TRINAMIC
-    stepperY2->push();
+  #if AXIS_HAS_TMC(Y2)
+    stepperY2.push();
   #endif
-  #if Z_IS_TRINAMIC
+  #if AXIS_HAS_TMC(Z)
     stepperZ.push();
   #endif
-  #if Z2_IS_TRINAMIC
-    stepperZ2->push();
+  #if AXIS_HAS_TMC(Z2)
+    stepperZ2.push();
   #endif
-  #if Z3_IS_TRINAMIC
-    stepperZ3->push();
+  #if AXIS_HAS_TMC(Z3)
+    stepperZ3.push();
   #endif
-  #if E0_IS_TRINAMIC
-    stepperE0->push();
+  #if AXIS_HAS_TMC(E0)
+    stepperE0.push();
   #endif
-  #if E1_IS_TRINAMIC
-    stepperE1->push();
+  #if AXIS_HAS_TMC(E1)
+    stepperE1.push();
   #endif
-  #if E2_IS_TRINAMIC
-    stepperE2->push();
+  #if AXIS_HAS_TMC(E2)
+    stepperE2.push();
   #endif
-  #if E3_IS_TRINAMIC
-    stepperE3->push();
+  #if AXIS_HAS_TMC(E3)
+    stepperE3.push();
   #endif
-  #if E4_IS_TRINAMIC
-    stepperE4->push();
+  #if AXIS_HAS_TMC(E4)
+    stepperE4.push();
   #endif
 }
 
@@ -629,9 +633,13 @@ void TMC_Stepper::restore() {
     st.GSTAT(); // Clear GSTAT
 
     // Test connection
-    SERIAL_SM(ECHO, "stepper");
+    if (st.test_connection() == 2)
+      SERIAL_STR(ECHO);
+    else
+      SERIAL_STR(ER);
+    SERIAL_MSG("stepper");
     st.printLabel();
-    SERIAL_EM(st.test_connection() ? " Connect" : " Not connect");
+    SERIAL_EM(st.test_connection() == 2 ? " connect!" : " not connect!");
 
   }
 
@@ -734,7 +742,7 @@ void TMC_Stepper::restore() {
         if (st.s2ga()) SERIAL_EM("short to ground (coil A)");
         if (st.s2gb()) SERIAL_EM("short to ground (coil B)");
         #if ENABLED(TMC_DEBUG)
-          tmc_report_all();
+          report_all();
         #endif
         printer.kill(PSTR("Driver error"));
       }
@@ -921,46 +929,46 @@ void TMC_Stepper::restore() {
   }
 
   void TMC_Stepper::debug_loop(const TMC_debug_enum i) {
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       status(stepperX, i, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       status(stepperX2, i, mechanics.axis_steps_per_mm[X_AXIS]);
     #endif
 
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       status(stepperY, i, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       status(stepperY2, i, mechanics.axis_steps_per_mm[Y_AXIS]);
     #endif
 
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       status(stepperZ, i, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       status(stepperZ2,i, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
-    #if Z3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
       status(stepperZ3, i, mechanics.axis_steps_per_mm[Z_AXIS]);
     #endif
 
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E0)
       status(stepperE0, i, mechanics.axis_steps_per_mm[E_AXIS_N(0)]);
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       status(stepperE1, i, mechanics.axis_steps_per_mm[E_AXIS_N(1)]);
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       status(stepperE2, i, mechanics.axis_steps_per_mm[E_AXIS_N(2)]);
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       status(stepperE3, i, mechanics.axis_steps_per_mm[E_AXIS_N(3)]);
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       status(stepperE4, i, mechanics.axis_steps_per_mm[E_AXIS_N(4)]);
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       status(stepperE5, i, mechanics.axis_steps_per_mm[E_AXIS_N(5)]);
     #endif
 
@@ -968,46 +976,46 @@ void TMC_Stepper::restore() {
   }
 
   void TMC_Stepper::status_loop(const TMC_drv_status_enum i) {
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       parse_drv_status(stepperX, i);
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       parse_drv_status(stepperX2, i);
     #endif
 
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       parse_drv_status(stepperY, i);
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       parse_drv_status(stepperY2, i);
     #endif
 
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       parse_drv_status(stepperZ, i);
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       parse_drv_status(stepperZ2, i);
     #endif
-    #if Z3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
       parse_drv_status(stepperZ3, i);
     #endif
 
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E0)
       parse_drv_status(stepperE0, i);
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       parse_drv_status(stepperE1, i);
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       parse_drv_status(stepperE2, i);
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       parse_drv_status(stepperE3, i);
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       parse_drv_status(stepperE4, i);
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       parse_drv_status(stepperE5, i);
     #endif
 

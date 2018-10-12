@@ -505,12 +505,12 @@
       return false;
     }
 
-    uint16_t NexUpload::recvRetString(String &string, uint32_t timeout,bool recv_flag) {
+    uint16_t NexUpload::recvRetString(String &string, uint32_t timeout, bool recv_flag) {
       uint16_t ret = 0;
       uint8_t c = 0;
-      millis_t start;
       bool exit_flag = false;
-      start = millis();
+      millis_t start = millis();
+
       while (millis() - start <= timeout) {
         while (nexSerial.available()) {
           c = nexSerial.read();
@@ -639,24 +639,24 @@
       nexSerial.end();
       HAL::delayMilliseconds(1000);
       nexSerial.begin(115200);
-      return true;
     }
     else { // Else try to 115200 baudrate
       nexSerial.end();
       HAL::delayMilliseconds(1000);
       nexSerial.begin(115200);
-      connect = getConnect(buffer);
-      if (connect) return true;
     }
-    return false;
+
+    connect = getConnect(buffer);
+
+    if (connect) return true;
+    else return false;
   }
   
   void nexLoop(NexObject *nex_listen_list[]) {
     static uint8_t __buffer[10];
-    uint16_t i;
-    uint8_t c;  
+    uint8_t i, c;
 
-    while (nexSerial.available() > 0) {   
+    while (nexSerial.available()) {
       HAL::delayMilliseconds(5);
       c = nexSerial.read();
 
@@ -674,7 +674,7 @@
   }
 
   uint16_t recvRetNumber() {
-    uint8_t temp[8] = {0};
+    uint8_t temp[8] = { 0 };
 
     nexSerial.setTimeout(NEX_TIMEOUT);
     if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
@@ -695,11 +695,10 @@
     uint8_t cnt_0xFF = 0;
     String temp = String("");
     uint8_t c = 0;
-    millis_t start;
 
     if (!buffer || len == 0) return;
 
-    start = millis();
+    millis_t start = millis();
     while (millis() - start <= NEX_TIMEOUT) {
       while (nexSerial.available()) {
         c = nexSerial.read();
@@ -724,7 +723,7 @@
   }
 
   void sendCommand(PGM_P cmd) {
-    while (nexSerial.available()) nexSerial.read();
+    recvRetCommandFinished();
     nexSerial.print(cmd);
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);

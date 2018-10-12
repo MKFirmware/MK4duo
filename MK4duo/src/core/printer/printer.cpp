@@ -149,17 +149,13 @@ void Printer::setup() {
   // Init Serial for HOST
   Com::setBaudrate();
 
-  #if HAS_TRINAMIC
-    tmc.init();
-  #endif
+  // Check startup
+  SERIAL_STR(INFO);
+  HAL::showStartReason();
 
   #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
     DLPSerial.begin(PROJECTOR_BAUDRATE);
   #endif
-
-  // Check startup
-  SERIAL_STR(INFO);
-  HAL::showStartReason();
 
   // Init Watchdog
   watchdog.init();
@@ -177,14 +173,16 @@ void Printer::setup() {
   lcd_init();
   LCD_MESSAGEPGM(WELCOME_MSG);
 
-  #if ENABLED(SHOW_BOOTSCREEN)
-    #if ENABLED(DOGLCD) || ENABLED(ULTRA_LCD)
-      lcd_bootscreen(); // Show MK4duo boot screen
-    #endif
+  #if ENABLED(SHOW_BOOTSCREEN) && (ENABLED(DOGLCD) || ENABLED(ULTRA_LCD))
+    lcd_bootscreen(); // Show MK4duo boot screen
   #endif
 
   #if HAS_SD_SUPPORT
     if (!card.isOK()) card.mount();
+  #endif
+
+  #if HAS_TRINAMIC
+    tmc.init();
   #endif
 
   print_job_counter.init();

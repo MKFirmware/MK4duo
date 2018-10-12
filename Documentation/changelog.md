@@ -1,11 +1,11 @@
-### Version 4.3.7
+### Version 4.3.7 beta
 * Add Command:
 * M930: TMC set blank_time.
 * M931: TMC set off_time.
 * M932: TMC set hysteresis_start.
-* M933: TMC set hysteresis_end/sine_offset (chm = 0/1).
-* M934: TMC set fast_decay_time (chm = 1).
-* M935: TMC set disable_I_comparator (chm = 1).
+* M933: TMC set hysteresis_end.
+* M934: TMC set fast_decay_time.
+* M935: TMC set disable_I_comparator.
 * M936: TMC set stealth_gradient.
 * M937: TMC set stealth_amplitude.
 * M938: TMC set stealth_freq.

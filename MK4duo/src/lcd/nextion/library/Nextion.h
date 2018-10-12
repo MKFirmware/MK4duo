@@ -439,7 +439,7 @@ class NexObject {
        *
        * @param buffer - save string data.
        * @param timeout - set timeout time.
-       * @param recv_flag - if recv_flag is true,will braak when receive 0x05.
+       * @param recv_flag - if recv_flag is true, will break when receive 0x05.
        *
        * @return the length of string buffer.
        *

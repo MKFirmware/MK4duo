@@ -179,43 +179,43 @@ extern bool report_tmc_status;
 
 #endif
 
-#if X_IS_TRINAMIC
+#if AXIS_HAS_TMC(X)
   extern MKTMC stepperX;
 #endif
-#if X2_IS_TRINAMIC
+#if AXIS_HAS_TMC(X2)
   extern MKTMC stepperX2;
 #endif
-#if Y_IS_TRINAMIC
+#if AXIS_HAS_TMC(Y)
   extern MKTMC stepperY;
 #endif
-#if Y2_IS_TRINAMIC
+#if AXIS_HAS_TMC(Y2)
   extern MKTMC stepperY2;
 #endif
-#if Z_IS_TRINAMIC
+#if AXIS_HAS_TMC(Z)
   extern MKTMC stepperZ;
 #endif
-#if Z2_IS_TRINAMIC
+#if AXIS_HAS_TMC(Z2)
   extern MKTMC stepperZ2;
 #endif
-#if Z3_IS_TRINAMIC
+#if AXIS_HAS_TMC(Z3)
   extern MKTMC stepperZ3;
 #endif
-#if E0_IS_TRINAMIC
+#if AXIS_HAS_TMC(E0)
   extern MKTMC stepperE0;
 #endif
-#if E1_IS_TRINAMIC
+#if AXIS_HAS_TMC(E1)
   extern MKTMC stepperE1;
 #endif
-#if E2_IS_TRINAMIC
+#if AXIS_HAS_TMC(E2)
   extern MKTMC stepperE2;
 #endif
-#if E3_IS_TRINAMIC
+#if AXIS_HAS_TMC(E3)
   extern MKTMC stepperE3;
 #endif
-#if E4_IS_TRINAMIC
+#if AXIS_HAS_TMC(E4)
   extern MKTMC stepperE4;
 #endif
-#if E5_IS_TRINAMIC
+#if AXIS_HAS_TMC(E5)
   extern MKTMC stepperE5;
 #endif
     
@@ -329,18 +329,22 @@ class TMC_Stepper {
       st.microsteps(ms);
     }
 
-    FORCE_INLINE static void report_otpw(MKTMC &st) {
-      st.printLabel();
-      SERIAL_MSG(" temperature prewarn triggered: ");
-      SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
-      SERIAL_EOL();
-    }
+    #if ENABLED(MONITOR_DRIVER_STATUS)
 
-    FORCE_INLINE static void clear_otpw(MKTMC &st) {
-      st.clear_otpw();
-      st.printLabel();
-      SERIAL_EM(" prewarn flag cleared");
-    }
+      FORCE_INLINE static void report_otpw(MKTMC &st) {
+        st.printLabel();
+        SERIAL_MSG(" temperature prewarn triggered: ");
+        SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
+        SERIAL_EOL();
+      }
+
+      FORCE_INLINE static void clear_otpw(MKTMC &st) {
+        st.clear_otpw();
+        st.printLabel();
+        SERIAL_EM(" prewarn flag cleared");
+      }
+
+    #endif
 
     FORCE_INLINE static void get_pwmthrs(MKTMC &st, const uint32_t tmc_spmm) {
       st.printLabel();
