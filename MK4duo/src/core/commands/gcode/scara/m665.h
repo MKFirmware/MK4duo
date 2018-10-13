@@ -43,7 +43,7 @@
    *   B, T, and Y are all aliases for the elbow angle
    */
   inline void gcode_M665() {
-    if (parser.seen('S')) mechanics.delta_data.segments_per_second = parser.value_float();
+    if (parser.seen('S')) mechanics.data.segments_per_second = parser.value_float();
 
     #if ENABLED(WORKSPACE_OFFSETS)
       const bool hasA = parser.seen('A'), hasP = parser.seen('P'), hasX = parser.seen('X');

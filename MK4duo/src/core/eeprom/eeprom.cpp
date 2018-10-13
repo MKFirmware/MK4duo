@@ -70,13 +70,6 @@ typedef struct EepromDataStruct {
   mechanics_data_t  mechanics_data;
 
   //
-  // Delta data
-  //
-  #if MECH(DELTA)
-    delta_data_t    delta_data;
-  #endif
-
-  //
   // Hotend offset
   //
   float             hotend_offset[XYZ][HOTENDS];
@@ -417,13 +410,6 @@ void EEPROM::post_process() {
     // Mechanics data
     //
     EEPROM_WRITE(mechanics.data);
-
-    //
-    // Mechanics Delta data
-    //
-    #if MECH(DELTA)
-      EEPROM_WRITE(mechanics.delta_data);
-    #endif
 
     //
     // Hotend offset
@@ -873,13 +859,6 @@ void EEPROM::post_process() {
       // Mechanics data
       //
       EEPROM_READ(mechanics.data);
-
-      //
-      // Mechanics Delta data
-      //
-      #if MECH(DELTA)
-        EEPROM_READ(mechanics.delta_data);
-      #endif
 
       //
       // Hotend offset

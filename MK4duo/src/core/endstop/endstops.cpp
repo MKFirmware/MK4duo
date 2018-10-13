@@ -479,12 +479,12 @@ void Endstops::clamp_to_software(float target[XYZ]) {
   #if IS_DELTA
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
     if (dist_2 > soft_endstop_radius_2) {
-      const float ratio = mechanics.delta_data.print_radius / SQRT(dist_2);
+      const float ratio = mechanics.data.print_radius / SQRT(dist_2);
       target[X_AXIS] *= ratio;
       target[Y_AXIS] *= ratio;
     }
     NOLESS(target[Z_AXIS], 0);
-    NOMORE(target[Z_AXIS], mechanics.delta_data.height);
+    NOMORE(target[Z_AXIS], mechanics.data.height);
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
       NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);

@@ -117,7 +117,7 @@ typedef struct {
     float   home_offset[XYZ];
   #endif
 
-} mechanics_data_t;
+} generic_data_t;
 
 class Mechanics {
 
@@ -127,7 +127,7 @@ class Mechanics {
 
   public: /** Public Parameters */
 
-    static mechanics_data_t data;
+    static generic_data_t data;
 
     /**
      * Feedrate

@@ -1314,7 +1314,7 @@
           lcd_setstatus(lcd_status_message);
           #if ENABLED(NEXTION_GFX)
             #if MECH(DELTA)
-              gfx_clear(mechanics.delta_data.print_radius * 2, mechanics.delta_data.print_radius * 2, mechanics.delta_data.height);
+              gfx_clear(mechanics.data.print_radius * 2, mechanics.data.print_radius * 2, mechanics.data.height);
             #else
               gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
             #endif

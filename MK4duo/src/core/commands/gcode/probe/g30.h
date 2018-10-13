@@ -37,7 +37,7 @@
    *      X   Probe X position (default=current probe position)
    *      Y   Probe Y position (default=current probe position)
    *      E   Engage the probe for each probe (default 1)
-   *      Z   <bool> with a non-zero value will apply the result to current delta_data.height (ONLY DELTA)
+   *      Z   <bool> with a non-zero value will apply the result to current data.height (ONLY DELTA)
    *      P   <bool> with a non-zero value will apply the result to current probe offset[Z_AXIS] (ONLY DELTA)
    */
   inline void gcode_G30(void) {
@@ -68,9 +68,9 @@
 
     #if IS_DELTA
       if (parser.boolval('Z')) {
-        mechanics.delta_data.height -= measured_z;
+        mechanics.data.height -= measured_z;
         mechanics.recalc_delta_settings();
-        SERIAL_MV("  New delta height:", mechanics.delta_data.height, 3);
+        SERIAL_MV("  New delta height:", mechanics.data.height, 3);
       }
       else if (parser.boolval('P')) {
         probe.offset[Z_AXIS] -= measured_z;

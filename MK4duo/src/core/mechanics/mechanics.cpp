@@ -30,7 +30,7 @@
 #include "mechanics.h"
 
 /** Public Parameters */
-mechanics_data_t Mechanics::data;
+generic_data_t Mechanics::data;
 
 float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
       Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },

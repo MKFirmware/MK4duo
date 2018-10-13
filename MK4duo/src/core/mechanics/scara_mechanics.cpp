@@ -33,6 +33,8 @@
   Scara_Mechanics mechanics;
 
   /** Public Parameters */
+  mechanics_data_t Scara_Mechanics::data;
+
   const float Scara_Mechanics::base_max_pos[XYZ]    = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
               Scara_Mechanics::base_min_pos[XYZ]    = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
               Scara_Mechanics::base_home_pos[XYZ]   = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
@@ -43,8 +45,7 @@
               Scara_Mechanics::L1_2_2               = 2.0f * L1_2,
               Scara_Mechanics::L2_2                 = sq(float(L2));
 
-  float Scara_Mechanics::delta[ABC]                 = { 0.0 },
-        Scara_Mechanics::delta_data.segments_per_second  = SCARA_SEGMENTS_PER_SECOND;
+  float Scara_Mechanics::delta[ABC]                 = { 0.0 };
 
   /** Public Function */
   void Scara_Mechanics::factory_parameters() {
@@ -93,7 +94,7 @@
         data.max_jerk[E_AXIS + e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
     #endif
 
-    delta_data.segments_per_second = SCARA_SEGMENTS_PER_SECOND;
+    data.segments_per_second = SCARA_SEGMENTS_PER_SECOND;
 
     #if ENABLED(WORKSPACE_OFFSETS)
       ZERO(mechanics.data.home_offset);
@@ -163,7 +164,7 @@
 
       // The number of segments-per-second times the duration
       // gives the number of segments we should produce
-      uint16_t segments = delta_data.segments_per_second * seconds;
+      uint16_t segments = data.segments_per_second * seconds;
 
       // For SCARA minimum segment size is 0.5mm
       NOMORE(segments, cartesian_mm * 2);

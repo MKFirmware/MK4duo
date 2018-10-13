@@ -48,22 +48,22 @@
   // Homed height
   float homed_height;
   void Calc_homed_height() {
-    const float tempHeight = mechanics.delta_data.diagonal_rod;		// any sensible height will do here, probably even zero
+    const float tempHeight = mechanics.data.diagonal_rod;		// any sensible height will do here, probably even zero
     float cartesian[ABC];
     mechanics.InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
-    homed_height = mechanics.delta_data.height + tempHeight - cartesian[Z_AXIS];
+    homed_height = mechanics.data.height + tempHeight - cartesian[Z_AXIS];
   }
 
-  // Convert delta_data.endstop_adj
+  // Convert data.endstop_adj
   void Convert_endstop_adj() {
-    LOOP_XYZ(i) mechanics.delta_data.endstop_adj[i] *= -1;
+    LOOP_XYZ(i) mechanics.data.endstop_adj[i] *= -1;
   }
 
   // Normalize Endstop
   void NormaliseEndstopAdjustments() {
-    const float min_endstop = MIN(mechanics.delta_data.endstop_adj[A_AXIS], mechanics.delta_data.endstop_adj[B_AXIS], mechanics.delta_data.endstop_adj[C_AXIS]);
-    LOOP_XYZ(i) mechanics.delta_data.endstop_adj[i] -= min_endstop;
-    mechanics.delta_data.height += min_endstop;
+    const float min_endstop = MIN(mechanics.data.endstop_adj[A_AXIS], mechanics.data.endstop_adj[B_AXIS], mechanics.data.endstop_adj[C_AXIS]);
+    LOOP_XYZ(i) mechanics.data.endstop_adj[i] -= min_endstop;
+    mechanics.data.height += min_endstop;
     homed_height += min_endstop;
   }
 
@@ -76,30 +76,30 @@
   //  Diagonal rod length adjustment
   void Adjust(const uint8_t numFactors, const float v[]) {
 
-    const float oldHeightA = homed_height + mechanics.delta_data.endstop_adj[A_AXIS];
+    const float oldHeightA = homed_height + mechanics.data.endstop_adj[A_AXIS];
 
     // Update endstop adjustments
-    mechanics.delta_data.endstop_adj[A_AXIS] += v[0];
-    mechanics.delta_data.endstop_adj[B_AXIS] += v[1];
-    mechanics.delta_data.endstop_adj[C_AXIS] += v[2];
+    mechanics.data.endstop_adj[A_AXIS] += v[0];
+    mechanics.data.endstop_adj[B_AXIS] += v[1];
+    mechanics.data.endstop_adj[C_AXIS] += v[2];
     NormaliseEndstopAdjustments();
 
     if (numFactors >= 4) {
-      mechanics.delta_data.radius += v[3];
+      mechanics.data.radius += v[3];
 
       if (numFactors >= 6) {
-        mechanics.delta_data.tower_angle_adj[A_AXIS] += v[4];
-        mechanics.delta_data.tower_angle_adj[B_AXIS] += v[5];
+        mechanics.data.tower_angle_adj[A_AXIS] += v[4];
+        mechanics.data.tower_angle_adj[B_AXIS] += v[5];
 
-        if (numFactors == 7) mechanics.delta_data.diagonal_rod += v[6];
+        if (numFactors == 7) mechanics.data.diagonal_rod += v[6];
 
       }
     }
 
     mechanics.recalc_delta_settings();
     Calc_homed_height();
-    const float heightError = homed_height + mechanics.delta_data.endstop_adj[A_AXIS] - oldHeightA - v[0];
-    mechanics.delta_data.height -= heightError;
+    const float heightError = homed_height + mechanics.data.endstop_adj[A_AXIS] - oldHeightA - v[0];
+    mechanics.data.height -= heightError;
     homed_height -= heightError;
 
   }
@@ -178,15 +178,15 @@
     Calc_homed_height();
 
     for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
-      xBedProbePoints[probe_index] = mechanics.delta_data.probe_radius * SIN((2 * M_PI * probe_index) / 6);
-      yBedProbePoints[probe_index] = mechanics.delta_data.probe_radius * COS((2 * M_PI * probe_index) / 6);
+      xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / 6);
+      yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / 6);
       zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
       if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
     }
     if (probe_points >= 10) {
       for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
-        xBedProbePoints[probe_index] = (mechanics.delta_data.probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
-        yBedProbePoints[probe_index] = (mechanics.delta_data.probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
+        xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
+        yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
         zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
         if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
       }
@@ -202,7 +202,7 @@
       if (isnan(zBedProbePoints[6])) return CALIBRATION_CLEANUP();
     }
 
-    // convert delta_data.endstop_adj;
+    // convert data.endstop_adj;
     Convert_endstop_adj();
 
     float probeMotorPositions[MaxCalibrationPoints][ABC],
@@ -363,7 +363,7 @@
       ++iteration;
     } while (iteration < 2);
 
-    // convert delta_data.endstop_adj;
+    // convert data.endstop_adj;
     Convert_endstop_adj();
 
     SERIAL_MV("Calibrated ", numFactors);
@@ -379,18 +379,18 @@
     endstops.setNotHoming();
 
     const float measured_z = probe.check_pt(0, 0, PROBE_PT_RAISE, 0);
-    mechanics.delta_data.height -= measured_z;
+    mechanics.data.height -= measured_z;
     mechanics.recalc_delta_settings();
 
-    SERIAL_MV("Endstops X", mechanics.delta_data.endstop_adj[A_AXIS], 3);
-    SERIAL_MV(" Y", mechanics.delta_data.endstop_adj[B_AXIS], 3);
-    SERIAL_MV(" Z", mechanics.delta_data.endstop_adj[C_AXIS], 3);
-    SERIAL_MV(" height ", mechanics.delta_data.height, 3);
-    SERIAL_MV(" diagonal rod ", mechanics.delta_data.diagonal_rod, 3);
-    SERIAL_MV(" delta radius ", mechanics.delta_data.radius, 3);
-    SERIAL_MV(" Towers angle correction I", mechanics.delta_data.tower_angle_adj[A_AXIS], 2);
-    SERIAL_MV(" J", mechanics.delta_data.tower_angle_adj[B_AXIS], 2);
-    SERIAL_MV(" K", mechanics.delta_data.tower_angle_adj[C_AXIS], 2);
+    SERIAL_MV("Endstops X", mechanics.data.endstop_adj[A_AXIS], 3);
+    SERIAL_MV(" Y", mechanics.data.endstop_adj[B_AXIS], 3);
+    SERIAL_MV(" Z", mechanics.data.endstop_adj[C_AXIS], 3);
+    SERIAL_MV(" height ", mechanics.data.height, 3);
+    SERIAL_MV(" diagonal rod ", mechanics.data.diagonal_rod, 3);
+    SERIAL_MV(" delta radius ", mechanics.data.radius, 3);
+    SERIAL_MV(" Towers angle correction I", mechanics.data.tower_angle_adj[A_AXIS], 2);
+    SERIAL_MV(" J", mechanics.data.tower_angle_adj[B_AXIS], 2);
+    SERIAL_MV(" K", mechanics.data.tower_angle_adj[C_AXIS], 2);
     SERIAL_EOL();
 
     CALIBRATION_CLEANUP();
