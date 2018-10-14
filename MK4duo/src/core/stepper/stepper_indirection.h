@@ -63,17 +63,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if X_HAS_DRV(L6470)
   extern L6470 stepperX;
   #define X_ENABLE_INIT               NOOP
-  #define X_ENABLE_WRITE(STATE)       do{ if(STATE) stepperX.Step_Clock(stepperX.getStatus() & STATUS_HIZ); else stepperX.softFree(); }while(0)
-  #define X_ENABLE_READ               (stepperX.getStatus() & STATUS_HIZ)
+  #define X_ENABLE_WRITE(STATE)       do{ if(STATE) stepperX->Step_Clock(stepperX->getStatus() & STATUS_HIZ); else stepperX->softFree(); }while(0)
+  #define X_ENABLE_READ               (stepperX->getStatus() & STATUS_HIZ)
   #define X_DIR_INIT                  NOOP
-  #define X_DIR_WRITE(STATE)          stepperX.Step_Clock(STATE)
-  #define X_DIR_READ                  (stepperX.getStatus() & STATUS_DIR)
+  #define X_DIR_WRITE(STATE)          stepperX->Step_Clock(STATE)
+  #define X_DIR_READ                  (stepperX->getStatus() & STATUS_DIR)
 #else
   #if X_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperX;
     #define X_ENABLE_INIT             NOOP
-    #define X_ENABLE_WRITE(STATE)     stepperX.setEnabled(STATE)
-    #define X_ENABLE_READ             stepperX.isEnabled()
+    #define X_ENABLE_WRITE(STATE)     stepperX->setEnabled(STATE)
+    #define X_ENABLE_READ             stepperX->isEnabled()
   #else
     #define X_ENABLE_INIT             SET_OUTPUT(X_ENABLE_PIN)
     #define X_ENABLE_WRITE(STATE)     WRITE(X_ENABLE_PIN,STATE)
@@ -91,17 +91,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if Y_HAS_DRV(L6470)
   extern L6470 stepperY;
   #define Y_ENABLE_INIT               NOOP
-  #define Y_ENABLE_WRITE(STATE)       do{ if(STATE) stepperY.Step_Clock(stepperY.getStatus() & STATUS_HIZ); else stepperY.softFree(); }while(0)
-  #define Y_ENABLE_READ               (stepperY.getStatus() & STATUS_HIZ)
+  #define Y_ENABLE_WRITE(STATE)       do{ if(STATE) stepperY->Step_Clock(stepperY->getStatus() & STATUS_HIZ); else stepperY->softFree(); }while(0)
+  #define Y_ENABLE_READ               (stepperY->getStatus() & STATUS_HIZ)
   #define Y_DIR_INIT                  NOOP
-  #define Y_DIR_WRITE(STATE)          stepperY.Step_Clock(STATE)
-  #define Y_DIR_READ                  (stepperY.getStatus() & STATUS_DIR)
+  #define Y_DIR_WRITE(STATE)          stepperY->Step_Clock(STATE)
+  #define Y_DIR_READ                  (stepperY->getStatus() & STATUS_DIR)
 #else
   #if Y_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperY;
     #define Y_ENABLE_INIT             NOOP
-    #define Y_ENABLE_WRITE(STATE)     stepperY.setEnabled(STATE)
-    #define Y_ENABLE_READ             stepperY.isEnabled()
+    #define Y_ENABLE_WRITE(STATE)     stepperY->setEnabled(STATE)
+    #define Y_ENABLE_READ             stepperY->isEnabled()
   #else
     #define Y_ENABLE_INIT             SET_OUTPUT(Y_ENABLE_PIN)
     #define Y_ENABLE_WRITE(STATE)     WRITE(Y_ENABLE_PIN,STATE)
@@ -119,17 +119,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if Z_HAS_DRV(L6470)
   extern L6470 stepperZ;
   #define Z_ENABLE_INIT               NOOP
-  #define Z_ENABLE_WRITE(STATE)       do{ if(STATE) stepperZ.Step_Clock(stepperZ.getStatus() & STATUS_HIZ); else stepperZ.softFree(); }while(0)
-  #define Z_ENABLE_READ               (stepperZ.getStatus() & STATUS_HIZ)
+  #define Z_ENABLE_WRITE(STATE)       do{ if(STATE) stepperZ->Step_Clock(stepperZ->getStatus() & STATUS_HIZ); else stepperZ->softFree(); }while(0)
+  #define Z_ENABLE_READ               (stepperZ->getStatus() & STATUS_HIZ)
   #define Z_DIR_INIT                  NOOP
-  #define Z_DIR_WRITE(STATE)          stepperZ.Step_Clock(STATE)
-  #define Z_DIR_READ                  (stepperZ.getStatus() & STATUS_DIR)
+  #define Z_DIR_WRITE(STATE)          stepperZ->Step_Clock(STATE)
+  #define Z_DIR_READ                  (stepperZ->getStatus() & STATUS_DIR)
 #else
   #if Z_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperZ;
     #define Z_ENABLE_INIT             NOOP
-    #define Z_ENABLE_WRITE(STATE)     stepperZ.setEnabled(STATE)
-    #define Z_ENABLE_READ             stepperZ.isEnabled()
+    #define Z_ENABLE_WRITE(STATE)     stepperZ->setEnabled(STATE)
+    #define Z_ENABLE_READ             stepperZ->isEnabled()
   #else
     #define Z_ENABLE_INIT             SET_OUTPUT(Z_ENABLE_PIN)
     #define Z_ENABLE_WRITE(STATE)     WRITE(Z_ENABLE_PIN,STATE)
@@ -148,17 +148,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #if X2_HAS_DRV(L6470)
     extern L6470 stepperX2;
     #define X2_ENABLE_INIT            NOOP
-    #define X2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperX2.Step_Clock(stepperX2.getStatus() & STATUS_HIZ); else stepperX2.softFree(); }while(0)
-    #define X2_ENABLE_READ            (stepperX2.getStatus() & STATUS_HIZ)
+    #define X2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperX2->Step_Clock(stepperX2->getStatus() & STATUS_HIZ); else stepperX2->softFree(); }while(0)
+    #define X2_ENABLE_READ            (stepperX2->getStatus() & STATUS_HIZ)
     #define X2_DIR_INIT               NOOP
-    #define X2_DIR_WRITE(STATE)       stepperX2.Step_Clock(STATE)
-    #define X2_DIR_READ               (stepperX2.getStatus() & STATUS_DIR)
+    #define X2_DIR_WRITE(STATE)       stepperX2->Step_Clock(STATE)
+    #define X2_DIR_READ               (stepperX2->getStatus() & STATUS_DIR)
   #else
     #if X2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperX2;
       #define X2_ENABLE_INIT          NOOP
-      #define X2_ENABLE_WRITE(STATE)  stepperX2.setEnabled(STATE)
-      #define X2_ENABLE_READ          stepperX2.isEnabled()
+      #define X2_ENABLE_WRITE(STATE)  stepperX2->setEnabled(STATE)
+      #define X2_ENABLE_READ          stepperX2->isEnabled()
     #else
       #define X2_ENABLE_INIT          SET_OUTPUT(X2_ENABLE_PIN)
       #define X2_ENABLE_WRITE(STATE)  WRITE(X2_ENABLE_PIN,STATE)
@@ -178,17 +178,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #if Y2_HAS_DRV(L6470)
     extern L6470 stepperY2;
     #define Y2_ENABLE_INIT            NOOP
-    #define Y2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperY2.Step_Clock(stepperY2.getStatus() & STATUS_HIZ); else stepperY2.softFree(); }while(0)
-    #define Y2_ENABLE_READ            (stepperY2.getStatus() & STATUS_HIZ)
+    #define Y2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperY2->Step_Clock(stepperY2->getStatus() & STATUS_HIZ); else stepperY2->softFree(); }while(0)
+    #define Y2_ENABLE_READ            (stepperY2->getStatus() & STATUS_HIZ)
     #define Y2_DIR_INIT               NOOP
-    #define Y2_DIR_WRITE(STATE)       stepperY2.Step_Clock(STATE)
-    #define Y2_DIR_READ               (stepperY2.getStatus() & STATUS_DIR)
+    #define Y2_DIR_WRITE(STATE)       stepperY2->Step_Clock(STATE)
+    #define Y2_DIR_READ               (stepperY2->getStatus() & STATUS_DIR)
   #else
     #if Y2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperY2;
       #define Y2_ENABLE_INIT          NOOP
-      #define Y2_ENABLE_WRITE(STATE)  stepperY2.setEnabled(STATE)
-      #define Y2_ENABLE_READ          stepperY2.isEnabled()
+      #define Y2_ENABLE_WRITE(STATE)  stepperY2->setEnabled(STATE)
+      #define Y2_ENABLE_READ          stepperY2->isEnabled()
     #else
       #define Y2_ENABLE_INIT          SET_OUTPUT(Y2_ENABLE_PIN)
       #define Y2_ENABLE_WRITE(STATE)  WRITE(Y2_ENABLE_PIN,STATE)
@@ -208,17 +208,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #if Z2_HAS_DRV(L6470)
     extern L6470 stepperZ2;
     #define Z2_ENABLE_INIT            NOOP
-    #define Z2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ2.Step_Clock(stepperZ2.getStatus() & STATUS_HIZ); else stepperZ2.softFree(); }while(0)
-    #define Z2_ENABLE_READ            (stepperZ2.getStatus() & STATUS_HIZ)
+    #define Z2_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ2->Step_Clock(stepperZ2->getStatus() & STATUS_HIZ); else stepperZ2->softFree(); }while(0)
+    #define Z2_ENABLE_READ            (stepperZ2->getStatus() & STATUS_HIZ)
     #define Z2_DIR_INIT               NOOP
-    #define Z2_DIR_WRITE(STATE)       stepperZ2.Step_Clock(STATE)
-    #define Z2_DIR_READ               (stepperZ2.getStatus() & STATUS_DIR)
+    #define Z2_DIR_WRITE(STATE)       stepperZ2->Step_Clock(STATE)
+    #define Z2_DIR_READ               (stepperZ2->getStatus() & STATUS_DIR)
   #else
     #if Z2_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperZ2;
       #define Z2_ENABLE_INIT          NOOP
-      #define Z2_ENABLE_WRITE(STATE)  stepperZ2.setEnabled(STATE)
-      #define Z2_ENABLE_READ          stepperZ2.isEnabled()
+      #define Z2_ENABLE_WRITE(STATE)  stepperZ2->setEnabled(STATE)
+      #define Z2_ENABLE_READ          stepperZ2->isEnabled()
     #else
       #define Z2_ENABLE_INIT          SET_OUTPUT(Z2_ENABLE_PIN)
       #define Z2_ENABLE_WRITE(STATE)  WRITE(Z2_ENABLE_PIN,STATE)
@@ -238,17 +238,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #if Z3_HAS_DRV(L6470)
     extern L6470 stepperZ3;
     #define Z3_ENABLE_INIT            NOOP
-    #define Z3_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ3.Step_Clock(stepperZ3.getStatus() & STATUS_HIZ); else stepperZ3.softFree(); }while(0)
-    #define Z3_ENABLE_READ            (stepperZ3.getStatus() & STATUS_HIZ)
+    #define Z3_ENABLE_WRITE(STATE)    do{ if(STATE) stepperZ3->Step_Clock(stepperZ3->getStatus() & STATUS_HIZ); else stepperZ3->softFree(); }while(0)
+    #define Z3_ENABLE_READ            (stepperZ3->getStatus() & STATUS_HIZ)
     #define Z3_DIR_INIT               NOOP
-    #define Z3_DIR_WRITE(STATE)       stepperZ3.Step_Clock(STATE)
-    #define Z3_DIR_READ               (stepperZ3.getStatus() & STATUS_DIR)
+    #define Z3_DIR_WRITE(STATE)       stepperZ3->Step_Clock(STATE)
+    #define Z3_DIR_READ               (stepperZ3->getStatus() & STATUS_DIR)
   #else
     #if Z3_HAS_DRV(TMC26X)
       extern TMC26XStepper stepperZ3;
       #define Z3_ENABLE_INIT          NOOP
-      #define Z3_ENABLE_WRITE(STATE)  stepperZ3.setEnabled(STATE)
-      #define Z3_ENABLE_READ          stepperZ3.isEnabled()
+      #define Z3_ENABLE_WRITE(STATE)  stepperZ3->setEnabled(STATE)
+      #define Z3_ENABLE_READ          stepperZ3->isEnabled()
     #else
       #define Z3_ENABLE_INIT          SET_OUTPUT(Z3_ENABLE_PIN)
       #define Z3_ENABLE_WRITE(STATE)  WRITE(Z3_ENABLE_PIN,STATE)
@@ -296,17 +296,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E0_HAS_DRV(L6470)
   extern L6470 stepperE0;
   #define E0_ENABLE_INIT              NOOP
-  #define E0_ENABLE_WRITE(STATE)      do{ if(STATE) stepperE0.Step_Clock(stepperE0.getStatus() & STATUS_HIZ); else stepperE0.softFree(); }while(0)
-  #define E0_ENABLE_READ              (stepperE0.getStatus() & STATUS_HIZ)
+  #define E0_ENABLE_WRITE(STATE)      do{ if(STATE) stepperE0->Step_Clock(stepperE0->getStatus() & STATUS_HIZ); else stepperE0->softFree(); }while(0)
+  #define E0_ENABLE_READ              (stepperE0->getStatus() & STATUS_HIZ)
   #define E0_DIR_INIT                 NOOP
-  #define E0_DIR_WRITE(STATE)         stepperE0.Step_Clock(STATE)
-  #define E0_DIR_READ                 (stepperE0.getStatus() & STATUS_DIR)
+  #define E0_DIR_WRITE(STATE)         stepperE0->Step_Clock(STATE)
+  #define E0_DIR_READ                 (stepperE0->getStatus() & STATUS_DIR)
 #else
   #if E0_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE0;
     #define E0_ENABLE_INIT            NOOP
-    #define E0_ENABLE_WRITE(STATE)    stepperE0.setEnabled(STATE)
-    #define E0_ENABLE_READ            stepperE0.isEnabled()
+    #define E0_ENABLE_WRITE(STATE)    stepperE0->setEnabled(STATE)
+    #define E0_ENABLE_READ            stepperE0->isEnabled()
   #else
     #define E0_ENABLE_INIT            SET_OUTPUT(E0_ENABLE_PIN)
     #define E0_ENABLE_WRITE(STATE)    WRITE(E0_ENABLE_PIN,STATE)
@@ -330,17 +330,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E1_HAS_DRV(L6470)
   extern L6470 stepperE1;
   #define E1_ENABLE_INIT              NOOP
-  #define E1_ENABLE_WRITE(STATE)      do{if(STATE) stepperE1.Step_Clock(stepperE1.getStatus() & STATUS_HIZ); else stepperE1.softFree();}while(0)
-  #define E1_ENABLE_READ              (stepperE1.getStatus() & STATUS_HIZ)
+  #define E1_ENABLE_WRITE(STATE)      do{if(STATE) stepperE1->Step_Clock(stepperE1->getStatus() & STATUS_HIZ); else stepperE1->softFree();}while(0)
+  #define E1_ENABLE_READ              (stepperE1->getStatus() & STATUS_HIZ)
   #define E1_DIR_INIT                 NOOP
-  #define E1_DIR_WRITE(STATE)         stepperE1.Step_Clock(STATE)
-  #define E1_DIR_READ                 (stepperE1.getStatus() & STATUS_DIR)
+  #define E1_DIR_WRITE(STATE)         stepperE1->Step_Clock(STATE)
+  #define E1_DIR_READ                 (stepperE1->getStatus() & STATUS_DIR)
 #else
   #if E1_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE1;
     #define E1_ENABLE_INIT            NOOP
-    #define E1_ENABLE_WRITE(STATE)    stepperE1.setEnabled(STATE)
-    #define E1_ENABLE_READ            stepperE1.isEnabled()
+    #define E1_ENABLE_WRITE(STATE)    stepperE1->setEnabled(STATE)
+    #define E1_ENABLE_READ            stepperE1->isEnabled()
   #else
     #define E1_ENABLE_INIT            SET_OUTPUT(E1_ENABLE_PIN)
     #define E1_ENABLE_WRITE(STATE)    WRITE(E1_ENABLE_PIN,STATE)
@@ -358,17 +358,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E2_HAS_DRV(L6470)
   extern L6470 stepperE2;
   #define E2_ENABLE_INIT              NOOP
-  #define E2_ENABLE_WRITE(STATE)      do{if(STATE) stepperE2.Step_Clock(stepperE2.getStatus() & STATUS_HIZ); else stepperE2.softFree();}while(0)
-  #define E2_ENABLE_READ              (stepperE2.getStatus() & STATUS_HIZ)
+  #define E2_ENABLE_WRITE(STATE)      do{if(STATE) stepperE2->Step_Clock(stepperE2->getStatus() & STATUS_HIZ); else stepperE2->softFree();}while(0)
+  #define E2_ENABLE_READ              (stepperE2->getStatus() & STATUS_HIZ)
   #define E2_DIR_INIT                 NOOP
-  #define E2_DIR_WRITE(STATE)         stepperE2.Step_Clock(STATE)
-  #define E2_DIR_READ                 (stepperE2.getStatus() & STATUS_DIR)
+  #define E2_DIR_WRITE(STATE)         stepperE2->Step_Clock(STATE)
+  #define E2_DIR_READ                 (stepperE2->getStatus() & STATUS_DIR)
 #else
   #if E2_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE2;
     #define E2_ENABLE_INIT            NOOP
-    #define E2_ENABLE_WRITE(STATE)    stepperE2.setEnabled(STATE)
-    #define E2_ENABLE_READ            stepperE2.isEnabled()
+    #define E2_ENABLE_WRITE(STATE)    stepperE2->setEnabled(STATE)
+    #define E2_ENABLE_READ            stepperE2->isEnabled()
   #else
     #define E2_ENABLE_INIT            SET_OUTPUT(E2_ENABLE_PIN)
     #define E2_ENABLE_WRITE(STATE)    WRITE(E2_ENABLE_PIN,STATE)
@@ -386,17 +386,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E3_HAS_DRV(L6470)
   extern L6470 stepperE3;
   #define E3_ENABLE_INIT              NOOP
-  #define E3_ENABLE_WRITE(STATE)      do{if(STATE) stepperE3.Step_Clock(stepperE3.getStatus() & STATUS_HIZ); else stepperE3.softFree();}while(0)
-  #define E3_ENABLE_READ              (stepperE3.getStatus() & STATUS_HIZ)
+  #define E3_ENABLE_WRITE(STATE)      do{if(STATE) stepperE3->Step_Clock(stepperE3->getStatus() & STATUS_HIZ); else stepperE3->softFree();}while(0)
+  #define E3_ENABLE_READ              (stepperE3->getStatus() & STATUS_HIZ)
   #define E3_DIR_INIT                 NOOP
-  #define E3_DIR_WRITE(STATE)         stepperE3.Step_Clock(STATE)
-  #define E3_DIR_READ                 (stepperE3.getStatus() & STATUS_DIR)
+  #define E3_DIR_WRITE(STATE)         stepperE3->Step_Clock(STATE)
+  #define E3_DIR_READ                 (stepperE3->getStatus() & STATUS_DIR)
 #else
   #if E3_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE3;
     #define E3_ENABLE_INIT            NOOP
-    #define E3_ENABLE_WRITE(STATE)    stepperE3.setEnabled(STATE)
-    #define E3_ENABLE_READ            stepperE3.isEnabled()
+    #define E3_ENABLE_WRITE(STATE)    stepperE3->setEnabled(STATE)
+    #define E3_ENABLE_READ            stepperE3->isEnabled()
   #else
     #define E3_ENABLE_INIT            SET_OUTPUT(E3_ENABLE_PIN)
     #define E3_ENABLE_WRITE(STATE)    WRITE(E3_ENABLE_PIN,STATE)
@@ -414,17 +414,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E4_HAS_DRV(L6470)
   extern L6470 stepperE4;
   #define E4_ENABLE_INIT              NOOP
-  #define E4_ENABLE_WRITE(STATE)      do{ if (STATE) stepperE4.Step_Clock(stepperE4.getStatus() & STATUS_HIZ); else stepperE4.softFree(); }while(0)
-  #define E4_ENABLE_READ              (stepperE4.getStatus() & STATUS_HIZ)
+  #define E4_ENABLE_WRITE(STATE)      do{ if (STATE) stepperE4->Step_Clock(stepperE4->getStatus() & STATUS_HIZ); else stepperE4->softFree(); }while(0)
+  #define E4_ENABLE_READ              (stepperE4->getStatus() & STATUS_HIZ)
   #define E4_DIR_INIT                 NOOP
-  #define E4_DIR_WRITE(STATE)         stepperE4.Step_Clock(STATE)
-  #define E4_DIR_READ                 (stepperE4.getStatus() & STATUS_DIR)
+  #define E4_DIR_WRITE(STATE)         stepperE4->Step_Clock(STATE)
+  #define E4_DIR_READ                 (stepperE4->getStatus() & STATUS_DIR)
 #else
   #if E4_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE4;
     #define E4_ENABLE_INIT            NOOP
-    #define E4_ENABLE_WRITE(STATE)    stepperE4.setEnabled(STATE)
-    #define E4_ENABLE_READ            stepperE4.isEnabled()
+    #define E4_ENABLE_WRITE(STATE)    stepperE4->setEnabled(STATE)
+    #define E4_ENABLE_READ            stepperE4->isEnabled()
   #else
     #define E4_ENABLE_INIT            SET_OUTPUT(E4_ENABLE_PIN)
     #define E4_ENABLE_WRITE(STATE)    WRITE(E4_ENABLE_PIN,STATE)
@@ -442,17 +442,17 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #if E5_HAS_DRV(L6470)
   extern L6470 stepperE5;
   #define E5_ENABLE_INIT              NOOP
-  #define E5_ENABLE_WRITE(STATE)      do{if(STATE) stepperE5.Step_Clock(stepperE5.getStatus() & STATUS_HIZ); else stepperE5.softFree();}while(0)
-  #define E5_ENABLE_READ              (stepperE5.getStatus() & STATUS_HIZ)
+  #define E5_ENABLE_WRITE(STATE)      do{if(STATE) stepperE5->Step_Clock(stepperE5->getStatus() & STATUS_HIZ); else stepperE5->softFree();}while(0)
+  #define E5_ENABLE_READ              (stepperE5->getStatus() & STATUS_HIZ)
   #define E5_DIR_INIT                 NOOP
-  #define E5_DIR_WRITE(STATE)         stepperE5.Step_Clock(STATE)
-  #define E5_DIR_READ                 (stepperE5.getStatus() & STATUS_DIR)
+  #define E5_DIR_WRITE(STATE)         stepperE5->Step_Clock(STATE)
+  #define E5_DIR_READ                 (stepperE5->getStatus() & STATUS_DIR)
 #else
   #if E5_HAS_DRV(TMC26X)
     extern TMC26XStepper stepperE5;
     #define E5_ENABLE_INIT            NOOP
-    #define E5_ENABLE_WRITE(STATE)    stepperE5.setEnabled(STATE)
-    #define E5_ENABLE_READ            stepperE5.isEnabled()
+    #define E5_ENABLE_WRITE(STATE)    stepperE5->setEnabled(STATE)
+    #define E5_ENABLE_READ            stepperE5->isEnabled()
   #else
     #define E5_ENABLE_INIT            SET_OUTPUT(E5_ENABLE_PIN)
     #define E5_ENABLE_WRITE(STATE)    WRITE(E5_ENABLE_PIN,STATE)

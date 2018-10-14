@@ -378,16 +378,16 @@
       }
 
       #if AXIS_HAS_TMC(Z)
-        const uint16_t Z_current_1 = stepperZ.rms_current();
-        stepperZ.rms_current(_rms);
+        const uint16_t Z_current_1 = stepperZ->rms_current();
+        stepperZ->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        const uint16_t Z2_current_1 = stepperZ2.rms_current();
-        stepperZ2.rms_current(_rms);
+        const uint16_t Z2_current_1 = stepperZ2->rms_current();
+        stepperZ2->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        const uint16_t Z3_current_1 = stepperZ3.rms_current();
-        stepperZ3.rms_current(_rms);
+        const uint16_t Z3_current_1 = stepperZ3->rms_current();
+        stepperZ3->rms_current(_rms);
       #endif
 
       SERIAL_MV("\nCalibration current: Z", _rms);
@@ -397,13 +397,13 @@
       mechanics.do_blocking_move_to_z(Z_MAX_POS + _z);
 
       #if AXIS_HAS_TMC(Z)
-        stepperZ.rms_current(Z_current_1);
+        stepperZ->rms_current(Z_current_1);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        stepperZ.rms_current(Z2_current_1);
+        stepperZ->rms_current(Z2_current_1);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        stepperZ.rms_current(Z3_current_1);
+        stepperZ->rms_current(Z3_current_1);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_POS);

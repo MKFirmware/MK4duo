@@ -138,7 +138,7 @@ class Mechanics {
     /**
      * Step
      */
-    static float  steps_to_mm[XYZE_N];
+    static float    steps_to_mm[XYZE_N];
 
     /**
      * Acceleration

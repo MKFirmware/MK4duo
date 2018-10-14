@@ -133,10 +133,10 @@
 
 // STEALTH values for chopper tuning
 //  only change if you know what you're doing
-#define STEALTH_AMPL      255
-#define STEALTH_GRAD        1
-#define STEALTH_AUTOSCALE   1
-#define STEALTH_FREQ        2
+#define STEALTH_AMPL       180
+#define STEALTH_GRAD         5
+#define STEALTH_AUTOSCALE true
+#define STEALTH_FREQ      0b01
 
 // Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
 // like overtemperature and short to ground. TMC2208 requires hardware serial.
@@ -178,8 +178,8 @@
  *
  * Example:
  * #define TMC_ADV() { \
- *   stepperX.diag0_temp_prewarn(1); \
- *   stepperY.interpolate(0); \
+ *   stepperX->diag0_temp_prewarn(1); \
+ *   stepperY->interpolate(0); \
  * }
  */
 #define  TMC_ADV() {  }

@@ -53,11 +53,66 @@
 #define TMC_E4_LABEL "E4", 14
 #define TMC_E5_LABEL "E5", 15
 
-#define TMC_AXES 13
+#define TMC_AXIS 13
 
 extern bool report_tmc_status;
 
-#if HAVE_DRV(TMC2130)
+#if HAVE_DRV(TMC2660)
+
+  //
+  // TMC2660 Driver Class
+  //
+  class MKTMC : public TMC2660Stepper {
+
+    public: /** Constructor */
+
+      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t cs_pin, float RS) :
+        TMC2660Stepper(cs_pin, RS),
+        axis_letter(AXIS_LETTER),
+        id(DRIVER_ID)
+        {}
+
+      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
+        TMC2660Stepper(CS, RS, pinMOSI, pinMISO, pinSCK),
+        axis_letter(AXIS_LETTER),
+        id(DRIVER_ID)
+        {}
+
+    protected: /** Protected Parameters */
+
+      uint16_t val_mA = 0;
+
+    public: /** Public Parameters */
+
+      const char* axis_letter;
+      const uint8_t id;
+
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        uint8_t otpw_count = 0;
+        bool flag_otpw = false;
+      #endif
+
+    public: /** Public Function */
+
+      uint16_t getMilliamps() { return val_mA; }
+
+      uint16_t rms_current() { return TMC2660Stepper::rms_current(); }
+
+      void printLabel() { SERIAL_MSG(axis_letter); }
+
+      void rms_current(uint16_t mA) {
+        val_mA = mA;
+        TMC2660Stepper::rms_current(mA);
+      }
+
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        bool getOTPW() { return flag_otpw; }
+        void clear_otpw() { flag_otpw = 0; }
+      #endif
+
+  };
+
+#elif HAVE_DRV(TMC2130)
 
   //
   // TMC2130 Driver Class
@@ -180,43 +235,43 @@ extern bool report_tmc_status;
 #endif
 
 #if AXIS_HAS_TMC(X)
-  extern MKTMC stepperX;
+  extern MKTMC* stepperX;
 #endif
 #if AXIS_HAS_TMC(X2)
-  extern MKTMC stepperX2;
+  extern MKTMC* stepperX2;
 #endif
 #if AXIS_HAS_TMC(Y)
-  extern MKTMC stepperY;
+  extern MKTMC* stepperY;
 #endif
 #if AXIS_HAS_TMC(Y2)
-  extern MKTMC stepperY2;
+  extern MKTMC* stepperY2;
 #endif
 #if AXIS_HAS_TMC(Z)
-  extern MKTMC stepperZ;
+  extern MKTMC* stepperZ;
 #endif
 #if AXIS_HAS_TMC(Z2)
-  extern MKTMC stepperZ2;
+  extern MKTMC* stepperZ2;
 #endif
 #if AXIS_HAS_TMC(Z3)
-  extern MKTMC stepperZ3;
+  extern MKTMC* stepperZ3;
 #endif
 #if AXIS_HAS_TMC(E0)
-  extern MKTMC stepperE0;
+  extern MKTMC* stepperE0;
 #endif
 #if AXIS_HAS_TMC(E1)
-  extern MKTMC stepperE1;
+  extern MKTMC* stepperE1;
 #endif
 #if AXIS_HAS_TMC(E2)
-  extern MKTMC stepperE2;
+  extern MKTMC* stepperE2;
 #endif
 #if AXIS_HAS_TMC(E3)
-  extern MKTMC stepperE3;
+  extern MKTMC* stepperE3;
 #endif
 #if AXIS_HAS_TMC(E4)
-  extern MKTMC stepperE4;
+  extern MKTMC* stepperE4;
 #endif
 #if AXIS_HAS_TMC(E5)
-  extern MKTMC stepperE5;
+  extern MKTMC* stepperE5;
 #endif
     
 struct TMC_driver_data {
@@ -307,182 +362,190 @@ class TMC_Stepper {
       static void report_all();
     #endif
 
+    MKTMC* driver_by_index(const uint8_t index);
+
     FORCE_INLINE static uint32_t thrs(const uint16_t tmc_msteps, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
       return 12650000UL * tmc_msteps / (256 * tmc_thrs * tmc_spmm);
     }
     
-    FORCE_INLINE static void get_current(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" driver current: ", st.getMilliamps());
+    FORCE_INLINE static void get_current(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" driver current: ", st->getMilliamps());
     }
     
-    FORCE_INLINE static void set_current(MKTMC &st, const uint16_t mA) {
-      st.rms_current(mA);
+    FORCE_INLINE static void set_current(MKTMC* st, const uint16_t mA) {
+      st->rms_current(mA);
     }
 
-    FORCE_INLINE static void get_microstep(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" driver microstep: ", st.microsteps());
+    FORCE_INLINE static void get_microstep(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" driver microstep: ", st->microsteps());
     }
 
-    FORCE_INLINE static void set_microstep(MKTMC &st, const uint16_t ms) {
-      st.microsteps(ms);
+    FORCE_INLINE static void set_microstep(MKTMC* st, const uint16_t ms) {
+      st->microsteps(ms);
     }
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
-      FORCE_INLINE static void report_otpw(MKTMC &st) {
-        st.printLabel();
+      FORCE_INLINE static void report_otpw(MKTMC* st) {
+        st->printLabel();
         SERIAL_MSG(" temperature prewarn triggered: ");
-        SERIAL_PS(st.getOTPW() ? PSTR("true") : PSTR("false"));
+        SERIAL_PS(st->getOTPW() ? PSTR("true") : PSTR("false"));
         SERIAL_EOL();
       }
 
-      FORCE_INLINE static void clear_otpw(MKTMC &st) {
-        st.clear_otpw();
-        st.printLabel();
+      FORCE_INLINE static void clear_otpw(MKTMC* st) {
+        st->clear_otpw();
+        st->printLabel();
         SERIAL_EM(" prewarn flag cleared");
       }
 
     #endif
 
-    FORCE_INLINE static void get_pwmthrs(MKTMC &st, const uint32_t tmc_spmm) {
-      st.printLabel();
-      SERIAL_EMV(" stealthChop max speed: ", thrs(st.microsteps(), st.TPWMTHRS(), tmc_spmm));
+    FORCE_INLINE static void get_pwmthrs(MKTMC* st, const uint32_t tmc_spmm) {
+      st->printLabel();
+      SERIAL_EMV(" stealthChop max speed: ", thrs(st->microsteps(), st->TPWMTHRS(), tmc_spmm));
     }
 
-    FORCE_INLINE static void set_pwmthrs(MKTMC &st, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
-      st.TPWMTHRS(thrs(st.microsteps(), tmc_thrs, tmc_spmm));
+    FORCE_INLINE static void set_pwmthrs(MKTMC* st, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
+      st->TPWMTHRS(thrs(st->microsteps(), tmc_thrs, tmc_spmm));
     }
 
-    FORCE_INLINE static void get_sgt(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" homing sensitivity: ", st.sgt(), DEC);
+    FORCE_INLINE static void get_sgt(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" homing sensitivity: ", st->sgt(), DEC);
     }
 
-    FORCE_INLINE static void set_sgt(MKTMC &st, const int8_t sgt_val) {
-      st.sgt(sgt_val);
+    FORCE_INLINE static void set_sgt(MKTMC* st, const int8_t sgt_val) {
+      st->sgt(sgt_val);
     }
 
-    FORCE_INLINE static void get_off_time(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" off_time: ", st.toff());
+    FORCE_INLINE static void get_off_time(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" off_time: ", st->toff());
     }
 
-    FORCE_INLINE static void set_off_time(MKTMC &st, const uint8_t off_time_val) {
-      st.toff(off_time_val);
+    FORCE_INLINE static void set_off_time(MKTMC* st, const uint8_t off_time_val) {
+      st->toff(off_time_val);
     }
 
-    FORCE_INLINE static void get_blank_time(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" blank_time: ", st.blank_time());
+    FORCE_INLINE static void get_blank_time(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" blank_time: ", st->blank_time());
     }
 
-    FORCE_INLINE static void set_blank_time(MKTMC &st, const uint8_t blank_time_val) {
-      st.blank_time(blank_time_val);
+    FORCE_INLINE static void set_blank_time(MKTMC* st, const uint8_t blank_time_val) {
+      st->blank_time(blank_time_val);
     }
 
-    FORCE_INLINE static void get_hysteresis_end(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" hysteresis_end: ", st.hysteresis_end());
+    FORCE_INLINE static void get_hysteresis_end(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" hysteresis_end: ", st->hysteresis_end());
     }
 
-    FORCE_INLINE static void set_hysteresis_end(MKTMC &st, const int8_t hysteresis_end_val) {
-      st.hysteresis_end(hysteresis_end_val);
+    FORCE_INLINE static void set_hysteresis_end(MKTMC* st, const int8_t hysteresis_end_val) {
+      st->hysteresis_end(hysteresis_end_val);
     }
 
-    FORCE_INLINE static void get_hysteresis_start(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" hysteresis_start: ", st.hysteresis_start());
+    FORCE_INLINE static void get_hysteresis_start(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" hysteresis_start: ", st->hysteresis_start());
     }
 
-    FORCE_INLINE static void set_hysteresis_start(MKTMC &st, const uint8_t hysteresis_start_val) {
-      st.hysteresis_start(hysteresis_start_val);
+    FORCE_INLINE static void set_hysteresis_start(MKTMC* st, const uint8_t hysteresis_start_val) {
+      st->hysteresis_start(hysteresis_start_val);
     }
 
-    FORCE_INLINE static void get_disable_I_comparator(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" disable_I_comparator: ", st.disfdcc());
+    FORCE_INLINE static void get_disable_I_comparator(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" disable_I_comparator: ", st->disfdcc());
     }
 
-    FORCE_INLINE static void set_disable_I_comparator(MKTMC &st, const bool onoff) {
-      st.disfdcc(onoff);
+    FORCE_INLINE static void set_disable_I_comparator(MKTMC* st, const bool onoff) {
+      st->disfdcc(onoff);
     }
 
-    FORCE_INLINE static void get_stealth_gradient(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" stealth_gradient: ", st.pwm_grad());
+    FORCE_INLINE static void get_stealth_gradient(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" stealth_gradient: ", st->pwm_grad());
     }
 
-    FORCE_INLINE static void set_stealth_gradient(MKTMC &st, const uint8_t stealth_gradient_val) {
-      st.pwm_grad(stealth_gradient_val);
+    FORCE_INLINE static void set_stealth_gradient(MKTMC* st, const uint8_t stealth_gradient_val) {
+      st->pwm_grad(stealth_gradient_val);
     }
 
-    FORCE_INLINE static void get_stealth_amplitude(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" stealth_amplitude: ", st.pwm_ampl());
+    FORCE_INLINE static void get_stealth_amplitude(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" stealth_amplitude: ", st->pwm_ampl());
     }
 
-    FORCE_INLINE static void set_stealth_amplitude(MKTMC &st, const uint8_t stealth_amplitude_val) {
-      st.pwm_ampl(stealth_amplitude_val);
+    FORCE_INLINE static void set_stealth_amplitude(MKTMC* st, const uint8_t stealth_amplitude_val) {
+      st->pwm_ampl(stealth_amplitude_val);
     }
 
-    FORCE_INLINE static void get_stealth_freq(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" stealth_freq: ", st.pwm_freq());
+    FORCE_INLINE static void get_stealth_freq(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" stealth_freq: ", st->pwm_freq());
     }
 
-    FORCE_INLINE static void set_stealth_freq(MKTMC &st, const uint8_t stealth_freq_val) {
-      st.pwm_freq(stealth_freq_val);
+    FORCE_INLINE static void set_stealth_freq(MKTMC* st, const uint8_t stealth_freq_val) {
+      st->pwm_freq(stealth_freq_val);
     }
 
-    FORCE_INLINE static void get_stealth_autoscale(MKTMC &st) {
-      st.printLabel();
-      SERIAL_EMV(" stealth_autoscale: ", st.pwm_autoscale());
+    FORCE_INLINE static void get_stealth_autoscale(MKTMC* st) {
+      st->printLabel();
+      SERIAL_EMV(" stealth_autoscale: ", st->pwm_autoscale());
     }
 
-    FORCE_INLINE static void set_stealth_autoscale(MKTMC &st, const bool onoff) {
-      st.pwm_autoscale(onoff);
+    FORCE_INLINE static void set_stealth_autoscale(MKTMC* st, const bool onoff) {
+      st->pwm_autoscale(onoff);
     }
 
   private: /** Private Function */
 
-    #if HAVE_DRV(TMC2130)
-      static void config(MKTMC &st, const bool tmc_stealthchop=false, const int8_t tmc_sgt=0);
+    #if HAVE_DRV(TMC2660)
+      static void config(MKTMC* st, const int8_t tmc_sgt=0);
+    #elif HAVE_DRV(TMC2130)
+      static void config(MKTMC* st, const bool tmc_stealthchop=false, const int8_t tmc_sgt=0);
     #elif HAVE_DRV(TMC2208)
-      static void config(MKTMC &st, const bool tmc_stealthchop=false);
+      static void config(MKTMC* st, const bool tmc_stealthchop=false);
     #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
-      #if HAVE_DRV(TMC2130)
+      #if HAVE_DRV(TMC2660)
         #if ENABLED(TMC_DEBUG)
-          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.PWM_SCALE(); }
-          static uint8_t get_status_response(MKTMC &st);
+          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return 0; }
+          FORCE_INLINE static uint8_t get_status_response(MKTMC* st) { return 0; }
+        #endif
+      #elif HAVE_DRV(TMC2130)
+        #if ENABLED(TMC_DEBUG)
+          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->PWM_SCALE(); }
+          static uint8_t get_status_response(MKTMC* st);
         #endif
       #elif HAVE_DRV(TMC2208)
         #if ENABLED(TMC_DEBUG)
-          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC &st) { return st.pwm_scale_sum(); }
-          static uint8_t get_status_response(MKTMC &st);
+          FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->pwm_scale_sum(); }
+          static uint8_t get_status_response(MKTMC* st);
         #endif
       #endif
 
-      static TMC_driver_data get_driver_data(TMC2130Stepper &st);
-      static void monitor_driver(MKTMC &st);
+      static TMC_driver_data get_driver_data(MKTMC* st);
+      static void monitor_driver(MKTMC* st);
 
     #endif
 
     #if ENABLED(TMC_DEBUG)
 
-      FORCE_INLINE static void print_vsense(MKTMC &st) { SERIAL_PS(st.vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+      FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PS(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
 
       static void drv_status_print_hex(const uint32_t drv_status);
-      static void status(MKTMC &st, const TMC_debug_enum i);
-      static void status(MKTMC &st, const TMC_debug_enum i, const float tmc_spmm);
-      static void parse_type_drv_status(MKTMC &st, const TMC_drv_status_enum i);
-      static void parse_drv_status(MKTMC &st, const TMC_drv_status_enum i);
+      static void status(MKTMC* st, const TMC_debug_enum i);
+      static void status(MKTMC* st, const TMC_debug_enum i, const float tmc_spmm);
+      static void parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i);
+      static void parse_drv_status(const TMC_drv_status_enum i);
       static void debug_loop(const TMC_debug_enum i);
-      static void status_loop(const TMC_drv_status_enum i);
 
     #endif
 

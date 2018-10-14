@@ -48,7 +48,6 @@
 
 #pragma pack(push, 1)
 
-typedef struct { uint16_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_stepper_current_t;
 typedef struct { uint32_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_hybrid_threshold_t;
 typedef struct {  int16_t X, Y, Z;                                         } tmc_sgt_t;
 
@@ -203,15 +202,15 @@ typedef struct EepromDataStruct {
   // Volumetric & Filament Size
   //
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    bool              volumetric_enabled;
-    float             filament_size[EXTRUDERS];
+    bool            volumetric_enabled;
+    float           filament_size[EXTRUDERS];
   #endif
 
   //
   // IDLE oozing
   //
   #if ENABLED(IDLE_OOZING_PREVENT)
-    bool              IDLE_OOZING_enabled;
+    bool            IDLE_OOZING_enabled;
   #endif
 
   //
@@ -261,7 +260,8 @@ typedef struct EepromDataStruct {
   // Trinamic
   //
   #if HAS_TRINAMIC
-    tmc_stepper_current_t   tmc_stepper_current;
+    uint16_t                tmc_stepper_current[TMC_AXIS],
+                            tmc_stepper_microstep[TMC_AXIS];
     tmc_hybrid_threshold_t  tmc_hybrid_threshold;
     tmc_sgt_t               tmc_sgt;
   #endif
@@ -640,49 +640,21 @@ void EEPROM::post_process() {
     //
     #if HAS_TRINAMIC
 
-      tmc_stepper_current_t tmc_stepper_current = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-      
-      #if AXIS_HAS_TMC(X)
-        tmc_stepper_current.X = stepperX.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(Y)
-        tmc_stepper_current.Y = stepperY.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(Z)
-        tmc_stepper_current.Z = stepperZ.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(X2)
-        tmc_stepper_current.X2 = stepperX2.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(Y2)
-        tmc_stepper_current.Y2 = stepperY2.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(Z2)
-        tmc_stepper_current.Z2 = stepperZ2.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(Z3)
-        tmc_stepper_current.Z3 = stepperZ3.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E0)
-        tmc_stepper_current.E0 = stepperE0.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        tmc_stepper_current.E1 = stepperE1.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        tmc_stepper_current.E2 = stepperE2.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        tmc_stepper_current.E3 = stepperE3.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        tmc_stepper_current.E4 = stepperE4.getMilliamps();
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        tmc_stepper_current.E5 = stepperE5.getMilliamps();
-      #endif
+      uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X2_CURRENT, Y2_CURRENT, Z2_CURRENT, Z3_CURRENT,
+                                                    E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
+                tmc_stepper_microstep[TMC_AXIS] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X2_MICROSTEPS, Y2_MICROSTEPS, Z2_MICROSTEPS, Z3_MICROSTEPS,
+                                                    E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
+
+      LOOP_TMC() {
+        MKTMC* st = tmc.driver_by_index(t);
+        if (st) {
+          tmc_stepper_current[t]    = st->getMilliamps();
+          tmc_stepper_microstep[t]  = st->microsteps();
+        }
+      }
 
       EEPROM_WRITE(tmc_stepper_current);
+      EEPROM_WRITE(tmc_stepper_microstep);
 
       //
       // Save TMC2130 or TMC2208 Hybrid Threshold, and placeholder values
@@ -770,13 +742,13 @@ void EEPROM::post_process() {
       tmc_sgt_t tmc_sgt = { 0, 0, 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt.X = stepperX.sgt();
+          tmc_sgt.X = stepperX->sgt();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt.Y = stepperY.sgt();
+          tmc_sgt.Y = stepperY->sgt();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt.Z = stepperZ.sgt();
+          tmc_sgt.Z = stepperZ->sgt();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -1101,49 +1073,20 @@ void EEPROM::post_process() {
       //
       #if HAS_TRINAMIC
 
-        #define SET_CURR(ST) stepper##ST.rms_current(currents.ST ? currents.ST : ST##_CURRENT)
-        tmc_stepper_current_t currents;
-        EEPROM_READ(currents);
+        uint16_t  tmc_stepper_current[TMC_AXIS],
+                  tmc_stepper_microstep[TMC_AXIS];
+
+        EEPROM_READ(tmc_stepper_current);
+        EEPROM_READ(tmc_stepper_microstep);
+
         if (!validating) {
-          #if AXIS_HAS_TMC(X)
-            SET_CURR(X);
-          #endif
-          #if AXIS_HAS_TMC(Y)
-            SET_CURR(Y);
-          #endif
-          #if AXIS_HAS_TMC(Z)
-            SET_CURR(Z);
-          #endif
-          #if AXIS_HAS_TMC(X2)
-            SET_CURR(X2);
-          #endif
-          #if AXIS_HAS_TMC(Y2)
-            SET_CURR(Y2);
-          #endif
-          #if AXIS_HAS_TMC(Z2)
-            SET_CURR(Z2);
-          #endif
-          #if AXIS_HAS_TMC(Z3)
-            SET_CURR(Z3);
-          #endif
-          #if AXIS_HAS_TMC(E0)
-            SET_CURR(E0);
-          #endif
-          #if AXIS_HAS_TMC(E1)
-            SET_CURR(E1);
-          #endif
-          #if AXIS_HAS_TMC(E2)
-            SET_CURR(E2);
-          #endif
-          #if AXIS_HAS_TMC(E3)
-            SET_CURR(E3);
-          #endif
-          #if AXIS_HAS_TMC(E4)
-            SET_CURR(E4);
-          #endif
-          #if AXIS_HAS_TMC(E5)
-            SET_CURR(E5);
-          #endif
+          LOOP_TMC() {
+            MKTMC* st = tmc.driver_by_index(t);
+            if (st) {
+              st->rms_current(tmc_stepper_current[t]);
+              st->microsteps(tmc_stepper_microstep[t]);
+            }
+          }
         }
 
         #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(stepper##ST, tmc_hybrid_threshold.ST, mechanics.data.axis_steps_per_mm[P##_AXIS])
@@ -1205,29 +1148,29 @@ void EEPROM::post_process() {
           if (!validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                stepperX.sgt(tmc_sgt.X);
+                stepperX->sgt(tmc_sgt.X);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                stepperX2.sgt(tmc_sgt.X);
+                stepperX2->sgt(tmc_sgt.X);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                stepperY.sgt(tmc_sgt.Y);
+                stepperY->sgt(tmc_sgt.Y);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                stepperY2.sgt(tmc_sgt.Y);
+                stepperY2->sgt(tmc_sgt.Y);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                stepperZ.sgt(tmc_sgt.Z);
+                stepperZ->sgt(tmc_sgt.Z);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                stepperZ2.sgt(tmc_sgt.Z);
+                stepperZ2->sgt(tmc_sgt.Z);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                stepperZ3.sgt(tmc_sgt.Z);
+                stepperZ3->sgt(tmc_sgt.Z);
               #endif
             #endif
           }
@@ -2212,43 +2155,89 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Stepper driver current (mA)");
       SERIAL_SM(CFG, "  M906");
       #if AXIS_HAS_TMC(X)
-        SERIAL_MV(" X", stepperX.getMilliamps());
+        SERIAL_MV(" X", stepperX->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(X2)
-        SERIAL_MV(" I2 X", stepperX2.getMilliamps());
+        SERIAL_MV(" I2 X", stepperX2->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Y)
-        SERIAL_MV(" Y", stepperY.getMilliamps());
+        SERIAL_MV(" Y", stepperY->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Y2)
-        SERIAL_MV(" I2 Y", stepperY2.getMilliamps());
+        SERIAL_MV(" I2 Y", stepperY2->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z)
-        SERIAL_MV(" Z", stepperZ.getMilliamps());
+        SERIAL_MV(" Z", stepperZ->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z2)
-        SERIAL_MV(" I2 Z", stepperZ2.getMilliamps());
+        SERIAL_MV(" I2 Z", stepperZ2->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(Z3)
-        SERIAL_MV(" I3 Z", stepperZ3.getMilliamps());
+        SERIAL_MV(" I3 Z", stepperZ3->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E0)
-        SERIAL_MV(" T0 E", stepperE0.getMilliamps());
+        SERIAL_MV(" T0 E", stepperE0->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E1)
-        SERIAL_MV(" T1 E", stepperE1.getMilliamps());
+        SERIAL_MV(" T1 E", stepperE1->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E2)
-        SERIAL_MV(" T2 E", stepperE2.getMilliamps());
+        SERIAL_MV(" T2 E", stepperE2->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E3)
-        SERIAL_MV(" T3 E", stepperE3.getMilliamps());
+        SERIAL_MV(" T3 E", stepperE3->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E4)
-        SERIAL_MV(" T4 E", stepperE4.getMilliamps());
+        SERIAL_MV(" T4 E", stepperE4->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E5)
-        SERIAL_MV(" T5 E", stepperE5.getMilliamps());
+        SERIAL_MV(" T5 E", stepperE5->getMilliamps());
+      #endif
+      SERIAL_EOL();
+
+      /**
+       * TMC2130 or TMC2208 stepper driver microsteps
+       */
+      SERIAL_LM(CFG, "Stepper driver microsteps");
+      SERIAL_SM(CFG, "  M350");
+      #if AXIS_HAS_TMC(X)
+        SERIAL_MV(" X", stepperX->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(X2)
+        SERIAL_MV(" I2 X", stepperX2->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Y)
+        SERIAL_MV(" Y", stepperY->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Y2)
+        SERIAL_MV(" I2 Y", stepperY2->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Z)
+        SERIAL_MV(" Z", stepperZ->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Z2)
+        SERIAL_MV(" I2 Z", stepperZ2->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Z3)
+        SERIAL_MV(" I3 Z", stepperZ3->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E0)
+        SERIAL_MV(" T0 E", stepperE0->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E1)
+        SERIAL_MV(" T1 E", stepperE1->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E2)
+        SERIAL_MV(" T2 E", stepperE2->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E3)
+        SERIAL_MV(" T3 E", stepperE3->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E4)
+        SERIAL_MV(" T4 E", stepperE4->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(E5)
+        SERIAL_MV(" T5 E", stepperE5->microsteps());
       #endif
       SERIAL_EOL();
 
@@ -2308,29 +2297,29 @@ void EEPROM::reset() {
         SERIAL_SM(CFG, "  M914");
         #if X_HAS_SENSORLESS
           #if AXIS_HAS_STALLGUARD(X)
-            SERIAL_MV(" X", stepperX.sgt());
+            SERIAL_MV(" X", stepperX->sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(X2)
-            SERIAL_MV(" I2 X", stepperX2.sgt());
+            SERIAL_MV(" I2 X", stepperX2->sgt());
           #endif
         #endif
         #if Y_HAS_SENSORLESS
           #if AXIS_HAS_STALLGUARD(Y)
-            SERIAL_MV(" Y", stepperY.sgt());
+            SERIAL_MV(" Y", stepperY->sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Y2)
-            SERIAL_MV(" I2 Y", stepperY2.sgt());
+            SERIAL_MV(" I2 Y", stepperY2->sgt());
           #endif
         #endif
         #if Z_HAS_SENSORLESS
           #if AXIS_HAS_STALLGUARD(Z)
-            SERIAL_MV(" Z", stepperZ.sgt());
+            SERIAL_MV(" Z", stepperZ->sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Z2)
-            SERIAL_MV(" I2 Z", stepperZ2.sgt());
+            SERIAL_MV(" I2 Z", stepperZ2->sgt());
           #endif
           #if AXIS_HAS_STALLGUARD(Z3)
-            SERIAL_MV(" I3 Z", stepperZ3.sgt());
+            SERIAL_MV(" I3 Z", stepperZ3->sgt());
           #endif
         #endif
         SERIAL_EOL();

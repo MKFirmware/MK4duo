@@ -209,6 +209,7 @@
 #define LOOP_HEATER()           LOOP_L_N(h, HEATER_COUNT)
 #define LOOP_FAN()              LOOP_L_N(f, FAN_COUNT)
 #define LOOP_SERVO()            LOOP_L_N(s, NUM_SERVOS)
+#define LOOP_TMC()              LOOP_L_N(t, TMC_AXIS)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M)        ((MM_M)/60.0f)
