@@ -33,7 +33,7 @@
   Core_Mechanics mechanics;
 
   /** Public Parameters */
-  mechanics_data_t Cartesian_Mechanics::data;
+  mechanics_data_t Core_Mechanics::data;
 
   const float Core_Mechanics::base_max_pos[XYZ]   = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
               Core_Mechanics::base_min_pos[XYZ]   = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
