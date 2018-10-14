@@ -85,5 +85,3 @@
   extern FWRetract fwretract;
 
 #endif // ENABLED(FWRETRACT)
-
-#endif /* _FWRETRACT_H_ */
