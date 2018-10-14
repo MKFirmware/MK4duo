@@ -60,7 +60,7 @@
  *  The trapezoid is the shape the speed curve over time. It starts at block->initial_rate, accelerates
  *  first block->accelerate_until step_events_completed, then keeps going at constant speed until
  *  step_events_completed reaches block->decelerate_after after which it decelerates until the trapezoid generator is reset.
- *  The slope of data.acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
+ *  The slope of acceleration is calculated using v = u + at where t is the accumulated timer values of the steps so far.
  */
 
 /**
@@ -3243,4 +3243,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
   }
 
+#endif
+
+#if ENABLED(LASER)
+  bool Stepper::laser_status() { return current_block->laser_status == LASER_ON; }
 #endif

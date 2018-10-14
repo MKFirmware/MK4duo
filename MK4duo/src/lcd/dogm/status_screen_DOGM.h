@@ -189,9 +189,9 @@ static void lcd_implementation_status_screen() {
       #endif
 
       lcd_moveto(3,6);
-      if (stepper.current_block->laser_status == LASER_ON) {
+      if (stepper.laser_status()) {
         u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
-        lcd_put_u8str(itostr3(stepper.current_block->laser_intensity));
+        lcd_put_u8str(itostr3(stepper.laser_intensity()));
         lcd_put_u8str_P(PSTR("%"));
       } else {
         u8g.drawBitmapP(5,14, ICON_BYTEWIDTH, ICON_HEIGHT, laseroff_bmp);
