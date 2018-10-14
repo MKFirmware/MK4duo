@@ -129,7 +129,7 @@
     // Set temperature
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
-        heaters[h].target_temperature = job_info.target_temperature[h];
+        heaters[h].setTarget(job_info.target_temperature[h]);
         thermalManager.wait_heater(&heaters[h], true);
       }
     #endif
