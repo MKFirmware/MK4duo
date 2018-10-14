@@ -3219,3 +3219,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   }
 
 #endif
+
+#if ENABLED(LASER)
+  bool Stepper::laser_status() { return current_block->laser_status == LASER_ON; }
+#endif

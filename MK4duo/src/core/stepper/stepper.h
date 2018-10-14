@@ -366,6 +366,11 @@ class Stepper {
     }
     FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
+    #if ENABLED(LASER)
+      static bool laser_status();
+      FORCE_INLINE static float laser_intensity() { return current_block->laser_intensity; }
+    #endif
+
   private: /** Private Function */
 
     /**
