@@ -199,6 +199,14 @@ typedef struct EepromDataStruct {
   #endif
 
   //
+  // FWRETRACT
+  //
+  #if ENABLED(FWRETRACT)
+    fwretract_data_t fwretract_data;
+    bool autoretract_enabled;
+  #endif
+
+  //
   // Volumetric & Filament Size
   //
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -559,17 +567,13 @@ void EEPROM::post_process() {
       LOOP_SERVO() EEPROM_WRITE(servo[s].angle);
     #endif
 
+    //
+    // Firmware Retraction
+    //
     #if ENABLED(FWRETRACT)
+      EEPROM_WRITE(fwretract.data);
       EEPROM_WRITE(fwretract.autoretract_enabled);
-      EEPROM_WRITE(fwretract.retract_length);
-      EEPROM_WRITE(fwretract.retract_feedrate_mm_s);
-      EEPROM_WRITE(fwretract.retract_zlift);
-      EEPROM_WRITE(fwretract.retract_recover_length);
-      EEPROM_WRITE(fwretract.retract_recover_feedrate_mm_s);
-      EEPROM_WRITE(fwretract.swap_retract_length);
-      EEPROM_WRITE(fwretract.swap_retract_recover_length);
-      EEPROM_WRITE(fwretract.swap_retract_recover_feedrate_mm_s);
-    #endif // FWRETRACT
+    #endif
 
     //
     // Volumetric & Filament Size
@@ -580,7 +584,7 @@ void EEPROM::post_process() {
       EEPROM_WRITE(volumetric_enabled);
 
       // Save filament sizes
-      LOOP_EXTRUDERE()
+      LOOP_EXTRUDER()
         EEPROM_WRITE(tools.filament_size[e]);
 
     #endif
@@ -990,17 +994,13 @@ void EEPROM::post_process() {
         LOOP_SERVO() EEPROM_READ(servo[s].angle);
       #endif
 
+      //
+      // Firmware Retraction
+      //
       #if ENABLED(FWRETRACT)
+        EEPROM_READ(fwretract.data);
         EEPROM_READ(fwretract.autoretract_enabled);
-        EEPROM_READ(fwretract.retract_length);
-        EEPROM_READ(fwretract.retract_feedrate_mm_s);
-        EEPROM_READ(fwretract.retract_zlift);
-        EEPROM_READ(fwretract.retract_recover_length);
-        EEPROM_READ(fwretract.retract_recover_feedrate_mm_s);
-        EEPROM_READ(fwretract.swap_retract_length);
-        EEPROM_READ(fwretract.swap_retract_recover_length);
-        EEPROM_READ(fwretract.swap_retract_recover_feedrate_mm_s);
-      #endif // FWRETRACT
+      #endif
 
       //
       // Volumetric & Filament Size
@@ -2065,16 +2065,16 @@ void EEPROM::reset() {
 
     #if ENABLED(FWRETRACT)
       SERIAL_LM(CFG, "Retract: S<length> F<units/m> Z<lift>");
-      SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.retract_length));
-      SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_length));
-      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_feedrate_mm_s)));
-      SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.retract_zlift));
+      SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.data.retract_length));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_length));
+      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.retract_feedrate_mm_s)));
+      SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.data.retract_zlift));
 
       SERIAL_LM(CFG, "Recover: S<length> F<units/m>");
-      SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.retract_recover_length));
-      SERIAL_MV(" W", LINEAR_UNIT(fwretract.swap_retract_recover_length));
-      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.retract_recover_feedrate_mm_s)));
-      SERIAL_MV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.swap_retract_recover_feedrate_mm_s)));
+      SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.data.retract_recover_length));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_recover_length));
+      SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.retract_recover_feedrate_mm_s)));
+      SERIAL_MV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.swap_retract_recover_feedrate_mm_s)));
 
       SERIAL_LM(CFG, "Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
