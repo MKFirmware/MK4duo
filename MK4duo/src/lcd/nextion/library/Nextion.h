@@ -72,7 +72,7 @@
  * @param ptr - user pointer for any purpose. Commonly, it is a pointer to a object. 
  * @return none. 
  */
-typedef void (*NexTouchEventCb)(void *ptr);
+using NexTouchEventCb = void(*)(void *ptr);
 
 /**
  * Class NexObject

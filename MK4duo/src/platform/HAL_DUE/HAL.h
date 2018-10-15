@@ -226,7 +226,7 @@ extern "C" char *dtostrf (double __val, signed char __width, unsigned char __pre
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
 
 // ISR handler type
-typedef void (*pfnISR_Handler)(void);
+using pfnISR_Handler = void(*)(void);
 
 // Install a new interrupt vector handler for the given irq, returning the old one
 pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler);

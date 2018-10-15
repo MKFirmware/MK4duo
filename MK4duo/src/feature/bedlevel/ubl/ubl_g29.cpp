@@ -667,7 +667,7 @@
 
   #if ENABLED(NEWPANEL)
 
-    typedef void (*clickFunc_t)();
+    using clickFunc_t = void(*)();
 
     bool click_and_hold(const clickFunc_t func=NULL) {
       if (is_lcd_clicked()) {

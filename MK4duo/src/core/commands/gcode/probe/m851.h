@@ -30,7 +30,7 @@
 
 inline void gcode_M851(void) {
 
-  SERIAL_SM(ECHO, "Probe Offset");
+  SERIAL_LM(ECHO, "Probe Offset");
 
   probe.offset[X_AXIS] = parser.linearval('X', probe.offset[X_AXIS]);
   probe.offset[Y_AXIS] = parser.linearval('Y', probe.offset[Y_AXIS]);

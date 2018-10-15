@@ -407,7 +407,7 @@
   };
 
   // Function pointer to menu functions.
-  typedef void (*screenFunc_t)();
+  using screenFunc_t = void(*)();
 
   /**
    *
