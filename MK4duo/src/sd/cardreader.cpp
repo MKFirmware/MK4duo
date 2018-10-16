@@ -486,16 +486,18 @@
 
   #if HAS_SD_RESTART
 
+    const char restart_file_name[8] = "restart";
+
     void CardReader::open_restart_file(const bool read) {
 
       if (!isOK() || restart_file.isOpen()) return;
 
-      if (!restart_file.open(&root, "restart.bin", read ? O_READ : O_CREAT | O_WRITE | O_TRUNC | O_SYNC))
+      if (!restart_file.open(&root, restart_file_name, read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC)))
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
-      else
+      else if (!read)
         SERIAL_MSG(MSG_SD_WRITE_TO_FILE);
 
-      SERIAL_EM("restart.bin");
+      SERIAL_EM("restart");
     }
 
     void CardReader::close_restart_file() {
@@ -504,22 +506,33 @@
     }
 
     void CardReader::delete_restart_file() {
-      if (restart_file.remove(&root, "restart.bin")) {
-        SERIAL_EM("restart.bin deleted");
-      }
-      else {
-        SERIAL_EM("Deletion restart.bin failed");
+      if (exist_restart_file()) {
+        restart_file.remove(&root, restart_file_name);
+        #if ENABLED(DEBUG_RESTART)
+          SERIAL_MSG("restart delete");
+          SERIAL_PS(exist_restart_file() ? PSTR(" failed.\n") : PSTR("d.\n"));
+        #endif
       }
     }
 
     bool CardReader::exist_restart_file() {
-      return restart_file.open(&root, "restart.bin", O_READ);
+      const bool exist = restart_file.open(&root, restart_file_name, O_READ);
+      #if ENABLED(DEBUG_RESTART)
+        SERIAL_MSG("File restart ");
+        if (!exist) SERIAL_MSG("not ");
+        SERIAL_EM("exist");
+      #endif
+      if (exist) restart_file.close();
+      return exist;
     }
 
     int16_t CardReader::save_restart_data() {
-      if (!restart_file.isOpen()) return -1;
       restart_file.seekSet(0);
-      return restart_file.write(&restart.job_info, sizeof(restart.job_info));
+      const int16_t ret = restart_file.write(&restart.job_info, sizeof(restart.job_info));
+      #if ENABLED(DEBUG_RESTART)
+        if (ret == -1) SERIAL_EM("restart write failed.");
+      #endif
+      return ret; 
     }
 
     int16_t CardReader::read_restart_data() {

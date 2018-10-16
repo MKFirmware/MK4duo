@@ -50,7 +50,12 @@
         card.read_restart_data();
         card.close_restart_file();
 
-        if ((job_info.valid_head) && job_info.valid_head == job_info.valid_foot) {
+        #if ENABLED(DEBUG_RESTART)
+          SERIAL_EMV("Restart valid_head:", job_info.valid_head);
+          SERIAL_EMV("Restart valid_foot:", job_info.valid_foot);
+        #endif
+
+        if (job_info.valid_head && job_info.valid_head == job_info.valid_foot) {
 
           uint8_t index = 0;
           char str_X[10], str_Y[10], str_Z[10], str_E[10];
@@ -241,9 +246,9 @@
           SERIAL_EMV("buffer_index_r: ", job_info.buffer_index_r);
           SERIAL_EMV("buffer_lenght: ", job_info.buffer_lenght);
           if (restart)
-            for (uint8_t i = 0; i < count; i++) SERIAL_EMV("> ", buffer_ring[i]);
+            for (uint8_t i = 0; i < count; i++) SERIAL_EMT("> ", buffer_ring[i]);
           else
-            for (uint8_t i = 0; i < job_info.buffer_lenght; i++) SERIAL_EMV("> ", job_info.buffer_ring[i]);
+            for (uint8_t i = 0; i < job_info.buffer_lenght; i++) SERIAL_EMT("> ", job_info.buffer_ring[i]);
           SERIAL_EMT("Filename: ", job_info.fileName);
           SERIAL_EMV("sdpos: ", job_info.sdpos);
           SERIAL_EMV("print_job_counter_elapsed: ", job_info.print_job_counter_elapsed);
