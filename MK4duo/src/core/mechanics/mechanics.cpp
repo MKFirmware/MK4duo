@@ -52,7 +52,7 @@ uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 #endif
 
 #if ENABLED(BABYSTEPPING)
-  int Mechanics::babystepsTodo[XYZ] = { 0 };
+  volatile int16_t Mechanics::babystepsTodo[XYZ] = { 0 };
 #endif
 
 /**

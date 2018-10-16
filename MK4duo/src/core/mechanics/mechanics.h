@@ -29,50 +29,6 @@
 #ifndef _MECHANICS_H_
 #define _MECHANICS_H_
 
-/**
- * Axis indices as enumerated constants
- *
- *  - X_AXIS, Y_AXIS, and Z_AXIS should be used for axes in Cartesian space
- *  - A_AXIS, B_AXIS, and C_AXIS should be used for Steppers, corresponding to XYZ on Cartesians
- *  - X_HEAD, Y_HEAD, and Z_HEAD should be used for Steppers on Core kinematics
- */
-enum AxisEnum : unsigned char {
-  X_AXIS  = 0,
-  A_AXIS  = 0,
-  Y_AXIS  = 1,
-  B_AXIS  = 1,
-  Z_AXIS  = 2,
-  C_AXIS  = 2,
-  E_AXIS  = 3,
-  X_HEAD  = 4,
-  Y_HEAD  = 5,
-  Z_HEAD  = 6,
-  E0_AXIS = 3,
-  E1_AXIS = 4,
-  E2_AXIS = 5,
-  E3_AXIS = 6,
-  E4_AXIS = 7,
-  E5_AXIS = 8,
-  ALL_AXES  = 0xFE,
-  NO_AXIS   = 0xFF
-};
-
-/**
- * DUAL X CARRIAGE
- */
-#if ENABLED(DUAL_X_CARRIAGE)
-  enum DualXMode {
-    DXC_FULL_CONTROL_MODE,
-    DXC_AUTO_PARK_MODE,
-    DXC_DUPLICATION_MODE,
-    DXC_SCALED_DUPLICATION_MODE
-  };
-#endif
-
-#if ENABLED(CNC_WORKSPACE_PLANES)
-  enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
-#endif
-
 #define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
 #define LOGICAL_Y_POSITION(POS) mechanics.native_to_logical(POS, Y_AXIS)
 #define LOGICAL_Z_POSITION(POS) mechanics.native_to_logical(POS, Z_AXIS)
@@ -194,7 +150,7 @@ class Mechanics {
     #endif
 
     #if ENABLED(BABYSTEPPING)
-      static int babystepsTodo[XYZ];
+      static volatile int16_t babystepsTodo[XYZ];
     #endif
 
   public: /** Public Function */

@@ -64,7 +64,7 @@
                           tmp_homebump[]      PROGMEM = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
     static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                          tmp_retractacc[]    PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+                          tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
     static const int8_t   tmp_homedir[]       PROGMEM = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
@@ -75,7 +75,7 @@
     }
 
     LOOP_EXTRUDER()
-      data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retractacc[e < COUNT(tmp_retractacc) ? e : COUNT(tmp_retractacc) - 1]);
+      data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
     data.acceleration               = DEFAULT_ACCELERATION;
     data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;

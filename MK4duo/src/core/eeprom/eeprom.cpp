@@ -374,6 +374,13 @@ void EEPROM::post_process() {
   #define EEPROM_READ_ALWAYS(VAR) memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ(VAR)        memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !validating)
 
+  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); eeprom_error = true; } }while(0)
+  #define _FIELD_TEST(FIELD) \
+    EEPROM_ASSERT( \
+      eeprom_error || eeprom_index == offsetof(eepromData, FIELD) + EEPROM_OFFSET, \
+      "Field " STRINGIFY(FIELD) " mismatch." \
+    )
+
   const char version[6] = EEPROM_VERSION;
 
   bool  EEPROM::eeprom_error  = false,

@@ -353,18 +353,6 @@ void HAL::Tick() {
     thermalManager.set_current_temp_raw();
   #endif
 
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      int curTodo = mechanics.babystepsTodo[axis]; //get rid of volatile for performance
-
-      if (curTodo) {
-        stepper.babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif //BABYSTEPPING
-
   endstops.Tick();
 
 }

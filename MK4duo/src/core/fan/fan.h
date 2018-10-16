@@ -32,11 +32,6 @@
   #include "tachometric.h"
 #endif
 
-enum FlagFans : char {
-  fan_flag_hardware_inverted,
-  fan_flag_idle
-};
-
 // Struct Fan data
 typedef struct {
 
