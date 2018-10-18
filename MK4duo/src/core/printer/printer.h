@@ -38,53 +38,6 @@ constexpr uint8_t debug_feature             = 32;
 constexpr uint8_t debug_mesh_adjust         = 64;
 constexpr uint8_t debug_simulation          = 128;
 
-enum VariousBits : char {
-  bit_running,
-  bit_printing,
-  bit_pos_saved,
-  bit_relative_mode,
-  bit_volumetric_enabled,
-  bit_wait_for_user,
-  bit_wait_for_heatup,
-  bit_allow_cold_extrude,
-  bit_autoreport_temp,
-  bit_autoreport_sd,
-  bit_suspend_autoreport,
-  bit_abort_sd_printing,
-  bit_filament_out,
-  bit_g38_move
-};
-
-enum PrinterMode : char {
-  PRINTER_MODE_FFF,           // M450 S0 or M451
-  PRINTER_MODE_LASER,         // M450 S1 or M452
-  PRINTER_MODE_CNC,           // M450 S2 or M453
-  PRINTER_MODE_PICKER,        // M450 S3 or M454
-  PRINTER_MODE_SOLDER,        // M450 S4
-  PRINTER_MODE_PLOTTER,
-  PRINTER_MODE_COUNT
-};
-
-enum MK4duoInterruptEvent : char {
-  INTERRUPT_EVENT_NONE,
-  INTERRUPT_EVENT_FIL_RUNOUT,
-  INTERRUPT_EVENT_ENC_DETECT
-};
-
-/**
- * States for managing MK4duo and host communication
- * MK4duo sends messages if blocked or busy
- */
-enum MK4duoBusyState : char {
-  NotBusy,          // Not in a handler
-  InHandler,        // Processing a GCode
-  InProcess,        // Known to be blocking command input (as in G29)
-  WaitHeater,       // Wait heater
-  PausedforUser,    // Blocking pending any input
-  PausedforInput,   // Blocking pending text input
-  DoorOpen          // Door open
-};
-      
 extern const char axis_codes[NUM_AXIS];
 
 class Printer {

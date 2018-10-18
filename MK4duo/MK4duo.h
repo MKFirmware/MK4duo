@@ -64,9 +64,11 @@ typedef int8_t    pin_t;
  * Include file
  */
 #include "src/lib/macros.h"
+#include "src/lib/enum.h"
 #include "src/lib/circular_queue.h"
 #include "src/lib/driver_types.h"
 #include "src/lib/watch.h"
+#include "src/lib/matrix.h"
 #include "Boards.h"
 
 // Configuration settings loading

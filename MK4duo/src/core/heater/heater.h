@@ -30,17 +30,6 @@
 #include "sensor/sensor.h"
 #include "pid/pid.h"
 
-enum FlagHeaters : char {
-  heater_flag_use_pid,
-  heater_flag_tuning,
-  heater_flag_hardware_inverted,
-  heater_flag_active,
-  heater_flag_idle,
-  heater_flag_fault
-};
-
-enum heater_t : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
-
 constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
 

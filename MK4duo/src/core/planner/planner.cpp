@@ -73,7 +73,7 @@ Planner planner;
 /**
  * A ring buffer of moves described in steps
  */
-block_t Planner::block_buffer[BLOCK_BUFFER_SIZE];
+block_t           Planner::block_buffer[BLOCK_BUFFER_SIZE];
 volatile uint8_t  Planner::block_buffer_head    = 0,
                   Planner::block_buffer_nonbusy = 0,
                   Planner::block_buffer_planned = 0,
@@ -81,13 +81,13 @@ volatile uint8_t  Planner::block_buffer_head    = 0,
 
 bool  Planner::cleaning_buffer_flag = false;
 
-uint8_t Planner::delay_before_delivering  = 0;
+uint8_t Planner::delay_before_delivering = 0;
 
 #if HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
-  float Planner::autotemp_max = 250,
-        Planner::autotemp_min = 210,
-        Planner::autotemp_factor = 0.1;
-  bool Planner::autotemp_enabled = false;
+  float Planner::autotemp_max     = 250,
+        Planner::autotemp_min     = 210,
+        Planner::autotemp_factor  = 0.1;
+  bool  Planner::autotemp_enabled = false;
 #endif
 
 int32_t Planner::position[NUM_AXIS] = { 0 };

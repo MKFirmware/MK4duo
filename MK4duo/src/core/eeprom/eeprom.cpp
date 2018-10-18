@@ -146,8 +146,8 @@ typedef struct EepromDataStruct {
   //
   #if ENABLED(ULTIPANEL)
     int16_t         lcd_preheat_hotend_temp[3],
-                    lcd_preheat_bed_temp[3];
-    uint8_t         lcd_preheat_fan_speed[3];
+                    lcd_preheat_bed_temp[3],
+                    lcd_preheat_fan_speed[3];
   #endif
 
   //
@@ -188,7 +188,7 @@ typedef struct EepromDataStruct {
   // LCD contrast
   //
   #if HAS_LCD_CONTRAST
-    int16_t         lcd_contrast;
+    uint8_t         lcd_contrast;
   #endif
 
   //
@@ -354,7 +354,7 @@ void EEPROM::post_process() {
   // Setup Endstops pullup
   endstops.setup_pullup();
 
-  // Refresh steps_to_mm with the reciprocal of data.axis_steps_per_mm
+  // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 
@@ -373,6 +373,13 @@ void EEPROM::post_process() {
   #define EEPROM_WRITE(VAR)       memorystore.write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ_ALWAYS(VAR) memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ(VAR)        memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !validating)
+
+  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); eeprom_error = true; } }while(0)
+  #define _FIELD_TEST(FIELD) \
+    EEPROM_ASSERT( \
+      eeprom_error || eeprom_index == offsetof(eepromData, FIELD) + EEPROM_OFFSET, \
+      "Field " STRINGIFY(FIELD) " mismatch." \
+    )
 
   const char version[6] = EEPROM_VERSION;
 
@@ -774,22 +781,23 @@ void EEPROM::post_process() {
 
       // Report storage size
       #if ENABLED(EEPROM_CHITCHAT)
-        SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size - (EEPROM_OFFSET));
+        SERIAL_SMV(ECHO, "Settings Stored (", eeprom_size);
         SERIAL_MV(" bytes; crc ", final_crc);
         SERIAL_EM(")");
       #endif
 
-      //
-      // UBL Mesh
-      //
-      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
-        if (ubl.storage_slot >= 0)
-          store_mesh(ubl.storage_slot);
-      #endif
-
-      EEPROM_WRITE_FINISH();
-
+      eeprom_error |= size_error(eeprom_size);
     }
+
+    EEPROM_WRITE_FINISH();
+
+    //
+    // UBL Mesh
+    //
+    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
+      if (ubl.storage_slot >= 0)
+        store_mesh(ubl.storage_slot);
+    #endif
 
     sound.feedback(!eeprom_error);
 
@@ -1193,7 +1201,6 @@ void EEPROM::post_process() {
           SERIAL_MV(" != ", working_crc);
           SERIAL_EM(" (calculated)!");
         #endif
-        reset();
       }
       else if (!validating) {
         #if ENABLED(EEPROM_CHITCHAT)
@@ -1254,7 +1261,7 @@ void EEPROM::post_process() {
       if (!validating) Print_Settings();
     #endif
 
-    if (!validating) sound.feedback(!eeprom_error);
+    if (validating) sound.feedback(!eeprom_error);
 
     return !eeprom_error;
   }
@@ -1857,7 +1864,6 @@ void EEPROM::reset() {
 
   SERIAL_LM(ECHO, "Factory Settings Loaded");
 
-  sound.feedback();
 }
 
 #if DISABLED(DISABLE_M503)

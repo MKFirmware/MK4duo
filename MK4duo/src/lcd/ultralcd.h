@@ -97,8 +97,8 @@
     extern bool defer_return_to_status;
 
     // Function pointer to menu functions.
-    typedef void (*screenFunc_t)();
-    typedef void (*menuAction_t)();
+    using screenFunc_t = void(*)();
+    using menuAction_t = void(*)();
 
     extern int16_t lcd_preheat_hotend_temp[3], lcd_preheat_bed_temp[3], lcd_preheat_fan_speed[3];
 

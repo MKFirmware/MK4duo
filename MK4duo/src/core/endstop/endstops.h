@@ -27,36 +27,6 @@
 #ifndef _ENDSTOPS_H_
 #define _ENDSTOPS_H_
 
-enum Flag1Enum : char {
-  bit_endstop_enabled,
-  bit_endstop_globally,
-  bit_soft_endstop,
-  bit_probe_endstop,
-  bit_g38_endstop_hit,
-  bit_monitor_flag
-};
-  
-enum EndstopEnum : char {
-  X_MIN,        // Bit 0
-  Y_MIN,        // Bit 1
-  Z_MIN,        // Bit 2
-  Z_PROBE,      // Bit 3
-  X_MAX,        // Bit 4
-  Y_MAX,        // Bit 5
-  Z_MAX,        // Bit 6
-  X2_MIN,       // Bit 7
-  X2_MAX,       // Bit 8
-  Y2_MIN,       // Bit 9
-  Y2_MAX,       // Bit 10
-  Z2_MIN,       // Bit 11
-  Z2_MAX,       // Bit 12
-  Z3_MIN,       // Bit 13
-  Z3_MAX,       // Bit 14
-  FIL_RUNOUT,   // Bit 15
-  DOOR_OPEN,    // Bit 16
-  POWER_CHECK   // Bit 17
-};
-
 class Endstops {
 
   public: /** Constructor */

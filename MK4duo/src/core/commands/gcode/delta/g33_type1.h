@@ -118,7 +118,8 @@
    */
   inline void gcode_G33(void) {
 
-    const uint8_t MaxCalibrationPoints = 10;
+    const uint8_t MaxCalibrationPoints  = 10,
+                  MaxnumFactors         = 7;
 
     uint8_t iteration = 0;
 
@@ -205,8 +206,8 @@
     // convert data.endstop_adj;
     Convert_endstop_adj();
 
-    float probeMotorPositions[MaxCalibrationPoints][ABC],
-          corrections[MaxCalibrationPoints];
+    FixedMatrix<float, MaxCalibrationPoints, ABC> probeMotorPositions;
+    float corrections[MaxCalibrationPoints];
 
     initialSumOfSquares = 0.0;
 
@@ -218,7 +219,7 @@
       mechanics.Transform(machinePos);
 
       for (uint8_t axis = 0; axis < ABC; axis++)
-        probeMotorPositions[i][axis] = mechanics.delta[axis];
+        probeMotorPositions(i, axis) = mechanics.delta[axis];
 
       initialSumOfSquares += sq(zBedProbePoints[i]);
     }
@@ -226,13 +227,13 @@
     // Do 1 or more Newton-Raphson iterations
     do {
 
-      float derivativeMatrix[MaxCalibrationPoints][numFactors],
-            normalMatrix[numFactors][numFactors + 1];
+      // Build a Nx9 matrix of derivatives
+      FixedMatrix<float, MaxCalibrationPoints, MaxnumFactors> derivativeMatrix;
 
       for (uint8_t i = 0; i < probe_points; i++) {
         for (uint8_t j = 0; j < numFactors; j++) {
-          derivativeMatrix[i][j] =
-            mechanics.ComputeDerivative(j, probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS]);
+          derivativeMatrix(i, j) =
+            mechanics.ComputeDerivative(j, probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS));
         }
       }
 
@@ -241,25 +242,27 @@
         SERIAL_EM("Derivative matrix");
         for (uint8_t i = 0; i < probe_points; i++) {
           for (uint8_t j = 0; j < numFactors; j++) {
-            sprintf_P(rply, PSTR("%7.4f%c"), (double)derivativeMatrix[i][j], (j == numFactors - 1) ? '\n' : ' ');
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)derivativeMatrix(i, j), (j == numFactors - 1) ? '\n' : ' ');
             SERIAL_PS(rply);
           }
         }
       }
 
+      // Now build the normal equations for least squares fitting
+      FixedMatrix<float, MaxnumFactors, MaxnumFactors + 1> normalMatrix;
       for (uint8_t i = 0; i < numFactors; i++) {
         for (uint8_t j = 0; j < numFactors; j++) {
-          float temp = derivativeMatrix[0][i] * derivativeMatrix[0][j];
+          float temp = derivativeMatrix(0, i) * derivativeMatrix(0, j);
           for (uint8_t k = 1; k < probe_points; k++) {
-            temp += derivativeMatrix[k][i] * derivativeMatrix[k][j];
+            temp += derivativeMatrix(k, i) * derivativeMatrix(k, j);
           }
-          normalMatrix[i][j] = temp;
+          normalMatrix(i, j) = temp;
         }
-        float temp = derivativeMatrix[0][i] * (zBedProbePoints[0] + corrections[0]) * -1;
+        float temp = -1 * derivativeMatrix(0, i) * (zBedProbePoints[0] + corrections[0]);
         for (uint8_t k = 1; k < probe_points; k++) {
-          temp += derivativeMatrix[k][i] * (zBedProbePoints[k] + corrections[k]) * -1;
+          temp += -1 * derivativeMatrix(k, i) * (zBedProbePoints[k] + corrections[k]);
         }
-        normalMatrix[i][numFactors] = temp;
+        normalMatrix(i, numFactors) = temp;
       }
 
       // Debug Normal matrix
@@ -267,61 +270,21 @@
         SERIAL_EM("Normal matrix");
         for (uint8_t i = 0; i < numFactors; i++) {
           for (uint8_t j = 0; j < numFactors + 1; j++) {
-            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix[i][j], (j == numFactors) ? '\n' : ' ');
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix(i, j), (j == numFactors) ? '\n' : ' ');
             SERIAL_PS(rply);
           }
         }
       }
 
-      // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
-      // Returns a pointer to the solution vector.
-      for (uint8_t i = 0; i < numFactors; i++) {
-        // Swap the rows around for stable Gauss-Jordan elimination
-        float vmax = ABS(normalMatrix[i][i]);
-        for (uint8_t j = i + 1; j < numFactors; j++) {
-          const float rmax = ABS(normalMatrix[j][i]);
-          if (rmax > vmax) {
-            // Swap 2 rows of a matrix
-            if (i != j) {
-              for (uint8_t k = 0; k < numFactors + 1; k++) {
-                const float temp = normalMatrix[i][k];
-                normalMatrix[i][k] = normalMatrix[j][k];
-                normalMatrix[j][k] = temp;
-              }
-            }
-            vmax = rmax;
-          }
-        }
-
-        // Use row i to eliminate the ith element from previous and subsequent rows
-        float v = normalMatrix[i][i];
-        for (uint8_t j = 0; j < i; j++)	{
-          float factor = normalMatrix[j][i] / v;
-          normalMatrix[j][i] = 0.0;
-          for (uint8_t k = i + 1; k <= numFactors; k++) {
-            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
-          }
-        }
-
-        for (uint8_t j = i + 1; j < numFactors; j++) {
-          float factor = normalMatrix[j][i] / v;
-          normalMatrix[j][i] = 0.0;
-          for (uint8_t k = i + 1; k <= numFactors; k++) {
-            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
-          }
-        }
-      }
-
       float solution[numFactors];
-      for (uint8_t i = 0; i < numFactors; i++)
-        solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
+      normalMatrix.GaussJordan(solution, numFactors);
 
       // Debug Solved matrix, solution and residuals
       if (g33_debug) {
         SERIAL_EM("Solved matrix");
         for (uint8_t i = 0; i < numFactors; i++) {
           for (uint8_t j = 0; j < numFactors + 1; j++) {
-            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix[i][j], (j == numFactors) ? '\n' : ' ');
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix(i, j), (j == numFactors) ? '\n' : ' ');
             SERIAL_PS(rply);
           }
         }
@@ -336,7 +299,7 @@
         for (uint8_t i = 0; i < probe_points; ++i) {
           float residual = zBedProbePoints[i];
           for (uint8_t j = 0; j < numFactors; j++)
-            residual += solution[j] * derivativeMatrix[i][j];
+            residual += solution[j] * derivativeMatrix(i, j);
           sprintf_P(rply, PSTR(" %7.4f"), (double)residual);
           SERIAL_PS(rply);
         }
@@ -350,9 +313,9 @@
       float sumOfSquares = 0.0;
 
       for (int8_t i = 0; i < probe_points; i++) {
-        LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
+        LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
         float newPosition[ABC];
-        mechanics.InverseTransform(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
+        mechanics.InverseTransform(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
         corrections[i] = newPosition[Z_AXIS];
         expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
         sumOfSquares += sq(expectedResiduals[i]);

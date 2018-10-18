@@ -26,8 +26,8 @@
 
 MemoryStore memorystore;
 
-bool MemoryStore::access_start(const bool read)  { UNUSED(read); return true; }
-bool MemoryStore::access_finish(const bool read) { UNUSED(read); return true; }
+bool MemoryStore::access_start(const bool read)  { UNUSED(read); return false; }
+bool MemoryStore::access_finish(const bool read) { UNUSED(read); return false; }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
