@@ -5202,7 +5202,7 @@ bool lcd_blink() {
  *   - Check the SD Card slot state
  *   - Act on RepRap World keypad input
  *   - Update the encoder position
- *   - Apply data.acceleration to the encoder position
+ *   - Apply acceleration to the encoder position
  *   - Set lcdDrawUpdate = LCDVIEW_CALL_REDRAW_NOW on controller events
  *   - Reset the Info Screen timeout if there's any input
  *   - Update status indicators, if any
@@ -5299,7 +5299,7 @@ void lcd_update() {
 
   #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
 
-  #if HAS_SD_RESTART && ENABLED(ULTIPANEL)
+  #if HAS_SD_RESTART
     if (restart.count && restart.job_phase == RESTART_IDLE) {
       lcd_goto_screen(lcd_sdcard_restart_menu);
       restart.job_phase = RESTART_MAYBE; // Waiting for a response

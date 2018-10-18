@@ -54,7 +54,7 @@ enum AxisEnum : unsigned char {
 /**
  * Printer
  */
-enum FlagVarious : char {
+enum FlagVarious : unsigned char {
   bit_running,
   bit_printing,
   bit_pos_saved,
@@ -70,7 +70,7 @@ enum FlagVarious : char {
   bit_filament_out,
   bit_g38_move
 };
-enum PrinterMode : char {
+enum PrinterMode : unsigned char {
   PRINTER_MODE_FFF,           // M450 S0 or M451
   PRINTER_MODE_LASER,         // M450 S1 or M452
   PRINTER_MODE_CNC,           // M450 S2 or M453
@@ -79,7 +79,7 @@ enum PrinterMode : char {
   PRINTER_MODE_PLOTTER,
   PRINTER_MODE_COUNT
 };
-enum MK4duoInterruptEvent : char {
+enum MK4duoInterruptEvent : unsigned char {
   INTERRUPT_EVENT_NONE,
   INTERRUPT_EVENT_FIL_RUNOUT,
   INTERRUPT_EVENT_ENC_DETECT
@@ -89,7 +89,7 @@ enum MK4duoInterruptEvent : char {
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
-enum MK4duoBusyState : char {
+enum MK4duoBusyState : unsigned char {
   NotBusy,          // Not in a handler
   InHandler,        // Processing a GCode
   InProcess,        // Known to be blocking command input (as in G29)
@@ -102,7 +102,7 @@ enum MK4duoBusyState : char {
 /**
  * DUAL X CARRIAGE
  */
-enum DualXMode {
+enum DualXMode : unsigned char {
   DXC_FULL_CONTROL_MODE,
   DXC_AUTO_PARK_MODE,
   DXC_DUPLICATION_MODE,
@@ -112,12 +112,16 @@ enum DualXMode {
 /**
  * Work Space Plane
  */
-enum WorkspacePlane { PLANE_XY, PLANE_ZX, PLANE_YZ };
+enum WorkspacePlane : unsigned char {
+  PLANE_XY,
+  PLANE_ZX,
+  PLANE_YZ
+};
 
 /**
  * Endstop
  */
-enum FlagEndstops : char {
+enum FlagEndstops : unsigned char {
   bit_endstop_enabled,
   bit_endstop_globally,
   bit_soft_endstop,
@@ -125,7 +129,7 @@ enum FlagEndstops : char {
   bit_g38_endstop_hit,
   bit_monitor_flag
 };
-enum EndstopEnum : char {
+enum EndstopEnum : unsigned char {
   X_MIN,        // Bit 0
   Y_MIN,        // Bit 1
   Z_MIN,        // Bit 2
@@ -149,7 +153,7 @@ enum EndstopEnum : char {
 /**
  * Heaters
  */
-enum FlagHeaters : char {
+enum FlagHeaters : unsigned char {
   heater_flag_use_pid,
   heater_flag_tuning,
   heater_flag_hardware_inverted,
@@ -160,11 +164,12 @@ enum FlagHeaters : char {
 enum heater_t : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
 
 /**
- * Fans
+ * Temperature
  */
-enum FlagFans : char {
-  fan_flag_hardware_inverted, // Bit 0
-  fan_flag_idle               // Bit 1
+enum TempUnit : unsigned char {
+  TEMPUNIT_C,
+  TEMPUNIT_K,
+  TEMPUNIT_F
 };
 
 #endif /* _ENUM_H_ */

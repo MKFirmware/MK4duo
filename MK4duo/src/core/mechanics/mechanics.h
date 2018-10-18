@@ -52,8 +52,6 @@ typedef struct {
   uint32_t  max_acceleration_mm_per_s2[XYZE_N],
             min_segment_time_us;
 
-  int8_t    home_dir[XYZ];
-
   #if ENABLED(JUNCTION_DEVIATION)
   float     junction_deviation_mm;
     #if ENABLED(LIN_ADVANCE)
@@ -83,7 +81,20 @@ class Mechanics {
 
   public: /** Public Parameters */
 
+    /**
+     * Settings data
+     */
     static generic_data_t data;
+
+    /**
+     * Home direction
+     */
+    static const flagdir_t  home_dir;
+
+    /**
+     * Home bump in mm
+     */
+    static float home_bump_mm[XYZ];
 
     /**
      * Feedrate
@@ -154,6 +165,11 @@ class Mechanics {
     #endif
 
   public: /** Public Function */
+
+    /**
+     * Get homedir for axis
+     */
+    static int8_t get_homedir(const AxisEnum axis);
 
     /**
      * Set the current_position for an axis based on

@@ -94,10 +94,10 @@ PrinterMode Printer::mode =
 
 // Private
 
-uint8_t   Printer::mk_debug_flag  = 0, // For debug
-          Printer::mk_home_flag   = 0; // For Homed
+flagbyte_t  Printer::debug_flag,    // For debug
+            Printer::home_flag;     // For Homed
 
-uint16_t  Printer::mk_various_flag  = 0; // For various
+flagword_t  Printer::various_flag;  // For various
 
 /**
  * Public Function
@@ -1002,14 +1002,14 @@ void Printer::setup_pinout() {
  * Flags Function
  */
 void Printer::setDebugLevel(const uint8_t newLevel) {
-  if (newLevel != mk_debug_flag) {
-    mk_debug_flag = newLevel;
+  if (newLevel != debug_flag._byte) {
+    debug_flag._byte = newLevel;
     if (debugDryrun() || debugSimulation()) {
       // Disable all heaters in case they were on
       thermalManager.disable_all_heaters();
     }
   }
-  SERIAL_EMV("DebugLevel:", (int)mk_debug_flag);
+  SERIAL_EMV("DebugLevel:", (int)debug_flag._byte);
 }
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)

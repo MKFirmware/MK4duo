@@ -47,7 +47,7 @@
     float diff[XYZ];
     LOOP_XYZ(i) {
       diff[i] = mechanics.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
-      if (WITHIN(diff[i], -20, 20) && mechanics.data.home_dir[(AxisEnum)i] > 0)
+      if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)
         diff[i] = -mechanics.current_position[i];
       if (!WITHIN(diff[i], -20, 20)) {
         SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);

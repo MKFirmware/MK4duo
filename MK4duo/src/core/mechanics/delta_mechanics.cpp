@@ -66,13 +66,10 @@
 
     static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
                           tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE,
-                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-                          tmp_homebump[]      PROGMEM = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) };
 
     static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                           tmp_retractacc[]    PROGMEM = DEFAULT_RETRACT_ACCELERATION;
-
-    static const int8_t   tmp_homedir[]       PROGMEM = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
     LOOP_XYZE_N(i) {
       data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
@@ -89,11 +86,8 @@
     data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
     data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
-    LOOP_XYZ(i) {
+    LOOP_XYZ(i)
       data.homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
-      data.home_bump_mm[i]          = pgm_read_float(&tmp_homebump);
-      data.home_dir[i]              = pgm_read_byte(&tmp_homedir);
-    }
 
     #if ENABLED(JUNCTION_DEVIATION)
       data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
@@ -1248,7 +1242,7 @@
     do_homing_move(axis, 1.5 * data.height);
 
     // When homing Z with probe respect probe clearance
-    const float bump = data.home_bump_mm[axis];
+    const float bump = home_bump_mm[axis];
 
     // If a second homing move is configured...
     if (bump) {

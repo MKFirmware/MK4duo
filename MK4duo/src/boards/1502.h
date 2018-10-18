@@ -171,7 +171,7 @@
 #undef NUM_DIGITAL_PINS
 #define NUM_DIGITAL_PINS 111
 
-#define SPI_CHAN_DAC 1
+#define SPI_CHAN_DAC           1
 #define X_MS1_PIN             99
 #define Y_MS1_PIN             10
 #define Z_MS1_PIN             44
@@ -180,11 +180,11 @@
 #define EXP_VOLTAGE_LEVEL_PIN 65
 #define DAC0_SYNC_PIN         53
 #define DAC1_SYNC_PIN          6
-#define EEPROM_SPI
 #define SPI_CHAN_EEPROM1       2
 #define SPI_EEPROM1_CS        25
 #define SPI_EEPROM2_CS        26
 #define SPI_FLASH_CS          23
+#define EEPROM_SPI
 #define E2END                 0x2000
 #define HAVE_MCU_TEMPERATURE
 //@@@

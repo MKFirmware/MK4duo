@@ -35,15 +35,16 @@
 // Struct Fan data
 typedef struct {
 
-  pin_t     pin;
-  
-  uint8_t   ID,
-            min_Speed,
-            autoMonitored,
-            flag;
+  pin_t       pin;
 
-  uint16_t  triggerTemperature,
-            freq;
+  flagbyte_t  flag;
+
+  uint8_t     ID,
+              min_Speed,
+              autoMonitored;
+
+  uint16_t    triggerTemperature,
+              freq;
 
 } fan_data_t;
 
@@ -75,14 +76,16 @@ class Fan {
     void spin();
     void print_parameters();
 
+    // Fan flag bit 0 Hardware inverted
     FORCE_INLINE void setHWInverted(const bool onoff) {
-      SET_BIT(data.flag, fan_flag_hardware_inverted, onoff);
+      data.flag.bit0 = onoff;
     }
-    FORCE_INLINE bool isHWInverted() { return TEST(data.flag, fan_flag_hardware_inverted); }
+    FORCE_INLINE bool isHWInverted() { return data.flag.bit0; }
 
+    // Fan flag bit 1 Idle
     FORCE_INLINE void setIdle(const bool onoff) {
       if (onoff != isIdle()) {
-        SET_BIT(data.flag, fan_flag_idle, onoff);
+        data.flag.bit1 = onoff;
         if (onoff) {
           paused_Speed = Speed;
           Speed = 0;
@@ -91,7 +94,7 @@ class Fan {
           Speed = paused_Speed;
       }
     }
-    FORCE_INLINE bool isIdle() { return TEST(data.flag, fan_flag_idle); }
+    FORCE_INLINE bool isIdle() { return data.flag.bit1; }
 
     #if HARDWARE_PWM
       void SetHardwarePwm();
