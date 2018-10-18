@@ -27,19 +27,19 @@
   void lcd_init();
   void lcd_update();
   void lcd_reset_alert_level();
-  void lcd_setstatusPGM(PGM_P message, const int8_t level=0);
-  void lcd_setalertstatusPGM(PGM_P message);
-  void lcd_setstatus(PGM_P message, const bool persist=false);
-  void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...);
+  void lcd_setstatusPGM(const char* message, const int8_t level=0);
+  void lcd_setalertstatusPGM(const char* message);
+  void lcd_setstatus(const char* message, const bool persist=false);
+  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
   bool lcd_detected();
 #else
   inline void lcd_init() {}
   inline void lcd_update() {}
   inline void lcd_reset_alert_level() {}
-  inline void lcd_setstatusPGM(PGM_P const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
-  inline void lcd_setalertstatusPGM(PGM_P message) { UNUSED(message); }
-  inline void lcd_setstatus(PGM_P const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
-  inline void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...) { UNUSED(level); UNUSED(fmt); }
+  inline void lcd_setstatusPGM(const char* const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
+  inline void lcd_setalertstatusPGM(const char* message) { UNUSED(message); }
+  inline void lcd_setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
+  inline void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) { UNUSED(level); UNUSED(fmt); }
   inline bool lcd_detected() { return true; }
 #endif
 
@@ -49,7 +49,7 @@
     #include "../feature/advanced_pause/advanced_pause.h"
   #endif
 
-  enum LCDViewAction : uint8_t {
+  enum LCDViewAction {
     LCDVIEW_NONE,
     LCDVIEW_REDRAW_NOW,
     LCDVIEW_CALL_REDRAW_NEXT,
@@ -62,9 +62,9 @@
   void lcd_reset_status();
   
   void lcd_kill_screen();
-  void kill_screen(PGM_P lcd_msg);
+  void kill_screen(const char* lcd_msg);
 
-  extern LCDViewAction lcdDrawUpdate;
+  extern uint8_t lcdDrawUpdate;
   inline void lcd_refresh() { lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW; }
 
   extern void lcd_move_z_probe();
@@ -115,6 +115,8 @@
     #endif
 
     void lcd_goto_screen(screenFunc_t screen, const uint32_t encoder=0);
+
+    void lcd_completion_feedback(const bool good=true);
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
@@ -204,7 +206,7 @@
 
   void lcd_eeprom_allert();
 
-#else // no NEXTION or no LCD
+#else // NEXTION or no LCD
 
   constexpr bool lcd_wait_for_move = false;
 
