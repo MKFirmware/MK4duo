@@ -20,24 +20,13 @@
  *
  */
 
-#ifndef _PCF8574_H_
-#define _PCF8574_H_
+#pragma once
 
-#if ENABLED(PCF8574_EXTENSION_IO)
+#if ENABLED(PCF8574_EXPANSION_IO)
 
-  #include "Wire.h"
+  #define READ_ELAPSED_TIME      10
+  #define PIN_START_FOR_PCF8574 120
 
-  #define READ_ELAPSED_TIME 10
-
-  #define P0  	0
-  #define P1  	1
-  #define P2  	2
-  #define P3  	3
-  #define P4  	4
-  #define P5  	5
-  #define P6  	6
-  #define P7  	7
-      
   class PCF8574 {
 
     public: /** Constructor */
@@ -66,6 +55,6 @@
 
   };
 
-#endif // ENABLED(PCF8574)
+  extern PCF8574 pcf8574;
 
-#endif /* _PCF8574_H_ */
+#endif // ENABLED(PCF8574)

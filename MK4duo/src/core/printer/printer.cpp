@@ -252,6 +252,10 @@ void Printer::setup() {
     flowmeter.flow_init();
   #endif
 
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    pcf8574.begin();
+  #endif
+
   #if ENABLED(RFID_MODULE)
     RFID_ON = rfid522.init();
     if (RFID_ON)

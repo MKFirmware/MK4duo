@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 #include <stdint.h>
 #include <Arduino.h>
+#include <Wire.h>
 #include <Reset.h>
 
 // --------------------------------------------------------------------------
@@ -78,6 +79,15 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
+#ifndef WIRE_PORT
+  #define WIRE_PORT 1
+#endif
+
+#if (WIRE_PORT == 2)
+  #define WIRE  Wire1
+#else
+  #define WIRE  Wire
+#endif
 
 // do not use program space memory with Due
 #define PROGMEM

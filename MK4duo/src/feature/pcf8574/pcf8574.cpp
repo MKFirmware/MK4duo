@@ -22,7 +22,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(PCF8574)
+#if ENABLED(PCF8574_EXPANSION_IO)
 
   uint8_t PCF8574::_address;
 
@@ -35,14 +35,14 @@
 
   void PCF8574::begin() {
 
-    Wire.begin();
+    WIRE.begin();
 
     // Check if there are pins to set low
     if (writeMode || readMode) {
-      Wire.beginTransmission(_address);
+      WIRE.beginTransmission(_address);
       byte usedPin = writeMode | readMode;
-      Wire.write(~usedPin);
-      Wire.endTransmission();
+      WIRE.write(~usedPin);
+      WIRE.endTransmission();
     }
 
     lastReadMillis = millis();
@@ -58,19 +58,19 @@
       writeMode = writeMode &  ~bit(pin);
       readMode  = readMode  |   bit(pin);
     }
-
+    begin();
   };
 
   void PCF8574::digitalWrite(const uint8_t pin, const uint8_t value) {
-    Wire.beginTransmission(_address);   // Begin the transmission to PCF8574
+    WIRE.beginTransmission(_address);   // Begin the transmission to PCF8574
     if (value == HIGH)
       writeByteBuffered = writeByteBuffered | bit(pin);
     else
       writeByteBuffered = writeByteBuffered & ~bit(pin);
 
     writeByteBuffered = writeByteBuffered & writeMode;
-    Wire.write(writeByteBuffered);
-    Wire.endTransmission();
+    WIRE.write(writeByteBuffered);
+    WIRE.endTransmission();
   };
 
   uint8_t PCF8574::digitalRead(const uint8_t pin) {
@@ -80,11 +80,11 @@
     if ((bit(pin) & byteBuffered))
       value = HIGH;
     else if ((millis() > lastReadMillis + READ_ELAPSED_TIME)) {
-      Wire.requestFrom(_address, (uint8_t)1); // Begin transmission to PCF8574 with the buttons
+      WIRE.requestFrom(_address, (uint8_t)1); // Begin transmission to PCF8574
       lastReadMillis = millis();
 
-      if (Wire.available()) {                 // If bytes are available to be recieved
-        byte iInput = Wire.read();            // Read a byte
+      if (WIRE.available()) {                 // If bytes are available to be recieved
+        byte iInput = WIRE.read();            // Read a byte
 
         if ((iInput & readMode)) {
           byteBuffered = byteBuffered | (byte)iInput;
@@ -99,7 +99,8 @@
       byteBuffered = ~bit(pin) & byteBuffered;
 
     return value;
-
   };
 
-#endif // PCF8574
+  PCF8574 pcf8574(PCF8574_ADDRESS);
+
+#endif // PCF8574_EXPANSION_IO
