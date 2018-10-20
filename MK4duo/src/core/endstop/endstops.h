@@ -176,7 +176,10 @@ class Endstops {
     FORCE_INLINE static bool isMonitorEnabled() { return TEST(flag_bits, bit_monitor_flag); }
 
     // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-    FORCE_INLINE static void setNotHoming() { setEnabled(isGlobally()); }
+    FORCE_INLINE static void setNotHoming() {
+      setEnabled(isGlobally());
+      if (!isEnabled()) live_state = 0;
+    }
 
   private: /** Private Function */
 

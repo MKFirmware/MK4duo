@@ -113,7 +113,9 @@ class Printer {
 
     static void quickstop_stepper();
 
-    static void kill(PGM_P);
+    static void kill(PGM_P const lcd_msg=NULL);
+    static void minikill();
+
     static void Stop();
 
     static void idle(const bool ignore_stepper_queue=false);
@@ -121,7 +123,9 @@ class Printer {
 
     static bool pin_is_protected(const pin_t pin);
 
-    static void suicide();
+    #if HAS_SUICIDE
+      static void suicide();
+    #endif
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);

@@ -219,7 +219,7 @@ void Temperature::spin() {
   millis_t now = millis();
 
   #if ENABLED(EMERGENCY_PARSER)
-    if (emergency_parser.killed_by_M112) printer.kill(PSTR(MSG_KILLED));
+    if (emergency_parser.killed_by_M112) printer.kill();
   #endif
 
   LOOP_HEATER() {

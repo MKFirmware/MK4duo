@@ -461,7 +461,7 @@ millis_t next_lcd_update_ms;
     return click;
   }
 
-  inline bool printer_busy() { return planner.movesplanned() || IS_SD_PRINTING; }
+  inline bool printer_busy() { return planner.movesplanned() || IS_SD_PRINTING(); }
 
   /**
    * General function to go directly to a screen
@@ -726,7 +726,7 @@ void lcd_reset_status() {
   if (print_job_counter.isPaused())
     msg = paused;
   #if HAS_SD_SUPPORT
-    else if (IS_SD_PRINTING)
+    else if (IS_SD_PRINTING())
       return lcd_setstatus(card.fileName, true);
   #endif
   else if (print_job_counter.isRunning())
@@ -1047,7 +1047,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     #if HAS_SD_SUPPORT
       if (card.isOK()) {
         if (card.isFileOpen()) {
-          if (IS_SD_PRINTING)
+          if (IS_SD_PRINTING())
             MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
           else
             MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
@@ -4018,7 +4018,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         if (laser.peripherals_ok()) {
           MENU_ITEM(function, "Turn On Pumps/Fans", action_laser_acc_on);
         }
-        else if (!(planner.movesplanned() || IS_SD_PRINTING)) {
+        else if (!(planner.movesplanned() || IS_SD_PRINTING())) {
           MENU_ITEM(function, "Turn Off Pumps/Fans", action_laser_acc_off);
         }
       #endif // LASER_PERIPHERALS
@@ -5270,7 +5270,7 @@ void lcd_update() {
 
   #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
 
-    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED;
+    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED();
     if (sd_status != lcd_sd_status && lcd_detected()) {
 
       uint8_t old_sd_status = lcd_sd_status; // prevent re-entry to this block!

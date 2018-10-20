@@ -33,8 +33,12 @@
         // We enable the watchdog timer, but only for the interrupt.
         // Take care, as this requires the correct order of operation, with interrupts disabled. See the datasheet of any AVR chip for details.
         wdt_reset();
+        cli();
         _WD_CONTROL_REG = _BV(_WD_CHANGE_BIT) | _BV(WDE);
         _WD_CONTROL_REG = _BV(WDIE) | WDTO_4S;
+
+        sei();
+        wdt_reset();
       #else
         wdt_enable(WDTO_4S);
       #endif
@@ -54,9 +58,9 @@
   // Watchdog timer interrupt, called if main program blocks >4sec and manual reset is enabled.
   #if ENABLED(USE_WATCHDOG) && ENABLED(WATCHDOG_RESET_MANUAL)
     ISR(WDT_vect) {
-      SERIAL_LM(ER, "Something is wrong, please turn off the printer.");
-      printer.kill(PSTR("ERR:Please Reset")); // kill blocks // 16 characters so it fits on a 16x2 display
-      while (1); // wait for user or serial reset
+      sei();  // With the interrupt driven serial we need to allow interrupts.
+      SERIAL_LM(ER, "Watchdog timeout. Reset required.");
+      printer.minikill();
     }
   #endif // WATCHDOG_RESET_MANUAL
 

@@ -251,6 +251,7 @@
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
  * M512 - Print Extruder Encoder status Pin. (Requires Extruder Encoder)
  * M522 - Read or Write on card. M522 T[extruders] R[read] or W[write] L[list]
+ * M524 - Abort the current SD print job (started with M24). (Requires SDSUPPORT)
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
  * M531 - filename - Define filename being printed
  * M532 - X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L

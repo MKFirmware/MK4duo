@@ -44,13 +44,6 @@
 
   enum LsAction : char { LS_Count, LS_GetFilename };
 
-  enum FlagCardReader : char {
-    flag_SD_OK,
-    flag_SD_saving,
-    flag_SD_printing,
-    flag_SD_filenameIsDir
-  };
-
   #include "SDFat.h"
 
   class CardReader {
@@ -83,7 +76,7 @@
 
     private: /** Private Parameters */
 
-      static uint8_t card_flag;
+      static flagbyte_t card_flag;
 
       static uint16_t nrFile_index;
 
@@ -226,26 +219,21 @@
         #endif
       #endif
 
-      // Flag function
-      FORCE_INLINE static void setOK(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_OK, onoff);
-      }
-      FORCE_INLINE static bool isOK() { return TEST(card_flag, flag_SD_OK); }
+      // Card flag bit 0 SD OK
+      FORCE_INLINE static void setOK(const bool onoff) { card_flag.bit0 = onoff; }
+      FORCE_INLINE static bool isOK() { return card_flag.bit0; }
 
-      FORCE_INLINE static void setSaving(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_saving, onoff);
-      }
-      FORCE_INLINE static bool isSaving() { return TEST(card_flag, flag_SD_saving); }
+      // Card flag bit 1 saving
+      FORCE_INLINE static void setSaving(const bool onoff) { card_flag.bit1 = onoff; }
+      FORCE_INLINE static bool isSaving() { return card_flag.bit1; }
 
-      FORCE_INLINE static void setSDprinting(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_printing, onoff);
-      }
-      FORCE_INLINE static bool isSDprinting() { return TEST(card_flag, flag_SD_printing); }
+      // Card flag bit 2 printing
+      FORCE_INLINE static void setSDprinting(const bool onoff) { card_flag.bit2 = onoff; }
+      FORCE_INLINE static bool isSDprinting() { return card_flag.bit2; }
 
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_filenameIsDir, onoff);
-      }
-      FORCE_INLINE static bool isFilenameIsDir() { return TEST(card_flag, flag_SD_filenameIsDir); }
+      // Card flag bit 3 Filename is dir
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit3 = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit3; }
 
       FORCE_INLINE static void pauseSDPrint() { setSDprinting(false); }
       FORCE_INLINE static void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
@@ -274,24 +262,24 @@
 
   extern CardReader card;
 
-  #define IS_SD_PRINTING (card.isSDprinting())
-  #define IS_SD_FILE_OPEN (card.isFileOpen())
+  #define IS_SD_PRINTING()  (card.isSDprinting())
+  #define IS_SD_FILE_OPEN() (card.isFileOpen())
 
   #if PIN_EXISTS(SD_DETECT)
     #if ENABLED(SD_DETECT_INVERTED)
-      #define IS_SD_INSERTED (READ(SD_DETECT_PIN) != 0)
+      #define IS_SD_INSERTED()  READ(SD_DETECT_PIN)
     #else
-      #define IS_SD_INSERTED (READ(SD_DETECT_PIN) == 0)
+      #define IS_SD_INSERTED()  !READ(SD_DETECT_PIN)
     #endif
   #else
     //No card detect line? Assume the card is inserted.
-    #define IS_SD_INSERTED true
+    #define IS_SD_INSERTED() true
   #endif
 
 #else
 
-  #define IS_SD_PRINTING (false)
-  #define IS_SD_FILE_OPEN (false)
+  #define IS_SD_PRINTING()  (false)
+  #define IS_SD_FILE_OPEN() (false)
 
 #endif //SDSUPPORT
 

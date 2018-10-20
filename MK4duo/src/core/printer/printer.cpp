@@ -311,7 +311,7 @@ void Printer::loop() {
 
         #if HAS_SD_RESTART
           // Save Job for restart
-          if (IS_SD_PRINTING) restart.save_data(true);
+          if (IS_SD_PRINTING()) restart.save_data(true);
         #endif
 
         // Stop SD printing
@@ -448,32 +448,42 @@ void Printer::quickstop_stepper() {
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
  */
-void Printer::kill(PGM_P lcd_msg) {
-  SERIAL_LM(ER, MSG_ERR_KILLED);
+void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
 
   thermalManager.disable_all_heaters();
-  stepper.disable_all();
 
-  #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
-    HAL::resetHardware();
-  #endif
-  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    flowmeter.flow_firstread = false;
-  #endif
+  SERIAL_LM(ER, MSG_ERR_KILLED);
 
   #if ENABLED(ULTRA_LCD)
-    kill_screen(lcd_msg);
+    kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
   #else
     UNUSED(lcd_msg);
   #endif
 
+  SERIAL_STR(POWEROFF);
+  SERIAL_EOL();
+
+  minikill();
+}
+
+void Printer::minikill() {
+
   printer.safe_delay(600);  // Wait a short time (allows messages to get out before shutting down.
   #if DISABLED(CPU_32_BIT)
-    cli(); // Stop interrupts
+    cli();                  // Stop interrupts
+  #endif
+  printer.safe_delay(250);  // Wait to ensure all interrupts routines stopped
+
+  stepper.disable_all();
+  thermalManager.disable_all_heaters(); // Turn off heaters again
+
+  #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
+    HAL::resetHardware();
   #endif
 
-  printer.safe_delay(250);  // Wait to ensure all interrupts routines stopped
-  thermalManager.disable_all_heaters(); // Turn off heaters again
+  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
+    flowmeter.flow_firstread = false;
+  #endif
 
   #if ENABLED(LASER)
     laser.init();
@@ -673,7 +683,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     // ---------------------------------------------------------
     static int homeDebounceCount = 0;   // poor man's debouncing count
     const int HOME_DEBOUNCE_DELAY = 750;
-    if (!IS_SD_PRINTING && !READ(HOME_PIN)) {
+    if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
       if (!homeDebounceCount) {
         commands.enqueue_and_echo_P(PSTR("G28"));
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
@@ -838,7 +848,7 @@ void Printer::handle_interrupt_events() {
   switch(event) {
     #if HAS_FIL_RUNOUT
       case INTERRUPT_EVENT_FIL_RUNOUT:
-        if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+        if (!isFilamentOut() && (IS_SD_PRINTING() || print_job_counter.isRunning())) {
           setFilamentOut(true);
           commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
           planner.synchronize();
@@ -848,7 +858,7 @@ void Printer::handle_interrupt_events() {
 
     #if HAS_EXT_ENCODER
       case INTERRUPT_EVENT_ENC_DETECT:
-        if (!isFilamentOut() && (IS_SD_PRINTING || print_job_counter.isRunning())) {
+        if (!isFilamentOut() && (IS_SD_PRINTING() || print_job_counter.isRunning())) {
           setFilamentOut(true);
           planner.synchronize();
 
@@ -871,7 +881,7 @@ void Printer::handle_safety_watch() {
 
   static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
-  if (safety_watch.isRunning() && (IS_SD_PRINTING || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
+  if (safety_watch.isRunning() && (IS_SD_PRINTING() || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
   else if (!safety_watch.isRunning() && thermalManager.heaters_isActive())
     safety_watch.start();
@@ -892,11 +902,9 @@ bool Printer::pin_is_protected(const pin_t pin) {
   return false;
 }
 
-void Printer::suicide() {
-  #if HAS_SUICIDE
-    OUT_WRITE(SUICIDE_PIN, LOW);
-  #endif
-}
+#if HAS_SUICIDE
+  void Printer::suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
+#endif
 
 /**
  * Private Function

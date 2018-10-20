@@ -54,7 +54,7 @@ void PrintCounter::loadStats() {
 
   #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
     // Checks if the SDCARD is inserted
-    if (IS_SD_INSERTED && !IS_SD_PRINTING)
+    if (IS_SD_INSERTED() && !IS_SD_PRINTING())
       card.RetrieveSettings(true);
   #endif
 }
