@@ -202,8 +202,8 @@
  * M220 - Set speed factor override percentage: S[factor in percent]
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
- * M223 - Set Filrunout Logic T[tools] S[Filrunout bool]. (Requires FILAMENT_RUNOUT_SENSOR)
- * M224 - Set Filrunout Pullup T[tools] S[Filrunout bool]. (Requires FILAMENT_RUNOUT_SENSOR)
+ * M223 - T[extruder] S[bool] set Filrunout Logic. (Requires FILAMENT_RUNOUT_SENSOR)
+ * M224 - T[extruder] S[bool] set Filrunout Pullup. (Requires FILAMENT_RUNOUT_SENSOR)
  * M226 - Wait until the specified pin reaches the state required: P[pin number] S[pin state]
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C[contrast value] (value 0..63)
