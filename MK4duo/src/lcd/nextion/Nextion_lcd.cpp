@@ -1075,7 +1075,7 @@
       switch(Vyes.getValue()) {
         #if HAS_SD_SUPPORT
           case 1: // Stop Print
-            printer.setAbortSDprinting(true);
+            card.setAbortSDprinting(true);
             lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
             Pprinter.show();
             break;
@@ -1238,7 +1238,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING()) && !Wavetemp.getObjVis() && show_Wave) {
+      if (!printer.isPrinting() && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1511,7 +1511,7 @@
     }
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING() || force_clear)) {
+      if (PageID == 2 && (printer.isPrinting() || force_clear)) {
         Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
@@ -1519,12 +1519,12 @@
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING() || force_cursor))
+      if (PageID == 2 && (printer.isPrinting() || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING())) {
+      if (PageID == 2 && printer.isPrinting()) {
         #if ENABLED(ARDUINO_ARCH_SAM)
           gfx.line_to(NX_TOOL, x, y, z, true);
         #else

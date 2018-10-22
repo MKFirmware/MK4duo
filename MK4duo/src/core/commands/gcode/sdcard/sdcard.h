@@ -122,11 +122,8 @@
    * M27: Get SD Card status or set the SD status auto-report interval.
    */
   inline void gcode_M27(void) {
-    bool to_enable = false;
-    if (parser.seenval('S')) {
-      to_enable = parser.value_bool();
-      printer.setAutoreportSD(to_enable);
-    }
+    if (parser.seenval('S'))
+      card.setAutoreportSD(parser.value_bool());
     else
       card.printStatus();
   }
@@ -183,7 +180,7 @@
    */
   inline void gcode_M33(void) {
     if (card.isOK() && IS_SD_PRINTING())
-      printer.setAbortSDprinting(true);
+      card.setAbortSDprinting(true);
   }
 
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
@@ -208,7 +205,7 @@
    * M524: Abort the current SD print job (started with M24)
    */
   inline void gcode_M524(void) {
-    if (IS_SD_PRINTING()) printer.setAbortSDprinting(true);
+    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   }
 
 #endif // HAS_SD_SUPPORT

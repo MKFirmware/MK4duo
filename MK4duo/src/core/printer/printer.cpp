@@ -190,6 +190,16 @@ void Printer::setup() {
   // Init endstops
   endstops.init();
 
+  // Init Filament runout
+  #if HAS_FIL_RUNOUT_0
+    filamentrunout.init();
+  #endif
+
+  // Init Power switch or power consuma
+  #if HAS_POWER_CHECK
+    powerManager.init();
+  #endif
+
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
   const bool eeprom_loaded = eeprom.load();
@@ -306,8 +316,8 @@ void Printer::loop() {
 
       card.checkautostart();
 
-      if (isAbortSDprinting()) {
-        setAbortSDprinting(false);
+      if (card.isAbortSDprinting()) {
+        card.setAbortSDprinting(false);
 
         #if HAS_SD_RESTART
           // Save Job for restart
@@ -374,7 +384,7 @@ void Printer::check_periodical_actions() {
     }
 
     #if HAS_SD_SUPPORT
-      if (isAutoreportSD()) card.printStatus();
+      if (card.isAutoreportSD()) card.printStatus();
     #endif
 
     #if ENABLED(NEXTION)
@@ -468,14 +478,16 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
 
 void Printer::minikill() {
 
-  printer.safe_delay(600);  // Wait a short time (allows messages to get out before shutting down.
-  #if DISABLED(CPU_32_BIT)
-    cli();                  // Stop interrupts
-  #endif
-  printer.safe_delay(250);  // Wait to ensure all interrupts routines stopped
+  // Wait a short time (allows messages to get out before shutting down.
+  for (int i = 1000; i--;) HAL::delayMicroseconds(600);
 
-  stepper.disable_all();
-  thermalManager.disable_all_heaters(); // Turn off heaters again
+  cli();  // Stop interrupts
+
+  // Wait to ensure all interrupts routines stopped
+  for (int i = 1000; i--;) HAL::delayMicroseconds(250);
+
+  // Turn off heaters again
+  thermalManager.disable_all_heaters(); 
 
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
@@ -504,7 +516,8 @@ void Printer::minikill() {
     suicide();
   #endif
 
-  while(1) { watchdog.reset(); } // Wait for reset
+  // Wait for reset
+  while(1) { watchdog.reset(); }
 
 }
 
@@ -594,7 +607,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     cnc.manage();
   #endif
 
-  #if HAS_FIL_RUNOUT
+  #if HAS_FIL_RUNOUT_0
     filamentrunout.spin();
   #endif
 
@@ -846,9 +859,9 @@ void Printer::handle_interrupt_events() {
   interruptEvent = INTERRUPT_EVENT_NONE;
 
   switch(event) {
-    #if HAS_FIL_RUNOUT
+    #if HAS_FIL_RUNOUT_0
       case INTERRUPT_EVENT_FIL_RUNOUT:
-        if (!isFilamentOut() && (IS_SD_PRINTING() || print_job_counter.isRunning())) {
+        if (!isFilamentOut() && isPrinting()) {
           setFilamentOut(true);
           commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
           planner.synchronize();
@@ -858,7 +871,7 @@ void Printer::handle_interrupt_events() {
 
     #if HAS_EXT_ENCODER
       case INTERRUPT_EVENT_ENC_DETECT:
-        if (!isFilamentOut() && (IS_SD_PRINTING() || print_job_counter.isRunning())) {
+        if (!isFilamentOut() && isPrinting()) {
           setFilamentOut(true);
           planner.synchronize();
 
@@ -881,7 +894,7 @@ void Printer::handle_safety_watch() {
 
   static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
-  if (safety_watch.isRunning() && (IS_SD_PRINTING() || print_job_counter.isRunning() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
+  if (safety_watch.isRunning() && (isPrinting() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
   else if (!safety_watch.isRunning() && thermalManager.heaters_isActive())
     safety_watch.start();
@@ -891,6 +904,11 @@ void Printer::handle_safety_watch() {
     SERIAL_EM("Max inactivity time (30 minutes) Heaters switch off!");
   }
 }
+
+/**
+ * isPrinting check
+ */
+bool Printer::isPrinting() { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
 
 /**
  * Sensitive pin test for M42, M226

@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.7_beta revision 24092018
+## Version 4.3.7_beta revision 22102018
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -70,24 +70,25 @@ The new features are:
 * Added Laser beam and raster base64
 * Added CNC Router
 * Addes Mesh Bed Level (MBL)
-* Added Stop and Save for Restart (SSR)
-* Added Restart for recovery jov when power loss an return
+* Added Restart
+* Added Restart for recovery job when power loss an return
 * Added Nozzle Clean Features
 * Added Nozzle Park Features
 * Added RGB LED
+* Added Adafruit Neopixel LED
 * Added Case Light
 * Added ABL or MBL leveling fade height
 * Added save in EEPROM ABL, MBL or UBL
 * Added Door switch
 * Added TMC2130 motor driver
 * Added TMC2208 motor driver
+* Added TMC2660 motor driver
 * Added Power Check for Stop and Save
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD
 * Added DAV system for filament runout
 * Added Extruder Encoder for control filament movement
-* Added Adafruit Neopixel LED
 * Added DHT Sensor Temperature and Humidity (DHT11, DHT21 and DHT22)
 * Added Universal Bed Leveling (UBL) by Official Marlin
 * Added Junction Deviation instead of traditional Jerk limiting

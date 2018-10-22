@@ -89,28 +89,28 @@ inline void gcode_M119(void) {
   #if HAS_Z_PROBE_PIN
     ES_REPORT(Z_PROBE);
   #endif
-  #if HAS_FIL_RUNOUT
-    print_state(READ(FIL_RUNOUT0_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 0");
+  #if HAS_FIL_RUNOUT_0
+    print_state(READ(FIL_RUNOUT_0_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_0), MSG_FILAMENT_RUNOUT " 0");
   #endif
-  #if HAS_FIL_RUNOUT1
-    print_state(READ(FIL_RUNOUT1_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 1");
+  #if HAS_FIL_RUNOUT_1
+    print_state(READ(FIL_RUNOUT_1_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_1), MSG_FILAMENT_RUNOUT " 1");
   #endif
-  #if HAS_FIL_RUNOUT2
-    print_state(READ(FIL_RUNOUT2_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 2");
+  #if HAS_FIL_RUNOUT_2
+    print_state(READ(FIL_RUNOUT_2_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_2), MSG_FILAMENT_RUNOUT " 2");
   #endif
-  #if HAS_FIL_RUNOUT3
-    print_state(READ(FIL_RUNOUT3_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 3");
+  #if HAS_FIL_RUNOUT_3
+    print_state(READ(FIL_RUNOUT_3_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_3), MSG_FILAMENT_RUNOUT " 3");
   #endif
-  #if HAS_FIL_RUNOUT4
-    print_state(READ(FIL_RUNOUT4_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 4");
+  #if HAS_FIL_RUNOUT_4
+    print_state(READ(FIL_RUNOUT_4_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_4), MSG_FILAMENT_RUNOUT " 4");
   #endif
-  #if HAS_FIL_RUNOUT5
-    print_state(READ(FIL_RUNOUT5_PIN) ^ endstops.isLogic(FIL_RUNOUT), MSG_FILAMENT_RUNOUT " 5");
+  #if HAS_FIL_RUNOUT_5
+    print_state(READ(FIL_RUNOUT_5_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_5), MSG_FILAMENT_RUNOUT " 5");
   #endif
   #if HAS_DOOR_OPEN
     ES_REPORT(DOOR_OPEN);
   #endif
   #if HAS_POWER_CHECK
-    ES_REPORT(POWER_CHECK);
+    print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), MSG_POWER_CHECK);
   #endif
 }

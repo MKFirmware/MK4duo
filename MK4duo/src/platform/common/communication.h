@@ -87,6 +87,8 @@ class Com {
 
     static void print_spaces(uint8_t count);
 
+    static void print_logic(PGM_P const label, const bool logic);
+
     #if ENABLED(DEBUG_FEATURE)
       static void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
       static void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
@@ -118,6 +120,7 @@ class Com {
 #define SERIAL_EOL()                        (Com::println())
 
 #define SERIAL_SP(C)                        (Com::print_spaces(C))
+#define SERIAL_LOGIC(msg, val)              (Com::print_logic(PSTR(msg), val))
 
 #define SERIAL_MT(msg, txt)                 do{ SERIAL_MSG(msg); SERIAL_TXT(txt); }while(0)
 #define SERIAL_MV(msg, val, ...)            do{ SERIAL_MSG(msg); SERIAL_VAL(val, ## __VA_ARGS__); }while(0)

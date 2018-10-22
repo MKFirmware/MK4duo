@@ -97,8 +97,8 @@
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
 | M122 | MIN SOFTWARE ENDSTOPS or MAX SOFTWARE ENDSTOPS | S[bool] Enable or disable check software endstop
-| M123 | ENDSTOP | Set Endstop Logic[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool>
-| M124 | ENDSTOP | Set Endstop Pullup[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool>
+| M123 | ENDSTOP | Set Endstop Logic[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+| M124 | ENDSTOP | Set Endstop Pullup[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
 | M125 | PARK HEAD ON PAUSE | Save current position and move to pause park position 
 | M126 | ? | Solenoid Air Valve Open (BariCUDA support by jmil)
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -129,6 +129,8 @@
 | M220 | ? | S[factor in percent] - set speed factor override percentage
 | M221 | ? | T[extruder] S[factor in percent] - set extrude factor override percentage
 | M222 | ? | T[extruder] S[factor in percent] - set density extrude factor percentage for purge
+| M223 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Logic
+| M224 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Pullup
 | M240 | ? | Trigger a camera to take a photograph
 | M280 | SERVO | Position an RC Servo P[index] S[angle/microseconds], ommit S to report back current angle
 | M281 | SERVO | Set servo low|up angles position. P[index] L[low] U[up]

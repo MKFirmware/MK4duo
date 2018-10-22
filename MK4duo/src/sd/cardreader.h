@@ -231,9 +231,17 @@
       FORCE_INLINE static void setSDprinting(const bool onoff) { card_flag.bit2 = onoff; }
       FORCE_INLINE static bool isSDprinting() { return card_flag.bit2; }
 
-      // Card flag bit 3 Filename is dir
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit3 = onoff; }
-      FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit3; }
+      // Card flag bit 3 Autoreport SD
+      FORCE_INLINE static void setAutoreportSD(const bool onoff) { card_flag.bit3 = onoff; }
+      FORCE_INLINE static bool isAutoreportSD() { return card_flag.bit3; }
+
+      // Card flag bit 4 AbortSDprinting
+      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { card_flag.bit4 = onoff; }
+      FORCE_INLINE static bool isAbortSDprinting() { return card_flag.bit4; }
+
+      // Card flag bit 5 Filename is dir
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit5 = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit5; }
 
       FORCE_INLINE static void pauseSDPrint() { setSDprinting(false); }
       FORCE_INLINE static void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }

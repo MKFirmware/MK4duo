@@ -30,7 +30,7 @@
  *  - A_AXIS, B_AXIS, and C_AXIS should be used for Steppers, corresponding to XYZ on Cartesians
  *  - X_HEAD, Y_HEAD, and Z_HEAD should be used for Steppers on Core kinematics
  */
-enum AxisEnum : unsigned char {
+enum AxisEnum : uint8_t {
   X_AXIS  = 0,
   A_AXIS  = 0,
   Y_AXIS  = 1,
@@ -54,23 +54,7 @@ enum AxisEnum : unsigned char {
 /**
  * Printer
  */
-enum FlagVarious : unsigned char {
-  bit_running,
-  bit_printing,
-  bit_pos_saved,
-  bit_relative_mode,
-  bit_volumetric_enabled,
-  bit_wait_for_user,
-  bit_wait_for_heatup,
-  bit_allow_cold_extrude,
-  bit_autoreport_temp,
-  bit_autoreport_sd,
-  bit_suspend_autoreport,
-  bit_abort_sd_printing,
-  bit_filament_out,
-  bit_g38_move
-};
-enum PrinterMode : unsigned char {
+enum PrinterMode : uint8_t {
   PRINTER_MODE_FFF,           // M450 S0 or M451
   PRINTER_MODE_LASER,         // M450 S1 or M452
   PRINTER_MODE_CNC,           // M450 S2 or M453
@@ -79,7 +63,7 @@ enum PrinterMode : unsigned char {
   PRINTER_MODE_PLOTTER,
   PRINTER_MODE_COUNT
 };
-enum MK4duoInterruptEvent : unsigned char {
+enum MK4duoInterruptEvent : uint8_t {
   INTERRUPT_EVENT_NONE,
   INTERRUPT_EVENT_FIL_RUNOUT,
   INTERRUPT_EVENT_ENC_DETECT
@@ -89,7 +73,7 @@ enum MK4duoInterruptEvent : unsigned char {
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
-enum MK4duoBusyState : unsigned char {
+enum MK4duoBusyState : uint8_t {
   NotBusy,          // Not in a handler
   InHandler,        // Processing a GCode
   InProcess,        // Known to be blocking command input (as in G29)
@@ -102,7 +86,7 @@ enum MK4duoBusyState : unsigned char {
 /**
  * DUAL X CARRIAGE
  */
-enum DualXMode : unsigned char {
+enum DualXMode : uint8_t {
   DXC_FULL_CONTROL_MODE,
   DXC_AUTO_PARK_MODE,
   DXC_DUPLICATION_MODE,
@@ -112,7 +96,7 @@ enum DualXMode : unsigned char {
 /**
  * Work Space Plane
  */
-enum WorkspacePlane : unsigned char {
+enum WorkspacePlane : uint8_t {
   PLANE_XY,
   PLANE_ZX,
   PLANE_YZ
@@ -121,15 +105,7 @@ enum WorkspacePlane : unsigned char {
 /**
  * Endstop
  */
-enum FlagEndstops : unsigned char {
-  bit_endstop_enabled,
-  bit_endstop_globally,
-  bit_soft_endstop,
-  bit_probe_endstop,
-  bit_g38_endstop_hit,
-  bit_monitor_flag
-};
-enum EndstopEnum : unsigned char {
+enum EndstopEnum : uint8_t {
   X_MIN,        // Bit 0
   Y_MIN,        // Bit 1
   Z_MIN,        // Bit 2
@@ -145,31 +121,33 @@ enum EndstopEnum : unsigned char {
   Z2_MAX,       // Bit 12
   Z3_MIN,       // Bit 13
   Z3_MAX,       // Bit 14
-  FIL_RUNOUT,   // Bit 15
-  DOOR_OPEN,    // Bit 16
-  POWER_CHECK   // Bit 17
+  DOOR_OPEN,    // Bit 15
 };
 
 /**
  * Heaters
  */
-enum FlagHeaters : unsigned char {
-  heater_flag_use_pid,
-  heater_flag_tuning,
-  heater_flag_hardware_inverted,
-  heater_flag_active,
-  heater_flag_idle,
-  heater_flag_fault
-};
 enum heater_t : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
 
 /**
  * Temperature
  */
-enum TempUnit : unsigned char {
+enum TempUnit : uint8_t {
   TEMPUNIT_C,
   TEMPUNIT_K,
   TEMPUNIT_F
+};
+
+/**
+ * Filament runout
+ */
+enum FilRunoutEnum : uint8_t {
+  FIL_RUNOUT_0, // Bit 0
+  FIL_RUNOUT_1, // Bit 1
+  FIL_RUNOUT_2, // Bit 2
+  FIL_RUNOUT_3, // Bit 3
+  FIL_RUNOUT_4, // Bit 4
+  FIL_RUNOUT_5  // Bit 5
 };
 
 #endif /* _ENUM_H_ */
