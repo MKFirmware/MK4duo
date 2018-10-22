@@ -153,7 +153,7 @@ extern bool report_tmc_status;
 
       uint16_t rms_current() { return TMC2130Stepper::rms_current(); }
 
-      void printLabel() { SERIAL_MSG(axis_letter); }
+      void printLabel() { SERIAL_TXT(axis_letter); }
 
       void rms_current(uint16_t mA) {
         val_mA = mA;
