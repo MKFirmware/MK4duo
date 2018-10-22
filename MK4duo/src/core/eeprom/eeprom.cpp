@@ -57,7 +57,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV53"
+#define EEPROM_VERSION "MKV54"
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0
@@ -1799,7 +1799,7 @@ void EEPROM::reset() {
       fdata->min_Speed            = FAN_MIN_PWM;
       fdata->triggerTemperature   = HOTEND_AUTO_FAN_TEMPERATURE;
       fdata->autoMonitored        = 0;
-      fdata->flag                 = 0;
+      fdata->flag._byte           = 0;
       fan->setAutoMonitored((int8_t)pgm_read_byte(&tmp6[f]));
       fan->setHWInverted(FAN_INVERTED);
       #if ENABLED(TACHOMETRIC)

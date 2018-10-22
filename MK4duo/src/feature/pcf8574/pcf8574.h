@@ -20,19 +20,41 @@
  *
  */
 
-/**
- * mcode
- *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
- */
+#pragma once
 
-#if DISABLED(EMERGENCY_PARSER)
+#if ENABLED(PCF8574_EXPANSION_IO)
 
-  #define CODE_M112
+  #define READ_ELAPSED_TIME      10
+  #define PIN_START_FOR_PCF8574 120
 
-  /**
-   * M112: Emergency Stop
-   */
-  inline void gcode_M112(void) { printer.kill(); }
+  class PCF8574 {
 
-#endif
+    public: /** Constructor */
+
+      PCF8574(uint8_t addre) { _address = addre; };
+
+    private: /** Private Parameters */
+
+      static uint8_t  _address;
+
+      static byte writeMode,
+                  readMode,
+                  byteBuffered,
+                  writeByteBuffered;
+
+      static millis_t lastReadMillis;
+
+      bool        _usingInterrupt = false;
+
+    public: /** Public Function */
+
+      static void begin();
+      static void pinMode(const uint8_t pin, const uint8_t mode);
+      static void     digitalWrite(const uint8_t pin, const uint8_t value);
+      static uint8_t  digitalRead(const uint8_t pin);
+
+  };
+
+  extern PCF8574 pcf8574;
+
+#endif // ENABLED(PCF8574)

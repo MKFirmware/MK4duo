@@ -46,6 +46,7 @@ FSTRINGVAR(TINF);         // INF for host
 FSTRINGVAR(PAUSE);        // command for host that support action
 FSTRINGVAR(RESUME);       // command for host that support action
 FSTRINGVAR(DISCONNECT);   // command for host that support action
+FSTRINGVAR(POWEROFF);     // command for host that support action
 FSTRINGVAR(REQUESTPAUSE); // command for host that support action
 
 class Com {

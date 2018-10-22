@@ -58,6 +58,7 @@
 // --------------------------------------------------------------------------
 #include <stdint.h>
 #include <Arduino.h>
+#include <Wire.h>
 #include <Reset.h>
 
 // --------------------------------------------------------------------------
@@ -78,6 +79,15 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
+#ifndef WIRE_PORT
+  #define WIRE_PORT 1
+#endif
+
+#if (WIRE_PORT == 2)
+  #define WIRE  Wire1
+#else
+  #define WIRE  Wire
+#endif
 
 // do not use program space memory with Due
 #define PROGMEM
@@ -339,11 +349,12 @@ class HAL {
     #else
       // Hardware setup
       static void spiBegin();
-      static void spiInit(uint8_t spiRate);
+      static void spiInit(uint8_t spiRate=6);
+      static uint8_t spiTransfer(uint8_t data);
       // Write single byte to SPI
-      static void spiSend(byte b);
+      static void spiSend(uint8_t data);
       static void spiSend(const uint8_t* buf, size_t n);
-      static void spiSend(uint32_t chan, byte b);
+      static void spiSend(uint32_t chan, uint8_t data);
       static void spiSend(uint32_t chan ,const uint8_t* buf, size_t n);
       // Read single byte from SPI
       static uint8_t spiReceive(void);

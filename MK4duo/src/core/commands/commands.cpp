@@ -207,7 +207,7 @@ void Commands::get_serial() {
               printer.setWaitForUser(false);
             #endif
           }
-          if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
+          if (strcmp(command, "M112") == 0) printer.kill();
           if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
         #endif
 
@@ -244,7 +244,7 @@ void Commands::get_serial() {
     static bool stop_buffering = false,
                 sd_comment_mode = false;
 
-    if (!IS_SD_PRINTING) return;
+    if (!IS_SD_PRINTING()) return;
 
     #if HAS_DOOR_OPEN
       if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
@@ -285,7 +285,7 @@ void Commands::get_serial() {
 
           card.printingHasFinished();
 
-          if (IS_SD_PRINTING)
+          if (IS_SD_PRINTING())
             sd_count = 0; // If a sub-file was printing, continue from call point
           else {
             SERIAL_EM(MSG_FILE_PRINTED);
@@ -443,7 +443,7 @@ void Commands::advance_queue() {
     else {
       process_next();
       #if HAS_SD_RESTART
-        if (IS_SD_PRINTING) restart.save_data();
+        if (IS_SD_PRINTING()) restart.save_data();
       #endif
     }
 

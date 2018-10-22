@@ -38,7 +38,7 @@
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
       float dist = mechanics.destination[i] - mechanics.current_position[i];
-      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.data.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
     }
 
     planner.synchronize();  // wait until the machine is idle

@@ -14,10 +14,12 @@
 * M941: TMC switch ChopperMode.
 * M942: TMC switch interpolation.
 * G34: Set Delta Height calculated from toolhead position (only DELTA)
+* M524: Abort the current SD print job (started with M24). (Requires SDSUPPORT)
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation
 * Add second serial for arduino due
+* Add PCF8574 Expansion IO for pin 120 - 121 - 122 - 123 - 124 - 125 - 126 - 127
 * Fix and clear code
 
 ### Version 4.3.6

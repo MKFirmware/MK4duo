@@ -1650,7 +1650,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     block->e_to_p_pressure  = printer.baricuda_e_to_p_pressure;
   #endif
 
-  block->active_extruder = extruder;
+  #if EXTRUDERS > 1
+    block->active_extruder = extruder;
+  #endif
 
   #if HAS_POWER_SWITCH
     if (block->steps[X_AXIS] || block->steps[Y_AXIS] || block->steps[Z_AXIS])
@@ -1870,10 +1872,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   #if ENABLED(LASER)
 
-    block->laser_intensity = laser.intensity;
-    block->laser_duration = laser.duration;
-    block->laser_status = laser.status;
-    block->laser_mode = laser.mode;
+    block->laser_intensity  = laser.intensity;
+    block->laser_duration   = laser.duration;
+    block->laser_status     = laser.status;
+    block->laser_mode       = laser.mode;
 
     // When operating in PULSED or RASTER modes, laser pulsing must operate in sync with movement.
     // Calculate steps between laser firings (steps_l) and consider that when determining largest

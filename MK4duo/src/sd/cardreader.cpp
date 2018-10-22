@@ -53,7 +53,7 @@
 
   /** Private Parameters */
 
-  uint8_t CardReader::card_flag = 0;
+  flagbyte_t CardReader::card_flag;
 
   uint16_t CardReader::nrFile_index = 0;
 
@@ -675,7 +675,7 @@
     };
 
     void CardReader::StoreSettings() {
-      if (!IS_SD_INSERTED || isSDprinting() || print_job_counter.isRunning()) return;
+      if (!IS_SD_INSERTED() || isSDprinting() || print_job_counter.isRunning()) return;
 
       if (settings_file.open(&root, "INFO.cfg", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
         char buff[CFG_SD_MAX_VALUE_LEN];
@@ -702,7 +702,7 @@
     }
 
     void CardReader::RetrieveSettings(bool addValue) {
-      if (!IS_SD_INSERTED || isSDprinting() || !isOK()) return;
+      if (!IS_SD_INSERTED() || isSDprinting() || !isOK()) return;
 
       char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];
       int k_idx;

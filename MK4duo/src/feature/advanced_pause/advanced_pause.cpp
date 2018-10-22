@@ -302,7 +302,7 @@
 
     // Pause the print job and timer
     #if HAS_SD_SUPPORT
-      if (IS_SD_PRINTING) {
+      if (IS_SD_PRINTING()) {
         card.pauseSDPrint();
         ++did_pause_print;
       }

@@ -60,13 +60,10 @@
 
     static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
                           tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE,
-                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-                          tmp_homebump[]      PROGMEM = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) };
 
     static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                           tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
-
-    static const int8_t   tmp_homedir[]       PROGMEM = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
 
     LOOP_XYZE_N(i) {
       data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
@@ -83,11 +80,8 @@
     data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
     data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
-    LOOP_XYZ(i) {
+    LOOP_XYZ(i)
       data.homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
-      data.home_bump_mm[i]          = pgm_read_float(&tmp_homebump);
-      data.home_dir[i]              = pgm_read_byte(&tmp_homedir);
-    }
 
     #if ENABLED(JUNCTION_DEVIATION)
       data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
@@ -408,7 +402,7 @@
       #if ENABLED(DUAL_X_CARRIAGE)
         (axis == X_AXIS) ? mechanics.x_home_dir(tools.active_extruder) :
       #endif
-      data.home_dir[axis];
+      get_homedir(axis);
     const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
 
     if (is_home_dir) {
@@ -1048,7 +1042,7 @@
       #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(tools.active_extruder) :
       #endif
-      data.home_dir[axis]
+      get_homedir(axis)
     );
 
     // Homing Z towards the bed? Deploy the Z probe or endstop.
@@ -1087,9 +1081,9 @@
     // When homing Z with probe respect probe clearance
     const float bump = axis_home_dir * (
       #if HOMING_Z_WITH_PROBE
-        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, data.home_bump_mm[Z_AXIS]) :
+        (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
       #endif
-      data.home_bump_mm[axis]
+      home_bump_mm[axis]
     );
 
     // If a second homing move is configured...
@@ -1244,7 +1238,7 @@
       #if ENABLED(DUAL_X_CARRIAGE)
         const int x_axis_home_dir = x_home_dir(tools.active_extruder);
       #else
-        const int x_axis_home_dir = data.home_dir[X_AXIS];
+        const int x_axis_home_dir = home_dir.X;
       #endif
 
       const float mlx = max_length[X_AXIS],
@@ -1257,7 +1251,7 @@
         sensorless_homing_per_axis(Y_AXIS);
       #endif
 
-      do_blocking_move_to_xy(1.5f * mlx * x_axis_home_dir, 1.5f * mly * data.home_dir[Y_AXIS], fr_mm_s);
+      do_blocking_move_to_xy(1.5f * mlx * x_axis_home_dir, 1.5f * mly * home_dir.Y, fr_mm_s);
 
       endstops.validate_homing_move();
 

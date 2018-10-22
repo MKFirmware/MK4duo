@@ -318,7 +318,7 @@ void Endstops::report() {
 
   // X Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.data.home_dir[X_AXIS] == -1) {
+  if (mechanics.home_dir.X == -1) {
     SERIAL_MT(" X Logic:",  isLogic(X_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(X_MIN) ? "true" : "false");
     #if HAS_X2_MIN
@@ -338,7 +338,7 @@ void Endstops::report() {
 
   // Y Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.data.home_dir[Y_AXIS] == -1) {
+  if (mechanics.home_dir.Y == -1) {
     SERIAL_MT(" Y Logic:",  isLogic(Y_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(Y_MIN) ? "true" : "false");
     #if HAS_Y2_MIN
@@ -358,7 +358,7 @@ void Endstops::report() {
 
   // Z Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.data.home_dir[Z_AXIS] == -1) {
+  if (mechanics.home_dir.Z == -1) {
     SERIAL_MT(" Z Logic:",  isLogic(Z_MIN)  ? "true" : "false");
     SERIAL_MT(" Pullup:",   isPullup(Z_MIN) ? "true" : "false");
     #if HAS_Z2_MIN

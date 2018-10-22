@@ -671,7 +671,7 @@ static void lcd_implementation_status_screen() {
       #if HAS_SD_SUPPORT
         lcd_moveto(0, 2);
         lcd_put_u8str_P(PSTR("SD"));
-        if (IS_SD_PRINTING)
+        if (IS_SD_PRINTING())
           lcd_put_u8str(itostr3(printer.progress));
         else
           lcd_put_u8str_P(PSTR("---"));
@@ -735,7 +735,7 @@ static void lcd_implementation_status_screen() {
 
       lcd_moveto(7, 2);
       lcd_put_u8str_P(PSTR("SD"));
-      if (IS_SD_PRINTING)
+      if (IS_SD_PRINTING())
         lcd_put_u8str(itostr3(printer.progress));
       else
         lcd_put_u8str_P(PSTR("---"));

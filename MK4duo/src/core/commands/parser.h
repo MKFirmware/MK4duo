@@ -31,12 +31,6 @@
 
 //#define DEBUG_GCODE_PARSER
 
-typedef enum {
-  TEMPUNIT_C,
-  TEMPUNIT_K,
-  TEMPUNIT_F
-} TempUnit;
-
 /**
  * Parser Gcode
  *

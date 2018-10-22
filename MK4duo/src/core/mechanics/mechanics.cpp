@@ -32,16 +32,19 @@
 /** Public Parameters */
 generic_data_t Mechanics::data;
 
-float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
+const flagdir_t Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
+
+float Mechanics::home_bump_mm[XYZ]                        = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM },
+      Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
       Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },
       Mechanics::current_position[XYZE]                   = { 0.0 },
       Mechanics::cartesian_position[XYZ]                  = { 0.0 },
       Mechanics::destination[XYZE]                        = { 0.0 },
       Mechanics::stored_position[NUM_POSITON_SLOTS][XYZE] = { { 0.0 } };
 
-int16_t Mechanics::feedrate_percentage       = 100;
+int16_t Mechanics::feedrate_percentage                    = 100;
 
-uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
+uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
@@ -54,6 +57,17 @@ uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 #if ENABLED(BABYSTEPPING)
   volatile int16_t Mechanics::babystepsTodo[XYZ] = { 0 };
 #endif
+
+/**
+ * Get homedir for axis
+ */
+int8_t Mechanics::get_homedir(const AxisEnum axis) {
+  switch(axis) {
+    case X_AXIS: return home_dir.X; break;
+    case Y_AXIS: return home_dir.Y; break;
+    case Z_AXIS: return home_dir.Z; break;
+  }
+}
 
 /**
  * Set the current_position for an axis based on

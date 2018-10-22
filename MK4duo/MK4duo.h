@@ -55,16 +55,11 @@
 #include <SPI.h>
 
 /**
- * Types
- */
-typedef uint32_t  millis_t;
-typedef int8_t    pin_t;
-
-/**
  * Include file
  */
-#include "src/lib/macros.h"
+#include "src/lib/types.h"
 #include "src/lib/enum.h"
+#include "src/lib/macros.h"
 #include "src/lib/circular_queue.h"
 #include "src/lib/driver_types.h"
 #include "src/lib/watch.h"
@@ -163,6 +158,7 @@ typedef int8_t    pin_t;
 #include "src/feature/laser/laser.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
+#include "src/feature/pcf8574/pcf8574.h"
 #include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"

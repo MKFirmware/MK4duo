@@ -41,10 +41,10 @@ class Core_Mechanics: public Mechanics {
 
     static mechanics_data_t data;
 
-    static const float  base_max_pos[XYZ],
-                        base_min_pos[XYZ],
-                        base_home_pos[XYZ],
-                        max_length[XYZ];
+    static const float      base_max_pos[XYZ],
+                            base_min_pos[XYZ],
+                            base_home_pos[XYZ],
+                            max_length[XYZ];
 
   public: /** Public Function */
 

@@ -540,7 +540,7 @@
   #if HAS_SD_SUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED || card.isOK()) {
+      if (IS_SD_INSERTED() || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
         lcd_init();
@@ -694,7 +694,7 @@
       UNUSED(ptr);
 
       if (card.isOK() && card.isFileOpen()) {
-        if (IS_SD_PRINTING) {
+        if (IS_SD_PRINTING()) {
           card.pauseSDPrint();
           print_job_counter.pause();
           #if ENABLED(PARK_HEAD_ON_PAUSE)
@@ -1238,7 +1238,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
+      if (!(print_job_counter.isRunning() || IS_SD_PRINTING()) && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1409,11 +1409,11 @@
         #if HAS_SD_SUPPORT
 
           if (card.isFileOpen()) {
-            if (IS_SD_PRINTING && SDstatus != SD_PRINTING) {
+            if (IS_SD_PRINTING() && SDstatus != SD_PRINTING) {
               SDstatus = SD_PRINTING;
               SD.setValue(SDstatus);
             }
-            else if (!IS_SD_PRINTING && SDstatus != SD_PAUSE) {
+            else if (!IS_SD_PRINTING() && SDstatus != SD_PAUSE) {
               SDstatus = SD_PAUSE;
               SD.setValue(SDstatus);
             }
@@ -1511,7 +1511,7 @@
     }
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING() || force_clear)) {
         Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
@@ -1519,12 +1519,12 @@
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING() || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
+      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING())) {
         #if ENABLED(ARDUINO_ARCH_SAM)
           gfx.line_to(NX_TOOL, x, y, z, true);
         #else

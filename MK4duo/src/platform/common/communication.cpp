@@ -36,9 +36,10 @@ FSTRINGVALUE(RESEND, "Resend:");
 FSTRINGVALUE(WARNING, "Warning:");
 FSTRINGVALUE(TNAN, "NAN");
 FSTRINGVALUE(TINF, "INF");
-FSTRINGVALUE(PAUSE, "// action:pause");
-FSTRINGVALUE(RESUME, "// action:resume");
-FSTRINGVALUE(DISCONNECT, "// action:disconnect");
+FSTRINGVALUE(PAUSE, "//action:pause");
+FSTRINGVALUE(RESUME, "//action:resume");
+FSTRINGVALUE(DISCONNECT, "//action:disconnect");
+FSTRINGVALUE(POWEROFF, "//action:poweroff");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 
 // Public Parameters
