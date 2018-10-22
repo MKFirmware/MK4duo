@@ -720,7 +720,8 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       SERIAL_STR(ER);
     SERIAL_MSG("stepper");
     st->printLabel();
-    SERIAL_EM(st->test_connection() == 2 ? " connect!" : " not connect!");
+    SERIAL_PS(st->test_connection() == 2 ? PSTR(" connect!") : PSTR(" not connect!"));
+    SERIAL_EOL();
 
   }
 
