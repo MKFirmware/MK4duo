@@ -138,12 +138,12 @@ uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
     case U8G_COM_MSG_CHIP_SELECT:
       if (arg_val==0) {  delayMicroseconds(5);
         SPI.endTransaction();
-        digitalWrite(18,LOW);
+        u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,0);
  
       }
       else {
          HAL::spiInit(0);
-         digitalWrite(18,HIGH);
+         u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,1);
          HAL::delayMicroseconds(5);
       }
       break;
