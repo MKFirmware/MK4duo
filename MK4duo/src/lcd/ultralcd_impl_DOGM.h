@@ -125,12 +125,19 @@
 
 // LCD selection
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
-  #if (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
-    U8GLIB_ST7920_128X64_RRW u8g(LCD_PINS_RS); // HW SPI
+  #if ENABLED(CPU_32_BIT) 
+    #if (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
+      U8GLIB_ST7920_128X64_RRW u8g(LCD_PINS_RS); // HW SPI
+    #else
+      U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
+    #endif
   #else
-    U8GLIB_ST7920_128X64_4X u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
+    #if (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
+      U8GLIB_ST7920_128X64_4X_HAL u8g(LCD_PINS_RS); // HW SPI
+    #else
+      U8GLIB_ST7920_128X64_4X_HAL u8g(LCD_PINS_D4, LCD_PINS_ENABLE, LCD_PINS_RS); // Original u8glib device. 2 stripes, SW SPI
+    #endif
   #endif
-
 #elif ENABLED(U8GLIB_ST7920)
   // RepRap Discount Full Graphics Smart Controller
   #if DISABLED(SDSUPPORT) && (LCD_PINS_D4 == SCK_PIN) && (LCD_PINS_ENABLE == MOSI_PIN)
