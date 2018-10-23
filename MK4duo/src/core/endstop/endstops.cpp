@@ -51,13 +51,13 @@ Endstops endstops;
   float Endstops::z2_endstop_adj = 0.0;
 #endif
 
-uint32_t  Endstops::logic_bits  = 0,
-          Endstops::pullup_bits = 0;
+flagword_t  Endstops::logic_flag,
+            Endstops::pullup_flag;
 
 uint16_t  Endstops::live_state  = 0;
 
 // Private
-uint8_t   Endstops::flag_bits = 0;
+flagbyte_t Endstops::flag;
 
 volatile uint8_t Endstops::hit_state = 0;
 
@@ -119,16 +119,8 @@ void Endstops::init() {
     SET_INPUT(Z_PROBE_PIN);
   #endif
 
-  #if HAS_FIL_RUNOUT
-    filamentrunout.init();
-  #endif
-
   #if HAS_DOOR_OPEN
     SET_INPUT(DOOR_OPEN_PIN);
-  #endif
-
-  #if HAS_POWER_CHECK && HAS_SD_SUPPORT
-    SET_INPUT(POWER_CHECK_PIN);
   #endif
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
@@ -185,9 +177,7 @@ void Endstops::factory_parameters() {
     setLogic(Z2_MAX, !Z2_MAX_ENDSTOP_LOGIC);
     setLogic(Z3_MAX, !Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, !Z_PROBE_ENDSTOP_LOGIC);
-    setLogic(FIL_RUNOUT, !FIL_RUNOUT_LOGIC);
     setLogic(DOOR_OPEN, !DOOR_OPEN_LOGIC);
-    setLogic(POWER_CHECK, !POWER_CHECK_LOGIC);
 
   #else
 
@@ -206,9 +196,7 @@ void Endstops::factory_parameters() {
     setLogic(Z2_MAX, Z2_MAX_ENDSTOP_LOGIC);
     setLogic(Z3_MAX, Z3_MAX_ENDSTOP_LOGIC);
     setLogic(Z_PROBE, Z_PROBE_ENDSTOP_LOGIC);
-    setLogic(FIL_RUNOUT, FIL_RUNOUT_LOGIC);
     setLogic(DOOR_OPEN, DOOR_OPEN_LOGIC);
-    setLogic(POWER_CHECK, POWER_CHECK_LOGIC);
 
   #endif
 
@@ -227,9 +215,7 @@ void Endstops::factory_parameters() {
   setPullup(Z2_MAX, ENDSTOPPULLUP_Z2MAX);
   setPullup(Z3_MAX, ENDSTOPPULLUP_Z3MAX);
   setPullup(Z_PROBE, ENDSTOPPULLUP_ZPROBE);
-  setPullup(FIL_RUNOUT, PULLUP_FIL_RUNOUT);
   setPullup(DOOR_OPEN, PULLUP_DOOR_OPEN);
-  setPullup(POWER_CHECK, PULLUP_POWER_CHECK);
 
 }
 
@@ -298,16 +284,8 @@ void Endstops::setup_pullup() {
     HAL::setInputPullup(Z_PROBE_PIN, isPullup(Z_PROBE));
   #endif
 
-  #if HAS_FIL_RUNOUT
-    filamentrunout.setup_pullup(isPullup(FIL_RUNOUT));
-  #endif
-
   #if HAS_DOOR_OPEN
     HAL::setInputPullup(DOOR_OPEN_PIN, isPullup(DOOR_OPEN));
-  #endif
-
-  #if HAS_POWER_CHECK && HAS_SD_SUPPORT
-    HAL::setInputPullup(POWER_CHECK_PIN, isPullup(POWER_CHECK));
   #endif
 
 }
@@ -319,19 +297,19 @@ void Endstops::report() {
   // X Endstop
   SERIAL_MSG("Endstop");
   if (mechanics.home_dir.X == -1) {
-    SERIAL_MT(" X Logic:",  isLogic(X_MIN)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(X_MIN) ? "true" : "false");
+    SERIAL_LOGIC(" X Logic",  isLogic(X_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(X_MIN));
     #if HAS_X2_MIN
-      SERIAL_MT(" X2 Logic:",   isLogic(X2_MIN)   ? "true" : "false");
-      SERIAL_MT(" X2 Pullup:",  isPullup(X2_MIN)  ? "true" : "false");
+      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(X2_MIN));
     #endif
   }
   else {
-    SERIAL_MT(" X Logic:",  isLogic(X_MAX)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(X_MAX) ? "true" : "false");
+    SERIAL_LOGIC(" X Logic",  isLogic(X_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(X_MAX));
     #if HAS_X2_MAX
-      SERIAL_MT(" X2 Logic:",   isLogic(X2_MAX)   ? "true" : "false");
-      SERIAL_MT(" X2 Pullup:",  isPullup(X2_MAX)  ? "true" : "false");
+      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(X2_MAX));
     #endif
   }
   SERIAL_EOL();
@@ -339,19 +317,19 @@ void Endstops::report() {
   // Y Endstop
   SERIAL_MSG("Endstop");
   if (mechanics.home_dir.Y == -1) {
-    SERIAL_MT(" Y Logic:",  isLogic(Y_MIN)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(Y_MIN) ? "true" : "false");
+    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(Y_MIN));
     #if HAS_Y2_MIN
-      SERIAL_MT(" Y2 Logic:",   isLogic(Y2_MIN)   ? "true" : "false");
-      SERIAL_MT(" Y2 Pullup:",  isPullup(Y2_MIN)  ? "true" : "false");
+      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MIN));
     #endif
   }
   else {
-    SERIAL_MT(" Y Logic:",  isLogic(Y_MAX)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(Y_MAX) ? "true" : "false");
+    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(Y_MAX));
     #if HAS_Y2_MAX
-      SERIAL_MT(" Y2 Logic:",   isLogic(Y2_MAX)   ? "true" : "false");
-      SERIAL_MT(" Y2 Pullup:",  isPullup(Y2_MAX)  ? "true" : "false");
+      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MAX));
     #endif
   }
   SERIAL_EOL();
@@ -359,53 +337,43 @@ void Endstops::report() {
   // Z Endstop
   SERIAL_MSG("Endstop");
   if (mechanics.home_dir.Z == -1) {
-    SERIAL_MT(" Z Logic:",  isLogic(Z_MIN)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(Z_MIN) ? "true" : "false");
+    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(Z_MIN));
     #if HAS_Z2_MIN
-      SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MIN)   ? "true" : "false");
-      SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MIN)  ? "true" : "false");
+      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MIN));
     #endif
     #if HAS_Z3_MIN
-      SERIAL_MT(" Z3 Logic:",   isLogic(Z3_MIN)   ? "true" : "false");
-      SERIAL_MT(" Z3 Pullup:",  isPullup(Z3_MIN)  ? "true" : "false");
+      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MIN));
     #endif
   }
   else {
-    SERIAL_MT(" Z Logic:",  isLogic(Z_MAX)  ? "true" : "false");
-    SERIAL_MT(" Pullup:",   isPullup(Z_MAX) ? "true" : "false");
+    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(Z_MAX));
     #if HAS_Z2_MAX
-      SERIAL_MT(" Z2 Logic:",   isLogic(Z2_MAX)   ? "true" : "false");
-      SERIAL_MT(" Z2 Pullup:",  isPullup(Z2_MAX)  ? "true" : "false");
+      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MAX));
     #endif
     #if HAS_Z3_MAX
-      SERIAL_MT(" Z3 Logic:",   isLogic(Z3_MAX)   ? "true" : "false");
-      SERIAL_MT(" Z3 Pullup:",  isPullup(Z3_MAX)  ? "true" : "false");
+      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MAX));
     #endif
   }
   SERIAL_EOL();
 
   #if HAS_Z_PROBE_PIN
     // Probe Endstop
-    SERIAL_MV("Endstop PROBE Logic:", isLogic(Z_PROBE) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(Z_PROBE) ? "true" : "false");
-  #endif
-
-  #if HAS_FIL_RUNOUT
-    // FIL RUNOUT
-    SERIAL_MV("Endstop FIL_RUNOUT Logic:", isLogic(FIL_RUNOUT) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(FIL_RUNOUT) ? "true" : "false");
+    SERIAL_LOGIC("Endstop PROBE Logic", isLogic(Z_PROBE));
+    SERIAL_LOGIC(" Pullup", isPullup(Z_PROBE));
+    SERIAL_EOL();
   #endif
 
   #if HAS_DOOR_OPEN
     // Door Open
-    SERIAL_MV("Endstop DOOR OPEN Logic:", isLogic(DOOR_OPEN) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(DOOR_OPEN) ? "true" : "false");
-  #endif
-
-  #if HAS_POWER_CHECK && HAS_SD_SUPPORT
-    // Power Check
-    SERIAL_MV("Endstop Power Check Logic:", isLogic(POWER_CHECK) ? "true" : "false");
-    SERIAL_EMV(" Pullup:", isPullup(POWER_CHECK) ? "true" : "false");
+    SERIAL_LOGIC("Endstop DOOR OPEN Logic", isLogic(DOOR_OPEN));
+    SERIAL_LOGIC(" Pullup", isPullup(DOOR_OPEN));
+    SERIAL_EOL();
   #endif
 
 }

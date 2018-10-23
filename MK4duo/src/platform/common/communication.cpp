@@ -182,6 +182,12 @@ void Com::print_spaces(uint8_t count) {
   }
 }
 
+void Com::print_logic(PGM_P const label, const bool logic) {
+  SERIAL_PS(label);
+  SERIAL_MSG(": ");
+  SERIAL_PS(logic ? PSTR("true") : PSTR("false"));
+}
+
 #if ENABLED(DEBUG_FEATURE)
 
   void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {

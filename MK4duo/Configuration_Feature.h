@@ -962,7 +962,7 @@
  * By default the firmware assumes                                                *
  * logic high = filament available                                                *
  * low = filament run out                                                         *
- * Single extruder only at this point (extruder 0)                                *
+ * Set valor for extruder 0 to extruder 5                                         *
  *                                                                                *
  * If you mount DAV system encoder filament runout (By D'angella Vincenzo)        *
  * define FILAMENT RUNOUT DAV SYSTEM                                              *
@@ -977,11 +977,24 @@
 //#define FILAMENT_RUNOUT_DAV_SYSTEM
 
 // Set true or false should assigned
-#define FIL_RUNOUT_LOGIC true
+#define FIL_RUNOUT_0_LOGIC false
+#define FIL_RUNOUT_1_LOGIC false
+#define FIL_RUNOUT_2_LOGIC false
+#define FIL_RUNOUT_3_LOGIC false
+#define FIL_RUNOUT_4_LOGIC false
+#define FIL_RUNOUT_5_LOGIC false
+
 // Put true for use internal pullup for pin if the sensor is defined
-#define PULLUP_FIL_RUNOUT false
+#define FIL_RUNOUT_0_PULLUP false
+#define FIL_RUNOUT_1_PULLUP false
+#define FIL_RUNOUT_2_PULLUP false
+#define FIL_RUNOUT_3_PULLUP false
+#define FIL_RUNOUT_4_PULLUP false
+#define FIL_RUNOUT_5_PULLUP false
+
 // Time for double check switch in millisecond. Set 0 for disabled
 #define FILAMENT_RUNOUT_DOUBLE_CHECK 0
+
 // Script execute when filament run out
 #define FILAMENT_RUNOUT_SCRIPT "M600"
 /**********************************************************************************/

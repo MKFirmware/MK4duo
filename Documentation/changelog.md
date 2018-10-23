@@ -1,5 +1,6 @@
 ### Version 4.3.7 beta
 * Add Command:
+* G34: Set Delta Height calculated from toolhead position (only DELTA)
 * M930: TMC set blank_time.
 * M931: TMC set off_time.
 * M932: TMC set hysteresis_start.
@@ -13,8 +14,9 @@
 * M940: TMC switch StealthChop.
 * M941: TMC switch ChopperMode.
 * M942: TMC switch interpolation.
-* G34: Set Delta Height calculated from toolhead position (only DELTA)
 * M524: Abort the current SD print job (started with M24). (Requires SDSUPPORT)
+* M223: T[extruder] S[bool] set Filrunout Logic.
+* M224: T[extruder] S[bool] set Filrunout Pullup.
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation

@@ -58,7 +58,7 @@
                                 // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
         #if ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT1)
           if (mechanics.dxc_is_duplicating())
-            DXC_ext = (READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
+            DXC_ext = (READ(FIL_RUNOUT_1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
         #else
           DXC_ext = tools.active_extruder;
         #endif

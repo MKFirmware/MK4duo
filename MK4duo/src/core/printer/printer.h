@@ -121,6 +121,7 @@ class Printer {
     static void idle(const bool ignore_stepper_queue=false);
     static void setInterruptEvent(const MK4duoInterruptEvent event);
 
+    static bool isPrinting();
     static bool pin_is_protected(const pin_t pin);
 
     #if HAS_SUICIDE
@@ -222,25 +223,17 @@ class Printer {
     FORCE_INLINE static void setAutoreportTemp(const bool onoff) { various_flag.bit7 = onoff; }
     FORCE_INLINE static bool isAutoreportTemp() { return various_flag.bit7; }
 
-    // Various flag bit 8 AutoreportSD
-    FORCE_INLINE static void setAutoreportSD(const bool onoff) { various_flag.bit8 = onoff; }
-    FORCE_INLINE static bool isAutoreportSD() { return various_flag.bit8; }
+    // Various flag bit 8 SuspendAutoreport
+    FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.bit8 = onoff; }
+    FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.bit8; }
 
-    // Various flag bit 9 SuspendAutoreport
-    FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.bit9 = onoff; }
-    FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.bit9; }
+    // Various flag bit 9 FilamentOut
+    FORCE_INLINE static void setFilamentOut(const bool onoff) { various_flag.bit9 = onoff; }
+    FORCE_INLINE static bool isFilamentOut() { return various_flag.bit9; }
 
-    // Various flag bit 10 AbortSDprinting
-    FORCE_INLINE static void setAbortSDprinting(const bool onoff) { various_flag.bit10 = onoff; }
-    FORCE_INLINE static bool isAbortSDprinting() { return various_flag.bit10; }
-
-    // Various flag bit 11 FilamentOut
-    FORCE_INLINE static void setFilamentOut(const bool onoff) { various_flag.bit11 = onoff; }
-    FORCE_INLINE static bool isFilamentOut() { return various_flag.bit11; }
-
-    // Various flag bit 12 G38Move
-    FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.bit12 = onoff; }
-    FORCE_INLINE static bool IsG38Move() { return various_flag.bit12; }
+    // Various flag bit 10 G38Move
+    FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.bit10 = onoff; }
+    FORCE_INLINE static bool IsG38Move() { return various_flag.bit10; }
 
     FORCE_INLINE static bool reset_flag() { home_flag._byte = 0; various_flag._word = 0; }
 

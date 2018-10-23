@@ -435,21 +435,21 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #if ENABLED(SENSORLESS_HOMING)
 
-  static void set_stallguard(MKTMC &st, const bool enable=true) {
+  static void set_stallguard(MKTMC* st, const bool enable=true) {
 
     static bool old_en_pwm_mode[3];
 
     if (enable) {
-      old_en_pwm_mode[st.id]  = st.en_pwm_mode();
-      st.TCOOLTHRS(0xFFFFF);
-      st.en_pwm_mode(false);
+      old_en_pwm_mode[st->id]  = st->en_pwm_mode();
+      st->TCOOLTHRS(0xFFFFF);
+      st->en_pwm_mode(false);
     }
     else {
-      st.TCOOLTHRS(0);
-      st.en_pwm_mode(old_en_pwm_mode[st.id]);
+      st->TCOOLTHRS(0);
+      st->en_pwm_mode(old_en_pwm_mode[st->id]);
     }
 
-    st.diag1_stall(enable ? 1 : 0);
+    st->diag1_stall(enable ? 1 : 0);
   }
 
   /**

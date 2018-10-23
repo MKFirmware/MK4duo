@@ -461,8 +461,6 @@ millis_t next_lcd_update_ms;
     return click;
   }
 
-  inline bool printer_busy() { return planner.movesplanned() || IS_SD_PRINTING(); }
-
   /**
    * General function to go directly to a screen
    */
@@ -486,14 +484,17 @@ millis_t next_lcd_update_ms;
           if (currentScreen == lcd_status_screen)
             doubleclick_expire_ms = millis() + DOUBLECLICK_MAX_INTERVAL;
         }
-        else if (screen == lcd_status_screen && currentScreen == lcd_main_menu && PENDING(millis(), doubleclick_expire_ms) /* && printer_busy()*/)
-          screen =
-            #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-              lcd_babystep_zoffset
-            #else
-              lcd_babystep_z
-            #endif
-          ;
+        else if (screen == lcd_status_screen && currentScreen == lcd_main_menu && PENDING(millis(), doubleclick_expire_ms)) {
+          if (printer.isPrinting()) {
+            screen =
+              #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+                lcd_babystep_zoffset
+              #else
+                lcd_babystep_z
+              #endif
+            ;
+          }
+        }
       #endif
 
       currentScreen = screen;
@@ -808,7 +809,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     void lcd_sdcard_stop() {
       printer.setWaitForHeatUp(false);
       printer.setWaitForUser(false);
-      printer.setAbortSDprinting(true);
+      card.setAbortSDprinting(true);
       lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
       lcd_return_to_status();
     }
@@ -1028,7 +1029,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     #endif
 
     #if ENABLED(LASER)
-      if (!printer_busy() && printer.mode == PRINTER_MODE_LASER) {
+      if (!printer.isPrinting() && printer.mode == PRINTER_MODE_LASER) {
         MENU_ITEM(submenu, "Laser Functions", lcd_laser_menu);
       }
     #endif
@@ -1068,7 +1069,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       }
     #endif // SDSUPPORT
 
-    if (printer_busy())
+    if (printer.isPrinting())
       MENU_ITEM(submenu, MSG_TUNE, lcd_tune_menu);
     else {
       MENU_ITEM(submenu, MSG_MOTION, lcd_movement_menu);
@@ -1113,7 +1114,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     // Autostart
     //
     #if ENABLED(SDSUPPORT) && ENABLED(MENU_ADDAUTOSTART)
-      if (!printer_busy())
+      if (!printer.isPrinting())
       MENU_ITEM(function, MSG_AUTOSTART, lcd_autostart_sd);
     #endif
 
@@ -4018,7 +4019,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         if (laser.peripherals_ok()) {
           MENU_ITEM(function, "Turn On Pumps/Fans", action_laser_acc_on);
         }
-        else if (!(planner.movesplanned() || IS_SD_PRINTING())) {
+        else if (!printer.isPrinting()) {
           MENU_ITEM(function, "Turn Off Pumps/Fans", action_laser_acc_off);
         }
       #endif // LASER_PERIPHERALS
@@ -4545,7 +4546,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         #endif // DRIVER_EXTRUDERS == 1
 
         #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
-          if (!printer_busy()) {
+          if (!printer.isPrinting()) {
             // Load filament
             #if DRIVER_EXTRUDERS == 1
               PGM_P msg0 = PSTR(MSG_FILAMENTLOAD);

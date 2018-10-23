@@ -217,12 +217,12 @@
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT0_PIN     NoPin
-  #define FIL_RUNOUT1_PIN     NoPin
-  #define FIL_RUNOUT2_PIN     NoPin
-  #define FIL_RUNOUT3_PIN     NoPin
-  #define FIL_RUNOUT4_PIN     NoPin
-  #define FIL_RUNOUT5_PIN     NoPin
+  #define FIL_RUNOUT_0_PIN    NoPin
+  #define FIL_RUNOUT_1_PIN    NoPin
+  #define FIL_RUNOUT_2_PIN    NoPin
+  #define FIL_RUNOUT_3_PIN    NoPin
+  #define FIL_RUNOUT_4_PIN    NoPin
+  #define FIL_RUNOUT_5_PIN    NoPin
   #define FIL_RUNOUT_DAV_PIN  NoPin
 #endif
 

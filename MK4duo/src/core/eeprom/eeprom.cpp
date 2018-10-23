@@ -76,8 +76,9 @@ typedef struct EepromDataStruct {
   //
   // Endstop
   //
-  uint32_t          endstop_logic_bits,
-                    endstop_pullup_bits;
+  flagword_t        endstop_logic_flag,
+                    endstop_pullup_flag;
+
   #if ENABLED(X_TWO_ENDSTOPS)
     float           x2_endstop_adj;
   #endif
@@ -89,6 +90,21 @@ typedef struct EepromDataStruct {
   #endif
   #if ENABLED(Z_THREE_ENDSTOPS)
     float           z3_endstop_adj;
+  #endif
+
+  //
+  // Filament Runout
+  //
+  #if HAS_FIL_RUNOUT_0
+    flagbyte_t      filrunout_logic_flag,
+                    filrunout_pullup_flag;
+  #endif
+
+  //
+  // Power Check
+  //
+  #if HAS_POWER_CHECK
+    flagbyte_t      power_flag;
   #endif
 
   //
@@ -354,6 +370,16 @@ void EEPROM::post_process() {
   // Setup Endstops pullup
   endstops.setup_pullup();
 
+  // Setup FilRunout pullup
+  #if HAS_FIL_RUNOUT_0
+    filamentrunout.setup_pullup();
+  #endif
+
+  // Setup power check pullup
+  #if HAS_POWER_CHECK
+    powerManager.setup_pullup();
+  #endif
+
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
@@ -434,8 +460,8 @@ void EEPROM::post_process() {
     //
     // Endstops bit
     //
-    EEPROM_WRITE(endstops.logic_bits);
-    EEPROM_WRITE(endstops.pullup_bits);
+    EEPROM_WRITE(endstops.logic_flag);
+    EEPROM_WRITE(endstops.pullup_flag);
 
     //
     // TWO or THREE Endstops adj
@@ -451,6 +477,21 @@ void EEPROM::post_process() {
       EEPROM_WRITE(endstops.z3_endstop_adj);
     #elif ENABLED(Z_TWO_ENDSTOPS)
       EEPROM_WRITE(endstops.z2_endstop_adj);
+    #endif
+
+    //
+    // Filament Runout
+    //
+    #if HAS_FIL_RUNOUT_0
+      EEPROM_WRITE(filamentrunout.logic_flag);
+      EEPROM_WRITE(filamentrunout.pullup_flag);
+    #endif
+
+    //
+    // Power Check
+    //
+    #if HAS_POWER_CHECK
+      EEPROM_WRITE(powerManager.flag);
     #endif
 
     //
@@ -852,8 +893,8 @@ void EEPROM::post_process() {
       //
       // Endstops bit
       //
-      EEPROM_READ(endstops.logic_bits);
-      EEPROM_READ(endstops.pullup_bits);
+      EEPROM_READ(endstops.logic_flag);
+      EEPROM_READ(endstops.pullup_flag);
 
       //
       // TWO or THREE Endstops adj
@@ -869,6 +910,21 @@ void EEPROM::post_process() {
         EEPROM_READ(endstops.z3_endstop_adj);
       #elif ENABLED(Z_TWO_ENDSTOPS)
         EEPROM_READ(endstops.z2_endstop_adj);
+      #endif
+
+      //
+      // Filament Runout
+      //
+      #if HAS_FIL_RUNOUT_0
+        EEPROM_READ(filamentrunout.logic_flag);
+        EEPROM_READ(filamentrunout.pullup_flag);
+      #endif
+
+      //
+      // Power Check
+      //
+      #if HAS_POWER_CHECK
+        EEPROM_READ(powerManager.flag);
       #endif
 
       //
@@ -1807,6 +1863,14 @@ void EEPROM::reset() {
       #endif
     }
 
+  #endif
+
+  #if HAS_FIL_RUNOUT_0
+    filamentrunout.factory_parameters();
+  #endif
+
+  #if HAS_POWER_CHECK
+    powerManager.factory_parameters();
   #endif
 
   #if ENABLED(DHT_SENSOR)

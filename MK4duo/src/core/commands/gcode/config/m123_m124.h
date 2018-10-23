@@ -40,8 +40,6 @@
  *  K<bool> - Endstop Z2 min or max dependent HOME DIR set false or true
  *  P<bool> - Endstop Probe set false or true
  *  D<bool> - Endstop Door set false or true
- *  F<bool> - Endstop Fil Runout set false or true
- *  W<bool> - Endstop Power Check set false or true
  *
  */
 inline void gcode_M123(void) {
@@ -97,11 +95,7 @@ inline void gcode_M123(void) {
   #if HAS_Z_PROBE_PIN
     if (parser.seen('P')) endstops.setLogic(Z_PROBE, parser.value_bool());
   #endif
-  
-  #if HAS_FIL_RUNOUT
-    if (parser.seen('F')) endstops.setLogic(FIL_RUNOUT, parser.value_bool());
-  #endif
-
+ 
   #if HAS_DOOR_OPEN
     if (parser.seen('D')) endstops.setLogic(DOOR_OPEN, parser.value_bool());
   #endif
@@ -125,7 +119,6 @@ inline void gcode_M123(void) {
  *  L<bool> - Endstop Z3 min or max dependent HOME DIR set false or true
  *  P<bool> - Endstop Probe set false or true
  *  D<bool> - Endstop Door set false or true
- *  F<bool> - Endstop Fil Runout set false or true
  *  W<bool> - Endstop Power Check set false or true
  *
  */
@@ -190,10 +183,6 @@ inline void gcode_M124(void) {
 
   #if HAS_Z_PROBE_PIN
     if (parser.seen('P')) endstops.setPullup(Z_PROBE, parser.value_bool());
-  #endif
-
-  #if HAS_FIL_RUNOUT
-    if (parser.seen('F')) endstops.setPullup(FIL_RUNOUT, parser.value_bool());
   #endif
 
   #if HAS_DOOR_OPEN

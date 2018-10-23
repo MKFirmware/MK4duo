@@ -166,8 +166,8 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S[1=true|0=false] Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
- * M123 - Set Endstop Logic X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool]
- * M124 - Set Endstop Pullup X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool]
+ * M123 - Set Endstop Logic X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+ * M124 - Set Endstop Pullup X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
  * M125 - Save current position and move to pause park position. (Requires PARK_HEAD_ON_PAUSE)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -202,6 +202,8 @@
  * M220 - Set speed factor override percentage: S[factor in percent]
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
+ * M223 - T[extruder] S[bool] set Filrunout Logic. (Requires FILAMENT_RUNOUT_SENSOR)
+ * M224 - T[extruder] S[bool] set Filrunout Pullup. (Requires FILAMENT_RUNOUT_SENSOR)
  * M226 - Wait until the specified pin reaches the state required: P[pin number] S[pin state]
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C[contrast value] (value 0..63)
@@ -232,7 +234,7 @@
  * M401 - Lower z-probe if present
  * M402 - Raise z-probe if present
  * M404 - N[dia in mm] Enter the nominal filament width (3mm, 1.75mm ) or will display nominal filament width without parameters
- * M405 - Turn on Filament Sensor extrusion control.  Optional D[delay in cm] to set delay in centimeters between sensor and extruder
+ * M405 - Turn on Filament Sensor extrusion control. Optional D[delay in cm] to set delay in centimeters between sensor and extruder
  * M406 - Turn off Filament Sensor extrusion control
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response

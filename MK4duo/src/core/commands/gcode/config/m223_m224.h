@@ -20,14 +20,42 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * mcode
+ *
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.7_beta"
-#define FIRMWARE_REVISION         "22102018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+#if HAS_FIL_RUNOUT_0
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+  #define CODE_M223
+  #define CODE_M224
+
+  /**
+   * M223: Set Filrunout Logic
+   *
+   *  T<tools>  - Set Extruder
+   *  S<bool>   - Set false or true
+   *
+   */
+  inline void gcode_M223(void) {
+    if (commands.get_target_tool(223)) return;
+    filamentrunout.setLogic(tools.target_extruder, parser.value_bool());
+    filamentrunout.report();
+  }
+
+  /**
+   * M224: Set Filrunout Pullup
+   *
+   *  T<tools>  - Set Extruder
+   *  S<bool>   - Set false or true
+   *
+   */
+  inline void gcode_M224(void) {
+    if (commands.get_target_tool(224)) return;
+    filamentrunout.setPullup(tools.target_extruder, parser.value_bool());
+    filamentrunout.setup_pullup();
+    filamentrunout.report();
+  }
+
+#endif // HAS_FIL_RUNOUT_0

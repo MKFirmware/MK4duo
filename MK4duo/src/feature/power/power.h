@@ -23,7 +23,7 @@
 #ifndef _POWER_H_
 #define _POWER_H_
 
-#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
+#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
   class Power {
 
@@ -42,6 +42,8 @@
 
     private: /** Private Parameters */
 
+      static flagbyte_t  flag;
+
       #if HAS_POWER_SWITCH
         static bool powersupply_on;
         #if (POWER_TIMEOUT > 0)
@@ -50,6 +52,34 @@
       #endif
 
     public: /** Public Function */
+
+      #if HAS_POWER_SWITCH || HAS_POWER_CHECK
+
+        /**
+         * Initialize the Power switch and Power Check pins
+         */
+        static void init();
+
+      #endif
+
+      #if HAS_POWER_CHECK
+
+        /**
+         * Initialize Factory parameters
+         */
+        static void factory_parameters();
+
+        /**
+         * Setup Pullup
+         */
+        static void setup_pullup();
+
+        /**
+         * Print logical and pullup
+         */
+        static void report();
+
+      #endif
 
       #if HAS_POWER_SWITCH
 
@@ -69,6 +99,14 @@
                       analog2error(float current),
                       analog2efficiency(float watt);
       #endif
+
+      // Flag bit 0 Set power check logic
+      FORCE_INLINE static void setLogic(const bool logic) { flag.bit0 = logic; }
+      FORCE_INLINE static bool isLogic() { return flag.bit0; }
+
+      // Flag bit 1 Set power check pullup
+      FORCE_INLINE static void setPullup(const bool pullup) { flag.bit1 = pullup; }
+      FORCE_INLINE static bool isPullup() { return flag.bit1; }
 
     private: /** Private Function */
 

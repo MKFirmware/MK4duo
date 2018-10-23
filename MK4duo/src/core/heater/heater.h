@@ -36,15 +36,16 @@ constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHA
 // Struct Heater data
 typedef struct {
 
-  heater_t  type;
+  heater_t    type;
 
-  pin_t     pin;
+  pin_t       pin;
 
-  uint8_t   ID,
-            flag;
+  flagbyte_t  flag;
 
-  int16_t   mintemp,
-            maxtemp;
+  uint8_t     ID;
+
+  int16_t     mintemp,
+              maxtemp;
 
 } heater_data_t;
 
@@ -106,41 +107,43 @@ class Heater {
       void start_watching();
     #endif
 
+    // Flag bit 0 Set Active
     FORCE_INLINE void setActive(const bool onoff) {
       if (!isFault() && sensor.type != 0 && onoff)
-        SET_BIT(data.flag, heater_flag_active, true);
+        data.flag.bit0 = true;
       else
-        SET_BIT(data.flag, heater_flag_active, false);
+        data.flag.bit0 = false;
     }
-    FORCE_INLINE bool isActive() { return TEST(data.flag, heater_flag_active); }
+    FORCE_INLINE bool isActive() { return data.flag.bit0; }
 
-    FORCE_INLINE void setUsePid(const bool onoff) {
-      SET_BIT(data.flag, heater_flag_use_pid, onoff);
-    }
-    FORCE_INLINE bool isUsePid() { return TEST(data.flag, heater_flag_use_pid); }
+    // Flag bit 1 Set use Pid
+    FORCE_INLINE void setUsePid(const bool onoff) { data.flag.bit1 = onoff; }
+    FORCE_INLINE bool isUsePid() { return data.flag.bit1; }
 
-    FORCE_INLINE void setTuning(const bool onoff) {
-      SET_BIT(data.flag, heater_flag_tuning, onoff);
-    }
-    FORCE_INLINE bool isTuning() { return TEST(data.flag, heater_flag_tuning); }
+    // Flag bit 2 Set tuning
+    FORCE_INLINE void setTuning(const bool onoff) { data.flag.bit2 = onoff; }
+    FORCE_INLINE bool isTuning() { return data.flag.bit2; }
 
-    FORCE_INLINE void setHWInverted(const bool onoff) {
-      SET_BIT(data.flag, heater_flag_hardware_inverted, onoff);
-    }
-    FORCE_INLINE bool isHWInverted() { return TEST(data.flag, heater_flag_hardware_inverted); }
+    // Flag bit 3 Set Hardware inverted
+    FORCE_INLINE void setHWInverted(const bool onoff) { data.flag.bit3 = onoff; }
+    FORCE_INLINE bool isHWInverted() { return data.flag.bit3; }
 
+    // Flag bit 4 Set Hardware inverted
     FORCE_INLINE void setIdle(const bool onoff, const int16_t idle_temp=0) {
-      SET_BIT(data.flag, heater_flag_idle, onoff);
+      data.flag.bit4 = onoff;
       idle_temperature = idle_temp;
     }
-    FORCE_INLINE bool isIdle() { return TEST(data.flag, heater_flag_idle); }
+    FORCE_INLINE bool isIdle() { return data.flag.bit4; }
 
+    // Flag bit 5 Set Hardware inverted
     FORCE_INLINE void setFault() {
       soft_pwm = 0;
       setActive(false);
-      SET_BIT(data.flag, heater_flag_fault, true);
+      data.flag.bit5 = true;
     }
-    FORCE_INLINE bool isFault() { return TEST(data.flag, heater_flag_fault); }
+    FORCE_INLINE bool isFault() { return data.flag.bit5; }
+
+    FORCE_INLINE bool resetFlag() { data.flag._byte = 0; }
 
     FORCE_INLINE void SwitchOff() {
       target_temperature = 0;
@@ -148,11 +151,9 @@ class Heater {
       setActive(false);
     }
 
-    FORCE_INLINE bool resetFlag() { data.flag = 0; }
-
     FORCE_INLINE void ResetFault() {
       if (isFault()) {
-        SET_BIT(data.flag, heater_flag_fault, false);
+        data.flag.bit5 = false;
         SwitchOff();
       }
     }

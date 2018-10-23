@@ -82,7 +82,7 @@
 Stepper stepper;
 
 /** Public Parameters */
-uint16_t Stepper::direction_flag = 0;
+flagword_t Stepper::direction_flag;
 
 #if HAS_MULTI_ENDSTOP
   bool Stepper::separate_multi_axis = false;
