@@ -62,6 +62,16 @@ class U8GLIB_ST7920_128X64_RRD : public U8GLIB
 };
 
 
+extern u8g_dev_t u8g_dev_st7920_128x64_rrw_hw_spi;
+class U8GLIB_ST7920_128X64_RRW : public U8GLIB
+{
+  public:
+    U8GLIB_ST7920_128X64_RRW( pin_t cs, pin_t reset = U8G_PIN_NONE)
+      : U8GLIB(&u8g_dev_st7920_128x64_rrw_hw_spi, (uint8_t)cs, U8G_PIN_NONE, (uint8_t)reset)   // a0 = U8G_PIN_NONE
+      { }
+};
+
+
 extern u8g_dev_t u8g_dev_sh1106_128x64_2x_i2c_2_wire;
 class U8GLIB_SH1106_128X64_2X_I2C_2_WIRE : public U8GLIB {
   public:

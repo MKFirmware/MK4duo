@@ -35,8 +35,8 @@
 // ARDUINO_ARCH_SAM
 // **************************************************************************
 
-#ifndef _HAL_FASTIO_DUE_H
-#define _HAL_FASTIO_DUE_H
+#ifndef _HAL_FASTIO_SAMD_H
+#define _HAL_FASTIO_SAMD_H
 
 #include <Arduino.h>
 
@@ -124,4 +124,4 @@ FORCE_INLINE static bool USEABLE_HARDWARE_PWM(const pin_t pin) {
     return false;
 }
 
-#endif  // _HAL_FASTIO_DUE_H
+#endif  // _HAL_FASTIO_SAMD_H
