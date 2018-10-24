@@ -2007,6 +2007,8 @@ void EEPROM::reset() {
       LOOP_FAN() fans[f].print_parameters();
     #endif
 
+    endstops.print_parameters();
+	
     #if ENABLED(ULTIPANEL)
 
       // Temperature units - for Ultipanel temperature options

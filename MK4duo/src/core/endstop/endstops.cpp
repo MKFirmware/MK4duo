@@ -219,6 +219,119 @@ void Endstops::factory_parameters() {
 
 }
 
+#if DISABLED(DISABLE_M503)
+
+  void Endstops::print_parameters() {
+    //Endstop logic
+    SERIAL_LM(CFG, "Endstops logic:");
+    #if HAS_X_MIN
+      SERIAL_SMV(CFG, "  M123 X", (int)isLogic(X_MIN));
+    #elif HAS_X_MAX
+      SERIAL_SMV(CFG, "  M123 X", (int)isLogic(X_MAX));
+    #endif
+
+    #if HAS_Y_MIN
+      SERIAL_MV(" Y", (int)isLogic(Y_MIN));
+    #elif HAS_Y_MAX
+      SERIAL_MV(" Y", (int)isLogic(Y_MAX));
+    #endif
+    
+    #if HAS_Y_MIN
+      SERIAL_MV(" Z", (int)isLogic(Z_MIN));
+    #elif HAS_Y_MAX
+      SERIAL_MV(" Z", (int)isLogic(Z_MAX));
+    #endif
+    
+    #if HAS_X2_MIN
+      SERIAL_MV(" I", (int)isLogic(X2_MIN));
+    #elif HAS_X2_MAX
+      SERIAL_MV(" I", (int)isLogic(X2_MAX));
+    #endif
+
+    #if HAS_Y2_MIN
+      SERIAL_MV(" J", (int)isLogic(Y2_MIN));
+    #elif HAS_Y2_MAX
+      SERIAL_MV(" J", (int)isLogic(Y2_MAX));
+    #endif  
+    
+    #if HAS_Z2_MIN
+      SERIAL_MV(" K", (int)isLogic(Z2_MIN));
+    #elif HAS_Z2_MAX
+      SERIAL_MV(" K", (int)isLogic(Z2_MAX));
+    #endif
+     
+    #if HAS_Z3_MIN
+      SERIAL_MV(" L", (int)isLogic(Z3_MIN));
+    #elif HAS_Z3_MAX
+      SERIAL_MV(" L", (int)isLogic(Z3_MAX));
+    #endif
+     
+    #if HAS_Z_PROBE_PIN
+      SERIAL_MV(" P", (int)isLogic(Z_PROBE));
+    #endif
+    
+    #if HAS_DOOR_OPEN
+      SERIAL_MV(" D", (int)isLogic(DOOR_OPEN));
+    #endif
+    
+    SERIAL_EOL();
+    
+    //Endstop pullup
+    SERIAL_LM(CFG, "Endstops pullup:");
+    #if HAS_X_MIN
+      SERIAL_SMV(CFG, "  M124 X", (int)isPullup(X_MIN));
+    #elif HAS_X_MAX
+      SERIAL_SMV(CFG, "  M124 X", (int)isPullup(X_MAX));
+    #endif
+    
+    #if HAS_Y_MIN
+      SERIAL_MV(" Y", (int)isPullup(Y_MIN));
+    #elif HAS_Y_MAX
+      SERIAL_MV(" Y", (int)isPullup(Y_MAX));
+    #endif
+    
+    #if HAS_Y_MIN
+      SERIAL_MV(" Z", (int)isPullup(Z_MIN));
+    #elif HAS_Y_MAX
+      SERIAL_MV(" Z", (int)isPullup(Z_MAX));
+    #endif
+    
+    #if HAS_X2_MIN
+      SERIAL_MV(" I", (int)isPullup(X2_MIN));
+    #elif HAS_X2_MAX
+      SERIAL_MV(" I", (int)isPullup(X2_MAX));
+    #endif
+
+    #if HAS_Y2_MIN
+      SERIAL_MV(" J", (int)isPullup(Y2_MIN));
+    #elif HAS_Y2_MAX
+      SERIAL_MV(" J", (int)isPullup(Y2_MAX));
+    #endif  
+    
+    #if HAS_Z2_MIN
+      SERIAL_MV(" K", (int)isPullup(Z2_MIN));
+    #elif HAS_Z2_MAX
+      SERIAL_MV(" K", (int)isPullup(Z2_MAX));
+    #endif
+     
+    #if HAS_Z3_MIN
+      SERIAL_MV(" L", (int)isPullup(Z3_MIN));
+    #elif HAS_Z3_MAX
+      SERIAL_MV(" L", (int)isPullup(Z3_MAX));
+    #endif
+     
+    #if HAS_Z_PROBE_PIN
+      SERIAL_MV(" P", (int)isPullup(Z_PROBE));
+    #endif
+    
+    #if HAS_DOOR_OPEN
+      SERIAL_MV(" D", (int)isPullup(DOOR_OPEN));
+    #endif
+    
+    SERIAL_EOL();
+  }
+#endif
+
 // Called from HAL::Tick or HAL_temp_isr. Check endstop state if required
 void Endstops::Tick() {
   #if ENABLED(PINS_DEBUGGING)
