@@ -524,4 +524,15 @@
 
 #endif
 
+// Label Preheat
+#ifndef PREHEAT_1_LABEL
+  #define PREHEAT_1_LABEL "PLA"
+#endif
+#ifndef PREHEAT_2_LABEL
+  #define PREHEAT_2_LABEL "ABS"
+#endif
+#ifndef PREHEAT_3_LABEL
+  #define PREHEAT_3_LABEL "GUM"
+#endif
+
 #endif /* _CONDITIONALS_PRE_H_ */

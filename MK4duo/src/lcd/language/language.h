@@ -178,7 +178,6 @@
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           "cold extrusion prevented"
 #define MSG_ERR_LONG_EXTRUDE_STOP           "too long extrusion prevented"
-#define MSG_HOTEND_TOO_COLD                 "Hotend too cold to change filament"
 
 #define MSG_FILAMENT_CHANGE_HEAT            "Press button (or M108) to heat nozzle"
 #define MSG_FILAMENT_CHANGE_HEAT_LCD        "Press button to heat nozzle"

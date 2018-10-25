@@ -83,6 +83,11 @@ void Fan::spin() {
     // Check Heaters
     if (thermalManager.heaters_isActive()) controller_fan_watch.start();
 
+    #if HAS_MCU_TEMPERATURE
+      // Check MSU
+      if (thermalManager.mcu_current_temperature >= 50) controller_fan_watch.start();
+    #endif
+
     // Check Motors
     if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
       || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...

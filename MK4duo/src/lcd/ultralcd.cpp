@@ -301,7 +301,7 @@ millis_t next_lcd_update_ms;
 
   // Used to print static text with no visible cursor.
   // Parameters: label [, bool center [, bool invert [, char *value] ] ]
-  #define STATIC_ITEM_P(LABEL, ...) \
+  #define STATIC_ITEM_P(LABEL, ...) do{ \
     if (_menuLineNr == _thisItemNr) { \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
         encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
@@ -310,7 +310,7 @@ millis_t next_lcd_update_ms;
       if (lcdDrawUpdate) \
         lcd_implementation_drawmenu_static(_lcdLineNr, LABEL, ## __VA_ARGS__); \
     } \
-    ++_thisItemNr
+    ++_thisItemNr; } while(0)
 
   #define STATIC_ITEM(LABEL, ...) STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
 
@@ -3035,7 +3035,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   void lcd_move_menu_01mm() { _goto_manual_move( 0.1); }
   void lcd_move_z_probe()   { move_menu_scale = LCD_Z_STEP ; lcd_goto_screen(lcd_move_z); }
 
-  void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func) {
+  void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func, const int8_t eindex=-1) {
     _manual_move_func_ptr = func;
     START_MENU();
     if (LCD_HEIGHT >= 4) {
@@ -3050,28 +3050,35 @@ void lcd_quick_feedback(const bool clear_buttons) {
           STATIC_ITEM(MSG_MOVE_E, true, true); break;
       }
     }
-    MENU_BACK(MSG_MOVE_AXIS);
-    MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
-    MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
-    MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
+      if (axis == E_AXIS && thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : tools.active_extruder))
+        MENU_BACK(MSG_HOTEND_TOO_COLD);
+      else
+    #endif
+    {
+      MENU_BACK(MSG_MOVE_AXIS);
+      MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
+      MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
+      MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
+    }
     END_MENU();
   }
   void lcd_move_get_x_amount()            { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
   void lcd_move_get_y_amount()            { _lcd_move_distance_menu(Y_AXIS, lcd_move_y); }
   void lcd_move_get_z_amount()            { _lcd_move_distance_menu(Z_AXIS, lcd_move_z); }
   #if EXTRUDERS == 1
-    void lcd_move_get_e_amount()          { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
+    void lcd_move_get_e_amount()          { _lcd_move_distance_menu(E_AXIS, lcd_move_e, -1); }
   #elif EXTRUDERS > 1
-    void lcd_move_get_e0_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e0); }
-    void lcd_move_get_e1_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e1); }
+    void lcd_move_get_e0_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e0, 0); }
+    void lcd_move_get_e1_amount()         { _lcd_move_distance_menu(E_AXIS, lcd_move_e1, 1); }
     #if EXTRUDERS > 2
-      void lcd_move_get_e2_amount()       { _lcd_move_distance_menu(E_AXIS, lcd_move_e2); }
+      void lcd_move_get_e2_amount()       { _lcd_move_distance_menu(E_AXIS, lcd_move_e2, 2); }
       #if EXTRUDERS > 3
-        void lcd_move_get_e3_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e3); }
+        void lcd_move_get_e3_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e3, 3); }
         #if EXTRUDERS > 4
-          void lcd_move_get_e4_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e4); }
+          void lcd_move_get_e4_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e4, 4); }
           #if EXTRUDERS > 5
-            void lcd_move_get_e5_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e5); }
+            void lcd_move_get_e5_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e5, 5); }
           #endif
         #endif
       #endif

@@ -118,7 +118,7 @@
   #define MSG_SET_ORIGIN                      _UxGT("Set origin")
 #endif
 #ifndef MSG_PREHEAT_1
-  #define MSG_PREHEAT_1                       _UxGT("Preheat PLA")
+  #define MSG_PREHEAT_1                       _UxGT("Preheat " PREHEAT_1_LABEL)
 #endif
 #ifndef MSG_PREHEAT_1_N
   #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
@@ -136,7 +136,7 @@
   #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" conf")
 #endif
 #ifndef MSG_PREHEAT_2
-  #define MSG_PREHEAT_2                       _UxGT("Preheat ABS")
+  #define MSG_PREHEAT_2                       _UxGT("Preheat " PREHEAT_2_LABEL)
 #endif
 #ifndef MSG_PREHEAT_2_N
   #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
@@ -154,7 +154,7 @@
   #define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
 #endif
 #ifndef MSG_PREHEAT_3
-  #define MSG_PREHEAT_3                       _UxGT("Preheat GUM")
+  #define MSG_PREHEAT_2                       _UxGT("Preheat " PREHEAT_3_LABEL)
 #endif
 #ifndef MSG_PREHEAT_3_N
   #define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
@@ -496,6 +496,9 @@
 #endif
 #ifndef MSG_MOVE_E
   #define MSG_MOVE_E                          _UxGT("Extruder")
+#endif
+#ifndef MSG_HOTEND_TOO_COLD
+  #define MSG_HOTEND_TOO_COLD                 _UxGT("Hotend too cold")
 #endif
 #ifndef MSG_MOVE_01MM
   #define MSG_MOVE_01MM                       _UxGT("Move 0.1mm")
