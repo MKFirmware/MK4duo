@@ -80,6 +80,13 @@ class Endstops {
     static void factory_parameters();
 
     /**
+     * Print endstops parameters in memory
+     */
+    #if DISABLED(DISABLE_M503)
+      static void print_parameters();
+    #endif
+	
+    /**
      * Setup Pullup
      */
     static void setup_pullup();
