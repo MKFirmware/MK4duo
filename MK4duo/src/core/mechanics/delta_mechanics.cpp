@@ -629,7 +629,7 @@
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(delta_clip_start_height);
+      do_blocking_move_to_z(delta_clip_start_height, homing_feedrate_mm_s[Z_AXIS]);
     #endif
 
     if (come_back) {
