@@ -45,8 +45,7 @@ typedef struct {
             travel_acceleration,
             retract_acceleration[EXTRUDERS],
             min_feedrate_mm_s,
-            min_travel_feedrate_mm_s,
-            homing_feedrate_mm_s[XYZ];
+            min_travel_feedrate_mm_s;
 
   uint32_t  max_acceleration_mm_per_s2[XYZE_N],
             min_segment_time_us;
