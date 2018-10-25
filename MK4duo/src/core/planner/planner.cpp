@@ -2281,7 +2281,7 @@ void Planner::buffer_sync_block() {
   block_t * const block = get_next_free_block(next_buffer_head);
 
   // Clear block
-  ZERO(block);
+  memset(block, 0, sizeof(block_t));
 
   block->flag = BLOCK_FLAG_SYNC_POSITION;
 
