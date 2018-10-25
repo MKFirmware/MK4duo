@@ -205,7 +205,7 @@ class HAL {
     #endif
 
     static bool execute_100ms;
-
+    static bool SPIReady;
 
   public: /** Public Function */
 
@@ -267,7 +267,7 @@ class HAL {
     static int getFreeRam();
 
     // Not used in SAMD
-    FORCE_INLINE static void hwSetup() { }
+    static void hwSetup(void);
     FORCE_INLINE static void showStartReason() { }
     FORCE_INLINE static void resetHardware() {}
 
@@ -284,7 +284,7 @@ class HAL {
     #else
       // Hardware setup
       static void spiBegin();
-      static void spiInit(uint8_t spiRate);
+      static void spiInit(uint8_t spiRate=4);
       // Write single byte to SPI
       static void spiSend(byte b);
       static void spiSend(const uint8_t* buf, size_t n);

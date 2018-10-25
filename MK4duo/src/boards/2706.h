@@ -166,14 +166,14 @@
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
-  #define LCD_PINS_RS         18
-  #define LCD_PINS_ENABLE     MOSI
-  #define LCD_PINS_D4         SCK
-  #define ORIG_BEEPER_PIN     NoPin
+  #define LCD_PINS_RS             18
+  #define LCD_PINS_ENABLE         MOSI
+  #define LCD_PINS_D4             SCK
+  #define ORIG_BEEPER_PIN         NoPin
 
-  #define BTN_EN1             33
-  #define BTN_EN2             27
-  #define BTN_ENC             23
-
+  #define BTN_EN1                 27
+  #define BTN_EN2                 26
+  #define BTN_ENC                 23
+  #define KILL_PIN                33
 #endif // REPRAPWORLD_GRAPHICAL_LCD
 //@@@

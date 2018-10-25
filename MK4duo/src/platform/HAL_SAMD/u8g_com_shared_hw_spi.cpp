@@ -56,7 +56,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && ENABLED(DOGLCD)
+#if ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)
 
 #include <U8glib.h>
 #include <Arduino.h>
@@ -69,20 +69,14 @@
 #define SPI_SPEED_5 5
 #define SPI_SPEED_6 6
 
-void u8g_SetPIOutput_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index) {
-  if (U8G_PIN_NONE != u8g->pin_list[pin_index]) {
-   PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
-     g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
-  }
+void u8g_SetPIOutput_SAMD_hw_spi(u8g_t *u8g, uint8_t pin_index) {
+  SET_OUTPUT(u8g->pin_list[pin_index]);
 }
 
-void u8g_SetPILevel_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
-  if (U8G_PIN_NONE != u8g->pin_list[pin_index]) {
-    volatile Pio* port = g_APinDescription[u8g->pin_list[pin_index]].pPort;
-    uint32_t mask = g_APinDescription[u8g->pin_list[pin_index]].ulPin;
-    if (level) port->PIO_SODR = mask;
-    else port->PIO_CODR = mask;
-  }
+void u8g_SetPILevel_SAMD_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
+
+  if (U8G_PIN_NONE != u8g->pin_list[pin_index])
+  WRITE(u8g->pin_list[pin_index],level);
 }
 
 static void writebyte(uint8_t rs, uint8_t val)
@@ -107,8 +101,10 @@ static void writebyte(uint8_t rs, uint8_t val)
     
 }
 
-uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr)
+
+uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr)
 {
+  if (!HAL::SPIReady) return 1; // U8G problem, called before setup on SAMD will crash
 
   switch(msg)
   {
@@ -118,8 +114,8 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
     case U8G_COM_MSG_INIT:
 
 
-      u8g_SetPIOutput_DUE_hw_spi(u8g,U8G_PI_CS);
-      u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS, 1);
+      u8g_SetPIOutput_SAMD_hw_spi(u8g,U8G_PI_CS);
+      u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS, 1);
 
       //u8g_Delay(5);
 
@@ -142,12 +138,12 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
     case U8G_COM_MSG_CHIP_SELECT:
       if (arg_val==0) {  delayMicroseconds(5);
         SPI.endTransaction();
-        u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,0);
+        u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,0);
  
       }
       else {
          HAL::spiInit(0);
-         u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,1);
+         u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,1);
          HAL::delayMicroseconds(5);
       }
       break;
@@ -180,4 +176,4 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
   return 1;
 }
 
-#endif  // ENABLED(ARDUINO_ARCH_SAM) && ENABLED(DOGLCD)
+#endif  // ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)

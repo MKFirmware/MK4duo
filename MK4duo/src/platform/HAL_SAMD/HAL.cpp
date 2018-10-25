@@ -124,6 +124,14 @@ extern "C" int sysTickHook() {
   return 0;
 }
 
+bool HAL::SPIReady = false;
+
+// do any hardware-specific initialization here
+void HAL::hwSetup(void) {
+  SPIReady= true;
+
+}
+
 HAL::HAL() {
   // ctor
 }

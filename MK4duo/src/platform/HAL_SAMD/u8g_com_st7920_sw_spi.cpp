@@ -20,7 +20,6 @@
  *
  */
 
-
 /**
  * Based on u8g_com_st7920_hw_spi.c
  *
@@ -56,34 +55,60 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && ENABLED(DOGLCD)
+#if ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)
 
 #include <U8glib.h>
 #include <Arduino.h>
 
-#define SPI_FULL_SPEED 0
-#define SPI_HALF_SPEED 1
-#define SPI_QUARTER_SPEED 2
-#define SPI_EIGHTH_SPEED 3
-#define SPI_SIXTEENTH_SPEED 4
-#define SPI_SPEED_5 5
-#define SPI_SPEED_6 6
+void u8g_SetPIOutput_SAMD(u8g_t *u8g, uint8_t pin_index) {
+  //SET_OUTPUT(u8g->pin_list[pin_index]);
+  pinMode(u8g->pin_list[pin_index],OUTPUT);
+}
 
-void u8g_SetPIOutput_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index) {
-  if (U8G_PIN_NONE != u8g->pin_list[pin_index]) {
-   PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
-     g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
+void u8g_SetPILevel_SAMD(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
+  //WRITE(u8g->pin_list[pin_index],level);
+ digitalWrite(u8g->pin_list[pin_index], level);
+
+}
+
+
+uint32_t pin_MOSI,pin_SCK;
+
+static void spiSend_sw_SAMD(uint8_t val) { // 800KHz
+  for (uint8_t i = 0; i < 8; i++) {
+    WRITE (pin_MOSI,val & 0x80);
+     
+    DELAY_NS(50);
+
+    WRITE (pin_SCK,1);
+    DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
+    val <<= 1;
+    WRITE (pin_SCK,0);
   }
 }
 
-void u8g_SetPILevel_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
-  if (U8G_PIN_NONE != u8g->pin_list[pin_index]) {
-    volatile Pio* port = g_APinDescription[u8g->pin_list[pin_index]].pPort;
-    uint32_t mask = g_APinDescription[u8g->pin_list[pin_index]].ulPin;
-    if (level) port->PIO_SODR = mask;
-    else port->PIO_CODR = mask;
+static uint8_t rs_last_state = 255;
+
+static void u8g_com_SAMD_st7920_write_byte_sw_spi(uint8_t rs, uint8_t val) {
+  uint8_t i;
+
+  if (rs != rs_last_state) {  // time to send a command/data byte
+    rs_last_state = rs;
+
+    if (rs == 0)
+      /* command */
+      spiSend_sw_SAMD(0x0F8);
+    else
+       /* data */
+      spiSend_sw_SAMD(0x0FA);
+
+    DELAY_US(40); // give the controller some time to process the data: 20 is bad, 30 is OK, 40 is safe
   }
+
+  spiSend_sw_SAMD(val & 0x0F0);
+  spiSend_sw_SAMD(val << 4);
 }
+
 
 static void writebyte(uint8_t rs, uint8_t val)
 {
@@ -92,47 +117,45 @@ static void writebyte(uint8_t rs, uint8_t val)
   if ( rs == 0 )
   {
     /* command */
-    HAL::spiSend(0x0f8);
+    SPI.transfer(0x0f8);
   }
   else if ( rs == 1 )
   {
     /* data */
-    HAL::spiSend(0x0fa);
+    SPI.transfer(0x0fa);
   }
   
-  HAL::spiSend(val & 0x0f0);
-  HAL::spiSend(val << 4);
+  SPI.transfer(val & 0x0f0);
+  SPI.transfer(val << 4);
   
   HAL::delayMicroseconds(50);
     
 }
 
-uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr)
-{
 
-  switch(msg)
-  {
-    case U8G_COM_MSG_STOP:
-      break;
+uint8_t u8g_com_HAL_SAMD_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
 
+  pin_MOSI = u8g->pin_list[U8G_PI_MOSI];
+  pin_SCK = u8g->pin_list[U8G_PI_SCK];
+
+  switch (msg) {
     case U8G_COM_MSG_INIT:
 
 
-      u8g_SetPIOutput_DUE_hw_spi(u8g,U8G_PI_CS);
-      u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS, 1);
+      u8g_SetPILevel_SAMD(u8g, U8G_PI_CS, 0);
+      u8g_SetPIOutput_SAMD(u8g, U8G_PI_CS);
+      
 
-      //u8g_Delay(5);
+      u8g_Delay(5);
 
+      u8g->pin_list[U8G_PI_A0_STATE] = 0;       /* inital RS state: command mode */
+      break;
 
+    case U8G_COM_MSG_STOP:
+      break;
 
-      HAL::spiBegin();
-
-      #ifndef SPI_SPEED
-        #define SPI_SPEED SPI_FULL_SPEED  // use same SPI speed as SD card
-      #endif
- 
-
-      u8g->pin_list[U8G_PI_A0_STATE] = 0;
+    case U8G_COM_MSG_RESET:
+       if (U8G_PIN_NONE != u8g->pin_list[U8G_PI_RESET]) u8g_SetPILevel_SAMD(u8g, U8G_PI_RESET, arg_val);
       break;
 
     case U8G_COM_MSG_ADDRESS:                     /* define cmd (arg_val = 0) or data mode (arg_val = 1) */
@@ -140,38 +163,28 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
       break;
 
     case U8G_COM_MSG_CHIP_SELECT:
-      if (arg_val==0) {  delayMicroseconds(5);
-        SPI.endTransaction();
-        u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,0);
- 
-      }
-      else {
-         HAL::spiInit(0);
-         u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,1);
-         HAL::delayMicroseconds(5);
-      }
-      break;
-
-    case U8G_COM_MSG_RESET:
+      if (U8G_PIN_NONE != u8g->pin_list[U8G_PI_CS])
+        u8g_SetPILevel_SAMD(u8g, U8G_PI_CS, arg_val);  //note: the st7920 has an active high chip select
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      writebyte(u8g->pin_list[U8G_PI_A0_STATE],arg_val);
+
+      u8g_com_SAMD_st7920_write_byte_sw_spi(u8g->pin_list[U8G_PI_A0_STATE], arg_val);
       break;
 
     case U8G_COM_MSG_WRITE_SEQ: {
         uint8_t *ptr = (uint8_t*) arg_ptr;
         while (arg_val > 0) {
-          writebyte(u8g->pin_list[U8G_PI_A0_STATE],*ptr++);
+          u8g_com_SAMD_st7920_write_byte_sw_spi(u8g->pin_list[U8G_PI_A0_STATE], *ptr++);
           arg_val--;
         }
       }
       break;
 
-    case U8G_COM_MSG_WRITE_SEQ_P: {
+      case U8G_COM_MSG_WRITE_SEQ_P: {
         uint8_t *ptr = (uint8_t*) arg_ptr;
         while (arg_val > 0) {
-          writebyte(u8g->pin_list[U8G_PI_A0_STATE],*ptr++);
+          u8g_com_SAMD_st7920_write_byte_sw_spi(u8g->pin_list[U8G_PI_A0_STATE], *ptr++);
           arg_val--;
         }
       }
@@ -180,4 +193,4 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
   return 1;
 }
 
-#endif  // ENABLED(ARDUINO_ARCH_SAM) && ENABLED(DOGLCD)
+#endif  // ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)

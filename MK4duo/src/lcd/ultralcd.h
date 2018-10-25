@@ -272,3 +272,4 @@
 #define LCD_ALERTMESSAGEPGM(x) lcd_setalertstatusPGM(PSTR(x))
 
 #endif // ULTRALCD_H
+
