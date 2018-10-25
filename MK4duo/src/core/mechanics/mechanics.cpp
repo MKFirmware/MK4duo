@@ -34,8 +34,10 @@ generic_data_t Mechanics::data;
 
 const flagdir_t Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 
-float Mechanics::home_bump_mm[XYZ]                        = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM },
-      Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
+const float Mechanics::homing_feedrate_mm_s[XYZ]          = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
+            Mechanics::home_bump_mm[XYZ]                  = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+
+float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
       Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },
       Mechanics::current_position[XYZE]                   = { 0.0 },
       Mechanics::cartesian_position[XYZ]                  = { 0.0 },
@@ -213,7 +215,7 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
     hbd = 10;
     SERIAL_LM(ER, "Warning: Homing Bump Divisor < 1");
   }
-  return data.homing_feedrate_mm_s[axis] / hbd;
+  return homing_feedrate_mm_s[axis] / hbd;
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {

@@ -65,8 +65,7 @@
   void Delta_Mechanics::factory_parameters() {
 
     static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
-                          tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE,
-                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) };
+                          tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
     static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                           tmp_retractacc[]    PROGMEM = DEFAULT_RETRACT_ACCELERATION;
@@ -85,9 +84,6 @@
     data.min_feedrate_mm_s          = DEFAULT_MIN_FEEDRATE;
     data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
     data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
-
-    LOOP_XYZ(i)
-      data.homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
 
     #if ENABLED(JUNCTION_DEVIATION)
       data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
@@ -245,7 +241,7 @@
       if (printer.debugFeature()) Com::print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
-    const float z_feedrate = fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[Z_AXIS];
+    const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
     if (!position_is_reachable(rx, ry)) return;
 
@@ -512,7 +508,7 @@
 
     // Move all carriages together linearly until an endstop is hit.
     destination[Z_AXIS] = data.height + 10;
-    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], data.homing_feedrate_mm_s[X_AXIS], tools.active_extruder);
+    planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], homing_feedrate_mm_s[X_AXIS], tools.active_extruder);
     planner.synchronize();
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -544,11 +540,11 @@
 
     #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       // move to a height where we can use the full xy-area
-      do_blocking_move_to_z(delta_clip_start_height, data.homing_feedrate_mm_s[Z_AXIS]);
+      do_blocking_move_to_z(delta_clip_start_height);
     #endif
 
     if (come_back) {
-      feedrate_mm_s = data.homing_feedrate_mm_s[X_AXIS];
+      feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
       COPY_ARRAY(destination, lastpos);
       prepare_move_to_destination();
       feedrate_mm_s = old_feedrate_mm_s;
@@ -593,7 +589,7 @@
         if (fr_mm_s)
           SERIAL_VAL(fr_mm_s);
         else {
-          SERIAL_MV(" [", data.homing_feedrate_mm_s[axis]);
+          SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
           SERIAL_CHR(']');
         }
         SERIAL_CHR(')');
@@ -625,7 +621,7 @@
       #if ENABLED(JUNCTION_DEVIATION)
         , delta_mm_cart
       #endif
-      , fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[axis], tools.active_extruder
+      , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder
     );
 
     planner.synchronize();

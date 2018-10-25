@@ -59,8 +59,7 @@
   void Cartesian_Mechanics::factory_parameters() {
 
     static const float    tmp_step[]          PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT,
-                          tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE,
-                          tmp_homefeedrate[]  PROGMEM = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) };
+                          tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
     static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                           tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
@@ -79,9 +78,6 @@
     data.min_feedrate_mm_s          = DEFAULT_MIN_FEEDRATE;
     data.min_segment_time_us        = DEFAULT_MIN_SEGMENT_TIME;
     data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
-
-    LOOP_XYZ(i)
-      data.homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
 
     #if ENABLED(JUNCTION_DEVIATION)
       data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
@@ -127,7 +123,7 @@
       if (printer.debugFeature()) Com::print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
-    const float z_feedrate = fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[Z_AXIS];
+    const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
     // If Z needs to raise, do it before moving XY
     if (current_position[Z_AXIS] < rz) {
@@ -343,7 +339,7 @@
     endstops.setNotHoming();
 
     if (come_back) {
-      feedrate_mm_s = data.homing_feedrate_mm_s[X_AXIS];
+      feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
       COPY_ARRAY(destination, lastpos);
       prepare_move_to_destination();
       feedrate_mm_s = old_feedrate_mm_s;
@@ -389,7 +385,7 @@
         if (fr_mm_s)
           SERIAL_VAL(fr_mm_s);
         else {
-          SERIAL_MV(" [", data.homing_feedrate_mm_s[axis]);
+          SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
           SERIAL_CHR(']');
         }
         SERIAL_CHR(')');
@@ -430,7 +426,7 @@
     target[axis] = distance;
 
     // Set cartesian axes directly
-    planner.buffer_segment(target, fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[axis], tools.active_extruder);
+    planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
     planner.synchronize();
 
@@ -1244,7 +1240,7 @@
       const float mlx = max_length[X_AXIS],
                   mly = max_length[Y_AXIS],
                   mlratio = mlx > mly ? mly / mlx : mlx / mly,
-                  fr_mm_s = MIN(data.homing_feedrate_mm_s[X_AXIS], data.homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
+                  fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
         sensorless_homing_per_axis(X_AXIS);

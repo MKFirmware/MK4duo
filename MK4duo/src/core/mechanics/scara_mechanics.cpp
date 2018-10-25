@@ -73,7 +73,7 @@
     data.min_travel_feedrate_mm_s   = DEFAULT_MIN_TRAVEL_FEEDRATE;
 
     LOOP_XYZ(i)
-      data.homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
+      homing_feedrate_mm_s[i]  = pgm_read_float(&tmp_homefeedrate[i]);
 
     #if ENABLED(JUNCTION_DEVIATION)
       data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
@@ -272,7 +272,7 @@
       if (printer.debugFeature()) Com::print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
     #endif
 
-    const float z_feedrate = fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[Z_AXIS];
+    const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
 
     if (!position_is_reachable(rx, ry)) return;
 
@@ -478,7 +478,7 @@
     endstops.setNotHoming();
 
     if (come_back) {
-      feedrate_mm_s = data.homing_feedrate_mm_s[X_AXIS];
+      feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
       COPY_ARRAY(destination, lastpos);
       prepare_move_to_destination();
       feedrate_mm_s = old_feedrate_mm_s;
@@ -521,7 +521,7 @@
         if (fr_mm_s)
           SERIAL_VAL(fr_mm_s);
         else {
-          SERIAL_MV(" [", data.homing_feedrate_mm_s[axis]);
+          SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
           SERIAL_CHR(']');
         }
         SERIAL_CHR(')');
@@ -548,7 +548,7 @@
     sync_plan_position_mech_specific();
     current_position[axis] = distance;
     Transform(current_position);
-    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : data.homing_feedrate_mm_s[axis], tools.active_extruder);
+    planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], current_position[E_AXIS], fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
 
     planner.synchronize();
 

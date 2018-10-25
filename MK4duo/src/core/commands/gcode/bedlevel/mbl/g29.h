@@ -137,7 +137,7 @@
           #if ENABLED(MESH_G28_REST_ORIGIN)
             mechanics.current_position[Z_AXIS] = 0;
             mechanics.set_destination_to_current();
-            mechanics.line_to_destination(mechanics.data.homing_feedrate_mm_s[Z_AXIS]);
+            mechanics.line_to_destination(mechanics.homing_feedrate_mm_s[Z_AXIS]);
             planner.synchronize();
           #endif
 

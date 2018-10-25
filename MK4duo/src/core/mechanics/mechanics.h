@@ -46,8 +46,7 @@ typedef struct {
             retract_acceleration[EXTRUDERS],
             min_feedrate_mm_s,
             min_travel_feedrate_mm_s,
-            homing_feedrate_mm_s[XYZ],
-            home_bump_mm[XYZ];
+            homing_feedrate_mm_s[XYZ];
 
   uint32_t  max_acceleration_mm_per_s2[XYZE_N],
             min_segment_time_us;
@@ -92,9 +91,14 @@ class Mechanics {
     static const flagdir_t  home_dir;
 
     /**
+     * Homing feed rates
+     */
+    static const float homing_feedrate_mm_s[XYZ];
+
+    /**
      * Home bump in mm
      */
-    static float home_bump_mm[XYZ];
+    static const float home_bump_mm[XYZ];
 
     /**
      * Feedrate
