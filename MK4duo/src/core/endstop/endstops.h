@@ -82,10 +82,8 @@ class Endstops {
     /**
      * Print endstops parameters in memory
      */
-    #if DISABLED(DISABLE_M503)
-      static void print_parameters();
-    #endif
-	
+    static void print_parameters();
+
     /**
      * Setup Pullup
      */

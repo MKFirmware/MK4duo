@@ -2008,7 +2008,7 @@ void EEPROM::reset() {
     #endif
 
     endstops.print_parameters();
-	
+
     #if ENABLED(ULTIPANEL)
 
       // Temperature units - for Ultipanel temperature options
