@@ -186,6 +186,7 @@ void HAL::hwSetup(void) {
 
   NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
   NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
+
 }
 
 // Print apparent cause of start/restart

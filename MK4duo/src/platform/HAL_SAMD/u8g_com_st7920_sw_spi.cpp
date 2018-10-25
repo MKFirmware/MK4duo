@@ -71,7 +71,6 @@ void u8g_SetPILevel_SAMD(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
 
 }
 
-
 uint32_t pin_MOSI,pin_SCK;
 
 static void spiSend_sw_SAMD(uint8_t val) { // 800KHz
@@ -109,29 +108,22 @@ static void u8g_com_SAMD_st7920_write_byte_sw_spi(uint8_t rs, uint8_t val) {
   spiSend_sw_SAMD(val << 4);
 }
 
-
-static void writebyte(uint8_t rs, uint8_t val)
-{
+static void writebyte(uint8_t rs, uint8_t val) {
   uint8_t i;
 
-  if ( rs == 0 )
-  {
+  if ( rs == 0 ) {
     /* command */
     SPI.transfer(0x0f8);
   }
-  else if ( rs == 1 )
-  {
+  else if ( rs == 1 ) {
     /* data */
     SPI.transfer(0x0fa);
   }
-  
+
   SPI.transfer(val & 0x0f0);
   SPI.transfer(val << 4);
-  
   HAL::delayMicroseconds(50);
-    
 }
-
 
 uint8_t u8g_com_HAL_SAMD_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
 
@@ -140,12 +132,8 @@ uint8_t u8g_com_HAL_SAMD_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
 
   switch (msg) {
     case U8G_COM_MSG_INIT:
-
-
       u8g_SetPILevel_SAMD(u8g, U8G_PI_CS, 0);
       u8g_SetPIOutput_SAMD(u8g, U8G_PI_CS);
-      
-
       u8g_Delay(5);
 
       u8g->pin_list[U8G_PI_A0_STATE] = 0;       /* inital RS state: command mode */

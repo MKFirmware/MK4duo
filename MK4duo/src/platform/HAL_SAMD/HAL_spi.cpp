@@ -145,16 +145,7 @@
   }
 
 #else
-   /* #include "SERCOM.h"
-    
-    #ifndef PERIPH_SPI
-        #define PERIPH_SPI           sercom4
-        #define PAD_SPI_TX           SPI_PAD_2_SCK_3
-        #define PAD_SPI_RX           SERCOM_RX_PAD_0
-    #endif // PERIPH_SPI
-    */
-  //  SPIClass SPIc (&PERIPH_SPI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_MOSI, PAD_SPI_TX, PAD_SPI_RX);
-   
+
   // --------------------------------------------------------------------------
   // hardware SPI
   // --------------------------------------------------------------------------
@@ -167,18 +158,14 @@
   }
 
   void HAL::spiInit(uint8_t spiRate/*=0*/) { 
-
-      if (spiRate > 4) spiRate = 1;
-      
-      SPI.begin();    
-      SPI.beginTransaction(SPISettings(spiSamdBaudrates[spiRate], MSBFIRST, SPI_MODE0));
- 
+    if (spiRate > 4) spiRate = 1;
+    SPI.begin();    
+    SPI.beginTransaction(SPISettings(spiSamdBaudrates[spiRate], MSBFIRST, SPI_MODE0));
   }
 
   // Write single byte to SPI
   void HAL::spiSend(uint8_t data) {
     SPI.transfer(data);
-    
   }
 
   void HAL::spiSend(const uint8_t* buf, size_t n) {
@@ -187,22 +174,16 @@
       SPI.transfer(buf[i]); 
   }
 
-  void HAL::spiSend(uint32_t chan, byte b) {
-  
-  }
+  void HAL::spiSend(uint32_t chan, byte b) { }
 
-  void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
-    
-  }
+  void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) { }
 
   // Read single byte from SPI
   uint8_t HAL::spiReceive(void) {
     return  SPI.transfer(0xFF);
   }
 
-  uint8_t HAL::spiReceive(uint32_t chan) {
-   
-  }
+  uint8_t HAL::spiReceive(uint32_t chan) { }
 
   // Read from SPI into buffer
   void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
@@ -213,12 +194,10 @@
 
   // Write from buffer to SPI
   void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
-    SPI.transfer( token );
+    SPI.transfer(token);
 
-    for (uint16_t i = 0; i < 512; i++) {
-      SPI.transfer(buf[i]); 
-    }
-
+    for (uint16_t i = 0; i < 512; i++)
+      SPI.transfer(buf[i]);
   }
 
 #endif // ENABLED(SOFTWARE_SPI)
