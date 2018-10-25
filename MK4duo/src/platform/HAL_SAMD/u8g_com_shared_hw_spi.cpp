@@ -75,13 +75,13 @@ void u8g_SetPIOutput_SAMD_hw_spi(u8g_t *u8g, uint8_t pin_index) {
 
 void u8g_SetPILevel_SAMD_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
   if (U8G_PIN_NONE != u8g->pin_list[pin_index])
-    WRITE(u8g->pin_list[pin_index],level);
+    WRITE(u8g->pin_list[pin_index], level);
 }
 
 static void writebyte(uint8_t rs, uint8_t val) {
   uint8_t i;
 
-  if ( rs == 0 )
+  if (rs == 0)
     HAL::spiSend(0x0f8);  // command
   else if ( rs == 1 )
     HAL::spiSend(0x0fa);  // data
@@ -99,8 +99,8 @@ uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
       break;
 
     case U8G_COM_MSG_INIT:
-      u8g_SetPIOutput_SAMD_hw_spi(u8g,U8G_PI_CS);
-      u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS, 1);
+      u8g_SetPIOutput_SAMD_hw_spi(u8g, U8G_PI_CS);
+      u8g_SetPILevel_SAMD_hw_spi(u8g, U8G_PI_CS, 1);
 
       HAL::spiBegin();
 
@@ -116,13 +116,14 @@ uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
       break;
 
     case U8G_COM_MSG_CHIP_SELECT:
-      if (arg_val==0) {  delayMicroseconds(5);
+      if (arg_val == 0) {
+        HAL::delayMicroseconds(5);
         SPI.endTransaction();
-        u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,0);
+        u8g_SetPILevel_SAMD_hw_spi(u8g, U8G_PI_CS, 0);
       }
       else {
          HAL::spiInit(0);
-         u8g_SetPILevel_SAMD_hw_spi(u8g,U8G_PI_CS,1);
+         u8g_SetPILevel_SAMD_hw_spi(u8g, U8G_PI_CS, 1);
          HAL::delayMicroseconds(5);
       }
       break;
@@ -131,22 +132,24 @@ uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      writebyte(u8g->pin_list[U8G_PI_A0_STATE],arg_val);
+      writebyte(u8g->pin_list[U8G_PI_A0_STATE], arg_val);
       break;
 
-    case U8G_COM_MSG_WRITE_SEQ:
-      uint8_t *ptr = (uint8_t*) arg_ptr;
-      while (arg_val > 0) {
-        writebyte(u8g->pin_list[U8G_PI_A0_STATE],*ptr++);
-        arg_val--;
+    case U8G_COM_MSG_WRITE_SEQ: {
+        uint8_t *ptr = (uint8_t*) arg_ptr;
+        while (arg_val > 0) {
+          writebyte(u8g->pin_list[U8G_PI_A0_STATE], *ptr++);
+          arg_val--;
+        }
       }
       break;
 
-    case U8G_COM_MSG_WRITE_SEQ_P:
-      uint8_t *ptr = (uint8_t*) arg_ptr;
-      while (arg_val > 0) {
-        writebyte(u8g->pin_list[U8G_PI_A0_STATE],*ptr++);
-        arg_val--;
+    case U8G_COM_MSG_WRITE_SEQ_P: {
+        uint8_t *ptr = (uint8_t*) arg_ptr;
+        while (arg_val > 0) {
+          writebyte(u8g->pin_list[U8G_PI_A0_STATE], *ptr++);
+          arg_val--;
+        }
       }
       break;
   }

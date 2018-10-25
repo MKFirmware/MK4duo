@@ -88,12 +88,12 @@ void u8g_SetPILevel_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
 static void writebyte(uint8_t rs, uint8_t val) {
   uint8_t i;
 
-  if ( rs == 0 )
-    HAL::spiSend(0x0f8);  // command
+  if (rs == 0)
+    HAL::spiSend(0x0F8);  // command
   else if ( rs == 1 )
-    HAL::spiSend(0x0fa);  // data
+    HAL::spiSend(0x0FA);  // data
 
-  HAL::spiSend(val & 0x0f0);
+  HAL::spiSend(val & 0x0F0);
   HAL::spiSend(val << 4);
   HAL::delayMicroseconds(50);
 
@@ -124,14 +124,14 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
       break;
 
     case U8G_COM_MSG_CHIP_SELECT:
-      if (arg_val==0) {
-        delayMicroseconds(5);
+      if (arg_val == 0) {
+        HAL::delayMicroseconds(5);
         SPI.endTransaction();
-        u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,0);
+        u8g_SetPILevel_DUE_hw_spi(u8g, U8G_PI_CS, 0);
       }
       else {
          HAL::spiInit(0);
-         u8g_SetPILevel_DUE_hw_spi(u8g,U8G_PI_CS,1);
+         u8g_SetPILevel_DUE_hw_spi(u8g, U8G_PI_CS, 1);
          HAL::delayMicroseconds(5);
       }
       break;
@@ -140,7 +140,7 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      writebyte(u8g->pin_list[U8G_PI_A0_STATE],arg_val);
+      writebyte(u8g->pin_list[U8G_PI_A0_STATE], arg_val);
       break;
 
     case U8G_COM_MSG_WRITE_SEQ: {
@@ -155,7 +155,7 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
     case U8G_COM_MSG_WRITE_SEQ_P: {
         uint8_t *ptr = (uint8_t*) arg_ptr;
         while (arg_val > 0) {
-          writebyte(u8g->pin_list[U8G_PI_A0_STATE],*ptr++);
+          writebyte(u8g->pin_list[U8G_PI_A0_STATE], *ptr++);
           arg_val--;
         }
       }
