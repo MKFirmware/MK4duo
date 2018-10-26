@@ -44,9 +44,9 @@
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
-#define ORIG_E1_STEP_PIN           NoPin
-#define ORIG_E1_DIR_PIN            NoPin
-#define ORIG_E1_ENABLE_PIN         NoPin
+#define ORIG_E1_STEP_PIN           20
+#define ORIG_E1_DIR_PIN            13
+#define ORIG_E1_ENABLE_PIN         21
 #define ORIG_E1_CS_PIN             NoPin
 #define ORIG_SOL1_PIN              NoPin
 
@@ -115,24 +115,24 @@
 
 //###HEATER
 #define ORIG_HEATER_0_PIN          11
-#define ORIG_HEATER_1_PIN          NoPin
+#define ORIG_HEATER_1_PIN          10
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN        NoPin
+#define ORIG_HEATER_BED_PIN        6
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
 #define ORIG_TEMP_0_PIN             4
-#define ORIG_TEMP_1_PIN            NoPin
+#define ORIG_TEMP_1_PIN             2
 #define ORIG_TEMP_2_PIN            NoPin
 #define ORIG_TEMP_3_PIN            NoPin
-#define ORIG_TEMP_BED_PIN          NoPin
+#define ORIG_TEMP_BED_PIN           3
 #define ORIG_TEMP_CHAMBER_PIN      NoPin
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN              NoPin
+#define ORIG_FAN0_PIN              24
 #define ORIG_FAN1_PIN              NoPin
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
