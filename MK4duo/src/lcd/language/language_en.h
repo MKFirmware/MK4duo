@@ -154,7 +154,7 @@
   #define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
 #endif
 #ifndef MSG_PREHEAT_3
-  #define MSG_PREHEAT_2                       _UxGT("Preheat " PREHEAT_3_LABEL)
+  #define MSG_PREHEAT_3                       _UxGT("Preheat " PREHEAT_3_LABEL)
 #endif
 #ifndef MSG_PREHEAT_3_N
   #define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
