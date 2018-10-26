@@ -550,7 +550,7 @@ class HAL {
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
-      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000L);
+      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000UL);
     }
     FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
       HAL_delay_cycles(delayUs * (CYCLES_PER_US));

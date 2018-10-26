@@ -34,11 +34,11 @@
 
 template<int portNr>
   typename MKHardwareSerial<portNr>::ring_buffer_r
-    MKHardwareSerial<portNr>::rx_buffer;
+    MKHardwareSerial<portNr>::rx_buffer = { { 0 }, 0, 0 };
 
 template<int portNr>
   typename MKHardwareSerial<portNr>::ring_buffer_t
-  MKHardwareSerial<portNr>::tx_buffer;
+  MKHardwareSerial<portNr>::tx_buffer = { 0 };
 
 template<int portNr>
   bool MKHardwareSerial<portNr>::_written = false;
