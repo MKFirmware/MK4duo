@@ -172,7 +172,7 @@ class Endstops {
         update();
       #endif
     }
-    FORCE_INLINE static bool isProbeEnabled() { return flag.bit2; }
+    FORCE_INLINE static bool isProbeEnabled() { return flag.bit3; }
 
     // Flag bit 4 set G38 Endstop Hit
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
