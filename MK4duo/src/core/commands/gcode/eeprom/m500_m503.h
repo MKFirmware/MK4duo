@@ -37,7 +37,7 @@
 inline void gcode_M500(void) {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
-    SERIAL_PORT(tmp.port);
+    SERIAL_PORT(tmp.s_port);
   #endif
   (void)eeprom.store();
   SERIAL_PORT(-1);
@@ -49,7 +49,7 @@ inline void gcode_M500(void) {
 inline void gcode_M501(void) {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
-    SERIAL_PORT(tmp.port);
+    SERIAL_PORT(tmp.s_port);
   #endif
   (void)eeprom.load();
   SERIAL_PORT(-1);
@@ -61,7 +61,7 @@ inline void gcode_M501(void) {
 inline void gcode_M502(void) {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
-    SERIAL_PORT(tmp.port);
+    SERIAL_PORT(tmp.s_port);
   #endif
   (void)eeprom.reset();
   SERIAL_PORT(-1);
@@ -73,7 +73,7 @@ inline void gcode_M502(void) {
 inline void gcode_M503(void) {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
-    SERIAL_PORT(tmp.port);
+    SERIAL_PORT(tmp.s_port);
   #endif
   (void)eeprom.Print_Settings();
   SERIAL_PORT(-1);
