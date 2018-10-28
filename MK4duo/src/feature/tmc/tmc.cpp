@@ -568,54 +568,57 @@ void TMC_Stepper::restore() {
   }
 
   void TMC_Stepper::report_all() {
-    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL);  debug_loop(ITEM);       }while(0)
-    #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_MSG(LABEL);  parse_drv_status(ITEM); }while(0)
-    TMC_REPORT("\t",                 TMC_CODES);
-    TMC_REPORT("Enabled\t",          TMC_ENABLED);
-    TMC_REPORT("Set current",        TMC_CURRENT);
-    TMC_REPORT("RMS current",        TMC_RMS_CURRENT);
-    TMC_REPORT("MAX current",        TMC_MAX_CURRENT);
-    TMC_REPORT("Run current",        TMC_IRUN);
-    TMC_REPORT("Hold current",       TMC_IHOLD);
-    TMC_REPORT("CS actual\t",        TMC_CS_ACTUAL);
-    TMC_REPORT("PWM scale\t",        TMC_PWM_SCALE);
-    TMC_REPORT("vsense\t",           TMC_VSENSE);
-    TMC_REPORT("stealthChop",        TMC_STEALTHCHOP);
-    TMC_REPORT("msteps\t",           TMC_MICROSTEPS);
-    TMC_REPORT("tstep\t",            TMC_TSTEP);
-    TMC_REPORT("pwm\nthreshold\t",   TMC_TPWMTHRS);
-    TMC_REPORT("[mm/s]\t",           TMC_TPWMTHRS_MMS);
-    TMC_REPORT("OT prewarn",         TMC_OTPW);
-    TMC_REPORT("OT prewarn has\n"
-               "been triggered",     TMC_OTPW_TRIGGERED);
-    TMC_REPORT("off time\t",         TMC_TOFF);
-    TMC_REPORT("blank time",         TMC_TBL);
-    TMC_REPORT("hysteresis\n-end\t", TMC_HEND);
-    TMC_REPORT("-start\t",           TMC_HSTRT);
-    TMC_REPORT("Stallguard thrs",    TMC_SGT);
+    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM);  }while(0)
+    #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  status_loop(ITEM); }while(0)
+    TMC_REPORT("\t\t\t",              TMC_CODES);
+    TMC_REPORT("Enabled\t\t",         TMC_ENABLED);
+    TMC_REPORT("Set current\t",       TMC_CURRENT);
+    TMC_REPORT("RMS current\t",       TMC_RMS_CURRENT);
+    TMC_REPORT("MAX current\t",       TMC_MAX_CURRENT);
+    TMC_REPORT("Run current\t",       TMC_IRUN);
+    TMC_REPORT("Hold current\t",      TMC_IHOLD);
+    TMC_REPORT("CS actual\t",         TMC_CS_ACTUAL);
+    TMC_REPORT("PWM scale\t",         TMC_PWM_SCALE);
+    TMC_REPORT("vsense\t\t",          TMC_VSENSE);
+    TMC_REPORT("stealthChop\t",       TMC_STEALTHCHOP);
+    TMC_REPORT("msteps\t\t",          TMC_MICROSTEPS);
+    TMC_REPORT("tstep\t\t",           TMC_TSTEP);
+    TMC_REPORT("pwm threshold\t",     TMC_TPWMTHRS);
+    TMC_REPORT("[mm/s]\t\t",          TMC_TPWMTHRS_MMS);
+    TMC_REPORT("OT prewarn\t",        TMC_OTPW);
+    #if ENABLED(MONITOR_DRIVER_STATUS)
+      TMC_REPORT("OT prewarn has",    TMC_NULL);
+      TMC_REPORT("been triggered\t",  TMC_OTPW_TRIGGERED);
+    #endif
+    TMC_REPORT("off time\t",          TMC_TOFF);
+    TMC_REPORT("blank time\t",        TMC_TBL);
+    TMC_REPORT("hysteresis\t",        TMC_NULL);
+    TMC_REPORT("-end\t\t",            TMC_HEND);
+    TMC_REPORT("-start\t\t",          TMC_HSTRT);
+    TMC_REPORT("Stallguard thrs",     TMC_SGT);
 
-    DRV_REPORT("DRVSTATUS",          TMC_DRV_CODES);
+    DRV_REPORT("DRVSTATUS\t",         TMC_DRV_CODES);
     #if HAVE_DRV(TMC2130)
-      DRV_REPORT("stallguard\t",     TMC_STALLGUARD);
-      DRV_REPORT("sg_result\t",      TMC_SG_RESULT);
-      DRV_REPORT("fsactive\t",       TMC_FSACTIVE);
+      DRV_REPORT("stallguard\t\t",    TMC_STALLGUARD);
+      DRV_REPORT("sg_result\t",       TMC_SG_RESULT);
+      DRV_REPORT("fsactive\t\t",      TMC_FSACTIVE);
     #endif
-    DRV_REPORT("stst\t",             TMC_STST);
-    DRV_REPORT("olb\t",              TMC_OLB);
-    DRV_REPORT("ola\t",              TMC_OLA);
-    DRV_REPORT("s2gb\t",             TMC_S2GB);
-    DRV_REPORT("s2ga\t",             TMC_S2GA);
-    DRV_REPORT("otpw\t",             TMC_DRV_OTPW);
-    DRV_REPORT("ot\t",               TMC_OT);
+    DRV_REPORT("stst\t\t",            TMC_STST);
+    DRV_REPORT("olb\t\t",             TMC_OLB);
+    DRV_REPORT("ola\t\t",             TMC_OLA);
+    DRV_REPORT("s2gb\t\t",            TMC_S2GB);
+    DRV_REPORT("s2ga\t\t",            TMC_S2GA);
+    DRV_REPORT("otpw\t\t",            TMC_DRV_OTPW);
+    DRV_REPORT("ot\t\t",              TMC_OT);
     #if HAVE_DRV(TMC2208)
-      DRV_REPORT("157C\t",           TMC_T157);
-      DRV_REPORT("150C\t",           TMC_T150);
-      DRV_REPORT("143C\t",           TMC_T143);
-      DRV_REPORT("120C\t",           TMC_T120);
-      DRV_REPORT("s2vsa\t",          TMC_S2VSA);
-      DRV_REPORT("s2vsb\t",          TMC_S2VSB);
+      DRV_REPORT("157C\t\t",          TMC_T157);
+      DRV_REPORT("150C\t\t",          TMC_T150);
+      DRV_REPORT("143C\t\t",          TMC_T143);
+      DRV_REPORT("120C\t\t",          TMC_T120);
+      DRV_REPORT("s2vsa\t\t",         TMC_S2VSA);
+      DRV_REPORT("s2vsb\t\t",         TMC_S2VSB);
     #endif
-    DRV_REPORT("Driver registers:",  TMC_DRV_STATUS_HEX);
+    DRV_REPORT("Driver registers:",   TMC_DRV_STATUS_HEX);
     SERIAL_EOL();
   }
 
@@ -673,8 +676,6 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   void TMC_Stepper::config(MKTMC* st, const int8_t tmc_sgt/*=0*/) {
 
-    while(!st->stst()); // Wait for motor stand-still
-
     st->begin();
     st->blank_time(24);
     st->toff(5); // Only enables the driver if used with stealthChop
@@ -686,8 +687,6 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 #elif HAVE_DRV(TMC2130)
   
   void TMC_Stepper::config(MKTMC* st, const bool tmc_stealthchop/*=false*/, const int8_t tmc_sgt/*=0*/) {
-
-    while(!st->stst()); // Wait for motor stand-still
 
     st->begin();
 
@@ -714,13 +713,13 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
     st->GSTAT(); // Clear GSTAT
 
     // Test connection
-    if (st->test_connection() == 2)
+    if (st->test_connection() < 2)
       SERIAL_STR(ECHO);
     else
       SERIAL_STR(ER);
     SERIAL_MSG("stepper");
     st->printLabel();
-    SERIAL_PS(st->test_connection() == 2 ? PSTR(" connect!") : PSTR(" not connect!"));
+    SERIAL_PS(st->test_connection() < 2 ? PSTR(" connect!") : PSTR(" not connect!"));
     SERIAL_EOL();
 
   }
@@ -977,7 +976,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
           break;
         case TMC_VSENSE: print_vsense(st); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
-        case TMC_SGT: SERIAL_VAL(st.sgt()); break;
+        case TMC_SGT: SERIAL_VAL(st->sgt()); break;
         case TMC_TOFF: SERIAL_VAL(st->toff()); break;
         case TMC_TBL: SERIAL_VAL(st->blank_time()); break;
         case TMC_HEND: SERIAL_VAL(st->hysteresis_end()); break;
@@ -1010,6 +1009,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
           break;
         case TMC_VSENSE: print_vsense(st); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
+        case TMC_TSTEP: SERIAL_VAL(st->TSTEP()); break;
         case TMC_TPWMTHRS: {
             uint32_t tpwmthrs_val = st->TPWMTHRS();
             SERIAL_VAL(tpwmthrs_val);
@@ -1037,29 +1037,23 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #endif
 
-  void TMC_Stepper::parse_drv_status(const TMC_drv_status_enum i) {
-    LOOP_TMC() {
-      MKTMC* st = tmc.driver_by_index(t);
-      if (st) {
-        SERIAL_CHR('\t');
-        switch(i) {
-          case TMC_DRV_CODES:     st->printLabel();                     break;
-          case TMC_STST:          if (st->stst())     SERIAL_CHR('X');  break;
-          case TMC_OLB:           if (st->olb())      SERIAL_CHR('X');  break;
-          case TMC_OLA:           if (st->ola())      SERIAL_CHR('X');  break;
-          case TMC_S2GB:          if (st->s2gb())     SERIAL_CHR('X');  break;
-          case TMC_S2GA:          if (st->s2ga())     SERIAL_CHR('X');  break;
-          case TMC_DRV_OTPW:      if (st->otpw())     SERIAL_CHR('X');  break;
-          case TMC_OT:            if (st->ot())       SERIAL_CHR('X');  break;
-          case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st->cs_actual());          break;
-          case TMC_DRV_STATUS_HEX:
-            st->printLabel();
-            SERIAL_MSG("\t0x");
-            drv_status_print_hex(st->DRV_STATUS());
-            break;
-          default: parse_type_drv_status(st, i); break;
-        }
-      }
+  void TMC_Stepper::parse_drv_status(MKTMC* st, const TMC_drv_status_enum i) {
+    SERIAL_CHR('\t');
+    switch (i) {
+      case TMC_DRV_CODES:     st->printLabel();                     break;
+      case TMC_STST:          if (st->stst())     SERIAL_CHR('X');  break;
+      case TMC_OLB:           if (st->olb())      SERIAL_CHR('X');  break;
+      case TMC_OLA:           if (st->ola())      SERIAL_CHR('X');  break;
+      case TMC_S2GB:          if (st->s2gb())     SERIAL_CHR('X');  break;
+      case TMC_S2GA:          if (st->s2ga())     SERIAL_CHR('X');  break;
+      case TMC_DRV_OTPW:      if (st->otpw())     SERIAL_CHR('X');  break;
+      case TMC_OT:            if (st->ot())       SERIAL_CHR('X');  break;
+      case TMC_DRV_STATUS_HEX:
+        st->printLabel();
+        SERIAL_MSG("\t0x");
+        drv_status_print_hex(st->DRV_STATUS());
+        break;
+      default: parse_type_drv_status(st, i); break;
     }
   }
 
@@ -1105,6 +1099,53 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
     #endif
     #if AXIS_HAS_TMC(E5)
       status(stepperE5, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(5)]);
+    #endif
+
+    SERIAL_EOL();
+  }
+
+  void TMC_Stepper::status_loop(const TMC_drv_status_enum i) {
+    #if AXIS_HAS_TMC(X)
+      parse_drv_status(stepperX, i);
+    #endif
+    #if AXIS_HAS_TMC(X2)
+      parse_drv_status(stepperX2, i);
+    #endif
+
+    #if AXIS_HAS_TMC(Y)
+      parse_drv_status(stepperY, i);
+    #endif
+    #if AXIS_HAS_TMC(Y2)
+      parse_drv_status(stepperY2, i);
+    #endif
+
+    #if AXIS_HAS_TMC(Z)
+      parse_drv_status(stepperZ, i);
+    #endif
+    #if AXIS_HAS_TMC(Z2)
+      parse_drv_status(stepperZ2, i);
+    #endif
+    #if AXIS_HAS_TMC(Z3)
+      parse_drv_status(stepperZ3, i);
+    #endif
+
+    #if AXIS_HAS_TMC(E0)
+      parse_drv_status(stepperE0, i);
+    #endif
+    #if AXIS_HAS_TMC(E1)
+      parse_drv_status(stepperE1, i);
+    #endif
+    #if AXIS_HAS_TMC(E2)
+      parse_drv_status(stepperE2, i);
+    #endif
+    #if AXIS_HAS_TMC(E3)
+      parse_drv_status(stepperE3, i);
+    #endif
+    #if AXIS_HAS_TMC(E4)
+      parse_drv_status(stepperE4, i);
+    #endif
+    #if AXIS_HAS_TMC(E5)
+      parse_drv_status(stepperE5, i);
     #endif
 
     SERIAL_EOL();

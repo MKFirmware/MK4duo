@@ -153,7 +153,7 @@ extern bool report_tmc_status;
 
       uint16_t rms_current() { return TMC2130Stepper::rms_current(); }
 
-      void printLabel() { SERIAL_PS(axis_letter); }
+      void printLabel() { SERIAL_TXT(axis_letter); }
 
       void rms_current(uint16_t mA) {
         val_mA = mA;
@@ -305,7 +305,8 @@ struct TMC_driver_data {
     TMC_TBL,
     TMC_HEND,
     TMC_HSTRT,
-    TMC_SGT
+    TMC_SGT,
+    TMC_NULL
   };
 
   enum TMC_drv_status_enum : char {
@@ -544,8 +545,9 @@ class TMC_Stepper {
       static void status(MKTMC* st, const TMC_debug_enum i);
       static void status(MKTMC* st, const TMC_debug_enum i, const float tmc_spmm);
       static void parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i);
-      static void parse_drv_status(const TMC_drv_status_enum i);
+      static void parse_drv_status(MKTMC* st, const TMC_drv_status_enum i);
       static void debug_loop(const TMC_debug_enum i);
+      static void status_loop(const TMC_drv_status_enum i);
 
     #endif
 
