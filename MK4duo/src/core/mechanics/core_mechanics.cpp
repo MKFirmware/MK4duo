@@ -333,7 +333,7 @@
       if (axis == Z_AXIS) {
         #if HOMING_Z_WITH_PROBE
           #if ENABLED(BLTOUCH)
-            probe.set_bltouch_deployed(true);
+            bltouch.set_deployed(true);
           #endif
           #if QUIET_PROBING
             probe.probing_pause(true);
@@ -365,7 +365,7 @@
             probe.probing_pause(false);
           #endif
           #if ENABLED(BLTOUCH)
-            probe.set_bltouch_deployed(false);
+            bltouch.set_deployed(false);
           #endif
         #endif
       }
@@ -880,14 +880,14 @@
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
+      if (axis == Z_AXIS && bltouch.set_deployed(true)) return;
     #endif
 
     do_homing_move(axis, 1.5f * max_length[axis] * get_homedir(axis));
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS) probe.set_bltouch_deployed(false);
+      if (axis == Z_AXIS) bltouch.set_deployed(false);
     #endif
 
     // When homing Z with probe respect probe clearance
@@ -917,14 +917,14 @@
 
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
         // BLTOUCH needs to be deployed every time
-        if (axis == Z_AXIS && probe.set_bltouch_deployed(true)) return;
+        if (axis == Z_AXIS && bltouch.set_deployed(true)) return;
       #endif
 
       do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
         // BLTOUCH needs to be deployed every time
-        if (axis == Z_AXIS) probe.set_bltouch_deployed(false);
+        if (axis == Z_AXIS) bltouch.set_deployed(false);
       #endif
     }
 

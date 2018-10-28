@@ -139,6 +139,15 @@ enum TempUnit : uint8_t {
 };
 
 /**
+ * Probe raise
+ */
+enum ProbePtRaise : uint8_t {
+  PROBE_PT_NONE,  // No raise or stow after run_probing
+  PROBE_PT_STOW,  // Do a complete stow after run_probing
+  PROBE_PT_RAISE  // Raise to "between" clearance after run_probing
+};
+
+/**
  * Filament runout
  */
 enum FilRunoutEnum : uint8_t {

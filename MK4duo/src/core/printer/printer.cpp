@@ -277,7 +277,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(BLTOUCH)
-    probe.bltouch_init();
+    bltouch.init();
   #endif
 
   // All Initialized set Running to true.

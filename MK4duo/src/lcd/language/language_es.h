@@ -159,7 +159,7 @@
 #define MSG_AUTORETRACT                     _UxGT("Retracción Auto.")
 #define MSG_FILAMENTCHANGE                  _UxGT("Cambiar filamento")
 #define MSG_INIT_SDCARD                     _UxGT("Iniciando tarjeta")
-#define MSG_CNG_SDCARD                      _UxGT("Cambiar tarjeta")
+#define MSG_CHANGE_SDCARD                   _UxGT("Cambiar tarjeta")
 #define MSG_ZPROBE_OUT                      _UxGT("Sonda Z fuera")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Auto-Prueba")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reiniciar BLTouch")

@@ -756,18 +756,6 @@
 #endif
 
 /**
- * The BLTouch Probe emulates a servo probe
- */
-#if ENABLED(BLTOUCH)
-  #if HAS_Z_PROBE_PIN
-    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
-  #else
-    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
-  #endif
-#endif
-
-
-/**
  * JERK or JUNCTION_DEVIATION
  */
 #define HAS_CLASSIC_JERK        (IS_KINEMATIC || DISABLED(JUNCTION_DEVIATION))

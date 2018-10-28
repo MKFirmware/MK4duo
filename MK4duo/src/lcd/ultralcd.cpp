@@ -1070,7 +1070,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
         else {
           MENU_ITEM(submenu, MSG_CARD_MENU, lcd_sdcard_menu);
           #if !PIN_EXISTS(SD_DETECT)
-            MENU_ITEM(gcode, MSG_CNG_SDCARD, PSTR("M21"));  // SD-card changed by user
+            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
           #endif
         }
       }
@@ -3882,7 +3882,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     //
     #if ENABLED(BLTOUCH)
       MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
-      if (!endstops.isProbeEnabled() && TEST_BLTOUCH())
+      if (!endstops.isProbeEnabled() && bltouch.test())
         MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
     #endif
 

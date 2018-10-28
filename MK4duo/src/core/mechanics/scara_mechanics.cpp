@@ -534,7 +534,7 @@
     if (is_home_dir) {
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
         const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
-        if (deploy_bltouch) probe.set_bltouch_deployed(true);
+        if (deploy_bltouch) bltouch.set_deployed(true);
       #endif
 
       #if QUIET_PROBING
@@ -558,7 +558,7 @@
       #endif
 
       #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-        if (deploy_bltouch) probe.set_bltouch_deployed(false);
+        if (deploy_bltouch) bltouch.set_deployed(false);
       #endif
 
       endstops.validate_homing_move();

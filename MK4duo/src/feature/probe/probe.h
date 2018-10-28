@@ -42,12 +42,6 @@
   #define STOW_PROBE()
 #endif
 
-enum ProbePtRaise : unsigned char {
-  PROBE_PT_NONE,  // No raise or stow after run_probing
-  PROBE_PT_STOW,  // Do a complete stow after run_probing
-  PROBE_PT_RAISE  // Raise to "between" clearance after run_probing
-};
-
 class Probe {
 
   public: /** Constructor */
@@ -86,20 +80,11 @@ class Probe {
       static void probing_pause(const bool onoff);
     #endif
 
-    #if ENABLED(BLTOUCH)
-      static void bltouch_command(const int angle);
-      static bool set_bltouch_deployed(const bool deploy);
-      FORCE_INLINE void bltouch_init() {
-        // Make sure any BLTouch error condition is cleared
-        bltouch_command(BLTOUCH_RESET);
-        set_bltouch_deployed(true);
-        set_bltouch_deployed(false);
-      }
-    #endif
-
     static void servo_test();
 
   private: /** Private Function */
+
+    static bool specific_action(const bool deploy);
 
     static bool move_to_z(const float z, const float fr_mm_s);
 

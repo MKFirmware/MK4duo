@@ -146,6 +146,7 @@
 #include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
+#include "src/feature/bltouch/bltouch.h"
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/tmc/tmc.h"
 #include "src/feature/power/power.h"
