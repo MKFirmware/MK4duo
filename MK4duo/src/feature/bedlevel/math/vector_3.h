@@ -61,15 +61,15 @@
 
     void debug(PGM_P const title);
 
-    void apply_rotation(const matrix_3x3 matrix);
+    void apply_rotation(const matrix_3x3 &matrix);
   };
 
   struct matrix_3x3 {
     float matrix[9];
 
     static matrix_3x3 create_from_rows(const vector_3 &row_0, const vector_3 &row_1, const vector_3 &row_2);
-    static matrix_3x3 create_look_at(const vector_3 target);
-    static matrix_3x3 transpose(const matrix_3x3 original);
+    static matrix_3x3 create_look_at(const vector_3 &target);
+    static matrix_3x3 transpose(const matrix_3x3 &original);
 
     void set_to_identity();
 
@@ -79,5 +79,3 @@
   void apply_rotation_xyz(const matrix_3x3 &rotationMatrix, float &x, float &y, float &z);
 
 #endif // HAS_ABL
-
-#endif /* _VECTOR_3_H_ */
