@@ -38,7 +38,7 @@
     float retract_mm[XYZ];
     LOOP_XYZ(i) {
       float dist = mechanics.destination[i] - mechanics.current_position[i];
-      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : mechanics.home_bump_mm[(AxisEnum)i] * (dist > 0 ? -1 : 1);
     }
 
     planner.synchronize();  // wait until the machine is idle
@@ -95,9 +95,9 @@
    */
   void gcode_G38_S(bool is_38_2) {
     // Get X Y Z E F
-    gcode_get_destination();
+    commands.get_destination();
 
-    setup_for_endstop_or_probe_move();
+    printer.setup_for_endstop_or_probe_move();
 
     // If any axis has enough movement, do the move
     LOOP_XYZ(i)
@@ -110,7 +110,7 @@
         break;
       }
 
-    clean_up_after_endstop_or_probe_move();
+    printer.clean_up_after_endstop_or_probe_move();
   }
 
   inline void gcode_G38(void) {
