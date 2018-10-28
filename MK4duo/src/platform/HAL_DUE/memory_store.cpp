@@ -60,12 +60,12 @@ bool MemoryStore::access_finish(const bool read) {
   #elif HAS_EEPROM_SD
     if (!read) {
       card.open_eeprom_sd(false);
-      int16_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
-      if (bytes_written == -1) SERIAL_STR(ER);
+      int bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
+      if (bytes_written != EEPROM_SIZE) SERIAL_STR(ER);
       else SERIAL_STR(ECHO);
-      SERIAL_EMV("SD EEPROM bytes written: ", ABS(bytes_written));
+      SERIAL_EMV("SD EEPROM bytes written: ", bytes_written);
       card.close_eeprom_sd();
-      return (bytes_written != -1);
+      return (bytes_written == EEPROM_SIZE);
     }
   #else
     UNUSED(read);
