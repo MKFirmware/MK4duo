@@ -61,7 +61,7 @@
     const bool Bedlevel::g29_in_progress = false;
   #endif
 
-  #if PLANNER_LEVELING || HAS_UBL_AND_CURVES
+  #if HAS_LEVELING
 
     /**
      * rx, ry, rz - Cartesian positions in mm
@@ -155,7 +155,7 @@
       #endif
     }
 
-  #endif // PLANNER_LEVELING || HAS_UBL_AND_CURVES
+  #endif // HAS_LEVELING
 
   bool Bedlevel::leveling_is_valid() {
     #if ENABLED(MESH_BED_LEVELING)
