@@ -143,7 +143,7 @@ class Heater {
     }
     FORCE_INLINE bool isFault() { return data.flag.bit5; }
 
-    FORCE_INLINE bool resetFlag() { data.flag._byte = 0; }
+    FORCE_INLINE void resetFlag() { data.flag._byte = 0; }
 
     FORCE_INLINE void SwitchOff() {
       target_temperature = 0;
