@@ -40,7 +40,7 @@
    */
   inline void gcode_M223(void) {
     if (commands.get_target_tool(223)) return;
-    filamentrunout.setLogic(tools.target_extruder, parser.value_bool());
+    filamentrunout.setLogic((FilRunoutEnum)tools.target_extruder, parser.value_bool());
     filamentrunout.report();
   }
 
@@ -53,7 +53,7 @@
    */
   inline void gcode_M224(void) {
     if (commands.get_target_tool(224)) return;
-    filamentrunout.setPullup(tools.target_extruder, parser.value_bool());
+    filamentrunout.setPullup((FilRunoutEnum)tools.target_extruder, parser.value_bool());
     filamentrunout.setup_pullup();
     filamentrunout.report();
   }
