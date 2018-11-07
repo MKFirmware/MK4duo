@@ -323,7 +323,7 @@ inline void gcode_M933(void) {
       tmc.set_hysteresis_end(stepperZ, parser.value_int());
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.set_fast_decay_time(stepperZ2, parser.value_int());
+      tmc.set_hysteresis_end(stepperZ2, parser.value_int());
     #endif
   }
   if (parser.seenval('E')) {
