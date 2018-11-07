@@ -170,7 +170,7 @@ inline void gcode_M931(void) {
       tmc.get_off_time(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_off_time(stepperY22);
+      tmc.get_off_time(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -178,7 +178,7 @@ inline void gcode_M931(void) {
       tmc.get_off_time(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_off_time(stepperZ22);
+      tmc.get_off_time(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -257,7 +257,7 @@ inline void gcode_M932(void) {
       tmc.get_hysteresis_start(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_hysteresis_start(stepperY22);
+      tmc.get_hysteresis_start(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -265,7 +265,7 @@ inline void gcode_M932(void) {
       tmc.get_hysteresis_start(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_hysteresis_start(stepperZ22);
+      tmc.get_hysteresis_start(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -284,13 +284,13 @@ inline void gcode_M932(void) {
       tmc.get_hysteresis_start(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_hysteresis_start(stepperX22);
+      tmc.get_hysteresis_start(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_hysteresis_start(stepperY22);
+      tmc.get_hysteresis_start(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_hysteresis_start(stepperZ22);
+      tmc.get_hysteresis_start(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_hysteresis_start(stepperE0);
@@ -344,7 +344,7 @@ inline void gcode_M933(void) {
       tmc.get_hysteresis_end(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_hysteresis_end(stepperY22);
+      tmc.get_hysteresis_end(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -352,7 +352,7 @@ inline void gcode_M933(void) {
       tmc.get_hysteresis_end(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_hysteresis_end(stepperZ22);
+      tmc.get_hysteresis_end(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -371,13 +371,13 @@ inline void gcode_M933(void) {
       tmc.get_hysteresis_end(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_hysteresis_end(stepperX22);
+      tmc.get_hysteresis_end(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_hysteresis_end(stepperY22);
+      tmc.get_hysteresis_end(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_hysteresis_end(stepperZ22);
+      tmc.get_hysteresis_end(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_hysteresis_end(stepperE0);
@@ -431,7 +431,7 @@ inline void gcode_M934(void) {
       tmc.get_fast_decay_time(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_fast_decay_time(stepperY22);
+      tmc.get_fast_decay_time(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -439,7 +439,7 @@ inline void gcode_M934(void) {
       tmc.get_fast_decay_time(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_fast_decay_time(stepperZ22);
+      tmc.get_fast_decay_time(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -458,13 +458,13 @@ inline void gcode_M934(void) {
       tmc.get_fast_decay_time(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_fast_decay_time(stepperX22);
+      tmc.get_fast_decay_time(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_fast_decay_time(stepperY22);
+      tmc.get_fast_decay_time(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_fast_decay_time(stepperZ22);
+      tmc.get_fast_decay_time(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_fast_decay_time(stepperE0);
@@ -519,7 +519,7 @@ inline void gcode_M935(void) {
       tmc.get_disable_I_comparator(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_disable_I_comparator(stepperY22);
+      tmc.get_disable_I_comparator(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -527,7 +527,7 @@ inline void gcode_M935(void) {
       tmc.get_disable_I_comparator(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_disable_I_comparator(stepperZ22);
+      tmc.get_disable_I_comparator(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -546,13 +546,13 @@ inline void gcode_M935(void) {
       tmc.get_disable_I_comparator(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_disable_I_comparator(stepperX22);
+      tmc.get_disable_I_comparator(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_disable_I_comparator(stepperY22);
+      tmc.get_disable_I_comparator(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_disable_I_comparator(stepperZ22);
+      tmc.get_disable_I_comparator(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_disable_I_comparator(stepperE0);
@@ -606,7 +606,7 @@ inline void gcode_M936(void) {
       tmc.get_stealth_gradient(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_gradient(stepperY22);
+      tmc.get_stealth_gradient(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -614,7 +614,7 @@ inline void gcode_M936(void) {
       tmc.get_stealth_gradient(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_gradient(stepperZ22);
+      tmc.get_stealth_gradient(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -633,13 +633,13 @@ inline void gcode_M936(void) {
       tmc.get_stealth_gradient(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_stealth_gradient(stepperX22);
+      tmc.get_stealth_gradient(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_gradient(stepperY22);
+      tmc.get_stealth_gradient(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_gradient(stepperZ22);
+      tmc.get_stealth_gradient(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_stealth_gradient(stepperE0);
@@ -693,7 +693,7 @@ inline void gcode_M937(void) {
       tmc.get_stealth_amplitude(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_amplitude(stepperY22);
+      tmc.get_stealth_amplitude(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -701,7 +701,7 @@ inline void gcode_M937(void) {
       tmc.get_stealth_amplitude(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_amplitude(stepperZ22);
+      tmc.get_stealth_amplitude(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -720,13 +720,13 @@ inline void gcode_M937(void) {
       tmc.get_stealth_amplitude(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_stealth_amplitude(stepperX22);
+      tmc.get_stealth_amplitude(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_amplitude(stepperY22);
+      tmc.get_stealth_amplitude(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_amplitude(stepperZ22);
+      tmc.get_stealth_amplitude(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_stealth_amplitude(stepperE0);
@@ -780,7 +780,7 @@ inline void gcode_M938(void) {
       tmc.get_stealth_freq(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_freq(stepperY22);
+      tmc.get_stealth_freq(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -788,7 +788,7 @@ inline void gcode_M938(void) {
       tmc.get_stealth_freq(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_freq(stepperZ22);
+      tmc.get_stealth_freq(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -807,13 +807,13 @@ inline void gcode_M938(void) {
       tmc.get_stealth_freq(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_stealth_freq(stepperX22);
+      tmc.get_stealth_freq(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_freq(stepperY22);
+      tmc.get_stealth_freq(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_freq(stepperZ22);
+      tmc.get_stealth_freq(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_stealth_freq(stepperE0);
@@ -867,7 +867,7 @@ inline void gcode_M939(void) {
       tmc.get_stealth_autoscale(stepperY);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_autoscale(stepperY22);
+      tmc.get_stealth_autoscale(stepperY2);
     #endif
   }
   if (parser.seen('Z')) {
@@ -875,7 +875,7 @@ inline void gcode_M939(void) {
       tmc.get_stealth_autoscale(stepperZ);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_autoscale(stepperZ22);
+      tmc.get_stealth_autoscale(stepperZ2);
     #endif
   }
   if (parser.seen('E')) {
@@ -894,13 +894,13 @@ inline void gcode_M939(void) {
       tmc.get_stealth_autoscale(stepperZ);
     #endif
     #if AXIS_HAS_TMC(X2)
-      tmc.get_stealth_autoscale(stepperX22);
+      tmc.get_stealth_autoscale(stepperX2);
     #endif
     #if AXIS_HAS_TMC(Y2)
-      tmc.get_stealth_autoscale(stepperY22);
+      tmc.get_stealth_autoscale(stepperY2);
     #endif
     #if AXIS_HAS_TMC(Z2)
-      tmc.get_stealth_autoscale(stepperZ22);
+      tmc.get_stealth_autoscale(stepperZ2);
     #endif
     #if AXIS_HAS_TMC(E0)
       tmc.get_stealth_autoscale(stepperE0);
