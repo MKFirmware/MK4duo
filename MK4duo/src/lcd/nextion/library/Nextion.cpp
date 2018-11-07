@@ -634,14 +634,21 @@
 
     // If baudrate is 9600 set to 115200 and reconnect
     if (connect) {
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
+      #endif
       sendCommand("baud=115200");
+      HAL::delayMilliseconds(100);
       nexSerial.end();
-      HAL::delayMilliseconds(1000);
+      HAL::delayMilliseconds(100);
       nexSerial.begin(115200);
     }
     else { // Else try to 115200 baudrate
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_EM(" NEXTION connected at 115200 baud, cready");
+      #endif
       nexSerial.end();
-      HAL::delayMilliseconds(1000);
+      HAL::delayMilliseconds(100);
       nexSerial.begin(115200);
     }
 
