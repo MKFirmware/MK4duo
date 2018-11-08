@@ -53,7 +53,7 @@
 
     planner.synchronize();
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
 
       if (!hasP && !hasS && args && *args)
         lcd_setstatus(args, true);
@@ -64,7 +64,7 @@
         #endif
       }
 
-    #elif ENABLED(NEXTION)
+    #elif HAS_NEXTION_LCD
 
       if (!hasP && !hasS && args && *args)
         lcd_yesno(4, args, "", MSG_USERWAIT);
@@ -88,7 +88,7 @@
     else
       while (printer.isWaitForUser()) printer.idle();
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
       lcd_reset_status();
     #endif
 

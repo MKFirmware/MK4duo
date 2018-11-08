@@ -20,29 +20,9 @@
  *
  */
 
-#ifndef CARDREADER_H
-#define CARDREADER_H
+#pragma once
 
 #if HAS_SD_SUPPORT
-
-  #if ENABLED(SD_SETTINGS)
-    /**
-     * SD Settings
-     */
-    enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
-      SD_CFG_CPR,
-      SD_CFG_FIL,
-      SD_CFG_NPR,
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      SD_CFG_PWR,
-    #endif
-      SD_CFG_TME,
-      SD_CFG_TPR,
-      SD_CFG_END // Leave this always as the last
-    };
-  #endif
-
-  enum LsAction : char { LS_Count, LS_GetFilename };
 
   #include "SDFat.h"
 
@@ -92,9 +72,9 @@
         static SdFile settings_file;
       #endif
 
-      static uint16_t workDirDepth,
-                      nrFiles;              // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
-      static LsAction lsAction;             // stored for recursion.
+      static uint16_t     workDirDepth,
+                          nrFiles;          // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
+      static LsActionEnum lsAction;         // stored for recursion.
 
       // Sort files and folders alphabetically.
       #if ENABLED(SDCARD_SORT_ALPHA)
@@ -191,8 +171,8 @@
       #if HAS_EEPROM_SD
         static void open_eeprom_sd(const bool read);
         static void close_eeprom_sd();
-        FORCE_INLINE static int write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
-        FORCE_INLINE static int read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
+        FORCE_INLINE static size_t write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
+        FORCE_INLINE static size_t read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
       #endif
 
       #if ENABLED(SD_SETTINGS)
@@ -217,6 +197,8 @@
           FORCE_INLINE static void setSortFolders(const int i) { sort_folders = i; presort(); }
           //FORCE_INLINE void setSortReverse(const bool b) { sort_reverse = b; }
         #endif
+      #else
+        FORCE_INLINE void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
       #endif
 
       // Card flag bit 0 SD OK
@@ -251,6 +233,8 @@
       FORCE_INLINE static int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
       FORCE_INLINE static uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
       FORCE_INLINE static char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
+      FORCE_INLINE size_t read(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.read(buf, nbyte) : -1; }
+      FORCE_INLINE size_t write(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.write(buf, nbyte) : -1; }
 
     private: /** Private Function */
 
@@ -270,8 +254,8 @@
 
   extern CardReader card;
 
-  #define IS_SD_PRINTING()  (card.isSDprinting())
-  #define IS_SD_FILE_OPEN() (card.isFileOpen())
+  #define IS_SD_PRINTING()  card.isSDprinting()
+  #define IS_SD_FILE_OPEN() card.isFileOpen()
 
   #if PIN_EXISTS(SD_DETECT)
     #if ENABLED(SD_DETECT_INVERTED)
@@ -286,9 +270,7 @@
 
 #else
 
-  #define IS_SD_PRINTING()  (false)
-  #define IS_SD_FILE_OPEN() (false)
+  #define IS_SD_PRINTING()  false
+  #define IS_SD_FILE_OPEN() false
 
 #endif //SDSUPPORT
-
-#endif //__CARDREADER_H

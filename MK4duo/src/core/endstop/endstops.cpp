@@ -31,7 +31,7 @@ Endstops endstops;
 
 // public:
 
-#if IS_DELTA
+#if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
 #else
   float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
@@ -495,7 +495,7 @@ void Endstops::report_state() {
 
   if (hit_state && hit_state != prev_hit_state) {
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
     #else
@@ -521,7 +521,7 @@ void Endstops::report_state() {
     #endif
     SERIAL_EOL();
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
@@ -555,7 +555,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 
   if (!isSoftEndstop()) return;
 
-  #if IS_DELTA
+  #if MECH(DELTA)
     const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
     if (dist_2 > soft_endstop_radius_2) {
       const float ratio = mechanics.data.print_radius / SQRT(dist_2);

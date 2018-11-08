@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _MACROS_H_
-#define _MACROS_H_
+#pragma once
 
 // NoPin
 #define NoPin     -1
@@ -86,10 +85,8 @@
 #define MECH(mech)    (MECHANISM == MECH_##mech)
 #define NOMECH(mech)  (MECHANISM != MECH_##mech)
 
-#define IS_CARTESIAN  (MECH(CARTESIAN))
-#define IS_DELTA      (MECH(DELTA))
 #define IS_SCARA      (MECH(MORGAN_SCARA) || MECH(MAKERARM_SCARA))
-#define IS_KINEMATIC  (IS_DELTA || IS_SCARA)
+#define IS_KINEMATIC  (MECH(DELTA)  || IS_SCARA)
 #define CORE_IS_XY    (MECH(COREXY) || MECH(COREYX))
 #define CORE_IS_XZ    (MECH(COREXZ) || MECH(COREZX))
 #define CORE_IS_YZ    (MECH(COREYZ) || MECH(COREZY))
@@ -176,7 +173,7 @@
 
 #define PIN_EXISTS(PN)          (defined(PN##_PIN) && PN##_PIN > NoPin)
 
-#define PENDING(NOW,SOON)       ((long)(NOW-(SOON))<0)
+#define PENDING(NOW,SOON)       ((int32_t)(NOW-(SOON))<0)
 #define ELAPSED(NOW,SOON)       (!PENDING(NOW,SOON))
 
 #define NOOP                    do{}while(0)
@@ -319,5 +316,3 @@
                             } while(0)
 
 #endif
-
-#endif /* _MACROS_H_ */

@@ -133,7 +133,7 @@ inline void gcode_G29(void) {
   // G29 Q is also available if debugging
   #if ENABLED(DEBUG_FEATURE)
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (seenQ) printer.debugSet(debug_feature);
+    if (seenQ) printer.debugSet(MK4DUO_DEBUG_FEATURE);
     if (printer.debugFeature()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();
@@ -365,7 +365,7 @@ inline void gcode_G29(void) {
       back_probe_bed_position  = parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
       if (
-        #if IS_SCARA || IS_DELTA
+        #if IS_SCARA || MECH(DELTA)
              !mechanics.position_is_reachable_by_probe(left_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(0, front_probe_bed_position)
@@ -464,7 +464,7 @@ inline void gcode_G29(void) {
       #endif
       bedlevel.set_bed_leveling_enabled(abl_should_enable);
       bedlevel.g29_in_progress = false;
-      #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+      #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
         lcd_wait_for_move = false;
       #endif
     }
@@ -626,7 +626,7 @@ inline void gcode_G29(void) {
 
   #else // !PROBE_MANUALLY
   {
-    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
+    const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     measured_z = 0.0;
 
@@ -754,7 +754,7 @@ inline void gcode_G29(void) {
 
   #if ENABLED(PROBE_MANUALLY)
     bedlevel.g29_in_progress = false;
-    #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+    #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
       lcd_wait_for_move = false;
     #endif
   #endif

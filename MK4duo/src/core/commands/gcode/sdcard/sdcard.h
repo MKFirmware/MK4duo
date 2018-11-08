@@ -86,7 +86,7 @@
     #endif
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
-      resume_print();
+      advancedpause.resume_print();
     #endif
 
     card.startFileprint();

@@ -174,7 +174,7 @@
   #define STAT_LED_BLUE_PIN     11
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(NEWPANEL)
     #define LCD_PINS_RS 16

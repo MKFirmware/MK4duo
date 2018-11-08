@@ -51,8 +51,11 @@ inline void gcode_M18_M84(void) {
       #endif
     }
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
-      if (ubl.lcd_map_control) ubl.lcd_map_control = defer_return_to_status = false;
+    #if ENABLED(AUTO_BED_LEVELING_UBL) && HAS_LCD_MENU  // Only needed with an LCD
+      if (ubl.lcd_map_control) {
+        ubl.lcd_map_control = false;
+        set_defer_return_to_status(false);
+      }
     #endif
   }
 }

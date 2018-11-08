@@ -19,9 +19,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _ENUM_H_
-#define _ENUM_H_
+/**
+ * Define debug bit-masks
+ */
+enum DebugEnum : uint8_t {
+  MK4DUO_DEBUG_NONE           = 0,
+  MK4DUO_DEBUG_ECHO           = 1,    ///< Echo commands in order as they are processed
+  MK4DUO_DEBUG_INFO           = 2,    ///< Print messages for code that has debug output
+  MK4DUO_DEBUG_ERRORS         = 4,    ///< Not implemented
+  MK4DUO_DEBUG_DRYRUN         = 8,    ///< Ignore temperature setting and E movement commands
+  MK4DUO_DEBUG_COMMUNICATION  = 16,   ///< Not implemented
+  MK4DUO_DEBUG_FEATURE        = 32,   ///< Print detailed output
+  MK4DUO_DEBUG_MESH_ADJUST    = 64,   ///< UBL bed leveling
+  MK4DUO_DEBUG_SIMULATION     = 128,  ///< Simulation mode Debug
+  MK4DUO_DEBUG_ALL            = 255
+};
 
 /**
  * Axis indices as enumerated constants
@@ -52,9 +66,9 @@ enum AxisEnum : uint8_t {
 };
 
 /**
- * Printer
+ * Printer Mode
  */
-enum PrinterMode : uint8_t {
+enum PrinterModeEnum : uint8_t {
   PRINTER_MODE_FFF,           // M450 S0 or M451
   PRINTER_MODE_LASER,         // M450 S1 or M452
   PRINTER_MODE_CNC,           // M450 S2 or M453
@@ -63,7 +77,7 @@ enum PrinterMode : uint8_t {
   PRINTER_MODE_PLOTTER,
   PRINTER_MODE_COUNT
 };
-enum MK4duoInterruptEvent : uint8_t {
+enum InterruptEventEnum : uint8_t {
   INTERRUPT_EVENT_NONE,
   INTERRUPT_EVENT_FIL_RUNOUT,
   INTERRUPT_EVENT_ENC_DETECT
@@ -73,7 +87,7 @@ enum MK4duoInterruptEvent : uint8_t {
  * States for managing MK4duo and host communication
  * MK4duo sends messages if blocked or busy
  */
-enum MK4duoBusyState : uint8_t {
+enum BusyStateEnum : uint8_t {
   NotBusy,          // Not in a handler
   InHandler,        // Processing a GCode
   InProcess,        // Known to be blocking command input (as in G29)
@@ -84,9 +98,50 @@ enum MK4duoBusyState : uint8_t {
 };
 
 /**
+ * Emergency Parser
+ *  Currently looking for: M108, M112, M410
+ */
+enum EmergencyStateEnum : uint8_t {
+  EP_RESET,
+  EP_N,
+  EP_M,
+  EP_M1,
+  EP_M10,
+  EP_M108,
+  EP_M11,
+  EP_M112,
+  EP_M4,
+  EP_M41,
+  EP_M410,
+  EP_IGNORE // to '\n'
+};
+
+/**
+ * Planner
+ */
+enum BlockFlagBitEnum : uint8_t {
+  // Recalculate trapezoids on entry junction. For optimization.
+  BLOCK_BIT_RECALCULATE,
+
+  // Nominal speed always reached.
+  // i.e., The segment is long enough, so the nominal speed is reachable if accelerating
+  // from a safe speed (in consideration of jerking from zero speed).
+  BLOCK_BIT_NOMINAL_LENGTH,
+
+  // Sync the stepper counts from the block
+  BLOCK_BIT_SYNC_POSITION
+};
+
+enum BlockFlagEnum : uint8_t {
+  BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
+  BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
+  BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
+};
+
+/**
  * DUAL X CARRIAGE
  */
-enum DualXMode : uint8_t {
+enum DualXModeEnum : uint8_t {
   DXC_FULL_CONTROL_MODE,
   DXC_AUTO_PARK_MODE,
   DXC_DUPLICATION_MODE,
@@ -96,7 +151,7 @@ enum DualXMode : uint8_t {
 /**
  * Work Space Plane
  */
-enum WorkspacePlane : uint8_t {
+enum WorkspacePlaneEnum : uint8_t {
   PLANE_XY,
   PLANE_ZX,
   PLANE_YZ
@@ -127,21 +182,37 @@ enum EndstopEnum : uint8_t {
 /**
  * Heaters
  */
-enum heater_t : uint8_t { IS_HOTEND = 0, IS_BED = 1, IS_CHAMBER = 2, IS_COOLER = 3 };
+enum HeaterEnum : uint8_t {
+  IS_HOTEND,
+  IS_BED,
+  IS_CHAMBER,
+  IS_COOLER
+};
 
 /**
  * Temperature
  */
-enum TempUnit : uint8_t {
+enum TempUnitEnum : uint8_t {
   TEMPUNIT_C,
   TEMPUNIT_K,
   TEMPUNIT_F
 };
 
 /**
+ * LCD
+ */
+enum LCDViewActionEnum : uint8_t {
+  LCDVIEW_NONE,
+  LCDVIEW_REDRAW_NOW,
+  LCDVIEW_CALL_REDRAW_NEXT,
+  LCDVIEW_CLEAR_CALL_REDRAW,
+  LCDVIEW_CALL_NO_REDRAW
+};
+
+/**
  * Probe raise
  */
-enum ProbePtRaise : uint8_t {
+enum ProbePtRaiseEnum : uint8_t {
   PROBE_PT_NONE,  // No raise or stow after run_probing
   PROBE_PT_STOW,  // Do a complete stow after run_probing
   PROBE_PT_RAISE  // Raise to "between" clearance after run_probing
@@ -159,4 +230,124 @@ enum FilRunoutEnum : uint8_t {
   FIL_RUNOUT_5  // Bit 5
 };
 
-#endif /* _ENUM_H_ */
+/**
+ * SD Settings
+ */
+enum CfgSDEnum : uint8_t {   // This need to be in the same order as cfgSD_KEY
+  SD_CFG_CPR,
+  SD_CFG_FIL,
+  SD_CFG_NPR,
+  SD_CFG_PWR,
+  SD_CFG_TME,
+  SD_CFG_TPR,
+  SD_CFG_END // Leave this always as the last
+};
+
+enum LsActionEnum : uint8_t {
+  LS_Count,
+  LS_GetFilename
+};
+
+/**
+ * Sound
+ */
+enum SoundModeEnum : uint8_t {
+  SOUND_MODE_ON,
+  SOUND_MODE_SILENT,
+  SOUND_MODE_MUTE
+};
+
+/**
+ * Advanced Paused
+ */
+enum AdvancedPauseModeEnum : uint8_t {
+  ADVANCED_PAUSE_MODE_SAME,
+  ADVANCED_PAUSE_MODE_PAUSE_PRINT,
+  ADVANCED_PAUSE_MODE_LOAD_FILAMENT,
+  ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT
+};
+
+enum AdvancedPauseMessageEnum : uint8_t {
+  ADVANCED_PAUSE_MESSAGE_INIT,
+  ADVANCED_PAUSE_MESSAGE_WAITING,
+  ADVANCED_PAUSE_MESSAGE_UNLOAD,
+  ADVANCED_PAUSE_MESSAGE_INSERT,
+  ADVANCED_PAUSE_MESSAGE_LOAD,
+  ADVANCED_PAUSE_MESSAGE_PURGE,
+  ADVANCED_PAUSE_MESSAGE_OPTION,
+  ADVANCED_PAUSE_MESSAGE_RESUME,
+  ADVANCED_PAUSE_MESSAGE_STATUS,
+  ADVANCED_PAUSE_MESSAGE_HEAT,
+  ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
+  ADVANCED_PAUSE_MESSAGE_HEATING
+};
+
+enum AdvancedPauseMenuResponseEnum : uint8_t {
+  ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
+  ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
+  ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
+};
+
+/**
+ * Mesh Bed Level
+ */
+enum MeshLevelingStateEnum : uint8_t {
+  MeshReport,
+  MeshStart,
+  MeshNext,
+  MeshSet,
+  MeshSetZOffset,
+  MeshReset
+};
+
+/**
+ * Trinamic Debug
+ */
+enum TMCdebugEnum : uint8_t {
+  TMC_CODES,
+  TMC_ENABLED,
+  TMC_CURRENT,
+  TMC_RMS_CURRENT,
+  TMC_MAX_CURRENT,
+  TMC_IRUN,
+  TMC_IHOLD,
+  TMC_CS_ACTUAL,
+  TMC_PWM_SCALE,
+  TMC_VSENSE,
+  TMC_STEALTHCHOP,
+  TMC_MICROSTEPS,
+  TMC_TSTEP,
+  TMC_TPWMTHRS,
+  TMC_TPWMTHRS_MMS,
+  TMC_OTPW,
+  TMC_OTPW_TRIGGERED,
+  TMC_TOFF,
+  TMC_TBL,
+  TMC_HEND,
+  TMC_HSTRT,
+  TMC_SGT,
+  TMC_NULL
+};
+
+enum TMCdrvStatusEnum : uint8_t {
+  TMC_DRV_CODES,
+  TMC_STST,
+  TMC_OLB,
+  TMC_OLA,
+  TMC_S2GB,
+  TMC_S2GA,
+  TMC_DRV_OTPW,
+  TMC_OT,
+  TMC_STALLGUARD,
+  TMC_DRV_CS_ACTUAL,
+  TMC_FSACTIVE,
+  TMC_SG_RESULT,
+  TMC_DRV_STATUS_HEX,
+  TMC_T157,
+  TMC_T150,
+  TMC_T143,
+  TMC_T120,
+  TMC_STEALTH,
+  TMC_S2VSB,
+  TMC_S2VSA
+};

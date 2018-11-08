@@ -166,9 +166,9 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
       #define ORIG_BEEPER_PIN   37
       #define BTN_EN1           33
       #define BTN_EN2           31

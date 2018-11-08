@@ -176,7 +176,7 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(NEWPANEL)
    //arduino pin which triggers an piezzo beeper

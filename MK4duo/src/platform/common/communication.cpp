@@ -82,6 +82,16 @@ bool Com::serialDataAvailable() {
     false);
 }
 
+bool Com::serialDataAvailable(const uint8_t index) {
+  switch (index) {
+    case 0: return MKSERIAL1.available();
+    #if NUM_SERIAL > 1
+      case 1: MKSERIAL2.available();
+    #endif
+    default: return false;
+  }
+}
+
 // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
 void Com::printPGM(PGM_P str) {
   while (char c = pgm_read_byte(str++)) {

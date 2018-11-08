@@ -170,7 +170,7 @@
   #define KILL_PIN              NoPin
 #endif
 
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
   #define ORIG_BEEPER_PIN       NoPin
   // LCD
   #define LCD_PINS_RS           27

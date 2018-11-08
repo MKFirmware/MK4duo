@@ -151,7 +151,7 @@
   FORCE_INLINE void store_rxd_char() {
 
     #if ENABLED(EMERGENCY_PARSER)
-      static EmergencyParser::State emergency_state; // = EP_RESET
+      static EmergencyStateEnum emergency_state; // = EP_RESET
     #endif
 
     // Get the tail - Nothing can alter its value while this ISR is executing, but there's

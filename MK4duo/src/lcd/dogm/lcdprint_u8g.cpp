@@ -7,20 +7,18 @@
  * @copyright GPL/BSD
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
 #include <U8glib.h>
 extern U8GLIB *pu8g;
 #define _lcd_write(a) pu8g->print(a)
 #define _lcd_setcursor(col, row) pu8g->setPrintPos((col), (row));
 
-#include "ultralcd.h"
-
-#include "fontutils.h"
+#include "../fontutils.h"
 #include "u8g_fontutf8.h"
-#include "lcdprint.h"
+#include "../lcdprint.h"
 
 int lcd_glyph_height(void) {
   return u8g_GetFontBBXHeight(pu8g->getU8g());
@@ -61,4 +59,4 @@ int lcd_put_u8str_max_P(PGM_P utf8_str_P, pixel_len_t max_length) {
   return ret;
 }
 
-#endif // DOGLCD
+#endif // HAS_GRAPHICAL_LCD

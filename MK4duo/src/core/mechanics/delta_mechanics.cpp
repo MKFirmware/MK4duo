@@ -28,7 +28,7 @@
 
 #include "../../../MK4duo.h"
 
-#if IS_DELTA
+#if MECH(DELTA)
 
   Delta_Mechanics mechanics;
 
@@ -101,6 +101,7 @@
     data.diagonal_rod             = DELTA_DIAGONAL_ROD;
     data.radius                   = DELTA_RADIUS;
     data.segments_per_second      = DELTA_SEGMENTS_PER_SECOND;
+    data.segments_per_line        = DELTA_SEGMENTS_PER_LINE;
     data.print_radius             = DELTA_PRINTABLE_RADIUS;
     data.probe_radius             = DELTA_PROBEABLE_RADIUS;
     data.height                   = DELTA_HEIGHT;
@@ -169,53 +170,51 @@
       // Fail if attempting move outside printable radius
       if (endstops.isSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
 
-      // Get the linear distance in XYZ
-      float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
+      // Get the cartesian distance in XYZ
+      float cartesian_distance = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
 
       // If the move is very short, check the E move distance
-      if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = ABS(difference[E_AXIS]);
+      if (UNEAR_ZERO(cartesian_distance)) cartesian_distance = ABS(difference[E_AXIS]);
 
       // No E move either? Game over.
-      if (UNEAR_ZERO(cartesian_mm)) return true;
+      if (UNEAR_ZERO(cartesian_distance)) return true;
 
       // Minimum number of seconds to move the given distance
-      const float seconds = cartesian_mm / _feedrate_mm_s;
+      const float seconds = cartesian_distance / _feedrate_mm_s;
 
       // The number of segments-per-second times the duration
       // gives the number of segments we should produce
-      uint16_t segments = data.segments_per_second * seconds;
+      const uint16_t segments = MAX(1, data.segments_per_second * seconds);
 
-      // At least one segment is required
-      NOLESS(segments, 1U);
+      // Now compute the number of lines needed
+      const uint16_t numLines = (segments + data.segments_per_line - 1) / data.segments_per_line;
 
-      // The approximate length of each segment
-      const float inv_segments = 1.0f / float(segments),
-                  segment_distance[XYZE] = {
-                    difference[X_AXIS] * inv_segments,
-                    difference[Y_AXIS] * inv_segments,
-                    difference[Z_AXIS] * inv_segments,
-                    difference[E_AXIS] * inv_segments
+      const float start_position[XYZE] = {
+                    current_position[X_AXIS],
+                    current_position[Y_AXIS],
+                    current_position[Z_AXIS],
+                    current_position[E_AXIS]
                   },
-                  cartesian_segment_mm = cartesian_mm * inv_segments;
+                  cartesian_segment_mm = cartesian_distance / (float)numLines;
 
       /*
-      SERIAL_MV("mm=", cartesian_mm);
+      SERIAL_MV("mm=", cartesian_distance);
       SERIAL_MV(" seconds=", seconds);
       SERIAL_MV(" segments=", segments);
+      SERIAL_MV(" numLines=", numLines);
       SERIAL_MV(" segment_mm=", cartesian_segment_mm);
       SERIAL_EOL();
       //*/
 
       // Get the current position as starting point
       float raw[XYZE];
-      COPY_ARRAY(raw, current_position);
 
       // Calculate and execute the segments
-      while (--segments) {
+      for (uint16_t lineNumber = 1; lineNumber <= numLines; lineNumber++) {
 
         printer.check_periodical_actions();
 
-        LOOP_XYZE(i) raw[i] += segment_distance[i];
+        LOOP_XYZE(i) raw[i] = start_position[i] + (difference[i] * lineNumber) / (float)numLines;
 
         if (!planner.buffer_line(raw, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
           break;
@@ -445,7 +444,7 @@
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
         Nextion_gfx_clear();
       #endif
       return;
@@ -550,7 +549,7 @@
       feedrate_mm_s = old_feedrate_mm_s;
     }
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       Nextion_gfx_clear();
     #endif
 
@@ -1192,11 +1191,15 @@
       SERIAL_MV(" V", LINEAR_UNIT(data.tower_radius_adj[1]), 3);
       SERIAL_MV(" W", LINEAR_UNIT(data.tower_radius_adj[2]), 3);
       SERIAL_EOL();
-      SERIAL_LM(CFG, "Delta Geometry adjustment: R<DELTA_RADIUS> D<DELTA_DIAGONAL_ROD> S<DELTA_SEGMENTS_PER_SECOND>");
+      SERIAL_LM(CFG, "Delta Geometry adjustment: R<DELTA_RADIUS> D<DELTA_DIAGONAL_ROD>");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" R", LINEAR_UNIT(data.radius));
       SERIAL_MV(" D", LINEAR_UNIT(data.diagonal_rod));
+      SERIAL_EOL();
+      SERIAL_LM(CFG, "Delta Geometry adjustment: S<DELTA_SEGMENTS_PER_SECOND> L<DELTA_SEGMENTS_PER_LINE>");
+      SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" S", data.segments_per_second);
+      SERIAL_MV(" L", data.segments_per_line);
       SERIAL_EOL();
       SERIAL_LM(CFG, "Delta Geometry adjustment: O<DELTA_PRINTABLE_RADIUS> P<DELTA_PROBEABLE_RADIUS> H<DELTA_HEIGHT>");
       SERIAL_SM(CFG, "  M666");
@@ -1209,7 +1212,7 @@
 
   #endif // DISABLED(DISABLE_M503)
 
-  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
     void Delta_Mechanics::Nextion_gfx_clear() {
       gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
@@ -1348,4 +1351,4 @@
 
   #endif // SENSORLESS_HOMING
 
-#endif // IS_DELTA
+#endif // MECH(DELTA)

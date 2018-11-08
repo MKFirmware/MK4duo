@@ -156,7 +156,6 @@ void Heater::print_heater_parameters() {
 }
 
 void Heater::print_PID_parameters() {
-  const uint8_t heater_id = data.type == IS_HOTEND ? data.ID : -1;
   if (isUsePid()) {
     SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -164,7 +163,19 @@ void Heater::print_PID_parameters() {
     #endif
     SERIAL_CHR(':');
     SERIAL_EOL();
-    SERIAL_SMV(CFG, "  M301 H", heater_id);
+    SERIAL_SM(CFG, "  M301 H");
+    #if HOTENDS > 0
+      if (data.type == IS_HOTEND) SERIAL_VAL(data.ID);
+    #endif
+    #if HAS_TEMP_BED
+      if (data.type == IS_BED) SERIAL_VAL(-1);
+    #endif
+    #if HAS_TEMP_CHAMBER
+      if (data.type == IS_CHAMBER) SERIAL_VAL(-2);
+    #endif
+    #if HAS_TEMP_COOLER
+      if (data.type == IS_COOLER) SERIAL_VAL(-3);
+    #endif
     SERIAL_MV(" P", pid.Kp);
     SERIAL_MV(" I", pid.Ki);
     SERIAL_MV(" D", pid.Kd);

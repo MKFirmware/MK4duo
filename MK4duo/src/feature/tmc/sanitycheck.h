@@ -114,8 +114,12 @@
   #error "DEPENDENCY ERROR: TMC_Z_CALIBRATION requires at least one TMC driver on Z axis"
 #endif
 
-#if !HAS_TRINAMIC && ENABLED(MONITOR_DRIVER_STATUS)
-  #error "DEPENDENCY ERROR: MONITOR_DRIVER_STATUS requires at least one TMC driver"
+#if !HAS_TRINAMIC
+  #if ENABLED(MONITOR_DRIVER_STATUS)
+    #error "DEPENDENCY ERROR: MONITOR_DRIVER_STATUS requires at least one TMC driver"
+  #elif ENABLED(TMC_DEBUG)
+    #error "DEPENDENCY ERROR: TMC_DEBUG requires at least one TMC driver"
+  #endif
 #endif
 
 #endif /* _TMC_SANITYCHECK_H_ */

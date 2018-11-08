@@ -19,24 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * printer.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _PRINTER_H_
-#define _PRINTER_H_
-
-constexpr uint8_t debug_echo                = 1;
-constexpr uint8_t debug_info                = 2;
-constexpr uint8_t debug_error               = 4;
-constexpr uint8_t debug_dryrun              = 8;
-constexpr uint8_t debug_communication       = 16;
-constexpr uint8_t debug_feature             = 32;
-constexpr uint8_t debug_mesh_adjust         = 64;
-constexpr uint8_t debug_simulation          = 128;
 
 extern const char axis_codes[NUM_AXIS];
 
@@ -64,8 +53,8 @@ class Printer {
       static watch_t  host_keepalive_watch;
     #endif
 
-    static MK4duoInterruptEvent interruptEvent;
-    static PrinterMode          mode;
+    static InterruptEventEnum interruptEvent;
+    static PrinterModeEnum    mode;
 
     #if ENABLED(RFID_MODULE)
       static uint32_t Spool_ID[EXTRUDERS];
@@ -119,7 +108,7 @@ class Printer {
     static void Stop();
 
     static void idle(const bool ignore_stepper_queue=false);
-    static void setInterruptEvent(const MK4duoInterruptEvent event);
+    static void setInterruptEvent(const InterruptEventEnum event);
 
     static bool isPrinting();
     static bool pin_is_protected(const pin_t pin);
@@ -133,22 +122,22 @@ class Printer {
     #endif
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      static void keepalive(const MK4duoBusyState state);
+      static void keepalive(const BusyStateEnum state);
     #else
-      FORCE_INLINE static void keepalive(const MK4duoBusyState state) { UNUSED(state); }
+      FORCE_INLINE static void keepalive(const BusyStateEnum state) { UNUSED(state); }
     #endif
 
     // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);
     FORCE_INLINE static uint8_t getDebugFlags()   { return debug_flag._byte; }
-    FORCE_INLINE static bool debugEcho()          { return debug_flag._byte & debug_echo; }
-    FORCE_INLINE static bool debugInfo()          { return debug_flag._byte & debug_info; }
-    FORCE_INLINE static bool debugError()         { return debug_flag._byte & debug_error; }
-    FORCE_INLINE static bool debugDryrun()        { return debug_flag._byte & debug_dryrun; }
-    FORCE_INLINE static bool debugCommunication() { return debug_flag._byte & debug_communication; }
-    FORCE_INLINE static bool debugFeature()       { return debug_flag._byte & debug_feature; }
-    FORCE_INLINE static bool debugMesh()          { return debug_flag._byte & debug_mesh_adjust; }
-    FORCE_INLINE static bool debugSimulation()    { return debug_flag._byte & debug_simulation; }
+    FORCE_INLINE static bool debugEcho()          { return debug_flag._byte & MK4DUO_DEBUG_ECHO; }
+    FORCE_INLINE static bool debugInfo()          { return debug_flag._byte & MK4DUO_DEBUG_INFO; }
+    FORCE_INLINE static bool debugError()         { return debug_flag._byte & MK4DUO_DEBUG_ERRORS; }
+    FORCE_INLINE static bool debugDryrun()        { return debug_flag._byte & MK4DUO_DEBUG_DRYRUN; }
+    FORCE_INLINE static bool debugCommunication() { return debug_flag._byte & MK4DUO_DEBUG_COMMUNICATION; }
+    FORCE_INLINE static bool debugFeature()       { return debug_flag._byte & MK4DUO_DEBUG_FEATURE; }
+    FORCE_INLINE static bool debugMesh()          { return debug_flag._byte & MK4DUO_DEBUG_MESH_ADJUST; }
+    FORCE_INLINE static bool debugSimulation()    { return debug_flag._byte & MK4DUO_DEBUG_SIMULATION; }
 
     FORCE_INLINE static bool debugFlag(const uint8_t flag) {
       return (debug_flag._byte & flag);
@@ -254,5 +243,3 @@ class Printer {
 };
 
 extern Printer printer;
-
-#endif /* _PRINTER_H_ */

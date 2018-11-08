@@ -26,10 +26,9 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+#pragma once
+ 
 #include "parser.h"
-
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
 
 struct gcode_t {
   char    gcode[MAX_CMD_SIZE];  // Char for gcode
@@ -73,6 +72,9 @@ class Commands {
     static void enqueue_and_echo_now(PGM_P cmd);
     static void enqueue_and_echo_now_P(PGM_P const cmd);
 
+    static void process_now_P(PGM_P pgcode);
+    static void process_now(char * gcode);
+
     static void get_destination();
     static bool get_target_tool(const uint16_t code);
     static bool get_target_heater(int8_t &h, const bool only_hotend=false);
@@ -85,7 +87,7 @@ class Commands {
     #endif
 
     static void process_next();
-    static void process_parsed();
+    static void process_parsed(const bool print_ok=true);
     static void unknown_error();
     static void gcode_line_error(PGM_P err, const int8_t tmp_port);
 
@@ -98,5 +100,3 @@ class Commands {
 };
 
 extern Commands commands;
-
-#endif /* _COMMANDS_H_ */

@@ -390,7 +390,7 @@
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
         mechanics.Nextion_gfx_clear();
       #endif
       return true;
@@ -484,7 +484,7 @@
       feedrate_mm_s = old_feedrate_mm_s;
     }
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       Nextion_gfx_clear();
     #endif
 

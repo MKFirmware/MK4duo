@@ -231,7 +231,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     if (zz) SERIAL_MSG(MSG_Z);
     SERIAL_EM(" " MSG_FIRST);
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       lcd_status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
     #endif
 

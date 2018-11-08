@@ -37,10 +37,10 @@ bool MemoryStore::access_start(const bool read) {
     ZERO(eeprom_data);
     if (read) {
       card.open_eeprom_sd(true);
-      int bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
+      size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
       if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);
       else SERIAL_STR(ECHO);
-      SERIAL_EMV("SD EEPROM bytes read: ", bytes_read);
+      SERIAL_EMV("SD EEPROM bytes read: ", (int)bytes_read);
       card.close_eeprom_sd();
       return (bytes_read != EEPROM_SIZE);
     }
@@ -59,10 +59,10 @@ bool MemoryStore::access_finish(const bool read) {
   #elif HAS_EEPROM_SD
     if (!read) {
       card.open_eeprom_sd(false);
-      int bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
+      size_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
       if (bytes_written != EEPROM_SIZE) SERIAL_STR(ER);
       else SERIAL_STR(ECHO);
-      SERIAL_EMV("SD EEPROM bytes written: ", bytes_written);
+      SERIAL_EMV("SD EEPROM bytes written: ", (int)bytes_written);
       card.close_eeprom_sd();
       return (bytes_written != EEPROM_SIZE);
     }

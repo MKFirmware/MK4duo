@@ -29,27 +29,7 @@
  * Copyright (c) 2009-2011 Simen Svale Skogsrud
  */
 
-#ifndef PLANNER_H
-#define PLANNER_H
-
-enum BlockFlagBit {
-  // Recalculate trapezoids on entry junction. For optimization.
-  BLOCK_BIT_RECALCULATE,
-
-  // Nominal speed always reached.
-  // i.e., The segment is long enough, so the nominal speed is reachable if accelerating
-  // from a safe speed (in consideration of jerking from zero speed).
-  BLOCK_BIT_NOMINAL_LENGTH,
-
-  // Sync the stepper counts from the block
-  BLOCK_BIT_SYNC_POSITION
-};
-
-enum BlockFlag : char {
-  BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
-  BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
-  BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
-};
+#pragma once
 
 /**
  * struct block_t
@@ -62,7 +42,7 @@ enum BlockFlag : char {
  */
 typedef struct {
 
-  volatile uint8_t flag;                    // Block flags (See BlockFlag enum above) - Modified by ISR and main thread!
+  volatile uint8_t flag;                    // Block flags (See BlockFlagEnum enum above) - Modified by ISR and main thread!
 
   // Fields used by the motion planner to manage acceleration
   float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
@@ -88,7 +68,7 @@ typedef struct {
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    uint32_t mix_steps[MIXING_STEPPERS];    // Scaled step_event_count for the mixing steppers
+    mixer_color_t b_color[MIXING_STEPPERS]; // Normalized color for the mixing steppers
   #endif
 
   // Settings for the trapezoid generator
@@ -234,7 +214,7 @@ class Planner {
       static uint32_t axis_segment_time_us[2][3];
     #endif
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       volatile static uint32_t block_buffer_runtime_us; // Theoretical block buffer runtime in µs
     #endif
 
@@ -542,7 +522,7 @@ class Planner {
         // No trapezoid calculated? Don't execute yet.
         if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return NULL;
 
-        #if ENABLED(ULTRA_LCD)
+        #if HAS_SPI_LCD
           block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
         #endif
 
@@ -558,14 +538,14 @@ class Planner {
       }
 
       // The queue became empty
-      #if ENABLED(ULTRA_LCD)
+      #if HAS_SPI_LCD
         clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
       #endif
 
       return NULL;
     }
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
 
       static uint16_t block_buffer_runtime() {
         #if ENABLED(__AVR__)
@@ -703,5 +683,3 @@ class Planner {
 #define PLANNER_XY_FEEDRATE() (MIN(mechanics.data.max_feedrate_mm_s[X_AXIS], mechanics.data.max_feedrate_mm_s[Y_AXIS]))
 
 extern Planner planner;
-
-#endif // PLANNER_H

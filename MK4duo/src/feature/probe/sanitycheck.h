@@ -134,8 +134,8 @@
 #if ENABLED(G38_PROBE_TARGET)
   #if !HAS_BED_PROBE
     #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a bed probe."
-  #elif !IS_CARTESIAN
-    #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a Cartesian machine."
+  #elif IS_KINEMATIC
+    #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a Cartesian or Core machine."
   #endif
 #endif
 

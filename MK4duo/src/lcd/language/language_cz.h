@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Czech
@@ -31,8 +32,6 @@
  * http://www.zahradniksebavi.cz
  *
  */
-#ifndef LANGUAGE_CZ_UTF_H
-#define LANGUAGE_CZ_UTF_H
 
 #define DISPLAY_CHARSET_ISO10646_CZ
 #define CHARSIZE 2
@@ -61,13 +60,13 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Nastavit ofsety")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Ofsety nastaveny")
 #define MSG_SET_ORIGIN                      _UxGT("Nastavit pocátek")
-#define MSG_PREHEAT_1                       _UxGT("Zahrát PLA")
+#define MSG_PREHEAT_1                       _UxGT("Zahrát " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" vše")
 #define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" hotend")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" podlož")
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" nast")
-#define MSG_PREHEAT_2                       _UxGT("Zahrát ABS")
+#define MSG_PREHEAT_2                       _UxGT("Zahrát " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" vše")
 #define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" hotend")
@@ -96,24 +95,24 @@
 #define MSG_UBL_MOVING_TO_NEXT              _UxGT("Presun na další")
 #define MSG_UBL_ACTIVATE_MESH               _UxGT("Aktivovat UBL")
 #define MSG_UBL_DEACTIVATE_MESH             _UxGT("Deaktivovat UBL")
-#define MSG_UBL_SET_BED_TEMP                _UxGT("Teplota podložky")
-#define MSG_UBL_CUSTOM_BED_TEMP             MSG_UBL_SET_BED_TEMP
-#define MSG_UBL_SET_HOTEND_TEMP             _UxGT("Teplota hotendu")
-#define MSG_UBL_CUSTOM_HOTEND_TEMP          MSG_UBL_SET_HOTEND_TEMP
+#define MSG_UBL_SET_TEMP_BED                _UxGT("Teplota podložky")
+#define MSG_UBL_BED_TEMP_CUSTOM             MSG_UBL_SET_TEMP_BED
+#define MSG_UBL_SET_TEMP_HOTEND             _UxGT("Teplota hotendu")
+#define MSG_UBL_HOTEND_TEMP_CUSTOM          MSG_UBL_SET_TEMP_HOTEND
 #define MSG_UBL_MESH_EDIT                   _UxGT("Úprava síte bodu")
 #define MSG_UBL_EDIT_CUSTOM_MESH            _UxGT("Upravit vlastní sít")
 #define MSG_UBL_FINE_TUNE_MESH              _UxGT("Doladit sít bodu")
 #define MSG_UBL_DONE_EDITING_MESH           _UxGT("Konec úprav síte")
 #define MSG_UBL_BUILD_CUSTOM_MESH           _UxGT("Vlastní sít")
 #define MSG_UBL_BUILD_MESH_MENU             _UxGT("Vytvorit sít")
-#define MSG_UBL_BUILD_PLA_MESH              _UxGT("Sít bodu PLA")
-#define MSG_UBL_BUILD_ABS_MESH              _UxGT("Sít bodu ABS")
+#define MSG_UBL_BUILD_MESH_M1               _UxGT("Sít bodu " PREHEAT_1_LABEL)
+#define MSG_UBL_BUILD_MESH_M2               _UxGT("Sít bodu " PREHEAT_2_LABEL)
 #define MSG_UBL_BUILD_COLD_MESH             _UxGT("Studená sít bodu")
 #define MSG_UBL_MESH_HEIGHT_ADJUST          _UxGT("Upravit výšku síte")
 #define MSG_UBL_MESH_HEIGHT_AMOUNT          _UxGT("Výška")
 #define MSG_UBL_VALIDATE_MESH_MENU          _UxGT("Zkontrolovat sít")
-#define MSG_UBL_VALIDATE_PLA_MESH           _UxGT("Kontrola síte PLA")
-#define MSG_UBL_VALIDATE_ABS_MESH           _UxGT("Kontrola síte ABS")
+#define MSG_UBL_VALIDATE_MESH_M1            _UxGT("Kontrola síte " PREHEAT_1_LABEL)
+#define MSG_UBL_VALIDATE_MESH_M2            _UxGT("Kontrola síte " PREHEAT_2_LABEL)
 #define MSG_UBL_VALIDATE_CUSTOM_MESH        _UxGT("Kontrola vlast. síte")
 #define MSG_UBL_CONTINUE_MESH               _UxGT("Pokracovat v síti")
 #define MSG_UBL_MESH_LEVELING               _UxGT("Sítové rovnání")
@@ -127,7 +126,7 @@
 #define MSG_UBL_OUTPUT_MAP_CSV              _UxGT("Exportovat do CSV")
 #define MSG_UBL_OUTPUT_MAP_BACKUP           _UxGT("Záloha do PC")
 #define MSG_UBL_INFO_UBL                    _UxGT("Info o UBL do PC")
-#define MSG_UBL_EDIT_MESH_MENU              _UxGT("Upravit sít bodu")
+#define MSG_EDIT_MESH                       _UxGT("Upravit sít bodu")
 #define MSG_UBL_FILLIN_AMOUNT               _UxGT("Hustota mrížky")
 #define MSG_UBL_MANUAL_FILLIN               _UxGT("Rucní hustota")
 #define MSG_UBL_SMART_FILLIN                _UxGT("Chytrá hustota")
@@ -166,8 +165,8 @@
 #define MSG_INTENSITY_B                     _UxGT("Modrá intenzita")
 #define MSG_INTENSITY_W                     _UxGT("Bílá intenzita")
 #define MSG_LED_BRIGHTNESS                  _UxGT("Jas")
-
 #define MSG_USER_MENU                       _UxGT("Vlastní príkazy")
+
 #define MSG_MOVING                          _UxGT("Posouvani...")
 #define MSG_FREE_XY                         _UxGT("Uvolnit XY")
 #define MSG_MOVE_X                          _UxGT("Posunout X")
@@ -232,6 +231,7 @@
 #define MSG_E3STEPS                         _UxGT("E3kroku/mm")
 #define MSG_E4STEPS                         _UxGT("E4kroku/mm")
 #define MSG_E5STEPS                         _UxGT("E5kroku/mm")
+#define MSG_E6STEPS                         _UxGT("E6kroku/mm")
 #define MSG_TEMPERATURE                     _UxGT("Teplota")
 #define MSG_MOTION                          _UxGT("Pohyb")
 #define MSG_FILAMENT                        _UxGT("Filament")
@@ -266,7 +266,7 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Retrakt mm")
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Výmena Re.mm")
 #define MSG_CONTROL_RETRACTF                _UxGT("Retraktovat  V")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Zvednuti Z mm")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Zvednuti Z mm")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("S UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  V")
@@ -276,6 +276,7 @@
 #define MSG_FILAMENTLOAD                    _UxGT("Zavést filament")
 #define MSG_FILAMENTUNLOAD                  _UxGT("Vysunout filament")
 #define MSG_FILAMENTUNLOAD_ALL              _UxGT("Vysunout vše")
+
 #define MSG_INIT_SDCARD                     _UxGT("Nacíst SD kartu")
 #define MSG_CHANGE_SDCARD                   _UxGT("Vymenit SD kartu")
 #define MSG_ZPROBE_OUT                      _UxGT("Sonda Z mimo podl")
@@ -403,5 +404,3 @@
   #define MSG_FILAMENT_CHANGE_PURGE_1         _UxGT("Vytlacování...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Pokracování...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_CZ_UTF_H

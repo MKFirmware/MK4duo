@@ -31,8 +31,7 @@
  *
  *******************************************************************************************/
 
-#ifndef _MK4DUO_H_
-#define _MK4DUO_H_
+#pragma once
 
 #include "Arduino.h"
 #include "pins_arduino.h"
@@ -58,8 +57,8 @@
  * Include file
  */
 #include "src/lib/types.h"
-#include "src/lib/enum.h"
 #include "src/lib/macros.h"
+#include "src/lib/enum.h"
 #include "src/lib/circular_queue.h"
 #include "src/lib/driver_types.h"
 #include "src/lib/watch.h"
@@ -74,11 +73,11 @@
   #include "Configuration_Basic.h"
   #include "Configuration_Overall.h"
 
-  #if IS_CARTESIAN
+  #if MECH(CARTESIAN)
     #include "Configuration_Cartesian.h"
   #elif IS_CORE
     #include "Configuration_Core.h"
-  #elif IS_DELTA
+  #elif MECH(DELTA)
     #include "Configuration_Delta.h"
   #elif IS_SCARA
     #include "Configuration_Scara.h"
@@ -137,7 +136,12 @@
 // LCD modules
 #include "src/lcd/language/language.h"
 #include "src/lcd/ultralcd.h"
-#include "src/lcd/nextion/Nextion_lcd.h"
+
+// LCD menu
+#include "src/lcd/menu/menu.h"
+
+// NEXTION LCD
+#include "src/lcd/nextion/nextion_lcd.h"
 
 // SD modules
 #include "src/sd/cardreader.h"
@@ -170,7 +174,7 @@
  * External libraries loading
  */
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>
     #include <LiquidCrystal_I2C.h>
@@ -181,11 +185,9 @@
     #include <Wire.h>
     #include <LCD.h>
     #include <LiquidCrystal_I2C.h>
-  #elif ENABLED(DOGLCD)
+  #elif HAS_GRAPHICAL_LCD
     #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
   #else
     #include <LiquidCrystal.h> // library for character LCD
   #endif
 #endif
-
-#endif /* _MK4DUO_H_ */

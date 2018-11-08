@@ -166,7 +166,7 @@
   #define ORIG_TEMP_0_PIN          13
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #if ENABLED(NEWPANEL)
 
     #define LCD_PINS_RS 16

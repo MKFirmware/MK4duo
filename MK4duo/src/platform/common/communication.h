@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _COMMUNICATION_H_
-#define _COMMUNICATION_H_
+#pragma once
 
 #define DEC 10
 #define HEX 16
@@ -64,6 +63,7 @@ class Com {
     static int serialRead(const uint8_t index);
 
     static bool serialDataAvailable();
+    static bool serialDataAvailable(const uint8_t index);
 
     // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
     static void printPGM(PGM_P);
@@ -143,5 +143,3 @@ class Com {
 #define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 #define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
 #define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
-
-#endif /* _COMMUNICATION_H_ */

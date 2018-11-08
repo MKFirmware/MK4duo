@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Ukrainian
@@ -26,8 +27,6 @@
  * LCD Menu Messages
  *
  */
-#ifndef LANGUAGE_UK_H
-#define LANGUAGE_UK_H
 
 #define DISPLAY_CHARSET_ISO10646_5
 #define CHARSIZE 2
@@ -51,12 +50,12 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Зберегти паркув.")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Зміщення застос.")
 #define MSG_SET_ORIGIN                      _UxGT("Встанов. початок")
-#define MSG_PREHEAT_1                       _UxGT("Нагрів PLA")
+#define MSG_PREHEAT_1                       _UxGT("Нагрів " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Все")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Стіл")
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" нал.")
-#define MSG_PREHEAT_2                       _UxGT("Нагрів ABS")
+#define MSG_PREHEAT_2                       _UxGT("Нагрів " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Все")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Стіл")
@@ -128,6 +127,7 @@
 #define MSG_E3STEPS                         _UxGT("E3кроків/мм")
 #define MSG_E4STEPS                         _UxGT("E4кроків/мм")
 #define MSG_E5STEPS                         _UxGT("E5кроків/мм")
+#define MSG_E6STEPS                         _UxGT("E6кроків/мм")
 #define MSG_TEMPERATURE                     _UxGT("Температура")
 #define MSG_MOTION                          _UxGT("Рух")
 #define MSG_FILAMENT                        _UxGT("Волокно")
@@ -238,5 +238,3 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Ввід...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Відновлення...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_UK_H

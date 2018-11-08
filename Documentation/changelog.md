@@ -17,6 +17,7 @@
 * M524: Abort the current SD print job (started with M24). (Requires SDSUPPORT)
 * M223: T[extruder] S[bool] set Filrunout Logic.
 * M224: T[extruder] S[bool] set Filrunout Pullup.
+* M666: L delta segment per line.
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation

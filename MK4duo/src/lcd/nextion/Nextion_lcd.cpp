@@ -21,9 +21,9 @@
  */
 
 /**
- * Nextion_lcd.cpp
+ * nextion_lcd.cpp
  *
- * Copyright (c) 2014-2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,11 +41,10 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(NEXTION)
+#if HAS_NEXTION_LCD
 
-  #include "Nextion_lcd.h"
-  #include "Nextion_gfx.h"
-  #include "library/Nextion.h"
+  #include "library/nextion.h"
+  #include "nextion_gfx.h"
 
   bool        NextionON                 = false,
               show_Wave                 = true,
@@ -580,11 +579,7 @@
         for (uint8_t row = 0; row < 6; row++) {
           i = row + number;
           if (i < fileCnt) {
-            #if ENABLED(SDCARD_SORT_ALPHA)
-              card.getfilename_sorted(i);
-            #else
-              card.getfilename(i);
-            #endif
+            card.getfilename_sorted(i);
             printrowsd(row, card.isFilenameIsDir(), card.fileName);
           } else {
             printrowsd(row, false, "");
@@ -712,7 +707,7 @@
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static AdvancedPauseMode advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
+    static AdvancedPauseModeEnum advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
 
     static PGM_P advanced_pause_header() {
       switch (advanced_pause_mode) {
@@ -726,12 +721,12 @@
     }
 
     static void lcd_advanced_pause_resume_print() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
     }
 
     static void lcd_advanced_pause_extrude_more() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     static void lcd_advanced_pause_option_menu() {
@@ -760,7 +755,15 @@
       END_SCREEN();
     }
 
-    static void lcd_advanced_pause_wait_for_nozzles_to_heat() {
+    static void lcd_advanced_pause_waiting_message() {
+      START_SCREEN();
+      STATIC_ITEM_P(advanced_pause_header());
+      STATIC_ITEM(MSG_ADVANCED_PAUSE_WAITING_1);
+      STATIC_ITEM(MSG_ADVANCED_PAUSE_WAITING_2);
+      END_SCREEN();
+    }
+
+    static void lcd_advanced_pause_heating_message() {
       START_SCREEN();
       STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
@@ -821,13 +824,13 @@
     }
 
     void lcd_advanced_pause_show_message(
-      const AdvancedPauseMessage message,
-      const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
+      const AdvancedPauseMessageEnum message,
+      const AdvancedPauseModeEnum mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
       const uint8_t extruder/*=active_extruder*/
     ) {
 
       UNUSED(extruder);
-      static AdvancedPauseMessage old_message;
+      static AdvancedPauseMessageEnum old_message;
       advanced_pause_mode = mode;
 
       if (old_message != message) {
@@ -837,6 +840,9 @@
             break;
           case ADVANCED_PAUSE_MESSAGE_UNLOAD:
             lcd_advanced_pause_unload_message();
+            break;
+          case ADVANCED_PAUSE_MESSAGE_WAITING:
+            lcd_advanced_pause_waiting_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_INSERT:
             lcd_advanced_pause_insert_message();
@@ -850,17 +856,17 @@
           case ADVANCED_PAUSE_MESSAGE_RESUME:
             lcd_advanced_pause_resume_message();
             break;
-          case ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
+          case ADVANCED_PAUSE_MESSAGE_HEAT:
             lcd_advanced_pause_heat_nozzle();
             break;
           case ADVANCED_PAUSE_MESSAGE_PRINTER_OFF:
             lcd_advanced_pause_printer_off();
             break;
-          case ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
-            lcd_advanced_pause_wait_for_nozzles_to_heat();
+          case ADVANCED_PAUSE_MESSAGE_HEATING:
+            lcd_advanced_pause_heating_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_OPTION:
-            advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+            advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
             lcd_advanced_pause_option_menu();
             break;
           case ADVANCED_PAUSE_MESSAGE_STATUS:
@@ -921,9 +927,9 @@
         mechanics.set_destination_to_current();
 
         if (ptr == &ProbeUp)
-          mechanics.destination[Z_AXIS] += (LCD_Z_STEP);
+          mechanics.destination[Z_AXIS] += (MESH_EDIT_Z_STEP);
         else
-          mechanics.destination[Z_AXIS] -= (LCD_Z_STEP);
+          mechanics.destination[Z_AXIS] -= (MESH_EDIT_Z_STEP);
 
         NOLESS(mechanics.destination[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
         NOMORE(mechanics.destination[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);

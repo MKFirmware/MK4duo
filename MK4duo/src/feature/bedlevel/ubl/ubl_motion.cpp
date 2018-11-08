@@ -51,7 +51,7 @@
 
     const float cartesian_xy_mm = HYPOT(total[X_AXIS], total[Y_AXIS]),                    // total horizontal xy distance
                 seconds = cartesian_xy_mm / feedrate;                                     // seconds to move xy distance at requested rate
-    uint16_t    segments = LROUND(mechanics.data.segments_per_second * seconds),         // preferred number of segments for distance @ feedrate
+    uint16_t    segments = LROUND(mechanics.data.segments_per_second * seconds),          // preferred number of segments for distance @ feedrate
                 seglimit = LROUND(cartesian_xy_mm * (1.0f / (DELTA_SEGMENT_MIN_LENGTH))); // number of segments at minimum segment length
 
     NOMORE(segments, seglimit); // limit to minimum segment length (fewer segments)
@@ -82,9 +82,9 @@
     if (!bedlevel.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
       while (--segments) {
         LOOP_XYZE(i) raw[i] += diff[i];
-        planner.buffer_line(raw, feedrate, active_extruder, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.active_extruder, segment_xyz_mm);
       }
-      planner.buffer_line(rtarget, feedrate, active_extruder, segment_xyz_mm);
+      planner.buffer_line(rtarget, feedrate, tools.active_extruder, segment_xyz_mm);
       return false; // moved but did not set_current_from_destination();
     }
 
@@ -106,8 +106,8 @@
       // in top of loop and again re-find same adjacent cell and use it, just less efficient
       // for mesh inset area.
 
-      int8_t cell_xi = (raw[X_AXIS] - (UBL_MESH_MIN_X)) * (1.0 / (MESH_X_DIST)),
-             cell_yi = (raw[Y_AXIS] - (UBL_MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
+      int8_t cell_xi = (raw[X_AXIS] - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST)),
+             cell_yi = (raw[Y_AXIS] - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
 
       cell_xi = constrain(cell_xi, 0, (GRID_MAX_POINTS_X) - 1);
       cell_yi = constrain(cell_yi, 0, (GRID_MAX_POINTS_Y) - 1);
@@ -160,7 +160,7 @@
 
         const float z = raw[Z_AXIS];
         raw[Z_AXIS] += z_cxcy;
-        planner.buffer_line(raw, feedrate, active_extruder, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.active_extruder, segment_xyz_mm);
         raw[Z_AXIS] = z;
 
         if (segments == 0)                        // done with last segment
@@ -246,7 +246,7 @@
       FINAL_MOVE:
 
       // The distance is always MESH_X_DIST so multiply by the constant reciprocal.
-      const float xratio = (end[X_AXIS] - mesh_index_to_xpos(cell_dest_xi)) * (1.0 / (MESH_X_DIST));
+      const float xratio = (end[X_AXIS] - mesh_index_to_xpos(cell_dest_xi)) * (1.0f / (MESH_X_DIST));
 
       float z1 = z_values[cell_dest_xi    ][cell_dest_yi    ] + xratio *
                 (z_values[cell_dest_xi + 1][cell_dest_yi    ] - z_values[cell_dest_xi][cell_dest_yi    ]),
@@ -288,12 +288,11 @@
               dyi = cell_start_yi == cell_dest_yi ? 0 : down_flag ? -1 : 1;
 
     /**
-     * Compute the scaling factor for the extruder for each partial move.
-     * We need to watch out for zero length moves because it will cause us to
-     * have an infinate scaling factor. We are stuck doing a floating point
-     * divide to get our scaling factor, but after that, we just multiply by this
-     * number. We also pick our scaling factor based on whether the X or Y
-     * component is larger. We use the biggest of the two to preserve precision.
+     * Compute the extruder scaling factor for each partial move, checking for
+     * zero-length moves that would result in an infinite scaling factor.
+     * A float divide is required for this, but then it just multiplies.
+     * Also select a scaling factor based on the larger of the X and Y
+     * components. The larger of the two is used to preserve precision.
      */
 
     const bool use_x_dist = adx > ady;
@@ -318,8 +317,8 @@
      * Handle vertical lines that stay within one column.
      * These need not be perfectly vertical.
      */
-    if (dxi == 0) {       // Check for a vertical line
-      current_yi += down_flag;  // Line is heading down, we just want to go to the bottom
+    if (dxi == 0) {             // Vertical line?
+      current_yi += down_flag;  // Line going down? Just go to the bottom.
       while (current_yi != cell_dest_yi + down_flag) {
         current_yi += dyi;
         const float next_mesh_line_y = mesh_index_to_ypos(current_yi);
@@ -374,8 +373,8 @@
      * Handle horizontal lines that stay within one row.
      * These need not be perfectly horizontal.
      */
-    if (dyi == 0) {
-      current_xi += left_flag;
+    if (dyi == 0) {             // Horizontal line?
+      current_xi += left_flag;  // Heading left? Just go to the left edge of the cell for the first move.
       while (current_xi != cell_dest_xi + left_flag) {
         current_xi += dxi;
         const float next_mesh_line_x = mesh_index_to_xpos(current_xi),
@@ -432,7 +431,7 @@
     current_xi += left_flag;
     current_yi += down_flag;
 
-    while (xi_cnt > 0 || yi_cnt > 0) {
+    while (xi_cnt || yi_cnt) {
 
       const float next_mesh_line_x = mesh_index_to_xpos(current_xi + dxi),
                   next_mesh_line_y = mesh_index_to_ypos(current_yi + dyi),

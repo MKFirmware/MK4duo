@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Greek
@@ -26,8 +27,6 @@
  * LCD Menu Messages
  *
  */
-#ifndef LANGUAGE_EL_H
-#define LANGUAGE_EL_H
 
 #define DISPLAY_CHARSET_ISO10646_GREEK
 #define CHARSIZE 2
@@ -51,12 +50,12 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Ορισμός βασικών μετατοπίσεων") //SHORTEN
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Εφαρμόστηκαν οι μετατοπίσεις") //SHORTEN
 #define MSG_SET_ORIGIN                      _UxGT("Ορισμός προέλευσης")
-#define MSG_PREHEAT_1                       _UxGT("Προθέρμανση PLA")
+#define MSG_PREHEAT_1                       _UxGT("Προθέρμανση " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" όλα")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" bed") //SHORTEN
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" επιβεβαίωση") //SHORTEN
-#define MSG_PREHEAT_2                       _UxGT("Προθέρμανση ABS")
+#define MSG_PREHEAT_2                       _UxGT("Προθέρμανση " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" όλα")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" bed") //SHORTEN
@@ -155,7 +154,7 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Ανάσυρση μμ")
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Εναλλαγή ανάσυρσης μμ")  //SHORTEN
 #define MSG_CONTROL_RETRACTF                _UxGT("Ανάσυρση V")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Μεταπήδηση μμ")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Μεταπήδηση μμ")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("S UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  V")
@@ -186,5 +185,3 @@
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Βαθμονόμηση Y")
 #define MSG_DELTA_CALIBRATE_Z               _UxGT("Βαθμονόμηση Z")
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Βαθμονόμηση κέντρου")
-
-#endif // LANGUAGE_EL_H

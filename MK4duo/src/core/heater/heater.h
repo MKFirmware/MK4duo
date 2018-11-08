@@ -36,7 +36,7 @@ constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHA
 // Struct Heater data
 typedef struct {
 
-  heater_t    type;
+  HeaterEnum  type;
 
   pin_t       pin;
 

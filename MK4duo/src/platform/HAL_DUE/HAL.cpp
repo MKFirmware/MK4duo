@@ -203,7 +203,7 @@ void HAL::showStartReason() {
 // Return available memory
 int HAL::getFreeRam() {
   struct mallinfo memstruct = mallinfo();
-  register char * stack_ptr asm ("sp");
+  char * stack_ptr asm ("sp");
 
   // avail mem in heap + (bottom of stack addr - end of heap addr)
   return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));

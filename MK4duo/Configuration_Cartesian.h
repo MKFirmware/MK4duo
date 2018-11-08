@@ -243,11 +243,12 @@
 //#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 //#define PROBING_FANS_OFF          // Turn fans off when probing
 
-// Use the LCD controller for bed leveling
-// Requires MESH BED LEVELING or PROBE MANUALLY
+// Add a bed leveling sub-menu for ABL or MBL.
+// Include a guided procedure if manual probing is enabled.
 //#define LCD_BED_LEVELING
-#define LCD_Z_STEP 0.025    // Step size while manually probing Z axis.
-#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z MIN POS for LCD Z adjustment
+#define MESH_EDIT_Z_STEP 0.025  // (mm) Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4     // (mm) Z Range centered on Z_MIN_POS for LCD Z adjustment
+//#define MESH_EDIT_MENU        // Add a menu to edit mesh points
 
 // Add a menu item to move between bed corners for manual bed adjustment
 //#define LEVEL_BED_CORNERS
@@ -448,7 +449,6 @@
 #define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
 #define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
 
-/** START MESH BED LEVELING **/
 // Default mesh area is an area with an inset margin on the print area.
 // Below are the macros that are used to define the borders for the mesh
 // area, made available here for specialized needs.
@@ -459,17 +459,8 @@
 
 // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
-/** END MESH BED LEVELING **/
 
 /** START UNIFIED BED LEVELING **/
-// Default mesh area is an area with an inset margin on the print area.
-// Below are the macros that are used to define the borders for the mesh area,
-// made available here for specialized needs, ie dual extruder setup.
-#define UBL_MESH_MIN_X (X_MIN_POS + (MESH_INSET))
-#define UBL_MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define UBL_MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
-#define UBL_MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
-
 // Sophisticated users prefer no movement of nozzle
 #define UBL_MESH_EDIT_MOVES_Z
 

@@ -159,7 +159,7 @@ static_assert(1 >= 0
   #if ENABLED(ULTI_CONTROLLER)
     + 1
   #endif
-  #if ENABLED(NEXTION)
+  #if HAS_NEXTION_LCD
     + 1
   #endif
   , "DEPENDENCY ERROR: Please select no more than one LCD controller option."
@@ -172,7 +172,7 @@ static_assert(1 >= 0
 
 // Progress Bar
 #if ENABLED(LCD_PROGRESS_BAR)
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
     #error "DEPENDENCY ERROR: LCD_PROGRESS_BAR does not apply to graphical displays."
   #elif ENABLED(FILAMENT_LCD_DISPLAY)
     #error "DEPENDENCY ERROR: LCD_PROGRESS_BAR and FILAMENT_LCD_DISPLAY are not fully compatible. Comment out this line to use both."
@@ -180,7 +180,7 @@ static_assert(1 >= 0
 #endif
 
 // Progress bar
-#if ENABLED(ULTIPANEL)
+#if HAS_LCD_MENU
   #if ENABLED(LCD_PROGRESS_BAR)
     #if DISABLED(PROGRESS_BAR_BAR_TIME)
       #error "DEPENDENCY ERROR: Missing setting PROGRESS_BAR_BAR_TIME."
@@ -196,10 +196,10 @@ static_assert(1 >= 0
 
 // LCD_BED_LEVELING requirements
 #if ENABLED(LCD_BED_LEVELING)
-  #if DISABLED(NEWPANEL)
-    #error "DEPENDENCY ERROR: LCD_BED_LEVELING requires an LCD Normal controller."
-  #elif DISABLED(MESH_BED_LEVELING) && !(HAS_ABL && ENABLED(PROBE_MANUALLY))
-    #error "DEPENDENCY ERROR: LCD_BED_LEVELING requires MESH_BED_LEVELING or ABL and PROBE_MANUALLY."
+  #if DISABLED(ULTIPANEL)
+    #error "LCD_BED_LEVELING requires an LCD controller."
+  #elif !(ENABLED(MESH_BED_LEVELING) || OLD_ABL)
+    #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or AUTO_BED_LEVELING."
   #endif
 #endif
 
@@ -214,7 +214,7 @@ static_assert(1 >= 0
 #endif
 
 // Encoder rate multipliers
-#if ENABLED(ULTIPANEL)
+#if HAS_LCD_MENU
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
     #if DISABLED(ENCODER_10X_STEPS_PER_SEC)
       #error "DEPENDENCY ERROR: Missing setting ENCODER_10X_STEPS_PER_SEC."
@@ -233,17 +233,17 @@ static_assert(1 >= 0
 #endif
 
 // Manual feedrate
-#if ENABLED(ULTIPANEL) && DISABLED(MANUAL_FEEDRATE)
+#if HAS_LCD_MENU && DISABLED(MANUAL_FEEDRATE)
   #error "DEPENDENCY ERROR: Missing setting MANUAL_FEEDRATE."
 #endif
 
 // Required LCD language
-#if DISABLED(DOGLCD) && ENABLED(ULTRA_LCD) && DISABLED(DISPLAY_CHARSET_HD44780)
+#if DISABLED(DOGLCD) && HAS_SPI_LCD && DISABLED(DISPLAY_CHARSET_HD44780)
   #error "DEPENDENCY ERROR: You must set DISPLAY_CHARSET_HD44780 to JAPANESE, WESTERN or CYRILLIC for your LCD controller."
 #endif
 
 // ULTIPANEL encoder
-#if ENABLED(ULTIPANEL) && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
+#if HAS_LCD_MENU && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
   #error "DEPENDENCY ERROR: ULTIPANEL requires some kind of encoder."
 #endif
 #if ENCODER_PULSES_PER_STEP < 0

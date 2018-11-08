@@ -100,7 +100,7 @@ uint8_t Stepper::last_direction_bits  = 0,
 
 bool    Stepper::abort_current_block  = false;
 
-#if DISABLED(COLOR_MIXING_EXTRUDER)
+#if DISABLED(COLOR_MIXING_EXTRUDER) && EXTRUDERS > 1
   uint8_t Stepper::last_moved_extruder = 0xFF;
 #endif
 
@@ -130,11 +130,7 @@ uint32_t  Stepper::advance_dividend[XYZE] = { 0 },
           Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
           Stepper::step_event_count       = 0;  // The total event count for the current block
 
-#if ENABLED(COLOR_MIXING_EXTRUDER)
-  int32_t   Stepper::delta_error_m[MIXING_STEPPERS]       = { 0 };
-  uint32_t  Stepper::advance_dividend_m[MIXING_STEPPERS]  = { 0 },
-            Stepper::advance_divisor_m                    = 0;
-#else
+#if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
   uint8_t Stepper::active_extruder        = 0,
           Stepper::active_extruder_driver = 0;
 #endif
@@ -1575,19 +1571,10 @@ uint32_t Stepper::block_phase_step() {
       decelerate_after = current_block->decelerate_after << oversampling_factor;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        const uint32_t e_steps = (
-          #if ENABLED(LIN_ADVANCE)
-            current_block->steps[E_AXIS]
-          #else
-            step_event_count
-          #endif
-        );
-        MIXING_STEPPERS_LOOP(i) {
-          delta_error_m[i] = -int32_t(e_steps);
-          advance_dividend_m[i] = current_block->mix_steps[i] << 1;
-        }
-        advance_divisor_m = e_steps << 1;
-      #else
+        mixer.stepper_setup(current_block->b_color);
+      #endif
+
+      #if EXTRUDERS > 1
         active_extruder = current_block->active_extruder;
         active_extruder_driver = get_active_extruder_driver();
       #endif
@@ -1615,7 +1602,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
       ) {
         last_direction_bits = current_block->direction_bits;
-        #if DISABLED(COLOR_MIXING_EXTRUDER)
+        #if EXTRUDERS > 1
           last_moved_extruder = active_extruder;
         #endif
         set_directions();
@@ -1720,48 +1707,29 @@ void Stepper::pulse_tick_start() {
     }
   #endif
 
-  // Pulse E/Mixing extruders
-  #if ENABLED(LIN_ADVANCE)
-
-    // Tick the E axis, correct error term and update position
+  // Pulse Extruders
+  // Tick the E axis, correct error term and update position
+  #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error[E_AXIS] += advance_dividend[E_AXIS];
     if (delta_error[E_AXIS] >= 0) {
       count_position[E_AXIS] += count_direction[E_AXIS];
-      delta_error[E_AXIS] -= advance_divisor;
-
-      // Don't step E here - But remember the number of steps to perform
-      motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
+      #if ENABLED(LIN_ADVANCE)
+        delta_error[E_AXIS] -= advance_divisor;
+        // Don't step E here - But remember the number of steps to perform
+        motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
+      #else
+        // !LIN_ADVANCE && COLOR_MIXING_EXTRUDER
+        E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
+      #endif
     }
 
   #elif HAS_EXTRUDERS
 
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-
-      // Tick the E axis
-      delta_error[E_AXIS] += advance_dividend[E_AXIS];
-      if (delta_error[E_AXIS] >= 0) {
-        count_position[E_AXIS] += count_direction[E_AXIS];
-        delta_error[E_AXIS] -= advance_divisor;
-      }
-
-      // Tick the counters used for this mix in proper proportion
-      MIXING_STEPPERS_LOOP(j) {
-        // Step mixing steppers (proportionally)
-        delta_error_m[j] += advance_dividend_m[j];
-        // Step when the counter goes over zero
-        if (delta_error_m[j] >= 0)
-          E_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-      }
-
-    #else
-
-      delta_error[E_AXIS] += advance_dividend[E_AXIS];
-      if (delta_error[E_AXIS] >= 0) {
-        E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
-        count_position[E_AXIS] += count_direction[E_AXIS];
-      }
-
-    #endif
+    delta_error[E_AXIS] += advance_dividend[E_AXIS];
+    if (delta_error[E_AXIS] >= 0) {
+      E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
+      count_position[E_AXIS] += count_direction[E_AXIS];
+    }
 
   #endif
 
@@ -1795,7 +1763,7 @@ void Stepper::pulse_tick_stop() {
       MIXING_STEPPERS_LOOP(j) {
         if (delta_error_m[j] >= 0) {
           delta_error_m[j] -= advance_divisor_m;
-          E_STEP_WRITE(j, INVERT_E_STEP_PIN);
+          E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
         }
       }
     #elif HAS_EXTRUDERS
@@ -2112,12 +2080,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     while (LA_steps) {
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        MIXING_STEPPERS_LOOP(j) {
-          // Step mixing steppers (proportionally)
-          delta_error_m[j] += advance_dividend_m[j];
-          // Step when the counter goes over zero
-          if (delta_error_m[j] >= 0) E_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-        }
+        E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
       #endif
@@ -2133,12 +2096,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        MIXING_STEPPERS_LOOP(j) {
-          if (delta_error_m[j] >= 0) {
-            delta_error_m[j] -= advance_divisor_m;
-            E_STEP_WRITE(j, INVERT_E_STEP_PIN);
-          }
-        }
+        E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(active_extruder_driver, INVERT_E_STEP_PIN);
       #endif
@@ -2270,14 +2228,14 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
  *        rhi = int32_t((mul >> 32) & 0xFFFFFFFF);
  *      }
  *      int32_t _eval_bezier_curve_arm(uint32_t curr_step) {
- *        register uint32_t flo = 0;
- *        register uint32_t fhi = bezier_AV * curr_step;
- *        register uint32_t t = fhi;
- *        register int32_t alo = bezier_F;
- *        register int32_t ahi = 0;
- *        register int32_t A = bezier_A;
- *        register int32_t B = bezier_B;
- *        register int32_t C = bezier_C;
+ *        uint32_t flo = 0;
+ *        uint32_t fhi = bezier_AV * curr_step;
+ *        uint32_t t = fhi;
+ *        int32_t alo = bezier_F;
+ *        int32_t ahi = 0;
+ *        int32_t A = bezier_A;
+ *        int32_t B = bezier_B;
+ *        int32_t C = bezier_C;
  *
  *        lsrs(ahi, alo, 1);          // a  = F << 31
  *        lsls(alo, alo, 31);         //
@@ -2403,13 +2361,13 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       bezier_AV = av;
 
       // Calculate the rest of the coefficients
-      register uint8_t r2 = v0 & 0xFF;
-      register uint8_t r3 = (v0 >> 8) & 0xFF;
-      register uint8_t r12 = (v0 >> 16) & 0xFF;
-      register uint8_t r5 = v1 & 0xFF;
-      register uint8_t r6 = (v1 >> 8) & 0xFF;
-      register uint8_t r7 = (v1 >> 16) & 0xFF;
-      register uint8_t r4,r8,r9,r10,r11;
+      uint8_t r2 = v0 & 0xFF;
+      uint8_t r3 = (v0 >> 8) & 0xFF;
+      uint8_t r12 = (v0 >> 16) & 0xFF;
+      uint8_t r5 = v1 & 0xFF;
+      uint8_t r6 = (v1 >> 8) & 0xFF;
+      uint8_t r7 = (v1 >> 16) & 0xFF;
+      uint8_t r4,r8,r9,r10,r11;
 
       __asm__ __volatile__(
         /* Calculate the Bézier coefficients */
@@ -2505,11 +2463,11 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       if (!curr_step)
         return bezier_F;
 
-      register uint8_t r0 = 0; /* Zero register */
-      register uint8_t r2 = (curr_step) & 0xFF;
-      register uint8_t r3 = (curr_step >> 8) & 0xFF;
-      register uint8_t r4 = (curr_step >> 16) & 0xFF;
-      register uint8_t r1,r5,r6,r7,r8,r9,r10,r11; /* Temporary registers */
+      uint8_t r0 = 0; /* Zero */
+      uint8_t r2 = (curr_step) & 0xFF;
+      uint8_t r3 = (curr_step >> 8) & 0xFF;
+      uint8_t r4 = (curr_step >> 16) & 0xFF;
+      uint8_t r1,r5,r6,r7,r8,r9,r10,r11; /* Temporary registers */
 
       __asm__ __volatile(
         /* umul24x24to16hi(t, bezier_AV, curr_step);  t: Range 0 - 1^16 = 16 bits*/

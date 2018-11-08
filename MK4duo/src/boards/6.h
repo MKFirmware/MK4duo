@@ -161,13 +161,13 @@
 //###IF_BLOCKS
 //#define SDSS               24
 
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
 
   // No buzzer installed
   #define ORIG_BEEPER_PIN NoPin
 
   //LCD Pins
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
 
     #if ENABLED(U8GLIB_ST7920) //SPI GLCD 12864 ST7920 ( like [www.digole.com] ) For Melzi V2.0
       #define LCD_PINS_RS      4

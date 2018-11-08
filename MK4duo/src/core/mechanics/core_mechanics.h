@@ -130,7 +130,7 @@ class Core_Mechanics: public Mechanics {
       static void print_parameters();
     #endif
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       static void Nextion_gfx_clear();
     #endif
 

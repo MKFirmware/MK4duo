@@ -20,16 +20,9 @@
  *
  */
 
-#ifndef __SOUND_H__
-#define __SOUND_H__
+#pragma once
 
 #define TONE_QUEUE_LENGTH 4
-
-enum SoundMode : char {
-  SOUND_MODE_ON,
-  SOUND_MODE_SILENT,
-  SOUND_MODE_MUTE
-};
 
 struct tone_t {
   uint16_t duration;
@@ -48,7 +41,7 @@ class Sound {
 
   public: /** Public Parameters */
 
-    static SoundMode mode;
+    static SoundModeEnum mode;
 
   protected: /** Protected Parameters */
 
@@ -164,5 +157,3 @@ extern Sound sound;
 #define NOTE_CS8 4435
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
-
-#endif // __SOUND_H__

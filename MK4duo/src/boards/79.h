@@ -164,7 +164,7 @@
 
 //###IF_BLOCKS
 // DISPLAY
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
   // LCD
   #define LCD_PINS_RS           27
   #define LCD_PINS_ENABLE       29

@@ -910,12 +910,12 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #if HAVE_DRV(TMC2660)
 
-    void TMC_Stepper::status(MKTMC* st, const TMC_debug_enum i) {}
-    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i) {}
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {}
+    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {}
 
   #elif HAVE_DRV(TMC2130)
 
-    void TMC_Stepper::status(MKTMC* st, const TMC_debug_enum i) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
       switch(i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(st->sgt()); break;
@@ -924,7 +924,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       }
     }
 
-    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i) {
+    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {
       switch(i) {
         case TMC_STALLGUARD: if (st->stallguard()) SERIAL_CHR('X');  break;
         case TMC_SG_RESULT:  SERIAL_VAL(st->sg_result());            break;
@@ -936,7 +936,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #elif HAVE_DRV(TMC2208)
 
-    void TMC_Stepper::status(MKTMC* st, const TMC_debug_enum i) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
       switch(i) {
         case TMC_TSTEP: { uint32_t data = 0; st->TSTEP(&data); SERIAL_VAL(data); break; }
         case TMC_PWM_SCALE: SERIAL_VAL(st->pwm_scale_sum()); break;
@@ -947,7 +947,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       }
     }
 
-    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i) {
+    void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {
       switch(i) {
         case TMC_T157: if (st->t157()) SERIAL_CHR('X'); break;
         case TMC_T150: if (st->t150()) SERIAL_CHR('X'); break;
@@ -962,7 +962,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #if HAVE_DRV(TMC2660)
   
-    void TMC_Stepper::status(MKTMC* st, const TMC_debug_enum i, const float tmc_spmm) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
@@ -987,7 +987,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #else
 
-    void TMC_Stepper::status(MKTMC* st, const TMC_debug_enum i, const float tmc_spmm) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
@@ -1037,7 +1037,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   #endif
 
-  void TMC_Stepper::parse_drv_status(MKTMC* st, const TMC_drv_status_enum i) {
+  void TMC_Stepper::parse_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {
     SERIAL_CHR('\t');
     switch (i) {
       case TMC_DRV_CODES:     st->printLabel();                     break;
@@ -1057,7 +1057,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
     }
   }
 
-  void TMC_Stepper::debug_loop(const TMC_debug_enum i) {
+  void TMC_Stepper::debug_loop(const TMCdebugEnum i) {
     #if AXIS_HAS_TMC(X)
       status(stepperX, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
     #endif
@@ -1104,7 +1104,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
     SERIAL_EOL();
   }
 
-  void TMC_Stepper::status_loop(const TMC_drv_status_enum i) {
+  void TMC_Stepper::status_loop(const TMCdrvStatusEnum i) {
     #if AXIS_HAS_TMC(X)
       parse_drv_status(stepperX, i);
     #endif

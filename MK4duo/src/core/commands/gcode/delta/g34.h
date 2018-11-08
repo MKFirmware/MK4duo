@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if IS_DELTA
+#if MECH(DELTA)
 
   #define CODE_G34
 

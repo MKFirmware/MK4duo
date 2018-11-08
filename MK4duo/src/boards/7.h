@@ -160,7 +160,7 @@
 
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #define ORIG_BEEPER_PIN     18
 

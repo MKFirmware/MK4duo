@@ -35,7 +35,7 @@ class Endstops {
 
   public: /** Public Parameters */
 
-    #if IS_DELTA
+    #if MECH(DELTA)
       static float  soft_endstop_radius_2;
     #else
       static float  soft_endstop_min[XYZ],

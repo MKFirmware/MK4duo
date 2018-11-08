@@ -160,7 +160,7 @@ typedef struct EepromDataStruct {
   //
   // Ultipanel
   //
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     int16_t         lcd_preheat_hotend_temp[3],
                     lcd_preheat_bed_temp[3],
                     lcd_preheat_fan_speed[3];
@@ -218,8 +218,8 @@ typedef struct EepromDataStruct {
   // FWRETRACT
   //
   #if ENABLED(FWRETRACT)
-    fwretract_data_t fwretract_data;
-    bool autoretract_enabled;
+    fwretract_data_t  fwretract_data;
+    bool              autoretract_enabled;
   #endif
 
   //
@@ -248,7 +248,7 @@ typedef struct EepromDataStruct {
   //
   // Sound
   //
-  SoundMode         sound_mode;
+  SoundModeEnum         sound_mode;
 
   //
   // External DAC
@@ -276,8 +276,7 @@ typedef struct EepromDataStruct {
   // Filament Change
   //
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    float           filament_change_unload_length[EXTRUDERS],
-                    filament_change_load_length[EXTRUDERS];
+    advanced_pause_data_t   advanced_pause_data[EXTRUDERS];
   #endif
 
   //
@@ -557,7 +556,7 @@ void EEPROM::post_process() {
     //
     // ULTIPANEL
     //
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
       EEPROM_WRITE(lcd_preheat_hotend_temp);
       EEPROM_WRITE(lcd_preheat_bed_temp);
       EEPROM_WRITE(lcd_preheat_fan_speed);
@@ -683,8 +682,7 @@ void EEPROM::post_process() {
     // Advanced Pause
     //
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      EEPROM_WRITE(filament_change_unload_length);
-      EEPROM_WRITE(filament_change_load_length);
+      EEPROM_WRITE(advancedpause.data);
     #endif
 
     //
@@ -1000,7 +998,7 @@ void EEPROM::post_process() {
       //
       // ULTIPANEL
       //
-      #if ENABLED(ULTIPANEL)
+      #if HAS_LCD_MENU
         EEPROM_READ(lcd_preheat_hotend_temp);
         EEPROM_READ(lcd_preheat_bed_temp);
         EEPROM_READ(lcd_preheat_fan_speed);
@@ -1126,8 +1124,7 @@ void EEPROM::post_process() {
       // Advanced Pause
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        EEPROM_READ(filament_change_unload_length);
-        EEPROM_READ(filament_change_load_length);
+        EEPROM_READ(advancedpause.data);
       #endif
 
       if (!validating) reset_stepper_drivers();
@@ -1505,7 +1502,7 @@ void EEPROM::reset() {
     probe.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
     lcd_preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
     lcd_preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
@@ -1917,8 +1914,8 @@ void EEPROM::reset() {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     for (uint8_t e = 0; e < DRIVER_EXTRUDERS; e++) {
-      filament_change_unload_length[e] = PAUSE_PARK_UNLOAD_LENGTH;
-      filament_change_load_length[e] = PAUSE_PARK_FAST_LOAD_LENGTH;
+      advancedpause.data[e].unload_length = PAUSE_PARK_UNLOAD_LENGTH;
+      advancedpause.data[e].load_length = PAUSE_PARK_FAST_LOAD_LENGTH;
     }
   #endif
 
@@ -2009,7 +2006,7 @@ void EEPROM::reset() {
 
     endstops.print_parameters();
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
 
       // Temperature units - for Ultipanel temperature options
 
@@ -2124,7 +2121,7 @@ void EEPROM::reset() {
       SERIAL_EOL();
     #endif
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
@@ -2425,13 +2422,13 @@ void EEPROM::reset() {
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       SERIAL_LM(CFG, "Filament load/unload lengths");
       #if EXTRUDERS == 1
-        SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(filament_change_load_length[0]), 2);
-        SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[0]), 2);
+        SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(advancedpause.data[0].load_length), 2);
+        SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[0].unload_length), 2);
       #else // EXTRUDERS != 1
         LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M603 T", (int)e);
-          SERIAL_MV(" L", LINEAR_UNIT(filament_change_load_length[e]), 2);
-          SERIAL_EMV(" U", LINEAR_UNIT(filament_change_unload_length[e]), 2);
+          SERIAL_MV(" L", LINEAR_UNIT(advancedpause.data[e].load_length), 2);
+          SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[e].unload_length), 2);
         }
       #endif // EXTRUDERS != 1
     #endif // ADVANCED_PAUSE_FEATURE

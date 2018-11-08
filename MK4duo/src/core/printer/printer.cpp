@@ -51,12 +51,12 @@ watch_t Printer::max_inactivity_watch,
 #endif
 
 // Interrupt Event
-MK4duoInterruptEvent Printer::interruptEvent = INTERRUPT_EVENT_NONE;
+InterruptEventEnum Printer::interruptEvent = INTERRUPT_EVENT_NONE;
 
 // Printer mode
-PrinterMode Printer::mode =
+PrinterModeEnum Printer::mode =
   #if ENABLED(PLOTTER)
-    PRINTER_MODE_PLOTTER
+    PRINTER_MODE_PLOTTER;
   #elif ENABLED(SOLDER)
     PRINTER_MODE_SOLDER;
   #elif ENABLED(PICK_AND_PLACE)
@@ -173,7 +173,7 @@ void Printer::setup() {
   lcd_init();
   LCD_MESSAGEPGM(WELCOME_MSG);
 
-  #if ENABLED(SHOW_BOOTSCREEN) && (ENABLED(DOGLCD) || ENABLED(ULTRA_LCD))
+  #if ENABLED(SHOW_BOOTSCREEN) && (HAS_GRAPHICAL_LCD || HAS_SPI_LCD)
     lcd_bootscreen(); // Show MK4duo boot screen
   #endif
 
@@ -273,7 +273,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-    mixing_tools_init();
+    mixer.init();
   #endif
 
   #if ENABLED(BLTOUCH)
@@ -387,7 +387,7 @@ void Printer::check_periodical_actions() {
       if (card.isAutoreportSD()) card.printStatus();
     #endif
 
-    #if ENABLED(NEXTION)
+    #if HAS_NEXTION_LCD
       nextion_draw_update();
     #endif
 
@@ -424,8 +424,6 @@ void Printer::safe_delay(millis_t ms) {
  *
  *  - Save current feedrates
  *  - Reset the rate multiplier
- *  - Reset the command timeout
- *  - Enable the endstops (for endstop moves)
  */
 void Printer::bracket_probe_move(const bool before) {
   static float saved_feedrate_mm_s;
@@ -464,7 +462,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
 
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
-  #if ENABLED(ULTRA_LCD)
+  #if HAS_SPI_LCD
     kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
   #else
     UNUSED(lcd_msg);
@@ -626,7 +624,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   // Prevent steppers timing-out in the middle of M600
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
-    #define MOVE_AWAY_TEST !did_pause_print
+    #define MOVE_AWAY_TEST !advancedpause.did_pause_print
   #else
     #define MOVE_AWAY_TEST true
   #endif
@@ -647,8 +645,11 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       #if ENABLED(DISABLE_INACTIVE_E)
         stepper.disable_E();
       #endif
-      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
-        if (ubl.lcd_map_control) ubl.lcd_map_control = defer_return_to_status = false;
+      #if ENABLED(AUTO_BED_LEVELING_UBL) && HAS_LCD_MENU  // Only needed with an LCD
+        if (ubl.lcd_map_control) {
+          ubl.lcd_map_control = false;
+          set_defer_return_to_status(false);
+        }
       #endif
       #if ENABLED(LASER)
         if (laser.time / 60000 > 0) {
@@ -846,7 +847,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
 }
 
-void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
+void Printer::setInterruptEvent(const InterruptEventEnum event) {
   if (interruptEvent == INTERRUPT_EVENT_NONE)
     interruptEvent = event;
 }
@@ -855,7 +856,7 @@ void Printer::handle_interrupt_events() {
 
   if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
 
-  const MK4duoInterruptEvent event = interruptEvent;
+  const InterruptEventEnum event = interruptEvent;
   interruptEvent = INTERRUPT_EVENT_NONE;
 
   switch(event) {
@@ -1048,7 +1049,7 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
    * Output a "busy" message at regular intervals
    * while the machine is not accepting
    */
-  void Printer::keepalive(const MK4duoBusyState state) {
+  void Printer::keepalive(const BusyStateEnum state) {
     if (!isSuspendAutoreport() && host_keepalive_watch.stopwatch && host_keepalive_watch.elapsed()) {
       switch (state) {
         case InHandler:

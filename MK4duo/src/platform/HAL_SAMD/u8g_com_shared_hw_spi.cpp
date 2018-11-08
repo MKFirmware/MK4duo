@@ -56,7 +56,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)
+#if ENABLED(ARDUINO_ARCH_SAMD) && HAS_GRAPHICAL_LCD
 
 #include <U8glib.h>
 #include <Arduino.h>
@@ -158,4 +158,4 @@ uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_v
 
 }
 
-#endif  // ENABLED(ARDUINO_ARCH_SAMD) && ENABLED(DOGLCD)
+#endif  // ENABLED(ARDUINO_ARCH_SAMD) && HAS_GRAPHICAL_LCD

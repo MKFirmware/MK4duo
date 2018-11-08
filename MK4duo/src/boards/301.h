@@ -180,7 +180,7 @@
 #define ORIG_HEATER_2_PIN NoPin
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #define KILL_PIN 80
   #if ENABLED(NEWPANEL)
    // arduino pin which triggers an piezzo beeper

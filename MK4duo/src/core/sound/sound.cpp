@@ -22,7 +22,7 @@
 
 #include "../../../MK4duo.h"
 
-SoundMode Sound::mode = SOUND_MODE_ON;
+SoundModeEnum Sound::mode = SOUND_MODE_ON;
 
 Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
 Sound sound;

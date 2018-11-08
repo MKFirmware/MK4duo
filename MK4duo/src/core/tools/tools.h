@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * tools.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _TOOLS_H_
-#define _TOOLS_H_
 
 #if EXTRUDERS > 0
 
@@ -131,5 +129,3 @@
   extern Tools tools;
 
 #endif
-
-#endif /* _TOOLS_H_ */

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Danish
@@ -26,8 +27,6 @@
  * LCD Menu Messages
  *
  */
-#ifndef LANGUAGE_DA_H
-#define LANGUAGE_DA_H
 
 #define DISPLAY_CHARSET_ISO10646_1
 #define CHARSIZE 2
@@ -51,16 +50,16 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Sæt forsk. af home")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Forsk. er nu aktiv")
 #define MSG_SET_ORIGIN                      _UxGT("Sæt origin")
-#define MSG_PREHEAT_1                       _UxGT("Forvarm PLA")
-#define MSG_PREHEAT_1_N                     _UxGT("Forvarm PLA ")
-#define MSG_PREHEAT_1_ALL                   _UxGT("Forvarm PLA Alle")
-#define MSG_PREHEAT_1_BEDONLY               _UxGT("Forvarm PLA Bed")
-#define MSG_PREHEAT_1_SETTINGS              _UxGT("Forvarm PLA conf")
-#define MSG_PREHEAT_2                       _UxGT("Forvarm ABS")
-#define MSG_PREHEAT_2_N                     _UxGT("Forvarm ABS ")
-#define MSG_PREHEAT_2_ALL                   _UxGT("Forvarm ABS Alle")
-#define MSG_PREHEAT_2_BEDONLY               _UxGT("Forvarm ABS Bed")
-#define MSG_PREHEAT_2_SETTINGS              _UxGT("Forvarm ABS conf")
+#define MSG_PREHEAT_1                       _UxGT("Forvarm " PREHEAT_1_LABEL)
+#define MSG_PREHEAT_1_N                     _UxGT("Forvarm " PREHEAT_1_LABEL " ")
+#define MSG_PREHEAT_1_ALL                   _UxGT("Forvarm " PREHEAT_1_LABEL " Alle")
+#define MSG_PREHEAT_1_BEDONLY               _UxGT("Forvarm " PREHEAT_1_LABEL " Bed")
+#define MSG_PREHEAT_1_SETTINGS              _UxGT("Forvarm " PREHEAT_1_LABEL " conf")
+#define MSG_PREHEAT_2                       _UxGT("Forvarm " PREHEAT_2_LABEL)
+#define MSG_PREHEAT_2_N                     _UxGT("Forvarm " PREHEAT_2_LABEL " ")
+#define MSG_PREHEAT_2_ALL                   _UxGT("Forvarm " PREHEAT_2_LABEL " Alle")
+#define MSG_PREHEAT_2_BEDONLY               _UxGT("Forvarm " PREHEAT_2_LABEL " Bed")
+#define MSG_PREHEAT_2_SETTINGS              _UxGT("Forvarm " PREHEAT_2_LABEL " conf")
 #define MSG_COOLDOWN                        _UxGT("Afkøl")
 #define MSG_SWITCH_PS_ON                    _UxGT("Slå strøm til")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Slå strøm fra")
@@ -129,6 +128,7 @@
 #define MSG_E3STEPS                         _UxGT("E3steps/mm")
 #define MSG_E4STEPS                         _UxGT("E4steps/mm")
 #define MSG_E5STEPS                         _UxGT("E5steps/mm")
+#define MSG_E6STEPS                         _UxGT("E6steps/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatur")
 #define MSG_MOTION                          _UxGT("Bevægelse")
 #define MSG_FILAMENT                        _UxGT("Filament")
@@ -156,7 +156,7 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Tilbagetræk mm")
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Skift Re.mm")
 #define MSG_CONTROL_RETRACTF                _UxGT("Tilbagetræk V")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Hop mm")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Hop mm")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("Skift UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  V")
@@ -248,5 +248,3 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Indtager...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Fortsætter...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_DA_H

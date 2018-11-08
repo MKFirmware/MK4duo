@@ -61,7 +61,7 @@
       static bool enable_soft_endstops;
     #endif
 
-    MeshLevelingState state = (MeshLevelingState)parser.byteval('S', (int8_t)MeshReport);
+    MeshLevelingStateEnum state = (MeshLevelingStateEnum)parser.byteval('S', (int8_t)MeshReport);
     if (state > 5) {
       SERIAL_MSG("S out of range (0-5).");
       return;
@@ -129,7 +129,7 @@
           // After recording the last point, activate the mbl and home
           mbl_probe_index = -1;
           SERIAL_EM("Mesh probing done.");
-          buzzer.feedback();
+          sound.feedback();
 
           mechanics.home();
           bedlevel.set_bed_leveling_enabled(true);
@@ -151,7 +151,8 @@
         if (parser.seenval('X')) {
           px = parser.value_int() - 1;
           if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
-            SERIAL_EM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
+            SERIAL_MV("X out of range (0-", int(GRID_MAX_POINTS_X));
+            SERIAL_EM(")");
             return;
           }
         }
@@ -163,7 +164,8 @@
         if (parser.seenval('Y')) {
           py = parser.value_int() - 1;
           if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
-            SERIAL_EM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
+            SERIAL_MV("Y out of range (0-", int(GRID_MAX_POINTS_Y));
+            SERIAL_EM(")");
             return;
           }
         }

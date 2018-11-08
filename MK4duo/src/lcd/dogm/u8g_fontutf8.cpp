@@ -7,12 +7,12 @@
  * @copyright GPL/BSD
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
 #include <string.h>
-#include "fontutils.h"
+#include "../fontutils.h"
 #include "u8g_fontutf8.h"
 
 ////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ static void fontgroup_drawwchar(font_group_t *group, const font_t *fnt_default, 
  *
  * Get the screen pixel width of a ROM UTF-8 string
  */
-static void fontgroup_drawstring(font_group_t* group, const font_t* fnt_default, PGM_P utf8_msg, read_byte_cb_t cb_read_byte, void * userdata, fontgroup_cb_draw_t cb_draw_ram) {
+static void fontgroup_drawstring(font_group_t *group, const font_t *fnt_default, PGM_P utf8_msg, read_byte_cb_t cb_read_byte, void * userdata, fontgroup_cb_draw_t cb_draw_ram) {
   uint8_t *p = (uint8_t*)utf8_msg;
   for (;;) {
     wchar_t val = 0;
@@ -317,4 +317,4 @@ int uxg_GetUtf8StrPixelWidthP(u8g_t *pu8g, PGM_P utf8_msg) {
   return data.adv;
 }
 
-#endif // DOGLCD
+#endif // HAS_GRAPHICAL_LCD

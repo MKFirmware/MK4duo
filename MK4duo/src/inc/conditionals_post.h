@@ -91,10 +91,10 @@
   #define Y_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
 
   #define UBL_PROBEABLE_RADIUS   (DELTA_PRINTABLE_RADIUS)
-  #define UBL_MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MAX_Y         (UBL_PROBEABLE_RADIUS)
+  #define MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
+  #define MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
+  #define MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
+  #define MESH_MAX_Y         (UBL_PROBEABLE_RADIUS)
 
   #define PROBE_PT_1_X 0
   #define PROBE_PT_1_Y 0
@@ -306,7 +306,7 @@
   #undef SD_DETECT_PIN
   #define SD_DETECT_PIN   -1
 #endif
-#if ENABLED(ULTIPANEL) && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+#if HAS_LCD_MENU && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER)
   #undef SD_DETECT_INVERTED
 #endif
 
@@ -543,10 +543,6 @@
 #define HAS_LCD_FILAMENT_SENSOR (HAS_FILAMENT_SENSOR && ENABLED(FILAMENT_LCD_DISPLAY))
 #define HAS_LCD_POWER_SENSOR    (HAS_POWER_CONSUMPTION_SENSOR && ENABLED(POWER_CONSUMPTION_LCD_DISPLAY))
 
-// LCD
-#define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
-#define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
-
 // User Interface
 #define HAS_BTN_BACK        (PIN_EXISTS(BTN_BACK))
 #define HAS_HOME            (PIN_EXISTS(HOME))
@@ -763,25 +759,32 @@
 /**
  * Set granular options based on the specific type of leveling
  */
-
 #define UBL_DELTA               (ENABLED(AUTO_BED_LEVELING_UBL) && MECH(DELTA))
 #define ABL_PLANAR              (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
 #define ABL_GRID                (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
-#define HAS_ABL                 (ABL_PLANAR || ABL_GRID || ENABLED(AUTO_BED_LEVELING_UBL))
+#define OLD_ABL                 (ABL_PLANAR || ABL_GRID)
+#define HAS_ABL                 (OLD_ABL || ENABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_LEVELING            (HAS_ABL || ENABLED(MESH_BED_LEVELING))
 #define HAS_AUTOLEVEL           (HAS_ABL && DISABLED(PROBE_MANUALLY))
-#define OLD_ABL                 (HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_MESH                (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
 #define PLANNER_LEVELING        (HAS_LEVELING && DISABLED(AUTO_BED_LEVELING_UBL))
 #define HAS_PROBING_PROCEDURE   (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
 #define HAS_POSITION_MODIFIERS  (ENABLED(FWRETRACT) || HAS_LEVELING)
+
+#if ENABLED(AUTO_BED_LEVELING_UBL)
+  #undef LCD_BED_LEVELING
+#endif
+
+/**
+ * Position Float
+ */
 #define HAS_POSITION_FLOAT      (ENABLED(LIN_ADVANCE) || ENABLED(SCARA_FEEDRATE_SCALING))
 
 /**
  * Bed Probing rectangular bounds
  * These can be further constrained in code for Delta and SCARA
  */
-#if IS_DELTA
+#if MECH(DELTA)
   #define MIN_PROBE_X -(mechanics.data.print_radius)
   #define MAX_PROBE_X  (mechanics.data.print_radius)
   #define MIN_PROBE_Y -(mechanics.data.print_radius)
@@ -1123,7 +1126,7 @@
 /**
  * Nextion Manual BED leveling
  */
-#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && ENABLED(NEXTION))
+#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && HAS_NEXTION_LCD)
 
 /**
  * Bed Probe dependencies

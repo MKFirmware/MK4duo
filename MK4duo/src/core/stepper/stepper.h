@@ -40,8 +40,7 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _STEPPER_H_
-#define _STEPPER_H_
+#pragma once
 
 #include "stepper_indirection.h"
 
@@ -72,8 +71,11 @@ class Stepper {
 
     static bool     abort_current_block;    // Signals to the stepper that current block should be aborted
 
-    #if DISABLED(COLOR_MIXING_EXTRUDER)
-      static uint8_t last_moved_extruder;   // Last-moved extruder, as set when the last movement was fetched from planner
+    // Last-moved extruder, as set when the last movement was fetched from planner
+    #if EXTRUDERS < 2
+      static constexpr uint8_t last_moved_extruder = 0;
+    #elif DISABLED(COLOR_MIXING_EXTRUDER)
+      static uint8_t last_moved_extruder;
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
@@ -100,15 +102,12 @@ class Stepper {
                     decelerate_after,       // The point from where we need to start decelerating
                     step_event_count;       // The total event count for the current block
 
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      static int32_t  delta_error_m[MIXING_STEPPERS];
-      static uint32_t advance_dividend_m[MIXING_STEPPERS],
-                      advance_divisor_m;
-      #define MIXING_STEPPERS_LOOP(VAR) \
-        for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++)
-    #else
+    #if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
       static uint8_t  active_extruder,        // Active extruder
                       active_extruder_driver; // Active extruder driver
+    #else
+      static constexpr uint8_t  active_extruder = 0,
+                                active_extruder_driver = 0;
     #endif
 
     #if ENABLED(BEZIER_JERK_CONTROL)
@@ -303,7 +302,7 @@ class Stepper {
      */
     FORCE_INLINE static uint8_t movement_extruder() {
       return
-        #if ENABLED(COLOR_MIXING_EXTRUDER)
+        #if ENABLED(COLOR_MIXING_EXTRUDER) || EXTRUDERS < 2
           0
         #else
           last_moved_extruder
@@ -476,5 +475,3 @@ class Stepper {
 };
 
 extern Stepper stepper;
-
-#endif /* _STEPPER_H_ */

@@ -25,9 +25,7 @@
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _BEDLEVEL_H_
-#define _BEDLEVEL_H_
+#pragma once
 
 #if OLD_ABL
   #define XY_PROBE_FEEDRATE_MM_S bedlevel.xy_probe_feedrate_mm_s
@@ -185,5 +183,3 @@
   extern Bedlevel bedlevel;
 
 #endif // HAS_LEVELING
-
-#endif /* _BEDLEVEL_H_ */

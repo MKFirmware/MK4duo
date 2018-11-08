@@ -67,7 +67,7 @@
       return;
     }
 
-    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
+    const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     float X_current = mechanics.current_position[X_AXIS],
           Y_current = mechanics.current_position[Y_AXIS];

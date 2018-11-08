@@ -26,8 +26,7 @@
  *            so settings for these codes are located in this class.
  */
 
-#ifndef _PARSER_H_
-#define _PARSER_H_
+#pragma once
 
 //#define DEBUG_GCODE_PARSER
 
@@ -54,7 +53,7 @@ class GCodeParser {
     #endif
 
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-      static TempUnit input_temp_units;
+      static TempUnitEnum input_temp_units;
     #endif
 
     // Command line state
@@ -234,9 +233,9 @@ class GCodeParser {
 
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
 
-      static inline void set_input_temp_units(TempUnit units) { input_temp_units = units; }
+      static inline void set_input_temp_units(TempUnitEnum units) { input_temp_units = units; }
 
-      #if ENABLED(ULTIPANEL) && DISABLED(DISABLE_M503)
+      #if HAS_LCD_MENU && DISABLED(DISABLE_M503)
 
         FORCE_INLINE static char temp_units_code() {
           return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';
@@ -310,5 +309,3 @@ class GCodeParser {
 };
 
 extern GCodeParser parser;
-
-#endif /* _PARSER_H_ */

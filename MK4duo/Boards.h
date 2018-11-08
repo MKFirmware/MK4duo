@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _BOARD_H_
-#define _BOARD_H_
+#pragma once
 
 // Macros for board type
 #define BOARD_UNKNOWN -1
@@ -141,5 +140,3 @@
  * SAMD21J18
  */
 #define BOARD_MINITRONICS_V2  2706    // Minitronics v2.0
-
-#endif /* _BOARD_H_ */

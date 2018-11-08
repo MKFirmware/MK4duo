@@ -72,7 +72,7 @@
   uint16_t  CardReader::workDirDepth  = 0,
             CardReader::nrFiles       = 0;
 
-  LsAction  CardReader::lsAction      = LS_Count;
+  LsActionEnum CardReader::lsAction   = LS_Count;
 
   // Sort files and folders alphabetically.
   #if ENABLED(SDCARD_SORT_ALPHA)
@@ -249,6 +249,9 @@
     }
     else {
       setSaving(true);
+      #if ENABLED(EMERGENCY_PARSER)
+        emergency_parser.disable();
+      #endif
       if (!silent) {
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
         lcd_setstatus(filename);
@@ -299,6 +302,9 @@
     gcode_file.sync();
     gcode_file.close();
     setSaving(false);
+    #if ENABLED(EMERGENCY_PARSER)
+      emergency_parser.enable();
+    #endif
   }
 
   void CardReader::printingHasFinished() {
@@ -543,8 +549,6 @@
 
   #if HAS_EEPROM_SD
 
-    const char eeprom_file_name[7] = "eeprom";
-
     void CardReader::open_eeprom_sd(const bool read) {
 
       if (!isOK()) mount();
@@ -553,7 +557,7 @@
 
       if (eeprom_file.isOpen()) eeprom_file.close();
 
-      if (!eeprom_file.open(&root, eeprom_file_name, read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
+      if (!eeprom_file.open(&root, "eeprom", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
         SERIAL_EM("eeprom");
       }
@@ -667,9 +671,7 @@
       "CPR",  // Number of complete prints
       "FIL",  // Filament Usage
       "NPR",  // Number of prints
-    #if HAS_POWER_CONSUMPTION_SENSOR
       "PWR",  // Power Consumption
-    #endif
       "TME",  // Longest print job
       "TPR"   // Total printing time
     };
@@ -677,7 +679,7 @@
     void CardReader::StoreSettings() {
       if (!IS_SD_INSERTED() || isSDprinting() || print_job_counter.isRunning()) return;
 
-      if (settings_file.open(&root, "INFO.cfg", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+      if (settings_file.open(&root, "info", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
         char buff[CFG_SD_MAX_VALUE_LEN];
         ltoa(print_job_counter.data.finishedPrints, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
@@ -687,8 +689,10 @@
         unparseKeyLine(cfgSD_KEY[SD_CFG_NPR], buff);
         #if HAS_POWER_CONSUMPTION_SENSOR
           ltoa(powerManager.consumption_hour, buff, 10);
-          unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
+        #else
+          ltoa(0, buff, 10);
         #endif
+        unparseKeyLine(cfgSD_KEY[SD_CFG_PWR], buff);
         ltoa(print_job_counter.data.printer_usage, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_TME], buff);
         ltoa(print_job_counter.data.printTime, buff, 10);
@@ -708,7 +712,7 @@
       int k_idx;
       int k_len, v_len;
 
-      if (settings_file.open(&root, "INFO.cfg", O_READ)) {
+      if (settings_file.open(&root, "info", O_READ)) {
 
         while (true) {
           k_len = CFG_SD_MAX_KEY_LEN;

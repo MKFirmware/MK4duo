@@ -106,14 +106,14 @@
 
     // Unload filament
     const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
-                                                      : filament_change_unload_length[tools.active_extruder]);
+                                                      : advancedpause.data[tools.active_extruder].unload_length);
 
     // Slow load filament
     constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
 
     // Load filament
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                        : filament_change_load_length[tools.active_extruder]);
+                                                        : advancedpause.data[tools.active_extruder].load_length);
 
     if (parser.seenval('S')) heaters[ACTIVE_HOTEND].setTarget(parser.value_celsius());
 
@@ -127,9 +127,9 @@
 
     const bool job_running = print_job_counter.isRunning();
 
-    if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-      wait_for_filament_reload(beep_count DXC_PASS);
-      resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
+    if (advancedpause.pause_print(retract, park_point, unload_length, true DXC_PASS)) {
+      advancedpause.wait_for_confirmation(beep_count DXC_PASS);
+      advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
     }
 
     #if EXTRUDERS > 1

@@ -28,7 +28,7 @@
 
 #include "../../../MK4duo.h"
 
-#if IS_CARTESIAN
+#if MECH(CARTESIAN)
 
   Cartesian_Mechanics mechanics;
 
@@ -41,15 +41,15 @@
               Cartesian_Mechanics::max_length[XYZ]    = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH };
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    DualXMode Cartesian_Mechanics::dual_x_carriage_mode           = DEFAULT_DUAL_X_CARRIAGE_MODE;
-    float     Cartesian_Mechanics::inactive_extruder_x_pos        = X2_MAX_POS,
-              Cartesian_Mechanics::raised_parked_position[XYZE],
-              Cartesian_Mechanics::duplicate_extruder_x_offset    = DEFAULT_DUPLICATION_X_OFFSET;
-    int16_t   Cartesian_Mechanics::duplicate_extruder_temp_offset = 0;
-    millis_t  Cartesian_Mechanics::delayed_move_time              = 0;
-    bool      Cartesian_Mechanics::active_extruder_parked         = false,
-              Cartesian_Mechanics::extruder_duplication_enabled   = false,
-              Cartesian_Mechanics::scaled_duplication_mode        = false;
+    DualXModeEnum Cartesian_Mechanics::dual_x_carriage_mode           = DEFAULT_DUAL_X_CARRIAGE_MODE;
+    float         Cartesian_Mechanics::inactive_extruder_x_pos        = X2_MAX_POS,
+                  Cartesian_Mechanics::raised_parked_position[XYZE],
+                  Cartesian_Mechanics::duplicate_extruder_x_offset    = DEFAULT_DUPLICATION_X_OFFSET;
+    int16_t       Cartesian_Mechanics::duplicate_extruder_temp_offset = 0;
+    millis_t      Cartesian_Mechanics::delayed_move_time              = 0;
+    bool          Cartesian_Mechanics::active_extruder_parked         = false,
+                  Cartesian_Mechanics::extruder_duplication_enabled   = false,
+                  Cartesian_Mechanics::scaled_duplication_mode        = false;
   #endif
 
   /** Private Parameters */
@@ -170,7 +170,7 @@
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
         mechanics.Nextion_gfx_clear();
       #endif
       return;
@@ -178,7 +178,7 @@
 
     #if ENABLED(DUAL_X_CARRIAGE)
       const bool DXC_saved_duplication_state = extruder_duplication_enabled;
-      DualXMode DXC_saved_mode = dual_x_carriage_mode;
+      DualXModeEnum DXC_saved_mode = dual_x_carriage_mode;
     #endif
 
     #if HAS_POWER_SWITCH
@@ -345,7 +345,7 @@
       feedrate_mm_s = old_feedrate_mm_s;
     }
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       mechanics.Nextion_gfx_clear();
     #endif
 
@@ -1011,7 +1011,7 @@
 
   #endif // DISABLED(DISABLE_M503)
 
-  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
     void Cartesian_Mechanics::Nextion_gfx_clear() {
       gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
@@ -1375,4 +1375,4 @@
 
   #endif
 
-#endif // IS_CARTESIAN
+#endif // MECH(CARTESIAN)

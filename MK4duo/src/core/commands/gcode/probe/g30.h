@@ -57,7 +57,7 @@
 
     printer.setup_for_endstop_or_probe_move();
 
-    const ProbePtRaise raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
+    const ProbePtRaiseEnum raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
     const float measured_z = probe.check_pt(xpos, ypos, raise_after, 1);
 
     if (!isnan(measured_z)) {
@@ -66,7 +66,7 @@
       SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
     }
 
-    #if IS_DELTA
+    #if MECH(DELTA)
       if (parser.boolval('Z')) {
         mechanics.data.height -= measured_z;
         mechanics.recalc_delta_settings();

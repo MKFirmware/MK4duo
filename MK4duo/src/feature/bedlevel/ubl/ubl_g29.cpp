@@ -30,7 +30,7 @@
   //#define UBL_DEVEL_DEBUGGING
   #define UBL_G29_P31
 
-  #if ENABLED(NEWPANEL)
+  #if HAS_LCD_MENU
     void lcd_return_to_status();
     void _lcd_ubl_output_map_lcd();
   #endif
@@ -259,7 +259,7 @@
    *   UBL probes points increasingly further from the starting location. (The starting location defaults
    *   to the center of the bed.) In contrast, ABL and MBL follow a zigzag pattern. The spiral pattern is
    *   especially better for Delta printers, since it populates the center of the mesh first, allowing for
-   *   a quicker test print to verify data. You don't need to populate the entire mesh to use it.
+   *   a quicker test print to verify settings. You don't need to populate the entire mesh to use it.
    *   After all, you don't want to spend a lot of time generating a mesh only to realize the resolution
    *   or zprobe_zoffset are incorrect. Mesh-generation gathers points starting closest to the nozzle unless
    *   an (X,Y) coordinate pair is given.
@@ -365,7 +365,7 @@
           tilt_mesh_based_on_probed_grid(true /* true says to do 3-Point leveling */ );
           restore_ubl_active_state_and_leave();
         }
-        mechanics.do_blocking_move_to_xy(0.5 * (UBL_MESH_MAX_X - (UBL_MESH_MIN_X)), 0.5 * (UBL_MESH_MAX_Y - (UBL_MESH_MIN_Y)));
+        mechanics.do_blocking_move_to_xy(0.5f * (MESH_MAX_X - (MESH_MIN_X)), 0.5f * (MESH_MAX_Y - (MESH_MIN_Y)));
         mechanics.report_current_position();
       }
 
@@ -410,7 +410,7 @@
         #endif // HAS_BED_PROBE
 
         case 2: {
-          #if ENABLED(NEWPANEL)
+          #if HAS_LCD_MENU
             //
             // Manually Probe Mesh in areas that can't be reached by the probe
             //
@@ -518,7 +518,7 @@
         }
 
         case 4: // Fine Tune (i.e., Edit) the Mesh
-          #if ENABLED(NEWPANEL)
+          #if HAS_LCD_MENU
             fine_tune_mesh(g29_x_pos, g29_y_pos, parser.seen('T'));
           #else
             SERIAL_EM("?P4 is only available when an LCD is present.");
@@ -606,7 +606,7 @@
 
   LEAVE:
 
-    #if ENABLED(NEWPANEL)
+    #if HAS_LCD_MENU
       lcd_reset_alert_level();
       lcd_quick_feedback(true);
       lcd_reset_status();
@@ -619,14 +619,12 @@
   void unified_bed_leveling::adjust_mesh_to_mean(const bool cflag, const float value) {
     float sum = 0;
     int n = 0;
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
         if (!isnan(z_values[x][y])) {
           sum += z_values[x][y];
           n++;
         }
-      }
-    }
 
     const float mean = sum / n;
 
@@ -634,13 +632,10 @@
     // Sum the squares of difference from mean
     //
     float sum_of_diff_squared = 0;
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-        if (!isnan(z_values[x][y])) {
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+        if (!isnan(z_values[x][y]))
           sum_of_diff_squared += sq(z_values[x][y] - mean);
-        }
-      }
-    }
 
     SERIAL_EMV("# of samples: ", n);
     SERIAL_MV("Mean Mesh Height: ", mean, 6);
@@ -657,15 +652,13 @@
   }
 
   void unified_bed_leveling::shift_mesh_height() {
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
         if (!isnan(z_values[x][y]))
           z_values[x][y] += g29_constant;
-      }
-    }
   }
 
-  #if ENABLED(NEWPANEL)
+  #if HAS_LCD_MENU
 
     using clickFunc_t = void(*)();
 
@@ -689,7 +682,7 @@
       return false;
     }
 
-  #endif // NEWPANEL
+  #endif // HAS_LCD_MENU
 
   #if HAS_BED_PROBE
 
@@ -700,7 +693,7 @@
     void unified_bed_leveling::probe_entire_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map, const bool stow_probe, const bool do_furthest) {
       mesh_index_pair location;
 
-      #if ENABLED(NEWPANEL)
+      #if HAS_LCD_MENU
         lcd_external_control = true;
       #endif
 
@@ -712,7 +705,7 @@
       do {
         if (do_ubl_mesh_map) display_map(g29_map_type);
 
-        #if ENABLED(NEWPANEL)
+        #if HAS_LCD_MENU
           if (is_lcd_clicked()) {
             SERIAL_EM("\nMesh only partially populated.\n");
             lcd_quick_feedback(false);
@@ -750,15 +743,15 @@
       restore_ubl_active_state_and_leave();
 
       mechanics.do_blocking_move_to_xy(
-        constrain(rx - (probe.offset[X_AXIS]), UBL_MESH_MIN_X, UBL_MESH_MAX_X),
-        constrain(ry - (probe.offset[Y_AXIS]), UBL_MESH_MIN_Y, UBL_MESH_MAX_Y)
+        constrain(rx - (probe.offset[X_AXIS]), MESH_MIN_X, MESH_MAX_X),
+        constrain(ry - (probe.offset[Y_AXIS]), MESH_MIN_Y, MESH_MAX_Y)
       );
     }
 
 
   #endif // HAS_BED_PROBE
 
-  #if ENABLED(NEWPANEL)
+  #if HAS_LCD_MENU
 
     void unified_bed_leveling::move_z_with_encoder(const float &multiplier) {
       wait_for_release();
@@ -785,7 +778,7 @@
       lcd_external_control = true;
       save_ubl_active_state_and_disable();   // Disable bed level correction for probing
 
-      mechanics.do_blocking_move_to(0.5f * (UBL_MESH_MAX_X - (UBL_MESH_MIN_X)), 0.5 * (UBL_MESH_MAX_Y - (UBL_MESH_MIN_Y)), in_height);
+      mechanics.do_blocking_move_to(0.5f * (MESH_MAX_X - (MESH_MIN_X)), 0.5f * (MESH_MAX_Y - (MESH_MIN_Y)), in_height);
       planner.synchronize();
 
       SERIAL_MSG("Place shim under nozzle");
@@ -891,12 +884,12 @@
       mechanics.do_blocking_move_to(rx, ry, Z_PROBE_DEPLOY_HEIGHT);
     }
 
-  #endif // NEWPANEL
+  #endif // HAS_LCD_MENU
 
   bool unified_bed_leveling::g29_parameter_parsing() {
     bool err_flag = false;
 
-    #if ENABLED(NEWPANEL)
+    #if HAS_LCD_MENU
       LCD_MESSAGEPGM(MSG_UBL_DOING_G29);
       lcd_quick_feedback(true);
     #endif
@@ -933,13 +926,13 @@
         }
         else
       #endif
-      {
-        g29_phase_value = pv;
-        if (!WITHIN(g29_phase_value, 0, 6)) {
-          SERIAL_EM("?(P)hase value invalid (0-6).\n");
-          err_flag = true;
+        {
+          g29_phase_value = pv;
+          if (!WITHIN(g29_phase_value, 0, 6)) {
+            SERIAL_EM("?(P)hase value invalid (0-6).\n");
+            err_flag = true;
+          }
         }
-      }
     }
 
     if (parser.seen('J')) {
@@ -1019,7 +1012,7 @@
       ubl_state_recursion_chk++;
       if (ubl_state_recursion_chk != 1) {
         SERIAL_EM("save_ubl_active_state_and_disabled() called multiple times in a row.");
-        #if ENABLED(NEWPANEL)
+        #if HAS_LCD_MENU
           LCD_MESSAGEPGM(MSG_UBL_SAVE_ERROR);
           lcd_quick_feedback(true);
         #endif
@@ -1034,7 +1027,7 @@
     #if ENABLED(UBL_DEVEL_DEBUGGING)
       if (--ubl_state_recursion_chk) {
         SERIAL_EM("restore_ubl_active_state_and_leave() called too many times.");
-        #if ENABLED(NEWPANEL)
+        #if HAS_LCD_MENU
           LCD_MESSAGEPGM(MSG_UBL_RESTORE_ERROR);
           lcd_quick_feedback(true);
         #endif
@@ -1072,11 +1065,11 @@
       SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);
     #endif
 
-    SERIAL_EMV("UBL_MESH_MIN_X  " STRINGIFY(UBL_MESH_MIN_X) "=", UBL_MESH_MIN_X);
-    SERIAL_EMV("UBL_MESH_MIN_Y  " STRINGIFY(UBL_MESH_MIN_Y) "=", UBL_MESH_MIN_Y);
+    SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X);
+    SERIAL_EMV("MESH_MIN_Y  " STRINGIFY(MESH_MIN_Y) "=", MESH_MIN_Y);
     printer.safe_delay(50);
-    SERIAL_EMV("UBL_MESH_MAX_X  " STRINGIFY(UBL_MESH_MAX_X) "=", UBL_MESH_MAX_X);
-    SERIAL_EMV("UBL_MESH_MAX_Y  " STRINGIFY(UBL_MESH_MAX_Y) "=", UBL_MESH_MAX_Y);
+    SERIAL_EMV("MESH_MAX_X  " STRINGIFY(MESH_MAX_X) "=", MESH_MAX_X);
+    SERIAL_EMV("MESH_MAX_Y  " STRINGIFY(MESH_MAX_Y) "=", MESH_MAX_Y);
     printer.safe_delay(50);
     SERIAL_EMV("GRID_MAX_POINTS_X  ", GRID_MAX_POINTS_X);
     SERIAL_EMV("GRID_MAX_POINTS_Y  ", GRID_MAX_POINTS_Y);
@@ -1314,7 +1307,7 @@
     return out_mesh;
   }
 
-  #if ENABLED(NEWPANEL)
+  #if HAS_LCD_MENU
 
     void abort_fine_tune() {
       lcd_return_to_status();
@@ -1425,7 +1418,7 @@
         lcd_return_to_status();
     }
 
-  #endif // NEWPANEL
+  #endif // HAS_LCD_MENU
 
   /**
    * 'Smart Fill': Scan from the outward edges of the mesh towards the center.
@@ -1479,10 +1472,10 @@
   #if HAS_BED_PROBE
 
     void unified_bed_leveling::tilt_mesh_based_on_probed_grid(const bool do_3_pt_leveling) {
-      int16_t x_min = MAX(MIN_PROBE_X, UBL_MESH_MIN_X),
-              x_max = MIN(MAX_PROBE_X, UBL_MESH_MAX_X),
-              y_min = MAX(MIN_PROBE_Y, UBL_MESH_MIN_Y),
-              y_max = MIN(MAX_PROBE_Y, UBL_MESH_MAX_Y);
+      int16_t x_min = MAX(MIN_PROBE_X, MESH_MIN_X),
+              x_max = MIN(MAX_PROBE_X, MESH_MAX_X),
+              y_min = MAX(MIN_PROBE_Y, MESH_MIN_Y),
+              y_max = MIN(MAX_PROBE_Y, MESH_MAX_Y);
 
       bool abort_flag = false;
 

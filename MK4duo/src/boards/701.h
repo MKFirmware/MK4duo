@@ -184,7 +184,7 @@
   #define ORIG_TEMP_BED_PIN 14
 #endif
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
   #if ENABLED(U8GLIB_ST7920)
     #define LCD_PINS_RS     56

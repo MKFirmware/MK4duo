@@ -36,6 +36,7 @@
    *    D = Diagonal Rod
    *    R = Delta Radius
    *    S = Segments per Second
+   *    L = Segments per Line
    *    A = Tower A: Diagonal Rod Adjust
    *    B = Tower B: Diagonal Rod Adjust
    *    C = Tower C: Diagonal Rod Adjust
@@ -54,21 +55,25 @@
    */
   inline void gcode_M666(void) {
 
-    if (parser.seen('H')) mechanics.data.height                    = parser.value_linear_units();
-    if (parser.seen('D')) mechanics.data.diagonal_rod              = parser.value_linear_units();
-    if (parser.seen('R')) mechanics.data.radius                    = parser.value_linear_units();
-    if (parser.seen('S')) mechanics.data.segments_per_second       = parser.value_float();
-    if (parser.seen('A')) mechanics.data.diagonal_rod_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('B')) mechanics.data.diagonal_rod_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('C')) mechanics.data.diagonal_rod_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('I')) mechanics.data.tower_angle_adj[A_AXIS]   = parser.value_linear_units();
-    if (parser.seen('J')) mechanics.data.tower_angle_adj[B_AXIS]   = parser.value_linear_units();
-    if (parser.seen('K')) mechanics.data.tower_angle_adj[C_AXIS]   = parser.value_linear_units();
-    if (parser.seen('U')) mechanics.data.tower_radius_adj[A_AXIS]  = parser.value_linear_units();
-    if (parser.seen('V')) mechanics.data.tower_radius_adj[B_AXIS]  = parser.value_linear_units();
-    if (parser.seen('W')) mechanics.data.tower_radius_adj[C_AXIS]  = parser.value_linear_units();
-    if (parser.seen('O')) mechanics.data.print_radius              = parser.value_linear_units();
-    if (parser.seen('P')) mechanics.data.probe_radius              = parser.value_linear_units();
+    if (parser.seen('H')) mechanics.data.height                   = parser.value_linear_units();
+    if (parser.seen('D')) mechanics.data.diagonal_rod             = parser.value_linear_units();
+    if (parser.seen('R')) mechanics.data.radius                   = parser.value_linear_units();
+    if (parser.seen('S')) mechanics.data.segments_per_second      = parser.value_ushort();
+    if (parser.seen('L')) mechanics.data.segments_per_line        = parser.value_byte();
+    if (parser.seen('A')) mechanics.data.diagonal_rod_adj[A_AXIS] = parser.value_linear_units();
+    if (parser.seen('B')) mechanics.data.diagonal_rod_adj[B_AXIS] = parser.value_linear_units();
+    if (parser.seen('C')) mechanics.data.diagonal_rod_adj[C_AXIS] = parser.value_linear_units();
+    if (parser.seen('I')) mechanics.data.tower_angle_adj[A_AXIS]  = parser.value_linear_units();
+    if (parser.seen('J')) mechanics.data.tower_angle_adj[B_AXIS]  = parser.value_linear_units();
+    if (parser.seen('K')) mechanics.data.tower_angle_adj[C_AXIS]  = parser.value_linear_units();
+    if (parser.seen('U')) mechanics.data.tower_radius_adj[A_AXIS] = parser.value_linear_units();
+    if (parser.seen('V')) mechanics.data.tower_radius_adj[B_AXIS] = parser.value_linear_units();
+    if (parser.seen('W')) mechanics.data.tower_radius_adj[C_AXIS] = parser.value_linear_units();
+    if (parser.seen('O')) mechanics.data.print_radius             = parser.value_linear_units();
+    if (parser.seen('P')) mechanics.data.probe_radius             = parser.value_linear_units();
+
+    NOLESS(mechanics.data.segments_per_line, 10);
+    NOMORE(mechanics.data.segments_per_line, 255);
 
     LOOP_XYZ(i) {
       if (parser.seen(axis_codes[i])) {
@@ -97,6 +102,7 @@
     SERIAL_LMV(CFG, "R (Delta Radius): ",                     mechanics.data.radius, 4);
     SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.data.diagonal_rod, 4);
     SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.data.segments_per_second);
+    SERIAL_LMV(CFG, "L (Delta Segments per line): ",          mechanics.data.segments_per_line);
     SERIAL_LMV(CFG, "O (Delta Print Radius): ",               mechanics.data.print_radius);
     SERIAL_LMV(CFG, "P (Delta Probe Radius): ",               mechanics.data.probe_radius);
     SERIAL_LMV(CFG, "H (Z-Height): ",                         mechanics.data.height, 3);

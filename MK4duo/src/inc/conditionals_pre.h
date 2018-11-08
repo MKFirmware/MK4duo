@@ -37,6 +37,8 @@
 #if ENABLED(NEXTION)
   #define LCD_HEIGHT 4
   #define LCD_DECIMAL_SMALL_XY
+  #undef REVERSE_MENU_DIRECTION
+  #undef ENCODER_RATE_MULTIPLIER
 #endif
 
 #if DISABLED(LCD_TIMEOUT_TO_STATUS)
@@ -220,7 +222,7 @@
 
 #if ENABLED(REPRAPWORLD_KEYPAD)
   #define NEWPANEL
-  #if ENABLED(ULTIPANEL) && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
+  #if HAS_LCD_MENU && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
     #define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
   #endif
 #endif
@@ -310,7 +312,21 @@
   #define ULTIPANEL
 #endif
 
-#if ENABLED(DOGLCD) // Change number of lines to match the DOG graphic display
+#if ENABLED(NO_LCD_MENUS)
+  #undef ULTIPANEL
+#endif
+
+// Aliases for LCD features
+#define HAS_NEXTION_LCD       ENABLED(NEXTION)
+#define HAS_SPI_LCD           ENABLED(ULTRA_LCD)
+#define HAS_GRAPHICAL_LCD     ENABLED(DOGLCD)
+#define HAS_CHARACTER_LCD     (ENABLED(ULTRA_LCD) && DISABLED(DOGLCD))
+#define HAS_DIGITAL_ENCODER   (ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL))
+#define HAS_LCD_MENU          ENABLED(ULTIPANEL)
+#define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
+#define HAS_DEBUG_MENU        (ENABLED(ULTIPANEL) && ENABLED(LCD_PROGRESS_BAR_TEST))
+
+#if HAS_GRAPHICAL_LCD // Change number of lines to match the DOG graphic display
   #if DISABLED(LCD_WIDTH)
     #if ENABLED(LCD_WIDTH_OVERRIDE)
       #define LCD_WIDTH LCD_WIDTH_OVERRIDE
@@ -323,11 +339,7 @@
   #endif
 #endif
 
-#if ENABLED(NO_LCD_MENUS)
-  #undef ULTIPANEL
-#endif
-
-#if ENABLED(ULTIPANEL)
+#if HAS_LCD_MENU
   #define NEWPANEL  // Disable this if you actually have no click-encoder panel
   #define ULTRA_LCD
   #if DISABLED(LCD_WIDTH)
@@ -345,7 +357,7 @@
   #endif
 #endif
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
   /* Custom characters defined in font dogm_font_data_mk4duo_symbols.h / MK4duo_symbols.fon */
   // \x00 intentionally skipped to avoid problems in strings
   #define LCD_STR_REFRESH     "\x01"
@@ -365,6 +377,16 @@
   // Symbol characters
   #define LCD_STR_FILAM_DIA   "\xf8"
   #define LCD_STR_FILAM_MUL   "\xa4"
+#elif HAS_NEXTION_LCD
+  #define LCD_STR_REFRESH     "\x01"
+  #define LCD_STR_FOLDER      "\x02"
+  #define LCD_STR_ARROW_RIGHT "\x03"
+  #define LCD_STR_UPLEVEL     "^"
+  #define LCD_STR_CLOCK       "\x05"
+  #define LCD_STR_FEEDRATE    "\x06"
+  #define LCD_STR_BEDTEMP     "\x07"
+  #define LCD_STR_THERMOMETER "\x08"
+  #define LCD_STR_DEGREE      "\x09"
 #else
   // Custom characters defined in the first 8 characters of the LCD
   #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
@@ -381,7 +403,7 @@
 /**
  * Default LCD contrast for dogm-like LCD displays
  */
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
   #define HAS_LCD_CONTRAST ( \
       ENABLED(MAKRPANEL) \
@@ -407,7 +429,7 @@
 #endif
 
 // Boot screens
-#if DISABLED(ULTRA_LCD)
+#if !HAS_SPI_LCD
   #undef SHOW_BOOTSCREEN
 #elif DISABLED(BOOTSCREEN_TIMEOUT)
   #define BOOTSCREEN_TIMEOUT 2500

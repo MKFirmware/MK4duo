@@ -47,15 +47,15 @@ class Cartesian_Mechanics : public Mechanics {
                         max_length[XYZ];
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      static DualXMode  dual_x_carriage_mode;
-      static float      inactive_extruder_x_pos,        // used in mode 0 & 1
-                        raised_parked_position[XYZE],   // used in mode 1
-                        duplicate_extruder_x_offset;    // used in mode 2 & 3
-      static int16_t    duplicate_extruder_temp_offset; // used in mode 2 & 3
-      static millis_t   delayed_move_time;              // used in mode 1
-      static bool       active_extruder_parked,         // used in mode 1, 2 & 3
-                        extruder_duplication_enabled,   // used in mode 2
-                        scaled_duplication_mode;        // used in mode 3
+      static DualXModeEnum  dual_x_carriage_mode;
+      static float          inactive_extruder_x_pos,        // used in mode 0 & 1
+                            raised_parked_position[XYZE],   // used in mode 1
+                            duplicate_extruder_x_offset;    // used in mode 2 & 3
+      static int16_t        duplicate_extruder_temp_offset; // used in mode 2 & 3
+      static millis_t       delayed_move_time;              // used in mode 1
+      static bool           active_extruder_parked,         // used in mode 1, 2 & 3
+                            extruder_duplication_enabled,   // used in mode 2
+                            scaled_duplication_mode;        // used in mode 3
     #endif
 
   public: /** Public Function */
@@ -152,7 +152,7 @@ class Cartesian_Mechanics : public Mechanics {
       static void print_parameters();
     #endif
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       static void Nextion_gfx_clear();
     #endif
 

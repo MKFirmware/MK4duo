@@ -64,7 +64,7 @@ template<int portNr>
   void MKHardwareSerial<portNr>::store_rxd_char() {
 
     #if ENABLED(EMERGENCY_PARSER)
-      static EmergencyParser::State emergency_state; // = EP_RESET
+      static EmergencyStateEnum emergency_state; // = EP_RESET
     #endif
 
     // Get the tail pointer - Nothing can alter its value while we are at this ISR

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Italian
@@ -27,8 +28,6 @@
  * See also documentation/LCDLanguageFont.md
  *
  */
-#ifndef LANGUAGE_IT_H
-#define LANGUAGE_IT_H
 
 #define DISPLAY_CHARSET_ISO10646_1
 
@@ -36,7 +35,8 @@
 #define MSG_BACK                            _UxGT("Indietro")
 #define MSG_SD_INSERTED                     _UxGT("SD Card inserita")
 #define MSG_SD_REMOVED                      _UxGT("SD Card rimossa")
-#define MSG_LCD_ENDSTOPS                    _UxGT("Endstop")
+#define MSG_LCD_ENDSTOPS                    _UxGT("Finecor.")
+#define MSG_LCD_SOFT_ENDSTOPS               _UxGT("Finecorsa Soft")
 #define MSG_MAIN                            _UxGT("Menu principale")
 #define MSG_ADVANCED_SETTINGS               _UxGT("Impostaz. avanzate")
 #define MSG_CONFIGURATION                   _UxGT("Configurazione")
@@ -48,6 +48,7 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Home asse X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Home asse Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Home asse Z")
+#define MSG_AUTO_Z_ALIGN                    _UxGT("Allineam.automat. Z")
 #define MSG_TMC_Z_CALIBRATION               _UxGT("Calibra Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Home assi XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Premi per iniziare")
@@ -83,7 +84,7 @@
 #define MSG_RETRACT                         _UxGT("Ritrai")
 #define MSG_MOVE_AXIS                       _UxGT("Muovi Asse")
 #define MSG_BED_LEVELING                    _UxGT("Livella piano")
-#define MSG_LEVEL_BED                       _UxGT("Livella piano")
+#define MSG_LEVEL_BED                       MSG_BED_LEVELING
 #define MSG_LEVEL_CORNERS                   _UxGT("Livella spigoli")
 #define MSG_NEXT_CORNER                     _UxGT("Prossimo spigolo")
 #define MSG_EDITING_STOPPED                 _UxGT("Modif. Mesh Fermata")
@@ -95,7 +96,12 @@
 #define MSG_DXC_MENU                        _UxGT("Modo IDEX")
 #define MSG_DXC_MODE_AUTOPARK               _UxGT("Auto-Park")
 #define MSG_DXC_MODE_DUPLICATE              _UxGT("Duplicazione")
+#define MSG_DXC_MODE_SCALED_COPY            _UxGT("Copia scalata")
 #define MSG_DXC_MODE_FULL_CTRL              _UxGT("Pieno controllo")
+#define MSG_DXC_X_OFFSET                    _UxGT("2° ugello X")
+#define MSG_DXC_Y_OFFSET                    _UxGT("2° ugello Y")
+#define MSG_DXC_Z_OFFSET                    _UxGT("2° ugello Z")
+#define MSG_DXC_SAVE_OFFSETS                _UxGT("Memorizza Offsets")
 #define MSG_UBL_MANUAL_MESH                 _UxGT("Mesh Manuale")
 #define MSG_UBL_BC_INSERT                   _UxGT("Metti spes. e misura")
 #define MSG_UBL_BC_INSERT2                  _UxGT("Misura")
@@ -103,25 +109,25 @@
 #define MSG_UBL_MOVING_TO_NEXT              _UxGT("Spostamento succes.")
 #define MSG_UBL_ACTIVATE_MESH               _UxGT("Attiva UBL")
 #define MSG_UBL_DEACTIVATE_MESH             _UxGT("Disattiva UBL")
-#define MSG_UBL_SET_BED_TEMP                _UxGT("Temp Piatto")
-#define MSG_UBL_CUSTOM_BED_TEMP             MSG_UBL_SET_BED_TEMP
-#define MSG_UBL_SET_HOTEND_TEMP             _UxGT("Temp Ugello")
-#define MSG_UBL_CUSTOM_HOTEND_TEMP          MSG_UBL_SET_HOTEND_TEMP
+#define MSG_UBL_SET_TEMP_BED                _UxGT("Temp. Piatto")
+#define MSG_UBL_BED_TEMP_CUSTOM             MSG_UBL_SET_TEMP_BED
+#define MSG_UBL_SET_TEMP_HOTEND             _UxGT("Temp. Ugello")
+#define MSG_UBL_HOTEND_TEMP_CUSTOM          MSG_UBL_SET_TEMP_HOTEND
 #define MSG_UBL_MESH_EDIT                   _UxGT("Modifica Mesh")
-#define MSG_UBL_EDIT_CUSTOM_MESH            _UxGT("Modif Custom Mesh")
+#define MSG_UBL_EDIT_CUSTOM_MESH            _UxGT("Modif.Mesh personal.")
 #define MSG_UBL_FINE_TUNE_MESH              _UxGT("Ritocca Mesh")
 #define MSG_UBL_DONE_EDITING_MESH           _UxGT("Modif.Mesh fatta")
-#define MSG_UBL_BUILD_CUSTOM_MESH           _UxGT("Crea Mesh Custom")
+#define MSG_UBL_BUILD_CUSTOM_MESH           _UxGT("Crea Mesh personal.")
 #define MSG_UBL_BUILD_MESH_MENU             _UxGT("Crea Mesh")
-#define MSG_UBL_BUILD_PLA_MESH              _UxGT("Crea Mesh PLA")
-#define MSG_UBL_BUILD_ABS_MESH              _UxGT("Crea Mesh ABS")
+#define MSG_UBL_BUILD_MESH_M1               _UxGT("Crea Mesh " PREHEAT_1_LABEL)
+#define MSG_UBL_BUILD_MESH_M2               _UxGT("Crea Mesh " PREHEAT_2_LABEL)
 #define MSG_UBL_BUILD_COLD_MESH             _UxGT("Crea Mesh a freddo")
 #define MSG_UBL_MESH_HEIGHT_ADJUST          _UxGT("Aggiusta Alt. Mesh")
 #define MSG_UBL_MESH_HEIGHT_AMOUNT          _UxGT("Altezza")
 #define MSG_UBL_VALIDATE_MESH_MENU          _UxGT("Valida Mesh")
-#define MSG_UBL_VALIDATE_PLA_MESH           _UxGT("Valida Mesh PLA")
-#define MSG_UBL_VALIDATE_ABS_MESH           _UxGT("Valida Mesh ABS")
-#define MSG_UBL_VALIDATE_CUSTOM_MESH        _UxGT("Valida Mesh Custom")
+#define MSG_UBL_VALIDATE_MESH_M1            _UxGT("Valida Mesh " PREHEAT_1_LABEL)
+#define MSG_UBL_VALIDATE_MESH_M2            _UxGT("Valida Mesh " PREHEAT_2_LABEL)
+#define MSG_UBL_VALIDATE_CUSTOM_MESH        _UxGT("Valida Mesh pers.")
 #define MSG_UBL_CONTINUE_MESH               _UxGT("Continua Mesh")
 #define MSG_UBL_MESH_LEVELING               _UxGT("Livell. Mesh")
 #define MSG_UBL_3POINT_MESH_LEVELING        _UxGT("Livell. 3 Punti")
@@ -134,7 +140,7 @@
 #define MSG_UBL_OUTPUT_MAP_CSV              _UxGT("Esporta in CSV")
 #define MSG_UBL_OUTPUT_MAP_BACKUP           _UxGT("Backup esterno")
 #define MSG_UBL_INFO_UBL                    _UxGT("Esporta Info UBL")
-#define MSG_UBL_EDIT_MESH_MENU              _UxGT("Modifica Mesh")
+#define MSG_EDIT_MESH                       _UxGT("Modifica Mesh")
 #define MSG_UBL_FILLIN_AMOUNT               _UxGT("Riempimento")
 #define MSG_UBL_MANUAL_FILLIN               _UxGT("Riempimento Manuale")
 #define MSG_UBL_SMART_FILLIN                _UxGT("Riempimento Smart")
@@ -180,7 +186,7 @@
 #define MSG_MOVE_Y                          _UxGT("Muovi Y")
 #define MSG_MOVE_Z                          _UxGT("Muovi Z")
 #define MSG_MOVE_E                          _UxGT("Estrusore")
-#define MSG_HOTEND_TOO_COLD                 _UxGT("Hotend troppo freddo")
+#define MSG_HOTEND_TOO_COLD                 _UxGT("Ugello freddo")
 #define MSG_MOVE_01MM                       _UxGT("Muovi di 0.1mm")
 #define MSG_MOVE_1MM                        _UxGT("Muovi di 1mm")
 #define MSG_MOVE_10MM                       _UxGT("Muovi di 10mm")
@@ -224,7 +230,7 @@
 #define MSG_VTRAV_MIN                       _UxGT("VTrav min")
 #define MSG_ACCELERATION                    _UxGT("Accelerazione")
 #define MSG_AMAX                            _UxGT("Amax ")
-#define MSG_A_RETRACT                       _UxGT("A-retract")
+#define MSG_A_RETRACT                       _UxGT("A-Ritrazione")
 #define MSG_A_TRAVEL                        _UxGT("A-Spostamento")
 #define MSG_STEPS_PER_MM                    _UxGT("Passi/mm")
 #if IS_KINEMATIC
@@ -260,7 +266,7 @@
 #define MSG_WATCH                           _UxGT("Guarda")
 #define MSG_PREPARE                         _UxGT("Prepara")
 #define MSG_TUNE                            _UxGT("Regola")
-#define MSG_PAUSE_PRINT                     _UxGT("Pausa")
+#define MSG_PAUSE_PRINT                     _UxGT("Pausa stampa")
 #define MSG_RESUME_PRINT                    _UxGT("Riprendi stampa")
 #define MSG_RESTART_PRINT                   _UxGT("Restart stampa")
 #define MSG_STOP_PRINT                      _UxGT("Arresta stampa")
@@ -278,12 +284,17 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Ritrai mm")
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Scamb. Ritrai mm")
 #define MSG_CONTROL_RETRACTF                _UxGT("Ritrai  V")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Salta mm")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Salta mm")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("Scamb. UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet V")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAPF   _UxGT("S UnRet V")
 #define MSG_AUTORETRACT                     _UxGT("AutoRitrai")
+#define MSG_FILAMENT_SWAP_LENGTH            _UxGT("Dist. ritrazione")
+#define MSG_TOOL_CHANGE                     _UxGT("Cambio utensile")
+#define MSG_TOOL_CHANGE_ZLIFT               _UxGT("Risalita Z")
+#define MSG_SINGLENOZZLE_PRIME_SPD          _UxGT("Velocità innesco")
+#define MSG_SINGLENOZZLE_RETRACT_SPD        _UxGT("Velocità retrazione")
 #define MSG_FILAMENTCHANGE                  _UxGT("Cambia filamento")
 #define MSG_FILAMENTLOAD                    _UxGT("Carica filamento")
 #define MSG_FILAMENTUNLOAD                  _UxGT("Rimuovi filamento")
@@ -471,5 +482,3 @@
 #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Cambiata.")
 #define MSG_EEPROM_CHANGED_ALLERT_3         _UxGT("Premere il bottone")
 #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("per continuare...")
-
-#endif // LANGUAGE_IT_H

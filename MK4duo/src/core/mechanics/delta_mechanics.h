@@ -31,16 +31,19 @@
 // Struct Delta Settings
 typedef struct : public generic_data_t {
 
-  float diagonal_rod,
-        radius,
-        segments_per_second,
-        print_radius,
-        probe_radius,
-        height,
-        diagonal_rod_adj[ABC],
-        endstop_adj[ABC],
-        tower_angle_adj[ABC],
-        tower_radius_adj[ABC];
+  float     diagonal_rod,
+            radius,
+            print_radius,
+            probe_radius,
+            height,
+            diagonal_rod_adj[ABC],
+            endstop_adj[ABC],
+            tower_angle_adj[ABC],
+            tower_radius_adj[ABC];
+
+  uint16_t  segments_per_second;
+
+  uint8_t   segments_per_line;
 
 } mechanics_data_t;
 
@@ -176,7 +179,7 @@ class Delta_Mechanics : public Mechanics {
       static void print_parameters();
     #endif
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       static void Nextion_gfx_clear();
     #endif
 

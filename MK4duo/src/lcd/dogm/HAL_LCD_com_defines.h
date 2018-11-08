@@ -20,8 +20,7 @@
  *
  */
 
-// use this file to select the com driver for device drivers that are NOT in the U8G library
-
+// Use this file to select the com driver for device drivers that are NOT in the U8G library
 
 #ifndef U8G_HAL_LINKS
 
@@ -34,12 +33,6 @@
 
     uint8_t u8g_com_HAL_DUE_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr);
     #define U8G_COM_ST7920_HAL_SW_SPI u8g_com_HAL_DUE_ST7920_sw_spi_fn
-  #elif ARDUINO_ARCH_SAMD
-    uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr);
-    #define U8G_COM_HAL_HW_SPI_FN u8g_com_HAL_SAMD_shared_hw_spi_fn
-
-    uint8_t u8g_com_HAL_SAMD_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr);
-    #define U8G_COM_ST7920_HAL_SW_SPI u8g_com_HAL_SAMD_ST7920_sw_spi_fn
   #else
     uint8_t u8g_com_arduino_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr);
     #define U8G_COM_HAL_HW_SPI_FN u8g_com_arduino_hw_spi_fn

@@ -203,7 +203,7 @@ void Commands::get_serial() {
           // If command was e-stop process now
           if (strcmp(command, "M108") == 0) {
             printer.setWaitForHeatUp(false);
-            #if ENABLED(ULTIPANEL)
+            #if HAS_LCD_MENU
               printer.setWaitForUser(false);
             #endif
           }
@@ -484,6 +484,40 @@ void Commands::enqueue_and_echo_now_P(PGM_P const cmd) {
 }
 
 /**
+ * Run a series of commands, bypassing the command queue to allow
+ * G-code "macros" to be called from within other G-code handlers.
+ */
+void Commands::process_now_P(PGM_P pgcode) {
+  char * const saved_cmd = parser.command_ptr;        // Save the parser state
+  for (;;) {
+    PGM_P const delim = strchr_P(pgcode, '\n');       // Get address of next newline
+    const size_t len = delim ?
+      delim - pgcode : strlen_P(pgcode);              // Get the command length
+    char cmd[len + 1];                                // Allocate a stack buffer
+    strncpy_P(cmd, pgcode, len);                      // Copy the command to the stack
+    cmd[len] = '\0';                                  // End with a nul
+    parser.parse(cmd);                                // Parse the command
+    process_parsed(true);                             // Process it
+    if (!delim) break;                                // Last command?
+    pgcode = delim + 1;                               // Get the next command
+  }
+  parser.parse(saved_cmd);                            // Restore the parser state
+}
+
+void Commands::process_now(char * gcode) {
+  char * const saved_cmd = parser.command_ptr;        // Save the parser state
+  for (;;) {
+    char * const delim = strchr(gcode, '\n');         // Get address of next newline
+    if (delim) *delim = '\0';                         // Replace with nul
+    parser.parse(gcode);                              // Parse the current command
+    process_parsed(true);                             // Process it
+    if (!delim) break;                                // Last command?
+    gcode = delim + 1;                                // Get the next command
+  }
+  parser.parse(saved_cmd);                            // Restore the parser state
+}
+
+/**
  * Clear the MK4duo command buffer_ring
  */
 void Commands::clear_queue() {
@@ -546,7 +580,7 @@ void Commands::get_destination() {
     get_mix_from_command();
   #endif
 
-  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       if ((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
         gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
@@ -724,7 +758,7 @@ bool Commands::drain_injected_P() {
 #endif
 
 // Process parsed code
-void Commands::process_parsed() {
+void Commands::process_parsed(const bool print_ok/*=true*/) {
 
   printer.keepalive(InHandler);
 
@@ -4125,6 +4159,6 @@ void Commands::process_parsed() {
 
   printer.keepalive(NotBusy);
 
-  ok_to_send();
+  if (print_ok) ok_to_send();
 
 }

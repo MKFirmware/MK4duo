@@ -133,7 +133,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
         Planner::hysteresis_correction  = 0.0;
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
 
@@ -321,12 +321,12 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
       // For small divisors, it is best to directly retrieve the results
       if (d <= 110) return pgm_read_dword(&small_inv_tab[d]);
 
-      register uint8_t  r8 = d & 0xFF,
-                        r9 = (d >> 8) & 0xFF,
-                        r10 = (d >> 16) & 0xFF,
-                        r2, r3, r4, r5, r6, r7, r11, r12, r13, r14, r15, r16, r17, r18;
+      uint8_t r8 = d & 0xFF,
+              r9 = (d >> 8) & 0xFF,
+              r10 = (d >> 16) & 0xFF,
+              r2, r3, r4, r5, r6, r7, r11, r12, r13, r14, r15, r16, r17, r18;
 
-      register const uint8_t* ptab = inv_tab;
+      const uint8_t* ptab = inv_tab;
 
       __asm__ __volatile__(
         // %8:%7:%6 = interval
@@ -1287,7 +1287,7 @@ void Planner::quick_stop() {
   // forced to empty, there is no risk the ISR could touch this variable.
   delay_before_delivering = BLOCK_DELAY_FOR_1ST_MOVE;
 
-  #if ENABLED(ULTRA_LCD)
+  #if HAS_SPI_LCD
     // Clear the accumulated runtime
     clear_block_buffer_runtime();
   #endif
@@ -1641,8 +1641,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   // For a mixing extruder, get a magnified step_event_count for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-      block->mix_steps[i] = mixing_factor[i] * esteps;
+    mixer.populate_block(block->b_color);
   #endif
 
   #if ENABLED(BARICUDA)
@@ -1923,7 +1922,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   const uint8_t moves_queued = nonbusy_movesplanned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
-  #if ENABLED(SLOWDOWN) || ENABLED(ULTRA_LCD) || ENABLED(XY_FREQUENCY_LIMIT)
+  #if ENABLED(SLOWDOWN) || HAS_SPI_LCD || ENABLED(XY_FREQUENCY_LIMIT)
     // Segment time im micro seconds
     uint32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
   #endif
@@ -1934,14 +1933,14 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
         const uint32_t nst = segment_time_us + LROUND(2 * (mechanics.data.min_segment_time_us - segment_time_us) / moves_queued);
         inverse_secs = 1000000.0f / nst;
-        #if ENABLED(XY_FREQUENCY_LIMIT) || ENABLED(ULTRA_LCD)
+        #if ENABLED(XY_FREQUENCY_LIMIT) || HAS_SPI_LCD
           segment_time_us = nst;
         #endif
       }
     }
   #endif
 
-  #if ENABLED(ULTRA_LCD)
+  #if HAS_SPI_LCD
     // Disable stepper ISR
     const bool isr_enabled = STEPPER_ISR_ENABLED();
     if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
@@ -1992,18 +1991,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // Calculate and limit speed in mm/sec for each axis
   float current_speed[NUM_AXIS], speed_factor = 1.0f; // factor <1 decreases speed
   LOOP_XYZE(i) {
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      float delta_mm_i = 0;
-      if (i == E_AXIS) {
-        for (uint8_t s = 0; s < MIXING_STEPPERS; s++) {
-          const float delta_mm_s = mixing_factor[s] * delta_mm[i];
-          if (ABS(delta_mm_s) > ABS(delta_mm_i)) delta_mm_i = delta_mm_s;
-        }
-      }
-      else delta_mm_i = delta_mm[i];
-    #else
-      const float delta_mm_i = delta_mm[i];
-    #endif
+    const float delta_mm_i = delta_mm[i];
     const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
     if (i == E_AXIS) i += extruder;
     if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
@@ -2194,12 +2182,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
                                 ;
 
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
-      if (junction_cos_theta > 0.999999) {
+      if (junction_cos_theta > 0.999999f) {
         // For a 0 degree acute junction, just set minimum junction speed.
         vmax_junction_sqr = sq(MINIMUM_PLANNER_SPEED);
       }
       else {
-        NOLESS(junction_cos_theta, -0.999999);  // Check for numerical round-off to avoid divide by zero.
+        NOLESS(junction_cos_theta, -0.999999f);  // Check for numerical round-off to avoid divide by zero.
 
         float junction_unit_vec[XYZE] = {
           unit_vec[X_AXIS] - previous_unit_vec[X_AXIS],
@@ -2210,13 +2198,13 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         normalize_junction_vector(junction_unit_vec);
 
         const float junction_acceleration = limit_value_by_axis_maximum(block->acceleration, junction_unit_vec),
-                    sin_theta_d2 = SQRT(0.5 * (1.0 - junction_cos_theta)); // Trig half angle identity. Always positive.
+                    sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
-        vmax_junction_sqr = (junction_acceleration * mechanics.data.junction_deviation_mm * sin_theta_d2) / (1.0 - sin_theta_d2);
+        vmax_junction_sqr = (junction_acceleration * mechanics.data.junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
         if (block->millimeters < 1.0) {
 
           // Fast acos approximation, minus the error bar to be safe
-          const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18;
+          const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18f;
 
           // If angle is greater than 135 degrees (octagon), find speed for approximate arc
           if (junction_theta > RADIANS(135)) {
@@ -2230,7 +2218,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       vmax_junction_sqr = MIN(vmax_junction_sqr, block->nominal_speed_sqr, previous_nominal_speed_sqr);
     }
     else // Init entry speed to zero. Assume it starts from rest. Planner will correct this later.
-      vmax_junction_sqr = 0.0;
+      vmax_junction_sqr = 0;
 
     COPY_ARRAY(previous_unit_vec, unit_vec);
 
@@ -2295,7 +2283,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         float v_exit = previous_speed[axis] * smaller_speed_factor,
               v_entry = current_speed[axis];
         if (limited) {
-          v_exit *= v_factor;
+          v_exit  *= v_factor;
           v_entry *= v_factor;
         }
 
@@ -2400,7 +2388,7 @@ void Planner::buffer_sync_block() {
   block_buffer_head = next_buffer_head;
 
   stepper.wake_up();
-} // buffer_sync_block()
+}
 
 /**
  * Planner::buffer_segment
@@ -2493,7 +2481,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   stepper.wake_up();
   return true;
 
-} // buffer_segment()
+}
 
 /**
  * Add a new linear movement to the buffer.

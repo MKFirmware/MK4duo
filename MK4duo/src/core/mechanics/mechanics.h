@@ -160,7 +160,7 @@ class Mechanics {
        * Workspace planes only apply to G2/G3 moves
        * (and "canned cycles" - not a current feature)
        */
-      static WorkspacePlane workspace_plane = PLANE_XY;
+      static WorkspacePlaneEnum workspace_plane = PLANE_XY;
     #endif
 
     #if ENABLED(BABYSTEPPING)
@@ -302,11 +302,11 @@ class Mechanics {
 
 };
 
-#if IS_CARTESIAN
+#if MECH(CARTESIAN)
   #include "cartesian_mechanics.h"
 #elif IS_CORE
   #include "core_mechanics.h"
-#elif IS_DELTA
+#elif MECH(DELTA)
   #include "delta_mechanics.h"
 #elif IS_SCARA
   #include "scara_mechanics.h"

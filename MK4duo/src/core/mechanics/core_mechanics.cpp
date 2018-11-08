@@ -158,7 +158,7 @@
 
     if (printer.debugSimulation()) {
       LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
-      #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+      #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
         mechanics.Nextion_gfx_clear();
       #endif
       return;
@@ -277,7 +277,7 @@
       feedrate_mm_s = old_feedrate_mm_s;
     }
 
-    #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
       mechanics.Nextion_gfx_clear();
     #endif
 
@@ -834,7 +834,7 @@
 
   #endif // DISABLED(DISABLE_M503)
 
-  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
     void Core_Mechanics::Nextion_gfx_clear() {
       gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);

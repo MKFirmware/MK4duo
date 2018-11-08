@@ -753,7 +753,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
         {
           SERIAL_TXT(card.tempLongFilename);
           #if ENABLED(SD_EXTENDED_DIR)
-            SERIAL_MV(" ", (long) p->fileSize);
+            SERIAL_MV(" ", (long)p->fileSize);
           #endif
           SERIAL_EOL();
         }

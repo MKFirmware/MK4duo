@@ -184,7 +184,7 @@
 //#define DAC0_SYNC               53 // PB14
 //#define DAC1_SYNC                6 // PC24
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   // LCD panel
   #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
     #define LCD_PINS_RS         46

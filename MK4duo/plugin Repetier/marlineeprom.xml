@@ -1830,6 +1830,11 @@
     <set>M666 S@</set>
     <detect>M666.*S(-?\d*\.?\d*)</detect>
   </entry>
+  <entry type="int" min="10" max="255">
+    <description unit="">Delta segments per line</description>
+    <set>M666 L@</set>
+    <detect>M666.*L(-?\d*\.?\d*)</detect>
+  </entry>
   <entry type="float" min="0">
     <description unit="[unit]">Delta Print Radius</description>
     <set>M666 O@</set>

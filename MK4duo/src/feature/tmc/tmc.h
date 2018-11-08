@@ -281,59 +281,6 @@ struct TMC_driver_data {
   bool is_error;
 };
 
-#if ENABLED(TMC_DEBUG)
-
-  enum TMC_debug_enum : char {
-    TMC_CODES,
-    TMC_ENABLED,
-    TMC_CURRENT,
-    TMC_RMS_CURRENT,
-    TMC_MAX_CURRENT,
-    TMC_IRUN,
-    TMC_IHOLD,
-    TMC_CS_ACTUAL,
-    TMC_PWM_SCALE,
-    TMC_VSENSE,
-    TMC_STEALTHCHOP,
-    TMC_MICROSTEPS,
-    TMC_TSTEP,
-    TMC_TPWMTHRS,
-    TMC_TPWMTHRS_MMS,
-    TMC_OTPW,
-    TMC_OTPW_TRIGGERED,
-    TMC_TOFF,
-    TMC_TBL,
-    TMC_HEND,
-    TMC_HSTRT,
-    TMC_SGT,
-    TMC_NULL
-  };
-
-  enum TMC_drv_status_enum : char {
-    TMC_DRV_CODES,
-    TMC_STST,
-    TMC_OLB,
-    TMC_OLA,
-    TMC_S2GB,
-    TMC_S2GA,
-    TMC_DRV_OTPW,
-    TMC_OT,
-    TMC_STALLGUARD,
-    TMC_DRV_CS_ACTUAL,
-    TMC_FSACTIVE,
-    TMC_SG_RESULT,
-    TMC_DRV_STATUS_HEX,
-    TMC_T157,
-    TMC_T150,
-    TMC_T143,
-    TMC_T120,
-    TMC_STEALTH,
-    TMC_S2VSB,
-    TMC_S2VSA
-  };
-
-#endif // ENABLED(TMC_DEBUG)
-
 class TMC_Stepper {
 
   public: /** Constructor */
@@ -542,12 +489,12 @@ class TMC_Stepper {
       FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PS(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
 
       static void drv_status_print_hex(const uint32_t drv_status);
-      static void status(MKTMC* st, const TMC_debug_enum i);
-      static void status(MKTMC* st, const TMC_debug_enum i, const float tmc_spmm);
-      static void parse_type_drv_status(MKTMC* st, const TMC_drv_status_enum i);
-      static void parse_drv_status(MKTMC* st, const TMC_drv_status_enum i);
-      static void debug_loop(const TMC_debug_enum i);
-      static void status_loop(const TMC_drv_status_enum i);
+      static void status(MKTMC* st, const TMCdebugEnum i);
+      static void status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm);
+      static void parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
+      static void parse_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
+      static void debug_loop(const TMCdebugEnum i);
+      static void status_loop(const TMCdrvStatusEnum i);
 
     #endif
 

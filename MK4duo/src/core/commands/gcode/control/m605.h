@@ -52,9 +52,9 @@
     planner.synchronize();
 
     if (parser.seen('S')) {
-      const DualXMode previous_mode = mechanics.dual_x_carriage_mode;
+      const DualXModeEnum previous_mode = mechanics.dual_x_carriage_mode;
 
-      mechanics.dual_x_carriage_mode = (DualXMode)parser.value_byte();
+      mechanics.dual_x_carriage_mode = (DualXModeEnum)parser.value_byte();
       mechanics.scaled_duplication_mode = false;
 
       if (mechanics.dual_x_carriage_mode == DXC_SCALED_DUPLICATION_MODE) {

@@ -20,93 +20,90 @@
  *
  */
 
-#ifndef _MATRIX_H_
-#define _MATRIX_H_
+#pragma once
 
 template<class T>
-  class MathMatrix {
+class MathMatrix {
 
-    public:
+  public:
 
-      virtual uint8_t rows()                              const = 0;
-      virtual uint8_t cols()                              const = 0;
-      virtual T& operator()       (uint8_t r, uint8_t c)        = 0;
-      virtual const T& operator() (uint8_t r, uint8_t c)  const = 0;
-      virtual ~MathMatrix() { }
+    virtual uint8_t rows()                              const = 0;
+    virtual uint8_t cols()                              const = 0;
+    virtual T& operator()       (uint8_t r, uint8_t c)        = 0;
+    virtual const T& operator() (uint8_t r, uint8_t c)  const = 0;
+    virtual ~MathMatrix() { }
 
-  };
-
-template<class T, uint8_t ROWS, uint8_t COLS>
-  class FixedMatrix : public MathMatrix<T> {
-
-    public:
-
-      uint8_t rows() const override { return ROWS; }
-      uint8_t cols() const override { return COLS; }
-
-      T& operator() (uint8_t r, uint8_t c) override { return data[r * COLS + c]; }
-
-      const T& operator() (uint8_t r, uint8_t c) const override { return data[r * COLS + c]; }
-
-      void SwapRows(uint8_t i, uint8_t j, uint8_t numCols = COLS);
-
-      void GaussJordan(T *solution, uint8_t numRows);
-
-      T* GetRow(uint8_t r) { return data + (r * COLS); }
-
-      const T* GetRow(uint8_t r) const { return data + (r * COLS); }
-
-    private:
-
-      T data[ROWS * COLS];
-
-  };
+};
 
 template<class T, uint8_t ROWS, uint8_t COLS>
-  inline void FixedMatrix<T, ROWS, COLS>::SwapRows(uint8_t i, uint8_t j, uint8_t numCols) {
-    if (i != j) {
-      for (uint8_t k = i; k < numCols; ++k) {
-        T temp = (*this)(i, k);
-        (*this)(i, k) = (*this)(j, k);
-        (*this)(j, k) = temp;
-      }
+class FixedMatrix : public MathMatrix<T> {
+
+  public:
+
+    uint8_t rows() const override { return ROWS; }
+    uint8_t cols() const override { return COLS; }
+
+    T& operator() (uint8_t r, uint8_t c) override { return data[r * COLS + c]; }
+
+    const T& operator() (uint8_t r, uint8_t c) const override { return data[r * COLS + c]; }
+
+    void SwapRows(uint8_t i, uint8_t j, uint8_t numCols = COLS);
+
+    void GaussJordan(T *solution, uint8_t numRows);
+
+    T* GetRow(uint8_t r) { return data + (r * COLS); }
+
+    const T* GetRow(uint8_t r) const { return data + (r * COLS); }
+
+  private:
+
+    T data[ROWS * COLS];
+
+};
+
+template<class T, uint8_t ROWS, uint8_t COLS>
+inline void FixedMatrix<T, ROWS, COLS>::SwapRows(uint8_t i, uint8_t j, uint8_t numCols) {
+  if (i != j) {
+    for (uint8_t k = i; k < numCols; ++k) {
+      T temp = (*this)(i, k);
+      (*this)(i, k) = (*this)(j, k);
+      (*this)(j, k) = temp;
     }
   }
+}
 
 // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
 // Returns a pointer to the solution vector.
 template<class T, uint8_t ROWS, uint8_t COLS>
-  void FixedMatrix<T, ROWS, COLS>::GaussJordan(T *solution, uint8_t numRows) {
-    for (uint8_t i = 0; i < numRows; ++i) {
-      // Swap the rows around for stable Gauss-Jordan elimination
-      float vmax = fabsf((*this)(i, i));
-      for (uint8_t j = i + 1; j < numRows; ++j) {
-        const float rmax = fabsf((*this)(j, i));
-        if (rmax > vmax) {
-          SwapRows(i, j);
-          vmax = rmax;
-        }
-      }
-
-      T v = (*this)(i, i);
-      for (uint8_t j = 0; j < i; ++j) {
-        T factor = (*this)(j, i) / v;
-        (*this)(j, i) = 0.0;
-        for (uint8_t k = i + 1; k <= numRows; ++k)
-          (*this)(j, k) -= (*this)(i, k) * factor;
-      }
-
-      for (uint8_t j = i + 1; j < numRows; ++j) {
-        T factor = (*this)(j, i) / v;
-        (*this)(j, i) = 0.0;
-        for (uint8_t k = i + 1; k <= numRows; ++k)
-          (*this)(j, k) -= (*this)(i, k) * factor;
+void FixedMatrix<T, ROWS, COLS>::GaussJordan(T *solution, uint8_t numRows) {
+  for (uint8_t i = 0; i < numRows; ++i) {
+    // Swap the rows around for stable Gauss-Jordan elimination
+    float vmax = fabsf((*this)(i, i));
+    for (uint8_t j = i + 1; j < numRows; ++j) {
+      const float rmax = fabsf((*this)(j, i));
+      if (rmax > vmax) {
+        SwapRows(i, j);
+        vmax = rmax;
       }
     }
 
-    for (uint8_t i = 0; i < numRows; ++i)
-      solution[i] = (*this)(i, numRows) / (*this)(i, i);
+    T v = (*this)(i, i);
+    for (uint8_t j = 0; j < i; ++j) {
+      T factor = (*this)(j, i) / v;
+      (*this)(j, i) = 0.0;
+      for (uint8_t k = i + 1; k <= numRows; ++k)
+        (*this)(j, k) -= (*this)(i, k) * factor;
+    }
 
+    for (uint8_t j = i + 1; j < numRows; ++j) {
+      T factor = (*this)(j, i) / v;
+      (*this)(j, i) = 0.0;
+      for (uint8_t k = i + 1; k <= numRows; ++k)
+        (*this)(j, k) -= (*this)(i, k) * factor;
+    }
   }
 
-#endif /* _MATRIX_H_ */
+  for (uint8_t i = 0; i < numRows; ++i)
+    solution[i] = (*this)(i, numRows) / (*this)(i, i);
+
+}

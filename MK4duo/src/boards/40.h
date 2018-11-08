@@ -169,7 +169,7 @@
   #define KILL_PIN              NoPin
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #if ENABLED(NEWPANEL)
     #if ENABLED(PANEL_ONE)
       #define LCD_PINS_RS       40

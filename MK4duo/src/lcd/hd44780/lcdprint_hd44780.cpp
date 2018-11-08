@@ -12,15 +12,13 @@
  *   Western(English), Cyrillic(Russian), Kana(Japanese) charsets.
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
 
-#if ENABLED(ULTRA_LCD)
-#include "ultralcd.h"
+#if ENABLED(ULTRA_LCD) && DISABLED(DOGLCD)
 
-#if DISABLED(DOGLCD)
 #include <string.h>
-#include "fontutils.h"
-#include "lcdprint.h"
+#include "../fontutils.h"
+#include "../lcdprint.h"
 
 #include "ultralcd_common_HD44780.h"
 #ifndef LCD_CLASS
@@ -421,7 +419,7 @@ static const hd44780_charmap_t g_hd44780_charmap_device[] PROGMEM = {
     {IV('⎲'), 0x12, 0},
     {IV('⎳'), 0x13, 0},
 
-    {IV('⏱'), 0x07, 0}, // MK4duo special: '🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧 ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
+    {IV('⏱'), 0x07, 0}, // MK4duo special: '???????????????????????? ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
     {IV('┌'), 0xC9, 0},
     {IV('┐'), 0xCA, 0},
     {IV('└'), 0xCB, 0},
@@ -855,15 +853,15 @@ static const hd44780_charmap_t g_hd44780_charmap_common[] PROGMEM = {
   {IV('≡'), '=', 0}, // 2261
   {IV('≤'), '<', '='},// 2264, ≤≥ ⩽⩾
   {IV('≥'), '>', '='}, // 2265
-  {IV('⏱'), 0x07, 0}, // 23F1, MK4duo special: '🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧 ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
+  {IV('⏱'), 0x07, 0}, // 23F1, MK4duo special: '???????????????????????? ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
 
   {IV('゠'), '=', 0}, // 30A0
 
   // ⏰⏱⏲⏳◴◵◶◷
   // ⏻⏼♁♂
   //{IV(''), 0x00, 0}, // MK4duo special: ''  LCD_STR_BEDTEMP (0x07)
-  {IV('🌡'), 0x02, 0}, // D83CDF21 MK4duo special: '🌡'  LCD_STR_THERMOMETER (0x08)
-  {IV('📂'), 0x05, 0}, // D83DDCC2 MK4duo special: '📁📂'  LCD_STR_FOLDER (0x02)
+  {IV('?'), 0x02, 0}, // D83CDF21 MK4duo special: '?'  LCD_STR_THERMOMETER (0x08)
+  {IV('?'), 0x05, 0}, // D83DDCC2 MK4duo special: '??'  LCD_STR_FOLDER (0x02)
   //{IV(''), 0x06, 0}, // MK4duo special: ''  LCD_STR_FEEDRATE (0x06)
 };
 
@@ -1038,5 +1036,4 @@ int lcd_put_u8str_max_P(PGM_P utf8_str_P, pixel_len_t max_length) {
   return lcd_put_u8str_max_cb(utf8_str_P, read_byte_rom, max_length);
 }
 
-#endif // DOGLCD
-#endif // ULTRA_LCD
+#endif // ULTRA_LCD && !DOGLCD
