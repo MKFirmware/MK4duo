@@ -1807,6 +1807,7 @@ void EEPROM::Factory_Settings() {
     }
   #endif
 
+  // Reset the watchdog
   watchdog.reset();
 
   Postprocess();

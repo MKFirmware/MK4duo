@@ -825,6 +825,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     monitor_tmc_driver();
   #endif
 
+  // Reset the watchdog
+  watchdog.reset();
+
 }
 
 void Printer::setInterruptEvent(const MK4duoInterruptEvent event) {
