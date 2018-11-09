@@ -22,7 +22,7 @@
 
 #include "../../MK4duo.h"
 
-#if HAS_SPI_LCD
+#if ENABLED(ULTRA_LCD)
 
 #include <stdarg.h>
 
@@ -54,7 +54,7 @@ uint8_t lcd_status_update_delay = 1, // First update one loop delayed
   millis_t previous_lcd_status_ms = 0;
 #endif
 
-#if HAS_LCD_MENU && HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
+#if ENABLED(ULTIPANEL) && HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
   uint8_t filename_scroll_pos, filename_scroll_max;
 #endif
 
@@ -68,23 +68,27 @@ millis_t next_button_update_ms;
   millis_t print_millis = 0;
 #endif
 
-#if ENABLED(ENCODER_RATE_MULTIPLIER)
-  bool encoderRateMultiplierEnabled;
+// Encoder Handling
+#if HAS_ENCODER_ACTION
+  uint32_t encoderPosition;
+  volatile int8_t encoderDiff; // Updated in lcd_buttons_update, added to encoderPosition every LCD update
+  #if ENABLED(ENCODER_RATE_MULTIPLIER)
+    bool encoderRateMultiplierEnabled;
+  #endif
+  #if ENABLED(REVERSE_MENU_DIRECTION)
+    int8_t encoderDirection = 1;
+  #endif
 #endif
 
-#if ENABLED(REVERSE_MENU_DIRECTION)
-  int8_t encoderDirection = 1;
-#endif
-
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
   #include "menu/menu.h"
 
   screenFunc_t currentScreen = lcd_status_screen;
 
-  // Encoder Handling
-  volatile int8_t encoderDiff; // Updated in lcd_buttons_update, added to encoderPosition every LCD update
-  uint32_t encoderPosition;
-  millis_t lastEncoderMovementMillis = 0;
+  #if ENABLED(ENCODER_RATE_MULTIPLIER)
+    millis_t lastEncoderMovementMillis = 0;
+  #endif
+
   bool lcd_clicked, wait_for_unclick;
   float move_menu_scale;
 
@@ -93,13 +97,18 @@ millis_t next_button_update_ms;
     lcd_clicked = false;
     return click;
   }
+
+#else
+
+  constexpr bool lcd_clicked = false;
+
 #endif
 
 void lcd_init() {
 
   lcd_implementation_init();
 
-  #if HAS_LCD_MENU
+  #if ENABLED(NEWPANEL)
     #if BUTTON_EXISTS(EN1)
       SET_INPUT_PULLUP(BTN_EN1);
     #endif
@@ -129,7 +138,7 @@ void lcd_init() {
       SET_INPUT(BTN_RT);
     #endif
 
-  #else // !HAS_LCD_MENU
+  #else // !NEWPANEL
 
     #if ENABLED(SR_LCD_2W_NL) // Non latching 2 wire shift register
       SET_OUTPUT(SR_DATA_PIN);
@@ -141,7 +150,7 @@ void lcd_init() {
       SET_INPUT_PULLUP(SHIFT_OUT);
     #endif // SR_LCD_2W_NL
 
-  #endif // !HAS_LCD_MENU
+  #endif // !NEWPANEL
 
   #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
     SET_INPUT_PULLUP(SD_DETECT_PIN);
@@ -154,7 +163,7 @@ void lcd_init() {
 
   lcd_buttons_update();
 
-  #if HAS_LCD_MENU
+  #if HAS_ENCODER_ACTION
     encoderDiff = 0;
   #endif
 }
@@ -183,17 +192,20 @@ bool lcd_blink() {
   inline bool handle_adc_keypad() {
     #define ADC_MIN_KEY_DELAY 100
     if (buttons_reprapworld_keypad) {
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-      if (encoderDirection == -1) { // side effect which signals we are inside a menu
-        if      (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))   encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))     encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { menu_action_back();     lcd_quick_feedback(true); }
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { lcd_return_to_status(); lcd_quick_feedback(true); }
-      }
-      else if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))     encoderPosition += ENCODER_PULSES_PER_STEP;
-      else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))       encoderPosition -= ENCODER_PULSES_PER_STEP;
-      else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))    encoderPosition = 0;
-
+      #if HAS_ENCODER_ACTION
+        lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+        if (encoderDirection == -1) { // side effect which signals we are inside a menu
+          #if ENABLED(ULTIPANEL)
+            if      (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))   encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
+            else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))     encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
+            else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { menu_item_back::action(); lcd_quick_feedback(true); }
+            else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { lcd_return_to_status(); lcd_quick_feedback(true); }
+          #endif
+        }
+        else if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))     encoderPosition += ENCODER_PULSES_PER_STEP;
+        else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))       encoderPosition -= ENCODER_PULSES_PER_STEP;
+        else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))    encoderPosition = 0;
+      #endif
       next_button_update_ms = millis() + ADC_MIN_KEY_DELAY;
       return true;
     }
@@ -203,20 +215,24 @@ bool lcd_blink() {
 
 #elif ENABLED(REPRAPWORLD_KEYPAD)
 
-  void lcd_move_x();
-  void lcd_move_y();
-  void lcd_move_z();
+  #if ENABLED(ULTIPANEL)
 
-  void _reprapworld_keypad_move(const AxisEnum axis, const int16_t dir) {
-    move_menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
-    encoderPosition = dir;
-    switch (axis) {
-      case X_AXIS: lcd_move_x(); break;
-      case Y_AXIS: lcd_move_y(); break;
-      case Z_AXIS: lcd_move_z();
-      default: break;
+    void lcd_move_x();
+    void lcd_move_y();
+    void lcd_move_z();
+
+    void _reprapworld_keypad_move(const AxisEnum axis, const int16_t dir) {
+      move_menu_scale = REPRAPWORLD_KEYPAD_MOVE_STEP;
+      encoderPosition = dir;
+      switch (axis) {
+        case X_AXIS: lcd_move_x(); break;
+        case Y_AXIS: lcd_move_y(); break;
+        case Z_AXIS: lcd_move_z();
+        default: break;
+      }
     }
-  }
+
+  #endif
 
   inline void handle_reprapworld_keypad() {
 
@@ -232,23 +248,28 @@ bool lcd_blink() {
     else if (!keypad_debounce) {
       keypad_debounce = 2;
 
-      if (RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))  lcd_goto_screen(menu_move);
+      #if ENABLED(ULTIPANEL)
 
-      #if NOMECH(DELTA) && Z_HOME_DIR == -1
-        if (RRK(EN_REPRAPWORLD_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
-      #endif
+        if (RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))  lcd_goto_screen(menu_move);
 
-      if (printer.isHomedAll()) {
-        #if MECH(DELTA) || Z_HOME_DIR != -1
-          if (RRK(EN_REPRAPWORLD_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
+        #if NOMECH(DELTA) && Z_HOME_DIR == -1
+          if (RRK(EN_REPRAPWORLD_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
         #endif
-        if (RRK(EN_REPRAPWORLD_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
-        if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
-        if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
-        if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
-        if (RRK(EN_REPRAPWORLD_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
-      }
-      else if (RRK(EN_REPRAPWORLD_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
+
+        if (printer.isHomedAll()) {
+          #if MECH(DELTA) || Z_HOME_DIR != -1
+            if (RRK(EN_REPRAPWORLD_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
+          #endif
+          if (RRK(EN_REPRAPWORLD_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
+          if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
+          if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
+          if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
+          if (RRK(EN_REPRAPWORLD_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
+        }
+
+      #endif // ENABLED(ULTIPANEL)
+
+      if (!printer.isHomedAll() && RRK(EN_REPRAPWORLD_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
     }
   }
 
@@ -276,7 +297,7 @@ bool lcd_blink() {
 
 void lcd_status_screen() {
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     ENCODER_DIRECTION_NORMAL();
     ENCODER_RATE_MULTIPLY(false);
   #endif
@@ -320,7 +341,7 @@ void lcd_status_screen() {
 
   #endif // LCD_PROGRESS_BAR
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
 
     if (use_click()) {
       #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
@@ -331,32 +352,34 @@ void lcd_status_screen() {
       return;
     }
 
-    #if ENABLED(ULTIPANEL_FEEDMULTIPLY)
-      const int16_t new_frm = mechanics.feedrate_percentage + (int32_t)encoderPosition;
-      // Dead zone at 100% feedrate
-      if ((mechanics.feedrate_percentage < 100 && new_frm > 100) || (mechanics.feedrate_percentage > 100 && new_frm < 100)) {
-        mechanics.feedrate_percentage = 100;
+  #endif // ENABLED(ULTIPANEL)
+
+  #if ENABLED(ULTIPANEL_FEEDMULTIPLY)
+
+    const int16_t new_frm = mechanics.feedrate_percentage + (int32_t)encoderPosition;
+    // Dead zone at 100% feedrate
+    if ((mechanics.feedrate_percentage < 100 && new_frm > 100) || (mechanics.feedrate_percentage > 100 && new_frm < 100)) {
+      mechanics.feedrate_percentage = 100;
+      encoderPosition = 0;
+    }
+    else if (mechanics.feedrate_percentage == 100) {
+      if ((int32_t)encoderPosition > ENCODER_FEEDRATE_DEADZONE) {
+        mechanics.feedrate_percentage += (int32_t)encoderPosition - (ENCODER_FEEDRATE_DEADZONE);
         encoderPosition = 0;
       }
-      else if (mechanics.feedrate_percentage == 100) {
-        if ((int32_t)encoderPosition > ENCODER_FEEDRATE_DEADZONE) {
-          mechanics.feedrate_percentage += (int32_t)encoderPosition - (ENCODER_FEEDRATE_DEADZONE);
-          encoderPosition = 0;
-        }
-        else if ((int32_t)encoderPosition < -(ENCODER_FEEDRATE_DEADZONE)) {
-          mechanics.feedrate_percentage += (int32_t)encoderPosition + ENCODER_FEEDRATE_DEADZONE;
-          encoderPosition = 0;
-        }
-      }
-      else {
-        mechanics.feedrate_percentage = new_frm;
+      else if ((int32_t)encoderPosition < -(ENCODER_FEEDRATE_DEADZONE)) {
+        mechanics.feedrate_percentage += (int32_t)encoderPosition + ENCODER_FEEDRATE_DEADZONE;
         encoderPosition = 0;
       }
-    #endif // ULTIPANEL_FEEDMULTIPLY
+    }
+    else {
+      mechanics.feedrate_percentage = new_frm;
+      encoderPosition = 0;
+    }
 
     mechanics.feedrate_percentage = constrain(mechanics.feedrate_percentage, 10, 999);
 
-  #endif // HAS_LCD_MENU
+  #endif // ULTIPANEL_FEEDMULTIPLY
 
   #if LCD_INFO_SCREEN_STYLE == 0
     lcd_impl_status_screen_0();
@@ -395,7 +418,7 @@ void lcd_kill_screen(PGM_P lcd_msg) {
 
 void lcd_quick_feedback(const bool clear_buttons) {
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     lcd_refresh();
     if (clear_buttons) buttons = 0;
     next_button_update_ms = millis() + 500;
@@ -406,14 +429,14 @@ void lcd_quick_feedback(const bool clear_buttons) {
   // Buzz and wait. The delay is needed for buttons to settle!
   sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     #if ENABLED(LCD_USE_I2C_BUZZER)
       HAL::delayMilliseconds(10);
     #endif
   #endif
 }
 
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
 
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
@@ -481,7 +504,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
     }
   }
 
-#endif // HAS_LCD_MENU
+#endif // ENABLED(ULTIPANEL)
 
 /**
  * Update the LCD, read encoder buttons, etc.
@@ -526,12 +549,22 @@ LCDViewActionEnum lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
   volatile uint8_t slow_buttons;
 #endif
 
+bool lcd_detected() {
+  return
+    #if (ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)) && defined(DETECT_DEVICE)
+      lcd.LcdDetected() == 1
+    #else
+      true
+    #endif
+  ;
+}
+
 void lcd_update() {
 
   static uint16_t max_display_update_time = 0;
   static millis_t next_lcd_update_ms;
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
 
     #if LCD_TIMEOUT_TO_STATUS
       static millis_t return_to_status_ms = 0;
@@ -570,7 +603,7 @@ void lcd_update() {
       }
     #endif
 
-  #endif // HAS_LCD_MENU
+  #endif // ENABLED(ULTIPANEL)
 
   #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
 
@@ -619,16 +652,20 @@ void lcd_update() {
       lcd_implementation_update_indicators();
     #endif
 
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
 
       #if ENABLED(LCD_HAS_SLOW_BUTTONS)
         slow_buttons = lcd_implementation_read_slow_buttons(); // buttons which take too long to read in interrupt context
       #endif
 
+    #endif // ENABLED(ULTIPANEL)
+
+    #if HAS_ENCODER_ACTION
+
       #if ENABLED(ADC_KEYPAD)
 
         if (handle_adc_keypad()) {
-          #if LCD_TIMEOUT_TO_STATUS
+          #if ENABLED(ULTIPANEL) && LCD_TIMEOUT_TO_STATUS
             return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
           #endif
         }
@@ -642,9 +679,10 @@ void lcd_update() {
       const bool encoderPastThreshold = (ABS(encoderDiff) >= ENCODER_PULSES_PER_STEP);
       if (encoderPastThreshold || lcd_clicked) {
         if (encoderPastThreshold) {
-          int32_t encoderMultiplier = 1;
 
-          #if ENABLED(ENCODER_RATE_MULTIPLIER)
+          #if ENABLED(ULTIPANEL) && ENABLED(ENCODER_RATE_MULTIPLIER)
+
+            int32_t encoderMultiplier = 1;
 
             if (encoderRateMultiplierEnabled) {
               int32_t encoderMovementSteps = ABS(encoderDiff) / ENCODER_PULSES_PER_STEP;
@@ -667,23 +705,28 @@ void lcd_update() {
 
               lastEncoderMovementMillis = ms;
             } // encoderRateMultiplierEnabled
+
+          #else
+
+            constexpr int32_t encoderMultiplier = 1;
+
           #endif // ENCODER_RATE_MULTIPLIER
 
           encoderPosition += (encoderDiff * encoderMultiplier) / ENCODER_PULSES_PER_STEP;
           encoderDiff = 0;
         }
-        #if LCD_TIMEOUT_TO_STATUS
+        #if ENABLED(ULTIPANEL) && LCD_TIMEOUT_TO_STATUS
           return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
         #endif
         lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
       }
 
-    #endif // HAS_LCD_MENU
+    #endif
 
     // This runs every ~100ms when idling often enough.
     // Instead of tracking changes just redraw the Status Screen once per second.
     if (
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         currentScreen == lcd_status_screen &&
       #endif
       !lcd_status_update_delay--
@@ -697,7 +740,7 @@ void lcd_update() {
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
 
-    #if HAS_LCD_MENU && ENABLED(SCROLL_LONG_FILENAMES)
+    #if ENABLED(ULTIPANEL) && ENABLED(SCROLL_LONG_FILENAMES)
       // If scrolling of long file names is enabled and we are in the sd card menu,
       // cause a refresh to occur until all the text has scrolled into view.
       if (currentScreen == menu_sdcard && filename_scroll_pos < filename_scroll_max && !lcd_status_update_delay--) {
@@ -738,7 +781,7 @@ void lcd_update() {
         buttons_reprapworld_keypad = 0;
       #endif
 
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         #define CURRENTSCREEN() (*currentScreen)()
       #else
         #define CURRENTSCREEN() lcd_status_screen()
@@ -765,7 +808,7 @@ void lcd_update() {
         CURRENTSCREEN();
       #endif
 
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         lcd_clicked = false;
       #endif
 
@@ -774,7 +817,7 @@ void lcd_update() {
       NOLESS(max_display_update_time, millis() - ms);
     }
 
-    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+    #if ENABLED(ULTIPANEL) && LCD_TIMEOUT_TO_STATUS
       // Return to Status Screen after a timeout
       if (currentScreen == lcd_status_screen || defer_return_to_status)
         return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
@@ -887,7 +930,7 @@ void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
 
 void lcd_setalertstatusPGM(PGM_P const message) {
   lcd_setstatusPGM(message, 1);
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     lcd_return_to_status();
   #endif
 }
@@ -944,7 +987,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
   }
 #endif
 
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
 
   /**
    * Setup Rotary Encoder Bit Values (for two pin encoders to indicate movement)
@@ -970,12 +1013,6 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
     } \
     DST = ~new_##DST; //invert it, because a pressed switch produces a logical 0
 
-  #if (ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)) && ENABLED(DETECT_DEVICE)
-    bool lcd_detected() { return lcd.LcdDetected() == 1; }
-  #else
-    bool lcd_detected() { return true; }
-  #endif
-
   #if ENABLED(G26_MESH_VALIDATION)
     void lcd_chirp() {
       sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
@@ -999,7 +1036,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
     const millis_t now = millis();
     if (ELAPSED(now, next_button_update_ms)) {
 
-      #if HAS_LCD_MENU
+      #if ENABLED(NEWPANEL)
         uint8_t newbutton = 0;
 
         #if BUTTON_EXISTS(EN1)
@@ -1084,7 +1121,7 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
         #endif
 
-      #else // !HAS_LCD_MENU
+      #else // !NEWPANEL
 
         GET_SHIFT_BUTTON_STATES(buttons);
 
@@ -1137,6 +1174,6 @@ void lcd_reset_alert_level() { lcd_status_message_level = 0; }
     END_SCREEN();
   }
 
-#endif // HAS_LCD_MENU
+#endif // ENABLED(ULTIPANEL)
 
-#endif // HAS_SPI_LCD
+#endif // ULTRA_LCD

@@ -645,7 +645,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       #if ENABLED(DISABLE_INACTIVE_E)
         stepper.disable_E();
       #endif
-      #if ENABLED(AUTO_BED_LEVELING_UBL) && HAS_LCD_MENU  // Only needed with an LCD
+      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
         if (ubl.lcd_map_control) {
           ubl.lcd_map_control = false;
           set_defer_return_to_status(false);

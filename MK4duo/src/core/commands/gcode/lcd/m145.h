@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_LCD_MENU && HAS_TEMP_0
+#if ENABLED(ULTIPANEL) && HAS_TEMP_0
 
   #define CODE_M145
 

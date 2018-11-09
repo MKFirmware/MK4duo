@@ -53,7 +53,7 @@
 
     planner.synchronize();
 
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
 
       if (!hasP && !hasS && args && *args)
         lcd_setstatus(args, true);
@@ -88,7 +88,7 @@
     else
       while (printer.isWaitForUser()) printer.idle();
 
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
       lcd_reset_status();
     #endif
 

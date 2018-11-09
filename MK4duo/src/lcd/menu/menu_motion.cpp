@@ -44,7 +44,7 @@ extern int8_t manual_move_axis;
 // Tell lcd_update() to start a move to current_position" after a short delay.
 //
 inline void manual_move_to_current(AxisEnum axis) {
-  manual_move_start_time = millis() + (move_menu_scale < 0.99 ? 0UL : 250UL); // delay for bigger moves
+  manual_move_start_time = millis() + (move_menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
 
@@ -134,7 +134,7 @@ void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
 void lcd_move_x() { _lcd_move_xyz(PSTR(MSG_MOVE_X), X_AXIS); }
 void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
 void lcd_move_z() { _lcd_move_xyz(PSTR(MSG_MOVE_Z), Z_AXIS); }
-void _lcd_move_e(
+static void _lcd_move_e(
   #if EXTRUDERS > 1
     int8_t eindex=-1
   #endif

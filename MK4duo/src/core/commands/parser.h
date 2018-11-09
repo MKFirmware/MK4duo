@@ -235,7 +235,7 @@ class GCodeParser {
 
       static inline void set_input_temp_units(TempUnitEnum units) { input_temp_units = units; }
 
-      #if HAS_LCD_MENU && DISABLED(DISABLE_M503)
+      #if ENABLED(ULTIPANEL) && DISABLED(DISABLE_M503)
 
         FORCE_INLINE static char temp_units_code() {
           return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';

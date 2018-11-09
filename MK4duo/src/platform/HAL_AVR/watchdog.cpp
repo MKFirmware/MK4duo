@@ -29,18 +29,24 @@
   // Initialize watchdog with a 4 sec interrupt time
   void Watchdog::init(void) {
     #if ENABLED(USE_WATCHDOG)
+      #if ENABLED(WATCHDOG_DURATION_8S) && ENABLED(WDTO_8S)
+        #define WDTO_NS WDTO_8S
+      #else
+        #define WDTO_NS WDTO_4S
+      #endif
       #if ENABLED(WATCHDOG_RESET_MANUAL)
         // We enable the watchdog timer, but only for the interrupt.
-        // Take care, as this requires the correct order of operation, with interrupts disabled. See the datasheet of any AVR chip for details.
+        // Take care, as this requires the correct order of operation, with interrupts disabled.
+        // See the datasheet of any AVR chip for details.
         wdt_reset();
         cli();
         _WD_CONTROL_REG = _BV(_WD_CHANGE_BIT) | _BV(WDE);
-        _WD_CONTROL_REG = _BV(WDIE) | WDTO_4S;
-
+        _WD_CONTROL_REG = _BV(WDIE) | (WDTO_NS & 0x07) | ((WDTO_NS & 0x08) << 2); // WDTO_NS directly does not work. bit 0-2 are consecutive in the register but the highest value bit is at bit 5
+                                                                                  // So worked for up to WDTO_2S
         sei();
         wdt_reset();
       #else
-        wdt_enable(WDTO_4S);
+        wdt_enable(WDTO_NS); // The function handles the upper bit correct.
       #endif
     #endif // USE_WATCHDOG
   }

@@ -2,13 +2,6 @@
 * 2706
 * Minitronics v2.0
 *****************************************************************************************/
-
-//###CHIP
-#if DISABLED(_VARIANT_MINITRONICS_20_)
-  #error Oops!  Make sure you have 'Minitronics v2.0' selected from the 'Tools -> Boards' menu.
-#endif
-//@@@
-
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
@@ -105,7 +98,6 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -118,7 +110,7 @@
 #define ORIG_HEATER_1_PIN          10
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN        6
+#define ORIG_HEATER_BED_PIN         6
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
@@ -177,3 +169,4 @@
   #define KILL_PIN                33
 #endif // REPRAPWORLD_GRAPHICAL_LCD
 //@@@
+

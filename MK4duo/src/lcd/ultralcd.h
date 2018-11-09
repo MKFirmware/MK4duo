@@ -196,6 +196,12 @@
   inline void lcd_setalertstatusPGM(PGM_P message) { UNUSED(message); }
 #endif
 
+#define HAS_ENCODER_ACTION (ENABLED(ULTIPANEL) || ENABLED(ULTIPANEL_FEEDMULTIPLY))
+
+#if HAS_ENCODER_ACTION
+  extern uint32_t encoderPosition;
+#endif
+
 #if HAS_SPI_LCD
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -316,7 +322,7 @@
       float lcd_probe_pt(const float &rx, const float &ry);
     #endif
 
-  #endif // HAS_LCD_MENU
+  #endif // ENABLED(ULTIPANEL)
 
   #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
     extern millis_t previous_lcd_status_ms;
@@ -338,15 +344,12 @@
 #elif ENABLED(EXTENSIBLE_UI)
 
   // These functions are defined elsewhere
-  void lcd_status_screen();
-  void lcd_return_to_status();
   void lcd_setstatus(const char* const message, const bool persist=false);
   void lcd_setstatusPGM(const char* const message, const int8_t level=0);
   void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
   void lcd_reset_status();
   void lcd_refresh();
   void lcd_reset_alert_level();
-  void lcd_eeprom_allert();
   bool lcd_hasstatus();
 
 #elif !HAS_NEXTION_LCD // no NEXTION or no LCD
@@ -364,33 +367,35 @@
 
 #endif
 
-#if HAS_LCD_MENU
+#define HAS_DIGITAL_ENCODER (HAS_SPI_LCD && ENABLED(NEWPANEL))
 
-  #if HAS_DIGITAL_ENCODER
+#if HAS_DIGITAL_ENCODER
 
-    // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
-    #define BLEN_A 0
-    #define BLEN_B 1
+  // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
+  #define BLEN_A 0
+  #define BLEN_B 1
 
-    #define EN_A _BV(BLEN_A)
-    #define EN_B _BV(BLEN_B)
+  #define EN_A _BV(BLEN_A)
+  #define EN_B _BV(BLEN_B)
 
-    #if BUTTON_EXISTS(ENC)
-      #define BLEN_C 2
-      #define EN_C _BV(BLEN_C)
+  #if BUTTON_EXISTS(ENC)
+    #define BLEN_C 2
+    #define EN_C _BV(BLEN_C)
+  #endif
+
+  #if BUTTON_EXISTS(BACK)
+    #define BLEN_D 3
+    #define EN_D _BV(BLEN_D)
+    #if ENABLED(INVERT_BACK_BUTTON)
+      #define LCD_BACK_CLICKED !(buttons & EN_D)
+    #else
+      #define LCD_BACK_CLICKED (buttons & EN_D)
     #endif
+  #endif
 
-    #if BUTTON_EXISTS(BACK)
-      #define BLEN_D 3
-      #define EN_D _BV(BLEN_D)
-      #if ENABLED(INVERT_BACK_BUTTON)
-        #define LCD_BACK_CLICKED !(buttons & EN_D)
-      #else
-        #define LCD_BACK_CLICKED (buttons & EN_D)
-      #endif
-    #endif
+#endif // HAS_DIGITAL_ENCODER
 
-  #endif // NEWPANEL
+#if ENABLED(ULTIPANEL)
 
   extern volatile uint8_t buttons;  // The last-checked buttons in a bit array.
   void lcd_buttons_update();

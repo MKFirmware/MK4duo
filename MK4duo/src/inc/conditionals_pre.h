@@ -222,7 +222,7 @@
 
 #if ENABLED(REPRAPWORLD_KEYPAD)
   #define NEWPANEL
-  #if HAS_LCD_MENU && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
+  #if ENABLED(ULTIPANEL) && DISABLED(REPRAPWORLD_KEYPAD_MOVE_STEP)
     #define REPRAPWORLD_KEYPAD_MOVE_STEP 1.0
   #endif
 #endif
@@ -312,19 +312,13 @@
   #define ULTIPANEL
 #endif
 
-#if ENABLED(NO_LCD_MENUS)
-  #undef ULTIPANEL
-#endif
-
 // Aliases for LCD features
 #define HAS_NEXTION_LCD       ENABLED(NEXTION)
 #define HAS_SPI_LCD           ENABLED(ULTRA_LCD)
 #define HAS_GRAPHICAL_LCD     ENABLED(DOGLCD)
 #define HAS_CHARACTER_LCD     (ENABLED(ULTRA_LCD) && DISABLED(DOGLCD))
-#define HAS_DIGITAL_ENCODER   (ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL))
-#define HAS_LCD_MENU          ENABLED(ULTIPANEL)
+#define HAS_LCD_MENU          (ENABLED(ULTIPANEL) && DISABLED(NO_LCD_MENUS))
 #define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
-#define HAS_DEBUG_MENU        (ENABLED(ULTIPANEL) && ENABLED(LCD_PROGRESS_BAR_TEST))
 
 #if HAS_GRAPHICAL_LCD // Change number of lines to match the DOG graphic display
   #if DISABLED(LCD_WIDTH)
@@ -339,7 +333,7 @@
   #endif
 #endif
 
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
   #define NEWPANEL  // Disable this if you actually have no click-encoder panel
   #define ULTRA_LCD
   #if DISABLED(LCD_WIDTH)

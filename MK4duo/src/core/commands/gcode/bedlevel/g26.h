@@ -139,7 +139,7 @@ int16_t g26_bed_temp,
 
 int8_t g26_prime_flag;
 
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
 
   /**
    * If the LCD is clicked, cancel, wait for release, return true
@@ -147,7 +147,7 @@ int8_t g26_prime_flag;
   bool user_canceled() {
     if (!is_lcd_clicked()) return false; // Return if the button isn't pressed
     lcd_setstatusPGM(PSTR("Mesh Validation Stopped."), 99);
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
       lcd_quick_feedback(true);
     #endif
     wait_for_release();
@@ -314,7 +314,7 @@ inline bool look_for_lines_to_connect() {
   for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
     for (uint8_t j = 0; j < GRID_MAX_POINTS_Y; j++) {
 
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         if (user_canceled()) return true;     // Check if the user wants to stop the Mesh Validation
       #endif
 
@@ -405,13 +405,13 @@ inline bool turn_on_heaters() {
       if (g26_bed_temp > 25) {
         lcd_setstatusPGM(PSTR("G26 Heating Bed."), 99);
         lcd_quick_feedback(true);
-        #if HAS_LCD_MENU
+        #if ENABLED(ULTIPANEL)
           lcd_external_control = true;
         #endif
     #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
         while (ABS(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
-          #if HAS_LCD_MENU
+          #if ENABLED(ULTIPANEL)
             if (is_lcd_clicked()) return exit_from_g26();
           #endif
           printer.idle();
@@ -427,7 +427,7 @@ inline bool turn_on_heaters() {
   // Start heating the nozzle and wait for it to reach temperature.
   heaters[0].setTarget(g26_hotend_temp);
   while (ABS(heaters[0].current_temperature - g26_hotend_temp) > 3) {
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
       if (is_lcd_clicked()) return exit_from_g26();
     #endif
     printer.idle();
@@ -449,7 +449,7 @@ inline bool turn_on_heaters() {
  */
 inline bool prime_nozzle() {
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     float Total_Prime = 0.0;
 
     if (g26_prime_flag == -1) {  // The user wants to control how much filament gets purged
@@ -595,7 +595,7 @@ inline void gcode_G26(void) {
 
   if (parser.seen('P')) {
     if (!parser.has_value()) {
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         g26_prime_flag = -1;
       #else
         SERIAL_EM("?Prime length must be specified when not using an LCD.");
@@ -640,7 +640,7 @@ inline void gcode_G26(void) {
   }
 
   int16_t g26_repeats;
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     g26_repeats = parser.intval('R', GRID_MAX_POINTS + 1);
   #else
     if (!parser.seen('R')) {
@@ -699,7 +699,7 @@ inline void gcode_G26(void) {
   move_to(mechanics.destination, 0.0);
   move_to(mechanics.destination, g26_ooze_amount);
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     lcd_external_control = true;
   #endif
 
@@ -756,7 +756,7 @@ inline void gcode_G26(void) {
 
       for (int8_t ind = start_ind; ind <= end_ind; ind++) {
 
-        #if HAS_LCD_MENU
+        #if ENABLED(ULTIPANEL)
           if (user_canceled()) goto LEAVE;          // Check if the user wants to stop the Mesh Validation
         #endif
 
@@ -798,7 +798,7 @@ LEAVE:
 
   move_to(mechanics.destination, 0); // Move back to the starting position
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     lcd_external_control = false;   // Give back control of the LCD Panel!
   #endif
 

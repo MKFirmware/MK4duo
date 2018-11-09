@@ -180,7 +180,7 @@ static_assert(1 >= 0
 #endif
 
 // Progress bar
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
   #if ENABLED(LCD_PROGRESS_BAR)
     #if DISABLED(PROGRESS_BAR_BAR_TIME)
       #error "DEPENDENCY ERROR: Missing setting PROGRESS_BAR_BAR_TIME."
@@ -214,7 +214,7 @@ static_assert(1 >= 0
 #endif
 
 // Encoder rate multipliers
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
     #if DISABLED(ENCODER_10X_STEPS_PER_SEC)
       #error "DEPENDENCY ERROR: Missing setting ENCODER_10X_STEPS_PER_SEC."
@@ -233,7 +233,7 @@ static_assert(1 >= 0
 #endif
 
 // Manual feedrate
-#if HAS_LCD_MENU && DISABLED(MANUAL_FEEDRATE)
+#if ENABLED(ULTIPANEL) && DISABLED(MANUAL_FEEDRATE)
   #error "DEPENDENCY ERROR: Missing setting MANUAL_FEEDRATE."
 #endif
 
@@ -243,7 +243,7 @@ static_assert(1 >= 0
 #endif
 
 // ULTIPANEL encoder
-#if HAS_LCD_MENU && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
+#if ENABLED(ULTIPANEL) && DISABLED(NEWPANEL) && DISABLED(SR_LCD_2W_NL) && DISABLED(SHIFT_CLK)
   #error "DEPENDENCY ERROR: ULTIPANEL requires some kind of encoder."
 #endif
 #if ENCODER_PULSES_PER_STEP < 0

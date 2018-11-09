@@ -23,9 +23,7 @@
 
 #if HAS_LCD_MENU
 
-extern uint32_t encoderPosition;
 extern int8_t encoderLine, encoderTopLine, screen_items;
-extern millis_t lastEncoderMovementMillis;
 extern bool screen_changed;
 
 void scroll_screen(const uint8_t limit, const bool is_menu);
@@ -275,10 +273,10 @@ class menu_item_bool {
 #endif
 
 #if ENABLED(ENCODER_RATE_MULTIPLIER)
-
+  extern millis_t lastEncoderMovementMillis;
   extern bool encoderRateMultiplierEnabled;
   #define ENCODER_RATE_MULTIPLY(F) (encoderRateMultiplierEnabled = F)
-  #define _MENU_ITEM_MULTIPLIER_CHECK(USE_MULTIPLIER) if(USE_MULTIPLIER) {encoderRateMultiplierEnabled = true; lastEncoderMovementMillis = 0;}
+  #define _MENU_ITEM_MULTIPLIER_CHECK(USE_MULTIPLIER) if (USE_MULTIPLIER) { encoderRateMultiplierEnabled = true; lastEncoderMovementMillis = 0; }
   //#define ENCODER_RATE_MULTIPLIER_DEBUG  // If defined, output the encoder steps per second value
 #else // !ENCODER_RATE_MULTIPLIER
   #define ENCODER_RATE_MULTIPLY(F) NOOP

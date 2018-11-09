@@ -203,7 +203,7 @@ void Commands::get_serial() {
           // If command was e-stop process now
           if (strcmp(command, "M108") == 0) {
             printer.setWaitForHeatUp(false);
-            #if HAS_LCD_MENU
+            #if ENABLED(ULTIPANEL)
               printer.setWaitForUser(false);
             #endif
           }

@@ -30,7 +30,7 @@
 
 #if ENABLED(LED_COLOR_PRESETS)
 
-  void lcd_led_presets_menu() {
+  void menu_led_presets() {
     START_MENU();
     #if LCD_HEIGHT > 2
       STATIC_ITEM(MSG_LED_PRESETS, true, true);
@@ -46,9 +46,10 @@
     MENU_ITEM(function, MSG_SET_LEDS_VIOLET, leds.set_violet);
     END_MENU();
   }
-#endif // LED_COLOR_PRESETS
 
-void lcd_led_custom_menu() {
+#endif
+
+void menu_led_custom() {
   START_MENU();
   MENU_BACK(MSG_LED_CONTROL);
   MENU_ITEM_EDIT_CALLBACK(int8, MSG_INTENSITY_R, &leds.color.r, 0, 255, leds.update, true);
@@ -70,9 +71,9 @@ void menu_led() {
   MENU_ITEM_EDIT_CALLBACK(bool, MSG_LEDS, &led_on, leds.toggle);
   MENU_ITEM(function, MSG_SET_LEDS_DEFAULT, leds.set_default);
   #if ENABLED(LED_COLOR_PRESETS)
-    MENU_ITEM(submenu, MSG_LED_PRESETS, lcd_led_presets_menu);
+    MENU_ITEM(submenu, MSG_LED_PRESETS, menu_led_presets);
   #endif
-  MENU_ITEM(submenu, MSG_CUSTOM_LEDS, lcd_led_custom_menu);
+  MENU_ITEM(submenu, MSG_CUSTOM_LEDS, menu_led_custom);
   END_MENU();
 }
 

@@ -34,7 +34,7 @@
 // macro name. The mapping is independent of whether the button is directly connected or
 // via a shift/i2c register.
 
-#if HAS_LCD_MENU
+#if ENABLED(ULTIPANEL)
 
   extern volatile uint8_t buttons;
 
@@ -127,7 +127,7 @@
     #define LOWER_RIGHT   _BV(3)
   #endif
 
-#endif // HAS_LCD_MENU
+#endif // ENABLED(ULTIPANEL)
 
 ////////////////////////////////////
 // Create LCD class instance and chipset-specific information

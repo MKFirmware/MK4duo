@@ -14,7 +14,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Alligator 3D Printer Board' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Alligator 3D Printer Board' in 'Tools > Board.'"
 #endif
 //@@@
 

@@ -160,7 +160,7 @@ typedef struct EepromDataStruct {
   //
   // Ultipanel
   //
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     int16_t         lcd_preheat_hotend_temp[3],
                     lcd_preheat_bed_temp[3],
                     lcd_preheat_fan_speed[3];
@@ -556,7 +556,7 @@ void EEPROM::post_process() {
     //
     // ULTIPANEL
     //
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
       EEPROM_WRITE(lcd_preheat_hotend_temp);
       EEPROM_WRITE(lcd_preheat_bed_temp);
       EEPROM_WRITE(lcd_preheat_fan_speed);
@@ -998,7 +998,7 @@ void EEPROM::post_process() {
       //
       // ULTIPANEL
       //
-      #if HAS_LCD_MENU
+      #if ENABLED(ULTIPANEL)
         EEPROM_READ(lcd_preheat_hotend_temp);
         EEPROM_READ(lcd_preheat_bed_temp);
         EEPROM_READ(lcd_preheat_fan_speed);
@@ -1502,7 +1502,7 @@ void EEPROM::reset() {
     probe.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
   #endif
 
-  #if HAS_LCD_MENU
+  #if ENABLED(ULTIPANEL)
     lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
     lcd_preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
     lcd_preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
@@ -2006,7 +2006,7 @@ void EEPROM::reset() {
 
     endstops.print_parameters();
 
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
 
       // Temperature units - for Ultipanel temperature options
 
@@ -2121,7 +2121,7 @@ void EEPROM::reset() {
       SERIAL_EOL();
     #endif
 
-    #if HAS_LCD_MENU
+    #if ENABLED(ULTIPANEL)
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);

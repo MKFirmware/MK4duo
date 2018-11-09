@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega644P__)
-  #error Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Sanguino' in 'Tools > Board.'"
 #endif
 //@@@
 

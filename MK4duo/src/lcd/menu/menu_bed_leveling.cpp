@@ -37,7 +37,7 @@
 
 #endif
 
-#if HAS_LCD_MENU && ENABLED(PROBE_MANUALLY)
+#if ENABLED(ULTIPANEL) && ENABLED(PROBE_MANUALLY)
 
   float lcd_probe_pt(const float &rx, const float &ry) {
     _man_probe_pt(rx, ry);
@@ -52,7 +52,7 @@
 
 #endif
 
-#if HAS_LCD_MENU && ENABLED(LCD_BED_LEVELING)
+#if ENABLED(ULTIPANEL) && ENABLED(LCD_BED_LEVELING)
 
 #if ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING)
 
@@ -305,4 +305,4 @@ void menu_bed_leveling() {
 
 }
 
-#endif // HAS_LCD_MENU && LCD_BED_LEVELING
+#endif // HAS_LCD_MENU && LCD_BED_LEVELING 
