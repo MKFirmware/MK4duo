@@ -1919,6 +1919,7 @@ void EEPROM::reset() {
     }
   #endif
 
+  // Reset the watchdog
   watchdog.reset();
 
   post_process();
