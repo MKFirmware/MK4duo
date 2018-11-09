@@ -53,8 +53,6 @@
 #include "../fontutils.h"
 #include "dogm_Bootscreen.h"
 
-#define FONT_SPECIAL_NAME ISO10646_1_5x7
-#define FONT_MENU_NAME ISO10646_1_5x7
 #include "fontdata/fontdata_ISO10646_1.h"
 #if ENABLED(USE_SMALL_INFOFONT)
   #include "fontdata/fontdata_6x9_mk4duo.h"
@@ -144,13 +142,11 @@ void lcd_setFont(const MK4duoFont font_nr) {
       lcd_custom_bootscreen();
     #endif
 
-    constexpr uint8_t offy =
-      #if ENABLED(START_BMPHIGH)
-        (LCD_PIXEL_HEIGHT - (START_BMPHEIGHT)) / 2
-      #else
-        MENU_FONT_HEIGHT
-      #endif
-    ;
+    #if ENABLED(START_BMPHIGH)
+      constexpr uint8_t offy = 0; // NOT TOUCH THIS!! MK4DUO LOGO!!
+    #else
+      constexpr uint8_t offy = MENU_FONT_HEIGHT;
+    #endif
 
     const uint8_t width = u8g.getWidth(), height = u8g.getHeight(),
                   offx = (width - (START_BMPWIDTH)) / 2;
