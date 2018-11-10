@@ -515,9 +515,6 @@
     #if DISABLED(XY_PROBE_SPEED)
       #error "DEPENDENCY ERROR: Missing setting XY_PROBE_SPEED."
     #endif
-    #if DISABLED(Z_PROBE_SPEED)
-      #error "DEPENDENCY ERROR: Missing setting Z_PROBE_SPEED."
-    #endif
     #if DISABLED(X_PROBE_OFFSET_FROM_NOZZLE)
       #error "DEPENDENCY ERROR: Missing setting X_PROBE_OFFSET_FROM_NOZZLE."
     #endif
