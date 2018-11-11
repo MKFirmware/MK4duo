@@ -42,8 +42,8 @@
    */
   inline void gcode_G30(void) {
 
-    const float xpos = parser.linearval('X', mechanics.current_position[X_AXIS] + probe.offset[X_AXIS]),
-                ypos = parser.linearval('Y', mechanics.current_position[Y_AXIS] + probe.offset[Y_AXIS]);
+    const float xpos = parser.linearval('X', mechanics.current_position[X_AXIS] + probe.data.offset[X_AXIS]),
+                ypos = parser.linearval('Y', mechanics.current_position[Y_AXIS] + probe.data.offset[Y_AXIS]);
 
     // Don't allow G30 without homing first
     if (mechanics.axis_unhomed_error()) return;
@@ -73,8 +73,8 @@
         SERIAL_MV("  New delta height:", mechanics.data.height, 3);
       }
       else if (parser.boolval('P')) {
-        probe.offset[Z_AXIS] -= measured_z;
-        SERIAL_MV("  New Z probe offset:", probe.offset[Z_AXIS], 3);
+        probe.data.offset[Z_AXIS] -= measured_z;
+        SERIAL_MV("  New Z probe offset:", probe.data.offset[Z_AXIS], 3);
       }
     #endif
 

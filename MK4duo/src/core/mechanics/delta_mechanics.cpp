@@ -683,7 +683,7 @@
   // Return true if the both nozzle and the probe can reach the given point.
   bool Delta_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     return position_is_reachable(rx, ry)
-        && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
+        && position_is_reachable(rx - probe.data.offset[X_AXIS], ry - probe.data.offset[Y_AXIS]);
   }
 
   // Report detail current position to host

@@ -541,12 +541,12 @@
      */
     #if HOMING_Z_WITH_PROBE
       if (axis == Z_AXIS) {
-        current_position[Z_AXIS] -= probe.offset[Z_AXIS];
+        current_position[Z_AXIS] -= probe.data.offset[Z_AXIS];
 
         #if ENABLED(DEBUG_FEATURE)
           if (printer.debugFeature()) {
             SERIAL_EM("*** Z HOMED WITH PROBE ***");
-            SERIAL_EMV("zprobe_zoffset = ", probe.offset[Z_AXIS]);
+            SERIAL_EMV("zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
           }
         #endif
       }
@@ -580,7 +580,7 @@
   // Return whether the given position is within the bed, and whether the nozzle
   //  can reach the position required to put the probe at the given position.
   bool Cartesian_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
-    return position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS])
+    return position_is_reachable(rx - probe.data.offset[X_AXIS], ry - probe.data.offset[Y_AXIS])
         && WITHIN(rx, MIN_PROBE_X - slop, MAX_PROBE_X + slop)
         && WITHIN(ry, MIN_PROBE_Y - slop, MAX_PROBE_Y + slop);
   }
@@ -1286,8 +1286,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HOMING_Z_WITH_PROBE
-        destination[X_AXIS] -= probe.offset[X_AXIS];
-        destination[Y_AXIS] -= probe.offset[Y_AXIS];
+        destination[X_AXIS] -= probe.data.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
       #endif
 
       if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
@@ -1345,8 +1345,8 @@
       destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
       #if HAS_BED_PROBE
-        destination[X_AXIS] -= probe.offset[X_AXIS];
-        destination[Y_AXIS] -= probe.offset[Y_AXIS];
+        destination[X_AXIS] -= probe.data.offset[X_AXIS];
+        destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
       #endif
 
       if (mechanics.position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
@@ -1355,7 +1355,7 @@
           if (printer.debugFeature()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
         #endif
 
-        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.offset[Z_AXIS]);
+        const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.data.offset[Z_AXIS]);
         current_position[Z_AXIS] -= newzero;
         destination[Z_AXIS] = current_position[Z_AXIS];
         endstops.soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS) - newzero;

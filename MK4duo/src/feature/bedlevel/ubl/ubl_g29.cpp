@@ -401,7 +401,7 @@
               SERIAL_MV(",", g29_y_pos);
               SERIAL_EM(").");
             }
-            probe_entire_mesh(g29_x_pos + probe.offset[X_AXIS], g29_y_pos + probe.offset[Y_AXIS],
+            probe_entire_mesh(g29_x_pos + probe.data.offset[X_AXIS], g29_y_pos + probe.data.offset[Y_AXIS],
                               parser.seen('T'), parser.seen('E'), parser.seen('U'));
 
             mechanics.report_current_position();
@@ -429,8 +429,8 @@
                 g29_x_pos = X_HOME_POS;
                 g29_y_pos = Y_HOME_POS;
               #else // cartesian
-                g29_x_pos = probe.offset[X_AXIS] > 0 ? X_BED_SIZE : 0;
-                g29_y_pos = probe.offset[Y_AXIS] < 0 ? Y_BED_SIZE : 0;
+                g29_x_pos = probe.data.offset[X_AXIS] > 0 ? X_BED_SIZE : 0;
+                g29_y_pos = probe.data.offset[Y_AXIS] < 0 ? Y_BED_SIZE : 0;
               #endif
             }
 
@@ -743,8 +743,8 @@
       restore_ubl_active_state_and_leave();
 
       mechanics.do_blocking_move_to_xy(
-        constrain(rx - (probe.offset[X_AXIS]), MESH_MIN_X, MESH_MAX_X),
-        constrain(ry - (probe.offset[Y_AXIS]), MESH_MIN_Y, MESH_MAX_Y)
+        constrain(rx - (probe.data.offset[X_AXIS]), MESH_MIN_X, MESH_MAX_X),
+        constrain(ry - (probe.data.offset[Y_AXIS]), MESH_MIN_Y, MESH_MAX_Y)
       );
     }
 
@@ -1062,7 +1062,7 @@
     adjust_mesh_to_mean(g29_c_flag, g29_constant);
 
     #if HAS_BED_PROBE
-      SERIAL_EMV("zprobe_zoffset: ", probe.offset[Z_AXIS], 7);
+      SERIAL_EMV("zprobe_zoffset: ", probe.data.offset[Z_AXIS], 7);
     #endif
 
     SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X);
@@ -1263,8 +1263,8 @@
     out_mesh.distance = -99999.9f;
 
     // Get our reference position. Either the nozzle or probe location.
-    const float px = rx - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.offset[X_AXIS] : 0),
-                py = ry - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.offset[Y_AXIS] : 0);
+    const float px = rx - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[X_AXIS] : 0),
+                py = ry - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[Y_AXIS] : 0);
 
     float best_so_far = 99999.99f;
 

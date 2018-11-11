@@ -227,9 +227,9 @@
 
 // X and Y axis travel speed between probes, in mm/min
 #define XY_PROBE_SPEED 10000
-// Speed for the first approach when double-probing (with PROBE_DOUBLE_TOUCH)
+// Speed for the first approach when double-probing, in mm/min
 #define Z_PROBE_SPEED_FAST 120
-// Speed for the "accurate" probe of each point
+// Speed for the "accurate" probe of each point, in mm/min
 #define Z_PROBE_SPEED_SLOW 60
 // Z Probe repetitions, median for best result
 #define Z_PROBE_REPETITIONS 1

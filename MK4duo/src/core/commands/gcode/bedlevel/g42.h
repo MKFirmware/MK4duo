@@ -49,8 +49,8 @@
       if (hasI) mechanics.destination[X_AXIS] = _GET_MESH_X(ix);
       if (hasJ) mechanics.destination[Y_AXIS] = _GET_MESH_Y(iy);
       if (parser.boolval('P')) {
-        if (hasI) mechanics.destination[X_AXIS] -= probe.offset[X_AXIS];
-        if (hasJ) mechanics.destination[Y_AXIS] -= probe.offset[Y_AXIS];
+        if (hasI) mechanics.destination[X_AXIS] -= probe.data.offset[X_AXIS];
+        if (hasJ) mechanics.destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
       }
 
       const float fval = parser.linearval('F');

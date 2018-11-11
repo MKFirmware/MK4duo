@@ -72,8 +72,8 @@
     float X_current = mechanics.current_position[X_AXIS],
           Y_current = mechanics.current_position[Y_AXIS];
 
-    const float X_probe_location = parser.linearval('X', X_current + probe.offset[X_AXIS]),
-                Y_probe_location = parser.linearval('Y', Y_current + probe.offset[Y_AXIS]);
+    const float X_probe_location = parser.linearval('X', X_current + probe.data.offset[X_AXIS]),
+                Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset[Y_AXIS]);
 
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, MIN_PROBE_X, MAX_PROBE_X)) {
@@ -169,8 +169,8 @@
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - probe.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - probe.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
+            X_current = X_probe_location - probe.data.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - probe.data.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
 
             #if MECH(DELTA)
               // If we have gone out too far, we can do a simple fix and scale the numbers

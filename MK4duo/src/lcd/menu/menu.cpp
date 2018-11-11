@@ -337,7 +337,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       encoderPosition = 0;
 
       const float diff = mechanics.steps_to_mm[Z_AXIS] * babystep_increment,
-                  new_probe_offset = probe.offset[Z_AXIS] + diff,
+                  new_probe_offset = probe.data.offset[Z_AXIS] + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
                       do_probe ? new_probe_offset : tools.hotend_offset[Z_AXIS][tools.active_extruder] - diff
@@ -349,7 +349,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
         mechanics.babystep_axis(Z_AXIS, babystep_increment);
 
-        if (do_probe) probe.offset[Z_AXIS] = new_offs;
+        if (do_probe) probe.data.offset[Z_AXIS] = new_offs;
         #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
           else tools.hotend_offset[Z_AXIS][tools.active_extruder] = new_offs;
         #endif
@@ -363,10 +363,10 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
           lcd_implementation_drawedit(PSTR(MSG_IDEX_Z_OFFSET), ftostr43sign(tools.hotend_offset[Z_AXIS][tools.active_extruder]));
         else
       #endif
-          lcd_implementation_drawedit(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.offset[Z_AXIS]));
+          lcd_implementation_drawedit(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset[Z_AXIS]));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
-        if (do_probe) _lcd_zoffset_overlay_gfx(probe.offset[Z_AXIS]);
+        if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset[Z_AXIS]);
       #endif
     }
   }

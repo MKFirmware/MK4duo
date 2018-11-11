@@ -32,8 +32,8 @@
 
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     FORCE_INLINE void mod_probe_zoffset(const float &offs) {
-      probe.offset[Z_AXIS] += offs;
-      SERIAL_LMV(ECHO, MSG_PROBE_Z_OFFSET ": ", probe.offset[Z_AXIS]);
+      probe.data.offset[Z_AXIS] += offs;
+      SERIAL_LMV(ECHO, MSG_PROBE_Z_OFFSET ": ", probe.data.offset[Z_AXIS]);
     }
   #endif
 

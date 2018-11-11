@@ -1,4 +1,4 @@
-### Version 4.3.7 beta
+### Version 4.3.7
 * Add Command:
 * G34: Set Delta Height calculated from toolhead position (only DELTA)
 * M930: TMC set blank_time.
@@ -18,6 +18,7 @@
 * M223: T[extruder] S[bool] set Filrunout Logic.
 * M224: T[extruder] S[bool] set Filrunout Pullup.
 * M666: L delta segment per line.
+* M851: Probe Offset, F[speed Fast], S[speed Slow] in mm/min.
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation

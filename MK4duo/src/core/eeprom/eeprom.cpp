@@ -154,7 +154,7 @@ typedef struct EepromDataStruct {
   // Probe offset
   //
   #if HAS_BED_PROBE
-    float           probe_offset[XYZ];
+    probe_data_t    probe_data;
   #endif
 
   //
@@ -547,10 +547,10 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Probe offset
+    // Probe data
     //
     #if HAS_BED_PROBE
-      EEPROM_WRITE(probe.offset);
+      EEPROM_WRITE(probe.data);
     #endif
 
     //
@@ -989,10 +989,10 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Probe offset
+      // Probe data
       //
       #if HAS_BED_PROBE
-        EEPROM_READ(probe.offset);
+        EEPROM_READ(probe.data);
       #endif
 
       //
@@ -1497,9 +1497,8 @@ void EEPROM::reset() {
   #endif
 
   #if HAS_BED_PROBE
-    probe.offset[X_AXIS] = X_PROBE_OFFSET_FROM_NOZZLE;
-    probe.offset[Y_AXIS] = Y_PROBE_OFFSET_FROM_NOZZLE;
-    probe.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
+    // Call Probe Factory parameters
+    probe.factory_parameters();
   #endif
 
   #if ENABLED(ULTIPANEL)
@@ -2116,9 +2115,13 @@ void EEPROM::reset() {
     #if HAS_BED_PROBE
       SERIAL_SM(CFG, "Probe Offset");
       SERIAL_UNITS(true);
-      SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(probe.offset[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(probe.offset[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.data.offset[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(probe.data.offset[Y_AXIS]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(probe.data.offset[Z_AXIS]), 3);
+      SERIAL_EOL();
+      SERIAL_LM(CFG, "Probe speed Fast and Slow [mm/min]");
+      SERIAL_SMV(CFG, "  M851 F", probe.data.speed_fast);
+      SERIAL_MV(" S", probe.data.speed_slow);
       SERIAL_EOL();
     #endif
 

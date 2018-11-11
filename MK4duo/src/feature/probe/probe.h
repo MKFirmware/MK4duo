@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * probe.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _PROBE_H_
-#define _PROBE_H_
 
 #if HAS_Z_SERVO_PROBE
   #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[0])
@@ -42,6 +40,16 @@
   #define STOW_PROBE()
 #endif
 
+// Struct Probe data
+typedef struct {
+
+  float     offset[XYZ];
+  
+  uint16_t  speed_fast,
+            speed_slow;
+
+} probe_data_t;
+
 class Probe {
 
   public: /** Constructor */
@@ -50,9 +58,14 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float offset[XYZ];
+    static probe_data_t data;
 
   public: /** Public Function */
+
+    /**
+     * Initialize Factory parameters
+     */
+    static void factory_parameters();
 
     static bool set_deployed(const bool deploy);
 
@@ -104,5 +117,3 @@ class Probe {
 };
 
 extern Probe probe;
-
-#endif /* _PROBE_H_ */

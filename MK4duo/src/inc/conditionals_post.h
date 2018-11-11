@@ -797,10 +797,10 @@
   #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
   // Boundaries for Cartesian probing based on bed limits
-  #define MIN_PROBE_X (MAX(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.offset[X_AXIS]))
-  #define MIN_PROBE_Y (MAX(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.offset[Y_AXIS]))
-  #define MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.offset[X_AXIS]))
-  #define MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.offset[Y_AXIS]))
+  #define MIN_PROBE_X (MAX(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.data.offset[X_AXIS]))
+  #define MIN_PROBE_Y (MAX(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.data.offset[Y_AXIS]))
+  #define MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.data.offset[X_AXIS]))
+  #define MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.data.offset[Y_AXIS]))
 #endif
 
 /**

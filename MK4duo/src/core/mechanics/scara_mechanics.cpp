@@ -634,12 +634,12 @@
       if (axis == Z_AXIS) {
         #if HOMING_Z_WITH_PROBE
 
-          current_position[Z_AXIS] -= probe.offset[Z_AXIS];
+          current_position[Z_AXIS] -= probe.data.offset[Z_AXIS];
 
           #if ENABLED(DEBUG_FEATURE)
             if (printer.debugFeature()) {
               SERIAL_EM("*** Z HOMED WITH PROBE ***");
-              SERIAL_EMV("> zprobe_zoffset = ", probe.offset[Z_AXIS]);
+              SERIAL_EMV("> zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
             }
           #endif
 
@@ -674,7 +674,7 @@
   // Return true if the both nozzle and the probe can reach the given point.
   bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
     return position_is_reachable(rx, ry)
-        && position_is_reachable(rx - probe.offset[X_AXIS], ry - probe.offset[Y_AXIS]);
+        && position_is_reachable(rx - probe.data.offset[X_AXIS], ry - probe.data.offset[Y_AXIS]);
   }
 
   /**

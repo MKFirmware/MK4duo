@@ -292,12 +292,12 @@ enum AdvancedPauseMenuResponseEnum : uint8_t {
  * Mesh Bed Level
  */
 enum MeshLevelingStateEnum : uint8_t {
-  MeshReport,
-  MeshStart,
-  MeshNext,
-  MeshSet,
-  MeshSetZOffset,
-  MeshReset
+  MeshReport,     // G29 S0
+  MeshStart,      // G29 S1
+  MeshNext,       // G29 S2
+  MeshSet,        // G29 S3
+  MeshSetZOffset, // G29 S4
+  MeshReset       // G29 S5
 };
 
 /**

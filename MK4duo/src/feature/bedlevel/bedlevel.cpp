@@ -269,8 +269,7 @@
       #if DISABLED(SCAD_MESH_OUTPUT)
         SERIAL_STR(ECHO);
         for (uint8_t x = 0; x < sx; x++) {
-          for (uint8_t i = 0; i < precision + 2 + (x < 10 ? 1 : 0); i++)
-            SERIAL_CHR(' ');
+          SERIAL_SP(precision + (x < 10 ? 3 : 2));
           SERIAL_VAL((int)x);
         }
         SERIAL_EOL();

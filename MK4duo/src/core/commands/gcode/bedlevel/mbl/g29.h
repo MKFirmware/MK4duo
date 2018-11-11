@@ -31,7 +31,10 @@
   #define CODE_G29
 
   // Save 130 bytes with non-duplication of PSTR
-  void say_not_entered() { SERIAL_EM(" not entered."); }
+  inline void say_not_entered(const char c) {
+    SERIAL_CHR(c);
+    SERIAL_EM(" not entered.");
+  }
 
   /**
    * G29: Mesh-based Z probe, probes a grid and produces a
@@ -157,7 +160,7 @@
           }
         }
         else {
-          SERIAL_CHR('X'); say_not_entered();
+          say_not_entered('X');
           return;
         }
 
@@ -170,7 +173,7 @@
           }
         }
         else {
-          SERIAL_CHR('Y'); say_not_entered();
+          say_not_entered('Y');
           return;
         }
 
@@ -178,7 +181,7 @@
           mbl.z_values[px][py] = parser.value_linear_units();
         }
         else {
-          SERIAL_CHR('Z'); say_not_entered();
+          say_not_entered('Z');
           return;
         }
 
@@ -189,7 +192,7 @@
           mbl.z_offset = parser.value_linear_units();
         }
         else {
-          SERIAL_CHR('Z'); say_not_entered();
+          say_not_entered('Z');
           return;
         }
         break;

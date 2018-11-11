@@ -293,29 +293,29 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     #endif
 
     SERIAL_SM(ECHO, "Probe Offset");
-    SERIAL_MV(" X:", probe.offset[X_AXIS]);
-    SERIAL_MV(" Y:", probe.offset[Y_AXIS]);
-    SERIAL_MV(" Z:", probe.offset[Z_AXIS]);
+    SERIAL_MV(" X:", probe.data.offset[X_AXIS]);
+    SERIAL_MV(" Y:", probe.data.offset[Y_AXIS]);
+    SERIAL_MV(" Z:", probe.data.offset[Z_AXIS]);
 
-    if (probe.offset[X_AXIS] > 0)
+    if (probe.data.offset[X_AXIS] > 0)
       SERIAL_MSG(" (Right");
-    else if (probe.offset[X_AXIS] < 0)
+    else if (probe.data.offset[X_AXIS] < 0)
       SERIAL_MSG(" (Left");
-    else if (probe.offset[Y_AXIS] != 0)
+    else if (probe.data.offset[Y_AXIS] != 0)
       SERIAL_MSG(" (Middle");
     else
       SERIAL_MSG(" (Aligned With");
 
-    if (probe.offset[Y_AXIS] > 0)
+    if (probe.data.offset[Y_AXIS] > 0)
       SERIAL_MSG("-Back");
-    else if (probe.offset[Y_AXIS] < 0)
+    else if (probe.data.offset[Y_AXIS] < 0)
       SERIAL_MSG("-Front");
-    else if (probe.offset[X_AXIS] != 0)
+    else if (probe.data.offset[X_AXIS] != 0)
       SERIAL_MSG("-Center");
 
-    if (probe.offset[Z_AXIS] < 0)
+    if (probe.data.offset[Z_AXIS] < 0)
       SERIAL_MSG(" & Below");
-    else if (probe.offset[Z_AXIS] > 0)
+    else if (probe.data.offset[Z_AXIS] > 0)
       SERIAL_MSG(" & Above");
     else
       SERIAL_MSG(" & Same Z as");

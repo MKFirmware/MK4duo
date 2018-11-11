@@ -898,8 +898,8 @@ inline void gcode_G29(void) {
         bedlevel.leveling_active = false;
 
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - probe.offset[X_AXIS])
-          && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.offset[Y_AXIS])
+        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - probe.data.offset[X_AXIS])
+          && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.data.offset[Y_AXIS])
         ) {
           float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
           #if ENABLED(DEBUG_FEATURE)

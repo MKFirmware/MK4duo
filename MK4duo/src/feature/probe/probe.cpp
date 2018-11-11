@@ -31,9 +31,16 @@
 Probe probe;
 
 /** Public Parameters */
-float Probe::offset[XYZ] = { X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE };
+probe_data_t Probe::data;
 
 /** Public Function */
+void Probe::factory_parameters() {
+  data.offset[X_AXIS] = X_PROBE_OFFSET_FROM_NOZZLE;
+  data.offset[Y_AXIS] = Y_PROBE_OFFSET_FROM_NOZZLE;
+  data.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
+  data.speed_fast = Z_PROBE_SPEED_FAST;
+  data.speed_slow = Z_PROBE_SPEED_SLOW;
+}
 
 // returns false for ok and true for failure
 bool Probe::set_deployed(const bool deploy) {
@@ -156,8 +163,8 @@ bool Probe::set_deployed(const bool deploy) {
       float nx = rx, ny = ry;
       if (probe_relative) {
         if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
-        nx -= offset[X_AXIS];
-        ny -= offset[Y_AXIS];
+        nx -= data.offset[X_AXIS];
+        ny -= data.offset[Y_AXIS];
       }
       else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
 
@@ -178,10 +185,10 @@ bool Probe::set_deployed(const bool deploy) {
 
       float measured_z = NAN;
       if (!set_deployed(true)) {
-        measured_z = run_probing() + offset[Z_AXIS];
+        measured_z = run_probing() + data.offset[Z_AXIS];
 
         if (raise_after == PROBE_PT_RAISE)
-          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
         else if (raise_after == PROBE_PT_STOW)
           if (set_deployed(false)) measured_z = NAN;
       }
@@ -533,7 +540,7 @@ void Probe::do_raise(const float z_raise) {
   #endif
 
   float z_dest = z_raise;
-  if (offset[Z_AXIS] < 0) z_dest -= offset[Z_AXIS];
+  if (data.offset[Z_AXIS] < 0) z_dest -= data.offset[Z_AXIS];
 
   NOMORE(z_dest, Z_MAX_POS);
 
@@ -552,7 +559,7 @@ float Probe::run_probing() {
   float probe_z = 0.0;
 
   // Stop the probe before it goes too low to prevent damage.
-  #define Z_PROBE_LOW_POINT (-2 - offset[Z_AXIS])
+  #define Z_PROBE_LOW_POINT (-2 - data.offset[Z_AXIS])
 
   #if ENABLED(DEBUG_FEATURE)
     if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
@@ -561,17 +568,17 @@ float Probe::run_probing() {
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
   float z = Z_PROBE_DEPLOY_HEIGHT + 5.0;
-  if (offset[Z_AXIS] < 0) z -= offset[Z_AXIS];
+  if (data.offset[Z_AXIS] < 0) z -= data.offset[Z_AXIS];
 
   if (mechanics.current_position[Z_AXIS] > z) {
-    if (!move_to_z(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST)))
-      mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+    if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
+      mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
   for (uint8_t r = Z_PROBE_REPETITIONS + 1; --r;) {
 
     // move down slowly to find bed
-    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(data.speed_slow))) {
       #if ENABLED(DEBUG_FEATURE)
         if (printer.debugFeature()) {
           SERIAL_EM("SLOW Probe fail!");
@@ -582,7 +589,7 @@ float Probe::run_probing() {
     }
 
     probe_z += mechanics.current_position[Z_AXIS];
-    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
 
   }
 

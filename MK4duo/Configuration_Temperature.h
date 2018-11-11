@@ -61,8 +61,8 @@
  *                                                                                                   *
  * Please choose the one that matches your setup and set to TEMP SENSOR.                             *
  *                                                                                                   *
- *  -4 is thermocouple with MAX31855 (only Hotends)                                                  *
- *  -3 is thermocouple with MAX6675 (only Hotends)                                                   *
+ *  -4 is thermocouple with MAX31855                                                                 *
+ *  -3 is thermocouple with MAX6675                                                                  *
  *  -2 is thermocouple with AD8495                                                                   *
  *  -1 is thermocouple with AD595 or AD597                                                           *
  *   0 is not used                                                                                   *
