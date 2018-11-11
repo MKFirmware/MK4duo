@@ -1668,7 +1668,7 @@
    public:
     /** Create an instance. */
     SdBaseFile() : writeError(false), type_(FAT_FILE_TYPE_CLOSED) {}
-    SdBaseFile(const char* path, uint8_t oflag);
+    SdBaseFile(PGM_P path, uint8_t oflag);
     #if DESTRUCTOR_CLOSES_FILE
     ~SdBaseFile() {if(isOpen()) close();}
     #endif
@@ -1698,7 +1698,7 @@
     bool close();
     bool contiguousRange(uint32_t* bgnBlock, uint32_t* endBlock);
     bool createContiguous(SdBaseFile* dirFile,
-                          const char* path, uint32_t size);
+                          PGM_P path, uint32_t size);
     /** \return The current cluster number for a file or directory. */
     uint32_t curCluster() const {return curCluster_;}
     /** \return The current position for a file or directory. */
@@ -1740,7 +1740,7 @@
     static void dateTimeCallbackCancel() {dateTime_ = 0;}
     bool dirEntry(dir_t* dir);
     static void dirName(const dir_t& dir, char* name);
-    bool exists(const char* name);
+    bool exists(PGM_P name);
     int16_t fgets(char* str, int16_t num, char* delim = 0);
     /** \return The total number of bytes in a file or directory. */
     uint32_t fileSize() const {return fileSize_;}
@@ -1748,7 +1748,7 @@
     uint32_t firstCluster() const {return firstCluster_;}
     bool getFilename(char* name);
     uint8_t lfn_checksum(const unsigned char *pFCBName);
-    bool openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs);
+    bool openParentReturnFile(SdBaseFile* dirFile, PGM_P path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs);
 
     /** \return True if this is a directory else false. */
     bool isDir() const {return type_ >= FAT_FILE_TYPE_MIN_DIR;}
@@ -1763,14 +1763,14 @@
       return type_ == FAT_FILE_TYPE_ROOT_FIXED || type_ == FAT_FILE_TYPE_ROOT32;
     }
     void ls();
-    bool mkdir(SdBaseFile* dir, const char* path, bool pFlag = true);
+    bool mkdir(SdBaseFile* dir, PGM_P path, bool pFlag = true);
     // alias for backward compactability
-    bool makeDir(SdBaseFile* dir, const char* path) {
+    bool makeDir(SdBaseFile* dir, PGM_P path) {
       return mkdir(dir, path, false);
     }
     bool open(SdBaseFile* dirFile, uint16_t index, uint8_t oflag);
-    bool open(SdBaseFile* dirFile, const char* path, uint8_t oflag);
-    bool open(const char* path, uint8_t oflag = O_READ);
+    bool open(SdBaseFile* dirFile, PGM_P path, uint8_t oflag);
+    bool open(PGM_P path, uint8_t oflag = O_READ);
     bool openNext(SdBaseFile* dirFile, uint8_t oflag);
     bool openRoot(SdVolume* vol);
     int8_t readDir(dir_t& dir) { return readDir(&dir); }
@@ -1788,11 +1788,11 @@
     int read(void* buf, size_t nbyte);
     int8_t readDir(dir_t* dir);
 
-    static bool remove(SdBaseFile* dirFile, const char* path);
+    static bool remove(SdBaseFile* dirFile, PGM_P path);
     bool remove();
     /** Set the file's current position to zero. */
     void rewind() {seekSet(0);}
-    bool rename(SdBaseFile* dirFile, const char* newPath);
+    bool rename(SdBaseFile* dirFile, PGM_P newPath);
     bool rmdir();
     // for backward compatibility
     bool rmDir() {return rmdir();}
@@ -1858,7 +1858,7 @@
     cache_t* addDirCluster();
     dir_t* cacheDirEntry(uint8_t action);
     int8_t lsPrintNext(uint8_t flags, uint8_t indent);
-    static bool make83Name(const char* str, uint8_t* name, const char** ptr);
+    static bool make83Name(PGM_P str, uint8_t* name, const char** ptr);
     bool mkdir(SdBaseFile* parent, const uint8_t *dname);
     bool open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, bool bDir);
     bool openCachedEntry(uint8_t cacheIndex, uint8_t oflags);
@@ -1890,14 +1890,14 @@
     }
     /** \deprecated Use:
       * bool createContiguous(SdBaseFile* dirFile,
-      *   const char* path, uint32_t size)
+      *   PGM_P path, uint32_t size)
       * \param[in] dirFile The directory where the file will be created.
       * \param[in] path A path with a valid DOS 8.3 file name.
       * \param[in] size The desired file size.
       * \return true for success or false for failure.
       */
     bool createContiguous(SdBaseFile& dirFile,  // NOLINT
-                          const char* path, uint32_t size) {
+                          PGM_P path, uint32_t size) {
       return createContiguous(&dirFile, path, size);
     }
     /** \deprecated Use:
@@ -1916,17 +1916,17 @@
      */
     bool dirEntry(dir_t& dir) {return dirEntry(&dir);}  // NOLINT
     /** \deprecated Use:
-     * bool mkdir(SdBaseFile* dir, const char* path);
+     * bool mkdir(SdBaseFile* dir, PGM_P path);
      * \param[in] dir An open SdFat instance for the directory that will contain
      * the new directory.
      * \param[in] path A path with a valid 8.3 DOS name for the new directory.
      * \return true for success or false for failure.
      */
-    bool mkdir(SdBaseFile& dir, const char* path) {  // NOLINT
+    bool mkdir(SdBaseFile& dir, PGM_P path) {  // NOLINT
       return mkdir(&dir, path);
     }
     /** \deprecated Use:
-     * bool open(SdBaseFile* dirFile, const char* path, uint8_t oflag);
+     * bool open(SdBaseFile* dirFile, PGM_P path, uint8_t oflag);
      * \param[in] dirFile An open SdFat instance for the directory containing the
      * file to be opened.
      * \param[in] path A path with a valid 8.3 DOS name for the file.
@@ -1935,7 +1935,7 @@
      * \return true for success or false for failure.
      */
     bool open(SdBaseFile& dirFile, // NOLINT
-              const char* path, uint8_t oflag) {
+              PGM_P path, uint8_t oflag) {
       return open(&dirFile, path, oflag);
     }
     /** \deprecated  Do not use in new apps
@@ -1944,7 +1944,7 @@
      * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
      * \return true for success or false for failure.
      */
-    bool open(SdBaseFile& dirFile, const char* path) {  // NOLINT
+    bool open(SdBaseFile& dirFile, PGM_P path) {  // NOLINT
       return open(dirFile, path, O_RDWR);
     }
     /** \deprecated Use:
@@ -1970,12 +1970,12 @@
      */
     int8_t readDir(dir_t& dir) { return readDir(&dir); }  // NOLINT
     /** \deprecated Use:
-     * static uint8_t remove(SdBaseFile* dirFile, const char* path);
+     * static uint8_t remove(SdBaseFile* dirFile, PGM_P path);
      * \param[in] dirFile The directory that contains the file.
      * \param[in] path The name of the file to be removed.
      * \return true for success or false for failure.
      */
-    static bool remove(SdBaseFile& dirFile, const char* path) {  // NOLINT
+    static bool remove(SdBaseFile& dirFile, PGM_P path) {  // NOLINT
       return remove(&dirFile, path);
     }
   //------------------------------------------------------------------------------
@@ -1994,7 +1994,7 @@
     bool contiguousRange(uint32_t& bgnBlock, uint32_t& endBlock)  // NOLINT
       __attribute__((error("use contiguousRange(&bgnBlock, &endBlock)")));
     bool createContiguous(SdBaseFile& dirFile,  // NOLINT
-      const char* path, uint32_t size)
+      PGM_P path, uint32_t size)
       __attribute__((error("use createContiguous(&bgnBlock, &endBlock)")));
     static void dateTimeCallback(  // NOLINT
       void (*dateTime)(uint16_t &date, uint16_t &time))  // NOLINT
@@ -2002,18 +2002,18 @@
        "void (*dateTime)(uint16_t* date, uint16_t* time))")));
     bool dirEntry(dir_t& dir)  // NOLINT
       __attribute__((error("use dirEntry(&dir)")));
-    bool mkdir(SdBaseFile& dir, const char* path)  // NOLINT
+    bool mkdir(SdBaseFile& dir, PGM_P path)  // NOLINT
       __attribute__((error("use mkdir(&dir, path)")));
     bool open(SdBaseFile& dirFile, // NOLINT
-      const char* path, uint8_t oflag)
+      PGM_P path, uint8_t oflag)
       __attribute__((error("use open(&dirFile, path, oflag)")));
-    bool open(SdBaseFile& dirFile, const char* path)  // NOLINT
+    bool open(SdBaseFile& dirFile, PGM_P path)  // NOLINT
       __attribute__((error("use open(&dirFile, path, O_RDWR)")));
     bool open(SdBaseFile& dirFile, uint16_t index, uint8_t oflag) // NOLINT
       __attribute__((error("use open(&dirFile, index, oflag)")));
     bool openRoot(SdVolume& vol)  // NOLINT
       __attribute__((error("use openRoot(&vol)")));
-    static bool remove(SdBaseFile& dirFile, const char* path)  // NOLINT
+    static bool remove(SdBaseFile& dirFile, PGM_P path)  // NOLINT
       __attribute__((error("use remove(&dirFile, path)")));
   #endif  // ALLOW_DEPRECATED_FUNCTIONS
   #ifdef JSON_OUTPUT
@@ -2028,9 +2028,9 @@
   class SdFile : public SdBaseFile {
    public:
     SdFile() {}
-    SdFile(const char* name, uint8_t oflag);
+    SdFile(PGM_P name, uint8_t oflag);
 
-    #ifdef ARDUINO_ARCH_SAM
+    #if ENABLED(CPU_32_BIT)
       #if DESTRUCTOR_CLOSES_FILE
         ~SdFile() {}
       #endif  // DESTRUCTOR_CLOSES_FILE
@@ -2044,7 +2044,7 @@
         size_t write(uint8_t b);
       #endif
 
-      int write(const char* str);
+      int write(PGM_P str);
       int write(const void* buf, size_t nbyte);
     #else
       #if ARDUINO >= 100
@@ -2054,7 +2054,7 @@
       #endif
 
       int16_t write(const void* buf, uint16_t nbyte);
-      void write(const char* str);
+      void write(PGM_P str);
     #endif
 
     void write_P(PGM_P str);
@@ -2102,7 +2102,7 @@
     /** \return a pointer to the Sd2Card object. */
     Sd2Card* card() {return &card_;}
     bool chdir(bool set_cwd = false);
-    bool chdir(const char* path, bool set_cwd = false);
+    bool chdir(PGM_P path, bool set_cwd = false);
     void chvol();
     void errorHalt();
     void errorHalt_P(PGM_P msg);
@@ -2110,7 +2110,7 @@
     void errorPrint();
     void errorPrint_P(PGM_P msg);
     void errorPrint(char const *msg);
-    bool exists(const char* name);
+    bool exists(PGM_P name);
     bool begin(uint8_t chipSelectPin = SD_CHIP_SELECT_PIN, uint8_t sckRateID = SPI_FULL_SPEED);
     void initErrorHalt();
     void initErrorHalt(char const *msg);
@@ -2119,11 +2119,11 @@
     void initErrorPrint(char const *msg);
     void initErrorPrint_P(PGM_P msg);
     void ls();
-    bool mkdir(const char* path, bool pFlag = true);
-    bool remove(const char* path);
-    bool rename(const char *oldPath, const char *newPath);
-    bool rmdir(const char* path);
-    bool truncate(const char* path, uint32_t length);
+    bool mkdir(PGM_P path, bool pFlag = true);
+    bool remove(PGM_P path);
+    bool rename(PGM_P oldPath, PGM_P newPath);
+    bool rmdir(PGM_P path);
+    bool truncate(PGM_P path, uint32_t length);
     /** \return a pointer to the SdVolume object. */
     SdVolume* vol() {return &vol_;}
     /** \return a pointer to the volume working directory. */

@@ -33,6 +33,6 @@
   /**
    * M112: Emergency Stop
    */
-  inline void gcode_M112(void) { printer.kill(PSTR(MSG_KILLED)); }
+  inline void gcode_M112(void) { printer.kill(); }
 
 #endif

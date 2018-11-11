@@ -26,10 +26,20 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _FWRETRACT_H_
-#define _FWRETRACT_H_
+#pragma once
 
 #if ENABLED(FWRETRACT)
+
+  typedef struct {
+    float retract_length,                     // M207 S - G10 Retract length
+          retract_feedrate_mm_s,              // M207 F - G10 Retract feedrate
+          retract_zlift,                      // M207 Z - G10 Retract hop size
+          retract_recover_length,             // M208 S - G11 Recover length
+          retract_recover_feedrate_mm_s,      // M208 F - G11 Recover feedrate
+          swap_retract_length,                // M207 W - G10 Swap Retract length
+          swap_retract_recover_length,        // M208 W - G11 Swap Recover length
+          swap_retract_recover_feedrate_mm_s; // M208 R - G11 Swap Recover feedrate
+  } fwretract_data_t;
 
   class FWRetract {
 
@@ -39,17 +49,12 @@
 
     public: /** Public Parameters */
 
+      static fwretract_settings_t data;
+
       static bool   autoretract_enabled,                // M209 S - Autoretract switch
                     retracted[EXTRUDERS];               // Which extruders are currently retracted
-      static float  retract_length,                     // M207 S - G10 Retract length
-                    retract_feedrate_mm_s,              // M207 F - G10 Retract feedrate
-                    retract_zlift,                      // M207 Z - G10 Retract hop size
-                    retract_recover_length,             // M208 S - G11 Recover length
-                    retract_recover_feedrate_mm_s,      // M208 F - G11 Recover feedrate
-                    swap_retract_length,                // M207 W - G10 Swap Retract length
-                    swap_retract_recover_length,        // M208 W - G11 Swap Recover length
-                    swap_retract_recover_feedrate_mm_s, // M208 R - G11 Swap Recover feedrate
-                    hop_amount;
+      static float  current_retract[EXTRUDERS],         // Retract value used by planner
+                    current_hop;                        // Hop value used by planner
 
     private: /** Private Parameters */
 
@@ -62,7 +67,7 @@
       static void reset();
 
       static void refresh_autoretract() {
-        for (uint8_t e = 0; e < EXTRUDERS; e++) retracted[e] = false;
+        LOOP_EXTRUDER() retracted[e] = false;
       }
 
       static void enable_autoretract(const bool enable) {
@@ -80,5 +85,3 @@
   extern FWRetract fwretract;
 
 #endif // ENABLED(FWRETRACT)
-
-#endif /* _FWRETRACT_H_ */

@@ -3,8 +3,8 @@
 ****************************************************************************************/
 
 //###CHIP
-#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
-  #error Oops!  Make sure you have 'Sanguino' or 'Anet' selected from the 'Tools -> Boards' menu.
+#if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
+  #error "Oops! Select 'Sanguino' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -165,13 +165,13 @@
  */
 
 //#define SDSS               24
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
 
   // No buzzer installed
   #define ORIG_BEEPER_PIN NoPin
 
   //LCD Pins
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
 
     #if ENABLED(U8GLIB_ST7920)
       #define LCD_PINS_RS      4

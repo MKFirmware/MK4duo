@@ -30,9 +30,14 @@
 
   EmergencyParser emergency_parser;
 
-  bool EmergencyParser::killed_by_M112; // = false
+  // Public Parameters
+  bool  EmergencyParser::killed_by_M112 = false;
 
-  void EmergencyParser::update(State &state, const uint8_t c) {
+  // Private Parameters
+  bool EmergencyParser::enabled = true;
+
+  //Public Function
+  void EmergencyParser::update(EmergencyStateEnum &state, const uint8_t c) {
 
     switch (state) {
       case EP_RESET:
@@ -94,9 +99,10 @@
 
       default:
         if (c == '\n') {
-          switch (state) {
+          if (enabled) switch (state) {
             case EP_M108:
-              printer.setWaitForUser(false); printer.setWaitForHeatUp(false);
+              printer.setWaitForUser(false);
+              printer.setWaitForHeatUp(false);
               break;
             case EP_M112:
               killed_by_M112 = true;

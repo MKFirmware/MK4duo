@@ -19,9 +19,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef __NEXTION_H__
-#define __NEXTION_H__
+/**
+ * nextion.h
+ *
+ * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
+ *
+ * Grbl is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Grbl is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #if NEXTION_SERIAL > 0
   #if NEXTION_SERIAL == 1
@@ -72,7 +89,7 @@
  * @param ptr - user pointer for any purpose. Commonly, it is a pointer to a object. 
  * @return none. 
  */
-typedef void (*NexTouchEventCb)(void *ptr);
+using NexTouchEventCb = void(*)(void *ptr);
 
 /**
  * Class NexObject
@@ -88,7 +105,7 @@ class NexObject {
      * @param cid - component id.
      * @param name - pointer to an unique name in range of all components.
      */
-    NexObject(uint8_t pid, uint8_t cid, const char *name);
+    NexObject(uint8_t pid, uint8_t cid, PGM_P name);
 
     /**
      * iterate search pid, cid or event in list
@@ -150,7 +167,7 @@ class NexObject {
      * @param buffer - buffer storing text returned.
      * @param len - length of buffer.
      */
-    void getText(char *buffer, uint16_t len, const char *pname=NULL);
+    void getText(char *buffer, uint16_t len, PGM_P pname=NULL);
 
     /**
      * Set text attribute of component.
@@ -158,7 +175,7 @@ class NexObject {
      * @param buffer - text buffer terminated with '\0'.
      * @param pname  - To set page name
      */
-    void setText(const char *buffer, const char *pname=NULL);
+    void setText(PGM_P buffer, PGM_P pname=NULL);
 
     /**
      * Get val attribute of component
@@ -166,7 +183,7 @@ class NexObject {
      * @param number - buffer storing data return
      * @param pname  - To set page name
      */
-    uint16_t getValue(const char *pname=NULL);
+    uint16_t getValue(PGM_P pname=NULL);
 
     /**
      * Set val attribute of component
@@ -174,7 +191,7 @@ class NexObject {
      * @param number - To set up the data
      * @param pname  - To set page name
      */
-    void setValue(const uint16_t number, const char *pname=NULL);
+    void setValue(const uint16_t number, PGM_P pname=NULL);
 
     /**
      * Add value to show.
@@ -347,7 +364,7 @@ class NexObject {
 
     uint8_t __pid;
     uint8_t __cid;
-    const char *__name;
+    PGM_P __name;
     bool __vis;
 
     NexTouchEventCb __cb_push;
@@ -372,7 +389,7 @@ class NexObject {
        * @param file_name - tft file name.
        * @upload_baudrate - set upload baudrate.
        */
-      NexUpload(const char *file_name, uint32_t upload_baudrate);
+      NexUpload(PGM_P file_name, uint32_t upload_baudrate);
 
       /**
        * Constructor.
@@ -439,7 +456,7 @@ class NexObject {
        *
        * @param buffer - save string data.
        * @param timeout - set timeout time.
-       * @param recv_flag - if recv_flag is true,will braak when receive 0x05.
+       * @param recv_flag - if recv_flag is true, will break when receive 0x05.
        *
        * @return the length of string buffer.
        *
@@ -448,10 +465,10 @@ class NexObject {
 
     private:
 
-      uint32_t _baudrate; /*nextion serail baudrate*/
-      const char *_file_name; /*nextion tft file name*/
-      uint32_t _unuploadByte; /*unupload byte of tft file*/
-      uint32_t _upload_baudrate; /*upload baudrate*/
+      uint32_t _baudrate;         /* nextion serial baudrate */
+      PGM_P _file_name;           /* nextion tft file name */
+      uint32_t _unuploadByte;     /* unupload byte of tft file */
+      uint32_t _upload_baudrate;  /* upload baudrate */
     };
 
 #endif // SDSUPPORT
@@ -480,13 +497,12 @@ bool nexInit(char *buffer);
 void nexLoop(NexObject *nex_listen_list[]);
 
 void recvRetString(char *buffer, uint16_t len);
-void sendCommand(const char* cmd);
+void sendCommand(PGM_P);
+void sendCommandPGM(PGM_P);
 void recvRetCommandFinished();
 
 uint16_t recvRetNumber();
 
 uint8_t Nextion_PageID();
-void setCurrentBrightness(uint8_t dimValue);
+void setCurrentBrightness(uint8_t);
 void sendRefreshAll(void);
-
-#endif /* __NEXTION_H__ */

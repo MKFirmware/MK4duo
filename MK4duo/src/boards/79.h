@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -164,7 +164,7 @@
 
 //###IF_BLOCKS
 // DISPLAY
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
   // LCD
   #define LCD_PINS_RS           27
   #define LCD_PINS_ENABLE       29

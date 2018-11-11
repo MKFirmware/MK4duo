@@ -215,7 +215,7 @@
     sprintf_P(lung, PSTR("%i Km %i m %i cm %i mm"), kmeter, meter, centimeter, millimeter);
     SERIAL_EMT(MSG_RFID_SPOOL_LENGHT, lung);
     
-    #if ENABLED(NEXTION)
+    #if HAS_NEXTION_LCD
       char titolo[30], message[250];
       char* temp;
       ZERO(titolo);

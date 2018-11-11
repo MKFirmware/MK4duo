@@ -43,13 +43,13 @@
    *   B, T, and Y are all aliases for the elbow angle
    */
   inline void gcode_M665() {
-    if (parser.seen('S')) mechanics.delta_segments_per_second = parser.value_float();
+    if (parser.seen('S')) mechanics.data.segments_per_second = parser.value_float();
 
     #if ENABLED(WORKSPACE_OFFSETS)
       const bool hasA = parser.seen('A'), hasP = parser.seen('P'), hasX = parser.seen('X');
       const uint8_t sumAPX = hasA + hasP + hasX;
       if (sumAPX == 1)
-        mechanics.home_offset[A_AXIS] = parser.value_float();
+        mechanics.data.home_offset[A_AXIS] = parser.value_float();
       else if (sumAPX > 1) {
         SERIAL_EM("Only one of A, P, or X is allowed.");
         return;
@@ -58,7 +58,7 @@
       const bool hasB = parser.seen('B'), hasT = parser.seen('T'), hasY = parser.seen('Y');
       const uint8_t sumBTY = hasB + hasT + hasY;
       if (sumBTY == 1)
-        mechanics.home_offset[B_AXIS] = parser.value_float();
+        mechanics.data.home_offset[B_AXIS] = parser.value_float();
       else if (sumBTY > 1) {
         SERIAL_EM("Only one of B, T, or Y is allowed.");
         return;

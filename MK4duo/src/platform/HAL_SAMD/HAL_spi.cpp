@@ -145,16 +145,7 @@
   }
 
 #else
-    #include "SERCOM.h"
-    
-    #ifndef PERIPH_SPI
-        #define PERIPH_SPI           sercom4
-        #define PAD_SPI_TX           SPI_PAD_2_SCK_3
-        #define PAD_SPI_RX           SERCOM_RX_PAD_0
-    #endif // PERIPH_SPI
-    
-    SPIClass SPIc (&PERIPH_SPI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_MOSI, PAD_SPI_TX, PAD_SPI_RX);
-   
+
   // --------------------------------------------------------------------------
   // hardware SPI
   // --------------------------------------------------------------------------
@@ -163,67 +154,50 @@
   static bool spiInitMaded = false;
 
   void HAL::spiBegin() {
-    if (!spiInitMaded) {
-      SPI.begin();
-      spiInit(1);
-      spiInitMaded = true;
-    }
-    SPIc.begin();
-    
+    spiInit();
   }
 
-  void HAL::spiInit(uint8_t spiRate) {
-    if (spiInitMaded == false) {
-      if (spiRate > 4) spiRate = 1;
-        
-      SPIc.beginTransaction(SPISettings(spiSamdBaudrates[spiRate], MSBFIRST, SPI_MODE0));
-    }
+  void HAL::spiInit(uint8_t spiRate/*=0*/) { 
+    if (spiRate > 4) spiRate = 1;
+    SPI.begin();    
+    SPI.beginTransaction(SPISettings(spiSamdBaudrates[spiRate], MSBFIRST, SPI_MODE0));
   }
 
   // Write single byte to SPI
-  void HAL::spiSend(byte b) {
-    SPIc.transfer(b);
-    
+  void HAL::spiSend(uint8_t data) {
+    SPI.transfer(data);
   }
 
   void HAL::spiSend(const uint8_t* buf, size_t n) {
-    for (uint16_t i = 0; i < n; i++) {
-      SPIc.transfer(buf[i]); 
-    }
+    if (n == 0) return;
+    for (uint16_t i = 0; i < n; i++)
+      SPI.transfer(buf[i]); 
   }
 
-  void HAL::spiSend(uint32_t chan, byte b) {
-  
-  }
+  void HAL::spiSend(uint32_t chan, byte b) { }
 
-  void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) {
-    
-  }
+  void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) { }
 
   // Read single byte from SPI
   uint8_t HAL::spiReceive(void) {
-    return  SPIc.transfer(0xFF);
+    return  SPI.transfer(0xFF);
   }
 
-  uint8_t HAL::spiReceive(uint32_t chan) {
-   
-  }
+  uint8_t HAL::spiReceive(uint32_t chan) { }
 
   // Read from SPI into buffer
   void HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
-    for (uint16_t i = 0; i < 512; i++) {
-      buf[i]=SPIc.transfer(0xFF); 
-    }
+    if (nbyte == 0) return;
+    for (int i = 0; i < nbyte; i++)
+      buf[i] = SPI.transfer(0xFF);
   }
 
   // Write from buffer to SPI
   void HAL::spiSendBlock(uint8_t token, const uint8_t* buf) {
-    SPIc.transfer( token );
+    SPI.transfer(token);
 
-    for (uint16_t i = 0; i < 512; i++) {
-      SPIc.transfer(buf[i]); 
-    }
-
+    for (uint16_t i = 0; i < 512; i++)
+      SPI.transfer(buf[i]);
   }
 
 #endif // ENABLED(SOFTWARE_SPI)

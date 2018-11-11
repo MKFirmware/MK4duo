@@ -375,8 +375,8 @@ void HAL_temp_isr() {
   if (pwm_count_heater == 0) {
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
-        if (heaters[h].pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
-          HAL::digitalWrite(heaters[h].pin, heaters[h].isHWInverted() ? LOW : HIGH);
+        if (heaters[h].data.pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
+          HAL::digitalWrite(heaters[h].data.pin, heaters[h].isHWInverted() ? LOW : HIGH);
       }
     #endif
   }
@@ -385,22 +385,22 @@ void HAL_temp_isr() {
     #if FAN_COUNT >0
       LOOP_FAN() {
         if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans[f].pin, fans[f].isHWInverted() ? LOW : HIGH);
+          HAL::digitalWrite(fans[f].data.pin, fans[f].isHWInverted() ? LOW : HIGH);
       }
     #endif
   }
 
   #if HEATER_COUNT > 0
     LOOP_HEATER() {
-      if (heaters[h].pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
-        HAL::digitalWrite(heaters[h].pin, heaters[h].isHWInverted() ? HIGH : LOW);
+      if (heaters[h].data.pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
+        HAL::digitalWrite(heaters[h].data.pin, heaters[h].isHWInverted() ? HIGH : LOW);
     }
   #endif
 
   #if FAN_COUNT > 0
     LOOP_FAN() {
       if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-        HAL::digitalWrite(fans[f].pin, fans[f].isHWInverted() ? HIGH : LOW);
+        HAL::digitalWrite(fans[f].data.pin, fans[f].isHWInverted() ? HIGH : LOW);
     }
   #endif
 
@@ -471,7 +471,7 @@ void HAL_temp_isr() {
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 HAL_TEMP_TIMER_ISR {
-  if (!printer.isRunning()) return;
+  if (printer.isStopped()) return;
   TEMP_OCR += 64;
   HAL_temp_isr();
 }

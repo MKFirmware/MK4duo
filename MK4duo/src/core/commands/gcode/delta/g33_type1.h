@@ -48,22 +48,22 @@
   // Homed height
   float homed_height;
   void Calc_homed_height() {
-    const float tempHeight = mechanics.delta_diagonal_rod;		// any sensible height will do here, probably even zero
+    const float tempHeight = mechanics.data.diagonal_rod;		// any sensible height will do here, probably even zero
     float cartesian[ABC];
     mechanics.InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
-    homed_height = mechanics.delta_height + tempHeight - cartesian[Z_AXIS];
+    homed_height = mechanics.data.height + tempHeight - cartesian[Z_AXIS];
   }
 
-  // Convert delta_endstop_adj
+  // Convert data.endstop_adj
   void Convert_endstop_adj() {
-    LOOP_XYZ(i) mechanics.delta_endstop_adj[i] *= -1;
+    LOOP_XYZ(i) mechanics.data.endstop_adj[i] *= -1;
   }
 
   // Normalize Endstop
   void NormaliseEndstopAdjustments() {
-    const float min_endstop = MIN3(mechanics.delta_endstop_adj[A_AXIS], mechanics.delta_endstop_adj[B_AXIS], mechanics.delta_endstop_adj[C_AXIS]);
-    LOOP_XYZ(i) mechanics.delta_endstop_adj[i] -= min_endstop;
-    mechanics.delta_height += min_endstop;
+    const float min_endstop = MIN(mechanics.data.endstop_adj[A_AXIS], mechanics.data.endstop_adj[B_AXIS], mechanics.data.endstop_adj[C_AXIS]);
+    LOOP_XYZ(i) mechanics.data.endstop_adj[i] -= min_endstop;
+    mechanics.data.height += min_endstop;
     homed_height += min_endstop;
   }
 
@@ -76,30 +76,30 @@
   //  Diagonal rod length adjustment
   void Adjust(const uint8_t numFactors, const float v[]) {
 
-    const float oldHeightA = homed_height + mechanics.delta_endstop_adj[A_AXIS];
+    const float oldHeightA = homed_height + mechanics.data.endstop_adj[A_AXIS];
 
     // Update endstop adjustments
-    mechanics.delta_endstop_adj[A_AXIS] += (float)v[0];
-    mechanics.delta_endstop_adj[B_AXIS] += (float)v[1];
-    mechanics.delta_endstop_adj[C_AXIS] += (float)v[2];
+    mechanics.data.endstop_adj[A_AXIS] += v[0];
+    mechanics.data.endstop_adj[B_AXIS] += v[1];
+    mechanics.data.endstop_adj[C_AXIS] += v[2];
     NormaliseEndstopAdjustments();
 
     if (numFactors >= 4) {
-      mechanics.delta_radius += (float)v[3];
+      mechanics.data.radius += v[3];
 
       if (numFactors >= 6) {
-        mechanics.delta_tower_angle_adj[A_AXIS] += (float)v[4];
-        mechanics.delta_tower_angle_adj[B_AXIS] += (float)v[5];
+        mechanics.data.tower_angle_adj[A_AXIS] += v[4];
+        mechanics.data.tower_angle_adj[B_AXIS] += v[5];
 
-        if (numFactors == 7) mechanics.delta_diagonal_rod += (float)v[6];
+        if (numFactors == 7) mechanics.data.diagonal_rod += v[6];
 
       }
     }
 
     mechanics.recalc_delta_settings();
     Calc_homed_height();
-    const float heightError = homed_height + mechanics.delta_endstop_adj[A_AXIS] - oldHeightA - v[0];
-    mechanics.delta_height -= heightError;
+    const float heightError = homed_height + mechanics.data.endstop_adj[A_AXIS] - oldHeightA - v[0];
+    mechanics.data.height -= heightError;
     homed_height -= heightError;
 
   }
@@ -118,7 +118,8 @@
    */
   inline void gcode_G33(void) {
 
-    const uint8_t MaxCalibrationPoints = 10;
+    const uint8_t MaxCalibrationPoints  = 10,
+                  MaxnumFactors         = 7;
 
     uint8_t iteration = 0;
 
@@ -142,9 +143,13 @@
       return;
     }
 
+    const bool g33_debug = parser.boolval('D');
+
     SERIAL_MV("Starting Auto Calibration ", probe_points);
     SERIAL_MV(" points and ", numFactors);
-    SERIAL_EM(" Factors");
+    SERIAL_MSG(" Factors");
+    if (g33_debug) SERIAL_MSG(" Debug on");
+    SERIAL_EOL();
     LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE);
 
     planner.synchronize();
@@ -162,23 +167,27 @@
     #endif
 
     printer.setup_for_endstop_or_probe_move();
-    endstops.setEnabled(true);
-    mechanics.home();
-    endstops.setNotHoming();
+
+    if (!printer.isHomedAll()) {
+      endstops.setEnabled(true);
+      mechanics.home();
+      endstops.setNotHoming();
+    }
+
     DEPLOY_PROBE();
 
     Calc_homed_height();
 
     for (uint8_t probe_index = 0; probe_index < 6; probe_index++) {
-      xBedProbePoints[probe_index] = mechanics.delta_probe_radius * SIN((2 * M_PI * probe_index) / 6);
-      yBedProbePoints[probe_index] = mechanics.delta_probe_radius * COS((2 * M_PI * probe_index) / 6);
+      xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / 6);
+      yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / 6);
       zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
       if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
     }
     if (probe_points >= 10) {
       for (uint8_t probe_index = 6; probe_index < 9; probe_index++) {
-        xBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
-        yBedProbePoints[probe_index] = (mechanics.delta_probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
+        xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * (probe_index - 6)) / 3);
+        yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * (probe_index - 6)) / 3);
         zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
         if (isnan(zBedProbePoints[probe_index])) return CALIBRATION_CLEANUP();
       }
@@ -194,11 +203,11 @@
       if (isnan(zBedProbePoints[6])) return CALIBRATION_CLEANUP();
     }
 
-    // convert delta_endstop_adj;
+    // convert data.endstop_adj;
     Convert_endstop_adj();
 
-    float probeMotorPositions[MaxCalibrationPoints][ABC],
-          corrections[MaxCalibrationPoints];
+    FixedMatrix<float, MaxCalibrationPoints, ABC> probeMotorPositions;
+    float corrections[MaxCalibrationPoints];
 
     initialSumOfSquares = 0.0;
 
@@ -210,7 +219,7 @@
       mechanics.Transform(machinePos);
 
       for (uint8_t axis = 0; axis < ABC; axis++)
-        probeMotorPositions[i][axis] = mechanics.delta[axis];
+        probeMotorPositions(i, axis) = mechanics.delta[axis];
 
       initialSumOfSquares += sq(zBedProbePoints[i]);
     }
@@ -218,73 +227,85 @@
     // Do 1 or more Newton-Raphson iterations
     do {
 
-      float derivativeMatrix[MaxCalibrationPoints][numFactors],
-            normalMatrix[numFactors][numFactors + 1];
+      // Build a Nx9 matrix of derivatives
+      FixedMatrix<float, MaxCalibrationPoints, MaxnumFactors> derivativeMatrix;
 
       for (uint8_t i = 0; i < probe_points; i++) {
         for (uint8_t j = 0; j < numFactors; j++) {
-          derivativeMatrix[i][j] =
-            mechanics.ComputeDerivative(j, probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS]);
+          derivativeMatrix(i, j) =
+            mechanics.ComputeDerivative(j, probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS));
         }
       }
 
+      // Debug Derivative matrix
+      if (g33_debug) {
+        SERIAL_EM("Derivative matrix");
+        for (uint8_t i = 0; i < probe_points; i++) {
+          for (uint8_t j = 0; j < numFactors; j++) {
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)derivativeMatrix(i, j), (j == numFactors - 1) ? '\n' : ' ');
+            SERIAL_PS(rply);
+          }
+        }
+      }
+
+      // Now build the normal equations for least squares fitting
+      FixedMatrix<float, MaxnumFactors, MaxnumFactors + 1> normalMatrix;
       for (uint8_t i = 0; i < numFactors; i++) {
         for (uint8_t j = 0; j < numFactors; j++) {
-          float temp = derivativeMatrix[0][i] * derivativeMatrix[0][j];
+          float temp = derivativeMatrix(0, i) * derivativeMatrix(0, j);
           for (uint8_t k = 1; k < probe_points; k++) {
-            temp += derivativeMatrix[k][i] * derivativeMatrix[k][j];
+            temp += derivativeMatrix(k, i) * derivativeMatrix(k, j);
           }
-          normalMatrix[i][j] = temp;
+          normalMatrix(i, j) = temp;
         }
-        float temp = derivativeMatrix[0][i] * (zBedProbePoints[0] + corrections[0]) * -1;
+        float temp = -1 * derivativeMatrix(0, i) * (zBedProbePoints[0] + corrections[0]);
         for (uint8_t k = 1; k < probe_points; k++) {
-          temp += derivativeMatrix[k][i] * (zBedProbePoints[k] + corrections[k]) * -1;
+          temp += -1 * derivativeMatrix(k, i) * (zBedProbePoints[k] + corrections[k]);
         }
-        normalMatrix[i][numFactors] = temp;
+        normalMatrix(i, numFactors) = temp;
       }
 
-      // Perform Gauss-Jordan elimination on a N x (N+1) matrix.
-      // Returns a pointer to the solution vector.
-      for (uint8_t i = 0; i < numFactors; i++) {
-        // Swap the rows around for stable Gauss-Jordan elimination
-        float vmax = ABS(normalMatrix[i][i]);
-        for (uint8_t j = i + 1; j < numFactors; j++) {
-          const float rmax = ABS(normalMatrix[j][i]);
-          if (rmax > vmax) {
-            // Swap 2 rows of a matrix
-            if (i != j) {
-              for (uint8_t k = 0; k < numFactors + 1; k++) {
-                const float temp = normalMatrix[i][k];
-                normalMatrix[i][k] = normalMatrix[j][k];
-                normalMatrix[j][k] = temp;
-              }
-            }
-            vmax = rmax;
-          }
-        }
-
-        // Use row i to eliminate the ith element from previous and subsequent rows
-        float v = normalMatrix[i][i];
-        for (uint8_t j = 0; j < i; j++)	{
-          float factor = normalMatrix[j][i] / v;
-          normalMatrix[j][i] = 0.0;
-          for (uint8_t k = i + 1; k <= numFactors; k++) {
-            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
-          }
-        }
-
-        for (uint8_t j = i + 1; j < numFactors; j++) {
-          float factor = normalMatrix[j][i] / v;
-          normalMatrix[j][i] = 0.0;
-          for (uint8_t k = i + 1; k <= numFactors; k++) {
-            normalMatrix[j][k] -= normalMatrix[i][k] * factor;
+      // Debug Normal matrix
+      if (g33_debug) {
+        SERIAL_EM("Normal matrix");
+        for (uint8_t i = 0; i < numFactors; i++) {
+          for (uint8_t j = 0; j < numFactors + 1; j++) {
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix(i, j), (j == numFactors) ? '\n' : ' ');
+            SERIAL_PS(rply);
           }
         }
       }
 
       float solution[numFactors];
-      for (uint8_t i = 0; i < numFactors; i++)
-        solution[i] = normalMatrix[i][numFactors] / normalMatrix[i][i];
+      normalMatrix.GaussJordan(solution, numFactors);
+
+      // Debug Solved matrix, solution and residuals
+      if (g33_debug) {
+        SERIAL_EM("Solved matrix");
+        for (uint8_t i = 0; i < numFactors; i++) {
+          for (uint8_t j = 0; j < numFactors + 1; j++) {
+            sprintf_P(rply, PSTR("%7.4f%c"), (double)normalMatrix(i, j), (j == numFactors) ? '\n' : ' ');
+            SERIAL_PS(rply);
+          }
+        }
+        SERIAL_MSG("Solution :");
+        for (uint8_t i = 0; i < numFactors; i++) {
+          sprintf_P(rply, PSTR(" %7.4f"), (double)solution[i]);
+          SERIAL_PS(rply);
+        }
+        SERIAL_EOL();
+        // Calculate and display the residuals
+        SERIAL_MSG("Residuals:");
+        for (uint8_t i = 0; i < probe_points; ++i) {
+          float residual = zBedProbePoints[i];
+          for (uint8_t j = 0; j < numFactors; j++)
+            residual += solution[j] * derivativeMatrix(i, j);
+          sprintf_P(rply, PSTR(" %7.4f"), (double)residual);
+          SERIAL_PS(rply);
+        }
+        SERIAL_EOL();
+      }
+
       Adjust(numFactors, solution);
 
       // Calculate the expected probe heights using the new parameters
@@ -292,9 +313,9 @@
       float sumOfSquares = 0.0;
 
       for (int8_t i = 0; i < probe_points; i++) {
-        LOOP_XYZ(axis) probeMotorPositions[i][axis] += solution[axis];
+        LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
         float newPosition[ABC];
-        mechanics.InverseTransform(probeMotorPositions[i][A_AXIS], probeMotorPositions[i][B_AXIS], probeMotorPositions[i][C_AXIS], newPosition);
+        mechanics.InverseTransform(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
         corrections[i] = newPosition[Z_AXIS];
         expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
         sumOfSquares += sq(expectedResiduals[i]);
@@ -305,7 +326,7 @@
       ++iteration;
     } while (iteration < 2);
 
-    // convert delta_endstop_adj;
+    // convert data.endstop_adj;
     Convert_endstop_adj();
 
     SERIAL_MV("Calibrated ", numFactors);
@@ -316,20 +337,24 @@
 
     mechanics.recalc_delta_settings();
 
-    SERIAL_MV("Endstops X", mechanics.delta_endstop_adj[A_AXIS], 3);
-    SERIAL_MV(" Y", mechanics.delta_endstop_adj[B_AXIS], 3);
-    SERIAL_MV(" Z", mechanics.delta_endstop_adj[C_AXIS], 3);
-    SERIAL_MV(" height ", mechanics.delta_height, 3);
-    SERIAL_MV(" diagonal rod ", mechanics.delta_diagonal_rod, 3);
-    SERIAL_MV(" delta radius ", mechanics.delta_radius, 3);
-    SERIAL_MV(" Towers angle correction I", mechanics.delta_tower_angle_adj[A_AXIS], 2);
-    SERIAL_MV(" J", mechanics.delta_tower_angle_adj[B_AXIS], 2);
-    SERIAL_MV(" K", mechanics.delta_tower_angle_adj[C_AXIS], 2);
-    SERIAL_EOL();
-
     endstops.setEnabled(true);
     mechanics.home();
     endstops.setNotHoming();
+
+    const float measured_z = probe.check_pt(0, 0, PROBE_PT_RAISE, 0);
+    mechanics.data.height -= measured_z;
+    mechanics.recalc_delta_settings();
+
+    SERIAL_MV("Endstops X", mechanics.data.endstop_adj[A_AXIS], 3);
+    SERIAL_MV(" Y", mechanics.data.endstop_adj[B_AXIS], 3);
+    SERIAL_MV(" Z", mechanics.data.endstop_adj[C_AXIS], 3);
+    SERIAL_MV(" height ", mechanics.data.height, 3);
+    SERIAL_MV(" diagonal rod ", mechanics.data.diagonal_rod, 3);
+    SERIAL_MV(" delta radius ", mechanics.data.radius, 3);
+    SERIAL_MV(" Towers angle correction I", mechanics.data.tower_angle_adj[A_AXIS], 2);
+    SERIAL_MV(" J", mechanics.data.tower_angle_adj[B_AXIS], 2);
+    SERIAL_MV(" K", mechanics.data.tower_angle_adj[C_AXIS], 2);
+    SERIAL_EOL();
 
     CALIBRATION_CLEANUP();
 

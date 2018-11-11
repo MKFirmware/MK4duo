@@ -30,56 +30,47 @@
 #include "mechanics.h"
 
 /** Public Parameters */
+generic_data_t Mechanics::data;
+
+const flagdir_t Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
+
+const float Mechanics::homing_feedrate_mm_s[XYZ]          = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
+            Mechanics::home_bump_mm[XYZ]                  = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+
 float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
-      Mechanics::min_feedrate_mm_s                        = 0.0,
-      Mechanics::max_feedrate_mm_s[XYZE_N]                = { 0.0 },
-      Mechanics::min_travel_feedrate_mm_s                 = 0.0,
-      Mechanics::axis_steps_per_mm[XYZE_N]                = { 0.0 },
       Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },
-      Mechanics::acceleration                             = 0.0,
-      Mechanics::travel_acceleration                      = 0.0,
-      Mechanics::retract_acceleration[EXTRUDERS]          = { 0.0 },
       Mechanics::current_position[XYZE]                   = { 0.0 },
       Mechanics::cartesian_position[XYZ]                  = { 0.0 },
       Mechanics::destination[XYZE]                        = { 0.0 },
       Mechanics::stored_position[NUM_POSITON_SLOTS][XYZE] = { { 0.0 } };
 
-#if ENABLED(JUNCTION_DEVIATION)
-  float Mechanics::junction_deviation_mm = 0.0;
-  #if ENABLED(LIN_ADVANCE)
-    float Mechanics::max_e_jerk[EXTRUDERS] = { 0.0 };
-  #endif
-#else
-  float Mechanics::max_jerk[XYZE_N] = { 0.0 };
-#endif
+int16_t Mechanics::feedrate_percentage                    = 100;
 
-int16_t Mechanics::feedrate_percentage       = 100;
-
-const float Mechanics::homing_feedrate_mm_s[XYZ] = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-            Mechanics::home_bump_mm[XYZ]         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
-   
-uint32_t  Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 },
-          Mechanics::max_acceleration_mm_per_s2[XYZE_N]    = { 0 };
-
-const int8_t Mechanics::home_dir[XYZ] = { X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR };
-
-millis_t Mechanics::min_segment_time_us = 0;
+uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
   float Mechanics::position_shift[XYZ] = { 0.0 };
-
-  // This offset is added to the configured home position.
-  // Set by M206, M428, or menu item. Saved to EEPROM.
-  float Mechanics::home_offset[XYZ] = { 0.0 };
 
   // The above two are combined to save on computes
   float Mechanics::workspace_offset[XYZ] = { 0.0 };
 #endif
 
 #if ENABLED(BABYSTEPPING)
-  int Mechanics::babystepsTodo[XYZ] = { 0 };
+  volatile int16_t Mechanics::babystepsTodo[XYZ] = { 0 };
 #endif
+
+/**
+ * Get homedir for axis
+ */
+int8_t Mechanics::get_homedir(const AxisEnum axis) {
+  switch(axis) {
+    case X_AXIS:  return home_dir.X; break;
+    case Y_AXIS:  return home_dir.Y; break;
+    case Z_AXIS:  return home_dir.Z; break;
+    default:      return 0;
+  }
+}
 
 /**
  * Set the current_position for an axis based on
@@ -87,16 +78,25 @@ millis_t Mechanics::min_segment_time_us = 0;
  * may have been applied.
  *
  * To prevent small shifts in axis position always call
- * sync_plan_position_mech_specific after updating axes with this.
+ * sync_plan_position after updating axes with this.
  *
  * To keep hosts in sync, always call report_current_position
  * after updating the current_position.
  */
 void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
+
   mechanics.get_cartesian_from_steppers();
-  #if PLANNER_LEVELING
-    bedlevel.unapply_leveling(cartesian_position);
+
+  #if HAS_POSITION_MODIFIERS
+    float pos[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], current_position[E_AXIS] };
+    planner.unapply_modifiers(pos
+      #if HAS_LEVELING
+        , true
+      #endif
+    );
+    const float (&cartesian_position)[XYZE] = pos;
   #endif
+
   if (axis == ALL_AXES)
     COPY_ARRAY(current_position, cartesian_position);
   else
@@ -231,9 +231,12 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     if (zz) SERIAL_MSG(MSG_Z);
     SERIAL_EM(" " MSG_FIRST);
 
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       lcd_status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
     #endif
+
+    sound.feedback(false);
+
     return true;
   }
   return false;
@@ -246,7 +249,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
    * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
-    home_offset[axis] = v;
+    data.home_offset[axis] = v;
     endstops.update_software_endstops(axis);
   }
 
@@ -290,29 +293,29 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     #endif
 
     SERIAL_SM(ECHO, "Probe Offset");
-    SERIAL_MV(" X:", probe.offset[X_AXIS]);
-    SERIAL_MV(" Y:", probe.offset[Y_AXIS]);
-    SERIAL_MV(" Z:", probe.offset[Z_AXIS]);
+    SERIAL_MV(" X:", probe.data.offset[X_AXIS]);
+    SERIAL_MV(" Y:", probe.data.offset[Y_AXIS]);
+    SERIAL_MV(" Z:", probe.data.offset[Z_AXIS]);
 
-    if (probe.offset[X_AXIS] > 0)
+    if (probe.data.offset[X_AXIS] > 0)
       SERIAL_MSG(" (Right");
-    else if (probe.offset[X_AXIS] < 0)
+    else if (probe.data.offset[X_AXIS] < 0)
       SERIAL_MSG(" (Left");
-    else if (probe.offset[Y_AXIS] != 0)
+    else if (probe.data.offset[Y_AXIS] != 0)
       SERIAL_MSG(" (Middle");
     else
       SERIAL_MSG(" (Aligned With");
 
-    if (probe.offset[Y_AXIS] > 0)
+    if (probe.data.offset[Y_AXIS] > 0)
       SERIAL_MSG("-Back");
-    else if (probe.offset[Y_AXIS] < 0)
+    else if (probe.data.offset[Y_AXIS] < 0)
       SERIAL_MSG("-Front");
-    else if (probe.offset[X_AXIS] != 0)
+    else if (probe.data.offset[X_AXIS] != 0)
       SERIAL_MSG("-Center");
 
-    if (probe.offset[Z_AXIS] < 0)
+    if (probe.data.offset[Z_AXIS] < 0)
       SERIAL_MSG(" & Below");
-    else if (probe.offset[Z_AXIS] > 0)
+    else if (probe.data.offset[Z_AXIS] > 0)
       SERIAL_MSG(" & Above");
     else
       SERIAL_MSG(" & Same Z as");
@@ -435,39 +438,56 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #if ENABLED(SENSORLESS_HOMING)
 
+  static void set_stallguard(MKTMC* st, const bool enable=true) {
+
+    static bool old_en_pwm_mode[3];
+
+    if (enable) {
+      old_en_pwm_mode[st->id]  = st->en_pwm_mode();
+      st->TCOOLTHRS(0xFFFFF);
+      st->en_pwm_mode(false);
+    }
+    else {
+      st->TCOOLTHRS(0);
+      st->en_pwm_mode(old_en_pwm_mode[st->id]);
+    }
+
+    st->diag1_stall(enable ? 1 : 0);
+  }
+
   /**
    * Set sensorless homing if the axis has it, accounting for Core Kinematics.
    */
   void Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
     switch (axis) {
       default: break;
-      #if X_SENSORLESS
+      #if X_HAS_SENSORLESS
         case X_AXIS:
-          tmc_sensorless_homing(stepperX, enable);
-          #if CORE_IS_XY && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
-          #elif CORE_IS_XZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
+          set_stallguard(stepperX, enable);
+          #if CORE_IS_XY && Y_HAS_SENSORLESS
+            set_stallguard(stepperY, enable);
+          #elif CORE_IS_XZ && Z_HAS_SENSORLESS
+            set_stallguard(stepperZ, enable);
           #endif
           break;
       #endif
-      #if Y_SENSORLESS
+      #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          tmc_sensorless_homing(stepperY, enable);
-          #if CORE_IS_XY && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
-          #elif CORE_IS_YZ && Z_SENSORLESS
-            tmc_sensorless_homing(stepperZ, enable);
+          set_stallguard(stepperY, enable);
+          #if CORE_IS_XY && X_HAS_SENSORLESS
+            set_stallguard(stepperX, enable);
+          #elif CORE_IS_YZ && Z_HAS_SENSORLESS
+            set_stallguard(stepperZ, enable);
           #endif
           break;
       #endif
-      #if Z_SENSORLESS
+      #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          tmc_sensorless_homing(stepperZ, enable);
-          #if CORE_IS_XZ && X_SENSORLESS
-            tmc_sensorless_homing(stepperX, enable);
-          #elif CORE_IS_YZ && Y_SENSORLESS
-            tmc_sensorless_homing(stepperY, enable);
+          set_stallguard(stepperZ, enable);
+          #if CORE_IS_XZ && X_HAS_SENSORLESS
+            set_stallguard(stepperX, enable);
+          #elif CORE_IS_YZ && Y_HAS_SENSORLESS
+            set_stallguard(stepperY, enable);
           #endif
           break;
       #endif

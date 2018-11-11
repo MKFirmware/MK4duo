@@ -182,7 +182,7 @@
 #endif
 #define DEFAULT_PWM_MOTOR_CURRENT  {1300, 1300, 1250}
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
     #define KILL_PIN                32
 

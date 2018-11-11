@@ -20,6 +20,8 @@
  *
  */
 
+#pragma once
+
 /**
  * Optimized math functions for AVR
  */
@@ -35,9 +37,9 @@
 // D C B A is longIn2
 //
 static FORCE_INLINE uint16_t MultiU24X32toH16(uint32_t longIn1,uint32_t  longIn2) {
-  register uint8_t tmp1;
-  register uint8_t tmp2;
-  register uint16_t intRes;
+  uint8_t tmp1;
+  uint8_t tmp2;
+  uint16_t intRes;
   __asm__ __volatile__(
     A("clr %[tmp1]")
     A("mul %A[longIn1], %B[longIn2]")
@@ -89,8 +91,8 @@ static FORCE_INLINE uint16_t MultiU24X32toH16(uint32_t longIn1,uint32_t  longIn2
 // r26 to store 0
 // r27 to store the byte 1 of the 24 bit result
 static FORCE_INLINE uint16_t MultiU16X8toH16(uint8_t charIn1, uint16_t intIn2) {
-  register uint8_t tmp;
-  register uint16_t intRes;
+  uint8_t tmp;
+  uint16_t intRes;
   __asm__ __volatile__ (
     A("clr %[tmp]")
     A("mul %[charIn1], %B[intIn2]")
@@ -109,52 +111,4 @@ static FORCE_INLINE uint16_t MultiU16X8toH16(uint8_t charIn1, uint16_t intIn2) {
       : "cc"
   );
   return intRes;
-}
-
-#undef MIN
-#undef MAX
-#undef ABS
-#undef NOMORE
-#undef NOLESS
-#undef LIMIT
-#undef ATAN2
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2(y, x)
-#define POW(x, y)   pow(x, y)
-#define SQRT(x)     sqrt(x)
-#define CEIL(x)     ceil(x)
-#define FLOOR(x)    floor(x)
-#define LROUND(x)   lround(x)
-#define FMOD(x, y)  fmod(x, y)
-#define COS(x)      cos(x)
-#define SIN(x)      sin(x)
-#define LOG(x)      log(x)
-
-// Avoid double evaluation of arguments on MIN/MAX/ABS
-template <class A, class B> static inline constexpr auto MIN(const A a, const B b) -> decltype(a + b) {
-  return a < b ? a : b;
-}
-template <class A, class B> static inline constexpr auto MAX(const A a, const B b) -> decltype(a + b){
-  return a > b ? a : b;
-}
-template <class T> static inline constexpr const T ABS(const T v) {
-  return v >= 0 ? v : -v;
-}
-
-template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) {
-  if (a < b) a = b;
-}
-template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) {
-  if (a > b) a = b;
-}
-template <class A, class B, class C> static inline constexpr void LIMIT(A& a, const B b, const C c) {
-  if (a < b) a = b;
-  else if (a > c) a = c;
 }

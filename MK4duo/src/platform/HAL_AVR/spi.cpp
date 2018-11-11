@@ -94,6 +94,7 @@
       SET_OUTPUT(MOSI_PIN);
       SET_OUTPUT(SCK_PIN);
     #endif
+    spiInit(SPI_SPEED);
   }
 
   /**

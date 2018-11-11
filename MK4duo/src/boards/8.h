@@ -4,8 +4,6 @@
 * Requires the Teensyduino software with Teensy++ 2.0 selected in Arduino IDE!
 * http://www.pjrc.com/teensy/teensyduino.html
 ****************************************************************************************/
-
-
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME

@@ -41,6 +41,7 @@
   #define CODE_M30
   #define CODE_M32
   #define CODE_M33
+  #define CODE_M524
 
   /**
    * M20: List SD card to serial output
@@ -85,7 +86,7 @@
     #endif
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
-      resume_print();
+      advancedpause.resume_print();
     #endif
 
     card.startFileprint();
@@ -121,11 +122,8 @@
    * M27: Get SD Card status or set the SD status auto-report interval.
    */
   inline void gcode_M27(void) {
-    bool to_enable = false;
-    if (parser.seenval('S')) {
-      to_enable = parser.value_bool();
-      printer.setAutoreportSD(to_enable);
-    }
+    if (parser.seenval('S'))
+      card.setAutoreportSD(parser.value_bool());
     else
       card.printStatus();
   }
@@ -155,7 +153,7 @@
    * M32: Select file and start SD print
    */
   inline void gcode_M32(void) {
-    if (IS_SD_PRINTING) planner.synchronize();
+    if (IS_SD_PRINTING()) planner.synchronize();
 
     if (card.isOK()) {
       card.closeFile();
@@ -181,8 +179,8 @@
    * M33: Stop printing, close file and save restart.gcode
    */
   inline void gcode_M33(void) {
-    if (card.isOK() && IS_SD_PRINTING)
-      printer.setAbortSDprinting(true);
+    if (card.isOK() && IS_SD_PRINTING())
+      card.setAbortSDprinting(true);
   }
 
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_GCODE)
@@ -202,5 +200,12 @@
     }
 
   #endif // SDCARD_SORT_ALPHA && SDSORT_GCODE
+
+  /**
+   * M524: Abort the current SD print job (started with M24)
+   */
+  inline void gcode_M524(void) {
+    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
+  }
 
 #endif // HAS_SD_SUPPORT

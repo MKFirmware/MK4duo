@@ -35,6 +35,8 @@
 // ARDUINO_ARCH_SAM
 // **************************************************************************
 
+#include "../../feature/pcf8574/pcf8574.h"
+
 /**
  * Types
  */
@@ -142,53 +144,110 @@ static constexpr Fastio_Param Fastio[] = {
 // NOT CHANGE uint8_t in Pin, ALLIGATOR board crashed!!!
 // Read a pin
 FORCE_INLINE static bool READ(const uint8_t pin) {
-  return (bool)(Fastio[pin].base_address->PIO_PDSR & (MASK(Fastio[pin].shift_count)));
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      return pcf8574.digitalRead(pin - PIN_START_FOR_PCF8574);
+    }
+    else
+  #endif
+  {
+    return (bool)(Fastio[pin].base_address->PIO_PDSR & (MASK(Fastio[pin].shift_count)));
+  }
 }
 FORCE_INLINE static bool READ_VAR(const uint8_t pin) {
-  const PinDescription& pinDesc = g_APinDescription[pin];
-	if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
-    if (pinDesc.pPort->PIO_PDSR & pinDesc.ulPin)
-      return true;
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      return pcf8574.digitalRead(pin - PIN_START_FOR_PCF8574);
+    }
+    else
+  #endif
+  {
+    const PinDescription& pinDesc = g_APinDescription[pin];
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+      if (pinDesc.pPort->PIO_PDSR & pinDesc.ulPin)
+        return true;
+    }
+    return false;
   }
-  return false;
 }
 
 // write to a pin
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
 FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
-  if (flag)
-    Fastio[pin].base_address->PIO_SODR = MASK(Fastio[pin].shift_count);
-  else
-    Fastio[pin].base_address->PIO_CODR = MASK(Fastio[pin].shift_count);
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, flag);
+    }
+    else
+  #endif
+  {
+    if (flag)
+      Fastio[pin].base_address->PIO_SODR = MASK(Fastio[pin].shift_count);
+    else
+      Fastio[pin].base_address->PIO_CODR = MASK(Fastio[pin].shift_count);
+  }
 }
 FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
-  volatile Pio* port = digitalPinToPort(pin);
-  uint32_t mask = g_APinDescription[pin].ulPin;
-  if (flag)
-    port->PIO_SODR = mask;
-  else
-    port->PIO_CODR = mask;
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, flag);
+    }
+    else
+  #endif
+  {
+    volatile Pio* port = digitalPinToPort(pin);
+    uint32_t mask = g_APinDescription[pin].ulPin;
+    if (flag)
+      port->PIO_SODR = mask;
+    else
+      port->PIO_CODR = mask;
+  }
 }
 
 // set pin as input
 FORCE_INLINE static void SET_INPUT(const pin_t pin) {
-  const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
-    pmc_enable_periph_clk(pinDesc.ulPeripheralId);
-    PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, 0);
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.pinMode(pin - PIN_START_FOR_PCF8574, INPUT);
+    }
+    else
+  #endif
+  {
+    const PinDescription& pinDesc = g_APinDescription[pin];
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
+      pmc_enable_periph_clk(pinDesc.ulPeripheralId);
+      PIO_Configure(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin, 0);
+    }
   }
 }
 
 // set pin as output
 FORCE_INLINE static void SET_OUTPUT(const pin_t pin) {
-  const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType != PIO_NOT_A_PIN)
-    PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.pinMode(pin - PIN_START_FOR_PCF8574, OUTPUT);
+    }
+    else
+  #endif
+  {
+    const PinDescription& pinDesc = g_APinDescription[pin];
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  }
 }
 FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
-  const PinDescription& pinDesc = g_APinDescription[pin];
-  if (pinDesc.ulPinType != PIO_NOT_A_PIN)
-    PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.pinMode(pin - PIN_START_FOR_PCF8574, OUTPUT);
+      pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, HIGH);
+    }
+    else
+  #endif
+  {
+    const PinDescription& pinDesc = g_APinDescription[pin];
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+      PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+  }
 }
 
 // set pin as input with pullup
@@ -202,8 +261,17 @@ FORCE_INLINE static void SET_INPUT_PULLUP(const pin_t pin) {
 
 // Shorthand
 FORCE_INLINE static void OUT_WRITE(const pin_t pin, const uint8_t flag) {
-  SET_OUTPUT(pin);
-  WRITE(pin, flag);
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.pinMode(pin - PIN_START_FOR_PCF8574, OUTPUT);
+      pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, flag);
+    }
+    else
+  #endif
+  {
+    SET_OUTPUT(pin);
+    WRITE(pin, flag);
+  }
 }
 
 FORCE_INLINE static bool USEABLE_HARDWARE_PWM(const pin_t pin) {

@@ -43,11 +43,11 @@ inline void gcode_M203(void) {
       #if MECH(DELTA)
         const float value = parser.value_per_axis_unit((AxisEnum)a);
         if (i == E_AXIS)
-          mechanics.max_feedrate_mm_s[a] = value;
+          mechanics.data.max_feedrate_mm_s[a] = value;
         else
-          LOOP_XYZ(axis) mechanics.max_feedrate_mm_s[axis] = value;
+          LOOP_XYZ(axis) mechanics.data.max_feedrate_mm_s[axis] = value;
       #else
-        mechanics.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
+        mechanics.data.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
       #endif
     }
   }

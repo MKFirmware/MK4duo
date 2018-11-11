@@ -32,8 +32,6 @@
  * SAM3X8E
  */
 #if ENABLED(ARDUINO_ARCH_SAM)
-  #undef TX_BUFFER_SIZE
-  #undef RX_BUFFER_SIZE
   #if ENABLED(M100_FREE_MEMORY_WATCHER)
     #undef M100_FREE_MEMORY_WATCHER
   #endif
@@ -64,25 +62,25 @@
   // Effective horizontal distance bridged by diagonal push rods.
   #define DELTA_RADIUS (DELTA_SMOOTH_ROD_OFFSET - DELTA_EFFECTOR_OFFSET - DELTA_CARRIAGE_OFFSET)
 
-  #if DISABLED(Z_PROBE_SPEED)
-    #define Z_PROBE_SPEED     (HOMING_FEEDRATE_XYZ / 2)
+  #if DISABLED(Z_PROBE_SPEED_FAST)
+    #define Z_PROBE_SPEED_FAST  HOMING_FEEDRATE_XYZ
   #endif
-
-  #define Z_PROBE_SPEED_FAST  Z_PROBE_SPEED
-  #define Z_PROBE_SPEED_SLOW  (Z_PROBE_SPEED / 2)
+  #if DISABLED(Z_PROBE_SPEED_SLOW)
+    #define Z_PROBE_SPEED_SLOW  (Z_PROBE_SPEED_FAST / 2)
+  #endif
 
   // Set the rectangle in which to probe
   #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
-  #define LEFT_PROBE_BED_POSITION   -(mechanics.delta_probe_radius)
-  #define RIGHT_PROBE_BED_POSITION   (mechanics.delta_probe_radius)
-  #define FRONT_PROBE_BED_POSITION  -(mechanics.delta_probe_radius)
-  #define BACK_PROBE_BED_POSITION    (mechanics.delta_probe_radius)
+  #define LEFT_PROBE_BED_POSITION   -(mechanics.data.probe_radius)
+  #define RIGHT_PROBE_BED_POSITION   (mechanics.data.probe_radius)
+  #define FRONT_PROBE_BED_POSITION  -(mechanics.data.probe_radius)
+  #define BACK_PROBE_BED_POSITION    (mechanics.data.probe_radius)
 
-  #define X_MIN_POS -(mechanics.delta_print_radius)
-  #define X_MAX_POS  (mechanics.delta_print_radius)
-  #define Y_MIN_POS -(mechanics.delta_print_radius)
-  #define Y_MAX_POS  (mechanics.delta_print_radius)
-  #define Z_MAX_POS  (mechanics.delta_height)
+  #define X_MIN_POS -(mechanics.data.print_radius)
+  #define X_MAX_POS  (mechanics.data.print_radius)
+  #define Y_MIN_POS -(mechanics.data.print_radius)
+  #define Y_MAX_POS  (mechanics.data.print_radius)
+  #define Z_MAX_POS  (mechanics.data.height)
   #define Z_MIN_POS 0
   #define E_MIN_POS 0
 
@@ -93,10 +91,10 @@
   #define Y_BED_SIZE ((DELTA_PRINTABLE_RADIUS) * 2)
 
   #define UBL_PROBEABLE_RADIUS   (DELTA_PRINTABLE_RADIUS)
-  #define UBL_MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
-  #define UBL_MESH_MAX_Y         (UBL_PROBEABLE_RADIUS)
+  #define MESH_MIN_X        -(UBL_PROBEABLE_RADIUS)
+  #define MESH_MAX_X         (UBL_PROBEABLE_RADIUS)
+  #define MESH_MIN_Y        -(UBL_PROBEABLE_RADIUS)
+  #define MESH_MAX_Y         (UBL_PROBEABLE_RADIUS)
 
   #define PROBE_PT_1_X 0
   #define PROBE_PT_1_Y 0
@@ -294,11 +292,11 @@
  * SPI_SPEED
  */
 #if ENABLED(SDEXTRASLOW)
-  #define SPI_SPEED 2
+  #define SPI_SPEED 4
 #elif ENABLED(SDSLOW)
-  #define SPI_SPEED 1
+  #define SPI_SPEED 2
 #else
-  #define SPI_SPEED 0
+  #define SPI_SPEED 1
 #endif
 
 /**
@@ -383,6 +381,10 @@
 #define HAS_Z2_DIR          (PIN_EXISTS(Z2_DIR))
 #define HAS_Z2_STEP         (PIN_EXISTS(Z2_STEP))
 
+#define HAS_Z3_ENABLE       (PIN_EXISTS(Z3_ENABLE))
+#define HAS_Z3_DIR          (PIN_EXISTS(Z3_DIR))
+#define HAS_Z3_STEP         (PIN_EXISTS(Z3_STEP))
+
 // Extruder steppers and solenoids
 #define HAS_E0_ENABLE       (PIN_EXISTS(E0_ENABLE))
 #define HAS_E0_DIR          (PIN_EXISTS(E0_DIR))
@@ -428,14 +430,21 @@
 #define HAS_E4_ENC          (PIN_EXISTS(E4_ENC))
 #define HAS_E5_ENC          (PIN_EXISTS(E5_ENC))
 
+#define HAS_SENSORLESS      (TMC_HAS_STALLGUARD && (ENABLED(SENSORLESS_HOMING) || ENABLED(Z_PROBE_SENSORLESS)))
+
 // Disable Z axis sensorless homing if a probe is used to home the Z axis
-#if ENABLED(SENSORLESS_HOMING)
-  #define X_SENSORLESS (X_HAS_DRV(TMC2130) && ENABLED(X_HOMING_SENSITIVITY))
-  #define Y_SENSORLESS (Y_HAS_DRV(TMC2130) && ENABLED(Y_HOMING_SENSITIVITY))
-  #define Z_SENSORLESS (Z_HAS_DRV(TMC2130) && ENABLED(Z_HOMING_SENSITIVITY))
+#if HAS_SENSORLESS
   #if HOMING_Z_WITH_PROBE
-    #undef Z_HOMING_SENSITIVITY
+    #undef Z_STALL_SENSITIVITY
+    #define Z_STALL_SENSITIVITY 0
   #endif
+  #define X_HAS_SENSORLESS (AXIS_HAS_STALLGUARD(X) && ENABLED(X_STALL_SENSITIVITY))
+  #define Y_HAS_SENSORLESS (AXIS_HAS_STALLGUARD(Y) && ENABLED(Y_STALL_SENSITIVITY))
+  #define Z_HAS_SENSORLESS (AXIS_HAS_STALLGUARD(Z) && ENABLED(Z_STALL_SENSITIVITY))
+#else
+  #define X_STALL_SENSITIVITY 0
+  #define Y_STALL_SENSITIVITY 0
+  #define Z_STALL_SENSITIVITY 0
 #endif
 
 // Endstops and bed probe
@@ -448,10 +457,15 @@
 #define HAS_X2_MIN          (PIN_EXISTS(X2_MIN))
 #define HAS_Y2_MIN          (PIN_EXISTS(Y2_MIN))
 #define HAS_Z2_MIN          (PIN_EXISTS(Z2_MIN))
+#define HAS_Z3_MIN          (PIN_EXISTS(Z3_MIN))
 #define HAS_X2_MAX          (PIN_EXISTS(X2_MAX))
 #define HAS_Y2_MAX          (PIN_EXISTS(Y2_MAX))
 #define HAS_Z2_MAX          (PIN_EXISTS(Z2_MAX))
+#define HAS_Z3_MAX          (PIN_EXISTS(Z3_MAX))
 #define HAS_Z_PROBE_PIN     (PIN_EXISTS(Z_PROBE))
+
+// Multi endstop
+#define HAS_MULTI_ENDSTOP   (ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_THREE_ENDSTOPS))
 
 // Utility
 #define HAS_DOOR_OPEN       (ENABLED(DOOR_OPEN) && PIN_EXISTS(DOOR_OPEN))
@@ -514,12 +528,12 @@
 
 // Sensors
 #define HAS_FILAMENT_SENSOR           (ENABLED(FILAMENT_SENSOR) && PIN_EXISTS(FILWIDTH))
-#define HAS_FIL_RUNOUT                (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT0))
-#define HAS_FIL_RUNOUT1               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT1))
-#define HAS_FIL_RUNOUT2               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT2))
-#define HAS_FIL_RUNOUT3               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT3))
-#define HAS_FIL_RUNOUT4               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT4))
-#define HAS_FIL_RUNOUT5               (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT5))
+#define HAS_FIL_RUNOUT_0              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_0))
+#define HAS_FIL_RUNOUT_1              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_1))
+#define HAS_FIL_RUNOUT_2              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_2))
+#define HAS_FIL_RUNOUT_3              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_3))
+#define HAS_FIL_RUNOUT_4              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_4))
+#define HAS_FIL_RUNOUT_5              (ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT_5))
 #define HAS_DAV_SYSTEM                (ENABLED(FILAMENT_RUNOUT_DAV_SYSTEM) && PIN_EXISTS(FIL_RUNOUT_DAV))
 #define HAS_POWER_CONSUMPTION_SENSOR  (ENABLED(POWER_CONSUMPTION) && PIN_EXISTS(POWER_CONSUMPTION))
 
@@ -528,10 +542,6 @@
  */
 #define HAS_LCD_FILAMENT_SENSOR (HAS_FILAMENT_SENSOR && ENABLED(FILAMENT_LCD_DISPLAY))
 #define HAS_LCD_POWER_SENSOR    (HAS_POWER_CONSUMPTION_SENSOR && ENABLED(POWER_CONSUMPTION_LCD_DISPLAY))
-
-// LCD
-#define HAS_LCD         (ENABLED(NEWPANEL) || ENABLED(NEXTION))
-#define HAS_DEBUG_MENU  (ENABLED(LCD_PROGRESS_BAR_TEST))
 
 // User Interface
 #define HAS_BTN_BACK        (PIN_EXISTS(BTN_BACK))
@@ -676,6 +686,9 @@
 #if DISABLED(ENDSTOPPULLUP_Z2MIN)
   #define ENDSTOPPULLUP_Z2MIN   false
 #endif
+#if DISABLED(ENDSTOPPULLUP_Z3MIN)
+  #define ENDSTOPPULLUP_Z3MIN   false
+#endif
 #if DISABLED(ENDSTOPPULLUP_X2MAX)
   #define ENDSTOPPULLUP_X2MAX   false
 #endif
@@ -684,6 +697,9 @@
 #endif
 #if DISABLED(ENDSTOPPULLUP_Z2MAX)
   #define ENDSTOPPULLUP_Z2MAX   false
+#endif
+#if DISABLED(ENDSTOPPULLUP_Z3MAX)
+  #define ENDSTOPPULLUP_Z3MAX   false
 #endif
 #if DISABLED(ENDSTOPPULLUP_ZPROBE)
   #define ENDSTOPPULLUP_ZPROBE  false
@@ -716,6 +732,9 @@
 #if DISABLED(Z2_MIN_ENDSTOP_LOGIC)
   #define Z2_MIN_ENDSTOP_LOGIC  false
 #endif
+#if DISABLED(Z3_MIN_ENDSTOP_LOGIC)
+  #define Z3_MIN_ENDSTOP_LOGIC  false
+#endif
 #if DISABLED(X2_MAX_ENDSTOP_LOGIC)
   #define X2_MAX_ENDSTOP_LOGIC  false
 #endif
@@ -725,48 +744,51 @@
 #if DISABLED(Z2_MAX_ENDSTOP_LOGIC)
   #define Z2_MAX_ENDSTOP_LOGIC  false
 #endif
+#if DISABLED(Z3_MAX_ENDSTOP_LOGIC)
+  #define Z3_MAX_ENDSTOP_LOGIC  false
+#endif
 #if DISABLED(Z_PROBE_ENDSTOP_LOGIC)
   #define Z_PROBE_ENDSTOP_LOGIC false
 #endif
 
 /**
- * The BLTouch Probe emulates a servo probe
+ * JERK or JUNCTION_DEVIATION
  */
-#if ENABLED(BLTOUCH)
-  #if HAS_Z_PROBE_PIN
-    #define TEST_BLTOUCH() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
-  #else
-    #define TEST_BLTOUCH() (READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN))
-  #endif
-#endif
+#define HAS_CLASSIC_JERK        (IS_KINEMATIC || DISABLED(JUNCTION_DEVIATION))
 
 /**
  * Set granular options based on the specific type of leveling
  */
+#define UBL_DELTA               (ENABLED(AUTO_BED_LEVELING_UBL) && MECH(DELTA))
+#define ABL_PLANAR              (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
+#define ABL_GRID                (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
+#define OLD_ABL                 (ABL_PLANAR || ABL_GRID)
+#define HAS_ABL                 (OLD_ABL || ENABLED(AUTO_BED_LEVELING_UBL))
+#define HAS_LEVELING            (HAS_ABL || ENABLED(MESH_BED_LEVELING))
+#define HAS_AUTOLEVEL           (HAS_ABL && DISABLED(PROBE_MANUALLY))
+#define HAS_MESH                (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
+#define PLANNER_LEVELING        (HAS_LEVELING && DISABLED(AUTO_BED_LEVELING_UBL))
+#define HAS_PROBING_PROCEDURE   (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
+#define HAS_POSITION_MODIFIERS  (ENABLED(FWRETRACT) || HAS_LEVELING)
 
-#define UBL_DELTA             (ENABLED(AUTO_BED_LEVELING_UBL) && MECH(DELTA))
-#define ABL_PLANAR            (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT))
-#define ABL_GRID              (ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_BILINEAR))
-#define HAS_ABL               (ABL_PLANAR || ABL_GRID || ENABLED(AUTO_BED_LEVELING_UBL))
-#define HAS_LEVELING          (HAS_ABL || ENABLED(MESH_BED_LEVELING))
-#define HAS_AUTOLEVEL         (HAS_ABL && DISABLED(PROBE_MANUALLY))
-#define OLD_ABL               (HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL))
-#define HAS_MESH              (ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(MESH_BED_LEVELING))
-#define PLANNER_LEVELING      (ABL_PLANAR || ABL_GRID || ENABLED(MESH_BED_LEVELING) || UBL_DELTA)
-#define HAS_PROBING_PROCEDURE (HAS_ABL || ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST))
-#define HAS_UBL_AND_CURVES    (ENABLED(AUTO_BED_LEVELING_UBL) && !PLANNER_LEVELING && (ENABLED(ARC_SUPPORT) || ENABLED(BEZIER_JERK_CONTROL)))
-#define HAS_FEEDRATE_SCALING  (ENABLED(SCARA_FEEDRATE_SCALING) || ENABLED(DELTA_FEEDRATE_SCALING))
-#define HAS_POSITION_FLOAT    (ENABLED(LIN_ADVANCE) || HAS_FEEDRATE_SCALING)
+#if ENABLED(AUTO_BED_LEVELING_UBL)
+  #undef LCD_BED_LEVELING
+#endif
+
+/**
+ * Position Float
+ */
+#define HAS_POSITION_FLOAT      (ENABLED(LIN_ADVANCE) || ENABLED(SCARA_FEEDRATE_SCALING))
 
 /**
  * Bed Probing rectangular bounds
  * These can be further constrained in code for Delta and SCARA
  */
-#if IS_DELTA
-  #define MIN_PROBE_X -(mechanics.delta_print_radius)
-  #define MAX_PROBE_X  (mechanics.delta_print_radius)
-  #define MIN_PROBE_Y -(mechanics.delta_print_radius)
-  #define MAX_PROBE_Y  (mechanics.delta_print_radius)
+#if MECH(DELTA)
+  #define MIN_PROBE_X -(mechanics.data.print_radius)
+  #define MAX_PROBE_X  (mechanics.data.print_radius)
+  #define MIN_PROBE_Y -(mechanics.data.print_radius)
+  #define MAX_PROBE_Y  (mechanics.data.print_radius)
 #elif IS_SCARA
   #define SCARA_PRINTABLE_RADIUS (SCARA_LINKAGE_1 + SCARA_LINKAGE_2)
   #define MIN_PROBE_X (X_CENTER - (SCARA_PRINTABLE_RADIUS) + (MIN_PROBE_EDGE))
@@ -775,10 +797,10 @@
   #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
   // Boundaries for Cartesian probing based on bed limits
-  #define MIN_PROBE_X (MAX(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.offset[X_AXIS]))
-  #define MIN_PROBE_Y (MAX(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.offset[Y_AXIS]))
-  #define MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.offset[X_AXIS]))
-  #define MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.offset[Y_AXIS]))
+  #define MIN_PROBE_X (MAX(X_MIN_BED + (MIN_PROBE_EDGE), X_MIN_POS + probe.data.offset[X_AXIS]))
+  #define MIN_PROBE_Y (MAX(Y_MIN_BED + (MIN_PROBE_EDGE), Y_MIN_POS + probe.data.offset[Y_AXIS]))
+  #define MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + probe.data.offset[X_AXIS]))
+  #define MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + probe.data.offset[Y_AXIS]))
 #endif
 
 /**
@@ -1097,18 +1119,14 @@
 /**
  * Set flags for enabled probes
  */
-#define HAS_BED_PROBE         (ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE)
+#define HAS_BED_PROBE         (ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(Z_PROBE_SENSORLESS))
 #define PROBE_SELECTED        (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
 #define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
-
-#if ENABLED(Z_PROBE_ALLEN_KEY)
-  #define PROBE_IS_TRIGGERED_WHEN_STOWED_TEST
-#endif
 
 /**
  * Nextion Manual BED leveling
  */
-#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && ENABLED(NEXTION))
+#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && HAS_NEXTION_LCD)
 
 /**
  * Bed Probe dependencies

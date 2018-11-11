@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+#if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
   #define CODE_M995
   #define CODE_M996
@@ -41,4 +41,4 @@
    */
   inline void gcode_M996() { if (parser.seenval('S')) gfx_scale(parser.value_float()); }
 
-#endif // ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+#endif // HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)

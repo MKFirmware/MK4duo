@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * advanced_pause.h
@@ -26,55 +27,70 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _ADVANCED_PAUSE_H_
-#define _ADVANCED_PAUSE_H_
-
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-  enum AdvancedPauseMode {
-    ADVANCED_PAUSE_MODE_PAUSE_PRINT,
-    ADVANCED_PAUSE_MODE_LOAD_FILAMENT,
-    ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT
-  };
+typedef struct {
+  float unload_length,
+        load_length;
+} advanced_pause_data_t;
 
-  enum AdvancedPauseMessage {
-    ADVANCED_PAUSE_MESSAGE_INIT,
-    ADVANCED_PAUSE_MESSAGE_UNLOAD,
-    ADVANCED_PAUSE_MESSAGE_INSERT,
-    ADVANCED_PAUSE_MESSAGE_LOAD,
-    ADVANCED_PAUSE_MESSAGE_PURGE,
-    ADVANCED_PAUSE_MESSAGE_OPTION,
-    ADVANCED_PAUSE_MESSAGE_RESUME,
-    ADVANCED_PAUSE_MESSAGE_STATUS,
-    ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
-    ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
-    ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
-  };
+#if ENABLED(DUAL_X_CARRIAGE)
+  #define DXC_PARAMS , const int8_t DXC_ext=-1
+  #define DXC_ARGS   , const int8_t DXC_ext
+  #define DXC_PASS   , DXC_ext
+#else
+  #define DXC_PARAMS
+  #define DXC_ARGS
+  #define DXC_PASS
+#endif
 
-  enum AdvancedPauseMenuResponse {
-    ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
-    ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
-    ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
-  };
+class AdvancedPause {
 
-  extern AdvancedPauseMenuResponse advanced_pause_menu_response;
+  public: /** Constructor */
 
-  extern float  filament_change_unload_length[EXTRUDERS],
-                filament_change_load_length[EXTRUDERS];
+    AdvancedPause() {}
 
-  extern uint8_t did_pause_print;
+  public: /** Public Parameters */
 
-  bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0,
-                   const bool show_lcd=false);
+    static AdvancedPauseMenuResponseEnum menu_response;
 
-  void wait_for_filament_reload(const int8_t max_beep_count=0);
+    static advanced_pause_data_t data[EXTRUDERS];
 
-  void resume_print(const float &slow_load_length=0, const float &fast_load_length=0, const float &purge_length=PAUSE_PARK_EXTRUDE_LENGTH, const int8_t max_beep_count=0);
+    static uint8_t did_pause_print;
 
-  bool load_filament(const float &slow_load_length=0, const float &fast_load_length=0, const float &purge_length=0, const int8_t max_beep_count=0, const bool show_lcd=false,
-                     const bool pause_for_user=false, const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
+  private: /** Private Parameters */
 
-  bool unload_filament(const float &unload_length, const bool show_lcd=false, const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
+    static float resume_position[XYZE];
+
+  public: /** Public Function */
+
+    static void do_pause_e_move(const float &length, const float &fr);
+
+    static bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0,
+                            const bool show_lcd=false DXC_PARAMS);
+
+    static void wait_for_confirmation(const bool is_reload=false, const int8_t max_beep_count=0 DXC_PARAMS);
+
+    static void resume_print( const float &slow_load_length=0, const float &fast_load_length=0,
+                              const float &purge_length=PAUSE_PARK_EXTRUDE_LENGTH, const int8_t max_beep_count=0 DXC_PARAMS);
+
+    static bool load_filament(const float &slow_load_length=0, const float &fast_load_length=0,
+                              const float &purge_length=0, const int8_t max_beep_count=0, const bool show_lcd=false,
+                              const bool pause_for_user=false, const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT DXC_PARAMS);
+
+    static bool unload_filament(const float &unload_length, const bool show_lcd=false, const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
+
+  private: /** Private Function */
+
+    static void show_continue_prompt(const bool is_reload);
+    static bool ensure_safe_temperature(const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_SAME);
+
+    #if HAS_BUZZER
+      static void filament_change_beep(const int8_t max_beep_count, const bool init=false);
+    #endif
+
+};
+
+extern AdvancedPause advancedpause;
 
 #endif // ENABLED(ADVANCED_PAUSE_FEATURE)
-#endif /* _ADVANCED_PAUSE_H_ */

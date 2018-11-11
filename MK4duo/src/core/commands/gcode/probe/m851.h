@@ -30,15 +30,13 @@
 
 inline void gcode_M851(void) {
 
-  SERIAL_SM(ECHO, "Probe Offset");
-
-  probe.offset[X_AXIS] = parser.linearval('X', probe.offset[X_AXIS]);
-  probe.offset[Y_AXIS] = parser.linearval('Y', probe.offset[Y_AXIS]);
+  probe.data.offset[X_AXIS] = parser.linearval('X', probe.data.offset[X_AXIS]);
+  probe.data.offset[Y_AXIS] = parser.linearval('Y', probe.data.offset[Y_AXIS]);
 
   if (parser.seen('Z')) {
     const float value = parser.value_linear_units();
     if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
-      probe.offset[Z_AXIS] = value;
+      probe.data.offset[Z_AXIS] = value;
     }
     else {
       SERIAL_LM(ER, "?Z out of range (" STRINGIFY(Z_PROBE_OFFSET_RANGE_MIN) " to " STRINGIFY(Z_PROBE_OFFSET_RANGE_MAX));
@@ -46,8 +44,17 @@ inline void gcode_M851(void) {
     }
   }
 
-  SERIAL_SMV(ECHO, " X:", probe.offset[X_AXIS], 3);
-  SERIAL_MV(" Y:", probe.offset[Y_AXIS], 3);
-  SERIAL_MV(" Z:", probe.offset[Z_AXIS], 3);
+  probe.data.speed_fast = parser.ushortval('F', probe.data.speed_fast);
+  probe.data.speed_slow = parser.ushortval('S', probe.data.speed_slow);
+
+  NOLESS(probe.data.speed_fast, 120);
+  NOLESS(probe.data.speed_slow, 60);
+
+  SERIAL_LM(ECHO, "Probe Offset XYZ, speed [F]ast and speed [S]low [mm/min]");
+  SERIAL_SMV(ECHO, " X:", probe.data.offset[X_AXIS], 3);
+  SERIAL_MV(" Y:", probe.data.offset[Y_AXIS], 3);
+  SERIAL_MV(" Z:", probe.data.offset[Z_AXIS], 3);
+  SERIAL_MV(" F:", probe.data.speed_fast);
+  SERIAL_MV(" S:", probe.data.speed_slow);
   SERIAL_EOL();
 }

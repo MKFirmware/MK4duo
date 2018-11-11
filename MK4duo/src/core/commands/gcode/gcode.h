@@ -56,6 +56,7 @@
 #include "config/m220.h"                  // Set speed percentage
 #include "config/m221.h"                  // Set extrusion percentage
 #include "config/m222.h"                  // Set density
+#include "config/m223_m224.h"             // Set Logic or Pullup filrunout
 #include "config/m301.h"                  // Set PID parameters Heater
 #include "config/m302.h"                  // Allow cold extrudes
 #include "config/m305.h"                  // Set thermistor and ADC parameters
@@ -115,6 +116,8 @@
 #include "feature/m603.h"                 // Configure filament change
 #include "feature/m701_m702.h"            // Load / Unload filament
 #include "feature/m911_m915.h"            // Set TRINAMIC driver
+#include "feature/m930_m939.h"            // Set TRINAMIC driver
+#include "feature/m940_m942.h"            // Set TRINAMIC driver
 #include "feature/m922.h"                 // TMC DEBUG
 
 // Geometry Commands

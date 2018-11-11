@@ -22,25 +22,58 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
+#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
   Power powerManager;
 
-  #if HAS_POWER_SWITCH
-    bool    Power::powersupply_on = false;
-    #if (POWER_TIMEOUT > 0)
-      watch_t Power::watch_lastPowerOn(POWER_TIMEOUT * 1000UL);
-    #endif
-  #endif
-
+  // Public Parameters
   #if HAS_POWER_CONSUMPTION_SENSOR
     int16_t   Power::current_raw_powconsumption = 0;    // Holds measured power consumption
     float     Power::consumption_meas           = 0.0;
     uint32_t  Power::consumption_hour           = 0,
               Power::startpower                 = 0;
   #endif
-  
+
+  // Private Parameters
+  flagbyte_t  Power::flag;
+
   #if HAS_POWER_SWITCH
+    bool      Power::powersupply_on = false;
+    #if (POWER_TIMEOUT > 0)
+      watch_t Power::watch_lastPowerOn(POWER_TIMEOUT * 1000UL);
+    #endif
+  #endif
+
+  // Public Function
+  #if HAS_POWER_SWITCH || HAS_POWER_CHECK
+
+    // Public Function
+    void Power::init() {
+      #if HAS_POWER_SWITCH
+        SET_OUTPUT(PS_ON_PIN);
+      #endif
+      #if HAS_POWER_CHECK
+        SET_INPUT(POWER_CHECK_PIN);
+      #endif
+    }
+
+    #if HAS_POWER_CHECK
+
+      void Power::factory_parameters() {
+        setLogic(POWER_CHECK_LOGIC);
+        setPullup(PULLUP_POWER_CHECK);
+      }
+
+      void Power::setup_pullup() {
+        HAL::setInputPullup(POWER_CHECK_PIN, isPullup());
+      }
+
+      void Endstops::report() {
+        SERIAL_LOGIC("POWER CHECK Logic", isLogic());
+        SERIAL_LOGIC(" Pullup", isPullup());
+      }
+
+    #endif 
 
     void Power::spin() {
       if (is_power_needed())
@@ -56,10 +89,10 @@
         watch_lastPowerOn.start();
       #endif
       if (!powersupply_on) {
-        OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+        WRITE(PS_ON_PIN, PS_ON_AWAKE);
         #if HAS_TRINAMIC
           HAL::delayMilliseconds(100); // Wait for power to settle
-          restore_stepper_drivers();
+          tmc.restore();
         #endif
         HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
         powersupply_on = true;
@@ -68,7 +101,7 @@
 
     void Power::power_off() {
       if (powersupply_on) {
-        OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+        WRITE(PS_ON_PIN, PS_ON_ASLEEP);
         powersupply_on = false;
         #if (POWER_TIMEOUT > 0)
           watch_lastPowerOn.stop();

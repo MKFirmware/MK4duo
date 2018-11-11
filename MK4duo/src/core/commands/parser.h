@@ -26,16 +26,9 @@
  *            so settings for these codes are located in this class.
  */
 
-#ifndef _PARSER_H_
-#define _PARSER_H_
+#pragma once
 
 //#define DEBUG_GCODE_PARSER
-
-typedef enum {
-  TEMPUNIT_C,
-  TEMPUNIT_K,
-  TEMPUNIT_F
-} TempUnit;
 
 /**
  * Parser Gcode
@@ -60,7 +53,7 @@ class GCodeParser {
     #endif
 
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-      static TempUnit input_temp_units;
+      static TempUnitEnum input_temp_units;
     #endif
 
     // Command line state
@@ -97,15 +90,15 @@ class GCodeParser {
 
     #define LETTER_BIT(N) ((N) - 'A')
 
-    FORCE_INLINE static bool valid_signless(const char * const p) {
+    FORCE_INLINE static bool valid_signless(PGM_P const p) {
       return NUMERIC(p[0]) || (p[0] == '.' && NUMERIC(p[1])); // .?[0-9]
     }
 
-    FORCE_INLINE static bool valid_float(const char * const p) {
+    FORCE_INLINE static bool valid_float(PGM_P const p) {
       return valid_signless(p) || ((p[0] == '-' || p[0] == '+') && valid_signless(&p[1])); // [-+]?.?[0-9]
     }
 
-    FORCE_INLINE static bool valid_int(const char * const p) {
+    FORCE_INLINE static bool valid_int(PGM_P const p) {
       return NUMERIC(p[0]) || ((p[0] == '-' || p[0] == '+') && NUMERIC(p[1])); // [-+]?[0-9]
     }
 
@@ -240,7 +233,7 @@ class GCodeParser {
 
     #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
 
-      static inline void set_input_temp_units(TempUnit units) { input_temp_units = units; }
+      static inline void set_input_temp_units(TempUnitEnum units) { input_temp_units = units; }
 
       #if ENABLED(ULTIPANEL) && DISABLED(DISABLE_M503)
 
@@ -316,5 +309,3 @@ class GCodeParser {
 };
 
 extern GCodeParser parser;
-
-#endif /* _PARSER_H_ */

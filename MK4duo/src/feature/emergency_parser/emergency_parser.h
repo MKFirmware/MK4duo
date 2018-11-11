@@ -20,12 +20,11 @@
  *
  */
 
+#pragma once
+
 /**
  * emergency_parser.h - Intercept special commands directly in the serial stream
  */
-
-#ifndef _EMERGENCY_PARSER_H_
-#define _EMERGENCY_PARSER_H_
 
 class EmergencyParser {
 
@@ -35,30 +34,19 @@ class EmergencyParser {
 
   public: /** Public Parameters */
 
-    // Currently looking for: M108, M112, M410
-    enum State : char {
-      EP_RESET,
-      EP_N,
-      EP_M,
-      EP_M1,
-      EP_M10,
-      EP_M108,
-      EP_M11,
-      EP_M112,
-      EP_M4,
-      EP_M41,
-      EP_M410,
-      EP_IGNORE // to '\n'
-    };
-
     static bool killed_by_M112;
+
+  private: /** Private Parameters */
+
+    static bool enabled;
 
   public: /** Public Function */
 
-    static void update(State &state, const uint8_t c);
+    FORCE_INLINE static void enable()   { enabled = true; }
+    FORCE_INLINE static void disable()  { enabled = false; }
+
+    static void update(EmergencyStateEnum &state, const uint8_t c);
 
 };
 
 extern EmergencyParser emergency_parser;
-
-#endif // _EMERGENCY_PARSER_H_

@@ -66,8 +66,7 @@
     ISR(WDT_vect) {
       sei();  // With the interrupt driven serial we need to allow interrupts.
       SERIAL_LM(ER, "Watchdog timeout. Reset required.");
-      printer.kill(PSTR("ERR:Please Reset")); // kill blocks // 16 characters so it fits on a 16x2 display
-      while (1); // wait for user or serial reset
+      printer.minikill();
     }
   #endif // WATCHDOG_RESET_MANUAL
 

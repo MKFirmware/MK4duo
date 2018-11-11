@@ -115,7 +115,7 @@
         while (printer.isWaitForUser()) {
           #if HAS_BUZZER
             if (millis() - next_buzz > 60000) {
-              for (uint8_t i = 0; i < 3; i++) BUZZ(300, 1000);
+              for (uint8_t i = 0; i < 3; i++) sound.playTone(300, NOTE_C6);
               next_buzz = millis();
             }
           #endif

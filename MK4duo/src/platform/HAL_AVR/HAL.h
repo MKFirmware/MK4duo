@@ -56,6 +56,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <Arduino.h>
+#include <Wire.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,6 +76,16 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
+#ifndef WIRE_PORT
+  #define WIRE_PORT 1
+#endif
+
+#if (WIRE_PORT == 2)
+  #define WIRE  Wire1
+#else
+  #define WIRE  Wire
+#endif
+
 // A SW memory barrier, to ensure GCC does not overoptimize loops
 #define sw_barrier() asm volatile("": : :"memory")
 
@@ -94,10 +105,11 @@ typedef uint16_t  ptr_int_t;
 //#define EXTERNALSERIAL  // Force using arduino serial
 #ifndef EXTERNALSERIAL
   #include "HardwareSerial.h"
-  #define MKSERIAL MKSerial
+  #define MKSERIAL1 MKSerial
 #else
-  #define MKSERIAL Serial
+  #define MKSERIAL1 Serial
 #endif
+#define NUM_SERIAL 1
 
 // --------------------------------------------------------------------------
 // Defines
@@ -197,7 +209,6 @@ typedef uint16_t  ptr_int_t;
 #define DISABLE_TEMP_INTERRUPT()    CBI(TEMP_TIMSK, TEMP_OCIE)
 #define TEMP_ISR_ENABLED()          TEST(TEMP_TIMSK, TEMP_OCIE)
 
-#define _CAT(a, ...) a ## __VA_ARGS__
 #define HAL_timer_set_count(timer, count)           (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                  _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
@@ -539,7 +550,7 @@ class HAL {
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
-      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000L);
+      HAL_delay_cycles(delayNs * (CYCLES_PER_US) / 1000UL);
     }
     FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
       HAL_delay_cycles(delayUs * (CYCLES_PER_US));
@@ -555,23 +566,6 @@ class HAL {
     }
     static inline uint32_t timeInMilliseconds() {
       return millis();
-    }
-
-    static inline void serialSetBaudrate(const uint16_t baud) {
-      MKSERIAL.begin(baud);
-      HAL::delayMilliseconds(1);
-    }
-    static inline bool serialByteAvailable() {
-      return MKSERIAL.available() > 0;
-    }
-    static inline uint8_t serialReadByte() {
-      return MKSERIAL.read();
-    }
-    static inline void serialWriteByte(const char b) {
-      MKSERIAL.write(b);
-    }
-    static inline void serialFlush() {
-      MKSERIAL.flush();
     }
 
     // SPI related functions

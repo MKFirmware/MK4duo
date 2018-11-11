@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -166,7 +166,7 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(RADDS_DISPLAY) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
     #define LCD_PINS_RS     63

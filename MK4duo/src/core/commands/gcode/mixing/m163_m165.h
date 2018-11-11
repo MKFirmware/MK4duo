@@ -40,33 +40,30 @@
    */
   inline void gcode_M163(void) {
     const int mix_index = parser.intval('S');
-    if (WITHIN(mix_index, 0, MIXING_STEPPERS)) {
-      float mix_value = parser.floatval('P');
-      NOLESS(mix_value, 0.0);
-      mixing_factor[mix_index] = mix_value;
-    }
+    if (mix_index < MIXING_STEPPERS)
+      mixer.set_M163_collector(mix_index, MAX(parser.floatval('P'), 0.0));
   }
 
-  #if MIXING_VIRTUAL_TOOLS  > 1
+  #define CODE_M164
 
-    #define CODE_M164
-
-    /**
-     * M164: Store the current mix factors as a virtual tools.
-     *
-     *   S[index]   The virtual tools to store
-     *
-     */
-    inline void gcode_M164(void) {
-      const int tool_index = parser.intval('S');
-      if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS)) {
-        normalize_mix();
-        for (uint8_t i = 0; i < MIXING_STEPPERS; i++)
-          mixing_virtual_tool_mix[tool_index][i] = mixing_factor[i];
-      }
-    }
-
-  #endif
+  /**
+   * M164: Store the current mix factors as a virtual tools.
+   *
+   *   S[index]   The virtual tools to store
+   *              If 'S' is omitted update the active virtual tool.
+   *
+   */
+  inline void gcode_M164(void) {
+    #if MIXING_VIRTUAL_TOOLS > 1
+      const int tool_index = parser.intval('S', -1);
+    #else
+      constexpr int tool_index = 0;
+    #endif
+    if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS - 1))
+      mixer.normalize(tool_index);
+    else
+      mixer.normalize(mixer.get_current_v_tool());
+  }
 
   #define CODE_M165
 
@@ -82,6 +79,38 @@
    *   I[factor] Mix factor for extruder stepper 6
    *
    */
-  inline void gcode_M165(void) { get_mix_from_command(); }
+  inline void gcode_M165(void) {
+    // Get mixing parameters from the GCode
+    // The total "must" be 1.0 (but it will be normalized)
+    // If no mix factors are given, the old mix is preserved
+    const char mixing_codes[] = { 'A', 'B'
+      #if MIXING_STEPPERS > 2
+        , 'C'
+        #if MIXING_STEPPERS > 3
+          , 'D'
+          #if MIXING_STEPPERS > 4
+            , 'H'
+            #if MIXING_STEPPERS > 5
+              , 'I'
+            #endif // MIXING_STEPPERS > 5
+          #endif // MIXING_STEPPERS > 4
+        #endif // MIXING_STEPPERS > 3
+      #endif // MIXING_STEPPERS > 2
+    };
+    uint8_t mix_bits = 0;
+    MIXER_STEPPER_LOOP(i) {
+      if (parser.seenval(mixing_codes[i])) {
+        SBI(mix_bits, i);
+        mixer.set_M163_collector(i, MAX(parser.value_float(), 0.0f));
+      }
+    }
+    // If any mixing factors were included, clear the rest
+    // If none were included, preserve the last mix
+    if (mix_bits) {
+      MIXER_STEPPER_LOOP(i)
+        if (!TEST(mix_bits, i)) mixer.set_M163_collector(i, 0.0f);
+      mixer.normalize(mixer.get_current_v_tool());
+    }
+  }
 
 #endif  // COLOR_MIXING_EXTRUDER

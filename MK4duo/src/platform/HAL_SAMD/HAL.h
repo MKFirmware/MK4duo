@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <Reset.h>
+#include <cstdarg>
 
 // --------------------------------------------------------------------------
 // Types
@@ -47,7 +48,7 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 // do not use program space memory with Due
 #define PROGMEM
 #ifndef PGM_P
-  #define PGM_P const char*
+  #define PGM_P PGM_P
 #endif
 #undef PSTR
 #define PSTR(s) s
@@ -76,45 +77,46 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
   #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
 #endif
 
+
+#include "HardwareSerial.h"
+#if !WITHIN(SERIAL_PORT_1, -1, 2)
+  #error "SERIAL_PORT_1 must be from -1 to 2"
+#endif
 // SERIAL
-#if SERIAL_PORT == -1
-  #define MKSERIAL SerialUSB
-#elif SERIAL_PORT == 0
-  #define MKSERIAL Serial
-#elif SERIAL_PORT == 1
-  #define MKSERIAL Serial1
-#elif SERIAL_PORT == 2
-  #define MKSERIAL Serial2
-#elif SERIAL_PORT == 3
-  #define MKSERIAL Serial3
+#if SERIAL_PORT_1 == -1
+  #define MKSERIAL1 SerialUSB
+#elif SERIAL_PORT_1 == 0
+  #define MKSERIAL1 Serial
+#elif SERIAL_PORT_1 == 1
+  #define MKSERIAL1 Serial1
+#elif SERIAL_PORT_1 == 2
+  #define MKSERIAL1 Serial2
+#endif
+
+#if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
+  #if !WITHIN(SERIAL_PORT_2, -1, 2)
+    #error "SERIAL_PORT_2 must be from -1 to 2"
+  #elif SERIAL_PORT_2 == SERIAL_PORT_1
+    #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
+  #elif SERIAL_PORT_2 == -1
+    #define MKSERIAL2 SerialUSB
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 0
+    #define MKSERIAL2 Serial
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 1
+    #define MKSERIAL2 Serial1
+    #define NUM_SERIAL 2
+  #elif SERIAL_PORT_2 == 2
+    #define MKSERIAL2 Serial2
+    #define NUM_SERIAL 2
+  #endif
+#else
+  #define NUM_SERIAL 1
 #endif
 
 // EEPROM START
 #define EEPROM_OFFSET 10
-
-// MATH
-#define MATH_USE_HAL
-#undef ATAN2
-#undef FABS
-#undef POW
-#undef SQRT
-#undef CEIL
-#undef FLOOR
-#undef LROUND
-#undef FMOD
-#undef COS
-#undef SIN
-#define ATAN2(y, x) atan2f(y, x)
-#define FABS(x)     fabsf(x)
-#define POW(x, y)   powf(x, y)
-#define SQRT(x)     sqrtf(x)
-#define CEIL(x)     ceilf(x)
-#define FLOOR(x)    floorf(x)
-#define LROUND(x)   lroundf(x)
-#define FMOD(x, y)  fmodf(x, y)
-#define COS(x)      cosf(x)
-#define SIN(x)      sinf(x)
-#define LOG(x)      logf(x)
 
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
@@ -203,7 +205,7 @@ class HAL {
     #endif
 
     static bool execute_100ms;
-
+    static bool SPIReady;
 
   public: /** Public Function */
 
@@ -254,27 +256,7 @@ class HAL {
     FORCE_INLINE static unsigned long timeInMilliseconds() {
       return millis();
     }
-    // Serial communication
-    FORCE_INLINE static char readFlashByte(PGM_P ptr) {
-      return pgm_read_byte(ptr);
-    }
-    FORCE_INLINE static void serialSetBaudrate(long baud) {
-      MKSERIAL.begin(baud);
-      HAL::delayMilliseconds(1);
-    }
-    FORCE_INLINE static bool serialByteAvailable() {
-      return MKSERIAL.available() > 0;
-    }
-    FORCE_INLINE static uint8_t serialReadByte() {
-      return MKSERIAL.read();
-    }
-    FORCE_INLINE static void serialWriteByte(char c) {
-      MKSERIAL.write(c);
-    }
-    FORCE_INLINE static void serialFlush() {
-      MKSERIAL.flush();
-    }
-    
+
     FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
       const PinDescription& pinDesc = g_APinDescription[pin];
       if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
@@ -285,7 +267,7 @@ class HAL {
     static int getFreeRam();
 
     // Not used in SAMD
-    FORCE_INLINE static void hwSetup() { }
+    static void hwSetup(void);
     FORCE_INLINE static void showStartReason() { }
     FORCE_INLINE static void resetHardware() {}
 
@@ -302,7 +284,7 @@ class HAL {
     #else
       // Hardware setup
       static void spiBegin();
-      static void spiInit(uint8_t spiRate);
+      static void spiInit(uint8_t spiRate=4);
       // Write single byte to SPI
       static void spiSend(byte b);
       static void spiSend(const uint8_t* buf, size_t n);
@@ -328,8 +310,6 @@ void cli(void);
 
 // Enable interrupts
 void sei(void);
-
-int freeMemory(void);
 
 // SPI: Extended functions which take a channel number (hardware SPI only)
 /** Write single byte to specified SPI channel */

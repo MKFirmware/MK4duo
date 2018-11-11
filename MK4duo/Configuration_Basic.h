@@ -47,12 +47,12 @@
  * This allows the connection of wireless adapters (for instance) to non-default port pins.
  * Serial port 0 is always used by the Arduino bootloader regardless of this setting.
  *
- * Valid values are 0-3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
+ * Valid values are -1 to 3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
  */
-#define SERIAL_PORT 0
+#define SERIAL_PORT_1 0
 
 /**
- * This setting determines the communication speed of the printer.
+ * This setting determines the communication speed of the printer on primary port.
  *
  * 250000 works in most cases, but you might try a lower speed if
  * you commonly experience drop-outs during host printing.
@@ -60,7 +60,27 @@
  *
  * 2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000
  */
-#define BAUDRATE 250000
+#define BAUDRATE_1 250000
+
+/**
+ * Select a secondary serial port on the board to use for communication with the host.
+ * This allows the connection of wireless adapters (for instance) to non-default port pins.
+ *
+ * Valid values are -1 to 3 for Serial, Serial1, Serial2, Serial3 and -1 for SerialUSB
+ * -2 not used
+ */
+#define SERIAL_PORT_2 -2
+
+/**
+ * This setting determines the communication speed of the printer on secondary port.
+ *
+ * 250000 works in most cases, but you might try a lower speed if
+ * you commonly experience drop-outs during host printing.
+ * You may try up to 1000000 to speed up SD file transfer.
+ *
+ * 2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000
+ */
+#define BAUDRATE_2 250000
 
 /**
  * User-specified version info of this build to display in [Pronterface, etc] terminal window during

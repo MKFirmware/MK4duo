@@ -19,11 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
- /**
- * Nextion_lcd.h
+/**
+ * nextion_lcd.h
  *
- * Copyright (c) 2014-2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,17 +40,24 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NEXTION_LCD_H_
-#define _NEXTION_LCD_H_
-
 // For debug Connect
 //#define NEXTION_CONNECT_DEBUG
 
-#if ENABLED(NEXTION)
+#if HAS_NEXTION_LCD
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    #include "../../feature/advanced_pause/advanced_pause.h"
-  #endif
+  void lcd_init();
+  bool lcd_detected();
+  void lcd_update();
+  void lcd_setalertstatusPGM(PGM_P message);
+  void lcd_setstatus(const char* const message, const bool persist=false);
+  void lcd_setstatusPGM(const char* const message, const int8_t level=0);
+  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...);
+  void lcd_reset_alert_level();
+
+  inline void lcd_refresh() {}
+  inline void lcd_reset_status() {}
+  inline void lcd_eeprom_allert() {}
+  inline bool lcd_hasstatus() { return false; }
 
   void sethotPopCallback(void *ptr);
 
@@ -66,8 +74,8 @@
   void sendPopCallback(void *ptr);
   void filamentPopCallback(void *ptr);
   void nextion_draw_update();
-  void lcd_scrollinfo(const char* titolo, const char* message);
-  void lcd_yesno(const uint8_t val, const char* msg1="", const char* msg2="", const char* msg3="");
+  void lcd_scrollinfo(PGM_P titolo, PGM_P message);
+  void lcd_yesno(const uint8_t val, PGM_P msg1="", PGM_P msg2="", PGM_P msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);
@@ -101,16 +109,14 @@
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
-                                         const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
+    void lcd_advanced_pause_show_message(const AdvancedPauseMessageEnum message,
+                                         const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,
                                          const uint8_t extruder=tools.active_extruder);
   #endif
 
   #if ENABLED(RFID_MODULE)
     void rfidPopCallback(void *ptr);
-    void rfid_setText(const char* message, uint32_t color = 65535);
+    void rfid_setText(PGM_P message, uint32_t color = 65535);
   #endif
 
-#endif // ENABLED(NEXTION)
-
-#endif /* _NEXTION_LCD_H_ */
+#endif // HAS_NEXTION_LCD

@@ -68,6 +68,10 @@ uint8_t MCUSR;
 #if ANALOG_INPUTS > 0
   int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
   bool    HAL::Analog_is_ready = false;
+
+  void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {}
+
+  void HAL::analogStart() {}
 #endif
 
 // Wait for synchronization of registers between the clock domains
@@ -120,6 +124,11 @@ extern "C" int sysTickHook() {
   return 0;
 }
 
+bool HAL::SPIReady = false;
+
+// do any hardware-specific initialization here
+void HAL::hwSetup(void) { SPIReady= true; }
+
 HAL::HAL() {
   // ctor
 }
@@ -133,7 +142,7 @@ bool HAL::execute_100ms = false;
 // Return available memory
 int HAL::getFreeRam() {
   struct mallinfo memstruct = mallinfo();
-  register char * stack_ptr asm ("sp");
+  char * stack_ptr asm ("sp");
 
   // avail mem in heap + (bottom of stack addr - end of heap addr)
   return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
@@ -323,7 +332,7 @@ void HAL::Tick() {
   static millis_t cycle_check_temp = 0;
 	millis_t now = millis();
 
-  if (!printer.isRunning()) return;
+  if (printer.isStopped()) return;
 
   #if HEATER_COUNT > 0
   
@@ -348,18 +357,6 @@ void HAL::Tick() {
     // Update the raw values if they've been read. Else we could be updating them during reading.
     thermalManager.set_current_temp_raw();
   #endif
-
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      int curTodo = mechanics.babystepsTodo[axis]; //get rid of volatile for performance
-
-      if (curTodo) {
-        stepper.babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif //BABYSTEPPING
 
   endstops.Tick();
 

@@ -62,6 +62,7 @@
  * G33  - Delta geometry Autocalibration (Requires DELTA_AUTO_CALIBRATION_?)
  *          F[nfactor] p[npoint] Q[debugging] (Requires DELTA_AUTO_CALIBRATION_1)
  *          P[points] [F] [O] [T] V[verbose] (Requires DELTA_AUTO_CALIBRATION_2)
+ * G34  - Set Delta Height calculated from toolhead position (only DELTA)
  * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G42  - Coordinated move to a mesh point. (Requires MESH_BED_LEVELING or AUTO_BED_LEVELING_BILINEAR)
  * G60  - Save current position coordinates (all axes, for active extruder).
@@ -148,7 +149,7 @@
  * M100 - Watch Free Memory (For Debugging Only)
  * M104 - Set hotend target temp
  * M105 - Read current temp
- * M106 - P[fan] S[speed] F[frequency] U[pin] L[min speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled
+ * M106 - P[fan] S[speed] F[frequency] U[pin] L[min speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[trig temperaure]
  * M107 - P[fan] Fan off
  * M108 - Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1. (Requires EMERGENCY_PARSER)
  * M109 - Sxxx Wait for hotend current temp to reach target temp. Waits only when heating
@@ -165,8 +166,8 @@
  * M120 - Enable endstop detection
  * M121 - Disable endstop detection
  * M122 - S[1=true|0=false] Enable or disable check software endstop. (Requires MIN_SOFTWARE_ENDSTOPS or MAX_SOFTWARE_ENDSTOPS)
- * M123 - Set Endstop Logic X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool]
- * M124 - Set Endstop Pullup X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool]
+ * M123 - Set Endstop Logic X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+ * M124 - Set Endstop Pullup X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
  * M125 - Save current position and move to pause park position. (Requires PARK_HEAD_ON_PAUSE)
  * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -179,9 +180,9 @@
  * M149 - Set temperature units
  * M150 - Set Status LED Color as R[red] U[green] B[blue]. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
  * M155 - S[1/0] Enable/disable auto report temperatures.
- * M163 - Set a single proportion for a mixing extruder. (Requires MIXING_EXTRUDER)
- * M164 - Save the mix as a virtual extruder. (Requires MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS)
- * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. (Requires MIXING_EXTRUDER)
+ * M163 - Set a single proportion for a mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
+ * M164 - Save the mix as a virtual extruder. (Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS)
+ * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. (Requires COLOR_MIXING_EXTRUDER)
  * M190 - Sxxx Wait for bed current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
  * M191 - Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
@@ -201,6 +202,8 @@
  * M220 - Set speed factor override percentage: S[factor in percent]
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
+ * M223 - T[extruder] S[bool] set Filrunout Logic. (Requires FILAMENT_RUNOUT_SENSOR)
+ * M224 - T[extruder] S[bool] set Filrunout Pullup. (Requires FILAMENT_RUNOUT_SENSOR)
  * M226 - Wait until the specified pin reaches the state required: P[pin number] S[pin state]
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C[contrast value] (value 0..63)
@@ -231,7 +234,7 @@
  * M401 - Lower z-probe if present
  * M402 - Raise z-probe if present
  * M404 - N[dia in mm] Enter the nominal filament width (3mm, 1.75mm ) or will display nominal filament width without parameters
- * M405 - Turn on Filament Sensor extrusion control.  Optional D[delay in cm] to set delay in centimeters between sensor and extruder
+ * M405 - Turn on Filament Sensor extrusion control. Optional D[delay in cm] to set delay in centimeters between sensor and extruder
  * M406 - Turn off Filament Sensor extrusion control
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response
@@ -250,6 +253,7 @@
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
  * M512 - Print Extruder Encoder status Pin. (Requires Extruder Encoder)
  * M522 - Read or Write on card. M522 T[extruders] R[read] or W[write] L[list]
+ * M524 - Abort the current SD print job (started with M24). (Requires SDSUPPORT)
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
  * M531 - filename - Define filename being printed
  * M532 - X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
@@ -266,7 +270,7 @@
  * M666 - Set Two Endstops offsets for X, Y, and/or Z (requires TWO ENDSTOPS)
  * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
  * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
- * M851 - Set X Y Z Probe Offset in current units. (Requires Probe)
+ * M851 - Set X Y Z Probe Offset in current units, set speed Fast and Slow. (Requires Probe)
  * M900 - Set Linear Advance K-factor. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
  *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires TRINAMIC)
@@ -275,9 +279,22 @@
  * M911 - Report stepper driver overtemperature pre-warn condition. (Requires TRINAMIC)
  * M912 - Clear stepper driver overtemperature pre-warn condition flag. (Requires TRINAMIC)
  * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
- * M914 - Set SENSORLESS_HOMING sensitivity. (Requires SENSORLESS_HOMING)
+ * M914 - Set StallGuard sensitivity. (Requires SENSORLESS_HOMING)
  * M915 - TMC Z axis calibration routine. (Requires TMC)
- * M922 - S[1/0] Enable/disable TMC debug.
+ * M922 - S[1/0] Enable/disable TMC debug. (Requires TMC)
+ * M930 - TMC set blank_time.
+ * M931 - TMC set off_time.
+ * M932 - TMC set hysteresis_start.
+ * M933 - TMC set hysteresis_end/sine_offset (chm = 0/1).
+ * M934 - TMC set fast_decay_time (chm = 1).
+ * M935 - TMC set disable_I_comparator (chm = 1).
+ * M936 - TMC set stealth_gradient.
+ * M937 - TMC set stealth_amplitude.
+ * M938 - TMC set stealth_freq.
+ * M939 - TMC switch stealth_autoscale.
+ * M940 - TMC switch StealthChop.
+ * M941 - TMC switch ChopperMode.
+ * M942 - TMC switch interpolation.
  *
  * ************ SCARA Specific - This can change to suit future G-code regulations
  * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)

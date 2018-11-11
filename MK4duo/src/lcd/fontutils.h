@@ -6,11 +6,11 @@
  * @date    2016-08-19
  * @copyright GPL/BSD
  */
-#ifndef _FONT_UTILS_H
-#define _FONT_UTILS_H
 
+#pragma once
+
+#include <stdlib.h>
 #include <Arduino.h>
-
 #include <stddef.h> // wchar_t
 #include <stdint.h> // uint32_t
 
@@ -29,7 +29,7 @@ uint8_t read_byte_rom(uint8_t * str);
 
 #ifndef NUM_ARRAY
   #define NUM_ARRAY(a) (sizeof(a)/sizeof((a)[0]))
-#endif // NUM_ARRAY
+#endif
 
 typedef uint16_t pixel_len_t;
 #define PIXEL_LEN_NOLIMIT ((pixel_len_t)(-1))
@@ -42,7 +42,5 @@ int pf_bsearch_r(void *userdata, size_t num_data, pf_bsearch_cb_comp_t cb_comp, 
 uint8_t* get_utf8_value_cb(uint8_t *pstart, read_byte_cb_t cb_read_byte, wchar_t *pval);
 
 /* Returns lenght of string in CHARACTERS, NOT BYTES */
-uint8_t utf8_strlen(const char *pstart);
-uint8_t utf8_strlen_P(const char *pstart);
-
-#endif // _FONT_UTILS_H
+uint8_t utf8_strlen(PGM_P pstart);
+uint8_t utf8_strlen_P(PGM_P pstart);

@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -153,8 +153,6 @@
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
-#define RADDS_EXT_VDD_PIN          25
-#define RADDS_EXT_VDD2_PIN         66
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
@@ -168,7 +166,7 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(RADDS_DISPLAY)
 

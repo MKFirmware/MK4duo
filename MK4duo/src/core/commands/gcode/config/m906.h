@@ -58,54 +58,57 @@
 
     if (commands.get_target_tool(906)) return;
 
-    #define TMC_SAY_CURRENT(Q) tmc_get_current(stepper##Q, TMC_##Q)
-    #define TMC_SET_CURRENT(Q) tmc_set_current(stepper##Q, value)
+    #define TMC_SAY_CURRENT(Q) tmc.get_current(stepper##Q)
+    #define TMC_SET_CURRENT(Q) tmc.set_current(stepper##Q, value)
 
     const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {
       switch (i) {
         case X_AXIS:
-          #if X_IS_TRINAMIC
-            if (index == 0) TMC_SET_CURRENT(X);
+          #if AXIS_HAS_TMC(X)
+            if (index < 2) TMC_SET_CURRENT(X);
           #endif
-          #if X2_IS_TRINAMIC
-            if (index == 1) TMC_SET_CURRENT(X2);
+          #if AXIS_HAS_TMC(X2)
+            if (index == 2) TMC_SET_CURRENT(X2);
           #endif
           break;
         case Y_AXIS:
-          #if Y_IS_TRINAMIC
-            if (index == 0) TMC_SET_CURRENT(Y);
+          #if AXIS_HAS_TMC(Y)
+            if (index < 2) TMC_SET_CURRENT(Y);
           #endif
-          #if Y2_IS_TRINAMIC
-            if (index == 1) TMC_SET_CURRENT(Y2);
+          #if AXIS_HAS_TMC(Y2)
+            if (index == 2) TMC_SET_CURRENT(Y2);
           #endif
           break;
         case Z_AXIS:
-          #if Z_IS_TRINAMIC
-            if (index == 0) TMC_SET_CURRENT(Z);
+          #if AXIS_HAS_TMC(Z)
+            if (index < 2) TMC_SET_CURRENT(Z);
           #endif
-          #if Z2_IS_TRINAMIC
-            if (index == 1) TMC_SET_CURRENT(Z2);
+          #if AXIS_HAS_TMC(Z2)
+            if (index == 2) TMC_SET_CURRENT(Z2);
+          #endif
+          #if AXIS_HAS_TMC(Z3)
+            if (index == 3) TMC_SET_CURRENT(Z3);
           #endif
           break;
         case E_AXIS: {
           switch (TARGET_EXTRUDER) {
-            #if E0_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E0)
               case 0: TMC_SET_CURRENT(E0); break;
             #endif
-            #if E1_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E1)
               case 1: TMC_SET_CURRENT(E1); break;
             #endif
-            #if E2_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E2)
               case 2: TMC_SET_CURRENT(E2); break;
             #endif
-            #if E3_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E3)
               case 3: TMC_SET_CURRENT(E3); break;
             #endif
-            #if E4_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E4)
               case 4: TMC_SET_CURRENT(E4); break;
             #endif
-            #if E5_IS_TRINAMIC
+            #if AXIS_HAS_TMC(E5)
               case 5: TMC_SET_CURRENT(E5); break;
             #endif
           }
@@ -113,40 +116,43 @@
       }
     }
 
-    #if X_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X)
       TMC_SAY_CURRENT(X);
     #endif
-    #if X2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(X2)
       TMC_SAY_CURRENT(X2);
     #endif
-    #if Y_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y)
       TMC_SAY_CURRENT(Y);
     #endif
-    #if Y2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Y2)
       TMC_SAY_CURRENT(Y2);
     #endif
-    #if Z_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z)
       TMC_SAY_CURRENT(Z);
     #endif
-    #if Z2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z2)
       TMC_SAY_CURRENT(Z2);
     #endif
-    #if E0_IS_TRINAMIC
+    #if AXIS_HAS_TMC(Z3)
+      TMC_SAY_CURRENT(Z3);
+    #endif
+    #if AXIS_HAS_TMC(E0)
       TMC_SAY_CURRENT(E0);
     #endif
-    #if E1_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E1)
       TMC_SAY_CURRENT(E1);
     #endif
-    #if E2_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E2)
       TMC_SAY_CURRENT(E2);
     #endif
-    #if E3_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E3)
       TMC_SAY_CURRENT(E3);
     #endif
-    #if E4_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E4)
       TMC_SAY_CURRENT(E4);
     #endif
-    #if E5_IS_TRINAMIC
+    #if AXIS_HAS_TMC(E5)
       TMC_SAY_CURRENT(E5);
     #endif
 

@@ -20,13 +20,32 @@
  *
  */
 
+/**
+ * nextion.cpp
+ *
+ * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
+ *
+ * Grbl is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Grbl is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "../../../../MK4duo.h"
 
-#if ENABLED(NEXTION)
+#if HAS_NEXTION_LCD
 
-  #include "Nextion.h"
+  #include "nextion.h"
 
-  NexObject::NexObject(uint8_t pid, uint8_t cid, const char *name) {
+  NexObject::NexObject(uint8_t pid, uint8_t cid, PGM_P name) {
     this->__pid = pid;
     this->__cid = cid;
     this->__name = name;
@@ -101,7 +120,7 @@
     recvRetCommandFinished();
   }
 
-  void NexObject::getText(char *buffer, uint16_t len, const char *pname) {
+  void NexObject::getText(char *buffer, uint16_t len, PGM_P pname) {
     String cmd;
     cmd += "get ";
     if (pname) {
@@ -114,7 +133,7 @@
     recvRetString(buffer, len);
   }
 
-  void NexObject::setText(const char *buffer, const char *pname) {
+  void NexObject::setText(PGM_P buffer, PGM_P pname) {
     String cmd;
     if (pname) {
       cmd += pname;
@@ -128,7 +147,7 @@
     recvRetCommandFinished();
   }
 
-  uint16_t NexObject::getValue(const char *pname) {
+  uint16_t NexObject::getValue(PGM_P pname) {
     String cmd;
     cmd += "get ";
     if (pname) {
@@ -141,7 +160,7 @@
     return recvRetNumber();
   }
 
-  void NexObject::setValue(const uint16_t number, const char *pname) {
+  void NexObject::setValue(const uint16_t number, PGM_P pname) {
     char buf[10] = {0};
     String cmd;
     utoa(number, buf, 10);
@@ -161,8 +180,8 @@
   void NexObject::addValue(const uint8_t ch, const uint8_t number) {
     char buf[15] = {0};
     if (ch > 3) return;
-    sprintf(buf, "add %u,%u,%u", this->__cid, ch, number);
-    sendCommand(buf);
+    sprintf_P(buf, PSTR("add %u,%u,%u"), this->__cid, ch, number);
+    sendCommandPGM(buf);
   }
 
   uint16_t NexObject::Get_cursor_height_hig() {
@@ -438,7 +457,7 @@
 
     SdFile nextion_file;
 
-    NexUpload::NexUpload(const char *file_name, uint32_t upload_baudrate) {
+    NexUpload::NexUpload(PGM_P file_name, uint32_t upload_baudrate) {
       _file_name = file_name;
       _upload_baudrate = upload_baudrate;
     }
@@ -495,8 +514,8 @@
       nexSerial.end();
       HAL::delayMilliseconds(100);
       nexSerial.begin(baudrate);
-      sendCommand("");
-      sendCommand("connect");
+      sendCommandPGM(PSTR(""));
+      sendCommandPGM(PSTR("connect"));
       this->recvRetString(string);
 
       if(string.indexOf("comok") != -1)
@@ -505,15 +524,13 @@
       return false;
     }
 
-    uint16_t NexUpload::recvRetString(String &string, uint32_t timeout,bool recv_flag) {
-      uint16_t ret = 0;
-      uint8_t c = 0;
-      millis_t start;
+    uint16_t NexUpload::recvRetString(String &string, uint32_t timeout, bool recv_flag) {
       bool exit_flag = false;
-      start = millis();
+      millis_t start = millis();
+
       while (millis() - start <= timeout) {
         while (nexSerial.available()) {
-          c = nexSerial.read();
+          uint8_t c = nexSerial.read();
 
           if (c == 0) continue;
 
@@ -525,7 +542,8 @@
         }
         if (exit_flag) break;
       }
-      ret = string.length();
+
+      uint16_t ret = string.length();
       return ret;
     }
 
@@ -537,7 +555,7 @@
       String baudrate_str = String(baudrate, 10);
       cmd = "whmi-wri " + filesize_str + "," + baudrate_str + ",0";
 
-      sendCommand("");
+      sendCommandPGM(PSTR(""));
       sendCommand(cmd.c_str());
       HAL::delayMilliseconds(50);
       nexSerial.begin(baudrate);
@@ -550,8 +568,9 @@
 
     bool NexUpload::_uploadTftFile(void) {
       uint8_t c;
-      uint16_t send_timer = 0;
-      uint16_t last_send_num = 0;
+      uint16_t  send_timer = 0,
+                last_send_num = 0;
+
       String string = String("");
       send_timer = _unuploadByte / 4096 + 1;
       last_send_num = _unuploadByte % 4096;
@@ -592,10 +611,9 @@
     HAL::delayMilliseconds(100);
     sendCommand("");
     HAL::delayMilliseconds(100);
-    sendCommand("connect");
+    sendCommand(PSTR("connect"));
     HAL::delayMilliseconds(100);
 
-    uint8_t   c = 0;
     String temp = String("");
 
     #if ENABLED(NEXTION_CONNECT_DEBUG)
@@ -603,7 +621,7 @@
     #endif
 
     while (nexSerial.available()) {
-      c = nexSerial.read();
+      uint8_t c = nexSerial.read();
       #if ENABLED(NEXTION_CONNECT_DEBUG)
         SERIAL_CHR((char)c);
       #endif
@@ -635,30 +653,37 @@
 
     // If baudrate is 9600 set to 115200 and reconnect
     if (connect) {
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
+      #endif
       sendCommand("baud=115200");
+      HAL::delayMilliseconds(100);
       nexSerial.end();
-      HAL::delayMilliseconds(1000);
+      HAL::delayMilliseconds(100);
       nexSerial.begin(115200);
-      return true;
     }
     else { // Else try to 115200 baudrate
+      #if ENABLED(NEXTION_CONNECT_DEBUG)
+        SERIAL_EM(" NEXTION connected at 115200 baud, cready");
+      #endif
       nexSerial.end();
-      HAL::delayMilliseconds(1000);
+      HAL::delayMilliseconds(100);
       nexSerial.begin(115200);
-      connect = getConnect(buffer);
-      if (connect) return true;
     }
-    return false;
+
+    connect = getConnect(buffer);
+
+    if (connect) return true;
+    else return false;
   }
   
   void nexLoop(NexObject *nex_listen_list[]) {
     static uint8_t __buffer[10];
-    uint16_t i;
-    uint8_t c;  
+    uint8_t i = 0;
 
-    while (nexSerial.available() > 0) {   
+    while (nexSerial.available()) {
       HAL::delayMilliseconds(5);
-      c = nexSerial.read();
+      uint8_t c = nexSerial.read();
 
       if (c == NEX_RET_EVENT_TOUCH_HEAD) {
         if (nexSerial.available() >= 6) {
@@ -674,7 +699,7 @@
   }
 
   uint16_t recvRetNumber() {
-    uint8_t temp[8] = {0};
+    uint8_t temp[8] = { 0 };
 
     nexSerial.setTimeout(NEX_TIMEOUT);
     if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
@@ -690,19 +715,16 @@
   }
 
   void recvRetString(char *buffer, uint16_t len) {
-    uint16_t ret = 0;
     bool str_start_flag = false;
     uint8_t cnt_0xFF = 0;
     String temp = String("");
-    uint8_t c = 0;
-    millis_t start;
 
     if (!buffer || len == 0) return;
 
-    start = millis();
+    millis_t start = millis();
     while (millis() - start <= NEX_TIMEOUT) {
       while (nexSerial.available()) {
-        c = nexSerial.read();
+        uint8_t c = nexSerial.read();
         if (str_start_flag) {
           if (c == 0xFF) {
             cnt_0xFF++;                    
@@ -718,14 +740,22 @@
       if (cnt_0xFF >= 3) break;
     }
 
-    ret = temp.length();
+    uint16_t ret = temp.length();
     ret = ret > len ? len : ret;
     strncpy(buffer, temp.c_str(), ret);
   }
 
-  void sendCommand(const char* cmd) {
-    while (nexSerial.available()) nexSerial.read();
+  void sendCommand(PGM_P cmd) {
+    recvRetCommandFinished();
     nexSerial.print(cmd);
+    nexSerial.write(0xFF);
+    nexSerial.write(0xFF);
+    nexSerial.write(0xFF);
+  }
+
+  void sendCommandPGM(PGM_P cmd) {
+    recvRetCommandFinished();
+    while (char c = pgm_read_byte(cmd++)) nexSerial.write(c);
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);
@@ -738,7 +768,7 @@
   uint8_t Nextion_PageID() {
     uint8_t temp[5] = {0};
 
-    sendCommand("sendme");
+    sendCommandPGM(PSTR("sendme"));
 
     nexSerial.setTimeout(NEX_TIMEOUT);
 
@@ -763,7 +793,7 @@
   }
 
   void sendRefreshAll(void) {
-    sendCommand("ref 0");
+    sendCommandPGM(PSTR("ref 0"));
   }
 
 #endif // NEXTION

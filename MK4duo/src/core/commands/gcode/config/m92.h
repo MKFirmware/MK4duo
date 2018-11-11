@@ -44,21 +44,21 @@ inline void gcode_M92(void) {
       const float value = parser.value_per_axis_unit((AxisEnum)a);
       if (i == E_AXIS) {
         if (value < 20.0) {
-          float factor = mechanics.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
-          #if DISABLED(JUNCTION_DEVIATION)
-            mechanics.max_jerk[a] *= factor;
+          float factor = mechanics.data.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
+          #if HAS_CLASSIC_JERK && (DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE))
+            mechanics.data.max_jerk[a] *= factor;
           #endif
-          mechanics.max_feedrate_mm_s[a] *= factor;
+          mechanics.data.max_feedrate_mm_s[a] *= factor;
           mechanics.max_acceleration_steps_per_s2[a] *= factor;
         }
-        mechanics.axis_steps_per_mm[a] = value;
+        mechanics.data.axis_steps_per_mm[a] = value;
       }
       else {
         #if MECH(DELTA)
           LOOP_XYZ(axis)
-            mechanics.axis_steps_per_mm[axis] = value;
+            mechanics.data.axis_steps_per_mm[axis] = value;
         #else
-          mechanics.axis_steps_per_mm[a] = value;
+          mechanics.data.axis_steps_per_mm[a] = value;
         #endif
       }
     }

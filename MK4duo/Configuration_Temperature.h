@@ -61,8 +61,8 @@
  *                                                                                                   *
  * Please choose the one that matches your setup and set to TEMP SENSOR.                             *
  *                                                                                                   *
- *  -4 is thermocouple with MAX31855 (only Hotends)                                                  *
- *  -3 is thermocouple with MAX6675 (only Hotends)                                                   *
+ *  -4 is thermocouple with MAX31855                                                                 *
+ *  -3 is thermocouple with MAX6675                                                                  *
  *  -2 is thermocouple with AD8495                                                                   *
  *  -1 is thermocouple with AD595 or AD597                                                           *
  *   0 is not used                                                                                   *
@@ -149,14 +149,17 @@
 #define COOLER_MINTEMP  10 // (degC) 
 
 // Preheat Constants
+#define PREHEAT_1_LABEL       "PLA"
 #define PREHEAT_1_TEMP_HOTEND 190
 #define PREHEAT_1_TEMP_BED     60
 #define PREHEAT_1_FAN_SPEED   255   // Insert Value between 0 and 255
 
+#define PREHEAT_2_LABEL       "ABS"
 #define PREHEAT_2_TEMP_HOTEND 240
 #define PREHEAT_2_TEMP_BED    100
 #define PREHEAT_2_FAN_SPEED   255   // Insert Value between 0 and 255
 
+#define PREHEAT_2_LABEL       "GUM"
 #define PREHEAT_3_TEMP_HOTEND 230
 #define PREHEAT_3_TEMP_BED     60
 #define PREHEAT_3_FAN_SPEED   255   // Insert Value between 0 and 255

@@ -67,13 +67,13 @@
       return;
     }
 
-    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
+    const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     float X_current = mechanics.current_position[X_AXIS],
           Y_current = mechanics.current_position[Y_AXIS];
 
-    const float X_probe_location = parser.linearval('X', X_current + probe.offset[X_AXIS]),
-                Y_probe_location = parser.linearval('Y', Y_current + probe.offset[Y_AXIS]);
+    const float X_probe_location = parser.linearval('X', X_current + probe.data.offset[X_AXIS]),
+                Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset[Y_AXIS]);
 
     #if NOMECH(DELTA)
       if (!WITHIN(X_probe_location, MIN_PROBE_X, MAX_PROBE_X)) {
@@ -134,8 +134,8 @@
           float angle = random(0, 360);
           const float radius = random(
             #if MECH(DELTA)
-              (int)(0.1250000000 * mechanics.delta_probe_radius),
-              (int)(0.3333333333 * mechanics.delta_probe_radius)
+              (int)(0.1250000000 * mechanics.data.probe_radius),
+              (int)(0.3333333333 * mechanics.data.probe_radius)
             #else
               5, (int)(0.125 * MIN(X_MAX_LENGTH, Y_MAX_LENGTH))
             #endif
@@ -169,8 +169,8 @@
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - probe.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - probe.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
+            X_current = X_probe_location - probe.data.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - probe.data.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
 
             #if MECH(DELTA)
               // If we have gone out too far, we can do a simple fix and scale the numbers
@@ -226,7 +226,7 @@
         if (verbose_level > 0) {
           if (verbose_level > 1) {
             SERIAL_VAL(n + 1);
-            SERIAL_MV(" of ", (int)n_samples);
+            SERIAL_MV(" of ", n_samples);
             SERIAL_MV(": z: ", sample_set[n], 3);
             if (verbose_level > 2) {
               SERIAL_MV(" mean: ", mean, 4);

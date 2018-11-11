@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if IS_DELTA
+#if MECH(DELTA)
 
   #define CODE_G34
 
@@ -37,9 +37,10 @@
 
     if (mechanics.axis_unhomed_error()) return;
 
-    mechanics.delta_height -= mechanics.current_position[Z_AXIS];
+    mechanics.data.height -= mechanics.current_position[Z_AXIS];
     mechanics.recalc_delta_settings();
-    SERIAL_EMV("  New delta height:", mechanics.delta_height, 3);
+    SERIAL_EMV("  New delta height:", mechanics.data.height, 3);
+    sound.feedback();
 
   }
 

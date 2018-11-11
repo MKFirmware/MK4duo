@@ -89,9 +89,11 @@
 #define ENDSTOPPULLUP_X2MIN   false
 #define ENDSTOPPULLUP_Y2MIN   false
 #define ENDSTOPPULLUP_Z2MIN   false
+#define ENDSTOPPULLUP_Z3MIN   false
 #define ENDSTOPPULLUP_X2MAX   false
 #define ENDSTOPPULLUP_Y2MAX   false
 #define ENDSTOPPULLUP_Z2MAX   false
+#define ENDSTOPPULLUP_Z3MAX   false
 #define ENDSTOPPULLUP_ZPROBE  false
 /*****************************************************************************************/
 
@@ -113,9 +115,11 @@
 #define X2_MIN_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Y2_MIN_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z2_MIN_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
+#define Z3_MIN_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define X2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Y2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
+#define Z3_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the probe.
 /*****************************************************************************************/
 
@@ -177,6 +181,13 @@
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
+// If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.
+//
+// CAUTION: This could cause damage to machines that use a lead screw or threaded rod
+//          to move the Z axis. Take extreme care when attempting to enable this feature.
+//
+//#define Z_PROBE_SENSORLESS
+
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
 // The extra distance the X axis must travel to pick up the sled.
@@ -202,15 +213,18 @@
 
 // X and Y axis travel speed between probes, in mm/min
 #define XY_PROBE_SPEED 10000
-// Speed for the first approach when double-probing (with PROBE_DOUBLE_TOUCH)
+// Speed for the first approach when double-probing, in mm/min
 #define Z_PROBE_SPEED_FAST 120
-// Speed for the "accurate" probe of each point
+// Speed for the "accurate" probe of each point, in mm/min
 #define Z_PROBE_SPEED_SLOW 60
 // Z Probe repetitions, median for best result
 #define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
+
+// Before deploy/stow pause for user confirmation
+//#define PAUSE_BEFORE_DEPLOY_STOW
 
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 #define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
@@ -229,11 +243,12 @@
 //#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 //#define PROBING_FANS_OFF          // Turn fans off when probing
 
-// Use the LCD controller for bed leveling
-// Requires MESH BED LEVELING or PROBE MANUALLY
+// Add a bed leveling sub-menu for ABL or MBL.
+// Include a guided procedure if manual probing is enabled.
 //#define LCD_BED_LEVELING
-#define LCD_Z_STEP 0.025    // Step size while manually probing Z axis.
-#define LCD_PROBE_Z_RANGE 4 // Z Range centered on Z MIN POS for LCD Z adjustment
+#define MESH_EDIT_Z_STEP 0.025  // (mm) Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4     // (mm) Z Range centered on Z_MIN_POS for LCD Z adjustment
+//#define MESH_EDIT_MENU        // Add a menu to edit mesh points
 
 // Add a menu item to move between bed corners for manual bed adjustment
 //#define LEVEL_BED_CORNERS
@@ -434,7 +449,6 @@
 #define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
 #define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
 
-/** START MESH BED LEVELING **/
 // Default mesh area is an area with an inset margin on the print area.
 // Below are the macros that are used to define the borders for the mesh
 // area, made available here for specialized needs.
@@ -445,17 +459,8 @@
 
 // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
-/** END MESH BED LEVELING **/
 
 /** START UNIFIED BED LEVELING **/
-// Default mesh area is an area with an inset margin on the print area.
-// Below are the macros that are used to define the borders for the mesh area,
-// made available here for specialized needs, ie dual extruder setup.
-#define UBL_MESH_MIN_X (X_MIN_POS + (MESH_INSET))
-#define UBL_MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define UBL_MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
-#define UBL_MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
-
 // Sophisticated users prefer no movement of nozzle
 #define UBL_MESH_EDIT_MOVES_Z
 
@@ -570,8 +575,8 @@
 // Feedrates for manual moves along        X,     Y,     Z,  E from panel
 #define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 10*60}
 // Minimum feedrate
-#define DEFAULT_MINIMUMFEEDRATE       0.0
-#define DEFAULT_MINTRAVELFEEDRATE     0.0
+#define DEFAULT_MIN_FEEDRATE          0.0
+#define DEFAULT_MIN_TRAVEL_FEEDRATE   0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.

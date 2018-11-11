@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -174,10 +174,10 @@
 #define INVERTED_CHAMBER_PIN true
 #define INVERTED_COOLER_PIN true
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   // ramps-fd lcd adaptor
 
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
     #define ORIG_BEEPER_PIN     37
     #define BTN_EN1             33
     #define BTN_EN2             31

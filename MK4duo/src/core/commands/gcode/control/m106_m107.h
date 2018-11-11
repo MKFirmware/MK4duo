@@ -38,6 +38,7 @@
    *  S<int>    Speed between 0-255
    *  F<int>    Set PWM frequency
    *  H<int>    Set Auto mode - H=7 for controller - H-1 for disabled
+   *  T<int>    Set Triggered temperature
    *  U<int>    Fan Pin
    *  L<int>    Min Speed
    *  I<bool>   Inverted pin output
@@ -56,7 +57,7 @@
       if (parser.seen('U')) {
         // Put off the fan
         fan->Speed = 0;
-        fan->pin = parser.value_pin();
+        fan->data.pin = parser.value_pin();
         SERIAL_LM(ECHO, MSG_CHANGE_PIN);
       }
 
@@ -66,8 +67,9 @@
       if (parser.seen('H'))
         fan->setAutoMonitored(parser.value_int());
 
-      fan->min_Speed  = parser.byteval('L', fan->min_Speed);
-      fan->freq       = parser.ushortval('F', fan->freq);
+      fan->data.min_Speed           = parser.byteval('L', fan->data.min_Speed);
+      fan->data.freq                = parser.ushortval('F', fan->data.freq);
+      fan->data.triggerTemperature  = parser.ushortval('T', fan->data.triggerTemperature);
 
       #if ENABLED(FAN_KICKSTART_TIME)
         if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
@@ -76,7 +78,7 @@
         }
       #endif
 
-      fan->Speed = MAX(fan->min_Speed, speed);
+      fan->Speed = MAX(fan->data.min_Speed, speed);
 
       if (!parser.seen('S')) fan->print_parameters();
 

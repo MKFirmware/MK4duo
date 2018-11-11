@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega 2560' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -184,7 +184,7 @@
   #define ORIG_TEMP_BED_PIN 14
 #endif
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
   #if ENABLED(U8GLIB_ST7920)
     #define LCD_PINS_RS     56

@@ -13,6 +13,13 @@
 -->
 <eeprom>
 
+  <!-- Needed for compatibility with Repetier Server -->
+  <query>M503</query>
+  <store>M500</store>
+  <defaults>M502
+  M500</defaults>
+  <!-- Needed for compatibility with Repetier Server -->
+
   <!-- M92: Axis resolution -->
   <entry type="float" min="0">
     <description unit="[Steps/unit]">X resolution</description>
@@ -113,6 +120,11 @@
     <set>M106 P0 H@</set>
     <detect>M106 P0.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 0 trig temp</description>
+    <set>M106 P0 T@</set>
+    <detect>M106 P0.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 1 pin</description>
@@ -143,6 +155,11 @@
     <description unit="[0-7] (-1 to disable)">Fan 1 autofan mode</description>
     <set>M106 P1 H@</set>
     <detect>M106 P1.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 1 trig temp</description>
+    <set>M106 P1 T@</set>
+    <detect>M106 P1.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
@@ -175,6 +192,11 @@
     <set>M106 P2 H@</set>
     <detect>M106 P2.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 2 trig temp</description>
+    <set>M106 P2 T@</set>
+    <detect>M106 P2.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 3 pin</description>
@@ -205,6 +227,11 @@
     <description unit="[0-7] (-1 to disable)">Fan 3 autofan mode</description>
     <set>M106 P3 H@</set>
     <detect>M106 P3.*H(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 3 trig temp</description>
+    <set>M106 P3 T@</set>
+    <detect>M106 P3.*T(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
@@ -237,6 +264,11 @@
     <set>M106 P4 H@</set>
     <detect>M106 P4.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 4 trig temp</description>
+    <set>M106 P4 T@</set>
+    <detect>M106 P4.*T(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="">Fan 5 pin</description>
@@ -268,7 +300,106 @@
     <set>M106 P5 H@</set>
     <detect>M106 P5.*H(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="Temp">Fan 5 trig temp</description>
+    <set>M106 P5 T@</set>
+    <detect>M106 P5.*T(-?\d*)</detect>
+  </entry>
 
+  <!-- M123: Endstops Logic -->
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X endstop logic</description>
+    <set>M123 X@</set>
+    <detect>M123.*X(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y endstop logic</description>
+    <set>M123 Y@</set>
+    <detect>M123.*Y(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z endstop logic</description>
+    <set>M123 Z@</set>
+    <detect>M123.*Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X2 endstop logic</description>
+    <set>M123 I@</set>
+    <detect>M123.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y2 endstop logic</description>
+    <set>M123 J@</set>
+    <detect>M123.*J(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z2 endstop logic</description>
+    <set>M123 K@</set>
+    <detect>M123.*K(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z3 endstop logic</description>
+    <set>M123 L@</set>
+    <detect>M123.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z Probe logic</description>
+    <set>M123 P@</set>
+    <detect>M123.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Door Open logic</description>
+    <set>M123 D@</set>
+    <detect>M123.*D(-?\d*)</detect>
+  </entry>
+  
+    <!-- M124: Endstops Pullup -->
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X endstop pullup</description>
+    <set>M124 X@</set>
+    <detect>M124.*X(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y endstop pullup</description>
+    <set>M124 Y@</set>
+    <detect>M124.*Y(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z endstop pullup</description>
+    <set>M124 Z@</set>
+    <detect>M124.*Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X2 endstop pullup</description>
+    <set>M124 I@</set>
+    <detect>M124.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y2 endstop pullup</description>
+    <set>M124 J@</set>
+    <detect>M124.*J(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z2 endstop pullup</description>
+    <set>M124 K@</set>
+    <detect>M124.*K(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z3 endstop pullup</description>
+    <set>M124 L@</set>
+    <detect>M124.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z Probe pullup</description>
+    <set>M124 P@</set>
+    <detect>M124.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Door Open pullup</description>
+    <set>M124 D@</set>
+    <detect>M124.*D(-?\d*)</detect>
+  </entry>
+  
   <!-- M145: Preheat Temperature -->
   <entry type="int" min="0">
     <description unit="[°C]">Preheat 1 Hotend temperature</description>
@@ -1698,6 +1829,11 @@
     <description unit="[1/s]">Delta segments per second</description>
     <set>M666 S@</set>
     <detect>M666.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int" min="10" max="255">
+    <description unit="">Delta segments per line</description>
+    <set>M666 L@</set>
+    <detect>M666.*L(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="[unit]">Delta Print Radius</description>

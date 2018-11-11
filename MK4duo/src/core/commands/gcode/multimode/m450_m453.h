@@ -36,7 +36,7 @@
     const static char str_tooltype_1[] PROGMEM = "Laser";
     const static char str_tooltype_2[] PROGMEM = "CNC";
     const static char* const tool_strings[] PROGMEM = { str_tooltype_0, str_tooltype_1, str_tooltype_2 };
-    if (new_mode >= 0 && (PrinterMode)new_mode < PRINTER_MODE_COUNT) printer.mode = (PrinterMode)new_mode;
+    if (new_mode >= 0 && (PrinterModeEnum)new_mode < PRINTER_MODE_COUNT) printer.mode = (PrinterModeEnum)new_mode;
     SERIAL_SM(ECHO, "Printer-Mode: ");
     SERIAL_PS((char*)pgm_read_word(&(tool_strings[printer.mode])));
     SERIAL_CHR(' ');

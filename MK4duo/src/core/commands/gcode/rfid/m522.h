@@ -41,7 +41,7 @@
 
     if (parser.seen('R')) {
       SERIAL_EM("Put RFID on tag!");
-      #if ENABLED(NEXTION)
+      #if HAS_NEXTION_LCD
         rfid_setText("Put RFID on tag!");
       #endif
       printer.Spool_must_read[TARGET_EXTRUDER] = true;
@@ -49,14 +49,14 @@
     if (parser.seen('W')) {
       if (printer.Spool_ID[TARGET_EXTRUDER] != 0) {
         SERIAL_EM("Put RFID on tag!");
-        #if ENABLED(NEXTION)
+        #if HAS_NEXTION_LCD
           rfid_setText("Put RFID on tag!");
         #endif
         printer.Spool_must_write[TARGET_EXTRUDER] = true;
       }
       else {
         SERIAL_LM(ER, "You have not read this Spool!");
-        #if ENABLED(NEXTION)
+        #if HAS_NEXTION_LCD
           rfid_setText("You have not read this Spool!", 64488);
         #endif
       }

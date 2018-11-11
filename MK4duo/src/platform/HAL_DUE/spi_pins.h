@@ -57,9 +57,15 @@
   #define SCK_PIN           76
 #else
   #define SOFTWARE_SPI
-  #define MOSI_PIN		      51
-  #define MISO_PIN		      50
-  #define SCK_PIN 		      52
+  #ifndef MISO_PIN
+    #define MISO_PIN        50
+  #endif
+  #ifndef MOSI_PIN
+    #define MOSI_PIN        51
+  #endif
+  #ifndef SCK_PIN
+    #define SCK_PIN         52
+  #endif
 #endif
 
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)

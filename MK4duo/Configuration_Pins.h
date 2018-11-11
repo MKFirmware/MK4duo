@@ -67,11 +67,19 @@
 #define Z_CS_PIN            ORIG_Z_CS_PIN
 
 // Z2 axis pins
-#if ENABLED(Z_TWO_STEPPER_DRIVERS)
+#if (ENABLED(Z_TWO_STEPPER_DRIVERS) || ENABLED(Z_THREE_STEPPER_DRIVERS))
   #define Z2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Z2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Z2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define Z2_CS_PIN         ORIG_E1_CS_PIN
+#endif
+
+// Z3 axis pins
+#if ENABLED(Z_THREE_STEPPER_DRIVERS)
+  #define Z3_STEP_PIN       ORIG_E2_STEP_PIN
+  #define Z3_DIR_PIN        ORIG_E3_DIR_PIN
+  #define Z3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
+  #define Z3_CS_PIN         ORIG_E3_CS_PIN
 #endif
 
 // E axis pins
@@ -133,9 +141,11 @@
 #define X2_MIN_PIN          NoPin
 #define Y2_MIN_PIN          NoPin
 #define Z2_MIN_PIN          NoPin
+#define Z3_MIN_PIN          NoPin
 #define X2_MAX_PIN          NoPin
 #define Y2_MAX_PIN          NoPin
 #define Z2_MAX_PIN          NoPin
+#define Z3_MAX_PIN          NoPin
 #define Z_PROBE_PIN         ORIG_Z_PROBE_PIN
 
 // HEATER pins
@@ -215,12 +225,12 @@
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT0_PIN     NoPin
-  #define FIL_RUNOUT1_PIN     NoPin
-  #define FIL_RUNOUT2_PIN     NoPin
-  #define FIL_RUNOUT3_PIN     NoPin
-  #define FIL_RUNOUT4_PIN     NoPin
-  #define FIL_RUNOUT5_PIN     NoPin
+  #define FIL_RUNOUT_0_PIN    NoPin
+  #define FIL_RUNOUT_1_PIN    NoPin
+  #define FIL_RUNOUT_2_PIN    NoPin
+  #define FIL_RUNOUT_3_PIN    NoPin
+  #define FIL_RUNOUT_4_PIN    NoPin
+  #define FIL_RUNOUT_5_PIN    NoPin
   #define FIL_RUNOUT_DAV_PIN  NoPin
 #endif
 

@@ -41,7 +41,7 @@
     );
   }
 
-  void set_workspace_plane(const Mechanics::WorkspacePlane plane) {
+  void set_workspace_plane(const WorkspacePlaneEnum plane) {
     mechanics.workspace_plane = plane;
     if (printer.debugInfo()) report_workspace_plane();
   }

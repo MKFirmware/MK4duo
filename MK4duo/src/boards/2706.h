@@ -2,13 +2,6 @@
 * 2706
 * Minitronics v2.0
 *****************************************************************************************/
-
-//###CHIP
-#if DISABLED(_VARIANT_MINITRONICS_20_)
-  #error Oops!  Make sure you have 'Minitronics v2.0' selected from the 'Tools -> Boards' menu.
-#endif
-//@@@
-
 #define KNOWN_BOARD 1
 
 //###BOARD_NAME
@@ -19,34 +12,34 @@
 
 
 //###X_AXIS
-#define ORIG_X_STEP_PIN            1
-#define ORIG_X_DIR_PIN             3
-#define ORIG_X_ENABLE_PIN          0
+#define ORIG_X_STEP_PIN             1
+#define ORIG_X_DIR_PIN              3
+#define ORIG_X_ENABLE_PIN           0
 #define ORIG_X_CS_PIN              NoPin
 
 //###Y_AXIS
 #define ORIG_Y_STEP_PIN            29
 #define ORIG_Y_DIR_PIN             28
-#define ORIG_Y_ENABLE_PIN          0
+#define ORIG_Y_ENABLE_PIN           0
 #define ORIG_Y_CS_PIN              NoPin
 
 //###Z_AXIS
 #define ORIG_Z_STEP_PIN            16
 #define ORIG_Z_DIR_PIN             17
-#define ORIG_Z_ENABLE_PIN          0
+#define ORIG_Z_ENABLE_PIN           0
 #define ORIG_Z_CS_PIN              NoPin
 
 //###EXTRUDER_0
 #define ORIG_E0_STEP_PIN           14
 #define ORIG_E0_DIR_PIN            15
-#define ORIG_E0_ENABLE_PIN         0
+#define ORIG_E0_ENABLE_PIN          0
 #define ORIG_E0_CS_PIN             NoPin
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
-#define ORIG_E1_STEP_PIN           NoPin
-#define ORIG_E1_DIR_PIN            NoPin
-#define ORIG_E1_ENABLE_PIN         NoPin
+#define ORIG_E1_STEP_PIN           20
+#define ORIG_E1_DIR_PIN            13
+#define ORIG_E1_ENABLE_PIN         21
 #define ORIG_E1_CS_PIN             NoPin
 #define ORIG_SOL1_PIN              NoPin
 
@@ -94,18 +87,17 @@
 
 //###ENDSTOP
 #define ORIG_X_MIN_PIN             NoPin
-#define ORIG_X_MAX_PIN             8
+#define ORIG_X_MAX_PIN              8
 #define ORIG_Y_MIN_PIN             NoPin
-#define ORIG_Y_MAX_PIN             9
+#define ORIG_Y_MAX_PIN              9
 #define ORIG_Z_MIN_PIN             NoPin
-#define ORIG_Z_MAX_PIN             4
+#define ORIG_Z_MAX_PIN              4
 #define ORIG_Z2_MIN_PIN            NoPin
 #define ORIG_Z2_MAX_PIN            NoPin
 #define ORIG_Z3_MIN_PIN            NoPin
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_E_MIN_PIN             NoPin
 #define ORIG_Z_PROBE_PIN           NoPin
 
 //###SINGLE_ENDSTOP
@@ -114,26 +106,26 @@
 #define Z_STOP_PIN                 NoPin
 
 //###HEATER
-#define ORIG_HEATER_0_PIN           11
-#define ORIG_HEATER_1_PIN           NoPin
-#define ORIG_HEATER_2_PIN           NoPin
-#define ORIG_HEATER_3_PIN           NoPin
-#define ORIG_HEATER_BED_PIN         NoPin
+#define ORIG_HEATER_0_PIN          11
+#define ORIG_HEATER_1_PIN          10
+#define ORIG_HEATER_2_PIN          NoPin
+#define ORIG_HEATER_3_PIN          NoPin
+#define ORIG_HEATER_BED_PIN         6
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
 #define ORIG_TEMP_0_PIN             4
-#define ORIG_TEMP_1_PIN             NoPin
-#define ORIG_TEMP_2_PIN             NoPin
-#define ORIG_TEMP_3_PIN             NoPin
-#define ORIG_TEMP_BED_PIN           NoPin
+#define ORIG_TEMP_1_PIN             2
+#define ORIG_TEMP_2_PIN            NoPin
+#define ORIG_TEMP_3_PIN            NoPin
+#define ORIG_TEMP_BED_PIN           3
 #define ORIG_TEMP_CHAMBER_PIN      NoPin
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN               NoPin
-#define ORIG_FAN1_PIN               NoPin
+#define ORIG_FAN0_PIN              24
+#define ORIG_FAN1_PIN              NoPin
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
 
@@ -144,12 +136,12 @@
 #define SERVO3_PIN                 NoPin
 
 //###MISC
-//#define ORIG_PS_ON_PIN             32
-//#define ORIG_BEEPER_PIN            27
+#define ORIG_PS_ON_PIN             NoPin
+#define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    13
 #define SDPOWER_PIN                NoPin
-//#define SD_DETECT_PIN              60
-#define SDSS                       4
+#define SD_DETECT_PIN              22
+#define SDSS                        2
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
@@ -166,14 +158,15 @@
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
-  #define LCD_PINS_RS         SS
-  #define LCD_PINS_ENABLE     MOSI
-  #define LCD_PINS_D4         SCK
-  #define ORIG_BEEPER_PIN     NoPin
+  #define LCD_PINS_RS             18
+  #define LCD_PINS_ENABLE         MOSI
+  #define LCD_PINS_D4             SCK
+  #define ORIG_BEEPER_PIN         NoPin
 
-  #define BTN_EN1             33
-  #define BTN_EN2             27
-  #define BTN_ENC             23
-
+  #define BTN_EN1                 27
+  #define BTN_EN2                 26
+  #define BTN_ENC                 23
+  #define KILL_PIN                33
 #endif // REPRAPWORLD_GRAPHICAL_LCD
 //@@@
+

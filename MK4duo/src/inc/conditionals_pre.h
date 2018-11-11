@@ -37,6 +37,8 @@
 #if ENABLED(NEXTION)
   #define LCD_HEIGHT 4
   #define LCD_DECIMAL_SMALL_XY
+  #undef REVERSE_MENU_DIRECTION
+  #undef ENCODER_RATE_MULTIPLIER
 #endif
 
 #if DISABLED(LCD_TIMEOUT_TO_STATUS)
@@ -138,6 +140,7 @@
   #define LCD_CONTRAST_MAX 255
   #define DEFAULT_LCD_CONTRAST 100
   #define ULTIPANEL
+  #define SPEAKER
 
 #elif ENABLED(CR10_STOCKDISPLAY)
 
@@ -309,7 +312,15 @@
   #define ULTIPANEL
 #endif
 
-#if ENABLED(DOGLCD) // Change number of lines to match the DOG graphic display
+// Aliases for LCD features
+#define HAS_NEXTION_LCD       ENABLED(NEXTION)
+#define HAS_SPI_LCD           ENABLED(ULTRA_LCD)
+#define HAS_GRAPHICAL_LCD     ENABLED(DOGLCD)
+#define HAS_CHARACTER_LCD     (ENABLED(ULTRA_LCD) && DISABLED(DOGLCD))
+#define HAS_LCD_MENU          (ENABLED(ULTIPANEL) && DISABLED(NO_LCD_MENUS))
+#define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
+
+#if HAS_GRAPHICAL_LCD // Change number of lines to match the DOG graphic display
   #if DISABLED(LCD_WIDTH)
     #if ENABLED(LCD_WIDTH_OVERRIDE)
       #define LCD_WIDTH LCD_WIDTH_OVERRIDE
@@ -320,10 +331,6 @@
   #if DISABLED(LCD_HEIGHT)
     #define LCD_HEIGHT 5
   #endif
-#endif
-
-#if ENABLED(NO_LCD_MENUS)
-  #undef ULTIPANEL
 #endif
 
 #if ENABLED(ULTIPANEL)
@@ -344,7 +351,7 @@
   #endif
 #endif
 
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
   /* Custom characters defined in font dogm_font_data_mk4duo_symbols.h / MK4duo_symbols.fon */
   // \x00 intentionally skipped to avoid problems in strings
   #define LCD_STR_REFRESH     "\x01"
@@ -364,6 +371,16 @@
   // Symbol characters
   #define LCD_STR_FILAM_DIA   "\xf8"
   #define LCD_STR_FILAM_MUL   "\xa4"
+#elif HAS_NEXTION_LCD
+  #define LCD_STR_REFRESH     "\x01"
+  #define LCD_STR_FOLDER      "\x02"
+  #define LCD_STR_ARROW_RIGHT "\x03"
+  #define LCD_STR_UPLEVEL     "^"
+  #define LCD_STR_CLOCK       "\x05"
+  #define LCD_STR_FEEDRATE    "\x06"
+  #define LCD_STR_BEDTEMP     "\x07"
+  #define LCD_STR_THERMOMETER "\x08"
+  #define LCD_STR_DEGREE      "\x09"
 #else
   // Custom characters defined in the first 8 characters of the LCD
   #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
@@ -380,7 +397,7 @@
 /**
  * Default LCD contrast for dogm-like LCD displays
  */
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
 
   #define HAS_LCD_CONTRAST ( \
       ENABLED(MAKRPANEL) \
@@ -406,7 +423,7 @@
 #endif
 
 // Boot screens
-#if DISABLED(ULTRA_LCD)
+#if !HAS_SPI_LCD
   #undef SHOW_BOOTSCREEN
 #elif DISABLED(BOOTSCREEN_TIMEOUT)
   #define BOOTSCREEN_TIMEOUT 2500
@@ -474,12 +491,12 @@
  */
 #if EXTRUDERS > 1
   #define XYZE_N          (3 + EXTRUDERS)
-  #define E_AXIS_N        (E_AXIS + extruder)
+  #define E_AXIS_N(E)     (E_AXIS + E)
   #define E_INDEX         (E_AXIS + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
   #define XYZE_N          XYZE
-  #define E_AXIS_N        E_AXIS
+  #define E_AXIS_N(E)     E_AXIS
   #define E_INDEX         E_AXIS
   #define TARGET_EXTRUDER 0
 #elif EXTRUDERS == 0
@@ -487,7 +504,7 @@
   #define PIDTEMP         false
   #undef FWRETRACT
   #define XYZE_N          XYZ
-  #define E_AXIS_N        0
+  #define E_AXIS_N(E)     0
   #define E_INDEX         0
   #define TARGET_EXTRUDER 0
 #endif
@@ -521,6 +538,17 @@
   #define BLTOUCH_SELFTEST 120
   #define BLTOUCH_RESET    160
 
+#endif
+
+// Label Preheat
+#ifndef PREHEAT_1_LABEL
+  #define PREHEAT_1_LABEL "PLA"
+#endif
+#ifndef PREHEAT_2_LABEL
+  #define PREHEAT_2_LABEL "ABS"
+#endif
+#ifndef PREHEAT_3_LABEL
+  #define PREHEAT_3_LABEL "GUM"
 #endif
 
 #endif /* _CONDITIONALS_PRE_H_ */

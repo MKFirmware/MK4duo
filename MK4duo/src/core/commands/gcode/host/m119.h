@@ -28,6 +28,13 @@
 
 #define CODE_M119
 
+static void print_state(const bool is_hit, PGM_P const label=NULL) {
+  if (label) SERIAL_PS(label);
+  SERIAL_MSG(": ");
+  SERIAL_PS(is_hit ? PSTR(MSG_ENDSTOP_HIT) : PSTR(MSG_ENDSTOP_OPEN));
+  SERIAL_EOL();
+}
+
 /**
  * M119: Output endstop states to serial output
  */
@@ -35,67 +42,75 @@ inline void gcode_M119(void) {
 
   SERIAL_EM(MSG_M119_REPORT);
 
+  #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(MSG_##S))
+
   #if HAS_X_MIN
-    SERIAL_EMT(MSG_X_MIN, ((READ(X_MIN_PIN)^endstops.isLogic(X_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(X_MIN);
   #endif
   #if HAS_X2_MIN
-    SERIAL_EMT(MSG_X2_MIN, ((READ(X2_MIN_PIN)^endstops.isLogic(X2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(X2_MIN);
   #endif
   #if HAS_X_MAX
-    SERIAL_EMT(MSG_X_MAX, ((READ(X_MAX_PIN)^endstops.isLogic(X_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(X_MAX);
   #endif
   #if HAS_X2_MAX
-    SERIAL_EMT(MSG_X2_MAX, ((READ(X2_MAX_PIN)^endstops.isLogic(X2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(X2_MAX);
   #endif
   #if HAS_Y_MIN
-    SERIAL_EMT(MSG_Y_MIN, ((READ(Y_MIN_PIN)^endstops.isLogic(Y_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Y_MIN);
   #endif
   #if HAS_Y2_MIN
-    SERIAL_EMT(MSG_Y2_MIN, ((READ(Y2_MIN_PIN)^endstops.isLogic(Y2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Y2_MIN);
   #endif
   #if HAS_Y_MAX
-    SERIAL_EMT(MSG_Y_MAX, ((READ(Y_MAX_PIN)^endstops.isLogic(Y_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Y_MAX);
   #endif
   #if HAS_Y2_MAX
-    SERIAL_EMT(MSG_Y2_MAX, ((READ(Y2_MAX_PIN)^endstops.isLogic(Y2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Y2_MAX);
   #endif
   #if HAS_Z_MIN
-    SERIAL_EMT(MSG_Z_MIN, ((READ(Z_MIN_PIN)^endstops.isLogic(Z_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Z_MIN);
   #endif
   #if HAS_Z2_MIN
-    SERIAL_EMT(MSG_Z2_MIN, ((READ(Z2_MIN_PIN)^endstops.isLogic(Z2_MIN)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Z2_MIN);
+  #endif
+  #if HAS_Z3_MIN
+    ES_REPORT(Z3_MIN);
   #endif
   #if HAS_Z_MAX
-    SERIAL_EMT(MSG_Z_MAX, ((READ(Z_MAX_PIN)^endstops.isLogic(Z_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Z_MAX);
   #endif
   #if HAS_Z2_MAX
-    SERIAL_EMT(MSG_Z2_MAX, ((READ(Z2_MAX_PIN)^endstops.isLogic(Z2_MAX)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Z2_MAX);
+  #endif
+  #if HAS_Z3_MAX
+    ES_REPORT(Z3_MAX);
   #endif
   #if HAS_Z_PROBE_PIN
-    SERIAL_EMT(MSG_Z_PROBE, ((READ(Z_PROBE_PIN)^endstops.isLogic(Z_PROBE)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(Z_PROBE);
   #endif
-  #if HAS_FIL_RUNOUT
-    SERIAL_EMT(MSG_E " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT0_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_0
+    print_state(READ(FIL_RUNOUT_0_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_0), MSG_FILAMENT_RUNOUT " 0");
   #endif
-  #if HAS_FIL_RUNOUT1
-    SERIAL_EMT(MSG_E1 " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT1_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_1
+    print_state(READ(FIL_RUNOUT_1_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_1), MSG_FILAMENT_RUNOUT " 1");
   #endif
-  #if HAS_FIL_RUNOUT2
-    SERIAL_EMT(MSG_E2 " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT2_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_2
+    print_state(READ(FIL_RUNOUT_2_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_2), MSG_FILAMENT_RUNOUT " 2");
   #endif
-  #if HAS_FIL_RUNOUT3
-    SERIAL_EMT(MSG_E3 " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT3_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_3
+    print_state(READ(FIL_RUNOUT_3_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_3), MSG_FILAMENT_RUNOUT " 3");
   #endif
-  #if HAS_FIL_RUNOUT4
-    SERIAL_EMT(MSG_E4 " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT4_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_4
+    print_state(READ(FIL_RUNOUT_4_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_4), MSG_FILAMENT_RUNOUT " 4");
   #endif
-  #if HAS_FIL_RUNOUT5
-    SERIAL_EMT(MSG_E5 " " MSG_FILAMENT_RUNOUT_SENSOR, ((READ(FIL_RUNOUT5_PIN)^endstops.isLogic(FIL_RUNOUT)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+  #if HAS_FIL_RUNOUT_5
+    print_state(READ(FIL_RUNOUT_5_PIN) ^ filamentrunout.isLogic(FIL_RUNOUT_5), MSG_FILAMENT_RUNOUT " 5");
   #endif
   #if HAS_DOOR_OPEN
-    SERIAL_EMT(MSG_DOOR_SENSOR, ((READ(DOOR_OPEN_PIN)^endstops.isLogic(DOOR_OPEN_SENSOR)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    ES_REPORT(DOOR_OPEN);
   #endif
   #if HAS_POWER_CHECK
-    SERIAL_EMT(MSG_POWER_CHECK_SENSOR, ((READ(POWER_CHECK_PIN)^endstops.isLogic(POWER_CHECK_SENSOR)) ? MSG_ENDSTOP_HIT : MSG_ENDSTOP_OPEN));
+    print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), MSG_POWER_CHECK);
   #endif
 }

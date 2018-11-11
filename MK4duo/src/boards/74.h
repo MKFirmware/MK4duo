@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -162,10 +162,10 @@
 //###IF_BLOCKS
 #if ENABLED(ULTIMAKERCONTROLLER) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) || ENABLED(G3D_PANEL) || ENABLED(MKS_MINI_12864)
   #define SDSUPPORT   // Force SD Card support on for these displays
-#elif ENABLED(ULTRA_LCD) && ENABLED(DOGLCD) // No panel, just graphical LCD?
+#elif HAS_SPI_LCD && HAS_GRAPHICAL_LCD // No panel, just graphical LCD?
   #define LCD_WIDTH_OVERRIDE 20 // Default is 22. For this Geeetech use 20
 #endif
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #define ORIG_BEEPER_PIN  18
 

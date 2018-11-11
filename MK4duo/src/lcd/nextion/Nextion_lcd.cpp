@@ -21,9 +21,9 @@
  */
 
 /**
- * Nextion_lcd.cpp
+ * nextion_lcd.cpp
  *
- * Copyright (c) 2014-2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,11 +41,10 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(NEXTION)
+#if HAS_NEXTION_LCD
 
-  #include "Nextion_lcd.h"
-  #include "Nextion_gfx.h"
-  #include "library/Nextion.h"
+  #include "library/nextion.h"
+  #include "nextion_gfx.h"
 
   bool        NextionON                 = false,
               show_Wave                 = true,
@@ -407,7 +406,7 @@
   };
 
   // Function pointer to menu functions.
-  typedef void (*screenFunc_t)();
+  using screenFunc_t = void(*)();
 
   /**
    *
@@ -540,14 +539,14 @@
   #if HAS_SD_SUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED || card.isOK()) {
+      if (IS_SD_INSERTED() || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
         lcd_init();
       }
     }
 
-    void printrowsd(uint8_t row, const bool folder, const char* filename) {
+    void printrowsd(uint8_t row, const bool folder, PGM_P filename) {
       if (folder) {
         folder_list[row]->SetVisibility(true);
         row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
@@ -580,11 +579,7 @@
         for (uint8_t row = 0; row < 6; row++) {
           i = row + number;
           if (i < fileCnt) {
-            #if ENABLED(SDCARD_SORT_ALPHA)
-              card.getfilename_sorted(i);
-            #else
-              card.getfilename(i);
-            #endif
+            card.getfilename_sorted(i);
             printrowsd(row, card.isFilenameIsDir(), card.fileName);
           } else {
             printrowsd(row, false, "");
@@ -594,12 +589,12 @@
       sendCommand("ref 0");
     }
 
-    static void menu_action_sdfile(const char* filename) {
+    static void menu_action_sdfile(PGM_P filename) {
       card.openAndPrintFile(filename);
       Pprinter.show();
     }
 
-    static void menu_action_sddirectory(const char* filename) {
+    static void menu_action_sddirectory(PGM_P filename) {
       card.chdir(filename);
       setpageSD();
     }
@@ -694,7 +689,7 @@
       UNUSED(ptr);
 
       if (card.isOK() && card.isFileOpen()) {
-        if (IS_SD_PRINTING) {
+        if (IS_SD_PRINTING()) {
           card.pauseSDPrint();
           print_job_counter.pause();
           #if ENABLED(PARK_HEAD_ON_PAUSE)
@@ -712,9 +707,9 @@
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    static AdvancedPauseMode advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
+    static AdvancedPauseModeEnum advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
 
-    static const char* advanced_pause_header() {
+    static PGM_P advanced_pause_header() {
       switch (advanced_pause_mode) {
         case ADVANCED_PAUSE_MODE_LOAD_FILAMENT:
           return PSTR(MSG_FILAMENT_CHANGE_HEADER_LOAD);
@@ -726,12 +721,12 @@
     }
 
     static void lcd_advanced_pause_resume_print() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
+      advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;
       Pprinter.show();
     }
 
     static void lcd_advanced_pause_extrude_more() {
-      advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
+      advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE;
     }
 
     static void lcd_advanced_pause_option_menu() {
@@ -760,7 +755,15 @@
       END_SCREEN();
     }
 
-    static void lcd_advanced_pause_wait_for_nozzles_to_heat() {
+    static void lcd_advanced_pause_waiting_message() {
+      START_SCREEN();
+      STATIC_ITEM_P(advanced_pause_header());
+      STATIC_ITEM(MSG_ADVANCED_PAUSE_WAITING_1);
+      STATIC_ITEM(MSG_ADVANCED_PAUSE_WAITING_2);
+      END_SCREEN();
+    }
+
+    static void lcd_advanced_pause_heating_message() {
       START_SCREEN();
       STATIC_ITEM_P(advanced_pause_header());
       STATIC_ITEM(MSG_FILAMENT_CHANGE_HEATING_1);
@@ -821,13 +824,13 @@
     }
 
     void lcd_advanced_pause_show_message(
-      const AdvancedPauseMessage message,
-      const AdvancedPauseMode mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
+      const AdvancedPauseMessageEnum message,
+      const AdvancedPauseModeEnum mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/,
       const uint8_t extruder/*=active_extruder*/
     ) {
 
       UNUSED(extruder);
-      static AdvancedPauseMessage old_message;
+      static AdvancedPauseMessageEnum old_message;
       advanced_pause_mode = mode;
 
       if (old_message != message) {
@@ -837,6 +840,9 @@
             break;
           case ADVANCED_PAUSE_MESSAGE_UNLOAD:
             lcd_advanced_pause_unload_message();
+            break;
+          case ADVANCED_PAUSE_MESSAGE_WAITING:
+            lcd_advanced_pause_waiting_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_INSERT:
             lcd_advanced_pause_insert_message();
@@ -850,17 +856,17 @@
           case ADVANCED_PAUSE_MESSAGE_RESUME:
             lcd_advanced_pause_resume_message();
             break;
-          case ADVANCED_PAUSE_MESSAGE_CLICK_TO_HEAT_NOZZLE:
+          case ADVANCED_PAUSE_MESSAGE_HEAT:
             lcd_advanced_pause_heat_nozzle();
             break;
           case ADVANCED_PAUSE_MESSAGE_PRINTER_OFF:
             lcd_advanced_pause_printer_off();
             break;
-          case ADVANCED_PAUSE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT:
-            lcd_advanced_pause_wait_for_nozzles_to_heat();
+          case ADVANCED_PAUSE_MESSAGE_HEATING:
+            lcd_advanced_pause_heating_message();
             break;
           case ADVANCED_PAUSE_MESSAGE_OPTION:
-            advanced_pause_menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
+            advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_WAIT_FOR;
             lcd_advanced_pause_option_menu();
             break;
           case ADVANCED_PAUSE_MESSAGE_STATUS:
@@ -904,7 +910,7 @@
       commands.enqueue_and_echo(buffer);
     }
 
-    void rfid_setText(const char* message, uint32_t color /* = 65535 */) {
+    void rfid_setText(PGM_P message, uint32_t color /* = 65535 */) {
       char Rfid_status_message[25];
       strncpy(Rfid_status_message, message, 30);
       RfidText.Set_font_color_pco(color);
@@ -921,9 +927,9 @@
         mechanics.set_destination_to_current();
 
         if (ptr == &ProbeUp)
-          mechanics.destination[Z_AXIS] += (LCD_Z_STEP);
+          mechanics.destination[Z_AXIS] += (MESH_EDIT_Z_STEP);
         else
-          mechanics.destination[Z_AXIS] -= (LCD_Z_STEP);
+          mechanics.destination[Z_AXIS] -= (MESH_EDIT_Z_STEP);
 
         NOLESS(mechanics.destination[Z_AXIS], -(LCD_PROBE_Z_RANGE) * 0.5);
         NOMORE(mechanics.destination[Z_AXIS], (LCD_PROBE_Z_RANGE) * 0.5);
@@ -1075,7 +1081,7 @@
       switch(Vyes.getValue()) {
         #if HAS_SD_SUPPORT
           case 1: // Stop Print
-            printer.setAbortSDprinting(true);
+            card.setAbortSDprinting(true);
             lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
             Pprinter.show();
             break;
@@ -1138,6 +1144,12 @@
       }
       else if (strstr(buffer, "4024")) {  // Model 3.2" Normal or Enhanced
         SERIAL_MSG(" 3.2");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "4832")) {  // Model 3.5" Normal or Enhanced
+        SERIAL_MSG(" 3.5");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
@@ -1232,7 +1244,7 @@
     heater_list0[h]->setValue(temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!(print_job_counter.isRunning() || IS_SD_PRINTING) && !Wavetemp.getObjVis() && show_Wave) {
+      if (!printer.isPrinting() && !Wavetemp.getObjVis() && show_Wave) {
         Wavetemp.SetVisibility(true);
       }
     #endif
@@ -1308,7 +1320,7 @@
           lcd_setstatus(lcd_status_message);
           #if ENABLED(NEXTION_GFX)
             #if MECH(DELTA)
-              gfx_clear(mechanics.delta_print_radius * 2, mechanics.delta_print_radius * 2, mechanics.delta_height);
+              gfx_clear(mechanics.data.print_radius * 2, mechanics.data.print_radius * 2, mechanics.data.height);
             #else
               gfx_clear(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
             #endif
@@ -1403,11 +1415,11 @@
         #if HAS_SD_SUPPORT
 
           if (card.isFileOpen()) {
-            if (IS_SD_PRINTING && SDstatus != SD_PRINTING) {
+            if (IS_SD_PRINTING() && SDstatus != SD_PRINTING) {
               SDstatus = SD_PRINTING;
               SD.setValue(SDstatus);
             }
-            else if (!IS_SD_PRINTING && SDstatus != SD_PAUSE) {
+            else if (!IS_SD_PRINTING() && SDstatus != SD_PAUSE) {
               SDstatus = SD_PAUSE;
               SD.setValue(SDstatus);
             }
@@ -1450,14 +1462,14 @@
     PreviousPage = PageID;
   }
 
-  void lcd_setstatus(const char* message, bool persist) {
+  void lcd_setstatus(PGM_P message, bool persist) {
     UNUSED(persist);
     if (lcd_status_message_level > 0 || !NextionON) return;
     strncpy(lcd_status_message, message, 30);
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setstatusPGM(const char* message, int8_t level) {
+  void lcd_setstatusPGM(PGM_P message, int8_t level) {
     if (level < 0) level = lcd_status_message_level = 0;
     if (level < lcd_status_message_level || !NextionON) return;
     strncpy_P(lcd_status_message, message, 30);
@@ -1465,7 +1477,7 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_status_printf_P(const uint8_t level, const char * const fmt, ...) {
+  void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
     if (level < lcd_status_message_level || !NextionON) return;
     lcd_status_message_level = level;
     va_list args;
@@ -1475,19 +1487,19 @@
     if (PageID == 2) LcdStatus.setText(lcd_status_message);
   }
 
-  void lcd_setalertstatusPGM(const char * const message) {
+  void lcd_setalertstatusPGM(PGM_P const message) {
     lcd_setstatusPGM(message, 1);
   }
 
   void lcd_reset_alert_level() { lcd_status_message_level = 0; }
 
-  void lcd_scrollinfo(const char* titolo, const char* message) {
+  void lcd_scrollinfo(PGM_P titolo, PGM_P message) {
     Pinfo.show();
     InfoText.setText(titolo);
     ScrollText.setText(message);
   }
 
-  void lcd_yesno(const uint8_t val, const char* msg1, const char* msg2, const char* msg3) {
+  void lcd_yesno(const uint8_t val, PGM_P msg1, PGM_P msg2, PGM_P msg3) {
     Vyes.setValue(val, "yesno");
     Pyesno.show();
     Riga0.setText(msg1);
@@ -1505,7 +1517,7 @@
     }
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_clear)) {
+      if (PageID == 2 && (printer.isPrinting() || force_clear)) {
         Wavetemp.SetVisibility(false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
@@ -1513,12 +1525,12 @@
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING || force_cursor))
+      if (PageID == 2 && (printer.isPrinting() || force_cursor))
         gfx.cursor_to(x, y, z);
     }
 
     void gfx_line_to(const float x, const float y, const float z) {
-      if (PageID == 2 && (print_job_counter.isRunning() || IS_SD_PRINTING)) {
+      if (PageID == 2 && printer.isPrinting()) {
         #if ENABLED(ARDUINO_ARCH_SAM)
           gfx.line_to(NX_TOOL, x, y, z, true);
         #else

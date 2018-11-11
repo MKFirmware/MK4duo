@@ -38,11 +38,11 @@
 #endif
 
 // Start check
-#if DISABLED(SERIAL_PORT)
-  #error "DEPENDENCY ERROR: Missing setting SERIAL_PORT."
+#if DISABLED(SERIAL_PORT_1)
+  #error "DEPENDENCY ERROR: Missing setting SERIAL_PORT_1."
 #endif
-#if DISABLED(BAUDRATE)
-  #error "DEPENDENCY ERROR: Missing setting BAUDRATE."
+#if DISABLED(BAUDRATE_1)
+  #error "DEPENDENCY ERROR: Missing setting BAUDRATE_1."
 #endif
 #if DISABLED(MACHINE_UUID)
   #error "DEPENDENCY ERROR: Missing setting MACHINE_UUID."

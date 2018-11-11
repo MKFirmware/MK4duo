@@ -24,6 +24,7 @@
 |  G31 | Dock Z Probe sled (if enabled)
 |  G32 | Undock Z Probe sled (if enabled)
 |  G33 | Delta geometry Autocalibration[br/>F[nfactor] P[npoint] Q[debugging> (Requires **DELTA AUTO CALIBRATION 1**)<br/>P[npoints] V[nverbose> (Requires **DELTA AUTO CALIBRATION 2**)
+|  G34 | Set Delta Height calculated from toolhead position (only DELTA)
 |  G38 | Probe target - similar to **G28** except it uses the Z MIN endstop for all three axes
 |  G42 | Coordinated move to a mesh point. (Requires **MESH BED LEVELING** or **AUTO BED LEVELING BILINEAR**)
 |  G60 | Save current position coordinates (all axes, for active extruder).<br/>S[SLOT] - specifies memory slot # (0-based) to save into (default 0)
@@ -81,7 +82,7 @@
 | M100 | ? | Watch Free Memory (For Debugging Only)
 | M104 | ? | Set hotend target temp
 | M105 | ? | Read current temp
-| M106 | ? | P[fan] S[speed] F[frequency] U[pin] L[min speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled
+| M106 | ? | P[fan] S[speed] F[frequency] U[pin] L[min speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[int] Triggered temperature
 | M107 | ? | P[fan] Fan off
 | M108 | EMERGENCY PARSER | Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1.
 | M109 | ? | S[xxx] - Wait for hotend current temp to reach target temp. Waits only when heating<br/>R[xxx] - Wait for hotend current temp to reach target temp. Waits when heating and cooling<br/>IF AUTOTEMP is enabled, S[mintemp] B[maxtemp] F[factor>. Exit autotemp by any M109 without F
@@ -96,8 +97,8 @@
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
 | M122 | MIN SOFTWARE ENDSTOPS or MAX SOFTWARE ENDSTOPS | S[bool] Enable or disable check software endstop
-| M123 | ENDSTOP | Set Endstop Logic[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool>
-| M124 | ENDSTOP | Set Endstop Pullup[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool] F[Filrunout bool] W[Power Check bool>
+| M123 | ENDSTOP | Set Endstop Logic[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+| M124 | ENDSTOP | Set Endstop Pullup[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
 | M125 | PARK HEAD ON PAUSE | Save current position and move to pause park position 
 | M126 | ? | Solenoid Air Valve Open (BariCUDA support by jmil)
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -128,6 +129,8 @@
 | M220 | ? | S[factor in percent] - set speed factor override percentage
 | M221 | ? | T[extruder] S[factor in percent] - set extrude factor override percentage
 | M222 | ? | T[extruder] S[factor in percent] - set density extrude factor percentage for purge
+| M223 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Logic
+| M224 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Pullup
 | M240 | ? | Trigger a camera to take a photograph
 | M280 | SERVO | Position an RC Servo P[index] S[angle/microseconds], ommit S to report back current angle
 | M281 | SERVO | Set servo low|up angles position. P[index] L[low] U[up]
@@ -169,6 +172,7 @@
 | M503 | ? | print the current settings (from memory not from EEPROM)
 | M512 | ? | Print Extruder Encoder status Pin. (Requires Extruder Encoder)
 | M522 | ? | Use for reader o writer tag with MFRC522. M522 T[extruder] R(read) W(write) L(print list data on tag)
+| M524 | SDCARD | Abort the current SD print job (started with M24).
 | M530 | ? | Enables explicit printing mode (S1) or disables it (S0). L can set layer count
 | M531 | ? | filename - Define filename being printed
 | M532 | ? | X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
@@ -179,12 +183,12 @@
 | M603 | ADVANCED PAUSE FEATURE | Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
 | M605 | ? | Set dual x-carriage movement mode: Smode [ X[duplication x-offset] Rduplication temp offset ]
 | M649 | ? | Set laser options. S[intensity] L[duration] P[ppm] B[set mode] R[raster mm per pulse] F[feedrate]
-| M666 | DELTA | Delta geometry adjustment.
+| M666 | DELTA | Delta geometry adjustment
 | M666 | TWO ENDSTOPS | Set Two Endstops offsets for X, Y, and/or Z. X[float] Y[float] Z[float]
 | M701 | ADVANCED PAUSE FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED PAUSE FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
-| M851 | ? | Set X Y Z Probe Offset in current units. (Requires Probe)
-| M900 | LIN ADVANCE | K[factor] Set Linear Advance K-factor.
+| M851 | Probe | Set X Y Z Probe Offset in current units, F[speed Fast] S[speed Slow] in mm/min
+| M900 | LIN ADVANCE | K[factor] Set Linear Advance K-factor
 | M906 | ALLIGATOR or TRINAMIC | Set motor currents XYZ T0-4 E. Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.
 | M907 | a board with digital trimpots | Set digital trimpot motor current using axis codes
 | M908 | DIGIPOTSS PIN | Control digital trimpot directly
@@ -194,7 +198,18 @@
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
 | M922 | TRINAMIC | S[1/0] Enable/disable TMC debug
-| M928 | ? | Start SD logging (M928 filename.g) - ended by M29
-| M995 | ? | X Y Z Set origin for graphic in NEXTION
-| M996 | ? | S[scale] Set scale for graphic in NEXTION
-| M999 | ? | Restart after being stopped by error
+| M930 | TRINAMIC | TMC set blank_time.
+| M931 | TRINAMIC | TMC set off_time.
+| M932 | TRINAMIC | TMC set hysteresis_start.
+| M933 | TRINAMIC | TMC set hysteresis_end.
+| M935 | TRINAMIC | TMC set disable_I_comparator.
+| M936 | TRINAMIC | TMC set stealth_gradient.
+| M937 | TRINAMIC | TMC set stealth_amplitude.
+| M938 | TRINAMIC | TMC set stealth_freq.
+| M939 | TRINAMIC | TMC switch stealth_autoscale.
+| M940 | TRINAMIC | TMC switch StealthChop.
+| M941 | TRINAMIC | TMC switch ChopperMode.
+| M942 | TRINAMIC | TMC switch interpolation.
+| M995 | NEXTION | X Y Z Set origin for graphic in NEXTION
+| M996 | NEXTION | S[scale] Set scale for graphic in NEXTION
+| M999 | NOPE | Restart after being stopped by error

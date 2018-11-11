@@ -109,8 +109,8 @@
  *   S #  Nozzle      Used to control the size of nozzle diameter. If not specified, a .4mm nozzle is assumed.
  *
  *   U #  Random      Randomize the order that the circles are drawn on the bed. The search for the closest
- *                    undrawn cicle is still done. But the distance to the location for each circle has a
- *                    random number of the size specified added to it. Specifying S50 will give an interesting
+ *                    un-drawn circle is still done. But the distance to the location for each circle has a
+ *                    random number of the specified size added to it. Specifying S50 will give an interesting
  *                    deviation from the normal behaviour on a 10 x 10 Mesh.
  *
  *   X #  X Coord.    Specify the starting location of the drawing activity.
@@ -139,7 +139,7 @@ int16_t g26_bed_temp,
 
 int8_t g26_prime_flag;
 
-#if ENABLED(NEWPANEL)
+#if ENABLED(ULTIPANEL)
 
   /**
    * If the LCD is clicked, cancel, wait for release, return true
@@ -215,7 +215,7 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
   if (z != last_z) {
     last_z = z;
-    feed_value = mechanics.max_feedrate_mm_s[Z_AXIS] / (3.0);           // Base the feed rate off of the configured Z_AXIS feed rate
+    feed_value = mechanics.data.max_feedrate_mm_s[Z_AXIS] / (3.0);      // Base the feed rate off of the configured Z_AXIS feed rate
 
     mechanics.destination[X_AXIS] = mechanics.current_position[X_AXIS];
     mechanics.destination[Y_AXIS] = mechanics.current_position[Y_AXIS];
@@ -229,7 +229,7 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
   // Check if X or Y is involved in the movement.
   // Yes: a 'normal' movement. No: a retract() or recover()
-  feed_value = has_xy_component ? PLANNER_XY_FEEDRATE() / 10.0 : mechanics.max_feedrate_mm_s[E_AXIS] / 1.5;
+  feed_value = has_xy_component ? PLANNER_XY_FEEDRATE() / 10.0 : mechanics.data.max_feedrate_mm_s[E_AXIS] / 1.5;
 
   if (bedlevel.g26_debug_flag) SERIAL_EMV("in move_to() feed_value for XY:", feed_value);
 
@@ -314,7 +314,7 @@ inline bool look_for_lines_to_connect() {
   for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
     for (uint8_t j = 0; j < GRID_MAX_POINTS_Y; j++) {
 
-      #if ENABLED(NEWPANEL)
+      #if ENABLED(ULTIPANEL)
         if (user_canceled()) return true;     // Check if the user wants to stop the Mesh Validation
       #endif
 
@@ -401,23 +401,23 @@ inline bool turn_on_heaters() {
   printer.setAutoreportTemp(true);
 
   #if HAS_TEMP_BED
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       if (g26_bed_temp > 25) {
         lcd_setstatusPGM(PSTR("G26 Heating Bed."), 99);
         lcd_quick_feedback(true);
-        #if ENABLED(NEWPANEL)
+        #if ENABLED(ULTIPANEL)
           lcd_external_control = true;
         #endif
     #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
         while (ABS(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
-          #if ENABLED(NEWPANEL)
+          #if ENABLED(ULTIPANEL)
             if (is_lcd_clicked()) return exit_from_g26();
           #endif
           printer.idle();
-          HAL::serialFlush(); // Prevent host M105 buffer overrun.
+          Com::serialFlush(); // Prevent host M105 buffer overrun.
         }
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       }
       lcd_setstatusPGM(PSTR("G26 Heating Nozzle."), 99);
       lcd_quick_feedback(true);
@@ -427,14 +427,14 @@ inline bool turn_on_heaters() {
   // Start heating the nozzle and wait for it to reach temperature.
   heaters[0].setTarget(g26_hotend_temp);
   while (ABS(heaters[0].current_temperature - g26_hotend_temp) > 3) {
-    #if ENABLED(NEWPANEL)
+    #if ENABLED(ULTIPANEL)
       if (is_lcd_clicked()) return exit_from_g26();
     #endif
     printer.idle();
-    HAL::serialFlush(); // Prevent host M105 buffer overrun.
+    Com::serialFlush(); // Prevent host M105 buffer overrun.
   }
 
-  #if ENABLED(ULTRA_LCD)
+  #if HAS_SPI_LCD
     lcd_reset_status();
     lcd_quick_feedback(true);
   #endif
@@ -449,7 +449,7 @@ inline bool turn_on_heaters() {
  */
 inline bool prime_nozzle() {
 
-  #if ENABLED(NEWPANEL)
+  #if ENABLED(ULTIPANEL)
     float Total_Prime = 0.0;
 
     if (g26_prime_flag == -1) {  // The user wants to control how much filament gets purged
@@ -469,7 +469,7 @@ inline bool prime_nozzle() {
           Total_Prime += 0.25;
           if (Total_Prime >= EXTRUDE_MAXLENGTH) return G26_ERR;
         #endif
-        G26_line_to_destination(mechanics.max_feedrate_mm_s[E_AXIS] / 15.0);
+        G26_line_to_destination(mechanics.data.max_feedrate_mm_s[E_AXIS] / 15.0);
 
         mechanics.set_destination_to_current();
         planner.synchronize();    // Without this synchronize, the purge is more consistent,
@@ -487,13 +487,13 @@ inline bool prime_nozzle() {
     else
   #endif
   {
-    #if ENABLED(ULTRA_LCD)
+    #if HAS_SPI_LCD
       lcd_setstatusPGM(PSTR("Fixed Length Prime."), 99);
       lcd_quick_feedback(true);
     #endif
     mechanics.set_destination_to_current();
     mechanics.destination[E_AXIS] += g26_prime_length;
-    G26_line_to_destination(mechanics.max_feedrate_mm_s[E_AXIS] / 15.0);
+    G26_line_to_destination(mechanics.data.max_feedrate_mm_s[E_AXIS] / 15.0);
     mechanics.set_destination_to_current();
     retract_filament(mechanics.destination);
   }
@@ -595,7 +595,7 @@ inline void gcode_G26(void) {
 
   if (parser.seen('P')) {
     if (!parser.has_value()) {
-      #if ENABLED(NEWPANEL)
+      #if ENABLED(ULTIPANEL)
         g26_prime_flag = -1;
       #else
         SERIAL_EM("?Prime length must be specified when not using an LCD.");
@@ -640,7 +640,7 @@ inline void gcode_G26(void) {
   }
 
   int16_t g26_repeats;
-  #if ENABLED(NEWPANEL)
+  #if ENABLED(ULTIPANEL)
     g26_repeats = parser.intval('R', GRID_MAX_POINTS + 1);
   #else
     if (!parser.seen('R')) {
@@ -699,7 +699,7 @@ inline void gcode_G26(void) {
   move_to(mechanics.destination, 0.0);
   move_to(mechanics.destination, g26_ooze_amount);
 
-  #if ENABLED(NEWPANEL)
+  #if ENABLED(ULTIPANEL)
     lcd_external_control = true;
   #endif
 
@@ -756,7 +756,7 @@ inline void gcode_G26(void) {
 
       for (int8_t ind = start_ind; ind <= end_ind; ind++) {
 
-        #if ENABLED(NEWPANEL)
+        #if ENABLED(ULTIPANEL)
           if (user_canceled()) goto LEAVE;          // Check if the user wants to stop the Mesh Validation
         #endif
 
@@ -776,12 +776,12 @@ inline void gcode_G26(void) {
         #endif
 
         print_line_from_here_to_there(rx, ry, g26_layer_height, xe, ye, g26_layer_height);
-        HAL::serialFlush(); // Prevent host M105 buffer overrun.
+        Com::serialFlush(); // Prevent host M105 buffer overrun.
       }
       if (look_for_lines_to_connect())
         goto LEAVE;
     }
-    HAL::serialFlush(); // Prevent host M105 buffer overrun.
+    Com::serialFlush(); // Prevent host M105 buffer overrun.
   } while (--g26_repeats && location.x_index >= 0 && location.y_index >= 0);
 
 LEAVE:
@@ -798,7 +798,7 @@ LEAVE:
 
   move_to(mechanics.destination, 0); // Move back to the starting position
 
-  #if ENABLED(NEWPANEL)
+  #if ENABLED(ULTIPANEL)
     lcd_external_control = false;   // Give back control of the LCD Panel!
   #endif
 

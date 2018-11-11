@@ -32,22 +32,20 @@
 #define _PLATFORM_H_
 
 #include "common/memory_store.h"
+#include "common/communication.h"
 #include "common/servo.h"
 
 #if ENABLED(ARDUINO_ARCH_SAM)
   #define CPU_32_BIT
   #include "HAL_DUE/spi_pins.h"
   #include "HAL_DUE/HAL.h"
-  #include "HAL_DUE/communication.h"
 #elif ENABLED(ARDUINO_ARCH_SAMD)
   #define CPU_32_BIT
   #include "HAL_SAMD/spi_pins.h"
   #include "HAL_SAMD/HAL.h"
-  #include "HAL_SAMD/communication.h"
 #elif ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins.h"
   #include "HAL_AVR/HAL.h"
-  #include "HAL_AVR/communication.h"
 #else
   #error "Unsupported Platform!"
 #endif

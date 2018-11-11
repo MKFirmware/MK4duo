@@ -50,18 +50,18 @@ inline void gcode_M303(void) {
 
   SERIAL_EM(MSG_PID_AUTOTUNE_START);
 
-  if (heaters[h].type == IS_HOTEND)
+  if (heaters[h].data.type == IS_HOTEND)
     SERIAL_MV("Hotend:", h);
   #if HAS_TEMP_BED
-    else if (heaters[h].type == IS_BED)
+    else if (heaters[h].data.type == IS_BED)
       SERIAL_MSG("BED");
   #endif
   #if HAS_TEMP_CHAMBER
-    else if(heaters[h].type == IS_CHAMBER)
+    else if(heaters[h].data.type == IS_CHAMBER)
       SERIAL_MSG("CHAMBER");
   #endif
   #if HAS_TEMP_COOLER
-    else if(heaters[h].type == IS_COOLER)
+    else if(heaters[h].data.type == IS_COOLER)
       SERIAL_MSG("COOLER");
   #endif
 

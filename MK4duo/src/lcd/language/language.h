@@ -19,14 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef LANGUAGE_H
-#define LANGUAGE_H
+#pragma once
 
 #define _UxGT(a) a
-
-// Define SIMULATE_ROMFONT to see what is seen on the character based display defined in Configuration.h
-//#define SIMULATE_ROMFONT
 
 // Fallback if no language is set. DON'T CHANGE
 #if DISABLED(LCD_LANGUAGE)
@@ -88,11 +83,11 @@
 #define MSG_COMPILED                        "Compiled: "
 #define MSG_FREE_MEMORY                     "Free Memory: "
 #define MSG_PLANNER_BUFFER_BYTES            " PlannerBufferBytes: "
+#define MSG_STATS                           "Stats: "
 #define MSG_ERR_LINE_NO                     "Line Number is not Last Line Number+1, Last Line: "
 #define MSG_ERR_CHECKSUM_MISMATCH           "checksum mismatch, Last Line: "
 #define MSG_ERR_NO_CHECKSUM                 "No Checksum with line number, Last Line: "
 #define MSG_FILE_PRINTED                    "Done printing file"
-#define MSG_STATS                           "Stats: "
 #define MSG_BEGIN_FILE_LIST                 "Begin file list"
 #define MSG_END_FILE_LIST                   "End file list"
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
@@ -115,24 +110,26 @@
 #define MSG_ACTIVE_DRIVER                   "Active Driver: "
 #define MSG_ACTIVE_EXTRUDER                 "Active Extruder: "
 #define MSG_ACTIVE_COLOR                    "Active Color: "
-#define MSG_X_MIN                           "x_min: "
-#define MSG_X_MAX                           "x_max: "
-#define MSG_X2_MIN                          "x2_min: "
-#define MSG_X2_MAX                          "x2_max: "
-#define MSG_Y_MIN                           "y_min: "
-#define MSG_Y_MAX                           "y_max: "
-#define MSG_Y2_MIN                          "y2_min: "
-#define MSG_Y2_MAX                          "y2_max: "
-#define MSG_Z_MIN                           "z_min: "
-#define MSG_Z_MAX                           "z_max: "
-#define MSG_Z2_MIN                          "z2_min: "
-#define MSG_Z2_MAX                          "z2_max: "
-#define MSG_Z_PROBE                         "z_probe: "
-#define MSG_E_MIN                           "e_min: "
+#define MSG_X_MIN                           "x_min"
+#define MSG_X_MAX                           "x_max"
+#define MSG_X2_MIN                          "x2_min"
+#define MSG_X2_MAX                          "x2_max"
+#define MSG_Y_MIN                           "y_min"
+#define MSG_Y_MAX                           "y_max"
+#define MSG_Y2_MIN                          "y2_min"
+#define MSG_Y2_MAX                          "y2_max"
+#define MSG_Z_MIN                           "z_min"
+#define MSG_Z_MAX                           "z_max"
+#define MSG_Z2_MIN                          "z2_min"
+#define MSG_Z2_MAX                          "z2_max"
+#define MSG_Z3_MIN                          "z3_min"
+#define MSG_Z3_MAX                          "z3_max"
+#define MSG_Z_PROBE                         "z_probe"
+#define MSG_E_MIN                           "e_min"
 #define MSG_PROBE_Z_OFFSET                  "Probe Z Offset"
-#define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
-#define MSG_DOOR_SENSOR                     "door: "
-#define MSG_POWER_CHECK_SENSOR              "power check: "
+#define MSG_FILAMENT_RUNOUT                 "filament"
+#define MSG_DOOR_OPEN                       "door"
+#define MSG_POWER_CHECK                     "power check"
 #define MSG_ERR_MATERIAL_INDEX              "M145 S<index> out of range (0-2)"
 #define MSG_ERR_M421_PARAMETERS             "M421 incorrect parameter usage"
 #define MSG_ERR_MESH_XY                     "Mesh point cannot be resolved"
@@ -176,18 +173,18 @@
 #define MSG_ENDSTOPS_HIT                    "endstops hit: "
 #define MSG_ERR_COLD_EXTRUDE_STOP           "cold extrusion prevented"
 #define MSG_ERR_LONG_EXTRUDE_STOP           "too long extrusion prevented"
-#define MSG_HOTEND_TOO_COLD                 "Hotend too cold to change filament"
 
 #define MSG_FILAMENT_CHANGE_HEAT            "Press button (or M108) to heat nozzle"
-#define MSG_FILAMENT_CHANGE_HEAT_LCD        "Press button to heat nozzle"
-#define MSG_FILAMENT_CHANGE_HEAT_M108       "Send M108 to heat nozzle"
 #define MSG_FILAMENT_CHANGE_INSERT          "Insert filament and press button (or M108)"
+#define MSG_FILAMENT_CHANGE_WAIT            "Press button (or M108) to resume"
+#define MSG_FILAMENT_CHANGE_HEAT_LCD        "Press button to heat nozzle"
 #define MSG_FILAMENT_CHANGE_INSERT_LCD      "Insert filament and press button"
+#define MSG_FILAMENT_CHANGE_WAIT_LCD        "Press button to resume"
+#define MSG_FILAMENT_CHANGE_HEAT_M108       "Send M108 to heat nozzle"
 #define MSG_FILAMENT_CHANGE_INSERT_M108     "Insert filament and send M108"
+#define MSG_FILAMENT_CHANGE_WAIT_M108       "Send M108 to resume"
 
-#define MSG_SERIAL_ERROR_MENU_STRUCTURE     "Error in menu structure"
-
-#define MSG_ERR_EEPROM_WRITE                "Writing to EEPROM!"
+#define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
 
 #define MSG_STOP_BLTOUCH                    "STOP called because of BLTouch error - restart with M999"
 #define MSG_STOP_UNHOMED                    "STOP called because of unhomed error - restart with M999"
@@ -205,7 +202,6 @@
 #define MSG_PID_AUTOTUNE                    "PID Autotune"
 #define MSG_PID_AUTOTUNE_START              MSG_PID_AUTOTUNE " start"
 #define MSG_PID_AUTOTUNE_FAILED             MSG_PID_AUTOTUNE " failed!"
-#define MSG_PID_BAD_TEMP_CONTROLLER_NUM     MSG_PID_AUTOTUNE_FAILED " Bad temperature controller number"
 #define MSG_PID_TEMP_TOO_HIGH               MSG_PID_AUTOTUNE_FAILED " Temperature too high"
 #define MSG_PID_TEMP_TOO_LOW                MSG_PID_AUTOTUNE_FAILED " Temperature too low"
 #define MSG_PID_TIMEOUT                     MSG_PID_AUTOTUNE_FAILED " timeout"
@@ -295,18 +291,16 @@
 
 #include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE)
 
-#if DISABLED(SIMULATE_ROMFONT) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_1) \
+#if DISABLED(DISPLAY_CHARSET_ISO10646_1) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_5) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_GREEK) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_CN) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_TR) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_PL) \
- && DISABLED(DISPLAY_CHARSET_ISO10646_CZ)
+ && DISABLED(DISPLAY_CHARSET_ISO10646_CZ) \
+ && DISABLED(DISPLAY_CHARSET_ISO10646_SK)
   #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 #endif
 
 #include "language_en.h"
-
-#endif //__LANGUAGE_H

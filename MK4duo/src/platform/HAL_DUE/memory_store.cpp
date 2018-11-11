@@ -36,21 +36,20 @@ bool MemoryStore::access_start(const bool read) {
   #if HAS_EEPROM_SD
     ZERO(eeprom_data);
     if (read) {
-      int16_t bytes_read = 0;
       card.open_eeprom_sd(true);
-      bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
-      SERIAL_LMV(ECHO, "SD EEPROM bytes read: ", (int)bytes_read);
-      if (bytes_read < 0) {
-        card.close_eeprom_sd();
-        return true;
-      }
+      size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
+      if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);
+      else SERIAL_STR(ECHO);
+      SERIAL_EMV("SD EEPROM bytes read: ", (int)bytes_read);
       card.close_eeprom_sd();
+      return (bytes_read != EEPROM_SIZE);
     }
   #else
     UNUSED(read);
   #endif
 
   return false;
+
 }
 
 bool MemoryStore::access_finish(const bool read) {
@@ -60,8 +59,10 @@ bool MemoryStore::access_finish(const bool read) {
   #elif HAS_EEPROM_SD
     if (!read) {
       card.open_eeprom_sd(false);
-      int16_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
-      SERIAL_LMV(ECHO, "SD EEPROM bytes written: ", (int)bytes_written);
+      size_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
+      if (bytes_written != EEPROM_SIZE) SERIAL_STR(ER);
+      else SERIAL_STR(ECHO);
+      SERIAL_EMV("SD EEPROM bytes written: ", (int)bytes_written);
       card.close_eeprom_sd();
       return (bytes_written != EEPROM_SIZE);
     }
@@ -70,6 +71,7 @@ bool MemoryStore::access_finish(const bool read) {
   #endif
 
   return false;
+
 }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
@@ -98,15 +100,15 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
   return false;
 }
 
-bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc) {
+bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
 
   while(size--) {
     #if HAS_EEPROM_SD
       uint8_t c = eeprom_data[pos];
     #else
-      uint8_t c = eeprom_read_byte((unsigned char*)pos);
+      uint8_t c = eeprom_read_byte((uint8_t*)pos);
     #endif
-    *value = c;
+    if (writing) *value = c;
     crc16(crc, &c, 1);
     pos++;
     value++;

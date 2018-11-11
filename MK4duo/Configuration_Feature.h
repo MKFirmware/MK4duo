@@ -63,6 +63,7 @@
  * - X-axis two driver
  * - Y-axis two driver
  * - Z-axis two driver
+ * - Z-axis three driver
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
@@ -74,6 +75,7 @@
  * - Door open sensor
  * - Power check sensor
  * ADDON FEATURES:
+ * - PCF8574 Expansion IO
  * - EEPROM
  * - SDCARD
  * - LCD Language
@@ -139,15 +141,21 @@
  *  - A4988                                                                 *
  *  - A5984                                                                 *
  *  - DRV8825                                                               *
- *  - TMC26X                                                                *
+ *  - LV8729                                                                *
  *  - L6470                                                                 *
  *  - TB6560                                                                *
  *  - TB6600                                                                *
  *  - TMC2100                                                               *
  *  - TMC2130                                                               *
+ *  - TMC2130_STANDALONE                                                    *
  *  - TMC2208                                                               *
+ *  - TMC2208_STANDALONE                                                    *
+ *  - TMC26X                                                                *
+ *  - TMC26X_STANDALONE                                                     *
  *  - TMC2660                                                               *
+ *  - TMC2660_STANDALONE                                                    *
  *  - TMC5130                                                               *
+ *  - TMC5130_STANDALONE                                                    *
  *                                                                          *
  * See Configuration_Motor_Driver.h for configuration Motor Driver          *
  *                                                                          *
@@ -158,6 +166,7 @@
 #define X2_DRIVER_TYPE  A4988
 #define Y2_DRIVER_TYPE  A4988
 #define Z2_DRIVER_TYPE  A4988
+#define Z3_DRIVER_TYPE  A4988
 #define E0_DRIVER_TYPE  A4988
 #define E1_DRIVER_TYPE  A4988
 #define E2_DRIVER_TYPE  A4988
@@ -760,13 +769,15 @@
 // Remember: you should set the second extruder x-offset to 0 in your slicer.
 
 // There are a few selectable movement modes for dual x-carriages using M605 S<mode>
-//    Mode 0 (DXC_FULL_CONTROL_MODE): Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
-//                                    as long as it supports dual x-carriages. (M605 S0)
-//    Mode 1 (DXC_AUTO_PARK_MODE)   : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
-//                                    that additional slicer support is not required. (M605 S1)
-//    Mode 2 (DXC_DUPLICATION_MODE) : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
-//                                    actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
-//                                    once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
+//    Mode 0 (DXC_FULL_CONTROL_MODE)        : Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
+//                                            as long as it supports dual x-carriages. (M605 S0)
+//    Mode 1 (DXC_AUTO_PARK_MODE)           : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
+//                                            that additional slicer support is not required. (M605 S1)
+//    Mode 2 (DXC_DUPLICATION_MODE)         : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
+//                                            actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
+//                                            once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
+//    Mode 3 (DXC_SCALED_DUPLICATION_MODE)  : Not working yet, but support routines in place
+//
 
 // This is the default power-up mode which can be later using M605.
 #define DEFAULT_DUAL_X_CARRIAGE_MODE DXC_FULL_CONTROL_MODE
@@ -837,6 +848,27 @@
 
 #define INVERT_Z2_VS_Z_DIR false
 //#define Z_TWO_ENDSTOPS
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ********************************** Z-axis three driver **********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * This section will allow you to use extra drivers to drive a second or third motor Z   *
+ * Uncomment this define to utilize a separate stepper driver for each Z axis motor.     *
+ * If the motors need to spin in opposite directions set INVERT Z2 VS Z DIR.             *
+ * If the second motor needs its own endstop set Z TWO ENDSTOPS.                         *
+ * Extra endstops will appear in the output of 'M119'.                                   *
+ *                                                                                       *
+ * Only Cartesian & Core                                                                 *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define Z_THREE_STEPPER_DRIVERS
+
+#define INVERT_Z2_VS_Z_DIR false
+#define INVERT_Z3_VS_Z_DIR false
+//#define Z_THREE_ENDSTOPS
 /*****************************************************************************************/
 
 
@@ -930,7 +962,7 @@
  * By default the firmware assumes                                                *
  * logic high = filament available                                                *
  * low = filament run out                                                         *
- * Single extruder only at this point (extruder 0)                                *
+ * Set valor for extruder 0 to extruder 5                                         *
  *                                                                                *
  * If you mount DAV system encoder filament runout (By D'angella Vincenzo)        *
  * define FILAMENT RUNOUT DAV SYSTEM                                              *
@@ -945,11 +977,24 @@
 //#define FILAMENT_RUNOUT_DAV_SYSTEM
 
 // Set true or false should assigned
-#define FIL_RUNOUT_LOGIC true
+#define FIL_RUNOUT_0_LOGIC false
+#define FIL_RUNOUT_1_LOGIC false
+#define FIL_RUNOUT_2_LOGIC false
+#define FIL_RUNOUT_3_LOGIC false
+#define FIL_RUNOUT_4_LOGIC false
+#define FIL_RUNOUT_5_LOGIC false
+
 // Put true for use internal pullup for pin if the sensor is defined
-#define PULLUP_FIL_RUNOUT false
+#define FIL_RUNOUT_0_PULLUP false
+#define FIL_RUNOUT_1_PULLUP false
+#define FIL_RUNOUT_2_PULLUP false
+#define FIL_RUNOUT_3_PULLUP false
+#define FIL_RUNOUT_4_PULLUP false
+#define FIL_RUNOUT_5_PULLUP false
+
 // Time for double check switch in millisecond. Set 0 for disabled
 #define FILAMENT_RUNOUT_DOUBLE_CHECK 0
+
 // Script execute when filament run out
 #define FILAMENT_RUNOUT_SCRIPT "M600"
 /**********************************************************************************/
@@ -1074,6 +1119,20 @@
 //============================= ADDON FEATURES ==============================
 //===========================================================================
 
+/*****************************************************************************************
+ ************************************** PCF8574 ******************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Add PCF8574 expansion IO for add 8 new pins                                           *
+ * The new pins are 120 - 121 - 122 - 123 - 124 - 125 - 126 - 127                        *
+ * Select the address of your board                                                      *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define PCF8574_EXPANSION_IO
+#define PCF8574_ADDRESS 0x39
+/*****************************************************************************************/
+
+ 
 /************************************************************************************************************************
  ***************************************************** EEPROM ***********************************************************
  ************************************************************************************************************************
@@ -1111,8 +1170,8 @@
 
 
 /*****************************************************************************************
- *************************************** SDCARD *******************************************
- ****************************************************************************************/
+ *************************************** SDCARD ******************************************
+ *****************************************************************************************/
 //#define SDSUPPORT
 
 //#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
@@ -1223,6 +1282,18 @@
  *                                                                                       *
  *****************************************************************************************/
 #define DISPLAY_CHARSET_HD44780 JAPANESE
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ******************************** Info Screen Style **************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Select the style:                                                                     *
+ * 0:'Classic', 1:'Prusa'                                                                *
+ *                                                                                       *
+ *****************************************************************************************/
+#define LCD_INFO_SCREEN_STYLE 0
 /*****************************************************************************************/
 
 
@@ -1973,11 +2044,11 @@
  ***********************************************************************
  *                                                                     *
  * Microstep setting - Only functional when stepper driver microstep   *
- * pins are connected to MCU.                                          *
+ * pins are connected to MCU or TMC DRIVER.                            *
+ *                                                                     *
+ * [1, 2, 4, 8, 16, 32, 64, 128]                                       *
  *                                                                     *
  * Alligator Board support 16 or 32 only value                         *
- *                                                                     *
- * [1,2,4,8,16,32]                                                     *
  *                                                                     *
  ***********************************************************************/
 #define X_MICROSTEPS  16
@@ -1986,6 +2057,7 @@
 #define Y2_MICROSTEPS 16
 #define Z_MICROSTEPS  16
 #define Z2_MICROSTEPS 16
+#define Z3_MICROSTEPS 16
 #define E0_MICROSTEPS 16
 #define E1_MICROSTEPS 16
 #define E2_MICROSTEPS 16
@@ -1997,15 +2069,19 @@
 
 /***********************************************************************
  ************************** Motor's current ****************************
+ ***********************************************************************
+ *                                                                     *
+ * Motor Current setting                                               *
+ * Values 100 - 3000 in mA                                             *
+ *                                                                     *
  ***********************************************************************/
-// Motor Current setting
-// X Y Z E0 E1 E2 E3 - Values 100 - 3000 in mA
 #define X_CURRENT   800
 #define X2_CURRENT  800
 #define Y_CURRENT   800
 #define Y2_CURRENT  800
 #define Z_CURRENT   800
 #define Z2_CURRENT  800
+#define Z3_CURRENT  800
 #define E0_CURRENT  800
 #define E1_CURRENT  800
 #define E2_CURRENT  800
@@ -2057,7 +2133,6 @@
 // For Arduino DUE setting to 8
 #define BUFSIZE 4
 
-/** START Function only for 8 bit proccesor */
 // Transmission to Host Buffer Size
 // To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
 // To buffer a simple "ok" you need 4 bytes.
@@ -2084,14 +2159,13 @@
 // Enable this option to collect and display the number
 // of dropped bytes after a file transfer to SD.
 //#define SERIAL_STATS_DROPPED_RX
-/** END Function only for 8 bit proccesor */
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
 // The values should not be less than 1
 #define NUM_POSITON_SLOTS 2
 
 // minimum time in microseconds that a movement needs to take if the buffer is emptied.
-#define DEFAULT_MINSEGMENTTIME 20000
+#define DEFAULT_MIN_SEGMENT_TIME 20000
 
 //
 // G2/G3 Arc Support
@@ -2412,10 +2486,10 @@
 #define USER_DESC_1 "Home & ABL"
 #define USER_GCODE_1 "G28\nG29"
 
-#define USER_DESC_2 "Preheat for PLA"
+#define USER_DESC_2 "Preheat for " PREHEAT_1_LABEL
 #define USER_GCODE_2 "M140 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND)
 
-#define USER_DESC_3 "Preheat for ABS"
+#define USER_DESC_3 "Preheat for " PREHEAT_2_LABEL
 #define USER_GCODE_3 "M140 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\nM104 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND)
 
 #define USER_DESC_4 "Heat Bed/Home/Level"

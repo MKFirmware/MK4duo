@@ -1,3 +1,31 @@
+### Version 4.3.7
+* Add Command:
+* G34: Set Delta Height calculated from toolhead position (only DELTA)
+* M930: TMC set blank_time.
+* M931: TMC set off_time.
+* M932: TMC set hysteresis_start.
+* M933: TMC set hysteresis_end.
+* M934: TMC set fast_decay_time.
+* M935: TMC set disable_I_comparator.
+* M936: TMC set stealth_gradient.
+* M937: TMC set stealth_amplitude.
+* M938: TMC set stealth_freq.
+* M939: TMC switch stealth_autoscale.
+* M940: TMC switch StealthChop.
+* M941: TMC switch ChopperMode.
+* M942: TMC switch interpolation.
+* M524: Abort the current SD print job (started with M24). (Requires SDSUPPORT)
+* M223: T[extruder] S[bool] set Filrunout Logic.
+* M224: T[extruder] S[bool] set Filrunout Pullup.
+* M666: L delta segment per line.
+* M851: Probe Offset, F[speed Fast], S[speed Slow] in mm/min.
+* Add sound function
+* Add LCD menu for switch Sound [on - silent - off]
+* Add pause before deploy/stow for user confirmation
+* Add second serial for arduino due
+* Add PCF8574 Expansion IO for pin 120 - 121 - 122 - 123 - 124 - 125 - 126 - 127
+* Fix and clear code
+
 ### Version 4.3.6
 * Make class Mechanics to static
 * Add Junction Deviation instead of traditional Jerk limiting

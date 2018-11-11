@@ -34,19 +34,47 @@
 /**
  * M500: Store settings in EEPROM
  */
-inline void gcode_M500(void) { (void)eeprom.Store_Settings(); }
+inline void gcode_M500(void) {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = commands.buffer_ring.peek();
+    SERIAL_PORT(tmp.s_port);
+  #endif
+  (void)eeprom.store();
+  SERIAL_PORT(-1);
+}
 
 /**
  * M501: Read settings from EEPROM
  */
-inline void gcode_M501(void) { (void)eeprom.Load_Settings(); }
+inline void gcode_M501(void) {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = commands.buffer_ring.peek();
+    SERIAL_PORT(tmp.s_port);
+  #endif
+  (void)eeprom.load();
+  SERIAL_PORT(-1);
+}
 
 /**
  * M502: Revert to factory settings
  */
-inline void gcode_M502(void) { (void)eeprom.Factory_Settings(); }
+inline void gcode_M502(void) {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = commands.buffer_ring.peek();
+    SERIAL_PORT(tmp.s_port);
+  #endif
+  (void)eeprom.reset();
+  SERIAL_PORT(-1);
+}
 
 /**
  * M503: print settings currently in memory
  */
-inline void gcode_M503(void) { (void)eeprom.Print_Settings(); }
+inline void gcode_M503(void) {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = commands.buffer_ring.peek();
+    SERIAL_PORT(tmp.s_port);
+  #endif
+  (void)eeprom.Print_Settings();
+  SERIAL_PORT(-1);
+}

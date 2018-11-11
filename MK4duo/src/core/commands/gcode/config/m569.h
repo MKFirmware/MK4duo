@@ -54,7 +54,7 @@ inline void gcode_M569(void) {
     }
   }
   // Set actually direction
-  stepper.set_directions();
+  reset_stepper_drivers();
 
   if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
   if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();
@@ -72,13 +72,13 @@ inline void gcode_M569(void) {
   #endif
 
   #if DRIVER_EXTRUDERS > 1
-    for (int8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
+    LOOP_DRV_EXTRUDER() {
       #if HAS_MKMULTI_TOOLS
-        SERIAL_MV(" Driver Extruder:", (int)i);
+        SERIAL_MV(" Driver Extruder:", d);
       #else
-        SERIAL_MV(" Extruder:", (int)i);
+        SERIAL_MV(" Extruder:", d);
       #endif
-      SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)(E_AXIS + i)) ? "true" : "false");
+      SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)(E_AXIS + d)) ? "true" : "false");
     }
   #endif
 

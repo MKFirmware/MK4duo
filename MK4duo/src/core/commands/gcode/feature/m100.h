@@ -46,8 +46,8 @@
  *
  * Also, there are two support functions that can be called from a developer's C code.
  *
- *    uint16_t check_for_free_memory_corruption(const char * const ptr);
- *    void M100_dump_routine(const char * const title, const char *start, const char *end);
+ *    uint16_t check_for_free_memory_corruption(PGM_P const ptr);
+ *    void M100_dump_routine(PGM_P const title, PGM_P start, PGM_P end);
  *
  * Initial version by Roxy-3D
  */
@@ -66,7 +66,7 @@
   //
 
   #define END_OF_HEAP() (__brkval ? __brkval : &__bss_end)
-  int check_for_free_memory_corruption(const char * const title);
+  int check_for_free_memory_corruption(PGM_P const title);
 
   // Location of a variable on its stack frame. Returns a value above
   // the stack (once the function returns to the caller).
@@ -76,7 +76,7 @@
   }
 
   // Count the number of test bytes at the specified location.
-  int32_t count_test_bytes(const char * const ptr) {
+  int32_t count_test_bytes(PGM_P const ptr) {
     for (uint32_t i = 0; i < 32000; i++)
       if (((char) ptr[i]) != TEST_BYTE)
         return i - 1;
@@ -99,7 +99,11 @@
      *  the block. If so, it may indicate memory corruption due to a bad pointer.
      *  Unexpected bytes are flagged in the right column.
      */
-    inline void dump_free_memory(const char *ptr, const char *sp) {
+    inline void dump_free_memory(PGM_P ptr, PGM_P sp) {
+
+      gcode_t queue;
+      queue = commands.buffer_ring.peek();
+
       //
       // Start and end the dump on a nice 16 byte boundary
       // (even though the values are not 16-byte aligned).
@@ -120,7 +124,7 @@
         SERIAL_CHR('|');                      // Point out non test bytes
         for (uint8_t i = 0; i < 16; i++) {
           char ccc = (char)ptr[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
-          if (&ptr[i] >= (const char*)commands.queue && &ptr[i] < (const char*)(commands.queue + sizeof(commands.queue))) { // Print out ASCII in the command buffer area
+          if (&ptr[i] >= (const char*)queue.gcode && &ptr[i] < (const char*)(queue.gcode + sizeof(queue))) { // Print out ASCII in the command buffer area
             if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
           }
           else { // If not in the command buffer area, flag bytes that don't match the test byte
@@ -135,7 +139,7 @@
       }
     }
 
-    void M100_dump_routine(const char * const title, const char *start, const char *end) {
+    void M100_dump_routine(PGM_P const title, PGM_P start, PGM_P end) {
       SERIAL_ET(title);
       //
       // Round the start and end locations to produce full lines of output
@@ -147,7 +151,7 @@
 
   #endif // M100_FREE_MEMORY_DUMPER
 
-  inline int check_for_free_memory_corruption(const char * const title) {
+  inline int check_for_free_memory_corruption(PGM_P const title) {
     SERIAL_TXT(title);
 
     char *ptr = END_OF_HEAP(), *sp = top_of_stack();

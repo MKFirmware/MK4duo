@@ -82,10 +82,10 @@
 Stepper stepper;
 
 /** Public Parameters */
-uint16_t Stepper::direction_flag = 0;
+flagword_t Stepper::direction_flag;
 
-#if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-  bool Stepper::homing_dual_axis = false;
+#if HAS_MULTI_ENDSTOP
+  bool Stepper::separate_multi_axis = false;
 #endif
 
 uint8_t   Stepper::minimum_pulse    = 0;
@@ -100,7 +100,7 @@ uint8_t Stepper::last_direction_bits  = 0,
 
 bool    Stepper::abort_current_block  = false;
 
-#if DISABLED(COLOR_MIXING_EXTRUDER)
+#if DISABLED(COLOR_MIXING_EXTRUDER) && EXTRUDERS > 1
   uint8_t Stepper::last_moved_extruder = 0xFF;
 #endif
 
@@ -110,7 +110,9 @@ bool    Stepper::abort_current_block  = false;
 #if ENABLED(Y_TWO_ENDSTOPS)
   bool Stepper::locked_Y_motor = false, Stepper::locked_Y2_motor = false;
 #endif
-#if ENABLED(Z_TWO_ENDSTOPS)
+#if ENABLED(Z_THREE_ENDSTOPS)
+  bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false, Stepper::locked_Z3_motor = false;
+#elif ENABLED(Z_TWO_ENDSTOPS)
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
@@ -124,15 +126,11 @@ int32_t   Stepper::delta_error[XYZE] = { 0 };
 uint32_t  Stepper::advance_dividend[XYZE] = { 0 },
           Stepper::advance_divisor        = 0,
           Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
-          Stepper::accelerate_until       = 0,  // The point from where we need to stop acceleration
+          Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
           Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
           Stepper::step_event_count       = 0;  // The total event count for the current block
 
-#if ENABLED(COLOR_MIXING_EXTRUDER)
-  int32_t   Stepper::delta_error_m[MIXING_STEPPERS]       = { 0 };
-  uint32_t  Stepper::advance_dividend_m[MIXING_STEPPERS]  = { 0 },
-            Stepper::advance_divisor_m                    = 0;
-#else
+#if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
   uint8_t Stepper::active_extruder        = 0,
           Stepper::active_extruder_driver = 0;
 #endif
@@ -770,11 +768,10 @@ void Stepper::disable_X() {
   #if HAS_X2_ENABLE
     X_ENABLE_WRITE( !X_ENABLE_ON);
     X2_ENABLE_WRITE(!X_ENABLE_ON);
-    printer.setXHomed(false);
   #elif HAS_X_ENABLE
     X_ENABLE_WRITE(!X_ENABLE_ON);
-    printer.setXHomed(false);
   #endif
+  printer.setXHomed(false);
 }
 
 void Stepper::enable_Y() {
@@ -789,11 +786,10 @@ void Stepper::disable_Y() {
   #if HAS_Y2_ENABLE
     Y_ENABLE_WRITE( !Y_ENABLE_ON);
     Y2_ENABLE_WRITE(!Y_ENABLE_ON);
-    printer.setYHomed(false);
   #elif HAS_Y_ENABLE
     Y_ENABLE_WRITE(!Y_ENABLE_ON);
-    printer.setYHomed(false);
   #endif
+  printer.setYHomed(false);
 }
 
 void Stepper::enable_Z() {
@@ -819,20 +815,17 @@ void Stepper::disable_Z() {
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
     Z3_ENABLE_WRITE(!Z_ENABLE_ON);
     Z4_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z3_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
     Z3_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z2_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
     Z2_ENABLE_WRITE(!Z_ENABLE_ON);
-    printer.setZHomed(false);
   #elif HAS_Z_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
-    printer.setZHomed(false);
   #endif
+  printer.setZHomed(false);
 }
 
 void Stepper::enable_E() {
@@ -978,6 +971,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
  * Triggered position of an axis in steps
  */
 int32_t Stepper::triggered_position(const AxisEnum axis) {
+
   #if ENABLED(__AVR__)
     // Protect the access to the position. Only required for AVR, as
     //  any 32bit CPU offers atomic access to 32bit variables
@@ -1007,6 +1001,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
     WRITE(DIGIPOTSS_PIN, HIGH); // take the SS pin high to de-select the chip:
     //HAL::delayMilliseconds(10);
   }
+
 #endif
 
 #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
@@ -1350,7 +1345,7 @@ uint32_t Stepper::block_phase_step() {
         laser.extinguish();
       #endif
     }
-    // Are we in acceleration phase
+    // Are we in data.acceleration phase
     else if (step_events_completed <= accelerate_until) {
 
       #if ENABLED(BEZIER_JERK_CONTROL)
@@ -1539,7 +1534,7 @@ uint32_t Stepper::block_phase_step() {
       //if (!!current_block->steps[B_AXIS]) SBI(axis_did_move, Y_HEAD);
       //if (!!current_block->steps[C_AXIS]) SBI(axis_did_move, Z_HEAD);
 
-      // No acceleration / deceleration time elapsed so far
+      // No data.acceleration / deceleration time elapsed so far
       acceleration_time = deceleration_time = 0;
 
       #if ENABLED(ADAPTIVE_STEP_SMOOTHING)
@@ -1571,24 +1566,15 @@ uint32_t Stepper::block_phase_step() {
       // No step events completed so far
       step_events_completed = 0;
 
-      // Compute the acceleration and deceleration points
+      // Compute the data.acceleration and deceleration points
       accelerate_until = current_block->accelerate_until << oversampling_factor;
       decelerate_after = current_block->decelerate_after << oversampling_factor;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        const uint32_t e_steps = (
-          #if ENABLED(LIN_ADVANCE)
-            current_block->steps[E_AXIS]
-          #else
-            step_event_count
-          #endif
-        );
-        MIXING_STEPPERS_LOOP(i) {
-          delta_error_m[i] = -int32_t(e_steps);
-          advance_dividend_m[i] = current_block->mix_steps[i] << 1;
-        }
-        advance_divisor_m = e_steps << 1;
-      #else
+        mixer.stepper_setup(current_block->b_color);
+      #endif
+
+      #if EXTRUDERS > 1
         active_extruder = current_block->active_extruder;
         active_extruder_driver = get_active_extruder_driver();
       #endif
@@ -1616,7 +1602,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
       ) {
         last_direction_bits = current_block->direction_bits;
-        #if DISABLED(COLOR_MIXING_EXTRUDER)
+        #if EXTRUDERS > 1
           last_moved_extruder = active_extruder;
         #endif
         set_directions();
@@ -1721,48 +1707,29 @@ void Stepper::pulse_tick_start() {
     }
   #endif
 
-  // Pulse E/Mixing extruders
-  #if ENABLED(LIN_ADVANCE)
-
-    // Tick the E axis, correct error term and update position
+  // Pulse Extruders
+  // Tick the E axis, correct error term and update position
+  #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
     delta_error[E_AXIS] += advance_dividend[E_AXIS];
     if (delta_error[E_AXIS] >= 0) {
       count_position[E_AXIS] += count_direction[E_AXIS];
-      delta_error[E_AXIS] -= advance_divisor;
-
-      // Don't step E here - But remember the number of steps to perform
-      motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
+      #if ENABLED(LIN_ADVANCE)
+        delta_error[E_AXIS] -= advance_divisor;
+        // Don't step E here - But remember the number of steps to perform
+        motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
+      #else
+        // !LIN_ADVANCE && COLOR_MIXING_EXTRUDER
+        E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
+      #endif
     }
 
   #elif HAS_EXTRUDERS
 
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-
-      // Tick the E axis
-      delta_error[E_AXIS] += advance_dividend[E_AXIS];
-      if (delta_error[E_AXIS] >= 0) {
-        count_position[E_AXIS] += count_direction[E_AXIS];
-        delta_error[E_AXIS] -= advance_divisor;
-      }
-
-      // Tick the counters used for this mix in proper proportion
-      MIXING_STEPPERS_LOOP(j) {
-        // Step mixing steppers (proportionally)
-        delta_error_m[j] += advance_dividend_m[j];
-        // Step when the counter goes over zero
-        if (delta_error_m[j] >= 0)
-          E_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-      }
-
-    #else
-
-      delta_error[E_AXIS] += advance_dividend[E_AXIS];
-      if (delta_error[E_AXIS] >= 0) {
-        E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
-        count_position[E_AXIS] += count_direction[E_AXIS];
-      }
-
-    #endif
+    delta_error[E_AXIS] += advance_dividend[E_AXIS];
+    if (delta_error[E_AXIS] >= 0) {
+      E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
+      count_position[E_AXIS] += count_direction[E_AXIS];
+    }
 
   #endif
 
@@ -1796,7 +1763,7 @@ void Stepper::pulse_tick_stop() {
       MIXING_STEPPERS_LOOP(j) {
         if (delta_error_m[j] >= 0) {
           delta_error_m[j] -= advance_divisor_m;
-          E_STEP_WRITE(j, INVERT_E_STEP_PIN);
+          E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
         }
       }
     #elif HAS_EXTRUDERS
@@ -1816,7 +1783,7 @@ void Stepper::start_X_step() {
 
   #if ENABLED(X_TWO_STEPPER_DRIVERS)
     #if ENABLED(X_TWO_ENDSTOPS)
-      if (homing_dual_axis) {
+      if (separate_multi_axis) {
         if (X_HOME_DIR < 0) {
           if (!(TEST(endstops.live_state, X_MIN)  && count_direction[X_AXIS] < 0) && !locked_X_motor) X_STEP_WRITE(!INVERT_X_STEP_PIN);
           if (!(TEST(endstops.live_state, X2_MIN) && count_direction[X_AXIS] < 0) && !locked_X2_motor) X2_STEP_WRITE(!INVERT_X_STEP_PIN);
@@ -1835,7 +1802,7 @@ void Stepper::start_X_step() {
       X2_STEP_WRITE(!INVERT_X_STEP_PIN);
     #endif
   #elif ENABLED(DUAL_X_CARRIAGE)
-    if (mechanics.hotend_duplication_enabled) {
+    if (mechanics.extruder_duplication_enabled) {
       X_STEP_WRITE(!INVERT_X_STEP_PIN);
       X2_STEP_WRITE(!INVERT_X_STEP_PIN);
     }
@@ -1854,7 +1821,7 @@ void Stepper::start_Y_step() {
 
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
     #if ENABLED(Y_TWO_ENDSTOPS)
-      if (homing_dual_axis) {
+      if (separate_multi_axis) {
         if (Y_HOME_DIR < 0) {
           if (!(TEST(endstops.live_state, Y_MIN)  && count_direction[Y_AXIS] < 0) && !locked_Y_motor) Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
           if (!(TEST(endstops.live_state, Y2_MIN) && count_direction[Y_AXIS] < 0) && !locked_Y2_motor) Y2_STEP_WRITE(!INVERT_Y_STEP_PIN);
@@ -1879,9 +1846,33 @@ void Stepper::start_Y_step() {
 }
 void Stepper::start_Z_step() {
 
-  #if ENABLED(Z_TWO_STEPPER_DRIVERS)
+  #if ENABLED(Z_THREE_STEPPER_DRIVERS)
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      if (separate_multi_axis) {
+        if (Z_HOME_DIR < 0) {
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z3_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z3_motor) Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        }
+        else {
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z3_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z3_motor) Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        }
+      }
+      else {
+        Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      }
+    #else
+      Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+    #endif
+  #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
     #if ENABLED(Z_TWO_ENDSTOPS)
-      if (homing_dual_axis) {
+      if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
           if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
@@ -1922,7 +1913,10 @@ void Stepper::stop_Y_step() {
 }
 void Stepper::stop_Z_step() {
   Z_STEP_WRITE(INVERT_Z_STEP_PIN);
-  #if ENABLED(Z_TWO_STEPPER_DRIVERS)
+  #if ENABLED(Z_THREE_STEPPER_DRIVERS)
+    Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
+    Z3_STEP_WRITE(INVERT_Z_STEP_PIN);
+  #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
     Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
   #endif
 }
@@ -1935,7 +1929,7 @@ void Stepper::set_X_dir(const bool dir) {
     X_DIR_WRITE(dir);
     X2_DIR_WRITE((dir) != INVERT_X2_VS_X_DIR);
   #elif ENABLED(DUAL_X_CARRIAGE)
-    if (mechanics.hotend_duplication_enabled) {
+    if (mechanics.extruder_duplication_enabled) {
       X_DIR_WRITE(dir);
       X2_DIR_WRITE(dir);
     }
@@ -1950,19 +1944,18 @@ void Stepper::set_X_dir(const bool dir) {
   #endif
 }
 void Stepper::set_Y_dir(const bool dir) {
+  Y_DIR_WRITE(dir);
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-    Y_DIR_WRITE(dir);
     Y2_DIR_WRITE((dir) != INVERT_Y2_VS_Y_DIR);
-  #else
-    Y_DIR_WRITE(dir);
   #endif
 }
 void Stepper::set_Z_dir(const bool dir) {
-  #if ENABLED(Z_TWO_STEPPER_DRIVERS)
-    Z_DIR_WRITE(dir);
+  Z_DIR_WRITE(dir);
+  #if ENABLED(Z_THREE_STEPPER_DRIVERS)
     Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
-  #else
-    Z_DIR_WRITE(dir);
+    Z3_DIR_WRITE((dir) != INVERT_Z3_VS_Z_DIR);
+  #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
+    Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
   #endif
 }
 
@@ -2087,12 +2080,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     while (LA_steps) {
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        MIXING_STEPPERS_LOOP(j) {
-          // Step mixing steppers (proportionally)
-          delta_error_m[j] += advance_dividend_m[j];
-          // Step when the counter goes over zero
-          if (delta_error_m[j] >= 0) E_STEP_WRITE(j, !INVERT_E_STEP_PIN);
-        }
+        E_STEP_WRITE(mixer.get_next_stepper(), !INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
       #endif
@@ -2108,12 +2096,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        MIXING_STEPPERS_LOOP(j) {
-          if (delta_error_m[j] >= 0) {
-            delta_error_m[j] -= advance_divisor_m;
-            E_STEP_WRITE(j, INVERT_E_STEP_PIN);
-          }
-        }
+        E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
       #else
         E_STEP_WRITE(active_extruder_driver, INVERT_E_STEP_PIN);
       #endif
@@ -2137,7 +2120,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 /**
  *  This uses a quintic (fifth-degree) Bézier polynomial for the velocity curve, giving
  *  a "linear pop" velocity curve; with pop being the sixth derivative of position:
- *  velocity - 1st, acceleration - 2nd, jerk - 3rd, snap - 4th, crackle - 5th, pop - 6th
+ *  velocity - 1st, data.acceleration - 2nd, jerk - 3rd, snap - 4th, crackle - 5th, pop - 6th
  *
  *  The Bézier curve takes the form:
  *
@@ -2171,7 +2154,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
  *        E = - 5*P_0 +  5*P_1
  *        F =     P_0
  *
- *  Now, since we will (currently) *always* want the initial acceleration and jerk values to be 0,
+ *  Now, since we will (currently) *always* want the initial data.acceleration and jerk values to be 0,
  *  We set P_i = P_0 = P_1 = P_2 (initial velocity), and P_t = P_3 = P_4 = P_5 (target velocity),
  *  which, after simplification, resolves to:
  *
@@ -2245,14 +2228,14 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
  *        rhi = int32_t((mul >> 32) & 0xFFFFFFFF);
  *      }
  *      int32_t _eval_bezier_curve_arm(uint32_t curr_step) {
- *        register uint32_t flo = 0;
- *        register uint32_t fhi = bezier_AV * curr_step;
- *        register uint32_t t = fhi;
- *        register int32_t alo = bezier_F;
- *        register int32_t ahi = 0;
- *        register int32_t A = bezier_A;
- *        register int32_t B = bezier_B;
- *        register int32_t C = bezier_C;
+ *        uint32_t flo = 0;
+ *        uint32_t fhi = bezier_AV * curr_step;
+ *        uint32_t t = fhi;
+ *        int32_t alo = bezier_F;
+ *        int32_t ahi = 0;
+ *        int32_t A = bezier_A;
+ *        int32_t B = bezier_B;
+ *        int32_t C = bezier_C;
  *
  *        lsrs(ahi, alo, 1);          // a  = F << 31
  *        lsls(alo, alo, 31);         //
@@ -2378,13 +2361,13 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       bezier_AV = av;
 
       // Calculate the rest of the coefficients
-      register uint8_t r2 = v0 & 0xFF;
-      register uint8_t r3 = (v0 >> 8) & 0xFF;
-      register uint8_t r12 = (v0 >> 16) & 0xFF;
-      register uint8_t r5 = v1 & 0xFF;
-      register uint8_t r6 = (v1 >> 8) & 0xFF;
-      register uint8_t r7 = (v1 >> 16) & 0xFF;
-      register uint8_t r4,r8,r9,r10,r11;
+      uint8_t r2 = v0 & 0xFF;
+      uint8_t r3 = (v0 >> 8) & 0xFF;
+      uint8_t r12 = (v0 >> 16) & 0xFF;
+      uint8_t r5 = v1 & 0xFF;
+      uint8_t r6 = (v1 >> 8) & 0xFF;
+      uint8_t r7 = (v1 >> 16) & 0xFF;
+      uint8_t r4,r8,r9,r10,r11;
 
       __asm__ __volatile__(
         /* Calculate the Bézier coefficients */
@@ -2480,11 +2463,11 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       if (!curr_step)
         return bezier_F;
 
-      register uint8_t r0 = 0; /* Zero register */
-      register uint8_t r2 = (curr_step) & 0xFF;
-      register uint8_t r3 = (curr_step >> 8) & 0xFF;
-      register uint8_t r4 = (curr_step >> 16) & 0xFF;
-      register uint8_t r1,r5,r6,r7,r8,r9,r10,r11; /* Temporary registers */
+      uint8_t r0 = 0; /* Zero */
+      uint8_t r2 = (curr_step) & 0xFF;
+      uint8_t r3 = (curr_step >> 8) & 0xFF;
+      uint8_t r4 = (curr_step >> 16) & 0xFF;
+      uint8_t r1,r5,r6,r7,r8,r9,r10,r11; /* Temporary registers */
 
       __asm__ __volatile(
         /* umul24x24to16hi(t, bezier_AV, curr_step);  t: Range 0 - 1^16 = 16 bits*/
@@ -2904,7 +2887,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
   #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
     #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
-      if (homing_dual_axis) {                                                                                                   \
+      if (separate_multi_axis) {                                                                                                   \
         if (A##_HOME_DIR < 0) {                                                                                                 \
           if (!(TEST(endstops.live_state, A##_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
           if (!(TEST(endstops.live_state, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V); \
@@ -2928,7 +2911,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #endif
   #elif ENABLED(DUAL_X_CARRIAGE)
     #define X_APPLY_STEP(v,ALWAYS) \
-      if (mechanics.hotend_duplication_enabled || ALWAYS) { \
+      if (mechanics.extruder_duplication_enabled || ALWAYS) { \
         X_STEP_WRITE(v); \
         X2_STEP_WRITE(v); \
       } \

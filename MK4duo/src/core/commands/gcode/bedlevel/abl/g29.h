@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-void out_of_range_error(const char* p_edge) {
+void out_of_range_error(PGM_P p_edge) {
   SERIAL_MSG("?Probe ");
   SERIAL_PS(p_edge);
   SERIAL_EM(" position out of range.");
@@ -133,7 +133,7 @@ inline void gcode_G29(void) {
   // G29 Q is also available if debugging
   #if ENABLED(DEBUG_FEATURE)
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (seenQ) printer.debugSet(debug_feature);
+    if (seenQ) printer.debugSet(MK4DUO_DEBUG_FEATURE);
     if (printer.debugFeature()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();
@@ -365,7 +365,7 @@ inline void gcode_G29(void) {
       back_probe_bed_position  = parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
       if (
-        #if IS_SCARA || IS_DELTA
+        #if IS_SCARA || MECH(DELTA)
              !mechanics.position_is_reachable_by_probe(left_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(0, front_probe_bed_position)
@@ -464,7 +464,7 @@ inline void gcode_G29(void) {
       #endif
       bedlevel.set_bed_leveling_enabled(abl_should_enable);
       bedlevel.g29_in_progress = false;
-      #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+      #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
         lcd_wait_for_move = false;
       #endif
     }
@@ -626,7 +626,7 @@ inline void gcode_G29(void) {
 
   #else // !PROBE_MANUALLY
   {
-    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
+    const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     measured_z = 0.0;
 
@@ -754,7 +754,7 @@ inline void gcode_G29(void) {
 
   #if ENABLED(PROBE_MANUALLY)
     bedlevel.g29_in_progress = false;
-    #if ENABLED(LCD_BED_LEVELING) && ENABLED(ULTRA_LCD)
+    #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
       lcd_wait_for_move = false;
     #endif
   #endif
@@ -898,8 +898,8 @@ inline void gcode_G29(void) {
         bedlevel.leveling_active = false;
 
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - probe.offset[X_AXIS])
-          && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.offset[Y_AXIS])
+        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - probe.data.offset[X_AXIS])
+          && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.data.offset[Y_AXIS])
         ) {
           float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
           #if ENABLED(DEBUG_FEATURE)
@@ -964,17 +964,16 @@ inline void gcode_G29(void) {
     if (printer.debugFeature()) SERIAL_EM("<<< G29");
   #endif
 
-  mechanics.report_current_position();
-
   printer.keepalive(InHandler);
 
   if (bedlevel.leveling_active)
-    mechanics.sync_plan_position_mech_specific();
+    mechanics.sync_plan_position();
 
   #if HAS_BED_PROBE && Z_PROBE_AFTER_PROBING > 0
     probe.move_z_after_probing();
   #endif
 
+  mechanics.report_current_position();
 }
 
 #endif // OLD_ABL

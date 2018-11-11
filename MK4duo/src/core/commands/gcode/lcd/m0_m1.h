@@ -37,7 +37,7 @@
    */
   inline void gcode_M0_M1(void) {
 
-    const char * const args = parser.string_arg;
+    PGM_P const args = parser.string_arg;
     millis_t ms = 0;
     bool hasP = false, hasS = false;
 
@@ -64,7 +64,7 @@
         #endif
       }
 
-    #elif ENABLED(NEXTION)
+    #elif HAS_NEXTION_LCD
 
       if (!hasP && !hasS && args && *args)
         lcd_yesno(4, args, "", MSG_USERWAIT);

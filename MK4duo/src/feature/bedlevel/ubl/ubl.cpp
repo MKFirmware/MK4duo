@@ -25,7 +25,7 @@
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
   #include "ubl.h"
-  #include <math.h>
+  #include "math.h"
 
   unified_bed_leveling ubl;
 
@@ -66,7 +66,7 @@
         SERIAL_VAL(mechanics.destination[X_AXIS], 6);
     }
 
-    void debug_current_and_destination(const char *title) {
+    void debug_current_and_destination(PGM_P title) {
 
       // if the title message starts with a '!' it is so important, we are going to
       // ignore the status of the bedlevel.g26_debug_flag
@@ -149,7 +149,6 @@
     }
   }
 
-  
   static void serial_echo_xy(const uint8_t sp, const int16_t x, const int16_t y) {
     SERIAL_SP(sp);
     SERIAL_CHR('(');
@@ -190,8 +189,8 @@
     SERIAL_MSG("\nBed Topography Report");
     if (human) {
       SERIAL_MSG(":\n\n");
-      serial_echo_xy(4, UBL_MESH_MIN_X, UBL_MESH_MAX_Y);
-      serial_echo_xy(twixt, UBL_MESH_MAX_X, UBL_MESH_MAX_Y);
+      serial_echo_xy(4, MESH_MIN_X, MESH_MAX_Y);
+      serial_echo_xy(twixt, MESH_MAX_X, MESH_MAX_Y);
       SERIAL_EOL();
       serial_echo_column_labels(eachsp - 2);
     }
@@ -212,7 +211,7 @@
         SERIAL_VAL(j);
         SERIAL_MSG(" |");
       }
-      
+
       // Row Values (I indexes)
       for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
 
@@ -247,8 +246,8 @@
     if (human) {
       serial_echo_column_labels(eachsp - 2);
       SERIAL_EOL();
-      serial_echo_xy(4, UBL_MESH_MIN_X, UBL_MESH_MIN_Y);
-      serial_echo_xy(twixt, UBL_MESH_MAX_X, UBL_MESH_MIN_Y);
+      serial_echo_xy(4, MESH_MIN_X, MESH_MIN_Y);
+      serial_echo_xy(twixt, MESH_MAX_X, MESH_MIN_Y);
       SERIAL_EOL();
       SERIAL_EOL();
     }

@@ -42,7 +42,8 @@
       tools.refresh_e_factor(TARGET_EXTRUDER);
     }
     else {
-      SERIAL_SMV(ECHO, "E", TARGET_EXTRUDER);
+      SERIAL_SM(ECHO, "E");
+      SERIAL_CHR('0' + TARGET_EXTRUDER);
       SERIAL_MV(" Flow: ", tools.flow_percentage[TARGET_EXTRUDER]);
       SERIAL_CHR('%');
       SERIAL_EOL();
