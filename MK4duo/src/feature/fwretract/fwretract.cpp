@@ -48,7 +48,7 @@
 
   void FWRetract::reset() {
     autoretract_enabled                     = false;
-    data.data.retract_length                = RETRACT_LENGTH;
+    data.retract_length                     = RETRACT_LENGTH;
     data.retract_feedrate_mm_s              = RETRACT_FEEDRATE;
     data.retract_zlift                      = RETRACT_ZLIFT;
     data.retract_recover_length             = RETRACT_RECOVER_LENGTH;
@@ -110,7 +110,7 @@
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position
       mechanics.feedrate_mm_s = data.retract_feedrate_mm_s * unscale_fr;
-      current_retract[active_extruder] = base_retract * unscale_e;
+      current_retract[tools.active_extruder] = base_retract * unscale_e;
       mechanics.prepare_move_to_destination();  // set_current_to_destination
       planner.synchronize();                    // Wait for move to complete
 
