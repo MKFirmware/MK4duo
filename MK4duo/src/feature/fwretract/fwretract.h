@@ -49,7 +49,7 @@
 
     public: /** Public Parameters */
 
-      static fwretract_settings_t data;
+      static fwretract_data_t data;
 
       static bool   autoretract_enabled,                // M209 S - Autoretract switch
                     retracted[EXTRUDERS];               // Which extruders are currently retracted
