@@ -566,7 +566,7 @@
       tools.change(old_tool_index, 0, true);
     #endif
 
-    lcd_refresh();
+    lcdui.refresh();
 
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) SERIAL_EM("<<< G28");

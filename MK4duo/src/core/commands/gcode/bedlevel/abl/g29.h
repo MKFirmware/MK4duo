@@ -465,7 +465,7 @@ inline void gcode_G29(void) {
       bedlevel.set_bed_leveling_enabled(abl_should_enable);
       bedlevel.g29_in_progress = false;
       #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
-        lcd_wait_for_move = false;
+        lcdui.wait_for_bl_move = false;
       #endif
     }
 
@@ -755,7 +755,7 @@ inline void gcode_G29(void) {
   #if ENABLED(PROBE_MANUALLY)
     bedlevel.g29_in_progress = false;
     #if ENABLED(LCD_BED_LEVELING) && HAS_SPI_LCD
-      lcd_wait_for_move = false;
+      lcdui.wait_for_bl_move = false;
     #endif
   #endif
 

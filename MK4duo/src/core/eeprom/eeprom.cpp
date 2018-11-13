@@ -161,9 +161,9 @@ typedef struct EepromDataStruct {
   // Ultipanel
   //
   #if ENABLED(ULTIPANEL)
-    int16_t         lcd_preheat_hotend_temp[3],
-                    lcd_preheat_bed_temp[3],
-                    lcd_preheat_fan_speed[3];
+    int16_t         ui_preheat_hotend_temp[3],
+                    ui_preheat_bed_temp[3],
+                    ui_preheat_fan_speed[3];
   #endif
 
   //
@@ -204,7 +204,7 @@ typedef struct EepromDataStruct {
   // LCD contrast
   //
   #if HAS_LCD_CONTRAST
-    uint8_t         lcd_contrast;
+    uint8_t         lcdui.contrast;
   #endif
 
   //
@@ -557,9 +557,9 @@ void EEPROM::post_process() {
     // ULTIPANEL
     //
     #if ENABLED(ULTIPANEL)
-      EEPROM_WRITE(lcd_preheat_hotend_temp);
-      EEPROM_WRITE(lcd_preheat_bed_temp);
-      EEPROM_WRITE(lcd_preheat_fan_speed);
+      EEPROM_WRITE(lcdui.preheat_hotend_temp);
+      EEPROM_WRITE(lcdui.preheat_bed_temp);
+      EEPROM_WRITE(lcdui.preheat_fan_speed);
     #endif
 
     //
@@ -604,7 +604,7 @@ void EEPROM::post_process() {
     // LCD contrast
     //
     #if HAS_LCD_CONTRAST
-      EEPROM_WRITE(lcd_contrast);
+      EEPROM_WRITE(lcdui.contrast);
     #endif
 
     //
@@ -999,9 +999,9 @@ void EEPROM::post_process() {
       // ULTIPANEL
       //
       #if ENABLED(ULTIPANEL)
-        EEPROM_READ(lcd_preheat_hotend_temp);
-        EEPROM_READ(lcd_preheat_bed_temp);
-        EEPROM_READ(lcd_preheat_fan_speed);
+        EEPROM_READ(lcdui.preheat_hotend_temp);
+        EEPROM_READ(lcdui.preheat_bed_temp);
+        EEPROM_READ(lcdui.preheat_fan_speed);
       #endif
 
       //
@@ -1046,7 +1046,7 @@ void EEPROM::post_process() {
       // LCD contrast
       //
       #if HAS_LCD_CONTRAST
-        EEPROM_READ(lcd_contrast);
+        EEPROM_READ(lcdui.contrast);
       #endif
 
       //
@@ -1502,19 +1502,19 @@ void EEPROM::reset() {
   #endif
 
   #if ENABLED(ULTIPANEL)
-    lcd_preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
-    lcd_preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
-    lcd_preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
-    lcd_preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
-    lcd_preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
-    lcd_preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
-    lcd_preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
-    lcd_preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
-    lcd_preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
+    lcdui.preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
+    lcdui.preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
+    lcdui.preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
+    lcdui.preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
+    lcdui.preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
+    lcdui.preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
+    lcdui.preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
+    lcdui.preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
+    lcdui.preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
   #endif
 
   #if HAS_LCD_CONTRAST
-    lcd_contrast = DEFAULT_LCD_CONTRAST;
+    lcdui.contrast = DEFAULT_LCD_CONTRAST;
   #endif
 
   #if HAS_SERVOS
@@ -2025,7 +2025,7 @@ void EEPROM::reset() {
 
     #if HAS_LCD_CONTRAST
       SERIAL_LM(CFG, "LCD Contrast");
-      SERIAL_LMV(CFG, "  M250 C", lcd_contrast);
+      SERIAL_LMV(CFG, "  M250 C", lcdui.contrast);
     #endif
 
     #if HAS_SERVOS
@@ -2127,11 +2127,11 @@ void EEPROM::reset() {
 
     #if ENABLED(ULTIPANEL)
       SERIAL_LM(CFG, "Material heatup parameters");
-      for (uint8_t i = 0; i < COUNT(lcd_preheat_hotend_temp); i++) {
+      for (uint8_t i = 0; i < COUNT(lcdui.preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
-        SERIAL_MV(" H", TEMP_UNIT(lcd_preheat_hotend_temp[i]));
-        SERIAL_MV(" B", TEMP_UNIT(lcd_preheat_bed_temp[i]));
-        SERIAL_MV(" F", lcd_preheat_fan_speed[i]);
+        SERIAL_MV(" H", TEMP_UNIT(lcdui.preheat_hotend_temp[i]));
+        SERIAL_MV(" B", TEMP_UNIT(lcdui.preheat_bed_temp[i]));
+        SERIAL_MV(" F", lcdui.preheat_fan_speed[i]);
         SERIAL_EOL();
       }
     #endif // ULTIPANEL

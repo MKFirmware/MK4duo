@@ -19,14 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * conditionals_post.h
  * Defines that depend on configuration but are not editable.
  */
-
-#ifndef _CONDITIONALS_POST_H_
-#define _CONDITIONALS_POST_H_
 
 /**
  * SAM3X8E
@@ -594,6 +592,7 @@
 
 // RGB leds
 #define HAS_COLOR_LEDS      (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_LED))
+#define HAS_LEDS_OFF_FLAG   (ENABLED(PRINTER_EVENT_LEDS) && HAS_SD_SUPPORT && HAS_RESUME_CONTINUE)
 
 // EEPROM support
 #if ENABLED(EEPROM_FLASH)
@@ -1392,4 +1391,26 @@
   #define MAXIMUM_STEPPER_RATE (500000UL)
 #endif
 
-#endif /* _CONDITIONALS_POST_H_ */
+/**
+ * LCD define
+ */
+
+ // Get LCD character width/height, which may be overridden by pins, configs, etc.
+#if DISABLED(LCD_WIDTH)
+  #if HAS_GRAPHICAL_LCD
+    #define LCD_WIDTH 22
+  #elif ENABLED(ULTIPANEL)
+    #define LCD_WIDTH 20
+  #elif HAS_SPI_LCD
+    #define LCD_WIDTH 16
+  #endif
+#endif
+#if DISABLED(LCD_HEIGHT)
+  #if HAS_GRAPHICAL_LCD
+    #define LCD_HEIGHT 5
+  #elif ENABLED(ULTIPANEL)
+    #define LCD_HEIGHT 4
+  #elif HAS_SPI_LCD
+    #define LCD_HEIGHT 2
+  #endif
+#endif

@@ -342,7 +342,7 @@
       mechanics.current_position[Y_AXIS] = ry;
 
       #if ENABLED(LCD_BED_LEVELING)
-        lcd_wait_for_move = false;
+        lcdui.wait_for_bl_move = false;
       #endif
 
     }

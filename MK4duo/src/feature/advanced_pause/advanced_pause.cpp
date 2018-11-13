@@ -348,7 +348,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   #endif
 
   #if ENABLED(ULTRA_LCD)
-    lcd_reset_status();
+    lcdui.reset_status();
   #endif
 
 }

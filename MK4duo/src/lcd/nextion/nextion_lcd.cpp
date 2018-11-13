@@ -44,17 +44,21 @@
 #if HAS_NEXTION_LCD
 
   #include "library/nextion.h"
+  #include "nextion_lcd.h"
   #include "nextion_gfx.h"
+
+  LcdUI       lcdui;
+
+  char        LcdUI::status_message[30] = WELCOME_MSG;
+  uint8_t     LcdUI::status_message_level; // = 0
 
   bool        NextionON                 = false,
               show_Wave                 = true,
               lcdDrawUpdate             = false,
               lcd_clicked               = false;
-  uint8_t     PageID                    = 0,
-              lcd_status_message_level  = 0;
+  uint8_t     PageID                    = 0;
   uint16_t    slidermaxval              = 20;
   char        buffer[70]                = { 0 };
-  char        lcd_status_message[30]    = WELCOME_MSG;
   const float manual_feedrate_mm_m[]    = MANUAL_FEEDRATE;
 
   #if HAS_SD_SUPPORT
@@ -405,9 +409,6 @@
     NULL
   };
 
-  // Function pointer to menu functions.
-  using screenFunc_t = void(*)();
-
   /**
    *
    * Menu actions
@@ -542,7 +543,7 @@
       if (IS_SD_INSERTED() || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
-        lcd_init();
+        lcdui.init();
       }
     }
 
@@ -1082,7 +1083,7 @@
         #if HAS_SD_SUPPORT
           case 1: // Stop Print
             card.setAbortSDprinting(true);
-            lcd_setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
+            lcdui.setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
             Pprinter.show();
             break;
           case 2: // Upload Firmware
@@ -1118,124 +1119,6 @@
       }
     }
   }
-
-  void lcd_init() {
-
-    for (uint8_t i = 0; i < 10; i++) {
-      ZERO(buffer);
-      NextionON = nexInit(buffer);
-      if (NextionON) break;
-      HAL::delayMilliseconds(1000);
-    }
-
-    if (!NextionON) {
-      SERIAL_LM(ER, "Nextion not connected!");
-      return;
-    }
-    else {
-      SERIAL_MSG("Nextion");
-      // Get Model
-
-      if (strstr(buffer, "3224")) {       // Model 2.4" or 2.8" Normal or Enhanced
-        SERIAL_MSG(" 2.4");
-        #if ENABLED(NEXTION_GFX)
-          gfx.set_position(1, 24, 250, 155);
-        #endif
-      }
-      else if (strstr(buffer, "4024")) {  // Model 3.2" Normal or Enhanced
-        SERIAL_MSG(" 3.2");
-        #if ENABLED(NEXTION_GFX)
-          gfx.set_position(1, 24, 250, 155);
-        #endif
-      }
-      else if (strstr(buffer, "4832")) {  // Model 3.5" Normal or Enhanced
-        SERIAL_MSG(" 3.5");
-        #if ENABLED(NEXTION_GFX)
-          gfx.set_position(1, 24, 250, 155);
-        #endif
-      }
-      else if (strstr(buffer, "4827")) {  // Model 4.3" Normal or Enhanced
-        SERIAL_MSG(" 4.3");
-        #if ENABLED(NEXTION_GFX)
-          gfx.set_position(1, 24, 250, 155);
-        #endif
-      }
-      else if (strstr(buffer, "8048")) {  // Model 7" Normal or Enhanced
-        SERIAL_MSG(" 7");
-        #if ENABLED(NEXTION_GFX)
-          gfx.set_position(274, 213, 250, 155);
-        #endif
-      }
-      SERIAL_CHR('"'); SERIAL_EM(" connected!");
-
-      #if ENABLED(NEXTION_GFX)
-        gfx.color_set(NX_AXIS + X_AXIS, 63488);
-        gfx.color_set(NX_AXIS + Y_AXIS, 2016);
-        gfx.color_set(NX_AXIS + Z_AXIS, 31);
-        gfx.color_set(NX_MOVE, 2047);
-        gfx.color_set(NX_TOOL, 65535);
-        gfx.color_set(NX_LOW, 2047);
-        gfx.color_set(NX_HIGH, 63488);
-      #endif
-
-      #if HAS_SD_SUPPORT
-        sd_mount.attachPop(sdmountdismountPopCallback, &sd_mount);
-        sd_dismount.attachPop(sdmountdismountPopCallback, &sd_dismount);
-        sdlist.attachPop(sdlistPopCallback);
-        ScrollUp.attachPop(sdlistPopCallback);
-        ScrollDown.attachPop(sdlistPopCallback);
-        NPlay.attachPop(PlayPausePopCallback);
-      #endif
-
-      #if ENABLED(RFID_MODULE)
-        Rfid0.attachPop(rfidPopCallback,  &Rfid0);
-        Rfid1.attachPop(rfidPopCallback,  &Rfid1);
-        Rfid2.attachPop(rfidPopCallback,  &Rfid2);
-        Rfid3.attachPop(rfidPopCallback,  &Rfid3);
-        Rfid4.attachPop(rfidPopCallback,  &Rfid4);
-        Rfid5.attachPop(rfidPopCallback,  &Rfid5);
-      #endif
-
-      #if FAN_COUNT > 0
-        FanTouch.attachPop(setfanPopCallback, &FanTouch);
-      #endif
-
-      #if HAS_CASE_LIGHT
-        Light.attachPop(setlightPopCallback, &Light);
-      #endif
-
-      #if ENABLED(PROBE_MANUALLY)
-        ProbeUp.attachPop(ProbelPopCallBack, &ProbeUp);
-        ProbeSend.attachPop(ProbelPopCallBack, &ProbeSend);
-        ProbeDown.attachPop(ProbelPopCallBack, &ProbeDown);
-      #endif
-
-      tenter.attachPop(sethotPopCallback,   &tenter);
-      XYHome.attachPop(setmovePopCallback);
-      XYUp.attachPop(setmovePopCallback);
-      XYRight.attachPop(setmovePopCallback);
-      XYDown.attachPop(setmovePopCallback);
-      XYLeft.attachPop(setmovePopCallback);
-      ZHome.attachPop(setmovePopCallback);
-      ZUp.attachPop(setmovePopCallback);
-      ZDown.attachPop(setmovePopCallback);
-      Extrude.attachPop(setmovePopCallback);
-      Retract.attachPop(setmovePopCallback);
-      MotorOff.attachPop(motoroffPopCallback);
-      Send.attachPop(setgcodePopCallback);
-      Yes.attachPop(YesNoPopCallback, &Yes);
-      No.attachPop(YesNoPopCallback, &No);
-      LcdSend.attachPop(sendPopCallback);
-      FilLoad.attachPop(filamentPopCallback);
-      FilUnload.attachPop(filamentPopCallback);
-      FilExtr.attachPop(filamentPopCallback);
-
-      setpagePrinter();
-      startimer.enable();
-    }
-  }
-
-  bool lcd_detected() { return NextionON; }
 
   static void degtoLCD(const uint8_t h, float temp) {
 
@@ -1296,11 +1179,6 @@
     }
   }
 
-  void lcd_update() {
-    if (!NextionON) return;
-    nexLoop(nex_listen_list);
-  }
-
   void nextion_draw_update() {
 
     static uint8_t  PreviousPage = 0,
@@ -1317,7 +1195,7 @@
     switch (PageID) {
       case 2:
         if (PreviousPage != 2) {
-          lcd_setstatus(lcd_status_message);
+          lcdui.setstatus(lcdui.status_message);
           #if ENABLED(NEXTION_GFX)
             #if MECH(DELTA)
               gfx_clear(mechanics.data.print_radius * 2, mechanics.data.print_radius * 2, mechanics.data.height);
@@ -1462,37 +1340,6 @@
     PreviousPage = PageID;
   }
 
-  void lcd_setstatus(PGM_P message, bool persist) {
-    UNUSED(persist);
-    if (lcd_status_message_level > 0 || !NextionON) return;
-    strncpy(lcd_status_message, message, 30);
-    if (PageID == 2) LcdStatus.setText(lcd_status_message);
-  }
-
-  void lcd_setstatusPGM(PGM_P message, int8_t level) {
-    if (level < 0) level = lcd_status_message_level = 0;
-    if (level < lcd_status_message_level || !NextionON) return;
-    strncpy_P(lcd_status_message, message, 30);
-    lcd_status_message_level = level;
-    if (PageID == 2) LcdStatus.setText(lcd_status_message);
-  }
-
-  void lcd_status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
-    if (level < lcd_status_message_level || !NextionON) return;
-    lcd_status_message_level = level;
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(lcd_status_message, 30, fmt, args);
-    va_end(args);
-    if (PageID == 2) LcdStatus.setText(lcd_status_message);
-  }
-
-  void lcd_setalertstatusPGM(PGM_P const message) {
-    lcd_setstatusPGM(message, 1);
-  }
-
-  void lcd_reset_alert_level() { lcd_status_message_level = 0; }
-
   void lcd_scrollinfo(PGM_P titolo, PGM_P message) {
     Pinfo.show();
     InfoText.setText(titolo);
@@ -1548,5 +1395,183 @@
       }
     }
   #endif
+
+  /**
+   * LcdUI Function
+   */
+  void LcdUI::init() {
+
+    for (uint8_t i = 0; i < 10; i++) {
+      ZERO(buffer);
+      NextionON = nexInit(buffer);
+      if (NextionON) break;
+      HAL::delayMilliseconds(1000);
+    }
+
+    if (!NextionON) {
+      SERIAL_LM(ER, "Nextion not connected!");
+      return;
+    }
+    else {
+      SERIAL_MSG("Nextion");
+      // Get Model
+
+      if (strstr(buffer, "3224")) {       // Model 2.4" or 2.8" Normal or Enhanced
+        SERIAL_MSG(" 2.4");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "4024")) {  // Model 3.2" Normal or Enhanced
+        SERIAL_MSG(" 3.2");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "4832")) {  // Model 3.5" Normal or Enhanced
+        SERIAL_MSG(" 3.5");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "4827")) {  // Model 4.3" Normal or Enhanced
+        SERIAL_MSG(" 4.3");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(1, 24, 250, 155);
+        #endif
+      }
+      else if (strstr(buffer, "8048")) {  // Model 7" Normal or Enhanced
+        SERIAL_MSG(" 7");
+        #if ENABLED(NEXTION_GFX)
+          gfx.set_position(274, 213, 250, 155);
+        #endif
+      }
+      SERIAL_CHR('"'); SERIAL_EM(" connected!");
+
+      #if ENABLED(NEXTION_GFX)
+        gfx.color_set(NX_AXIS + X_AXIS, 63488);
+        gfx.color_set(NX_AXIS + Y_AXIS, 2016);
+        gfx.color_set(NX_AXIS + Z_AXIS, 31);
+        gfx.color_set(NX_MOVE, 2047);
+        gfx.color_set(NX_TOOL, 65535);
+        gfx.color_set(NX_LOW, 2047);
+        gfx.color_set(NX_HIGH, 63488);
+      #endif
+
+      #if HAS_SD_SUPPORT
+        sd_mount.attachPop(sdmountdismountPopCallback, &sd_mount);
+        sd_dismount.attachPop(sdmountdismountPopCallback, &sd_dismount);
+        sdlist.attachPop(sdlistPopCallback);
+        ScrollUp.attachPop(sdlistPopCallback);
+        ScrollDown.attachPop(sdlistPopCallback);
+        NPlay.attachPop(PlayPausePopCallback);
+      #endif
+
+      #if ENABLED(RFID_MODULE)
+        Rfid0.attachPop(rfidPopCallback,  &Rfid0);
+        Rfid1.attachPop(rfidPopCallback,  &Rfid1);
+        Rfid2.attachPop(rfidPopCallback,  &Rfid2);
+        Rfid3.attachPop(rfidPopCallback,  &Rfid3);
+        Rfid4.attachPop(rfidPopCallback,  &Rfid4);
+        Rfid5.attachPop(rfidPopCallback,  &Rfid5);
+      #endif
+
+      #if FAN_COUNT > 0
+        FanTouch.attachPop(setfanPopCallback, &FanTouch);
+      #endif
+
+      #if HAS_CASE_LIGHT
+        Light.attachPop(setlightPopCallback, &Light);
+      #endif
+
+      #if ENABLED(PROBE_MANUALLY)
+        ProbeUp.attachPop(ProbelPopCallBack, &ProbeUp);
+        ProbeSend.attachPop(ProbelPopCallBack, &ProbeSend);
+        ProbeDown.attachPop(ProbelPopCallBack, &ProbeDown);
+      #endif
+
+      tenter.attachPop(sethotPopCallback,   &tenter);
+      XYHome.attachPop(setmovePopCallback);
+      XYUp.attachPop(setmovePopCallback);
+      XYRight.attachPop(setmovePopCallback);
+      XYDown.attachPop(setmovePopCallback);
+      XYLeft.attachPop(setmovePopCallback);
+      ZHome.attachPop(setmovePopCallback);
+      ZUp.attachPop(setmovePopCallback);
+      ZDown.attachPop(setmovePopCallback);
+      Extrude.attachPop(setmovePopCallback);
+      Retract.attachPop(setmovePopCallback);
+      MotorOff.attachPop(motoroffPopCallback);
+      Send.attachPop(setgcodePopCallback);
+      Yes.attachPop(YesNoPopCallback, &Yes);
+      No.attachPop(YesNoPopCallback, &No);
+      LcdSend.attachPop(sendPopCallback);
+      FilLoad.attachPop(filamentPopCallback);
+      FilUnload.attachPop(filamentPopCallback);
+      FilExtr.attachPop(filamentPopCallback);
+
+      setpagePrinter();
+      startimer.enable();
+    }
+  }
+
+  void LcdUI::update() {
+    if (!NextionON) return;
+    nexLoop(nex_listen_list);
+  }
+
+  bool LcdUI::detected() { return NextionON; }
+
+  void LcdUI::setalertstatusPGM(PGM_P const message) {
+    lcdui.setstatusPGM(message, 1);
+  }
+
+  bool LcdUI::hasstatus() { return false; }
+
+  void LcdUI::setstatus(PGM_P message, bool persist) {
+    UNUSED(persist);
+    if (status_message_level > 0 || !NextionON) return;
+    strncpy(status_message, message, 30);
+    if (PageID == 2) LcdStatus.setText(status_message);
+  }
+
+  void LcdUI::setstatusPGM(PGM_P message, int8_t level) {
+    if (level < 0) level = status_message_level = 0;
+    if (level < status_message_level || !NextionON) return;
+    strncpy_P(status_message, message, 30);
+    status_message_level = level;
+    if (PageID == 2) LcdStatus.setText(status_message);
+  }
+  
+  void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
+    if (level < status_message_level || !NextionON) return;
+    status_message_level = level;
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(status_message, 30, fmt, args);
+    va_end(args);
+    if (PageID == 2) LcdStatus.setText(status_message);
+  }
+
+  void LcdUI::reset_status() {
+    static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
+    static const char printing[] PROGMEM = MSG_PRINTING;
+    static const char welcome[] PROGMEM = WELCOME_MSG;
+    PGM_P msg;
+    if (print_job_counter.isPaused())
+      msg = paused;
+    #if HAS_SD_SUPPORT
+      else if (IS_SD_PRINTING())
+        return lcdui.setstatus(card.fileName, true);
+    #endif
+    else if (print_job_counter.isRunning())
+      msg = printing;
+    else
+      msg = welcome;
+
+    lcdui.setstatusPGM(msg, -1);
+  }
+
+  void LcdUI::eeprom_allert() {}
 
 #endif

@@ -100,8 +100,8 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = act->current_temperature;
-    uint8_t old_blue = 0;
-    uint8_t old_red  = 255;
+    const bool isHotend = act->data.type == IS_HOTEND;
+    ledevents.onHeatingStart(isHotend);
   #endif
 
   do {
@@ -118,34 +118,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
     const float temp = act->current_temperature;
 
     #if ENABLED(PRINTER_EVENT_LEDS)
-      if (!wants_to_cool) {
-        if (act->data.type == IS_HOTEND) {
-          // Gradually change LED strip from violet to red as nozzle heats up
-          const uint8_t blue = map(constrain(temp, start_temp, act->target_temperature), start_temp, act->target_temperature, 255, 0);
-          if (blue != old_blue) {
-            old_blue = blue;
-            leds.set_color(
-              MakeLEDColor(255, 0, blue, 0, leds.getBrightness())
-              #if ENABLED(NEOPIXEL_LED) && ENABLED(NEOPIXEL_IS_SEQUENTIAL)
-                , true
-              #endif
-            );
-          }
-        }
-        else if (act->data.type == IS_BED) {
-          // Gradually change LED strip from blue to violet as bed heats up
-          const uint8_t red = map(constrain(temp, start_temp, act->target_temperature), start_temp, act->target_temperature, 0, 255);
-          if (red != old_red) {
-            old_red = red;
-            leds.set_color(
-              MakeLEDColor(red, 0, 255, 0 , leds.getBrightness())
-              #if ENABLED(NEOPIXEL_LED) && ENABLED(NEOPIXEL_IS_SEQUENTIAL)
-                , true
-              #endif
-            );
-          }
-        }
-      }
+      if (!wants_to_cool) ledevents.onHeating(isHotend, start_temp, temp, act->target_temperature);
     #endif
 
     #if TEMP_RESIDENCY_TIME > 0
@@ -177,9 +150,9 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
   if (printer.isWaitForHeatUp()) {
-    lcd_setstatusPGM(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
+    lcdui.setstatusPGM(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
     #if ENABLED(PRINTER_EVENT_LEDS)
-      leds.set_white();
+      ledevents.onHeatingDone();
     #endif
   }
 
@@ -317,26 +290,27 @@ void Temperature::spin() {
  * Alternately heat and cool the nozzle, observing its behavior to
  * determine the best PID values to achieve a stable temperature.
  */
-void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const uint8_t method, const bool storeValues/*=false*/) {
+void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues/*=false*/) {
 
-  float currentTemp = 0.0;
-  int cycles = 0;
-  bool heating = true;
+  float       current_temp  = 0.0;
+  int         cycles        = 0;
+  bool        heating       = true;
+  const bool  isHotend      = act->data.type == IS_HOTEND,
+              oldReport     = printer.isAutoreportTemp();
 
-  const bool oldReport = printer.isAutoreportTemp();
   printer.setAutoreportTemp(true);
 
   disable_all_heaters(); // switch off all heaters.
 
-  millis_t  t1 = millis(),
-            t2 = t1;
-  int32_t   t_high = 0,
-            t_low = 0;
-  float     Ku,
-            Pu,
-            workKp = 0,
-            workKi = 0,
-            workKd = 0,
+  millis_t  t1      = millis(),
+            t2      = t1;
+  int32_t   t_high  = 0.0,
+            t_low   = 0.0;
+  float     Ku      = 0.0,
+            Pu      = 0.0,
+            workKp  = 0.0,
+            workKi  = 0.0,
+            workKd  = 0.0,
             maxTemp = 20.0,
             minTemp = 20.0;
 
@@ -349,11 +323,16 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
   printer.setWaitForHeatUp(true);
   pid_pointer = act->data.ID;
 
-  lcd_reset_alert_level();
+  lcdui.reset_alert_level();
   LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    const float start_temp = act->current_temperature;
+    LEDColor color = ledevents.onHeatingStart(isHotend);
+  #endif
+
   // PID Tuning loop
-  for(;;) {
+  while (printer.isWaitForHeatUp()) {
 
     watchdog.reset(); // Reset the watchdog
     printer.idle();
@@ -362,12 +341,16 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
     act->updateCurrentTemperature();
 
     const millis_t time = millis();
-    currentTemp = act->current_temperature;
-    NOLESS(maxTemp, currentTemp);
-    NOMORE(minTemp, currentTemp);
+    current_temp = act->current_temperature;
+    NOLESS(maxTemp, current_temp);
+    NOMORE(minTemp, current_temp);
 
-    if (heating && currentTemp > temp) {
-      if (time - t2 > (act->data.type == IS_HOTEND ? 2500 : 1500)) {
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      ledevents.onHeating(isHotend, start_temp, current_temp, target_temp);
+    #endif
+
+    if (heating && current_temp > target_temp) {
+      if (time - t2 > (isHotend ? 2500 : 1500)) {
         heating = false;
 
         act->soft_pwm = (bias - d);
@@ -377,15 +360,15 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
         #if HAS_TEMP_COOLER
           if (act->data.type == IS_COOLER)
-            minTemp = temp;
+            minTemp = target_temp;
           else
         #endif
-          maxTemp = temp;
+          maxTemp = target_temp;
       }
     }
 
-    if (!heating && currentTemp < temp) {
-      if (time - t1 > (act->data.type == IS_HOTEND ? 5000 : 3000)) {
+    if (!heating && current_temp < target_temp) {
+      if (time - t1 > (isHotend ? 5000 : 3000)) {
         heating = true;
         t2 = time;
         t_low = t2 - t1;
@@ -447,17 +430,17 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
         #if HAS_TEMP_COOLER
           if (act->data.type == IS_COOLER)
-            maxTemp = temp;
+            maxTemp = target_temp;
           else
         #endif
-          minTemp = temp;
+          minTemp = target_temp;
       }
     }
 
     #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
       #define MAX_OVERSHOOT_PID_AUTOTUNE 20
     #endif
-    if (currentTemp > temp + MAX_OVERSHOOT_PID_AUTOTUNE
+    if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
       #if HAS_TEMP_COOLER
         && act->data.type != IS_COOLER
       #endif
@@ -468,7 +451,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       break;
     }
     #if HAS_TEMP_COOLER
-      else if (currentTemp < temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->data.type == IS_COOLER) {
+      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->data.type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
         pid_pointer = 255;
@@ -492,7 +475,7 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
       SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
       pid_pointer = 255;
 
-      if (act->data.type == IS_HOTEND) {
+      if (isHotend) {
         SERIAL_MV(MSG_KP, workKp);
         SERIAL_MV(MSG_KI, workKi);
         SERIAL_EMV(MSG_KD, workKd);
@@ -531,16 +514,24 @@ void Temperature::PID_autotune(Heater *act, const float temp, const uint8_t ncyc
 
       if (storeValues) eeprom.store();
 
+      #if ENABLED(PRINTER_EVENT_LEDS)
+        ledevents.onPidTuningDone(color);
+      #endif
+
       break;
     }
 
-    lcd_update();
+    lcdui.update();
 
   }
 
-  LCD_MESSAGEPGM(WELCOME_MSG);
-  printer.setAutoreportTemp(oldReport);
   disable_all_heaters();
+  printer.setAutoreportTemp(oldReport);
+
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    ledevents.onPidTuningDone(color);
+  #endif
+
 }
 
 /**
@@ -727,7 +718,7 @@ void Temperature::_temp_error(const uint8_t h, PGM_P const serial_msg, PGM_P con
     }
   }
 
-  lcd_setstatusPGM(lcd_msg);
+  lcdui.setstatusPGM(lcd_msg);
   heaters[h].setFault();
 
 }

@@ -62,28 +62,48 @@
 
   void Tools::change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool no_move/*=false*/) {
 
-    planner.synchronize();
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
 
-    #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
-      // Only T0 allowed in DXC_DUPLICATION_MODE
-      if (tmp_extruder != 0 && mechanics.dxc_is_duplicating())
-         return invalid_extruder_error(tmp_extruder);
-    #endif
+      UNUSED(fr_mm_s);
+      UNUSED(no_move);
 
-    #if HAS_LEVELING
-      // Set current position to the physical position
-      const bool leveling_was_active = bedlevel.leveling_active;
-      bedlevel.set_bed_leveling_enabled(false);
-    #endif
+      if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
+        return invalid_extruder_error(tmp_extruder);
 
-    #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
+      #if MIXING_VIRTUAL_TOOLS > 1
+        // T0-Tnnn: Switch virtual tool by changing the index to the mix
+        mixer.T(uint_fast8_t(tmp_extruder));
+      #endif
 
-      mixing_tool_change(tmp_extruder);
+    #elif EXTRUDERS < 2
 
-    #else // !COLOR_MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+      UNUSED(fr_mm_s);
+      UNUSED(no_move);
+      if (tmp_extruder) invalid_extruder_error(tmp_extruder);
+      return;
+
+    #else
+
+      planner.synchronize();
+    
+      #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
+        // Only T0 allowed in DXC_DUPLICATION_MODE
+        if (tmp_extruder != 0 && mechanics.dxc_is_duplicating())
+           return invalid_extruder_error(tmp_extruder);
+      #endif
+
+      #if HAS_LEVELING
+        // Set current position to the physical position
+        const bool leveling_was_active = bedlevel.leveling_active;
+        bedlevel.set_bed_leveling_enabled(false);
+      #endif
 
       if (tmp_extruder >= EXTRUDERS)
         return invalid_extruder_error(tmp_extruder);
+
+      #if HAS_LCD_MENU
+        ui.return_to_status();
+      #endif
 
       #if HOTENDS > 1
 
@@ -201,7 +221,8 @@
 
       SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)active_extruder);
 
-    #endif // !COLOR_MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+    #endif // EXTRUDERS <= 1 && (!MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1)
+
   }
 
   void Tools::print_parameters(const uint8_t h) {
@@ -498,21 +519,6 @@
       #if (DONDOLO_SERVO_DELAY > 0)
         printer.safe_delay(DONDOLO_SERVO_DELAY);
       #endif
-    }
-
-  #endif
-
-  #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-
-    void Tools::mixing_tool_change(const uint8_t tmp_extruder) {
-      if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
-        return invalid_extruder_error(tmp_extruder);
-
-      // T0-Tnnn: Switch virtual tool by changing the mix
-      for (uint8_t j = 0; j < MIXING_STEPPERS; j++)
-        mixing_factor[j] = mixing_virtual_tool_mix[tmp_extruder][j];
-
-      SERIAL_EMV(MSG_ACTIVE_COLOR, (int)tmp_extruder);
     }
 
   #endif

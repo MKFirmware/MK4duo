@@ -145,18 +145,18 @@ int8_t g26_prime_flag;
    * If the LCD is clicked, cancel, wait for release, return true
    */
   bool user_canceled() {
-    if (!is_lcd_clicked()) return false; // Return if the button isn't pressed
-    lcd_setstatusPGM(PSTR("Mesh Validation Stopped."), 99);
+    if (!lcdui.button_pressed()) return false; // Return if the button isn't pressed
+    lcdui.setstatusPGM(PSTR("Mesh Validation Stopped."), 99);
     #if ENABLED(ULTIPANEL)
-      lcd_quick_feedback(true);
+      lcdui.quick_feedback(true);
     #endif
-    wait_for_release();
+    lcdui.wait_for_release();
     return true;
   }
 
   bool exit_from_g26() {
-    lcd_setstatusPGM(PSTR("Leaving G26"), -1);
-    wait_for_release();
+    lcdui.setstatusPGM(PSTR("Leaving G26"), -1);
+    lcdui.wait_for_release();
     return G26_ERR;
   }
 
@@ -403,24 +403,24 @@ inline bool turn_on_heaters() {
   #if HAS_TEMP_BED
     #if HAS_SPI_LCD
       if (g26_bed_temp > 25) {
-        lcd_setstatusPGM(PSTR("G26 Heating Bed."), 99);
-        lcd_quick_feedback(true);
+        lcdui.setstatusPGM(PSTR("G26 Heating Bed."), 99);
+        lcdui.quick_feedback(true);
         #if ENABLED(ULTIPANEL)
-          lcd_external_control = true;
+          lcdui.capture();
         #endif
     #endif
         heaters[BED_INDEX].setTarget(g26_bed_temp);
         while (ABS(heaters[BED_INDEX].current_temperature - g26_bed_temp) > 3) {
           #if ENABLED(ULTIPANEL)
-            if (is_lcd_clicked()) return exit_from_g26();
+            if (lcdui.button_pressed()) return exit_from_g26();
           #endif
           printer.idle();
           Com::serialFlush(); // Prevent host M105 buffer overrun.
         }
     #if HAS_SPI_LCD
       }
-      lcd_setstatusPGM(PSTR("G26 Heating Nozzle."), 99);
-      lcd_quick_feedback(true);
+      lcdui.setstatusPGM(PSTR("G26 Heating Nozzle."), 99);
+      lcdui.quick_feedback(true);
     #endif
   #endif
 
@@ -428,15 +428,15 @@ inline bool turn_on_heaters() {
   heaters[0].setTarget(g26_hotend_temp);
   while (ABS(heaters[0].current_temperature - g26_hotend_temp) > 3) {
     #if ENABLED(ULTIPANEL)
-      if (is_lcd_clicked()) return exit_from_g26();
+      if (lcdui.button_pressed()) return exit_from_g26();
     #endif
     printer.idle();
     Com::serialFlush(); // Prevent host M105 buffer overrun.
   }
 
   #if HAS_SPI_LCD
-    lcd_reset_status();
-    lcd_quick_feedback(true);
+    lcdui.reset_status();
+    lcdui.quick_feedback(true);
   #endif
 
   printer.setAutoreportTemp(oldReport);
@@ -454,16 +454,16 @@ inline bool prime_nozzle() {
 
     if (g26_prime_flag == -1) {  // The user wants to control how much filament gets purged
 
-      lcd_external_control = true;
-      lcd_setstatusPGM(PSTR("User-Controlled Prime"), 99);
-      lcd_chirp();
+      lcdui.capture();
+      lcdui.setstatusPGM(PSTR("User-Controlled Prime"), 99);
+      lcdui.chirp();
 
       mechanics.set_destination_to_current();
 
       recover_filament(mechanics.destination); // Make sure G26 doesn't think the filament is retracted().
 
-      while (!is_lcd_clicked()) {
-        lcd_chirp();
+      while (!lcdui.button_pressed()) {
+        lcdui.chirp();
         mechanics.destination[E_AXIS] += 0.25;
         #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
           Total_Prime += 0.25;
@@ -478,18 +478,18 @@ inline bool prime_nozzle() {
                                   // action to give the user a more responsive 'Stop'.
       }
 
-      wait_for_release();
+      lcdui.wait_for_release();
 
-      lcd_setstatusPGM(PSTR("Done Priming"), 99);
-      lcd_quick_feedback(true);
-      lcd_external_control = false;
+      lcdui.setstatusPGM(PSTR("Done Priming"), 99);
+      lcdui.quick_feedback(true);
+      lcdui.release();
     }
     else
   #endif
   {
     #if HAS_SPI_LCD
-      lcd_setstatusPGM(PSTR("Fixed Length Prime."), 99);
-      lcd_quick_feedback(true);
+      lcdui.setstatusPGM(PSTR("Fixed Length Prime."), 99);
+      lcdui.quick_feedback(true);
     #endif
     mechanics.set_destination_to_current();
     mechanics.destination[E_AXIS] += g26_prime_length;
@@ -700,7 +700,7 @@ inline void gcode_G26(void) {
   move_to(mechanics.destination, g26_ooze_amount);
 
   #if ENABLED(ULTIPANEL)
-    lcd_external_control = true;
+    lcdui.capture();
   #endif
 
   /**
@@ -786,7 +786,7 @@ inline void gcode_G26(void) {
 
 LEAVE:
   SERIAL_EM("Leaving G26");
-  lcd_setstatusPGM(PSTR("Leaving G26"), -1);
+  lcdui.setstatusPGM(PSTR("Leaving G26"), -1);
 
   retract_filament(mechanics.destination);
   mechanics.destination[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT;
@@ -799,7 +799,7 @@ LEAVE:
   move_to(mechanics.destination, 0); // Move back to the starting position
 
   #if ENABLED(ULTIPANEL)
-    lcd_external_control = false;   // Give back control of the LCD Panel!
+    lcdui.release();   // Give back control of the LCD Panel!
   #endif
 
   if (!g26_keep_heaters_on) {

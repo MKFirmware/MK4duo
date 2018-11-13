@@ -362,7 +362,7 @@
       tools.change(old_tool_index, 0, true);
     #endif
 
-    lcd_refresh();
+    lcdui.refresh();
 
     mechanics.report_current_position();
 

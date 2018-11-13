@@ -29,8 +29,6 @@
 
   unified_bed_leveling ubl;
 
-  uint8_t ubl_cnt = 0;
-
   void unified_bed_leveling::echo_name() { SERIAL_MSG("Unified Bed Leveling"); }
 
   void unified_bed_leveling::report_current_mesh() {
@@ -90,14 +88,10 @@
       SERIAL_MV(", ", mechanics.current_position[Z_AXIS], 6);
       SERIAL_MV(", ", mechanics.current_position[E_AXIS], 6);
       SERIAL_MSG(" )   destination=( ");
-      debug_echo_axis(X_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(Y_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(Z_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(E_AXIS);
-      SERIAL_MSG(" )   ");
+      debug_echo_axis(X_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(Y_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(Z_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(E_AXIS); SERIAL_MSG(" )   ");
       SERIAL_STR(title);
       SERIAL_EOL();
 
@@ -114,14 +108,13 @@
   constexpr float unified_bed_leveling::_mesh_index_to_xpos[16],
                   unified_bed_leveling::_mesh_index_to_ypos[16];
 
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     bool unified_bed_leveling::lcd_map_control = false;
   #endif
 
   volatile int unified_bed_leveling::encoder_diff;
 
   unified_bed_leveling::unified_bed_leveling() {
-    ubl_cnt++;  // Debug counter to ensure we only have one UBL object present in memory.  We can eliminate this (and all references to ubl_cnt) very soon.
     reset();
   }
 

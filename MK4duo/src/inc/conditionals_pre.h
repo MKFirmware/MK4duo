@@ -19,20 +19,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * conditionals_pre.h
  * Defines that depend on configuration but are not editable.
  */
 
-#ifndef _CONDITIONALS_PRE_H_
-#define _CONDITIONALS_PRE_H_
+#define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 #if DISABLED(STRING_CONFIG_H_AUTHOR)
   #define STRING_CONFIG_H_AUTHOR "(none, default config)"
 #endif
-
-#define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 #if ENABLED(NEXTION)
   #define LCD_HEIGHT 4
@@ -59,9 +57,9 @@
 
 #elif ENABLED(ZONESTAR_LCD)
 
+  #define ADC_KEYPAD
   #define REPRAPWORLD_KEYPAD
   #define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
-  #define ADC_KEYPAD
   #define ADC_KEY_NUM 8
   #define ULTIPANEL
 
@@ -228,6 +226,18 @@
 #endif
 
 /**
+ * SPI PANELS
+ */
+
+// Einstart OLED has Cardinal nav via pins defined in pins_EINSTART-S.h
+#if ENABLED(U8GLIB_SH1106_EINSTART)
+  #define ULTRA_LCD
+  #define DOGLCD
+  #define ULTIPANEL
+  #define NEWPANEL
+#endif
+ 
+/**
  * I2C PANELS
  */
 
@@ -312,48 +322,25 @@
   #define ULTIPANEL
 #endif
 
+#if ENABLED(ULTIPANEL)
+  #define NEWPANEL  // Disable this if you actually have no click-encoder panel
+  #define ULTRA_LCD
+#endif
+
 // Aliases for LCD features
 #define HAS_NEXTION_LCD       ENABLED(NEXTION)
 #define HAS_SPI_LCD           ENABLED(ULTRA_LCD)
 #define HAS_GRAPHICAL_LCD     ENABLED(DOGLCD)
-#define HAS_CHARACTER_LCD     (ENABLED(ULTRA_LCD) && DISABLED(DOGLCD))
-#define HAS_LCD_MENU          (ENABLED(ULTIPANEL) && DISABLED(NO_LCD_MENUS))
+#define HAS_CHARACTER_LCD     (HAS_SPI_LCD && !HAS_GRAPHICAL_LCD)
 #define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
-
-#if HAS_GRAPHICAL_LCD // Change number of lines to match the DOG graphic display
-  #if DISABLED(LCD_WIDTH)
-    #if ENABLED(LCD_WIDTH_OVERRIDE)
-      #define LCD_WIDTH LCD_WIDTH_OVERRIDE
-    #else
-      #define LCD_WIDTH 22
-    #endif
-  #endif
-  #if DISABLED(LCD_HEIGHT)
-    #define LCD_HEIGHT 5
-  #endif
-#endif
-
-#if ENABLED(ULTIPANEL)
-  #define NEWPANEL  // Disable this if you actually have no click-encoder panel
-  #define ULTRA_LCD
-  #if DISABLED(LCD_WIDTH)
-    #define LCD_WIDTH 20
-  #endif
-  #if DISABLED(LCD_HEIGHT)
-    #define LCD_HEIGHT 4
-  #endif
-#elif ENABLED(ULTRA_LCD)  // no panel but just LCD
-  #ifndef LCD_WIDTH
-    #define LCD_WIDTH 16
-  #endif
-  #ifndef LCD_HEIGHT
-    #define LCD_HEIGHT 2
-  #endif
-#endif
+#define HAS_LCD_MENU          (ENABLED(ULTIPANEL) && DISABLED(NO_LCD_MENUS))
+#define HAS_DIGITAL_ENCODER   (HAS_SPI_LCD && ENABLED(NEWPANEL))
 
 #if HAS_GRAPHICAL_LCD
-  /* Custom characters defined in font dogm_font_data_mk4duo_symbols.h / MK4duo_symbols.fon */
+  //
+  // Custom characters from Marlin_symbols.fon which was merged into ISO10646-0-3.bdf
   // \x00 intentionally skipped to avoid problems in strings
+  //
   #define LCD_STR_REFRESH     "\x01"
   #define LCD_STR_FOLDER      "\x02"
   #define LCD_STR_ARROW_RIGHT "\x03"
@@ -371,42 +358,17 @@
   // Symbol characters
   #define LCD_STR_FILAM_DIA   "\xf8"
   #define LCD_STR_FILAM_MUL   "\xa4"
-#elif HAS_NEXTION_LCD
-  #define LCD_STR_REFRESH     "\x01"
-  #define LCD_STR_FOLDER      "\x02"
-  #define LCD_STR_ARROW_RIGHT "\x03"
-  #define LCD_STR_UPLEVEL     "^"
-  #define LCD_STR_CLOCK       "\x05"
-  #define LCD_STR_FEEDRATE    "\x06"
-  #define LCD_STR_BEDTEMP     "\x07"
-  #define LCD_STR_THERMOMETER "\x08"
-  #define LCD_STR_DEGREE      "\x09"
-#else
-  // Custom characters defined in the first 8 characters of the LCD
-  #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
-  #define LCD_DEGREE_CHAR      0x01
-  #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
-  #define LCD_UPLEVEL_CHAR     0x03
-  #define LCD_STR_REFRESH     "\x04"
-  #define LCD_STR_FOLDER      "\x05"
-  #define LCD_FEEDRATE_CHAR    0x06
-  #define LCD_CLOCK_CHAR       0x07
-  #define LCD_STR_ARROW_RIGHT ">"  /* from the default character set */
-#endif
 
-/**
- * Default LCD contrast for dogm-like LCD displays
- */
-#if HAS_GRAPHICAL_LCD
-
-  #define HAS_LCD_CONTRAST ( \
-      ENABLED(MAKRPANEL) \
-   || ENABLED(CARTESIO_UI) \
-   || ENABLED(VIKI2) \
-   || ENABLED(AZSMZ_12864) \
-   || ENABLED(miniVIKI) \
-   || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
-   || ENABLED(WANHAO_D6_OLED) \
+  /**
+   * Default LCD contrast for dogm-like LCD displays
+   */
+  #define HAS_LCD_CONTRAST (                \
+       ENABLED(MAKRPANEL)                   \
+    || ENABLED(CARTESIO_UI)                 \
+    || ENABLED(VIKI2)                       \
+    || ENABLED(AZSMZ_12864)                 \
+    || ENABLED(miniVIKI)                    \
+    || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) \
   )
 
   #if HAS_LCD_CONTRAST
@@ -420,6 +382,20 @@
       #define DEFAULT_LCD_CONTRAST 32
     #endif
   #endif
+
+#else
+
+  // Custom characters defined in the first 8 characters of the LCD
+  #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
+  #define LCD_DEGREE_CHAR      0x01
+  #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
+  #define LCD_UPLEVEL_CHAR     0x03
+  #define LCD_STR_REFRESH     "\x04"
+  #define LCD_STR_FOLDER      "\x05"
+  #define LCD_FEEDRATE_CHAR    0x06
+  #define LCD_CLOCK_CHAR       0x07
+  #define LCD_STR_ARROW_RIGHT ">"  /* from the default character set */
+
 #endif
 
 // Boot screens
@@ -436,32 +412,32 @@
  *  EXTRUDERS         - Number of Selectable Tools
  *  HOTENDS           - Number of hotends, whether connected or separate
  *  DRIVER_EXTRUDERS  - Number of driver extruders
- *  TOOL_E_INDEX      - Index to use when getting/setting the tool state
+ *  E_MANUAL     - Number of E steppers for LCD move options
  *
  */
 #if ENABLED(DONDOLO_SINGLE_MOTOR)        // One E stepper, unified E axis, two hotends
-  #undef SINGLENOZZLE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
+  #undef  SINGLENOZZLE
+  #undef  EXTRUDERS
+  #undef  DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  1
-  #define TOOL_E_INDEX      0
+  #define E_MANUAL          1
 #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
-  #undef SINGLENOZZLE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
+  #undef  SINGLENOZZLE
+  #undef  EXTRUDERS
+  #undef  DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  2
-  #define TOOL_E_INDEX      current_block->active_extruder
+  #define E_MANUAL          2
 #elif ENABLED(COLOR_MIXING_EXTRUDER)      // Multi-stepper, unified E axis, one hotend
   #define SINGLENOZZLE
-  #undef EXTRUDERS
-  #undef DRIVER_EXTRUDERS
+  #undef  EXTRUDERS
+  #undef  DRIVER_EXTRUDERS
   #define EXTRUDERS         1
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
-  #define TOOL_E_INDEX      0
+  #define E_MANUAL          1
 #else
-  #define TOOL_E_INDEX      current_block->active_extruder
+  #define E_MANUAL          DRIVER_EXTRUDERS
 #endif
 
 // One hotend, multi-extruder
@@ -550,5 +526,3 @@
 #ifndef PREHEAT_3_LABEL
   #define PREHEAT_3_LABEL "GUM"
 #endif
-
-#endif /* _CONDITIONALS_PRE_H_ */

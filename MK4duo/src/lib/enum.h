@@ -208,6 +208,11 @@ enum LCDViewActionEnum : uint8_t {
   LCDVIEW_CLEAR_CALL_REDRAW,
   LCDVIEW_CALL_NO_REDRAW
 };
+enum MK4duoFontEnum : uint8_t {
+  FONT_STATUSMENU = 1,
+  FONT_EDIT,
+  FONT_MENU
+};
 
 /**
  * Probe raise

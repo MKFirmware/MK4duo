@@ -1851,7 +1851,7 @@
     <detect>M666.*H(-?\d*\.?\d*)</detect>
   </entry>
 
-  <!-- M851: Z Probe offset -->
+  <!-- M851: Z Probe data -->
   <entry type="float">
     <description unit="[unit]">X Probe Offset</description>
     <set>M851 X@</set>
@@ -1866,6 +1866,16 @@
     <description unit="[unit]">Z Probe Offset</description>
     <set>M851 Z@</set>
     <detect>M851.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int" min="60">
+    <description unit="[mm/min]">Z Probe speed Fast</description>
+    <set>M851 F@</set>
+    <detect>M851.*F(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int" min="60">
+    <description unit="[mm/min]">Z Probe speed Slow</description>
+    <set>M851 S@</set>
+    <detect>M851.*S(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M900: Linear Advance -->

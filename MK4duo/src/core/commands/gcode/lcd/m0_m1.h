@@ -56,7 +56,7 @@
     #if ENABLED(ULTIPANEL)
 
       if (!hasP && !hasS && args && *args)
-        lcd_setstatus(args, true);
+        lcdui.setstatus(args, true);
       else {
         LCD_MESSAGEPGM(MSG_USERWAIT);
         #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
@@ -89,7 +89,7 @@
       while (printer.isWaitForUser()) printer.idle();
 
     #if ENABLED(ULTIPANEL)
-      lcd_reset_status();
+      lcdui.reset_status();
     #endif
 
     printer.setWaitForUser(false);

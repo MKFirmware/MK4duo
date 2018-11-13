@@ -133,15 +133,23 @@
 #include "src/core/printcounter/printcounter.h"
 #include "src/core/sound/sound.h"
 
+// Language modules
+#include "src/language/language.h"
+
 // LCD modules
-#include "src/lcd/language/language.h"
-#include "src/lcd/ultralcd.h"
+#if HAS_SPI_LCD
+  #include "src/lcd/ultralcd/ultralcd.h"
+#elif HAS_NEXTION_LCD
+  #include "src/lcd/nextion/nextion_lcd.h"
+#endif
 
-// LCD menu
-#include "src/lcd/menu/menu.h"
+// LcdUI modules
+#include "src/lcd/lcdui.h"
 
-// NEXTION LCD
-#include "src/lcd/nextion/nextion_lcd.h"
+// Menu modules
+#if HAS_LCD_MENU
+  #include "src/lcd/ultralcd/menu/menu.h"
+#endif
 
 // SD modules
 #include "src/sd/cardreader.h"
@@ -167,6 +175,7 @@
 #include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
+#include "src/feature/rgbled/led_events.h"
 #include "src/feature/caselight/caselight.h"
 #include "src/feature/restart/restart.h"
 

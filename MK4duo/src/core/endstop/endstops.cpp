@@ -522,7 +522,7 @@ void Endstops::report_state() {
     SERIAL_EOL();
 
     #if HAS_SPI_LCD
-      lcd_status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
+      lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
     #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
@@ -538,6 +538,18 @@ void Endstops::report_state() {
   prev_hit_state = hit_state;
 
 } // Endstops::report_state
+
+// Get the stable endstop states when enabled
+void Endstops::resync() {
+
+  if (!abort_enabled()) return;     // If endstops/probes are disabled the loop below can hang
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    update();
+  #else
+    printer.safe_delay(2);
+  #endif
+}
 
 // If the last move failed to trigger an endstop, call kill
 void Endstops::validate_homing_move() {
@@ -766,7 +778,7 @@ void Endstops::clamp_to_software(float target[XYZ]) {
 // update endstops - Called from ISR!
 void Endstops::update() {
 
-  if (!isEnabled() && !isProbeEnabled()) return;
+  if (!abort_enabled()) return;
 
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX)  SET_BIT(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != isLogic(AXIS ##_## MINMAX)))
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT(live_state, DST_BIT, TEST(live_state, SRC_BIT))

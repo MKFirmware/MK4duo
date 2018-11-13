@@ -596,7 +596,7 @@
             sprintf_P(&mess[15], PSTR("0.%03i"), (int)LROUND(zero_std_dev_min * 1000));
           else
             sprintf_P(&mess[15], PSTR("%03i.x"), (int)LROUND(zero_std_dev_min));
-          lcd_setstatus(mess);
+          lcdui.setstatus(mess);
           Report_settings(_endstop_results, _angle_results);
           SERIAL_PS(save_message);
           SERIAL_EOL();
@@ -610,7 +610,7 @@
           SERIAL_TXT(mess);
           SERIAL_SP(44);
           SERIAL_EMV("std dev:", zero_std_dev, 3);
-          lcd_setstatus(mess);
+          lcdui.setstatus(mess);
           if (verbose_level > 1)
             Report_settings(_endstop_results, _angle_results);
         }
@@ -628,7 +628,7 @@
           sprintf_P(&mess[15], PSTR("0.%03i"), (int)LROUND(zero_std_dev * 1000));
         else
           sprintf_P(&mess[15], PSTR("%03i.x"), (int)LROUND(zero_std_dev));
-        lcd_setstatus(mess);
+        lcdui.setstatus(mess);
       }
 
       ac_home();
