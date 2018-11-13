@@ -54,7 +54,7 @@
 
       if (temp > heaters[TARGET_HOTEND].current_temperature) {
         #if HOTENDS > 1
-          lcd_status_printf_P(0, PSTR("H%i " MSG_HEATING), TARGET_HOTEND);
+          lcdui.status_printf_P(0, PSTR("H%i " MSG_HEATING), TARGET_HOTEND);
         #else
           LCD_MESSAGEPGM("H " MSG_HEATING);
         #endif

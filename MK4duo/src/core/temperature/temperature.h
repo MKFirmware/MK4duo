@@ -88,7 +88,7 @@ class Temperature {
     /**
      * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
      */
-    static void PID_autotune(Heater *act, const float temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
+    static void PID_autotune(Heater *act, const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
 
     /**
      * Switch off all heaters, set all target temperatures to 0

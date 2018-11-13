@@ -395,14 +395,14 @@ bool Probe::specific_action(const bool deploy) {
     sound.feedback();
 
     PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
-    lcd_setstatusPGM(ds_str);
+    lcdui.setstatusPGM(ds_str);
     SERIAL_PS(ds_str);
     SERIAL_EOL();
 
     printer.setWaitForUser(true);
     printer.keepalive(PausedforUser);
     while (printer.isWaitForUser()) printer.idle();
-    lcd_reset_status();
+    lcdui.reset_status();
     printer.keepalive(InHandler);
 
   #endif // PAUSE_BEFORE_DEPLOY_STOW

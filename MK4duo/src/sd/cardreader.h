@@ -171,8 +171,8 @@
       #if HAS_EEPROM_SD
         static void open_eeprom_sd(const bool read);
         static void close_eeprom_sd();
-        FORCE_INLINE static size_t write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
-        FORCE_INLINE static size_t read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
+        static inline size_t write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
+        static inline size_t read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
       #endif
 
       #if ENABLED(SD_SETTINGS)
@@ -193,12 +193,12 @@
         static void presort();
         static void getfilename_sorted(const uint16_t nr);
         #if ENABLED(SDSORT_GCODE)
-          FORCE_INLINE static void setSortOn(const bool b) { sort_alpha = b; presort(); }
-          FORCE_INLINE static void setSortFolders(const int i) { sort_folders = i; presort(); }
+          static inline void setSortOn(const bool b) { sort_alpha = b; presort(); }
+          static inline void setSortFolders(const int i) { sort_folders = i; presort(); }
           //FORCE_INLINE void setSortReverse(const bool b) { sort_reverse = b; }
         #endif
       #else
-        FORCE_INLINE void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
+        static inline void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
       #endif
 
       // Card flag bit 0 SD OK
@@ -225,16 +225,16 @@
       FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit5 = onoff; }
       FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit5; }
 
-      FORCE_INLINE static void pauseSDPrint() { setSDprinting(false); }
-      FORCE_INLINE static void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
-      FORCE_INLINE static uint32_t getIndex() { return sdpos; }
-      FORCE_INLINE static bool isFileOpen() { return gcode_file.isOpen(); }
-      FORCE_INLINE static bool eof() { return sdpos >= fileSize; }
-      FORCE_INLINE static int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
-      FORCE_INLINE static uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
-      FORCE_INLINE static char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
-      FORCE_INLINE size_t read(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.read(buf, nbyte) : -1; }
-      FORCE_INLINE size_t write(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.write(buf, nbyte) : -1; }
+      static inline void pauseSDPrint() { setSDprinting(false); }
+      static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
+      static inline uint32_t getIndex() { return sdpos; }
+      static inline bool isFileOpen() { return gcode_file.isOpen(); }
+      static inline bool eof() { return sdpos >= fileSize; }
+      static inline int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
+      static inline uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
+      static inline char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
+      static inline size_t read(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.read(buf, nbyte) : -1; }
+      static inline size_t write(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.write(buf, nbyte) : -1; }
 
     private: /** Private Function */
 

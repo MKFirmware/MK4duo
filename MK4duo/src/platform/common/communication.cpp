@@ -198,6 +198,12 @@ void Com::print_logic(PGM_P const label, const bool logic) {
   SERIAL_PS(logic ? PSTR("true") : PSTR("false"));
 }
 
+void Com::print_onoff(PGM_P const label, const bool onoff) {
+  SERIAL_PS(label);
+  SERIAL_MSG(": ");
+  SERIAL_PS(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+}
+
 #if ENABLED(DEBUG_FEATURE)
 
   void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {

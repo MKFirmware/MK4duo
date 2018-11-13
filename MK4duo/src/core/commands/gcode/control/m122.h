@@ -37,9 +37,8 @@ inline void gcode_M122(void) {
 
   #if HAS_SOFTWARE_ENDSTOPS
     if (parser.seen('S')) endstops.setSoftEndstop(parser.value_bool());
-    SERIAL_SM(ECHO, MSG_SOFT_ENDSTOPS);
-    SERIAL_PS(endstops.isSoftEndstop() ? PSTR(MSG_ON) : PSTR(MSG_OFF));
-    SERIAL_EOL();
+    SERIAL_STR(ECHO);
+    SERIAL_EONOFF(MSG_SOFT_ENDSTOPS, endstops.isSoftEndstop());
   #else
     SERIAL_MSG(MSG_SOFT_ENDSTOPS);
     SERIAL_MSG(MSG_OFF);

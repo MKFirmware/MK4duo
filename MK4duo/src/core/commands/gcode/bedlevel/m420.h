@@ -190,7 +190,8 @@
     if (to_enable && !bedlevel.leveling_active)
       SERIAL_LM(ER, MSG_ERR_M420_FAILED);
 
-    SERIAL_LMV(ECHO, "Bed Leveling ", bedlevel.leveling_active ? MSG_ON : MSG_OFF);
+    SERIAL_STR(ECHO);
+    SERIAL_EONOFF("Bed Leveling ", bedlevel.leveling_active);
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       SERIAL_SM(ECHO, "Fade Height ");

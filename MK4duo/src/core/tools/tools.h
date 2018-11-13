@@ -116,10 +116,6 @@
         static void move_extruder_servo(const uint8_t e);
       #endif
 
-      #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-        static void mixing_tool_change(const uint8_t tmp_extruder);
-      #endif
-
       #if ENABLED(DUAL_X_CARRIAGE)
         static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
       #endif

@@ -170,11 +170,11 @@ void Printer::setup() {
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
-  lcd_init();
-  LCD_MESSAGEPGM(WELCOME_MSG);
+  lcdui.init();
+  lcdui.reset_status();
 
   #if ENABLED(SHOW_BOOTSCREEN) && (HAS_GRAPHICAL_LCD || HAS_SPI_LCD)
-    lcd_bootscreen(); // Show MK4duo boot screen
+    lcdui.show_bootscreen(); // Show MK4duo boot screen
   #endif
 
   #if HAS_SD_SUPPORT
@@ -291,7 +291,7 @@ void Printer::setup() {
     LOOP_FAN() fans[f].Speed = 0;
   #endif
 
-  if (!eeprom_loaded) lcd_eeprom_allert();
+  if (!eeprom_loaded) lcdui.eeprom_allert();
 
   #if HAS_SD_RESTART
     restart.do_print_job();
@@ -463,7 +463,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
   #if HAS_SPI_LCD
-    lcd_kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
+    lcdui.kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
   #else
     UNUSED(lcd_msg);
   #endif
@@ -578,7 +578,7 @@ void Printer::Stop() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
-  lcd_update();
+  lcdui.update();
 
   check_periodical_actions();
 
@@ -648,7 +648,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
         if (ubl.lcd_map_control) {
           ubl.lcd_map_control = false;
-          set_defer_return_to_status(false);
+          lcdui.defer_status_screen(false);
         }
       #endif
       #if ENABLED(LASER)

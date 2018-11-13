@@ -75,7 +75,7 @@
     switch (state) {
       case MeshReport:
         if (bedlevel.leveling_is_valid()) {
-          SERIAL_EMT("State: ", bedlevel.leveling_active ? MSG_ON : MSG_OFF);
+          SERIAL_EONOFF("State: ", bedlevel.leveling_active);
           mbl.report_mesh();
         }
         else
@@ -85,7 +85,7 @@
       case MeshStart:
         mbl.reset();
         mbl_probe_index = 0;
-        if (!lcd_wait_for_move) {
+        if (!lcdui.wait_for_bl_move) {
           commands.enqueue_and_echo_P(PSTR("G28\nG29 S2"));
           return;
         }
@@ -145,7 +145,7 @@
           #endif
 
           #if ENABLED(LCD_BED_LEVELING)
-            lcd_wait_for_move = false;
+            lcdui.wait_for_bl_move = false;
           #endif
         }
         break;

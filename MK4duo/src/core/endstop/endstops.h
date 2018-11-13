@@ -146,9 +146,7 @@ class Endstops {
     // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {
       flag.bit0 = onoff;
-      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        update();
-      #endif
+      resync();
     }
     FORCE_INLINE static bool isEnabled() { return flag.bit0; }
 
@@ -156,6 +154,7 @@ class Endstops {
     FORCE_INLINE static void setGlobally(const bool onoff) {
       flag.bit1 = onoff;
       setEnabled(onoff);
+      resync();
     }
     FORCE_INLINE static bool isGlobally() { return flag.bit1; }
 
@@ -168,9 +167,7 @@ class Endstops {
     // Flag bit 3 set Probe Enabled
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
       flag.bit3 = onoff;
-      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        update();
-      #endif
+      resync();
     }
     FORCE_INLINE static bool isProbeEnabled() { return flag.bit3; }
 
@@ -192,7 +189,19 @@ class Endstops {
       if (!isEnabled()) live_state = 0;
     }
 
+    /**
+     * Are endstops or the probe set to abort the move?
+     */
+    FORCE_INLINE static bool abort_enabled() {
+      return (isEnabled() || isProbeEnabled());
+    }
+
   private: /** Private Function */
+
+    /**
+     * Get the stable endstop states when enabled
+     */
+    static void resync();
 
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
       static void setup_interrupts(void);
