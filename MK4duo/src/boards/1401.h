@@ -153,6 +153,8 @@
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
+#define RADDS_EXT_VDD_PIN          25
+#define RADDS_EXT_VDD2_PIN         66
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
