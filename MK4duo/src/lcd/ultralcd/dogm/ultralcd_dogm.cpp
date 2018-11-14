@@ -406,8 +406,6 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
             }
             outstr += lcdui.filename_scroll_pos;
           }
-        #else
-          longFilename[maxlen] = '\0'; // cutoff at screen edge
         #endif
       }
 
