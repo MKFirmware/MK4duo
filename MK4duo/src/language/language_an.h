@@ -26,7 +26,6 @@
  *
  * LCD Menu Messages
  *
-#define LANGUAGE_AN_H
 
 #define DISPLAY_CHARSET_ISO10646_1
 #define NOT_EXTENDED_ISO10646_1_5X7

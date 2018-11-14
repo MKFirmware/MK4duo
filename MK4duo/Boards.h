@@ -41,8 +41,8 @@
  */
 #define BOARD_ULTIMAKER          7    // Ultimaker
 #define BOARD_SAINSMART_2IN1    39    // SainSmart 2 in 1
-#define BOARD_MKS_BASE          40    // MKS BASE 1.0
-#define BOARD_MKS_13            47    // MKS v1.3 or 1.4 (maybe higher)
+#define BOARD_MKS_BASE          40    // MKS BASE v1.0
+#define BOARD_MKS_13            47    // MKS GEN v1.3 or 1.4
 #define BOARD_TRIGORILLA        49    // TRIGORILLA (ANYCUBIC)
 #define BOARD_MKS_GEN_L         53    // MKS GEN L
 #define BOARD_AZTEEG_X3         67    // Azteeg X3

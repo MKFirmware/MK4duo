@@ -159,7 +159,7 @@
 #define PREHEAT_2_TEMP_BED    100
 #define PREHEAT_2_FAN_SPEED   255   // Insert Value between 0 and 255
 
-#define PREHEAT_2_LABEL       "GUM"
+#define PREHEAT_3_LABEL       "GUM"
 #define PREHEAT_3_TEMP_HOTEND 230
 #define PREHEAT_3_TEMP_BED     60
 #define PREHEAT_3_FAN_SPEED   255   // Insert Value between 0 and 255
