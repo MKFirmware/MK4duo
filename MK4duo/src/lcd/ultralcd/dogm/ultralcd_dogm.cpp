@@ -389,8 +389,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
       constexpr uint8_t maxlen = LCD_WIDTH - 1;
       PGM_P outstr = longFilename;
-      if (longFilename[0]) {
-        #if ENABLED(SCROLL_LONG_FILENAMES)
+      #if ENABLED(SCROLL_LONG_FILENAMES)
+        if (longFilename[0]) {
           static uint8_t filename_scroll_hash;
           if (isSelected) {
             uint8_t name_hash = row;
@@ -406,8 +406,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
             }
             outstr += lcdui.filename_scroll_pos;
           }
-        #endif
-      }
+        }
+      #endif
 
       if (isDir) lcd_put_wchar(LCD_STR_FOLDER[0]);
 

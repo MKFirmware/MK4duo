@@ -1034,7 +1034,7 @@ void LcdUI::draw_status_screen() {
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool isSelected, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const uint8_t concat, const char post_char) {
+    void draw_sd_menu_item(const bool isSelected, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir) {
       const char post_char = isDir ? LCD_STR_FOLDER[0] : ' ',
                  sel_char = isSelected ? '>' : ' ';
       UNUSED(pstr);
@@ -1043,8 +1043,8 @@ void LcdUI::draw_status_screen() {
 
       uint8_t n = LCD_WIDTH - 2;
       PGM_P outstr = longFilename;
-      if (longFilename[0]) {
-        #if ENABLED(SCROLL_LONG_FILENAMES)
+      #if ENABLED(SCROLL_LONG_FILENAMES)
+        if (longFilename[0]) {
           static uint8_t filename_scroll_hash;
           if (isSelected) {
             uint8_t name_hash = row;
@@ -1058,10 +1058,8 @@ void LcdUI::draw_status_screen() {
             }
             outstr += lcdui.filename_scroll_pos;
           }
-        #else
-          longFilename[n] = '\0'; // cutoff at screen edge
-        #endif
-      }
+        }
+      #endif
 
       lcd_moveto(0, row);
       lcd_put_wchar(sel_char);
