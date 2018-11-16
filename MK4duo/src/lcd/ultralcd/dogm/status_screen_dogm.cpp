@@ -33,7 +33,7 @@
 #include "../lcdprint.h"
 
 #if ENABLED(LASER)
-  #include "../../feature/laser/laserbitmaps.h"
+  #include "../../../feature/laser/laserbitmaps.h"
 #endif
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
