@@ -12,7 +12,6 @@
 #if HAS_GRAPHICAL_LCD
 
 #include <string.h>
-#include "../fontutils.h"
 #include "u8g_fontutf8.h"
 
 typedef void font_t;

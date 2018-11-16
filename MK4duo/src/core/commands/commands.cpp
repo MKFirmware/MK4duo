@@ -400,10 +400,6 @@ void Commands::get_available() {
 
   get_serial();
 
-  #if HAS_SD_RESTART
-    if (restart.job_phase == RESTART_YES && enqueue_restart()) return;
-  #endif
-
   #if HAS_SD_SUPPORT
     get_sdcard();
   #endif
@@ -443,7 +439,7 @@ void Commands::advance_queue() {
     else {
       process_next();
       #if HAS_SD_RESTART
-        if (IS_SD_PRINTING()) restart.save_data();
+        if (IS_SD_PRINTING()) restart.save_job();
       #endif
     }
 
@@ -739,23 +735,6 @@ bool Commands::drain_injected_P() {
   }
   return (injected_commands_P != NULL);    // return whether any more remain
 }
-
-#if HAS_SD_RESTART
-
-  bool Commands::enqueue_restart() {
-    static uint8_t restart_commands_index = 0;
-    if (restart.count) {
-      if (enqueue(restart.buffer_ring[restart_commands_index])) {
-        ++restart_commands_index;
-        if (!--restart.count) restart.job_phase = RESTART_DONE;
-      }
-      return true;
-    }
-    else
-      return false;
-  }
-
-#endif
 
 // Process parsed code
 void Commands::process_parsed(const bool print_ok/*=true*/) {

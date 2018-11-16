@@ -94,9 +94,6 @@ class Commands {
     static bool enqueue(PGM_P cmd, int8_t port=-2);
     static bool drain_injected_P();
 
-    #if HAS_SD_RESTART
-      static bool enqueue_restart();
-    #endif
 };
 
 extern Commands commands;

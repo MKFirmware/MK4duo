@@ -53,7 +53,7 @@
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
     // Show initial "wait for load" message
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, ADVANCED_PAUSE_MODE_LOAD_FILAMENT, tools.target_extruder);
     #endif
 
@@ -91,7 +91,7 @@
     #endif
 
     // Show status screen
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
   }
@@ -119,7 +119,7 @@
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
     // Show initial "wait for unload" message
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_UNLOAD, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT, tools.target_extruder);
     #endif
 
@@ -163,7 +163,7 @@
     #endif
 
     // Show status screen
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
   }

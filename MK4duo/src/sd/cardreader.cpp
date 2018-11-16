@@ -57,10 +57,6 @@
 
   uint16_t CardReader::nrFile_index = 0;
 
-  #if HAS_SD_RESTART
-    SdFile CardReader::restart_file;
-  #endif
-
   #if HAS_EEPROM_SD
     SdFile CardReader::eeprom_file;
   #endif
@@ -174,20 +170,17 @@
   void CardReader::getAbsFilename(char* name) {
     *name++ = '/';
     uint8_t cnt = 1;
+    uint8_t i = 0;
 
-    for (uint8_t i = 0; i < workDirDepth; i++) {
+    for (i = 0; i < workDirDepth; i++) {
       workDirParents[i].getFilename(name);
       while (*name && cnt < MAX_PATH_NAME_LENGHT) { name++; cnt++; }
       if (cnt < MAX_PATH_NAME_LENGHT) { *name = '/'; name++; cnt++; }
     }
 
-    if (cnt < MAX_PATH_NAME_LENGHT - FILENAME_LENGTH) {
-      for (uint8_t i = 0; i < LONG_FILENAME_LENGTH; i++) {
-        *name = fileName[i];
-        name++;
-      }
-      --name;
-    }
+    i = 0;
+    while (fileName[i]) { *name++ = fileName[i]; i++; }
+    *name = '\0';
   }
 
   void CardReader::startFileprint() {
@@ -313,12 +306,7 @@
     setSDprinting(false);
 
     #if HAS_SD_RESTART
-      open_restart_file(false);
-      restart.job_info.valid_head = 0;
-      restart.job_info.valid_foot = 0;
-      (void)save_restart_data();
-      close_restart_file();
-      restart.count = 0;
+      restart.save_job(true);
     #endif
 
     #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
@@ -385,7 +373,11 @@
 
     if (!isOK()) mount();
     
-    if (isOK()) {
+    if (isOK()
+      #if HAS_SD_RESTART
+        && !restart.valid() // Don't run auto#.g when a restart file exists
+      #endif
+    ) {
       char autoname[10];
       sprintf_P(autoname, PSTR("auto%i.g"), autostart_index);
       dir_t p;
@@ -492,28 +484,26 @@
 
   #if HAS_SD_RESTART
 
-    const char restart_file_name[8] = "restart";
+    constexpr char restart_file_name[8] = "restart";
 
     void CardReader::open_restart_file(const bool read) {
 
-      if (!isOK() || restart_file.isOpen()) return;
+      if (!isOK() || restart.file.isOpen()) return;
 
-      if (!restart_file.open(&root, restart_file_name, read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC)))
-        SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
+      if (!restart.file.open(&root, restart_file_name, read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC)))
+        SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
       else if (!read)
-        SERIAL_MSG(MSG_SD_WRITE_TO_FILE);
-
-      SERIAL_EM("restart");
+        SERIAL_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
     }
 
     void CardReader::close_restart_file() {
-      if (!restart_file.isOpen()) return;
-      restart_file.close();
+      if (!restart.file.isOpen()) return;
+      restart.file.close();
     }
 
     void CardReader::delete_restart_file() {
       if (exist_restart_file()) {
-        restart_file.remove(&root, restart_file_name);
+        restart.file.remove(&root, restart_file_name);
         #if ENABLED(DEBUG_RESTART)
           SERIAL_MSG("restart delete");
           SERIAL_PS(exist_restart_file() ? PSTR(" failed.\n") : PSTR("d.\n"));
@@ -522,27 +512,14 @@
     }
 
     bool CardReader::exist_restart_file() {
-      const bool exist = restart_file.open(&root, restart_file_name, O_READ);
+      const bool exist = restart.file.open(&root, restart_file_name, O_READ);
       #if ENABLED(DEBUG_RESTART)
         SERIAL_MSG("File restart ");
         if (!exist) SERIAL_MSG("not ");
         SERIAL_EM("exist");
       #endif
-      if (exist) restart_file.close();
+      if (exist) restart.file.close();
       return exist;
-    }
-
-    int16_t CardReader::save_restart_data() {
-      restart_file.seekSet(0);
-      const int16_t ret = restart_file.write(&restart.job_info, sizeof(restart.job_info));
-      #if ENABLED(DEBUG_RESTART)
-        if (ret == -1) SERIAL_EM("restart write failed.");
-      #endif
-      return ret; 
-    }
-
-    int16_t CardReader::read_restart_data() {
-      return restart_file.read(&restart.job_info, sizeof(restart.job_info));
     }
 
   #endif

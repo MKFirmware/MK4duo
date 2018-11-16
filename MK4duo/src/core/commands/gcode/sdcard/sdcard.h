@@ -81,16 +81,20 @@
    * M24: Start or Resume SD Print
    */
   inline void gcode_M24(void) {
-    #if HAS_SD_RESTART
-      card.delete_restart_file();
-    #endif
 
     #if ENABLED(PARK_HEAD_ON_PAUSE)
       advancedpause.resume_print();
     #endif
 
+    if (parser.seenval('S')) card.setIndex(parser.value_long());
+
     card.startFileprint();
-    print_job_counter.start();
+
+    if (parser.seenval('T'))
+      print_job_counter.resume(parser.value_long());
+    else
+      print_job_counter.start();
+
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.startpower = powerManager.consumption_hour;
     #endif

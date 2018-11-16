@@ -77,7 +77,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   SERIAL_STR(PAUSE);
   SERIAL_EOL();
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT);
   #else
     UNUSED(show_lcd);
@@ -86,7 +86,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
     SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
 
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       if (show_lcd) { // Show status screen
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
         LCD_MESSAGEPGM(MSG_HOTEND_TOO_COLD);
@@ -193,7 +193,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
         nozzle_timed_out |= heaters[h].isIdle();
 
     if (nozzle_timed_out) {
-      #if HAS_LCD
+      #if HAS_LCD_MENU
         lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_HEAT);
       #endif
       SERIAL_STR(ECHO);
@@ -208,7 +208,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
           #endif
         }
         else {
-          #if HAS_LCD
+          #if HAS_LCD_MENU
             lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_PRINTER_OFF);
           #endif
         }
@@ -326,7 +326,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   printer.setFilamentOut(false);
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     // Show status screen
     lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
   #endif
@@ -371,14 +371,14 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
                    DXC_ARGS
 ) {
   if (!ensure_safe_temperature(mode)) {
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS, mode);
     #endif
     return false;
   }
 
   if (pause_for_user) {
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INSERT, mode);
     #endif
     SERIAL_LM(ECHO, MSG_FILAMENT_CHANGE_INSERT);
@@ -400,7 +400,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     printer.keepalive(InHandler);
   }
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, mode);
   #else
     UNUSED(show_lcd);
@@ -428,7 +428,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   do {
     if (purge_length > 0) {
       // "Wait for filament purge"
-      #if HAS_LCD
+      #if HAS_LCD_MENU
         if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_PURGE);
       #endif
 
@@ -437,7 +437,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     }
 
     // Show "Purge More" / "Resume" menu and wait for reply
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       if (show_lcd) {
         printer.keepalive(PausedforUser);
         printer.setWaitForUser(false);
@@ -473,14 +473,14 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
                                     const AdvancedPauseModeEnum mode/*=ADVANCED_PAUSE_MODE_PAUSE_PRINT*/
 ) {
   if (!ensure_safe_temperature(mode)) {
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
 
     return false;
   }
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_UNLOAD, mode);
   #else
     UNUSED(show_lcd);

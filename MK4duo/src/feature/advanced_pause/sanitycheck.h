@@ -33,8 +33,8 @@
   #if EXTRUDERS == 0
     #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires extruders."
   #endif
-  #if !HAS_LCD
-    #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires an LCD controller."
+  #if !HAS_LCD_MENU
+    #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires a LCD MENU."
   #elif DISABLED(NOZZLE_PARK_FEATURE)
     #error "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE currently requires NOZZLE_PARK_FEATURE."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)

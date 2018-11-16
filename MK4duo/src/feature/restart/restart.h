@@ -19,9 +19,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _RESTART_H_
-#define _RESTART_H_
+/**
+ * restart.h - Restart an SD print after power-loss
+ */
 
 #if HAS_SD_RESTART
 
@@ -33,13 +35,19 @@
     uint8_t valid_head;
 
     // SD file e position
-    char fileName[LONG_FILENAME_LENGTH];
+    char fileName[MAX_PATH_NAME_LENGHT];
     uint32_t sdpos;
 
     // Mechanics state
     float   current_position[XYZE];
-    int16_t target_temperature[HEATER_COUNT];
-    uint8_t fan_speed[FAN_COUNT];
+
+    #if HEATER_COUNT > 0
+      int16_t target_temperature[HEATER_COUNT];
+    #endif
+
+    #if FAN_COUNT > 0
+      uint8_t fan_speed[FAN_COUNT];
+    #endif
 
     // Extruders
     #if EXTRUDERS > 1
@@ -61,19 +69,11 @@
     millis_t print_job_counter_elapsed;
 
     // Utility
-    bool auto_restart;
     bool just_restart;
 
     uint8_t valid_foot;
 
   } restart_job_t;
-
-  enum restart_phase : unsigned char {
-    RESTART_IDLE,
-    RESTART_MAYBE,
-    RESTART_YES,
-    RESTART_DONE
-  };
 
   class Restart {
 
@@ -83,24 +83,40 @@
 
     public: /** Public Parameters */
 
-      static restart_job_t  job_info;
-      static restart_phase  job_phase;
+      static SdFile file;
 
-      static char buffer_ring[BUFSIZE + APPEND_CMD_COUNT][MAX_CMD_SIZE];
-      static uint8_t count;
+      static restart_job_t job_info;
+
+      static bool enabled;
 
     private: /** Private Parameters */
 
     public: /** Public Function */
 
-      static void do_print_job();
-      static void start_job();
-      static void save_data(const bool force_save=false);
+      static void init_job();
+
+      static void enable(const bool onoff);
+      static void changed();
+
+      static void check();
+
+      static inline bool exists() { return card.exist_restart_file(); }
+      static inline void open(const bool read) { card.open_restart_file(read); }
+      static inline void close() { card.close_restart_file(); }
+
+      static void purge_job();
+      static void load_job();
+      static void save_job(const bool force_save=false);
+      static void resume_job();
+
+      static inline bool valid() { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }
 
     private: /** Private Function */
 
+      static void write_job();
+
       #if ENABLED(DEBUG_RESTART)
-        static void debug_info(const bool restart);
+        static void debug_info(PGM_P const prefix);
       #endif
 
   };
@@ -108,5 +124,3 @@
   extern Restart restart;
 
 #endif // HAS_SD_RESTART
-
-#endif /* _RESTART_H_ */

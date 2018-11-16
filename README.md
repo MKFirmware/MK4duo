@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.7 revision 11112018
+## Version 4.3.7 revision 16112018
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -93,6 +93,7 @@ The new features are:
 * Added Universal Bed Leveling (UBL) by Official Marlin
 * Added Junction Deviation instead of traditional Jerk limiting
 * Added Bézier Jerk Control see https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
+* Added Text Menu to Nextion Display
 
 
 ## Credits

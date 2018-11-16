@@ -39,7 +39,7 @@ inline void gcode_G4(void) {
 
   planner.synchronize();
 
-  if (!lcdui.hasstatus()) LCD_MESSAGEPGM(MSG_DWELL);
+  if (!lcdui.has_status()) LCD_MESSAGEPGM(MSG_DWELL);
 
   dwell_ms += millis();
 

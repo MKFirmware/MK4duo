@@ -33,10 +33,12 @@
 #endif
 
 #if ENABLED(NEXTION)
-  #define LCD_HEIGHT 4
+  #define LCD_HEIGHT 6
   #define LCD_DECIMAL_SMALL_XY
-  #undef REVERSE_MENU_DIRECTION
   #undef ENCODER_RATE_MULTIPLIER
+  #undef ULTIPANEL_FEEDMULTIPLY
+  #undef REVERSE_ENCODER_DIRECTION
+  #define REVERSE_MENU_DIRECTION
 #endif
 
 #if DISABLED(LCD_TIMEOUT_TO_STATUS)
@@ -333,34 +335,14 @@
 #define HAS_GRAPHICAL_LCD     ENABLED(DOGLCD)
 #define HAS_CHARACTER_LCD     (HAS_SPI_LCD && !HAS_GRAPHICAL_LCD)
 #define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
-#define HAS_LCD_MENU          (ENABLED(ULTIPANEL) && DISABLED(NO_LCD_MENUS))
+#define HAS_LCD_MENU          ((ENABLED(ULTIPANEL) || ENABLED(NEXTION)) && DISABLED(NO_LCD_MENUS))
 #define HAS_DIGITAL_ENCODER   (HAS_SPI_LCD && ENABLED(NEWPANEL))
+#define HAS_ENCODER_ACTION    (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
 
 #if HAS_GRAPHICAL_LCD
-  //
-  // Custom characters from Marlin_symbols.fon which was merged into ISO10646-0-3.bdf
-  // \x00 intentionally skipped to avoid problems in strings
-  //
-  #define LCD_STR_REFRESH     "\x01"
-  #define LCD_STR_FOLDER      "\x02"
-  #define LCD_STR_ARROW_RIGHT "\x03"
-  #define LCD_STR_UPLEVEL     "\x04"
-  #define LCD_STR_CLOCK       "\x05"
-  #define LCD_STR_FEEDRATE    "\x06"
-  #define LCD_STR_BEDTEMP     "\x07"
-  #define LCD_STR_THERMOMETER "\x08"
-  #define LCD_STR_DEGREE      "\x09"
-
-  #define LCD_STR_SPECIAL_MAX '\x09'
-  // Maximum here is 0x1F because 0x20 is ' ' (space) and the normal charsets begin.
-  // Better stay below 0x10 because DISPLAY_CHARSET_HD44780_WESTERN begins here.
-
-  // Symbol characters
-  #define LCD_STR_FILAM_DIA   "\xf8"
-  #define LCD_STR_FILAM_MUL   "\xa4"
 
   /**
-   * Default LCD contrast for dogm-like LCD displays
+   * Default LCD contrast for Graphical LCD displays
    */
   #define HAS_LCD_CONTRAST (                \
        ENABLED(MAKRPANEL)                   \
@@ -382,19 +364,6 @@
       #define DEFAULT_LCD_CONTRAST 32
     #endif
   #endif
-
-#else
-
-  // Custom characters defined in the first 8 characters of the LCD
-  #define LCD_BEDTEMP_CHAR     0x00  // Print only as a char. This will have 'unexpected' results when used in a string!
-  #define LCD_DEGREE_CHAR      0x01
-  #define LCD_STR_THERMOMETER "\x02" // Still used with string concatenation
-  #define LCD_UPLEVEL_CHAR     0x03
-  #define LCD_STR_REFRESH     "\x04"
-  #define LCD_STR_FOLDER      "\x05"
-  #define LCD_FEEDRATE_CHAR    0x06
-  #define LCD_CLOCK_CHAR       0x07
-  #define LCD_STR_ARROW_RIGHT ">"  /* from the default character set */
 
 #endif
 
