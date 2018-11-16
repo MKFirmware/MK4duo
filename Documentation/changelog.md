@@ -19,6 +19,9 @@
 * M224: T[extruder] S[bool] set Filrunout Pullup.
 * M666: L delta segment per line.
 * M851: Probe Offset, F[speed Fast], S[speed Slow] in mm/min.
+* M413: S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
+* M800: S goto to lcd menu. With no parameters run restart commands. (Requires SD_RESTART_FILE)
+* Add Text Menu to Nextion Display
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
 * Add pause before deploy/stow for user confirmation

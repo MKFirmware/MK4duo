@@ -28,13 +28,8 @@
 
 LcdUI lcdui;
 
-#include "ultralcd.h"
 #include "lcdprint.h"
-/*
-#if HAS_GRAPHICAL_LCD
-  #include "dogm/ultralcd_DOGM.h"
-#endif
-*/
+
 #if HAS_ENCODER_ACTION
   volatile uint8_t LcdUI::buttons;
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)
@@ -86,7 +81,6 @@ millis_t next_button_update_ms;
 #endif
 
 #if HAS_LCD_MENU
-  #include "menu/menu.h"
 
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
@@ -210,38 +204,10 @@ bool LcdUI::get_blink() {
 ////////////////////////////////////////////
 
 #if ENABLED(REPRAPWORLD_KEYPAD)
-  volatile uint8_t buttons_reprapworld_keypad;
-#endif
 
-#if ENABLED(ADC_KEYPAD)
+  volatile uint8_t MarlinUI::buttons_reprapworld_keypad;
 
-  inline bool handle_adc_keypad() {
-    #define ADC_MIN_KEY_DELAY 100
-    if (buttons_reprapworld_keypad) {
-      #if HAS_ENCODER_ACTION
-        lcdui.refresh(LCDVIEW_REDRAW_NOW);
-        if (encoderDirection == -1) { // side effect which signals we are inside a menu
-          #if HAS_LCD_MENU
-            if      (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))   encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
-            else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))     encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
-            else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { menu_item_back::action(); lcdui.quick_feedback(); }
-            else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { lcdui.return_to_status(); lcdui.quick_feedback(); }
-          #endif
-        }
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))     encoderPosition += ENCODER_PULSES_PER_STEP;
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))       encoderPosition -= ENCODER_PULSES_PER_STEP;
-        else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))    encoderPosition = 0;
-      #endif
-      next_button_update_ms = millis() + ADC_MIN_KEY_DELAY;
-      return true;
-    }
-
-    return false;
-  }
-
-#elif ENABLED(REPRAPWORLD_KEYPAD)
-
-  #if HAS_LCD_MENU
+  #if DISABLED(ADC_KEYPAD) && HAS_LCD_MENU
 
     void lcd_move_x();
     void lcd_move_y();
@@ -260,45 +226,74 @@ bool LcdUI::get_blink() {
 
   #endif
 
-  inline void handle_reprapworld_keypad() {
+  bool MarlinUI::handle_keypad() {
 
-    static uint8_t keypad_debounce = 0;
+    #if ENABLED(ADC_KEYPAD)
 
-    if (!RRK( EN_REPRAPWORLD_KEYPAD_F1    | EN_REPRAPWORLD_KEYPAD_F2
-            | EN_REPRAPWORLD_KEYPAD_F3    | EN_REPRAPWORLD_KEYPAD_DOWN
-            | EN_REPRAPWORLD_KEYPAD_RIGHT | EN_REPRAPWORLD_KEYPAD_MIDDLE
-            | EN_REPRAPWORLD_KEYPAD_UP    | EN_REPRAPWORLD_KEYPAD_LEFT )
-    ) {
-      if (keypad_debounce > 0) keypad_debounce--;
-    }
-    else if (!keypad_debounce) {
-      keypad_debounce = 2;
-
-      const bool homed = printer.isHomedAll();
-
-      #if HAS_LCD_MENU
-
-        if (RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))  lcdui.goto_screen(menu_move);
-
-        #if NOMECH(DELTA) && Z_HOME_DIR == -1
-          if (RRK(EN_REPRAPWORLD_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
+      #define ADC_MIN_KEY_DELAY 100
+      if (buttons_reprapworld_keypad) {
+        #if HAS_ENCODER_ACTION
+          lcdui.refresh(LCDVIEW_REDRAW_NOW);
+          if (encoderDirection == -1) { // side effect which signals we are inside a menu
+            #if HAS_LCD_MENU
+              if      (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))   encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
+              else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))     encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
+              else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { menu_item_back::action(); lcdui.quick_feedback(); }
+              else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { lcdui.return_to_status(); lcdui.quick_feedback(); }
+            #endif
+          }
+          else if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))     encoderPosition += ENCODER_PULSES_PER_STEP;
+          else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))       encoderPosition -= ENCODER_PULSES_PER_STEP;
+          else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))    encoderPosition = 0;
         #endif
+        next_button_update_ms = millis() + ADC_MIN_KEY_DELAY;
+        return true;
+      }
 
-        if (homed) {
-          #if MECH(DELTA) || Z_HOME_DIR != -1
-            if (RRK(EN_REPRAPWORLD_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
+    #else // !ADC_KEYPAD
+
+      static uint8_t keypad_debounce = 0;
+
+      if (!RRK( EN_REPRAPWORLD_KEYPAD_F1    | EN_REPRAPWORLD_KEYPAD_F2
+              | EN_REPRAPWORLD_KEYPAD_F3    | EN_REPRAPWORLD_KEYPAD_DOWN
+              | EN_REPRAPWORLD_KEYPAD_RIGHT | EN_REPRAPWORLD_KEYPAD_MIDDLE
+              | EN_REPRAPWORLD_KEYPAD_UP    | EN_REPRAPWORLD_KEYPAD_LEFT )
+      ) {
+        if (keypad_debounce > 0) keypad_debounce--;
+      }
+      else if (!keypad_debounce) {
+        keypad_debounce = 2;
+
+        const bool homed = printer.isHomedAll();
+
+        #if HAS_LCD_MENU
+
+          if (RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))  lcdui.goto_screen(menu_move);
+
+          #if NOMECH(DELTA) && Z_HOME_DIR == -1
+            if (RRK(EN_REPRAPWORLD_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
           #endif
-          if (RRK(EN_REPRAPWORLD_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
-          if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
-          if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
-          if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
-          if (RRK(EN_REPRAPWORLD_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
-        }
 
-      #endif // ENABLED(ULTIPANEL)
+          if (homed) {
+            #if MECH(DELTA) || Z_HOME_DIR != -1
+              if (RRK(EN_REPRAPWORLD_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
+            #endif
+            if (RRK(EN_REPRAPWORLD_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
+            if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
+            if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
+            if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
+            if (RRK(EN_REPRAPWORLD_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
+          }
 
-      if (!homed && RRK(EN_REPRAPWORLD_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
-    }
+        #endif // ENABLED(ULTIPANEL)
+
+        if (!homed && RRK(EN_REPRAPWORLD_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
+        return true;
+      }
+
+    #endif // !ADC_KEYPAD
+
+    return false;
   }
 
 #endif // REPRAPWORLD_KEYPAD
@@ -403,28 +398,7 @@ void LcdUI::status_screen() {
   #endif // ULTIPANEL_FEEDMULTIPLY
 
   draw_status_screen();
-}
 
-/**
- * Reset the status message
- */
-void LcdUI::reset_status() {
-  static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
-  static const char printing[] PROGMEM = MSG_PRINTING;
-  static const char welcome[] PROGMEM = WELCOME_MSG;
-  PGM_P msg;
-  if (print_job_counter.isPaused())
-    msg = paused;
-  #if HAS_SD_SUPPORT
-    else if (IS_SD_PRINTING())
-      return lcdui.setstatus(card.fileName, true);
-  #endif
-  else if (print_job_counter.isRunning())
-    msg = printing;
-  else
-    msg = welcome;
-
-  lcdui.setstatusPGM(msg, -1);
 }
 
 void LcdUI::kill_screen(PGM_P lcd_msg) {
@@ -454,15 +428,6 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
       HAL::delayMilliseconds(10);
     #endif
   #endif
-}
-
-void LcdUI::eeprom_allert() {
-  START_SCREEN();
-  STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_1);
-  STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_2);
-  STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_3);
-  STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_4);
-  END_SCREEN();
 }
 
 #if HAS_LCD_MENU
@@ -644,13 +609,6 @@ void LcdUI::update() {
 
   #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
 
-  #if HAS_SD_RESTART
-    if (restart.count && restart.job_phase == RESTART_IDLE) {
-      goto_screen(menu_sdcard_restart);
-      restart.job_phase = RESTART_MAYBE; // Waiting for a response
-    }
-  #endif
-
   const millis_t ms = millis();
   if (ELAPSED(ms, next_lcd_update_ms)
     #if HAS_GRAPHICAL_LCD
@@ -670,17 +628,13 @@ void LcdUI::update() {
         slow_buttons = read_slow_buttons(); // Buttons that take too long to read in interrupt context
       #endif
 
-      #if ENABLED(ADC_KEYPAD)
+      #if ENABLED(REPRAPWORLD_KEYPAD)
 
-        if (handle_adc_keypad()) {
+        if (handle_keypad()) {
           #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
             return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
           #endif
         }
-
-      #elif ENABLED(REPRAPWORLD_KEYPAD)
-
-        handle_reprapworld_keypad();
 
       #endif
 
@@ -836,101 +790,6 @@ void LcdUI::update() {
   } // ELAPSED(ms, next_lcd_update_ms)
 }
 
-void LcdUI::finishstatus(const bool persist) {
-
-  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
-    UNUSED(persist);
-  #endif
-
-  #if ENABLED(LCD_PROGRESS_BAR)
-    progress_bar_ms = millis();
-    #if PROGRESS_MSG_EXPIRE > 0
-      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_EXPIRE;
-    #endif
-  #endif
-
-  #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-    previous_status_ms = millis(); // Show status message for 5s
-  #endif
-
-  #if ENABLED(STATUS_MESSAGE_SCROLLING)
-    status_scroll_offset = 0;
-  #endif
-
-  refresh();
-}
-
-bool LcdUI::hasstatus() { return (status_message[0] != '\0'); }
-
-void LcdUI::setstatus(const char * const message, const bool persist) {
-  if (status_message_level > 0) return;
-
-  // Here we have a problem. The message is encoded in UTF8, so
-  // arbitrarily cutting it will be a problem. We MUST be sure
-  // that there is no cutting in the middle of a multibyte character!
-
-  // Get a pointer to the null terminator
-  PGM_P pend = message + strlen(message);
-
-  //  If length of supplied UTF8 string is greater than
-  // our buffer size, start cutting whole UTF8 chars
-  while ((pend - message) > MAX_MESSAGE_LENGTH) {
-    --pend;
-    while (!START_OF_UTF8_CHAR(*pend)) --pend;
-  };
-
-  // At this point, we have the proper cut point. Use it
-  uint8_t maxLen = pend - message;
-  strncpy(status_message, message, maxLen);
-  status_message[maxLen] = '\0';
-
-  finishstatus(persist);
-}
-
-void LcdUI::setstatusPGM(PGM_P const message, int8_t level) {
-  if (level < 0) level = status_message_level = 0;
-  if (level < status_message_level) return;
-  status_message_level = level;
-
-  // Here we have a problem. The message is encoded in UTF8, so
-  // arbitrarily cutting it will be a problem. We MUST be sure
-  // that there is no cutting in the middle of a multibyte character!
-
-  // Get a pointer to the null terminator
-  PGM_P pend = message + strlen_P(message);
-
-  //  If length of supplied UTF8 string is greater than
-  // our buffer size, start cutting whole UTF8 chars
-  while ((pend - message) > MAX_MESSAGE_LENGTH) {
-    --pend;
-    while (!START_OF_UTF8_CHAR(pgm_read_byte(pend))) --pend;
-  };
-
-  // At this point, we have the proper cut point. Use it
-  uint8_t maxLen = pend - message;
-  strncpy_P(status_message, message, maxLen);
-  status_message[maxLen] = '\0';
-
-  finishstatus(level > 0);
-}
-
-void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
-  if (level < status_message_level) return;
-  status_message_level = level;
-  va_list args;
-  va_start(args, fmt);
-  vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, fmt, args);
-  va_end(args);
-  finishstatus(level > 0);
-}
-
-void LcdUI::setalertstatusPGM(PGM_P const message) {
-  setstatusPGM(message, 1);
-  #if HAS_LCD_MENU
-    return_to_status();
-  #endif
-}
-
 #if ENABLED(ADC_KEYPAD)
 
   typedef struct {
@@ -1073,15 +932,8 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
 
         #endif // LCD_HAS_DIRECTIONAL_BUTTONS
 
-        buttons = newbutton
-          #if ENABLED(LCD_HAS_SLOW_BUTTONS)
-            | slow_buttons
-          #endif
-        ;
-
         #if ENABLED(ADC_KEYPAD)
 
-          uint8_t newbutton_reprapworld_keypad = 0;
           buttons = 0;
           if (buttons_reprapworld_keypad == 0) {
             newbutton_reprapworld_keypad = get_ADC_keyValue();
@@ -1089,9 +941,17 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
               buttons_reprapworld_keypad = _BV(newbutton_reprapworld_keypad - 1);
           }
 
-        #elif ENABLED(REPRAPWORLD_KEYPAD)
+        #else
 
-          GET_SHIFT_BUTTON_STATES(buttons_reprapworld_keypad);
+          buttons = newbutton
+            #if ENABLED(LCD_HAS_SLOW_BUTTONS)
+              | slow_buttons
+            #endif
+          ;
+
+          #if ENABLED(REPRAPWORLD_KEYPAD)
+            GET_SHIFT_BUTTON_STATES(buttons_reprapworld_keypad);
+          #endif
 
         #endif
 
@@ -1126,6 +986,8 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
     }
   }
 
+  bool LcdUI::button_pressed() { return BUTTON_CLICK(); }
+
   #if ENABLED(LCD_HAS_SLOW_BUTTONS)
 
     uint8_t LcdUI::read_slow_buttons() {
@@ -1144,5 +1006,128 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
   #endif // LCD_HAS_SLOW_BUTTONS
 
 #endif // HAS_ENCODER_ACTION
+
+////////////////////////////////////////////
+/////////////// Status Line ////////////////
+////////////////////////////////////////////
+
+void LcdUI::finishstatus(const bool persist) {
+
+  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
+    UNUSED(persist);
+  #endif
+
+  #if ENABLED(LCD_PROGRESS_BAR)
+    progress_bar_ms = millis();
+    #if PROGRESS_MSG_EXPIRE > 0
+      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_EXPIRE;
+    #endif
+  #endif
+
+  #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
+    previous_status_ms = millis(); // Show status message for 5s
+  #endif
+
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+    status_scroll_offset = 0;
+  #endif
+
+  refresh();
+}
+
+bool LcdUI::has_status() { return (status_message[0] != '\0'); }
+
+void LcdUI::setstatus(const char * const message, const bool persist) {
+  if (status_message_level > 0) return;
+
+  // Here we have a problem. The message is encoded in UTF8, so
+  // arbitrarily cutting it will be a problem. We MUST be sure
+  // that there is no cutting in the middle of a multibyte character!
+
+  // Get a pointer to the null terminator
+  PGM_P pend = message + strlen(message);
+
+  //  If length of supplied UTF8 string is greater than
+  // our buffer size, start cutting whole UTF8 chars
+  while ((pend - message) > MAX_MESSAGE_LENGTH) {
+    --pend;
+    while (!START_OF_UTF8_CHAR(*pend)) --pend;
+  };
+
+  // At this point, we have the proper cut point. Use it
+  uint8_t maxLen = pend - message;
+  strncpy(status_message, message, maxLen);
+  status_message[maxLen] = '\0';
+
+  finishstatus(persist);
+}
+
+#include <stdarg.h>
+
+void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
+  if (level < status_message_level) return;
+  status_message_level = level;
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, fmt, args);
+  va_end(args);
+  finishstatus(level > 0);
+}
+
+void LcdUI::setstatusPGM(PGM_P const message, int8_t level) {
+  if (level < 0) level = status_message_level = 0;
+  if (level < status_message_level) return;
+  status_message_level = level;
+
+  // Here we have a problem. The message is encoded in UTF8, so
+  // arbitrarily cutting it will be a problem. We MUST be sure
+  // that there is no cutting in the middle of a multibyte character!
+
+  // Get a pointer to the null terminator
+  PGM_P pend = message + strlen_P(message);
+
+  //  If length of supplied UTF8 string is greater than
+  // our buffer size, start cutting whole UTF8 chars
+  while ((pend - message) > MAX_MESSAGE_LENGTH) {
+    --pend;
+    while (!START_OF_UTF8_CHAR(pgm_read_byte(pend))) --pend;
+  };
+
+  // At this point, we have the proper cut point. Use it
+  uint8_t maxLen = pend - message;
+  strncpy_P(status_message, message, maxLen);
+  status_message[maxLen] = '\0';
+
+  finishstatus(level > 0);
+}
+
+void LcdUI::setalertstatusPGM(PGM_P const message) {
+  setstatusPGM(message, 1);
+  #if HAS_LCD_MENU
+    return_to_status();
+  #endif
+}
+
+  /**
+   * Reset the status message
+   */
+  void LcdUI::reset_status() {
+    static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
+    static const char printing[] PROGMEM = MSG_PRINTING;
+    static const char welcome[] PROGMEM = WELCOME_MSG;
+    PGM_P msg;
+    if (print_job_counter.isPaused())
+      msg = paused;
+    #if HAS_SD_SUPPORT
+      else if (IS_SD_PRINTING())
+        return lcdui.setstatus(card.fileName, true);
+    #endif
+    else if (print_job_counter.isRunning())
+      msg = printing;
+    else
+      msg = welcome;
+
+    lcdui.setstatusPGM(msg, -1);
+  }
 
 #endif // HAS_SPI_LCD

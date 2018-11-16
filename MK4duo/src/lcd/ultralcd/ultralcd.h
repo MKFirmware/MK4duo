@@ -21,13 +21,11 @@
  */
 #pragma once
 
-#define HAS_ENCODER_ACTION (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
-
-#if HAS_GRAPHICAL_LCD
-  #include "dogm/ultralcd_DOGM.h"
-#endif
-
 #if HAS_SPI_LCD
+
+  #if HAS_GRAPHICAL_LCD
+    #include "dogm/ultralcd_DOGM.h"
+  #endif
 
   #if ENABLED(ADC_KEYPAD)
     uint8_t get_ADC_keyValue();
@@ -42,9 +40,6 @@
   #endif
 
   #define LCD_UPDATE_INTERVAL       100
-
-  #define BUTTON_EXISTS(BN)         (ENABLED(BTN_## BN) && BTN_## BN >= 0)
-  #define BUTTON_PRESSED(BN)        !READ(BTN_## BN)
 
   #if HAS_LCD_MENU
 
@@ -73,8 +68,6 @@
 
   #endif // HAS_LCD_MENU
 
-#endif // HAS_SPI_LCD
-
 #if HAS_DIGITAL_ENCODER
 
   // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
@@ -83,6 +76,9 @@
 
   #define EN_A _BV(BLEN_A)
   #define EN_B _BV(BLEN_B)
+
+  #define BUTTON_EXISTS(BN)   (ENABLED(BTN_## BN) && BTN_## BN >= 0)
+  #define BUTTON_PRESSED(BN)  !READ(BTN_## BN)
 
   #if BUTTON_EXISTS(ENC)
     #define BLEN_C 2
@@ -214,3 +210,6 @@
     #define BUTTON_CLICK() false
   #endif
 #endif
+
+#endif // HAS_SPI_LCD
+

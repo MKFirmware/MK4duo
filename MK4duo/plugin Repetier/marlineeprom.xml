@@ -1576,6 +1576,13 @@
     <detect>M306 H-3.*P(-?\d*)</detect>
   </entry>
 
+  <!--  M413: Restart Enabled -->
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">SD Restart Job</description>
+    <set>M413 S@</set>
+    <detect>M413.*S(-?\d*)</detect>
+  </entry>
+
   <!--  M420: Bed Leveling -->
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Bed leveling: is active</description>

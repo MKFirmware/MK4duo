@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "fontutils.h"
-
 #if HAS_GRAPHICAL_LCD
   #include "dogm/u8g_fontutf8.h"
 #else

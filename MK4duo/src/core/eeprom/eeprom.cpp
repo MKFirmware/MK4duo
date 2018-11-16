@@ -57,7 +57,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV54"
+#define EEPROM_VERSION "MKV55"
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0
@@ -160,10 +160,10 @@ typedef struct EepromDataStruct {
   //
   // Ultipanel
   //
-  #if ENABLED(ULTIPANEL)
-    int16_t         ui_preheat_hotend_temp[3],
-                    ui_preheat_bed_temp[3],
-                    ui_preheat_fan_speed[3];
+  #if HAS_LCD_MENU
+    int16_t         lcdui_preheat_hotend_temp[3],
+                    lcdui_preheat_bed_temp[3],
+                    lcdui_preheat_fan_speed[3];
   #endif
 
   //
@@ -186,17 +186,17 @@ typedef struct EepromDataStruct {
   // DHT sensor
   //
   #if ENABLED(DHT_SENSOR)
-    pin_t           dht_pin;
-    uint8_t         dht_type
+    pin_t             dht_pin;
+    uint8_t           dht_type
   #endif
 
   //
   // Fans
   //
   #if FAN_COUNT > 0
-    fan_data_t      fans_data[FAN_COUNT];
+    fan_data_t        fans_data[FAN_COUNT];
     #if ENABLED(TACHOMETRIC)
-      tacho_data_t  tacho_data[FAN_COUNT];
+      tacho_data_t    tacho_data[FAN_COUNT];
     #endif
   #endif
 
@@ -204,14 +204,21 @@ typedef struct EepromDataStruct {
   // LCD contrast
   //
   #if HAS_LCD_CONTRAST
-    uint8_t         lcdui.contrast;
+    uint8_t           lcdui_contrast;
+  #endif
+
+  //
+  // SD Restart
+  //
+  #if HAS_SD_RESTART
+    bool restart_enabled;
   #endif
 
   //
   // Servo angles
   //
   #if HAS_SERVOS
-    int             servo_angles[NUM_SERVOS][2];
+    int               servo_angles[NUM_SERVOS][2];
   #endif
 
   //
@@ -226,57 +233,57 @@ typedef struct EepromDataStruct {
   // Volumetric & Filament Size
   //
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    bool            volumetric_enabled;
-    float           filament_size[EXTRUDERS];
+    bool              volumetric_enabled;
+    float             filament_size[EXTRUDERS];
   #endif
 
   //
   // IDLE oozing
   //
   #if ENABLED(IDLE_OOZING_PREVENT)
-    bool            IDLE_OOZING_enabled;
+    bool              IDLE_OOZING_enabled;
   #endif
 
   //
   // Stepper
   //
-  uint16_t          stepper_direction_flag;
-  uint32_t          stepper_direction_delay,
-                    stepper_maximum_rate;
-  uint8_t           stepper_minimum_pulse;
+  uint16_t            stepper_direction_flag;
+  uint32_t            stepper_direction_delay,
+                      stepper_maximum_rate;
+  uint8_t             stepper_minimum_pulse;
 
   //
   // Sound
   //
-  SoundModeEnum         sound_mode;
+  SoundModeEnum       sound_mode;
 
   //
   // External DAC
   //
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    uint16_t        motor_current[3 + DRIVER_EXTRUDERS];
+    uint16_t          motor_current[3 + DRIVER_EXTRUDERS];
   #endif
 
   //
   // Linear Advance
   //
   #if ENABLED(LIN_ADVANCE)
-    float           planner_extruder_advance_K[EXTRUDERS];
+    float             planner_extruder_advance_K[EXTRUDERS];
   #endif
 
   //
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
-    float           planner_hysteresis_mm,
-                    planner_hysteresis_correction;
+    float             planner_hysteresis_mm,
+                      planner_hysteresis_correction;
   #endif
 
   //
   // Filament Change
   //
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    advanced_pause_data_t   advanced_pause_data[EXTRUDERS];
+    advanced_pause_data_t advanced_pause_data[EXTRUDERS];
   #endif
 
   //
@@ -556,7 +563,7 @@ void EEPROM::post_process() {
     //
     // ULTIPANEL
     //
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
       EEPROM_WRITE(lcdui.preheat_hotend_temp);
       EEPROM_WRITE(lcdui.preheat_bed_temp);
       EEPROM_WRITE(lcdui.preheat_fan_speed);
@@ -605,6 +612,13 @@ void EEPROM::post_process() {
     //
     #if HAS_LCD_CONTRAST
       EEPROM_WRITE(lcdui.contrast);
+    #endif
+
+    //
+    // SD Restart
+    //
+    #if HAS_SD_RESTART
+      EEPROM_WRITE(restart.enabled);
     #endif
 
     //
@@ -998,7 +1012,7 @@ void EEPROM::post_process() {
       //
       // ULTIPANEL
       //
-      #if ENABLED(ULTIPANEL)
+      #if HAS_LCD_MENU
         EEPROM_READ(lcdui.preheat_hotend_temp);
         EEPROM_READ(lcdui.preheat_bed_temp);
         EEPROM_READ(lcdui.preheat_fan_speed);
@@ -1047,6 +1061,13 @@ void EEPROM::post_process() {
       //
       #if HAS_LCD_CONTRAST
         EEPROM_READ(lcdui.contrast);
+      #endif
+
+      //
+      // SD Restart
+      //
+      #if HAS_SD_RESTART
+        EEPROM_READ(restart.enabled);
       #endif
 
       //
@@ -1329,7 +1350,7 @@ void EEPROM::post_process() {
   bool EEPROM::load() {
     if (validate()) return _load();
     reset();
-    return true;
+    return false;
   }
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1501,7 +1522,7 @@ void EEPROM::reset() {
     probe.factory_parameters();
   #endif
 
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     lcdui.preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
     lcdui.preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
     lcdui.preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
@@ -1515,6 +1536,10 @@ void EEPROM::reset() {
 
   #if HAS_LCD_CONTRAST
     lcdui.contrast = DEFAULT_LCD_CONTRAST;
+  #endif
+
+  #if HAS_SD_RESTART
+    restart.enable(true);
   #endif
 
   #if HAS_SERVOS
@@ -2006,7 +2031,7 @@ void EEPROM::reset() {
 
     endstops.print_parameters();
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
 
       // Temperature units - for Ultipanel temperature options
 
@@ -2026,6 +2051,11 @@ void EEPROM::reset() {
     #if HAS_LCD_CONTRAST
       SERIAL_LM(CFG, "LCD Contrast");
       SERIAL_LMV(CFG, "  M250 C", lcdui.contrast);
+    #endif
+
+    #if HAS_SD_RESTART
+      SERIAL_LM(CFG, "SD Restart Job");
+      SERIAL_LMV(CFG, "  M413 S", int(restart.enabled));
     #endif
 
     #if HAS_SERVOS
@@ -2125,7 +2155,7 @@ void EEPROM::reset() {
       SERIAL_EOL();
     #endif
 
-    #if ENABLED(ULTIPANEL)
+    #if HAS_LCD_MENU
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcdui.preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);

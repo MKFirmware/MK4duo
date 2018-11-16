@@ -136,20 +136,18 @@
 // Language modules
 #include "src/language/language.h"
 
-// LCD modules
-#if HAS_SPI_LCD
-  #include "src/lcd/ultralcd/ultralcd.h"
-#elif HAS_NEXTION_LCD
-  #include "src/lcd/nextion/nextion_lcd.h"
-#endif
+// Font modules
+#include "src/lcd/fontutils/fontutils.h"
 
 // LcdUI modules
 #include "src/lcd/lcdui.h"
 
+// LCD type modules
+#include "src/lcd/ultralcd/ultralcd.h"
+#include "src/lcd/nextionlcd/nextionlcd.h"
+
 // Menu modules
-#if HAS_LCD_MENU
-  #include "src/lcd/ultralcd/menu/menu.h"
-#endif
+#include "src/lcd/menu/menu.h"
 
 // SD modules
 #include "src/sd/cardreader.h"

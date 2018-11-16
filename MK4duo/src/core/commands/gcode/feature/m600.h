@@ -66,7 +66,7 @@
     #endif
 
     // Show initial "wait for start" message
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, TARGET_HOTEND);
     #endif
 

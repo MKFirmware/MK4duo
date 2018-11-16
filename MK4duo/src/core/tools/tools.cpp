@@ -82,7 +82,7 @@
       if (tmp_extruder) invalid_extruder_error(tmp_extruder);
       return;
 
-    #else
+    #else // EXTRUDERS > 1
 
       planner.synchronize();
     

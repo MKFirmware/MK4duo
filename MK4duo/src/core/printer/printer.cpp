@@ -291,10 +291,12 @@ void Printer::setup() {
     LOOP_FAN() fans[f].Speed = 0;
   #endif
 
-  if (!eeprom_loaded) lcdui.eeprom_allert();
+  #if HAS_LCD_MENU && HAS_EEPROM
+    if (!eeprom_loaded) lcdui.goto_screen(menu_eeprom);
+  #endif
 
   #if HAS_SD_RESTART
-    restart.do_print_job();
+    restart.check();
   #endif
 }
 
@@ -321,7 +323,7 @@ void Printer::loop() {
 
         #if HAS_SD_RESTART
           // Save Job for restart
-          if (IS_SD_PRINTING()) restart.save_data(true);
+          if (IS_SD_PRINTING()) restart.save_job(true);
         #endif
 
         // Stop SD printing

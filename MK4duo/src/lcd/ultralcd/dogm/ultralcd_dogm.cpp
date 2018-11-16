@@ -46,7 +46,6 @@
 #include "boot_screen_dogm.h"
 
 #include "../lcdprint.h"
-#include "../fontutils.h"
 
 #include "fontdata/fontdata_ISO10646_1.h"
 #if ENABLED(USE_SMALL_INFOFONT)
@@ -248,13 +247,13 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Set the colors for a menu item based on whether it is selected
-  static bool mark_as_selected(const uint8_t row, const bool isSelected) {
+  static bool mark_as_selected(const uint8_t row, const bool sel) {
     row_y1 = row * (MENU_FONT_HEIGHT) + 1;
     row_y2 = row_y1 + MENU_FONT_HEIGHT - 1;
 
     if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return false;
 
-    if (isSelected) {
+    if (sel) {
       #if ENABLED(MENU_HOLLOW_FRAME)
         u8g.drawHLine(0, row_y1 + 1, LCD_PIXEL_WIDTH);
         u8g.drawHLine(0, row_y2 + 2, LCD_PIXEL_WIDTH);
@@ -277,7 +276,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, PGM_P valstr/*=NULL*/) {
 
     if (mark_as_selected(row, invert)) {
 
@@ -297,10 +296,10 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a generic menu item
-  void draw_menu_item_generic(const bool isSelected, const uint8_t row, PGM_P pstr, const char pre_char, const char post_char) {
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
     UNUSED(pre_char);
 
-    if (mark_as_selected(row, isSelected)) {
+    if (mark_as_selected(row, sel)) {
       uint8_t n = LCD_WIDTH - 2;
       n *= MENU_FONT_WIDTH;
       n -= lcd_put_u8str_max_P(pstr, n);
@@ -312,8 +311,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a menu item with an editable value
-  void _drawmenu_setting_edit_generic(const bool isSelected, const uint8_t row, PGM_P pstr, PGM_P const data, const bool pgm) {
-    if (mark_as_selected(row, isSelected)) {
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P const data, const bool pgm) {
+    if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
       uint8_t n = LCD_WIDTH - 2 - vallen;
       n *= MENU_FONT_WIDTH;
@@ -325,7 +324,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     }
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
+  void draw_edit_screen(PGM_P const pstr, PGM_P const value/*=NULL*/) {
     const uint8_t labellen = utf8_strlen_P(pstr),
                     vallen = utf8_strlen(value);
 
@@ -380,10 +379,10 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool isSelected, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir) {
+    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir) {
       UNUSED(pstr);
 
-      mark_as_selected(row, isSelected);
+      mark_as_selected(row, sel);
 
       if (!PAGE_CONTAINS(row_y1, row_y2)) return;
 
@@ -392,7 +391,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       #if ENABLED(SCROLL_LONG_FILENAMES)
         if (longFilename[0]) {
           static uint8_t filename_scroll_hash;
-          if (isSelected) {
+          if (sel) {
             uint8_t name_hash = row;
             for (uint8_t l = FILENAME_LENGTH; l--;)
               name_hash = ((name_hash << 1) | (name_hash >> 7)) ^ longFilename[l];  // rotate, xor

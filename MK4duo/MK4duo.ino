@@ -239,6 +239,7 @@
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response
  * M410 - Quickstop. Abort all the planned moves
+ * M413 - S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
  *        Z[height] for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
  * M421 - Set a single Z coordinate in the Mesh Leveling grid. X[units] Y[units] Z[units] (Requires MESH_BED_LEVELING, AUTO_BED_LEVELING_BILINEAR, or AUTO_BED_LEVELING_UBL)
@@ -270,6 +271,7 @@
  * M666 - Set Two Endstops offsets for X, Y, and/or Z (requires TWO ENDSTOPS)
  * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
  * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
+ * M800 - S goto to lcd menu. With no parameters run restart commands.
  * M851 - Set X Y Z Probe Offset in current units, set speed Fast and Slow. (Requires Probe)
  * M900 - Set Linear Advance K-factor. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)

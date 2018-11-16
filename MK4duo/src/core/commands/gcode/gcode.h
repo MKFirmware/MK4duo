@@ -115,6 +115,8 @@
 #include "feature/m600.h"                 // Advanced Pause change filament
 #include "feature/m603.h"                 // Configure filament change
 #include "feature/m701_m702.h"            // Load / Unload filament
+#include "feature/m413.h"                 // Restart Job
+#include "feature/m800.h"                 // Restart Job
 #include "feature/m911_m915.h"            // Set TRINAMIC driver
 #include "feature/m930_m939.h"            // Set TRINAMIC driver
 #include "feature/m940_m942.h"            // Set TRINAMIC driver

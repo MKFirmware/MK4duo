@@ -159,6 +159,7 @@
 | M407 | ? | Displays measured filament diameter
 | M408 | ? | Report JSON-style response
 | M410 | ? | Quickstop. Abort all the planned moves
+| M413 | SD_RESTART_FILE | S[bool] Enable / Disable Restart Job
 | M420 | ? | Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL), Z[height] for leveling fade height (Requires ENABLE LEVELING FADE HEIGHT)
 | M421 | ? | Set a single Z coordinate in the Mesh Leveling grid. M421 X[mm] Y[mm] Z[mm>' or 'M421 I[xindex] J[yindex] Z[mm] (Requires MBL, UBL or ABL BILINEAR)
 | M428 | ? | Set the home_offset logically based on the current_position
@@ -187,6 +188,7 @@
 | M666 | TWO ENDSTOPS | Set Two Endstops offsets for X, Y, and/or Z. X[float] Y[float] Z[float]
 | M701 | ADVANCED PAUSE FEATURE | Load Filament T[toolhead] Z[distance] L[Extrude distance]
 | M702 | ADVANCED PAUSE FEATURE | Unload Filament T[toolhead] Z[distance] U[Retract distance]
+| M800 | SD_RESTART_FILE | S goto to lcd menu. With no parameters run restart commands
 | M851 | Probe | Set X Y Z Probe Offset in current units, F[speed Fast] S[speed Slow] in mm/min
 | M900 | LIN ADVANCE | K[factor] Set Linear Advance K-factor
 | M906 | ALLIGATOR or TRINAMIC | Set motor currents XYZ T0-4 E. Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.

@@ -60,10 +60,6 @@
 
       static uint16_t nrFile_index;
 
-      #if HAS_SD_RESTART
-        static SdFile restart_file;
-      #endif
-
       #if HAS_EEPROM_SD
         static SdFile eeprom_file;
       #endif
@@ -164,8 +160,6 @@
         static void close_restart_file();
         static void delete_restart_file();
         static bool exist_restart_file();
-        static int16_t save_restart_data();
-        static int16_t read_restart_data();
       #endif
 
       #if HAS_EEPROM_SD

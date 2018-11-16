@@ -16,7 +16,6 @@ extern U8GLIB *pu8g;
 #define _lcd_write(a) pu8g->print(a)
 #define _lcd_setcursor(col, row) pu8g->setPrintPos((col), (row));
 
-#include "../fontutils.h"
 #include "u8g_fontutf8.h"
 #include "../lcdprint.h"
 

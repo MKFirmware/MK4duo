@@ -1232,7 +1232,7 @@
 #define SDSORT_CACHE_VFATS 2      // Maximum number of 13-byte VFAT entries to use for sorting.
                                   // Note: Only affects SCROLL_LONG_FILENAMES with SDSORT_CACHE_NAMES but not SDSORT_DYNAMIC_RAM.
 
-// This function enable the firmware write restart.bin file for restart print when power loss
+// This function enable the firmware write restart file for restart print when power loss
 //#define SD_RESTART_FILE           // Uncomment to enable
 #define SD_RESTART_FILE_SAVE_TIME 1 // seconds between update
 
