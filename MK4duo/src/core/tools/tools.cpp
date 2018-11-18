@@ -102,7 +102,7 @@
         return invalid_extruder_error(tmp_extruder);
 
       #if HAS_LCD_MENU
-        ui.return_to_status();
+        lcdui.return_to_status();
       #endif
 
       #if HOTENDS > 1

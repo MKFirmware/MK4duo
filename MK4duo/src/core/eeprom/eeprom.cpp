@@ -187,7 +187,7 @@ typedef struct EepromDataStruct {
   //
   #if ENABLED(DHT_SENSOR)
     pin_t             dht_pin;
-    uint8_t           dht_type
+    uint8_t           dht_type;
   #endif
 
   //
