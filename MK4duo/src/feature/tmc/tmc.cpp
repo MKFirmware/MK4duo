@@ -157,7 +157,7 @@ void TMC_Stepper::init() {
   #elif HAVE_DRV(TMC2130)
 
     #if ENABLED(SOFT_SPI_TMC2130)
-      #define _TMC2130_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK)
+      #define _TMC2130_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE, SOFT_MOSI_PIN, SOFT_MISO_PIN, SOFT_SCK_PIN)
       #define TMC2130_DEFINE(ST)      _TMC2130_DEFINE(ST, TMC_##ST##_LABEL)
     #else
       #define _TMC2130_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE)
