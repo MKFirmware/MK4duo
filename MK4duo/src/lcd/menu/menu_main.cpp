@@ -163,14 +163,7 @@ void menu_main() {
   //
   #if ENABLED(SDSUPPORT) && ENABLED(MENU_ADDAUTOSTART)
     if (!busy)
-      MENU_ITEM(function, MSG_AUTOSTART, lcd_autostart_sd);
-  #endif
-
-  //
-  // Restart Recovery
-  //
-  #if ENABLED(POWER_LOSS_RECOVERY)
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART_RECOVERY, &restart.enabled, restart.changed);
+      MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
   #endif
 
   END_MENU();
