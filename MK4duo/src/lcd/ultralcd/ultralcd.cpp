@@ -86,7 +86,7 @@ millis_t next_button_update_ms;
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
   #endif
 
-  screenFunc_t LcdUI::currentScreen; // Initialized in CTOR
+  screenFunc_t LcdUI::currentScreen;
 
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
     bool LcdUI::encoderRateMultiplierEnabled;

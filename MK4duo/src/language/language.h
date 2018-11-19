@@ -110,14 +110,14 @@
 
 #elif HAS_NEXTION_LCD
 
-  #define LCD_STR_BEDTEMP     "\x00"
-  #define LCD_STR_DEGREE      "\x01"
-  #define LCD_STR_THERMOMETER "\x02"
+  #define LCD_STR_BEDTEMP     ""
+  #define LCD_STR_DEGREE      "°"
+  #define LCD_STR_THERMOMETER ""
   #define LCD_STR_UPLEVEL     "^"
-  #define LCD_STR_REFRESH     "\x04"
-  #define LCD_STR_FOLDER      "\x05"
-  #define LCD_STR_FEEDRATE    "\x06"
-  #define LCD_STR_CLOCK       "\x07"
+  #define LCD_STR_REFRESH     ""
+  #define LCD_STR_FOLDER      "^"
+  #define LCD_STR_FEEDRATE    ""
+  #define LCD_STR_CLOCK       ""
   #define LCD_STR_ARROW_RIGHT ">"
 
 #endif

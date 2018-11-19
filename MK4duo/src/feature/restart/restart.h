@@ -39,7 +39,8 @@
     uint32_t sdpos;
 
     // Mechanics state
-    float   current_position[XYZE];
+    float     current_position[XYZE];
+    uint16_t  feedrate;
 
     #if HEATER_COUNT > 0
       int16_t target_temperature[HEATER_COUNT];
@@ -56,14 +57,14 @@
 
     // Leveling
     #if HAS_LEVELING
-      bool leveling;
+      bool  leveling;
       float z_fade_height;
     #endif
 
     // Command buffer
     uint8_t buffer_head,
             buffer_count;
-    char buffer_ring[BUFSIZE][MAX_CMD_SIZE];
+    char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
     // Job elapsed time
     millis_t print_job_counter_elapsed;
