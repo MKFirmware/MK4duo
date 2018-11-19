@@ -35,7 +35,7 @@ static void lcd_sdcard_restart_resume() {
 }
 
 static void lcd_sdcard_restart_cancel() {
-  card.delete_restart_file();
+  restart.purge_job();
   card.autostart_index = 0;
   lcdui.return_to_status();
 }
@@ -43,7 +43,7 @@ static void lcd_sdcard_restart_cancel() {
 void menu_sdcard_restart() {
   lcdui.defer_status_screen(true);
   START_MENU();
-  STATIC_ITEM(MSG_RESTART_RECOVERY);
+  STATIC_ITEM(MSG_RESTART);
   MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_restart_resume);
   MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_restart_cancel);
   END_MENU();

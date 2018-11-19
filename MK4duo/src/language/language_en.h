@@ -751,8 +751,8 @@
 #ifndef MSG_STOP_PRINT
   #define MSG_STOP_PRINT                      _UxGT("Stop print")
 #endif
-#ifndef MSG_RESTART_RECOVERY
-  #define MSG_RESTART_RECOVERY                _UxGT("Restart Recovery")
+#ifndef MSG_RESTART
+  #define MSG_RESTART                         _UxGT("Restart")
 #endif
 #ifndef MSG_CARD_MENU
   #define MSG_CARD_MENU                       _UxGT("Print from SD")

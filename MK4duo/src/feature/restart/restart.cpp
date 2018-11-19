@@ -87,6 +87,7 @@
 
       // Mechanics state
       COPY_ARRAY(job_info.current_position, mechanics.current_position);
+      job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
       #if HEATER_COUNT > 0
         LOOP_HEATER()
@@ -120,17 +121,17 @@
       for (uint8_t index = 0; index < BUFSIZE; index++) {
         gcode_t temp_cmd;
         temp_cmd = commands.buffer_ring.peek(index);
-        strncpy_P(job_info.buffer_ring[index], temp_cmd.gcode, sizeof(job_info.buffer_ring[index]) - 1);
+        strncpy(job_info.buffer_ring[index], temp_cmd.gcode, sizeof(job_info.buffer_ring[index]) - 1);
       }
 
       // Elapsed print job time
       job_info.print_job_counter_elapsed = print_job_counter.duration() * 1000UL;
 
       // SD file e position
-      //if (!job_info.just_restart) {
+      if (!job_info.just_restart) {
         card.getAbsFilename(job_info.fileName);
-        //job_info.just_restart = true;
-      //}
+        job_info.just_restart = true;
+      }
       job_info.sdpos = card.getIndex();
 
       write_job();
@@ -139,7 +140,7 @@
 
   void Restart::resume_job() {
 
-    char cmd[40], str_1[16], str_2[16];
+    char cmd[40], str1[16];
 
     #if HAS_LEVELING
       // Make sure leveling is off before any G92 and G28
@@ -152,12 +153,13 @@
     #else
       printer.setZHomed(true);
       stepper.enable_Z();
-      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str_1);
-      sprintf_P(cmd, PSTR("G92 Z%s"), str_1);
+      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
+      sprintf_P(cmd, PSTR("G92 Z%s"), str1);
       commands.process_now(cmd);
       mechanics.home(true, true, false);
     #endif
 
+    // Select the previously active tool (with no_move)
     #if EXTRUDERS > 1
       tools.change(job_info.active_extruder, 0, true);
     #endif
@@ -183,23 +185,37 @@
       bedlevel.set_bed_leveling_enabled(job_info.leveling);
     #endif
 
+    // Restore E position
+    dtostrf(job_info.current_position[E_AXIS], 1, 3, str1);
+    sprintf_P(cmd, PSTR("G92 E%s"), str1);
+    commands.process_now(cmd);
+
     #if Z_HOME_DIR > 0
-      dtostrf(job_info.current_position[E_AXIS], 1, 3, str_1);
-      sprintf_P(cmd, PSTR("G92 E%s"), str_1);
-      commands.process_now(cmd);
-      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str_1);
-      sprintf_P(cmd, PSTR("G1 Z%s"), str_1);
+      // Move back to the saved XYZ
+      char str2[16], str3[16];
+      dtostrf(job_info.current_position[X_AXIS], 1, 3, str1);
+      dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2);
+      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str3);
+      sprintf_P(cmd, PSTR("G1 X%s Y%s Z%s F3000"), str1, str2, str3);
       commands.process_now(cmd);
     #else
-      dtostrf(job_info.current_position[E_AXIS], 1, 3, str_1);
-      sprintf_P(cmd, PSTR("G92 E%s"), str_1);
+      // Move back to the saved XY
+      char str2[16];
+      dtostrf(job_info.current_position[X_AXIS], 1, 3, str1);
+      dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2);
+      sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"), str1, str2);
       commands.process_now(cmd);
-      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str_1);
-      sprintf_P(cmd, PSTR("G1 Z%s"), str_1);
+      // Move back to the saved Z
+      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
+      sprintf_P(cmd, PSTR("G1 Z%s F200"), str1);
       commands.process_now(cmd);
     #endif
 
-    uint8_t h= job_info.buffer_head, c = job_info.buffer_count;
+    // Restore the feedrate
+    sprintf_P(cmd, PSTR("G1 F%d"), job_info.feedrate);
+    commands.process_now(cmd);
+
+    uint8_t h = job_info.buffer_head, c = job_info.buffer_count;
     for (; c--; h = (h + 1) % BUFSIZE)
       commands.process_now(job_info.buffer_ring[h]);
 

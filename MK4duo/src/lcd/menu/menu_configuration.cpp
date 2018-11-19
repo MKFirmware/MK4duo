@@ -344,8 +344,8 @@ void menu_configuration() {
     #endif
   }
 
-  #if ENABLED(HAS_SD_RESTART)
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART_RECOVERY, &restart.enabled, restart.changed);
+  #if HAS_SD_RESTART
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART, &restart.enabled, restart.changed);
   #endif
 
   #if DISABLED(SLIM_LCD_MENUS)
