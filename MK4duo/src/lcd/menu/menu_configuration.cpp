@@ -59,7 +59,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void _progress_bar_test() {
     lcdui.goto_screen(progress_bar_test);
-    LCD_SET_CHARSET(CHARSET_INFO);
+    lcdui.set_custom_characters(CHARSET_INFO);
   }
 
 #endif // LCD_PROGRESS_BAR_TEST
@@ -344,19 +344,27 @@ void menu_configuration() {
     #endif
   }
 
-  switch(sound.mode) {
-    case SOUND_MODE_ON:
-      MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
-      break;
-    case SOUND_MODE_SILENT:
-      MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cycleState);
-      break;
-    case SOUND_MODE_MUTE:
-      MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cycleState);
-      break;
-    default:
-      MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
-  }
+  #if ENABLED(HAS_SD_RESTART)
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART_RECOVERY, &restart.enabled, restart.changed);
+  #endif
+
+  #if DISABLED(SLIM_LCD_MENUS)
+
+    switch(sound.mode) {
+      case SOUND_MODE_ON:
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+        break;
+      case SOUND_MODE_SILENT:
+        MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cycleState);
+        break;
+      case SOUND_MODE_MUTE:
+        MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cycleState);
+        break;
+      default:
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+    }
+
+  #endif
 
   #if ENABLED(EEPROM_SETTINGS)
     MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
