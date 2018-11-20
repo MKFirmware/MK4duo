@@ -254,7 +254,6 @@ class LcdUI {
       static inline void update() {}
       static inline void setalertstatusPGM(PGM_P message) { UNUSED(message); }
       static inline void refresh() {}
-      static constexpr bool has_status() { return false; }
       static inline void setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
       static inline void setstatusPGM(PGM_P const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
       static inline void status_printf_P(const uint8_t level, PGM_P const fmt, ...) { UNUSED(level); UNUSED(fmt); }
