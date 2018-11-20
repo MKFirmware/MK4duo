@@ -253,6 +253,7 @@ class Mechanics {
        * Since this changes the current_position, code should
        * call sync_plan_position soon after this.
        */
+      static void update_workspace_offset(const AxisEnum axis);
       static void set_home_offset(const AxisEnum axis, const float v);
 
       static float native_to_logical(const float pos, const AxisEnum axis);
