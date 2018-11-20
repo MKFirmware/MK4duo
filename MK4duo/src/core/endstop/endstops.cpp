@@ -603,8 +603,6 @@ void Endstops::clamp_to_software(float target[XYZ]) {
    */
   void Endstops::update_software_endstops(const AxisEnum axis) {
 
-    mechanics.workspace_offset[axis] = mechanics.data.home_offset[axis] + mechanics.position_shift[axis];
-
     #if ENABLED(DUAL_X_CARRIAGE)
       if (axis == X_AXIS) {
 

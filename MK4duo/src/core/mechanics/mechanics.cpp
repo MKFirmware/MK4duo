@@ -244,13 +244,24 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #if ENABLED(WORKSPACE_OFFSETS)
 
+  void Mechanics::update_workspace_offset(const AxisEnum axis) {
+    workspace_offset[axis] = data.home_offset[axis] + position_shift[axis];
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
+        SERIAL_MT("For ", axis_codes[axis]);
+        SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
+        SERIAL_EMV("\n position_shift = ", position_shift[axis]);
+      }
+    #endif
+  }
+
   /**
    * Change the home offset for an axis.
    * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
     data.home_offset[axis] = v;
-    endstops.update_software_endstops(axis);
+    update_workspace_offset(axis);
   }
 
   float Mechanics::native_to_logical(const float pos, const AxisEnum axis) {
