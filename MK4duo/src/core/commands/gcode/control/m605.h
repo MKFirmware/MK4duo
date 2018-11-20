@@ -68,7 +68,7 @@
         stepper.set_directions();
         float x_jog = mechanics.current_position[X_AXIS] - .1;
         for (uint8_t i = 2; --i;) {
-          planner.buffer_line(x_jog, mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], feedrate_mm_s, 0);
+          planner.buffer_line(x_jog, mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], mechanics.feedrate_mm_s, 0);
           x_jog += .1;
         }
         return;
