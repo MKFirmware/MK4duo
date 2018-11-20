@@ -146,6 +146,7 @@ void reset_stepper_drivers() {
   #if ENABLED(TMC_ADV)
     TMC_ADV()
   #endif
+
   stepper.set_directions();
 }
 

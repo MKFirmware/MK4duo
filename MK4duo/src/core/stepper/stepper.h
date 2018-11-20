@@ -194,6 +194,11 @@ class Stepper {
     static void report_positions();
 
     /**
+     * Set direction bits for all steppers
+     */
+    static void set_directions();
+
+    /**
      * The stepper subsystem goes to sleep when it runs out of things to execute. Call this
      * to notify the subsystem that it is time to go to work.
      */
@@ -372,16 +377,6 @@ class Stepper {
     #endif
 
   private: /** Private Function */
-
-    /**
-     * Set direction bits for all steppers
-     */
-    static void set_directions();
-
-    /**
-     * Allow reset_stepper_drivers to access private set_directions
-     */
-    friend void reset_stepper_drivers();
 
     /**
      * Pulse phase Step
