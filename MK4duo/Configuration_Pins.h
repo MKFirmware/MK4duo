@@ -172,15 +172,16 @@
   #define TEMP_1_PIN          MAX31855_SS1_PIN
 #endif
 #if TEMP_SENSOR_2 > -1
-#define TEMP_2_PIN          ORIG_TEMP_2_PIN
+  #define TEMP_2_PIN          ORIG_TEMP_2_PIN
 #elif TEMP_SENSOR_2 == -4
   #define TEMP_2_PIN          MAX31855_SS2_PIN
 #endif
 #if TEMP_SENSOR_3 > -1
+  #define TEMP_3_PIN          ORIG_TEMP_3_PIN
 #elif TEMP_SENSOR_3 == -4
   #define TEMP_3_PIN          MAX31855_SS3_PIN
 #endif
-#define TEMP_3_PIN          ORIG_TEMP_3_PIN
+
 #define TEMP_BED_PIN        ORIG_TEMP_BED_PIN
 #define TEMP_CHAMBER_PIN    ORIG_TEMP_CHAMBER_PIN
 #define TEMP_COOLER_PIN     ORIG_TEMP_COOLER_PIN
