@@ -32,6 +32,8 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
+flaghome_t Printer::home_flag; // For Homed
+
 bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
 // Print status related
@@ -94,9 +96,7 @@ PrinterModeEnum Printer::mode =
 
 // Private
 
-flagbyte_t  Printer::debug_flag,    // For debug
-            Printer::home_flag;     // For Homed
-
+flagbyte_t  Printer::debug_flag;    // For debug
 flagword_t  Printer::various_flag;  // For various
 
 /**

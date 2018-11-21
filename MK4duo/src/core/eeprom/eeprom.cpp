@@ -353,7 +353,7 @@ void EEPROM::post_process() {
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-    // Software endstops depend on data.home_offset
+    // Software endstops depend on home_offset
     LOOP_XYZ(i) endstops.update_software_endstops((AxisEnum)i);
   #endif
 

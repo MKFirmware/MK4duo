@@ -170,7 +170,7 @@
 */
 #if HAS_SPI_LCD
   #define LCD_SDSS           28
-  #if ENABLED(ADC_KEYPAD)
+  #if HAS_ADC_BUTTONS
     #define SERVO0_PIN       27 // free for BLTouch/3D-Touch
     #define LCD_PINS_RS      28
     #define LCD_PINS_ENABLE  29

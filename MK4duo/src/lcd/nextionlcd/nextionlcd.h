@@ -74,8 +74,6 @@
   #endif // HAS_LCD_MENU
 
   void nextion_draw_update();
-  void nextion_printer_view();
-  void nextion_menu_view();
   void lcd_scrollinfo(PGM_P titolo, PGM_P message);
   void lcd_yesno(const uint8_t val, PGM_P msg1="", PGM_P msg2="", PGM_P msg3="");
 
@@ -89,23 +87,11 @@
   #endif
 
   #if HAS_SD_SUPPORT
-    void sdmountdismountPopCallback(void *ptr);
-    void sdlistPopCallback(void *ptr);
-    void sdfilePopCallback(void *ptr);
-    void sdfolderPopCallback(void *ptr);
-    void sdfolderUpPopCallback(void *ptr);
-    void PlayPausePopCallback(void *ptr);
-    void StopPopCallback(void *ptr);
-    void DFirmwareCallback(void *ptr);
-    void setpageSD();
     void UploadNewFirmware();
   #endif
 
   #if ENABLED(RFID_MODULE)
-    void rfidPopCallback(void *ptr);
     void rfid_setText(PGM_P message, uint32_t color=65535);
   #endif
-
-  #define BUTTON_CLICK() lcd_clicked
 
 #endif // HAS_NEXTION_LCD

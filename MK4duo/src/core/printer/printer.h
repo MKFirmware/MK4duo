@@ -37,6 +37,8 @@ class Printer {
 
   public: /** Public Parameters */
 
+    static flaghome_t home_flag;  // For Homed
+
     static bool     axis_relative_modes[];
 
     static long     currentLayer,
@@ -79,8 +81,7 @@ class Printer {
 
   private: /** Private Parameters */
 
-    static flagbyte_t debug_flag,   // For debug
-                      home_flag;    // For Homed
+    static flagbyte_t debug_flag;   // For debug
 
     static flagword_t various_flag; // For various
 
@@ -149,35 +150,23 @@ class Printer {
       setDebugLevel(debug_flag._byte & ~flag);
     }
 
-    // Home flag bit 0 X homed
-    FORCE_INLINE static void setXHomed(const bool onoff) { home_flag.bit0 = onoff; }
-    FORCE_INLINE static bool isXHomed() { return home_flag.bit0; }
-
-    // Home flag bit 1 Y homed
-    FORCE_INLINE static void setYHomed(const bool onoff) { home_flag.bit1 = onoff; }
-    FORCE_INLINE static bool isYHomed() { return home_flag.bit1; }
-
-    // Home flag bit 2 Z homed
-    FORCE_INLINE static void setZHomed(const bool onoff) { home_flag.bit2 = onoff; }
-    FORCE_INLINE static bool isZHomed() { return home_flag.bit2; }
-
     FORCE_INLINE static void setAxisHomed(const AxisEnum axis, const bool onoff) {
       switch (axis) {
-        case X_AXIS: setXHomed(onoff); break;
-        case Y_AXIS: setYHomed(onoff); break;
-        case Z_AXIS: setZHomed(onoff); break;
+        case X_AXIS: home_flag.isXHomed = onoff; break;
+        case Y_AXIS: home_flag.isYHomed = onoff; break;
+        case Z_AXIS: home_flag.isZHomed = onoff; break;
       }
     }
     FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
       switch (axis) {
-        case X_AXIS: return isXHomed(); break;
-        case Y_AXIS: return isYHomed(); break;
-        case Z_AXIS: return isZHomed(); break;
+        case X_AXIS: return home_flag.isXHomed; break;
+        case Y_AXIS: return home_flag.isYHomed; break;
+        case Z_AXIS: return home_flag.isZHomed; break;
       }
     }
 
     FORCE_INLINE static void unsetHomedAll() { home_flag._byte = 0; }
-    FORCE_INLINE static bool isHomedAll() { return isXHomed() && isYHomed() && isZHomed(); }
+    FORCE_INLINE static bool isHomedAll() { return home_flag.isXHomed && home_flag.isYHomed && home_flag.isZHomed; }
 
     // Various flag bit 0 Running
     FORCE_INLINE static void setRunning(const bool onoff) { various_flag.bit0 = onoff; }

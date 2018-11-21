@@ -89,309 +89,77 @@
  * @param ptr - user pointer for any purpose. Commonly, it is a pointer to a object. 
  * @return none. 
  */
-using NexTouchEventCb = void(*)(void *ptr);
 
-/**
- * Class NexObject
- */
 class NexObject {
 
-  public:
+  public: /** Constructor */
 
-    /**
-     * Constructor.
-     *
-     * @param pid - page id.
-     * @param cid - component id.
-     * @param name - pointer to an unique name in range of all components.
-     */
-    NexObject(uint8_t pid, uint8_t cid, PGM_P name);
+    NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID, const char* OBJ_NAME) :
+      __pid(OBJ_PID),
+      __cid(OBJ_CID),
+      __name(OBJ_NAME),
+      __vis(true)
+      {}
 
-    /**
-     * iterate search pid, cid or event in list
-     *
-     */
-    static void iterate(NexObject **list, const uint8_t pid, const uint8_t cid, const int32_t event);
+  public: /** Public Parameters */
 
-    /**
-     * Attach an callback function of push touch event.
-     *
-     * @param push - callback called with ptr when a push touch event occurs.
-     * @param ptr - parameter passed into push[default:NULL].
-     * @return none.
-     *
-     * @note If calling this method multiply, the last call is valid.
-     */
-    void attachPush(NexTouchEventCb push, void *ptr = NULL);
-
-    /**
-     * Detach an callback function.
-     *
-     * @return none.
-     */
-    void detachPush(void);
-
-    /**
-     * Attach an callback function of pop touch event.
-     *
-     * @param pop - callback called with ptr when a pop touch event occurs.
-     * @param ptr - parameter passed into pop[default:NULL].
-     * @return none.
-     *
-     * @note If calling this method multiply, the last call is valid.
-     */
-    void attachPop(NexTouchEventCb pop, void *ptr = NULL);
-
-    /**
-     * Detach an callback function.
-     *
-     * @return none.
-     */
-    void detachPop(void);
-
-  public:
-
-    /**
-     * Show itself.
-     */
-    void show();
-
-    /**
-     * contorl timer enable.
-     */
-    void enable(const bool en=true);
-
-    /**
-     * Get text attribute of component.
-     *
-     * @param buffer - buffer storing text returned.
-     * @param len - length of buffer.
-     */
-    void getText(char *buffer, uint16_t len, PGM_P pname=NULL);
-
-    /**
-     * Set text attribute of component.
-     *
-     * @param buffer - text buffer terminated with '\0'.
-     * @param pname  - To set page name
-     */
-    void setText(PGM_P buffer, PGM_P pname=NULL);
-
-    /**
-     * Start char attribute of component.
-     *
-     * @param pname  - To set page name
-     */
-    void startChar(PGM_P pname=NULL);
-
-    /**
-     * Set char attribute of component.
-     *
-     * @param pchar - char
-     */
-    void setChar(const char pchar);
-
-    /**
-     * End char attribute of component.
-     */
-    void endChar();
-
-    /**
-     * Get val attribute of component
-     *
-     * @param number - buffer storing data return
-     * @param pname  - To set page name
-     */
-    uint16_t getValue(PGM_P pname=NULL);
-
-    /**
-     * Set val attribute of component
-     *
-     * @param number - To set up the data
-     * @param pname  - To set page name
-     */
-    void setValue(const uint16_t number, PGM_P pname=NULL);
-
-    /**
-     * Add value to show.
-     *
-     * @param ch - channel of waveform(0-3).
-     * @param number - the value of waveform.
-     */
-    void addValue(const uint8_t ch, const uint8_t number);
-
-    /**
-     * Get hig attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t Get_cursor_height_hig();	
-
-    /**
-     * Set hig attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void Set_cursor_height_hig(const uint16_t number);
-
-    /**
-     * Get maxval attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t getMaxval();
-
-    /**
-     * Set maxval attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void setMaxval(const uint16_t number);
-
-    /**
-     * Get minval attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t getMinval();
-
-    /**
-     * Set minval attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void setMinval(const uint16_t number);
-
-    /**
-     * Get bco attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t Get_background_color_bco();
-
-    /**
-     * Set bco attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void Set_background_color_bco(const uint16_t number);
-
-    /**
-     * Get pco attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t Get_font_color_pco(); 
-
-    /**
-     * Set pco attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void Set_font_color_pco(const uint16_t number);			
-
-    /**
-     * Get xcen attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t Get_place_xcen();
-
-    /**
-     * Set xcen attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void Set_place_xcen(const uint16_t number);
-
-    /**
-     * Get ycen attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t Get_place_ycen();
-
-    /**
-     * Set ycen attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void Set_place_ycen(const uint16_t number);
-
-    /**
-     * Get font attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t getFont();
-
-    /**
-     * Set font attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void setFont(const uint16_t number);
-
-    /**
-     * Get Crop pic attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t getCropPic();	
-
-    /**
-     * Set Crop pic attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void setCropPic(const uint16_t number);
-
-    /**
-     * Get pic attribute of component
-     *
-     * @param number - buffer storing data return
-     */
-    uint16_t getPic();
-
-    /**
-     * Set pic attribute of component
-     *
-     * @param number - To set up the data
-     */
-    void setPic(const uint16_t number);
-
-    /**
-     * Get componet vis.
-     *
-     * @return true if status show, false if status hide
-     */
-    bool getObjVis(void);
-
-    /**
-     * Set visibility attribute of component
-     *
-     * @param visible - To set visible or invisible
-     */
-    void SetVisibility(const bool visible);
-
-  private:
-
-    void push(void);
-    void pop(void);
-
-  private:
-
-    uint8_t __pid;
-    uint8_t __cid;
-    PGM_P __name;
-    bool __vis;
-
-    NexTouchEventCb __cb_push;
-    void *__cbpush_ptr;
-    NexTouchEventCb __cb_pop;
-    void *__cbpop_ptr;
+    const uint8_t     __pid,
+                      __cid;
+    bool              __vis;
+    const char* const __name;
 
 };
+
+/**
+ * Class Nextion
+ */
+class NextionLCD {
+
+  public: /** Constructor */
+
+    NextionLCD() {}
+
+  public: /** Public Function */
+
+    static void show(NexObject &nexobject);
+    static void enable(NexObject &nexobject, const bool en=true);
+    static void getText(NexObject &nexobject, char *buffer, uint16_t len, PGM_P page=NULL);
+    static void setText(NexObject &nexobject, PGM_P buffer, PGM_P page=NULL);
+    static void startChar(NexObject &nexobject, PGM_P page=NULL);
+    static void setChar(const char pchar);
+    static void endChar();
+    static void setValue(NexObject &nexobject, const uint16_t number, PGM_P page=NULL);
+    static void addValue(NexObject &nexobject, const uint8_t ch, const uint8_t number);
+    static void Set_cursor_height_hig(NexObject &nexobject, const uint16_t number);
+    static void setMaxval(NexObject &nexobject, const uint16_t number);
+    static void setMinval(NexObject &nexobject, const uint16_t number);
+    static void Set_background_color_bco(NexObject &nexobject, const uint16_t number);
+    static void Set_font_color_pco(NexObject &nexobject, const uint16_t number);
+    static void Set_place_xcen(NexObject &nexobject, const uint16_t number);
+    static void Set_place_ycen(NexObject &nexobject, const uint16_t number);
+    static void setFont(NexObject &nexobject, const uint16_t number);
+    static void setCropPic(NexObject &nexobject, const uint16_t number);
+    static void setPic(NexObject &nexobject, const uint16_t number);
+    static void SetVisibility(NexObject &nexobject, const bool visible);
+    static void Refresh(NexObject &nexobject);
+
+    static bool getObjVis(NexObject &nexobject);
+
+    static uint16_t getValue(NexObject &nexobject, PGM_P page=NULL);
+    static uint16_t Get_cursor_height_hig(NexObject &nexobject);
+    static uint16_t getMaxval(NexObject &nexobject);
+    static uint16_t getMinval(NexObject &nexobject);
+    static uint16_t Get_background_color_bco(NexObject &nexobject);
+    static uint16_t Get_font_color_pco(NexObject &nexobject);
+    static uint16_t Get_place_xcen(NexObject &nexobject);
+    static uint16_t Get_place_ycen(NexObject &nexobject);
+    static uint16_t getFont(NexObject &nexobject);
+    static uint16_t getCropPic(NexObject &nexobject);
+    static uint16_t getPic(NexObject &nexobject);
+
+};
+
+extern NextionLCD nexlcd;
 
 /**
  * Class NexUpload
@@ -400,94 +168,44 @@ class NexObject {
 
   class NexUpload {
 
-    public:
+    public: /** Constructor */
 
-      /**
-       * Constructor.
-       *
-       * @param file_name - tft file name.
-       * @upload_baudrate - set upload baudrate.
-       */
-      NexUpload(PGM_P file_name, uint32_t upload_baudrate);
-
-      /**
-       * Constructor.
-       *
-       * @param file_name - tft file name.
-       * @upload_baudrate - set upload baudrate.
-       */
-      NexUpload(const String file_name, uint32_t upload_baudrate); 
+      NexUpload(const char* file_name, uint32_t upload_baudrate);
 
       /**
        * destructor.
        */
       ~NexUpload(){}
 
-      /**
-       * start upload.
-       */
-      void startUpload(void);
+    private: /** Private Parameters */
+
+      static uint32_t     _baudrate,        /* nextion serial baudrate */
+                          _unuploadByte,    /* unupload byte of tft file */
+                          _upload_baudrate; /* upload baudrate */
+
+      static const char*  _file_name;       /* nextion tft file name */
+
+    public: /** Public Function */
+
+      static void startUpload(void);
+
+    private: /** Private Function */
+
+      static uint16_t _getBaudrate(void);
+
+      static bool _checkFile(void);
+
+      static bool _searchBaudrate(uint32_t baudrate);
+
+      static bool _setUploadBaudrate(uint32_t baudrate);
+
+      static bool _uploadTftFile(void);
+
+      static uint16_t recvRetString(String &string, uint32_t timeout = 100, bool recv_flag=false);
 
     private:
 
-      /**
-       * get communicate baudrate.
-       *
-       * @return communicate baudrate.
-       *
-       */
-      uint16_t _getBaudrate(void);
-
-      /*
-       * check tft file.
-       *
-       * @return true if success, false for failure.
-       */
-      bool _checkFile(void);
-
-      /**
-       * search communicate baudrate.
-       *
-       * @param baudrate - communicate baudrate.
-       *
-       * @return true if success, false for failure.
-       */
-      bool _searchBaudrate(uint32_t baudrate);
-
-      /**
-       * set upload baudrate.
-       *
-       * @param baudrate - set upload baudrate.
-       *
-       * @return true if success, false for failure.
-       */
-      bool _setUploadBaudrate(uint32_t baudrate);
-
-      /**
-       * start dowload tft file to nextion.
-       *
-       * @return none.
-       */
-      bool _uploadTftFile(void);
-
-      /**
-       * Receive string data.
-       *
-       * @param buffer - save string data.
-       * @param timeout - set timeout time.
-       * @param recv_flag - if recv_flag is true, will break when receive 0x05.
-       *
-       * @return the length of string buffer.
-       *
-       */
-      uint16_t recvRetString(String &string, uint32_t timeout = 100, bool recv_flag=false);
-
-    private:
-
-      uint32_t _baudrate;         /* nextion serial baudrate */
-      PGM_P _file_name;           /* nextion tft file name */
-      uint32_t _unuploadByte;     /* unupload byte of tft file */
-      uint32_t _upload_baudrate;  /* upload baudrate */
+      
     };
 
 #endif // SDSUPPORT
@@ -495,33 +213,170 @@ class NexObject {
 //
 // PUBBLIC FUNCTION
 //
+inline void recvRetString(char *buffer, const uint16_t len) {
+  bool str_start_flag = false;
+  uint8_t cnt_0xFF = 0;
+  char* str;
+  uint16_t ret = 0;
+
+  if (!buffer || len == 0) return;
+
+  millis_t start = millis();
+  while (millis() - start <= NEX_TIMEOUT) {
+    while (nexSerial.available()) {
+      uint8_t c = nexSerial.read();
+      if (str_start_flag) {
+        if (c == 0xFF) {
+          cnt_0xFF++;                    
+          if (cnt_0xFF >= 3) break;
+        }
+        else {
+          *str = (char)c;
+          *str++;
+          ret++;
+        }
+      }
+      else if (c == NEX_RET_STRING_HEAD)
+        str_start_flag = true;
+    }
+  
+    if (cnt_0xFF >= 3) break;
+  }
+
+  ret = ret > len ? len : ret;
+  strncpy_P(buffer, str, ret);
+}
+  
+inline void recvRetCommandFinished() {    
+  while (nexSerial.available()) nexSerial.read();
+}
+  
+inline void sendCommand(const char* cmd) {
+  recvRetCommandFinished();
+  nexSerial.print(cmd);
+  nexSerial.write(0xFF);
+  nexSerial.write(0xFF);
+  nexSerial.write(0xFF);
+}
+
+inline void sendCommandPGM(PGM_P cmd) {
+  recvRetCommandFinished();
+  while (char c = pgm_read_byte(cmd++)) nexSerial.write(c);
+  nexSerial.write(0xFF);
+  nexSerial.write(0xFF);
+  nexSerial.write(0xFF);
+}
+
+inline void setCurrentBrightness(uint8_t dimValue) {
+  char cmd[10];
+  sprintf_P(cmd, PSTR("dim=%i"), int(dimValue));
+  sendCommandPGM(cmd);
+  HAL::delayMilliseconds(10);
+  recvRetCommandFinished();
+}
+
+inline void sendRefreshAll(void) {
+  sendCommandPGM(PSTR("ref 0"));
+}
+
+inline bool getConnect(char* buffer) {
+  HAL::delayMilliseconds(100);
+  sendCommand("");
+  HAL::delayMilliseconds(100);
+  sendCommandPGM(PSTR("connect"));
+  HAL::delayMilliseconds(100);
+
+  String temp = String("");
+
+  #if ENABLED(NEXTION_CONNECT_DEBUG)
+    SERIAL_MSG(" NEXTION Debug Connect receveid:");
+  #endif
+
+  while (nexSerial.available()) {
+    uint8_t c = nexSerial.read();
+    #if ENABLED(NEXTION_CONNECT_DEBUG)
+      SERIAL_CHR((char)c);
+    #endif
+    temp += (char)c;
+  }
+
+  #if ENABLED(NEXTION_CONNECT_DEBUG)
+    SERIAL_EOL();
+  #endif
+
+  strncpy(buffer, temp.c_str(), 70);
+
+  if (strstr_P(buffer, PSTR("comok"))) return true;
+
+  return false;
+}
+
+inline uint16_t recvRetNumber() {
+  uint8_t temp[8] = { 0 };
+
+  nexSerial.setTimeout(NEX_TIMEOUT);
+  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
+    return NULL;
+
+  if (temp[0] == NEX_RET_NUMBER_HEAD
+      && temp[5] == 0xFF
+      && temp[6] == 0xFF
+      && temp[7] == 0xFF
+  )
+
+  return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
+}
+
+inline uint8_t Nextion_PageID() {
+  uint8_t temp[5] = {0};
+
+  sendCommandPGM(PSTR("sendme"));
+
+  nexSerial.setTimeout(NEX_TIMEOUT);
+
+  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
+    return 2;
+
+  if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD && temp[2] == 0xFF && temp[3] == 0xFF && temp[4] == 0xFF)
+    return temp[1];
+  else
+    return 2;
+}
 
 /**
  * Init Nextion.  
  * 
  * @return true if success, false for failure. 
  */
-bool nexInit(char *buffer);
+inline bool nexInit(char *buffer) {
+  // Try default baudrate
+  nexSerial.begin(9600);
 
-/**
- * Listen touch event and calling callbacks attached before.
- *
- * Supports push and pop at present.
- *
- * @param nex_listen_list - index to Nextion Components list.
- *
- * @warning This function must be called repeatedly to response touch events
- *  from Nextion touch panel. Actually, you should place it in your loop function.
- */
-void nexLoop(NexObject *nex_listen_list[]);
+  ZERO(buffer);
+  bool connect = getConnect(buffer);
 
-void recvRetString(char *buffer, uint16_t len);
-void sendCommand(PGM_P);
-void sendCommandPGM(PGM_P);
-void recvRetCommandFinished();
+  // If baudrate is 9600 set to 115200 and reconnect
+  if (connect) {
+    #if ENABLED(NEXTION_CONNECT_DEBUG)
+      SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
+    #endif
+    sendCommandPGM(PSTR("baud=115200"));
+    HAL::delayMilliseconds(100);
+    nexSerial.end();
+    HAL::delayMilliseconds(100);
+    nexSerial.begin(115200);
+  }
+  else { // Else try to 115200 baudrate
+    #if ENABLED(NEXTION_CONNECT_DEBUG)
+      SERIAL_EM(" NEXTION connected at 115200 baud, cready");
+    #endif
+    nexSerial.end();
+    HAL::delayMilliseconds(100);
+    nexSerial.begin(115200);
+  }
 
-uint16_t recvRetNumber();
+  connect = getConnect(buffer);
 
-uint8_t Nextion_PageID();
-void setCurrentBrightness(uint8_t);
-void sendRefreshAll(void);
+  if (connect) return true;
+  else return false;
+}

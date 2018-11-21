@@ -102,14 +102,14 @@ void Com::printPGM(PGM_P str) {
   }
 }
 
-void Com::write(char c) {
+void Com::write(const uint8_t c) {
   if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(c);
   #if NUM_SERIAL > 1
     if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(c);
   #endif
 }
 
-void Com::write(PGM_P str) {
+void Com::write(const char* str) {
   while (*str) {
     if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(*str);
     #if NUM_SERIAL > 1
@@ -138,7 +138,7 @@ void Com::print(const String& s) {
   }
 }
 
-void Com::print(PGM_P str) {
+void Com::print(const char* str) {
   write(str);
 }
 

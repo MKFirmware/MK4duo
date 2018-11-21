@@ -21,6 +21,10 @@
  */
 #pragma once
 
+#if HAS_SD_SUPPORT
+  #include "../sd/cardreader.h"
+#endif
+
 #define LCD_MESSAGEPGM(x)       lcdui.setstatusPGM(PSTR(x))
 #define LCD_ALERTMESSAGEPGM(x)  lcdui.setalertstatusPGM(PSTR(x))
 
@@ -149,7 +153,7 @@ class LcdUI {
 
       static volatile uint8_t buttons;
       #if ENABLED(REPRAPWORLD_KEYPAD)
-        static volatile uint8_t buttons_reprapworld_keypad;
+        static volatile uint8_t keypad_buttons;
       #endif
       #if ENABLED(LCD_HAS_SLOW_BUTTONS)
         static volatile uint8_t slow_buttons;
@@ -199,11 +203,9 @@ class LcdUI {
 
         #elif HAS_CHARACTER_LCD
 
-          enum HD44780CharSet : uint8_t { CHARSET_MENU, CHARSET_INFO, CHARSET_BOOT };
-
           static void set_custom_characters(
             #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
-              const HD44780CharSet screen_charset=CHARSET_INFO
+              const HD44780CharSetEnum screen_charset=CHARSET_INFO
             #endif
           );
 
@@ -267,6 +269,10 @@ class LcdUI {
 
       #if ENABLED(ENCODER_RATE_MULTIPLIER)
         static void enable_encoder_multiplier(const bool onoff);
+      #endif
+
+      #if HAS_SD_SUPPORT && HAS_SPI_LCD
+        static const char * scrolled_filename(CardReader &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll);
       #endif
 
       static void manage_manual_move();
@@ -359,7 +365,7 @@ class LcdUI {
       static void _synchronize();
     #endif
 
-    #if HAS_SPI_LCD || HAS_NEXTION_LCD
+    #if HAS_SPI_LCD
       static void draw_status_screen();
       static void finishstatus(const bool persist);
     #else

@@ -30,6 +30,7 @@
 #if HAS_GRAPHICAL_LCD
 
 #include "status_screen_dogm.h"
+#include "ultralcd_dogm.h"
 #include "../lcdprint.h"
 
 #if ENABLED(LASER)
@@ -37,10 +38,11 @@
 #endif
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
-  PGM_P const str = itostr3(temp);
-  lcd_moveto(x - (str[0] != ' ' ? 0 : str[1] != ' ' ? 1 : 2) * MENU_FONT_WIDTH / 2, y);
-  lcd_put_u8str(str);
-  lcd_put_u8str_P(PSTR(LCD_STR_DEGREE " "));
+  const char *str = itostr3(temp);
+  const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
+  lcd_moveto(x - len * (INFO_FONT_WIDTH) / 2 + 1, y);
+  lcd_put_u8str(&str[3-len]);
+  lcd_put_wchar(LCD_STR_DEGREE[0]);
 }
 
 #if DISABLED(HEAT_INDICATOR_X)
@@ -111,7 +113,7 @@ void LcdUI::draw_status_message(const bool blink) {
       // String is longer than the available space
 
       // Get a pointer to the next valid UTF8 character
-      PGM_P stat = status_message + status_scroll_offset;
+      const char *stat = status_message + status_scroll_offset;
 
       // Get the string remaining length
       const uint8_t rlen = utf8_strlen(stat);

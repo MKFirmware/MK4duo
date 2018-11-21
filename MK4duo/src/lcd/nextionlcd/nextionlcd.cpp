@@ -59,6 +59,10 @@
 
     screenFunc_t  LcdUI::currentScreen;
 
+    #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
+      uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
+    #endif
+
     #if ENABLED(REVERSE_MENU_DIRECTION)
       int8_t LcdUI::encoderDirection = 1;
     #endif
@@ -83,8 +87,6 @@
     #if E_MANUAL > 1
       int8_t LcdUI::manual_move_e_index = 0;
     #endif
-
-    bool menu_redraw = true;
 
   #endif
 
@@ -113,21 +115,20 @@
   NexObject Pstart        = NexObject(0,  0,  "start");
   NexObject Pmenu         = NexObject(1,  0,  "menu");
   NexObject Pprinter      = NexObject(2,  0,  "printer");
-  NexObject Psdcard       = NexObject(3,  0,  "sdcard");
-  NexObject Psetup        = NexObject(4,  0,  "setup");
-  NexObject Pmove         = NexObject(5,  0,  "move");
-  NexObject Pspeed        = NexObject(6,  0,  "speed");
-  NexObject Pgcode        = NexObject(7,  0,  "gcode");
-  NexObject Prfid         = NexObject(8,  0,  "rfid");
-  NexObject Pbrightness   = NexObject(9,  0,  "brightness");
-  NexObject Ptemp         = NexObject(10, 0,  "temp");
-  NexObject Pinfo         = NexObject(11, 0,  "info");
-  NexObject Pyesno        = NexObject(12, 0,  "yesno");
-  NexObject Pfilament     = NexObject(13, 0,  "filament");
-  NexObject Ptxtmenu      = NexObject(14, 0,  "txtmenu");
-  NexObject Poptions      = NexObject(15, 0,  "options");
-  NexObject Ptime         = NexObject(16, 0,  "time");
-  NexObject Pusertemp     = NexObject(17, 0,  "usertemp");
+  NexObject Psetup        = NexObject(3,  0,  "setup");
+  NexObject Pmove         = NexObject(4,  0,  "move");
+  NexObject Pspeed        = NexObject(5,  0,  "speed");
+  NexObject Pgcode        = NexObject(6,  0,  "gcode");
+  NexObject Prfid         = NexObject(7,  0,  "rfid");
+  NexObject Pbrightness   = NexObject(8,  0,  "brightness");
+  NexObject Ptemp         = NexObject(9,  0,  "temp");
+  NexObject Pinfo         = NexObject(10, 0,  "info");
+  NexObject Pyesno        = NexObject(11, 0,  "yesno");
+  NexObject Pfilament     = NexObject(12, 0,  "filament");
+  NexObject Ptxtmenu      = NexObject(13, 0,  "txtmenu");
+  NexObject Poptions      = NexObject(14, 0,  "options");
+  NexObject Ptime         = NexObject(15, 0,  "time");
+  NexObject Pusertemp     = NexObject(16, 0,  "usertemp");
 
   /**
    *******************************************************************
@@ -141,6 +142,7 @@
    * Nextion component for page:menu
    *******************************************************************
    */
+  NexObject SDMenu      = NexObject(1,  2,  "m1");
   NexObject Version     = NexObject(1, 10,  "t0");
 
   /**
@@ -183,88 +185,67 @@
 
   /**
    *******************************************************************
-   * Nextion component for page:SDCard
-   *******************************************************************
-   */
-  NexObject sdlist      = NexObject(3,   1, "h0");
-  NexObject sdrow0      = NexObject(3,   2, "t0");
-  NexObject sdrow1      = NexObject(3,   3, "t1");
-  NexObject sdrow2      = NexObject(3,   4, "t2");
-  NexObject sdrow3      = NexObject(3,   5, "t3");
-  NexObject sdrow4      = NexObject(3,   6, "t4");
-  NexObject sdrow5      = NexObject(3,   7, "t5");
-  NexObject Folder0     = NexObject(3,   8, "p0");
-  NexObject Folder1     = NexObject(3,   9, "p1");
-  NexObject Folder2     = NexObject(3,  10, "p2");
-  NexObject Folder3     = NexObject(3,  11, "p3");
-  NexObject Folder4     = NexObject(3,  12, "p4");
-  NexObject Folder5     = NexObject(3,  13, "p5");
-  NexObject Folderup    = NexObject(3,  14, "p6");
-  NexObject sdfolder    = NexObject(3,  16, "t6");
-  NexObject ScrollUp    = NexObject(3,  18, "p7");
-  NexObject ScrollDown  = NexObject(3,  19, "p8");
-  NexObject sd_mount    = NexObject(3,  21, "p12");
-  NexObject sd_dismount = NexObject(3,  22, "p13");
-
-  /**
-   *******************************************************************
    * Nextion component for page:Setup
    *******************************************************************
    */
-  NexObject TxtMenu     = NexObject(4,   3, "m2");
+  NexObject TxtMenu     = NexObject(3,   3, "m2");
 
   /**
    *******************************************************************
    * Nextion component for page:Move
    *******************************************************************
    */
-  NexObject XYHome      = NexObject(5,   2, "p4");
-  NexObject XYUp        = NexObject(5,   3, "p5");
-  NexObject XYRight     = NexObject(5,   4, "p6");
-  NexObject XYDown      = NexObject(5,   5, "p7");
-  NexObject XYLeft      = NexObject(5,   6, "p8");
-  NexObject ZHome       = NexObject(5,   7, "p9");
-  NexObject ZUp         = NexObject(5,   8, "p10");
-  NexObject ZDown       = NexObject(5,   9, "p11");
-  NexObject movecmd     = NexObject(5,  11, "vacmd");
-  NexObject LedCoord5   = NexObject(5,  12, "t0");
-  NexObject MotorOff    = NexObject(5,  17, "p0");
-  NexObject ext         = NexObject(5,  18, "va0");
-  NexObject Extrude     = NexObject(5,  19, "p12");
-  NexObject Retract     = NexObject(5,  21, "p14");
-  NexObject SpeedX      = NexObject(5,  22, "vafrx");
-  NexObject SpeedY      = NexObject(5,  23, "vafry");
-  NexObject SpeedZ      = NexObject(5,  24, "vafrz");
-  NexObject SpeedE      = NexObject(5,  25, "vafre");
+  NexObject XYHome      = NexObject(4,   2, "p4");
+  NexObject XYUp        = NexObject(4,   3, "p5");
+  NexObject XYRight     = NexObject(4,   4, "p6");
+  NexObject XYDown      = NexObject(4,   5, "p7");
+  NexObject XYLeft      = NexObject(4,   6, "p8");
+  NexObject ZHome       = NexObject(4,   7, "p9");
+  NexObject ZUp         = NexObject(4,   8, "p10");
+  NexObject ZDown       = NexObject(4,   9, "p11");
+  NexObject movecmd     = NexObject(4,  11, "vacmd");
+  NexObject LedCoord5   = NexObject(4,  12, "t0");
+  NexObject MotorOff    = NexObject(4,  17, "p0");
+  NexObject ext         = NexObject(4,  18, "va0");
+  NexObject Extrude     = NexObject(4,  19, "p12");
+  NexObject Retract     = NexObject(4,  21, "p14");
+  NexObject SpeedX      = NexObject(4,  22, "vafrx");
+  NexObject SpeedY      = NexObject(4,  23, "vafry");
+  NexObject SpeedZ      = NexObject(4,  24, "vafrz");
+  NexObject SpeedE      = NexObject(4,  25, "vafre");
 
   /**
    *******************************************************************
    * Nextion component for page:Speed
    *******************************************************************
    */
-  NexObject Speed       = NexObject(6,  7,  "h0");
+  NexObject Speed       = NexObject(5,  7,  "h0");
 
   /**
    *******************************************************************
    * Nextion component for page:GCode
    *******************************************************************
    */
-  NexObject Tgcode      = NexObject(7,   1, "tgcode");
-  NexObject Send        = NexObject(7,  27, "bsend");
+  NexObject Tgcode      = NexObject(6,   1, "tgcode");
+  NexObject Send        = NexObject(6,  27, "bsend");
 
-  /**
-   *******************************************************************
-   * Nextion component for page:Rfid
-   *******************************************************************
-   */
-  NexObject Rfid0       = NexObject(8,  2,  "b0");
-  NexObject Rfid1       = NexObject(8,  3,  "b1");
-  NexObject Rfid2       = NexObject(8,  4,  "b2");
-  NexObject Rfid3       = NexObject(8,  5,  "b3");
-  NexObject Rfid4       = NexObject(8,  6,  "b4");
-  NexObject Rfid5       = NexObject(8,  7,  "b5");
-  NexObject RfidText    = NexObject(8,  8,  "t0");
-  NexObject RfidR       = NexObject(8,  9,  "bt0");
+  #if ENABLED(RFID_MODULE)
+
+    /**
+     *******************************************************************
+     * Nextion component for page:Rfid
+     *******************************************************************
+     */
+    NexObject Rfid0       = NexObject(7,  2,  "b0");
+    NexObject Rfid1       = NexObject(7,  3,  "b1");
+    NexObject Rfid2       = NexObject(7,  4,  "b2");
+    NexObject Rfid3       = NexObject(7,  5,  "b3");
+    NexObject Rfid4       = NexObject(7,  6,  "b4");
+    NexObject Rfid5       = NexObject(7,  7,  "b5");
+    NexObject RfidText    = NexObject(7,  8,  "t0");
+    NexObject RfidR       = NexObject(7,  9,  "bt0");
+
+  #endif
 
   /**
    *******************************************************************
@@ -277,94 +258,92 @@
    * Nextion component for page:Temp
    *******************************************************************
    */
-  NexObject theater     = NexObject(10,  1, "va0");
-  NexObject tenter      = NexObject(10,  2, "p5");
-  NexObject tset        = NexObject(10, 15, "tmp");
+  NexObject theater     = NexObject(9,   1, "va0");
+  NexObject tenter      = NexObject(9,   2, "p5");
+  NexObject tset        = NexObject(9,  15, "tmp");
 
   /**
    *******************************************************************
    * Nextion component for page:Info
    *******************************************************************
    */
-  NexObject InfoText    = NexObject(11, 2,  "t0");
-  NexObject ScrollText  = NexObject(11, 3,  "g0");
+  NexObject InfoText    = NexObject(10,  2, "t0");
+  NexObject ScrollText  = NexObject(10,  3, "g0");
 
   /**
    *******************************************************************
    * Nextion component for page:Yesno
    *******************************************************************
    */
-  NexObject Vyes        = NexObject(12, 2,  "va0");
-  NexObject Riga0       = NexObject(12, 4,  "t0");
-  NexObject Riga1       = NexObject(12, 5,  "t1");
-  NexObject Riga2       = NexObject(12, 6,  "t2");
-  NexObject Riga3       = NexObject(12, 7,  "t3");
-  NexObject Yes         = NexObject(12, 8,  "p1");
-  NexObject No          = NexObject(12, 9,  "p2");
+  NexObject Vyes        = NexObject(11, 2,  "va0");
+  NexObject Riga0       = NexObject(11, 4,  "t0");
+  NexObject Riga1       = NexObject(11, 5,  "t1");
+  NexObject Riga2       = NexObject(11, 6,  "t2");
+  NexObject Riga3       = NexObject(11, 7,  "t3");
+  NexObject Yes         = NexObject(11, 8,  "p1");
+  NexObject No          = NexObject(11, 9,  "p2");
 
   /**
    *******************************************************************
    * Nextion component for page:Filament
    *******************************************************************
    */
-  NexObject FilLoad     = NexObject(13,  3, "p2");
-  NexObject FilUnload   = NexObject(13,  4, "p3");
-  NexObject FilExtr     = NexObject(13,  5, "p4");
-  NexObject Filgcode    = NexObject(13, 10, "vacmd");
+  NexObject FilLoad     = NexObject(12,  3, "p2");
+  NexObject FilUnload   = NexObject(12,  4, "p3");
+  NexObject FilExtr     = NexObject(12,  5, "p4");
+  NexObject Filgcode    = NexObject(12, 10, "vacmd");
 
   /**
    *******************************************************************
    * Nextion component for page:Select
    *******************************************************************
    */
-  NexObject MenuRow1    = NexObject(14,  1, "t0");
-  NexObject MenuRow2    = NexObject(14,  2, "t1");
-  NexObject MenuRow3    = NexObject(14,  3, "t2");
-  NexObject MenuRow4    = NexObject(14,  4, "t3");
-  NexObject MenuRow5    = NexObject(14,  5, "t4");
-  NexObject MenuRow6    = NexObject(14,  6, "t5");
-  NexObject EncUp       = NexObject(14,  7, "p0");
-  NexObject EncSend     = NexObject(14,  8, "p1");
-  NexObject EncDown     = NexObject(14,  9, "p2");
-  NexObject EncMenu     = NexObject(14, 10, "p3");
+  NexObject MenuRow1    = NexObject(13,  1, "t0");
+  NexObject MenuRow2    = NexObject(13,  2, "t1");
+  NexObject MenuRow3    = NexObject(13,  3, "t2");
+  NexObject MenuRow4    = NexObject(13,  4, "t3");
+  NexObject MenuRow5    = NexObject(13,  5, "t4");
+  NexObject MenuRow6    = NexObject(13,  6, "t5");
+  NexObject EncUp       = NexObject(13,  7, "p0");
+  NexObject EncSend     = NexObject(13,  8, "p1");
+  NexObject EncDown     = NexObject(13,  9, "p2");
+  NexObject EncMenu     = NexObject(13, 10, "p3");
 
   NexObject *nex_listen_list[] =
   {
+    // Page 1 touch listen
+    &SDMenu,
+
     // Page 2 touch listen
     &FanTouch, &NPlay, &Light,
 
     // Page 3 touch listen
-    &sdlist, &ScrollUp, &ScrollDown, &sdrow0, &sdrow1, &sdrow2,
-    &sdrow3, &sdrow4, &sdrow5, &Folderup, &sd_mount, &sd_dismount,
-
-    // Page 4 touch listen
     &TxtMenu,
 
-    // Page 5 touch listen
+    // Page 4 touch listen
     &MotorOff, &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft,
     &ZHome, &ZUp, &ZDown,
     &Extrude, &Retract,
 
-    // Page 6 touch listen
+    // Page 5 touch listen
     &Speed,
 
-    // Page 7 touch listen
+    // Page 6 touch listen
     &Send,
 
-    // Page 8 touch listen
-    &Rfid0, &Rfid1, &Rfid2, &Rfid3, &Rfid4, &Rfid5,
+    #if ENABLED(RFID_MODULE)
+      // Page 7 touch listen
+      &Rfid0, &Rfid1, &Rfid2, &Rfid3, &Rfid4, &Rfid5,
+    #endif
 
-    // Page 10 touch listen
+    // Page 8 touch listen
     &tenter,
 
-    // Page 12 touch listen
+    // Page 11 touch listen
     &Yes, &No,
 
-    // Page 13 touch listen
+    // Page 12 touch listen
     &FilLoad, &FilUnload, &FilExtr,
-
-    // Page 14 touch listen
-    &EncUp, &EncDown, &EncSend, &EncMenu,
 
     NULL
   };
@@ -388,28 +367,6 @@
     NULL
   };
 
-  NexObject *row_list[] =
-  {
-    &sdrow0,
-    &sdrow1,
-    &sdrow2,
-    &sdrow3,
-    &sdrow4,
-    &sdrow5,
-    NULL
-  };
-
-  NexObject *folder_list[] =
-  {
-    &Folder0,
-    &Folder1,
-    &Folder2,
-    &Folder3,
-    &Folder4,
-    &Folder5,
-    NULL
-  };
-
   NexObject *speed_list[] =
   {
     &SpeedX,
@@ -419,37 +376,32 @@
     NULL
   };
 
-  /**
-   *
-   * Menu actions
-   *
-   */
-  static void setpagePrinter() {
+  void setpagePrinter() {
     char temp[10] = { 0 };
 
-    Version.setText(SHORT_BUILD_VERSION, "menu");
+    nexlcd.setText(Version, SHORT_BUILD_VERSION, "menu");
 
     #if HOTENDS > 0
-      Hotend00.setValue(1, "printer");
+      nexlcd.setValue(Hotend00, 1, PSTR("printer"));
       #if HOTENDS > 1
-        Hotend10.setValue(1, "printer");
+        nexlcd.setValue(Hotend10, 1, PSTR("printer"));
       #elif HAS_TEMP_CHAMBER
-        Chamber0.setValue(1, "printer");
+        nexlcd.setValue(Chamber0, 1, PSTR("printer"));
       #elif ENABLED(DHT_SENSOR)
-        DHT0.setValue(1, "printer");
+        nexlcd.setValue(DHT0, 1, PSTR("printer"));
       #endif
     #endif
 
     #if HAS_TEMP_BED
-      Bed0.setValue(1, "printer");
+      nexlcd.setValue(Bed0, 1, PSTR("printer"));
     #endif
 
-    Extruders.setValue(EXTRUDERS, "printer");
+    nexlcd.setValue(Extruders, EXTRUDERS, PSTR("printer"));
 
     LOOP_XYZE(i) {
       ZERO(temp);
       itoa(manual_feedrate_mm_m[i], temp, 10);
-      speed_list[i]->setText(temp, "move");
+      nexlcd.setText(*speed_list[i], temp, PSTR("move"));
     }
 
     #if HAS_SD_SUPPORT
@@ -461,26 +413,26 @@
       }
       else
         SDstatus = SD_NO_INSERT;
-      SD.setValue(SDstatus, "printer");
+      nexlcd.setValue(SD, SDstatus, PSTR("printer"));
     #endif
 
-    VSpeed.setValue(100, "printer");
+    nexlcd.setValue(VSpeed, 100, PSTR("printer"));
 
     #if FAN_COUNT > 0
-      Fan.setValue(1, "printer");
+      nexlcd.setValue(Fan, 1, PSTR("printer"));
     #endif
 
     #if HAS_CASE_LIGHT
-      LightStatus.setValue(caselight.status ? 2 : 1, "printer");
+      nexlcd.setValue(LightStatus, caselight.status ? 2 : 1, PSTR("printer"));
     #endif
 
     #if ENABLED(RFID_MODULE)
-      RFID.setValue(1, "printer");
+      nexlcd.setValue(RFID, 1, PSTR("printer"));
     #endif
 
     #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-    Language.setText(NEXTION_LANGUAGE, "printer");
+    nexlcd.setText(Language, NEXTION_LANGUAGE, PSTR("printer"));
   }
 
   #if HAS_SD_SUPPORT
@@ -493,147 +445,11 @@
       }
     }
 
-    static void printrowsd(uint8_t row, const bool folder, PGM_P filename) {
-      if (folder) {
-        folder_list[row]->SetVisibility(true);
-        row_list[row]->attachPop(sdfolderPopCallback, row_list[row]);
-      } else if (filename == "") {
-        folder_list[row]->SetVisibility(false);
-        row_list[row]->detachPop();
-      } else {
-        folder_list[row]->SetVisibility(false);
-        row_list[row]->attachPop(sdfilePopCallback, row_list[row]);
-      }
-      row_list[row]->setText(filename);
+    void SDMenuPopCallback() {
+      if (card.isOK()) lcdui.goto_screen(menu_sdcard);
     }
 
-    static void setrowsdcard(uint32_t number = 0) {
-      uint16_t fileCnt = card.get_num_Files();
-      uint32_t i = 0;
-      card.getWorkDirName();
-
-      if (card.fileName[0] != '/') {
-        Folderup.SetVisibility(true);
-        Folderup.attachPop(sdfolderUpPopCallback);
-        sdfolder.setText(card.fileName);
-      } else {
-        Folderup.detachPop();
-        Folderup.SetVisibility(false);
-        sdfolder.setText("");
-      }
-
-      if (fileCnt) {
-        for (uint8_t row = 0; row < 6; row++) {
-          i = row + number;
-          if (i < fileCnt) {
-            card.getfilename_sorted(i);
-            printrowsd(row, card.isFilenameIsDir(), card.fileName);
-          } else {
-            printrowsd(row, false, "");
-          }
-        }
-      }
-      sendCommand("ref 0");
-    }
-
-    static void menu_action_sdfile(PGM_P filename) {
-      card.openAndPrintFile(filename);
-      Pprinter.show();
-    }
-
-    static void menu_action_sddirectory(PGM_P filename) {
-      card.chdir(filename);
-      setpageSD();
-    }
-
-    void setpageSD() {
-      uint16_t fileCnt = card.get_num_Files();
-
-      if (fileCnt <= 6)
-        slidermaxval = 0;
-      else
-        slidermaxval  = fileCnt - 6;
-
-      uint16_t hig = 210 - slidermaxval * 10;
-      if (hig < 10) hig = 10;
-
-      sdlist.Set_cursor_height_hig(hig);
-      sdlist.setMaxval(slidermaxval);
-      sdlist.setValue(slidermaxval);
-      sendCommand("ref 0");
-
-      setrowsdcard();
-    }
-
-    void sdmountdismountPopCallback(void *ptr) {
-      if (ptr == &sd_mount) {
-        card.mount();
-        if (card.isOK())
-          SDstatus = SD_INSERT;
-        else
-          SDstatus = SD_NO_INSERT;
-        SD.setValue(SDstatus, "printer");
-      }
-      else {
-        card.unmount();
-        SDstatus = SD_NO_INSERT;
-        SD.setValue(SDstatus, "printer");
-      }
-      setpageSD();
-    }
-
-    void sdlistPopCallback(void *ptr) {
-      UNUSED(ptr);
-      uint16_t number = slidermaxval - sdlist.getValue();
-      setrowsdcard(number);
-    }
-
-    void sdfilePopCallback(void *ptr) {
-      ZERO(buffer);
-
-      if (ptr == &sdrow0)
-        sdrow0.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow1)
-        sdrow1.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow2)
-        sdrow2.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow3)
-        sdrow3.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow4)
-        sdrow4.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow5)
-        sdrow5.getText(buffer, sizeof(buffer));
-
-      menu_action_sdfile(buffer);
-    }
-
-    void sdfolderPopCallback(void *ptr) {
-      ZERO(buffer);
-
-      if (ptr == &sdrow0)
-        sdrow0.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow1)
-        sdrow1.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow2)
-        sdrow2.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow3)
-        sdrow3.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow4)
-        sdrow4.getText(buffer, sizeof(buffer));
-      else if (ptr == &sdrow5)
-        sdrow5.getText(buffer, sizeof(buffer));
-
-      menu_action_sddirectory(buffer);
-    }
-
-    void sdfolderUpPopCallback(void *ptr) {
-      UNUSED(ptr);
-      card.updir();
-      setpageSD();
-    }
-
-    void PlayPausePopCallback(void *ptr) {
-      UNUSED(ptr);
+    void PlayPausePopCallback() {
 
       if (card.isOK() && card.isFileOpen()) {
         if (IS_SD_PRINTING()) {
@@ -654,23 +470,23 @@
 
   #if ENABLED(RFID_MODULE)
 
-    void rfidPopCallback(void *ptr) {
+    void rfidPopCallback(NexObject *nexobject) {
       ZERO(buffer);
 
       String temp = "M522 ";
       uint16_t Rfid_read = RfidR.getValue();
 
-      if (ptr == &Rfid0)
+      if (nexobject == &Rfid0)
         temp += "T0 ";
-      else if (ptr == &Rfid1)
+      else if (nexobject == &Rfid1)
         temp += "T1 ";
-      else if (ptr == &Rfid2)
+      else if (nexobject == &Rfid2)
         temp += "T2 ";
-      else if (ptr == &Rfid3)
+      else if (nexobject == &Rfid3)
         temp += "T3 ";
-      else if (ptr == &Rfid4)
+      else if (nexobject == &Rfid4)
         temp += "T4 ";
-      else if (ptr == &Rfid5)
+      else if (nexobject == &Rfid5)
         temp += "T5 ";
 
       if(Rfid_read)
@@ -691,11 +507,10 @@
 
   #endif
 
-  void sethotPopCallback(void *ptr) {
-    UNUSED(ptr);
+  void sethotPopCallback() {
 
-    uint16_t  Heater      = theater.getValue(),
-              temperature = tset.getValue();
+    uint16_t  Heater      = nexlcd.getValue(theater),
+              temperature = nexlcd.getValue(tset);
 
     #if HAS_TEMP_BED
       if (Heater == 2)
@@ -711,49 +526,45 @@
       heaters[(uint8_t)Heater].setTarget(temperature);
     #endif
 
-    Pprinter.show();
+    nexlcd.show(Pprinter);
   }
 
-  void setgcodePopCallback(void *ptr) {
-    UNUSED(ptr);
+  void setgcodePopCallback() {
     ZERO(buffer);
-    Tgcode.getText(buffer, sizeof(buffer), "gcode");
-    Tgcode.setText("", "gcode");
+    nexlcd.getText(Tgcode, buffer, sizeof(buffer), PSTR("gcode"));
+    nexlcd.setText(Tgcode, "", PSTR("gcode"));
     commands.enqueue_and_echo(buffer);
   }
 
   #if FAN_COUNT > 0
-    void setfanPopCallback(void *ptr) {
-      UNUSED(ptr);
+    void setfanPopCallback() {
       fans[0].Speed = (fans[0].Speed ? 0 : 255);
-      Fanspeed.setValue(((float)(fans[0].Speed) / 255) * 100);
+      nexlcd.setValue(Fanspeed, ((float)(fans[0].Speed) / 255) * 100);
     }
   #endif
 
   #if HAS_CASE_LIGHT
-    void setlightPopCallback(void *ptr) {
-      UNUSED(ptr);
+    void setlightPopCallback() {
       caselight.status = !caselight.status;
       caselight.update();
     }
   #endif
 
-  void setmovePopCallback(void *ptr) {
-    UNUSED(ptr);
+  void setmovePopCallback() {
 
     #if EXTRUDERS > 1
       const uint8_t temp_extruder = tools.active_extruder;
       char temp[5] = { 0 };
 
       ZERO(buffer);
-      itoa(ext.getValue(), temp, 2);
+      itoa(nexlcd.getValue(ext), temp, 2);
       strcat(buffer, "T");
       strcat(buffer, temp);
       commands.enqueue_and_echo(buffer);
     #endif
 
     ZERO(buffer);
-    movecmd.getText(buffer, sizeof(buffer));
+    nexlcd.getText(movecmd, buffer, sizeof(buffer));
     commands.enqueue_and_echo_P(PSTR("G91"));
     commands.enqueue_and_echo(buffer);
     commands.enqueue_and_echo_P(PSTR("G90"));
@@ -767,15 +578,14 @@
     #endif
   }
 
-  void motoroffPopCallback(void *ptr) {
-    UNUSED(ptr);
+  void motoroffPopCallback() {
     commands.enqueue_and_echo_P(PSTR("M84"));
   }
 
-  void filamentPopCallback(void *ptr) {
+  void filamentPopCallback(NexObject *nexobject) {
     ZERO(buffer);
-    Filgcode.getText(buffer, sizeof(buffer));
-    if (ptr == &FilExtr)
+    nexlcd.getText(Filgcode, buffer, sizeof(buffer));
+    if (nexobject == &FilExtr)
       commands.enqueue_and_echo(buffer);
     else {
       commands.enqueue_and_echo_P(PSTR("G91"));
@@ -784,34 +594,34 @@
     }
   }
 
-  void YesNoPopCallback(void *ptr) {
+  void YesNoPopCallback(NexObject *nexobject) {
 
-    if (ptr == &Yes) {
-      switch(Vyes.getValue()) {
+    if (nexobject == &Yes) {
+      switch(nexlcd.getValue(Vyes)) {
         #if HAS_SD_SUPPORT
           case 1: // Stop Print
             card.setAbortSDprinting(true);
             lcdui.setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
-            Pprinter.show();
+            nexlcd.show(Pprinter);
             break;
           case 2: // Upload Firmware
             UploadNewFirmware(); break;
         #endif
         case 3: // Unconditional stop
           printer.setWaitForUser(false);
-          Pprinter.show();
+          nexlcd.show(Pprinter);
           break;
         default: break;
       }
     }
     else {
-      switch(Vyes.getValue()) {
+      switch(nexlcd.getValue(Vyes)) {
         #if HAS_SD_SUPPORT
           case 2:
-            Psetup.show(); break;
+            nexlcd.show(Psetup); break;
         #endif
         default:
-          Pprinter.show(); break;
+          nexlcd.show(Pprinter); break;
       }
     }
   }
@@ -820,18 +630,18 @@
 
     NOMORE(temp, 999);
 
-    heater_list0[h]->setValue(temp);
+    nexlcd.setValue(*heater_list0[h], temp);
 
     #if ENABLED(NEXTION_GFX)
-      if (!printer.isPrinting() && !Wavetemp.getObjVis() && show_Wave) {
-        Wavetemp.SetVisibility(true);
+      if (!printer.isPrinting() && !nexlcd.getObjVis(Wavetemp) && show_Wave) {
+        nexlcd.SetVisibility(Wavetemp, true);
       }
     #endif
 
   }
 
   static void targetdegtoLCD(const uint8_t h, const float temp) {
-    heater_list1[h]->setValue(temp);
+    nexlcd.setValue(*heater_list1[h], temp);
   }
 
   static void coordtoLCD() {
@@ -839,12 +649,12 @@
     ZERO(buffer);
 
     if (PageID == 2) {
-      LcdX.setText(ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
-      LcdY.setText(ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
-      LcdZ.setText(ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
+      nexlcd.setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
+      nexlcd.setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
+      nexlcd.setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
     else if (PageID == 5) {
-      if (printer.isXHomed()) {
+      if (printer.home_flag.isXHomed) {
         valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
         strcat(buffer, "X");
         strcat(buffer, valuetemp);
@@ -852,7 +662,7 @@
       else
         strcat(buffer, "?");
 
-      if (printer.isYHomed()) {
+      if (printer.home_flag.isYHomed) {
         valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
         strcat(buffer, " Y");
         strcat(buffer, valuetemp);
@@ -860,7 +670,7 @@
       else
         strcat(buffer, " ?");
 
-      if (printer.isZHomed()) {
+      if (printer.home_flag.isZHomed) {
         valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
         strcat(buffer, " Z");
         strcat(buffer, valuetemp);
@@ -868,7 +678,7 @@
       else
         strcat(buffer, " ?");
 
-      LedCoord5.setText(buffer);
+      nexlcd.setText(LedCoord5, buffer);
     }
   }
 
@@ -881,7 +691,7 @@
     static float    PreviousdegHeater[3] = { 0.0 },
                     PrevioustargetdegHeater[3] = { 0.0 };
 
-    if (!NextionON || PageID == 14) return;
+    if (!NextionON || PageID == 13) return;
 
     PageID = Nextion_PageID();
 
@@ -900,17 +710,17 @@
 
         #if FAN_COUNT > 0
           if (PreviousfanSpeed != fans[0].Speed) {
-            Fanspeed.setValue(((float)(fans[0].Speed) / 255) * 100);
+            nexlcd.setValue(Fanspeed, ((float)(fans[0].Speed) / 255) * 100);
             PreviousfanSpeed = fans[0].Speed;
           }
         #endif
 
         #if HAS_CASE_LIGHT
-          LightStatus.setValue(caselight.status ? 2 : 1);
+          nexlcd.setValue(LightStatus, caselight.status ? 2 : 1);
         #endif
 
         if (Previousfeedrate != mechanics.feedrate_percentage) {
-          VSpeed.setValue(mechanics.feedrate_percentage);
+          nexlcd.setValue(VSpeed, mechanics.feedrate_percentage);
           Previousfeedrate = mechanics.feedrate_percentage;
         }
 
@@ -963,7 +773,7 @@
 
         if (PreviouspercentDone != printer.progress) {
           // Progress bar solid part
-          progressbar.setValue(printer.progress);
+          nexlcd.setValue(progressbar, printer.progress);
           // Estimate End Time
           ZERO(buffer);
           char buffer1[10];
@@ -979,7 +789,7 @@
           else
             strcat(buffer, " E");
           strcat(buffer, buffer1);
-          LcdTime.setText(buffer);
+          nexlcd.setText(LcdTime, buffer);
           PreviouspercentDone = printer.progress;
         }
 
@@ -988,42 +798,32 @@
           if (card.isFileOpen()) {
             if (IS_SD_PRINTING() && SDstatus != SD_PRINTING) {
               SDstatus = SD_PRINTING;
-              SD.setValue(SDstatus);
+              nexlcd.setValue(SD, SDstatus);
             }
             else if (!IS_SD_PRINTING() && SDstatus != SD_PAUSE) {
               SDstatus = SD_PAUSE;
-              SD.setValue(SDstatus);
+              nexlcd.setValue(SD, SDstatus);
             }
           }
           else if (card.isOK() && SDstatus != SD_INSERT) {
             SDstatus = SD_INSERT;
-            SD.setValue(SDstatus);
+            nexlcd.setValue(SD, SDstatus);
           }
           else if (!card.isOK() && SDstatus != SD_NO_INSERT) {
             SDstatus = SD_NO_INSERT;
-            SD.setValue(SDstatus);
+            nexlcd.setValue(SD, SDstatus);
           }
 
         #endif // HAS_SD_SUPPORT
 
         break;
 
-      #if HAS_SD_SUPPORT
-        case 3:
-          if (PreviousPage != 3) setpageSD();
-          break;
-      #endif
+      case 4:
+        coordtoLCD();
+        break;
 
       case 5:
-        coordtoLCD();
-        break;
-
-      case 6:
-        Previousfeedrate = mechanics.feedrate_percentage = (int)VSpeed.getValue("printer");
-        break;
-
-      case 15:
-        coordtoLCD();
+        Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, PSTR("printer"));
         break;
 
       default: break;
@@ -1034,33 +834,18 @@
 
   }
 
-  void nextion_printer_view() {
-    if (PageID == 14) {
-      PageID = 2;
-      Pprinter.show();
-    }
-  }
-
-  void nextion_menu_view() { 
-    if (PageID != 14 || menu_redraw) {
-      PageID = 14;
-      Ptxtmenu.show();
-      menu_redraw = false;
-    }
-  }
-
   void lcd_scrollinfo(PGM_P titolo, PGM_P message) {
-    Pinfo.show();
-    InfoText.setText(titolo);
-    ScrollText.setText(message);
+    nexlcd.show(Pinfo);
+    nexlcd.setText(InfoText, titolo);
+    nexlcd.setText(ScrollText, message);
   }
 
   void lcd_yesno(const uint8_t val, PGM_P msg1, PGM_P msg2, PGM_P msg3) {
-    Vyes.setValue(val, "yesno");
-    Pyesno.show();
-    Riga0.setText(msg1);
-    Riga1.setText(msg2);
-    Riga3.setText(msg3);
+    nexlcd.setValue(Vyes, val, PSTR("yesno"));
+    nexlcd.show(Pyesno);
+    nexlcd.setText(Riga0, msg1);
+    nexlcd.setText(Riga1, msg2);
+    nexlcd.setText(Riga3, msg3);
   }
 
   #if ENABLED(NEXTION_GFX)
@@ -1074,7 +859,7 @@
 
     void gfx_clear(const float x, const float y, const float z, bool force_clear) {
       if (PageID == 2 && (printer.isPrinting() || force_clear)) {
-        Wavetemp.SetVisibility(false);
+        nexlcd.SetVisibility(Wavetemp, false);
         show_Wave = !force_clear;
         gfx.clear(x, y, z);
       }
@@ -1107,9 +892,19 @@
 
   #if HAS_LCD_MENU
 
-    constexpr uint8_t   lcd_width = 25;
+    constexpr uint8_t   lcd_width = 27;
     constexpr uint16_t  sel_color = 2016,
                         txt_color = 65535;
+
+    // Page txtmenu touch listen
+    NexObject *txtmenu_listen_list[] =
+    {
+      &EncUp,
+      &EncDown,
+      &EncSend,
+      &EncMenu,
+      NULL
+    };
 
     NexObject *menu_row_list[] =
     {
@@ -1128,16 +923,16 @@
       return click;
     }
 
-    void encoderPopCallback(void *ptr) {
-      if (ptr == &TxtMenu)
+    void encoderPopCallback(NexObject *nexobject) {
+      if (nexobject == &TxtMenu)
         lcdui.goto_screen(menu_main);
-      else if (ptr == &EncMenu)
+      else if (nexobject == &EncMenu)
         lcdui.return_to_status();
-      else if (ptr == &EncUp)
+      else if (nexobject == &EncUp)
         lcdui.encoderPosition += lcdui.encoderDirection;
-      else if (ptr == &EncDown)
+      else if (nexobject == &EncDown)
         lcdui.encoderPosition -= lcdui.encoderDirection;
-      else if (ptr == &EncSend) {
+      else if (nexobject == &EncSend) {
         lcdui.lcd_clicked = true;
         printer.setWaitForUser(false);
       }
@@ -1145,15 +940,64 @@
 
     inline static void nextion_put_space(const uint8_t row, const uint8_t len) {
       for (uint8_t i = 0; i < len; i++)
-        menu_row_list[row]->setChar(' ');
+        nexlcd.setChar(' ');
     }
 
-    inline static void nextion_put_char(const uint8_t row, PGM_P c, const uint8_t len) {
+    inline static void nextion_put_str(const uint8_t row, PGM_P str, const uint8_t len) {
       for (uint8_t i = 0; i < len; i++)
-        menu_row_list[row]->setChar(*c++);
+        nexlcd.setChar(*str++);
     }
 
-    void draw_edit_screen(PGM_P const pstr, PGM_P const value/*=NULL*/) {
+    inline static void mark_as_selected(const uint8_t row, const bool sel) {
+      if (sel) nexlcd.Set_font_color_pco(*menu_row_list[row], sel_color);
+      else nexlcd.Set_font_color_pco(*menu_row_list[row], txt_color);
+    }
+
+    // Draw a static line of text in the same idiom as a menu item
+    void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
+      UNUSED(center);
+
+      mark_as_selected(row, invert);
+
+      if (valstr != NULL) {
+        const uint8_t labellen  = utf8_strlen_P(pstr),
+                      vallen    = utf8_strlen(valstr);
+        nexlcd.startChar(*menu_row_list[row]);
+        nextion_put_str(row, pstr, labellen);
+        nextion_put_space(row, lcd_width - labellen - vallen - 1);
+        nextion_put_str(row, valstr, labellen);
+        nexlcd.endChar();
+      }
+      else
+        nexlcd.setText(*menu_row_list[row], pstr);
+    }
+
+    // Draw a generic menu item
+    void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
+      UNUSED(pre_char); UNUSED(post_char);
+      mark_as_selected(row, sel);
+      nexlcd.setText(*menu_row_list[row], pstr);
+    }
+
+    // Draw a menu item with an editable value
+    void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
+
+      const uint8_t labellen  = utf8_strlen_P(pstr);
+      const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
+
+      mark_as_selected(row, sel);
+      nexlcd.startChar(*menu_row_list[row]);
+      nextion_put_str(row, pstr, labellen);
+      nextion_put_str(row, ":", 1);
+      nextion_put_space(row, lcd_width - labellen - vallen - 1);
+      if (pgm)
+        nextion_put_str(row, data, labellen);
+      else
+        nextion_put_str(row, (char*)data, labellen);
+      nexlcd.endChar();
+    }
+
+    void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
 
       const uint8_t labellen  = utf8_strlen_P(pstr),
                     vallen    = utf8_strlen(value);
@@ -1162,65 +1006,38 @@
 
       constexpr uint8_t row = 2;
 
-      menu_row_list[row]->Set_font_color_pco(sel_color);
+      nexlcd.Set_font_color_pco(*menu_row_list[row], sel_color);
 
       if (extra_row) {
-        menu_row_list[row - 1]->Set_font_color_pco(sel_color);
-        menu_row_list[row - 1]->setText(pstr);
-        menu_row_list[row]->startChar();
+        nexlcd.Set_font_color_pco(*menu_row_list[row - 1], sel_color);
+        nexlcd.setText(*menu_row_list[row - 1], pstr);
+        nexlcd.startChar(*menu_row_list[row]);
         nextion_put_space(row, lcd_width - vallen - 1);
-        nextion_put_char(row, value, labellen);
+        nextion_put_str(row, value, labellen);
       }
       else {
-        menu_row_list[row]->startChar();
-        nextion_put_char(row, pstr, labellen);
-        nextion_put_char(row, ":", 1);
+        nexlcd.startChar(*menu_row_list[row]);
+        nextion_put_str(row, pstr, labellen);
+        nextion_put_str(row, ":", 1);
         nextion_put_space(row, lcd_width - labellen - vallen - 2);
-        nextion_put_char(row, value, labellen);
+        nextion_put_str(row, value, labellen);
       }
-      menu_row_list[row]->endChar();
+      nexlcd.endChar();
     }
 
-    void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
-      UNUSED(pre_char); UNUSED(post_char);
-      if (sel) menu_row_list[row]->Set_font_color_pco(sel_color);
-      else menu_row_list[row]->Set_font_color_pco(txt_color);
-      menu_row_list[row]->setText(pstr);
-    }
+    #if HAS_SD_SUPPORT
 
-    void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, PGM_P value/*=NULL*/) {
-      UNUSED(center); UNUSED(invert);
-
-      if (value != NULL) {
-        const uint8_t labellen  = utf8_strlen_P(pstr),
-                      vallen    = utf8_strlen(value);
-        menu_row_list[row]->startChar();
-        nextion_put_char(row, pstr, labellen);
-        nextion_put_space(row, lcd_width - labellen - vallen - 1);
-        nextion_put_char(row, value, labellen);
-        menu_row_list[row]->endChar();
+      void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir) {
+        UNUSED(pstr);
+        const uint8_t labellen = utf8_strlen(theCard.fileName);
+        mark_as_selected(row, sel);
+        nexlcd.startChar(*menu_row_list[row]);
+        if (isDir) nextion_put_str(row, LCD_STR_FOLDER, 2);
+        nextion_put_str(row, theCard.fileName, labellen);
+        nexlcd.endChar();
       }
-      else
-        menu_row_list[row]->setText(pstr);
-    }
 
-    void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P const data, const bool pgm) {
-
-      const uint8_t labellen  = utf8_strlen_P(pstr),
-                    vallen    = utf8_strlen(data);
-
-      if (sel) menu_row_list[row]->Set_font_color_pco(sel_color);
-      else menu_row_list[row]->Set_font_color_pco(txt_color);
-      menu_row_list[row]->startChar();
-      nextion_put_char(row, pstr, labellen);
-      nextion_put_char(row, ":", 1);
-      nextion_put_space(row, lcd_width - labellen - vallen - 1);
-      if (pgm)
-        nextion_put_char(row, data, labellen);
-      else
-        nextion_put_char(row, (char*)data, labellen);
-      menu_row_list[row]->endChar();
-    }
+    #endif // SDSUPPORT
 
     /**
      * If the most recent manual move hasn't been fed to the planner yet,
@@ -1274,12 +1091,93 @@
 
   #endif
 
+  static inline void PopCallback(NexObject *nexobject) {
+
+    if (nexobject == &tenter)             sethotPopCallback();
+    else if ( nexobject == &XYHome    ||
+              nexobject == &XYUp      ||
+              nexobject == &XYRight   ||
+              nexobject == &XYDown    ||
+              nexobject == &XYLeft    ||
+              nexobject == &ZHome     ||
+              nexobject == &ZUp       ||
+              nexobject == &ZDown     ||
+              nexobject == &Extrude   ||
+              nexobject == &Retract)      setmovePopCallback();
+    else if ( nexobject == &MotorOff)     motoroffPopCallback();
+    else if ( nexobject == &Send)         setgcodePopCallback();
+    else if ( nexobject == &Yes       ||
+              nexobject == &No)           YesNoPopCallback(nexobject);
+    else if ( nexobject == &FilLoad   ||
+              nexobject == &FilUnload ||
+              nexobject == &FilExtr)      filamentPopCallback(nexobject);
+    #if FAN_COUNT > 0
+      else if (nexobject == &FanTouch)    setfanPopCallback();
+    #endif
+    #if HAS_CASE_LIGHT
+      else if (nexobject == &Light)       setlightPopCallback();
+    #endif
+    #if ENABLED(RFID_MODULE)
+      else if ( nexobject == &Rfid0   ||
+                nexobject == &Rfid1   ||
+                nexobject == &Rfid2   ||
+                nexobject == &Rfid3   ||
+                nexobject == &Rfid4   ||
+                nexobject == &Rfid5)      rfidPopCallback(nexobject);
+    #endif
+    #if HAS_LCD_MENU
+      else if ( nexobject == &TxtMenu ||
+                nexobject == &EncUp   ||
+                nexobject == &EncDown ||
+                nexobject == &EncSend ||
+                nexobject == &EncMenu)    encoderPopCallback(nexobject);
+    #endif
+    #if HAS_SD_SUPPORT
+      else if (nexobject == &SDMenu)      SDMenuPopCallback();
+      else if (nexobject == &NPlay)       PlayPausePopCallback();
+    #endif
+
+  }
+
+  // Check the push button
+  static void nexLoop(NexObject *list[]) {
+    static uint8_t __buffer[10];
+    uint8_t i = 0;
+
+    if (list == NULL) return;
+
+    while (nexSerial.available()) {
+      HAL::delayMilliseconds(5);
+      uint8_t c = nexSerial.read();
+
+      if (c == NEX_RET_EVENT_TOUCH_HEAD) {
+        if (nexSerial.available() >= 6) {
+          __buffer[0] = c;
+          for (i = 1; i < 7; i++) __buffer[i] = nexSerial.read();
+          __buffer[i] = 0x00;
+
+          if (__buffer[4] == 0xFF && __buffer[5] == 0xFF && __buffer[6] == 0xFF) {
+            const uint8_t pid = __buffer[1];
+            const uint8_t cid = __buffer[2];
+            const int32_t event = (int32_t)__buffer[3];
+            for (i = 0; list[i] != NULL; i++) {
+              if (list[i]->__pid == pid && list[i]->__cid == cid) {
+                if (event == NEX_EVENT_POP) PopCallback(list[i]);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * LcdUI Function
    */
   void LcdUI::clear_lcd() {
-    menu_redraw = true;
-    nextion_menu_view();
+    PageID == 13;
+    nexlcd.show(Ptxtmenu);
   }
 
   void LcdUI::init() {
@@ -1341,61 +1239,8 @@
         gfx.color_set(NX_HIGH, 63488);
       #endif
 
-      #if HAS_SD_SUPPORT
-        sd_mount.attachPop(sdmountdismountPopCallback, &sd_mount);
-        sd_dismount.attachPop(sdmountdismountPopCallback, &sd_dismount);
-        sdlist.attachPop(sdlistPopCallback);
-        ScrollUp.attachPop(sdlistPopCallback);
-        ScrollDown.attachPop(sdlistPopCallback);
-        NPlay.attachPop(PlayPausePopCallback);
-      #endif
-
-      #if ENABLED(RFID_MODULE)
-        Rfid0.attachPop(rfidPopCallback,  &Rfid0);
-        Rfid1.attachPop(rfidPopCallback,  &Rfid1);
-        Rfid2.attachPop(rfidPopCallback,  &Rfid2);
-        Rfid3.attachPop(rfidPopCallback,  &Rfid3);
-        Rfid4.attachPop(rfidPopCallback,  &Rfid4);
-        Rfid5.attachPop(rfidPopCallback,  &Rfid5);
-      #endif
-
-      #if FAN_COUNT > 0
-        FanTouch.attachPop(setfanPopCallback, &FanTouch);
-      #endif
-
-      #if HAS_CASE_LIGHT
-        Light.attachPop(setlightPopCallback, &Light);
-      #endif
-
-      tenter.attachPop(sethotPopCallback,   &tenter);
-      XYHome.attachPop(setmovePopCallback);
-      XYUp.attachPop(setmovePopCallback);
-      XYRight.attachPop(setmovePopCallback);
-      XYDown.attachPop(setmovePopCallback);
-      XYLeft.attachPop(setmovePopCallback);
-      ZHome.attachPop(setmovePopCallback);
-      ZUp.attachPop(setmovePopCallback);
-      ZDown.attachPop(setmovePopCallback);
-      Extrude.attachPop(setmovePopCallback);
-      Retract.attachPop(setmovePopCallback);
-      MotorOff.attachPop(motoroffPopCallback);
-      Send.attachPop(setgcodePopCallback);
-      Yes.attachPop(YesNoPopCallback, &Yes);
-      No.attachPop(YesNoPopCallback, &No);
-      FilLoad.attachPop(filamentPopCallback);
-      FilUnload.attachPop(filamentPopCallback);
-      FilExtr.attachPop(filamentPopCallback);
-
-      #if HAS_LCD_MENU
-        TxtMenu.attachPop(encoderPopCallback, &TxtMenu);
-        EncUp.attachPop(encoderPopCallback, &EncUp);
-        EncDown.attachPop(encoderPopCallback, &EncDown);
-        EncSend.attachPop(encoderPopCallback, &EncSend);
-        EncMenu.attachPop(encoderPopCallback, &EncMenu);
-      #endif
-
       setpagePrinter();
-      startimer.enable();
+      nexlcd.enable(startimer);
     }
   }
 
@@ -1412,16 +1257,27 @@
 
   void LcdUI::update() {
     if (!NextionON) return;
-    nexLoop(nex_listen_list);
 
     #if HAS_LCD_MENU
-      static millis_t next_menu_update_ms;
-      const millis_t ms = millis();
-      if (ELAPSED(ms, next_menu_update_ms)) {
-        lcdui.run_current_screen();
-        next_menu_update_ms = ms + 250;
+
+      if (PageID == 13) {
+        static millis_t next_menu_update_ms;
+        const millis_t ms = millis();
+
+        // Read button Encoder touch
+        nexLoop(txtmenu_listen_list);
+
+        if (ELAPSED(ms, next_menu_update_ms)) {
+          lcdui.run_current_screen();
+          next_menu_update_ms = ms + 100;
+        }
       }
+      else
+
     #endif
+      {
+        nexLoop(nex_listen_list);
+      }
   }
 
   bool LcdUI::detected() { return NextionON; }
@@ -1436,7 +1292,7 @@
     UNUSED(persist);
     if (status_message_level > 0 || !NextionON) return;
     strncpy(status_message, message, 30);
-    if (PageID == 2) LcdStatus.setText(status_message);
+    if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
 
   void LcdUI::setstatusPGM(PGM_P message, int8_t level) {
@@ -1444,7 +1300,7 @@
     if (level < status_message_level || !NextionON) return;
     strncpy_P(status_message, message, 30);
     status_message_level = level;
-    if (PageID == 2) LcdStatus.setText(status_message);
+    if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
   
   void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
@@ -1454,7 +1310,7 @@
     va_start(args, fmt);
     vsnprintf(status_message, 30, fmt, args);
     va_end(args);
-    if (PageID == 2) LcdStatus.setText(status_message);
+    if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
 
   void LcdUI::reset_status() {
@@ -1476,7 +1332,12 @@
     lcdui.setstatusPGM(msg, -1);
   }
 
-  void LcdUI::status_screen() { nextion_printer_view(); }
+  void LcdUI::status_screen() {
+    if (PageID == 13) {
+      PageID = 2;
+      nexlcd.show(Pprinter);
+    }
+  }
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
@@ -1492,7 +1353,7 @@
       if (get_blink() || !heaters[hotend].isIdle())
         strcat(buffer, itostr3(heaters[hotend].target_temperature));
 
-      menu_row_list[row]->setText(buffer);
+      nexlcd.setText(*menu_row_list[row], buffer);
 
     }
 

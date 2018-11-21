@@ -771,7 +771,7 @@ void Stepper::disable_X() {
   #elif HAS_X_ENABLE
     X_ENABLE_WRITE(!X_ENABLE_ON);
   #endif
-  printer.setXHomed(false);
+  printer.home_flag.isXHomed = false;
 }
 
 void Stepper::enable_Y() {
@@ -789,7 +789,7 @@ void Stepper::disable_Y() {
   #elif HAS_Y_ENABLE
     Y_ENABLE_WRITE(!Y_ENABLE_ON);
   #endif
-  printer.setYHomed(false);
+  printer.home_flag.isYHomed = false;
 }
 
 void Stepper::enable_Z() {
@@ -825,7 +825,7 @@ void Stepper::disable_Z() {
   #elif HAS_Z_ENABLE
     Z_ENABLE_WRITE( !Z_ENABLE_ON);
   #endif
-  printer.setZHomed(false);
+  printer.home_flag.isZHomed = false;
 }
 
 void Stepper::enable_E() {

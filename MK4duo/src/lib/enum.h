@@ -213,6 +213,11 @@ enum MK4duoFontEnum : uint8_t {
   FONT_EDIT,
   FONT_MENU
 };
+enum HD44780CharSetEnum : uint8_t {
+  CHARSET_MENU,
+  CHARSET_INFO,
+  CHARSET_BOOT
+};
 
 /**
  * Probe raise

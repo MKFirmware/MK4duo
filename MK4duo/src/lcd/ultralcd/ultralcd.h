@@ -23,11 +23,7 @@
 
 #if HAS_SPI_LCD
 
-  #if HAS_GRAPHICAL_LCD
-    #include "dogm/ultralcd_DOGM.h"
-  #endif
-
-  #if ENABLED(ADC_KEYPAD)
+  #if HAS_ADC_BUTTONS
     uint8_t get_ADC_keyValue();
   #endif
 
@@ -68,7 +64,41 @@
 
   #endif // HAS_LCD_MENU
 
-#if HAS_DIGITAL_ENCODER
+#endif // HAS_SPI_LCD
+
+// REPRAPWORLD_KEYPAD (and ADC_KEYPAD)
+#if ENABLED(REPRAPWORLD_KEYPAD)
+  #define BTN_OFFSET          0 // Bit offset into buttons for shift register values
+
+  #define BLEN_KEYPAD_F3      0
+  #define BLEN_KEYPAD_F2      1
+  #define BLEN_KEYPAD_F1      2
+  #define BLEN_KEYPAD_DOWN    3
+  #define BLEN_KEYPAD_RIGHT   4
+  #define BLEN_KEYPAD_MIDDLE  5
+  #define BLEN_KEYPAD_UP      6
+  #define BLEN_KEYPAD_LEFT    7
+
+  #define EN_KEYPAD_F1      _BV(BTN_OFFSET + BLEN_KEYPAD_F1)
+  #define EN_KEYPAD_F2      _BV(BTN_OFFSET + BLEN_KEYPAD_F2)
+  #define EN_KEYPAD_F3      _BV(BTN_OFFSET + BLEN_KEYPAD_F3)
+  #define EN_KEYPAD_DOWN    _BV(BTN_OFFSET + BLEN_KEYPAD_DOWN)
+  #define EN_KEYPAD_RIGHT   _BV(BTN_OFFSET + BLEN_KEYPAD_RIGHT)
+  #define EN_KEYPAD_MIDDLE  _BV(BTN_OFFSET + BLEN_KEYPAD_MIDDLE)
+  #define EN_KEYPAD_UP      _BV(BTN_OFFSET + BLEN_KEYPAD_UP)
+  #define EN_KEYPAD_LEFT    _BV(BTN_OFFSET + BLEN_KEYPAD_LEFT)
+
+  #define RRK(B) (keypad_buttons & (B))
+
+  #ifdef EN_C
+    #define BUTTON_CLICK()  ((buttons & EN_C) || RRK(EN_KEYPAD_MIDDLE))
+  #else
+    #define BUTTON_CLICK()  RRK(EN_KEYPAD_MIDDLE)
+  #endif
+
+#endif
+
+#if HAS_DIGITAL_BUTTONS
 
   // Wheel spin pins where BA is 00, 10, 11, 01 (1 bit always changes)
   #define BLEN_A 0
@@ -85,51 +115,12 @@
     #define EN_C _BV(BLEN_C)
   #endif
 
-  #if BUTTON_EXISTS(BACK)
-    #define BLEN_D 3
-    #define EN_D _BV(BLEN_D)
-    #if ENABLED(INVERT_BACK_BUTTON)
-      #define LCD_BACK_CLICKED()  !(buttons & EN_D)
-    #else
-      #define LCD_BACK_CLICKED()  (buttons & EN_D)
-    #endif
-  #endif
-
-  #if ENABLED(REPRAPWORLD_KEYPAD)
-    #define REPRAPWORLD_BTN_OFFSET          0 // Bit offset into buttons for shift register values
-
-    #define BLEN_REPRAPWORLD_KEYPAD_F3      0
-    #define BLEN_REPRAPWORLD_KEYPAD_F2      1
-    #define BLEN_REPRAPWORLD_KEYPAD_F1      2
-    #define BLEN_REPRAPWORLD_KEYPAD_DOWN    3
-    #define BLEN_REPRAPWORLD_KEYPAD_RIGHT   4
-    #define BLEN_REPRAPWORLD_KEYPAD_MIDDLE  5
-    #define BLEN_REPRAPWORLD_KEYPAD_UP      6
-    #define BLEN_REPRAPWORLD_KEYPAD_LEFT    7
-
-    #define EN_REPRAPWORLD_KEYPAD_F1        (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_F1))
-    #define EN_REPRAPWORLD_KEYPAD_F2        (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_F2))
-    #define EN_REPRAPWORLD_KEYPAD_F3        (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_F3))
-    #define EN_REPRAPWORLD_KEYPAD_DOWN      (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_DOWN))
-    #define EN_REPRAPWORLD_KEYPAD_RIGHT     (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_RIGHT))
-    #define EN_REPRAPWORLD_KEYPAD_MIDDLE    (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_MIDDLE))
-    #define EN_REPRAPWORLD_KEYPAD_UP        (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_UP))
-    #define EN_REPRAPWORLD_KEYPAD_LEFT      (_BV(REPRAPWORLD_BTN_OFFSET + BLEN_REPRAPWORLD_KEYPAD_LEFT))
-
-    #define RRK(B) (buttons_reprapworld_keypad & (B))
-
-    #ifdef EN_C
-      #define BUTTON_CLICK() ((buttons & EN_C) || RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))
-    #else
-      #define BUTTON_CLICK() RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE)
-    #endif
-
-  #elif ENABLED(LCD_I2C_VIKI)
+  #if ENABLED(LCD_I2C_VIKI)
 
     #define B_I2C_BTN_OFFSET 3 // (the first three bit positions reserved for EN_A, EN_B, EN_C)
 
     // button and encoder bit positions within 'buttons'
-    #define B_LE (BUTTON_LEFT   << B_I2C_BTN_OFFSET)    // The remaining normalized buttons are all read via I2C
+    #define B_LE (BUTTON_LEFT   << B_I2C_BTN_OFFSET)      // The remaining normalized buttons are all read via I2C
     #define B_UP (BUTTON_UP     << B_I2C_BTN_OFFSET)
     #define B_MI (BUTTON_SELECT << B_I2C_BTN_OFFSET)
     #define B_DW (BUTTON_DOWN   << B_I2C_BTN_OFFSET)
@@ -150,8 +141,7 @@
       #endif
     #endif
 
-    // I2C buttons take too long to read inside an interrupt context and so we read them during lcdui.update
-    #define LCD_HAS_SLOW_BUTTONS
+    // I2C buttons take too long to read inside an interrupt context and so we read them during lcd_update
 
   #elif ENABLED(LCD_I2C_PANELOLU2)
 
@@ -161,21 +151,19 @@
 
       #define B_MI (PANELOLU2_ENCODER_C << B_I2C_BTN_OFFSET) // requires LiquidTWI2 library v1.2.3 or later
 
-      #undef BUTTON_CLICK()
       #if ENABLED(INVERT_CLICK_BUTTON)
         #define BUTTON_CLICK() !(buttons & B_MI)
       #else
         #define BUTTON_CLICK()  (buttons & B_MI)
       #endif
 
-      // I2C buttons take too long to read inside an interrupt context and so we read them during lcdui.update
-      #define LCD_HAS_SLOW_BUTTONS
-
     #endif
 
   #endif
 
 #else
+
+  #define BUTTON_EXISTS(BN) false
 
   // Shift register bits correspond to buttons:
   #define BL_LE 7   // Left
@@ -190,26 +178,30 @@
   #define B_DW (_BV(BL_DW))
   #define B_RI (_BV(BL_RI))
   #define B_ST (_BV(BL_ST))
+  #define BUTTON_CLICK() (buttons & (B_MI|B_ST))
 
-  #if ENABLED(INVERT_CLICK_BUTTON)
-    #define BUTTON_CLICK() !(buttons & (B_MI|B_ST))
+#endif
+
+#if BUTTON_EXISTS(BACK)
+  #define BLEN_D 3
+  #define EN_D _BV(BLEN_D)
+  #if ENABLED(INVERT_BACK_BUTTON)
+    #define LCD_BACK_CLICKED()  !(buttons & EN_D)
   #else
-    #define BUTTON_CLICK()  (buttons & (B_MI|B_ST))
+    #define LCD_BACK_CLICKED()  (buttons & EN_D)
   #endif
-
+#else
+  #define LCD_BACK_CLICKED()    false
 #endif
 
 #ifndef BUTTON_CLICK
   #ifdef EN_C
     #if ENABLED(INVERT_CLICK_BUTTON)
-      #define BUTTON_CLICK() !(buttons & EN_C)
+      #define BUTTON_CLICK()  !(buttons & EN_C)
     #else
-      #define BUTTON_CLICK() (buttons & EN_C)
+      #define BUTTON_CLICK()  (buttons & EN_C)
     #endif
   #else
-    #define BUTTON_CLICK() false
+    #define BUTTON_CLICK()    false
   #endif
 #endif
-
-#endif // HAS_SPI_LCD
-

@@ -87,6 +87,7 @@
 #include "control/m540.h"                 // Enable/disable SD card abort on endstop hit
 #include "control/m605.h"                 // Set dual x-carriage movement mode
 #include "control/m999.h"                 // Restart after being stopped
+#include "control/m9999.h"                // Banzai code for erase bootloader on DUE
 
 // Debug Commands
 #include "debug/m43.h"

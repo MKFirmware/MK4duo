@@ -68,11 +68,11 @@ class Com {
     // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
     static void printPGM(PGM_P);
 
-    static void write(char);
-    static void write(PGM_P);
+    static void write(const uint8_t c);
+    static void write(const char* str);
     static void write(const uint8_t* buffer, size_t size);
     static void print(const String& s);
-    static void print(PGM_P);
+    static void print(const char* str);
 
     static void print(char, int = BYTE);
     static void print(unsigned char, int = DEC);

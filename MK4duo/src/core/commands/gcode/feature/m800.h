@@ -50,16 +50,19 @@
   inline void gcode_M800(void) {
 
     if (!restart.valid()) {
+      #if HAS_LCD_MENU
+        if (parser.seen('S'))
+          lcdui.goto_screen(menu_sdcard_restart);
+        else
+      #endif
+        restart.resume_job();
+    }
+    else {
       #if ENABLED(DEBUG_RESTART)
         m800_error(restart.job_info.valid_head ? PSTR("No") : PSTR("Invalid"));
       #endif
-      return;
     }
 
-    if (parser.seen('S'))
-      return lcdui.goto_screen(menu_sdcard_restart);
-
-    restart.resume_job();
   }
 
 #endif // HAS_SD_RESTART

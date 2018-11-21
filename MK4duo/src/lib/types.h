@@ -37,6 +37,16 @@ union flagdir_t {
   flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
 };
 
+union flaghome_t {
+  uint8_t _byte;
+  struct {
+    bool  isXHomed  : 1;
+    bool  isYHomed  : 1;
+    bool  isZHomed  : 1;
+  };
+  flaghome_t() { _byte = 0; }
+};
+
 union flagbyte_t {
   uint8_t _byte;
   struct {

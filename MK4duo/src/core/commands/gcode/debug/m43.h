@@ -181,8 +181,7 @@
   /**
    * M43: Servo probe test/report
    *
-   *  M43 S       - Servo probe test
-   *                  P<index> - Probe index (optional - defaults to 0)
+   *  M43 S - Servo probe test
    */
   inline void gcode_M43(void) { if (parser.seen('S')) probe.servo_test(); }
 

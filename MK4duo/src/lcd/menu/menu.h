@@ -55,13 +55,13 @@ DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f );
 ///////// Menu Item Draw Functions /////////
 ////////////////////////////////////////////
 
-void draw_edit_screen(PGM_P const pstr, PGM_P const value=NULL);
+void draw_edit_screen(PGM_P const pstr, const char* const value=NULL);
 void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char);
-void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center=true, const bool invert=false, PGM_P valstr=NULL);
-void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P const data, const bool pgm);
+void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center=true, const bool invert=false, const char *valstr=NULL);
+void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm);
 FORCE_INLINE void draw_menu_item_back(const bool sel, const uint8_t row, PGM_P const pstr) { draw_menu_item(sel, row, pstr, LCD_STR_UPLEVEL[0], LCD_STR_UPLEVEL[0]); }
-FORCE_INLINE void draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P const data) { _draw_menu_item_edit(sel, row, pstr, data, false); }
-FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P const data) { _draw_menu_item_edit(sel, row, pstr, data, true); }
+FORCE_INLINE void draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data) { _draw_menu_item_edit(sel, row, pstr, data, false); }
+FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data) { _draw_menu_item_edit(sel, row, pstr, data, true); }
 #define draw_menu_item_submenu(sel, row, pstr, data)  draw_menu_item(sel, row, pstr, '>', LCD_STR_ARROW_RIGHT[0])
 #define draw_menu_item_gcode(sel, row, pstr, gcode)   draw_menu_item(sel, row, pstr, '>', ' ')
 #define draw_menu_item_function(sel, row, pstr, data) draw_menu_item(sel, row, pstr, '>', ' ')
@@ -69,9 +69,10 @@ FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P
 #define DRAW_BOOL_SETTING(sel, row, pstr, data)       draw_menu_item_edit_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
 #if ENABLED(SDSUPPORT)
-  void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir);
-  FORCE_INLINE void draw_menu_item_sdfile(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P longFilename) { draw_sd_menu_item(sel, row, pstr, longFilename, false); }
-  FORCE_INLINE void draw_menu_item_sdfolder(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P longFilename) { draw_sd_menu_item(sel, row, pstr, longFilename, true); }
+  class CardReader;
+  void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir);
+  FORCE_INLINE void draw_menu_item_sdfile(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard) { draw_sd_menu_item(sel, row, pstr, theCard, false); }
+  FORCE_INLINE void draw_menu_item_sdfolder(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard) { draw_sd_menu_item(sel, row, pstr, theCard, true); }
 #endif
 
 #if HAS_GRAPHICAL_LCD && (ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY) || ENABLED(MESH_EDIT_GFX_OVERLAY))

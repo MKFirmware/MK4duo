@@ -86,7 +86,7 @@ void menu_main() {
   START_MENU();
   MENU_BACK(MSG_WATCH);
 
-  #if HAS_SD_SUPPORT && !HAS_NEXTION_LCD
+  #if HAS_SD_SUPPORT
     if (card.isOK()) {
       if (card.isFileOpen()) {
         if (IS_SD_PRINTING())

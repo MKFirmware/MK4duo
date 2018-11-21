@@ -26,7 +26,7 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_LCD_MENU && HAS_SD_SUPPORT && !HAS_NEXTION_LCD
+#if HAS_LCD_MENU && HAS_SD_SUPPORT
 
 #if !PIN_EXISTS(SD_DETECT)
   void lcd_sd_refresh() {
@@ -40,6 +40,9 @@ void lcd_sd_updir() {
   encoderTopLine = 0;
   screen_changed = true;
   lcdui.refresh();
+  #if HAS_NEXTION_LCD
+    lcdui.clear_lcd();
+  #endif
 }
 
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
@@ -71,11 +74,11 @@ void lcd_sd_updir() {
 
 class MenuItem_sdfile {
   public:
-    static void action(PGM_P longFilename) {
+    static void action(CardReader &theCard) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         last_sdfile_encoderPosition = lcdui.encoderPosition;  // Save which file was selected for later use
       #endif
-      card.openAndPrintFile(longFilename);
+      card.openAndPrintFile(theCard.fileName);
       lcdui.return_to_status();
       lcdui.reset_status();
     }
@@ -83,13 +86,15 @@ class MenuItem_sdfile {
 
 class MenuItem_sdfolder {
   public:
-    static void action(PGM_P longFilename) {
-      card.chdir(longFilename);
+    static void action(CardReader &theCard) {
+      card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
       screen_changed = true;
       #if HAS_GRAPHICAL_LCD
         lcdui.drawing_screen = false;
+      #else HAS_NEXTION_LCD
+        lcdui.clear_lcd();
       #endif
       lcdui.refresh();
     }
@@ -118,9 +123,9 @@ void menu_sdcard() {
       card.getfilename_sorted(i);
 
       if (card.isFilenameIsDir())
-        MENU_ITEM(sdfolder, MSG_CARD_MENU, card.fileName);
+        MENU_ITEM(sdfolder, MSG_CARD_MENU, card);
       else
-        MENU_ITEM(sdfile, MSG_CARD_MENU, card.fileName);
+        MENU_ITEM(sdfile, MSG_CARD_MENU, card);
     }
     else {
       MENU_ITEM_DUMMY();
@@ -129,4 +134,4 @@ void menu_sdcard() {
   END_MENU();
 }
 
-#endif // HAS_LCD_MENU && HAS_SD_SUPPORT && !HAS_NEXTION_LCD
+#endif // HAS_LCD_MENU && HAS_SD_SUPPORT
