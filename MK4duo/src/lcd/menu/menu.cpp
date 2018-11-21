@@ -358,7 +358,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          draw_edit_screen(PSTR(MSG_IDEX_Z_OFFSET), ftostr43sign(tools.hotend_offset[Z_AXIS][tools.active_extruder]));
+          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(tools.hotend_offset[Z_AXIS][tools.active_extruder]));
         else
       #endif
           draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset[Z_AXIS]));

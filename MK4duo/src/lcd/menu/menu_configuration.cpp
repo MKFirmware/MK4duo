@@ -305,7 +305,7 @@ void menu_configuration() {
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      MENU_ITEM(submenu, MSG_IDEX_MENU, menu_DXC);
+      MENU_ITEM(submenu, MSG_DXC_MENU, menu_DXC);
     #endif
 
     #if ENABLED(BLTOUCH)

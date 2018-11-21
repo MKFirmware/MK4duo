@@ -319,8 +319,6 @@
 #define DEFAULT_chamberKp   10.00
 #define DEFAULT_chamberKi    0.1
 #define DEFAULT_chamberKd  300.0
-
-// FIND YOUR OWN: "M303 E-2 C8 S90" to run autotune on the chamber at 90 degreesC for 8 cycles.
 /***********************************************************************/
 
 
@@ -360,8 +358,6 @@
 #define DEFAULT_coolerKp 10.00
 #define DEFAULT_coolerKi .023
 #define DEFAULT_coolerKd 305.4
-
-// FIND YOUR OWN: "M303 E-3 C8 S90" to run autotune on the cooler at 90 degreesC for 8 cycles.
 /***********************************************************************/
 
 
