@@ -19,13 +19,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  *  endstops.h - manages endstops
  */
 
-#ifndef _ENDSTOPS_H_
-#define _ENDSTOPS_H_
+union flagendstop_t {
+  bool all;
+  struct {
+    bool  isEnabled         : 1;
+    bool  isGlobally        : 1;
+    bool  isSoftEndstop     : 1;
+    bool  isProbeEnabled    : 1;
+    bool  isG38EndstopHit   : 1;
+    bool  isMonitorEnabled  : 1;
+    bool  bit6              : 1;
+    bool  bit7              : 1;
+  };
+  flagendstop_t() { all = false; }
+};
 
 class Endstops {
 
@@ -34,6 +47,8 @@ class Endstops {
     Endstops() {}
 
   public: /** Public Parameters */
+
+    static flagendstop_t  flag;
 
     #if MECH(DELTA)
       static float  soft_endstop_radius_2;
@@ -62,8 +77,6 @@ class Endstops {
     static uint16_t live_state;
 
   private: /** Private Parameters */
-
-    static flagbyte_t  flag;
 
     static volatile uint8_t hit_state; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
@@ -145,43 +158,43 @@ class Endstops {
 
     // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {
-      flag.bit0 = onoff;
+      flag.isEnabled = onoff;
       resync();
     }
-    FORCE_INLINE static bool isEnabled() { return flag.bit0; }
+    FORCE_INLINE static bool isEnabled() { return flag.isEnabled; }
 
     // Flag bit 1 setGlobally
     FORCE_INLINE static void setGlobally(const bool onoff) {
-      flag.bit1 = onoff;
+      flag.isGlobally = onoff;
       setEnabled(onoff);
       resync();
     }
-    FORCE_INLINE static bool isGlobally() { return flag.bit1; }
+    FORCE_INLINE static bool isGlobally() { return flag.isGlobally; }
 
     // Flag bit 2 set Software Endstop
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
-      flag.bit2 = onoff;
+      flag.isSoftEndstop = onoff;
     }
-    FORCE_INLINE static bool isSoftEndstop() { return flag.bit2; }
+    FORCE_INLINE static bool isSoftEndstop() { return flag.isSoftEndstop; }
 
     // Flag bit 3 set Probe Enabled
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
-      flag.bit3 = onoff;
+      flag.isProbeEnabled = onoff;
       resync();
     }
-    FORCE_INLINE static bool isProbeEnabled() { return flag.bit3; }
+    FORCE_INLINE static bool isProbeEnabled() { return flag.isProbeEnabled; }
 
     // Flag bit 4 set G38 Endstop Hit
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
-      flag.bit4 = onoff;
+      flag.isG38EndstopHit = onoff;
     }
-    FORCE_INLINE static bool isG38EndstopHit() { return flag.bit4; }
+    FORCE_INLINE static bool isG38EndstopHit() { return flag.isG38EndstopHit; }
 
     // Flag bit 5 set Monitor Enabled
     FORCE_INLINE static void setMonitorEnabled(const bool onoff) {
-      flag.bit5 = onoff;
+      flag.isMonitorEnabled = onoff;
     }
-    FORCE_INLINE static bool isMonitorEnabled() { return flag.bit5; }
+    FORCE_INLINE static bool isMonitorEnabled() { return flag.isMonitorEnabled; }
 
     // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     FORCE_INLINE static void setNotHoming() {
@@ -214,5 +227,3 @@ class Endstops {
 };
 
 extern Endstops endstops;
-
-#endif /* _ENDSTOPS_H_ */

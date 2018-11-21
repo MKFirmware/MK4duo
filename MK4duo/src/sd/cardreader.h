@@ -19,12 +19,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #pragma once
 
 #if HAS_SD_SUPPORT
 
   #include "SDFat.h"
+
+  union flagcard_t {
+    bool all;
+    struct {
+      bool  isOK              : 1;
+      bool  isSaving          : 1;
+      bool  isSDprinting      : 1;
+      bool  isAutoreportSD    : 1;
+      bool  isAbortSDprinting : 1;
+      bool  isFilenameIsDir   : 1;
+      bool  bit6              : 1;
+      bool  bit7              : 1;
+    };
+    flagcard_t() { all = false; }
+  };
 
   class CardReader {
 
@@ -33,6 +47,8 @@
       CardReader() {};
 
     public: /** Public Parameters */
+
+      static flagcard_t flag;
 
       static SdFat      fat;
       static SdFile     gcode_file;
@@ -55,8 +71,6 @@
                   generatedBy[GENBY_SIZE];
 
     private: /** Private Parameters */
-
-      static flagbyte_t card_flag;
 
       static uint16_t nrFile_index;
 
@@ -196,28 +210,28 @@
       #endif
 
       // Card flag bit 0 SD OK
-      FORCE_INLINE static void setOK(const bool onoff) { card_flag.bit0 = onoff; }
-      FORCE_INLINE static bool isOK() { return card_flag.bit0; }
+      FORCE_INLINE static void setOK(const bool onoff) { flag.isOK = onoff; }
+      FORCE_INLINE static bool isOK() { return flag.isOK; }
 
       // Card flag bit 1 saving
-      FORCE_INLINE static void setSaving(const bool onoff) { card_flag.bit1 = onoff; }
-      FORCE_INLINE static bool isSaving() { return card_flag.bit1; }
+      FORCE_INLINE static void setSaving(const bool onoff) { flag.isSaving = onoff; }
+      FORCE_INLINE static bool isSaving() { return flag.isSaving; }
 
       // Card flag bit 2 printing
-      FORCE_INLINE static void setSDprinting(const bool onoff) { card_flag.bit2 = onoff; }
-      FORCE_INLINE static bool isSDprinting() { return card_flag.bit2; }
+      FORCE_INLINE static void setSDprinting(const bool onoff) { flag.isSDprinting = onoff; }
+      FORCE_INLINE static bool isSDprinting() { return flag.isSDprinting; }
 
       // Card flag bit 3 Autoreport SD
-      FORCE_INLINE static void setAutoreportSD(const bool onoff) { card_flag.bit3 = onoff; }
-      FORCE_INLINE static bool isAutoreportSD() { return card_flag.bit3; }
+      FORCE_INLINE static void setAutoreportSD(const bool onoff) { flag.isAutoreportSD = onoff; }
+      FORCE_INLINE static bool isAutoreportSD() { return flag.isAutoreportSD; }
 
       // Card flag bit 4 AbortSDprinting
-      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { card_flag.bit4 = onoff; }
-      FORCE_INLINE static bool isAbortSDprinting() { return card_flag.bit4; }
+      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.isAbortSDprinting = onoff; }
+      FORCE_INLINE static bool isAbortSDprinting() { return flag.isAbortSDprinting; }
 
       // Card flag bit 5 Filename is dir
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit5 = onoff; }
-      FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit5; }
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.isFilenameIsDir = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return flag.isFilenameIsDir; }
 
       static inline void pauseSDPrint() { setSDprinting(false); }
       static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }

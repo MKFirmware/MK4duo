@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * mechanics.h
@@ -26,15 +27,23 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _MECHANICS_H_
-#define _MECHANICS_H_
-
 #define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
 #define LOGICAL_Y_POSITION(POS) mechanics.native_to_logical(POS, Y_AXIS)
 #define LOGICAL_Z_POSITION(POS) mechanics.native_to_logical(POS, Z_AXIS)
 #define NATIVE_X_POSITION(POS)  mechanics.logical_to_native(POS, X_AXIS)
 #define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
+
+union flagdir_t {
+  int8_t dir;
+  struct {
+    int8_t X : 2;
+    int8_t Y : 2;
+    int8_t Z : 2;
+    int8_t E : 2;
+ };
+  flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
+};
 
 // Struct Mechanics data
 typedef struct {
@@ -312,5 +321,3 @@ class Mechanics {
 #elif IS_SCARA
   #include "scara_mechanics.h"
 #endif
-
-#endif /* _MECHANICS_H_ */

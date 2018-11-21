@@ -27,6 +27,44 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+union flaghome_t {
+  bool all;
+  struct {
+    bool  isXHomed  : 1;
+    bool  isYHomed  : 1;
+    bool  isZHomed  : 1;
+    bool  bit3      : 1;
+    bool  bit4      : 1;
+    bool  bit5      : 1;
+    bool  bit6      : 1;
+    bool  bit7      : 1;
+  };
+  flaghome_t() { all = false; }
+};
+
+union flagVarious_t {
+  uint16_t all;
+  struct {
+    bool  isRunning           : 1;
+    bool  isPosSaved          : 1;
+    bool  isRelativeMode      : 1;
+    bool  isVolumetric        : 1;
+    bool  isWaitForUser       : 1;
+    bool  isWaitForHeatUp     : 1;
+    bool  isAllowColdExtrude  : 1;
+    bool  isAutoreportTemp    : 1;
+    bool  isSuspendAutoreport : 1;
+    bool  isFilamentOut       : 1;
+    bool  IsG38Move           : 1;
+    bool  bit11  : 1;
+    bool  bit12  : 1;
+    bool  bit13  : 1;
+    bool  bit14  : 1;
+    bool  bit15  : 1;
+  };
+  flagVarious_t() { all = 0; }
+};
+
 extern const char axis_codes[NUM_AXIS];
 
 class Printer {
@@ -37,7 +75,8 @@ class Printer {
 
   public: /** Public Parameters */
 
-    static flaghome_t home_flag;  // For Homed
+    static flaghome_t     home_flag;    // For Homed
+    static flagVarious_t  various_flag; // For various
 
     static bool     axis_relative_modes[];
 
@@ -82,8 +121,6 @@ class Printer {
   private: /** Private Parameters */
 
     static flagbyte_t debug_flag;   // For debug
-
-    static flagword_t various_flag; // For various
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static millis_t axis_last_activity;
@@ -165,55 +202,55 @@ class Printer {
       }
     }
 
-    FORCE_INLINE static void unsetHomedAll() { home_flag._byte = 0; }
+    FORCE_INLINE static void unsetHomedAll() { home_flag.all = false; }
     FORCE_INLINE static bool isHomedAll() { return home_flag.isXHomed && home_flag.isYHomed && home_flag.isZHomed; }
 
     // Various flag bit 0 Running
-    FORCE_INLINE static void setRunning(const bool onoff) { various_flag.bit0 = onoff; }
-    FORCE_INLINE static bool isRunning() { return various_flag.bit0; }
+    FORCE_INLINE static void setRunning(const bool onoff) { various_flag.isRunning = onoff; }
+    FORCE_INLINE static bool isRunning() { return various_flag.isRunning; }
     FORCE_INLINE static bool isStopped() { return !isRunning(); }
 
     // Various flag bit 1 PosSaved
-    FORCE_INLINE static void setPosSaved(const bool onoff) { various_flag.bit1 = onoff; }
-    FORCE_INLINE static bool isPosSaved() { return various_flag.bit1; }
+    FORCE_INLINE static void setPosSaved(const bool onoff) { various_flag.isPosSaved = onoff; }
+    FORCE_INLINE static bool isPosSaved() { return various_flag.isPosSaved; }
 
     // Various flag bit 2 RelativeMode
-    FORCE_INLINE static void setRelativeMode(const bool onoff) { various_flag.bit2 = onoff; }
-    FORCE_INLINE static bool isRelativeMode() { return various_flag.bit2; }
+    FORCE_INLINE static void setRelativeMode(const bool onoff) { various_flag.isRelativeMode = onoff; }
+    FORCE_INLINE static bool isRelativeMode() { return various_flag.isRelativeMode; }
 
     // Various flag bit 3 Volumetric
-    FORCE_INLINE static void setVolumetric(const bool onoff) { various_flag.bit3 = onoff; }
-    FORCE_INLINE static bool isVolumetric() { return various_flag.bit3; }
+    FORCE_INLINE static void setVolumetric(const bool onoff) { various_flag.isVolumetric = onoff; }
+    FORCE_INLINE static bool isVolumetric() { return various_flag.isVolumetric; }
 
     // Various flag bit 4 WaitForUser
-    FORCE_INLINE static void setWaitForUser(const bool onoff) { various_flag.bit4 = onoff; }
-    FORCE_INLINE static bool isWaitForUser() { return various_flag.bit4; }
+    FORCE_INLINE static void setWaitForUser(const bool onoff) { various_flag.isWaitForUser = onoff; }
+    FORCE_INLINE static bool isWaitForUser() { return various_flag.isWaitForUser; }
 
     // Various flag bit 5 WaitForHeatUp
-    FORCE_INLINE static void setWaitForHeatUp(const bool onoff) { various_flag.bit5 = onoff; }
-    FORCE_INLINE static bool isWaitForHeatUp() { return various_flag.bit5; }
+    FORCE_INLINE static void setWaitForHeatUp(const bool onoff) { various_flag.isWaitForHeatUp = onoff; }
+    FORCE_INLINE static bool isWaitForHeatUp() { return various_flag.isWaitForHeatUp; }
 
     // Various flag bit 6 AllowColdExtrude
-    FORCE_INLINE static void setAllowColdExtrude(const bool onoff) { various_flag.bit6 = onoff; }
-    FORCE_INLINE static bool isAllowColdExtrude() { return various_flag.bit6; }
+    FORCE_INLINE static void setAllowColdExtrude(const bool onoff) { various_flag.isAllowColdExtrude = onoff; }
+    FORCE_INLINE static bool isAllowColdExtrude() { return various_flag.isAllowColdExtrude; }
 
     // Various flag bit 7 AutoreportTemp
-    FORCE_INLINE static void setAutoreportTemp(const bool onoff) { various_flag.bit7 = onoff; }
-    FORCE_INLINE static bool isAutoreportTemp() { return various_flag.bit7; }
+    FORCE_INLINE static void setAutoreportTemp(const bool onoff) { various_flag.isAutoreportTemp = onoff; }
+    FORCE_INLINE static bool isAutoreportTemp() { return various_flag.isAutoreportTemp; }
 
     // Various flag bit 8 SuspendAutoreport
-    FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.bit8 = onoff; }
-    FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.bit8; }
+    FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.isSuspendAutoreport = onoff; }
+    FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.isSuspendAutoreport; }
 
     // Various flag bit 9 FilamentOut
-    FORCE_INLINE static void setFilamentOut(const bool onoff) { various_flag.bit9 = onoff; }
-    FORCE_INLINE static bool isFilamentOut() { return various_flag.bit9; }
+    FORCE_INLINE static void setFilamentOut(const bool onoff) { various_flag.isFilamentOut = onoff; }
+    FORCE_INLINE static bool isFilamentOut() { return various_flag.isFilamentOut; }
 
     // Various flag bit 10 G38Move
-    FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.bit10 = onoff; }
-    FORCE_INLINE static bool IsG38Move() { return various_flag.bit10; }
+    FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.IsG38Move = onoff; }
+    FORCE_INLINE static bool IsG38Move() { return various_flag.IsG38Move; }
 
-    FORCE_INLINE static bool reset_flag() { home_flag._byte = 0; various_flag._word = 0; }
+    FORCE_INLINE static bool reset_flag() { home_flag.all = false; various_flag.all = 0; }
 
   private: /** Private Function */
 

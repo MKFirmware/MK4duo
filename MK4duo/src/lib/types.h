@@ -26,38 +26,17 @@
 typedef uint32_t  millis_t;
 typedef int8_t    pin_t;
 
-union flagdir_t {
-  int8_t dir;
-  struct {
-    int8_t X : 2;
-    int8_t Y : 2;
-    int8_t Z : 2;
-    int8_t E : 2;
- };
-  flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
-};
-
-union flaghome_t {
-  uint8_t _byte;
-  struct {
-    bool  isXHomed  : 1;
-    bool  isYHomed  : 1;
-    bool  isZHomed  : 1;
-  };
-  flaghome_t() { _byte = 0; }
-};
-
 union flagbyte_t {
   uint8_t _byte;
   struct {
-    byte bit0 : 1;
-    byte bit1 : 1;
-    byte bit2 : 1;
-    byte bit3 : 1;
-    byte bit4 : 1;
-    byte bit5 : 1;
-    byte bit6 : 1;
-    byte bit7 : 1;
+    bool bit0 : 1;
+    bool bit1 : 1;
+    bool bit2 : 1;
+    bool bit3 : 1;
+    bool bit4 : 1;
+    bool bit5 : 1;
+    bool bit6 : 1;
+    bool bit7 : 1;
   };
   flagbyte_t() { _byte = 0; }
 };
@@ -65,24 +44,24 @@ union flagbyte_t {
 union flagword_t {
   uint16_t _word;
   struct {
-    byte bit0   : 1;
-    byte bit1   : 1;
-    byte bit2   : 1;
-    byte bit3   : 1;
-    byte bit4   : 1;
-    byte bit5   : 1;
-    byte bit6   : 1;
-    byte bit7   : 1;
-    byte bit8   : 1;
-    byte bit9   : 1;
-    byte bit10  : 1;
-    byte bit11  : 1;
-    byte bit12  : 1;
-    byte bit13  : 1;
-    byte bit14  : 1;
-    byte bit15  : 1;
+    bool bit0   : 1;
+    bool bit1   : 1;
+    bool bit2   : 1;
+    bool bit3   : 1;
+    bool bit4   : 1;
+    bool bit5   : 1;
+    bool bit6   : 1;
+    bool bit7   : 1;
+    bool bit8   : 1;
+    bool bit9   : 1;
+    bool bit10  : 1;
+    bool bit11  : 1;
+    bool bit12  : 1;
+    bool bit13  : 1;
+    bool bit14  : 1;
+    bool bit15  : 1;
   };
   flagword_t() { _word = 0; }
 };
 
-#endif /* _ENUM_H_ */
+#endif /* _TYPES_H_ */

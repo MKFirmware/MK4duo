@@ -93,7 +93,7 @@
 #define MSG_UBL_UNHOMED                     _UxGT("Home XYZ prima")
 #define MSG_UBL_TOOLS                       _UxGT("Strumenti UBL")
 #define MSG_UBL_LEVEL_BED                   _UxGT("Unified Bed Leveling")
-#define MSG_DXC_MENU                        _UxGT("Modo IDEX")
+#define MSG_DXC_MENU                        _UxGT("Modo DXC")
 #define MSG_DXC_MODE_AUTOPARK               _UxGT("Auto-Park")
 #define MSG_DXC_MODE_DUPLICATE              _UxGT("Duplicazione")
 #define MSG_DXC_MODE_SCALED_COPY            _UxGT("Copia scalata")

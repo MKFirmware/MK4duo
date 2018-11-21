@@ -1,5 +1,6 @@
 ### Version 4.3.8 development
-*
+* Fix Dogm LCD
+* Add Text Menu SD to Nextion 4.3"
 
 ### Version 4.3.7
 * Add Command:

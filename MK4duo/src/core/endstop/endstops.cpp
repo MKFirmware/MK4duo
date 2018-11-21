@@ -30,6 +30,7 @@
 Endstops endstops;
 
 // public:
+flagendstop_t Endstops::flag;
 
 #if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
@@ -57,8 +58,6 @@ flagword_t  Endstops::logic_flag,
 uint16_t  Endstops::live_state  = 0;
 
 // Private
-flagbyte_t Endstops::flag;
-
 volatile uint8_t Endstops::hit_state = 0;
 
 /**

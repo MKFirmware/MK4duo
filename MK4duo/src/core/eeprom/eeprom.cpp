@@ -1876,7 +1876,7 @@ void EEPROM::reset() {
       fdata->min_Speed            = FAN_MIN_PWM;
       fdata->triggerTemperature   = HOTEND_AUTO_FAN_TEMPERATURE;
       fdata->autoMonitored        = 0;
-      fdata->flag._byte           = 0;
+      fdata->flag.all             = false;
       fan->setAutoMonitored((int8_t)pgm_read_byte(&tmp6[f]));
       fan->setHWInverted(FAN_INVERTED);
       #if ENABLED(TACHOMETRIC)
