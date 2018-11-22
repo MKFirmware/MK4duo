@@ -654,7 +654,7 @@
       nexlcd.setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
     else if (PageID == 5) {
-      if (printer.home_flag.isXHomed) {
+      if (printer.home_flag.XHomed) {
         valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
         strcat(buffer, "X");
         strcat(buffer, valuetemp);
@@ -662,7 +662,7 @@
       else
         strcat(buffer, "?");
 
-      if (printer.home_flag.isYHomed) {
+      if (printer.home_flag.YHomed) {
         valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
         strcat(buffer, " Y");
         strcat(buffer, valuetemp);
@@ -670,7 +670,7 @@
       else
         strcat(buffer, " ?");
 
-      if (printer.home_flag.isZHomed) {
+      if (printer.home_flag.ZHomed) {
         valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
         strcat(buffer, " Z");
         strcat(buffer, valuetemp);

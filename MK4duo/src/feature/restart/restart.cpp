@@ -151,7 +151,7 @@
     #if Z_HOME_DIR > 0
       mechanics.home();
     #else
-      printer.home_flag.isZHomed = true;
+      printer.home_flag.ZHomed = true;
       stepper.enable_Z();
       dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
       sprintf_P(cmd, PSTR("G92 Z%s"), str1);

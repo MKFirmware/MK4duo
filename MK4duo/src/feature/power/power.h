@@ -19,9 +19,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _POWER_H_
-#define _POWER_H_
+union flagpower_t {
+  bool all;
+  struct {
+    bool  Logic   : 1;
+    bool  Pullup  : 1;
+    bool  bit2    : 1;
+    bool  bit3    : 1;
+    bool  bit4    : 1;
+    bool  bit5    : 1;
+    bool  bit6    : 1;
+    bool  bit7    : 1;
+  };
+  flagpower_t() { all = false; }
+};
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
@@ -33,6 +46,8 @@
 
     public: /** Public Parameters */
 
+      static flagpower_t flag;
+
       #if HAS_POWER_CONSUMPTION_SENSOR
         static int16_t  current_raw_powconsumption;
         static float    consumption_meas;   // holds the power consumption as accurately measured
@@ -41,8 +56,6 @@
       #endif
 
     private: /** Private Parameters */
-
-      static flagbyte_t  flag;
 
       #if HAS_POWER_SWITCH
         static bool powersupply_on;
@@ -101,12 +114,12 @@
       #endif
 
       // Flag bit 0 Set power check logic
-      FORCE_INLINE static void setLogic(const bool logic) { flag.bit0 = logic; }
-      FORCE_INLINE static bool isLogic() { return flag.bit0; }
+      FORCE_INLINE static void setLogic(const bool logic) { flag.Logic = logic; }
+      FORCE_INLINE static bool isLogic() { return flag.Logic; }
 
       // Flag bit 1 Set power check pullup
-      FORCE_INLINE static void setPullup(const bool pullup) { flag.bit1 = pullup; }
-      FORCE_INLINE static bool isPullup() { return flag.bit1; }
+      FORCE_INLINE static void setPullup(const bool pullup) { flag.Pullup = pullup; }
+      FORCE_INLINE static bool isPullup() { return flag.Pullup; }
 
     private: /** Private Function */
 
@@ -119,5 +132,3 @@
   extern Power powerManager;
 
 #endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR
-
-#endif /* _POWER_H_ */

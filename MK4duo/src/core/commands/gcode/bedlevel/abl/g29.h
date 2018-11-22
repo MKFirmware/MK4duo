@@ -133,7 +133,7 @@ inline void gcode_G29(void) {
   // G29 Q is also available if debugging
   #if ENABLED(DEBUG_FEATURE)
     const uint8_t old_debug_flags = printer.getDebugFlags();
-    if (seenQ) printer.debugSet(MK4DUO_DEBUG_FEATURE);
+    if (seenQ) printer.debug_flag.feature = true;
     if (printer.debugFeature()) {
       DEBUG_POS(">>> G29", mechanics.current_position);
       mechanics.log_machine_info();

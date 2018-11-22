@@ -32,6 +32,7 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
+flagdebug_t   Printer::debug_flag;    // For debug
 flaghome_t    Printer::home_flag;     // For Homed
 flagVarious_t Printer::various_flag;  // For various
 
@@ -97,7 +98,7 @@ PrinterModeEnum Printer::mode =
 
 // Private
 
-flagbyte_t  Printer::debug_flag;  // For debug
+
 
 /**
  * Public Function
@@ -1038,14 +1039,14 @@ void Printer::setup_pinout() {
  * Flags Function
  */
 void Printer::setDebugLevel(const uint8_t newLevel) {
-  if (newLevel != debug_flag._byte) {
-    debug_flag._byte = newLevel;
+  if (newLevel != debug_flag.all) {
+    debug_flag.all = newLevel;
     if (debugDryrun() || debugSimulation()) {
       // Disable all heaters in case they were on
       thermalManager.disable_all_heaters();
     }
   }
-  SERIAL_EMV("DebugLevel:", (int)debug_flag._byte);
+  SERIAL_EMV("DebugLevel:", (int)debug_flag.all);
 }
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)

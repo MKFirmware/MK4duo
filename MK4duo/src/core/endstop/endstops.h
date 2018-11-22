@@ -28,14 +28,14 @@
 union flagendstop_t {
   bool all;
   struct {
-    bool  isEnabled         : 1;
-    bool  isGlobally        : 1;
-    bool  isSoftEndstop     : 1;
-    bool  isProbeEnabled    : 1;
-    bool  isG38EndstopHit   : 1;
-    bool  isMonitorEnabled  : 1;
-    bool  bit6              : 1;
-    bool  bit7              : 1;
+    bool  Enabled         : 1;
+    bool  Globally        : 1;
+    bool  SoftEndstop     : 1;
+    bool  ProbeEnabled    : 1;
+    bool  G38EndstopHit   : 1;
+    bool  MonitorEnabled  : 1;
+    bool  bit6            : 1;
+    bool  bit7            : 1;
   };
   flagendstop_t() { all = false; }
 };
@@ -158,43 +158,43 @@ class Endstops {
 
     // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {
-      flag.isEnabled = onoff;
+      flag.Enabled = onoff;
       resync();
     }
-    FORCE_INLINE static bool isEnabled() { return flag.isEnabled; }
+    FORCE_INLINE static bool isEnabled() { return flag.Enabled; }
 
     // Flag bit 1 setGlobally
     FORCE_INLINE static void setGlobally(const bool onoff) {
-      flag.isGlobally = onoff;
+      flag.Globally = onoff;
       setEnabled(onoff);
       resync();
     }
-    FORCE_INLINE static bool isGlobally() { return flag.isGlobally; }
+    FORCE_INLINE static bool isGlobally() { return flag.Globally; }
 
     // Flag bit 2 set Software Endstop
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
-      flag.isSoftEndstop = onoff;
+      flag.SoftEndstop = onoff;
     }
-    FORCE_INLINE static bool isSoftEndstop() { return flag.isSoftEndstop; }
+    FORCE_INLINE static bool isSoftEndstop() { return flag.SoftEndstop; }
 
     // Flag bit 3 set Probe Enabled
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
-      flag.isProbeEnabled = onoff;
+      flag.ProbeEnabled = onoff;
       resync();
     }
-    FORCE_INLINE static bool isProbeEnabled() { return flag.isProbeEnabled; }
+    FORCE_INLINE static bool isProbeEnabled() { return flag.ProbeEnabled; }
 
     // Flag bit 4 set G38 Endstop Hit
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
-      flag.isG38EndstopHit = onoff;
+      flag.G38EndstopHit = onoff;
     }
-    FORCE_INLINE static bool isG38EndstopHit() { return flag.isG38EndstopHit; }
+    FORCE_INLINE static bool isG38EndstopHit() { return flag.G38EndstopHit; }
 
     // Flag bit 5 set Monitor Enabled
     FORCE_INLINE static void setMonitorEnabled(const bool onoff) {
-      flag.isMonitorEnabled = onoff;
+      flag.MonitorEnabled = onoff;
     }
-    FORCE_INLINE static bool isMonitorEnabled() { return flag.isMonitorEnabled; }
+    FORCE_INLINE static bool isMonitorEnabled() { return flag.MonitorEnabled; }
 
     // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
     FORCE_INLINE static void setNotHoming() {

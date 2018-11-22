@@ -78,7 +78,7 @@ void menu_delta_calibrate() {
     #endif
   #endif
   MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
-  if (printer.home_flag.isZHomed) {
+  if (printer.home_flag.ZHomed) {
     MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
     MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
     MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);

@@ -281,23 +281,23 @@ void menu_advanced_temperature() {
     #endif
     planner.reset_acceleration_rates();
   }
-  #if DRIVER_EXTRUDERS > 1
+  #if EXTRUDERS > 1
     void _reset_e_acceleration_rate(const uint8_t e) { if (e == tools.active_extruder) _reset_acceleration_rates(); }
     void _reset_e0_acceleration_rate() { _reset_e_acceleration_rate(0); }
     void _reset_e1_acceleration_rate() { _reset_e_acceleration_rate(1); }
-    #if DRIVER_EXTRUDERS > 2
+    #if EXTRUDERS > 2
       void _reset_e2_acceleration_rate() { _reset_e_acceleration_rate(2); }
-      #if DRIVER_EXTRUDERS > 3
+      #if EXTRUDERS > 3
         void _reset_e3_acceleration_rate() { _reset_e_acceleration_rate(3); }
-        #if DRIVER_EXTRUDERS > 4
+        #if EXTRUDERS > 4
           void _reset_e4_acceleration_rate() { _reset_e_acceleration_rate(4); }
-          #if DRIVER_EXTRUDERS > 5
+          #if EXTRUDERS > 5
             void _reset_e5_acceleration_rate() { _reset_e_acceleration_rate(5); }
-          #endif // DRIVER_EXTRUDERS > 5
-        #endif // DRIVER_EXTRUDERS > 4
-      #endif // DRIVER_EXTRUDERS > 3
-    #endif // DRIVER_EXTRUDERS > 2
-  #endif // DRIVER_EXTRUDERS > 1
+          #endif // EXTRUDERS > 5
+        #endif // EXTRUDERS > 4
+      #endif // EXTRUDERS > 3
+    #endif // EXTRUDERS > 2
+  #endif // EXTRUDERS > 1
 
   void _mechanics_refresh_positioning() {
     #if MECH(DELTA)
@@ -305,7 +305,7 @@ void menu_advanced_temperature() {
     #endif
     planner.refresh_positioning();
   }
-  #if DRIVER_EXTRUDERS > 1
+  #if EXTRUDERS > 1
     void _mechanics_refresh_e_positioning(const uint8_t e) {
       if (e == tools.active_extruder)
         _mechanics_refresh_positioning();
@@ -314,19 +314,19 @@ void menu_advanced_temperature() {
     }
     void _mechanics_refresh_e0_positioning() { _mechanics_refresh_e_positioning(0); }
     void _mechanics_refresh_e1_positioning() { _mechanics_refresh_e_positioning(1); }
-    #if DRIVER_EXTRUDERS > 2
+    #if EXTRUDERS > 2
       void _mechanics_refresh_e2_positioning() { _mechanics_refresh_e_positioning(2); }
-      #if DRIVER_EXTRUDERS > 3
+      #if EXTRUDERS > 3
         void _mechanics_refresh_e3_positioning() { _mechanics_refresh_e_positioning(3); }
-        #if DRIVER_EXTRUDERS > 4
+        #if EXTRUDERS > 4
           void _mechanics_refresh_e4_positioning() { _mechanics_refresh_e_positioning(4); }
-          #if DRIVER_EXTRUDERS > 5
+          #if EXTRUDERS > 5
             void _mechanics_refresh_e5_positioning() { _mechanics_refresh_e_positioning(5); }
-          #endif // DRIVER_EXTRUDERS > 5
-        #endif // DRIVER_EXTRUDERS > 4
-      #endif // DRIVER_EXTRUDERS > 3
-    #endif // DRIVER_EXTRUDERS > 2
-  #endif // DRIVER_EXTRUDERS > 1
+          #endif // EXTRUDERS > 5
+        #endif // EXTRUDERS > 4
+      #endif // EXTRUDERS > 3
+    #endif // EXTRUDERS > 2
+  #endif // EXTRUDERS > 1
 
   #if MECH(DELTA)
     void _mechanics_set_feedrate() {
@@ -348,22 +348,22 @@ void menu_advanced_temperature() {
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_Z, &mechanics.data.max_feedrate_mm_s[Z_AXIS], 1, 999);
     #endif
 
-    #if DRIVER_EXTRUDERS > 1
+    #if EXTRUDERS > 1
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.data.max_feedrate_mm_s[E_AXIS + tools.active_extruder], 1, 999);
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E1, &mechanics.data.max_feedrate_mm_s[E_AXIS], 1, 999);
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E2, &mechanics.data.max_feedrate_mm_s[E_AXIS + 1], 1, 999);
-      #if DRIVER_EXTRUDERS > 2
+      #if EXTRUDERS > 2
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E3, &mechanics.data.max_feedrate_mm_s[E_AXIS + 2], 1, 999);
-        #if DRIVER_EXTRUDERS > 3
+        #if EXTRUDERS > 3
           MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E4, &mechanics.data.max_feedrate_mm_s[E_AXIS + 3], 1, 999);
-          #if DRIVER_EXTRUDERS > 4
+          #if EXTRUDERS > 4
             MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E5, &mechanics.data.max_feedrate_mm_s[E_AXIS + 4], 1, 999);
-            #if DRIVER_EXTRUDERS > 5
+            #if EXTRUDERS > 5
               MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E6, &mechanics.data.max_feedrate_mm_s[E_AXIS + 5], 1, 999);
-            #endif // DRIVER_EXTRUDERS > 5
-          #endif // DRIVER_EXTRUDERS > 4
-        #endif // DRIVER_EXTRUDERS > 3
-      #endif // DRIVER_EXTRUDERS > 2
+            #endif // EXTRUDERS > 5
+          #endif // EXTRUDERS > 4
+        #endif // EXTRUDERS > 3
+      #endif // EXTRUDERS > 2
     #else
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.data.max_feedrate_mm_s[E_AXIS], 1, 999);
     #endif

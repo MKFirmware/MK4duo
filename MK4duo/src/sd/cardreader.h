@@ -28,14 +28,14 @@
   union flagcard_t {
     bool all;
     struct {
-      bool  isOK              : 1;
-      bool  isSaving          : 1;
-      bool  isSDprinting      : 1;
-      bool  isAutoreportSD    : 1;
-      bool  isAbortSDprinting : 1;
-      bool  isFilenameIsDir   : 1;
-      bool  bit6              : 1;
-      bool  bit7              : 1;
+      bool  OK              : 1;
+      bool  Saving          : 1;
+      bool  SDprinting      : 1;
+      bool  AutoreportSD    : 1;
+      bool  AbortSDprinting : 1;
+      bool  FilenameIsDir   : 1;
+      bool  bit6            : 1;
+      bool  bit7            : 1;
     };
     flagcard_t() { all = false; }
   };
@@ -210,28 +210,28 @@
       #endif
 
       // Card flag bit 0 SD OK
-      FORCE_INLINE static void setOK(const bool onoff) { flag.isOK = onoff; }
-      FORCE_INLINE static bool isOK() { return flag.isOK; }
+      FORCE_INLINE static void setOK(const bool onoff) { flag.OK = onoff; }
+      FORCE_INLINE static bool isOK() { return flag.OK; }
 
       // Card flag bit 1 saving
-      FORCE_INLINE static void setSaving(const bool onoff) { flag.isSaving = onoff; }
-      FORCE_INLINE static bool isSaving() { return flag.isSaving; }
+      FORCE_INLINE static void setSaving(const bool onoff) { flag.Saving = onoff; }
+      FORCE_INLINE static bool isSaving() { return flag.Saving; }
 
       // Card flag bit 2 printing
-      FORCE_INLINE static void setSDprinting(const bool onoff) { flag.isSDprinting = onoff; }
-      FORCE_INLINE static bool isSDprinting() { return flag.isSDprinting; }
+      FORCE_INLINE static void setSDprinting(const bool onoff) { flag.SDprinting = onoff; }
+      FORCE_INLINE static bool isSDprinting() { return flag.SDprinting; }
 
       // Card flag bit 3 Autoreport SD
-      FORCE_INLINE static void setAutoreportSD(const bool onoff) { flag.isAutoreportSD = onoff; }
-      FORCE_INLINE static bool isAutoreportSD() { return flag.isAutoreportSD; }
+      FORCE_INLINE static void setAutoreportSD(const bool onoff) { flag.AutoreportSD = onoff; }
+      FORCE_INLINE static bool isAutoreportSD() { return flag.AutoreportSD; }
 
       // Card flag bit 4 AbortSDprinting
-      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.isAbortSDprinting = onoff; }
-      FORCE_INLINE static bool isAbortSDprinting() { return flag.isAbortSDprinting; }
+      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.AbortSDprinting = onoff; }
+      FORCE_INLINE static bool isAbortSDprinting() { return flag.AbortSDprinting; }
 
       // Card flag bit 5 Filename is dir
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.isFilenameIsDir = onoff; }
-      FORCE_INLINE static bool isFilenameIsDir() { return flag.isFilenameIsDir; }
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.FilenameIsDir = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
 
       static inline void pauseSDPrint() { setSDprinting(false); }
       static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }

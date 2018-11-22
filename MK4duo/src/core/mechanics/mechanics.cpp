@@ -220,9 +220,9 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !printer.home_flag.isXHomed,
-              yy = y && !printer.home_flag.isYHomed,
-              zz = z && !printer.home_flag.isZHomed;
+  const bool  xx = x && !printer.home_flag.XHomed,
+              yy = y && !printer.home_flag.YHomed,
+              zz = z && !printer.home_flag.ZHomed;
 
   if (xx || yy || zz) {
     SERIAL_SM(ECHO, MSG_HOME " ");

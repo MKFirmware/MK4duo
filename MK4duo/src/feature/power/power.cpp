@@ -27,6 +27,8 @@
   Power powerManager;
 
   // Public Parameters
+  flagpower_t Power::flag;
+
   #if HAS_POWER_CONSUMPTION_SENSOR
     int16_t   Power::current_raw_powconsumption = 0;    // Holds measured power consumption
     float     Power::consumption_meas           = 0.0;
@@ -35,8 +37,6 @@
   #endif
 
   // Private Parameters
-  flagbyte_t  Power::flag;
-
   #if HAS_POWER_SWITCH
     bool      Power::powersupply_on = false;
     #if (POWER_TIMEOUT > 0)

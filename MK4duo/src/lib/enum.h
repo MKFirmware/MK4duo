@@ -22,22 +22,6 @@
 #pragma once
 
 /**
- * Define debug bit-masks
- */
-enum DebugEnum : uint8_t {
-  MK4DUO_DEBUG_NONE           = 0,
-  MK4DUO_DEBUG_ECHO           = 1,    ///< Echo commands in order as they are processed
-  MK4DUO_DEBUG_INFO           = 2,    ///< Print messages for code that has debug output
-  MK4DUO_DEBUG_ERRORS         = 4,    ///< Not implemented
-  MK4DUO_DEBUG_DRYRUN         = 8,    ///< Ignore temperature setting and E movement commands
-  MK4DUO_DEBUG_COMMUNICATION  = 16,   ///< Not implemented
-  MK4DUO_DEBUG_FEATURE        = 32,   ///< Print detailed output
-  MK4DUO_DEBUG_MESH_ADJUST    = 64,   ///< UBL bed leveling
-  MK4DUO_DEBUG_SIMULATION     = 128,  ///< Simulation mode Debug
-  MK4DUO_DEBUG_ALL            = 255
-};
-
-/**
  * Axis indices as enumerated constants
  *
  *  - X_AXIS, Y_AXIS, and Z_AXIS should be used for axes in Cartesian space
