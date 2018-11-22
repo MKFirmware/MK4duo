@@ -68,7 +68,7 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
     // Limit to software endstops, if enabled
     #if HAS_SOFTWARE_ENDSTOPS && !MECH(DELTA)
 
-      if (lcd_soft_endstops_enabled) switch (axis) {
+      if (endstops.flag.SoftEndstop) switch (axis) {
         case X_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
             min = endstops.soft_endstop_min[X_AXIS];
@@ -311,7 +311,8 @@ void menu_move() {
   MENU_BACK(MSG_MOTION);
 
   #if HAS_SOFTWARE_ENDSTOPS
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &lcd_soft_endstops_enabled, _lcd_set_soft_endstops);
+    bool new_soft_endstop_state = endstops.flag.SoftEndstop;
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, _lcd_toggle_soft_endstops);
   #endif
 
   #if IS_KINEMATIC
@@ -430,7 +431,7 @@ void menu_motion() {
       MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
     #endif
     if (bedlevel.leveling_is_valid()) {
-      bool new_level_state = bedlevel.leveling_active;
+      bool new_level_state = bedlevel.flag.leveling_active;
       MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
     }
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

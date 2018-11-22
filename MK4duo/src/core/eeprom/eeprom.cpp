@@ -549,7 +549,7 @@ void EEPROM::post_process() {
     // Universal Bed Leveling
     //
     #if ENABLED(AUTO_BED_LEVELING_UBL)
-      EEPROM_WRITE(bedlevel.leveling_active);
+      EEPROM_WRITE(bedlevel.flag.leveling_active);
       EEPROM_WRITE(ubl.storage_slot);
     #endif
 
@@ -998,7 +998,7 @@ void EEPROM::post_process() {
       // Universal Bed Leveling
       //
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        EEPROM_READ(bedlevel.leveling_active);
+        EEPROM_READ(bedlevel.flag.leveling_active);
         EEPROM_READ(ubl.storage_slot);
       #endif
 

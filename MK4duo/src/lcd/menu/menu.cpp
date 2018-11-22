@@ -172,11 +172,6 @@ void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
   void _lcd_set_z_fade_height() { bedlevel.set_z_fade_height(lcd_z_fade_height); }
 #endif
 
-#if HAS_SOFTWARE_ENDSTOPS
-  bool lcd_soft_endstops_enabled = endstops.isSoftEndstop();
-  void _lcd_set_soft_endstops() { endstops.setSoftEndstop(lcd_soft_endstops_enabled); }
-#endif
-
 /**
  * General function to go directly to a screen
  */
@@ -186,10 +181,6 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/) {
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       // Shadow for editing the fade height
       lcd_z_fade_height = bedlevel.z_fade_height;
-    #endif
-
-    #if HAS_SOFTWARE_ENDSTOPS
-      lcd_soft_endstops_enabled = endstops.isSoftEndstop();
     #endif
 
     #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
@@ -464,7 +455,11 @@ void _lcd_draw_homing() {
 }
 
 #if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))
-  void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(!bedlevel.leveling_active); }
+  void _lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); }
+#endif
+
+#if HAS_SOFTWARE_ENDSTOPS
+  void _lcd_toggle_soft_endstops() { endstops.setSoftEndstop(!endstops.flag.SoftEndstop); }
 #endif
 
 #endif // HAS_LCD_MENU

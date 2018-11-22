@@ -270,7 +270,7 @@ void menu_bed_leveling() {
 
   // Homed and leveling is valid? Then leveling can be toggled.
   if (is_homed && bedlevel.leveling_is_valid()) {
-    bool new_level_state = bedlevel.leveling_active;
+    bool new_level_state = bedlevel.flag.leveling_active;
     MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
   }
 

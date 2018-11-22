@@ -782,7 +782,7 @@ void LcdUI::draw_status_screen() {
         lcd_moveto(10, 0);
         _draw_heater_status(BED_INDEX, (
           #if HAS_LEVELING
-            bedlevel.leveling_active && blink ? '_' :
+            bedlevel.flag.leveling_active && blink ? '_' :
           #endif
           LCD_STR_BEDTEMP[0]
         ), blink);
@@ -817,7 +817,7 @@ void LcdUI::draw_status_screen() {
 
           _draw_heater_status(BED_INDEX, (
             #if HAS_LEVELING
-              bedlevel.leveling_active && blink ? '_' :
+              bedlevel.flag.leveling_active && blink ? '_' :
             #endif
             LCD_STR_BEDTEMP[0]
           ), blink);
@@ -838,7 +838,7 @@ void LcdUI::draw_status_screen() {
       _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
 
       #if HAS_LEVELING && !HAS_TEMP_BED
-        lcd_put_wchar(bedlevel.leveling_active || blink ? '_' : ' ');
+        lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
       #endif
 
     #endif // LCD_HEIGHT > 2
@@ -899,7 +899,7 @@ void LcdUI::draw_status_screen() {
 
     #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED)
       lcd_moveto(LCD_WIDTH - 1, 0);
-      lcd_put_wchar(bedlevel.leveling_active || blink ? '_' : ' ');
+      lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
     #endif
 
     // ========== Line 2 ==========

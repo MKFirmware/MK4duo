@@ -75,7 +75,7 @@
     switch (state) {
       case MeshReport:
         if (bedlevel.leveling_is_valid()) {
-          SERIAL_EONOFF("State: ", bedlevel.leveling_active);
+          SERIAL_EONOFF("State: ", bedlevel.flag.leveling_active);
           mbl.report_mesh();
         }
         else

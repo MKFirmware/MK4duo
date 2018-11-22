@@ -173,7 +173,7 @@
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
-      bedlevel.g29_in_progress = false;
+      bedlevel.flag.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         Nextion_ProbeOff();
       #endif
@@ -181,7 +181,7 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
-      const bool leveling_was_active = bedlevel.leveling_active;
+      const bool leveling_was_active = bedlevel.flag.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -405,7 +405,7 @@
     #endif
 
     #if HAS_MESH
-      if (bedlevel.leveling_active) {
+      if (bedlevel.flag.leveling_active) {
         #if ENABLED(AUTO_BED_LEVELING_UBL)
           ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.active_extruder);
           return true;

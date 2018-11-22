@@ -112,7 +112,7 @@
 
     // Disable bed level correction in M48 because we want the raw data when we probe
     #if HAS_LEVELING
-      const bool was_enabled = bedlevel.leveling_active;
+      const bool was_enabled = bedlevel.flag.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 

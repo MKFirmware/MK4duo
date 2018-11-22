@@ -51,7 +51,7 @@
   inline void gcode_M420(void) {
 
     const bool seen_S = parser.seen('S');
-    bool to_enable = seen_S ? parser.value_bool() : bedlevel.leveling_active;
+    bool to_enable = seen_S ? parser.value_bool() : bedlevel.flag.leveling_active;
 
     // If disabling leveling do it right away
     // (Don't disable for just M420 or M420 V)
@@ -187,11 +187,11 @@
     bedlevel.set_bed_leveling_enabled(to_enable);
 
     // Error if leveling failed to enable or reenable
-    if (to_enable && !bedlevel.leveling_active)
+    if (to_enable && !bedlevel.flag.leveling_active)
       SERIAL_LM(ER, MSG_ERR_M420_FAILED);
 
     SERIAL_STR(ECHO);
-    SERIAL_EONOFF("Bed Leveling ", bedlevel.leveling_active);
+    SERIAL_EONOFF("Bed Leveling ", bedlevel.flag.leveling_active);
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       SERIAL_SM(ECHO, "Fade Height ");

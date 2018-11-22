@@ -274,17 +274,26 @@ bool LcdUI::get_blink() {
       if (keypad_buttons) {
         #if HAS_ENCODER_ACTION
           lcdui.refresh(LCDVIEW_REDRAW_NOW);
-          if (encoderDirection == -1) { // side effect which signals we are inside a menu
-            #if HAS_LCD_MENU
+          #if HAS_LCD_MENU
+            if (encoderDirection == -1) { // side effect which signals we are inside a menu
               if      (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))   encoderPosition -= ENCODER_STEPS_PER_MENU_ITEM;
               else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))     encoderPosition += ENCODER_STEPS_PER_MENU_ITEM;
-              else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { menu_item_back::action(); lcdui.quick_feedback(); }
-              else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { lcdui.return_to_status(); lcdui.quick_feedback(); }
+              else if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))   { MenuItem_back::action(); quick_feedback(); }
+              else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))  { return_to_status(); quick_feedback(); }
+            }
+            else
+          #endif
+          {
+            #if HAS_LCD_MENU
+                   if (RRK(EN_KEYPAD_UP))     encoderPosition -= ENCODER_PULSES_PER_STEP;
+              else if (RRK(EN_KEYPAD_DOWN))   encoderPosition += ENCODER_PULSES_PER_STEP;
+              else if (RRK(EN_KEYPAD_LEFT))   { MenuItem_back::action(); quick_feedback(); }
+              else if (RRK(EN_KEYPAD_RIGHT))  encoderPosition = 0;
+            #else
+                   if (RRK(EN_KEYPAD_UP)   || RRK(EN_KEYPAD_LEFT))  encoderPosition -= ENCODER_PULSES_PER_STEP;
+              else if (RRK(EN_KEYPAD_DOWN) || RRK(EN_KEYPAD_RIGHT)) encoderPosition += ENCODER_PULSES_PER_STEP;
             #endif
           }
-          else if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))     encoderPosition += ENCODER_PULSES_PER_STEP;
-          else if (RRK(EN_REPRAPWORLD_KEYPAD_UP))       encoderPosition -= ENCODER_PULSES_PER_STEP;
-          else if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT))    encoderPosition = 0;
         #endif
         next_button_update_ms = millis() + ADC_MIN_KEY_DELAY;
         return true;
@@ -294,10 +303,10 @@ bool LcdUI::get_blink() {
 
       static uint8_t keypad_debounce = 0;
 
-      if (!RRK( EN_REPRAPWORLD_KEYPAD_F1    | EN_REPRAPWORLD_KEYPAD_F2
-              | EN_REPRAPWORLD_KEYPAD_F3    | EN_REPRAPWORLD_KEYPAD_DOWN
-              | EN_REPRAPWORLD_KEYPAD_RIGHT | EN_REPRAPWORLD_KEYPAD_MIDDLE
-              | EN_REPRAPWORLD_KEYPAD_UP    | EN_REPRAPWORLD_KEYPAD_LEFT )
+      if (!RRK( EN_KEYPAD_F1    | EN_KEYPAD_F2
+              | EN_KEYPAD_F3    | EN_KEYPAD_DOWN
+              | EN_KEYPAD_RIGHT | EN_KEYPAD_MIDDLE
+              | EN_KEYPAD_UP    | EN_KEYPAD_LEFT )
       ) {
         if (keypad_debounce > 0) keypad_debounce--;
       }
@@ -308,26 +317,26 @@ bool LcdUI::get_blink() {
 
         #if HAS_LCD_MENU
 
-          if (RRK(EN_REPRAPWORLD_KEYPAD_MIDDLE))  lcdui.goto_screen(menu_move);
+          if (RRK(EN_KEYPAD_MIDDLE))  goto_screen(menu_move);
 
-          #if NOMECH(DELTA) && Z_HOME_DIR == -1
-            if (RRK(EN_REPRAPWORLD_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
+          #if !MECH(DELTA) && Z_HOME_DIR == -1
+            if (RRK(EN_KEYPAD_F2))    _reprapworld_keypad_move(Z_AXIS,  1);
           #endif
 
           if (homed) {
             #if MECH(DELTA) || Z_HOME_DIR != -1
-              if (RRK(EN_REPRAPWORLD_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
+              if (RRK(EN_KEYPAD_F2))  _reprapworld_keypad_move(Z_AXIS,  1);
             #endif
-            if (RRK(EN_REPRAPWORLD_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
-            if (RRK(EN_REPRAPWORLD_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
-            if (RRK(EN_REPRAPWORLD_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
-            if (RRK(EN_REPRAPWORLD_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
-            if (RRK(EN_REPRAPWORLD_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
+            if (RRK(EN_KEYPAD_F3))    _reprapworld_keypad_move(Z_AXIS, -1);
+            if (RRK(EN_KEYPAD_LEFT))  _reprapworld_keypad_move(X_AXIS, -1);
+            if (RRK(EN_KEYPAD_RIGHT)) _reprapworld_keypad_move(X_AXIS,  1);
+            if (RRK(EN_KEYPAD_DOWN))  _reprapworld_keypad_move(Y_AXIS,  1);
+            if (RRK(EN_KEYPAD_UP))    _reprapworld_keypad_move(Y_AXIS, -1);
           }
 
-        #endif // ENABLED(ULTIPANEL)
+        #endif // HAS_LCD_MENU
 
-        if (!homed && RRK(EN_REPRAPWORLD_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
+        if (!homed && RRK(EN_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
         return true;
       }
 

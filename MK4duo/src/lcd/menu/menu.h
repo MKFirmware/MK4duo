@@ -341,11 +341,6 @@ void watch_temp_callback_bed();
 void watch_temp_callback_chamber();
 void watch_temp_callback_cooler();
 
-#if HAS_SOFTWARE_ENDSTOPS
-  extern bool lcd_soft_endstops_enabled;
-  void _lcd_set_soft_endstops(); 
-#endif
-
 #define HAS_LINE_TO_Z (MECH(DELTA) || ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))
 
 #if HAS_LINE_TO_Z
@@ -368,6 +363,10 @@ void watch_temp_callback_cooler();
 
 #if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))
   void _lcd_toggle_bed_leveling();
+#endif
+
+#if HAS_SOFTWARE_ENDSTOPS
+  void _lcd_toggle_soft_endstops(); 
 #endif
 
 #if ENABLED(BABYSTEPPING)

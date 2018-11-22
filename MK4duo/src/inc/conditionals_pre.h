@@ -443,8 +443,8 @@
  */
 #if EXTRUDERS > 1
   #define XYZE_N          (3 + EXTRUDERS)
-  #define E_AXIS_N(E)     (E_AXIS + E)
-  #define E_INDEX         (E_AXIS + tools.active_extruder)
+  #define E_AXIS_N(E)     (uint8_t(E_AXIS) + E)
+  #define E_INDEX         (uint8_t(E_AXIS) + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
   #define XYZE_N          XYZE

@@ -106,7 +106,7 @@
 
       // Leveling      
       #if HAS_LEVELING
-        job_info.leveling = bedlevel.leveling_active;
+        job_info.leveling = bedlevel.flag.leveling_active;
         job_info.z_fade_height = 
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             bedlevel.z_fade_height;

@@ -231,7 +231,7 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
   // Yes: a 'normal' movement. No: a retract() or recover()
   feed_value = has_xy_component ? PLANNER_XY_FEEDRATE() / 10.0 : mechanics.data.max_feedrate_mm_s[E_AXIS] / 1.5;
 
-  if (bedlevel.g26_debug_flag) SERIAL_EMV("in move_to() feed_value for XY:", feed_value);
+  if (bedlevel.flag.g26_debug) SERIAL_EMV("in move_to() feed_value for XY:", feed_value);
 
   mechanics.destination[X_AXIS] = rx;
   mechanics.destination[Y_AXIS] = ry;
@@ -337,7 +337,7 @@ inline bool look_for_lines_to_connect() {
 
             if (mechanics.position_is_reachable(sx, sy) && mechanics.position_is_reachable(ex, ey)) {
 
-              if (bedlevel.g26_debug_flag) {
+              if (bedlevel.flag.g26_debug) {
                 SERIAL_MV(" Connecting with horizontal line (sx=", sx);
                 SERIAL_MV(", sy=", sy);
                 SERIAL_MV(") -> (ex=", ex);
@@ -369,7 +369,7 @@ inline bool look_for_lines_to_connect() {
 
               if (mechanics.position_is_reachable(sx, sy) && mechanics.position_is_reachable(ex, ey)) {
 
-                if (bedlevel.g26_debug_flag) {
+                if (bedlevel.flag.g26_debug) {
                   SERIAL_MV(" Connecting with vertical line (sx=", sx);
                   SERIAL_MV(", sy=", sy);
                   SERIAL_MV(") -> (ex=", ex);
