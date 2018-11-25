@@ -132,6 +132,7 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(ADVANCED_PAUSE_MOD
  *
  */
 #if DRIVER_EXTRUDERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+
   void menu_change_filament() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
@@ -295,7 +296,8 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(ADVANCED_PAUSE_MOD
 
     END_MENU();
   }
-#endif
+
+#endif // DRIVER_EXTRUDERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
 
 static AdvancedPauseModeEnum advanced_pause_mode = ADVANCED_PAUSE_MODE_PAUSE_PRINT;
 static uint8_t hotend_status_extruder = 0;
