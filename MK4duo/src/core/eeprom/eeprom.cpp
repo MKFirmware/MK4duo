@@ -43,7 +43,7 @@
 #endif
 
 #if HAS_TRINAMIC
-  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(stepper##ST.microsteps(), stepper##ST.TPWMTHRS(), mechanics.data.axis_steps_per_mm[P##_AXIS])
+  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(stepper##ST->microsteps(), stepper##ST->TPWMTHRS(), mechanics.data.axis_steps_per_mm[P##_AXIS])
 #endif
 
 #pragma pack(push, 1)
@@ -353,7 +353,7 @@ void EEPROM::post_process() {
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-    // Software endstops depend on data.home_offset
+    // Software endstops depend on home_offset
     LOOP_XYZ(i) endstops.update_software_endstops((AxisEnum)i);
   #endif
 
@@ -761,32 +761,32 @@ void EEPROM::post_process() {
           tmc_hybrid_threshold.Z3 = Z3_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E0)
-          tmc_hybrid_threshold.E0 = TMC_GET_PWMTHRS(E, E0);
+          tmc_hybrid_threshold.E0 = TMC_GET_PWMTHRS(E0, E0);
         #else
           tmc_hybrid_threshold.E0 = E0_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E1)
-          tmc_hybrid_threshold.E1 = TMC_GET_PWMTHRS(E, E1);
+          tmc_hybrid_threshold.E1 = TMC_GET_PWMTHRS(E1, E1);
         #else
           tmc_hybrid_threshold.E1 = E1_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E2)
-          tmc_hybrid_threshold.E2 = TMC_GET_PWMTHRS(E, E2);
+          tmc_hybrid_threshold.E2 = TMC_GET_PWMTHRS(E2, E2);
         #else
           tmc_hybrid_threshold.E2 = E2_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E3)
-          tmc_hybrid_threshold.E3 = TMC_GET_PWMTHRS(E, E3);
+          tmc_hybrid_threshold.E3 = TMC_GET_PWMTHRS(E3, E3);
         #else
           tmc_hybrid_threshold.E3 = E3_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E4)
-          tmc_hybrid_threshold.E4 = TMC_GET_PWMTHRS(E, E4);
+          tmc_hybrid_threshold.E4 = TMC_GET_PWMTHRS(E4, E4);
         #else
           tmc_hybrid_threshold.E4 = E4_HYBRID_THRESHOLD;
         #endif
         #if AXIS_HAS_TMC(E5)
-          tmc_hybrid_threshold.E5 = TMC_GET_PWMTHRS(E, E5)
+          tmc_hybrid_threshold.E5 = TMC_GET_PWMTHRS(E5, E5)
         #else
           tmc_hybrid_threshold.E5 = E5_HYBRID_THRESHOLD;
         #endif
@@ -2372,22 +2372,22 @@ void EEPROM::reset() {
           SERIAL_MV(" I3 Z", TMC_GET_PWMTHRS(Z, Z3));
         #endif
         #if AXIS_HAS_TMC(E0)
-          SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E, E0));
+          SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E0, E0));
         #endif
         #if AXIS_HAS_TMC(E1)
-          SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E, E1));
+          SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E1, E1));
         #endif
         #if AXIS_HAS_TMC(E2)
-          SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E, E2));
+          SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E2, E2));
         #endif
         #if AXIS_HAS_TMC(E3)
-          SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E, E3));
+          SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E3, E3));
         #endif
         #if AXIS_HAS_TMC(E4)
-          SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E, E4));
+          SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E4, E4));
         #endif
         #if AXIS_HAS_TMC(E5)
-          SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E, E5));
+          SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E5, E5));
         #endif
         SERIAL_EOL();
       #endif // HYBRID_THRESHOLD

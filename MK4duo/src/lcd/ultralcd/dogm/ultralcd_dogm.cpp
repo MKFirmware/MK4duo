@@ -201,7 +201,7 @@ void LcdUI::init_lcd() {
     u8g.setRot270();  // Rotate screen by 270°
   #endif
 
-  uxg_SetUtf8Fonts(g_fontinfo, NUM_ARRAY(g_fontinfo));
+  uxg_SetUtf8Fonts(g_fontinfo, COUNT(g_fontinfo));
 }
 
 // The kill screen is displayed for unrecoverable conditions

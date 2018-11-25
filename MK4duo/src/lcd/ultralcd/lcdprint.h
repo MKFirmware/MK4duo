@@ -6,7 +6,6 @@
  * @date    2016-08-19
  * @copyright GPL/BSD
  */
-
 #pragma once
 
 #if HAS_GRAPHICAL_LCD
