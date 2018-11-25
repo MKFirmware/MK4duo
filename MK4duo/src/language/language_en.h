@@ -1366,3 +1366,20 @@
 #ifndef MSG_EEPROM_CHANGED_ALLERT_4
   #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("to continue...")
 #endif
+
+// Nextion Allert
+#ifndef MSG_NEXTION_CHANGED_ALLERT_1
+  #define MSG_NEXTION_CHANGED_ALLERT_1         _UxGT("ATTENTION...")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_2
+  #define MSG_NEXTION_CHANGED_ALLERT_2         _UxGT("NEXTION FW changed.")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_3
+  #define MSG_NEXTION_CHANGED_ALLERT_3         _UxGT("Please upload new FW")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_4
+  #define MSG_NEXTION_CHANGED_ALLERT_4         _UxGT("Press button")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_5
+  #define MSG_NEXTION_CHANGED_ALLERT_5         _UxGT("to continue...")
+#endif

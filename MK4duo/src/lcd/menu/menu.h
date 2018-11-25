@@ -315,6 +315,10 @@ void menu_move();
   void menu_eeprom();
 #endif
 
+#if HAS_NEXTION_LCD
+  void menu_nextion();
+#endif
+
 // First Fan Speed title in "Tune" and "Control>Temperature" menus
 #if FAN_COUNT > 0 && HAS_FAN0
   #if FAN_COUNT > 1

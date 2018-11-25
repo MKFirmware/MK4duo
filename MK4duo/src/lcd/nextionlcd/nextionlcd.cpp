@@ -112,23 +112,20 @@
    * Nextion component all page
    *******************************************************************
    */
-  NexObject Pstart        = NexObject(0,  0,  "start");
-  NexObject Pmenu         = NexObject(1,  0,  "menu");
-  NexObject Pprinter      = NexObject(2,  0,  "printer");
-  NexObject Psetup        = NexObject(3,  0,  "setup");
-  NexObject Pmove         = NexObject(4,  0,  "move");
-  NexObject Pspeed        = NexObject(5,  0,  "speed");
-  NexObject Pgcode        = NexObject(6,  0,  "gcode");
-  NexObject Prfid         = NexObject(7,  0,  "rfid");
-  NexObject Pbrightness   = NexObject(8,  0,  "brightness");
-  NexObject Ptemp         = NexObject(9,  0,  "temp");
-  NexObject Pinfo         = NexObject(10, 0,  "info");
-  NexObject Pyesno        = NexObject(11, 0,  "yesno");
-  NexObject Pfilament     = NexObject(12, 0,  "filament");
-  NexObject Ptxtmenu      = NexObject(13, 0,  "txtmenu");
-  NexObject Poptions      = NexObject(14, 0,  "options");
-  NexObject Ptime         = NexObject(15, 0,  "time");
-  NexObject Pusertemp     = NexObject(16, 0,  "usertemp");
+  NexObject Pstart        = NexObject(0,  0,  "pg0");
+  NexObject Pmenu         = NexObject(1,  0,  "pg1");
+  NexObject Pprinter      = NexObject(2,  0,  "pg2");
+  NexObject Psetup        = NexObject(3,  0,  "pg3");
+  NexObject Pmove         = NexObject(4,  0,  "pg4");
+  NexObject Pspeed        = NexObject(5,  0,  "pg5");
+  NexObject Pgcode        = NexObject(6,  0,  "pg6");
+  NexObject Prfid         = NexObject(7,  0,  "pg7");
+  NexObject Pbrightness   = NexObject(8,  0,  "pg8");
+  NexObject Ptemp         = NexObject(9,  0,  "pg9");
+  NexObject Pinfo         = NexObject(10, 0,  "pg10");
+  NexObject Pyesno        = NexObject(11, 0,  "pg11");
+  NexObject Pfilament     = NexObject(12, 0,  "pg12");
+  NexObject Ptxtmenu      = NexObject(13, 0,  "pg13");
 
   /**
    *******************************************************************
@@ -136,6 +133,7 @@
    *******************************************************************
    */
   NexObject startimer     = NexObject(0,  1,  "tm0");
+  NexObject Nexfirmware   = NexObject(0,  4,  "va1");
 
   /**
    *******************************************************************
@@ -153,7 +151,7 @@
   NexObject LcdX        = NexObject(2,  4,  "vx");
   NexObject LcdY        = NexObject(2,  5,  "vy");
   NexObject LcdZ        = NexObject(2,  6,  "vz");
-  NexObject Extruders   = NexObject(2,  7,  "extruder");
+  NexObject Extruders   = NexObject(2,  7,  "ext");
   NexObject Hotend00    = NexObject(2,  8,  "he00");
   NexObject Hotend01    = NexObject(2,  9,  "he01");
   NexObject Hotend10    = NexObject(2, 10,  "he10");
@@ -379,29 +377,29 @@
   void setpagePrinter() {
     char temp[10] = { 0 };
 
-    nexlcd.setText(Version, SHORT_BUILD_VERSION, "menu");
+    nexlcd.setText(Version, SHORT_BUILD_VERSION, "pg1");
 
     #if HOTENDS > 0
-      nexlcd.setValue(Hotend00, 1, PSTR("printer"));
+      nexlcd.setValue(Hotend00, 1, PSTR("pg2"));
       #if HOTENDS > 1
-        nexlcd.setValue(Hotend10, 1, PSTR("printer"));
+        nexlcd.setValue(Hotend10, 1, PSTR("pg2"));
       #elif HAS_TEMP_CHAMBER
-        nexlcd.setValue(Chamber0, 1, PSTR("printer"));
+        nexlcd.setValue(Chamber0, 1, PSTR("pg2"));
       #elif ENABLED(DHT_SENSOR)
-        nexlcd.setValue(DHT0, 1, PSTR("printer"));
+        nexlcd.setValue(DHT0, 1, PSTR("pg2"));
       #endif
     #endif
 
     #if HAS_TEMP_BED
-      nexlcd.setValue(Bed0, 1, PSTR("printer"));
+      nexlcd.setValue(Bed0, 1, PSTR("pg2"));
     #endif
 
-    nexlcd.setValue(Extruders, EXTRUDERS, PSTR("printer"));
+    nexlcd.setValue(Extruders, EXTRUDERS, PSTR("pg2"));
 
     LOOP_XYZE(i) {
       ZERO(temp);
       itoa(manual_feedrate_mm_m[i], temp, 10);
-      nexlcd.setText(*speed_list[i], temp, PSTR("move"));
+      nexlcd.setText(*speed_list[i], temp, PSTR("pg4"));
     }
 
     #if HAS_SD_SUPPORT
@@ -413,26 +411,26 @@
       }
       else
         SDstatus = SD_NO_INSERT;
-      nexlcd.setValue(SD, SDstatus, PSTR("printer"));
+      nexlcd.setValue(SD, SDstatus, PSTR("pg2"));
     #endif
 
-    nexlcd.setValue(VSpeed, 100, PSTR("printer"));
+    nexlcd.setValue(VSpeed, 100, PSTR("pg2"));
 
     #if FAN_COUNT > 0
-      nexlcd.setValue(Fan, 1, PSTR("printer"));
+      nexlcd.setValue(Fan, 1, PSTR("pg2"));
     #endif
 
     #if HAS_CASE_LIGHT
-      nexlcd.setValue(LightStatus, caselight.status ? 2 : 1, PSTR("printer"));
+      nexlcd.setValue(LightStatus, caselight.status ? 2 : 1, PSTR("pg2"));
     #endif
 
     #if ENABLED(RFID_MODULE)
-      nexlcd.setValue(RFID, 1, PSTR("printer"));
+      nexlcd.setValue(RFID, 1, PSTR("pg2"));
     #endif
 
     #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-    nexlcd.setText(Language, NEXTION_LANGUAGE, PSTR("printer"));
+    nexlcd.setText(Language, NEXTION_LANGUAGE, PSTR("pg2"));
   }
 
   #if HAS_SD_SUPPORT
@@ -474,7 +472,7 @@
       ZERO(buffer);
 
       String temp = "M522 ";
-      uint16_t Rfid_read = RfidR.getValue();
+      uint16_t Rfid_read = nexlcd.getValue(RfidR);
 
       if (nexobject == &Rfid0)
         temp += "T0 ";
@@ -501,8 +499,8 @@
     void rfid_setText(PGM_P message, uint32_t color /* = 65535 */) {
       char Rfid_status_message[25];
       strncpy(Rfid_status_message, message, 30);
-      RfidText.Set_font_color_pco(color);
-      RfidText.setText(Rfid_status_message);
+      nexlcd.Set_font_color_pco(RfidText, color);
+      nexlcd.setText(RfidText, Rfid_status_message);
     }
 
   #endif
@@ -531,8 +529,8 @@
 
   void setgcodePopCallback() {
     ZERO(buffer);
-    nexlcd.getText(Tgcode, buffer, sizeof(buffer), PSTR("gcode"));
-    nexlcd.setText(Tgcode, "", PSTR("gcode"));
+    nexlcd.getText(Tgcode, buffer, sizeof(buffer), PSTR("pg6"));
+    nexlcd.setText(Tgcode, "", PSTR("pg6"));
     commands.enqueue_and_echo(buffer);
   }
 
@@ -823,7 +821,7 @@
         break;
 
       case 5:
-        Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, PSTR("printer"));
+        Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, PSTR("pg2"));
         break;
 
       default: break;
@@ -841,7 +839,7 @@
   }
 
   void lcd_yesno(const uint8_t val, PGM_P msg1, PGM_P msg2, PGM_P msg3) {
-    nexlcd.setValue(Vyes, val, PSTR("yesno"));
+    nexlcd.setValue(Vyes, val, PSTR("pg11"));
     nexlcd.show(Pyesno);
     nexlcd.setText(Riga0, msg1);
     nexlcd.setText(Riga1, msg2);
@@ -1239,8 +1237,14 @@
         gfx.color_set(NX_HIGH, 63488);
       #endif
 
+      const uint16_t nextion_version = nexlcd.getValue(Nexfirmware, PSTR("pg0"));
+
       setpagePrinter();
       nexlcd.enable(startimer);
+
+      // Check the Nextion Firmware
+      if (nextion_version < 111) lcdui.goto_screen(menu_nextion);
+
     }
   }
 

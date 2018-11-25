@@ -72,6 +72,20 @@
   }
 #endif
 
+#if HAS_NEXTION_LCD
+  void menu_nextion() {
+    lcdui.defer_status_screen(true);
+    if (lcdui.use_click()) return lcdui.return_to_status();
+    START_SCREEN();
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_1);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_2);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_3);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_4);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_5);
+    END_SCREEN();
+  }
+#endif
+
 void menu_tune();
 void menu_motion();
 void menu_temperature();
@@ -129,7 +143,7 @@ void menu_main() {
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      #if DRIVER_EXTRUDERS == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+      #if E_STEPPERS == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         if (thermalManager.targetHotEnoughToExtrude(active_extruder))
           MENU_ITEM(gcode, MSG_FILAMENTCHANGE, PSTR("M600 B0"));
         else

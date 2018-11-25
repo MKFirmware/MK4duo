@@ -318,13 +318,11 @@ inline uint16_t recvRetNumber() {
   if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
     return NULL;
 
-  if (temp[0] == NEX_RET_NUMBER_HEAD
-      && temp[5] == 0xFF
-      && temp[6] == 0xFF
-      && temp[7] == 0xFF
-  )
+  if (temp[0] == NEX_RET_NUMBER_HEAD && temp[5] == 0xFF && temp[6] == 0xFF && temp[7] == 0xFF)
+    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
+  else
+    return NULL;
 
-  return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
 }
 
 inline uint8_t Nextion_PageID() {

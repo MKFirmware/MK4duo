@@ -488,3 +488,10 @@
 #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Cambiata.")
 #define MSG_EEPROM_CHANGED_ALLERT_3         _UxGT("Premere il bottone")
 #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("per continuare...")
+
+// Nextion Allert
+#define MSG_NEXTION_CHANGED_ALLERT_1        _UxGT("ATTENTION...")
+#define MSG_NEXTION_CHANGED_ALLERT_2        _UxGT("NEXTION FW cambiato.")
+#define MSG_NEXTION_CHANGED_ALLERT_3        _UxGT("Aggiornare con nuovo FW")
+#define MSG_NEXTION_CHANGED_ALLERT_4        _UxGT("Premere il bottone")
+#define MSG_NEXTION_CHANGED_ALLERT_5        _UxGT("per continuare...")
