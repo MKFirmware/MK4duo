@@ -77,9 +77,9 @@
 // Z3 axis pins
 #if ENABLED(Z_THREE_STEPPER_DRIVERS)
   #define Z3_STEP_PIN       ORIG_E2_STEP_PIN
-  #define Z3_DIR_PIN        ORIG_E3_DIR_PIN
-  #define Z3_ENABLE_PIN     ORIG_E3_ENABLE_PIN
-  #define Z3_CS_PIN         ORIG_E3_CS_PIN
+  #define Z3_DIR_PIN        ORIG_E2_DIR_PIN
+  #define Z3_ENABLE_PIN     ORIG_E2_ENABLE_PIN
+  #define Z3_CS_PIN         ORIG_E2_CS_PIN
 #endif
 
 // E axis pins

@@ -2184,7 +2184,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       // NOTE: Computed without any expensive trig, sin() or acos(), by trig half angle identity of cos(theta).
       if (junction_cos_theta > 0.999999f) {
         // For a 0 degree acute junction, just set minimum junction speed.
-        vmax_junction_sqr = sq(MINIMUM_PLANNER_SPEED);
+        vmax_junction_sqr = sq(float(MINIMUM_PLANNER_SPEED));
       }
       else {
         NOLESS(junction_cos_theta, -0.999999f);  // Check for numerical round-off to avoid divide by zero.
