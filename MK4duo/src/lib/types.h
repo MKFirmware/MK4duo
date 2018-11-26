@@ -75,4 +75,4 @@ union flagword_t {
   flagword_t() { _word = 0; }
 };
 
-#endif /* _ENUM_H_ */
+#endif /* _TYPES_H_ */
