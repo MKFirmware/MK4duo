@@ -152,7 +152,7 @@
   }
 
   // Private Function
-  static bool FilamentRunOut::read() {
+  bool FilamentRunOut::read() {
 
     #if (PIN_EXISTS(FIL_RUNOUT_1))
 
