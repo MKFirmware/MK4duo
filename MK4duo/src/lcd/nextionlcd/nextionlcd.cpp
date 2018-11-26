@@ -607,7 +607,7 @@
       nexlcd.setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
       nexlcd.setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
-    else if (PageID == 5) {
+    else if (PageID == 4) {
       if (printer.home_flag.XHomed) {
         valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
         strcat(buffer, "X");
@@ -1093,32 +1093,28 @@
   }
 
   // Check the push button
-  static void nexLoop(NexObject *list[]) {
-    static uint8_t __buffer[10];
-    uint8_t i = 0;
+  static void Nextion_parse_key_touch(NexObject *list[]) {
+    static char serial_buffer[10];
+    static int serial_count = 0;
 
     if (list == NULL) return;
 
     while (nexSerial.available()) {
-      HAL::delayMilliseconds(5);
       uint8_t c = nexSerial.read();
+      if (c == NEX_RET_EVENT_TOUCH_HEAD || serial_count > 0)
+        serial_buffer[serial_count++] = c;
+    }
 
-      if (c == NEX_RET_EVENT_TOUCH_HEAD) {
-        if (nexSerial.available() >= 6) {
-          __buffer[0] = c;
-          for (i = 1; i < 7; i++) __buffer[i] = nexSerial.read();
-          __buffer[i] = 0x00;
-
-          if (__buffer[4] == 0xFF && __buffer[5] == 0xFF && __buffer[6] == 0xFF) {
-            const uint8_t pid = __buffer[1];
-            const uint8_t cid = __buffer[2];
-            const int32_t event = (int32_t)__buffer[3];
-            for (i = 0; list[i] != NULL; i++) {
-              if (list[i]->__pid == pid && list[i]->__cid == cid) {
-                if (event == NEX_EVENT_POP) PopCallback(list[i]);
-                break;
-              }
-            }
+    if (serial_count >= 7) {
+      serial_count = 0;
+      if (serial_buffer[4] == 0xFF && serial_buffer[5] == 0xFF && serial_buffer[6] == 0xFF) {
+        const uint8_t pid = serial_buffer[1];
+        const uint8_t cid = serial_buffer[2];
+        const int32_t event = (int32_t)serial_buffer[3];
+        for (uint8_t i = 0; list[i] != NULL; i++) {
+          if (list[i]->__pid == pid && list[i]->__cid == cid) {
+            if (event == NEX_EVENT_POP) PopCallback(list[i]);
+            break;
           }
         }
       }
@@ -1224,7 +1220,7 @@
         const millis_t ms = millis();
 
         // Read button Encoder touch
-        nexLoop(txtmenu_list);
+        Nextion_parse_key_touch(txtmenu_list);
 
         if (ELAPSED(ms, next_menu_update_ms)) {
           lcdui.run_current_screen();
@@ -1235,7 +1231,7 @@
 
     #endif
       {
-        nexLoop(nex_listen_list);
+        Nextion_parse_key_touch(nex_listen_list);
       }
   }
 

@@ -216,8 +216,7 @@ extern NextionLCD nexlcd;
 inline void recvRetString(char *buffer, const uint16_t len) {
   bool str_start_flag = false;
   uint8_t cnt_0xFF = 0;
-  char* str;
-  uint16_t ret = 0;
+  String temp = String("");
 
   if (!buffer || len == 0) return;
 
@@ -231,9 +230,7 @@ inline void recvRetString(char *buffer, const uint16_t len) {
           if (cnt_0xFF >= 3) break;
         }
         else {
-          *str = (char)c;
-          *str++;
-          ret++;
+          temp += (char)c;
         }
       }
       else if (c == NEX_RET_STRING_HEAD)
@@ -243,8 +240,9 @@ inline void recvRetString(char *buffer, const uint16_t len) {
     if (cnt_0xFF >= 3) break;
   }
 
+  uint16_t ret = temp.length();
   ret = ret > len ? len : ret;
-  strncpy_P(buffer, str, ret);
+  strncpy(buffer, temp.c_str(), ret);
 }
   
 inline void recvRetCommandFinished() {    
