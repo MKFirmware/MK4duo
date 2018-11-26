@@ -57,6 +57,16 @@
     lcdui.return_to_status();
   }
 
+  void menu_stop_print() {
+    lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+    START_MENU();
+    MENU_BACK(MSG_MAIN);
+    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+    MENU_ITEM(function, MSG_YES, lcd_sdcard_stop);
+    MENU_ITEM(submenu, MSG_NO, menu_main);
+    END_MENU();
+  }
+
 #endif // HAS_SD_SUPPORT
 
 #if HAS_EEPROM
@@ -73,6 +83,7 @@
 #endif
 
 #if HAS_NEXTION_LCD
+
   void menu_nextion() {
     lcdui.defer_status_screen(true);
     if (lcdui.use_click()) return lcdui.return_to_status();
@@ -84,6 +95,17 @@
     STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_5);
     END_SCREEN();
   }
+
+  void menu_firmware() {
+    lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+    START_MENU();
+    MENU_BACK(MSG_MAIN);
+    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+    MENU_ITEM(function, MSG_YES, UploadNewFirmware);
+    MENU_ITEM(submenu, MSG_NO, menu_main);
+    END_MENU();
+  }
+
 #endif
 
 void menu_tune();
@@ -107,7 +129,7 @@ void menu_main() {
           MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
         else
           MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
-        MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+        MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
       }
       else {
         MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);

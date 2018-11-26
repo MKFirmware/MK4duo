@@ -75,7 +75,6 @@
 
   void nextion_draw_update();
   void lcd_scrollinfo(PGM_P titolo, PGM_P message);
-  void lcd_yesno(const uint8_t val, PGM_P msg1="", PGM_P msg2="", PGM_P msg3="");
 
   #if ENABLED(NEXTION_GFX)
     void gfx_origin(const float x, const float y, const float z);

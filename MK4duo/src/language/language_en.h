@@ -1304,7 +1304,16 @@
   #define MSG_INVALID_POS_SLOT                _UxGT("Invalid slot, total slots: ")
 #endif
 #ifndef MSG_NEED_TUNE_PID
-  #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID.")
+  #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID")
+#endif
+#ifndef MSG_DO_YOU_ARE_SHURE
+  #define MSG_DO_YOU_ARE_SHURE                _UxGT("Do you are shure?")
+#endif
+#ifndef MSG_YES
+  #define MSG_YES                             _UxGT("Yes")
+#endif
+#ifndef MSG_NO
+  #define MSG_NO                              _UxGT("No")
 #endif
 
 // Rfid module

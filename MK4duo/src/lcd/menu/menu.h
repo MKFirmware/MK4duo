@@ -309,6 +309,7 @@ void menu_move();
 
 #if HAS_SD_SUPPORT
   void menu_sdcard();
+  void menu_stop_print();
 #endif
 
 #if HAS_EEPROM
@@ -317,6 +318,7 @@ void menu_move();
 
 #if HAS_NEXTION_LCD
   void menu_nextion();
+  void menu_firmware();
 #endif
 
 // First Fan Speed title in "Tune" and "Control>Temperature" menus
