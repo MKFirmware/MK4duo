@@ -1,9 +1,3 @@
-### Version 4.3.8 development
-* Fix Dogm LCD
-* Add Status menu anim option for graphic display
-* Add progress bar to heater when heating
-* Add Text Menu SD to Nextion
-
 ### Version 4.3.7
 * Add Command:
 * G34: Set Delta Height calculated from toolhead position (only DELTA)
@@ -36,6 +30,10 @@
 * Fix M800 for restart job
 * Fix error with lcd 44780 with progress bar active
 * Fix M205 with Delta and Junction active
+* Fix Dogm LCD
+* Add Status menu anim option for graphic display
+* Add progress bar to heater when heating
+* Add Text Menu SD to Nextion
 * Fix and clear code
 
 ### Version 4.3.6
