@@ -592,14 +592,14 @@ void LcdUI::draw_status_message(const bool blink) {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (printer.progress && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !lcd_status_message[0]))
+    if (printer.progress && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !status_message[0]))
       return lcd_draw_progress_bar(printer.progress);
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
 
     #if HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
-      // After allowing lcd_status_message to show for 5 seconds
+      // After allowing status_message to show for 5 seconds
       if (ELAPSED(millis(), previous_lcd_status_ms + 5000UL)) {
         lcd_put_u8str_P(PSTR("Dia "));
         lcd_put_u8str(ftostr12ns(filament_width_meas));
