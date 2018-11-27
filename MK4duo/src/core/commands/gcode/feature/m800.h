@@ -49,7 +49,7 @@
    */
   inline void gcode_M800(void) {
 
-    if (!restart.valid()) {
+    if (restart.valid()) {
       #if HAS_LCD_MENU
         if (parser.seen('S'))
           lcdui.goto_screen(menu_sdcard_restart);

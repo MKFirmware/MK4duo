@@ -37,60 +37,144 @@
   #include "../../../feature/laser/laserbitmaps.h"
 #endif
 
-FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t x, const uint8_t y) {
+FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
   const char *str = itostr3(temp);
   const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
-  lcd_moveto(x - len * (INFO_FONT_WIDTH) / 2 + 1, y);
+  lcd_moveto(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty);
   lcd_put_u8str(&str[3-len]);
   lcd_put_wchar(LCD_STR_DEGREE[0]);
 }
 
-FORCE_INLINE void _draw_heater_status(const uint8_t x, const uint8_t heater, const bool blink) {
+#define DO_DRAW_BED (HAS_TEMP_BED && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
+#define DO_DRAW_FAN (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
+#define ANIM_HOTEND (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
+#define ANIM_BED    (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
+
+#if ANIM_HOTEND || ANIM_BED
+  uint8_t heat_bits;
+#endif
+#if ANIM_HOTEND
+  #define HOTEND_ALT(N) TEST(heat_bits, N)
+#else
+  #define HOTEND_ALT(N) false
+#endif
+#if ANIM_BED
+  #define BED_ALT() TEST(heat_bits, 7)
+#else
+  #define BED_ALT() false
+#endif
+
+#define MAX_HOTEND_DRAW     MIN(HOTENDS, ((LCD_PIXEL_WIDTH - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
+#define STATUS_HEATERS_BOT  (STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1)
+
+FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
 
   #if HAS_TEMP_BED
     const bool isBed = (heater == BED_INDEX);
+    #define IFBED(A,B) (isBed ? (A) : (B))
   #else
-    const bool isBed = false;
+    #define IFBED(A,B) (B)
   #endif
 
-  if (PAGE_UNDER(7)) {
-    const int16_t targetTemperature = heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature;
-    if (blink || !heaters[heater].isIdle())
-      _draw_centered_temp((float)targetTemperature, x, 7);
-  }
-
-  if (PAGE_CONTAINS(21, 28))
-    _draw_centered_temp(heaters[heater].current_temperature + 0.5f, x, 28);
+  const bool    isHeat  = IFBED(BED_ALT(), HOTEND_ALT(heater));
+  const uint8_t ix      = IFBED(STATUS_BED_X, STATUS_HOTEND_X(heater)),
+                tx      = IFBED(STATUS_BED_TEXT_X, STATUS_HOTEND_TEXT_X(heater));
+  const float   temp    = heaters[heater].current_temperature,
+                target  = float(heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature);
 
   #if DISABLED(STATUS_HOTEND_ANIM)
-    #define INDICATE_HOTEND     true
-    #define INDICATE_HOTEND_ON  (heaters[heater].isHeating())
+    #define STATIC_HOTEND true
+    #define HOTEND_DOT    isHeat
   #else
-    #define INDICATE_HOTEND     false
-    #define INDICATE_HOTEND_ON  false
+    #define STATIC_HOTEND false
+    #define HOTEND_DOT    false
   #endif
 
-  #if HAS_TEMP_BED && DISABLED(STATUS_BED_ANIM)
-    #define INDICATE_BED      true
-    #define INDICATE_BED_ON   (heaters[BED_INDEX].isHeating())
+  #if HAS_HEATED_BED && DISABLED(STATUS_BED_ANIM)
+    #define STATIC_BED    true
+    #define BED_DOT       isHeat
   #else
-    #define INDICATE_BED      false
-    #define INDICATE_BED_ON   false
+    #define STATIC_BED    false
+    #define BED_DOT       false
   #endif
 
-  if (isBed ? INDICATE_BED : INDICATE_HOTEND) {
-    if (PAGE_CONTAINS(17, 20)) {
-      const uint8_t y = 20 - (isBed ? 2 : 3);
-      if (isBed ? INDICATE_BED_ON : INDICATE_HOTEND_ON) {
-        u8g.setColorIndex(0); // set to white on black
-        u8g.drawBox(x, y, 2, 2);
-        u8g.setColorIndex(1); // restore black on white
+  #if ANIM_HOTEND && ENABLED(STATUS_HOTEND_INVERTED)
+    #define OFF_BMP(N) status_hotend##N##_b_bmp
+    #define ON_BMP(N)  status_hotend##N##_a_bmp
+  #else
+    #define OFF_BMP(N) status_hotend##N##_a_bmp
+    #define ON_BMP(N)  status_hotend##N##_b_bmp
+  #endif
+
+  #if STATUS_HOTEND_BITMAPS > 1
+    static const unsigned char* const status_hotend_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, OFF_BMP(1), OFF_BMP(2), OFF_BMP(3), OFF_BMP(4));
+    #if ANIM_HOTEND
+      static const unsigned char* const status_hotend_on_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, ON_BMP(1), ON_BMP(2), ON_BMP(3), ON_BMP(4));
+      #define HOTEND_BITMAP(N,S) (unsigned char*)pgm_read_ptr((S) ? &status_hotend_on_gfx[(N) % (STATUS_HOTEND_BITMAPS)] : &status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
+    #else
+      #define HOTEND_BITMAP(N,S) (unsigned char*)pgm_read_ptr(&status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
+    #endif
+  #elif ANIM_HOTEND
+    #define HOTEND_BITMAP(N,S) ((S) ? ON_BMP() : OFF_BMP())
+  #else
+    #define HOTEND_BITMAP(N,S) status_hotend_a_bmp
+  #endif
+
+  if (PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_BOT)) {
+
+    #define BAR_TALL (STATUS_HEATERS_HEIGHT - 2)
+
+    const float prop = target - 20, perc = prop > 0 && temp >= 20 ? (temp - 20) / prop : 0;
+    uint8_t tall = uint8_t(perc * BAR_TALL);
+    NOMORE(tall, BAR_TALL);
+
+    #if ENABLED(STATUS_HOTEND_ANIM)
+      // Draw hotend bitmap, either whole or split by the heating percent
+      if (IFBED(0, 1)) {
+        const uint8_t hx = STATUS_HOTEND_X(heater), bw = STATUS_HOTEND_BYTEWIDTH(heater);
+        #if ENABLED(STATUS_HEAT_PERCENT)
+          if (isHeat && tall < BAR_TALL) {
+            const uint8_t ph = STATUS_HEATERS_HEIGHT - 1 - tall;
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, ph, HOTEND_BITMAP(heater, false));
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y + ph, bw, tall + 1, HOTEND_BITMAP(heater, true) + ph * bw);
+          }
+          else
+        #endif
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, STATUS_HEATERS_HEIGHT, HOTEND_BITMAP(heater, isHeat));
       }
-      else {
-        u8g.drawBox(x, y, 2, 2);
+    #endif
+
+    // Draw a heating progress bar, if specified
+    #if ENABLED(STATUS_HEAT_PERCENT)
+
+      if (IFBED(true, STATIC_HOTEND) && isHeat) {
+        const uint8_t bx = ix + IFBED(STATUS_BED_WIDTH, STATUS_HOTEND_WIDTH(heater)) + 1;
+        u8g.drawFrame(bx, STATUS_HEATERS_Y, 3, STATUS_HEATERS_HEIGHT);
+        if (tall) {
+          const uint8_t ph = STATUS_HEATERS_HEIGHT - 1 - tall;
+          if (PAGE_OVER(STATUS_HEATERS_Y + ph))
+            u8g.drawVLine(bx + 1, STATUS_HEATERS_Y + ph, tall);
+        }
       }
-    }
+
+    #endif
+
+  } // PAGE_CONTAINS
+
+  if (PAGE_UNDER(7)) {
+    const bool  is_idle = heaters[heater].isIdle();
+    if (blink || !is_idle) _draw_centered_temp(target + 0.5f, tx, 7);
   }
+
+  if (PAGE_CONTAINS(28 - INFO_FONT_ASCENT, 28 - 1))
+    _draw_centered_temp(temp + 0.5f, tx, 28);
+
+  if (IFBED(STATIC_BED && BED_DOT, STATIC_HOTEND && HOTEND_DOT) && PAGE_CONTAINS(17, 19)) {
+    u8g.setColorIndex(0); // set to white on black
+    u8g.drawBox(tx, IFBED(20-2, 20-3), 2, 2);
+    u8g.setColorIndex(1); // restore black on white
+  }
+
 }
 
 //
@@ -110,93 +194,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool 
   }
 }
 
-void LcdUI::draw_status_message(const bool blink) {
-
-  // Get the UTF8 character count of the string
-  uint8_t slen = utf8_strlen(status_message);
-
-  #if ENABLED(STATUS_MESSAGE_SCROLLING)
-
-    static bool last_blink = false;
-
-    if (slen <= LCD_WIDTH) {
-      // The string fits within the line. Print with no scrolling
-      lcd_put_u8str(status_message);
-      for (; slen < LCD_WIDTH; ++slen) lcd_put_wchar(' ');
-    }
-    else {
-      // String is longer than the available space
-
-      // Get a pointer to the next valid UTF8 character
-      const char *stat = status_message + status_scroll_offset;
-
-      // Get the string remaining length
-      const uint8_t rlen = utf8_strlen(stat);
-
-      if (rlen >= LCD_WIDTH) {
-        // The remaining string fills the screen - Print it
-        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);
-      }
-      else {
-        // The remaining string does not completely fill the screen
-        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);         // The string leaves space
-        uint8_t chars = LCD_WIDTH - rlen;                 // Amount of space left in characters
-
-        lcd_put_wchar('.');                               // Always at 1+ spaces left, draw a dot
-        if (--chars) {                                    // Draw a second dot if there's space
-          lcd_put_wchar('.');
-          if (--chars) {
-            // Print a second copy of the message
-            lcd_put_u8str_max(status_message, LCD_PIXEL_WIDTH - (rlen + 2) * (MENU_FONT_WIDTH));
-          }
-        }
-      }
-      if (last_blink != blink) {
-        last_blink = blink;
-
-        // Adjust by complete UTF8 characters
-        if (status_scroll_offset < slen) {
-          status_scroll_offset++;
-          while (!START_OF_UTF8_CHAR(status_message[status_scroll_offset]))
-            status_scroll_offset++;
-        }
-        else
-          status_scroll_offset = 0;
-      }
-    }
-
-  #else // !STATUS_MESSAGE_SCROLLING
-
-    UNUSED(blink);
-
-    // Just print the string to the LCD
-    lcd_put_u8str_max(status_message, LCD_PIXEL_WIDTH);
-
-    // Fill the rest with spaces
-    for (; slen < LCD_WIDTH; ++slen) lcd_put_wchar(' ');
-
-  #endif // !STATUS_MESSAGE_SCROLLING
-}
-
 void LcdUI::draw_status_screen() {
-
-  #define DO_DRAW_BED (HAS_TEMP_BED && STATUS_BED_WIDTH)
-  #define DO_DRAW_FAN (HAS_FAN0 && STATUS_FAN_WIDTH && FAN_ANIM_FRAMES)
-  #define ANIM_END (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
-  #define ANIM_BED (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
-  #if ANIM_END || ANIM_BED
-    static uint8_t heat_bits;
-  #endif
-  #if ANIM_END
-    #define HOTEND_ALT(N) TEST(heat_bits, N)
-  #else
-    #define HOTEND_ALT(N) false
-  #endif
-  #if ANIM_BED
-    #define BED_ALT TEST(heat_bits, 7)
-  #else
-    #define BED_ALT false
-  #endif
 
   static char xstring[5], ystring[5], zstring[8];
   #if HAS_LCD_FILAMENT_SENSOR
@@ -205,14 +203,15 @@ void LcdUI::draw_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (first_page) {
-    #if ANIM_END || ANIM_BED
-      heat_bits = 0;
-      #if ANIM_END
-        LOOP_HOTEND() if (heaters[h].isHeating()) SBI(heat_bits, h);
+    #if ANIM_HOTEND || ANIM_BED
+      uint8_t new_bits = 0;
+      #if ANIM_HOTEND
+        LOOP_HOTEND() if (heaters[h].isHeating()) SBI(new_bits, h);
       #endif
       #if ANIM_BED
-        if (heaters[BED_INDEX].isHeating()) SBI(heat_bits, 7);
+        if (heaters[BED_INDEX].isHeating()) SBI(new_bits, 7);
       #endif
+      heat_bits = new_bits;
     #endif
     strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
     strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
@@ -235,67 +234,15 @@ void LcdUI::draw_status_screen() {
 
   #if STATUS_LOGO_WIDTH
     if (PAGE_CONTAINS(STATUS_LOGO_Y, STATUS_LOGO_Y + STATUS_LOGO_HEIGHT - 1))
-      u8g.drawBitmapP(
-        STATUS_LOGO_X, STATUS_LOGO_Y,
-        STATUS_LOGO_BYTEWIDTH, STATUS_LOGO_HEIGHT,
-        status_logo_bmp
-      );
+      u8g.drawBitmapP(STATUS_LOGO_X, STATUS_LOGO_Y, STATUS_LOGO_BYTEWIDTH, STATUS_LOGO_HEIGHT, status_logo_bmp);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
 
-    #if STATUS_HEATERS_WIDTH || STATUS_HOTEND1_WIDTH
-
-      if (PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1)) {
-
-        #if STATUS_HEATERS_WIDTH
-
-          // Draw all heaters (and maybe the bed) in one go
-          u8g.drawBitmapP(
-            STATUS_HEATERS_X, STATUS_HEATERS_Y,
-            STATUS_HEATERS_BYTEWIDTH, STATUS_HEATERS_HEIGHT,
-            status_heaters_bmp
-          );
-
-        #else
-
-          #if ANIM_END && ENABLED(STATUS_HOTEND_INVERTED)
-            #define OFF_BMP(N)  status_hotend##N##_b_bmp
-            #define ON_BMP(N)   status_hotend##N##_a_bmp
-          #else
-            #define OFF_BMP(N)  status_hotend##N##_a_bmp
-            #define ON_BMP(N)   status_hotend##N##_b_bmp
-          #endif
-
-          #if STATUS_HOTEND_BITMAPS > 1
-            static const unsigned char* const status_hotend_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, OFF_BMP(1), OFF_BMP(2), OFF_BMP(3), OFF_BMP(4), OFF_BMP(5), OFF_BMP(6));
-            #if ANIM_END
-              static const unsigned char* const status_hotend_on_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, ON_BMP(1), ON_BMP(2), ON_BMP(3), ON_BMP(4), ON_BMP(5), ON_BMP(6));
-              #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr((S) ? &status_hotend_on_gfx[(N) % (STATUS_HOTEND_BITMAPS)] : &status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
-            #else
-              #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr(&status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
-            #endif
-          #elif ANIM_END
-            #define HOTEND_BITMAP(N,S)    ((S) ? ON_BMP() : OFF_BMP())
-          #else
-            #define HOTEND_BITMAP(N,S)    status_hotend_a_bmp
-          #endif
-
-          #define MAX_HOTEND_DRAW MIN(HOTENDS, ((128 - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
-
-          // Draw hotends from one or more individual hotend bitmaps
-          for (uint8_t h = 0; h < MAX_HOTEND_DRAW; ++h) {
-            u8g.drawBitmapP(
-              STATUS_HOTEND_X(h), STATUS_HEATERS_Y,
-              STATUS_HOTEND_BYTEWIDTH(h), STATUS_HEATERS_HEIGHT,
-              HOTEND_BITMAP(h, HOTEND_ALT(h))
-            );
-          }
-
-        #endif
-
-      } // PAGE_CONTAINS
-
+    #if STATUS_HEATERS_WIDTH
+      // Draw all heaters (and maybe the bed) in one go
+      if (PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1))
+        u8g.drawBitmapP(STATUS_HEATERS_X, STATUS_HEATERS_Y, STATUS_HEATERS_BYTEWIDTH, STATUS_HEATERS_HEIGHT, status_heaters_bmp);
     #endif
 
     #if DO_DRAW_BED
@@ -304,27 +251,23 @@ void LcdUI::draw_status_screen() {
       #else
         #define BED_BITMAP(S) status_bed_bmp
       #endif
-      const uint8_t bedy = STATUS_BED_Y(BED_ALT), bedh = STATUS_BED_HEIGHT(BED_ALT);
-      if (PAGE_CONTAINS(bedy, bedy + bedh - 1)) {
-        u8g.drawBitmapP(
-          STATUS_BED_X, bedy,
-          STATUS_BED_BYTEWIDTH, bedh,
-          BED_BITMAP(BED_ALT)
-        );
-      }
+      const uint8_t bedy = STATUS_BED_Y(BED_ALT()), bedh = STATUS_BED_HEIGHT(BED_ALT());
+      if (PAGE_CONTAINS(bedy, bedy + bedh - 1))
+        u8g.drawBitmapP(STATUS_BED_X, bedy, STATUS_BED_BYTEWIDTH, bedh, BED_BITMAP(BED_ALT()));
     #endif
 
     //
     // Temperature Graphics and Info
     //
 
-    if (PAGE_UNDER(28)) {
+    if (PAGE_UNDER(6 + 1 + 12 + 1 + 6 + 1)) {
       // Hotends
-      LOOP_HOTEND() _draw_heater_status(STATUS_HOTEND_TEXT_X(h), h, blink);
+      for (uint8_t h = 0; h < MAX_HOTEND_DRAW; ++h)
+        _draw_heater_status(h, blink);
 
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(STATUS_BED_TEXT_X, BED_INDEX, blink);
+        _draw_heater_status(BED_INDEX, blink);
       #endif
 
       // Fan, if a bitmap was provided
@@ -343,25 +286,25 @@ void LcdUI::draw_status_screen() {
   } // printer.mode == PRINTER_MODE_FFF
 
   #if DO_DRAW_FAN
-    #if FAN_ANIM_FRAMES > 2
+    #if STATUS_FAN_FRAMES > 2
       static bool old_blink;
       static uint8_t fan_frame;
       if (old_blink != blink) {
         old_blink = blink;
-        if (!fans[0].Speed || ++fan_frame >= FAN_ANIM_FRAMES) fan_frame = 0;
+        if (!fans[0].Speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
       }
     #endif
     if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
       u8g.drawBitmapP(
         STATUS_FAN_X, STATUS_FAN_Y,
         STATUS_FAN_BYTEWIDTH, STATUS_FAN_HEIGHT,
-        #if FAN_ANIM_FRAMES > 2
+        #if STATUS_FAN_FRAMES > 2
           fan_frame == 1 ? status_fan1_bmp :
           fan_frame == 2 ? status_fan2_bmp :
-          #if FAN_ANIM_FRAMES > 3
+          #if STATUS_FAN_FRAMES > 3
             fan_frame == 3 ? status_fan3_bmp :
           #endif
-        #elif FAN_ANIM_FRAMES > 1
+        #elif STATUS_FAN_FRAMES > 1
           blink && fans[0].Speed ? status_fan1_bmp :
         #endif
         status_fan0_bmp
@@ -477,7 +420,7 @@ void LcdUI::draw_status_screen() {
 
   #define X_LABEL_POS  3
   #define X_VALUE_POS 11
-  #define XYZ_SPACING 40
+  #define XYZ_SPACING 37
 
   #if ENABLED(XYZ_HOLLOW_FRAME)
     #define XYZ_FRAME_TOP 29
@@ -486,8 +429,6 @@ void LcdUI::draw_status_screen() {
     #define XYZ_FRAME_TOP 30
     #define XYZ_FRAME_HEIGHT INFO_FONT_ASCENT + 1
   #endif
-
-  
 
   if (PAGE_CONTAINS(XYZ_FRAME_TOP, XYZ_FRAME_TOP + XYZ_FRAME_HEIGHT - 1)) {
 
@@ -600,6 +541,74 @@ void LcdUI::draw_status_screen() {
       draw_status_message(blink);
     #endif
   }
+}
+
+void LcdUI::draw_status_message(const bool blink) {
+
+  // Get the UTF8 character count of the string
+  uint8_t slen = utf8_strlen(status_message);
+
+  #if ENABLED(STATUS_MESSAGE_SCROLLING)
+
+    static bool last_blink = false;
+
+    if (slen <= LCD_WIDTH) {
+      // The string fits within the line. Print with no scrolling
+      lcd_put_u8str(status_message);
+      for (; slen < LCD_WIDTH; ++slen) lcd_put_wchar(' ');
+    }
+    else {
+      // String is longer than the available space
+
+      // Get a pointer to the next valid UTF8 character
+      const char *stat = status_message + status_scroll_offset;
+
+      // Get the string remaining length
+      const uint8_t rlen = utf8_strlen(stat);
+
+      if (rlen >= LCD_WIDTH) {
+        // The remaining string fills the screen - Print it
+        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);
+      }
+      else {
+        // The remaining string does not completely fill the screen
+        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);         // The string leaves space
+        uint8_t chars = LCD_WIDTH - rlen;                 // Amount of space left in characters
+
+        lcd_put_wchar('.');                               // Always at 1+ spaces left, draw a dot
+        if (--chars) {                                    // Draw a second dot if there's space
+          lcd_put_wchar('.');
+          if (--chars) {
+            // Print a second copy of the message
+            lcd_put_u8str_max(status_message, LCD_PIXEL_WIDTH - (rlen + 2) * (MENU_FONT_WIDTH));
+          }
+        }
+      }
+      if (last_blink != blink) {
+        last_blink = blink;
+
+        // Adjust by complete UTF8 characters
+        if (status_scroll_offset < slen) {
+          status_scroll_offset++;
+          while (!START_OF_UTF8_CHAR(status_message[status_scroll_offset]))
+            status_scroll_offset++;
+        }
+        else
+          status_scroll_offset = 0;
+      }
+    }
+
+  #else // !STATUS_MESSAGE_SCROLLING
+
+    UNUSED(blink);
+
+    // Just print the string to the LCD
+    lcd_put_u8str_max(status_message, LCD_PIXEL_WIDTH);
+
+    // Fill the rest with spaces
+    for (; slen < LCD_WIDTH; ++slen) lcd_put_wchar(' ');
+
+  #endif // !STATUS_MESSAGE_SCROLLING
 }
 
 #endif // HAS_GRAPHICAL_LCD

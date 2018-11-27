@@ -29,28 +29,16 @@
 
 #include "../../../../MK4duo.h"
 
+#define BW(N) ((N + 7) / 8)
+
 #if ENABLED(CUSTOM_STATUS_SCREEN_IMAGE)
+  #include "../../custom_statusscreen.h"
+#endif
 
-  /**
-   * Custom _Statusscreen.h files can define:
-   * - A custom logo image
-   * - A custom heater bitmap
-   * - A custom fan bitmap / animation
-   *
-   * See the included examples for guidance
-   */
-  #include "_Statusscreen.h"
-
-#else // !CUSTOM_STATUS_SCREEN_IMAGE
-
-  //#define STATUS_COMBINE_HEATERS
-  //#define STATUS_HOTEND_NUMBERLESS
-  #define STATUS_HOTEND_INVERTED
-  #define STATUS_HOTEND_ANIM
-  #define STATUS_BED_ANIM
-  //#define ALTERNATE_BED_BITMAP
-
-#endif // !CUSTOM_STATUS_SCREEN_IMAGE
+#if ENABLED(STATUS_COMBINE_HEATERS)
+  #undef STATUS_HOTEND_ANIM
+  #undef STATUS_BED_ANIM
+#endif
 
 //
 // Default Status Screen Heater or Hotends bitmaps
@@ -69,6 +57,8 @@
     #endif
 
     #if HAS_TEMP_BED && HOTENDS <= 3
+
+      #define STATUS_BED_WIDTH  18
 
       #if HOTENDS == 0
 
@@ -92,6 +82,7 @@
       #elif HOTENDS == 1
 
         #define STATUS_HEATERS_WIDTH  90
+        #define STATUS_BED_X 80
 
         const unsigned char status_heaters_bmp[] PROGMEM = {
           B00011111,B11100000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00100000,B10000010,B00000000,
@@ -656,25 +647,22 @@
 
 // Can also be overridden in Configuration.h
 // If you can afford it, try the 3-frame fan animation!
-#ifndef FAN_ANIM_FRAMES
-  #define FAN_ANIM_FRAMES 2
-#elif FAN_ANIM_FRAMES > 3
-  #error "Only 3 fan animation frames currently supported."
-#endif
-
-// Don't compile in the fan animation with no fan
 #if !HAS_FAN0
-  #undef FAN_ANIM_FRAMES
+  #undef STATUS_FAN_FRAMES
+#elif DISABLED(STATUS_FAN_FRAMES)
+  #define STATUS_FAN_FRAMES 2
+#elif STATUS_FAN_FRAMES > 3
+  #error "Only 3 fan animation frames currently supported."
 #endif
 
 //
 // Provide default Fan Bitmaps
 //
-#if !defined(STATUS_FAN_WIDTH) && FAN_ANIM_FRAMES > 0
+#if !defined(STATUS_FAN_WIDTH) && STATUS_FAN_FRAMES > 0
 
   // Provide a fan animation if none exists
 
-  #if FAN_ANIM_FRAMES <= 2
+  #if STATUS_FAN_FRAMES <= 2
 
     #define STATUS_FAN_Y      2
     #define STATUS_FAN_WIDTH 20
@@ -700,7 +688,7 @@
       B00111111,B11111111,B11110000
     };
 
-    #if FAN_ANIM_FRAMES == 2
+    #if STATUS_FAN_FRAMES == 2
       const unsigned char status_fan1_bmp[] PROGMEM = {
         B00111111,B11111111,B11110000,
         B00111000,B00000000,B01110000,
@@ -723,7 +711,7 @@
       };
     #endif
 
-  #elif FAN_ANIM_FRAMES == 3
+  #elif STATUS_FAN_FRAMES == 3
 
     #define STATUS_FAN_WIDTH 21
 
@@ -791,7 +779,7 @@
       B00111111,B11111111,B11111000
     };
 
-  #elif FAN_ANIM_FRAMES == 4
+  #elif STATUS_FAN_FRAMES == 4
 
     #define STATUS_FAN_WIDTH 21
 
@@ -891,7 +879,7 @@
   #define STATUS_LOGO_WIDTH 0
 #endif
 #ifndef STATUS_LOGO_BYTEWIDTH
-  #define STATUS_LOGO_BYTEWIDTH ((STATUS_LOGO_WIDTH + 7) / 8)
+  #define STATUS_LOGO_BYTEWIDTH BW(STATUS_LOGO_WIDTH)
 #endif
 #if STATUS_LOGO_WIDTH
   #ifndef STATUS_LOGO_X
@@ -958,22 +946,16 @@
   #define STATUS_HOTEND_WIDTH(N) status_hotend_width[N]
 
   #ifndef STATUS_HOTEND1_BYTEWIDTH
-    #define STATUS_HOTEND1_BYTEWIDTH ((STATUS_HOTEND1_WIDTH + 7) / 8)
+    #define STATUS_HOTEND1_BYTEWIDTH BW(STATUS_HOTEND1_WIDTH)
   #endif
   #ifndef STATUS_HOTEND2_BYTEWIDTH
-    #define STATUS_HOTEND2_BYTEWIDTH ((STATUS_HOTEND2_WIDTH + 7) / 8)
+    #define STATUS_HOTEND2_BYTEWIDTH BW(STATUS_HOTEND2_WIDTH)
   #endif
   #ifndef STATUS_HOTEND3_BYTEWIDTH
-    #define STATUS_HOTEND3_BYTEWIDTH ((STATUS_HOTEND3_WIDTH + 7) / 8)
+    #define STATUS_HOTEND3_BYTEWIDTH BW(STATUS_HOTEND3_WIDTH)
   #endif
   #ifndef STATUS_HOTEND4_BYTEWIDTH
-    #define STATUS_HOTEND4_BYTEWIDTH ((STATUS_HOTEND4_WIDTH + 7) / 8)
-  #endif
-  #ifndef STATUS_HOTEND5_BYTEWIDTH
-    #define STATUS_HOTEND5_BYTEWIDTH ((STATUS_HOTEND5_WIDTH + 7) / 8)
-  #endif
-  #ifndef STATUS_HOTEND6_BYTEWIDTH
-    #define STATUS_HOTEND6_BYTEWIDTH ((STATUS_HOTEND6_WIDTH + 7) / 8)
+    #define STATUS_HOTEND4_BYTEWIDTH BW(STATUS_HOTEND4_WIDTH)
   #endif
 
   constexpr uint8_t status_hotend_bytewidth[HOTENDS] = ARRAY_N(HOTENDS, STATUS_HOTEND1_BYTEWIDTH, STATUS_HOTEND2_BYTEWIDTH, STATUS_HOTEND3_BYTEWIDTH, STATUS_HOTEND4_BYTEWIDTH, STATUS_HOTEND5_BYTEWIDTH, STATUS_HOTEND6_BYTEWIDTH);
@@ -990,12 +972,6 @@
   #endif
   #ifndef STATUS_HOTEND4_X
     #define STATUS_HOTEND4_X STATUS_HOTEND3_X + STATUS_HEATERS_XSPACE
-  #endif
-  #ifndef STATUS_HOTEND5_X
-    #define STATUS_HOTEND5_X STATUS_HOTEND5_X + STATUS_HEATERS_XSPACE
-  #endif
-  #ifndef STATUS_HOTEND6_X
-    #define STATUS_HOTEND6_X STATUS_HOTEND6_X + STATUS_HEATERS_XSPACE
   #endif
 
   #if HOTENDS > 2
@@ -1018,13 +994,7 @@
       #ifndef STATUS_HOTEND4_TEXT_X
         #define STATUS_HOTEND4_TEXT_X STATUS_HOTEND3_TEXT_X + STATUS_HEATERS_XSPACE
       #endif
-      #ifndef STATUS_HOTEND5_TEXT_X
-        #define STATUS_HOTEND5_TEXT_X STATUS_HOTEND5_TEXT_X + STATUS_HEATERS_XSPACE
-      #endif
-      #ifndef STATUS_HOTEND6_TEXT_X
-        #define STATUS_HOTEND6_TEXT_X STATUS_HOTEND6_TEXT_X + STATUS_HEATERS_XSPACE
-      #endif
-      constexpr uint8_t status_hotend_text_x[] = ARRAY_N(HOTENDS, STATUS_HOTEND1_TEXT_X, STATUS_HOTEND2_TEXT_X, STATUS_HOTEND3_TEXT_X, STATUS_HOTEND4_TEXT_X, STATUS_HOTEND5_TEXT_X, STATUS_HOTEND6_TEXT_X);
+      constexpr uint8_t status_hotend_text_x[] = ARRAY_N(HOTENDS, STATUS_HOTEND1_TEXT_X, STATUS_HOTEND2_TEXT_X, STATUS_HOTEND3_TEXT_X, STATUS_HOTEND4_TEXT_X);
       #define STATUS_HOTEND_TEXT_X(N) status_hotend_text_x[N]
     #else
       #define STATUS_HOTEND_TEXT_X(N) (STATUS_HOTEND1_X + 6 + (N) * (STATUS_HEATERS_XSPACE))
@@ -1059,11 +1029,21 @@
 
 #elif STATUS_HEATERS_WIDTH
 
+  #ifndef STATUS_HEATERS_XSPACE
+    #define STATUS_HEATERS_XSPACE   24
+  #endif
+  #ifndef STATUS_HOTEND_WIDTH
+    #define STATUS_HOTEND_WIDTH(N)  10
+  #endif
+  #ifndef STATUS_HOTEND_X
+    #define STATUS_HOTEND_X(N)      (STATUS_HEATERS_X + 2 + (N) * (STATUS_HEATERS_XSPACE))
+  #endif
+
   #ifndef STATUS_HOTEND_TEXT_X
     #define STATUS_HOTEND_TEXT_X(N) (STATUS_HEATERS_X + 6 + (N) * (STATUS_HEATERS_XSPACE))
   #endif
   #ifndef STATUS_HEATERS_BYTEWIDTH
-    #define STATUS_HEATERS_BYTEWIDTH ((STATUS_HEATERS_WIDTH + 7) / 8)
+    #define STATUS_HEATERS_BYTEWIDTH BW(STATUS_HEATERS_WIDTH)
   #endif
   #ifndef STATUS_HEATERS_HEIGHT
     #define STATUS_HEATERS_HEIGHT (sizeof(status_heaters_bmp) / (STATUS_HEATERS_BYTEWIDTH))
@@ -1086,9 +1066,9 @@
   #define STATUS_BED_WIDTH 0
 #endif
 #ifndef STATUS_BED_BYTEWIDTH
-  #define STATUS_BED_BYTEWIDTH ((STATUS_BED_WIDTH + 7) / 8)
+  #define STATUS_BED_BYTEWIDTH BW(STATUS_BED_WIDTH)
 #endif
-#if STATUS_BED_WIDTH
+#if STATUS_BED_WIDTH && !STATUS_HEATERS_WIDTH
 
   #ifndef STATUS_BED_X
     #define STATUS_BED_X (128 - (STATUS_FAN_BYTEWIDTH + STATUS_BED_BYTEWIDTH) * 8)
@@ -1130,9 +1110,9 @@
   #define STATUS_FAN_WIDTH 0
 #endif
 #ifndef STATUS_FAN_BYTEWIDTH
-  #define STATUS_FAN_BYTEWIDTH ((STATUS_FAN_WIDTH + 7) / 8)
+  #define STATUS_FAN_BYTEWIDTH BW(STATUS_FAN_WIDTH)
 #endif
-#if FAN_ANIM_FRAMES
+#if STATUS_FAN_FRAMES
   #ifndef STATUS_FAN_X
     #define STATUS_FAN_X (128 - (STATUS_FAN_BYTEWIDTH) * 8)
   #endif
@@ -1150,11 +1130,11 @@
   #endif
   #define FAN_BMP_SIZE (STATUS_FAN_BYTEWIDTH) * (STATUS_FAN_HEIGHT)
   static_assert(sizeof(status_fan0_bmp) == FAN_BMP_SIZE, "Status fan bitmap (status_fan0_bmp) dimensions don't match data.");
-  #if FAN_ANIM_FRAMES > 1
+  #if STATUS_FAN_FRAMES > 1
     static_assert(sizeof(status_fan1_bmp) == FAN_BMP_SIZE, "Status fan bitmap (status_fan1_bmp) dimensions don't match data.");
-    #if FAN_ANIM_FRAMES > 2
+    #if STATUS_FAN_FRAMES > 2
       static_assert(sizeof(status_fan2_bmp) == FAN_BMP_SIZE, "Status fan bitmap (status_fan2_bmp) dimensions don't match data.");
-      #if FAN_ANIM_FRAMES > 3
+      #if STATUS_FAN_FRAMES > 3
         static_assert(sizeof(status_fan3_bmp) == FAN_BMP_SIZE, "Status fan bitmap (status_fan3_bmp) dimensions don't match data.");
       #endif
     #endif

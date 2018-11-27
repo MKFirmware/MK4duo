@@ -35,7 +35,7 @@
 
   #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
 
-    #include "../../../_Bootscreen.h"
+    #include "../../custom_bootscreen.h"
 
     #ifndef CUSTOM_BOOTSCREEN_TIMEOUT
       #define CUSTOM_BOOTSCREEN_TIMEOUT 2500

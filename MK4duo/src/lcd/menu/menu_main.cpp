@@ -58,12 +58,12 @@
   }
 
   void menu_stop_print() {
-    lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+    lcdui.encoder_direction_menus();
     START_MENU();
     MENU_BACK(MSG_MAIN);
     STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
     MENU_ITEM(function, MSG_YES, lcd_sdcard_stop);
-    MENU_ITEM(submenu, MSG_NO, menu_main);
+    MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
     END_MENU();
   }
 

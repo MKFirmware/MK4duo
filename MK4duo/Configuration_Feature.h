@@ -1598,9 +1598,17 @@
 // We encourage you to take advantage of this new feature and we also
 // respectfully request that you retain the unmodified MK4duo boot screen.
 //
-
 // Enable to show the bitmap in MK4duo/src/lcd/custom_bootscreen.h on startup.
 //#define SHOW_CUSTOM_BOOTSCREEN
+
+// Custom custom_statusscreen.h files can define:
+// - A custom logo image
+// - A custom heater bitmap
+// - A custom fan bitmap / animation
+//
+// See the included examples for guidance
+// Enable this to show the logo in MK4duo/src/lcd/custom_statusscreen.h on display.
+//#define CUSTOM_STATUS_SCREEN_IMAGE
 
 // Additional options for Graphical Displays
 //
@@ -1633,6 +1641,18 @@
 
 // Swap the CW/CCW indicators in the graphics overlay
 //#define OVERLAY_GFX_REVERSE
+
+// Status (Info) Screen customizations
+// These options may affect code size and screen render time.
+// Custom status screens can forcibly override these settings.
+//#define STATUS_COMBINE_HEATERS    // Use combined heater images instead of separate ones
+//#define STATUS_HOTEND_NUMBERLESS  // Use plain hotend icons instead of numbered ones (with 2+ hotends)
+#define STATUS_HOTEND_INVERTED      // Show solid nozzle bitmaps when heating (Requires STATUS_HOTEND_ANIM)
+#define STATUS_HOTEND_ANIM          // Use a second bitmap to indicate hotend heating
+#define STATUS_BED_ANIM             // Use a second bitmap to indicate bed heating
+//#define STATUS_ALT_BED_BITMAP     // Use the alternative bed bitmap
+//#define STATUS_FAN_FRAMES 3       // :[0,1,2,3,4] Number of fan animation frames
+//#define STATUS_HEAT_PERCENT       // Show heating in a progress bar
 
 //
 // LCD Menu Items

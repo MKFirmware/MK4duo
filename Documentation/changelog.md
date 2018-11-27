@@ -1,6 +1,8 @@
 ### Version 4.3.8 development
 * Fix Dogm LCD
-* Add Text Menu SD to Nextion 4.3"
+* Add Status menu anim option for graphic display
+* Add progress bar to heater when heating
+* Add Text Menu SD to Nextion
 
 ### Version 4.3.7
 * Add Command:
@@ -31,6 +33,9 @@
 * Add pause before deploy/stow for user confirmation
 * Add second serial for arduino due
 * Add PCF8574 Expansion IO for pin 120 - 121 - 122 - 123 - 124 - 125 - 126 - 127
+* Fix M800 for restart job
+* Fix error with lcd 44780 with progress bar active
+* Fix M205 with Delta and Junction active
 * Fix and clear code
 
 ### Version 4.3.6
