@@ -29,14 +29,14 @@
   int   AutoBedLevel::bilinear_grid_spacing[2],
         AutoBedLevel::bilinear_start[2];
   float AutoBedLevel::bilinear_grid_factor[2],
-        AutoBedLevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+        AutoBedLevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y] = { 0, 0 };
 
   /**
    * Extrapolate a single point from its neighbors
    */
   void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
-    #if ENABLED(DEBUG_LEVELING_FEATURE)
-      if (printer.debugLeveling()) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
         SERIAL_MSG("Extrapolate [");
         if (x < 10) SERIAL_CHR(' ');
         SERIAL_VAL((int)x);
@@ -49,8 +49,8 @@
       }
     #endif
     if (!isnan(z_values[x][y])) {
-      #if ENABLED(DEBUG_LEVELING_FEATURE)
-        if (printer.debugLeveling()) SERIAL_EM(" (done)");
+      #if ENABLED(DEBUG_FEATURE)
+        if (printer.debugFeature()) SERIAL_EM(" (done)");
       #endif
       return;  // Don't overwrite good values.
     }

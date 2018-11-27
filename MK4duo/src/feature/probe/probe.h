@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * probe.h
@@ -26,12 +27,9 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _PROBE_H_
-#define _PROBE_H_
-
 #if HAS_Z_SERVO_PROBE
-  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_PROBE_SERVO_NR, probe.z_servo_angle[0])
-  #define STOW_Z_SERVO()   MOVE_SERVO(Z_PROBE_SERVO_NR, probe.z_servo_angle[1])
+  #define DEPLOY_Z_SERVO() MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[0])
+  #define STOW_Z_SERVO()   MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[1])
 #endif
 
 #if HAS_BED_PROBE
@@ -42,11 +40,15 @@
   #define STOW_PROBE()
 #endif
 
-enum ProbePtRaise : unsigned char {
-  PROBE_PT_NONE,  // No raise or stow after run_probing
-  PROBE_PT_STOW,  // Do a complete stow after run_probing
-  PROBE_PT_RAISE  // Raise to "between" clearance after run_probing
-};
+// Struct Probe data
+typedef struct {
+
+  float     offset[XYZ];
+  
+  uint16_t  speed_fast,
+            speed_slow;
+
+} probe_data_t;
 
 class Probe {
 
@@ -56,13 +58,14 @@ class Probe {
 
   public: /** Public Parameters */
 
-    static float offset[XYZ];
-
-    #if HAS_Z_SERVO_PROBE
-      static const int z_servo_angle[2];
-    #endif
+    static probe_data_t data;
 
   public: /** Public Function */
+
+    /**
+     * Initialize Factory parameters
+     */
+    static void factory_parameters();
 
     static bool set_deployed(const bool deploy);
 
@@ -82,7 +85,7 @@ class Probe {
        *   - Raise to the BETWEEN height
        * - Return the probed Z position
        */
-      static float check_pt(const float &rx, const float &ry, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
+      static float check_pt(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
 
     #endif
 
@@ -90,20 +93,11 @@ class Probe {
       static void probing_pause(const bool onoff);
     #endif
 
-    #if ENABLED(BLTOUCH)
-      static void bltouch_command(int angle);
-      static bool set_bltouch_deployed(const bool deploy);
-      FORCE_INLINE void bltouch_init() {
-        // Make sure any BLTouch error condition is cleared
-        bltouch_command(BLTOUCH_RESET);
-        set_bltouch_deployed(true);
-        set_bltouch_deployed(false);
-      }
-    #endif
-
-  private: /** Private Parameters */
+    static void servo_test();
 
   private: /** Private Function */
+
+    static bool specific_action(const bool deploy);
 
     static bool move_to_z(const float z, const float fr_mm_s);
 
@@ -113,6 +107,7 @@ class Probe {
 
     #if ENABLED(Z_PROBE_ALLEN_KEY)
       static void run_deploy_moves_script();
+      static void run_stow_moves_script();
     #endif
 
     #if HAS_Z_PROBE_SLED
@@ -122,5 +117,3 @@ class Probe {
 };
 
 extern Probe probe;
-
-#endif /* _PROBE_H_ */

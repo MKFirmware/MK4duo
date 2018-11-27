@@ -47,12 +47,12 @@
     float diff[XYZ];
     LOOP_XYZ(i) {
       diff[i] = mechanics.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
-      if (WITHIN(diff[i], -20, 20) && mechanics.home_dir[(AxisEnum)i] > 0)
+      if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)
         diff[i] = -mechanics.current_position[i];
       if (!WITHIN(diff[i], -20, 20)) {
         SERIAL_LM(ER, MSG_ERR_M428_TOO_FAR);
         LCD_ALERTMESSAGEPGM("Err: Too far!");
-        BUZZ(200, 40);
+        sound.feedback(false); // BUZZ(200, 40);
         return;
       }
     }
@@ -60,8 +60,7 @@
     LOOP_XYZ(i) mechanics.set_home_offset((AxisEnum)i, diff[i]);
     mechanics.report_current_position();
     LCD_MESSAGEPGM(MSG_HOME_OFFSETS_APPLIED);
-    BUZZ(100, 659);
-    BUZZ(100, 698);
+    sound.feedback();
   }
 
 #endif // ENABLED(WORKSPACE_OFFSETS)

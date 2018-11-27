@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
-  #error Oops!  Make sure you have 'Gen7' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Gen7' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,12 +159,4 @@
 
 
 
-//###IF_BLOCKS
-#if MOTHERBOARD == 5
-  #define ORIG_HEATER_BED_PIN  NoPin
-  #define ORIG_TEMP_BED_PIN    NoPin
-#else
-  #define ORIG_HEATER_BED_PIN   1
-  #define ORIG_TEMP_BED_PIN     0
-#endif
-//@@@
+

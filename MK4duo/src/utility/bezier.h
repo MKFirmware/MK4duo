@@ -52,9 +52,9 @@
 
       /* Compute the linear interpolation between to real numbers.
       */
-      inline static float interp(float a, float b, float t) { return (1.0 - t) * a + t * b; }
+      static inline float interp(float a, float b, float t) { return (1.0 - t) * a + t * b; }
 
-      inline static float eval_bezier(float a, float b, float c, float d, float t) {
+      static inline float eval_bezier(float a, float b, float c, float d, float t) {
         float iab = interp(a, b, t);
         float ibc = interp(b, c, t);
         float icd = interp(c, d, t);
@@ -68,7 +68,7 @@
        * We approximate Euclidean distance with the sum of the coordinates
        * offset (so-called "norm 1"), which is quicker to compute.
        */
-      inline static float dist1(float x1, float y1, float x2, float y2) { return ABS(x1 - x2) + ABS(y1 - y2); }
+      static inline float dist1(float x1, float y1, float x2, float y2) { return ABS(x1 - x2) + ABS(y1 - y2); }
   };
 
 #endif // ENABLED(G5_BEZIER)

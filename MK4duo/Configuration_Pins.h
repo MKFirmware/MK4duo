@@ -67,11 +67,19 @@
 #define Z_CS_PIN            ORIG_Z_CS_PIN
 
 // Z2 axis pins
-#if ENABLED(Z_TWO_STEPPER_DRIVERS)
+#if (ENABLED(Z_TWO_STEPPER_DRIVERS) || ENABLED(Z_THREE_STEPPER_DRIVERS))
   #define Z2_STEP_PIN       ORIG_E1_STEP_PIN
   #define Z2_DIR_PIN        ORIG_E1_DIR_PIN
   #define Z2_ENABLE_PIN     ORIG_E1_ENABLE_PIN
   #define Z2_CS_PIN         ORIG_E1_CS_PIN
+#endif
+
+// Z3 axis pins
+#if ENABLED(Z_THREE_STEPPER_DRIVERS)
+  #define Z3_STEP_PIN       ORIG_E2_STEP_PIN
+  #define Z3_DIR_PIN        ORIG_E2_DIR_PIN
+  #define Z3_ENABLE_PIN     ORIG_E2_ENABLE_PIN
+  #define Z3_CS_PIN         ORIG_E2_CS_PIN
 #endif
 
 // E axis pins
@@ -133,10 +141,12 @@
 #define X2_MIN_PIN          NoPin
 #define Y2_MIN_PIN          NoPin
 #define Z2_MIN_PIN          NoPin
+#define Z3_MIN_PIN          NoPin
 #define X2_MAX_PIN          NoPin
 #define Y2_MAX_PIN          NoPin
 #define Z2_MAX_PIN          NoPin
-#define Z_PROBE_PIN         NoPin
+#define Z3_MAX_PIN          NoPin
+#define Z_PROBE_PIN         ORIG_Z_PROBE_PIN
 
 // HEATER pins
 #define HEATER_0_PIN        ORIG_HEATER_0_PIN
@@ -144,17 +154,36 @@
 #define HEATER_2_PIN        ORIG_HEATER_2_PIN
 #define HEATER_3_PIN        ORIG_HEATER_3_PIN
 #define HEATER_BED_PIN      ORIG_HEATER_BED_PIN
-#define HEATER_CHAMBER_PIN  NoPin
-#define HEATER_COOLER_PIN   NoPin
+#define HEATER_CHAMBER_PIN  ORIG_HEATER_CHAMBER_PIN
+#define HEATER_COOLER_PIN   ORIG_COOLER_PIN
 
 // TEMP pins
-#define TEMP_0_PIN          ORIG_TEMP_0_PIN
-#define TEMP_1_PIN          ORIG_TEMP_1_PIN
-#define TEMP_2_PIN          ORIG_TEMP_2_PIN
-#define TEMP_3_PIN          ORIG_TEMP_3_PIN
+#if TEMP_SENSOR_0 > -1
+  #define TEMP_0_PIN        ORIG_TEMP_0_PIN
+#elif TEMP_SENSOR_0 == -3
+  #define TEMP_0_PIN        MAX6675_SS_PIN
+#elif TEMP_SENSOR_0 == -4
+  #define TEMP_0_PIN        MAX31855_SS0_PIN
+#endif
+#if TEMP_SENSOR_1 > -1
+  #define TEMP_1_PIN        ORIG_TEMP_1_PIN
+#elif TEMP_SENSOR_1 == -4
+  #define TEMP_1_PIN        MAX31855_SS1_PIN
+#endif
+#if TEMP_SENSOR_2 > -1
+  #define TEMP_2_PIN        ORIG_TEMP_2_PIN
+#elif TEMP_SENSOR_2 == -4
+  #define TEMP_2_PIN        MAX31855_SS2_PIN
+#endif
+#if TEMP_SENSOR_3 > -1
+  #define TEMP_3_PIN        ORIG_TEMP_3_PIN
+#elif TEMP_SENSOR_3 == -4
+  #define TEMP_3_PIN        MAX31855_SS3_PIN
+#endif
+
 #define TEMP_BED_PIN        ORIG_TEMP_BED_PIN
-#define TEMP_CHAMBER_PIN    NoPin
-#define TEMP_COOLER_PIN     NoPin
+#define TEMP_CHAMBER_PIN    ORIG_TEMP_CHAMBER_PIN
+#define TEMP_COOLER_PIN     ORIG_TEMP_COOLER_PIN
 
 // FAN pins
 #define FAN0_PIN            ORIG_FAN0_PIN
@@ -173,6 +202,15 @@
 //============================================================================
 
 //================================= FEATURE ==================================
+
+#if ENABLED(TACHOMETRIC)
+  #define TACHO0_PIN NoPin
+  #define TACHO1_PIN NoPin
+  #define TACHO2_PIN NoPin
+  #define TACHO3_PIN NoPin
+  #define TACHO4_PIN NoPin
+  #define TACHO5_PIN NoPin
+#endif
 
 #if ENABLED(MKR4)
   #define E0E1_CHOICE_PIN NoPin
@@ -206,12 +244,12 @@
 #endif
 
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT0_PIN     NoPin
-  #define FIL_RUNOUT1_PIN     NoPin
-  #define FIL_RUNOUT2_PIN     NoPin
-  #define FIL_RUNOUT3_PIN     NoPin
-  #define FIL_RUNOUT4_PIN     NoPin
-  #define FIL_RUNOUT5_PIN     NoPin
+  #define FIL_RUNOUT_0_PIN    NoPin
+  #define FIL_RUNOUT_1_PIN    NoPin
+  #define FIL_RUNOUT_2_PIN    NoPin
+  #define FIL_RUNOUT_3_PIN    NoPin
+  #define FIL_RUNOUT_4_PIN    NoPin
+  #define FIL_RUNOUT_5_PIN    NoPin
   #define FIL_RUNOUT_DAV_PIN  NoPin
 #endif
 
@@ -266,7 +304,7 @@
   #define DHT_DATA_PIN NoPin
 #endif
 
-#if ENABLED(HAVE_TMC2130) && ENABLED(SOFT_SPI_TMC2130)
+#if HAVE_DRV(TMC2130) && ENABLED(SOFT_SPI_TMC2130)
   #define SOFT_MOSI_PIN 51
   #define SOFT_MISO_PIN 50
   #define SOFT_SCK_PIN  52

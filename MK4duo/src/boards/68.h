@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega 2560' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,7 +159,7 @@
 
 
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN          66  // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+#define MAX6675_SS_PIN             66
 //@@@
 
 //###IF_BLOCKS
@@ -174,7 +174,7 @@
   #define STAT_LED_BLUE_PIN     35
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(NEWPANEL)
     #define LCD_PINS_RS 16
@@ -270,3 +270,4 @@
   #define KILL_PIN          31
 #endif
 //@@@
+

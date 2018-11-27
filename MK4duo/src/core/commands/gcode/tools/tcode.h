@@ -38,8 +38,8 @@
  */
 inline void gcode_T(const uint8_t tool_id) {
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       SERIAL_MV(">>> T(", tool_id);
       SERIAL_CHR(')');
       SERIAL_EOL();
@@ -65,8 +65,8 @@ inline void gcode_T(const uint8_t tool_id) {
 
   #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    if (printer.mode == PRINTER_MODE_FFF && (IS_SD_PRINTING || print_job_counter.isRunning()) && tools.previous_extruder != tool_id) {
-      gcode_M600();
+    if (printer.mode == PRINTER_MODE_FFF && printer.isPrinting() && tools.previous_extruder != tool_id) {
+      commands.process_now_P(PSTR("M600"));
       tools.previous_extruder = tool_id;
     }
 
@@ -86,8 +86,8 @@ inline void gcode_T(const uint8_t tool_id) {
 
   #endif
 
-  #if ENABLED(DEBUG_LEVELING_FEATURE)
-    if (printer.debugLeveling()) {
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
       DEBUG_POS("AFTER", mechanics.current_position);
       SERIAL_EM("<<< T()");
     }

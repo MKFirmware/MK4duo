@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega 2560' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,31 +159,31 @@
 
 
 //###UNKNOWN_PINS
-#define BTN_EN1                 44
-#define BTN_EN2                 45
-#define BTN_ENC                 33
+#define BTN_EN1                    44
+#define BTN_EN2                    45
+#define BTN_ENC                    33
 //@@@
 
 //###IF_BLOCKS
-#if TEMP_SENSOR_0 == NoPin
+#if TEMP_SENSOR_0 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_0_PIN       11
 #else
   #define ORIG_TEMP_0_PIN       15
 #endif
 
-#if TEMP_SENSOR_1 == NoPin
+#if TEMP_SENSOR_1 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_1_PIN       10
 #else
   #define ORIG_TEMP_1_PIN       13
 #endif
 
-#if TEMP_SENSOR_2 == NoPin
+#if TEMP_SENSOR_2 == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_2_PIN        9
 #else
   #define ORIG_TEMP_2_PIN       12
 #endif
 
-#if TEMP_SENSOR_BED == NoPin
+#if TEMP_SENSOR_BED == -1 //thermocouple with AD595 or AD597
   #define ORIG_TEMP_BED_PIN      8
 #else
   #define ORIG_TEMP_BED_PIN     14
@@ -213,3 +213,4 @@
   #define SD_DETECT_PIN         56
 #endif
 //@@@
+

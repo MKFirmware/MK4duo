@@ -1,11 +1,53 @@
+### Version 4.3.8 development
+* Fix Dogm LCD
+* Add Status menu anim option for graphic display
+* Add progress bar to heater when heating
+* Add Text Menu SD to Nextion
+
+### Version 4.3.7
+* Add Command:
+* G34: Set Delta Height calculated from toolhead position (only DELTA)
+* M930: TMC set blank_time.
+* M931: TMC set off_time.
+* M932: TMC set hysteresis_start.
+* M933: TMC set hysteresis_end.
+* M934: TMC set fast_decay_time.
+* M935: TMC set disable_I_comparator.
+* M936: TMC set stealth_gradient.
+* M937: TMC set stealth_amplitude.
+* M938: TMC set stealth_freq.
+* M939: TMC switch stealth_autoscale.
+* M940: TMC switch StealthChop.
+* M941: TMC switch ChopperMode.
+* M942: TMC switch interpolation.
+* M524: Abort the current SD print job (started with M24). (Requires SDSUPPORT)
+* M223: T[extruder] S[bool] set Filrunout Logic.
+* M224: T[extruder] S[bool] set Filrunout Pullup.
+* M666: L delta segment per line.
+* M851: Probe Offset, F[speed Fast], S[speed Slow] in mm/min.
+* M413: S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
+* M800: S goto to lcd menu. With no parameters run restart commands. (Requires SD_RESTART_FILE)
+* Add Text Menu to Nextion Display
+* Add sound function
+* Add LCD menu for switch Sound [on - silent - off]
+* Add pause before deploy/stow for user confirmation
+* Add second serial for arduino due
+* Add PCF8574 Expansion IO for pin 120 - 121 - 122 - 123 - 124 - 125 - 126 - 127
+* Fix M800 for restart job
+* Fix error with lcd 44780 with progress bar active
+* Fix M205 with Delta and Junction active
+* Fix and clear code
+
 ### Version 4.3.6
 * Make class Mechanics to static
 * Add Junction Deviation instead of traditional Jerk limiting
+* Add Adaptive multiaxis step smoothing
 * Add M205 J - Set Junction Deviation mm
 * Add Bézier Jerk Control
 * Add Safety Timer, after 30 minutes if not printing (SD or M530 S1) the heaters switch off.
 * Rewrite SD Restart for auto restart when power loss and return.
-* Add command gcode M569 for setting Stepper Driver DIR.
+* Add command gcode M569 for Stepper driver control: Dir, direction delay, minimum pulse and maximum rate.
+* Add Hysteresis in EEPROM
 * Fix and clear code
 
 ### Version 4.3.5 Stable
@@ -193,8 +235,8 @@
 * Add option for name firmware file Nextion
 
 ### Version 4.3.06_dev
-* Add Auto report temp width M155
-* Add new capabilities string width M115
+* Add Auto report temp with M155
+* Add new capabilities string with M115
 * Add M155 Set temperature auto-report interval
 * Add M320 Activate autolevel
 * Add M321 Deactivate autoleveling
@@ -207,8 +249,8 @@
 ### Version 4.3.05_dev
 * Add register in EEPROM Bilinear Bed Level
 * Add M355 Turn case lights on/off
-* Fix Error width 8bit and 2 or more Hotends
-* Upgrade Nextion width Filament Change
+* Fix Error with 8bit and 2 or more Hotends
+* Upgrade Nextion with Filament Change
 * New Fix
 
 ### Version 4.3.04_dev
@@ -265,7 +307,7 @@
 
 ### Version 4.2.82
 * Add DONDOLO_DUAL_MOTOR for DONDOLO bowden and dual extruder
-* Add reader TAG width MFRC522
+* Add reader TAG with MFRC522
 
 ### Version 4.2.81
 * Fix serial protocol for Repetier Host
@@ -345,7 +387,7 @@
 * Add support for Piggy Alligator board
 * Add Debug_info. Repetier button info for enabled or disabled, or M111 S2 for enabled and M111 S0 for disabled.
 * Improved Topography Auto Bed Level.
-* Add Dryrun ABL and verbose width command G29 D or G29 V(0-4).
+* Add Dryrun ABL and verbose with command G29 D or G29 V(0-4).
 * Improve Autoconfiguration for Delta printer.
 * Add support (test only) for NEXTION HMI LCD.
 * Improved firmare test dialog.
@@ -359,11 +401,11 @@
 ### Version 4.1.3
 * Improved support for Delta, SCARA, COREXY & COREXZ kinematics.
 * Improved stepper timer for high velocity driver and not.
-* Add calibrate surface width DELTA.
-* Improved serial comunication width most popular Host.
+* Add calibrate surface with DELTA.
+* Improved serial comunication with most popular Host.
 * Add Acceleration retraction for extruder.
 * Add EJerk for extruder.
-* Remove limit for virtual extruder to 4. Now width MKR4 or NPr2 is possible have infinite extruder...
+* Remove limit of maximum 4 virtual extruders. Now with MKR4 or NPr2 is possible to have infinite extruders...
 * Add M92 T* E (Set step per unit for any extruder).
 * Add M203 T* E (Set max feedrate for any extruder).
 * Add M204 T* R (Set acc retraction for any extruder).

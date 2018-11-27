@@ -43,18 +43,18 @@
 
 #include "../../MK4duo.h"
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
 #include "Arduino.h"
 #include "SDFat.h"
 
-extern int8_t RFstricmp(const char* s1, const char* s2) {
+extern int8_t RFstricmp(PGM_P s1, PGM_P s2) {
   while(*s1 && (tolower(*s1) == tolower(*s2)))
     s1++, s2++;
   return (const uint8_t)tolower(*s1) - (const uint8_t)tolower(*s2);
 }
 
-extern int8_t RFstrnicmp(const char* s1, const char* s2, size_t n) {
+extern int8_t RFstrnicmp(PGM_P s1, PGM_P s2, size_t n) {
   while(n--) {
     if(tolower(*s1) != tolower(*s2))
       return (uint8_t)tolower(*s1) - (uint8_t)tolower(*s2);
@@ -123,7 +123,7 @@ bool SdFat::chdir(bool set_cwd) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::chdir(const char *path, bool set_cwd) {
+bool SdFat::chdir(PGM_P path, bool set_cwd) {
   SdBaseFile dir;
   if (path[0] == '/' && path[1] == '\0') return chdir(set_cwd);
 
@@ -276,7 +276,7 @@ void SdFat::initErrorPrint_P(PGM_P msg) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::mkdir(const char* path, bool pFlag) {
+bool SdFat::mkdir(PGM_P path, bool pFlag) {
   SdBaseFile sub;
   return sub.mkdir(&vwd_, path, pFlag);
 }
@@ -288,7 +288,7 @@ bool SdFat::mkdir(const char* path, bool pFlag) {
 * \return The value one, true, is returned for success and
 * the value zero, false, is returned for failure.
 */
-bool SdFat::remove(const char* path) {
+bool SdFat::remove(PGM_P path) {
   return SdBaseFile::remove(&vwd_, path);
 }
 //------------------------------------------------------------------------------
@@ -307,7 +307,7 @@ bool SdFat::remove(const char* path) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::rename(const char *oldPath, const char *newPath) {
+bool SdFat::rename(PGM_P oldPath, PGM_P newPath) {
   SdBaseFile file;
   if (!file.open(oldPath, O_READ)) return false;
   return file.rename(&vwd_, newPath);
@@ -322,7 +322,7 @@ bool SdFat::rename(const char *oldPath, const char *newPath) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::rmdir(const char* path) {
+bool SdFat::rmdir(PGM_P path) {
   SdBaseFile sub;
   if (!sub.open(path, O_READ)) return false;
   return sub.rmdir();
@@ -340,7 +340,7 @@ bool SdFat::rmdir(const char* path) {
  * Reasons for failure include file is read only, file is a directory,
  * \a length is greater than the current file size or an I/O error occurs.
  */
-bool SdFat::truncate(const char* path, uint32_t length) {
+bool SdFat::truncate(PGM_P path, uint32_t length) {
   SdBaseFile file;
   if (!file.open(path, O_WRITE)) return false;
   return file.truncate(length);
@@ -495,7 +495,7 @@ FAIL:
  *
  */
 bool SdBaseFile::createContiguous(SdBaseFile* dirFile,
-                                  const char* path, uint32_t size) {
+                                  PGM_P path, uint32_t size) {
   uint32_t count;
   // don't allow zero length file
   if (size == 0) {
@@ -581,7 +581,7 @@ void SdBaseFile::dirName(const dir_t& dir, char* name) {
  *
  * \return true if the file exists else false.
  */
-bool SdBaseFile::exists(const char* name) {
+bool SdBaseFile::exists(PGM_P name) {
   SdBaseFile file;
   return file.open(this, name, O_READ);
 }
@@ -753,7 +753,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
         {
           SERIAL_TXT(card.tempLongFilename);
           #if ENABLED(SD_EXTENDED_DIR)
-            SERIAL_MV(" ", (long) p->fileSize);
+            SERIAL_MV(" ", (long)p->fileSize);
           #endif
           SERIAL_EOL();
         }
@@ -823,7 +823,7 @@ int8_t SdBaseFile::lsPrintNext(uint8_t flags, uint8_t indent) {
 //------------------------------------------------------------------------------
 // format directory name field from a 8.3 name string
 
-bool SdBaseFile::make83Name(const char* str, uint8_t* name, const char** ptr) {
+bool SdBaseFile::make83Name(PGM_P str, uint8_t* name, const char** ptr) {
   uint8_t c;
   uint8_t n = 7;  // max index for part before dot
   uint8_t i = 0;
@@ -889,7 +889,7 @@ FAIL:
  * Reasons for failure include this file is already open, \a parent is not a
  * directory, \a path is invalid or already exists in \a parent.
  */
-bool SdBaseFile::mkdir(SdBaseFile* parent, const char* path, bool pFlag) {
+bool SdBaseFile::mkdir(SdBaseFile* parent, PGM_P path, bool pFlag) {
 
   uint8_t dname[LONG_FILENAME_LENGTH+1];
   SdBaseFile newParent;
@@ -963,7 +963,7 @@ bool SdBaseFile::mkdir(SdBaseFile* parent, const uint8_t *dname) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdBaseFile::open(const char* path, uint8_t oflag) {
+bool SdBaseFile::open(PGM_P path, uint8_t oflag) {
   return open(cwd_, path, oflag);
 }
 //------------------------------------------------------------------------------
@@ -1018,7 +1018,7 @@ bool SdBaseFile::open(const char* path, uint8_t oflag) {
  * or can't be opened in the access mode specified by oflag.
  */
 
- bool SdBaseFile::openParentReturnFile(SdBaseFile* dirFile, const char* path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs) {
+ bool SdBaseFile::openParentReturnFile(SdBaseFile* dirFile, PGM_P path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs) {
   SdBaseFile dir1, dir2;
   SdBaseFile *parent = dirFile;
   //dir_t *pEntry;
@@ -1083,7 +1083,7 @@ FAIL:
   return false;
 }
 
-bool SdBaseFile::open(SdBaseFile* dirFile, const char* path, uint8_t oflag) {
+bool SdBaseFile::open(SdBaseFile* dirFile, PGM_P path, uint8_t oflag) {
   uint8_t dname[LONG_FILENAME_LENGTH + 1];
   SdBaseFile parent;
 
@@ -1111,7 +1111,7 @@ bool SdBaseFile::open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, 
   bool emptyFound = false;
   uint8_t index = 0;
   dir_t tempDir, *p = NULL;
-  const char *tempPtr;
+  PGM_P tempPtr;
   char newName[SHORT_FILENAME_LENGTH + 2];
   bool bShortName = false;
   int8_t cVFATNeeded = -1, cVFATFoundCur;
@@ -2137,7 +2137,7 @@ FAIL:
  * \a dirFile is not a directory, \a path is not found
  * or an I/O error occurred.
  */
-bool SdBaseFile::remove(SdBaseFile* dirFile, const char* path) {
+bool SdBaseFile::remove(SdBaseFile* dirFile, PGM_P path) {
   SdBaseFile file;
   if (!file.open(dirFile, path, O_WRITE)) {
     DBG_FAIL_MACRO;
@@ -2159,7 +2159,7 @@ bool SdBaseFile::remove(SdBaseFile* dirFile, const char* path) {
  * Reasons for failure include \a dirFile is not open or is not a directory
  * file, newPath is invalid or already exists, or an I/O error occurs.
  */
-bool SdBaseFile::rename(SdBaseFile* dirFile, const char* newPath) {
+bool SdBaseFile::rename(SdBaseFile* dirFile, PGM_P newPath) {
   dir_t entry;
   uint32_t dirCluster = 0;
   SdBaseFile file;
@@ -2392,7 +2392,7 @@ FAIL:
  * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
  * OR of open flags. see SdBaseFile::open(SdBaseFile*, const char*, uint8_t).
  */
-SdBaseFile::SdBaseFile(const char* path, uint8_t oflag) {
+SdBaseFile::SdBaseFile(PGM_P path, uint8_t oflag) {
   type_ = FAT_FILE_TYPE_CLOSED;
   writeError = false;
   open(path, oflag);
@@ -4169,7 +4169,7 @@ FAIL:
  * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
  * OR of open flags. see SdBaseFile::open(SdBaseFile*, const char*, uint8_t).
  */
-SdFile::SdFile(const char* path, uint8_t oflag) : SdBaseFile(path, oflag) {
+SdFile::SdFile(PGM_P path, uint8_t oflag) : SdBaseFile(path, oflag) {
 }
 //------------------------------------------------------------------------------
 /** Write data to an open file.
@@ -4196,7 +4196,7 @@ int SdFile::write(const void* buf, size_t nbyte) {
  * Use getWriteError to check for errors.
  * \return 1 for success and 0 for failure.
  */
-#ifdef ARDUINO_ARCH_SAM
+#if ENABLED(CPU_32_BIT)
   #ifdef COMPAT_PRE1
     void SdFile::write(uint8_t b) {
       dBaseFile::write(&b, 1);
@@ -4213,7 +4213,7 @@ int SdFile::write(const void* buf, size_t nbyte) {
    * Use getWriteError to check for errors.
    * \return count of characters written for success or -1 for failure.
    */
-  int SdFile::write(const char* str) {
+  int SdFile::write(PGM_P str) {
     return SdBaseFile::write(str, strlen(str));
   }
 #else
@@ -4231,7 +4231,7 @@ int SdFile::write(const void* buf, size_t nbyte) {
    * \param[in] str Pointer to the string.
    * Use writeError to check for errors.
    */
-  void SdFile::write(const char* str) {
+  void SdFile::write(PGM_P str) {
     SdBaseFile::write(str, strlen(str));
   }
 #endif

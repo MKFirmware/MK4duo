@@ -52,12 +52,8 @@
     // Z axis lift
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
-    // Load filament
-    const float load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
-                                                      filament_change_load_length[tools.target_extruder]);
-
     // Show initial "wait for load" message
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_LOAD, ADVANCED_PAUSE_MODE_LOAD_FILAMENT, tools.target_extruder);
     #endif
 
@@ -72,8 +68,17 @@
     if (park_point.z > 0)
       mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_POS), NOZZLE_PARK_Z_FEEDRATE);
 
-    load_filament(load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS, true,
-                  heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT);
+    // Load filament
+    constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
+    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
+                                                          advancedpause.data[tools.target_extruder].load_length);
+
+    advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
+                                true, heaters[TARGET_EXTRUDER].wait_for_heating(), ADVANCED_PAUSE_MODE_LOAD_FILAMENT
+                                #if ENABLED(DUAL_X_CARRIAGE)
+                                  , tools.target_extruder
+                                #endif
+    );
 
     // Restore Z axis
     if (park_point.z > 0)
@@ -86,7 +91,7 @@
     #endif
 
     // Show status screen
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
   }
@@ -114,7 +119,7 @@
     if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
     // Show initial "wait for unload" message
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_UNLOAD, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT, tools.target_extruder);
     #endif
 
@@ -132,19 +137,19 @@
     // Unload filament
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
-        HOTEND_LOOP() {
-          if (h != tools.active_extruder) tools.change(h, 0, true);
-          unload_filament(-filament_change_unload_length[h], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
+        LOOP_EXTRUDER() {
+          if (e != tools.active_extruder) tools.change(e, 0, true);
+          advancedpause.unload_filament(filament_change_unload_length[e], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
       else
     #endif
     {
       // Unload length
-      const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS) :
-                                                          filament_change_unload_length[tools.target_extruder]);
+      const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
+                                                        : advancedpause.data[tools.target_extruder].unload_length);
 
-      unload_filament(unload_length, true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
+      advancedpause.unload_filament(unload_length, true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
     }
 
     // Restore Z axis
@@ -158,7 +163,7 @@
     #endif
 
     // Show status screen
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
     #endif
   }

@@ -32,9 +32,9 @@
 
   inline void gcode_M922(void) {
     if (parser.seen('S'))
-      tmc_set_report_status(parser.value_bool());
+      tmc.set_report_status(parser.value_bool());
     else
-      tmc_report_all();
+      tmc.report_all();
   }
 
 #endif // TMC_DEBUG

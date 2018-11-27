@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,11 +159,11 @@
 
 
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN            58 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+#define MAX6675_SS_PIN             58
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
     #define LCD_PINS_RS         49  // CS chip select /SS chip slave select
@@ -317,3 +317,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

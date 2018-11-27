@@ -29,7 +29,7 @@
 #ifndef _FILRUNOUT_H_
 #define _FILRUNOUT_H_
 
-#if HAS_FIL_RUNOUT
+#if HAS_FIL_RUNOUT_0
 
   class FilamentRunOut {
 
@@ -37,41 +37,56 @@
 
       FilamentRunOut() {}
 
+    public: /** Public Parameters */
+
+      static flagbyte_t logic_flag,
+                        pullup_flag;
+
     public: /** Public Function */
 
+      /**
+       * Initialize the filrunout pins
+       */
       static void init();
-      static void setup_pullup(const bool onoff);
+
+      /**
+       * Initialize Factory parameters
+       */
+      static void factory_parameters();
+
+      /**
+       * Setup Pullup
+       */
+      static void setup_pullup();
+
+      /**
+       * Print logical and pullup
+       */
+      static void report();
+
+      /**
+       * Filrunout check
+       */
       static void spin();
+
+      FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
+        SET_BIT(logic_flag._byte, filrunout, logic);
+      }
+      FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(logic_flag._byte, filrunout); }
+
+      FORCE_INLINE static void setPullup(const FilRunoutEnum filrunout, const bool pullup) {
+        SET_BIT(pullup_flag._byte, filrunout, pullup);
+      }
+      FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(pullup_flag._byte, filrunout); }
 
     private: /** Private Function */
 
-      FORCE_INLINE static bool read() {
-        // Read the sensor for the active extruder
-        switch (tools.active_extruder) {
-          case 0: return READ(FIL_RUNOUT0_PIN) == endstops.isLogic(FIL_RUNOUT);
-          #if HAS_FIL_RUNOUT1
-            case 1: return READ(FIL_RUNOUT1_PIN) == endstops.isLogic(FIL_RUNOUT);
-            #if HAS_FIL_RUNOUT2
-              case 2: return READ(FIL_RUNOUT2_PIN) == endstops.isLogic(FIL_RUNOUT);
-              #if HAS_FIL_RUNOUT3
-                case 3: return READ(FIL_RUNOUT3_PIN) == endstops.isLogic(FIL_RUNOUT);
-                #if HAS_FIL_RUNOUT4
-                  case 4: return READ(FIL_RUNOUT4_PIN) == endstops.isLogic(FIL_RUNOUT);
-                  #if HAS_FIL_RUNOUT5
-                    case 5: return READ(FIL_RUNOUT5_PIN) == endstops.isLogic(FIL_RUNOUT);
-                  #endif
-                #endif
-              #endif
-            #endif
-          #endif
-        }
-        return false;
-      }
+      static bool read();
 
   };
 
   extern FilamentRunOut filamentrunout;
 
-#endif // HAS_FIL_RUNOUT
+#endif // HAS_FIL_RUNOUT_0
 
 #endif /* _FILRUNOUT_H_ */

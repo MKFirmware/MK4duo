@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -160,15 +160,14 @@
 
 
 //###IF_BLOCKS
-#if TEMP_SENSOR_0 == NoPin
-  #define ORIG_TEMP_0_PIN          8   // ANALOG NUMBERING
+#if TEMP_SENSOR_0 == -1 //thermocouple with AD595 or AD597
+  #define ORIG_TEMP_0_PIN           8
 #else
-  #define ORIG_TEMP_0_PIN         13   // ANALOG NUMBERING
+  #define ORIG_TEMP_0_PIN          13
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #if ENABLED(NEWPANEL)
-  //arduino pin which triggers an piezzo beeper
 
     #define LCD_PINS_RS 16
     #define LCD_PINS_ENABLE 17
@@ -191,3 +190,4 @@
 
 #endif //ULTRA_LCD
 //@@@
+

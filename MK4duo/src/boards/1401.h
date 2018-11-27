@@ -6,7 +6,7 @@
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -23,60 +23,60 @@
 #define ORIG_X_STEP_PIN            24
 #define ORIG_X_DIR_PIN             23
 #define ORIG_X_ENABLE_PIN          26
-#define ORIG_X_CS_PIN              NoPin
+#define ORIG_X_CS_PIN              25
 
 //###Y_AXIS
 #define ORIG_Y_STEP_PIN            17
 #define ORIG_Y_DIR_PIN             16
 #define ORIG_Y_ENABLE_PIN          22
-#define ORIG_Y_CS_PIN              NoPin
+#define ORIG_Y_CS_PIN              27
 
 //###Z_AXIS
 #define ORIG_Z_STEP_PIN             2
 #define ORIG_Z_DIR_PIN              3
 #define ORIG_Z_ENABLE_PIN          15
-#define ORIG_Z_CS_PIN              NoPin
+#define ORIG_Z_CS_PIN              29
 
 //###EXTRUDER_0
 #define ORIG_E0_STEP_PIN           61
 #define ORIG_E0_DIR_PIN            60
 #define ORIG_E0_ENABLE_PIN         62
-#define ORIG_E0_CS_PIN             NoPin
+#define ORIG_E0_CS_PIN             31
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
 #define ORIG_E1_STEP_PIN           64
 #define ORIG_E1_DIR_PIN            63
 #define ORIG_E1_ENABLE_PIN         65
-#define ORIG_E1_CS_PIN             NoPin
+#define ORIG_E1_CS_PIN             33
 #define ORIG_SOL1_PIN              NoPin
 
 //###EXTRUDER_2
 #define ORIG_E2_STEP_PIN           51
 #define ORIG_E2_DIR_PIN            53
 #define ORIG_E2_ENABLE_PIN         49
-#define ORIG_E2_CS_PIN             NoPin
+#define ORIG_E2_CS_PIN             35
 #define ORIG_SOL2_PIN              NoPin
 
 //###EXTRUDER_3
 #define ORIG_E3_STEP_PIN           35
 #define ORIG_E3_DIR_PIN            33
 #define ORIG_E3_ENABLE_PIN         37
-#define ORIG_E3_CS_PIN             NoPin
+#define ORIG_E3_CS_PIN              6
 #define ORIG_SOL3_PIN              NoPin
 
 //###EXTRUDER_4
 #define ORIG_E4_STEP_PIN           29
 #define ORIG_E4_DIR_PIN            27
 #define ORIG_E4_ENABLE_PIN         31
-#define ORIG_E4_CS_PIN             NoPin
+#define ORIG_E4_CS_PIN             39
 #define ORIG_SOL4_PIN              NoPin
 
 //###EXTRUDER_5
-#define ORIG_E5_STEP_PIN           NoPin
-#define ORIG_E5_DIR_PIN            NoPin
-#define ORIG_E5_ENABLE_PIN         NoPin
-#define ORIG_E5_CS_PIN             NoPin
+#define ORIG_E5_STEP_PIN           67
+#define ORIG_E5_DIR_PIN            66
+#define ORIG_E5_ENABLE_PIN         68
+#define ORIG_E5_CS_PIN              6
 #define ORIG_SOL5_PIN              NoPin
 
 //###EXTRUDER_6
@@ -148,11 +148,13 @@
 #define ORIG_BEEPER_PIN            41
 #define LED_PIN                    NoPin
 #define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
+#define SD_DETECT_PIN              14
 #define SDSS                        4
 #define KILL_PIN                   NoPin
 #define DEBUG_PIN                  NoPin
 #define SUICIDE_PIN                NoPin
+#define RADDS_EXT_VDD_PIN          25
+#define RADDS_EXT_VDD2_PIN         66
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
@@ -166,9 +168,10 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
-  // RADDS LCD panel
+#if HAS_SPI_LCD
+
   #if ENABLED(RADDS_DISPLAY)
+
     #define LCD_PINS_RS 		42
     #define LCD_PINS_ENABLE 43
     #define LCD_PINS_D4 		44
@@ -185,12 +188,15 @@
     #define BTN_BACK        71
 
     #undef SDSS
-    #define SDSS            10 // 4,10,52 if using HW SPI.
+    #define SDSS            10
     #define SD_DETECT_PIN   14
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
-    #define LCD_PINS_RS     46
-    #define LCD_PINS_ENABLE 47
+
+    // The REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER requires
+    // an adapter such as https://www.thingiverse.com/thing:1740725
+    #define LCD_PINS_RS     42
+    #define LCD_PINS_ENABLE 43
     #define LCD_PINS_D4     44
 
     #define ORIG_BEEPER_PIN 41
@@ -200,6 +206,7 @@
     #define BTN_ENC         48
 
   #elif ENABLED(SSD1306_OLED_I2C_CONTROLLER)
+
     #define BTN_EN1         50
     #define BTN_EN2         52
     #define BTN_ENC         48
@@ -209,6 +216,7 @@
     #define KILL_PIN        NoPin
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
+
     #define LCD_PINS_D4     29
     #define LCD_PINS_ENABLE 27
     #define LCD_PINS_RS     25
@@ -220,6 +228,14 @@
     #define KILL_PIN        NoPin
     #undef ORIG_BEEPER_PIN
     #define ORIG_BEEPER_PIN NoPin
+
 	#endif // SPARK_FULL_GRAPHICS
+
 #endif // ULTRA_LCD
+//@@@
+
+//###MB_SETUP
+#define MB_SETUP                      \
+  OUT_WRITE(RADDS_EXT_VDD_PIN, HIGH); \
+  OUT_WRITE(RADDS_EXT_VDD2_PIN, HIGH);
 //@@@

@@ -65,7 +65,7 @@ inline void gcode_G92(void) {
   }
 
   if (didXYZ)
-    mechanics.sync_plan_position_mech_specific();
+    mechanics.sync_plan_position();
   else if (didE)
     mechanics.sync_plan_position_e();
 

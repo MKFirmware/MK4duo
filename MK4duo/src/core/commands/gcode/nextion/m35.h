@@ -26,9 +26,9 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(NEXTION)
+#if HAS_NEXTION_LCD
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     #define CODE_M35
 
@@ -40,4 +40,4 @@
     }
   #endif
 
-#endif // ENABLED(NEXTION)
+#endif // HAS_NEXTION_LCD

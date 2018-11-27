@@ -1,12 +1,12 @@
 /****************************************************************************************
 * 1412
-* Arduino pin assignment
-* for BOARD_RAMPS_SMART_HHB
+*
+* RAMPS SMART HHB
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -167,7 +167,7 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
     #define LCD_PINS_RS     49 // CS chip select /SS chip slave select
@@ -322,3 +322,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

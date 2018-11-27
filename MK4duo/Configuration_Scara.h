@@ -73,8 +73,8 @@
 
 
 /*****************************************************************************************
- ************************************* Scara settings *************************************
-/****************************************************************************************/
+ ************************************* Scara settings ************************************
+ ****************************************************************************************/
 // MORGAN_SCARA for MK4duo was developed by QHARLEY in ZA in 2012/2013. Implemented
 // and slightly reworked by JCERNY in 06/2014 with the goal to bring it into Master-Branch
 // QHARLEYS Autobedlevelling has not been ported, because MK4duo has now Bed-levelling
@@ -387,7 +387,7 @@
 // Add display menu option for bed leveling.
 //#define MANUAL_BED_LEVELING
 // Step size while manually probing Z axis.
-#define LCD_Z_STEP 0.025
+#define MESH_EDIT_Z_STEP 0.025
 /*****************************************************************************************/
 
 
@@ -419,11 +419,6 @@
 //#define AUTO_BED_LEVELING_3POINT
 //#define AUTO_BED_LEVELING_LINEAR
 //#define AUTO_BED_LEVELING_BILINEAR
-
-// Enable detailed logging of G28, G29, G30, M48, etc.
-// Turn on with the command 'M111 S32'.
-// NOTE: Requires a lot of PROGMEM!
-//#define DEBUG_LEVELING_FEATURE
 
 /** START AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
 // Set the number of grid points per dimension

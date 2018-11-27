@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef _BOARD_H_
-#define _BOARD_H_
+#pragma once
 
 // Macros for board type
 #define BOARD_UNKNOWN -1
@@ -42,8 +41,8 @@
  */
 #define BOARD_ULTIMAKER          7    // Ultimaker
 #define BOARD_SAINSMART_2IN1    39    // SainSmart 2 in 1
-#define BOARD_MKS_BASE          40    // MKS BASE 1.0
-#define BOARD_MKS_13            47    // MKS v1.3 or 1.4 (maybe higher)
+#define BOARD_MKS_BASE          40    // MKS BASE v1.0
+#define BOARD_MKS_13            47    // MKS GEN v1.3 or 1.4
 #define BOARD_TRIGORILLA        49    // TRIGORILLA (ANYCUBIC)
 #define BOARD_MKS_GEN_L         53    // MKS GEN L
 #define BOARD_AZTEEG_X3         67    // Azteeg X3
@@ -88,7 +87,6 @@
 #define BOARD_MELZI             63    // Melzi
 #define BOARD_STB_11            64    // STB V1.1
 #define BOARD_AZTEEG_X1         65    // Azteeg X1
-#define BOARD_MELZI_MAKR3D      66    // Melzi with ATmega1284 (MaKr3d version)
 #define BOARD_MELZI_CREALITY    89    // Melzi Creality3D board (for CR-10 etc)
 
 /**
@@ -102,7 +100,6 @@
 #define BOARD_GEN7_14           13    // Gen7 v1.4
 #define BOARD_SETHI             20    // Sethi 3D_1
 #define BOARD_GEN3_MONOLITHIC   22    // Gen3 Monolithic Electronics
-#define BOARD_GEN6_DELUXE       51    // Gen6 deluxe
 #define BOARD_OMCA_A            90    // Alpha OMCA board
 #define BOARD_OMCA              91    // Final OMCA board
 
@@ -124,16 +121,22 @@
 #define BOARD_RADDS           1401    // RADDS ARM 32 bit board
 #define BOARD_RAMPS_FD_V1     1403    // RAMPS-FD V1 ARM 32 bit board
 #define BOARD_RAMPS_FD_V2     1404    // RAMPS-FD V2 ARM 32 bit board
+#define BOARD_CNCONTROLS_V14  1405    // CNControls V14
 #define BOARD_ULTIMAKER4DUE   1407    // Ultimaker Shield + Arduino DUE Aleksandr Varaksa mods (https://iworld4us.com/diy-3d-printer.html)
 #define BOARD_RAMPS_SMART_HFB 1411    // RAMPS-SMART (Power outputs: Hotend, Fan, Bed)
 #define BOARD_RAMPS_SMART_HHB 1412    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Bed)
 #define BOARD_RAMPS_SMART_HFF 1413    // RAMPS-SMART (Power outputs: Hotend, Fan0, Fan1)
 #define BOARD_RAMPS_SMART_HHF 1414    // RAMPS-SMART (Power outputs: Hotend0, Hotend1, Fan)
-#define BOARD_RAMPS4DUE       1433    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
-#define BOARD_ALLIGATOR       1502    // ALLIGATOR R2 ARM 32 bit board
-#define BOARD_ALLIGATOR_V3    1503    // ALLIGATOR R3 ARM 32 bit board
-#define BOARD_RURAMPS4D       1550    // RuRAMPS4Duo v1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
+#define BOARD_RAMPS4DUE       1430    // RAMPS4DUE with AndrewBCN's RAMPS mods (http://forums.reprap.org/read.php?219,479626,page=1) ARM 32 bit board
+#define BOARD_RAMPS_17_HFB    1433    // RAMPS 1.7 (Power outputs: Hotend, Fan, Bed)
+#define BOARD_ALLIGATOR_R2    1502    // ALLIGATOR R2 ARM 32 bit board
+#define BOARD_ALLIGATOR_R3    1503    // ALLIGATOR R3 ARM 32 bit board
+#define BOARD_RURAMPS4D_V11   1550    // RuRAMPS4Duo v1.1 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
+#define BOARD_RURAMPS4D_V13   1551    // RuRAMPS4Duo v1.3 (Power outputs: Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 #define BOARD_ARCHIM2         1590    // UltiMachine Archim2 (with TMC2130 drivers)
 #define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 
-#endif /* _BOARD_H_ */
+/**
+ * SAMD21J18
+ */
+#define BOARD_MINITRONICS_V2  2706    // Minitronics v2.0

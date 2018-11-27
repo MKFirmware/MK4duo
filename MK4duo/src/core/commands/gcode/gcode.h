@@ -56,6 +56,7 @@
 #include "config/m220.h"                  // Set speed percentage
 #include "config/m221.h"                  // Set extrusion percentage
 #include "config/m222.h"                  // Set density
+#include "config/m223_m224.h"             // Set Logic or Pullup filrunout
 #include "config/m301.h"                  // Set PID parameters Heater
 #include "config/m302.h"                  // Allow cold extrudes
 #include "config/m305.h"                  // Set thermistor and ADC parameters
@@ -78,7 +79,6 @@
 #include "control/m121.h"
 #include "control/m122.h"
 #include "control/m226.h"                 // Wait until a pin
-#include "control/m280.h"                 // Servo
 #include "control/m350_m351.h"            // Microstep
 #include "control/m355.h"                 // Set Case Light
 #include "control/m380_m381.h"            // Extruder Solenoid
@@ -87,6 +87,7 @@
 #include "control/m540.h"                 // Enable/disable SD card abort on endstop hit
 #include "control/m605.h"                 // Set dual x-carriage movement mode
 #include "control/m999.h"                 // Restart after being stopped
+#include "control/m9999.h"                // Banzai code for erase bootloader on DUE
 
 // Debug Commands
 #include "debug/m43.h"
@@ -95,6 +96,7 @@
 // Delta Commands
 #include "delta/g33_type1.h"              // Autocalibration 7 point
 #include "delta/g33_type2.h"              // Autocalibration matrix
+#include "delta/g34.h"                    // Set Delta Height
 #include "delta/m666.h"                   // Set delta parameters
 
 // EEPROM Commands
@@ -105,8 +107,7 @@
 #include "feature/g27.h"
 #include "feature/g60.h"
 #include "feature/g61.h"
-#include "feature/m96_m97.h"
-#include "feature/m98_m99.h"
+#include "feature/m99.h"                  // Hysteresis feature
 #include "feature/m100.h"                 // Free Memory Watcher
 #include "feature/m125.h"
 #include "feature/m126_m129.h"            // Solenoid feature
@@ -115,7 +116,11 @@
 #include "feature/m600.h"                 // Advanced Pause change filament
 #include "feature/m603.h"                 // Configure filament change
 #include "feature/m701_m702.h"            // Load / Unload filament
-#include "feature/m911_m915.h"            // Set TMC2130 driver
+#include "feature/m413.h"                 // Restart Job
+#include "feature/m800.h"                 // Restart Job
+#include "feature/m911_m915.h"            // Set TRINAMIC driver
+#include "feature/m930_m939.h"            // Set TRINAMIC driver
+#include "feature/m940_m942.h"            // Set TRINAMIC driver
 #include "feature/m922.h"                 // TMC DEBUG
 
 // Geometry Commands
@@ -185,6 +190,10 @@
 
 // Rfid Commands
 #include "rfid/m522.h"                    // Rfid read and write
+
+// Servo Commands
+#include "servo/m280.h"                   // Servo move
+#include "servo/m281.h"                   // Servo Angles
 
 // Scara Commands
 #include "scara/m360_m364.h"

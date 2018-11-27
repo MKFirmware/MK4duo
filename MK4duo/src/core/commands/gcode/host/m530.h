@@ -48,7 +48,7 @@ inline void gcode_M530(void) {
 
     printer.setFilamentOut(false);
 
-    #if HAS_FIL_RUNOUT
+    #if HAS_FIL_RUNOUT_0
       SERIAL_EM("Filament runout activated.");
       SERIAL_STR(RESUME);
       SERIAL_EOL();
@@ -68,7 +68,7 @@ inline void gcode_M530(void) {
 
     printer.setFilamentOut(false);
 
-    #if HAS_FIL_RUNOUT
+    #if HAS_FIL_RUNOUT_0
       SERIAL_EM("Filament runout deactivated.");
     #endif
   }

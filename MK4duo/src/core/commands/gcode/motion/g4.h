@@ -39,7 +39,9 @@ inline void gcode_G4(void) {
 
   planner.synchronize();
 
-  if (!lcd_hasstatus()) LCD_MESSAGEPGM(MSG_DWELL);
+  if (!lcdui.has_status()) LCD_MESSAGEPGM(MSG_DWELL);
+
+  dwell_ms += millis();
 
   while (PENDING(millis(), dwell_ms)) {
     printer.keepalive(InProcess);

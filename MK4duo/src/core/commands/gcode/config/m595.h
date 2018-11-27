@@ -26,30 +26,20 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_USES_AD595
+#if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
 
   #define CODE_M595
 
   /**
-   * M595 - set Hotend AD595 offset & Gain H<hotend_number> O<offset> S<gain>
+   * M595 - set AD595 or AD8495 offset & Gain H<hotend> O<offset> S<gain>
    */
   inline void gcode_M595(void) {
-
-    GET_TARGET_HOTEND(595);
-
-    heaters[TARGET_EXTRUDER].sensor.ad595_offset = parser.floatval('O');
-    heaters[TARGET_EXTRUDER].sensor.ad595_gain   = parser.floatval('S', 1);
-
-    SERIAL_EM(MSG_AD595);
-
-    LOOP_HOTEND() {
-
-      if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = 1.0;
-
-      SERIAL_MV(" T", h);
-      SERIAL_MV(" Offset: ", heaters[h].sensor.ad595_offset, 3);
-      SERIAL_EMV(", Gain: ", heaters[h].sensor.ad595_gain, 3);
-    }
+    int8_t h = 0;
+    if (!commands.get_target_heater(h, true)) return;
+    heaters[h].sensor.ad595_offset = parser.floatval('O');
+    heaters[h].sensor.ad595_gain   = parser.floatval('S', 1);
+    if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = 1.0;
+    heaters[h].print_AD595_parameters();
   }
 
-#endif // HEATER_USES_AD595
+#endif // ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)

@@ -25,11 +25,9 @@
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
   #include "ubl.h"
-  #include <math.h>
+  #include "math.h"
 
   unified_bed_leveling ubl;
-
-  uint8_t ubl_cnt = 0;
 
   void unified_bed_leveling::echo_name() { SERIAL_MSG("Unified Bed Leveling"); }
 
@@ -52,7 +50,7 @@
   void unified_bed_leveling::report_state() {
     echo_name();
     SERIAL_MSG(" System v" UBL_VERSION " ");
-    if (!bedlevel.leveling_active) SERIAL_MSG("in");
+    if (!bedlevel.flag.leveling_active) SERIAL_MSG("in");
     SERIAL_EM("active.");
     printer.safe_delay(50);
   }
@@ -66,11 +64,11 @@
         SERIAL_VAL(mechanics.destination[X_AXIS], 6);
     }
 
-    void debug_current_and_destination(const char *title) {
+    void debug_current_and_destination(PGM_P title) {
 
       // if the title message starts with a '!' it is so important, we are going to
-      // ignore the status of the bedlevel.g26_debug_flag
-      if (*title != '!' && !bedlevel.g26_debug_flag) return;
+      // ignore the status of the bedlevel.flag.g26_debug
+      if (*title != '!' && !bedlevel.flag.g26_debug) return;
 
       const float de = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
 
@@ -90,14 +88,10 @@
       SERIAL_MV(", ", mechanics.current_position[Z_AXIS], 6);
       SERIAL_MV(", ", mechanics.current_position[E_AXIS], 6);
       SERIAL_MSG(" )   destination=( ");
-      debug_echo_axis(X_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(Y_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(Z_AXIS);
-      SERIAL_MSG(", ");
-      debug_echo_axis(E_AXIS);
-      SERIAL_MSG(" )   ");
+      debug_echo_axis(X_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(Y_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(Z_AXIS); SERIAL_MSG(", ");
+      debug_echo_axis(E_AXIS); SERIAL_MSG(" )   ");
       SERIAL_STR(title);
       SERIAL_EOL();
 
@@ -114,19 +108,18 @@
   constexpr float unified_bed_leveling::_mesh_index_to_xpos[16],
                   unified_bed_leveling::_mesh_index_to_ypos[16];
 
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     bool unified_bed_leveling::lcd_map_control = false;
   #endif
 
   volatile int unified_bed_leveling::encoder_diff;
 
   unified_bed_leveling::unified_bed_leveling() {
-    ubl_cnt++;  // Debug counter to ensure we only have one UBL object present in memory.  We can eliminate this (and all references to ubl_cnt) very soon.
     reset();
   }
 
   void unified_bed_leveling::reset() {
-    const bool was_enabled = bedlevel.leveling_active;
+    const bool was_enabled = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -149,7 +142,6 @@
     }
   }
 
-  
   static void serial_echo_xy(const uint8_t sp, const int16_t x, const int16_t y) {
     SERIAL_SP(sp);
     SERIAL_CHR('(');
@@ -190,8 +182,8 @@
     SERIAL_MSG("\nBed Topography Report");
     if (human) {
       SERIAL_MSG(":\n\n");
-      serial_echo_xy(4, UBL_MESH_MIN_X, UBL_MESH_MAX_Y);
-      serial_echo_xy(twixt, UBL_MESH_MAX_X, UBL_MESH_MAX_Y);
+      serial_echo_xy(4, MESH_MIN_X, MESH_MAX_Y);
+      serial_echo_xy(twixt, MESH_MAX_X, MESH_MAX_Y);
       SERIAL_EOL();
       serial_echo_column_labels(eachsp - 2);
     }
@@ -212,7 +204,7 @@
         SERIAL_VAL(j);
         SERIAL_MSG(" |");
       }
-      
+
       // Row Values (I indexes)
       for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
 
@@ -247,8 +239,8 @@
     if (human) {
       serial_echo_column_labels(eachsp - 2);
       SERIAL_EOL();
-      serial_echo_xy(4, UBL_MESH_MIN_X, UBL_MESH_MIN_Y);
-      serial_echo_xy(twixt, UBL_MESH_MAX_X, UBL_MESH_MIN_Y);
+      serial_echo_xy(4, MESH_MIN_X, MESH_MIN_Y);
+      serial_echo_xy(twixt, MESH_MAX_X, MESH_MIN_Y);
       SERIAL_EOL();
       SERIAL_EOL();
     }

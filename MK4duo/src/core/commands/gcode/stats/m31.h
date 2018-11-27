@@ -35,7 +35,7 @@ inline void gcode_M31(void) {
   char buffer[21];
   duration_t elapsed = print_job_counter.duration();
   elapsed.toString(buffer);
-  lcd_setstatus(buffer);
+  lcdui.setstatus(buffer);
 
   SERIAL_LMT(ECHO, MSG_PRINT_TIME, buffer);
 }

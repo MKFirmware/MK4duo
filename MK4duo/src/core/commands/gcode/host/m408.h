@@ -163,8 +163,8 @@
       case 3:
         SERIAL_EM(",");
         SERIAL_MSG("\"printer.currentLayer\":");
-        #if HAS_SDSUPPORT
-          if (IS_SD_PRINTING && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
+        #if HAS_SD_SUPPORT
+          if (IS_SD_PRINTING() && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
             SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
           }
           else SERIAL_VAL(0);
@@ -179,8 +179,8 @@
           firstOccurrence = false;
         }
         SERIAL_MSG("],");
-        #if HAS_SDSUPPORT
-          if (IS_SD_PRINTING) {
+        #if HAS_SD_SUPPORT
+          if (IS_SD_PRINTING()) {
             SERIAL_MSG("\"fractionPrinted\":");
             float fractionprinted;
             if (card.fileSize < 2000000) {
@@ -192,8 +192,8 @@
           }
         #endif
         SERIAL_MSG("\"firstLayerHeight\":");
-        #if HAS_SDSUPPORT
-          if (IS_SD_PRINTING) SERIAL_VAL(card.firstlayerHeight);
+        #if HAS_SD_SUPPORT
+          if (IS_SD_PRINTING()) SERIAL_VAL(card.firstlayerHeight);
           else SERIAL_MSG("0");
         #else
           SERIAL_MSG("0");
@@ -215,18 +215,18 @@
         SERIAL_CHR(',');
         SERIAL_VAL((int) Z_MAX_POS);
         SERIAL_MSG("],\"planner.accelerations\":[");
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[Z_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[E_AXIS + i]);
         }
         SERIAL_MSG("],");
 
-        #if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+        #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
           SERIAL_MSG("\"currents\":[");
           SERIAL_VAL(externaldac.motor_current[X_AXIS]);
           SERIAL_CHR(',');
@@ -243,10 +243,10 @@
         SERIAL_MSG("\"firmwareElectronics\":\"");
         #if MB(RAMPS_13_HFB) || MB(RAMPS_13_HHB) || MB(RAMPS_13_HFF) || MB(RAMPS_13_HHF) || MB(RAMPS_13_HHH)
           SERIAL_MSG("RAMPS");
-        #elif MB(ALLIGATOR)
-          SERIAL_MSG("ALLIGATOR");
-        #elif MB(ALLIGATOR_V3)
-          SERIAL_MSG("ALLIGATOR_V3");
+        #elif MB(ALLIGATOR_R2)
+          SERIAL_MSG("ALLIGATOR_R2");
+        #elif MB(ALLIGATOR_R3)
+          SERIAL_MSG("ALLIGATOR_R3");
         #elif MB(RADDS) || MB(RAMPS_FD_V1) || MB(RAMPS_FD_V2) || MB(SMART_RAMPS) || MB(RAMPS4DUE)
           SERIAL_MSG("Arduino due");
         #elif MB(ULTRATRONICS)
@@ -266,14 +266,14 @@
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[X_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Y_AXIS]);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.max_feedrate_mm_s[Z_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Z_AXIS]);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_feedrate_mm_s[E_AXIS + i]);
         }
         SERIAL_CHR(']');
         break;

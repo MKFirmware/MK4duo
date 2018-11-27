@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * tools.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _TOOLS_H_
-#define _TOOLS_H_
 
 #if EXTRUDERS > 0
 
@@ -41,8 +39,7 @@
 
       static uint8_t  active_extruder,
                       previous_extruder,
-                      target_extruder,
-                      active_driver;
+                      target_extruder;
 
       static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                       density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
@@ -73,6 +70,8 @@
     public: /** Public Function */
 
       static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
+
+      static void print_parameters(const uint8_t h);
 
       FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
         e_factor[e] =  (flow_percentage[e] * 0.01
@@ -117,10 +116,6 @@
         static void move_extruder_servo(const uint8_t e);
       #endif
 
-      #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
-        static void mixing_tool_change(const uint8_t tmp_extruder);
-      #endif
-
       #if ENABLED(DUAL_X_CARRIAGE)
         static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
       #endif
@@ -130,5 +125,3 @@
   extern Tools tools;
 
 #endif
-
-#endif /* _TOOLS_H_ */

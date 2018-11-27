@@ -19,39 +19,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef CARDREADER_H
-#define CARDREADER_H
-
-#if HAS_SDSUPPORT
-
-  #if ENABLED(SD_SETTINGS)
-    /**
-     * SD Settings
-     */
-    enum cfgSD_ENUM {   // This need to be in the same order as cfgSD_KEY
-      SD_CFG_CPR,
-      SD_CFG_FIL,
-      SD_CFG_NPR,
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      SD_CFG_PWR,
-    #endif
-      SD_CFG_TME,
-      SD_CFG_TPR,
-      SD_CFG_END // Leave this always as the last
-    };
-  #endif
-
-  enum LsAction : char { LS_Count, LS_GetFilename };
-
-  enum FlagCardReader : char {
-    flag_SD_OK,
-    flag_SD_saving,
-    flag_SD_printing,
-    flag_SD_filenameIsDir
-  };
+#if HAS_SD_SUPPORT
 
   #include "SDFat.h"
+
+  union flagcard_t {
+    bool all;
+    struct {
+      bool  OK              : 1;
+      bool  Saving          : 1;
+      bool  SDprinting      : 1;
+      bool  AutoreportSD    : 1;
+      bool  AbortSDprinting : 1;
+      bool  FilenameIsDir   : 1;
+      bool  bit6            : 1;
+      bool  bit7            : 1;
+    };
+    flagcard_t() { all = false; }
+  };
 
   class CardReader {
 
@@ -60,6 +47,8 @@
       CardReader() {};
 
     public: /** Public Parameters */
+
+      static flagcard_t flag;
 
       static SdFat      fat;
       static SdFile     gcode_file;
@@ -83,13 +72,7 @@
 
     private: /** Private Parameters */
 
-      static uint8_t card_flag;
-
       static uint16_t nrFile_index;
-
-      #if HAS_SD_RESTART
-        static SdFile restart_file;
-      #endif
 
       #if HAS_EEPROM_SD
         static SdFile eeprom_file;
@@ -99,9 +82,9 @@
         static SdFile settings_file;
       #endif
 
-      static uint16_t workDirDepth,
-                      nrFiles;              // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
-      static LsAction lsAction;             // stored for recursion.
+      static uint16_t     workDirDepth,
+                          nrFiles;          // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
+      static LsActionEnum lsAction;         // stored for recursion.
 
       // Sort files and folders alphabetically.
       #if ENABLED(SDCARD_SORT_ALPHA)
@@ -157,10 +140,10 @@
       static void mount();
       static void unmount();
       static void ls();
-      static void getfilename(uint16_t nr, const char* const match=NULL);
+      static void getfilename(uint16_t nr, PGM_P const match=NULL);
       static void getAbsFilename(char* name);
       static void startFileprint();
-      static void openAndPrintFile(const char* name);
+      static void openAndPrintFile(PGM_P name);
       static void stopSDPrint();
       static void write_command(char* buf);
       static void printStatus();
@@ -170,17 +153,17 @@
       static void makeDirectory(char* filename);
       static void closeFile();
       static void printingHasFinished();
-      static void chdir(const char* relpath);
-      static void ResetDefault();
-      static void PrintSettings();
+      static void chdir(PGM_P relpath);
+      static void reset_default();
+      static void print_settings();
       static void beginautostart();
       static void checkautostart();
       static void setroot();
       static void setlast();
 
-      static void printEscapeChars(const char* s);
+      static void printEscapeChars(PGM_P s);
 
-      static bool selectFile(const char* filename);
+      static bool selectFile(PGM_P filename);
 
       static int8_t updir();
       static uint16_t getnrfilenames();
@@ -191,15 +174,13 @@
         static void close_restart_file();
         static void delete_restart_file();
         static bool exist_restart_file();
-        static int16_t save_restart_data();
-        static int16_t read_restart_data();
       #endif
 
       #if HAS_EEPROM_SD
-        static bool open_eeprom_sd(const bool read);
+        static void open_eeprom_sd(const bool read);
         static void close_eeprom_sd();
-        static bool write_eeprom_data(const uint8_t value);
-        static uint8_t read_eeprom_data();
+        static inline size_t write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
+        static inline size_t read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
       #endif
 
       #if ENABLED(SD_SETTINGS)
@@ -210,55 +191,62 @@
         static void StoreSettings();
         static void RetrieveSettings(bool addValue = false);
         static void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
-        static void unparseKeyLine(const char* key, char* value);
+        static void unparseKeyLine(PGM_P key, char* value);
         static int  KeyIndex(char* key);
       #else
-        inline static void RetrieveSettings() { ResetDefault(); }
+        static inline void RetrieveSettings() { reset_default(); }
       #endif
 
       #if ENABLED(SDCARD_SORT_ALPHA)
         static void presort();
         static void getfilename_sorted(const uint16_t nr);
         #if ENABLED(SDSORT_GCODE)
-          FORCE_INLINE static void setSortOn(const bool b) { sort_alpha = b; presort(); }
-          FORCE_INLINE static void setSortFolders(const int i) { sort_folders = i; presort(); }
+          static inline void setSortOn(const bool b) { sort_alpha = b; presort(); }
+          static inline void setSortFolders(const int i) { sort_folders = i; presort(); }
           //FORCE_INLINE void setSortReverse(const bool b) { sort_reverse = b; }
         #endif
+      #else
+        static inline void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
       #endif
 
-      // Flag function
-      FORCE_INLINE static void setOK(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_OK, onoff);
-      }
-      FORCE_INLINE static bool isOK() { return TEST(card_flag, flag_SD_OK); }
+      // Card flag bit 0 SD OK
+      FORCE_INLINE static void setOK(const bool onoff) { flag.OK = onoff; }
+      FORCE_INLINE static bool isOK() { return flag.OK; }
 
-      FORCE_INLINE static void setSaving(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_saving, onoff);
-      }
-      FORCE_INLINE static bool isSaving() { return TEST(card_flag, flag_SD_saving); }
+      // Card flag bit 1 saving
+      FORCE_INLINE static void setSaving(const bool onoff) { flag.Saving = onoff; }
+      FORCE_INLINE static bool isSaving() { return flag.Saving; }
 
-      FORCE_INLINE static void setSDprinting(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_printing, onoff);
-      }
-      FORCE_INLINE static bool isSDprinting() { return TEST(card_flag, flag_SD_printing); }
+      // Card flag bit 2 printing
+      FORCE_INLINE static void setSDprinting(const bool onoff) { flag.SDprinting = onoff; }
+      FORCE_INLINE static bool isSDprinting() { return flag.SDprinting; }
 
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) {
-        SET_BIT(card_flag, flag_SD_filenameIsDir, onoff);
-      }
-      FORCE_INLINE static bool isFilenameIsDir() { return TEST(card_flag, flag_SD_filenameIsDir); }
+      // Card flag bit 3 Autoreport SD
+      FORCE_INLINE static void setAutoreportSD(const bool onoff) { flag.AutoreportSD = onoff; }
+      FORCE_INLINE static bool isAutoreportSD() { return flag.AutoreportSD; }
 
-      FORCE_INLINE static void pauseSDPrint() { setSDprinting(false); }
-      FORCE_INLINE static void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
-      FORCE_INLINE static uint32_t getIndex() { return sdpos; }
-      FORCE_INLINE static bool isFileOpen() { return gcode_file.isOpen(); }
-      FORCE_INLINE static bool eof() { return sdpos >= fileSize; }
-      FORCE_INLINE static int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
-      FORCE_INLINE static uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
-      FORCE_INLINE static char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
+      // Card flag bit 4 AbortSDprinting
+      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.AbortSDprinting = onoff; }
+      FORCE_INLINE static bool isAbortSDprinting() { return flag.AbortSDprinting; }
+
+      // Card flag bit 5 Filename is dir
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.FilenameIsDir = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
+
+      static inline void pauseSDPrint() { setSDprinting(false); }
+      static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
+      static inline uint32_t getIndex() { return sdpos; }
+      static inline bool isFileOpen() { return gcode_file.isOpen(); }
+      static inline bool eof() { return sdpos >= fileSize; }
+      static inline int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
+      static inline uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
+      static inline char* getWorkDirName() { workDir.getFilename(fileName); return fileName; }
+      static inline size_t read(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.read(buf, nbyte) : -1; }
+      static inline size_t write(void* buf, uint16_t nbyte) { return gcode_file.isOpen() ? gcode_file.write(buf, nbyte) : -1; }
 
     private: /** Private Function */
 
-      static void lsDive(SdBaseFile parent, const char* const match = NULL);
+      static void lsDive(SdBaseFile parent, PGM_P const match = NULL);
       static void parsejson(SdBaseFile &parser_file);
       static bool findGeneratedBy(char* buf, char* genBy);
       static bool findFirstLayerHeight(char* buf, float &firstlayerHeight);
@@ -274,25 +262,23 @@
 
   extern CardReader card;
 
-  #define IS_SD_PRINTING (card.isSDprinting())
-  #define IS_SD_FILE_OPEN (card.isFileOpen())
+  #define IS_SD_PRINTING()  card.isSDprinting()
+  #define IS_SD_FILE_OPEN() card.isFileOpen()
 
   #if PIN_EXISTS(SD_DETECT)
     #if ENABLED(SD_DETECT_INVERTED)
-      #define IS_SD_INSERTED (READ(SD_DETECT_PIN) != 0)
+      #define IS_SD_INSERTED()  READ(SD_DETECT_PIN)
     #else
-      #define IS_SD_INSERTED (READ(SD_DETECT_PIN) == 0)
+      #define IS_SD_INSERTED()  !READ(SD_DETECT_PIN)
     #endif
   #else
     //No card detect line? Assume the card is inserted.
-    #define IS_SD_INSERTED true
+    #define IS_SD_INSERTED() true
   #endif
 
 #else
 
-  #define IS_SD_PRINTING (false)
-  #define IS_SD_FILE_OPEN (false)
+  #define IS_SD_PRINTING()  false
+  #define IS_SD_FILE_OPEN() false
 
 #endif //SDSUPPORT
-
-#endif //__CARDREADER_H

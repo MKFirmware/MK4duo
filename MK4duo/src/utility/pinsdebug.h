@@ -46,7 +46,7 @@
 #line 47
 
 // manually add pins that have names that are macros which don't play well with these macros
-#if SERIAL_PORT == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
+#if SERIAL_PORT_1 == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
   static const char RXD_NAME[] PROGMEM = { "RXD" };
   static const char TXD_NAME[] PROGMEM = { "TXD" };
 #endif
@@ -66,7 +66,7 @@
 #define REPORT_NAME_ANALOG(COUNTER, NAME)         _ADD_PIN(analogInputToDigitalPin(NAME), COUNTER, false)
 
 typedef struct {
-  const char * const name;
+  PGM_P const name;
   pin_t pin;
   bool is_digital;
 } PinInfo;
@@ -83,7 +83,7 @@ const PinInfo pin_array[] PROGMEM = {
    */
 
   // manually add pins ...
-  #if SERIAL_PORT == 0
+  #if SERIAL_PORT_1 == 0
     #if (AVR_ATmega2560_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
       { RXD_NAME, 0, true },
       { TXD_NAME, 1, true },
@@ -98,14 +98,14 @@ const PinInfo pin_array[] PROGMEM = {
 
 };
 
-#include "../HAL/HAL_pinsdebug.h"  // get the correct support file for this CPU
+#include "../platform/common/pinsdebug.h"  // get the correct support file for this CPU
 
 static void print_input_or_output(const bool isout) {
   SERIAL_PS(isout ? PSTR("Output = ") : PSTR("Input  = "));
 }
 
 // pretty report with PWM info
-inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = false, const char *start_string = "") {
+inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = false, PGM_P start_string = "") {
   char buffer[MAX_NAME_LENGTH + 1];   // for the sprintf statements
   bool found = false, multi_name_pin = false;
 

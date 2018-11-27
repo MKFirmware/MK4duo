@@ -25,9 +25,7 @@
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _BEDLEVEL_H_
-#define _BEDLEVEL_H_
+#pragma once
 
 #if OLD_ABL
   #define XY_PROBE_FEEDRATE_MM_S bedlevel.xy_probe_feedrate_mm_s
@@ -47,6 +45,21 @@
   #define _GET_MESH_X(I) mbl.index_to_xpos[I]
   #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
 #endif
+
+union flaglevel_t {
+  bool all;
+  struct {
+    bool  leveling_active : 1;
+    bool  g26_debug       : 1;
+    bool  g29_in_progress : 1;
+    bool  bit3            : 1;
+    bool  bit4            : 1;
+    bool  bit5            : 1;
+    bool  bit6            : 1;
+    bool  bit7            : 1;
+  };
+  flaglevel_t() { all = 0; }
+};
 
 #if HAS_LEVELING
 
@@ -75,30 +88,17 @@
 
     public: /** Public Parameters */
 
-      #if HAS_LEVELING
-        static bool leveling_active;          // Flag that bed leveling is enabled
-        #if OLD_ABL
-          static int xy_probe_feedrate_mm_s;
-        #endif
-        #if ABL_PLANAR
-          static matrix_3x3 matrix; // Transform to compensate for bed level
-        #endif
+      static flaglevel_t flag;
+
+       #if OLD_ABL
+        static int xy_probe_feedrate_mm_s;
+      #endif
+      #if ABL_PLANAR
+        static matrix_3x3 matrix; // Transform to compensate for bed level
       #endif
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         static float z_fade_height, inverse_z_fade_height;
-      #endif
-
-      #if ENABLED(G26_MESH_VALIDATION)
-        static bool g26_debug_flag;
-      #else
-        static const bool g26_debug_flag;
-      #endif
-
-      #if ENABLED(PROBE_MANUALLY)
-        static bool g29_in_progress;
-      #else
-        static const bool g29_in_progress;
       #endif
 
     private: /** Private Parameters */
@@ -109,15 +109,15 @@
 
     public: /** Public Function */
 
-      #if PLANNER_LEVELING
-        /**
-         * Apply leveling to transform a cartesian position
-         * as it will be given to the planner and steppers.
-         */
-        static void apply_leveling(float &rx, float &ry, float &rz);
-        static void apply_leveling(float raw[XYZ]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
-        static void unapply_leveling(float raw[XYZ]);
-      #endif
+      /**
+       * Apply leveling to transform a cartesian position
+       * as it will be given to the planner and steppers.
+       */
+      static void apply_leveling(float &rx, float &ry, float &rz);
+      FORCE_INLINE static void apply_leveling(float (&raw)[XYZ])  { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+      FORCE_INLINE static void apply_leveling(float (&raw)[XYZE]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+
+      static void unapply_leveling(float raw[XYZ]);
 
       static bool leveling_is_valid();
       static void set_bed_leveling_enabled(const bool enable=true);
@@ -134,7 +134,7 @@
          *  Returns 1.0 if planner.z_fade_height is 0.0.
          *  Returns 0.0 if Z is past the specified 'Fade Height'.
          */
-        inline static float fade_scaling_factor_for_z(const float &rz) {
+        static inline float fade_scaling_factor_for_z(const float &rz) {
           static float z_fade_factor = 1.0;
           if (z_fade_height) {
             if (rz >= z_fade_height) return 0.0;
@@ -185,5 +185,3 @@
   extern Bedlevel bedlevel;
 
 #endif // HAS_LEVELING
-
-#endif /* _BEDLEVEL_H_ */

@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1280__) && DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -114,7 +114,7 @@
 
 //###HEATER
 #define ORIG_HEATER_0_PIN          10
-#define ORIG_HEATER_1_PIN          7
+#define ORIG_HEATER_1_PIN           7
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN         8
@@ -158,9 +158,12 @@
 #define ORIG_LASER_PWM_PIN          6
 
 
+//###UNKNOWN_PINS
+#define MAX6675_SS_PIN             66
+//@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   //
   // LCD Display output pins
@@ -400,7 +403,5 @@
   #endif // NEWPANEL
 
 #endif // ULTRA_LCD
-
-// SPI for Max6675 or Max31855 Thermocouple
-#define MAX6675_SS_PIN         66
 //@@@
+

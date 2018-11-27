@@ -28,261 +28,219 @@
 #include "sensor/thermistor.h"
 
 #if HEATER_COUNT > 0
-
   Heater heaters[HEATER_COUNT];
+#endif
 
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    static long last_e_position   = 0,
-                lpq[LPQ_MAX_LEN]  = { 0 };
-    static int  lpq_ptr           = 0;
+/**
+ * Initialize Heater
+ */
+void Heater::init() {
+
+  // Reset valor
+  soft_pwm              = 0;
+  pwm_pos               = 0;
+  target_temperature    = 0;
+  idle_temperature      = 0;
+  current_temperature   = 25.0;
+  sensor.raw            = 0;
+
+  setActive(false);
+  setIdle(false);
+
+  #if WATCH_THE_HEATER
+    watch_target_temp   = 0;
+    watch_next_ms       = 0;
   #endif
 
-  /**
-   * Initialize Heater
-   */
-  void Heater::init() {
+  sensor.CalcDerivedParameters();
 
-    // Reset valor
-    soft_pwm              = 0;
-    pwm_pos               = 0;
-    target_temperature    = 0;
-    current_temperature   = 25.0;
-    sensor.raw            = 0;
-    last_temperature      = 0.0;
-    temperature_1s        = 0.0;
+  if (printer.isRunning()) return; // All running not reinitialize
 
-    #if WATCH_THE_HEATER
-      watch_target_temp   = 0;
-      watch_next_ms       = 0;
-    #endif
+  if (data.pin > 0) HAL::pinMode(data.pin, (isHWInverted()) ? OUTPUT_HIGH : OUTPUT_LOW);
 
-    setIdle(false);
+  #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+    if (sensor.type == -2 || sensor.type == -1) {
+      HAL::pinMode(sensor.pin, OUTPUT_HIGH);
+    }
+  #endif
 
-    sensor.CalcDerivedParameters();
+}
 
-    if (printer.isRunning()) return; // All running not reinitialize
+void Heater::setTarget(int16_t celsius) {
 
-    if (pin > 0) HAL::pinMode(pin, (isHWInverted()) ? OUTPUT_HIGH : OUTPUT_LOW);
+  NOMORE(celsius, data.maxtemp);
 
-    #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
-      if (sensor.type == -2 || sensor.type == -1) {
-        HAL::pinMode(sensor.pin, OUTPUT_HIGH);
-      }
-    #endif
-
+  if (!isTuning() && isUsePid()) {
+    SERIAL_LM(ER, " Need Tuning PID");
+    LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
   }
-
-  void Heater::setTarget(int16_t celsius) {
-
-    NOMORE(celsius, maxtemp);
-    target_temperature = celsius;
-
-    #if WATCH_THE_HEATER
-      start_watching();
-    #endif
-  }
-
-  void Heater::updatePID() {
-    if (isUsePid() && Ki != 0) {
-      tempIStateLimitMin = (float)pidDriveMin * 10.0f / Ki;
-      tempIStateLimitMax = (float)pidDriveMax * 10.0f / Ki;
+  else if (isFault())
+    SERIAL_LM(ER, " Heater not switched on to temperature fault.");
+  else if (celsius == 0)
+    SwitchOff();
+  else {
+    setActive(true);
+    if (isActive()) {
+      target_temperature = celsius;
+      #if WATCH_THE_HEATER
+        start_watching();
+      #endif
     }
   }
+}
 
-  void Heater::get_pid_output(const bool cycle_1s) {
+void Heater::get_output() {
 
-    const float difference = (float)target_temperature - current_temperature;
+  millis_t now = millis();
 
-    millis_t ms = millis();
+  if (!isIdle() && idle_timeout_ms && ELAPSED(now, idle_timeout_ms)) setIdle(true);
 
-    #if HEATER_IDLE_HANDLER
-      if (!isIdle() && idle_timeout_ms && ELAPSED(ms, idle_timeout_ms))
-        setIdle(true);
-    #endif
+  if (isActive()) {
 
-    if (isOFF() || isIdle())
-      soft_pwm = 0;
-    else if (isUsePid()) {
-      if (!isTuning()) {
-        SERIAL_LM(ER, " Need Tuning PID");
-        LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
-        setTarget(0);
-      }
-      else if (difference > PID_FUNCTIONAL_RANGE) {
-        soft_pwm = pidMax;
-        tempIState = tempIStateLimitMin;
-      }
-      else if (difference < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0)
-        soft_pwm = 0;
-      else {
-        float pidTerm = Kp * difference;
-        tempIState = constrain(tempIState + difference, tempIStateLimitMin, tempIStateLimitMax);
-        pidTerm += Ki * tempIState * 0.1; // 0.1 = 10Hz
-        float dgain = Kd * (last_temperature - temperature_1s);
-        pidTerm += dgain;
+    // Get the target temperature and the error
+    const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
+    if (isUsePid()) {
+      soft_pwm = pid.get_output(targetTemperature, current_temperature, now
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (ID == EXTRUDER_IDX) {
-            long e_position = stepper.position(E_AXIS);
-            if (e_position > last_e_position) {
-              lpq[lpq_ptr] = e_position - last_e_position;
-              last_e_position = e_position;
-            }
-            else {
-              lpq[lpq_ptr] = 0;
-            }
-            if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
-            pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
-          }
-        #endif // PID_ADD_EXTRUSION_RATE
-
-        soft_pwm = constrain((int)pidTerm, 0, PID_MAX);
-      }
-
-      if (cycle_1s) {
-        last_temperature = temperature_1s;
-        temperature_1s = current_temperature;
-      }
+          , data.ID
+        #endif
+      );
     }
-    else if (ELAPSED(ms, next_check_ms)) {
-      next_check_ms = ms + temp_check_interval[type];
-      if (current_temperature <= target_temperature - temp_hysteresis[type])
-        soft_pwm = pidMax;
-      else if (current_temperature >= target_temperature + temp_hysteresis[type])
+    else if (ELAPSED(now, next_check_ms)) {
+      next_check_ms = now + temp_check_interval[data.type];
+      if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+        soft_pwm = pid.Max;
+      else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
         soft_pwm = 0;
     }
 
     #if ENABLED(PID_DEBUG)
-      SERIAL_SMV(ECHO, MSG_PID_DEBUG, HOTEND_INDEX);
+      SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
       SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
     #endif // PID_DEBUG
-
   }
+}
 
-  void Heater::print_PID() {
-
-    if (isUsePid()) {
-      if (type == IS_HOTEND) SERIAL_SMV(CFG, "  M301 H", (int)ID);
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M301 H-1");
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M301 H-2");
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M301 H-3");
-      else return;
-
-      SERIAL_MV(" P", Kp);
-      SERIAL_MV(" I", Ki);
-      SERIAL_MV(" D", Kd);
-      #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        SERIAL_MV(" C", Kc);
-      #endif
-      SERIAL_EOL();
-    }
+void Heater::print_sensor_parameters() {
+  const int8_t heater_id = data.type == 0 ? data.ID : -data.type;
+  SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> T<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+  SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
+  SERIAL_MV(" P", sensor.pin);
+  SERIAL_MV(" T", sensor.type);
+  if (WITHIN(sensor.type, 1, 9)) {
+    SERIAL_MV(" A", sensor.r25, 1);
+    SERIAL_MV(" B", sensor.beta, 1);
+    SERIAL_MV(" C", sensor.shC, 10);
+    SERIAL_MV(" R", sensor.pullupR, 1);
+    SERIAL_MV(" L", sensor.adcLowOffset);
+    SERIAL_MV(" O", sensor.adcHighOffset);
   }
+  SERIAL_EOL();
+}
 
-  void Heater::print_parameters() {
+void Heater::print_heater_parameters() {
+  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+  SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
+  SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
+  SERIAL_MV(" P", data.pin);
+  SERIAL_MV(" A", pid.DriveMin);
+  SERIAL_MV(" B", pid.DriveMax);
+  SERIAL_MV(" C", pid.Max);
+  SERIAL_MV(" L", data.mintemp);
+  SERIAL_MV(" O", data.maxtemp);
+  SERIAL_MV(" U", isUsePid());
+  SERIAL_MV(" I", isHWInverted());
+  SERIAL_EOL();
+}
 
-    if (type == IS_HOTEND)
-      SERIAL_SMV(CFG, "  M306 H", (int)ID);
-    #if HAS_HEATER_BED
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M306 H-1");
+void Heater::print_PID_parameters() {
+  if (isUsePid()) {
+    SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
+    #if ENABLED(PID_ADD_EXTRUSION_RATE)
+      if (data.type == IS_HOTEND) SERIAL_MSG(" C<Kc term> L<LPQ length>");
     #endif
-    #if HAS_HEATER_CHAMBER
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M306 H-2");
+    SERIAL_CHR(':');
+    SERIAL_EOL();
+    SERIAL_SM(CFG, "  M301 H");
+    #if HOTENDS > 0
+      if (data.type == IS_HOTEND) SERIAL_VAL(data.ID);
     #endif
-    #if HAS_HEATER_COOLER
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M306 H-3");
+    #if HAS_TEMP_BED
+      if (data.type == IS_BED) SERIAL_VAL(-1);
     #endif
-    else return;
-
-    SERIAL_EM(" Heater");
-    SERIAL_LMV(CFG, " Pin:", pin);
-    SERIAL_LMV(CFG, " Min temp:", (int)mintemp);
-    SERIAL_LMV(CFG, " Max temp:", (int)maxtemp);
-    SERIAL_LMT(CFG, " Use PID:", isUsePid() ? "On" : "Off");
-    if (isUsePid()) {
-      SERIAL_LMV(CFG, " PID drive min:", (int)pidDriveMin);
-      SERIAL_LMV(CFG, " PID drive max:", (int)pidDriveMax);
-      SERIAL_LMV(CFG, " PID max:", (int)pidMax);
-      if (!isTuning())
-        SERIAL_LM(CFG, " NOT TUNING PID");
-    }
-    SERIAL_LMT(CFG, " Hardware inverted:", isHWInverted() ? "On" : "Off");
-
-  }
-
-  void Heater::sensor_print_parameters() {
-
-    if (type == IS_HOTEND)
-      SERIAL_SMV(CFG, "  M305 H", (int)ID);
-    #if HAS_HEATER_BED
-      else if (type == IS_BED) SERIAL_SM(CFG, "  M305 H-1");
+    #if HAS_TEMP_CHAMBER
+      if (data.type == IS_CHAMBER) SERIAL_VAL(-2);
     #endif
-    #if HAS_HEATER_CHAMBER
-      else if (type == IS_CHAMBER) SERIAL_SM(CFG, "  M305 H-2");
+    #if HAS_TEMP_COOLER
+      if (data.type == IS_COOLER) SERIAL_VAL(-3);
     #endif
-    #if HAS_HEATER_COOLER
-      else if (type == IS_COOLER) SERIAL_SM(CFG, "  M305 H-3");
-    #endif
-    else return;
-
-    SERIAL_EM(" Sensor");
-    SERIAL_LMV(CFG, " Pin:", sensor.pin);
-    SERIAL_LMV(CFG, " Thermistor resistance at 25 C:", sensor.r25, 1);
-    SERIAL_LMV(CFG, " BetaK value:", sensor.beta, 1);
-    SERIAL_LMV(CFG, " Steinhart-Hart A coefficien:", sensor.shA, 10);
-    SERIAL_LMV(CFG, " Steinhart-Hart B coefficien:", sensor.shB, 10);
-    SERIAL_LMV(CFG, " Steinhart-Hart C coefficien:", sensor.shC, 10);
-    SERIAL_LMV(CFG, " Pullup resistor value:", sensor.pullupR, 1);
-    SERIAL_LMV(CFG, " ADC low offset correction:", sensor.adcLowOffset);
-    SERIAL_LMV(CFG, " ADC high offset correction:", sensor.adcHighOffset);
-
-  }
-
-  #if HARDWARE_PWM
-    void Heater::SetHardwarePwm() {
-      uint8_t pwm_val = 0;
-
-      if (isHWInverted())
-        pwm_val = 255 - soft_pwm;
-      else
-        pwm_val = soft_pwm;
-
-      HAL::analogWrite(pin, pwm_val, (type == IS_HOTEND) ? 250 : 10);
-    }
-  #endif
-
-  #if WATCH_THE_HEATER
-    /**
-     * Start Heating Sanity Check for heaters that are below
-     * their target temperature by a configurable margin.
-     * This is called when the temperature is set.
-     */
-    void Heater::start_watching() {
-      if (isON() && current_temperature < target_temperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
-        watch_target_temp = current_temperature + WATCH_TEMP_INCREASE;
-        watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
+    SERIAL_MV(" P", pid.Kp);
+    SERIAL_MV(" I", pid.Ki);
+    SERIAL_MV(" D", pid.Kd);
+    #if ENABLED(PID_ADD_EXTRUSION_RATE)
+      if (data.type == IS_HOTEND) {
+        SERIAL_MV(" C", pid.Kc);
+        SERIAL_MV(" L", (int)tools.lpq_len);
       }
-      else
-        watch_next_ms = 0;
-    }
+    #endif
+    SERIAL_EOL();
+  }
+}
+
+#if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
+  void Heater::print_AD595_parameters() {
+    SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend> O<Offset> S<Gain>:");
+    SERIAL_SMV(CFG, "  M595 H", (int)data.ID);
+    SERIAL_MV(" O", sensor.ad595_offset);
+    SERIAL_MV(" S", sensor.ad595_gain);
+    SERIAL_EOL();
+  }
+#endif
+
+void Heater::start_idle_timer(const millis_t timeout_ms) {
+  idle_timeout_ms = millis() + timeout_ms;
+  setIdle(false);
+}
+
+void Heater::reset_idle_timer() {
+  idle_timeout_ms = 0;
+  setIdle(false);
+  #if WATCH_THE_HOTEND
+    if (data.type == IS_HOTEND) start_watching();
   #endif
-
-  #if HEATER_IDLE_HANDLER
-    void Heater::start_idle_timer(const millis_t timeout_ms) {
-      idle_timeout_ms = millis() + timeout_ms;
-      setIdle(false);
-    }
-
-    void Heater::reset_idle_timer() {
-      idle_timeout_ms = 0;
-      setIdle(false);
-      #if WATCH_THE_HOTEND
-        if (type == IS_HOTEND) start_watching();
-      #endif
-      #if WATCH_THE_BED
-        if (type == IS_BED) start_watching();
-      #endif
-    }
+  #if WATCH_THE_BED
+    if (data.type == IS_BED) start_watching();
   #endif
+}
 
-#endif // HEATER_COUNT > 0
+#if HARDWARE_PWM
+  void Heater::SetHardwarePwm() {
+    uint8_t pwm_val = 0;
+
+    if (isHWInverted())
+      pwm_val = 255 - soft_pwm;
+    else
+      pwm_val = soft_pwm;
+
+    HAL::analogWrite(data.pin, pwm_val, (data.type == IS_HOTEND) ? 250 : 10);
+  }
+#endif
+
+#if WATCH_THE_HEATER
+  /**
+   * Start Heating Sanity Check for heaters that are below
+   * their target temperature by a configurable margin.
+   * This is called when the temperature is set.
+   */
+  void Heater::start_watching() {
+    const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
+    if (isActive() && current_temperature < targetTemperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
+      watch_target_temp = current_temperature + WATCH_TEMP_INCREASE;
+      watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
+    }
+    else
+      watch_next_ms = 0;
+  }
+#endif

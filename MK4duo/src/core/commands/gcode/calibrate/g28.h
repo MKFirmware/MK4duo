@@ -28,14 +28,48 @@
 
 #define CODE_G28
 
+/**
+ * G28: Home all axes according to settings
+ *
+ * Parameters
+ *
+ *  None  Home to all axes with no parameters.
+ *        With QUICK_HOME enabled XY will home together, then Z.
+ *
+ *  O   Home only if position is unknown
+ *
+ * Cartesian parameters
+ *
+ *  X   Home to the X endstop
+ *  Y   Home to the Y endstop
+ *  Z   Home to the Z endstop
+ *
+ */
 inline void gcode_G28(void) { 
 
-  #if MECH(DELTA)
+  #if ENABLED(DEBUG_FEATURE)
+    if (printer.debugFeature()) {
+      SERIAL_EM(">>> G28");
+      mechanics.log_machine_info();
+    }
+  #endif
+
+  if (printer.isHomedAll() && parser.boolval('O')) { // home only if needed
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
+        SERIAL_EM("> homing not needed, skip");
+        SERIAL_EM("<<< G28");
+      }
+    #endif
+    return;
+  }
+
+  #if IS_KINEMATIC
 
     (void)mechanics.home();
 
   #else
-    
+
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
       const bool  homeZ = parser.seen('Z'),
                   homeX = homeZ || parser.seen('X'),

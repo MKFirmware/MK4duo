@@ -36,7 +36,8 @@
    */
   inline void gcode_M109(void) {
 
-    GET_TARGET_EXTRUDER(109);
+    if (commands.get_target_tool(109)) return;
+
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     #if ENABLED(SINGLENOZZLE)
@@ -46,19 +47,19 @@
     const bool no_wait_for_cooling = parser.seenval('S');
     if (no_wait_for_cooling || parser.seenval('R')) {
       const int16_t temp = parser.value_celsius();
-      heaters[TRG_EXTRUDER_IDX].target_temperature = temp;
+      heaters[TARGET_HOTEND].setTarget(temp);
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (mechanics.dual_x_carriage_mode == DXC_DUPLICATION_MODE && TARGET_EXTRUDER == 0)
-          heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_hotend_temp_offset : 0);
+        if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
+          heaters[1].target_temperature = (temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
       #endif
 
-      const bool heating = heaters[TRG_EXTRUDER_IDX].isHeating();
+      const bool heating = heaters[TARGET_HOTEND].isHeating();
       if (heating || !no_wait_for_cooling) {
         #if HOTENDS > 1
-          lcd_status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_EXTRUDER);
+          lcdui.status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_EXTRUDER);
         #else
-          lcd_setstatusPGM(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
+          lcdui.setstatusPGM(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
         #endif
       }
     }
@@ -68,7 +69,7 @@
       planner.autotemp_M104_M109();
     #endif
 
-    thermalManager.wait_heater(&heaters[TRG_EXTRUDER_IDX], no_wait_for_cooling);
+    thermalManager.wait_heater(&heaters[TARGET_HOTEND], no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_HOTEND

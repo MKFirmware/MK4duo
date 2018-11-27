@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega2560__)
-  #error Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Mega 2560' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,7 +159,7 @@
 
 
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN            66 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+#define MAX6675_SS_PIN             66
 //@@@
 
 //###IF_BLOCKS
@@ -174,7 +174,7 @@
   #define STAT_LED_BLUE_PIN     11
 #endif
 
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(NEWPANEL)
     #define LCD_PINS_RS 16
@@ -286,3 +286,4 @@
 
 #endif //REPRAPWORLD_GRAPHICAL_LCD
 //@@@
+

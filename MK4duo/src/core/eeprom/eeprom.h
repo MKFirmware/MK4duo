@@ -35,13 +35,14 @@ class EEPROM {
 
     #if HAS_EEPROM
 
-      static bool eeprom_error;
+      static bool eeprom_error,
+                  validating;
  
-      #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
-                                         // That can store is enabled
-        static int16_t        meshes_begin;
-        const static int16_t  meshes_end = E2END - 128; // 128 is a placeholder for the size of the MAT; the MAT will always
-                                                        // live at the very end of the eeprom
+      #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
+                                          // That can store is enabled
+        static uint16_t meshes_begin;
+        static const uint16_t meshes_end; // 128 is a placeholder for the size of the MAT; the MAT will always
+                                          // live at the very end of the eeprom
 
       #endif
     #endif
@@ -50,11 +51,11 @@ class EEPROM {
 
     FORCE_INLINE static bool Init() {
       bool success = true;
-      Factory_Settings();
+      reset();
       #if HAS_EEPROM
-        if ((success = Store_Settings())) {
+        if ((success = store())) {
           #if ENABLED(AUTO_BED_LEVELING_UBL)
-            success = Load_Settings(); // UBL uses load() to know the end of EEPROM
+            success = load(); // UBL uses load() to know the end of EEPROM
           #elif ENABLED(EEPROM_CHITCHAT)
             Print_Settings();
           #endif
@@ -63,16 +64,19 @@ class EEPROM {
       return success;
     }
 
-    static void Factory_Settings();
-    static bool Store_Settings();
+    static uint16_t datasize();
+
+    static void reset();
+    static bool store();      // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
-      static bool Load_Settings();  // Return 'true' if data was loaded ok
+      static bool load();     // Return 'true' if data was loaded ok
+      static bool validate(); // Return 'true' if EEPROM data is ok
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled
-        FORCE_INLINE static int16_t meshes_start_index()  { return meshes_begin; }
-        FORCE_INLINE static int16_t meshes_end_index()    { return meshes_end; }
+        FORCE_INLINE static uint16_t  meshes_start_index()  { return meshes_begin; }
+        FORCE_INLINE static uint16_t  meshes_end_index()    { return meshes_end; }
         static uint16_t calc_num_meshes();
         static int mesh_slot_offset(const int8_t slot);
         static void store_mesh(const int8_t slot);
@@ -82,24 +86,22 @@ class EEPROM {
         //static void defrag_meshes();  // "
       #endif
     #else
-      FORCE_INLINE static bool Load_Settings() { Factory_Settings(); Print_Settings(); return true; }
+      FORCE_INLINE static bool load() { reset(); Print_Settings(); return true; }
     #endif
 
     #if DISABLED(DISABLE_M503)
-      static void Print_Settings(const bool forReplay=false);
+      static void Print_Settings();
     #else
-      FORCE_INLINE static void Print_Settings(const bool forReplay=false) { UNUSED(forReplay); }
+      FORCE_INLINE static void Print_Settings() { }
     #endif
 
   private: /** Private Function */
 
-    static void Postprocess();
+    static void post_process();
 
     #if HAS_EEPROM
-      static bool access_start(const bool read);
-      static bool access_finish();
-      static bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc);
-      static bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc);
+      static bool _load();
+      static bool size_error(const uint16_t size);
     #endif
 
 };

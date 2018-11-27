@@ -40,15 +40,16 @@
 
     public: /** Constructor */
 
-      DhtSensor(const pin_t _pin, const uint8_t _type);
+      DhtSensor() {}
 
     public: /** Public Parameters */
 
-      pin_t   pin;
-      uint8_t type;
+      static pin_t    pin;
+      static uint8_t  type;
 
-      static float  Temperature,
-                    Humidity;
+      static float    Temperature,
+                      Humidity;
+
     private: /** Private Parameters */
 
       static enum SensorState {
@@ -60,10 +61,10 @@
   
     public: /** Public Function */
 
-      void init(void);
-      void change_type(const uint8_t dhtType);
-      void print_parameters(void);
-      void spin();
+      static void init();
+      static void change_type(const uint8_t dhtType);
+      static void print_parameters();
+      static void spin();
 
   };
 

@@ -19,40 +19,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  *  endstops.h - manages endstops
  */
 
-#ifndef _ENDSTOPS_H_
-#define _ENDSTOPS_H_
-
-enum Flag1Enum : char {
-  flag1_endstop_enabled,
-  flag1_endstop_globally,
-  flag1_soft_endstop,
-  flag1_probe_endstop,
-  flag1_g38_endstop_hit,
-  flag1_monitor_flag
-};
-  
-enum EndstopEnum : char {
-  X_MIN,
-  Y_MIN,
-  Z_MIN,
-  Z_PROBE,
-  X_MAX,
-  Y_MAX,
-  Z_MAX,
-  X2_MIN,
-  X2_MAX,
-  Y2_MIN,
-  Y2_MAX,
-  Z2_MIN,
-  Z2_MAX,
-  FIL_RUNOUT,
-  DOOR_OPEN_SENSOR,
-  POWER_CHECK_SENSOR
+union flagendstop_t {
+  bool all;
+  struct {
+    bool  Enabled         : 1;
+    bool  Globally        : 1;
+    bool  SoftEndstop     : 1;
+    bool  ProbeEnabled    : 1;
+    bool  G38EndstopHit   : 1;
+    bool  MonitorEnabled  : 1;
+    bool  bit6            : 1;
+    bool  bit7            : 1;
+  };
+  flagendstop_t() { all = false; }
 };
 
 class Endstops {
@@ -63,7 +48,9 @@ class Endstops {
 
   public: /** Public Parameters */
 
-    #if IS_KINEMATIC
+    static flagendstop_t  flag;
+
+    #if MECH(DELTA)
       static float  soft_endstop_radius_2;
     #else
       static float  soft_endstop_min[XYZ],
@@ -71,22 +58,25 @@ class Endstops {
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
-      static float x_endstop_adj;
+      static float  x2_endstop_adj;
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
-      static float y_endstop_adj;
+      static float  y2_endstop_adj;
     #endif
     #if ENABLED(Z_TWO_ENDSTOPS)
-      static float z_endstop_adj;
+      static float  z2_endstop_adj;
+    #endif
+    #if ENABLED(Z_THREE_ENDSTOPS)
+      static float  z2_endstop_adj,
+                    z3_endstop_adj;
     #endif
 
-    static uint16_t logic_bits,
-                    pullup_bits,
-                    live_state;
+    static flagword_t logic_flag,
+                      pullup_flag;
+
+    static uint16_t live_state;
 
   private: /** Private Parameters */
-
-    static uint8_t  flag1_bits;
 
     static volatile uint8_t hit_state; // use X_MIN, Y_MIN, Z_MIN and Z_PROBE as BIT value
 
@@ -98,19 +88,31 @@ class Endstops {
     static void init();
 
     /**
+     * Initialize Factory parameters
+     */
+    static void factory_parameters();
+
+    /**
+     * Print endstops parameters in memory
+     */
+    static void print_parameters();
+
+    /**
      * Setup Pullup
      */
     static void setup_pullup();
 
     /**
-     * A change was detected or presumed to be in endstops pins.
-     */
-    static void check();
-
-    /**
      * Periodic call to Tick endstops if required.
      */
     static void Tick();
+
+    /**
+     * Update endstops bits from the pins. Apply filtering to get a verified state.
+     * If should_check() and moving towards a triggered switch, abort the current move.
+     * Called from ISR contexts.
+     */
+    static void update();
 
     /**
      * Get Endstop hit state.
@@ -127,6 +129,9 @@ class Endstops {
      */
     static void report_state();
 
+    // If the last move failed to trigger an endstop, call kill
+    static void validate_homing_move();
+
     // Clear endstops (i.e., they were hit intentionally) to suppress the report
     FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
 
@@ -142,61 +147,74 @@ class Endstops {
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
-      SET_BIT(logic_bits, endstop, logic);
+      SET_BIT(logic_flag._word, endstop, logic);
     }
-    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_bits, endstop); }
+    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_flag._word, endstop); }
 
     FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
-      SET_BIT(pullup_bits, endstop, pullup);
+      SET_BIT(pullup_flag._word, endstop, pullup);
     }
-    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_bits, endstop); }
+    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_flag._word, endstop); }
 
+    // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_endstop_enabled, onoff);
-      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        if (onoff) update();
-      #endif
+      flag.Enabled = onoff;
+      resync();
     }
-    FORCE_INLINE static bool isEnabled() { return TEST(flag1_bits, flag1_endstop_enabled); }
+    FORCE_INLINE static bool isEnabled() { return flag.Enabled; }
 
+    // Flag bit 1 setGlobally
     FORCE_INLINE static void setGlobally(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_endstop_globally, onoff);
+      flag.Globally = onoff;
       setEnabled(onoff);
+      resync();
     }
-    FORCE_INLINE static bool isGlobally() { return TEST(flag1_bits, flag1_endstop_globally); }
+    FORCE_INLINE static bool isGlobally() { return flag.Globally; }
 
+    // Flag bit 2 set Software Endstop
     FORCE_INLINE static void setSoftEndstop(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_soft_endstop, onoff);
+      flag.SoftEndstop = onoff;
     }
-    FORCE_INLINE static bool isSoftEndstop() { return TEST(flag1_bits, flag1_soft_endstop); }
+    FORCE_INLINE static bool isSoftEndstop() { return flag.SoftEndstop; }
 
+    // Flag bit 3 set Probe Enabled
     FORCE_INLINE static void setProbeEnabled(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_probe_endstop, onoff);
-      #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-        if (onoff) update();
-      #endif
+      flag.ProbeEnabled = onoff;
+      resync();
     }
-    FORCE_INLINE static bool isProbeEnabled() { return TEST(flag1_bits, flag1_probe_endstop); }
+    FORCE_INLINE static bool isProbeEnabled() { return flag.ProbeEnabled; }
 
+    // Flag bit 4 set G38 Endstop Hit
     FORCE_INLINE static void setG38EndstopHit(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_g38_endstop_hit, onoff);
+      flag.G38EndstopHit = onoff;
     }
-    FORCE_INLINE static bool isG38EndstopHit() { return TEST(flag1_bits, flag1_g38_endstop_hit); }
+    FORCE_INLINE static bool isG38EndstopHit() { return flag.G38EndstopHit; }
 
+    // Flag bit 5 set Monitor Enabled
     FORCE_INLINE static void setMonitorEnabled(const bool onoff) {
-      SET_BIT(flag1_bits, flag1_monitor_flag, onoff);
+      flag.MonitorEnabled = onoff;
     }
-    FORCE_INLINE static bool isMonitorEnabled() { return TEST(flag1_bits, flag1_monitor_flag); }
+    FORCE_INLINE static bool isMonitorEnabled() { return flag.MonitorEnabled; }
 
     // Disable-Enable endstops based on ENSTOPS_ONLY_FOR_HOMING and global enable
-    FORCE_INLINE static void setNotHoming() { setEnabled(isGlobally()); }
+    FORCE_INLINE static void setNotHoming() {
+      setEnabled(isGlobally());
+      if (!isEnabled()) live_state = 0;
+    }
+
+    /**
+     * Are endstops or the probe set to abort the move?
+     */
+    FORCE_INLINE static bool abort_enabled() {
+      return (isEnabled() || isProbeEnabled());
+    }
 
   private: /** Private Function */
 
     /**
-     * Update the endstops bits from the pins
+     * Get the stable endstop states when enabled
      */
-    static void update();
+    static void resync();
 
     #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
       static void setup_interrupts(void);
@@ -209,5 +227,3 @@ class Endstops {
 };
 
 extern Endstops endstops;
-
-#endif /* _ENDSTOPS_H_ */

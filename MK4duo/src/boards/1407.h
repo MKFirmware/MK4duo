@@ -1,12 +1,12 @@
 /****************************************************************************************
 * 1407
-* Arduino Due pin assignment
+*
 * ULTIMAKER4DUE 
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -165,7 +165,7 @@
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #define ORIG_BEEPER_PIN     18
 
@@ -206,3 +206,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

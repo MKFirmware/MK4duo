@@ -1,11 +1,12 @@
 /****************************************************************************************
 * 1550
-* RURAMPS4DUE      (Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
+*
+* RURAMPS4DUE V1.1  (Hotend0, Hotend1, Hotend2, Fan0, Fan1, Bed)
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -13,7 +14,7 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "RuRAMPS4Due"
+  #define BOARD_NAME "RuRAMPS4Due v1.1"
 #endif
 //@@@
 
@@ -58,8 +59,8 @@
 #define ORIG_SOL2_PIN              NoPin
 
 //###EXTRUDER_3
-#define ORIG_E3_STEP_PIN           14
-#define ORIG_E3_DIR_PIN            15
+#define ORIG_E3_STEP_PIN           15
+#define ORIG_E3_DIR_PIN            14
 #define ORIG_E3_ENABLE_PIN         61
 #define ORIG_E3_CS_PIN             NoPin
 #define ORIG_SOL3_PIN              NoPin
@@ -118,7 +119,7 @@
 #define ORIG_HEATER_2_PIN          11
 #define ORIG_HEATER_3_PIN          NoPin
 #define ORIG_HEATER_BED_PIN         7
-#define ORIG_HEATER_CHAMBER_PIN     6
+#define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
@@ -143,7 +144,7 @@
 #define SERVO3_PIN                 NoPin
 
 //###MISC
-#define ORIG_PS_ON_PIN             NoPin
+#define ORIG_PS_ON_PIN             65
 #define ORIG_BEEPER_PIN            NoPin
 #define LED_PIN                    NoPin
 #define SDPOWER_PIN                NoPin
@@ -161,14 +162,12 @@
 //###UNKNOWN_PINS
 // I2C EEPROM with 32K of space
 #define EEPROM_I2C
-#define E2END 0x7FFF
-#define MAX31855_SS0_PIN            5
-#define MAX31855_SS1_PIN            6
+#define E2END 0x8000
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
-  // RADDS LCD panel
+#if HAS_SPI_LCD
+
   #if ENABLED(RADDS_DISPLAY) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
     #define LCD_PINS_RS     63
     #define LCD_PINS_ENABLE 64
@@ -186,8 +185,9 @@
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
-    #define LCD_PINS_RS     63
-    #define LCD_PINS_ENABLE 64
+
+    #define LCD_PINS_RS     52
+    #define LCD_PINS_ENABLE 53
     #define LCD_PINS_D4     48
     #define LCD_PINS_D5     50
     #define LCD_PINS_D6     52
@@ -208,18 +208,14 @@
     #define SD_DETECT_PIN   51
 
     #define ORIG_BEEPER_PIN 62
-    #define LCD_SDSS         4
+    #define LCD_SDSS        10
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
 
-    #define LCD_PINS_D4     29
-    #define LCD_PINS_ENABLE 27
-    #define LCD_PINS_RS     25
-    #define BTN_EN1         35
-    #define BTN_EN2         33
-    #define BTN_ENC         37
+    #error "Oops! SPARK_FULL_GRAPHICS not supported with RURAMPS4D."
 
   #endif // SPARK_FULL_GRAPHICS
 
 #endif // ULTRA_LCD
 //@@@
+

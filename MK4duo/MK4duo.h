@@ -31,8 +31,7 @@
  *
  *******************************************************************************************/
 
-#ifndef _MK4DUO_H_
-#define _MK4DUO_H_
+#pragma once
 
 #include "Arduino.h"
 #include "pins_arduino.h"
@@ -43,6 +42,8 @@
 #include <string.h>
 #include <inttypes.h>
 #include <binary.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __AVR__
   #include <avr/pgmspace.h>
@@ -53,19 +54,18 @@
 #include <SPI.h>
 
 /**
- * Types
+ * Include file
  */
-typedef uint32_t  millis_t;
-typedef int8_t    pin_t;
-
-
-#include "src/inc/macros.h"
+#include "src/lib/types.h"
+#include "src/lib/macros.h"
+#include "src/lib/enum.h"
+#include "src/lib/circular_queue.h"
+#include "src/lib/driver_types.h"
+#include "src/lib/watch.h"
+#include "src/lib/matrix.h"
 #include "Boards.h"
 
-/**
- * Configuration settings loading
- */
-
+// Configuration settings loading
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
 
@@ -73,11 +73,11 @@ typedef int8_t    pin_t;
   #include "Configuration_Basic.h"
   #include "Configuration_Overall.h"
 
-  #if IS_CARTESIAN
+  #if MECH(CARTESIAN)
     #include "Configuration_Cartesian.h"
   #elif IS_CORE
     #include "Configuration_Core.h"
-  #elif IS_DELTA
+  #elif MECH(DELTA)
     #include "Configuration_Delta.h"
   #elif IS_SCARA
     #include "Configuration_Scara.h"
@@ -87,6 +87,7 @@ typedef int8_t    pin_t;
 
   #include "Configuration_Temperature.h"
   #include "Configuration_Feature.h"
+  #include "Configuration_Motor_Driver.h"
   #include "Configuration_Overall.h"
 #endif
 
@@ -98,27 +99,22 @@ typedef int8_t    pin_t;
   #include "Configuration_CNCRouter.h"
 #endif
 
-#if ENABLED(HAVE_TMCDRIVER) || ENABLED(HAVE_TMC2130) || ENABLED(HAVE_TMC2208) || ENABLED(HAVE_L6470DRIVER)
-  #include "Configuration_Motor_Driver.h"
-#endif
-
-/**
- * Modules loading
- */
-
-// Include modules
 #include "src/inc/conditionals_pre.h"
 #include "src/inc/pins.h"
 #include "src/inc/conditionals_post.h"
+
+// Sanity Check
 #include "src/inc/sanitycheck.h"
-#include "src/inc/point_t.h"
 
-// HAL modules
-#include "src/HAL/HAL.h"
+// Platform modules
+#include "src/platform/platform.h"
 
-// Watch modules
-#include "src/watch/watch.h"
-#include "src/watch/stopwatch.h"
+// Utility modules
+#include "src/utility/utility.h"
+#include "src/utility/stopwatch.h"
+#include "src/utility/point_t.h"
+#include "src/utility/hex_print_routines.h"
+#include "src/utility/bezier.h"
 
 // Core modules
 #include "src/core/mechanics/mechanics.h"
@@ -135,28 +131,35 @@ typedef int8_t    pin_t;
 #include "src/core/heater/heater.h"
 #include "src/core/temperature/temperature.h"
 #include "src/core/printcounter/printcounter.h"
+#include "src/core/sound/sound.h"
 
-// LCD modules
-#include "src/lcd/language/language.h"
-#include "src/lcd/ultralcd.h"
-#include "src/lcd/nextion/Nextion_lcd.h"
+// Language modules
+#include "src/language/language.h"
+
+// Font modules
+#include "src/lcd/fontutils/fontutils.h"
+
+// LcdUI modules
+#include "src/lcd/lcdui.h"
+
+// LCD type modules
+#include "src/lcd/ultralcd/ultralcd.h"
+#include "src/lcd/nextionlcd/nextionlcd.h"
+
+// Menu modules
+#include "src/lcd/menu/menu.h"
 
 // SD modules
 #include "src/sd/cardreader.h"
 
-// Utility modules
-#include "src/utility/utility.h"
-#include "src/utility/hex_print_routines.h"
-#include "src/utility/bezier.h"
-
 // Feature modules
+#include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"
+#include "src/feature/bltouch/bltouch.h"
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/tmc/tmc.h"
-#include "src/feature/servo/servo.h"
 #include "src/feature/power/power.h"
-#include "src/feature/buzzer/buzzer.h"
 #include "src/feature/mixing/mixing.h"
 #include "src/feature/filament/filament.h"
 #include "src/feature/filamentrunout/filamentrunout.h"
@@ -166,9 +169,11 @@ typedef int8_t    pin_t;
 #include "src/feature/laser/laser.h"
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
+#include "src/feature/pcf8574/pcf8574.h"
 #include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
+#include "src/feature/rgbled/led_events.h"
 #include "src/feature/caselight/caselight.h"
 #include "src/feature/restart/restart.h"
 
@@ -176,23 +181,7 @@ typedef int8_t    pin_t;
  * External libraries loading
  */
 
-#if ENABLED(HAVE_TMCDRIVER)
-  #include <TMC26XStepper.h>
-#endif
-
-#if ENABLED(HAVE_TMC2130)
-  #include <TMC2130Stepper.h>
-#endif
-
-#if ENABLED(HAVE_TMC2208)
-  #include <TMC2208Stepper.h>
-#endif
-
-#if ENABLED(HAVE_L6470DRIVER)
-  #include <L6470.h>
-#endif
-
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
   #if ENABLED(LCD_I2C_TYPE_PCF8575)
     #include <Wire.h>
     #include <LiquidCrystal_I2C.h>
@@ -203,11 +192,9 @@ typedef int8_t    pin_t;
     #include <Wire.h>
     #include <LCD.h>
     #include <LiquidCrystal_I2C.h>
-  #elif ENABLED(DOGLCD)
+  #elif HAS_GRAPHICAL_LCD
     #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
   #else
     #include <LiquidCrystal.h> // library for character LCD
   #endif
 #endif
-
-#endif /* _MK4DUO_H_ */

@@ -43,8 +43,6 @@ Commands commands;
 long  Commands::gcode_N             = 0,
       Commands::gcode_LastN         = 0;
 
-bool Commands::send_ok[BUFSIZE];
-
 /**
  * GCode Command Buffer Ring
  * A simple ring buffer of BUFSIZE command strings.
@@ -54,16 +52,12 @@ bool Commands::send_ok[BUFSIZE];
  * the main loop. The process_next function parses the next
  * command and hands off execution to individual handler functions.
  */
-uint8_t Commands::buffer_lenght   = 0,  // Number of commands in the Buffer Ring
-        Commands::buffer_index_r  = 0,  // Read position in Buffer Ring
-        Commands::buffer_index_w  = 0;  // Write position in Buffer Ring
-
-char Commands::buffer_ring[BUFSIZE][MAX_CMD_SIZE];
+Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 
 /**
  * Private Parameters
  */
-int Commands::serial_count = 0;
+int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 watch_t Commands::last_command_watch(NO_TIMEOUTS);
 
@@ -72,7 +66,7 @@ watch_t Commands::last_command_watch(NO_TIMEOUTS);
  * Used by MK4duo internally to ensure that commands initiated from within
  * are enqueued ahead of any pending serial or sd card
  */
-const char *Commands::injected_commands_P = NULL;
+PGM_P Commands::injected_commands_P = NULL;
 
 /**
  * Public Function
@@ -85,18 +79,18 @@ const char *Commands::injected_commands_P = NULL;
  */
 void Commands::get_serial() {
 
-  static char serial_line_buffer[MAX_CMD_SIZE];
-  static bool serial_comment_mode = false;
+  static char serial_line_buffer[NUM_SERIAL][MAX_CMD_SIZE];
+  static bool serial_comment_mode[NUM_SERIAL] = { false };
 
   #if HAS_DOOR_OPEN
-    if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN_SENSOR)) {
+    if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
       printer.keepalive(DoorOpen);
       return;  // do nothing while door is open
     }
   #endif
 
   // Buffer Ring is full
-  if (buffer_lenght >= BUFSIZE) {
+  if (buffer_ring.isFull()) {
     printer.keepalive(InProcess);
     return;
   }
@@ -104,7 +98,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_lenght == 0 && !MKSERIAL.available() && last_command_watch.elapsed()) {
+    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_watch.elapsed()) {
       SERIAL_STR(WT);
       SERIAL_EOL();
       last_command_watch.start();
@@ -114,122 +108,130 @@ void Commands::get_serial() {
   /**
    * Loop while serial characters are incoming and the buffer_ring is not full
    */
-  while (buffer_lenght < BUFSIZE && HAL::serialByteAvailable()) {
-    int c;
+  while (!buffer_ring.isFull() && Com::serialDataAvailable()) {
 
-    last_command_watch.start();
-    printer.max_inactivity_watch.start();
+    for (uint8_t i = 0; i < NUM_SERIAL; ++i) {
 
-    if ((c = MKSERIAL.read()) < 0) continue;
+      int c;
 
-    char serial_char = c;
+      last_command_watch.start();
+      printer.max_inactivity_watch.start();
 
-    /**
-     * If the character ends the line
-     */
-    if (serial_char == '\n' || serial_char == '\r') {
+      if ((c = Com::serialRead(i)) < 0) continue;
 
-      serial_comment_mode = false;                      // end of line == end of comment
+      char serial_char = c;
 
-      // Skip empty lines and comments
-      if (!serial_count) { printer.check_periodical_actions(); continue; }
+      /**
+       * If the character ends the line
+       */
+      if (serial_char == '\n' || serial_char == '\r') {
 
-      serial_line_buffer[serial_count] = 0;             // Terminate string
-      serial_count = 0;                                 // Reset buffer
+        serial_comment_mode[i] = false;                      // end of line == end of comment
 
-      char *command = serial_line_buffer;
+        // Skip empty lines and comments
+        if (!serial_count[i]) { printer.check_periodical_actions(); continue; }
 
-      while (*command == ' ') command++;                // Skip leading spaces
-      char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
+        serial_line_buffer[i][serial_count[i]] = 0;       // Terminate string
+        serial_count[i] = 0;                              // Reset buffer
 
-      if (npos) {
+        char *command = serial_line_buffer[i];
 
-        bool M110 = strstr_P(command, PSTR("M110")) != NULL;
+        while (*command == ' ') command++;                // Skip leading spaces
+        char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
 
-        if (M110) {
-          char *n2pos = strchr(command + 4, 'N');
-          if (n2pos) npos = n2pos;
-        }
+        if (npos) {
 
-        gcode_N = strtol(npos + 1, NULL, 10);
+          bool M110 = strstr_P(command, PSTR("M110")) != NULL;
 
-        if (gcode_N != gcode_LastN + 1 && !M110) {
-          gcode_line_error(PSTR(MSG_ERR_LINE_NO));
-          return;
-        }
+          if (M110) {
+            char *n2pos = strchr(command + 4, 'N');
+            if (n2pos) npos = n2pos;
+          }
 
-        char *apos = strrchr(command, '*');
-        if (apos) {
-          uint8_t checksum = 0, count = uint8_t(apos - command);
-          while (count) checksum ^= command[--count];
-          if (strtol(apos + 1, NULL, 10) != checksum) {
-            gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH));
+          gcode_N = strtol(npos + 1, NULL, 10);
+
+          if (gcode_N != gcode_LastN + 1 && !M110) {
+            gcode_line_error(PSTR(MSG_ERR_LINE_NO), i);
             return;
           }
-        }
-        else {
-          gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
-          return;
-        }
 
-        gcode_LastN = gcode_N;
-      }
-      #if HAS_SDSUPPORT
-        else if (card.isSaving()) {
-          gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
-          return;
-        }
-      #endif
+          char *apos = strrchr(command, '*');
+          if (apos) {
+            uint8_t checksum = 0, count = uint8_t(apos - command);
+            while (count) checksum ^= command[--count];
+            if (strtol(apos + 1, NULL, 10) != checksum) {
+              gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH), i);
+              return;
+            }
+          }
+          else {
+            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            return;
+          }
 
-      // Movement commands alert when stopped
-      if (!printer.isRunning()) {
-        char *gpos = strchr(command, 'G');
-        if (gpos) {
-          const int codenum = strtol(gpos + 1, NULL, 10);
-          switch (codenum) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-              SERIAL_LM(ER, MSG_ERR_STOPPED);
-              LCD_MESSAGEPGM(MSG_STOPPED);
-              break;
+          gcode_LastN = gcode_N;
+        }
+        #if HAS_SD_SUPPORT
+          else if (card.isSaving() && strcmp(command, "M29") != 0) { // No line number with M29 in Pronterface
+            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            return;
+          }
+        #endif
+
+        // Movement commands alert when stopped
+        if (printer.isStopped()) {
+          char *gpos = strrchr(command, 'G');
+          if (gpos) {
+            switch (strtol(gpos + 1, NULL, 10)) {
+              case 0:
+              case 1:
+              #if ENABLED(ARC_SUPPORT)
+                case 2:
+                case 3:
+              #endif
+              #if ENABLED(G5_BEZIER)
+                case 5:
+              #endif
+                SERIAL_LM(ER, MSG_ERR_STOPPED);
+                LCD_MESSAGEPGM(MSG_STOPPED);
+                break;
+            }
           }
         }
+
+        #if DISABLED(EMERGENCY_PARSER)
+          // If command was e-stop process now
+          if (strcmp(command, "M108") == 0) {
+            printer.setWaitForHeatUp(false);
+            #if ENABLED(ULTIPANEL)
+              printer.setWaitForUser(false);
+            #endif
+          }
+          if (strcmp(command, "M112") == 0) printer.kill();
+          if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
+        #endif
+
+        // Add the command to the buffer_ring
+        enqueue(serial_line_buffer[i], i);
       }
-
-      #if DISABLED(EMERGENCY_PARSER)
-        // If command was e-stop process now
-        if (strcmp(command, "M108") == 0) {
-          printer.setWaitForHeatUp(false);
-          #if ENABLED(ULTIPANEL)
-            printer.setWaitForUser(false);
-          #endif
-        }
-        if (strcmp(command, "M112") == 0) printer.kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
-      #endif
-
-      // Add the command to the buffer_ring
-      enqueue(serial_line_buffer, true);
-    }
-    else if (serial_count >= MAX_CMD_SIZE - 1) {
-      // Keep fetching, but ignore normal characters beyond the max length
-      // The command will be injected when EOL is reached
-    }
-    else if (serial_char == '\\') { // Handle escapes
-      // if we have one more character, copy it over
-      if ((c = MKSERIAL.read()) >= 0 && !serial_comment_mode)
-        serial_line_buffer[serial_count++] = (char)c;
-    }
-    else { // its not a newline, carriage return or escape char
-      if (serial_char == ';') serial_comment_mode = true;
-      if (!serial_comment_mode) serial_line_buffer[serial_count++] = serial_char;
-    }
+      else if (serial_count[i] >= MAX_CMD_SIZE - 1) {
+        // Keep fetching, but ignore normal characters beyond the max length
+        // The command will be injected when EOL is reached
+      }
+      else if (serial_char == '\\') { // Handle escapes
+        // if we have one more character, copy it over
+        if ((c = Com::serialRead(i)) >= 0 && !serial_comment_mode[i])
+          serial_line_buffer[i][serial_count[i]++] = (char)c;
+      }
+      else { // its not a newline, carriage return or escape char
+        if (serial_char == ';') serial_comment_mode[i] = true;
+        if (!serial_comment_mode[i]) serial_line_buffer[i][serial_count[i]++] = serial_char;
+      }
+    } // for NUM_SERIAL
   }
 }
 
-#if HAS_SDSUPPORT
+#if HAS_SD_SUPPORT
 
   /**
    * Get commands from the SD Card until the command buffer is full
@@ -237,21 +239,23 @@ void Commands::get_serial() {
    * can also interrupt buffering.
    */
   void Commands::get_sdcard() {
+
+    static char sd_line_buffer[MAX_CMD_SIZE];
     static bool stop_buffering = false,
                 sd_comment_mode = false;
 
-    if (!IS_SD_PRINTING) return;
+    if (!IS_SD_PRINTING()) return;
 
     #if HAS_DOOR_OPEN
-      if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN_SENSOR)) {
+      if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
         printer.keepalive(DoorOpen);
         return;  // do nothing while door is open
       }
     #endif
 
     #if HAS_POWER_CHECK
-      if (READ(POWER_CHECK_PIN) != endstops.isLogic(POWER_CHECK_SENSOR)) {
-        printer.setAbortSDprinting(true);
+      if (READ(POWER_CHECK_PIN) != endstops.isLogic(POWER_CHECK)) {
+        card.setAbortSDprinting(true);
         return;
       }
     #endif
@@ -263,11 +267,11 @@ void Commands::get_serial() {
      * due to checksums, however, no checksums are used in SD printing.
      */
 
-    if (buffer_lenght == 0) stop_buffering = false;
+    if (buffer_ring.isEmpty()) stop_buffering = false;
 
     uint16_t sd_count = 0;
     bool card_eof = card.eof();
-    while (buffer_lenght < BUFSIZE && !card_eof && !stop_buffering) {
+    while (!buffer_ring.isFull() && !card_eof && !stop_buffering) {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
@@ -281,7 +285,7 @@ void Commands::get_serial() {
 
           card.printingHasFinished();
 
-          if (IS_SD_PRINTING)
+          if (IS_SD_PRINTING())
             sd_count = 0; // If a sub-file was printing, continue from call point
           else {
             SERIAL_EM(MSG_FILE_PRINTED);
@@ -313,10 +317,11 @@ void Commands::get_serial() {
         // Skip empty lines and comments
         if (!sd_count) { printer.check_periodical_actions(); continue; }
 
-        buffer_ring[buffer_index_w][sd_count] = '\0'; // terminate string
+        sd_line_buffer[sd_count] = '\0'; // terminate string
         sd_count = 0; // clear sd line buffer
 
-        commit(false);
+        enqueue(sd_line_buffer, -2); // Port -2 for SD non answer and no send ok.
+
       }
       else if (sd_count >= MAX_CMD_SIZE - 1) {
         /**
@@ -326,21 +331,21 @@ void Commands::get_serial() {
       }
       else {
         if (sd_char == ';') sd_comment_mode = true;
-        if (!sd_comment_mode) buffer_ring[buffer_index_w][sd_count++] = sd_char;
+        if (!sd_comment_mode) sd_line_buffer[sd_count++] = sd_char;
       }
     }
 
     printer.progress = card.percentDone();
   }
 
-#endif // HAS_SDSUPPORT
+#endif // HAS_SD_SUPPORT
 
 /**
  * Send a "Resend: nnn" message to the host to
  * indicate that a command needs to be re-sent.
  */
 void Commands::flush_and_request_resend() {
-  HAL::serialFlush();
+  Com::serialFlush();
   SERIAL_LV(RESEND, gcode_LastN + 1);
   ok_to_send();
 }
@@ -355,20 +360,29 @@ void Commands::flush_and_request_resend() {
  *   B<int>  Block queue space remaining
  */
 void Commands::ok_to_send() {
-  if (!send_ok[buffer_index_r]) return;
+
+  gcode_t tmp = buffer_ring.peek();
+
+  if (tmp.s_port < 0) return;
+
+  SERIAL_PORT(tmp.s_port);
   SERIAL_STR(OK);
+
   #if ENABLED(ADVANCED_OK)
-    char* p = buffer_ring[buffer_index_r];
+    //gcode_t tmp = buffer_ring.peek();
+    char* p = tmp.gcode;
     if (*p == 'N') {
       SERIAL_CHR(' ');
       SERIAL_CHR(*p++);
       while (NUMERIC_SIGNED(*p))
         SERIAL_CHR(*p++);
     }
-    SERIAL_MV(" P", (int)(BLOCK_BUFFER_SIZE - planner.movesplanned() - 1));
-    SERIAL_MV(" B", BUFSIZE - buffer_lenght);
+    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.movesplanned() - 1, DEC);
+    SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);
   #endif
+
   SERIAL_EOL();
+  SERIAL_PORT(-1);
 }
 
 /**
@@ -379,18 +393,14 @@ void Commands::ok_to_send() {
  */
 void Commands::get_available() {
 
-  if (buffer_lenght >= BUFSIZE) return;
+  if (buffer_ring.isFull()) return;
 
   // if any immediate commands remain, don't get other commands yet
   if (drain_injected_P()) return;
 
   get_serial();
 
-  #if HAS_SD_RESTART
-    if (restart.job_phase == RESTART_YES && enqueue_restart()) return;
-  #endif
-
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
     get_sdcard();
   #endif
 }
@@ -400,50 +410,48 @@ void Commands::get_available() {
  */
 void Commands::advance_queue() {
 
-  if (!buffer_lenght) return;
+  if (!buffer_ring.count()) return;
 
-  #if HAS_SDSUPPORT
+  #if HAS_SD_SUPPORT
 
     if (card.isSaving()) {
-      char* command = buffer_ring[buffer_index_r];
-      if (strstr_P(command, PSTR("M29"))) {
+      gcode_t command = buffer_ring.peek();
+      if (strstr_P(command.gcode, PSTR("M29"))) {
         // M29 closes the file
         card.finishWrite();
 
         #if ENABLED(SERIAL_STATS_DROPPED_RX)
-          SERIAL_EMV("Dropped bytes: ", MKSERIAL.dropped());
+          SERIAL_EMV("Dropped bytes: ", MKSERIAL1.dropped());
         #endif
 
         #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
-          SERIAL_EMV("Max RX Queue Size: ", MKSERIAL.rxMaxEnqueued());
+          SERIAL_EMV("Max RX Queue Size: ", MKSERIAL1.rxMaxEnqueued());
         #endif
 
         ok_to_send();
       }
       else {
         // Write the string from the read buffer to SD
-        card.write_command(command);
+        card.write_command(command.gcode);
         ok_to_send();
       }
     }
     else {
       process_next();
       #if HAS_SD_RESTART
-        if (IS_SD_PRINTING) restart.save_data();
+        if (IS_SD_PRINTING()) restart.save_job();
       #endif
     }
 
-  #else // !HAS_SDSUPPORT
+  #else // !HAS_SD_SUPPORT
 
     process_next();
 
-  #endif // !HAS_SDSUPPORT
+  #endif // !HAS_SD_SUPPORT
 
   // The buffer_ring may be reset by a command handler or by code invoked by idle() within a handler
-  if (buffer_lenght) {
-    --buffer_lenght;
-    if (++buffer_index_r >= BUFSIZE) buffer_index_r = 0;
-  }
+  buffer_ring.dequeue();
+
 }
 
 /**
@@ -451,7 +459,7 @@ void Commands::advance_queue() {
  * Aborts the current queue, if any.
  * Note: drain_injected_P() must be called repeatedly to drain the commands afterwards
  */
-void Commands::enqueue_and_echo_P(const char * const pgcode) {
+void Commands::enqueue_and_echo_P(PGM_P const pgcode) {
   injected_commands_P = pgcode;
   (void)drain_injected_P(); // first command executed asap (when possible)
 }
@@ -459,23 +467,57 @@ void Commands::enqueue_and_echo_P(const char * const pgcode) {
 /**
  * Enqueue and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now(const char* cmd) {
+void Commands::enqueue_and_echo_now(PGM_P cmd) {
   while (!enqueue_and_echo(cmd)) printer.idle();
 }
 
 /**
  * Enqueue from program memory and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now_P(const char * const cmd) {
+void Commands::enqueue_and_echo_now_P(PGM_P const cmd) {
   enqueue_and_echo_P(cmd);
   while (drain_injected_P()) printer.idle();
+}
+
+/**
+ * Run a series of commands, bypassing the command queue to allow
+ * G-code "macros" to be called from within other G-code handlers.
+ */
+void Commands::process_now_P(PGM_P pgcode) {
+  char * const saved_cmd = parser.command_ptr;        // Save the parser state
+  for (;;) {
+    PGM_P const delim = strchr_P(pgcode, '\n');       // Get address of next newline
+    const size_t len = delim ?
+      delim - pgcode : strlen_P(pgcode);              // Get the command length
+    char cmd[len + 1];                                // Allocate a stack buffer
+    strncpy_P(cmd, pgcode, len);                      // Copy the command to the stack
+    cmd[len] = '\0';                                  // End with a nul
+    parser.parse(cmd);                                // Parse the command
+    process_parsed(true);                             // Process it
+    if (!delim) break;                                // Last command?
+    pgcode = delim + 1;                               // Get the next command
+  }
+  parser.parse(saved_cmd);                            // Restore the parser state
+}
+
+void Commands::process_now(char * gcode) {
+  char * const saved_cmd = parser.command_ptr;        // Save the parser state
+  for (;;) {
+    char * const delim = strchr(gcode, '\n');         // Get address of next newline
+    if (delim) *delim = '\0';                         // Replace with nul
+    parser.parse(gcode);                              // Parse the current command
+    process_parsed(true);                             // Process it
+    if (!delim) break;                                // Last command?
+    gcode = delim + 1;                                // Get the next command
+  }
+  parser.parse(saved_cmd);                            // Restore the parser state
 }
 
 /**
  * Clear the MK4duo command buffer_ring
  */
 void Commands::clear_queue() {
-  buffer_index_r = buffer_index_w = buffer_lenght = 0;
+  buffer_ring.clear();
 }
 
 /**
@@ -483,10 +525,12 @@ void Commands::clear_queue() {
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
  */
-bool Commands::enqueue(const char* cmd, bool say_ok/*=false*/) {
-  if (*cmd == ';' || buffer_lenght >= BUFSIZE) return false;
-  strcpy(buffer_ring[buffer_index_w], cmd);
-  commit(say_ok);
+bool Commands::enqueue(PGM_P cmd, int8_t port/*=-2*/) {
+  if (*cmd == ';' || buffer_ring.isFull()) return false;
+  gcode_t temp_cmd;
+  strcpy(temp_cmd.gcode, cmd);
+  temp_cmd.s_port = port;
+  buffer_ring.enqueue(temp_cmd);
   return true;
 }
 
@@ -514,7 +558,7 @@ void Commands::get_destination() {
       mechanics.destination[i] = mechanics.current_position[i];
   }
 
-  if (parser.linearval('F') > 0.0)
+  if (parser.linearval('F') > 0)
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
@@ -532,7 +576,7 @@ void Commands::get_destination() {
     get_mix_from_command();
   #endif
 
-  #if ENABLED(NEXTION) && ENABLED(NEXTION_GFX)
+  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       if ((parser.seen('X') || parser.seen('Y')) && parser.seen('E'))
         gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_POS), mechanics.destination[Y_AXIS] + (Y_MAX_POS), mechanics.destination[Z_AXIS]);
@@ -568,29 +612,33 @@ bool Commands::get_target_tool(const uint16_t code) {
   return false;
 }
 
-bool Commands::get_target_heater(int8_t &h) {
-
+bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
+  h = parser.seen('H') ? parser.value_int() : 0;
   if (WITHIN(h, 0 , HOTENDS -1)) return true;
-  #if HAS_HEATER_BED
-    else if (h == -1) {
-      h = BED_INDEX;
-      return true;
-    }
-  #endif
-  #if HAS_HEATER_CHAMBER
-    else if (h == -2) {
-      h = CHAMBER_INDEX;
-      return true;
-    }
-  #endif
-  #if HAS_HEATER_COOLER
-    else if (h == -3) {
-      h = COOLER_INDEX;
-      return true;
-    }
-  #endif
-  else {
+  if (!only_hotend) {
+    #if HAS_HEATER_BED
+      if (h == -1) {
+        h = BED_INDEX;
+        return true;
+      }
+    #endif
+    #if HAS_HEATER_CHAMBER
+      if (h == -2) {
+        h = CHAMBER_INDEX;
+        return true;
+      }
+    #endif
+    #if HAS_HEATER_COOLER
+      if (h == -3) {
+        h = COOLER_INDEX;
+        return true;
+      }
+    #endif
     SERIAL_LM(ER, MSG_INVALID_HEATER);
+    return false;
+  }
+  else {
+    SERIAL_LM(ER, MSG_INVALID_HOTEND);
     return false;
   }
 }
@@ -616,51 +664,57 @@ bool Commands::get_target_heater(int8_t &h) {
  */
 void Commands::process_next() {
 
-  char * const current_command = buffer_ring[buffer_index_r];
+  gcode_t cmd = buffer_ring.peek();
 
-  if (printer.debugEcho()) SERIAL_LT(ECHO, current_command);
+  if (printer.debugEcho()) {
+    SERIAL_PORT(cmd.s_port);
+    SERIAL_LT(ECHO, cmd.gcode);
+  }
 
   printer.move_watch.start(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
-  parser.parse(current_command);
+  parser.parse(cmd.gcode);
   process_parsed();
 
 }
 
-/**
- * Once a new command is in the ring buffer, call this to commit it
- */
-void Commands::commit(bool say_ok) {
-  send_ok[buffer_index_w] = say_ok;
-  if (++buffer_index_w >= BUFSIZE) buffer_index_w = 0;
-  buffer_lenght++;
-}
-
 void Commands::unknown_error() {
+  #if NUM_SERIAL > 1
+    gcode_t tmp = buffer_ring.peek();
+    SERIAL_PORT(tmp.s_port);
+  #endif
   SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');
   SERIAL_EOL();
+  SERIAL_PORT(-1);
 }
 
-void Commands::gcode_line_error(const char* err) {
+void Commands::gcode_line_error(PGM_P err, const int8_t port) {
+  SERIAL_PORT(port);
   SERIAL_STR(ER);
   SERIAL_PS(err);
   SERIAL_EV(gcode_LastN);
   flush_and_request_resend();
-  serial_count = 0;
+  serial_count[port] = 0;
+  SERIAL_PORT(-1);
 }
 
 /**
  * Enqueue with Serial Echo
  */
-bool Commands::enqueue_and_echo(const char* cmd) {
+bool Commands::enqueue_and_echo(PGM_P cmd) {
+
+  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
+    return true;
+
   if (enqueue(cmd)) {
     SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
     SERIAL_CHR('"');
     SERIAL_EOL();
     return true;
   }
+
   return false;
 }
 
@@ -682,25 +736,8 @@ bool Commands::drain_injected_P() {
   return (injected_commands_P != NULL);    // return whether any more remain
 }
 
-#if HAS_SD_RESTART
-
-  bool Commands::enqueue_restart() {
-    static uint8_t index = 0;
-    if (restart.count > 0) {
-      if (enqueue(restart.buffer_ring[index])) {
-        index++;
-        restart.count--;
-      }
-      return true;
-    }
-    else
-      return false;
-  }
-
-#endif
-
 // Process parsed code
-void Commands::process_parsed() {
+void Commands::process_parsed(const bool print_ok/*=true*/) {
 
   printer.keepalive(InHandler);
 
@@ -759,11 +796,6 @@ void Commands::process_parsed() {
           printer.keepalive(NotBusy);
           return;
         }
-
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          // Banzai code for erase bootloader on DUE
-          if (code_num == 9999) initiateReset(1000);
-        #endif
       }
       break;
 
@@ -4083,8 +4115,8 @@ void Commands::process_parsed() {
         #if ENABLED(CODE_M999)
           case 999: gcode_M999(); break;
         #endif
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          case 9999: initiateReset(1000); break;
+        #if ENABLED(CODE_M9999)
+          case 9999: gcode_M9999(); break;
         #endif
 
         default: unknown_error(); break;
@@ -4101,6 +4133,6 @@ void Commands::process_parsed() {
 
   printer.keepalive(NotBusy);
 
-  ok_to_send();
+  if (print_ok) ok_to_send();
 
 }

@@ -5,7 +5,7 @@
 
 //###CHIP
 #if DISABLED(__AVR_ATmega1281__)
-  #error Oops! Make sure you have 'Minitronics ' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Minitronics' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -159,24 +159,25 @@
 
 
 //###UNKNOWN_PINS
-#define LCD_PINS_RS NoPin
-#define LCD_PINS_ENABLE NoPin
-#define LCD_PINS_D4 NoPin
-#define LCD_PINS_D5 NoPin
-#define LCD_PINS_D6 NoPin
-#define LCD_PINS_D7 NoPin
-#define BTN_EN1 NoPin
-#define BTN_EN2 NoPin
-#define BTN_ENC NoPin //the click
-#define BLEN_C 2
-#define BLEN_B 1
-#define BLEN_A 0
+#define LCD_PINS_RS                NoPin
+#define LCD_PINS_ENABLE            NoPin
+#define LCD_PINS_D4                NoPin
+#define LCD_PINS_D5                NoPin
+#define LCD_PINS_D6                NoPin
+#define LCD_PINS_D7                NoPin
+#define BTN_EN1                    NoPin
+#define BTN_EN2                    NoPin
+#define BTN_ENC                    NoPin //the click
+#define BLEN_C                      2
+#define BLEN_B                      1
+#define BLEN_A                      0
 //@@@
 
 //###IF_BLOCKS
-#if TEMP_SENSOR_0 == NoPin
-  #define ORIG_TEMP_0_PIN 5 // ANALOG NUMBERING
+#if TEMP_SENSOR_0 == -1 //thermocouple with AD595 or AD597
+  #define ORIG_TEMP_0_PIN 5
 #else
-  #define ORIG_TEMP_0_PIN 7 // ANALOG NUMBERING
+  #define ORIG_TEMP_0_PIN 7
 #endif
 //@@@
+

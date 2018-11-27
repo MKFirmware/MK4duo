@@ -31,9 +31,9 @@
 /**
  * M205: Set Advanced Settings
  *
+ *    B = Min Segment Time (µs)
  *    S = Min Feed Rate (units/s)
  *    V = Min Travel Feed Rate (units/s)
- *    B = Min Segment Time (µs)
  *    X = Max X Jerk (units/sec^2)
  *    Y = Max Y Jerk (units/sec^2)
  *    Z = Max Z Jerk (units/sec^2)
@@ -42,29 +42,41 @@
  */
 inline void gcode_M205(void) {
 
-  GET_TARGET_EXTRUDER(205);
+  if (commands.get_target_tool(205)) return;
 
-  if (parser.seen('S')) mechanics.min_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('V')) mechanics.min_travel_feedrate_mm_s = parser.value_linear_units();
-  if (parser.seen('B')) mechanics.min_segment_time_us = parser.value_ulong();
-
-  LOOP_XYZE(i) {
-    if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      #if MECH(DELTA)
-        const float value = parser.value_per_axis_unit((AxisEnum)a);
-        if (i == E_AXIS)
-          mechanics.max_jerk[a] = value;
-        else
-          LOOP_XYZ(axis) mechanics.max_jerk[axis] = value;
-      #else
-        mechanics.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
-      #endif
-    }
-  }
+  if (parser.seen('B')) mechanics.data.min_segment_time_us = parser.value_ulong();
+  if (parser.seen('S')) mechanics.data.min_feedrate_mm_s = parser.value_linear_units();
+  if (parser.seen('V')) mechanics.data.min_travel_feedrate_mm_s = parser.value_linear_units();
 
   #if ENABLED(JUNCTION_DEVIATION)
-    if (parser.seen('J')) mechanics.junction_mm = parser.value_float();
+    if (parser.seen('J')) {
+      const float junc_dev = parser.value_linear_units();
+      if (WITHIN(junc_dev, 0.01f, 0.3f)) {
+        mechanics.data.junction_deviation_mm = junc_dev;
+        #if ENABLED(LIN_ADVANCE)
+          mechanics.recalculate_max_e_jerk();
+        #endif
+      }
+      else
+        SERIAL_LM(ER, "?J out of range (0.01 to 0.3)");
+    }
+  #endif
+
+  #if HAS_CLASSIC_JERK
+    LOOP_XYZE(i) {
+      if (parser.seen(axis_codes[i])) {
+        const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+        #if MECH(DELTA)
+          const float value = parser.value_per_axis_unit((AxisEnum)a);
+          if (i == E_AXIS)
+            mechanics.data.max_jerk[a] = value;
+          else
+            LOOP_XYZ(axis) mechanics.data.max_jerk[axis] = value;
+        #else
+          mechanics.data.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
+        #endif
+      }
+    }
   #endif
 
 }

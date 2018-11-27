@@ -48,7 +48,7 @@
  ******************************** Temperature Units Support *************************
  ************************************************************************************
  *                                                                                  *
- * Enable TEMPERATURE UNITS SUPPORT for change unit width command Gcode M149        *
+ * Enable TEMPERATURE UNITS SUPPORT for change unit with command Gcode M149         *
  *                                                                                  *
  ************************************************************************************/
 //#define TEMPERATURE_UNITS_SUPPORT
@@ -59,10 +59,11 @@
  ************************************** Thermistor type **********************************************
  *****************************************************************************************************
  *                                                                                                   *
- * Please choose the one that matches your setup and set to TEMP_SENSOR_.                            *
+ * Please choose the one that matches your setup and set to TEMP SENSOR.                             *
  *                                                                                                   *
- *  -3 is thermocouple with MAX31855 (only Hotends)                                                  *
- *  -2 is thermocouple with MAX6675 (only Hotends)                                                   *
+ *  -4 is thermocouple with MAX31855                                                                 *
+ *  -3 is thermocouple with MAX6675                                                                  *
+ *  -2 is thermocouple with AD8495                                                                   *
  *  -1 is thermocouple with AD595 or AD597                                                           *
  *   0 is not used                                                                                   *
  *   1 is 100k thermistor - best choice for EPCOS 100k (4.7k pullup)                                 *
@@ -148,14 +149,17 @@
 #define COOLER_MINTEMP  10 // (degC) 
 
 // Preheat Constants
+#define PREHEAT_1_LABEL       "PLA"
 #define PREHEAT_1_TEMP_HOTEND 190
 #define PREHEAT_1_TEMP_BED     60
 #define PREHEAT_1_FAN_SPEED   255   // Insert Value between 0 and 255
 
+#define PREHEAT_2_LABEL       "ABS"
 #define PREHEAT_2_TEMP_HOTEND 240
 #define PREHEAT_2_TEMP_BED    100
 #define PREHEAT_2_FAN_SPEED   255   // Insert Value between 0 and 255
 
+#define PREHEAT_3_LABEL       "GUM"
 #define PREHEAT_3_TEMP_HOTEND 230
 #define PREHEAT_3_TEMP_BED     60
 #define PREHEAT_3_FAN_SPEED   255   // Insert Value between 0 and 255
@@ -315,8 +319,6 @@
 #define DEFAULT_chamberKp   10.00
 #define DEFAULT_chamberKi    0.1
 #define DEFAULT_chamberKd  300.0
-
-// FIND YOUR OWN: "M303 E-2 C8 S90" to run autotune on the chamber at 90 degreesC for 8 cycles.
 /***********************************************************************/
 
 
@@ -356,8 +358,6 @@
 #define DEFAULT_coolerKp 10.00
 #define DEFAULT_coolerKi .023
 #define DEFAULT_coolerKd 305.4
-
-// FIND YOUR OWN: "M303 E-3 C8 S90" to run autotune on the cooler at 90 degreesC for 8 cycles.
 /***********************************************************************/
 
 

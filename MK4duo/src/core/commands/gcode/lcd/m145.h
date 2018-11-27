@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(ULTIPANEL) && HAS_TEMP_0
+#if HAS_LCD_MENU && HAS_TEMP_0
 
   #define CODE_M145
 
@@ -39,7 +39,7 @@
    */
   inline void gcode_M145(void) {
     uint8_t material = (uint8_t)parser.intval('S');
-    if (material >= COUNT(lcd_preheat_hotend_temp)) {
+    if (material >= COUNT(lcdui.preheat_hotend_temp)) {
       SERIAL_LM(ER, MSG_ERR_MATERIAL_INDEX);
     }
     else {
@@ -47,17 +47,17 @@
       if (parser.seenval('H')) {
         v = parser.value_int();
         #if HEATER_0_MAXTEMP
-          lcd_preheat_hotend_temp[material] = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP - 15);
+          lcdui.preheat_hotend_temp[material] = constrain(v, HEATER_0_MINTEMP, HEATER_0_MAXTEMP - 15);
         #endif
       }
       if (parser.seenval('F')) {
         v = parser.value_int();
-        lcd_preheat_fan_speed[material] = constrain(v, 0, 255);
+        lcdui.preheat_fan_speed[material] = constrain(v, 0, 255);
       }
       #if HAS_TEMP_BED
         if (parser.seenval('B')) {
           v = parser.value_int();
-          lcd_preheat_bed_temp[material] = constrain(v, BED_MINTEMP, BED_MAXTEMP - 15);
+          lcdui.preheat_bed_temp[material] = constrain(v, BED_MINTEMP, BED_MAXTEMP - 15);
         }
       #endif
     }

@@ -1,12 +1,12 @@
 /****************************************************************************************
 * 1433
-* Arduino Due pin assignment
-* for RAMPS4DUE (http://forums.reprap.org/read.php?219,479626,page=1)
+*
+* RAMPS 1.7 (Power outputs: Hotend, Fan, Bed)
 ****************************************************************************************/
 
 //###CHIP
 #if DISABLED(ARDUINO_ARCH_SAM)
-  #error Oops!  Make sure you have 'Arduino Due' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Arduino Due' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -14,41 +14,41 @@
 
 //###BOARD_NAME
 #if DISABLED(BOARD_NAME)
-  #define BOARD_NAME "RAMPS4DUE"
+  #define BOARD_NAME "Ramps 1.7 HFB"
 #endif
 //@@@
 
 
 //###X_AXIS
-#define ORIG_X_STEP_PIN            54
-#define ORIG_X_DIR_PIN             55
-#define ORIG_X_ENABLE_PIN          38
-#define ORIG_X_CS_PIN              NoPin
+#define ORIG_X_STEP_PIN            56
+#define ORIG_X_DIR_PIN             57
+#define ORIG_X_ENABLE_PIN          55
+#define ORIG_X_CS_PIN              46
 
 //###Y_AXIS
-#define ORIG_Y_STEP_PIN            60
-#define ORIG_Y_DIR_PIN             61
-#define ORIG_Y_ENABLE_PIN          56
-#define ORIG_Y_CS_PIN              NoPin
+#define ORIG_Y_STEP_PIN            62
+#define ORIG_Y_DIR_PIN             63
+#define ORIG_Y_ENABLE_PIN          58
+#define ORIG_Y_CS_PIN              42
 
 //###Z_AXIS
-#define ORIG_Z_STEP_PIN            46
-#define ORIG_Z_DIR_PIN             48
-#define ORIG_Z_ENABLE_PIN          62
-#define ORIG_Z_CS_PIN              NoPin
+#define ORIG_Z_STEP_PIN            68
+#define ORIG_Z_DIR_PIN             69
+#define ORIG_Z_ENABLE_PIN          67
+#define ORIG_Z_CS_PIN              48
 
 //###EXTRUDER_0
-#define ORIG_E0_STEP_PIN           26
-#define ORIG_E0_DIR_PIN            28
-#define ORIG_E0_ENABLE_PIN         24
-#define ORIG_E0_CS_PIN             NoPin
+#define ORIG_E0_STEP_PIN           34
+#define ORIG_E0_DIR_PIN            36
+#define ORIG_E0_ENABLE_PIN         30
+#define ORIG_E0_CS_PIN             38
 #define ORIG_SOL0_PIN              NoPin
 
 //###EXTRUDER_1
-#define ORIG_E1_STEP_PIN           36
-#define ORIG_E1_DIR_PIN            34
-#define ORIG_E1_ENABLE_PIN         30
-#define ORIG_E1_CS_PIN             NoPin
+#define ORIG_E1_STEP_PIN           24
+#define ORIG_E1_DIR_PIN            26
+#define ORIG_E1_ENABLE_PIN         22
+#define ORIG_E1_CS_PIN              6
 #define ORIG_SOL1_PIN              NoPin
 
 //###EXTRUDER_2
@@ -106,7 +106,7 @@
 #define ORIG_Z3_MAX_PIN            NoPin
 #define ORIG_Z4_MIN_PIN            NoPin
 #define ORIG_Z4_MAX_PIN            NoPin
-#define ORIG_Z_PROBE_PIN           NoPin
+#define ORIG_Z_PROBE_PIN           64
 
 //###SINGLE_ENDSTOP
 #define X_STOP_PIN                 NoPin
@@ -114,26 +114,26 @@
 #define Z_STOP_PIN                 NoPin
 
 //###HEATER
-#define ORIG_HEATER_0_PIN          10
+#define ORIG_HEATER_0_PIN          11
 #define ORIG_HEATER_1_PIN          NoPin
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN         8
+#define ORIG_HEATER_BED_PIN         9
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
 //###TEMPERATURE
-#define ORIG_TEMP_0_PIN             9
-#define ORIG_TEMP_1_PIN            NoPin
+#define ORIG_TEMP_0_PIN             6
+#define ORIG_TEMP_1_PIN             7
 #define ORIG_TEMP_2_PIN            NoPin
 #define ORIG_TEMP_3_PIN            NoPin
-#define ORIG_TEMP_BED_PIN          10
+#define ORIG_TEMP_BED_PIN           5
 #define ORIG_TEMP_CHAMBER_PIN      NoPin
 #define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
-#define ORIG_FAN0_PIN               9
-#define ORIG_FAN1_PIN              NoPin
+#define ORIG_FAN0_PIN              10
+#define ORIG_FAN1_PIN               8
 #define ORIG_FAN2_PIN              NoPin
 #define ORIG_FAN3_PIN              NoPin
 
@@ -160,24 +160,24 @@
 
 
 //###UNKNOWN_PINS
-#define EEPROM_I2C
+#define EEPROM_SD
 #define E2END 0x2000
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(ULTRA_LCD)
+#if HAS_SPI_LCD
 
   #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
     #define LCD_PINS_RS       49
     #define LCD_PINS_ENABLE   51
     #define LCD_PINS_D4       52
   #elif ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
-    #define LCD_PINS_RS       40
-    #define LCD_PINS_ENABLE   42
-    #define LCD_PINS_D4       65
-    #define LCD_PINS_D5       66
-    #define LCD_PINS_D6       44
-    #define LCD_PINS_D7       64
+    #define LCD_PINS_RS       45
+    #define LCD_PINS_ENABLE   43
+    #define LCD_PINS_D4       37
+    #define LCD_PINS_D5       35
+    #define LCD_PINS_D6       39
+    #define LCD_PINS_D7       41
   #else
     #define LCD_PINS_RS       16
     #define LCD_PINS_ENABLE   17
@@ -319,3 +319,4 @@
 
 #endif // ULTRA_LCD
 //@@@
+

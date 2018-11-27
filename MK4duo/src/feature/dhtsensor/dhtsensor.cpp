@@ -33,10 +33,12 @@
   #define DHTMINREADINTERVAL 2000  // ms
   #define DHTMAXREADTIME       50  // ms
 
-  DhtSensor dhtsensor(DHT_DATA_PIN, DHT_TYPE);
+  DhtSensor dhtsensor;
 
-  float DhtSensor::Temperature  = 20,
-        DhtSensor::Humidity     = 10;
+  pin_t   DhtSensor::pin          = DHT_DATA_PIN;
+  uint8_t DhtSensor::type         = DHT_TYPE;
+  float   DhtSensor::Temperature  = 20,
+          DhtSensor::Humidity     = 10;
 
   DhtSensor::SensorState DhtSensor::state = Init;
 
@@ -57,12 +59,7 @@
     }
   }
 
-  DhtSensor::DhtSensor(const pin_t _pin, const uint8_t _type) {
-    pin   = _pin;
-    type  = _type;
-  }
-
-  void DhtSensor::init(void) {
+  void DhtSensor::init() {
     HAL::pinMode(pin, OUTPUT);
     state = Init;
   }
@@ -84,9 +81,12 @@
     }
   }
 
-  void DhtSensor::print_parameters(void) {
-    SERIAL_SMV(CFG, " DHT sensor Pin:", pin);
-    SERIAL_EMV(" Type:DHT", type);
+  void DhtSensor::print_parameters() {
+    SERIAL_LM(CFG, "DHT sensor parameters: P<Pin> S<type 11-21-22>:");
+    SERIAL_SM(CFG, "  M305 D0");
+    SERIAL_MV(" P", dhtsensor.pin);
+    SERIAL_MV(" S", dhtsensor.type);
+    SERIAL_EOL();
   }
 
   void DhtSensor::spin() {

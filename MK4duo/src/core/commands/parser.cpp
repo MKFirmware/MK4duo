@@ -35,7 +35,7 @@
 #endif
 
 #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
-  TempUnit GCodeParser::input_temp_units = TEMPUNIT_C;
+  TempUnitEnum GCodeParser::input_temp_units = TEMPUNIT_C;
 #endif
 
 char *GCodeParser::command_ptr,
@@ -230,6 +230,19 @@ pin_t GCodeParser::value_pin() {
   const pin_t pin = (int8_t)value_int();
   return printer.pin_is_protected(pin) ? NoPin : pin;
 }
+
+pin_t GCodeParser::analog_value_pin() {
+  const pin_t pin = (int8_t)value_int();
+  return WITHIN(pin, 0 , NUM_ANALOG_INPUTS) ? pin : NoPin;
+}
+
+#if ENABLED(INCH_MODE_SUPPORT)
+
+  float GCodeParser::axis_unit_factor(const AxisEnum axis) {
+    return (axis >= E_AXIS && printer.isVolumetric() ? volumetric_unit_factor : linear_unit_factor);
+  }
+
+#endif
 
 #if ENABLED(DEBUG_GCODE_PARSER)
 

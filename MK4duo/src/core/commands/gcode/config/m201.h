@@ -35,19 +35,19 @@
  */
 inline void gcode_M201(void) {
 
-  GET_TARGET_EXTRUDER(201);
+  if (commands.get_target_tool(201)) return;
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+      const uint8_t a = (i == E_AXIS ? E_INDEX : i);
       #if MECH(DELTA)
         const float value = parser.value_per_axis_unit((AxisEnum)a);
         if (i == E_AXIS)
-          mechanics.max_acceleration_mm_per_s2[a] = value;
+          mechanics.data.max_acceleration_mm_per_s2[a] = value;
         else
-          LOOP_XYZ(axis) mechanics.max_acceleration_mm_per_s2[axis] = value;
+          LOOP_XYZ(axis) mechanics.data.max_acceleration_mm_per_s2[axis] = value;
       #else
-        mechanics.max_acceleration_mm_per_s2[a] = parser.value_axis_units((AxisEnum)a);
+        mechanics.data.max_acceleration_mm_per_s2[a] = parser.value_axis_units((AxisEnum)a);
       #endif
     }
   }

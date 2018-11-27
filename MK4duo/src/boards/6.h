@@ -3,8 +3,8 @@
 ****************************************************************************************/
 
 //###CHIP
-#if DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
-  #error Oops!  Make sure you have 'Sanguino' or 'Anet' selected from the 'Tools -> Boards' menu.
+#if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
+  #error "Oops! Select 'Sanguino' in 'Tools > Board.'"
 #endif
 //@@@
 
@@ -116,7 +116,7 @@
 #define ORIG_HEATER_1_PIN          NoPin
 #define ORIG_HEATER_2_PIN          NoPin
 #define ORIG_HEATER_3_PIN          NoPin
-#define ORIG_HEATER_BED_PIN        NoPin
+#define ORIG_HEATER_BED_PIN        14
 #define ORIG_HEATER_CHAMBER_PIN    NoPin
 #define ORIG_COOLER_PIN            NoPin
 
@@ -159,63 +159,24 @@
 
 
 //###IF_BLOCKS
-#if MB(AZTEEG_X1) || MB(STB_11) || MB(MELZI)
-  #define ORIG_FAN0_PIN           4
-  #if MB(MELZI)
-    #define LED_PIN             27
-  #elif MB(STB_11)
-    #define LCD_BACKLIGHT_PIN   17
-  #endif
-#endif
-
-#if ENABLED(SANGUINOLOLU_V_1_2)
-
-  #define ORIG_HEATER_BED_PIN   12
-  #define ORIG_X_ENABLE_PIN     14
-  #define ORIG_Y_ENABLE_PIN     14
-  #define ORIG_Z_ENABLE_PIN     26
-  #define ORIG_E0_ENABLE_PIN    14
-
-  #if ENABLED(LCD_I2C_PANELOLU2)
-    #define ORIG_FAN0_PIN         4
-  #endif
-
-#else
-
-  #define ORIG_HEATER_BED_PIN   14
-  #define ORIG_X_ENABLE_PIN     NoPin
-  #define ORIG_Y_ENABLE_PIN     NoPin
-  #define ORIG_Z_ENABLE_PIN     NoPin
-  #define ORIG_E0_ENABLE_PIN    NoPin
-
-#endif
-
 //#define SDSS               24
 
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if HAS_SPI_LCD && ENABLED(NEWPANEL)
 
   // No buzzer installed
   #define ORIG_BEEPER_PIN NoPin
 
   //LCD Pins
-  #if ENABLED(DOGLCD)
+  #if HAS_GRAPHICAL_LCD
 
     #if ENABLED(U8GLIB_ST7920) //SPI GLCD 12864 ST7920 ( like [www.digole.com] ) For Melzi V2.0
-      #if MB(MELZI)
-        #define LCD_PINS_RS     30
-        #define LCD_PINS_ENABLE 2
-        #define LCD_PINS_D4     17
-        #define ORIG_BEEPER_PIN 27
-      #else
-        #define LCD_PINS_RS      4
-        #define LCD_PINS_ENABLE 17
-        #define LCD_PINS_D4     30
-        #define LCD_PINS_D5     29
-        #define LCD_PINS_D6     28
-        #define LCD_PINS_D7     27
-      #endif
+      #define LCD_PINS_RS      4
+      #define LCD_PINS_ENABLE 17
+      #define LCD_PINS_D4     30
+      #define LCD_PINS_D5     29
+      #define LCD_PINS_D6     28
+      #define LCD_PINS_D7     27
     #else // DOGM SPI LCD Support
-
       #define DOGLCD_A0         30
       #define DOGLCD_CS         29
       #define LCD_CONTRAST       1
@@ -240,12 +201,7 @@
   #define BTN_EN1               11
   #define BTN_EN2               10
   #if ENABLED(LCD_I2C_PANELOLU2)
-    #if MB(MELZI)
-      #define BTN_ENC           29
-      #define LCD_SDSS          30
-    #else
-      #define BTN_ENC           30
-    #endif
+    #define BTN_ENC           30
   #else
     #define BTN_ENC             16
     #define LCD_SDSS            28
@@ -276,3 +232,4 @@
 
 #endif // MAKRPANEL
 //@@@
+

@@ -37,7 +37,7 @@ inline void gcode_G60(void) {
   const uint8_t slot = parser.byteval('S');
 
   if (slot >= NUM_POSITON_SLOTS) {
-    SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, (int)NUM_POSITON_SLOTS);
+    SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
     return;
   } 
   COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position);

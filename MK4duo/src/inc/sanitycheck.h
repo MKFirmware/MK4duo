@@ -38,11 +38,11 @@
 #endif
 
 // Start check
-#if DISABLED(SERIAL_PORT)
-  #error "DEPENDENCY ERROR: Missing setting SERIAL_PORT."
+#if DISABLED(SERIAL_PORT_1)
+  #error "DEPENDENCY ERROR: Missing setting SERIAL_PORT_1."
 #endif
-#if DISABLED(BAUDRATE)
-  #error "DEPENDENCY ERROR: Missing setting BAUDRATE."
+#if DISABLED(BAUDRATE_1)
+  #error "DEPENDENCY ERROR: Missing setting BAUDRATE_1."
 #endif
 #if DISABLED(MACHINE_UUID)
   #error "DEPENDENCY ERROR: Missing setting MACHINE_UUID."
@@ -56,26 +56,52 @@
   #error "DEPENDENCY ERROR: You have to set a valid MOTHERBOARD."
 #endif
 
-// Alligatorboard
-#if MB(ALLIGATOR) || MB(ALLIGATOR_V3)
+// Alligator board
+#if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
   #if DISABLED(UI_VOLTAGE_LEVEL)
     #error "DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL."
   #endif
 #endif
 
+// Limited number of servos
+#if NUM_SERVOS > 4
+  #error "DEPENDENCY ERROR: The maximum number of SERVOS in MK4duo is 4."
+#endif
+#if ENABLED(ENABLE_SERVOS)
+  #if NUM_SERVOS < 1
+    #error "DEPENDENCY ERROR: NUM_SERVOS has to be at least one if you enable ENABLE_SERVOS."
+  #endif
+  #if Z_PROBE_SERVO_NR >= 0
+    #if Z_PROBE_SERVO_NR >= NUM_SERVOS
+      #error "DEPENDENCY ERROR: Z_PROBE_SERVO_NR must be smaller than NUM_SERVOS."
+    #endif
+  #endif
+#endif
+#if ENABLED(ENABLE_SERVOS)
+  #if NUM_SERVOS > 0 && !(HAS_SERVO_0)
+    #error "DEPENDENCY ERROR: You have to set SERVO0_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 1 && !(HAS_SERVO_1)
+    #error "DEPENDENCY ERROR: You have to set SERVO1_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 2 && !(HAS_SERVO_2)
+    #error "DEPENDENCY ERROR: You have to set SERVO2_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+  #if NUM_SERVOS > 3 && !(HAS_SERVO_3)
+    #error "DEPENDENCY ERROR: You have to set SERVO3_PIN to a valid pin if you enable ENABLE_SERVOS."
+  #endif
+#endif
+
 // Other sanitycheck files
-#include "../core/temperature/sanitycheck.h"
+#include "../core/eeprom/sanitycheck.h"
+#include "../core/endstop/sanitycheck.h"
+#include "../core/fan/sanitycheck.h"
 #include "../core/heater/sanitycheck.h"
 #include "../core/heater/sensor/sanitycheck.h"
-#include "../core/fan/sanitycheck.h"
-#include "../core/stepper/sanitycheck.h"
-#include "../core/tools/sanitycheck.h"
-#include "../core/endstop/sanitycheck.h"
 #include "../core/mechanics/sanitycheck.h"
-#include "../core/mechanics/cartesian/sanitycheck.h"
-#include "../core/mechanics/core/sanitycheck.h"
-#include "../core/mechanics/delta/sanitycheck.h"
-#include "../core/mechanics/scara/sanitycheck.h"
+#include "../core/stepper/sanitycheck.h"
+#include "../core/temperature/sanitycheck.h"
+#include "../core/tools/sanitycheck.h"
 
 #include "../lcd/sanitycheck.h"
 #include "../sd/sanitycheck.h"
@@ -94,7 +120,6 @@
 #include "../feature/probe/sanitycheck.h"
 #include "../feature/restart/sanitycheck.h"
 #include "../feature/rgbled/sanitycheck.h"
-#include "../feature/servo/sanitycheck.h"
 #include "../feature/tmc/sanitycheck.h"
 
 // CONTROLLI ANCORA DA RICOLLOCARE...
