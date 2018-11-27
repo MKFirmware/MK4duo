@@ -96,7 +96,7 @@
               show_Wave                 = true;
   uint8_t     PageID                    = 0;
   uint16_t    slidermaxval              = 20;
-  char        buffer[70]                = { 0 };
+  char        buffer[50]                = { 0 };
 
   #if HAS_SD_SUPPORT
     // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
@@ -285,7 +285,7 @@
   NexObject EncUp       = NexObject(11,  7, "p0");
   NexObject EncSend     = NexObject(11,  8, "p1");
   NexObject EncDown     = NexObject(11,  9, "p2");
-  NexObject EncMenu     = NexObject(11, 10, "p3");
+  NexObject EncExit     = NexObject(11, 10, "p3");
 
   NexObject *nex_listen_list[] =
   {
@@ -510,7 +510,7 @@
 
   void setgcodePopCallback() {
     ZERO(buffer);
-    nexlcd.getText(Tgcode, buffer, sizeof(buffer), PSTR("pg6"));
+    nexlcd.getText(Tgcode, buffer, PSTR("pg6"));
     nexlcd.setText(Tgcode, "", PSTR("pg6"));
     commands.enqueue_and_echo(buffer);
   }
@@ -543,7 +543,7 @@
     #endif
 
     ZERO(buffer);
-    nexlcd.getText(movecmd, buffer, sizeof(buffer));
+    nexlcd.getText(movecmd, buffer);
     commands.enqueue_and_echo_P(PSTR("G91"));
     commands.enqueue_and_echo(buffer);
     commands.enqueue_and_echo_P(PSTR("G90"));
@@ -563,7 +563,7 @@
 
   void filamentPopCallback(NexObject *nexobject) {
     ZERO(buffer);
-    nexlcd.getText(Filgcode, buffer, sizeof(buffer));
+    nexlcd.getText(Filgcode, buffer);
     if (nexobject == &FilExtr)
       commands.enqueue_and_echo(buffer);
     else {
@@ -848,7 +848,7 @@
       &EncUp,
       &EncDown,
       &EncSend,
-      &EncMenu,
+      &EncExit,
       NULL
     };
 
@@ -859,9 +859,8 @@
     }
 
     void encoderPopCallback(NexObject *nexobject) {
-
       // Click on encoder
-      if (nexobject == &EncMenu)
+      if (nexobject == &EncExit)
         lcdui.return_to_status();
       else if (nexobject == &EncUp)
         lcdui.encoderPosition += lcdui.encoderDirection;
@@ -1082,7 +1081,7 @@
                 nexobject == &EncUp   ||
                 nexobject == &EncDown ||
                 nexobject == &EncSend ||
-                nexobject == &EncMenu)    encoderPopCallback(nexobject);
+                nexobject == &EncExit)    encoderPopCallback(nexobject);
     #endif
     #if HAS_SD_SUPPORT
       else if (nexobject == &SDMenu)      SDMenuPopCallback();
@@ -1094,28 +1093,32 @@
 
   // Check the push button
   static void Nextion_parse_key_touch(NexObject *list[]) {
-    static char serial_buffer[10];
-    static int serial_count = 0;
+    bool str_start_flag = false;
+    uint8_t cnt_0xFF  = 0,
+            index     = 0;
 
-    if (list == NULL) return;
-
+    ZERO(buffer);
     while (nexSerial.available()) {
       uint8_t c = nexSerial.read();
-      if (c == NEX_RET_EVENT_TOUCH_HEAD || serial_count > 0)
-        serial_buffer[serial_count++] = c;
+      if (c == NEX_RET_EVENT_TOUCH_HEAD) {
+        str_start_flag = true;
+        HAL::delayMilliseconds(5);
+      }
+      else if (str_start_flag) {
+        if (c == 0xFF) cnt_0xFF++;                    
+        buffer[index++] = (char)c;
+        if (cnt_0xFF >= 3 || index == sizeof(buffer)) break;
+      }
     }
 
-    if (serial_count >= 7) {
-      serial_count = 0;
-      if (serial_buffer[4] == 0xFF && serial_buffer[5] == 0xFF && serial_buffer[6] == 0xFF) {
-        const uint8_t pid = serial_buffer[1];
-        const uint8_t cid = serial_buffer[2];
-        const int32_t event = (int32_t)serial_buffer[3];
-        for (uint8_t i = 0; list[i] != NULL; i++) {
-          if (list[i]->__pid == pid && list[i]->__cid == cid) {
-            if (event == NEX_EVENT_POP) PopCallback(list[i]);
-            break;
-          }
+    if (cnt_0xFF >= 3) {
+      const uint8_t pid = buffer[0];
+      const uint8_t cid = buffer[1];
+      const int32_t event = (int32_t)buffer[2];
+      for (uint8_t i = 0; list[i] != NULL; i++) {
+        if (list[i]->__pid == pid && list[i]->__cid == cid) {
+          if (event == NEX_EVENT_POP) PopCallback(list[i]);
+          break;
         }
       }
     }
@@ -1288,6 +1291,7 @@
   }
 
   void LcdUI::status_screen() {
+    SERIAL_EMV("PageID:", PageID);
     if (PageID == 11) {
       PageID = 2;
       nexlcd.show(Pprinter);

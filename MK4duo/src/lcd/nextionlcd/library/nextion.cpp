@@ -63,14 +63,14 @@
     recvRetCommandFinished();
   }
 
-  void NextionLCD::getText(NexObject &nexobject, char *buffer, uint16_t len, PGM_P page) {
+  void NextionLCD::getText(NexObject &nexobject, char *buffer, PGM_P page) {
     char cmd[40];
     if (page)
       sprintf_P(cmd, PSTR("get %s.%s.txt"), page, nexobject.__name);
     else
       sprintf_P(cmd, PSTR("get %s.txt"), nexobject.__name);
     sendCommand(cmd);
-    recvRetString(buffer, len);
+    recvRetString(buffer);
   }
 
   void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, PGM_P page) {

@@ -123,7 +123,7 @@ class NextionLCD {
 
     static void show(NexObject &nexobject);
     static void enable(NexObject &nexobject, const bool en=true);
-    static void getText(NexObject &nexobject, char *buffer, uint16_t len, PGM_P page=NULL);
+    static void getText(NexObject &nexobject, char *buffer, PGM_P page=NULL);
     static void setText(NexObject &nexobject, PGM_P buffer, PGM_P page=NULL);
     static void startChar(NexObject &nexobject, PGM_P page=NULL);
     static void setChar(const char pchar);
@@ -213,36 +213,32 @@ extern NextionLCD nexlcd;
 //
 // PUBBLIC FUNCTION
 //
-inline void recvRetString(char *buffer, const uint16_t len) {
+inline void recvRetString(char *buffer) {
   bool str_start_flag = false;
-  uint8_t cnt_0xFF = 0;
-  String temp = String("");
-
-  if (!buffer || len == 0) return;
+  uint8_t cnt_0xFF  = 0,
+          index     = 0;
 
   millis_t start = millis();
   while (millis() - start <= NEX_TIMEOUT) {
     while (nexSerial.available()) {
       uint8_t c = nexSerial.read();
-      if (str_start_flag) {
+      if (c == NEX_RET_STRING_HEAD) {
+        str_start_flag = true;
+      }
+      else if (str_start_flag) {
         if (c == 0xFF) {
           cnt_0xFF++;                    
           if (cnt_0xFF >= 3) break;
         }
         else {
-          temp += (char)c;
+          buffer[index++] = (char)c;
+          if (index == sizeof(buffer)) break;
         }
       }
-      else if (c == NEX_RET_STRING_HEAD)
-        str_start_flag = true;
     }
-  
+
     if (cnt_0xFF >= 3) break;
   }
-
-  uint16_t ret = temp.length();
-  ret = ret > len ? len : ret;
-  strncpy(buffer, temp.c_str(), ret);
 }
   
 inline void recvRetCommandFinished() {    
