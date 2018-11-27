@@ -50,7 +50,7 @@
     SERIAL_CHR(ch);
 
     SERIAL_MSG("\",\"coords\": {\"axesHomed\":[");
-    if (printer.isHomedAll())
+    if (mechanics.isHomedAll())
       SERIAL_MSG("1, 1, 1");
     else
       SERIAL_MSG("0, 0, 0");

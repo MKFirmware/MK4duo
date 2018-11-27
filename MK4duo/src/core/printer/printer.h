@@ -27,21 +27,6 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-union flaghome_t {
-  bool all;
-  struct {
-    bool  XHomed  : 1;
-    bool  YHomed  : 1;
-    bool  ZHomed  : 1;
-    bool  bit3    : 1;
-    bool  bit4    : 1;
-    bool  bit5    : 1;
-    bool  bit6    : 1;
-    bool  bit7    : 1;
-  };
-  flaghome_t() { all = false; }
-};
-
 union flagdebug_t {
   uint8_t all;
   struct {
@@ -91,7 +76,6 @@ class Printer {
   public: /** Public Parameters */
 
     static flagdebug_t    debug_flag;   // For debug
-    static flaghome_t     home_flag;    // For Homed
     static flagVarious_t  various_flag; // For various
 
     static bool     axis_relative_modes[];
@@ -201,24 +185,6 @@ class Printer {
       setDebugLevel(debug_flag.all & ~flag);
     }
 
-    FORCE_INLINE static void setAxisHomed(const AxisEnum axis, const bool onoff) {
-      switch (axis) {
-        case X_AXIS: home_flag.XHomed = onoff; break;
-        case Y_AXIS: home_flag.YHomed = onoff; break;
-        case Z_AXIS: home_flag.ZHomed = onoff; break;
-      }
-    }
-    FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
-      switch (axis) {
-        case X_AXIS: return home_flag.XHomed; break;
-        case Y_AXIS: return home_flag.YHomed; break;
-        case Z_AXIS: return home_flag.ZHomed; break;
-      }
-    }
-
-    FORCE_INLINE static void unsetHomedAll() { home_flag.all = false; }
-    FORCE_INLINE static bool isHomedAll() { return home_flag.XHomed && home_flag.YHomed && home_flag.ZHomed; }
-
     // Various flag bit 0 Running
     FORCE_INLINE static void setRunning(const bool onoff) { various_flag.Running = onoff; }
     FORCE_INLINE static bool isRunning() { return various_flag.Running; }
@@ -264,7 +230,7 @@ class Printer {
     FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.G38Move = onoff; }
     FORCE_INLINE static bool IsG38Move() { return various_flag.G38Move; }
 
-    FORCE_INLINE static bool reset_flag() { home_flag.all = false; various_flag.all = 0; }
+    FORCE_INLINE static bool reset_flag() { various_flag.all = 0; }
 
   private: /** Private Function */
 

@@ -171,7 +171,6 @@
 
       #if HAS_SD_RESTART
         static void open_restart_file(const bool read);
-        static void close_restart_file();
         static void delete_restart_file();
         static bool exist_restart_file();
       #endif

@@ -94,7 +94,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
     MENU_BACK(MSG_MAIN);
 
     MENU_ITEM(gcode, MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
-    const bool need_g28 = !(printer.home_flag.YHomed && printer.home_flag.ZHomed);
+    const bool need_g28 = !(mechanics.home_flag.YHomed && mechanics.home_flag.ZHomed);
     MENU_ITEM(gcode, MSG_DXC_MODE_DUPLICATE, need_g28
       ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100")                // If Y or Z is not homed, do a full G28 first
       : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100")
@@ -193,7 +193,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
   }  
 
   void laser_set_focus(float f_length) {
-    if (!printer.home_flag.ZHomed ) {
+    if (!mechanics.home_flag.ZHomed ) {
       commands.enqueue_and_echo_P(PSTR("G28 Z F150"));
     }
     focalLength = f_length;

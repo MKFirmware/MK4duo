@@ -431,7 +431,7 @@
 
     NOMORE(data.probe_radius, data.print_radius);
 
-    printer.unsetHomedAll();
+    unsetHomedAll();
 
     Set_clip_start_height();
 
@@ -663,7 +663,7 @@
       }
     #endif
 
-    printer.setAxisHomed(axis, true);
+    setAxisHomed(axis, true);
 
     current_position[axis] = (axis == C_AXIS ? data.height : 0.0);
 

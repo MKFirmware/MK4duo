@@ -238,7 +238,7 @@
       if (home_all || homeZ) homeaxis(Z_AXIS);
     #endif
 
-    const float z_homing_height = printer.home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+    const float z_homing_height = home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
 
     if (z_homing_height && (home_all || homeX || homeY)) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -520,7 +520,7 @@
       }
     #endif
 
-    printer.setAxisHomed(axis, true);
+    setAxisHomed(axis, true);
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
@@ -1266,7 +1266,7 @@
     void Cartesian_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.home_flag.XHomed || !printer.home_flag.YHomed) {
+      if (!home_flag.XHomed || !home_flag.YHomed) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -1325,7 +1325,7 @@
     void Cartesian_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.home_flag.XHomed || !printer.home_flag.YHomed) {
+      if (!home_flag.XHomed || !home_flag.YHomed) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;

@@ -495,11 +495,6 @@
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
     }
 
-    void CardReader::close_restart_file() {
-      if (!restart.file.isOpen()) return;
-      restart.file.close();
-    }
-
     void CardReader::delete_restart_file() {
       if (exist_restart_file()) {
         restart.file.remove(&root, restart_file_name);

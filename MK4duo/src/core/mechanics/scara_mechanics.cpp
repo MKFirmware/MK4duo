@@ -590,7 +590,7 @@
       }
     #endif
 
-    printer.setAxisHomed(axis, true);
+    setAxisHomed(axis, true);
 
     #if MECH(MORGAN_SCARA)
 

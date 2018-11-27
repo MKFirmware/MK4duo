@@ -316,7 +316,7 @@ void menu_move() {
   #endif
 
   #if IS_KINEMATIC
-    const bool do_move_xyz = printer.isHomedAll();
+    const bool do_move_xyz = mechanics.isHomedAll();
   #else
     constexpr bool do_move_xyz = true;
   #endif
@@ -386,7 +386,7 @@ void menu_motion() {
   // Move Axis
   //
   #if ENABLED(DELTA)
-    if (printer.isHomedAll())
+    if (mechanics.isHomedAll())
   #endif
       MENU_ITEM(submenu, MSG_MOVE_AXIS, menu_move);
 

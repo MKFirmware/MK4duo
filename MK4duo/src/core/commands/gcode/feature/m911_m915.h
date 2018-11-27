@@ -372,7 +372,7 @@
       const uint16_t  _rms  = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
                       _z    = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;
 
-      if (!printer.home_flag.ZHomed) {
+      if (!mechanics.home_flag.ZHomed) {
         SERIAL_EM("\nPlease home Z axis first");
         return;
       }

@@ -195,7 +195,7 @@
   //
   void _lcd_level_bed_homing() {
     _lcd_draw_homing();
-    if (printer.isHomedAll()) lcdui.goto_screen(_lcd_level_bed_homing_done);
+    if (mechanics.isHomedAll()) lcdui.goto_screen(_lcd_level_bed_homing_done);
   }
 
   //
@@ -203,7 +203,7 @@
   //
   void _lcd_level_bed_continue() {
     lcdui.defer_status_screen(true);
-    printer.unsetHomedAll();
+    mechanics.unsetHomedAll();
     lcdui.goto_screen(_lcd_level_bed_homing);
     commands.enqueue_and_echo_P(PSTR("G28"));
   }
@@ -247,7 +247,7 @@ void menu_bed_leveling() {
   START_MENU();
   MENU_BACK(MSG_MOTION);
 
-  const bool is_homed = printer.isHomedAll();
+  const bool is_homed = mechanics.isHomedAll();
 
   // Auto Home if not using manual probing
   #if DISABLED(PROBE_MANUALLY) && DISABLED(MESH_BED_LEVELING)

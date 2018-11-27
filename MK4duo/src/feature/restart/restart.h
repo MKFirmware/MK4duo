@@ -29,8 +29,6 @@
 
   //#define DEBUG_RESTART
 
-  #define APPEND_CMD_COUNT 3
-
   typedef struct {
     uint8_t valid_head;
 
@@ -90,8 +88,6 @@
 
       static bool enabled;
 
-    private: /** Private Parameters */
-
     public: /** Public Function */
 
       static void init_job();
@@ -103,11 +99,11 @@
 
       static inline bool exists() { return card.exist_restart_file(); }
       static inline void open(const bool read) { card.open_restart_file(read); }
-      static inline void close() { card.close_restart_file(); }
+      static inline void close() { file.close(); }
 
       static void purge_job();
       static void load_job();
-      static void save_job(const bool force_save=false);
+      static void save_job(const bool force_save=false, const bool save_count=true);
       static void resume_job();
 
       static inline bool valid() { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }

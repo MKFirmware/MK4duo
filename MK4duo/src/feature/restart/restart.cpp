@@ -73,7 +73,7 @@
     #endif
   }
 
-  void Restart::save_job(const bool force_save/*=false*/) {
+  void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
     static watch_t save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
 
@@ -117,7 +117,7 @@
 
       // Commands in the queue
       job_info.buffer_head = commands.buffer_ring.head();
-      job_info.buffer_count = commands.buffer_ring.count();
+      job_info.buffer_count = save_count ? commands.buffer_ring.count() : 0;
       for (uint8_t index = 0; index < BUFSIZE; index++) {
         gcode_t temp_cmd;
         temp_cmd = commands.buffer_ring.peek(index);
@@ -151,7 +151,7 @@
     #if Z_HOME_DIR > 0
       mechanics.home();
     #else
-      printer.home_flag.ZHomed = true;
+      mechanics.home_flag.ZHomed = true;
       stepper.enable_Z();
       dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
       sprintf_P(cmd, PSTR("G92 Z%s"), str1);

@@ -79,7 +79,7 @@ void menu_level_bed_corners() {
 
 void _lcd_level_bed_corners_homing() {
   _lcd_draw_homing();
-  if (printer.isHomedAll()) {
+  if (mechanics.isHomedAll()) {
     bed_corner = 0;
     lcdui.goto_screen(menu_level_bed_corners);
     _lcd_goto_next_corner();
@@ -88,7 +88,7 @@ void _lcd_level_bed_corners_homing() {
 
 void _lcd_level_bed_corners() {
   lcdui.defer_status_screen(true);
-  if (!printer.isHomedAll())
+  if (!mechanics.isHomedAll())
     commands.enqueue_and_echo_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_level_bed_corners_homing);
 }

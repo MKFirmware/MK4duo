@@ -140,7 +140,7 @@
    * Nextion component for page:menu
    *******************************************************************
    */
-  NexObject SDMenu      = NexObject(1,  2,  "m1");
+  NexObject SDMenu      = NexObject(1,  2);
   NexObject Version     = NexObject(1, 10,  "t0");
 
   /**
@@ -168,8 +168,8 @@
   NexObject VSpeed      = NexObject(2, 21,  "vs");
   NexObject Language    = NexObject(2, 22,  "lang");
   NexObject LightStatus = NexObject(2, 23,  "light");
-  NexObject NStop       = NexObject(2, 34,  "p1");
-  NexObject NPlay       = NexObject(2, 35,  "p2");
+  NexObject NStop       = NexObject(2, 34);
+  NexObject NPlay       = NexObject(2, 35);
   NexObject Light       = NexObject(2, 36,  "p3");
   NexObject LcdStatus   = NexObject(2, 91,  "t0");
   NexObject LcdCommand  = NexObject(2, 92,  "t1");
@@ -186,28 +186,28 @@
    * Nextion component for page:Setup
    *******************************************************************
    */
-  NexObject NextionFW   = NexObject(3,   1, "m0");
-  NexObject TxtMenu     = NexObject(3,   3, "m2");
+  NexObject NextionFW   = NexObject(3,   1);
+  NexObject TxtMenu     = NexObject(3,   3);
 
   /**
    *******************************************************************
    * Nextion component for page:Move
    *******************************************************************
    */
-  NexObject XYHome      = NexObject(4,   2, "p4");
-  NexObject XYUp        = NexObject(4,   3, "p5");
-  NexObject XYRight     = NexObject(4,   4, "p6");
-  NexObject XYDown      = NexObject(4,   5, "p7");
-  NexObject XYLeft      = NexObject(4,   6, "p8");
-  NexObject ZHome       = NexObject(4,   7, "p9");
-  NexObject ZUp         = NexObject(4,   8, "p10");
-  NexObject ZDown       = NexObject(4,   9, "p11");
+  NexObject XYHome      = NexObject(4,   2);
+  NexObject XYUp        = NexObject(4,   3);
+  NexObject XYRight     = NexObject(4,   4);
+  NexObject XYDown      = NexObject(4,   5);
+  NexObject XYLeft      = NexObject(4,   6);
+  NexObject ZHome       = NexObject(4,   7);
+  NexObject ZUp         = NexObject(4,   8);
+  NexObject ZDown       = NexObject(4,   9);
   NexObject movecmd     = NexObject(4,  11, "vacmd");
   NexObject LedCoord5   = NexObject(4,  12, "t0");
-  NexObject MotorOff    = NexObject(4,  17, "p0");
+  NexObject MotorOff    = NexObject(4,  17);
   NexObject ext         = NexObject(4,  18, "va0");
-  NexObject Extrude     = NexObject(4,  19, "p12");
-  NexObject Retract     = NexObject(4,  21, "p14");
+  NexObject Extrude     = NexObject(4,  19);
+  NexObject Retract     = NexObject(4,  21);
   NexObject SpeedX      = NexObject(4,  22, "vafrx");
   NexObject SpeedY      = NexObject(4,  23, "vafry");
   NexObject SpeedZ      = NexObject(4,  24, "vafrz");
@@ -226,7 +226,7 @@
    *******************************************************************
    */
   NexObject Tgcode      = NexObject(6,   1, "tgcode");
-  NexObject Send        = NexObject(6,  27, "bsend");
+  NexObject Send        = NexObject(6,  27);
 
   #if ENABLED(RFID_MODULE)
 
@@ -235,12 +235,12 @@
      * Nextion component for page:Rfid
      *******************************************************************
      */
-    NexObject Rfid0       = NexObject(7,  2,  "b0");
-    NexObject Rfid1       = NexObject(7,  3,  "b1");
-    NexObject Rfid2       = NexObject(7,  4,  "b2");
-    NexObject Rfid3       = NexObject(7,  5,  "b3");
-    NexObject Rfid4       = NexObject(7,  6,  "b4");
-    NexObject Rfid5       = NexObject(7,  7,  "b5");
+    NexObject Rfid0       = NexObject(7,  2);
+    NexObject Rfid1       = NexObject(7,  3);
+    NexObject Rfid2       = NexObject(7,  4);
+    NexObject Rfid3       = NexObject(7,  5);
+    NexObject Rfid4       = NexObject(7,  6);
+    NexObject Rfid5       = NexObject(7,  7);
     NexObject RfidText    = NexObject(7,  8,  "t0");
     NexObject RfidR       = NexObject(7,  9,  "bt0");
 
@@ -258,7 +258,7 @@
    *******************************************************************
    */
   NexObject theater     = NexObject(9,   1, "va0");
-  NexObject tenter      = NexObject(9,   2, "p5");
+  NexObject tenter      = NexObject(9,   2);
   NexObject tset        = NexObject(9,  15, "tmp");
 
   /**
@@ -266,9 +266,9 @@
    * Nextion component for page:Filament
    *******************************************************************
    */
-  NexObject FilLoad     = NexObject(10,  3, "p2");
-  NexObject FilUnload   = NexObject(10,  4, "p3");
-  NexObject FilExtr     = NexObject(10,  5, "p4");
+  NexObject FilLoad     = NexObject(10,  3);
+  NexObject FilUnload   = NexObject(10,  4);
+  NexObject FilExtr     = NexObject(10,  5);
   NexObject Filgcode    = NexObject(10, 10, "vacmd");
 
   /**
@@ -282,10 +282,10 @@
   NexObject EncRow4     = NexObject(11,  4, "t3");
   NexObject EncRow5     = NexObject(11,  5, "t4");
   NexObject EncRow6     = NexObject(11,  6, "t5");
-  NexObject EncUp       = NexObject(11,  7, "p0");
-  NexObject EncSend     = NexObject(11,  8, "p1");
-  NexObject EncDown     = NexObject(11,  9, "p2");
-  NexObject EncExit     = NexObject(11, 10, "p3");
+  NexObject EncUp       = NexObject(11,  7);
+  NexObject EncSend     = NexObject(11,  8);
+  NexObject EncDown     = NexObject(11,  9);
+  NexObject EncExit     = NexObject(11, 10);
 
   NexObject *nex_listen_list[] =
   {
@@ -608,7 +608,7 @@
       nexlcd.setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
     }
     else if (PageID == 4) {
-      if (printer.home_flag.XHomed) {
+      if (mechanics.home_flag.XHomed) {
         valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
         strcat(buffer, "X");
         strcat(buffer, valuetemp);
@@ -616,7 +616,7 @@
       else
         strcat(buffer, "?");
 
-      if (printer.home_flag.YHomed) {
+      if (mechanics.home_flag.YHomed) {
         valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
         strcat(buffer, " Y");
         strcat(buffer, valuetemp);
@@ -624,7 +624,7 @@
       else
         strcat(buffer, " ?");
 
-      if (printer.home_flag.ZHomed) {
+      if (mechanics.home_flag.ZHomed) {
         valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
         strcat(buffer, " Z");
         strcat(buffer, valuetemp);

@@ -31,6 +31,9 @@
 #if HAS_SD_SUPPORT
 
   void lcd_sdcard_pause() {
+    #if HAS_SD_RESTART
+      if (restart.enabled) restart.save_job(true, false);
+    #endif
     card.pauseSDPrint();
     print_job_counter.pause();
     #if ENABLED(PARK_HEAD_ON_PAUSE)

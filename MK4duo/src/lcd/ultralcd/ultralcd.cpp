@@ -313,7 +313,7 @@ bool LcdUI::get_blink() {
       else if (!keypad_debounce) {
         keypad_debounce = 2;
 
-        const bool homed = printer.isHomedAll();
+        const bool homed = mechanics.isHomedAll();
 
         #if HAS_LCD_MENU
 

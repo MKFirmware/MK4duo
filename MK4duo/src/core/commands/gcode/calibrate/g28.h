@@ -54,7 +54,7 @@ inline void gcode_G28(void) {
     }
   #endif
 
-  if (printer.isHomedAll() && parser.boolval('O')) { // home only if needed
+  if (mechanics.isHomedAll() && parser.boolval('O')) { // home only if needed
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) {
         SERIAL_EM("> homing not needed, skip");

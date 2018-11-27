@@ -94,7 +94,7 @@ class NexObject {
 
   public: /** Constructor */
 
-    NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID, const char* OBJ_NAME) :
+    NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID, const char* OBJ_NAME=NULL) :
       __pid(OBJ_PID),
       __cid(OBJ_CID),
       __name(OBJ_NAME),

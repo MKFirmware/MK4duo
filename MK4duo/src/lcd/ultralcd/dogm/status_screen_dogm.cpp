@@ -186,7 +186,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool 
     lcd_put_u8str(value);
   }
   else {
-    if (!printer.isAxisHomed(axis))
+    if (!mechanics.isAxisHomed(axis))
       while (const char c = *value++) lcd_put_wchar(c <= '.' ? c : '?');
     else {
       lcd_put_u8str(value);
