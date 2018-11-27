@@ -1304,7 +1304,16 @@
   #define MSG_INVALID_POS_SLOT                _UxGT("Invalid slot, total slots: ")
 #endif
 #ifndef MSG_NEED_TUNE_PID
-  #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID.")
+  #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID")
+#endif
+#ifndef MSG_DO_YOU_ARE_SHURE
+  #define MSG_DO_YOU_ARE_SHURE                _UxGT("Do you are shure?")
+#endif
+#ifndef MSG_YES
+  #define MSG_YES                             _UxGT("Yes")
+#endif
+#ifndef MSG_NO
+  #define MSG_NO                              _UxGT("No")
 #endif
 
 // Rfid module
@@ -1365,4 +1374,21 @@
 #endif
 #ifndef MSG_EEPROM_CHANGED_ALLERT_4
   #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("to continue...")
+#endif
+
+// Nextion Allert
+#ifndef MSG_NEXTION_CHANGED_ALLERT_1
+  #define MSG_NEXTION_CHANGED_ALLERT_1         _UxGT("ATTENTION...")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_2
+  #define MSG_NEXTION_CHANGED_ALLERT_2         _UxGT("NEXTION FW changed.")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_3
+  #define MSG_NEXTION_CHANGED_ALLERT_3         _UxGT("Please upload new FW")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_4
+  #define MSG_NEXTION_CHANGED_ALLERT_4         _UxGT("Press button")
+#endif
+#ifndef MSG_NEXTION_CHANGED_ALLERT_5
+  #define MSG_NEXTION_CHANGED_ALLERT_5         _UxGT("to continue...")
 #endif

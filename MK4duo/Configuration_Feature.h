@@ -1598,9 +1598,17 @@
 // We encourage you to take advantage of this new feature and we also
 // respectfully request that you retain the unmodified MK4duo boot screen.
 //
-
 // Enable to show the bitmap in MK4duo/src/lcd/custom_bootscreen.h on startup.
 //#define SHOW_CUSTOM_BOOTSCREEN
+
+// Custom custom_statusscreen.h files can define:
+// - A custom logo image
+// - A custom heater bitmap
+// - A custom fan bitmap / animation
+//
+// See the included examples for guidance
+// Enable this to show the logo in MK4duo/src/lcd/custom_statusscreen.h on display.
+//#define CUSTOM_STATUS_SCREEN_IMAGE
 
 // Additional options for Graphical Displays
 //

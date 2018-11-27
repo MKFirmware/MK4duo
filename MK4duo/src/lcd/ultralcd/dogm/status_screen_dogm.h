@@ -30,19 +30,7 @@
 #include "../../../../MK4duo.h"
 
 #if ENABLED(CUSTOM_STATUS_SCREEN_IMAGE)
-
-  /**
-   * Custom _Statusscreen.h files must define STATUS_SCREENWIDTH and status_screen[012]_bmp.
-   * There's no need to define STATUS_SCREENHEIGHT since it's calculated automatically.
-   * You can also define these to modify drawing and animation:
-   *
-   *  - STATUS_SCREEN_X
-   *  - STATUS_SCREEN_{BED,FAN}_TEXT_X
-   *  - STATUS_SCREEN_HOTEND_TEXT_X(i)
-   *  - FAN_ANIM_FRAMES
-   */
-  #include "../../../_Statusscreen.h"
-
+  #include "../../custom_statusscreen.h"
 #else // !CUSTOM_STATUS_SCREEN_IMAGE
 
   // Can also be overridden in Configuration.h

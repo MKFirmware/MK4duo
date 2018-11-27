@@ -463,7 +463,10 @@
 #define MSG_SAVED_POS                       _UxGT("Posizione Salvata")
 #define MSG_RESTORING_POS                   _UxGT("Ripristino posizione")
 #define MSG_INVALID_POS_SLOT                _UxGT("Slot invalido, slot totali: ")
-#define MSG_NEED_TUNE_PID                   _UxGT("Necessita Tune PID.")
+#define MSG_NEED_TUNE_PID                   _UxGT("Necessita Tune PID")
+#define MSG_DO_YOU_ARE_SHURE                _UxGT("Sei sicuro?")
+#define MSG_YES                             _UxGT("Si")
+#define MSG_NO                              _UxGT("No")
 
 // Rfid module
 #define MSG_RFID_SPOOL                      _UxGT("Bobina su E")
@@ -488,3 +491,10 @@
 #define MSG_EEPROM_CHANGED_ALLERT_2         _UxGT("EEPROM Cambiata.")
 #define MSG_EEPROM_CHANGED_ALLERT_3         _UxGT("Premere il bottone")
 #define MSG_EEPROM_CHANGED_ALLERT_4         _UxGT("per continuare...")
+
+// Nextion Allert
+#define MSG_NEXTION_CHANGED_ALLERT_1        _UxGT("ATTENTION...")
+#define MSG_NEXTION_CHANGED_ALLERT_2        _UxGT("NEXTION FW cambiato.")
+#define MSG_NEXTION_CHANGED_ALLERT_3        _UxGT("Aggiornare con nuovo FW")
+#define MSG_NEXTION_CHANGED_ALLERT_4        _UxGT("Premere il bottone")
+#define MSG_NEXTION_CHANGED_ALLERT_5        _UxGT("per continuare...")
