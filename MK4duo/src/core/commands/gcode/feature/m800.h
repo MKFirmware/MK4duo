@@ -49,7 +49,7 @@
    */
   inline void gcode_M800(void) {
 
-    if (!restart.valid()) {
+    if (restart.valid()) {
       #if ENABLED(DEBUG_RESTART)
         m800_error(restart.job_info.valid_head ? PSTR("No") : PSTR("Invalid"));
       #endif
