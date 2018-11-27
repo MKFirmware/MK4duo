@@ -60,7 +60,9 @@ inline void gcode_M205(void) {
       else
         SERIAL_LM(ER, "?J out of range (0.01 to 0.3)");
     }
-  #else
+  #endif
+
+  #if HAS_CLASSIC_JERK
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
         const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
@@ -76,4 +78,5 @@ inline void gcode_M205(void) {
       }
     }
   #endif
+
 }
