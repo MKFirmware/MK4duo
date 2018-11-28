@@ -170,16 +170,13 @@
   NexObject LightStatus = NexObject(2, 23,  "light");
   NexObject NStop       = NexObject(2, 34);
   NexObject NPlay       = NexObject(2, 35);
-  NexObject Light       = NexObject(2, 36,  "p3");
+  NexObject Light       = NexObject(2, 36);
   NexObject LcdStatus   = NexObject(2, 91,  "t0");
   NexObject LcdCommand  = NexObject(2, 92,  "t1");
   NexObject LcdTime     = NexObject(2, 93,  "t2");
   NexObject progressbar = NexObject(2, 94,  "j0");
   NexObject Wavetemp    = NexObject(2, 95,  "s0");
-  NexObject Hot0Touch   = NexObject(2, 96,  "m0");
-  NexObject Hot1Touch   = NexObject(2, 97,  "m1");
-  NexObject Hot2Touch   = NexObject(2, 98,  "m2");
-  NexObject FanTouch    = NexObject(2, 99,  "m3");
+  NexObject FanTouch    = NexObject(2, 99);
 
   /**
    *******************************************************************
@@ -215,13 +212,6 @@
 
   /**
    *******************************************************************
-   * Nextion component for page:Speed
-   *******************************************************************
-   */
-  NexObject Speed       = NexObject(5,  7,  "h0");
-
-  /**
-   *******************************************************************
    * Nextion component for page:GCode
    *******************************************************************
    */
@@ -248,18 +238,12 @@
 
   /**
    *******************************************************************
-   * Nextion component for page:Brightness
-   *******************************************************************
-   */
-
-  /**
-   *******************************************************************
    * Nextion component for page:Temp
    *******************************************************************
    */
-  NexObject theater     = NexObject(9,   1, "va0");
-  NexObject tenter      = NexObject(9,   2);
-  NexObject tset        = NexObject(9,  15, "tmp");
+  NexObject Theater     = NexObject(9,   1, "va0");
+  NexObject Tenter      = NexObject(9,   2);
+  NexObject Tset        = NexObject(9,  15, "tmp");
 
   /**
    *******************************************************************
@@ -303,9 +287,6 @@
     &ZHome, &ZUp, &ZDown,
     &Extrude, &Retract,
 
-    // Page 5 touch listen
-    &Speed,
-
     // Page 6 touch listen
     &Send,
 
@@ -315,7 +296,7 @@
     #endif
 
     // Page 8 touch listen
-    &tenter,
+    &Tenter,
 
     // Page 11 touch listen
     &FilLoad, &FilUnload, &FilExtr,
@@ -488,8 +469,8 @@
 
   void sethotPopCallback() {
 
-    uint16_t  Heater      = nexlcd.getValue(theater),
-              temperature = nexlcd.getValue(tset);
+    uint16_t  Heater      = nexlcd.getValue(Theater),
+              temperature = nexlcd.getValue(Tset);
 
     #if HAS_TEMP_BED
       if (Heater == 2)
@@ -1036,7 +1017,7 @@
 
   static inline void PopCallback(NexObject *nexobject) {
 
-    if (nexobject == &tenter)             sethotPopCallback();
+    if (nexobject == &Tenter)             sethotPopCallback();
     else if ( nexobject == &XYHome    ||
               nexobject == &XYUp      ||
               nexobject == &XYRight   ||
@@ -1102,7 +1083,7 @@
       uint8_t c = nexSerial.read();
       if (c == NEX_RET_EVENT_TOUCH_HEAD) {
         str_start_flag = true;
-        HAL::delayMilliseconds(5);
+        HAL::delayMilliseconds(10);
       }
       else if (str_start_flag) {
         if (c == 0xFF) cnt_0xFF++;                    
@@ -1291,7 +1272,6 @@
   }
 
   void LcdUI::status_screen() {
-    SERIAL_EMV("PageID:", PageID);
     if (PageID == 11) {
       PageID = 2;
       nexlcd.show(Pprinter);
