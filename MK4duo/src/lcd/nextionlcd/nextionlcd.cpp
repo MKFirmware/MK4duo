@@ -860,6 +860,8 @@
         }
       }
 
+      lcdui.refresh(LCDVIEW_REDRAW_NOW);
+
     }
 
     inline static void nextion_put_space(const uint8_t row, const uint8_t len) {
@@ -1200,16 +1202,35 @@
     #if HAS_LCD_MENU
 
       if (PageID == 11) {
-        static millis_t next_menu_update_ms;
-        const millis_t ms = millis();
 
         // Read button Encoder touch
         Nextion_parse_key_touch(txtmenu_list);
 
-        if (ELAPSED(ms, next_menu_update_ms)) {
-          lcdui.run_current_screen();
-          next_menu_update_ms = ms + 100;
-        }
+        switch (lcdDrawUpdate) {
+          case LCDVIEW_CALL_NO_REDRAW:
+            refresh(LCDVIEW_NONE);
+            break;
+          case LCDVIEW_CLEAR_CALL_REDRAW:
+          case LCDVIEW_CALL_REDRAW_NEXT:
+            refresh(LCDVIEW_REDRAW_NOW);
+          case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
+          case LCDVIEW_NONE:
+            break;
+        } // switch
+
+        lcdui.run_current_screen();
+
+        switch (lcdDrawUpdate) {
+          case LCDVIEW_CLEAR_CALL_REDRAW:
+            clear_lcd(); break;
+          case LCDVIEW_REDRAW_NOW:
+            refresh(LCDVIEW_NONE);
+          case LCDVIEW_NONE:
+          case LCDVIEW_CALL_REDRAW_NEXT:
+          case LCDVIEW_CALL_NO_REDRAW:
+          default: break;
+        } // switch
+
       }
       else
 
