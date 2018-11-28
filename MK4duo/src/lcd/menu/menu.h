@@ -318,7 +318,9 @@ void menu_move();
 
 #if HAS_NEXTION_LCD
   void menu_nextion();
-  void menu_firmware();
+  #if HAS_SD_SUPPORT
+    void menu_firmware();
+  #endif
 #endif
 
 // First Fan Speed title in "Tune" and "Control>Temperature" menus

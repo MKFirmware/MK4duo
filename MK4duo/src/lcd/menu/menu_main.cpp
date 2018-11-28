@@ -99,17 +99,21 @@
     END_SCREEN();
   }
 
-  void menu_firmware() {
-    lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
-    START_MENU();
-    MENU_BACK(MSG_MAIN);
-    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
-    MENU_ITEM(function, MSG_YES, UploadNewFirmware);
-    MENU_ITEM(submenu, MSG_NO, menu_main);
-    END_MENU();
-  }
+  #if HAS_SD_SUPPORT
 
-#endif
+    void menu_firmware() {
+      lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+      START_MENU();
+      MENU_BACK(MSG_MAIN);
+      STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+      MENU_ITEM(function, MSG_YES, UploadNewFirmware);
+      MENU_ITEM(submenu, MSG_NO, menu_main);
+      END_MENU();
+    }
+
+  #endif
+
+#endif // HAS_NEXTION_LCD
 
 void menu_tune();
 void menu_motion();
