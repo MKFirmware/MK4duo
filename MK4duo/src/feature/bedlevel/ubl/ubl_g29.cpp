@@ -1140,7 +1140,7 @@
         return;
       }
     #endif
-    ubl_state_at_invocation = bedlevel.leveling_active;
+    ubl_state_at_invocation = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   }
 

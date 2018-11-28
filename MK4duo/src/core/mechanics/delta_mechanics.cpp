@@ -431,7 +431,7 @@
 
     NOMORE(data.probe_radius, data.print_radius);
 
-    printer.unsetHomedAll();
+    unsetHomedAll();
 
     Set_clip_start_height();
 
@@ -459,7 +459,7 @@
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
-      bedlevel.g29_in_progress = false;
+      bedlevel.flag.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         Nextion_ProbeOn();
       #endif
@@ -467,7 +467,7 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
-      const bool leveling_was_active = bedlevel.leveling_active;
+      const bool leveling_was_active = bedlevel.flag.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -663,7 +663,7 @@
       }
     #endif
 
-    printer.setAxisHomed(axis, true);
+    setAxisHomed(axis, true);
 
     current_position[axis] = (axis == C_AXIS ? data.height : 0.0);
 
@@ -895,7 +895,7 @@
           Transform(raw);
           // Adjust Z if bed leveling is enabled
           #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            if (bedlevel.leveling_active) {
+            if (bedlevel.flag.leveling_active) {
               const float zadj = abl.bilinear_z_offset(raw);
               delta[A_AXIS] += zadj;
               delta[B_AXIS] += zadj;
@@ -926,7 +926,7 @@
         Transform(cart);
         // Adjust Z if bed leveling is enabled
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (bedlevel.leveling_active) {
+          if (bedlevel.flag.leveling_active) {
             const float zadj = abl.bilinear_z_offset(cart);
             delta[A_AXIS] += zadj;
             delta[B_AXIS] += zadj;

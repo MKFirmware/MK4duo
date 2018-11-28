@@ -31,6 +31,8 @@
   CardReader card;
 
   /** Public Parameters */
+  flagcard_t  CardReader::flag;
+
   SdFat       CardReader::fat;
   SdFile      CardReader::gcode_file;
   SdBaseFile  CardReader::root,
@@ -52,9 +54,6 @@
         CardReader::generatedBy[GENBY_SIZE];
 
   /** Private Parameters */
-
-  flagbyte_t CardReader::card_flag;
-
   uint16_t CardReader::nrFile_index = 0;
 
   #if HAS_EEPROM_SD
@@ -494,11 +493,6 @@
         SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
       else if (!read)
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
-    }
-
-    void CardReader::close_restart_file() {
-      if (!restart.file.isOpen()) return;
-      restart.file.close();
     }
 
     void CardReader::delete_restart_file() {

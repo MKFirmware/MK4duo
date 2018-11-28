@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * mechanics.h
@@ -26,15 +27,38 @@
  * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _MECHANICS_H_
-#define _MECHANICS_H_
-
 #define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
 #define LOGICAL_Y_POSITION(POS) mechanics.native_to_logical(POS, Y_AXIS)
 #define LOGICAL_Z_POSITION(POS) mechanics.native_to_logical(POS, Z_AXIS)
 #define NATIVE_X_POSITION(POS)  mechanics.logical_to_native(POS, X_AXIS)
 #define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
+
+union flaghome_t {
+  bool all;
+  struct {
+    bool  XHomed  : 1;
+    bool  YHomed  : 1;
+    bool  ZHomed  : 1;
+    bool  bit3    : 1;
+    bool  bit4    : 1;
+    bool  bit5    : 1;
+    bool  bit6    : 1;
+    bool  bit7    : 1;
+  };
+  flaghome_t() { all = false; }
+};
+
+union flagdir_t {
+  int8_t dir;
+  struct {
+    int8_t X : 2;
+    int8_t Y : 2;
+    int8_t Z : 2;
+    int8_t E : 2;
+ };
+  flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
+};
 
 // Struct Mechanics data
 typedef struct {
@@ -82,7 +106,12 @@ class Mechanics {
     /**
      * Settings data
      */
-    static generic_data_t data;
+    static generic_data_t   data;
+
+    /**
+     * Home flag
+     */
+    static flaghome_t       home_flag;
 
     /**
      * Home direction
@@ -173,6 +202,24 @@ class Mechanics {
      * Get homedir for axis
      */
     static int8_t get_homedir(const AxisEnum axis);
+
+    FORCE_INLINE static void setAxisHomed(const AxisEnum axis, const bool onoff) {
+      switch (axis) {
+        case X_AXIS: home_flag.XHomed = onoff; break;
+        case Y_AXIS: home_flag.YHomed = onoff; break;
+        case Z_AXIS: home_flag.ZHomed = onoff; break;
+      }
+    }
+    FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
+      switch (axis) {
+        case X_AXIS: return home_flag.XHomed; break;
+        case Y_AXIS: return home_flag.YHomed; break;
+        case Z_AXIS: return home_flag.ZHomed; break;
+      }
+    }
+
+    FORCE_INLINE static void unsetHomedAll() { home_flag.all = false; }
+    FORCE_INLINE static bool isHomedAll() { return home_flag.XHomed && home_flag.YHomed && home_flag.ZHomed; }
 
     /**
      * Set the current_position for an axis based on
@@ -312,5 +359,3 @@ class Mechanics {
 #elif IS_SCARA
   #include "scara_mechanics.h"
 #endif
-
-#endif /* _MECHANICS_H_ */

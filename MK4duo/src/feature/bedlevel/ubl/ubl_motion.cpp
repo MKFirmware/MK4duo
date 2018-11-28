@@ -79,7 +79,7 @@
     };
 
     // Only compute leveling per segment if ubl active and target below z_fade_height.
-    if (!bedlevel.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
+    if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
       while (--segments) {
         LOOP_XYZE(i) raw[i] += diff[i];
         planner.buffer_line(raw, feedrate, tools.active_extruder, segment_xyz_mm);
@@ -209,7 +209,7 @@
               cell_dest_xi  = get_cell_index_x(end[X_AXIS]),
               cell_dest_yi  = get_cell_index_y(end[Y_AXIS]);
 
-    if (bedlevel.g26_debug_flag) {
+    if (bedlevel.flag.g26_debug) {
       SERIAL_MV(" ubl.line_to_destination(xe=", end[X_AXIS]);
       SERIAL_MV(", ye=", end[Y_AXIS]);
       SERIAL_MV(", ze=", end[Z_AXIS]);
@@ -237,7 +237,7 @@
         planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z_raise, end[E_AXIS], feed_rate, extruder);
         mechanics.set_current_to_destination();
 
-        if (bedlevel.g26_debug_flag)
+        if (bedlevel.flag.g26_debug)
           debug_current_and_destination(PSTR("out of bounds in ubl.line_to_destination_cartesian()"));
 
         return;
@@ -263,7 +263,7 @@
       // Replace NAN corrections with 0.0 to prevent NAN propagation.
       planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + (isnan(z0) ? 0.0 : z0), end[E_AXIS], feed_rate, extruder);
 
-      if (bedlevel.g26_debug_flag)
+      if (bedlevel.flag.g26_debug)
         debug_current_and_destination(PSTR("FINAL_MOVE in ubl.line_to_destination_cartesian()"));
 
       mechanics.set_current_to_destination();
@@ -358,7 +358,7 @@
         } //else printf("FIRST MOVE PRUNED  ");
       }
 
-      if (bedlevel.g26_debug_flag)
+      if (bedlevel.flag.g26_debug)
         debug_current_and_destination(PSTR("vertical move done in ubl.line_to_destination_cartesian()"));
 
       // At the final destination? Usually not, but when on a Y Mesh Line it's completed.
@@ -492,7 +492,7 @@
       if (xi_cnt < 0 || yi_cnt < 0) break; // Too far! Exit the loop and go to FINAL_MOVE
     }
 
-    if (bedlevel.g26_debug_flag)
+    if (bedlevel.flag.g26_debug)
       debug_current_and_destination(PSTR("generic move done in ubl.line_to_destination_cartesian()"));
 
     if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])

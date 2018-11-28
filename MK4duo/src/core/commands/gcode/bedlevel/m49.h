@@ -31,9 +31,9 @@
 #define CODE_M49
 
 inline void gcode_M49(void) {
-  bedlevel.g26_debug_flag ^= true;
+  bedlevel.flag.g26_debug ^= true;
   SERIAL_MSG("G26 Debug ");
-  SERIAL_PS(bedlevel.g26_debug_flag ? PSTR("on.") : PSTR("off."));
+  SERIAL_PS(bedlevel.flag.g26_debug ? PSTR("on.") : PSTR("off."));
   SERIAL_EOL();
 }
 

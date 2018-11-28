@@ -94,7 +94,7 @@
 
       #if HAS_LEVELING
         // Set current position to the physical position
-        const bool leveling_was_active = bedlevel.leveling_active;
+        const bool leveling_was_active = bedlevel.flag.leveling_active;
         bedlevel.set_bed_leveling_enabled(false);
       #endif
 

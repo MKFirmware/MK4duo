@@ -45,431 +45,266 @@
 
   #include "nextion.h"
 
-  NexObject::NexObject(uint8_t pid, uint8_t cid, PGM_P name) {
-    this->__pid = pid;
-    this->__cid = cid;
-    this->__name = name;
-    this->__vis = true;
-    this->__cb_push = NULL;
-    this->__cb_pop = NULL;
-    this->__cbpop_ptr = NULL;
-    this->__cbpush_ptr = NULL;
-  }
+  NextionLCD nexlcd;
 
-  bool NexObject::getObjVis(void) { return __vis; }
-
-  void NexObject::attachPush(NexTouchEventCb push, void *ptr) {
-    this->__cb_push = push;
-    this->__cbpush_ptr = ptr;
-  }
-
-  void NexObject::detachPush(void) {
-    this->__cb_push = NULL;
-    this->__cbpush_ptr = NULL;
-  }
-
-  void NexObject::attachPop(NexTouchEventCb pop, void *ptr) {
-    this->__cb_pop = pop;
-    this->__cbpop_ptr = ptr;
-  }
-
-  void NexObject::detachPop(void) {
-    this->__cb_pop = NULL;    
-    this->__cbpop_ptr = NULL;
-  }
-
-  void NexObject::push(void) { if (__cb_push) __cb_push(__cbpush_ptr); }
-
-  void NexObject::pop(void) { if (__cb_pop) __cb_pop(__cbpop_ptr); }
-
-  void NexObject::iterate(NexObject **list, const uint8_t pid, const uint8_t cid, const int32_t event) {
-    NexObject *e = NULL;
-    uint16_t i = 0;
-
-    if (NULL == list) return;
-
-    for (i = 0; (e = list[i]) != NULL; i++) {
-      if (e->__pid == pid && e->__cid == cid) {
-        if (NEX_EVENT_PUSH == event)
-          e->push();
-        else if (NEX_EVENT_POP == event)
-          e->pop();
-        break;
-      }
-    }
-  }
-
-  /**
-   * FUNCTION FOR ALL OBJECT
-   */
-
-  void NexObject::show() {
-    String cmd;
-    cmd += "page ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
+  void NextionLCD::show(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("page %s"), nexobject.__name);
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NexObject::enable(const bool en /* true */) {
-    String cmd;
-    cmd += this->__name;
-    cmd += ".en=";
-    cmd += en ? "1" : "0";
-    sendCommand(cmd.c_str());
+  bool NextionLCD::getObjVis(NexObject &nexobject) { return nexobject.__vis; }
+  
+  void NextionLCD::enable(NexObject &nexobject, const bool en /* true */) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("%s.en=%s"), nexobject.__name, en ? PSTR("1") : PSTR("0"));
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NexObject::getText(char *buffer, uint16_t len, PGM_P pname) {
-    String cmd;
-    cmd += "get ";
-    if (pname) {
-      cmd += pname;
-      cmd += ".";
-    }
-    cmd += this->__name;
-    cmd += ".txt";
-    sendCommand(cmd.c_str());
-    recvRetString(buffer, len);
+  void NextionLCD::getText(NexObject &nexobject, char *buffer, PGM_P page) {
+    char cmd[40];
+    if (page)
+      sprintf_P(cmd, PSTR("get %s.%s.txt"), page, nexobject.__name);
+    else
+      sprintf_P(cmd, PSTR("get %s.txt"), nexobject.__name);
+    sendCommand(cmd);
+    recvRetString(buffer);
   }
 
-  void NexObject::setText(PGM_P buffer, PGM_P pname) {
-    String cmd;
-    if (pname) {
-      cmd += pname;
-      cmd += ".";
-    }
-    cmd += this->__name;
-    cmd += ".txt=\"";
-    cmd += buffer;
-    cmd += "\"";
-    sendCommand(cmd.c_str());
+  void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, PGM_P page) {
+    char cmd[40];
+    if (page)
+      sprintf_P(cmd, PSTR("%s.%s.txt=\"%s\""), page, nexobject.__name, buffer);
+    else
+      sprintf_P(cmd, PSTR("%s.txt=\"%s\""), nexobject.__name, buffer);
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NexObject::startChar(PGM_P pname) {
+  void NextionLCD::startChar(NexObject &nexobject, PGM_P page) {
     recvRetCommandFinished();
-    String cmd;
-    if (pname) {
-      cmd += pname;
-      cmd += ".";
-    }
-    cmd += this->__name;
-    cmd += ".txt=\"";
+    char cmd[40];
+    if (page)
+      sprintf_P(cmd, PSTR("%s.%s.txt=\""), page, nexobject.__name);
+    else
+      sprintf_P(cmd, PSTR("%s.txt=\""), nexobject.__name);
     nexSerial.print(cmd);
   }
 
-  void NexObject::setChar(const char pchar) {
+  void NextionLCD::setChar(const char pchar) {
     nexSerial.write(pchar);
   }
 
-  void NexObject::endChar() {
+  void NextionLCD::endChar() {
     nexSerial.print("\"");
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);
     nexSerial.write(0xFF);
   }
 
-  uint16_t NexObject::getValue(PGM_P pname) {
-    String cmd;
-    cmd += "get ";
-    if (pname) {
-      cmd += pname;
-      cmd += ".";
-    }
-    cmd += this->__name;
-    cmd += ".val";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getValue(NexObject &nexobject, PGM_P page) {
+    char cmd[40];
+    if (page)
+      sprintf_P(cmd, PSTR("get %s.%s.val"), page, nexobject.__name);
+    else
+      sprintf_P(cmd, PSTR("get %s.val"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setValue(const uint16_t number, PGM_P pname) {
-    char buf[10] = {0};
-    String cmd;
+  void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, PGM_P page) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-
-    if (pname) {
-      cmd += pname;
-      cmd += ".";
-    }
-    cmd += this->__name;
-    cmd += ".val=";
-    cmd += buf;
-
-    sendCommand(cmd.c_str());
+    if (page)
+      sprintf_P(cmd, PSTR("%s.%s.val=%s"), page, nexobject.__name, buf);
+    else
+      sprintf_P(cmd, PSTR("%s.val=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NexObject::addValue(const uint8_t ch, const uint8_t number) {
-    char buf[15] = {0};
+  void NextionLCD::addValue(NexObject &nexobject, const uint8_t ch, const uint8_t number) {
+    char buf[15];
     if (ch > 3) return;
-    sprintf_P(buf, PSTR("add %u,%u,%u"), this->__cid, ch, number);
-    sendCommandPGM(buf);
+    sprintf_P(buf, PSTR("add %u,%u,%u"), nexobject.__cid, ch, number);
+    sendCommand(buf);
   }
 
-  uint16_t NexObject::Get_cursor_height_hig() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".hig";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::Get_cursor_height_hig(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.hig"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::Set_cursor_height_hig(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::Set_cursor_height_hig(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".hig=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.hig=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::getMaxval() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".maxval";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getMaxval(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.maxval"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setMaxval(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::setMaxval(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".maxval=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.maxval=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::getMinval() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".minval";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getMinval(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.minval"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setMinval(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::setMinval(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".minval=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.minval=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::Get_background_color_bco() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".bco";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::Get_background_color_bco(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.bco"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::Set_background_color_bco(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::Set_background_color_bco(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".bco=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd="";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.bco=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::Get_font_color_pco() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".pco";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::Get_font_color_pco(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.pco"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::Set_font_color_pco(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".pco=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.pco=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::Get_place_xcen() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".xcen";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::Get_place_xcen(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.xcen"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::Set_place_xcen(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::Set_place_xcen(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".xcen=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.xcen=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::Get_place_ycen() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".ycen";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::Get_place_ycen(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.ycen"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::Set_place_ycen(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::Set_place_ycen(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".ycen=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.ycen=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::getFont() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".font";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getFont(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.font"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setFont(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::setFont(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".font=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.font=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::getCropPic() {
-    String cmd;
-    cmd += "get ";
-    cmd += this->__name;
-    cmd += ".picc";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getCropPic(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.picc"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setCropPic(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::setCropPic(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".picc=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-
-    cmd = "";
-    cmd += "ref ";
-    cmd += this->__name;
-    sendCommand(cmd.c_str());
-    recvRetCommandFinished();
+    sprintf_P(cmd, PSTR("%s.picc=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
   }
 
-  uint16_t NexObject::getPic() {
-    String cmd = String("get ");
-    cmd += this->__name;
-    cmd += ".pic";
-    sendCommand(cmd.c_str());
+  uint16_t NextionLCD::getPic(NexObject &nexobject) {
+    char cmd[40];
+    sprintf_P(cmd, PSTR("get %s.pic"), nexobject.__name);
+    sendCommand(cmd);
     return recvRetNumber();
   }
 
-  void NexObject::setPic(const uint16_t number) {
-    char buf[10] = {0};
-    String cmd;
-
+  void NextionLCD::setPic(NexObject &nexobject, const uint16_t number) {
+    char buf[10];
+    char cmd[40];
     utoa(number, buf, 10);
-    cmd += this->__name;
-    cmd += ".pic=";
-    cmd += buf;
+    sprintf_P(cmd, PSTR("%s.pic=%s"), nexobject.__name, buf);
+    sendCommand(cmd);
+    Refresh(nexobject);
+  }
 
-    sendCommand(cmd.c_str());
+  void NextionLCD::SetVisibility(NexObject &nexobject, const bool visible) {
+    char cmd[40];
+    nexobject.__vis = visible;
+    sprintf_P(cmd, PSTR("vis %s,%s"), nexobject.__name, visible ? PSTR("1") : PSTR("0"));
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NexObject::SetVisibility(const bool visible) {
-    String cmd;
-    cmd += "vis ";
-    cmd += this->__name;
-    cmd += ',';
-    cmd += (visible ? '1' : '0');
-    __vis = visible;
-    sendCommand(cmd.c_str());
+  void NextionLCD::Refresh(NexObject &nexobject) {
+    char cmd[20];
+    sprintf_P(cmd, PSTR("ref %s"), nexobject.__name);
+    sendCommand(cmd);
     recvRetCommandFinished();
   }
 
@@ -480,13 +315,15 @@
 
     SdFile nextion_file;
 
-    NexUpload::NexUpload(PGM_P file_name, uint32_t upload_baudrate) {
+    uint32_t  NexUpload::_baudrate,
+              NexUpload::_unuploadByte,
+              NexUpload::_upload_baudrate;
+
+    const char* NexUpload::_file_name;
+
+    NexUpload::NexUpload(const char* file_name, uint32_t upload_baudrate) {
       _file_name = file_name;
       _upload_baudrate = upload_baudrate;
-    }
-
-    NexUpload::NexUpload(const String file_name, uint32_t upload_baudrate) {
-      NexUpload(file_name.c_str(), upload_baudrate);
     }
 
     void NexUpload::startUpload(void) {
@@ -539,7 +376,7 @@
       nexSerial.begin(baudrate);
       sendCommandPGM(PSTR(""));
       sendCommandPGM(PSTR("connect"));
-      this->recvRetString(string);
+      NexUpload::recvRetString(string);
 
       if(string.indexOf("comok") != -1)
         return true;
@@ -582,7 +419,7 @@
       sendCommand(cmd.c_str());
       HAL::delayMilliseconds(50);
       nexSerial.begin(baudrate);
-      this->recvRetString(string, 500);
+      NexUpload::recvRetString(string, 500);
       if (string.indexOf(0x05) != -1)
         return true;
 
@@ -616,7 +453,7 @@
           }
         }
 
-        this->recvRetString(string, 500, true);
+        NexUpload::recvRetString(string, 500, true);
         if (string.indexOf(0x05) != -1)
           string = "";
         else
@@ -629,194 +466,5 @@
     }
 
   #endif  // SDSUPPORT
-
-  bool getConnect(char* buffer) {
-    HAL::delayMilliseconds(100);
-    sendCommand("");
-    HAL::delayMilliseconds(100);
-    sendCommand(PSTR("connect"));
-    HAL::delayMilliseconds(100);
-
-    String temp = String("");
-
-    #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_MSG(" NEXTION Debug Connect receveid:");
-    #endif
-
-    while (nexSerial.available()) {
-      uint8_t c = nexSerial.read();
-      #if ENABLED(NEXTION_CONNECT_DEBUG)
-        SERIAL_CHR((char)c);
-      #endif
-      temp += (char)c;
-    }
-
-    #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_EOL();
-    #endif
-
-    strncpy(buffer, temp.c_str(), 70);
-
-    if (strstr(buffer, "comok")) return true;
-
-    return false;
-  }
-
-  //
-  // PUBBLIC FUNCTION
-  //
-
-  bool nexInit(char *buffer) {
-
-    // Try default baudrate
-    nexSerial.begin(9600);
-
-    ZERO(buffer);
-    bool connect = getConnect(buffer);
-
-    // If baudrate is 9600 set to 115200 and reconnect
-    if (connect) {
-      #if ENABLED(NEXTION_CONNECT_DEBUG)
-        SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
-      #endif
-      sendCommand("baud=115200");
-      HAL::delayMilliseconds(100);
-      nexSerial.end();
-      HAL::delayMilliseconds(100);
-      nexSerial.begin(115200);
-    }
-    else { // Else try to 115200 baudrate
-      #if ENABLED(NEXTION_CONNECT_DEBUG)
-        SERIAL_EM(" NEXTION connected at 115200 baud, cready");
-      #endif
-      nexSerial.end();
-      HAL::delayMilliseconds(100);
-      nexSerial.begin(115200);
-    }
-
-    connect = getConnect(buffer);
-
-    if (connect) return true;
-    else return false;
-  }
-  
-  void nexLoop(NexObject *nex_listen_list[]) {
-    static uint8_t __buffer[10];
-    uint8_t i = 0;
-
-    while (nexSerial.available()) {
-      HAL::delayMilliseconds(5);
-      uint8_t c = nexSerial.read();
-
-      if (c == NEX_RET_EVENT_TOUCH_HEAD) {
-        if (nexSerial.available() >= 6) {
-          __buffer[0] = c;
-          for (i = 1; i < 7; i++) __buffer[i] = nexSerial.read();
-          __buffer[i] = 0x00;
-
-          if (0xFF == __buffer[4] && 0xFF == __buffer[5] && 0xFF == __buffer[6])
-            NexObject::iterate(nex_listen_list, __buffer[1], __buffer[2], (int32_t)__buffer[3]);
-        }
-      }
-    }
-  }
-
-  uint16_t recvRetNumber() {
-    uint8_t temp[8] = { 0 };
-
-    nexSerial.setTimeout(NEX_TIMEOUT);
-    if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-      return NULL;
-
-    if (temp[0] == NEX_RET_NUMBER_HEAD
-        && temp[5] == 0xFF
-        && temp[6] == 0xFF
-        && temp[7] == 0xFF
-    )
-
-    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
-  }
-
-  void recvRetString(char *buffer, uint16_t len) {
-    bool str_start_flag = false;
-    uint8_t cnt_0xFF = 0;
-    String temp = String("");
-
-    if (!buffer || len == 0) return;
-
-    millis_t start = millis();
-    while (millis() - start <= NEX_TIMEOUT) {
-      while (nexSerial.available()) {
-        uint8_t c = nexSerial.read();
-        if (str_start_flag) {
-          if (c == 0xFF) {
-            cnt_0xFF++;                    
-            if (cnt_0xFF >= 3) break;
-          }
-          else
-            temp += (char)c;
-        }
-        else if (c == NEX_RET_STRING_HEAD)
-          str_start_flag = true;
-      }
-    
-      if (cnt_0xFF >= 3) break;
-    }
-
-    uint16_t ret = temp.length();
-    ret = ret > len ? len : ret;
-    strncpy(buffer, temp.c_str(), ret);
-  }
-
-  void sendCommand(PGM_P cmd) {
-    recvRetCommandFinished();
-    nexSerial.print(cmd);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-  }
-
-  void sendCommandPGM(PGM_P cmd) {
-    recvRetCommandFinished();
-    while (char c = pgm_read_byte(cmd++)) nexSerial.write(c);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-    nexSerial.write(0xFF);
-  }
-
-  void recvRetCommandFinished() {    
-    while (nexSerial.available()) nexSerial.read();
-  }
-
-  uint8_t Nextion_PageID() {
-    uint8_t temp[5] = {0};
-
-    sendCommandPGM(PSTR("sendme"));
-
-    nexSerial.setTimeout(NEX_TIMEOUT);
-
-    if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-      return 2;
-
-    if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD && temp[2] == 0xFF && temp[3] == 0xFF && temp[4] == 0xFF)
-      return temp[1];
-    else
-      return 2;
-  }
-
-  void setCurrentBrightness(uint8_t dimValue) {
-    char buf[10] = {0};
-    String cmd;
-    utoa(dimValue, buf, 10);
-    cmd += "dim=";
-    cmd += buf;
-    sendCommand(cmd.c_str());
-    HAL::delayMilliseconds(10);
-    recvRetCommandFinished();
-  }
-
-  void sendRefreshAll(void) {
-    sendCommandPGM(PSTR("ref 0"));
-  }
 
 #endif // NEXTION

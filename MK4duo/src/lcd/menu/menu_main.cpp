@@ -31,6 +31,9 @@
 #if HAS_SD_SUPPORT
 
   void lcd_sdcard_pause() {
+    #if HAS_SD_RESTART
+      if (restart.enabled) restart.save_job(true, false);
+    #endif
     card.pauseSDPrint();
     print_job_counter.pause();
     #if ENABLED(PARK_HEAD_ON_PAUSE)
@@ -57,6 +60,16 @@
     lcdui.return_to_status();
   }
 
+  void menu_stop_print() {
+    lcdui.encoder_direction_menus();
+    START_MENU();
+    MENU_BACK(MSG_MAIN);
+    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+    MENU_ITEM(function, MSG_YES, lcd_sdcard_stop);
+    MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
+    END_MENU();
+  }
+
 #endif // HAS_SD_SUPPORT
 
 #if HAS_EEPROM
@@ -70,6 +83,32 @@
     STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_4);
     END_SCREEN();
   }
+#endif
+
+#if HAS_NEXTION_LCD
+
+  void menu_nextion() {
+    lcdui.defer_status_screen(true);
+    if (lcdui.use_click()) return lcdui.return_to_status();
+    START_SCREEN();
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_1);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_2);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_3);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_4);
+    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_5);
+    END_SCREEN();
+  }
+
+  void menu_firmware() {
+    lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+    START_MENU();
+    MENU_BACK(MSG_MAIN);
+    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+    MENU_ITEM(function, MSG_YES, UploadNewFirmware);
+    MENU_ITEM(submenu, MSG_NO, menu_main);
+    END_MENU();
+  }
+
 #endif
 
 void menu_tune();
@@ -86,14 +125,14 @@ void menu_main() {
   START_MENU();
   MENU_BACK(MSG_WATCH);
 
-  #if HAS_SD_SUPPORT && !HAS_NEXTION_LCD
+  #if HAS_SD_SUPPORT
     if (card.isOK()) {
       if (card.isFileOpen()) {
         if (IS_SD_PRINTING())
           MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
         else
           MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
-        MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_stop);
+        MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
       }
       else {
         MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);

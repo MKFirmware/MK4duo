@@ -173,7 +173,7 @@
 
     // Cancel the active G29 session
     #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
-      bedlevel.g29_in_progress = false;
+      bedlevel.flag.g29_in_progress = false;
       #if HAS_NEXTION_MANUAL_BED
         Nextion_ProbeOff();
       #endif
@@ -181,7 +181,7 @@
 
     // Disable the leveling matrix before homing
     #if HAS_LEVELING
-      const bool leveling_was_active = bedlevel.leveling_active;
+      const bool leveling_was_active = bedlevel.flag.leveling_active;
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -217,7 +217,7 @@
       if (home_all || homeZ) homeaxis(Z_AXIS);
     #endif
 
-    const float z_homing_height = printer.isZHomed() ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+    const float z_homing_height = home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
 
     if (z_homing_height && (home_all || homeX || homeY)) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -405,7 +405,7 @@
     #endif
 
     #if HAS_MESH
-      if (bedlevel.leveling_active) {
+      if (bedlevel.flag.leveling_active) {
         #if ENABLED(AUTO_BED_LEVELING_UBL)
           ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.active_extruder);
           return true;
@@ -447,7 +447,7 @@
       }
     #endif
 
-    printer.setAxisHomed(axis, true);
+    setAxisHomed(axis, true);
 
     #if ENABLED(WORKSPACE_OFFSETS)
       position_shift[axis] = 0;
@@ -1076,7 +1076,7 @@
     void Core_Mechanics::home_z_safely() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXHomed() || !printer.isYHomed()) {
+      if (!home_flag.XHomed || !home_flag.YHomed) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;
@@ -1130,7 +1130,7 @@
     void Core_Mechanics::double_home_z() {
 
       // Disallow Z homing if X or Y are unknown
-      if (!printer.isXHomed() || !printer.isYHomed()) {
+      if (!home_flag.XHomed || !home_flag.YHomed) {
         LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
         SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
         return;

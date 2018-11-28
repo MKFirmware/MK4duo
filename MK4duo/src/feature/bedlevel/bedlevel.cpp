@@ -32,11 +32,10 @@
 
   Bedlevel bedlevel;
 
-  #if HAS_LEVELING
-    bool  Bedlevel::leveling_active = false; // Flag that auto bed leveling is enabled
-    #if OLD_ABL
-      int Bedlevel::xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
-    #endif
+  flaglevel_t Bedlevel::flag;
+  
+  #if OLD_ABL
+    int Bedlevel::xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);
   #endif
 
   #if ABL_PLANAR
@@ -49,18 +48,6 @@
           Bedlevel::last_fade_z;
   #endif
 
-  #if ENABLED(G26_MESH_VALIDATION)
-    bool Bedlevel::g26_debug_flag = false;
-  #else
-    const bool Bedlevel::g26_debug_flag = false;
-  #endif
-
-  #if ENABLED(PROBE_MANUALLY)
-    bool Bedlevel::g29_in_progress = false;
-  #else
-    const bool Bedlevel::g29_in_progress = false;
-  #endif
-
   #if HAS_LEVELING
 
     /**
@@ -69,7 +56,7 @@
      */
     void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
 
-      if (!leveling_active) return;
+      if (!flag.leveling_active) return;
 
       #if ABL_PLANAR
 
@@ -114,7 +101,7 @@
 
     void Bedlevel::unapply_leveling(float raw[XYZ]) {
 
-      if (!leveling_active) return;
+      if (!flag.leveling_active) return;
 
       #if ABL_PLANAR
 
@@ -184,7 +171,7 @@
       constexpr bool can_change = true;
     #endif
 
-    if (can_change && enable != leveling_active) {
+    if (can_change && enable != flag.leveling_active) {
 
       planner.synchronize();
 
@@ -194,13 +181,13 @@
         (void)abl.bilinear_z_offset(reset);
       #endif
 
-      if (leveling_active) {      // leveling from on to off
+      if (flag.leveling_active) {      // leveling from on to off
         // change unleveled current_position to physical current_position without moving steppers.
         apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
-        leveling_active = false;  // disable only AFTER calling apply_leveling
+        flag.leveling_active = false;  // disable only AFTER calling apply_leveling
       }
-      else {                      // leveling from off to on
-        leveling_active = true;   // enable BEFORE calling unapply_leveling, otherwise ignored
+      else {                          // leveling from off to on
+        flag.leveling_active = true;  // enable BEFORE calling unapply_leveling, otherwise ignored
         // change physical current_position to unleveled current_position without moving steppers.
         unapply_leveling(mechanics.current_position);
       }
@@ -215,7 +202,7 @@
 
       if (z_fade_height == zfh) return;
 
-      const bool leveling_was_active = leveling_active;
+      const bool leveling_was_active = flag.leveling_active;
       set_bed_leveling_enabled(false);
 
       z_fade_height = zfh > 0 ? zfh : 0;

@@ -405,7 +405,7 @@ void _lcd_ubl_output_map_lcd();
 void _lcd_ubl_map_homing() {
   lcdui.defer_status_screen(true);
   _lcd_draw_homing();
-  if (printer.isHomedAll()) {
+  if (mechanics.isHomedAll()) {
     ubl.lcd_map_control = true; // Return to the map screen
     lcdui.goto_screen(_lcd_ubl_output_map_lcd);
   }
@@ -496,7 +496,7 @@ void _lcd_ubl_output_map_lcd() {
  * UBL Homing before LCD map
  */
 void _lcd_ubl_output_map_lcd_cmd() {
-  if (!printer.isHomedAll())
+  if (!mechanics.isHomedAll())
     commands.enqueue_and_echo_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_ubl_map_homing);
 }

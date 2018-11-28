@@ -50,7 +50,7 @@
   void unified_bed_leveling::report_state() {
     echo_name();
     SERIAL_MSG(" System v" UBL_VERSION " ");
-    if (!bedlevel.leveling_active) SERIAL_MSG("in");
+    if (!bedlevel.flag.leveling_active) SERIAL_MSG("in");
     SERIAL_EM("active.");
     printer.safe_delay(50);
   }
@@ -67,8 +67,8 @@
     void debug_current_and_destination(PGM_P title) {
 
       // if the title message starts with a '!' it is so important, we are going to
-      // ignore the status of the bedlevel.g26_debug_flag
-      if (*title != '!' && !bedlevel.g26_debug_flag) return;
+      // ignore the status of the bedlevel.flag.g26_debug
+      if (*title != '!' && !bedlevel.flag.g26_debug) return;
 
       const float de = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
 
@@ -119,7 +119,7 @@
   }
 
   void unified_bed_leveling::reset() {
-    const bool was_enabled = bedlevel.leveling_active;
+    const bool was_enabled = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

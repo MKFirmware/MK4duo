@@ -25,6 +25,21 @@
 
   #include "SDFat.h"
 
+  union flagcard_t {
+    bool all;
+    struct {
+      bool  OK              : 1;
+      bool  Saving          : 1;
+      bool  SDprinting      : 1;
+      bool  AutoreportSD    : 1;
+      bool  AbortSDprinting : 1;
+      bool  FilenameIsDir   : 1;
+      bool  bit6            : 1;
+      bool  bit7            : 1;
+    };
+    flagcard_t() { all = false; }
+  };
+
   class CardReader {
 
     public: /** Constructor */
@@ -32,6 +47,8 @@
       CardReader() {};
 
     public: /** Public Parameters */
+
+      static flagcard_t flag;
 
       static SdFat      fat;
       static SdFile     gcode_file;
@@ -54,8 +71,6 @@
                   generatedBy[GENBY_SIZE];
 
     private: /** Private Parameters */
-
-      static flagbyte_t card_flag;
 
       static uint16_t nrFile_index;
 
@@ -156,7 +171,6 @@
 
       #if HAS_SD_RESTART
         static void open_restart_file(const bool read);
-        static void close_restart_file();
         static void delete_restart_file();
         static bool exist_restart_file();
       #endif
@@ -195,28 +209,28 @@
       #endif
 
       // Card flag bit 0 SD OK
-      FORCE_INLINE static void setOK(const bool onoff) { card_flag.bit0 = onoff; }
-      FORCE_INLINE static bool isOK() { return card_flag.bit0; }
+      FORCE_INLINE static void setOK(const bool onoff) { flag.OK = onoff; }
+      FORCE_INLINE static bool isOK() { return flag.OK; }
 
       // Card flag bit 1 saving
-      FORCE_INLINE static void setSaving(const bool onoff) { card_flag.bit1 = onoff; }
-      FORCE_INLINE static bool isSaving() { return card_flag.bit1; }
+      FORCE_INLINE static void setSaving(const bool onoff) { flag.Saving = onoff; }
+      FORCE_INLINE static bool isSaving() { return flag.Saving; }
 
       // Card flag bit 2 printing
-      FORCE_INLINE static void setSDprinting(const bool onoff) { card_flag.bit2 = onoff; }
-      FORCE_INLINE static bool isSDprinting() { return card_flag.bit2; }
+      FORCE_INLINE static void setSDprinting(const bool onoff) { flag.SDprinting = onoff; }
+      FORCE_INLINE static bool isSDprinting() { return flag.SDprinting; }
 
       // Card flag bit 3 Autoreport SD
-      FORCE_INLINE static void setAutoreportSD(const bool onoff) { card_flag.bit3 = onoff; }
-      FORCE_INLINE static bool isAutoreportSD() { return card_flag.bit3; }
+      FORCE_INLINE static void setAutoreportSD(const bool onoff) { flag.AutoreportSD = onoff; }
+      FORCE_INLINE static bool isAutoreportSD() { return flag.AutoreportSD; }
 
       // Card flag bit 4 AbortSDprinting
-      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { card_flag.bit4 = onoff; }
-      FORCE_INLINE static bool isAbortSDprinting() { return card_flag.bit4; }
+      FORCE_INLINE static void setAbortSDprinting(const bool onoff) { flag.AbortSDprinting = onoff; }
+      FORCE_INLINE static bool isAbortSDprinting() { return flag.AbortSDprinting; }
 
       // Card flag bit 5 Filename is dir
-      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { card_flag.bit5 = onoff; }
-      FORCE_INLINE static bool isFilenameIsDir() { return card_flag.bit5; }
+      FORCE_INLINE static void setFilenameIsDir(const bool onoff) { flag.FilenameIsDir = onoff; }
+      FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
 
       static inline void pauseSDPrint() { setSDprinting(false); }
       static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }

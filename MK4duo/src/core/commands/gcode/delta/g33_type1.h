@@ -168,7 +168,7 @@
 
     printer.setup_for_endstop_or_probe_move();
 
-    if (!printer.isHomedAll()) {
+    if (!mechanics.isHomedAll()) {
       endstops.setEnabled(true);
       mechanics.home();
       endstops.setNotHoming();

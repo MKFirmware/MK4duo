@@ -26,8 +26,6 @@
  * Defines that depend on configuration but are not editable.
  */
 
-#define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
-
 #if DISABLED(STRING_CONFIG_H_AUTHOR)
   #define STRING_CONFIG_H_AUTHOR "(none, default config)"
 #endif
@@ -336,8 +334,17 @@
 #define HAS_CHARACTER_LCD     (HAS_SPI_LCD && !HAS_GRAPHICAL_LCD)
 #define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
 #define HAS_LCD_MENU          ((ENABLED(ULTIPANEL) || ENABLED(NEXTION)) && DISABLED(NO_LCD_MENUS))
-#define HAS_DIGITAL_ENCODER   (HAS_SPI_LCD && ENABLED(NEWPANEL))
+
 #define HAS_ENCODER_ACTION    (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
+#define HAS_ADC_BUTTONS       ENABLED(ADC_KEYPAD)
+#define HAS_DIGITAL_BUTTONS   (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL))
+#define HAS_SHIFT_ENCODER     (!HAS_ADC_BUTTONS && (ENABLED(REPRAPWORLD_KEYPAD) || (HAS_SPI_LCD && DISABLED(NEWPANEL))))
+#define HAS_ENCODER_WHEEL     (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL))
+
+// I2C buttons must be read in the main thread
+#define HAS_SLOW_BUTTONS      (ENABLED(LCD_I2C_VIKI) || ENABLED(LCD_I2C_PANELOLU2))
+
+#define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 #if HAS_GRAPHICAL_LCD
 
@@ -436,8 +443,8 @@
  */
 #if EXTRUDERS > 1
   #define XYZE_N          (3 + EXTRUDERS)
-  #define E_AXIS_N(E)     (E_AXIS + E)
-  #define E_INDEX         (E_AXIS + tools.active_extruder)
+  #define E_AXIS_N(E)     (uint8_t(E_AXIS) + E)
+  #define E_INDEX         (uint8_t(E_AXIS) + tools.active_extruder)
   #define TARGET_EXTRUDER tools.target_extruder
 #elif EXTRUDERS == 1
   #define XYZE_N          XYZE

@@ -30,7 +30,9 @@
 #include "mechanics.h"
 
 /** Public Parameters */
-generic_data_t Mechanics::data;
+generic_data_t  Mechanics::data;
+
+flaghome_t      Mechanics::home_flag;
 
 const flagdir_t Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 
@@ -220,9 +222,9 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
 }
 
 bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !printer.isXHomed(),
-              yy = y && !printer.isYHomed(),
-              zz = z && !printer.isZHomed();
+  const bool  xx = x && !home_flag.XHomed,
+              yy = y && !home_flag.YHomed,
+              zz = z && !home_flag.ZHomed;
 
   if (xx || yy || zz) {
     SERIAL_SM(ECHO, MSG_HOME " ");
@@ -343,7 +345,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
         SERIAL_MSG("UBL");
       #endif
-      if (bedlevel.leveling_active) {
+      if (bedlevel.flag.leveling_active) {
         SERIAL_EM(" (enabled)");
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (bedlevel.z_fade_height)
@@ -389,7 +391,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     #elif ENABLED(MESH_BED_LEVELING)
 
       SERIAL_MSG("Mesh Bed Leveling");
-      if (bedlevel.leveling_active) {
+      if (bedlevel.flag.leveling_active) {
         SERIAL_EM(" (enabled)");
         SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS])));
         SERIAL_CHR('+');
@@ -416,7 +418,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
   void Mechanics::babystep_axis(const AxisEnum axis, const int16_t distance) {
 
-    if (printer.isAxisHomed(axis)) {
+    if (isAxisHomed(axis)) {
       #if IS_CORE
         #if ENABLED(BABYSTEP_XY)
           switch (axis) {

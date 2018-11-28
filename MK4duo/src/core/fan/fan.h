@@ -32,12 +32,27 @@
   #include "tachometric.h"
 #endif
 
+union flagfan_t {
+  bool all;
+  struct {
+    bool  isHWInverted  : 1;
+    bool  isIdle        : 1;
+    bool  bit2          : 1;
+    bool  bit3          : 1;
+    bool  bit4          : 1;
+    bool  bit5          : 1;
+    bool  bit6          : 1;
+    bool  bit7          : 1;
+  };
+  flagfan_t() { all = false; }
+};
+
 // Struct Fan data
 typedef struct {
 
   pin_t       pin;
 
-  flagbyte_t  flag;
+  flagfan_t   flag;
 
   uint8_t     ID,
               min_Speed,
@@ -78,14 +93,14 @@ class Fan {
 
     // Fan flag bit 0 Hardware inverted
     FORCE_INLINE void setHWInverted(const bool onoff) {
-      data.flag.bit0 = onoff;
+      data.flag.isHWInverted = onoff;
     }
-    FORCE_INLINE bool isHWInverted() { return data.flag.bit0; }
+    FORCE_INLINE bool isHWInverted() { return data.flag.isHWInverted; }
 
     // Fan flag bit 1 Idle
     FORCE_INLINE void setIdle(const bool onoff) {
       if (onoff != isIdle()) {
-        data.flag.bit1 = onoff;
+        data.flag.isIdle = onoff;
         if (onoff) {
           paused_Speed = Speed;
           Speed = 0;
@@ -94,7 +109,7 @@ class Fan {
           Speed = paused_Speed;
       }
     }
-    FORCE_INLINE bool isIdle() { return data.flag.bit1; }
+    FORCE_INLINE bool isIdle() { return data.flag.isIdle; }
 
     #if HARDWARE_PWM
       void SetHardwarePwm();

@@ -46,6 +46,21 @@
   #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
 #endif
 
+union flaglevel_t {
+  bool all;
+  struct {
+    bool  leveling_active : 1;
+    bool  g26_debug       : 1;
+    bool  g29_in_progress : 1;
+    bool  bit3            : 1;
+    bool  bit4            : 1;
+    bool  bit5            : 1;
+    bool  bit6            : 1;
+    bool  bit7            : 1;
+  };
+  flaglevel_t() { all = 0; }
+};
+
 #if HAS_LEVELING
 
   typedef struct {
@@ -73,30 +88,17 @@
 
     public: /** Public Parameters */
 
-      #if HAS_LEVELING
-        static bool leveling_active;          // Flag that bed leveling is enabled
-        #if OLD_ABL
-          static int xy_probe_feedrate_mm_s;
-        #endif
-        #if ABL_PLANAR
-          static matrix_3x3 matrix; // Transform to compensate for bed level
-        #endif
+      static flaglevel_t flag;
+
+       #if OLD_ABL
+        static int xy_probe_feedrate_mm_s;
+      #endif
+      #if ABL_PLANAR
+        static matrix_3x3 matrix; // Transform to compensate for bed level
       #endif
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         static float z_fade_height, inverse_z_fade_height;
-      #endif
-
-      #if ENABLED(G26_MESH_VALIDATION)
-        static bool g26_debug_flag;
-      #else
-        static const bool g26_debug_flag;
-      #endif
-
-      #if ENABLED(PROBE_MANUALLY)
-        static bool g29_in_progress;
-      #else
-        static const bool g29_in_progress;
       #endif
 
     private: /** Private Parameters */

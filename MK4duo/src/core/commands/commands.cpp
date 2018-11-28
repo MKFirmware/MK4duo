@@ -796,11 +796,6 @@ void Commands::process_parsed(const bool print_ok/*=true*/) {
           printer.keepalive(NotBusy);
           return;
         }
-
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          // Banzai code for erase bootloader on DUE
-          if (code_num == 9999) initiateReset(1000);
-        #endif
       }
       break;
 
@@ -4120,8 +4115,8 @@ void Commands::process_parsed(const bool print_ok/*=true*/) {
         #if ENABLED(CODE_M999)
           case 999: gcode_M999(); break;
         #endif
-        #if ENABLED(ARDUINO_ARCH_SAM)
-          case 9999: initiateReset(1000); break;
+        #if ENABLED(CODE_M9999)
+          case 9999: gcode_M9999(); break;
         #endif
 
         default: unknown_error(); break;

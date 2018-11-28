@@ -86,11 +86,11 @@ static void createChar_P(const char c, const byte * const ptr) {
   #define LCD_STR_PROGRESS  "\x03\x04\x05"
 #endif
 
-void LcdUI::set_custom_characters(
-  #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
-    const HD44780CharSet screen_charset/*=CHARSET_INFO*/
+void LcdUI::set_custom_characters(const HD44780CharSetEnum screen_charset/*=CHARSET_INFO*/) {
+  #if DISABLED(LCD_PROGRESS_BAR) && DISABLED(SHOW_BOOTSCREEN)
+    UNUSED(screen_charset);
   #endif
-) {
+
   // CHARSET_BOOT
   #if ENABLED(SHOW_BOOTSCREEN)
     const static PROGMEM byte corner[4][8] = { {
@@ -350,7 +350,7 @@ void LcdUI::init_lcd() {
     lcd.begin(LCD_WIDTH, LCD_HEIGHT);
   #endif
 
-  LCD_SET_CHARSET(on_status_screen() ? CHARSET_INFO : CHARSET_MENU);
+  set_custom_characters(on_status_screen() ? CHARSET_INFO : CHARSET_MENU);
 
   lcd.clear();
 }
@@ -372,10 +372,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       // Fits into,
       lcd_moveto(col, line);
       lcd_put_u8str_max_P(text, len);
-      while (slen < len) {
-        lcd_put_wchar(' ');
-        ++slen;
-      }
+      for (; slen < len; ++slen) lcd_put_wchar(' ');
       printer.safe_delay(time);
     }
     else {
@@ -390,11 +387,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
         lcd_put_u8str_max_P(p, len);
 
         // Fill with spaces
-        uint8_t ix = slen - i;
-        while (ix < len) {
-          lcd_put_wchar(' ');
-          ++ix;
-        }
+        for (uint8_t ix = slen - i; ix < len; ++ix) lcd_put_wchar(' ');
 
         // Delay
         printer.safe_delay(dly);
@@ -414,7 +407,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
   }
 
   void LcdUI::show_bootscreen() {
-    LCD_SET_CHARSET(CHARSET_BOOT);
+    set_custom_characters(CHARSET_BOOT);
     lcd.clear();
 
     #define LCD_EXTRA_SPACE (LCD_WIDTH-8)
@@ -483,7 +476,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
 
     lcd.clear();
     HAL::delayMilliseconds(100);
-    LCD_SET_CHARSET(CHARSET_INFO);
+    set_custom_characters(CHARSET_INFO);
     lcd.clear();
   }
 
@@ -506,12 +499,12 @@ void LcdUI::draw_kill_screen() {
 // Before homing, blink '123' <-> '???'.
 // Homed and known, display constantly.
 //
-FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool blink) {
+FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const bool blink) {
   lcd_put_wchar('X' + uint8_t(axis));
   if (blink)
     lcd_put_u8str(value);
   else {
-    if (!printer.isAxisHomed(axis))
+    if (!mechanics.isAxisHomed(axis))
       while (const char c = *value++) lcd_put_wchar(c <= '.' ? c : '?');
     else
       lcd_put_u8str(value);
@@ -650,7 +643,7 @@ void LcdUI::draw_status_message(const bool blink) {
       // String is larger than the available space in screen.
 
       // Get a pointer to the next valid UTF8 character
-      PGM_P stat = status_message + status_scroll_offset;
+      const char *stat = status_message + status_scroll_offset;
 
       // Get the string remaining length
       const uint8_t rlen = utf8_strlen(stat);
@@ -789,7 +782,7 @@ void LcdUI::draw_status_screen() {
         lcd_moveto(10, 0);
         _draw_heater_status(BED_INDEX, (
           #if HAS_LEVELING
-            bedlevel.leveling_active && blink ? '_' :
+            bedlevel.flag.leveling_active && blink ? '_' :
           #endif
           LCD_STR_BEDTEMP[0]
         ), blink);
@@ -824,7 +817,7 @@ void LcdUI::draw_status_screen() {
 
           _draw_heater_status(BED_INDEX, (
             #if HAS_LEVELING
-              bedlevel.leveling_active && blink ? '_' :
+              bedlevel.flag.leveling_active && blink ? '_' :
             #endif
             LCD_STR_BEDTEMP[0]
           ), blink);
@@ -845,7 +838,7 @@ void LcdUI::draw_status_screen() {
       _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
 
       #if HAS_LEVELING && !HAS_TEMP_BED
-        lcd_put_wchar(bedlevel.leveling_active || blink ? '_' : ' ');
+        lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
       #endif
 
     #endif // LCD_HEIGHT > 2
@@ -906,7 +899,7 @@ void LcdUI::draw_status_screen() {
 
     #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED)
       lcd_moveto(LCD_WIDTH - 1, 0);
-      lcd_put_wchar(bedlevel.leveling_active || blink ? '_' : ' ');
+      lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
     #endif
 
     // ========== Line 2 ==========
@@ -978,7 +971,7 @@ void LcdUI::draw_status_screen() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, PGM_P valstr/*=NULL*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, const char *valstr/*=NULL*/) {
     UNUSED(invert);
     int8_t n = LCD_WIDTH;
     lcd_moveto(0, row);
@@ -996,21 +989,21 @@ void LcdUI::draw_status_screen() {
     lcd_moveto(0, row);
     lcd_put_wchar(sel ? pre_char : ' ');
     n -= lcd_put_u8str_max_P(pstr, n);
-    while (n--) lcd_put_wchar(' ');
+    for (; n; --n) lcd_put_wchar(' ');
     lcd_put_wchar(post_char);
   }
 
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P pstr, PGM_P const data, const bool pgm) {
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P pstr, const char* const data, const bool pgm) {
     uint8_t n = LCD_WIDTH - 2 - (pgm ? utf8_strlen_P(data) : utf8_strlen(data));
     lcd_moveto(0, row);
     lcd_put_wchar(sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
     n -= lcd_put_u8str_max_P(pstr, n);
     lcd_put_wchar(':');
-    while (n--) lcd_put_wchar(' ');
+    for (; n; --n) lcd_put_wchar(' ');
     if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str(data);
   }
 
-  void draw_edit_screen(PGM_P const pstr, PGM_P const value/*=NULL*/) {
+  void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
     lcd_moveto(1, 1);
     lcd_put_u8str_P(pstr);
     if (value != NULL) {
@@ -1025,39 +1018,15 @@ void LcdUI::draw_status_screen() {
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, PGM_P longFilename, const bool isDir) {
-      const char  post_char = isDir ? LCD_STR_FOLDER[0] : ' ',
-                  sel_char = sel ? LCD_STR_ARROW_RIGHT[0] : ' ';
+    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir) {
       UNUSED(pstr);
-      lcd_moveto(0, row);
-      lcd_put_wchar(sel_char);
-
-      uint8_t n = LCD_WIDTH - 2;
-      PGM_P outstr = longFilename;
-      #if ENABLED(SCROLL_LONG_FILENAMES)
-        if (longFilename[0]) {
-          static uint8_t filename_scroll_hash;
-          if (sel) {
-            uint8_t name_hash = row;
-            for (uint8_t l = FILENAME_LENGTH; l--;)
-              name_hash = ((name_hash << 1) | (name_hash >> 7)) ^ longFilename[l];  // rotate, xor
-            if (filename_scroll_hash != name_hash) {                                // If the hash changed...
-              filename_scroll_hash = name_hash;                                     // Save the new hash
-              lcdui.filename_scroll_max = MAX(0, utf8_strlen(longFilename) - n);           // Update the scroll limit
-              lcdui.filename_scroll_pos = 0;                                              // Reset scroll to the start
-              lcdui.status_update_delay = 8;                                          // Don't scroll right away
-            }
-            outstr += lcdui.filename_scroll_pos;
-          }
-        }
-      #endif
 
       lcd_moveto(0, row);
-      lcd_put_wchar(sel_char);
-      n -= lcd_put_u8str_max(outstr, n);
-
+      lcd_put_wchar(sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
+      constexpr uint8_t maxlen = LCD_WIDTH - 2;
+      uint8_t n = maxlen - lcd_put_u8str_max(lcdui.scrolled_filename(theCard, maxlen, row, sel), maxlen);
       for (; n; --n) lcd_put_wchar(' ');
-      lcd_put_wchar(post_char);
+      lcd_put_wchar(isDir ? LCD_STR_FOLDER[0] : ' ');
     }
 
   #endif // SDSUPPORT

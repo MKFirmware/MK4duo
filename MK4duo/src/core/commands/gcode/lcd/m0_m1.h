@@ -64,13 +64,6 @@
         #endif
       }
 
-    #elif HAS_NEXTION_LCD
-
-      if (!hasP && !hasS && args && *args)
-        lcd_yesno(3, args, "", MSG_USERWAIT);
-      else
-        lcd_yesno(3, MSG_USERWAIT);
-
     #else
 
       if (!hasP && !hasS && args && *args)
