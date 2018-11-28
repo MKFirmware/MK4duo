@@ -735,6 +735,11 @@
     <set>M208 F@</set>
     <detect>M208.*F(-?\d*\.?\d*)</detect>
   </entry>
+  <entry type="float">
+    <description unit="[unit/s]">FWRetract swap recover feedrate</description>
+    <set>M208 R@</set>
+    <detect>M208.*R(-?\d*\.?\d*)</detect>
+  </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Autoretract enabled</description>
     <set>M209 S@</set>

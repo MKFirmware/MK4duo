@@ -287,9 +287,7 @@ void Printer::setup() {
     mechanics.home();
   #endif
 
-  #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].Speed = 0;
-  #endif
+  zero_fan_speed();
 
   #if HAS_LCD_MENU && HAS_EEPROM
     if (!eeprom_loaded) lcdui.goto_screen(menu_eeprom);
@@ -336,7 +334,7 @@ void Printer::loop() {
         print_job_counter.stop();
 
         // Stop all stepper
-        quickstop_stepper();
+        //quickstop_stepper();
 
         // Auto home
         #if Z_HOME_DIR > 0
@@ -347,9 +345,8 @@ void Printer::loop() {
 
         // Disabled Heaters and Fan
         thermalManager.disable_all_heaters();
-        #if FAN_COUNT > 0
-          LOOP_FAN() fans[f].Speed = 0;
-        #endif
+        zero_fan_speed();
+        setWaitForHeatUp(false);
 
       }
 
