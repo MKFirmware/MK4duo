@@ -2177,7 +2177,7 @@ void EEPROM::reset() {
       SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.data.retract_recover_length));
       SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_recover_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.retract_recover_feedrate_mm_s)));
-      SERIAL_MV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.swap_retract_recover_feedrate_mm_s)));
+      SERIAL_EMV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.swap_retract_recover_feedrate_mm_s)));
 
       SERIAL_LM(CFG, "Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);

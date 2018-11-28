@@ -163,6 +163,12 @@ class Printer {
       FORCE_INLINE static void keepalive(const BusyStateEnum state) { UNUSED(state); }
     #endif
 
+    FORCE_INLINE static void zero_fan_speed() {
+      #if FAN_COUNT > 0
+        LOOP_FAN() fans[f].Speed = 0;
+      #endif
+    }
+
     // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);
     FORCE_INLINE static uint8_t getDebugFlags()   { return debug_flag.all; }

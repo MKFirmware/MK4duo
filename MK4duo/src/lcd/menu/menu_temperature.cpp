@@ -267,10 +267,8 @@ void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb
 #endif // TEMP_SENSOR_0 && (TEMP_SENSOR_1 || TEMP_SENSOR_2 || TEMP_SENSOR_3 || TEMP_SENSOR_BED)
 
 void lcd_cooldown() {
-  #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].Speed = 0;
-  #endif
   thermalManager.disable_all_heaters();
+  printer.zero_fan_speed();
   lcdui.return_to_status();
 }
 
