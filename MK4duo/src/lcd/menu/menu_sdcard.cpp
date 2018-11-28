@@ -40,9 +40,6 @@ void lcd_sd_updir() {
   encoderTopLine = 0;
   screen_changed = true;
   lcdui.refresh();
-  #if HAS_NEXTION_LCD
-    lcdui.clear_lcd();
-  #endif
 }
 
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)

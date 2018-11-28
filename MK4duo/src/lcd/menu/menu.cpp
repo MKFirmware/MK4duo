@@ -109,22 +109,12 @@ void MenuItem_gcode::action(PGM_P pgcode) { commands.enqueue_and_echo_P(pgcode);
  *       MenuItem_int3::action_edit(PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)
  */
 void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
-  #if HAS_NEXTION_LCD
-    static bool clear_menu = true;
-    if (clear_menu) {
-      lcdui.clear_lcd();
-      clear_menu = false;
-    }
-  #endif
   lcdui.encoder_direction_normal();
   if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
   if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
     draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
-    #if HAS_NEXTION_LCD
-      clear_menu = true;
-    #endif
     if (editValue != NULL) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
     if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
     if (lcdui.use_click()) lcdui.goto_previous_screen();
