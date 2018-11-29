@@ -183,7 +183,9 @@
    * Nextion component for page:Setup
    *******************************************************************
    */
-  NexObject NextionFW   = NexObject(3,   1);
+  #if HAS_SD_SUPPORT
+    NexObject NextionFW   = NexObject(3,   1);
+  #endif
   NexObject TxtMenu     = NexObject(3,   3);
 
   /**
@@ -280,7 +282,10 @@
     &FanTouch, &NStop, &NPlay, &Light,
 
     // Page 3 touch listen
-    &NextionFW, &TxtMenu,
+    #if HAS_SD_SUPPORT
+      &NextionFW,
+    #endif
+    &TxtMenu,
 
     // Page 4 touch listen
     &MotorOff, &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft,
@@ -555,13 +560,6 @@
       commands.enqueue_and_echo(buffer);
       commands.enqueue_and_echo_P(PSTR("G90"));
     }
-  }
-
-  void setupPopCallback(NexObject *nexobject) {
-    if (nexobject == &NextionFW)
-      lcdui.goto_screen(menu_firmware);
-    else if (nexobject == &TxtMenu)
-      lcdui.goto_screen(menu_main);
   }
 
   static void degtoLCD(const uint8_t h, float temp) {
@@ -1040,8 +1038,11 @@
               nexobject == &FilUnload ||
               nexobject == &FilExtr)      filamentPopCallback(nexobject);
 
-    else if ( nexobject == &NextionFW ||
-              nexobject == &TxtMenu)      setupPopCallback(nexobject);
+    #if HAS_SD_SUPPORT
+      else if (nexobject == &NextionFW)   lcdui.goto_screen(menu_firmware);
+    #endif
+
+    else if (nexobject == &TxtMenu)       lcdui.goto_screen(menu_main);
 
     #if FAN_COUNT > 0
       else if (nexobject == &FanTouch)    setfanPopCallback();
