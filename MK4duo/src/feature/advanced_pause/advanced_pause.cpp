@@ -300,7 +300,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, ADVANCED_PAUSE_MODE_PAUSE_PRINT DXC_PASS);
   }
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_RESUME); // "Wait for print to resume"
   #endif
 
@@ -347,9 +347,10 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     }
   #endif
 
-  #if ENABLED(ULTRA_LCD)
-    lcdui.reset_status();
-  #endif
+  // Resume the print job timer if it was running
+  if (print_job_counter.isPaused()) print_job_counter.start();
+
+  lcdui.reset_status();
 
 }
 

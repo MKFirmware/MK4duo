@@ -34,12 +34,7 @@
     #if HAS_SD_RESTART
       if (restart.enabled) restart.save_job(true, false);
     #endif
-    card.pauseSDPrint();
-    print_job_counter.pause();
-    #if ENABLED(PARK_HEAD_ON_PAUSE)
-      commands.enqueue_and_echo_P(PSTR("M125"));
-    #endif
-    lcdui.reset_status();
+    commands.enqueue_and_echo_P(PSTR("M25"));
   }
 
   void lcd_sdcard_resume() {

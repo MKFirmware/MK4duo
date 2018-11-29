@@ -125,8 +125,6 @@
       #endif
     );
 
-    const bool job_running = print_job_counter.isRunning();
-
     if (advancedpause.pause_print(retract, park_point, unload_length, true DXC_PASS)) {
       advancedpause.wait_for_confirmation(beep_count DXC_PASS);
       advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
@@ -137,9 +135,6 @@
       if (active_extruder_before_filament_change != tools.active_extruder)
         tools.change(active_extruder_before_filament_change, 0, true);
     #endif
-
-    // Resume the print job timer if it was running
-    if (job_running) print_job_counter.start();
 
   }
 
