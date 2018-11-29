@@ -333,14 +333,11 @@ void Printer::loop() {
         // Stop printer job timer
         print_job_counter.stop();
 
-        // Stop all stepper
-        //quickstop_stepper();
-
         // Auto home
         #if Z_HOME_DIR > 0
-          mechanics.home();
+          commands.enqueue_and_echo_P(PSTR("G28"));
         #else
-          mechanics.home(true, true, false);
+          commands.enqueue_and_echo_P(PSTR("G28 X Y"));
         #endif
 
         // Disabled Heaters and Fan

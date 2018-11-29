@@ -410,18 +410,21 @@
     }
 
     void PlayPausePopCallback() {
-
       if (card.isOK() && card.isFileOpen()) {
         if (IS_SD_PRINTING()) {
-          card.pauseSDPrint();
-          print_job_counter.pause();
-          #if ENABLED(PARK_HEAD_ON_PAUSE)
-            commands.enqueue_and_echo_P(PSTR("M125"));
+          #if HAS_SD_RESTART
+            if (restart.enabled) restart.save_job(true, false);
           #endif
+          commands.enqueue_and_echo_P(PSTR("M25"));
         }
         else {
-          card.startFileprint();
-          print_job_counter.start();
+          #if ENABLED(PARK_HEAD_ON_PAUSE)
+            commands.enqueue_and_echo_P(PSTR("M24"));
+          #else
+            card.startFileprint();
+            print_job_counter.start();
+          #endif
+          lcdui.reset_status();
         }
       }
     }

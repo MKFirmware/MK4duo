@@ -320,6 +320,13 @@
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();
     #endif
+
+    lcdui.reset_status();
+
+    #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
+      lcdui.reselect_last_file();
+    #endif
+
   }
 
   void CardReader::chdir(PGM_P relpath) {

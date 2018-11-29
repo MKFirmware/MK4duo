@@ -68,20 +68,19 @@
       park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
     #endif
 
-    #if DISABLED(SDSUPPORT)
-      const bool job_running = print_job_counter.isRunning();
-    #endif
-
     if (advancedpause.pause_print(retract, park_point)) {
-      #if DISABLED(SDSUPPORT)
+      #if HAS_SD_SUPPORT
+        const bool sd_printing = IS_SD_PRINTING() || parser.boolval('S'); // If send to M25 command
+      #else
+        constexpr bool sd_printing = false;
+      #endif
+      if (!sd_printing) {
         // Wait for lcd click or M108
         advancedpause.wait_for_confirmation();
 
         // Return to print position and continue
         advancedpause.resume_print();
-
-        if (job_running) print_job_counter.start();
-      #endif
+      }
     }
   }
 

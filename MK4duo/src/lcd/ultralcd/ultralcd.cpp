@@ -1181,7 +1181,7 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
     static const char printing[] PROGMEM = MSG_PRINTING;
     static const char welcome[] PROGMEM = WELCOME_MSG;
     PGM_P msg;
-    if (print_job_counter.isPaused())
+    if (!IS_SD_PRINTING() && print_job_counter.isPaused())
       msg = paused;
     #if HAS_SD_SUPPORT
       else if (IS_SD_PRINTING())
