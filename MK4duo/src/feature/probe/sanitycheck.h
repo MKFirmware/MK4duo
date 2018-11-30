@@ -78,9 +78,9 @@
   #endif
 
   #if ENABLED(Z_PROBE_SENSORLESS)
-    #if MECH(DELTA) && (!X_HAS_STALLGUARD || !Y_HAS_STALLGUARD || !Z_HAS_STALLGUARD)
+    #if MECH(DELTA) && (!AXIS_HAS_STALLGUARD(X) || !AXIS_HAS_STALLGUARD(Y) || !AXIS_HAS_STALLGUARD(Z))
       #error "Z_PROBE_SENSORLESS requires TMC2130 drivers on X, Y, and Z."
-    #elif !Z_HAS_STALLGUARD
+    #elif !AXIS_HAS_STALLGUARD(Z)
       #error "Z_PROBE_SENSORLESS requires a TMC2130 driver on Z."
     #endif
   #endif
