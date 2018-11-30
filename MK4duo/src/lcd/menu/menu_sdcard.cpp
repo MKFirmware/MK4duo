@@ -110,14 +110,19 @@ void menu_sdcard() {
       MENU_ITEM(function, LCD_STR_REFRESH MSG_REFRESH, lcd_sd_refresh);
     #endif
   }
-  else {
+  else if (card.isOK()) {
     MENU_ITEM(function, LCD_STR_FOLDER "..", lcd_sd_updir);
   }
 
   for (uint16_t i = 0; i < fileCnt; i++) {
     if (_menuLineNr == _thisItemNr) {
+      const uint16_t nr =
+        #if DISABLED(SDCARD_SORT_ALPHA)
+          fileCnt - 1 -
+        #endif
+      i;
 
-      card.getfilename_sorted(i);
+      card.getfilename_sorted(nr);
 
       if (card.isFilenameIsDir())
         MENU_ITEM(sdfolder, MSG_CARD_MENU, card);
