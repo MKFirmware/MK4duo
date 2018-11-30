@@ -305,7 +305,7 @@
     setSDprinting(false);
 
     #if HAS_SD_RESTART
-      restart.save_job(true);
+      restart.purge_job();
     #endif
 
     #if SD_FINISHED_STEPPERRELEASE && ENABLED(SD_FINISHED_RELEASECOMMAND)
