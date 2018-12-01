@@ -43,8 +43,8 @@
     #else
       card.startFileprint();
       print_job_counter.start();
+      lcdui.reset_status();
     #endif
-    lcdui.reset_status();
   }
 
   void lcd_sdcard_stop() {

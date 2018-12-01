@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _EEPROM_H_
-#define _EEPROM_H_
+#pragma once
 
 class EEPROM {
 
@@ -107,5 +105,3 @@ class EEPROM {
 };
 
 extern EEPROM eeprom;
-
-#endif /* _EEPROM_H_ */

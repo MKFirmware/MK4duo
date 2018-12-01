@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _STOPWATCH_H_
-#define _STOPWATCH_H_
+#pragma once
 
 /**
  * @brief Stopwatch class
@@ -77,9 +75,9 @@ class Stopwatch {
 
     /**
      * @brief Resume the stopwatch
-     * @details Resume a timer from a given duration
+     * @details Resume a timer from a given this_time
      */
-    static void resume(const millis_t duration);
+    static void resume(const millis_t this_time);
 
     /**
      * @brief Resets the stopwatch
@@ -109,5 +107,3 @@ class Stopwatch {
     static millis_t duration();
 
 };
-
-#endif /* _STOPWATCH_H_ */

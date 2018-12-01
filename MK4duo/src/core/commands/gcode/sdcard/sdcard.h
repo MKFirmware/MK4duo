@@ -67,7 +67,7 @@
    */
   inline void gcode_M23(void) {
     #if HAS_SD_RESTART
-      card.delete_restart_file();
+      restart.purge_job();
     #endif
     // Simplify3D includes the size, so zero out all spaces (#7227)
     // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere
@@ -86,13 +86,10 @@
     #endif
 
     if (parser.seenval('S')) card.setIndex(parser.value_long());
+    if (parser.seenval('T')) print_job_counter.resume(parser.value_long());
 
     card.startFileprint();
-
-    if (parser.seenval('T'))
-      print_job_counter.resume(parser.value_long());
-    else
-      print_job_counter.start();
+    print_job_counter.start();
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.startpower = powerManager.consumption_hour;
@@ -105,13 +102,14 @@
    * M25: Pause SD Print
    */
   void gcode_M25(void) {
-    card.pauseSDPrint();
-    print_job_counter.pause();
-    SERIAL_STR(PAUSE);
-    SERIAL_EOL();
-
     #if ENABLED(PARK_HEAD_ON_PAUSE)
-      commands.enqueue_and_echo_P(PSTR("M125 S")); // Must be enqueued with pauseSDPrint set to be last in the buffer
+      gcode_M125();
+    #else
+      card.pauseSDPrint();
+      print_job_counter.pause();
+      lcdui.reset_status();
+      SERIAL_STR(PAUSE);
+      SERIAL_EOL();
     #endif
   }
 
