@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * commands.h
@@ -26,8 +27,6 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#pragma once
- 
 #include "parser.h"
 
 struct gcode_t {
@@ -67,13 +66,13 @@ class Commands {
     static void advance_queue();
     static void clear_queue();
 
-    static bool enqueue_and_echo(PGM_P cmd);
+    static bool enqueue_and_echo(const char * cmd);
     static void enqueue_and_echo_P(PGM_P const pgcode);
-    static void enqueue_and_echo_now(PGM_P cmd);
+    static void enqueue_and_echo_now(const char * cmd);
     static void enqueue_and_echo_now_P(PGM_P const cmd);
 
-    static void process_now_P(PGM_P pgcode);
     static void process_now(char * gcode);
+    static void process_now_P(PGM_P pgcode);
 
     static void get_destination();
     static bool get_target_tool(const uint16_t code);
@@ -91,7 +90,7 @@ class Commands {
     static void unknown_error();
     static void gcode_line_error(PGM_P err, const int8_t tmp_port);
 
-    static bool enqueue(PGM_P cmd, int8_t port=-2);
+    static bool enqueue(const char * cmd, int8_t port=-2);
     static bool drain_injected_P();
 
 };

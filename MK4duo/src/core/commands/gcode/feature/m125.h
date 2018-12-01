@@ -69,12 +69,7 @@
     #endif
 
     if (advancedpause.pause_print(retract, park_point)) {
-      #if HAS_SD_SUPPORT
-        const bool sd_printing = IS_SD_PRINTING() || parser.boolval('S'); // If send to M25 command
-      #else
-        constexpr bool sd_printing = false;
-      #endif
-      if (!sd_printing) {
+      if (!IS_SD_PRINTING()) {
         // Wait for lcd click or M108
         advancedpause.wait_for_confirmation();
 

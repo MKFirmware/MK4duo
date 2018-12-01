@@ -467,7 +467,7 @@ void Commands::enqueue_and_echo_P(PGM_P const pgcode) {
 /**
  * Enqueue and return only when commands are actually enqueued
  */
-void Commands::enqueue_and_echo_now(PGM_P cmd) {
+void Commands::enqueue_and_echo_now(const char * cmd) {
   while (!enqueue_and_echo(cmd)) printer.idle();
 }
 
@@ -483,6 +483,19 @@ void Commands::enqueue_and_echo_now_P(PGM_P const cmd) {
  * Run a series of commands, bypassing the command queue to allow
  * G-code "macros" to be called from within other G-code handlers.
  */
+void Commands::process_now(char * gcode) {
+  char * const saved_cmd = parser.command_ptr;        // Save the parser state
+  for (;;) {
+    char * const delim = strchr(gcode, '\n');         // Get address of next newline
+    if (delim) *delim = '\0';                         // Replace with nul
+    parser.parse(gcode);                              // Parse the current command
+    process_parsed(true);                             // Process it
+    if (!delim) break;                                // Last command?
+    gcode = delim + 1;                                // Get the next command
+  }
+  parser.parse(saved_cmd);                            // Restore the parser state
+}
+
 void Commands::process_now_P(PGM_P pgcode) {
   char * const saved_cmd = parser.command_ptr;        // Save the parser state
   for (;;) {
@@ -500,19 +513,6 @@ void Commands::process_now_P(PGM_P pgcode) {
   parser.parse(saved_cmd);                            // Restore the parser state
 }
 
-void Commands::process_now(char * gcode) {
-  char * const saved_cmd = parser.command_ptr;        // Save the parser state
-  for (;;) {
-    char * const delim = strchr(gcode, '\n');         // Get address of next newline
-    if (delim) *delim = '\0';                         // Replace with nul
-    parser.parse(gcode);                              // Parse the current command
-    process_parsed(true);                             // Process it
-    if (!delim) break;                                // Last command?
-    gcode = delim + 1;                                // Get the next command
-  }
-  parser.parse(saved_cmd);                            // Restore the parser state
-}
-
 /**
  * Clear the MK4duo command buffer_ring
  */
@@ -525,7 +525,7 @@ void Commands::clear_queue() {
  * Return true if the command was successfully added.
  * Return false for a full buffer, or if the 'command' is a comment.
  */
-bool Commands::enqueue(PGM_P cmd, int8_t port/*=-2*/) {
+bool Commands::enqueue(const char * cmd, int8_t port/*=-2*/) {
   if (*cmd == ';' || buffer_ring.isFull()) return false;
   gcode_t temp_cmd;
   strcpy(temp_cmd.gcode, cmd);
@@ -703,7 +703,7 @@ void Commands::gcode_line_error(PGM_P err, const int8_t port) {
 /**
  * Enqueue with Serial Echo
  */
-bool Commands::enqueue_and_echo(PGM_P cmd) {
+bool Commands::enqueue_and_echo(const char * cmd) {
 
   if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
     return true;

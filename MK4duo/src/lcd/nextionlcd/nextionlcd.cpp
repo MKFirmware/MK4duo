@@ -184,9 +184,11 @@
    *******************************************************************
    */
   #if HAS_SD_SUPPORT
-    NexObject NextionFW   = NexObject(3,   1);
+    NexObject NextionFW = NexObject(3,  1);
   #endif
-  NexObject TxtMenu     = NexObject(3,   3);
+  #if HAS_LCD_MENU
+    NexObject TxtMenu   = NexObject(3,  3);
+  #endif
 
   /**
    *******************************************************************
@@ -285,7 +287,9 @@
     #if HAS_SD_SUPPORT
       &NextionFW,
     #endif
-    &TxtMenu,
+    #if HAS_LCD_MENU
+      &TxtMenu,
+    #endif
 
     // Page 4 touch listen
     &MotorOff, &XYHome, &XYUp, &XYRight, &XYDown, &XYLeft,
@@ -1042,7 +1046,9 @@
       else if (nexobject == &NextionFW)   lcdui.goto_screen(menu_firmware);
     #endif
 
-    else if (nexobject == &TxtMenu)       lcdui.goto_screen(menu_main);
+    #if HAS_LCD_MENU
+      else if (nexobject == &TxtMenu)     lcdui.goto_screen(menu_main);
+    #endif
 
     #if FAN_COUNT > 0
       else if (nexobject == &FanTouch)    setfanPopCallback();

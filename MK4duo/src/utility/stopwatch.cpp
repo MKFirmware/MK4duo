@@ -64,9 +64,9 @@ bool Stopwatch::start() {
     return false;
 }
 
-void Stopwatch::resume(const millis_t duration) {
+void Stopwatch::resume(const millis_t this_time) {
   reset();
-  if ((accumulator = duration)) state = RUNNING;
+  if ((accumulator = this_time)) state = RUNNING;
 }
 
 void Stopwatch::reset() {
