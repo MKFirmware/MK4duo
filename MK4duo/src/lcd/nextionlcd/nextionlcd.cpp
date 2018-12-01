@@ -92,11 +92,11 @@
 
   #endif
 
-  bool        NextionON                 = false,
-              show_Wave                 = true;
-  uint8_t     PageID                    = 0;
-  uint16_t    slidermaxval              = 20;
-  char        buffer[50]                = { 0 };
+  bool        NextionON                   = false,
+              show_Wave                   = true;
+  uint8_t     PageID                      = 0;
+  uint16_t    slidermaxval                = 20;
+  char        buffer[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if HAS_SD_SUPPORT
     // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
@@ -347,26 +347,26 @@
     nexlcd.setText(Version, SHORT_BUILD_VERSION, "pg1");
 
     #if HOTENDS > 0
-      nexlcd.setValue(Hotend00, 1, PSTR("pg2"));
+      nexlcd.setValue(Hotend00, 1, "pg2");
       #if HOTENDS > 1
-        nexlcd.setValue(Hotend10, 1, PSTR("pg2"));
+        nexlcd.setValue(Hotend10, 1, "pg2");
       #elif HAS_TEMP_CHAMBER
-        nexlcd.setValue(Chamber0, 1, PSTR("pg2"));
+        nexlcd.setValue(Chamber0, 1, "pg2");
       #elif ENABLED(DHT_SENSOR)
-        nexlcd.setValue(DHT0, 1, PSTR("pg2"));
+        nexlcd.setValue(DHT0, 1, "pg2");
       #endif
     #endif
 
     #if HAS_TEMP_BED
-      nexlcd.setValue(Bed0, 1, PSTR("pg2"));
+      nexlcd.setValue(Bed0, 1, "pg2");
     #endif
 
-    nexlcd.setValue(Extruders, EXTRUDERS, PSTR("pg2"));
+    nexlcd.setValue(Extruders, EXTRUDERS, "pg2");
 
     LOOP_XYZE(i) {
       ZERO(temp);
       itoa(manual_feedrate_mm_m[i], temp, 10);
-      nexlcd.setText(*speed_list[i], temp, PSTR("pg4"));
+      nexlcd.setText(*speed_list[i], temp, "pg4");
     }
 
     #if HAS_SD_SUPPORT
@@ -378,26 +378,26 @@
       }
       else
         SDstatus = SD_NO_INSERT;
-      nexlcd.setValue(SD, SDstatus, PSTR("pg2"));
+      nexlcd.setValue(SD, SDstatus, "pg2");
     #endif
 
-    nexlcd.setValue(VSpeed, 100, PSTR("pg2"));
+    nexlcd.setValue(VSpeed, 100, "pg2");
 
     #if FAN_COUNT > 0
-      nexlcd.setValue(Fan, 1, PSTR("pg2"));
+      nexlcd.setValue(Fan, 1, "pg2");
     #endif
 
     #if HAS_CASE_LIGHT
-      nexlcd.setValue(LightStatus, caselight.status ? 2 : 1, PSTR("pg2"));
+      nexlcd.setValue(LightStatus, caselight.status ? 2 : 1, "pg2");
     #endif
 
     #if ENABLED(RFID_MODULE)
-      nexlcd.setValue(RFID, 1, PSTR("pg2"));
+      nexlcd.setValue(RFID, 1, "pg2");
     #endif
 
     #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-    nexlcd.setText(Language, NEXTION_LANGUAGE, PSTR("pg2"));
+    nexlcd.setText(Language, NEXTION_LANGUAGE, "pg2");
   }
 
   #if HAS_SD_SUPPORT
@@ -466,7 +466,7 @@
       else
         temp += "W";
 
-      temp.toCharArray(buffer, sizeof(buffer));
+      temp.toCharArray(buffer, NEXTION_BUFFER_SIZE);
       commands.enqueue_and_echo(buffer);
     }
 
@@ -503,8 +503,8 @@
 
   void setgcodePopCallback() {
     ZERO(buffer);
-    nexlcd.getText(Tgcode, buffer, PSTR("pg6"));
-    nexlcd.setText(Tgcode, "", PSTR("pg6"));
+    nexlcd.getText(Tgcode, buffer, "pg6");
+    nexlcd.setText(Tgcode, "", "pg6");
     commands.enqueue_and_echo(buffer);
   }
 
@@ -869,13 +869,20 @@
 
     }
 
-    inline static void nextion_put_space(const uint8_t row, const uint8_t len) {
-      for (uint8_t i = 0; i < len; i++)
+    inline static void nextion_put_space(const uint8_t row, const uint8_t max_length) {
+      for (uint8_t i = 0; i < max_length; i++)
         nexlcd.setChar(' ');
     }
 
-    inline static void nextion_put_str(const uint8_t row, PGM_P str, const uint8_t len) {
-      for (uint8_t i = 0; i < len; i++)
+    inline static void nextion_put_str_P(const uint8_t row, PGM_P str, const uint8_t max_length) {
+      for (uint8_t i = 0; i < max_length; i++) {
+        char ch = pgm_read_byte(str++);
+        nexlcd.setChar(ch);
+      }
+    }
+
+    inline static void nextion_put_str(const uint8_t row, const char * str, const uint8_t max_length) {
+      for (uint8_t i = 0; i < max_length; i++)
         nexlcd.setChar(*str++);
     }
 
@@ -890,24 +897,26 @@
 
       mark_as_selected(row, invert);
 
+      const uint8_t labellen  = utf8_strlen_P(pstr);
+      nexlcd.startChar(*txtmenu_list[row]);
+      nextion_put_str_P(row, pstr, labellen);
+
       if (valstr != NULL) {
-        const uint8_t labellen  = utf8_strlen_P(pstr),
-                      vallen    = utf8_strlen(valstr);
-        nexlcd.startChar(*txtmenu_list[row]);
-        nextion_put_str(row, pstr, labellen);
+        const uint8_t vallen = utf8_strlen(valstr);
         nextion_put_space(row, lcd_width - labellen - vallen - 2);
         nextion_put_str(row, valstr, labellen);
-        nexlcd.endChar();
       }
-      else
-        nexlcd.setText(*txtmenu_list[row], pstr);
+      nexlcd.endChar();
     }
 
     // Draw a generic menu item
     void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
       UNUSED(pre_char); UNUSED(post_char);
+      const uint8_t labellen  = utf8_strlen_P(pstr);
       mark_as_selected(row, sel);
-      nexlcd.setText(*txtmenu_list[row], pstr);
+      nexlcd.startChar(*txtmenu_list[row]);
+      nextion_put_str_P(row, pstr, labellen);
+      nexlcd.endChar();
     }
 
     // Draw a menu item with an editable value
@@ -918,11 +927,11 @@
 
       mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
-      nextion_put_str(row, pstr, labellen);
-      nextion_put_str(row, ":", 1);
+      nextion_put_str_P(row, pstr, labellen);
+      nextion_put_str_P(row, PSTR(":"), 1);
       nextion_put_space(row, lcd_width - labellen - vallen - 2);
       if (pgm)
-        nextion_put_str(row, data, labellen);
+        nextion_put_str_P(row, data, labellen);
       else
         nextion_put_str(row, (char*)data, labellen);
       nexlcd.endChar();
@@ -941,15 +950,17 @@
 
       if (extra_row) {
         nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
-        nexlcd.setText(*txtmenu_list[row - 1], pstr);
+        nexlcd.startChar(*txtmenu_list[row - 1]);
+        nextion_put_str_P(row, pstr, labellen);
+        nexlcd.endChar();
         nexlcd.startChar(*txtmenu_list[row]);
         nextion_put_space(row, lcd_width - vallen - 1);
         nextion_put_str(row, value, labellen);
       }
       else {
         nexlcd.startChar(*txtmenu_list[row]);
-        nextion_put_str(row, pstr, labellen);
-        nextion_put_str(row, ":", 1);
+        nextion_put_str_P(row, pstr, labellen);
+        nextion_put_str_P(row, PSTR(":"), 1);
         nextion_put_space(row, lcd_width - labellen - vallen - 2);
         nextion_put_str(row, value, labellen);
       }
@@ -963,7 +974,7 @@
         const uint8_t labellen = utf8_strlen(theCard.fileName);
         mark_as_selected(row, sel);
         nexlcd.startChar(*txtmenu_list[row]);
-        if (isDir) nextion_put_str(row, LCD_STR_FOLDER, 2);
+        if (isDir) nextion_put_str_P(row, PSTR(LCD_STR_FOLDER), 2);
         nextion_put_str(row, theCard.fileName, labellen);
         nexlcd.endChar();
       }
@@ -1142,31 +1153,31 @@
       SERIAL_MSG("Nextion");
       // Get Model
 
-      if (strstr(buffer, "3224")) {       // Model 2.4" or 2.8" Normal or Enhanced
+      if (strstr_P(buffer, PSTR("3224"))) {       // Model 2.4" or 2.8" Normal or Enhanced
         SERIAL_MSG(" 2.4");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "4024")) {  // Model 3.2" Normal or Enhanced
+      else if (strstr_P(buffer, PSTR("4024"))) {  // Model 3.2" Normal or Enhanced
         SERIAL_MSG(" 3.2");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "4832")) {  // Model 3.5" Normal or Enhanced
+      else if (strstr_P(buffer, PSTR("4832"))) {  // Model 3.5" Normal or Enhanced
         SERIAL_MSG(" 3.5");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "4827")) {  // Model 4.3" Normal or Enhanced
+      else if (strstr_P(buffer, PSTR("4827"))) {  // Model 4.3" Normal or Enhanced
         SERIAL_MSG(" 4.3");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(1, 24, 250, 155);
         #endif
       }
-      else if (strstr(buffer, "8048")) {  // Model 7" Normal or Enhanced
+      else if (strstr_P(buffer, PSTR("8048"))) {  // Model 7" Normal or Enhanced
         SERIAL_MSG(" 7");
         #if ENABLED(NEXTION_GFX)
           gfx.set_position(274, 213, 250, 155);
@@ -1184,13 +1195,15 @@
         gfx.color_set(NX_HIGH, 63488);
       #endif
 
-      const uint16_t nextion_version = nexlcd.getValue(Nexfirmware, PSTR("pg0"));
+      const uint16_t nextion_version = nexlcd.getValue(Nexfirmware, "pg0");
 
       setpagePrinter();
       nexlcd.enable(startimer);
 
-      // Check the Nextion Firmware
-      if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(menu_nextion);
+      #if HAS_LCD_MENU
+        // Check the Nextion Firmware
+        if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(menu_nextion);
+      #endif
 
     }
   }
