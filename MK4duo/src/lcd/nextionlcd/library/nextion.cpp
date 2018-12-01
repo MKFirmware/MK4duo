@@ -58,12 +58,12 @@
   
   void NextionLCD::enable(NexObject &nexobject, const bool en /* true */) {
     char cmd[40];
-    sprintf_P(cmd, PSTR("%s.en=%s"), nexobject.__name, en ? PSTR("1") : PSTR("0"));
+    sprintf_P(cmd, PSTR("%s.en=%s"), nexobject.__name, en ? "1" : "0");
     sendCommand(cmd);
     recvRetCommandFinished();
   }
 
-  void NextionLCD::getText(NexObject &nexobject, char *buffer, PGM_P page) {
+  void NextionLCD::getText(NexObject &nexobject, char *buffer, const char * page) {
     char cmd[40];
     if (page)
       sprintf_P(cmd, PSTR("get %s.%s.txt"), page, nexobject.__name);
@@ -73,7 +73,7 @@
     recvRetString(buffer);
   }
 
-  void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, PGM_P page) {
+  void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, const char * page) {
     char cmd[40];
     if (page)
       sprintf_P(cmd, PSTR("%s.%s.txt=\"%s\""), page, nexobject.__name, buffer);
@@ -83,7 +83,7 @@
     recvRetCommandFinished();
   }
 
-  void NextionLCD::startChar(NexObject &nexobject, PGM_P page) {
+  void NextionLCD::startChar(NexObject &nexobject, const char * page) {
     recvRetCommandFinished();
     char cmd[40];
     if (page)
@@ -104,7 +104,7 @@
     nexSerial.write(0xFF);
   }
 
-  uint16_t NextionLCD::getValue(NexObject &nexobject, PGM_P page) {
+  uint16_t NextionLCD::getValue(NexObject &nexobject, const char * page) {
     char cmd[40];
     if (page)
       sprintf_P(cmd, PSTR("get %s.%s.val"), page, nexobject.__name);
@@ -114,7 +114,7 @@
     return recvRetNumber();
   }
 
-  void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, PGM_P page) {
+  void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, const char * page) {
     char buf[10];
     char cmd[40];
     utoa(number, buf, 10);
