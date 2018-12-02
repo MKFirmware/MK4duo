@@ -43,7 +43,7 @@
 #pragma once
 
 #define FILE_READ   O_READ
-#define FILE_WRITE (O_READ | O_WRITE | O_CREAT | O_APPEND)
+#define FILE_WRITE (O_CREAT | O_APPEND | O_WRITE | O_TRUNC)
 
 /**
  * \file
