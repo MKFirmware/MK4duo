@@ -361,7 +361,7 @@
 
     bool NexUpload::_checkFile(void) {
       SERIAL_EMT("Start checkFile ", _file_name);
-      if (!nextion_file.open(&card.root, _file_name, O_READ)) {
+      if (!nextion_file.open(&card.root, _file_name, FILE_READ)) {
         SERIAL_LM(ER, "file is not exit");
         return false;
       }

@@ -22,7 +22,7 @@
 #pragma once
 
 #if HAS_SD_SUPPORT
-  #include "../sd/cardreader.h"
+  #include "../sdcard/sdcard.h"
 #endif
 
 #define LCD_MESSAGEPGM(x)       lcdui.setstatusPGM(PSTR(x))
@@ -171,7 +171,7 @@ class LcdUI {
 
     #if HAS_SPI_LCD || HAS_NEXTION_LCD
       #if HAS_LCD_MENU
-        #if LCD_TIMEOUT_TO_STATUS
+        #if LCD_TIMEOUT_TO_STATUS > 0
           static bool defer_return_to_status;
         #else
           static constexpr bool defer_return_to_status = false;
@@ -272,7 +272,7 @@ class LcdUI {
       #endif
 
       #if HAS_SD_SUPPORT && HAS_SPI_LCD
-        static const char * scrolled_filename(CardReader &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll);
+        static const char * scrolled_filename(SDCard &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll);
       #endif
 
       static void manage_manual_move();
@@ -290,7 +290,7 @@ class LcdUI {
       static inline void run_current_screen() { (*currentScreen)(); }
 
       static inline void defer_status_screen(const bool defer) {
-        #if LCD_TIMEOUT_TO_STATUS
+        #if LCD_TIMEOUT_TO_STATUS > 0
           defer_return_to_status = defer;
         #else
           UNUSED(defer);

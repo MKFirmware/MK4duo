@@ -149,8 +149,8 @@
 // Menu modules
 #include "src/lcd/menu/menu.h"
 
-// SD modules
-#include "src/sd/cardreader.h"
+// SDCARD modules
+#include "src/sdcard/sdcard.h"
 
 // Feature modules
 #include "src/feature/emergency_parser/emergency_parser.h"

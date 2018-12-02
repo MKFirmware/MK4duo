@@ -24,65 +24,61 @@
 
 #if HAS_SD_SUPPORT
 
-  #if ENABLED(ARDUINO_ARCH_SAM)
-    #include <avr/dtostrf.h>
-  #endif
-
-  CardReader card;
+  SDCard card;
 
   /** Public Parameters */
-  flagcard_t  CardReader::flag;
+  flagcard_t  SDCard::flag;
 
-  SdFat       CardReader::fat;
-  SdFile      CardReader::gcode_file;
-  SdBaseFile  CardReader::root,
-              CardReader::workDir,
-              CardReader::workDirParents[SD_MAX_FOLDER_DEPTH];
+  SdFat       SDCard::fat;
+  SdFile      SDCard::gcode_file;
+  SdBaseFile  SDCard::root,
+              SDCard::workDir,
+              SDCard::workDirParents[SD_MAX_FOLDER_DEPTH];
 
-  int CardReader::autostart_index = -1;
+  int SDCard::autostart_index = -1;
 
-  uint32_t  CardReader::fileSize  = 0,
-            CardReader::sdpos     = 0;
+  uint32_t  SDCard::fileSize  = 0,
+            SDCard::sdpos     = 0;
 
-  float CardReader::objectHeight      = 0.0,
-        CardReader::firstlayerHeight  = 0.0,
-        CardReader::layerHeight       = 0.0,
-        CardReader::filamentNeeded    = 0.0;
+  float SDCard::objectHeight      = 0.0,
+        SDCard::firstlayerHeight  = 0.0,
+        SDCard::layerHeight       = 0.0,
+        SDCard::filamentNeeded    = 0.0;
 
-  char  CardReader::fileName[LONG_FILENAME_LENGTH],
-        CardReader::tempLongFilename[LONG_FILENAME_LENGTH + 1],
-        CardReader::generatedBy[GENBY_SIZE];
+  char  SDCard::fileName[LONG_FILENAME_LENGTH],
+        SDCard::tempLongFilename[LONG_FILENAME_LENGTH + 1],
+        SDCard::generatedBy[GENBY_SIZE];
 
   /** Private Parameters */
-  uint16_t CardReader::nrFile_index = 0;
+  uint16_t SDCard::nrFile_index = 0;
 
   #if HAS_EEPROM_SD
-    SdFile CardReader::eeprom_file;
+    SdFile SDCard::eeprom_file;
   #endif
 
   #if ENABLED(SD_SETTINGS)
-    SdFile CardReader::settings_file;
+    SdFile SDCard::settings_file;
   #endif
 
-  uint16_t  CardReader::workDirDepth  = 0,
-            CardReader::nrFiles       = 0;
+  uint16_t  SDCard::workDirDepth  = 0,
+            SDCard::nrFiles       = 0;
 
-  LsActionEnum CardReader::lsAction   = LS_Count;
+  LsActionEnum SDCard::lsAction   = LS_Count;
 
   // Sort files and folders alphabetically.
   #if ENABLED(SDCARD_SORT_ALPHA)
-    uint16_t CardReader::sort_count = 0;
+    uint16_t SDCard::sort_count = 0;
     #if ENABLED(SDSORT_GCODE)
-      bool  CardReader::sort_alpha    = true;
-      int   CardReader::sort_folders  = FOLDER_SORTING;
+      bool  SDCard::sort_alpha    = true;
+      int   SDCard::sort_folders  = FOLDER_SORTING;
       //static bool sort_reverse;      // Flag to enable / disable reverse sorting
     #endif
 
     // By default the sort index is static
     #if ENABLED(SDSORT_DYNAMIC_RAM)
-      uint8_t *CardReader::sort_order;
+      uint8_t *SDCard::sort_order;
     #else
-      uint8_t CardReader::sort_order[SDSORT_LIMIT];
+      uint8_t SDCard::sort_order[SDSORT_LIMIT];
     #endif
 
     // Cache filenames to speed up SD menus.
@@ -91,20 +87,20 @@
       // If using dynamic ram for names, allocate on the heap.
       #if ENABLED(SDSORT_CACHE_NAMES)
         #if ENABLED(SDSORT_DYNAMIC_RAM)
-          char **CardReader::sortshort, **CardReader::sortnames;
+          char **SDCard::sortshort, **SDCard::sortnames;
         #else
-          char CardReader::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+          char SDCard::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
         #endif
       #elif DISABLED(SDSORT_USES_STACK)
-        char CardReader::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
+        char SDCard::sortnames[SDSORT_LIMIT][SORTED_LONGNAME_MAXLEN];
       #endif
 
       // Folder sorting uses an isDir array when caching items.
       #if HAS_FOLDER_SORTING
         #if ENABLED(SDSORT_DYNAMIC_RAM)
-          uint8_t *CardReader::isDir;
+          uint8_t *SDCard::isDir;
         #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
-          uint8_t CardReader::isDir[(SDSORT_LIMIT + 7)>>3];
+          uint8_t SDCard::isDir[(SDSORT_LIMIT + 7)>>3];
         #endif
       #endif
 
@@ -114,7 +110,7 @@
 
   /** Public Function */
 
-  void CardReader::mount() {
+  void SDCard::mount() {
     setOK(false);
     if (root.isOpen()) root.close();
 
@@ -134,18 +130,18 @@
     setroot();
   }
 
-  void CardReader::unmount() {
+  void SDCard::unmount() {
     setOK(false);
     setSDprinting(false);
   }
 
-  void CardReader::ls()  {
+  void SDCard::ls()  {
     root.openRoot(fat.vol());
     root.ls();
     workDir = root;
   }
 
-  void CardReader::getfilename(uint16_t nr, PGM_P const match/*=NULL*/) {
+  void SDCard::getfilename(uint16_t nr, PGM_P const match/*=NULL*/) {
     #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_CACHE_NAMES)
       if (match != NULL) {
         while (nr < sort_count) {
@@ -166,7 +162,7 @@
     lsDive(*curDir, match);
   }
 
-  void CardReader::getAbsFilename(char* name) {
+  void SDCard::getAbsFilename(char* name) {
     *name++ = '/';
     uint8_t cnt = 1;
     uint8_t i = 0;
@@ -182,7 +178,7 @@
     *name = '\0';
   }
 
-  void CardReader::startFileprint() {
+  void SDCard::startFileprint() {
     if (isOK()) {
       setSDprinting(true);
       #if ENABLED(SDCARD_SORT_ALPHA)
@@ -191,7 +187,7 @@
     }
   }
 
-  void CardReader::openAndPrintFile(PGM_P name) {
+  void SDCard::openAndPrintFile(PGM_P name) {
     char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
     sprintf_P(cmd, PSTR("M23 %s"), name);
     for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
@@ -199,12 +195,12 @@
     commands.enqueue_and_echo_P(PSTR("M24"));
   }
 
-  void CardReader::stopSDPrint() {
+  void SDCard::stopSDPrint() {
     setSDprinting(false);
     if (isFileOpen()) gcode_file.close();
   }
 
-  void CardReader::write_command(char* buf) {
+  void SDCard::write_command(char* buf) {
     char* begin = buf;
     char* npos = 0;
     char* end = buf + strlen(buf) - 1;
@@ -223,7 +219,7 @@
     }
   }
 
-  void CardReader::printStatus() {
+  void SDCard::printStatus() {
     if (isFileOpen() && isSDprinting()) {
       SERIAL_MV(MSG_SD_PRINTING_BYTE, sdpos);
       SERIAL_EMV(MSG_SD_SLASH, fileSize);
@@ -232,11 +228,11 @@
       SERIAL_EM(MSG_SD_NOT_PRINTING);
   }
 
-  void CardReader::startWrite(char *filename, const bool silent/*=false*/) {
+  void SDCard::startWrite(char *filename, const bool silent/*=false*/) {
     if (!isOK()) return;
 
     SdBaseFile *curDir = &workDir;
-    if (!gcode_file.open(curDir, filename, O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+    if (!gcode_file.open(curDir, filename, FILE_WRITE)) {
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, filename);
     }
     else {
@@ -251,7 +247,7 @@
     }
   }
 
-  void CardReader::deleteFile(char *filename) {
+  void SDCard::deleteFile(char *filename) {
     if (!isOK()) return;
     setSDprinting(false);
     gcode_file.close();
@@ -271,14 +267,14 @@
     }
   }
 
-  void CardReader::finishWrite() {
+  void SDCard::finishWrite() {
     gcode_file.sync();
     gcode_file.close();
     setSaving(false);
     SERIAL_EM(MSG_SD_FILE_SAVED);
   }
 
-  void CardReader::makeDirectory(char *filename) {
+  void SDCard::makeDirectory(char *filename) {
     if (!isOK()) return;
     setSDprinting(false);
     gcode_file.close();
@@ -290,7 +286,7 @@
     }
   }
 
-  void CardReader::closeFile() {
+  void SDCard::closeFile() {
     gcode_file.sync();
     gcode_file.close();
     setSaving(false);
@@ -299,7 +295,7 @@
     #endif
   }
 
-  void CardReader::printingHasFinished() {
+  void SDCard::printingHasFinished() {
     planner.synchronize();
     gcode_file.close();
     setSDprinting(false);
@@ -329,13 +325,13 @@
 
   }
 
-  void CardReader::chdir(PGM_P relpath) {
+  void SDCard::chdir(PGM_P relpath) {
     SdBaseFile newDir;
     SdBaseFile *parent = &root;
 
     if (workDir.isOpen()) parent = &workDir;
 
-    if (!newDir.open(parent, relpath, O_READ)) {
+    if (!newDir.open(parent, relpath, FILE_READ)) {
       SERIAL_LMT(ECHO, MSG_SD_CANT_ENTER_SUBDIR, relpath);
     }
     else {
@@ -348,7 +344,7 @@
     }
   }
 
-  void CardReader::reset_default() {
+  void SDCard::reset_default() {
     #if HAS_POWER_CONSUMPTION_SENSOR
       powerManager.consumption_hour = 0;
     #endif
@@ -356,7 +352,7 @@
     SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
   }
 
-  void CardReader::print_settings() {
+  void SDCard::print_settings() {
     // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
 
     #if HAS_POWER_CONSUMPTION_SENSOR
@@ -368,12 +364,12 @@
     print_job_counter.showStats();
   }
 
-  void CardReader::beginautostart() {
+  void SDCard::beginautostart() {
     autostart_index = 0;
     setroot();
   }
 
-  void CardReader::checkautostart() {
+  void SDCard::checkautostart() {
 
     if (autostart_index < 0 || isSDprinting()) return;
 
@@ -400,14 +396,14 @@
     autostart_index = -1;
   }
 
-  void CardReader::setroot() {
+  void SDCard::setroot() {
     workDir = root;
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();
     #endif
   }
 
-  void CardReader::printEscapeChars(PGM_P s) {
+  void SDCard::printEscapeChars(PGM_P s) {
     for (unsigned int i = 0; i < strlen(s); ++i) {
       switch (s[i]) {
         case '"':
@@ -425,13 +421,13 @@
     }
   }
 
-  bool CardReader::selectFile(PGM_P filename) {
+  bool SDCard::selectFile(PGM_P filename) {
     PGM_P fname = filename;
 
     if (!isOK()) return false;
 
     SdBaseFile *curDir = &workDir;
-    if (gcode_file.open(curDir, filename, O_READ)) {
+    if (gcode_file.open(curDir, filename, FILE_READ)) {
       if ((fname = strrchr(filename, '/')) != NULL)
         fname++;
       else
@@ -459,7 +455,7 @@
     }
   }
 
-  int8_t CardReader::updir() {
+  int8_t SDCard::updir() {
     if (workDirDepth > 0) {                                               // At least 1 dir has been saved
       workDir = --workDirDepth ? workDirParents[workDirDepth - 1] : root; // Use parent, or root if none
       #if ENABLED(SDCARD_SORT_ALPHA)
@@ -469,7 +465,7 @@
     return workDirDepth;
   }
 
-  uint16_t CardReader::getnrfilenames() {
+  uint16_t SDCard::getnrfilenames() {
     SdBaseFile *curDir = &workDir;
     lsAction = LS_Count;
     nrFiles = 0;
@@ -478,7 +474,7 @@
     return nrFiles;
   }
 
-  uint16_t CardReader::get_num_Files() {
+  uint16_t SDCard::get_num_Files() {
     return
       #if ENABLED(SDCARD_SORT_ALPHA) && SDSORT_USES_RAM && SDSORT_CACHE_NAMES
         nrFiles // no need to access the SD card for filenames
@@ -492,17 +488,17 @@
 
     constexpr char restart_file_name[8] = "restart";
 
-    void CardReader::open_restart_file(const bool read) {
+    void SDCard::open_restart_file(const bool read) {
 
       if (!isOK() || restart.file.isOpen()) return;
 
-      if (!restart.file.open(&root, restart_file_name, read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC)))
+      if (!restart.file.open(&root, restart_file_name, read ? FILE_READ : FILE_WRITE))
         SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
       else if (!read)
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
     }
 
-    void CardReader::delete_restart_file() {
+    void SDCard::delete_restart_file() {
       if (exist_restart_file()) {
         restart.file.remove(&root, restart_file_name);
         #if ENABLED(DEBUG_RESTART)
@@ -512,8 +508,8 @@
       }
     }
 
-    bool CardReader::exist_restart_file() {
-      const bool exist = restart.file.open(&root, restart_file_name, O_READ);
+    bool SDCard::exist_restart_file() {
+      const bool exist = restart.file.open(&root, restart_file_name, FILE_READ);
       #if ENABLED(DEBUG_RESTART)
         SERIAL_MSG("File restart ");
         if (!exist) SERIAL_MSG("not ");
@@ -527,7 +523,7 @@
 
   #if HAS_EEPROM_SD
 
-    void CardReader::open_eeprom_sd(const bool read) {
+    void SDCard::open_eeprom_sd(const bool read) {
 
       if (!isOK()) mount();
 
@@ -535,13 +531,13 @@
 
       if (eeprom_file.isOpen()) eeprom_file.close();
 
-      if (!eeprom_file.open(&root, "eeprom", read ? O_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC))) {
+      if (!eeprom_file.open(&root, "eeprom", read ? FILE_READ : FILE_WRITE)) {
         SERIAL_SM(ER, MSG_SD_OPEN_FILE_FAIL);
         SERIAL_EM("eeprom");
       }
     }
 
-    void CardReader::close_eeprom_sd() { eeprom_file.close(); }
+    void SDCard::close_eeprom_sd() { eeprom_file.close(); }
 
   #endif
 
@@ -553,7 +549,7 @@
      * Author: Simone Primarosa
      *
      */
-    void CardReader::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
+    void SDCard::parseKeyLine(char* key, char* value, int &len_k, int &len_v) {
       if (!isOK() || !settings_file.isOpen()) {
         key[0] = value[0] = '\0';
         len_k = len_v = 0;
@@ -614,7 +610,7 @@
       }
     }
 
-    void CardReader::unparseKeyLine(PGM_P key, char* value) {
+    void SDCard::unparseKeyLine(PGM_P key, char* value) {
       if (!isOK() || !settings_file.isOpen()) return;
       settings_file.writeError = false;
       settings_file.write(key);
@@ -654,10 +650,10 @@
       "TPR"   // Total printing time
     };
 
-    void CardReader::StoreSettings() {
+    void SDCard::StoreSettings() {
       if (!IS_SD_INSERTED() || isSDprinting() || print_job_counter.isRunning()) return;
 
-      if (settings_file.open(&root, "info", O_CREAT | O_APPEND | O_WRITE | O_TRUNC)) {
+      if (settings_file.open(&root, "info", FILE_WRITE)) {
         char buff[CFG_SD_MAX_VALUE_LEN];
         ltoa(print_job_counter.data.finishedPrints, buff, 10);
         unparseKeyLine(cfgSD_KEY[SD_CFG_CPR], buff);
@@ -683,14 +679,14 @@
 
     }
 
-    void CardReader::RetrieveSettings(bool addValue) {
+    void SDCard::RetrieveSettings(bool addValue) {
       if (!IS_SD_INSERTED() || isSDprinting() || !isOK()) return;
 
       char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];
       int k_idx;
       int k_len, v_len;
 
-      if (settings_file.open(&root, "info", O_READ)) {
+      if (settings_file.open(&root, "info", FILE_READ)) {
 
         while (true) {
           k_len = CFG_SD_MAX_KEY_LEN;
@@ -746,7 +742,7 @@
 
     }
 
-    int CardReader::KeyIndex(char *key) {  // At the moment a binary search algorithm is used for simplicity, if it will be necessary (Eg. tons of key), an hash search algorithm will be implemented.
+    int SDCard::KeyIndex(char *key) {  // At the moment a binary search algorithm is used for simplicity, if it will be necessary (Eg. tons of key), an hash search algorithm will be implemented.
       int begin = 0, end = SD_CFG_END - 1, middle, cond;
 
       while (begin <= end) {
@@ -767,7 +763,7 @@
     /**
      * Get the name of a file in the current directory by sort-index
      */
-    void CardReader::getfilename_sorted(const uint16_t nr) {
+    void SDCard::getfilename_sorted(const uint16_t nr) {
       getfilename(
         #if ENABLED(SDSORT_GCODE)
           sort_alpha &&
@@ -784,7 +780,7 @@
      *  - Some RAM: Buffer the directory just for this sort
      *  - Most RAM: Buffer the directory and return filenames from RAM
      */
-    void CardReader::presort() {
+    void SDCard::presort() {
 
       // Sorting may be turned off
       #if ENABLED(SDSORT_GCODE)
@@ -961,7 +957,7 @@
       }
     }
 
-    void CardReader::flush_presort() {
+    void SDCard::flush_presort() {
       if (sort_count > 0) {
         #if ENABLED(SDSORT_DYNAMIC_RAM)
           delete sort_order;
@@ -978,7 +974,7 @@
    *   LS_Count       - Add +1 to nrFiles for every file within the parent
    *   LS_GetFilename - Get the filename of the file indexed by nrFile_index
    */
-  void CardReader::lsDive(SdBaseFile parent, PGM_P const match/*=NULL*/) {
+  void SDCard::lsDive(SdBaseFile parent, PGM_P const match/*=NULL*/) {
     dir_t* p    = NULL;
     uint8_t cnt = 0;
 
@@ -1018,7 +1014,7 @@
   // Source: https://github.com/dcnewman/RepRapFirmware              //
   // Copy date: 27 FEB 2016                                          //
   // --------------------------------------------------------------- //
-  void CardReader::parsejson(SdBaseFile &parser_file) {
+  void SDCard::parsejson(SdBaseFile &parser_file) {
     fileSize = parser_file.fileSize();
     filamentNeeded    = 0.0;
     objectHeight      = 0.0;
@@ -1068,7 +1064,7 @@
     parser_file.seekSet(0);
   }
 
-  bool CardReader::findGeneratedBy(char* buf, char* genBy) {
+  bool SDCard::findGeneratedBy(char* buf, char* genBy) {
     // Slic3r & S3D
     PGM_P generatedByString = PSTR("generated by ");
     char* pos = strstr_P(buf, generatedByString);
@@ -1101,7 +1097,7 @@
     return false;
   }
 
-  bool CardReader::findFirstLayerHeight(char* buf, float &firstlayerHeight) {
+  bool SDCard::findFirstLayerHeight(char* buf, float &firstlayerHeight) {
     // SLIC3R
     firstlayerHeight = 0;
     PGM_P layerHeightSlic3r = PSTR("; first_layer_height ");
@@ -1130,7 +1126,7 @@
     return false;
   }
 
-  bool CardReader::findLayerHeight(char* buf, float &layerHeight) {
+  bool SDCard::findLayerHeight(char* buf, float &layerHeight) {
     // SLIC3R
     layerHeight = 0;
     PGM_P layerHeightSlic3r = PSTR("; layer_height ");
@@ -1159,7 +1155,7 @@
     return false;
   }
 
-  bool CardReader::findFilamentNeed(char* buf, float &filament) {
+  bool SDCard::findFilamentNeed(char* buf, float &filament) {
     PGM_P filamentUsedStr = PSTR("filament used");
     PGM_P pos = strstr_P(buf, filamentUsedStr);
     filament = 0;
@@ -1180,7 +1176,7 @@
     return false;
   }
 
-  bool CardReader::findTotalHeight(char* buf, float &height) {
+  bool SDCard::findTotalHeight(char* buf, float &height) {
     int len = 1024;
     bool inComment, inRelativeMode = false;
     unsigned int zPos;

@@ -71,7 +71,7 @@ void lcd_sd_updir() {
 
 class MenuItem_sdfile {
   public:
-    static void action(CardReader &theCard) {
+    static void action(SDCard &theCard) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         last_sdfile_encoderPosition = lcdui.encoderPosition;  // Save which file was selected for later use
       #endif
@@ -83,7 +83,7 @@ class MenuItem_sdfile {
 
 class MenuItem_sdfolder {
   public:
-    static void action(CardReader &theCard) {
+    static void action(SDCard &theCard) {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;

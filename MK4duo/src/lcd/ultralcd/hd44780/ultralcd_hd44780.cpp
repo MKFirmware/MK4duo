@@ -1018,7 +1018,7 @@ void LcdUI::draw_status_screen() {
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir) {
+    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
       UNUSED(pstr);
 
       lcd_moveto(0, row);

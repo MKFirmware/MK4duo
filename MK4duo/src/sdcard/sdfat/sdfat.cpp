@@ -41,12 +41,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
 
 #if HAS_SD_SUPPORT
 
 #include "Arduino.h"
-#include "SDFat.h"
+#include "sdfat.h"
 
 extern int8_t RFstricmp(PGM_P s1, PGM_P s2) {
   while(*s1 && (tolower(*s1) == tolower(*s2)))
@@ -127,7 +127,7 @@ bool SdFat::chdir(PGM_P path, bool set_cwd) {
   SdBaseFile dir;
   if (path[0] == '/' && path[1] == '\0') return chdir(set_cwd);
 
-  if (!dir.open(&vwd_, path, O_READ)) goto FAIL;
+  if (!dir.open(&vwd_, path, FILE_READ)) goto FAIL;
   if (!dir.isDir()) goto FAIL;
   vwd_ = dir;
   if (set_cwd) SdBaseFile::cwd_ = &vwd_;
@@ -309,7 +309,7 @@ bool SdFat::remove(PGM_P path) {
  */
 bool SdFat::rename(PGM_P oldPath, PGM_P newPath) {
   SdBaseFile file;
-  if (!file.open(oldPath, O_READ)) return false;
+  if (!file.open(oldPath, FILE_READ)) return false;
   return file.rename(&vwd_, newPath);
 }
 //------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ bool SdFat::rename(PGM_P oldPath, PGM_P newPath) {
  */
 bool SdFat::rmdir(PGM_P path) {
   SdBaseFile sub;
-  if (!sub.open(path, O_READ)) return false;
+  if (!sub.open(path, FILE_READ)) return false;
   return sub.rmdir();
 }
 //------------------------------------------------------------------------------
@@ -583,7 +583,7 @@ void SdBaseFile::dirName(const dir_t& dir, char* name) {
  */
 bool SdBaseFile::exists(PGM_P name) {
   SdBaseFile file;
-  return file.open(this, name, O_READ);
+  return file.open(this, name, FILE_READ);
 }
 //------------------------------------------------------------------------------
 /**
@@ -690,7 +690,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
           if (isJson) {
             if (!firstFile) SERIAL_CHR(',');
             SERIAL_CHR('"'); SERIAL_CHR('*');
-            CardReader::printEscapeChars(card.tempLongFilename);
+            SDCard::printEscapeChars(card.tempLongFilename);
             SERIAL_CHR('"');
             firstFile = false;
           }
@@ -711,7 +711,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
       strcat(card.fileName, card.tempLongFilename);
       uint16_t index = (parent->curPosition()-31) >> 5;
 
-      if(!isJson && next.open(parent, index, O_READ)) {
+      if(!isJson && next.open(parent, index, FILE_READ)) {
         if (next.lsRecursive(&next, level + 1, findFilename, pParentFound, false))
           return true;
       }
@@ -744,7 +744,7 @@ uint8_t SdBaseFile::lsRecursive(SdBaseFile* parent, uint8_t level, char* findFil
           if (isJson) {
             if (!firstFile) SERIAL_CHR(',');
             SERIAL_CHR('"');
-            CardReader::printEscapeChars(card.tempLongFilename);
+            SDCard::printEscapeChars(card.tempLongFilename);
             SERIAL_CHR('"');
             firstFile = false;
           }
@@ -1059,7 +1059,7 @@ bool SdBaseFile::open(PGM_P path, uint8_t oflag) {
 
     if (*(p+1) == 0) goto success;
     //bFound = false;
-    if (!sub->open(parent, dname, O_READ, false)) {
+    if (!sub->open(parent, dname, FILE_READ, false)) {
       if (!bMakeDirs)
          return false;
       if (!sub->mkdir(parent, dname)) {
@@ -1321,10 +1321,7 @@ bool SdBaseFile::openCachedEntry(uint8_t dirIndex, uint8_t oflag) {
 
   // write or truncate is an error for a directory or read-only file
   if (p->attributes & (DIR_ATT_READ_ONLY | DIR_ATT_DIRECTORY)) {
-//    if (oflag & (O_WRITE | O_TRUNC)) {
-//      DBG_FAIL_MACRO;
-//      goto FAIL;
-//    }
+    if (oflag & (O_WRITE | O_TRUNC)) return false;
   }
   // remember location of directory entry on SD
   dirBlock_ = vol_->cacheBlockNumber();
@@ -1350,7 +1347,7 @@ bool SdBaseFile::openCachedEntry(uint8_t dirIndex, uint8_t oflag) {
     goto FAIL;
   }
   // save open flags for read/write
-  flags_ = oflag & F_OFLAG;
+  flags_ = oflag & (O_ACCMODE | O_SYNC | O_APPEND);
 
   // set to start of file
   curCluster_ = 0;
@@ -1481,7 +1478,7 @@ bool SdBaseFile::openParent(SdBaseFile* dir) {
       goto FAIL;
     }
   } else {
-    if (!file.openCachedEntry(1, O_READ)) {
+    if (!file.openCachedEntry(1, FILE_READ)) {
       DBG_FAIL_MACRO;
       goto FAIL;
     }
@@ -1496,7 +1493,7 @@ bool SdBaseFile::openParent(SdBaseFile* dir) {
     c |= (uint32_t)entry.firstClusterHigh << 16;
   } while (c != cluster);
   // open parent
-  return open(&file, file.curPosition() / 32 - 1, O_READ);
+  return open(&file, file.curPosition() / 32 - 1, FILE_READ);
 
 FAIL:
   return false;
@@ -1537,7 +1534,7 @@ bool SdBaseFile::openRoot(SdVolume* vol) {
     goto FAIL;
   }
   // read only
-  flags_ = O_READ;
+  flags_ = FILE_READ;
 
   // set to start of file
   curCluster_ = 0;
@@ -1796,7 +1793,7 @@ int SdBaseFile::read(void* buf, size_t nbyte) {
   cache_t* pc;
 
   // error if not open or write only
-  if (!isOpen() || !(flags_ & O_READ)) {
+  if (!isOpen() || !(flags_ & FILE_READ)) {
     DBG_FAIL_MACRO;
     goto FAIL;
   }
@@ -2346,7 +2343,7 @@ bool SdBaseFile::rmRfStar() {
     // skip if part of long file name or volume label in root
     if (!DIR_IS_FILE_OR_SUBDIR(p)) continue;
 
-    if (!f.open(this, index, O_READ)) {
+    if (!f.open(this, index, FILE_READ)) {
       DBG_FAIL_MACRO;
       goto FAIL;
     }

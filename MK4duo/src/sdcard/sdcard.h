@@ -23,7 +23,7 @@
 
 #if HAS_SD_SUPPORT
 
-  #include "SDFat.h"
+  #include "sdfat/sdfat.h"
 
   union flagcard_t {
     bool all;
@@ -40,11 +40,11 @@
     flagcard_t() { all = false; }
   };
 
-  class CardReader {
+  class SDCard {
 
     public: /** Constructor */
 
-      CardReader() {};
+      SDCard() {};
 
     public: /** Public Parameters */
 
@@ -259,7 +259,7 @@
 
   };
 
-  extern CardReader card;
+  extern SDCard card;
 
   #define IS_SD_PRINTING()  card.isSDprinting()
   #define IS_SD_FILE_OPEN() card.isFileOpen()
