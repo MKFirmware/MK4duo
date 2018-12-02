@@ -373,7 +373,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir) {
+    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
       UNUSED(pstr);
 
       if (mark_as_selected(row, sel)) {

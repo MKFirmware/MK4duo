@@ -72,8 +72,9 @@
     bool          LcdUI::lcd_clicked;
     float         move_menu_scale;
 
-    #if LCD_TIMEOUT_TO_STATUS
-      bool LcdUI::defer_return_to_status;
+    #if LCD_TIMEOUT_TO_STATUS > 0
+      bool      LcdUI::defer_return_to_status;
+      millis_t  return_to_status_ms = 0;
     #endif
 
     extern bool no_reentry; // Flag to prevent recursion into menu handlers
@@ -865,6 +866,10 @@
         }
       }
 
+      #if LCD_TIMEOUT_TO_STATUS > 0
+        return_to_status_ms = millis() + LCD_TIMEOUT_TO_STATUS;
+      #endif
+
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
 
     }
@@ -969,7 +974,7 @@
 
     #if HAS_SD_SUPPORT
 
-      void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, CardReader &theCard, const bool isDir) {
+      void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
         UNUSED(pstr);
         const uint8_t labellen = utf8_strlen(theCard.fileName);
         mark_as_selected(row, sel);
@@ -1226,6 +1231,10 @@
 
       if (PageID == 11) {
 
+        #if LCD_TIMEOUT_TO_STATUS > 0
+          if (ELAPSED(millis(), return_to_status_ms)) return_to_status();
+        #endif
+
         // Read button Encoder touch
         Nextion_parse_key_touch(txtmenu_list);
 
@@ -1255,12 +1264,19 @@
         } // switch
 
       }
-      else
-
-    #endif
-      {
+      else {
+        #if LCD_TIMEOUT_TO_STATUS > 0
+          return_to_status_ms = millis() + LCD_TIMEOUT_TO_STATUS;
+        #endif
         Nextion_parse_key_touch(nex_listen_list);
       }
+
+    #else // !HAS_LCD_MENU
+
+      Nextion_parse_key_touch(nex_listen_list);
+
+    #endif
+
   }
 
   bool LcdUI::detected() { return NextionON; }

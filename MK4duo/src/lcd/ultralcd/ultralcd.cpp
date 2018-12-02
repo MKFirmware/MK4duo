@@ -95,7 +95,7 @@ millis_t next_button_update_ms;
       uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
     #endif
 
-    const char * LcdUI::scrolled_filename(CardReader &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll) {
+    const char * LcdUI::scrolled_filename(SDCard &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll) {
       const char *outstr = theCard.fileName;
       if (theCard.fileName[0]) {
         #if ENABLED(SCROLL_LONG_FILENAMES)

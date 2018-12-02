@@ -104,7 +104,7 @@
 #include "../core/tools/sanitycheck.h"
 
 #include "../lcd/sanitycheck.h"
-#include "../sd/sanitycheck.h"
+#include "../sdcard/sanitycheck.h"
 
 #include "../feature/advanced_pause/sanitycheck.h"
 #include "../feature/bedlevel/sanitycheck.h"

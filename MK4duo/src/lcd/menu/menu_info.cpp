@@ -133,9 +133,9 @@ void menu_info_thermistors() {
 void menu_info_board() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
   START_SCREEN();
-  STATIC_ITEM(BOARD_NAME, true, true);                           // MyPrinterController
-  STATIC_ITEM(MSG_INFO_BAUDRATE ": " STRINGIFY(BAUDRATE_1), true); // Baud: 250000
-  STATIC_ITEM(MSG_INFO_PROTOCOL ": " PROTOCOL_VERSION, true);    // Protocol: 1.0
+  STATIC_ITEM(BOARD_NAME, true, true);                              // Board
+  STATIC_ITEM(MSG_INFO_BAUDRATE ": " STRINGIFY(BAUDRATE_1), true);  // Baud: 250000
+  STATIC_ITEM(MSG_INFO_PROTOCOL ": " PROTOCOL_VERSION, true);       // Protocol: 2.0
   #if (POWER_SUPPLY == 0)
     STATIC_ITEM(MSG_INFO_PSU ": Normal", true); // Power Supply: Normal
   #elif (POWER_SUPPLY == 1)
@@ -155,22 +155,22 @@ void menu_info_firmware() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
   START_SCREEN();
   STATIC_ITEM(FIRMWARE_NAME, true, true);
-  STATIC_ITEM(SHORT_BUILD_VERSION, true);
+  STATIC_ITEM("V" SHORT_BUILD_VERSION " R" FIRMWARE_REVISION, true);
   STATIC_ITEM(STRING_DISTRIBUTION_DATE, true);
   STATIC_ITEM(MACHINE_NAME, true);
   STATIC_ITEM(FIRMWARE_URL, true);
   STATIC_ITEM(MSG_INFO_EXTRUDERS ": " STRINGIFY(EXTRUDERS), true);
   STATIC_ITEM(MSG_INFO_HOTENDS ": " STRINGIFY(HOTENDS), true);
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
-    STATIC_ITEM(MSG_3POINT_LEVELING, true);                        // 3-Point Leveling
+    STATIC_ITEM(MSG_3POINT_LEVELING, true);     // 3-Point Leveling
   #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
-    STATIC_ITEM(MSG_LINEAR_LEVELING, true);                        // Linear Leveling
+    STATIC_ITEM(MSG_LINEAR_LEVELING, true);     // Linear Leveling
   #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    STATIC_ITEM(MSG_BILINEAR_LEVELING, true);                      // Bi-linear Leveling
+    STATIC_ITEM(MSG_BILINEAR_LEVELING, true);   // Bi-linear Leveling
   #elif ENABLED(AUTO_BED_LEVELING_UBL)
-    STATIC_ITEM(MSG_UBL_LEVELING, true);                           // Unified Bed Leveling
+    STATIC_ITEM(MSG_UBL_LEVELING, true);        // Unified Bed Leveling
   #elif ENABLED(MESH_BED_LEVELING)
-    STATIC_ITEM(MSG_MESH_LEVELING, true);                          // Mesh Leveling
+    STATIC_ITEM(MSG_MESH_LEVELING, true);       // Mesh Leveling
   #endif
   END_SCREEN();
 }

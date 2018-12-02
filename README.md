@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.7 revision 01122018
+## Version 4.3.7 revision 02122018
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -65,12 +65,11 @@ The new features are:
 * Added anti extruder idle oozing system.
 * Added Hysteresis and Z-Wobble correction (only cartesian printers).
 * Added support reader TAG with MFRC522
-* Added support NEXTION lcd touch
+* Added support NEXTION HMI LCD TOUCH 4.3" normal/advanced, 5" advanced and 7" advanced
 * Added Cooler and Hot Chamber
 * Added Laser beam and raster base64
 * Added CNC Router
 * Addes Mesh Bed Level (MBL)
-* Added Restart
 * Added Restart for recovery job when power loss an return
 * Added Nozzle Clean Features
 * Added Nozzle Park Features
