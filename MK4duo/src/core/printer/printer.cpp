@@ -134,6 +134,10 @@ void Printer::setup() {
 
   setup_pinout();
 
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    HAL::spiBegin();
+  #endif
+
   #if HAS_POWER_SWITCH
     #if PS_DEFAULT_OFF
       powerManager.power_off();
