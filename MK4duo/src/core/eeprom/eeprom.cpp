@@ -268,7 +268,7 @@ typedef struct EepromDataStruct {
   // Linear Advance
   //
   #if ENABLED(LIN_ADVANCE)
-    float             planner_extruder_advance_K[EXTRUDERS];
+    float             planner_extruder_advance_K;
   #endif
 
   //
