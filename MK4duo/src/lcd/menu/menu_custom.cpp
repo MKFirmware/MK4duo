@@ -37,7 +37,7 @@
 void _lcd_user_gcode(PGM_P const cmd) {
   commands.enqueue_and_echo_P(cmd);
   #if ENABLED(USER_SCRIPT_AUDIBLE_FEEDBACK)
-    lcdui.completion_feedback();
+    sound.feedback();
   #endif
   #if ENABLED(USER_SCRIPT_RETURN)
     lcdui.return_to_status();
