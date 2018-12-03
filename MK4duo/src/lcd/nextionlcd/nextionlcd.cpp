@@ -1281,6 +1281,15 @@
 
   bool LcdUI::detected() { return NextionON; }
 
+  void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
+    UNUSED(clear_buttons);
+    #if HAS_LCD_MENU
+      refresh();
+    #endif
+    // Buzz and wait. The delay is needed for buttons to settle!
+    sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+  }
+
   void LcdUI::setalertstatusPGM(PGM_P const message) {
     lcdui.setstatusPGM(message, 1);
   }

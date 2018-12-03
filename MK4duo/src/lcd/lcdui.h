@@ -188,6 +188,7 @@ class LcdUI {
       static void init();
       static void update();
       static void setalertstatusPGM(PGM_P message);
+      static void quick_feedback(const bool clear_buttons=true);
 
       #if HAS_SPI_LCD
 
@@ -220,8 +221,6 @@ class LcdUI {
           static inline void refresh_contrast() { set_contrast(contrast); }
         #endif
 
-        static void quick_feedback(const bool clear_buttons=true);
-        static void completion_feedback(const bool good=true);
         static void draw_status_message(const bool blink);
 
       #endif // HAS_SPI_LCD
