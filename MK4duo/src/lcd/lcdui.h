@@ -334,7 +334,7 @@ class LcdUI {
         static uint8_t read_slow_buttons();
       #endif
       static void update_buttons();
-      static inline bool button_pressed();
+      static bool button_pressed();
       #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
         static void wait_for_release();
       #endif

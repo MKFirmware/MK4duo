@@ -152,11 +152,9 @@ void menu_main() {
   if (busy)
     MENU_ITEM(submenu, MSG_TUNE, menu_tune);
   else {
-    #if !HAS_NEXTION_LCD
-      MENU_ITEM(submenu, MSG_MOTION, menu_motion);
-      if (printer.mode == PRINTER_MODE_FFF)
-        MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
-    #endif
+    MENU_ITEM(submenu, MSG_MOTION, menu_motion);
+    if (printer.mode == PRINTER_MODE_FFF)
+      MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
   }
 
   MENU_ITEM(submenu, MSG_CONFIGURATION, menu_configuration);

@@ -927,7 +927,7 @@
       save_ubl_active_state_and_disable();
 
       LCD_MESSAGEPGM(MSG_UBL_FINE_TUNE_MESH);
-      lcdui.capture();                                                   // Take over control of the LCD encoder
+      lcdui.capture();                                                // Take over control of the LCD encoder
 
       mechanics.do_blocking_move_to(rx, ry, Z_PROBE_BETWEEN_HEIGHT);  // Move to the given XY with probe clearance
 
@@ -968,16 +968,20 @@
 
         lcd_mesh_edit_setup(new_z);
 
+        float old_z;
         do {
           new_z = lcd_mesh_edit();
           #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
-            mechanics.do_blocking_move_to_z(h_offset + new_z);              // Move the nozzle as the point is edited
+            if (old_z != new_z) {
+              mechanics.do_blocking_move_to_z(h_offset + new_z);            // Move the nozzle as the point is edited
+              old_z = new_z;
+            }
           #endif
           printer.idle();
           Com::serialFlush();                                               // Prevent host M105 buffer overrun.
         } while (!lcdui.button_pressed());
 
-        if (!lcd_map_control) lcdui.return_to_status();                       // Just editing a single point? Return to status
+        if (!lcd_map_control) lcdui.return_to_status();                     // Just editing a single point? Return to status
 
         if (click_and_hold(abort_fine_tune)) goto FINE_TUNE_EXIT;           // If the click is held down, abort editing
 

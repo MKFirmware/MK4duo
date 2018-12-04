@@ -387,10 +387,6 @@ void Printer::check_periodical_actions() {
       if (card.isAutoreportSD()) card.printStatus();
     #endif
 
-    #if HAS_NEXTION_LCD
-      nextion_draw_update();
-    #endif
-
     if (planner.cleaning_buffer_flag) {
       planner.cleaning_buffer_flag = false;
       #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)

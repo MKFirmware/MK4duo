@@ -91,6 +91,10 @@
       int8_t LcdUI::manual_move_e_index = 0;
     #endif
 
+    #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+      bool LcdUI::external_control; // = false
+    #endif
+
   #endif
 
   bool        NextionON                   = false,
@@ -623,7 +627,7 @@
     }
   }
 
-  void nextion_draw_update() {
+  void Nextion_draw_update() {
 
     static uint8_t  PreviousPage = 0,
                     Previousfeedrate = 0,
@@ -1133,6 +1137,28 @@
     }
   }
 
+  static void Nextion_update_buttons() {
+
+    #if HAS_LCD_MENU
+
+      if (PageID == 11) {
+        // Read button Encoder touch
+        Nextion_parse_key_touch(txtmenu_list);
+      }
+      else {
+        // Read all button into Nextion LCD
+        Nextion_parse_key_touch(nex_listen_list);
+      }
+
+    #else // !HAS_LCD_MENU
+
+      // Read all button into Nextion LCD
+      Nextion_parse_key_touch(nex_listen_list);
+
+    #endif
+
+  }
+
   /**
    * LcdUI Function
    */
@@ -1225,18 +1251,33 @@
   }
 
   void LcdUI::update() {
+    static millis_t next_lcd_update_ms;
+    const millis_t ms = millis();
+
     if (!NextionON) return;
+
+    update_buttons();
+
+    #if HAS_LCD_MENU
+      // Handle any queued Move Axis motion
+      manage_manual_move();
+    #endif
+
+    if (ELAPSED(ms, next_lcd_update_ms)) {
+      next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
+      Nextion_draw_update();
+    }
 
     #if HAS_LCD_MENU
 
       if (PageID == 11) {
 
         #if LCD_TIMEOUT_TO_STATUS > 0
-          if (ELAPSED(millis(), return_to_status_ms)) return_to_status();
+          if (defer_return_to_status)
+            return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+          else if (ELAPSED(ms, return_to_status_ms))
+            return_to_status();
         #endif
-
-        // Read button Encoder touch
-        Nextion_parse_key_touch(txtmenu_list);
 
         switch (lcdDrawUpdate) {
           case LCDVIEW_CALL_NO_REDRAW:
@@ -1266,14 +1307,9 @@
       }
       else {
         #if LCD_TIMEOUT_TO_STATUS > 0
-          return_to_status_ms = millis() + LCD_TIMEOUT_TO_STATUS;
+          return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
         #endif
-        Nextion_parse_key_touch(nex_listen_list);
       }
-
-    #else // !HAS_LCD_MENU
-
-      Nextion_parse_key_touch(nex_listen_list);
 
     #endif
 
@@ -1346,6 +1382,24 @@
       nexlcd.show(Pprinter);
     }
   }
+
+  bool LcdUI::button_pressed() { return lcd_clicked; }
+
+  void LcdUI::update_buttons() {
+    Nextion_update_buttons();
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
+      if (lcdui.external_control)
+        ubl.encoder_diff = lcdui.encoderPosition;
+    #endif
+  }
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL)
+    void LcdUI::ubl_plot(const uint8_t x_plot, const uint8_t y_plot) {}
+  #endif
+
+  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
+    void LcdUI::wait_for_release() { printer.safe_delay(50); }
+  #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
