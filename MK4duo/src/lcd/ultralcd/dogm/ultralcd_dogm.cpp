@@ -119,7 +119,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
     void lcd_custom_bootscreen() {
       #if ENABLED(ANIMATED_BOOTSCREEN)
         LOOP_L_N(f, COUNT(custom_bootscreen_animation)) {
-          if (f) safe_delay(CUSTOM_BOOTSCREEN_FRAME_TIME);
+          if (f) printer.safe_delay(CUSTOM_BOOTSCREEN_FRAME_TIME);
           draw_custom_bootscreen((u8g_pgm_uint8_t*)pgm_read_ptr(&custom_bootscreen_animation[f]), f == 0);
         }
       #else

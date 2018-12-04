@@ -45,7 +45,8 @@
 
 #if HAS_NEXTION_LCD
 
-  #define NEXTION_BUFFER_SIZE 50
+  #define NEXTION_BUFFER_SIZE  50
+  #define LCD_UPDATE_INTERVAL 300
 
   // Manual Movement
   constexpr float manual_feedrate_mm_m[XYZE] = MANUAL_FEEDRATE;
