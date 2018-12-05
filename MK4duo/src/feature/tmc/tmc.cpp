@@ -557,6 +557,26 @@ void TMC_Stepper::restore() {
 
 #endif // ENABLED(MONITOR_DRIVER_STATUS)
 
+#if HAS_SENSORLESS
+
+  bool TMC_Stepper::enable_stallguard(MKTMC* st) {
+    bool old_stealthChop = st->en_pwm_mode();
+
+    st->TCOOLTHRS(0xFFFFF);
+    st->en_pwm_mode(false);
+    st->diag1_stall(true);
+
+    return old_stealthChop;
+  }
+
+  void TMC_Stepper::disable_stallguard(MKTMC* st, const bool enable) {
+    st->TCOOLTHRS(0);
+    st->en_pwm_mode(enable);
+    st->diag1_stall(false);
+  }
+
+#endif
+
 #if ENABLED(TMC_DEBUG)
 
   /**

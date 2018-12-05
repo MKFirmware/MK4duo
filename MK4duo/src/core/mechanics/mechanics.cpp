@@ -451,60 +451,89 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #if ENABLED(SENSORLESS_HOMING)
 
-  static void set_stallguard(MKTMC* st, const bool enable=true) {
-
-    static bool old_en_pwm_mode[3];
-
-    if (enable) {
-      old_en_pwm_mode[st->id]  = st->en_pwm_mode();
-      st->TCOOLTHRS(0xFFFFF);
-      st->en_pwm_mode(false);
-    }
-    else {
-      st->TCOOLTHRS(0);
-      st->en_pwm_mode(old_en_pwm_mode[st->id]);
-    }
-
-    st->diag1_stall(enable ? 1 : 0);
-  }
-
   /**
-   * Set sensorless homing if the axis has it, accounting for Core Kinematics.
+   * Start sensorless homing if the axis has it, accounting for Core Kinematics.
    */
-  void Mechanics::sensorless_homing_per_axis(const AxisEnum axis, const bool enable/*=true*/) {
+  sensorless_t Mechanics::start_sensorless_homing_per_axis(const AxisEnum axis) {
+
+    sensorless_t stealth_states;
+
     switch (axis) {
       default: break;
       #if X_HAS_SENSORLESS
         case X_AXIS:
-          set_stallguard(stepperX, enable);
+          stealth_states.x = tmc.enable_stallguard(stepperX);
           #if CORE_IS_XY && Y_HAS_SENSORLESS
-            set_stallguard(stepperY, enable);
+            stealth_states.y = tmc.enable_stallguard(stepperY);
           #elif CORE_IS_XZ && Z_HAS_SENSORLESS
-            set_stallguard(stepperZ, enable);
+            stealth_states.z = tmc.enable_stallguard(stepperZ);
           #endif
           break;
       #endif
       #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          set_stallguard(stepperY, enable);
+          stealth_states.y = tmc.enable_stallguard(stepperY);
           #if CORE_IS_XY && X_HAS_SENSORLESS
-            set_stallguard(stepperX, enable);
+            stealth_states.x = tmc.enable_stallguard(stepperX);
           #elif CORE_IS_YZ && Z_HAS_SENSORLESS
-            set_stallguard(stepperZ, enable);
+            stealth_states.z = tmc.enable_stallguard(stepperZ);
           #endif
           break;
       #endif
       #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          set_stallguard(stepperZ, enable);
+          stealth_states.z = tmc.enable_stallguard(stepperZ);
           #if CORE_IS_XZ && X_HAS_SENSORLESS
-            set_stallguard(stepperX, enable);
+            stealth_states.x = tmc.enable_stallguard(stepperX);
           #elif CORE_IS_YZ && Y_HAS_SENSORLESS
-            set_stallguard(stepperY, enable);
+            stealth_states.z = tmc.enable_stallguard(stepperZ);
           #endif
           break;
       #endif
     }
+
+    return stealth_states;
+  }
+
+  /**
+   * Stop sensorless homing if the axis has it, accounting for Core Kinematics.
+   */
+  void Mechanics::stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth) {
+
+    switch (axis) {
+      default: break;
+      #if X_HAS_SENSORLESS
+        case X_AXIS:
+          tmc.disable_stallguard(stepperX, enable_stealth.x);
+          #if CORE_IS_XY && Y_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperY, enable_stealth.y);
+          #elif CORE_IS_XZ && Z_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperZ, enable_stealth.z);
+          #endif
+          break;
+      #endif
+      #if Y_HAS_SENSORLESS
+        case Y_AXIS:
+          tmc.disable_stallguard(stepperY, enable_stealth.y);
+          #if CORE_IS_XY && X_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperX, enable_stealth.x);
+          #elif CORE_IS_YZ && Z_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperZ, enable_stealth.z);
+          #endif
+          break;
+      #endif
+      #if Z_HAS_SENSORLESS
+        case Z_AXIS:
+          tmc.disable_stallguard(stepperZ, enable_stealth.z);
+          #if CORE_IS_XZ && X_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperX, enable_stealth.x);
+          #elif CORE_IS_YZ && Y_HAS_SENSORLESS
+            tmc.disable_stallguard(stepperY, enable_stealth.y);
+          #endif
+          break;
+      #endif
+    }
+
   }
 
 #endif // SENSORLESS_HOMING

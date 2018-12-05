@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _TYPES_H_
-#define _TYPES_H_
+#pragma once
 
 typedef uint32_t  millis_t;
 typedef int8_t    pin_t;
@@ -63,5 +61,3 @@ union flagword_t {
   };
   flagword_t() { _word = 0; }
 };
-
-#endif /* _TYPES_H_ */

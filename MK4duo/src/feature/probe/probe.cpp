@@ -441,12 +441,13 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
+    sensorless_t stealth_states;
     #if MECH(DELTA)
-      tmc.set_stallguard(tmc.stepperX, 0, X_STALL_MIN_SPEED);
-      tmc.set_stallguard(tmc.stepperY, 1, Y_STALL_MIN_SPEED);
-      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED);
+      stealth_states.x = tmc.enable_stallguard(stepperX);
+      stealth_states.y = tmc.enable_stallguard(stepperY);
+      stealth_states.z = tmc.enable_stallguard(stepperZ);
     #else
-      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED);
+      stealth_states.z = tmc.enable_stallguard(stepperZ);
     #endif
   #endif
 
@@ -495,11 +496,11 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA)
-      tmc.set_stallguard(tmc.stepperX, 0, X_STALL_MIN_SPEED, false);
-      tmc.set_stallguard(tmc.stepperY, 1, Y_STALL_MIN_SPEED, false);
-      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED, false);
+      tmc.disable_stallguard(stepperX, stealth_states.x);
+      tmc.disable_stallguard(stepperY, stealth_states.y);
+      tmc.disable_stallguard(stepperZ, stealth_states.z);
     #else
-      tmc.set_stallguard(tmc.stepperZ, 2, Z_STALL_MIN_SPEED, false);
+      tmc.disable_stallguard(stepperZ, stealth_states.z);
     #endif
   #endif
 

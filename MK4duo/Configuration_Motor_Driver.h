@@ -91,16 +91,6 @@
 #define Y_STALL_SENSITIVITY 8
 #define Z_STALL_SENSITIVITY 8
 
-// Minimum speeds for stall detection.
-//
-// These values may need to be adjusted if SENSORLESS_HOMING or SENSORLESS_PROBING is enabled,
-// but endstops trigger prematurely or don't trigger at all.
-// The exact value is dependent on the duration of one microstep,
-// but good approximations can be determined by experimentation.
-#define X_STALL_MIN_SPEED 300
-#define Y_STALL_MIN_SPEED 300
-#define Z_STALL_MIN_SPEED 300
-
 // Enable M922 debugging command for TMC stepper drivers.
 // M922 S0/1 will enable continous reporting.
 //#define TMC_DEBUG
