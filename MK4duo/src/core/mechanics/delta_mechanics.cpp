@@ -502,7 +502,10 @@
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing();
+      sensorless_t stealth_states;
+      stealth_states.x = tmc.enable_stallguard(stepperX);
+      stealth_states.y = tmc.enable_stallguard(stepperY);
+      stealth_states.z = tmc.enable_stallguard(stepperZ);
     #endif
 
     // Move all carriages together linearly until an endstop is hit.
@@ -512,7 +515,9 @@
 
     // Re-enable stealthChop if used. Disable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_homing(false);
+      tmc.disable_stallguard(stepperX, stealth_states.x);
+      tmc.disable_stallguard(stepperY, stealth_states.y);
+      tmc.disable_stallguard(stepperZ, stealth_states.z);
     #endif
 
     endstops.validate_homing_move();
@@ -599,10 +604,14 @@
     // Only do some things when moving towards an endstop
     const bool is_home_dir = distance > 0;
 
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_t stealth_states;
+    #endif
+
     if (is_home_dir) {
       // Disable stealthChop if used. Enable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(axis);
+        stealth_states = start_sensorless_homing_per_axis(axis);
       #endif
     }
 
@@ -630,7 +639,7 @@
 
       // Re-enable stealthChop if used. Disable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(axis, false);
+        stop_sensorless_homing_per_axis(axis, stealth_states);
       #endif
     }
 
@@ -1337,18 +1346,5 @@
     }
 
   #endif
-
-  #if ENABLED(SENSORLESS_HOMING)
-
-    /**
-     * Set sensorless homing.
-     */
-    void Delta_Mechanics::sensorless_homing(const bool on/*=true*/) {
-      sensorless_homing_per_axis(A_AXIS, on);
-      sensorless_homing_per_axis(B_AXIS, on);
-      sensorless_homing_per_axis(C_AXIS, on);
-    }
-
-  #endif // SENSORLESS_HOMING
 
 #endif // MECH(DELTA)

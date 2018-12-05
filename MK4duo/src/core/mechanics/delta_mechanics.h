@@ -205,13 +205,6 @@ class Delta_Mechanics : public Mechanics {
       static float Q_rsqrt(float number);
     #endif
 
-    /**
-     * Set sensorless homing.
-     */
-    #if ENABLED(SENSORLESS_HOMING)
-      static void sensorless_homing(const bool on=true);
-    #endif
-
 };
 
 extern Delta_Mechanics mechanics;

@@ -328,6 +328,10 @@
     // Only do some things when moving towards an endstop
     const bool is_home_dir = (get_homedir(axis) > 0) == (distance > 0);
 
+    #if ENABLED(SENSORLESS_HOMING)
+      sensorless_t stealth_states;
+    #endif
+
     if (is_home_dir) {
 
       if (axis == Z_AXIS) {
@@ -343,7 +347,7 @@
 
       // Disable stealthChop if used. Enable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(axis);
+        stealth_states = start_sensorless_homing_per_axis(axis);
       #endif
     }
 
@@ -374,7 +378,7 @@
 
       // Re-enable stealthChop if used. Disable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(axis, false);
+        stop_sensorless_homing_per_axis(axis, stealth_states);
       #endif
     }
 
@@ -1053,8 +1057,9 @@
                   fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(X_AXIS);
-        sensorless_homing_per_axis(Y_AXIS);
+        sensorless_t stealth_states;
+        stealth_states = start_sensorless_homing_per_axis(X_AXIS);
+        stealth_states = start_sensorless_homing_per_axis(Y_AXIS);
       #endif
 
       do_blocking_move_to_xy(1.5f * mlx * home_dir.X, 1.5f * mly * home_dir.Y, fr_mm_s);
@@ -1064,8 +1069,8 @@
       current_position[X_AXIS] = current_position[Y_AXIS] = 0.0f;
 
       #if ENABLED(SENSORLESS_HOMING)
-        sensorless_homing_per_axis(X_AXIS, false);
-        sensorless_homing_per_axis(Y_AXIS, false);
+        stop_sensorless_homing_per_axis(X_AXIS, stealth_states);
+        stop_sensorless_homing_per_axis(Y_AXIS, stealth_states);
       #endif
     }
 

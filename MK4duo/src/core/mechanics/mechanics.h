@@ -60,6 +60,21 @@ union flagdir_t {
   flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
 };
 
+union sensorless_t {
+  bool all;
+  struct {
+    bool x    : 1;
+    bool y    : 1;
+    bool z    : 1;
+    bool bit3 : 1;
+    bool bit4 : 1;
+    bool bit5 : 1;
+    bool bit6 : 1;
+    bool bit7 : 1;
+  };
+  sensorless_t() { all = false; }
+};
+
 // Struct Mechanics data
 typedef struct {
 
@@ -338,7 +353,8 @@ class Mechanics {
      * Set sensorless homing if the axis has it.
      */
     #if ENABLED(SENSORLESS_HOMING)
-      static void sensorless_homing_per_axis(const AxisEnum axis, const bool enable=true);
+      static sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
+      static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
     #endif
 
     static void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);

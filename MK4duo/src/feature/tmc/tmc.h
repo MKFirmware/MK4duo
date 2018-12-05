@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * tmc.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _TMC_H_
-#define _TMC_H_
 
 #if HAS_TRINAMIC
 
@@ -273,7 +271,7 @@ extern bool report_tmc_status;
 #if AXIS_HAS_TMC(E5)
   extern MKTMC* stepperE5;
 #endif
-    
+
 struct TMC_driver_data {
   uint32_t drv_status;
   bool is_otpw;
@@ -303,6 +301,11 @@ class TMC_Stepper {
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
       static void monitor_driver();
+    #endif
+
+    #if HAS_SENSORLESS
+      static bool enable_stallguard(MKTMC* st);
+      static void disable_stallguard(MKTMC* st, const bool enable);
     #endif
 
     #if ENABLED(TMC_DEBUG)
@@ -503,5 +506,3 @@ class TMC_Stepper {
 extern TMC_Stepper tmc;
 
 #endif // HAS_TRINAMIC
-
-#endif /* _TMC_H_ */
