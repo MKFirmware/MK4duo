@@ -57,7 +57,7 @@ LcdUI lcdui;
   #endif
 #endif
 
-#if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+#if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
   uint8_t lcd_sd_status;
 #endif
 

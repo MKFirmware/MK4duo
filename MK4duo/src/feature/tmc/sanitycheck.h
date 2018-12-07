@@ -106,7 +106,7 @@
       || defined(E4_HARDWARE_SERIAL) \
       || defined(E5_HARDWARE_SERIAL) \
     )
-    #error "DEPENDENCY ERROR: Select *_HARDWARE_SERIAL to use both TMC2208 and ENDSTOP_INTERRUPTS_FEATURE."
+    #error "DEPENDENCY ERROR: Select hardware UART for TMC2208 to use both TMC2208 and ENDSTOP_INTERRUPTS_FEATURE."
   #endif
 #endif
 

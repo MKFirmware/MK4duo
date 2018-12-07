@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000202
-  #error "Update TMCStepper library to 0.2.2 or newer."
+#if TMCSTEPPER_VERSION < 0x000203
+  #error "Update TMCStepper library to 0.2.3 or newer."
 #endif
 
 #define TMC_X_LABEL "X", 0
@@ -315,15 +315,15 @@ class TMC_Stepper {
 
     MKTMC* driver_by_index(const uint8_t index);
 
-    FORCE_INLINE static uint32_t thrs(const uint16_t tmc_msteps, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
+    FORCE_INLINE static uint16_t thrs(const uint16_t tmc_msteps, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
       return 12650000UL * tmc_msteps / (256 * tmc_thrs * tmc_spmm);
     }
-    
+
     FORCE_INLINE static void get_current(MKTMC* st) {
       st->printLabel();
       SERIAL_EMV(" driver current: ", st->getMilliamps());
     }
-    
+
     FORCE_INLINE static void set_current(MKTMC* st, const uint16_t mA) {
       st->rms_current(mA);
     }

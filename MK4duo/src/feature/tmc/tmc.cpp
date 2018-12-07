@@ -1029,7 +1029,12 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
           break;
         case TMC_VSENSE: print_vsense(st); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
-        case TMC_TSTEP: SERIAL_VAL(st->TSTEP()); break;
+        case TMC_TSTEP: {
+            uint32_t tstep_value = st->TSTEP();
+            if (tstep_value == 0xFFFFF) SERIAL_MSG("max");
+            else SERIAL_VAL(tstep_value);
+          }
+          break;
         case TMC_TPWMTHRS: {
             uint32_t tpwmthrs_val = st->TPWMTHRS();
             SERIAL_VAL(tpwmthrs_val);

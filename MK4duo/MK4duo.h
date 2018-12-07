@@ -30,8 +30,9 @@
  * Licence: GPL
  *
  *******************************************************************************************/
-
 #pragma once
+
+#define __MK4DUO_FIRMWARE__
 
 #include "Arduino.h"
 #include "pins_arduino.h"

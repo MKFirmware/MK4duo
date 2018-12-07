@@ -197,7 +197,7 @@ void menu_main() {
   //
   // Autostart
   //
-  #if ENABLED(SDSUPPORT) && ENABLED(MENU_ADDAUTOSTART)
+  #if HAS_SD_SUPPORT && ENABLED(MENU_ADDAUTOSTART)
     if (!busy)
       MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
   #endif
