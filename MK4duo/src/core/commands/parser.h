@@ -19,14 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * parser.h - Parser for a GCode line, providing a parameter interface.
  *            Codes like M149 control the way the GCode parser behaves,
  *            so settings for these codes are located in this class.
  */
-
-#pragma once
 
 //#define DEBUG_GCODE_PARSER
 

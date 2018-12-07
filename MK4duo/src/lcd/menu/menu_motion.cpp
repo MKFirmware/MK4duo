@@ -421,7 +421,7 @@ void menu_motion() {
   #elif ENABLED(LCD_BED_LEVELING)
 
     #if ENABLED(PROBE_MANUALLY)
-      if (!bedlevel.g29_in_progress)
+      if (!bedlevel.flag.g29_in_progress)
     #endif
         MENU_ITEM(submenu, MSG_BED_LEVELING, menu_bed_leveling);
 

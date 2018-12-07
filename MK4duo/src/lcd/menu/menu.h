@@ -68,7 +68,7 @@ FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P
 #define DRAW_MENU_ITEM_SETTING_EDIT_GENERIC(VAL)      draw_menu_item_edit(sel, row, pstr, VAL)
 #define DRAW_BOOL_SETTING(sel, row, pstr, data)       draw_menu_item_edit_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
 
-#if ENABLED(SDSUPPORT)
+#if HAS_SD_SUPPORT
   class SDCard;
   void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir);
   FORCE_INLINE void draw_menu_item_sdfile(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) { draw_sd_menu_item(sel, row, pstr, theCard, false); }
