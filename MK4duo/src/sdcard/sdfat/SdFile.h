@@ -19,30 +19,41 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * sanitycheck.h
- *
- * Test configuration values for errors at compile-time.
+ * \file
+ * \brief SdFile class
  */
 
-#ifndef _SD_CARD_SANITYCHECK_H_
-#define _SD_CARD_SANITYCHECK_H_
+/**
+ * Arduino SdFat Library
+ * Copyright (C) 2009 by William Greiman
+ *
+ * This file is part of the Arduino Sd2Card Library
+ */
 
-#if ENABLED(SDSUPPORT) && ENABLED(USB_FLASH_DRIVE_SUPPORT)
-  #error "DEPENDENCY ERROR: SDSUPPORT and USB_FLASH_DRIVE_SUPPORT not supported!"
-#elif HAS_SD_SUPPORT
-  #if DISABLED(SD_FINISHED_STEPPERRELEASE)
-    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE."
-  #endif
-  #if DISABLED(SD_FINISHED_RELEASECOMMAND)
-    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND."
-  #endif
-  #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
-    #error "DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS."
-  #endif
-#elif ENABLED(EEPROM_SETTINGS) || ENABLED(EEPROM_SD)
-  #error "DEPENDENCY ERROR: You have to enable SDSUPPORT || USB_FLASH_DRIVE_SUPPORT to use EEPROM_SD."
-#endif
+#include "SdBaseFile.h"
 
-#endif /* _SD_CARD_SANITYCHECK_H_ */
+#include <stdint.h>
+#include <string.h>
+
+/**
+ * \class SdFile
+ * \brief SdBaseFile with Print.
+ */
+class SdFile : public SdBaseFile/*, public Print*/ {
+ public:
+  SdFile() {}
+  SdFile(const char* name, uint8_t oflag);
+  #if ARDUINO >= 100
+    size_t write(uint8_t b);
+  #else
+   void write(uint8_t b);
+  #endif
+
+  int16_t write(const void* buf, uint16_t nbyte);
+  void write(const char* str);
+  void write_P(PGM_P str);
+  void writeln_P(PGM_P str);
+};

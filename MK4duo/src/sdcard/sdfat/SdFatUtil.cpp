@@ -21,28 +21,40 @@
  */
 
 /**
- * sanitycheck.h
+ * Arduino SdFat Library
+ * Copyright (C) 2008 by William Greiman
  *
- * Test configuration values for errors at compile-time.
+ * This file is part of the Arduino Sd2Card Library
  */
 
-#ifndef _SD_CARD_SANITYCHECK_H_
-#define _SD_CARD_SANITYCHECK_H_
+#include "../../../MK4duo.h"
 
-#if ENABLED(SDSUPPORT) && ENABLED(USB_FLASH_DRIVE_SUPPORT)
-  #error "DEPENDENCY ERROR: SDSUPPORT and USB_FLASH_DRIVE_SUPPORT not supported!"
-#elif HAS_SD_SUPPORT
-  #if DISABLED(SD_FINISHED_STEPPERRELEASE)
-    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_STEPPERRELEASE."
-  #endif
-  #if DISABLED(SD_FINISHED_RELEASECOMMAND)
-    #error "DEPENDENCY ERROR: Missing setting SD_FINISHED_RELEASECOMMAND."
-  #endif
-  #if ENABLED(SD_SETTINGS) && DISABLED(SD_CFG_SECONDS)
-    #error "DEPENDENCY ERROR: Missing setting SD_CFG_SECONDS."
-  #endif
-#elif ENABLED(EEPROM_SETTINGS) || ENABLED(EEPROM_SD)
-  #error "DEPENDENCY ERROR: You have to enable SDSUPPORT || USB_FLASH_DRIVE_SUPPORT to use EEPROM_SD."
+#if HAS_SD_SUPPORT
+
+#include "SdFatUtil.h"
+#include <string.h>
+
+/**
+ * Amount of free RAM
+ * \return The number of free bytes.
+ */
+#ifdef __arm__
+
+  extern "C" char* sbrk(int incr);
+  int SdFatUtil::FreeRam() {
+    char top;
+    return &top - reinterpret_cast<char*>(sbrk(0));
+  }
+
+#else
+
+  extern char* __brkval;
+  extern char __bss_end;
+  int SdFatUtil::FreeRam() {
+    char top;
+    return __brkval ? &top - __brkval : &top - &__bss_end;
+  }
+
 #endif
 
-#endif /* _SD_CARD_SANITYCHECK_H_ */
+#endif // HAS_SD_SUPPORT
