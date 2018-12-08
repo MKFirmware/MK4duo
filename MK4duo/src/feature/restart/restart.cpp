@@ -237,7 +237,7 @@
     #endif
 
     open(false);
-    file.seekSet(0);
+    file.rewind();
     const int16_t ret = file.write(&job_info, sizeof(job_info));
     #if ENABLED(DEBUG_RESTART)
       if (ret == -1) SERIAL_EM("Restart file write failed.");

@@ -23,7 +23,7 @@
 
 #if HAS_SD_SUPPORT
 
-  #include "sdfat/sdfat.h"
+  #include "sdfat/SdFat.h"
 
   union flagcard_t {
     bool all;

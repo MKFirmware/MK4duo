@@ -61,14 +61,6 @@
 #include <U8glib.h>
 #include <Arduino.h>
 
-#define SPI_FULL_SPEED 0
-#define SPI_HALF_SPEED 1
-#define SPI_QUARTER_SPEED 2
-#define SPI_EIGHTH_SPEED 3
-#define SPI_SIXTEENTH_SPEED 4
-#define SPI_SPEED_5 5
-#define SPI_SPEED_6 6
-
 void u8g_SetPIOutput_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index) {
    PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
      g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT

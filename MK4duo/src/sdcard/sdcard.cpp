@@ -1061,7 +1061,7 @@
       parser_file.read(buf, GCI_BUF_SIZE);
       if (findTotalHeight(buf, objectHeight)) break;
     }
-    parser_file.seekSet(0);
+    parser_file.rewind();
   }
 
   bool SDCard::findGeneratedBy(char* buf, char* genBy) {

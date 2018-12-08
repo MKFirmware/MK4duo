@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.7 revision 04122018
+## Version 4.3.7 revision 08122018
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -78,11 +78,11 @@ The new features are:
 * Added Case Light
 * Added ABL or MBL leveling fade height
 * Added save in EEPROM ABL, MBL or UBL
-* Added Door switch
+* Added Door switch for stop job when door is open
 * Added TMC2130 motor driver
 * Added TMC2208 motor driver
 * Added TMC2660 motor driver
-* Added Power Check for Stop and Save
+* Added Power Check pin for restart job
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD
@@ -93,6 +93,7 @@ The new features are:
 * Added Junction Deviation instead of traditional Jerk limiting
 * Added Bézier Jerk Control see https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
 * Added Text Menu to Nextion Display
+* Added Support USB FLASH DRIVE such as SD
 
 
 ## Credits

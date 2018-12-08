@@ -1171,13 +1171,46 @@
 
 /*****************************************************************************************
  *************************************** SDCARD ******************************************
+ *****************************************************************************************
+ *                                                                                       *
+ * The alternative to the SD reader and put a USB Flash reader.                          *
+ * Support for USB thumb drives using an Arduino USB Host Shield or                      *
+ * equivalent MAX3421E breakout board. The USB thumb drive will appear                   *
+ * to MK4duo as an SD card.                                                              *
+ *                                                                                       *
+ * The MAX3421E must be assigned the same pins as the SD card reader, with               *
+ * the following pin mapping:                                                            *
+ *                                                                                       *
+ *    SCLK, MOSI, MISO --> SCLK, MOSI, MISO                                              *
+ *    INT              --> SD_DETECT_PIN                                                 *
+ *    SS               --> SDSS                                                          *
+ *                                                                                       *
+ * define SD support or USB FLASH drive support                                          *
+ *                                                                                       *
  *****************************************************************************************/
 //#define SDSUPPORT
+//#define USB_FLASH_DRIVE_SUPPORT
 
-//#define SDSLOW              // Use slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
-//#define SDEXTRASLOW         // Use even slower SD transfer mode (not normally needed - uncomment if you're getting volume init error)
-//#define SD_CHECK_AND_RETRY  // Use CRC checks and retries on the SD communication
-//#define SD_EXTENDED_DIR     // Show extended directory including file length. Don't use this with Pronterface
+//
+// SD CARD: SPI SPEED
+//
+// Enable one of the following items for a slower SPI transfer speed.
+// This may be required to resolve "volume init" errors.
+//#define SD_HALF_SPEED
+//#define SD_QUARTER_SPEED
+//#define SD_EIGHTH_SPEED
+//#define SD_SIXTEENTH_SPEED
+
+//
+// SD CARD: ENABLE CRC
+//
+// Use CRC checks and retries on the SD communication.
+//#define SD_CHECK_AND_RETRY
+
+//
+// Show extended directory including file length.
+// Don't use this with Pronterface
+//#define SD_EXTENDED_DIR
 
 // Decomment this if you have external SD without DETECT_PIN
 //#define SD_DISABLED_DETECT

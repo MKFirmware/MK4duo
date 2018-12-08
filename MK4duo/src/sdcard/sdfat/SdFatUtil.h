@@ -19,15 +19,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * Arduino SdFat Library
+ * Copyright (C) 2008 by William Greiman
+ *
+ * This file is part of the Arduino Sd2Card Library
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.7"
-#define FIRMWARE_REVISION         "08122018"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+/**
+ * \file
+ * \brief Useful utility functions.
+ */
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+namespace SdFatUtil {
+  int FreeRam();
+}
+
+using namespace SdFatUtil;  // NOLINT

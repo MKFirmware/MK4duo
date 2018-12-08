@@ -28,89 +28,93 @@
 
 #if HAS_LEVELING
 
-  #define CODE_M420
+#define CODE_M420
 
-  //#define M420_C_USE_MEAN
+//#define M420_C_USE_MEAN
 
-  /**
-   * M420: Enable/Disable Bed Leveling and/or set the Z fade height.
-   *
-   *    S[bool]   Turns leveling on or off
-   *    Z[height] Sets the Z fade height (0 or none to disable)
-   *    V[bool]   Verbose - Print the leveling grid
-   *
-   *  With AUTO_BED_LEVELING_UBL only:
-   *
-   *    L[index]  Load UBL mesh from index (0 is default)
-   *    T[map]    0:Human-readable 1:CSV 2:"LCD" 4:Compact
-   *
-   * With mesh-based leveling only:
-   *
-   *    C         Center mesh on the mean of the lowest and highest
-   */
-  inline void gcode_M420(void) {
+/**
+ * M420: Enable/Disable Bed Leveling and/or set the Z fade height.
+ *
+ *    S[bool]   Turns leveling on or off
+ *    Z[height] Sets the Z fade height (0 or none to disable)
+ *    V[bool]   Verbose - Print the leveling grid
+ *
+ *  With AUTO_BED_LEVELING_UBL only:
+ *
+ *    L[index]  Load UBL mesh from index (0 is default)
+ *    T[map]    0:Human-readable 1:CSV 2:"LCD" 4:Compact
+ *
+ * With mesh-based leveling only:
+ *
+ *    C         Center mesh on the mean of the lowest and highest
+ */
+inline void gcode_M420(void) {
 
-    const bool seen_S = parser.seen('S');
-    bool to_enable = seen_S ? parser.value_bool() : bedlevel.flag.leveling_active;
+  const bool  seen_S = parser.seen('S'),
+              to_enable = seen_S ? parser.value_bool() : bedlevel.flag.leveling_active;
 
-    // If disabling leveling do it right away
-    // (Don't disable for just M420 or M420 V)
-    if (seen_S && !to_enable) bedlevel.set_bed_leveling_enabled(false);
+  // If disabling leveling do it right away
+  // (Don't disable for just M420 or M420 V)
+  if (seen_S && !to_enable) bedlevel.set_bed_leveling_enabled(false);
 
-    const float oldpos[] = {
-      mechanics.current_position[X_AXIS],
-      mechanics.current_position[Y_AXIS],
-      mechanics.current_position[Z_AXIS]
-    };
+  const float oldpos[] = {
+    mechanics.current_position[X_AXIS],
+    mechanics.current_position[Y_AXIS],
+    mechanics.current_position[Z_AXIS]
+  };
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
+  #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-      // L to load a mesh from the EEPROM
-      if (parser.seen('L')) {
+    // L to load a mesh from the EEPROM
+    if (parser.seen('L')) {
 
-        bedlevel.set_bed_leveling_enabled(false);
+      bedlevel.set_bed_leveling_enabled(false);
 
-        #if ENABLED(EEPROM_SETTINGS)
+      #if ENABLED(EEPROM_SETTINGS)
 
-          const int8_t storage_slot = parser.has_value() ? parser.value_int() : ubl.storage_slot;
-          const int16_t a = eeprom.calc_num_meshes();
+        const int8_t storage_slot = parser.has_value() ? parser.value_int() : ubl.storage_slot;
+        const int16_t a = eeprom.calc_num_meshes();
 
-          if (!a) {
-            SERIAL_EM("?EEPROM storage not available.");
-            return;
-          }
-
-          if (!WITHIN(storage_slot, 0, a - 1)) {
-            SERIAL_EM("?Invalid storage slot.");
-            SERIAL_EMV("?Use 0 to ", a - 1);
-            return;
-          }
-
-          eeprom.load_mesh(storage_slot);
-          ubl.storage_slot = storage_slot;
-
-        #else
-
+        if (!a) {
           SERIAL_EM("?EEPROM storage not available.");
           return;
+        }
 
-        #endif
-      }
+        if (!WITHIN(storage_slot, 0, a - 1)) {
+          SERIAL_EM("?Invalid storage slot.");
+          SERIAL_EMV("?Use 0 to ", a - 1);
+          return;
+        }
 
-      // L or V display the map info
-      if (parser.seen('L') || parser.seen('V')) {
-        ubl.display_map(parser.byteval('T'));
-        SERIAL_MSG("Mesh is ");
-        if (!ubl.mesh_is_valid()) SERIAL_MSG("in");
-        SERIAL_EMV("valid\nStorage slot: ", ubl.storage_slot);
-      }
+        eeprom.load_mesh(storage_slot);
+        ubl.storage_slot = storage_slot;
 
-    #endif // AUTO_BED_LEVELING_UBL
+      #else
 
-    #if HAS_MESH
+        SERIAL_EM("?EEPROM storage not available.");
+        return;
+
+      #endif
+    }
+
+    // L or V display the map info
+    if (parser.seen('L') || parser.seen('V')) {
+      ubl.display_map(parser.byteval('T'));
+      SERIAL_MSG("Mesh is ");
+      if (!ubl.mesh_is_valid()) SERIAL_MSG("in");
+      SERIAL_EMV("valid\nStorage slot: ", ubl.storage_slot);
+    }
+
+  #endif // AUTO_BED_LEVELING_UBL
+
+  const bool seenV = parser.seen('V');
+
+  #if HAS_MESH
+
+    if (bedlevel.leveling_is_valid()) {
 
       // Subtract the given value or the mean from all mesh values
-      if (bedlevel.leveling_is_valid() && parser.seen('C')) {
+      if (parser.seen('C')) {
         const float cval = parser.value_float();
         #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -157,54 +161,61 @@
 
         #endif
       }
-
-    #endif // HAS_MESH
-
-    // V to print the matrix or mesh
-    if (parser.seen('V')) {
-      #if ABL_PLANAR
-        bedlevel.matrix.debug(PSTR("Bed Level Correction Matrix:"));
-      #else
-        if (bedlevel.leveling_is_valid()) {
-          #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.print_bilinear_leveling_grid();
-            #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-              abl.print_bilinear_leveling_grid_virt();
-            #endif
-          #elif ENABLED(MESH_BED_LEVELING)
-            SERIAL_EM("Mesh Bed Level data:");
-            mbl.report_mesh();
-          #endif
-        }
-      #endif
+    }
+    else if (to_enable || seenV) {
+      SERIAL_LM(ER, "Invalid mesh.");
+      goto EXIT_M420;
     }
 
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      if (parser.seen('Z')) bedlevel.set_z_fade_height(parser.value_linear_units());
+  #endif // HAS_MESH
+
+  // V to print the matrix or mesh
+  if (seenV) {
+    #if ABL_PLANAR
+      bedlevel.matrix.debug(PSTR("Bed Level Correction Matrix:"));
+    #else
+      if (bedlevel.leveling_is_valid()) {
+        #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+          abl.print_bilinear_leveling_grid();
+          #if ENABLED(ABL_BILINEAR_SUBDIVISION)
+            abl.print_bilinear_leveling_grid_virt();
+          #endif
+        #elif ENABLED(MESH_BED_LEVELING)
+          SERIAL_EM("Mesh Bed Level data:");
+          mbl.report_mesh();
+        #endif
+      }
     #endif
-
-    // Enable leveling if specified, or if previously active
-    bedlevel.set_bed_leveling_enabled(to_enable);
-
-    // Error if leveling failed to enable or reenable
-    if (to_enable && !bedlevel.flag.leveling_active)
-      SERIAL_LM(ER, MSG_ERR_M420_FAILED);
-
-    SERIAL_STR(ECHO);
-    SERIAL_EONOFF("Bed Leveling ", bedlevel.flag.leveling_active);
-
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      SERIAL_SM(ECHO, "Fade Height ");
-      if (bedlevel.z_fade_height > 0.0)
-        SERIAL_EV(bedlevel.z_fade_height);
-      else
-        SERIAL_EM(MSG_OFF);
-    #endif
-
-    // Report change in position
-    if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
-      mechanics.report_current_position();
-
   }
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    if (parser.seen('Z')) bedlevel.set_z_fade_height(parser.value_linear_units());
+  #endif
+
+  // Enable leveling if specified, or if previously active
+  bedlevel.set_bed_leveling_enabled(to_enable);
+
+EXIT_M420:
+
+  // Error if leveling failed to enable or reenable
+  if (to_enable && !bedlevel.flag.leveling_active)
+    SERIAL_LM(ER, MSG_ERR_M420_FAILED);
+
+  SERIAL_STR(ECHO);
+  SERIAL_EONOFF("Bed Leveling ", bedlevel.flag.leveling_active);
+
+  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+    SERIAL_SM(ECHO, "Fade Height ");
+    if (bedlevel.z_fade_height > 0.0)
+      SERIAL_EV(bedlevel.z_fade_height);
+    else
+      SERIAL_EM(MSG_OFF);
+  #endif
+
+  // Report change in position
+  if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+    mechanics.report_current_position();
+
+}
 
 #endif // HAS_LEVELING
