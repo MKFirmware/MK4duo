@@ -59,25 +59,57 @@ SdFile::SdFile(const char* path, uint8_t oflag) : SdBaseFile(path, oflag) { }
  * for a read-only file, device is full, a corrupt file system or an I/O error.
  *
  */
-int16_t SdFile::write(const void* buf, uint16_t nbyte) { return SdBaseFile::write(buf, nbyte); }
+int SdFile::write(const void* buf, size_t nbyte) {
+  return SdBaseFile::write(buf, nbyte);
+}
 
 /**
  * Write a byte to a file. Required by the Arduino Print class.
  * \param[in] b the byte to be written.
  * Use writeError to check for errors.
  */
-#if ARDUINO >= 100
-  size_t SdFile::write(uint8_t b) { return SdBaseFile::write(&b, 1); }
+#if ENABLED(CPU_32_BIT)
+  #ifdef COMPAT_PRE1
+    void SdFile::write(uint8_t b) {
+      dBaseFile::write(&b, 1);
+    }
+  #else
+    size_t SdFile::write(uint8_t b) {
+      return SdBaseFile::write(&b, 1) == 1 ? 1 : 0;
+    }
+  #endif
+
+  
+  /**
+   * Write a string to a file. Used by the Arduino Print class.
+   * \param[in] str Pointer to the string.
+   * Use getWriteError to check for errors.
+   * \return count of characters written for success or -1 for failure.
+   */
+  int SdFile::write(const char * str) {
+    return SdBaseFile::write(str, strlen(str));
+  }
 #else
-  void SdFile::write(uint8_t b) { SdBaseFile::write(&b, 1); }
+  #if ARDUINO >= 100
+    size_t SdFile::write(uint8_t b) {
+      return SdBaseFile::write(&b, 1);
+    }
+  #else
+    void SdFile::write(uint8_t b) {
+      SdBaseFile::write(&b, 1);
+    }
+  #endif
+  
+  /**
+   * Write a string to a file. Used by the Arduino Print class.
+   * \param[in] str Pointer to the string.
+   * Use writeError to check for errors.
+   */
+  void SdFile::write(const char * str) {
+    SdBaseFile::write(str, strlen(str));
+  }
 #endif
 
-/**
- * Write a string to a file. Used by the Arduino Print class.
- * \param[in] str Pointer to the string.
- * Use writeError to check for errors.
- */
-void SdFile::write(const char* str) { SdBaseFile::write(str, strlen(str)); }
 
 /**
  * Write a PROGMEM string to a file.

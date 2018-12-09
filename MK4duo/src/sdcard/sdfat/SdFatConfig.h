@@ -30,13 +30,33 @@
  */
 
 /**
- * To use multiple SD cards set USE_MULTIPLE_CARDS nonzero.
+ * To enable SD card CRC checking set USE_SD_CRC nonzero.
  *
- * Using multiple cards costs 400 - 500  bytes of flash.
+ * Set USE_SD_CRC to 1 to use a smaller slower CRC-CCITT function.
  *
- * Each card requires about 550 bytes of SRAM so use of a Mega is recommended.
+ * Set USE_SD_CRC to 2 to used a larger faster table driven CRC-CCITT function.
  */
-#define USE_MULTIPLE_CARDS 0
+#define USE_SD_CRC 2
+
+/**
+ * Set USE_SEPARATE_FAT_CACHE nonzero to use a second 512 byte cache
+ * for FAT table entries.  Improves performance for large writes that
+ * are not a multiple of 512 bytes.
+ */
+#ifdef __arm__
+  #define USE_SEPARATE_FAT_CACHE 1
+#else  // __arm__
+  #define USE_SEPARATE_FAT_CACHE 0
+#endif  // __arm__
+
+/**
+ * Don't use mult-block read/write on small AVR boards
+ */
+#if ENABLED(RAMEND) && (RAMEND < 3000 || (NONLINEAR_SYSTEM && RAMEND<8000))
+  #define USE_MULTI_BLOCK_SD_IO 0
+#else
+  #define USE_MULTI_BLOCK_SD_IO 1
+#endif
 
 /**
  * Call flush for endl if ENDL_CALLS_FLUSH is nonzero
@@ -67,7 +87,7 @@
  * SPI init rate for SD initialization commands. Must be 5 (F_CPU/64)
  * or 6 (F_CPU/128).
  */
-#define SPI_SD_INIT_RATE 5
+#define SPI_SD_INIT_RATE 11
 
 /**
  * Set the SS pin high for hardware SPI.  If SS is chip select for another SPI
@@ -171,7 +191,8 @@ struct partitionTable {
   uint32_t totalSectors;  // Length of the partition, in blocks.
 } PACK;
 
-typedef struct partitionTable part_t; // Type name for partitionTable
+/** Type name for partitionTable */
+typedef struct partitionTable part_t;
 
 /**
  * \struct masterBootRecord
@@ -316,7 +337,8 @@ struct fat_boot {
   uint8_t  bootSectorSig1;  // must be 0xAA
 } PACK;
 
-typedef struct fat_boot fat_boot_t;   // Type name for FAT Boot Sector
+/** Type name for FAT Boot Sector */
+typedef struct fat_boot fat_boot_t;
 
 /**
  * \struct fat32_boot
@@ -468,7 +490,8 @@ struct fat32_boot {
 
 } PACK;
 
-typedef struct fat32_boot fat32_boot_t; // Type name for FAT32 Boot Sector
+/** Type name for FAT32 Boot Sector */
+typedef struct fat32_boot fat32_boot_t;
 
 uint32_t const FSINFO_LEAD_SIG   = 0x41615252,  // 'AaRR' Lead signature for a FSINFO sector
                FSINFO_STRUCT_SIG = 0x61417272;  // 'aArr' Struct signature for a FSINFO sector
@@ -503,6 +526,7 @@ struct fat32_fsinfo {
   uint8_t  tailSignature[4];  // must be 0x00, 0x00, 0x55, 0xAA
 } PACK;
 
+/** Type name for FAT32 FSINFO Sector */
 typedef struct fat32_fsinfo fat32_fsinfo_t; // Type name for FAT32 FSINFO Sector
 
 // End Of Chain values for FAT entries

@@ -42,18 +42,36 @@
  * \class SdFile
  * \brief SdBaseFile with Print.
  */
-class SdFile : public SdBaseFile/*, public Print*/ {
- public:
-  SdFile() {}
-  SdFile(const char* name, uint8_t oflag);
-  #if ARDUINO >= 100
-    size_t write(uint8_t b);
-  #else
-   void write(uint8_t b);
-  #endif
+class SdFile : public SdBaseFile {
+  public:
+    SdFile() {}
+    SdFile(const char * path, uint8_t oflag);
 
-  int16_t write(const void* buf, uint16_t nbyte);
-  void write(const char* str);
-  void write_P(PGM_P str);
-  void writeln_P(PGM_P str);
+    #if ENABLED(CPU_32_BIT)
+
+      #ifdef COMPAT_PRE1
+        void write(uint8_t b);
+      #else
+        size_t write(uint8_t b);
+      #endif
+
+      int write(const char * str);
+      int write(const void* buf, size_t nbyte);
+
+    #else
+
+      #if ARDUINO >= 100
+        size_t write(uint8_t b);
+      #else
+        void write(uint8_t b);
+      #endif
+
+      int16_t write(const void* buf, uint16_t nbyte);
+      void write(const char * str);
+
+    #endif
+
+    void write_P(PGM_P str);
+    void writeln_P(PGM_P str);
+
 };

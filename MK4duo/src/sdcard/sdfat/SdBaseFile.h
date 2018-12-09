@@ -22,11 +22,6 @@
 #pragma once
 
 /**
- * \file
- * \brief SdBaseFile class
- */
-
-/**
  * Arduino SdFat Library
  * Copyright (C) 2009 by William Greiman
  *
@@ -37,11 +32,6 @@
 
 #include <stdint.h>
 
-/**
- * \struct FatPos_t
- * \brief internal type for istream
- * do not use in user apps
- */
 struct FatPos_t {
   uint32_t position;  // stream byte position
   uint32_t cluster;   // cluster of position
@@ -163,16 +153,11 @@ uint16_t const FAT_DEFAULT_TIME = (1 << 11);
  * \brief Base class for SdFile with Print and C++ streams.
  */
 class SdBaseFile {
-
-  public: /** Constructor */
-
+  
+  public:
+    /** Create an instance. */
     SdBaseFile() : writeError(false), type_(FAT_FILE_TYPE_CLOSED) {}
-    SdBaseFile(const char* path, uint8_t oflag);
-    ~SdBaseFile() { if (isOpen()) close(); }
-
-  public: /** Public Parameters */
-
-    SdVolume* vol_;           // volume where file is located
+    SdBaseFile(PGM_P path, uint8_t oflag);
 
     /**
      * writeError is set to true if an error occurs during a write().
@@ -180,384 +165,35 @@ class SdBaseFile {
      * for true after calls to print() and/or write().
      */
     bool writeError;
-
-    // allow SdFat to set cwd_
-    friend class SdFat;
-
-    // global pointer to cwd dir
-    static SdBaseFile* cwd_;
-
-  private: /** Private Parameters */
-
-    // sync of directory entry required
-    static uint8_t const F_FILE_DIR_DIRTY = 0x80;
-
-    char *    pathend;
-
-    uint8_t   flags_,         // See above for definition of flags_ bits
-              fstate_,        // error and eof indicator
-              type_,          // type of file see above for values
-              dirIndex_;      // index of directory entry in dirBlock
-
-    uint32_t  curCluster_,    // cluster for current file position
-              curPosition_,   // current file position in bytes from beginning
-              dirBlock_,      // block for this files directory entry
-              fileSize_,      // file size in bytes
-              firstCluster_;  // first cluster of file
-
-  public: /** Public Function */
-
-    /**
-     * return The total number of bytes in a file or directory.
-     */
-    uint32_t fileSize() const { return fileSize_; }
-
-    /**
-     * return number of bytes available from the current position to EOF
-     */
-    uint32_t available() { return fileSize() - curPosition(); }
-
-    /**
-     * return The current cluster number for a file or directory.
-     */
-    uint32_t curCluster() const { return curCluster_; }
-
-    /**
-     * return The current position for a file or directory.
-     */
-    uint32_t curPosition() const { return curPosition_; }
-
-    /**
-     * Get a file's name
-     *
-     * \param[out] name An array of 13 characters for the file's name.
-     *
-     * \return true for success, false for failure.
-     */
-    bool getFilename(char * const name);
-
-    /**
-     * Sets a file's position.
-     *
-     * \param[in] pos The new position in bytes from the beginning of the file.
-     *
-     * \return true for success, false for failure.
-     */
-    bool seekSet(const uint32_t pos);
-
-    /**
-     * Set the files position to current position + \a pos. See seekSet().
-     * param[in] offset The new position in bytes from the current position.
-     * return true for success or false for failure.
-     */
-    bool seekCur(int32_t offset) { return seekSet(curPosition_ + offset); }
-
-    /**
-     * Set the files position to end-of-file + \a offset. See seekSet().
-     * param[in] offset The new position in bytes from end-of-file.
-     * return true for success or false for failure.
-     */
-    bool seekEnd(int32_t offset = 0) { return seekSet(fileSize_ + offset); }
-
-    /**
-     * The sync() call causes all modified data and directory fields
-     * to be written to the storage device.
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include a call to sync() before a file has been
-     * opened or an I/O error.
-     */
-    bool sync();
-
-    /**
-     * return True if this is a directory else false.
-     */
-    bool isDir() const { return type_ >= FAT_FILE_TYPE_MIN_DIR; }
-
-    /**
-     * return True if this is a normal file else false.
-     */
-    bool isFile() const { return type_ == FAT_FILE_TYPE_NORMAL; }
-
-    /**
-     * return True if this is an open file/directory else false.
-     */
-    bool isOpen() const { return type_ != FAT_FILE_TYPE_CLOSED; }
-
-    /**
-     * return True if this is a subdirectory else false.
-     */
-    bool isSubDir() const { return type_ == FAT_FILE_TYPE_SUBDIR; }
-
-    /**
-     * return True if this is the root directory.
-     */
-    bool isRoot() const {
-      return type_ == FAT_FILE_TYPE_ROOT_FIXED || type_ == FAT_FILE_TYPE_ROOT32;
-    }
-
-    /**
-     * Make a new directory.
-     *
-     * \param[in] parent An open SdFat instance for the directory that will contain
-     * the new directory.
-     *
-     * \param[in] path A path with a valid 8.3 DOS name for the new directory.
-     *
-     * \param[in] pFlag Create missing parent directories if true.
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include this file is already open, \a parent is not a
-     * directory, \a path is invalid or already exists in \a parent.
-     */
-    bool mkdir(SdBaseFile* dir, const char * path, bool pFlag=true);
-    // alias for backward compactability
-    bool makeDir(SdBaseFile* dir, const char * path) { return mkdir(dir, path, false); }
-
-    /**
-     * Open a file in the current working directory.
-     *
-     * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
-     *
-     * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
-     * OR of open flags. see SdBaseFile::open(SdBaseFile*, const char*, uint8_t).
-     *
-     * \return The value one, true, is returned for success and
-     * the value zero, false, is returned for failure.
-     */
-    bool open(const char * path, uint8_t oflag=O_READ);
-
-    /**
-     * Open a file by index.
-     *
-     * \param[in] dirFile An open SdFat instance for the directory.
-     *
-     * \param[in] index The \a index of the directory entry for the file to be
-     * opened.  The value for \a index is (directory file position)/32.
-     *
-     * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
-     * OR of flags O_READ, O_WRITE, O_TRUNC, and O_SYNC.
-     *
-     * See open() by path for definition of flags.
-     * \return true for success or false for failure.
-     */
-    bool open(SdBaseFile* dirFile, uint16_t index, uint8_t oflag=O_READ);
-
-    bool open(SdBaseFile* dirFile, const char * path, uint8_t oflag=O_READ);
-
-    /**
-     * Open the next file or subdirectory in a directory.
-     *
-     * \param[in] dirFile An open SdFat instance for the directory containing the
-     * file to be opened.
-     *
-     * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
-     * OR of flags O_READ, O_WRITE, O_TRUNC, and O_SYNC.
-     *
-     * See open() by path for definition of flags.
-     * \return true for success or false for failure.
-     */
-    bool openNext(SdBaseFile* dirFile, uint8_t oflag);
-
-    /**
-     * Open a directory's parent directory.
-     *
-     * \param[in] dir Parent of this directory will be opened.  Must not be root.
-     *
-     * \return true for success, false for failure.
-     */
-    bool openParent(SdBaseFile* dir);
-
-    /**
-     * Open a volume's root directory.
-     *
-     * \param[in] vol The FAT volume containing the root directory to be opened.
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include the file is already open, the FAT volume has
-     * not been initialized or it a FAT12 volume.
-     */
-    bool openRoot(SdVolume* vol);
-
-    /**
-     * Close a file and force cached data and directory information
-     *  to be written to the storage device.
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include no file is open or an I/O error.
-     */
-    bool close();
-
-    /**
-     * Read the next byte from a file.
-     *
-     * \return For success read returns the next byte in the file as an int.
-     * If an error occurs or end of file is reached -1 is returned.
-     */
-    int16_t read();
-
-    /**
-     * Read data from a file starting at the current position.
-     *
-     * \param[out] buf Pointer to the location that will receive the data.
-     *
-     * \param[in] nbyte Maximum number of bytes to read.
-     *
-     * \return For success read() returns the number of bytes read.
-     * A value less than \a nbyte, including zero, will be returned
-     * if end of file is reached.
-     * If an error occurs, read() returns -1.  Possible errors include
-     * read() called before a file has been opened, corrupt file system
-     * or an I/O error occurred.
-     */
-    int16_t read(void* buf, uint16_t nbyte);
-
-    /**
-     * Read the next entry in a directory.
-     *
-     * \param[out] dir The dir_t struct that will receive the data.
-     *
-     * \return For success readDir() returns the number of bytes read.
-     * A value of zero will be returned if end of file is reached.
-     * If an error occurs, readDir() returns -1.  Possible errors include
-     * readDir() called before a directory has been opened, this is not
-     * a directory file or an I/O error occurred.
-     */
-    int8_t readDir(dir_t* dir);
-    int8_t readDir(dir_t& dir) { return readDir(&dir); }
-
-    /**
-     * Write data to an open file.
-     *
-     * \note Data is moved to the cache but may not be written to the
-     * storage device until sync() is called.
-     *
-     * \param[in] buf Pointer to the location of the data to be written.
-     *
-     * \param[in] nbyte Number of bytes to write.
-     *
-     * \return For success write() returns the number of bytes written, always
-     * \a nbyte.  If an error occurs, write() returns -1.  Possible errors
-     * include write() is called before a file has been opened, write is called
-     * for a read-only file, device is full, a corrupt file system or an I/O error.
-     *
-     */
-    int16_t write(const void* buf, uint16_t nbyte);
-
-    /**
-     * Remove a file.
-     *
-     * The directory entry and all data for the file are deleted.
-     *
-     * \note This function should not be used to delete the 8.3 version of a
-     * file that has a long name. For example if a file has the long name
-     * "New Text Document.txt" you should not delete the 8.3 name "NEWTEX~1.TXT".
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include the file read-only, is a directory,
-     * or an I/O error occurred.
-     */
-    bool remove();
-
-    /**
-     * Remove a file.
-     *
-     * The directory entry and all data for the file are deleted.
-     *
-     * \param[in] dirFile The directory that contains the file.
-     * \param[in] path Path for the file to be removed.
-     *
-     * \note This function should not be used to delete the 8.3 version of a
-     * file that has a long name. For example if a file has the long name
-     * "New Text Document.txt" you should not delete the 8.3 name "NEWTEX~1.TXT".
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include the file is a directory, is read only,
-     * \a dirFile is not a directory, \a path is not found
-     * or an I/O error occurred.
-     */
-    static bool remove(SdBaseFile* dirFile, const char * path);
+    /** \return value of writeError */
+    bool getWriteError() { return writeError; }
+    /** Set writeError to zero */
+    void clearWriteError() { writeError = 0; }
     
-    /**
-     * Set the file's current position to zero.
-     */
-    void rewind() { seekSet(0); }
-
-    /**
-     * List directory contents.
-     * list to indicate subdirectory level.
-     */
-    void ls();
-
-    uint8_t lsRecursive(SdBaseFile *parent, uint8_t level, char *findFilename, SdBaseFile *pParentFound, bool isJson);
-
-    /** Read the next directory entry from a directory file with the long filename
-     *
-     * \param[out] dir The dir_t struct that will receive the data.
-     * \param[out] longFilename The long filename associated with the 8.3 name
-     *
-     * \return For success getLongFilename() returns a pointer to dir_t
-     * A value of zero will be returned if end of file is reached.
-     */
-    dir_t* getLongFilename(dir_t *dir, char *longFilename);
-
-    /**
-     * %Print a directory date field.
-     *
-     *  Format is yyyy-mm-dd.
-     *
-     * \param[in] pr Print stream for output.
-     * \param[in] fatDate The date field from a directory entry.
-     */
-    static void printFatDate(uint16_t fatDate);
-
-    /**
-     * %Print a directory time field.
-     *
-     * Format is hh:mm:ss.
-     *
-     * \param[in] pr Print stream for output.
-     * \param[in] fatTime The time field from a directory entry.
-     */
-    static void printFatTime(uint16_t fatTime);
-
-    /**
-     * Print a file's modify date and time
-     *
-     * \param[in] pr Print stream for output.
-     *
-     * \return The value one, true, is returned for success and
-     * the value zero, false, is returned for failure.
-     */
-    bool printModifyDateTime();
-
-    /**
-     * Print a file's name to Serial
-     *
-     * \return true for success, false for failure.
-     */
-    bool printName();
-
-  private: /** Private Function */
-
-    /**
-     * return SdVolume that contains this file.
-     */
-    SdVolume* volume() const { return vol_; }
-
-    /**
-     * get position for streams
-     * param[out] pos struct to receive position
+    // helpers for stream classes
+    /** get position for streams
+     * \param[out] pos struct to receive position
      */
     void getpos(FatPos_t* pos);
-
-    /**
-     * set position for streams
-     * param[out] pos struct with value for new position
+    /** set position for streams
+     * \param[out] pos struct with value for new position
      */
     void setpos(FatPos_t* pos);
+    
+    /** \return number of bytes available from yhe current position to EOF */
+    uint32_t available() { return fileSize() - curPosition(); }
+    bool close();
+    bool contiguousRange(uint32_t* bgnBlock, uint32_t* endBlock);
+    bool createContiguous(SdBaseFile* dirFile, const char * path, uint32_t size);
+    /** \return The current cluster number for a file or directory. */
+    uint32_t curCluster() const { return curCluster_; }
+    /** \return The current position for a file or directory. */
+    uint32_t curPosition() const { return curPosition_; }
+    /** \return Current working directory */
+    static SdBaseFile* cwd() { return cwd_; }
 
-    /** Set the date/time callback function
+    /**
+     * Set the date/time callback function
      *
      * \param[in] dateTime The user's call back function.  The callback
      * function is of the form:
@@ -588,288 +224,148 @@ class SdBaseFile {
       void (*dateTime)(uint16_t* date, uint16_t* time)) {
       dateTime_ = dateTime;
     }
-
-    /**
-     * Cancel the date/time callback function.
-     */
+    /**  Cancel the date/time callback function. */
     static void dateTimeCallbackCancel() { dateTime_ = 0; }
-
-    /**
-     * Return a file's directory entry.
-     *
-     * \param[out] dir Location for return of the file's directory entry.
-     *
-     * \return true for success, false for failure.
-     */
     bool dirEntry(dir_t* dir);
-
-    /**
-     * Format the name field of \a dir into the 13 byte array
-     * \a name in standard 8.3 short name format.
-     *
-     * \param[in] dir The directory structure containing the name.
-     * \param[out] name A 13 byte char array for the formatted name.
-     */
     static void dirName(const dir_t& dir, char* name);
-
-    /**
-     * Test for the existence of a file in a directory
-     *
-     * \param[in] name Name of the file to be tested for.
-     *
-     * The calling instance must be an open directory file.
-     *
-     * dirFile.exists("TOFIND.TXT") searches for "TOFIND.TXT" in  the directory
-     * dirFile.
-     *
-     * \return true if the file exists else false.
-     */
     bool exists(const char * name);
-
-    /**
-     * return The first cluster number for a file or directory.
-     */
+    int16_t fgets(char* str, int16_t num, char* delim = 0);
+    /** \return The total number of bytes in a file or directory. */
+    uint32_t fileSize() const { return fileSize_; }
+    /** \return The first cluster number for a file or directory. */
     uint32_t firstCluster() const { return firstCluster_; }
-
+    bool getFilename(char* name);
     uint8_t lfn_checksum(const unsigned char *pFCBName);
+    bool openParentReturnFile(SdBaseFile* dirFile, const char * path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs);
 
-    /**
-     * Open a file or directory by name.
-     *
-     * \param[in] dirFile An open SdFat instance for the directory containing the
-     * file to be opened.
-     *
-     * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
-     *
-     * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
-     * OR of flags from the following list
-     *
-     * O_READ - Open for reading.
-     *
-     * O_RDONLY - Same as O_READ.
-     *
-     * O_WRITE - Open for writing.
-     *
-     * O_WRONLY - Same as O_WRITE.
-     *
-     * O_RDWR - Open for reading and writing.
-     *
-     * O_APPEND - If set, the file offset shall be set to the end of the
-     * file prior to each write.
-     *
-     * O_AT_END - Set the initial position at the end of the file.
-     *
-     * O_CREAT - If the file exists, this flag has no effect except as noted
-     * under O_EXCL below. Otherwise, the file shall be created
-     *
-     * O_EXCL - If O_CREAT and O_EXCL are set, open() shall fail if the file exists.
-     *
-     * O_SYNC - Call sync() after each write.  This flag should not be used with
-     * write(uint8_t), write_P(PGM_P), writelnmkdir_P(PGM_P), or the Arduino Print class.
-     * These functions do character at a time writes so sync() will be called
-     * after each byte.
-     *
-     * O_TRUNC - If the file exists and is a regular file, and the file is
-     * successfully opened and is not read only, its length shall be truncated to 0.
-     *
-     * WARNING: A given file must not be opened by more than one SdBaseFile object
-     * of file corruption may occur.
-     *
-     * \note Directory files must be opened read only.  Write and truncation is
-     * not allowed for directory files.
-     *
-     * \return The value one, true, is returned for success and
-     * the value zero, false, is returned for failure.
-     * Reasons for failure include this file is already open, \a dirFile is not
-     * a directory, \a path is invalid, the file does not exist
-     * or can't be opened in the access mode specified by oflag.
-     */
-    bool openParentReturnFile(SdBaseFile* dirFile, PGM_P path, uint8_t *dname, SdBaseFile *newParent, bool bMakeDirs);
-
-    /**
-     * Return the next available byte without consuming it.
-     *
-     * \return The byte if no error and not at eof else -1;
-     */
+    /** \return True if this is a directory else false. */
+    bool isDir() const {return type_ >= FAT_FILE_TYPE_MIN_DIR;}
+    /** \return True if this is a normal file else false. */
+    bool isFile() const {return type_ == FAT_FILE_TYPE_NORMAL;}
+    /** \return True if this is an open file/directory else false. */
+    bool isOpen() const {return type_ != FAT_FILE_TYPE_CLOSED;}
+    /** \return True if this is a subdirectory else false. */
+    bool isSubDir() const {return type_ == FAT_FILE_TYPE_SUBDIR;}
+    /** \return True if this is the root directory. */
+    bool isRoot() const {
+      return type_ == FAT_FILE_TYPE_ROOT_FIXED || type_ == FAT_FILE_TYPE_ROOT32;
+    }
+    void ls();
+    bool mkdir(SdBaseFile* dir, const char * path, bool pFlag = true);
+    // alias for backward compactability
+    bool makeDir(SdBaseFile* dir, const char * path) {
+      return mkdir(dir, path, false);
+    }
+    bool open(SdBaseFile* dirFile, uint16_t index, uint8_t oflag);
+    bool open(SdBaseFile* dirFile, const char * path, uint8_t oflag);
+    bool open(PGM_P path, uint8_t oflag = O_READ);
+    bool openNext(SdBaseFile* dirFile, uint8_t oflag);
+    bool openRoot(SdVolume* vol);
+    int8_t readDir(dir_t& dir) { return readDir(&dir); }
     int peek();
-
-    /**
-     * Print a file's creation date and time
-     *
-     * \param[in] pr Print stream for output.
-     *
-     * \return The value one, true, is returned for success and
-     * the value zero, false, is returned for failure.
-     */
     bool printCreateDateTime();
-
-    /**
-     * Print a number followed by a field terminator.
-     * \param[in] value The number to be printed.
-     * \param[in] term The field terminator.  Use '\\n' for CR LF.
-     * \return The number of bytes written or -1 if an error occurs.
-     */
+    static void printFatDate(uint16_t fatDate);
+    static void printFatTime(uint16_t fatTime);
+    bool printModifyDateTime();
     int printField(int16_t value, char term);
     int printField(uint16_t value, char term);
     int printField(int32_t value, char term);
     int printField(uint32_t value, char term);
+    bool printName();
+    int16_t read();
+    int read(void* buf, size_t nbyte);
+    int8_t readDir(dir_t* dir);
 
-    /**
-     * Remove a directory file.
-     *
-     * The directory file will be removed only if it is empty and is not the
-     * root directory.  rmdir() follows DOS and Windows and ignores the
-     * read-only attribute for the directory.
-     *
-     * \note This function should not be used to delete the 8.3 version of a
-     * directory that has a long name. For example if a directory has the
-     * long name "New folder" you should not delete the 8.3 name "NEWFOL~1".
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include the file is not a directory, is the root
-     * directory, is not empty, or an I/O error occurred.
-     */
+    static bool remove(SdBaseFile* dirFile, PGM_P path);
+    bool remove();
+    /** Set the file's current position to zero. */
+    void rewind() {seekSet(0);}
+    bool rename(SdBaseFile* dirFile, PGM_P newPath);
     bool rmdir();
     // for backward compatibility
     bool rmDir() {return rmdir();}
-
-    /**
-     * Recursively delete a directory and all contained files.
-     *
-     * This is like the Unix/Linux 'rm -rf *' if called with the root directory
-     * hence the name.
-     *
-     * Warning - This will remove all contents of the directory including
-     * subdirectories.  The directory will then be removed if it is not root.
-     * The read-only attribute for files will be ignored.
-     *
-     * \note This function should not be used to delete the 8.3 version of
-     * a directory that has a long name.  See remove() and rmdir().
-     *
-     * \return true for success, false for failure.
-     */
     bool rmRfStar();
-
-    /**
-     * Copy a file's timestamps
-     *
-     * \param[in] file File to copy timestamps from.
-     *
-     * \note
-     * Modify and access timestamps may be overwritten if a date time callback
-     * function has been set by dateTimeCallback().
-     *
-     * \return true for success, false for failure.
+    /** Set the files position to current position + \a pos. See seekSet().
+     * \param[in] offset The new position in bytes from the current position.
+     * \return true for success or false for failure.
      */
+    bool seekCur(int32_t offset) {
+      return seekSet(curPosition_ + offset);
+    }
+    /** Set the files position to end-of-file + \a offset. See seekSet().
+     * \param[in] offset The new position in bytes from end-of-file.
+     * \return true for success or false for failure.
+     */
+    bool seekEnd(int32_t offset = 0) {return seekSet(fileSize_ + offset);}
+    bool seekSet(uint32_t pos);
+    bool sync();
     bool timestamp(SdBaseFile* file);
-
-    /**
-     * Set a file's timestamps in its directory entry.
-     *
-     * \param[in] flags Values for \a flags are constructed by a bitwise-inclusive
-     * OR of flags from the following list
-     *
-     * T_ACCESS - Set the file's last access date.
-     *
-     * T_CREATE - Set the file's creation date and time.
-     *
-     * T_WRITE - Set the file's last write/modification date and time.
-     *
-     * \param[in] year Valid range 1980 - 2107 inclusive.
-     *
-     * \param[in] month Valid range 1 - 12 inclusive.
-     *
-     * \param[in] day Valid range 1 - 31 inclusive.
-     *
-     * \param[in] hour Valid range 0 - 23 inclusive.
-     *
-     * \param[in] minute Valid range 0 - 59 inclusive.
-     *
-     * \param[in] second Valid range 0 - 59 inclusive
-     *
-     * \note It is possible to set an invalid date since there is no check for
-     * the number of days in a month.
-     *
-     * \note
-     * Modify and access timestamps may be overwritten if a date time callback
-     * function has been set by dateTimeCallback().
-     *
-     * \return true for success, false for failure.
-     */
     bool timestamp(uint8_t flag, uint16_t year, uint8_t month, uint8_t day,
                    uint8_t hour, uint8_t minute, uint8_t second);
-
-    /**
-     * Type of file.  You should use isFile() or isDir() instead of type()
+    /** Type of file.  You should use isFile() or isDir() instead of type()
      * if possible.
      *
      * \return The file or directory type.
      */
-    uint8_t type() const {return type_;}
-
-    /**
-     * Truncate a file to a specified length.  The current file position
-     * will be maintained if it is less than or equal to \a length otherwise
-     * it will be set to end of file.
-     *
-     * \param[in] length The desired length for the file.
-     *
-     * \return true for success, false for failure.
-     * Reasons for failure include file is read only, file is a directory,
-     * \a length is greater than the current file size or an I/O error occurs.
-     */
+    uint8_t type() const { return type_; }
     bool truncate(uint32_t size);
+    /** \return SdVolume that contains this file. */
+    SdVolume* volume() const {return vol_;}
+    int write(const void* buf, size_t nbyte);
 
+  public:
+    // allow SdFat to set cwd_
+    friend class SdFat;
+    // global pointer to cwd dir
+    static SdBaseFile* cwd_;
     // data time callback function
     static void (*dateTime_)(uint16_t* date, uint16_t* time);
+    // bits defined in flags_
+    // should be 0x0F
+    static uint8_t const F_OFLAG = (O_ACCMODE | O_APPEND | O_SYNC);
+    // sync of directory entry required
+    static uint8_t const F_FILE_DIR_DIRTY = 0x80;
 
-    // add a cluster to a file
+    // private data
+    uint8_t   flags_;         // See above for definition of flags_ bits
+    uint8_t   fstate_;        // error and eof indicator
+    uint8_t   type_;          // type of file see above for values
+    uint8_t   dirIndex_;      // index of directory entry in dirBlock
+    SdVolume* vol_;           // volume where file is located
+    uint32_t  curCluster_;    // cluster for current file position
+    uint32_t  curPosition_;   // current file position in bytes from beginning
+    uint32_t  dirBlock_;      // block for this files directory entry
+    uint32_t  fileSize_;      // file size in bytes
+    uint32_t  firstCluster_;  // first cluster of file
+    char *pathend;
+
+    /** experimental don't use */
+    bool openParent(SdBaseFile* dir);
+    // private functions
     bool addCluster();
-
-    // Add a cluster to a directory file and zero the cluster.
-    // return with first block of cluster in the cache
-    bool addDirCluster();
-
-    // cache a file's directory entry
-    // return pointer to cached entry or null for failure
+    cache_t* addDirCluster();
     dir_t* cacheDirEntry(uint8_t action);
-
-    // saves 32 bytes on stack for ls recursion
-    // return 0 - EOF, 1 - normal file, or 2 - directory
     int8_t lsPrintNext(uint8_t flags, uint8_t indent);
-
-    // Format directory name field from a 8.3 name string
     static bool make83Name(PGM_P str, uint8_t* name, const char** ptr);
-
     bool mkdir(SdBaseFile* parent, const uint8_t *dname);
+    bool open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, bool bDir);
+    bool openCachedEntry(uint8_t cacheIndex, uint8_t oflags);
+    dir_t* readDirCache();
+    dir_t* readDirCacheSpecial();
+    dir_t *getLongFilename(dir_t *dir, char *longFilename);
+    bool findSpace(dir_t *dir, int8_t cVFATNeeded, int8_t *pcVFATFound, uint32_t *pwIndexPos);
+    uint8_t lsRecursive(SdBaseFile *parent, uint8_t level, char *findFilename, SdBaseFile *pParentFound, bool isJson);
+    bool setDirSize();
 
-    /** 
-     * Convert the dir_t name field of the file (which contains blank fills)
-     * into a proper filename string without spaces inside.
-     *
-     * buffer MUST be at least a 13 char array!
-     */
+    // to be deleted
+    static void printDirName(const dir_t& dir,
+                             uint8_t width, bool printSlash);
+
     static void createFilename(char* buffer, const dir_t &dirEntry);
 
-    bool findSpace(dir_t *dir, int8_t cVFATNeeded, int8_t *pcVFATFound, uint32_t *pwIndexPos);
+  public:
 
-    // open with filename in dname
-    bool open(SdBaseFile* dirFile, const uint8_t *dname, uint8_t oflag, bool bDir);
-
-    // open a cached directory entry. Assumes vol_ is initialized
-    bool openCachedEntry(uint8_t cacheIndex, uint8_t oflags);
-
-    /**
-     * %Print the name field of a directory entry in 8.3 format.
-     * \param[in] pr Print stream for output.
-     * \param[in] dir The directory structure containing the name.
-     * \param[in] width Blank fill name if length is less than \a width.
-     * \param[in] printSlash Print '/' after directory names if true.
-     */
-    static void printDirName(const dir_t& dir, uint8_t width, bool printSlash);
-
-    // Read next directory entry into the cache
-    // Assumes file is correctly positioned
-    dir_t* readDirCache();
-
+    #ifdef JSON_OUTPUT
+      void lsJSON();
+    #endif
 };
