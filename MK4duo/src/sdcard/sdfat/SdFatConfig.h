@@ -39,15 +39,6 @@
 #define USE_SD_CRC 2
 
 /**
- * To use multiple SD cards set USE_MULTIPLE_CARDS nonzero.
- *
- * Using multiple cards costs 400 - 500  bytes of flash.
- *
- * Each card requires about 550 bytes of SRAM so use of a Mega is recommended.
- */
-#define USE_MULTIPLE_CARDS 0
-
-/**
  * Set USE_SEPARATE_FAT_CACHE nonzero to use a second 512 byte cache
  * for FAT table entries.  Improves performance for large writes that
  * are not a multiple of 512 bytes.

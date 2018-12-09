@@ -47,10 +47,6 @@
 
 #include "sdfat.h"
 
-static void pstrPrintln(PGM_P str) {
-  SERIAL_EM(str);
-}
-
 /**
  * Initialize an SdFat object.
  *
@@ -206,32 +202,36 @@ void SdFat::initErrorHalt(const char * msg) {
  * \param[in] msg Message in program space (flash memory) to print.
  */
 void SdFat::initErrorHalt_P(PGM_P msg) {
-  pstrPrintln(msg);
+  SERIAL_PS(msg);
+  SERIAL_EOL();
   initErrorHalt();
 }
 
 /** Print error details after SdFat::init() fails. */
 void SdFat::initErrorPrint() {
   if (card_.errorCode()) {
-    pstrPrintln(PSTR("Can't access SD card. Do not reformat."));
-    if (card_.errorCode() == SD_CARD_ERROR_CMD0) {
-      pstrPrintln(PSTR("No card, wrong chip select pin, or SPI problem?"));
-    }
+    SERIAL_PS(PSTR("Can't access SD card. Do not reformat."));
+    if (card_.errorCode() == SD_CARD_ERROR_CMD0)
+      SERIAL_PS(PSTR(" No card, wrong chip select pin, or SPI problem?"));
     errorPrint();
-  } else if (vol_.fatType() == 0) {
-    pstrPrintln(PSTR("Invalid format, reformat SD."));
-  } else if (!vwd_.isOpen()) {
-    pstrPrintln(PSTR("Can't open root directory."));
-  } else {
-    pstrPrintln(PSTR("No error found."));
   }
+  else if (vol_.fatType() == 0) {
+    SERIAL_PS(PSTR("Invalid format, reformat SD."));
+  }
+  else if (!vwd_.isOpen()) {
+    SERIAL_PS(PSTR("Can't open root directory."));
+  }
+  else {
+    SERIAL_PS(PSTR("No error found."));
+  }
+  SERIAL_EOL();
 }
 
 /**Print message and error details and halt after SdFat::init() fails.
  *
  * \param[in] msg Message to print.
  */
-void SdFat::initErrorPrint(PGM_P msg) {
+void SdFat::initErrorPrint(char const *msg) {
   SERIAL_LT(ER, msg);
   initErrorPrint();
 }
@@ -241,7 +241,8 @@ void SdFat::initErrorPrint(PGM_P msg) {
  * \param[in] msg Message in program space (flash memory) to print.
  */
 void SdFat::initErrorPrint_P(PGM_P msg) {
-  pstrPrintln(msg);
+  SERIAL_PS(msg);
+  SERIAL_EOL();
   initErrorHalt();
 }
 

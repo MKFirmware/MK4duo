@@ -42,8 +42,6 @@
  */
 #pragma once
 
-#define DBG_FAIL_MACRO  //  SERIAL_EV(__LINE__)
-
 #include "SdFatConfig.h"
 #include "SdFile.h"
 
