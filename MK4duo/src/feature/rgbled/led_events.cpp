@@ -32,14 +32,14 @@
 
   LedEvents ledevents;
 
-  // Private Parameters
+  /** Private Parameters */
   uint8_t LedEvents::old_intensity = 0;
 
   #if HAS_LEDS_OFF_FLAG
     bool LedEvents::leds_off_after_print = false;
   #endif
 
-  // Public Function
+  /** Public Function */
   void LedEvents::onHeating(const bool Hotend, const float &start, const float &current, const float &target) {
     if (Hotend) {
       const uint8_t blue = get_intensity(start, current, target);
@@ -57,7 +57,7 @@
     }
   }
 
-  // Private Function
+  /** Private Function */
   uint8_t LedEvents::get_intensity(const float &start, const float &current, const float &target) {
     return (uint8_t)map(constrain(current, start, target), start, target, 0.f, 255.f);
   }

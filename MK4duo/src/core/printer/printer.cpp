@@ -28,6 +28,8 @@
 
 #include "../../../MK4duo.h"
 
+setting_t settings;
+
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
@@ -154,8 +156,13 @@ void Printer::setup() {
   Com::setBaudrate();
 
   // Check startup
-  SERIAL_STR(INFO);
+  SERIAL_L(START);
+  SERIAL_STR(ECHO);
   HAL::showStartReason();
+
+  #if HAS_TRINAMIC
+    tmc.init();
+  #endif
 
   #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
     DLPSerial.begin(PROJECTOR_BAUDRATE);
@@ -183,10 +190,6 @@ void Printer::setup() {
 
   #if HAS_SD_SUPPORT
     if (!card.isOK()) card.mount();
-  #endif
-
-  #if HAS_TRINAMIC
-    tmc.init();
   #endif
 
   print_job_counter.init();

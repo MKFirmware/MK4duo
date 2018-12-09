@@ -201,12 +201,12 @@ void HAL::showStartReason() {
 }
 
 // Return available memory
+extern "C" {
+  extern unsigned int _ebss; // end of bss section
+}
 int HAL::getFreeRam() {
-  struct mallinfo memstruct = mallinfo();
-  char * stack_ptr asm ("sp");
-
-  // avail mem in heap + (bottom of stack addr - end of heap addr)
-  return (memstruct.fordblks + (int)stack_ptr -  (int)sbrk(0));
+  int free_memory, heap_end = (int)_sbrk(0);
+  return (int)&free_memory - (heap_end ? heap_end : (int)&_ebss);
 }
 
 // Convert an Arduino Due analog pin number to the corresponding ADC channel number

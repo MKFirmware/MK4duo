@@ -213,15 +213,19 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8
 }
 
 // Return available memory
-int HAL::getFreeRam() {
-  int freeram = 0;
-  InterruptProtectedBlock noInts;
-  uint8_t * heapptr, * stackptr;
-  heapptr = (uint8_t *)malloc(4);          // get heap pointer
-  free(heapptr);      // free up the memory again (sets heapptr to 0)
-  stackptr =  (uint8_t *)(SP);           // save value of stack pointer
-  freeram = (int)stackptr-(int)heapptr;
-  return freeram;
+extern "C" {
+  extern char __bss_end;
+  extern char __heap_start;
+  extern void* __brkval;
+
+  int HAL::getFreeRam() {
+    int free_memory;
+    if ((int)__brkval == 0)
+      free_memory = ((int)&free_memory) - ((int)&__bss_end);
+    else
+      free_memory = ((int)&free_memory) - ((int)__brkval);
+    return free_memory;
+  }
 }
 
 void(* resetFunc) (void) = 0; // declare reset function @ address 0

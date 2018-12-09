@@ -30,10 +30,10 @@
 
   EmergencyParser emergency_parser;
 
-  // Public Parameters
+  /** Public Parameters */
   bool  EmergencyParser::killed_by_M112 = false;
 
-  // Private Parameters
+  /** Private Parameters */
   bool EmergencyParser::enabled = true;
 
   //Public Function

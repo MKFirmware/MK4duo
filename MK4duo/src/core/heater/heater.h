@@ -93,6 +93,9 @@ class Heater {
 
   public: /** Public Function */
 
+    /**
+     * Initialize Heater
+     */
     void init();
 
     void setTarget(int16_t celsius);

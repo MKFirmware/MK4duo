@@ -32,11 +32,11 @@
 
   FilamentRunOut filamentrunout;
 
-  // Public Parameters
+  /** Public Parameters */
   flagbyte_t  FilamentRunOut::logic_flag,
               FilamentRunOut::pullup_flag;
 
-  // Public Function
+  /** Public Function */
   void FilamentRunOut::init() {
     SET_INPUT(FIL_RUNOUT_0_PIN);
     #if HAS_FIL_RUNOUT_1
@@ -151,7 +151,7 @@
 
   }
 
-  // Private Function
+  /** Private Function */
   bool FilamentRunOut::read() {
 
     #if (PIN_EXISTS(FIL_RUNOUT_1))

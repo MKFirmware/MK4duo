@@ -30,8 +30,7 @@ Temperature thermalManager;
 
 constexpr bool thermal_protection[HEATER_TYPE] = { THERMAL_PROTECTION_HOTENDS, THERMAL_PROTECTION_BED, THERMAL_PROTECTION_CHAMBER, THERMAL_PROTECTION_COOLER };
 
-// public:
-
+/** Public Parameters */
 #if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0,
           Temperature::mcu_highest_temperature  = 0.0,
@@ -48,8 +47,7 @@ constexpr bool thermal_protection[HEATER_TYPE] = { THERMAL_PROTECTION_HOTENDS, T
   int16_t Temperature::extrude_min_temp   = EXTRUDE_MINTEMP;
 #endif
 
-// private:
-
+/** Private Parameters */
 uint8_t Temperature::pid_pointer = 255;
 
 #if ENABLED(FILAMENT_SENSOR)
@@ -61,11 +59,7 @@ uint8_t Temperature::pid_pointer = 255;
   bool Temperature::paused;
 #endif
 
-// Public Function
-
-/**
- * Initialize the temperature manager
- */
+/** Public Function */
 void Temperature::init() {
 
   HAL::analogStart();

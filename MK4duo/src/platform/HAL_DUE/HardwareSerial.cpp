@@ -276,7 +276,7 @@ template<int portNr>
     }
   }
 
-// Public Function
+/** Public Function */
 template<int portNr>
   void MKHardwareSerial<portNr>::begin(const long baud) {
 

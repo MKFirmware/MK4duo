@@ -44,7 +44,7 @@
 
   LEDLights leds;
 
-  // Public Parameters
+  /** Public Parameters */
   #if ENABLED(LED_COLOR_PRESETS)
     const LEDColor LEDLights::defaultLEDColor = MakeLEDColor(
       LED_USER_PRESET_RED,
@@ -60,7 +60,7 @@
     bool LEDLights::lights_on = false;
   #endif
 
-  // Public Function
+  /** Public Function */
   void LEDLights::setup() {
 
     #if ENABLED(NEOPIXEL_LED)

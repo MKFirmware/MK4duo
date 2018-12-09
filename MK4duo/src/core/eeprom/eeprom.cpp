@@ -211,7 +211,7 @@ typedef struct EepromDataStruct {
   // SD Restart
   //
   #if HAS_SD_RESTART
-    bool restart_enabled;
+    bool              restart_enabled;
   #endif
 
   //

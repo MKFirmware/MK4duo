@@ -30,8 +30,8 @@
 
 #if !PIN_EXISTS(SD_DETECT)
   void lcd_sd_refresh() {
-    card.mount();
     encoderTopLine = 0;
+    card.mount();
   }
 #endif
 
