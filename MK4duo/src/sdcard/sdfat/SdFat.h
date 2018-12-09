@@ -42,6 +42,8 @@
  */
 #pragma once
 
+#define DBG_FAIL_MACRO  //  SERIAL_EV(__LINE__)
+
 #include "SdFatConfig.h"
 #include "SdFile.h"
 
@@ -57,42 +59,42 @@ class SdFat {
   public: /** Constructor */
 
     SdFat() {}
-
-  private: /** Private Parameters */
-
-    Sd2Card     card_;
-    SdVolume    vol_;
-    SdBaseFile  vwd_;
-
-  public: /** Public Function */
-
-    /**
-     * return a pointer to the Sd2Card object.
-     */
     Sd2Card* card() { return &card_; }
-
-    /**
-     * return a pointer to the SdVolume object.
-     */
-    SdVolume* vol() { return &vol_; }
-
-    /**
-     * return a pointer to the volume working directory.
-     */
-    SdBaseFile* vwd() { return &vwd_; }
-
-    bool begin(uint8_t chipSelectPin=SD_CHIP_SELECT_PIN, uint8_t sckRateID=SPI_FULL_SPEED);
+    
+  public:
 
     bool chdir(bool set_cwd = false);
-    bool chdir(char const * path, bool set_cwd=false);
+    bool chdir(const char * path, bool set_cwd = false);
+    void chvol();
+    void errorHalt();
+    void errorHalt_P(PGM_P msg);
+    void errorHalt(char const *msg);
+    void errorPrint();
+    void errorPrint_P(PGM_P msg);
+    void errorPrint(char const *msg);
+    bool exists(const char * name);
+    bool begin(uint8_t chipSelectPin = SD_CHIP_SELECT_PIN, uint8_t sckRateID = SPI_FULL_SPEED);
+    void initErrorHalt();
+    void initErrorHalt(char const *msg);
+    void initErrorHalt_P(PGM_P msg);
+    void initErrorPrint();
+    void initErrorPrint(char const *msg);
+    void initErrorPrint_P(PGM_P msg);
+    void ls();
+    bool mkdir(const char * path, bool pFlag = true);
+    bool remove(const char * path);
+    bool rename(const char * oldPath, const char * newPath);
+    bool rmdir(const char * path);
+    bool truncate(const char * path, uint32_t length);
 
-    bool exists(char const * name);
-    
-    bool mkdir(char const * path, bool pFlag=true);
-    bool remove(char const * path);
-    bool rmdir(char const * path);
-    bool truncate(char const * path, uint32_t length);
+    SdVolume* vol() { return &vol_; }
 
-    void chvol() { SdBaseFile::cwd_ = &vwd_; }
+    SdBaseFile* vwd() { return &vwd_; }
+
+  private:
+
+    Sd2Card card_;
+    SdVolume vol_;
+    SdBaseFile vwd_;
 
 };

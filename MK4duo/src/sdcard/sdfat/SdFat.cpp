@@ -47,6 +47,10 @@
 
 #include "sdfat.h"
 
+static void pstrPrintln(PGM_P str) {
+  SERIAL_EM(str);
+}
+
 /**
  * Initialize an SdFat object.
  *
@@ -100,15 +104,75 @@ bool SdFat::chdir(bool set_cwd) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::chdir(char const * path, bool set_cwd) {
+bool SdFat::chdir(const char * path, bool set_cwd) {
   SdBaseFile dir;
   if (path[0] == '/' && path[1] == '\0') return chdir(set_cwd);
 
-  if (!dir.open(&vwd_, path, FILE_READ)) return false;
+  if (!dir.open(&vwd_, path, O_READ)) return false;
   if (!dir.isDir()) return false;
   vwd_ = dir;
-  if (set_cwd) chvol();
+  if (set_cwd) SdBaseFile::cwd_ = &vwd_;
   return true;
+}
+
+/** Set the current working directory to a volume's working directory.
+ *
+ * This is useful with multiple SD cards.
+ *
+ * The current working directory is changed to this volume's working directory.
+ *
+ * This is like the Windows/DOS \<drive letter>: command.
+ */
+void SdFat::chvol() {
+  SdBaseFile::cwd_ = &vwd_;
+}
+
+/** %Print any SD error code and halt. */
+void SdFat::errorHalt() {
+  errorPrint();
+  while (1);
+}
+
+/** %Print msg, any SD error code, and halt.
+ *
+ * \param[in] msg Message to print.
+ */
+void SdFat::errorHalt(char const* msg) {
+  errorPrint(msg);
+  while (1);
+}
+
+/** %Print msg, any SD error code, and halt.
+ *
+ * \param[in] msg Message in program space (flash memory) to print.
+ */
+void SdFat::errorHalt_P(PGM_P msg) {
+  errorPrint_P(msg);
+  while (1);
+}
+
+/** %Print any SD error code. */
+void SdFat::errorPrint() {
+  if (!card_.errorCode()) return;
+  SERIAL_LMV(ER, MSG_SD_ERRORCODE, card_.errorCode());
+}
+
+/** %Print msg, any SD error code.
+ *
+ * \param[in] msg Message to print.
+ */
+void SdFat::errorPrint(char const *msg) {
+  SERIAL_LT(ER, msg);
+  errorPrint();
+}
+
+/** %Print msg, any SD error code.
+ *
+ * \param[in] msg Message in program space (flash memory) to print.
+ */
+void SdFat::errorPrint_P(PGM_P msg) {
+  SERIAL_LT(ER, msg);
+  errorPrint();
 }
 
 /**
@@ -118,7 +182,68 @@ bool SdFat::chdir(char const * path, bool set_cwd) {
  *
  * \return true if the file exists else false.
  */
-bool SdFat::exists(char const * name) { return vwd_.exists(name); }
+bool SdFat::exists(const char * name) {
+  return vwd_.exists(name);
+}
+
+/** %Print error details and halt after SdFat::init() fails. */
+void SdFat::initErrorHalt() {
+  initErrorPrint();
+  while (1);
+}
+
+/**Print message, error details, and halt after SdFat::init() fails.
+ *
+ * \param[in] msg Message to print.
+ */
+void SdFat::initErrorHalt(const char * msg) {
+  SERIAL_LT(ER, msg);
+  initErrorHalt();
+}
+
+/**Print message, error details, and halt after SdFat::init() fails.
+ *
+ * \param[in] msg Message in program space (flash memory) to print.
+ */
+void SdFat::initErrorHalt_P(PGM_P msg) {
+  pstrPrintln(msg);
+  initErrorHalt();
+}
+
+/** Print error details after SdFat::init() fails. */
+void SdFat::initErrorPrint() {
+  if (card_.errorCode()) {
+    pstrPrintln(PSTR("Can't access SD card. Do not reformat."));
+    if (card_.errorCode() == SD_CARD_ERROR_CMD0) {
+      pstrPrintln(PSTR("No card, wrong chip select pin, or SPI problem?"));
+    }
+    errorPrint();
+  } else if (vol_.fatType() == 0) {
+    pstrPrintln(PSTR("Invalid format, reformat SD."));
+  } else if (!vwd_.isOpen()) {
+    pstrPrintln(PSTR("Can't open root directory."));
+  } else {
+    pstrPrintln(PSTR("No error found."));
+  }
+}
+
+/**Print message and error details and halt after SdFat::init() fails.
+ *
+ * \param[in] msg Message to print.
+ */
+void SdFat::initErrorPrint(PGM_P msg) {
+  SERIAL_LT(ER, msg);
+  initErrorPrint();
+}
+
+/**Print message and error details after SdFat::init() fails.
+ *
+ * \param[in] msg Message in program space (flash memory) to print.
+ */
+void SdFat::initErrorPrint_P(PGM_P msg) {
+  pstrPrintln(msg);
+  initErrorHalt();
+}
 
 /** Make a subdirectory in the volume working directory.
  *
@@ -129,7 +254,7 @@ bool SdFat::exists(char const * name) { return vwd_.exists(name); }
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::mkdir(char const * path, bool pFlag) {
+bool SdFat::mkdir(const char * path, bool pFlag) {
   SdBaseFile sub;
   return sub.mkdir(&vwd_, path, pFlag);
 }
@@ -141,8 +266,29 @@ bool SdFat::mkdir(char const * path, bool pFlag) {
 * \return The value one, true, is returned for success and
 * the value zero, false, is returned for failure.
 */
-bool SdFat::remove(char const * path) {
+bool SdFat::remove(const char * path) {
   return SdBaseFile::remove(&vwd_, path);
+}
+
+/** Rename a file or subdirectory.
+ *
+ * \param[in] oldPath Path name to the file or subdirectory to be renamed.
+ *
+ * \param[in] newPath New path name of the file or subdirectory.
+ *
+ * The \a newPath object must not exist before the rename call.
+ *
+ * The file to be renamed must not be open.  The directory entry may be
+ * moved and file system corruption could occur if the file is accessed by
+ * a file object that was opened before the rename() call.
+ *
+ * \return The value one, true, is returned for success and
+ * the value zero, false, is returned for failure.
+ */
+bool SdFat::rename(const char * oldPath, const char * newPath) {
+  SdBaseFile file;
+  if (!file.open(oldPath, O_READ)) return false;
+  return file.rename(&vwd_, newPath);
 }
 
 /** Remove a subdirectory from the volume's working directory.
@@ -154,9 +300,9 @@ bool SdFat::remove(char const * path) {
  * \return The value one, true, is returned for success and
  * the value zero, false, is returned for failure.
  */
-bool SdFat::rmdir(char const * path) {
+bool SdFat::rmdir(const char * path) {
   SdBaseFile sub;
-  if (!sub.open(path, FILE_READ)) return false;
+  if (!sub.open(path, O_READ)) return false;
   return sub.rmdir();
 }
 
@@ -172,7 +318,7 @@ bool SdFat::rmdir(char const * path) {
  * Reasons for failure include file is read only, file is a directory,
  * \a length is greater than the current file size or an I/O error occurs.
  */
-bool SdFat::truncate(char const * path, uint32_t length) {
+bool SdFat::truncate(const char * path, uint32_t length) {
   SdBaseFile file;
   if (!file.open(path, O_WRITE)) return false;
   return file.truncate(length);

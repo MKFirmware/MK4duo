@@ -251,7 +251,7 @@ static_assert(1 >= 0
 #endif
 
 // Babystepping
-#if ENABLED(BABYSTEPPING) && DISABLED(ULTRA_LCD)
+#if ENABLED(BABYSTEPPING) && !HAS_LCD
   #error "DEPENDENCY ERROR: BABYSTEPPING requires an LCD controller."
 #endif
 
