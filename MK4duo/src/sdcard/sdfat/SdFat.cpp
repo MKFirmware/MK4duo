@@ -45,7 +45,7 @@
 
 #if HAS_SD_SUPPORT
 
-#include "sdfat.h"
+#include "SdFat.h"
 
 /**
  * Initialize an SdFat object.
