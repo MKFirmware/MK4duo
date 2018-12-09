@@ -40,17 +40,17 @@
 
 AdvancedPause advancedpause;
 
-// Public Parameters
+/** Public Parameters */
 AdvancedPauseMenuResponseEnum AdvancedPause::menu_response;
 
 advanced_pause_data_t AdvancedPause::data[EXTRUDERS];
 
 uint8_t AdvancedPause::did_pause_print = 0;
 
-// Private Parameters
+/** Private Parameters */
 float AdvancedPause::resume_position[XYZE];
 
-// Public Function
+/** Public Function */
 void AdvancedPause::do_pause_e_move(const float &length, const float &fr) {
   mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.active_extruder];
   planner.buffer_line(mechanics.current_position, fr, tools.active_extruder);
@@ -508,7 +508,7 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   return true;
 }
 
-// Private Function
+/** Private Function */
 void AdvancedPause::show_continue_prompt(const bool is_reload) {
   #if HAS_LCD
     lcd_advanced_pause_show_message(is_reload ? ADVANCED_PAUSE_MESSAGE_INSERT : ADVANCED_PAUSE_MESSAGE_WAITING);

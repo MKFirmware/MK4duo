@@ -68,10 +68,13 @@ class Temperature {
 
   public: /** Public Function */
 
-    void init();
+    /**
+     * Initialize the temperature manager
+     */
+    static void init();
 
     /**
-     * Static (class) methods
+     * Wait heating
      */
     static void wait_heater(Heater *act, bool no_wait_for_cooling=true);
 

@@ -128,6 +128,8 @@
     fat.chdir(true);
     root = *fat.vwd();
     setroot();
+
+    lcdui.refresh();
   }
 
   void SDCard::unmount() {
@@ -968,7 +970,7 @@
 
   #endif // SDCARD_SORT_ALPHA
 
-  // Private Function
+  /** Private Function */
   /**
    * Dive into a folder and recurse depth-first to perform a pre-set operation lsAction:
    *   LS_Count       - Add +1 to nrFiles for every file within the parent

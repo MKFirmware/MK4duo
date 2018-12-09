@@ -53,17 +53,6 @@ typedef struct {
       shB = 1.0 / beta;
       const float lnR25 = LOG(r25);
       shA = 1.0 / (25.0 - ABS_ZERO) - shB * lnR25 - shC * lnR25 * lnR25 * lnR25;
-
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          SERIAL_LM(ECHO, "Steinhart Hart coefficients.");
-          SERIAL_LMV(ECHO, " R25: ", r25, 2);
-          SERIAL_LMV(ECHO, " lnR25: ", lnR25, 2);
-          SERIAL_LMV(ECHO, " shA: ", shA, 15);
-          SERIAL_LMV(ECHO, " shB: ", shB, 15);
-          SERIAL_LMV(ECHO, " shC: ", shC, 15);
-        }
-      #endif
     }
 
     float getTemperature() {

@@ -229,7 +229,7 @@
 
   }
 
-// Private Function
+/** Private Function */
   void Restart::write_job() {
 
     #if ENABLED(DEBUG_RESTART)

@@ -26,7 +26,7 @@
 
   Power powerManager;
 
-  // Public Parameters
+  /** Public Parameters */
   flagpower_t Power::flag;
 
   #if HAS_POWER_CONSUMPTION_SENSOR
@@ -36,7 +36,7 @@
               Power::startpower                 = 0;
   #endif
 
-  // Private Parameters
+  /** Private Parameters */
   #if HAS_POWER_SWITCH
     bool      Power::powersupply_on = false;
     #if (POWER_TIMEOUT > 0)
@@ -44,10 +44,10 @@
     #endif
   #endif
 
-  // Public Function
+  /** Public Function */
   #if HAS_POWER_SWITCH || HAS_POWER_CHECK
 
-    // Public Function
+    /** Public Function */
     void Power::init() {
       #if HAS_POWER_SWITCH
         SET_OUTPUT(PS_ON_PIN);

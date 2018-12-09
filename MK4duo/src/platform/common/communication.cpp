@@ -42,10 +42,10 @@ FSTRINGVALUE(DISCONNECT, "//action:disconnect");
 FSTRINGVALUE(POWEROFF, "//action:poweroff");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 
-// Public Parameters
+/** Public Parameters */
 int8_t Com::serial_port = -1;
 
-// Public Function
+/** Public Function */
 void Com::setBaudrate() {
   MKSERIAL1.begin(BAUDRATE_1);
   HAL::delayMilliseconds(1000);

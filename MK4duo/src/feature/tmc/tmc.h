@@ -455,6 +455,10 @@ class TMC_Stepper {
 
   private: /** Private Function */
 
+    #if TMC_HAS_SPI
+      static void init_cs_pins();
+    #endif
+
     #if HAVE_DRV(TMC2660)
       static void config(MKTMC* st, const int8_t tmc_sgt=0);
     #elif HAVE_DRV(TMC2130)

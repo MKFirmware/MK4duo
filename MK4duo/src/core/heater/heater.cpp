@@ -31,9 +31,6 @@
   Heater heaters[HEATER_COUNT];
 #endif
 
-/**
- * Initialize Heater
- */
 void Heater::init() {
 
   // Reset valor

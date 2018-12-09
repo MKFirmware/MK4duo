@@ -76,13 +76,15 @@
 
 TMC_Stepper tmc;
 
-// Public Parameters
+/** Public Parameters */
 
-// Private Parameters
+/** Private Parameters */
 bool TMC_Stepper::report_status = false;
 
-// Public Function
+/** Public Function */
 void TMC_Stepper::init() {
+
+  init_cs_pins();
 
   #if HAVE_DRV(TMC2660)
 
@@ -95,7 +97,7 @@ void TMC_Stepper::init() {
     #endif
 
     #if DISABLED(SOFT_SPI_TMC2130)
-      HAL::spiBegin();
+      SPI.begin();
     #endif
 
     // Stepper objects of TMC2660 steppers used
@@ -165,7 +167,7 @@ void TMC_Stepper::init() {
     #endif
 
     #if DISABLED(SOFT_SPI_TMC2130)
-      HAL::spiBegin();
+      SPI.begin();
     #endif
 
     // Stepper objects of TMC2130 steppers used
@@ -691,7 +693,53 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
 }
 
-// Private Function
+/** Private Function */
+#if TMC_HAS_SPI
+
+  void TMC_Stepper::init_cs_pins() {
+    #if AXIS_HAS_SPI(X)
+      OUT_WRITE(X_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(Y)
+      OUT_WRITE(Y_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(Z)
+      OUT_WRITE(Z_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(X2)
+      OUT_WRITE(X2_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(Y2)
+      OUT_WRITE(Y2_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(Z2)
+      OUT_WRITE(Z2_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(Z3)
+      OUT_WRITE(Z3_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E0)
+      OUT_WRITE(E0_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E1)
+      OUT_WRITE(E1_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E2)
+      OUT_WRITE(E2_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E3)
+      OUT_WRITE(E3_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E4)
+      OUT_WRITE(E4_CS_PIN, HIGH);
+    #endif
+    #if AXIS_HAS_SPI(E5)
+      OUT_WRITE(E5_CS_PIN, HIGH);
+    #endif
+  }
+
+#endif // TMC_HAS_SPI
+
 #if HAVE_DRV(TMC2660)
 
   void TMC_Stepper::config(MKTMC* st, const int8_t tmc_sgt/*=0*/) {
