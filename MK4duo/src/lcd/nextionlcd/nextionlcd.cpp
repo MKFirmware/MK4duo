@@ -103,13 +103,14 @@
   char        buffer[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if HAS_SD_SUPPORT
-    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing, 4 SD paused, 5 USB printing
-    enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_PRINTING = 3, SD_PAUSE = 4, USB_PRINTING = 5 };
+    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing, 4 SD paused
+    enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_PRINTING = 3, SD_PAUSE = 4 };
     SDstatus_enum SDstatus    = NO_SD;
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
 
   #if ENABLED(NEXTION_GFX)
+    bool GfxON = false;
     GFX gfx = GFX(1, 1, 1, 1);
   #endif
 
@@ -181,6 +182,7 @@
   NexObject progressbar = NexObject(2, 94,  "j0");
   NexObject Wavetemp    = NexObject(2, 95,  "s0");
   NexObject FanTouch    = NexObject(2, 99);
+  NexObject GfxVis      = NexObject(2, 104, "gfx");
 
   /**
    *******************************************************************
@@ -643,6 +645,21 @@
           #endif
         }
 
+        #if ENABLED(NEXTION_GFX)
+          if (printer.isPrinting()) {
+            if (!GfxON) {
+              GfxON = true;
+              nexlcd.setValue(GfxVis, 1);
+            }
+          }
+          else {
+            if (GfxON) {
+              GfxON = false;
+              nexlcd.setValue(GfxVis, 0);
+            }
+          }
+        #endif
+
         #if FAN_COUNT > 0
           if (PreviousfanSpeed != fans[0].Speed) {
             nexlcd.setValue(Fanspeed, ((float)(fans[0].Speed) / 255) * 100);
@@ -728,38 +745,36 @@
           PreviouspercentDone = printer.progress;
         }
 
-        if (IS_SD_FILE_OPEN()) {
-          if (IS_SD_PRINTING()) {
-            if (SDstatus != SD_PRINTING) {
-              SDstatus = SD_PRINTING;
+        #if HAS_SD_SUPPORT
+
+          if (IS_SD_FILE_OPEN()) {
+            if (IS_SD_PRINTING()) {
+              if (SDstatus != SD_PRINTING) {
+                SDstatus = SD_PRINTING;
+                nexlcd.setValue(SD, SDstatus);
+              }
+            }
+            else {
+              if (SDstatus != SD_PAUSE) {
+                SDstatus = SD_PAUSE;
+                nexlcd.setValue(SD, SDstatus);
+              }
+            }
+          }
+          else if (IS_SD_OK()) {
+            if (SDstatus != SD_INSERT) {
+              SDstatus = SD_INSERT;
               nexlcd.setValue(SD, SDstatus);
             }
           }
-          else {
-            if (SDstatus != SD_PAUSE) {
-              SDstatus = SD_PAUSE;
+          else if (!IS_SD_OK()) {
+            if (SDstatus != SD_NO_INSERT) {
+              SDstatus = SD_NO_INSERT;
               nexlcd.setValue(SD, SDstatus);
             }
           }
-        }
-        else if (print_job_counter.isRunning()) {
-          if (SDstatus != USB_PRINTING) {
-            SDstatus = USB_PRINTING;
-            nexlcd.setValue(SD, SDstatus);
-          }
-        }
-        else if (IS_SD_OK()) {
-          if (SDstatus != SD_INSERT) {
-            SDstatus = SD_INSERT;
-            nexlcd.setValue(SD, SDstatus);
-          }
-        }
-        else if (!IS_SD_OK()) {
-          if (SDstatus != SD_NO_INSERT) {
-            SDstatus = SD_NO_INSERT;
-            nexlcd.setValue(SD, SDstatus);
-          }
-        }
+
+        #endif
 
         break;
 
