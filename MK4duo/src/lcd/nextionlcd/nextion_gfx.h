@@ -190,8 +190,8 @@
         cmd += buf3;
         cmd += ",";
         cmd += buf4;
-        sendCommand(cmd.c_str());
-        recvRetCommandFinished();
+        nexlcd.sendCommand(cmd.c_str());
+        nexlcd.recvRetCommandFinished();
       }
 
       void drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
@@ -212,8 +212,8 @@
         cmd += bufy1;
         cmd += ",";
         cmd += bufc;
-        sendCommand(cmd.c_str());
-        recvRetCommandFinished();
+        nexlcd.sendCommand(cmd.c_str());
+        nexlcd.recvRetCommandFinished();
       }
 
       void drawPixel(const int x, const int y, uint16_t color) {
@@ -232,8 +232,8 @@
         cmd += buf1;
         cmd += ",";
         cmd += buf2;
-        sendCommand(cmd.c_str());
-        recvRetCommandFinished();
+        nexlcd.sendCommand(cmd.c_str());
+        nexlcd.recvRetCommandFinished();
       }
   };
 
