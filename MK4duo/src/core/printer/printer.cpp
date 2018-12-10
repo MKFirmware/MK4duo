@@ -28,8 +28,6 @@
 
 #include "../../../MK4duo.h"
 
-setting_t settings;
-
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;

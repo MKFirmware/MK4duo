@@ -65,16 +65,6 @@ union flagVarious_t {
   flagVarious_t() { all = 0; }
 };
 
-typedef struct {
-
-  #if HEATER_COUNT > 0
-    heater_data_t heater[HEATER_COUNT];
-  #endif
-
-} setting_t;
-
-extern setting_t settings;
-
 extern const char axis_codes[NUM_AXIS];
 
 class Printer {
