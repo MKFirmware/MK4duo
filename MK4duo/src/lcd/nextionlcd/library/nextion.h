@@ -97,15 +97,13 @@ class NexObject {
     NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID, const char* OBJ_NAME=NULL) :
       __pid(OBJ_PID),
       __cid(OBJ_CID),
-      __name(OBJ_NAME),
-      __vis(true)
+      __name(OBJ_NAME)
       {}
 
   public: /** Public Parameters */
 
     const uint8_t     __pid,
                       __cid;
-    bool              __vis;
     const char* const __name;
 
 };
@@ -142,8 +140,6 @@ class NextionLCD {
     static void setPic(NexObject &nexobject, const uint16_t number);
     static void SetVisibility(NexObject &nexobject, const bool visible);
     static void Refresh(NexObject &nexobject);
-
-    static bool getObjVis(NexObject &nexobject);
 
     static uint16_t getValue(NexObject &nexobject, const char * page=NULL);
     static uint16_t Get_cursor_height_hig(NexObject &nexobject);

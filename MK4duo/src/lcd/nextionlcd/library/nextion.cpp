@@ -54,8 +54,6 @@
     recvRetCommandFinished();
   }
 
-  bool NextionLCD::getObjVis(NexObject &nexobject) { return nexobject.__vis; }
-  
   void NextionLCD::enable(NexObject &nexobject, const bool en /* true */) {
     char cmd[40];
     sprintf_P(cmd, PSTR("%s.en=%s"), nexobject.__name, en ? "1" : "0");
@@ -295,7 +293,6 @@
 
   void NextionLCD::SetVisibility(NexObject &nexobject, const bool visible) {
     char cmd[40];
-    nexobject.__vis = visible;
     sprintf_P(cmd, PSTR("vis %s,%s"), nexobject.__name, visible ? PSTR("1") : PSTR("0"));
     sendCommand(cmd);
     recvRetCommandFinished();

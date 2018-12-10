@@ -35,6 +35,7 @@
 * Add progress bar to heater when heating
 * Add Text Menu SD to Nextion
 * Add Support USB FLASH DRIVE such as SD
+* Fixed GFX overlay with Nextion when printing from USB
 * Fix and clear code
 
 ### Version 4.3.6
