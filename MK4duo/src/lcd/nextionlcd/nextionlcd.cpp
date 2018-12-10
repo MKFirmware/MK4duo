@@ -97,20 +97,20 @@
 
   #endif
 
-  bool        NextionON                   = false,
-              show_Wave                   = true;
+  bool        NextionON                   = false;
   uint8_t     PageID                      = 0;
   uint16_t    slidermaxval                = 20;
   char        buffer[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if HAS_SD_SUPPORT
-    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing
+    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing, 4 SD paused
     enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_PRINTING = 3, SD_PAUSE = 4 };
     SDstatus_enum SDstatus    = NO_SD;
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
 
   #if ENABLED(NEXTION_GFX)
+    bool GfxON = false;
     GFX gfx = GFX(1, 1, 1, 1);
   #endif
 
@@ -182,6 +182,7 @@
   NexObject progressbar = NexObject(2, 94,  "j0");
   NexObject Wavetemp    = NexObject(2, 95,  "s0");
   NexObject FanTouch    = NexObject(2, 99);
+  NexObject GfxVis      = NexObject(2, 104, "gfx");
 
   /**
    *******************************************************************
@@ -572,17 +573,8 @@
   }
 
   static void degtoLCD(const uint8_t h, float temp) {
-
     NOMORE(temp, 999);
-
     nexlcd.setValue(*heater_list0[h], temp);
-
-    #if ENABLED(NEXTION_GFX)
-      if (!printer.isPrinting() && !nexlcd.getObjVis(Wavetemp) && show_Wave) {
-        nexlcd.SetVisibility(Wavetemp, true);
-      }
-    #endif
-
   }
 
   static void targetdegtoLCD(const uint8_t h, const float temp) {
@@ -652,6 +644,21 @@
             #endif
           #endif
         }
+
+        #if ENABLED(NEXTION_GFX)
+          if (printer.isPrinting()) {
+            if (!GfxON) {
+              GfxON = true;
+              nexlcd.setValue(GfxVis, 1);
+            }
+          }
+          else {
+            if (GfxON) {
+              GfxON = false;
+              nexlcd.setValue(GfxVis, 0);
+            }
+          }
+        #endif
 
         #if FAN_COUNT > 0
           if (PreviousfanSpeed != fans[0].Speed) {
@@ -740,26 +747,34 @@
 
         #if HAS_SD_SUPPORT
 
-          if (card.isFileOpen()) {
-            if (IS_SD_PRINTING() && SDstatus != SD_PRINTING) {
-              SDstatus = SD_PRINTING;
-              nexlcd.setValue(SD, SDstatus);
+          if (IS_SD_FILE_OPEN()) {
+            if (IS_SD_PRINTING()) {
+              if (SDstatus != SD_PRINTING) {
+                SDstatus = SD_PRINTING;
+                nexlcd.setValue(SD, SDstatus);
+              }
             }
-            else if (!IS_SD_PRINTING() && SDstatus != SD_PAUSE) {
-              SDstatus = SD_PAUSE;
+            else {
+              if (SDstatus != SD_PAUSE) {
+                SDstatus = SD_PAUSE;
+                nexlcd.setValue(SD, SDstatus);
+              }
+            }
+          }
+          else if (IS_SD_OK()) {
+            if (SDstatus != SD_INSERT) {
+              SDstatus = SD_INSERT;
               nexlcd.setValue(SD, SDstatus);
             }
           }
-          else if (card.isOK() && SDstatus != SD_INSERT) {
-            SDstatus = SD_INSERT;
-            nexlcd.setValue(SD, SDstatus);
-          }
-          else if (!card.isOK() && SDstatus != SD_NO_INSERT) {
-            SDstatus = SD_NO_INSERT;
-            nexlcd.setValue(SD, SDstatus);
+          else if (!IS_SD_OK()) {
+            if (SDstatus != SD_NO_INSERT) {
+              SDstatus = SD_NO_INSERT;
+              nexlcd.setValue(SD, SDstatus);
+            }
           }
 
-        #endif // HAS_SD_SUPPORT
+        #endif
 
         break;
 
@@ -788,12 +803,9 @@
       gfx.set_scale(scale);
     }
 
-    void gfx_clear(const float x, const float y, const float z, bool force_clear) {
-      if (PageID == 2 && (printer.isPrinting() || force_clear)) {
-        nexlcd.SetVisibility(Wavetemp, false);
-        show_Wave = !force_clear;
+    void gfx_clear(const float x, const float y, const float z) {
+      if (PageID == 2 && printer.isPrinting())
         gfx.clear(x, y, z);
-      }
     }
 
     void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {

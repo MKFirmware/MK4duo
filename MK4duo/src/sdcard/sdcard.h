@@ -263,6 +263,7 @@
 
   #define IS_SD_PRINTING()  card.isSDprinting()
   #define IS_SD_FILE_OPEN() card.isFileOpen()
+  #define IS_SD_OK()        card.isOK()
 
   #if PIN_EXISTS(SD_DETECT)
     #if ENABLED(SD_DETECT_INVERTED)
@@ -279,5 +280,6 @@
 
   #define IS_SD_PRINTING()  false
   #define IS_SD_FILE_OPEN() false
+  #define IS_SD_OK()        false
 
 #endif //SDSUPPORT
