@@ -119,6 +119,17 @@ class NextionLCD {
 
   public: /** Public Function */
 
+    /**
+     * Init Nextion.  
+     * 
+     * @return true if success, false for failure. 
+     */
+    static bool init(char *buffer);
+
+    static void sendCommand(const char* cmd);
+    static void sendCommandPGM(PGM_P cmd);
+    static void recvRetCommandFinished(void);
+
     static void show(NexObject &nexobject);
     static void enable(NexObject &nexobject, const bool en=true);
     static void getText(NexObject &nexobject, char *buffer, const char * page=NULL);
@@ -152,6 +163,18 @@ class NextionLCD {
     static uint16_t getFont(NexObject &nexobject);
     static uint16_t getCropPic(NexObject &nexobject);
     static uint16_t getPic(NexObject &nexobject);
+
+    static uint8_t pageID();
+
+  private: /** Private Function */
+
+    static bool getConnect(char* buffer);
+
+    static void recvRetString(char *buffer);
+    static void setCurrentBrightness(uint8_t dimValue);
+    static void sendRefreshAll(void);
+
+    static uint16_t recvRetNumber(void);
 
 };
 
@@ -205,166 +228,3 @@ extern NextionLCD nexlcd;
     };
 
 #endif // SDSUPPORT
-
-//
-// PUBBLIC FUNCTION
-//
-inline void recvRetString(char *buffer) {
-  bool str_start_flag = false;
-  uint8_t cnt_0xFF  = 0,
-          index     = 0;
-
-  millis_t start = millis();
-  while (millis() - start <= NEX_TIMEOUT) {
-    while (nexSerial.available()) {
-      uint8_t c = nexSerial.read();
-      if (c == NEX_RET_STRING_HEAD) {
-        str_start_flag = true;
-      }
-      else if (str_start_flag) {
-        if (c == 0xFF) {
-          cnt_0xFF++;                    
-          if (cnt_0xFF >= 3) break;
-        }
-        else {
-          buffer[index++] = (char)c;
-          if (index == sizeof(buffer)) break;
-        }
-      }
-    }
-
-    if (cnt_0xFF >= 3) break;
-  }
-}
-  
-inline void recvRetCommandFinished() {    
-  while (nexSerial.available()) nexSerial.read();
-}
-  
-inline void sendCommand(const char* cmd) {
-  recvRetCommandFinished();
-  nexSerial.print(cmd);
-  nexSerial.write(0xFF);
-  nexSerial.write(0xFF);
-  nexSerial.write(0xFF);
-}
-
-inline void sendCommandPGM(PGM_P cmd) {
-  recvRetCommandFinished();
-  while (char c = pgm_read_byte(cmd++)) nexSerial.write(c);
-  nexSerial.write(0xFF);
-  nexSerial.write(0xFF);
-  nexSerial.write(0xFF);
-}
-
-inline void setCurrentBrightness(uint8_t dimValue) {
-  char cmd[10];
-  sprintf_P(cmd, PSTR("dim=%i"), int(dimValue));
-  sendCommandPGM(cmd);
-  HAL::delayMilliseconds(10);
-  recvRetCommandFinished();
-}
-
-inline void sendRefreshAll(void) {
-  sendCommandPGM(PSTR("ref 0"));
-}
-
-inline bool getConnect(char* buffer) {
-  HAL::delayMilliseconds(100);
-  sendCommand("");
-  HAL::delayMilliseconds(100);
-  sendCommandPGM(PSTR("connect"));
-  HAL::delayMilliseconds(100);
-
-  String temp = String("");
-
-  #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_MSG(" NEXTION Debug Connect receveid:");
-  #endif
-
-  while (nexSerial.available()) {
-    uint8_t c = nexSerial.read();
-    #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_CHR((char)c);
-    #endif
-    temp += (char)c;
-  }
-
-  #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_EOL();
-  #endif
-
-  strncpy(buffer, temp.c_str(), NEXTION_BUFFER_SIZE);
-
-  if (strstr(buffer, "comok")) return true;
-
-  return false;
-}
-
-inline uint16_t recvRetNumber() {
-  uint8_t temp[8] = { 0 };
-
-  nexSerial.setTimeout(NEX_TIMEOUT);
-  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    return NULL;
-
-  if (temp[0] == NEX_RET_NUMBER_HEAD && temp[5] == 0xFF && temp[6] == 0xFF && temp[7] == 0xFF)
-    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
-  else
-    return NULL;
-
-}
-
-inline uint8_t Nextion_PageID() {
-  uint8_t temp[5] = {0};
-
-  sendCommandPGM(PSTR("sendme"));
-
-  nexSerial.setTimeout(NEX_TIMEOUT);
-
-  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    return 2;
-
-  if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD && temp[2] == 0xFF && temp[3] == 0xFF && temp[4] == 0xFF)
-    return temp[1];
-  else
-    return 2;
-}
-
-/**
- * Init Nextion.  
- * 
- * @return true if success, false for failure. 
- */
-inline bool nexInit(char *buffer) {
-  // Try default baudrate
-  nexSerial.begin(9600);
-
-  ZERO(buffer);
-  bool connect = getConnect(buffer);
-
-  // If baudrate is 9600 set to 115200 and reconnect
-  if (connect) {
-    #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_EM(" NEXTION connected at 9600 baud, changing baudrate");
-    #endif
-    sendCommandPGM(PSTR("baud=115200"));
-    HAL::delayMilliseconds(100);
-    nexSerial.end();
-    HAL::delayMilliseconds(100);
-    nexSerial.begin(115200);
-  }
-  else { // Else try to 115200 baudrate
-    #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_EM(" NEXTION connected at 115200 baud, cready");
-    #endif
-    nexSerial.end();
-    HAL::delayMilliseconds(100);
-    nexSerial.begin(115200);
-  }
-
-  connect = getConnect(buffer);
-
-  if (connect) return true;
-  else return false;
-}

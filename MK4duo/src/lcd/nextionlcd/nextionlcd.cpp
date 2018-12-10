@@ -43,7 +43,7 @@
 
 #if HAS_NEXTION_LCD
 
-  #define NEXTION_LCD_FIRMWARE_VERSION  111
+  #define NEXTION_LCD_FIRMWARE_VERSION  112
 
   #include "library/nextion.h"
   #include "nextion_gfx.h"
@@ -110,7 +110,6 @@
   #endif
 
   #if ENABLED(NEXTION_GFX)
-    bool GfxON = false;
     GFX gfx = GFX(1, 1, 1, 1);
   #endif
 
@@ -137,7 +136,6 @@
    * Nextion component for page:start
    *******************************************************************
    */
-  NexObject startimer     = NexObject(0,  1,  "tm0");
   NexObject Nexfirmware   = NexObject(0,  4,  "va1");
 
   /**
@@ -146,43 +144,36 @@
    *******************************************************************
    */
   NexObject SDMenu      = NexObject(1,  2);
-  NexObject Version     = NexObject(1, 10,  "t0");
 
   /**
    *******************************************************************
    * Nextion component for page:printer
    *******************************************************************
    */
-  NexObject LcdX        = NexObject(2,  4,  "vx");
-  NexObject LcdY        = NexObject(2,  5,  "vy");
-  NexObject LcdZ        = NexObject(2,  6,  "vz");
-  NexObject Extruders   = NexObject(2,  7,  "ext");
-  NexObject Hotend00    = NexObject(2,  8,  "he00");
-  NexObject Hotend01    = NexObject(2,  9,  "he01");
-  NexObject Hotend10    = NexObject(2, 10,  "he10");
-  NexObject Hotend11    = NexObject(2, 11,  "he11");
-  NexObject Bed0        = NexObject(2, 12,  "bed0");
-  NexObject Bed1        = NexObject(2, 13,  "bed1");
-  NexObject Chamber0    = NexObject(2, 14,  "cha0");
-  NexObject Chamber1    = NexObject(2, 15,  "cha1");
-  NexObject DHT0        = NexObject(2, 16,  "dht0");
-  NexObject SD          = NexObject(2, 17,  "sd");
-  NexObject RFID        = NexObject(2, 18,  "rfid");
-  NexObject Fan         = NexObject(2, 19,  "fan");
-  NexObject Fanspeed    = NexObject(2, 20,  "fs");
-  NexObject VSpeed      = NexObject(2, 21,  "vs");
-  NexObject Language    = NexObject(2, 22,  "lang");
-  NexObject LightStatus = NexObject(2, 23,  "light");
-  NexObject NStop       = NexObject(2, 34);
-  NexObject NPlay       = NexObject(2, 35);
-  NexObject Light       = NexObject(2, 36);
-  NexObject LcdStatus   = NexObject(2, 91,  "t0");
-  NexObject LcdCommand  = NexObject(2, 92,  "t1");
-  NexObject LcdTime     = NexObject(2, 93,  "t2");
-  NexObject progressbar = NexObject(2, 94,  "j0");
-  NexObject Wavetemp    = NexObject(2, 95,  "s0");
-  NexObject FanTouch    = NexObject(2, 99);
-  NexObject GfxVis      = NexObject(2, 104, "gfx");
+  NexObject LcdX        = NexObject(2,  5,  "vx");
+  NexObject LcdY        = NexObject(2,  6,  "vy");
+  NexObject LcdZ        = NexObject(2,  7,  "vz");
+  NexObject Hotend00    = NexObject(2,  9,  "he00");
+  NexObject Hotend01    = NexObject(2, 10,  "he01");
+  NexObject Hotend10    = NexObject(2, 11,  "he10");
+  NexObject Hotend11    = NexObject(2, 12,  "he11");
+  NexObject Bed0        = NexObject(2, 13,  "bed0");
+  NexObject Bed1        = NexObject(2, 14,  "bed1");
+  NexObject Chamber0    = NexObject(2, 15,  "cha0");
+  NexObject Chamber1    = NexObject(2, 16,  "cha1");
+  NexObject DHT0        = NexObject(2, 17,  "dht0");
+  NexObject SD          = NexObject(2, 18,  "sd");
+  NexObject Fanspeed    = NexObject(2, 21,  "fs");
+  NexObject VSpeed      = NexObject(2, 22,  "vs");
+  NexObject LightStatus = NexObject(2, 24,  "light");
+  NexObject NStop       = NexObject(2, 35);
+  NexObject NPlay       = NexObject(2, 36);
+  NexObject Light       = NexObject(2, 37);
+  NexObject LcdStatus   = NexObject(2, 92,  "t0");
+  NexObject LcdCommand  = NexObject(2, 93,  "t1");
+  NexObject LcdTime     = NexObject(2, 94,  "t2");
+  NexObject progressbar = NexObject(2, 95,  "j0");
+  NexObject FanTouch    = NexObject(2, 100);
 
   /**
    *******************************************************************
@@ -350,7 +341,7 @@
   void setpagePrinter() {
     char temp[10] = { 0 };
 
-    nexlcd.setText(Version, SHORT_BUILD_VERSION, "pg1");
+    nexlcd.sendCommandPGM(PSTR("pg1.t0.txt=" SHORT_BUILD_VERSION));
 
     #if HOTENDS > 0
       nexlcd.setValue(Hotend00, 1, "pg2");
@@ -367,7 +358,9 @@
       nexlcd.setValue(Bed0, 1, "pg2");
     #endif
 
-    nexlcd.setValue(Extruders, EXTRUDERS, "pg2");
+    #define EXTRUDERS_STRING(M) STRINGIFY(M)
+    #define NEXTION_EXTRUDERS EXTRUDERS_STRING(EXTRUDERS)
+    nexlcd.sendCommandPGM(PSTR("pg2.ext.val=" NEXTION_EXTRUDERS));
 
     LOOP_XYZE(i) {
       ZERO(temp);
@@ -390,7 +383,7 @@
     nexlcd.setValue(VSpeed, 100, "pg2");
 
     #if FAN_COUNT > 0
-      nexlcd.setValue(Fan, 1, "pg2");
+      nexlcd.sendCommandPGM(PSTR("pg2.fan.val=1"));
     #endif
 
     #if HAS_CASE_LIGHT
@@ -398,12 +391,13 @@
     #endif
 
     #if ENABLED(RFID_MODULE)
-      nexlcd.setValue(RFID, 1, "pg2");
+      nexlcd.sendCommandPGM(PSTR("pg2.rfid.val=1"));
     #endif
 
     #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-    nexlcd.setText(Language, NEXTION_LANGUAGE, "pg2");
+    nexlcd.sendCommandPGM(PSTR("pg2.lang.txt=" NEXTION_LANGUAGE));
+
   }
 
   #if HAS_SD_SUPPORT
@@ -621,19 +615,40 @@
 
   void Nextion_draw_update() {
 
-    static uint8_t  PreviousPage = 0,
-                    Previousfeedrate = 0,
-                    PreviousfanSpeed = 0,
-                    PreviouspercentDone = 0;
-    static float    PreviousdegHeater[3] = { 0.0 },
-                    PrevioustargetdegHeater[3] = { 0.0 };
+    static uint8_t  PreviousPage                = 0,
+                    Previousfeedrate            = 0,
+                    PreviousfanSpeed            = 0,
+                    PreviouspercentDone         = 0;
+    static float    PreviousdegHeater[3]        = { 0.0 },
+                    PrevioustargetdegHeater[3]  = { 0.0 };
+
+    #if ENABLED(NEXTION_GFX)           
+      static bool GfxVis = false;
+    #endif
 
     if (!NextionON || PageID == 11) return;
 
-    PageID = Nextion_PageID();
+    PageID = nexlcd.pageID();
 
     switch (PageID) {
+
       case 2:
+
+        #if ENABLED(NEXTION_GFX)
+          if (printer.isPrinting()) {
+            if (!GfxVis) {
+              GfxVis = true;
+              nexlcd.sendCommandPGM(PSTR("prt.val=1"));
+            }
+          }
+          else {
+            if (GfxVis) {
+              GfxVis = false;
+              nexlcd.sendCommandPGM(PSTR("prt.val=0"));
+            }
+          }
+        #endif
+
         if (PreviousPage != 2) {
           lcdui.setstatus(lcdui.status_message);
           #if ENABLED(NEXTION_GFX)
@@ -644,21 +659,6 @@
             #endif
           #endif
         }
-
-        #if ENABLED(NEXTION_GFX)
-          if (printer.isPrinting()) {
-            if (!GfxON) {
-              GfxON = true;
-              nexlcd.setValue(GfxVis, 1);
-            }
-          }
-          else {
-            if (GfxON) {
-              GfxON = false;
-              nexlcd.setValue(GfxVis, 0);
-            }
-          }
-        #endif
 
         #if FAN_COUNT > 0
           if (PreviousfanSpeed != fans[0].Speed) {
@@ -1183,7 +1183,7 @@
 
     for (uint8_t i = 0; i < 10; i++) {
       ZERO(buffer);
-      NextionON = nexInit(buffer);
+      NextionON = nexlcd.init(buffer);
       if (NextionON) break;
       HAL::delayMilliseconds(1000);
     }
@@ -1241,7 +1241,9 @@
       const uint16_t nextion_version = nexlcd.getValue(Nexfirmware, "pg0");
 
       setpagePrinter();
-      nexlcd.enable(startimer);
+
+      // Start timer for logo anim
+      nexlcd.sendCommandPGM(PSTR("tm0.en=1"));
 
       #if HAS_LCD_MENU
         // Check the Nextion Firmware
