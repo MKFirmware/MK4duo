@@ -1381,7 +1381,7 @@
     status_message_level = level;
     va_list args;
     va_start(args, fmt);
-    vsnprintf(status_message, 30, fmt, args);
+    vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, fmt, args);
     va_end(args);
     if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
