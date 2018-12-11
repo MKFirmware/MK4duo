@@ -895,7 +895,7 @@
     }
 
     inline void set_message_with_feedback(PGM_P const msg_P) {
-      lcdui.setstatusPGM(msg_P);
+      lcdui.set_status_P(msg_P);
       lcdui.quick_feedback();
     }
 

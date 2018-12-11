@@ -59,7 +59,7 @@
         #if HOTENDS > 1
           lcdui.status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_EXTRUDER);
         #else
-          lcdui.setstatusPGM(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
+          lcdui.set_status_P(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
         #endif
       }
     }

@@ -42,7 +42,7 @@
       heaters[BED_INDEX].setTarget(parser.value_celsius());
     else return;
 
-    lcdui.setstatusPGM(heaters[BED_INDEX].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
+    lcdui.set_status_P(heaters[BED_INDEX].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
 
     thermalManager.wait_heater(&heaters[BED_INDEX], no_wait_for_cooling);
   }

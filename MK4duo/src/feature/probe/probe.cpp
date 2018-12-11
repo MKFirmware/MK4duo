@@ -395,7 +395,7 @@ bool Probe::specific_action(const bool deploy) {
     sound.feedback();
 
     PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
-    lcdui.setstatusPGM(ds_str);
+    lcdui.set_status_P(ds_str);
     SERIAL_PS(ds_str);
     SERIAL_EOL();
 

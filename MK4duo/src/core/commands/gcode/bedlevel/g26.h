@@ -403,7 +403,7 @@ inline bool turn_on_heaters() {
   #if HAS_TEMP_BED
     #if HAS_SPI_LCD
       if (g26_bed_temp > 25) {
-        lcdui.setstatusPGM(PSTR("G26 Heating Bed."), 99);
+        lcdui.set_status_P(PSTR("G26 Heating Bed."), 99);
         lcdui.quick_feedback(true);
         #if ENABLED(ULTIPANEL)
           lcdui.capture();
@@ -419,7 +419,7 @@ inline bool turn_on_heaters() {
         }
     #if HAS_SPI_LCD
       }
-      lcdui.setstatusPGM(PSTR("G26 Heating Nozzle."), 99);
+      lcdui.set_status_P(PSTR("G26 Heating Nozzle."), 99);
       lcdui.quick_feedback(true);
     #endif
   #endif
@@ -455,7 +455,7 @@ inline bool prime_nozzle() {
     if (g26_prime_flag == -1) {  // The user wants to control how much filament gets purged
 
       lcdui.capture();
-      lcdui.setstatusPGM(PSTR("User-Controlled Prime"), 99);
+      lcdui.set_status_P(PSTR("User-Controlled Prime"), 99);
       lcdui.chirp();
 
       mechanics.set_destination_to_current();
@@ -480,7 +480,7 @@ inline bool prime_nozzle() {
 
       lcdui.wait_for_release();
 
-      lcdui.setstatusPGM(PSTR("Done Priming"), 99);
+      lcdui.set_status_P(PSTR("Done Priming"), 99);
       lcdui.quick_feedback(true);
       lcdui.release();
     }
@@ -488,7 +488,7 @@ inline bool prime_nozzle() {
   #endif
   {
     #if HAS_SPI_LCD
-      lcdui.setstatusPGM(PSTR("Fixed Length Prime."), 99);
+      lcdui.set_status_P(PSTR("Fixed Length Prime."), 99);
       lcdui.quick_feedback(true);
     #endif
     mechanics.set_destination_to_current();
@@ -786,7 +786,7 @@ inline void gcode_G26(void) {
 
 LEAVE:
   SERIAL_EM("Leaving G26");
-  lcdui.setstatusPGM(PSTR("Leaving G26"), -1);
+  lcdui.set_status_P(PSTR("Leaving G26"), -1);
 
   retract_filament(mechanics.destination);
   mechanics.destination[Z_AXIS] = Z_PROBE_BETWEEN_HEIGHT;
