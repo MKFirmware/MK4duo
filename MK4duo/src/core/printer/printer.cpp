@@ -134,8 +134,8 @@ void Printer::setup() {
 
   setup_pinout();
 
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    HAL::spiBegin();
+  #if HAS_POWER_CHECK || HAS_POWER_SWITCH
+    powerManager.init();
   #endif
 
   #if HAS_POWER_SWITCH
@@ -144,6 +144,10 @@ void Printer::setup() {
     #else
       powerManager.power_on();
     #endif
+  #endif
+
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    HAL::spiBegin();
   #endif
 
   #if HAS_STEPPER_RESET
@@ -198,11 +202,6 @@ void Printer::setup() {
   // Init Filament runout
   #if HAS_FIL_RUNOUT_0
     filamentrunout.init();
-  #endif
-
-  // Init Power switch or power consuma
-  #if HAS_POWER_CHECK
-    powerManager.init();
   #endif
 
   // Load data from EEPROM if available (or use defaults)
