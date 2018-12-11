@@ -244,7 +244,7 @@
       #endif
       if (!silent) {
         SERIAL_EMT(MSG_SD_WRITE_TO_FILE, filename);
-        lcdui.setstatus(filename);
+        lcdui.set_status(filename);
       }
     }
   }

@@ -50,7 +50,7 @@
 
   LcdUI       lcdui;
 
-  char        LcdUI::status_message[30] = WELCOME_MSG;
+  char        LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH] = WELCOME_MSG;
   uint8_t     LcdUI::status_message_level; // = 0
 
   #if HAS_LCD_MENU
@@ -650,7 +650,7 @@
         #endif
 
         if (PreviousPage != 2) {
-          lcdui.setstatus(lcdui.status_message);
+          lcdui.set_status(lcdui.status_message);
           #if ENABLED(NEXTION_GFX)
             #if MECH(DELTA)
               gfx_clear(mechanics.data.print_radius * 2, mechanics.data.print_radius * 2, mechanics.data.height);
@@ -1340,24 +1340,39 @@
     sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
   }
 
-  void LcdUI::setalertstatusPGM(PGM_P const message) {
-    lcdui.setstatusPGM(message, 1);
+  void LcdUI::set_alert_status_P(PGM_P const message) {
+    set_status_P(message, 1);
+    #if HAS_LCD_MENU
+      return_to_status();
+    #endif
   }
 
   bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
-  void LcdUI::setstatus(PGM_P message, bool persist) {
+  void LcdUI::set_status(const char* const message, bool persist) {
     UNUSED(persist);
     if (status_message_level > 0 || !NextionON) return;
-    strncpy(status_message, message, 30);
+    strncpy(status_message, message, NEXTION_MAX_MESSAGE_LENGTH);
     if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
 
-  void LcdUI::setstatusPGM(PGM_P message, int8_t level) {
+  void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
     if (level < 0) level = status_message_level = 0;
     if (level < status_message_level || !NextionON) return;
-    strncpy_P(status_message, message, 30);
     status_message_level = level;
+
+    // Get a pointer to the null terminator
+    PGM_P pend = message + strlen_P(message);
+
+    while ((pend - message) > NEXTION_MAX_MESSAGE_LENGTH) {
+      --pend;
+      while (!((pgm_read_byte(pend) & 0xC0u) != 0x80u)) --pend;
+    };
+
+    uint8_t maxLen = pend - message;
+    strncpy_P(status_message, message, maxLen);
+    status_message[maxLen] = '\0';
+
     if (PageID == 2) nexlcd.setText(LcdStatus, status_message);
   }
   
@@ -1380,14 +1395,14 @@
       msg = paused;
     #if HAS_SD_SUPPORT
       else if (IS_SD_PRINTING())
-        return lcdui.setstatus(card.fileName, true);
+        return lcdui.set_status(card.fileName, true);
     #endif
     else if (print_job_counter.isRunning())
       msg = printing;
     else
       msg = welcome;
 
-    lcdui.setstatusPGM(msg, -1);
+    lcdui.set_status_P(msg, -1);
   }
 
   void LcdUI::status_screen() {

@@ -56,7 +56,7 @@
     #if ENABLED(ULTIPANEL)
 
       if (!hasP && !hasS && args && *args)
-        lcdui.setstatus(args, true);
+        lcdui.set_status(args, true);
       else {
         LCD_MESSAGEPGM(MSG_USERWAIT);
         #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0

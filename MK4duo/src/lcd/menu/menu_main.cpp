@@ -51,7 +51,7 @@
     printer.setWaitForHeatUp(false);
     printer.setWaitForUser(false);
     card.setAbortSDprinting(true);
-    lcdui.setstatusPGM(PSTR(MSG_PRINT_ABORTED), -1);
+    lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
     lcdui.return_to_status();
   }
 

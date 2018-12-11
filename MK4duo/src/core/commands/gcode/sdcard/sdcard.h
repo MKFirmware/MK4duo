@@ -73,7 +73,7 @@
     // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere
     //for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
     card.selectFile(parser.string_arg);
-    lcdui.setstatus(card.fileName);
+    lcdui.set_status(card.fileName);
   }
 
   /**

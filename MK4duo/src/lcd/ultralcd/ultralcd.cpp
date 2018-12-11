@@ -454,7 +454,7 @@ void LcdUI::status_screen() {
 
 void LcdUI::kill_screen(PGM_P lcd_msg) {
   init();
-  setalertstatusPGM(lcd_msg);
+  set_alert_status_P(lcd_msg);
   draw_kill_screen();
 }
 
@@ -651,11 +651,11 @@ void LcdUI::update() {
         if (old_sd_status == 2)
           card.beginautostart();  // Initial boot
         else
-          setstatusPGM(PSTR(MSG_SD_INSERTED));
+          set_status_P(PSTR(MSG_SD_INSERTED));
       }
       else {
         card.unmount();
-        if (old_sd_status != 2) setstatusPGM(PSTR(MSG_SD_REMOVED));
+        if (old_sd_status != 2) set_status_P(PSTR(MSG_SD_REMOVED));
       }
 
       refresh();
@@ -1102,7 +1102,7 @@ void LcdUI::finishstatus(const bool persist) {
 
 bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
-void LcdUI::setstatus(const char * const message, const bool persist) {
+void LcdUI::set_status(const char * const message, const bool persist) {
   if (status_message_level > 0) return;
 
   // Here we have a problem. The message is encoded in UTF8, so
@@ -1139,7 +1139,7 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
   finishstatus(level > 0);
 }
 
-void LcdUI::setstatusPGM(PGM_P const message, int8_t level) {
+void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < 0) level = status_message_level = 0;
   if (level < status_message_level) return;
   status_message_level = level;
@@ -1166,8 +1166,8 @@ void LcdUI::setstatusPGM(PGM_P const message, int8_t level) {
   finishstatus(level > 0);
 }
 
-void LcdUI::setalertstatusPGM(PGM_P const message) {
-  setstatusPGM(message, 1);
+void LcdUI::set_alert_status_P(PGM_P const message) {
+  set_status_P(message, 1);
   #if HAS_LCD_MENU
     return_to_status();
   #endif
@@ -1185,14 +1185,14 @@ void LcdUI::setalertstatusPGM(PGM_P const message) {
       msg = paused;
     #if HAS_SD_SUPPORT
       else if (IS_SD_PRINTING())
-        return lcdui.setstatus(card.fileName, true);
+        return lcdui.set_status(card.fileName, true);
     #endif
     else if (print_job_counter.isRunning())
       msg = printing;
     else
       msg = welcome;
 
-    lcdui.setstatusPGM(msg, -1);
+    lcdui.set_status_P(msg, -1);
   }
 
 #endif // HAS_SPI_LCD

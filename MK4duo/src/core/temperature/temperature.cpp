@@ -144,7 +144,7 @@ void Temperature::wait_heater(Heater *act, bool no_wait_for_cooling/*=true*/) {
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
   if (printer.isWaitForHeatUp()) {
-    lcdui.setstatusPGM(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
+    lcdui.set_status_P(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
     #if ENABLED(PRINTER_EVENT_LEDS)
       ledevents.onHeatingDone();
     #endif
@@ -712,7 +712,7 @@ void Temperature::_temp_error(const uint8_t h, PGM_P const serial_msg, PGM_P con
     }
   }
 
-  lcdui.setstatusPGM(lcd_msg);
+  lcdui.set_status_P(lcd_msg);
   heaters[h].setFault();
 
 }

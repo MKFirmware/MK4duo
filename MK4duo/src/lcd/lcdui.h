@@ -25,8 +25,8 @@
   #include "../sdcard/sdcard.h"
 #endif
 
-#define LCD_MESSAGEPGM(x)       lcdui.setstatusPGM(PSTR(x))
-#define LCD_ALERTMESSAGEPGM(x)  lcdui.setalertstatusPGM(PSTR(x))
+#define LCD_MESSAGEPGM(x)       lcdui.set_status_P(PSTR(x))
+#define LCD_ALERTMESSAGEPGM(x)  lcdui.set_alert_status_P(PSTR(x))
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)    set_custom_characters(C)
@@ -187,7 +187,7 @@ class LcdUI {
 
       static void init();
       static void update();
-      static void setalertstatusPGM(PGM_P message);
+      static void set_alert_status_P(PGM_P message);
       static void quick_feedback(const bool clear_buttons=true);
 
       #if HAS_SPI_LCD
@@ -244,8 +244,8 @@ class LcdUI {
       static bool get_blink();
       static void kill_screen(PGM_P const lcd_msg);
       static void draw_kill_screen();
-      static void setstatus(const char* const message, const bool persist=false);
-      static void setstatusPGM(PGM_P const message, const int8_t level=0);
+      static void set_status(const char* const message, const bool persist=false);
+      static void set_status_P(PGM_P const message, int8_t level=0);
       static void status_printf_P(const uint8_t level, PGM_P const fmt, ...);
       static void reset_status();
 
@@ -253,10 +253,10 @@ class LcdUI {
 
       static inline void init() {}
       static inline void update() {}
-      static inline void setalertstatusPGM(PGM_P message) { UNUSED(message); }
+      static inline void set_alert_status_P(PGM_P message) { UNUSED(message); }
       static inline void refresh() {}
-      static inline void setstatus(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
-      static inline void setstatusPGM(PGM_P const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
+      static inline void set_status(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
+      static inline void set_status_P(PGM_P const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
       static inline void status_printf_P(const uint8_t level, PGM_P const fmt, ...) { UNUSED(level); UNUSED(fmt); }
       static inline void reset_status() {}
       static inline void reset_alert_level() {}
