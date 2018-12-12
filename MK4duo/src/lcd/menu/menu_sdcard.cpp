@@ -90,7 +90,7 @@ class MenuItem_sdfolder {
       screen_changed = true;
       #if HAS_GRAPHICAL_LCD
         lcdui.drawing_screen = false;
-      #else HAS_NEXTION_LCD
+      #elif HAS_NEXTION_LCD
         lcdui.clear_lcd();
       #endif
       lcdui.refresh();
