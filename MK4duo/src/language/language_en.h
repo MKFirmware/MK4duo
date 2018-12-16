@@ -1033,9 +1033,6 @@
 #ifndef MSG_DELTA_RADIUS
   #define MSG_DELTA_RADIUS                    _UxGT("Radius")
 #endif
-#ifndef MSG_DELTA_CHECKING
-  #define MSG_DELTA_CHECKING                  _UxGT("Checking... AC")
-#endif
 #ifndef MSG_DELTA_AUTO_CALIBRATE_OK
   #define MSG_DELTA_AUTO_CALIBRATE_OK         _UxGT("Calibration OK")
 #endif

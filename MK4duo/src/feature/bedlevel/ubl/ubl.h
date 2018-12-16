@@ -194,7 +194,7 @@ class unified_bed_leveling {
       if (!WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(yi, 0, GRID_MAX_POINTS_Y - 1)) {
         #if ENABLED(DEBUG_FEATURE)
           if (printer.debugFeature()) {
-            SERIAL_PS( !WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) ? PSTR("x1_i") : PSTR("yi") );
+            SERIAL_PGM( !WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) ? PSTR("x1_i") : PSTR("yi") );
             SERIAL_MV(" out of bounds in z_correction_for_x_on_horizontal_mesh_line(rx0=", rx0);
             SERIAL_MV(",x1_i=", x1_i);
             SERIAL_MV(",yi=", yi);
@@ -228,7 +228,7 @@ class unified_bed_leveling {
       if (!WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(y1_i, 0, GRID_MAX_POINTS_Y - 1)) {
         #if ENABLED(DEBUG_FEATURE)
           if (printer.debugFeature()) {
-            SERIAL_PS( !WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) ? PSTR("xi") : PSTR("y1_i") );
+            SERIAL_PGM( !WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) ? PSTR("xi") : PSTR("y1_i") );
             SERIAL_MV(" out of bounds in z_correction_for_y_on_vertical_mesh_line(ry0=", ry0);
             SERIAL_MV(", xi=", xi);
             SERIAL_MV(", y1_i=", y1_i);

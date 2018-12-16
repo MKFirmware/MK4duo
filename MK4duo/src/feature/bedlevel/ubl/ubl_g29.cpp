@@ -862,7 +862,7 @@
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
-        SERIAL_PS(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
+        SERIAL_PGM(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                       // existing behavior: 0.01mm per click, occasionally step
         //const float z_step = mechanics.data.axis_steps_per_mm[Z_AXIS];  // approx one step each click

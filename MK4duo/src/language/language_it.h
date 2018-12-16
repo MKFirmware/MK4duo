@@ -349,7 +349,6 @@
 #define MSG_DELTA_DIAG_ROD                  _UxGT("Barra Diagonale")
 #define MSG_DELTA_HEIGHT                    _UxGT("Altezza")
 #define MSG_DELTA_RADIUS                    _UxGT("Raggio")
-#define MSG_DELTA_CHECKING                  _UxGT("Verifico... AC")
 #define MSG_DELTA_AUTO_CALIBRATE_OK         _UxGT("Calibrazione OK")
 
 // Info printers

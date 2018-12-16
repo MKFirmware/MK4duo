@@ -687,7 +687,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 void Temperature::_temp_error(const uint8_t h, PGM_P const serial_msg, PGM_P const lcd_msg) {
   if (heaters[h].isActive()) {
     SERIAL_STR(ER);
-    SERIAL_PS(serial_msg);
+    SERIAL_PGM(serial_msg);
     SERIAL_MSG(MSG_STOPPED_HEATER);
     switch (heaters[h].data.type) {
       case IS_HOTEND:

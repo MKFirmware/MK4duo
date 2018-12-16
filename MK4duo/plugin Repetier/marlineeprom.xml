@@ -1880,14 +1880,19 @@
     <detect>M851.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="int" min="60">
-    <description unit="[mm/min]">Z Probe speed Fast</description>
+    <description unit="[mm/min]">Probe speed Fast</description>
     <set>M851 F@</set>
     <detect>M851.*F(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="int" min="60">
-    <description unit="[mm/min]">Z Probe speed Slow</description>
+    <description unit="[mm/min]">Probe speed Slow</description>
     <set>M851 S@</set>
     <detect>M851.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="10">
+    <description unit="[mm/min]">Probe repetitions</description>
+    <set>M851 R@</set>
+    <detect>M851.*R(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M900: Linear Advance -->

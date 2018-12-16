@@ -193,28 +193,28 @@ void Com::print_spaces(uint8_t count) {
 }
 
 void Com::print_logic(PGM_P const label, const bool logic) {
-  SERIAL_PS(label);
+  SERIAL_PGM(label);
   SERIAL_MSG(": ");
-  SERIAL_PS(logic ? PSTR("true") : PSTR("false"));
+  SERIAL_PGM(logic ? PSTR("true") : PSTR("false"));
 }
 
 void Com::print_onoff(PGM_P const label, const bool onoff) {
-  SERIAL_PS(label);
+  SERIAL_PGM(label);
   SERIAL_MSG(": ");
-  SERIAL_PS(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+  SERIAL_PGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
 }
 
 #if ENABLED(DEBUG_FEATURE)
 
   void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
-    SERIAL_PS(prefix);
+    SERIAL_PGM(prefix);
     SERIAL_CHR('(');
     SERIAL_VAL(x);
     SERIAL_MV(", ", y);
     SERIAL_MV(", ", z);
     SERIAL_CHR(")");
 
-    if (suffix) SERIAL_PS(suffix);
+    if (suffix) SERIAL_PGM(suffix);
     else SERIAL_EOL();
   }
 

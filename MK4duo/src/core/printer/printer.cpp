@@ -287,6 +287,11 @@ void Printer::setup() {
   // All Initialized set Running to true.
   setRunning(true);
 
+  // Initialized print statistics stored
+  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+    setStatisticsStore(true);
+  #endif
+
   #if ENABLED(DELTA_HOME_ON_POWER)
     mechanics.home();
   #endif

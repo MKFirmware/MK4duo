@@ -272,7 +272,7 @@
  * M701 - Load Filament T[toolhead] Z[distance] L[Extrude distance]
  * M702 - Unload Filament T[toolhead] Z[distance] U[Retract distance]
  * M800 - S goto to lcd menu. With no parameters run restart commands.
- * M851 - Set X Y Z Probe Offset in current units, set speed Fast and Slow. (Requires Probe)
+ * M851 - Set X Y Z Probe Offset in current units, set speed [F]ast and [S]low, [R]epetititons. (Requires Probe)
  * M900 - Set Linear Advance K-factor. (Requires LIN_ADVANCE)
  * M906 - Set motor currents XYZ T0-4 E (Requires ALLIGATOR)
  *        Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. (Requires TRINAMIC)

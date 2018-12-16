@@ -505,7 +505,7 @@
         restart.file.remove(&root, restart_file_name);
         #if ENABLED(DEBUG_RESTART)
           SERIAL_MSG("restart delete");
-          SERIAL_PS(exist_restart_file() ? PSTR(" failed.\n") : PSTR("d.\n"));
+          SERIAL_PGM(exist_restart_file() ? PSTR(" failed.\n") : PSTR("d.\n"));
         #endif
       }
     }

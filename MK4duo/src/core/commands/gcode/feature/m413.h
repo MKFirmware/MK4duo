@@ -50,8 +50,8 @@
       if (parser.seen('R') || parser.seen('L')) restart.load_job();
       if (parser.seen('W')) restart.save_job(true);
       if (parser.seen('P')) restart.purge_job();
-      if (parser.seen('E')) SERIAL_PS(restart.exists() ? PSTR("restart Exists\n") : PSTR("No restart\n"));
-      if (parser.seen('V')) SERIAL_PS(restart.valid() ? PSTR("Valid\n") : PSTR("Invalid\n"));
+      if (parser.seen('E')) SERIAL_PGM(restart.exists() ? PSTR("restart Exists\n") : PSTR("No restart\n"));
+      if (parser.seen('V')) SERIAL_PGM(restart.valid() ? PSTR("Valid\n") : PSTR("Invalid\n"));
     #endif
 
   }

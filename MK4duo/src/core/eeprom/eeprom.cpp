@@ -57,7 +57,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV55"
+#define EEPROM_VERSION "MKV56"
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0
@@ -186,17 +186,17 @@ typedef struct EepromDataStruct {
   // DHT sensor
   //
   #if ENABLED(DHT_SENSOR)
-    pin_t             dht_pin;
-    uint8_t           dht_type;
+    pin_t           dht_pin;
+    uint8_t         dht_type;
   #endif
 
   //
   // Fans
   //
   #if FAN_COUNT > 0
-    fan_data_t        fans_data[FAN_COUNT];
+    fan_data_t      fans_data[FAN_COUNT];
     #if ENABLED(TACHOMETRIC)
-      tacho_data_t    tacho_data[FAN_COUNT];
+      tacho_data_t  tacho_data[FAN_COUNT];
     #endif
   #endif
 
@@ -204,21 +204,21 @@ typedef struct EepromDataStruct {
   // LCD contrast
   //
   #if HAS_LCD_CONTRAST
-    uint8_t           lcdui_contrast;
+    uint8_t         lcdui_contrast;
   #endif
 
   //
   // SD Restart
   //
   #if HAS_SD_RESTART
-    bool              restart_enabled;
+    bool            restart_enabled;
   #endif
 
   //
   // Servo angles
   //
   #if HAS_SERVOS
-    int               servo_angles[NUM_SERVOS][2];
+    int             servo_angles[NUM_SERVOS][2];
   #endif
 
   //
@@ -233,50 +233,50 @@ typedef struct EepromDataStruct {
   // Volumetric & Filament Size
   //
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    bool              volumetric_enabled;
-    float             filament_size[EXTRUDERS];
+    bool            volumetric_enabled;
+    float           filament_size[EXTRUDERS];
   #endif
 
   //
   // IDLE oozing
   //
   #if ENABLED(IDLE_OOZING_PREVENT)
-    bool              IDLE_OOZING_enabled;
+    bool            IDLE_OOZING_enabled;
   #endif
 
   //
   // Stepper
   //
-  uint16_t            stepper_direction_flag;
-  uint32_t            stepper_direction_delay,
-                      stepper_maximum_rate;
-  uint8_t             stepper_minimum_pulse;
+  uint16_t          stepper_direction_flag;
+  uint32_t          stepper_direction_delay,
+                    stepper_maximum_rate;
+  uint8_t           stepper_minimum_pulse;
 
   //
   // Sound
   //
-  SoundModeEnum       sound_mode;
+  SoundModeEnum     sound_mode;
 
   //
   // External DAC
   //
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    uint16_t          motor_current[3 + DRIVER_EXTRUDERS];
+    uint16_t        motor_current[3 + DRIVER_EXTRUDERS];
   #endif
 
   //
   // Linear Advance
   //
   #if ENABLED(LIN_ADVANCE)
-    float             planner_extruder_advance_K;
+    float           planner_extruder_advance_K;
   #endif
 
   //
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
-    float             planner_hysteresis_mm,
-                      planner_hysteresis_correction;
+    float           planner_hysteresis_mm,
+                    planner_hysteresis_correction;
   #endif
 
   //
@@ -1958,7 +1958,7 @@ void EEPROM::reset() {
 #if DISABLED(DISABLE_M503)
 
   inline void print_units(const bool colon) {
-    SERIAL_PS(
+    SERIAL_PGM(
       #if ENABLED(INCH_MODE_SUPPORT)
         parser.linear_unit_factor != 1 ? PSTR(" (in)") :
       #endif
@@ -2043,7 +2043,7 @@ void EEPROM::reset() {
         SERIAL_SM(CFG, "  M149 ");
         SERIAL_CHR(parser.temp_units_code);
         SERIAL_MSG(" ; Units in ");
-        SERIAL_PS(parser.temp_units_name());
+        SERIAL_PGM(parser.temp_units_name());
       #else
         #define TEMP_UNIT(N) N
         SERIAL_LM(CFG, "  M149 C ; Units in Celsius");
@@ -2146,15 +2146,14 @@ void EEPROM::reset() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      SERIAL_SM(CFG, "Probe Offset");
+      SERIAL_SM(CFG, "Probe Offset X Y Z, speed Fast and Slow [mm/min], Repetitions");
       SERIAL_UNITS(true);
       SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.data.offset[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(probe.data.offset[Y_AXIS]), 3);
       SERIAL_MV(" Z", LINEAR_UNIT(probe.data.offset[Z_AXIS]), 3);
-      SERIAL_EOL();
-      SERIAL_LM(CFG, "Probe speed Fast and Slow [mm/min]");
-      SERIAL_SMV(CFG, "  M851 F", probe.data.speed_fast);
+      SERIAL_MV(" F", probe.data.speed_fast);
       SERIAL_MV(" S", probe.data.speed_slow);
+      SERIAL_MV(" R", probe.data.repetitions);
       SERIAL_EOL();
     #endif
 

@@ -342,7 +342,7 @@ class TMC_Stepper {
       FORCE_INLINE static void report_otpw(MKTMC* st) {
         st->printLabel();
         SERIAL_MSG(" temperature prewarn triggered: ");
-        SERIAL_PS(st->getOTPW() ? PSTR("true") : PSTR("false"));
+        SERIAL_PGM(st->getOTPW() ? PSTR("true") : PSTR("false"));
         SERIAL_EOL();
       }
 
@@ -493,7 +493,7 @@ class TMC_Stepper {
 
     #if ENABLED(TMC_DEBUG)
 
-      FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PS(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+      FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PGM(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
 
       static void drv_status_print_hex(const uint32_t drv_status);
       static void status(MKTMC* st, const TMCdebugEnum i);

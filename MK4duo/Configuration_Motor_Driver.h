@@ -121,16 +121,23 @@
 #define E4_STEALTHCHOP  false
 #define E5_STEALTHCHOP  false
 
-// STEALTH values for chopper tuning
-//  only change if you know what you're doing
-#define STEALTH_AMPL       180
-#define STEALTH_GRAD         5
-#define STEALTH_AUTOSCALE true
-#define STEALTH_FREQ      0b01
+// Optimize spreadCycle chopper parameters by using predefined parameter sets
+// or with the help of an example included in the library.
+// Provided parameter sets are
+#define CHOPPER_DEFAULT_12V  { 3, -1, 1 }
+#define CHOPPER_DEFAULT_19V  { 4,  1, 1 }
+#define CHOPPER_DEFAULT_24V  { 4,  2, 1 }
+#define CHOPPER_DEFAULT_36V  { 5,  2, 4 }
+#define CHOPPER_PRUSAMK3_24V { 4,  1, 4 } // Imported parameters from the official Prusa firmware for MK3 (24V)
+#define CHOPPER_MK4DUO_436   { 5,  2, 3 } // Old defaults from MK4duo v4.3.6
+//
+// Define you own with
+// { <off_time[1..15]>, <hysteresis_end[-3..12]>, hysteresis_start[1..8] }
+#define CHOPPER_TIMING CHOPPER_DEFAULT_12V
 
 // Monitor Trinamic TMC2130 and TMC2208 drivers for error conditions,
 // like overtemperature and short to ground. TMC2208 requires hardware serial.
-// In the case of overtemperature Marlin can decrease the driver current until error condition clears.
+// In the case of overtemperature MK4duo can decrease the driver current until error condition clears.
 // Other detected conditions can be used to stop the current print.
 // Relevant g-codes:
 // M906 - Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.

@@ -81,7 +81,7 @@ void vector_3::apply_rotation(const matrix_3x3 &matrix) {
 }
 
 void vector_3::debug(PGM_P const title) {
-  SERIAL_PS(title);
+  SERIAL_PGM(title);
   SERIAL_MV(" x: ", x, 6);
   SERIAL_MV(" y: ", y, 6);
   SERIAL_EMV(" z: ", z, 6);
@@ -139,7 +139,7 @@ matrix_3x3 matrix_3x3::transpose(const matrix_3x3 &original) {
 
 void matrix_3x3::debug(PGM_P const title) {
   if (title != NULL) {
-    SERIAL_PS(title);
+    SERIAL_PGM(title);
     SERIAL_EOL();
   }
   uint8_t count = 0;

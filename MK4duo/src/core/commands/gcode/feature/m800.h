@@ -36,7 +36,7 @@
 
     inline void m800_error(PGM_P const prefix) {
       SERIAL_STR(ECHO);
-      SERIAL_PS(prefix);
+      SERIAL_PGM(prefix);
       SERIAL_EM(" Restart Job Data");
     }
 

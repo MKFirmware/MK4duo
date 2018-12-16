@@ -70,8 +70,8 @@
 #define digitalRead_mod(p)  digitalRead(p)  // AVR digitalRead disabled PWM before it read the pin
 #define PRINT_PORT(p)       SERIAL_SP(12);
 #define NAME_FORMAT(p)      PSTR("%-##p##s")
-#define PRINT_ARRAY_NAME(x) do {sprintf_P(buffer, PSTR("%-" STRINGIFY(MAX_NAME_LENGTH) "s"), pin_array[x].name); SERIAL_PS(buffer);} while (0)
-#define PRINT_PIN(p)        do {sprintf_P(buffer, PSTR("%02d  g_pinStatus:  %02d"), p, (g_pinStatus[pin] & 0xF)); SERIAL_PS(buffer);} while (0)
+#define PRINT_ARRAY_NAME(x) do {sprintf_P(buffer, PSTR("%-" STRINGIFY(MAX_NAME_LENGTH) "s"), pin_array[x].name); SERIAL_PGM(buffer);} while (0)
+#define PRINT_PIN(p)        do {sprintf_P(buffer, PSTR("%02d  g_pinStatus:  %02d"), p, (g_pinStatus[pin] & 0xF)); SERIAL_PGM(buffer);} while (0)
 #define GET_ARRAY_PIN(p)    pin_array[p].pin
 #define VALID_PIN(pin)      (pin >= 0 && pin < (uint8_t)NUMBER_PINS_TOTAL ? 1 : 0)
 #define DIGITAL_PIN_TO_ANALOG_PIN(p) int(p - analogInputToDigitalPin(0))

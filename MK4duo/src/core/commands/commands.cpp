@@ -693,7 +693,7 @@ void Commands::unknown_error() {
 void Commands::gcode_line_error(PGM_P err, const int8_t port) {
   SERIAL_PORT(port);
   SERIAL_STR(ER);
-  SERIAL_PS(err);
+  SERIAL_PGM(err);
   SERIAL_EV(gcode_LastN);
   flush_and_request_resend();
   serial_count[port] = 0;

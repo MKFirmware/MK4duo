@@ -38,8 +38,9 @@ void Probe::factory_parameters() {
   data.offset[X_AXIS] = X_PROBE_OFFSET_FROM_NOZZLE;
   data.offset[Y_AXIS] = Y_PROBE_OFFSET_FROM_NOZZLE;
   data.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
-  data.speed_fast = Z_PROBE_SPEED_FAST;
-  data.speed_slow = Z_PROBE_SPEED_SLOW;
+  data.speed_fast     = Z_PROBE_SPEED_FAST;
+  data.speed_slow     = Z_PROBE_SPEED_SLOW;
+  data.repetitions    = Z_PROBE_REPETITIONS;
 }
 
 // returns false for ok and true for failure
@@ -396,7 +397,7 @@ bool Probe::specific_action(const bool deploy) {
 
     PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
     lcdui.set_status_P(ds_str);
-    SERIAL_PS(ds_str);
+    SERIAL_PGM(ds_str);
     SERIAL_EOL();
 
     printer.setWaitForUser(true);
@@ -576,7 +577,7 @@ float Probe::run_probing() {
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
-  for (uint8_t r = Z_PROBE_REPETITIONS + 1; --r;) {
+  for (uint8_t r = data.repetitions + 1; --r;) {
 
     // move down slowly to find bed
     if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(data.speed_slow))) {
@@ -594,7 +595,7 @@ float Probe::run_probing() {
 
   }
 
-  return probe_z * (1.0 / (Z_PROBE_REPETITIONS));
+  return probe_z * (1.0 / (float)data.repetitions);
 }
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)

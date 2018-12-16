@@ -24,52 +24,21 @@
 
 PrintCounter print_job_counter;
 
+/** Public Parameters */
 printStatistics PrintCounter::data;
 
-millis_t PrintCounter::lastDuration;
 bool PrintCounter::loaded = false;
 
-millis_t PrintCounter::deltaDuration() {
-  #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("deltaDuration"));
-  #endif
+/** Private Parameters */
+millis_t PrintCounter::lastDuration;
 
-  millis_t tmp = lastDuration;
-  lastDuration = duration();
-  return lastDuration - tmp;
-}
-
+/** Public Function */
 void PrintCounter::initStats() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
     PrintCounter::debug(PSTR("initStats"));
   #endif
 
   data = { 0, 0, 0, 0, 0.0 };
-}
-
-void PrintCounter::loadStats() {
-  #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("loadStats"));
-  #endif
-
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
-    // Checks if the SDCARD is inserted
-    if (IS_SD_INSERTED() && !IS_SD_PRINTING())
-      card.RetrieveSettings(true);
-  #endif
-}
-
-void PrintCounter::saveStats() {
-  #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("saveStats"));
-  #endif
-
-  // Refuses to save data is object is not loaded
-  if (!loaded) return;
-
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
-    card.StoreSettings();
-  #endif
 }
 
 void PrintCounter::showStats() {
@@ -123,7 +92,7 @@ void PrintCounter::tick() {
       loadStats();
       saveStats();
     }
-    else if (now - config_last >= ((SD_CFG_SECONDS) * 1000UL)) {
+    else if (printer.IsStatisticsStore() && now - config_last >= ((SD_CFG_SECONDS) * 1000UL)) {
       config_last = now;
       saveStats();
     }
@@ -179,3 +148,40 @@ void PrintCounter::reset() {
   }
 
 #endif
+
+/** Private Function */
+void PrintCounter::loadStats() {
+  #if ENABLED(DEBUG_PRINTCOUNTER)
+    PrintCounter::debug(PSTR("loadStats"));
+  #endif
+
+  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+    // Checks if the SDCARD is inserted
+    if (IS_SD_INSERTED() && !IS_SD_PRINTING())
+      card.RetrieveSettings(true);
+  #endif
+}
+
+void PrintCounter::saveStats() {
+  #if ENABLED(DEBUG_PRINTCOUNTER)
+    PrintCounter::debug(PSTR("saveStats"));
+  #endif
+
+  // Refuses to save data is object is not loaded
+  if (!loaded) return;
+
+  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+    card.StoreSettings();
+  #endif
+}
+
+/** Protected Function */
+millis_t PrintCounter::deltaDuration() {
+  #if ENABLED(DEBUG_PRINTCOUNTER)
+    PrintCounter::debug(PSTR("deltaDuration"));
+  #endif
+
+  millis_t tmp = lastDuration;
+  lastDuration = duration();
+  return lastDuration - tmp;
+}

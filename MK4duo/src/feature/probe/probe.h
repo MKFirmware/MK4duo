@@ -44,9 +44,11 @@
 typedef struct {
 
   float     offset[XYZ];
-  
+
   uint16_t  speed_fast,
             speed_slow;
+
+  uint8_t   repetitions;
 
 } probe_data_t;
 
