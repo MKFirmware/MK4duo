@@ -34,7 +34,7 @@
 
   void report_workspace_plane() {
     SERIAL_SM(ECHO, "Workspace Plane ");
-    SERIAL_PS(
+    SERIAL_PGM(
         mechanics.workspace_plane == mechanics.PLANE_YZ ? PSTR("YZ\n")
       : mechanics.workspace_plane == mechanics.PLANE_ZX ? PSTR("ZX\n")
                                               : PSTR("XY\n")

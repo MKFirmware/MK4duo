@@ -44,17 +44,20 @@ inline void gcode_M851(void) {
     }
   }
 
-  probe.data.speed_fast = parser.ushortval('F', probe.data.speed_fast);
-  probe.data.speed_slow = parser.ushortval('S', probe.data.speed_slow);
+  probe.data.speed_fast   = parser.ushortval('F', probe.data.speed_fast);
+  probe.data.speed_slow   = parser.ushortval('S', probe.data.speed_slow);
+  probe.data.repetitions  = parser.byteval('R', probe.data.repetitions);
 
   NOLESS(probe.data.speed_fast, 120);
   NOLESS(probe.data.speed_slow, 60);
+  NOLESS(probe.data.repetitions, 1);
 
-  SERIAL_LM(ECHO, "Probe Offset XYZ, speed [F]ast and speed [S]low [mm/min]");
+  SERIAL_LM(ECHO, "Probe Offset XYZ, speed [F]ast and speed [S]low [mm/min], [R]epetitions");
   SERIAL_SMV(ECHO, " X:", probe.data.offset[X_AXIS], 3);
   SERIAL_MV(" Y:", probe.data.offset[Y_AXIS], 3);
   SERIAL_MV(" Z:", probe.data.offset[Z_AXIS], 3);
   SERIAL_MV(" F:", probe.data.speed_fast);
   SERIAL_MV(" S:", probe.data.speed_slow);
+  SERIAL_MV(" R:", probe.data.repetitions);
   SERIAL_EOL();
 }

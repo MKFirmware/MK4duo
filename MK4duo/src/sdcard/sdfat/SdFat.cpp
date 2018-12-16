@@ -202,7 +202,7 @@ void SdFat::initErrorHalt(const char * msg) {
  * \param[in] msg Message in program space (flash memory) to print.
  */
 void SdFat::initErrorHalt_P(PGM_P msg) {
-  SERIAL_PS(msg);
+  SERIAL_PGM(msg);
   SERIAL_EOL();
   initErrorHalt();
 }
@@ -210,19 +210,19 @@ void SdFat::initErrorHalt_P(PGM_P msg) {
 /** Print error details after SdFat::init() fails. */
 void SdFat::initErrorPrint() {
   if (card_.errorCode()) {
-    SERIAL_PS(PSTR("Can't access SD card. Do not reformat."));
+    SERIAL_PGM(PSTR("Can't access SD card. Do not reformat."));
     if (card_.errorCode() == SD_CARD_ERROR_CMD0)
-      SERIAL_PS(PSTR(" No card, wrong chip select pin, or SPI problem?"));
+      SERIAL_PGM(PSTR(" No card, wrong chip select pin, or SPI problem?"));
     errorPrint();
   }
   else if (vol_.fatType() == 0) {
-    SERIAL_PS(PSTR("Invalid format, reformat SD."));
+    SERIAL_PGM(PSTR("Invalid format, reformat SD."));
   }
   else if (!vwd_.isOpen()) {
-    SERIAL_PS(PSTR("Can't open root directory."));
+    SERIAL_PGM(PSTR("Can't open root directory."));
   }
   else {
-    SERIAL_PS(PSTR("No error found."));
+    SERIAL_PGM(PSTR("No error found."));
   }
   SERIAL_EOL();
 }
@@ -241,7 +241,7 @@ void SdFat::initErrorPrint(char const *msg) {
  * \param[in] msg Message in program space (flash memory) to print.
  */
 void SdFat::initErrorPrint_P(PGM_P msg) {
-  SERIAL_PS(msg);
+  SERIAL_PGM(msg);
   SERIAL_EOL();
   initErrorHalt();
 }

@@ -110,11 +110,10 @@ class Com {
 // MACRO FOR SERIAL
 #define SERIAL_PORT(p)                      (Com::serial_port = p)
 
-#define SERIAL_PS(message)                  (Com::printPGM(message))
-#define SERIAL_PGM(message)                 (Com::printPGM(PSTR(message)))
+#define SERIAL_PGM(message)                 (Com::printPGM(message))
 
-#define SERIAL_STR(str)                     SERIAL_PS(str)
-#define SERIAL_MSG(msg)                     SERIAL_PGM(msg)
+#define SERIAL_STR(str)                     SERIAL_PGM(str)
+#define SERIAL_MSG(msg)                     SERIAL_PGM(PSTR(msg))
 #define SERIAL_TXT(txt)                     (Com::print(txt))
 #define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
 #define SERIAL_CHR(c)                       (Com::write(c))

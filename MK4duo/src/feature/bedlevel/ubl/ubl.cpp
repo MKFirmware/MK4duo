@@ -189,7 +189,7 @@
     }
     else {
       SERIAL_MSG(" for ");
-      SERIAL_PS(csv ? PSTR("CSV:\n") : PSTR("LCD:\n"));
+      SERIAL_PGM(csv ? PSTR("CSV:\n") : PSTR("LCD:\n"));
     }
 
     const float current_xi = get_cell_index_x(mechanics.current_position[X_AXIS] + (MESH_X_DIST) / 2.0),
@@ -218,7 +218,7 @@
           // TODO: Display on Graphical LCD
         }
         else if (isnan(f))
-          SERIAL_PS(human ? PSTR("  .   ") : PSTR("NAN"));
+          SERIAL_PGM(human ? PSTR("  .   ") : PSTR("NAN"));
         else if (human || csv) {
           if (human && f >= 0.0) SERIAL_CHR(f > 0 ? '+' : ' '); // Space for positive ('-' for negative)
           SERIAL_VAL(f, 3);                                     // Positive: 5 digits, Negative: 6 digits

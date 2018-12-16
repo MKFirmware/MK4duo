@@ -28,7 +28,7 @@
 
 void out_of_range_error(PGM_P p_edge) {
   SERIAL_MSG("?Probe ");
-  SERIAL_PS(p_edge);
+  SERIAL_PGM(p_edge);
   SERIAL_EM(" position out of range.");
 }
 

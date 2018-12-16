@@ -38,7 +38,7 @@
     const static char* const tool_strings[] PROGMEM = { str_tooltype_0, str_tooltype_1, str_tooltype_2 };
     if (new_mode >= 0 && (PrinterModeEnum)new_mode < PRINTER_MODE_COUNT) printer.mode = (PrinterModeEnum)new_mode;
     SERIAL_SM(ECHO, "Printer-Mode: ");
-    SERIAL_PS((char*)pgm_read_word(&(tool_strings[printer.mode])));
+    SERIAL_PGM((char*)pgm_read_word(&(tool_strings[printer.mode])));
     SERIAL_CHR(' ');
     SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? tools.active_extruder : 0));
   }

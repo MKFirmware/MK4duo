@@ -745,10 +745,19 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
   void TMC_Stepper::config(MKTMC* st, const int8_t tmc_sgt/*=0*/) {
 
     st->begin();
-    st->blank_time(24);
-    st->toff(5); // Only enables the driver if used with stealthChop
+
+    static constexpr int8_t timings[] = CHOPPER_TIMING;
+
+    TMC2660_n::CHOPCONF_t chopconf{0};
+    chopconf.tbl = 1;
+    chopconf.toff = timings[0];
+    chopconf.hend = timings[1] + 3;
+    chopconf.hstrt = timings[2] - 1;
+    st->CHOPCONF(chopconf.sr);
+ 
     st->intpol(INTERPOLATE);
     st->sgt(tmc_sgt);
+    st->diss2g(true); // Disable short to ground protection. Too many false readings?
 
   }
 
@@ -758,23 +767,26 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
     st->begin();
 
+    static constexpr int8_t timings[] = CHOPPER_TIMING; // Default 4, -2, 1
+
     CHOPCONF_t chopconf{0};
     chopconf.tbl = 1;
-    chopconf.toff = 3;
+    chopconf.toff = timings[0];
     chopconf.intpol = INTERPOLATE;
-    chopconf.hstrt = 2;
-    chopconf.hend = 5;
+    chopconf.hend = timings[1] + 3;
+    chopconf.hstrt = timings[2] - 1;
     st->CHOPCONF(chopconf.sr);
 
     st->iholddelay(10);
     st->TPOWERDOWN(128);
 
     st->en_pwm_mode(tmc_stealthchop);
+
     PWMCONF_t pwmconf{0};
-    pwmconf.pwm_freq = STEALTH_FREQ;
-    pwmconf.pwm_autoscale = STEALTH_AUTOSCALE;
-    pwmconf.pwm_grad = STEALTH_GRAD;
-    pwmconf.pwm_ampl = STEALTH_AMPL;
+    pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_grad = 5;
+    pwmconf.pwm_ampl = 180;
     st->PWMCONF(pwmconf.sr);
 
     st->sgt(tmc_sgt);
@@ -787,7 +799,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       SERIAL_STR(ER);
     SERIAL_MSG("stepper");
     st->printLabel();
-    SERIAL_PS(st->test_connection() < 2 ? PSTR(" connect!") : PSTR(" not connect!"));
+    SERIAL_PGM(st->test_connection() < 2 ? PSTR(" connect!") : PSTR(" not connect!"));
     SERIAL_EOL();
 
   }
@@ -796,28 +808,35 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   void TMC_Stepper::config(MKTMC* st, const bool tmc_stealthchop/*=false*/) {
 
-    st->pdn_disable(true);      // Use UART
-    st->mstep_reg_select(true); // Select microsteps with UART
-    st->I_scale_analog(false);
-    st->blank_time(24);
-    st->toff(5);
-    st->intpol(INTERPOLATE);
-    st->TPOWERDOWN(128);        // ~2s until driver lowers to hold current
-    st->hysteresis_start(3);
-    st->hysteresis_end(2);
+    static constexpr int8_t timings[] = CHOPPER_TIMING; // Default 4, -2, 1
 
-    if (tmc_stealthchop) {
-      st->pwm_lim(12);
-      st->pwm_reg(8);
-      st->pwm_autograd(1);
-      st->pwm_autoscale(1);
-      st->pwm_freq(1);
-      st->pwm_grad(14);
-      st->pwm_ofs(36);
-      st->en_spreadCycle(false);
-    }
-    else
-      st->en_spreadCycle(true);
+    TMC2208_n::GCONF_t gconf{0};
+    gconf.pdn_disable = true; // Use UART
+    gconf.mstep_reg_select = true; // Select microsteps with UART
+    gconf.i_scale_analog = false;
+    gconf.en_spreadcycle = !tmc_stealthchop;
+    st->GCONF(gconf.sr);
+
+    TMC2208_n::CHOPCONF_t chopconf{0};
+    chopconf.tbl = 0b01; // blank_time = 24
+    chopconf.toff = timings[0];
+    chopconf.intpol = INTERPOLATE;
+    chopconf.hend = timings[1] + 3;
+    chopconf.hstrt = timings[2] - 1;
+    st->CHOPCONF(chopconf.sr);
+
+    st->iholddelay(10);
+    st->TPOWERDOWN(128);
+
+    TMC2208_n::PWMCONF_t pwmconf{0};
+    pwmconf.pwm_lim = 12;
+    pwmconf.pwm_reg = 8;
+    pwmconf.pwm_autograd = true;
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_freq = 0b01;
+    pwmconf.pwm_grad = 14;
+    pwmconf.pwm_ofs = 36;
+    st->PWMCONF(pwmconf.sr);
 
     st->GSTAT(0b111); // Clear
     delay(200);
@@ -987,7 +1006,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       switch(i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(st->sgt()); break;
-        case TMC_STEALTHCHOP: SERIAL_PS(st->en_pwm_mode() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_PGM(st->en_pwm_mode() ? PSTR("true") : PSTR("false")); break;
         default: break;
       }
     }
@@ -1008,7 +1027,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       switch(i) {
         case TMC_TSTEP: { uint32_t data = 0; st->TSTEP(&data); SERIAL_VAL(data); break; }
         case TMC_PWM_SCALE: SERIAL_VAL(st->pwm_scale_sum()); break;
-        case TMC_STEALTHCHOP: SERIAL_PS(st->stealth() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_PGM(st->stealth() ? PSTR("true") : PSTR("false")); break;
         case TMC_S2VSA: if (st->s2vsa()) SERIAL_CHR('X'); break;
         case TMC_S2VSB: if (st->s2vsb()) SERIAL_CHR('X'); break;
         default: break;
@@ -1034,7 +1053,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_PS(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_PGM(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
@@ -1059,7 +1078,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_PS(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_PGM(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
@@ -1096,9 +1115,9 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
                 SERIAL_CHR('-');
             }
           break;
-        case TMC_OTPW: SERIAL_PS(st->otpw() ? PSTR("true") : PSTR("false")); break;
+        case TMC_OTPW: SERIAL_PGM(st->otpw() ? PSTR("true") : PSTR("false")); break;
         #if ENABLED(MONITOR_DRIVER_STATUS)
-          case TMC_OTPW_TRIGGERED: SERIAL_PS(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
+          case TMC_OTPW_TRIGGERED: SERIAL_PGM(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
         #endif
         case TMC_TOFF: SERIAL_VAL(st->toff()); break;
         case TMC_TBL: SERIAL_VAL(st->blank_time()); break;

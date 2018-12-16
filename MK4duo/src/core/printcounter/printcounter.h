@@ -50,6 +50,13 @@ class PrintCounter: public Stopwatch {
 
   private: /** Private Parameters */
 
+    /**
+     * @brief Timestamp of the last call to deltaDuration()
+     * @details Stores the timestamp of the last deltaDuration(), this is
+     * required due to the updateInterval cycle.
+     */
+    static millis_t lastDuration;
+
     typedef Stopwatch super;
 
   public: /** Public Function */
@@ -68,18 +75,6 @@ class PrintCounter: public Stopwatch {
      * also the magic header.
      */
     static void initStats();
-
-    /**
-     * @brief Loads the Print Statistics
-     * @details Loads the statistics from SDCARD
-     */
-    static void loadStats();
-
-    /**
-     * @brief Saves the Print Statistics
-     * @details Saves the statistics to SDCARD
-     */
-    static void saveStats();
 
     /**
      * @brief Serial output the Print Statistics
@@ -115,13 +110,18 @@ class PrintCounter: public Stopwatch {
   private: /** Private Function */
 
     /**
-     * @brief Timestamp of the last call to deltaDuration()
-     * @details Stores the timestamp of the last deltaDuration(), this is
-     * required due to the updateInterval cycle.
+     * @brief Loads the Print Statistics
+     * @details Loads the statistics from SDCARD
      */
-    static millis_t lastDuration;
+    static void loadStats();
 
-  protected: /** Protected Parameters */
+    /**
+     * @brief Saves the Print Statistics
+     * @details Saves the statistics to SDCARD
+     */
+    static void saveStats();
+
+  protected: /** Protected Function */
 
     /**
      * @brief dT since the last call

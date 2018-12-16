@@ -149,14 +149,14 @@
 
     // Auto home
     #if Z_HOME_DIR > 0
-      mechanics.home();
+      commands.process_now_P(PSTR("G28"));
     #else
       mechanics.home_flag.ZHomed = true;
       stepper.enable_Z();
       dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
       sprintf_P(cmd, PSTR("G92 Z%s"), str1);
       commands.process_now(cmd);
-      mechanics.home(true, true, false);
+      commands.process_now_P(PSTR("G28 X Y"));
     #endif
 
     // Select the previously active tool (with no_move)
@@ -224,7 +224,7 @@
     while (*fn == '/') fn++;
     sprintf_P(cmd, PSTR("M23 %s"), fn);
     commands.process_now(cmd);
-    sprintf_P(cmd, PSTR("M24 S%ld T%ld"), job_info.sdpos, job_info.print_job_counter_elapsed);
+    sprintf_P(cmd, PSTR("M24 S%lu T%lu"), job_info.sdpos, job_info.print_job_counter_elapsed);
     commands.process_now(cmd);
 
   }
@@ -247,7 +247,7 @@
   #if ENABLED(DEBUG_RESTART)
 
     void Restart::debug_info(PGM_P const prefix) {
-      SERIAL_PS(prefix);
+      SERIAL_PGM(prefix);
       SERIAL_MV("Job Recovery Info...\nvalid Head:", (int)job_info.valid_head);
       SERIAL_EMV(" Valid Foot:", (int)job_info.valid_foot);
       if (job_info.valid_head) {

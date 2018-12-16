@@ -56,7 +56,7 @@ union flagVarious_t {
     bool  SuspendAutoreport : 1;
     bool  FilamentOut       : 1;
     bool  G38Move           : 1;
-    bool  bit11             : 1;
+    bool  statistics_store  : 1;
     bool  bit12             : 1;
     bool  bit13             : 1;
     bool  bit14             : 1;
@@ -235,6 +235,10 @@ class Printer {
     // Various flag bit 10 G38Move
     FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.G38Move = onoff; }
     FORCE_INLINE static bool IsG38Move() { return various_flag.G38Move; }
+
+    // Various flag bit 11 Statistics store
+    FORCE_INLINE static void setStatisticsStore(const bool onoff) { various_flag.statistics_store = onoff; }
+    FORCE_INLINE static bool IsStatisticsStore() { return various_flag.statistics_store; }
 
     FORCE_INLINE static bool reset_flag() { various_flag.all = 0; }
 

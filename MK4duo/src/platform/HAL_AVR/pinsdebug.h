@@ -83,7 +83,7 @@ void PRINT_ARRAY_NAME(uint8_t x) {
   #define NUM_DIGITAL_PINS 32     // set to digital only + digital/analog
 #endif
 
-#define PWM_PRINT(V) do{ sprintf_P(buffer, PSTR("PWM:  %4d"), V); SERIAL_PS(buffer); }while(0)
+#define PWM_PRINT(V) do{ sprintf_P(buffer, PSTR("PWM:  %4d"), V); SERIAL_PGM(buffer); }while(0)
 #define PWM_CASE(N,Z)                                           \
   case TIMER##N##Z:                                             \
     if (TCCR##N##A & (_BV(COM##N##Z##1) | _BV(COM##N##Z##0))) { \
@@ -398,4 +398,4 @@ static void pwm_details(uint8_t pin) {
 
 #endif
 
-#define PRINT_PIN(p) do {sprintf_P(buffer, PSTR("%3d "), p); SERIAL_PS(buffer);} while (0)
+#define PRINT_PIN(p) do {sprintf_P(buffer, PSTR("%3d "), p); SERIAL_PGM(buffer);} while (0)
