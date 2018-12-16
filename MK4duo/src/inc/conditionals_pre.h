@@ -30,6 +30,10 @@
   #define STRING_CONFIG_H_AUTHOR "(none, default config)"
 #endif
 
+#if ENABLED(__AVR__)
+  #define EEPROM_I2C
+#endif
+
 #if ENABLED(NEXTION)
   #define LCD_HEIGHT 6
   #define LCD_DECIMAL_SMALL_XY
