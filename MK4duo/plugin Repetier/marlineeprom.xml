@@ -1882,17 +1882,17 @@
   <entry type="int" min="60">
     <description unit="[mm/min]">Probe speed Fast</description>
     <set>M851 F@</set>
-    <detect>M851.*F(-?\d*\.?\d*)</detect>
+    <detect>M851.*F(-?\d*)</detect>
   </entry>
   <entry type="int" min="60">
     <description unit="[mm/min]">Probe speed Slow</description>
     <set>M851 S@</set>
-    <detect>M851.*S(-?\d*\.?\d*)</detect>
+    <detect>M851.*S(-?\d*)</detect>
   </entry>
   <entry type="int" min="1" max="10">
     <description unit="[mm/min]">Probe repetitions</description>
     <set>M851 R@</set>
-    <detect>M851.*R(-?\d*\.?\d*)</detect>
+    <detect>M851.*R(-?\d*)</detect>
   </entry>
 
   <!-- M900: Linear Advance -->
@@ -1911,32 +1911,32 @@
   <entry type="int" min="100">
     <description unit="[mA]">X motor current</description>
     <set>M906 X@</set>
-    <detect>M906.*X(-?\d*\.?\d*)</detect>
+    <detect>M906.*X(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Y motor current</description>
     <set>M906 Y@</set>
-    <detect>M906.*Y(-?\d*\.?\d*)</detect>
+    <detect>M906.*Y(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Z motor current</description>
     <set>M906 Z@</set>
-    <detect>M906.*Z(-?\d*\.?\d*)</detect>
+    <detect>M906.*Z(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">X2 motor current</description>
     <set>M906 I1 X@</set>
-    <detect>M906.*I1.*X(-?\d*\.?\d*)</detect>
+    <detect>M906.*I1.*X(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Y2 motor current</description>
     <set>M906 I1 Y@</set>
-    <detect>M906.*I1.*Y(-?\d*\.?\d*)</detect>
+    <detect>M906.*I1.*Y(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Z2 motor current</description>
     <set>M906 I1 Z@</set>
-    <detect>M906.*I1.*Z(-?\d*\.?\d*)</detect>
+    <detect>M906.*I1.*Z(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E0 motor current</description>
@@ -1946,27 +1946,27 @@
   <entry type="int" min="100">
     <description unit="[mA]">E1 motor current</description>
     <set>M906 T1 E@</set>
-    <detect>M906 T1.*E(-?\d*\.?\d*)</detect>
+    <detect>M906 T1.*E(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E2 motor current</description>
     <set>M906 T2 E@</set>
-    <detect>M906 T2.*E(-?\d*\.?\d*)</detect>
+    <detect>M906 T2.*E(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E3 motor current</description>
     <set>M906 T3 E@</set>
-    <detect>M906 T3.*E(-?\d*\.?\d*)</detect>
+    <detect>M906 T3.*E(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E4 motor current</description>
     <set>M906 T4 E@</set>
-    <detect>M906 T4.*E(-?\d*\.?\d*)</detect>
+    <detect>M906 T4.*E(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E5 motor current</description>
     <set>M906 T5 E@</set>
-    <detect>M906 T5.*E(-?\d*\.?\d*)</detect>
+    <detect>M906 T5.*E(-?\d*)</detect>
   </entry>
 
   <!-- M913: Hybrid Threshold-->
