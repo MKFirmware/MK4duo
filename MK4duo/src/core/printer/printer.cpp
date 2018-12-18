@@ -288,7 +288,7 @@ void Printer::setup() {
   setRunning(true);
 
   // Initialized print statistics stored
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     setStatisticsStore(true);
   #endif
 

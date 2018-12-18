@@ -359,30 +359,22 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
   void watch_temp_callback_E0() {
     heaters[0].setTarget(heaters[0].target_temperature);
-    #if WATCH_THE_HOTEND
-      heaters[0].start_watching();
-    #endif
+    heaters[0].start_watching();
   }
   #if HOTENDS > 1
     void watch_temp_callback_E1() {
       heaters[1].setTarget(heaters[1].target_temperature);
-      #if WATCH_THE_HOTEND
-        heaters[1].start_watching();
-      #endif
+      heaters[1].start_watching();
     }
     #if HOTENDS > 2
       void watch_temp_callback_E2() {
         heaters[2].setTarget(heaters[2].target_temperature);
-        #if WATCH_THE_HOTEND
-          heaters[2].start_watching();
-        #endif
+        heaters[2].start_watching();
       }
       #if HOTENDS > 3
         void watch_temp_callback_E3() {
           heaters[3].setTarget(heaters[3].target_temperature);
-          #if WATCH_THE_HOTEND
-            heaters[3].start_watching();
-          #endif
+          heaters[3].start_watching();
         }
       #endif // HOTENDS > 3
     #endif // HOTENDS > 2
@@ -393,27 +385,21 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 #if HAS_TEMP_BED
   void watch_temp_callback_bed() {
     heaters[BED_INDEX].setTarget(heaters[BED_INDEX].target_temperature);
-    #if WATCH_THE_BED
-      heaters[BED_INDEX].start_watching();
-    #endif
+    heaters[BED_INDEX].start_watching();
   }
 #endif
 
 #if HAS_TEMP_CHAMBER
   void watch_temp_callback_chamber() {
     heaters[CHAMBER_INDEX].setTarget(heaters[CHAMBER_INDEX].target_temperature);
-    #if WATCH_THE_CHAMBER
-      heaters[CHAMBER_INDEX].start_watching();
-    #endif
+    heaters[CHAMBER_INDEX].start_watching();
   }
 #endif
 
 #if HAS_TEMP_COOLER
   void watch_temp_callback_cooler() {
     heaters[COOLER_INDEX].setTarget(heaters[COOLER_INDEX].target_temperature);
-    #if WATCH_THE_COOLER
-      heaters[COOLER_INDEX].start_watching();
-    #endif
+    heaters[COOLER_INDEX].start_watching();
   }
 #endif
 

@@ -1330,6 +1330,11 @@
     <set>M306 H0 I@</set>
     <detect>M306 H0.*I(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 0 Thermal Protection</description>
+    <set>M306 H0 T@</set>
+    <detect>M306 H0.*T(-?\d*)</detect>
+  </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 0 heater pin</description>
     <set>M306 H0 P@</set>
@@ -1370,6 +1375,11 @@
     <description unit="[0-1]">Hotend 1 hardware inverted</description>
     <set>M306 H1 I@</set>
     <detect>M306 H1.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 1 Thermal Protection</description>
+    <set>M306 H1 T@</set>
+    <detect>M306 H1.*T(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 1 heater pin</description>
@@ -1412,6 +1422,11 @@
     <set>M306 H2 I@</set>
     <detect>M306 H2.*I(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 2 Thermal Protection</description>
+    <set>M306 H2 T@</set>
+    <detect>M306 H2.*T(-?\d*)</detect>
+  </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 2 heater pin</description>
     <set>M306 H2 P@</set>
@@ -1452,6 +1467,11 @@
     <description unit="[0-1]">Hotend 3 hardware inverted</description>
     <set>M306 H3 I@</set>
     <detect>M306 H3.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 3 Thermal Protection</description>
+    <set>M306 H3 T@</set>
+    <detect>M306 H3.*T(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 3 heater pin</description>
@@ -1494,6 +1514,11 @@
     <set>M306 H-1 I@</set>
     <detect>M306 H-1.*I(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Bed Thermal Protection</description>
+    <set>M306 H-1 T@</set>
+    <detect>M306 H-1.*T(-?\d*)</detect>
+  </entry>
   <entry type="int" min="0">
     <description unit="">Bed heater pin</description>
     <set>M306 H-1 P@</set>
@@ -1535,6 +1560,11 @@
     <set>M306 H-2 I@</set>
     <detect>M306 H-2.*I(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Chamber Thermal Protection</description>
+    <set>M306 H-2 T@</set>
+    <detect>M306 H-2.*T(-?\d*)</detect>
+  </entry>
   <entry type="int" min="0">
     <description unit="">Chamber heater pin</description>
     <set>M306 H-2 P@</set>
@@ -1574,6 +1604,11 @@
     <description unit="[0-1]">Cooler hardware inverted</description>
     <set>M306 H-3 I@</set>
     <detect>M306 H-3.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Cooler Thermal Protection</description>
+    <set>M306 H-3 T@</set>
+    <detect>M306 H-3.*T(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Cooler heater pin</description>

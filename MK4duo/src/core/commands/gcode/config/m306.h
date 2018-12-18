@@ -42,6 +42,7 @@
    *    O[int]    Max temperature
    *    U[bool]   Use Pid/bang bang
    *    I[bool]   Hardware Inverted
+   *    T[bool]   Thermal Protection
    *    P[int]    Sensor Pin
    *
    */
@@ -56,13 +57,15 @@
     act->pid.DriveMin = parser.intval('A', act->pid.DriveMin);
     act->pid.DriveMax = parser.intval('B', act->pid.DriveMax);
     act->pid.Max      = parser.intval('C', act->pid.Max);
-    act->data.mintemp      = parser.intval('L', act->data.mintemp);
-    act->data.maxtemp      = parser.intval('O', act->data.maxtemp);
+    act->data.mintemp = parser.intval('L', act->data.mintemp);
+    act->data.maxtemp = parser.intval('O', act->data.maxtemp);
 
     if (parser.seen('U'))
       act->setUsePid(parser.value_bool());
     if (parser.seen('I'))
       act->setHWInverted(parser.value_bool());
+    if (parser.seen('T'))
+      act->setThermalProtection(parser.value_bool());
 
     if (parser.seen('P')) {
       // Put off the heaters

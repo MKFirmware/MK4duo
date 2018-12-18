@@ -57,7 +57,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV56"
+#define EEPROM_VERSION "MKV57"
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0
@@ -1614,6 +1614,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
+      heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1652,6 +1653,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
+      heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1690,6 +1692,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
+      heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1728,6 +1731,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMP);
       heat->setHWInverted(INVERTED_HEATER_PINS);
+      heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1769,6 +1773,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMPBED);
       heat->setHWInverted(INVERTED_BED_PIN);
+      heat->setThermalProtection(THERMAL_PROTECTION_BED);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1810,6 +1815,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMPCHAMBER);
       heat->setHWInverted(INVERTED_CHAMBER_PIN);
+      heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -1851,6 +1857,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMPCOOLER);
       heat->setHWInverted(INVERTED_COOLER_PIN);
+      heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
       #if HAS_EEPROM
         heat->setTuning(false);
       #else
@@ -2470,7 +2477,7 @@ void EEPROM::reset() {
     #endif // ADVANCED_PAUSE_FEATURE
 
     #if HAS_SD_SUPPORT
-      card.print_settings();
+      card.print_statistics();
     #endif
 
   }
