@@ -415,6 +415,15 @@
  */
 #define WATCH_TEMP_PERIOD  20               // Seconds
 #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
+
+#define WATCH_BED_TEMP_PERIOD 60
+#define WATCH_BED_TEMP_INCREASE 2
+
+#define WATCH_CHAMBER_TEMP_PERIOD 60
+#define WATCH_CHAMBER_TEMP_INCREASE 2
+
+#define WATCH_COOLER_TEMP_PERIOD 60
+#define WATCH_COOLER_TEMP_INCREASE 2
 /********************************************************************************/
 
 

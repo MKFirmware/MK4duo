@@ -87,7 +87,7 @@ void PrintCounter::tick() {
     update_last = now;
   }
 
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     if (!loaded) {
       loadStats();
       saveStats();
@@ -155,10 +155,10 @@ void PrintCounter::loadStats() {
     PrintCounter::debug(PSTR("loadStats"));
   #endif
 
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     // Checks if the SDCARD is inserted
     if (IS_SD_INSERTED() && !IS_SD_PRINTING())
-      card.RetrieveSettings(true);
+      card.retrieve_statistics(true);
   #endif
 }
 
@@ -170,8 +170,8 @@ void PrintCounter::saveStats() {
   // Refuses to save data is object is not loaded
   if (!loaded) return;
 
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
-    card.StoreSettings();
+  #if HAS_SD_STATISTICS
+    card.store_statistics();
   #endif
 }
 

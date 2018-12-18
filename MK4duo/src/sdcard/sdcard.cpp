@@ -56,7 +56,7 @@
     SdFile SDCard::eeprom_file;
   #endif
 
-  #if ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     SdFile SDCard::settings_file;
   #endif
 
@@ -354,8 +354,8 @@
     SERIAL_LM(OK, "Hardcoded SD Default Settings Loaded");
   }
 
-  void SDCard::print_settings() {
-    // Always have this function, even with SD_SETTINGS disabled, the current values will be shown
+  void SDCard::print_statistics() {
+    // Always have this function, even with SD_STATISTICS disabled, the current values will be shown
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       SERIAL_LM(CFG, "Watt/h consumed:");
@@ -543,7 +543,7 @@
 
   #endif
 
-  #if ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
 
     /**
      * File parser for KEY->VALUE format from files
@@ -652,7 +652,7 @@
       "TPR"   // Total printing time
     };
 
-    void SDCard::StoreSettings() {
+    void SDCard::store_statistics() {
       if (!IS_SD_INSERTED() || isSDprinting() || print_job_counter.isRunning()) return;
 
       if (settings_file.open(&root, "info", FILE_WRITE)) {
@@ -681,7 +681,7 @@
 
     }
 
-    void SDCard::RetrieveSettings(bool addValue) {
+    void SDCard::retrieve_statistics(bool addValue) {
       if (!IS_SD_INSERTED() || isSDprinting() || !isOK()) return;
 
       char key[CFG_SD_MAX_KEY_LEN], value[CFG_SD_MAX_VALUE_LEN];

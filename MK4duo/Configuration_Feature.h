@@ -1270,7 +1270,7 @@
 #define SD_RESTART_FILE_SAVE_TIME 1 // seconds between update
 
 // This enable the firmware to write statistics, that require frequent update on the SD card.
-//#define SD_SETTINGS             // Uncomment to enable
+//#define SD_STATISTICS           // Uncomment to enable
 #define SD_CFG_SECONDS 300        // seconds between update
 /*****************************************************************************************/
 

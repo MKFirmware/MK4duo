@@ -25,29 +25,28 @@
  * heater.h - heater object
  */
 
-#ifndef _HEATER_H_
-#define _HEATER_H_
-
 #include "sensor/sensor.h"
 #include "pid/pid.h"
 
 union flagheater_t {
   bool all;
   struct {
-    bool  Active      : 1;
-    bool  UsePid      : 1;
-    bool  Tuning      : 1;
-    bool  HWInverted  : 1;
-    bool  Idle        : 1;
-    bool  Fault       : 1;
-    bool  bit6        : 1;
-    bool  bit7        : 1;
+    bool  Active            : 1;
+    bool  UsePid            : 1;
+    bool  Tuning            : 1;
+    bool  HWInverted        : 1;
+    bool  Thermalprotection : 1;
+    bool  Idle              : 1;
+    bool  Fault             : 1;
+    bool  bit7              : 1;
   };
   flagheater_t() { all = false; }
 };
 
 constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
+constexpr uint8_t   watch_temp_period[HEATER_TYPE]    = { WATCH_TEMP_PERIOD, WATCH_BED_TEMP_PERIOD, WATCH_CHAMBER_TEMP_PERIOD, WATCH_COOLER_TEMP_PERIOD };
+constexpr uint8_t   watch_temp_increase[HEATER_TYPE]  = { WATCH_TEMP_INCREASE, WATCH_BED_TEMP_INCREASE, WATCH_CHAMBER_TEMP_INCREASE, WATCH_COOLER_TEMP_INCREASE };
 
 // Struct Heater data
 typedef struct {
@@ -84,10 +83,8 @@ class Heater {
     millis_t      next_check_ms,
                   idle_timeout_ms;
 
-    #if WATCH_THE_HEATER
-      uint16_t    watch_target_temp;
-      millis_t    watch_next_ms;
-    #endif
+    uint16_t      watch_target_temp;
+    millis_t      watch_next_ms;
 
   private: /** Private Parameters */
 
@@ -113,6 +110,8 @@ class Heater {
       void SetHardwarePwm();
     #endif
 
+    void start_watching();
+
     FORCE_INLINE void updateCurrentTemperature() { this->current_temperature = this->sensor.getTemperature(); }
     FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
     FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
@@ -121,10 +120,6 @@ class Heater {
     FORCE_INLINE bool wait_for_heating() {
       return this->isActive() && ABS(this->current_temperature - this->target_temperature) > TEMP_HYSTERESIS;
     }
-
-    #if WATCH_THE_HEATER
-      void start_watching();
-    #endif
 
     // Flag bit 0 Set Active
     FORCE_INLINE void setActive(const bool onoff) {
@@ -147,14 +142,18 @@ class Heater {
     FORCE_INLINE void setHWInverted(const bool onoff) { data.flag.HWInverted = onoff; }
     FORCE_INLINE bool isHWInverted() { return data.flag.HWInverted; }
 
-    // Flag bit 4 Set Hardware inverted
+    // Flag bit 4 Set Thermal Protection
+    FORCE_INLINE void setThermalProtection(const bool onoff) { data.flag.Thermalprotection = onoff; }
+    FORCE_INLINE bool isThermalProtection() { return data.flag.Thermalprotection; }
+
+    // Flag bit 5 Set Idle
     FORCE_INLINE void setIdle(const bool onoff, const int16_t idle_temp=0) {
       data.flag.Idle = onoff;
       idle_temperature = idle_temp;
     }
     FORCE_INLINE bool isIdle() { return data.flag.Idle; }
 
-    // Flag bit 5 Set Hardware inverted
+    // Flag bit 6 Set Fault
     FORCE_INLINE void setFault() {
       soft_pwm = 0;
       setActive(false);
@@ -184,5 +183,3 @@ class Heater {
 #if HEATER_COUNT > 0
   extern Heater heaters[HEATER_COUNT];
 #endif // HEATER_COUNT > 0
-
-#endif /* _HEATER_H_ */

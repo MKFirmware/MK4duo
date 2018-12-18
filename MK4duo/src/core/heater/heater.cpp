@@ -44,10 +44,8 @@ void Heater::init() {
   setActive(false);
   setIdle(false);
 
-  #if WATCH_THE_HEATER
-    watch_target_temp   = 0;
-    watch_next_ms       = 0;
-  #endif
+  watch_target_temp   = 0;
+  watch_next_ms       = 0;
 
   sensor.CalcDerivedParameters();
 
@@ -79,9 +77,7 @@ void Heater::setTarget(int16_t celsius) {
     setActive(true);
     if (isActive()) {
       target_temperature = celsius;
-      #if WATCH_THE_HEATER
-        start_watching();
-      #endif
+      start_watching();
     }
   }
 }
@@ -139,7 +135,7 @@ void Heater::print_sensor_parameters() {
 
 void Heater::print_heater_parameters() {
   const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
-  SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1>:");
+  SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> T<Thermal Protection 0-1>:");
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
   SERIAL_MV(" P", data.pin);
   SERIAL_MV(" A", pid.DriveMin);
@@ -149,6 +145,7 @@ void Heater::print_heater_parameters() {
   SERIAL_MV(" O", data.maxtemp);
   SERIAL_MV(" U", isUsePid());
   SERIAL_MV(" I", isHWInverted());
+  SERIAL_MV(" T", isThermalProtection());
   SERIAL_EOL();
 }
 
@@ -204,12 +201,7 @@ void Heater::start_idle_timer(const millis_t timeout_ms) {
 void Heater::reset_idle_timer() {
   idle_timeout_ms = 0;
   setIdle(false);
-  #if WATCH_THE_HOTEND
-    if (data.type == IS_HOTEND) start_watching();
-  #endif
-  #if WATCH_THE_BED
-    if (data.type == IS_BED) start_watching();
-  #endif
+  start_watching();
 }
 
 #if HARDWARE_PWM
@@ -225,19 +217,21 @@ void Heater::reset_idle_timer() {
   }
 #endif
 
-#if WATCH_THE_HEATER
-  /**
-   * Start Heating Sanity Check for heaters that are below
-   * their target temperature by a configurable margin.
-   * This is called when the temperature is set.
-   */
-  void Heater::start_watching() {
-    const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
-    if (isActive() && current_temperature < targetTemperature - (WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1)) {
-      watch_target_temp = current_temperature + WATCH_TEMP_INCREASE;
-      watch_next_ms = millis() + (WATCH_TEMP_PERIOD) * 1000UL;
-    }
-    else
-      watch_next_ms = 0;
+/**
+ * Start Heating Sanity Check for heaters that are below
+ * their target temperature by a configurable margin.
+ * This is called when the temperature is set.
+ */
+void Heater::start_watching() {
+
+  if (!isThermalProtection()) return;
+
+  const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
+  if (isActive() && current_temperature < targetTemperature - (watch_temp_increase[data.type] + TEMP_HYSTERESIS + 1)) {
+    watch_target_temp = current_temperature + watch_temp_increase[data.type];
+    watch_next_ms = millis() + (watch_temp_period[data.type]) * 1000UL;
   }
-#endif
+  else
+    watch_next_ms = 0;
+
+}

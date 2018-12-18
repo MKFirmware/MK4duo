@@ -70,7 +70,7 @@ static void ac_setup(const bool reset_bed) {
     if (reset_bed) bedlevel.reset(); // After full calibration bed-level data is no longer valid
   #endif
 
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     printer.setStatisticsStore(false);
   #endif
 }
@@ -87,7 +87,7 @@ static void ac_cleanup() {
     tools.change(old_tool_index, 0, true);
   #endif
 
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
+  #if HAS_SD_STATISTICS
     printer.setStatisticsStore(true);
   #endif
 }
