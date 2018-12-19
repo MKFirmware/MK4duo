@@ -44,8 +44,11 @@ void Heater::init() {
   setActive(false);
   setIdle(false);
 
-  watch_target_temp   = 0;
-  watch_next_ms       = 0;
+  watch_target_temp     = 0;
+  watch_next_ms         = 0;
+  thermal_runaway_timer = 0;
+
+  thermal_runaway_state = TRInactive;
 
   sensor.CalcDerivedParameters();
 
@@ -77,6 +80,7 @@ void Heater::setTarget(int16_t celsius) {
     setActive(true);
     if (isActive()) {
       target_temperature = celsius;
+      thermal_runaway_state = target_temperature > 0 ? TRFirstHeating : TRInactive;
       start_watching();
     }
   }
@@ -216,6 +220,31 @@ void Heater::reset_idle_timer() {
     HAL::analogWrite(data.pin, pwm_val, (data.type == IS_HOTEND) ? 250 : 10);
   }
 #endif
+
+void Heater::thermal_runaway_protection() {
+
+  switch (thermal_runaway_state) {
+
+    // Inactive state waits for a target temperature to be set
+    case TRInactive: break;
+
+    // When first heating, wait for the temperature to be reached then go to Stable state
+    case TRFirstHeating:
+      if (current_temperature < target_temperature) break;
+      thermal_runaway_state = TRStable;
+
+    // While the temperature is stable watch for a bad temperature
+    case TRStable:
+      if (current_temperature >= target_temperature - THERMAL_PROTECTION_HYSTERESIS) {
+        thermal_runaway_timer = millis() + THERMAL_PROTECTION_PERIOD * 1000UL;
+        break;
+      }
+      else if (PENDING(millis(), thermal_runaway_timer)) break;
+      thermal_runaway_state = TRRunaway;
+
+    default: break;
+  }
+}
 
 /**
  * Start Heating Sanity Check for heaters that are below

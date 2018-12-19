@@ -35,4 +35,7 @@ inline void gcode_M532(void) {
   printer.progress = parser.intval('X');
   NOMORE(printer.progress, 100);
   printer.currentLayer = parser.longval('L');
+  char text[30] = "";
+  sprintf_P(text, PSTR("%s  %i of %i"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
+  lcdui.set_status(text);
 }

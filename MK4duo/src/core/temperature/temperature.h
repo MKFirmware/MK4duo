@@ -154,13 +154,6 @@ class Temperature {
     static void min_temp_error(const uint8_t h);
     static void max_temp_error(const uint8_t h);
 
-    typedef enum TRState { TRInactive, TRFirstHeating, TRStable, TRRunaway } TRstate;
-
-    static void thermal_runaway_protection(TRState* state, millis_t* timer, const uint8_t h, int period_seconds, int hysteresis_degc);
-
-    static TRState thermal_runaway_state_machine[HEATER_COUNT];
-    static millis_t thermal_runaway_timer[HEATER_COUNT];
-
     #if HEATER_COUNT > 0
       static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);
     #endif

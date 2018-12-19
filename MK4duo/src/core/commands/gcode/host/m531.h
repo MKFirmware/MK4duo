@@ -34,4 +34,5 @@
 inline void gcode_M531(void) {
   strncpy(printer.printName, parser.string_arg, 20);
   printer.printName[20] = 0;
+  lcdui.set_status(printer.printName);
 }

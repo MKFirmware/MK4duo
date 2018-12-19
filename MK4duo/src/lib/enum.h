@@ -164,16 +164,6 @@ enum EndstopEnum : uint8_t {
 };
 
 /**
- * Heaters
- */
-enum HeaterEnum : uint8_t {
-  IS_HOTEND,
-  IS_BED,
-  IS_CHAMBER,
-  IS_COOLER
-};
-
-/**
  * Temperature
  */
 enum TempUnitEnum : uint8_t {

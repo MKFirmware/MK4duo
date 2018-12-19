@@ -38,7 +38,7 @@ flagVarious_t Printer::various_flag;  // For various
 bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
 // Print status related
-long    Printer::currentLayer  = 0,
+int16_t Printer::currentLayer  = 0,
         Printer::maxLayer      = -1;   // -1 = unknown
 
 char    Printer::printName[21] = "";   // max. 20 chars + 0
