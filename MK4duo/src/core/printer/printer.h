@@ -80,7 +80,7 @@ class Printer {
 
     static bool     axis_relative_modes[];
 
-    static long     currentLayer,
+    static int16_t  currentLayer,
                     maxLayer;       // -1 = unknown
 
     static char     printName[21];  // max. 20 chars + 0

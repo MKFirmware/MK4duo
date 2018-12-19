@@ -33,14 +33,14 @@
  */
 inline void gcode_M530(void) {
 
-  printer.maxLayer = parser.longval('L');
+  if (parser.seen('L')) printer.maxLayer = parser.value_long();
 
   if (parser.seen('S') && parser.value_bool()) {
     print_job_counter.start(); // Start the timer job
 
     SERIAL_MSG("Start Printing");
-    if (printer.maxLayer > 0) SERIAL_EMV(" - MaxLayer:", printer.maxLayer);
-    else SERIAL_EOL();
+    if (printer.maxLayer > 0) SERIAL_MV(" - MaxLayer:", printer.maxLayer);
+    SERIAL_EOL();
 
     #if ENABLED(START_GCODE)
       commands.enqueue_and_echo_P(PSTR(START_PRINTING_SCRIPT));
