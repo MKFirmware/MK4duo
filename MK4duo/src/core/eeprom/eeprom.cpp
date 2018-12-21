@@ -2252,7 +2252,7 @@ void EEPROM::reset() {
       SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-          SERIAL_SMV(CFG, "  M906 T", i);
+          SERIAL_SMV(CFG, "  M906 T", int(i));
           SERIAL_EMV(" E", externaldac.motor_current[E_AXIS + i]);
         }
       #endif

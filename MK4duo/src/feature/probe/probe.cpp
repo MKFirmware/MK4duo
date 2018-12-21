@@ -595,7 +595,7 @@ float Probe::run_probing() {
 
   }
 
-  return probe_z * (1.0 / (float)data.repetitions);
+  return probe_z / (float)data.repetitions;
 }
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)
