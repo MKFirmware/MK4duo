@@ -68,7 +68,7 @@ void Heater::setTarget(int16_t celsius) {
 
   NOMORE(celsius, data.maxtemp);
 
-  if (!isTuning() && isUsePid()) {
+  if (!isTuning() && isUsePid() && celsius != 0) {
     SERIAL_LM(ER, " Need Tuning PID");
     LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
   }

@@ -146,7 +146,7 @@ int8_t g26_prime_flag;
    */
   bool user_canceled() {
     if (!lcdui.button_pressed()) return false; // Return if the button isn't pressed
-    lcdui.setstatusPGM(PSTR("Mesh Validation Stopped."), 99);
+    lcdui.set_status_P(PSTR("Mesh Validation Stopped."), 99);
     #if ENABLED(ULTIPANEL)
       lcdui.quick_feedback(true);
     #endif
@@ -155,7 +155,7 @@ int8_t g26_prime_flag;
   }
 
   bool exit_from_g26() {
-    lcdui.setstatusPGM(PSTR("Leaving G26"), -1);
+    lcdui.set_status_P(PSTR("Leaving G26"), -1);
     lcdui.wait_for_release();
     return G26_ERR;
   }

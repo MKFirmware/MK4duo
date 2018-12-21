@@ -289,33 +289,28 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
   const bool  isHotend      = act->data.type == IS_HOTEND,
               oldReport     = printer.isAutoreportTemp();
 
-  printer.setAutoreportTemp(true);
-
   disable_all_heaters(); // switch off all heaters.
 
   millis_t  t1      = millis(),
             t2      = t1;
   int32_t   t_high  = 0.0,
             t_low   = 0.0;
-  float     Ku      = 0.0,
-            Pu      = 0.0,
-            workKp  = 0.0,
-            workKi  = 0.0,
-            workKd  = 0.0,
-            maxTemp = 20.0,
-            minTemp = 20.0;
 
-  const uint8_t pidMax = act->pid.Max;
-  act->soft_pwm = pidMax;
+  float     maxTemp = 0.0,
+            minTemp = 1000.0;
 
-  int32_t bias  = pidMax >> 1;
-  int32_t d     = pidMax >> 1;
+  pid_data_t tune_pid;
+
+  act->soft_pwm = act->pid.Max;
+
+  int32_t bias  = act->pid.Max >> 1,
+          d     = act->pid.Max >> 1;
 
   printer.setWaitForHeatUp(true);
-  pid_pointer = act->data.ID;
+  printer.setAutoreportTemp(true);
+  printer.setStatisticsStore(false);
 
-  lcdui.reset_alert_level();
-  LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
+  pid_pointer = act->data.ID;
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = act->current_temperature;
@@ -341,7 +336,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
     #endif
 
     if (heating && current_temp > target_temp) {
-      if (time - t2 > (isHotend ? 2500 : 1500)) {
+      if (ELAPSED(time, t2 + 5000UL)) {
         heating = false;
 
         act->soft_pwm = (bias - d);
@@ -359,61 +354,64 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
     }
 
     if (!heating && current_temp < target_temp) {
-      if (time - t1 > (isHotend ? 5000 : 3000)) {
+      if (ELAPSED(time, t1 + 5000UL)) {
         heating = true;
         t2 = time;
         t_low = t2 - t1;
         if (cycles > 0) {
 
           bias += (d * (t_high - t_low)) / (t_low + t_high);
-          bias = constrain(bias, 20, pidMax - 20);
-          d = (bias > pidMax / 2) ? pidMax - 1 - bias : bias;
+          bias = constrain(bias, 20, act->pid.Max - 20);
+          d = (bias > act->pid.Max >> 1) ? act->pid.Max - 1 - bias : bias;
 
           SERIAL_MV(MSG_BIAS, bias);
           SERIAL_MV(MSG_D, d);
-          SERIAL_MV(MSG_T_MIN, minTemp, 2);
-          SERIAL_EMV(MSG_T_MAX, maxTemp, 2);
+          SERIAL_MV(MSG_T_MIN, minTemp);
+          SERIAL_MV(MSG_T_MAX, maxTemp);
+
           if (cycles > 2) {
-            Ku = (4.0 * d) / (M_PI * (maxTemp - minTemp));
-            Pu = ((float)(t_low + t_high) * 0.001);
-            SERIAL_MV(MSG_KU, Ku, 2);
-            SERIAL_EMV(MSG_TU, Pu, 2);
+            float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
+                  Tu = ((float)(t_low + t_high) * 0.001f);
+            SERIAL_MV(MSG_KU, Ku);
+            SERIAL_MV(MSG_TU, Tu);
 
             if (method == 0) {
-              workKp = 0.6f * Ku;
-              workKi = 1.2f * Ku / Pu;
-              workKd = 0.075f * Ku * Pu;
-              SERIAL_EM(MSG_CLASSIC_PID);
+              tune_pid.Kp = 0.6f * Ku;
+              tune_pid.Ki = 1.2f * Ku / Tu;
+              tune_pid.Kd = 0.075f * Ku * Tu;
+              SERIAL_EM("\n" MSG_CLASSIC_PID);
             }
             else if (method == 1) {
-              workKp = 0.33f * Ku;
-              workKi = 0.66f * Ku / Pu;
-              workKd = 0.11f * Ku * Pu;
-              SERIAL_EM(MSG_SOME_OVERSHOOT_PID);
+              tune_pid.Kp = 0.33f * Ku;
+              tune_pid.Ki = 0.66f * Ku / Tu;
+              tune_pid.Kd = 0.11f * Ku * Tu;
+              SERIAL_EM("\n" MSG_SOME_OVERSHOOT_PID);
             }
             else if (method == 2) {
-              workKp = 0.2f * Ku;
-              workKi = 0.4f * Ku / Pu;
-              workKd = 0.2f * Ku * Pu / 3.0f;
-              SERIAL_EM(MSG_NO_OVERSHOOT_PID);
+              tune_pid.Kp = 0.2f * Ku;
+              tune_pid.Ki = 0.4f * Ku / Tu;
+              tune_pid.Kd = 0.2f * Ku * Tu / 3.0f;
+              SERIAL_EM("\n" MSG_NO_OVERSHOOT_PID);
             }
             else if (method == 3) {
-              workKp = 0.7f * Ku;
-              workKi = 1.75f * Ku / Pu;
-              workKd = 0.105f * Ku * Pu;
-              SERIAL_EM(MSG_PESSEN_PID);
+              tune_pid.Kp = 0.7f * Ku;
+              tune_pid.Ki = 1.75f * Ku / Tu;
+              tune_pid.Kd = 0.105f * Ku * Tu;
+              SERIAL_EM("\n" MSG_PESSEN_PID);
             }
             else if (method == 4) {
-              workKp = 0.4545f * Ku;
-              workKi = 0.4545f * Ku / Pu / 2.2f;
-              workKd = 0.4545f * Ku * Pu / 6.3f;
-              SERIAL_EM(MSG_TYREUS_LYBEN_PID);
+              tune_pid.Kp = 0.4545f * Ku;
+              tune_pid.Ki = 0.4545f * Ku / Tu / 2.2f;
+              tune_pid.Kd = 0.4545f * Ku * Tu / 6.3f;
+              SERIAL_EM("\n" MSG_TYREUS_LYBEN_PID);
             }
-            SERIAL_EMV(MSG_KP, workKp, 2);
-            SERIAL_EMV(MSG_KI, workKi, 2);
-            SERIAL_EMV(MSG_KD, workKd, 2);
+            SERIAL_MV(MSG_KP, tune_pid.Kp);
+            SERIAL_MV(MSG_KI, tune_pid.Ki);
+            SERIAL_MV(MSG_KD, tune_pid.Kd);
           }
         }
+
+        SERIAL_EOL();
 
         act->soft_pwm = (bias + d);
 
@@ -467,38 +465,38 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
       pid_pointer = 255;
 
       if (isHotend) {
-        SERIAL_MV(MSG_KP, workKp);
-        SERIAL_MV(MSG_KI, workKi);
-        SERIAL_EMV(MSG_KD, workKd);
+        SERIAL_MV(MSG_KP, tune_pid.Kp);
+        SERIAL_MV(MSG_KI, tune_pid.Ki);
+        SERIAL_EMV(MSG_KD, tune_pid.Kd);
       }
 
       #if HAS_TEMP_BED
         if (act->data.type == IS_BED) {
-          SERIAL_EMV("#define DEFAULT_bedKp ", workKp);
-          SERIAL_EMV("#define DEFAULT_bedKi ", workKi);
-          SERIAL_EMV("#define DEFAULT_bedKd ", workKd);
+          SERIAL_EMV("#define DEFAULT_bedKp ", tune_pid.Kp);
+          SERIAL_EMV("#define DEFAULT_bedKi ", tune_pid.Ki);
+          SERIAL_EMV("#define DEFAULT_bedKd ", tune_pid.Kd);
         }
       #endif
 
       #if HAS_TEMP_CHAMBER
         if (act->data.type == IS_CHAMBER) {
-          SERIAL_EMV("#define DEFAULT_chamberKp ", workKp);
-          SERIAL_EMV("#define DEFAULT_chamberKi ", workKi);
-          SERIAL_EMV("#define DEFAULT_chamberKd ", workKd);
+          SERIAL_EMV("#define DEFAULT_chamberKp ", tune_pid.Kp);
+          SERIAL_EMV("#define DEFAULT_chamberKi ", tune_pid.Ki);
+          SERIAL_EMV("#define DEFAULT_chamberKd ", tune_pid.Kd);
         }
       #endif
 
       #if HAS_TEMP_COOLER
         if (act->data.type == IS_COOLER) {
-          SERIAL_EMV("#define DEFAULT_coolerKp ", workKp);
-          SERIAL_EMV("#define DEFAULT_coolerKi ", workKi);
-          SERIAL_EMV("#define DEFAULT_coolerKd ", workKd);
+          SERIAL_EMV("#define DEFAULT_coolerKp ", tune_pid.Kp);
+          SERIAL_EMV("#define DEFAULT_coolerKi ", tune_pid.Ki);
+          SERIAL_EMV("#define DEFAULT_coolerKd ", tune_pid.Kd);
         }
       #endif
 
-      act->pid.Kp = workKp;
-      act->pid.Ki = workKi;
-      act->pid.Kd = workKd;
+      act->pid.Kp = tune_pid.Kp;
+      act->pid.Ki = tune_pid.Ki;
+      act->pid.Kd = tune_pid.Kd;
       act->pid.update();
 
       act->setTuning(true);
@@ -517,11 +515,15 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
   }
 
   disable_all_heaters();
+
   printer.setAutoreportTemp(oldReport);
+  printer.setStatisticsStore(true);
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     ledevents.onPidTuningDone(color);
   #endif
+
+  LCD_MESSAGEPGM(WELCOME_MSG);
 
 }
 

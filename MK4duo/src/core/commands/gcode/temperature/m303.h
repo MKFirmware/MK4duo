@@ -44,11 +44,18 @@ inline void gcode_M303(void) {
   uint8_t     method  = parser.intval('R', 0);
   const bool  store   = parser.boolval('U');
 
-  const int16_t temp = parser.celsiusval('S', h < 0 ? 70 : 200);
+  const int16_t target = parser.celsiusval('S', h < 0 ? 70 : 200);
 
   if (!commands.get_target_heater(h)) return;
 
+  if (target > heaters[h].data.maxtemp - 15) {
+    SERIAL_EM(MSG_PID_TEMP_TOO_HIGH);
+    return;
+  }
+
   SERIAL_EM(MSG_PID_AUTOTUNE_START);
+  lcdui.reset_alert_level();
+  LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 
   if (heaters[h].data.type == IS_HOTEND)
     SERIAL_MV("Hotend:", h);
@@ -70,12 +77,12 @@ inline void gcode_M303(void) {
 
   NOMORE(method, 4);
 
-  SERIAL_MV(" Temp:", temp);
+  SERIAL_MV(" Temp:", target);
   SERIAL_MV(" Cycles:", cycle);
   SERIAL_MV(" Method:", method);
   if (store) SERIAL_MSG(" Apply result");
   SERIAL_EOL();
 
-  thermalManager.PID_autotune(&heaters[h], temp, cycle, method, store);
+  thermalManager.PID_autotune(&heaters[h], target, cycle, method, store);
 
 }
