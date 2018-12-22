@@ -1964,6 +1964,13 @@ void EEPROM::reset() {
 
 #if DISABLED(DISABLE_M503)
 
+  #if HAS_TRINAMIC
+    void print_M350() { SERIAL_SM(CFG, "  M350"); }
+    void print_M906() { SERIAL_SM(CFG, "  M906"); }
+    void print_M913() { SERIAL_SM(CFG, "  M913"); }
+    void print_M914() { SERIAL_SM(CFG, "  M914"); }
+  #endif
+
   inline void print_units(const bool colon) {
     SERIAL_PGM(
       #if ENABLED(INCH_MODE_SUPPORT)
@@ -2265,140 +2272,183 @@ void EEPROM::reset() {
        * TMC2130 or TMC2208 stepper driver current
        */
       SERIAL_LM(CFG, "Stepper driver current (mA)");
-      SERIAL_SM(CFG, "  M906");
-      #if AXIS_HAS_TMC(X)
-        SERIAL_MV(" X", stepperX->getMilliamps());
+      #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+        print_M906();
+        #if AXIS_HAS_TMC(X)
+          SERIAL_MV(" X", stepperX->getMilliamps());
+        #endif
+        #if AXIS_HAS_TMC(Y)
+          SERIAL_MV(" Y", stepperY->getMilliamps());
+        #endif
+        #if AXIS_HAS_TMC(Z)
+          SERIAL_MV(" Z", stepperZ->getMilliamps());
+        #endif
+        SERIAL_EOL();
       #endif
-      #if AXIS_HAS_TMC(X2)
-        SERIAL_MV(" I2 X", stepperX2->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(Y)
-        SERIAL_MV(" Y", stepperY->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(Y2)
-        SERIAL_MV(" I2 Y", stepperY2->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(Z)
-        SERIAL_MV(" Z", stepperZ->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(Z2)
-        SERIAL_MV(" I2 Z", stepperZ2->getMilliamps());
+      #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
+        print_M906();
+        SERIAL_MSG(" I2");
+        #if AXIS_HAS_TMC(X2)
+          SERIAL_MV(" X", stepperX2->getMilliamps());
+        #endif
+        #if AXIS_HAS_TMC(Y2)
+          SERIAL_MV(" Y", stepperY2->getMilliamps());
+        #endif
+        #if AXIS_HAS_TMC(Z2)
+          SERIAL_MV(" Z", stepperZ2->getMilliamps());
+        #endif
+        SERIAL_EOL();
       #endif
       #if AXIS_HAS_TMC(Z3)
-        SERIAL_MV(" I3 Z", stepperZ3->getMilliamps());
+        print_M906();
+        SERIAL_MSG(" I3");
+        SERIAL_EMV(" Z", stepperZ3->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E0)
-        SERIAL_MV(" T0 E", stepperE0->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T0 E", stepperE0->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E1)
-        SERIAL_MV(" T1 E", stepperE1->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T1 E", stepperE1->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E2)
-        SERIAL_MV(" T2 E", stepperE2->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T2 E", stepperE2->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E3)
-        SERIAL_MV(" T3 E", stepperE3->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T3 E", stepperE3->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E4)
-        SERIAL_MV(" T4 E", stepperE4->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T4 E", stepperE4->getMilliamps());
       #endif
       #if AXIS_HAS_TMC(E5)
-        SERIAL_MV(" T5 E", stepperE5->getMilliamps());
+        print_M906();
+        SERIAL_EMV(" T5 E", stepperE5->getMilliamps());
       #endif
-      SERIAL_EOL();
 
       /**
        * TMC2130 or TMC2208 stepper driver microsteps
        */
       SERIAL_LM(CFG, "Stepper driver microsteps");
-      SERIAL_SM(CFG, "  M350");
-      #if AXIS_HAS_TMC(X)
-        SERIAL_MV(" X", stepperX->microsteps());
+      #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+        print_M350();
+        #if AXIS_HAS_TMC(X)
+          SERIAL_MV(" X", stepperX->microsteps());
+        #endif
+        #if AXIS_HAS_TMC(Y)
+          SERIAL_MV(" Y", stepperY->microsteps());
+        #endif
+        #if AXIS_HAS_TMC(Z)
+          SERIAL_MV(" Z", stepperZ->microsteps());
+        #endif
+        SERIAL_EOL();
       #endif
-      #if AXIS_HAS_TMC(X2)
-        SERIAL_MV(" I2 X", stepperX2->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(Y)
-        SERIAL_MV(" Y", stepperY->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(Y2)
-        SERIAL_MV(" I2 Y", stepperY2->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(Z)
-        SERIAL_MV(" Z", stepperZ->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(Z2)
-        SERIAL_MV(" I2 Z", stepperZ2->microsteps());
+      #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
+        print_M350();
+        SERIAL_MSG(" I2");
+        #if AXIS_HAS_TMC(X2)
+          SERIAL_MV(" X", stepperX2->microsteps());
+        #endif
+        #if AXIS_HAS_TMC(Y2)
+          SERIAL_MV(" Y", stepperY2->microsteps());
+        #endif
+        #if AXIS_HAS_TMC(Z2)
+          SERIAL_MV(" Z", stepperZ2->microsteps());
+        #endif
+        SERIAL_EOL();
       #endif
       #if AXIS_HAS_TMC(Z3)
-        SERIAL_MV(" I3 Z", stepperZ3->microsteps());
+        print_M350();
+        SERIAL_EMV(" I3 Z", stepperZ3->microsteps());
       #endif
       #if AXIS_HAS_TMC(E0)
-        SERIAL_MV(" T0 E", stepperE0->microsteps());
+        print_M350();
+        SERIAL_EMV(" T0 E", stepperE0->microsteps());
       #endif
       #if AXIS_HAS_TMC(E1)
-        SERIAL_MV(" T1 E", stepperE1->microsteps());
+        print_M350();
+        SERIAL_EMV(" T1 E", stepperE1->microsteps());
       #endif
       #if AXIS_HAS_TMC(E2)
-        SERIAL_MV(" T2 E", stepperE2->microsteps());
+        print_M350();
+        SERIAL_EMV(" T2 E", stepperE2->microsteps());
       #endif
       #if AXIS_HAS_TMC(E3)
-        SERIAL_MV(" T3 E", stepperE3->microsteps());
+        print_M350();
+        SERIAL_EMV(" T3 E", stepperE3->microsteps());
       #endif
       #if AXIS_HAS_TMC(E4)
-        SERIAL_MV(" T4 E", stepperE4->microsteps());
+        print_M350();
+        SERIAL_EMV(" T4 E", stepperE4->microsteps());
       #endif
       #if AXIS_HAS_TMC(E5)
-        SERIAL_MV(" T5 E", stepperE5->microsteps());
+        print_M350();
+        SERIAL_EMV(" T5 E", stepperE5->microsteps());
       #endif
-      SERIAL_EOL();
 
       /**
        * TMC2130 or TMC2208 Hybrid Threshold
        */
       #if ENABLED(HYBRID_THRESHOLD)
         SERIAL_LM(CFG, "Hybrid Threshold");
-        SERIAL_SM(CFG, "  M913");
-        #if AXIS_HAS_TMC(X)
-          SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
+        #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+          print_M913();
+          #if AXIS_HAS_TMC(X)
+            SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
+          #endif
+          #if AXIS_HAS_TMC(Y)
+            SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
+          #endif
+          #if AXIS_HAS_TMC(Z)
+            SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
+          #endif
+          SERIAL_EOL();
         #endif
-        #if AXIS_HAS_TMC(X2)
-          SERIAL_MV(" I2 X", TMC_GET_PWMTHRS(X, X2));
-        #endif
-        #if AXIS_HAS_TMC(Y)
-          SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
-        #endif
-        #if AXIS_HAS_TMC(Y2)
-          SERIAL_MV(" I2 Y", TMC_GET_PWMTHRS(Y, Y2));
-        #endif
-        #if AXIS_HAS_TMC(Z)
-          SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
-        #endif
-        #if AXIS_HAS_TMC(Z2)
-          SERIAL_MV(" I2 Z", TMC_GET_PWMTHRS(Z, Z2));
+        #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
+          print_M913();
+          SERIAL_MSG(" I2");
+          #if AXIS_HAS_TMC(X2)
+            SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X2));
+          #endif
+          #if AXIS_HAS_TMC(Y2)
+            SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y2));
+          #endif
+          #if AXIS_HAS_TMC(Z2)
+            SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z2));
+          #endif
+          SERIAL_EOL();
         #endif
         #if AXIS_HAS_TMC(Z3)
-          SERIAL_MV(" I3 Z", TMC_GET_PWMTHRS(Z, Z3));
+          print_M913();
+          SERIAL_EMV(" I3 Z", TMC_GET_PWMTHRS(Z, Z3));
         #endif
         #if AXIS_HAS_TMC(E0)
-          SERIAL_MV(" T0 E", TMC_GET_PWMTHRS(E0, E0));
+          print_M913();
+          SERIAL_EMV(" T0 E", TMC_GET_PWMTHRS(E0, E0));
         #endif
         #if AXIS_HAS_TMC(E1)
-          SERIAL_MV(" T1 E", TMC_GET_PWMTHRS(E1, E1));
+          print_M913();
+          SERIAL_EMV(" T1 E", TMC_GET_PWMTHRS(E1, E1));
         #endif
         #if AXIS_HAS_TMC(E2)
-          SERIAL_MV(" T2 E", TMC_GET_PWMTHRS(E2, E2));
+          print_M913();
+          SERIAL_EMV(" T2 E", TMC_GET_PWMTHRS(E2, E2));
         #endif
         #if AXIS_HAS_TMC(E3)
-          SERIAL_MV(" T3 E", TMC_GET_PWMTHRS(E3, E3));
+          print_M913();
+          SERIAL_EMV(" T3 E", TMC_GET_PWMTHRS(E3, E3));
         #endif
         #if AXIS_HAS_TMC(E4)
-          SERIAL_MV(" T4 E", TMC_GET_PWMTHRS(E4, E4));
+          print_M913();
+          SERIAL_EMV(" T4 E", TMC_GET_PWMTHRS(E4, E4));
         #endif
         #if AXIS_HAS_TMC(E5)
-          SERIAL_MV(" T5 E", TMC_GET_PWMTHRS(E5, E5));
+          print_M913();
+          SERIAL_EMV(" T5 E", TMC_GET_PWMTHRS(E5, E5));
         #endif
-        SERIAL_EOL();
       #endif // HYBRID_THRESHOLD
 
       /**
@@ -2406,35 +2456,37 @@ void EEPROM::reset() {
        */
       #if HAS_SENSORLESS
         SERIAL_LM(CFG, "TMC2130 StallGuard threshold:");
-        SERIAL_SM(CFG, "  M914");
-        #if X_HAS_SENSORLESS
-          #if AXIS_HAS_STALLGUARD(X)
+        #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
+          print_M914();
+          #if X_HAS_SENSORLESS
             SERIAL_MV(" X", stepperX->sgt());
           #endif
-          #if AXIS_HAS_STALLGUARD(X2)
-            SERIAL_MV(" I2 X", stepperX2->sgt());
-          #endif
-        #endif
-        #if Y_HAS_SENSORLESS
-          #if AXIS_HAS_STALLGUARD(Y)
+          #if Y_HAS_SENSORLESS
             SERIAL_MV(" Y", stepperY->sgt());
           #endif
-          #if AXIS_HAS_STALLGUARD(Y2)
-            SERIAL_MV(" I2 Y", stepperY2->sgt());
-          #endif
-        #endif
-        #if Z_HAS_SENSORLESS
-          #if AXIS_HAS_STALLGUARD(Z)
+          #if Z_HAS_SENSORLESS
             SERIAL_MV(" Z", stepperZ->sgt());
           #endif
-          #if AXIS_HAS_STALLGUARD(Z2)
-            SERIAL_MV(" I2 Z", stepperZ2->sgt());
-          #endif
-          #if AXIS_HAS_STALLGUARD(Z3)
-            SERIAL_MV(" I3 Z", stepperZ3->sgt());
-          #endif
+          SERIAL_EOL();
         #endif
-        SERIAL_EOL();
+        #if X2_HAS_SENSORLESS || Y2_HAS_SENSORLESS || Z2_HAS_SENSORLESS
+          print_M914();
+          SERIAL_MSG(" I2");
+          #if X2_HAS_SENSORLESS
+            SERIAL_MV(" X", stepperX2->sgt());
+          #endif
+          #if Y2_HAS_SENSORLESS
+            SERIAL_MV(" Y", stepperY2->sgt());
+          #endif
+          #if Z2_HAS_SENSORLESS
+            SERIAL_MV(" Z", stepperZ2->sgt());
+          #endif
+          SERIAL_EOL();
+        #endif
+        #if Z3_HAS_SENSORLESS
+          print_M914();
+          SERIAL_EMV(" I3 Z", stepperZ3->sgt());
+        #endif
       #endif // HAS_SENSORLESS
 
     #endif // HAS_TRINAMIC
