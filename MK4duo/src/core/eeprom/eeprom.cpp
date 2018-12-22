@@ -1204,19 +1204,19 @@ void EEPROM::post_process() {
               TMC_SET_PWMTHRS(E, E0);
             #endif
             #if AXIS_HAS_TMC(E1)
-              TMC_SET_PWMTHRS(E, E1);
+              TMC_SET_PWMTHRS(E1, E1);
             #endif
             #if AXIS_HAS_TMC(E2)
-              TMC_SET_PWMTHRS(E, E2);
+              TMC_SET_PWMTHRS(E2, E2);
             #endif
             #if AXIS_HAS_TMC(E3)
-              TMC_SET_PWMTHRS(E, E3);
+              TMC_SET_PWMTHRS(E3, E3);
             #endif
             #if AXIS_HAS_TMC(E4)
-              TMC_SET_PWMTHRS(E, E4);
+              TMC_SET_PWMTHRS(E4, E4);
             #endif
             #if AXIS_HAS_TMC(E4)
-              TMC_SET_PWMTHRS(E, E5);
+              TMC_SET_PWMTHRS(E5, E5);
             #endif
           }
         #endif
