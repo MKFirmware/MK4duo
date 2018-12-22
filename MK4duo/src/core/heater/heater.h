@@ -101,7 +101,7 @@ class Heater {
      */
     void init();
 
-    void setTarget(int16_t celsius);
+    void setTarget(const int16_t celsius);
     void get_output();
     void print_sensor_parameters();
     void print_heater_parameters();
