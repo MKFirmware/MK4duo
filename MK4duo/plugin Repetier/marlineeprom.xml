@@ -2007,33 +2007,33 @@
   <!-- M913: Hybrid Threshold-->
   <entry type="float">
     <description unit="">X motor Hybrid Threshold</description>
-    <set>M913 I0 X@</set>
-    <detect>M913(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
+    <set>M913 X@</set>
+    <detect>M913.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Y motor Hybrid Threshold</description>
-    <set>M913 I0 Y@</set>
-    <detect>M913(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
+    <set>M913 Y@</set>
+    <detect>M913.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Z motor Hybrid Threshold</description>
-    <set>M913 I0 Z@</set>
-    <detect>M913(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
+    <set>M913 Z@</set>
+    <detect>M913.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">X2 motor Hybrid Threshold</description>
-    <set>M913 I1 X@</set>
-    <detect>M913.*I1.*X(-?\d*\.?\d*)</detect>
+    <set>M913 I2 X@</set>
+    <detect>M913.*I2.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Y2 motor Hybrid Threshold</description>
-    <set>M913 I1 Y@</set>
-    <detect>M913.*I1.*Y(-?\d*\.?\d*)</detect>
+    <set>M913 I2 Y@</set>
+    <detect>M913.*I2.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Z2 motor Hybrid Threshold</description>
-    <set>M913 I1 Z@</set>
-    <detect>M913.*I1.*Z(-?\d*\.?\d*)</detect>
+    <set>M913 I2 Z@</set>
+    <detect>M913.*I2.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">E0 motor Hybrid Threshold</description>
@@ -2043,59 +2043,59 @@
   <entry type="float">
     <description unit="">E1 motor Hybrid Threshold</description>
     <set>M913 T1 E@</set>
-    <detect>M913 T1.*E(-?\d*\.?\d*)</detect>
+    <detect>M913.*T1 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">E2 motor Hybrid Threshold</description>
     <set>M913 T2 E@</set>
-    <detect>M913 T2.*E(-?\d*\.?\d*)</detect>
+    <detect>M913.*T2 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">E3 motor Hybrid Threshold</description>
     <set>M913 T3 E@</set>
-    <detect>M913 T3.*E(-?\d*\.?\d*)</detect>
+    <detect>M913.*T3 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">E4 motor Hybrid Threshold</description>
     <set>M913 T4 E@</set>
-    <detect>M913 T4.*E(-?\d*\.?\d*)</detect>
+    <detect>M913.*T4 E(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">E5 motor Hybrid Threshold</description>
     <set>M913 T5 E@</set>
-    <detect>M913 T5.*E(-?\d*\.?\d*)</detect>
+    <detect>M913.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M914: Sensorless homing threshold-->
   <entry type="float">
     <description unit="">X motor Sensorless homing threshold</description>
-    <set>M914 I0 X@</set>
-    <detect>M914(?!.*I1.*X(-?\d*\.?\d*)).*X(-?\d*\.?\d*)</detect>
+    <set>M914 X@</set>
+    <detect>M914.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Y motor Sensorless homing threshold</description>
-    <set>M914 I0 Y@</set>
-    <detect>M914(?!.*I1.*Y(-?\d*\.?\d*)).*Y(-?\d*\.?\d*)</detect>
+    <set>M914 Y@</set>
+    <detect>M914.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Z motor Sensorless homing threshold</description>
-    <set>M914 I0 Z@</set>
-    <detect>M914(?!.*I1.*Z(-?\d*\.?\d*)).*Z(-?\d*\.?\d*)</detect>
+    <set>M914 Z@</set>
+    <detect>M914.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">X2 motor Sensorless homing threshold</description>
-    <set>M914 I1 X@</set>
-    <detect>M914.*I1.*X(-?\d*\.?\d*)</detect>
+    <set>M914 I2 X@</set>
+    <detect>M914.*I2.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Y2 motor Sensorless homing threshold</description>
-    <set>M914 I1 Y@</set>
-    <detect>M914.*I1.*Y(-?\d*\.?\d*)</detect>
+    <set>M914 I2 Y@</set>
+    <detect>M914.*I2.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Z2 motor Sensorless homing threshold</description>
-    <set>M914 I1 Z@</set>
-    <detect>M914.*I1.*Z(-?\d*\.?\d*)</detect>
+    <set>M914 I2 Z@</set>
+    <detect>M914.*I2.*Z(-?\d*\.?\d*)</detect>
   </entry>
 
 </eeprom>
