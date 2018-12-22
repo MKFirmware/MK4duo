@@ -181,7 +181,7 @@
  * in the start.gcode                                                                    *
  *                                                                                       *
  *****************************************************************************************/
-#define AUTOTEMP
+//#define AUTOTEMP
 #define AUTOTEMP_OLDWEIGHT 0.98
 /*****************************************************************************************/
 
@@ -229,12 +229,12 @@
 #define PID_DRIVE_MIN  40 // Limits min current to nozzle while PID is active;    0 = no current
 #define PID_DRIVE_MAX 230 // Limits max current to nozzle while PID is active;  255 = full current
 
-#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
-//#define PID_DEBUG       // Sends debug data to the serial port.
-
 // If the temperature difference between the target temperature and the actual temperature
 // is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
 #define PID_FUNCTIONAL_RANGE 10
+
+#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
+//#define PID_DEBUG       // Sends debug data to the serial port.
 
 // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
 // if Kc is chosen well, the additional required power due to increased melting should be compensated.
@@ -268,14 +268,6 @@
 
 #define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T<target-BED_HYSTERESIS
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
-
-// This sets the max power delivered to the bed.
-// all forms of bed control obey this (PID, bang-bang, bang-bang with hysteresis)
-// setting this to anything other than 255 enables a form of PWM to the bed,
-// so you shouldn't use it unless you are OK with PWM on your bed. (see the comment on enabling PIDTEMPBED)
-#define BED_PID_MAX       255   // Limits current to bed while in PID mode;       255 = full current
-#define BED_PID_DRIVE_MIN  80   // Limits min current to bed while PID is active;   0 = no current
-#define BED_PID_DRIVE_MAX 255   // Limits max current to bed while PID is active; 255 = full current
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)

@@ -155,15 +155,6 @@
   #if !HAS_TEMP_BED
     #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED for use PIDTEMPBED."
   #endif
-  #if DISABLED(BED_PID_MAX)
-    #error "DEPENDENCY ERROR: Missing setting BED_PID_MAX."
-  #endif
-  #if DISABLED(BED_PID_DRIVE_MIN)
-    #error "DEPENDENCY ERROR: Missing setting BED_PID_DRIVE_MIN."
-  #endif
-  #if DISABLED(BED_PID_DRIVE_MAX)
-    #error "DEPENDENCY ERROR: Missing setting BED_PID_DRIVE_MAX."
-  #endif
   #if DISABLED(DEFAULT_bedKp)
     #error "DEPENDENCY ERROR: Missing setting DEFAULT_bedKp."
   #endif

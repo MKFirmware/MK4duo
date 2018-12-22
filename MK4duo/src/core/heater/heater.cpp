@@ -64,22 +64,20 @@ void Heater::init() {
 
 }
 
-void Heater::setTarget(int16_t celsius) {
+void Heater::setTarget(const int16_t celsius) {
 
-  NOMORE(celsius, data.maxtemp);
-
-  if (!isTuning() && isUsePid() && celsius != 0) {
+  if (celsius == 0)
+    SwitchOff();
+  else if (!isTuning() && isUsePid()) {
     SERIAL_LM(ER, " Need Tuning PID");
     LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
   }
   else if (isFault())
     SERIAL_LM(ER, " Heater not switched on to temperature fault.");
-  else if (celsius == 0)
-    SwitchOff();
   else {
     setActive(true);
     if (isActive()) {
-      target_temperature = celsius;
+      target_temperature = MIN(celsius, data.maxtemp - 15);
       thermal_runaway_state = target_temperature > 0 ? TRFirstHeating : TRInactive;
       start_watching();
     }
