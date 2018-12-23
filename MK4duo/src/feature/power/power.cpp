@@ -49,9 +49,6 @@
 
     /** Public Function */
     void Power::init() {
-      #if HAS_POWER_SWITCH
-        SET_OUTPUT(PS_ON_PIN);
-      #endif
       #if HAS_POWER_CHECK
         SET_INPUT(POWER_CHECK_PIN);
       #endif
@@ -89,19 +86,19 @@
         watch_lastPowerOn.start();
       #endif
       if (!powersupply_on) {
-        WRITE(PS_ON_PIN, PS_ON_AWAKE);
+        OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
+        powersupply_on = true;
         #if HAS_TRINAMIC
           HAL::delayMilliseconds(100); // Wait for power to settle
           tmc.restore();
         #endif
         HAL::delayMilliseconds((DELAY_AFTER_POWER_ON) * 1000UL);
-        powersupply_on = true;
       }
     }
 
     void Power::power_off() {
       if (powersupply_on) {
-        WRITE(PS_ON_PIN, PS_ON_ASLEEP);
+        OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
         powersupply_on = false;
         #if (POWER_TIMEOUT > 0)
           watch_lastPowerOn.stop();
