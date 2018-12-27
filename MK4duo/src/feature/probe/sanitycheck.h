@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
@@ -26,37 +27,25 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _PROBE_SANITYCHECK_H_
-#define _PROBE_SANITYCHECK_H_
+/**
+ * Probes
+ */
 
-// Probes
-#if PROBE_SELECTED
+/**
+ * Allow only one probe option to be defined
+ */
+#if 1 < 0 \
+  + ENABLED(PROBE_MANUALLY)                   \
+  + ENABLED(Z_PROBE_FIX_MOUNTED)              \
+  + (HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH))  \
+  + ENABLED(BLTOUCH)                          \
+  + ENABLED(Z_PROBE_ALLEN_KEY)                \
+  + ENABLED(Z_PROBE_SLED)                     \
+  + ENABLED(Z_PROBE_SENSORLESS)
+  #error "DEPENDENCY ERROR: Please enable only one probe: PROBE_MANUALLY, Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_SENSORLESS."
+#endif
 
-  // Allow only one probe option to be defined
-  static_assert(1 >= 0
-    #if ENABLED(PROBE_MANUALLY)
-      + 1
-    #endif
-    #if ENABLED(Z_PROBE_FIX_MOUNTED)
-      + 1
-    #endif
-    #if HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
-      + 1
-    #endif
-    #if ENABLED(BLTOUCH)
-      + 1
-    #endif
-    #if ENABLED(Z_PROBE_ALLEN_KEY)
-      + 1
-    #endif
-    #if ENABLED(Z_PROBE_SLED)
-      + 1
-    #endif
-    #if ENABLED(Z_PROBE_SENSORLESS)
-      + 1
-    #endif
-    , "DEPENDENCY ERROR: Please enable only one probe: Z_PROBE_FIX_MOUNTED, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_SENSORLESS."
-  );
+#if HAS_BED_PROBE
 
   // Z_PROBE_SLED is incompatible with DELTA
   #if ENABLED(Z_PROBE_SLED) && MECH(DELTA)
@@ -72,16 +61,16 @@
     #endif
   #endif
 
-  // A probe needs a pin
-  #if (DISABLED(PROBE_MANUALLY) || DISABLED(Z_PROBE_SENSORLESS)) && !PROBE_PIN_CONFIGURED
-    #error "DEPENDENCY ERROR: A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
-  #endif
-
+  // Require pin options and pins to be defined
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA) && (!AXIS_HAS_STALLGUARD(X) || !AXIS_HAS_STALLGUARD(Y) || !AXIS_HAS_STALLGUARD(Z))
       #error "Z_PROBE_SENSORLESS requires TMC2130 drivers on X, Y, and Z."
     #elif !AXIS_HAS_STALLGUARD(Z)
       #error "Z_PROBE_SENSORLESS requires a TMC2130 driver on Z."
+    #endif
+  #else
+    #if DISABLED(PROBE_MANUALLY) && !PROBE_PIN_CONFIGURED
+      #error "DEPENDENCY ERROR: A probe needs a pin! Use Z_MIN_PIN or Z_PROBE_PIN."
     #endif
   #endif
 
@@ -138,5 +127,3 @@
     #error "DEPENDENCY ERROR: G38_PROBE_TARGET requires a Cartesian or Core machine."
   #endif
 #endif
-
-#endif /* _PROBE_SANITYCHECK_H_ */
