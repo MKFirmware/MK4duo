@@ -116,13 +116,17 @@ void Fan::spin() {
     // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
     Speed = controller_fan_watch.elapsed() ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
   }
+
+  Speed = constrain(Speed, data.min_Speed, data.max_Speed);
+
 }
 
 void Fan::print_parameters() {
-  SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
+  SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
   SERIAL_MV(" U", data.pin);
   SERIAL_MV(" L", data.min_Speed);
+  SERIAL_MV(" X", data.max_Speed);
   SERIAL_MV(" F", data.freq);
   SERIAL_MV(" I", isHWInverted());
   LOOP_HOTEND() {
