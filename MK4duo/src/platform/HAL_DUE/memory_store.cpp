@@ -32,46 +32,38 @@ extern void eeprom_flush(void);
   char MemoryStore::eeprom_data[EEPROM_SIZE];
 #endif
 
-bool MemoryStore::access_start(const bool read) {
+bool MemoryStore::access_read() {
   #if HAS_EEPROM_SD
     ZERO(eeprom_data);
-    if (read) {
-      card.open_eeprom_sd(true);
-      size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
-      if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);
-      else SERIAL_STR(ECHO);
-      SERIAL_EMV("SD EEPROM bytes read: ", (int)bytes_read);
-      card.close_eeprom_sd();
-      return (bytes_read != EEPROM_SIZE);
-    }
+    card.open_eeprom_sd(true);
+    size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
+    if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);
+    else SERIAL_STR(ECHO);
+    SERIAL_EMV("SD EEPROM bytes read: ", (int)bytes_read);
+    card.close_eeprom_sd();
+    return (bytes_read != EEPROM_SIZE);
   #else
-    UNUSED(read);
+    return false;
   #endif
-
-  return false;
 
 }
 
-bool MemoryStore::access_finish(const bool read) {
+bool MemoryStore::access_write() {
   #if HAS_EEPROM_FLASH
-    UNUSED(read);
     eeprom_flush();
+    return false;
   #elif HAS_EEPROM_SD
-    if (!read) {
-      card.open_eeprom_sd(false);
-      size_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
-      if (bytes_written != EEPROM_SIZE) SERIAL_STR(ER);
-      else SERIAL_STR(ECHO);
-      SERIAL_EMV("SD EEPROM bytes written: ", (int)bytes_written);
-      card.close_eeprom_sd();
-      return (bytes_written != EEPROM_SIZE);
-    }
+    card.open_eeprom_sd(false);
+    size_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
+    const bool error_read = bytes_written != EEPROM_SIZE;
+    if (error_read) SERIAL_STR(ER);
+    else SERIAL_STR(ECHO);
+    SERIAL_EMV("SD EEPROM bytes written: ", (int)bytes_written);
+    card.close_eeprom_sd();
+    return error_read;
   #else
-    UNUSED(read);
+    return false;
   #endif
-
-  return false;
-
 }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {

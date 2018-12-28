@@ -37,10 +37,6 @@
   #error "DEPENDENCY ERROR: You have to set a valid MECHANICS."
 #endif
 
-#if DISABLED(NUM_POSITON_SLOTS)
-  #error "DEPENDENCY ERROR: Missing setting NUM_POSITON_SLOTS."
-#endif
-
 #if DISABLED(AXIS_RELATIVE_MODES)
   #error "DEPENDENCY ERROR: Missing setting AXIS_RELATIVE_MODES."
 #endif

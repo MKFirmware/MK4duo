@@ -141,7 +141,7 @@
 #include "host/m408.h"                    // Json output
 #include "host/m530.h"                    // Enables explicit printing mode
 #include "host/m531.h"                    // Define filename being printed
-#include "host/m532.h"                    // Update current print state progress
+#include "host/m532_m73.h"                // Update current print state progress
 
 // LCD Commands
 #include "lcd/m0_m1.h"

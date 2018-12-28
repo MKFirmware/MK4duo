@@ -42,6 +42,15 @@
 #endif
 
 /**
+ * Stored Position
+ */
+#if DISABLED(NUM_POSITON_SLOTS)
+  #define NUM_POSITON_SLOTS 2
+#elif NUM_POSITON_SLOTS < 2
+  #define NUM_POSITON_SLOTS 2
+#endif
+
+/**
  * DELTA
  */
 #if MECH(DELTA)

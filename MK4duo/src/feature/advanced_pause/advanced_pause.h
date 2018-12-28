@@ -58,10 +58,6 @@ class AdvancedPause {
 
     static uint8_t did_pause_print;
 
-  private: /** Private Parameters */
-
-    static float resume_position[XYZE];
-
   public: /** Public Function */
 
     static void do_pause_e_move(const float &length, const float &fr);

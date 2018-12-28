@@ -26,16 +26,32 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+#define CODE_M73
 #define CODE_M532
+
+void gcode_M73_M532() {
+  if (parser.seen('P') || parser.seen('X')) {
+    printer.progress = parser.value_byte();
+    NOMORE(printer.progress, 100);
+  }
+  if (parser.seen('L')) {
+    printer.currentLayer = parser.value_long();
+    char text[30] = "";
+    sprintf_P(text, PSTR("%s  %i of %i"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
+    lcdui.set_status(text);
+  }
+}
+
+/**
+ * M73: Set percentage complete (compatibility with Marlin)
+ *
+ * Example:
+ *   M73 P25 ; Set progress to 25%
+ *
+ */
+inline void gcode_M73(void) { gcode_M73_M532(); }
 
 /**
  * M532: X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  */
-inline void gcode_M532(void) {
-  printer.progress = parser.intval('X');
-  NOMORE(printer.progress, 100);
-  printer.currentLayer = parser.longval('L');
-  char text[30] = "";
-  sprintf_P(text, PSTR("%s  %i of %i"), printer.printName, int(printer.currentLayer), int(printer.maxLayer));
-  lcdui.set_status(text);
-}
+inline void gcode_M532(void) { gcode_M73_M532(); }

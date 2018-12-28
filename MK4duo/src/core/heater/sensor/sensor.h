@@ -63,11 +63,11 @@ typedef struct {
       #endif
       #if ENABLED(SUPPORT_AD8495)
         if (type == -2)
-          return (raw * 660.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
+          return (raw * float(AD8495_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
       #if ENABLED(SUPPORT_AD595)
         if (type == -1)
-          return (raw * 500.0 / (AD_RANGE)) * ad595_gain + ad595_offset;
+          return (raw * float(AD595_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
 
       if (WITHIN(type, 1, 9)) {
