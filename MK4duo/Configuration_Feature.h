@@ -183,13 +183,16 @@
 /****************************************************************************
  ***************************** Fan configuration ****************************
  ****************************************************************************/
-// FAN PWM speed
+// FAN PWM speed AVR Processor
 // 0 -  15Hz 256 values
 // 1 -  30Hz 128 values
 // 2 -  61Hz  64 values
 // 3 - 122Hz  32 values
 // 4 - 244Hz  16 values
 #define FAN_PWM_SPEED 0
+
+// FAN PWM Frequency SAM Processor
+#define FAN_PWM_FREQUENCY 250
 
 // When first starting the main fan, run it at full speed for the
 // given number of milliseconds.  This gets the fan spinning reliably

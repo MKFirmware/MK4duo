@@ -1867,7 +1867,7 @@ void EEPROM::reset() {
       fdata = &fan->data;
       fdata->ID                   = f;
       fdata->pin                  = (int8_t)pgm_read_byte(&tmp5[f]);
-      fdata->freq                 = 250;
+      fdata->freq                 = FAN_PWM_FREQUENCY;
       fdata->min_Speed            = FAN_MIN_PWM;
       fdata->max_Speed            = FAN_MAX_PWM;
       fdata->triggerTemperature   = HOTEND_AUTO_FAN_TEMPERATURE;
