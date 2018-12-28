@@ -196,9 +196,13 @@
 // before setting a PWM value.
 //#define FAN_KICKSTART_TIME 200
 
-// This defines the minimal speed for the main fan
-// set minimal speed for reliable running (1-255)
-#define FAN_MIN_PWM 1
+// This defines the minimal speed for the fan
+// set minimal speed for reliable running (0-255)
+#define FAN_MIN_PWM 0
+
+// This defines the miximal speed for the fan
+// set maximal speed for reliable running (1-255)
+#define FAN_MAX_PWM 255
 
 // To reverse the logic of fan pins
 //#define INVERTED_FAN_PINS

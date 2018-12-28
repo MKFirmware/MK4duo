@@ -41,6 +41,7 @@
    *  T<int>    Set Triggered temperature
    *  U<int>    Fan Pin
    *  L<int>    Min Speed
+   *  X<int>    Max Speed
    *  I<bool>   Inverted pin output
    */
   inline void gcode_M106(void) {
@@ -68,6 +69,7 @@
         fan->setAutoMonitored(parser.value_int());
 
       fan->data.min_Speed           = parser.byteval('L', fan->data.min_Speed);
+      fan->data.max_Speed           = parser.byteval('X', fan->data.max_Speed);
       fan->data.freq                = parser.ushortval('F', fan->data.freq);
       fan->data.triggerTemperature  = parser.ushortval('T', fan->data.triggerTemperature);
 
@@ -78,7 +80,7 @@
         }
       #endif
 
-      fan->Speed = MAX(fan->data.min_Speed, speed);
+      fan->Speed = constrain(speed, fan->data.min_Speed, fan->data.max_Speed);
 
       if (!parser.seen('S')) fan->print_parameters();
 

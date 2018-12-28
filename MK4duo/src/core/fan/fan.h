@@ -56,6 +56,7 @@ typedef struct {
 
   uint8_t     ID,
               min_Speed,
+              max_Speed,
               autoMonitored;
 
   uint16_t    triggerTemperature,
