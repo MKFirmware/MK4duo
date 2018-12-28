@@ -206,15 +206,16 @@ typedef uint32_t  ptr_int_t;
 #undef analogInputToDigitalPin
 #define analogInputToDigitalPin(p) ((p < 12) ? (p) + 54 : -1)
 #undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS 16
+#define NUM_ANALOG_INPUTS       16
+#define ADC_TEMPERATURE_SENSOR  15
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
-#define OVERSAMPLENR 2
-#define AD_RANGE  (1 << (ANALOG_INPUT_BITS + OVERSAMPLENR))
-
-#define ABS_ZERO  -273.15
-#define NUM_ADC_SAMPLES 32
-#define ADC_TEMPERATURE_SENSOR 15
+#define OVERSAMPLENR       2
+#define AD_RANGE       16384
+#define ABS_ZERO        -273.15f
+#define NUM_ADC_SAMPLES   32
+#define AD595_MAX        330.0f
+#define AD8495_MAX       660.0f
 
 #define HARDWARE_PWM true
 

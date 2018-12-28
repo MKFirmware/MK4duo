@@ -46,7 +46,7 @@ inline void gcode_G61(void) {
   }
 
   SERIAL_MSG(MSG_RESTORING_POS);
-  SERIAL_MV(" S", slot);
+  SERIAL_MV(" S", int(slot));
   SERIAL_MSG("->");
 
   if (parser.seen('F') && parser.value_linear_units() > 0.0)

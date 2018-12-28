@@ -614,8 +614,8 @@
         goto LEAVE;
       }
 
-      eeprom.store_mesh(g29_storage_slot);
       storage_slot = g29_storage_slot;
+      eeprom.store();
 
       SERIAL_EM("Done.");
     }

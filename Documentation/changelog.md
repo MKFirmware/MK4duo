@@ -21,6 +21,7 @@
 * M851: Set X Y Z Probe Offset in current units, set speed [F]ast and [S]low, [R]epetititons. (Requires Probe)
 * M413: S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
 * M800: S goto to lcd menu. With no parameters run restart commands. (Requires SD_RESTART_FILE)
+* M73: P[percent] Set percentage complete (compatibility with Marlin)
 * Add Text Menu to Nextion Display
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]

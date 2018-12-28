@@ -397,10 +397,6 @@ void EEPROM::post_process() {
 
 #if HAS_EEPROM
 
-  #define EEPROM_READ_START()     int eeprom_index = EEPROM_OFFSET; eeprom_error = memorystore.access_start(true)
-  #define EEPROM_WRITE_START()    int eeprom_index = EEPROM_OFFSET; eeprom_error = memorystore.access_start(false)
-  #define EEPROM_READ_FINISH()    memorystore.access_finish(true)
-  #define EEPROM_WRITE_FINISH()   memorystore.access_finish(false)
   #define EEPROM_SKIP(VAR)        eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR)       memorystore.write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ_ALWAYS(VAR) memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
@@ -442,7 +438,9 @@ void EEPROM::post_process() {
 
     uint16_t working_crc = 0;
 
-    EEPROM_WRITE_START();
+    int eeprom_index = EEPROM_OFFSET;
+
+    eeprom_error = false;
 
     #if HAS_EEPROM_FLASH
       EEPROM_SKIP(ver);       // Flash doesn't allow rewriting without erase
@@ -843,15 +841,15 @@ void EEPROM::post_process() {
       eeprom_error |= size_error(eeprom_size);
     }
 
-    EEPROM_WRITE_FINISH();
-
     //
     // UBL Mesh
     //
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(UBL_SAVE_ACTIVE_ON_M500)
+    #if ENABLED(AUTO_BED_LEVELING_UBL)
       if (ubl.storage_slot >= 0)
         store_mesh(ubl.storage_slot);
     #endif
+
+    eeprom_error |= memorystore.access_write();
 
     sound.feedback(!eeprom_error);
 
@@ -868,8 +866,12 @@ void EEPROM::post_process() {
 
     char stored_ver[6];
 
-    EEPROM_READ_START();
+    int eeprom_index = EEPROM_OFFSET;
 
+    if (eeprom_error = memorystore.access_read())
+      return false;
+
+    SERIAL_EMT("stored_ver:", stored_ver);
     EEPROM_READ_ALWAYS(stored_ver);
     EEPROM_READ_ALWAYS(stored_crc);
 
@@ -1332,8 +1334,6 @@ void EEPROM::post_process() {
 
     }
 
-    EEPROM_READ_FINISH();
-
     #if ENABLED(EEPROM_CHITCHAT)
       if (!validating) Print_Settings();
     #endif
@@ -1378,72 +1378,57 @@ void EEPROM::post_process() {
 
     void EEPROM::store_mesh(const int8_t slot) {
 
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
-        const int16_t a = calc_num_meshes();
-        if (!WITHIN(slot, 0, a - 1)) {
-          #if ENABLED(EEPROM_CHITCHAT)
-            ubl_invalid_slot(a);
-            SERIAL_MV("E2END=", (int)(memorystore.capacity() - 1));
-            SERIAL_MV(" meshes_end=", (int)meshes_end);
-            SERIAL_EMV(" slot=", slot);
-          #endif
-          return;
-        }
-
-        uint16_t crc = 0;
-        int pos = mesh_slot_offset(slot);
-
-        const bool status = memorystore.write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
-
-        if (status)
-          SERIAL_MSG("?Unable to save mesh data.\n");
-
+      const int16_t a = calc_num_meshes();
+      if (!WITHIN(slot, 0, a - 1)) {
         #if ENABLED(EEPROM_CHITCHAT)
-          else
-            SERIAL_EMV("Mesh saved in slot ", slot);
+          ubl_invalid_slot(a);
+          SERIAL_MV("E2END=", (int)(memorystore.capacity() - 1));
+          SERIAL_MV(" meshes_end=", (int)meshes_end);
+          SERIAL_EMV(" slot=", slot);
         #endif
+        return;
+      }
 
-      #else
+      uint16_t crc = 0;
+      int pos = mesh_slot_offset(slot);
 
-        // Other mesh types
+      const bool status = memorystore.write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
+      if (status)
+        SERIAL_MSG("?Unable to save mesh data.\n");
+
+      #if ENABLED(EEPROM_CHITCHAT)
+        else
+          SERIAL_EMV("Mesh saved in slot ", slot);
       #endif
+
     }
 
     void EEPROM::load_mesh(const int8_t slot, void * const into/*=NULL*/) {
 
-      #if ENABLED(AUTO_BED_LEVELING_UBL)
+      const int16_t a = calc_num_meshes();
 
-        const int16_t a = calc_num_meshes();
-
-        if (!WITHIN(slot, 0, a - 1)) {
-          #if ENABLED(EEPROM_CHITCHAT)
-            ubl_invalid_slot(a);
-          #endif
-          return;
-        }
-
-        int pos = mesh_slot_offset(slot);
-        uint16_t crc = 0;
-        uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
-
-        memorystore.access_start(true);
-        const bool status = memorystore.read_data(pos, dest, sizeof(ubl.z_values), &crc);
-        memorystore.access_finish(true);
-
-        if (status)
-          SERIAL_MSG("?Unable to load mesh data.\n");
-
+      if (!WITHIN(slot, 0, a - 1)) {
         #if ENABLED(EEPROM_CHITCHAT)
-          else
-            SERIAL_EMV("Mesh loaded from slot ", slot);
+          ubl_invalid_slot(a);
         #endif
+        return;
+      }
 
-      #else
+      int pos = mesh_slot_offset(slot);
+      uint16_t crc = 0;
+      uint8_t * const dest = into ? (uint8_t*)into : (uint8_t*)&ubl.z_values;
 
-        // Other mesh types
+      const bool status = memorystore.read_data(pos, dest, sizeof(ubl.z_values), &crc);
 
+      if (status)
+        SERIAL_MSG("?Unable to load mesh data.\n");
+
+      #if ENABLED(EEPROM_CHITCHAT)
+        else
+          SERIAL_EMV("Mesh loaded from slot ", slot);
       #endif
+
     }
 
   #endif // AUTO_BED_LEVELING_UBL

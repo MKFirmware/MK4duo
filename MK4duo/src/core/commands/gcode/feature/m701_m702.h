@@ -61,7 +61,7 @@
       // Change toolhead if specified
       uint8_t active_extruder_before_filament_change = tools.active_extruder;
       if (tools.active_extruder != tools.target_extruder)
-        tools.change(tools.target_extruder, 0, true);
+        tools.change(tools.target_extruder, 0, false);
     #endif
 
     // Lift Z axis
@@ -87,7 +87,7 @@
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
       if (active_extruder_before_filament_change != tools.active_extruder)
-        tools.change(active_extruder_before_filament_change, 0, true);
+        tools.change(active_extruder_before_filament_change, 0, false);
     #endif
 
     // Show status screen
@@ -127,7 +127,7 @@
       // Change toolhead if specified
       uint8_t active_extruder_before_filament_change = tools.active_extruder;
       if (tools.active_extruder != tools.target_extruder)
-        tools.change(tools.target_extruder, 0, true);
+        tools.change(tools.target_extruder, 0, false);
     #endif
 
     // Lift Z axis
@@ -138,7 +138,7 @@
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
         LOOP_EXTRUDER() {
-          if (e != tools.active_extruder) tools.change(e, 0, true);
+          if (e != tools.active_extruder) tools.change(e, 0, false);
           advancedpause.unload_filament(filament_change_unload_length[e], true, ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
@@ -159,7 +159,7 @@
     #if EXTRUDERS > 1
       // Restore toolhead if it was changed
       if (active_extruder_before_filament_change != tools.active_extruder)
-        tools.change(active_extruder_before_filament_change, 0, true);
+        tools.change(active_extruder_before_filament_change, 0, false);
     #endif
 
     // Show status screen

@@ -47,9 +47,6 @@ advanced_pause_data_t AdvancedPause::data[EXTRUDERS];
 
 uint8_t AdvancedPause::did_pause_print = 0;
 
-/** Private Parameters */
-float AdvancedPause::resume_position[XYZE];
-
 /** Public Function */
 void AdvancedPause::do_pause_e_move(const float &length, const float &fr) {
   mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.active_extruder];
@@ -109,7 +106,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   print_job_counter.pause();
 
   // Save current position
-  COPY_ARRAY(resume_position, mechanics.current_position);
+  COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
 
   // Wait for synchronize steppers
   planner.synchronize();
@@ -270,10 +267,10 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
  * - Display "wait for print to resume"
  * - Re-prime the nozzle...
  *   -  FWRETRACT: Recover/prime from the prior G10.
- *   - !FWRETRACT: Retract by resume_position[E], if negative.
+ *   - !FWRETRACT: Retract by stored_position[1][E], if negative.
  *                 Not sure how this logic comes into use.
- * - Move the nozzle back to resume_position
- * - Sync the planner E to resume_position[E]
+ * - Move the nozzle back to stored_position[1]
+ * - Sync the planner E to stored_position[1][E]
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
@@ -311,18 +308,18 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
       do_pause_e_move(-fwretract.data.retract_length, fwretract.data.retract_feedrate_mm_s);
   #endif
 
-  // If resume_position is negative
-  if (resume_position[E_AXIS] < 0) do_pause_e_move(resume_position[E_AXIS], PAUSE_PARK_RETRACT_FEEDRATE);
+  // If stored_position[1] is negative
+  if (mechanics.stored_position[1][E_AXIS] < 0) do_pause_e_move(mechanics.stored_position[1][E_AXIS], PAUSE_PARK_RETRACT_FEEDRATE);
 
   // Move XY to starting position, then Z
-  mechanics.do_blocking_move_to_xy(resume_position[X_AXIS], resume_position[Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
+  mechanics.do_blocking_move_to_xy(mechanics.stored_position[1][X_AXIS], mechanics.stored_position[1][Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
 
   // Set Z_AXIS to saved position
-  mechanics.do_blocking_move_to_z(resume_position[Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
+  mechanics.do_blocking_move_to_z(mechanics.stored_position[1][Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
 
   // Now all extrusion positions are resumed and ready to be confirmed
   // Set extruder to saved position
-  planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = resume_position[E_AXIS]);
+  planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.stored_position[1][E_AXIS]);
 
   printer.setFilamentOut(false);
 

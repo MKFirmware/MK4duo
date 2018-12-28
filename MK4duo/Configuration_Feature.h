@@ -2221,7 +2221,7 @@
 //#define SERIAL_STATS_DROPPED_RX
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
-// The values should not be less than 1
+// The values should not be less than 2
 #define NUM_POSITON_SLOTS 2
 
 // minimum time in microseconds that a movement needs to take if the buffer is emptied.

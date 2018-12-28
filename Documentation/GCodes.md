@@ -67,6 +67,7 @@
 |  M48 | ? | Measure Z Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 |  M48 | G26 MESH VALIDATION | Turn on or off G26 debug flag for verbose output.
 |  M70 | ? | Power consumption sensor calibration
+|  M73 | ? | P[percent] Set percentage complete (compatibility with Marlin)
 |  M75 | ? | Start the print job timer
 |  M76 | ? | Pause the print job timer
 |  M77 | ? | Stop the print job timer
