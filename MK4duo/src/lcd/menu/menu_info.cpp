@@ -31,43 +31,37 @@
 void menu_info_stats() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
-  uint16_t day, hours, minutes, kmeter, meter, centimeter;
-  millis_t t;
-  char lifeTime[20];
-  char printTime[20];
-  char Filamentlung[20];
-
-  t       = print_job_counter.data.printer_usage / 60;
-  day     = t / 60 / 24;
-  hours   = (t / 60) % 24;
-  minutes = t % 60;
-  sprintf_P(lifeTime, PSTR("%ud %uh %um"), day, hours, minutes);
-
-  t       = print_job_counter.data.printTime / 60;
-  day     = t / 60 / 24;
-  hours   = (t / 60) % 24;
-  minutes = t % 60;
-  sprintf_P(printTime, PSTR("%ud %uh %um"), day, hours, minutes);
-
-  kmeter      = (long)print_job_counter.data.filamentUsed / 1000 / 1000;
-  meter       = ((long)print_job_counter.data.filamentUsed / 1000) % 1000;
-  centimeter  = ((long)print_job_counter.data.filamentUsed / 10) % 100;
-  sprintf_P(Filamentlung, PSTR("%uKm %um %ucm"), kmeter, meter, centimeter);
-
-  #if HAS_POWER_CONSUMPTION_SENSOR
-    char Power[10];
-    sprintf_P(Power, PSTR("%uWh"), powerManager.consumption_hour);
-  #endif
+  char buffer[21];
+  printStatistics stats = print_job_counter.getStats();
 
   START_SCREEN();
-  STATIC_ITEM(MSG_INFO_TOTAL_PRINTS ": ", false, false, itostr3left(print_job_counter.data.totalPrints));
-  STATIC_ITEM(MSG_INFO_FINISHED_PRINTS ": ",  false, false, itostr3left(print_job_counter.data.finishedPrints));
-  STATIC_ITEM(MSG_INFO_ON_TIME ": ",  false, false, lifeTime);
-  STATIC_ITEM(MSG_INFO_PRINT_TIME ": ",  false, false, printTime);
-  STATIC_ITEM(MSG_INFO_FILAMENT_USAGE ": ",  false, false, Filamentlung);
+  STATIC_ITEM(MSG_INFO_PRINT_COUNT ":", false, false, itostr3left(stats.totalPrints));
+  STATIC_ITEM(MSG_INFO_COMPLETED_PRINTS ":",  false, false, itostr3left(stats.finishedPrints));
+
+  duration_t elapsed = stats.printer_usage;
+  elapsed.toString(buffer);
+  STATIC_ITEM(MSG_INFO_ON_TIME ":", false, false);
+  STATIC_ITEM("", false, false, buffer);
+
+  elapsed = stats.printTime;
+  elapsed.toString(buffer);
+  STATIC_ITEM(MSG_INFO_PRINT_TIME ":", false, false);
+  STATIC_ITEM("", false, false, buffer);
+
+  uint16_t  kmeter = (long)stats.filamentUsed / 1000 / 1000,
+            meter = ((long)stats.filamentUsed / 1000) % 1000,
+            centimeter = ((long)stats.filamentUsed / 10) % 100,
+            millimeter = ((long)stats.filamentUsed) % 10;
+  sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), kmeter, meter, centimeter, millimeter);
+  STATIC_ITEM(MSG_INFO_PRINT_FILAMENT ": ", false, false);
+  STATIC_ITEM("", false, false, buffer);
+
   #if HAS_POWER_CONSUMPTION_SENSOR
-    STATIC_ITEM(MSG_INFO_PWRCONSUMED ": ",  false, false, Power);
+    sprintf_P(buffer, PSTR("%uWh"), powerManager.consumption_hour);
+    STATIC_ITEM(MSG_INFO_PWRCONSUMED ":",  false, false);
+    STATIC_ITEM("", false, false, buffer);
   #endif
+
   END_SCREEN();
 }
 

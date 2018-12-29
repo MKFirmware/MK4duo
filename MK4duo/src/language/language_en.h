@@ -1103,11 +1103,14 @@
   #ifndef MSG_INFO_COMPLETED_PRINTS
     #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completed")
   #endif
-  #ifndef MSG_INFO_PRINT_LONGEST
-    #define MSG_INFO_PRINT_LONGEST            _UxGT("Longest job time")
+  #ifndef MSG_INFO_PRINT_TIME
+    #define MSG_INFO_PRINT_TIME               _UxGT("Total print time")
+  #endif
+  #ifndef MSG_INFO_ON_TIME
+    #define MSG_INFO_ON_TIME                  _UxGT("Power on time")
   #endif
   #ifndef MSG_INFO_PRINT_FILAMENT
-    #define MSG_INFO_PRINT_FILAMENT           _UxGT("Extruded total")
+    #define MSG_INFO_PRINT_FILAMENT           _UxGT("Filament used")
   #endif
 #else
   #ifndef MSG_INFO_PRINT_COUNT
@@ -1116,28 +1119,15 @@
   #ifndef MSG_INFO_COMPLETED_PRINTS
     #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completed")
   #endif
-  #ifndef MSG_INFO_PRINT_LONGEST
-    #define MSG_INFO_PRINT_LONGEST            _UxGT("Longest")
+  #ifndef MSG_INFO_PRINT_TIME
+    #define MSG_INFO_PRINT_TIME               _UxGT("Total print")
+  #endif
+  #ifndef MSG_INFO_ON_TIME
+    #define MSG_INFO_ON_TIME                  _UxGT("Power on")
   #endif
   #ifndef MSG_INFO_PRINT_FILAMENT
-    #define MSG_INFO_PRINT_FILAMENT           _UxGT("Extruded")
+    #define MSG_INFO_PRINT_FILAMENT           _UxGT("Fil. used")
   #endif
-#endif
-
-#ifndef MSG_INFO_TOTAL_PRINTS
-  #define MSG_INFO_TOTAL_PRINTS               _UxGT("Total Prints")
-#endif
-#ifndef MSG_INFO_FINISHED_PRINTS
-  #define MSG_INFO_FINISHED_PRINTS            _UxGT("Fin. Prints")
-#endif
-#ifndef MSG_INFO_ON_TIME
-  #define MSG_INFO_ON_TIME                    _UxGT("On x")
-#endif
-#ifndef MSG_INFO_PRINT_TIME
-  #define MSG_INFO_PRINT_TIME                 _UxGT("Pr x")
-#endif
-#ifndef MSG_INFO_FILAMENT_USAGE
-  #define MSG_INFO_FILAMENT_USAGE             _UxGT("Fil")
 #endif
 #ifndef MSG_INFO_PWRCONSUMED
   #define MSG_INFO_PWRCONSUMED                _UxGT("PWR")
