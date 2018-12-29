@@ -28,10 +28,10 @@
 //#define DEBUG_PRINTCOUNTER
 
 struct printStatistics {
-  uint16_t  totalPrints;    // Number of prints
-  uint16_t  finishedPrints; // Number of complete prints
-  uint32_t  printTime;      // Accumulated printing time
-  uint32_t  printer_usage;  // Printer usage ON
+  uint16_t  totalPrints,    // Number of prints
+            finishedPrints; // Number of complete prints
+  uint32_t  printTime,      // Accumulated printing time
+            printer_usage;  // Printer usage ON
   double    filamentUsed;   // Accumulated filament consumed in mm
 };
 
@@ -82,6 +82,12 @@ class PrintCounter: public Stopwatch {
      * prints the statistical data to serial.
      */
     static void showStats();
+
+    /**
+     * @brief Return the currently loaded statistics
+     * @details Return the raw data, in the same structure used internally
+     */
+    static printStatistics getStats() { return data; }
 
     /**
      * @brief Loop function

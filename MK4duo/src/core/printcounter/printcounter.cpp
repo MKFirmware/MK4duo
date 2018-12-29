@@ -35,7 +35,7 @@ millis_t PrintCounter::lastDuration;
 /** Public Function */
 void PrintCounter::initStats() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("initStats"));
+    debug(PSTR("initStats"));
   #endif
 
   data = { 0, 0, 0, 0, 0.0 };
@@ -46,16 +46,19 @@ void PrintCounter::showStats() {
   duration_t elapsed;
 
   SERIAL_MSG(MSG_STATS);
-  SERIAL_MV("Total: ", data.totalPrints);
-  SERIAL_MV(", Finished: ", data.finishedPrints);
-  SERIAL_MSG(", Failed: "); // Note: Removes 1 from failures with an active counter
+
+  SERIAL_MV("Total:", data.totalPrints);
+  SERIAL_MV(", Finished:", data.finishedPrints);
+  SERIAL_MSG(", Failed:");
   SERIAL_EV (data.totalPrints - data.finishedPrints -
             ((isRunning() || isPaused()) ? 1 : 0));
 
   SERIAL_MSG(MSG_STATS);
+
   elapsed = data.printTime;
   elapsed.toString(buffer);
   SERIAL_MT("Total print time: ", buffer);
+
   elapsed = data.printer_usage;
   elapsed.toString(buffer);
   SERIAL_EMT(", Power on time: ", buffer);
@@ -69,6 +72,7 @@ void PrintCounter::showStats() {
   sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), kmeter, meter, centimeter, millimeter);
 
   SERIAL_EMT("Filament used: ", buffer);
+
 }
 
 void PrintCounter::tick() {
@@ -132,7 +136,7 @@ bool PrintCounter::stop() {
 
 void PrintCounter::reset() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("stop"));
+    debug(PSTR("stop"));
   #endif
 
   super::reset();
@@ -152,7 +156,7 @@ void PrintCounter::reset() {
 /** Private Function */
 void PrintCounter::loadStats() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("loadStats"));
+    debug(PSTR("loadStats"));
   #endif
 
   #if HAS_SD_STATISTICS
@@ -164,7 +168,7 @@ void PrintCounter::loadStats() {
 
 void PrintCounter::saveStats() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("saveStats"));
+    debug(PSTR("saveStats"));
   #endif
 
   // Refuses to save data is object is not loaded
@@ -178,7 +182,7 @@ void PrintCounter::saveStats() {
 /** Protected Function */
 millis_t PrintCounter::deltaDuration() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
-    PrintCounter::debug(PSTR("deltaDuration"));
+    debug(PSTR("deltaDuration"));
   #endif
 
   millis_t tmp = lastDuration;

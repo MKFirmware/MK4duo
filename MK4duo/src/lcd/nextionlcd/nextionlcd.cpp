@@ -835,7 +835,6 @@
 
   #if HAS_LCD_MENU
 
-    constexpr uint8_t   lcd_width = 26;
     constexpr uint16_t  sel_color = 2016,
                         txt_color = 65535;
 
@@ -918,14 +917,13 @@
 
       mark_as_selected(row, invert);
 
-      const uint8_t labellen  = utf8_strlen_P(pstr);
+      const uint8_t labellen  = strlen_P(pstr);
       nexlcd.startChar(*txtmenu_list[row]);
       nextion_put_str_P(row, pstr, labellen);
 
       if (valstr != NULL) {
-        const uint8_t vallen = utf8_strlen(valstr);
-        nextion_put_space(row, lcd_width - labellen - vallen - 2);
-        nextion_put_str(row, valstr, labellen);
+        const uint8_t vallen = strlen(valstr);
+        nextion_put_str(row, valstr, vallen);
       }
       nexlcd.endChar();
     }
@@ -933,7 +931,7 @@
     // Draw a generic menu item
     void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
       UNUSED(pre_char); UNUSED(post_char);
-      const uint8_t labellen  = utf8_strlen_P(pstr);
+      const uint8_t labellen  = strlen_P(pstr);
       mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
       nextion_put_str_P(row, pstr, labellen);
@@ -943,27 +941,27 @@
     // Draw a menu item with an editable value
     void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
 
-      const uint8_t labellen  = utf8_strlen_P(pstr);
-      const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
+      const uint8_t labellen  = strlen_P(pstr);
+      const uint8_t vallen = (pgm ? strlen_P(data) : strlen((char*)data));
 
       mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
       nextion_put_str_P(row, pstr, labellen);
       nextion_put_str_P(row, PSTR(":"), 1);
-      nextion_put_space(row, lcd_width - labellen - vallen - 2);
+      nextion_put_space(row, LCD_WIDTH - labellen - vallen - 2);
       if (pgm)
         nextion_put_str_P(row, data, labellen);
       else
-        nextion_put_str(row, (char*)data, labellen);
+        nextion_put_str(row, (char*)data, vallen);
       nexlcd.endChar();
     }
 
     void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
 
-      const uint8_t labellen  = utf8_strlen_P(pstr),
-                    vallen    = utf8_strlen(value);
+      const uint8_t labellen  = strlen_P(pstr),
+                    vallen    = strlen(value);
 
-      bool extra_row = labellen > lcd_width - vallen - 2;
+      bool extra_row = labellen > LCD_WIDTH - vallen - 2;
 
       constexpr uint8_t row = 2;
 
@@ -975,15 +973,15 @@
         nextion_put_str_P(row, pstr, labellen);
         nexlcd.endChar();
         nexlcd.startChar(*txtmenu_list[row]);
-        nextion_put_space(row, lcd_width - vallen - 1);
+        nextion_put_space(row, LCD_WIDTH - vallen - 1);
         nextion_put_str(row, value, labellen);
       }
       else {
         nexlcd.startChar(*txtmenu_list[row]);
         nextion_put_str_P(row, pstr, labellen);
         nextion_put_str_P(row, PSTR(":"), 1);
-        nextion_put_space(row, lcd_width - labellen - vallen - 2);
-        nextion_put_str(row, value, labellen);
+        nextion_put_space(row, LCD_WIDTH - labellen - vallen - 2);
+        nextion_put_str(row, value, vallen);
       }
       nexlcd.endChar();
     }
@@ -992,7 +990,7 @@
 
       void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
         UNUSED(pstr);
-        const uint8_t labellen = utf8_strlen(theCard.fileName);
+        const uint8_t labellen = strlen(theCard.fileName);
         mark_as_selected(row, sel);
         nexlcd.startChar(*txtmenu_list[row]);
         if (isDir) nextion_put_str_P(row, PSTR(LCD_STR_FOLDER), 2);
