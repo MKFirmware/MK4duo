@@ -32,32 +32,34 @@ void menu_info_stats() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
   char buffer[21];
+  duration_t elapsed;
   printStatistics stats = print_job_counter.getStats();
 
   START_SCREEN();
   STATIC_ITEM(MSG_INFO_PRINT_COUNT ":", false, false, itostr3left(stats.totalPrints));
   STATIC_ITEM(MSG_INFO_COMPLETED_PRINTS ":",  false, false, itostr3left(stats.finishedPrints));
 
-  duration_t elapsed = stats.printer_usage;
-  elapsed.toString(buffer);
-  STATIC_ITEM(MSG_INFO_ON_TIME ":", false, false);
-  STATIC_ITEM("", false, false, buffer);
-
-  elapsed = stats.printTime;
+  elapsed = stats.timePrint;
   elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_PRINT_TIME ":", false, false);
   STATIC_ITEM("", false, false, buffer);
 
-  uint16_t  kmeter = (long)stats.filamentUsed / 1000 / 1000,
-            meter = ((long)stats.filamentUsed / 1000) % 1000,
-            centimeter = ((long)stats.filamentUsed / 10) % 100,
-            millimeter = ((long)stats.filamentUsed) % 10;
-  sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), kmeter, meter, centimeter, millimeter);
+  elapsed = stats.longestPrint;
+  elapsed.toString(buffer);
+  STATIC_ITEM(MSG_INFO_PRINT_LONGEST ":", false, false);
+  STATIC_ITEM("", false, false, buffer);
+
+  elapsed = stats.timePowerOn;
+  elapsed.toString(buffer);
+  STATIC_ITEM(MSG_INFO_POWER_ON ":", false, false);
+  STATIC_ITEM("", false, false, buffer);
+
+  lungtoString(buffer, stats.filamentUsed);
   STATIC_ITEM(MSG_INFO_PRINT_FILAMENT ": ", false, false);
   STATIC_ITEM("", false, false, buffer);
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    sprintf_P(buffer, PSTR("%uWh"), powerManager.consumption_hour);
+    sprintf_P(buffer, PSTR("%uWh"), stats.consumptionHour);
     STATIC_ITEM(MSG_INFO_PWRCONSUMED ":",  false, false);
     STATIC_ITEM("", false, false, buffer);
   #endif

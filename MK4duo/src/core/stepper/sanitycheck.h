@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _STEPPER_SANITYCHECK_H_
-#define _STEPPER_SANITYCHECK_H_
 
 // Advanced motion
 #if DISABLED(DEFAULT_STEPPER_DEACTIVE_TIME)
@@ -303,5 +301,3 @@
     #endif
   #endif
 #endif
-
-#endif /* _STEPPER_SANITYCHECK_H_ */

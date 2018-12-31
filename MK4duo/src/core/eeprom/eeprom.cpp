@@ -57,7 +57,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV58"
+#define EEPROM_VERSION "MKV60"
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0
@@ -871,7 +871,6 @@ void EEPROM::post_process() {
     if (eeprom_error = memorystore.access_read())
       return false;
 
-    SERIAL_EMT("stored_ver:", stored_ver);
     EEPROM_READ_ALWAYS(stored_ver);
     EEPROM_READ_ALWAYS(stored_crc);
 
@@ -2514,9 +2513,7 @@ void EEPROM::reset() {
       #endif // EXTRUDERS != 1
     #endif // ADVANCED_PAUSE_FEATURE
 
-    #if HAS_SD_SUPPORT
-      card.print_statistics();
-    #endif
+    print_job_counter.showStats();
 
   }
 

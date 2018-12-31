@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _ADVANCED_PAUSE_SANITYCHECK_H_
-#define _ADVANCED_PAUSE_SANITYCHECK_H_
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   #if EXTRUDERS == 0
@@ -54,5 +52,3 @@
     #error "DEPENDENCY ERROR: PARK_HEAD_ON_PAUSE currently requires ADVANCED_PAUSE_FEATURE."
   #endif
 #endif
-
-#endif /* _ADVANCED_PAUSE_SANITYCHECK_H_ */

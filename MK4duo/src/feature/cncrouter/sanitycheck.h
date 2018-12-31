@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
@@ -26,11 +27,6 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _CNCROUTER_SANITYCHECK_H_
-#define _CNCROUTER_SANITYCHECK_H_
-
 #if ENABLED(CNCROUTER) && !PIN_EXISTS(CNCROUTER)
   #error "DEPENDENCY ERROR: You have to set CNCROUTER_PIN to a valid pin if you enable CNCROUTER."
 #endif
-
-#endif /* _CNCROUTER_SANITYCHECK_H_ */

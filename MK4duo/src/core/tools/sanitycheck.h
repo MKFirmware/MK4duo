@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _TOOLS_SANITYCHECK_H_
-#define _TOOLS_SANITYCHECK_H_
 
 // Extruders
 #if DISABLED(EXTRUDERS)
@@ -207,5 +205,3 @@ static_assert(1 >= 0
 #if (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR)) && EXTRUDERS != 2
   #error "DEPENDENCY ERROR: You must set EXTRUDERS = 2 for DONDOLO."
 #endif
-
-#endif /* _TOOLS_SANITYCHECK_H_ */

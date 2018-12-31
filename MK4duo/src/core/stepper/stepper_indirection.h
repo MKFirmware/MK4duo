@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * stepper_indirection.h - stepper motor driver indirection macros
@@ -40,9 +41,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef _STEPPER_INDIRECTION_H_
-#define _STEPPER_INDIRECTION_H_
 
 // TMC26X drivers have STEP/DIR on normal pins, but ENABLE via SPI
 #if HAVE_DRV(TMC26X)
@@ -506,5 +504,3 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define    REV_E_DIR(E)     E0_DIR_WRITE( isStepDir(E0_AXIS))
   #endif
 #endif // DRIVER_EXTRUDERS
-
-#endif /* _STEPPER_INDIRECTION_H_ */

@@ -22,7 +22,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(__AVR__) && ENABLED(EEPROM_SETTINGS)
+#if ENABLED(__AVR__) && HAS_EEPROM
 
 MemoryStore memorystore;
 

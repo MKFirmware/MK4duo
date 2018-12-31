@@ -51,10 +51,6 @@ static void ac_setup() {
   #if HAS_LEVELING
     bedlevel.reset(); // After full calibration bed-level data is no longer valid
   #endif
-
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
-    printer.setStatisticsStore(false);
-  #endif
 }
 
 static void ac_cleanup() {
@@ -67,10 +63,6 @@ static void ac_cleanup() {
 
   #if HOTENDS > 1
     tools.change(old_tool_index, 0, true);
-  #endif
-
-  #if HAS_SD_SUPPORT && ENABLED(SD_SETTINGS)
-    printer.setStatisticsStore(true);
   #endif
 }
 

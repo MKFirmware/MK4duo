@@ -51,8 +51,7 @@ union flagpower_t {
       #if HAS_POWER_CONSUMPTION_SENSOR
         static int16_t  current_raw_powconsumption;
         static float    consumption_meas;   // holds the power consumption as accurately measured
-        static uint32_t consumption_hour,   // holds the power consumption per hour as accurately measured
-                        startpower;
+        static uint32_t startpower;
       #endif
 
     private: /** Private Parameters */

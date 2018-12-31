@@ -313,21 +313,37 @@ static PGM_P advanced_pause_header() {
   return PSTR(MSG_FILAMENT_CHANGE_HEADER_PAUSE);
 }
 
-// Portions from STATIC_ITEM...
-#define HOTEND_STATUS_ITEM() do { \
-  if (_menuLineNr == _thisItemNr) { \
-    if (lcdui.should_draw()) { \
-      draw_menu_item_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), false, true); \
-      lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
+#if HAS_NEXTION_LCD
+  // Portions from STATIC_ITEM...
+  #define HOTEND_STATUS_ITEM() do { \
+    if (_menuLineNr == _thisItemNr) { \
+      if (lcdui.should_draw()) { \
+        lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
+      } \
+      if (_skipStatic && encoderLine <= _thisItemNr) { \
+        lcdui.encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
+        ++encoderLine; \
+      } \
     } \
-    if (_skipStatic && encoderLine <= _thisItemNr) { \
-      lcdui.encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
-      ++encoderLine; \
+    ++_thisItemNr; \
+  }while(0)
+#else  
+  // Portions from STATIC_ITEM...
+  #define HOTEND_STATUS_ITEM() do { \
+    if (_menuLineNr == _thisItemNr) { \
+      if (lcdui.should_draw()) { \
+        draw_menu_item_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), false, true); \
+        lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
+      } \
+      if (_skipStatic && encoderLine <= _thisItemNr) { \
+        lcdui.encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
+        ++encoderLine; \
+      } \
+      lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT); \
     } \
-    lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT); \
-  } \
-  ++_thisItemNr; \
-}while(0)
+    ++_thisItemNr; \
+  }while(0)
+#endif
 
 void lcd_advanced_pause_resume_print() {
   advancedpause.menu_response = ADVANCED_PAUSE_RESPONSE_RESUME_PRINT;

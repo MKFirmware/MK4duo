@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _TEMPERATURE_SANITYCHECK_H_
-#define _TEMPERATURE_SANITYCHECK_H_
 
 // Temperature defines
 #if ENABLED(TEMP_RESIDENCY_TIME)
@@ -280,5 +278,3 @@
     , "DEPENDENCY ERROR: only one DHT sensor is supported!"
   );
 #endif
-
-#endif /* _TEMPERATURE_SANITYCHECK_H_ */

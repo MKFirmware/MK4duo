@@ -19,13 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * bedlevel.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-#pragma once
 
 #if OLD_ABL
   #define XY_PROBE_FEEDRATE_MM_S bedlevel.xy_probe_feedrate_mm_s

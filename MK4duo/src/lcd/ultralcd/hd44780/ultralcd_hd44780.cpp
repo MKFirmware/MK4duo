@@ -613,7 +613,7 @@ void LcdUI::draw_status_message(const bool blink) {
         lcd_put_u8str_P(PSTR("P:"));
         lcd_put_u8str(ftostr43sign(powerManager.consumption_meas));
         lcd_put_u8str_P(PSTR("W C:"));
-        lcd_put_u8str(ltostr7(powerManager.consumption_hour));
+        lcd_put_u8str(ltostr7(print_job_counter.getConsumptionHour()));
         lcd_put_u8str_P(PSTR("Wh"));
         return;
       }
@@ -870,7 +870,7 @@ void LcdUI::draw_status_screen() {
           lcd_put_u8str(buffer);
         }
         else {
-          lcd_put_u8str(itostr4(powerManager.consumption_hour - powerManager.startpower));
+          lcd_put_u8str(itostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
           lcd_put_u8str_P(PSTR("Wh"));
         }
       #else
