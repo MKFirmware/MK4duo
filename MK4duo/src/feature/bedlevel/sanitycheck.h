@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _BED_LEVELING_SANITYCHECK_H_
-#define _BED_LEVELING_SANITYCHECK_H_
 
 /**
  * Allow only one bed leveling option to be defined
@@ -98,5 +96,3 @@ static_assert(1 >= 0
 #if ENABLED(MESH_EDIT_GFX_OVERLAY) && (DISABLED(AUTO_BED_LEVELING_UBL) || DISABLED(DOGLCD))
   #error "DEPENDENCY ERROR: MESH_EDIT_GFX_OVERLAY requires AUTO_BED_LEVELING_UBL and a Graphical LCD."
 #endif
-
-#endif /* _BED_LEVELING_SANITYCHECK_H_ */

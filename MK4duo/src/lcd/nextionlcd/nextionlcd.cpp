@@ -1432,18 +1432,24 @@
 
     void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
 
-      ZERO(buffer);
-      strcat(buffer, "H");
-      //strcat(buffer, (char)('0' + hotend)); // Da vedere!!!
-      strcat(buffer, " ");
-      strcat(buffer, itostr3(heaters[hotend].current_temperature));
-      strcat(buffer, "/");
+      static millis_t nex_update = 0;
+      millis_t now = millis();
 
-      if (get_blink() || !heaters[hotend].isIdle())
-        strcat(buffer, itostr3(heaters[hotend].target_temperature));
+      if (ELAPSED(now, nex_update)) {
+        nex_update = now + 1500UL;
 
-      nexlcd.setText(*txtmenu_list[row], buffer);
+        ZERO(buffer);
+        strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
+        strcat(buffer, i8tostr1(hotend));
+        strcat(buffer, " ");
+        strcat(buffer, itostr3(heaters[hotend].current_temperature));
+        strcat(buffer, "/");
 
+        if (get_blink() || !heaters[hotend].isIdle())
+          strcat(buffer, itostr3(heaters[hotend].target_temperature));
+
+        nexlcd.setText(*txtmenu_list[row], buffer);
+      }
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

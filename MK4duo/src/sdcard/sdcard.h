@@ -78,10 +78,6 @@
         static SdFile eeprom_file;
       #endif
 
-      #if HAS_SD_STATISTICS
-        static SdFile settings_file;
-      #endif
-
       static uint16_t     workDirDepth,
                           nrFiles;          // counter for the files in the current directory and recycled as position counter for getting the nrFiles'th name in the directory.
       static LsActionEnum lsAction;         // stored for recursion.
@@ -155,7 +151,6 @@
       static void printingHasFinished();
       static void chdir(PGM_P relpath);
       static void reset_default();
-      static void print_statistics();
       static void beginautostart();
       static void checkautostart();
       static void setroot();
@@ -180,20 +175,6 @@
         static void close_eeprom_sd();
         static inline size_t write_eeprom_data(void* buf, uint16_t nbyte)  { return eeprom_file.isOpen() ? eeprom_file.write(buf, nbyte) : -1; }
         static inline size_t read_eeprom_data(void* buf, uint16_t nbyte)   { return eeprom_file.isOpen() ? eeprom_file.read(buf, nbyte) : -1; }
-      #endif
-
-      #if HAS_SD_STATISTICS
-        #define CFG_SD_MAX_KEY_LEN    3+1         // increase this if you add key name longer than the actual value.
-        #define CFG_SD_MAX_VALUE_LEN  10+1        // this should be enough for int, long and float: if you need to retrieve strings increase this carefully
-        //(11 = strlen("4294967295")+1) (4294967295 = (2^32)-1) (32 = the num of bits of the bigger basic data structure used)
-        //If you need to save string increase this to strlen("YOUR LONGER STRING")+1
-        static void store_statistics();
-        static void retrieve_statistics(bool addValue = false);
-        static void parseKeyLine(char* key, char* value, int &len_k, int &len_v);
-        static void unparseKeyLine(PGM_P key, char* value);
-        static int  KeyIndex(char* key);
-      #else
-        static inline void retrieve_statistics() { reset_default(); }
       #endif
 
       #if ENABLED(SDCARD_SORT_ALPHA)

@@ -373,15 +373,17 @@
 #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Luminosita' Luci")
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Stampe totali")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completati")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Tempo stampa totale")
-  #define MSG_INFO_ON_TIME                  _UxGT("Accesa per")
+  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completate")
+  #define MSG_INFO_PRINT_TIME               _UxGT("Tempo totale")
+  #define MSG_INFO_PRINT_LONGEST            _UxGT("Stampa piu' lunga")
+  #define MSG_INFO_POWER_ON                 _UxGT("Accesa per tempo")
   #define MSG_INFO_PRINT_FILAMENT           _UxGT("Filamento usato")
 #else
   #define MSG_INFO_PRINT_COUNT              _UxGT("Stampe")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completati")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Tempo stampa")
-  #define MSG_INFO_ON_TIME                  _UxGT("Accesa per")
+  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completate")
+  #define MSG_INFO_PRINT_TIME               _UxGT("Tempo tot.")
+  #define MSG_INFO_PRINT_LONGEST            _UxGT("Piu' lunga")
+  #define MSG_INFO_POWER_ON                 _UxGT("Accesa per")
   #define MSG_INFO_PRINT_FILAMENT           _UxGT("Fil. usato")
 #endif
 #define MSG_INFO_PWRCONSUMED                _UxGT("PWR")

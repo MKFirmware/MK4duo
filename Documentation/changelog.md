@@ -38,6 +38,8 @@
 * Add Support USB FLASH DRIVE such as SD
 * Add Thermal protection to command M306 and saved it in EEPROM
 * Fixed GFX overlay with Nextion when printing from USB
+* Add Statistic in EEPROM and not in SD
+* Fixed change filament menu with Nextion LCD
 * Fix and clear code
 
 ### Version 4.3.6

@@ -263,7 +263,7 @@ void Temperature::spin() {
     SERIAL_EMV(" - P:", powerManager.analog2power(), 5);*/
     watt_overflow += (powerManager.consumption_meas * from_last_update) / 3600000.0;
     if (watt_overflow >= 1.0) {
-      powerManager.consumption_hour++;
+      print_job_counter.incConsumptionHour();
       watt_overflow--;
     }
     last_update = temp_last_update;
@@ -308,7 +308,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
 
   printer.setWaitForHeatUp(true);
   printer.setAutoreportTemp(true);
-  printer.setStatisticsStore(false);
 
   pid_pointer = act->data.ID;
 
@@ -517,7 +516,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
   disable_all_heaters();
 
   printer.setAutoreportTemp(oldReport);
-  printer.setStatisticsStore(true);
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     ledevents.onPidTuningDone(color);

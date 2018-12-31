@@ -566,7 +566,7 @@ void Commands::get_destination() {
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
     const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
-    print_job_counter.data.filamentUsed += diff;
+    print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
       rfid522.RfidData[tools.active_extruder].data.lenght -= diff;
     #endif

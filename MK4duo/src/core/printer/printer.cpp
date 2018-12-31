@@ -194,8 +194,6 @@ void Printer::setup() {
     if (!card.isOK()) card.mount();
   #endif
 
-  print_job_counter.init();
-
   // Init endstops
   endstops.init();
 
@@ -218,9 +216,11 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  thermalManager.init();  // Initialize temperature loop
+  thermalManager.init();    // Initialize temperature loop
 
-  stepper.init(); // Initialize stepper, this enables interrupts!
+  print_job_counter.init(); // Initial setup of print job counter
+
+  stepper.init();           // Initialize stepper. This enables interrupts!
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     externaldac.begin();
@@ -286,11 +286,6 @@ void Printer::setup() {
 
   // All Initialized set Running to true.
   setRunning(true);
-
-  // Initialized print statistics stored
-  #if HAS_SD_STATISTICS
-    setStatisticsStore(true);
-  #endif
 
   #if ENABLED(DELTA_HOME_ON_POWER)
     mechanics.home();

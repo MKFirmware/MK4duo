@@ -22,6 +22,18 @@
 
 #include "../../MK4duo.h"
 
+void lungtoString(char *buffer, const float lung) {
+  uint16_t  k   = long(lung) / 1000 / 1000,
+            m   = (long(lung) / 1000) % 1000,
+            c   = (long(lung) / 10) % 100,
+            mm  = long(lung) % 10;
+
+  if (k) sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), k, m, c, mm);
+  else if (m) sprintf_P(buffer, PSTR("%um %ucm %umm"), m, c, mm);
+  else if (c) sprintf_P(buffer, PSTR("%ucm %umm"), c, mm);
+  else sprintf_P(buffer, PSTR("%umm"), mm);
+}
+
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
   uint8_t *ptr = (uint8_t *)data;
   while (cnt--) {
@@ -37,6 +49,12 @@ char conv[8] = { 0 };
 #define DIGIMOD(n, f)   DIGIT((n)/(f) % 10)
 #define RJDIGIT(n, f)   ((n) >= (f) ? DIGIMOD(n, f) : ' ')
 #define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
+
+// Convert unsigned int to string 123 format
+char* i8tostr1(const uint8_t i) {
+  conv[6] = DIGIMOD(i, 1);
+  return &conv[6];
+}
 
 // Convert unsigned int to string 123 format
 char* i8tostr3(const uint8_t i) {

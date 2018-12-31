@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _MEMORY_STORE_H_
-#define _MEMORY_STORE_H_
+#pragma once
 
 #if ENABLED(E2END)
   #define EEPROM_SIZE E2END
@@ -67,5 +65,3 @@ class MemoryStore {
 };
 
 extern MemoryStore memorystore;
-
-#endif /* _MEMORY_STORE_H_ */

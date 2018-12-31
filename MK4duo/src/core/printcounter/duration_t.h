@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _DURATION_T_H_
-#define _DURATION_T_H_
+#pragma once
 
 struct duration_t {
 
@@ -164,5 +162,3 @@ struct duration_t {
     }
   }
 };
-
-#endif /* _DURATION_T_H_ */

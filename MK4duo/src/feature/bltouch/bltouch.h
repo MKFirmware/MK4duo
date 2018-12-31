@@ -19,14 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * bltouch.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#pragma once
 
 #if ENABLED(BLTOUCH)
 

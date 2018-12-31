@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef __UTILITY_H__
-#define __UTILITY_H__
+#pragma once
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
 
@@ -37,8 +35,14 @@
 
 #endif
 
+// Convert uint32_t lung to string
+void lungtoString(char *buffer, const float lung);
+
 // Crc 16 bit for eeprom check
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
+
+// Convert uint8_t to string with 1 format
+char* i8tostr1(const uint8_t i);
 
 // Convert uint8_t to string with 123 format
 char* i8tostr3(const uint8_t i);
@@ -89,5 +93,3 @@ FORCE_INLINE char* ftostr3(const float &f) { return itostr3(int(f + (f < 0 ? -0.
   // Convert float to rj string with 1234, _123, -123, __12, _-12, ___1, or __-1 format
   FORCE_INLINE char* ftostr4sign(const float &f) { return itostr4sign(int(f + (f < 0 ? -0.5f : 0.5f))); }
 #endif
-
-#endif /* __UTILITY_H__ */

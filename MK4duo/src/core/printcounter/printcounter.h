@@ -19,36 +19,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _PRINTCOUNTER_H_
-#define _PRINTCOUNTER_H_
+#pragma once
 
 #include "duration_t.h"
 
 //#define DEBUG_PRINTCOUNTER
 
 struct printStatistics {
-  uint16_t  totalPrints,    // Number of prints
-            finishedPrints; // Number of complete prints
-  uint32_t  printTime,      // Accumulated printing time
-            printer_usage;  // Printer usage ON
-  double    filamentUsed;   // Accumulated filament consumed in mm
+  uint16_t  totalPrints,      // Number of prints
+            finishedPrints;   // Number of complete prints
+  uint32_t  timePrint,        // Accumulated printing time
+            longestPrint,     // Longest successful print job
+            timePowerOn;      // Accumulated printer in power on
+  float     filamentUsed;     // Accumulated filament consumed in mm
+
+  #if HAS_POWER_CONSUMPTION_SENSOR
+    uint32_t consumptionHour; // Holds the power consumption per hour as accurately measured
+  #endif
+
 };
 
 class PrintCounter: public Stopwatch {
 
   public: /** Public Parameters */
 
-    static printStatistics data;
-
-    /**
-     * @brief Stats were loaded from SDCARD
-     * @details If set to true it indicates if the statistical data was already
-     * loaded from the SDCARD.
-     */
-    static bool loaded;
-
   private: /** Private Parameters */
+
+    typedef Stopwatch super;
+
+    static printStatistics data;
 
     /**
      * @brief Timestamp of the last call to deltaDuration()
@@ -56,8 +55,6 @@ class PrintCounter: public Stopwatch {
      * required due to the updateInterval cycle.
      */
     static millis_t lastDuration;
-
-    typedef Stopwatch super;
 
   public: /** Public Function */
 
@@ -95,6 +92,22 @@ class PrintCounter: public Stopwatch {
      * periodically save the statistical data to SDCARD and do time keeping.
      */
     static void tick();
+
+    /**
+     * @brief Increment the total filament used
+     * @details The total filament used counter will be incremented by "amount".
+     *
+     * @param amount The amount of filament used in mm
+     */
+    static void incFilamentUsed(float const &amount);
+
+    /**
+     * @brief Increment the total Consumtion Hour
+     */
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      static void incConsumptionHour() { data.consumptionHour++; }
+      static uint32_t getConsumptionHour() { return data.consumptionHour; }
+    #endif
 
     /**
      * The following functions are being overridden
@@ -140,5 +153,3 @@ class PrintCounter: public Stopwatch {
 };
 
 extern PrintCounter print_job_counter;
-
-#endif /* _PRINTCOUNTER_H_ */

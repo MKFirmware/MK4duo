@@ -195,6 +195,9 @@
   #define LCD_PINS_RS         18
   #define LCD_PINS_ENABLE     15
   #define LCD_PINS_D4         19
+  #define LCD_PINS_D5         50
+  #define LCD_PINS_D6         52
+  #define LCD_PINS_D7         53
   #define ORIG_BEEPER_PIN     64
 
   #define BTN_EN1             14

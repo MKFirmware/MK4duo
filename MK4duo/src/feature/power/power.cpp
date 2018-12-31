@@ -32,8 +32,7 @@
   #if HAS_POWER_CONSUMPTION_SENSOR
     int16_t   Power::current_raw_powconsumption = 0;    // Holds measured power consumption
     float     Power::consumption_meas           = 0.0;
-    uint32_t  Power::consumption_hour           = 0,
-              Power::startpower                 = 0;
+    uint32_t  Power::startpower                 = 0;
   #endif
 
   /** Private Parameters */

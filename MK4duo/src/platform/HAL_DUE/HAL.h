@@ -164,7 +164,7 @@ typedef uint32_t  ptr_int_t;
 #endif
 
 // EEPROM START
-#define EEPROM_OFFSET 10
+#define EEPROM_OFFSET 100
 
 // CRITICAL SECTION
 #define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq();

@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef __CASELIGHT_H__
-#define __CASELIGHT_H__
+#pragma once
 
 #if HAS_CASE_LIGHT
 
@@ -42,5 +40,3 @@
   extern CaseLight caselight;
 
 #endif // HAS_CASE_LIGHT
-
-#endif /* __CASELIGHT_H__ */

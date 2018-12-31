@@ -22,7 +22,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && ENABLED(EEPROM_SETTINGS)
+#if ENABLED(ARDUINO_ARCH_SAM) && HAS_EEPROM
 
 MemoryStore memorystore;
 

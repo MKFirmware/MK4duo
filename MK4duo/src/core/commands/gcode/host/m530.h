@@ -54,9 +54,6 @@ inline void gcode_M530(void) {
       SERIAL_EOL();
     #endif
 
-    #if HAS_POWER_CONSUMPTION_SENSOR
-      powerManager.startpower = powerManager.consumption_hour;
-    #endif
   }
   else {
     print_job_counter.stop();   // Stop the timer job

@@ -33,6 +33,7 @@ FSTRINGVAR(OK);           // ok answer for host
 FSTRINGVAR(OKSPACE);      // ok space answer for host
 FSTRINGVAR(ER);           // error for host
 FSTRINGVAR(WT);           // wait for host
+FSTRINGVAR(DEB);          // message for debug
 FSTRINGVAR(ECHO);         // message for user
 FSTRINGVAR(CFG);          // config for host
 FSTRINGVAR(CAP);          // capabilities for host
