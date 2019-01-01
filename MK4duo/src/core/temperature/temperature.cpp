@@ -499,7 +499,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
       act->pid.update();
 
       act->setTuning(true);
-      act->setFault(false);
+      act->ResetFault();
 
       if (storeValues) eeprom.store();
 
