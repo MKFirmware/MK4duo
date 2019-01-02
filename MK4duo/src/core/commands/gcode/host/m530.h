@@ -30,43 +30,53 @@
 
 /**
  * M530: S<printing> L<layer> - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
+ *  X - Force save stats
+ *
  */
 inline void gcode_M530(void) {
 
+  if (parser.seen('X')) {
+    SERIAL_EM("Statistics stored");
+    print_job_counter.saveStats();
+  }
+
   if (parser.seen('L')) printer.maxLayer = parser.value_long();
 
-  if (parser.seen('S') && parser.value_bool()) {
-    print_job_counter.start(); // Start the timer job
+  if (parser.seen('S')) {
+    if (parser.value_bool()) {
+      print_job_counter.start(); // Start the timer job
 
-    SERIAL_MSG("Start Printing");
-    if (printer.maxLayer > 0) SERIAL_MV(" - MaxLayer:", printer.maxLayer);
-    SERIAL_EOL();
-
-    #if ENABLED(START_GCODE)
-      commands.enqueue_and_echo_P(PSTR(START_PRINTING_SCRIPT));
-    #endif
-
-    printer.setFilamentOut(false);
-
-    #if HAS_FIL_RUNOUT_0
-      SERIAL_EM("Filament runout activated.");
-      SERIAL_STR(RESUME);
+      SERIAL_MSG("Start Printing");
+      if (printer.maxLayer > 0) SERIAL_MV(" - MaxLayer:", printer.maxLayer);
       SERIAL_EOL();
-    #endif
 
+      #if ENABLED(START_GCODE)
+        commands.enqueue_and_echo_P(PSTR(START_PRINTING_SCRIPT));
+      #endif
+
+      printer.setFilamentOut(false);
+
+      #if HAS_FIL_RUNOUT_0
+        SERIAL_EM("Filament runout activated.");
+        SERIAL_STR(RESUME);
+        SERIAL_EOL();
+      #endif
+
+    }
+    else {
+      print_job_counter.stop();   // Stop the timer job
+      SERIAL_EM("Stop Printing");
+
+      #if ENABLED(STOP_GCODE)
+        commands.enqueue_and_echo_P(PSTR(STOP_PRINTING_SCRIPT));
+      #endif
+
+      printer.setFilamentOut(false);
+
+      #if HAS_FIL_RUNOUT_0
+        SERIAL_EM("Filament runout deactivated.");
+      #endif
+    }
   }
-  else {
-    print_job_counter.stop();   // Stop the timer job
-    SERIAL_EM("Stop Printing");
 
-    #if ENABLED(STOP_GCODE)
-      commands.enqueue_and_echo_P(PSTR(STOP_PRINTING_SCRIPT));
-    #endif
-
-    printer.setFilamentOut(false);
-
-    #if HAS_FIL_RUNOUT_0
-      SERIAL_EM("Filament runout deactivated.");
-    #endif
-  }
 }

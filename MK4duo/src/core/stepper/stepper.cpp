@@ -1671,8 +1671,8 @@ uint32_t Stepper::block_phase_step() {
 
       if (curTodo) {
         babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0) mechanics.babystepsTodo[axis]--;
-                    else mechanics.babystepsTodo[axis]++;
+        if (curTodo > 0)  mechanics.babystepsTodo[axis]--;
+        else              mechanics.babystepsTodo[axis]++;
       }
     }
   #endif // ENABLED(BABYSTEPPING)
@@ -2886,72 +2886,6 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   #endif
   #define EXTRA_CYCLES_BABYSTEP (HAL_min_pulse_tick - (CYCLES_EATEN_BABYSTEP))
 
-  #if ENABLED(X_TWO_ENDSTOPS) || ENABLED(Y_TWO_ENDSTOPS) || ENABLED(Z_TWO_ENDSTOPS)
-    #define TWO_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
-      if (separate_multi_axis) {                                                                                                   \
-        if (A##_HOME_DIR < 0) {                                                                                                 \
-          if (!(TEST(endstops.live_state, A##_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
-          if (!(TEST(endstops.live_state, A##2_MIN) && count_direction[_AXIS(A)] < 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V); \
-        }                                                                                                                       \
-        else {                                                                                                                  \
-          if (!(TEST(endstops.live_state, A##_MAX) && count_direction[_AXIS(A)] > 0) && !locked_##A##_motor) A##_STEP_WRITE(V);    \
-          if (!(TEST(endstops.live_state, A##2_MAX) && count_direction[_AXIS(A)] > 0) && !locked_##A##2_motor) A##2_STEP_WRITE(V); \
-        }                                                                                                                       \
-      }                                                                                                                         \
-      else {                                                                                                                    \
-        A##_STEP_WRITE(V);                                                                                                      \
-        A##2_STEP_WRITE(V);                                                                                                     \
-      }
-  #endif
-
-  #if ENABLED(X_TWO_STEPPER_DRIVERS)
-    #if ENABLED(X_TWO_ENDSTOPS)
-      #define X_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(X,v)
-    #else
-      #define X_APPLY_STEP(v,Q) do{ X_STEP_WRITE(v); X2_STEP_WRITE(v); }while(0)
-    #endif
-  #elif ENABLED(DUAL_X_CARRIAGE)
-    #define X_APPLY_STEP(v,ALWAYS) \
-      if (mechanics.extruder_duplication_enabled || ALWAYS) { \
-        X_STEP_WRITE(v); \
-        X2_STEP_WRITE(v); \
-      } \
-      else { \
-        if (movement_extruder()) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
-      }
-  #else
-    #define X_APPLY_STEP(v,Q) X_STEP_WRITE(v)
-  #endif
-
-  #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-    #if ENABLED(Y_TWO_ENDSTOPS)
-      #define Y_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(Y,v)
-    #else
-      #define Y_APPLY_STEP(v,Q) do{ Y_STEP_WRITE(v); Y2_STEP_WRITE(v); }while(0)
-    #endif
-  #else
-    #define Y_APPLY_DIR(v,Q) Y_DIR_WRITE(v)
-    #define Y_APPLY_STEP(v,Q) Y_STEP_WRITE(v)
-  #endif
-
-  #if ENABLED(Z_TWO_STEPPER_DRIVERS)
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      #define Z_APPLY_STEP(v,Q) TWO_ENDSTOP_APPLY_STEP(Z,v)
-    #else
-      #define Z_APPLY_STEP(v,Q) do{ Z_STEP_WRITE(v); Z2_STEP_WRITE(v); }while(0)
-    #endif
-  #else
-    #define Z_APPLY_DIR(v,Q) Z_DIR_WRITE(v)
-    #define Z_APPLY_STEP(v,Q) Z_STEP_WRITE(v)
-  #endif
-
-  #define _INVERT_STEP_PIN(PIN)     INVERT_## PIN ##_STEP_PIN
-  #define _APPLY_STEP(AXIS) AXIS    ##_APPLY_STEP
-  #define _ENABLE(AXIS)             enable_## AXIS()
-  #define _READ_DIR(AXIS)           AXIS ##_DIR_READ
-  #define _INVERT_DIR(AXIS)         isStepDir(AXIS ##_AXIS)
-  #define _APPLY_DIR(AXIS, INVERT)  set_##AXIS##_dir(INVERT)
-
   #if EXTRA_CYCLES_BABYSTEP > 20
     #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
     #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
@@ -2968,17 +2902,17 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #endif
   #endif
 
-  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {            \
-      const uint8_t old_dir = _READ_DIR(AXIS);          \
-      _ENABLE(AXIS);                                    \
-      _APPLY_DIR(AXIS, _INVERT_DIR(AXIS)^DIR^INVERT);   \
-      if (direction_delay >= 50)                        \
-        HAL::delayNanoseconds(direction_delay);         \
-      _SAVE_START;                                      \
-      _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), true); \
-      _PULSE_WAIT;                                      \
-      _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), true);  \
-      _APPLY_DIR(AXIS, old_dir);                        \
+  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
+      const uint8_t old_dir = AXIS ##_DIR_READ;             \
+      enable_## AXIS();                                     \
+      set_##AXIS##_dir(isStepDir(AXIS ##_AXIS)^DIR^INVERT); \
+      if (direction_delay >= 50)                            \
+        HAL::delayNanoseconds(direction_delay);             \
+      _SAVE_START;                                          \
+      start_##AXIS##_step();                                \
+      _PULSE_WAIT;                                          \
+      stop_##AXIS##_step();                                 \
+      set_##AXIS##_dir(old_dir);                            \
     }
 
   // MUST ONLY BE CALLED BY AN ISR,
@@ -3021,14 +2955,11 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         #if CORE_IS_XZ
           BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
           BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
-
         #elif CORE_IS_YZ
           BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
           BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
-
-        #elif DISABLED(DELTA)
+        #elif NOMECH(DELTA)
           BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
-
         #else // DELTA
 
           const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
@@ -3041,29 +2972,29 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
                         old_y_dir_pin = Y_DIR_READ,
                         old_z_dir_pin = Z_DIR_READ;
 
-          X_DIR_WRITE(isStepDir(X_AXIS) ^ z_direction);
-          Y_DIR_WRITE(isStepDir(Y_AXIS) ^ z_direction);
-          Z_DIR_WRITE(isStepDir(Z_AXIS) ^ z_direction);
+          set_X_dir(isStepDir(X_AXIS) ^ z_direction);
+          set_Y_dir(isStepDir(Y_AXIS) ^ z_direction);
+          set_Z_dir(isStepDir(Z_AXIS) ^ z_direction);
 
           if (direction_delay >= 50)
             HAL::delayNanoseconds(direction_delay);
 
           _SAVE_START;
 
-          X_STEP_WRITE(!INVERT_X_STEP_PIN);
-          Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
-          Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          start_X_step();
+          start_Y_step();
+          start_Z_step();
 
           _PULSE_WAIT;
 
-          X_STEP_WRITE(INVERT_X_STEP_PIN);
-          Y_STEP_WRITE(INVERT_Y_STEP_PIN);
-          Z_STEP_WRITE(INVERT_Z_STEP_PIN);
+          stop_X_step();
+          stop_Y_step();
+          stop_Z_step();
 
           // Restore direction bits
-          X_DIR_WRITE(old_x_dir_pin);
-          Y_DIR_WRITE(old_y_dir_pin);
-          Z_DIR_WRITE(old_z_dir_pin);
+          set_X_dir(old_x_dir_pin);
+          set_Y_dir(old_y_dir_pin);
+          set_Z_dir(old_z_dir_pin);
 
         #endif
 
