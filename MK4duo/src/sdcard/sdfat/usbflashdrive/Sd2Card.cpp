@@ -34,30 +34,35 @@ BulkOnly bulk(&usb);
 
 Sd2Card::state_t Sd2Card::state;
 
+// The USB library needs to be called periodically to detect USB thumbdrive
+// insertion and removals. Call this idle() function periodically to allow
+// the USB library to monitor for such events. This function also takes care
+// of initializing the USB library for the first time.
+
 void Sd2Card::idle() {
   static uint32_t next_retry;
 
   switch (state) {
     case USB_HOST_DELAY_INIT:
-      next_retry = millis() + 10000;
+      next_retry = millis() + 2000;
       state = USB_HOST_WAITING;
       break;
     case USB_HOST_WAITING:
       if (ELAPSED(millis(), next_retry)) {
-        next_retry = millis() + 10000;
+        next_retry = millis() + 2000;
         state = USB_HOST_UNINITIALIZED;
       }
       break;
     case USB_HOST_UNINITIALIZED:
-      SERIAL_EM("Starting USB host");
+      SERIAL_MSG("Starting USB host...");
       if (!usb.start()) {
-        SERIAL_EM("USB host failed to start. Will retry in 10 seconds.");
+        SERIAL_MSG(" Failed. Retrying in 2s.");
+        LCD_MESSAGEPGM("USB start failed");
         state = USB_HOST_DELAY_INIT;
       }
-      else {
-        SERIAL_EM("USB host initialized");
+      else
         state = USB_HOST_INITIALIZED;
-      }
+      SERIAL_EOL();
       break;
     case USB_HOST_INITIALIZED:
       const uint8_t lastUsbTaskState = usb.getUsbTaskState();
@@ -82,10 +87,10 @@ void Sd2Card::idle() {
 
 bool Sd2Card::isInserted() {
   return usb.getUsbTaskState() == USB_STATE_RUNNING;
-};
+}
 
 // Marlin calls this to initialize an SD card once it is inserted.
-bool Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
+bool Sd2Card::init(const uint8_t sckRateID/*=0*/, const pin_t chipSelectPin/*=SD_CHIP_SELECT_PIN*/) {
   if (!ready()) return false;
 
   if (!bulk.LUNIsGood(0)) {

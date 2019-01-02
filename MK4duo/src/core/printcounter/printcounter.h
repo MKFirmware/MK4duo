@@ -81,6 +81,12 @@ class PrintCounter: public Stopwatch {
     static void showStats();
 
     /**
+     * @brief Saves the Print Statistics
+     * @details Saves the statistics to EEPROM
+     */
+    static void saveStats();
+
+    /**
      * @brief Return the currently loaded statistics
      * @details Return the raw data, in the same structure used internally
      */
@@ -133,12 +139,6 @@ class PrintCounter: public Stopwatch {
      * @details Loads the statistics from SDCARD
      */
     static void loadStats();
-
-    /**
-     * @brief Saves the Print Statistics
-     * @details Saves the statistics to SDCARD
-     */
-    static void saveStats();
 
   protected: /** Protected Function */
 

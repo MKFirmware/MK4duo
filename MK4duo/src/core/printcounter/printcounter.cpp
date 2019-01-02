@@ -97,6 +97,22 @@ void PrintCounter::showStats() {
 
 }
 
+void PrintCounter::saveStats() {
+  #if ENABLED(DEBUG_PRINTCOUNTER)
+    debug(PSTR("saveStats"));
+  #endif
+
+  // Refuses to save data is object is not loaded
+  if (!printer.IsStatisticsLoaded()) return;
+
+  #if HAS_EEPROM
+    // Saves the struct to EEPROM
+    memorystore.write_data(STATS_EEPROM_ADDRESS + sizeof(uint8_t), (uint8_t*)&data, sizeof(printStatistics));
+    memorystore.access_write();
+  #endif
+
+}
+
 void PrintCounter::tick() {
 
   static millis_t update_next = 0,
@@ -207,22 +223,6 @@ void PrintCounter::loadStats() {
   #endif
 
   printer.setStatisticsLoaded(true);
-
-}
-
-void PrintCounter::saveStats() {
-  #if ENABLED(DEBUG_PRINTCOUNTER)
-    debug(PSTR("saveStats"));
-  #endif
-
-  // Refuses to save data is object is not loaded
-  if (!printer.IsStatisticsLoaded()) return;
-
-  #if HAS_EEPROM
-    // Saves the struct to EEPROM
-    memorystore.write_data(STATS_EEPROM_ADDRESS + sizeof(uint8_t), (uint8_t*)&data, sizeof(printStatistics));
-    memorystore.access_write();
-  #endif
 
 }
 
