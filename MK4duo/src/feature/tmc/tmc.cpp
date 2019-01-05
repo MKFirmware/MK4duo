@@ -1021,7 +1021,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     #endif
 
     // Report if a warning was triggered
-    if (data.is_otpw && st.otpw_count == 0) {
+    if (data.is_otpw && st->otpw_count == 0) {
       char timestamp[14];
       duration_t elapsed = print_job_counter.duration();
       (void)elapsed.toDigital(timestamp, true);
@@ -1040,10 +1040,11 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
         uint16_t I_rms = st->getMilliamps();
         if (st->isEnabled() && I_rms > 100) {
           st->rms_current(I_rms - (CURRENT_STEP_DOWN));
-        #if ENABLED(REPORT_CURRENT_CHANGE)
-          st->printLabel();
-          SERIAL_EMV(" current decreased to ", st->getMilliamps());
-        #endif
+          #if ENABLED(REPORT_CURRENT_CHANGE)
+            st->printLabel();
+            SERIAL_EMV(" current decreased to ", st->getMilliamps());
+          #endif
+        }
       }
     #endif
 

@@ -494,7 +494,7 @@ void Endstops::report_state() {
 
   if (hit_state && hit_state != prev_hit_state) {
 
-    #if HAS_SPI_LCD
+    #if HAS_LCD
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
       #define _SET_STOP_CHAR(A,C) (chr## A = C)
     #else
@@ -520,7 +520,7 @@ void Endstops::report_state() {
     #endif
     SERIAL_EOL();
 
-    #if HAS_SPI_LCD
+    #if HAS_LCD
       lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 

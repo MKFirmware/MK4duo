@@ -86,7 +86,8 @@ extern bool report_tmc_status;
       const uint8_t id;
 
       #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t otpw_count = 0;
+        uint8_t  otpw_count = 0,
+                error_count = 0;
         bool flag_otpw = false;
       #endif
 
@@ -141,7 +142,8 @@ extern bool report_tmc_status;
       const uint8_t id;
 
       #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t otpw_count = 0;
+        uint8_t  otpw_count = 0,
+                error_count = 0;
         bool flag_otpw = false;
       #endif
 
@@ -201,7 +203,8 @@ extern bool report_tmc_status;
       const uint8_t id;
 
       #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t otpw_count = 0;
+        uint8_t  otpw_count = 0,
+                error_count = 0;
         bool flag_otpw = false;
       #endif
 
@@ -484,12 +487,12 @@ class TMC_Stepper {
       #elif HAVE_DRV(TMC2130)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->PWM_SCALE(); }
-          static uint8_t get_status_response(MKTMC* st, uint32_t drv_status);
+          FORCE_INLINE static uint8_t get_status_response(MKTMC* st, uint32_t drv_status) { UNUSED(drv_status); return st->status_response & 0xF; }
         #endif
       #elif HAVE_DRV(TMC2208)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->pwm_scale_sum(); }
-          static uint8_t get_status_response(MKTMC* st, uint32_t drv_status); { UNUSED(drv_status); return st->status_response & 0xF; }
+          static uint8_t get_status_response(MKTMC* st, uint32_t drv_status); 
         #endif
       #endif
 
