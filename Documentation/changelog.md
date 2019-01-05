@@ -41,6 +41,8 @@
 * Fixed GFX overlay with Nextion when printing from USB
 * Add Statistic in EEPROM and not in SD
 * Fixed change filament menu with Nextion LCD
+* Fixed send ok in some situations
+* Fixed TMC Debug e test connection
 * Fix and clear code
 
 ### Version 4.3.6
