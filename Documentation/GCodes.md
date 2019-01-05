@@ -92,6 +92,7 @@
 | M112 | ? | Emergency stop
 | M114 | ? | Output current position to serial port
 | M115 | EXTENDED CAPABILITIES REPORT* | Report capabilities. (* for extended capabilities)
+| M116 | ? | Wait for all heaters to reach target temperature
 | M117 | ? | Display a message on the controller screen
 | M118 | ? | Display a message in the host console
 | M119 | ? | Output Endstop status to serial port
@@ -200,7 +201,7 @@
 | M913 | HYBRID THRESHOLD | Set HYBRID THRESHOLD speed
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
-| M922 | TRINAMIC | S[1/0] Enable/disable TMC debug
+| M922 | TRINAMIC | S[1/0] Enable/disable TMC debug, X Y Z E for view axis, V see register, none see all
 | M930 | TRINAMIC | TMC set blank_time.
 | M931 | TRINAMIC | TMC set off_time.
 | M932 | TRINAMIC | TMC set hysteresis_start.

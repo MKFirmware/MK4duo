@@ -84,6 +84,87 @@ void Heater::setTarget(const int16_t celsius) {
   }
 }
 
+void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
+
+  #if TEMP_RESIDENCY_TIME > 0
+    millis_t residency_start_ms = 0;
+    // Loop until the temperature has stabilized
+    #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
+  #else
+    #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
+  #endif
+
+  float     old_temp            = 9999.0;
+  bool      wants_to_cool       = false;
+  millis_t  now,
+            next_cool_check_ms  = 0;
+
+  const bool oldReport = printer.isAutoreportTemp();
+  
+  printer.setWaitForHeatUp(true);
+  printer.setAutoreportTemp(true);
+
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    const float start_temp = current_temperature;
+    const bool isHotend = data.type == IS_HOTEND;
+    ledevents.onHeatingStart(isHotend);
+  #endif
+
+  do {
+
+    wants_to_cool = isCooling();
+    // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
+    if (no_wait_for_cooling && wants_to_cool) break;
+
+    now = millis();
+    printer.idle();
+    printer.keepalive(WaitHeater);
+    printer.move_watch.start(); // Keep steppers powered
+
+    const float temp = current_temperature;
+
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      if (!wants_to_cool) ledevents.onHeating(isHotend, start_temp, temp, target_temperature);
+    #endif
+
+    #if TEMP_RESIDENCY_TIME > 0
+
+      const float temp_diff = ABS(target_temperature - temp);
+
+      if (!residency_start_ms) {
+        // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
+        if (temp_diff < TEMP_WINDOW) residency_start_ms = now;
+      }
+      else if (temp_diff > TEMP_HYSTERESIS) {
+        // Restart the timer whenever the temperature falls outside the hysteresis.
+        residency_start_ms = now;
+      }
+
+    #endif
+
+    // Prevent a wait-forever situation if R is misused i.e. M190 R0
+    if (wants_to_cool) {
+      // Break after 60 seconds
+      // if the temperature did not drop at least 1.5
+      if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
+        if (old_temp - temp < 1.5) break;
+        next_cool_check_ms = now + 60000UL;
+        old_temp = temp;
+      }
+    }
+
+  } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
+
+  if (printer.isWaitForHeatUp()) {
+    lcdui.set_status_P(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      ledevents.onHeatingDone();
+    #endif
+  }
+
+  printer.setAutoreportTemp(oldReport);
+}
+
 void Heater::get_output() {
 
   millis_t now = millis();
@@ -96,7 +177,7 @@ void Heater::get_output() {
     const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
     if (isUsePid()) {
-      soft_pwm = pid.get_output(targetTemperature, current_temperature, now
+      soft_pwm = pid.spin(targetTemperature, current_temperature, now
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           , data.ID
         #endif

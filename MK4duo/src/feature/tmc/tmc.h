@@ -299,6 +299,8 @@ class TMC_Stepper {
 
     static void restore();
 
+    static void test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e);
+
     #if ENABLED(MONITOR_DRIVER_STATUS)
       static void monitor_driver();
     #endif
@@ -309,8 +311,11 @@ class TMC_Stepper {
     #endif
 
     #if ENABLED(TMC_DEBUG)
-      static void set_report_status(const bool status);
-      static void report_all();
+      #if ENABLED(MONITOR_DRIVER_STATUS)
+        static void set_report_status(const bool status);
+      #endif
+      static void report_all(const bool print_x, const bool print_y, const bool print_z, const bool print_e);
+      static void get_registers(const bool print_x, const bool print_y, const bool print_z, const bool print_e);
     #endif
 
     MKTMC* driver_by_index(const uint8_t index);
@@ -455,6 +460,8 @@ class TMC_Stepper {
 
   private: /** Private Function */
 
+    static bool test_connection(MKTMC* st);
+
     #if TMC_HAS_SPI
       static void init_cs_pins();
     #endif
@@ -495,13 +502,15 @@ class TMC_Stepper {
 
       FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PGM(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
 
-      static void drv_status_print_hex(const uint32_t drv_status);
       static void status(MKTMC* st, const TMCdebugEnum i);
       static void status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm);
       static void parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
       static void parse_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
-      static void debug_loop(const TMCdebugEnum i);
-      static void status_loop(const TMCdrvStatusEnum i);
+      static void debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
+      static void status_loop(const TMCdrvStatusEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
+      static void get_ic_registers(MKTMC* st, const TMCgetRegistersEnum i);
+      static void get_registers(MKTMC* st, const TMCgetRegistersEnum i);
+      static void get_registers(const TMCgetRegistersEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
 
     #endif
 

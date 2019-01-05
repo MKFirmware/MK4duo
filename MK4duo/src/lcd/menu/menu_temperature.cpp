@@ -37,7 +37,7 @@ int16_t LcdUI::preheat_hotend_temp[3], LcdUI::preheat_bed_temp[3], LcdUI::prehea
 
 void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb, const uint8_t fan) {
   #if HAS_TEMP_HOTEND
-    if (temph > 0) heaters[endnum].setTarget(MIN(heaters[endnum].data.maxtemp, temph));
+    if (temph > 0) heaters[endnum].setTarget(MIN(heaters[endnum].data.maxtemp - 15, temph));
   #endif
   #if HAS_TEMP_BED
     if (tempb >= 0) heaters[BED_INDEX].setTarget(tempb);

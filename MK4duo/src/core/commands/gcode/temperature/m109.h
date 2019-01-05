@@ -69,7 +69,7 @@
       planner.autotemp_M104_M109();
     #endif
 
-    thermalManager.wait_heater(&heaters[TARGET_HOTEND], no_wait_for_cooling);
+    heaters[TARGET_HOTEND].waitForTarget(no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_HOTEND

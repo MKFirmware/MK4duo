@@ -287,7 +287,7 @@ enum MeshLevelingStateEnum : uint8_t {
 /**
  * Trinamic Debug
  */
-enum TMCdebugEnum : uint8_t {
+enum TMCdebugEnum : char {
   TMC_CODES,
   TMC_ENABLED,
   TMC_CURRENT,
@@ -312,8 +312,7 @@ enum TMCdebugEnum : uint8_t {
   TMC_SGT,
   TMC_NULL
 };
-
-enum TMCdrvStatusEnum : uint8_t {
+enum TMCdrvStatusEnum : char {
   TMC_DRV_CODES,
   TMC_STST,
   TMC_OLB,
@@ -334,4 +333,26 @@ enum TMCdrvStatusEnum : uint8_t {
   TMC_STEALTH,
   TMC_S2VSB,
   TMC_S2VSA
+};
+enum TMCgetRegistersEnum : char {
+  TMC_AXIS_CODES,
+  TMC_GET_GCONF,
+  TMC_GET_IHOLD_IRUN,
+  TMC_GET_GSTAT,
+  TMC_GET_IOIN,
+  TMC_GET_TPOWERDOWN,
+  TMC_GET_TSTEP,
+  TMC_GET_TPWMTHRS,
+  TMC_GET_TCOOLTHRS,
+  TMC_GET_THIGH,
+  TMC_GET_CHOPCONF,
+  TMC_GET_COOLCONF,
+  TMC_GET_PWMCONF,
+  TMC_GET_PWM_SCALE,
+  TMC_GET_DRV_STATUS,
+  TMC_GET_DRVCONF,
+  TMC_GET_DRVCTRL,
+  TMC_GET_DRVSTATUS,
+  TMC_GET_SGCSCONF,
+  TMC_GET_SMARTEN
 };

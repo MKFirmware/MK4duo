@@ -22,6 +22,7 @@
 * M413: S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
 * M800: S goto to lcd menu. With no parameters run restart commands. (Requires SD_RESTART_FILE)
 * M73: P[percent] Set percentage complete (compatibility with Marlin)
+* M116: Wait for all heaters to reach target temperature
 * Add Text Menu to Nextion Display
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]

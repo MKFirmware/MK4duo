@@ -221,6 +221,7 @@
 #include "temperature/m105.h"
 #include "temperature/m108.h"
 #include "temperature/m109.h"
+#include "temperature/m116.h"
 #include "temperature/m140.h"
 #include "temperature/m141.h"
 #include "temperature/m142.h"

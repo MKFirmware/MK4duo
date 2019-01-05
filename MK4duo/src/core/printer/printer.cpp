@@ -138,14 +138,6 @@ void Printer::setup() {
     powerManager.init();
   #endif
 
-  #if HAS_POWER_SWITCH
-    #if PS_DEFAULT_OFF
-      powerManager.power_off();
-    #else
-      powerManager.power_on();
-    #endif
-  #endif
-
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     HAL::spiBegin();
   #endif
@@ -160,7 +152,6 @@ void Printer::setup() {
   // Check startup
   SERIAL_L(START);
   SERIAL_STR(ECHO);
-  HAL::showStartReason();
 
   #if HAS_TRINAMIC
     tmc.init();
@@ -170,8 +161,8 @@ void Printer::setup() {
     DLPSerial.begin(PROJECTOR_BAUDRATE);
   #endif
 
-  // Init Watchdog
-  watchdog.init();
+  // Check startup - does nothing if bootloader sets MCUSR to 0
+  HAL::showStartReason();
 
   SERIAL_LM(ECHO, BUILD_VERSION);
 
@@ -182,13 +173,6 @@ void Printer::setup() {
 
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
-
-  lcdui.init();
-  lcdui.reset_status();
-
-  #if ENABLED(SHOW_BOOTSCREEN) && (HAS_GRAPHICAL_LCD || HAS_SPI_LCD)
-    lcdui.show_bootscreen(); // Show MK4duo boot screen
-  #endif
 
   #if HAS_SD_SUPPORT
     if (!card.isOK()) card.mount();
@@ -201,6 +185,9 @@ void Printer::setup() {
   #if HAS_FIL_RUNOUT_0
     filamentrunout.init();
   #endif
+
+  // Initial setup of print job counter
+  print_job_counter.init();
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
@@ -216,11 +203,11 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  thermalManager.init();    // Initialize temperature loop
+  // Initialize temperature loop
+  thermalManager.init();
 
-  print_job_counter.init(); // Initial setup of print job counter
-
-  stepper.init();           // Initialize stepper. This enables interrupts!
+  // Initialize stepper. This enables interrupts!
+  stepper.init();
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     externaldac.begin();
@@ -231,8 +218,9 @@ void Printer::setup() {
     cnc.init();
   #endif
 
+  // Initialize all Servo
   #if HAS_SERVOS
-    servo_init(); // Initialize all Servo
+    servo_init();
   #endif
 
   #if HAS_CASE_LIGHT
@@ -276,6 +264,14 @@ void Printer::setup() {
       SERIAL_EM("RFID CONNECT");
   #endif
 
+  lcdui.init();
+  lcdui.reset_status();
+
+  // Show MK4duo boot screen
+  #if ENABLED(SHOW_BOOTSCREEN) && (HAS_GRAPHICAL_LCD || HAS_SPI_LCD)
+    lcdui.show_bootscreen();
+  #endif
+
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     mixer.init();
   #endif
@@ -300,6 +296,14 @@ void Printer::setup() {
   #if HAS_SD_RESTART
     restart.check();
   #endif
+
+  // Init Watchdog
+  watchdog.init();
+
+  #if HAS_TRINAMIC && !PS_DEFAULT_OFF
+    tmc.test_connection(true, true, true, true);
+  #endif
+
 }
 
 /**
@@ -475,7 +479,7 @@ void Printer::minikill() {
   // Wait a short time (allows messages to get out before shutting down.
   for (int i = 1000; i--;) HAL::delayMicroseconds(600);
 
-  cli();  // Stop interrupts
+  DISABLE_ISRS();  // Stop interrupts
 
   // Wait to ensure all interrupts routines stopped
   for (int i = 1000; i--;) HAL::delayMicroseconds(250);

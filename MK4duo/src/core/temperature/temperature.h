@@ -72,11 +72,6 @@ class Temperature {
     static void init();
 
     /**
-     * Wait heating
-     */
-    static void wait_heater(Heater *act, bool no_wait_for_cooling=true);
-
-    /**
      * Called from the Temperature ISR
      */
     static void set_current_temp_raw();

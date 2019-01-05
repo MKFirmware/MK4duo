@@ -50,7 +50,7 @@ typedef struct {
 
   public: /** Public Function */
 
-    uint8_t get_output(const int16_t target_temp, const float current_temp, const millis_t tnow
+    uint8_t spin(const int16_t target_temp, const float current_temp, const millis_t tnow
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         , const uint8_t tid
       #endif

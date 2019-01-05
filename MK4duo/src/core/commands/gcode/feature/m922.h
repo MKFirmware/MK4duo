@@ -26,15 +26,36 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(TMC_DEBUG)
+#if HAS_TRINAMIC
 
-  #define CODE_M922
+#define CODE_M922
 
-  inline void gcode_M922(void) {
-    if (parser.seen('S'))
-      tmc.set_report_status(parser.value_bool());
+/**
+ * M922: Debug TMC drivers
+ */
+inline void gcode_M922(void) {
+
+  bool print_axis[XYZE] = { false, false, false, false },
+       print_all = true;
+
+  LOOP_XYZE(axis) if (parser.seen(axis_codes[axis])) { print_axis[axis] = true; print_all = false; }
+
+  if (print_all) LOOP_XYZE(axis) print_axis[axis] = true;
+
+  #if ENABLED(TMC_DEBUG)
+    #if ENABLED(MONITOR_DRIVER_STATUS)
+      if (parser.seen('S'))
+        tmc.set_report_status(parser.value_bool());
+    #endif
+
+    if (parser.seen('V'))
+      tmc.get_registers(print_axis[X_AXIS], print_axis[Y_AXIS], print_axis[Z_AXIS], print_axis[E_AXIS]);
     else
-      tmc.report_all();
-  }
+      tmc.report_all(print_axis[X_AXIS], print_axis[Y_AXIS], print_axis[Z_AXIS], print_axis[E_AXIS]);
+  #endif
 
-#endif // TMC_DEBUG
+  tmc.test_connection(print_axis[X_AXIS], print_axis[Y_AXIS], print_axis[Z_AXIS], print_axis[E_AXIS]);
+
+}
+
+#endif // HAS_TRINAMIC

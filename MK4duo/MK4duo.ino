@@ -161,6 +161,7 @@
  * M112 - Emergency stop
  * M114 - Output current position to serial port
  * M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
+ * M116 - Wait for all heaters to reach target temperature
  * M117 - Display a message on the controller screen
  * M118 - Display a message in the host console.
  * M119 - Output Endstop status to serial port

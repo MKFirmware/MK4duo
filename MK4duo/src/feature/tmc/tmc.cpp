@@ -502,14 +502,72 @@ void TMC_Stepper::restore() {
   #endif
 }
 
+void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e) {
+  uint8_t axis_connection = 0;
+
+  if (test_x) {
+    #if AXIS_HAS_TMC(X)
+      axis_connection += test_connection(stepperX);
+    #endif
+    #if AXIS_HAS_TMC(X2)
+      axis_connection += test_connection(stepperX2);
+    #endif
+  }
+
+  if (test_y) {
+    #if AXIS_HAS_TMC(Y)
+      axis_connection += test_connection(stepperY);
+    #endif
+    #if AXIS_HAS_TMC(Y2)
+      axis_connection += test_connection(stepperY2);
+    #endif
+  }
+
+  if (test_z) {
+    #if AXIS_HAS_TMC(Z)
+      axis_connection += test_connection(stepperZ);
+    #endif
+    #if AXIS_HAS_TMC(Z2)
+      axis_connection += test_connection(stepperZ2);
+    #endif
+    #if AXIS_HAS_TMC(Z3)
+      axis_connection += test_connection(stepperZ3);
+    #endif
+  }
+
+  if (test_e) {
+    #if AXIS_HAS_TMC(E0)
+      axis_connection += test_connection(stepperE0);
+    #endif
+    #if AXIS_HAS_TMC(E1)
+      axis_connection += test_connection(stepperE1);
+    #endif
+    #if AXIS_HAS_TMC(E2)
+      axis_connection += test_connection(stepperE2);
+    #endif
+    #if AXIS_HAS_TMC(E3)
+      axis_connection += test_connection(stepperE3);
+    #endif
+    #if AXIS_HAS_TMC(E4)
+      axis_connection += test_connection(stepperE4);
+    #endif
+    #if AXIS_HAS_TMC(E5)
+      axis_connection += test_connection(stepperE5);
+    #endif
+  }
+
+  if (axis_connection) lcdui.set_status_P(PSTR("TMC CONNECTION ERROR"));
+}
+
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
   #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || ST##_HAS_DRV(TMC2660) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
 
   void TMC_Stepper::monitor_driver() {
-    static millis_t next_cOT = 0;
-    if (ELAPSED(millis(), next_cOT)) {
-      next_cOT = millis() + 500;
+    static millis_t next_poll = 0;
+    const millis_t ms = millis();
+    if (ELAPSED(ms, next_poll)) {
+      next_poll = ms + 500;
       #if HAS_HW_COMMS(X)
         monitor_driver(stepperX);
       #endif
@@ -584,14 +642,16 @@ void TMC_Stepper::restore() {
   /**
    * M922 report functions
    */
-  void TMC_Stepper::set_report_status(const bool status) {
-    if ((report_status = status))
-      SERIAL_EM("axis:pwm_scale |status_response|");
-  }
+  #if ENABLED(MONITOR_DRIVER_STATUS)
+    void TMC_Stepper::set_report_status(const bool status) {
+      if ((report_status = status))
+        SERIAL_EM("axis:pwm_scale |status_response|");
+    }
+  #endif
 
-  void TMC_Stepper::report_all() {
-    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM);  }while(0)
-    #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  status_loop(ITEM); }while(0)
+  void TMC_Stepper::report_all(bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+    #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
+    #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL); status_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
     TMC_REPORT("\t\t\t",              TMC_CODES);
     TMC_REPORT("Enabled\t\t",         TMC_ENABLED);
     TMC_REPORT("Set current\t",       TMC_CURRENT);
@@ -644,6 +704,26 @@ void TMC_Stepper::restore() {
     SERIAL_EOL();
   }
 
+  void TMC_Stepper::get_registers(bool print_x, bool print_y, bool print_z, bool print_e) {
+    #define _TMC_GET_REG(LABEL, ITEM) do{ SERIAL_MSG(LABEL); get_registers(ITEM, print_x, print_y, print_z, print_e); }while(0)
+    #define TMC_GET_REG(NAME, TABS)   _TMC_GET_REG(STRINGIFY(NAME) TABS, TMC_GET_##NAME)
+    _TMC_GET_REG("\t", TMC_AXIS_CODES);
+    TMC_GET_REG(GCONF, "\t\t");
+    TMC_GET_REG(IHOLD_IRUN, "\t");
+    TMC_GET_REG(GSTAT, "\t\t");
+    TMC_GET_REG(IOIN, "\t\t");
+    TMC_GET_REG(TPOWERDOWN, "\t");
+    TMC_GET_REG(TSTEP, "\t\t");
+    TMC_GET_REG(TPWMTHRS, "\t");
+    TMC_GET_REG(TCOOLTHRS, "\t");
+    TMC_GET_REG(THIGH, "\t\t");
+    TMC_GET_REG(CHOPCONF, "\t");
+    TMC_GET_REG(COOLCONF, "\t");
+    TMC_GET_REG(PWMCONF, "\t");
+    TMC_GET_REG(PWM_SCALE, "\t");
+    TMC_GET_REG(DRV_STATUS, "\t");
+  }
+
 #endif // ENABLED(TMC_DEBUG)
 
 MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
@@ -694,6 +774,27 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 }
 
 /** Private Function */
+bool TMC_Stepper::test_connection(MKTMC* st) {
+  SERIAL_MSG("Testing ");
+  st->printLabel();
+  SERIAL_MSG(" connection... ");
+  const uint8_t test_result = st->test_connection();
+
+  if (test_result > 0) SERIAL_MSG("Error: All ");
+
+  const char *stat;
+  switch (test_result) {
+    default:
+    case 0: stat = PSTR("OK"); break;
+    case 1: stat = PSTR("HIGH"); break;
+    case 2: stat = PSTR("LOW"); break;
+  }
+  SERIAL_PGM(stat);
+  SERIAL_EOL();
+
+  return test_result;
+}
+
 #if TMC_HAS_SPI
 
   void TMC_Stepper::init_cs_pins() {
@@ -791,16 +892,6 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
     st->sgt(tmc_sgt);
     st->GSTAT(); // Clear GSTAT
-
-    // Test connection
-    if (st->test_connection() < 2)
-      SERIAL_STR(ECHO);
-    else
-      SERIAL_STR(ER);
-    SERIAL_MSG("stepper");
-    st->printLabel();
-    SERIAL_PGM(st->test_connection() < 2 ? PSTR(" connect!") : PSTR(" not connect!"));
-    SERIAL_EOL();
 
   }
 
@@ -926,7 +1017,7 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
         if (st->s2ga()) SERIAL_EM("short to ground (coil A)");
         if (st->s2gb()) SERIAL_EM("short to ground (coil B)");
         #if ENABLED(TMC_DEBUG)
-          report_all();
+          report_all(true, true, true, true);
         #endif
         printer.kill(PSTR("Driver error"));
       }
@@ -984,21 +1075,27 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
 #if ENABLED(TMC_DEBUG)
 
-  void TMC_Stepper::drv_status_print_hex(const uint32_t drv_status) {
-    for (int B = 24; B >= 8; B -= 8){
-      SERIAL_VAL((drv_status >> (B + 4)) & 0xF, HEX);
-      SERIAL_VAL((drv_status >> B) & 0xF, HEX);
-      SERIAL_CHR(':');
-    }
-    SERIAL_VAL((drv_status >> 4) & 0xF, HEX);
-    SERIAL_VAL(drv_status & 0xF, HEX);
-    SERIAL_EOL();
-  }
+  #define PRINT_TMC_REGISTER(REG_CASE) case TMC_GET_##REG_CASE: print_hex_long(st->REG_CASE(), ':'); break
 
   #if HAVE_DRV(TMC2660)
 
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {}
     void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {}
+    void TMC_Stepper::get_ic_registers(MKTMC* st, const TMCgetRegistersEnum i) {}
+
+    void TMC_Stepper::get_registers(MKTMC* st, const TMCgetRegistersEnum i) {
+      switch (i) {
+        case TMC_AXIS_CODES: SERIAL_CHR('\t'); st->printLabel(); break;
+        PRINT_TMC_REGISTER(DRVCONF);
+        PRINT_TMC_REGISTER(DRVCTRL);
+        PRINT_TMC_REGISTER(CHOPCONF);
+        PRINT_TMC_REGISTER(DRVSTATUS);
+        PRINT_TMC_REGISTER(SGCSCONF);
+        PRINT_TMC_REGISTER(SMARTEN);
+        default: SERIAL_CHR('\t'); break;
+      }
+      SERIAL_CHR('\t');
+    }
 
   #elif HAVE_DRV(TMC2130)
 
@@ -1019,6 +1116,34 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
         case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st->cs_actual());  break;
         default: break;
       }
+    }
+
+    void TMC_Stepper::get_ic_registers(MKTMC* st, const TMCgetRegistersEnum i) {
+      switch (i) {
+        PRINT_TMC_REGISTER(TCOOLTHRS);
+        PRINT_TMC_REGISTER(THIGH);
+        PRINT_TMC_REGISTER(COOLCONF);
+        default: SERIAL_CHR('\t'); break;
+      }
+    }
+
+    void TMC_Stepper::get_registers(MKTMC* st, const TMCgetRegistersEnum i) {
+      switch (i) {
+        case TMC_AXIS_CODES: SERIAL_CHR('\t'); st->printLabel(); break;
+        PRINT_TMC_REGISTER(GCONF);
+        PRINT_TMC_REGISTER(IHOLD_IRUN);
+        PRINT_TMC_REGISTER(GSTAT);
+        PRINT_TMC_REGISTER(IOIN);
+        PRINT_TMC_REGISTER(TPOWERDOWN);
+        PRINT_TMC_REGISTER(TSTEP);
+        PRINT_TMC_REGISTER(TPWMTHRS);
+        PRINT_TMC_REGISTER(CHOPCONF);
+        PRINT_TMC_REGISTER(PWMCONF);
+        PRINT_TMC_REGISTER(PWM_SCALE);
+        PRINT_TMC_REGISTER(DRV_STATUS);
+        default: get_ic_registers(st, i); break;
+      }
+      SERIAL_CHR('\t');
     }
 
   #elif HAVE_DRV(TMC2208)
@@ -1043,6 +1168,29 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
         case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st->cs_actual()); break;
         default: break;
       }
+    }
+
+    void TMC_Stepper::get_ic_registers(MKTMC* st, const TMCgetRegistersEnum i) {
+      SERIAL_CHR('\t');
+    }
+
+    void TMC_Stepper::get_registers(MKTMC* st, const TMCgetRegistersEnum i) {
+      switch (i) {
+        case TMC_AXIS_CODES: SERIAL_CHR('\t'); st->printLabel(); break;
+        PRINT_TMC_REGISTER(GCONF);
+        PRINT_TMC_REGISTER(IHOLD_IRUN);
+        PRINT_TMC_REGISTER(GSTAT);
+        PRINT_TMC_REGISTER(IOIN);
+        PRINT_TMC_REGISTER(TPOWERDOWN);
+        PRINT_TMC_REGISTER(TSTEP);
+        PRINT_TMC_REGISTER(TPWMTHRS);
+        PRINT_TMC_REGISTER(CHOPCONF);
+        PRINT_TMC_REGISTER(PWMCONF);
+        PRINT_TMC_REGISTER(PWM_SCALE);
+        PRINT_TMC_REGISTER(DRV_STATUS);
+        default: get_ic_registers(st, i); break;
+      }
+      SERIAL_CHR('\t');
     }
 
   #endif // HAVE_DRV(TMC2208)
@@ -1140,105 +1288,182 @@ MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
       case TMC_S2GA:          if (st->s2ga())     SERIAL_CHR('X');  break;
       case TMC_DRV_OTPW:      if (st->otpw())     SERIAL_CHR('X');  break;
       case TMC_OT:            if (st->ot())       SERIAL_CHR('X');  break;
-      case TMC_DRV_STATUS_HEX:
+      case TMC_DRV_STATUS_HEX: {
+        const uint32_t drv_status = st->DRV_STATUS();
+        SERIAL_CHR('\t');
         st->printLabel();
-        SERIAL_MSG("\t0x");
-        drv_status_print_hex(st->DRV_STATUS());
+        SERIAL_CHR('\t');
+        print_hex_long(drv_status, ':');
+        if (drv_status == 0xFFFFFFFF || drv_status == 0) SERIAL_MSG("\t Bad response!");
+        SERIAL_EOL();
         break;
+      }
       default: parse_type_drv_status(st, i); break;
     }
   }
 
-  void TMC_Stepper::debug_loop(const TMCdebugEnum i) {
-    #if AXIS_HAS_TMC(X)
-      status(stepperX, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
-    #endif
-    #if AXIS_HAS_TMC(X2)
-      status(stepperX2, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
-    #endif
+  void TMC_Stepper::debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+    if (print_x) {
+      #if AXIS_HAS_TMC(X)
+        status(stepperX, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
+      #endif
+      #if AXIS_HAS_TMC(X2)
+        status(stepperX2, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(Y)
-      status(stepperY, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
-    #endif
-    #if AXIS_HAS_TMC(Y2)
-      status(stepperY2, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
-    #endif
+    if (print_y) {
+      #if AXIS_HAS_TMC(Y)
+        status(stepperY, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
+      #endif
+      #if AXIS_HAS_TMC(Y2)
+        status(stepperY2, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(Z)
-      status(stepperZ, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
-    #endif
-    #if AXIS_HAS_TMC(Z2)
-      status(stepperZ2,i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
-    #endif
-    #if AXIS_HAS_TMC(Z3)
-      status(stepperZ3, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
-    #endif
+    if (print_z) {
+      #if AXIS_HAS_TMC(Z)
+        status(stepperZ, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+      #endif
+      #if AXIS_HAS_TMC(Z2)
+        status(stepperZ2,i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+      #endif
+      #if AXIS_HAS_TMC(Z3)
+        status(stepperZ3, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(E0)
-      status(stepperE0, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(0)]);
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      status(stepperE1, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(1)]);
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      status(stepperE2, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(2)]);
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      status(stepperE3, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(3)]);
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      status(stepperE4, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(4)]);
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      status(stepperE5, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(5)]);
-    #endif
+    if (print_e) {
+      #if AXIS_HAS_TMC(E0)
+        status(stepperE0, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(0)]);
+      #endif
+      #if AXIS_HAS_TMC(E1)
+        status(stepperE1, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(1)]);
+      #endif
+      #if AXIS_HAS_TMC(E2)
+        status(stepperE2, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(2)]);
+      #endif
+      #if AXIS_HAS_TMC(E3)
+        status(stepperE3, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(3)]);
+      #endif
+      #if AXIS_HAS_TMC(E4)
+        status(stepperE4, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(4)]);
+      #endif
+      #if AXIS_HAS_TMC(E5)
+        status(stepperE5, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(5)]);
+      #endif
+    }
 
     SERIAL_EOL();
   }
 
-  void TMC_Stepper::status_loop(const TMCdrvStatusEnum i) {
-    #if AXIS_HAS_TMC(X)
-      parse_drv_status(stepperX, i);
-    #endif
-    #if AXIS_HAS_TMC(X2)
-      parse_drv_status(stepperX2, i);
-    #endif
+  void TMC_Stepper::status_loop(const TMCdrvStatusEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+    if (print_x) {
+      #if AXIS_HAS_TMC(X)
+        parse_drv_status(stepperX, i);
+      #endif
+      #if AXIS_HAS_TMC(X2)
+        parse_drv_status(stepperX2, i);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(Y)
-      parse_drv_status(stepperY, i);
-    #endif
-    #if AXIS_HAS_TMC(Y2)
-      parse_drv_status(stepperY2, i);
-    #endif
+    if (print_y) {
+      #if AXIS_HAS_TMC(Y)
+        parse_drv_status(stepperY, i);
+      #endif
+      #if AXIS_HAS_TMC(Y2)
+        parse_drv_status(stepperY2, i);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(Z)
-      parse_drv_status(stepperZ, i);
-    #endif
-    #if AXIS_HAS_TMC(Z2)
-      parse_drv_status(stepperZ2, i);
-    #endif
-    #if AXIS_HAS_TMC(Z3)
-      parse_drv_status(stepperZ3, i);
-    #endif
+    if (print_z) {
+      #if AXIS_HAS_TMC(Z)
+        parse_drv_status(stepperZ, i);
+      #endif
+      #if AXIS_HAS_TMC(Z2)
+        parse_drv_status(stepperZ2, i);
+      #endif
+      #if AXIS_HAS_TMC(Z3)
+        parse_drv_status(stepperZ3, i);
+      #endif
+    }
 
-    #if AXIS_HAS_TMC(E0)
-      parse_drv_status(stepperE0, i);
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      parse_drv_status(stepperE1, i);
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      parse_drv_status(stepperE2, i);
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      parse_drv_status(stepperE3, i);
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      parse_drv_status(stepperE4, i);
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      parse_drv_status(stepperE5, i);
-    #endif
+    if (print_e) {
+      #if AXIS_HAS_TMC(E0)
+        parse_drv_status(stepperE0, i);
+      #endif
+      #if AXIS_HAS_TMC(E1)
+        parse_drv_status(stepperE1, i);
+      #endif
+      #if AXIS_HAS_TMC(E2)
+        parse_drv_status(stepperE2, i);
+      #endif
+      #if AXIS_HAS_TMC(E3)
+        parse_drv_status(stepperE3, i);
+      #endif
+      #if AXIS_HAS_TMC(E4)
+        parse_drv_status(stepperE4, i);
+      #endif
+      #if AXIS_HAS_TMC(E5)
+        parse_drv_status(stepperE5, i);
+      #endif
+    }
+
+    SERIAL_EOL();
+  }
+
+  void TMC_Stepper::get_registers(const TMCgetRegistersEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+
+    if (print_x) {
+      #if AXIS_HAS_TMC(X)
+        get_registers(stepperX, i);
+      #endif
+      #if AXIS_HAS_TMC(X2)
+        get_registers(stepperX2, i);
+      #endif
+    }
+
+    if (print_y) {
+      #if AXIS_HAS_TMC(Y)
+        get_registers(stepperY, i);
+      #endif
+      #if AXIS_HAS_TMC(Y2)
+        get_registers(stepperY2, i);
+      #endif
+    }
+
+    if (print_z) {
+      #if AXIS_HAS_TMC(Z)
+        get_registers(stepperZ, i);
+      #endif
+      #if AXIS_HAS_TMC(Z2)
+        get_registers(stepperZ2, i);
+      #endif
+      #if AXIS_HAS_TMC(Z3)
+        get_registers(stepperZ3, i);
+      #endif
+    }
+
+    if (print_e) {
+      #if AXIS_HAS_TMC(E0)
+        get_registers(stepperE0, i);
+      #endif
+      #if AXIS_HAS_TMC(E1)
+        get_registers(stepperE1, i);
+      #endif
+      #if AXIS_HAS_TMC(E2)
+        get_registers(stepperE2, i);
+      #endif
+      #if AXIS_HAS_TMC(E3)
+        get_registers(stepperE3, i);
+      #endif
+      #if AXIS_HAS_TMC(E4)
+        get_registers(stepperE4, i);
+      #endif
+      #if AXIS_HAS_TMC(E5)
+        get_registers(stepperE5, i);
+      #endif
+    }
 
     SERIAL_EOL();
   }

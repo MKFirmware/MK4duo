@@ -212,14 +212,18 @@ void PrintCounter::loadStats() {
   #endif
 
   #if HAS_EEPROM
+
     // Check if the EEPROM block is initialized
     uint8_t value = 0;
+    memorystore.access_read();
+
     memorystore.read_data(STATS_EEPROM_ADDRESS, &value, sizeof(uint8_t));
 
     if (value != 0xAC)
       initStats();
     else
       memorystore.read_data(STATS_EEPROM_ADDRESS + sizeof(uint8_t), (uint8_t*)&data, sizeof(printStatistics));
+
   #endif
 
   printer.setStatisticsLoaded(true);
