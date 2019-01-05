@@ -44,7 +44,7 @@
 
     lcdui.set_status_P(heaters[BED_INDEX].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
 
-    thermalManager.wait_heater(&heaters[BED_INDEX], no_wait_for_cooling);
+    heaters[BED_INDEX].waitForTarget(no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_BED

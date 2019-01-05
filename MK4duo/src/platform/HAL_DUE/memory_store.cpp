@@ -34,7 +34,6 @@ extern void eeprom_flush(void);
 
 bool MemoryStore::access_read() {
   #if HAS_EEPROM_SD
-    ZERO(eeprom_data);
     card.open_eeprom_sd(true);
     size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
     if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);

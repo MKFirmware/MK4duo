@@ -91,7 +91,6 @@
 #define Y_STALL_SENSITIVITY 8
 #define Z_STALL_SENSITIVITY 8
 
-// Enable M922 debugging command for TMC stepper drivers.
 // M922 S0/1 will enable continous reporting.
 //#define TMC_DEBUG
 

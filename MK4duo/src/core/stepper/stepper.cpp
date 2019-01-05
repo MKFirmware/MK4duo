@@ -2918,7 +2918,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
-    cli();
+    DISABLE_ISRS();
 
     switch (axis) {
 
@@ -3002,7 +3002,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
       default: break;
     }
-    sei();
+
+    ENABLE_ISRS();
   }
 
 #endif //BABYSTEPPING

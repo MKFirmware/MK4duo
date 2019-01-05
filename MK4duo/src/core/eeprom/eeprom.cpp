@@ -2168,16 +2168,16 @@ void EEPROM::reset() {
     #endif // ULTIPANEL
 
     #if ENABLED(FWRETRACT)
-      SERIAL_LM(CFG, "Retract: S<length> F<units/m> Z<lift>");
+      SERIAL_LM(CFG, "Retract: S<length> F<units/m> W<swap lenght> Z<lift>");
       SERIAL_SMV(CFG, "  M207 S", LINEAR_UNIT(fwretract.data.retract_length));
-      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.retract_feedrate_mm_s)));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_length));
       SERIAL_EMV(" Z", LINEAR_UNIT(fwretract.data.retract_zlift));
 
-      SERIAL_LM(CFG, "Recover: S<length> F<units/m>");
+      SERIAL_LM(CFG, "Recover: S<length> F<units/m> W<swap lenght> R<swap units/m>");
       SERIAL_SMV(CFG, "  M208 S", LINEAR_UNIT(fwretract.data.retract_recover_length));
-      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_recover_length));
       SERIAL_MV(" F", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.retract_recover_feedrate_mm_s)));
+      SERIAL_MV(" W", LINEAR_UNIT(fwretract.data.swap_retract_recover_length));
       SERIAL_EMV(" R", MMS_TO_MMM(LINEAR_UNIT(fwretract.data.swap_retract_recover_feedrate_mm_s)));
 
       SERIAL_LM(CFG, "Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");

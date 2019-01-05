@@ -534,10 +534,10 @@ bool AdvancedPause::ensure_safe_temperature(const AdvancedPauseModeEnum mode/*=A
   #endif
 
   #if HAS_TEMP_BED && PAUSE_PARK_PRINTER_OFF > 0
-    thermalManager.wait_heater(&heaters[BED_INDEX]);
+    heaters[BED_INDEX].waitForTarget();
   #endif
 
-  thermalManager.wait_heater(&heaters[TARGET_HOTEND]);
+  heaters[TARGET_HOTEND].waitForTarget();
 
   return printer.isWaitForHeatUp();
 }

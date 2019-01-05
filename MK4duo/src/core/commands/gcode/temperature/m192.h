@@ -43,7 +43,7 @@
       heaters[COOLER_INDEX].setTarget(parser.value_celsius());
     else return;
 
-    thermalManager.wait_heater(&heaters[COOLER_INDEX], no_wait_for_heating);
+    heaters[COOLER_INDEX].waitForTarget(no_wait_for_cooling);
   }
 
 #endif // HAS_HEATER_COOLER

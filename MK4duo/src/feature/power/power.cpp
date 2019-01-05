@@ -51,6 +51,13 @@
       #if HAS_POWER_CHECK
         SET_INPUT(POWER_CHECK_PIN);
       #endif
+      #if HAS_POWER_SWITCH
+        #if PS_DEFAULT_OFF
+          power_off();
+        #else
+          power_on();
+        #endif
+      #endif
     }
 
     #if HAS_POWER_CHECK
