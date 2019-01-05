@@ -479,17 +479,17 @@ class TMC_Stepper {
       #if HAVE_DRV(TMC2660)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return 0; }
-          FORCE_INLINE static uint8_t get_status_response(MKTMC* st) { return 0; }
+          FORCE_INLINE static uint8_t get_status_response(MKTMC* st, uint32_t drv_status) { UNUSED(st); return drv_status & 0xFF; }
         #endif
       #elif HAVE_DRV(TMC2130)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->PWM_SCALE(); }
-          static uint8_t get_status_response(MKTMC* st);
+          static uint8_t get_status_response(MKTMC* st, uint32_t drv_status);
         #endif
       #elif HAVE_DRV(TMC2208)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->pwm_scale_sum(); }
-          static uint8_t get_status_response(MKTMC* st);
+          static uint8_t get_status_response(MKTMC* st, uint32_t drv_status); { UNUSED(drv_status); return st->status_response & 0xF; }
         #endif
       #endif
 

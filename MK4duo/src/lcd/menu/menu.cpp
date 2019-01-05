@@ -182,21 +182,13 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/) {
           doubleclick_expire_ms = millis() + DOUBLECLICK_MAX_INTERVAL;
       }
       else if (screen == status_screen && currentScreen == menu_main && PENDING(millis(), doubleclick_expire_ms)) {
-        if (printer.isPrinting()) {
-          screen =
-            #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-              lcd_babystep_zoffset
-            #else
-              lcd_babystep_z
-            #endif
-          ;
-        }
-        #if ENABLED(MOVE_Z_WHEN_IDLE)
-          else {
-            move_menu_scale = MOVE_Z_IDLE_MULTIPLICATOR;
-            screen = lcd_move_z;
-          }
-        #endif
+        screen =
+          #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+            lcd_babystep_zoffset
+          #else
+            lcd_babystep_z
+          #endif
+        ;
       }
     #endif
 

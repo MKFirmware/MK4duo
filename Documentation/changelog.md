@@ -43,6 +43,7 @@
 * Fixed change filament menu with Nextion LCD
 * Fixed send ok in some situations
 * Fixed TMC Debug e test connection
+* The BABYSTEPPING menu if enabled DOUBLECLICK_FOR_Z_BABYSTEPPING is always working even when it is not in print
 * Fix and clear code
 
 ### Version 4.3.6

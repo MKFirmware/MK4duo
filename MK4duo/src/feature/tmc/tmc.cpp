@@ -567,7 +567,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     static millis_t next_poll = 0;
     const millis_t ms = millis();
     if (ELAPSED(ms, next_poll)) {
-      next_poll = ms + 500;
+      next_poll = ms + 1000UL;
       #if HAS_HW_COMMS(X)
         monitor_driver(stepperX);
       #endif
@@ -955,12 +955,6 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
   #elif HAVE_DRV(TMC2130)
 
-    #if ENABLED(TMC_DEBUG)
-      uint8_t TMC_Stepper::get_status_response(MKTMC* st) {
-        return st->status_response & 0xF;
-      }
-    #endif
-
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
       constexpr uint32_t OTPW_bm = 0x4000000UL;
       constexpr uint8_t OTPW_bp = 26;
@@ -979,11 +973,10 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   #elif HAVE_DRV(TMC2208)
 
     #if ENABLED(TMC_DEBUG)
-      uint8_t TMC_Stepper::get_status_response(MKTMC* st) {
-        uint32_t drv_status = st->DRV_STATUS();
+      uint8_t TMC_Stepper::get_status_response(MKTMC* st, uint32_t drv_status) {
         uint8_t gstat = st->GSTAT();
         uint8_t response = 0;
-        response |= (drv_status >> (31-3)) & 0B1000;
+        response |= (drv_status >> (31 - 3)) & 0B1000;
         response |= gstat & 0B11;
         return response;
       }
@@ -1007,12 +1000,16 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   void TMC_Stepper::monitor_driver(MKTMC* st) {
 
     TMC_driver_data data = get_driver_data(st);
+    if ((data.drv_status == 0xFFFFFFFF) || (data.drv_status == 0x0)) return;
+
+    if (data.is_ot /* | data.s2ga | data.s2gb*/) st->error_count++;
+    else if (st->error_count > 0) st->error_count--;
 
     #if ENABLED(STOP_ON_ERROR)
-      if (data.is_error) {
+      if (st.error_count >= 10) {
         SERIAL_EOL();
         st->printLabel();
-        SERIAL_MSG(" driver error detected:");
+        SERIAL_MSG(" driver error detected: 0x");
         if (data.is_ot) SERIAL_EM("overtemperature");
         if (st->s2ga()) SERIAL_EM("short to ground (coil A)");
         if (st->s2gb()) SERIAL_EM("short to ground (coil B)");
@@ -1024,8 +1021,8 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     #endif
 
     // Report if a warning was triggered
-    if (data.is_otpw && st->otpw_count == 0) {
-      char timestamp[10];
+    if (data.is_otpw && st.otpw_count == 0) {
+      char timestamp[14];
       duration_t elapsed = print_job_counter.duration();
       (void)elapsed.toDigital(timestamp, true);
       SERIAL_EOL();
@@ -1039,8 +1036,10 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
     #if CURRENT_STEP_DOWN > 0
       // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
-      if (data.is_otpw && st->isEnabled() && st->otpw_count > 4) {
-        st->rms_current(st->getMilliamps() - (CURRENT_STEP_DOWN));
+      if (data.is_otpw && st->otpw_count > 4) {
+        uint16_t I_rms = st->getMilliamps();
+        if (st->isEnabled() && I_rms > 100) {
+          st->rms_current(I_rms - (CURRENT_STEP_DOWN));
         #if ENABLED(REPORT_CURRENT_CHANGE)
           st->printLabel();
           SERIAL_EMV(" current decreased to ", st->getMilliamps());
@@ -1059,9 +1058,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
         const uint32_t pwm_scale = get_pwm_scale(st);
         st->printLabel();
         SERIAL_MV(":", pwm_scale);
-        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st), BIN);
+        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st, data.drv_status), BIN);
         SERIAL_MSG("| ");
-        if (data.is_error) SERIAL_CHR('E');
+        if (st->error_count) SERIAL_CHR('E');
         else if (data.is_ot) SERIAL_CHR('O');
         else if (data.is_otpw) SERIAL_CHR('W');
         else if (st->otpw_count > 0) SERIAL_VAL(st->otpw_count);
@@ -1303,6 +1302,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   }
 
   void TMC_Stepper::debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e) {
+
     if (print_x) {
       #if AXIS_HAS_TMC(X)
         status(stepperX, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
