@@ -1006,7 +1006,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     else if (st->error_count > 0) st->error_count--;
 
     #if ENABLED(STOP_ON_ERROR)
-      if (st.error_count >= 10) {
+      if (st->error_count >= 10) {
         SERIAL_EOL();
         st->printLabel();
         SERIAL_MSG(" driver error detected: 0x");
