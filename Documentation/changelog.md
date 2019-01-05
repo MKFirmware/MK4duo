@@ -22,6 +22,7 @@
 * M413: S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
 * M800: S goto to lcd menu. With no parameters run restart commands. (Requires SD_RESTART_FILE)
 * M73: P[percent] Set percentage complete (compatibility with Marlin)
+* M116: Wait for all heaters to reach target temperature
 * Add Text Menu to Nextion Display
 * Add sound function
 * Add LCD menu for switch Sound [on - silent - off]
@@ -40,9 +41,6 @@
 * Fixed GFX overlay with Nextion when printing from USB
 * Add Statistic in EEPROM and not in SD
 * Fixed change filament menu with Nextion LCD
-* Fixed send ok in some situations
-* Fixed TMC Debug e test connection
-* Clear code
 * Fix and clear code
 
 ### Version 4.3.6
