@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * bezier.h
@@ -26,9 +27,6 @@
  * Compute and buffer movement commands for bezier curves
  *
  */
-
-#ifndef _BEZIER_H_
-#define _BEZIER_H_
 
 #if ENABLED(G5_BEZIER)
 
@@ -72,5 +70,3 @@
   };
 
 #endif // ENABLED(G5_BEZIER)
-
-#endif /* _BEZIER_H_ */

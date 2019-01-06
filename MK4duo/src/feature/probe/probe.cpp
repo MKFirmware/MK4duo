@@ -561,7 +561,8 @@ float Probe::run_probing() {
   float probe_z = 0.0;
 
   // Stop the probe before it goes too low to prevent damage.
-  #define Z_PROBE_LOW_POINT (-2 - data.offset[Z_AXIS])
+  // If Z isn't known then probe to -10mm.
+  const float z_probe_low_point = mechanics.isAxisHomed(Z_AXIS) ? Z_PROBE_LOW_POINT - data.offset[Z_AXIS] : -10.0;
 
   #if ENABLED(DEBUG_FEATURE)
     if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
@@ -580,7 +581,7 @@ float Probe::run_probing() {
   for (uint8_t r = data.repetitions + 1; --r;) {
 
     // move down slowly to find bed
-    if (move_to_z(Z_PROBE_LOW_POINT, MMM_TO_MMS(data.speed_slow))) {
+    if (move_to_z(z_probe_low_point, MMM_TO_MMS(data.speed_slow))) {
       #if ENABLED(DEBUG_FEATURE)
         if (printer.debugFeature()) {
           SERIAL_EM("SLOW Probe fail!");
