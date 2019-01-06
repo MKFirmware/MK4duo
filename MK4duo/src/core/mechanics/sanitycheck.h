@@ -507,7 +507,7 @@
     #error "DEPENDENCY ERROR: Missing setting TOWER_C_DIAGROD_ADJ."
   #endif
 
-  #if ENABLED(AUTO_BED_LEVELING_FEATURE)
+  #if HAS_BED_PROBE
     #if DISABLED(XY_PROBE_SPEED)
       #error "DEPENDENCY ERROR: Missing setting XY_PROBE_SPEED."
     #endif

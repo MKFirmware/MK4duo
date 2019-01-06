@@ -1168,6 +1168,12 @@
   #else
     #define _Z_PROBE_DEPLOY_HEIGHT Z_PROBE_DEPLOY_HEIGHT
   #endif
+  #if DISABLED(Z_PROBE_AFTER_PROBING)
+    #define Z_PROBE_AFTER_PROBING 0
+  #endif
+  #if DISABLED(Z_PROBE_LOW_POINT)
+    #define Z_PROBE_LOW_POINT -2
+  #endif
 #else
   #undef X_PROBE_OFFSET_FROM_NOZZLE
   #undef Y_PROBE_OFFSET_FROM_NOZZLE
