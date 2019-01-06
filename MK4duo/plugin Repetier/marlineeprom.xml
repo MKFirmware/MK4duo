@@ -1972,6 +1972,73 @@
     <detect>M900.*R(-?\d*\.?\d*)</detect>
   </entry>
 
+  <!-- M350: Driver Microstep -->
+  <entry type="int" min="1">
+    <description unit="[ms]">X driver microstep</description>
+    <set>M350 X@</set>
+    <detect>M350.*X(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">Y driver microstep</description>
+    <set>M350 Y@</set>
+    <detect>M350.*Y(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">Z driver microstep</description>
+    <set>M350 Z@</set>
+    <detect>M350.*Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">X2 driver microstep</description>
+    <set>M350 I2 X@</set>
+    <detect>M350.*I2 X(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">Y2 driver microstep</description>
+    <set>M350 I2 Y@</set>
+    <detect>M350.*I2 Y(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">Z2 driver microstep</description>
+    <set>M350 I2 Z@</set>
+    <detect>M350.*I2 Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">Z3 driver microstep</description>
+    <set>M350 I3 Z@</set>
+    <detect>M350.*I3 Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E0 driver microstep</description>
+    <set>M350 T0 E@</set>
+    <detect>M350.*T0 E(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E1 driver microstep</description>
+    <set>M350 T1 E@</set>
+    <detect>M350.*T1 E(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E2 driver microstep</description>
+    <set>M350 T2 E@</set>
+    <detect>M350.*T2 E(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E3 driver microstep</description>
+    <set>M350 T3 E@</set>
+    <detect>M350.*T3 E(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E4 driver microstep</description>
+    <set>M350 T4 E@</set>
+    <detect>M350.*T4 E(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1">
+    <description unit="[ms]">E5 driver microstep</description>
+    <set>M350 T5 E@</set>
+    <detect>M350.*T5 E(-?\d*)</detect>
+  </entry>
+
   <!-- M906: Motor Current -->
   <entry type="int" min="100">
     <description unit="[mA]">X motor current</description>
@@ -1990,18 +2057,23 @@
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">X2 motor current</description>
-    <set>M906 I1 X@</set>
+    <set>M906 I2 X@</set>
     <detect>M906.*I2 X(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Y2 motor current</description>
-    <set>M906 I1 Y@</set>
+    <set>M906 I2 Y@</set>
     <detect>M906.*I2 Y(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">Z2 motor current</description>
-    <set>M906 I1 Z@</set>
+    <set>M906 I2 Z@</set>
     <detect>M906.*I2 Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="100">
+    <description unit="[mA]">Z3 motor current</description>
+    <set>M906 I3 Z@</set>
+    <detect>M906.*I3 Z(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E0 motor current</description>
