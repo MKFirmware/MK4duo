@@ -21,6 +21,23 @@
  */
 #pragma once
 
+//
+// Utility functions to create and print hex strings as nybble, byte, and word.
+//
+FORCE_INLINE char hex_nybble(const uint8_t n) {
+  return (n & 0xF) + ((n & 0xF) < 10 ? '0' : 'A' - 10);
+}
+
+char* hex_byte(const uint8_t b);
+char* hex_word(const uint16_t w);
+char* hex_address(const void * const w);
+
+void print_hex_nybble(const uint8_t n);
+void print_hex_byte(const uint8_t b);
+void print_hex_word(const uint16_t w);
+void print_hex_address(const void * const w);
+void print_hex_long(const uint32_t w, const char delimiter);
+
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
 
   /**
@@ -35,8 +52,12 @@
 
 #endif
 
-// Convert uint32_t lung to string
-void lungtoString(char *buffer, const float lung);
+//
+// Utility functions to convert number into string
+//
+
+// Convert float length to string
+void lengthtoString(char *buffer, const float length);
 
 // Crc 16 bit for eeprom check
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt);

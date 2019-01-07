@@ -39,6 +39,9 @@
   #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
     #define ENDSTOP_INTERRUPTS_FEATURE
   #endif
+  #if DISABLED(DEBUG_FEATURE)
+    #define DEBUG_FEATURE
+  #endif
 #endif
 
 /**

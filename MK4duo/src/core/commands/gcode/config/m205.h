@@ -44,6 +44,14 @@ inline void gcode_M205(void) {
 
   if (commands.get_target_tool(205)) return;
 
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M205 report.
+    if (!parser.seen("XYZEBSVJ")) {
+      mechanics.print_M205();
+      return;
+    }
+  #endif
+
   if (parser.seen('B')) mechanics.data.min_segment_time_us = parser.value_ulong();
   if (parser.seen('S')) mechanics.data.min_feedrate_mm_s = parser.value_linear_units();
   if (parser.seen('V')) mechanics.data.min_travel_feedrate_mm_s = parser.value_linear_units();

@@ -177,6 +177,12 @@ class Delta_Mechanics : public Mechanics {
      */
     #if DISABLED(DISABLE_M503)
       static void print_parameters();
+      static void print_M92();
+      static void print_M201();
+      static void print_M203();
+      static void print_M204();
+      static void print_M205();
+      static void print_M666();
     #endif
 
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)

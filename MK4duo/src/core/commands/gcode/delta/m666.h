@@ -55,6 +55,14 @@
    */
   inline void gcode_M666(void) {
 
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M206 report.
+      if (!parser.seen("XYZHDRSLABCIJKUVWOP")) {
+        mechanics.print_M666();
+        return;
+      }
+    #endif
+
     if (parser.seen('H')) mechanics.data.height                   = parser.value_linear_units();
     if (parser.seen('D')) mechanics.data.diagonal_rod             = parser.value_linear_units();
     if (parser.seen('R')) mechanics.data.radius                   = parser.value_linear_units();
@@ -83,29 +91,6 @@
     }
 
     mechanics.recalc_delta_settings();
-
-    SERIAL_LM(CFG, "Current Delta geometry values:");
-    LOOP_XYZ(i) {
-      SERIAL_SV(CFG, axis_codes[i]);
-      SERIAL_EMV(" (Endstop Adj): ", mechanics.data.endstop_adj[i], 3);
-    }
-
-    SERIAL_LMV(CFG, "A (Tower A Diagonal Rod Correction): ",  mechanics.data.diagonal_rod_adj[0], 3);
-    SERIAL_LMV(CFG, "B (Tower B Diagonal Rod Correction): ",  mechanics.data.diagonal_rod_adj[1], 3);
-    SERIAL_LMV(CFG, "C (Tower C Diagonal Rod Correction): ",  mechanics.data.diagonal_rod_adj[2], 3);
-    SERIAL_LMV(CFG, "I (Tower A Angle Correction): ",         mechanics.data.tower_angle_adj[0], 3);
-    SERIAL_LMV(CFG, "J (Tower B Angle Correction): ",         mechanics.data.tower_angle_adj[1], 3);
-    SERIAL_LMV(CFG, "K (Tower C Angle Correction): ",         mechanics.data.tower_angle_adj[2], 3);
-    SERIAL_LMV(CFG, "U (Tower A Radius Correction): ",        mechanics.data.tower_radius_adj[0], 3);
-    SERIAL_LMV(CFG, "V (Tower B Radius Correction): ",        mechanics.data.tower_radius_adj[1], 3);
-    SERIAL_LMV(CFG, "W (Tower C Radius Correction): ",        mechanics.data.tower_radius_adj[2], 3);
-    SERIAL_LMV(CFG, "R (Delta Radius): ",                     mechanics.data.radius, 4);
-    SERIAL_LMV(CFG, "D (Diagonal Rod Length): ",              mechanics.data.diagonal_rod, 4);
-    SERIAL_LMV(CFG, "S (Delta Segments per second): ",        mechanics.data.segments_per_second);
-    SERIAL_LMV(CFG, "L (Delta Segments per line): ",          mechanics.data.segments_per_line);
-    SERIAL_LMV(CFG, "O (Delta Print Radius): ",               mechanics.data.print_radius);
-    SERIAL_LMV(CFG, "P (Delta Probe Radius): ",               mechanics.data.probe_radius);
-    SERIAL_LMV(CFG, "H (Z-Height): ",                         mechanics.data.height, 3);
 
   }
 
