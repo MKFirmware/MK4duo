@@ -57,7 +57,7 @@
 
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M206 report.
-      if (!parser.seen("XYZHDRSLABCIJKUVWOP")) {
+      if (!parser.seen("XYZHDRSLAB") && !parser.seen("CIJKUVWOP")) {
         mechanics.print_M666();
         return;
       }
