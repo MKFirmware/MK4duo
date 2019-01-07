@@ -37,6 +37,14 @@ inline void gcode_M201(void) {
 
   if (commands.get_target_tool(201)) return;
 
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M201 report.
+    if (!parser.seen("XYZE")) {
+      mechanics.print_M201();
+      return;
+    }
+  #endif
+
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = (i == E_AXIS ? E_INDEX : i);

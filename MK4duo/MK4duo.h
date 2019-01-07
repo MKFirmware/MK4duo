@@ -114,7 +114,6 @@
 #include "src/utility/utility.h"
 #include "src/utility/stopwatch.h"
 #include "src/utility/point_t.h"
-#include "src/utility/hex_print_routines.h"
 #include "src/utility/bezier.h"
 
 // Core modules

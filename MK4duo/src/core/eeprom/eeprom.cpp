@@ -1949,12 +1949,10 @@ void EEPROM::reset() {
 
 #if DISABLED(DISABLE_M503)
 
-  #if HAS_TRINAMIC
-    void print_M350() { SERIAL_SM(CFG, "  M350"); }
-    void print_M906() { SERIAL_SM(CFG, "  M906"); }
-    void print_M913() { SERIAL_SM(CFG, "  M913"); }
-    void print_M914() { SERIAL_SM(CFG, "  M914"); }
-  #endif
+  inline void print_M350() { SERIAL_SM(CFG, "  M350"); }
+  inline void print_M906() { SERIAL_SM(CFG, "  M906"); }
+  inline void print_M913() { SERIAL_SM(CFG, "  M913"); }
+  inline void print_M914() { SERIAL_SM(CFG, "  M914"); }
 
   inline void print_units(const bool colon) {
     SERIAL_PGM(
@@ -2234,8 +2232,9 @@ void EEPROM::reset() {
      */
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
-      SERIAL_LM(CFG, "Motor current (mA)");
-      SERIAL_SMV(CFG, "  M906 X", externaldac.motor_current[X_AXIS]);
+      SERIAL_LM(CFG, "Stepper driver current (mA)");
+      print_M906();
+      SERIAL_MV(" X", externaldac.motor_current[X_AXIS]);
       SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS]);
       SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS]);
       #if EXTRUDERS == 1
@@ -2244,8 +2243,10 @@ void EEPROM::reset() {
       SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-          SERIAL_SMV(CFG, "  M906 T", int(i));
-          SERIAL_EMV(" E", externaldac.motor_current[E_AXIS + i]);
+          print_M906();
+          SERIAL_MV(" T", int(i));
+          SERIAL_MV(" E", externaldac.motor_current[E_AXIS + i]);
+          SERIAL_EOL();
         }
       #endif
 

@@ -1090,11 +1090,17 @@
   #if DISABLED(DISABLE_M503)
 
     void Delta_Mechanics::print_parameters() {
+      print_M92();
+      print_M203();
+      print_M201();
+      print_M204();
+      print_M205();
+      print_M666();
+    }
 
+    void Delta_Mechanics::print_M92() {
       SERIAL_LM(CFG, "Steps per unit:");
       SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm[Z_AXIS]), 3);
       #if EXTRUDERS == 1
         SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS]), 3);
       #endif
@@ -1105,26 +1111,11 @@
           SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS + e]), 3);
         }
       #endif // EXTRUDERS > 1
+    }
 
-      SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-      SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
-      #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
-      #endif
-      SERIAL_EOL();
-      #if EXTRUDERS > 1
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M203 T", (int)e);
-          SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
-        }
-      #endif // EXTRUDERS > 1
-
+    void Delta_Mechanics::print_M201() {
       SERIAL_LM(CFG, "Maximum Acceleration (units/s2):");
       SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2[X_AXIS]));
-      SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Y_AXIS]));
-      SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Z_AXIS]));
       #if EXTRUDERS == 1
         SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS]));
       #endif
@@ -1135,8 +1126,25 @@
           SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS + e]));
         }
       #endif // EXTRUDERS > 1
+    }
 
-      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>:");
+    void Delta_Mechanics::print_M203() {
+      SERIAL_LM(CFG, "Maximum feedrates (units/s):");
+      SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
+      #if EXTRUDERS == 1
+        SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
+      #endif
+      SERIAL_EOL();
+      #if EXTRUDERS > 1
+        LOOP_EXTRUDER() {
+          SERIAL_SMV(CFG, "  M203 T", (int)e);
+          SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
+        }
+      #endif // EXTRUDERS > 1
+    }
+
+    void Delta_Mechanics::print_M204() {
+      SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(data.acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
       #if EXTRUDERS == 1
@@ -1149,7 +1157,9 @@
           SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
         }
       #endif
+    }
 
+    void Delta_Mechanics::print_M205() {
       SERIAL_LM(CFG, "Advanced: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
       SERIAL_SMV(CFG, "  M205 B", data.min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(data.min_feedrate_mm_s), 3);
@@ -1180,7 +1190,9 @@
           }
         #endif
       #endif
+    }
 
+    void Delta_Mechanics::print_M666() {
       SERIAL_LM(CFG, "Endstop adjustment:");
       SERIAL_SM(CFG, "  M666");
       SERIAL_MV(" X", LINEAR_UNIT(data.endstop_adj[A_AXIS]));
@@ -1216,7 +1228,6 @@
       SERIAL_MV(" P", LINEAR_UNIT(data.probe_radius));
       SERIAL_MV(" H", LINEAR_UNIT(data.height), 3);
       SERIAL_EOL();
-
     }
 
   #endif // DISABLED(DISABLE_M503)
@@ -1247,7 +1258,7 @@
     #endif
 
     // Fast move towards endstop until triggered
-    do_homing_move(axis, 1.5 * data.height);
+    do_homing_move(axis, 1.5f * data.height);
 
     // When homing Z with probe respect probe clearance
     const float bump = home_bump_mm[axis];
@@ -1276,7 +1287,7 @@
       #if ENABLED(DEBUG_FEATURE)
         if (printer.debugFeature()) SERIAL_EM("data.endstop_adj:");
       #endif
-      do_homing_move(axis, data.endstop_adj[axis] - 0.1);
+      do_homing_move(axis, data.endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * mechanics.steps_to_mm[axis]);
     }
 
     // Clear z_lift if homing the Z axis

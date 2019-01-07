@@ -86,7 +86,7 @@ void PrintCounter::showStats() {
 
   SERIAL_MSG(MSG_STATS);
 
-  lungtoString(buffer, data.filamentUsed);
+  lengthtoString(buffer, data.filamentUsed);
   SERIAL_EMT("Filament used:", buffer);
 
   #if HAS_POWER_CONSUMPTION_SENSOR

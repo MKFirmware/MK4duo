@@ -37,6 +37,14 @@ inline void gcode_M203(void) {
 
   if (commands.get_target_tool(203)) return;
 
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M203 report.
+    if (!parser.seen("XYZE")) {
+      mechanics.print_M203();
+      return;
+    }
+  #endif
+
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);

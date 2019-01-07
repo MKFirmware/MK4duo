@@ -734,7 +734,15 @@
   #if DISABLED(DISABLE_M503)
 
     void Core_Mechanics::print_parameters() {
+      print_M92();
+      print_M203();
+      print_M201();
+      print_M204();
+      print_M205();
+      print_M206();
+    }
 
+    void Core_Mechanics::print_M92() {
       SERIAL_LM(CFG, "Steps per unit:");
       SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm[X_AXIS]), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm[Y_AXIS]), 3);
@@ -749,22 +757,9 @@
           SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS + e]), 3);
         }
       #endif // EXTRUDERS > 1
+    }
 
-      SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-      SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
-      #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
-      #endif
-      SERIAL_EOL();
-      #if EXTRUDERS > 1
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M203 T", (int)e);
-          SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
-        }
-      #endif // EXTRUDERS > 1
-
+    void Core_Mechanics::print_M201() {
       SERIAL_LM(CFG, "Maximum Acceleration (units/s2):");
       SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2[X_AXIS]));
       SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Y_AXIS]));
@@ -779,7 +774,26 @@
           SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS + e]));
         }
       #endif // EXTRUDERS > 1
+    }
 
+    void Core_Mechanics::print_M203() {
+      SERIAL_LM(CFG, "Maximum feedrates (units/s):");
+      SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
+      #if EXTRUDERS == 1
+        SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
+      #endif
+      SERIAL_EOL();
+      #if EXTRUDERS > 1
+        LOOP_EXTRUDER() {
+          SERIAL_SMV(CFG, "  M203 T", (int)e);
+          SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
+        }
+      #endif // EXTRUDERS > 1
+    }
+
+    void Core_Mechanics::print_M204() {
       SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
       SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(data.acceleration), 3);
       SERIAL_MV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
@@ -793,8 +807,10 @@
           SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
         }
       #endif
+    }
 
-      SERIAL_LM(CFG, "Advanced variables: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
+    void Core_Mechanics::print_M205() {
+      SERIAL_LM(CFG, "Advanced: B<DEFAULT_MIN_SEGMENT_TIME> S<DEFAULT_MIN_FEEDRATE> V<DEFAULT_MIN_TRAVEL_FEEDRATE>");
       SERIAL_SMV(CFG, "  M205 B", data.min_segment_time_us);
       SERIAL_MV(" S", LINEAR_UNIT(data.min_feedrate_mm_s), 3);
       SERIAL_EMV(" V", LINEAR_UNIT(data.min_travel_feedrate_mm_s), 3);
@@ -803,7 +819,7 @@
         SERIAL_LM(CFG, "Junction Deviation: J<JUNCTION_DEVIATION_MM>");
         SERIAL_LMV(CFG, "  M205 J", data.junction_deviation_mm, 3);
       #else
-        SERIAL_SM(CFG, "Jerk: X<DEFAULT_XJERK> Z<max_z_jerk>");
+        SERIAL_SM(CFG, "Jerk: X<DEFAULT_XJERK> Y<DEFAULT_YJERK> Z<DEFAULT_ZJERK>");
         #if DISABLED(LIN_ADVANCE)
           SERIAL_MSG(" T* E<DEFAULT_EJERK>");
         #endif
@@ -826,14 +842,15 @@
           #endif
         #endif
       #endif
+    }
 
+    void Core_Mechanics::print_M206() {
       #if ENABLED(WORKSPACE_OFFSETS)
         SERIAL_LM(CFG, "Home offset:");
         SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(data.home_offset[X_AXIS]), 3);
         SERIAL_MV(" Y", LINEAR_UNIT(data.home_offset[Y_AXIS]), 3);
         SERIAL_EMV(" Z", LINEAR_UNIT(data.home_offset[Z_AXIS]), 3);
       #endif
-
     }
 
   #endif // DISABLED(DISABLE_M503)

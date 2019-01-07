@@ -247,7 +247,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 #if ENABLED(WORKSPACE_OFFSETS)
 
   void Mechanics::update_workspace_offset(const AxisEnum axis) {
-    workspace_offset[axis] = data.home_offset[axis] + position_shift[axis];
+    workspace_offset[axis] = mechanics.data.home_offset[axis] + position_shift[axis];
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) {
         SERIAL_MT("For ", axis_codes[axis]);
@@ -262,7 +262,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
    * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
-    data.home_offset[axis] = v;
+    mechanics.data.home_offset[axis] = v;
     update_workspace_offset(axis);
   }
 
@@ -449,6 +449,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
 #endif // BABYSTEPPING
 
+/** Protected Function */
 #if ENABLED(SENSORLESS_HOMING)
 
   /**
