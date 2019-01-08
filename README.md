@@ -69,6 +69,7 @@ The new features are:
 * Added Cooler and Hot Chamber
 * Added Laser beam and raster base64
 * Added CNC Router
+* Added protection of the heaters if you do not print after 30 minutes on. It is important that the host gives the command M530 S1 for the start and M530 for the stop.
 * Addes Mesh Bed Level (MBL)
 * Added Restart for recovery job when power loss an return
 * Added Nozzle Clean Features
