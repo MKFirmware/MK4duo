@@ -154,7 +154,7 @@ class Stepper {
     #endif
 
     #if ENABLED(LASER)
-      static int32_t counter_L;
+      static int32_t delta_error_laser;
       #if ENABLED(LASER_RASTER)
         static int counter_raster;
       #endif

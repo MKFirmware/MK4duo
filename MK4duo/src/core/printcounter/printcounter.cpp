@@ -29,6 +29,8 @@
 PrintCounter print_job_counter;
 
 /** Private Parameters */
+const char statistics_version[3] = "MK";
+
 printStatistics PrintCounter::data;
 
 millis_t PrintCounter::lastDuration;
@@ -51,7 +53,7 @@ void PrintCounter::initStats() {
   #endif
 
   #if HAS_EEPROM
-    memorystore.write_data(STATS_EEPROM_ADDRESS, (uint8_t)0xAC);
+    memorystore.write_data(STATS_EEPROM_ADDRESS, (uint8_t*)&statistics_version, sizeof(statistics_version));
     memorystore.access_write();
   #endif
 }
@@ -107,7 +109,7 @@ void PrintCounter::saveStats() {
 
   #if HAS_EEPROM
     // Saves the struct to EEPROM
-    memorystore.write_data(STATS_EEPROM_ADDRESS + sizeof(uint8_t), (uint8_t*)&data, sizeof(printStatistics));
+    memorystore.write_data(STATS_EEPROM_ADDRESS + sizeof(statistics_version), (uint8_t*)&data, sizeof(data));
     memorystore.access_write();
   #endif
 
@@ -214,15 +216,15 @@ void PrintCounter::loadStats() {
   #if HAS_EEPROM
 
     // Check if the EEPROM block is initialized
-    uint8_t value = 0;
+    char value[3];
     memorystore.access_read();
 
-    memorystore.read_data(STATS_EEPROM_ADDRESS, &value, sizeof(uint8_t));
+    memorystore.read_data(STATS_EEPROM_ADDRESS, (uint8_t*)&value, sizeof(value));
 
-    if (value != 0xAC)
+    if (strncmp(statistics_version, value, 2) != 0)
       initStats();
     else
-      memorystore.read_data(STATS_EEPROM_ADDRESS + sizeof(uint8_t), (uint8_t*)&data, sizeof(printStatistics));
+      memorystore.read_data(STATS_EEPROM_ADDRESS + sizeof(statistics_version), (uint8_t*)&data, sizeof(printStatistics));
 
   #endif
 

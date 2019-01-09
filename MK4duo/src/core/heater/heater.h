@@ -77,8 +77,7 @@ class Heater {
 
     uint16_t      watch_target_temp;
 
-    uint8_t       soft_pwm,
-                  pwm_pos;
+    uint8_t       pwm_value;
 
     int16_t       target_temperature,
                   idle_temperature;
@@ -103,7 +102,7 @@ class Heater {
 
     void setTarget(const int16_t celsius);
     void waitForTarget(bool no_wait_for_cooling=true);
-    void get_output();
+    void set_output();
     void print_sensor_parameters();
     void print_heater_parameters();
     void print_PID_parameters();
@@ -112,10 +111,6 @@ class Heater {
     #endif
     void start_idle_timer(const millis_t timeout_ms);
     void reset_idle_timer();
-
-    #if HARDWARE_PWM
-      void SetHardwarePwm();
-    #endif
 
     void thermal_runaway_protection();
     void start_watching();
@@ -164,7 +159,7 @@ class Heater {
 
     // Flag bit 6 Set Fault
     FORCE_INLINE void setFault() {
-      soft_pwm = 0;
+      pwm_value = 0;
       setActive(false);
       data.flag.Fault = true;
     }
@@ -174,7 +169,7 @@ class Heater {
 
     FORCE_INLINE void SwitchOff() {
       target_temperature = 0;
-      soft_pwm = 0;
+      pwm_value = 0;
       setActive(false);
     }
 

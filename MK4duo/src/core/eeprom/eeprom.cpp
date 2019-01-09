@@ -1864,19 +1864,29 @@ void EEPROM::reset() {
     LOOP_FAN() {
       fan   = &fans[f];
       fdata = &fan->data;
+      fan->setAutoMonitored((int8_t)pgm_read_byte(&tmp6[f]));
       fdata->ID                   = f;
       fdata->pin                  = (int8_t)pgm_read_byte(&tmp5[f]);
-      fdata->freq                 = FAN_PWM_FREQUENCY;
       fdata->min_Speed            = FAN_MIN_PWM;
       fdata->max_Speed            = FAN_MAX_PWM;
+      fdata->freq                 = FAN_PWM_FREQUENCY;
       fdata->triggerTemperature   = HOTEND_AUTO_FAN_TEMPERATURE;
       fdata->autoMonitored        = 0;
       fdata->flag.all             = false;
-      fan->setAutoMonitored((int8_t)pgm_read_byte(&tmp6[f]));
       fan->setHWInverted(FAN_INVERTED);
       #if ENABLED(TACHOMETRIC)
         fan->tacho.pin            = tacho_temp_pin[f];
       #endif
+      LOOP_HOTEND() {
+        if (TEST(fdata->autoMonitored, h)) {
+          fdata->min_Speed        = HOTEND_AUTO_FAN_MIN_SPEED;
+          fdata->max_Speed        = HOTEND_AUTO_FAN_SPEED;
+        }
+      }
+      if (TEST(fdata->autoMonitored, 7)) {
+        fdata->min_Speed          = CONTROLLERFAN_MIN_SPEED;
+        fdata->max_Speed          = CONTROLLERFAN_SPEED;
+      }
     }
 
   #endif

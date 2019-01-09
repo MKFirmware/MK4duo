@@ -45,6 +45,8 @@
 * Fixed TMC Debug e test connection
 * The BABYSTEPPING menu if enabled DOUBLECLICK_FOR_Z_BABYSTEPPING is always working even when it is not in print
 * Reduce PROGMEM for print settings
+* Add Soft PWM to SAM processor and Kickstart for FAN
+* Fix Laser M3 M4 command
 * Fix and clear code
 
 ### Version 4.3.6

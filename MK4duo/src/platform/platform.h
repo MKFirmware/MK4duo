@@ -34,6 +34,7 @@
 #include "common/memory_store.h"
 #include "common/communication.h"
 #include "common/servo.h"
+#include "common/softpwm.h"
 
 /**
  * SPI speed where 0 <= index <= 6

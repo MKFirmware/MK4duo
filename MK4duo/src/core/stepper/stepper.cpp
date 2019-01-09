@@ -183,7 +183,7 @@ volatile int32_t  Stepper::count_position[NUM_AXIS]   = { 0 };
 int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
 #if ENABLED(LASER)
-  int32_t Stepper::counter_L = 0;
+  int32_t Stepper::delta_error_laser = 0;
   #if ENABLED(LASER_RASTER)
     int Stepper::counter_raster = 0;
   #endif // LASER_RASTER
@@ -1282,33 +1282,23 @@ void Stepper::pulse_phase_step() {
     pulse_tick_stop();
 
     #if ENABLED(LASER)
-      counter_L += current_block->steps_l;
-      if (counter_L >= 0) {
-        if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) { // Pulsed Firing Mode
+      delta_error_laser += current_block->steps_l;
+      if (delta_error_laser >= 0) {
+        if (current_block->laser_mode == PULSED && current_block->laser_status == LASER_ON) // Pulsed Firing Mode
           laser.fire(current_block->laser_intensity);
-          if (laser.diagnostics) {
-            SERIAL_MV("X: ", delta_error[X_AXIS]);
-            SERIAL_MV("Y: ", delta_error[Y_AXIS]);
-            SERIAL_MV("L: ", counter_L);
-          }
-        }
         #if ENABLED(LASER_RASTER)
           if (current_block->laser_mode == RASTER && current_block->laser_status == LASER_ON) { // Raster Firing Mode
             // For some reason, when comparing raster power to ppm line burns the rasters were around 2% more powerful
             // going from darkened paper to burning through paper.
             laser.fire(current_block->laser_raster_data[counter_raster]);
-            if (laser.diagnostics) SERIAL_MV("Pixel: ", (float)current_block->laser_raster_data[counter_raster]);
             counter_raster++;
           }
         #endif // LASER_RASTER
 
-        counter_L -= current_block->step_event_count;
+        delta_error_laser -= current_block->step_event_count;
       }
-      if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros())) {
-        if (laser.diagnostics)
-          SERIAL_EM("Laser firing duration elapsed, in interrupt fast loop");
+      if (current_block->laser_duration != 0 && (laser.last_firing + current_block->laser_duration < micros()))
         laser.extinguish();
-      }
     #endif // LASER
 
     // Decrement the count of pending pulses to do
@@ -1554,6 +1544,11 @@ uint32_t Stepper::block_phase_step() {
       // Initialize Bresenham delta errors to 1/2
       delta_error[X_AXIS] = delta_error[Y_AXIS] = delta_error[Z_AXIS] = delta_error[E_AXIS] = -int32_t(step_event_count);
 
+      #if ENABLED(LASER)
+        delta_error_laser = delta_error[X_AXIS];
+        laser.dur = current_block->laser_duration;
+      #endif
+
       // Calculate Bresenham dividends
       advance_dividend[X_AXIS] = current_block->steps[X_AXIS] << 1;
       advance_dividend[Y_AXIS] = current_block->steps[Y_AXIS] << 1;
@@ -1639,11 +1634,6 @@ uint32_t Stepper::block_phase_step() {
         bezier_2nd_half = false;
       #endif
 
-      #if ENABLED(LASER)
-        counter_L = delta_error[X_AXIS];
-        laser.dur = current_block->laser_duration;
-      #endif
-
       #if ENABLED(LASER) && ENABLED(LASER_RASTER)
          if (current_block->laser_mode == RASTER) counter_raster = 0;
       #endif
@@ -1658,11 +1648,8 @@ uint32_t Stepper::block_phase_step() {
     if (current_block->laser_mode == CONTINUOUS && current_block->laser_status == LASER_ON)
       laser.fire(current_block->laser_intensity);
 
-    if (current_block->laser_status == LASER_OFF) {
-      if (laser.diagnostics)
-        SERIAL_EM("Laser status set to off, in interrupt handler");
+    if (current_block->laser_status == LASER_OFF)
       laser.extinguish();
-    }
   #endif
 
   #if ENABLED(BABYSTEPPING)

@@ -27,6 +27,8 @@
  *
  * DRIVER FEATURES:
  * - Driver types
+ * PWM FEATURES:
+ * - SOFT PWM Speed
  * FAN FEATURES:
  * - Fan configuration
  * EXTRUDER FEATURES:
@@ -177,28 +179,31 @@
 
 
 //===========================================================================
+//=============================== PWM FEATURES ==============================
+//===========================================================================
+/***********************************************************************
+ *************************** SOFT PWM Speed ****************************
+ ***********************************************************************
+ *                                                                     *
+ * SOFT PWM frequency and values                                       *
+ *    0 -  15Hz 256 values                                             *
+ *    1 -  30Hz 128 values                                             *
+ *    2 -  61Hz  64 values                                             *
+ *    3 - 122Hz  32 values                                             *
+ *    4 - 244Hz  16 values                                             *
+ *                                                                     *
+ ***********************************************************************/
+#define SOFT_PWM_SPEED 0
+/***********************************************************************/
+
+
+//===========================================================================
 //=============================== FAN FEATURES ==============================
 //===========================================================================
 
 /****************************************************************************
  ***************************** Fan configuration ****************************
  ****************************************************************************/
-// FAN PWM speed AVR Processor
-// 0 -  15Hz 256 values
-// 1 -  30Hz 128 values
-// 2 -  61Hz  64 values
-// 3 - 122Hz  32 values
-// 4 - 244Hz  16 values
-#define FAN_PWM_SPEED 0
-
-// FAN PWM Frequency SAM Processor
-#define FAN_PWM_FREQUENCY 250
-
-// When first starting the main fan, run it at full speed for the
-// given number of milliseconds.  This gets the fan spinning reliably
-// before setting a PWM value.
-//#define FAN_KICKSTART_TIME 200
-
 // This defines the minimal speed for the fan
 // set minimal speed for reliable running (0-255)
 #define FAN_MIN_PWM 0
@@ -209,6 +214,14 @@
 
 // To reverse the logic of fan pins
 //#define INVERTED_FAN_PINS
+
+// FAN PWM Frequency SAM Processor
+#define FAN_PWM_FREQUENCY 250
+
+// When first starting the main fan, run it at full speed for the
+// given number of milliseconds.  This gets the fan spinning reliably
+// before setting a PWM value.
+//#define FAN_KICKSTART_TIME 200
 
 // AUTO FAN - Fans for cooling Hotend or Controller Fan
 // Put number Hotend in fan to automatically turn on/off when the associated

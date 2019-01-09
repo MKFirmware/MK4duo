@@ -369,13 +369,19 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
 }
 
-void HAL::analogWrite(pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000*/) {
+void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert/*=false*/, const uint16_t freq/*=1000*/) {
 
   static uint8_t PWMEnabled = 0;
   static uint8_t TCChanEnabled[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   const int writeResolution = 8;
+  uint32_t ulValue          = 0;
 
-  if (isnan(ulValue) || pin <= 0) return;
+  if (isnan(value) || pin <= 0) return;
+
+  if (HWInvert)
+    ulValue = 255 - value;
+  else
+    ulValue = value;
 
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
@@ -438,6 +444,7 @@ void HAL::analogWrite(pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000*/)
       // PWM Startup code
       pmc_enable_periph_clk(PWM_INTERFACE_ID);
       PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
+      PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
       PWMEnabled = 1;
     }
 
@@ -530,9 +537,9 @@ void HAL::analogWrite(pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000*/)
     return;
   }
 
-  // Defaults to digital write
+  // If not hardware pwm pin used Software pwm
   ulValue = mapResolution(ulValue, writeResolution, 8);
-  HAL::pinMode(pin, (ulValue < 128) ? OUTPUT_LOW : OUTPUT_HIGH);
+  softpwm.set(pin, ulValue);
 
 }
 
@@ -553,19 +560,19 @@ void HAL::Tick() {
 
   if (printer.isStopped()) return;
 
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].SetHardwarePwm();
-  #endif
-
-  #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].SetHardwarePwm();
-  #endif
+  // Soft PWM Spin
+  softpwm.spin();
 
   // Calculation cycle temp a 100ms
   if (ELAPSED(now, cycle_check_temp)) {
     cycle_check_temp = now + 100UL;
     // Temperature Spin
     thermalManager.spin();
+    #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
+      LOOP_FAN() {
+        if (fans[f].Kickstart) fans[f].Kickstart--;
+      }
+    #endif
   }
 
   // read analog values

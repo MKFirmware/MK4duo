@@ -365,49 +365,28 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
+void HAL::analogWrite(const pin_t pin, const uint8_t value, const bool HWInvert/*=false*/, const uint16_t freq/*=1000*/) {
+  uint8_t ulValue = 0;
+  UNUSED(freq);
+
+  if (HWInvert)
+    ulValue = 255 - value;
+  else
+    ulValue = value;
+
+  softpwm.set(pin, ulValue);
+}
+
 void HAL_temp_isr() {
 
-  static uint16_t cycle_100ms       = 0;
-
-  static uint8_t  pwm_count_heater  = 0,
-                  pwm_count_fan     = 0,
-                  channel           = 0;
+  static uint16_t cycle_100ms = 0;
+  static uint8_t  channel     = 0;
 
   /**
-   * Standard PWM modulation
+   * Software PWM modulation
    */
-  if (pwm_count_heater == 0) {
-    #if HEATER_COUNT > 0
-      LOOP_HEATER() {
-        if (heaters[h].data.pin > -1 && ((heaters[h].pwm_pos = (heaters[h].soft_pwm & HEATER_PWM_MASK)) > 0))
-          HAL::digitalWrite(heaters[h].data.pin, heaters[h].isHWInverted() ? LOW : HIGH);
-      }
-    #endif
-  }
-
-  if (pwm_count_fan == 0) {
-    #if FAN_COUNT >0
-      LOOP_FAN() {
-        if ((fans[f].pwm_pos = (fans[f].Speed & FAN_PWM_MASK)) > 0)
-          HAL::digitalWrite(fans[f].data.pin, fans[f].isHWInverted() ? LOW : HIGH);
-      }
-    #endif
-  }
-
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() {
-      if (heaters[h].data.pin > -1 && heaters[h].pwm_pos == pwm_count_heater && heaters[h].pwm_pos != HEATER_PWM_MASK)
-        HAL::digitalWrite(heaters[h].data.pin, heaters[h].isHWInverted() ? HIGH : LOW);
-    }
-  #endif
-
-  #if FAN_COUNT > 0
-    LOOP_FAN() {
-      if (fans[f].Kickstart == 0 && fans[f].pwm_pos == pwm_count_fan && fans[f].pwm_pos != FAN_PWM_MASK)
-        HAL::digitalWrite(fans[f].data.pin, fans[f].isHWInverted() ? HIGH : LOW);
-    }
-  #endif
-
+  softpwm.spin();
+  
   // Calculation cycle approximate a 100ms
   if (++cycle_100ms >= (F_CPU / 40960)) {
     cycle_100ms = 0;
@@ -455,9 +434,6 @@ void HAL_temp_isr() {
     if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
 
   #endif
-
-  pwm_count_heater  += HEATER_PWM_STEP;
-  pwm_count_fan     += FAN_PWM_STEP;
 
   // Tick endstops state, if required
   endstops.Tick();

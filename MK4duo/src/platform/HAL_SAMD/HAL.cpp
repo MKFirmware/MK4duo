@@ -335,7 +335,6 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   #if HEATER_COUNT > 0
-  
     LOOP_HEATER() heaters[h].SetHardwarePwm();
   #endif
 
