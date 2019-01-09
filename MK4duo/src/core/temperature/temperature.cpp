@@ -126,7 +126,7 @@ void Temperature::spin() {
     // Ignore heater we are currently testing
     if (pid_pointer == act->data.ID) continue;
 
-    act->get_output();
+    act->set_output();
 
     // Make sure temperature is increasing
     if (act->isThermalProtection() && act->watch_next_ms && ELAPSED(now, act->watch_next_ms)) {
@@ -220,7 +220,8 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
 
   pid_data_t tune_pid;
 
-  act->soft_pwm = act->pid.Max;
+  act->pwm_value = act->pid.Max;
+  HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
   int32_t bias  = act->pid.Max >> 1,
           d     = act->pid.Max >> 1;
@@ -257,7 +258,8 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
       if (ELAPSED(time, t2 + 5000UL)) {
         heating = false;
 
-        act->soft_pwm = (bias - d);
+        act->pwm_value = (bias - d);
+        HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
         t1 = time;
         t_high = t1 - t2;
@@ -331,7 +333,8 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
 
         SERIAL_EOL();
 
-        act->soft_pwm = (bias + d);
+        act->pwm_value = (bias + d);
+        HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
         cycles++;
 
@@ -436,10 +439,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
   disable_all_heaters();
 
   printer.setAutoreportTemp(oldReport);
-
-  #if ENABLED(PRINTER_EVENT_LEDS)
-    ledevents.onPidTuningDone(color);
-  #endif
 
   LCD_MESSAGEPGM(WELCOME_MSG);
 
@@ -549,12 +548,12 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if HAS_TEMP_BED
     print_heater_state(&heaters[BED_INDEX], false, showRaw);
-    SERIAL_MV(MSG_BAT, (int)heaters[BED_INDEX].soft_pwm);
+    SERIAL_MV(MSG_BAT, (int)heaters[BED_INDEX].pwm_value);
   #endif
 
   #if HAS_TEMP_CHAMBER
     print_heater_state(&heaters[CHAMBER_INDEX], false, showRaw);
-    SERIAL_MV(MSG_CAT, (int)heaters[CHAMBER_INDEX].soft_pwm);
+    SERIAL_MV(MSG_CAT, (int)heaters[CHAMBER_INDEX].pwm_value);
   #endif
 
   #if HAS_TEMP_COOLER
@@ -562,7 +561,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if HAS_TEMP_HOTEND
-    SERIAL_MV(" @:", (int)heaters[ACTIVE_HOTEND].soft_pwm);
+    SERIAL_MV(" @:", (int)heaters[ACTIVE_HOTEND].pwm_value);
   #endif
 
   #if HOTENDS > 1
@@ -570,7 +569,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       print_heater_state(&heaters[h], true, showRaw);
       SERIAL_MV(MSG_AT, h);
       SERIAL_CHR(':');
-      SERIAL_VAL((int)heaters[h].soft_pwm);
+      SERIAL_VAL((int)heaters[h].pwm_value);
     }
   #endif
 

@@ -40,8 +40,6 @@ void Fan::init() {
   Speed               = 0;
   paused_Speed        = 0;
   Kickstart           = 0;
-  pwm_pos             = 0;
-  lastpwm             = -1;
 
   setIdle(false);
 
@@ -63,61 +61,64 @@ void Fan::spin() {
 
   static watch_t controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
 
-  if (data.autoMonitored == 0) return;
+  if (data.autoMonitored != 0) {
 
-  // Check for Hotend temperature
-  LOOP_HOTEND() {
-    if (TEST(data.autoMonitored, h)) {
-      if (heaters[h].current_temperature > data.triggerTemperature) {
-        Speed = HOTEND_AUTO_FAN_SPEED;
-        break;
+    // Check for Hotend temperature
+    LOOP_HOTEND() {
+      if (TEST(data.autoMonitored, h)) {
+        if (heaters[h].current_temperature > data.triggerTemperature) {
+          Speed = data.max_Speed;
+          break;
+        }
+        else
+          Speed = data.min_Speed;
       }
-      else
-        Speed = HOTEND_AUTO_FAN_MIN_SPEED;
     }
-  }
 
-  // Check for Controller fan
-  if (TEST(data.autoMonitored, 7)) {
+    // Check for Controller fan
+    if (TEST(data.autoMonitored, 7)) {
 
-    // Check Heaters
-    if (thermalManager.heaters_isActive()) controller_fan_watch.start();
+      // Check Heaters
+      if (thermalManager.heaters_isActive()) controller_fan_watch.start();
 
-    #if HAS_MCU_TEMPERATURE
-      // Check MSU
-      if (thermalManager.mcu_current_temperature >= 50) controller_fan_watch.start();
-    #endif
+      #if HAS_MCU_TEMPERATURE
+        // Check MSU
+        if (thermalManager.mcu_current_temperature >= 50) controller_fan_watch.start();
+      #endif
 
-    // Check Motors
-    if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
-      || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
-      #if DRIVER_EXTRUDERS > 1
-        || E1_ENABLE_READ == E_ENABLE_ON
-        #if HAS_X2_ENABLE
-          || X2_ENABLE_READ == X_ENABLE_ON
-        #endif
-        #if DRIVER_EXTRUDERS > 2
-          || E2_ENABLE_READ == E_ENABLE_ON
-          #if DRIVER_EXTRUDERS > 3
-            || E3_ENABLE_READ == E_ENABLE_ON
-            #if DRIVER_EXTRUDERS > 4
-              || E4_ENABLE_READ == E_ENABLE_ON
-              #if DRIVER_EXTRUDERS > 5
-                || E5_ENABLE_READ == E_ENABLE_ON
+      // Check Motors
+      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
+        || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+        #if DRIVER_EXTRUDERS > 1
+          || E1_ENABLE_READ == E_ENABLE_ON
+          #if HAS_X2_ENABLE
+            || X2_ENABLE_READ == X_ENABLE_ON
+          #endif
+          #if DRIVER_EXTRUDERS > 2
+            || E2_ENABLE_READ == E_ENABLE_ON
+            #if DRIVER_EXTRUDERS > 3
+              || E3_ENABLE_READ == E_ENABLE_ON
+              #if DRIVER_EXTRUDERS > 4
+                || E4_ENABLE_READ == E_ENABLE_ON
+                #if DRIVER_EXTRUDERS > 5
+                  || E5_ENABLE_READ == E_ENABLE_ON
+                #endif
               #endif
             #endif
           #endif
         #endif
-      #endif
-    ) {
-      controller_fan_watch.start();
-    }
+      ) {
+        controller_fan_watch.start();
+      }
 
-    // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-    Speed = controller_fan_watch.elapsed() ? CONTROLLERFAN_MIN_SPEED : CONTROLLERFAN_SPEED;
+      // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
+      Speed = controller_fan_watch.elapsed() ? data.min_Speed : data.max_Speed;
+    }
   }
 
-  Speed = constrain(Speed, data.min_Speed, data.max_Speed);
+  Speed = Speed ? constrain(Speed, data.min_Speed, data.max_Speed) : 0;
+
+  HAL::analogWrite(data.pin, Kickstart ? data.max_Speed : Speed, isHWInverted(), data.freq);
 
 }
 
@@ -138,22 +139,6 @@ void Fan::print_parameters() {
   if (TEST(data.autoMonitored, 7)) SERIAL_MSG(" H7");
   SERIAL_EOL();
 }
-
-#if HARDWARE_PWM
-  void Fan::SetHardwarePwm() {
-    if (data.pin > NoPin) {
-      if (isHWInverted())
-        pwm_pos = 255 - Speed;
-      else
-        pwm_pos = Speed;
-
-      if (pwm_pos != lastpwm) {
-        lastpwm = pwm_pos;
-        HAL::analogWrite(data.pin, pwm_pos, data.freq);
-      }
-    }
-  }
-#endif
 
 #if ENABLED(TACHOMETRIC)
   void tacho_interrupt0() { fans[0].tacho.interrupt(); }

@@ -1204,68 +1204,31 @@
 #endif
 
 // PWM SPEED and MASK
-#if DISABLED(HEATER_PWM_SPEED)
-  #define HEATER_PWM_SPEED 0
+#if DISABLED(SOFT_PWM_SPEED)
+  #define SOFT_PWM_SPEED 0
 #endif
-#if HEATER_PWM_SPEED < 0
-  #define HEATER_PWM_SPEED 0
+#if SOFT_PWM_SPEED < 0
+  #define SOFT_PWM_SPEED 0
 #endif
-#if HEATER_PWM_SPEED > 4
-  #define HEATER_PWM_SPEED 4
-#endif
-
-#if HEATER_PWM_SPEED == 0
-  #define HEATER_PWM_STEP 1
-  #define HEATER_PWM_FREQ 15
-  #define HEATER_PWM_MASK 255
-#elif HEATER_PWM_SPEED == 1
-  #define HEATER_PWM_STEP 2
-  #define HEATER_PWM_FREQ 30
-  #define HEATER_PWM_MASK 254
-#elif HEATER_PWM_SPEED == 2
-  #define HEATER_PWM_STEP 4
-  #define HEATER_PWM_FREQ 61
-  #define HEATER_PWM_MASK 252
-#elif HEATER_PWM_SPEED == 3
-  #define HEATER_PWM_STEP 8
-  #define HEATER_PWM_FREQ 122
-  #define HEATER_PWM_MASK 248
-#elif HEATER_PWM_SPEED == 4
-  #define HEATER_PWM_STEP 16
-  #define HEATER_PWM_FREQ 244
-  #define HEATER_PWM_MASK 240
+#if SOFT_PWM_SPEED > 4
+  #define SOFT_PWM_SPEED 4
 #endif
 
-#if DISABLED(FAN_PWM_SPEED)
-  #define FAN_PWM_SPEED 0
-#endif
-#if FAN_PWM_SPEED < 0
-  #define FAN_PWM_SPEED 0
-#endif
-#if FAN_PWM_SPEED > 4
-  #define FAN_PWM_SPEED 4
-#endif
-
-#if FAN_PWM_SPEED == 0
-  #define FAN_PWM_STEP 1
-  #define FAN_PWM_FREQ 15
-  #define FAN_PWM_MASK 255
-#elif FAN_PWM_SPEED == 1
-  #define FAN_PWM_STEP 2
-  #define FAN_PWM_FREQ 30
-  #define FAN_PWM_MASK 254
-#elif FAN_PWM_SPEED == 2
-  #define FAN_PWM_STEP 4
-  #define FAN_PWM_FREQ 61
-  #define FAN_PWM_MASK 252
-#elif FAN_PWM_SPEED == 3
-  #define FAN_PWM_STEP 8
-  #define FAN_PWM_FREQ 122
-  #define FAN_PWM_MASK 248
-#elif FAN_PWM_SPEED == 4
-  #define FAN_PWM_STEP 16
-  #define FAN_PWM_FREQ 244
-  #define FAN_PWM_MASK 240
+#if SOFT_PWM_SPEED == 0
+  #define SOFT_PWM_STEP 1
+  #define SOFT_PWM_MASK 255
+#elif SOFT_PWM_SPEED == 1
+  #define SOFT_PWM_STEP 2
+  #define SOFT_PWM_MASK 254
+#elif SOFT_PWM_SPEED == 2
+  #define SOFT_PWM_STEP 4
+  #define SOFT_PWM_MASK 252
+#elif SOFT_PWM_SPEED == 3
+  #define SOFT_PWM_STEP 8
+  #define SOFT_PWM_MASK 248
+#elif SOFT_PWM_SPEED == 4
+  #define SOFT_PWM_STEP 16
+  #define SOFT_PWM_MASK 240
 #endif
 
 // TEMPERATURE

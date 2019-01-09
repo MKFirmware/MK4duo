@@ -19,49 +19,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * mcode
+ * softpwm.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_MULTI_MODE
+#define SOFTPWM_MAXCHANNELS (HEATER_COUNT + FAN_COUNT + 3)
 
-  #define CODE_M5
+typedef struct {
+  // hardware I/O port and pin for this channel
+  pin_t   pin;
+  uint8_t pwm_value,
+          pwm_pos;
+} softPWMChannel;
 
-  /**
-   * M5: Turn off laser beam - CNC off
-   */
-  inline void gcode_M5(void) {
-    planner.synchronize();
+class SoftPWM {
 
-    switch (printer.mode) {
+  public: /** Constructor */
 
-      #if ENABLED(LASER)
-        case PRINTER_MODE_LASER: {
-          if (laser.status != LASER_OFF) {
-            laser.status = LASER_OFF;
-            laser.mode = CONTINUOUS;
-            laser.duration = 0;
+    SoftPWM() { init(); }
 
-            if (laser.diagnostics)
-              SERIAL_EM("Laser M5 called and laser OFF");
-          }
-        }
-        break;
-      #endif
+  private: /** Private Parameters */
 
-      #if ENABLED(CNCROUTER)
-        case PRINTER_MODE_CNC:
-          cnc.disable_router();
-        break;
-      #endif
+    static uint8_t used_channel;
 
-      default: break; // other tools
+    static softPWMChannel channels[SOFTPWM_MAXCHANNELS];
 
-    } // printer.mode
+  public: /** Public Function */
 
-  }
+    static void init();
 
-#endif // HAS_MULTI_MODE
+    static void spin(void);
+
+    static void set(const pin_t pin, const uint8_t value);
+
+};
+
+extern SoftPWM softpwm;
+

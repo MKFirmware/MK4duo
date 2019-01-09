@@ -34,8 +34,7 @@
 void Heater::init() {
 
   // Reset valor
-  soft_pwm              = 0;
-  pwm_pos               = 0;
+  pwm_value             = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
   current_temperature   = 25.0;
@@ -165,7 +164,7 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
   printer.setAutoreportTemp(oldReport);
 }
 
-void Heater::get_output() {
+void Heater::set_output() {
 
   millis_t now = millis();
 
@@ -177,7 +176,7 @@ void Heater::get_output() {
     const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
     if (isUsePid()) {
-      soft_pwm = pid.spin(targetTemperature, current_temperature, now
+      pwm_value = pid.spin(targetTemperature, current_temperature, now
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           , data.ID
         #endif
@@ -186,17 +185,21 @@ void Heater::get_output() {
     else if (ELAPSED(now, next_check_ms)) {
       next_check_ms = now + temp_check_interval[data.type];
       if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
-        soft_pwm = pid.Max;
+        pwm_value = pid.Max;
       else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
-        soft_pwm = 0;
+        pwm_value = 0;
     }
 
     #if ENABLED(PID_DEBUG)
       SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
       SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
-      SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, soft_pwm);
+      SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, pwm_value);
     #endif // PID_DEBUG
+
   }
+
+  HAL::analogWrite(data.pin, pwm_value, isHWInverted(), (data.type == IS_HOTEND) ? 250 : 10);
+
 }
 
 void Heater::print_sensor_parameters() {
@@ -286,19 +289,6 @@ void Heater::reset_idle_timer() {
   setIdle(false);
   start_watching();
 }
-
-#if HARDWARE_PWM
-  void Heater::SetHardwarePwm() {
-    uint8_t pwm_val = 0;
-
-    if (isHWInverted())
-      pwm_val = 255 - soft_pwm;
-    else
-      pwm_val = soft_pwm;
-
-    HAL::analogWrite(data.pin, pwm_val, (data.type == IS_HOTEND) ? 250 : 10);
-  }
-#endif
 
 void Heater::thermal_runaway_protection() {
 

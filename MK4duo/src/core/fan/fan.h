@@ -80,10 +80,7 @@ class Fan {
 
     uint8_t     Speed,
                 paused_Speed,
-                Kickstart,
-                pwm_pos;
-
-    int16_t     lastpwm;
+                Kickstart;
 
   public: /** Public Function */
 
@@ -111,10 +108,6 @@ class Fan {
       }
     }
     FORCE_INLINE bool isIdle() { return data.flag.isIdle; }
-
-    #if HARDWARE_PWM
-      void SetHardwarePwm();
-    #endif
 
 };
 
