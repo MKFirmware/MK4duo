@@ -275,7 +275,7 @@ typedef struct EepromDataStruct {
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
-    float           planner_hysteresis_mm,
+    float           planner_hysteresis_mm[XYZ],
                     planner_hysteresis_correction;
   #endif
 
