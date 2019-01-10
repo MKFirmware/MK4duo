@@ -35,65 +35,62 @@ inline void gcode_M115(void) {
 
   SERIAL_EM(MSG_M115_REPORT);
 
-  #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
+  // EEPROM (M500, M501)
+  #if ENABLED(EEPROM_SETTINGS)
+    SERIAL_LM(CAP, "EEPROM:1");
+  #else
+    SERIAL_LM(CAP, "EEPROM:0");
+  #endif
 
-    // EEPROM (M500, M501)
-    #if ENABLED(EEPROM_SETTINGS)
-      SERIAL_LM(CAP, "EEPROM:1");
-    #else
-      SERIAL_LM(CAP, "EEPROM:0");
-    #endif
+  // AUTOREPORT_TEMP (M155)
+  SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
 
-    // AUTOREPORT_TEMP (M155)
-    SERIAL_LM(CAP, "AUTOREPORT_TEMP:1");
+  // PROGRESS (M530 S L, M531 <file>, M532 X L)
+  SERIAL_LM(CAP, "PROGRESS:1");
 
-    // PROGRESS (M530 S L, M531 <file>, M532 X L)
-    SERIAL_LM(CAP, "PROGRESS:1");
+  // Print Job timer M75, M76, M77
+  SERIAL_LM(CAP, "PRINT_JOB:1");
 
-    // Print Job timer M75, M76, M77
-    SERIAL_LM(CAP, "PRINT_JOB:1");
+  // AUTOLEVEL (G29)
+  #if HAS_ABL
+    SERIAL_LM(CAP, "AUTOLEVEL:1");
+  #else
+    SERIAL_LM(CAP, "AUTOLEVEL:0");
+  #endif
 
-    // AUTOLEVEL (G29)
-    #if HAS_ABL
-      SERIAL_LM(CAP, "AUTOLEVEL:1");
-    #else
-      SERIAL_LM(CAP, "AUTOLEVEL:0");
-    #endif
+  // Z_PROBE (G30)
+  #if HAS_BED_PROBE
+    SERIAL_LM(CAP, "Z_PROBE:1");
+  #else
+    SERIAL_LM(CAP, "Z_PROBE:0");
+  #endif
 
-    // Z_PROBE (G30)
-    #if HAS_BED_PROBE
-      SERIAL_LM(CAP, "Z_PROBE:1");
-    #else
-      SERIAL_LM(CAP, "Z_PROBE:0");
-    #endif
+  // MESH_REPORT (M320 V, M420 V)
+  #if HAS_LEVELING
+    SERIAL_LM(CAP, "LEVELING_DATA:1");
+  #else
+    SERIAL_LM(CAP, "LEVELING_DATA:0");
+  #endif
 
-    // MESH_REPORT (M320 V, M420 V)
-    #if HAS_LEVELING
-      SERIAL_LM(CAP, "LEVELING_DATA:1");
-    #else
-      SERIAL_LM(CAP, "LEVELING_DATA:0");
-    #endif
+  // SOFTWARE_POWER (M80, M81)
+  #if HAS_POWER_SWITCH
+    SERIAL_LM(CAP, "SOFTWARE_POWER:1");
+  #else
+    SERIAL_LM(CAP, "SOFTWARE_POWER:0");
+  #endif
 
-    // SOFTWARE_POWER (M80, M81)
-    #if HAS_POWER_SWITCH
-      SERIAL_LM(CAP, "SOFTWARE_POWER:1");
-    #else
-      SERIAL_LM(CAP, "SOFTWARE_POWER:0");
-    #endif
+  // CASE LIGHTS (M355)
+  #if HAS_CASE_LIGHT
+    SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
+  #else
+    SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
+  #endif
 
-    // CASE LIGHTS (M355)
-    #if HAS_CASE_LIGHT
-      SERIAL_LM(CAP, "TOGGLE_LIGHTS:1");
-    #else
-      SERIAL_LM(CAP, "TOGGLE_LIGHTS:0");
-    #endif
+  // EMERGENCY_PARSER (M108, M112, M410)
+  #if ENABLED(EMERGENCY_PARSER)
+    SERIAL_LM(CAP, "EMERGENCY_PARSER:1");
+  #else
+    SERIAL_LM(CAP, "EMERGENCY_PARSER:0");
+  #endif
 
-    // EMERGENCY_PARSER (M108, M112, M410)
-    #if ENABLED(EMERGENCY_PARSER)
-      SERIAL_LM(CAP, "EMERGENCY_PARSER:1");
-    #else
-      SERIAL_LM(CAP, "EMERGENCY_PARSER:0");
-    #endif
-
-  #endif // EXTENDED_CAPABILITIES_REPORT
 }
