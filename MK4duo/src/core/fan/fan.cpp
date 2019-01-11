@@ -123,6 +123,7 @@ void Fan::spin() {
 }
 
 void Fan::print_parameters() {
+  bool found_auto = false;
   SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
   SERIAL_MV(" U", data.pin);
@@ -130,13 +131,21 @@ void Fan::print_parameters() {
   SERIAL_MV(" X", data.max_Speed);
   SERIAL_MV(" F", data.freq);
   SERIAL_MV(" I", isHWInverted());
+  SERIAL_MSG(" H");
   LOOP_HOTEND() {
     if (TEST(data.autoMonitored, h)) {
-      SERIAL_MV(" H", (int)h);
+      SERIAL_VAL((int)h);
       SERIAL_MV(" T", data.triggerTemperature);
+      found_auto = true;
+      break;
     }
   }
-  if (TEST(data.autoMonitored, 7)) SERIAL_MSG(" H7");
+  if (!found_auto) {
+    if (TEST(data.autoMonitored, 7))
+      SERIAL_CHR('7');
+    else
+      SERIAL_MSG("-1");
+  }
   SERIAL_EOL();
 }
 
