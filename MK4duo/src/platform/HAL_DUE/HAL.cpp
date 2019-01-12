@@ -444,7 +444,7 @@ void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert
       // PWM Startup code
       pmc_enable_periph_clk(PWM_INTERFACE_ID);
       PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
-      PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
+      //PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
       PWMEnabled = 1;
     }
 
