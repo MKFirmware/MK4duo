@@ -79,7 +79,9 @@ class Fan {
     #endif
 
     uint8_t     Speed,
+                last_Speed,
                 paused_Speed,
+                scaled_Speed,
                 Kickstart;
 
   public: /** Public Function */
@@ -88,6 +90,9 @@ class Fan {
     void setAutoMonitored(const int8_t h);
     void spin();
     void print_parameters();
+
+    inline uint8_t actual_Speed() { return ((Kickstart ? data.max_Speed : Speed) * scaled_Speed) >> 7; }
+    inline uint8_t percent() { return (int(actual_Speed()) * 100) / 255; }
 
     // Fan flag bit 0 Hardware inverted
     FORCE_INLINE void setHWInverted(const bool onoff) {

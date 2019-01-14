@@ -277,7 +277,7 @@ void LcdUI::draw_status_screen() {
       // Fan, if a bitmap was provided
       #if DO_DRAW_FAN
         if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
-          const int per = ((int(fans[0].Speed) + 1) * 100) / 256;
+          const int per = fans[0].percent();
           if (per) {
             lcd_moveto(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y);
             lcd_put_u8str(itostr3(per));

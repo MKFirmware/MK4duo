@@ -369,9 +369,9 @@
     }
 
     #if HAS_SD_SUPPORT
-      if (!card.isOK()) card.mount();
+      if (!card.isDetected()) card.mount();
       HAL::delayMilliseconds(500);
-      if (card.isOK()) {
+      if (card.isDetected()) {
         SDstatus = SD_INSERT;
         card.beginautostart();  // Initial boot
       }
@@ -403,7 +403,7 @@
   #if HAS_SD_SUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED() || card.isOK()) {
+      if (IS_SD_INSERTED() || card.isDetected()) {
         Firmware.startUpload();
         nexSerial.end();
         lcdui.init();
@@ -411,7 +411,7 @@
     }
 
     void SDMenuPopCallback() {
-      if (card.isOK()) lcdui.goto_screen(menu_sdcard);
+      if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
     }
 
     void StopPopCallback() {
@@ -419,7 +419,7 @@
     }
 
     void PlayPausePopCallback() {
-      if (card.isOK() && card.isFileOpen()) {
+      if (card.isDetected() && card.isFileOpen()) {
         if (IS_SD_PRINTING()) {
           #if HAS_SD_RESTART
             if (restart.enabled) restart.save_job(true, false);
@@ -511,7 +511,7 @@
   #if FAN_COUNT > 0
     void setfanPopCallback() {
       fans[0].Speed = (fans[0].Speed ? 0 : 255);
-      nexlcd.setValue(Fanspeed, ((float)(fans[0].Speed) / 255) * 100);
+      nexlcd.setValue(Fanspeed, fans[0].percent());
     }
   #endif
 
@@ -661,9 +661,9 @@
         }
 
         #if FAN_COUNT > 0
-          if (PreviousfanSpeed != fans[0].Speed) {
-            nexlcd.setValue(Fanspeed, ((float)(fans[0].Speed) / 255) * 100);
-            PreviousfanSpeed = fans[0].Speed;
+          if (PreviousfanSpeed != fans[0].actual_Speed()) {
+            nexlcd.setValue(Fanspeed, fans[0].percent());
+            PreviousfanSpeed = fans[0].actual_Speed();
           }
         #endif
 
@@ -1440,13 +1440,13 @@
 
         ZERO(buffer);
         strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
-        strcat(buffer, i8tostr1(hotend));
+        strcat(buffer, ui8tostr1(hotend));
         strcat(buffer, " ");
-        strcat(buffer, itostr3(heaters[hotend].current_temperature));
+        strcat(buffer, i8tostr3(heaters[hotend].current_temperature));
         strcat(buffer, "/");
 
         if (get_blink() || !heaters[hotend].isIdle())
-          strcat(buffer, itostr3(heaters[hotend].target_temperature));
+          strcat(buffer, i8tostr3(heaters[hotend].target_temperature));
 
         nexlcd.setText(*txtmenu_list[row], buffer);
       }

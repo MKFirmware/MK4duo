@@ -371,7 +371,7 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
 
 void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert/*=false*/, const uint16_t freq/*=1000*/) {
 
-  static uint8_t PWMEnabled = 0;
+  static bool PWMEnabled = false;
   static uint8_t TCChanEnabled[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   const int writeResolution = 8;
   uint32_t ulValue          = 0;
@@ -444,8 +444,8 @@ void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert
       // PWM Startup code
       pmc_enable_periph_clk(PWM_INTERFACE_ID);
       PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
-      //PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
-      PWMEnabled = 1;
+      PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
+      PWMEnabled = true;
     }
 
     uint32_t chan = pinDesc.ulPWMChannel;
