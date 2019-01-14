@@ -369,9 +369,9 @@
     }
 
     #if HAS_SD_SUPPORT
-      if (!card.isDetected()) card.mount();
+      if (!card.isOK()) card.mount();
       HAL::delayMilliseconds(500);
-      if (card.isDetected()) {
+      if (card.isOK()) {
         SDstatus = SD_INSERT;
         card.beginautostart();  // Initial boot
       }
@@ -403,7 +403,7 @@
   #if HAS_SD_SUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED() || card.isDetected()) {
+      if (IS_SD_INSERTED() || card.isOK()) {
         Firmware.startUpload();
         nexSerial.end();
         lcdui.init();
@@ -411,7 +411,7 @@
     }
 
     void SDMenuPopCallback() {
-      if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
+      if (card.isOK()) lcdui.goto_screen(menu_sdcard);
     }
 
     void StopPopCallback() {
@@ -419,7 +419,7 @@
     }
 
     void PlayPausePopCallback() {
-      if (card.isDetected() && card.isFileOpen()) {
+      if (card.isOK() && card.isFileOpen()) {
         if (IS_SD_PRINTING()) {
           #if HAS_SD_RESTART
             if (restart.enabled) restart.save_job(true, false);
@@ -1440,13 +1440,13 @@
 
         ZERO(buffer);
         strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
-        strcat(buffer, ui8tostr1(hotend));
+        strcat(buffer, i8tostr1(hotend));
         strcat(buffer, " ");
-        strcat(buffer, i8tostr3(heaters[hotend].current_temperature));
+        strcat(buffer, itostr3(heaters[hotend].current_temperature));
         strcat(buffer, "/");
 
         if (get_blink() || !heaters[hotend].isIdle())
-          strcat(buffer, i8tostr3(heaters[hotend].target_temperature));
+          strcat(buffer, itostr3(heaters[hotend].target_temperature));
 
         nexlcd.setText(*txtmenu_list[row], buffer);
       }
