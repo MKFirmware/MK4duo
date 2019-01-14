@@ -96,9 +96,12 @@
       if (!isSequence)
         set_neopixel_color(neocolor);
       else {
-        strip.setPixelColor(nextLed, neocolor);
-        strip.show();
-        if (++nextLed >= strip.numPixels()) nextLed = 0;
+        uint8_t i = 0;
+        for (i = nextLed; i < nextLed + NEOPIXEL_LED_STEP; ++i) {
+          strip.setPixelColor(i, neocolor);
+          strip.show();
+        }
+        if ((nextLed = i) >= strip.numPixels()) nextLed = 0;
         return;
       }
 

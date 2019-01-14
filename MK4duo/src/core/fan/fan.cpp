@@ -38,7 +38,9 @@
 void Fan::init() {
 
   Speed               = 0;
+  last_Speed          = 255;
   paused_Speed        = 0;
+  scaled_Speed        = 128;
   Kickstart           = 0;
 
   setIdle(false);
@@ -118,7 +120,12 @@ void Fan::spin() {
 
   Speed = Speed ? constrain(Speed, data.min_Speed, data.max_Speed) : 0;
 
-  HAL::analogWrite(data.pin, Kickstart ? data.max_Speed : Speed, isHWInverted(), data.freq);
+  const uint8_t new_Speed = actual_Speed();
+
+  if (last_Speed != new_Speed) {
+    last_Speed = new_Speed;
+    HAL::analogWrite(data.pin, new_Speed, isHWInverted(), data.freq);
+  }
 
 }
 

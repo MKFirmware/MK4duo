@@ -332,8 +332,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     mechanics.Nextion_gfx_clear();
   #endif
 
-  SERIAL_STR(RESUME);
-  SERIAL_EOL();
+  SERIAL_L(RESUME);
 
   --did_pause_print;
 
