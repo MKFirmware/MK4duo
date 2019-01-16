@@ -58,6 +58,8 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * EEPROM size is known at compile time!
  */
 #define EEPROM_VERSION "MKV60"
+#define EEPROM_OFFSET 100
+
 typedef struct EepromDataStruct {
 
   char      version[6];                                 // MKVnn\0

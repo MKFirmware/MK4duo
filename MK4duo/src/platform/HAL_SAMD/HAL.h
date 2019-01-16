@@ -115,9 +115,6 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
   #define NUM_SERIAL 1
 #endif
 
-// EEPROM START
-#define EEPROM_OFFSET 10
-
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
 

@@ -163,9 +163,6 @@ typedef uint32_t  ptr_int_t;
   #define NUM_SERIAL 1
 #endif
 
-// EEPROM START
-#define EEPROM_OFFSET 100
-
 // CRITICAL SECTION
 #define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq();
 #define CRITICAL_SECTION_END    if (!primask) __enable_irq();
@@ -283,7 +280,7 @@ class HAL {
     static bool pwm_status(const pin_t pin);
     static bool tc_status(const pin_t pin);
 
-    static void analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert=false, const uint16_t freq=1000);
+    static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq=1000);
 
     static void Tick();
 

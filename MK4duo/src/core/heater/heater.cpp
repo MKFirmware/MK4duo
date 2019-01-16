@@ -164,7 +164,7 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
   printer.setAutoreportTemp(oldReport);
 }
 
-void Heater::set_output() {
+void Heater::getOutput() {
 
   millis_t now = millis();
 
@@ -198,8 +198,11 @@ void Heater::set_output() {
 
   }
 
-  HAL::analogWrite(data.pin, pwm_value, isHWInverted(), (data.type == IS_HOTEND) ? 250 : 10);
+}
 
+void Heater::setOutputPwm() {
+  const uint8_t new_pwm_value = isHWInverted() ? 255 - pwm_value : pwm_value;
+  HAL::analogWrite(data.pin, new_pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
 }
 
 void Heater::print_sensor_parameters() {

@@ -365,16 +365,9 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-void HAL::analogWrite(const pin_t pin, const uint8_t value, const bool HWInvert/*=false*/, const uint16_t freq/*=1000*/) {
-  uint8_t ulValue = 0;
+void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000*/) {
   UNUSED(freq);
-
-  if (HWInvert)
-    ulValue = 255 - value;
-  else
-    ulValue = value;
-
-  softpwm.set(pin, ulValue);
+  softpwm.set(pin, uValue);
 }
 
 void HAL_temp_isr() {
@@ -382,11 +375,19 @@ void HAL_temp_isr() {
   static uint16_t cycle_100ms = 0;
   static uint8_t  channel     = 0;
 
-  /**
-   * Software PWM modulation
-   */
+  // Heaters set output PWM
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() heaters[h].setOutputPwm();
+  #endif
+
+  // Fans set output PWM
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].setOutputPwm();
+  #endif
+
+  // Software PWM modulation
   softpwm.spin();
-  
+
   // Calculation cycle approximate a 100ms
   if (++cycle_100ms >= (F_CPU / 40960)) {
     cycle_100ms = 0;

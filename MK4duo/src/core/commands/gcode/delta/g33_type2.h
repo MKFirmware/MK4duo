@@ -456,11 +456,10 @@ inline void gcode_G33(void) {
   }
 
   // Report settings
-  PGM_P deltaAC = PSTR(MSG_DELTA_AUTO_CALIBRATE);
-  SERIAL_PGM(deltaAC);
+  SERIAL_MSG(MSG_DELTA_AUTO_CALIBRATE);
   if (verbose_level == 0) SERIAL_MSG(" (DRY-RUN)");
   SERIAL_EOL();
-  LCD_MESSAGEPGM(deltaAC);
+  LCD_MESSAGEPGM(MSG_DELTA_AUTO_CALIBRATE);
 
   Report_settings(_endstop_results, _angle_results);
 

@@ -38,7 +38,6 @@
 void Fan::init() {
 
   Speed               = 0;
-  last_Speed          = 255;
   paused_Speed        = 0;
   scaled_Speed        = 128;
   Kickstart           = 0;
@@ -57,6 +56,11 @@ void Fan::setAutoMonitored(const int8_t h) {
   else      
     data.autoMonitored = 0;
   spin();
+}
+
+void Fan::setOutputPwm() {
+  const uint8_t new_Speed = isHWInverted() ? 255 - actual_Speed() : actual_Speed();
+  HAL::analogWrite(data.pin, new_Speed, data.freq);
 }
 
 void Fan::spin() {
@@ -116,16 +120,10 @@ void Fan::spin() {
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
       Speed = controller_fan_watch.elapsed() ? data.min_Speed : data.max_Speed;
     }
+
   }
 
   Speed = Speed ? constrain(Speed, data.min_Speed, data.max_Speed) : 0;
-
-  const uint8_t new_Speed = actual_Speed();
-
-  if (last_Speed != new_Speed) {
-    last_Speed = new_Speed;
-    HAL::analogWrite(data.pin, new_Speed, isHWInverted(), data.freq);
-  }
 
 }
 

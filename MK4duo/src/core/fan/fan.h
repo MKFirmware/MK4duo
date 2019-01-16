@@ -79,7 +79,6 @@ class Fan {
     #endif
 
     uint8_t     Speed,
-                last_Speed,
                 paused_Speed,
                 scaled_Speed,
                 Kickstart;
@@ -88,6 +87,7 @@ class Fan {
 
     void init();
     void setAutoMonitored(const int8_t h);
+    void setOutputPwm();
     void spin();
     void print_parameters();
 
