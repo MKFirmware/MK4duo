@@ -102,7 +102,8 @@ class Heater {
 
     void setTarget(const int16_t celsius);
     void waitForTarget(bool no_wait_for_cooling=true);
-    void set_output();
+    void getOutput();
+    void setOutputPwm();
     void print_sensor_parameters();
     void print_heater_parameters();
     void print_PID_parameters();

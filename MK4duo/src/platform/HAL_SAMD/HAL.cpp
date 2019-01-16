@@ -191,7 +191,7 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 }
 
 
-void HAL::analogWrite(pin_t pin,  uint32_t value, const uint16_t freq/*=1000*/) {
+void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000*/) {
 
   PinDescription pinDesc = g_APinDescription[pin];
   uint32_t attr = pinDesc.ulPinAttribute;

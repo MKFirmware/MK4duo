@@ -126,7 +126,7 @@ void Temperature::spin() {
     // Ignore heater we are currently testing
     if (pid_pointer == act->data.ID) continue;
 
-    act->set_output();
+    act->getOutput();
 
     // Make sure temperature is increasing
     if (act->isThermalProtection() && act->watch_next_ms && ELAPSED(now, act->watch_next_ms)) {
@@ -221,7 +221,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
   pid_data_t tune_pid;
 
   act->pwm_value = act->pid.Max;
-  HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
   int32_t bias  = act->pid.Max >> 1,
           d     = act->pid.Max >> 1;
@@ -259,7 +258,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         heating = false;
 
         act->pwm_value = (bias - d);
-        HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
         t1 = time;
         t_high = t1 - t2;
@@ -334,7 +332,6 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         SERIAL_EOL();
 
         act->pwm_value = (bias + d);
-        HAL::analogWrite(act->data.pin, act->pwm_value, act->isHWInverted(), (act->data.type == IS_HOTEND) ? 250 : 10);
 
         cycles++;
 

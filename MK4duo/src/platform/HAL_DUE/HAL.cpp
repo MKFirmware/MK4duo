@@ -369,19 +369,13 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
 }
 
-void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert/*=false*/, const uint16_t freq/*=1000*/) {
+void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000*/) {
 
   static bool PWMEnabled = false;
   static uint8_t TCChanEnabled[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   const int writeResolution = 8;
-  uint32_t ulValue          = 0;
 
-  if (isnan(value) || pin <= 0) return;
-
-  if (HWInvert)
-    ulValue = 255 - value;
-  else
-    ulValue = value;
+  if (isnan(ulValue) || pin <= 0) return;
 
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
@@ -438,6 +432,7 @@ void HAL::analogWrite(const pin_t pin, const uint32_t value, const bool HWInvert
   }
 
   if ((attr & PIN_ATTR_PWM) == PIN_ATTR_PWM) {
+
     ulValue = mapResolution(ulValue, writeResolution, PWM_RESOLUTION);
 
     if (!PWMEnabled) {
@@ -560,7 +555,17 @@ void HAL::Tick() {
 
   if (printer.isStopped()) return;
 
-  // Soft PWM Spin
+  // Heaters set output PWM
+  #if HEATER_COUNT > 0
+    LOOP_HEATER() heaters[h].setOutputPwm();
+  #endif
+
+  // Fans set output PWM
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].setOutputPwm();
+  #endif
+
+  // Software PWM modulation
   softpwm.spin();
 
   // Calculation cycle temp a 100ms
