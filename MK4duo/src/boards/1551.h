@@ -162,6 +162,7 @@
 //###UNKNOWN_PINS
 // I2C EEPROM with 32K of space
 #define EEPROM_I2C
+#define EEPROM_DELAY  10
 #define E2END 0x8000
 //@@@
 
