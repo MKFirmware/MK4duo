@@ -36,6 +36,14 @@
 #include "../platform.h"
 
 // --------------------------------------------------------------------------
+// Local defines
+// --------------------------------------------------------------------------
+
+#ifndef EEPROM_DELAY
+  #define EEPROM_DELAY 5
+#endif
+
+// --------------------------------------------------------------------------
 // Public functions
 // --------------------------------------------------------------------------
 
@@ -62,7 +70,7 @@ void eeprom_write_byte(uint8_t* pos, uint8_t value) {
 
   // wait for write cycle to complete
   // this could be done more efficiently with "acknowledge polling"
-  HAL::delayMilliseconds(5);
+  HAL::delayMilliseconds(EEPROM_DELAY);
 }
 
 // WARNING: address is a page address, 6-bit end will wrap around
@@ -91,7 +99,7 @@ void eeprom_update_block(const void* pos, void* eeprom_address, size_t n) {
 
     // wait for write cycle to complete
     // this could be done more efficiently with "acknowledge polling"
-    HAL::delayMilliseconds(5);
+    HAL::delayMilliseconds(EEPROM_DELAY);
   }
 }
 
