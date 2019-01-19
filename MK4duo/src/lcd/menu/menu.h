@@ -258,9 +258,9 @@ class MenuItem_bool {
  *     draw_menu_item_back(sel, row, PSTR(MSG_WATCH))
  *     MenuItem_back::action()
  *
- *   MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_print_pause)
- *     draw_menu_item_function(sel, row, PSTR(MSG_PAUSE_PRINT), lcd_print_pause)
- *     MenuItem_function::action(lcd_print_pause)
+ *   MENU_ITEM(function, MSG_PAUSE_PRINT, printer.print_pause)
+ *     draw_menu_item_function(sel, row, PSTR(MSG_PAUSE_PRINT), printer.print_pause)
+ *     MenuItem_function::action(printer.print_pause)
  *
  *   MENU_ITEM_EDIT(int3, MSG_SPEED, &feedrate_percentage, 10, 999)
  *     draw_menu_item_edit_int3(sel, row, PSTR(MSG_SPEED), PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)

@@ -102,10 +102,11 @@
   uint16_t    slidermaxval                = 20;
   char        buffer[NEXTION_BUFFER_SIZE] = { 0 };
 
+  // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD_HOST printing, 4 SD_HOST paused
+  enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_HOST_PRINTING = 3, SD_HOST_PAUSE = 4 };
+  SDstatus_enum SDstatus    = NO_SD;
+
   #if HAS_SD_SUPPORT
-    // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD printing, 4 SD paused
-    enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_PRINTING = 3, SD_PAUSE = 4 };
-    SDstatus_enum SDstatus    = NO_SD;
     NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
   #endif
 
@@ -407,31 +408,20 @@
       if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
     }
 
-    void StopPopCallback() {
-      lcdui.goto_screen(menu_stop_print);
-    }
-
-    void PlayPausePopCallback() {
-      if (card.isDetected() && card.isFileOpen()) {
-        if (IS_SD_PRINTING()) {
-          #if HAS_SD_RESTART
-            if (restart.enabled) restart.save_job(true, false);
-          #endif
-          commands.enqueue_and_echo_P(PSTR("M25"));
-        }
-        else {
-          #if ENABLED(PARK_HEAD_ON_PAUSE)
-            commands.enqueue_and_echo_P(PSTR("M24"));
-          #else
-            card.startFileprint();
-            print_job_counter.start();
-          #endif
-          lcdui.reset_status();
-        }
-      }
-    }
-
   #endif
+
+  void StopPopCallback() {
+    #if HAS_LCD_MENU
+      lcdui.goto_screen(menu_stop_print);
+    #else
+      printer.stop_print();
+    #endif
+  }
+
+  void PlayPausePopCallback() {
+    if (printer.isPrinting())     printer.pause_print();
+    else if (printer.isPaused())  printer.resume_print();
+  }
 
   #if ENABLED(RFID_MODULE)
 
@@ -738,35 +728,38 @@
           PreviouspercentDone = printer.progress;
         }
 
+        if (printer.isPrinting()) {
+          if (SDstatus != SD_HOST_PRINTING) {
+            SDstatus = SD_HOST_PRINTING;
+            nexlcd.setValue(SD, SDstatus);
+          }
+        }
+        else if (printer.isPaused()) {
+          if (SDstatus != SD_HOST_PAUSE) {
+            SDstatus = SD_HOST_PAUSE;
+            nexlcd.setValue(SD, SDstatus);
+          }
+        }
+        else if (IS_SD_OK()) {
+          if (SDstatus != SD_INSERT) {
+            SDstatus = SD_INSERT;
+            nexlcd.setValue(SD, SDstatus);
+          }
+        }
         #if HAS_SD_SUPPORT
-
-          if (IS_SD_FILE_OPEN()) {
-            if (IS_SD_PRINTING()) {
-              if (SDstatus != SD_PRINTING) {
-                SDstatus = SD_PRINTING;
-                nexlcd.setValue(SD, SDstatus);
-              }
-            }
-            else {
-              if (SDstatus != SD_PAUSE) {
-                SDstatus = SD_PAUSE;
-                nexlcd.setValue(SD, SDstatus);
-              }
-            }
-          }
-          else if (IS_SD_OK()) {
-            if (SDstatus != SD_INSERT) {
-              SDstatus = SD_INSERT;
-              nexlcd.setValue(SD, SDstatus);
-            }
-          }
           else if (!IS_SD_OK()) {
             if (SDstatus != SD_NO_INSERT) {
               SDstatus = SD_NO_INSERT;
               nexlcd.setValue(SD, SDstatus);
             }
           }
-
+        #else
+          else {
+            if (SDstatus != NO_SD) {
+              SDstatus = NO_SD;
+              nexlcd.setValue(SD, SDstatus);
+            }
+          }
         #endif
 
         break;
@@ -1101,9 +1094,9 @@
     #endif
     #if HAS_SD_SUPPORT
       else if (nexobject == &SDMenu)      SDMenuPopCallback();
-      else if (nexobject == &NStop)       StopPopCallback();
-      else if (nexobject == &NPlay)       PlayPausePopCallback();
     #endif
+    else if (nexobject == &NStop)       StopPopCallback();
+    else if (nexobject == &NPlay)       PlayPausePopCallback();
 
   }
 

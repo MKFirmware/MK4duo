@@ -147,6 +147,12 @@ class Printer {
     static void setInterruptEvent(const InterruptEventEnum event);
 
     static bool isPrinting();
+    static bool isPaused();
+
+    static void pause_print();
+    static void resume_print();
+    static void stop_print();
+
     static bool pin_is_protected(const pin_t pin);
 
     #if HAS_SUICIDE

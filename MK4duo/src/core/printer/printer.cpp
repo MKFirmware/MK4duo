@@ -912,7 +912,48 @@ void Printer::handle_safety_watch() {
 /**
  * isPrinting check
  */
-bool Printer::isPrinting() { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
+bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
+bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused();  }
+
+/**
+ * Print pause, resume and stop
+ */
+void Printer::pause_print() {
+  #if HAS_SD_RESTART
+    if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
+  #endif
+
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.active_extruder);
+    commands.enqueue_and_echo_P(PSTR("M25 P"));
+  #elif HAS_SD_SUPPORT
+    commands.enqueue_and_echo_P(PSTR("M25"));
+  #else
+    SERIAL_L(REQUESTPAUSE);
+  #endif
+
+  planner.synchronize();
+
+}
+
+void Printer::resume_print() {
+  #if HAS_SD_SUPPORT
+    commands.enqueue_and_echo_P(PSTR("M24"));
+  #else
+    SERIAL_L(REQUESTCONTINUE);
+  #endif
+}
+
+void Printer::stop_print() {
+  setWaitForHeatUp(false);
+  setWaitForUser(false);
+  #if HAS_SD_SUPPORT
+    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
+  #endif
+  lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
+  lcdui.return_to_status();
+  SERIAL_L(REQUESTSTOP);
+}
 
 /**
  * Sensitive pin test for M42, M226

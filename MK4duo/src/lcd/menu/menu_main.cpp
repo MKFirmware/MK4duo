@@ -28,49 +28,12 @@
 
 #if HAS_LCD_MENU
 
-void lcd_print_pause() {
-  #if HAS_SD_RESTART
-    if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
-  #endif
-
-  #if ENABLED(PARK_HEAD_ON_PAUSE)
-    lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.active_extruder);
-    commands.enqueue_and_echo_P(PSTR("M25 P"));
-  #elif HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M25"));
-  #else
-    SERIAL_L(REQUESTPAUSE);
-  #endif
-
-  planner.synchronize();
-
-}
-
-void lcd_print_resume() {
-  #if HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M24"));
-  #else
-    SERIAL_L(REQUESTCONTINUE);
-  #endif
-}
-
-void lcd_print_stop() {
-  printer.setWaitForHeatUp(false);
-  printer.setWaitForUser(false);
-  #if HAS_SD_SUPPORT
-    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
-  #endif
-  lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
-  lcdui.return_to_status();
-  SERIAL_L(REQUESTSTOP);
-}
-
 void menu_stop_print() {
   lcdui.encoder_direction_menus();
   START_MENU();
   MENU_BACK(MSG_MAIN);
   STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
-  MENU_ITEM(function, MSG_YES, lcd_print_stop);
+  MENU_ITEM(function, MSG_YES, printer.stop_print);
   MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
   END_MENU();
 }
@@ -135,12 +98,13 @@ void menu_main() {
   const bool busy = printer.isPrinting();
 
   if (busy) {
-    MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_print_pause);
+    MENU_ITEM(function, MSG_PAUSE_PRINT, printer.pause_print);
     MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
     MENU_ITEM(submenu, MSG_TUNE, menu_tune);
   }
   else {
-    MENU_ITEM(function, MSG_RESUME_PRINT, lcd_print_resume);
+    if (printer.isPaused())
+      MENU_ITEM(function, MSG_RESUME_PRINT, printer.resume_print);
     MENU_ITEM(submenu, MSG_MOTION, menu_motion);
     if (printer.mode == PRINTER_MODE_FFF)
       MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
