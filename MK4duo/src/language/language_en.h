@@ -1274,6 +1274,7 @@
   #endif
 #endif // LCD_HEIGHT < 4
 
+// TMC driver
 #ifndef MSG_TMC_DRIVERS
   #define MSG_TMC_DRIVERS                     _UxGT("TMC drivers")
 #endif

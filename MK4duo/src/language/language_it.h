@@ -451,6 +451,15 @@
   #define MSG_FILAMENT_CHANGE_RESUME_1      _UxGT("Ripresa...")
 #endif // LCD_HEIGHT < 4
 
+// TMC Driver
+#define MSG_TMC_DRIVERS                     _UxGT("Drivers TMC")
+#define MSG_TMC_CURRENT                     _UxGT("Corrente driver")
+#define MSG_TMC_MICROSTEP                   _UxGT("Driver microstep")
+#define MSG_TMC_HYBRID_THRS                 _UxGT("Soglia modo ibrido")
+#define MSG_TMC_HOMING_THRS                 _UxGT("Sensorless homing")
+#define MSG_TMC_STEPPING_MODE               _UxGT("Modo stepping")
+#define MSG_TMC_STEALTH_ENABLED             _UxGT("StealthChop abil.")
+
 // Heater
 #define MSG_HEATING                         _UxGT("Riscaldamento...")
 #define MSG_HEATING_COMPLETE                _UxGT("Risc. completato")
