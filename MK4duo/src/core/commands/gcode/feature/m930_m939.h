@@ -26,6 +26,8 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
+#if HAS_TRINAMIC
+
 #define CODE_M930
 #define CODE_M931
 #define CODE_M932
@@ -907,3 +909,5 @@ inline void gcode_M939(void) {
     #endif
   }
 }
+
+#endif // HAS_TRINAMIC
