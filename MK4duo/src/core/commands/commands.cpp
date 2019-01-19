@@ -243,7 +243,7 @@ bool Commands::get_target_tool(const uint16_t code) {
 
 bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
   h = parser.seen('H') ? parser.value_int() : 0;
-  if (WITHIN(h, 0 , HOTENDS -1)) return true;
+  if (WITHIN(h, 0 , HOTENDS - 1)) return true;
   if (!only_hotend) {
     #if HAS_HEATER_BED
       if (h == -1) {
@@ -271,6 +271,17 @@ bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
     return false;
   }
 }
+
+#if FAN_COUNT > 0
+  bool Commands::get_target_fan(uint8_t &f) {
+    f = parser.seen('P') ? parser.value_byte() : 0;
+    if (WITHIN(f, 0 , FAN_COUNT - 1)) return true;
+    else {
+      SERIAL_LM(ER, "Invalid Fan");
+      return false;
+    }
+  }
+#endif
 
 /** Private Function */
 void Commands::ok_to_send() {

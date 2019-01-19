@@ -136,10 +136,6 @@ void reset_stepper_drivers() {
   #if HAVE_DRV(TMC26X)
     tmc26x_init_to_defaults();
   #endif
-  #if HAVE_DRV(TMC2130) || HAVE_DRV(TMC2208)
-    delay(100);
-    tmc.microstep_init_to_defaults();
-  #endif
   #if HAVE_DRV(L6470)
     L6470_init_to_defaults();
   #endif

@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * dhtsensor.h
  *
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
-
-#ifndef _DHTSENSOR_H_
-#define _DHTSENSOR_H_
 
 #if ENABLED(DHT_SENSOR)
 
@@ -36,11 +34,11 @@
   #define DHT21 21
   #define DHT22 22
 
-  class DhtSensor {
+  class DHTSensor {
 
     public: /** Constructor */
 
-      DhtSensor() {}
+      DHTSensor() {}
 
     public: /** Public Parameters */
 
@@ -62,14 +60,13 @@
     public: /** Public Function */
 
       static void init();
+      static void factory_parameters();
       static void change_type(const uint8_t dhtType);
-      static void print_parameters();
+      static void print_M305();
       static void spin();
 
   };
 
-  extern DhtSensor dhtsensor;
+  extern DHTSensor dhtsensor;
 
 #endif // ENABLED(DHT_SENSOR)
-
-#endif /* _DHTSENSOR_H_ */

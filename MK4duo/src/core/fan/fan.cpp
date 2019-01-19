@@ -93,21 +93,21 @@ void Fan::spin() {
       #endif
 
       // Check Motors
-      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
-        || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+      if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
+        || E0_ENABLE_READ() == E_ENABLE_ON // If any of the drivers are enabled...
         #if DRIVER_EXTRUDERS > 1
-          || E1_ENABLE_READ == E_ENABLE_ON
+          || E1_ENABLE_READ() == E_ENABLE_ON
           #if HAS_X2_ENABLE
-            || X2_ENABLE_READ == X_ENABLE_ON
+            || X2_ENABLE_READ() == X_ENABLE_ON
           #endif
           #if DRIVER_EXTRUDERS > 2
-            || E2_ENABLE_READ == E_ENABLE_ON
+            || E2_ENABLE_READ() == E_ENABLE_ON
             #if DRIVER_EXTRUDERS > 3
-              || E3_ENABLE_READ == E_ENABLE_ON
+              || E3_ENABLE_READ() == E_ENABLE_ON
               #if DRIVER_EXTRUDERS > 4
-                || E4_ENABLE_READ == E_ENABLE_ON
+                || E4_ENABLE_READ() == E_ENABLE_ON
                 #if DRIVER_EXTRUDERS > 5
-                  || E5_ENABLE_READ == E_ENABLE_ON
+                  || E5_ENABLE_READ() == E_ENABLE_ON
                 #endif
               #endif
             #endif
@@ -127,7 +127,7 @@ void Fan::spin() {
 
 }
 
-void Fan::print_parameters() {
+void Fan::print_M106() {
   bool found_auto = false;
   SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);

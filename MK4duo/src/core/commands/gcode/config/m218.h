@@ -37,10 +37,21 @@
  *   Z<zoffset>
  */
 inline void gcode_M218(void) {
+
   int8_t h = 0;
+
   if (!commands.get_target_heater(h, true)) return;
+
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M218 report.
+    if (!parser.seen("XYZ")) {
+      tools.print_M218(h);
+      return;
+    }
+  #endif
+
   if (parser.seenval('X')) tools.hotend_offset[X_AXIS][h] = parser.value_linear_units();
   if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][h] = parser.value_linear_units();
   if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][h] = parser.value_linear_units();
-  tools.print_parameters(h);
+
 }

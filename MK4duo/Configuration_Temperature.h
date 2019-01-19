@@ -315,9 +315,6 @@
 // If this is enabled, find your own PID constants below.
 #define PIDTEMPCOOLER false
 
-// Enable fast PWM for cooler
-//#define FAST_PWM_COOLER
-
 #define COOLER_HYSTERESIS        2 // only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T>target+COOLER_HYSTERESIS
 #define COOLER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
@@ -380,6 +377,9 @@
 
 #define THERMAL_PROTECTION_PERIOD    40     // Seconds
 #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
+
+// If thermal protection hotends is true, this parameter adapt fan speed if temperature drops
+//#define ADAPTIVE_FAN_SPEED
 
 /**
  * When ever increases the target temperature the firmware will wait for the

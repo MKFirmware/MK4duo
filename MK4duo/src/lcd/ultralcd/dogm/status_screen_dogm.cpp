@@ -38,7 +38,7 @@
 #endif
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
-  const char *str = itostr3(temp);
+  const char *str = i16tostr3(temp);
   const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
   lcd_moveto(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty);
   lcd_put_u8str(&str[3-len]);
@@ -222,7 +222,7 @@ void LcdUI::draw_status_screen() {
     strcpy(zstring, ftostr52sp (LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
     #if HAS_LCD_FILAMENT_SENSOR
       strcpy(wstring, ftostr12ns(filament_width_meas));
-      strcpy(mstring, itostr3(100.0 * (
+      strcpy(mstring, i16tostr3(100.0 * (
           printer.isVolumetric()
             ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
@@ -277,10 +277,10 @@ void LcdUI::draw_status_screen() {
       // Fan, if a bitmap was provided
       #if DO_DRAW_FAN
         if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
-          const int per = fans[0].percent();
+          const uint8_t per = fans[0].percent();
           if (per) {
             lcd_moveto(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y);
-            lcd_put_u8str(itostr3(per));
+            lcd_put_u8str(ui8tostr3(per));
             lcd_put_wchar('%');
           }
         }
@@ -328,7 +328,7 @@ void LcdUI::draw_status_screen() {
       if (stepper.laser_status()) {
         u8g.drawBitmapP(10, 10, ICON_BYTEWIDTH, ICON_HEIGHT, laseron_bmp);
         lcd_moveto(5, 7);
-        lcd_put_u8str(itostr3(stepper.laser_intensity()));
+        lcd_put_u8str(i8tostr3(stepper.laser_intensity()));
         lcd_put_u8str_P(PSTR("%"));
       }
       else {
@@ -364,10 +364,7 @@ void LcdUI::draw_status_screen() {
   #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
 
   if (PAGE_CONTAINS(49, 52))       // 49-52
-    u8g.drawFrame(
-      PROGRESS_BAR_X, 49,
-      PROGRESS_BAR_WIDTH, 4
-    );
+    u8g.drawFrame(PROGRESS_BAR_X, 49, PROGRESS_BAR_WIDTH, 4);
 
   //
   // Progress bar solid part
@@ -402,7 +399,7 @@ void LcdUI::draw_status_screen() {
         lcd_put_u8str(buffer2);
       }
       else {
-        lcd_put_u8str(itostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
+        lcd_put_u8str(ui32tostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
         lcd_put_u8str((char*)"Wh");
       }
     #else
@@ -480,7 +477,7 @@ void LcdUI::draw_status_screen() {
 
     set_font(FONT_STATUSMENU);
     lcd_moveto(12, EXTRAS_2_BASELINE);
-    lcd_put_u8str(itostr3(mechanics.feedrate_percentage));
+    lcd_put_u8str(i16tostr3(mechanics.feedrate_percentage));
     lcd_put_wchar('%');
 
     //

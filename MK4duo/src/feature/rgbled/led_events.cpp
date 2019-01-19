@@ -59,8 +59,8 @@
 
   /** Private Function */
   uint8_t LedEvents::get_intensity(const float &start, const float &current, const float &target) {
-    //return map(current, start, target, 0, 255);
-    return (uint8_t)((((current - start) * 255) + target - start + 1) / (target - start + 1));
+    return (uint8_t)map(constrain(current, start, target), start, target, 0.f, 255.f);
+    //return (uint8_t)((((current - start) * 255) + target - start + 1) / (target - start + 1));
   }
 
   inline void LedEvents::set_rgb(const uint8_t r, const uint8_t g, const uint8_t b) {

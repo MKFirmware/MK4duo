@@ -71,8 +71,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
 
   if (did_pause_print) return false; // already paused
 
-  SERIAL_STR(PAUSE);
-  SERIAL_EOL();
+  SERIAL_L(REQUESTPAUSE);
 
   #if HAS_LCD_MENU
     if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT);
@@ -103,6 +102,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
       ++did_pause_print;
     }
   #endif
+
   print_job_counter.pause();
 
   // Save current position
@@ -332,7 +332,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     mechanics.Nextion_gfx_clear();
   #endif
 
-  SERIAL_L(RESUME);
+  SERIAL_L(REQUESTCONTINUE);
 
   --did_pause_print;
 

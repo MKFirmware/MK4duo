@@ -104,7 +104,7 @@
   #define MSG_VC_JERK                       _UxGT("Vz-jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
-#define MSG_VMAX                            _UxGT("Vmax")
+#define MSG_VMAX                            _UxGT("Vmax ")
 #define MSG_VMIN                            _UxGT("Vmin")
 #define MSG_VTRAV_MIN                       _UxGT("Vel. viache min")
 #define MSG_ACCELERATION                    MSG_ACC

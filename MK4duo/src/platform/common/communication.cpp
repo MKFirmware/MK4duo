@@ -42,6 +42,8 @@ FSTRINGVALUE(RESUME, "//action:resume");
 FSTRINGVALUE(DISCONNECT, "//action:disconnect");
 FSTRINGVALUE(POWEROFF, "//action:poweroff");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
+FSTRINGVALUE(REQUESTCONTINUE, "RequestContinue:");
+FSTRINGVALUE(REQUESTSTOP, "RequestStop:");
 
 /** Public Parameters */
 int8_t Com::serial_port = -1;

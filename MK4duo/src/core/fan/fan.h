@@ -89,7 +89,7 @@ class Fan {
     void setAutoMonitored(const int8_t h);
     void setOutputPwm();
     void spin();
-    void print_parameters();
+    void print_M106();
 
     inline uint8_t actual_Speed() { return ((Kickstart ? data.max_Speed : Speed) * scaled_Speed) >> 7; }
     inline uint8_t percent() { return (int(actual_Speed()) * 100) / 255; }

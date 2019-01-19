@@ -1,3 +1,12 @@
+### Version 4.3.8
+* Add TMC settings to menu LCD
+* Add Adaptive Fan speed
+* Add Request pause to Host
+* Rewrite TMC files
+* Add M92 Subcommand H[microstep] L[Layer wanted]
+* Add to all nextion scroll message By MrGoblin
+* Clear code
+
 ### Version 4.3.7
 * Add Command:
 * G34: Set Delta Height calculated from toolhead position (only DELTA)

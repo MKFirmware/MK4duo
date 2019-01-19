@@ -205,7 +205,7 @@ void Heater::setOutputPwm() {
   HAL::analogWrite(data.pin, new_pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
 }
 
-void Heater::print_sensor_parameters() {
+void Heater::print_M305() {
   const int8_t heater_id = data.type == 0 ? data.ID : -data.type;
   SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> T<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
   SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
@@ -222,7 +222,7 @@ void Heater::print_sensor_parameters() {
   SERIAL_EOL();
 }
 
-void Heater::print_heater_parameters() {
+void Heater::print_M306() {
   const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
   SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> T<Thermal Protection 0-1>:");
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
@@ -238,7 +238,7 @@ void Heater::print_heater_parameters() {
   SERIAL_EOL();
 }
 
-void Heater::print_PID_parameters() {
+void Heater::print_M301() {
   if (isUsePid()) {
     SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -273,7 +273,7 @@ void Heater::print_PID_parameters() {
 }
 
 #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
-  void Heater::print_AD595_parameters() {
+  void Heater::print_M595() {
     SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend> O<Offset> S<Gain>:");
     SERIAL_SMV(CFG, "  M595 H", (int)data.ID);
     SERIAL_MV(" O", sensor.ad595_offset);
@@ -307,6 +307,24 @@ void Heater::thermal_runaway_protection() {
 
     // While the temperature is stable watch for a bad temperature
     case TRStable:
+
+      #if ENABLED(ADAPTIVE_FAN_SPEED) && FAN_COUNT > 0
+        if (data.type == IS_HOTEND) {
+          if (fans[0].Speed == 0)
+            fans[0].scaled_Speed = 128;
+          else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.25f))
+            fans[0].scaled_Speed = 128;
+          else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.40f))
+            fans[0].scaled_Speed = 96;
+          else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.60f))
+            fans[0].scaled_Speed = 64;
+          else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.90f))
+            fans[0].scaled_Speed = 32;
+          else
+            fans[0].scaled_Speed = 0;
+        }
+      #endif
+
       if (current_temperature >= target_temperature - THERMAL_PROTECTION_HYSTERESIS) {
         thermal_runaway_timer = millis() + THERMAL_PROTECTION_PERIOD * 1000UL;
         break;

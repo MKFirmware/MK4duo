@@ -28,44 +28,52 @@
 
 #if HAS_LCD_MENU
 
-#if HAS_SD_SUPPORT
+void lcd_print_pause() {
+  #if HAS_SD_RESTART
+    if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
+  #endif
 
-  void lcd_sdcard_pause() {
-    #if HAS_SD_RESTART
-      if (restart.enabled) restart.save_job(true, false);
-    #endif
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.active_extruder);
+    commands.enqueue_and_echo_P(PSTR("M25 P"));
+  #elif HAS_SD_SUPPORT
     commands.enqueue_and_echo_P(PSTR("M25"));
-  }
+  #else
+    SERIAL_L(REQUESTPAUSE);
+  #endif
 
-  void lcd_sdcard_resume() {
-    #if ENABLED(PARK_HEAD_ON_PAUSE)
-      commands.enqueue_and_echo_P(PSTR("M24"));
-    #else
-      card.startFileprint();
-      print_job_counter.start();
-      lcdui.reset_status();
-    #endif
-  }
+  planner.synchronize();
 
-  void lcd_sdcard_stop() {
-    printer.setWaitForHeatUp(false);
-    printer.setWaitForUser(false);
-    card.setAbortSDprinting(true);
-    lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
-    lcdui.return_to_status();
-  }
+}
 
-  void menu_stop_print() {
-    lcdui.encoder_direction_menus();
-    START_MENU();
-    MENU_BACK(MSG_MAIN);
-    STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
-    MENU_ITEM(function, MSG_YES, lcd_sdcard_stop);
-    MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
-    END_MENU();
-  }
+void lcd_print_resume() {
+  #if HAS_SD_SUPPORT
+    commands.enqueue_and_echo_P(PSTR("M24"));
+  #else
+    SERIAL_L(REQUESTCONTINUE);
+  #endif
+}
 
-#endif // HAS_SD_SUPPORT
+void lcd_print_stop() {
+  printer.setWaitForHeatUp(false);
+  printer.setWaitForUser(false);
+  #if HAS_SD_SUPPORT
+    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
+  #endif
+  lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
+  lcdui.return_to_status();
+  SERIAL_L(REQUESTSTOP);
+}
+
+void menu_stop_print() {
+  lcdui.encoder_direction_menus();
+  START_MENU();
+  MENU_BACK(MSG_MAIN);
+  STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+  MENU_ITEM(function, MSG_YES, lcd_print_stop);
+  MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
+  END_MENU();
+}
 
 #if HAS_EEPROM
   void menu_eeprom() {
@@ -124,34 +132,15 @@ void menu_main() {
   START_MENU();
   MENU_BACK(MSG_WATCH);
 
-  #if HAS_SD_SUPPORT
-    if (card.isOK()) {
-      if (card.isFileOpen()) {
-        if (IS_SD_PRINTING())
-          MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause);
-        else
-          MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_resume);
-        MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
-      }
-      else {
-        MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
-        #if !PIN_EXISTS(SD_DETECT)
-          MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
-        #endif
-      }
-    }
-    else {
-      MENU_ITEM(function, MSG_NO_CARD, NULL);
-      #if !PIN_EXISTS(SD_DETECT)
-        MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
-      #endif
-    }
-  #endif // SDSUPPORT
-
   const bool busy = printer.isPrinting();
-  if (busy)
+
+  if (busy) {
+    MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_print_pause);
+    MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
     MENU_ITEM(submenu, MSG_TUNE, menu_tune);
+  }
   else {
+    MENU_ITEM(function, MSG_RESUME_PRINT, lcd_print_resume);
     MENU_ITEM(submenu, MSG_MOTION, menu_motion);
     if (printer.mode == PRINTER_MODE_FFF)
       MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
@@ -194,13 +183,32 @@ void menu_main() {
       MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));
   #endif
 
-  //
-  // Autostart
-  //
-  #if HAS_SD_SUPPORT && ENABLED(MENU_ADDAUTOSTART)
-    if (!busy)
-      MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
-  #endif
+  #if HAS_SD_SUPPORT
+
+    //
+    // Autostart
+    //
+    #if ENABLED(MENU_ADDAUTOSTART)
+      if (!busy)
+        MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
+    #endif
+
+    if (card.isDetected()) {
+      if (!card.isFileOpen()) {
+        MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
+        #if !PIN_EXISTS(SD_DETECT)
+          MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
+        #endif
+      }
+    }
+    else {
+      #if !PIN_EXISTS(SD_DETECT)
+        MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
+      #endif
+      MENU_ITEM(function, MSG_NO_CARD, NULL);
+    }
+
+  #endif // SDSUPPORT
 
   END_MENU();
 }

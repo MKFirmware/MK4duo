@@ -222,7 +222,7 @@
       ZERO(message);
 
       strcat(titolo, MSG_RFID_SPOOL);
-      temp = itostr3(e);
+      temp = i8tostr3(e);
       strcat(titolo, temp);
       strcat(message, PSTR(MSG_RFID_BRAND));
       strcat(message, RfidData[e].data.brand);

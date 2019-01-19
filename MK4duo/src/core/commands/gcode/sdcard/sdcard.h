@@ -81,31 +81,43 @@
    */
   inline void gcode_M24(void) {
 
-    #if ENABLED(PARK_HEAD_ON_PAUSE)
-      advancedpause.resume_print();
-    #endif
-
     if (parser.seenval('S')) card.setIndex(parser.value_long());
     if (parser.seenval('T')) print_job_counter.resume(parser.value_long());
 
-    card.startFileprint();
-    print_job_counter.start();
+    #if ENABLED(PARK_HEAD_ON_PAUSE)
+      if (advancedpause.did_pause_print) {
+        advancedpause.resume_print();
+        return;
+      }
+    #endif
+
+    if (card.isFileOpen()) {
+      card.startFileprint();
+      print_job_counter.start();
+    }
 
     lcdui.reset_status();
+
+    SERIAL_L(REQUESTCONTINUE);
+
   }
 
   /**
    * M25: Pause SD Print
    */
   void gcode_M25(void) {
+
+    // Set initial pause flag to prevent more commands from landing in the queue while we try to pause
+    #if ENABLED(SDSUPPORT)
+      if (IS_SD_PRINTING()) card.pauseSDPrint();
+    #endif
+
     #if ENABLED(PARK_HEAD_ON_PAUSE)
       gcode_M125();
     #else
-      card.pauseSDPrint();
       print_job_counter.pause();
       lcdui.reset_status();
-      SERIAL_STR(PAUSE);
-      SERIAL_EOL();
+      SERIAL_L(REQUESTPAUSE);
     #endif
   }
 
@@ -113,7 +125,7 @@
    * M26: Set SD Card file index
    */
   inline void gcode_M26(void) {
-    if (card.isOK() && parser.seen('S'))
+    if (card.isDetected() && parser.seenval('S'))
       card.setIndex(parser.value_long());
   }
 
@@ -144,7 +156,7 @@
    * M30 <filename>: Delete SD Card file
    */
   inline void gcode_M30(void) {
-    if (card.isOK()) {
+    if (card.isDetected()) {
       card.closeFile();
       card.deleteFile(parser.string_arg);
     }
@@ -156,7 +168,7 @@
   inline void gcode_M32(void) {
     if (IS_SD_PRINTING()) planner.synchronize();
 
-    if (card.isOK()) {
+    if (card.isDetected()) {
       card.closeFile();
 
       char* namestartpos = parser.string_arg ; // default name position
@@ -177,7 +189,7 @@
    * M33: Stop printing, close file and save restart.gcode
    */
   inline void gcode_M33(void) {
-    if (card.isOK() && IS_SD_PRINTING())
+    if (card.isDetected() && IS_SD_PRINTING())
       card.setAbortSDprinting(true);
   }
 

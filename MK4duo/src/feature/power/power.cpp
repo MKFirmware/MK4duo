@@ -122,21 +122,21 @@
         LOOP_FAN() if (fans[f].Speed > 0) return true;
       #endif
 
-      if (X_ENABLE_READ == X_ENABLE_ON || Y_ENABLE_READ == Y_ENABLE_ON || Z_ENABLE_READ == Z_ENABLE_ON
-          || E0_ENABLE_READ == E_ENABLE_ON // If any of the drivers are enabled...
+      if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
+          || E0_ENABLE_READ() == E_ENABLE_ON // If any of the drivers are enabled...
           #if DRIVER_EXTRUDERS > 1
-            || E1_ENABLE_READ == E_ENABLE_ON
+            || E1_ENABLE_READ() == E_ENABLE_ON
             #if HAS_X2_ENABLE
-              || X2_ENABLE_READ == X_ENABLE_ON
+              || X2_ENABLE_READ() == X_ENABLE_ON
             #endif
             #if DRIVER_EXTRUDERS > 2
-              || E2_ENABLE_READ == E_ENABLE_ON
+              || E2_ENABLE_READ() == E_ENABLE_ON
               #if DRIVER_EXTRUDERS > 3
-                || E3_ENABLE_READ == E_ENABLE_ON
+                || E3_ENABLE_READ() == E_ENABLE_ON
                 #if DRIVER_EXTRUDERS > 4
-                  || E4_ENABLE_READ == E_ENABLE_ON
+                  || E4_ENABLE_READ() == E_ENABLE_ON
                   #if DRIVER_EXTRUDERS > 5
-                    || E5_ENABLE_READ == E_ENABLE_ON
+                    || E5_ENABLE_READ() == E_ENABLE_ON
                   #endif
                 #endif
               #endif

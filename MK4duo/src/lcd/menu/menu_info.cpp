@@ -36,8 +36,8 @@ void menu_info_stats() {
   printStatistics stats = print_job_counter.getStats();
 
   START_SCREEN();
-  STATIC_ITEM(MSG_INFO_PRINT_COUNT ":", false, false, itostr3left(stats.totalPrints));
-  STATIC_ITEM(MSG_INFO_COMPLETED_PRINTS ":",  false, false, itostr3left(stats.finishedPrints));
+  STATIC_ITEM(MSG_INFO_PRINT_COUNT ":", false, false, i16tostr3left(stats.totalPrints));
+  STATIC_ITEM(MSG_INFO_COMPLETED_PRINTS ":",  false, false, i16tostr3left(stats.finishedPrints));
 
   elapsed = stats.timePrint;
   elapsed.toString(buffer);

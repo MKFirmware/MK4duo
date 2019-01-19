@@ -65,107 +65,69 @@
 
     if (commands.get_target_tool(350)) return;
 
-    #define TMC_SAY_MICROSTEP(Q)    tmc.get_microstep(stepper##Q)
-    #define TMC_SET_MICROSTEP(Q)    tmc.set_microstep(stepper##Q, value)
-    #define TMC_SAY_MICROSTEP_E(E)  tmc.get_microstep(stepperE##E);
-    #define TMC_SET_MICROSTEP_E(E)  tmc.set_microstep(stepperE##E, value);
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M350 report.
+      if (!parser.seen("XYZE")) {
+        tmc.print_M350();
+        return;
+      }
+    #endif
 
-    const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) {
       if (uint16_t value = parser.ushortval(axis_codes[i])) {
         switch (i) {
           case X_AXIS:
             #if AXIS_HAS_TMC(X)
-              if (index < 2) TMC_SET_MICROSTEP(X);
+              stepperX->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(X2)
-              if (!(index & 1)) TMC_SET_MICROSTEP(X2);
+              stepperX2->microsteps(value);
             #endif
             break;
           case Y_AXIS:
             #if AXIS_HAS_TMC(Y)
-              if (index < 2) TMC_SET_MICROSTEP(Y);
+              stepperY->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Y2)
-              if (!(index & 1)) TMC_SET_MICROSTEP(Y2);
+              stepperY2->microsteps(value);
             #endif
             break;
           case Z_AXIS:
             #if AXIS_HAS_TMC(Z)
-              if (index < 2) TMC_SET_MICROSTEP(Z);
+              stepperZ->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z2)
-              if (index == 0 || index == 2) TMC_SET_MICROSTEP(Z2);
+              stepperZ2->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z3)
-              if (index == 0 || index == 3) TMC_SET_MICROSTEP(Z3);
+              stepperZ3->microsteps(value);
             #endif
             break;
           case E_AXIS: {
             switch (TARGET_EXTRUDER) {
               #if AXIS_HAS_TMC(E0)
-                case 0: TMC_SET_MICROSTEP_E(0); break;
+                case 0: stepperE0->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E1)
-                case 1: TMC_SET_MICROSTEP_E(1); break;
+                case 1: stepperE1->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E2)
-                case 2: TMC_SET_MICROSTEP_E(2); break;
+                case 2: stepperE2->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E3)
-                case 3: TMC_SET_MICROSTEP_E(3); break;
+                case 3: stepperE3->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E4)
-                case 4: TMC_SET_MICROSTEP_E(4); break;
+                case 4: stepperE4->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E5)
-                case 5: TMC_SET_MICROSTEP_E(5); break;
+                case 5: stepperE5->microsteps(value); break;
               #endif
             }
           } break;
         }
       }
     }
-
-    #if AXIS_HAS_TMC(X)
-      TMC_SAY_MICROSTEP(X);
-    #endif
-    #if AXIS_HAS_TMC(X2)
-      TMC_SAY_MICROSTEP(X2);
-    #endif
-    #if AXIS_HAS_TMC(Y)
-      TMC_SAY_MICROSTEP(Y);
-    #endif
-    #if AXIS_HAS_TMC(Y2)
-      TMC_SAY_MICROSTEP(Y2);
-    #endif
-    #if AXIS_HAS_TMC(Z)
-      TMC_SAY_MICROSTEP(Z);
-    #endif
-    #if AXIS_HAS_TMC(Z2)
-      TMC_SAY_MICROSTEP(Z2);
-    #endif
-    #if AXIS_HAS_TMC(Z3)
-      TMC_SAY_MICROSTEP(Z3);
-    #endif
-    #if AXIS_HAS_TMC(E0)
-      TMC_SAY_MICROSTEP_E(0);
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      TMC_SAY_MICROSTEP_E(1);
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      TMC_SAY_MICROSTEP_E(2);
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      TMC_SAY_MICROSTEP_E(3);
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      TMC_SAY_MICROSTEP_E(4);
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      TMC_SAY_MICROSTEP_E(5);
-    #endif
 
   }
 

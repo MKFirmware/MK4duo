@@ -1285,7 +1285,7 @@
     // retrace by the amount specified in data.endstop_adj + additional 0.1mm in order to have minimum steps
     if (data.endstop_adj[axis] < 0) {
       #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) SERIAL_EM("data.endstop_adj:");
+        if (printer.debugFeature()) SERIAL_EM("endstop_adj:");
       #endif
       do_homing_move(axis, data.endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * mechanics.steps_to_mm[axis]);
     }

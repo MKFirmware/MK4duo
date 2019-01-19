@@ -104,11 +104,11 @@ class Heater {
     void waitForTarget(bool no_wait_for_cooling=true);
     void getOutput();
     void setOutputPwm();
-    void print_sensor_parameters();
-    void print_heater_parameters();
-    void print_PID_parameters();
+    void print_M305();
+    void print_M306();
+    void print_M301();
     #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
-      void print_AD595_parameters();
+      void print_M595();
     #endif
     void start_idle_timer(const millis_t timeout_ms);
     void reset_idle_timer();

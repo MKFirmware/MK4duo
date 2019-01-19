@@ -84,10 +84,7 @@
 
     if (tool_id != active_tool) {
 
-      if (wait) {
-        SERIAL_STR(PAUSE);
-        SERIAL_EOL();
-      }
+      if (wait) SERIAL_L(REQUESTPAUSE);
 
       planner.synchronize();
 
@@ -134,10 +131,9 @@
 
       if (wait) {
         printer.keepalive(InHandler);
-
-        SERIAL_STR(RESUME);
-        SERIAL_EOL();
+        SERIAL_L(REQUESTCONTINUE);
       }
+
     }
   }
 

@@ -28,7 +28,7 @@
   union flagcard_t {
     bool all;
     struct {
-      bool  OK              : 1;
+      bool  Detect          : 1;
       bool  Saving          : 1;
       bool  SDprinting      : 1;
       bool  AutoreportSD    : 1;
@@ -189,9 +189,9 @@
         static inline void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
       #endif
 
-      // Card flag bit 0 SD OK
-      FORCE_INLINE static void setOK(const bool onoff) { flag.OK = onoff; }
-      FORCE_INLINE static bool isOK() { return flag.OK; }
+      // Card flag bit 0 SD Detect
+      FORCE_INLINE static void setDetect(const bool onoff) { flag.Detect = onoff; }
+      FORCE_INLINE static bool isDetected() { return flag.Detect; }
 
       // Card flag bit 1 saving
       FORCE_INLINE static void setSaving(const bool onoff) { flag.Saving = onoff; }
@@ -214,9 +214,10 @@
       FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
 
       static inline void pauseSDPrint() { setSDprinting(false); }
+      static inline bool isFileOpen()   { return isDetected() && gcode_file.isOpen(); }
+      static inline bool isPaused()     { return isFileOpen() && !isSDprinting(); }
       static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
       static inline uint32_t getIndex() { return sdpos; }
-      static inline bool isFileOpen() { return gcode_file.isOpen(); }
       static inline bool eof() { return sdpos >= fileSize; }
       static inline int16_t get() { sdpos = gcode_file.curPosition(); return (int16_t)gcode_file.read(); }
       static inline uint8_t percentDone() { return (isFileOpen() && fileSize) ? sdpos / ((fileSize + 99) / 100) : 0; }
@@ -244,7 +245,7 @@
 
   #define IS_SD_PRINTING()  card.isSDprinting()
   #define IS_SD_FILE_OPEN() card.isFileOpen()
-  #define IS_SD_OK()        card.isOK()
+  #define IS_SD_OK()        card.isDetected()
 
   #if PIN_EXISTS(SD_DETECT)
     #if ENABLED(SD_DETECT_INVERTED)

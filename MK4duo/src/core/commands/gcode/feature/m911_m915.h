@@ -168,40 +168,45 @@
 
       if (commands.get_target_tool(913)) return;
 
-      #define TMC_SAY_PWMTHRS(P,Q) tmc.get_pwmthrs(stepper##Q, mechanics.data.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SET_PWMTHRS(P,Q) tmc.set_pwmthrs(stepper##Q, value, mechanics.data.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SAY_PWMTHRS_E(E) do{ tmc.get_pwmthrs(stepperE##E, mechanics.data.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
+      #if DISABLED(DISABLE_M503)
+        // No arguments? Show M913 report.
+        if (!parser.seen("XYZE")) {
+          tmc.print_M913();
+          return;
+        }
+      #endif
+
+      #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(stepper##ST, value, mechanics.data.axis_steps_per_mm[P##_AXIS])
       #define TMC_SET_PWMTHRS_E(E) do{ tmc.set_pwmthrs(stepperE##E, value, mechanics.data.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
 
-      const uint8_t index = parser.byteval('I');
       LOOP_XYZE(i) {
         if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
               #if AXIS_HAS_STEALTHCHOP(X)
-                if (index < 2) TMC_SET_PWMTHRS(X,X);
+                TMC_SET_PWMTHRS(X,X);
               #endif
               #if AXIS_HAS_STEALTHCHOP(X2)
-                if (!(index & 1)) TMC_SET_PWMTHRS(X,X2);
+                TMC_SET_PWMTHRS(X,X2);
               #endif
               break;
             case Y_AXIS:
               #if AXIS_HAS_STEALTHCHOP(Y)
-                if (index < 2) TMC_SET_PWMTHRS(Y,Y);
+                TMC_SET_PWMTHRS(Y,Y);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Y2)
-                if (!(index & 1)) TMC_SET_PWMTHRS(Y,Y2);
+                TMC_SET_PWMTHRS(Y,Y2);
               #endif
               break;
             case Z_AXIS:
               #if AXIS_HAS_STEALTHCHOP(Z)
-                if (index < 2) TMC_SET_PWMTHRS(Z,Z);
+                TMC_SET_PWMTHRS(Z,Z);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Z2)
-                if (index == 0 || index == 2) TMC_SET_PWMTHRS(Z,Z2);
+                TMC_SET_PWMTHRS(Z,Z2);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Z3)
-                if (index == 0 || index == 3) TMC_SET_PWMTHRS(Z,Z3);
+                TMC_SET_PWMTHRS(Z,Z3);
               #endif
               break;
             case E_AXIS: {
@@ -229,47 +234,6 @@
           }
         }
       }
-
-      #if AXIS_HAS_STEALTHCHOP(X)
-        TMC_SAY_PWMTHRS(X,X);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(X2)
-        TMC_SAY_PWMTHRS(X,X2);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(Y)
-        TMC_SAY_PWMTHRS(Y,Y);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(Y2)
-        TMC_SAY_PWMTHRS(Y,Y2);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(Z)
-        TMC_SAY_PWMTHRS(Z,Z);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(Z2)
-        TMC_SAY_PWMTHRS(Z,Z2);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(Z3)
-        TMC_SAY_PWMTHRS(Z,Z3);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E0)
-        TMC_SAY_PWMTHRS_E(0);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E1)
-        TMC_SAY_PWMTHRS_E(1);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E2)
-        TMC_SAY_PWMTHRS_E(2);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E3)
-        TMC_SAY_PWMTHRS_E(3);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E4)
-        TMC_SAY_PWMTHRS_E(4);
-      #endif
-      #if AXIS_HAS_STEALTHCHOP(E5)
-        TMC_SAY_PWMTHRS_E(5);
-      #endif
-
     }
 
   #endif // HYBRID_THRESHOLD
@@ -283,10 +247,16 @@
 
     inline void gcode_M914(void) {
 
-      #define TMC_SAY_SGT(Q) tmc.get_sgt(stepper##Q)
-      #define TMC_SET_SGT(Q) tmc.set_sgt(stepper##Q, value)
+      #if DISABLED(DISABLE_M503)
+        // No arguments? Show M914 report.
+        if (!parser.seen("XYZ")) {
+          tmc.print_M914();
+          return;
+        }
+      #endif
 
-      const uint8_t index = parser.byteval('I');
+      #define TMC_SET_SGT(ST) tmc.set_sgt(stepper##ST, value)
+
       LOOP_XYZ(i) {
         if (parser.seen(axis_codes[i])) {
           const int8_t value = (int8_t)constrain(parser.value_int(), -64, 63);
@@ -294,68 +264,39 @@
             #if X_HAS_SENSORLESS
               case X_AXIS:
                 #if AXIS_HAS_STALLGUARD(X)
-                  if (index < 2) TMC_SET_SGT(X);
+                  TMC_SET_SGT(X);
                 #endif
                 #if AXIS_HAS_STALLGUARD(X2)
-                  if (!(index & 1)) TMC_SET_SGT(X2);
+                  TMC_SET_SGT(X2);
                 #endif
                 break;
             #endif
             #if Y_HAS_SENSORLESS
               case Y_AXIS:
                 #if AXIS_HAS_STALLGUARD(Y)
-                  if (index < 2) TMC_SET_SGT(Y);
+                  TMC_SET_SGT(Y);
                 #endif
                 #if AXIS_HAS_STALLGUARD(Y2)
-                  if (!(index & 1)) TMC_SET_SGT(Y2);
+                  TMC_SET_SGT(Y2);
                 #endif
                 break;
             #endif
             #if Z_HAS_SENSORLESS
               case Z_AXIS:
                 #if AXIS_HAS_STALLGUARD(Z)
-                  if (index < 2) TMC_SET_SGT(Z);
+                  TMC_SET_SGT(Z);
                 #endif
                 #if AXIS_HAS_STALLGUARD(Z2)
-                  if (index == 0 || index == 2) TMC_SET_SGT(Z2);
+                  TMC_SET_SGT(Z2);
                 #endif
                 #if AXIS_HAS_STALLGUARD(Z3)
-                  if (index == 0 || index == 3) TMC_SET_SGT(Z3);
+                  TMC_SET_SGT(Z3);
                 #endif
                 break;
             #endif
           }
         }
       }
-
-      #if X_HAS_SENSORLESS
-        #if AXIS_HAS_STALLGUARD(X)
-          TMC_SAY_SGT(X);
-        #endif
-        #if AXIS_HAS_STALLGUARD(X2)
-          TMC_SAY_SGT(X2);
-        #endif
-      #endif
-      #if Y_HAS_SENSORLESS
-        #if AXIS_HAS_STALLGUARD(Y)
-          TMC_SAY_SGT(Y);
-        #endif
-        #if AXIS_HAS_STALLGUARD(Y2)
-          TMC_SAY_SGT(Y2);
-        #endif
-      #endif
-      #if Z_HAS_SENSORLESS
-        #if AXIS_HAS_STALLGUARD(Z)
-          TMC_SAY_SGT(Z);
-        #endif
-        #if AXIS_HAS_STALLGUARD(Z2)
-          TMC_SAY_SGT(Z2);
-        #endif
-        #if AXIS_HAS_STALLGUARD(Z3)
-          TMC_SAY_SGT(Z3);
-        #endif
-      #endif
-
     }
 
   #endif // HAS_SENSORLESS

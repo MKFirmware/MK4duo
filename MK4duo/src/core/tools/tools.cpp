@@ -225,7 +225,7 @@
 
   }
 
-  void Tools::print_parameters(const uint8_t h) {
+  void Tools::print_M218(const uint8_t h) {
     SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");
     SERIAL_SMV(CFG, "  M218 H", (int)h);
     SERIAL_MV(" X", LINEAR_UNIT(tools.hotend_offset[X_AXIS][h]), 3);

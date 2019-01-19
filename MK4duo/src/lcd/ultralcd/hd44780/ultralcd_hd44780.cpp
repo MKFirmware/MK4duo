@@ -514,7 +514,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
 #if ENABLED(DHT_SENSOR)
   FORCE_INLINE void _draw_humidity_status() {
     lcd_put_wchar(LCD_STR_BEDTEMP[0]);
-    lcd_put_u8str(itostr3(dhtsensor.Humidity));
+    lcd_put_u8str(i16tostr3(dhtsensor.Humidity));
   }
 #endif
 
@@ -525,7 +525,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, c
 
   if (prefix >= 0) lcd_put_wchar(prefix);
 
-  lcd_put_u8str(itostr3(t1 + 0.5));
+  lcd_put_u8str(i16tostr3(t1 + 0.5));
   lcd_put_wchar('/');
 
   if (!blink && heaters[heater].isIdle()) {
@@ -534,7 +534,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, c
     if (t2 >= 100) lcd_put_wchar(' ');
   }
   else
-    lcd_put_u8str(itostr3left(t2 + 0.5));
+    lcd_put_u8str(i16tostr3left(t2 + 0.5));
 
   if (prefix >= 0) {
     lcd_put_wchar(LCD_STR_DEGREE[0]);
@@ -550,7 +550,7 @@ FORCE_INLINE void _draw_print_progress() {
     lcd_put_u8str_P(PSTR("P:"));
 
   if (printer.progress)
-    lcd_put_u8str(itostr3(printer.progress));
+    lcd_put_u8str(ui8tostr3(printer.progress));
   else
     lcd_put_u8str_P(PSTR("---"));
   lcd_put_wchar('%');
@@ -597,7 +597,7 @@ void LcdUI::draw_status_message(const bool blink) {
         lcd_put_u8str_P(PSTR("Dia "));
         lcd_put_u8str(ftostr12ns(filament_width_meas));
         lcd_put_u8str_P(PSTR(" V"));
-        lcd_put_u8str(itostr3(100.0 * (
+        lcd_put_u8str(i8tostr3(100.0 * (
           printer.isVolumetric()
             ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
@@ -849,7 +849,7 @@ void LcdUI::draw_status_screen() {
 
       lcd_moveto(0, 2);
       lcd_put_wchar(LCD_STR_FEEDRATE[0]);
-      lcd_put_u8str(itostr3(mechanics.feedrate_percentage));
+      lcd_put_u8str(i16tostr3(mechanics.feedrate_percentage));
       lcd_put_wchar('%');
 
       #if LCD_WIDTH >= 20
@@ -916,7 +916,7 @@ void LcdUI::draw_status_screen() {
 
     lcd_moveto(LCD_WIDTH - 9, 1);
     lcd_put_wchar(LCD_STR_FEEDRATE[0]);
-    lcd_put_u8str(itostr3(mechanics.feedrate_percentage));
+    lcd_put_u8str(i16tostr3(mechanics.feedrate_percentage));
     lcd_put_wchar('%');
 
     // ========== Line 3 ==========
@@ -1373,9 +1373,9 @@ void LcdUI::draw_status_screen() {
        */
       lcd_moveto(_LCD_W_POS, 0);
       lcd_put_wchar('(');
-      lcd_put_u8str(itostr3(x));
+      lcd_put_u8str(i8tostr3(x));
       lcd_put_wchar(',');
-      lcd_put_u8str(itostr3(inverted_y));
+      lcd_put_u8str(i8tostr3(inverted_y));
       lcd_put_wchar(')');
 
       #if LCD_HEIGHT <= 3   // 16x2 or 20x2 display

@@ -46,53 +46,55 @@
    */
   inline void gcode_M106(void) {
 
-    if (printer.debugSimulation()) return;
+    uint8_t f = 0;
 
-    const uint8_t speed = parser.byteval('S', 255),
-                  f     = parser.byteval('P');
+    if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
 
-    if (f < FAN_COUNT) {
+    const uint8_t speed = parser.byteval('S', 255);
 
-      Fan *fan = &fans[f];
+    Fan *fan = &fans[f];
 
-      if (parser.seen('U')) {
-        // Put off the fan
-        fan->Speed = 0;
-        fan->data.pin = parser.value_pin();
-        SERIAL_LM(ECHO, MSG_CHANGE_PIN);
-      }
-
-      if (parser.seen('I'))
-        fan->setHWInverted(parser.value_bool());
-
-      if (parser.seen('H'))
-        fan->setAutoMonitored(parser.value_int());
-
-      fan->data.min_Speed           = parser.byteval('L', fan->data.min_Speed);
-      fan->data.max_Speed           = parser.byteval('X', fan->data.max_Speed);
-      fan->data.freq                = parser.ushortval('F', fan->data.freq);
-      fan->data.triggerTemperature  = parser.ushortval('T', fan->data.triggerTemperature);
-
-      #if ENABLED(FAN_KICKSTART_TIME)
-        if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
-          if (fan->Speed) fan->Kickstart = FAN_KICKSTART_TIME / 100;
-          else            fan->Kickstart = FAN_KICKSTART_TIME / 25;
-        }
-      #endif
-
-      fan->Speed = constrain(speed, fan->data.min_Speed, fan->data.max_Speed);
-
-      if (!parser.seen('S')) fan->print_parameters();
-
+    if (parser.seen('U')) {
+      // Put off the fan
+      fan->Speed = 0;
+      fan->data.pin = parser.value_pin();
+      SERIAL_LM(ECHO, MSG_CHANGE_PIN);
     }
+
+    if (parser.seen('I'))
+      fan->setHWInverted(parser.value_bool());
+
+    if (parser.seen('H'))
+      fan->setAutoMonitored(parser.value_int());
+
+    fan->data.min_Speed           = parser.byteval('L', fan->data.min_Speed);
+    fan->data.max_Speed           = parser.byteval('X', fan->data.max_Speed);
+    fan->data.freq                = parser.ushortval('F', fan->data.freq);
+    fan->data.triggerTemperature  = parser.ushortval('T', fan->data.triggerTemperature);
+
+    #if ENABLED(FAN_KICKSTART_TIME)
+      if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
+        if (fan->Speed) fan->Kickstart = FAN_KICKSTART_TIME / 100;
+        else            fan->Kickstart = FAN_KICKSTART_TIME / 25;
+      }
+    #endif
+
+    fan->Speed = constrain(speed, fan->data.min_Speed, fan->data.max_Speed);
+
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M106 report.
+      if (!parser.seen("SUIHLXFT")) fan->print_M106();
+    #endif
+
   }
 
   /**
    * M107: Fan Off
    */
   inline void gcode_M107(void) {
-    const uint8_t f = parser.byteval('P');
-    if (f < FAN_COUNT) fans[f].Speed = 0;
+    uint8_t f = 0;
+    if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
+    fans[f].Speed = 0;
   }
 
 #endif // FAN_COUNT > 0

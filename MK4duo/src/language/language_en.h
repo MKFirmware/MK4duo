@@ -1274,6 +1274,28 @@
   #endif
 #endif // LCD_HEIGHT < 4
 
+#ifndef MSG_TMC_DRIVERS
+  #define MSG_TMC_DRIVERS                     _UxGT("TMC drivers")
+#endif
+#ifndef MSG_TMC_CURRENT
+  #define MSG_TMC_CURRENT                     _UxGT("Driver current")
+#endif
+#ifndef MSG_TMC_MICROSTEP
+  #define MSG_TMC_MICROSTEP                   _UxGT("Driver microstep")
+#endif
+#ifndef MSG_TMC_HYBRID_THRS
+  #define MSG_TMC_HYBRID_THRS                 _UxGT("Hybrid threshold")
+#endif
+#ifndef MSG_TMC_HOMING_THRS
+  #define MSG_TMC_HOMING_THRS                 _UxGT("Sensorless homing")
+#endif
+#ifndef MSG_TMC_STEPPING_MODE
+  #define MSG_TMC_STEPPING_MODE               _UxGT("Stepping mode")
+#endif
+#ifndef MSG_TMC_STEALTH_ENABLED
+  #define MSG_TMC_STEALTH_ENABLED             _UxGT("StealthChop enabled")
+#endif
+
 // Extra
 #ifndef MSG_RESTART_PRINT
   #define MSG_RESTART_PRINT                   _UxGT("Restart print")

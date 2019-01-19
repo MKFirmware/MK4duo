@@ -111,29 +111,65 @@ char conv[8] = { 0 };
 #define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
 
 // Convert unsigned int to string 123 format
-char* i8tostr1(const uint8_t i) {
+char* ui8tostr1(const uint8_t i) {
   conv[6] = DIGIMOD(i, 1);
   return &conv[6];
 }
 
 // Convert unsigned int to string 123 format
-char* i8tostr3(const uint8_t i) {
+char* ui8tostr3(const uint8_t i) {
   conv[4] = RJDIGIT(i, 100);
   conv[5] = RJDIGIT(i, 10);
   conv[6] = DIGIMOD(i, 1);
   return &conv[4];
 }
 
-// Convert signed int to rj string with 123 or -12 format
-char* itostr3(int i) {
-  conv[4] = MINUSOR(i, RJDIGIT(i, 100));
+// Convert signed 8bit int to rj string with 123 or -12 format
+char* i8tostr3(const int8_t i) {
+  int ii = i;
+  conv[4] = MINUSOR(ii, RJDIGIT(ii, 100));
+  conv[5] = RJDIGIT(ii, 10);
+  conv[6] = DIGIMOD(ii, 1);
+  return &conv[4];
+}
+
+// Convert unsigned 16bit int to string 123 format
+char* ui16tostr3(const uint16_t i) {
+  conv[4] = RJDIGIT(i, 100);
   conv[5] = RJDIGIT(i, 10);
   conv[6] = DIGIMOD(i, 1);
   return &conv[4];
 }
 
+// Convert unsigned 16bit int to string 1234 format
+char* ui16tostr4(const uint16_t i) {
+  conv[3] = RJDIGIT(i, 1000);
+  conv[4] = RJDIGIT(i, 100);
+  conv[5] = RJDIGIT(i, 10);
+  conv[6] = DIGIMOD(i, 1);
+  return &conv[3];
+}
+
+// Convert unsigned 32bit int to string 1234 format
+char* ui32tostr4(const uint32_t i) {
+  conv[3] = RJDIGIT(i, 1000);
+  conv[4] = RJDIGIT(i, 100);
+  conv[5] = RJDIGIT(i, 10);
+  conv[6] = DIGIMOD(i, 1);
+  return &conv[3];
+}
+
+// Convert signed 16bit int to rj string with 123 or -12 format
+char* i16tostr3(const int16_t i) {
+  int ii = i;
+  conv[4] = MINUSOR(ii, RJDIGIT(ii, 100));
+  conv[5] = RJDIGIT(ii, 10);
+  conv[6] = DIGIMOD(ii, 1);
+  return &conv[4];
+}
+
 // Convert unsigned int to lj string with 123 format
-char* itostr3left(const int i) {
+char* i16tostr3left(const int16_t i) {
   char *str = &conv[6];
   *str = DIGIMOD(i, 1);
   if (i >= 10) {
@@ -145,7 +181,7 @@ char* itostr3left(const int i) {
 }
 
 // Convert signed int to rj string with 1234, _123, -123, _-12, or __-1 format
-char* itostr4sign(const int i) {
+char* i16tostr4sign(const int16_t i) {
   const bool neg = i < 0;
   const int ii = neg ? -i : i;
   if (i >= 1000) {
@@ -200,7 +236,7 @@ char* ftostr52(const float &f) {
   // Convert float to rj string with 1234, _123, -123, _-12, 12.3, _1.2, or -1.2 format
   char* ftostr4sign(const float &f) {
     const int i = (f * 100 + (f < 0 ? -5: 5)) / 10;
-    if (!WITHIN(i, -99, 999)) return itostr4sign((int)f);
+    if (!WITHIN(i, -99, 999)) return i16tostr4sign((int)f);
     const bool neg = i < 0;
     const int ii = neg ? -i : i;
     conv[3] = neg ? '-' : (ii >= 100 ? DIGIMOD(ii, 100) : ' ');

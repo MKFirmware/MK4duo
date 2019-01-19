@@ -39,17 +39,21 @@ void scroll_screen(const uint8_t limit, const bool is_menu);
     static inline char* strfunc(const float value) { return STRFUNC((TYPE) value); } \
   };
 
-DECLARE_MENU_EDIT_TYPE(int16_t,  int3,        itostr3,         1     );
-DECLARE_MENU_EDIT_TYPE(int16_t,  int4,        itostr4sign,     1     );
-DECLARE_MENU_EDIT_TYPE(uint8_t,  int8,        i8tostr3,        1     );
-DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1     );
-DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr52,      100     );
-DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000     );
-DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f );
-DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51sign,   10     );
-DECLARE_MENU_EDIT_TYPE(float,    float52sign, ftostr52sign,  100     );
-DECLARE_MENU_EDIT_TYPE(float,    float62,     ftostr62rj,    100     );
-DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f );
+DECLARE_MENU_EDIT_TYPE(int16_t,  int3,        i16tostr3,       1        );
+DECLARE_MENU_EDIT_TYPE(int16_t,  int4,        i16tostr4sign,   1        );
+DECLARE_MENU_EDIT_TYPE(int8_t,   int8,        i8tostr3,        1        );
+DECLARE_MENU_EDIT_TYPE(uint8_t,  uint8,       ui8tostr3,       1        );
+DECLARE_MENU_EDIT_TYPE(uint16_t, microstep,   ui16tostr3,      0.0625f  );
+DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_3,    ui16tostr3,      1        );
+DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_4,    ui16tostr4,      0.1      );
+DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
+DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr52,      100        );
+DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
+DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f    );
+DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51sign,   10        );
+DECLARE_MENU_EDIT_TYPE(float,    float52sign, ftostr52sign,  100        );
+DECLARE_MENU_EDIT_TYPE(float,    float62,     ftostr62rj,    100        );
+DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f    );
 
 ////////////////////////////////////////////
 ///////// Menu Item Draw Functions /////////
@@ -98,6 +102,10 @@ FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(int3);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(int4);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(int8);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint8);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(microstep);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint16_3);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint16_4);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float3);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float43);
@@ -167,6 +175,10 @@ class TMenuItem : MenuItemBase {
 DECLARE_MENU_EDIT_ITEM(int3);
 DECLARE_MENU_EDIT_ITEM(int4);
 DECLARE_MENU_EDIT_ITEM(int8);
+DECLARE_MENU_EDIT_ITEM(uint8);
+DECLARE_MENU_EDIT_ITEM(microstep);
+DECLARE_MENU_EDIT_ITEM(uint16_3);
+DECLARE_MENU_EDIT_ITEM(uint16_4);
 DECLARE_MENU_EDIT_ITEM(float3);
 DECLARE_MENU_EDIT_ITEM(float52);
 DECLARE_MENU_EDIT_ITEM(float43);
@@ -246,9 +258,9 @@ class MenuItem_bool {
  *     draw_menu_item_back(sel, row, PSTR(MSG_WATCH))
  *     MenuItem_back::action()
  *
- *   MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_sdcard_pause)
- *     draw_menu_item_function(sel, row, PSTR(MSG_PAUSE_PRINT), lcd_sdcard_pause)
- *     MenuItem_function::action(lcd_sdcard_pause)
+ *   MENU_ITEM(function, MSG_PAUSE_PRINT, lcd_print_pause)
+ *     draw_menu_item_function(sel, row, PSTR(MSG_PAUSE_PRINT), lcd_print_pause)
+ *     MenuItem_function::action(lcd_print_pause)
  *
  *   MENU_ITEM_EDIT(int3, MSG_SPEED, &feedrate_percentage, 10, 999)
  *     draw_menu_item_edit_int3(sel, row, PSTR(MSG_SPEED), PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)

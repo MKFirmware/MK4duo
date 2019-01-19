@@ -204,89 +204,89 @@ void Stepper::init() {
 
   // Init Dir Pins
   #if HAS_X_DIR
-    X_DIR_INIT;
+    X_DIR_INIT();
   #endif
   #if HAS_X2_DIR
-    X2_DIR_INIT;
+    X2_DIR_INIT();
   #endif
   #if HAS_Y_DIR
-    Y_DIR_INIT;
+    Y_DIR_INIT();
     #if ENABLED(Y_TWO_STEPPER_DRIVERS) && HAS_Y2_DIR
-      Y2_DIR_INIT;
+      Y2_DIR_INIT();
     #endif
   #endif
   #if HAS_Z_DIR
-    Z_DIR_INIT;
+    Z_DIR_INIT();
     #if ENABLED(Z_TWO_STEPPER_DRIVERS) && HAS_Z2_DIR
-      Z2_DIR_INIT;
+      Z2_DIR_INIT();
     #endif
   #endif
   #if HAS_E0_DIR
-    E0_DIR_INIT;
+    E0_DIR_INIT();
   #endif
   #if HAS_E1_DIR
-    E1_DIR_INIT;
+    E1_DIR_INIT();
   #endif
   #if HAS_E2_DIR
-    E2_DIR_INIT;
+    E2_DIR_INIT();
   #endif
   #if HAS_E3_DIR
-    E3_DIR_INIT;
+    E3_DIR_INIT();
   #endif
   #if HAS_E4_DIR
-    E4_DIR_INIT;
+    E4_DIR_INIT();
   #endif
   #if HAS_E5_DIR
-    E5_DIR_INIT;
+    E5_DIR_INIT();
   #endif
 
   // Init Enable Pins - steppers default to disabled.
   #if HAS_X_ENABLE
-    X_ENABLE_INIT;
+    X_ENABLE_INIT();
     if (!X_ENABLE_ON) X_ENABLE_WRITE(HIGH);
     #if (ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)) && HAS_X2_ENABLE
-      X2_ENABLE_INIT;
+      X2_ENABLE_INIT();
       if (!X_ENABLE_ON) X2_ENABLE_WRITE(HIGH);
     #endif
   #endif
   #if HAS_Y_ENABLE
-    Y_ENABLE_INIT;
+    Y_ENABLE_INIT();
     if (!Y_ENABLE_ON) Y_ENABLE_WRITE(HIGH);
     #if ENABLED(Y_TWO_STEPPER_DRIVERS) && HAS_Y2_ENABLE
-      Y2_ENABLE_INIT;
+      Y2_ENABLE_INIT();
       if (!Y_ENABLE_ON) Y2_ENABLE_WRITE(HIGH);
     #endif
   #endif
   #if HAS_Z_ENABLE
-    Z_ENABLE_INIT;
+    Z_ENABLE_INIT();
     if (!Z_ENABLE_ON) Z_ENABLE_WRITE(HIGH);
     #if ENABLED(Z_TWO_STEPPER_DRIVERS) && HAS_Z2_ENABLE
-      Z2_ENABLE_INIT;
+      Z2_ENABLE_INIT();
       if (!Z_ENABLE_ON) Z2_ENABLE_WRITE(HIGH);
     #endif
   #endif
   #if HAS_E0_ENABLE
-    E0_ENABLE_INIT;
+    E0_ENABLE_INIT();
     if (!E_ENABLE_ON) E0_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_E1_ENABLE
-    E1_ENABLE_INIT;
+    E1_ENABLE_INIT();
     if (!E_ENABLE_ON) E1_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_E2_ENABLE
-    E2_ENABLE_INIT;
+    E2_ENABLE_INIT();
     if (!E_ENABLE_ON) E2_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_E3_ENABLE
-    E3_ENABLE_INIT;
+    E3_ENABLE_INIT();
     if (!E_ENABLE_ON) E3_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_E4_ENABLE
-    E4_ENABLE_INIT;
+    E4_ENABLE_INIT();
     if (!E_ENABLE_ON) E4_ENABLE_WRITE(HIGH);
   #endif
   #if HAS_E5_ENABLE
-    E5_ENABLE_INIT;
+    E5_ENABLE_INIT();
     if (!E_ENABLE_ON) E5_ENABLE_WRITE(HIGH);
   #endif
 
@@ -311,62 +311,62 @@ void Stepper::init() {
 
   // Init Step Pins
   #if HAS_X_STEP
-    X_STEP_INIT;
+    X_STEP_INIT();
     X_STEP_WRITE(INVERT_X_STEP_PIN);
     #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(DUAL_X_CARRIAGE)
-      X2_STEP_INIT;
+      X2_STEP_INIT();
       X2_STEP_WRITE(INVERT_X_STEP_PIN);
     #endif
     disable_X();
   #endif
 
   #if HAS_Y_STEP
-    Y_STEP_INIT;
+    Y_STEP_INIT();
     Y_STEP_WRITE(INVERT_Y_STEP_PIN);
     #if ENABLED(Y_TWO_STEPPER_DRIVERS) && HAS_Y2_STEP
-      Y2_STEP_INIT;
+      Y2_STEP_INIT();
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
     disable_Y();
   #endif
 
   #if HAS_Z_STEP
-    Z_STEP_INIT;
+    Z_STEP_INIT();
     Z_STEP_WRITE(INVERT_Y_STEP_PIN);
     #if ENABLED(Z_TWO_STEPPER_DRIVERS) && HAS_Z2_STEP
-      Z2_STEP_INIT;
+      Z2_STEP_INIT();
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif
     disable_Z();
   #endif
 
   #if DRIVER_EXTRUDERS > 0 && HAS_E0_STEP
-    E0_STEP_INIT;
+    E0_STEP_INIT();
     E_STEP_WRITE(0, INVERT_E_STEP_PIN);
     disable_E0();
   #endif
   #if DRIVER_EXTRUDERS > 1 && HAS_E1_STEP
-    E1_STEP_INIT;
+    E1_STEP_INIT();
     E_STEP_WRITE(1, INVERT_E_STEP_PIN);
     disable_E1();
   #endif
   #if DRIVER_EXTRUDERS > 2 && HAS_E2_STEP
-    E2_STEP_INIT;
+    E2_STEP_INIT();
     E_STEP_WRITE(2, INVERT_E_STEP_PIN);
     disable_E2();
   #endif
   #if DRIVER_EXTRUDERS > 3 && HAS_E3_STEP
-    E3_STEP_INIT;
+    E3_STEP_INIT();
     E_STEP_WRITE(3, INVERT_E_STEP_PIN);
     disable_E3();
   #endif
   #if DRIVER_EXTRUDERS > 4 && HAS_E4_STEP
-    E4_STEP_INIT;
+    E4_STEP_INIT();
     E_STEP_WRITE(4, INVERT_E_STEP_PIN);
     disable_E4();
   #endif
   #if DRIVER_EXTRUDERS > 5 && HAS_E5_STEP
-    E5_STEP_INIT;
+    E5_STEP_INIT();
     E_STEP_WRITE(5, INVERT_E_STEP_PIN);
     disable_E5();
   #endif
@@ -936,6 +936,61 @@ void Stepper::disable_E0() {
 
   #endif
 }
+
+#if DISABLED(COLOR_MIXING_EXTRUDER)
+
+  void Stepper::enable_E1() {
+    #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
+      E1_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::disable_E1() {
+    #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
+      E1_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::enable_E2() {
+    #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
+      E2_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::disable_E2() {
+    #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
+      E2_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::enable_E3() {
+    #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
+      E3_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::disable_E3() {
+    #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
+      E3_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::enable_E4() {
+    #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
+      E4_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::disable_E4() {
+    #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
+      E4_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::enable_E5() {
+    #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
+      E5_ENABLE_WRITE(E_ENABLE_ON);
+    #endif
+  }
+  void Stepper::disable_E5() {
+    #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
+      E5_ENABLE_WRITE(!E_ENABLE_ON);
+    #endif
+  }
+
+#endif // DISABLED(COLOR_MIXING_EXTRUDER)
 
 /**
  * Handle a triggered endstop
@@ -2890,7 +2945,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   #endif
 
   #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
-      const uint8_t old_dir = AXIS ##_DIR_READ;             \
+      const uint8_t old_dir = AXIS ##_DIR_READ();             \
       enable_## AXIS();                                     \
       set_##AXIS##_dir(isStepDir(AXIS ##_AXIS)^DIR^INVERT); \
       if (direction_delay >= 50)                            \
@@ -2955,9 +3010,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
           enable_Y();
           enable_Z();
 
-          const uint8_t old_x_dir_pin = X_DIR_READ,
-                        old_y_dir_pin = Y_DIR_READ,
-                        old_z_dir_pin = Z_DIR_READ;
+          const uint8_t old_x_dir_pin = X_DIR_READ(),
+                        old_y_dir_pin = Y_DIR_READ(),
+                        old_z_dir_pin = Z_DIR_READ();
 
           set_X_dir(isStepDir(X_AXIS) ^ z_direction);
           set_Y_dir(isStepDir(Y_AXIS) ^ z_direction);

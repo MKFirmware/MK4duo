@@ -53,20 +53,34 @@
 
     #if ENABLED(DHT_SENSOR)
       if (parser.seen('D')) {
+        #if DISABLED(DISABLE_M503)
+          // No arguments? Show M305 report.
+          if (!parser.seen("PS")) {
+            dhtsensor.print_M305();
+            return;
+          }
+        #endif
         dhtsensor.pin = parser.intval('P', DHT_DATA_PIN);
         if (parser.seen('S'))
           dhtsensor.change_type(parser.value_int());
         dhtsensor.init();
-        dhtsensor.print_parameters();
         return;
       }
     #endif
 
-    int8_t h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
+    int8_t h = 0;
 
     if (!commands.get_target_heater(h)) return;
 
     Heater *act = &heaters[h];
+
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M305 report.
+      if (!parser.seen("ABCRLOTP")) {
+        act->print_M305();
+        return;
+      }
+    #endif
 
     act->sensor.r25           = parser.floatval('A', act->sensor.r25);
     act->sensor.beta          = parser.floatval('B', act->sensor.beta);
@@ -89,7 +103,6 @@
     }
 
     act->sensor.CalcDerivedParameters();
-    act->print_sensor_parameters();
 
  }
 

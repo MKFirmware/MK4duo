@@ -63,19 +63,31 @@ void lengthtoString(char *buffer, const float length);
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
 
 // Convert uint8_t to string with 1 format
-char* i8tostr1(const uint8_t i);
+char* ui8tostr1(const uint8_t i);
 
 // Convert uint8_t to string with 123 format
-char* i8tostr3(const uint8_t i);
+char* ui8tostr3(const uint8_t i);
 
-// Convert signed int to rj string with 123 or -12 format
-char* itostr3(int i);
+// Convert signed 8bit int to rj string with 123 or -12 format
+char* i8tostr3(const int8_t i);
+
+// Convert uint16_t to string with 123 format
+char* ui16tostr3(const uint16_t i);
+
+// Convert uint16_t to string with 1234 format
+char* ui16tostr4(const uint16_t i);
+
+// Convert uint32_t to string with 1234 format
+char* ui32tostr4(const uint32_t i);
+
+// Convert int16_t to string with 123 format
+char* i16tostr3(const int16_t i);
 
 // Convert unsigned int to lj string with 123 format
-char* itostr3left(const int i);
+char* i16tostr3left(const int16_t i);
 
 // Convert signed int to rj string with _123, -123, _-12, or __-1 format
-char* itostr4sign(const int i);
+char* i16tostr4sign(const int16_t i);
 
 // Convert unsigned float to string with 1.23 format
 char* ftostr12ns(const float &f);
@@ -105,12 +117,12 @@ char* ftostr52sign(const float &f);
 char* ftostr62rj(const float &f);
 
 // Convert float to rj string with 123 or -12 format
-FORCE_INLINE char* ftostr3(const float &f) { return itostr3(int(f + (f < 0 ? -0.5f : 0.5f))); }
+FORCE_INLINE char* ftostr3(const float &f) { return i16tostr3(int16_t(f + (f < 0 ? -0.5f : 0.5f))); }
 
 #if ENABLED(LCD_DECIMAL_SMALL_XY)
   // Convert float to rj string with 1234, _123, 12.3, _1.2, -123, _-12, or -1.2 format
   char* ftostr4sign(const float &f);
 #else
   // Convert float to rj string with 1234, _123, -123, __12, _-12, ___1, or __-1 format
-  FORCE_INLINE char* ftostr4sign(const float &f) { return itostr4sign(int(f + (f < 0 ? -0.5f : 0.5f))); }
+  FORCE_INLINE char* ftostr4sign(const float &f) { return i16tostr4sign(int16_t(f + (f < 0 ? -0.5f : 0.5f))); }
 #endif

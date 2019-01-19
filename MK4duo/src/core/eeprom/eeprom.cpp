@@ -42,14 +42,7 @@
   float new_z_fade_height;
 #endif
 
-#if HAS_TRINAMIC
-  #define TMC_GET_PWMTHRS(P,ST) tmc.thrs(stepper##ST->microsteps(), stepper##ST->TPWMTHRS(), mechanics.data.axis_steps_per_mm[P##_AXIS])
-#endif
-
 #pragma pack(push, 1)
-
-typedef struct { uint32_t X, Y, Z, X2, Y2, Z2, Z3, E0, E1, E2, E3, E4, E5; } tmc_hybrid_threshold_t;
-typedef struct {  int16_t X, Y, Z;                                         } tmc_sgt_t;
 
 /**
  * Current EEPROM Layout && Version
@@ -57,7 +50,7 @@ typedef struct {  int16_t X, Y, Z;                                         } tmc
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV60"
+#define EEPROM_VERSION "MKV61"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -292,10 +285,11 @@ typedef struct EepromDataStruct {
   // Trinamic
   //
   #if HAS_TRINAMIC
-    uint16_t                tmc_stepper_current[TMC_AXIS],
-                            tmc_stepper_microstep[TMC_AXIS];
-    tmc_hybrid_threshold_t  tmc_hybrid_threshold;
-    tmc_sgt_t               tmc_sgt;
+    uint16_t  tmc_stepper_current[TMC_AXIS],
+              tmc_stepper_microstep[TMC_AXIS];
+    uint32_t  tmc_hybrid_threshold[TMC_AXIS];
+    int16_t   tmc_sgt[XYZ];
+    bool      tmc_stealth_enabled[TMC_AXIS];
   #endif
 
 } eepromData;
@@ -705,115 +699,49 @@ void EEPROM::post_process() {
     //
     #if HAS_TRINAMIC
 
-      uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X2_CURRENT, Y2_CURRENT, Z2_CURRENT, Z3_CURRENT,
+      uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
                                                     E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
-                tmc_stepper_microstep[TMC_AXIS] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X2_MICROSTEPS, Y2_MICROSTEPS, Z2_MICROSTEPS, Z3_MICROSTEPS,
+                tmc_stepper_microstep[TMC_AXIS] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS,
                                                     E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
+      uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                    X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                    E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                    E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+      bool      tmc_stealth_enabled[TMC_AXIS]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP,
+                                                    E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP };
 
       LOOP_TMC() {
         MKTMC* st = tmc.driver_by_index(t);
         if (st) {
           tmc_stepper_current[t]    = st->getMilliamps();
           tmc_stepper_microstep[t]  = st->microsteps();
+          #if ENABLED(HYBRID_THRESHOLD)
+            tmc_hybrid_threshold[t] = st->hybrid_thrs;
+          #endif
+          #if TMC_HAS_STEALTHCHOP
+            tmc_stealth_enabled[t]  = st->stealthChop_enabled;
+          #endif
         }
       }
 
       EEPROM_WRITE(tmc_stepper_current);
       EEPROM_WRITE(tmc_stepper_microstep);
-
-      //
-      // Save TMC2130 or TMC2208 Hybrid Threshold, and placeholder values
-      //
-      #if ENABLED(HYBRID_THRESHOLD)
-        tmc_hybrid_threshold_t tmc_hybrid_threshold = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        #if AXIS_HAS_TMC(X)
-          tmc_hybrid_threshold.X = TMC_GET_PWMTHRS(X, X);
-        #else
-          tmc_hybrid_threshold.X = X_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(Y)
-          tmc_hybrid_threshold.Y = TMC_GET_PWMTHRS(Y, Y);
-        #else
-          tmc_hybrid_threshold.Y = Y_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(Z)
-          tmc_hybrid_threshold.Z = TMC_GET_PWMTHRS(Z, Z);
-        #else
-          tmc_hybrid_threshold.Z = Z_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(X2)
-          tmc_hybrid_threshold.X2 = TMC_GET_PWMTHRS(X, X2);
-        #else
-          tmc_hybrid_threshold.X2 = X2_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(Y2)
-          tmc_hybrid_threshold.Y2 = TMC_GET_PWMTHRS(Y, Y2);
-        #else
-          tmc_hybrid_threshold.Y2 = Y2_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(Z2)
-          tmc_hybrid_threshold.Z2 = TMC_GET_PWMTHRS(Z, Z2);
-        #else
-          tmc_hybrid_threshold.Z2 = Z2_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(Z3)
-          tmc_hybrid_threshold.Z3 = TMC_GET_PWMTHRS(Z, Z3);
-        #else
-          tmc_hybrid_threshold.Z3 = Z3_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E0)
-          tmc_hybrid_threshold.E0 = TMC_GET_PWMTHRS(E0, E0);
-        #else
-          tmc_hybrid_threshold.E0 = E0_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E1)
-          tmc_hybrid_threshold.E1 = TMC_GET_PWMTHRS(E1, E1);
-        #else
-          tmc_hybrid_threshold.E1 = E1_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E2)
-          tmc_hybrid_threshold.E2 = TMC_GET_PWMTHRS(E2, E2);
-        #else
-          tmc_hybrid_threshold.E2 = E2_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E3)
-          tmc_hybrid_threshold.E3 = TMC_GET_PWMTHRS(E3, E3);
-        #else
-          tmc_hybrid_threshold.E3 = E3_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E4)
-          tmc_hybrid_threshold.E4 = TMC_GET_PWMTHRS(E4, E4);
-        #else
-          tmc_hybrid_threshold.E4 = E4_HYBRID_THRESHOLD;
-        #endif
-        #if AXIS_HAS_TMC(E5)
-          tmc_hybrid_threshold.E5 = TMC_GET_PWMTHRS(E5, E5)
-        #else
-          tmc_hybrid_threshold.E5 = E5_HYBRID_THRESHOLD;
-        #endif
-      #else // !HYBRID_THRESHOLD
-        const tmc_hybrid_threshold_t tmc_hybrid_threshold = {
-          .X  = 100, .Y  = 100, .Z  =   3,
-          .X2 = 100, .Y2 = 100, .Z2 =   3, .Z3 =  3,
-          .E0 =  30, .E1 =  30, .E2 =  30,
-          .E3 =  30, .E4 =  30, .E5 =  30
-        };
-      #endif // |HYBRID_THRESHOLD
       EEPROM_WRITE(tmc_hybrid_threshold);
+      EEPROM_WRITE(tmc_stealth_enabled);
 
       //
       // TMC2130 StallGuard threshold
       //
-      tmc_sgt_t tmc_sgt = { 0, 0, 0 };
+      int16_t tmc_sgt[XYZ] = { 0, 0, 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt.X = stepperX->sgt();
+          tmc_sgt[X_AXIS] = stepperX->sgt();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt.Y = stepperY->sgt();
+          tmc_sgt[Y_AXIS] = stepperY->sgt();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt.Z = stepperZ->sgt();
+          tmc_sgt[Z_AXIS] = stepperZ->sgt();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -1163,9 +1091,13 @@ void EEPROM::post_process() {
 
         uint16_t  tmc_stepper_current[TMC_AXIS],
                   tmc_stepper_microstep[TMC_AXIS];
+        uint32_t  tmc_hybrid_threshold[TMC_AXIS];
+        bool      tmc_stealth_enabled[TMC_AXIS];
 
         EEPROM_READ(tmc_stepper_current);
         EEPROM_READ(tmc_stepper_microstep);
+        EEPROM_READ(tmc_hybrid_threshold);
+        EEPROM_READ(tmc_stealth_enabled);
 
         if (!validating) {
           LOOP_TMC() {
@@ -1173,56 +1105,17 @@ void EEPROM::post_process() {
             if (st) {
               st->rms_current(tmc_stepper_current[t]);
               st->microsteps(tmc_stepper_microstep[t]);
+              #if ENABLED(HYBRID_THRESHOLD)
+                st->hybrid_thrs = tmc_hybrid_threshold[t];
+                st->refresh_hybrid_thrs(mechanics.data.axis_steps_per_mm[st->id]);
+              #endif
+              #if TMC_HAS_STEALTHCHOP
+                st->stealthChop_enabled = tmc_stealth_enabled[t];
+                st->refresh_stepping_mode();
+              #endif
             }
           }
         }
-
-        #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(stepper##ST, tmc_hybrid_threshold.ST, mechanics.data.axis_steps_per_mm[P##_AXIS])
-        tmc_hybrid_threshold_t tmc_hybrid_threshold;
-        EEPROM_READ(tmc_hybrid_threshold);
-        #if ENABLED(HYBRID_THRESHOLD)
-          if (!validating) {
-            #if AXIS_HAS_TMC(X)
-              TMC_SET_PWMTHRS(X, X);
-            #endif
-            #if AXIS_HAS_TMC(Y)
-              TMC_SET_PWMTHRS(Y, Y);
-            #endif
-            #if AXIS_HAS_TMC(Z)
-              TMC_SET_PWMTHRS(Z, Z);
-            #endif
-            #if AXIS_HAS_TMC(X2)
-              TMC_SET_PWMTHRS(X, X2);
-            #endif
-            #if AXIS_HAS_TMC(Y2)
-              TMC_SET_PWMTHRS(Y, Y2);
-            #endif
-            #if AXIS_HAS_TMC(Z2)
-              TMC_SET_PWMTHRS(Z, Z2);
-            #endif
-            #if AXIS_HAS_TMC(Z3)
-              TMC_SET_PWMTHRS(Z, Z3);
-            #endif
-            #if AXIS_HAS_TMC(E0)
-              TMC_SET_PWMTHRS(E, E0);
-            #endif
-            #if AXIS_HAS_TMC(E1)
-              TMC_SET_PWMTHRS(E1, E1);
-            #endif
-            #if AXIS_HAS_TMC(E2)
-              TMC_SET_PWMTHRS(E2, E2);
-            #endif
-            #if AXIS_HAS_TMC(E3)
-              TMC_SET_PWMTHRS(E3, E3);
-            #endif
-            #if AXIS_HAS_TMC(E4)
-              TMC_SET_PWMTHRS(E4, E4);
-            #endif
-            #if AXIS_HAS_TMC(E4)
-              TMC_SET_PWMTHRS(E5, E5);
-            #endif
-          }
-        #endif
 
         /*
          * TMC2130 Sensorless homing threshold.
@@ -1230,35 +1123,35 @@ void EEPROM::post_process() {
          * Y and Y2 use the same value
          * Z, Z2 and Z3 use the same value
          */
-        tmc_sgt_t tmc_sgt;
+        int16_t tmc_sgt[XYZ];
         EEPROM_READ(tmc_sgt);
         #if HAS_SENSORLESS
           if (!validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                stepperX->sgt(tmc_sgt.X);
+                stepperX->sgt(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                stepperX2->sgt(tmc_sgt.X);
+                stepperX2->sgt(tmc_sgt[X_AXIS]);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                stepperY->sgt(tmc_sgt.Y);
+                stepperY->sgt(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                stepperY2->sgt(tmc_sgt.Y);
+                stepperY2->sgt(tmc_sgt[Y_AXIS]);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                stepperZ->sgt(tmc_sgt.Z);
+                stepperZ->sgt(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                stepperZ2->sgt(tmc_sgt.Z);
+                stepperZ2->sgt(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                stepperZ3->sgt(tmc_sgt.Z);
+                stepperZ3->sgt(tmc_sgt[Z_AXIS]);
               #endif
             #endif
           }
@@ -1902,8 +1795,7 @@ void EEPROM::reset() {
   #endif
 
   #if ENABLED(DHT_SENSOR)
-    dhtsensor.pin   = DHT_DATA_PIN;
-    dhtsensor.type  = DHT_TYPE;
+    dhtsensor.factory_parameters();
   #endif
 
   #if ENABLED(FWRETRACT)
@@ -1927,8 +1819,12 @@ void EEPROM::reset() {
     printer.IDLE_OOZING_enabled = true;
   #endif
 
-  #if HAVE_DRV(TMC2130) || HAVE_DRV(TMC2208)
+  #if HAS_TRINAMIC
     tmc.current_init_to_defaults();
+    tmc.microstep_init_to_defaults();
+    #if ENABLED(HYBRID_THRESHOLD)
+      tmc.hybrid_threshold_init_to_defaults();
+    #endif
   #endif
 
   reset_stepper_drivers();
@@ -1960,11 +1856,6 @@ void EEPROM::reset() {
 }
 
 #if DISABLED(DISABLE_M503)
-
-  inline void print_M350() { SERIAL_SM(CFG, "  M350"); }
-  inline void print_M906() { SERIAL_SM(CFG, "  M906"); }
-  inline void print_M913() { SERIAL_SM(CFG, "  M913"); }
-  inline void print_M914() { SERIAL_SM(CFG, "  M914"); }
 
   inline void print_units(const bool colon) {
     SERIAL_PGM(
@@ -2007,9 +1898,9 @@ void EEPROM::reset() {
      */
     #if HEATER_COUNT > 0
       LOOP_HEATER() {
-        heaters[h].print_sensor_parameters();
-        heaters[h].print_heater_parameters();
-        heaters[h].print_PID_parameters();
+        heaters[h].print_M305();
+        heaters[h].print_M306();
+        heaters[h].print_M301();
       }
     #endif
 
@@ -2017,28 +1908,28 @@ void EEPROM::reset() {
      * Print dht parameters
      */
     #if ENABLED(DHT_SENSOR)
-      dhtsensor.print_parameters();
+      dhtsensor.print_M305();
     #endif
 
     /**
      * Print AD595 parameters
      */
     #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
-      LOOP_HOTEND() heaters[h].print_AD595_parameters();
+      LOOP_HOTEND() heaters[h].print_M595();
     #endif
 
     /**
      * Print Hotends offsets parameters
      */
     #if HOTENDS > 1
-      LOOP_HOTEND() tools.print_parameters(h);
+      LOOP_HOTEND() tools.print_M218(h);
     #endif
 
     /**
      * Print Fans parameters
      */
     #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].print_parameters();
+      LOOP_FAN() fans[f].print_M106();
     #endif
 
     endstops.print_parameters();
@@ -2245,7 +2136,7 @@ void EEPROM::reset() {
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
       SERIAL_LM(CFG, "Stepper driver current (mA)");
-      print_M906();
+      SERIAL_SM(CFG, "  M906");
       SERIAL_MV(" X", externaldac.motor_current[X_AXIS]);
       SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS]);
       SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS]);
@@ -2255,7 +2146,7 @@ void EEPROM::reset() {
       SERIAL_EOL();
       #if DRIVER_EXTRUDERS > 1
         for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-          print_M906();
+          SERIAL_SM(CFG, "  M906");
           SERIAL_MV(" T", int(i));
           SERIAL_MV(" E", externaldac.motor_current[E_AXIS + i]);
           SERIAL_EOL();
@@ -2266,226 +2157,20 @@ void EEPROM::reset() {
 
     #if HAS_TRINAMIC
 
-      /**
-       * TMC2130 or TMC2208 stepper driver current
-       */
-      SERIAL_LM(CFG, "Stepper driver current (mA)");
-      #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
-        print_M906();
-        #if AXIS_HAS_TMC(X)
-          SERIAL_MV(" X", stepperX->getMilliamps());
-        #endif
-        #if AXIS_HAS_TMC(Y)
-          SERIAL_MV(" Y", stepperY->getMilliamps());
-        #endif
-        #if AXIS_HAS_TMC(Z)
-          SERIAL_MV(" Z", stepperZ->getMilliamps());
-        #endif
-        SERIAL_EOL();
-      #endif
-      #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
-        print_M906();
-        SERIAL_MSG(" I2");
-        #if AXIS_HAS_TMC(X2)
-          SERIAL_MV(" X", stepperX2->getMilliamps());
-        #endif
-        #if AXIS_HAS_TMC(Y2)
-          SERIAL_MV(" Y", stepperY2->getMilliamps());
-        #endif
-        #if AXIS_HAS_TMC(Z2)
-          SERIAL_MV(" Z", stepperZ2->getMilliamps());
-        #endif
-        SERIAL_EOL();
-      #endif
-      #if AXIS_HAS_TMC(Z3)
-        print_M906();
-        SERIAL_MSG(" I3");
-        SERIAL_EMV(" Z", stepperZ3->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E0)
-        print_M906();
-        SERIAL_EMV(" T0 E", stepperE0->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        print_M906();
-        SERIAL_EMV(" T1 E", stepperE1->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        print_M906();
-        SERIAL_EMV(" T2 E", stepperE2->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        print_M906();
-        SERIAL_EMV(" T3 E", stepperE3->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        print_M906();
-        SERIAL_EMV(" T4 E", stepperE4->getMilliamps());
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        print_M906();
-        SERIAL_EMV(" T5 E", stepperE5->getMilliamps());
-      #endif
+      // TMC2130 or TMC2208 stepper driver current
+      tmc.print_M906();
 
-      /**
-       * TMC2130 or TMC2208 stepper driver microsteps
-       */
-      SERIAL_LM(CFG, "Stepper driver microsteps");
-      #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
-        print_M350();
-        #if AXIS_HAS_TMC(X)
-          SERIAL_MV(" X", stepperX->microsteps());
-        #endif
-        #if AXIS_HAS_TMC(Y)
-          SERIAL_MV(" Y", stepperY->microsteps());
-        #endif
-        #if AXIS_HAS_TMC(Z)
-          SERIAL_MV(" Z", stepperZ->microsteps());
-        #endif
-        SERIAL_EOL();
-      #endif
-      #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
-        print_M350();
-        SERIAL_MSG(" I2");
-        #if AXIS_HAS_TMC(X2)
-          SERIAL_MV(" X", stepperX2->microsteps());
-        #endif
-        #if AXIS_HAS_TMC(Y2)
-          SERIAL_MV(" Y", stepperY2->microsteps());
-        #endif
-        #if AXIS_HAS_TMC(Z2)
-          SERIAL_MV(" Z", stepperZ2->microsteps());
-        #endif
-        SERIAL_EOL();
-      #endif
-      #if AXIS_HAS_TMC(Z3)
-        print_M350();
-        SERIAL_EMV(" I3 Z", stepperZ3->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E0)
-        print_M350();
-        SERIAL_EMV(" T0 E", stepperE0->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        print_M350();
-        SERIAL_EMV(" T1 E", stepperE1->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        print_M350();
-        SERIAL_EMV(" T2 E", stepperE2->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        print_M350();
-        SERIAL_EMV(" T3 E", stepperE3->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        print_M350();
-        SERIAL_EMV(" T4 E", stepperE4->microsteps());
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        print_M350();
-        SERIAL_EMV(" T5 E", stepperE5->microsteps());
-      #endif
+      // TMC2130 or TMC2208 stepper driver microsteps
+      tmc.print_M350();
 
-      /**
-       * TMC2130 or TMC2208 Hybrid Threshold
-       */
-      #if ENABLED(HYBRID_THRESHOLD)
-        SERIAL_LM(CFG, "Hybrid Threshold");
-        #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
-          print_M913();
-          #if AXIS_HAS_TMC(X)
-            SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X));
-          #endif
-          #if AXIS_HAS_TMC(Y)
-            SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y));
-          #endif
-          #if AXIS_HAS_TMC(Z)
-            SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z));
-          #endif
-          SERIAL_EOL();
-        #endif
-        #if AXIS_HAS_TMC(X2) || AXIS_HAS_TMC(Y2) || AXIS_HAS_TMC(Z2)
-          print_M913();
-          SERIAL_MSG(" I2");
-          #if AXIS_HAS_TMC(X2)
-            SERIAL_MV(" X", TMC_GET_PWMTHRS(X, X2));
-          #endif
-          #if AXIS_HAS_TMC(Y2)
-            SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y, Y2));
-          #endif
-          #if AXIS_HAS_TMC(Z2)
-            SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z, Z2));
-          #endif
-          SERIAL_EOL();
-        #endif
-        #if AXIS_HAS_TMC(Z3)
-          print_M913();
-          SERIAL_EMV(" I3 Z", TMC_GET_PWMTHRS(Z, Z3));
-        #endif
-        #if AXIS_HAS_TMC(E0)
-          print_M913();
-          SERIAL_EMV(" T0 E", TMC_GET_PWMTHRS(E0, E0));
-        #endif
-        #if AXIS_HAS_TMC(E1)
-          print_M913();
-          SERIAL_EMV(" T1 E", TMC_GET_PWMTHRS(E1, E1));
-        #endif
-        #if AXIS_HAS_TMC(E2)
-          print_M913();
-          SERIAL_EMV(" T2 E", TMC_GET_PWMTHRS(E2, E2));
-        #endif
-        #if AXIS_HAS_TMC(E3)
-          print_M913();
-          SERIAL_EMV(" T3 E", TMC_GET_PWMTHRS(E3, E3));
-        #endif
-        #if AXIS_HAS_TMC(E4)
-          print_M913();
-          SERIAL_EMV(" T4 E", TMC_GET_PWMTHRS(E4, E4));
-        #endif
-        #if AXIS_HAS_TMC(E5)
-          print_M913();
-          SERIAL_EMV(" T5 E", TMC_GET_PWMTHRS(E5, E5));
-        #endif
-      #endif // HYBRID_THRESHOLD
+      // TMC2130 or TMC2208 Hybrid Threshold
+      tmc.print_M913();
 
-      /**
-       * TMC2130 StallGuard threshold
-       */
-      #if HAS_SENSORLESS
-        SERIAL_LM(CFG, "TMC2130 StallGuard threshold:");
-        #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
-          print_M914();
-          #if X_HAS_SENSORLESS
-            SERIAL_MV(" X", stepperX->sgt());
-          #endif
-          #if Y_HAS_SENSORLESS
-            SERIAL_MV(" Y", stepperY->sgt());
-          #endif
-          #if Z_HAS_SENSORLESS
-            SERIAL_MV(" Z", stepperZ->sgt());
-          #endif
-          SERIAL_EOL();
-        #endif
-        #if X2_HAS_SENSORLESS || Y2_HAS_SENSORLESS || Z2_HAS_SENSORLESS
-          print_M914();
-          SERIAL_MSG(" I2");
-          #if X2_HAS_SENSORLESS
-            SERIAL_MV(" X", stepperX2->sgt());
-          #endif
-          #if Y2_HAS_SENSORLESS
-            SERIAL_MV(" Y", stepperY2->sgt());
-          #endif
-          #if Z2_HAS_SENSORLESS
-            SERIAL_MV(" Z", stepperZ2->sgt());
-          #endif
-          SERIAL_EOL();
-        #endif
-        #if Z3_HAS_SENSORLESS
-          print_M914();
-          SERIAL_EMV(" I3 Z", stepperZ3->sgt());
-        #endif
-      #endif // HAS_SENSORLESS
+      // TMC2130 StallGuard threshold
+      tmc.print_M914();
+
+      // TMC stepping mode
+      tmc.print_M940();
 
     #endif // HAS_TRINAMIC
 

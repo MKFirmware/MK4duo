@@ -150,11 +150,20 @@ class Commands {
     static bool get_target_tool(const uint16_t code);
 
     /**
-     * Set target heather from the H parameter or the active_tool
+     * Set target heather from the H parameter
      *
      * Returns TRUE if the target is invalid
      */
     static bool get_target_heater(int8_t &h, const bool only_hotend=false);
+
+    #if FAN_COUNT > 0
+      /**
+       * Set target fan from the P parameter
+       *
+       * Returns TRUE if the target is invalid
+       */
+      static bool get_target_fan(uint8_t &f);
+    #endif
 
   private: /** Private Function */
 

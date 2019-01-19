@@ -46,9 +46,7 @@ inline void gcode_M18_M84(void) {
       if (parser.seen('X')) stepper.disable_X();
       if (parser.seen('Y')) stepper.disable_Y();
       if (parser.seen('Z')) stepper.disable_Z();
-      #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN // Only enable on boards that have seperate ENABLE_PINS
-        if (parser.seen('E')) stepper.disable_E();
-      #endif
+      if (parser.seen('E')) stepper.disable_E();
     }
 
     #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD

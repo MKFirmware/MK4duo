@@ -175,7 +175,7 @@ void Printer::setup() {
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
   #if HAS_SD_SUPPORT
-    if (!card.isOK()) card.mount();
+    if (!card.isDetected()) card.mount();
   #endif
 
   // Init endstops
@@ -718,22 +718,22 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       && !planner.has_blocks_queued()
     ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
-        const bool oldstatus = E0_ENABLE_READ;
+        const bool oldstatus = E0_ENABLE_READ();
         enable_E0();
       #else // !DONDOLO_SINGLE_MOTOR
         bool oldstatus;
         switch (tools.active_extruder) {
-          case 0: oldstatus = E0_ENABLE_READ; enable_E0(); break;
+          case 0: oldstatus = E0_ENABLE_READ(); enable_E0(); break;
           #if DRIVER_EXTRUDERS > 1
-            case 1: oldstatus = E1_ENABLE_READ; enable_E1(); break;
+            case 1: oldstatus = E1_ENABLE_READ(); enable_E1(); break;
             #if DRIVER_EXTRUDERS > 2
-              case 2: oldstatus = E2_ENABLE_READ; enable_E2(); break;
+              case 2: oldstatus = E2_ENABLE_READ(); enable_E2(); break;
               #if DRIVER_EXTRUDERS > 3
-                case 3: oldstatus = E3_ENABLE_READ; enable_E3(); break;
+                case 3: oldstatus = E3_ENABLE_READ(); enable_E3(); break;
                 #if DRIVER_EXTRUDERS > 4
-                  case 4: oldstatus = E4_ENABLE_READ; enable_E4(); break;
+                  case 4: oldstatus = E4_ENABLE_READ(); enable_E4(); break;
                   #if DRIVER_EXTRUDERS > 5
-                    case 5: oldstatus = E5_ENABLE_READ; enable_E5(); break;
+                    case 5: oldstatus = E5_ENABLE_READ(); enable_E5(); break;
                   #endif // DRIVER_EXTRUDERS > 5
                 #endif // DRIVER_EXTRUDERS > 4
               #endif // DRIVER_EXTRUDERS > 3

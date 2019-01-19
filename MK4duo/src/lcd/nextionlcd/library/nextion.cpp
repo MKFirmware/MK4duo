@@ -356,6 +356,20 @@ void NextionLCD::Refresh(NexObject &nexobject) {
   recvRetCommandFinished();
 }
 
+uint16_t NextionLCD::recvRetNumber(void) {
+  uint8_t temp[8] = { 0 };
+
+  nexSerial.setTimeout(NEX_TIMEOUT);
+  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
+    return NULL;
+
+  if (temp[0] == NEX_RET_NUMBER_HEAD && temp[5] == 0xFF && temp[6] == 0xFF && temp[7] == 0xFF)
+    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
+  else
+    return NULL;
+
+}
+
 uint8_t NextionLCD::pageID() {
   uint8_t temp[5] = {0};
 
@@ -443,20 +457,6 @@ void NextionLCD::setCurrentBrightness(uint8_t dimValue) {
 
 void NextionLCD::sendRefreshAll(void) {
   sendCommandPGM(PSTR("ref 0"));
-}
-
-uint16_t NextionLCD::recvRetNumber(void) {
-  uint8_t temp[8] = { 0 };
-
-  nexSerial.setTimeout(NEX_TIMEOUT);
-  if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    return NULL;
-
-  if (temp[0] == NEX_RET_NUMBER_HEAD && temp[5] == 0xFF && temp[6] == 0xFF && temp[7] == 0xFF)
-    return (uint16_t)(((uint32_t)temp[4] << 24) | ((uint32_t)temp[3] << 16) | (temp[2] << 8) | (temp[1]));
-  else
-    return NULL;
-
 }
 
 /**

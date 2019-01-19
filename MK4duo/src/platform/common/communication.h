@@ -28,26 +28,28 @@
 #define BIN  2
 #define BYTE 0
 
-FSTRINGVAR(START);        // start for host
-FSTRINGVAR(OK);           // ok answer for host
-FSTRINGVAR(OKSPACE);      // ok space answer for host
-FSTRINGVAR(ER);           // error for host
-FSTRINGVAR(WT);           // wait for host
-FSTRINGVAR(DEB);          // message for debug
-FSTRINGVAR(ECHO);         // message for user
-FSTRINGVAR(CFG);          // config for host
-FSTRINGVAR(CAP);          // capabilities for host
-FSTRINGVAR(INFO);         // info for host
-FSTRINGVAR(BUSY);         // buys for host
-FSTRINGVAR(RESEND);       // resend for host
-FSTRINGVAR(WARNING);      // warning for host
-FSTRINGVAR(TNAN);         // NAN for host
-FSTRINGVAR(TINF);         // INF for host
-FSTRINGVAR(PAUSE);        // command for host that support action
-FSTRINGVAR(RESUME);       // command for host that support action
-FSTRINGVAR(DISCONNECT);   // command for host that support action
-FSTRINGVAR(POWEROFF);     // command for host that support action
-FSTRINGVAR(REQUESTPAUSE); // command for host that support action
+FSTRINGVAR(START);            // start for host
+FSTRINGVAR(OK);               // ok answer for host
+FSTRINGVAR(OKSPACE);          // ok space answer for host
+FSTRINGVAR(ER);               // error for host
+FSTRINGVAR(WT);               // wait for host
+FSTRINGVAR(DEB);              // message for debug
+FSTRINGVAR(ECHO);             // message for user
+FSTRINGVAR(CFG);              // config for host
+FSTRINGVAR(CAP);              // capabilities for host
+FSTRINGVAR(INFO);             // info for host
+FSTRINGVAR(BUSY);             // buys for host
+FSTRINGVAR(RESEND);           // resend for host
+FSTRINGVAR(WARNING);          // warning for host
+FSTRINGVAR(TNAN);             // NAN for host
+FSTRINGVAR(TINF);             // INF for host
+FSTRINGVAR(PAUSE);            // command for host that support action
+FSTRINGVAR(RESUME);           // command for host that support action
+FSTRINGVAR(DISCONNECT);       // command for host that support action
+FSTRINGVAR(POWEROFF);         // command for host that support action
+FSTRINGVAR(REQUESTPAUSE);     // command for host that support action
+FSTRINGVAR(REQUESTCONTINUE);  // command for host that support action
+FSTRINGVAR(REQUESTSTOP);      // command for host that support action
 
 class Com {
 

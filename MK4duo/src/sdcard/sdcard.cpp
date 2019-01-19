@@ -107,7 +107,7 @@
   /** Public Function */
 
   void SDCard::mount() {
-    setOK(false);
+    setDetect(false);
     if (root.isOpen()) root.close();
 
     if (!fat.begin(SDSS, SPI_SPEED)
@@ -118,7 +118,7 @@
       SERIAL_LM(ER, MSG_SD_INIT_FAIL);
     }
     else {
-      setOK(true);
+      setDetect(true);
       SERIAL_EM(MSG_SD_CARD_OK);
     }
     fat.chdir(true);
@@ -129,7 +129,7 @@
   }
 
   void SDCard::unmount() {
-    setOK(false);
+    setDetect(false);
     setSDprinting(false);
   }
 
@@ -177,7 +177,7 @@
   }
 
   void SDCard::startFileprint() {
-    if (isOK()) {
+    if (isDetected()) {
       setSDprinting(true);
       #if ENABLED(SDCARD_SORT_ALPHA)
         flush_presort();
@@ -227,7 +227,7 @@
   }
 
   void SDCard::startWrite(char *filename, const bool silent/*=false*/) {
-    if (!isOK()) return;
+    if (!isDetected()) return;
 
     SdBaseFile *curDir = &workDir;
     if (!gcode_file.open(curDir, filename, FILE_WRITE)) {
@@ -246,7 +246,7 @@
   }
 
   void SDCard::deleteFile(char *filename) {
-    if (!isOK()) return;
+    if (!isDetected()) return;
     setSDprinting(false);
     gcode_file.close();
     if (fat.remove(filename)) {
@@ -273,7 +273,7 @@
   }
 
   void SDCard::makeDirectory(char *filename) {
-    if (!isOK()) return;
+    if (!isDetected()) return;
     setSDprinting(false);
     gcode_file.close();
     if (fat.mkdir(filename)) {
@@ -351,9 +351,9 @@
 
     if (autostart_index < 0 || isSDprinting()) return;
 
-    if (!isOK()) mount();
+    if (!isDetected()) mount();
     
-    if (isOK()
+    if (isDetected()
       #if HAS_SD_RESTART
         && !restart.valid() // Don't run auto#.g when a restart file exists
       #endif
@@ -402,7 +402,7 @@
   bool SDCard::selectFile(PGM_P filename) {
     PGM_P fname = filename;
 
-    if (!isOK()) return false;
+    if (!isDetected()) return false;
 
     SdBaseFile *curDir = &workDir;
     if (gcode_file.open(curDir, filename, FILE_READ)) {
@@ -468,7 +468,7 @@
 
     void SDCard::open_restart_file(const bool read) {
 
-      if (!isOK() || restart.file.isOpen()) return;
+      if (!isDetected() || restart.file.isOpen()) return;
 
       if (!restart.file.open(&root, restart_file_name, read ? FILE_READ : (O_CREAT | O_WRITE | O_TRUNC | O_SYNC)))
         SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
@@ -503,9 +503,9 @@
 
     void SDCard::open_eeprom_sd(const bool read) {
 
-      if (!isOK()) mount();
+      if (!isDetected()) mount();
 
-      if (!isOK()) SERIAL_LM(ER, MSG_NO_CARD);
+      if (!isDetected()) SERIAL_LM(ER, MSG_NO_CARD);
 
       if (eeprom_file.isOpen()) eeprom_file.close();
 

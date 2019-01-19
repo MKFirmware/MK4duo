@@ -78,7 +78,7 @@
 |  M83 | ? | Set E codes relative while in Absolute Coordinates (G90) mode
 |  M84 | ? | Disable steppers until next move, or use S[seconds] to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
 |  M85 | ? | Set inactivity shutdown timer with parameter S[seconds]. To disable set zero (default)
-|  M92 | ? | Set axis steps per unit - same syntax as G92
+|  M92 | ? | Set axis steps per unit - same syntax as G92, H[microstep] L[Layer wanted]
 |  M99 | HYSTERESIS FEATURE | Set Hysteresis parameter M99 X[in mm] Y[in mm] Z[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
 | M100 | ? | Watch Free Memory (For Debugging Only)
 | M104 | ? | Set hotend target temp

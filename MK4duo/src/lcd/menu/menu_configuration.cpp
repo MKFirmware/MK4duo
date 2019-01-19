@@ -32,6 +32,7 @@
 
 void menu_advanced_settings();
 void menu_delta_calibrate();
+void menu_tmc();
 
 #if HAS_LCD_CONTRAST
   void lcd_callback_set_contrast() { lcdui.set_contrast(lcdui.contrast); }
@@ -128,7 +129,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void menu_case_light() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
-    MENU_ITEM_EDIT_CALLBACK(int8, MSG_CASE_LIGHT_BRIGHTNESS, &caselight.brightness, 0, 255, caselight.update, true);
+    MENU_ITEM_EDIT_CALLBACK(uint8, MSG_CASE_LIGHT_BRIGHTNESS, &caselight.brightness, 0, 255, caselight.update, true);
     MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
     END_MENU();
   }
@@ -324,7 +325,7 @@ void menu_configuration() {
   #endif
 
   #if HAS_LCD_CONTRAST
-    MENU_ITEM_EDIT_CALLBACK(int8, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
+    MENU_ITEM_EDIT_CALLBACK(uint8, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
@@ -343,6 +344,10 @@ void menu_configuration() {
       MENU_ITEM(submenu, MSG_PREHEAT_3_SETTINGS, menu_preheat_material3_settings);
     #endif
   }
+
+  #if HAS_TRINAMIC
+    MENU_ITEM(submenu, MSG_TMC_DRIVERS, menu_tmc);
+  #endif
 
   #if HAS_SD_RESTART
     MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART, &restart.enabled, restart.changed);

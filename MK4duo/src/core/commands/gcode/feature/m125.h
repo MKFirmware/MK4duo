@@ -68,12 +68,17 @@
       park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
     #endif
 
-    if (advancedpause.pause_print(retract, park_point)) {
-      // SD Printing simply pauses, leaving the machine in a ready state,
-      // and can be resumed at any time, so don't wait in a loop here.
-      if (!IS_SD_PRINTING()) {
-        advancedpause.wait_for_confirmation();
-        advancedpause.resume_print();
+    #if HAS_LCD_MENU
+      const bool show_lcd = parser.seenval('P');
+      lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.target_extruder);
+    #else
+      constexpr bool show_lcd = false;
+    #endif
+  
+    if (advancedpause.pause_print(retract, park_point, 0, show_lcd)) {
+      if (!IS_SD_PRINTING() || show_lcd ) {
+        advancedpause.wait_for_confirmation(false, 0);
+        advancedpause.resume_print(0, 0, PAUSE_PARK_RETRACT_LENGTH, 0);
       }
     }
   }

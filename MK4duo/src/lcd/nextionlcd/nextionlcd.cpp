@@ -43,7 +43,7 @@
 
 #if HAS_NEXTION_LCD
 
-  #define NEXTION_LCD_FIRMWARE_VERSION  112
+  #define NEXTION_LCD_FIRMWARE_VERSION  113
 
   #include "library/nextion.h"
   #include "nextion_gfx.h"
@@ -69,7 +69,7 @@
       int8_t LcdUI::encoderDirection = 1;
     #endif
 
-    bool          LcdUI::lcd_clicked;
+    bool          LcdUI::lcd_clicked = false;
     float         move_menu_scale;
 
     #if LCD_TIMEOUT_TO_STATUS > 0
@@ -130,13 +130,6 @@
   NexObject Ptemp         = NexObject(9,  0,  "pg9");
   NexObject Pfilament     = NexObject(10, 0,  "pg10");
   NexObject Ptxtmenu      = NexObject(11, 0,  "pg11");
-
-  /**
-   *******************************************************************
-   * Nextion component for page:start
-   *******************************************************************
-   */
-  NexObject Nexfirmware   = NexObject(0,  4,  "va1");
 
   /**
    *******************************************************************
@@ -341,7 +334,7 @@
   void setpagePrinter() {
     char temp[10] = { 0 };
 
-    nexlcd.sendCommandPGM(PSTR("pg1.t0.txt=" SHORT_BUILD_VERSION));
+    nexlcd.sendCommandPGM(PSTR("pg1.t0.txt=\"" SHORT_BUILD_VERSION "\""));
 
     #if HOTENDS > 0
       nexlcd.setValue(Hotend00, 1, "pg2");
@@ -369,9 +362,9 @@
     }
 
     #if HAS_SD_SUPPORT
-      if (!card.isOK()) card.mount();
+      if (!card.isDetected()) card.mount();
       HAL::delayMilliseconds(500);
-      if (card.isOK()) {
+      if (card.isDetected()) {
         SDstatus = SD_INSERT;
         card.beginautostart();  // Initial boot
       }
@@ -396,14 +389,14 @@
 
     #define LANGUAGE_STRING(M) STRINGIFY(M)
     #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-    nexlcd.sendCommandPGM(PSTR("pg2.lang.txt=" NEXTION_LANGUAGE));
+    nexlcd.sendCommandPGM(PSTR("pg2.lang.txt=\"" NEXTION_LANGUAGE "\""));
 
   }
 
   #if HAS_SD_SUPPORT
 
     void UploadNewFirmware() {
-      if (IS_SD_INSERTED() || card.isOK()) {
+      if (IS_SD_INSERTED() || card.isDetected()) {
         Firmware.startUpload();
         nexSerial.end();
         lcdui.init();
@@ -411,7 +404,7 @@
     }
 
     void SDMenuPopCallback() {
-      if (card.isOK()) lcdui.goto_screen(menu_sdcard);
+      if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
     }
 
     void StopPopCallback() {
@@ -419,7 +412,7 @@
     }
 
     void PlayPausePopCallback() {
-      if (card.isOK() && card.isFileOpen()) {
+      if (card.isDetected() && card.isFileOpen()) {
         if (IS_SD_PRINTING()) {
           #if HAS_SD_RESTART
             if (restart.enabled) restart.save_job(true, false);
@@ -1236,12 +1229,15 @@
         gfx.color_set(NX_HIGH, 63488);
       #endif
 
-      const uint16_t nextion_version = nexlcd.getValue(Nexfirmware, "pg0");
-
-      setpagePrinter();
+      nexlcd.sendCommandPGM(PSTR("get pg0.va1.val"));
+      const uint16_t nextion_version = nexlcd.recvRetNumber();
 
       // Start timer for logo anim
       nexlcd.sendCommandPGM(PSTR("tm0.en=1"));
+
+      setpagePrinter();
+
+      return_to_status_ms = millis() + 60000UL;
 
       #if HAS_LCD_MENU
         // Check the Nextion Firmware
@@ -1440,13 +1436,13 @@
 
         ZERO(buffer);
         strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
-        strcat(buffer, i8tostr1(hotend));
+        strcat(buffer, ui8tostr1(hotend));
         strcat(buffer, " ");
-        strcat(buffer, itostr3(heaters[hotend].current_temperature));
+        strcat(buffer, i8tostr3(heaters[hotend].current_temperature));
         strcat(buffer, "/");
 
         if (get_blink() || !heaters[hotend].isIdle())
-          strcat(buffer, itostr3(heaters[hotend].target_temperature));
+          strcat(buffer, i8tostr3(heaters[hotend].target_temperature));
 
         nexlcd.setText(*txtmenu_list[row], buffer);
       }

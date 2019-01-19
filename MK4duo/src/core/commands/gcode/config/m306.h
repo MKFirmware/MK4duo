@@ -48,11 +48,19 @@
    */
   inline void gcode_M306(void) {
 
-    int8_t h = parser.seen('H') ? parser.value_int() : 0; // hotend being updated
+    int8_t h = 0;
 
     if (!commands.get_target_heater(h)) return;
 
     Heater *act = &heaters[h];
+
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M306 report.
+      if (!parser.seen("ABCLOUITP")) {
+        act->print_M306();
+        return;
+      }
+    #endif
 
     act->pid.DriveMin = parser.intval('A', act->pid.DriveMin);
     act->pid.DriveMax = parser.intval('B', act->pid.DriveMax);
@@ -74,7 +82,6 @@
     }
 
     act->pid.update();
-    act->print_heater_parameters();
 
  }
 

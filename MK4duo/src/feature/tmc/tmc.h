@@ -39,28 +39,79 @@
 #define TMC_Y_LABEL "Y", 1
 #define TMC_Z_LABEL "Z", 2
 
-#define TMC_X2_LABEL "X2", 3
-#define TMC_Y2_LABEL "Y2", 4
-#define TMC_Z2_LABEL "Z2", 5
-#define TMC_Z3_LABEL "Z3", 6
+#define TMC_X2_LABEL "X2", 0
+#define TMC_Y2_LABEL "Y2", 1
+#define TMC_Z2_LABEL "Z2", 2
+#define TMC_Z3_LABEL "Z3", 2
 
-#define TMC_E0_LABEL "E0", 10
-#define TMC_E1_LABEL "E1", 11
-#define TMC_E2_LABEL "E2", 12
-#define TMC_E3_LABEL "E3", 13
-#define TMC_E4_LABEL "E4", 14
-#define TMC_E5_LABEL "E5", 15
+#define TMC_E0_LABEL "E0", 3
+#define TMC_E1_LABEL "E1", 4
+#define TMC_E2_LABEL "E2", 5
+#define TMC_E3_LABEL "E3", 6
+#define TMC_E4_LABEL "E4", 7
+#define TMC_E5_LABEL "E5", 8
 
 #define TMC_AXIS 13
 
+typedef struct {
+  uint8_t toff;
+  int8_t  hend;
+  uint8_t hstrt;
+} chopper_timing_t;
+
+static constexpr chopper_timing_t chopper_timing = CHOPPER_TIMING;
+
 extern bool report_tmc_status;
+
+constexpr uint16_t tmc_thrs(const uint16_t msteps, const int32_t thrs, const uint32_t spmm) {
+  return 12650000UL * msteps / (256 * thrs * spmm);
+}
+
+class TMCStorage {
+
+  protected: /** Protected Parameters */
+
+    TMCStorage() {}
+
+  public: /** Public Parameters */
+
+    uint16_t  val_mA  = 0,
+              val_ms  = 0;
+
+    uint8_t hybrid_thrs = 0;
+
+    #if TMC_HAS_STEALTHCHOP
+      bool stealthChop_enabled = false;
+    #endif
+
+    #if HAS_SENSORLESS
+      int8_t homing_thrs = 0;
+    #endif
+
+    #if ENABLED(MONITOR_DRIVER_STATUS)
+      uint8_t  otpw_count = 0,
+              error_count = 0;
+      bool flag_otpw = false;
+    #endif
+
+  public: /** Public Function */
+
+    inline uint16_t getMilliamps()  { return val_mA; }
+    inline uint16_t getMicrosteps() { return val_ms; }
+
+    #if ENABLED(MONITOR_DRIVER_STATUS)
+      inline bool getOTPW() { return flag_otpw; }
+      inline void clear_otpw() { flag_otpw = 0; }
+    #endif
+
+};
 
 #if HAVE_DRV(TMC2660)
 
   //
   // TMC2660 Driver Class
   //
-  class MKTMC : public TMC2660Stepper {
+  class MKTMC : public TMC2660Stepper, public TMCStorage {
 
     public: /** Constructor */
 
@@ -76,37 +127,32 @@ extern bool report_tmc_status;
         id(DRIVER_ID)
         {}
 
-    protected: /** Protected Parameters */
-
-      uint16_t val_mA = 0;
-
     public: /** Public Parameters */
 
       const char* axis_letter;
       const uint8_t id;
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t  otpw_count = 0,
-                error_count = 0;
-        bool flag_otpw = false;
-      #endif
-
     public: /** Public Function */
 
-      uint16_t getMilliamps() { return val_mA; }
+      inline void printLabel() { SERIAL_TXT(axis_letter); }
 
-      uint16_t rms_current() { return TMC2660Stepper::rms_current(); }
+      inline uint16_t rms_current() { return TMC2660Stepper::rms_current(); }
 
-      void printLabel() { SERIAL_TXT(axis_letter); }
-
-      void rms_current(uint16_t mA) {
+      inline void rms_current(uint16_t mA) {
         val_mA = mA;
         TMC2660Stepper::rms_current(mA);
       }
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        bool getOTPW() { return flag_otpw; }
-        void clear_otpw() { flag_otpw = 0; }
+      inline void microsteps(const uint16_t ms) {
+        val_ms = ms;
+        TMC2660Stepper::microsteps(ms);
+      }
+
+      inline void refresh_stepper_current()   { TMC2660Stepper::rms_current(val_mA); }
+      inline void refresh_stepper_microstep() { TMC2660Stepper::microsteps(val_ms); }
+
+      #if HAS_SENSORLESS
+        inline void refresh_homing_thrs() { TMC2660Stepper::sgt(homing_thrs); }
       #endif
 
   };
@@ -116,7 +162,7 @@ extern bool report_tmc_status;
   //
   // TMC2130 Driver Class
   //
-  class MKTMC : public TMC2130Stepper {
+  class MKTMC : public TMC2130Stepper, public TMCStorage {
 
     public: /** Constructor */
 
@@ -132,42 +178,45 @@ extern bool report_tmc_status;
         id(DRIVER_ID)
         {}
 
-    protected: /** Protected Parameters */
-
-      uint16_t val_mA = 0;
-
     public: /** Public Parameters */
 
       const char* axis_letter;
       const uint8_t id;
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t  otpw_count = 0,
-                error_count = 0;
-        bool flag_otpw = false;
-      #endif
-
     public: /** Public Function */
 
-      uint16_t getMilliamps() { return val_mA; }
+      inline void printLabel() { SERIAL_TXT(axis_letter); }
 
-      uint16_t rms_current() { return TMC2130Stepper::rms_current(); }
+      inline uint16_t rms_current() { return TMC2130Stepper::rms_current(); }
 
-      void printLabel() { SERIAL_TXT(axis_letter); }
-
-      void rms_current(uint16_t mA) {
+      inline void rms_current(const uint16_t mA) {
         val_mA = mA;
         TMC2130Stepper::rms_current(mA);
       }
 
-      void rms_current(uint16_t mA, float mult) {
+      inline void rms_current(const uint16_t mA, const float mult) {
         val_mA = mA;
         TMC2130Stepper::rms_current(mA, mult);
       }
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        bool getOTPW() { return flag_otpw; }
-        void clear_otpw() { flag_otpw = 0; }
+      inline uint16_t microsteps() { return TMC2130Stepper::microsteps(); }
+
+      inline void microsteps(const uint16_t ms) {
+        val_ms = ms;
+        TMC2130Stepper::microsteps(ms);
+      }
+
+      inline void refresh_stepping_mode()   { TMC2130Stepper::en_pwm_mode(stealthChop_enabled); }
+      inline bool get_stealthChop_status()  { return TMC2130Stepper::en_pwm_mode(); }
+
+      inline void refresh_stepper_current()   { TMC2130Stepper::rms_current(val_mA); }
+      inline void refresh_stepper_microstep() { TMC2130Stepper::microsteps(val_ms); }
+
+      #if ENABLED(HYBRID_THRESHOLD)
+        inline void refresh_hybrid_thrs(const float spmm) { TMC2130Stepper::TPWMTHRS(tmc_thrs(TMC2130Stepper::microsteps(), hybrid_thrs, spmm)); }
+      #endif
+      #if HAS_SENSORLESS
+        inline void refresh_homing_thrs() { TMC2130Stepper::sgt(homing_thrs); }
       #endif
 
   };
@@ -177,7 +226,7 @@ extern bool report_tmc_status;
   //
   // TMC2208 Driver Class
   //
-  class MKTMC : public TMC2208Stepper {
+  class MKTMC : public TMC2208Stepper, public TMCStorage {
 
     public: /** Constructor */
 
@@ -193,42 +242,40 @@ extern bool report_tmc_status;
         id(DRIVER_ID)
         {}
 
-    protected: /** Protected Parameters */
-
-      uint16_t val_mA = 0;
-
     public: /** Public Parameters */
 
       const char* axis_letter;
       const uint8_t id;
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        uint8_t  otpw_count = 0,
-                error_count = 0;
-        bool flag_otpw = false;
-      #endif
-
     public: /** Public Function */
 
-      uint16_t getMilliamps() { return val_mA; }
+      inline void printLabel() { SERIAL_TXT(axis_letter); }
 
-      uint16_t rms_current() { return TMC2208Stepper::rms_current(); }
+      inline uint16_t rms_current() { return TMC2208Stepper::rms_current(); }
 
-      void printLabel() { SERIAL_MSG(axis_letter); }
-
-      void rms_current(uint16_t mA) {
-        this->val_mA = mA;
+      inline void rms_current(const uint16_t mA) {
+        val_mA = mA;
         TMC2208Stepper::rms_current(mA);
       }
 
-      void rms_current(uint16_t mA, float mult) {
-        this->val_mA = mA;
+      inline void rms_current(const uint16_t mA, const float mult) {
+        val_mA = mA;
         TMC2208Stepper::rms_current(mA, mult);
       }
 
-      #if ENABLED(MONITOR_DRIVER_STATUS)
-        bool getOTPW() { return flag_otpw; }
-        void clear_otpw() { flag_otpw = 0; }
+      inline void microsteps(const uint16_t ms) {
+        val_ms = ms;
+        TMC2208Stepper::microsteps(ms);
+      }
+
+      inline void refresh_stepping_mode()   { TMC2208Stepper::en_spreadCycle(!stealthChop_enabled); }
+      inline bool get_stealthChop_status()  { return !TMC2208Stepper::en_spreadCycle(); }
+
+      inline void refresh_stepper_current()   { TMC2208Stepper::rms_current(val_mA); }
+      inline void refresh_stepper_microstep() { TMC2208Stepper::microsteps(val_ms); }
+
+      #if ENABLED(HYBRID_THRESHOLD)
+        inline void refresh_hybrid_thrs(const float spmm) { TMC2208Stepper::TPWMTHRS(tmc_thrs(TMC2208Stepper::microsteps(), TMC2208Stepper::hybrid_thrs, spmm)); }
       #endif
 
   };
@@ -299,6 +346,7 @@ class TMC_Stepper {
     static void init();
     static void current_init_to_defaults();
     static void microstep_init_to_defaults();
+    static void hybrid_threshold_init_to_defaults();
 
     static void restore();
 
@@ -323,27 +371,13 @@ class TMC_Stepper {
 
     MKTMC* driver_by_index(const uint8_t index);
 
-    FORCE_INLINE static uint16_t thrs(const uint16_t tmc_msteps, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
-      return 12650000UL * tmc_msteps / (256 * tmc_thrs * tmc_spmm);
-    }
-
-    FORCE_INLINE static void get_current(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" driver current: ", st->getMilliamps());
-    }
-
-    FORCE_INLINE static void set_current(MKTMC* st, const uint16_t mA) {
-      st->rms_current(mA);
-    }
-
-    FORCE_INLINE static void get_microstep(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" driver microstep: ", st->microsteps());
-    }
-
-    FORCE_INLINE static void set_microstep(MKTMC* st, const uint16_t ms) {
-      st->microsteps(ms);
-    }
+    #if DISABLED(DISABLE_M503)
+      static void print_M350();
+      static void print_M906();
+      static void print_M913();
+      static void print_M914();
+      static void print_M940();
+    #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
@@ -362,23 +396,17 @@ class TMC_Stepper {
 
     #endif
 
-    FORCE_INLINE static void get_pwmthrs(MKTMC* st, const uint32_t tmc_spmm) {
-      st->printLabel();
-      SERIAL_EMV(" stealthChop max speed: ", thrs(st->microsteps(), st->TPWMTHRS(), tmc_spmm));
+    FORCE_INLINE static void set_pwmthrs(MKTMC* st, const int32_t thrs, const uint32_t spmm) {
+      st->TPWMTHRS(tmc_thrs(st->microsteps(), thrs, spmm));
+      st->hybrid_thrs = tmc_thrs(st->microsteps(), st->TPWMTHRS(), spmm);
     }
 
-    FORCE_INLINE static void set_pwmthrs(MKTMC* st, const int32_t tmc_thrs, const uint32_t tmc_spmm) {
-      st->TPWMTHRS(thrs(st->microsteps(), tmc_thrs, tmc_spmm));
-    }
-
-    FORCE_INLINE static void get_sgt(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" homing sensitivity: ", st->sgt(), DEC);
-    }
-
-    FORCE_INLINE static void set_sgt(MKTMC* st, const int8_t sgt_val) {
-      st->sgt(sgt_val);
-    }
+    #if HAS_SENSORLESS
+      FORCE_INLINE static void set_sgt(MKTMC* st, const int8_t sgt_val) {
+        st->sgt(sgt_val);
+        st->homing_thrs = sgt_val;
+      }
+    #endif
 
     FORCE_INLINE static void get_off_time(MKTMC* st) {
       st->printLabel();
@@ -470,11 +498,11 @@ class TMC_Stepper {
     #endif
 
     #if HAVE_DRV(TMC2660)
-      static void config(MKTMC* st, const int8_t tmc_sgt=0);
+      static void config(MKTMC* st, const int8_t sgt=0);
     #elif HAVE_DRV(TMC2130)
-      static void config(MKTMC* st, const bool tmc_stealthchop=false, const int8_t tmc_sgt=0);
+      static void config(MKTMC* st, const bool stealth=false, const int8_t sgt=0);
     #elif HAVE_DRV(TMC2208)
-      static void config(MKTMC* st, const bool tmc_stealthchop=false);
+      static void config(MKTMC* st, const bool stealth=false);
     #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
@@ -506,7 +534,7 @@ class TMC_Stepper {
       FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_PGM(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
 
       static void status(MKTMC* st, const TMCdebugEnum i);
-      static void status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm);
+      static void status(MKTMC* st, const TMCdebugEnum i, const float spmm);
       static void parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
       static void parse_drv_status(MKTMC* st, const TMCdrvStatusEnum i);
       static void debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);

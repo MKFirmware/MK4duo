@@ -236,11 +236,11 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       lcd_put_wchar('H');
       lcd_put_wchar((char)('0' + hotend));
       lcd_put_wchar(' ');
-      lcd_put_u8str(itostr3(heaters[hotend].current_temperature));
+      lcd_put_u8str(i8tostr3(heaters[hotend].current_temperature));
       lcd_put_wchar('/');
 
       if (get_blink() || !heaters[hotend].isIdle())
-        lcd_put_u8str(itostr3(heaters[hotend].target_temperature));
+        lcd_put_u8str(i8tostr3(heaters[hotend].target_temperature));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

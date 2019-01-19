@@ -89,19 +89,18 @@
 
     #if ENABLED(NEOPIXEL_LED)
 
-      const uint32_t neocolor = strip.Color(incol.r, incol.g, incol.b, incol.w);
+      const uint32_t neocolor = LEDColorWhite() == incol
+                              ? strip.Color(NEO_WHITE)
+                              : strip.Color(incol.r, incol.g, incol.b, incol.w);
       static uint16_t nextLed = 0;
 
       strip.setBrightness(incol.i);
       if (!isSequence)
         set_neopixel_color(neocolor);
       else {
-        uint8_t i = 0;
-        for (i = nextLed; i < nextLed + NEOPIXEL_LED_STEP; ++i) {
-          strip.setPixelColor(i, neocolor);
-          strip.show();
-        }
-        if ((nextLed = i) >= strip.numPixels()) nextLed = 0;
+        strip.setPixelColor(nextLed, neocolor);
+        strip.show();
+        if (++nextLed >= strip.numPixels()) nextLed = 0;
         return;
       }
 

@@ -226,6 +226,7 @@ void LcdUI::init() {
   #if HAS_ENCODER_ACTION
     encoderDiff = 0;
   #endif
+
 }
 
 bool LcdUI::get_blink() {

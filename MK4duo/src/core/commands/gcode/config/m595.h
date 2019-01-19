@@ -34,12 +34,25 @@
    * M595 - set AD595 or AD8495 offset & Gain H<hotend> O<offset> S<gain>
    */
   inline void gcode_M595(void) {
+
     int8_t h = 0;
+
     if (!commands.get_target_heater(h, true)) return;
-    heaters[h].sensor.ad595_offset = parser.floatval('O');
-    heaters[h].sensor.ad595_gain   = parser.floatval('S', 1);
-    if (heaters[h].sensor.ad595_gain == 0) heaters[h].sensor.ad595_gain = 1.0;
-    heaters[h].print_AD595_parameters();
+
+    Heater *act = &heaters[h];
+
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M595 report.
+      if (!parser.seen("OS")) {
+        act->print_M595();
+        return;
+      }
+    #endif
+
+    act->sensor.ad595_offset = parser.floatval('O');
+    act->sensor.ad595_gain   = parser.floatval('S', 1);
+    if (act->sensor.ad595_gain == 0) act->sensor.ad595_gain = 1.0;
+
   }
 
 #endif // ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)

@@ -48,8 +48,8 @@
 
   void Restart::check() {
     if (enabled) {
-      if (!card.isOK()) card.mount();
-      if (card.isOK()) {
+      if (!card.isDetected()) card.mount();
+      if (card.isDetected()) {
         load_job();
         if (!valid()) return purge_job();
         commands.enqueue_and_echo_P(PSTR("M800 S"));

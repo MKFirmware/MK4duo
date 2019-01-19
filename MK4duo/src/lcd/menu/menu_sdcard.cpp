@@ -110,7 +110,7 @@ void menu_sdcard() {
       MENU_ITEM(function, LCD_STR_REFRESH MSG_REFRESH, lcd_sd_refresh);
     #endif
   }
-  else if (card.isOK()) {
+  else if (card.isDetected()) {
     MENU_ITEM(function, LCD_STR_FOLDER "..", lcd_sd_updir);
   }
 

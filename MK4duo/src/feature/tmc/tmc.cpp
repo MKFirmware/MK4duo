@@ -177,7 +177,7 @@ void TMC_Stepper::init() {
     #endif
     #if X2_HAS_DRV(TMC2130)
       TMC2130_DEFINE(X2);
-      config(stepperX2, X2_STEALTHCHOP, X_STALL_SENSITIVITY);
+      config(stepperX2, X_STEALTHCHOP, X_STALL_SENSITIVITY);
     #endif
     #if Y_HAS_DRV(TMC2130)
       TMC2130_DEFINE(Y);
@@ -185,7 +185,7 @@ void TMC_Stepper::init() {
     #endif
     #if Y2_HAS_DRV(TMC2130)
       TMC2130_DEFINE(Y2);
-      config(stepperY2, Y2_STEALTHCHOP, Y_STALL_SENSITIVITY);
+      config(stepperY2, Y_STEALTHCHOP, Y_STALL_SENSITIVITY);
     #endif
     #if Z_HAS_DRV(TMC2130)
       TMC2130_DEFINE(Z);
@@ -193,11 +193,11 @@ void TMC_Stepper::init() {
     #endif
     #if Z2_HAS_DRV(TMC2130)
       TMC2130_DEFINE(Z2);
-      config(stepperZ2, Z2_STEALTHCHOP, Z_STALL_SENSITIVITY);
+      config(stepperZ2, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
     #endif
     #if Z3_HAS_DRV(TMC2130)
       TMC2130_DEFINE(Z3);
-      config(stepperZ3, Z3_STEALTHCHOP, Z_STALL_SENSITIVITY);
+      config(stepperZ3, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
     #endif
     #if E0_HAS_DRV(TMC2130)
       TMC2130_DEFINE(E0);
@@ -253,7 +253,7 @@ void TMC_Stepper::init() {
         TMC2208_DEFINE_SOFTWARE(X2);
         stepperX2->beginSerial(115200);
       #endif
-      config(stepperX2, X2_STEALTHCHOP);
+      config(stepperX2, X_STEALTHCHOP);
     #endif
     #if Y_HAS_DRV(TMC2208)
       #if ENABLED(Y_HARDWARE_SERIAL)
@@ -273,7 +273,7 @@ void TMC_Stepper::init() {
         TMC2208_DEFINE_SOFTWARE(Y2);
         stepperY2->beginSerial(115200);
       #endif
-      config(stepperY2, Y2_STEALTHCHOP);
+      config(stepperY2, Y_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2208)
       #if ENABLED(Z_HARDWARE_SERIAL)
@@ -293,7 +293,7 @@ void TMC_Stepper::init() {
         TMC2208_DEFINE_SOFTWARE(Z2);
         stepperZ2->beginSerial(115200);
       #endif
-      config(stepperZ2, Z2_STEALTHCHOP);
+      config(stepperZ2, Z_STEALTHCHOP);
     #endif
     #if Z3_HAS_DRV(TMC2208)
       #if ENABLED(Z3_HARDWARE_SERIAL)
@@ -303,7 +303,7 @@ void TMC_Stepper::init() {
         TMC2208_DEFINE_SOFTWARE(Z3);
         stepperZ3->beginSerial(115200);
       #endif
-      config(stepperZ3, Z3_STEALTHCHOP);
+      config(stepperZ3, Z_STEALTHCHOP);
     #endif
     #if E0_HAS_DRV(TMC2208)
       #if ENABLED(E0_HARDWARE_SERIAL)
@@ -374,132 +374,43 @@ void TMC_Stepper::init() {
 // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
 // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
 void TMC_Stepper::current_init_to_defaults() {
+  constexpr uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
+                                                          E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT };
 
-  #define TMC_CURRENT_INIT(ST)  set_current(stepper##ST, ST##_CURRENT)
-
-  #if AXIS_HAS_TMC(X)
-    TMC_CURRENT_INIT(X);
-  #endif
-  #if AXIS_HAS_TMC(X2)
-    TMC_CURRENT_INIT(X2);
-  #endif
-  #if AXIS_HAS_TMC(Y)
-    TMC_CURRENT_INIT(Y);
-  #endif
-  #if AXIS_HAS_TMC(Y2)
-    TMC_CURRENT_INIT(Y2);
-  #endif
-  #if AXIS_HAS_TMC(Z)
-    TMC_CURRENT_INIT(Z);
-  #endif
-  #if AXIS_HAS_TMC(Z2)
-    TMC_CURRENT_INIT(Z2);
-  #endif
-  #if AXIS_HAS_TMC(Z3)
-    TMC_CURRENT_INIT(Z3);
-  #endif
-  #if AXIS_HAS_TMC(E0)
-    TMC_CURRENT_INIT(E0);
-  #endif
-  #if AXIS_HAS_TMC(E1)
-    TMC_CURRENT_INIT(E1);
-  #endif
-  #if AXIS_HAS_TMC(E2)
-    TMC_CURRENT_INIT(E2);
-  #endif
-  #if AXIS_HAS_TMC(E3)
-    TMC_CURRENT_INIT(E3);
-  #endif
-  #if AXIS_HAS_TMC(E4)
-    TMC_CURRENT_INIT(E4);
-  #endif
-  #if AXIS_HAS_TMC(E5)
-    TMC_CURRENT_INIT(E5);
-  #endif
+  LOOP_TMC() {
+    MKTMC* st = tmc.driver_by_index(t);
+    if (st) st->rms_current(tmc_stepper_current[t]);
+  }
 }
 
 void TMC_Stepper::microstep_init_to_defaults() {
+  constexpr uint16_t tmc_stepper_microstep[TMC_AXIS]  = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS,
+                                                          E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
 
-  #define TMC_MICROSTEP_INIT(ST)  set_microstep(stepper##ST, ST##_MICROSTEPS)
+  LOOP_TMC() {
+    MKTMC* st = tmc.driver_by_index(t);
+    if (st) st->microsteps(tmc_stepper_microstep[t]);
+  }
+}
 
-  #if AXIS_HAS_TMC(X)
-    TMC_MICROSTEP_INIT(X);
-  #endif
-  #if AXIS_HAS_TMC(X2)
-    TMC_MICROSTEP_INIT(X2);
-  #endif
-  #if AXIS_HAS_TMC(Y)
-    TMC_MICROSTEP_INIT(Y);
-  #endif
-  #if AXIS_HAS_TMC(Y2)
-    TMC_MICROSTEP_INIT(Y2);
-  #endif
-  #if AXIS_HAS_TMC(Z)
-    TMC_MICROSTEP_INIT(Z);
-  #endif
-  #if AXIS_HAS_TMC(Z2)
-    TMC_MICROSTEP_INIT(Z2);
-  #endif
-  #if AXIS_HAS_TMC(Z3)
-    TMC_MICROSTEP_INIT(Z3);
-  #endif
-  #if AXIS_HAS_TMC(E0)
-    TMC_MICROSTEP_INIT(E0);
-  #endif
-  #if AXIS_HAS_TMC(E1)
-    TMC_MICROSTEP_INIT(E1);
-  #endif
-  #if AXIS_HAS_TMC(E2)
-    TMC_MICROSTEP_INIT(E2);
-  #endif
-  #if AXIS_HAS_TMC(E3)
-    TMC_MICROSTEP_INIT(E3);
-  #endif
-  #if AXIS_HAS_TMC(E4)
-    TMC_MICROSTEP_INIT(E4);
-  #endif
-  #if AXIS_HAS_TMC(E5)
-    TMC_MICROSTEP_INIT(E5);
-  #endif
+void TMC_Stepper::hybrid_threshold_init_to_defaults() {
+  constexpr uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                          X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                          E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                          E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+
+  LOOP_TMC() {
+    MKTMC* st = tmc.driver_by_index(t);
+    if (st)
+      set_pwmthrs(st, tmc_hybrid_threshold[t], mechanics.data.axis_steps_per_mm[st->id]);
+  }
 }
 
 void TMC_Stepper::restore() {
-  #if AXIS_HAS_TMC(X)
-    stepperX->push();
-  #endif
-  #if AXIS_HAS_TMC(X2)
-    stepperX2->push();
-  #endif
-  #if AXIS_HAS_TMC(Y)
-    stepperY->push();
-  #endif
-  #if AXIS_HAS_TMC(Y2)
-    stepperY2->push();
-  #endif
-  #if AXIS_HAS_TMC(Z)
-    stepperZ->push();
-  #endif
-  #if AXIS_HAS_TMC(Z2)
-    stepperZ2->push();
-  #endif
-  #if AXIS_HAS_TMC(Z3)
-    stepperZ3->push();
-  #endif
-  #if AXIS_HAS_TMC(E0)
-    stepperE0->push();
-  #endif
-  #if AXIS_HAS_TMC(E1)
-    stepperE1->push();
-  #endif
-  #if AXIS_HAS_TMC(E2)
-    stepperE2->push();
-  #endif
-  #if AXIS_HAS_TMC(E3)
-    stepperE3->push();
-  #endif
-  #if AXIS_HAS_TMC(E4)
-    stepperE4->push();
-  #endif
+  LOOP_TMC() {
+    MKTMC* st = tmc.driver_by_index(t);
+    if (st) st->push();
+  }
 }
 
 void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e) {
@@ -568,45 +479,10 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     const millis_t ms = millis();
     if (ELAPSED(ms, next_poll)) {
       next_poll = ms + 1000UL;
-      #if HAS_HW_COMMS(X)
-        monitor_driver(stepperX);
-      #endif
-      #if HAS_HW_COMMS(Y)
-        monitor_driver(stepperY);
-      #endif
-      #if HAS_HW_COMMS(Z)
-        monitor_driver(stepperZ);
-      #endif
-      #if HAS_HW_COMMS(X2)
-        monitor_driver(stepperX2);
-      #endif
-      #if HAS_HW_COMMS(Y2)
-        monitor_driver(stepperY2);
-      #endif
-      #if HAS_HW_COMMS(Z2)
-        monitor_driver(stepperZ2);
-      #endif
-      #if HAS_HW_COMMS(Z3)
-        monitor_driver(stepperZ3);
-      #endif
-      #if HAS_HW_COMMS(E0)
-        monitor_driver(stepperE0);
-      #endif
-      #if HAS_HW_COMMS(E1)
-        monitor_driver(stepperE1);
-      #endif
-      #if HAS_HW_COMMS(E2)
-        monitor_driver(stepperE2);
-      #endif
-      #if HAS_HW_COMMS(E3)
-        monitor_driver(stepperE3);
-      #endif
-      #if HAS_HW_COMMS(E4)
-        monitor_driver(stepperE4);
-      #endif
-      #if HAS_HW_COMMS(E5)
-        monitor_driver(stepperE5);
-      #endif
+      LOOP_TMC() {
+        MKTMC* st = tmc.driver_by_index(t);
+        if (st) monitor_driver(st);
+      }
 
       #if ENABLED(TMC_DEBUG)
         if (report_status) SERIAL_EOL();
@@ -726,6 +602,162 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #endif // ENABLED(TMC_DEBUG)
 
+#if DISABLED(DISABLE_M503)
+
+  void TMC_Stepper::print_M350() {
+    SERIAL_LM(CFG, "Stepper driver microsteps");
+    #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+      SERIAL_SM(CFG, "  M350");
+      #if AXIS_HAS_TMC(X)
+        SERIAL_MV(" X", stepperX->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Y)
+        SERIAL_MV(" Y", stepperY->microsteps());
+      #endif
+      #if AXIS_HAS_TMC(Z)
+        SERIAL_MV(" Z", stepperZ->microsteps());
+      #endif
+      SERIAL_EOL();
+    #endif
+    #if AXIS_HAS_TMC(E0)
+      SERIAL_LMV(CFG, "  M350 T0 E", stepperE0->microsteps());
+    #endif
+    #if AXIS_HAS_TMC(E1)
+      SERIAL_LMV(CFG, "  M350 T1 E", stepperE1->microsteps());
+    #endif
+    #if AXIS_HAS_TMC(E2)
+      SERIAL_LMV(CFG, "  M350 T2 E", stepperE2->microsteps());
+    #endif
+    #if AXIS_HAS_TMC(E3)
+      SERIAL_LMV(CFG, "  M350 T3 E", stepperE3->microsteps());
+    #endif
+    #if AXIS_HAS_TMC(E4)
+      SERIAL_LMV(CFG, "  M350 T4 E", stepperE4->microsteps());
+    #endif
+    #if AXIS_HAS_TMC(E5)
+      SERIAL_LMV(CFG, "  M350 T5 E", stepperE5->microsteps());
+    #endif
+  }
+
+  void TMC_Stepper::print_M906() {
+    SERIAL_LM(CFG, "Stepper driver current (mA)");
+    #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+      SERIAL_SM(CFG, "  M906");
+      #if AXIS_HAS_TMC(X)
+        SERIAL_MV(" X", stepperX->getMilliamps());
+      #endif
+      #if AXIS_HAS_TMC(Y)
+        SERIAL_MV(" Y", stepperY->getMilliamps());
+      #endif
+      #if AXIS_HAS_TMC(Z)
+        SERIAL_MV(" Z", stepperZ->getMilliamps());
+      #endif
+      SERIAL_EOL();
+    #endif
+    #if AXIS_HAS_TMC(E0)
+      SERIAL_LMV(CFG, "  M906 T0 E", stepperE0->getMilliamps());
+    #endif
+    #if AXIS_HAS_TMC(E1)
+      SERIAL_LMV(CFG, "  M906 T1 E", stepperE1->getMilliamps());
+    #endif
+    #if AXIS_HAS_TMC(E2)
+      SERIAL_LMV(CFG, "  M906 T2 E", stepperE2->getMilliamps());
+    #endif
+    #if AXIS_HAS_TMC(E3)
+      SERIAL_LMV(CFG, "  M906 T3 E", stepperE3->getMilliamps());
+    #endif
+    #if AXIS_HAS_TMC(E4)
+      SERIAL_LMV(CFG, "  M906 T4 E", stepperE4->getMilliamps());
+    #endif
+    #if AXIS_HAS_TMC(E5)
+      SERIAL_LMV(CFG, "  M906 T5 E", stepperE5->getMilliamps());
+    #endif
+  }
+
+  void TMC_Stepper::print_M913() {
+
+    #if ENABLED(HYBRID_THRESHOLD)
+
+      #define TMC_GET_PWMTHRS(ST) tmc_thrs(stepper##ST->microsteps(), stepper##ST->TPWMTHRS(), mechanics.data.axis_steps_per_mm[ST##_AXIS])
+
+      SERIAL_LM(CFG, "Stepper driver Hybrid Threshold");
+      #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
+        SERIAL_SM(CFG, "  M913");
+        #if AXIS_HAS_TMC(X)
+          SERIAL_MV(" X", TMC_GET_PWMTHRS(X));
+        #endif
+        #if AXIS_HAS_TMC(Y)
+          SERIAL_MV(" Y", TMC_GET_PWMTHRS(Y));
+        #endif
+        #if AXIS_HAS_TMC(Z)
+          SERIAL_MV(" Z", TMC_GET_PWMTHRS(Z));
+        #endif
+        SERIAL_EOL();
+      #endif
+      #if AXIS_HAS_TMC(E0)
+        SERIAL_LMV(CFG, "  M913 T0 E", TMC_GET_PWMTHRS(E0));
+      #endif
+      #if AXIS_HAS_TMC(E1)
+        SERIAL_LMV(CFG, "  M913 T1 E", TMC_GET_PWMTHRS(E1));
+      #endif
+      #if AXIS_HAS_TMC(E2)
+        SERIAL_LMV(CFG, "  M913 T2 E", TMC_GET_PWMTHRS(E2));
+      #endif
+      #if AXIS_HAS_TMC(E3)
+        SERIAL_LMV(CFG, "  M913 T3 E", TMC_GET_PWMTHRS(E3));
+      #endif
+      #if AXIS_HAS_TMC(E4)
+        SERIAL_LMV(CFG, "  M913 T4 E", TMC_GET_PWMTHRS(E4));
+      #endif
+      #if AXIS_HAS_TMC(E5)
+        SERIAL_LMV(CFG, "  M913 T5 E", TMC_GET_PWMTHRS(E5));
+      #endif
+
+    #endif // HYBRID_THRESHOLD
+
+  }
+
+  void TMC_Stepper::print_M914() {
+    #if HAS_SENSORLESS
+      SERIAL_LM(CFG, "Stepper driver StallGuard threshold:");
+      #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
+        SERIAL_SM(CFG, "  M914");
+        #if X_HAS_SENSORLESS
+          SERIAL_MV(" X", stepperX->sgt());
+        #endif
+        #if Y_HAS_SENSORLESS
+          SERIAL_MV(" Y", stepperY->sgt());
+        #endif
+        #if Z_HAS_SENSORLESS
+          SERIAL_MV(" Z", stepperZ->sgt());
+        #endif
+        SERIAL_EOL();
+      #endif
+    #endif // HAS_SENSORLESS
+  }
+
+  void TMC_Stepper::print_M940() {
+    #if TMC_HAS_STEALTHCHOP
+      SERIAL_LM(CFG, "Stepper driver StealthChop:");
+      SERIAL_SM(CFG, "  M940");
+      #if AXIS_HAS_STEALTHCHOP(X)
+        SERIAL_MV(" X", stepperX->get_stealthChop_status());
+      #endif
+      #if AXIS_HAS_STEALTHCHOP(Y)
+        SERIAL_MV(" Y", stepperY->get_stealthChop_status());
+      #endif
+      #if AXIS_HAS_STEALTHCHOP(Z)
+        SERIAL_MV(" Z", stepperZ->get_stealthChop_status());
+      #endif
+      #if AXIS_HAS_STEALTHCHOP(E0)
+        SERIAL_MV(" E", stepperE0->get_stealthChop_status());
+      #endif
+      SERIAL_EOL();
+    #endif // HAS_STEALTHCHOP
+  }
+
+#endif // DISABLED(DISABLE_M503)
+
 MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
   switch(index) {
@@ -843,45 +875,47 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
 #if HAVE_DRV(TMC2660)
 
-  void TMC_Stepper::config(MKTMC* st, const int8_t tmc_sgt/*=0*/) {
+  void TMC_Stepper::config(MKTMC* st, const int8_t sgt/*=0*/) {
 
     st->begin();
 
-    static constexpr int8_t timings[] = CHOPPER_TIMING;
-
     TMC2660_n::CHOPCONF_t chopconf{0};
     chopconf.tbl = 1;
-    chopconf.toff = timings[0];
-    chopconf.hend = timings[1] + 3;
-    chopconf.hstrt = timings[2] - 1;
+    chopconf.toff = chopper_timing.toff;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
     st->CHOPCONF(chopconf.sr);
  
     st->intpol(INTERPOLATE);
-    st->sgt(tmc_sgt);
+
+    #if HAS_SENSORLESS
+      st->sgt(sgt);
+      homing_thrs = sgt;
+    #endif
+
     st->diss2g(true); // Disable short to ground protection. Too many false readings?
 
   }
 
 #elif HAVE_DRV(TMC2130)
   
-  void TMC_Stepper::config(MKTMC* st, const bool tmc_stealthchop/*=false*/, const int8_t tmc_sgt/*=0*/) {
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/, const int8_t sgt/*=0*/) {
 
     st->begin();
 
-    static constexpr int8_t timings[] = CHOPPER_TIMING; // Default 4, -2, 1
-
     CHOPCONF_t chopconf{0};
     chopconf.tbl = 1;
-    chopconf.toff = timings[0];
+    chopconf.toff = chopper_timing.toff;
     chopconf.intpol = INTERPOLATE;
-    chopconf.hend = timings[1] + 3;
-    chopconf.hstrt = timings[2] - 1;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
     st->CHOPCONF(chopconf.sr);
 
     st->iholddelay(10);
     st->TPOWERDOWN(128);
 
-    st->en_pwm_mode(tmc_stealthchop);
+    st->en_pwm_mode(stealth);
+    st->stealthChop_enabled = stealth;
 
     PWMCONF_t pwmconf{0};
     pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
@@ -890,30 +924,33 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     pwmconf.pwm_ampl = 180;
     st->PWMCONF(pwmconf.sr);
 
-    st->sgt(tmc_sgt);
+    #if HAS_SENSORLESS
+      st->sgt(sgt);
+      st->homing_thrs = sgt;
+    #endif
+
     st->GSTAT(); // Clear GSTAT
 
   }
 
 #elif HAVE_DRV(TMC2208)
 
-  void TMC_Stepper::config(MKTMC* st, const bool tmc_stealthchop/*=false*/) {
-
-    static constexpr int8_t timings[] = CHOPPER_TIMING; // Default 4, -2, 1
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
 
     TMC2208_n::GCONF_t gconf{0};
     gconf.pdn_disable = true; // Use UART
     gconf.mstep_reg_select = true; // Select microsteps with UART
     gconf.i_scale_analog = false;
-    gconf.en_spreadcycle = !tmc_stealthchop;
+    gconf.en_spreadcycle = !stealth;
     st->GCONF(gconf.sr);
+    st->stealthChop_enabled = stealth;
 
     TMC2208_n::CHOPCONF_t chopconf{0};
     chopconf.tbl = 0b01; // blank_time = 24
-    chopconf.toff = timings[0];
+    chopconf.toff = chopper_timing.toff;
     chopconf.intpol = INTERPOLATE;
-    chopconf.hend = timings[1] + 3;
-    chopconf.hstrt = timings[2] - 1;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
     st->CHOPCONF(chopconf.sr);
 
     st->iholddelay(10);
@@ -1197,7 +1234,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
   #if HAVE_DRV(TMC2660)
   
-    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
@@ -1222,7 +1259,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
   #else
 
-    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float tmc_spmm) {
+    void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
       switch(i) {
         case TMC_CODES: st->printLabel(); break;
@@ -1258,7 +1295,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
         case TMC_TPWMTHRS_MMS: {
             uint32_t tpwmthrs_val = st->TPWMTHRS();
               if (tpwmthrs_val)
-                SERIAL_VAL(thrs(st->microsteps(), tpwmthrs_val, tmc_spmm));
+                SERIAL_VAL(tmc_thrs(st->microsteps(), tpwmthrs_val, spmm));
               else
                 SERIAL_CHR('-');
             }

@@ -104,15 +104,16 @@
 #define CALIBRATION_CURRENT 250
 #define CALIBRATION_EXTRA_HEIGHT 10
 
+// Software enable
+// Use for drivers that do not use a dedicated enable pin, but rather handle the same
+// function through a communication line such as SPI or UART.
+//#define TMC_SOFTWARE_DRIVER_ENABLE
+
 // Use Trinamic's ultra quiet stepping mode.
 // When disabled, MK4duo will use spreadCycle stepping mode.
 #define X_STEALTHCHOP   false
-#define X2_STEALTHCHOP  false
 #define Y_STEALTHCHOP   false
-#define Y2_STEALTHCHOP  false
 #define Z_STEALTHCHOP   false
-#define Z2_STEALTHCHOP  false
-#define Z3_STEALTHCHOP  false
 #define E0_STEALTHCHOP  false
 #define E1_STEALTHCHOP  false
 #define E2_STEALTHCHOP  false
@@ -154,12 +155,8 @@
 // M913 X/Y/Z/E to live tune the setting [mm/s]
 //#define HYBRID_THRESHOLD
 #define X_HYBRID_THRESHOLD     100
-#define X2_HYBRID_THRESHOLD    100
 #define Y_HYBRID_THRESHOLD     100
-#define Y2_HYBRID_THRESHOLD    100
 #define Z_HYBRID_THRESHOLD       2
-#define Z2_HYBRID_THRESHOLD      2
-#define Z3_HYBRID_THRESHOLD      2
 #define E0_HYBRID_THRESHOLD     30
 #define E1_HYBRID_THRESHOLD     30
 #define E2_HYBRID_THRESHOLD     30

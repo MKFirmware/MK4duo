@@ -1926,11 +1926,9 @@
 #define NEOPIXEL_TYPE   NEO_GRB
 // Number of LEDs on strip
 #define NEOPIXEL_PIXELS 16
-// Sequential display for temperature change - LED by LED or plus see NEOPIXEL_LED_STEP.
+// Sequential display for temperature change - LED by LED.
 // Comment out for all LEDs to change at once.
 #define NEOPIXEL_IS_SEQUENTIAL
-// Led step for sequential
-#define NEOPIXEL_LED_STEP 1
 // Initial brightness 0-255
 #define NEOPIXEL_BRIGHTNESS 127
 // Cycle through colors at startup
@@ -2129,12 +2127,8 @@
  *                                                                     *
  ***********************************************************************/
 #define X_MICROSTEPS  16
-#define X2_MICROSTEPS 16
 #define Y_MICROSTEPS  16
-#define Y2_MICROSTEPS 16
 #define Z_MICROSTEPS  16
-#define Z2_MICROSTEPS 16
-#define Z3_MICROSTEPS 16
 #define E0_MICROSTEPS 16
 #define E1_MICROSTEPS 16
 #define E2_MICROSTEPS 16
@@ -2153,12 +2147,8 @@
  *                                                                     *
  ***********************************************************************/
 #define X_CURRENT   800
-#define X2_CURRENT  800
 #define Y_CURRENT   800
-#define Y2_CURRENT  800
 #define Z_CURRENT   800
-#define Z2_CURRENT  800
-#define Z3_CURRENT  800
 #define E0_CURRENT  800
 #define E1_CURRENT  800
 #define E2_CURRENT  800

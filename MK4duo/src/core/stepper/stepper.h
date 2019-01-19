@@ -234,56 +234,16 @@ class Stepper {
       FORCE_INLINE static void disable_E4() { /* nada */ }
       FORCE_INLINE static void disable_E5() { /* nada */ }
     #else
-      FORCE_INLINE static void enable_E1() {
-        #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
-          E1_ENABLE_WRITE(E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void disable_E1() {
-        #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
-          E1_ENABLE_WRITE(!E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void enable_E2() {
-        #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
-          E2_ENABLE_WRITE(E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void disable_E2() {
-        #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
-          E2_ENABLE_WRITE(!E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void enable_E3() {
-        #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
-          E3_ENABLE_WRITE(E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void disable_E3() {
-        #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
-          E3_ENABLE_WRITE(!E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void enable_E4() {
-        #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
-          E4_ENABLE_WRITE(E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void disable_E4() {
-        #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
-          E4_ENABLE_WRITE(!E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void enable_E5() {
-        #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
-          E5_ENABLE_WRITE(E_ENABLE_ON);
-        #endif
-      }
-      FORCE_INLINE static void disable_E5() {
-        #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
-          E5_ENABLE_WRITE(!E_ENABLE_ON);
-        #endif
-      }
+      static void enable_E1();
+      static void disable_E1();
+      static void enable_E2();
+      static void disable_E2();
+      static void enable_E3();
+      static void disable_E3();
+      static void enable_E4();
+      static void disable_E4();
+      static void enable_E5();
+      static void disable_E5();
     #endif
 
     /**

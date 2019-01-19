@@ -33,14 +33,14 @@
   #define DHTMINREADINTERVAL 2000  // ms
   #define DHTMAXREADTIME       50  // ms
 
-  DhtSensor dhtsensor;
+  DHTSensor dhtsensor;
 
-  pin_t   DhtSensor::pin          = DHT_DATA_PIN;
-  uint8_t DhtSensor::type         = DHT_TYPE;
-  float   DhtSensor::Temperature  = 20,
-          DhtSensor::Humidity     = 10;
+  pin_t   DHTSensor::pin          = DHT_DATA_PIN;
+  uint8_t DHTSensor::type         = DHT_TYPE;
+  float   DHTSensor::Temperature  = 20,
+          DHTSensor::Humidity     = 10;
 
-  DhtSensor::SensorState DhtSensor::state = Init;
+  DHTSensor::SensorState DHTSensor::state = Init;
 
   // ISR
   uint32_t  lastPulseTime, pulses[41];  // 1 start bit + 40 data bits
@@ -59,12 +59,17 @@
     }
   }
 
-  void DhtSensor::init() {
+  void DHTSensor::init() {
     HAL::pinMode(pin, OUTPUT);
     state = Init;
   }
 
-  void DhtSensor::change_type(const uint8_t dhtType) {
+  void DHTSensor::factory_parameters() {
+    pin   = DHT_DATA_PIN;
+    type  = DHT_TYPE;
+  }
+
+  void DHTSensor::change_type(const uint8_t dhtType) {
     switch (dhtType) {
       case DHT11:
         type = DHT11;
@@ -81,7 +86,7 @@
     }
   }
 
-  void DhtSensor::print_parameters() {
+  void DHTSensor::print_M305() {
     SERIAL_LM(CFG, "DHT sensor parameters: P<Pin> S<type 11-21-22>:");
     SERIAL_SM(CFG, "  M305 D0");
     SERIAL_MV(" P", dhtsensor.pin);
@@ -89,7 +94,7 @@
     SERIAL_EOL();
   }
 
-  void DhtSensor::spin() {
+  void DHTSensor::spin() {
 
     static watch_t  min_read_watch(DHTMINREADINTERVAL),
                     operation_watch;

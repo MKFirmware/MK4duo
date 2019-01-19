@@ -163,6 +163,7 @@ class NextionLCD {
     static uint16_t getFont(NexObject &nexobject);
     static uint16_t getCropPic(NexObject &nexobject);
     static uint16_t getPic(NexObject &nexobject);
+    static uint16_t recvRetNumber(void);
 
     static uint8_t pageID();
 
@@ -173,8 +174,6 @@ class NextionLCD {
     static void recvRetString(char *buffer);
     static void setCurrentBrightness(uint8_t dimValue);
     static void sendRefreshAll(void);
-
-    static uint16_t recvRetNumber(void);
 
 };
 

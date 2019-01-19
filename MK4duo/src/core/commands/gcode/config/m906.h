@@ -58,103 +58,67 @@
 
     if (commands.get_target_tool(906)) return;
 
-    #define TMC_SAY_CURRENT(Q) tmc.get_current(stepper##Q)
-    #define TMC_SET_CURRENT(Q) tmc.set_current(stepper##Q, value)
+    #if DISABLED(DISABLE_M503)
+      // No arguments? Show M906 report.
+      if (!parser.seen("XYZE")) {
+        tmc.print_M906();
+        return;
+      }
+    #endif
 
-    const uint8_t index = parser.byteval('I');
     LOOP_XYZE(i) if (uint16_t value = parser.intval(axis_codes[i])) {
       switch (i) {
         case X_AXIS:
           #if AXIS_HAS_TMC(X)
-            if (index < 2) TMC_SET_CURRENT(X);
+            stepperX->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(X2)
-            if (index == 2) TMC_SET_CURRENT(X2);
+            stepperX2->rms_current(value);
           #endif
           break;
         case Y_AXIS:
           #if AXIS_HAS_TMC(Y)
-            if (index < 2) TMC_SET_CURRENT(Y);
+            stepperY->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Y2)
-            if (index == 2) TMC_SET_CURRENT(Y2);
+            stepperY2->rms_current(value);
           #endif
           break;
         case Z_AXIS:
           #if AXIS_HAS_TMC(Z)
-            if (index < 2) TMC_SET_CURRENT(Z);
+            stepperZ->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Z2)
-            if (index == 2) TMC_SET_CURRENT(Z2);
+            stepperZ2->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Z3)
-            if (index == 3) TMC_SET_CURRENT(Z3);
+            stepperZ3->rms_current(value);
           #endif
           break;
         case E_AXIS: {
           switch (TARGET_EXTRUDER) {
             #if AXIS_HAS_TMC(E0)
-              case 0: TMC_SET_CURRENT(E0); break;
+              case 0: stepperE0->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E1)
-              case 1: TMC_SET_CURRENT(E1); break;
+              case 1: stepperE1->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E2)
-              case 2: TMC_SET_CURRENT(E2); break;
+              case 2: stepperE2->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E3)
-              case 3: TMC_SET_CURRENT(E3); break;
+              case 3: stepperE3->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E4)
-              case 4: TMC_SET_CURRENT(E4); break;
+              case 4: stepperE4->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E5)
-              case 5: TMC_SET_CURRENT(E5); break;
+              case 5: stepperE5->rms_current(value); break;
             #endif
           }
         } break;
       }
     }
-
-    #if AXIS_HAS_TMC(X)
-      TMC_SAY_CURRENT(X);
-    #endif
-    #if AXIS_HAS_TMC(X2)
-      TMC_SAY_CURRENT(X2);
-    #endif
-    #if AXIS_HAS_TMC(Y)
-      TMC_SAY_CURRENT(Y);
-    #endif
-    #if AXIS_HAS_TMC(Y2)
-      TMC_SAY_CURRENT(Y2);
-    #endif
-    #if AXIS_HAS_TMC(Z)
-      TMC_SAY_CURRENT(Z);
-    #endif
-    #if AXIS_HAS_TMC(Z2)
-      TMC_SAY_CURRENT(Z2);
-    #endif
-    #if AXIS_HAS_TMC(Z3)
-      TMC_SAY_CURRENT(Z3);
-    #endif
-    #if AXIS_HAS_TMC(E0)
-      TMC_SAY_CURRENT(E0);
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      TMC_SAY_CURRENT(E1);
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      TMC_SAY_CURRENT(E2);
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      TMC_SAY_CURRENT(E3);
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      TMC_SAY_CURRENT(E4);
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      TMC_SAY_CURRENT(E5);
-    #endif
 
   }
 
