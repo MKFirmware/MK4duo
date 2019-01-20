@@ -181,8 +181,7 @@ typedef struct EepromDataStruct {
   // DHT sensor
   //
   #if ENABLED(DHT_SENSOR)
-    pin_t           dht_pin;
-    uint8_t         dht_type;
+    dht_data_t      dht_data;
   #endif
 
   //
@@ -586,8 +585,7 @@ void EEPROM::post_process() {
     // DHT sensor
     //
     #if ENABLED(DHT_SENSOR)
-      EEPROM_WRITE(dhtsensor.pin);
-      EEPROM_WRITE(dhtsensor.type);
+      EEPROM_WRITE(dhtsensor.data);
     #endif
 
     //
@@ -974,8 +972,7 @@ void EEPROM::post_process() {
       // DHT sensor
       //
       #if ENABLED(DHT_SENSOR)
-        EEPROM_READ(dhtsensor.pin);
-        EEPROM_READ(dhtsensor.type);
+        EEPROM_READ(dhtsensor.data);
       #endif
 
       //

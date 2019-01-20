@@ -30,9 +30,13 @@
 #if ENABLED(DHT_SENSOR)
 
   // Define types of sensors.
-  #define DHT11 11
-  #define DHT21 21
-  #define DHT22 22
+  enum DHTEnum : uint8_t { DHT11=11, DHT12=12, DHT21=21, DHT22=22 };
+
+  // Struct DHT data
+  typedef struct {
+    pin_t   pin;
+    DHTEnum type;
+  } dht_data_t;
 
   class DHTSensor {
 
@@ -42,13 +46,14 @@
 
     public: /** Public Parameters */
 
-      static pin_t    pin;
-      static uint8_t  type;
+      static dht_data_t data;
 
-      static float    Temperature,
-                      Humidity;
+      static float      Temperature,
+                        Humidity;
 
     private: /** Private Parameters */
+
+      static uint8_t read_data[5];
 
       static enum SensorState {
         Init,
@@ -61,9 +66,14 @@
 
       static void init();
       static void factory_parameters();
-      static void change_type(const uint8_t dhtType);
+      static void change_type(const DHTEnum dhtType);
       static void print_M305();
       static void spin();
+
+    private: /** Private Function */
+
+      static float readTemperature();
+      static float readHumidity();
 
   };
 

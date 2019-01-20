@@ -1319,7 +1319,7 @@
     <detect>M305 D0.*P(-?\d*)</detect>
   </entry>
   <entry type="int" min="11" max="22">
-    <description unit="[11,21,22]">DHT sensor type</description>
+    <description unit="[11,12,21,22]">DHT sensor type</description>
     <set>M305 D0 S@</set>
     <detect>M305 D0.*S(-?\d*)</detect>
   </entry>
@@ -1351,7 +1351,7 @@
     <detect>M306 H0.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Hotend 0 use PID/BangBang</description>
+    <description unit="[0-1]">Hotend 0 use BangBang/PID</description>
     <set>M306 H0 U@</set>
     <detect>M306 H0.*U(-?\d*)</detect>
   </entry>
@@ -1397,7 +1397,7 @@
     <detect>M306 H1.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Hotend 1 use PID/BangBang</description>
+    <description unit="[0-1]">Hotend 1 use BangBang/PID</description>
     <set>M306 H1 U@</set>
     <detect>M306 H1.*U(-?\d*)</detect>
   </entry>
@@ -1443,7 +1443,7 @@
     <detect>M306 H2.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Hotend 2 use PID/BangBang</description>
+    <description unit="[0-1]">Hotend 2 use BangBang/PID</description>
     <set>M306 H2 U@</set>
     <detect>M306 H2.*U(-?\d*)</detect>
   </entry>
@@ -1489,7 +1489,7 @@
     <detect>M306 H3.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Hotend 3 use PID/BangBang</description>
+    <description unit="[0-1]">Hotend 3 use BangBang/PID</description>
     <set>M306 H3 U@</set>
     <detect>M306 H3.*U(-?\d*)</detect>
   </entry>
@@ -1535,7 +1535,7 @@
     <detect>M306 H-1.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Bed use PID/BangBang</description>
+    <description unit="[0-1]">Bed use BangBang/PID</description>
     <set>M306 H-1 U@</set>
     <detect>M306 H-1.*U(-?\d*)</detect>
   </entry>
@@ -1581,7 +1581,7 @@
     <detect>M306 H-2.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Chamber use PID/BangBang</description>
+    <description unit="[0-1]">Chamber use BangBang/PID</description>
     <set>M306 H-2 U@</set>
     <detect>M306 H-2.*U(-?\d*)</detect>
   </entry>
@@ -1627,7 +1627,7 @@
     <detect>M306 H-3.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Cooler use PID/BangBang</description>
+    <description unit="[0-1]">Cooler use BangBang/PID</description>
     <set>M306 H-3 U@</set>
     <detect>M306 H-3.*U(-?\d*)</detect></entry>
   <entry type="int" min="0" max="1">
@@ -1989,26 +1989,6 @@
     <detect>M350.*Z(-?\d*)</detect>
   </entry>
   <entry type="int" min="1">
-    <description unit="[ms]">X2 driver microstep</description>
-    <set>M350 I2 X@</set>
-    <detect>M350.*I2 X(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="1">
-    <description unit="[ms]">Y2 driver microstep</description>
-    <set>M350 I2 Y@</set>
-    <detect>M350.*I2 Y(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="1">
-    <description unit="[ms]">Z2 driver microstep</description>
-    <set>M350 I2 Z@</set>
-    <detect>M350.*I2 Z(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="1">
-    <description unit="[ms]">Z3 driver microstep</description>
-    <set>M350 I3 Z@</set>
-    <detect>M350.*I3 Z(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="1">
     <description unit="[ms]">E0 driver microstep</description>
     <set>M350 T0 E@</set>
     <detect>M350.*T0 E(-?\d*)</detect>
@@ -2054,26 +2034,6 @@
     <description unit="[mA]">Z motor current</description>
     <set>M906 Z@</set>
     <detect>M906.*Z(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="100">
-    <description unit="[mA]">X2 motor current</description>
-    <set>M906 I2 X@</set>
-    <detect>M906.*I2 X(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="100">
-    <description unit="[mA]">Y2 motor current</description>
-    <set>M906 I2 Y@</set>
-    <detect>M906.*I2 Y(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="100">
-    <description unit="[mA]">Z2 motor current</description>
-    <set>M906 I2 Z@</set>
-    <detect>M906.*I2 Z(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="100">
-    <description unit="[mA]">Z3 motor current</description>
-    <set>M906 I3 Z@</set>
-    <detect>M906.*I3 Z(-?\d*)</detect>
   </entry>
   <entry type="int" min="100">
     <description unit="[mA]">E0 motor current</description>
@@ -2123,21 +2083,6 @@
     <detect>M913.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
-    <description unit="">X2 motor Hybrid Threshold</description>
-    <set>M913 I2 X@</set>
-    <detect>M913.*I2.*X(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float">
-    <description unit="">Y2 motor Hybrid Threshold</description>
-    <set>M913 I2 Y@</set>
-    <detect>M913.*I2.*Y(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float">
-    <description unit="">Z2 motor Hybrid Threshold</description>
-    <set>M913 I2 Z@</set>
-    <detect>M913.*I2.*Z(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float">
     <description unit="">E0 motor Hybrid Threshold</description>
     <set>M913 T0 E@</set>
     <detect>M913.*T0 E(-?\d*\.?\d*)</detect>
@@ -2184,20 +2129,27 @@
     <set>M914 Z@</set>
     <detect>M914.*Z(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float">
-    <description unit="">X2 motor Sensorless homing threshold</description>
-    <set>M914 I2 X@</set>
-    <detect>M914.*I2.*X(-?\d*\.?\d*)</detect>
+
+  <!-- M940: Stepper driver StealthChop-->
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">X motor StealthChop: is active</description>
+    <set>M940 X@</set>
+    <detect>M940.*X(-?\d*)</detect>
   </entry>
-  <entry type="float">
-    <description unit="">Y2 motor Sensorless homing threshold</description>
-    <set>M914 I2 Y@</set>
-    <detect>M914.*I2.*Y(-?\d*\.?\d*)</detect>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Y motor StealthChop: is active</description>
+    <set>M940 Y@</set>
+    <detect>M940.*Y(-?\d*)</detect>
   </entry>
-  <entry type="float">
-    <description unit="">Z2 motor Sensorless homing threshold</description>
-    <set>M914 I2 Z@</set>
-    <detect>M914.*I2.*Z(-?\d*\.?\d*)</detect>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Z motor StealthChop: is active</description>
+    <set>M940 Z@</set>
+    <detect>M940.*Z(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">E motor StealthChop: is active</description>
+    <set>M940 E@</set>
+    <detect>M940.*E(-?\d*)</detect>
   </entry>
 
 </eeprom>

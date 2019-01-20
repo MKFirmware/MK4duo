@@ -349,7 +349,7 @@ void menu_move();
 ////////////////////////////////////////////
 
 void lcd_move_z();
-void _lcd_draw_homing();
+void lcd_draw_homing();
 
 void watch_temp_callback_E0();
 void watch_temp_callback_E1();
@@ -373,20 +373,20 @@ void watch_temp_callback_cooler();
 #endif
 
 #if ENABLED(LEVEL_BED_CORNERS)
-  void _lcd_level_bed_corners();
+  void lcd_level_bed_corners();
 #endif
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
   extern float lcd_z_fade_height;
-  void _lcd_set_z_fade_height();
+  void lcd_set_z_fade_height();
 #endif
 
 #if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))
-  void _lcd_toggle_bed_leveling();
+  void lcd_toggle_bed_leveling();
 #endif
 
 #if HAS_SOFTWARE_ENDSTOPS
-  void _lcd_toggle_soft_endstops(); 
+  void lcd_toggle_soft_endstops(); 
 #endif
 
 #if ENABLED(BABYSTEPPING)

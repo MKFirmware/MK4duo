@@ -579,9 +579,10 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if ENABLED(DHT_SENSOR)
-    SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 2);
-    SERIAL_MV(", Humidity:", dhtsensor.Humidity, 2);
+    SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 0);
+    SERIAL_MV(", Humidity:", dhtsensor.Humidity, 0);
   #endif
+
 }
 
 // Private function
