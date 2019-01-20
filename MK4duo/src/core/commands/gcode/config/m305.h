@@ -60,9 +60,9 @@
             return;
           }
         #endif
-        dhtsensor.pin = parser.intval('P', DHT_DATA_PIN);
+        dhtsensor.data.pin = parser.intval('P', DHT_DATA_PIN);
         if (parser.seen('S'))
-          dhtsensor.change_type(parser.value_int());
+          dhtsensor.change_type(DHTEnum(parser.value_int()));
         dhtsensor.init();
         return;
       }

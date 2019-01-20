@@ -312,7 +312,7 @@ void menu_move() {
 
   #if HAS_SOFTWARE_ENDSTOPS
     bool new_soft_endstop_state = endstops.flag.SoftEndstop;
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, _lcd_toggle_soft_endstops);
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, lcd_toggle_soft_endstops);
   #endif
 
   #if IS_KINEMATIC
@@ -432,16 +432,16 @@ void menu_motion() {
     #endif
     if (bedlevel.leveling_is_valid()) {
       bool new_level_state = bedlevel.flag.leveling_active;
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
     }
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, _lcd_set_z_fade_height);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
     #endif
 
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS) && DISABLED(LCD_BED_LEVELING)
-    MENU_ITEM(function, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
+    MENU_ITEM(function, MSG_LEVEL_CORNERS, lcd_level_bed_corners);
   #endif
 
   //

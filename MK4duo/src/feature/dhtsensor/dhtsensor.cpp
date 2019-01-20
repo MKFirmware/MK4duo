@@ -35,11 +35,14 @@
 
   DHTSensor dhtsensor;
 
-  pin_t   DHTSensor::pin          = DHT_DATA_PIN;
-  uint8_t DHTSensor::type         = DHT_TYPE;
+  /** Public Parameters */
+  dht_data_t  DHTSensor::data;
+
   float   DHTSensor::Temperature  = 20,
           DHTSensor::Humidity     = 10;
 
+  /** Private Parameters */
+  uint8_t DHTSensor::read_data[5] = { 0, 0, 0, 0, 0 };
   DHTSensor::SensorState DHTSensor::state = Init;
 
   // ISR
@@ -48,37 +51,40 @@
 
   void DHT_ISR() {
     const uint32_t now = micros();
-    if (HAL::digitalRead(dhtsensor.pin) == HIGH) {
+    if (HAL::digitalRead(dhtsensor.data.pin) == HIGH) {
       lastPulseTime = now;
     }
     else if (lastPulseTime > 0) {
       pulses[numPulses++] = now - lastPulseTime;
       if (numPulses == COUNT(pulses)) {
-        detachInterrupt(dhtsensor.pin);
+        detachInterrupt(dhtsensor.data.pin);
       }
     }
   }
 
   void DHTSensor::init() {
-    HAL::pinMode(pin, OUTPUT);
+    HAL::pinMode(data.pin, OUTPUT);
     state = Init;
   }
 
   void DHTSensor::factory_parameters() {
-    pin   = DHT_DATA_PIN;
-    type  = DHT_TYPE;
+    data.pin  = DHT_DATA_PIN;
+    data.type = DHTEnum(DHT_TYPE);
   }
 
-  void DHTSensor::change_type(const uint8_t dhtType) {
+  void DHTSensor::change_type(const DHTEnum dhtType) {
     switch (dhtType) {
       case DHT11:
-        type = DHT11;
+        data.type = DHT11;
+        break;
+      case DHT12:
+        data.type = DHT12;
         break;
       case DHT21:
-        type = DHT21;
+        data.type = DHT21;
         break;
       case DHT22:
-        type = DHT22;
+        data.type = DHT22;
         break;
       default:
         SERIAL_LM(ER, "Invalid DHT sensor type");
@@ -89,8 +95,8 @@
   void DHTSensor::print_M305() {
     SERIAL_LM(CFG, "DHT sensor parameters: P<Pin> S<type 11-21-22>:");
     SERIAL_SM(CFG, "  M305 D0");
-    SERIAL_MV(" P", dhtsensor.pin);
-    SERIAL_MV(" S", dhtsensor.type);
+    SERIAL_MV(" P", data.pin);
+    SERIAL_MV(" S", data.type);
     SERIAL_EOL();
   }
 
@@ -104,15 +110,15 @@
     switch (state) {
 
       case Init:
-        HAL::digitalWrite(pin, HIGH);
+        HAL::digitalWrite(data.pin, HIGH);
         state = Wait_250ms;
         operation_watch.start();
         break;
 
       case Wait_250ms:
         if (operation_watch.elapsed(250)) {
-          HAL::pinMode(pin, OUTPUT);
-          HAL::digitalWrite(pin, LOW);
+          HAL::pinMode(data.pin, OUTPUT);
+          HAL::digitalWrite(data.pin, LOW);
           state = Wait_20ms;
           operation_watch.start();
         }
@@ -122,17 +128,17 @@
         if (operation_watch.elapsed(20)) {
 
           // End the start signal by setting data line high for 40 microseconds
-          HAL::digitalWrite(pin, HIGH);
+          HAL::digitalWrite(data.pin, HIGH);
           HAL::delayMicroseconds(40);
 
           // Now start reading the data line to get the value from the DHT sensor
-          HAL::pinMode(pin, INPUT);
+          HAL::pinMode(data.pin, INPUT);
           HAL::delayMicroseconds(10);
 
           // Read from the DHT sensor using an DHT_ISR
           numPulses = 0;
           lastPulseTime = 0;
-          attachInterrupt(digitalPinToInterrupt(pin), DHT_ISR, CHANGE);
+          attachInterrupt(digitalPinToInterrupt(data.pin), DHT_ISR, CHANGE);
 
           // Wait for the next operation to complete
           state = Read;
@@ -143,7 +149,7 @@
       case Read:
         // Make sure we don't time out
         if (operation_watch.elapsed(DHTMAXREADTIME)) {
-          detachInterrupt(pin);
+          detachInterrupt(data.pin);
           state = Init;
           min_read_watch.start();
           break;
@@ -159,38 +165,70 @@
         // Check start bit
         if (pulses[0] < 40) break;
 
-        // Reset 40 bits of received data to zero
-        uint8_t data[5] = { 0, 0, 0, 0, 0 };
+        // Reset 40 bits of received data to zero.
+        read_data[0] = read_data[1] = read_data[2] = read_data[3] = read_data[4] = 0;
 
         // Inspect each high pulse and determine which ones
         // are 0 (less than 40us) or 1 (more than 40us)
         for (uint8_t i = 0; i < 40; ++i) {
-          data[i / 8] <<= 1;
+          read_data[i / 8] <<= 1;
           if (pulses[i + 1] > 40)
-            data[i / 8] |= 1;
+            read_data[i / 8] |= 1;
         }
 
         // Verify checksum
-        if (((data[0] + data[1] + data[2] + data[3]) & 0xFF) != data[4])
+        if (((read_data[0] + read_data[1] + read_data[2] + read_data[3]) & 0xFF) != read_data[4])
           break;
 
         // Generate final results
-        switch (type) {
-          case DHT11:
-            Humidity = data[0];
-            Temperature = data[2];
-            break;
-          case DHT21:
-          case DHT22:
-            Humidity = ((data[0] * 256) + data[1]) * 0.1;
-            Temperature = (((data[2] & 0x7F) * 256) + data[3]) * 0.1;
-            if (data[2] & 0x80) Temperature *= -1.0;
-            break;
-          default:
-            break;
-        }
+        Temperature = readTemperature();
+        Humidity    = readHumidity();
         break;
     }
+  }
+
+  /** Private Function */
+  float DHTSensor::readTemperature() {
+    float f = NAN;
+
+    switch (data.type) {
+      case DHT11:
+      case DHT12:
+        f = read_data[2];
+        f += (read_data[3] & 0x0f) * 0.1;
+        if (read_data[2] & 0x80) f *= -1;
+        break;
+      case DHT22:
+      case DHT21:
+        f = ((word)(read_data[2] & 0x7F)) << 8 | read_data[3];
+        f *= 0.1;
+        if (read_data[2] & 0x80) f *= -1;
+        break;
+      default: break;
+    }
+
+    return f;
+
+  }
+
+  float DHTSensor::readHumidity() {
+    float f = NAN;
+
+    switch (data.type) {
+      case DHT11:
+      case DHT12:
+        f = read_data[0] + read_data[1] * 0.1;
+        break;
+      case DHT22:
+      case DHT21:
+        f = ((word)read_data[0]) << 8 | read_data[1];
+        f *= 0.1;
+        break;
+      default: break;
+    }
+
+    return f;
+
   }
 
 #endif // ENABLED(DHT_SENSOR)

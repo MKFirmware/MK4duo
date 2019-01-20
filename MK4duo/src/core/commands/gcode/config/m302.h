@@ -56,7 +56,8 @@
       printer.setAllowColdExtrude((thermalManager.extrude_min_temp == 0) || parser.value_bool());
     else if (!seen_S) {
       // Report current state
-      SERIAL_MV("Cold extrudes are ", (printer.isAllowColdExtrude() ? "en" : "dis"));
+      SERIAL_MSG("Cold extrudes are ");
+      SERIAL_PGM(printer.isAllowColdExtrude() ? PSTR("en") : PSTR("dis"));
       SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
       SERIAL_EM("C)");
     }

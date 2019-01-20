@@ -29,7 +29,7 @@
 #if HAS_LCD_MENU && MECH(DELTA)
 
 void _lcd_calibrate_homing() {
-  _lcd_draw_homing();
+  lcd_draw_homing();
   if (mechanics.isHomedAll()) lcdui.goto_previous_screen();
 }
 

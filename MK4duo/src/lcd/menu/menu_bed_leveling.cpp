@@ -194,7 +194,7 @@
   // Step 3: Display "Homing XYZ" - Wait for homing to finish
   //
   void _lcd_level_bed_homing() {
-    _lcd_draw_homing();
+    lcd_draw_homing();
     if (mechanics.isHomedAll()) lcdui.goto_screen(_lcd_level_bed_homing_done);
   }
 
@@ -271,12 +271,12 @@ void menu_bed_leveling() {
   // Homed and leveling is valid? Then leveling can be toggled.
   if (is_homed && bedlevel.leveling_is_valid()) {
     bool new_level_state = bedlevel.flag.leveling_active;
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, _lcd_toggle_bed_leveling);
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
   }
 
   // Z Fade Height
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, _lcd_set_z_fade_height);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
   #endif
 
   //
@@ -293,7 +293,7 @@ void menu_bed_leveling() {
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)
-    MENU_ITEM(submenu, MSG_LEVEL_CORNERS, _lcd_level_bed_corners);
+    MENU_ITEM(submenu, MSG_LEVEL_CORNERS, lcd_level_bed_corners);
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)

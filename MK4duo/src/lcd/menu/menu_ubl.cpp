@@ -404,7 +404,7 @@ void _lcd_ubl_output_map_lcd();
 
 void _lcd_ubl_map_homing() {
   lcdui.defer_status_screen(true);
-  _lcd_draw_homing();
+  lcd_draw_homing();
   if (mechanics.isHomedAll()) {
     ubl.lcd_map_control = true; // Return to the map screen
     lcdui.goto_screen(_lcd_ubl_output_map_lcd);
@@ -591,7 +591,7 @@ void _lcd_ubl_level_bed() {
   MENU_ITEM(submenu, MSG_UBL_TOOLS, _menu_ubl_tools);
   MENU_ITEM(gcode, MSG_UBL_INFO_UBL, PSTR("G29 W"));
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, _lcd_set_z_fade_height);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
   #endif
   END_MENU();
 }
