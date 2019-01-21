@@ -156,6 +156,15 @@ class Commands {
      */
     static bool get_target_heater(int8_t &h, const bool only_hotend=false);
 
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      /**
+       * Set target driver from the T parameter or the active_driver
+       *
+       * Returns TRUE if the target is invalid
+       */
+      static bool get_target_driver(const uint16_t code);
+    #endif
+
     #if FAN_COUNT > 0
       /**
        * Set target fan from the P parameter

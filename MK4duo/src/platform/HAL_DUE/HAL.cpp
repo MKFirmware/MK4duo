@@ -139,21 +139,29 @@ void sei(void) {
 }
 
 // Tone for due
-// input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
+static pin_t tone_pin;
+volatile static int32_t toggles;
+
 void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration) {
+  tone_pin = _pin;
+  toggles = 2 * frequency * duration / 1000;
+  HAL_timer_start(TONE_TIMER_NUM, 2 * frequency);
+}
 
-  millis_t endTime = millis() + duration;
-  const uint32_t halfPeriod = 1000000L / frequency / 2;
+void noTone(const pin_t _pin) {
+  HAL_timer_disable_interrupt(TONE_TIMER_NUM);
+  HAL::digitalWrite(_pin, LOW);
+}
 
-  HAL::pinMode(_pin, OUTPUT_LOW);
+HAL_TONE_TIMER_ISR {
+  static uint8_t pin_state = 0;
+  HAL_timer_isr_prologue(TONE_TIMER_NUM);
 
-  while (PENDING(millis(),  endTime)) {
-    HAL::digitalWrite(_pin, HIGH);
-    HAL::delayMicroseconds(halfPeriod);
-    HAL::digitalWrite(_pin, LOW);
-    HAL::delayMicroseconds(halfPeriod);
+  if (toggles) {
+    toggles--;
+    HAL::digitalWrite(tone_pin, (pin_state ^= 1));
   }
-  HAL::pinMode(_pin, OUTPUT_LOW);
+  else noTone(tone_pin);
 }
 
 static inline void ConfigurePin(const PinDescription& pinDesc) {

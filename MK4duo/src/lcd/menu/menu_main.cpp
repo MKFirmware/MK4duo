@@ -103,8 +103,33 @@ void menu_main() {
     MENU_ITEM(submenu, MSG_TUNE, menu_tune);
   }
   else {
+    #if !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
+      //
+      // Autostart
+      //
+      #if ENABLED(MENU_ADDAUTOSTART)
+        if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
+      #endif
+
+      if (card.isDetected()) {
+        if (!card.isFileOpen()) {
+          MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
+          #if !PIN_EXISTS(SD_DETECT)
+            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
+          #endif
+        }
+      }
+      else {
+        #if !PIN_EXISTS(SD_DETECT)
+          MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
+        #endif
+        MENU_ITEM(function, MSG_NO_CARD, NULL);
+      }
+    #endif // !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
+
     if (printer.isPaused())
       MENU_ITEM(function, MSG_RESUME_PRINT, printer.resume_print);
+
     MENU_ITEM(submenu, MSG_MOTION, menu_motion);
     if (printer.mode == PRINTER_MODE_FFF)
       MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
@@ -147,14 +172,12 @@ void menu_main() {
       MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));
   #endif
 
-  #if HAS_SD_SUPPORT
-
+  #if HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
     //
     // Autostart
     //
     #if ENABLED(MENU_ADDAUTOSTART)
-      if (!busy)
-        MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
+      if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
     #endif
 
     if (card.isDetected()) {
@@ -171,8 +194,7 @@ void menu_main() {
       #endif
       MENU_ITEM(function, MSG_NO_CARD, NULL);
     }
-
-  #endif // SDSUPPORT
+  #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
   END_MENU();
 }

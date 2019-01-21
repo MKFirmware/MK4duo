@@ -452,7 +452,9 @@ void Stepper::init() {
 
 void Stepper::factory_parameters() {
   constexpr bool tmpdir[] = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR };
-  LOOP_XYZE_N(axis) setStepDir((AxisEnum)axis, tmpdir[axis]);
+
+  for (uint8_t axis = 0; axis < sizeof(tmpdir); ++axis) 
+    setStepDir((AxisEnum)axis, tmpdir[axis]);
 
   direction_delay = DIRECTION_STEPPER_DELAY;
   minimum_pulse   = MINIMUM_STEPPER_PULSE;
@@ -724,20 +726,20 @@ void Stepper::set_directions() {
   #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (motor_direction(E_AXIS)) {
-        MIXING_STEPPERS_LOOP(j) REV_E_DIR(j);
+        set_rev_E_dir();
         count_direction[E_AXIS] = -1;
       }
       else {
-        MIXING_STEPPERS_LOOP(j) NORM_E_DIR(j);
+        set_nor_E_dir();
         count_direction[E_AXIS] = 1;
       }
     #else
       if (motor_direction(E_AXIS)) {
-        REV_E_DIR(active_extruder_driver);
+        set_rev_E_dir(active_extruder_driver);
         count_direction[E_AXIS] = -1;
       }
       else {
-        NORM_E_DIR(active_extruder_driver);
+        set_nor_E_dir(active_extruder_driver);
         count_direction[E_AXIS] = 1;
       }
     #endif
@@ -1802,11 +1804,9 @@ void Stepper::pulse_tick_stop() {
 
   #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      MIXING_STEPPERS_LOOP(j) {
-        if (delta_error_m[j] >= 0) {
-          delta_error_m[j] -= advance_divisor_m;
-          E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
-        }
+      if (delta_error[E_AXIS] >= 0) {
+        delta_error[E_AXIS] -= advance_divisor;
+        E_STEP_WRITE(mixer.get_stepper(), INVERT_E_STEP_PIN);
       }
     #elif HAS_EXTRUDERS
       if (delta_error[E_AXIS] >= 0) {
@@ -2000,6 +2000,122 @@ void Stepper::set_Z_dir(const bool dir) {
     Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
   #endif
 }
+void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
+    #if DRIVER_EXTRUDERS > 0
+      E0_DIR_WRITE(!isStepDir(E0_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 1
+      E1_DIR_WRITE(!isStepDir(E1_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 2
+      E2_DIR_WRITE(!isStepDir(E2_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 3
+      E3_DIR_WRITE(!isStepDir(E3_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 4
+      E4_DIR_WRITE(!isStepDir(E4_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 5
+      E5_DIR_WRITE(!isStepDir(E5_AXIS));
+    #endif
+  #elif ENABLED(DUAL_X_CARRIAGE)
+    if (mechanics.extruder_duplication_enabled) {
+      E0_DIR_WRITE(!isStepDir(E0_AXIS));
+      E1_DIR_WRITE(!isStepDir(E1_AXIS));
+    }
+    else if (e == 0) {
+      E0_DIR_WRITE(!isStepDir(E0_AXIS));
+    }
+    else {
+      E1_DIR_WRITE(!isStepDir(E1_AXIS));
+    }
+  #elif ENABLED(DONDOLO_SINGLE_MOTOR)
+    E0_DIR_WRITE(e ? isStepDir(E0_AXIS) : !isStepDir(E0_AXIS));
+  #else
+    switch (e) {
+      #if DRIVER_EXTRUDERS > 0
+        case 0: E0_DIR_WRITE(!isStepDir(E0_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 1
+        case 1: E1_DIR_WRITE(!isStepDir(E1_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 2
+        case 2: E2_DIR_WRITE(!isStepDir(E2_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 3
+        case 3: E3_DIR_WRITE(!isStepDir(E3_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 4
+        case 4: E4_DIR_WRITE(!isStepDir(E4_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 5
+        case 5: E5_DIR_WRITE(!isStepDir(E5_AXIS)); break;
+      #endif
+      default: break;
+    }
+  #endif
+}
+void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
+    #if DRIVER_EXTRUDERS > 0
+      E0_DIR_WRITE(isStepDir(E0_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 1
+      E1_DIR_WRITE(isStepDir(E1_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 2
+      E2_DIR_WRITE(isStepDir(E2_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 3
+      E3_DIR_WRITE(isStepDir(E3_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 4
+      E4_DIR_WRITE(isStepDir(E4_AXIS));
+    #endif
+    #if DRIVER_EXTRUDERS > 5
+      E5_DIR_WRITE(isStepDir(E5_AXIS));
+    #endif
+  #elif ENABLED(DUAL_X_CARRIAGE)
+    if (mechanics.extruder_duplication_enabled) {
+      E0_DIR_WRITE(isStepDir(E0_AXIS));
+      E1_DIR_WRITE(isStepDir(E1_AXIS));
+    }
+    else if (e == 0) {
+      E0_DIR_WRITE(isStepDir(E0_AXIS));
+    }
+    else {
+      E1_DIR_WRITE(isStepDir(E1_AXIS));
+    }
+  #elif ENABLED(DONDOLO_SINGLE_MOTOR)
+    E0_DIR_WRITE(e ? !isStepDir(E0_AXIS) : isStepDir(E0_AXIS));
+  #else
+    switch (e) {
+      #if DRIVER_EXTRUDERS > 0
+        case 0: E0_DIR_WRITE(isStepDir(E0_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 1
+        case 1: E1_DIR_WRITE(isStepDir(E1_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 2
+        case 2: E2_DIR_WRITE(isStepDir(E2_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 3
+        case 3: E3_DIR_WRITE(isStepDir(E3_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 4
+        case 4: E4_DIR_WRITE(isStepDir(E4_AXIS)); break;
+      #endif
+      #if DRIVER_EXTRUDERS > 5
+        case 5: E5_DIR_WRITE(isStepDir(E5_AXIS)); break;
+      #endif
+      default: break;
+    }
+  #endif
+}
 
 /**
  * Set the stepper positions directly in steps
@@ -2105,14 +2221,14 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (LA_steps >= 0)
-        MIXING_STEPPERS_LOOP(j) NORM_E_DIR(j);
+        set_nor_E_dir();
       else
-        MIXING_STEPPERS_LOOP(j) REV_E_DIR(j);
+        set_rev_E_dir();
     #else
       if (LA_steps >= 0)
-        NORM_E_DIR(active_extruder_driver);
+        set_nor_E_dir(active_extruder_driver);
       else
-        REV_E_DIR(active_extruder_driver);
+        set_rev_E_dir(active_extruder_driver);
     #endif
 
     // Get the timer count and estimate the end of the pulse

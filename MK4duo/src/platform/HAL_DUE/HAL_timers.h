@@ -181,6 +181,10 @@
   #define ISR_LA_LOOP_CYCLES  0UL
 #endif
 
+// Tone for due
+#define TONE_TIMER_NUM      3  // index of timer to use for beeper tones
+#define HAL_TONE_TIMER_ISR  void TC3_Handler()
+
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
