@@ -96,9 +96,9 @@
       print_job_counter.start();
     }
 
-    lcdui.reset_status();
-
     SERIAL_L(REQUESTCONTINUE);
+
+    lcdui.reset_status();
 
   }
 
