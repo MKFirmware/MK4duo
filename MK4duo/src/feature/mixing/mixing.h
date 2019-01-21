@@ -77,9 +77,9 @@
       // Used when dealing with blocks
       FORCE_INLINE static void populate_block(mixer_color_t b_color[]) {
         uint_fast8_t j = get_current_v_tool();
-        MIXER_STEPPER_LOOP(i) b_color[i] = color[j][i];
+        MIXING_STEPPERS_LOOP(i) b_color[i] = color[j][i];
       }
-      FORCE_INLINE static void stepper_setup(mixer_color_t b_color[]) { MIXER_STEPPER_LOOP(i) s_color[i] = b_color[i]; }
+      FORCE_INLINE static void stepper_setup(mixer_color_t b_color[]) { MIXING_STEPPERS_LOOP(i) s_color[i] = b_color[i]; }
 
       // Used in Stepper
       FORCE_INLINE static uint8_t get_stepper(void) { return runner; }

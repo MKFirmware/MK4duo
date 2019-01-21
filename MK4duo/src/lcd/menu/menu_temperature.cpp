@@ -56,17 +56,6 @@ void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb
   lcdui.return_to_status();
 }
 
-#if HAS_TEMP_HOTEND
-  void lcd_preheat_m1_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[0], -1, lcdui.preheat_fan_speed[0]); }
-  void lcd_preheat_m2_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[1], -1, lcdui.preheat_fan_speed[1]); }
-  void lcd_preheat_m3_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[2], -1, lcdui.preheat_fan_speed[2]); }
-  #if HAS_TEMP_BED
-    void lcd_preheat_m1_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[0], lcdui.preheat_bed_temp[0], lcdui.preheat_fan_speed[0]); }
-    void lcd_preheat_m2_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[1], lcdui.preheat_bed_temp[1], lcdui.preheat_fan_speed[1]); }
-    void lcd_preheat_m3_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[2], lcdui.preheat_bed_temp[2], lcdui.preheat_fan_speed[2]); }
-  #endif
-#endif
-
 #if HOTENDS > 1
   void lcd_preheat_m1_h1_only() { _lcd_preheat(1, lcdui.preheat_hotend_temp[0], -1, lcdui.preheat_fan_speed[0]); }
   void lcd_preheat_m2_h1_only() { _lcd_preheat(1, lcdui.preheat_hotend_temp[1], -1, lcdui.preheat_fan_speed[1]); }
@@ -97,6 +86,16 @@ void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb
     #endif
   #endif
 
+  #if HAS_TEMP_BED
+    void lcd_preheat_m1_h0();
+    void lcd_preheat_m2_h0();
+    void lcd_preheat_m3_h0();
+  #else
+    void lcd_preheat_m1_h0_only();
+    void lcd_preheat_m2_h0_only();
+    void lcd_preheat_m3_h0_only();
+  #endif
+
   void lcd_preheat_m1_all() {
     LOOP_HOTEND() heaters[h].setTarget(lcdui.preheat_hotend_temp[0]);
     #if HAS_TEMP_BED
@@ -124,13 +123,20 @@ void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb
 
 #endif // HOTENDS > 1
 
-#if HAS_TEMP_BED
-  void lcd_preheat_m1_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[0], lcdui.preheat_fan_speed[0]); }
-  void lcd_preheat_m2_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[1], lcdui.preheat_fan_speed[1]); }
-  void lcd_preheat_m3_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[2], lcdui.preheat_fan_speed[2]); }
-#endif
+#if HAS_TEMP_HOTEND || HAS_TEMP_BED
 
-#if HAS_TEMP_0 && (HAS_TEMP_1 || HAS_TEMP_2 || HAS_TEMP_3 || HAS_TEMP_BED)
+  void lcd_preheat_m1_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[0], -1, lcdui.preheat_fan_speed[0]); }
+  void lcd_preheat_m2_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[1], -1, lcdui.preheat_fan_speed[1]); }
+  void lcd_preheat_m3_h0_only() { _lcd_preheat(0, lcdui.preheat_hotend_temp[2], -1, lcdui.preheat_fan_speed[2]); }
+
+  #if HAS_TEMP_BED
+    void lcd_preheat_m1_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[0], lcdui.preheat_bed_temp[0], lcdui.preheat_fan_speed[0]); }
+    void lcd_preheat_m2_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[1], lcdui.preheat_bed_temp[1], lcdui.preheat_fan_speed[1]); }
+    void lcd_preheat_m3_h0() { _lcd_preheat(0, lcdui.preheat_hotend_temp[2], lcdui.preheat_bed_temp[2], lcdui.preheat_fan_speed[2]); }
+    void lcd_preheat_m1_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[0], lcdui.preheat_fan_speed[0]); }
+    void lcd_preheat_m2_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[1], lcdui.preheat_fan_speed[1]); }
+    void lcd_preheat_m3_bedonly() { _lcd_preheat(0, 0, lcdui.preheat_bed_temp[2], lcdui.preheat_fan_speed[2]); }
+  #endif
 
   void menu_preheat_m1() {
     START_MENU();
@@ -264,13 +270,13 @@ void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb
     END_MENU();
   }
 
-#endif // TEMP_SENSOR_0 && (TEMP_SENSOR_1 || TEMP_SENSOR_2 || TEMP_SENSOR_3 || TEMP_SENSOR_BED)
+  void lcd_cooldown() {
+    thermalManager.disable_all_heaters();
+    printer.zero_fan_speed();
+    lcdui.return_to_status();
+  }
 
-void lcd_cooldown() {
-  thermalManager.disable_all_heaters();
-  printer.zero_fan_speed();
-  lcdui.return_to_status();
-}
+#endif // HAS_TEMP_HOTEND || HAS_TEMP_BED
 
 void menu_temperature() {
   START_MENU();
