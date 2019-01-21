@@ -141,6 +141,7 @@
 #define MSG_BEGIN_FILE_LIST                 "Begin file list"
 #define MSG_END_FILE_LIST                   "End file list"
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
+#define MSG_INVALID_DRIVER                  "Invalid driver"
 #define MSG_INVALID_HOTEND                  "Invalid hotend"
 #define MSG_INVALID_HEATER                  "Invalid heater"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"

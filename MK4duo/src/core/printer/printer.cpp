@@ -951,7 +951,9 @@ void Printer::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
-  lcdui.return_to_status();
+  #if HAS_LCD_MENU
+    lcdui.return_to_status();
+  #endif
   SERIAL_L(REQUESTSTOP);
 }
 

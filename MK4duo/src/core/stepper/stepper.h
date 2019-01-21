@@ -377,6 +377,8 @@ class Stepper {
     static void set_X_dir(const bool dir);
     static void set_Y_dir(const bool dir);
     static void set_Z_dir(const bool dir);
+    static void set_nor_E_dir(const uint8_t e=0);
+    static void set_rev_E_dir(const uint8_t e=0);
 
     /**
      * Set current position in steps

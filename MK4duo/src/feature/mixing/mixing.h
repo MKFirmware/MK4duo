@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * mixing.h
@@ -26,24 +27,18 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#pragma once
-
 #if ENABLED(COLOR_MIXING_EXTRUDER)
 
   #ifdef __AVR__
     #define MIXER_ACCU_SIGNED
-    typedef uint8_t mixer_color_t;
-    typedef int8_t mixer_accu_t;
     #define COLOR_A_MASK 0x80
     #define COLOR_MASK 0x7F
   #else
-    typedef uint_fast16_t mixer_color_t;
-    typedef uint_fast16_t mixer_accu_t;
     #define COLOR_A_MASK 0x8000
     #define COLOR_MASK 0x7FFF
   #endif
 
-  #define MIXING_STEPPERS_LOOP(VAR) \
+  #define MIXING_STEPPER_LOOP(VAR) \
     for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++)
 
   class Mixer {
@@ -77,9 +72,9 @@
       // Used when dealing with blocks
       FORCE_INLINE static void populate_block(mixer_color_t b_color[]) {
         uint_fast8_t j = get_current_v_tool();
-        MIXING_STEPPERS_LOOP(i) b_color[i] = color[j][i];
+        MIXING_STEPPER_LOOP(i) b_color[i] = color[j][i];
       }
-      FORCE_INLINE static void stepper_setup(mixer_color_t b_color[]) { MIXING_STEPPERS_LOOP(i) s_color[i] = b_color[i]; }
+      FORCE_INLINE static void stepper_setup(mixer_color_t b_color[]) { MIXING_STEPPER_LOOP(i) s_color[i] = b_color[i]; }
 
       // Used in Stepper
       FORCE_INLINE static uint8_t get_stepper(void) { return runner; }

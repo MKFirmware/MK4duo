@@ -45,20 +45,26 @@ inline void gcode_M569(void) {
 
   //#define DEBUG_PULSE_CYCLE
 
-  if (commands.get_target_tool(569)) return;
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    if (commands.get_target_driver(569)) return;
+  #else
+    if (commands.get_target_tool(569)) return;
+  #endif
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+      const uint8_t a = i + (i == E_AXIS ? tools.target_extruder : 0);
       stepper.setStepDir((AxisEnum)a, parser.value_bool());
     }
   }
+
   // Set actually direction
   reset_stepper_drivers();
 
   if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
   if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();
   if (parser.seen('R')) stepper.maximum_rate    = parser.value_ulong();
+
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
 

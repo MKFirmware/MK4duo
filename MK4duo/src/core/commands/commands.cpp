@@ -207,7 +207,7 @@ void Commands::get_destination() {
   }
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    get_mix_from_command();
+    gcode_M165();
   #endif
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
@@ -230,7 +230,7 @@ bool Commands::get_target_tool(const uint16_t code) {
     const int8_t t = parser.value_byte();
     if (t >= EXTRUDERS) {
       SERIAL_SMV(ECHO, "M", code);
-      SERIAL_EMV(" " MSG_INVALID_EXTRUDER, t);
+      SERIAL_EMV(" " MSG_INVALID_EXTRUDER " ", t);
       return true;
     }
     tools.target_extruder = t;
@@ -271,6 +271,24 @@ bool Commands::get_target_heater(int8_t &h, const bool only_hotend/*=false*/) {
     return false;
   }
 }
+
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+  bool Commands::get_target_driver(const uint16_t code) {
+    if (parser.seenval('T')) {
+      const int8_t t = parser.value_byte();
+      if (t >= DRIVER_EXTRUDERS) {
+        SERIAL_SMV(ECHO, "M", code);
+        SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
+        return true;
+      }
+      tools.target_extruder = t;
+    }
+    else
+      tools.target_extruder = 0;
+
+    return false;
+  }
+#endif
 
 #if FAN_COUNT > 0
   bool Commands::get_target_fan(uint8_t &f) {

@@ -80,7 +80,7 @@ const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
   { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
   { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
-  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL]
+  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL] and Tone
   { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
   { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5

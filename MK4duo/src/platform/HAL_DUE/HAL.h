@@ -384,7 +384,8 @@ void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
 uint8_t spiReceive(uint32_t chan);
 
 // Tone for due
-void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration);
+void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration=0);
+void noTone(const pin_t _pin);
 
 // EEPROM
 uint8_t eeprom_read_byte(uint8_t* pos);

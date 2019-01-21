@@ -5,6 +5,7 @@
 * Rewrite TMC files
 * Add M92 Subcommand H[microstep] L[Layer wanted]
 * Add to all nextion scroll message By MrGoblin
+* Fix Mixer color routine
 * Clear code
 
 ### Version 4.3.7
