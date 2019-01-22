@@ -52,7 +52,7 @@ inline void gcode_M115(void) {
   SERIAL_LM(CAP, "PRINT_JOB:1");
 
   // Command pause stop
-  SERIAL_LM(CAP, "PAUSESTOP:1");
+  //SERIAL_LM(CAP, "PAUSESTOP:0");
 
   // AUTOLEVEL (G29)
   #if HAS_ABL

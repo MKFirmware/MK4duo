@@ -468,8 +468,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
     UNUSED(lcd_msg);
   #endif
 
-  SERIAL_STR(POWEROFF);
-  SERIAL_EOL();
+  SERIAL_L(ACTIONPOWEROFF);
 
   minikill();
 }
@@ -551,8 +550,6 @@ void Printer::Stop() {
   if (isRunning()) {
     setRunning(false);
     SERIAL_LM(ER, MSG_ERR_STOPPED);
-    SERIAL_STR(PAUSE);
-    SERIAL_EOL();
     LCD_MESSAGEPGM(MSG_STOPPED);
   }
 }
@@ -945,16 +942,14 @@ void Printer::resume_print() {
 }
 
 void Printer::stop_print() {
-  setWaitForHeatUp(false);
-  setWaitForUser(false);
   #if HAS_SD_SUPPORT
+    setWaitForHeatUp(false);
+    setWaitForUser(false);
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
-  lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
-  #if HAS_LCD_MENU
-    lcdui.return_to_status();
-  #endif
   SERIAL_L(REQUESTSTOP);
+  lcdui.set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
+  lcdui.return_to_status();
 }
 
 /**

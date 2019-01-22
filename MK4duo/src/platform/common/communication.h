@@ -43,10 +43,10 @@ FSTRINGVAR(RESEND);           // resend for host
 FSTRINGVAR(WARNING);          // warning for host
 FSTRINGVAR(TNAN);             // NAN for host
 FSTRINGVAR(TINF);             // INF for host
-FSTRINGVAR(PAUSE);            // command for host that support action
-FSTRINGVAR(RESUME);           // command for host that support action
-FSTRINGVAR(DISCONNECT);       // command for host that support action
-FSTRINGVAR(POWEROFF);         // command for host that support action
+FSTRINGVAR(ACTIONPAUSE);      // command for host that support action
+FSTRINGVAR(ACTIONRESUME);     // command for host that support action
+FSTRINGVAR(ACTIONDISCONNECT); // command for host that support action
+FSTRINGVAR(ACTIONPOWEROFF);   // command for host that support action
 FSTRINGVAR(REQUESTPAUSE);     // command for host that support action
 FSTRINGVAR(REQUESTCONTINUE);  // command for host that support action
 FSTRINGVAR(REQUESTSTOP);      // command for host that support action
