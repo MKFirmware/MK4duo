@@ -319,9 +319,10 @@ class MenuItem_bool {
 void menu_main();
 void menu_move();
 
+void menu_stop_print();
+
 #if HAS_SD_SUPPORT
   void menu_sdcard();
-  void menu_stop_print();
 #endif
 
 #if HAS_EEPROM
