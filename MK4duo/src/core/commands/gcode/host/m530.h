@@ -58,7 +58,6 @@ inline void gcode_M530(void) {
 
       #if HAS_FIL_RUNOUT_0
         SERIAL_EM("Filament runout activated.");
-        SERIAL_L(RESUME);
       #endif
 
     }
