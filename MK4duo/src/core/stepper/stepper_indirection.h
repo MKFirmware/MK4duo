@@ -517,7 +517,7 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
 #define E5_STEP_READ()                READ(E5_STEP_PIN)
 
 /**
- * Extruder indirection for the single E axis
+ * Extruder Step for the single E axis
  */
 #if DRIVER_EXTRUDERS > 5
   #define E_STEP_WRITE(E,V)     do{ switch (E) { case 0: E0_STEP_WRITE(V); break; case 1: E1_STEP_WRITE(V); break; case 2: E2_STEP_WRITE(V); break; case 3: E3_STEP_WRITE(V); break; case 4: E4_STEP_WRITE(V); break; case 5: E5_STEP_WRITE(V); } }while(0)
@@ -534,9 +534,5 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define E_STEP_WRITE(E,V)   do{ if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
   #endif
 #elif DRIVER_EXTRUDERS > 0
-  #if ENABLED(DONDOLO_SINGLE_MOTOR)
-    #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(v)
-  #else
-    #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(V)
-  #endif
+  #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(V)
 #endif // DRIVER_EXTRUDERS

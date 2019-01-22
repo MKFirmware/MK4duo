@@ -71,7 +71,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
 
   if (did_pause_print) return false; // already paused
 
-  SERIAL_L(REQUESTPAUSE);
+  SERIAL_L(ACTIONPAUSE);
 
   #if HAS_LCD_MENU
     if (show_lcd) lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT);
@@ -324,7 +324,6 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   printer.setFilamentOut(false);
 
   #if HAS_LCD_MENU
-    // Show status screen
     lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_STATUS);
   #endif
 
@@ -332,7 +331,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     mechanics.Nextion_gfx_clear();
   #endif
 
-  SERIAL_L(REQUESTCONTINUE);
+  SERIAL_L(ACTIONRESUME);
 
   --did_pause_print;
 
