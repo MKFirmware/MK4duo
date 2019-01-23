@@ -53,16 +53,18 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef ARDUINO_ARCH_SAM
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && HAS_GRAPHICAL_LCD
+#if HAS_GRAPHICAL_LCD
 
 #include <U8glib.h>
 #include <Arduino.h>
 
 void u8g_SetPIOutput_DUE(u8g_t *u8g, uint8_t pin_index) {
-   PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
-     g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
+  PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
+    g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
 }
 
 void u8g_SetPILevel_DUE(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
@@ -81,7 +83,7 @@ static void spiSend_sw_DUE(uint8_t val) { // 800KHz
       MOSI_pPio->PIO_SODR = MOSI_dwMask;
     else
       MOSI_pPio->PIO_CODR = MOSI_dwMask;
-    DELAY_NS(50);
+    DELAY_NS(48);
     SCK_pPio->PIO_SODR = SCK_dwMask;
     DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
     val <<= 1;
@@ -92,25 +94,14 @@ static void spiSend_sw_DUE(uint8_t val) { // 800KHz
 static uint8_t rs_last_state = 255;
 
 static void u8g_com_DUE_st7920_write_byte_sw_spi(uint8_t rs, uint8_t val) {
-  uint8_t i;
-
   if (rs != rs_last_state) {  // time to send a command/data byte
     rs_last_state = rs;
-
-    if (rs == 0)
-      /* command */
-      spiSend_sw_DUE(0x0F8);
-    else
-       /* data */
-      spiSend_sw_DUE(0x0FA);
-
+    spiSend_sw_DUE(rs ? 0x0FA : 0x0F8); // Command or Data
     DELAY_US(40); // give the controller some time to process the data: 20 is bad, 30 is OK, 40 is safe
   }
-
   spiSend_sw_DUE(val & 0x0F0);
   spiSend_sw_DUE(val << 4);
 }
-
 
 uint8_t u8g_com_HAL_DUE_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
   switch (msg) {
@@ -177,4 +168,6 @@ uint8_t u8g_com_HAL_DUE_ST7920_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
   return 1;
 }
 
-#endif  // ENABLED(ARDUINO_ARCH_SAM) && HAS_GRAPHICAL_LCD
+#endif // HAS_GRAPHICAL_LCD
+
+#endif // ARDUINO_ARCH_SAM

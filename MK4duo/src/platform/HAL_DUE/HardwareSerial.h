@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _HARDWARESERIAL_H_
-#define _HARDWARESERIAL_H_
+#pragma once
 
 #ifndef RX_BUFFER_SIZE
   #define RX_BUFFER_SIZE 128
@@ -120,5 +118,3 @@ extern MKHardwareSerial<0> MKSerial;
 extern MKHardwareSerial<1> MKSerial1;
 extern MKHardwareSerial<2> MKSerial2;
 extern MKHardwareSerial<3> MKSerial3;
-
-#endif /* _HARDWARESERIAL_H_ */

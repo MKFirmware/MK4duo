@@ -1189,6 +1189,8 @@
             SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk[E_AXIS + e]), 3);
           }
         #endif
+      #else
+        SERIAL_EOL();
       #endif
     }
 

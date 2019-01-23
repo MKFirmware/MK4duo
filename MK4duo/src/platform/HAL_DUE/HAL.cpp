@@ -50,14 +50,12 @@
  * ARDUINO_ARCH_SAM
  */
 
+#ifdef ARDUINO_ARCH_SAM
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include "../../../MK4duo.h"
-
-#if ENABLED(ARDUINO_ARCH_SAM)
-
 #include <malloc.h>
 #include <Wire.h>
 

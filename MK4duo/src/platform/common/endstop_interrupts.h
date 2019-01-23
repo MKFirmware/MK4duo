@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _ENDSTOP_INTERRUPTS_H_
-#define _ENDSTOP_INTERRUPTS_H_
+#pragma once
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
 
@@ -37,5 +35,3 @@
   #endif
 
 #endif // ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
-
-#endif /* _ENDSTOP_INTERRUPTS_H_ */
