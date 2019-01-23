@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Description:
@@ -27,9 +28,6 @@
  *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
  *    __AVR__           : For all Atmel AVR boards
  */
-
-#ifndef _PLATFORM_H_
-#define _PLATFORM_H_
 
 #include "common/memory_store.h"
 #include "common/communication.h"
@@ -83,5 +81,3 @@
 #else
   #error "Unsupported Platform!"
 #endif
-
-#endif /* _PLATFORM_H_ */

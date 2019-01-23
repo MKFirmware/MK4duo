@@ -30,8 +30,8 @@
 
 #if ENABLED(DHT_SENSOR)
 
-  #define DHTMINREADINTERVAL 2000  // ms
-  #define DHTMAXREADTIME       50  // ms
+  constexpr uint32_t MinimumReadInterval  = 2000; // ms
+  constexpr uint32_t MaximumReadTime      = 20;   // ms
 
   DHTSensor dhtsensor;
 
@@ -46,19 +46,18 @@
   DHTSensor::SensorState DHTSensor::state = Init;
 
   // ISR
-  uint32_t  lastPulseTime, pulses[41];  // 1 start bit + 40 data bits
+  uint16_t pulses[41];  // 1 start bit + 40 data bits
+  volatile uint16_t lastPulseTime;
   volatile uint8_t numPulses;
 
   void DHT_ISR() {
     const uint32_t now = micros();
-    if (HAL::digitalRead(dhtsensor.data.pin) == HIGH) {
+    if (HAL::digitalRead(dhtsensor.data.pin) == HIGH)
       lastPulseTime = now;
-    }
     else if (lastPulseTime > 0) {
       pulses[numPulses++] = now - lastPulseTime;
-      if (numPulses == COUNT(pulses)) {
+      if (numPulses == COUNT(pulses))
         detachInterrupt(dhtsensor.data.pin);
-      }
     }
   }
 
@@ -102,7 +101,7 @@
 
   void DHTSensor::spin() {
 
-    static watch_t  min_read_watch(DHTMINREADINTERVAL),
+    static watch_t  min_read_watch(MinimumReadInterval),
                     operation_watch;
 
     if (!min_read_watch.elapsed()) return;
@@ -127,18 +126,17 @@
       case Wait_20ms:
         if (operation_watch.elapsed(20)) {
 
-          // End the start signal by setting data line high for 40 microseconds
-          HAL::digitalWrite(data.pin, HIGH);
-          HAL::delayMicroseconds(40);
+          // End the start signal by setting data line high for 40 microseconds.
+          HAL::pinMode(data.pin, INPUT_PULLUP);
 
-          // Now start reading the data line to get the value from the DHT sensor
-          HAL::pinMode(data.pin, INPUT);
-          HAL::delayMicroseconds(10);
+          // Now start reading the data line to get the value from the DHT sensor.
+          HAL::delayMicroseconds(60); // Delay a bit to let sensor pull data line low.
 
           // Read from the DHT sensor using an DHT_ISR
-          numPulses = 0;
-          lastPulseTime = 0;
+          numPulses = COUNT(pulses);
           attachInterrupt(digitalPinToInterrupt(data.pin), DHT_ISR, CHANGE);
+          lastPulseTime = 0;
+          numPulses = 0;
 
           // Wait for the next operation to complete
           state = Read;
@@ -148,7 +146,7 @@
 
       case Read:
         // Make sure we don't time out
-        if (operation_watch.elapsed(DHTMAXREADTIME)) {
+        if (operation_watch.elapsed(MaximumReadTime)) {
           detachInterrupt(data.pin);
           state = Init;
           min_read_watch.start();
@@ -156,7 +154,7 @@
         }
 
         // Wait for the reading to complete (1 start bit + 40 data bits)
-        if (numPulses != 41) break;
+        if (numPulses != COUNT(pulses)) break;
 
         // We're reading now - reset the state
         state = Init;
@@ -166,7 +164,7 @@
         if (pulses[0] < 40) break;
 
         // Reset 40 bits of received data to zero.
-        read_data[0] = read_data[1] = read_data[2] = read_data[3] = read_data[4] = 0;
+        ZERO(read_data);
 
         // Inspect each high pulse and determine which ones
         // are 0 (less than 40us) or 1 (more than 40us)
@@ -183,6 +181,7 @@
         // Generate final results
         Temperature = readTemperature();
         Humidity    = readHumidity();
+
         break;
     }
   }
@@ -194,18 +193,16 @@
     switch (data.type) {
       case DHT11:
       case DHT12:
-        f = read_data[2];
-        f += (read_data[3] & 0x0f) * 0.1;
-        if (read_data[2] & 0x80) f *= -1;
+        f = read_data[2] + (read_data[3] & 0x0f) * 0.1;
         break;
-      case DHT22:
       case DHT21:
-        f = ((word)(read_data[2] & 0x7F)) << 8 | read_data[3];
-        f *= 0.1;
-        if (read_data[2] & 0x80) f *= -1;
+      case DHT22:
+        f = (((read_data[2] & 0x7F) * 256) + read_data[3]) * 0.1;
         break;
       default: break;
     }
+
+    if (read_data[2] & 0x80) f *= -1;
 
     return f;
 
@@ -219,10 +216,9 @@
       case DHT12:
         f = read_data[0] + read_data[1] * 0.1;
         break;
-      case DHT22:
       case DHT21:
-        f = ((word)read_data[0]) << 8 | read_data[1];
-        f *= 0.1;
+      case DHT22:
+        f = ((read_data[0] * 256) + read_data[1]) * 0.1;
         break;
       default: break;
     }

@@ -44,9 +44,7 @@
  * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
  * Modified 10 June       2018 by Eduardo José Tagle
  */
-
-#ifndef _HARDWARESERIAL_H_
-#define _HARDWARESERIAL_H_
+#pragma once
 
 #ifndef SERIAL_PORT_1
   #define SERIAL_PORT_1 0
@@ -166,5 +164,3 @@ class MKHardwareSerial { //: public Stream
 };
 
 extern MKHardwareSerial MKSerial;
-
-#endif /* _HARDWARESERIAL_H_ */

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 #if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
   #define MOSI_PIN            51

@@ -20,9 +20,9 @@
  *
  */
 
-#include "../../../MK4duo.h"
+#ifdef __AVR__
 
-#if ENABLED(__AVR__)
+  #include "../../../MK4duo.h"
 
   Watchdog watchdog;
 
@@ -70,4 +70,4 @@
     }
   #endif // WATCHDOG_RESET_MANUAL
 
-#endif
+#endif // __AVR__

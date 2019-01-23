@@ -30,9 +30,9 @@
  * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
  */
 
-#include "../../../MK4duo.h"
+#ifdef __AVR__
 
-#if ENABLED(__AVR__)
+#include "../../../MK4duo.h"
 
 // Disable HardwareSerial.cpp to support chips without a UART (Attiny, etc.)
 #if ENABLED(UBRRH) || ENABLED(UBRR0H) || ENABLED(UBRR1H) || ENABLED(UBRR2H) || ENABLED(UBRR3H)

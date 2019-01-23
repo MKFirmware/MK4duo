@@ -20,9 +20,11 @@
  *
  */
 
+#ifdef ARDUINO_ARCH_SAM
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && HAS_EEPROM
+#if HAS_EEPROM
 
 MemoryStore memorystore;
 
@@ -110,4 +112,6 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc
 
 size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
 
-#endif // ARDUINO_ARCH_SAM && EEPROM_SETTINGS
+#endif // HAS_EEPROM
+
+#endif // ARDUINO_ARCH_SAM

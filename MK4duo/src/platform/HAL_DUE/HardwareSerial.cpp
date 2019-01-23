@@ -28,9 +28,9 @@
  * Modified 01 October    2017 by Eduardo José Tagle (added XON/XOFF)
  */
 
-#include "../../../MK4duo.h"
-
 #ifdef ARDUINO_ARCH_SAM
+
+#include "../../../MK4duo.h"
 
 template<int portNr>
   typename MKHardwareSerial<portNr>::ring_buffer_r

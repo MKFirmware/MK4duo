@@ -20,9 +20,9 @@
  *
  */
 
-#include "../../../MK4duo.h"
+#ifdef ARDUINO_ARCH_SAM
 
-#if ENABLED(ARDUINO_ARCH_SAM)
+  #include "../../../MK4duo.h"
 
   // Override Arduino runtime to either config or disable the watchdog
   //
@@ -115,4 +115,4 @@
 
   Watchdog watchdog;
 
-#endif
+#endif // ARDUINO_ARCH_SAM

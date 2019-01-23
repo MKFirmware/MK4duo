@@ -19,9 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 // Arduino Due core now has watchdog support
-
 class Watchdog {
 
   public: /** Constructor */

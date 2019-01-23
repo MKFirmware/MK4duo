@@ -54,16 +54,18 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef ARDUINO_ARCH_SAM
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && HAS_GRAPHICAL_LCD
+#if HAS_GRAPHICAL_LCD
 
 #include <U8glib.h>
 #include <Arduino.h>
 
 void u8g_SetPIOutput_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index) {
-   PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
-     g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
+  PIO_Configure(g_APinDescription[u8g->pin_list[pin_index]].pPort, PIO_OUTPUT_1,
+    g_APinDescription[u8g->pin_list[pin_index]].ulPin, g_APinDescription[u8g->pin_list[pin_index]].ulPinConfiguration);  // OUTPUT
 }
 
 void u8g_SetPILevel_DUE_hw_spi(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
@@ -133,4 +135,6 @@ uint8_t u8g_com_HAL_DUE_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_va
   return 1;
 }
 
-#endif // ENABLED(ARDUINO_ARCH_SAM) && HAS_GRAPHICAL_LCD
+#endif // HAS_GRAPHICAL_LCD
+
+#endif // ARDUINO_ARCH_SAM

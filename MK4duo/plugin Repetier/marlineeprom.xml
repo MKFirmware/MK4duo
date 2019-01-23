@@ -706,7 +706,7 @@
     <set>M205 T5 E@</set>
     <detect>M205.*T5 E(-?\d*\.?\d*)</detect>
   </entry>
-  <entry type="float" min="0">
+  <entry type="float" min="0.01">
     <description unit="[unit]">Junction Deviation mm</description>
     <set>M205 J@</set>
     <detect>M205.*J(-?\d*\.?\d*)</detect>

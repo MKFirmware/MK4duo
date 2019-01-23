@@ -50,9 +50,11 @@
  *
  */
 
+#ifdef ARDUINO_ARCH_SAM
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM) && HAS_EEPROM_FLASH
+#if HAS_EEPROM_FLASH
 
 #define EEPROMSize     4096
 #define PagesPerGroup   128
@@ -997,4 +999,6 @@ void eeprom_flush(void) {
   ee_Flush();
 }
 
-#endif // ENABLED(ARDUINO_ARCH_SAM) && HAS_EEPROM_FLASH
+#endif // HAS_EEPROM_FLASH
+
+#endif // ARDUINO_ARCH_SAM

@@ -49,20 +49,16 @@
  *
  * ARDUINO_ARCH_SAM
  */
-
-#ifndef _HAL_TIMERS_H_
-#define _HAL_TIMERS_H_
+#pragma once
 
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include <stdint.h>
 
 // --------------------------------------------------------------------------
 // Defines
 // --------------------------------------------------------------------------
-
 #define NUM_HARDWARE_TIMERS 9
 
 #define NvicPriorityUart    1
@@ -267,5 +263,3 @@ FORCE_INLINE static void HAL_timer_isr_prologue(const uint8_t timer_num) {
   // Reading the status register clears the interrupt flag
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_SR;
 }
-
-#endif /* _HAL_TIMERS_H_ */

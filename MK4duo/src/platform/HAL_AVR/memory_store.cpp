@@ -20,9 +20,11 @@
  *
  */
 
+#ifdef __AVR__
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(__AVR__) && HAS_EEPROM
+#if HAS_EEPROM
 
 MemoryStore memorystore;
 
@@ -65,4 +67,6 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc
 
 size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
 
-#endif // ENABLED(__AVR__) && EEPROM_SETTINGS
+#endif HAS_EEPROM
+
+#endif // __AVR__
