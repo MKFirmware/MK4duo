@@ -249,6 +249,10 @@ class LcdUI {
       static void status_printf_P(const uint8_t level, PGM_P const fmt, ...);
       static void reset_status();
 
+      static void pause_print();
+      static void resume_print();
+      static void stop_print();
+
     #else // NO LCD
 
       static inline void init() {}
