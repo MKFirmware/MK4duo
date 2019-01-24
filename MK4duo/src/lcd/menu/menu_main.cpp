@@ -33,7 +33,7 @@ void menu_stop_print() {
   START_MENU();
   MENU_BACK(MSG_MAIN);
   STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
-  MENU_ITEM(function, MSG_YES, printer.stop_print);
+  MENU_ITEM(function, MSG_YES, lcdui.stop_print);
   MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
   END_MENU();
 }
@@ -98,7 +98,7 @@ void menu_main() {
   const bool busy = printer.isPrinting();
 
   if (busy) {
-    MENU_ITEM(function, MSG_PAUSE_PRINT, printer.pause_print);
+    MENU_ITEM(function, MSG_PAUSE_PRINT, lcdui.pause_print);
     MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
     MENU_ITEM(submenu, MSG_TUNE, menu_tune);
   }
@@ -128,7 +128,7 @@ void menu_main() {
     #endif // !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
     if (printer.isPaused())
-      MENU_ITEM(function, MSG_RESUME_PRINT, printer.resume_print);
+      MENU_ITEM(function, MSG_RESUME_PRINT, lcdui.resume_print);
 
     MENU_ITEM(submenu, MSG_MOTION, menu_motion);
     if (printer.mode == PRINTER_MODE_FFF)

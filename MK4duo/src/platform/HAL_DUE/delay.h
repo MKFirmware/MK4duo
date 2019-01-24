@@ -19,9 +19,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 // Processor-level delays for hardware interfaces
-
 #define nop() __asm__ __volatile__("nop;\n\t":::)
 
 FORCE_INLINE static void HAL_delay_4cycles(uint32_t cy) {

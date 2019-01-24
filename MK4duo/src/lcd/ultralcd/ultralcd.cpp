@@ -1174,26 +1174,66 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
   #endif
 }
 
-  /**
-   * Reset the status message
-   */
-  void LcdUI::reset_status() {
-    static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
-    static const char printing[] PROGMEM = MSG_PRINTING;
-    static const char welcome[] PROGMEM = WELCOME_MSG;
-    PGM_P msg;
-    if (!IS_SD_PRINTING() && print_job_counter.isPaused())
-      msg = paused;
-    #if HAS_SD_SUPPORT
-      else if (IS_SD_PRINTING())
-        return lcdui.set_status(card.fileName, true);
-    #endif
-    else if (print_job_counter.isRunning())
-      msg = printing;
-    else
-      msg = welcome;
+/**
+ * Reset the status message
+ */
+void LcdUI::reset_status() {
+  static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
+  static const char printing[] PROGMEM = MSG_PRINTING;
+  static const char welcome[] PROGMEM = WELCOME_MSG;
+  PGM_P msg;
+  if (!IS_SD_PRINTING() && print_job_counter.isPaused())
+    msg = paused;
+  #if HAS_SD_SUPPORT
+    else if (IS_SD_PRINTING())
+      return lcdui.set_status(card.fileName, true);
+  #endif
+  else if (print_job_counter.isRunning())
+    msg = printing;
+  else
+    msg = welcome;
 
-    lcdui.set_status_P(msg, -1);
-  }
+  lcdui.set_status_P(msg, -1);
+}
+
+/**
+ * Print pause, resume and stop
+ */
+void LcdUI::pause_print() {
+  #if HAS_SD_RESTART
+    if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
+  #endif
+
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.active_extruder);
+    commands.enqueue_and_echo_P(PSTR("M25 P"));
+  #elif HAS_SD_SUPPORT
+    commands.enqueue_and_echo_P(PSTR("M25"));
+  #else
+    SERIAL_L(REQUESTPAUSE);
+  #endif
+
+  planner.synchronize();
+
+}
+
+void LcdUI::resume_print() {
+  #if HAS_SD_SUPPORT
+    commands.enqueue_and_echo_P(PSTR("M24"));
+  #else
+    SERIAL_L(REQUESTCONTINUE);
+  #endif
+}
+
+void LcdUI::stop_print() {
+  #if HAS_SD_SUPPORT
+    printer.setWaitForHeatUp(false);
+    printer.setWaitForUser(false);
+    if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
+  #endif
+  SERIAL_L(REQUESTSTOP);
+  set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
+  return_to_status();
+}
 
 #endif // HAS_SPI_LCD
