@@ -70,7 +70,7 @@ inline void gcode_T(const uint8_t tool_id) {
       tools.previous_extruder = tool_id;
     }
 
-  #elif EXTRUDERS > 1 && (HOTENDS == 1 || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1))
+  #elif (EXTRUDERS > 1 && HOTENDS == 1) || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
 
     if (printer.mode == PRINTER_MODE_FFF) tools.change(tool_id);
 
