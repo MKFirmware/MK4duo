@@ -1176,6 +1176,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   // For a mixing extruder, get a magnified step_event_count for each
   #if ENABLED(COLOR_MIXING_EXTRUDER)
+    gradient_control();
     mixer.populate_block(block->b_color);
   #endif
 
@@ -2673,6 +2674,27 @@ void Planner::recalculate() {
 
   recalculate_trapezoids();
 }
+
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+
+  inline void gradient_change(const int8_t start_p, const int8_t end_p, const float start_z, const float end_z) {
+    if (WITHIN(mechanics.current_position[Z_AXIS], start_z, end_z)) {
+      mixer.mix[0] = start_p + (end_p - start_p) * ((mechanics.current_position[Z_AXIS] - start_z) / (end_z - start_z));
+      const bool eos = mixer.gradient.end_pct > mixer.gradient.start_pct;
+      NOMORE(mixer.mix[0], eos ? end_p : start_p);
+      NOLESS(mixer.mix[0], eos ? start_p : end_p);
+      mixer.mix[1] = 100 - mixer.mix[0];
+      mixer.update_gradient_from_mix();
+    }
+    if (mechanics.current_position[Z_AXIS] > end_z) mixer.gradient.enabled = false;
+  }
+
+  void Planner::gradient_control(void) {
+    if (mixer.gradient.enabled)
+      gradient_change(mixer.gradient.start_pct, mixer.gradient.end_pct, mixer.gradient.start_z, mixer.gradient.end_z);
+  }
+
+#endif
 
 #if ENABLED(HYSTERESIS_FEATURE)
 

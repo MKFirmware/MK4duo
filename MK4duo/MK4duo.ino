@@ -185,6 +185,7 @@
  * M163 - Set a single proportion for a mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
  * M164 - Save the mix as a virtual extruder. (Requires COLOR_MIXING_EXTRUDER and MIXING_VIRTUAL_TOOLS)
  * M165 - Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors. (Requires COLOR_MIXING_EXTRUDER)
+ * M166 - Set the Gradient Mix for the mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
  * M190 - Sxxx Wait for bed current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
  * M191 - Sxxx Wait for chamber current temp to reach target temp. Waits only when heating

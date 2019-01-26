@@ -444,14 +444,29 @@ void LcdUI::draw_status_screen() {
       #endif
 
       lcd_moveto(0 * XYZ_SPACING + X_LABEL_POS, XYZ_BASELINE);
-      lcd_put_wchar('X');
-      lcd_moveto(0 * XYZ_SPACING + X_VALUE_POS, XYZ_BASELINE);
-      _draw_axis_value(X_AXIS, xstring, blink);
 
-      lcd_moveto(1 * XYZ_SPACING + X_LABEL_POS, XYZ_BASELINE);
-      lcd_put_wchar('Y');
-      lcd_moveto(1 * XYZ_SPACING + X_VALUE_POS, XYZ_BASELINE);
-      _draw_axis_value(Y_AXIS, ystring, blink);
+      #if ENABLED(COLOR_MIXING_EXTRUDER)  
+        if (mixer.gradient.enabled) {
+          // Two-color gradient mix instead of XY
+          char mixer_messages[12];
+          const int mix_pct = int(RECIPROCAL(mixer.gradient.color[0]) * 100.0f);
+          const char * const fmt = mixer.gradient.enabled ? PSTR("Mx^%d;%d%% ") : PSTR("Mx %d;%d%% ");
+          sprintf_P(mixer_messages, fmt, mix_pct, 100 - mix_pct);
+          lcd_put_u8str(mixer_messages);
+        }
+        else
+      #endif
+
+        {
+          lcd_put_wchar('X');
+          lcd_moveto(0 * XYZ_SPACING + X_VALUE_POS, XYZ_BASELINE);
+          _draw_axis_value(X_AXIS, xstring, blink);
+
+          lcd_moveto(1 * XYZ_SPACING + X_LABEL_POS, XYZ_BASELINE);
+          lcd_put_wchar('Y');
+          lcd_moveto(1 * XYZ_SPACING + X_VALUE_POS, XYZ_BASELINE);
+          _draw_axis_value(Y_AXIS, ystring, blink);
+        }
 
       lcd_moveto(2 * XYZ_SPACING + X_LABEL_POS, XYZ_BASELINE);
       lcd_put_wchar('Z');

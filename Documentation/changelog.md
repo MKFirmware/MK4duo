@@ -6,6 +6,8 @@
 * Add M92 Subcommand H[microstep] L[Layer wanted]
 * Add to all nextion scroll message By MrGoblin
 * Fix Mixer color routine
+* Add M166 Set the Gradient Mix for the mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
+* Fix Scara
 * Clear code
 
 ### Version 4.3.7

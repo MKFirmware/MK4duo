@@ -113,4 +113,37 @@
     }
   }
 
+  #define CODE_M166
+
+  /**
+   * M166: Set a simple gradient mix for a two-component mixer
+   *       based on the Geeetech A10M implementation by Jone Liu.
+   *
+   * Example: M166 S1 A0 Z20 P100 Q0
+   */
+  inline void gcode_M166(void) {
+    bool gflag = parser.seen('S') ? parser.value_bool() : mixer.gradient.enabled;
+    if (parser.seenval('A')) mixer.gradient.start_z = parser.value_float();
+    if (parser.seenval('Z')) mixer.gradient.end_z = parser.value_float();
+    if (parser.seenval('P')) mixer.gradient.start_pct = (uint8_t)constrain(parser.value_int(), 0, 100);
+    if (parser.seenval('Q')) mixer.gradient.end_pct = (uint8_t)constrain(parser.value_int(), 0, 100);
+
+    if (mixer.gradient.start_pct == mixer.gradient.end_pct || mixer.gradient.start_z == mixer.gradient.end_z)
+      gflag = false;
+
+    SERIAL_MSG("Gradient Mix ");
+    if ((mixer.gradient.enabled = gflag)) {
+      SERIAL_MV("ON from Z", mixer.gradient.start_z);
+      SERIAL_MV(" (", int(mixer.gradient.start_pct));
+      SERIAL_MV("%|", int(100 - mixer.gradient.start_pct));
+      SERIAL_MV("%) to Z", mixer.gradient.end_z);
+      SERIAL_MV(" (", int(mixer.gradient.end_pct));
+      SERIAL_MV("%|", int(100 - mixer.gradient.end_pct));
+      SERIAL_MSG("%)");
+    }
+    else
+      SERIAL_MSG("OFF");
+    SERIAL_EOL();
+  }
+
 #endif  // COLOR_MIXING_EXTRUDER
