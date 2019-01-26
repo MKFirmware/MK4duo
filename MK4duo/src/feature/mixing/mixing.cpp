@@ -32,14 +32,25 @@
 
   Mixer mixer;
 
+  /** Public Parameters */
+  int16_t Mixer::mix[MIXING_STEPPERS];
+
+  gradient_t Mixer::gradient = {
+    false,    // enabled
+    0,        // color
+    0, 0,     // start_z, end_z
+    100, 0    // start_pct, end_pct
+  };
+
+  /** Private Parameters */
   // Used up to Planner level
   uint_fast8_t  Mixer::selected_v_tool = 0;
   float         Mixer::M163_collector[MIXING_STEPPERS]; // mix proportion. 0.0 = off, otherwise <= COLOR_A_MASK.
-  mixer_color_t Mixer::color[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
+  mixer_color_t Mixer::color[MIXING_VIRTUAL_TOOLS];
 
   // Used in Stepper
   int_fast8_t   Mixer::runner = 0;
-  mixer_color_t Mixer::s_color[MIXING_STEPPERS];
+  mixer_color_t Mixer::s_color;
   mixer_accu_t  Mixer::accu[MIXING_STEPPERS] = { 0 };
 
   void Mixer::normalize(const uint8_t tool_index) {

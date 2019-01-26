@@ -59,6 +59,11 @@
       float z_fade_height;
     #endif
 
+    // Color Mixing gradient
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      gradient_t gradient;
+    #endif
+
     // Command buffer
     uint8_t buffer_head,
             buffer_count;

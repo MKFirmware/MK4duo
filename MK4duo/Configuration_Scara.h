@@ -45,7 +45,8 @@
  * - Manual home positions
  * - Axis steps per unit
  * - Axis feedrate
- * - Axis accelleration
+ * - Axis acceleration
+ * - Axis jerk
  * - Homing feedrate
  * - Hotend offset
  *
@@ -118,15 +119,9 @@
 #define ENDSTOPPULLUP_XMIN    false
 #define ENDSTOPPULLUP_YMIN    false
 #define ENDSTOPPULLUP_ZMIN    false
-#define ENDSTOPPULLUP_Z2MIN   false
-#define ENDSTOPPULLUP_Z3MIN   false
-#define ENDSTOPPULLUP_Z4MIN   false
 #define ENDSTOPPULLUP_XMAX    false
 #define ENDSTOPPULLUP_YMAX    false
 #define ENDSTOPPULLUP_ZMAX    false
-#define ENDSTOPPULLUP_Z2MAX   false
-#define ENDSTOPPULLUP_Z3MAX   false
-#define ENDSTOPPULLUP_Z4MAX   false
 #define ENDSTOPPULLUP_ZPROBE  false
 /*****************************************************************************************/
 
@@ -142,12 +137,22 @@
 #define X_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Y_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z_MIN_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
-#define Z2_MIN_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define X_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Y_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
 #define Z_MAX_ENDSTOP_LOGIC   false   // set to true to invert the logic of the endstop.
-#define Z2_MAX_ENDSTOP_LOGIC  false   // set to true to invert the logic of the endstop.
 #define Z_PROBE_ENDSTOP_LOGIC false   // set to true to invert the logic of the probe.
+/*****************************************************************************************/
+
+
+/*****************************************************************************************
+ ***************************** Endstop Interrupts Feature ********************************
+ *****************************************************************************************
+ *                                                                                       *
+ * Enable this feature if all enabled endstop pins are interrupt-capable.                *
+ * This will remove the need to poll the interrupt pins, saving many CPU cycles.         *
+ *                                                                                       *
+ *****************************************************************************************/
+//#define ENDSTOP_INTERRUPTS_FEATURE
 /*****************************************************************************************/
 
 
@@ -157,7 +162,7 @@
  *                                                                                       *
  * Probes are sensors/switches that need to be activated before they can be used         *
  * and deactivated after their use.                                                      *
- * Servo Probes, Z Sled Probe, Fix mounted Probe, etc.                                   *
+ * Servo Probes, Z Allen Key, Fix mounted Probe, etc.                                    *
  * You must activate one of these to use AUTO BED LEVELING FEATURE below.                *
  *                                                                                       *
  * If you want to still use the Z min endstop for homing,                                *
@@ -181,14 +186,21 @@
 #define Z_PROBE_SERVO_NR -1
 #define Z_SERVO_ANGLES {90,0} // Z Servo Deploy and Stow angles
 
+// The "Manual Probe" provides a means to do "Auto" Bed Leveling and calibration without a probe.
+// Use G29 or G30 A repeatedly, adjusting the Z height at each point with movement commands
+// or (with LCD BED LEVELING) the LCD controller.
+//#define PROBE_MANUALLY
+
 // A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
 // For example an inductive probe, or a setup that uses the nozzle to probe.
 // An inductive probe must be deactivated to go below
 // its trigger-point if hardware endstops are active.
 //#define Z_PROBE_FIX_MOUNTED
 
-// The BLTouch probe emulates a servo probe.
+// The BLTouch probe uses a Hall effect sensor and emulates a servo.
+// The default connector is SERVO 0.
 //#define BLTOUCH
+//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
 
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
@@ -215,23 +227,44 @@
 
 // X and Y axis travel speed between probes, in mm/min
 #define XY_PROBE_SPEED 10000
-// Speed for the first approach when double-probing (with PROBE_DOUBLE_TOUCH)
-#define Z_PROBE_SPEED_FAST 120
-// Speed for the "accurate" probe of each point
-#define Z_PROBE_SPEED_SLOW 60
-// Use double touch for probing
-//#define PROBE_DOUBLE_TOUCH
+// Speed for the first approach, in mm/min
+#define Z_PROBE_SPEED_FAST 3000
+// Speed for the "accurate" probe of each point, in mm/min
+#define Z_PROBE_SPEED_SLOW 1000
+
+// Z Probe repetitions, median for best result
+#define Z_PROBE_REPETITIONS 1
 
 // Enable Z Probe Repeatability test to see how accurate your probe is
 //#define Z_MIN_PROBE_REPEATABILITY_TEST
 
+// Before deploy/stow pause for user confirmation
+//#define PAUSE_BEFORE_DEPLOY_STOW
+
 // Probe Raise options provide clearance for the probe to deploy, stow, and travel.
 #define Z_PROBE_DEPLOY_HEIGHT 15  // Z position for the probe to deploy/stow
 #define Z_PROBE_BETWEEN_HEIGHT 5  // Z position for travel between points
+#define Z_PROBE_AFTER_PROBING  0  // Z position after probing is done
+#define Z_PROBE_LOW_POINT     -2  // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Probe Z Offset
 #define Z_PROBE_OFFSET_RANGE_MIN -50
 #define Z_PROBE_OFFSET_RANGE_MAX  50
+
+// Enable if probing seems unreliable. Heaters and/or fans - consistent with the
+// options selected below - will be disabled during probing so as to minimize
+// potential EM interference by quieting/silencing the source of the 'noise' (the change
+// in current flowing through the wires).  This is likely most useful to users of the
+// BLTouch probe, but may also help those with inductive or other probe types.
+//#define PROBING_HEATERS_OFF       // Turn heaters off when probing
+//#define PROBING_FANS_OFF          // Turn fans off when probing
+
+// Add a bed leveling sub-menu for ABL or MBL.
+// Include a guided procedure if manual probing is enabled.
+//#define LCD_BED_LEVELING
+#define MESH_EDIT_Z_STEP 0.025  // Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4     // Z Range centered on Z MIN POS for LCD Z adjustment
+//#define MESH_EDIT_MENU        // Add a menu to edit mesh points
 /*****************************************************************************************/
 
 
@@ -272,7 +305,7 @@
 #define X_ENABLE_ON 0
 #define Y_ENABLE_ON 0
 #define Z_ENABLE_ON 0
-#define E_ENABLE_ON 0
+#define E_ENABLE_ON 0      // For all extruder
 /*****************************************************************************************/
 
 
@@ -321,7 +354,7 @@
 #define DISABLE_X false
 #define DISABLE_Y false
 #define DISABLE_Z false
-#define DISABLE_E false
+#define DISABLE_E false      // For all extruder
 // Disable only inactive extruder and keep active extruder enabled
 //#define DISABLE_INACTIVE_EXTRUDER
 /*****************************************************************************************/
@@ -546,11 +579,13 @@
 /*****************************************************************************************
  ********************************** Axis feedrate ****************************************
  *****************************************************************************************/
-//                                       X,   Y, Z, E0...(per extruder). (mm/sec)
-#define DEFAULT_MAX_FEEDRATE          {14.327, 28.653, 16, 25}
-#define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 60}  // Feedrates for manual moves along X, Y, Z, E from panel
-#define DEFAULT_MINIMUMFEEDRATE       0.0                       // minimum feedrate
-#define DEFAULT_MINTRAVELFEEDRATE     0.0
+//                                       X,   Y,   Z,  E0...(per extruder). (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 100, 100, 100, 100}
+// Feedrates for manual moves along        X,     Y,     Z,  E from panel
+#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 10*60}
+// Minimum feedrate
+#define DEFAULT_MIN_FEEDRATE          0.0
+#define DEFAULT_MIN_TRAVEL_FEEDRATE   0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.
@@ -559,7 +594,7 @@
 
 
 /*****************************************************************************************
- ******************************** Axis accelleration *************************************
+ ******************************** Axis acceleration **************************************
  *****************************************************************************************/
 //  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
 #define DEFAULT_MAX_ACCELERATION              {172, 344, 100, 10000}

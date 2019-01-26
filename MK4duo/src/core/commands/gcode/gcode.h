@@ -151,7 +151,7 @@
 #include "lcd/m300.h"                     // Buzzer
 
 // Mixing Commands
-#include "mixing/m163_m165.h"
+#include "mixing/m163_m166.h"
 
 // Motion Commands
 #include "motion/g0_g1.h"

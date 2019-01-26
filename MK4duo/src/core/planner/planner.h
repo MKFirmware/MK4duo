@@ -30,6 +30,10 @@
  * Copyright (c) 2009-2011 Simen Svale Skogsrud
  */
 
+#if ENABLED(COLOR_MIXING_EXTRUDER)
+  #include "../../feature/mixing/mixing.h"
+#endif
+
 /**
  * struct block_t
  *
@@ -67,7 +71,7 @@ typedef struct {
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
-    mixer_color_t b_color[MIXING_STEPPERS]; // Normalized color for the mixing steppers
+    mixer_color_t b_color;                  // Normalized color for the mixing steppers
   #endif
 
   // Settings for the trapezoid generator
@@ -672,6 +676,10 @@ class Planner {
       }
 
     #endif // JUNCTION_DEVIATION
+
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      static void gradient_control(void);
+    #endif
 
     #if ENABLED(HYSTERESIS_FEATURE)
       static void insert_hysteresis_correction(block_t * const block);

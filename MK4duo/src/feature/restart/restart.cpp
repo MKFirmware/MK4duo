@@ -26,12 +26,14 @@
 
   Restart restart;
 
+  /** Public Parameters */
   SdFile Restart::file;
 
   restart_job_t Restart::job_info;
 
   bool Restart::enabled;
 
+  /** Public Function */
   void Restart::init_job() { memset(&job_info, 0, sizeof(job_info)); }
 
   void Restart::enable(const bool onoff) {
@@ -115,6 +117,10 @@
           #endif
       #endif
 
+      #if ENABLED(COLOR_MIXING_EXTRUDER)
+        COPY(job_info.gradient, mixer.gradient);
+      #endif
+
       // Commands in the queue
       job_info.buffer_head = commands.buffer_ring.head();
       job_info.buffer_count = save_count ? commands.buffer_ring.count() : 0;
@@ -183,6 +189,10 @@
         bedlevel.set_z_fade_height(job_info.z_fade_height);
       #endif
       bedlevel.set_bed_leveling_enabled(job_info.leveling);
+    #endif
+
+    #if ENABLED(COLOR_MIXING_EXTRUDER)
+      COPY(mixer.gradient, job_info.gradient);
     #endif
 
     // Restore E position

@@ -71,20 +71,19 @@ inline void gcode_M205(void) {
   #endif
 
   #if HAS_CLASSIC_JERK
-    LOOP_XYZE(i) {
-      if (parser.seen(axis_codes[i])) {
-        const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-        #if MECH(DELTA)
-          const float value = parser.value_per_axis_unit((AxisEnum)a);
-          if (i == E_AXIS)
-            mechanics.data.max_jerk[a] = value;
-          else
-            LOOP_XYZ(axis) mechanics.data.max_jerk[axis] = value;
-        #else
-          mechanics.data.max_jerk[a] = parser.value_axis_units((AxisEnum)a);
-        #endif
+    #if MECH(DELTA)
+      if (parser.seen('X') || parser.seen('Y') || parser.seen('Z')) {
+        const float value = parser.value_linear_units();
+        LOOP_XYZ(axis) mechanics.data.max_jerk[axis] = value;
       }
-    }
+    #else
+      if (parser.seen('X')) mechanics.data.max_jerk[X_AXIS] = parser.value_linear_units();
+      if (parser.seen('Y')) mechanics.data.max_jerk[Y_AXIS] = parser.value_linear_units();
+      if (parser.seen('Z')) mechanics.data.max_jerk[Z_AXIS] = parser.value_linear_units();
+    #endif
+    #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+      if (parser.seen('E')) mechanics.data.max_jerk[E_AXIS] = parser.value_linear_units();
+    #endif
   #endif
 
 }
