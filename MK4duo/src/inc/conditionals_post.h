@@ -1134,11 +1134,6 @@
 #define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
 
 /**
- * Nextion Manual BED leveling
- */
-#define HAS_NEXTION_MANUAL_BED (ENABLED(LCD_BED_LEVELING) && ENABLED(PROBE_MANUALLY) && HAS_NEXTION_LCD)
-
-/**
  * Bed Probe dependencies
  */
 #if HAS_BED_PROBE

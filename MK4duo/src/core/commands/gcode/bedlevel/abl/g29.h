@@ -56,6 +56,8 @@ void out_of_range_error(PGM_P p_edge) {
  *
  * Enhanced G29 Auto Bed Leveling Probe Routine
  *
+ *  O  Auto-level only if needed
+ *
  *  D  Dry-Run mode. Just evaluate the bed Topology - Don't apply
  *     or alter the bed level data. Useful to check the topology
  *     after a first run of G29.
@@ -169,6 +171,17 @@ inline void gcode_G29(void) {
     if (mechanics.axis_unhomed_error()) return;
   #endif
 
+  // Auto-level only if needed
+  if (!no_action && bedlevel.flag.leveling_active && parser.boolval('O')) {
+    #if ENABLED(DEBUG_FEATURE)
+      if (printer.debugFeature()) {
+        SERIAL_EM("> Auto-level not needed, skip");
+        SERIAL_EM("<<< G29");
+      }
+    #endif
+    return;
+  }
+
   // Define local vars 'static' for manual probing, 'auto' otherwise
   #if ENABLED(PROBE_MANUALLY)
     #define ABL_VAR static
@@ -195,10 +208,10 @@ inline void gcode_G29(void) {
       ABL_VAR  int8_t PR_INNER_VAR = 0;
     #endif
 
-    ABL_VAR int left_probe_bed_position  = 0.0,
-                right_probe_bed_position = 0.0,
-                front_probe_bed_position = 0.0,
-                back_probe_bed_position  = 0.0;
+    ABL_VAR int left_probe_bed_position  = 0,
+                right_probe_bed_position = 0,
+                front_probe_bed_position = 0,
+                back_probe_bed_position  = 0;
 
     ABL_VAR float xGridSpacing = 0.0,
                   yGridSpacing = 0.0;
@@ -261,10 +274,6 @@ inline void gcode_G29(void) {
     #endif
 
     abl_should_enable = bedlevel.flag.leveling_active;
-
-    #if HAS_NEXTION_MANUAL_BED
-      Nextion_ProbeOn();
-    #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
@@ -365,7 +374,7 @@ inline void gcode_G29(void) {
       back_probe_bed_position  = parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION;
 
       if (
-        #if IS_SCARA || MECH(DELTA)
+        #if IS_KINEMATIC
              !mechanics.position_is_reachable_by_probe(left_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(right_probe_bed_position, 0)
           || !mechanics.position_is_reachable_by_probe(0, front_probe_bed_position)
@@ -709,7 +718,7 @@ inline void gcode_G29(void) {
         yProbe = points[i].y;
         measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
         if (isnan(measured_z)) {
-          bedlevel.flag.leveling_active = abl_should_enable;
+          bedlevel.set_bed_leveling_enabled(abl_should_enable);
           break;
         }
         points[i].z = measured_z;
@@ -732,7 +741,7 @@ inline void gcode_G29(void) {
 
     // Raise to _Z_PROBE_DEPLOY_HEIGHT. Stow the probe.
     if (STOW_PROBE()) {
-      bedlevel.flag.leveling_active = abl_should_enable;
+      bedlevel.set_bed_leveling_enabled(abl_should_enable);
       measured_z = NAN;
     }
   }
@@ -796,7 +805,8 @@ inline void gcode_G29(void) {
       if (verbose_level) {
         SERIAL_MV("Eqn coefficients: a: ", plane_equation_coefficients[0], 8);
         SERIAL_MV(" b: ", plane_equation_coefficients[1], 8);
-        SERIAL_EMV(" d: ", plane_equation_coefficients[2], 8);
+        SERIAL_MV(" d: ", plane_equation_coefficients[2], 8);
+        SERIAL_EOL();
         if (verbose_level > 2)
           SERIAL_EMV("Mean of sampled points: ", mean, 8);
       }
@@ -947,10 +957,6 @@ inline void gcode_G29(void) {
       #endif
       planner.synchronize();
       commands.enqueue_and_echo_P(PSTR(Z_PROBE_END_SCRIPT));
-    #endif
-
-    #if HAS_NEXTION_MANUAL_BED
-      Nextion_ProbeOff();
     #endif
 
     // Auto Bed Leveling is complete! Enable if possible.

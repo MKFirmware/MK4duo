@@ -91,8 +91,6 @@
             fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(rx, ry) : 0.0
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
             fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
-          #else
-            0
           #endif
         );
 
@@ -134,8 +132,6 @@
             fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]) : 0.0
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
             fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
-          #else
-            0
           #endif
         );
 

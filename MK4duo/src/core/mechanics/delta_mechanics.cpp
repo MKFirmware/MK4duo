@@ -460,9 +460,6 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   // Cancel the active G29 session
   #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
     bedlevel.flag.g29_in_progress = false;
-    #if HAS_NEXTION_MANUAL_BED
-      Nextion_ProbeOn();
-    #endif
   #endif
 
   // Disable the leveling matrix before homing

@@ -402,9 +402,6 @@ void Scara_Mechanics::home() {
   // Cancel the active G29 session
   #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
     bedlevel.flag.g29_in_progress = false;
-    #if HAS_NEXTION_MANUAL_BED
-      Nextion_ProbeOn();
-    #endif
   #endif
 
   // Disable the leveling matrix before homing
