@@ -45,7 +45,7 @@ LcdUI lcdui;
 #endif
 
 #if HAS_GRAPHICAL_LCD
-  #include "dogm/ultralcd_DOGM.h"
+  #include "dogm/ultralcd_dogm.h"
 #endif
 
 #include "lcdprint.h"

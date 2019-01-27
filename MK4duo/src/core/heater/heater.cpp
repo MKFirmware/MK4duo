@@ -69,7 +69,7 @@ void Heater::setTarget(const int16_t celsius) {
     SwitchOff();
   else if (!isTuning() && isUsePid()) {
     SERIAL_LM(ER, " Need Tuning PID");
-    LCD_ALERTMESSAGEPGM(MSG_NEED_TUNE_PID);
+    LCD_MESSAGEPGM(MSG_NEED_TUNE_PID);
   }
   else if (isFault())
     SERIAL_LM(ER, " Heater not switched on to temperature fault.");
