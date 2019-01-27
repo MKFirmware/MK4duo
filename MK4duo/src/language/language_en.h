@@ -1211,11 +1211,11 @@
 #ifndef MSG_GRADIENT_MIX
   #define MSG_GRADIENT_MIX                    _UxGT("Gradient mix")
 #endif
-#ifndef MSG_START_MIX
-  #define MSG_START_MIX                       _UxGT("Start mix")
+#ifndef MSG_START_VTOOL
+  #define MSG_START_VTOOL                     _UxGT("Start V-tool")
 #endif
-#ifndef MSG_END_MIX
-  #define MSG_END_MIX                         _UxGT("  End mix")
+#ifndef MSG_END_VTOOL
+  #define MSG_END_VTOOL                       _UxGT("  End V-tool")
 #endif
 #ifndef MSG_START_Z
   #define MSG_START_Z                         _UxGT("Start Z")

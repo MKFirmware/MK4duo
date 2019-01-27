@@ -112,10 +112,10 @@
 | M145 | ? | Set the heatup state H[hotend] B[bed] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)
 | M150 | BLINKM, RGB LED, RGBW LED, or PCA9632 | Set Status LED Color as R[red] U[green] B[blue] values 0-255
 | M155 | ? | Auto report temperatures S[bool] Enable/disable
-| M163 | COLOR MIXING EXTRUDER | Set a single proportion for a mixing extruder 
-| M164 | COLOR MIXING EXTRUDER and MIXING VIRTUAL TOOLS | Save the mix as a virtual extruder 
+| M163 | COLOR MIXING EXTRUDER | S[index] P[float] Set a single proportion for a mixing extruder 
+| M164 | COLOR MIXING EXTRUDER | S[index] Save the mix as a virtual extruder 
 | M165 | COLOR MIXING EXTRUDER | Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors
-| M166 | COLOR MIXING EXTRUDER | Set the Gradient Mix for the mixing extruder. (only firts two Extruder)
+| M166 | COLOR MIXING EXTRUDER | S[bool] A[float] Z[float] I[index] J[index] Set the Gradient Mix for the mixing extruder. (only firts two Extruder)
 | M190 | ? | Sxxx - Wait for bed current temp to reach target temp. Waits only when heating<br/>Rxxx - Wait for bed current temp to reach target temp. Waits when heating and cooling
 | M191 | ? | Sxxx - Wait for chamber current temp to reach target temp. Waits only when heating<br/>Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
 | M192 | ? | Sxxx Wait for cooler current temp to reach target temp. Waits only when heating<br/>Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling

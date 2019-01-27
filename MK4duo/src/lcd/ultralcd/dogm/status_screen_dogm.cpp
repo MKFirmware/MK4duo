@@ -449,9 +449,8 @@ void LcdUI::draw_status_screen() {
         if (mixer.gradient.enabled) {
           // Two-color gradient mix instead of XY
           char mixer_messages[12];
-          const int mix_pct = int(RECIPROCAL(mixer.gradient.color[0]) * 100.0f);
-          const char * const fmt = mixer.gradient.enabled ? PSTR("Mx^%d;%d%% ") : PSTR("Mx %d;%d%% ");
-          sprintf_P(mixer_messages, fmt, mix_pct, 100 - mix_pct);
+          mixer.update_mix_from_gradient();
+          sprintf_P(mixer_messages, PSTR("Gr^%d;%d%% "), int(mixer.mix[0]), int(mixer.mix[1]));
           lcd_put_u8str(mixer_messages);
         }
         else
