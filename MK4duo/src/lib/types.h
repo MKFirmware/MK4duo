@@ -24,6 +24,14 @@
 typedef uint32_t  millis_t;
 typedef int8_t    pin_t;
 
+#ifdef __AVR__
+  typedef uint8_t       mixer_color_t;
+  typedef int8_t        mixer_accu_t;
+#else
+  typedef uint_fast16_t mixer_color_t;
+  typedef uint_fast16_t mixer_accu_t;
+#endif
+
 union flagbyte_t {
   uint8_t _byte;
   struct {

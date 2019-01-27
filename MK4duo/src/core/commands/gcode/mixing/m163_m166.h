@@ -62,7 +62,7 @@
     if (WITHIN(tool_index, 0, MIXING_VIRTUAL_TOOLS - 1))
       mixer.normalize(tool_index);
     else
-      mixer.normalize(mixer.get_current_v_tool());
+      mixer.normalize();
   }
 
   #define CODE_M165
@@ -109,40 +109,62 @@
     if (mix_bits) {
       MIXING_STEPPER_LOOP(i)
         if (!TEST(mix_bits, i)) mixer.set_M163_collector(i, 0.0f);
-      mixer.normalize(mixer.get_current_v_tool());
+      mixer.normalize();
     }
   }
 
   #define CODE_M166
 
+  inline void echo_mix() {
+    SERIAL_MV(" (", int(mixer.mix[0]));
+    SERIAL_MV("%|", int(mixer.mix[1]));
+    SERIAL_MSG("%)");
+  }
+
+  inline void echo_zt(const int t, const float &z) {
+    mixer.update_mix_from_vtool(t);
+    SERIAL_MV(" Z", z);
+    SERIAL_MV(" T", t);
+    echo_mix();
+  }
+
   /**
    * M166: Set a simple gradient mix for a two-component mixer
    *       based on the Geeetech A10M implementation by Jone Liu.
    *
-   * Example: M166 S1 A0 Z20 P100 Q0
+   *   S[bool]  - Enable / disable gradients
+   *   A[float] - Starting Z for the gradient
+   *   Z[float] - Ending Z for the gradient. (Must be greater than the starting Z.)
+   *   I[index] - V-Tool to use as the starting mix.
+   *   J[index] - V-Tool to use as the ending mix.
+   *
+   * Example: M166 S1 A0 Z20 I0 J1
    */
   inline void gcode_M166(void) {
-    bool gflag = parser.seen('S') ? parser.value_bool() : mixer.gradient.enabled;
     if (parser.seenval('A')) mixer.gradient.start_z = parser.value_float();
     if (parser.seenval('Z')) mixer.gradient.end_z = parser.value_float();
-    if (parser.seenval('P')) mixer.gradient.start_pct = (uint8_t)constrain(parser.value_int(), 0, 100);
-    if (parser.seenval('Q')) mixer.gradient.end_pct = (uint8_t)constrain(parser.value_int(), 0, 100);
+    if (parser.seenval('I')) mixer.gradient.start_vtool = (uint8_t)constrain(parser.value_int(), 0, MIXING_VIRTUAL_TOOLS);
+    if (parser.seenval('J')) mixer.gradient.end_vtool = (uint8_t)constrain(parser.value_int(), 0, MIXING_VIRTUAL_TOOLS);
 
-    if (mixer.gradient.start_pct == mixer.gradient.end_pct || mixer.gradient.start_z == mixer.gradient.end_z)
-      gflag = false;
+    if ((mixer.gradient.enabled = parser.boolval('S', mixer.gradient.enabled)))
+      mixer.refresh_gradient();
 
     SERIAL_MSG("Gradient Mix ");
-    if ((mixer.gradient.enabled = gflag)) {
-      SERIAL_MV("ON from Z", mixer.gradient.start_z);
-      SERIAL_MV(" (", int(mixer.gradient.start_pct));
-      SERIAL_MV("%|", int(100 - mixer.gradient.start_pct));
-      SERIAL_MV("%) to Z", mixer.gradient.end_z);
-      SERIAL_MV(" (", int(mixer.gradient.end_pct));
-      SERIAL_MV("%|", int(100 - mixer.gradient.end_pct));
-      SERIAL_MSG("%)");
+    if (mixer.gradient.enabled) {
+
+      SERIAL_MSG("ON ; Start");
+      echo_zt(mixer.gradient.start_vtool, mixer.gradient.start_z);
+
+      SERIAL_MSG(" ; End");
+      echo_zt(mixer.gradient.end_vtool, mixer.gradient.end_z);
+
+      mixer.update_mix_from_gradient();
+      SERIAL_MV(" ; Current Z", mechanics.current_position[Z_AXIS]);
+      echo_mix();
     }
     else
       SERIAL_MSG("OFF");
+
     SERIAL_EOL();
   }
 

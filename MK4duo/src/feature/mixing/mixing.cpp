@@ -30,58 +30,125 @@
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
 
-  Mixer mixer;
+Mixer mixer;
 
-  /** Public Parameters */
-  int16_t Mixer::mix[MIXING_STEPPERS];
+/** Public Parameters */
+int16_t Mixer::mix[MIXING_STEPPERS];
 
-  gradient_t Mixer::gradient = {
-    false,    // enabled
-    0,        // color
-    0, 0,     // start_z, end_z
-    100, 0    // start_pct, end_pct
-  };
+gradient_t Mixer::gradient = {
+  false,        // enabled
+  { 0 },        // color (array)
+  0, 0,         // start_z, end_z
+  0, 1,         // start_vtool, end_vtool
+  { 0 }, { 0 }  // start_mix, end_mix (array)
+};
 
-  /** Private Parameters */
-  // Used up to Planner level
-  uint_fast8_t  Mixer::selected_v_tool = 0;
-  float         Mixer::M163_collector[MIXING_STEPPERS]; // mix proportion. 0.0 = off, otherwise <= COLOR_A_MASK.
-  mixer_color_t Mixer::color[MIXING_VIRTUAL_TOOLS];
+/** Private Parameters */
+// Used up to Planner level
+uint_fast8_t  Mixer::selected_v_tool = 0;
+float         Mixer::M163_collector[MIXING_STEPPERS]; // mix proportion. 0.0 = off, otherwise <= COLOR_A_MASK.
+mixer_color_t Mixer::color[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
 
-  // Used in Stepper
-  int_fast8_t   Mixer::runner = 0;
-  mixer_color_t Mixer::s_color;
-  mixer_accu_t  Mixer::accu[MIXING_STEPPERS] = { 0 };
+// Used in Stepper
+int_fast8_t   Mixer::runner = 0;
+mixer_color_t Mixer::s_color[MIXING_STEPPERS];
+mixer_accu_t  Mixer::accu[MIXING_STEPPERS] = { 0 };
 
-  void Mixer::normalize(const uint8_t tool_index) {
-    float cmax = 0;
+void Mixer::normalize(const uint8_t tool_index) {
+  float cmax = 0;
+  #if ENABLED(MIXING_DEBUG)
+    float csum = 0;
+  #endif
 
-    MIXING_STEPPER_LOOP(i)
-      cmax = max(cmax, M163_collector[i]);
-
-    // Scale all values so their maximum is COLOR_A_MASK
-    const float inverse_max = RECIPROCAL(cmax);
-    MIXING_STEPPER_LOOP(i)
-      color[tool_index][i] = M163_collector[i] * COLOR_A_MASK * inverse_max;
-
-  }
-
-  // called at boot
-  void Mixer::init(void) {
-    // Virtual Tools 0, 1, 2, 3 = Filament 1, 2, 3, 4, etc.
-    // Every virtual tool gets a pure filament
-    for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS && t < MIXING_STEPPERS; t++)
-      MIXING_STEPPER_LOOP(i)
-        color[t][i] = (t == i) ? COLOR_A_MASK : 0;
-
-    // Remaining virtual tools are 100% filament 1
-    #if MIXING_STEPPERS < MIXING_VIRTUAL_TOOLS
-      for (uint8_t t = MIXING_STEPPERS; t < MIXING_VIRTUAL_TOOLS; t++)
-        MIXING_STEPPER_LOOP(i)
-          color[t][i] = (i == 0) ? COLOR_A_MASK : 0;
+  MIXING_STEPPER_LOOP(i) {
+    const float v = M163_collector[i];
+    cmax = MAX(cmax, v);
+    #if ENABLED(MIXING_DEBUG)
+      csum += v;
     #endif
-
-    ZERO(M163_collector);
   }
+  #if ENABLED(MIXING_DEBUG)
+    SERIAL_MSG("Mixer: Old relation : [ ");
+    MIXING_STEPPER_LOOP(i) {
+      SERIAL_VAL(M163_collector[i] / csum, 3);
+      SERIAL_CHR(' ');
+    }
+    SERIAL_EM("]");
+  #endif
+
+  // Scale all values so their maximum is COLOR_A_MASK
+  const float inverse_max = RECIPROCAL(cmax);
+  MIXING_STEPPER_LOOP(i)
+    color[tool_index][i] = M163_collector[i] * COLOR_A_MASK * inverse_max;
+
+  #if ENABLED(MIXING_DEBUG)
+    csum = 0;
+    SERIAL_MSG("Mixer: Normalize to : [ ");
+    MIXING_STEPPER_LOOP(i) {
+      SERIAL_VAL(uint16_t(color[tool_index][i]));
+      SERIAL_CHR(' ');
+      csum += color[tool_index][i];
+    }
+    SERIAL_EM("]");
+    SERIAL_MSG("Mixer: New relation : [ ");
+    MIXING_STEPPER_LOOP(i) {
+      SERIAL_VAL(uint16_t(color[tool_index][i]) / csum, 3);
+      SERIAL_CHR(' ');
+    }
+    SERIAL_EM("]");
+  #endif
+}
+
+// called at boot
+void Mixer::init() {
+  // Virtual Tools 0, 1, 2, 3 = Filament 1, 2, 3, 4, etc.
+  // Every virtual tool gets a pure filament
+  for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS && t < MIXING_STEPPERS; t++)
+    MIXING_STEPPER_LOOP(i)
+      color[t][i] = (t == i) ? COLOR_A_MASK : 0;
+
+  // Remaining virtual tools are 100% filament 1
+  #if MIXING_STEPPERS < MIXING_VIRTUAL_TOOLS
+    for (uint8_t t = MIXING_STEPPERS; t < MIXING_VIRTUAL_TOOLS; t++)
+      MIXING_STEPPER_LOOP(i)
+        color[t][i] = (i == 0) ? COLOR_A_MASK : 0;
+  #endif
+
+  ZERO(M163_collector);
+
+  if (gradient.enabled) update_mix_from_vtool();
+}
+
+void Mixer::update_gradient_for_z(const float z) {
+  const float slice = gradient.end_z - gradient.start_z;
+
+  float pct = float(z - gradient.start_z) / slice;
+  NOLESS(pct, 0); NOMORE(pct, 1.0);
+
+  MIXING_GRADIENT_LOOP(i) {
+    const int8_t sm = gradient.start_mix[i];
+    mix[i] = sm + (gradient.end_mix[i] - sm) * pct;
+  }
+
+  #if ENABLED(MIXING_DEBUG)
+    SERIAL_MV("Z ", z, 3);
+    SERIAL_MV(" Mix [ ", mix[0]);
+    SERIAL_MV(", ", mix[1]);
+    SERIAL_MV("] to Color [ ", int(gradient.color[0]));
+    SERIAL_MV(", ", int(gradient.color[1]));
+    SERIAL_EM("]");
+  #endif
+
+  update_gradient_from_mix();
+}
+
+void Mixer::update_gradient_for_planner_z() {
+  update_gradient_for_z(mechanics.current_position[Z_AXIS]);
+}
+
+void Mixer::gradient_control(const float z) {
+  if (z > gradient.end_z) gradient.enabled = false;
+  update_gradient_for_z(z);
+}
 
 #endif // ENABLED(COLOR_MIXING_EXTRUDER)

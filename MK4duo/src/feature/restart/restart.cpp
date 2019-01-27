@@ -118,7 +118,7 @@
       #endif
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        COPY(job_info.gradient, mixer.gradient);
+        memcpy(&job_info.gradient, &mixer.gradient, sizeof(job_info.gradient));
       #endif
 
       // Commands in the queue
@@ -192,7 +192,7 @@
     #endif
 
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      COPY(mixer.gradient, job_info.gradient);
+      memcpy(&mixer.gradient, &job_info.gradient, sizeof(job_info.gradient));
     #endif
 
     // Restore E position
