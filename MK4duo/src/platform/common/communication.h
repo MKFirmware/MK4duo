@@ -104,8 +104,8 @@ class Com {
 
   private: /** Private Function */
 
-      static void printNumber(unsigned long, const uint8_t);
-      static void printFloat(double, uint8_t);
+    static void printNumber(unsigned long, const uint8_t);
+    static void printFloat(double, uint8_t);
 
 };
 
