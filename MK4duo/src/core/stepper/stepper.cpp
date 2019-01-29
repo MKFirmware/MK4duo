@@ -439,15 +439,14 @@ void Stepper::init() {
 
   #endif // HAS_EXT_ENCODER
 
+  set_directions(); // Init directions to last_direction_bits = 0
+
   // Init Stepper ISR to 128 Hz for quick starting
   HAL_timer_start(STEPPER_TIMER, 128);
 
   ENABLE_STEPPER_INTERRUPT();
 
-  endstops.setEnabled(true); // Start with endstops active. After homing they can be disabled
   sei();
-
-  set_directions(); // Init directions to last_direction_bits = 0
 }
 
 void Stepper::factory_parameters() {

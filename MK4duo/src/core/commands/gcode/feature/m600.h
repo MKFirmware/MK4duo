@@ -126,7 +126,7 @@
     );
 
     if (advancedpause.pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-      advancedpause.wait_for_confirmation(beep_count DXC_PASS);
+      advancedpause.wait_for_confirmation(true, beep_count DXC_PASS);
       advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
     }
 
