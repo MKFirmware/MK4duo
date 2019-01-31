@@ -19,12 +19,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sensor.h - sensor object
  */
 
-#pragma once
+#if ENABLED(SUPPORT_DHT11)
+  #include "../../../feature/dhtsensor/dhtsensor.h"
+#endif
 
 typedef struct {
 
