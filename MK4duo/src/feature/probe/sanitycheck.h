@@ -85,10 +85,10 @@
     #error "DEPENDENCY ERROR: Probes need Z_PROBE_BETWEEN_HEIGHT >= 0."
   #endif
 
-#else
+#elif !PROBE_SELECTED
 
   // Require some kind of probe for bed leveling and probe testing
-  #if HAS_ABL && DISABLED(AUTO_BED_LEVELING_UBL)
+  #if OLD_ABL
     #error "DEPENDENCY ERROR: Auto Bed Leveling requires a probe! Define a PROBE_MANUALLY, Z Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
   #elif ENABLED(DELTA_AUTO_CALIBRATION_1)
     #error "DEPENDENCY ERROR: DELTA_AUTO_CALIBRATION_1 requires a probe! Define a Z PROBE_MANUALLY, Servo, BLTOUCH, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z_PROBE_FIX_MOUNTED."
