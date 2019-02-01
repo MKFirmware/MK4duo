@@ -65,6 +65,18 @@ void menu_stop_print() {
     END_SCREEN();
   }
 
+  void menu_m0() {
+    lcdui.defer_status_screen(true);
+    if (lcdui.use_click()) {
+      printer.setWaitForUser(false);
+      return;
+    }
+    START_SCREEN();
+    STATIC_ITEM(MSG_NEXTION_M0_M1_1);
+    STATIC_ITEM(MSG_NEXTION_M0_M1_2);
+    END_SCREEN();
+  }
+
   #if HAS_SD_SUPPORT
 
     void menu_firmware() {
