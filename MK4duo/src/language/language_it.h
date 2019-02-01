@@ -514,3 +514,7 @@
 #define MSG_NEXTION_CHANGED_ALLERT_3        _UxGT("Aggiornare con nuovo FW")
 #define MSG_NEXTION_CHANGED_ALLERT_4        _UxGT("Premere il bottone")
 #define MSG_NEXTION_CHANGED_ALLERT_5        _UxGT("per continuare...")
+
+// Nextion M0 M1
+#define MSG_NEXTION_M0_M1_1                 _UxGT("Premi enter per")
+#define MSG_NEXTION_M0_M1_2                 _UxGT("riprendere la stampa")

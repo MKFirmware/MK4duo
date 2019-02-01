@@ -331,6 +331,7 @@ void menu_stop_print();
 
 #if HAS_NEXTION_LCD
   void menu_nextion();
+  void menu_m0();
   #if HAS_SD_SUPPORT
     void menu_firmware();
   #endif

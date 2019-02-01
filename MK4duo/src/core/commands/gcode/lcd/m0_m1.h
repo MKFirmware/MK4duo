@@ -74,12 +74,20 @@
     printer.keepalive(PausedforUser);
     printer.setWaitForUser(true);
 
+    #if HAS_NEXTION_LCD
+      lcdui.goto_screen(menu_m0);
+    #endif
+
     if (ms > 0) {
       ms += millis();
       while (PENDING(millis(), ms) && printer.isWaitForUser()) printer.idle();
     }
     else
       while (printer.isWaitForUser()) printer.idle();
+
+    #if HAS_NEXTION_LCD
+      lcdui.return_to_status();
+    #endif
 
     #if ENABLED(ULTIPANEL)
       lcdui.reset_status();

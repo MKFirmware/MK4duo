@@ -1442,3 +1442,11 @@
 #ifndef MSG_NEXTION_CHANGED_ALLERT_5
   #define MSG_NEXTION_CHANGED_ALLERT_5         _UxGT("to continue...")
 #endif
+
+// Nextion M0 M1
+#ifndef MSG_NEXTION_M0_M1_1
+  #define MSG_NEXTION_M0_M1_1                  _UxGT("Press button enter")
+#endif
+#ifndef MSG_NEXTION_M0_M1_2
+  #define MSG_NEXTION_M0_M1_2                  _UxGT("to resume print")
+#endif
