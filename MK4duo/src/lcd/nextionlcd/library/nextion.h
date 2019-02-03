@@ -132,12 +132,12 @@ class NextionLCD {
 
     static void show(NexObject &nexobject);
     static void enable(NexObject &nexobject, const bool en=true);
-    static void getText(NexObject &nexobject, char *buffer, const char * page=NULL);
-    static void setText(NexObject &nexobject, PGM_P buffer, const char * page=NULL);
+    static void getText(NexObject &nexobject, char *buffer, PGM_P const page=NULL);
+    static void setText(NexObject &nexobject, PGM_P buffer, PGM_P const page=NULL);
     static void startChar(NexObject &nexobject, const char * page=NULL);
     static void setChar(const char pchar);
     static void endChar();
-    static void setValue(NexObject &nexobject, const uint16_t number, const char * page=NULL);
+    static void setValue(NexObject &nexobject, const uint16_t number, PGM_P const page=NULL);
     static void addValue(NexObject &nexobject, const uint8_t ch, const uint8_t number);
     static void Set_cursor_height_hig(NexObject &nexobject, const uint16_t number);
     static void setMaxval(NexObject &nexobject, const uint16_t number);
@@ -152,7 +152,7 @@ class NextionLCD {
     static void SetVisibility(NexObject &nexobject, const bool visible);
     static void Refresh(NexObject &nexobject);
 
-    static uint16_t getValue(NexObject &nexobject, const char * page=NULL);
+    static uint16_t getValue(NexObject &nexobject, PGM_P const page=NULL);
     static uint16_t Get_cursor_height_hig(NexObject &nexobject);
     static uint16_t getMaxval(NexObject &nexobject);
     static uint16_t getMinval(NexObject &nexobject);

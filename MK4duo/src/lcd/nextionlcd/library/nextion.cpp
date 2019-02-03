@@ -112,7 +112,7 @@ void NextionLCD::enable(NexObject &nexobject, const bool en /* true */) {
   recvRetCommandFinished();
 }
 
-void NextionLCD::getText(NexObject &nexobject, char *buffer, const char * page) {
+void NextionLCD::getText(NexObject &nexobject, char *buffer, PGM_P const page) {
   char cmd[40];
   if (page)
     sprintf_P(cmd, PSTR("get %s.%s.txt"), page, nexobject.__name);
@@ -122,7 +122,7 @@ void NextionLCD::getText(NexObject &nexobject, char *buffer, const char * page) 
   recvRetString(buffer);
 }
 
-void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, const char * page) {
+void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, PGM_P const page) {
   char cmd[40];
   if (page)
     sprintf_P(cmd, PSTR("%s.%s.txt=\"%s\""), page, nexobject.__name, buffer);
@@ -153,7 +153,7 @@ void NextionLCD::endChar() {
   nexSerial.write(0xFF);
 }
 
-uint16_t NextionLCD::getValue(NexObject &nexobject, const char * page) {
+uint16_t NextionLCD::getValue(NexObject &nexobject, PGM_P const page) {
   char cmd[40];
   if (page)
     sprintf_P(cmd, PSTR("get %s.%s.val"), page, nexobject.__name);
@@ -163,14 +163,12 @@ uint16_t NextionLCD::getValue(NexObject &nexobject, const char * page) {
   return recvRetNumber();
 }
 
-void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, const char * page) {
-  char buf[10];
+void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, PGM_P const page) {
   char cmd[40];
-  utoa(number, buf, 10);
   if (page)
-    sprintf_P(cmd, PSTR("%s.%s.val=%s"), page, nexobject.__name, buf);
+    sprintf_P(cmd, PSTR("%s.%s.val=%u"), page, nexobject.__name, number);
   else
-    sprintf_P(cmd, PSTR("%s.val=%s"), nexobject.__name, buf);
+    sprintf_P(cmd, PSTR("%s.val=%u"), nexobject.__name, number);
   sendCommand(cmd);
   recvRetCommandFinished();
 }
@@ -190,10 +188,8 @@ uint16_t NextionLCD::Get_cursor_height_hig(NexObject &nexobject) {
 }
 
 void NextionLCD::Set_cursor_height_hig(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.hig=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.hig=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -206,10 +202,8 @@ uint16_t NextionLCD::getMaxval(NexObject &nexobject) {
 }
 
 void NextionLCD::setMaxval(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.maxval=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.maxval=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -222,10 +216,8 @@ uint16_t NextionLCD::getMinval(NexObject &nexobject) {
 }
 
 void NextionLCD::setMinval(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.minval=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.minval=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -238,10 +230,8 @@ uint16_t NextionLCD::Get_background_color_bco(NexObject &nexobject) {
 }
 
 void NextionLCD::Set_background_color_bco(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.bco=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.bco=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -254,10 +244,8 @@ uint16_t NextionLCD::Get_font_color_pco(NexObject &nexobject) {
 }
 
 void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.pco=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.pco=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -270,10 +258,8 @@ uint16_t NextionLCD::Get_place_xcen(NexObject &nexobject) {
 }
 
 void NextionLCD::Set_place_xcen(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.xcen=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.xcen=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -286,10 +272,8 @@ uint16_t NextionLCD::Get_place_ycen(NexObject &nexobject) {
 }
 
 void NextionLCD::Set_place_ycen(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.ycen=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.ycen=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -302,10 +286,8 @@ uint16_t NextionLCD::getFont(NexObject &nexobject) {
 }
 
 void NextionLCD::setFont(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.font=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.font=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -318,10 +300,8 @@ uint16_t NextionLCD::getCropPic(NexObject &nexobject) {
 }
 
 void NextionLCD::setCropPic(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.picc=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.picc=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -334,10 +314,8 @@ uint16_t NextionLCD::getPic(NexObject &nexobject) {
 }
 
 void NextionLCD::setPic(NexObject &nexobject, const uint16_t number) {
-  char buf[10];
   char cmd[40];
-  utoa(number, buf, 10);
-  sprintf_P(cmd, PSTR("%s.pic=%s"), nexobject.__name, buf);
+  sprintf_P(cmd, PSTR("%s.pic=%u"), nexobject.__name, number);
   sendCommand(cmd);
   Refresh(nexobject);
 }
@@ -360,6 +338,7 @@ uint16_t NextionLCD::recvRetNumber(void) {
   uint8_t temp[8] = { 0 };
 
   nexSerial.setTimeout(NEX_TIMEOUT);
+
   if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
     return NULL;
 
@@ -371,19 +350,19 @@ uint16_t NextionLCD::recvRetNumber(void) {
 }
 
 uint8_t NextionLCD::pageID() {
-  uint8_t temp[5] = {0};
+  uint8_t temp[5] = { 0 };
 
   sendCommandPGM(PSTR("sendme"));
 
   nexSerial.setTimeout(NEX_TIMEOUT);
 
   if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
-    return 2;
+    return NULL;
 
   if (temp[0] == NEX_RET_CURRENT_PAGE_ID_HEAD && temp[2] == 0xFF && temp[3] == 0xFF && temp[4] == 0xFF)
     return temp[1];
   else
-    return 2;
+    return NULL;
 }
 
 /** Private Function */
