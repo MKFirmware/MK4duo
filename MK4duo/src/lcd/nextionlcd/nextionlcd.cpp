@@ -107,6 +107,9 @@ enum SDstatus_enum {NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_HOST_PRINTING
 SDstatus_enum SDstatus    = NO_SD;
 
 #if HAS_SD_SUPPORT
+  #if PIN_EXISTS(SD_DETECT)
+    uint8_t lcd_sd_status;
+  #endif
   NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
 #endif
 
@@ -769,7 +772,7 @@ void Nextion_draw_update() {
       break;
 
     case 5:
-      Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, PSTR("pg2"));
+      Previousfeedrate = mechanics.feedrate_percentage = (uint8_t)nexlcd.getValue(VSpeed, PSTR("pg2"));
       break;
 
     default: break;
@@ -1263,6 +1266,31 @@ void LcdUI::update() {
     // Handle any queued Move Axis motion
     manage_manual_move();
   #endif
+
+  #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
+
+    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED();
+    if (sd_status != lcd_sd_status && detected()) {
+
+      if (sd_status) {
+        printer.safe_delay(500);  // Some boards need a delay to get settled
+        card.mount();
+        if (lcd_sd_status == 2)
+          card.beginautostart();  // Initial boot
+        else
+          set_status_P(PSTR(MSG_SD_INSERTED));
+      }
+      else {
+        card.unmount();
+        if (lcd_sd_status != 2) set_status_P(PSTR(MSG_SD_REMOVED));
+      }
+
+      lcd_sd_status = sd_status;
+
+      refresh();
+    }
+
+  #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
 
   if (ELAPSED(ms, next_lcd_update_ms)) {
     next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
