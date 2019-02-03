@@ -99,7 +99,6 @@ uint8_t     LcdUI::status_message_level; // = 0
 
 bool        NextionON                   = false;
 uint8_t     PageID                      = 0;
-uint16_t    slidermaxval                = 20;
 char        buffer[NEXTION_BUFFER_SIZE] = { 0 };
 
 // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD_HOST printing, 4 SD_HOST paused
@@ -614,7 +613,8 @@ void Nextion_draw_update() {
 
   if (!NextionON || PageID == 11) return;
 
-  PageID = nexlcd.pageID();
+  const uint8_t temp_PageID = nexlcd.pageID();
+  if (temp_PageID != NULL) PageID = temp_PageID;
 
   switch (PageID) {
 
@@ -771,9 +771,12 @@ void Nextion_draw_update() {
       coordtoLCD();
       break;
 
-    case 5:
-      Previousfeedrate = mechanics.feedrate_percentage = (uint8_t)nexlcd.getValue(VSpeed, PSTR("pg2"));
+    case 5: {
+      const uint8_t temp_speed = nexlcd.getValue(VSpeed, PSTR("pg2"));
+      if (temp_speed != NULL)
+        Previousfeedrate = mechanics.feedrate_percentage = temp_speed;
       break;
+    }
 
     default: break;
 
