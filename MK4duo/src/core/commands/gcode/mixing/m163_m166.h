@@ -41,7 +41,7 @@
   inline void gcode_M163(void) {
     const int mix_index = parser.intval('S');
     if (mix_index < MIXING_STEPPERS)
-      mixer.set_M163_collector(mix_index, MAX(parser.floatval('P'), 0.0));
+      mixer.set_collector(mix_index, MAX(parser.floatval('P'), 0.0));
   }
 
   #define CODE_M164
@@ -101,14 +101,14 @@
     MIXING_STEPPER_LOOP(i) {
       if (parser.seenval(mixing_codes[i])) {
         SBI(mix_bits, i);
-        mixer.set_M163_collector(i, MAX(parser.value_float(), 0.0f));
+        mixer.set_collector(i, MAX(parser.value_float(), 0.0f));
       }
     }
     // If any mixing factors were included, clear the rest
     // If none were included, preserve the last mix
     if (mix_bits) {
       MIXING_STEPPER_LOOP(i)
-        if (!TEST(mix_bits, i)) mixer.set_M163_collector(i, 0.0f);
+        if (!TEST(mix_bits, i)) mixer.set_collector(i, 0.0f);
       mixer.normalize();
     }
   }

@@ -38,8 +38,8 @@
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     LCD_MESSAGEPGM(MSG_COOLER_COOLING);
-    bool no_wait_for_heating = parser.seen('S');
-    if (no_wait_for_heating || parser.seen('R'))
+    const bool no_wait_for_cooling = parser.seen('S');
+    if (no_wait_for_cooling || parser.seen('R'))
       heaters[COOLER_INDEX].setTarget(parser.value_celsius());
     else return;
 
