@@ -28,6 +28,8 @@
 
 #if HAS_LCD_MENU
 
+void menu_tmc();
+
 #if ENABLED(WORKSPACE_OFFSETS)
   //
   // Set the home offset based on the current_position
@@ -587,6 +589,10 @@ void menu_advanced_settings() {
     }
 
   #endif // !SLIM_LCD_MENUS
+
+  #if HAS_TRINAMIC
+    MENU_ITEM(submenu, MSG_TMC_DRIVERS, menu_tmc);
+  #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
     MENU_ITEM(submenu, MSG_TEMPERATURE, menu_advanced_temperature);

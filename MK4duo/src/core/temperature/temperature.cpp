@@ -68,6 +68,11 @@ void Temperature::init() {
   #if ENABLED(PROBING_HEATERS_OFF)
     paused = false;
   #endif
+
+  // Reset Fault for all Heaters
+  #if ANALOG_INPUTS > 0
+    LOOP_HEATER() heaters[h].ResetFault();
+  #endif
 }
 
 void Temperature::set_current_temp_raw() {

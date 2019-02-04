@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000203
-  #error "Update TMCStepper library to 0.2.3 or newer."
+#if TMCSTEPPER_VERSION < 0x000300
+  #error "Update TMCStepper library to 0.3.0 or newer."
 #endif
 
 #define TMC_X_LABEL "X", 0

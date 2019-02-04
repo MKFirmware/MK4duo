@@ -72,8 +72,8 @@ class Mixer {
   private: /** Private Parameters */
 
     // Used up to Planner level
-    static uint_fast8_t   selected_v_tool;
-    static float          M163_collector[MIXING_STEPPERS];
+    static uint_fast8_t   selected_vtool;
+    static float          collector[MIXING_STEPPERS];
     static mixer_color_t  color[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
 
     // Used in Stepper
@@ -87,11 +87,11 @@ class Mixer {
 
     // Used up to Planner level
     static void normalize(const uint8_t tool_index);
-    FORCE_INLINE static void normalize() { normalize(selected_v_tool); }
+    FORCE_INLINE static void normalize() { normalize(selected_vtool); }
 
-    FORCE_INLINE static uint8_t get_current_v_tool(void) { return selected_v_tool; }
-    FORCE_INLINE static void T(const uint_fast8_t c) { selected_v_tool = c; }
-    FORCE_INLINE static void set_M163_collector(const uint8_t c, const float f) { M163_collector[c] = f; }
+    FORCE_INLINE static uint8_t get_current_vtool(void) { return selected_vtool; }
+    FORCE_INLINE static void T(const uint_fast8_t c) { selected_vtool = c; }
+    FORCE_INLINE static void set_collector(const uint8_t c, const float f) { collector[c] = f; }
 
     // Used when dealing with blocks
     FORCE_INLINE static void populate_block(mixer_color_t b_color[MIXING_STEPPERS]) {
@@ -99,8 +99,8 @@ class Mixer {
         MIXING_STEPPER_LOOP(i) b_color[i] = i < 2 ? gradient.color[i] : 0;
         return;
       }
-      uint_fast8_t j = get_current_v_tool();
-      COPY_ARRAY(b_color, color[selected_v_tool]);
+      uint_fast8_t j = get_current_vtool();
+      COPY_ARRAY(b_color, color[selected_vtool]);
     }
 
     FORCE_INLINE static void stepper_setup(mixer_color_t b_color[MIXING_STEPPERS]) { MIXING_STEPPER_LOOP(i) s_color[i] = b_color[i]; }
@@ -120,7 +120,7 @@ class Mixer {
       #endif
     }
 
-    static inline void update_mix_from_vtool(const uint8_t j=selected_v_tool) {
+    static inline void update_mix_from_vtool(const uint8_t j=selected_vtool) {
       float ctot = 0;
       MIXING_GRADIENT_LOOP(i) ctot += color[j][i];
       clear_mix();
@@ -143,13 +143,13 @@ class Mixer {
 
       // Scale all values so their maximum is COLOR_A_MASK
       MIXING_STEPPER_LOOP(i)
-        color[selected_v_tool][i] = mix[i] * COLOR_A_MASK * inverse_max;
+        color[selected_vtool][i] = mix[i] * COLOR_A_MASK * inverse_max;
 
       #if ENABLED(MIXING_DEBUG)
         SERIAL_MV("Mix [ ", mix[0]);
         SERIAL_MV(", ", mix[1]);
-        SERIAL_MV("] to Color [ ", int(color[selected_v_tool][0]));
-        SERIAL_MV(", ", int(color[selected_v_tool][1]));
+        SERIAL_MV("] to Color [ ", int(color[selected_vtool][0]));
+        SERIAL_MV(", ", int(color[selected_vtool][1]));
         SERIAL_EM("]");
       #endif
     }

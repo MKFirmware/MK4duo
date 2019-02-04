@@ -56,8 +56,8 @@ void Com::setBaudrate() {
     MKSERIAL2.begin(BAUDRATE_2);
     HAL::delayMilliseconds(1000);
   #endif
-  SERIAL_STR(START);
-  SERIAL_EOL();
+  printPGM(START);
+  println();
 }
 
 void Com::serialFlush() {
@@ -196,29 +196,31 @@ void Com::print_spaces(uint8_t count) {
 }
 
 void Com::print_logic(PGM_P const label, const bool logic) {
-  SERIAL_PGM(label);
-  SERIAL_MSG(": ");
-  SERIAL_PGM(logic ? PSTR("true") : PSTR("false"));
+  printPGM(label);
+  printPGM(PSTR(": "));
+  printPGM(logic ? PSTR("true") : PSTR("false"));
 }
 
 void Com::print_onoff(PGM_P const label, const bool onoff) {
-  SERIAL_PGM(label);
-  SERIAL_MSG(": ");
-  SERIAL_PGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+  printPGM(label);
+  printPGM(PSTR(": "));
+  printPGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
 }
 
 #if ENABLED(DEBUG_FEATURE)
 
   void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
-    SERIAL_PGM(prefix);
-    SERIAL_CHR('(');
-    SERIAL_VAL(x);
-    SERIAL_MV(", ", y);
-    SERIAL_MV(", ", z);
-    SERIAL_CHR(")");
+    printPGM(prefix);
+    write('(');
+    print(x);
+    printPGM(PSTR(", "));
+    print(y);
+    printPGM(PSTR(", "));
+    print(z);
+    write(')');
 
-    if (suffix) SERIAL_PGM(suffix);
-    else SERIAL_EOL();
+    if (suffix) printPGM(suffix);
+    else println();
   }
 
   void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
@@ -232,6 +234,13 @@ void Com::print_onoff(PGM_P const label, const bool onoff) {
   #endif
 
 #endif // ENABLED(DEBUG_FEATURE)
+
+// Capabilities string
+void Com::host_capabilities(PGM_P pstr) {
+  printPGM(CAP);
+  printPGM(pstr);
+  println();
+}
 
 // Private function
 void Com::printNumber(unsigned long n, uint8_t base) {

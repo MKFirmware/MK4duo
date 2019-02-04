@@ -439,14 +439,20 @@ void Stepper::init() {
 
   #endif // HAS_EXT_ENCODER
 
-  set_directions(); // Init directions to last_direction_bits = 0
-
   // Init Stepper ISR to 128 Hz for quick starting
   HAL_timer_start(STEPPER_TIMER, 128);
 
   ENABLE_STEPPER_INTERRUPT();
 
   sei();
+
+  // Init direction bits for first moves
+  last_direction_bits = 0
+    | (isStepDir(X_AXIS) ? _BV(X_AXIS) : 0)
+    | (isStepDir(Y_AXIS) ? _BV(Y_AXIS) : 0)
+    | (isStepDir(Z_AXIS) ? _BV(Z_AXIS) : 0);
+
+  set_directions();
 }
 
 void Stepper::factory_parameters() {

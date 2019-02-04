@@ -72,7 +72,7 @@
 
       #if MIXING_VIRTUAL_TOOLS > 1
         // T0-Tnnn: Switch virtual tool by changing the index to the mix
-        mixer.T(uint_fast8_t(tmp_extruder));
+        mixer.T(tmp_extruder);
       #endif
 
     #elif EXTRUDERS < 2

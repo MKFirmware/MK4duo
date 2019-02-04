@@ -45,8 +45,8 @@ gradient_t Mixer::gradient = {
 
 /** Private Parameters */
 // Used up to Planner level
-uint_fast8_t  Mixer::selected_v_tool = 0;
-float         Mixer::M163_collector[MIXING_STEPPERS]; // mix proportion. 0.0 = off, otherwise <= COLOR_A_MASK.
+uint_fast8_t  Mixer::selected_vtool = 0;
+float         Mixer::collector[MIXING_STEPPERS]; // mix proportion. 0.0 = off, otherwise <= COLOR_A_MASK.
 mixer_color_t Mixer::color[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
 
 // Used in Stepper
@@ -61,7 +61,7 @@ void Mixer::normalize(const uint8_t tool_index) {
   #endif
 
   MIXING_STEPPER_LOOP(i) {
-    const float v = M163_collector[i];
+    const float v = collector[i];
     cmax = MAX(cmax, v);
     #if ENABLED(MIXING_DEBUG)
       csum += v;
@@ -70,7 +70,7 @@ void Mixer::normalize(const uint8_t tool_index) {
   #if ENABLED(MIXING_DEBUG)
     SERIAL_MSG("Mixer: Old relation : [ ");
     MIXING_STEPPER_LOOP(i) {
-      SERIAL_VAL(M163_collector[i] / csum, 3);
+      SERIAL_VAL(collector[i] / csum, 3);
       SERIAL_CHR(' ');
     }
     SERIAL_EM("]");
@@ -79,7 +79,7 @@ void Mixer::normalize(const uint8_t tool_index) {
   // Scale all values so their maximum is COLOR_A_MASK
   const float inverse_max = RECIPROCAL(cmax);
   MIXING_STEPPER_LOOP(i)
-    color[tool_index][i] = M163_collector[i] * COLOR_A_MASK * inverse_max;
+    color[tool_index][i] = collector[i] * COLOR_A_MASK * inverse_max;
 
   #if ENABLED(MIXING_DEBUG)
     csum = 0;
@@ -114,7 +114,7 @@ void Mixer::init() {
         color[t][i] = (i == 0) ? COLOR_A_MASK : 0;
   #endif
 
-  ZERO(M163_collector);
+  ZERO(collector);
 
   if (gradient.enabled) update_mix_from_vtool();
 }

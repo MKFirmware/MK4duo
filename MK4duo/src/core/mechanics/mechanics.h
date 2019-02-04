@@ -66,10 +66,10 @@ union sensorless_t {
     bool x    : 1;
     bool y    : 1;
     bool z    : 1;
-    bool bit3 : 1;
-    bool bit4 : 1;
-    bool bit5 : 1;
-    bool bit6 : 1;
+    bool x2   : 1;
+    bool y2   : 1;
+    bool z2   : 1;
+    bool z3   : 1;
     bool bit7 : 1;
   };
   sensorless_t() { all = false; }

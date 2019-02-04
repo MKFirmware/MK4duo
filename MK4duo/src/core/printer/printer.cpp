@@ -95,13 +95,7 @@ PrinterModeEnum Printer::mode =
   bool    Printer::chdkActive = false;
 #endif
 
-// Private
-
-
-
-/**
- * Public Function
- */
+/** Public Function */
 
 /**
  * MK4duo entry-point: Set up before the program loop
@@ -182,7 +176,7 @@ void Printer::setup() {
   endstops.init();
 
   // Init Filament runout
-  #if HAS_FIL_RUNOUT_0
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     filamentrunout.init();
   #endif
 
@@ -602,7 +596,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     cnc.manage();
   #endif
 
-  #if HAS_FIL_RUNOUT_0
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     filamentrunout.spin();
   #endif
 
@@ -926,10 +920,7 @@ bool Printer::pin_is_protected(const pin_t pin) {
   void Printer::suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
 #endif
 
-/**
- * Private Function
- */
-
+/** Private Function */
 void Printer::setup_pinout() {
 
   #if PIN_EXISTS(SS)
@@ -1031,7 +1022,7 @@ void Printer::setup_pinout() {
 #endif
 
 /**
- * Flags Function
+ * Debug Flags Function
  */
 void Printer::setDebugLevel(const uint8_t newLevel) {
   if (newLevel != debug_flag.all) {

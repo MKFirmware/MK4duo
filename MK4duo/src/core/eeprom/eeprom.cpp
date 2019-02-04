@@ -372,7 +372,7 @@ void EEPROM::post_process() {
   endstops.setup_pullup();
 
   // Setup FilRunout pullup
-  #if HAS_FIL_RUNOUT_0
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     filamentrunout.setup_pullup();
   #endif
 
@@ -481,7 +481,7 @@ void EEPROM::post_process() {
     //
     // Filament Runout
     //
-    #if HAS_FIL_RUNOUT_0
+    #if ENABLED(FILAMENT_RUNOUT_SENSOR)
       EEPROM_WRITE(filamentrunout.logic_flag);
       EEPROM_WRITE(filamentrunout.pullup_flag);
     #endif
@@ -857,7 +857,7 @@ void EEPROM::post_process() {
       //
       // Filament Runout
       //
-      #if HAS_FIL_RUNOUT_0
+      #if ENABLED(FILAMENT_RUNOUT_SENSOR)
         EEPROM_READ(filamentrunout.logic_flag);
         EEPROM_READ(filamentrunout.pullup_flag);
       #endif
@@ -1783,7 +1783,7 @@ void EEPROM::reset() {
 
   #endif
 
-  #if HAS_FIL_RUNOUT_0
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     filamentrunout.factory_parameters();
   #endif
 
