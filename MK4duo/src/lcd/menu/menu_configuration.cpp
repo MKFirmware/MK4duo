@@ -32,7 +32,6 @@
 
 void menu_advanced_settings();
 void menu_delta_calibrate();
-void menu_tmc();
 
 #if HAS_LCD_CONTRAST
   void lcd_callback_set_contrast() { lcdui.set_contrast(lcdui.contrast); }
@@ -344,10 +343,6 @@ void menu_configuration() {
       MENU_ITEM(submenu, MSG_PREHEAT_3_SETTINGS, menu_preheat_material3_settings);
     #endif
   }
-
-  #if HAS_TRINAMIC
-    MENU_ITEM(submenu, MSG_TMC_DRIVERS, menu_tmc);
-  #endif
 
   #if HAS_SD_RESTART
     MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART, &restart.enabled, restart.changed);

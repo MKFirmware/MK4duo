@@ -555,7 +555,7 @@ void Endstops::validate_homing_move() {
   if (trigger_state()) hit_on_purpose();
   else {
     sound.feedback(false);
-    SERIAL_LM(REQUESTPAUSE, MSG_ERR_HOMING_FAILED);
+    SERIAL_LM(REQUESTPAUSE, " " MSG_ERR_HOMING_FAILED);
   }
 }
 

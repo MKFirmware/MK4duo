@@ -102,6 +102,9 @@ class Com {
         Com::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
     #endif
 
+    // Capabilities string
+    static void host_capabilities(PGM_P pstr);
+
   private: /** Private Function */
 
     static void printNumber(unsigned long, const uint8_t);
@@ -149,3 +152,6 @@ class Com {
 #define SERIAL_LV(str, val, ...)            do{ SERIAL_STR(str); SERIAL_VAL(val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 #define SERIAL_LMT(str, msg, txt)           do{ SERIAL_STR(str); SERIAL_MT(msg, txt); SERIAL_EOL(); }while(0)
 #define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
+
+// HOST Capabilities string
+#define SERIAL_CAP(msg)                     Com::host_capabilities(PSTR(msg));
