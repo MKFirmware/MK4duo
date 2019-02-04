@@ -84,7 +84,7 @@
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_MINTEMP."
   #endif
   #if !HAS_HEATER_CHAMBER
-    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_CHAMBER and not HEATER_CHAMBER_PIN."
+    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_CHAMBER without HEATER_CHAMBER_PIN."
   #endif
 #endif
 #if TEMP_SENSOR_COOLER != 0
@@ -95,7 +95,7 @@
     #error "DEPENDENCY ERROR: Missing setting COOLER_MINTEMP."
   #endif
   #if !HAS_HEATER_COOLER
-    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_COOLER and not COOLER_PIN."
+    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_COOLER without HEATER_COOLER_PIN."
   #endif
 #endif
 #if DISABLED(PREHEAT_1_TEMP_HOTEND)
