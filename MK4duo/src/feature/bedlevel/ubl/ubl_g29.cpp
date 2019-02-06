@@ -1231,8 +1231,8 @@
     out_mesh.distance = -99999.9f;
 
     // Get our reference position. Either the nozzle or probe location.
-    const float px = rx - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[X_AXIS] : 0),
-                py = ry - (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[Y_AXIS] : 0);
+    const float px = rx + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[X_AXIS] : 0),
+                py = ry + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[Y_AXIS] : 0);
 
     float best_so_far = 99999.99f;
 

@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _WATCH_H_
-#define _WATCH_H_
+#pragma once
 
 struct watch_t {
 
@@ -49,5 +47,3 @@ struct watch_t {
   }
 
 };
-
-#endif /* _WATCH_H_ */

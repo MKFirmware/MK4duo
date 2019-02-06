@@ -19,26 +19,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #pragma once
 
 template<class T>
 class MathMatrix {
 
-  public:
+  public: /** Destructor */
+
+    virtual ~MathMatrix() { }
+
+  public: /** Public Function */
 
     virtual uint8_t rows()                              const = 0;
     virtual uint8_t cols()                              const = 0;
     virtual T& operator()       (uint8_t r, uint8_t c)        = 0;
     virtual const T& operator() (uint8_t r, uint8_t c)  const = 0;
-    virtual ~MathMatrix() { }
 
 };
 
 template<class T, uint8_t ROWS, uint8_t COLS>
 class FixedMatrix : public MathMatrix<T> {
 
-  public:
+  private: /** Private Parameters */
+
+    T data[ROWS * COLS];
+
+  public: /** Public Function */
 
     uint8_t rows() const override { return ROWS; }
     uint8_t cols() const override { return COLS; }
@@ -54,10 +60,6 @@ class FixedMatrix : public MathMatrix<T> {
     T* GetRow(uint8_t r) { return data + (r * COLS); }
 
     const T* GetRow(uint8_t r) const { return data + (r * COLS); }
-
-  private:
-
-    T data[ROWS * COLS];
 
 };
 
