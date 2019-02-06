@@ -783,7 +783,7 @@
         break;
 
       case 5:
-        Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, PSTR("pg2"));
+        Previousfeedrate = mechanics.feedrate_percentage = (int)nexlcd.getValue(VSpeed, "pg2");
         break;
 
       default: break;
