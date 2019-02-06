@@ -195,10 +195,10 @@ inline void gcode_G29(void) {
       ABL_VAR  int8_t PR_INNER_VAR = 0;
     #endif
 
-    ABL_VAR int left_probe_bed_position  = 0.0,
-                right_probe_bed_position = 0.0,
-                front_probe_bed_position = 0.0,
-                back_probe_bed_position  = 0.0;
+    ABL_VAR int left_probe_bed_position  = 0,
+                right_probe_bed_position = 0,
+                front_probe_bed_position = 0,
+                back_probe_bed_position  = 0;
 
     ABL_VAR float xGridSpacing = 0.0,
                   yGridSpacing = 0.0;
@@ -796,7 +796,8 @@ inline void gcode_G29(void) {
       if (verbose_level) {
         SERIAL_MV("Eqn coefficients: a: ", plane_equation_coefficients[0], 8);
         SERIAL_MV(" b: ", plane_equation_coefficients[1], 8);
-        SERIAL_EMV(" d: ", plane_equation_coefficients[2], 8);
+        SERIAL_MV(" d: ", plane_equation_coefficients[2], 8);
+        SERIAL_EOL();
         if (verbose_level > 2)
           SERIAL_EMV("Mean of sampled points: ", mean, 8);
       }
