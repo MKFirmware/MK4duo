@@ -772,7 +772,7 @@ void Nextion_draw_update() {
       break;
 
     case 5: {
-      const uint8_t temp_speed = nexlcd.getValue(VSpeed, PSTR("pg2"));
+      const uint8_t temp_speed = nexlcd.getValue(VSpeed, "pg2");
       if (temp_speed != NULL)
         Previousfeedrate = mechanics.feedrate_percentage = temp_speed;
       break;
