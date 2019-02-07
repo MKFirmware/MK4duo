@@ -401,7 +401,7 @@
   #undef  DRIVER_EXTRUDERS
   #define EXTRUDERS         2
   #define DRIVER_EXTRUDERS  1
-  #define E_MANUAL          1
+  #define E_MANUAL          2
 #elif ENABLED(DONDOLO_DUAL_MOTOR)         // Two E stepper, two hotends
   #undef  SINGLENOZZLE
   #undef  EXTRUDERS
