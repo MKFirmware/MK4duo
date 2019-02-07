@@ -983,12 +983,10 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       constexpr uint8_t OTPW_bp = 2;
       constexpr uint32_t OT_bm = 0x2UL;
       constexpr uint8_t OT_bp = 1;
-      constexpr uint8_t DRIVER_ERROR_bm = 0x6;
       TMC_driver_data data;
       data.drv_status = st->DRVSTATUS();
       data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
       data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      data.is_error = data.drv_status & DRIVER_ERROR_bm;
       return data;
     }
 
@@ -1015,16 +1013,16 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       uint8_t TMC_Stepper::get_status_response(MKTMC* st, uint32_t drv_status) {
         uint8_t gstat = st->GSTAT();
         uint8_t response = 0;
-        response |= (drv_status >> (31 - 3)) & 0B1000;
-        response |= gstat & 0B11;
+        response |= (drv_status >> (31 - 3)) & 0b1000;
+        response |= gstat & 0b11;
         return response;
       }
     #endif
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint32_t OTPW_bm = 0B1UL;
+      constexpr uint32_t OTPW_bm = 0b1ul;
       constexpr uint8_t OTPW_bp = 0;
-      constexpr uint32_t OT_bm = 0B10UL;
+      constexpr uint32_t OT_bm = 0b10ul;
       constexpr uint8_t OT_bp = 1;
       TMC_driver_data data;
       data.drv_status = st->DRV_STATUS();
@@ -1189,7 +1187,6 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
       switch(i) {
-        case TMC_TSTEP: { uint32_t data = 0; st->TSTEP(&data); SERIAL_VAL(data); break; }
         case TMC_PWM_SCALE: SERIAL_VAL(st->pwm_scale_sum()); break;
         case TMC_STEALTHCHOP: SERIAL_PGM(st->stealth() ? PSTR("true") : PSTR("false")); break;
         case TMC_S2VSA: if (st->s2vsa()) SERIAL_CHR('X'); break;
