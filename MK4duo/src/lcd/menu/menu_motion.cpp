@@ -206,18 +206,18 @@ static void _lcd_move_e(
   }
 }
 
-#if EXTRUDERS == 1
+#if E_MANUAL == 1
   void lcd_move_e() { _lcd_move_e(); }
-#elif EXTRUDERS > 1
+#elif E_MANUAL > 1
   void lcd_move_e0() { _lcd_move_e(0); }
   void lcd_move_e1() { _lcd_move_e(1); }
-  #if EXTRUDERS > 2
+  #if E_MANUAL > 2
     void lcd_move_e2() { _lcd_move_e(2); }
-    #if EXTRUDERS > 3
+    #if E_MANUAL > 3
       void lcd_move_e3() { _lcd_move_e(3); }
-      #if EXTRUDERS > 4
+      #if E_MANUAL > 4
         void lcd_move_e4() { _lcd_move_e(4); }
-        #if EXTRUDERS > 5
+        #if E_MANUAL > 5
           void lcd_move_e5() { _lcd_move_e(5); }
         #endif
       #endif
@@ -274,18 +274,18 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
 void lcd_move_get_x_amount()            { _menu_move_distance(X_AXIS, lcd_move_x); }
 void lcd_move_get_y_amount()            { _menu_move_distance(Y_AXIS, lcd_move_y); }
 void lcd_move_get_z_amount()            { _menu_move_distance(Z_AXIS, lcd_move_z); }
-#if EXTRUDERS == 1
+#if E_MANUAL == 1
   void lcd_move_get_e_amount()          { _menu_move_distance(E_AXIS, lcd_move_e, -1); }
-#elif EXTRUDERS > 1
+#elif E_MANUAL > 1
   void lcd_move_get_e0_amount()         { _menu_move_distance(E_AXIS, lcd_move_e0, 0); }
   void lcd_move_get_e1_amount()         { _menu_move_distance(E_AXIS, lcd_move_e1, 1); }
-  #if EXTRUDERS > 2
+  #if E_MANUAL > 2
     void lcd_move_get_e2_amount()       { _menu_move_distance(E_AXIS, lcd_move_e2, 2); }
-    #if EXTRUDERS > 3
+    #if E_MANUAL > 3
       void lcd_move_get_e3_amount()     { _menu_move_distance(E_AXIS, lcd_move_e3, 3); }
-      #if EXTRUDERS > 4
+      #if E_MANUAL > 4
         void lcd_move_get_e4_amount()   { _menu_move_distance(E_AXIS, lcd_move_e4, 4); }
-        #if EXTRUDERS > 5
+        #if E_MANUAL > 5
           void lcd_move_get_e5_amount() { _menu_move_distance(E_AXIS, lcd_move_e5, 5); }
         #endif
       #endif
@@ -349,18 +349,18 @@ void menu_move() {
 
   #endif
 
-  #if EXTRUDERS == 1
+  #if E_MANUAL == 1
     MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_get_e_amount);
-  #elif EXTRUDERS > 1
+  #elif E_MANUAL > 1
     MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
     MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
-    #if EXTRUDERS > 2
+    #if E_MANUAL > 2
       MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E3, lcd_move_get_e2_amount);
-      #if EXTRUDERS > 3
+      #if E_MANUAL > 3
         MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E4, lcd_move_get_e3_amount);
-        #if EXTRUDERS > 4
+        #if E_MANUAL > 4
           MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E5, lcd_move_get_e4_amount);
-          #if EXTRUDERS > 5
+          #if E_MANUAL > 5
             MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E6, lcd_move_get_e5_amount);
           #endif
         #endif
