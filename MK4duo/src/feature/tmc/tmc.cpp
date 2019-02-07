@@ -84,7 +84,9 @@ bool TMC_Stepper::report_status = false;
 /** Public Function */
 void TMC_Stepper::init() {
 
-  init_cs_pins();
+  #if TMC_HAS_SPI
+    init_cs_pins();
+  #endif
 
   #if HAVE_DRV(TMC2660)
 
