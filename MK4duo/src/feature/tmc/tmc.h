@@ -263,6 +263,8 @@ class TMCStorage {
         TMC2208Stepper::rms_current(mA, mult);
       }
 
+      inline uint16_t microsteps() { return TMC2208Stepper::microsteps(); }
+
       inline void microsteps(const uint16_t ms) {
         val_ms = ms;
         TMC2208Stepper::microsteps(ms);
@@ -417,77 +419,81 @@ class TMC_Stepper {
       st->toff(off_time_val);
     }
 
-    FORCE_INLINE static void get_blank_time(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" blank_time: ", st->blank_time());
-    }
+    #if HAVE_DRV(TMC2130)
 
-    FORCE_INLINE static void set_blank_time(MKTMC* st, const uint8_t blank_time_val) {
-      st->blank_time(blank_time_val);
-    }
+      FORCE_INLINE static void get_blank_time(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" blank_time: ", st->blank_time());
+      }
 
-    FORCE_INLINE static void get_hysteresis_end(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" hysteresis_end: ", st->hysteresis_end());
-    }
+      FORCE_INLINE static void set_blank_time(MKTMC* st, const uint8_t blank_time_val) {
+        st->blank_time(blank_time_val);
+      }
 
-    FORCE_INLINE static void set_hysteresis_end(MKTMC* st, const int8_t hysteresis_end_val) {
-      st->hysteresis_end(hysteresis_end_val);
-    }
+      FORCE_INLINE static void get_hysteresis_end(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" hysteresis_end: ", st->hysteresis_end());
+      }
 
-    FORCE_INLINE static void get_hysteresis_start(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" hysteresis_start: ", st->hysteresis_start());
-    }
+      FORCE_INLINE static void set_hysteresis_end(MKTMC* st, const int8_t hysteresis_end_val) {
+        st->hysteresis_end(hysteresis_end_val);
+      }
 
-    FORCE_INLINE static void set_hysteresis_start(MKTMC* st, const uint8_t hysteresis_start_val) {
-      st->hysteresis_start(hysteresis_start_val);
-    }
+      FORCE_INLINE static void get_hysteresis_start(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" hysteresis_start: ", st->hysteresis_start());
+      }
 
-    FORCE_INLINE static void get_disable_I_comparator(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" disable_I_comparator: ", st->disfdcc());
-    }
+      FORCE_INLINE static void set_hysteresis_start(MKTMC* st, const uint8_t hysteresis_start_val) {
+        st->hysteresis_start(hysteresis_start_val);
+      }
 
-    FORCE_INLINE static void set_disable_I_comparator(MKTMC* st, const bool onoff) {
-      st->disfdcc(onoff);
-    }
+      FORCE_INLINE static void get_disable_I_comparator(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" disable_I_comparator: ", st->disfdcc());
+      }
 
-    FORCE_INLINE static void get_stealth_gradient(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" stealth_gradient: ", st->pwm_grad());
-    }
+      FORCE_INLINE static void set_disable_I_comparator(MKTMC* st, const bool onoff) {
+        st->disfdcc(onoff);
+      }
 
-    FORCE_INLINE static void set_stealth_gradient(MKTMC* st, const uint8_t stealth_gradient_val) {
-      st->pwm_grad(stealth_gradient_val);
-    }
+      FORCE_INLINE static void get_stealth_gradient(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" stealth_gradient: ", st->pwm_grad());
+      }
 
-    FORCE_INLINE static void get_stealth_amplitude(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" stealth_amplitude: ", st->pwm_ampl());
-    }
+      FORCE_INLINE static void set_stealth_gradient(MKTMC* st, const uint8_t stealth_gradient_val) {
+        st->pwm_grad(stealth_gradient_val);
+      }
 
-    FORCE_INLINE static void set_stealth_amplitude(MKTMC* st, const uint8_t stealth_amplitude_val) {
-      st->pwm_ampl(stealth_amplitude_val);
-    }
+      FORCE_INLINE static void get_stealth_amplitude(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" stealth_amplitude: ", st->pwm_ampl());
+      }
 
-    FORCE_INLINE static void get_stealth_freq(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" stealth_freq: ", st->pwm_freq());
-    }
+      FORCE_INLINE static void set_stealth_amplitude(MKTMC* st, const uint8_t stealth_amplitude_val) {
+        st->pwm_ampl(stealth_amplitude_val);
+      }
 
-    FORCE_INLINE static void set_stealth_freq(MKTMC* st, const uint8_t stealth_freq_val) {
-      st->pwm_freq(stealth_freq_val);
-    }
+      FORCE_INLINE static void get_stealth_freq(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" stealth_freq: ", st->pwm_freq());
+      }
 
-    FORCE_INLINE static void get_stealth_autoscale(MKTMC* st) {
-      st->printLabel();
-      SERIAL_EMV(" stealth_autoscale: ", st->pwm_autoscale());
-    }
+      FORCE_INLINE static void set_stealth_freq(MKTMC* st, const uint8_t stealth_freq_val) {
+        st->pwm_freq(stealth_freq_val);
+      }
 
-    FORCE_INLINE static void set_stealth_autoscale(MKTMC* st, const bool onoff) {
-      st->pwm_autoscale(onoff);
-    }
+      FORCE_INLINE static void get_stealth_autoscale(MKTMC* st) {
+        st->printLabel();
+        SERIAL_EMV(" stealth_autoscale: ", st->pwm_autoscale());
+      }
+
+      FORCE_INLINE static void set_stealth_autoscale(MKTMC* st, const bool onoff) {
+        st->pwm_autoscale(onoff);
+      }
+
+    #endif // HAVE_DRV(TMC2130)
 
   private: /** Private Function */
 

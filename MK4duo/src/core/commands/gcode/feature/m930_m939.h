@@ -26,7 +26,7 @@
  * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TRINAMIC
+#if HAVE_DRV(TMC2130)
 
   #define CODE_M930
   #define CODE_M931
@@ -910,4 +910,4 @@
     }
   }
 
-#endif // HAS_TRINAMIC
+#endif // HAVE_DRV(TMC2130)
