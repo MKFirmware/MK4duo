@@ -41,13 +41,17 @@ struct printStatistics {
 
 class PrintCounter: public Stopwatch {
 
-  public: /** Public Parameters */
-
   private: /** Private Parameters */
 
     typedef Stopwatch super;
 
     static printStatistics data;
+
+    #if ENABLED(EEPROM_I2C) || ENABLED(EEPROM_SPI) || ENABLED(CPU_32_BIT)
+      static const uint32_t address;
+    #else
+      static const uint16_t address;
+    #endif
 
     /**
      * @brief Timestamp of the last call to deltaDuration()
@@ -79,6 +83,12 @@ class PrintCounter: public Stopwatch {
      * prints the statistical data to serial.
      */
     static void showStats();
+
+    /**
+     * @brief Loads the Print Statistics
+     * @details Loads the statistics from SDCARD
+     */
+    static void loadStats();
 
     /**
      * @brief Saves the Print Statistics
@@ -131,14 +141,6 @@ class PrintCounter: public Stopwatch {
       static void debug(const char func[]);
 
     #endif
-
-  private: /** Private Function */
-
-    /**
-     * @brief Loads the Print Statistics
-     * @details Loads the statistics from SDCARD
-     */
-    static void loadStats();
 
   protected: /** Protected Function */
 
