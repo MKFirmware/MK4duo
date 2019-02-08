@@ -33,6 +33,12 @@ const char statistics_version[3] = "MK";
 
 printStatistics PrintCounter::data;
 
+#if ENABLED(EEPROM_I2C) || ENABLED(EEPROM_SPI) || ENABLED(CPU_32_BIT)
+  const uint32_t PrintCounter::address = STATS_EEPROM_ADDRESS;
+#else
+  const uint16_t PrintCounter::address = STATS_EEPROM_ADDRESS;
+#endif
+
 millis_t PrintCounter::lastDuration;
 
 /** Public Function */
@@ -53,7 +59,7 @@ void PrintCounter::initStats() {
   #endif
 
   #if HAS_EEPROM
-    memorystore.write_data(STATS_EEPROM_ADDRESS, (uint8_t*)&statistics_version, sizeof(statistics_version));
+    memorystore.write_data(address, (uint8_t*)&statistics_version, sizeof(statistics_version));
     memorystore.access_write();
   #endif
 }
@@ -99,6 +105,30 @@ void PrintCounter::showStats() {
 
 }
 
+void PrintCounter::loadStats() {
+  #if ENABLED(DEBUG_PRINTCOUNTER)
+    debug(PSTR("loadStats"));
+  #endif
+
+  #if HAS_EEPROM
+
+    // Check if the EEPROM block is initialized
+    char value[3];
+    memorystore.access_read();
+
+    memorystore.read_data(address, (uint8_t*)&value, sizeof(value));
+
+    if (strncmp(statistics_version, value, 2) != 0)
+      initStats();
+    else
+      memorystore.read_data(address + sizeof(statistics_version), (uint8_t*)&data, sizeof(printStatistics));
+
+  #endif
+
+  printer.setStatisticsLoaded(true);
+
+}
+
 void PrintCounter::saveStats() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
     debug(PSTR("saveStats"));
@@ -109,7 +139,7 @@ void PrintCounter::saveStats() {
 
   #if HAS_EEPROM
     // Saves the struct to EEPROM
-    memorystore.write_data(STATS_EEPROM_ADDRESS + sizeof(statistics_version), (uint8_t*)&data, sizeof(data));
+    memorystore.write_data(address + sizeof(statistics_version), (uint8_t*)&data, sizeof(data));
     memorystore.access_write();
   #endif
 
@@ -206,31 +236,6 @@ void PrintCounter::reset() {
   }
 
 #endif
-
-/** Private Function */
-void PrintCounter::loadStats() {
-  #if ENABLED(DEBUG_PRINTCOUNTER)
-    debug(PSTR("loadStats"));
-  #endif
-
-  #if HAS_EEPROM
-
-    // Check if the EEPROM block is initialized
-    char value[3];
-    memorystore.access_read();
-
-    memorystore.read_data(STATS_EEPROM_ADDRESS, (uint8_t*)&value, sizeof(value));
-
-    if (strncmp(statistics_version, value, 2) != 0)
-      initStats();
-    else
-      memorystore.read_data(STATS_EEPROM_ADDRESS + sizeof(statistics_version), (uint8_t*)&data, sizeof(printStatistics));
-
-  #endif
-
-  printer.setStatisticsLoaded(true);
-
-}
 
 /** Protected Function */
 millis_t PrintCounter::deltaDuration() {
