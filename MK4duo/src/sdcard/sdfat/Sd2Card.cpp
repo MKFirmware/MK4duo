@@ -30,7 +30,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(SDSUPPORT)
+#if ENABLED(SDSUPPORT) && DISABLED(USB_FLASH_DRIVE_SUPPORT)
 
 /* Enable FAST CRC computations - You can trade speed for FLASH space if
  * needed by disabling the following define */
@@ -119,9 +119,6 @@ uint8_t Sd2Card::cardCommand(const uint8_t cmd, const uint32_t arg) {
 
   #endif  // SD_CHECK_AND_RETRY
 
-  // Additional delay for CMD0
-  if (cmd == CMD0) HAL::delayMilliseconds(100);
-
   // Skip stuff byte for stop read
   if (cmd == CMD12) HAL::spiReceive();
 
@@ -160,7 +157,6 @@ uint32_t Sd2Card::cardSize() {
 
 void Sd2Card::chipDeselect() {
   HAL::digitalWrite(chipSelectPin_, HIGH);
-
   HAL::spiSend(0xFF); // Ensure MISO goes high impedance
 }
 
@@ -199,9 +195,7 @@ bool Sd2Card::erase(uint32_t firstBlock, uint32_t lastBlock) {
     firstBlock <<= 9;
     lastBlock <<= 9;
   }
-  if (cardCommand(CMD32, firstBlock)
-      || cardCommand(CMD33, lastBlock)
-      || cardCommand(CMD38, 0)) {
+  if (cardCommand(CMD32, firstBlock) || cardCommand(CMD33, lastBlock) || cardCommand(CMD38, 0)) {
     error(SD_CARD_ERROR_ERASE);
     goto FAIL;
   }
@@ -211,7 +205,8 @@ bool Sd2Card::erase(uint32_t firstBlock, uint32_t lastBlock) {
   }
   chipDeselect();
   return true;
-  FAIL:
+
+FAIL:
   chipDeselect();
   return false;
 }
@@ -236,7 +231,7 @@ bool Sd2Card::eraseSingleBlockEnable() {
  * \return true for success, false for failure.
  * The reason for failure can be determined by calling errorCode() and errorData().
  */
-bool Sd2Card::init(const uint8_t sckRateID/*=0*/, const uint8_t chipSelectPin/*=SD_CHIP_SELECT_PIN*/) {
+bool Sd2Card::init(const uint8_t sckRateID/*=0*/, const pin_t chipSelectPin/*=SD_CHIP_SELECT_PIN*/) {
   errorCode_ = type_ = 0;
   chipSelectPin_ = chipSelectPin;
   // 16-bit init start time allows over a minute
@@ -298,6 +293,7 @@ bool Sd2Card::init(const uint8_t sckRateID/*=0*/, const uint8_t chipSelectPin/*=
 
   // Initialization can cause the watchdog to timeout, so reinit it here
   watchdog.reset();
+
   // Initialize card and send host supports SDHC if SD2
   arg = type() == SD_CARD_TYPE_SD2 ? 0x40000000 : 0;
   while ((status_ = cardAcmd(ACMD41, arg)) != R1_READY_STATE) {
@@ -451,7 +447,7 @@ bool Sd2Card::readData(uint8_t* dst, const uint16_t count) {
   if (status_ == DATA_START_BLOCK) {
     HAL::spiReadBlock(dst, count);                    // Transfer data
 
-    uint16_t recvCrc = (HAL::spiReceive() << 8) | HAL::spiReceive();
+    const uint16_t recvCrc = (HAL::spiReceive() << 8) | HAL::spiReceive();
     #if ENABLED(SD_CHECK_AND_RETRY)
       success = !crcSupported || recvCrc == CRC_CCITT(dst, count);
       if (!success) error(SD_CARD_ERROR_READ_CRC);
@@ -463,7 +459,7 @@ bool Sd2Card::readData(uint8_t* dst, const uint16_t count) {
   else
     error(SD_CARD_ERROR_READ);
 
-  FAIL:
+FAIL:
   chipDeselect();
   return success;
 }

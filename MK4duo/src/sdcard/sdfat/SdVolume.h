@@ -37,6 +37,11 @@
 #include "SdFatConfig.h"
 #include <stdint.h>
 
+//==============================================================================
+// SdVolume class
+/**
+ * \brief Cache for an SD data block
+ */
 union cache_t {
   uint8_t         data[512];  // Used to access cached file data blocks.
   uint16_t        fat16[256]; // Used to access cached FAT16 entries.
@@ -48,6 +53,10 @@ union cache_t {
   fat32_fsinfo_t  fsinfo;     // Used to access to a cached FAT32 FSINFO sector.
 };
 
+/**
+ * \class SdVolume
+ * \brief Access FAT16 and FAT32 volumes on SD and SDHC cards.
+ */
 class SdVolume {
 
   public:

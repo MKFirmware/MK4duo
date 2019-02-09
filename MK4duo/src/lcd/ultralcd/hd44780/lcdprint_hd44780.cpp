@@ -850,15 +850,15 @@ static const hd44780_charmap_t g_hd44780_charmap_common[] PROGMEM = {
   {IV('≡'), '=', 0}, // 2261
   {IV('≤'), '<', '='},// 2264, ≤≥ ⩽⩾
   {IV('≥'), '>', '='}, // 2265
-  {IV('⏱'), 0x07, 0}, // 23F1, MK4duo special: '???????????????????????? ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
+  {IV('⏱'), 0x07, 0}, // 23F1, MK4duo special: '🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧 ⌚⌛⏰⏱⏳⧖⧗'  LCD_STR_CLOCK (0x05)
 
   {IV('゠'), '=', 0}, // 30A0
 
   // ⏰⏱⏲⏳◴◵◶◷
   // ⏻⏼♁♂
   //{IV(''), 0x00, 0}, // MK4duo special: ''  LCD_STR_BEDTEMP (0x07)
-  {IV('?'), 0x02, 0}, // D83CDF21 MK4duo special: '?'  LCD_STR_THERMOMETER (0x08)
-  {IV('?'), 0x05, 0}, // D83DDCC2 MK4duo special: '??'  LCD_STR_FOLDER (0x02)
+  {IV('🌡'), 0x02, 0}, // D83CDF21 MK4duo special: '🌡'  LCD_STR_THERMOMETER (0x08)
+  {IV('📂'), 0x05, 0}, // D83DDCC2 MK4duo special: '📁📂'  LCD_STR_FOLDER (0x02)
   //{IV(''), 0x06, 0}, // MK4duo special: ''  LCD_STR_FEEDRATE (0x06)
 };
 

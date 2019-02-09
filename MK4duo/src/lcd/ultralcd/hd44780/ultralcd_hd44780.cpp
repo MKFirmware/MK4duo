@@ -417,7 +417,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       if (utf8_strlen(STRING) <= LCD_WIDTH) { \
         lcd_moveto((LCD_WIDTH - utf8_strlen_P(PSTR(STRING))) / 2, 3); \
         lcd_put_u8str_P(PSTR(STRING)); \
-        HAL::delayMilliseconds(DELAY); \
+        printer.safe_delay(DELAY); \
       } \
       else { \
         lcd_scroll(0, 3, PSTR(STRING), LCD_WIDTH, DELAY); \
@@ -435,7 +435,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
         #if ENABLED(STRING_SPLASH_LINE2)
           CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
         #else
-          HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
+          printer.safe_delay(BOOTSCREEN_TIMEOUT);
         #endif
       }
       else {
@@ -460,7 +460,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       //
       if (LCD_EXTRA_SPACE >= utf8_strlen(STRING_SPLASH_LINE2) + 1) {
         logo_lines(PSTR(" " STRING_SPLASH_LINE2));
-        HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
+        printer.safe_delay(BOOTSCREEN_TIMEOUT);
       }
       else {
         logo_lines(PSTR(""));
@@ -471,11 +471,11 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       // Show only the MK4duo logo
       //
       logo_lines(PSTR(""));
-      HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
+      printer.safe_delay(BOOTSCREEN_TIMEOUT);
     #endif
 
     lcd.clear();
-    HAL::delayMilliseconds(100);
+    printer.safe_delay(100);
     set_custom_characters(CHARSET_INFO);
     lcd.clear();
   }
@@ -585,7 +585,7 @@ void LcdUI::draw_status_message(const bool blink) {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (printer.progress && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !status_message[0]))
+    if (printer.progress && (ELAPSED(millis(), progress_bar_ms + PROGRESS_BAR_MSG_TIME) || !has_status()) {
       return lcd_draw_progress_bar(printer.progress);
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
@@ -719,7 +719,7 @@ void LcdUI::draw_status_message(const bool blink) {
  *         |F---%  SD---% T--:--|
  *         |01234567890123456789|
  *
- *  LCD_INFO_SCREEN_STYLE 1 : Prusa-style Status Screen
+ *  LCD_INFO_SCREEN_STYLE 1 : Průša-style Status Screen
  *
  *  |T000/000°  Z 000.00 |
  *  |B000/000°  F---%    |
@@ -953,7 +953,7 @@ void LcdUI::draw_status_screen() {
       _draw_print_progress();
     #else
       duration_t elapsed = print_job_counter.duration();
-      char buffer[10];
+      char buffer[14];
       (void)elapsed.toDigital(buffer);
       lcd_put_wchar(LCD_STR_CLOCK[0]);
       lcd_put_u8str(buffer);
@@ -1384,9 +1384,9 @@ void LcdUI::draw_status_screen() {
        */
       lcd_moveto(_LCD_W_POS, 0);
       lcd_put_wchar('(');
-      lcd_put_u8str(i8tostr3(x));
+      lcd_put_u8str(ui8tostr3(x));
       lcd_put_wchar(',');
-      lcd_put_u8str(i8tostr3(inverted_y));
+      lcd_put_u8str(ui8tostr3(inverted_y));
       lcd_put_wchar(')');
 
       #if LCD_HEIGHT <= 3   // 16x2 or 20x2 display

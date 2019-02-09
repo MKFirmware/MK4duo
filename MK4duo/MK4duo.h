@@ -176,25 +176,3 @@
 #include "src/feature/rgbled/led_events.h"
 #include "src/feature/caselight/caselight.h"
 #include "src/feature/restart/restart.h"
-
-/**
- * External libraries loading
- */
-
-#if HAS_SPI_LCD
-  #if ENABLED(LCD_I2C_TYPE_PCF8575)
-    #include <Wire.h>
-    #include <LiquidCrystal_I2C.h>
-  #elif ENABLED(LCD_I2C_TYPE_MCP23017) || ENABLED(LCD_I2C_TYPE_MCP23008)
-    #include <Wire.h>
-    #include <LiquidTWI2.h>
-  #elif ENABLED(LCM1602)
-    #include <Wire.h>
-    #include <LCD.h>
-    #include <LiquidCrystal_I2C.h>
-  #elif HAS_GRAPHICAL_LCD
-    #include <U8glib.h> // library for graphics LCD by Oli Kraus (https://code.google.com/p/u8glib/)
-  #else
-    #include <LiquidCrystal.h> // library for character LCD
-  #endif
-#endif

@@ -103,7 +103,7 @@ uint8_t const SD_CARD_TYPE_SD1  = 1,                    // Standard capacity V1 
  * \brief Raw access to SD and SDHC flash memory cards.
  */
 class Sd2Card {
-  public:
+public:
 
   Sd2Card() : errorCode_(SD_CARD_ERROR_INIT_NOT_CALLED), type_(0) {}
 
@@ -131,7 +131,7 @@ class Sd2Card {
    *
    * \return true for success or false for failure.
    */
-  bool init(const uint8_t sckRateID=SPI_FULL_SPEED, const uint8_t chipSelectPin=SD_CHIP_SELECT_PIN);
+  bool init(const uint8_t sckRateID=SPI_FULL_SPEED, const pin_t chipSelectPin=SD_CHIP_SELECT_PIN);
 
   bool readBlock(uint32_t block, uint8_t* dst);
 
@@ -171,7 +171,7 @@ class Sd2Card {
   bool writeStart(uint32_t blockNumber, const uint32_t eraseCount);
   bool writeStop();
 
-  private:
+private:
   uint8_t chipSelectPin_,
           errorCode_,
           spiRate_,

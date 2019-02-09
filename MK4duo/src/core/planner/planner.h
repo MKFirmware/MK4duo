@@ -544,20 +544,21 @@ class Planner {
       return NULL;
     }
 
-    #if HAS_SPI_LCD
+    #if ENABLED(ULTRA_LCD)
 
       static uint16_t block_buffer_runtime() {
         #if ENABLED(__AVR__)
-          // Protect the access to the variable. Only required for AVR.
-          const bool isr_enabled = STEPPER_ISR_ENABLED();
-          if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+          // Protect the access to the variable. Only required for AVR, as
+          //  any 32bit CPU offers atomic access to 32bit variables
+          bool was_enabled = STEPPER_ISR_ENABLED();
+          if (was_enabled) DISABLE_STEPPER_INTERRUPT();
         #endif
 
         millis_t bbru = block_buffer_runtime_us;
 
         #if ENABLED(__AVR__)
           // Reenable Stepper ISR
-          if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+          if (was_enabled) ENABLE_STEPPER_INTERRUPT();
         #endif
 
         // To translate µs to ms a division by 1000 would be required.
@@ -571,16 +572,17 @@ class Planner {
 
       static void clear_block_buffer_runtime() {
         #if ENABLED(__AVR__)
-          // Protect the access to the variable. Only required for AVR.
-          const bool isr_enabled = STEPPER_ISR_ENABLED();
-          if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+          // Protect the access to the variable. Only required for AVR, as
+          //  any 32bit CPU offers atomic access to 32bit variables
+          bool was_enabled = STEPPER_ISR_ENABLED();
+          if (was_enabled) DISABLE_STEPPER_INTERRUPT();
         #endif
 
         block_buffer_runtime_us = 0;
 
         #if ENABLED(__AVR__)
           // Reenable Stepper ISR
-          if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+          if (was_enabled) ENABLE_STEPPER_INTERRUPT();
         #endif
       }
 
