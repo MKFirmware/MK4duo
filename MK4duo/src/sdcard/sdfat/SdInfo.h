@@ -112,7 +112,7 @@ typedef struct CID {
   unsigned char always1 : 1;
   /** CRC7 checksum */
   unsigned char crc : 7;
-}__attribute__((packed)) cid_t;
+} cid_t;
 
 /** CSD for version 1.00 cards */
 typedef struct CSDV1 {
@@ -174,7 +174,7 @@ typedef struct CSDV1 {
   // byte 15
   unsigned char always1 : 1;
   unsigned char crc : 7;
-}__attribute__((packed)) csd1_t;
+} csd1_t;
 
 /** CSD for version 2.00 cards */
 typedef struct CSDV2 {
@@ -206,10 +206,10 @@ typedef struct CSDV2 {
   /** fixed to 0 - no partial read */
   unsigned char read_bl_partial : 1;
   // byte 7
-  /** high part of card size */
-  unsigned char c_size_high : 6;
   /** not used */
   unsigned char reserved3 : 2;
+  /** high part of card size */
+  unsigned char c_size_high : 6;
   // byte 8
   /** middle part of card size */
   unsigned char c_size_mid;
@@ -256,7 +256,7 @@ typedef struct CSDV2 {
   unsigned char always1 : 1;
   /** checksum */
   unsigned char crc : 7;
-}__attribute__((packed)) csd2_t;
+} csd2_t;
 
 /** union of old and new style CSD register */
 union csd_t {
