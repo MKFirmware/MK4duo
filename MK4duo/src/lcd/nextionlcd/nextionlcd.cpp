@@ -69,7 +69,8 @@ uint8_t     LcdUI::status_message_level; // = 0
     int8_t LcdUI::encoderDirection = 1;
   #endif
 
-  bool          LcdUI::lcd_clicked = false;
+  bool          LcdUI::lcd_clicked = false,
+                line_encoder_touch = true;
   float         move_menu_scale;
 
   #if LCD_TIMEOUT_TO_STATUS > 0
@@ -866,10 +867,12 @@ void Nextion_draw_update() {
     }
 
     // Click on text row
-    for (uint8_t row = 0; row < 6; row++) {
-      if (nexobject == txtmenu_list[row]) {
-        lcdui.encoderPosition = row + encoderTopLine;
-        lcdui.lcd_clicked = true;
+    if (line_encoder_touch) {
+      for (uint8_t row = 0; row < 6; row++) {
+        if (nexobject == txtmenu_list[row]) {
+          lcdui.encoderPosition = row + encoderTopLine;
+          lcdui.lcd_clicked = true;
+        }
       }
     }
 
@@ -907,6 +910,8 @@ void Nextion_draw_update() {
   void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
     UNUSED(center);
 
+    line_encoder_touch = true;
+
     mark_as_selected(row, invert);
 
     const uint8_t labellen  = strlen_P(pstr);
@@ -924,6 +929,7 @@ void Nextion_draw_update() {
   void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
     UNUSED(pre_char); UNUSED(post_char);
     const uint8_t labellen  = strlen_P(pstr);
+    line_encoder_touch = true;
     mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nextion_put_str_P(row, pstr, labellen);
@@ -932,10 +938,9 @@ void Nextion_draw_update() {
 
   // Draw a menu item with an editable value
   void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
-
     const uint8_t labellen  = strlen_P(pstr);
     const uint8_t vallen = (pgm ? strlen_P(data) : strlen((char*)data));
-
+    line_encoder_touch = true;
     mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nextion_put_str_P(row, pstr, labellen);
@@ -956,6 +961,8 @@ void Nextion_draw_update() {
     bool extra_row = labellen > LCD_WIDTH - vallen - 2;
 
     constexpr uint8_t row = 2;
+
+    line_encoder_touch = false;
 
     nexlcd.Set_font_color_pco(*txtmenu_list[row], sel_color);
 
