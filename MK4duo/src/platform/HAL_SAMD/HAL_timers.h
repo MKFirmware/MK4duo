@@ -77,7 +77,7 @@ typedef struct {
 #define NUM_HARDWARE_TIMERS 5
 
 #define NvicPriorityUart    1
-#define NvicPrioritySystick 2
+#define NvicPrioritySystick 15
 
 
 

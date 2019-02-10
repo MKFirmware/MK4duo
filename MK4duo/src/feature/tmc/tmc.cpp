@@ -530,53 +530,55 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
   void TMC_Stepper::report_all(bool print_x, const bool print_y, const bool print_z, const bool print_e) {
     #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
     #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL); status_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
-    TMC_REPORT("\t\t\t",              TMC_CODES);
-    TMC_REPORT("Enabled\t\t",         TMC_ENABLED);
-    TMC_REPORT("Set current\t",       TMC_CURRENT);
-    TMC_REPORT("RMS current\t",       TMC_RMS_CURRENT);
-    TMC_REPORT("MAX current\t",       TMC_MAX_CURRENT);
-    TMC_REPORT("Run current\t",       TMC_IRUN);
-    TMC_REPORT("Hold current\t",      TMC_IHOLD);
+    TMC_REPORT("\t",                  TMC_CODES);
+    TMC_REPORT("Enabled\t",           TMC_ENABLED);
+    TMC_REPORT("Set current",         TMC_CURRENT);
+    TMC_REPORT("RMS current",         TMC_RMS_CURRENT);
+    TMC_REPORT("MAX current",         TMC_MAX_CURRENT);
+    TMC_REPORT("Run current",         TMC_IRUN);
+    TMC_REPORT("Hold current",        TMC_IHOLD);
+    #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160)
+      TMC_REPORT("Global scaler",     TMC_GLOBAL_SCALER);
+    #endif
     TMC_REPORT("CS actual\t",         TMC_CS_ACTUAL);
-    TMC_REPORT("PWM scale\t",         TMC_PWM_SCALE);
-    TMC_REPORT("vsense\t\t",          TMC_VSENSE);
-    TMC_REPORT("stealthChop\t",       TMC_STEALTHCHOP);
-    TMC_REPORT("msteps\t\t",          TMC_MICROSTEPS);
-    TMC_REPORT("tstep\t\t",           TMC_TSTEP);
-    TMC_REPORT("pwm threshold\t",     TMC_TPWMTHRS);
-    TMC_REPORT("[mm/s]\t\t",          TMC_TPWMTHRS_MMS);
-    TMC_REPORT("OT prewarn\t",        TMC_OTPW);
+    TMC_REPORT("PWM scale",           TMC_PWM_SCALE);
+    TMC_REPORT("vsense\t",            TMC_VSENSE);
+    TMC_REPORT("stealthChop",         TMC_STEALTHCHOP);
+    TMC_REPORT("msteps\t",            TMC_MICROSTEPS);
+    TMC_REPORT("tstep\t",             TMC_TSTEP);
+    TMC_REPORT("pwm\threshold\t",     TMC_TPWMTHRS);
+    TMC_REPORT("[mm/s]\t",            TMC_TPWMTHRS_MMS);
+    TMC_REPORT("OT prewarn",          TMC_OTPW);
     #if ENABLED(MONITOR_DRIVER_STATUS)
-      TMC_REPORT("OT prewarn has",    TMC_NULL);
-      TMC_REPORT("been triggered\t",  TMC_OTPW_TRIGGERED);
+      TMC_REPORT("OT prewarn has\n"
+                 "been triggered",    TMC_OTPW_TRIGGERED);
     #endif
     TMC_REPORT("off time\t",          TMC_TOFF);
-    TMC_REPORT("blank time\t",        TMC_TBL);
-    TMC_REPORT("hysteresis\t",        TMC_NULL);
-    TMC_REPORT("-end\t\t",            TMC_HEND);
-    TMC_REPORT("-start\t\t",          TMC_HSTRT);
+    TMC_REPORT("blank time",          TMC_TBL);
+    TMC_REPORT("hysteresis\n-end\t",  TMC_HEND);
+    TMC_REPORT("-start\t",            TMC_HSTRT);
     TMC_REPORT("Stallguard thrs",     TMC_SGT);
 
     DRV_REPORT("DRVSTATUS\t",         TMC_DRV_CODES);
-    #if HAVE_DRV(TMC2130)
-      DRV_REPORT("stallguard\t\t",    TMC_STALLGUARD);
+    #if HAVE_DRV(TMC2130) || HAVE_DRV(TMC2160) || HAVE_DRV(TMC5130) || HAVE_DRV(TMC5160)
+      DRV_REPORT("stallguard\t",      TMC_STALLGUARD);
       DRV_REPORT("sg_result\t",       TMC_SG_RESULT);
-      DRV_REPORT("fsactive\t\t",      TMC_FSACTIVE);
+      DRV_REPORT("fsactive\t",        TMC_FSACTIVE);
     #endif
-    DRV_REPORT("stst\t\t",            TMC_STST);
-    DRV_REPORT("olb\t\t",             TMC_OLB);
-    DRV_REPORT("ola\t\t",             TMC_OLA);
-    DRV_REPORT("s2gb\t\t",            TMC_S2GB);
-    DRV_REPORT("s2ga\t\t",            TMC_S2GA);
-    DRV_REPORT("otpw\t\t",            TMC_DRV_OTPW);
-    DRV_REPORT("ot\t\t",              TMC_OT);
+    DRV_REPORT("stst\t",              TMC_STST);
+    DRV_REPORT("olb\t",               TMC_OLB);
+    DRV_REPORT("ola\t",               TMC_OLA);
+    DRV_REPORT("s2gb\t",              TMC_S2GB);
+    DRV_REPORT("s2ga\t",              TMC_S2GA);
+    DRV_REPORT("otpw\t",              TMC_DRV_OTPW);
+    DRV_REPORT("ot\t",                TMC_OT);
     #if HAVE_DRV(TMC2208)
-      DRV_REPORT("157C\t\t",          TMC_T157);
-      DRV_REPORT("150C\t\t",          TMC_T150);
-      DRV_REPORT("143C\t\t",          TMC_T143);
-      DRV_REPORT("120C\t\t",          TMC_T120);
-      DRV_REPORT("s2vsa\t\t",         TMC_S2VSA);
-      DRV_REPORT("s2vsb\t\t",         TMC_S2VSB);
+      DRV_REPORT("157C\t",            TMC_T157);
+      DRV_REPORT("150C\t",            TMC_T150);
+      DRV_REPORT("143C\t",            TMC_T143);
+      DRV_REPORT("120C\t",            TMC_T120);
+      DRV_REPORT("s2vsa\t",           TMC_S2VSA);
+      DRV_REPORT("s2vsb\t",           TMC_S2VSB);
     #endif
     DRV_REPORT("Driver registers:",   TMC_DRV_STATUS_HEX);
     SERIAL_EOL();
@@ -990,20 +992,21 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       return data;
     }
 
-  #elif HAVE_DRV(TMC2130)
+  #elif HAVE_DRV(TMC2130) || HAVE_DRV(TMC2160) || HAVE_DRV(TMC5130) || HAVE_DRV(TMC5160)
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
       constexpr uint32_t OTPW_bm = 0x4000000UL;
       constexpr uint8_t OTPW_bp = 26;
       constexpr uint32_t OT_bm = 0x2000000UL;
       constexpr uint8_t OT_bp = 25;
-      constexpr uint8_t DRIVER_ERROR_bm = 0x2UL;
-      constexpr uint8_t DRIVER_ERROR_bp = 1;
+      constexpr uint8_t S2GA_bp = 27;
+      constexpr uint8_t S2GB_bp = 28;
       TMC_driver_data data;
       data.drv_status = st->DRV_STATUS();
       data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
       data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      data.is_error = (st->status_response & DRIVER_ERROR_bm) >> DRIVER_ERROR_bp;
+      data.is_s2ga = (data.drv_status >> S2GA_bp) & 0b1;
+      data.is_s2gb = (data.drv_status >> S2GB_bp) & 0b1;
       return data;
     }
 
@@ -1024,11 +1027,14 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       constexpr uint8_t OTPW_bp = 0;
       constexpr uint32_t OT_bm = 0b10ul;
       constexpr uint8_t OT_bp = 1;
+      constexpr uint8_t S2GA_bp = 2;
+      constexpr uint8_t S2GB_bp = 3;
       TMC_driver_data data;
-      data.drv_status = st->DRV_STATUS();
+      data.drv_status = st.DRV_STATUS();
       data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
       data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      data.is_error = st->drv_err();
+      data.is_s2ga = (data.drv_status >> S2GA_bp) & 0b1;
+      data.is_s2gb = (data.drv_status >> S2GB_bp) & 0b1;
       return data;
     }
 
@@ -1048,8 +1054,8 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
         st->printLabel();
         SERIAL_MSG(" driver error detected: 0x");
         if (data.is_ot) SERIAL_EM("overtemperature");
-        if (st->s2ga()) SERIAL_EM("short to ground (coil A)");
-        if (st->s2gb()) SERIAL_EM("short to ground (coil B)");
+        if (data.is_s2ga) SERIAL_EM("short to ground (coil A)");
+        if (data.is_s2gb) SERIAL_EM("short to ground (coil B)");
         #if ENABLED(TMC_DEBUG)
           report_all(true, true, true, true);
         #endif
