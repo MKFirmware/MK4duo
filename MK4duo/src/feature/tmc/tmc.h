@@ -32,7 +32,7 @@
 #include <TMCStepper.h>
 
 #if TMCSTEPPER_VERSION < 0x000300
-  #error "Update TMCStepper library to 0.3.0 or newer."
+  #error "Update TMCStepper library to 0.3.1 or newer."
 #endif
 
 #define TMC_X_LABEL "X", 0
@@ -325,10 +325,12 @@ class TMCStorage {
 #endif
 
 struct TMC_driver_data {
-  uint32_t drv_status;
-  bool is_otpw;
-  bool is_ot;
-  bool is_error;
+  uint32_t  drv_status;
+  bool  is_otpw,
+        is_ot,
+        is_s2ga,
+        is_s2gb,
+        is_error;
 };
 
 class TMC_Stepper {
@@ -518,7 +520,7 @@ class TMC_Stepper {
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return 0; }
           FORCE_INLINE static uint8_t get_status_response(MKTMC* st, uint32_t drv_status) { UNUSED(st); return drv_status & 0xFF; }
         #endif
-      #elif HAVE_DRV(TMC2130)
+      #elif HAVE_DRV(TMC2130) || HAVE_DRV(TMC2160) || HAVE_DRV(TMC5130) || HAVE_DRV(TMC5160)
         #if ENABLED(TMC_DEBUG)
           FORCE_INLINE static uint32_t get_pwm_scale(MKTMC* st) { return st->PWM_SCALE(); }
           FORCE_INLINE static uint8_t get_status_response(MKTMC* st, uint32_t drv_status) { UNUSED(drv_status); return st->status_response & 0xF; }

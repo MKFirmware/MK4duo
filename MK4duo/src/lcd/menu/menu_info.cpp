@@ -42,26 +42,47 @@ void menu_info_stats() {
   elapsed = stats.timePrint;
   elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_PRINT_TIME ":", false, false);
-  STATIC_ITEM("", false, false, buffer);
+  STATIC_ITEM(">", false, false, buffer);
 
   elapsed = stats.longestPrint;
   elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_PRINT_LONGEST ":", false, false);
-  STATIC_ITEM("", false, false, buffer);
+  STATIC_ITEM(">", false, false, buffer);
 
   elapsed = stats.timePowerOn;
   elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_POWER_ON ":", false, false);
-  STATIC_ITEM("", false, false, buffer);
+  STATIC_ITEM(">", false, false, buffer);
 
   lengthtoString(buffer, stats.filamentUsed);
   STATIC_ITEM(MSG_INFO_PRINT_FILAMENT ": ", false, false);
-  STATIC_ITEM("", false, false, buffer);
+  STATIC_ITEM(">", false, false, buffer);
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     sprintf_P(buffer, PSTR("%uWh"), stats.consumptionHour);
     STATIC_ITEM(MSG_INFO_PWRCONSUMED ":",  false, false);
-    STATIC_ITEM("", false, false, buffer);
+    STATIC_ITEM(">", false, false, buffer);
+  #endif
+
+  #if ENABLED(SERVICE_TIME_1)
+    elapsed = stats.ServiceTime1;
+    elapsed.toString(buffer);
+    STATIC_ITEM(SERVICE_NAME_1 " in: ", false, false);
+    STATIC_ITEM(">", false, false, buffer);
+  #endif
+
+  #if ENABLED(SERVICE_TIME_2)
+    elapsed = stats.ServiceTime2;
+    elapsed.toString(buffer);
+    STATIC_ITEM(SERVICE_NAME_2 " in: ", false, false);
+    STATIC_ITEM("> ", false, false, buffer);
+  #endif
+
+  #if ENABLED(SERVICE_TIME_3)
+    elapsed = stats.ServiceTime3;
+    elapsed.toString(buffer);
+    STATIC_ITEM(SERVICE_NAME_3 " in: ", false, false);
+    STATIC_ITEM("> ", false, false, buffer);
   #endif
 
   END_SCREEN();

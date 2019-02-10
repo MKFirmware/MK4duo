@@ -134,6 +134,7 @@
 #define MSG_FREE_MEMORY                     "Free Memory: "
 #define MSG_PLANNER_BUFFER_BYTES            " PlannerBufferBytes: "
 #define MSG_STATS                           "Stats: "
+#define MSG_SERVICE                         "Service: "
 #define MSG_ERR_LINE_NO                     "Line Number is not Last Line Number+1, Last Line: "
 #define MSG_ERR_CHECKSUM_MISMATCH           "checksum mismatch, Last Line: "
 #define MSG_ERR_NO_CHECKSUM                 "No Checksum with line number, Last Line: "

@@ -1415,6 +1415,15 @@ void LcdUI::reset_status() {
   static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
   static const char printing[] PROGMEM = MSG_PRINTING;
   static const char welcome[] PROGMEM = WELCOME_MSG;
+  #if ENABLED(SERVICE_TIME_1)
+    static const char service1[] PROGMEM = { "> " SERVICE_NAME_1 "!" };
+  #endif
+  #if ENABLED(SERVICE_TIME_2)
+    static const char service2[] PROGMEM = { "> " SERVICE_NAME_2 "!" };
+  #endif
+  #if ENABLED(SERVICE_TIME_3)
+    static const char service3[] PROGMEM = { "> " SERVICE_NAME_3 "!" };
+  #endif
   PGM_P msg;
   if (print_job_counter.isPaused())
     msg = paused;
@@ -1424,6 +1433,15 @@ void LcdUI::reset_status() {
   #endif
   else if (print_job_counter.isRunning())
     msg = printing;
+  #if ENABLED(SERVICE_TIME_1)
+    else if (print_job_counter.needService(1)) msg = service1;
+  #endif
+  #if ENABLED(SERVICE_TIME_2)
+    else if (print_job_counter.needService(2)) msg = service2;
+  #endif
+  #if ENABLED(SERVICE_TIME_3)
+    else if (print_job_counter.needService(3)) msg = service3;
+  #endif
   else
     msg = welcome;
 

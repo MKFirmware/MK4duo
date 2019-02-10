@@ -504,7 +504,7 @@ void Stepper::Step() {
       if (!nextAdvanceISR) nextAdvanceISR = lin_advance_step();
     #endif
 
-    // Run main stepping block phase ISR
+    // Run main stepping block processing ISR if we have to
     if (!nextMainISR) nextMainISR = block_phase_step();
 
     #if ENABLED(LIN_ADVANCE)
@@ -1577,31 +1577,34 @@ uint32_t Stepper::block_phase_step() {
         #define Z_MOVE_TEST !!current_block->steps[C_AXIS]
       #endif
 
-      axis_did_move = 0;
-      if (X_MOVE_TEST) SBI(axis_did_move, A_AXIS);
-      if (Y_MOVE_TEST) SBI(axis_did_move, B_AXIS);
-      if (Z_MOVE_TEST) SBI(axis_did_move, C_AXIS);
-      //if (!!current_block->steps[E_AXIS]) SBI(axis_did_move, E_AXIS);
-      //if (!!current_block->steps[A_AXIS]) SBI(axis_did_move, X_HEAD);
-      //if (!!current_block->steps[B_AXIS]) SBI(axis_did_move, Y_HEAD);
-      //if (!!current_block->steps[C_AXIS]) SBI(axis_did_move, Z_HEAD);
+      uint8_t axis_bits = 0;
+      if (X_MOVE_TEST) SBI(axis_bits, A_AXIS);
+      if (Y_MOVE_TEST) SBI(axis_bits, B_AXIS);
+      if (Z_MOVE_TEST) SBI(axis_bits, C_AXIS);
+      //if (!!current_block->steps[E_AXIS]) SBI(axis_bits, E_AXIS);
+      //if (!!current_block->steps[A_AXIS]) SBI(axis_bits, X_HEAD);
+      //if (!!current_block->steps[B_AXIS]) SBI(axis_bits, Y_HEAD);
+      //if (!!current_block->steps[C_AXIS]) SBI(axis_bits, Z_HEAD);
+      axis_did_move = axis_bits;
 
       // No data.acceleration / deceleration time elapsed so far
       acceleration_time = deceleration_time = 0;
 
+      uint8_t oversampling = 0;                           // Assume we won't use it
+
       #if ENABLED(ADAPTIVE_STEP_SMOOTHING)
-        oversampling_factor = 0;
         // At this point, we must decide if we can use Stepper movement axis smoothing.
         uint32_t max_rate = current_block->nominal_rate;  // Get the maximum rate (maximum event speed)
         while (max_rate < HAL_min_isr_frequency) {
           max_rate <<= 1;
           if (max_rate >= HAL_min_isr_frequency) break;
-          ++oversampling_factor;
+          ++oversampling;
         }
+        oversampling_factor = oversampling;
       #endif
 
       // Based on the oversampling factor, do the calculations
-      step_event_count = current_block->step_event_count << oversampling_factor;
+      step_event_count = current_block->step_event_count << oversampling;
 
       // Initialize Bresenham delta errors to 1/2
       delta_error[X_AXIS] = delta_error[Y_AXIS] = delta_error[Z_AXIS] = delta_error[E_AXIS] = -int32_t(step_event_count);
@@ -1624,8 +1627,8 @@ uint32_t Stepper::block_phase_step() {
       step_events_completed = 0;
 
       // Compute the data.acceleration and deceleration points
-      accelerate_until = current_block->accelerate_until << oversampling_factor;
-      decelerate_after = current_block->decelerate_after << oversampling_factor;
+      accelerate_until = current_block->accelerate_until << oversampling;
+      decelerate_after = current_block->decelerate_after << oversampling;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
         mixer.stepper_setup(current_block->b_color);
@@ -1730,7 +1733,7 @@ uint32_t Stepper::block_phase_step() {
   return interval;
 }
 
-void Stepper::pulse_tick_start() {
+FORCE_INLINE void Stepper::pulse_tick_start() {
 
   #if HAS_X_STEP
     delta_error[X_AXIS] += advance_dividend[X_AXIS];
@@ -1826,7 +1829,7 @@ void Stepper::pulse_tick_stop() {
 /**
  * Start X Y Z Step
  */
-void Stepper::start_X_step() {
+FORCE_INLINE void Stepper::start_X_step() {
 
   #if ENABLED(X_TWO_STEPPER_DRIVERS)
     #if ENABLED(X_TWO_ENDSTOPS)
@@ -1864,7 +1867,7 @@ void Stepper::start_X_step() {
   #endif
 
 }
-void Stepper::start_Y_step() {
+FORCE_INLINE void Stepper::start_Y_step() {
 
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
     #if ENABLED(Y_TWO_ENDSTOPS)
@@ -1891,7 +1894,7 @@ void Stepper::start_Y_step() {
   #endif
 
 }
-void Stepper::start_Z_step() {
+FORCE_INLINE void Stepper::start_Z_step() {
 
   #if ENABLED(Z_THREE_STEPPER_DRIVERS)
     #if ENABLED(Z_THREE_ENDSTOPS)
@@ -1946,19 +1949,19 @@ void Stepper::start_Z_step() {
 /**
  * End X Y Z Step
  */
-void Stepper::stop_X_step() {
+FORCE_INLINE void Stepper::stop_X_step() {
   X_STEP_WRITE(INVERT_X_STEP_PIN);
   #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(DUAL_X_CARRIAGE)
     X2_STEP_WRITE(INVERT_X_STEP_PIN);
   #endif
 }
-void Stepper::stop_Y_step() {
+FORCE_INLINE void Stepper::stop_Y_step() {
   Y_STEP_WRITE(INVERT_Y_STEP_PIN);
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
     Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
   #endif
 }
-void Stepper::stop_Z_step() {
+FORCE_INLINE void Stepper::stop_Z_step() {
   Z_STEP_WRITE(INVERT_Z_STEP_PIN);
   #if ENABLED(Z_THREE_STEPPER_DRIVERS)
     Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
@@ -1971,7 +1974,7 @@ void Stepper::stop_Z_step() {
 /**
  * Set X Y Z direction
  */
-void Stepper::set_X_dir(const bool dir) {
+FORCE_INLINE void Stepper::set_X_dir(const bool dir) {
   #if ENABLED(X_TWO_STEPPER_DRIVERS)
     X_DIR_WRITE(dir);
     X2_DIR_WRITE((dir) != INVERT_X2_VS_X_DIR);
@@ -1990,13 +1993,13 @@ void Stepper::set_X_dir(const bool dir) {
     X_DIR_WRITE(dir);
   #endif
 }
-void Stepper::set_Y_dir(const bool dir) {
+FORCE_INLINE void Stepper::set_Y_dir(const bool dir) {
   Y_DIR_WRITE(dir);
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
     Y2_DIR_WRITE((dir) != INVERT_Y2_VS_Y_DIR);
   #endif
 }
-void Stepper::set_Z_dir(const bool dir) {
+FORCE_INLINE void Stepper::set_Z_dir(const bool dir) {
   Z_DIR_WRITE(dir);
   #if ENABLED(Z_THREE_STEPPER_DRIVERS)
     Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
@@ -2005,7 +2008,7 @@ void Stepper::set_Z_dir(const bool dir) {
     Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
   #endif
 }
-void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
+FORCE_INLINE void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     UNUSED(e);
     #if DRIVER_EXTRUDERS > 0
@@ -2063,7 +2066,7 @@ void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
     }
   #endif
 }
-void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
+FORCE_INLINE void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     UNUSED(e);
     #if DRIVER_EXTRUDERS > 0

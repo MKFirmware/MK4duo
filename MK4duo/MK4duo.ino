@@ -138,6 +138,7 @@
  * M76  - Pause the print job timer
  * M77  - Stop the print job timer
  * M78  - Show statistical information about the print jobs
+ *        S78 reset statistics, R[index] reset service index
  * M80  - Turn on Power Supply
  * M81  - Turn off Power Supply
  * M82  - Set E codes absolute (default)

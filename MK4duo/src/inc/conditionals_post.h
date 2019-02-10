@@ -543,6 +543,9 @@
 #define HAS_DAV_SYSTEM                (ENABLED(FILAMENT_RUNOUT_DAV_SYSTEM) && PIN_EXISTS(FIL_RUNOUT_DAV))
 #define HAS_POWER_CONSUMPTION_SENSOR  (ENABLED(POWER_CONSUMPTION) && PIN_EXISTS(POWER_CONSUMPTION))
 
+// Service time 
+#define HAS_SERVICE_TIMES   (ENABLED(SERVICE_TIME_1) || ENABLED(SERVICE_TIME_2) || ENABLED(SERVICE_TIME_3))
+
 /**
  * Shorthand for filament sensor and power sensor for ultralcd.cpp, dogm_lcd_implementation.h, ultralcd_implementation_hitachi_HD44780.h
  */

@@ -107,6 +107,7 @@
  * - Motor's current
  * - I2C DIGIPOT
  * ADVANCED FEATURES:
+ * - Service Timers function
  * - Buffer stuff
  * - Nozzle Clean Feature
  * - Nozzle Park
@@ -2184,6 +2185,29 @@
 //===========================================================================
 //============================= ADVANCED FEATURES ===========================
 //===========================================================================
+
+
+/****************************************************************************
+ **************************** Service Timers function ***********************
+ ****************************************************************************
+ *                                                                          *
+ * Activate up to 3 service interval function                               *
+ * time is in hours                                                         *
+ *                                                                          *
+ * Example:                                                                 *
+ *  SERVICE_NAME_1        "Clean bearing"                                   *
+ *  SERVICE_TIME_1        200  hours                                        *
+ *                                                                          *
+ ****************************************************************************/
+//#define SERVICE_NAME_1        "Service 1"
+//#define SERVICE_TIME_1        100
+//#define SERVICE_NAME_2        "Service 2"
+//#define SERVICE_TIME_2        100
+//#define SERVICE_NAME_3        "Service 3"
+//#define SERVICE_TIME_3        100
+
+#define SERVICE_WARNING_BUZZES  3
+/****************************************************************************/
 
 
 /****************************************************************************************

@@ -340,22 +340,22 @@ class Stepper {
     /**
      * Pulse phase Step
      */
-    static inline void pulse_phase_step();
+    static void pulse_phase_step();
 
     /**
      * Block phase Step
      */
-    static inline uint32_t block_phase_step();
+    static uint32_t block_phase_step();
 
     /**
      * Pulse tick Start
      */
-    static inline void pulse_tick_start();
+    static void pulse_tick_start();
 
     /**
      * Pulse tick Stop
      */
-    static inline void pulse_tick_stop();
+    static void pulse_tick_stop();
 
     /**
      * Start step X Y Z

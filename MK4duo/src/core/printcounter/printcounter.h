@@ -33,8 +33,14 @@ struct printStatistics {
             timePowerOn;      // Accumulated printer in power on
   float     filamentUsed;     // Accumulated filament consumed in mm
 
+  #if HAS_SERVICE_TIMES
+    uint32_t  ServiceTime1,   // Service Time 1
+              ServiceTime2,   // Service Time 2
+              ServiceTime3;   // Service Time 3
+  #endif
+
   #if HAS_POWER_CONSUMPTION_SENSOR
-    uint32_t consumptionHour; // Holds the power consumption per hour as accurately measured
+    uint32_t  consumptionHour; // Holds the power consumption per hour as accurately measured
   #endif
 
 };
@@ -118,6 +124,14 @@ class PrintCounter: public Stopwatch {
     static void incFilamentUsed(float const &amount);
 
     /**
+     * @brief Reset and need Service
+     */
+    #if HAS_SERVICE_TIMES
+      static void resetServiceTime(const int index);
+      static bool needService(const int index);
+    #endif
+
+    /**
      * @brief Increment the total Consumtion Hour
      */
     #if HAS_POWER_CONSUMPTION_SENSOR
@@ -139,6 +153,15 @@ class PrintCounter: public Stopwatch {
        * @details Prints a simple debug message "PrintCounter::function"
        */
       static void debug(const char func[]);
+
+    #endif
+
+  private: /** Private Function */
+
+    #if HAS_SERVICE_TIMES
+
+      static void service_when(char buffer[], const char * const msg, const uint32_t when);
+      static bool service_warning(const char * const msg);
 
     #endif
 

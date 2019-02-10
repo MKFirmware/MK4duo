@@ -80,9 +80,9 @@ const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
   { TC0, 0, TC0_IRQn, 0 },  // 0 - Pin TC 2 - 13
   { TC0, 1, TC1_IRQn, 0 },  // 1 - Pin TC 60 - 61
   { TC0, 2, TC2_IRQn, 0 },  // 2 - Pin TC 58 - 92
-  { TC1, 0, TC3_IRQn, 0 },  // 3 - [NEOPIXEL] and Tone
+  { TC1, 0, TC3_IRQn, 14},  // 3 - [NEOPIXEL] and Tone
   { TC1, 1, TC4_IRQn, 2 },  // 4 - Stepper
-  { TC1, 2, TC5_IRQn, 0 },  // 5 - [servo timer5]
+  { TC1, 2, TC5_IRQn, 3 },  // 5 - [servo timer5]
   { TC2, 0, TC6_IRQn, 0 },  // 6 - Pin TC 4 - 5
   { TC2, 1, TC7_IRQn, 0 },  // 7 - Pin TC 3 - 10
   { TC2, 2, TC8_IRQn, 0 },  // 8 - Pin TC 11 - 12
@@ -159,7 +159,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 }
 
 uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
-  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
+  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES) * rate + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
 void HAL_calc_pulse_cycle() {
@@ -169,7 +169,7 @@ void HAL_calc_pulse_cycle() {
   HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
 
   // The stepping frequency limits for each multistepping rate
-  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))   >> 0;
+  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
   HAL_frequency_limit[1] = ((F_CPU) / HAL_isr_execuiton_cycle(2))   >> 1;
   HAL_frequency_limit[2] = ((F_CPU) / HAL_isr_execuiton_cycle(4))   >> 2;
   HAL_frequency_limit[3] = ((F_CPU) / HAL_isr_execuiton_cycle(8))   >> 3;
@@ -179,7 +179,7 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
 }
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
+uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, uint8_t scale) {
 
   uint8_t multistep = 1;
 

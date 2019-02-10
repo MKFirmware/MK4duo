@@ -32,8 +32,21 @@
  * M78: Show print statistics
  */
 inline void gcode_M78(void) {
+
   // "M78 S78" will reset the statistics
-  if (parser.seen('S') && parser.value_int() == 78)
+  if (parser.intval('S') == 78) {
     print_job_counter.initStats();
-  else print_job_counter.showStats();
+    lcdui.reset_status();
+    return;
+  }
+
+  #if HAS_SERVICE_TIMES
+    if (parser.seenval('R')) {
+      print_job_counter.resetServiceTime(parser.value_int());
+      lcdui.reset_status();
+      return;
+    }
+  #endif
+
+  print_job_counter.showStats();
 }

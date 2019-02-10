@@ -1331,6 +1331,10 @@
   #define MSG_TMC_STEALTH_ENABLED             _UxGT("StealthChop enabled")
 #endif
 
+#ifndef MSG_SERVICE_RESET
+  #define MSG_SERVICE_RESET                   _UxGT("Service Reset")
+#endif
+
 // Extra
 #ifndef MSG_RESTART_PRINT
   #define MSG_RESTART_PRINT                   _UxGT("Restart print")

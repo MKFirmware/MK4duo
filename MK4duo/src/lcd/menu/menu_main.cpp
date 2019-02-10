@@ -103,6 +103,16 @@ void menu_change_filament();
 void menu_info();
 void menu_led();
 
+#if ENABLED(SERVICE_TIME_1)
+  void menu_service1();
+#endif
+#if ENABLED(SERVICE_TIME_2)
+  void menu_service2();
+#endif
+#if ENABLED(SERVICE_TIME_3)
+  void menu_service3();
+#endif
+
 void menu_main() {
   START_MENU();
   MENU_BACK(MSG_WATCH);
@@ -207,6 +217,16 @@ void menu_main() {
       MENU_ITEM(function, MSG_NO_CARD, NULL);
     }
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
+
+  #if ENABLED(SERVICE_TIME_1)
+    MENU_ITEM(submenu, SERVICE_NAME_1, menu_service1);
+  #endif
+  #if ENABLED(SERVICE_TIME_2)
+    MENU_ITEM(submenu, SERVICE_NAME_2, menu_service2);
+  #endif
+  #if ENABLED(SERVICE_TIME_3)
+    MENU_ITEM(submenu, SERVICE_NAME_3, menu_service3);
+  #endif
 
   END_MENU();
 }

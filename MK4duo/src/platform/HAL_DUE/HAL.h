@@ -334,24 +334,24 @@ class HAL {
 
     // SPI related functions
     #if ENABLED(SOFTWARE_SPI)
-      static uint8_t spiTransfer(uint8_t b); // using Mode 0
+      static uint8_t spiTransfer(uint8_t nbyte); // using Mode 0
       static void spiBegin();
       static void spiInit(uint8_t spiRate);
       static uint8_t spiReceive();
       static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t b);
-      static void spiSend(const uint8_t* buf , size_t n) ;
+      static void spiSend(uint8_t nbyte);
+      static void spiSend(const uint8_t* buf , size_t nbyte) ;
       static void spiSendBlock(uint8_t token, const uint8_t* buf);
     #else
       // Hardware setup
       static void spiBegin();
       static void spiInit(uint8_t spiRate=6);
-      static uint8_t spiTransfer(uint8_t data);
+      static uint8_t spiTransfer(uint8_t nbyte);
       // Write single byte to SPI
-      static void spiSend(uint8_t data);
-      static void spiSend(const uint8_t* buf, size_t n);
-      static void spiSend(uint32_t chan, uint8_t data);
-      static void spiSend(uint32_t chan ,const uint8_t* buf, size_t n);
+      static void spiSend(uint8_t nbyte);
+      static void spiSend(const uint8_t* buf, size_t nbyte);
+      static void spiSend(uint32_t chan, uint8_t nbyte);
+      static void spiSend(uint32_t chan ,const uint8_t* buf, size_t nbyte);
       // Read single byte from SPI
       static uint8_t spiReceive(void);
       static uint8_t spiReceive(uint32_t chan);
