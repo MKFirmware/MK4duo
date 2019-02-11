@@ -33,7 +33,7 @@
  *
  *       S<temperature> sets the target temperature. (default target temperature = 150C)
  *       H<hotend> (-1 for the bed, -2 for chamber, -3 for cooler) (default 0)
- *       C<cycles>
+ *       C<cycles> minimum 3 (default 5)
  *       R<method> (0 - 3)
  *       U<bool> with a non-zero value will apply the result to current settings
  */
@@ -72,7 +72,7 @@ inline void gcode_M303(void) {
       SERIAL_MSG("COOLER");
   #endif
 
-  NOLESS(cycle, 5);
+  NOLESS(cycle, 3);
   NOMORE(cycle, 20);
 
   NOMORE(method, 4);

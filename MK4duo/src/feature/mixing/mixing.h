@@ -40,22 +40,21 @@
   #define COLOR_MASK    0x7FFF
 #endif
 
-#define GRADIENT_MIX 2
-
 #define MIXING_STEPPER_LOOP(VAR) \
   for (uint8_t VAR = 0; VAR < MIXING_STEPPERS; VAR++)
 
-#define MIXING_GRADIENT_LOOP(VAR) \
-  for (uint8_t VAR = 0; VAR < GRADIENT_MIX; VAR++)
+#if HAS_GRADIENT_MIX
 
-typedef struct {
-  bool          enabled;                  // This gradient is enabled
-  mixer_color_t color[GRADIENT_MIX];      // The current gradient color
-  float         start_z, end_z;           // Region for gradient
-  int8_t        start_vtool, end_vtool;   // Start and end virtual tools
-  uint8_t       start_mix[GRADIENT_MIX],  // Start and end mixes from those tools
-                end_mix[GRADIENT_MIX];
-} gradient_t;
+  typedef struct {
+    bool          enabled;                    // This gradient is enabled
+    mixer_color_t color[MIXING_STEPPERS];     // The current gradient color
+    float         start_z, end_z;             // Region for gradient
+    int8_t        start_vtool, end_vtool;     // Start and end virtual tools
+    mixer_perc_t  start_mix[MIXING_STEPPERS], // Start and end mixes from those tools
+                  end_mix[MIXING_STEPPERS];
+  } gradient_t;
+
+#endif
 
 class Mixer {
 
@@ -65,15 +64,18 @@ class Mixer {
 
   public: /** Public Parameters */
 
-    static int16_t mix[MIXING_STEPPERS];  // For use by the LCD display
+    static float collector[MIXING_STEPPERS];
 
-    static gradient_t gradient;
+    #if HAS_GRADIENT_MIX
+      static mixer_perc_t mix[MIXING_STEPPERS]; // Scratch array for the Mix in proportion to 100
+      static gradient_t gradient;
+      static float prev_z;
+    #endif
 
   private: /** Private Parameters */
 
     // Used up to Planner level
     static uint_fast8_t   selected_vtool;
-    static float          collector[MIXING_STEPPERS];
     static mixer_color_t  color[MIXING_VIRTUAL_TOOLS][MIXING_STEPPERS];
 
     // Used in Stepper
@@ -85,107 +87,96 @@ class Mixer {
 
     static void init(); // Populate colors at boot time
 
+    static void reset_vtools();
+    static void refresh_collector(const float proportion=1.0, const uint8_t t=selected_vtool);
+
     // Used up to Planner level
+    FORCE_INLINE static void set_collector(const uint8_t c, const float f) { collector[c] = MAX(f, 0.0f); }
+
     static void normalize(const uint8_t tool_index);
     FORCE_INLINE static void normalize() { normalize(selected_vtool); }
 
     FORCE_INLINE static uint8_t get_current_vtool(void) { return selected_vtool; }
-    FORCE_INLINE static void T(const uint_fast8_t c) { selected_vtool = c; }
-    FORCE_INLINE static void set_collector(const uint8_t c, const float f) { collector[c] = f; }
+
+    FORCE_INLINE static void T(const uint_fast8_t c) {
+      selected_vtool = c;
+      #if HAS_GRADIENT_MIX
+        update_mix_from_vtool();
+      #endif
+    }
 
     // Used when dealing with blocks
     FORCE_INLINE static void populate_block(mixer_color_t b_color[MIXING_STEPPERS]) {
-      if (gradient.enabled) {
-        MIXING_STEPPER_LOOP(i) b_color[i] = i < 2 ? gradient.color[i] : 0;
-        return;
+      #if HAS_GRADIENT_MIX
+        if (gradient.enabled) {
+          MIXING_STEPPER_LOOP(i) b_color[i] = gradient.color[i];
+          return;
+        }
+      #endif
+      MIXING_STEPPER_LOOP(i) b_color[i] = color[selected_vtool][i];
+    }
+
+    FORCE_INLINE static void stepper_setup(mixer_color_t b_color[MIXING_STEPPERS]) {
+      MIXING_STEPPER_LOOP(i) s_color[i] = b_color[i];
+    }
+
+    #if HAS_GRADIENT_MIX
+
+      static inline void copy_mix_to_color(mixer_color_t (&tcolor)[MIXING_STEPPERS]) {
+        // Scale each component to the largest one in terms of COLOR_A_MASK
+        // So the largest component will be COLOR_A_MASK and the other will be in proportion to it
+        const float scale = (COLOR_A_MASK) * RECIPROCAL(float(MAX(mix[0], mix[1])));
+        // Scale all values so their maximum is COLOR_A_MASK
+        MIXING_STEPPER_LOOP(i) tcolor[i] = mix[i] * scale;
       }
-      uint_fast8_t j = get_current_vtool();
-      COPY_ARRAY(b_color, color[selected_vtool]);
-    }
 
-    FORCE_INLINE static void stepper_setup(mixer_color_t b_color[MIXING_STEPPERS]) { MIXING_STEPPER_LOOP(i) s_color[i] = b_color[i]; }
-
-    static inline void update_mix_from_gradient() {
-      float ctot = 0;
-      MIXING_GRADIENT_LOOP(i) ctot += gradient.color[i];
-      clear_mix();
-      mix[0] = uint8_t(CEIL(100.0f * gradient.color[0] / ctot));
-      mix[1] = 100 - mix[0];
-      #if ENABLED(MIXING_DEBUG)
-        SERIAL_MV("Gradient [ ", int(gradient.color[0]));
-        SERIAL_MV(", ", int(gradient.color[1]));
-        SERIAL_MV("] to Mix [ ", mix[0]);
-        SERIAL_MV(", ", mix[1]);
-        SERIAL_EM("]");
-      #endif
-    }
-
-    static inline void update_mix_from_vtool(const uint8_t j=selected_vtool) {
-      float ctot = 0;
-      MIXING_GRADIENT_LOOP(i) ctot += color[j][i];
-      clear_mix();
-      mix[0] = uint8_t(CEIL(100.0f * color[j][0] / ctot));
-      mix[1] = 100 - mix[0];
-      #if ENABLED(MIXING_DEBUG)
-        SERIAL_MV("Mixer::update_mix_from_vtool ... VTool ", int(j));
-        SERIAL_MV(" [ ", int(color[j][0]));
-        SERIAL_MV(", ", int(color[j][1]));
-        SERIAL_MV("] to Mix [ ", mix[0]);
-        SERIAL_MV(", ", mix[1]);
-        SERIAL_EM("]");
-      #endif
-    }
-
-    static inline void update_vtool_from_mix() {
-      // Scale each component to the largest one in terms of COLOR_A_MASK
-      // So the largest component will be COLOR_A_MASK and the other will be in proportion to it
-      const float inverse_max = RECIPROCAL(float(MAX(mix[0], mix[1])));
-
-      // Scale all values so their maximum is COLOR_A_MASK
-      MIXING_STEPPER_LOOP(i)
-        color[selected_vtool][i] = mix[i] * COLOR_A_MASK * inverse_max;
-
-      #if ENABLED(MIXING_DEBUG)
-        SERIAL_MV("Mix [ ", mix[0]);
-        SERIAL_MV(", ", mix[1]);
-        SERIAL_MV("] to Color [ ", int(color[selected_vtool][0]));
-        SERIAL_MV(", ", int(color[selected_vtool][1]));
-        SERIAL_EM("]");
-      #endif
-    }
-
-    static void update_gradient_for_z(const float z);
-    static void update_gradient_for_planner_z();
-    static void gradient_control(const float z);
-
-    static inline void update_gradient_from_mix() {
-      // Scale each component to the largest one in terms of COLOR_A_MASK
-      // So the largest component will be COLOR_A_MASK and the other will be in proportion to it
-      const float inverse_max = RECIPROCAL(float(MAX(mix[0], mix[1])));
-
-      // Scale all values so their maximum is COLOR_A_MASK
-      MIXING_GRADIENT_LOOP(i)
-        gradient.color[i] = mix[i] * COLOR_A_MASK * inverse_max;
-
-      #if ENABLED(MIXING_DEBUG)
-        SERIAL_MV("Mix [ ", mix[0]);
-        SERIAL_MV(", ", mix[1]);
-        SERIAL_MV("] to Color [ ", int(gradient.color[0]));
-        SERIAL_MV(", ", int(gradient.color[1]));
-        SERIAL_EM("]");
-      #endif
-    }
-
-    static void refresh_gradient() {
-      const bool ena = (gradient.start_vtool != gradient.end_vtool && gradient.start_z < gradient.end_z);
-      if ((gradient.enabled = ena)) {
-        update_mix_from_vtool(gradient.start_vtool);
-        MIXING_GRADIENT_LOOP(i) gradient.start_mix[i] = mix[i];
-        update_mix_from_vtool(gradient.end_vtool);
-        MIXING_GRADIENT_LOOP(i) gradient.end_mix[i] = mix[i];
-        update_gradient_for_planner_z();
+      static inline void update_mix_from_vtool(const uint8_t j=selected_vtool) {
+        float ctot = 0;
+        MIXING_STEPPER_LOOP(i) ctot += color[j][i];
+        mix[0] = mixer_perc_t(100.0f * color[j][0] / ctot);
+        mix[1] = 100 - mix[0];
       }
-    }
+
+      // Update the virtual tool from an edited mix
+      static inline void update_vtool_from_mix() {
+        copy_mix_to_color(color[selected_vtool]);
+        refresh_gradient();
+      }
+
+      static void update_gradient_for_z(const float z);
+      static void update_gradient_for_planner_z();
+      static inline void gradient_control(const float z) {
+        if (gradient.enabled) {
+          if (z >= gradient.end_z)
+            T(gradient.end_vtool);
+          else
+            update_gradient_for_z(z);
+        }
+      }
+
+      static inline void update_mix_from_gradient() {
+        float ctot = 0;
+        MIXING_STEPPER_LOOP(i) ctot += gradient.color[i];
+        mix[0] = (mixer_perc_t)CEIL(100.0f * gradient.color[0] / ctot);
+        mix[1] = 100 - mix[0];
+      }
+
+      static void refresh_gradient() {
+        gradient.enabled = gradient.start_vtool != gradient.end_vtool && gradient.start_z < gradient.end_z;
+        if (gradient.enabled) {
+          mixer_perc_t mix_bak[MIXING_STEPPERS];
+          COPY_ARRAY(mix_bak, mix);
+          update_mix_from_vtool(gradient.start_vtool);
+          COPY_ARRAY(gradient.start_mix, mix);
+          update_mix_from_vtool(gradient.end_vtool);
+          COPY_ARRAY(gradient.end_mix, mix);
+          update_gradient_for_planner_z();
+          COPY_ARRAY(mix, mix_bak);
+          prev_z = -1;
+        }
+      }
+
+    #endif // HAS_GRADIENT_MIX
 
     // Used in Stepper
     FORCE_INLINE static uint8_t get_stepper(void) { return runner; }
@@ -205,10 +196,6 @@ class Mixer {
         }
       }
     }
-
-  private: /** Private Function */
-
-    FORCE_INLINE static void clear_mix() { MIXING_STEPPER_LOOP(i) mix[i] = 0; }
 
 };
 
