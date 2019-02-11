@@ -824,22 +824,30 @@ void LcdUI::draw_status_screen() {
 
         #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
 
-          #if ENABLED(COLOR_MIXING_EXTRUDER)
-            if (mixer.gradient.enabled) {
-              // Two-color gradient mix instead of XY
-              char mixer_messages[12];
-              mixer.update_mix_from_gradient();
-              sprintf_P(mixer_messages, PSTR("Gr^%d;%d%% "), int(mixer.mix[0]), int(mixer.mix[1]));
-              lcd_put_u8str(mixer_messages);
-            }
-            else
-          #endif
+          #if HAS_GRADIENT_MIX
 
-            {
-              _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])), blink);
-              lcd_put_wchar(' ');
-              _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])), blink);
+            // Two-component mix / gradient instead of XY
+
+            char mixer_messages[12];
+            const char *mix_label;
+            if (mixer.gradient.enabled) {
+              mixer.update_mix_from_gradient();
+              mix_label = "Gr";
             }
+            else {
+              mixer.update_mix_from_vtool();
+              mix_label = "Mx";
+            }
+            sprintf_P(mixer_messages, PSTR("%s %d;%d%% "), mix_label, int(mixer.mix[0]), int(mixer.mix[1]));
+            lcd_put_u8str(mixer_messages);
+
+          #else
+
+            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])), blink);
+            lcd_put_wchar(' ');
+            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])), blink);
+
+          #endif
 
         #endif // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
 

@@ -248,14 +248,15 @@ void PrintCounter::incFilamentUsed(float const &amount) {
   void PrintCounter::resetServiceTime(const int index) {
     switch (index) {
       #if ENABLED(SERVICE_TIME_1)
-        case 1: data.ServiceTime1 = SERVICE_TIME_1_SEC;
+        case 1: data.ServiceTime1 = SERVICE_TIME_1_SEC; break;
       #endif
       #if ENABLED(SERVICE_TIME_2)
-        case 2: data.ServiceTime2 = SERVICE_TIME_2_SEC;
+        case 2: data.ServiceTime2 = SERVICE_TIME_2_SEC; break;
       #endif
       #if ENABLED(SERVICE_TIME_3)
-        case 3: data.ServiceTime3 = SERVICE_TIME_3_SEC;
+        case 3: data.ServiceTime3 = SERVICE_TIME_3_SEC; break;
       #endif
+      default: break;
     }
     saveStats();
   }
@@ -263,13 +264,13 @@ void PrintCounter::incFilamentUsed(float const &amount) {
   bool PrintCounter::needService(const int index) {
     switch (index) {
       #if ENABLED(SERVICE_TIME_1)
-        case 1: return data.ServiceTime1 == 0;
+        case 1: return data.ServiceTime1 == 0; break;
       #endif
       #if ENABLED(SERVICE_TIME_2)
-        case 2: return data.ServiceTime2 == 0;
+        case 2: return data.ServiceTime2 == 0; break;
       #endif
       #if ENABLED(SERVICE_TIME_3)
-        case 3: return data.ServiceTime3 == 0;
+        case 3: return data.ServiceTime3 == 0; break;
       #endif
       default: return false;
     }

@@ -416,6 +416,7 @@
   #define EXTRUDERS         1
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
   #define E_MANUAL          1
+  #define HAS_GRADIENT_MIX  (MIXING_STEPPERS == 2)
 #else
   #define E_MANUAL          DRIVER_EXTRUDERS
 #endif

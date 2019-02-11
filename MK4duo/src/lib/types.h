@@ -27,9 +27,11 @@ typedef int8_t    pin_t;
 #ifdef __AVR__
   typedef uint8_t       mixer_color_t;
   typedef int8_t        mixer_accu_t;
+  typedef int8_t        mixer_perc_t;
 #else
   typedef uint_fast16_t mixer_color_t;
   typedef uint_fast16_t mixer_accu_t;
+  typedef int8_t        mixer_perc_t;
 #endif
 
 union flagbyte_t {

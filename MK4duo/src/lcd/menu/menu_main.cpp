@@ -103,6 +103,10 @@ void menu_change_filament();
 void menu_info();
 void menu_led();
 
+#if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
+  void menu_mixer();
+#endif
+
 #if ENABLED(SERVICE_TIME_1)
   void menu_service1();
 #endif
@@ -164,6 +168,9 @@ void menu_main() {
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
+    #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
+      MENU_ITEM(submenu, MSG_MIXER, menu_mixer);
+    #endif
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       #if DRIVER_EXTRUDERS == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         if (thermalManager.targetHotEnoughToExtrude(tools.active_extruder))

@@ -1886,7 +1886,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     COPY_ARRAY(position_float, target_float);
   #endif
 
-  #if ENABLED(COLOR_MIXING_EXTRUDER)
+  #if HAS_GRADIENT_MIX
     if (mixer.gradient.enabled)
       mixer.gradient_control(mechanics.current_position[Z_AXIS]);
   #endif
