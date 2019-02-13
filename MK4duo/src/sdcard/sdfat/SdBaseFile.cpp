@@ -2285,7 +2285,7 @@ int SdBaseFile::write(const void* buf, size_t nbyte) {
         if ((block + b) == vol_->cacheBlockNumber()) {
           vol_->cacheInvalidate();
         }
-        if (!vol_->sdCard()->writeData(src + 512*b)) {
+        if (!vol_->writeBlock(block, src + 512*b)) {
           writeError = true;
           return -1;
         }
