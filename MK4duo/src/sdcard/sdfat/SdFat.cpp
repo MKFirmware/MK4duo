@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,8 +149,10 @@ void SdFat::errorHalt_P(PGM_P msg) {
 
 /** %Print any SD error code. */
 void SdFat::errorPrint() {
-  if (!card_.errorCode()) return;
-  SERIAL_LMV(ER, MSG_SD_ERRORCODE, card_.errorCode());
+  #if DISABLED(USB_FLASH_DRIVE_SUPPORT)
+    if (!card_.errorCode()) return;
+    SERIAL_LMV(ER, MSG_SD_ERRORCODE, card_.errorCode());
+  #endif
 }
 
 /** %Print msg, any SD error code.
@@ -209,12 +211,16 @@ void SdFat::initErrorHalt_P(PGM_P msg) {
 
 /** Print error details after SdFat::init() fails. */
 void SdFat::initErrorPrint() {
-  if (card_.errorCode()) {
-    SERIAL_PGM(PSTR("Can't access SD card. Do not reformat."));
-    if (card_.errorCode() == SD_CARD_ERROR_CMD0)
-      SERIAL_PGM(PSTR(" No card, wrong chip select pin, or SPI problem?"));
-    errorPrint();
-  }
+  #if DISABLED(USB_FLASH_DRIVE_SUPPORT)
+    if (card_.errorCode()) {
+      SERIAL_PGM(PSTR("Can't access SD card. Do not reformat."));
+      if (card_.errorCode() == SD_CARD_ERROR_CMD0)
+        SERIAL_PGM(PSTR(" No card, wrong chip select pin, or SPI problem?"));
+      errorPrint();
+    }
+  #else
+    if (false) {}
+  #endif
   else if (vol_.fatType() == 0) {
     SERIAL_PGM(PSTR("Invalid format, reformat SD."));
   }
