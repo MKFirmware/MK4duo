@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -332,7 +332,7 @@ void Stepper::init() {
 
   #if HAS_Z_STEP
     Z_STEP_INIT();
-    Z_STEP_WRITE(INVERT_Y_STEP_PIN);
+    Z_STEP_WRITE(INVERT_Z_STEP_PIN);
     #if ENABLED(Z_TWO_STEPPER_DRIVERS) && HAS_Z2_STEP
       Z2_STEP_INIT();
       Z2_STEP_WRITE(INVERT_Z_STEP_PIN);
@@ -1690,9 +1690,7 @@ uint32_t Stepper::block_phase_step() {
       #if DISABLED(BEZIER_JERK_CONTROL)
         // Set as deceleration point the initial rate of the block
         acc_step_rate = current_block->initial_rate;
-      #endif
-
-      #if ENABLED(BEZIER_JERK_CONTROL)
+      #else
         // Initialize the Bézier speed curve
         _calc_bezier_curve_coeffs(current_block->initial_rate, current_block->cruise_rate, current_block->acceleration_time_inverse);
         // We haven't started the 2nd half of the trapezoid
