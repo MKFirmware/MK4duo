@@ -210,9 +210,22 @@ typedef struct {
 
         millis_t ms = millis();
 
-        if (PENDING(ms, next_max31855_ms)) return max31855_temp;
+        if (PENDING(ms, next_max31855_ms)) return (int)max31855_temp;
 
         next_max31855_ms = ms + 250u;
+
+        #if ENABLED(CPU_32_BIT)
+          HAL::spiBegin();
+        #else
+          CBI(
+          #ifdef PRR
+            PRR
+          #elif defined(PRR0)
+            PRR0
+          #endif
+              , PRSPI);
+          SPCR = _BV(MSTR) | _BV(SPE) | _BV(SPR0);
+        #endif
 
         HAL::digitalWrite(pin, LOW); // enable TT_MAX31855
 
