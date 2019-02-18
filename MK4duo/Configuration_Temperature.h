@@ -110,8 +110,8 @@
 #define TEMP_SENSOR_AD595_GAIN   1.0
 
 // Use it for Testing or Development purposes. NEVER for production machine.
-#define DUMMY_THERMISTOR_998_VALUE 25
-#define DUMMY_THERMISTOR_999_VALUE 25
+#define DUMMY_THERMISTOR_998_VALUE  25
+#define DUMMY_THERMISTOR_999_VALUE 100
 /*****************************************************************************************/
 
 
