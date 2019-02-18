@@ -211,6 +211,7 @@
     #define LCD_SDSS        10
 
   #elif ENABLED(MKS_MINI_12864)
+
     #define DOGLCD_A0       52
     #define DOGLCD_CS       50
 
