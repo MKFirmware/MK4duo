@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@
 // M906 - Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given.
 // M911 - Report stepper driver overtemperature pre-warn condition.
 // M912 - Clear stepper driver overtemperature pre-warn condition flag.
-// M922 S0/1 - Report driver parameters (Requires TMC_DEBUG)
+// M922 - Report driver parameters. (Requires TMC_DEBUG)
 //#define MONITOR_DRIVER_STATUS
 //#define CURRENT_STEP_DOWN     50  // [mA]
 //#define REPORT_CURRENT_CHANGE

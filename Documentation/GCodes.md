@@ -202,7 +202,7 @@
 | M913 | HYBRID THRESHOLD | Set HYBRID THRESHOLD speed
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
-| M922 | TRINAMIC | S[1/0] Enable/disable TMC debug, X Y Z E for view axis, V see register, none see all
+| M922 | TMC_DEBUG | TMC debug, X Y Z E for view axis, V see register, none see all
 | M930 | TRINAMIC | TMC set blank_time.
 | M931 | TRINAMIC | TMC set off_time.
 | M932 | TRINAMIC | TMC set hysteresis_start.
