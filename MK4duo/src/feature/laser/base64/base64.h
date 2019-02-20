@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Copyright (c) 2013 Adam Rudd.
  * See LICENSE for more information
  */
-
-#ifndef _BASE64_H
-#define _BASE64_H
 
 #if ENABLED(LASER) && ENABLED(LASER_RASTER)
 
@@ -102,5 +100,3 @@
   int base64_dec_len(char *input, int inputLen);
 
 #endif // ENABLED(LASER) && ENABLED(LASER_RASTER)
-
-#endif /* _BASE64_H */

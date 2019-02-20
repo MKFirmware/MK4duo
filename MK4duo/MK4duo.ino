@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -288,7 +288,7 @@
  * M913 - Set HYBRID_THRESHOLD speed. (Requires HYBRID_THRESHOLD)
  * M914 - Set StallGuard sensitivity. (Requires SENSORLESS_HOMING)
  * M915 - TMC Z axis calibration routine. (Requires TMC)
- * M922 - S[1/0] Enable/disable TMC debug. (Requires TMC)
+ * M922 - Enable/disable TMC debug. (Requires TMC_DEBUG)
  * M930 - TMC set blank_time.
  * M931 - TMC set off_time.
  * M932 - TMC set hysteresis_start.
