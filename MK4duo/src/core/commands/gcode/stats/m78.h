@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,15 +23,22 @@
 /**
  * mcode
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define CODE_M78
 
 /**
  * M78: Show print statistics
+ *  X1 - Force save statistics
  */
 inline void gcode_M78(void) {
+
+  if (parser.seenval('X')) {
+    SERIAL_EM("Statistics stored");
+    print_job_counter.saveStats();
+    return;
+  }
 
   // "M78 S78" will reset the statistics
   if (parser.intval('S') == 78) {
