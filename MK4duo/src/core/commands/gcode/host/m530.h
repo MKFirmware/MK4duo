@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,22 +23,15 @@
 /**
  * mcode
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define CODE_M530
 
 /**
  * M530: S<printing> L<layer> - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
- *  X - Force save stats
- *
  */
 inline void gcode_M530(void) {
-
-  if (parser.seen('X')) {
-    SERIAL_EM("Statistics stored");
-    print_job_counter.saveStats();
-  }
 
   if (parser.seen('L')) printer.maxLayer = parser.value_long();
 
