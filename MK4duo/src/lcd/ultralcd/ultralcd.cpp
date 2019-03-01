@@ -855,14 +855,14 @@ void LcdUI::update() {
 
   static const _stADCKeypadTable_ stADCKeyTable[] PROGMEM = {
     // VALUE_MIN, VALUE_MAX, KEY
-    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F1 + 1      },  // F1
-    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F2 + 1      },  // F2
-    { 250, 256, BLEN_REPRAPWORLD_KEYPAD_F3 + 1      },  // F3
-    {  18,  32, BLEN_REPRAPWORLD_KEYPAD_LEFT + 1    },  // LEFT
-    { 118, 138, BLEN_REPRAPWORLD_KEYPAD_RIGHT + 1   },  // RIGHT
-    {  34,  54, BLEN_REPRAPWORLD_KEYPAD_UP + 1      },  // UP
-    { 166, 180, BLEN_REPRAPWORLD_KEYPAD_DOWN + 1    },  // DOWN
-    {  70,  90, BLEN_REPRAPWORLD_KEYPAD_MIDDLE + 1  },  // ENTER
+    { 250, 256, BLEN_KEYPAD_F1 + 1      },  // F1
+    { 250, 256, BLEN_KEYPAD_F2 + 1      },  // F2
+    { 250, 256, BLEN_KEYPAD_F3 + 1      },  // F3
+    {  18,  32, BLEN_KEYPAD_LEFT + 1    },  // LEFT
+    { 118, 138, BLEN_KEYPAD_RIGHT + 1   },  // RIGHT
+    {  34,  54, BLEN_KEYPAD_UP + 1      },  // UP
+    { 166, 180, BLEN_KEYPAD_DOWN + 1    },  // DOWN
+    {  70,  90, BLEN_KEYPAD_MIDDLE + 1  },  // ENTER
   };
 
   uint8_t get_ADC_keyValue(void) {
