@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * mcode
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define CODE_M115
@@ -85,7 +85,7 @@ inline void gcode_M115(void) {
     SERIAL_CAP("Z_PROBE:0");
   #endif
 
-  // MESH_REPORT (M320 V, M420 V)
+  // MESH_REPORT (M420 V)
   #if HAS_LEVELING
     SERIAL_CAP("LEVELING_DATA:1");
   #else
