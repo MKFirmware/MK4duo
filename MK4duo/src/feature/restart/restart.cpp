@@ -84,6 +84,8 @@
         (mechanics.current_position[Z_AXIS] > job_info.current_position[Z_AXIS])
     ) {
 
+      save_restart_watch.start();
+
       if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
       job_info.valid_foot = job_info.valid_head;
 
