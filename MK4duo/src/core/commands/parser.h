@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -270,7 +270,7 @@ class GCodeParser {
 
       static inline void set_input_temp_units(TempUnitEnum units) { input_temp_units = units; }
 
-      #if ENABLED(ULTIPANEL) && DISABLED(DISABLE_M503)
+      #if HAS_LCD_MENU && DISABLED(DISABLE_M503)
 
         static inline char temp_units_code() {
           return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';
@@ -292,7 +292,7 @@ class GCodeParser {
           }
         }
 
-      #endif // ULTIPANEL && !DISABLE_M503
+      #endif // HAS_LCD_MENU && !DISABLE_M503
 
       static inline float value_celsius() {
         const float f = value_float();
