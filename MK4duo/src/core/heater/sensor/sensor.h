@@ -201,14 +201,12 @@ typedef struct {
     #if ENABLED(SUPPORT_MAX31855)
 
       #define MAX31855_DISCARD_BITS 18
-      
-      int16_t last_max31855_temp=2000;
+
+      int16_t last_max31855_temp = 2000;
       millis_t next_max31855_ms = 0;
 
       int16_t read_max31855() {
 
-
-     
         uint32_t data = 0;
 
         millis_t ms = millis();
