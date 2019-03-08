@@ -202,15 +202,16 @@ typedef struct {
 
       #define MAX31855_DISCARD_BITS 18
 
+      int16_t last_max31855_temp = 2000;
+      millis_t next_max31855_ms = 0;
+
       int16_t read_max31855() {
 
-        static millis_t next_max31855_ms = 0;
-        static int16_t max31855_temp = 2000;
         uint32_t data = 0;
 
         millis_t ms = millis();
 
-        if (PENDING(ms, next_max31855_ms)) return (int)max31855_temp;
+        if (PENDING(ms, next_max31855_ms)) return (int)last_max31855_temp;
 
         next_max31855_ms = ms + 250u;
 
@@ -244,15 +245,15 @@ typedef struct {
           return 20000; // Some form of error.
         else {
           data = data >> MAX31855_DISCARD_BITS;
-          max31855_temp = data & 0x00001FFF;
+          last_max31855_temp = data & 0x00001FFF;
 
           if (data & 0x00002000) {
             data = ~data;
-            max31855_temp = -1 * ((data & 0x00001FFF) + 1);
+            last_max31855_temp = -1 * ((data & 0x00001FFF) + 1);
           }
         }
 
-        return max31855_temp;
+        return last_max31855_temp;
       }
 
     #endif // ENABLED(SUPPORT_MAX6675)
