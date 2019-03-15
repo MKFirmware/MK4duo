@@ -1390,8 +1390,8 @@
 #ifndef MSG_NEED_TUNE_PID
   #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID")
 #endif
-#ifndef MSG_DO_YOU_ARE_SHURE
-  #define MSG_DO_YOU_ARE_SHURE                _UxGT("Do you are shure?")
+#ifndef MSG_ARE_YOU_SURE
+  #define MSG_ARE_YOU_SURE                    _UxGT("Are you sure?")
 #endif
 #ifndef MSG_YES
   #define MSG_YES                             _UxGT("Yes")

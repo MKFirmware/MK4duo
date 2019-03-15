@@ -480,7 +480,7 @@
 #define MSG_RESTORING_POS                   _UxGT("Ripristino posizione")
 #define MSG_INVALID_POS_SLOT                _UxGT("Slot invalido, slot totali:")
 #define MSG_NEED_TUNE_PID                   _UxGT("Necessita Tune PID")
-#define MSG_DO_YOU_ARE_SHURE                _UxGT("Sei sicuro?")
+#define MSG_ARE_YOU_SURE                    _UxGT("Sei sicuro?")
 #define MSG_YES                             _UxGT("Si")
 #define MSG_NO                              _UxGT("No")
 
