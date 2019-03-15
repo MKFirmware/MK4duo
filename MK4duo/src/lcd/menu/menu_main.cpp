@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ void menu_stop_print() {
   lcdui.encoder_direction_menus();
   START_MENU();
   MENU_BACK(MSG_MAIN);
-  STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+  STATIC_ITEM(MSG_ARE_YOU_SURE);
   MENU_ITEM(function, MSG_YES, lcdui.stop_print);
   MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
   END_MENU();
@@ -83,7 +83,7 @@ void menu_stop_print() {
       lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
       START_MENU();
       MENU_BACK(MSG_MAIN);
-      STATIC_ITEM(MSG_DO_YOU_ARE_SHURE);
+      STATIC_ITEM(MSG_ARE_YOU_SURE);
       MENU_ITEM(function, MSG_YES, UploadNewFirmware);
       MENU_ITEM(submenu, MSG_NO, menu_main);
       END_MENU();
