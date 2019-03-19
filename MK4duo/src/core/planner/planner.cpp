@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1236,7 +1236,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         for (uint8_t i = 0; i < EXTRUDERS; i++)
           if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
 
-        switch(extruder) {
+        switch (extruder) {
           case 0:
             #if EXTRUDERS > 1
               if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
@@ -1342,7 +1342,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         stepper.enable_E();
       #endif
     #elif ENABLED(MKR6)
-      switch(extruder) {
+      switch (extruder) {
         case 0:
         case 1:
         case 2:
@@ -1355,7 +1355,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           break;
       }
     #elif ENABLED(MKR12)
-      switch(extruder) {
+      switch (extruder) {
         case 0:
         case 1:
         case 2:
@@ -1380,7 +1380,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
       stepper.enable_E0();
     #elif ENABLED(MKR4)
-      switch(extruder) {
+      switch (extruder) {
         case 0:
           stepper.enable_E0();
         break;
@@ -1640,7 +1640,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
         // Check for unusual high e_D ratio to detect if a retract move was combined with the last print move due to min. steps per segment. Never execute this with advance!
         // This assumes no one will use a retract length of 0mm < retr_length < ~0.2mm and no one will print 100mm wide lines using 3mm filament or 35mm wide lines using 1.75mm filament.
-        if (block->e_D_ratio > 3.0)
+        if (block->e_D_ratio > 3.0f)
           block->use_advance_lead = false;
         else {
           const uint32_t max_accel_steps_per_s2 = MAX_E_JERK / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
@@ -2193,7 +2193,7 @@ void Planner::reset_acceleration_rates() {
 
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
 
-  #if ENABLED(JUNCTION_DEVIATION)
+  #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
     mechanics.recalculate_max_e_jerk();
   #endif
 
@@ -2648,7 +2648,7 @@ void Planner::recalculate_trapezoids() {
       // Block is not BUSY, we won the race against the Stepper ISR:
 
       const float next_nominal_speed = SQRT(next->nominal_speed_sqr),
-                  nomr = 1.0 / next_nominal_speed;
+                  nomr = 1.0f / next_nominal_speed;
       calculate_trapezoid_for_block(next, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next->use_advance_lead) {
