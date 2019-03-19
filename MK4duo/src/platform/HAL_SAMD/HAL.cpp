@@ -335,11 +335,11 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].SetHardwarePwm();
+    LOOP_HEATER() heaters[h].setOutputPwm();
   #endif
 
   #if FAN_COUNT > 0
-    //LOOP_FAN() fans[f].SetHardwarePwm();
+    LOOP_FAN() fans[f].setOutputPwm();
   #endif
 
   // Calculation cycle temp a 100ms
