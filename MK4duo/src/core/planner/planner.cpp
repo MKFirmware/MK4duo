@@ -2609,7 +2609,7 @@ void Planner::recalculate_trapezoids() {
 
             // NOTE: Entry and exit factors always > 0 by all previous logic operations.
             const float current_nominal_speed = SQRT(current->nominal_speed_sqr),
-                        nomr = 1.0 / current_nominal_speed;
+                        nomr = 1.0f / current_nominal_speed;
             calculate_trapezoid_for_block(current, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current->use_advance_lead) {
