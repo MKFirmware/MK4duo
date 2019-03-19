@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * mechanics.cpp
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -66,7 +66,7 @@ uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
  * Get homedir for axis
  */
 int8_t Mechanics::get_homedir(const AxisEnum axis) {
-  switch(axis) {
+  switch (axis) {
     case X_AXIS:  return home_dir.X; break;
     case Y_AXIS:  return home_dir.Y; break;
     case Z_AXIS:  return home_dir.Z; break;

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 /**
  * mechanics.h
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
@@ -90,7 +90,7 @@ typedef struct {
             min_segment_time_us;
 
   #if ENABLED(JUNCTION_DEVIATION)
-  float     junction_deviation_mm;
+    float     junction_deviation_mm;
     #if ENABLED(LIN_ADVANCE)
       float max_e_jerk[EXTRUDERS];
     #endif
@@ -325,17 +325,15 @@ class Mechanics {
       FORCE_INLINE static float logical_to_native(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
     #endif
 
-    #if ENABLED(JUNCTION_DEVIATION)
+    #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
       FORCE_INLINE static void recalculate_max_e_jerk() {
-        #if ENABLED(LIN_ADVANCE)
-          LOOP_EXTRUDER() {
-            data.max_e_jerk[e] = SQRT(SQRT(0.5) *
-              data.junction_deviation_mm *
-              data.max_acceleration_mm_per_s2[E_AXIS + e] *
-              RECIPROCAL(1.0 - SQRT(0.5))
-            );
-          }
-        #endif
+        LOOP_EXTRUDER() {
+          data.max_e_jerk[e] = SQRT(SQRT(0.5) *
+            data.junction_deviation_mm *
+            data.max_acceleration_mm_per_s2[E_AXIS + e] *
+            RECIPROCAL(1.0 - SQRT(0.5))
+          );
+        }
       }
     #endif
 
