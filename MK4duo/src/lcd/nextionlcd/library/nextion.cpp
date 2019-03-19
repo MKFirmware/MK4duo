@@ -67,7 +67,7 @@ bool NextionLCD::init(char *buffer) {
   }
   else { // Else try to 115200 baudrate
     #if ENABLED(NEXTION_CONNECT_DEBUG)
-      SERIAL_EM(" NEXTION connected at 115200 baud, cready");
+      SERIAL_EM(" NEXTION connected at 115200 baud, ready");
     #endif
     nexSerial.end();
     HAL::delayMilliseconds(100);
@@ -376,7 +376,7 @@ bool NextionLCD::getConnect(char* buffer) {
   String temp = String("");
 
   #if ENABLED(NEXTION_CONNECT_DEBUG)
-    SERIAL_MSG(" NEXTION Debug Connect receveid:");
+    SERIAL_MSG(" NEXTION Debug Connect received:");
   #endif
 
   while (nexSerial.available()) {
