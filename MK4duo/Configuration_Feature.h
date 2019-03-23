@@ -1227,7 +1227,7 @@
  *                                                                                       *
  *****************************************************************************************/
 //#define SDSUPPORT
-//#define USB_FLASH_DRIVE_SUPPORT
+//#define USB_FLASH_DRIVE_SUPPORT (NOT USED FOR NOW!!!)
 
 // Advanced command M39
 // Info and formatting SD card
