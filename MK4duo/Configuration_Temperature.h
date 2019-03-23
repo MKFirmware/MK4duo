@@ -266,7 +266,7 @@
 #define PID_BED_DRIVE_MIN  40 // Limits min current to bed while PID is active;    0 = no current
 #define PID_BED_DRIVE_MAX 230 // Limits max current to bed while PID is active;  255 = full current
 
-#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T<target-BED_HYSTERESIS
+#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED HYSTERESIS and enable heating if T<target-BED HYSTERESIS
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 //      BED     {BED0,BED1,BED2,BED3}
@@ -275,6 +275,42 @@
 #define BED_Kd  {300,300,300,300}
 
 // FIND YOUR OWN: "M303 H-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
+/***********************************************************************/
+
+
+/***********************************************************************
+ ************************ PID Settings - CHAMBER ***********************
+ ***********************************************************************
+ *                                                                     *
+ * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
+ * Select PID or bang-bang with PIDTEMPCHAMBER.                        *
+ * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis        *
+ *                                                                     *
+ ***********************************************************************/
+// Put true to enable PID on the chamber. It uses the same frequency PWM as the hotend.
+// This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W heater.
+// If your configuration is significantly different than this and you don't understand the issues involved, you probably
+// shouldn't use chamber PID until someone else verifies your hardware works.
+// If this is enabled, find your own PID constants below.
+#define PIDTEMPCHAMBER false
+
+// This sets the max power delivered to the chamber.
+// all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
+// setting this to anything other than 255 enables a form of PWM to the chamber,
+// so you shouldn't use it unless you are OK with PWM on your chamber.  (see the comment on enabling PIDTEMPCHAMBER)
+#define CHAMBER_PID_MAX       255   // Limits current to chamber while in PID mode;       255 = full current
+#define CHAMBER_PID_DRIVE_MIN  80   // Limits min current to chamber while PID is active;   0 = no current
+#define CHAMBER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
+
+#define CHAMBER_HYSTERESIS        2 // Only disable heating if T>target+CHAMBER HYSTERESIS and enable heating if T<target-CHAMBER HYSTERESIS
+#define CHAMBER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
+
+// 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+// from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
+//      CHAMBER     {CHAMBER0,CHAMBER1,CHAMBER2,CHAMBER3}
+#define CHAMBER_Kp  {10,10,10,10}
+#define CHAMBER_Ki  {1,1,1,1}
+#define CHAMBER_Kd  {300,300,300,300}
 /***********************************************************************/
 
 
@@ -287,6 +323,7 @@
  ********************************************************************************/
 #define INVERTED_HEATER_PINS false
 #define INVERTED_BED_PIN false
+#define INVERTED_CHAMBER_PIN false
 /********************************************************************************/
 
 
