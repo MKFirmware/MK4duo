@@ -266,7 +266,7 @@
 #define PID_BED_DRIVE_MIN  40 // Limits min current to bed while PID is active;    0 = no current
 #define PID_BED_DRIVE_MAX 230 // Limits max current to bed while PID is active;  255 = full current
 
-#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T<target-BED_HYSTERESIS
+#define BED_HYSTERESIS        2 // Only disable heating if T>target+BED HYSTERESIS and enable heating if T<target-BED HYSTERESIS
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 //      BED     {BED0,BED1,BED2,BED3}
@@ -294,9 +294,6 @@
 // If this is enabled, find your own PID constants below.
 #define PIDTEMPCHAMBER false
 
-#define CHAMBER_HYSTERESIS        2 // only disable heating if T>target+CHAMBER_HYSTERESIS and enable heating if T<target-CHAMBER_HYSTERESIS
-#define CHAMBER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
-
 // This sets the max power delivered to the chamber.
 // all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
 // setting this to anything other than 255 enables a form of PWM to the chamber,
@@ -305,7 +302,7 @@
 #define CHAMBER_PID_DRIVE_MIN  80   // Limits min current to chamber while PID is active;   0 = no current
 #define CHAMBER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
 
-#define CHAMBER_HYSTERESIS        2 // Only disable heating if T>target+BED_HYSTERESIS and enable heating if T<target-BED_HYSTERESIS
+#define CHAMBER_HYSTERESIS        2 // Only disable heating if T>target+CHAMBER HYSTERESIS and enable heating if T<target-CHAMBER HYSTERESIS
 #define CHAMBER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
@@ -326,6 +323,7 @@
  ********************************************************************************/
 #define INVERTED_HEATER_PINS false
 #define INVERTED_BED_PIN false
+#define INVERTED_CHAMBER_PIN false
 /********************************************************************************/
 
 
