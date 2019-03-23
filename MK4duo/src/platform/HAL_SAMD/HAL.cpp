@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
  * Description: HAL for Arduino SAMD
  *
  * Contributors:
- * Copyright (c) 2018 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_SAMD
  */
@@ -334,8 +334,15 @@ void HAL::Tick() {
 
   if (printer.isStopped()) return;
 
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].setOutputPwm();
+  // Heaters set output PWM
+  #if HOTENDS > 0
+    LOOP_HOTEND() hotends[h].setOutputPwm();
+  #endif
+  #if BEDS > 0
+    LOOP_BED() beds[h].setOutputPwm();
+  #endif
+  #if CHAMBERS > 0
+    LOOP_CHAMBER() chambers[h].setOutputPwm();
   #endif
 
   #if FAN_COUNT > 0
@@ -351,7 +358,7 @@ void HAL::Tick() {
 
   // read analog values
   #if ANALOG_INPUTS > 0
-    LOOP_HEATER() AnalogInputValues[heaters[h].sensor.pin] = (analogRead(heaters[h].sensor.pin) * 16);
+    LOOP_HOTEND() AnalogInputValues[hotends[h].sensor.pin] = (analogRead(hotends[h].sensor.pin) * 16);
     Analog_is_ready = true;
     // Update the raw values if they've been read. Else we could be updating them during reading.
     thermalManager.set_current_temp_raw();

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_AVR
  */
@@ -303,7 +303,7 @@ typedef uint16_t  ptr_int_t;
 #endif
 
 /* 18 cycles maximum latency */
-#define HAL_STEPPER_TIMER_ISR \
+#define HAL_STEPPER_TIMER_ISR() \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
 void TIMER1_COMPA_vect (void) { \
@@ -449,8 +449,7 @@ extern uint16_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks;
 
-extern uint32_t HAL_min_isr_frequency,
-                HAL_frequency_limit[8];
+extern uint32_t HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------
 // Private Variables
@@ -579,10 +578,10 @@ class HAL {
       static void spiBegin();
       static void spiInit(uint8_t spiRate);
       // Write single byte to SPI
-      static void spiSend(byte b);
+      static void spiSend(uint8_t b);
       static void spiSend(const uint8_t* buf, size_t n);
       // Read single byte from SPI
-      static uint8_t spiReceive(uint8_t send=0xFF);
+      static uint8_t spiReceive(void);
       // Read from SPI into buffer
       static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
       // Write from buffer to SPI

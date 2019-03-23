@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,7 @@ flagendstop_t Endstops::flag;
 #if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
 #else
-  float Endstops::soft_endstop_min[XYZ] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-        Endstops::soft_endstop_max[XYZ] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
+  axis_limits_t Endstops::soft_endstop[XYZ];
 #endif
 
 #if ENABLED(X_TWO_ENDSTOPS)
@@ -145,6 +144,15 @@ void Endstops::factory_parameters() {
       (true)
     #endif
   );
+
+  #if NOMECH(DELTA)
+    soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
+    soft_endstop[Y_AXIS].min = mechanics.data.base_pos[Y_AXIS].min;
+    soft_endstop[Z_AXIS].min = mechanics.data.base_pos[Z_AXIS].min;
+    soft_endstop[X_AXIS].max = mechanics.data.base_pos[X_AXIS].max;
+    soft_endstop[Y_AXIS].max = mechanics.data.base_pos[Y_AXIS].max;
+    soft_endstop[Z_AXIS].max = mechanics.data.base_pos[Z_AXIS].max;
+  #endif
 
   #if ENABLED(X_TWO_ENDSTOPS)
     x2_endstop_adj = 0.0f;
@@ -562,7 +570,7 @@ void Endstops::validate_homing_move() {
 /**
  * Constrain the given coordinates to the software endstops.
  */
-void Endstops::clamp_to_software(float target[XYZ]) {
+void Endstops::apply_motion_limits(float target[XYZ]) {
 
   if (!isSoftEndstop()) return;
 
@@ -577,72 +585,76 @@ void Endstops::clamp_to_software(float target[XYZ]) {
     NOMORE(target[Z_AXIS], mechanics.data.height);
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-      NOLESS(target[X_AXIS], soft_endstop_min[X_AXIS]);
-      NOLESS(target[Y_AXIS], soft_endstop_min[Y_AXIS]);
-      NOLESS(target[Z_AXIS], soft_endstop_min[Z_AXIS]);
+      NOLESS(target[X_AXIS], soft_endstop[X_AXIS].min);
+      NOLESS(target[Y_AXIS], soft_endstop[Y_AXIS].min);
+      NOLESS(target[Z_AXIS], soft_endstop[Z_AXIS].min);
     #endif
     #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-      NOMORE(target[X_AXIS], soft_endstop_max[X_AXIS]);
-      NOMORE(target[Y_AXIS], soft_endstop_max[Y_AXIS]);
-      NOMORE(target[Z_AXIS], soft_endstop_max[Z_AXIS]);
+      NOMORE(target[X_AXIS], soft_endstop[X_AXIS].max);
+      NOMORE(target[Y_AXIS], soft_endstop[Y_AXIS].max);
+      NOMORE(target[Z_AXIS], soft_endstop[Z_AXIS].max);
     #endif
   #endif
 }
 
-#if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
+/**
+ * Software endstops can be used to monitor the open end of
+ * an axis that has a hardware endstop on the other end. Or
+ * they can prevent axes from moving past endstops and grinding.
+ *
+ * To keep doing their job as the coordinate system changes,
+ * the software endstop positions must be refreshed to remain
+ * at the same positions relative to the machine.
+ */
+void Endstops::update_software_endstops(const AxisEnum axis) {
 
-  /**
-   * Software endstops can be used to monitor the open end of
-   * an axis that has a hardware endstop on the other end. Or
-   * they can prevent axes from moving past endstops and grinding.
-   *
-   * To keep doing their job as the coordinate system changes,
-   * the software endstop positions must be refreshed to remain
-   * at the same positions relative to the machine.
-   */
-  void Endstops::update_software_endstops(const AxisEnum axis) {
+  #if ENABLED(DUAL_X_CARRIAGE)
 
-    #if ENABLED(DUAL_X_CARRIAGE)
-      if (axis == X_AXIS) {
+    if (axis == X_AXIS) {
 
-        // In Dual X mode tools.hotend_offset[X] is T1's home position
-        float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
+      // In Dual X mode tools.hotend_offset[X] is T1's home position
+      float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
-        if (tools.active_extruder != 0) {
-          // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-          soft_endstop_min[X_AXIS] = X2_MIN_POS;
-          soft_endstop_max[X_AXIS] = dual_max_x;
-        }
-        else if (mechanics.dxc_is_duplicating()) {
-          // In Duplication Mode, T0 can move as far left as X_MIN_POS
-          // but not so far to the right that T1 would move past the end
-          soft_endstop_min[X_AXIS] = mechanics.base_min_pos[X_AXIS];
-          soft_endstop_max[X_AXIS] = MIN(mechanics.base_max_pos[X_AXIS], dual_max_x - mechanics.duplicate_extruder_x_offset);
-        }
-        else {
-          // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-          soft_endstop_min[axis] = mechanics.base_min_pos[axis];
-          soft_endstop_max[axis] = mechanics.base_max_pos[axis];
-        }
+      if (tools.active_extruder != 0) {
+        // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
+        soft_endstop[X_AXIS].min = X2_MIN_POS;
+        soft_endstop[X_AXIS].max = dual_max_x;
       }
-    #else
-      soft_endstop_min[axis] = mechanics.base_min_pos[axis];
-      soft_endstop_max[axis] = mechanics.base_max_pos[axis];
-    #endif
+      else if (mechanics.dxc_is_duplicating()) {
+        // In Duplication Mode, T0 can move as far left as X_MIN_POS
+        // but not so far to the right that T1 would move past the end
+        soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
+        soft_endstop[X_AXIS].max = MIN(mechanics.data.base_pos[X_AXIS].max, dual_max_x - mechanics.duplicate_extruder_x_offset);
+      }
+      else {
+        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
+        soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
+        soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+      }
+    }
 
-    #if ENABLED(DEBUG_FEATURE)
+  #elif MECH(DELTA)
+
+    soft_endstop_radius_2 = sq(mechanics.data.print_radius);
+
+  #else
+
+    soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
+    soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+
+    #if ENABLED(WORKSPACE_OFFSETS)
       if (printer.debugFeature()) {
-        SERIAL_MV("For ", axis_codes[axis]);
-        SERIAL_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
-        SERIAL_MV("\n position_shift = ", mechanics.position_shift[axis]);
-        SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
-        SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
+        DEBUG_MV("For ", axis_codes[axis]);
+        DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
+        DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
+        DEBUG_MV("\n soft_endstop_min = ", soft_endstop[axis].min);
+        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop[axis].max);
       }
     #endif
 
-  }
+  #endif
 
-#endif // ENABLED(WORKSPACE_OFFSETS) || DUAL_X_CARRIAGE
+}
 
 #if ENABLED(PINS_DEBUGGING)
 

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,9 +87,9 @@
 
 #elif ENABLED(miniVIKI) || ENABLED(VIKI2) || ENABLED(ELB_FULL_GRAPHIC_CONTROLLER) || ENABLED(AZSMZ_12864)
 
-  #define ULTRA_LCD           // General LCD support, also 16x2
-  #define DOGLCD              // Support for SPI LCD 128x64 (Controller ST7565R graphic Display Family)
-  #define ULTIMAKERCONTROLLER // as available from the Ultimaker online store.
+  #define ULTRA_LCD
+  #define DOGLCD
+  #define ULTIMAKERCONTROLLER
 
   #if ENABLED(miniVIKI)
     #define LCD_CONTRAST_MIN      75
@@ -339,11 +339,17 @@
 #define HAS_LCD               (ENABLED(NEWPANEL) || HAS_NEXTION_LCD)
 #define HAS_LCD_MENU          ((ENABLED(ULTIPANEL) || ENABLED(NEXTION)) && DISABLED(NO_LCD_MENUS))
 
-#define HAS_ENCODER_ACTION    (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
 #define HAS_ADC_BUTTONS       ENABLED(ADC_KEYPAD)
-#define HAS_DIGITAL_BUTTONS   (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL))
+
+#define HAS_DIGITAL_BUTTONS   (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL)        \
+                              || (BUTTON_EXISTS(EN1) && BUTTON_EXISTS(EN2)) \
+                              || BUTTON_EXISTS(ENC) || BUTTON_EXISTS(BACK)  \
+                              || BUTTON_EXISTS(UP)  || BUTTON_EXISTS(DWN)   \
+                              || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
+
 #define HAS_SHIFT_ENCODER     (!HAS_ADC_BUTTONS && (ENABLED(REPRAPWORLD_KEYPAD) || (HAS_SPI_LCD && DISABLED(NEWPANEL))))
-#define HAS_ENCODER_WHEEL     (!HAS_ADC_BUTTONS && ENABLED(NEWPANEL))
+#define HAS_ENCODER_WHEEL     ((!HAS_ADC_BUTTONS && ENABLED(NEWPANEL)) || (BUTTON_EXISTS(EN1) && BUTTON_EXISTS(EN2)) )
+#define HAS_ENCODER_ACTION    (HAS_LCD_MENU || ENABLED(ULTIPANEL_FEEDMULTIPLY))
 
 // I2C buttons must be read in the main thread
 #define HAS_SLOW_BUTTONS      (ENABLED(LCD_I2C_VIKI) || ENABLED(LCD_I2C_PANELOLU2))
@@ -417,6 +423,16 @@
   #define DRIVER_EXTRUDERS  MIXING_STEPPERS
   #define E_MANUAL          1
   #define HAS_GRADIENT_MIX  (MIXING_STEPPERS == 2)
+#elif ENABLED(PRUSA_MMU2)                 // Multi-Material-Unit V2
+  #define SINGLENOZZLE
+  #undef  EXTRUDERS
+  #undef  DRIVER_EXTRUDERS
+  #define EXTRUDERS         5
+  #define DRIVER_EXTRUDERS  1
+  #define E_MANUAL          5
+  #ifndef TOOLCHANGE_ZRAISE
+    #define TOOLCHANGE_ZRAISE 0
+  #endif
 #else
   #define E_MANUAL          DRIVER_EXTRUDERS
 #endif
@@ -489,11 +505,6 @@
   #endif
   #undef Z_SERVO_ANGLES
   #define Z_SERVO_ANGLES { BLTOUCH_DEPLOY, BLTOUCH_STOW }
-
-  #define BLTOUCH_DEPLOY    10
-  #define BLTOUCH_STOW      90
-  #define BLTOUCH_SELFTEST 120
-  #define BLTOUCH_RESET    160
 
 #endif
 

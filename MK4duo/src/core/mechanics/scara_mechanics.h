@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * scara_mechanics.h
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #pragma once
@@ -31,7 +31,10 @@
 // Struct Scara Settings
 typedef struct : public generic_data_t {
 
-  float segments_per_second;
+  axis_limits_t base_pos[XYZ];
+
+  float         base_home_pos[XYZ],
+                segments_per_second;
 
 } mechanics_data_t;
 
@@ -45,10 +48,7 @@ class Scara_Mechanics : public Mechanics {
 
     static mechanics_data_t data;
 
-    static const float  base_max_pos[XYZ],
-                        base_min_pos[XYZ],
-                        base_home_pos[XYZ],
-                        max_length[XYZ],
+    static const float  max_length[XYZ],
                         L1, L2,
                         L1_2, L1_2_2,
                         L2_2;
@@ -91,6 +91,14 @@ class Scara_Mechanics : public Mechanics {
     static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
+
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
+
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
 
     /**
      * SCARA function

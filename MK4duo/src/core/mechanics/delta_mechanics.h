@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * delta_mechanics.h
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #pragma once
@@ -115,6 +115,14 @@ class Delta_Mechanics : public Mechanics {
     static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
+
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
+
     /**
      * Delta function
      */
@@ -199,7 +207,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Calculate delta, start a line, and set current_position to destination
      */
-    static void prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0);
+    static void prepare_uninterpolated_move_to_destination(const float &fr_mm_s=0.0);
 
     /**
      * Calculate the highest Z position where the

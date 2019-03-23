@@ -62,6 +62,10 @@ uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
   volatile int16_t Mechanics::babystepsTodo[XYZ] = { 0 };
 #endif
 
+/** Private Parameters */
+float   Mechanics::saved_feedrate_mm_s = 0.0;
+int16_t Mechanics::saved_feedrate_percentage = 0;
+
 /**
  * Get homedir for axis
  */
@@ -106,12 +110,11 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
 }
 
 /**
- * line_to_current_position
  * Move the planner to the current position from wherever it last moved
  * (or from wherever it has been told it is located).
  */
-void Mechanics::line_to_current_position() {
-  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, tools.active_extruder);
+void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/) {
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s, tools.active_extruder);
 }
 
 /**
@@ -119,7 +122,7 @@ void Mechanics::line_to_current_position() {
  * Move the planner to the position stored in the destination array, which is
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
-void Mechanics::line_to_destination(float fr_mm_s) {
+void Mechanics::line_to_destination(const float fr_mm_s) {
   planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, tools.active_extruder);
 }
 
@@ -130,7 +133,7 @@ void Mechanics::line_to_destination(float fr_mm_s) {
  * do smaller moves for DELTA, SCARA, mesh moves, etc.
  */
 void Mechanics::prepare_move_to_destination() {
-  endstops.clamp_to_software(destination);
+  endstops.apply_motion_limits(destination);
 
   #if ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.dual_x_carriage_unpark()) return;
@@ -147,6 +150,17 @@ void Mechanics::prepare_move_to_destination() {
   }
 
   set_current_to_destination();
+}
+
+void Mechanics::setup_for_endstop_or_probe_move() {
+  saved_feedrate_mm_s = mechanics.feedrate_mm_s;
+  saved_feedrate_percentage = feedrate_percentage;
+  feedrate_percentage = 100;
+}
+
+void Mechanics::clean_up_after_endstop_or_probe_move() {
+  feedrate_mm_s = saved_feedrate_mm_s;
+  feedrate_percentage = saved_feedrate_percentage;
 }
 
 #if ENABLED(G5_BEZIER)
@@ -175,9 +189,7 @@ void Mechanics::prepare_move_to_destination() {
  * no kinematic translation. Used for homing axes and cartesian/core syncing.
  */
 void Mechanics::sync_plan_position() {
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("sync_plan_position", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("sync_plan_position", current_position);
   planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 }
 void Mechanics::sync_plan_position_e() {
@@ -248,13 +260,11 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
 
   void Mechanics::update_workspace_offset(const AxisEnum axis) {
     workspace_offset[axis] = mechanics.data.home_offset[axis] + position_shift[axis];
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) {
-        SERIAL_MT("For ", axis_codes[axis]);
-        SERIAL_MV(" axis:\n home_offset = ", home_offset[axis]);
-        SERIAL_EMV("\n position_shift = ", position_shift[axis]);
-      }
-    #endif
+    if (printer.debugFeature()) {
+      DEBUG_MT("For ", axis_codes[axis]);
+      DEBUG_MV(" axis:\n home_offset = ", home_offset[axis]);
+      DEBUG_EMV("\n position_shift = ", position_shift[axis]);
+    }
   }
 
   /**
@@ -281,138 +291,6 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   }
 
 #endif
-
-#if ENABLED(DEBUG_FEATURE)
-
-  void Mechanics::log_machine_info() {
-    SERIAL_MSG("Machine Type: ");
-    SERIAL_EM(MACHINE_TYPE);
-
-    SERIAL_MSG("Probe: ");
-    #if ENABLED(PROBE_MANUALLY)
-      SERIAL_EM("PROBE_MANUALLY");
-    #elif ENABLED(Z_PROBE_FIX_MOUNTED)
-      SERIAL_EM("Z_PROBE_FIX_MOUNTED");
-    #elif ENABLED(BLTOUCH)
-      SERIAL_EM("BLTOUCH");
-    #elif ENABLED(Z_PROBE_SLED)
-      SERIAL_EM("Z_PROBE_SLED");
-    #elif ENABLED(Z_PROBE_ALLEN_KEY)
-      SERIAL_EM("ALLEN KEY");
-    #elif HAS_Z_SERVO_PROBE
-      SERIAL_EM("SERVO PROBE");
-    #else
-      SERIAL_EM("NONE");
-    #endif
-
-    SERIAL_SM(ECHO, "Probe Offset");
-    SERIAL_MV(" X:", probe.data.offset[X_AXIS]);
-    SERIAL_MV(" Y:", probe.data.offset[Y_AXIS]);
-    SERIAL_MV(" Z:", probe.data.offset[Z_AXIS]);
-
-    if (probe.data.offset[X_AXIS] > 0)
-      SERIAL_MSG(" (Right");
-    else if (probe.data.offset[X_AXIS] < 0)
-      SERIAL_MSG(" (Left");
-    else if (probe.data.offset[Y_AXIS] != 0)
-      SERIAL_MSG(" (Middle");
-    else
-      SERIAL_MSG(" (Aligned With");
-
-    if (probe.data.offset[Y_AXIS] > 0)
-      SERIAL_MSG("-Back");
-    else if (probe.data.offset[Y_AXIS] < 0)
-      SERIAL_MSG("-Front");
-    else if (probe.data.offset[X_AXIS] != 0)
-      SERIAL_MSG("-Center");
-
-    if (probe.data.offset[Z_AXIS] < 0)
-      SERIAL_MSG(" & Below");
-    else if (probe.data.offset[Z_AXIS] > 0)
-      SERIAL_MSG(" & Above");
-    else
-      SERIAL_MSG(" & Same Z as");
-    SERIAL_EM(" Nozzle)");
-
-    #if HAS_ABL
-      SERIAL_MSG("Auto Bed Leveling: ");
-      #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-        SERIAL_MSG("LINEAR");
-      #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-        SERIAL_MSG("BILINEAR");
-      #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-        SERIAL_MSG("3POINT");
-      #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        SERIAL_MSG("UBL");
-      #endif
-      if (bedlevel.flag.leveling_active) {
-        SERIAL_EM(" (enabled)");
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          if (bedlevel.z_fade_height)
-            SERIAL_MV("Z Fade: ", bedlevel.z_fade_height);
-        #endif
-        #if ABL_PLANAR
-          const float diff[XYZ] = {
-            planner.get_axis_position_mm(X_AXIS) - current_position[X_AXIS],
-            planner.get_axis_position_mm(Y_AXIS) - current_position[Y_AXIS],
-            planner.get_axis_position_mm(Z_AXIS) - current_position[Z_AXIS]
-          };
-          SERIAL_MSG("ABL Adjustment X");
-          if (diff[X_AXIS] > 0) SERIAL_CHR('+');
-          SERIAL_VAL(diff[X_AXIS]);
-          SERIAL_MSG(" Y");
-          if (diff[Y_AXIS] > 0) SERIAL_CHR('+');
-          SERIAL_VAL(diff[Y_AXIS]);
-          SERIAL_MSG(" Z");
-          if (diff[Z_AXIS] > 0) SERIAL_CHR('+');
-          SERIAL_VAL(diff[Z_AXIS]);
-        #else
-          #if ENABLED(AUTO_BED_LEVELING_UBL)
-            SERIAL_MSG("UBL Adjustment Z");
-            const float rz = ubl.get_z_correction(current_position[X_AXIS], current_position[Y_AXIS]);
-          #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            SERIAL_MSG("ABL Adjustment Z");
-            const float rz = abl.bilinear_z_offset(current_position);
-          #endif
-          SERIAL_VAL(ftostr43sign(rz, '+'));
-          #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-            if (bedlevel.z_fade_height) {
-              SERIAL_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS])));
-              SERIAL_MSG("+)");
-            }
-          #endif
-        #endif
-      }
-      else
-        SERIAL_MSG(" (disabled)");
-
-      SERIAL_EOL();
-
-    #elif ENABLED(MESH_BED_LEVELING)
-
-      SERIAL_MSG("Mesh Bed Leveling");
-      if (bedlevel.flag.leveling_active) {
-        SERIAL_EM(" (enabled)");
-        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS])));
-        SERIAL_CHR('+');
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          if (bedlevel.z_fade_height) {
-            SERIAL_MV(" (", ftostr43sign(
-              mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS], bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS]))));
-            SERIAL_MSG("+)");
-          }
-        #endif
-      }
-      else
-        SERIAL_MSG(" (disabled)");
-
-      SERIAL_EOL();
-
-    #endif
-
-  }
-
-#endif // DEBUG_FEATURE
 
 #if ENABLED(BABYSTEPPING)
 

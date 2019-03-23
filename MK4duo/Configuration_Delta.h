@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Delta.h
@@ -53,9 +54,6 @@
  * Feature-settings can be found in Configuration_Feature.h
  * Pins-settings can be found in "Configuration_Pins.h"
  */
-
-#ifndef _CONFIGURATION_DELTA_H_
-#define _CONFIGURATION_DELTA_H_
 
 #define KNOWN_MECH
 
@@ -248,6 +246,9 @@
 // The default connector is SERVO 0.
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
+// BLTouch V3.0 and newer smart series
+//#define BLTOUCH_V3
+//#define BLTOUCH_FORCE_5V_MODE
 
 // Allen key retractable z-probe as seen on many Kossel delta printers - http://reprap.org/wiki/Kossel#Automatic_bed_leveling_probe
 // Deploys by touching z-axis belt. Retracts by pushing the probe down.
@@ -438,8 +439,9 @@
 //#define G26_MESH_VALIDATION
 #define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
 #define MESH_TEST_LAYER_HEIGHT   0.2  // (mm) Default layer height for the G26 Mesh Validation Tool.
-#define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
-#define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
+#define MESH_TEST_HOTEND_TEMP  200    // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
+#define MESH_TEST_BED_TEMP      60    // (c)  Default bed temperature for the G26 Mesh Validation Tool.
+#define G26_XY_FEEDRATE         20    // (mm/s) Feedrate for XY Moves for the G26 Mesh Validation Tool.
 
 /** START Unified Bed Leveling */
 // Sophisticated users prefer no movement of nozzle
@@ -613,5 +615,3 @@
 #define HOTEND_OFFSET_Y {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Y axis
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
-
-#endif /* _CONFIGURATION_DELTA_H_ */

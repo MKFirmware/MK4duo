@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ const PinInfo pin_array[] PROGMEM = {
 #include "../platform/common/pinsdebug.h"  // get the correct support file for this CPU
 
 static void print_input_or_output(const bool isout) {
-  SERIAL_PGM(isout ? PSTR("Output = ") : PSTR("Input  = "));
+  SERIAL_STR(isout ? PSTR("Output = ") : PSTR("Input  = "));
 }
 
 // pretty report with PWM info
@@ -115,12 +115,12 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
       found = true;
       if (!multi_name_pin) {    // report digitial and analog pin number only on the first time through
         sprintf_P(buffer, PSTR("%sPIN: "), start_string);     // digital pin number
-        SERIAL_PGM(buffer);
+        SERIAL_STR(buffer);
         PRINT_PIN(pin);
         PRINT_PORT(pin);
         if (IS_ANALOG(pin)) {
           sprintf_P(buffer, PSTR(" (A%2d)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
-          SERIAL_PGM(buffer);
+          SERIAL_STR(buffer);
         }
         else SERIAL_SP(8);   // add padding if not an analog pin
       }
@@ -149,7 +149,7 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
           {
             if (!GET_ARRAY_IS_DIGITAL(pin)) {
               sprintf_P(buffer, PSTR("Analog in = %5i"), (int)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
-              SERIAL_PGM(buffer);
+              SERIAL_STR(buffer);
             }
             else {
               if (!GET_PINMODE(pin)) {
@@ -183,12 +183,12 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
 
   if (!found) {
     sprintf_P(buffer, PSTR("%sPIN: "), start_string);
-    SERIAL_PGM(buffer);
+    SERIAL_STR(buffer);
     PRINT_PIN(pin);
     PRINT_PORT(pin);
     if (IS_ANALOG(pin)) {
       sprintf_P(buffer, PSTR(" (A%2i)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
-      SERIAL_PGM(buffer);
+      SERIAL_STR(buffer);
     }
     else
       SERIAL_SP(8);   // add padding if not an analog pin
@@ -217,7 +217,7 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
         else {
           if (IS_ANALOG(pin)) {
             sprintf_P(buffer, PSTR("   Analog in = %5d"), (int)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
-            SERIAL_PGM(buffer);
+            SERIAL_STR(buffer);
             SERIAL_MSG("   ");
           }
           else

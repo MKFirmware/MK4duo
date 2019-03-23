@@ -656,7 +656,10 @@ void LcdUI::update() {
       }
       else {
         card.unmount();
-        if (old_sd_status != 2) set_status_P(PSTR(MSG_SD_REMOVED));
+        if (old_sd_status != 2) {
+          set_status_P(PSTR(MSG_SD_REMOVED));
+          if (!on_status_screen()) return_to_status();
+        }
       }
 
       refresh();
@@ -998,6 +1001,11 @@ void LcdUI::update() {
       #elif HAS_ADC_BUTTONS
 
         buttons = 0;
+
+      #endif
+
+      #if HAS_ADC_BUTTONS
+
         if (keypad_buttons == 0) {
           const uint8_t b = get_ADC_keyValue();
           if (WITHIN(b, 1, 8)) keypad_buttons = _BV(b - 1);
@@ -1077,7 +1085,25 @@ void LcdUI::update() {
 /////////////// Status Line ////////////////
 ////////////////////////////////////////////
 
-void LcdUI::finishstatus(const bool persist) {
+#if ENABLED(STATUS_MESSAGE_SCROLLING)
+
+  void LcdUI::advance_status_scroll() {
+    // Advance by one UTF8 code-word
+    if (status_scroll_offset < utf8_strlen(status_message))
+      while (!START_OF_UTF8_CHAR(status_message[++status_scroll_offset]));
+    else
+      status_scroll_offset = 0;
+  }
+
+  char* LcdUI::status_and_len(uint8_t &len) {
+    char *out = status_message + status_scroll_offset;
+    len = utf8_strlen(out);
+    return out;
+  }
+
+#endif
+
+void LcdUI::finish_status(const bool persist) {
 
   #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
     UNUSED(persist);
@@ -1125,7 +1151,7 @@ void LcdUI::set_status(const char * const message, const bool persist) {
   strncpy(status_message, message, maxLen);
   status_message[maxLen] = '\0';
 
-  finishstatus(persist);
+  finish_status(persist);
 }
 
 #include <stdarg.h>
@@ -1137,7 +1163,7 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
   va_start(args, fmt);
   vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, fmt, args);
   va_end(args);
-  finishstatus(level > 0);
+  finish_status(level > 0);
 }
 
 void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
@@ -1164,7 +1190,7 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   strncpy_P(status_message, message, maxLen);
   status_message[maxLen] = '\0';
 
-  finishstatus(level > 0);
+  finish_status(level > 0);
 }
 
 void LcdUI::set_alert_status_P(PGM_P const message) {
@@ -1223,12 +1249,12 @@ void LcdUI::pause_print() {
   #endif
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
-    lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, tools.active_extruder);
-    commands.enqueue_and_echo_P(PSTR("M25 P"));
+    lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
+    commands.enqueue_and_echo_P(PSTR("M25 P\nM24"));
   #elif HAS_SD_SUPPORT
     commands.enqueue_and_echo_P(PSTR("M25"));
   #else
-    SERIAL_L(REQUESTPAUSE);
+    host_action.pause();
   #endif
 
   planner.synchronize();
@@ -1239,7 +1265,7 @@ void LcdUI::resume_print() {
   #if HAS_SD_SUPPORT
     commands.enqueue_and_echo_P(PSTR("M24"));
   #else
-    SERIAL_L(REQUESTCONTINUE);
+    host_action.resume();
   #endif
 }
 
@@ -1248,10 +1274,13 @@ void LcdUI::stop_print() {
     printer.setWaitForHeatUp(false);
     printer.setWaitForUser(false);
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
+    else
   #endif
-  SERIAL_L(REQUESTSTOP);
+      host_action.cancel();
+
   set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
   return_to_status();
+
 }
 
 #endif // HAS_SPI_LCD

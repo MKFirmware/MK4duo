@@ -29,7 +29,12 @@
 #pragma once
 
 // Struct Cartesian Settings
-typedef struct : public generic_data_t {} mechanics_data_t;
+typedef struct : public generic_data_t {
+
+  axis_limits_t base_pos[XYZ];
+  float         base_home_pos[XYZ];
+
+} mechanics_data_t;
 
 class Cartesian_Mechanics : public Mechanics {
 
@@ -40,11 +45,6 @@ class Cartesian_Mechanics : public Mechanics {
   public: /** Public Parameters */
 
     static mechanics_data_t data;
-
-    static const float  base_max_pos[XYZ],
-                        base_min_pos[XYZ],
-                        base_home_pos[XYZ],
-                        max_length[XYZ];
 
     #if ENABLED(DUAL_X_CARRIAGE)
       static DualXModeEnum  dual_x_carriage_mode;
@@ -83,6 +83,14 @@ class Cartesian_Mechanics : public Mechanics {
     static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
+
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
+
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
+      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    }
 
     /**
      * Home all axes according to settings
@@ -156,6 +164,7 @@ class Cartesian_Mechanics : public Mechanics {
       static void print_M204();
       static void print_M205();
       static void print_M206();
+      static void print_M228();
     #endif
 
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,10 @@
 #ifndef _FIL_RUNOUT_SANITYCHECK_H_
 #define _FIL_RUNOUT_SANITYCHECK_H_
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #if DISABLED(FIL_RUNOUT_0_LOGIC)
+#if HAS_FILAMENT_SENSOR
+  #if !PIN_EXISTS(FIL_RUNOUT_0)
+    #error "DEPENDENCY ERROR: You have to set FIL_RUNOUT_0_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR."
+  #elif DISABLED(FIL_RUNOUT_0_LOGIC)
     #error "DEPENDENCY ERROR: Missing setting FIL_RUNOUT_0_LOGIC."
   #elif DISABLED(FIL_RUNOUT_0_PULLUP)
     #error "DEPENDENCY ERROR: Missing setting FIL_RUNOUT_0_PULLUP."
@@ -42,9 +44,13 @@
   #elif DISABLED(ADVANCED_PAUSE_FEATURE)
     static_assert(NULL == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "DEPENDENCY ERROR: ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   #endif
+#else
+  #if ENABLED(EXTRUDER_ENCODER_CONTROL)
+    #error "DEPENDENCY ERROR: FILAMENT_RUNOUT_SENSOR is require to use EXTRUDER_ENCODER_CONTROL"
+  #elif ENABLED(FILAMENT_RUNOUT_DAV_SYSTEM)
+    #error "DEPENDENCY ERROR: FILAMENT_RUNOUT_SENSOR is require to use FILAMENT_RUNOUT_DAV_SYSTEM"
+  #endif
 #endif
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !PIN_EXISTS(FIL_RUNOUT_0)
-  #error "DEPENDENCY ERROR: You have to set FIL_RUNOUT_0_PIN to a valid pin if you enable FILAMENT_RUNOUT_SENSOR."
-#endif
+
 
 #endif /* _FIL_RUNOUT_SANITYCHECK_H_ */

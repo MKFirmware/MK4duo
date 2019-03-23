@@ -1,3 +1,34 @@
+### Version 4.3.9
+* Add support 6 Hotends, 4 Beds and 4 Chambers
+* Add command M228 for setting axis limit min/max
+* Add Prompt support for host
+* Rewrite filament runout
+* Add Prusa MMU2 Support
+* Add support thermocouples for bed and hotend.
+* M301 - Set PID parameters P I D and C.
+*   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+*   T[int] 0-3 For Select Beds or Chambers (default 0)
+*   P[float] Kp term, I[float] Ki term, D[float] Kd term
+*   With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[int] LPQ length
+* M303 - PID relay autotune.
+*   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+*   T[int] 0-3 For Select Beds or Chambers (default 0)
+*   S[temperature] sets the target temperature (default target temperature = 150C), C[cycles], U[Apply result],
+*   R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
+* M305 - Set thermistor and ADC parameters.
+*   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+*   T[int] 0-3 For Select Beds or Chambers (default 0)
+*   A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
+*   L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin
+*   Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
+* M306 - Set Heaters parameters.
+*   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+*   T[int] 0-3 For Select Beds or Chambers (default 0)
+*   A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
+*   L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
+*   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
+* Fix and clear code
+
 ### Version 4.3.8
 * Add TMC settings to menu LCD
 * Add Adaptive Fan speed
@@ -8,8 +39,8 @@
 * Fix Mixer color routine
 * Add M166 Set the Gradient Mix for the mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
 * Fix Scara
-* Add Service timer
-* Fix timer stepper bug with TMC2130
+* Add Service Timer
+* Fix timer stepper with TMC2130 bug
 * Clear code
 
 ### Version 4.3.7

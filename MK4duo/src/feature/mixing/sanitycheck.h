@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@
   #if MIXING_STEPPERS < 2
     #error "DEPENDENCY ERROR: You must set MIXING_STEPPERS >= 2 for a mixing extruder."
   #endif
-  #if ENABLED(FILAMENT_SENSOR)
-    #error "DEPENDENCY ERROR: COLOR_MIXING_EXTRUDER is incompatible with FILAMENT_SENSOR. Comment out this line to use it anyway."
+  #if ENABLED(FILAMENT_WIDTH_SENSOR)
+    #error "DEPENDENCY ERROR: COLOR_MIXING_EXTRUDER is incompatible with FILAMENT_WIDTH_SENSOR. Comment out this line to use it anyway."
   #endif
 #endif
 

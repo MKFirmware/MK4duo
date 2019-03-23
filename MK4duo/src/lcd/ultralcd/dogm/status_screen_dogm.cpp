@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 #define EXTRAS_BASELINE (40 + INFO_FONT_ASCENT)
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
-#define DO_DRAW_BED (HAS_TEMP_BED && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
+#define DO_DRAW_BED (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
 #define DO_DRAW_FAN (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
 #define ANIM_HOTEND (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
 #define ANIM_BED    (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
@@ -74,19 +74,19 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 #define MAX_HOTEND_DRAW     MIN(HOTENDS, ((LCD_PIXEL_WIDTH - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
 #define STATUS_HEATERS_BOT  (STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1)
 
-FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
+FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
-  #if HAS_TEMP_BED
-    const bool isBed = (heater == BED_INDEX);
+  #if BEDS > 0
+    const bool isBed = (act->data.type == IS_BED);
     #define IFBED(A,B) (isBed ? (A) : (B))
   #else
     #define IFBED(A,B) (B)
   #endif
 
-  const bool    isHeat  = IFBED(BED_ALT(), HOTEND_ALT(heater));
-  const uint8_t tx      = IFBED(STATUS_BED_TEXT_X, STATUS_HOTEND_TEXT_X(heater));
-  const float   temp    = heaters[heater].current_temperature,
-                target  = float(heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature);
+  const bool    isHeat  = IFBED(BED_ALT(), HOTEND_ALT(act->data.ID));
+  const uint8_t tx      = IFBED(STATUS_BED_TEXT_X, STATUS_HOTEND_TEXT_X(act->data.ID));
+  const float   temp    = act->current_temperature,
+                target  = float(act->isIdle() ? act->idle_temperature : act->target_temperature);
 
   #if DISABLED(STATUS_HOTEND_ANIM)
     #define STATIC_HOTEND true
@@ -116,14 +116,14 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
     static const unsigned char* const status_hotend_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, OFF_BMP(1), OFF_BMP(2), OFF_BMP(3), OFF_BMP(4));
     #if ANIM_HOTEND
       static const unsigned char* const status_hotend_on_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, ON_BMP(1), ON_BMP(2), ON_BMP(3), ON_BMP(4));
-      #define HOTEND_BITMAP(N,S) (unsigned char*)pgm_read_ptr((S) ? &status_hotend_on_gfx[(N) % (STATUS_HOTEND_BITMAPS)] : &status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
+      #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr((S) ? &status_hotend_on_gfx[(N) % (STATUS_HOTEND_BITMAPS)] : &status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
     #else
-      #define HOTEND_BITMAP(N,S) (unsigned char*)pgm_read_ptr(&status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
+      #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr(&status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
     #endif
   #elif ANIM_HOTEND
-    #define HOTEND_BITMAP(N,S) ((S) ? ON_BMP() : OFF_BMP())
+    #define HOTEND_BITMAP(N,S)    ((S) ? ON_BMP() : OFF_BMP())
   #else
-    #define HOTEND_BITMAP(N,S) status_hotend_a_bmp
+    #define HOTEND_BITMAP(N,S)    status_hotend_a_bmp
   #endif
 
   if (PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_BOT)) {
@@ -138,16 +138,16 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
     #if ENABLED(STATUS_HOTEND_ANIM)
       // Draw hotend bitmap, either whole or split by the heating percent
       if (IFBED(0, 1)) {
-        const uint8_t hx = STATUS_HOTEND_X(heater), bw = STATUS_HOTEND_BYTEWIDTH(heater);
+        const uint8_t hx = STATUS_HOTEND_X(act->data.ID), bw = STATUS_HOTEND_BYTEWIDTH(act->data.ID);
         #if ENABLED(STATUS_HEAT_PERCENT)
           if (isHeat && tall <= BAR_TALL) {
             const uint8_t ph = STATUS_HEATERS_HEIGHT - 1 - tall;
-            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, ph, HOTEND_BITMAP(heater, false));
-            u8g.drawBitmapP(hx, STATUS_HEATERS_Y + ph, bw, tall + 1, HOTEND_BITMAP(heater, true) + ph * bw);
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, ph, HOTEND_BITMAP(act->data.ID, false));
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y + ph, bw, tall + 1, HOTEND_BITMAP(act->data.ID, true) + ph * bw);
           }
           else
         #endif
-            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, STATUS_HEATERS_HEIGHT, HOTEND_BITMAP(heater, isHeat));
+            u8g.drawBitmapP(hx, STATUS_HEATERS_Y, bw, STATUS_HEATERS_HEIGHT, HOTEND_BITMAP(act->data.ID, isHeat));
       }
     #endif
 
@@ -155,7 +155,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
     #if ENABLED(STATUS_HEAT_PERCENT)
 
       if (IFBED(true, STATIC_HOTEND) && isHeat) {
-        const uint8_t bx = IFBED(STATUS_BED_X + STATUS_BED_WIDTH, STATUS_HOTEND_X(heater) + STATUS_HOTEND_WIDTH(heater)) + 1;
+        const uint8_t bx = IFBED(STATUS_BED_X + STATUS_BED_WIDTH, STATUS_HOTEND_X(act->data.ID) + STATUS_HOTEND_WIDTH(act->data.ID)) + 1;
         u8g.drawFrame(bx, STATUS_HEATERS_Y, 3, STATUS_HEATERS_HEIGHT);
         if (tall) {
           const uint8_t ph = STATUS_HEATERS_HEIGHT - 1 - tall;
@@ -169,7 +169,7 @@ FORCE_INLINE void _draw_heater_status(const uint8_t heater, const bool blink) {
   } // PAGE_CONTAINS
 
   if (PAGE_UNDER(7)) {
-    const bool  is_idle = heaters[heater].isIdle();
+    const bool  is_idle = act->isIdle();
     if (blink || !is_idle) _draw_centered_temp(target + 0.5f, tx, 7);
   }
 
@@ -217,10 +217,10 @@ void LcdUI::draw_status_screen() {
     #if ANIM_HOTEND || ANIM_BED
       uint8_t new_bits = 0;
       #if ANIM_HOTEND
-        LOOP_HOTEND() if (heaters[h].isHeating()) SBI(new_bits, h);
+        LOOP_HOTEND() if (hotends[h].isHeating()) SBI(new_bits, h);
       #endif
       #if ANIM_BED
-        if (heaters[BED_INDEX].isHeating()) SBI(new_bits, 7);
+        if (beds[0].isHeating()) SBI(new_bits, 7);
       #endif
       heat_bits = new_bits;
     #endif
@@ -274,11 +274,11 @@ void LcdUI::draw_status_screen() {
     if (PAGE_UNDER(6 + 1 + 12 + 1 + 6 + 1)) {
       // Hotends
       for (uint8_t h = 0; h < MAX_HOTEND_DRAW; ++h)
-        _draw_heater_status(h, blink);
+        _draw_heater_status(&hotends[h], blink);
 
       // Heated bed
-      #if HOTENDS < 4 && HAS_TEMP_BED
-        _draw_heater_status(BED_INDEX, blink);
+      #if HOTENDS < 4 && HAS_TEMP_BED0
+        _draw_heater_status(&beds[0], blink);
       #endif
 
       // Fan, if a bitmap was provided
@@ -573,31 +573,24 @@ void LcdUI::draw_status_message(const bool blink) {
     if (slen <= LCD_WIDTH) {
       // The string fits within the line. Print with no scrolling
       lcd_put_u8str(status_message);
-      for (; slen < LCD_WIDTH; ++slen) lcd_put_wchar(' ');
+      while (slen < LCD_WIDTH) { lcd_put_wchar(' '); ++slen; }
     }
     else {
       // String is longer than the available space
 
       // Get a pointer to the next valid UTF8 character
-      const char *stat = status_message + status_scroll_offset;
+      // and the string remaining length
+      uint8_t rlen;
+      const char *stat = status_and_len(rlen);
+      lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);
 
-      // Get the string remaining length
-      const uint8_t rlen = utf8_strlen(stat);
-
-      if (rlen >= LCD_WIDTH) {
-        // The remaining string fills the screen - Print it
-        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);
-      }
-      else {
-        // The remaining string does not completely fill the screen
-        lcd_put_u8str_max(stat, LCD_PIXEL_WIDTH);         // The string leaves space
-        uint8_t chars = LCD_WIDTH - rlen;                 // Amount of space left in characters
-
-        lcd_put_wchar('.');                               // Always at 1+ spaces left, draw a dot
-        if (--chars) {                                    // Draw a second dot if there's space
+      // If the remaining string doesn't completely fill the screen
+      if (rlen < LCD_WIDTH) {
+        lcd_put_wchar('.');                     // Always at 1+ spaces left, draw a dot
+        uint8_t chars = LCD_WIDTH - rlen;       // Amount of space left in characters
+        if (--chars) {                          // Draw a second dot if there's space
           lcd_put_wchar('.');
-          if (--chars) {
-            // Print a second copy of the message
+          if (--chars) {                        // Print a second copy of the message
             lcd_put_u8str_max(status_message, LCD_PIXEL_WIDTH - (rlen + 2) * (MENU_FONT_WIDTH));
             lcd_put_wchar(' ');
           }
@@ -605,15 +598,7 @@ void LcdUI::draw_status_message(const bool blink) {
       }
       if (last_blink != blink) {
         last_blink = blink;
-
-        // Adjust by complete UTF8 characters
-        if (status_scroll_offset < slen) {
-          status_scroll_offset++;
-          while (!START_OF_UTF8_CHAR(status_message[status_scroll_offset]))
-            status_scroll_offset++;
-        }
-        else
-          status_scroll_offset = 0;
+        advance_status_scroll();
       }
     }
 

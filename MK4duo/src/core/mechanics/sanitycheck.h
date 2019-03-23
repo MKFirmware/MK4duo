@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,27 +164,29 @@
 #endif
 
 
-// Max/Min position
-#if DISABLED(X_MAX_POS)
-  #error "DEPENDENCY ERROR: Missing setting X_MAX_POS."
-#endif
-#if DISABLED(X_MIN_POS)
-  #error "DEPENDENCY ERROR: Missing setting X_MIN_POS."
-#endif
-#if DISABLED(Y_MAX_POS)
-  #error "DEPENDENCY ERROR: Missing setting Y_MAX_POS."
-#endif
-#if DISABLED(Y_MIN_POS)
-  #error "DEPENDENCY ERROR: Missing setting Y_MIN_POS."
-#endif
-#if DISABLED(Z_MAX_POS)
-  #error "DEPENDENCY ERROR: Missing setting Z_MAX_POS."
-#endif
-#if DISABLED(Z_MIN_POS)
-  #error "DEPENDENCY ERROR: Missing setting Z_MIN_POS."
-#endif
-#if DISABLED(E_MIN_POS)
-  #error "DEPENDENCY ERROR: Missing setting E_MIN_POS."
+// Max/Min position for nomech DELTA
+#if NOMECH(DELTA)
+  #if DISABLED(X_MAX_POS)
+    #error "DEPENDENCY ERROR: Missing setting X_MAX_POS."
+  #endif
+  #if DISABLED(X_MIN_POS)
+    #error "DEPENDENCY ERROR: Missing setting X_MIN_POS."
+  #endif
+  #if DISABLED(Y_MAX_POS)
+    #error "DEPENDENCY ERROR: Missing setting Y_MAX_POS."
+  #endif
+  #if DISABLED(Y_MIN_POS)
+    #error "DEPENDENCY ERROR: Missing setting Y_MIN_POS."
+  #endif
+  #if DISABLED(Z_MAX_POS)
+    #error "DEPENDENCY ERROR: Missing setting Z_MAX_POS."
+  #endif
+  #if DISABLED(Z_MIN_POS)
+    #error "DEPENDENCY ERROR: Missing setting Z_MIN_POS."
+  #endif
+  #if DISABLED(E_MIN_POS)
+    #error "DEPENDENCY ERROR: Missing setting E_MIN_POS."
+  #endif
 #endif
 
 

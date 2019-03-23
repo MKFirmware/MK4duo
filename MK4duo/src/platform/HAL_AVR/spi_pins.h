@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,11 @@
  *
  */
 #pragma once
+
+#undef SCK
+#undef MISO
+#undef MOSI
+#undef SS
 
 #if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
   #define MOSI_PIN            51
@@ -52,3 +57,8 @@
   #define SCK_PIN             10
   #define SS_PIN              16
 #endif
+
+#define SCK   SCK_PIN
+#define MISO  MISO_PIN
+#define MOSI  MOSI_PIN
+#define SS    SS_PIN

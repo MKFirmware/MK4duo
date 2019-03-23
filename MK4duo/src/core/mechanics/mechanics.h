@@ -211,6 +211,11 @@ class Mechanics {
       static volatile int16_t babystepsTodo[XYZ];
     #endif
 
+  private: /** Private Parameters */
+
+    static float saved_feedrate_mm_s;
+    static int16_t saved_feedrate_percentage;
+
   public: /** Public Function */
 
     /**
@@ -256,18 +261,17 @@ class Mechanics {
     FORCE_INLINE static void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
 
     /**
-     * line_to_current_position
      * Move the planner to the current position from wherever it last moved
      * (or from wherever it has been told it is located).
      */
-    static void line_to_current_position();
+    static void line_to_current_position(const float &fr_mm_s=feedrate_mm_s);
 
     /**
      * line_to_destination
      * Move the planner to the position stored in the destination array, which is
      * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
      */
-    static void line_to_destination(float fr_mm_s);
+    static void line_to_destination(const float fr_mm_s);
     FORCE_INLINE static void line_to_destination() { line_to_destination(feedrate_mm_s); }
 
     /**
@@ -277,6 +281,13 @@ class Mechanics {
      * do smaller moves for DELTA, SCARA, mesh moves, etc.
      */
     static void prepare_move_to_destination();
+
+    /**
+     * Prepare to do endstop or probe moves with custom feedrates.
+     *  - Save / restore current feedrate and multiplier
+     */
+    static void setup_for_endstop_or_probe_move();
+    static void clean_up_after_endstop_or_probe_move();
 
     /**
      * Compute a Bézier curve using the De Casteljau's algorithm (see
@@ -335,10 +346,6 @@ class Mechanics {
           );
         }
       }
-    #endif
-
-    #if ENABLED(DEBUG_FEATURE)
-      static void log_machine_info();
     #endif
 
     #if ENABLED(BABYSTEPPING)

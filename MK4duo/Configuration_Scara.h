@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Scara.h
@@ -55,9 +56,6 @@
  * Feature-settings can be found in Configuration_Feature.h
  * Pins-settings can be found in "Configuration_Pins.h"
  */
-
-#ifndef _CONFIGURATION_SCARA_H_
-#define _CONFIGURATION_SCARA_H_
 
 #define KNOWN_MECH
 
@@ -201,6 +199,9 @@
 // The default connector is SERVO 0.
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
+// BLTouch V3.0 and newer smart series
+//#define BLTOUCH_V3
+//#define BLTOUCH_FORCE_5V_MODE
 
 // Enable if you have a Z probe mounted on a sled like those designed by Charles Bell.
 //#define Z_PROBE_SLED
@@ -657,5 +658,3 @@
 #define HOTEND_OFFSET_Y {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Y axis
 #define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
 /*****************************************************************************************/
-
-#endif /* _CONFIGURATION_SCARA_H_ */

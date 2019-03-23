@@ -127,7 +127,18 @@ class LcdUI {
         static constexpr int8_t manual_move_e_index = 0;
       #endif
 
-      static int16_t preheat_hotend_temp[3], preheat_bed_temp[3], preheat_fan_speed[3];
+      #if HOTENDS > 0
+        static int16_t preheat_hotend_temp[3];
+      #endif
+      #if BEDS > 0
+        static int16_t preheat_bed_temp[3];
+      #endif
+      #if CHAMBERS > 0
+        static int16_t preheat_chamber_temp[3];
+      #endif
+      #if FAN_COUNT > 0
+        static int16_t preheat_fan_speed[3];
+      #endif
 
     #elif HAS_SPI_LCD
 
@@ -196,6 +207,11 @@ class LcdUI {
 
         #if ENABLED(SHOW_BOOTSCREEN)
           static void show_bootscreen();
+        #endif
+
+        #if ENABLED(STATUS_MESSAGE_SCROLLING)
+          static void advance_status_scroll();
+          static char* status_and_len(uint8_t &len);
         #endif
 
         #if HAS_GRAPHICAL_LCD
@@ -371,9 +387,9 @@ class LcdUI {
 
     #if HAS_SPI_LCD
       static void draw_status_screen();
-      static void finishstatus(const bool persist);
+      static void finish_status(const bool persist);
     #else
-      static inline void finishstatus(const bool persist) { UNUSED(persist); refresh(); }
+      static inline void finish_status(const bool persist) { UNUSED(persist); refresh(); }
     #endif
 
 };

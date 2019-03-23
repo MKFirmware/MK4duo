@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,11 +295,11 @@ class MenuItem_bool {
   ++_thisItemNr; \
 } while(0)
 
-#define MENU_ITEM_ADDON_START(X) \
+#define MENU_ITEM_ADDON_START(X) do{ \
   if (lcdui.should_draw() && _menuLineNr == _thisItemNr - 1) { \
     SETCURSOR(X, _lcdLineNr)
 
-#define MENU_ITEM_ADDON_END() } (0)
+#define MENU_ITEM_ADDON_END() } }while(0)
 
 #define STATIC_ITEM(LABEL, ...)                               STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
 
@@ -353,10 +353,10 @@ void menu_stop_print();
 void lcd_move_z();
 void lcd_draw_homing();
 
-void watch_temp_callback_E0();
-void watch_temp_callback_E1();
-void watch_temp_callback_E2();
-void watch_temp_callback_E3();
+void watch_temp_callback_H0();
+void watch_temp_callback_H1();
+void watch_temp_callback_H2();
+void watch_temp_callback_H3();
 void watch_temp_callback_E4();
 void watch_temp_callback_E5();
 void watch_temp_callback_bed();
@@ -406,6 +406,12 @@ void watch_temp_callback_cooler();
 
 #if HAS_SD_RESTART
   void menu_sdcard_restart();
+#endif
+
+#if HAS_MMU2
+  void menu_mmu2();
+  void mmu2_M600();
+  uint8_t mmu2_chooseFilament();
 #endif
 
 #endif // HAS_LCD_MENU

@@ -42,7 +42,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include <binary.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -60,6 +59,7 @@
 #include "src/lib/types.h"
 #include "src/lib/macros.h"
 #include "src/lib/enum.h"
+#include "src/lib/restorer.h"
 #include "src/lib/circular_queue.h"
 #include "src/lib/driver_types.h"
 #include "src/lib/watch.h"
@@ -121,7 +121,6 @@
 #include "src/core/tools/tools.h"
 #include "src/core/tools/nozzle.h"
 #include "src/core/fan/fan.h"
-#include "src/core/commands/commands.h"
 #include "src/core/eeprom/eeprom.h"
 #include "src/core/printer/printer.h"
 #include "src/core/planner/planner.h"
@@ -132,6 +131,9 @@
 #include "src/core/temperature/temperature.h"
 #include "src/core/printcounter/printcounter.h"
 #include "src/core/sound/sound.h"
+
+// Command modules
+#include "src/commands/commands.h"
 
 // Language modules
 #include "src/language/language.h"
@@ -161,6 +163,7 @@
 #include "src/feature/tmc/tmc.h"
 #include "src/feature/power/power.h"
 #include "src/feature/mixing/mixing.h"
+#include "src/feature/mmu2/mmu2.h"
 #include "src/feature/filament/filament.h"
 #include "src/feature/filamentrunout/filamentrunout.h"
 #include "src/feature/fwretract/fwretract.h"

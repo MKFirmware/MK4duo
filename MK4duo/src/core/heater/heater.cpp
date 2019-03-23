@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,16 @@
 #include "sensor/thermistor.h"
 
 #if HEATER_COUNT > 0
-  Heater heaters[HEATER_COUNT];
-#endif
+
+Heater hotends[HOTENDS];
+Heater beds[BEDS];
+Heater chambers[CHAMBERS];
 
 void Heater::init() {
 
   // Reset valor
   pwm_value             = 0;
+  consecutive_low_temp  = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
   current_temperature   = 25.0;
@@ -55,7 +58,7 @@ void Heater::init() {
 
   if (data.pin > 0) HAL::pinMode(data.pin, (isHWInverted()) ? OUTPUT_HIGH : OUTPUT_LOW);
 
-  #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+  #if HAS_MAX6675 || HAS_MAX31855
     if (sensor.type == -2 || sensor.type == -1) {
       HAL::pinMode(sensor.pin, OUTPUT_HIGH);
     }
@@ -76,7 +79,7 @@ void Heater::setTarget(const int16_t celsius) {
   else {
     setActive(true);
     if (isActive()) {
-      target_temperature = MIN(celsius, data.maxtemp - 15);
+      target_temperature = MIN(celsius, data.maxtemp - 10);
       thermal_runaway_state = target_temperature > 0 ? TRFirstHeating : TRInactive;
       start_watching();
     }
@@ -94,7 +97,8 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
   #endif
 
   float     old_temp            = 9999.0;
-  bool      wants_to_cool       = false;
+  bool      wants_to_cool       = false,
+            first_loop          = true;
   millis_t  now,
             next_cool_check_ms  = 0;
 
@@ -132,7 +136,10 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
 
       if (!residency_start_ms) {
         // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-        if (temp_diff < TEMP_WINDOW) residency_start_ms = now;
+        if (temp_diff < TEMP_WINDOW) {
+          residency_start_ms = now;
+          if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
+        }
       }
       else if (temp_diff > TEMP_HYSTERESIS) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
@@ -152,10 +159,12 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
       }
     }
 
+    first_loop = false;
+
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
   if (printer.isWaitForHeatUp()) {
-    lcdui.set_status_P(no_wait_for_cooling ? PSTR(MSG_HEATING_COMPLETE) : PSTR(MSG_COOLING_COMPLETE));
+    lcdui.reset_status();
     #if ENABLED(PRINTER_EVENT_LEDS)
       ledevents.onHeatingDone();
     #endif
@@ -205,60 +214,19 @@ void Heater::setOutputPwm() {
   HAL::analogWrite(data.pin, new_pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
 }
 
-void Heater::print_M305() {
-  const int8_t heater_id = data.type == 0 ? data.ID : -data.type;
-  SERIAL_LM(CFG, "Heater Sensor parameters: H<Heater> P<Pin> T<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
-  SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
-  SERIAL_MV(" P", sensor.pin);
-  SERIAL_MV(" T", sensor.type);
-  if (WITHIN(sensor.type, 1, 9)) {
-    SERIAL_MV(" A", sensor.r25, 1);
-    SERIAL_MV(" B", sensor.beta, 1);
-    SERIAL_MV(" C", sensor.shC, 10);
-    SERIAL_MV(" R", sensor.pullupR, 1);
-    SERIAL_MV(" L", sensor.adcLowOffset);
-    SERIAL_MV(" O", sensor.adcHighOffset);
-  }
-  SERIAL_EOL();
-}
-
-void Heater::print_M306() {
-  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
-  SERIAL_LM(CFG, "Heater parameters: H<Heater> P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> T<Thermal Protection 0-1>:");
-  SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
-  SERIAL_MV(" P", data.pin);
-  SERIAL_MV(" A", pid.DriveMin);
-  SERIAL_MV(" B", pid.DriveMax);
-  SERIAL_MV(" C", pid.Max);
-  SERIAL_MV(" L", data.mintemp);
-  SERIAL_MV(" O", data.maxtemp);
-  SERIAL_MV(" U", isUsePid());
-  SERIAL_MV(" I", isHWInverted());
-  SERIAL_MV(" T", isThermalProtection());
-  SERIAL_EOL();
-}
-
 void Heater::print_M301() {
   if (isUsePid()) {
-    SERIAL_SM(CFG, "Heater PID parameters: H<Heater> P<Proportional> I<Integral> D<Derivative>");
+    const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+    SERIAL_SM(CFG, "Heater PID parameters: H<Heater>");
+    if (heater_id < 0) SERIAL_MSG(" T<tools>");
+    SERIAL_MSG(" P<Proportional> I<Integral> D<Derivative>");
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       if (data.type == IS_HOTEND) SERIAL_MSG(" C<Kc term> L<LPQ length>");
     #endif
     SERIAL_CHR(':');
     SERIAL_EOL();
-    SERIAL_SM(CFG, "  M301 H");
-    #if HOTENDS > 0
-      if (data.type == IS_HOTEND) SERIAL_VAL(data.ID);
-    #endif
-    #if HAS_TEMP_BED
-      if (data.type == IS_BED) SERIAL_VAL(-1);
-    #endif
-    #if HAS_TEMP_CHAMBER
-      if (data.type == IS_CHAMBER) SERIAL_VAL(-2);
-    #endif
-    #if HAS_TEMP_COOLER
-      if (data.type == IS_COOLER) SERIAL_VAL(-3);
-    #endif
+    SERIAL_SMV(CFG, "  M301 H", int(heater_id));
+    if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
     SERIAL_MV(" P", pid.Kp);
     SERIAL_MV(" I", pid.Ki);
     SERIAL_MV(" D", pid.Kd);
@@ -272,10 +240,53 @@ void Heater::print_M301() {
   }
 }
 
-#if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
+void Heater::print_M305() {
+  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+  SERIAL_SM(CFG, "Heater Sensor parameters: H<Heater>");
+  if (heater_id < 0) SERIAL_MSG(" T<tools>");
+  SERIAL_EM(" P<Pin> S<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
+  SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
+  if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
+  SERIAL_MV(" P", sensor.pin);
+  SERIAL_MV(" S", sensor.type);
+  if (WITHIN(sensor.type, 1, 9)) {
+    SERIAL_MV(" A", sensor.r25, 1);
+    SERIAL_MV(" B", sensor.beta, 1);
+    SERIAL_MV(" C", sensor.shC, 10);
+    SERIAL_MV(" R", sensor.pullupR, 1);
+    SERIAL_MV(" L", sensor.adcLowOffset);
+    SERIAL_MV(" O", sensor.adcHighOffset);
+  }
+  SERIAL_EOL();
+}
+
+void Heater::print_M306() {
+  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+  SERIAL_SM(CFG, "Heater parameters: H<Heater>");
+  if (heater_id < 0) SERIAL_MSG(" T<tools>");
+  SERIAL_EM(" P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1>:");
+  SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
+  if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
+  SERIAL_MV(" P", data.pin);
+  SERIAL_MV(" A", pid.DriveMin);
+  SERIAL_MV(" B", pid.DriveMax);
+  SERIAL_MV(" C", pid.Max);
+  SERIAL_MV(" L", data.mintemp);
+  SERIAL_MV(" O", data.maxtemp);
+  SERIAL_MV(" U", isUsePid());
+  SERIAL_MV(" I", isHWInverted());
+  SERIAL_MV(" R", isThermalProtection());
+  SERIAL_EOL();
+}
+
+#if HAS_AD8495 || HAS_AD595
   void Heater::print_M595() {
-    SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend> O<Offset> S<Gain>:");
-    SERIAL_SMV(CFG, "  M595 H", (int)data.ID);
+    const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+    SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend>");
+    if (heater_id < 0) SERIAL_MSG(" T<tools>");
+    SERIAL_MSG(" O<Offset> S<Gain>:");
+    SERIAL_SMV(CFG, "  M595 H", (int)heater_id);
+    if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
     SERIAL_MV(" O", sensor.ad595_offset);
     SERIAL_MV(" S", sensor.ad595_gain);
     SERIAL_EOL();
@@ -354,3 +365,5 @@ void Heater::start_watching() {
     watch_next_ms = 0;
 
 }
+
+#endif // HEATER_COUNT > 0

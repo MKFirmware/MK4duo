@@ -87,4 +87,6 @@ class AutoBedLevel {
 
 extern AutoBedLevel abl;
 
-#define Z_VALUES(X,Y) abl.z_values[X][Y]
+#define _GET_MESH_X(I) (abl.bilinear_start[X_AXIS] + (I) * abl.bilinear_grid_spacing[X_AXIS])
+#define _GET_MESH_Y(J) (abl.bilinear_start[Y_AXIS] + (J) * abl.bilinear_grid_spacing[Y_AXIS])
+#define Z_VALUES_ARR    abl.z_values

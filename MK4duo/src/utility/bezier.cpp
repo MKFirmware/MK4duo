@@ -144,7 +144,7 @@
       // not linear in the distance.
       bez_target[Z_AXIS] = interp(position[Z_AXIS], target[Z_AXIS], t);
       bez_target[E_AXIS] = interp(position[E_AXIS], target[E_AXIS], t);
-      endstops.clamp_to_software(bez_target);
+      endstops.apply_motion_limits(bez_target);
 
       #if HAS_LEVELING && !PLANNER_LEVELING
         float pos[XYZE] = { bez_target[X_AXIS], bez_target[Y_AXIS], bez_target[Z_AXIS], bez_target[E_AXIS] };

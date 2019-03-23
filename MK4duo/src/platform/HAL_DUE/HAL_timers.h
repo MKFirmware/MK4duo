@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_SAM
  */
@@ -69,7 +69,7 @@
 
 #define STEPPER_TC                  (TC1)
 #define STEPPER_TIMER               4
-#define STEPPER_TIMER_ISR           void TC4_Handler()
+#define STEPPER_TIMER_ISR()         void TC4_Handler()
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                          // 42 - stepper timer ticks per µs
 #define STEPPER_TIMER_PRESCALE      ((F_CPU / 1000000UL) / STEPPER_TIMER_TICKS_PER_US)         // 2
@@ -178,8 +178,8 @@
 #endif
 
 // Tone for due
-#define TONE_TIMER_NUM      3  // index of timer to use for beeper tones
-#define HAL_TONE_TIMER_ISR  void TC3_Handler()
+#define TONE_TIMER_NUM        3  // index of timer to use for beeper tones
+#define HAL_TONE_TIMER_ISR()  void TC3_Handler()
 
 // --------------------------------------------------------------------------
 // Types
@@ -201,7 +201,6 @@ extern const tTimerConfig TimerConfig[];
 extern uint32_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks,
-                HAL_min_isr_frequency,
                 HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------

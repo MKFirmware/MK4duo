@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@
 
     if (tool_id != active_tool) {
 
-      if (wait) SERIAL_L(REQUESTPAUSE);
+      if (wait) host_action.pause();
 
       planner.synchronize();
 
@@ -131,7 +131,7 @@
 
       if (wait) {
         printer.keepalive(InHandler);
-        SERIAL_L(REQUESTCONTINUE);
+        host_action.resume();
       }
 
     }

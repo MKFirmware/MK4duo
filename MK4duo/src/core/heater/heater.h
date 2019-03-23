@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
  *
  */
 #pragma once
+
+#if HEATER_COUNT > 0
 
 /**
  * heater.h - heater object
@@ -43,13 +45,13 @@ union flagheater_t {
   flagheater_t() { all = false; }
 };
 
-enum HeaterEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
+enum HeaterEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER };
 enum TRState    : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
-constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
-constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
-constexpr uint8_t   watch_temp_period[HEATER_TYPE]    = { WATCH_TEMP_PERIOD, WATCH_BED_TEMP_PERIOD, WATCH_CHAMBER_TEMP_PERIOD, WATCH_COOLER_TEMP_PERIOD };
-constexpr uint8_t   watch_temp_increase[HEATER_TYPE]  = { WATCH_TEMP_INCREASE, WATCH_BED_TEMP_INCREASE, WATCH_CHAMBER_TEMP_INCREASE, WATCH_COOLER_TEMP_INCREASE };
+constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL };
+constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS };
+constexpr uint8_t   watch_temp_period[HEATER_TYPE]    = { WATCH_TEMP_PERIOD, WATCH_BED_TEMP_PERIOD, WATCH_CHAMBER_TEMP_PERIOD };
+constexpr uint8_t   watch_temp_increase[HEATER_TYPE]  = { WATCH_TEMP_INCREASE, WATCH_BED_TEMP_INCREASE, WATCH_CHAMBER_TEMP_INCREASE };
 
 // Struct Heater data
 typedef struct {
@@ -77,7 +79,8 @@ class Heater {
 
     uint16_t      watch_target_temp;
 
-    uint8_t       pwm_value;
+    uint8_t       pwm_value,
+                  consecutive_low_temp;
 
     int16_t       target_temperature,
                   idle_temperature;
@@ -104,10 +107,10 @@ class Heater {
     void waitForTarget(bool no_wait_for_cooling=true);
     void getOutput();
     void setOutputPwm();
+    void print_M301();
     void print_M305();
     void print_M306();
-    void print_M301();
-    #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
+    #if HAS_AD8495 || HAS_AD595
       void print_M595();
     #endif
     void start_idle_timer(const millis_t timeout_ms);
@@ -180,6 +183,8 @@ class Heater {
 
 };
 
-#if HEATER_COUNT > 0
-  extern Heater heaters[HEATER_COUNT];
+extern Heater hotends[HOTENDS];
+extern Heater beds[BEDS];
+extern Heater chambers[CHAMBERS];
+
 #endif // HEATER_COUNT > 0

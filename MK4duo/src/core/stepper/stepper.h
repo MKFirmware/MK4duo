@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -214,6 +214,7 @@ class Stepper {
     static void disable_Z();
     static void enable_E();
     static void disable_E();
+    static void disable_E(const uint8_t e);
     static void enable_all();
     static void disable_all();
 
@@ -410,10 +411,6 @@ class Stepper {
 
     #if HAS_MICROSTEPS
       static void microstep_init();
-    #endif
-
-    #if HAS_EXT_ENCODER
-      static void test_extruder_encoder();
     #endif
 
     #if HAS_STEPPER_RESET

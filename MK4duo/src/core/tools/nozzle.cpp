@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      mechanics.do_blocking_move_to(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
+      mechanics.do_blocking_move_to(initial);
     #endif
   }
 
@@ -110,7 +110,7 @@
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      mechanics.do_blocking_move_to(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
+      mechanics.do_blocking_move_to(initial);
     #endif
   }
 
@@ -199,7 +199,7 @@
         break;
 
       case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park.z, Z_MAX_POS), fr_z);
+        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park.z, Z_MAX_BED), fr_z);
         break;
 
       default: // Raise to Z-park height if lower

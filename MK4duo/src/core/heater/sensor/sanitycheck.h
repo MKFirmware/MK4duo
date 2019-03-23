@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,55 +30,64 @@
 #define _TEMP_SENSOR_SANITYCHECK_H_
 
 // Thermistors
-#if DISABLED(TEMP_SENSOR_0)
-  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_0."
+#if DISABLED(TEMP_SENSOR_HE0)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE0."
 #endif
-#if DISABLED(TEMP_SENSOR_1)
-  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_1."
+#if DISABLED(TEMP_SENSOR_HE1)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE1."
 #endif
-#if DISABLED(TEMP_SENSOR_2)
-  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_2."
+#if DISABLED(TEMP_SENSOR_HE2)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE2."
 #endif
-#if DISABLED(TEMP_SENSOR_3)
-  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_3."
+#if DISABLED(TEMP_SENSOR_HE3)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE3."
 #endif
-#if DISABLED(TEMP_SENSOR_BED)
-  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED."
+#if DISABLED(TEMP_SENSOR_HE4)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE4."
 #endif
-#if DISABLED(TEMP_SENSOR_CHAMBER)
-  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER."
+#if DISABLED(TEMP_SENSOR_HE5)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE5."
 #endif
-#if DISABLED(TEMP_SENSOR_COOLER)
-  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_COOLER."
+#if DISABLED(TEMP_SENSOR_BED0)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED0."
 #endif
-
-#if TEMP_SENSOR_BED <= -3
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_BED"
+#if DISABLED(TEMP_SENSOR_BED1)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED1."
 #endif
-
-#if TEMP_SENSOR_CHAMBER <= -3
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_CHAMBER"
+#if DISABLED(TEMP_SENSOR_BED2)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED2."
 #endif
-
-#if TEMP_SENSOR_COOLER <= -3
-  #error "MAX6675 / MAX31855 Thermocouples not supported for TEMP_SENSOR_COOLER"
+#if DISABLED(TEMP_SENSOR_BED3)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED3."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER0)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER0."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER1)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER1."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER2)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER2."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER3)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER3."
 #endif
 
 // Every hotend needs a temp sensor
 #if HOTENDS > 0
-  #if TEMP_SENSOR_0 == 0
+  #if TEMP_SENSOR_HE0 == 0
     #error "DEPENDENCY ERROR: Hotend 0 needs a temp sensor."
   #endif
   #if HOTENDS > 1
-    #if TEMP_SENSOR_1 == 0
+    #if TEMP_SENSOR_HE1 == 0
       #error "DEPENDENCY ERROR: Hotend 1 needs a temp sensor."
     #endif
     #if HOTENDS > 2
-      #if TEMP_SENSOR_2 == 0
+      #if TEMP_SENSOR_HE2 == 0
         #error "DEPENDENCY ERROR: Hotend 2 needs a temp sensor."
       #endif
       #if HOTENDS > 3
-        #if TEMP_SENSOR_3 == 0
+        #if TEMP_SENSOR_HE3 == 0
           #error "DEPENDENCY ERROR: Hotend 3 needs a temp sensor."
         #endif
       #endif // HOTENDS > 3

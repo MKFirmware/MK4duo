@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * printer.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -72,13 +72,6 @@ PrinterModeEnum Printer::mode =
     PRINTER_MODE_FFF;
   #endif
 
-#if ENABLED(RFID_MODULE)
-  uint32_t  Printer::Spool_ID[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0);
-  bool      Printer::RFID_ON = false,
-            Printer::Spool_must_read[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(false),
-            Printer::Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
-#endif
-
 #if ENABLED(BARICUDA)
   int Printer::baricuda_valve_pressure  = 0,
       Printer::baricuda_e_to_p_pressure = 0;
@@ -91,8 +84,7 @@ PrinterModeEnum Printer::mode =
 #endif
 
 #if HAS_CHDK
-  watch_t Printer::chdk_watch(CHDK_DELAY);
-  bool    Printer::chdkActive = false;
+  watch_t Printer::chdk_watch(PHOTO_SWITCH_MS);
 #endif
 
 /** Public Function */
@@ -176,7 +168,7 @@ void Printer::setup() {
   endstops.init();
 
   // Init Filament runout
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if HAS_FILAMENT_SENSOR
     filamentrunout.init();
   #endif
 
@@ -202,11 +194,6 @@ void Printer::setup() {
 
   // Initialize stepper. This enables interrupts!
   stepper.init();
-
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    externaldac.begin();
-    externaldac.set_driver_current();
-  #endif
 
   #if ENABLED(CNCROUTER)
     cnc.init();
@@ -253,9 +240,8 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(RFID_MODULE)
-    RFID_ON = rfid522.init();
-    if (RFID_ON)
-      SERIAL_EM("RFID CONNECT");
+    setRfid(rfid522.init());
+    if (IsRfid()) SERIAL_EM("RFID CONNECT");
   #endif
 
   lcdui.init();
@@ -296,6 +282,10 @@ void Printer::setup() {
 
   #if HAS_TRINAMIC && !PS_DEFAULT_OFF
     tmc.test_connection(true, true, true, true);
+  #endif
+
+  #if HAS_MMU2
+    mmu2.init();
   #endif
 
 }
@@ -412,33 +402,6 @@ void Printer::safe_delay(millis_t ms) {
   check_periodical_actions();
 }
 
-/**
- * Prepare to do endstop or probe moves
- * with custom feedrates.
- *
- *  - Save current feedrates
- *  - Reset the rate multiplier
- */
-void Printer::bracket_probe_move(const bool before) {
-  static float saved_feedrate_mm_s;
-  static int16_t saved_feedrate_percentage;
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("bracket_probe_move", mechanics.current_position);
-  #endif
-  if (before) {
-    saved_feedrate_mm_s = mechanics.feedrate_mm_s;
-    saved_feedrate_percentage = mechanics.feedrate_percentage;
-    mechanics.feedrate_percentage = 100;
-  }
-  else {
-    mechanics.feedrate_mm_s = saved_feedrate_mm_s;
-    mechanics.feedrate_percentage = saved_feedrate_percentage;
-  }
-}
-
-void Printer::setup_for_endstop_or_probe_move()       { bracket_probe_move(true); }
-void Printer::clean_up_after_endstop_or_probe_move()  { bracket_probe_move(false); }
-
 void Printer::quickstop_stepper() {
   planner.quick_stop();
   planner.synchronize();
@@ -462,7 +425,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
     UNUSED(lcd_msg);
   #endif
 
-  SERIAL_L(ACTIONPOWEROFF);
+  host_action.power_off();
 
   minikill();
 }
@@ -479,6 +442,14 @@ void Printer::minikill() {
 
   // Turn off heaters again
   thermalManager.disable_all_heaters(); 
+
+  #if HAS_POWER_SWITCH
+    powerManager.power_off();
+  #endif
+
+  #if HAS_SUICIDE
+    suicide();
+  #endif
 
   #if ENABLED(KILL_METHOD) && (KILL_METHOD == 1)
     HAL::resetHardware();
@@ -499,16 +470,23 @@ void Printer::minikill() {
     cnc.disable_router();
   #endif
 
-  #if HAS_POWER_SWITCH
-    powerManager.power_off();
-  #endif
+  #if HAS_KILL
 
-  #if HAS_SUICIDE
-    suicide();
-  #endif
+    // Wait for kill to be released
+    while (!READ(KILL_PIN)) watchdog.reset();
 
-  // Wait for reset
-  while(1) { watchdog.reset(); }
+    // Wait for kill to be pressed
+    while (READ(KILL_PIN)) watchdog.reset();
+
+    void(*resetFunc)(void) = 0; // Declare resetFunc() at address 0
+    resetFunc();                // Jump to address 0
+
+  #else // !HAS_KILL
+
+    // Wait for reset
+    for (;;) watchdog.reset();
+
+  #endif // !HAS_KILL
 
 }
 
@@ -584,7 +562,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   sound.spin();
 
-  #if ENABLED(SUPPORT_MAX31855) || ENABLED(SUPPORT_MAX6675)
+  #if HAS_MAX31855 || HAS_MAX6675
     thermalManager.getTemperature_SPI();
   #endif
 
@@ -596,8 +574,12 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     cnc.manage();
   #endif
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if HAS_FILAMENT_SENSOR
     filamentrunout.spin();
+  #endif
+
+  #if ENABLED(RFID_MODULE)
+    rfid522.spin();
   #endif
 
   #if ENABLED(FLOWMETER_SENSOR)
@@ -655,9 +637,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     }
   }
 
-  #if HAS_CHDK // Check if pin should be set to LOW after M240 set it to HIGH
-    if (chdkActive && chdk_watch.elapsed()) {
-      chdkActive = false;
+  #if HAS_CHDK // Check if pin should be set to LOW (after M240 set it HIGH)
+    if (chdk_watch.isRunning() && chdk_watch.elapsed()) {
+      chdk_watch.stop();
       WRITE(CHDK_PIN, LOW);
     }
   #endif
@@ -704,7 +686,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
     static watch_t extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
 
-    if (heaters[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
+    if (hotends[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
       && extruder_runout_watch.elapsed()
       && !planner.has_blocks_queued()
     ) {
@@ -742,7 +724,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
       #else
-        switch(tools.active_extruder) {
+        switch (tools.active_extruder) {
           case 0: E0_ENABLE_WRITE(oldstatus); break;
           #if DRIVER_EXTRUDERS > 1
             case 1: E1_ENABLE_WRITE(oldstatus); break;
@@ -778,51 +760,16 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (planner.has_blocks_queued()) axis_last_activity = millis();
-    if (heaters[ACTIVE_HOTEND].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+    if (hotends[ACTIVE_HOTEND].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       #if ENABLED(FILAMENTCHANGEENABLE)
         if (!filament_changing)
       #endif
       {
-        if (heaters[ACTIVE_HOTEND].target_temperature < IDLE_OOZING_MINTEMP) {
+        if (hotends[ACTIVE_HOTEND].target_temperature < IDLE_OOZING_MINTEMP) {
           IDLE_OOZING_retract(false);
         }
         else if ((millis() - axis_last_activity) >  IDLE_OOZING_SECONDS * 1000UL) {
           IDLE_OOZING_retract(true);
-        }
-      }
-    }
-  #endif
-
-  #if ENABLED(RFID_MODULE)
-    for (int8_t e = 0; e < EXTRUDERS; e++) {
-      if (Spool_must_read[e]) {
-        if (rfid522.getID(e)) {
-          Spool_ID[e] = rfid522.RfidDataID[e].Spool_ID;
-          HAL::delayMilliseconds(200);
-          if (rfid522.readBlock(e)) {
-            Spool_must_read[e] = false;
-            tools.density_percentage[e] = rfid522.RfidData[e].data.density;
-            tools.filament_size[e] = rfid522.RfidData[e].data.size;
-            #if ENABLED(VOLUMETRIC_EXTRUSION)
-              tools.calculate_volumetric_multipliers();
-            #endif
-            tools.refresh_e_factor(e);
-            rfid522.printInfo(e);
-          }
-        }
-      }
-
-      if (Spool_must_write[e]) {
-        if (rfid522.getID(e)) {
-          if (Spool_ID[e] == rfid522.RfidDataID[e].Spool_ID) {
-            HAL::delayMilliseconds(200);
-            if (rfid522.writeBlock(e)) {
-              Spool_must_write[e] = false;
-              SERIAL_SMV(INFO, "Spool on E", e);
-              SERIAL_EM(" writed!");
-              rfid522.printInfo(e);
-            }
-          }
         }
       }
     }
@@ -834,6 +781,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(MONITOR_DRIVER_STATUS)
     tmc.monitor_driver();
+  #endif
+
+  #if HAS_MMU2
+    mmu2.mmuLoop();
   #endif
 
   // Reset the watchdog
@@ -850,36 +801,57 @@ void Printer::handle_interrupt_events() {
 
   if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
 
-  const InterruptEventEnum event = interruptEvent;
+  switch (interruptEvent) {
+
+    #if HAS_FILAMENT_SENSOR
+
+      case INTERRUPT_EVENT_FIL_RUNOUT: {
+
+        #if ENABLED(ADVANCED_PAUSE_FEATURE)
+          if (advancedpause.did_pause_print) return;
+        #endif
+
+        const char tool = '0' + tools.active_extruder;
+
+        filamentrunout.setFilamentOut(true);
+        host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
+        host_action.prompt_begin(PSTR("Filament Runout T"), false);
+        SERIAL_CHR(tool);
+        SERIAL_EOL();
+        host_action.prompt_show();
+
+        const bool run_runout_script = !filamentrunout.isHostHandling();
+
+        if (run_runout_script
+          && ( strstr(FILAMENT_RUNOUT_SCRIPT, "M600")
+            || strstr(FILAMENT_RUNOUT_SCRIPT, "M125")
+            #if ENABLED(ADVANCED_PAUSE_FEATURE)
+              || strstr(FILAMENT_RUNOUT_SCRIPT, "M25")
+            #endif
+          )
+        )
+          host_action.paused(false);
+        else
+          host_action.pause(false);
+
+        SERIAL_SM(ECHO, "filament runout T");
+        SERIAL_CHR(tool);
+        SERIAL_EOL();
+
+        if (run_runout_script)
+          commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+
+        break;
+      }
+
+    #endif // HAS_FILAMENT_SENSOR
+
+    default: break;
+
+  }
+
   interruptEvent = INTERRUPT_EVENT_NONE;
 
-  switch(event) {
-    #if HAS_FIL_RUNOUT_0
-      case INTERRUPT_EVENT_FIL_RUNOUT:
-        if (!isFilamentOut() && isPrinting()) {
-          setFilamentOut(true);
-          commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-          planner.synchronize();
-        }
-        break;
-    #endif
-
-    #if HAS_EXT_ENCODER
-      case INTERRUPT_EVENT_ENC_DETECT:
-        if (!isFilamentOut() && isPrinting()) {
-          setFilamentOut(true);
-          planner.synchronize();
-
-          #if ENABLED(ADVANCED_PAUSE_FEATURE)
-            commands.enqueue_and_echo_P(PSTR("M600"));
-          #endif
-        }
-        break;
-    #endif
-
-    default:
-      break;
-  }
 }
 
 /**
@@ -1079,11 +1051,16 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
     if (ELAPSED(millis(), next_status_led_update_ms)) {
       next_status_led_update_ms += 500; // Update every 0.5s
       float max_temp = 0.0;
-        #if HAS_TEMP_BED
-          max_temp = MAX(max_temp, heaters[BED_INDEX].target_temperature, heaters[BED_INDEX].current_temperature);
-        #endif
+      #if CHAMBERS > 0
+        LOOP_CHAMBER()
+          max_temp = MAX(max_temp, chambers[h].target_temperature, chambers[h].current_temperature);
+      #endif
+      #if BEDS > 0
+        LOOP_BED()
+          max_temp = MAX(max_temp, beds[h].target_temperature, beds[h].current_temperature);
+      #endif
       LOOP_HOTEND()
-        max_temp = MAX(max_temp, heaters[h].current_temperature, heaters[h].target_temperature);
+        max_temp = MAX(max_temp, hotends[h].current_temperature, hotends[h].target_temperature);
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;

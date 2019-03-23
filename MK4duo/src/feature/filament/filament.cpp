@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@
 /**
  * filament.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(FILAMENT_SENSOR)
+#if ENABLED(FILAMENT_WIDTH_SENSOR)
 
   bool    filament_sensor = false;                                // M405/M406 turns filament sensor control ON/OFF.
   float   filament_width_nominal = DEFAULT_NOMINAL_FILAMENT_DIA,  // Nominal filament width. Change with M404.

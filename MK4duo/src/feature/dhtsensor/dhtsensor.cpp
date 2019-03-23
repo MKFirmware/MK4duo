@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * dhtsensor.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -192,20 +192,23 @@
 
     switch (data.type) {
       case DHT11:
+        f = read_data[2];
+        if (read_data[3] & 0x80) f = -1 - f;
+        f += (read_data[3] & 0x0f) * 0.1;
+        break;
       case DHT12:
         f = read_data[2] + (read_data[3] & 0x0f) * 0.1;
+        if (read_data[2] & 0x80) f *= -1;
         break;
       case DHT21:
       case DHT22:
-        f = (((read_data[2] & 0x7F) * 256) + read_data[3]) * 0.1;
+        f = (read_data[2] & 0x7F) << 8 | read_data[3];
+        f *= 0.1;
+        if (read_data[2] & 0x80) f *= -1;
         break;
       default: break;
     }
-
-    if (read_data[2] & 0x80) f *= -1;
-
     return f;
-
   }
 
   float DHTSensor::readHumidity() {
@@ -218,13 +221,12 @@
         break;
       case DHT21:
       case DHT22:
-        f = ((read_data[0] * 256) + read_data[1]) * 0.1;
+        f = read_data[0] << 8 | read_data[1];
+        f *= 0.1;
         break;
       default: break;
     }
-
     return f;
-
   }
 
 #endif // ENABLED(DHT_SENSOR)

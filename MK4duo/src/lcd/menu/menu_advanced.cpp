@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,59 +151,126 @@ void menu_tmc();
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  int16_t autotune_temp[HOTENDS] = ARRAY_BY_HOTENDS(200);
-  int16_t autotune_temp_bed = 60;
+  #if HOTENDS > 0
+    int16_t autotune_temp[HOTENDS]            = ARRAY_BY_HOTENDS(200);
+  #endif
+  #if BEDS > 0
+    int16_t autotune_temp_bed[BEDS]           = ARRAY_BY_BEDS(60);
+  #endif
+  #if CHAMBERS > 0
+    int16_t autotune_temp_chambers[CHAMBERS]  = ARRAY_BY_CHAMBERS(60);
+  #endif
 
-  void _lcd_autotune(int16_t h) {
-    char cmd[30];
+  #if HOTENDS > 0
+    void _lcd_autotune(const int8_t h) {
+      char cmd[30];
+      sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h, autotune_temp[h]);
+      lcd_enqueue_command(cmd);
+    }
+  #endif
 
-    sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h,
-      #if HAS_HEATER_BED
-        h < 0 ? autotune_temp_bed : autotune_temp[h]
-      #else
-        autotune_temp[h]
-      #endif
-    );
-    lcd_enqueue_command(cmd);
-  }
+  #if BEDS > 0
+    void _lcd_autotune_bed(const int8_t t) {
+      char cmd[30];
+      sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), t, autotune_temp_bed[t]);
+      lcd_enqueue_command(cmd);
+    }
+  #endif
+
+  #if CHAMBERS > 0
+    void _lcd_autotune_chamber(const int8_t t) {
+      char cmd[30];
+      sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chambers[t]);
+      lcd_enqueue_command(cmd);
+    }
+  #endif
 
 #endif //PID_AUTOTUNE_MENU
 
-#define _DEFINE_PIDTEMP_BASE_FUNCS(N) \
-  void updatePID_H ## N() { heaters[N].pid.update(); } \
+#define _DEFINE_PIDTEMP_BASE_FUNCS(N)         void updatePID_H ## N()       { hotends[N].pid.update(); }
+#define _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)     void updatePID_BED ## N()     { beds[N].pid.update(); }
+#define _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N) void updatePID_CHAMBER ## N() { chambers[N].pid.update(); }
 
 #if ENABLED(PID_AUTOTUNE_MENU)
-  #if HAS_HEATER_BED
-    #define DEFINE_PIDBED_FUNCS() \
-      _DEFINE_PIDTEMP_BASE_FUNCS(BED_INDEX); \
-      void lcd_autotune_callback_BED() { _lcd_autotune(-1); }
+
+  #if HOTENDS > 0
+    #define DEFINE_PIDTEMP_FUNCS(N)             \
+      _DEFINE_PIDTEMP_BASE_FUNCS(N);            \
+      void lcd_autotune_callback_H ## N()       { _lcd_autotune(N); }
   #endif
 
-  #define DEFINE_PIDTEMP_FUNCS(N) \
-    _DEFINE_PIDTEMP_BASE_FUNCS(N); \
-    void lcd_autotune_callback_H ## N() { _lcd_autotune(N); } typedef void _pid_##N##_void
+  #if BEDS > 0
+    #define DEFINE_PIDBED_FUNCS(N)              \
+      _DEFINE_BED_PIDTEMP_BASE_FUNCS(N);        \
+      void lcd_autotune_callback_BED ## N()     { _lcd_autotune_bed(N); }
+  #endif
+
+  #if CHAMBERS > 0
+    #define DEFINE_PIDCHAMBER_FUNCS(N)          \
+      _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N);    \
+      void lcd_autotune_callback_CHAMBER ## N() { _lcd_autotune_chamber(N); }
+  #endif
+
 #else
-  #if HAS_HEATER_BED
-    #define DEFINE_PIDBED_FUNCS() _DEFINE_PIDTEMP_BASE_FUNCS(BED_INDEX)
+
+  #if HOTENDS > 0
+    #define DEFINE_PIDTEMP_FUNCS(N)             _DEFINE_PIDTEMP_BASE_FUNCS(N)
   #endif
 
-  #define DEFINE_PIDTEMP_FUNCS(N) _DEFINE_PIDTEMP_BASE_FUNCS(N) typedef void _pid_##N##_void
+  #if BEDS > 0
+    #define DEFINE_PIDBED_FUNCS(N)              _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)
+  #endif
+
+  #if CHAMBERS > 0
+    #define DEFINE_PIDCHAMBER_FUNCS(N)          _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N)
+  #endif
+
 #endif
 
-DEFINE_PIDTEMP_FUNCS(0);
-#if HOTENDS > 1
-  DEFINE_PIDTEMP_FUNCS(1);
-  #if HOTENDS > 2
-    DEFINE_PIDTEMP_FUNCS(2);
-    #if HOTENDS > 3
-      DEFINE_PIDTEMP_FUNCS(3);
-    #endif // HOTENDS > 3
-  #endif // HOTENDS > 2
-#endif // HOTENDS > 1
+#if HOTENDS > 0
+  DEFINE_PIDTEMP_FUNCS(0);
+  #if HOTENDS > 1
+    DEFINE_PIDTEMP_FUNCS(1);
+    #if HOTENDS > 2
+      DEFINE_PIDTEMP_FUNCS(2);
+      #if HOTENDS > 3
+        DEFINE_PIDTEMP_FUNCS(3);
+        #if HOTENDS > 4
+          DEFINE_PIDTEMP_FUNCS(4);
+          #if HOTENDS > 5
+            DEFINE_PIDTEMP_FUNCS(5);
+          #endif // HOTENDS > 5
+        #endif // HOTENDS > 4
+      #endif // HOTENDS > 3
+    #endif // HOTENDS > 2
+  #endif // HOTENDS > 1
+#endif // HOTENDS > 0
 
-#if HAS_HEATER_BED
-  DEFINE_PIDBED_FUNCS();
-#endif
+#if BEDS > 0
+  DEFINE_PIDBED_FUNCS(0);
+  #if BEDS > 1
+    DEFINE_PIDBED_FUNCS(1);
+    #if BEDS > 2
+      DEFINE_PIDBED_FUNCS(2);
+      #if BEDS > 3
+        DEFINE_PIDBED_FUNCS(3);
+      #endif // BEDS > 3
+    #endif // BEDS > 2
+  #endif // BEDS > 1
+#endif // BEDS > 0
+
+#if CHAMBERS > 0
+  DEFINE_PIDCHAMBER_FUNCS(0);
+  #if CHAMBERS > 1
+    DEFINE_PIDCHAMBER_FUNCS(1);
+    #if CHAMBERS > 2
+      DEFINE_PIDCHAMBER_FUNCS(2);
+      #if CHAMBERS > 3
+        DEFINE_PIDCHAMBER_FUNCS(3);
+      #endif // CHAMBERS > 3
+    #endif // CHAMBERS > 2
+  #endif // CHAMBERS > 1
+#endif // CHAMBERS > 0
 
 //
 // Advanced Settings > Temperature
@@ -214,29 +281,40 @@ void menu_advanced_temperature() {
   //
   // Autotemp, Min, Max, Fact
   //
-  #if ENABLED(AUTOTEMP) && (HAS_TEMP_0)
+  #if ENABLED(AUTOTEMP) && HAS_TEMP_HE0
     MENU_ITEM_EDIT(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
-    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, heaters[0].data.maxtemp - 15);
-    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, heaters[0].data.maxtemp - 15);
+    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0].data.maxtemp - 10);
+    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0].data.maxtemp - 10);
     MENU_ITEM_EDIT(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 1);
   #endif
 
   //
-  // PID-P, PID-I, PID-D, PID-C, PID Autotune
+  // PID-P H0, PID-I H0, PID-D H0, PID-C H0, PID Autotune H0
   // PID-P H1, PID-I H1, PID-D H1, PID-C H1, PID Autotune H1
   // PID-P H2, PID-I H2, PID-D H2, PID-C H2, PID Autotune H2
   // PID-P H3, PID-I H3, PID-D H3, PID-C H3, PID Autotune H3
   // PID-P H4, PID-I H4, PID-D H4, PID-C H4, PID Autotune H4
+  // PID-P H5, PID-I H5, PID-D H5, PID-C H5, PID Autotune H5
   //
   #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &heaters[hindex].pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &heaters[hindex].pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
-    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &heaters[hindex].pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &hotends[hindex].pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &hotends[hindex].pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
+    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &hotends[hindex].pid.Kd, 1, 9990)
+
+  #define _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex) \
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_P HLABEL, &beds[hindex].pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Bed " MSG_PID_I HLABEL, &beds[hindex].pid.Ki, 0.01f, 9990, updatePID_BED ## hindex); \
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_D HLABEL, &beds[hindex].pid.Kd, 1, 9990)
+
+  #define _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex) \
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_P HLABEL, &chambers[hindex].pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Chamber " MSG_PID_I HLABEL, &chambers[hindex].pid.Ki, 0.01f, 9990, updatePID_CHAMBER ## hindex); \
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_D HLABEL, &chambers[hindex].pid.Kd, 1, 9990)
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     #define _PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
-      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &heaters[hindex].pid.Kc, 1, 9990)
+      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &hotends[hindex].pid.Kc, 1, 9990)
   #else
     #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
   #endif
@@ -244,32 +322,73 @@ void menu_advanced_temperature() {
   #if ENABLED(PID_AUTOTUNE_MENU)
     #define PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_MENU_ITEMS(HLABEL, hindex); \
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, heaters[hindex].data.maxtemp - 15, lcd_autotune_callback_H ## hindex)
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex].data.maxtemp - 10, lcd_autotune_callback_H ## hindex)
 
-    #if HAS_TEMP_BED
-      #define PID_BED_MENU_ITEMS() \
-        _PID_BASE_MENU_ITEMS(" BED", BED_INDEX); \
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE " BED", &autotune_temp_bed, 30, heaters[BED_INDEX].data.maxtemp - 15, lcd_autotune_callback_BED)
+    #if BEDS > 0
+      #define PID_BED_MENU_ITEMS(HLABEL, hindex)  \
+        _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex); \
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex].data.maxtemp - 10, lcd_autotune_callback_BED ## hindex)
+    #endif
+
+    #if CHAMBERS > 0
+      #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  \
+        _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex); \
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.maxtemp - 10, lcd_autotune_callback_CHAMBER ## hindex)
     #endif
   #else
-    #define PID_MENU_ITEMS(HLABEL, hindex)  _PID_MENU_ITEMS(HLABEL, hindex)
-    #define PID_BED_MENU_ITEMS()            _PID_BASE_MENU_ITEMS("BED", BED_INDEX)
+    #define PID_MENU_ITEMS(HLABEL, hindex)        _PID_MENU_ITEMS(HLABEL, hindex)
+    #if BEDS > 0
+      #define PID_BED_MENU_ITEMS()                _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex)
+    #endif
+    #if CHAMBERS > 0
+      #define PID_CHAMBER_MENU_ITEMS()            _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex)
+    #endif
   #endif
 
-  if (heaters[0].isUsePid()) { PID_MENU_ITEMS("", 0); }
-  #if HOTENDS > 1
-    if (heaters[1].isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
-    #if HOTENDS > 2
-      if (heaters[0].isUsePid()) { PID_MENU_ITEMS(MSG_H2, 2); }
-      #if HOTENDS > 3
-        if (heaters[0].isUsePid()) { PID_MENU_ITEMS(MSG_H3, 3); }
-      #endif // HOTENDS > 3
-    #endif // HOTENDS > 2
-  #endif // HOTENDS > 1
+  #if HOTENDS > 0
+    if (hotends[0].isUsePid()) { PID_MENU_ITEMS(MSG_H0, 0); }
+    #if HOTENDS > 1
+      if (hotends[1].isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
+      #if HOTENDS > 2
+        if (hotends[2].isUsePid()) { PID_MENU_ITEMS(MSG_H2, 2); }
+        #if HOTENDS > 3
+          if (hotends[3].isUsePid()) { PID_MENU_ITEMS(MSG_H3, 3); }
+          #if HOTENDS > 4
+            if (hotends[4].isUsePid()) { PID_MENU_ITEMS(MSG_H4, 4); }
+            #if HOTENDS > 5
+              if (hotends[5].isUsePid()) { PID_MENU_ITEMS(MSG_H5, 5); }
+            #endif // HOTENDS > 5
+          #endif // HOTENDS > 4
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+  #endif // HOTENDS > 0
 
-  #if HAS_TEMP_BED
-    if (heaters[BED_INDEX].isUsePid()) { PID_BED_MENU_ITEMS(); }
-  #endif
+  #if BEDS > 0
+    if (beds[0].isUsePid()) { PID_BED_MENU_ITEMS("", 0); }
+    #if BEDS > 1
+      if (beds[1].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H1, 1); }
+      #if BEDS > 2
+        if (beds[2].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H2, 2); }
+        #if BEDS > 3
+          if (beds[3].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H3, 3); }
+        #endif // BEDS > 3
+      #endif // BEDS > 2
+    #endif // BEDS > 1
+  #endif // BEDS > 0
+
+  #if CHAMBERS > 0
+    if (chambers[0].isUsePid()) { PID_CHAMBER_MENU_ITEMS("", 0); }
+    #if CHAMBERS > 1
+      if (chambers[1].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H1, 1); }
+      #if CHAMBERS > 2
+        if (chambers[2].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H2, 2); }
+        #if CHAMBERS > 3
+          if (chambers[3].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H3, 3); }
+        #endif // CHAMBERS > 3
+      #endif // CHAMBERS > 2
+    #endif // CHAMBERS > 1
+  #endif // CHAMBERS > 0
 
   END_MENU();
 

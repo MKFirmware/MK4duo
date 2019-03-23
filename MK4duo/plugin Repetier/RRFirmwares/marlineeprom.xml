@@ -779,48 +779,110 @@
   <!-- M218: Hotend offset -->
   <entry type="float">
     <description unit="[unit]">H1 X offset</description>
-    <set>M218 H1 X@</set>
-    <detect>M218 H1.*X(-?\d*\.?\d*)</detect>
+    <set>M218 T1 X@</set>
+    <detect>M218 T1.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H1 Y offset</description>
-    <set>M218 H1 Y@</set>
-    <detect>M218 H1.*Y(-?\d*\.?\d*)</detect>
+    <set>M218 T1 Y@</set>
+    <detect>M218 T1.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H1 Z offset</description>
-    <set>M218 H1 Z@</set>
-    <detect>M218 H1.*Z(-?\d*\.?\d*)</detect>
+    <set>M218 T1 Z@</set>
+    <detect>M218 T1.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H2 X offset</description>
-    <set>M218 H2 X@</set>
-    <detect>M218 H2.*X(-?\d*\.?\d*)</detect>
+    <set>M218 T2 X@</set>
+    <detect>M218 T2.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H2 Y offset</description>
-    <set>M218 H2 Y@</set>
-    <detect>M218 H2.*Y(-?\d*\.?\d*)</detect>
+    <set>M218 T2 Y@</set>
+    <detect>M218 T2.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H2 Z offset</description>
-    <set>M218 H2 Z@</set>
-    <detect>M218 H2.*Z(-?\d*\.?\d*)</detect>
+    <set>M218 T2 Z@</set>
+    <detect>M218 T2.*Z(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H3 X offset</description>
-    <set>M218 H3 X@</set>
-    <detect>M218 H3.*X(-?\d*\.?\d*)</detect>
+    <set>M218 T3 X@</set>
+    <detect>M218 T3.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H3 Y offset</description>
-    <set>M218 H3 Y@</set>
-    <detect>M218 H3.*Y(-?\d*\.?\d*)</detect>
+    <set>M218 T3 Y@</set>
+    <detect>M218 T3.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">H3 Z offset</description>
-    <set>M218 H3 Z@</set>
-    <detect>M218 H3.*Z(-?\d*\.?\d*)</detect>
+    <set>M218 T3 Z@</set>
+    <detect>M218 T3.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H4 X offset</description>
+    <set>M218 T4 X@</set>
+    <detect>M218 T4.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H4 Y offset</description>
+    <set>M218 T4 Y@</set>
+    <detect>M218 T4.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H4 Z offset</description>
+    <set>M218 T4 Z@</set>
+    <detect>M218 T4.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H5 X offset</description>
+    <set>M218 T5 X@</set>
+    <detect>M218 T5.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H5 Y offset</description>
+    <set>M218 T5 Y@</set>
+    <detect>M218 T5.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">H5 Z offset</description>
+    <set>M218 T5 Z@</set>
+    <detect>M218 T5.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+
+  <!-- M228: Axis Limit -->
+  <entry type="float">
+    <description unit="[unit]">Axis X min</description>
+    <set>M228 S1 X@</set>
+    <detect>M228 S1.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Axis X max</description>
+    <set>M228 X@</set>
+    <detect>M228.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Axis Y min</description>
+    <set>M228 S1 Y@</set>
+    <detect>M228 S1.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Axis Y max</description>
+    <set>M228 Y@</set>
+    <detect>M228.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Axis Z min</description>
+    <set>M228 S1 Z@</set>
+    <detect>M228 S1.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Axis Z max</description>
+    <set>M228 Z@</set>
+    <detect>M228.*Z(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M250: LCD Contrast -->
@@ -963,66 +1025,129 @@
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
+    <description unit="">Hotend 4 PID P</description>
+    <set>M301 H4 P@</set>
+    <detect>M301 H4.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 4 PID I</description>
+    <set>M301 H4 I@</set>
+    <detect>M301 H4.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 4 PID D</description>
+    <set>M301 H4 D@</set>
+    <detect>M301 H4.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 4 PID C</description>
+    <set>M301 H4 C@</set>
+    <detect>M301 H4.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Hotend 5 PID P</description>
+    <set>M301 H5 P@</set>
+    <detect>M301 H5.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 5 PID I</description>
+    <set>M301 H5 I@</set>
+    <detect>M301 H5.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 5 PID D</description>
+    <set>M301 H5 D@</set>
+    <detect>M301 H5.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Hotend 5 PID C</description>
+    <set>M301 H5 C@</set>
+    <detect>M301 H5.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
     <description unit="">Bed PID P</description>
-    <set>M301 H-1 P@</set>
-    <detect>M301 H-1.*P(-?\d*\.?\d*)</detect>
+    <set>M301 H-1 T0 P@</set>
+    <detect>M301 H-1 T0.*P(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Bed PID I</description>
-    <set>M301 H-1 I@</set>
-    <detect>M301 H-1.*I(-?\d*\.?\d*)</detect>
+    <set>M301 H-1 T0 I@</set>
+    <detect>M301 H-1 T0.*I(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Bed PID D</description>
-    <set>M301 H-1 D@</set>
-    <detect>M301 H-1.*D(-?\d*\.?\d*)</detect>
+    <set>M301 H-1 T0 D@</set>
+    <detect>M301 H-1 T0.*D(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Bed PID C</description>
-    <set>M301 H-1 C@</set>
-    <detect>M301 H-1.*C(-?\d*\.?\d*)</detect>
+    <set>M301 H-1 T0 C@</set>
+    <detect>M301 H-1 T0.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Bed 1 PID P</description>
+    <set>M301 H-1 T1 P@</set>
+    <detect>M301 H-1 T1.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 1 PID I</description>
+    <set>M301 H-1 T1 I@</set>
+    <detect>M301 H-1 T1.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 1 PID D</description>
+    <set>M301 H-1 T1 D@</set>
+    <detect>M301 H-1 T1.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 1 PID C</description>
+    <set>M301 H-1 T1 C@</set>
+    <detect>M301 H-1 T1.*C(-?\d*\.?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="float" min="0">
+    <description unit="">Bed 2 PID P</description>
+    <set>M301 H-1 T2 P@</set>
+    <detect>M301 H-1 T2.*P(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 2 PID I</description>
+    <set>M301 H-1 T2 I@</set>
+    <detect>M301 H-1 T2.*I(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 2 PID D</description>
+    <set>M301 H-1 T2 D@</set>
+    <detect>M301 H-1 T2.*D(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0">
+    <description unit="">Bed 2 PID C</description>
+    <set>M301 H-1 T2 C@</set>
+    <detect>M301 H-1 T2.*C(-?\d*\.?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="">Chamber PID P</description>
-    <set>M301 H-2 P@</set>
-    <detect>M301 H-2.*P(-?\d*\.?\d*)</detect>
+    <set>M301 H-2 T0 P@</set>
+    <detect>M301 H-2 T0.*P(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Chamber PID I</description>
-    <set>M301 H-2 I@</set>
-    <detect>M301 H-2.*I(-?\d*\.?\d*)</detect>
+    <set>M301 H-2 T0 I@</set>
+    <detect>M301 H-2 T0.*I(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Chamber PID D</description>
-    <set>M301 H-2 D@</set>
-    <detect>M301 H-2.*D(-?\d*\.?\d*)</detect>
+    <set>M301 H-2 T0 D@</set>
+    <detect>M301 H-2 T0.*D(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Chamber PID C</description>
-    <set>M301 H-2 C@</set>
-    <detect>M301 H-2.*C(-?\d*\.?\d*)</detect>
-  </entry>
-  <!-- ########################## -->
-  <entry type="float" min="0">
-    <description unit="">Cooler PID P</description>
-    <set>M301 H-3 P@</set>
-    <detect>M301 H-3.*P(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Cooler PID I</description>
-    <set>M301 H-3 I@</set>
-    <detect>M301 H-3.*I(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Cooler PID D</description>
-    <set>M301 H-3 D@</set>
-    <detect>M301 H-3.*D(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Cooler PID C</description>
-    <set>M301 H-3 C@</set>
-    <detect>M301 H-3.*C(-?\d*\.?\d*)</detect>
+    <set>M301 H-2 T0 C@</set>
+    <detect>M301 H-2 T0.*C(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M305: Heater sensors parameters -->
@@ -1063,8 +1188,8 @@
   </entry>
   <entry type="int" min="-4">
     <description unit="">Hotend 0 sensor type</description>
-    <set>M305 H0 T@</set>
-    <detect>M305 H0.*T(-?\d*)</detect>
+    <set>M305 H0 S@</set>
+    <detect>M305 H0.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
@@ -1104,8 +1229,8 @@
   </entry>
   <entry type="int" min="-4">
     <description unit="">Hotend 1 sensor type</description>
-    <set>M305 H1 T@</set>
-    <detect>M305 H1.*T(-?\d*)</detect>
+    <set>M305 H1 S@</set>
+    <detect>M305 H1.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
@@ -1145,8 +1270,8 @@
   </entry>
   <entry type="int" min="-4">
     <description unit="">Hotend 2 sensor type</description>
-    <set>M305 H2 T@</set>
-    <detect>M305 H2.*T(-?\d*)</detect>
+    <set>M305 H2 S@</set>
+    <detect>M305 H2.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
@@ -1186,131 +1311,90 @@
   </entry>
   <entry type="int" min="-4">
     <description unit="">Hotend 3 sensor type</description>
-    <set>M305 H3 T@</set>
-    <detect>M305 H3.*T(-?\d*)</detect>
+    <set>M305 H3 S@</set>
+    <detect>M305 H3.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Bed thermistor resistance at 25C</description>
-    <set>M305 H-1 A@</set>
-    <detect>M305 H-1.*A(-?\d*\.?\d*)</detect>
+    <set>M305 H-1 T0 A@</set>
+    <detect>M305 H-1 T0.*A(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Bed BetaK value</description>
-    <set>M305 H-1 B@</set>
-    <detect>M305 H-1.*B(-?\d*\.?\d*)</detect>
+    <set>M305 H-1 T0 B@</set>
+    <detect>M305 H-1 T0.*B(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Bed Steinhart-Hart C coefficient</description>
-    <set>M305 H-1 C@</set>
-    <detect>M305 H-1.*C(-?\d*\.?\d*)</detect>
+    <set>M305 H-1 T0 C@</set>
+    <detect>M305 H-1 T0.*C(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="[Ohm]">Bed PullUp resistor value</description>
-    <set>M305 H-1 R@</set>
-    <detect>M305 H-1.*R(-?\d*\.?\d*)</detect>
+    <set>M305 H-1 T0 R@</set>
+    <detect>M305 H-1 T0.*R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Bed ADC low offset correction</description>
-    <set>M305 H-1 L@</set>
-    <detect>M305 H-1.*L(-?\d*)</detect>
+    <set>M305 H-1 T0 L@</set>
+    <detect>M305 H-1 T0.*L(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Bed ADC high offset correction</description>
-    <set>M305 H-1 O@</set>
-    <detect>M305 H-1.*O(-?\d*)</detect>
+    <set>M305 H-1 T0 O@</set>
+    <detect>M305 H-1 T0.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Bed sensor pin</description>
-    <set>M305 H-1 P@</set>
-    <detect>M305 H-1.*P(-?\d*)</detect>
+    <set>M305 H-1 T0 P@</set>
+    <detect>M305 H-1 T0.*P(-?\d*)</detect>
   </entry>
   <entry type="int" min="-4">
     <description unit="">Bed sensor type</description>
-    <set>M305 H-1 T@</set>
-    <detect>M305 H-1.*T(-?\d*)</detect>
+    <set>M305 H-1 T0 S@</set>
+    <detect>M305 H-1.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="float" min="0">
     <description unit="[Ohm]">Chamber thermistor resistance at 25C</description>
-    <set>M305 H-2 A@</set>
-    <detect>M305 H-2.*A(-?\d*\.?\d*)</detect>
+    <set>M305 H-2 T0 A@</set>
+    <detect>M305 H-2 T0.*A(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="">Chamber BetaK value</description>
-    <set>M305 H-2 B@</set>
-    <detect>M305 H-2.*B(-?\d*\.?\d*)</detect>
+    <set>M305 H-2 T0 B@</set>
+    <detect>M305 H-2 T0.*B(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="">Chamber Steinhart-Hart C coefficient</description>
-    <set>M305 H-2 C@</set>
-    <detect>M305 H-2.*C(-?\d*\.?\d*)</detect>
+    <set>M305 H-2 T0 C@</set>
+    <detect>M305 H-2 T0.*C(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float" min="0">
     <description unit="[Ohm]">Chamber PullUp resistor value</description>
-    <set>M305 H-2 R@</set>
-    <detect>M305 H-2.*R(-?\d*\.?\d*)</detect>
+    <set>M305 H-2 T0 R@</set>
+    <detect>M305 H-2 T0.*R(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Chamber ADC low offset correction</description>
-    <set>M305 H-2 L@</set>
-    <detect>M305 H-2.*L(-?\d*)</detect>
+    <set>M305 H-2 T0 L@</set>
+    <detect>M305 H-2 T0.*L(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Chamber ADC high offset correction</description>
-    <set>M305 H-2 O@</set>
-    <detect>M305 H-2.*O(-?\d*)</detect>
+    <set>M305 H-2 T0 O@</set>
+    <detect>M305 H-2 T0.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Chamber sensor pin</description>
-    <set>M305 H-2 P@</set>
-    <detect>M305 H-2.*P(-?\d*)</detect>
+    <set>M305 H-2 T0 P@</set>
+    <detect>M305 H-2 T0.*P(-?\d*)</detect>
   </entry>
   <entry type="int" min="-4">
     <description unit="">Chamber sensor type</description>
-    <set>M305 H-2 T@</set>
-    <detect>M305 H-2.*T(-?\d*)</detect>
-  </entry>
-  <!-- ########################## -->
-  <entry type="float" min="0">
-    <description unit="[Ohm]">Cooler thermistor resistance at 25C</description>
-    <set>M305 H-3 A@</set>
-    <detect>M305 H-3.*A(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="">Cooler BetaK value</description>
-    <set>M305 H-3 B@</set>
-    <detect>M305 H-3.*B(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float">
-    <description unit="">Cooler Steinhart-Hart C coefficient</description>
-    <set>M305 H-3 C@</set>
-    <detect>M305 H-3.*C(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="float" min="0">
-    <description unit="[Ohm]">Cooler PullUp resistor value</description>
-    <set>M305 H-3 R@</set>
-    <detect>M305 H-3.*R(-?\d*\.?\d*)</detect>
-  </entry>
-  <entry type="int">
-    <description unit="">Cooler ADC low offset correction</description>
-    <set>M305 H-3 L@</set>
-    <detect>M305 H-3.*L(-?\d*)</detect>
-  </entry>
-  <entry type="int">
-    <description unit="">Cooler ADC high offset correction</description>
-    <set>M305 H-3 O@</set>
-    <detect>M305 H-3.*O(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="">Cooler sensor pin</description>
-    <set>M305 H-3 P@</set>
-    <detect>M305 H-3.*P(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="-4">
-    <description unit="">Cooler sensor type</description>
-    <set>M305 H-3 T@</set>
-    <detect>M305 H-3.*T(-?\d*)</detect>
+    <set>M305 H-2 T0 S@</set>
+    <detect>M305 H-2 T0.*S(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
@@ -1362,8 +1446,8 @@
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Hotend 0 Thermal Protection</description>
-    <set>M306 H0 T@</set>
-    <detect>M306 H0.*T(-?\d*)</detect>
+    <set>M306 H0 R@</set>
+    <detect>M306 H0.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 0 heater pin</description>
@@ -1408,8 +1492,8 @@
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Hotend 1 Thermal Protection</description>
-    <set>M306 H1 T@</set>
-    <detect>M306 H1.*T(-?\d*)</detect>
+    <set>M306 H1 R@</set>
+    <detect>M306 H1.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 1 heater pin</description>
@@ -1454,8 +1538,8 @@
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Hotend 2 Thermal Protection</description>
-    <set>M306 H2 T@</set>
-    <detect>M306 H2.*T(-?\d*)</detect>
+    <set>M306 H2 R@</set>
+    <detect>M306 H2.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 2 heater pin</description>
@@ -1500,8 +1584,8 @@
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Hotend 3 Thermal Protection</description>
-    <set>M306 H3 T@</set>
-    <detect>M306 H3.*T(-?\d*)</detect>
+    <set>M306 H3 R@</set>
+    <detect>M306 H3.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Hotend 3 heater pin</description>
@@ -1511,43 +1595,43 @@
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Bed PID drive min</description>
-    <set>M306 H-1 A@</set>
-    <detect>M306 H-1.*A(-?\d*)</detect>
+    <set>M306 H-1 T0 A@</set>
+    <detect>M306 H-1 T0.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
     <description unit="[0-255]">Bed PID drive max</description>
-    <set>M306 H-1 B@</set>
-    <detect>M306 H-1.*B(-?\d*)</detect>
+    <set>M306 H-1 T0 B@</set>
+    <detect>M306 H-1 T0.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
     <description unit="[0-255]">Bed PID max</description>
-    <set>M306 H-1 C@</set>
-    <detect>M306 H-1.*C(-?\d*)</detect>
+    <set>M306 H-1 T0 C@</set>
+    <detect>M306 H-1 T0.*C(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Bed min temperature</description>
-    <set>M306 H-1 L@</set>
-    <detect>M306 H-1.*L(-?\d*)</detect>
+    <set>M306 H-1 T0 L@</set>
+    <detect>M306 H-1 T0.*L(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Bed max temperature</description>
-    <set>M306 H-1 O@</set>
-    <detect>M306 H-1.*O(-?\d*)</detect>
+    <set>M306 H-1 T0 O@</set>
+    <detect>M306 H-1 T0.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Bed use BangBang/PID</description>
-    <set>M306 H-1 U@</set>
-    <detect>M306 H-1.*U(-?\d*)</detect>
+    <set>M306 H-1 T0 U@</set>
+    <detect>M306 H-1 T0.*U(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Bed hardware inverted</description>
-    <set>M306 H-1 I@</set>
-    <detect>M306 H-1.*I(-?\d*)</detect>
+    <set>M306 H-1 T0 I@</set>
+    <detect>M306 H-1 T0.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Bed Thermal Protection</description>
-    <set>M306 H-1 T@</set>
-    <detect>M306 H-1.*T(-?\d*)</detect>
+    <set>M306 H-1 T0 R@</set>
+    <detect>M306 H-1 T0.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Bed heater pin</description>
@@ -1557,93 +1641,48 @@
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Chamber PID drive min</description>
-    <set>M306 H-2 A@</set>
-    <detect>M306 H-2.*A(-?\d*)</detect>
+    <set>M306 H-2 T0 A@</set>
+    <detect>M306 H-2 T0.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
     <description unit="[0-255]">Chamber PID drive max</description>
-    <set>M306 H-2 B@</set>
-    <detect>M306 H-2.*B(-?\d*)</detect>
+    <set>M306 H-2 T0 B@</set>
+    <detect>M306 H-2 T0.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
     <description unit="[0-255]">Chamber PID max</description>
-    <set>M306 H-2 C@</set>
-    <detect>M306 H-2.*C(-?\d*)</detect>
+    <set>M306 H-2 T0 C@</set>
+    <detect>M306 H-2 T0.*C(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Chamber min temperature</description>
-    <set>M306 H-2 L@</set>
-    <detect>M306 H-2.*L(-?\d*)</detect>
+    <set>M306 H-2 T0 L@</set>
+    <detect>M306 H-2 T0.*L(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Chamber max temperature</description>
-    <set>M306 H-2 O@</set>
-    <detect>M306 H-2.*O(-?\d*)</detect>
+    <set>M306 H-2 T0 O@</set>
+    <detect>M306 H-2 T0.*O(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Chamber use BangBang/PID</description>
-    <set>M306 H-2 U@</set>
-    <detect>M306 H-2.*U(-?\d*)</detect>
+    <set>M306 H-2 T0 U@</set>
+    <detect>M306 H-2 T0.*U(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Chamber hardware inverted</description>
-    <set>M306 H-2 I@</set>
-    <detect>M306 H-2.*I(-?\d*)</detect>
+    <set>M306 H-2 T0 I@</set>
+    <detect>M306 H-2 T0.*I(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">Chamber Thermal Protection</description>
-    <set>M306 H-2 T@</set>
-    <detect>M306 H-2.*T(-?\d*)</detect>
+    <set>M306 H-2 T0 R@</set>
+    <detect>M306 H-2 T0.*R(-?\d*)</detect>
   </entry>
   <entry type="int" min="0">
     <description unit="">Chamber heater pin</description>
-    <set>M306 H-2 P@</set>
-    <detect>M306 H-2.*P(-?\d*)</detect>
-  </entry>
-  <!-- ########################## -->
-  <entry type="int" min="0">
-    <description unit="[Ohm]">Cooler PID drive min</description>
-    <set>M306 H-3 A@</set>
-    <detect>M306 H-3.*A(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Cooler PID drive max</description>
-    <set>M306 H-3 B@</set>
-    <detect>M306 H-3.*B(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Cooler PID max</description>
-    <set>M306 H-3 C@</set>
-    <detect>M306 H-3.*C(-?\d*)</detect>
-  </entry>
-  <entry type="int">
-    <description unit="">Cooler min temperature</description>
-    <set>M306 H-3 L@</set>
-    <detect>M306 H-3.*L(-?\d*)</detect>
-  </entry>
-  <entry type="int">
-    <description unit="">Cooler max temperature</description>
-    <set>M306 H-3 O@</set>
-    <detect>M306 H-3.*O(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Cooler use BangBang/PID</description>
-    <set>M306 H-3 U@</set>
-    <detect>M306 H-3.*U(-?\d*)</detect></entry>
-  <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Cooler hardware inverted</description>
-    <set>M306 H-3 I@</set>
-    <detect>M306 H-3.*I(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0" max="1">
-    <description unit="[0-1]">Cooler Thermal Protection</description>
-    <set>M306 H-3 T@</set>
-    <detect>M306 H-3.*T(-?\d*)</detect>
-  </entry>
-  <entry type="int" min="0">
-    <description unit="">Cooler heater pin</description>
-    <set>M306 H-3 P@</set>
-    <detect>M306 H-3.*P(-?\d*)</detect>
+    <set>M306 H-2 T0 P@</set>
+    <detect>M306 H-2 T0.*P(-?\d*)</detect>
   </entry>
 
   <!--  M413: Restart Enabled -->

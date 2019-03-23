@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,26 +57,26 @@ typedef struct {
     ) {
 
       static millis_t cycle_1s = 0;
-      uint8_t output = 0;
+      float pid_output = 0.0;
 
-      const float error = target_temp - current_temp;
+      const float pid_error = target_temp - current_temp;
 
-      if (error > PID_FUNCTIONAL_RANGE) {
-        output = Max;
+      if (pid_error > PID_FUNCTIONAL_RANGE) {
+        pid_output = Max;
         tempIState = tempIStateLimitMin;
       }
-      else if (error < -(PID_FUNCTIONAL_RANGE) || target_temp == 0)
-        output = 0;
+      else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temp == 0)
+        pid_output = 0;
       else {
-        float pidTerm = Kp * error;
-        tempIState = constrain(tempIState + error, tempIStateLimitMin, tempIStateLimitMax);
-        pidTerm += Ki * tempIState * 0.1;
+        pid_output = Kp * pid_error;
+        tempIState = constrain(tempIState + pid_error, tempIStateLimitMin, tempIStateLimitMax);
+        pid_output += Ki * tempIState * 0.1;
         float dgain = Kd * (last_temperature - temperature_1s);
-        pidTerm += dgain;
+        pid_output += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           if (tid == ACTIVE_HOTEND) {
-            long e_position = stepper.position(E_AXIS);
+            const long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;
               last_e_position = e_position;
@@ -85,11 +85,18 @@ typedef struct {
               lpq[lpq_ptr] = 0;
             }
             if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
-            pidTerm += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
+            pid_output += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.active_extruder]) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
 
-        output = constrain((int)pidTerm, 0, Max);
+        if (pid_output > Max) {
+          if (pid_error > 0) tempIState -= pid_error;
+          pid_output = Max;
+        }
+        else if (pid_output < 0) {
+          if (pid_error < 0) tempIState -= pid_error;
+          pid_output = 0;
+        }
       }
 
       if (ELAPSED(tnow, cycle_1s)) {
@@ -98,7 +105,7 @@ typedef struct {
         temperature_1s = current_temp;
       }
 
-      return output;
+      return pid_output;
     }
 
     void update() {

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * nextion.cpp
  *
- * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,45 +100,36 @@ void NextionLCD::recvRetCommandFinished(void) {
 
 void NextionLCD::show(NexObject &nexobject) {
   char cmd[40];
-  sprintf_P(cmd, PSTR("page %s"), nexobject.__name);
+  sprintf_P(cmd, PSTR("page p[%u]"), nexobject.pid);
   sendCommand(cmd);
   recvRetCommandFinished();
 }
 
 void NextionLCD::enable(NexObject &nexobject, const bool en /* true */) {
   char cmd[40];
-  sprintf_P(cmd, PSTR("%s.en=%s"), nexobject.__name, en ? "1" : "0");
+  sprintf_P(cmd, PSTR("p[%u].b[%u].en=%s"), nexobject.pid, nexobject.cid, en ? "1" : "0");
   sendCommand(cmd);
   recvRetCommandFinished();
 }
 
-void NextionLCD::getText(NexObject &nexobject, char *buffer, PGM_P const page) {
+void NextionLCD::getText(NexObject &nexobject, char *buffer) {
   char cmd[40];
-  if (page)
-    sprintf_P(cmd, PSTR("get %s.%s.txt"), page, nexobject.__name);
-  else
-    sprintf_P(cmd, PSTR("get %s.txt"), nexobject.__name);
+  sprintf_P(cmd, PSTR("get p[%u].b[%u].txt"), nexobject.pid, nexobject.cid);
   sendCommand(cmd);
   recvRetString(buffer);
 }
 
-void NextionLCD::setText(NexObject &nexobject, PGM_P buffer, PGM_P const page) {
+void NextionLCD::setText(NexObject &nexobject, PGM_P buffer) {
   char cmd[40];
-  if (page)
-    sprintf_P(cmd, PSTR("%s.%s.txt=\"%s\""), page, nexobject.__name, buffer);
-  else
-    sprintf_P(cmd, PSTR("%s.txt=\"%s\""), nexobject.__name, buffer);
+  sprintf_P(cmd, PSTR("p[%u].b[%u].txt=\"%s\""), nexobject.pid, nexobject.cid, buffer);
   sendCommand(cmd);
   recvRetCommandFinished();
 }
 
-void NextionLCD::startChar(NexObject &nexobject, const char * page) {
+void NextionLCD::startChar(NexObject &nexobject) {
   recvRetCommandFinished();
   char cmd[40];
-  if (page)
-    sprintf_P(cmd, PSTR("%s.%s.txt=\""), page, nexobject.__name);
-  else
-    sprintf_P(cmd, PSTR("%s.txt=\""), nexobject.__name);
+  sprintf_P(cmd, PSTR("p[%u].b[%u].txt=\""), nexobject.pid, nexobject.cid);
   nexSerial.print(cmd);
 }
 
@@ -153,183 +144,30 @@ void NextionLCD::endChar() {
   nexSerial.write(0xFF);
 }
 
-uint16_t NextionLCD::getValue(NexObject &nexobject, PGM_P const page) {
+uint16_t NextionLCD::getValue(NexObject &nexobject) {
   char cmd[40];
-  if (page)
-    sprintf_P(cmd, PSTR("get %s.%s.val"), page, nexobject.__name);
-  else
-    sprintf_P(cmd, PSTR("get %s.val"), nexobject.__name);
+  sprintf_P(cmd, PSTR("get p[%u].b[%u].val"), nexobject.pid, nexobject.cid);
   sendCommand(cmd);
   return recvRetNumber();
 }
 
-void NextionLCD::setValue(NexObject &nexobject, const uint16_t number, PGM_P const page) {
+void NextionLCD::setValue(NexObject &nexobject, const uint16_t number) {
   char cmd[40];
-  if (page)
-    sprintf_P(cmd, PSTR("%s.%s.val=%u"), page, nexobject.__name, number);
-  else
-    sprintf_P(cmd, PSTR("%s.val=%u"), nexobject.__name, number);
+  sprintf_P(cmd, PSTR("p[%u].b[%u].val=%u"), nexobject.pid, nexobject.cid, number);
   sendCommand(cmd);
   recvRetCommandFinished();
-}
-
-void NextionLCD::addValue(NexObject &nexobject, const uint8_t ch, const uint8_t number) {
-  char buf[15];
-  if (ch > 3) return;
-  sprintf_P(buf, PSTR("add %u,%u,%u"), nexobject.__cid, ch, number);
-  sendCommand(buf);
-}
-
-uint16_t NextionLCD::Get_cursor_height_hig(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.hig"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::Set_cursor_height_hig(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.hig=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::getMaxval(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.maxval"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::setMaxval(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.maxval=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::getMinval(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.minval"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::setMinval(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.minval=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::Get_background_color_bco(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.bco"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::Set_background_color_bco(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.bco=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::Get_font_color_pco(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.pco"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
 }
 
 void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number) {
   char cmd[40];
-  sprintf_P(cmd, PSTR("%s.pco=%u"), nexobject.__name, number);
+  sprintf_P(cmd, PSTR("p[%u].b[%u].pco=%u"), nexobject.pid, nexobject.cid, number);
   sendCommand(cmd);
   Refresh(nexobject);
-}
-
-uint16_t NextionLCD::Get_place_xcen(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.xcen"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::Set_place_xcen(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.xcen=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::Get_place_ycen(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.ycen"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::Set_place_ycen(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.ycen=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::getFont(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.font"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::setFont(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.font=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::getCropPic(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.picc"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::setCropPic(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.picc=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-uint16_t NextionLCD::getPic(NexObject &nexobject) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("get %s.pic"), nexobject.__name);
-  sendCommand(cmd);
-  return recvRetNumber();
-}
-
-void NextionLCD::setPic(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("%s.pic=%u"), nexobject.__name, number);
-  sendCommand(cmd);
-  Refresh(nexobject);
-}
-
-void NextionLCD::SetVisibility(NexObject &nexobject, const bool visible) {
-  char cmd[40];
-  sprintf_P(cmd, PSTR("vis %s,%s"), nexobject.__name, visible ? PSTR("1") : PSTR("0"));
-  sendCommand(cmd);
-  recvRetCommandFinished();
 }
 
 void NextionLCD::Refresh(NexObject &nexobject) {
   char cmd[20];
-  sprintf_P(cmd, PSTR("ref %s"), nexobject.__name);
+  sprintf_P(cmd, PSTR("ref p[%u].b[%u]"), nexobject.pid, nexobject.cid);
   sendCommand(cmd);
   recvRetCommandFinished();
 }

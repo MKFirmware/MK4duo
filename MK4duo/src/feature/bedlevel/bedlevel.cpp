@@ -223,9 +223,9 @@
    * Reset calibration results to zero.
    */
   void Bedlevel::reset() {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("Reset Bed Level");
-    #endif
+
+    if (printer.debugFeature()) DEBUG_EM("Reset Bed Level");
+
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)
       mbl.reset();
@@ -247,10 +247,9 @@
     /**
      * Print calibration results for plotting or manual frame adjustment.
      */
-    void Bedlevel::print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, float (*fn)(const uint8_t, const uint8_t)) {
+    void Bedlevel::print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, element_2d_fn fn) {
 
       #if DISABLED(SCAD_MESH_OUTPUT)
-        SERIAL_STR(ECHO);
         for (uint8_t x = 0; x < sx; x++) {
           SERIAL_SP(precision + (x < 10 ? 3 : 2));
           SERIAL_VAL((int)x);
@@ -266,7 +265,6 @@
         #if ENABLED(SCAD_MESH_OUTPUT)
           SERIAL_MSG(" [");             // open sub-array
         #else
-          SERIAL_STR(ECHO);
           if (y < 10) SERIAL_CHR(' ');
           SERIAL_VAL((int)y);
         #endif
@@ -275,7 +273,7 @@
           const float offset = fn(x, y);
           if (!isnan(offset)) {
             if (offset >= 0) SERIAL_CHR('+');
-            SERIAL_VAL(offset, precision);
+            SERIAL_VAL(offset, int(precision));
           }
           else {
             #if ENABLED(SCAD_MESH_OUTPUT)
@@ -293,14 +291,14 @@
         }
         #if ENABLED(SCAD_MESH_OUTPUT)
           SERIAL_CHR(' ');
-          SERIAL_CHR(']');                     // close sub-array
+          SERIAL_CHR(']');                      // close sub-array
           if (y < sy - 1) SERIAL_CHR(',');
         #endif
         SERIAL_EOL();
       }
 
       #if ENABLED(SCAD_MESH_OUTPUT)
-        SERIAL_MSG("\n];");                     // close 2D array
+        SERIAL_MSG("];");                       // close 2D array
       #endif
 
       SERIAL_EOL();

@@ -145,6 +145,7 @@
 // M912 - Clear stepper driver overtemperature pre-warn condition flag.
 // M922 - Report driver parameters. (Requires TMC_DEBUG)
 //#define MONITOR_DRIVER_STATUS
+//#define MONITOR_DRIVER_STATUS_INTERVAL_MS 500u
 //#define CURRENT_STEP_DOWN     50  // [mA]
 //#define REPORT_CURRENT_CHANGE
 //#define STOP_ON_ERROR

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Cartesian.h
@@ -55,9 +56,6 @@
  * Feature-settings can be found in Configuration_Feature.h
  * Pins-settings can be found in "Configuration_Pins.h"
  */
-
-#ifndef _CONFIGURATION_CARTESIAN_H_
-#define _CONFIGURATION_CARTESIAN_H_
 
 #define KNOWN_MECH
 
@@ -180,6 +178,9 @@
 // The default connector is SERVO 0.
 //#define BLTOUCH
 //#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
+// BLTouch V3.0 and newer smart series
+//#define BLTOUCH_V3
+//#define BLTOUCH_FORCE_5V_MODE
 
 // If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.
 //
@@ -447,16 +448,9 @@
 //#define G26_MESH_VALIDATION
 #define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
 #define MESH_TEST_LAYER_HEIGHT   0.2  // (mm) Default layer height for the G26 Mesh Validation Tool.
-#define MESH_TEST_HOTEND_TEMP  200.0  // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
-#define MESH_TEST_BED_TEMP      60.0  // (c)  Default bed temperature for the G26 Mesh Validation Tool.
-
-// Default mesh area is an area with an inset margin on the print area.
-// Below are the macros that are used to define the borders for the mesh
-// area, made available here for specialized needs.
-#define MESH_MIN_X (X_MIN_POS + (MESH_INSET))
-#define MESH_MAX_X (X_MAX_POS - (MESH_INSET))
-#define MESH_MIN_Y (Y_MIN_POS + (MESH_INSET))
-#define MESH_MAX_Y (Y_MAX_POS - (MESH_INSET))
+#define MESH_TEST_HOTEND_TEMP  200    // (c)  Default nozzle temperature for the G26 Mesh Validation Tool.
+#define MESH_TEST_BED_TEMP      60    // (c)  Default bed temperature for the G26 Mesh Validation Tool.
+#define G26_XY_FEEDRATE         20    // (mm/s) Feedrate for XY Moves for the G26 Mesh Validation Tool.
 
 // After homing all axes ('G28' or 'G28 XYZ') rest Z at Z MIN POS
 //#define MESH_G28_REST_ORIGIN
@@ -666,5 +660,3 @@
 #define HYSTERESIS_AXIS_MM    { 0, 0, 0 } // mm
 #define HYSTERESIS_CORRECTION 0.0         // 0.0 = no correction; 1.0 = full correction
 /*****************************************************************************************/
-
-#endif /* _CONFIGURATION_CARTESIAN_H_ */

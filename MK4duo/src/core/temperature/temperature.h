@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ class Temperature {
 
     static millis_t next_check_ms[HEATER_COUNT];
 
-    #if ENABLED(FILAMENT_SENSOR)
+    #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static int8_t   meas_shift_index;     // Index of a delayed sample in buffer
       static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
     #endif
@@ -96,11 +96,35 @@ class Temperature {
      */
     static bool heaters_isActive();
 
-    #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+    /**
+     * Calc min & max temp of all hotends
+     */
+    #if HOTENDS > 0
+      static int16_t hotend_mintemp_all();
+      static int16_t hotend_maxtemp_all();
+    #endif
+
+    /**
+     * Calc min & max temp of all beds
+     */
+    #if BEDS > 0
+      static int16_t bed_mintemp_all();
+      static int16_t bed_maxtemp_all();
+    #endif
+
+    /**
+     * Calc min & max temp of all chambers
+     */
+    #if CHAMBERS > 0
+      static int16_t chamber_mintemp_all();
+      static int16_t chamber_maxtemp_all();
+    #endif
+
+    #if HAS_MAX6675 || HAS_MAX31855
       static void getTemperature_SPI();
     #endif
 
-    #if HAS_FILAMENT_SENSOR
+    #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio
     #endif    
 
@@ -119,13 +143,13 @@ class Temperature {
         #if HOTENDS <= 1
           UNUSED(h);
         #endif
-        return tooCold(heaters[HOTEND_INDEX].current_temperature);
+        return tooCold(hotends[HOTEND_INDEX].current_temperature);
       }
       FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
         #if HOTENDS == 1
           UNUSED(h);
         #endif
-        return tooCold(heaters[HOTEND_INDEX].target_temperature);
+        return tooCold(hotends[HOTEND_INDEX].target_temperature);
       }
     #else
       FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
@@ -135,9 +159,11 @@ class Temperature {
     FORCE_INLINE static bool hotEnoughToExtrude(const uint8_t h) { return !tooColdToExtrude(h); }
     FORCE_INLINE static bool targetHotEnoughToExtrude(const uint8_t h) { return !targetTooColdToExtrude(h); }
 
-  private:
+  private: /** Private Function */
 
-    #if HAS_FILAMENT_SENSOR
+    static void check_and_power(Heater *act);
+
+    #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
     #endif
 
@@ -145,9 +171,9 @@ class Temperature {
       static float analog2tempMCU(const int raw);
     #endif
 
-    static void _temp_error(const uint8_t h, PGM_P const serial_msg, PGM_P const lcd_msg);
-    static void min_temp_error(const uint8_t h);
-    static void max_temp_error(const uint8_t h);
+    static void _temp_error(Heater *act, PGM_P const serial_msg, PGM_P const lcd_msg);
+    static void min_temp_error(Heater *act);
+    static void max_temp_error(Heater *act);
 
     #if HEATER_COUNT > 0
       static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);

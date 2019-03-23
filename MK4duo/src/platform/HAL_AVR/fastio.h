@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4150,6 +4150,11 @@ enum ClockSource2 : char {
   #define PG5_PWM     &OCR0B
 
 #endif
+
+#undef SCK
+#undef MISO
+#undef MOSI
+#undef SS
 
 #ifndef DIO0_PIN
   #error "pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please submit a pull request"

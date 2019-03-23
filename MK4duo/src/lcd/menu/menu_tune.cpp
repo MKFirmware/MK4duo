@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,14 +108,14 @@ void menu_tune() {
   // Nozzle [1-4]:
   //
   #if HOTENDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &heaters[0].target_temperature, 0, heaters[0].data.maxtemp - 15, watch_temp_callback_E0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0].target_temperature, 0, hotends[0].data.maxtemp - 10, watch_temp_callback_H0);
   #elif HOTENDS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &heaters[0].target_temperature, 0, heaters[0].data.maxtemp - 15, watch_temp_callback_E0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &heaters[1].target_temperature, 0, heaters[1].data.maxtemp - 15, watch_temp_callback_E1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[0].target_temperature, 0, hotends[0].data.maxtemp - 10, watch_temp_callback_H0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[1].target_temperature, 0, hotends[1].data.maxtemp - 10, watch_temp_callback_H1);
     #if HOTENDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &heaters[2].target_temperature, 0, heaters[2].data.maxtemp - 15, watch_temp_callback_E2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[2].target_temperature, 0, hotends[2].data.maxtemp - 10, watch_temp_callback_H2);
       #if HOTENDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &heaters[3].target_temperature, 0, heaters[3].data.maxtemp - 15, watch_temp_callback_E3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[3].target_temperature, 0, hotends[3].data.maxtemp - 10, watch_temp_callback_H3);
       #endif // HOTENDS > 3
     #endif // HOTENDS > 2
   #endif // HOTENDS > 1
@@ -123,22 +123,15 @@ void menu_tune() {
   //
   // Bed:
   //
-  #if HAS_TEMP_BED
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &heaters[BED_INDEX].target_temperature, 0, heaters[BED_INDEX].data.maxtemp - 15, watch_temp_callback_bed);
+  #if BEDS > 0
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0].target_temperature, 0, beds[0].data.maxtemp - 10, watch_temp_callback_bed);
   #endif
 
   //
   // Chamber:
   //
-  #if HAS_TEMP_CHAMBER
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &heaters[CHAMBER_INDEX].target_temperature, 0, heaters[CHAMBER_INDEX].data.maxtemp - 15, watch_temp_callback_chamber);
-  #endif
-
-  //
-  // Cooler:
-  //
-  #if HAS_TEMP_COOLER
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &heaters[COOLER_INDEX].target_temperature, 0, heaters[COOLER_INDEX].data.maxtemp - 15, watch_temp_callback_cooler);
+  #if CHAMBERS > 0
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0].data.maxtemp - 10, watch_temp_callback_chamber);
   #endif
 
   //

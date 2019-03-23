@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@
     extern float move_menu_scale;
 
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      void lcd_advanced_pause_show_message(const AdvancedPauseMessageEnum message,
-                                           const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_SAME,
+      void lcd_pause_show_message(const PauseMessageEnum message,
+                                           const PauseModeEnum mode=PAUSE_MODE_SAME,
                                            const uint8_t hotend=TARGET_HOTEND);
     #endif
 
@@ -111,7 +111,6 @@
   #define EN_A _BV(BLEN_A)
   #define EN_B _BV(BLEN_B)
 
-  #define BUTTON_EXISTS(BN)   (ENABLED(BTN_## BN) && BTN_## BN >= 0)
   #define BUTTON_PRESSED(BN)  !READ(BTN_## BN)
 
   #if BUTTON_EXISTS(ENC)

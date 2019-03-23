@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 /**
  * tools.h
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #if EXTRUDERS > 0
@@ -54,14 +54,6 @@
 
       // Hotend offset
       static float    hotend_offset[XYZ][HOTENDS];
-
-      #if HAS_EXT_ENCODER
-        static uint8_t  encLastSignal[EXTRUDERS];           // what was the last signal
-        static int8_t   encLastDir[EXTRUDERS];
-        static int32_t  encStepsSinceLastSignal[EXTRUDERS], // when was the last signal
-                        encLastChangeAt[EXTRUDERS],
-                        encErrorSteps[EXTRUDERS];
-      #endif
 
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         static int16_t lpq_len;

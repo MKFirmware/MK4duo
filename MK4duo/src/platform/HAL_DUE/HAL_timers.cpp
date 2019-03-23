@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_SAM
  */
@@ -91,7 +91,6 @@ const tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 uint32_t  HAL_min_pulse_cycle     = 0,
           HAL_min_pulse_tick      = 0,
           HAL_add_pulse_ticks     = 0,
-          HAL_min_isr_frequency   = 0,
           HAL_frequency_limit[8]  = { 0 };
 
 // --------------------------------------------------------------------------
@@ -142,7 +141,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
   NVIC_SetPriority(IRQn, TimerConfig[timer_num].priority);
 
   // wave mode, reset counter on match with RC,
-  TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_EEVT_XC0);
+  TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1);
 
   // Set compare value
   TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
@@ -152,6 +151,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
   // enable interrupt on RC compare
   tc->TC_CHANNEL[channel].TC_IER = TC_IER_CPCS;
+  tc->TC_CHANNEL[channel].TC_IER = ~TC_IER_CPCS;
 
   // Finally, enable IRQ
   NVIC_EnableIRQ(IRQn);
@@ -166,7 +166,6 @@ void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle   = MAX((uint32_t)((F_CPU) / stepper.maximum_rate), ((F_CPU) / 500000UL) * (uint32_t)stepper.minimum_pulse);
   HAL_min_pulse_tick    = ((uint32_t)stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (uint32_t)(PULSE_TIMER_PRESCALE));
   HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
-  HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -195,7 +194,7 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, uint8_t sca
       ++idx;
     };
   #else
-    NOMORE(step_rate, HAL_min_isr_frequency);
+    NOMORE(step_rate, HAL_frequency_limit[0]);
   #endif
 
   *loops = multistep;
@@ -208,7 +207,7 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, uint8_t sca
 /**
  * Interrupt Service Routines
  */
-STEPPER_TIMER_ISR {
+STEPPER_TIMER_ISR() {
 
   HAL_timer_isr_prologue(STEPPER_TIMER);
 

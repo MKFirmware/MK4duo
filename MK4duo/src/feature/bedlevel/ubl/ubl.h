@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,30 +108,6 @@ class unified_bed_leveling {
 
     static float z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
-    // 15 is the maximum nubmer of grid points supported + 1 safety margin for now,
-    // until determinism prevails
-    static constexpr float  _mesh_index_to_xpos[16] PROGMEM = {
-                              MESH_MIN_X +  0 * (MESH_X_DIST), MESH_MIN_X +  1 * (MESH_X_DIST),
-                              MESH_MIN_X +  2 * (MESH_X_DIST), MESH_MIN_X +  3 * (MESH_X_DIST),
-                              MESH_MIN_X +  4 * (MESH_X_DIST), MESH_MIN_X +  5 * (MESH_X_DIST),
-                              MESH_MIN_X +  6 * (MESH_X_DIST), MESH_MIN_X +  7 * (MESH_X_DIST),
-                              MESH_MIN_X +  8 * (MESH_X_DIST), MESH_MIN_X +  9 * (MESH_X_DIST),
-                              MESH_MIN_X + 10 * (MESH_X_DIST), MESH_MIN_X + 11 * (MESH_X_DIST),
-                              MESH_MIN_X + 12 * (MESH_X_DIST), MESH_MIN_X + 13 * (MESH_X_DIST),
-                              MESH_MIN_X + 14 * (MESH_X_DIST), MESH_MIN_X + 15 * (MESH_X_DIST)
-                            };
-
-    static constexpr float  _mesh_index_to_ypos[16] PROGMEM = {
-                              MESH_MIN_Y +  0 * (MESH_Y_DIST), MESH_MIN_Y +  1 * (MESH_Y_DIST),
-                              MESH_MIN_Y +  2 * (MESH_Y_DIST), MESH_MIN_Y +  3 * (MESH_Y_DIST),
-                              MESH_MIN_Y +  4 * (MESH_Y_DIST), MESH_MIN_Y +  5 * (MESH_Y_DIST),
-                              MESH_MIN_Y +  6 * (MESH_Y_DIST), MESH_MIN_Y +  7 * (MESH_Y_DIST),
-                              MESH_MIN_Y +  8 * (MESH_Y_DIST), MESH_MIN_Y +  9 * (MESH_Y_DIST),
-                              MESH_MIN_Y + 10 * (MESH_Y_DIST), MESH_MIN_Y + 11 * (MESH_Y_DIST),
-                              MESH_MIN_Y + 12 * (MESH_Y_DIST), MESH_MIN_Y + 13 * (MESH_Y_DIST),
-                              MESH_MIN_Y + 14 * (MESH_Y_DIST), MESH_MIN_Y + 15 * (MESH_Y_DIST)
-                            };
-
     #if HAS_LCD_MENU
       static bool lcd_map_control;
     #endif
@@ -192,16 +168,14 @@ class unified_bed_leveling {
      */
     static inline float z_correction_for_x_on_horizontal_mesh_line(const float &rx0, const int x1_i, const int yi) {
       if (!WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(yi, 0, GRID_MAX_POINTS_Y - 1)) {
-        #if ENABLED(DEBUG_FEATURE)
-          if (printer.debugFeature()) {
-            SERIAL_PGM( !WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) ? PSTR("x1_i") : PSTR("yi") );
-            SERIAL_MV(" out of bounds in z_correction_for_x_on_horizontal_mesh_line(rx0=", rx0);
-            SERIAL_MV(",x1_i=", x1_i);
-            SERIAL_MV(",yi=", yi);
-            SERIAL_CHR(')');
-            SERIAL_EOL();
-          }
-        #endif
+        if (printer.debugFeature()) {
+          DEBUG_STR( !WITHIN(x1_i, 0, GRID_MAX_POINTS_X - 1) ? PSTR("x1_i") : PSTR("yi") );
+          DEBUG_MV(" out of bounds in z_correction_for_x_on_horizontal_mesh_line(rx0=", rx0);
+          DEBUG_MV(",x1_i=", x1_i);
+          DEBUG_MV(",yi=", yi);
+          DEBUG_CHR(')');
+          DEBUG_EOL();
+        }
 
         // The requested location is off the mesh. Return UBL_Z_RAISE_WHEN_OFF_MESH or NAN.
         return (
@@ -226,16 +200,14 @@ class unified_bed_leveling {
     //
     static inline float z_correction_for_y_on_vertical_mesh_line(const float &ry0, const int xi, const int y1_i) {
       if (!WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(y1_i, 0, GRID_MAX_POINTS_Y - 1)) {
-        #if ENABLED(DEBUG_FEATURE)
-          if (printer.debugFeature()) {
-            SERIAL_PGM( !WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) ? PSTR("xi") : PSTR("y1_i") );
-            SERIAL_MV(" out of bounds in z_correction_for_y_on_vertical_mesh_line(ry0=", ry0);
-            SERIAL_MV(", xi=", xi);
-            SERIAL_MV(", y1_i=", y1_i);
-            SERIAL_CHR(')');
-            SERIAL_EOL();
-          }
-        #endif
+        if (printer.debugFeature()) {
+          DEBUG_STR( !WITHIN(xi, 0, GRID_MAX_POINTS_X - 1) ? PSTR("xi") : PSTR("y1_i") );
+          DEBUG_MV(" out of bounds in z_correction_for_y_on_vertical_mesh_line(ry0=", ry0);
+          DEBUG_MV(", xi=", xi);
+          DEBUG_MV(", y1_i=", y1_i);
+          DEBUG_CHR(')');
+          DEBUG_EOL();
+        }
 
         // The requested location is off the mesh. Return UBL_Z_RAISE_WHEN_OFF_MESH or NAN.
         return (
@@ -286,19 +258,14 @@ class unified_bed_leveling {
                          mesh_index_to_ypos(cy), z1,
                          mesh_index_to_ypos(cy + 1), z2);
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugMesh()) {
-          SERIAL_MV(" raw get_z_correction(", rx0);
-          SERIAL_CHR(',');
-          SERIAL_VAL(ry0);
-          SERIAL_MV(") = ", z0, 6);
-        }
-      #endif
+      if (printer.debugMesh()) {
+        DEBUG_MV(" raw get_z_correction(", rx0);
+        DEBUG_CHR(',');
+        DEBUG_VAL(ry0);
+        DEBUG_MV(") = ", z0, 6);
+      }
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugMesh())
-          SERIAL_EMV(" >>>---> ", z0, 6);
-      #endif
+      if (printer.debugMesh()) DEBUG_EMV(" >>>---> ", z0, 6);
 
       if (isnan(z0)) { // if part of the Mesh is undefined, it will show up as NAN
         z0 = 0.0;      // in ubl.z_values[][] and propagate through the
@@ -306,25 +273,24 @@ class unified_bed_leveling {
                        // because part of the Mesh is undefined and we don't have the
                        // information we need to complete the height correction.
 
-        #if ENABLED(DEBUG_FEATURE)
-          if (printer.debugMesh()) {
-            SERIAL_MV("??? Yikes!  NAN in get_z_correction(", rx0);
-            SERIAL_CHR(',');
-            SERIAL_VAL(ry0);
-            SERIAL_CHR(')');
-            SERIAL_EOL();
-          }
-        #endif
+        if (printer.debugMesh()) {
+          DEBUG_MV("??? Yikes!  NAN in get_z_correction(", rx0);
+          DEBUG_CHR(',');
+          DEBUG_VAL(ry0);
+          DEBUG_CHR(')');
+          DEBUG_EOL();
+        }
+
       }
       return z0;
     }
 
     static inline float mesh_index_to_xpos(const uint8_t i) {
-      return i < GRID_MAX_POINTS_X ? pgm_read_float(&_mesh_index_to_xpos[i]) : MESH_MIN_X + i * (MESH_X_DIST);
+      return MESH_MIN_X + i * (MESH_X_DIST);
     }
 
     static inline float mesh_index_to_ypos(const uint8_t i) {
-      return i < GRID_MAX_POINTS_Y ? pgm_read_float(&_mesh_index_to_ypos[i]) : MESH_MIN_Y + i * (MESH_Y_DIST);
+      return MESH_MIN_Y + i * (MESH_Y_DIST);
     }
 
     #if UBL_DELTA
@@ -346,4 +312,6 @@ class unified_bed_leveling {
 
 extern unified_bed_leveling ubl;
 
-#define Z_VALUES(X,Y) ubl.z_values[X][Y]
+#define _GET_MESH_X(I)  ubl.mesh_index_to_xpos(I)
+#define _GET_MESH_Y(J)  ubl.mesh_index_to_ypos(J)
+#define Z_VALUES_ARR    ubl.z_values

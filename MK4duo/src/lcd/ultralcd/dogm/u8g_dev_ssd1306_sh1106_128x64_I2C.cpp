@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ static const uint8_t u8g_dev_sh1106_128x64_init_seq_2_wire[] PROGMEM = {
 };
 
 uint8_t u8g_dev_sh1106_128x64_2x_2_wire_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg) {
-  switch(msg) {
+  switch (msg) {
     case U8G_DEV_MSG_INIT:
       u8g_InitCom(u8g, dev, U8G_SPI_CLK_CYCLE_300NS);
       u8g_WriteEscSeqP_2_wire(u8g, dev, u8g_dev_sh1106_128x64_init_seq_2_wire);
@@ -180,7 +180,7 @@ static const uint8_t u8g_dev_ssd1306_128x64_init_seq_2_wire[] PROGMEM = {
 };
 
 uint8_t u8g_dev_ssd1306_128x64_2x_2_wire_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg) {
-  switch(msg) {
+  switch (msg) {
     case U8G_DEV_MSG_INIT:
       u8g_InitCom(u8g, dev, U8G_SPI_CLK_CYCLE_300NS);
       u8g_WriteEscSeqP_2_wire(u8g, dev, u8g_dev_ssd1306_128x64_init_seq_2_wire);

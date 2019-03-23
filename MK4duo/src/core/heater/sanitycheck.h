@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,20 +31,20 @@
 
 // Test required HEATER defines
 #if HOTENDS > 3
-  #if !HAS_HEATER_3
-    #error "DEPENDENCY ERROR: HEATER_3_PIN not EXIST for this board."
+  #if !HAS_HEATER_HE3
+    #error "DEPENDENCY ERROR: HEATER_HE3_PIN not EXIST for this board."
   #endif
 #elif HOTENDS > 2
-  #if !HAS_HEATER_2
-    #error "DEPENDENCY ERROR: HEATER_2_PIN not EXIST for this board."
+  #if !HAS_HEATER_HE2
+    #error "DEPENDENCY ERROR: HEATER_HE2_PIN not EXIST for this board."
   #endif
 #elif HOTENDS > 1
-  #if !HAS_HEATER_1
-    #error "DEPENDENCY ERROR: HEATER_1_PIN not EXIST for this board."
+  #if !HAS_HEATER_HE1
+    #error "DEPENDENCY ERROR: HEATER_HE1_PIN not EXIST for this board."
   #endif
 #elif HOTENDS > 0
-  #if !HAS_HEATER_0
-    #error "DEPENDENCY ERROR: HEATER_0_PIN not EXIST for this board."
+  #if !HAS_HEATER_HE0
+    #error "DEPENDENCY ERROR: HEATER_HE0_PIN not EXIST for this board."
   #endif
 #endif
 

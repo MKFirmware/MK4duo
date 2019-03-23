@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 /**
  * nextion.h
  *
- * Copyright (c) 2014 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * Grbl is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,17 +94,15 @@ class NexObject {
 
   public: /** Constructor */
 
-    NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID, const char* OBJ_NAME=NULL) :
-      __pid(OBJ_PID),
-      __cid(OBJ_CID),
-      __name(OBJ_NAME)
+    NexObject(uint8_t OBJ_PID, uint8_t OBJ_CID) :
+      pid(OBJ_PID),
+      cid(OBJ_CID)
       {}
 
   public: /** Public Parameters */
 
-    const uint8_t     __pid,
-                      __cid;
-    const char* const __name;
+    const uint8_t pid,
+                  cid;
 
 };
 
@@ -132,37 +130,16 @@ class NextionLCD {
 
     static void show(NexObject &nexobject);
     static void enable(NexObject &nexobject, const bool en=true);
-    static void getText(NexObject &nexobject, char *buffer, PGM_P const page=NULL);
-    static void setText(NexObject &nexobject, PGM_P buffer, PGM_P const page=NULL);
-    static void startChar(NexObject &nexobject, const char * page=NULL);
+    static void getText(NexObject &nexobject, char *buffer);
+    static void setText(NexObject &nexobject, PGM_P buffer);
+    static void startChar(NexObject &nexobject);
     static void setChar(const char pchar);
     static void endChar();
-    static void setValue(NexObject &nexobject, const uint16_t number, PGM_P const page=NULL);
-    static void addValue(NexObject &nexobject, const uint8_t ch, const uint8_t number);
-    static void Set_cursor_height_hig(NexObject &nexobject, const uint16_t number);
-    static void setMaxval(NexObject &nexobject, const uint16_t number);
-    static void setMinval(NexObject &nexobject, const uint16_t number);
-    static void Set_background_color_bco(NexObject &nexobject, const uint16_t number);
+    static void setValue(NexObject &nexobject, const uint16_t number);
     static void Set_font_color_pco(NexObject &nexobject, const uint16_t number);
-    static void Set_place_xcen(NexObject &nexobject, const uint16_t number);
-    static void Set_place_ycen(NexObject &nexobject, const uint16_t number);
-    static void setFont(NexObject &nexobject, const uint16_t number);
-    static void setCropPic(NexObject &nexobject, const uint16_t number);
-    static void setPic(NexObject &nexobject, const uint16_t number);
-    static void SetVisibility(NexObject &nexobject, const bool visible);
     static void Refresh(NexObject &nexobject);
 
-    static uint16_t getValue(NexObject &nexobject, PGM_P const page=NULL);
-    static uint16_t Get_cursor_height_hig(NexObject &nexobject);
-    static uint16_t getMaxval(NexObject &nexobject);
-    static uint16_t getMinval(NexObject &nexobject);
-    static uint16_t Get_background_color_bco(NexObject &nexobject);
-    static uint16_t Get_font_color_pco(NexObject &nexobject);
-    static uint16_t Get_place_xcen(NexObject &nexobject);
-    static uint16_t Get_place_ycen(NexObject &nexobject);
-    static uint16_t getFont(NexObject &nexobject);
-    static uint16_t getCropPic(NexObject &nexobject);
-    static uint16_t getPic(NexObject &nexobject);
+    static uint16_t getValue(NexObject &nexobject);
     static uint16_t recvRetNumber(void);
 
     static uint8_t pageID();

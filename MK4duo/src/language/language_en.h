@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -535,9 +535,6 @@
 #ifndef MSG_CHAMBER
   #define MSG_CHAMBER                         _UxGT("Chamber")
 #endif
-#ifndef MSG_COOLER
-  #define MSG_COOLER                          _UxGT("Cooler")
-#endif
 #ifndef MSG_FAN_SPEED
   #define MSG_FAN_SPEED                       _UxGT("Fan speed")
 #endif
@@ -701,7 +698,7 @@
   #define MSG_FILAMENT                        _UxGT("Filament")
 #endif
 #ifndef MSG_VOLUMETRIC_ENABLED
-  #define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm3")
+  #define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm^3")
 #endif
 #ifndef MSG_FILAMENT_DIAM
   #define MSG_FILAMENT_DIAM                   _UxGT("Fil. Dia.")
@@ -874,6 +871,15 @@
 #ifndef MSG_BLTOUCH_DEPLOY
   #define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy BLTouch")
 #endif
+#ifndef MSG_BLTOUCH_SW_MODE
+  #define MSG_BLTOUCH_SW_MODE                 _UxGT("SW Deploy BLTouch")
+#endif
+#ifndef MSG_BLTOUCH_5V_MODE
+  #define MSG_BLTOUCH_5V_MODE                 _UxGT("BLTouch 5V Mode")
+#endif
+#ifndef MSG_BLTOUCH_OD_MODE
+  #define MSG_BLTOUCH_OD_MODE                 _UxGT("BLTouch OD Mode")
+#endif
 #ifndef MSG_BLTOUCH_STOW
   #define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #endif
@@ -940,12 +946,6 @@
 #ifndef MSG_ERR_MINTEMP_CHAMBER
   #define MSG_ERR_MINTEMP_CHAMBER             _UxGT("Err: MINTEMP CHAMBER")
 #endif
-#ifndef MSG_ERR_MAXTEMP_COOLER
-  #define MSG_ERR_MAXTEMP_COOLER              _UxGT("Err: MAXTEMP COOLER")
-#endif
-#ifndef MSG_ERR_MINTEMP_COOLER
-  #define MSG_ERR_MINTEMP_COOLER              _UxGT("Err: MINTEMP COOLER")
-#endif
 #ifndef MSG_ERR_Z_HOMING
   #define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #endif
@@ -1000,14 +1000,11 @@
 #ifndef MSG_CHAMBER_HEATING
   #define MSG_CHAMBER_HEATING                 _UxGT("Chamber heating.")
 #endif
+#ifndef MSG_CHAMBER_COOLING
+  #define MSG_CHAMBER_COOLING                 _UxGT("Chamber cooling.")
+#endif
 #ifndef MSG_CHAMBER_DONE
   #define MSG_CHAMBER_DONE                    _UxGT("Chamber done.")
-#endif
-#ifndef MSG_COOLER_COOLING
-  #define MSG_COOLER_COOLING                  _UxGT("Cooler cooling.")
-#endif
-#ifndef MSG_COOLER_DONE
-  #define MSG_COOLER_DONE                     _UxGT("Cooler done.")
 #endif
 #ifndef MSG_DELTA_CALIBRATE
   #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Calibration")
@@ -1089,9 +1086,6 @@
 #endif
 #ifndef MSG_INFO_CHAMBER
   #define MSG_INFO_CHAMBER                    _UxGT("Hot Chamber")
-#endif
-#ifndef MSG_INFO_COOLER
-  #define MSG_INFO_COOLER                     _UxGT("Cooler")
 #endif
 #ifndef MSG_INFO_BAUDRATE
   #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
@@ -1199,6 +1193,94 @@
   #define MSG_M600_TOO_COLD                   _UxGT("M600: Too cold")
 #endif
 
+#ifndef MSG_MMU2_FILAMENT_CHANGE_HEADER
+  #define MSG_MMU2_FILAMENT_CHANGE_HEADER     _UxGT("FILAMENT CHANGE")
+#endif
+#ifndef MSG_MMU2_CHOOSE_FILAMENT_HEADER
+  #define MSG_MMU2_CHOOSE_FILAMENT_HEADER     _UxGT("CHOOSE FILAMENT")
+#endif
+#ifndef MSG_MMU2_MENU
+  #define MSG_MMU2_MENU                       _UxGT("MMU")
+#endif
+#ifndef MSG_MMU2_WRONG_FIRMWARE
+  #define MSG_MMU2_WRONG_FIRMWARE             _UxGT("Update MMU firmware!")
+#endif
+#ifndef MSG_MMU2_NOT_RESPONDING
+  #define MSG_MMU2_NOT_RESPONDING             _UxGT("MMU needs attention.")
+#endif
+#ifndef MSG_MMU2_RESUME
+  #define MSG_MMU2_RESUME                     _UxGT("Resume print")
+#endif
+#ifndef MSG_MMU2_RESUMING
+  #define MSG_MMU2_RESUMING                   _UxGT("Resuming...")
+#endif
+#ifndef MSG_MMU2_LOAD_FILAMENT
+  #define MSG_MMU2_LOAD_FILAMENT              _UxGT("Load filament")
+#endif
+#ifndef MSG_MMU2_LOAD_ALL
+  #define MSG_MMU2_LOAD_ALL                   _UxGT("Load all")
+#endif
+#ifndef MSG_MMU2_LOAD_TO_NOZZLE
+  #define MSG_MMU2_LOAD_TO_NOZZLE             _UxGT("Load to nozzle")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT
+  #define MSG_MMU2_EJECT_FILAMENT             _UxGT("Eject filament")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT0
+  #define MSG_MMU2_EJECT_FILAMENT0            _UxGT("Eject filament 1")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT1
+  #define MSG_MMU2_EJECT_FILAMENT1            _UxGT("Eject filament 2")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT2
+  #define MSG_MMU2_EJECT_FILAMENT2            _UxGT("Eject filament 3")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT3
+  #define MSG_MMU2_EJECT_FILAMENT3            _UxGT("Eject filament 4")
+#endif
+#ifndef MSG_MMU2_EJECT_FILAMENT4
+  #define MSG_MMU2_EJECT_FILAMENT4            _UxGT("Eject filament 5")
+#endif
+#ifndef MSG_MMU2_UNLOAD_FILAMENT
+  #define MSG_MMU2_UNLOAD_FILAMENT            _UxGT("Unload filament")
+#endif
+#ifndef MSG_MMU2_LOADING_FILAMENT
+  #define MSG_MMU2_LOADING_FILAMENT           _UxGT("Loading fil. %i...")
+#endif
+#ifndef MSG_MMU2_EJECTING_FILAMENT
+  #define MSG_MMU2_EJECTING_FILAMENT          _UxGT("Ejecting fil. ...")
+#endif
+#ifndef MSG_MMU2_UNLOADING_FILAMENT
+  #define MSG_MMU2_UNLOADING_FILAMENT         _UxGT("Unloading fil....")
+#endif
+#ifndef MSG_MMU2_ALL
+  #define MSG_MMU2_ALL                        _UxGT("All")
+#endif
+#ifndef MSG_MMU2_FILAMENT0
+  #define MSG_MMU2_FILAMENT0                  _UxGT("Filament 1")
+#endif
+#ifndef MSG_MMU2_FILAMENT1
+  #define MSG_MMU2_FILAMENT1                  _UxGT("Filament 2")
+#endif
+#ifndef MSG_MMU2_FILAMENT2
+  #define MSG_MMU2_FILAMENT2                  _UxGT("Filament 3")
+#endif
+#ifndef MSG_MMU2_FILAMENT3
+  #define MSG_MMU2_FILAMENT3                  _UxGT("Filament 4")
+#endif
+#ifndef MSG_MMU2_FILAMENT4
+  #define MSG_MMU2_FILAMENT4                  _UxGT("Filament 5")
+#endif
+#ifndef MSG_MMU2_RESET
+  #define MSG_MMU2_RESET                      _UxGT("Reset MMU")
+#endif
+#ifndef MSG_MMU2_RESETTING
+  #define MSG_MMU2_RESETTING                  _UxGT("Resetting MMU...")
+#endif
+#ifndef MSG_MMU2_EJECT_RECOVER
+  #define MSG_MMU2_EJECT_RECOVER              _UxGT("Remove, click")
+#endif
+
 #ifndef MSG_MIX
   #define MSG_MIX                             _UxGT("Mix")
 #endif
@@ -1262,6 +1344,9 @@
   #ifndef MSG_ADVANCED_PAUSE_WAITING_1
     #define MSG_ADVANCED_PAUSE_WAITING_1      _UxGT("Press button")
     #define MSG_ADVANCED_PAUSE_WAITING_2      _UxGT("to resume print")
+  #endif
+  #ifndef MSG_PAUSE_PRINT_INIT_1
+    #define MSG_PAUSE_PRINT_INIT_1            _UxGT("Parking...")
   #endif
   #ifndef MSG_FILAMENT_CHANGE_INIT_1
     #define MSG_FILAMENT_CHANGE_INIT_1        _UxGT("Wait for")

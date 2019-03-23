@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ class MemoryStore {
 
     MemoryStore() {}
 
-  private: /** Private Parameters */
+  public: /** Public Parameters */
 
     #if HAS_EEPROM_SD
       static char eeprom_data[EEPROM_SIZE];
@@ -41,7 +41,6 @@ class MemoryStore {
 
   public: /** Public Function */
 
-    static bool access_read();
     static bool access_write();
     static bool write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc);
     static bool read_data(int &pos, uint8_t* value, size_t size, uint16_t *crc, const bool writing=true);

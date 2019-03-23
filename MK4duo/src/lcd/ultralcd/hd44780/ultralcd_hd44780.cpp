@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -518,17 +518,17 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
   }
 #endif
 
-FORCE_INLINE void _draw_heater_status(const uint8_t heater, const char prefix, const bool blink) {
+FORCE_INLINE void _draw_heater_status(Heater *act, const char prefix, const bool blink) {
 
-  const float t1 = (heaters[heater].current_temperature),
-              t2 = (heaters[heater].isIdle() ? heaters[heater].idle_temperature : heaters[heater].target_temperature);
+  const float t1 = (act->current_temperature),
+              t2 = (act->isIdle() ? act->idle_temperature : act->target_temperature);
 
   if (prefix >= 0) lcd_put_wchar(prefix);
 
   lcd_put_u8str(i16tostr3(t1 + 0.5));
   lcd_put_wchar('/');
 
-  if (!blink && heaters[heater].isIdle()) {
+  if (!blink && act->isIdle()) {
     lcd_put_wchar(' ');
     if (t2 >= 10) lcd_put_wchar(' ');
     if (t2 >= 100) lcd_put_wchar(' ');
@@ -643,40 +643,24 @@ void LcdUI::draw_status_message(const bool blink) {
       // String is larger than the available space in screen.
 
       // Get a pointer to the next valid UTF8 character
-      const char *stat = status_message + status_scroll_offset;
+      // and the string remaining length
+      uint8_t rlen;
+      const char *stat = status_and_len(rlen);
+      lcd_put_u8str_max(stat, LCD_WIDTH);     // The string leaves space
 
-      // Get the string remaining length
-      const uint8_t rlen = utf8_strlen(stat);
-
-      // If we have enough characters to display
-      if (rlen >= LCD_WIDTH) {
-        // The remaining string fills the screen - Print it
-        lcd_put_u8str_max(stat, LCD_WIDTH);
-      }
-      else {
-
-        // The remaining string does not completely fill the screen
-        lcd_put_u8str_max(stat, LCD_WIDTH);               // The string leaves space
-        uint8_t chars = LCD_WIDTH - rlen;                 // Amount of space left in characters
-
-        lcd_put_wchar('.');                               // Always at 1+ spaces left, draw a dot
-        if (--chars) {                                    // Draw a second dot if there's space
+      // If the remaining string doesn't completely fill the screen
+      if (rlen < LCD_WIDTH) {
+        lcd_put_wchar('.');                   // Always at 1+ spaces left, draw a dot
+        uint8_t chars = LCD_WIDTH - rlen;     // Amount of space left in characters
+        if (--chars) {                        // Draw a second dot if there's space
           lcd_put_wchar('.');
           if (--chars)
-            lcd_put_u8str_max(status_message, chars);     // Print a second copy of the message
+            lcd_put_u8str_max(status_message, chars); // Print a second copy of the message
         }
       }
       if (last_blink != blink) {
         last_blink = blink;
-
-        // Adjust by complete UTF8 characters
-        if (status_scroll_offset < slen) {
-          status_scroll_offset++;
-          while (!START_OF_UTF8_CHAR(status_message[status_scroll_offset]))
-            status_scroll_offset++;
-        }
-        else
-          status_scroll_offset = 0;
+        advance_status_scroll();
       }
     }
 
@@ -747,7 +731,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(0, -1, blink);
+        _draw_heater_status(&hotends[0], -1, blink);
       #endif
 
       //
@@ -756,11 +740,11 @@ void LcdUI::draw_status_screen() {
       #if HOTENDS > 1
         lcd_moveto(8, 0);
         lcd_put_wchar((char)LCD_STR_THERMOMETER[0]);
-        _draw_heater_status(1, -1, blink);
-      #elif HAS_TEMP_BED
+        _draw_heater_status(&hotends[1], -1, blink);
+      #elif HAS_TEMP_BED0
         lcd_moveto(8, 0);
         lcd_put_wchar((char)LCD_STR_BEDTEMP[0]);
-        _draw_heater_status(BED_INDEX, -1, blink);
+        _draw_heater_status(&beds[0], -1, blink);
       #endif
 
     #else // LCD_WIDTH >= 20
@@ -769,7 +753,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(0, LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
       #endif
 
       //
@@ -777,10 +761,10 @@ void LcdUI::draw_status_screen() {
       //
       #if HOTENDS > 1
         lcd_moveto(10, 0);
-        _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
-      #elif HAS_TEMP_BED
+        _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+      #elif HAS_TEMP_BED0
         lcd_moveto(10, 0);
-        _draw_heater_status(BED_INDEX, (
+        _draw_heater_status(&beds[0], (
           #if HAS_LEVELING
             bedlevel.flag.leveling_active && blink ? '_' :
           #endif
@@ -808,21 +792,21 @@ void LcdUI::draw_status_screen() {
         // If the first line has two extruder temps,
         // show more temperatures on the next line
 
-        #if HOTENDS > 2 || (HOTENDS > 1 && HAS_TEMP_BED)
+        #if HOTENDS > 2 || (HOTENDS > 1 && HAS_TEMP_BED0)
 
           #if HOTENDS > 2
-            _draw_heater_status(2, LCD_STR_THERMOMETER[0], blink);
+            _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
             lcd_moveto(10, 1);
           #endif
 
-          _draw_heater_status(BED_INDEX, (
+          _draw_heater_status(&beds[0], (
             #if HAS_LEVELING
               bedlevel.flag.leveling_active && blink ? '_' :
             #endif
             LCD_STR_BEDTEMP[0]
           ), blink);
 
-        #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
+        #else // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED0)
 
           #if HAS_GRADIENT_MIX
 
@@ -849,14 +833,14 @@ void LcdUI::draw_status_screen() {
 
           #endif
 
-        #endif // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED)
+        #endif // HOTENDS <= 2 && (HOTENDS <= 1 || !HAS_TEMP_BED0)
 
       #endif // LCD_WIDTH >= 20
 
       lcd_moveto(LCD_WIDTH - 8, 1);
       _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
 
-      #if HAS_LEVELING && !HAS_TEMP_BED
+      #if HAS_LEVELING && !HAS_TEMP_BED0
         lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
       #endif
 
@@ -907,7 +891,7 @@ void LcdUI::draw_status_screen() {
     // Hotend 0 Temperature
     //
     #if HAS_TEMP_HOTEND
-      _draw_heater_status(0, LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
     #endif
 
     //
@@ -916,7 +900,7 @@ void LcdUI::draw_status_screen() {
     lcd_moveto(LCD_WIDTH - 9, 0);
     _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
 
-    #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED)
+    #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED0)
       lcd_moveto(LCD_WIDTH - 1, 0);
       lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
     #endif
@@ -928,9 +912,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 1);
     #if HOTENDS > 1
-      _draw_heater_status(1, LCD_STR_THERMOMETER[0], blink);
-    #elif HAS_TEMP_BED
-      _draw_heater_status(BED_INDEX, LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+    #elif HAS_TEMP_BED0
+      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
     #endif
 
     lcd_moveto(LCD_WIDTH - 9, 1);
@@ -945,9 +929,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 2);
     #if HOTENDS > 2
-      _draw_heater_status(2, LCD_STR_THERMOMETER[0], blink);
-    #elif HOTENDS > 1 && HAS_TEMP_BED
-      _draw_heater_status(BED_INDEX, LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
+    #elif HOTENDS > 1 && HAS_TEMP_BED0
+      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
     #else
       #define DREW_PRINT_PROGRESS
       _draw_print_progress();
@@ -984,7 +968,7 @@ void LcdUI::draw_status_screen() {
     void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend=TARGET_HOTEND) {
       if (row < LCD_HEIGHT) {
         lcd_moveto(LCD_WIDTH - 9, row);
-        _draw_heater_status(hotend, LCD_STR_THERMOMETER[0], lcdui.get_blink());
+        _draw_heater_status(&hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());
       }
     }
 
@@ -1057,9 +1041,11 @@ void LcdUI::draw_status_screen() {
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      if (heaters[BED_INDEX].target_temperature > 0) leds |= LED_A;
+      #if BEDS > 0
+        if (beds[0].target_temperature > 0) leds |= LED_A;
+      #endif
 
-      if (heaters[0].target_temperature > 0) leds |= LED_B;
+      if (hotends[0].target_temperature > 0) leds |= LED_B;
 
       #if FAN_COUNT > 0
         if (0
@@ -1201,10 +1187,10 @@ void LcdUI::draw_status_screen() {
          * Show X and Y positions
          */
         _XLABEL(_PLOT_X, 0);
-        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl._mesh_index_to_xpos[x]))));
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x))));
 
         _YLABEL(_LCD_W_POS, 0);
-        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl._mesh_index_to_ypos[inverted_y]))));
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(inverted_y))));
 
         lcd_moveto(_PLOT_X, 0);
 
@@ -1414,9 +1400,9 @@ void LcdUI::draw_status_screen() {
          * Show all values at right of screen
          */
         _XLABEL(_LCD_W_POS, 1);
-        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl._mesh_index_to_xpos[x]))));
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x))));
         _YLABEL(_LCD_W_POS, 2);
-        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl._mesh_index_to_ypos[inverted_y]))));
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(inverted_y))));
 
         /**
          * Show the location value

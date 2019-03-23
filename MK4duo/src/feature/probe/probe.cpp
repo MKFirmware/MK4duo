@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * probe.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -46,12 +46,10 @@ void Probe::factory_parameters() {
 // returns false for ok and true for failure
 bool Probe::set_deployed(const bool deploy) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      DEBUG_POS("probe.set_deployed", mechanics.current_position);
-      SERIAL_EMV("deploy: ", deploy);
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_POS("probe.set_deployed", mechanics.current_position);
+    DEBUG_EMV("deploy: ", deploy);
+  }
 
   if (endstops.isProbeEnabled() == deploy) return false;
 
@@ -149,17 +147,15 @@ bool Probe::set_deployed(const bool deploy) {
 
     #if HAS_BED_PROBE
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          SERIAL_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
-          SERIAL_MV(", ", LOGICAL_Y_POSITION(ry));
-          SERIAL_MT(", ", raise_after == PROBE_PT_RAISE ? "raise" : raise_after == PROBE_PT_STOW ? "stow" : "none");
-          SERIAL_MV(", ", int(verbose_level));
-          SERIAL_MT(", ", probe_relative ? "probe" : "nozzle");
-          SERIAL_EM("_relative)");
-          DEBUG_POS("", mechanics.current_position);
-        }
-      #endif
+      if (printer.debugFeature()) {
+        DEBUG_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
+        DEBUG_MV(", ", LOGICAL_Y_POSITION(ry));
+        DEBUG_MT(", ", raise_after == PROBE_PT_RAISE ? "raise" : raise_after == PROBE_PT_STOW ? "stow" : "none");
+        DEBUG_MV(", ", int(verbose_level));
+        DEBUG_MT(", ", probe_relative ? "probe" : "nozzle");
+        DEBUG_EM("_relative)");
+        DEBUG_POS("", mechanics.current_position);
+      }
 
       float nx = rx, ny = ry;
       if (probe_relative) {
@@ -209,9 +205,7 @@ bool Probe::set_deployed(const bool deploy) {
         sound.feedback(false);
       }
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) SERIAL_EM("<<< check_pt");
-      #endif
+      if (printer.debugFeature()) DEBUG_EM("<<< check_pt");
 
       return measured_z;
 
@@ -397,7 +391,7 @@ bool Probe::specific_action(const bool deploy) {
 
     PGM_P const ds_str = deploy ? PSTR(MSG_MANUAL_DEPLOY) : PSTR(MSG_MANUAL_STOW);
     lcdui.set_status_P(ds_str);
-    SERIAL_PGM(ds_str);
+    SERIAL_STR(ds_str);
     SERIAL_EOL();
 
     printer.setWaitForUser(true);
@@ -431,13 +425,11 @@ bool Probe::specific_action(const bool deploy) {
  */
 bool Probe::move_to_z(const float z, const float fr_mm_s) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
 
   // Deploy BLTouch at the start of any probe
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)
-     if (bltouch.set_deployed(true)) return true;
+     if (bltouch.deploy()) return true;
   #endif
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
@@ -491,7 +483,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
 
   // Retract BLTouch immediately after a probe if it was triggered
   #if ENABLED(BLTOUCH) && NOMECH(DELTA)
-    if (probe_triggered && bltouch.set_deployed(false)) return true;
+    if (probe_triggered && bltouch.stow()) return true;
   #endif
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -522,9 +514,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   // Tell the planner where we actually are
   mechanics.sync_plan_position();
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
 
   return !probe_triggered;
 }
@@ -533,18 +523,17 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
  * Raise Z to a minimum height to make room for a probe to move
  */
 void Probe::do_raise(const float z_raise) {
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV("probe.do_raise(", z_raise);
-      SERIAL_CHR(')');
-      SERIAL_EOL();
-    }
-  #endif
+
+  if (printer.debugFeature()) {
+    DEBUG_MV("probe.do_raise(", z_raise);
+    DEBUG_CHR(')');
+    DEBUG_EOL();
+  }
 
   float z_dest = z_raise;
   if (data.offset[Z_AXIS] < 0) z_dest -= data.offset[Z_AXIS];
 
-  NOMORE(z_dest, Z_MAX_POS);
+  NOMORE(z_dest, Z_MAX_BED);
 
   if (z_dest > mechanics.current_position[Z_AXIS])
     mechanics.do_blocking_move_to_z(z_dest);
@@ -564,9 +553,7 @@ float Probe::run_probing() {
   // If Z isn't known then probe to -10mm.
   const float z_probe_low_point = mechanics.isAxisHomed(Z_AXIS) ? Z_PROBE_LOW_POINT - data.offset[Z_AXIS] : -10.0;
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
 
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
@@ -582,12 +569,10 @@ float Probe::run_probing() {
 
     // move down slowly to find bed
     if (move_to_z(z_probe_low_point, MMM_TO_MMS(data.speed_slow))) {
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          SERIAL_EM("SLOW Probe fail!");
-          DEBUG_POS("<<< probe.run_probing", mechanics.current_position);
-        }
-      #endif
+      if (printer.debugFeature()) {
+        DEBUG_EM("SLOW Probe fail!");
+        DEBUG_POS("<<< probe.run_probing", mechanics.current_position);
+      }
       return NAN;
     }
 
@@ -601,23 +586,19 @@ float Probe::run_probing() {
 
 #if ENABLED(Z_PROBE_ALLEN_KEY)
 
-  FORCE_INLINE void do_blocking_move_to(const float raw[XYZ], const float &fr_mm_s/*=0.0*/) {
-    mechanics.do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
-  }
-
   void Probe::run_deploy_moves_script() {
 
     const float z_probe_deploy_start_location[]  = Z_PROBE_DEPLOY_START_LOCATION,
                 z_probe_deploy_end_location[]    = Z_PROBE_DEPLOY_END_LOCATION;
 
     // Move to the start position to initiate deployment
-    do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
     // Move to engage deployment
-    do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
 
     // Move to trigger deployment
-    do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
   void Probe::run_stow_moves_script() {
 
@@ -625,13 +606,13 @@ float Probe::run_probing() {
                 z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
 
     // Move to the start position to initiate retraction
-    do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
 
     // Move the nozzle down to push the Z probe into retracted position
-    do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
 
     // Move up for safety
-    do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
   }
 
 #endif
@@ -649,15 +630,13 @@ float Probe::run_probing() {
    *              If true, move to MAX_X and release the solenoid
    */
   void Probe::dock_sled(bool stow) {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) {
-        SERIAL_MV("dock_sled(", stow);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
-    #endif
+    if (printer.debugFeature()) {
+      DEBUG_MV("dock_sled(", stow);
+      DEBUG_CHR(')'); DEBUG_EOL();
+    }
 
     // Dock sled a bit closer to ensure proper capturing
-    mechanics.do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
+    mechanics.do_blocking_move_to_x(X_MAX_BED + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
     WRITE(SLED_PIN, !stow); // switch solenoid
   }
 

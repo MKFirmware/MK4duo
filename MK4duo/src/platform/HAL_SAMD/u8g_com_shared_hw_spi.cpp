@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ static void writebyte(uint8_t rs, uint8_t val) {
 uint8_t u8g_com_HAL_SAMD_shared_hw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
   if (!HAL::SPIReady) return 1; // U8G problem, called before setup on SAMD will crash
 
-  switch(msg) {
+  switch (msg) {
     case U8G_COM_MSG_STOP:
       break;
 

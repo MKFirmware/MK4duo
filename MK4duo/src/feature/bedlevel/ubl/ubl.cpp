@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,11 +103,6 @@
 
   float unified_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
-  // 15 is the maximum nubmer of grid points supported + 1 safety margin for now,
-  // until determinism prevails
-  constexpr float unified_bed_leveling::_mesh_index_to_xpos[16],
-                  unified_bed_leveling::_mesh_index_to_ypos[16];
-
   #if HAS_LCD_MENU
     bool unified_bed_leveling::lcd_map_control = false;
   #endif
@@ -189,11 +184,14 @@
     }
     else {
       SERIAL_MSG(" for ");
-      SERIAL_PGM(csv ? PSTR("CSV:\n") : PSTR("LCD:\n"));
+      SERIAL_STR(csv ? PSTR("CSV:\n") : PSTR("LCD:\n"));
     }
 
-    const float current_xi = get_cell_index_x(mechanics.current_position[X_AXIS] + (MESH_X_DIST) / 2.0),
-                current_yi = get_cell_index_y(mechanics.current_position[Y_AXIS] + (MESH_Y_DIST) / 2.0);
+    // Add XY_PROBE_OFFSET_FROM_EXTRUDER because probe_pt() subtracts these when
+    // moving to the xy position to be measured. This ensures better agreement between
+    // the current Z position after G28 and the mesh values.
+    const float current_xi = find_closest_x_index(mechanics.current_position[X_AXIS] + probe.data.offset[X_AXIS]),
+                current_yi = find_closest_y_index(mechanics.current_position[Y_AXIS] + probe.data.offset[Y_AXIS]);
 
     if (!lcd) SERIAL_EOL();
     for (int8_t j = GRID_MAX_POINTS_Y - 1; j >= 0; j--) {
@@ -218,7 +216,7 @@
           // TODO: Display on Graphical LCD
         }
         else if (isnan(f))
-          SERIAL_PGM(human ? PSTR("  .   ") : PSTR("NAN"));
+          SERIAL_STR(human ? PSTR("  .   ") : PSTR("NAN"));
         else if (human || csv) {
           if (human && f >= 0.0) SERIAL_CHR(f > 0 ? '+' : ' '); // Space for positive ('-' for negative)
           SERIAL_VAL(f, 3);                                     // Positive: 5 digits, Negative: 6 digits

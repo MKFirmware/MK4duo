@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,34 +27,30 @@
 #define BIN  2
 #define BYTE 0
 
-FSTRINGVAR(START);            // start for host
-FSTRINGVAR(OK);               // ok answer for host
-FSTRINGVAR(OKSPACE);          // ok space answer for host
-FSTRINGVAR(ER);               // error for host
-FSTRINGVAR(WT);               // wait for host
-FSTRINGVAR(DEB);              // message for debug
-FSTRINGVAR(ECHO);             // message for user
-FSTRINGVAR(CFG);              // config for host
-FSTRINGVAR(CAP);              // capabilities for host
-FSTRINGVAR(INFO);             // info for host
-FSTRINGVAR(BUSY);             // buys for host
-FSTRINGVAR(RESEND);           // resend for host
-FSTRINGVAR(WARNING);          // warning for host
-FSTRINGVAR(TNAN);             // NAN for host
-FSTRINGVAR(TINF);             // INF for host
-FSTRINGVAR(ACTIONPAUSE);      // command for host that support action
-FSTRINGVAR(ACTIONRESUME);     // command for host that support action
-FSTRINGVAR(ACTIONDISCONNECT); // command for host that support action
-FSTRINGVAR(ACTIONPOWEROFF);   // command for host that support action
-FSTRINGVAR(REQUESTPAUSE);     // command for host that support action
-FSTRINGVAR(REQUESTCONTINUE);  // command for host that support action
-FSTRINGVAR(REQUESTSTOP);      // command for host that support action
+FSTRINGVAR(START);              // start for host
+FSTRINGVAR(OK);                 // ok answer for host
+FSTRINGVAR(OKSPACE);            // ok space answer for host
+FSTRINGVAR(ER);                 // error for host
+FSTRINGVAR(WT);                 // wait for host
+FSTRINGVAR(DEB);                // message for debug
+FSTRINGVAR(ECHO);               // message for user
+FSTRINGVAR(CFG);                // config for host
+FSTRINGVAR(CAP);                // capabilities for host
+FSTRINGVAR(INFO);               // info for host
+FSTRINGVAR(BUSY);               // buys for host
+FSTRINGVAR(RESEND);             // resend for host
+FSTRINGVAR(WARNING);            // warning for host
+FSTRINGVAR(TNAN);               // NAN for host
+FSTRINGVAR(TINF);               // INF for host
+FSTRINGVAR(REQUESTPAUSE);       // command for host that support action
+FSTRINGVAR(REQUESTCONTINUE);    // command for host that support action
+FSTRINGVAR(REQUESTSTOP);        // command for host that support action
 
 class Com {
 
   public: /** Public Parameters */
 
-    static int8_t serial_port;
+    static int8_t serial_port_index;
 
   public: /** Public Function */
 
@@ -76,13 +72,14 @@ class Com {
     static void print(const String& s);
     static void print(const char* str);
 
-    static void print(char, int = BYTE);
-    static void print(unsigned char, int = DEC);
-    static void print(int, int = DEC);
-    static void print(unsigned int, int = DEC);
-    static void print(long, int = DEC);
-    static void print(unsigned long, int = DEC);
-    static void print(double, int = 2);
+    static void print(char, int=BYTE);
+    static void print(unsigned char, int=DEC);
+    static void print(int, int=DEC);
+    static void print(unsigned int, int=DEC);
+    static void print(long, int=DEC);
+    static void print(unsigned long, int=DEC);
+    static void print(float, int=2);
+    static void print(double, int=2);
 
     static void println(void);
     operator bool() { return true; }
@@ -91,16 +88,6 @@ class Com {
 
     static void print_logic(PGM_P const label, const bool logic);
     static void print_onoff(PGM_P const label, const bool onoff);
-
-    #if ENABLED(DEBUG_FEATURE)
-      static void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
-      static void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
-      #if HAS_PLANAR
-        static void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
-      #endif
-      #define DEBUG_POS(SUFFIX,VAR)       do{ \
-        Com::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR); }while(0)
-    #endif
 
     // Capabilities string
     static void host_capabilities(PGM_P pstr);
@@ -113,20 +100,18 @@ class Com {
 };
 
 // MACRO FOR SERIAL
-#define SERIAL_PORT(p)                      (Com::serial_port = p)
+#define SERIAL_PORT(p)                      Com::serial_port_index = p
 
-#define SERIAL_PGM(message)                 (Com::printPGM(message))
+#define SERIAL_STR(str)                     Com::printPGM(str)
+#define SERIAL_MSG(msg)                     Com::printPGM(PSTR(msg))
+#define SERIAL_TXT(txt)                     Com::print(txt)
+#define SERIAL_VAL(val, ...)                Com::print(val, ## __VA_ARGS__)
+#define SERIAL_CHR(c)                       Com::write(c)
+#define SERIAL_EOL()                        Com::println()
 
-#define SERIAL_STR(str)                     SERIAL_PGM(str)
-#define SERIAL_MSG(msg)                     SERIAL_PGM(PSTR(msg))
-#define SERIAL_TXT(txt)                     (Com::print(txt))
-#define SERIAL_VAL(val, ...)                (Com::print(val, ## __VA_ARGS__))
-#define SERIAL_CHR(c)                       (Com::write(c))
-#define SERIAL_EOL()                        (Com::println())
-
-#define SERIAL_SP(C)                        (Com::print_spaces(C))
-#define SERIAL_LOGIC(msg, val)              (Com::print_logic(PSTR(msg), val))
-#define SERIAL_ONOFF(msg, val)              (Com::print_onoff(PSTR(msg), val))
+#define SERIAL_SP(C)                        Com::print_spaces(C)
+#define SERIAL_LOGIC(msg, val)              Com::print_logic(PSTR(msg), val)
+#define SERIAL_ONOFF(msg, val)              Com::print_onoff(PSTR(msg), val)
 
 #define SERIAL_ELOGIC(msg, val)             do{ SERIAL_LOGIC(msg, val); SERIAL_EOL(); }while(0)
 #define SERIAL_EONOFF(msg, val)             do{ SERIAL_ONOFF(msg, val); SERIAL_EOL(); }while(0)
@@ -154,4 +139,4 @@ class Com {
 #define SERIAL_LMV(str, msg, val, ...)      do{ SERIAL_STR(str); SERIAL_MV(msg, val, ## __VA_ARGS__); SERIAL_EOL(); }while(0)
 
 // HOST Capabilities string
-#define SERIAL_CAP(msg)                     Com::host_capabilities(PSTR(msg));
+#define SERIAL_CAP(msg)                     Com::host_capabilities(PSTR(msg))

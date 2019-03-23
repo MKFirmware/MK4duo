@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@
   #define MSG_VC_JERK                       _UxGT("Vz-jerk")
 #endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
-#define MSG_VMAX                            _UxGT("Vmax ")
+#define MSG_VMAX                            _UxGT("Vmax")
 #define MSG_VMIN                            _UxGT("Vmin")
 #define MSG_VTRAV_MIN                       _UxGT("Vel. viache min")
 #define MSG_ACCELERATION                    MSG_ACC

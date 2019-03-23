@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -350,51 +350,56 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 /**
  * Watch temperature callbacks
  */
-#if HAS_TEMP_HOTEND
+#if HOTENDS > 0
 
-  void watch_temp_callback_E0() {
-    heaters[0].setTarget(heaters[0].target_temperature);
-    heaters[0].start_watching();
+  void watch_temp_callback_H0() {
+    hotends[0].setTarget(hotends[0].target_temperature);
+    hotends[0].start_watching();
   }
   #if HOTENDS > 1
-    void watch_temp_callback_E1() {
-      heaters[1].setTarget(heaters[1].target_temperature);
-      heaters[1].start_watching();
+    void watch_temp_callback_H1() {
+      hotends[1].setTarget(hotends[1].target_temperature);
+      hotends[1].start_watching();
     }
     #if HOTENDS > 2
-      void watch_temp_callback_E2() {
-        heaters[2].setTarget(heaters[2].target_temperature);
-        heaters[2].start_watching();
+      void watch_temp_callback_H2() {
+        hotends[2].setTarget(hotends[2].target_temperature);
+        hotends[2].start_watching();
       }
       #if HOTENDS > 3
-        void watch_temp_callback_E3() {
-          heaters[3].setTarget(heaters[3].target_temperature);
-          heaters[3].start_watching();
+        void watch_temp_callback_H3() {
+          hotends[3].setTarget(hotends[3].target_temperature);
+          hotends[3].start_watching();
         }
+        #if HOTENDS > 4
+          void watch_temp_callback_H4() {
+            hotends[4].setTarget(hotends[4].target_temperature);
+            hotends[4].start_watching();
+          }
+          #if HOTENDS > 3
+            void watch_temp_callback_H5() {
+              hotends[5].setTarget(hotends[5].target_temperature);
+              hotends[5].start_watching();
+            }
+          #endif // HOTENDS > 5
+        #endif // HOTENDS > 4
       #endif // HOTENDS > 3
     #endif // HOTENDS > 2
   #endif // HOTENDS > 1
 
 #endif // HAS_TEMP_HOTEND
 
-#if HAS_TEMP_BED
+#if BEDS > 0
   void watch_temp_callback_bed() {
-    heaters[BED_INDEX].setTarget(heaters[BED_INDEX].target_temperature);
-    heaters[BED_INDEX].start_watching();
+    beds[0].setTarget(beds[0].target_temperature);
+    beds[0].start_watching();
   }
 #endif
 
-#if HAS_TEMP_CHAMBER
+#if CHAMBERS > 0
   void watch_temp_callback_chamber() {
-    heaters[CHAMBER_INDEX].setTarget(heaters[CHAMBER_INDEX].target_temperature);
-    heaters[CHAMBER_INDEX].start_watching();
-  }
-#endif
-
-#if HAS_TEMP_COOLER
-  void watch_temp_callback_cooler() {
-    heaters[COOLER_INDEX].setTarget(heaters[COOLER_INDEX].target_temperature);
-    heaters[COOLER_INDEX].start_watching();
+    chambers[0].setTarget(chambers[0].target_temperature);
+    chambers[0].start_watching();
   }
 #endif
 

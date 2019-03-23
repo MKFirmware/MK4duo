@@ -25,8 +25,6 @@
  *
  */
 
-#include <binary.h>
-
 #include "../../../../MK4duo.h"
 
 #if ENABLED(SHOW_BOOTSCREEN)

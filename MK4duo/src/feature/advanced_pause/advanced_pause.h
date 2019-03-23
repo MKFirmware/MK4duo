@@ -22,7 +22,7 @@
 #pragma once
 
 /**
- * advanced_pause.h
+ * advanced_pause.h - Advanced_Pause feature
  *
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
@@ -52,7 +52,9 @@ class AdvancedPause {
 
   public: /** Public Parameters */
 
-    static AdvancedPauseMenuResponseEnum menu_response;
+    static PauseModeEnum mode;
+
+    static PauseMenuResponseEnum menu_response;
 
     static advanced_pause_data_t data[EXTRUDERS];
 
@@ -60,10 +62,9 @@ class AdvancedPause {
 
   public: /** Public Function */
 
-    static void do_pause_e_move(const float &length, const float &fr);
+    static void do_pause_e_move(const float &length, const float &fr_mm_s);
 
-    static bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0,
-                            const bool show_lcd=false DXC_PARAMS);
+    static bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0, const bool show_lcd=false DXC_PARAMS);
 
     static void wait_for_confirmation(const bool is_reload=false, const int8_t max_beep_count=0 DXC_PARAMS);
 
@@ -72,14 +73,14 @@ class AdvancedPause {
 
     static bool load_filament(const float &slow_load_length=0, const float &fast_load_length=0,
                               const float &purge_length=0, const int8_t max_beep_count=0, const bool show_lcd=false,
-                              const bool pause_for_user=false, const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT DXC_PARAMS);
+                              const bool pause_for_user=false, const PauseModeEnum tmode=PAUSE_MODE_PAUSE_PRINT DXC_PARAMS);
 
-    static bool unload_filament(const float &unload_length, const bool show_lcd=false, const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT);
+    static bool unload_filament(const float &unload_length, const bool show_lcd=false, const PauseModeEnum mode=PAUSE_MODE_PAUSE_PRINT);
 
   private: /** Private Function */
 
     static void show_continue_prompt(const bool is_reload);
-    static bool ensure_safe_temperature(const AdvancedPauseModeEnum mode=ADVANCED_PAUSE_MODE_SAME);
+    static bool ensure_safe_temperature(const PauseModeEnum tmode=PAUSE_MODE_SAME);
 
     #if HAS_BUZZER
       static void filament_change_beep(const int8_t max_beep_count, const bool init=false);

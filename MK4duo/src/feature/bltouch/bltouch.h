@@ -29,27 +29,44 @@
 
 #if ENABLED(BLTOUCH)
 
-  class Bltouch {
+#define BLTOUCH_DEPLOY    10
+#define BLTOUCH_SW_MODE   60
+#define BLTOUCH_STOW      90
+#define BLTOUCH_SELFTEST 120
+#define BLTOUCH_5V_MODE  140
+#define BLTOUCH_OD_MODE  150
+#define BLTOUCH_RESET    160
 
-    public: /** Constructor */
+class Bltouch {
 
-      Bltouch() {};
+  public: /** Constructor */
 
-    public: /** Public Parameters */
+    Bltouch() {};
 
-    public: /** Public Function */
+  public: /** Public Parameters */
 
-      static void init();
-      static bool test();
+  public: /** Public Function */
 
-      // returns false for ok and true for failure
-      static bool set_deployed(const bool deploy);
+    static void init();
+    static bool test();
+    static void command(const int angle);
 
-    private: /** Private Function */
+    // returns false for ok and true for failure
+    static bool set_deployed(const bool deploy);
 
-      static void move(const int angle);
-  };
+    FORCE_INLINE static bool deploy() { return set_deployed(true); }
+    FORCE_INLINE static bool stow()   { return set_deployed(false); }
 
-  extern Bltouch bltouch;
+    FORCE_INLINE static void cmd_deploy()   { command(BLTOUCH_DEPLOY); }
+    FORCE_INLINE static void cmd_SW_mode()  { command(BLTOUCH_SW_MODE); }
+    FORCE_INLINE static void cmd_stow()     { command(BLTOUCH_STOW); }
+    FORCE_INLINE static void cmd_selftest() { command(BLTOUCH_SELFTEST); }
+    FORCE_INLINE static void cmd_5V_mode()  { command(BLTOUCH_5V_MODE); }
+    FORCE_INLINE static void cmd_OD_mode()  { command(BLTOUCH_OD_MODE); }
+    FORCE_INLINE static void cmd_reset()    { command(BLTOUCH_RESET); }
+
+};
+
+extern Bltouch bltouch;
 
 #endif // ENABLED(BLTOUCH)

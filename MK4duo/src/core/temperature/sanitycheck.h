@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,39 +36,39 @@
     #error "DEPENDENCY ERROR: Missing setting TEMP_WINDOW."
   #endif
 #endif
-#if TEMP_SENSOR_0 != 0
-  #if DISABLED(HEATER_0_MAXTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_0_MAXTEMP."
+#if TEMP_SENSOR_HE0 != 0
+  #if DISABLED(HOTEND_0_MAXTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_0_MAXTEMP."
   #endif
-  #if DISABLED(HEATER_0_MINTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_0_MINTEMP."
-  #endif
-#endif
-#if TEMP_SENSOR_1 != 0
-  #if DISABLED(HEATER_1_MAXTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_1_MAXTEMP."
-  #endif
-  #if DISABLED(HEATER_1_MINTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_1_MINTEMP."
+  #if DISABLED(HOTEND_0_MINTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_0_MINTEMP."
   #endif
 #endif
-#if TEMP_SENSOR_2 != 0
-  #if DISABLED(HEATER_2_MAXTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_2_MAXTEMP."
+#if TEMP_SENSOR_HE1 != 0
+  #if DISABLED(HOTEND_1_MAXTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_1_MAXTEMP."
   #endif
-  #if DISABLED(HEATER_2_MINTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_2_MINTEMP."
-  #endif
-#endif
-#if TEMP_SENSOR_3 != 0
-  #if DISABLED(HEATER_3_MAXTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_3_MAXTEMP."
-  #endif
-  #if DISABLED(HEATER_3_MINTEMP)
-    #error "DEPENDENCY ERROR: Missing setting HEATER_3_MINTEMP."
+  #if DISABLED(HOTEND_1_MINTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_1_MINTEMP."
   #endif
 #endif
-#if TEMP_SENSOR_BED != 0
+#if TEMP_SENSOR_HE2 != 0
+  #if DISABLED(HOTEND_2_MAXTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_2_MAXTEMP."
+  #endif
+  #if DISABLED(HOTEND_2_MINTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_2_MINTEMP."
+  #endif
+#endif
+#if TEMP_SENSOR_HE3 != 0
+  #if DISABLED(HOTEND_3_MAXTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_3_MAXTEMP."
+  #endif
+  #if DISABLED(HOTEND_3_MINTEMP)
+    #error "DEPENDENCY ERROR: Missing setting HOTEND_3_MINTEMP."
+  #endif
+#endif
+#if TEMP_SENSOR_BED0 != 0
   #if DISABLED(BED_MAXTEMP)
     #error "DEPENDENCY ERROR: Missing setting BED_MAXTEMP."
   #endif
@@ -76,26 +76,15 @@
     #error "DEPENDENCY ERROR: Missing setting BED_MINTEMP."
   #endif
 #endif
-#if TEMP_SENSOR_CHAMBER != 0
+#if TEMP_SENSOR_CHAMBER0 != 0
   #if DISABLED(CHAMBER_MAXTEMP)
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_MAXTEMP."
   #endif
   #if DISABLED(CHAMBER_MINTEMP)
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_MINTEMP."
   #endif
-  #if !HAS_HEATER_CHAMBER
-    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_CHAMBER without HEATER_CHAMBER_PIN."
-  #endif
-#endif
-#if TEMP_SENSOR_COOLER != 0
-  #if DISABLED(COOLER_MAXTEMP)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_MAXTEMP."
-  #endif
-  #if DISABLED(COOLER_MINTEMP)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_MINTEMP."
-  #endif
-  #if !HAS_HEATER_COOLER
-    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_COOLER without HEATER_COOLER_PIN."
+  #if !HAS_HEATER_CHAMBER0
+    #error "DEPENDENCY ERROR: Cannot enable TEMP_SENSOR_CHAMBER0 without HEATER_CHAMBER0_PIN."
   #endif
 #endif
 #if DISABLED(PREHEAT_1_TEMP_HOTEND)
@@ -140,32 +129,32 @@
 #if DISABLED(PID_FUNCTIONAL_RANGE)
   #error "DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE."
 #endif
-#if DISABLED(DEFAULT_Kp)
-  #error "DEPENDENCY ERROR: Missing setting DEFAULT_Kp."
+#if DISABLED(HOTEND_Kp)
+  #error "DEPENDENCY ERROR: Missing setting HOTEND_Kp."
 #endif
-#if DISABLED(DEFAULT_Ki)
-  #error "DEPENDENCY ERROR: Missing setting DEFAULT_Ki."
+#if DISABLED(HOTEND_Ki)
+  #error "DEPENDENCY ERROR: Missing setting HOTEND_Ki."
 #endif
-#if DISABLED(DEFAULT_Kd)
-  #error "DEPENDENCY ERROR: Missing setting DEFAULT_Kd."
+#if DISABLED(HOTEND_Kd)
+  #error "DEPENDENCY ERROR: Missing setting HOTEND_Kd."
 #endif
 #if (PIDTEMPBED)
-  #if !HAS_TEMP_BED
-    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED for use PIDTEMPBED."
+  #if !HAS_TEMP_BED0
+    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED0 for use PIDTEMPBED."
   #endif
-  #if DISABLED(DEFAULT_bedKp)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_bedKp."
+  #if DISABLED(BED_Kp)
+    #error "DEPENDENCY ERROR: Missing setting BED_Kp."
   #endif
-  #if DISABLED(DEFAULT_bedKi)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_bedKi."
+  #if DISABLED(BED_Ki)
+    #error "DEPENDENCY ERROR: Missing setting BED_Ki."
   #endif
-  #if DISABLED(DEFAULT_bedKd)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_bedKd."
+  #if DISABLED(BED_Kd)
+    #error "DEPENDENCY ERROR: Missing setting BED_Kd."
   #endif
 #endif
 #if (PIDTEMPCHAMBER)
-  #if !HAS_TEMP_CHAMBER
-    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_CHAMBER."
+  #if !HAS_TEMP_CHAMBER0
+    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_CHAMBER0."
   #endif
   #if DISABLED(CHAMBER_PID_MAX)
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_PID_MAX."
@@ -176,39 +165,16 @@
   #if DISABLED(CHAMBER_PID_DRIVE_MAX)
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_PID_DRIVE_MAX."
   #endif
-  #if DISABLED(DEFAULT_chamberKp)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_chamberKp."
+  #if DISABLED(CHAMBER_Kp)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_Kp."
   #endif
-  #if DISABLED(DEFAULT_chamberKi)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_chamberKi."
+  #if DISABLED(CHAMBER_Ki)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_Ki."
   #endif
-  #if DISABLED(DEFAULT_chamberKd)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_chamberKd."
+  #if DISABLED(CHAMBER_Kd)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_Kd."
   #endif
 
-#endif
-#if (PIDTEMPCOOLER)
-  #if !HAS_TEMP_COOLER
-    #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_COOLER."
-  #endif
-  #if DISABLED(COOLER_PID_MAX)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_MAX."
-  #endif
-  #if DISABLED(COOLER_PID_DRIVE_MIN)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_DRIVE_MIN."
-  #endif
-  #if DISABLED(COOLER_PID_DRIVE_MAX)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_DRIVE_MAX."
-  #endif
-  #if DISABLED(DEFAULT_coolerKp)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_coolerKp."
-  #endif
-  #if DISABLED(DEFAULT_coolerKi)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_coolerKi."
-  #endif
-  #if DISABLED(DEFAULT_coolerKd)
-    #error "DEPENDENCY ERROR: Missing setting DEFAULT_coolerKd."
-  #endif
 #endif
 #if ENABLED(BED_LIMIT_SWITCHING)
   #if DISABLED(BED_HYSTERESIS)
@@ -226,15 +192,7 @@
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_CHECK_INTERVAL."
   #endif
 #endif
-#if ENABLED(COOLER_LIMIT_SWITCHING)
-  #if DISABLED(COOLER_HYSTERESIS)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_HYSTERESIS."
-  #endif
-  #if DISABLED(COOLER_CHECK_INTERVAL)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_CHECK_INTERVAL."
-  #endif
-#endif
-#if THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED || THERMAL_PROTECTION_CHAMBER || THERMAL_PROTECTION_COOLER
+#if THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED || THERMAL_PROTECTION_CHAMBER
   #if DISABLED(THERMAL_PROTECTION_PERIOD)
     #error "DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_PERIOD."
   #endif
@@ -254,25 +212,46 @@
  */
 #if ENABLED(DHT_SENSOR)
   static_assert(1 >= 0
-    #if TEMP_SENSOR_0 == DHT_TYPE
+    #if TEMP_SENSOR_HE0 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_1 == DHT_TYPE
+    #if TEMP_SENSOR_HE1 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_2 == DHT_TYPE
+    #if TEMP_SENSOR_HE2 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_3 == DHT_TYPE
+    #if TEMP_SENSOR_HE3 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_BED == DHT_TYPE
+    #if TEMP_SENSOR_HE4 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_CHAMBER == DHT_TYPE
+    #if TEMP_SENSOR_HE5 == DHT_TYPE
       + 1
     #endif
-    #if TEMP_SENSOR_COOLER == DHT_TYPE
+    #if TEMP_SENSOR_BED0 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_BED1 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_BED2 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_BED3 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_CHAMBER0 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_CHAMBER1 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_CHAMBER2 == DHT_TYPE
+      + 1
+    #endif
+    #if TEMP_SENSOR_CHAMBER3 == DHT_TYPE
       + 1
     #endif
     , "DEPENDENCY ERROR: only one DHT sensor is supported!"

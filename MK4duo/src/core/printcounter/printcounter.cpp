@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,6 @@ void PrintCounter::loadStats() {
 
     // Check if the EEPROM block is initialized
     char value[3];
-    memorystore.access_read();
 
     memorystore.read_data(address, (uint8_t*)&value, sizeof(value));
 
@@ -343,13 +342,13 @@ void PrintCounter::reset() {
     duration_t elapsed = when;
     elapsed.toString(buffer);
     SERIAL_MSG(MSG_SERVICE);
-    SERIAL_PGM(msg);
+    SERIAL_STR(msg);
     SERIAL_EMT(" in ", buffer);
   }
 
   bool PrintCounter::service_warning(const char * const msg) {
     SERIAL_STR(ECHO);
-    SERIAL_PGM(msg);
+    SERIAL_STR(msg);
     SERIAL_CHR('!');
     SERIAL_EOL();
     return true;

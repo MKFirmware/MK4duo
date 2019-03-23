@@ -30,58 +30,67 @@
 
 #if ENABLED(BLTOUCH)
 
-  Bltouch bltouch;
+Bltouch bltouch;
 
-  /** Public Function */
-  void Bltouch::init() {
-    // Make sure any BLTouch error condition is cleared
-    move(BLTOUCH_RESET);
-    set_deployed(true);
-    set_deployed(false);
-  }
+/** Public Function */
+void Bltouch::init() {
+  // Make sure any BLTouch error condition is cleared
+  cmd_reset();
+  stow();
+}
 
-  bool Bltouch::test() {
-    #if HAS_Z_PROBE_PIN
-      return READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
-    #else
-      return READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
-    #endif
-  }
+bool Bltouch::test() {
+  #if HAS_Z_PROBE_PIN
+    return READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
+  #else
+    return READ(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
+  #endif
+}
 
-  // returns false for ok and true for failure
-  bool Bltouch::set_deployed(const bool deploy) {
-    if (deploy && test()) {     // If BL-Touch says it's triggered
-      move(BLTOUCH_RESET);      // try to reset it.
-      move(BLTOUCH_DEPLOY);     // Also needs to deploy and stow to
-      move(BLTOUCH_STOW);       // clear the triggered condition.
-      printer.safe_delay(1500); // wait for internal self test to complete
-                                //   measured completion time was 0.65 seconds
-                                //   after reset, deploy & stow sequence
+void Bltouch::command(const int angle) {
+  MOVE_SERVO(Z_PROBE_SERVO_NR, angle);  // Give the BL-Touch the command and wait
+  printer.safe_delay(BLTOUCH_DELAY);
+}
 
-      if (test()) {             // If it still claims to be triggered...
-        SERIAL_LM(ER, MSG_STOP_BLTOUCH);
-        sound.feedback(false);
-        printer.Stop();
-        return true;
-      }
+// returns false for ok and true for failure
+bool Bltouch::set_deployed(const bool deploy) {
+  if (deploy && test()) {         // If BLTouch says it's triggered
+    cmd_reset();                  // try to reset it.
+    cmd_deploy();                 // Also needs to deploy and stow to
+    cmd_stow();                   // clear the triggered condition.
+    printer.safe_delay(1500);     // Wait for internal self-test to complete.
+                                  //  (Measured completion time was 0.65 seconds
+                                  //   after reset, deploy, and stow sequence)
+
+    if (test()) {                 // If it still claims to be triggered...
+      SERIAL_LM(ER, MSG_STOP_BLTOUCH);
+      sound.feedback(false);
+      printer.Stop();
+      return true;
     }
+  }
 
-    move(deploy ? BLTOUCH_DEPLOY : BLTOUCH_STOW);
-
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) {
-        SERIAL_MV("bltouch.set_deployed(", deploy);
-        SERIAL_CHR(')'); SERIAL_EOL();
-      }
+  #if ENABLED(BLTOUCH_V3)
+    #if ENABLED(BLTOUCH_FORCE_5V_MODE)
+      cmd_5V_mode();              // Assume 5V DC logic level if endstop pullup resistors are enabled
+    #else
+      cmd_OD_mode();
     #endif
+  #endif
 
-    return false;
+  if (deploy) {
+    cmd_deploy();
+    cmd_SW_mode();                // Ensure Switch mode is activated for BLTouch V3. Ignored on V2.
+  }
+  else
+    cmd_stow();
+
+  if (printer.debugFeature()) {
+    DEBUG_MV("bltouch.set_deployed(", deploy);
+    DEBUG_CHR(')'); DEBUG_EOL();
   }
 
-  /** Private Function */
-  void Bltouch::move(const int angle) {
-    MOVE_SERVO(Z_PROBE_SERVO_NR, angle);  // Give the BL-Touch the move and wait
-    printer.safe_delay(BLTOUCH_DELAY);
-  }
+  return false;
+}
 
 #endif // BLTOUCH

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * filament.h
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef _FILAMENT_H_
-#define _FILAMENT_H_
-
-#if ENABLED(FILAMENT_SENSOR)
+#if ENABLED(FILAMENT_WIDTH_SENSOR)
   extern bool     filament_sensor;                              // M405/M406 turns filament sensor control ON/OFF.
   extern float    filament_width_nominal,                       // Nominal filament width. Change with M404.
                   filament_width_meas;                          // Measured filament diameter
@@ -37,5 +35,3 @@
   extern int8_t   measurement_delay[MAX_MEASUREMENT_DELAY + 1], // Ring buffer to delayed measurement. Store extruder factor after subtracting 100
                   filwidth_delay_index[2];                      // Indexes into ring buffer
 #endif
-
-#endif /* _FILAMENT_H_ */

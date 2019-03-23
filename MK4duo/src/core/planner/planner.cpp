@@ -669,7 +669,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
     static float oldt = 0;
 
     if (!autotemp_enabled) return;
-    if (heaters[0].target_temperature + 2 < autotemp_min) return; // probably temperature set to zero.
+    if (hotends[0].target_temperature + 2 < autotemp_min) return; // probably temperature set to zero.
 
     float high = 0.0;
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -684,7 +684,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
     t = constrain(t, autotemp_min, autotemp_max);
     if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
-    heaters[0].setTarget(t);
+    hotends[0].setTarget(t);
   }
 
 #endif // HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
@@ -696,10 +696,10 @@ void Planner::check_axes_activity() {
   unsigned char axis_active[NUM_AXIS] = { 0 };
 
   #if ENABLED(BARICUDA)
-    #if HAS_HEATER_1
+    #if HAS_HEATER_HE1
       uint8_t tail_valve_pressure;
     #endif
-    #if HAS_HEATER_2
+    #if HAS_HEATER_HE2
       uint8_t tail_e_to_p_pressure;
     #endif
   #endif
@@ -710,10 +710,10 @@ void Planner::check_axes_activity() {
 
     #if ENABLED(BARICUDA)
       block = &block_buffer[block_buffer_tail];
-      #if HAS_HEATER_1
+      #if HAS_HEATER_HE1
         tail_valve_pressure = block->valve_pressure;
       #endif
-      #if HAS_HEATER_2
+      #if HAS_HEATER_HE2
         tail_e_to_p_pressure = block->e_to_p_pressure;
       #endif
     #endif
@@ -725,10 +725,10 @@ void Planner::check_axes_activity() {
   }
   else {
     #if ENABLED(BARICUDA)
-      #if HAS_HEATER_1
+      #if HAS_HEATER_HE1
         tail_valve_pressure = printer.baricuda_valve_pressure;;
       #endif
-      #if HAS_HEATER_2
+      #if HAS_HEATER_HE2
         tail_e_to_p_pressure = printer.baricuda_e_to_p_pressure;
       #endif
     #endif
@@ -752,11 +752,11 @@ void Planner::check_axes_activity() {
   #endif
 
   #if ENABLED(BARICUDA)
-    #if HAS_HEATER_1
-      analogWrite(HEATER_1_PIN, tail_valve_pressure);
+    #if HAS_HEATER_HE1
+      analogWrite(HEATER_HE1_PIN, tail_valve_pressure);
     #endif
-    #if HAS_HEATER_2
-      analogWrite(HEATER_2_PIN, tail_e_to_p_pressure);
+    #if HAS_HEATER_HE2
+      analogWrite(HEATER_HE2_PIN, tail_e_to_p_pressure);
     #endif
   #endif
 }
@@ -1489,7 +1489,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   block->nominal_speed_sqr = sq(block->millimeters * inverse_secs);   //   (mm/sec)^2 Always > 0
   block->nominal_rate = CEIL(block->step_event_count * inverse_secs); // (step/sec) Always > 0
 
-  #if ENABLED(FILAMENT_SENSOR)
+  #if ENABLED(FILAMENT_WIDTH_SENSOR)
     static float filwidth_e_count = 0, filwidth_delay_dist = 0;
 
     // FMM update ring buffer used for delay with filament measurements

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * tmc.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -79,7 +79,7 @@ TMC_Stepper tmc;
 /** Public Parameters */
 
 /** Private Parameters */
-bool TMC_Stepper::report_status = false;
+uint16_t TMC_Stepper::report_status_interval = 0;
 
 /** Public Function */
 void TMC_Stepper::init() {
@@ -474,22 +474,32 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
-  #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || ST##_HAS_DRV(TMC2660) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
+  #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || ST##_HAS_DRV(TMC2160) || ST##_HAS_DRV(TMC2660) || ST##_HAS_DRV(TMC5130) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
 
   void TMC_Stepper::monitor_driver() {
     static millis_t next_poll = 0;
     const millis_t ms = millis();
-    if (ELAPSED(ms, next_poll)) {
-      next_poll = ms + 1000UL;
-      LOOP_TMC() {
-        MKTMC* st = tmc.driver_by_index(t);
-        if (st) monitor_driver(st);
-      }
-
+    bool need_update_error_counters = ELAPSED(ms, next_poll);
+    bool need_debug_reporting = false;
+    if (need_update_error_counters) {
+      next_poll = ms + MONITOR_DRIVER_STATUS_INTERVAL_MS;
       #if ENABLED(TMC_DEBUG)
-        if (report_status) SERIAL_EOL();
+        static millis_t next_debug_reporting = 0;
+        if (report_status_interval && ELAPSED(ms, next_debug_reporting)) {
+          need_debug_reporting = true;
+          next_debug_reporting = ms + report_status_interval;
+        }
       #endif
+      if (need_update_error_counters || need_debug_reporting) {
+        LOOP_TMC() {
+          MKTMC* st = tmc.driver_by_index(t);
+          if (st) monitor_driver(st, need_update_error_counters, need_debug_reporting);
+        }
 
+        #if ENABLED(TMC_DEBUG)
+          if (need_debug_reporting) SERIAL_EOL();
+        #endif
+      }
     }
   }
 
@@ -518,15 +528,27 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 #if ENABLED(TMC_DEBUG)
 
   /**
-   * M922 report functions
+   * M922 [S<0|1>] [Pnnn] Enable periodic status reports
    */
   #if ENABLED(MONITOR_DRIVER_STATUS)
-    void TMC_Stepper::set_report_status(const bool status) {
-      if ((report_status = status))
-        SERIAL_EM("axis:pwm_scale |status_response|");
+    void TMC_Stepper::set_report_interval(const uint16_t update_interval) {
+      if ((report_status_interval = update_interval)) {
+        SERIAL_EM("axis:pwm_scale"
+        #if TMC_HAS_STEALTHCHOP
+          "/current_scale"
+        #endif
+        #if TMC_HAS_STALLGUARD
+            "/mech_load"
+          #endif
+          "|flags|warncount"
+        );
+      }
     }
   #endif
 
+  /**
+   * M922 report functions
+   */
   void TMC_Stepper::report_all(bool print_x, const bool print_y, const bool print_z, const bool print_e) {
     #define TMC_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL);  debug_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
     #define DRV_REPORT(LABEL, ITEM) do{ SERIAL_SM(ECHO, LABEL); status_loop(ITEM, print_x, print_y, print_z, print_e); }while(0)
@@ -757,14 +779,14 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
         SERIAL_MV(" E", stepperE0->get_stealthChop_status());
       #endif
       SERIAL_EOL();
-    #endif // HAS_STEALTHCHOP
+    #endif // TMC_HAS_STEALTHCHOP
   }
 
 #endif // DISABLED(DISABLE_M503)
 
 MKTMC* TMC_Stepper::driver_by_index(const uint8_t index) {
 
-  switch(index) {
+  switch (index) {
     #if AXIS_HAS_TMC(X)
       case 0: return stepperX; break;
     #endif
@@ -825,7 +847,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     case 1: stat = PSTR("HIGH"); break;
     case 2: stat = PSTR("LOW"); break;
   }
-  SERIAL_PGM(stat);
+  SERIAL_STR(stat);
   SERIAL_EOL();
 
   return test_result;
@@ -981,32 +1003,73 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   #if HAVE_DRV(TMC2660)
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint32_t OTPW_bm = 0x4UL;
-      constexpr uint8_t OTPW_bp = 2;
-      constexpr uint32_t OT_bm = 0x2UL;
-      constexpr uint8_t OT_bp = 1;
+      constexpr uint8_t STALL_GUARD_bp = 0;
+      constexpr uint8_t OT_bp = 1, OTPW_bp = 2;
+      constexpr uint8_t S2G_bm = 0b11000;
+      constexpr uint8_t STST_bp = 7, SG_RESULT_sp = 10;
+      constexpr uint32_t SG_RESULT_bm = 0xFFC00; // 10:19
       TMC_driver_data data;
       data.drv_status = st->DRVSTATUS();
-      data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
-      data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
+      uint8_t spart = data.drv_status & 0xFF;
+      data.is_otpw = !!(spart & _BV(OTPW_bp));
+      data.is_ot = !!(spart & _BV(OT_bp));
+      data.is_s2g = !!(data.drv_status & S2G_bm);
+      #if ENABLED(TMC_DEBUG)
+        data.is_stall = !!(spart & _BV(STALL_GUARD_bp));
+        data.is_standstill = !!(spart & _BV(STST_bp));
+        data.sg_result = (data.drv_status & SG_RESULT_bm) >> SG_RESULT_sp;
+        data.sg_result_reasonable = true;
+      #endif
       return data;
     }
 
-  #elif HAVE_DRV(TMC2130) || HAVE_DRV(TMC2160) || HAVE_DRV(TMC5130) || HAVE_DRV(TMC5160)
+  #elif HAS_TMCX1X0
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint32_t OTPW_bm = 0x4000000UL;
-      constexpr uint8_t OTPW_bp = 26;
-      constexpr uint32_t OT_bm = 0x2000000UL;
-      constexpr uint8_t OT_bp = 25;
-      constexpr uint8_t S2GA_bp = 27;
-      constexpr uint8_t S2GB_bp = 28;
+      constexpr uint16_t SG_RESULT_bm = 0x3FF; // 0:9
+      constexpr uint8_t STEALTH_bp = 14, CS_ACTUAL_sb = 16;
+      constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+      constexpr uint8_t STALL_GUARD_bp = 24, OT_bp = 25, OTPW_bp = 26;
+      constexpr uint32_t S2G_bm = 0x18000000;
+      constexpr uint8_t STST_bp = 31;
       TMC_driver_data data;
       data.drv_status = st->DRV_STATUS();
-      data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
-      data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      data.is_s2ga = (data.drv_status >> S2GA_bp) & 0b1;
-      data.is_s2gb = (data.drv_status >> S2GB_bp) & 0b1;
+      #ifdef __AVR__
+        // 8-bit optimization saves up to 70 bytes of PROGMEM per axis
+        uint8_t spart;
+        #if ENABLED(TMC_DEBUG)
+          data.sg_result = data.drv_status & SG_RESULT_bm;
+          spart = data.drv_status >> 8;
+          data.is_stealth = !!(spart & _BV(STEALTH_bp - 8));
+          spart = data.drv_status >> 16;
+          data.cs_actual = spart & (CS_ACTUAL_bm >> 16);
+        #endif
+        spart = data.drv_status >> 24;
+        data.is_ot = !!(spart & _BV(OT_bp - 24));
+        data.is_otpw = !!(spart & _BV(OTPW_bp - 24));
+        data.is_s2g = !!(spart & (S2G_bm >> 24));
+        #if ENABLED(TMC_DEBUG)
+          data.is_stall = !!(spart & _BV(STALL_GUARD_bp - 24));
+          data.is_standstill = !!(spart & _BV(STST_bp - 24));
+          data.sg_result_reasonable = !data.is_standstill; // sg_result has no reasonable meaning while standstill
+        #endif
+
+      #else // !__AVR__
+
+        data.is_ot = !!(data.drv_status & _BV(OT_bp));
+        data.is_otpw = !!(data.drv_status & _BV(OTPW_bp));
+        data.is_s2g = !!(data.drv_status & S2G_bm);
+        #if ENABLED(TMC_DEBUG)
+          data.sg_result = data.drv_status & SG_RESULT_bm;
+          data.is_stealth = !!(data.drv_status & _BV(STEALTH_bp));
+          data.cs_actual = (data.drv_status & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
+          data.is_stall = !!(data.drv_status & _BV(STALL_GUARD_bp));
+          data.is_standstill = !!(data.drv_status & _BV(STST_bp));
+          data.sg_result_reasonable = !data.is_standstill; // sg_result has no reasonable meaning while standstill
+        #endif
+
+      #endif // !__AVR__
+
       return data;
     }
 
@@ -1023,92 +1086,124 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     #endif
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint32_t OTPW_bm = 0b1ul;
-      constexpr uint8_t OTPW_bp = 0;
-      constexpr uint32_t OT_bm = 0b10ul;
-      constexpr uint8_t OT_bp = 1;
-      constexpr uint8_t S2GA_bp = 2;
-      constexpr uint8_t S2GB_bp = 3;
+      constexpr uint8_t OTPW_bp = 0, OT_bp = 1;
+      constexpr uint8_t S2G_bm = 0b11110; // 2..5
+      constexpr uint8_t CS_ACTUAL_sb = 16;
+      constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+      constexpr uint8_t STEALTH_bp = 30, STST_bp = 31;
       TMC_driver_data data;
-      data.drv_status = st.DRV_STATUS();
-      data.is_otpw = (data.drv_status & OTPW_bm) >> OTPW_bp;
-      data.is_ot = (data.drv_status & OT_bm) >> OT_bp;
-      data.is_s2ga = (data.drv_status >> S2GA_bp) & 0b1;
-      data.is_s2gb = (data.drv_status >> S2GB_bp) & 0b1;
+      data.drv_status = st->DRV_STATUS();
+      data.is_otpw = !!(data.drv_status & _BV(OTPW_bp));
+      data.is_ot = !!(data.drv_status & _BV(OT_bp));
+      data.is_s2g = !!(data.drv_status & S2G_bm);
+      #if ENABLED(TMC_DEBUG)
+        #ifdef __AVR__
+          // 8-bit optimization saves up to 12 bytes of PROGMEM per axis
+          uint8_t spart = data.drv_status >> 16;
+          data.cs_actual = spart & (CS_ACTUAL_bm >> 16);
+          spart = data.drv_status >> 24;
+          data.is_stealth = !!(spart & _BV(STEALTH_bp - 24));
+          data.is_standstill = !!(spart & _BV(STST_bp - 24));
+        #else
+          data.cs_actual = (data.drv_status & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
+          data.is_stealth = !!(data.drv_status & _BV(STEALTH_bp));
+          data.is_standstill = !!(data.drv_status & _BV(STST_bp));
+        #endif
+        data.sg_result_reasonable = false;
+      #endif
       return data;
     }
 
   #endif
 
-  void TMC_Stepper::monitor_driver(MKTMC* st) {
+  void TMC_Stepper::monitor_driver(MKTMC* st, const bool need_update_error_counters, const bool need_debug_reporting) {
 
     TMC_driver_data data = get_driver_data(st);
     if ((data.drv_status == 0xFFFFFFFF) || (data.drv_status == 0x0)) return;
 
-    if (data.is_ot /* | data.s2ga | data.s2gb*/) st->error_count++;
-    else if (st->error_count > 0) st->error_count--;
+    if (need_update_error_counters) {
+      if (data.is_ot /* | data.s2ga | data.s2gb*/) st->error_count++;
+      else if (st->error_count > 0) st->error_count--;
 
-    #if ENABLED(STOP_ON_ERROR)
-      if (st->error_count >= 10) {
-        SERIAL_EOL();
-        st->printLabel();
-        SERIAL_MSG(" driver error detected: 0x");
-        if (data.is_ot) SERIAL_EM("overtemperature");
-        if (data.is_s2ga) SERIAL_EM("short to ground (coil A)");
-        if (data.is_s2gb) SERIAL_EM("short to ground (coil B)");
-        #if ENABLED(TMC_DEBUG)
-          report_all(true, true, true, true);
-        #endif
-        printer.kill(PSTR("Driver error"));
-      }
-    #endif
-
-    // Report if a warning was triggered
-    if (data.is_otpw && st->otpw_count == 0) {
-      char timestamp[14];
-      duration_t elapsed = print_job_counter.duration();
-      (void)elapsed.toDigital(timestamp, true);
-      SERIAL_EOL();
-      SERIAL_TXT(timestamp);
-      SERIAL_MSG(": ");
-      st->printLabel();
-      SERIAL_MSG(" driver overtemperature warning! (");
-      SERIAL_VAL(st->getMilliamps());
-      SERIAL_EM("mA)");
-    }
-
-    #if CURRENT_STEP_DOWN > 0
-      // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
-      if (data.is_otpw && st->otpw_count > 4) {
-        uint16_t I_rms = st->getMilliamps();
-        if (st->isEnabled() && I_rms > 100) {
-          st->rms_current(I_rms - (CURRENT_STEP_DOWN));
-          #if ENABLED(REPORT_CURRENT_CHANGE)
-            st->printLabel();
-            SERIAL_EMV(" current decreased to ", st->getMilliamps());
+      #if ENABLED(STOP_ON_ERROR)
+        if (st->error_count >= 10) {
+          SERIAL_EOL();
+          st->printLabel();
+          SERIAL_MSG(" driver error detected: 0x");
+          SERIAL_EV(data.drv_status, HEX);
+          if (data.is_ot) SERIAL_EM("overtemperature");
+          if (data.is_s2g) SERIAL_EM("coil short circuit");
+          #if ENABLED(TMC_DEBUG)
+            report_all(true, true, true, true);
           #endif
+          printer.kill(PSTR("Driver error"));
         }
-      }
-    #endif
+      #endif
 
-    if (data.is_otpw) {
-      st->otpw_count++;
-      st->flag_otpw = true;
+      // Report if a warning was triggered
+      if (data.is_otpw && st->otpw_count == 0) {
+        char timestamp[14];
+        duration_t elapsed = print_job_counter.duration();
+        (void)elapsed.toDigital(timestamp, true);
+        SERIAL_EOL();
+        SERIAL_TXT(timestamp);
+        SERIAL_MSG(": ");
+        st->printLabel();
+        SERIAL_MSG(" driver overtemperature warning! (");
+        SERIAL_VAL(st->getMilliamps());
+        SERIAL_EM("mA)");
+      }
+
+      #if CURRENT_STEP_DOWN > 0
+        // Decrease current if is_otpw is true and driver is enabled and there's been more than 4 warnings
+        if (data.is_otpw && st->otpw_count > 4) {
+          uint16_t I_rms = st->getMilliamps();
+          if (st->isEnabled() && I_rms > 100) {
+            st->rms_current(I_rms - (CURRENT_STEP_DOWN));
+            #if ENABLED(REPORT_CURRENT_CHANGE)
+              st->printLabel();
+              SERIAL_EMV(" current decreased to ", st->getMilliamps());
+            #endif
+          }
+        }
+      #endif
+
+      if (data.is_otpw) {
+        st->otpw_count++;
+        st->flag_otpw = true;
+      }
+      else if (st->otpw_count > 0) st->otpw_count = 0;
     }
-    else if (st->otpw_count > 0) st->otpw_count = 0;
 
     #if ENABLED(TMC_DEBUG)
-      if (report_status) {
+      if (need_debug_reporting) {
         const uint32_t pwm_scale = get_pwm_scale(st);
         st->printLabel();
         SERIAL_MV(":", pwm_scale);
-        SERIAL_MSG(" |0b"); SERIAL_VAL(get_status_response(st, data.drv_status), BIN);
-        SERIAL_MSG("| ");
-        if (st->error_count) SERIAL_CHR('E');
-        else if (data.is_ot) SERIAL_CHR('O');
-        else if (data.is_otpw) SERIAL_CHR('W');
-        else if (st->otpw_count > 0) SERIAL_VAL(st->otpw_count);
-        else if (st->flag_otpw) SERIAL_CHR('F');
+        #if ENABLED(TMC_DEBUG)
+          #if HAS_TMCX1X0 || HAVE_DRV(TMC2208)
+            SERIAL_MV("/", data.cs_actual);
+          #endif
+          #if TMC_HAS_STALLGUARD
+            SERIAL_CHR('/');
+            if (data.sg_result_reasonable)
+              SERIAL_VAL(data.sg_result);
+            else
+              SERIAL_CHR('-');
+          #endif
+        #endif
+        SERIAL_CHR('|');
+        if (st->error_count)      SERIAL_CHR('E');  // Error
+        if (data.is_ot)           SERIAL_CHR('O');  // Over-temperature
+        if (data.is_otpw)         SERIAL_CHR('W');  // over-temperature pre-Warning
+        #if ENABLED(TMC_DEBUG)
+          if (data.is_stall)      SERIAL_CHR('G');  // stallGuard
+          if (data.is_stealth)    SERIAL_CHR('T');  // stealthChop
+          if (data.is_standstill) SERIAL_CHR('I');  // standstIll
+        #endif
+        if (st->flag_otpw)        SERIAL_CHR('F');  // otpw Flag
+        SERIAL_CHR('|');
+        if (st->otpw_count > 0)   SERIAL_VAL(st->otpw_count);
         SERIAL_CHR('\t');
       }
     #endif
@@ -1140,23 +1235,23 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       SERIAL_CHR('\t');
     }
 
-  #elif HAVE_DRV(TMC2130)
+  #elif HAS_TMCX1X0
 
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
-      switch(i) {
+      switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(st->sgt()); break;
-        case TMC_STEALTHCHOP: SERIAL_PGM(st->en_pwm_mode() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_STR(st->en_pwm_mode() ? PSTR("true") : PSTR("false")); break;
         default: break;
       }
     }
 
     void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {
-      switch(i) {
-        case TMC_STALLGUARD: if (st->stallguard()) SERIAL_CHR('X');  break;
-        case TMC_SG_RESULT:  SERIAL_VAL(st->sg_result());            break;
+      switch (i) {
+        case TMC_STALLGUARD: if (st->stallguard()) SERIAL_CHR('X'); break;
+        case TMC_SG_RESULT:  SERIAL_VAL(st->sg_result());           break;
         case TMC_FSACTIVE:   if (st->fsactive())   SERIAL_CHR('X'); break;
-        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st->cs_actual());  break;
+        case TMC_DRV_CS_ACTUAL: SERIAL_VAL(st->cs_actual());        break;
         default: break;
       }
     }
@@ -1192,9 +1287,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   #elif HAVE_DRV(TMC2208)
 
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
-      switch(i) {
+      switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->pwm_scale_sum()); break;
-        case TMC_STEALTHCHOP: SERIAL_PGM(st->stealth() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_STR(st->stealth() ? PSTR("true") : PSTR("false")); break;
         case TMC_S2VSA: if (st->s2vsa()) SERIAL_CHR('X'); break;
         case TMC_S2VSB: if (st->s2vsb()) SERIAL_CHR('X'); break;
         default: break;
@@ -1202,7 +1297,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     }
 
     void TMC_Stepper::parse_type_drv_status(MKTMC* st, const TMCdrvStatusEnum i) {
-      switch(i) {
+      switch (i) {
         case TMC_T157: if (st->t157()) SERIAL_CHR('X'); break;
         case TMC_T150: if (st->t150()) SERIAL_CHR('X'); break;
         case TMC_T143: if (st->t143()) SERIAL_CHR('X'); break;
@@ -1241,23 +1336,25 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
-      switch(i) {
+      switch (i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_PGM(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_STR(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
         case TMC_IRUN:
-          SERIAL_VAL(st->cs());
+          SERIAL_VAL(st->cs(), DEC);
           SERIAL_MSG("/31");
           break;
-        case TMC_VSENSE: print_vsense(st); break;
+        case TMC_VSENSE: SERIAL_STR(st->vsense() ? PSTR("1=.165") : PSTR("0=.310")); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
-        case TMC_SGT: SERIAL_VAL(st->sgt()); break;
-        case TMC_TOFF: SERIAL_VAL(st->toff()); break;
-        case TMC_TBL: SERIAL_VAL(st->blank_time()); break;
-        case TMC_HEND: SERIAL_VAL(st->hysteresis_end()); break;
-        case TMC_HSTRT: SERIAL_VAL(st->hysteresis_start()); break;
+        //case TMC_OTPW: SERIAL_STR(st->otpw() ? PSTR("true") : PSTR("false")); break;
+        //case TMC_OTPW_TRIGGERED: SERIAL_STR(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
+        case TMC_SGT: SERIAL_VAL(st->sgt(), DEC); break;
+        case TMC_TOFF: SERIAL_VAL(st->toff(), DEC); break;
+        case TMC_TBL: SERIAL_VAL(st->blank_time(), DEC); break;
+        case TMC_HEND: SERIAL_VAL(st->hysteresis_end(), DEC); break;
+        case TMC_HSTRT: SERIAL_VAL(st->hysteresis_start(), DEC); break;
         default: break;
       }
     }
@@ -1266,9 +1363,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i, const float spmm) {
       SERIAL_CHR('\t');
-      switch(i) {
+      switch (i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_PGM(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_STR(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
@@ -1299,15 +1396,15 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
           break;
         case TMC_TPWMTHRS_MMS: {
             uint32_t tpwmthrs_val = st->TPWMTHRS();
-              if (tpwmthrs_val)
-                SERIAL_VAL(tmc_thrs(st->microsteps(), tpwmthrs_val, spmm));
-              else
-                SERIAL_CHR('-');
-            }
+            if (tpwmthrs_val)
+              SERIAL_VAL(12650000UL * st->microsteps() / (256 * tpwmthrs_val * spmm));
+            else
+              SERIAL_CHR('-');
+          }
           break;
-        case TMC_OTPW: SERIAL_PGM(st->otpw() ? PSTR("true") : PSTR("false")); break;
+        case TMC_OTPW: SERIAL_STR(st->otpw() ? PSTR("true") : PSTR("false")); break;
         #if ENABLED(MONITOR_DRIVER_STATUS)
-          case TMC_OTPW_TRIGGERED: SERIAL_PGM(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
+          case TMC_OTPW_TRIGGERED: SERIAL_STR(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
         #endif
         case TMC_TOFF: SERIAL_VAL(st->toff()); break;
         case TMC_TBL: SERIAL_VAL(st->blank_time()); break;

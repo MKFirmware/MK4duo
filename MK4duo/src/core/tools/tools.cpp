@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * tools.cpp
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -48,14 +48,6 @@
 
   float   Tools::hotend_offset[XYZ][HOTENDS] = { 0.0 };
 
-  #if HAS_EXT_ENCODER
-    uint8_t Tools::encLastSignal[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(0);
-    int8_t  Tools::encLastDir[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1);
-    int32_t Tools::encStepsSinceLastSignal[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0),
-            Tools::encLastChangeAt[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(0),
-            Tools::encErrorSteps[EXTRUDERS]           = ARRAY_BY_EXTRUDERS(ENC_ERROR_STEPS);
-  #endif
-
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     int16_t Tools::lpq_len = 20;
   #endif
@@ -74,6 +66,13 @@
         // T0-Tnnn: Switch virtual tool by changing the index to the mix
         mixer.T(tmp_extruder);
       #endif
+
+    #elif ENABLED(PRUSA_MMU2)
+
+      UNUSED(fr_mm_s);
+      UNUSED(no_move);
+
+      mmu2.toolChange(tmp_extruder);
 
     #elif EXTRUDERS < 2
 
@@ -136,14 +135,12 @@
               move_extruder_servo(tmp_extruder);
             #endif
 
-            #if ENABLED(DEBUG_FEATURE)
-              if (printer.debugFeature()) {
-                SERIAL_MV("Offset Tool XYZ by { ", x_diff);
-                SERIAL_MV(", ", y_diff);
-                SERIAL_MV(", ", z_diff);
-                SERIAL_EM(" }");
-              }
-            #endif
+            if (printer.debugFeature()) {
+              DEBUG_MV("Offset Tool XYZ by { ", x_diff);
+              DEBUG_MV(", ", y_diff);
+              DEBUG_MV(", ", z_diff);
+              DEBUG_EM(" }");
+            }
 
             // The newly-selected extruder XY is actually at...
             mechanics.current_position[X_AXIS] += x_diff;
@@ -172,11 +169,9 @@
               mechanics.current_position[Z_AXIS] += 1.0;
               planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[Z_AXIS], active_extruder);
             #endif
-            #if ENABLED(DEBUG_FEATURE)
-              if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
-            #endif
+            if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
             // Move back to the original (or tweaked) position
-            mechanics.do_blocking_move_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+            mechanics.do_blocking_move_to(mechanics.destination);
             #if ENABLED(DUAL_X_CARRIAGE)
               mechanics.active_extruder_parked = false;
             #endif
@@ -237,7 +232,7 @@
   #if ENABLED(EXT_SOLENOID)
 
     void Tools::enable_solenoid(const uint8_t e) {
-      switch(e) {
+      switch (e) {
         case 0:
           OUT_WRITE(SOL0_PIN, HIGH);
           break;
@@ -355,7 +350,7 @@
 
       #if (EXTRUDERS == 4) && HAS_E0E2 && HAS_E1E3 && (DRIVER_EXTRUDERS == 2)
 
-        switch(e) {
+        switch (e) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
@@ -384,7 +379,7 @@
 
       #elif (EXTRUDERS == 3) && HAS_E0E2 && (DRIVER_EXTRUDERS == 2)
 
-        switch(e) {
+        switch (e) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             printer.safe_delay(500); // 500 microseconds delay for relay
@@ -404,7 +399,7 @@
 
       #elif (EXTRUDERS == 2) && HAS_E0E1 && (DRIVER_EXTRUDERS == 1)
 
-        switch(e) {
+        switch (e) {
           case 0:
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
             printer.safe_delay(500); // 500 microseconds delay for relay
@@ -433,7 +428,7 @@
 
       #if (EXTRUDERS == 2) && HAS_EX1 && (DRIVER_EXTRUDERS == 1)
 
-        switch(e) {
+        switch (e) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             printer.safe_delay(500); // 500 microseconds delay for relay
@@ -448,7 +443,7 @@
 
       #elif (EXTRUDERS == 3) && HAS_EX1 && HAS_EX2 && (DRIVER_EXTRUDERS == 1)
 
-        switch(e) {
+        switch (e) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
@@ -478,7 +473,7 @@
           multiply -= 3;
         }
 
-        switch(multiply) {
+        switch (multiply) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
@@ -526,17 +521,16 @@
   #if ENABLED(DUAL_X_CARRIAGE)
 
     void Tools::dualx_tool_change(const uint8_t tmp_extruder, bool &no_move) {
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          SERIAL_MSG("Dual X Carriage Mode ");
-          switch (mechanics.dual_x_carriage_mode) {
-            case DXC_FULL_CONTROL_MODE:       SERIAL_EM("DXC_FULL_CONTROL_MODE");       break;
-            case DXC_AUTO_PARK_MODE:          SERIAL_EM("DXC_AUTO_PARK_MODE");          break;
-            case DXC_DUPLICATION_MODE:        SERIAL_EM("DXC_DUPLICATION_MODE");        break;
-            case DXC_SCALED_DUPLICATION_MODE: SERIAL_EM("DXC_SCALED_DUPLICATION_MODE"); break;
-          }
+
+      if (printer.debugFeature()) {
+        DEBUG_MSG("Dual X Carriage Mode ");
+        switch (mechanics.dual_x_carriage_mode) {
+          case DXC_FULL_CONTROL_MODE:       DEBUG_EM("DXC_FULL_CONTROL_MODE");        break;
+          case DXC_AUTO_PARK_MODE:          DEBUG_EM("DXC_AUTO_PARK_MODE");           break;
+          case DXC_DUPLICATION_MODE:        DEBUG_EM("DXC_DUPLICATION_MODE");         break;
+          case DXC_SCALED_DUPLICATION_MODE: DEBUG_EM("DXC_SCALED_DUPLICATION_MODE");  break;
         }
-      #endif
+      }
 
       const float xhome = mechanics.x_home_pos(active_extruder);
       if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
@@ -545,15 +539,13 @@
       ) {
         float raised_z = mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
         #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-          NOMORE(raised_z, endstops.soft_endstop_max[Z_AXIS]);
+          NOMORE(raised_z, endstops.soft_endstop[Z_AXIS].max);
         #endif
-        #if ENABLED(DEBUG_FEATURE)
-          if (printer.debugFeature()) {
-            SERIAL_EMV("Raise to ", raised_z);
-            SERIAL_EMV("MoveX to ", xhome);
-            SERIAL_EMV("Lower to ", mechanics.current_position[Z_AXIS]);
-          }
-        #endif
+        if (printer.debugFeature()) {
+          DEBUG_EMV("Raise to ", raised_z);
+          DEBUG_EMV("MoveX to ", xhome);
+          DEBUG_EMV("Lower to ", mechanics.current_position[Z_AXIS]);
+        }
         // Park old head: 1) raise 2) move to park position 3) lower
         #define CUR_X mechanics.current_position[X_AXIS]
         #define CUR_Y mechanics.current_position[Y_AXIS]
@@ -577,9 +569,7 @@
       // This function resets the max/min values - the current position may be overwritten below.
       mechanics.set_axis_is_at_home(X_AXIS);
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.current_position);
-      #endif
+      if (printer.debugFeature()) DEBUG_POS("New Extruder", mechanics.current_position);
 
       // Only when auto-parking are carriages safe to move
       if (mechanics.dual_x_carriage_mode != DXC_AUTO_PARK_MODE) no_move = true;
@@ -596,19 +586,18 @@
           COPY_ARRAY(mechanics.raised_parked_position, mechanics.current_position);
           mechanics.raised_parked_position[Z_AXIS] += TOOLCHANGE_UNPARK_ZLIFT;
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop_max[Z_AXIS]);
+            NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
           #endif
           mechanics.active_extruder_parked = true;
           mechanics.delayed_move_time = 0;
           break;
       }
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          SERIAL_EMV("Active hotend parked: ", mechanics.active_extruder_parked ? "yes" : "no");
-          DEBUG_POS("New hotend (parked)", mechanics.current_position);
-        }
-      #endif
+      if (printer.debugFeature()) {
+        DEBUG_EMV("Active hotend parked: ", mechanics.active_extruder_parked ? "yes" : "no");
+        DEBUG_POS("New hotend (parked)", mechanics.current_position);
+      }
+
     }
 
   #endif // DUAL_X_CARRIAGE

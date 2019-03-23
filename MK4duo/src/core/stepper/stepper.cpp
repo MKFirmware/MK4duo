@@ -192,11 +192,6 @@ int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 /** Public Function */
 void Stepper::init() {
 
-  // Init Digipot Motor Current
-  #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
-    digipot_init();
-  #endif
-
   // Init Microstepping Pins
   #if HAS_MICROSTEPS
     microstep_init();
@@ -371,74 +366,6 @@ void Stepper::init() {
     disable_E5();
   #endif
 
-  #if HAS_EXT_ENCODER
-    // Initialize enc sensors
-    #if HAS_E0_ENC
-      #if ENABLED(E0_ENC_PULLUP)
-        SET_INPUT_PULLUP(E0_ENC_PIN);
-      #else
-        SET_INPUT(E0_ENC_PIN);
-      #endif
-    #endif
-    #if HAS_E1_ENC
-      #if ENABLED(E1_ENC_PULLUP)
-        SET_INPUT_PULLUP(E1_ENC_PIN);
-      #else
-        SET_INPUT(E1_ENC_PIN);
-      #endif
-    #endif
-    #if HAS_E2_ENC
-      #if ENABLED(E2_ENC_PULLUP)
-        SET_INPUT_PULLUP(E2_ENC_PIN);
-      #else
-        SET_INPUT(E2_ENC_PIN);
-      #endif
-    #endif
-    #if HAS_E3_ENC
-      #if ENABLED(E3_ENC_PULLUP)
-        SET_INPUT_PULLUP(E3_ENC_PIN);
-      #else
-        SET_INPUT(E3_ENC_PIN);
-      #endif
-    #endif
-    #if HAS_E4_ENC
-      #if ENABLED(E4_ENC_PULLUP)
-        SET_INPUT_PULLUP(E4_ENC_PIN);
-      #else
-        SET_INPUT(E4_ENC_PIN);
-      #endif
-    #endif
-    #if HAS_E5_ENC
-      #if ENABLED(E5_ENC_PULLUP)
-        SET_INPUT_PULLUP(E5_ENC_PIN);
-      #else
-        SET_INPUT(E5_ENC_PIN);
-      #endif
-    #endif
-
-    HAL::delayMilliseconds(1);
-
-    #if HAS_E0_ENC
-      tools.encLastSignal[0] = READ_ENCODER(E0_ENC_PIN);
-    #endif
-    #if HAS_E1_ENC
-      tools.encLastSignal[1] = READ_ENCODER(E1_ENC_PIN);
-    #endif
-    #if HAS_E2_ENC
-      tools.encLastSignal[2] = READ_ENCODER(E2_ENC_PIN);
-    #endif
-    #if HAS_E3_ENC
-      tools.encLastSignal[3] = READ_ENCODER(E3_ENC_PIN);
-    #endif
-    #if HAS_E4_ENC
-      tools.encLastSignal[4] = READ_ENCODER(E4_ENC_PIN);
-    #endif
-    #if HAS_E5_ENC
-      tools.encLastSignal[5] = READ_ENCODER(E5_ENC_PIN);
-    #endif
-
-  #endif // HAS_EXT_ENCODER
-
   // Init Stepper ISR to 128 Hz for quick starting
   HAL_timer_start(STEPPER_TIMER, 128);
 
@@ -453,6 +380,18 @@ void Stepper::init() {
     | (isStepDir(Z_AXIS) ? _BV(Z_AXIS) : 0);
 
   set_directions();
+
+  // Init Digipot Motor Current
+  #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
+    digipot_init();
+  #endif
+
+  // Init Alligator DAC
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    externaldac.begin();
+    externaldac.set_driver_current();
+  #endif
+
 }
 
 void Stepper::factory_parameters() {
@@ -850,6 +789,17 @@ void Stepper::disable_E() {
   disable_E3();
   disable_E4();
   disable_E5();
+}
+void Stepper::disable_E(const uint8_t e) {
+  switch (e) {
+    case 0: disable_E0(); break;
+    case 1: disable_E1(); break;
+    case 2: disable_E2(); break;
+    case 3: disable_E3(); break;
+    case 4: disable_E4(); break;
+    case 5: disable_E5(); break;
+    default:              break;
+  }
 }
 
 void Stepper::enable_all() {
@@ -1327,11 +1277,6 @@ void Stepper::pulse_phase_step() {
     // Start an active pulse
     pulse_tick_start();
 
-    // Test Encoder if exist
-    #if HAS_EXT_ENCODER
-      test_extruder_encoder();
-    #endif
-
     if (minimum_pulse) {
       // Just wait for the requested pulse time.
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
@@ -1389,6 +1334,9 @@ uint32_t Stepper::block_phase_step() {
 
     // If current block is finished, reset pointer
     if (step_events_completed >= step_event_count) {
+      #if ENABLED(EXTRUDER_ENCODER_CONTROL) && FILAMENT_RUNOUT_DISTANCE_MM > 0
+        filamentrunout.block_completed(current_block);
+      #endif
       axis_did_move = 0;
       current_block = NULL;
       planner.discard_current_block();
@@ -1595,9 +1543,9 @@ uint32_t Stepper::block_phase_step() {
       #if ENABLED(ADAPTIVE_STEP_SMOOTHING)
         // At this point, we must decide if we can use Stepper movement axis smoothing.
         uint32_t max_rate = current_block->nominal_rate;  // Get the maximum rate (maximum event speed)
-        while (max_rate < HAL_min_isr_frequency) {
+        while (max_rate < HAL_frequency_limit[0]) {
           max_rate <<= 1;
-          if (max_rate >= HAL_min_isr_frequency) break;
+          if (max_rate >= HAL_frequency_limit[0]) break;
           ++oversampling;
         }
         oversampling_factor = oversampling;
@@ -3272,30 +3220,6 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     static const uint8_t microstep_modes[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS };
     for (uint16_t i = 0; i < COUNT(microstep_modes); i++)
       microstep_mode(i, microstep_modes[i]);
-  }
-
-#endif
-
-#if HAS_EXT_ENCODER
-
-  void Stepper::test_extruder_encoder() {
-
-    static const pin_t encoder_pin[] = { E0_ENC_PIN, E1_ENC_PIN, E2_ENC_PIN, E3_ENC_PIN, E4_ENC_PIN, E5_ENC_PIN };
-
-    if (delta_error[E_AXIS] >= 0 && encoder_pin[active_extruder] > 0) {
-      const uint8_t sig = READ_ENCODER(encoder_pin[active_extruder]);
-      tools.encStepsSinceLastSignal[active_extruder] += tools.encLastDir[active_extruder];
-      if (tools.encLastSignal[active_extruder] != sig && ABS(tools.encStepsSinceLastSignal[active_extruder] - tools.encLastChangeAt[active_extruder]) > ENC_MIN_STEPS) {
-        if (sig) tools.encStepsSinceLastSignal[active_extruder] = 0;
-        tools.encLastSignal[active_extruder] = sig;
-        tools.encLastChangeAt[active_extruder] = tools.encStepsSinceLastSignal[active_extruder];
-      }
-      else if (ABS(tools.encStepsSinceLastSignal[active_extruder]) > tools.encErrorSteps[active_extruder]) {
-        if (tools.encLastDir[active_extruder] > 0)
-          printer.setInterruptEvent(INTERRUPT_EVENT_ENC_DETECT);
-      }
-    }
-
   }
 
 #endif

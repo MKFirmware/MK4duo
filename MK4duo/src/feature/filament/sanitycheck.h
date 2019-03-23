@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,11 +29,11 @@
 #ifndef _FILAMENT_SANITYCHECK_H_
 #define _FILAMENT_SANITYCHECK_H_
 
-#if ENABLED(FILAMENT_SENSOR) && !PIN_EXISTS(FILWIDTH)
-  #error "DEPENDENCY ERROR: You have to set FILWIDTH_PIN to a valid pin if you enable FILAMENT_SENSOR."
+#if ENABLED(FILAMENT_WIDTH_SENSOR) && !PIN_EXISTS(FILWIDTH)
+  #error "DEPENDENCY ERROR: You have to set FILWIDTH_PIN to a valid pin if you enable FILAMENT_WIDTH_SENSOR."
 #endif
 
-#if ENABLED(FILAMENT_SENSOR)
+#if ENABLED(FILAMENT_WIDTH_SENSOR)
   #if DISABLED(VOLUMETRIC_EXTRUSION)
     #error "DEPENDENCY ERROR: Missing setting VOLUMETRIC_EXTRUSION."
   #endif

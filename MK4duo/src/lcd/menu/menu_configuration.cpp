@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,10 +114,15 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void menu_bltouch() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
-    MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
-    MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
-    MENU_ITEM(gcode, MSG_BLTOUCH_DEPLOY, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_DEPLOY)));
-    MENU_ITEM(gcode, MSG_BLTOUCH_STOW, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_STOW)));
+    MENU_ITEM(function, MSG_BLTOUCH_RESET, bltouch.cmd_reset);
+    MENU_ITEM(function, MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
+    MENU_ITEM(function, MSG_BLTOUCH_DEPLOY, bltouch.cmd_deploy);
+    MENU_ITEM(function, MSG_BLTOUCH_STOW, bltouch.cmd_stow);
+    #if ENABLED(BLTOUCH_V3)
+      MENU_ITEM(function, MSG_BLTOUCH_SW_MODE, bltouch.cmd_SW_mode);
+      MENU_ITEM(function, MSG_BLTOUCH_5V_MODE, bltouch.cmd_5V_mode);
+      MENU_ITEM(function, MSG_BLTOUCH_OD_MODE, bltouch.cmd_OD_mode);
+    #endif
     END_MENU();
   }
 
@@ -248,27 +253,17 @@ static void lcd_reset_settings() { eeprom.reset(); }
 #if DISABLED(SLIM_LCD_MENUS)
 
   void _menu_configuration_preheat_settings(const uint8_t material) {
-    #if HOTENDS > 3
-      #define MINTEMP_ALL MIN(HEATER_0_MINTEMP, HEATER_1_MINTEMP, HEATER_2_MINTEMP, HEATER_3_MINTEMP)
-      #define MAXTEMP_ALL MAX(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP)
-    #elif HOTENDS > 2
-      #define MINTEMP_ALL MIN(HEATER_0_MINTEMP, HEATER_1_MINTEMP, HEATER_2_MINTEMP)
-      #define MAXTEMP_ALL MAX(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP)
-    #elif HOTENDS > 1
-      #define MINTEMP_ALL MIN(HEATER_0_MINTEMP, HEATER_1_MINTEMP)
-      #define MAXTEMP_ALL MAX(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP)
-    #elif HOTENDS > 0
-      #define MINTEMP_ALL HEATER_0_MINTEMP
-      #define MAXTEMP_ALL HEATER_0_MAXTEMP
-    #endif
     START_MENU();
     MENU_BACK(MSG_CONFIGURATION);
     MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
-    #if HAS_TEMP_0
-      MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], MINTEMP_ALL, MAXTEMP_ALL - 15);
+    #if HOTENDS > 0
+      MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
-    #if HAS_TEMP_BED
-      MENU_ITEM_EDIT(int3, MSG_BED, &lcdui.preheat_bed_temp[material], BED_MINTEMP, BED_MAXTEMP - 15);
+    #if BEDS > 0
+      MENU_ITEM_EDIT(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
+    #endif
+    #if CHAMBERS > 0
+      MENU_ITEM_EDIT(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
       MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
@@ -350,7 +345,7 @@ void menu_configuration() {
 
   #if DISABLED(SLIM_LCD_MENUS)
 
-    switch(sound.mode) {
+    switch (sound.mode) {
       case SOUND_MODE_ON:
         MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
         break;

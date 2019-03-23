@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,26 +71,26 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
       if (endstops.flag.SoftEndstop) switch (axis) {
         case X_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-            min = endstops.soft_endstop_min[X_AXIS];
+            min = endstops.soft_endstop[X_AXIS].min;
           #endif
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            max = endstops.soft_endstop_max[X_AXIS];
+            max = endstops.soft_endstop[X_AXIS].max;
           #endif
           break;
         case Y_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-            min = endstops.soft_endstop_min[Y_AXIS];
+            min = endstops.soft_endstop[Y_AXIS].min;
           #endif
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            max = endstops.soft_endstop_max[Y_AXIS];
+            max = endstops.soft_endstop[Y_AXIS].max;
           #endif
           break;
         case Z_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-            min = endstops.soft_endstop_min[Z_AXIS];
+            min = endstops.soft_endstop[Z_AXIS].min;
           #endif
           #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-            max = endstops.soft_endstop_max[Z_AXIS];
+            max = endstops.soft_endstop[Z_AXIS].max;
           #endif
         default: break;
       }

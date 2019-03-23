@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -534,5 +534,5 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define E_STEP_WRITE(E,V)   do{ if (E == 0) { E0_STEP_WRITE(V); } else { E1_STEP_WRITE(V); } }while(0)
   #endif
 #elif DRIVER_EXTRUDERS > 0
-  #define E_STEP_WRITE(E,V)   E0_STEP_WRITE(V)
+  #define E_STEP_WRITE(E,V)     E0_STEP_WRITE(V)
 #endif // DRIVER_EXTRUDERS

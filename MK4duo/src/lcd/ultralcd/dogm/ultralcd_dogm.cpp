@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -236,11 +236,11 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       lcd_put_wchar('H');
       lcd_put_wchar((char)('0' + hotend));
       lcd_put_wchar(' ');
-      lcd_put_u8str(i8tostr3(heaters[hotend].current_temperature));
+      lcd_put_u8str(i8tostr3(hotends[hotend].current_temperature));
       lcd_put_wchar('/');
 
-      if (get_blink() || !heaters[hotend].isIdle())
-        lcd_put_u8str(i8tostr3(heaters[hotend].target_temperature));
+      if (get_blink() || !hotends[hotend].isIdle())
+        lcd_put_u8str(i8tostr3(hotends[hotend].target_temperature));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE
@@ -448,10 +448,10 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       if (PAGE_UNDER(7)) {
         lcd_moveto(5, 7);
         lcd_put_u8str("X:");
-        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]))));
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x_plot))));
         lcd_moveto(74, 7);
         lcd_put_u8str("Y:");
-        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]))));
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(y_plot))));
       }
 
       // Print plot position

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 /**
  * printer.h
  *
- * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 union flagdebug_t {
@@ -54,9 +54,9 @@ union flagVarious_t {
     bool  AllowColdExtrude  : 1;
     bool  AutoreportTemp    : 1;
     bool  SuspendAutoreport : 1;
-    bool  FilamentOut       : 1;
     bool  G38Move           : 1;
     bool  statistics_loaded : 1;
+    bool  RFID              : 1;
     bool  bit12             : 1;
     bool  bit13             : 1;
     bool  bit14             : 1;
@@ -97,13 +97,6 @@ class Printer {
     static InterruptEventEnum interruptEvent;
     static PrinterModeEnum    mode;
 
-    #if ENABLED(RFID_MODULE)
-      static uint32_t Spool_ID[EXTRUDERS];
-      static bool     RFID_ON,
-                      Spool_must_read[EXTRUDERS],
-                      Spool_must_write[EXTRUDERS];
-    #endif
-
     #if ENABLED(BARICUDA)
       static int baricuda_valve_pressure;
       static int baricuda_e_to_p_pressure;
@@ -115,7 +108,6 @@ class Printer {
 
     #if HAS_CHDK
       static watch_t chdk_watch;
-      static bool chdkActive;
     #endif
 
   private: /** Private Parameters */
@@ -132,9 +124,6 @@ class Printer {
 
     static void check_periodical_actions();
     static void safe_delay(millis_t ms);
-
-    static void setup_for_endstop_or_probe_move();
-    static void clean_up_after_endstop_or_probe_move();
 
     static void quickstop_stepper();
 
@@ -230,17 +219,17 @@ class Printer {
     FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.SuspendAutoreport = onoff; }
     FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.SuspendAutoreport; }
 
-    // Various flag bit 9 FilamentOut
-    FORCE_INLINE static void setFilamentOut(const bool onoff) { various_flag.FilamentOut = onoff; }
-    FORCE_INLINE static bool isFilamentOut() { return various_flag.FilamentOut; }
-
-    // Various flag bit 10 G38Move
+    // Various flag bit 9 G38Move
     FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.G38Move = onoff; }
     FORCE_INLINE static bool IsG38Move() { return various_flag.G38Move; }
 
-    // Various flag bit 11 Statistics loaded
+    // Various flag bit 10 Statistics loaded
     FORCE_INLINE static void setStatisticsLoaded(const bool onoff) { various_flag.statistics_loaded = onoff; }
     FORCE_INLINE static bool IsStatisticsLoaded() { return various_flag.statistics_loaded; }
+
+    // Various flag bit 11 RFID_ON
+    FORCE_INLINE static void setRfid(const bool onoff) { various_flag.RFID = onoff; }
+    FORCE_INLINE static bool IsRfid() { return various_flag.RFID; }
 
     FORCE_INLINE static bool reset_flag() { various_flag.all = 0; }
 
@@ -251,8 +240,6 @@ class Printer {
     static void handle_interrupt_events();
 
     static void handle_safety_watch();
-
-    static void bracket_probe_move(const bool before);
 
     #if ENABLED(TEMP_STAT_LEDS)
       static void handle_status_leds();

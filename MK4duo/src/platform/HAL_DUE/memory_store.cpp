@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,38 +30,18 @@ MemoryStore memorystore;
 
 extern void eeprom_flush(void);
 
+/** Public Parameters */
 #if HAS_EEPROM_SD
   char MemoryStore::eeprom_data[EEPROM_SIZE];
 #endif
 
-bool MemoryStore::access_read() {
-  #if HAS_EEPROM_SD
-    card.open_eeprom_sd(true);
-    size_t bytes_read = card.read_eeprom_data(eeprom_data, EEPROM_SIZE);
-    if (bytes_read != EEPROM_SIZE) SERIAL_STR(ER);
-    else SERIAL_STR(ECHO);
-    SERIAL_EMV("SD EEPROM bytes read: ", (int)bytes_read);
-    card.close_eeprom_sd();
-    return (bytes_read != EEPROM_SIZE);
-  #else
-    return false;
-  #endif
-
-}
-
+/** Public Function */
 bool MemoryStore::access_write() {
   #if HAS_EEPROM_FLASH
     eeprom_flush();
     return false;
   #elif HAS_EEPROM_SD
-    card.open_eeprom_sd(false);
-    size_t bytes_written = card.write_eeprom_data(eeprom_data, EEPROM_SIZE);
-    const bool error_read = bytes_written != EEPROM_SIZE;
-    if (error_read) SERIAL_STR(ER);
-    else SERIAL_STR(ECHO);
-    SERIAL_EMV("SD EEPROM bytes written: ", (int)bytes_written);
-    card.close_eeprom_sd();
-    return error_read;
+    card.write_eeprom();
   #else
     return false;
   #endif
@@ -79,6 +59,7 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
       // so only write bytes that have changed!
       if (v != eeprom_read_byte(p)) {
         eeprom_write_byte(p, v);
+        delay(2);
         if (eeprom_read_byte(p) != v) {
           SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
           return true;

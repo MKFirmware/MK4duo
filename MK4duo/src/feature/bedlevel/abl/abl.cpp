@@ -35,23 +35,21 @@
    * Extrapolate a single point from its neighbors
    */
   void AutoBedLevel::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) {
-        SERIAL_MSG("Extrapolate [");
-        if (x < 10) SERIAL_CHR(' ');
-        SERIAL_VAL((int)x);
-        SERIAL_CHR(xdir ? (xdir > 0 ? '+' : '-') : ' ');
-        SERIAL_CHR(' ');
-        if (y < 10) SERIAL_CHR(' ');
-        SERIAL_VAL((int)y);
-        SERIAL_CHR(ydir ? (ydir > 0 ? '+' : '-') : ' ');
-        SERIAL_CHR(']');
-      }
-    #endif
+
+    if (printer.debugFeature()) {
+      DEBUG_MSG("Extrapolate [");
+      if (x < 10) DEBUG_CHR(' ');
+      DEBUG_VAL((int)x);
+      DEBUG_CHR(xdir ? (xdir > 0 ? '+' : '-') : ' ');
+      DEBUG_CHR(' ');
+      if (y < 10) DEBUG_CHR(' ');
+      DEBUG_VAL((int)y);
+      DEBUG_CHR(ydir ? (ydir > 0 ? '+' : '-') : ' ');
+      DEBUG_CHR(']');
+    }
+
     if (!isnan(z_values[x][y])) {
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) SERIAL_EM(" (done)");
-      #endif
+      if (printer.debugFeature()) DEBUG_EM(" (done)");
       return;  // Don't overwrite good values.
     }
     SERIAL_EOL();

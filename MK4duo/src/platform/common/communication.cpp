@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,16 +37,12 @@ FSTRINGVALUE(RESEND, "Resend:");
 FSTRINGVALUE(WARNING, "Warning:");
 FSTRINGVALUE(TNAN, "NAN");
 FSTRINGVALUE(TINF, "INF");
-FSTRINGVALUE(ACTIONPAUSE, "// action:pause");
-FSTRINGVALUE(ACTIONRESUME, "// action:resume");
-FSTRINGVALUE(ACTIONDISCONNECT, "// action:disconnect");
-FSTRINGVALUE(ACTIONPOWEROFF, "// action:poweroff");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 FSTRINGVALUE(REQUESTCONTINUE, "RequestContinue:");
 FSTRINGVALUE(REQUESTSTOP, "RequestStop:");
 
 /** Public Parameters */
-int8_t Com::serial_port = -1;
+int8_t Com::serial_port_index = -1;
 
 /** Public Function */
 void Com::setBaudrate() {
@@ -61,9 +57,9 @@ void Com::setBaudrate() {
 }
 
 void Com::serialFlush() {
-  if (serial_port == -1 || serial_port == 0) MKSERIAL1.flush();
+  if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.flush();
   #if NUM_SERIAL > 1
-    if (serial_port == -1 || serial_port == 1) MKSERIAL2.flush();
+    if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.flush();
   #endif
 }
 
@@ -98,25 +94,25 @@ bool Com::serialDataAvailable(const uint8_t index) {
 // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
 void Com::printPGM(PGM_P str) {
   while (char c = pgm_read_byte(str++)) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(c);
+    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(c);
     #if NUM_SERIAL > 1
-      if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(c);
+      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(c);
     #endif
   }
 }
 
 void Com::write(const uint8_t c) {
-  if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(c);
+  if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(c);
   #if NUM_SERIAL > 1
-    if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(c);
+    if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(c);
   #endif
 }
 
 void Com::write(const char* str) {
   while (*str) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(*str);
+    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(*str);
     #if NUM_SERIAL > 1
-    if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(*str);
+    if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(*str);
     #endif
     str++;
   }
@@ -124,9 +120,9 @@ void Com::write(const char* str) {
 
 void Com::write(const uint8_t* buffer, size_t size) {
   while (size--) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(*buffer);
+    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(*buffer);
     #if NUM_SERIAL > 1
-      if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(*buffer);
+      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(*buffer);
     #endif
     buffer++;
   }
@@ -134,9 +130,9 @@ void Com::write(const uint8_t* buffer, size_t size) {
 
 void Com::print(const String& s) {
   for (int i = 0; i < (int)s.length(); i++) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(s[i]);
+    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(s[i]);
     #if NUM_SERIAL > 1
-      if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(s[i]);
+      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(s[i]);
     #endif
   }
 }
@@ -176,6 +172,10 @@ void Com::print(unsigned long n, int base) {
   else printNumber(n, base);
 }
 
+void Com::print(float n, int digits) {
+  printFloat(n, digits);
+}
+
 void Com::print(double n, int digits) {
   printFloat(n, digits);
 }
@@ -188,9 +188,9 @@ void Com::println(void) {
 void Com::print_spaces(uint8_t count) {
   count *= (PROPORTIONAL_FONT_RATIO);
   while (count--) {
-    if (serial_port == -1 || serial_port == 0) MKSERIAL1.write(' ');
+    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(' ');
     #if NUM_SERIAL > 1
-      if (serial_port == -1 || serial_port == 1) MKSERIAL2.write(' ');
+      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(' ');
     #endif
   }
 }
@@ -206,34 +206,6 @@ void Com::print_onoff(PGM_P const label, const bool onoff) {
   printPGM(PSTR(": "));
   printPGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
 }
-
-#if ENABLED(DEBUG_FEATURE)
-
-  void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
-    printPGM(prefix);
-    write('(');
-    print(x);
-    printPGM(PSTR(", "));
-    print(y);
-    printPGM(PSTR(", "));
-    print(z);
-    write(')');
-
-    if (suffix) printPGM(suffix);
-    else println();
-  }
-
-  void Com::print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
-    print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
-  }
-
-  #if HAS_PLANAR
-    void Com::print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz) {
-      print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
-    }
-  #endif
-
-#endif // ENABLED(DEBUG_FEATURE)
 
 // Capabilities string
 void Com::host_capabilities(PGM_P pstr) {

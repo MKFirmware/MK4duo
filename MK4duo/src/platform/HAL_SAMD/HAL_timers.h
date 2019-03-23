@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_SAM
  */
@@ -91,7 +91,7 @@ typedef struct {
 #define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)  // 24 stepper timer ticks per us
 #define STEPPER_TIMER_MIN_INTERVAL  5                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_TIMER_ISR          void TC5_Handler()
+#define STEPPER_TIMER_ISR()         void TC5_Handler()
 
 #define PULSE_TIMER_NUM             STEPPER_TIMER
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
@@ -261,7 +261,6 @@ static constexpr tTimerConfig TimerConfig [NUM_HARDWARE_TIMERS] = {
 extern uint32_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks,
-                HAL_min_isr_frequency,
                 HAL_frequency_limit[8];
 
 // --------------------------------------------------------------------------

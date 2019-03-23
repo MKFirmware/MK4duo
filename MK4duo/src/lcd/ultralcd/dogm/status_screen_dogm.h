@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,6 @@
  * Standard MK4duo Status Screen bitmaps
  *
  */
-
-#include <binary.h>
 
 #include "../../../../MK4duo.h"
 
@@ -52,11 +50,11 @@
     // Status Screen Combined Heater bitmaps
     //
 
-    #if HAS_TEMP_BED && HOTENDS == 0
+    #if BEDS > 0 && HOTENDS == 0
       #define STATUS_HEATERS_X 80
     #endif
 
-    #if HAS_TEMP_BED && HOTENDS <= 3
+    #if BEDS > 0 && HOTENDS <= 3
 
       #define STATUS_BED_WIDTH  18
 
@@ -139,7 +137,7 @@
 
       #endif // HOTENDS
 
-    #else // !HAS_TEMP_BED || HOTENDS > 3
+    #else // !HAS_TEMP_BED0 || HOTENDS > 3
 
       #if HOTENDS == 1
 
@@ -219,7 +217,7 @@
 
       #endif // HOTENDS
 
-    #endif // !HAS_TEMP_BED || HOTENDS > 3
+    #endif // !HAS_TEMP_BED0 || HOTENDS > 3
 
   #else // !STATUS_COMBINE_HEATERS
 
@@ -271,7 +269,7 @@
 
         #if HOTENDS >= 2
 
-          #if HAS_TEMP_BED
+          #if BEDS > 0
             #define MAX_HOTEND_BITMAPS 3
           #else
             #define MAX_HOTEND_BITMAPS 4
@@ -435,7 +433,7 @@
 
         #endif
 
-        #if STATUS_HOTEND_BITMAPS >= 4 && !HAS_TEMP_BED
+        #if STATUS_HOTEND_BITMAPS >= 4 && !HAS_TEMP_BED0
 
           #if ENABLED(STATUS_HOTEND_ANIM)
 
@@ -490,7 +488,7 @@
 
         #endif
 
-        #if STATUS_HOTEND_BITMAPS >= 5 && !HAS_TEMP_BED
+        #if STATUS_HOTEND_BITMAPS >= 5 && !HAS_TEMP_BED0
 
           #ifdef STATUS_HOTEND_ANIM
 
@@ -557,7 +555,7 @@
 // Default Status Screen Bed bitmaps
 //
 
-#if !STATUS_BED_WIDTH && DISABLED(STATUS_COMBINE_HEATERS) && HAS_TEMP_BED && HOTENDS < 4
+#if !STATUS_BED_WIDTH && DISABLED(STATUS_COMBINE_HEATERS) && HAS_TEMP_BED0 && HOTENDS < 4
 
   #if ENABLED(STATUS_ALT_BED_BITMAP)
 
@@ -643,7 +641,7 @@
 
   #endif
 
-#endif // !STATUS_BED_WIDTH && !STATUS_COMBINE_HEATERS && HAS_TEMP_BED && HOTENDS < 4
+#endif // !STATUS_BED_WIDTH && !STATUS_COMBINE_HEATERS && HAS_TEMP_BED0 && HOTENDS < 4
 
 // Can also be overridden in Configuration.h
 // If you can afford it, try the 3-frame fan animation!

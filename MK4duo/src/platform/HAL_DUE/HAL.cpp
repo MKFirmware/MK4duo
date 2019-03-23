@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_SAM
  */
@@ -68,11 +68,17 @@ uint8_t MCUSR;
 int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
 bool    HAL::Analog_is_ready = false;
 
-#if HEATER_COUNT > 0
-  ADCAveragingFilter HAL::sensorFilters[HEATER_COUNT];
+#if HOTENDS > 0
+  ADCAveragingFilter HAL::sensorFilters[HOTENDS];
+#endif
+#if BEDS > 0
+  ADCAveragingFilter HAL::BEDsensorFilters[BEDS];
+#endif
+#if CHAMBERS > 0
+  ADCAveragingFilter HAL::CHAMBERsensorFilters[CHAMBERS];
 #endif
 
-#if HAS_FILAMENT_SENSOR
+#if ENABLED(FILAMENT_WIDTH_SENSOR)
   ADCAveragingFilter  HAL::filamentFilter;
 #endif
 
@@ -151,7 +157,7 @@ void noTone(const pin_t _pin) {
   HAL::digitalWrite(_pin, LOW);
 }
 
-HAL_TONE_TIMER_ISR {
+HAL_TONE_TIMER_ISR() {
   static uint8_t pin_state = 0;
   HAL_timer_isr_prologue(TONE_TIMER_NUM);
 
@@ -282,16 +288,32 @@ void HAL::analogStart(void) {
   ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
   pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() {
-      if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
-        AnalogInEnablePin(heaters[h].sensor.pin, true);
+  #if HOTENDS > 0
+    LOOP_HOTEND() {
+      if (WITHIN(hotends[h].sensor.pin, 0, 15)) {
+        AnalogInEnablePin(hotends[h].sensor.pin, true);
         sensorFilters[h].Init(0);
       }
     }
   #endif
+  #if BEDS > 0
+    LOOP_BED() {
+      if (WITHIN(beds[h].sensor.pin, 0, 15)) {
+        AnalogInEnablePin(beds[h].sensor.pin, true);
+        BEDsensorFilters[h].Init(0);
+      }
+    }
+  #endif
+  #if CHAMBERS > 0
+    LOOP_CHAMBER() {
+      if (WITHIN(chambers[h].sensor.pin, 0, 15)) {
+        AnalogInEnablePin(chambers[h].sensor.pin, true);
+        CHAMBERsensorFilters[h].Init(0);
+      }
+    }
+  #endif
 
-  #if HAS_FILAMENT_SENSOR
+  #if ENABLED(FILAMENT_WIDTH_SENSOR)
     AnalogInEnablePin(FILWIDTH_PIN, true);
     filamentFilter.Init(0);
   #endif
@@ -562,8 +584,14 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].setOutputPwm();
+  #if HOTENDS > 0
+    LOOP_HOTEND() hotends[h].setOutputPwm();
+  #endif
+  #if BEDS > 0
+    LOOP_BED() beds[h].setOutputPwm();
+  #endif
+  #if CHAMBERS > 0
+    LOOP_CHAMBER() chambers[h].setOutputPwm();
   #endif
 
   // Fans set output PWM
@@ -591,20 +619,44 @@ void HAL::Tick() {
 
     if (adc_get_status(ADC)) { // conversion finished?
 
-      #if HEATER_COUNT > 0
-        for (uint8_t h = 0; h < HEATER_COUNT; h++) {
-          if (WITHIN(heaters[h].sensor.pin, 0, 15)) {
+      #if HOTENDS > 0
+        for (uint8_t h = 0; h < HOTENDS; h++) {
+          if (WITHIN(hotends[h].sensor.pin, 0, 15)) {
             ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
-            currentFilter.ProcessReading(AnalogInReadPin(heaters[h].sensor.pin));
+            currentFilter.ProcessReading(AnalogInReadPin(hotends[h].sensor.pin));
             if (currentFilter.IsValid()) {
-              AnalogInputValues[heaters[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+              AnalogInputValues[hotends[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+              Analog_is_ready = true;
+            }
+          }
+        }
+      #endif
+      #if BEDS > 0
+        for (uint8_t h = 0; h < BEDS; h++) {
+          if (WITHIN(beds[h].sensor.pin, 0, 15)) {
+            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
+            currentFilter.ProcessReading(AnalogInReadPin(beds[h].sensor.pin));
+            if (currentFilter.IsValid()) {
+              AnalogInputValues[beds[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+              Analog_is_ready = true;
+            }
+          }
+        }
+      #endif
+      #if CHAMBERS > 0
+        for (uint8_t h = 0; h < CHAMBERS; h++) {
+          if (WITHIN(chambers[h].sensor.pin, 0, 15)) {
+            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
+            currentFilter.ProcessReading(AnalogInReadPin(chambers[h].sensor.pin));
+            if (currentFilter.IsValid()) {
+              AnalogInputValues[chambers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
               Analog_is_ready = true;
             }
           }
         }
       #endif
 
-      #if HAS_FILAMENT_SENSOR
+      #if ENABLED(FILAMENT_WIDTH_SENSOR)
         const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
         if (filamentFilter.IsValid())
           AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;

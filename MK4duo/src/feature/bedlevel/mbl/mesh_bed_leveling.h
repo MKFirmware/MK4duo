@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,11 @@
  */
 #pragma once
 
-#define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
-#define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
+#define MESH_X_DIST     ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
+#define MESH_Y_DIST     ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
+#define _GET_MESH_X(I)  mbl.index_to_xpos[I]
+#define _GET_MESH_Y(J)  mbl.index_to_ypos[J]
+#define Z_VALUES_ARR    mbl.z_values
 
 class mesh_bed_leveling {
 
@@ -116,5 +119,3 @@ class mesh_bed_leveling {
 };
 
 extern mesh_bed_leveling mbl;
-
-#define Z_VALUES(X,Y) mbl.z_values[X][Y]

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ void vector_3::apply_rotation(const matrix_3x3 &matrix) {
 }
 
 void vector_3::debug(PGM_P const title) {
-  SERIAL_PGM(title);
+  SERIAL_STR(title);
   SERIAL_MV(" x: ", x, 6);
   SERIAL_MV(" y: ", y, 6);
   SERIAL_EMV(" z: ", z, 6);
@@ -139,7 +139,7 @@ matrix_3x3 matrix_3x3::transpose(const matrix_3x3 &original) {
 
 void matrix_3x3::debug(PGM_P const title) {
   if (title != NULL) {
-    SERIAL_PGM(title);
+    SERIAL_STR(title);
     SERIAL_EOL();
   }
   uint8_t count = 0;
@@ -154,4 +154,4 @@ void matrix_3x3::debug(PGM_P const title) {
   }
 }
 
-#endif // HAS_ABL
+#endif // ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,8 +274,8 @@
 #define MSG_T                               " T:"
 #define MSG_B                               " B:"
 #define MSG_AT                              " @"
-#define MSG_BAT                             " B@:"
-#define MSG_CAT                             " C@:"
+#define MSG_BAT                             " B@"
+#define MSG_CAT                             " C@"
 #define MSG_W                               " W:"
 #define MSG_PID_AUTOTUNE_FINISHED           MSG_PID_AUTOTUNE " finished! Put the last Kp, Ki and Kd constants from below into Configuration!"
 #define MSG_PID_DEBUG                       " PID_DEBUG "
@@ -286,10 +286,10 @@
 #define MSG_PID_DEBUG_DTERM                 " dTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
-#define MSG_STOPPED_HEATER                  ", heater stopped! Heater_ID: "
+#define MSG_HEATER_STOPPED                  ", heater stopped! "
+#define MSG_HEATER_HOTEND                   "Hotend"
 #define MSG_HEATER_BED                      "Bed"
 #define MSG_HEATER_CHAMBER                  "Chamber"
-#define MSG_HEATER_COOLER                   "Cooler"
 #define MSG_REDUNDANCY                      "Heater switched off. Temperature difference between temp sensors is too high !"
 #define MSG_T_HEATING_FAILED                "Heating failed"
 #define MSG_T_THERMAL_RUNAWAY               "Thermal Runaway"
@@ -313,10 +313,14 @@
 #define MSG_Y2 "Y2"
 #define MSG_Z2 "Z2"
 #define MSG_Z3 "Z3"
+#define MSG_H0 "0"
 #define MSG_H1 "1"
 #define MSG_H2 "2"
 #define MSG_H3 "3"
 #define MSG_H4 "4"
+#define MSG_H5 "5"
+#define MSG_H6 "6"
+#define MSG_N0 " 0"
 #define MSG_N1 " 1"
 #define MSG_N2 " 2"
 #define MSG_N3 " 3"

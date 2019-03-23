@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * scara_mechanics.cpp
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -35,11 +35,7 @@ Scara_Mechanics mechanics;
 /** Public Parameters */
 mechanics_data_t Scara_Mechanics::data;
 
-const float Scara_Mechanics::base_max_pos[XYZ]    = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS },
-            Scara_Mechanics::base_min_pos[XYZ]    = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-            Scara_Mechanics::base_home_pos[XYZ]   = { X_HOME_POS, Y_HOME_POS, Z_HOME_POS },
-            Scara_Mechanics::max_length[XYZ]      = { X_MAX_LENGTH, Y_MAX_LENGTH, Z_MAX_LENGTH },
-            Scara_Mechanics::L1                   = SCARA_LINKAGE_1,
+const float Scara_Mechanics::L1                   = SCARA_LINKAGE_1,
             Scara_Mechanics::L2                   = SCARA_LINKAGE_2,
             Scara_Mechanics::L1_2                 = sq(float(L1)),
             Scara_Mechanics::L1_2_2               = 2.0f * L1_2,
@@ -54,7 +50,7 @@ void Scara_Mechanics::factory_parameters() {
                         tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
   static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp_retractacc[]    PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+                        tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
   LOOP_XYZE_N(i) {
     data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
@@ -63,7 +59,22 @@ void Scara_Mechanics::factory_parameters() {
   }
 
   LOOP_EXTRUDER()
-    data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retractacc[e < COUNT(tmp_retractacc) ? e : COUNT(tmp_retractacc) - 1]);
+    data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
+
+  // Base min pos
+  data.base_pos[X_AXIS].min       = X_MIN_POS;
+  data.base_pos[Y_AXIS].min       = Y_MIN_POS;
+  data.base_pos[Z_AXIS].min       = Z_MIN_POS;
+
+  // Base max pos
+  data.base_pos[X_AXIS].max       = X_MAX_POS;
+  data.base_pos[Y_AXIS].max       = Y_MAX_POS;
+  data.base_pos[Z_AXIS].max       = Z_MAX_POS;
+
+  // Base home pos
+  data.base_home_pos[X_AXIS]      = X_HOME_POS;
+  data.base_home_pos[Y_AXIS]      = Y_HOME_POS;
+  data.base_home_pos[Z_AXIS]      = Z_HOME_POS;
 
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
@@ -87,7 +98,7 @@ void Scara_Mechanics::factory_parameters() {
   data.segments_per_second = SCARA_SEGMENTS_PER_SECOND;
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    ZERO(mechanics.data.home_offset);
+    ZERO(data.home_offset);
   #endif
 
 }
@@ -175,13 +186,13 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       const float cartesian_segment_mm = cartesian_mm * inv_segments;
     #endif
 
-    //SERIAL_MV("mm=", cartesian_mm);
-    //SERIAL_MV(" seconds=", seconds);
-    //SERIAL_MV(" segments=", segments);
+    //DEBUG_MV("mm=", cartesian_mm);
+    //DEBUG_MV(" seconds=", seconds);
+    //DEBUG_MV(" segments=", segments);
     #if DISABLED(SCARA_FEEDRATE_SCALING)
-      //SERIAL_MV(" segment_mm=", cartesian_segment_mm);
+      //DEBUG_MV(" segment_mm=", cartesian_segment_mm);
     #endif
-    //SERIAL_EOL();
+    //DEBUG_EOL();
 
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       // SCARA needs to scale the feed rate from mm/s to degrees/s
@@ -262,13 +273,11 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
  *  The final current_position may not be the one that was requested
  */
 void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
-  const float old_feedrate_mm_s = feedrate_mm_s;
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) Com::print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
-  #endif
+  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
 
-  const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
+  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS],
+              xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
   if (!position_is_reachable(rx, ry)) return;
 
@@ -282,7 +291,7 @@ void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
 
   destination[X_AXIS] = rx;
   destination[Y_AXIS] = ry;
-  prepare_uninterpolated_move_to_destination(fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S);
+  prepare_uninterpolated_move_to_destination(xy_feedrate);
 
   // If Z needs to lower, do it after moving XY
   if (destination[Z_AXIS] > rz) {
@@ -290,11 +299,7 @@ void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
     prepare_uninterpolated_move_to_destination(z_feedrate);
   }
 
-  feedrate_mm_s = old_feedrate_mm_s;
-
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("<<< do_blocking_move_to");
-  #endif
+  if (printer.debugFeature()) DEBUG_EM("<<< do_blocking_move_to");
 
   planner.synchronize();
 
@@ -387,9 +392,9 @@ void Scara_Mechanics::home() {
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      mechanics.Nextion_gfx_clear();
+      Nextion_gfx_clear();
     #endif
-    return true;
+    return;
   }
 
   #if HAS_POWER_SWITCH
@@ -416,23 +421,15 @@ void Scara_Mechanics::home() {
     tools.change(0, 0, true);
   #endif
 
-  printer.setup_for_endstop_or_probe_move();
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("> endstops.setEnabled(true)");
-  #endif
+  setup_for_endstop_or_probe_move();
+  if (printer.debugFeature()) DEBUG_EM("> endstops.setEnabled(true)");
   endstops.setEnabled(true); // Enable endstops for next homing move
 
   bool come_back = parser.boolval('B');
-  float lastpos[NUM_AXIS];
-  float old_feedrate_mm_s;
-  if (come_back) {
-    old_feedrate_mm_s = mechanics.feedrate_mm_s;
-    COPY_ARRAY(lastpos, mechanics.current_position);
-  }
+  REMEMBER(feedrate_mm_s);
+  COPY_ARRAY(stored_position[1], current_position);
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS(">>> home_scara", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS(">>> home_scara", current_position);
 
   const bool  homeA = parser.seen('X'),
               homeB = parser.seen('Y'),
@@ -443,38 +440,30 @@ void Scara_Mechanics::home() {
   // Home A
   if (home_all || homeA) {
     homeaxis(A_AXIS);
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("> homeA", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("> homeA", current_position);
   }
 
   // Home B
   if (home_all || homeB) {
     homeaxis(B_AXIS);
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("> homeB", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("> homeB", current_position);
   }
   
   // Home Z
   if (home_all || homeZ) {
     homeaxis(Z_AXIS);
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("> homeZ", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("> homeZ", current_position);
   }
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("<<< home_scara", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("<<< home_scara", current_position);
   sync_plan_position();
   endstops.setNotHoming();
 
   if (come_back) {
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, lastpos);
+    COPY_ARRAY(destination, stored_position[1]);
     prepare_move_to_destination();
-    feedrate_mm_s = old_feedrate_mm_s;
+    RESTORE(feedrate_mm_s);
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
@@ -485,7 +474,7 @@ void Scara_Mechanics::home() {
     bedlevel.set_bed_leveling_enabled(leveling_was_active);
   #endif
 
-  printer.clean_up_after_endstop_or_probe_move();
+  clean_up_after_endstop_or_probe_move();
 
   planner.synchronize();
 
@@ -498,29 +487,28 @@ void Scara_Mechanics::home() {
 
   report_current_position();
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("<<< G28");
-  #endif
+  if (printer.debugFeature()) DEBUG_EM("<<< G28");
 
 }
 
+/**
+ * Home an individual linear axis
+ */
 void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
-      SERIAL_MV(", ", distance);
-      SERIAL_MSG(", ");
-      if (fr_mm_s)
-        SERIAL_VAL(fr_mm_s);
-      else {
-        SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
-        SERIAL_CHR(']');
-      }
-      SERIAL_CHR(')');
-      SERIAL_EOL();
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> do_homing_move(", axis_codes[axis]);
+    DEBUG_MV(", ", distance);
+    DEBUG_MSG(", ");
+    if (fr_mm_s)
+      DEBUG_VAL(fr_mm_s);
+    else {
+      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
+      DEBUG_CHR(']');
     }
-  #endif
+    DEBUG_CHR(')');
+    DEBUG_EOL();
+  }
 
   // Only do some things when moving towards an endstop
   const bool is_home_dir = (get_homedir(axis) > 0) == (distance > 0);
@@ -528,7 +516,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   if (is_home_dir) {
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
       const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
-      if (deploy_bltouch) bltouch.set_deployed(true);
+      if (deploy_bltouch) bltouch.deploy();
     #endif
 
     #if QUIET_PROBING
@@ -550,18 +538,17 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #endif
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      if (deploy_bltouch) bltouch.set_deployed(false);
+      if (deploy_bltouch) bltouch.stow();
     #endif
 
     endstops.validate_homing_move();
   }
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV("<<< do_homing_move(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
+
 }
 
 /**
@@ -574,13 +561,12 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
  * Callers must sync the planner position after calling this!
  */ 
 void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_CHR(')');
-      SERIAL_EOL();
-    }
-  #endif
+
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_CHR(')');
+    DEBUG_EOL();
+  }
 
   setAxisHomed(axis, true);
 
@@ -601,8 +587,8 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
       Transform(homeposition);
       InverseTransform(delta[A_AXIS], delta[B_AXIS], cartesian_position);
 
-      // SERIAL_ECHOPAIR("Cartesian X:", cartes[X_AXIS]);
-      // SERIAL_ECHOLNPAIR(" Y:", cartes[Y_AXIS]);
+      // DEBUG_ECHOPAIR("Cartesian X:", cartes[X_AXIS]);
+      // DEBUG_ECHOLNPAIR(" Y:", cartes[Y_AXIS]);
 
       current_position[axis] = cartesian_position[axis];
 
@@ -610,8 +596,8 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
        * SCARA home positions are based on configuration since the actual
        * limits are determined by the inverse kinematic transform.
        */
-      endstops.soft_endstop_min[axis] = base_min_pos[axis]; // + (cartes[axis] - base_home_pos(axis));
-      endstops.soft_endstop_max[axis] = base_max_pos[axis]; // + (cartes[axis] - base_home_pos(axis));
+      endstops.soft_endstop[axis].min = data.base_pos[axis].min; // + (cartes[axis] - base_home_pos(axis));
+      endstops.soft_endstop[axis].max = data.base_pos[axis].max; // + (cartes[axis] - base_home_pos(axis));
     }
     else
   #endif
@@ -628,29 +614,25 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
         current_position[Z_AXIS] -= probe.data.offset[Z_AXIS];
 
-        #if ENABLED(DEBUG_FEATURE)
-          if (printer.debugFeature()) {
-            SERIAL_EM("*** Z HOMED WITH PROBE ***");
-            SERIAL_EMV("> zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
-          }
-        #endif
+        if (printer.debugFeature()) {
+          DEBUG_EM("*** Z HOMED WITH PROBE ***");
+          DEBUG_EMV("> zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
+        }
 
-      #elif ENABLED(DEBUG_FEATURE)
+      #else
 
-        if (printer.debugFeature()) SERIAL_EM("*** Z HOMED TO ENDSTOP ***");
+        if (printer.debugFeature()) DEBUG_EM("*** Z HOMED TO ENDSTOP ***");
 
       #endif
     }
   #endif
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      DEBUG_POS("", current_position);
-      SERIAL_MT("<<< set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_CHR(')');
-      SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_POS("", current_position);
+    DEBUG_MT("<<< set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_CHR(')');
+    DEBUG_EOL();
+  }
 
 }
 
@@ -674,9 +656,7 @@ bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const floa
  */
 void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
 
   if ( current_position[X_AXIS] == destination[X_AXIS]
     && current_position[Y_AXIS] == destination[Y_AXIS]
@@ -700,10 +680,12 @@ void Scara_Mechanics::report_current_position_detail() {
   };
   report_xyz(logical);
 
+  SERIAL_MSG("Raw:    ");
+  report_xyze(current_position);
+
   float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
 
-  #if PLANNER_LEVELING
-
+  #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
     bedlevel.apply_leveling(leveled);
     report_xyz(leveled);
@@ -712,7 +694,6 @@ void Scara_Mechanics::report_current_position_detail() {
     float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
     bedlevel.unapply_leveling(unleveled);
     report_xyz(unleveled);
-
   #endif
 
   SERIAL_MSG("ScaraK: ");
@@ -727,7 +708,6 @@ void Scara_Mechanics::report_current_position_detail() {
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
     SERIAL_VAL(stepper.position((AxisEnum)i));
-    SERIAL_MSG("    ");
   }
   SERIAL_EOL();
 
@@ -898,7 +878,7 @@ void Scara_Mechanics::report_current_position_detail() {
       raw[Z_AXIS] += linear_per_segment;
       raw[E_AXIS] += extruder_per_segment;
 
-      endstops.clamp_to_software(raw);
+      endstops.apply_motion_limits(raw);
 
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         Transform(raw);
@@ -1070,25 +1050,21 @@ void Scara_Mechanics::homeaxis(const AxisEnum axis) {
   // Only Z homing (with probe) is permitted
   if (axis != Z_AXIS) { sound.playTone(100, NOTE_A5); return; }
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
-    if (probe.set_deployed(true)) return;
+    if (DEPLOY_PROBE()) return;
   #endif
 
   // Fast move towards endstop until triggered
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("Home 1 Fast:");
-  #endif
+  if (printer.debugFeature()) DEBUG_EM("Home 1 Fast:");
 
   // Fast move towards endstop until triggered
-  mechanics.do_homing_move(axis, 1.5f * max_length[axis] * get_homedir(axis));
+  do_homing_move(axis, 1.5f * data.base_pos[axis].max * get_homedir(axis));
 
   // When homing Z with probe respect probe clearance
   const float bump = get_homedir(axis) * (
@@ -1101,16 +1077,12 @@ void Scara_Mechanics::homeaxis(const AxisEnum axis) {
   // If a second homing move is configured...
   if (bump) {
     // Move away from the endstop by the axis HOME_BUMP_MM
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("Move Away:");
-    #endif
-    mechanics.do_homing_move(axis, -bump);
+    if (printer.debugFeature()) DEBUG_EM("Move Away:");
+    do_homing_move(axis, -bump);
 
     // Slow move towards endstop until triggered
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("Home 2 Slow:");
-    #endif
-    mechanics.do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+    if (printer.debugFeature()) DEBUG_EM("Home 2 Slow:");
+    do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
   }
 
   set_axis_is_at_home(axis);
@@ -1118,7 +1090,7 @@ void Scara_Mechanics::homeaxis(const AxisEnum axis) {
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
-    if (probe.set_deployed(false)) return;
+    if (probe.STOW_PROBE()) return;
   #endif
 
   // Clear retracted status if homing the Z axis
@@ -1126,12 +1098,11 @@ void Scara_Mechanics::homeaxis(const AxisEnum axis) {
     fwretract.current_hop = 0.0;
   #endif
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV("<<< homeaxis(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
+
 }
 
 #endif // IS_SCARA

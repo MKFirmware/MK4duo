@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * delta_mechanics.cpp
  *
- * Copyright (C) 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -184,37 +184,44 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // The number of segments-per-second times the duration
     // gives the number of segments we should produce
-    const uint16_t segments = MAX(1, data.segments_per_second * seconds);
+    const uint16_t segments = MAX(1U, data.segments_per_second * seconds);
 
     // Now compute the number of lines needed
-    const uint16_t numLines = (segments + data.segments_per_line - 1) / data.segments_per_line;
+    uint16_t numLines = (segments + data.segments_per_line - 1) / data.segments_per_line;
 
-    const float start_position[XYZE] = {
-                  current_position[X_AXIS],
-                  current_position[Y_AXIS],
-                  current_position[Z_AXIS],
-                  current_position[E_AXIS]
+    // The approximate length of each segment
+    const float inv_numLines = 1.0f / float(numLines),
+                segment_distance[XYZE] = {
+                  difference[X_AXIS] * inv_numLines,
+                  difference[Y_AXIS] * inv_numLines,
+                  difference[Z_AXIS] * inv_numLines,
+                  difference[E_AXIS] * inv_numLines
                 },
-                cartesian_segment_mm = cartesian_distance / (float)numLines;
+                cartesian_segment_mm = cartesian_distance * inv_numLines;
 
     /*
-    SERIAL_MV("mm=", cartesian_distance);
-    SERIAL_MV(" seconds=", seconds);
-    SERIAL_MV(" segments=", segments);
-    SERIAL_MV(" numLines=", numLines);
-    SERIAL_MV(" segment_mm=", cartesian_segment_mm);
-    SERIAL_EOL();
+    DEBUG_MV("mm=", cartesian_distance);
+    DEBUG_MV(" seconds=", seconds);
+    DEBUG_MV(" segments=", segments);
+    DEBUG_MV(" numLines=", numLines);
+    DEBUG_MV(" segment_mm=", cartesian_segment_mm);
+    DEBUG_EOL();
     //*/
 
     // Get the current position as starting point
     float raw[XYZE];
+    COPY_ARRAY(raw, current_position);
 
     // Calculate and execute the segments
-    for (uint16_t lineNumber = 1; lineNumber <= numLines; lineNumber++) {
+    while (--numLines) {
 
-      printer.check_periodical_actions();
+      static millis_t next_idle_ms = millis() + 200UL;
+      if (ELAPSED(millis(), next_idle_ms)) {
+        next_idle_ms = millis() + 200UL;
+        printer.idle();
+      }
 
-      LOOP_XYZE(i) raw[i] = start_position[i] + (difference[i] * lineNumber) / (float)numLines;
+      LOOP_XYZE(i) raw[i] += segment_distance[i];
 
       if (!planner.buffer_line(raw, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
         break;
@@ -234,23 +241,19 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
  *  The final current_position may not be the one that was requested
  */
 void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
-  const float old_feedrate_mm_s = feedrate_mm_s;
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) Com::print_xyz(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
-  #endif
+  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), NULL, rx, ry, rz);
 
-  const float z_feedrate = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS];
+  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS],
+              xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
   if (!position_is_reachable(rx, ry)) return;
 
-  feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+  REMEMBER(fr, feedrate_mm_s, xy_feedrate);
 
   set_destination_to_current();          // sync destination at the start
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("set_destination_to_current", destination);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("set_destination_to_current", destination);
 
   // when in the danger zone
   if (current_position[C_AXIS] > delta_clip_start_height) {
@@ -259,46 +262,34 @@ void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
       destination[B_AXIS] = ry;
       destination[C_AXIS] = rz;
       prepare_uninterpolated_move_to_destination(); // set_current_to_destination
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) DEBUG_POS("danger zone move", current_position);
-      #endif
+      if (printer.debugFeature()) DEBUG_POS("danger zone move", current_position);
       return;
     }
     destination[C_AXIS] = delta_clip_start_height;
     prepare_uninterpolated_move_to_destination(); // set_current_to_destination
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("zone border move", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("zone border move", current_position);
   }
 
   if (rz > current_position[C_AXIS]) {    // raising?
     destination[C_AXIS] = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("z raise move", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("z raise move", current_position);
   }
 
   destination[A_AXIS] = rx;
   destination[B_AXIS] = ry;
   prepare_move_to_destination();         // set_current_to_destination
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("xy move", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("xy move", current_position);
 
   if (rz < current_position[C_AXIS]) {    // lowering?
     destination[C_AXIS] = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);   // set_current_to_destination
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) DEBUG_POS("z lower move", current_position);
-    #endif
+    if (printer.debugFeature()) DEBUG_POS("z lower move", current_position);
   }
 
-  feedrate_mm_s = old_feedrate_mm_s;
+  RESTORE(fr);
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("<<< do_blocking_move_to");
-  #endif
+  if (printer.debugFeature()) DEBUG_EM("<<< do_blocking_move_to");
 
   planner.synchronize();
 
@@ -474,23 +465,14 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
     tools.change(0, 0, true);
   #endif
 
-  printer.setup_for_endstop_or_probe_move();
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("> endstops.setEnabled(true)");
-  #endif
+  setup_for_endstop_or_probe_move();
   endstops.setEnabled(true); // Enable endstops for next homing move
 
   bool come_back = parser.boolval('B');
-  float lastpos[NUM_AXIS];
-  float old_feedrate_mm_s;
-  if (come_back) {
-    old_feedrate_mm_s = feedrate_mm_s;
-    COPY_ARRAY(lastpos, current_position);
-  }
+  REMEMBER(fr, feedrate_mm_s);
+  COPY_ARRAY(stored_position[1], current_position);
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS(">>> home", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS(">>> home", current_position);
 
   // Init the current position of all carriages to 0,0,0
   ZERO(current_position);
@@ -533,9 +515,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   sync_plan_position();
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("<<< home", current_position);
-  #endif
+  if (printer.debugFeature()) DEBUG_POS("<<< home", current_position);
 
   endstops.setNotHoming();
 
@@ -546,9 +526,9 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   if (come_back) {
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, lastpos);
+    COPY_ARRAY(destination, stored_position[1]);
     prepare_move_to_destination();
-    feedrate_mm_s = old_feedrate_mm_s;
+    RESTORE(fr);
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
@@ -559,7 +539,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
     bedlevel.set_bed_leveling_enabled(leveling_was_active);
   #endif
 
-  printer.clean_up_after_endstop_or_probe_move();
+  clean_up_after_endstop_or_probe_move();
 
   planner.synchronize();
 
@@ -570,9 +550,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   lcdui.refresh();
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) SERIAL_EM("<<< G28");
-  #endif
+  if (printer.debugFeature()) DEBUG_EM("<<< G28");
 
   if (report_position) report_current_position();
 }
@@ -582,21 +560,19 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
  */
 void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> do_homing_move(", axis_codes[axis]);
-      SERIAL_MV(", ", distance);
-      SERIAL_MSG(", ");
-      if (fr_mm_s)
-        SERIAL_VAL(fr_mm_s);
-      else {
-        SERIAL_MV(" [", homing_feedrate_mm_s[axis]);
-        SERIAL_CHR(']');
-      }
-      SERIAL_CHR(')');
-      SERIAL_EOL();
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> do_homing_move(", axis_codes[axis]);
+    DEBUG_MV(", ", distance);
+    DEBUG_MSG(", ");
+    if (fr_mm_s)
+      DEBUG_VAL(fr_mm_s);
+    else {
+      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
+      DEBUG_CHR(']');
     }
-  #endif
+    DEBUG_CHR(')');
+    DEBUG_EOL();
+  }
 
   // Only do some things when moving towards an endstop
   const bool is_home_dir = distance > 0;
@@ -640,12 +616,10 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #endif
   }
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV("<<< do_homing_move(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV("<<< do_homing_move(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
 
 }
 
@@ -662,24 +636,21 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
  */
 void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
 
   setAxisHomed(axis, true);
 
   current_position[axis] = (axis == C_AXIS ? data.height : 0.0);
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      DEBUG_POS("", current_position);
-      SERIAL_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_POS("", current_position);
+    DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
+
 }
 
 // Return true if the given point is within the printable area
@@ -895,7 +866,7 @@ void Delta_Mechanics::report_current_position_detail() {
       raw[Z_AXIS] += linear_per_segment;
       raw[E_AXIS] += extruder_per_segment;
 
-      endstops.clamp_to_software(raw);
+      endstops.apply_motion_limits(raw);
 
       #if ENABLED(DELTA_FEEDRATE_SCALING)
         Transform(raw);
@@ -973,7 +944,7 @@ void Delta_Mechanics::report_current_position_detail() {
     constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
     float zHi, zLo, newPos[ABC];
 
-    switch(deriv) {
+    switch (deriv) {
       case 0:
       case 1:
       case 2:
@@ -1247,14 +1218,11 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
     (axis == A##_AXIS && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
   if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV(">>> homeaxis(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-
-    if (printer.debugFeature()) SERIAL_EM("Home 1 Fast:");
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+    DEBUG_EM("Home 1 Fast:");
+  }
 
   // Fast move towards endstop until triggered
   do_homing_move(axis, 1.5f * data.height);
@@ -1265,15 +1233,11 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
   // If a second homing move is configured...
   if (bump) {
     // Move away from the endstop by the axis HOME_BUMP_MM
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("Move Away:");
-    #endif
+    if (printer.debugFeature()) DEBUG_EM("Move Away:");
     do_homing_move(axis, -bump);
 
     // Slow move towards endstop until triggered
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("Home 2 Slow:");
-    #endif
+    if (printer.debugFeature()) DEBUG_EM("Home 2 Slow:");
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
   }
 
@@ -1283,10 +1247,8 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 
   // retrace by the amount specified in data.endstop_adj + additional 0.1mm in order to have minimum steps
   if (data.endstop_adj[axis] < 0) {
-    #if ENABLED(DEBUG_FEATURE)
-      if (printer.debugFeature()) SERIAL_EM("endstop_adj:");
-    #endif
-    do_homing_move(axis, data.endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * mechanics.steps_to_mm[axis]);
+    if (printer.debugFeature()) DEBUG_EM("endstop_adj:");
+    do_homing_move(axis, data.endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * steps_to_mm[axis]);
   }
 
   // Clear z_lift if homing the Z axis
@@ -1294,21 +1256,19 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
     if (axis == Z_AXIS) fwretract.current_hop = 0.0;
   #endif
 
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) {
-      SERIAL_MV("<<< homeaxis(", axis_codes[axis]);
-      SERIAL_CHR(')'); SERIAL_EOL();
-    }
-  #endif
+  if (printer.debugFeature()) {
+    DEBUG_MV("<<< homeaxis(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
+  }
+
 }
 
 /**
  * Calculate delta, start a line, and set current_position to destination
  */
-void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s/*=0.0*/) {
-  #if ENABLED(DEBUG_FEATURE)
-    if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
-  #endif
+void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float &fr_mm_s/*=0.0*/) {
+
+  if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
 
   #if UBL_DELTA
     // ubl segmented line will do z-only moves in single segment

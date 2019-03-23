@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,7 @@ enum PrinterModeEnum : uint8_t {
 };
 enum InterruptEventEnum : uint8_t {
   INTERRUPT_EVENT_NONE,
-  INTERRUPT_EVENT_FIL_RUNOUT,
-  INTERRUPT_EVENT_ENC_DETECT
+  INTERRUPT_EVENT_FIL_RUNOUT
 };
 
 /**
@@ -83,7 +82,7 @@ enum BusyStateEnum : uint8_t {
 
 /**
  * Emergency Parser
- *  Currently looking for: M108, M112, M410
+ *  Currently looking for: M108, M112, M410, M876
  */
 enum EmergencyStateEnum : uint8_t {
   EP_RESET,
@@ -97,7 +96,25 @@ enum EmergencyStateEnum : uint8_t {
   EP_M4,
   EP_M41,
   EP_M410,
+  EP_M8,
+  EP_M87,
+  EP_M876,
+  EP_M876S,
+  EP_M876SN,
   EP_IGNORE // to '\n'
+};
+
+/**
+ * Prompt Reason
+ *  For M876 command
+ */
+enum HostPromptEnum : char {
+  PROMPT_NOT_DEFINED,
+  PROMPT_FILAMENT_RUNOUT,
+  PROMPT_FILAMENT_RUNOUT_REHEAT,
+  PROMPT_USER_CONTINUE,
+  PROMPT_PAUSE_RESUME,
+  PROMPT_INFO
 };
 
 /**
@@ -242,34 +259,35 @@ enum SoundModeEnum : uint8_t {
 };
 
 /**
- * Advanced Paused
+ * Advanced Pause
  */
-enum AdvancedPauseModeEnum : uint8_t {
-  ADVANCED_PAUSE_MODE_SAME,
-  ADVANCED_PAUSE_MODE_PAUSE_PRINT,
-  ADVANCED_PAUSE_MODE_LOAD_FILAMENT,
-  ADVANCED_PAUSE_MODE_UNLOAD_FILAMENT
+enum PauseModeEnum : uint8_t {
+  PAUSE_MODE_SAME,
+  PAUSE_MODE_PAUSE_PRINT,
+  PAUSE_MODE_LOAD_FILAMENT,
+  PAUSE_MODE_UNLOAD_FILAMENT
 };
 
-enum AdvancedPauseMessageEnum : uint8_t {
-  ADVANCED_PAUSE_MESSAGE_INIT,
-  ADVANCED_PAUSE_MESSAGE_WAITING,
-  ADVANCED_PAUSE_MESSAGE_UNLOAD,
-  ADVANCED_PAUSE_MESSAGE_INSERT,
-  ADVANCED_PAUSE_MESSAGE_LOAD,
-  ADVANCED_PAUSE_MESSAGE_PURGE,
-  ADVANCED_PAUSE_MESSAGE_OPTION,
-  ADVANCED_PAUSE_MESSAGE_RESUME,
-  ADVANCED_PAUSE_MESSAGE_STATUS,
-  ADVANCED_PAUSE_MESSAGE_HEAT,
-  ADVANCED_PAUSE_MESSAGE_PRINTER_OFF,
-  ADVANCED_PAUSE_MESSAGE_HEATING
+enum PauseMessageEnum : uint8_t {
+  PAUSE_MESSAGE_PAUSING,
+  PAUSE_MESSAGE_CHANGING,
+  PAUSE_MESSAGE_WAITING,
+  PAUSE_MESSAGE_UNLOAD,
+  PAUSE_MESSAGE_INSERT,
+  PAUSE_MESSAGE_LOAD,
+  PAUSE_MESSAGE_PURGE,
+  PAUSE_MESSAGE_OPTION,
+  PAUSE_MESSAGE_RESUME,
+  PAUSE_MESSAGE_STATUS,
+  PAUSE_MESSAGE_HEAT,
+  PAUSE_MESSAGE_PRINTER_OFF,
+  PAUSE_MESSAGE_HEATING
 };
 
-enum AdvancedPauseMenuResponseEnum : uint8_t {
-  ADVANCED_PAUSE_RESPONSE_WAIT_FOR,
-  ADVANCED_PAUSE_RESPONSE_EXTRUDE_MORE,
-  ADVANCED_PAUSE_RESPONSE_RESUME_PRINT
+enum PauseMenuResponseEnum : uint8_t {
+  PAUSE_RESPONSE_WAIT_FOR,
+  PAUSE_RESPONSE_EXTRUDE_MORE,
+  PAUSE_RESPONSE_RESUME_PRINT
 };
 
 /**
@@ -295,6 +313,7 @@ enum TMCdebugEnum : char {
   TMC_MAX_CURRENT,
   TMC_IRUN,
   TMC_IHOLD,
+  TMC_GLOBAL_SCALER,
   TMC_CS_ACTUAL,
   TMC_PWM_SCALE,
   TMC_VSENSE,
@@ -309,8 +328,7 @@ enum TMCdebugEnum : char {
   TMC_TBL,
   TMC_HEND,
   TMC_HSTRT,
-  TMC_SGT,
-  TMC_NULL
+  TMC_SGT
 };
 enum TMCdrvStatusEnum : char {
   TMC_DRV_CODES,

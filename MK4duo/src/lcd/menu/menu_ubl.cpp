@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ static int16_t ubl_storage_slot = 0,
                x_plot = 0,
                y_plot = 0;
 
-#if HAS_TEMP_BED
+#if BEDS > 0
   static int16_t custom_bed_temp = 50;
 #endif
 
@@ -104,7 +104,7 @@ void lcd_z_offset_edit_setup(const float &initial) {
 void _lcd_ubl_build_custom_mesh() {
   char UBL_LCD_GCODE[20];
   commands.enqueue_and_echo_P(PSTR("G28"));
-  #if HAS_TEMP_BED
+  #if BEDS > 0
     sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
     lcd_enqueue_command(UBL_LCD_GCODE);
   #endif
@@ -124,9 +124,9 @@ void _lcd_ubl_build_custom_mesh() {
 void _lcd_ubl_custom_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_BUILD_MESH_MENU);
-  MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, (HEATER_0_MAXTEMP - 10));
-  #if HAS_TEMP_BED
-    MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, BED_MINTEMP, (BED_MAXTEMP - 15));
+  MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, hotends[0].data.maxtemp - 10);
+  #if BEDS > 0
+    MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, beds[0].data.mintemp, beds[0].data.maxtemp - 10);
   #endif
   MENU_ITEM(function, MSG_UBL_BUILD_CUSTOM_MESH, _lcd_ubl_build_custom_mesh);
   END_MENU();
@@ -184,7 +184,7 @@ void _lcd_ubl_edit_mesh() {
 void _lcd_ubl_validate_custom_mesh() {
   char UBL_LCD_GCODE[24];
   const int temp =
-    #if HAS_TEMP_BED
+    #if BEDS > 0
       custom_bed_temp
     #else
       0
@@ -207,7 +207,7 @@ void _lcd_ubl_validate_custom_mesh() {
 void _lcd_ubl_validate_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_TOOLS);
-  #if HAS_TEMP_BED
+  #if BEDS > 0
     MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M1, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_1_TEMP_BED) " H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
     MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M2, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_2_TEMP_BED) " H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
   #else
@@ -311,7 +311,7 @@ void _lcd_ubl_invalidate() {
 void _lcd_ubl_build_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_TOOLS);
-  #if HAS_TEMP_BED
+  #if BEDS > 0
     MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M1, PSTR(
       "G28\n"
       "M190 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\n"
@@ -416,8 +416,8 @@ void _lcd_ubl_map_homing() {
  */
 void _lcd_ubl_map_lcd_edit_cmd() {
   char UBL_LCD_GCODE[50], str[10], str2[10];
-  dtostrf(pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]), 0, 2, str);
-  dtostrf(pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]), 0, 2, str2);
+  dtostrf(ubl.mesh_index_to_xpos(x_plot), 0, 2, str);
+  dtostrf(ubl.mesh_index_to_ypos(y_plot), 0, 2, str2);
   snprintf_P(UBL_LCD_GCODE, sizeof(UBL_LCD_GCODE), PSTR("G29 P4 X%s Y%s R%i"), str, str2, n_edit_pts);
   lcd_enqueue_command(UBL_LCD_GCODE);
 }
@@ -426,8 +426,8 @@ void _lcd_ubl_map_lcd_edit_cmd() {
  * UBL LCD Map Movement
  */
 void ubl_map_move_to_xy() {
-  mechanics.current_position[X_AXIS] = pgm_read_float(&ubl._mesh_index_to_xpos[x_plot]);
-  mechanics.current_position[Y_AXIS] = pgm_read_float(&ubl._mesh_index_to_ypos[y_plot]);
+  mechanics.current_position[X_AXIS] = ubl.mesh_index_to_xpos(x_plot);
+  mechanics.current_position[Y_AXIS] = ubl.mesh_index_to_ypos(y_plot);
   planner.buffer_line(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
 }
 

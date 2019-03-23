@@ -71,7 +71,7 @@
 |  M75 | ? | Start the print job timer
 |  M76 | ? | Pause the print job timer
 |  M77 | ? | Stop the print job timer
-|  M78 | ? | Show statistical information about the print jobs, S78 reset statistics, R[index] reset service index
+|  M78 | ? | Show statistical information about the print jobs
 |  M80 | ? | Turn on Power Supply
 |  M81 | ? | Turn off Power, including Power Supply, if possible
 |  M82 | ? | Set E codes absolute (default)
@@ -202,7 +202,7 @@
 | M913 | HYBRID THRESHOLD | Set HYBRID THRESHOLD speed
 | M914 | SENSORLESS HOMING | Set SENSORLESS HOMING sensitivity
 | M915 | TRINAMIC | TMC Z axis calibration routine
-| M922 | TMC_DEBUG | TMC debug, X Y Z E for view axis, V see register, none see all
+| M922 | TRINAMIC | S[1/0] Enable/disable TMC debug, X Y Z E for view axis, V see register, none see all
 | M930 | TRINAMIC | TMC set blank_time.
 | M931 | TRINAMIC | TMC set off_time.
 | M932 | TRINAMIC | TMC set hysteresis_start.

@@ -97,11 +97,11 @@
  * M28  - Start SD write (M28 filename.g). (Requires SDSUPPORT)
  * M29  - Stop SD write. (Requires SDSUPPORT)
  * M30  - Delete file from SD (M30 filename.g). (Requires SDSUPPORT)
- * M31  - Output time since last M109 or SD card start to serial
+ * M31  - Get the time since the start of SD Print
  * M32  - Open file and start print
- * M33  - Stop printing, close file and save restart.gcode
  * M34  - Set SD Card Sorting Options
  * M35  - Upload Firmware to Nextion from SD
+ * M39  - SD info and formatting
  * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
  * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  *
@@ -177,9 +177,10 @@
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
  * M129 - EtoP Closed (BariCUDA EtoP = electricity to air pressure transducer by jmil)
  * M140 - Set hot bed target temp
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
  * M141 - Set hot chamber target temp
- * M142 - Set cooler target temp
- * M145 - Set the heatup state H[hotend] B[bed] F[fan speed] for S[material] (0=PLA, 1=ABS)
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
+ * M145 - Set the heatup state H[hotend] B[bed] C[chamber] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)
  * M149 - Set temperature units
  * M150 - Set Status LED Color as R[red] U[green] B[blue]. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
  * M155 - S[1/0] Enable/disable auto report temperatures.
@@ -191,8 +192,6 @@
  *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
  * M191 - Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
- * M192 - Sxxx Wait for cooler current temp to reach target temp. Waits only when heating
- *        Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D[millimeters]- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
@@ -202,7 +201,7 @@
  * M207 - Set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
  * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
  * M209 - S[1/0] enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
- * M218 - Set hotend offset (in mm): H[hotend_number] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
+ * M218 - Set hotend offset (in mm): T[tools] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
  * M220 - Set speed factor override percentage: S[factor in percent]
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
@@ -215,18 +214,26 @@
  * M281 - Set servo low|up angles position. P<index> L<low> U<up>. (Requires servos)
  * M290 - Babystepping (Requires BABYSTEPPING)
  * M300 - Play beep sound S[frequency Hz] P[duration ms]
- * M301 - Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ * M301 - Set PID parameters P I D and C.
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          P[float] Kp term, I[float] Ki term, D[float] Kd term
  *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[int] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S[temperature].
- * M303 - PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
- *        S[temperature] sets the target temperature (default target temperature = 150C), C[cycles], U[Apply result],
- *        R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
- * M305 - Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ * M303 - PID relay autotune.
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
+ *          S[temperature] sets the target temperature (default target temperature = 150C), C[cycles], U[Apply result],
+ *          R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
+ * M305 - Set thermistor and ADC parameters.
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
  *          L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin
- *        Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
- * M306 - Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER,
+ *          Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
+ * M306 - Set Heaters parameters.
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
  *          L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
  *          I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
@@ -244,6 +251,11 @@
  * M407 - Display measured filament diameter
  * M408 - Report JSON-style response
  * M410 - Quickstop. Abort all the planned moves
+ * M412 - Filament Runout Sensor. (Requires FILAMENT_RUNOUT_SENSOR)
+            S[bool]   Enable / Disable Sensor control
+            H[bool]   Enable / Disable Host control
+            R[bool]   Reset control
+            D[float]  Distance mm
  * M413 - S[bool] Enable / Disable Restart Job. (Requires SD_RESTART_FILE)
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL)
  *        Z[height] for leveling fade height (Requires ENABLE_LEVELING_FADE_HEIGHT)
@@ -257,7 +269,6 @@
  * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
  * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
- * M512 - Print Extruder Encoder status Pin. (Requires Extruder Encoder)
  * M522 - Read or Write on card. M522 T[extruders] R[read] or W[write] L[list]
  * M524 - Abort the current SD print job (started with M24). (Requires SDSUPPORT)
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
@@ -269,7 +280,6 @@
  * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
  *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]
  * M603 - Set filament change T[toolhead] U[Retract distance] L[Extrude distance]
- * M604 - Set data Extruder Encoder S[Error steps] (requires EXTRUDER ENCODER)
  * M605 - Set dual x-carriage movement mode: S[mode] [ X[duplication x-offset] R[duplication temp offset] ]
  * M649 - Set laser options. S[intensity] L[duration] P[ppm] B[set mode] R[raster mm per pulse] F[feedrate]
  * M666 - Delta geometry adjustment

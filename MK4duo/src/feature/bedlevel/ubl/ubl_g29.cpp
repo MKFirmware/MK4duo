@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -440,11 +440,11 @@
                * Until that is decided, this can be forced with the X and Y parameters.
                */
               #if IS_KINEMATIC
-                g29_x_pos = X_HOME_POS;
-                g29_y_pos = Y_HOME_POS;
+                g29_x_pos = 0;
+                g29_y_pos = 0;
               #else // cartesian
-                g29_x_pos = probe.data.offset[X_AXIS] > 0 ? X_BED_SIZE : 0;
-                g29_y_pos = probe.data.offset[Y_AXIS] < 0 ? Y_BED_SIZE : 0;
+                g29_x_pos = probe.data.offset[X_AXIS] > 0 ? X_MAX_BED : 0;
+                g29_y_pos = probe.data.offset[Y_AXIS] < 0 ? Y_MAX_BED : 0;
               #endif
             }
 
@@ -862,7 +862,7 @@
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
-        SERIAL_PGM(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
+        SERIAL_STR(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                       // existing behavior: 0.01mm per click, occasionally step
         //const float z_step = mechanics.data.axis_steps_per_mm[Z_AXIS];  // approx one step each click
@@ -1409,33 +1409,29 @@
 
               abort_flag = isnan(measured_z);
 
-              #if ENABLED(DEBUG_FEATURE)
-                if (printer.debugFeature()) {
-                  SERIAL_CHR('(');
-                  SERIAL_VAL(rx, 7);
-                  SERIAL_CHR(',');
-                  SERIAL_VAL(ry, 7);
-                  SERIAL_MSG(")   logical: ");
-                  SERIAL_CHR('(');
-                  SERIAL_VAL(LOGICAL_X_POSITION(rx), 7);
-                  SERIAL_CHR(',');
-                  SERIAL_VAL(LOGICAL_Y_POSITION(ry), 7);
-                  SERIAL_MSG(")   measured: ");
-                  SERIAL_VAL(measured_z, 7);
-                  SERIAL_MSG("   correction: ");
-                  SERIAL_VAL(get_z_correction(rx, ry), 7);
-                }
-              #endif
+              if (printer.debugFeature()) {
+                DEBUG_CHR('(');
+                DEBUG_VAL(rx, 7);
+                DEBUG_CHR(',');
+                DEBUG_VAL(ry, 7);
+                DEBUG_MSG(")   logical: ");
+                DEBUG_CHR('(');
+                DEBUG_VAL(LOGICAL_X_POSITION(rx), 7);
+                DEBUG_CHR(',');
+                DEBUG_VAL(LOGICAL_Y_POSITION(ry), 7);
+                DEBUG_MSG(")   measured: ");
+                DEBUG_VAL(measured_z, 7);
+                DEBUG_MSG("   correction: ");
+                DEBUG_VAL(get_z_correction(rx, ry), 7);
+              }
 
               measured_z -= get_z_correction(rx, ry) /* + zprobe_zoffset */ ;
 
-              #if ENABLED(DEBUG_FEATURE)
-                if (printer.debugFeature()) {
-                  SERIAL_MSG("   final >>>---> ");
-                  SERIAL_VAL(measured_z, 7);
-                  SERIAL_EOL();
-                }
-              #endif
+              if (printer.debugFeature()) {
+                DEBUG_MSG("   final >>>---> ");
+                DEBUG_VAL(measured_z, 7);
+                DEBUG_EOL();
+              }
 
               if (g29_verbose_level > 3) {
                 SERIAL_SP(16);
@@ -1475,113 +1471,107 @@
                 y_tmp = mesh_index_to_ypos(j),
                 z_tmp = z_values[i][j];
 
-          #if ENABLED(DEBUG_FEATURE)
-            if (printer.debugFeature()) {
-              SERIAL_MSG("before rotation = [");
-              SERIAL_VAL(x_tmp, 7);
-              SERIAL_CHR(',');
-              SERIAL_VAL(y_tmp, 7);
-              SERIAL_CHR(',');
-              SERIAL_VAL(z_tmp, 7);
-              SERIAL_MSG("]   ---> ");
-              printer.safe_delay(20);
-            }
-          #endif
+          if (printer.debugFeature()) {
+            DEBUG_MSG("before rotation = [");
+            DEBUG_VAL(x_tmp, 7);
+            DEBUG_CHR(',');
+            DEBUG_VAL(y_tmp, 7);
+            DEBUG_CHR(',');
+            DEBUG_VAL(z_tmp, 7);
+            DEBUG_MSG("]   ---> ");
+            printer.safe_delay(20);
+          }
 
           apply_rotation_xyz(rotation, x_tmp, y_tmp, z_tmp);
 
-          #if ENABLED(DEBUG_FEATURE)
-            if (printer.debugFeature()) {
-              SERIAL_MSG("after rotation = [");
-              SERIAL_VAL(x_tmp, 7);
-              SERIAL_CHR(',');
-              SERIAL_VAL(y_tmp, 7);
-              SERIAL_CHR(',');
-              SERIAL_VAL(z_tmp, 7);
-              SERIAL_EM("]");
-              printer.safe_delay(55);
-            }
-          #endif
+          if (printer.debugFeature()) {
+            DEBUG_MSG("after rotation = [");
+            DEBUG_VAL(x_tmp, 7);
+            DEBUG_CHR(',');
+            DEBUG_VAL(y_tmp, 7);
+            DEBUG_CHR(',');
+            DEBUG_VAL(z_tmp, 7);
+            DEBUG_EM("]");
+            printer.safe_delay(55);
+          }
 
           z_values[i][j] = z_tmp - lsf_results.D;
         }
       }
 
-      #if ENABLED(DEBUG_FEATURE)
-        if (printer.debugFeature()) {
-          rotation.debug(PSTR("rotation matrix:"));
-          SERIAL_MSG("LSF Results A=");
-          SERIAL_VAL(lsf_results.A, 7);
-          SERIAL_MSG("  B=");
-          SERIAL_VAL(lsf_results.B, 7);
-          SERIAL_MSG("  D=");
-          SERIAL_VAL(lsf_results.D, 7);
-          SERIAL_EOL();
-          printer.safe_delay(55);
+      if (printer.debugFeature()) {
+        rotation.debug(PSTR("rotation matrix:"));
+        DEBUG_MSG("LSF Results A=");
+        DEBUG_VAL(lsf_results.A, 7);
+        DEBUG_MSG("  B=");
+        DEBUG_VAL(lsf_results.B, 7);
+        DEBUG_MSG("  D=");
+        DEBUG_VAL(lsf_results.D, 7);
+        DEBUG_EOL();
+        printer.safe_delay(55);
 
-          SERIAL_MSG("bed plane normal = [");
-          SERIAL_VAL(normal.x, 7);
-          SERIAL_CHR(',');
-          SERIAL_VAL(normal.y, 7);
-          SERIAL_CHR(',');
-          SERIAL_VAL(normal.z, 7);
-          SERIAL_MSG("]\n");
-          SERIAL_EOL();
+        DEBUG_MSG("bed plane normal = [");
+        DEBUG_VAL(normal.x, 7);
+        DEBUG_CHR(',');
+        DEBUG_VAL(normal.y, 7);
+        DEBUG_CHR(',');
+        DEBUG_VAL(normal.z, 7);
+        DEBUG_MSG("]\n");
+        DEBUG_EOL();
 
-          /**
-           * The following code can be used to check the validity of the mesh tilting algorithm.
-           * When a 3-Point Mesh Tilt is done, the same algorithm is used as the grid based tilting.
-           * The only difference is just 3 points are used in the calculations.   That fact guarantees
-           * each probed point should have an exact match when a get_z_correction() for that location
-           * is calculated.  The Z error between the probed point locations and the get_z_correction()
-           * numbers for those locations should be 0.
-           */
-          #if 0
-          float t, t1, d;
-          t = normal.x * (PROBE_PT_1_X) + normal.y * (PROBE_PT_1_Y);
-          d = t + normal.z * z1;
-          SERIAL_MSG("D from 1st point: ");
-          SERIAL_VAL(d, 6);
-          SERIAL_MSG("   Z error: ");
-          SERIAL_VAL(normal.z*z1-get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y), 6);
-          SERIAL_EOL();
+        /**
+         * The following code can be used to check the validity of the mesh tilting algorithm.
+         * When a 3-Point Mesh Tilt is done, the same algorithm is used as the grid based tilting.
+         * The only difference is just 3 points are used in the calculations.   That fact guarantees
+         * each probed point should have an exact match when a get_z_correction() for that location
+         * is calculated.  The Z error between the probed point locations and the get_z_correction()
+         * numbers for those locations should be 0.
+         */
+        #if 0
+        float t, t1, d;
+        t = normal.x * (PROBE_PT_1_X) + normal.y * (PROBE_PT_1_Y);
+        d = t + normal.z * z1;
+        DEBUG_MSG("D from 1st point: ");
+        DEBUG_VAL(d, 6);
+        DEBUG_MSG("   Z error: ");
+        DEBUG_VAL(normal.z*z1-get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y), 6);
+        DEBUG_EOL();
 
-          t = normal.x * (PROBE_PT_2_X) + normal.y * (PROBE_PT_2_Y);
-          d = t + normal.z * z2;
-          SERIAL_EOL();
-          SERIAL_MSG("D from 2nd point: ");
-          SERIAL_VAL(d, 6);
-          SERIAL_MSG("   Z error: ");
-          SERIAL_VAL(normal.z*z2-get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y), 6);
-          SERIAL_EOL();
+        t = normal.x * (PROBE_PT_2_X) + normal.y * (PROBE_PT_2_Y);
+        d = t + normal.z * z2;
+        DEBUG_EOL();
+        DEBUG_MSG("D from 2nd point: ");
+        DEBUG_VAL(d, 6);
+        DEBUG_MSG("   Z error: ");
+        DEBUG_VAL(normal.z*z2-get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y), 6);
+        DEBUG_EOL();
 
-          t = normal.x * (PROBE_PT_3_X) + normal.y * (PROBE_PT_3_Y);
-          d = t + normal.z * z3;
-          SERIAL_MSG("D from 3rd point: ");
-          SERIAL_VAL(d, 6);
-          SERIAL_MSG("   Z error: ");
-          SERIAL_VAL(normal.z*z3-get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y), 6);
-          SERIAL_EOL();
+        t = normal.x * (PROBE_PT_3_X) + normal.y * (PROBE_PT_3_Y);
+        d = t + normal.z * z3;
+        DEBUG_MSG("D from 3rd point: ");
+        DEBUG_VAL(d, 6);
+        DEBUG_MSG("   Z error: ");
+        DEBUG_VAL(normal.z*z3-get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y), 6);
+        DEBUG_EOL();
 
-          t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-          d = t + normal.z * 0;
-          SERIAL_MSG("D from home location with Z=0 : ");
-          SERIAL_VAL(d, 6);
-          SERIAL_EOL();
+        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
+        d = t + normal.z * 0;
+        DEBUG_MSG("D from home location with Z=0 : ");
+        DEBUG_VAL(d, 6);
+        DEBUG_EOL();
 
-          t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-          d = t + get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT); // normal.z * 0.000;
-          SERIAL_MSG("D from home location using mesh value for Z: ");
-          SERIAL_VAL(d, 6);
+        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
+        d = t + get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT); // normal.z * 0.000;
+        DEBUG_MSG("D from home location using mesh value for Z: ");
+        DEBUG_VAL(d, 6);
 
-          SERIAL_MV("   Z error: (", Z_SAFE_HOMING_X_POINT);
-          SERIAL_MV(",", Z_SAFE_HOMING_Y_POINT );
-          SERIAL_MSG(") = ");
-          SERIAL_VAL(get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT), 6);
-          SERIAL_EOL();
-          #endif
-        } // printer.debugFeature()
-      #endif
+        DEBUG_MV("   Z error: (", Z_SAFE_HOMING_X_POINT);
+        DEBUG_MV(",", Z_SAFE_HOMING_Y_POINT );
+        DEBUG_MSG(") = ");
+        DEBUG_VAL(get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT), 6);
+        DEBUG_EOL();
+        #endif
+      } // printer.debugFeature()
 
     }
 
@@ -1764,26 +1754,19 @@
      * use cases for the users. So we can wait and see what to do with it.
      */
     void unified_bed_leveling::g29_compare_current_mesh_to_stored_mesh() {
-      int16_t a = eeprom.calc_num_meshes();
+      const int16_t a = eeprom.calc_num_meshes();
 
       if (!a) {
         SERIAL_EM("?EEPROM storage not available.");
         return;
       }
 
-      if (!parser.has_value()) {
-        SERIAL_EM("?Storage slot # required.");
-        SERIAL_EMV("?Use 0 to ", a - 1);
+      if (!parser.has_value() || !WITHIN(g29_storage_slot, 0, a - 1)) {
+        SERIAL_EMV("?Invalid storage slot.\n?Use 0 to ", a - 1);
         return;
       }
 
       g29_storage_slot = parser.value_int();
-
-      if (!WITHIN(g29_storage_slot, 0, a - 1)) {
-        SERIAL_EM("?Invalid storage slot.");
-        SERIAL_EMV("?Use 0 to ", a - 1);
-        return;
-      }
 
       float tmp_z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
       eeprom.load_mesh(g29_storage_slot, &tmp_z_values);

@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,8 +76,8 @@
 #define MSG_MAX                             LCD_STR_THERMOMETER _UxGT(" Максимум")
 #define MSG_FACTOR                          LCD_STR_THERMOMETER _UxGT(" Фактор")
 #define MSG_AUTOTEMP                        _UxGT("Авто-темп.")
-#define MSG_ON                              _UxGT("Вкл. ")
-#define MSG_OFF                             _UxGT("Изкл. ")
+#define MSG_ON                              _UxGT("Вкл.")
+#define MSG_OFF                             _UxGT("Изкл.")
 #define MSG_A_RETRACT                       _UxGT("A-откат")
 #define MSG_A_TRAVEL                        _UxGT("A-travel")
 #define MSG_STEPS_PER_MM                    _UxGT("Стъпки/mm")

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Feature.h
@@ -42,6 +43,7 @@
  * - Multiextruder MKR6
  * - Multiextruder MKR12
  * - Multiextruder MKSE6 (multiextruder with Servo)
+ * - Multi-Material-Unit v2
  * - Multiextruder DONDOLO
  * - Extruder idle oozing prevention
  * - Extruder run-out prevention
@@ -69,7 +71,6 @@
  * - XY Frequency limit
  * - Skeinforge arc fix
  * SENSORS FEATURES:
- * - Extruder Encoder Control
  * - Filament diameter sensor
  * - Filament Runout sensor
  * - Power consumption sensor
@@ -84,8 +85,7 @@
  * - LCD Character Set
  * - LCD / Controller Selection
  * - LCD Options
- * - Canon RC-1 Remote
- * - Camera trigger
+ * - Photo G-code
  * - RFID card reader
  * - BLINKM
  * - RGB LED
@@ -128,9 +128,6 @@
  *
  */
 
-#ifndef _CONFIGURATION_FEATURE_H_
-#define _CONFIGURATION_FEATURE_H_
-
 //===========================================================================
 //============================= DRIVER FEATURES =============================
 //===========================================================================
@@ -156,8 +153,12 @@
  *  - TMC26X_STANDALONE                                                     *
  *  - TMC2660                                                               *
  *  - TMC2660_STANDALONE                                                    *
+ *  - TMC2160                                                               *
+ *  - TMC2160_STANDALONE                                                    *
  *  - TMC5130                                                               *
  *  - TMC5130_STANDALONE                                                    *
+ *  - TMC5160                                                               *
+ *  - TMC5160_STANDALONE                                                    *
  *                                                                          *
  * See Configuration_Motor_Driver.h for configuration Motor Driver          *
  *                                                                          *
@@ -408,6 +409,36 @@
 
 
 /***********************************************************************
+ ************************* Multi-Material-Unit *************************
+ ***********************************************************************
+ *                                                                     *
+ * Prusa Multi-Material Unit v2                                        *
+ *                                                                     *
+ * Requires NOZZLE_PARK_FEATURE to park print head in case             *
+ * MMU unit fails.                                                     *
+ * Requires EXTRUDERS = 5                                              *
+ *                                                                     *
+ ***********************************************************************/
+//#define PRUSA_MMU2
+
+// Serial port used for communication with MMU2.
+#define MMU2_SERIAL 1
+
+// Enable if the MMU2 has 12V stepper motors (MMU2 Firmware 1.0.2 and up)
+//#define MMU2_MODE_12V
+
+// G-code to execute when MMU2 F.I.N.D.A. probe detects filament runout
+#define MMU2_FILAMENT_RUNOUT_SCRIPT "M600"
+
+// Settings for filament load / unload from the LCD menu.
+// This is for Prusa MK3-style extruders. Customize for your hardware.
+#define MMU2_FILAMENTCHANGE_EJECT_FEED 80.0
+#define MMU2_LOAD_TO_NOZZLE_SEQUENCE  { 7.2, 562 }, { 14.4, 871 }, { 36.0, 1393 }, { 14.4, 871 }, { 50.0, 198 }
+#define MMU2_RAMMING_SEQUENCE { 1.0, 1000 }, { 1.0, 1500 }, { 2.0, 2000 }, { 1.5, 3000 }, { 2.5, 4000 }, { -15.0, 5000 }, { -14.0, 1200 }, { -6.0, 600 }, { 10.0, 700 }, { -10.0, 400 }, { -50.0, 2000 }
+/***********************************************************************/
+
+
+/***********************************************************************
  ********************* Dual Extruder DONDOLO ***************************
  ***********************************************************************
  *                                                                     *
@@ -495,8 +526,8 @@
  * drive gear and heatbreak.                                                             *
  * Larger K values will be needed for flexible filament and greater distances.           *
  * If this algorithm produces a higher speed offset than the                             *
- * extruder can handle (compared to E jerk)                                              *
- * print acceleration will be reduced during the affected moves to keep within the limit.*
+ * extruder can handle (compared to E jerk) print acceleration will be                   *
+ * reduced during the affected moves to keep within the limit.                           *
  *                                                                                       *
  *****************************************************************************************/
 //#define LIN_ADVANCE
@@ -778,7 +809,7 @@
 //#define DUAL_X_CARRIAGE
 
 #define X1_MIN_POS X_MIN_POS    // set minimum to ensure first x-carriage doesn't hit the parked second X-carriage
-#define X1_MAX_POS X_BED_SIZE   // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
+#define X1_MAX_POS X_MAX_POS    // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
 #define X2_MIN_POS 80           // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
 #define X2_MAX_POS 353          // set maximum to the distance between toolheads when both heads are homed
 #define X2_HOME_DIR 1           // the second X-carriage always homes to the maximum endstop position
@@ -919,34 +950,6 @@
 //============================= SENSORS FEATURES ============================
 //===========================================================================
 
-
-/**********************************************************************************
- *************************** Extruder Encoder Control *****************************
- **********************************************************************************
- *                                                                                *
- * Support for Encoder on extruder for control filament movement                  *
- * EXPERIMENTAL Function                                                          *
- *                                                                                *
- * You can compare filament moves with extruder moves to detect if the extruder   *
- * is jamming, the spool is knotted or if you are running out of filament.        *
- * You need a movement tracker, that changes a digital signal every x extrusion   *
- * steps.                                                                         *
- *                                                                                *
- * Please define/ Encoder pin for any extruder in configuration pins.              *
- *                                                                                *
- **********************************************************************************/
-//#define EXTRUDER_ENCODER_CONTROL
-
-// Enc error step is step for error detect
-#define ENC_ERROR_STEPS     500
-// Enc min step It must be the minimum number of steps that the extruder does
-// to get a signal from the encoder
-#define ENC_MIN_STEPS        10
-// For invert read signal
-//#define INVERTED_ENCODER_PINS
-/**********************************************************************************/
-
-
 /**********************************************************************************
  *************************** Filament diameter sensor *****************************
  **********************************************************************************
@@ -958,7 +961,7 @@
  * You also need to set FILWIDTH_PIN in Configuration_pins.h                      *
  *                                                                                *
  **********************************************************************************/
-//#define FILAMENT_SENSOR
+//#define FILAMENT_WIDTH_SENSOR
 
 #define FILAMENT_SENSOR_EXTRUDER_NUM  0   // Index of the extruder that has the filament sensor. :[0,1,2,3,4,5]
 #define MEASUREMENT_DELAY_CM         14   // (cm) The distance from the filament sensor to the melting chamber
@@ -988,13 +991,25 @@
  * define FILAMENT RUNOUT DAV SYSTEM                                              *
  * Put DAV_PIN for encoder input in Configuration_Pins.h                          *
  *                                                                                *
+ * Support for Encoder on extruder for control filament movement                  *
+ *                                                                                *
+ * You can compare filament moves with extruder moves to detect if the extruder   *
+ * is jamming, the spool is knotted or if you are running out of filament.        *
+ * You need a movement tracker, that changes a digital signal every x extrusion   *
+ * steps.                                                                         *
+ *                                                                                *
  * You also need to set FIL RUNOUT PIN in Configuration_pins.h                    *
  *                                                                                *
  **********************************************************************************/
 //#define FILAMENT_RUNOUT_SENSOR
 
-// DAV system ancoder filament runout
+// DAV system ancoder filament runout only one system
 //#define FILAMENT_RUNOUT_DAV_SYSTEM
+
+// Enable this option to use an encoder disc that toggles the runout pin
+// as the filament moves. (Be sure to set FILAMENT_RUNOUT_DISTANCE_MM
+// large enough to avoid false positives.)
+//#define EXTRUDER_ENCODER_CONTROL
 
 // Set true or false should assigned
 #define FIL_RUNOUT_0_LOGIC false
@@ -1012,8 +1027,11 @@
 #define FIL_RUNOUT_4_PULLUP false
 #define FIL_RUNOUT_5_PULLUP false
 
-// Time for double check switch in millisecond. Set 0 for disabled
-#define FILAMENT_RUNOUT_DOUBLE_CHECK 0
+// After a runout is detected, continue printing this length of filament
+// before executing the runout script. Useful for a sensor at the end of
+// a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
+// 0 disabled
+#define FILAMENT_RUNOUT_DISTANCE_MM 0
 
 // Script execute when filament run out
 #define FILAMENT_RUNOUT_SCRIPT "M600"
@@ -1210,6 +1228,11 @@
  *****************************************************************************************/
 //#define SDSUPPORT
 //#define USB_FLASH_DRIVE_SUPPORT
+
+// Advanced command M39
+// Info and formatting SD card
+// This requires more PROGMEM
+//#define ADVANCED_SD_COMMAND
 
 //
 // SD CARD: SPI SPEED
@@ -1816,16 +1839,32 @@
 
 
 /**************************************************************************
- *************************** Canon RC-1 Remote ****************************
+ ***************************** Photo G-code *******************************
  **************************************************************************
  *                                                                        *
- * M240 Triggers a camera by emulating a Canon RC-1 Remote                *
- * Data from: http://www.doc-diy.net/photo/rc-1_hacked/                   *
+ * Add the M240 G-code to take a photo.                                   *
+ * The photo can be triggered by a digital pin or a physical movement.    *
  *                                                                        *
+ * Canon RC-1 or homebrew digital camera trigger                          *
+ * Data from: http://www.doc-diy.net/photo/rc-1_hacked/                   *
  * You also need to set PHOTOGRAPH_PIN in Configuration_pins.h            *
  *                                                                        *
+ * Canon Hack Development Kit                                             *
+ * http://captain-slow.dk/2014/03/09/3d-printing-timelapses/              *
+ * You also need to set CHDK_PIN in Configuration_pins.h                  *
+ *                                                                        *
  **************************************************************************/
-//#define PHOTOGRAPH
+//#define PHOTO_GCODE
+// A position to move to (and raise Z) before taking the photo
+//#define PHOTO_POSITION { X_MAX_POS - 5, Y_MAX_POS, 0 }  // { xpos, ypos, zraise } (M240 X Y Z)
+//#define PHOTO_DELAY_MS   100                            // (ms) Duration to pause before moving back (M240 P)
+//#define PHOTO_RETRACT_MM   6.5                          // (mm) E retract/recover for the photo move (M240 R S)
+
+// Optional second move with delay to trigger the camera shutter
+//#define PHOTO_SWITCH_POSITION { X_MAX_POS, Y_MAX_POS }  // { xpos, ypos } (M240 I J)
+
+// Duration to hold the switch or keep CHDK_PIN high
+#define PHOTO_SWITCH_MS   50 // (ms) (M240 D)
 /**************************************************************************/
 
 
@@ -2578,5 +2617,3 @@
 #define USER_DESC_5 "Home & Info"
 #define USER_GCODE_5 "G28\nM503"
 /*****************************************************************************************/
-
-#endif /* _CONFIGURATION_FEATURE_H_ */

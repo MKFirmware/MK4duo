@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Basic.h
@@ -35,9 +36,6 @@
  * Feature-settings can be found in Configuration_Feature.h
  * Pins-settings can be found in "Configuration_Pins.h"
  */
-
-#ifndef _CONFIGURATION_BASIC_H_
-#define _CONFIGURATION_BASIC_H_
 
 /***********************************************************************
  ********************** Serial comunication type ***********************
@@ -216,5 +214,3 @@
 // 0,1,2,3,4,5,6
 #define DRIVER_EXTRUDERS 1
 /***********************************************************************/
-
-#endif /* _CONFIGURATION_BASIC_H_ */

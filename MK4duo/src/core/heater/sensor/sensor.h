@@ -25,7 +25,7 @@
  * sensor.h - sensor object
  */
 
-#if ENABLED(SUPPORT_DHT11)
+#if ENABLED(DHT_SENSOR)
   #include "../../../feature/dhtsensor/dhtsensor.h"
 #endif
 
@@ -45,7 +45,7 @@ typedef struct {
             shB,
             shC;
 
-    #if ENABLED(SUPPORT_AD8495) || ENABLED(SUPPORT_AD595)
+    #if HAS_AD8495 || HAS_AD595
       float ad595_offset,
             ad595_gain;
     #endif
@@ -60,15 +60,15 @@ typedef struct {
 
     float getTemperature() {
 
-      #if ENABLED(SUPPORT_MAX6675) || ENABLED(SUPPORT_MAX31855)
+      #if HAS_MAX6675 || HAS_MAX31855
         if (type == -4 || type == -3)
           return 0.25 * raw;
       #endif
-      #if ENABLED(SUPPORT_AD8495)
+      #if HAS_AD8495
         if (type == -2)
           return (raw * float(AD8495_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
-      #if ENABLED(SUPPORT_AD595)
+      #if HAS_AD595
         if (type == -1)
           return (raw * float(AD595_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
@@ -99,12 +99,12 @@ typedef struct {
         return (recipT > 0.0) ? (1.0 / recipT) + (ABS_ZERO) : 2000.0;
       }
 
-      #if ENABLED(SUPPORT_DHT11)
+      #if HAS_DHT
         if (type == 11)
           return dhtsensor.Temperature;
       #endif
 
-      #if ENABLED(SUPPORT_AMPLIFIER)
+      #if HAS_AMPLIFIER
 
         #define PGM_RD_W(x) (short)pgm_read_word(&x)
         static uint8_t  ttbllen_map = COUNT(temptable_amplifier);
@@ -128,7 +128,7 @@ typedef struct {
           return celsius;
         }
 
-      #endif // ENABLED(SUPPORT_AMPLIFIER)
+      #endif // HAS_AMPLIFIER
 
       if (type == 998) return DUMMY_THERMISTOR_998_VALUE;
       if (type == 999) return DUMMY_THERMISTOR_999_VALUE;
@@ -136,7 +136,7 @@ typedef struct {
       return 25;
     }
 
-    #if ENABLED(SUPPORT_MAX6675)
+    #if HAS_MAX6675
 
       #define MAX6675_HEAT_INTERVAL 250u
       #define MAX6675_ERROR_MASK      4
@@ -196,9 +196,9 @@ typedef struct {
         return (int)max6675_temp;
       }
 
-    #endif // ENABLED(SUPPORT_MAX6675)
+    #endif // HAS_MAX6675
 
-    #if ENABLED(SUPPORT_MAX31855)
+    #if HAS_MAX31855
 
       #define MAX31855_DISCARD_BITS 18
 
@@ -256,6 +256,6 @@ typedef struct {
         return last_max31855_temp;
       }
 
-    #endif // ENABLED(SUPPORT_MAX6675)
+    #endif // HAS_MAX6675
 
 } sensor_data_t;

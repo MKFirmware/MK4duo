@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,102 +27,108 @@
 
 #if HAS_SD_RESTART
 
-  //#define DEBUG_RESTART
+//#define DEBUG_RESTART
 
-  typedef struct {
-    uint8_t valid_head;
+typedef struct {
+  uint8_t valid_head;
 
-    // SD file e position
-    char fileName[MAX_PATH_NAME_LENGHT];
-    uint32_t sdpos;
+  // SD file e position
+  char fileName[MAX_PATH_NAME_LENGHT];
+  uint32_t sdpos;
 
-    // Mechanics state
-    float     current_position[XYZE];
-    uint16_t  feedrate;
+  // Mechanics state
+  float     current_position[XYZE];
+  uint16_t  feedrate;
 
-    #if HEATER_COUNT > 0
-      int16_t target_temperature[HEATER_COUNT];
+  #if HOTENDS > 0
+    int16_t target_temperature[HOTENDS];
+  #endif
+  #if BEDS > 0
+    int16_t bed_target_temperature[BEDS];
+  #endif
+  #if CHAMBERS > 0
+    int16_t chamber_target_temperature[CHAMBERS];
+  #endif
+
+  #if FAN_COUNT > 0
+    uint8_t fan_speed[FAN_COUNT];
+  #endif
+
+  // Extruders
+  #if EXTRUDERS > 1
+    uint8_t active_extruder;
+  #endif
+
+  // Leveling
+  #if HAS_LEVELING
+    bool  leveling;
+    float z_fade_height;
+  #endif
+
+  // Color Mixing gradient
+  #if ENABLED(COLOR_MIXING_EXTRUDER) && HAS_GRADIENT_MIX
+    gradient_t gradient;
+  #endif
+
+  // Command buffer
+  uint8_t buffer_head,
+          buffer_count;
+  char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
+
+  // Job elapsed time
+  millis_t print_job_counter_elapsed;
+
+  // Utility
+  bool just_restart;
+
+  uint8_t valid_foot;
+
+} restart_job_t;
+
+class Restart {
+
+  public: /** Constructor */
+
+    Restart() {};
+
+  public: /** Public Parameters */
+
+    static SdFile job_file;
+
+    static restart_job_t job_info;
+
+    static bool enabled;
+
+  public: /** Public Function */
+
+    static void init_job();
+
+    static void enable(const bool onoff);
+    static void changed();
+
+    static void check();
+
+    static inline bool exists() { return card.exist_restart_file(); }
+    static inline void open(const bool read) { card.open_restart_file(read); }
+    static inline void close() { job_file.close(); }
+
+    static void purge_job();
+    static void load_job();
+    static void save_job(const bool force_save=false, const bool save_count=true);
+    static void resume_job();
+
+    static inline bool valid() { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }
+
+  private: /** Private Function */
+
+    static void write_job();
+
+    #if ENABLED(DEBUG_RESTART)
+      static void debug_info(PGM_P const prefix);
     #endif
 
-    #if FAN_COUNT > 0
-      uint8_t fan_speed[FAN_COUNT];
-    #endif
+};
 
-    // Extruders
-    #if EXTRUDERS > 1
-      uint8_t active_extruder;
-    #endif
-
-    // Leveling
-    #if HAS_LEVELING
-      bool  leveling;
-      float z_fade_height;
-    #endif
-
-    // Color Mixing gradient
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      gradient_t gradient;
-    #endif
-
-    // Command buffer
-    uint8_t buffer_head,
-            buffer_count;
-    char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
-
-    // Job elapsed time
-    millis_t print_job_counter_elapsed;
-
-    // Utility
-    bool just_restart;
-
-    uint8_t valid_foot;
-
-  } restart_job_t;
-
-  class Restart {
-
-    public: /** Constructor */
-
-      Restart() {};
-
-    public: /** Public Parameters */
-
-      static SdFile file;
-
-      static restart_job_t job_info;
-
-      static bool enabled;
-
-    public: /** Public Function */
-
-      static void init_job();
-
-      static void enable(const bool onoff);
-      static void changed();
-
-      static void check();
-
-      static inline bool exists() { return card.exist_restart_file(); }
-      static inline void open(const bool read) { card.open_restart_file(read); }
-      static inline void close() { file.close(); }
-
-      static void purge_job();
-      static void load_job();
-      static void save_job(const bool force_save=false, const bool save_count=true);
-      static void resume_job();
-
-      static inline bool valid() { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }
-
-    private: /** Private Function */
-
-      static void write_job();
-
-      #if ENABLED(DEBUG_RESTART)
-        static void debug_info(PGM_P const prefix);
-      #endif
-
-  };
-
-  extern Restart restart;
+extern Restart restart;
 
 #endif // HAS_SD_RESTART

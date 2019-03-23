@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,8 +53,7 @@ class Endstops {
     #if MECH(DELTA)
       static float  soft_endstop_radius_2;
     #else
-      static float  soft_endstop_min[XYZ],
-                    soft_endstop_max[XYZ];
+      static axis_limits_t soft_endstop[XYZ];
     #endif
 
     #if ENABLED(X_TWO_ENDSTOPS)
@@ -136,11 +135,8 @@ class Endstops {
     FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
 
     // Constrain the given coordinates to the software endstops.
-    static void clamp_to_software(float target[XYZ]);
-
-    #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
-      static void update_software_endstops(const AxisEnum axis);
-    #endif
+    static void apply_motion_limits(float target[XYZ]);
+    static void update_software_endstops(const AxisEnum axis);
 
     #if ENABLED(PINS_DEBUGGING)
       static void run_monitor();

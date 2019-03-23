@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -97,46 +97,40 @@ void menu_info_thermistors() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
   START_SCREEN();
 
-  #if HAS_TEMP_0
+  #if HAS_TEMP_HE0
     STATIC_ITEM("T0: " HOT0_NAME, false, true);
-    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_0_MINTEMP), false);
-    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_0_MAXTEMP), false);
+    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HOTEND_0_MINTEMP), false);
+    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HOTEND_0_MAXTEMP), false);
   #endif
 
-  #if HAS_TEMP_1
+  #if HAS_TEMP_HE1
     STATIC_ITEM("T1: " HOT1_NAME, false, true);
-    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_1_MINTEMP), false);
-    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_1_MAXTEMP), false);
+    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HOTEND_1_MINTEMP), false);
+    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HOTEND_1_MAXTEMP), false);
   #endif
 
-  #if HAS_TEMP_2
+  #if HAS_TEMP_HE2
     STATIC_ITEM("T2: " HOT2_NAME, false, true);
-    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_2_MINTEMP), false);
-    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_2_MAXTEMP), false);
+    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HOTEND_2_MINTEMP), false);
+    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HOTEND_2_MAXTEMP), false);
   #endif
 
-  #if HAS_TEMP_3
+  #if HAS_TEMP_HE3
     STATIC_ITEM("T3: " HOT3_NAME, false, true);
-    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HEATER_3_MINTEMP), false);
-    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HEATER_3_MAXTEMP), false);
+    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(HOTEND_3_MINTEMP), false);
+    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HOTEND_3_MAXTEMP), false);
   #endif
 
-  #if HAS_TEMP_BED
+  #if BEDS > 0
     STATIC_ITEM("TBed:" BED_NAME, false, true);
     STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(BED_MINTEMP), false);
     STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(BED_MAXTEMP), false);
   #endif
 
-  #if HAS_TEMP_CHAMBER
+  #if CHAMBERS > 0
     STATIC_ITEM("TChamber:" CHAMBER_NAME, false, true);
     STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(CHAMBER_MINTEMP), false);
     STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(CHAMBER_MAXTEMP), false);
-  #endif
-
-  #if HAS_TEMP_COOLER
-    STATIC_ITEM("TCooler:" COOLER_NAME, false, true);
-    STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(COOLER_MINTEMP), false);
-    STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(COOLER_MAXTEMP), false);
   #endif
 
   END_SCREEN();

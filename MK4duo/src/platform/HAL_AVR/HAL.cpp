@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  * Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
  *                    Nico Tonnhofer wurstnase.reprap@gmail.com
  *
- * Copyright (c) 2015 - 2016 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * ARDUINO_ARCH_ARM
  */
@@ -77,8 +77,7 @@ uint16_t  HAL_min_pulse_cycle     = 0,
           HAL_min_pulse_tick      = 0,
           HAL_add_pulse_ticks     = 0;
 
-uint32_t  HAL_min_isr_frequency   = 0,
-          HAL_frequency_limit[8]  = { 0 };
+uint32_t  HAL_frequency_limit[8]  = { 0 };
 
 // --------------------------------------------------------------------------
 // Private Variables
@@ -148,17 +147,16 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 }
 
 uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
-  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES * rate) + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
+  return (ISR_BASE_CYCLES + ISR_BEZIER_CYCLES + (ISR_LOOP_CYCLES) * rate + ISR_LA_BASE_CYCLES + ISR_LA_LOOP_CYCLES) / rate;
 }
 
 void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle   = MAX((uint32_t)(F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * (uint32_t)stepper.minimum_pulse);
   HAL_min_pulse_tick    = (stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (uint32_t)(PULSE_TIMER_PRESCALE));
   HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
-  HAL_min_isr_frequency = (F_CPU) / HAL_isr_execuiton_cycle(1);
 
   // The stepping frequency limits for each multistepping rate
-  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))   >> 0;
+  HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
   HAL_frequency_limit[1] = ((F_CPU) / HAL_isr_execuiton_cycle(2))   >> 1;
   HAL_frequency_limit[2] = ((F_CPU) / HAL_isr_execuiton_cycle(4))   >> 2;
   HAL_frequency_limit[3] = ((F_CPU) / HAL_isr_execuiton_cycle(8))   >> 3;
@@ -185,7 +183,7 @@ uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8
       ++idx;
     };
   #else
-    NOMORE(step_rate, HAL_min_isr_frequency);
+    NOMORE(step_rate, HAL_frequency_limit[0]);
   #endif
 
   *loops = multistep;
@@ -249,7 +247,7 @@ void HAL::showStartReason() {
 
   void HAL::analogStart() {
 
-    #if MB(RUMBA) && ((TEMP_SENSOR_0==-1) || (TEMP_SENSOR_1==-1) || (TEMP_SENSOR_2==-1) || (TEMP_SENSOR_BED==-1) || (TEMP_SENSOR_CHAMBER==-1) || (TEMP_SENSOR_COOLER==-1))
+    #if MB(RUMBA) && ((TEMP_SENSOR_HE0==-1) || (TEMP_SENSOR_HE1==-1) || (TEMP_SENSOR_HE2==-1) || (TEMP_SENSOR_BED0==-1) || (TEMP_SENSOR_CHAMBER0==-1))
       // disable RUMBA JTAG in case the thermocouple extension is plugged on top of JTAG connector
       MCUCR = _BV(JTD);
       MCUCR = _BV(JTD);
@@ -301,7 +299,7 @@ void HAL::hwSetup() { /*nope*/ }
 
 void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   val &= 0x07;
-  switch(digitalPinToTimer(pin)) {
+  switch (digitalPinToTimer(pin)) {
 
     #if ENABLED(TCCR0A)
       case TIMER0A:
@@ -375,8 +373,14 @@ void HAL_temp_isr() {
   static uint8_t  channel     = 0;
 
   // Heaters set output PWM
-  #if HEATER_COUNT > 0
-    LOOP_HEATER() heaters[h].setOutputPwm();
+  #if HOTENDS > 0
+    LOOP_HOTEND() hotends[h].setOutputPwm();
+  #endif
+  #if BEDS > 0
+    LOOP_BED() beds[h].setOutputPwm();
+  #endif
+  #if CHAMBERS > 0
+    LOOP_CHAMBER() chambers[h].setOutputPwm();
   #endif
 
   // Fans set output PWM
@@ -459,6 +463,6 @@ HAL_TEMP_TIMER_ISR {
 /**
  * Interrupt Service Routines
  */
-HAL_STEPPER_TIMER_ISR { stepper.Step(); }
+HAL_STEPPER_TIMER_ISR() { stepper.Step(); }
 
 #endif // __AVR__
