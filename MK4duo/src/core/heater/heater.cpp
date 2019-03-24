@@ -141,7 +141,7 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
           if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
         }
       }
-      else if (temp_diff > TEMP_HYSTERESIS) {
+      else if (temp_diff > temp_hysteresis[data.type]) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
         residency_start_ms = now;
       }
