@@ -45,27 +45,27 @@ union flagheater_t {
   flagheater_t() { all = false; }
 };
 
-enum HeaterEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER };
-enum TRState    : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
+enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER };
+enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
-constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { 0, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL };
-constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { 0, BED_HYSTERESIS, CHAMBER_HYSTERESIS };
-constexpr uint8_t   watch_temp_period[HEATER_TYPE]    = { WATCH_TEMP_PERIOD, WATCH_BED_TEMP_PERIOD, WATCH_CHAMBER_TEMP_PERIOD };
-constexpr uint8_t   watch_temp_increase[HEATER_TYPE]  = { WATCH_TEMP_INCREASE, WATCH_BED_TEMP_INCREASE, WATCH_CHAMBER_TEMP_INCREASE };
+constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { HOTEND_CHECK_INTERVAL, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL };
+constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { HOTEND_HYSTERESIS, BED_HYSTERESIS, CHAMBER_HYSTERESIS };
+constexpr uint8_t   watch_period[HEATER_TYPE]         = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD };
+constexpr uint8_t   watch_increase[HEATER_TYPE]       = { WATCH_HOTEND_INCREASE, WATCH_BED_INCREASE, WATCH_CHAMBER_INCREASE };
 
 // Struct Heater data
 typedef struct {
 
-  HeaterEnum    type;
+  HeatertypeEnum  type;
 
-  pin_t         pin;
+  pin_t           pin;
 
-  flagheater_t  flag;
+  flagheater_t    flag;
 
-  uint8_t       ID;
+  uint8_t         ID;
 
-  int16_t       mintemp,
-                maxtemp;
+  int16_t         mintemp,
+                  maxtemp;
 
 } heater_data_t;
 
@@ -93,8 +93,6 @@ class Heater {
                   watch_next_ms;
 
     TRState       thermal_runaway_state;
-
-  private: /** Private Parameters */
 
   public: /** Public Function */
 
@@ -125,7 +123,7 @@ class Heater {
     FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
 
     FORCE_INLINE bool wait_for_heating() {
-      return this->isActive() && ABS(this->current_temperature - this->target_temperature) > TEMP_HYSTERESIS;
+      return this->isActive() && ABS(this->current_temperature - this->target_temperature) > temp_hysteresis[data.type];
     }
 
     // Flag bit 0 Set Active

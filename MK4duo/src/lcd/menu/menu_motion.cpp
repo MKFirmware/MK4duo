@@ -234,7 +234,7 @@ static void _lcd_move_e(
 screenFunc_t _manual_move_func_ptr;
 
 void _goto_manual_move(const float scale) {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   move_menu_scale = scale;
   lcdui.goto_screen(_manual_move_func_ptr);
 }

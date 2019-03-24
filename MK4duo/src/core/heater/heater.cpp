@@ -193,10 +193,10 @@ void Heater::getOutput() {
     }
     else if (ELAPSED(now, next_check_ms)) {
       next_check_ms = now + temp_check_interval[data.type];
-      if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
-        pwm_value = pid.Max;
-      else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
+      if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
         pwm_value = 0;
+      else if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+        pwm_value = pid.Max;
     }
 
     #if ENABLED(PID_DEBUG)
@@ -210,8 +210,7 @@ void Heater::getOutput() {
 }
 
 void Heater::setOutputPwm() {
-  const uint8_t new_pwm_value = isHWInverted() ? 255 - pwm_value : pwm_value;
-  HAL::analogWrite(data.pin, new_pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
+  HAL::analogWrite(data.pin, isHWInverted() ? (255 - pwm_value) : pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
 }
 
 void Heater::print_M301() {
@@ -357,9 +356,9 @@ void Heater::start_watching() {
   if (!isThermalProtection()) return;
 
   const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
-  if (isActive() && current_temperature < targetTemperature - (watch_temp_increase[data.type] + TEMP_HYSTERESIS + 1)) {
-    watch_target_temp = current_temperature + watch_temp_increase[data.type];
-    watch_next_ms = millis() + (watch_temp_period[data.type]) * 1000UL;
+  if (isActive() && current_temperature < targetTemperature - (watch_increase[data.type] + temp_hysteresis[data.type] + 1)) {
+    watch_target_temp = current_temperature + watch_increase[data.type];
+    watch_next_ms = millis() + watch_period[data.type] * 1000UL;
   }
   else
     watch_next_ms = 0;

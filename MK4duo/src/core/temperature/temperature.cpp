@@ -583,7 +583,7 @@ void Temperature::check_and_power(Heater *act) {
   // Make sure temperature is increasing
   if (act->isThermalProtection() && act->watch_next_ms && ELAPSED(now, act->watch_next_ms)) {
     if (act->current_temperature < act->watch_target_temp)
-      _temp_error(act, PSTR(MSG_T_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
+      _temp_error(act, PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
     else
       act->start_watching(); // Start again if the target is still far off
   }

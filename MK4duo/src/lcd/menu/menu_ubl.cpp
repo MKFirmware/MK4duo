@@ -46,7 +46,7 @@ float mesh_edit_value, mesh_edit_accumulator; // We round mesh_edit_value to 2.5
 static int16_t ubl_encoderPosition = 0;
 
 static void _lcd_mesh_fine_tune(PGM_P msg) {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   if (ubl.encoder_diff) {
     ubl_encoderPosition = (ubl.encoder_diff > 0) ? 1 : -1;
     ubl.encoder_diff = 0;
@@ -69,7 +69,7 @@ static void _lcd_mesh_fine_tune(PGM_P msg) {
 }
 
 void _lcd_mesh_edit_NOP() {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
 }
 
 float lcd_mesh_edit() {
@@ -403,7 +403,7 @@ void _lcd_ubl_storage_mesh() {
 void _lcd_ubl_output_map_lcd();
 
 void _lcd_ubl_map_homing() {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   lcd_draw_homing();
   if (mechanics.isHomedAll()) {
     ubl.lcd_map_control = true; // Return to the map screen

@@ -40,7 +40,7 @@ void menu_stop_print() {
 
 #if HAS_EEPROM
   void menu_eeprom() {
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     if (lcdui.use_click()) return lcdui.return_to_status();
     START_SCREEN();
     STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_1);
@@ -54,7 +54,7 @@ void menu_stop_print() {
 #if HAS_NEXTION_LCD
 
   void menu_nextion() {
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     if (lcdui.use_click()) return lcdui.return_to_status();
     START_SCREEN();
     STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_1);
@@ -66,7 +66,7 @@ void menu_stop_print() {
   }
 
   void menu_m0() {
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     if (lcdui.use_click()) {
       printer.setWaitForUser(false);
       return;
