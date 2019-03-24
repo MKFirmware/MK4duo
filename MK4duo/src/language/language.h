@@ -291,7 +291,7 @@
 #define MSG_HEATER_BED                      "Bed"
 #define MSG_HEATER_CHAMBER                  "Chamber"
 #define MSG_REDUNDANCY                      "Heater switched off. Temperature difference between temp sensors is too high !"
-#define MSG_T_HEATING_FAILED                "Heating failed"
+#define MSG_HEATING_FAILED                "Heating failed"
 #define MSG_T_THERMAL_RUNAWAY               "Thermal Runaway"
 #define MSG_T_MAXTEMP                       "MAXTEMP triggered"
 #define MSG_T_MINTEMP                       "MINTEMP triggered"

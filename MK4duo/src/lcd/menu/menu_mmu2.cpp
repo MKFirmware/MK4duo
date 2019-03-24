@@ -195,14 +195,14 @@ void menu_mmu2_advanced_pause() {
 }
 
 void mmu2_M600() {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   lcdui.goto_screen(menu_mmu2_advanced_pause);
   mmuMenuWait = true;
   while (mmuMenuWait) printer.idle();
 }
 
 uint8_t mmu2_chooseFilament() {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   lcdui.goto_screen(menu_mmu2_chooseFilament);
   mmuMenuWait = true;
   while (mmuMenuWait) printer.idle();

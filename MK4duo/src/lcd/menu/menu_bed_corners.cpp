@@ -87,7 +87,7 @@ void _lcd_level_bed_corners_homing() {
 }
 
 void lcd_level_bed_corners() {
-  lcdui.defer_status_screen(true);
+  lcdui.defer_status_screen();
   if (!mechanics.isHomedAll())
     commands.enqueue_and_echo_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_level_bed_corners_homing);

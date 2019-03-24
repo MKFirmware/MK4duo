@@ -124,7 +124,6 @@
  ******************************************************************************************************/
 // Temperature must be close to target for this long before M109-M190-M191-M192 returns success
 #define TEMP_RESIDENCY_TIME 10  // (seconds)
-#define TEMP_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
 // When temperature exceeds max temp, your heater will be switched off.
@@ -224,6 +223,9 @@
 #define PID_MAX       255 // Limits current to nozzle while in PID mode;        255 = full current
 #define PID_DRIVE_MIN  40 // Limits min current to nozzle while PID is active;    0 = no current
 #define PID_DRIVE_MAX 230 // Limits max current to nozzle while PID is active;  255 = full current
+
+#define HOTEND_HYSTERESIS 2       // (degC) range of +/- temperatures considered "close" to the target one
+#define HOTEND_CHECK_INTERVAL 100 // ms between checks in bang-bang control
 
 // If the temperature difference between the target temperature and the actual temperature
 // is more then PID FUNCTIONAL RANGE then the PID will be shut off and the heater will be set to min/max.
@@ -367,14 +369,14 @@
  * If you get false positives for "Heating failed" increase WATCH TEMP PERIOD and/or decrease WATCH TEMP INCREASE
  * WATCH TEMP INCREASE should not be below 2.
  */
-#define WATCH_TEMP_PERIOD  20               // Seconds
-#define WATCH_TEMP_INCREASE 2               // Degrees Celsius
+#define WATCH_HOTEND_PERIOD  20  // Seconds
+#define WATCH_HOTEND_INCREASE 2  // Degrees Celsius
 
-#define WATCH_BED_TEMP_PERIOD 60
-#define WATCH_BED_TEMP_INCREASE 2
+#define WATCH_BED_PERIOD 60      // Seconds
+#define WATCH_BED_INCREASE 2     // Degrees Celsius
 
-#define WATCH_CHAMBER_TEMP_PERIOD 60
-#define WATCH_CHAMBER_TEMP_INCREASE 2
+#define WATCH_CHAMBER_PERIOD 60  // Seconds
+#define WATCH_CHAMBER_INCREASE 2 // Degrees Celsius
 /********************************************************************************/
 
 

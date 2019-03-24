@@ -42,7 +42,7 @@
   float lcd_probe_pt(const float &rx, const float &ry) {
     _man_probe_pt(rx, ry);
     printer.keepalive(PausedforUser);
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     printer.setWaitForUser(true);
     while (printer.isWaitForUser()) printer.idle();
     printer.keepalive(InHandler);
@@ -202,7 +202,7 @@
   // Step 2: Continue Bed Leveling...
   //
   void _lcd_level_bed_continue() {
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     mechanics.unsetHomedAll();
     lcdui.goto_screen(_lcd_level_bed_homing);
     commands.enqueue_and_echo_P(PSTR("G28"));

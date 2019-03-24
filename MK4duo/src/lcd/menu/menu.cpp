@@ -299,7 +299,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
   void lcd_babystep_zoffset() {
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
-    lcdui.defer_status_screen(true);
+    lcdui.defer_status_screen();
     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
       const bool do_probe = (tools.active_extruder == 0);
     #else

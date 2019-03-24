@@ -309,7 +309,7 @@ class LcdUI {
       static inline bool on_status_screen() { return currentScreen == status_screen; }
       static inline void run_current_screen() { (*currentScreen)(); }
 
-      static inline void defer_status_screen(const bool defer) {
+      static inline void defer_status_screen(const bool defer=true) {
         #if LCD_TIMEOUT_TO_STATUS > 0
           defer_return_to_status = defer;
         #else
