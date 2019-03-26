@@ -53,18 +53,25 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Offset Ayarla")                                      // Offset Ayarla
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offset Tamam")                                       // Offset Tamam
 #define MSG_SET_ORIGIN                      _UxGT("Sıfır Belirle")                                      // Sıfır Belirle
-#define MSG_PREHEAT_1                       _UxGT("Ön Isınma " PREHEAT_1_LABEL)                         // Ön Isınma PREHEAT_1_LABEL
+#define MSG_PREHEAT_1                       _UxGT("Ön ısıtma " PREHEAT_1_LABEL)                         // Ön Isınma PREHEAT_1_LABEL
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")                                    //
-#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Tüm")                                 //  Tüm
-#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" Nozül")                               //  Nozül
-#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Tabla")                               //  Tabla
-#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" Ayar")                                //  Ayar
-#define MSG_PREHEAT_2                       _UxGT("Ön Isınma " PREHEAT_2_LABEL)                         // Ön Isınma PREHEAT_2_LABEL
+#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1_N _UxGT("Tüm")                                //  Tüm
+#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1_N _UxGT("Nozül")                              //  Nozül
+#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1_N _UxGT("Tabla")                              //  Tabla
+#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1_N _UxGT("Ayar")                               //  Ayar
+#define MSG_PREHEAT_2                       _UxGT("Ön ısıtma " PREHEAT_2_LABEL)                         // Ön Isınma PREHEAT_2_LABEL
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")                                    //
-#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tüm")                                 //  Tüm
-#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" Nozül")                               //  Nozül
-#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Tabla")                               //  Tabla
-#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" Ayar")                                //  Ayar
+#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2_N _UxGT("Tüm")                                //  Tüm
+#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2_N _UxGT("Nozül")                              //  Nozül
+#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2_N _UxGT("Tabla")                              //  Tabla
+#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2_N _UxGT("Ayar")                               //  Ayar
+#define MSG_PREHEAT_3                       _UxGT("Ön ısıtma " PREHEAT_3_LABEL)                         // Ön Isınma PREHEAT_3_LABEL
+#define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")                                    //
+#define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3_N _UxGT("Tüm")                                //  Tüm
+#define MSG_PREHEAT_3_END                   MSG_PREHEAT_3_N _UxGT("Nozül")                              //  Nozül
+#define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3_N _UxGT("Tabla")                              //  Tabla
+#define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3_N _UxGT("Ayar")                               //  Ayar
+#define MSG_PREHEAT_CUSTOM                  _UxGT("Ön ısıtma özel")                                     // Ön ısıtma özel
 #define MSG_COOLDOWN                        _UxGT("Soğut")                                              // Soğut
 #define MSG_SWITCH_PS_ON                    _UxGT("Gücü Aç")                                            // Gücü Aç
 #define MSG_SWITCH_PS_OFF                   _UxGT("Gücü Kapat")                                         // Gücü Kapat
