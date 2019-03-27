@@ -62,24 +62,9 @@ class Bltouch {
 
     FORCE_INLINE static void cmd_reset()    { command(BLTOUCH_RESET); }
     FORCE_INLINE static void cmd_selftest() { command(BLTOUCH_SELFTEST); }
-
-    FORCE_INLINE static void cmd_5V_mode()  {
-      #if ENABLED(BLTOUCH_V3)
-        command(BLTOUCH_5V_MODE);
-      #endif
-    }
-
-    FORCE_INLINE static void cmd_OD_mode()  {
-      #if ENABLED(BLTOUCH_V3)
-        command(BLTOUCH_OD_MODE);
-      #endif
-    }
-
-    FORCE_INLINE static void cmd_SW_mode()  {
-      #if ENABLED(BLTOUCH_V3)
-        command(BLTOUCH_SW_MODE);
-      #endif
-    }
+    FORCE_INLINE static void cmd_5V_mode()  { command(BLTOUCH_5V_MODE); }
+    FORCE_INLINE static void cmd_OD_mode()  { command(BLTOUCH_OD_MODE); }
+    FORCE_INLINE static void cmd_SW_mode()  { command(BLTOUCH_SW_MODE); }
 
 };
 

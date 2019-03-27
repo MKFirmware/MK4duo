@@ -80,7 +80,9 @@ bool Bltouch::set_deployed(const bool deploy) {
 
   if (deploy) {
     cmd_deploy();
-    cmd_SW_mode();                // Ensure Switch mode is activated for BLTouch V3. Ignored on V2.
+    #if ENABLED(BLTOUCH_V3)
+      cmd_SW_mode();
+    #endif
   }
   else
     cmd_stow();

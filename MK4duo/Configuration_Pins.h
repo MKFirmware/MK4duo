@@ -281,7 +281,7 @@
   #define CASE_LIGHT_PIN NoPin
 #endif
 
-#if ENABLED(DOOR_OPEN)
+#if ENABLED(DOOR_OPEN_FEATURE)
   #define DOOR_OPEN_PIN NoPin
 #endif
 
