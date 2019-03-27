@@ -124,8 +124,8 @@
 
 // CONTROLLI ANCORA DA RICOLLOCARE...
 
-#if ENABLED(DOOR_OPEN) && !PIN_EXISTS(DOOR_OPEN)
-  #error "DEPENDENCY ERROR: You have to set DOOR_OPEN_PIN to a valid pin if you enable DOOR_OPEN."
+#if ENABLED(DOOR_OPEN_FEATURE) && !PIN_EXISTS(DOOR_OPEN)
+  #error "DEPENDENCY ERROR: You have to set DOOR_OPEN_PIN to a valid pin if you enable DOOR_OPEN_FEATURE."
 #endif
 
 // CHDK
