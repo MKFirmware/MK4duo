@@ -1109,7 +1109,7 @@
  * Setting DOOR OPEN PIN in Configuration_Pins.h                          *
  *                                                                        *
  **************************************************************************/
-//#define DOOR_OPEN
+//#define DOOR_OPEN_FEATURE
 
 // Set true or false should assigned
 #define DOOR_OPEN_LOGIC false
