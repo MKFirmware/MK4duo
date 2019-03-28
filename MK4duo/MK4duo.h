@@ -173,7 +173,6 @@
 #include "src/feature/cncrouter/cncrouter.h"
 #include "src/feature/mfrc522/mfrc522.h"
 #include "src/feature/pcf8574/pcf8574.h"
-#include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/dhtsensor/dhtsensor.h"
 #include "src/feature/rgbled/led.h"
 #include "src/feature/rgbled/led_events.h"

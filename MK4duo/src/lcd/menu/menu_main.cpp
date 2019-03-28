@@ -117,6 +117,16 @@ void menu_led();
   void menu_service3();
 #endif
 
+#if HAS_GAME_MENU
+  void menu_game();
+#elif ENABLED(GAME_BRICKOUT)
+  void lcd_goto_brickout();
+#elif ENABLED(GAME_INVADERS)
+  void lcd_goto_invaders();
+#elif ENABLED(GAME_SNAKE)
+  void lcd_goto_snake();
+#endif
+
 void menu_main() {
   START_MENU();
   MENU_BACK(MSG_WATCH);
@@ -235,6 +245,22 @@ void menu_main() {
   #endif
   #if ENABLED(SERVICE_TIME_3)
     MENU_ITEM(submenu, SERVICE_NAME_3, menu_service3);
+  #endif
+
+  #if ENABLED(GAME_BRICKOUT) || ENABLED(GAME_INVADERS) || ENABLED(GAME_SNAKE) || ENABLED(GAME_MAZE)
+    MENU_ITEM(submenu, "Game", (
+      #if HAS_GAME_MENU
+        menu_game
+      #elif ENABLED(GAME_BRICKOUT)
+        lcd_goto_brickout
+      #elif ENABLED(GAME_INVADERS)
+        lcd_goto_invaders
+      #elif ENABLED(GAME_SNAKE)
+        lcd_goto_snake
+      #elif ENABLED(GAME_MAZE)
+        lcd_goto_maze
+      #endif
+    ));
   #endif
 
   END_MENU();

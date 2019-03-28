@@ -1450,6 +1450,11 @@
   #define MSG_SERVICE_RESET                   _UxGT("Service Reset")
 #endif
 
+// Max Inactivity Time
+#ifndef MSG_MAX_INACTIVITY_TIME
+  #define MSG_MAX_INACTIVITY_TIME             _UxGT("Max inactivity time. Heaters switch off!")
+#endif
+
 // Extra
 #ifndef MSG_RESTART_PRINT
   #define MSG_RESTART_PRINT                   _UxGT("Restart print")
