@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
@@ -26,13 +27,7 @@
  * Test configuration values for errors at compile-time.
  */
 
-/**
- * Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
- */
-
-#ifndef _SANITYCHECK_H_
-#define _SANITYCHECK_H_
-
+// Require gcc 4.7 or newer (first included with Arduino 1.8.2) for C++11 features.
 #if __cplusplus < 201103L
   #error "DEPENDENCY ERROR: MK4duo requires C++11 support (gcc >= 4.7, Arduino IDE >= 1.8.2). Please upgrade your toolchain."
 #endif
@@ -112,7 +107,6 @@
 #include "../feature/cncrouter/sanitycheck.h"
 #include "../feature/filament/sanitycheck.h"
 #include "../feature/filamentrunout/sanitycheck.h"
-#include "../feature/flowmeter/sanitycheck.h"
 #include "../feature/fwretract/sanitycheck.h"
 #include "../feature/laser/sanitycheck.h"
 #include "../feature/mixing/sanitycheck.h"
@@ -164,5 +158,3 @@
 #if DISABLED(SDSUPPORT) && ENABLED(SERIAL_STATS_DROPPED_RX)
   #error "DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_DROPPED_RX."
 #endif
-
-#endif /* _SANITYCHECK_H_ */

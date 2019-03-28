@@ -516,6 +516,11 @@
 #define MSG_TMC_STEPPING_MODE               _UxGT("Modo stepping")
 #define MSG_TMC_STEALTH_ENABLED             _UxGT("StealthChop abil.")
 
+#define MSG_SERVICE_RESET                   _UxGT("Reset Servizi")
+
+// Max Inactivity Time
+#define MSG_MAX_INACTIVITY_TIME             _UxGT("Tempo massimo inattivita'. Riscaldamenti spenti!")
+
 // Heater
 #define MSG_HEATING                         _UxGT("Riscaldamento...")
 #define MSG_HEATING_COMPLETE                _UxGT("Risc. completato")

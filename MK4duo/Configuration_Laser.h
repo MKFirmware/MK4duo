@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Configuration_Laser.h
@@ -26,9 +27,6 @@
  * This configuration file contains all laser functions.
  *
  */
-
-#ifndef _CONFIGURATION_LASER_H_
-#define _CONFIGURATION_LASER_H_
 
 //===========================================================================
 //============================= Laser Settings ==============================
@@ -80,5 +78,3 @@
 #define LASER_WATTS 40.0
 #define LASER_DIAMETER 0.1        // milimeters
 #define LASER_FOCAL_HEIGHT 74.50  // z axis position at which the laser is focused
-
-#endif /* _CONFIGURATION_LASER_H_ */

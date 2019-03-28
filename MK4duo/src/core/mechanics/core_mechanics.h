@@ -119,19 +119,6 @@ class Core_Mechanics: public Mechanics {
     static void report_current_position_detail();
 
     /**
-     * Plan an arc in 2 dimensions
-     *
-     * The arc is approximated by generating many small linear segments.
-     * The length of each segment is configured in MM_PER_ARC_SEGMENT (Default 1mm)
-     * Arcs should only be made relatively large (over 5mm), as larger arcs with
-     * larger segments will tend to be more efficient. Your slicer should have
-     * options for G2/G3 arc generation. In future these options may be GCode tunable.
-     */
-    #if ENABLED(ARC_SUPPORT)
-      static void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise);
-    #endif
-
-    /**
      * Print mechanics parameters in memory
      */
     #if DISABLED(DISABLE_M503)

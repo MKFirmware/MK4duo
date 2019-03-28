@@ -228,13 +228,6 @@ void Printer::setup() {
     laser.init();
   #endif
 
-  #if ENABLED(FLOWMETER_SENSOR)
-    #if ENABLED(MINFLOW_PROTECTION)
-      flowmeter.flow_firstread = false;
-    #endif
-    flowmeter.flow_init();
-  #endif
-
   #if ENABLED(PCF8574_EXPANSION_IO)
     pcf8574.begin();
   #endif
@@ -455,10 +448,6 @@ void Printer::minikill() {
     HAL::resetHardware();
   #endif
 
-  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    flowmeter.flow_firstread = false;
-  #endif
-
   #if ENABLED(LASER)
     laser.init();
     #if ENABLED(LASER_PERIPHERALS)
@@ -495,9 +484,6 @@ void Printer::minikill() {
  * After a stop the machine may be resumed with M999
  */
 void Printer::Stop() {
-  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
-    flowmeter.flow_firstread = false;
-  #endif
 
   thermalManager.disable_all_heaters();
 
@@ -581,19 +567,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(RFID_MODULE)
     rfid522.spin();
   #endif
-
-  #if ENABLED(FLOWMETER_SENSOR)
-
-    flowmeter.flowrate_manage();
-
-    #if ENABLED(MINFLOW_PROTECTION)
-      if (flowmeter.flow_firstread && print_job_counter.isRunning() && (flowmeter.flowrate < (float)MINFLOW_PROTECTION)) {
-        flowmeter.flow_firstread = false;
-        kill(PSTR(MSG_KILLED));
-      }
-    #endif
-
-  #endif // ENABLED(FLOWMETER_SENSOR)
 
   // Prevent steppers timing-out in the middle of M600
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
@@ -861,7 +834,7 @@ void Printer::handle_safety_watch() {
 
   static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
-  if (safety_watch.isRunning() && (isPrinting() || print_job_counter.isPaused() || !thermalManager.heaters_isActive()))
+  if (safety_watch.isRunning() && (isPrinting() || isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
   else if (!safety_watch.isRunning() && thermalManager.heaters_isActive())
     safety_watch.start();
@@ -869,6 +842,7 @@ void Printer::handle_safety_watch() {
     safety_watch.stop();
     thermalManager.disable_all_heaters();
     SERIAL_EM("Max inactivity time (30 minutes) Heaters switch off!");
+    lcdui.set_status_P(PSTR(MSG_MAX_INACTIVITY_TIME), 99);
   }
 }
 

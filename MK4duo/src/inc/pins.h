@@ -387,10 +387,6 @@
   #define LASER_PWM_PIN NoPin
 #endif
 
-#if DISABLED(FLOWMETER_PIN)
-  #define FLOWMETER_PIN NoPin
-#endif
-
 #if DISABLED(CNCROUTER_PIN)
   #define CNCROUTER_PIN NoPin
 #endif

@@ -74,7 +74,6 @@
  * - Filament diameter sensor
  * - Filament Runout sensor
  * - Power consumption sensor
- * - Flow sensor
  * - Door open sensor
  * - Power check sensor
  * ADDON FEATURES:
@@ -1100,26 +1099,6 @@
 
 
 /**************************************************************************
- ****************************** Flow sensor *******************************
- **************************************************************************
- *                                                                        *
- * Flow sensors for water circulators, usefull in case of coolers using   *
- * water or other liquid as heat vector                                   *
- *                                                                        *
- * You also need to set FLOWMETER PIN in Configurations_pins.h            *
- *                                                                        *
- **************************************************************************/
-//#define FLOWMETER_SENSOR
-
-#define FLOWMETER_MAXFLOW  6.0      // Liters per minute max
-#define FLOWMETER_MAXFREQ  55       // frequency of pulses at max flow
-
-// uncomment this to kill print job under the min flow rate, in liters/minute
-//#define MINFLOW_PROTECTION 4
-/**************************************************************************/
-
-
-/**************************************************************************
  ************************** Door Open Sensor ******************************
  **************************************************************************
  *                                                                        *
@@ -1734,6 +1713,14 @@
 //#define STATUS_HEAT_PERCENT       // Show heating in a progress bar
 
 //
+// Game Options
+//
+//#define GAME_BRICKOUT
+//#define GAME_INVADERS
+//#define GAME_SNAKE
+//#define GAME_MAZE
+  
+//
 // LCD Menu Items
 //
 // Disable all menus and only display the Status Screen, or
@@ -2301,9 +2288,10 @@
 // G2/G3 Arc Support
 //
 // Disable this feature to save ~3226 bytes
-#define ARC_SUPPORT
-#define MM_PER_ARC_SEGMENT 1    // Length of each arc segment
-#define N_ARC_CORRECTION  25    // Number of intertpolated segments between corrections
+//#define ARC_SUPPORT
+#define MM_PER_ARC_SEGMENT  1   // Length of each arc segment
+#define MIN_ARC_SEGMENTS   24   // Minimum number of segments in a complete circle
+#define N_ARC_CORRECTION   25   // Number of intertpolated segments between corrections
 //#define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
 //#define CNC_WORKSPACE_PLANES  // Allow G2/G3 to operate in XY, ZX, or YZ planes
 

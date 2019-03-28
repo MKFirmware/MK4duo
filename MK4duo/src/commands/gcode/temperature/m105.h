@@ -38,9 +38,6 @@ inline void gcode_M105(void) {
   #if HEATER_COUNT > 0
     SERIAL_STR(OK);
     thermalManager.report_temperatures(showRaw);
-    #if ENABLED(FLOWMETER_SENSOR)
-      flowmeter.print_flow_rate_state();
-    #endif
     #if ENABLED(CNCROUTER) && ENABLED(FAST_PWM_CNCROUTER)
       cnc.print_Speed();
       SERIAL_MV(" fr:", MMS_TO_MMM(mechanics.feedrate_mm_s));
