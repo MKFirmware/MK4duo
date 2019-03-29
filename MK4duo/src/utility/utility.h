@@ -62,13 +62,16 @@ void lengthtoString(char *buffer, const float length);
 // Crc 16 bit for eeprom check
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
 
+// Convert uint8_t to string percentage
+char* ui8tostr_percent(const uint8_t i);
+
 // Convert uint8_t to string with 1 format
 char* ui8tostr1(const uint8_t i);
 
 // Convert uint8_t to string with 123 format
 char* ui8tostr3(const uint8_t i);
 
-// Convert signed 8bit int to rj string with 123 or -12 format
+// Convert int8_t to rj string with 123 or -12 format
 char* i8tostr3(const int8_t i);
 
 // Convert uint16_t to string with 123 format
@@ -83,37 +86,37 @@ char* ui32tostr4(const uint32_t i);
 // Convert int16_t to string with 123 format
 char* i16tostr3(const int16_t i);
 
-// Convert unsigned int to lj string with 123 format
+// Convert int16_t to lj string with 123 format
 char* i16tostr3left(const int16_t i);
 
-// Convert signed int to rj string with _123, -123, _-12, or __-1 format
+// Convert int16_t to rj string with _123, -123, _-12, or __-1 format
 char* i16tostr4sign(const int16_t i);
 
-// Convert unsigned float to string with 1.23 format
+// Convert float to string with 1.23 format
 char* ftostr12ns(const float &f);
 
-// Convert signed float to fixed-length string with 023.45 / -23.45 format
+// Convert float to fixed-length string with 023.45 / -23.45 format
 char* ftostr52(const float &f);
 
 // Convert float to fixed-length string with +123.4 / -123.4 format
 char* ftostr41sign(const float &f);
 
-// Convert signed float to string (6 digit) with -1.234 / _0.000 / +1.234 format
+// Convert float to string (6 digit) with -1.234 / _0.000 / +1.234 format
 char* ftostr43sign(const float &f, char plus=' ');
 
-// Convert unsigned float to rj string with 12345 format
+// Convert float to rj string with 12345 format
 char* ftostr5rj(const float &f);
 
-// Convert signed float to string with +1234.5 format
+// Convert float to string with +1234.5 format
 char* ftostr51sign(const float &f);
 
-// Convert signed float to space-padded string with -_23.4_ format
+// Convert float to space-padded string with -_23.4_ format
 char* ftostr52sp(const float &f);
 
-// Convert signed float to string with +123.45 format
+// Convert float to string with +123.45 format
 char* ftostr52sign(const float &f);
 
-// Convert unsigned float to string with 1234.56 format omitting trailing zeros
+// Convert float to string with 1234.56 format omitting trailing zeros
 char* ftostr62rj(const float &f);
 
 // Convert float to rj string with 123 or -12 format

@@ -1718,7 +1718,6 @@
 //#define GAME_BRICKOUT
 //#define GAME_INVADERS
 //#define GAME_SNAKE
-//#define GAME_MAZE
   
 //
 // LCD Menu Items
