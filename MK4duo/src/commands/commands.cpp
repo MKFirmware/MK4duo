@@ -252,7 +252,10 @@ Heater* Commands::get_target_heater() {
   #if BEDS > 0
     if (h == -1 && WITHIN(t, 0 , BEDS - 1)) return &beds[t];
   #endif
-  if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
+  #if CHAMBERS > 0
+    if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
+  #endif
+
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return NULL;
 

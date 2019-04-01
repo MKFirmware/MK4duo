@@ -81,8 +81,8 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   #endif
   #if HOTENDS > 2
     void lcd_preheat_m1_h2_only() { _lcd_preheat(2, 0, true); }
-    void lcd_preheat_m2_h2_only() { _lcd_preheat(2, 0, true); }
-    void lcd_preheat_m3_h2_only() { _lcd_preheat(2, 0, true); }
+    void lcd_preheat_m2_h2_only() { _lcd_preheat(2, 1, true); }
+    void lcd_preheat_m3_h2_only() { _lcd_preheat(2, 2, true); }
     #if BEDS > 0 || CHAMBERS > 0
       void lcd_preheat_m1_h2() { _lcd_preheat(2, 0, false); }
       void lcd_preheat_m2_h2() { _lcd_preheat(2, 1, false); }
@@ -171,8 +171,8 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
 
   #if BEDS > 0 || CHAMBERS > 0
     void lcd_preheat_m1_h0() { _lcd_preheat(0, 0, false); }
-    void lcd_preheat_m2_h0() { _lcd_preheat(0, 0, false); }
-    void lcd_preheat_m3_h0() { _lcd_preheat(0, 0, false); }
+    void lcd_preheat_m2_h0() { _lcd_preheat(0, 1, false); }
+    void lcd_preheat_m3_h0() { _lcd_preheat(0, 2, false); }
   #endif
 
   void menu_preheat_m1() {
