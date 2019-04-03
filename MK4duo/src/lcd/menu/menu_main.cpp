@@ -107,10 +107,6 @@ void menu_led();
   void menu_mixer();
 #endif
 
-#if HAS_MMU2
-  void menu_mmu2();
-#endif
-
 #if ENABLED(SERVICE_TIME_1)
   void menu_service1();
 #endif
