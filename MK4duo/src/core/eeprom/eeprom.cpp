@@ -156,9 +156,18 @@ typedef struct EepromDataStruct {
   // Ultipanel
   //
   #if HAS_LCD_MENU
-    int16_t         lcdui_preheat_hotend_temp[3],
-                    lcdui_preheat_bed_temp[3],
-                    lcdui_preheat_fan_speed[3];
+    #if HOTENDS > 0
+      int16_t       lcdui_preheat_hotend_temp[3];
+    #endif
+    #if BEDS > 0  
+      int16_t       lcdui_preheat_bed_temp[3];
+    #endif
+    #if CHAMBERS > 0
+      int16_t       lcdui_preheat_chamber_temp[3];
+    #endif
+    #if FAN_COUNT > 0
+      int16_t       lcdui_preheat_fan_speed[3];
+    #endif
   #endif
 
   //
