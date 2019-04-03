@@ -104,7 +104,7 @@
       park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
     #endif
 
-    #if ENABLED(PRUSA_MMU2)
+    #if HAS_MMU2
       // For MMU2 reset retract and load/unload values so they don't mess with MMU filament handling
       constexpr float unload_length     = 0.5f,
                       slow_load_length  = 0.0f,
@@ -133,7 +133,7 @@
     );
 
     if (advancedpause.pause_print(retract, park_point, unload_length, true DXC_PASS)) {
-      #if ENABLED(PRUSA_MMU2)
+      #if HAS_MMU2
         mmu2_M600();
         advancedpause.resume_print(slow_load_length, fast_load_length, 0, beep_count DXC_PASS);
       #else
