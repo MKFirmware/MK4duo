@@ -107,6 +107,10 @@ void menu_led();
   void menu_mixer();
 #endif
 
+#if HAS_MMU2
+  void menu_mmu2();
+#endif
+
 #if ENABLED(SERVICE_TIME_1)
   void menu_service1();
 #endif
@@ -173,6 +177,9 @@ void menu_main() {
     MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
     #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
       MENU_ITEM(submenu, MSG_MIXER, menu_mixer);
+    #endif
+    #if HAS_MMU2
+      if (!busy) MENU_ITEM(submenu, MSG_MMU2_MENU, menu_mmu2);
     #endif
   }
 

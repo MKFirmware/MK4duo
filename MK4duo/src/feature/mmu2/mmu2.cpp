@@ -36,8 +36,8 @@ MMU2 mmu2;
 
 #define MMU_TODELAY 100
 #define MMU_TIMEOUT 10
-#define MMU_CMD_TIMEOUT 60000UL // 5 min timeout for mmu commands (except P0)
-#define MMU_P0_TIMEOUT  3000UL  // timeout for P0 command: 3 seconds
+#define MMU_CMD_TIMEOUT 60000UL 	// 5 min timeout for mmu commands (except P0)
+#define MMU_P0_TIMEOUT   3000UL	// timeout for P0 command: 3 seconds
 
 #define MMU_CMD_NONE 0
 #define MMU_CMD_T0   0x10
@@ -164,7 +164,7 @@ void MMU2::mmuLoop() {
 
         state = -2;
       }
-      else if (millis() > 30000) {  // 30 sec after reset disable mmu
+      else if (millis() > 3000000) {
         SERIAL_EM("MMU not responding - DISABLED");
         state = 0;
       }
