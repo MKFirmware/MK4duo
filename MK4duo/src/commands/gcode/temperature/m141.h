@@ -34,7 +34,7 @@
  * M141: Set Chamber temperature
  */
 inline void gcode_M141(void) {
-  const uint8_t c = parser.byteval('C');
+  const uint8_t c = parser.byteval('T');
   if (WITHIN(c, 0 , CHAMBERS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
     if (parser.seenval('S')) chambers[c].setTarget(parser.value_celsius());

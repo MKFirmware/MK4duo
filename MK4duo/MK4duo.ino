@@ -149,7 +149,8 @@
  * M92  - Set axis_steps_per_unit - same syntax as G92
  * M99  - Set Hysteresis parameter X[in mm] Y[in mm] Z[in mm] E[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
  * M100 - Watch Free Memory (For Debugging Only)
- * M104 - Set hotend target temp
+ * M104 - S[C°] Set hotend target temperature
+ *          T[int] 0-5 For Select Hotends (default 0)
  * M105 - Read current temp
  * M106 - P[fan] S[speed] F[frequency] U[pin] L[min speed] X[max speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[trig temperaure]
  * M107 - P[fan] Fan off
@@ -176,10 +177,11 @@
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
  * M129 - EtoP Closed (BariCUDA EtoP = electricity to air pressure transducer by jmil)
- * M140 - Set hot bed target temp
- *          T[int] 0-3 For Select Beds or Chambers (default 0)
- * M141 - Set hot chamber target temp
- *          T[int] 0-3 For Select Beds or Chambers (default 0)
+ * M140 - S[C°] Set hot bed target temperature
+ *        T[int] 0-3 For Select Beds (default 0)
+ * M141 - S[C°] Set hot chamber target temperature
+ *        T[int] 0-3 For Select Chambers (default 0)
+ * M142 - S[C°] Set cooler target temperature
  * M145 - Set the heatup state H[hotend] B[bed] C[chamber] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)
  * M149 - Set temperature units
  * M150 - Set Status LED Color as R[red] U[green] B[blue]. Values 0-255. (Requires BLINKM, RGB_LED, RGBW_LED, or PCA9632)
@@ -190,8 +192,11 @@
  * M166 - S[bool] A[float] Z[float] I[index] J[index] Set the Gradient Mix for the mixing extruder. (Requires COLOR_MIXING_EXTRUDER)
  * M190 - Sxxx Wait for bed current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
+ *        T[int] 0-3 For Select Beds (default 0)
  * M191 - Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
  *        Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
+ *        T[int] 0-3 For Select Chambers (default 0)
+ * M192 - Sxxx Wait for cooler current temp to reach target temp. Waits only when cooling
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D[millimeters]- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
@@ -215,24 +220,24 @@
  * M290 - Babystepping (Requires BABYSTEPPING)
  * M300 - Play beep sound S[frequency Hz] P[duration ms]
  * M301 - Set PID parameters P I D and C.
- *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          P[float] Kp term, I[float] Ki term, D[float] Kd term
  *          With PID_ADD_EXTRUSION_RATE: C[float] Kc term, L[int] LPQ length
  * M302 - Allow cold extrudes, or set the minimum extrude S[temperature].
  * M303 - PID relay autotune.
- *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          S[temperature] sets the target temperature (default target temperature = 150C), C[cycles], U[Apply result],
  *          R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid
  * M305 - Set thermistor and ADC parameters.
- *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value,
  *          L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin
  *          Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
  * M306 - Set Heaters parameters.
- *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER
+ *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *          T[int] 0-3 For Select Beds or Chambers (default 0)
  *          A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
  *          L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,

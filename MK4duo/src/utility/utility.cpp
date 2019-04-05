@@ -112,7 +112,7 @@ char conv[8] = { 0 };
 
 // Convert uint8_t to string percentage
 char* ui8tostr_percent(const uint8_t i) {
-  const uint16_t percent = 100 * i / 255;
+  const uint8_t percent = ui8topercent(i);
   conv[3] = RJDIGIT(percent, 100);
   conv[4] = RJDIGIT(percent, 10);
   conv[5] = DIGIMOD(percent, 1);

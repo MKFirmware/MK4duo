@@ -239,9 +239,11 @@
 #include "temperature/m116.h"
 #include "temperature/m140.h"
 #include "temperature/m141.h"
+#include "temperature/m142.h"
 #include "temperature/m155.h"
 #include "temperature/m190.h"
 #include "temperature/m191.h"
+#include "temperature/m192.h"
 #include "temperature/m303.h"             // PID autotune
 
 // Tools Commands

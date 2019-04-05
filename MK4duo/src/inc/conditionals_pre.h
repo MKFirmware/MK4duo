@@ -34,6 +34,10 @@
   #define LCD_WIDTH 26
   #define LCD_HEIGHT 6
   #define LCD_DECIMAL_SMALL_XY
+  #undef GAME_BRICKOUT
+  #undef GAME_INVADERS
+  #undef GAME_SNAKE
+  #undef GAME_MAZE
   #undef ENCODER_RATE_MULTIPLIER
   #undef ULTIPANEL_FEEDMULTIPLY
   #undef REVERSE_ENCODER_DIRECTION
@@ -382,13 +386,6 @@
     #endif
   #endif
 
-#endif
-
-// Boot screens
-#if !HAS_SPI_LCD
-  #undef SHOW_BOOTSCREEN
-#elif DISABLED(BOOTSCREEN_TIMEOUT)
-  #define BOOTSCREEN_TIMEOUT 2500
 #endif
 
 /**

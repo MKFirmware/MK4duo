@@ -33,9 +33,9 @@
 /**
  * M301: Set PID parameters P I D (and optionally C, L)
  *
- *   H[heaters]   0-5 Hotend, -1 BED, -2 CHAMBER
+ *   H[heaters]   0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *
- *    T[int]      0-3 For Select Beds or Chambers (default 0)
+ *    T[int]      0-3 For Select Beds, Chambers or Coolers (default 0)
  *
  *    P[float]    Kp term
  *    I[float]    Ki term

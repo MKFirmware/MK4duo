@@ -29,10 +29,12 @@
 ////////////////////////////////////////////
 
 // Menu Navigation
-int8_t encoderTopLine;
+int8_t encoderTopLine, encoderLine, screen_items;
+
 typedef struct {
   screenFunc_t menu_function;
-  uint32_t encoder_position;
+  uint32_t  encoder_position;
+  uint8_t   top_line, items;
 } menuPosition;
 menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
@@ -55,20 +57,14 @@ bool no_reentry = false;
 void LcdUI::return_to_status() { goto_screen(status_screen); }
 
 void LcdUI::save_previous_screen() {
-  if (screen_history_depth < COUNT(screen_history)) {
-    screen_history[screen_history_depth].menu_function = currentScreen;
-    screen_history[screen_history_depth].encoder_position = encoderPosition;
-    ++screen_history_depth;
-  }
+  if (screen_history_depth < COUNT(screen_history))
+    screen_history[screen_history_depth++] = { currentScreen, encoderPosition, encoderTopLine, screen_items };
 }
 
 void LcdUI::goto_previous_screen() {
   if (screen_history_depth > 0) {
-    --screen_history_depth;
-    goto_screen(
-      screen_history[screen_history_depth].menu_function,
-      screen_history[screen_history_depth].encoder_position
-    );
+    menuPosition &sh = screen_history[--screen_history_depth];
+    goto_screen(sh.menu_function, sh.encoder_position, sh.top_line, sh.items);
   }
   else
     return_to_status();
@@ -168,7 +164,7 @@ void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
 /**
  * General function to go directly to a screen
  */
-void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/) {
+void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/, const uint8_t top/*=0*/, const uint8_t items/*=0*/) {
   if (currentScreen != screen) {
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -197,6 +193,8 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/) {
 
     currentScreen = screen;
     encoderPosition = encoder;
+    encoderTopLine = top;
+    screen_items = items;
     if (screen == status_screen) {
       lcdui.defer_status_screen(false);
       #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -264,7 +262,6 @@ void LcdUI::synchronize(PGM_P const msg/*=NULL*/) {
  *   _thisItemNr is the index of each MENU_ITEM or STATIC_ITEM
  *   screen_items is the total number of items in the menu (after one call)
  */
-int8_t encoderLine, screen_items;
 void scroll_screen(const uint8_t limit, const bool is_menu) {
   lcdui.encoder_direction_menus();
   ENCODER_RATE_MULTIPLY(false);
@@ -390,16 +387,59 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 #endif // HAS_TEMP_HOTEND
 
 #if BEDS > 0
-  void watch_temp_callback_bed() {
+  void watch_temp_callback_bed0() {
     beds[0].setTarget(beds[0].target_temperature);
     beds[0].start_watching();
   }
-#endif
+  #if BEDS > 1
+    void watch_temp_callback_bed1() {
+      beds[1].setTarget(beds[1].target_temperature);
+      beds[1].start_watching();
+    }
+    #if BEDS > 2
+      void watch_temp_callback_bed2() {
+        beds[2].setTarget(beds[2].target_temperature);
+        beds[2].start_watching();
+      }
+      #if BEDS > 3
+        void watch_temp_callback_bed3() {
+          beds[3].setTarget(beds[3].target_temperature);
+          beds[3].start_watching();
+        }
+      #endif // BEDS > 3
+    #endif // BEDS > 2
+  #endif // BEDS > 1
+#endif // BEDS > 0
 
 #if CHAMBERS > 0
-  void watch_temp_callback_chamber() {
+  void watch_temp_callback_chamber0() {
     chambers[0].setTarget(chambers[0].target_temperature);
     chambers[0].start_watching();
+  }
+  #if CHAMBERS > 1
+    void watch_temp_callback_chamber1() {
+      chambers[1].setTarget(chambers[1].target_temperature);
+      chambers[1].start_watching();
+    }
+    #if CHAMBERS > 2
+      void watch_temp_callback_chamber2() {
+        chambers[2].setTarget(chambers[2].target_temperature);
+        chambers[2].start_watching();
+      }
+      #if CHAMBERS > 3
+        void watch_temp_callback_chamber3() {
+          chambers[3].setTarget(chambers[3].target_temperature);
+          chambers[3].start_watching();
+        }
+      #endif // CHAMBERS > 3
+    #endif // CHAMBERS > 2
+  #endif // CHAMBERS > 1
+#endif // CHAMBERS > 0
+
+#if COOLERS > 0
+  void watch_temp_callback_cooler0() {
+    coolers[0].setTarget(coolers[0].target_temperature);
+    coolers[0].start_watching();
   }
 #endif
 

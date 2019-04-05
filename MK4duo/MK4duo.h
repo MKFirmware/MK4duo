@@ -70,7 +70,7 @@
 #include "Configuration_Overall.h"
 #include "Configuration_Version.h"
 
-#ifndef CONFIGURATION_OVERALL
+#if DISABLED(CONFIGURATION_OVERALL)
   #include "Configuration_Basic.h"
   #include "Configuration_Overall.h"
 

@@ -198,6 +198,7 @@
 #define MSG_NOZZLE                          _UxGT("Ugello")
 #define MSG_BED                             _UxGT("Piatto")
 #define MSG_CHAMBER                         _UxGT("Camera")
+#define MSG_COOLER                          _UxGT("Raffreddamento")
 #define MSG_FAN_SPEED                       _UxGT("Vel. ventola")
 #define MSG_FLOW                            _UxGT("Flusso")
 #define MSG_CONTROL                         _UxGT("Controllo")
@@ -334,6 +335,8 @@
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: TEMP MIN PIATTO")
 #define MSG_ERR_MAXTEMP_CHAMBER             _UxGT("Err: TEMP MAX CAMERA")
 #define MSG_ERR_MINTEMP_CHAMBER             _UxGT("Err: TEMP MIN CAMERA")
+#define MSG_ERR_MAXTEMP_COOLER              _UxGT("Err: TEMP MAX COOLER")
+#define MSG_ERR_MINTEMP_COOLER              _UxGT("Err: TEMP MIN COOLER")
 #define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("STAMPANTE FERMATA")
 #define MSG_PLEASE_RESET                    _UxGT("Riavviare prego")
@@ -371,6 +374,7 @@
 #define MSG_INFO_HOTENDS                    _UxGT("Ugelli")
 #define MSG_INFO_BED                        _UxGT("Letto")
 #define MSG_INFO_CHAMBER                    _UxGT("Camera Calda")
+#define MSG_INFO_COOLER                     _UxGT("Raffreddamento")
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocollo")
 #define MSG_CASE_LIGHT                      _UxGT("Luci Case")
@@ -532,6 +536,8 @@
 #define MSG_CHAMBER_HEATING                 _UxGT("Risc. camera.")
 #define MSG_CHAMBER_COOLING                 _UxGT("Raffr. camera.")
 #define MSG_CHAMBER_DONE                    _UxGT("Camera pronta.")
+#define MSG_COOLER_COOLING                  _UxGT("Raffreddamento...")
+#define MSG_COOLER_DONE                     _UxGT("Raffreddamento finito.")
 
 // Extra
 #define MSG_LASER                           _UxGT("Laser Preset")

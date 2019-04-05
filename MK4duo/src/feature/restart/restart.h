@@ -70,6 +70,9 @@ typedef struct {
     gradient_t gradient;
   #endif
 
+  // Relative mode
+  bool relative_mode, relative_modes_e;
+
   // Command buffer
   uint8_t buffer_head,
           buffer_count;

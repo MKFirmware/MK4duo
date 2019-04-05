@@ -129,3 +129,6 @@ FORCE_INLINE char* ftostr3(const float &f) { return i16tostr3(int16_t(f + (f < 0
   // Convert float to rj string with 1234, _123, -123, __12, _-12, ___1, or __-1 format
   FORCE_INLINE char* ftostr4sign(const float &f) { return i16tostr4sign(int16_t(f + (f < 0 ? -0.5f : 0.5f))); }
 #endif
+
+// Convert uint8_t to uint8_t percentage
+FORCE_INLINE uint8_t ui8topercent(const uint8_t i) { return (int(i) * 100 + 127) / 255; }

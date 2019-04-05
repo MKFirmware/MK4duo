@@ -45,7 +45,7 @@ union flagfilament_t {
     bool  bit6          : 1;
     bool  bit7          : 1;
   };
-  flagfilament_t() { all = false; }
+  flagfilament_t() { all = 0x00; }
 };
 
 class FilamentRunoutBase {
@@ -125,8 +125,8 @@ class FilamentSensorBase {
 
   public: /** Public Parameters */
 
-    static flagbyte_t logic_flag,
-                      pullup_flag;
+    static uint8_t  logic_flag,
+                    pullup_flag;
 
   public: /** Public Function */
 
@@ -173,14 +173,14 @@ class FilamentSensorBase {
     }
 
     FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
-      SET_BIT(logic_flag._byte, filrunout, logic);
+      SET_BIT(logic_flag, filrunout, logic);
     }
-    FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(logic_flag._byte, filrunout); }
+    FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(logic_flag, filrunout); }
 
     FORCE_INLINE static void setPullup(const FilRunoutEnum filrunout, const bool pullup) {
-      SET_BIT(pullup_flag._byte, filrunout, pullup);
+      SET_BIT(pullup_flag, filrunout, pullup);
     }
-    FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(pullup_flag._byte, filrunout); }
+    FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(pullup_flag, filrunout); }
 
   protected: /** Protected Function */
 

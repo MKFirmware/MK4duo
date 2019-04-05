@@ -74,6 +74,7 @@
  * - Filament diameter sensor
  * - Filament Runout sensor
  * - Power consumption sensor
+ * - Flow sensor
  * - Door open sensor
  * - Power check sensor
  * ADDON FEATURES:
@@ -1095,6 +1096,26 @@
 
 //When using an LCD, uncomment the line below to display the Power consumption sensor data on the last line instead of status. Status will appear for 5 sec.
 //#define POWER_CONSUMPTION_LCD_DISPLAY
+/**************************************************************************/
+
+
+/**************************************************************************
+ ****************************** Flow sensor *******************************
+ **************************************************************************
+ *                                                                        *
+ * Flow sensors for water circulators, usefull in case of coolers using   *
+ * water or other liquid as heat vector                                   *
+ *                                                                        *
+ * You also need to set FLOWMETER PIN in Configurations_pins.h            *
+ *                                                                        *
+ **************************************************************************/
+//#define FLOWMETER_SENSOR
+
+#define FLOWMETER_MAXFLOW  6.0      // Liters per minute max
+#define FLOWMETER_MAXFREQ  55       // frequency of pulses at max flow
+
+// uncomment this to kill print job under the min flow rate, in liters/minute
+//#define MINFLOW_PROTECTION 4
 /**************************************************************************/
 
 

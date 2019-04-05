@@ -31,7 +31,7 @@
 #include "pid/pid.h"
 
 union flagheater_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
@@ -42,16 +42,16 @@ union flagheater_t {
     bool  Fault             : 1;
     bool  bit7              : 1;
   };
-  flagheater_t() { all = false; }
+  flagheater_t() { all = 0x00; }
 };
 
-enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER };
+enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
 enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
-constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { HOTEND_CHECK_INTERVAL, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL };
-constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { HOTEND_HYSTERESIS, BED_HYSTERESIS, CHAMBER_HYSTERESIS };
-constexpr uint8_t   watch_period[HEATER_TYPE]         = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD };
-constexpr uint8_t   watch_increase[HEATER_TYPE]       = { WATCH_HOTEND_INCREASE, WATCH_BED_INCREASE, WATCH_CHAMBER_INCREASE };
+constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { HOTEND_CHECK_INTERVAL, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
+constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { HOTEND_HYSTERESIS, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
+constexpr uint8_t   watch_period[HEATER_TYPE]         = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD, WATCH_COOLER_PERIOD };
+constexpr uint8_t   watch_increase[HEATER_TYPE]       = { WATCH_HOTEND_INCREASE, WATCH_BED_INCREASE, WATCH_CHAMBER_INCREASE, WATCH_COOLER_INCREASE };
 
 // Struct Heater data
 typedef struct {
@@ -184,5 +184,6 @@ class Heater {
 extern Heater hotends[HOTENDS];
 extern Heater beds[BEDS];
 extern Heater chambers[CHAMBERS];
+extern Heater coolers[COOLERS];
 
 #endif // HEATER_COUNT > 0

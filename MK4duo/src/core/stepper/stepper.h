@@ -51,10 +51,10 @@ class Stepper {
 
   public: /** Public Parameters */
 
-    static flagword_t direction_flag; // Driver Stepper direction flag
+    static uint16_t direction_flag; // Driver Stepper direction flag
 
     #if HAS_MULTI_ENDSTOP
-      static bool separate_multi_axis;
+      static bool   separate_multi_axis;
     #endif
 
     static uint8_t  minimum_pulse;
@@ -327,9 +327,9 @@ class Stepper {
      * Flag Stepper direction function
      */
     FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
-      SET_BIT(direction_flag._word, axis, onoff);
+      SET_BIT(direction_flag, axis, onoff);
     }
-    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag._word, axis); }
+    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
     #if ENABLED(LASER)
       static bool laser_status();

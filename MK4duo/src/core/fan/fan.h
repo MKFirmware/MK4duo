@@ -33,7 +33,7 @@
 #endif
 
 union flagfan_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  isHWInverted  : 1;
     bool  isIdle        : 1;
@@ -44,7 +44,7 @@ union flagfan_t {
     bool  bit6          : 1;
     bool  bit7          : 1;
   };
-  flagfan_t() { all = false; }
+  flagfan_t() { all = 0x00; }
 };
 
 // Struct Fan data
@@ -92,7 +92,7 @@ class Fan {
     void print_M106();
 
     inline uint8_t actual_Speed() { return ((Kickstart ? data.max_Speed : Speed) * scaled_Speed) >> 7; }
-    inline uint8_t percent() { return (int(actual_Speed()) * 100) / 255; }
+    inline uint8_t percent() { return ui8topercent(actual_Speed()); }
 
     // Fan flag bit 0 Hardware inverted
     FORCE_INLINE void setHWInverted(const bool onoff) {

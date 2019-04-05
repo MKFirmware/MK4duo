@@ -26,7 +26,7 @@
  */
 
 union flagendstop_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Enabled         : 1;
     bool  Globally        : 1;
@@ -37,7 +37,7 @@ union flagendstop_t {
     bool  bit6            : 1;
     bool  bit7            : 1;
   };
-  flagendstop_t() { all = false; }
+  flagendstop_t() { all = 0x00; }
 };
 
 class Endstops {
@@ -70,10 +70,9 @@ class Endstops {
                     z3_endstop_adj;
     #endif
 
-    static flagword_t logic_flag,
-                      pullup_flag;
-
-    static uint16_t live_state;
+    static uint16_t logic_flag,
+                    pullup_flag,
+                    live_state;
 
   private: /** Private Parameters */
 
@@ -143,14 +142,14 @@ class Endstops {
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
-      SET_BIT(logic_flag._word, endstop, logic);
+      SET_BIT(logic_flag, endstop, logic);
     }
-    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_flag._word, endstop); }
+    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_flag, endstop); }
 
     FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
-      SET_BIT(pullup_flag._word, endstop, pullup);
+      SET_BIT(pullup_flag, endstop, pullup);
     }
-    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_flag._word, endstop); }
+    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_flag, endstop); }
 
     // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {

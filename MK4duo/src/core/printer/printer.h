@@ -39,7 +39,7 @@ union flagdebug_t {
     bool  mesh          : 1;
     bool  simulation    : 1;
   };
-  flagdebug_t() { all = false; }
+  flagdebug_t() { all = 0x00; }
 };
 
 union flagVarious_t {
@@ -62,7 +62,7 @@ union flagVarious_t {
     bool  bit14             : 1;
     bool  bit15             : 1;
   };
-  flagVarious_t() { all = 0; }
+  flagVarious_t() { all = 0x0000; }
 };
 
 extern const char axis_codes[NUM_AXIS];

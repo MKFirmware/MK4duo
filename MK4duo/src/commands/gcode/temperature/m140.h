@@ -34,7 +34,7 @@
  * M140: Set Bed temperature
  */
 inline void gcode_M140(void) {
-  const uint8_t b = parser.byteval('B');
+  const uint8_t b = parser.byteval('T');
   if (WITHIN(b, 0 , BEDS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
     if (parser.seenval('S')) beds[b].setTarget(parser.value_celsius());

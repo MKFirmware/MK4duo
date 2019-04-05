@@ -66,7 +66,7 @@ typedef struct {
 #endif
 
 union flaglevel_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  leveling_active : 1;
     bool  g26_debug       : 1;
@@ -77,7 +77,7 @@ union flaglevel_t {
     bool  bit6            : 1;
     bool  bit7            : 1;
   };
-  flaglevel_t() { all = 0; }
+  flaglevel_t() { all = 0x00; }
 };
 
 class Bedlevel {

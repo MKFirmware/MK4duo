@@ -42,11 +42,7 @@
  * larger segments will tend to be more efficient. Your slicer should have
  * options for G2/G3 arc generation. In future these options may be GCode tunable.
  */
-void plan_arc(
-  const float (&cart)[XYZE],  // Destination position
-  const float (&offset)[2],   // Center of rotation relative to current_position
-  const uint8_t clockwise     // Clockwise?
-) {
+void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise) {
 
   #if ENABLED(CNC_WORKSPACE_PLANES)
     AxisEnum p_axis, q_axis, l_axis;

@@ -79,6 +79,9 @@ void Temperature::init() {
   #if CHAMBERS > 0
     LOOP_CHAMBER() chambers[h].ResetFault();
   #endif
+  #if COOLERS > 0
+    LOOP_COOLER() coolers[h].ResetFault();
+  #endif
 }
 
 void Temperature::set_current_temp_raw() {
@@ -140,7 +143,7 @@ void Temperature::spin() {
       // Update Current Temperature
       act->updateCurrentTemperature();
       check_and_power(act);
-    } // LOOP_HOTEND
+    } // LOOP_BED
   #endif
 
   #if CHAMBERS > 0
@@ -149,7 +152,16 @@ void Temperature::spin() {
       // Update Current Temperature
       act->updateCurrentTemperature();
       check_and_power(act);
-    } // LOOP_HOTEND
+    } // LOOP_CHAMBER
+  #endif
+
+  #if COOLERS > 0
+    LOOP_COOLER() {
+      Heater *act = &coolers[h];
+      // Update Current Temperature
+      act->updateCurrentTemperature();
+      check_and_power(act);
+    } // LOOP_COOLER
   #endif
 
   #if HAS_MCU_TEMPERATURE
@@ -273,7 +285,15 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         act->pwm_value = (bias - d);
         t1 = time;
         t_high = t1 - t2;
-        maxTemp = target_temp;
+
+        #if HAS_TEMP_COOLER
+          if (act->data.type == IS_COOLER)
+            minTemp = target_temp;
+          else
+            maxTemp = target_temp;
+        #else
+          maxTemp = target_temp;
+        #endif
       }
     }
 
@@ -339,19 +359,39 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
 
         act->pwm_value = (bias + d);
         cycles++;
-        minTemp = target_temp;
+
+        #if HAS_TEMP_COOLER
+          if (act->data.type == IS_COOLER)
+            maxTemp = target_temp;
+          else
+            minTemp = target_temp;
+        #else
+          minTemp = target_temp;
+        #endif
       }
     }
 
     #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
       #define MAX_OVERSHOOT_PID_AUTOTUNE 20
     #endif
-    if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE) {
+    if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
+      #if HAS_TEMP_COOLER
+        && act->data.type != IS_COOLER
+      #endif
+    ) {
       SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
       LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_HIGH);
       pid_pointer = 255;
       break;
     }
+    #if HAS_TEMP_COOLER
+      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->data.type == IS_COOLER) {
+        SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
+        LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
+        pid_pointer = 255;
+        break;
+      }
+    #endif
 
     // Timeout after MAX_CYCLE_TIME_PID_AUTOTUNE minutes since the last undershoot/overshoot cycle
     #if DISABLED(MAX_CYCLE_TIME_PID_AUTOTUNE)
@@ -388,6 +428,14 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
           SERIAL_EMV("#define CHAMBER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define CHAMBER_Ki ", tune_pid.Ki);
           SERIAL_EMV("#define CHAMBER_Kd ", tune_pid.Kd);
+        }
+      #endif
+
+      #if HAS_TEMP_COOLER
+        if (act->data.type == IS_COOLER) {
+          SERIAL_EMV("#define COOLER_Kp ", tune_pid.Kp);
+          SERIAL_EMV("#define COOLER_Ki ", tune_pid.Ki);
+          SERIAL_EMV("#define COOLER_Kd ", tune_pid.Kd);
         }
       #endif
 
@@ -447,6 +495,12 @@ void Temperature::disable_all_heaters() {
       chambers[h].start_watching();
     }
   #endif
+  #if COOLERS > 0
+    LOOP_COOLER() {
+      coolers[h].setTarget(0);
+      coolers[h].start_watching();
+    }
+  #endif
 
   #if ENABLED(LASER)
     // No laser firing with no coolers running! (paranoia)
@@ -458,7 +512,7 @@ void Temperature::disable_all_heaters() {
     probe.probing_pause(false);
   #endif
 
-  // If all hotends go down then for sure our print job has stopped
+  // If all heaters go down then for sure our print job has stopped
   print_job_counter.stop();
 
   pid_pointer = 255;
@@ -477,6 +531,9 @@ bool Temperature::heaters_isActive() {
   #endif
   #if CHAMBERS > 0
     LOOP_CHAMBER() if (chambers[h].isActive()) return true;
+  #endif
+  #if COOLERS > 0
+    LOOP_COOLER() if (coolers[h].isActive()) return true;
   #endif
   return false;
 }
@@ -533,6 +590,22 @@ bool Temperature::heaters_isActive() {
   int16_t Temperature::chamber_maxtemp_all() {
     int16_t maxtemp = 0;
     LOOP_CHAMBER() maxtemp = MAX(maxtemp, chambers[h].data.maxtemp);
+    return maxtemp - MAX_TEMP_RANGE;
+  }
+
+#endif
+
+#if COOLERS > 0
+
+  int16_t Temperature::cooler_mintemp_all() {
+    int16_t mintemp = 9999;
+    LOOP_COOLER() mintemp = MIN(mintemp, coolers[h].data.mintemp);
+    return mintemp;
+  }
+
+  int16_t Temperature::cooler_maxtemp_all() {
+    int16_t maxtemp = 0;
+    LOOP_COOLER() maxtemp = MAX(maxtemp, coolers[h].data.maxtemp);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
@@ -641,6 +714,11 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     SERIAL_MV(MSG_CAT ":", int(chambers[0].pwm_value));
   #endif
 
+  #if COOLERS > 0
+    print_heater_state(&coolers[0], false, showRaw);
+    SERIAL_MV(MSG_CAT ":", int(coolers[0].pwm_value));
+  #endif
+
   #if HOTENDS > 1
     LOOP_HOTEND() {
       print_heater_state(&hotends[h], true, showRaw);
@@ -665,6 +743,15 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       SERIAL_MV(MSG_CAT, int(h));
       SERIAL_CHR(':');
       SERIAL_VAL(int(chambers[h].pwm_value));
+    }
+  #endif
+
+  #if COOLERS > 1
+    LOOP_COOLER() {
+      print_heater_state(&coolers[h], true, showRaw);
+      SERIAL_MV(MSG_CAT, int(h));
+      SERIAL_CHR(':');
+      SERIAL_VAL(int(coolers[h].pwm_value));
     }
   #endif
 
@@ -710,6 +797,11 @@ void Temperature::_temp_error(Heater *act, PGM_P const serial_msg, PGM_P const l
       #if CHAMBERS > 0
         case IS_CHAMBER:
           SERIAL_EMV(MSG_HEATER_CHAMBER " ", int(act->data.ID));
+          break;
+      #endif
+      #if HAS_TEMP_COOLER
+        case IS_COOLER:
+          SERIAL_EM(MSG_HEATER_COOLER);
           break;
       #endif
       default: break;
@@ -778,6 +870,10 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
 
   #if CHAMBERS > 0
     if (act->data.type == IS_CHAMBER) SERIAL_CHR('C');
+  #endif
+
+  #if COOLERS > 0
+    if (act->data.type == IS_COOLER) SERIAL_CHR('C');
   #endif
 
   const int16_t targetTemperature = act->isIdle() ? act->idle_temperature : act->target_temperature;

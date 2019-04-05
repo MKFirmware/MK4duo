@@ -35,8 +35,8 @@ FilamentRunout filamentrunout;
 /** Public Parameters */
 flagfilament_t  FilamentRunoutBase::flag;
 
-flagbyte_t      FilamentSensorBase::logic_flag,
-                FilamentSensorBase::pullup_flag;
+uint8_t FilamentSensorBase::logic_flag,
+        FilamentSensorBase::pullup_flag;
 
 #if FILAMENT_RUNOUT_DISTANCE_MM > 0
   float RunoutResponseDelayed::runout_distance_mm = FILAMENT_RUNOUT_DISTANCE_MM;

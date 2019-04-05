@@ -32,6 +32,7 @@
 Heater hotends[HOTENDS];
 Heater beds[BEDS];
 Heater chambers[CHAMBERS];
+Heater coolers[COOLERS];
 
 void Heater::init() {
 
@@ -184,20 +185,44 @@ void Heater::getOutput() {
     // Get the target temperature and the error
     const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
-    if (isUsePid()) {
-      pwm_value = pid.spin(targetTemperature, current_temperature, now
-        #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          , data.ID
-        #endif
-      );
-    }
-    else if (ELAPSED(now, next_check_ms)) {
-      next_check_ms = now + temp_check_interval[data.type];
-      if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
-        pwm_value = 0;
-      else if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
-        pwm_value = pid.Max;
-    }
+    #if COOLERS > 0
+      if (data.type == IS_COOLER) {
+        if (isUsePid()) {
+          pwm_value = pid.spin(current_temperature, targetTemperature, now
+            #if ENABLED(PID_ADD_EXTRUSION_RATE)
+              , 0xFF
+            #endif
+          );
+        }
+        else if (ELAPSED(now, next_check_ms)) {
+          next_check_ms = now + temp_check_interval[data.type];
+          if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+            pwm_value = 0;
+          else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
+            pwm_value = pid.Max;
+        }
+      }
+      else
+    #endif
+      {
+        if (isUsePid()) {
+          #if ENABLED(PID_ADD_EXTRUSION_RATE)
+            const uint8_t id = (data.type == IS_HOTEND) ? data.ID : 0xFF;
+          #endif
+          pwm_value = pid.spin(targetTemperature, current_temperature, now
+            #if ENABLED(PID_ADD_EXTRUSION_RATE)
+              , id
+            #endif
+          );
+        }
+        else if (ELAPSED(now, next_check_ms)) {
+          next_check_ms = now + temp_check_interval[data.type];
+          if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
+            pwm_value = 0;
+          else if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+            pwm_value = pid.Max;
+        }
+      }
 
     #if ENABLED(PID_DEBUG)
       SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);

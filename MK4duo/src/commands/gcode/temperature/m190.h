@@ -37,7 +37,7 @@
 inline void gcode_M190(void) {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
-  const uint8_t b = parser.byteval('B');
+  const uint8_t b = parser.byteval('T');
   if (WITHIN(b, 0 , BEDS - 1)) {
     const bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))

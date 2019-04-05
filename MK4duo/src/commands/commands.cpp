@@ -177,7 +177,7 @@ void Commands::get_destination() {
   bool seen[XYZE] = { false, false, false, false };
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (parser.seen('E')) printer.IDLE_OOZING_retract(false);
+    if (parser.seen(axis_codes[E_AXIS])) printer.IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {
@@ -255,7 +255,9 @@ Heater* Commands::get_target_heater() {
   #if CHAMBERS > 0
     if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
   #endif
-
+  #if COOLERS > 0
+    if (h == -2 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
+  #endif
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return NULL;
 
