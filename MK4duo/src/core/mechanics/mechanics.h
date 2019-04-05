@@ -35,7 +35,7 @@
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
 union flaghome_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  XHomed  : 1;
     bool  YHomed  : 1;
@@ -46,7 +46,7 @@ union flaghome_t {
     bool  bit6    : 1;
     bool  bit7    : 1;
   };
-  flaghome_t() { all = false; }
+  flaghome_t() { all = 0x00; }
 };
 
 union flagdir_t {
@@ -61,7 +61,7 @@ union flagdir_t {
 };
 
 union sensorless_t {
-  bool all;
+  uint8_t all;
   struct {
     bool x    : 1;
     bool y    : 1;
@@ -72,7 +72,7 @@ union sensorless_t {
     bool z3   : 1;
     bool bit7 : 1;
   };
-  sensorless_t() { all = false; }
+  sensorless_t() { all = 0x00; }
 };
 
 // Struct Mechanics data

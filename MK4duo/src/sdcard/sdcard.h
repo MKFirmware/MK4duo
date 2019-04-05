@@ -26,7 +26,7 @@
 #include "SdFat/SdFat.h"
 
 union flagcard_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Detect          : 1;
     bool  Saving          : 1;
@@ -37,7 +37,7 @@ union flagcard_t {
     bool  bit6            : 1;
     bool  bit7            : 1;
   };
-  flagcard_t() { all = false; }
+  flagcard_t() { all = 0x00; }
 };
 
 class SDCard {

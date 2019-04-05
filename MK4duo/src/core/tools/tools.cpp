@@ -67,7 +67,7 @@
         mixer.T(tmp_extruder);
       #endif
 
-    #elif ENABLED(PRUSA_MMU2)
+    #elif HAS_MMU2
 
       UNUSED(fr_mm_s);
       UNUSED(no_move);

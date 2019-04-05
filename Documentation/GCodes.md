@@ -81,7 +81,7 @@
 |  M92 | ? | Set axis steps per unit - same syntax as G92, H[microstep] L[Layer wanted]
 |  M99 | HYSTERESIS FEATURE | Set Hysteresis parameter M99 X[in mm] Y[in mm] Z[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
 | M100 | ? | Watch Free Memory (For Debugging Only)
-| M104 | ? | Set hotend target temp
+| M104 | ? | S[C°] Set hotend target temperature, T[int] 0-5 For Select Hotends (default 0)
 | M105 | ? | Read current temp
 | M106 | ? | P[fan] S[speed] F[frequency] U[pin] L[min speed] X[max speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[int] Triggered temperature
 | M107 | ? | P[fan] Fan off
@@ -106,10 +106,11 @@
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
 | M128 | ? | EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
 | M129 | ? | EtoP Closed (BariCUDA EtoP = electricity to air pressure transducer by jmil)
-| M140 | ? | Set hot bed target temp
-| M141 | ? | Set hot chamber target temp
-| M142 | ? | Set cooler target temp
-| M145 | ? | Set the heatup state H[hotend] B[bed] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)
+| M140 | ? | S[C°] Set hot bed target temperature, T[int] 0-3 For Select Beds (default 0)
+| M141 | ? | S[C°] Set hot chamber target temperature, T[int] 0-3 For Select Chambers (default 0)
+| M142 | ? | S[C°] Set cooler target temperature
+| M145 | ? | Set the heatup state H[hotend] B[bed] C[chamber] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)
+| M149 | ? | Set temperature units
 | M150 | BLINKM, RGB LED, RGBW LED, or PCA9632 | Set Status LED Color as R[red] U[green] B[blue] values 0-255
 | M155 | ? | Auto report temperatures S[bool] Enable/disable
 | M163 | COLOR MIXING EXTRUDER | S[index] P[float] Set a single proportion for a mixing extruder 
@@ -118,7 +119,7 @@
 | M166 | COLOR MIXING EXTRUDER | S[bool] A[float] Z[float] I[index] J[index] Set the Gradient Mix for the mixing extruder. (only firts two Extruder)
 | M190 | ? | Sxxx - Wait for bed current temp to reach target temp. Waits only when heating<br/>Rxxx - Wait for bed current temp to reach target temp. Waits when heating and cooling
 | M191 | ? | Sxxx - Wait for chamber current temp to reach target temp. Waits only when heating<br/>Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
-| M192 | ? | Sxxx Wait for cooler current temp to reach target temp. Waits only when heating<br/>Rxxx Wait for cooler current temp to reach target temp. Waits when heating and cooling
+| M192 | ? | Sxxx - Wait for cooler current temp to reach target temp. Waits only when cooling
 | M200 | ? | D[millimeters]- set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).
 | M201 | ? | Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000 Z1000 E0 S1000 E1 S1000 E2 S1000 E3 S1000) in mm/sec^2
 | M203 | ? | Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E0 S1000 E1 S1000 E2 S1000 E3 S1000) in mm/sec

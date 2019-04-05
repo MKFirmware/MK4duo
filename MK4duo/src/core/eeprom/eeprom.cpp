@@ -71,7 +71,7 @@ typedef struct EepromDataStruct {
   //
   // Endstop
   //
-  flagword_t        endstop_logic_flag,
+  uint16_t          endstop_logic_flag,
                     endstop_pullup_flag;
 
   #if ENABLED(X_TWO_ENDSTOPS)
@@ -91,7 +91,7 @@ typedef struct EepromDataStruct {
   // Filament Runout
   //
   #if HAS_FIL_RUNOUT_0
-    flagbyte_t      filrunout_logic_flag,
+    uint8_t         filrunout_logic_flag,
                     filrunout_pullup_flag;
   #endif
 
@@ -99,7 +99,7 @@ typedef struct EepromDataStruct {
   // Power Check
   //
   #if HAS_POWER_CHECK
-    flagbyte_t      power_flag;
+    flagpower_t     power_flag;
   #endif
 
   //
@@ -187,6 +187,11 @@ typedef struct EepromDataStruct {
     heater_data_t   chamber_data[CHAMBERS];
     pid_data_t      chamber_pid_data[CHAMBERS];
     sensor_data_t   chamber_sensor_data[CHAMBERS];
+  #endif
+  #if COOLERS > 0
+    heater_data_t   cooler_data[COOLERS];
+    pid_data_t      cooler_pid_data[COOLERS];
+    sensor_data_t   cooler_sensor_data[COOLERS];
   #endif
 
   //
@@ -351,6 +356,10 @@ void EEPROM::post_process() {
     LOOP_CHAMBER() {
       chambers[h].init();
       chambers[h].pid.update();
+    }
+    LOOP_COOLER() {
+      coolers[h].init();
+      coolers[h].pid.update();
     }
   #endif
 
@@ -615,6 +624,11 @@ void EEPROM::post_process() {
         EEPROM_WRITE(chambers[h].data);
         EEPROM_WRITE(chambers[h].pid);
         EEPROM_WRITE(chambers[h].sensor);
+      }
+      LOOP_COOLER() {
+        EEPROM_WRITE(coolers[h].data);
+        EEPROM_WRITE(coolers[h].pid);
+        EEPROM_WRITE(coolers[h].sensor);
       }
     #endif
 
@@ -1018,6 +1032,11 @@ void EEPROM::post_process() {
           EEPROM_READ(chambers[h].data);
           EEPROM_READ(chambers[h].pid);
           EEPROM_READ(chambers[h].sensor);
+        }
+        LOOP_COOLER() {
+          EEPROM_READ(coolers[h].data);
+          EEPROM_READ(coolers[h].pid);
+          EEPROM_READ(coolers[h].sensor);
         }
       #endif
 
@@ -1786,14 +1805,14 @@ void EEPROM::reset() {
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_BED_DRIVE_MIN;
-        pid->DriveMax         = PID_BED_DRIVE_MAX;
-        pid->Max              = PID_BED_MAX;
+        pid->DriveMin         = BED_PID_DRIVE_MIN;
+        pid->DriveMax         = BED_PID_DRIVE_MAX;
+        pid->Max              = BED_PID_MAX;
         // Sensor
         sens->pin             = TEMP_BED0_PIN;
         sens->type            = TEMP_SENSOR_BED0;
-        sens->r25             = BED_R25;
-        sens->beta            = BED_BETA;
+        sens->r25             = BED0_R25;
+        sens->beta            = BED0_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -1825,14 +1844,14 @@ void EEPROM::reset() {
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_BED_DRIVE_MIN;
-        pid->DriveMax         = PID_BED_DRIVE_MAX;
-        pid->Max              = PID_BED_MAX;
+        pid->DriveMin         = BED_PID_DRIVE_MIN;
+        pid->DriveMax         = BED_PID_DRIVE_MAX;
+        pid->Max              = BED_PID_MAX;
         // Sensor
         sens->pin             = TEMP_BED1_PIN;
         sens->type            = TEMP_SENSOR_BED1;
-        sens->r25             = BED_R25;
-        sens->beta            = BED_BETA;
+        sens->r25             = BED1_R25;
+        sens->beta            = BED1_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -1864,14 +1883,14 @@ void EEPROM::reset() {
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_BED_DRIVE_MIN;
-        pid->DriveMax         = PID_BED_DRIVE_MAX;
-        pid->Max              = PID_BED_MAX;
+        pid->DriveMin         = BED_PID_DRIVE_MIN;
+        pid->DriveMax         = BED_PID_DRIVE_MAX;
+        pid->Max              = BED_PID_MAX;
         // Sensor
         sens->pin             = TEMP_BED2_PIN;
         sens->type            = TEMP_SENSOR_BED2;
-        sens->r25             = BED_R25;
-        sens->beta            = BED_BETA;
+        sens->r25             = BED2_R25;
+        sens->beta            = BED2_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -1903,14 +1922,14 @@ void EEPROM::reset() {
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_BED_DRIVE_MIN;
-        pid->DriveMax         = PID_BED_DRIVE_MAX;
-        pid->Max              = PID_BED_MAX;
+        pid->DriveMin         = BED_PID_DRIVE_MIN;
+        pid->DriveMax         = BED_PID_DRIVE_MAX;
+        pid->Max              = BED_PID_MAX;
         // Sensor
         sens->pin             = TEMP_BED3_PIN;
         sens->type            = TEMP_SENSOR_BED3;
-        sens->r25             = BED_R25;
-        sens->beta            = BED_BETA;
+        sens->r25             = BED3_R25;
+        sens->beta            = BED3_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -1953,18 +1972,18 @@ void EEPROM::reset() {
         pid   = &heat->pid;
         data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER0_PIN;
-        data->ID              = CHAMBER_INDEX;
+        data->ID              = 0;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_CHAMBER_DRIVE_MIN;
-        pid->DriveMax         = PID_CHAMBER_DRIVE_MAX;
-        pid->Max              = PID_CHAMBER_MAX;
+        pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
+        pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
+        pid->Max              = CHAMBER_PID_MAX;
         // Sensor
         sens->pin             = TEMP_CHAMBER0_PIN;
         sens->type            = TEMP_SENSOR_CHAMBER0;
-        sens->r25             = CHAMBER_R25;
-        sens->beta            = CHAMBER_BETA;
+        sens->r25             = CHAMBER0_R25;
+        sens->beta            = CHAMBER0_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -1992,18 +2011,18 @@ void EEPROM::reset() {
         pid   = &heat->pid;
         data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER1_PIN;
-        data->ID              = CHAMBER_INDEX;
+        data->ID              = 1;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_CHAMBER_DRIVE_MIN;
-        pid->DriveMax         = PID_CHAMBER_DRIVE_MAX;
-        pid->Max              = PID_CHAMBER_MAX;
+        pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
+        pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
+        pid->Max              = CHAMBER_PID_MAX;
         // Sensor
         sens->pin             = TEMP_CHAMBER1_PIN;
         sens->type            = TEMP_SENSOR_CHAMBER1;
-        sens->r25             = CHAMBER_R25;
-        sens->beta            = CHAMBER_BETA;
+        sens->r25             = CHAMBER1_R25;
+        sens->beta            = CHAMBER1_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -2031,18 +2050,18 @@ void EEPROM::reset() {
         pid   = &heat->pid;
         data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER2_PIN;
-        data->ID              = CHAMBER_INDEX;
+        data->ID              = 2;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_CHAMBER_DRIVE_MIN;
-        pid->DriveMax         = PID_CHAMBER_DRIVE_MAX;
-        pid->Max              = PID_CHAMBER_MAX;
+        pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
+        pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
+        pid->Max              = CHAMBER_PID_MAX;
         // Sensor
         sens->pin             = TEMP_CHAMBER2_PIN;
         sens->type            = TEMP_SENSOR_CHAMBER2;
-        sens->r25             = CHAMBER_R25;
-        sens->beta            = CHAMBER_BETA;
+        sens->r25             = CHAMBER2_R25;
+        sens->beta            = CHAMBER2_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -2070,18 +2089,18 @@ void EEPROM::reset() {
         pid   = &heat->pid;
         data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER3_PIN;
-        data->ID              = CHAMBER_INDEX;
+        data->ID              = 3;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
         // Pid
-        pid->DriveMin         = PID_CHAMBER_DRIVE_MIN;
-        pid->DriveMax         = PID_CHAMBER_DRIVE_MAX;
-        pid->Max              = PID_CHAMBER_MAX;
+        pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
+        pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
+        pid->Max              = CHAMBER_PID_MAX;
         // Sensor
         sens->pin             = TEMP_CHAMBER3_PIN;
         sens->type            = TEMP_SENSOR_CHAMBER3;
-        sens->r25             = CHAMBER_R25;
-        sens->beta            = CHAMBER_BETA;
+        sens->r25             = CHAMBER3_R25;
+        sens->beta            = CHAMBER3_BETA;
         sens->pullupR         = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
@@ -2100,6 +2119,57 @@ void EEPROM::reset() {
           heat->setTuning(true);
         #endif
       #endif // HAS_HEATER_CHAMBER0
+
+    #endif // CHAMBERS > 0
+
+    #if COOLERS > 0
+
+      static const float  COOLERKp PROGMEM = COOLER_Kp,
+                          COOLERKi PROGMEM = COOLER_Ki,
+                          COOLERKd PROGMEM = COOLER_Kd;
+
+      LOOP_COOLER() {
+        pid = &coolers[h].pid;
+        pid->Kp  = pgm_read_float(&COOLERKp);
+        pid->Ki  = pgm_read_float(&COOLERKi);
+        pid->Kd  = pgm_read_float(&COOLERKd);
+      }
+
+      heat  = &coolers[0];
+      data  = &heat->data;
+      sens  = &heat->sensor;
+      pid   = &heat->pid;
+      data->type            = IS_COOLER;
+      data->pin             = HEATER_COOLER_PIN;
+      data->ID              = 0;
+      data->mintemp         = COOLER_MINTEMP;
+      data->maxtemp         = COOLER_MAXTEMP;
+      // Pid
+      pid->DriveMin         = COOLER_PID_DRIVE_MIN;
+      pid->DriveMax         = COOLER_PID_DRIVE_MAX;
+      pid->Max              = COOLER_PID_MAX;
+      // Sensor
+      sens->pin             = TEMP_COOLER_PIN;
+      sens->type            = TEMP_SENSOR_COOLER;
+      sens->r25             = COOLER_R25;
+      sens->beta            = COOLER_BETA;
+      sens->pullupR         = THERMISTOR_SERIES_RS;
+      sens->shC             = 0;
+      sens->adcLowOffset    = 0;
+      sens->adcHighOffset   = 0;
+      #if HAS_AD8495 || HAS_AD595
+        sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+        sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+      #endif
+      heat->resetFlag();
+      heat->setUsePid(PIDTEMPCOOLER);
+      heat->setHWInverted(INVERTED_COOLER_PIN);
+      heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
+      #if HAS_EEPROM
+        heat->setTuning(false);
+      #else
+        heat->setTuning(true);
+      #endif
 
     #endif // CHAMBERS > 0
 
@@ -2272,6 +2342,11 @@ void EEPROM::reset() {
       chambers[h].print_M305();
       chambers[h].print_M306();
       chambers[h].print_M301();
+    }
+    LOOP_COOLER() {
+      coolers[h].print_M305();
+      coolers[h].print_M306();
+      coolers[h].print_M301();
     }
 
     /**

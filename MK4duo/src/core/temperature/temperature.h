@@ -120,6 +120,14 @@ class Temperature {
       static int16_t chamber_maxtemp_all();
     #endif
 
+    /**
+     * Calc min & max temp of all coolers
+     */
+    #if COOLERS > 0
+      static int16_t cooler_mintemp_all();
+      static int16_t cooler_maxtemp_all();
+    #endif
+
     #if HAS_MAX6675 || HAS_MAX31855
       static void getTemperature_SPI();
     #endif

@@ -221,6 +221,7 @@
 #define LOOP_HOTEND()             LOOP_L_N(h, HOTENDS)
 #define LOOP_BED()                LOOP_L_N(h, BEDS)
 #define LOOP_CHAMBER()            LOOP_L_N(h, CHAMBERS)
+#define LOOP_COOLER()             LOOP_L_N(h, COOLERS)
 #define LOOP_FAN()                LOOP_L_N(f, FAN_COUNT)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
 #define LOOP_TMC()                LOOP_L_N(t, TMC_AXIS)

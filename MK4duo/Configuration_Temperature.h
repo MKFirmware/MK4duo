@@ -35,6 +35,7 @@
  * - PID Settings - HOTEND
  * - PID Settings - BED
  * - PID Settings - CHAMBER
+ * - PID Settings - COOLER
  * - Inverted PINS
  * - Thermal runaway protection
  * - Prevent cold extrusion
@@ -94,6 +95,7 @@
 #define TEMP_SENSOR_CHAMBER1  0
 #define TEMP_SENSOR_CHAMBER2  0
 #define TEMP_SENSOR_CHAMBER3  0
+#define TEMP_SENSOR_COOLER    0
 
 // Thermistor series resistor value in Ohms (see on your board)
 #define THERMISTOR_SERIES_RS 4700.0
@@ -131,26 +133,29 @@
 // This feature exists to protect your hotend from overheating accidentally,
 // but *NOT* from thermistor short/failure!
 // You should use MINTEMP for thermistor short/failure protection.
-#define HOTEND_0_MAXTEMP 275 // (degC)
-#define HOTEND_1_MAXTEMP 275 // (degC)
-#define HOTEND_2_MAXTEMP 275 // (degC)
-#define HOTEND_3_MAXTEMP 275 // (degC)
-#define HOTEND_4_MAXTEMP 275 // (degC)
-#define HOTEND_5_MAXTEMP 275 // (degC)
-#define BED_MAXTEMP      150 // (degC)
-#define CHAMBER_MAXTEMP  100 // (degC)
+#define HOTEND_0_MAXTEMP  275 // (degC)
+#define HOTEND_1_MAXTEMP  275 // (degC)
+#define HOTEND_2_MAXTEMP  275 // (degC)
+#define HOTEND_3_MAXTEMP  275 // (degC)
+#define HOTEND_4_MAXTEMP  275 // (degC)
+#define HOTEND_5_MAXTEMP  275 // (degC)
+#define BED_MAXTEMP       150 // (degC)
+#define CHAMBER_MAXTEMP   100 // (degC)
+#define COOLER_MAXTEMP     50 // (degC)
 
-// The minimal temperature defines the temperature below which the heater will not be enabled it is used.
+// The minimal temperature defines the temperature below which the heater will not be enabled It is used
+// or, in case of cooler, it will switched off.
 // to check that the wiring to the thermistor is not broken.
 // Otherwise this would lead to the heater being powered on all the time.
-#define HOTEND_0_MINTEMP 5 // (degC)
-#define HOTEND_1_MINTEMP 5 // (degC)
-#define HOTEND_2_MINTEMP 5 // (degC)
-#define HOTEND_3_MINTEMP 5 // (degC)
-#define HOTEND_4_MINTEMP 5 // (degC)
-#define HOTEND_5_MINTEMP 5 // (degC)
-#define BED_MINTEMP      5 // (degC)
-#define CHAMBER_MINTEMP  5 // (degC)
+#define HOTEND_0_MINTEMP  5 // (degC)
+#define HOTEND_1_MINTEMP  5 // (degC)
+#define HOTEND_2_MINTEMP  5 // (degC)
+#define HOTEND_3_MINTEMP  5 // (degC)
+#define HOTEND_4_MINTEMP  5 // (degC)
+#define HOTEND_5_MINTEMP  5 // (degC)
+#define BED_MINTEMP       5 // (degC)
+#define CHAMBER_MINTEMP   5 // (degC)
+#define COOLER_MINTEMP    5 // (degC)
 
 // The number of consecutive low temperature errors that can occur
 // before a min temp error is triggered. (Shouldn't be more than 10.)
@@ -264,9 +269,9 @@
 // If this is enabled, find your own PID constants below.
 #define PIDTEMPBED false
 
-#define PID_BED_MAX       255 // Limits current to bed while in PID mode;        255 = full current
-#define PID_BED_DRIVE_MIN  40 // Limits min current to bed while PID is active;    0 = no current
-#define PID_BED_DRIVE_MAX 230 // Limits max current to bed while PID is active;  255 = full current
+#define BED_PID_MAX       255 // Limits current to bed while in PID mode;        255 = full current
+#define BED_PID_DRIVE_MIN  40 // Limits min current to bed while PID is active;    0 = no current
+#define BED_PID_DRIVE_MAX 230 // Limits max current to bed while PID is active;  255 = full current
 
 #define BED_HYSTERESIS        2 // Only disable heating if T>target+BED HYSTERESIS and enable heating if T<target-BED HYSTERESIS
 #define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
@@ -316,6 +321,42 @@
 /***********************************************************************/
 
 
+/***********************************************************************
+ ************************ PID Settings - COOLER ************************
+ ***********************************************************************
+ *                                                                     *
+ * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
+ * Select PID or bang-bang with PIDTEMPCOOLER.                         *
+ * If bang-bang, COOLER_LIMIT_SWITCHING will enable hysteresis         *
+ *                                                                     *
+ ***********************************************************************/
+// Put true to enable PID on the cooler. It uses the same frequency PWM as the hotend.
+// if you use a software PWM or the frequency you select if using an hardware PWM
+// This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W cooler.
+// If your configuration is significantly different than this and you don't understand the issues involved, you probably
+// shouldn't use cooler PID until someone else verifies your hardware works.
+// If this is enabled, find your own PID constants below.
+#define PIDTEMPCOOLER false
+
+// This sets the max power delivered to the chamber.
+// all forms of chamber control obey this (PID, bang-bang, bang-bang with hysteresis)
+// setting this to anything other than 255 enables a form of PWM to the chamber,
+// so you shouldn't use it unless you are OK with PWM on your chamber.  (see the comment on enabling PIDTEMPCHAMBER)
+#define COOLER_PID_MAX       255   // Limits current to chamber while in PID mode;       255 = full current
+#define COOLER_PID_DRIVE_MIN  80   // Limits min current to chamber while PID is active;   0 = no current
+#define COOLER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
+
+#define COOLER_HYSTERESIS        2 // only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T>target+COOLER_HYSTERESIS
+#define COOLER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
+
+// 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
+// from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
+#define COOLER_Kp  10
+#define COOLER_Ki  1
+#define COOLER_Kd  300
+/***********************************************************************/
+
+
 /********************************************************************************
  **************************** Inverted PINS *************************************
  ********************************************************************************
@@ -323,9 +364,10 @@
  * For inverted logical Heater, Bed, Chamber or Cooler pins                     *
  *                                                                              *
  ********************************************************************************/
-#define INVERTED_HEATER_PINS false
-#define INVERTED_BED_PIN false
-#define INVERTED_CHAMBER_PIN false
+#define INVERTED_HEATER_PINS  false
+#define INVERTED_BED_PIN      false
+#define INVERTED_CHAMBER_PIN  false
+#define INVERTED_COOLER_PIN   false
 /********************************************************************************/
 
 
@@ -349,11 +391,13 @@
  * Put THERMAL PROTECTION HOTENDS at true to enable this feature for all hotends. *
  * Put THERMAL PROTECTION BED at true to enable this feature for the heated bed.  *
  * Put THERMAL PROTECTION CHAMBER at true to enable this feature for the chamber. *
+ * Put THERMAL PROTECTION COOLER at true to enable this feature for the cooler.   *
  *                                                                                *
  **********************************************************************************/
-#define THERMAL_PROTECTION_HOTENDS false
-#define THERMAL_PROTECTION_BED false
-#define THERMAL_PROTECTION_CHAMBER false
+#define THERMAL_PROTECTION_HOTENDS  false
+#define THERMAL_PROTECTION_BED      false
+#define THERMAL_PROTECTION_CHAMBER  false
+#define THERMAL_PROTECTION_COOLER   false
 
 #define THERMAL_PROTECTION_PERIOD    40     // Seconds
 #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
@@ -369,14 +413,17 @@
  * If you get false positives for "Heating failed" increase WATCH TEMP PERIOD and/or decrease WATCH TEMP INCREASE
  * WATCH TEMP INCREASE should not be below 2.
  */
-#define WATCH_HOTEND_PERIOD  20  // Seconds
-#define WATCH_HOTEND_INCREASE 2  // Degrees Celsius
+#define WATCH_HOTEND_PERIOD     20  // Seconds
+#define WATCH_HOTEND_INCREASE    2  // Degrees Celsius
 
-#define WATCH_BED_PERIOD 60      // Seconds
-#define WATCH_BED_INCREASE 2     // Degrees Celsius
+#define WATCH_BED_PERIOD        60  // Seconds
+#define WATCH_BED_INCREASE       2  // Degrees Celsius
 
-#define WATCH_CHAMBER_PERIOD 60  // Seconds
-#define WATCH_CHAMBER_INCREASE 2 // Degrees Celsius
+#define WATCH_CHAMBER_PERIOD    60  // Seconds
+#define WATCH_CHAMBER_INCREASE   2  // Degrees Celsius
+
+#define WATCH_COOLER_PERIOD     60  // Seconds
+#define WATCH_COOLER_INCREASE    2  // Degrees Celsius
 /********************************************************************************/
 
 

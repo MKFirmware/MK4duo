@@ -469,7 +469,8 @@
 #define HAS_TEMP_CHAMBER1   (TEMP_SENSOR_CHAMBER1 != 0)
 #define HAS_TEMP_CHAMBER2   (TEMP_SENSOR_CHAMBER2 != 0)
 #define HAS_TEMP_CHAMBER3   (TEMP_SENSOR_CHAMBER3 != 0)
-#define HAS_TEMP_HEATER     (HAS_TEMP_HOTEND || HAS_TEMP_BED0 || HAS_TEMP_CHAMBER0)
+#define HAS_TEMP_COOLER     (TEMP_SENSOR_COOLER != 0)
+#define HAS_TEMP_HEATER     (HAS_TEMP_HOTEND || HAS_TEMP_BED0 || HAS_TEMP_CHAMBER0 || HAS_TEMP_COOLER)
 #define HAS_MCU_TEMPERATURE (ENABLED(HAVE_MCU_TEMPERATURE))
 
 // Thermocouples
@@ -494,6 +495,7 @@
 #define HAS_HEATER_CHAMBER1 (TEMP_SENSOR_CHAMBER1 != 0 && PIN_EXISTS(HEATER_CHAMBER1))
 #define HAS_HEATER_CHAMBER2 (TEMP_SENSOR_CHAMBER2 != 0 && PIN_EXISTS(HEATER_CHAMBER2))
 #define HAS_HEATER_CHAMBER3 (TEMP_SENSOR_CHAMBER3 != 0 && PIN_EXISTS(HEATER_CHAMBER3))
+#define HAS_HEATER_COOLER   (TEMP_SENSOR_COOLER != 0 && PIN_EXISTS(HEATER_COOLER))
 
 // Fans
 #define HAS_FAN0            (PIN_EXISTS(FAN0))
@@ -609,6 +611,7 @@
 #define HAS_EEPROM          (ENABLED(EEPROM_SETTINGS))  // Do not touch, AVR have not define anyone EEPROM.
 
 // GAME MENU
+#define HAS_GAMES           (ENABLED(GAME_BRICKOUT) || ENABLED(GAME_INVADERS) || ENABLED(GAME_SNAKE) || ENABLED(GAME_MAZE))
 #define HAS_GAME_MENU       (1 < ENABLED(GAME_BRICKOUT) + ENABLED(GAME_INVADERS) + ENABLED(GAME_SNAKE) + ENABLED(GAME_MAZE))
 
 // SD support
@@ -820,23 +823,7 @@
 /**
  * Heaters
  */
-#define HEATER_TYPE 3
-
-#if INVERTED_HEATER_PINS
-  #define WRITE_HEATER(pin, value) WRITE(pin, !value)
-#else
-  #define WRITE_HEATER(pin, value) WRITE(pin, value)
-#endif
-#if INVERTED_BED_PIN
-  #define WRITE_HEATER_BED(v) WRITE(HEATER_BED0_PIN,!v)
-#else
-  #define WRITE_HEATER_BED(v) WRITE(HEATER_BED0_PIN,v)
-#endif
-#if INVERTED_CHAMBER_PIN
-  #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER0_PIN,!v)
-#else
-  #define WRITE_HEATER_CHAMBER(v) WRITE(HEATER_CHAMBER0_PIN,v)
-#endif
+#define HEATER_TYPE 4
 
 /**
  * Heaters Beds
@@ -868,7 +855,16 @@
   #define CHAMBERS  0
 #endif
 
-#define HEATER_COUNT  (HOTENDS+BEDS+CHAMBERS)
+/**
+ * Heaters Cooler
+ */
+#if HAS_HEATER_COOLER
+  #define COOLERS  1
+#else
+  #define COOLERS  0
+#endif
+
+#define HEATER_COUNT  (HOTENDS+BEDS+CHAMBERS+COOLERS)
 
 /**
  * FANS
@@ -1289,14 +1285,24 @@
   #define CHAMBER3_ANALOG_COMMA     CHAMBER2_ANALOG_COMMA
 #endif
 
+#if (PIN_EXISTS(TEMP_COOLER) && TEMP_SENSOR_COOLER != 0 && TEMP_SENSOR_COOLER >= -2)
+  #define COOLER_ANALOG_INPUTS      1
+  #define COOLER_ANALOG_CHANNEL     CHAMBER3_ANALOG_COMMA TEMP_COOLER_PIN
+  #define COOLER_ANALOG_COMMA       ,
+#else
+  #define COOLER_ANALOG_INPUTS      0
+  #define COOLER_ANALOG_CHANNEL
+  #define COOLER_ANALOG_COMMA       CHAMBER3_ANALOG_COMMA
+#endif
+
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
   #define FILAMENT_ANALOG_INPUTS    1
-  #define FILAMENT_ANALOG_CHANNEL   CHAMBER3_ANALOG_COMMA FILWIDTH_PIN
+  #define FILAMENT_ANALOG_CHANNEL   COOLER_ANALOG_COMMA FILWIDTH_PIN
   #define FILAMENT_ANALOG_COMMA     ,
 #else
   #define FILAMENT_ANALOG_INPUTS    0
   #define FILAMENT_ANALOG_CHANNEL
-  #define FILAMENT_ANALOG_COMMA     CHAMBER3_ANALOG_COMMA
+  #define FILAMENT_ANALOG_COMMA     COOLER_ANALOG_COMMA
 #endif
 
 #if HAS_POWER_CONSUMPTION_SENSOR
@@ -1339,6 +1345,7 @@
                       + CHAMBER1_ANALOG_INPUTS  \
                       + CHAMBER2_ANALOG_INPUTS  \
                       + CHAMBER3_ANALOG_INPUTS  \
+                      + COOLER_ANALOG_INPUTS    \
                       + FILAMENT_ANALOG_INPUTS  \
                       + POWER_ANALOG_INPUTS     \
                       + ADC_KEYPAD_ANALOG_INPUTS\
@@ -1357,6 +1364,10 @@
                                   BED2_ANALOG_CHANNEL     \
                                   BED3_ANALOG_CHANNEL     \
                                   CHAMBER0_ANALOG_CHANNEL \
+                                  CHAMBER1_ANALOG_CHANNEL \
+                                  CHAMBER2_ANALOG_CHANNEL \
+                                  CHAMBER3_ANALOG_CHANNEL \
+                                  COOLER_ANALOG_CHANNEL   \
                                   FILAMENT_ANALOG_CHANNEL \
                                   POWER_ANALOG_CHANNEL    \
                                   ADC_KEYPAD_ANALOG_CHANNEL }

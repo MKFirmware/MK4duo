@@ -535,6 +535,9 @@
 #ifndef MSG_CHAMBER
   #define MSG_CHAMBER                         _UxGT("Chamber")
 #endif
+#ifndef MSG_COOLER
+  #define MSG_COOLER                          _UxGT("Cooler")
+#endif
 #ifndef MSG_FAN_SPEED
   #define MSG_FAN_SPEED                       _UxGT("Fan speed")
 #endif
@@ -946,6 +949,12 @@
 #ifndef MSG_ERR_MINTEMP_CHAMBER
   #define MSG_ERR_MINTEMP_CHAMBER             _UxGT("Err: MINTEMP CHAMBER")
 #endif
+#ifndef MSG_ERR_MAXTEMP_COOLER
+  #define MSG_ERR_MAXTEMP_COOLER              _UxGT("Err: MAXTEMP COOLER")
+#endif
+#ifndef MSG_ERR_MINTEMP_COOLER
+  #define MSG_ERR_MINTEMP_COOLER              _UxGT("Err: MINTEMP COOLER")
+#endif
 #ifndef MSG_ERR_Z_HOMING
   #define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #endif
@@ -1005,6 +1014,12 @@
 #endif
 #ifndef MSG_CHAMBER_DONE
   #define MSG_CHAMBER_DONE                    _UxGT("Chamber done.")
+#endif
+#ifndef MSG_COOLER_COOLING
+  #define MSG_COOLER_COOLING                  _UxGT("Cooler cooling.")
+#endif
+#ifndef MSG_COOLER_DONE
+  #define MSG_COOLER_DONE                     _UxGT("Cooler done.")
 #endif
 #ifndef MSG_DELTA_CALIBRATE
   #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Calibration")
@@ -1085,7 +1100,10 @@
   #define MSG_INFO_BED                        _UxGT("Bed")
 #endif
 #ifndef MSG_INFO_CHAMBER
-  #define MSG_INFO_CHAMBER                    _UxGT("Hot Chamber")
+  #define MSG_INFO_CHAMBER                    _UxGT("Chamber")
+#endif
+#ifndef MSG_INFO_COOLER
+  #define MSG_INFO_COOLER                     _UxGT("Cooler")
 #endif
 #ifndef MSG_INFO_BAUDRATE
   #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
@@ -1334,6 +1352,18 @@
 #endif
 #ifndef MSG_END_Z
   #define MSG_END_Z                           _UxGT("  End Z")
+#endif
+#ifndef MSG_BRICKOUT
+  #define MSG_BRICKOUT                        _UxGT("Brickout")
+#endif
+#ifndef MSG_INVADERS
+  #define MSG_INVADERS                        _UxGT("Invaders")
+#endif
+#ifndef MSG_SNAKE
+  #define MSG_SNAKE                           _UxGT("Sn4k3")
+#endif
+#ifndef MSG_MAZE
+  #define MSG_MAZE                            _UxGT("Maze")
 #endif
 
 //

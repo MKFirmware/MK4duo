@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,31 +23,19 @@
 /**
  * mcode
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if CHAMBERS > 0
+#if COOLERS > 0
 
-#define CODE_M191
+#define CODE_M142
 
 /**
- * M191: Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
- *       Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
+ * M142: Set Cooler temperature
  */
-inline void gcode_M191(void) {
+inline void gcode_M142(void) {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
-
-  const uint8_t c = parser.byteval('T');
-  if (WITHIN(c, 0 , CHAMBERS - 1)) {
-    bool no_wait_for_cooling = parser.seen('S');
-    if (no_wait_for_cooling || parser.seen('R'))
-      chambers[c].setTarget(parser.value_celsius());
-    else return;
-
-    lcdui.set_status_P(chambers[c].isHeating() ? PSTR(MSG_CHAMBER_HEATING) : PSTR(MSG_CHAMBER_COOLING));
-
-    chambers[c].waitForTarget(no_wait_for_cooling);
-  }
+  if (parser.seenval('S')) coolers[0].setTarget(parser.value_celsius());
 }
 
-#endif // CHAMBERS > 0
+#endif

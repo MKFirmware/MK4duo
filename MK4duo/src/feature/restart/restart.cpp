@@ -79,9 +79,11 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
   static watch_t save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
 
-  if (save_restart_watch.elapsed() || force_save ||
-      // Save on every new Z height
-      (mechanics.current_position[Z_AXIS] > job_info.current_position[Z_AXIS])
+  // Did Z change since the last call?
+  const float zmoved = mechanics.current_position[Z_AXIS] - job_info.current_position[Z_AXIS];
+  if (save_restart_watch.elapsed() || force_save
+      || zmoved > 0   // Z moved up (including Z-hop)
+      || zmoved < -5  // Z moved down a lot
   ) {
 
     save_restart_watch.start();
@@ -130,6 +132,10 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     #if ENABLED(COLOR_MIXING_EXTRUDER) && HAS_GRADIENT_MIX
       memcpy(&job_info.gradient, &mixer.gradient, sizeof(job_info.gradient));
     #endif
+
+    //relative mode
+    job_info.relative_mode = printer.isRelativeMode();
+    job_info.relative_modes_e = printer.axis_relative_modes[E_AXIS];
 
     // Commands in the queue
     job_info.buffer_head = commands.buffer_ring.head();
@@ -249,6 +255,11 @@ void Restart::resume_job() {
   sprintf_P(cmd, PSTR("G1 F%d"), job_info.feedrate);
   commands.process_now(cmd);
 
+  // Relative mode
+  printer.setRelativeMode(job_info.relative_mode);
+  printer.axis_relative_modes[E_AXIS] = job_info.relative_modes_e;
+
+  // Process commands from the old pending queue
   uint8_t h = job_info.buffer_head, c = job_info.buffer_count;
   for (; c--; h = (h + 1) % BUFSIZE)
     commands.process_now(job_info.buffer_ring[h]);
@@ -273,6 +284,7 @@ void Restart::write_job() {
   if (!job_file.seekSet(0)) failed = true;
   if (!failed && !job_file.write(&job_info, sizeof(job_info)) == sizeof(job_info))
     failed = true;
+  close();
   #if ENABLED(DEBUG_RESTART)
     if (failed) SERIAL_EM("Restart job_file write failed.");
   #endif

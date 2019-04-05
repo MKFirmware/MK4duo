@@ -308,12 +308,12 @@ class MenuItem_bool {
 
 #define MENU_BACK(LABEL)                                      MENU_ITEM(back, LABEL)
 #define MENU_ITEM_DUMMY()                                     do { _thisItemNr++; }while(0)
-#define MENU_ITEM_P(TYPE, PLABEL, ...)                        _MENU_ITEM_VARIANT_P(TYPE,             , false,        PLABEL,       ## __VA_ARGS__)
-#define MENU_ITEM(TYPE, LABEL, ...)                           _MENU_ITEM_VARIANT_P(TYPE,             , false,        PSTR(LABEL),  ## __VA_ARGS__)
-#define MENU_ITEM_EDIT(TYPE, LABEL, ...)                      _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL),  PSTR(LABEL),  ## __VA_ARGS__)
-#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)             _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL),  PSTR(LABEL),  ## __VA_ARGS__)
-#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, ...)           _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL),  PSTR(LABEL),  ## __VA_ARGS__)
-#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)  _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL),  PSTR(LABEL),  ## __VA_ARGS__)
+#define MENU_ITEM_P(TYPE, PLABEL, ...)                        _MENU_ITEM_VARIANT_P(TYPE,      , false, PLABEL,                   ## __VA_ARGS__)
+#define MENU_ITEM(TYPE, LABEL, ...)                           _MENU_ITEM_VARIANT_P(TYPE,      , false, PSTR(LABEL),              ## __VA_ARGS__)
+#define MENU_ITEM_EDIT(TYPE, LABEL, ...)                      _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
+#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)             _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
+#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, ...)           _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
+#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)  _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
 
 ////////////////////////////////////////////
 /////////////// Menu Screens ///////////////
@@ -356,15 +356,29 @@ void menu_stop_print();
 void lcd_move_z();
 void lcd_draw_homing();
 
-void watch_temp_callback_H0();
-void watch_temp_callback_H1();
-void watch_temp_callback_H2();
-void watch_temp_callback_H3();
-void watch_temp_callback_E4();
-void watch_temp_callback_E5();
-void watch_temp_callback_bed();
-void watch_temp_callback_chamber();
-void watch_temp_callback_cooler();
+#if HOTENDS > 0
+  void watch_temp_callback_H0();
+  void watch_temp_callback_H1();
+  void watch_temp_callback_H2();
+  void watch_temp_callback_H3();
+  void watch_temp_callback_E4();
+  void watch_temp_callback_E5();
+#endif
+#if BEDS > 0
+  void watch_temp_callback_bed0();
+  void watch_temp_callback_bed1();
+  void watch_temp_callback_bed2();
+  void watch_temp_callback_bed3();
+#endif
+#if CHAMBERS > 0
+  void watch_temp_callback_chamber0();
+  void watch_temp_callback_chamber1();
+  void watch_temp_callback_chamber2();
+  void watch_temp_callback_chamber3();
+#endif
+#if COOLERS > 0
+  void watch_temp_callback_cooler0();
+#endif
 
 #define HAS_LINE_TO_Z (MECH(DELTA) || ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))
 

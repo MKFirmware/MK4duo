@@ -51,10 +51,9 @@ flagendstop_t Endstops::flag;
   float Endstops::z2_endstop_adj = 0.0;
 #endif
 
-flagword_t  Endstops::logic_flag,
-            Endstops::pullup_flag;
-
-uint16_t  Endstops::live_state  = 0;
+uint16_t  Endstops::logic_flag  = 0,
+          Endstops::pullup_flag = 0,
+          Endstops::live_state  = 0;
 
 // Private
 volatile uint8_t Endstops::hit_state = 0;

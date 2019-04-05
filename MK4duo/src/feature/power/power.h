@@ -22,7 +22,7 @@
 #pragma once
 
 union flagpower_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Logic   : 1;
     bool  Pullup  : 1;
@@ -33,7 +33,7 @@ union flagpower_t {
     bool  bit6    : 1;
     bool  bit7    : 1;
   };
-  flagpower_t() { all = false; }
+  flagpower_t() { all = 0x00; }
 };
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK

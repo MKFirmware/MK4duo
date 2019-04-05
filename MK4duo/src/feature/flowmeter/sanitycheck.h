@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +19,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#pragma once
 
-typedef uint32_t  millis_t;
-typedef int8_t    pin_t;
+/**
+ * sanitycheck.h
+ *
+ * Test configuration values for errors at compile-time.
+ */
 
-typedef struct {
-  float min,
-        max;
-} axis_limits_t;
+#ifndef _FLOWMETER_SANITYCHECK_H_
+#define _FLOWMETER_SANITYCHECK_H_
 
-#ifdef __AVR__
-  typedef uint8_t       mixer_color_t;
-  typedef int8_t        mixer_accu_t;
-  typedef int8_t        mixer_perc_t;
-#else
-  typedef uint_fast16_t mixer_color_t;
-  typedef uint_fast16_t mixer_accu_t;
-  typedef int8_t        mixer_perc_t;
+#if ENABLED(FLOWMETER_SENSOR) && !PIN_EXISTS(FLOWMETER)
+  #error "DEPENDENCY ERROR: You have to set FLOWMETER_PIN to a valid pin if you enable FLOWMETER_SENSOR."
 #endif
+
+#endif /* _FLOWMETER_SANITYCHECK_H_ */

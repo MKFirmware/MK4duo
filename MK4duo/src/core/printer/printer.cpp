@@ -228,6 +228,13 @@ void Printer::setup() {
     laser.init();
   #endif
 
+  #if ENABLED(FLOWMETER_SENSOR)
+    #if ENABLED(MINFLOW_PROTECTION)
+      flowmeter.flow_firstread = false;
+    #endif
+    flowmeter.init();
+  #endif
+
   #if ENABLED(PCF8574_EXPANSION_IO)
     pcf8574.begin();
   #endif
@@ -241,7 +248,7 @@ void Printer::setup() {
   lcdui.reset_status();
 
   // Show MK4duo boot screen
-  #if ENABLED(SHOW_BOOTSCREEN) && (HAS_GRAPHICAL_LCD || HAS_SPI_LCD)
+  #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
     lcdui.show_bootscreen();
   #endif
 
@@ -382,6 +389,10 @@ void Printer::check_periodical_actions() {
     #if HAS_POWER_SWITCH
       powerManager.spin();
     #endif
+
+    #if ENABLED(FLOWMETER_SENSOR)
+      flowmeter.spin();
+    #endif
   }
 }
 
@@ -435,6 +446,10 @@ void Printer::minikill() {
 
   // Turn off heaters again
   thermalManager.disable_all_heaters(); 
+
+  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
+    flowmeter.flow_firstread = false;
+  #endif
 
   #if HAS_POWER_SWITCH
     powerManager.power_off();
@@ -491,6 +506,10 @@ void Printer::Stop() {
     LOOP_FAN() {
       if (fans[f].isIdle()) fans[f].setIdle(false); // put things back the way they were
     }
+  #endif
+
+  #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
+    flowmeter.flow_firstread = false;
   #endif
 
   #if ENABLED(LASER)
