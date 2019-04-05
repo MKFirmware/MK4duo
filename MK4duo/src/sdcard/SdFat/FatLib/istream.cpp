@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 //  #include <ctype.h>
-#include "../../../../mk4duo.h"
+#include "../../../../MK4duo.h"
 #include <float.h>
 #include <ctype.h>
 #include "istream.h"

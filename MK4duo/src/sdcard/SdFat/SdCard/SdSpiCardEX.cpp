@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "../../../../mk4duo.h"
+#include "../../../../MK4duo.h"
 #include "SdSpiCard.h"
 bool SdSpiCardEX::readBlock(uint32_t block, uint8_t* dst) {
   if (m_curState != READ_STATE || block != m_curBlock) {
