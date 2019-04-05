@@ -1304,7 +1304,7 @@ void EEPROM::post_process() {
 
     }
 
-    #if ENABLED(EEPROM_CHITCHAT)
+    #if ENABLED(EEPROM_CHITCHAT) && DISABLED(DISABLE_M503)
       if (!validating) Print_Settings();
     #endif
 
