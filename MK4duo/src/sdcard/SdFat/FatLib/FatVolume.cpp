@@ -23,7 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "../../../../mk4duo.h"
+#include "../../../../MK4duo.h"
 #include <string.h>
 #include "FatVolume.h"
 //------------------------------------------------------------------------------

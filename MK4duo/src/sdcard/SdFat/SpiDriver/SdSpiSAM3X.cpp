@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "../../../../mk4duo.h"
+#include "../../../../MK4duo.h"
 #include "SdSpiDriver.h"
 #if defined(__SAM3X8E__) || defined(__SAM3X8H__)
 /** Use SAM3X DMAC if nonzero */
