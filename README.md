@@ -86,6 +86,9 @@ The new features are:
 * Added TMC2208 motor driver
 * Added TMC2660 motor driver
 * Added Power Check pin for restart job
+* Added Probe BLTouch
+* Added Probe BLTouch V3.0
+* Added Probe Z Sensoreless for TMC2130
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD

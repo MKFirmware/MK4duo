@@ -3,6 +3,7 @@
 * Add command M228 for setting axis limit min/max
 * Add Prompt support for host
 * Rewrite filament runout
+* Add BLTouch V3.0
 * Add Prusa MMU2 Support
 * Add support thermocouples for bed and hotend.
 * M301 - Set PID parameters P I D and C.
