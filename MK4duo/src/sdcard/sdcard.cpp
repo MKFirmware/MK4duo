@@ -533,22 +533,17 @@ uint16_t SDCard::get_num_Files() {
   void SDCard::delete_restart_file() {
     if (exist_restart_file()) {
       restart.job_file.remove(fat.vwd(), restart_file_name);
-      #if ENABLED(DEBUG_RESTART)
-        if (exist_restart_file()) SERIAL_MSG("restart delete failed.");
-        else SERIAL_MSG("restart deleted.");
-        SERIAL_EOL();
-      #endif
+      DEBUG_SM(DEB, " File restart delete");
+      DEBUG_STR(restart.job_file.open(fat.vwd(), restart_file_name, O_READ) ? PSTR(" failed.\n") : PSTR("d.\n"));
     }
   }
 
   bool SDCard::exist_restart_file() {
     const bool exist = restart.job_file.open(fat.vwd(), restart_file_name, O_READ);
-    #if ENABLED(DEBUG_RESTART)
-      SERIAL_MSG("File restart ");
-      if (!exist) SERIAL_MSG("not ");
-      SERIAL_EM("exist");
-    #endif
+    DEBUG_SM(DEB, " File restart ");
     if (exist) restart.job_file.close();
+    else DEBUG_MSG("not ");
+    DEBUG_EM("exist");
     return exist;
   }
 
@@ -561,11 +556,9 @@ uint16_t SDCard::get_num_Files() {
     if (!isDetected()) SERIAL_LM(ER, MSG_NO_CARD);
     if (!eeprom_file.open("eeprom", O_RDWR | O_CREAT | O_SYNC) ||
       eeprom_file.read(memorystore.eeprom_data, EEPROM_SIZE) != EEPROM_SIZE) {
-      SERIAL_LM(ER, MSG_SD_OPEN_FILE_FAIL "eeprom");
+      DEBUG_LM(DEB, MSG_SD_OPEN_FILE_FAIL "eeprom");
     }
-    else {
-      SERIAL_LM(ECHO, "EEPROM read from sd card.");
-    }
+    else DEBUG_LM(DEB, "EEPROM read from sd card.");
   }
 
   void SDCard::write_eeprom() {

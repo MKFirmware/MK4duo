@@ -110,7 +110,7 @@ class GCodeParser {
         SBI32(codebits, ind);                      // parameter exists
         param[ind] = ptr ? ptr - command_ptr : 0;  // parameter offset or 0
         #if ENABLED(DEBUG_GCODE_PARSER)
-          if (codenum == 800) {
+          if (codenum == 1000) {
             SERIAL_MV("Set bit ", (int)ind);
             SERIAL_MV(" of codebits (", hex_address((void*)(codebits >> 16)));
             print_hex_word((uint16_t)(codebits & 0xFFFF));

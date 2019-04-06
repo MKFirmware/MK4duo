@@ -26,28 +26,10 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_SD_RESTART
+#if ENABLED(DEBUG_GCODE_PARSER)
 
-#define CODE_M800
+#define CODE_M1000
 
-void menu_sdcard_restart();
+inline void gcode_M1000(void) { parser.debug(); }
 
-/**
- * M800: Resume from Restart Job
- *   - With 'S' go to the Restart/Cancel menu
- *   - With no parameters run restart commands
- */
-inline void gcode_M800(void) {
-  if (restart.valid()) {
-    #if HAS_LCD_MENU
-      if (parser.seen('S'))
-        lcdui.goto_screen(menu_sdcard_restart);
-      else
-    #endif
-      restart.resume_job();
-  }
-  else
-    DEBUG_LSM(DEB, restart.job_info.valid_head ? PSTR(" No") : PSTR(" Invalid"), " Restart Job Data");
-}
-
-#endif // HAS_SD_RESTART
+#endif // DEBUG_GCODE_PARSER

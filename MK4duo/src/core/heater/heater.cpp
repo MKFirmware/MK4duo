@@ -224,11 +224,15 @@ void Heater::getOutput() {
         }
       }
 
-    #if ENABLED(PID_DEBUG)
-      SERIAL_SMV(ECHO, MSG_PID_DEBUG, ACTIVE_HOTEND);
-      SERIAL_MV(MSG_PID_DEBUG_INPUT, current_temperature);
-      SERIAL_EMV(MSG_PID_DEBUG_OUTPUT, pwm_value);
-    #endif // PID_DEBUG
+    if (printer.debugFeature() && data.type == IS_HOTEND) {
+      DEBUG_SMV(DEB, MSG_PID_DEBUG, ACTIVE_HOTEND);
+      DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
+      DEBUG_MV(MSG_PID_DEBUG_OUTPUT, pwm_value);
+      DEBUG_MV(MSG_PID_DEBUG_PTERM, pid.Kp);
+      DEBUG_MV(MSG_PID_DEBUG_ITERM, pid.Ki);
+      DEBUG_MV(MSG_PID_DEBUG_DTERM, pid.Kd);
+      DEBUG_EOL();
+    }
 
   }
 

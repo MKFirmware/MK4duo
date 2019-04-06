@@ -43,8 +43,6 @@
  */
 inline void gcode_M569(void) {
 
-  //#define DEBUG_PULSE_CYCLE
-
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     if (commands.get_target_driver(569)) return;
   #else
@@ -69,43 +67,41 @@ inline void gcode_M569(void) {
   HAL_calc_pulse_cycle();
 
   SERIAL_EM("Reporting Stepper control");
-  SERIAL_MT(" X dir:", stepper.isStepDir(X_AXIS) ? "true" : "false");
-  SERIAL_MT(" Y dir:", stepper.isStepDir(Y_AXIS) ? "true" : "false");
-  SERIAL_MV(" Z dir:", stepper.isStepDir(Z_AXIS) ? "true" : "false");
+  SERIAL_LOGIC(" X dir", stepper.isStepDir(X_AXIS));
+  SERIAL_LOGIC(" Y dir", stepper.isStepDir(Y_AXIS));
+  SERIAL_LOGIC(" Z dir", stepper.isStepDir(Z_AXIS));
 
   #if DRIVER_EXTRUDERS == 1
-    SERIAL_MV(" E dir:", stepper.isStepDir(E_AXIS) ? "true" : "false");
-  #endif
-
-  #if DRIVER_EXTRUDERS > 1
+    SERIAL_LOGIC(" E dir", stepper.isStepDir(E_AXIS));
+    SERIAL_EOL();
+  #else
+    SERIAL_EOL();
     LOOP_DRV_EXTRUDER() {
       #if HAS_MKMULTI_TOOLS
-        SERIAL_MV(" Driver Extruder:", d);
+        SERIAL_MV(" Driver Extruder", d);
       #else
-        SERIAL_MV(" Extruder:", d);
+        SERIAL_MV(" E", d);
       #endif
-      SERIAL_MT(" dir:" , stepper.isStepDir((AxisEnum)(E_AXIS + d)) ? "true" : "false");
+      SERIAL_LOGIC(" dir" , stepper.isStepDir((AxisEnum)(E_AXIS + d)));
+      SERIAL_EOL();
     }
   #endif
 
-  SERIAL_MV(" Direction delay(ns):", stepper.direction_delay);
-  SERIAL_MV(" Minimum pulse(us):", stepper.minimum_pulse);
-  SERIAL_MV(" Maximum rate(Hz):", stepper.maximum_rate);
-
+  SERIAL_MV(" Direction delay(ns):",  stepper.direction_delay);
+  SERIAL_MV(" Minimum pulse(us):",    stepper.minimum_pulse);
+  SERIAL_MV(" Maximum rate(Hz):",     stepper.maximum_rate);
   SERIAL_EOL();
 
-  #if ENABLED(DEBUG_PULSE_CYCLE)
-    SERIAL_EMV("HAL_min_pulse_cycle:", HAL_min_pulse_cycle);
-    SERIAL_EMV("HAL_min_pulse_tick:", HAL_min_pulse_tick);
-    SERIAL_EMV("HAL_add_pulse_ticks:", HAL_add_pulse_ticks);
-    SERIAL_EMV("HAL_frequency_limit[0]:", HAL_frequency_limit[0]);
-    SERIAL_EMV("HAL_frequency_limit[1]:", HAL_frequency_limit[1]);
-    SERIAL_EMV("HAL_frequency_limit[2]:", HAL_frequency_limit[2]);
-    SERIAL_EMV("HAL_frequency_limit[3]:", HAL_frequency_limit[3]);
-    SERIAL_EMV("HAL_frequency_limit[4]:", HAL_frequency_limit[4]);
-    SERIAL_EMV("HAL_frequency_limit[5]:", HAL_frequency_limit[5]);
-    SERIAL_EMV("HAL_frequency_limit[6]:", HAL_frequency_limit[6]);
-    SERIAL_EMV("HAL_frequency_limit[7]:", HAL_frequency_limit[7]);
-  #endif
+  DEBUG_EMV("HAL_min_pulse_cycle:",     HAL_min_pulse_cycle);
+  DEBUG_EMV("HAL_min_pulse_tick:",      HAL_min_pulse_tick);
+  DEBUG_EMV("HAL_add_pulse_ticks:",     HAL_add_pulse_ticks);
+  DEBUG_EMV("HAL_frequency_limit[0]:",  HAL_frequency_limit[0]);
+  DEBUG_EMV("HAL_frequency_limit[1]:",  HAL_frequency_limit[1]);
+  DEBUG_EMV("HAL_frequency_limit[2]:",  HAL_frequency_limit[2]);
+  DEBUG_EMV("HAL_frequency_limit[3]:",  HAL_frequency_limit[3]);
+  DEBUG_EMV("HAL_frequency_limit[4]:",  HAL_frequency_limit[4]);
+  DEBUG_EMV("HAL_frequency_limit[5]:",  HAL_frequency_limit[5]);
+  DEBUG_EMV("HAL_frequency_limit[6]:",  HAL_frequency_limit[6]);
+  DEBUG_EMV("HAL_frequency_limit[7]:",  HAL_frequency_limit[7]);
 
 }

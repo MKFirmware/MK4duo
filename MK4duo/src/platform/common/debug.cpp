@@ -25,10 +25,10 @@
 #if ENABLED(DEBUG_FEATURE)
 
 void Debug::log_machine_info() {
-  DEBUG_MSG("Machine Type: ");
+  DEBUG_SM(DEB, " Machine Type:");
   DEBUG_EM(MACHINE_TYPE);
 
-  DEBUG_MSG("Probe: ");
+  DEBUG_SM(DEB, "Probe:");
   #if ENABLED(PROBE_MANUALLY)
     DEBUG_EM("PROBE_MANUALLY");
   #elif ENABLED(Z_PROBE_FIX_MOUNTED)
@@ -46,7 +46,7 @@ void Debug::log_machine_info() {
   #endif
 
   #if HAS_BED_PROBE
-    DEBUG_SM(ECHO, "Probe Offset");
+    DEBUG_SM(DEB, " Probe Offset");
     DEBUG_MV(" X:", probe.data.offset[X_AXIS]);
     DEBUG_MV(" Y:", probe.data.offset[Y_AXIS]);
     DEBUG_MV(" Z:", probe.data.offset[Z_AXIS]);
@@ -77,7 +77,7 @@ void Debug::log_machine_info() {
   #endif
 
   #if HAS_ABL_OR_UBL
-    DEBUG_MSG("Auto Bed Leveling: ");
+    DEBUG_SM(DEB, " Auto Bed Leveling:");
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       DEBUG_MSG("LINEAR");
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -132,7 +132,7 @@ void Debug::log_machine_info() {
 
   #elif ENABLED(MESH_BED_LEVELING)
 
-    DEBUG_MSG("Mesh Bed Leveling");
+    DEBUG_SM(DEB, " Mesh Bed Leveling");
     if (bedlevel.flag.leveling_active) {
       DEBUG_EM(" (enabled)");
       DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS])));

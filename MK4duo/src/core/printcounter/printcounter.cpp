@@ -327,10 +327,10 @@ void PrintCounter::reset() {
 
 #if ENABLED(DEBUG_PRINTCOUNTER)
 
-  void PrintCounter::debug(const char func[]) {
-    SERIAL_SM(DEB, "PrintCounter::");
-    SERIAL_MSG(func);
-    SERIAL_EM("()");
+  void PrintCounter::debug(PGM_P const func) {
+    SERIAL_SM(DEB, " PrintCounter::");
+    SERIAL_SM(func, "()");
+    SERIAL_EOL();
   }
 
 #endif

@@ -4030,6 +4030,9 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
         #if ENABLED(CODE_M999)
           case 999: gcode_M999(); break;
         #endif
+        #if ENABLED(CODE_M1000)
+          case 1000: gcode_M1000(); break;
+        #endif
         #if ENABLED(CODE_M9999)
           case 9999: gcode_M9999(); break;
         #endif
