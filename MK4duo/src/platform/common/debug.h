@@ -41,88 +41,94 @@
 
   };
 
-  #define DEBUG_LOG_INFO()                Debug::log_machine_info()
+  #define DEBUG_LOG_INFO()            Debug::log_machine_info()
 
-  #define DEBUG_POS(SUFFIX,VAR)           Debug::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR)
-  #define DEBUG_XYZ(PREF,SUFF,X,Y,Z)      Debug::print_xyz(PREF, SUFF, X, Y, Z)
+  #define DEBUG_POS(SUFFIX,VAR)       Debug::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR)
+  #define DEBUG_XYZ(PREF,SUFF,X,Y,Z)  Debug::print_xyz(PREF, SUFF, X, Y, Z)
 
-  #define DEBUG_STR(str)                  Com::printPGM(str)
-  #define DEBUG_MSG(msg)                  Com::printPGM(PSTR(msg))
-  #define DEBUG_TXT(txt)                  Com::print(txt)
-  #define DEBUG_VAL(val, ...)             Com::print(val, ## __VA_ARGS__)
-  #define DEBUG_CHR(c)                    Com::write(c)
-  #define DEBUG_EOL()                     Com::println()
+  #define DEBUG_STR                   SERIAL_STR
+  #define DEBUG_MSG                   SERIAL_MSG
+  #define DEBUG_TXT                   SERIAL_TXT
+  #define DEBUG_VAL                   SERIAL_VAL
+  #define DEBUG_CHR                   SERIAL_CHR
+  #define DEBUG_EOL                   SERIAL_EOL
 
-  #define DEBUG_SP(C)                     Com::print_spaces(C)
-  #define DEBUG_LOGIC(msg, val)           Com::print_logic(PSTR(msg), val)
-  #define DEBUG_ONOFF(msg, val)           Com::print_onoff(PSTR(msg), val)
+  #define DEBUG_SP                    SERIAL_SP
+  #define DEBUG_LOGIC                 SERIAL_LOGIC
+  #define DEBUG_ONOFF                 SERIAL_ONOFF
 
-  #define DEBUG_ELOGIC(msg, val)          do{ DEBUG_LOGIC(msg, val); DEBUG_EOL(); }while(0)
-  #define DEBUG_EONOFF(msg, val)          do{ DEBUG_ONOFF(msg, val); DEBUG_EOL(); }while(0)
+  #define DEBUG_ELOGIC                SERIAL_ELOGIC
+  #define DEBUG_EONOFF                SERIAL_EONOFF
 
-  #define DEBUG_MT(msg, txt)              do{ DEBUG_MSG(msg); DEBUG_TXT(txt); }while(0)
-  #define DEBUG_MV(msg, val, ...)         do{ DEBUG_MSG(msg); DEBUG_VAL(val, ## __VA_ARGS__); }while(0)
+  #define DEBUG_MT                    SERIAL_MT
+  #define DEBUG_MV                    SERIAL_MV
 
-  #define DEBUG_SM(str, msg)              do{ DEBUG_STR(str); DEBUG_MSG(msg); }while(0)
-  #define DEBUG_ST(str, txt)              do{ DEBUG_STR(str); DEBUG_TXT(txt); }while(0)
-  #define DEBUG_SV(str, val, ...)         do{ DEBUG_STR(str); DEBUG_VAL(val, ## __VA_ARGS__); }while(0)
-  #define DEBUG_SMT(str, msg, txt)        do{ DEBUG_STR(str); DEBUG_MT(msg, txt); }while(0)
-  #define DEBUG_SMV(str, msg, val, ...)   do{ DEBUG_STR(str); DEBUG_MV(msg, val, ## __VA_ARGS__); }while(0)
+  #define DEBUG_SM                    SERIAL_SM
+  #define DEBUG_ST                    SERIAL_ST
+  #define DEBUG_SV                    SERIAL_SV
+  #define DEBUG_SSM                   SERIAL_SSM
+  #define DEBUG_SMT                   SERIAL_SMT
+  #define DEBUG_SMV                   SERIAL_SMV
 
-  #define DEBUG_EM(msg)                   do{ DEBUG_MSG(msg); DEBUG_EOL(); }while(0)
-  #define DEBUG_ET(txt)                   do{ DEBUG_TXT(txt); DEBUG_EOL(); }while(0)
-  #define DEBUG_EV(val, ...)              do{ DEBUG_VAL(val, ## __VA_ARGS__); DEBUG_EOL(); }while(0)
-  #define DEBUG_EMT(msg, txt)             do{ DEBUG_MT(msg, txt); DEBUG_EOL(); }while(0)
-  #define DEBUG_EMV(msg, val, ...)        do{ DEBUG_MV(msg, val, ## __VA_ARGS__); DEBUG_EOL(); }while(0)
+  #define DEBUG_EM                    SERIAL_EM
+  #define DEBUG_ET                    SERIAL_ET
+  #define DEBUG_EV                    SERIAL_EV
+  #define DEBUG_EMT                   SERIAL_EMT
+  #define DEBUG_EMV                   SERIAL_EMV
 
-  #define DEBUG_L(str)                    do{ DEBUG_STR(str); DEBUG_EOL(); }while(0)
-  #define DEBUG_LM(str, msg)              do{ DEBUG_STR(str); DEBUG_MSG(msg); DEBUG_EOL(); }while(0)
-  #define DEBUG_LT(str, txt)              do{ DEBUG_STR(str); DEBUG_TXT(txt); DEBUG_EOL(); }while(0)
-  #define DEBUG_LV(str, val, ...)         do{ DEBUG_STR(str); DEBUG_VAL(val, ## __VA_ARGS__); DEBUG_EOL(); }while(0)
-  #define DEBUG_LMT(str, msg, txt)        do{ DEBUG_STR(str); DEBUG_MT(msg, txt); DEBUG_EOL(); }while(0)
-  #define DEBUG_LMV(str, msg, val, ...)   do{ DEBUG_STR(str); DEBUG_MV(msg, val, ## __VA_ARGS__); DEBUG_EOL(); }while(0)
+  #define DEBUG_L                     SERIAL_L
+  #define DEBUG_LS                    SERIAL_LS
+  #define DEBUG_LM                    SERIAL_LM
+  #define DEBUG_LT                    SERIAL_LT
+  #define DEBUG_LV                    SERIAL_LV
+  #define DEBUG_LSM                   SERIAL_LSM
+  #define DEBUG_LMT                   SERIAL_LMT
+  #define DEBUG_LMV                   SERIAL_LMV
 
 #else
 
-  #define DEBUG_LOG_INFO()                NOOP
+  #define DEBUG_LOG_INFO()            NOOP
 
-  #define DEBUG_POS(...)                  NOOP
-  #define DEBUG_XYZ(...)                  NOOP
+  #define DEBUG_POS(...)              NOOP
+  #define DEBUG_XYZ(...)              NOOP
 
-  #define DEBUG_STR(...)                  NOOP
-  #define DEBUG_MSG(...)                  NOOP
-  #define DEBUG_TXT(...)                  NOOP
-  #define DEBUG_VAL(...)                  NOOP
-  #define DEBUG_CHR(...)                  NOOP
-  #define DEBUG_EOL()                     NOOP
+  #define DEBUG_STR(...)              NOOP
+  #define DEBUG_MSG(...)              NOOP
+  #define DEBUG_TXT(...)              NOOP
+  #define DEBUG_VAL(...)              NOOP
+  #define DEBUG_CHR(...)              NOOP
+  #define DEBUG_EOL()                 NOOP
 
-  #define DEBUG_SP(...)                   NOOP
-  #define DEBUG_LOGIC(...)                NOOP
-  #define DEBUG_ONOFF(...)                NOOP
+  #define DEBUG_SP(...)               NOOP
+  #define DEBUG_LOGIC(...)            NOOP
+  #define DEBUG_ONOFF(...)            NOOP
 
-  #define DEBUG_ELOGIC(...)               NOOP
-  #define DEBUG_EONOFF(...)               NOOP
+  #define DEBUG_ELOGIC(...)           NOOP
+  #define DEBUG_EONOFF(...)           NOOP
 
-  #define DEBUG_MT(...)                   NOOP
-  #define DEBUG_MV(...)                   NOOP
+  #define DEBUG_MT(...)               NOOP
+  #define DEBUG_MV(...)               NOOP
 
-  #define DEBUG_SM(...)                   NOOP
-  #define DEBUG_ST(...)                   NOOP
-  #define DEBUG_SV(...)                   NOOP
-  #define DEBUG_SMT(...)                  NOOP
-  #define DEBUG_SMV(...)                  NOOP
+  #define DEBUG_SM(...)               NOOP
+  #define DEBUG_ST(...)               NOOP
+  #define DEBUG_SV(...)               NOOP
+  #define DEBUG_SSM(...)              NOOP
+  #define DEBUG_SMT(...)              NOOP
+  #define DEBUG_SMV(...)              NOOP
 
-  #define DEBUG_EM(...)                   NOOP
-  #define DEBUG_ET(...)                   NOOP
-  #define DEBUG_EV(...)                   NOOP
-  #define DEBUG_EMT(...)                  NOOP
-  #define DEBUG_EMV(...)                  NOOP
+  #define DEBUG_EM(...)               NOOP
+  #define DEBUG_ET(...)               NOOP
+  #define DEBUG_EV(...)               NOOP
+  #define DEBUG_EMT(...)              NOOP
+  #define DEBUG_EMV(...)              NOOP
 
-  #define DEBUG_L(...)                    NOOP
-  #define DEBUG_LM(...)                   NOOP
-  #define DEBUG_LT(...)                   NOOP
-  #define DEBUG_LV(...)                   NOOP
-  #define DEBUG_LMT(...)                  NOOP
-  #define DEBUG_LMV(...)                  NOOP
+  #define DEBUG_L(...)                NOOP
+  #define DEBUG_LS(...)               NOOP
+  #define DEBUG_LM(...)               NOOP
+  #define DEBUG_LT(...)               NOOP
+  #define DEBUG_LV(...)               NOOP
+  #define DEBUG_LSM(...)              NOOP
+  #define DEBUG_LMT(...)              NOOP
+  #define DEBUG_LMV(...)              NOOP
 
 #endif // ENABLED(DEBUG_FEATURE)

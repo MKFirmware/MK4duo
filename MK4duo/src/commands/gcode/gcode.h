@@ -94,6 +94,7 @@
 // Debug Commands
 #include "debug/m43.h"
 #include "debug/m44_pre_table.h"          // Debug Code Info
+#include "debug/m1000.h"                   // Debug GCODE Parser
 
 // Delta Commands
 #include "delta/g33_type1.h"              // Autocalibration 7 point

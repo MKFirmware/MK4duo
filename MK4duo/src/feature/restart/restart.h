@@ -128,6 +128,8 @@ class Restart {
 
     #if ENABLED(DEBUG_RESTART)
       static void debug_info(PGM_P const prefix);
+    #else
+      static inline void debug_info(PGM_P const prefix) { UNUSED(prefix); }
     #endif
 
 };

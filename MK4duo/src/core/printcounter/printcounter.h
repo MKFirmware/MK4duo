@@ -152,7 +152,7 @@ class PrintCounter: public Stopwatch {
        * @brief Prints a debug message
        * @details Prints a simple debug message "PrintCounter::function"
        */
-      static void debug(const char func[]);
+      static void debug(PGM_P const func);
 
     #endif
 

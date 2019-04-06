@@ -403,9 +403,7 @@ class TMC_Stepper {
 
       FORCE_INLINE static void report_otpw(MKTMC* st) {
         st->printLabel();
-        SERIAL_MSG(" temperature prewarn triggered: ");
-        SERIAL_STR(st->getOTPW() ? PSTR("true") : PSTR("false"));
-        SERIAL_EOL();
+        SERIAL_ELOGIC(" temperature prewarn triggered", st->getOTPW());
       }
 
       FORCE_INLINE static void clear_otpw(MKTMC* st) {

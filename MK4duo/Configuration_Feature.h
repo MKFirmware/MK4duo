@@ -534,9 +534,6 @@
 
 // Unit: mm compression per 1mm/s extruder speed
 #define LIN_ADVANCE_K 0.22
-
-// If enabled, this will generate debug information output over Serial.
-//#define LA_DEBUG
 /*****************************************************************************************/
 
 
@@ -2414,7 +2411,7 @@
  ****************************************************************************************/
 //#define NOZZLE_PARK_FEATURE
 
-// Specify a park position as { X, Y, Z }
+// Specify a park position as { X, Y, Z_raise }
 #define NOZZLE_PARK_POINT { 10, 10, 20 }
 #define NOZZLE_PARK_XY_FEEDRATE 100   // X and Y axes feedrate in mm/s (also used for delta printers Z axis)
 #define NOZZLE_PARK_Z_FEEDRATE    5   // Z axis feedrate in mm/s (not used for delta printers)

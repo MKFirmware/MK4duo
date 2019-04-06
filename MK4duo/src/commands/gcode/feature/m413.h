@@ -28,32 +28,28 @@
 
 #if HAS_SD_RESTART
 
-  #define CODE_M413
+#define CODE_M413
 
-  /**
-   * M413: Enable / Disable Restart Job
-   *
-   * Parameters
-   *  S[bool] - Flag to enable / disable.
-   */
-  inline void gcode_M413(void) {
+/**
+ * M413: Enable / Disable Restart Job
+ *
+ * Parameters
+ *  S[bool] - Flag to enable / disable.
+ */
+inline void gcode_M413(void) {
 
-    if (parser.seen('S'))
-      restart.enable(parser.value_bool());
-    else {
-      SERIAL_STR(ECHO);
-      SERIAL_ONOFF(" SD Restart Job", restart.enabled);
-      SERIAL_EOL();
-    }
+  if (parser.seen('S')) restart.enable(parser.value_bool());
 
-    #if ENABLED(DEBUG_RESTART)
-      if (parser.seen('R') || parser.seen('L')) restart.load_job();
-      if (parser.seen('W')) restart.save_job(true);
-      if (parser.seen('P')) restart.purge_job();
-      if (parser.seen('E')) SERIAL_STR(restart.exists() ? PSTR("restart Exists\n") : PSTR("No restart\n"));
-      if (parser.seen('V')) SERIAL_STR(restart.valid() ? PSTR("Valid\n") : PSTR("Invalid\n"));
-    #endif
+  SERIAL_STR(ECHO);
+  SERIAL_ONOFF(" SD Restart Job", restart.enabled);
+  SERIAL_EOL();
 
-  }
+  if (parser.seen('R') || parser.seen('L')) restart.load_job();
+  if (parser.seen('W')) restart.save_job(true);
+  if (parser.seen('P')) restart.purge_job();
+  if (parser.seen('E')) (void)restart.exists();
+  if (parser.seen('V')) DEBUG_LS(DEB, restart.valid() ? PSTR(" Valid") : PSTR(" Invalid"));
+
+}
 
 #endif // HAS_SD_RESTART

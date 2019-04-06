@@ -65,14 +65,12 @@ void Restart::purge_job() {
 }
 
 void Restart::load_job() {
-  #if ENABLED(DEBUG_RESTART)
-    debug_info(PSTR("Load"));
-  #endif
   if (exists()) {
     open(true);
     (void)job_file.read(&job_info, sizeof(job_info));
     close();
   }
+  debug_info(PSTR("Load"));
 }
 
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
@@ -277,17 +275,16 @@ void Restart::resume_job() {
 /** Private Function */
 void Restart::write_job() {
   bool failed = false;
-  #if ENABLED(DEBUG_RESTART)
-    debug_info(PSTR("Write"));
-  #endif
+
+  debug_info(PSTR("Write"));
+
   open(false);
   if (!job_file.seekSet(0)) failed = true;
   if (!failed && !job_file.write(&job_info, sizeof(job_info)) == sizeof(job_info))
     failed = true;
   close();
-  #if ENABLED(DEBUG_RESTART)
-    if (failed) SERIAL_EM("Restart job_file write failed.");
-  #endif
+  if (failed) DEBUG_LM(DEB, " Restart file write failed.");
+
 }
 
 #if ENABLED(DEBUG_RESTART)

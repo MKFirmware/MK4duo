@@ -3037,6 +3037,9 @@ constexpr MCode_command_t MCode_Table [] = {
 	#if ENABLED(CODE_M999)
 		{ 999, gcode_M999 },
 	#endif
+  #if ENABLED(CODE_M1000)
+		{ 1000, gcode_M1000 },
+	#endif
   #if ENABLED(CODE_M9999)
 		{ 9999, gcode_M9999 }
 	#endif
