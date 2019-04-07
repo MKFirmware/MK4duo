@@ -56,7 +56,7 @@ inline void gcode_M92(void) {
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      const float value = parser.value_per_axis_unit((AxisEnum)a);
+      const float value = MAX(parser.value_per_axis_unit((AxisEnum)a), 1.0f); // don't allow zero or negative
       if (i == E_AXIS) {
         if (value < 20) {
           float factor = mechanics.data.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.

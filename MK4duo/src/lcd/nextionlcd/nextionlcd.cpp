@@ -108,7 +108,7 @@ SDstatus_enum SDstatus    = NO_SD;
 
 #if HAS_SD_SUPPORT
   #if PIN_EXISTS(SD_DETECT)
-    uint8_t lcd_sd_status;
+    uint8_t lcd_sd_status = 2; // UNKNOWN
   #endif
   NexUpload Firmware(NEXTION_FIRMWARE_FILE, 57600);
 #endif
