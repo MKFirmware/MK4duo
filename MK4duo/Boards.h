@@ -50,7 +50,7 @@
 #define BOARD_ULTIMAIN_2        72    // Ultimainboard 2.x (Uses TEMP_SENSOR 20)
 #define BOARD_GT2560_REV_A      74    // Geeetech GT2560 Rev. A
 #define BOARD_GT2560_REV_A_PLUS 75    // Geeetech GT2560 Rev. A+
-#define BOARD_GT2560_V3         76    // Geeetech GT2560 Rev B for A10(M/D)
+#define BOARD_GT2560_V3         76    // Geeetech GT2560 Rev. B for A10(M/D)
 #define BOARD_3DRAG             77    // 3Drag Controller
 #define BOARD_K8200             78    // Vellemann K8200 Controller (variant of the 3Drag Controller)
 #define BOARD_3DVERTEX          79    // 3DVertex Controller (Velleman K8400)
