@@ -85,7 +85,7 @@ class MMU2 {
     static inline void set_runout_valid(const bool valid) {
       findaRunoutValid = valid;
       #if HAS_FILAMENT_SENSOR
-        if (valid) runout.reset();
+        if (valid) filamentrunout.reset();
       #endif
     }
 
