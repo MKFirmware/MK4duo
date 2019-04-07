@@ -65,9 +65,7 @@
 #define NvicPrioritySystick 15
 
 #define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
-#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 * 256.0 / (HAL_TIMER_RATE))
 
-#define STEPPER_TC                  (TC1)
 #define STEPPER_TIMER               4
 #define STEPPER_TIMER_ISR()         void TC4_Handler()
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE

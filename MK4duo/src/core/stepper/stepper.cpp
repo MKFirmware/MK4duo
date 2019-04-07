@@ -1345,101 +1345,105 @@ uint32_t Stepper::block_phase_step() {
         laser.extinguish();
       #endif
     }
-    // Are we in data.acceleration phase
-    else if (step_events_completed <= accelerate_until) {
-
-      #if ENABLED(BEZIER_JERK_CONTROL)
-        // Get the next speed to use (Jerk limited!)
-        uint32_t acc_step_rate =
-          acceleration_time < current_block->acceleration_time
-            ? _eval_bezier_curve(acceleration_time)
-            : current_block->cruise_rate;
-      #else
-        acc_step_rate = HAL_MULTI_ACC(acceleration_time, current_block->acceleration_rate) + current_block->initial_rate;
-        NOMORE(acc_step_rate, current_block->nominal_rate);
-      #endif
-
-      // acc_step_rate is in steps/second
-
-      // step_rate to timer interval
-      interval = HAL_calc_timer_interval(acc_step_rate, &steps_per_isr, oversampling_factor);
-      acceleration_time += interval;
-
-      #if ENABLED(LIN_ADVANCE)
-        if (LA_use_advance_lead) {
-          // Fire ISR if final adv_rate is reached
-          if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
-        }
-        else if (LA_steps) nextAdvanceISR = 0;
-      #endif // ENABLED(LIN_ADVANCE)
-    }
-    // Are we in deceleration phase
-    else if (step_events_completed > decelerate_after) {
-      uint32_t step_rate;
-
-      #if ENABLED(BEZIER_JERK_CONTROL)
-        // If this is the 1st time we process the 2nd half of the trapezoid...
-        if (!bezier_2nd_half) {
-          // Initialize the Bézier speed curve
-          _calc_bezier_curve_coeffs(current_block->cruise_rate, current_block->final_rate, current_block->deceleration_time_inverse);
-          bezier_2nd_half = true;
-          // The first point starts at cruise rate. Just save evaluation of the Bézier curve
-          step_rate = current_block->cruise_rate;
-        }
-        else {
-          // Calculate the next speed to use
-          step_rate = deceleration_time < current_block->deceleration_time
-            ? _eval_bezier_curve(deceleration_time)
-            : current_block->final_rate;
-        }
-      #else
-
-        // Using the old trapezoidal control
-        step_rate = HAL_MULTI_ACC(deceleration_time, current_block->acceleration_rate);
-
-        if (step_rate < acc_step_rate) { // Still decelerating?
-          step_rate = acc_step_rate - step_rate;
-          NOLESS(step_rate, current_block->final_rate);
-        }
-        else
-          step_rate = current_block->final_rate;
-      #endif
-
-      // step_rate is in steps/second
-
-      // step_rate to timer interval
-      interval = HAL_calc_timer_interval(step_rate, &steps_per_isr, oversampling_factor);
-      deceleration_time += interval;
-
-      #if ENABLED(LIN_ADVANCE)
-        if (LA_use_advance_lead) {
-          // Wake up eISR on first deceleration loop and fire ISR if final adv_rate is reached
-          if (step_events_completed <= decelerate_after + steps_per_isr ||
-             (LA_steps && LA_isr_rate != current_block->advance_speed)
-          ) {
-            nextAdvanceISR = 0;
-            LA_isr_rate = current_block->advance_speed;
-          }
-        }
-        else if (LA_steps) nextAdvanceISR = 0;
-      #endif // LIN_ADVANCE
-    }
-    // We must be in cruise phase otherwise
     else {
+      // Step events not completed yet...
 
-      #if ENABLED(LIN_ADVANCE)
-        // If there are any esteps, fire the next advance_isr "now"
-        if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
-      #endif
+      // Are we in acceleration phase ?
+      if (step_events_completed <= accelerate_until) {
 
-      // Calculate the ticks_nominal for this nominal speed, if not done yet
-      if (ticks_nominal < 0) {
-        // step_rate to timer interval and loops for the nominal speed
-        ticks_nominal = HAL_calc_timer_interval(current_block->nominal_rate, &steps_per_isr, oversampling_factor);
+        #if ENABLED(BEZIER_JERK_CONTROL)
+          // Get the next speed to use (Jerk limited!)
+          uint32_t acc_step_rate =
+            acceleration_time < current_block->acceleration_time
+              ? _eval_bezier_curve(acceleration_time)
+              : current_block->cruise_rate;
+        #else
+          acc_step_rate = HAL_MULTI_ACC(acceleration_time, current_block->acceleration_rate) + current_block->initial_rate;
+          NOMORE(acc_step_rate, current_block->nominal_rate);
+        #endif
+
+        // acc_step_rate is in steps/second
+
+        // step_rate to timer interval
+        interval = HAL_calc_timer_interval(acc_step_rate, &steps_per_isr, oversampling_factor);
+        acceleration_time += interval;
+
+        #if ENABLED(LIN_ADVANCE)
+          if (LA_use_advance_lead) {
+            // Fire ISR if final adv_rate is reached
+            if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
+          }
+          else if (LA_steps) nextAdvanceISR = 0;
+        #endif // ENABLED(LIN_ADVANCE)
       }
+      // Are we in deceleration phase
+      else if (step_events_completed > decelerate_after) {
+        uint32_t step_rate;
 
-      // The timer interval is just the nominal value for the nominal speed
-      interval = ticks_nominal;
+        #if ENABLED(BEZIER_JERK_CONTROL)
+          // If this is the 1st time we process the 2nd half of the trapezoid...
+          if (!bezier_2nd_half) {
+            // Initialize the Bézier speed curve
+            _calc_bezier_curve_coeffs(current_block->cruise_rate, current_block->final_rate, current_block->deceleration_time_inverse);
+            bezier_2nd_half = true;
+            // The first point starts at cruise rate. Just save evaluation of the Bézier curve
+            step_rate = current_block->cruise_rate;
+          }
+          else {
+            // Calculate the next speed to use
+            step_rate = deceleration_time < current_block->deceleration_time
+              ? _eval_bezier_curve(deceleration_time)
+              : current_block->final_rate;
+          }
+        #else
+
+          // Using the old trapezoidal control
+          step_rate = HAL_MULTI_ACC(deceleration_time, current_block->acceleration_rate);
+
+          if (step_rate < acc_step_rate) { // Still decelerating?
+            step_rate = acc_step_rate - step_rate;
+            NOLESS(step_rate, current_block->final_rate);
+          }
+          else
+            step_rate = current_block->final_rate;
+        #endif
+
+        // step_rate is in steps/second
+
+        // step_rate to timer interval
+        interval = HAL_calc_timer_interval(step_rate, &steps_per_isr, oversampling_factor);
+        deceleration_time += interval;
+
+        #if ENABLED(LIN_ADVANCE)
+          if (LA_use_advance_lead) {
+            // Wake up eISR on first deceleration loop and fire ISR if final adv_rate is reached
+            if (step_events_completed <= decelerate_after + steps_per_isr ||
+               (LA_steps && LA_isr_rate != current_block->advance_speed)
+            ) {
+              nextAdvanceISR = 0;
+              LA_isr_rate = current_block->advance_speed;
+            }
+          }
+          else if (LA_steps) nextAdvanceISR = 0;
+        #endif // LIN_ADVANCE
+      }
+      // We must be in cruise phase otherwise
+      else {
+
+        #if ENABLED(LIN_ADVANCE)
+          // If there are any esteps, fire the next advance_isr "now"
+          if (LA_steps && LA_isr_rate != current_block->advance_speed) nextAdvanceISR = 0;
+        #endif
+
+        // Calculate the ticks_nominal for this nominal speed, if not done yet
+        if (ticks_nominal < 0) {
+          // step_rate to timer interval and loops for the nominal speed
+          ticks_nominal = HAL_calc_timer_interval(current_block->nominal_rate, &steps_per_isr, oversampling_factor);
+        }
+
+        // The timer interval is just the nominal value for the nominal speed
+        interval = ticks_nominal;
+      }
     }
   }
 
