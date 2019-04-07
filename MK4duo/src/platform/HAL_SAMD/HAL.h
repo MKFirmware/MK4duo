@@ -147,7 +147,7 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
 
 
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(A,B)  MultiU32X32toH32(A,B)
+#define HAL_MULTI_ACC(A,B)  MultiU32X24toH32(A,B)
 
 #define ADV_NEVER 0xFFFFFFFF
 

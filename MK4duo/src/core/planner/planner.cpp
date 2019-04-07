@@ -1644,9 +1644,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           block->use_advance_lead = false;
         else {
           const uint32_t max_accel_steps_per_s2 = MAX_E_JERK / (extruder_advance_K * block->e_D_ratio) * steps_per_mm;
-          #if ENABLED(LA_DEBUG)
-            if (accel > max_accel_steps_per_s2) SERIAL_EM("Acceleration limited.");
-          #endif
+          if (accel > max_accel_steps_per_s2) DEBUG_EM("Acceleration limited.");
           NOMORE(accel, max_accel_steps_per_s2);
         }
       }
@@ -1669,17 +1667,15 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   block->acceleration_steps_per_s2 = accel;
   block->acceleration = accel / steps_per_mm;
   #if DISABLED(BEZIER_JERK_CONTROL)
-    block->acceleration_rate = (uint32_t)(accel * (HAL_ACCELERATION_RATE));
+    block->acceleration_rate = (uint32_t)(accel * (4096.0f * 4096.0f / (HAL_TIMER_RATE)));
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
       block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.data.axis_steps_per_mm[E_AXIS_N(extruder)]);
-      #if ENABLED(LA_DEBUG)
-        if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
-          SERIAL_EM("More than 2 steps per eISR loop executed.");
-        if (block->advance_speed < 200)
-          SERIAL_EM("eISR running at > 10kHz.");
-      #endif
+      if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
+        DEBUG_EM("More than 2 steps per eISR loop executed.");
+      if (block->advance_speed < 200)
+        DEBUG_EM("eISR running at > 10kHz.");
     }
   #endif
 
