@@ -193,7 +193,7 @@ typedef uint32_t  ptr_int_t;
 #define HIGH        1
 
 // Macros for stepper.cpp
-#define HAL_MULTI_ACC(A,B)  MultiU32X32toH32(A,B)
+#define HAL_MULTI_ACC(A,B)  MultiU32X24toH32(A,B)
 
 #define HAL_TIMER_TYPE_MAX  0xFFFFFFFF
 

@@ -172,7 +172,6 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 
 #define HAL_TIMER_RATE              ((F_CPU) / 8)
-#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 / (HAL_TIMER_RATE))
 
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_PRESCALE      8

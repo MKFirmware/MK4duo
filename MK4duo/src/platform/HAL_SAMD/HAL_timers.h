@@ -83,7 +83,6 @@ typedef struct {
 
 
 #define HAL_TIMER_RATE              ((F_CPU)/2) // 24 MHz
-#define HAL_ACCELERATION_RATE       (4096.0 * 4096.0 * 128.0 / (HAL_TIMER_RATE))
 
 #define STEPPER_TIMER               2
 #define STEPPER_TIMER_PRESCALE      2.0

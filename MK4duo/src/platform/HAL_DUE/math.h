@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  * Optimized math functions for DUE
  */
 
-static FORCE_INLINE uint32_t MultiU32X32toH32(uint32_t longIn1,uint32_t longIn2) {
-	return ((uint64_t)longIn1 * longIn2) >> 32;
+static FORCE_INLINE uint32_t MultiU32X24toH32(uint32_t longIn1, uint32_t longIn2) {
+	return ((uint64_t)longIn1 * longIn2 + 0x00800000) >> 24;
 }
 
 // Class to perform averaging of values read from the ADC
