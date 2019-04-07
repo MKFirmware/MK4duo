@@ -326,6 +326,7 @@ void menu_stop_print();
 
 #if HAS_SD_SUPPORT
   void menu_sdcard();
+  void menu_confirm_sdfile();
 #endif
 
 #if HAS_EEPROM

@@ -97,6 +97,14 @@ class MenuItem_sdfolder {
     }
 };
 
+void menu_confirm_sdfile() {
+  lcdui.encoder_direction_menus();
+  START_MENU();
+  MENU_ITEM(sdfile, MSG_CARD_MENU, card);
+  MENU_BACK(MSG_BACK);
+  END_MENU();
+}
+
 void menu_sdcard() {
   lcdui.encoder_direction_menus();
 
@@ -126,8 +134,22 @@ void menu_sdcard() {
 
       if (card.isFilenameIsDir())
         MENU_ITEM(sdfolder, MSG_CARD_MENU, card);
-      else
-        MENU_ITEM(sdfile, MSG_CARD_MENU, card);
+      else {
+        //MENU_ITEM(sdfile, MSG_CARD_MENU, card);
+        do { 
+          _skipStatic = false; 
+          if (_menuLineNr == _thisItemNr) { 
+            if (encoderLine == _thisItemNr && lcdui.use_click()) { 
+              //_MENU_ITEM_MULTIPLIER_CHECK(USE_MULTIPLIER); 
+              MenuItem_submenu::action(menu_confirm_sdfile); 
+              if (screen_changed) return; 
+            } 
+            if (lcdui.should_draw()) 
+              draw_menu_item_sdfile(encoderLine == _thisItemNr, _lcdLineNr, PSTR(MSG_CARD_MENU), card); 
+          } 
+          ++_thisItemNr; 
+        } while(0);
+      }
     }
     else {
       MENU_ITEM_DUMMY();
