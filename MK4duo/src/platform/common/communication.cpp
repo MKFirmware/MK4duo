@@ -196,14 +196,18 @@ void Com::print_spaces(uint8_t count) {
 }
 
 void Com::print_logic(PGM_P const label, const bool logic) {
-  printPGM(label);
-  printPGM(PSTR(": "));
+  if (label) {
+    printPGM(label);
+    write(':');
+  }
   printPGM(logic ? PSTR("true") : PSTR("false"));
 }
 
 void Com::print_onoff(PGM_P const label, const bool onoff) {
-  printPGM(label);
-  printPGM(PSTR(": "));
+  if (label) {
+    printPGM(label);
+    write(':');
+  }
   printPGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
 }
 
