@@ -134,8 +134,7 @@ void MazeGame::game_screen() {
 
 void MazeGame::enter_game() {
   init_game(1, game_screen); // Game running
-  reset_player();
-  reset_enemies();
+  player_reset();
 }
 
 #endif // MARLIN_MAZE

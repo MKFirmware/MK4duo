@@ -761,7 +761,7 @@ void LcdUI::update() {
       // If scrolling of long file names is enabled and we are in the sd card menu,
       // cause a refresh to occur until all the text has scrolled into view.
       if ((currentScreen == menu_sdcard  || currentScreen == menu_confirm_sdfile) && !status_update_delay--) {
-        status_update_delay = 4
+        status_update_delay = 4;
         if (++filename_scroll_pos > filename_scroll_max) {
           filename_scroll_pos = 0;
           status_update_delay = 12;

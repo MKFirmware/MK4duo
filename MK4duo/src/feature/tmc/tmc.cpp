@@ -1241,7 +1241,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->PWM_SCALE()); break;
         case TMC_SGT: SERIAL_VAL(st->sgt()); break;
-        case TMC_STEALTHCHOP: SERIAL_STR(st->en_pwm_mode() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_LOGIC("", st->en_pwm_mode()); break;
         default: break;
       }
     }
@@ -1289,7 +1289,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     void TMC_Stepper::status(MKTMC* st, const TMCdebugEnum i) {
       switch (i) {
         case TMC_PWM_SCALE: SERIAL_VAL(st->pwm_scale_sum()); break;
-        case TMC_STEALTHCHOP: SERIAL_STR(st->stealth() ? PSTR("true") : PSTR("false")); break;
+        case TMC_STEALTHCHOP: SERIAL_LOGIC("", st->stealth()); break;
         case TMC_S2VSA: if (st->s2vsa()) SERIAL_CHR('X'); break;
         case TMC_S2VSB: if (st->s2vsb()) SERIAL_CHR('X'); break;
         default: break;
@@ -1338,7 +1338,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_STR(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_LOGIC("", st->isEnabled()); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
@@ -1348,8 +1348,8 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
           break;
         case TMC_VSENSE: SERIAL_STR(st->vsense() ? PSTR("1=.165") : PSTR("0=.310")); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
-        //case TMC_OTPW: SERIAL_STR(st->otpw() ? PSTR("true") : PSTR("false")); break;
-        //case TMC_OTPW_TRIGGERED: SERIAL_STR(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
+        //case TMC_OTPW: SERIAL_LOGIC("", st->otpw()); break;
+        //case TMC_OTPW_TRIGGERED: SERIAL_LOGIC("", st->getOTPW()); break;
         case TMC_SGT: SERIAL_VAL(st->sgt(), DEC); break;
         case TMC_TOFF: SERIAL_VAL(st->toff(), DEC); break;
         case TMC_TBL: SERIAL_VAL(st->blank_time(), DEC); break;
@@ -1365,7 +1365,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
       SERIAL_CHR('\t');
       switch (i) {
         case TMC_CODES: st->printLabel(); break;
-        case TMC_ENABLED: SERIAL_STR(st->isEnabled() ? PSTR("true") : PSTR("false")); break;
+        case TMC_ENABLED: SERIAL_LOGIC("", st->isEnabled()); break;
         case TMC_CURRENT: SERIAL_VAL(st->getMilliamps()); break;
         case TMC_RMS_CURRENT: SERIAL_VAL(st->rms_current()); break;
         case TMC_MAX_CURRENT: SERIAL_VAL((float)st->rms_current() * 1.41, 0); break;
@@ -1402,9 +1402,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
               SERIAL_CHR('-');
           }
           break;
-        case TMC_OTPW: SERIAL_STR(st->otpw() ? PSTR("true") : PSTR("false")); break;
+        case TMC_OTPW: SERIAL_LOGIC("", st->otpw()); break;
         #if ENABLED(MONITOR_DRIVER_STATUS)
-          case TMC_OTPW_TRIGGERED: SERIAL_STR(st->getOTPW() ? PSTR("true") : PSTR("false")); break;
+          case TMC_OTPW_TRIGGERED: SERIAL_LOGIC("", st->getOTPW()); break;
         #endif
         case TMC_TOFF: SERIAL_VAL(st->toff()); break;
         case TMC_TBL: SERIAL_VAL(st->blank_time()); break;
