@@ -29,7 +29,16 @@ class MMU2 {
 
     MMU2();
 
-  public: /** Public Parameters */
+  private: /** Private Parameters */
+
+    static bool enabled, ready, mmu_print_saved;
+    static uint8_t cmd, cmd_arg, last_cmd, extruder;
+    static int8_t state;
+    static volatile int8_t finda;
+    static volatile bool findaRunoutValid;
+    static int16_t version, buildnr;
+    static millis_t last_request, next_P0_request;
+    static char rx_buffer[16], tx_buffer[16];
 
   public: /** Public Function */
 
@@ -65,29 +74,14 @@ class MMU2 {
     static bool getResponse(void);
     static void manageResponse(bool move_axes, bool turn_off_nozzle);
 
+    static void filamentRunout();
+    static void set_runout_valid(const bool valid);
+
     #if HAS_LCD_MENU
       static void loadToNozzle();
       static void filamentRamming();
       static void executeExtruderSequence(const E_Step * sequence, int steps);
     #endif
-
-    static void filamentRunout();
-
-    static bool enabled, ready, mmu_print_saved;
-    static uint8_t cmd, cmd_arg, last_cmd, extruder;
-    static int8_t state;
-    static volatile int8_t finda;
-    static volatile bool findaRunoutValid;
-    static int16_t version, buildnr;
-    static millis_t last_request, next_P0_request;
-    static char rx_buffer[16], tx_buffer[16];
-
-    static inline void set_runout_valid(const bool valid) {
-      findaRunoutValid = valid;
-      #if HAS_FILAMENT_SENSOR
-        if (valid) filamentrunout.reset();
-      #endif
-    }
 
 };
 

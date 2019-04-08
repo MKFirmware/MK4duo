@@ -34,7 +34,7 @@ int8_t encoderTopLine, encoderLine, screen_items;
 typedef struct {
   screenFunc_t menu_function;
   uint32_t  encoder_position;
-  uint8_t   top_line, items;
+  int8_t    top_line, items;
 } menuPosition;
 menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
@@ -164,7 +164,7 @@ void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
 /**
  * General function to go directly to a screen
  */
-void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/, const uint8_t top/*=0*/, const uint8_t items/*=0*/) {
+void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/, const int8_t top/*=0*/, const int8_t items/*=0*/) {
   if (currentScreen != screen) {
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
