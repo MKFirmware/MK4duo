@@ -698,6 +698,13 @@ void MMU2::filamentRunout() {
   planner.synchronize();
 }
 
+void MMU2::set_runout_valid(const bool valid) {
+  findaRunoutValid = valid;
+  #if HAS_FILAMENT_SENSOR
+    if (valid) filamentrunout.reset();
+  #endif
+}
+
 #if HAS_LCD_MENU
 
   // Load filament into MMU2
