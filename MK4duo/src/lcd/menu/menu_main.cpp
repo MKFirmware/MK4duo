@@ -32,14 +32,17 @@
   #include "game/game.h"
 #endif
 
+bool stop_print_file;
 void menu_stop_print() {
-  lcdui.encoder_direction_menus();
-  START_MENU();
-  MENU_BACK(MSG_MAIN);
-  STATIC_ITEM(MSG_ARE_YOU_SURE);
-  MENU_ITEM(function, MSG_YES, lcdui.stop_print);
-  MENU_ITEM(function, MSG_NO, lcdui.return_to_status);
-  END_MENU();
+  if (lcdui.should_draw())
+    do_select_screen_yn(stop_print_file, PSTR(MSG_ARE_YOU_SURE), NULL, PSTR("?"));
+
+  if (lcdui.use_click()) {
+    if (stop_print_file)
+      lcdui.stop_print();
+    else
+      lcdui.goto_previous_screen();
+  }
 }
 
 #if HAS_EEPROM

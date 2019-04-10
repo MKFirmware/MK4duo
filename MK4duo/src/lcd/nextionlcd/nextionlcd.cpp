@@ -57,7 +57,7 @@ uint8_t     LcdUI::status_message_level; // = 0
 
   LCDViewActionEnum LcdUI::lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
 
-  uint32_t    LcdUI::encoderPosition;
+  uint16_t    LcdUI::encoderPosition;
 
   screenFunc_t  LcdUI::currentScreen;
 
@@ -456,7 +456,7 @@ void PlayPausePopCallback() {
     commands.enqueue_and_echo(buffer);
   }
 
-  void rfid_setText(PGM_P message, uint32_t color /* = 65535 */) {
+  void rfid_setText(PGM_P message, uint32_t color/*=65535*/) {
     char Rfid_status_message[25];
     strncpy(Rfid_status_message, message, 30);
     nexlcd.Set_font_color_pco(RfidText, color);
@@ -496,7 +496,7 @@ void setgcodePopCallback() {
 
 #if FAN_COUNT > 0
   void setfanPopCallback() {
-    fans[0].Speed = (fans[0].Speed ? 0 : 255);
+    fans[0].speed = (fans[0].speed ? 0 : 255);
     nexlcd.setValue(Fanspeed, fans[0].percent());
   }
 #endif
@@ -648,9 +648,9 @@ void Nextion_draw_update() {
       }
 
       #if FAN_COUNT > 0
-        if (PreviousfanSpeed != fans[0].actual_Speed()) {
+        if (PreviousfanSpeed != fans[0].actual_speed()) {
           nexlcd.setValue(Fanspeed, fans[0].percent());
-          PreviousfanSpeed = fans[0].actual_Speed();
+          PreviousfanSpeed = fans[0].actual_speed();
         }
       #endif
 
@@ -884,20 +884,22 @@ void Nextion_draw_update() {
 
   }
 
-  inline static void nextion_put_space(const uint8_t row, const uint8_t max_lengt) {
-    for (uint8_t i = 0; i < max_lengt; i++)
+  inline static void nextion_put_space(const uint8_t max_length) {
+    for (uint8_t i = 0; i < max_length; i++)
       nexlcd.setChar(' ');
   }
 
-  inline static void nextion_put_str_P(const uint8_t row, PGM_P str, const uint8_t max_lengt) {
-    for (uint8_t i = 0; i < max_lengt; i++) {
+  inline static void nextion_put_str_P(PGM_P str) {
+    const uint8_t len = strlen_P(str);
+    for (uint8_t i = 0; i < len; i++) {
       char ch = pgm_read_byte(str++);
       nexlcd.setChar(ch);
     }
   }
 
-  inline static void nextion_put_str(const uint8_t row, const char * str, const uint8_t max_lengt) {
-    for (uint8_t i = 0; i < max_lengt; i++)
+  inline static void nextion_put_str(const char * str) {
+    const uint8_t len = strlen(str);
+    for (uint8_t i = 0; i < len; i++)
       nexlcd.setChar(*str++);
   }
 
@@ -909,47 +911,38 @@ void Nextion_draw_update() {
   // Draw a static line of text in the same idiom as a menu item
   void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
     UNUSED(center);
-
     line_encoder_touch = true;
-
     mark_as_selected(row, invert);
-
-    const uint8_t labellen  = strlen_P(pstr);
     nexlcd.startChar(*txtmenu_list[row]);
-    nextion_put_str_P(row, pstr, labellen);
-
-    if (valstr != NULL) {
-      const uint8_t vallen = strlen(valstr);
-      nextion_put_str(row, valstr, vallen);
-    }
+    nextion_put_str_P(pstr);
+    if (valstr != NULL) nextion_put_str(valstr);
     nexlcd.endChar();
   }
 
   // Draw a generic menu item
   void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
     UNUSED(pre_char); UNUSED(post_char);
-    const uint8_t labellen  = strlen_P(pstr);
     line_encoder_touch = true;
     mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nextion_put_str_P(row, pstr, labellen);
+    nextion_put_str_P(pstr);
     nexlcd.endChar();
   }
 
   // Draw a menu item with an editable value
   void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr);
-    const uint8_t vallen = (pgm ? strlen_P(data) : strlen((char*)data));
+    const uint8_t labellen  = strlen_P(pstr),
+                  vallen = (pgm ? strlen_P(data) : strlen((char*)data));
     line_encoder_touch = true;
     mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nextion_put_str_P(row, pstr, labellen);
-    nextion_put_str_P(row, PSTR(":"), 1);
-    nextion_put_space(row, LCD_WIDTH - labellen - vallen - 2);
+    nextion_put_str_P(pstr);
+    nextion_put_str_P(PSTR(":"));
+    nextion_put_space(LCD_WIDTH - labellen - vallen - 2);
     if (pgm)
-      nextion_put_str_P(row, data, labellen);
+      nextion_put_str_P(data);
     else
-      nextion_put_str(row, (char*)data, vallen);
+      nextion_put_str((char*)data);
     nexlcd.endChar();
   }
 
@@ -969,19 +962,40 @@ void Nextion_draw_update() {
     if (extra_row) {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
-      nextion_put_str_P(row, pstr, labellen);
+      nextion_put_str_P(pstr);
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
-      nextion_put_space(row, LCD_WIDTH - vallen - 1);
-      nextion_put_str(row, value, labellen);
+      nextion_put_space(LCD_WIDTH - vallen - 1);
+      nextion_put_str(value);
     }
     else {
       nexlcd.startChar(*txtmenu_list[row]);
-      nextion_put_str_P(row, pstr, labellen);
-      nextion_put_str_P(row, PSTR(":"), 1);
-      nextion_put_space(row, LCD_WIDTH - labellen - vallen - 2);
-      nextion_put_str(row, value, vallen);
+      nextion_put_str_P(pstr);
+      nextion_put_str_P(PSTR(":"));
+      nextion_put_space(LCD_WIDTH - labellen - vallen - 2);
+      nextion_put_str(value);
     }
+    nexlcd.endChar();
+  }
+
+  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+    nexlcd.startChar(*txtmenu_list[0]);
+    nextion_put_str_P(pref);
+    if (string) {
+      nexlcd.endChar();
+      nexlcd.startChar(*txtmenu_list[1]);
+      nextion_put_str_P(string);
+    }
+    if (suff) nextion_put_str_P(suff);
+    nexlcd.endChar();
+    nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
+    nextion_put_str_P(yesno ? PSTR(" ") : PSTR("["));
+    nextion_put_str_P(no);
+    nextion_put_str_P(yesno ? PSTR(" ") : PSTR("]"));
+    nextion_put_space(2);
+    nextion_put_str_P(yesno ? PSTR("[") : PSTR(" "));
+    nextion_put_str_P(yes);
+    nextion_put_str_P(yesno ? PSTR("]") : PSTR(" "));
     nexlcd.endChar();
   }
 
@@ -989,11 +1003,10 @@ void Nextion_draw_update() {
 
     void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
       UNUSED(pstr);
-      const uint8_t labellen = strlen(theCard.fileName);
       mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
-      if (isDir) nextion_put_str_P(row, PSTR(LCD_STR_FOLDER), 2);
-      nextion_put_str(row, theCard.fileName, labellen);
+      if (isDir) nextion_put_str_P(PSTR(LCD_STR_FOLDER));
+      nextion_put_str(theCard.fileName);
       nexlcd.endChar();
     }
 
@@ -1362,7 +1375,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
     refresh();
   #endif
   // Buzz and wait. The delay is needed for buttons to settle!
-  sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+  sound.playtone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
 }
 
 void LcdUI::set_alert_status_P(PGM_P const message) {

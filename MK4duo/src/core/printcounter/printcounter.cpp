@@ -118,7 +118,7 @@ void PrintCounter::showStats() {
 
   SERIAL_MSG(MSG_STATS);
 
-  lengthtoString(buffer, data.filamentUsed);
+  ftostrlength(buffer, data.filamentUsed);
   SERIAL_EMT("Filament used:", buffer);
 
   #if ENABLED(SERVICE_TIME_1)
@@ -173,7 +173,7 @@ void PrintCounter::loadStats() {
       if (data.ServiceTime3 == 0) doBuzz = service_warning(PSTR(" " SERVICE_NAME_3));
     #endif
     #if HAS_BUZZER && SERVICE_WARNING_BUZZES > 0
-      if (doBuzz) for (uint8_t i = 0; i < SERVICE_WARNING_BUZZES; i++) sound.playTone(200, NOTE_A4);
+      if (doBuzz) for (uint8_t i = 0; i < SERVICE_WARNING_BUZZES; i++) sound.playtone(200, NOTE_A4);
     #endif
 
   #endif // HAS_SERVICE_TIMES

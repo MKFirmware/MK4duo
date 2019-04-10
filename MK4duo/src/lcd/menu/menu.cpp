@@ -33,7 +33,7 @@ int8_t encoderTopLine, encoderLine, screen_items;
 
 typedef struct {
   screenFunc_t menu_function;
-  uint32_t  encoder_position;
+  uint16_t  encoder_position;
   int8_t    top_line, items;
 } menuPosition;
 menuPosition screen_history[6];
@@ -106,8 +106,8 @@ void MenuItem_gcode::action(PGM_P pgcode) { commands.enqueue_and_echo_P(pgcode);
  */
 void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   lcdui.encoder_direction_normal();
-  if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
-  if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
+  if ((int16_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
+  if ((int16_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
     draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
@@ -117,7 +117,7 @@ void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   }
 }
 
-void MenuItemBase::init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint32_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
+void MenuItemBase::init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
   lcdui.save_previous_screen();
   lcdui.refresh();
   editLabel = el;
@@ -164,7 +164,7 @@ void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
 /**
  * General function to go directly to a screen
  */
-void LcdUI::goto_screen(screenFunc_t screen, const uint32_t encoder/*=0*/, const int8_t top/*=0*/, const int8_t items/*=0*/) {
+void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const int8_t top/*=0*/, const int8_t items/*=0*/) {
   if (currentScreen != screen) {
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -304,7 +304,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     #endif
     lcdui.encoder_direction_normal();
     if (lcdui.encoderPosition) {
-      const int16_t babystep_increment = (int32_t)lcdui.encoderPosition * (BABYSTEP_MULTIPLICATOR);
+      const int16_t babystep_increment = (int16_t)lcdui.encoderPosition * (BABYSTEP_MULTIPLICATOR);
       lcdui.encoderPosition = 0;
 
       const float diff = mechanics.steps_to_mm[Z_AXIS] * babystep_increment,
@@ -468,6 +468,14 @@ void lcd_draw_homing() {
   constexpr uint8_t line = (LCD_HEIGHT - 1) / 2;
   if (lcdui.should_draw()) draw_menu_item_static(line, PSTR(MSG_LEVEL_BED_HOMING));
   lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
+}
+
+void do_select_screen(PGM_P const yes, PGM_P const no, bool &yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+  if (lcdui.encoderPosition) {
+    yesno = int16_t(lcdui.encoderPosition) > 0;
+    lcdui.encoderPosition = 0;
+  }
+  draw_select_screen(yes, no, yesno, pref, string, suff);
 }
 
 #if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))

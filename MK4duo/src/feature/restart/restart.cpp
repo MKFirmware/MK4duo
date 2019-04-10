@@ -108,7 +108,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     #if FAN_COUNT > 0
       LOOP_FAN()
-        job_info.fan_speed[f] = fans[f].Speed;
+        job_info.fan_speed[f] = fans[f].speed;
     #endif
 
     // Extruders
@@ -189,25 +189,25 @@ void Restart::resume_job() {
   #if CHAMBERS > 0
     LOOP_CHAMBER() {
       chambers[h].setTarget(job_info.chamber_target_temperature[h]);
-      chambers[h].waitForTarget(true);
+      chambers[h].wait_for_target(true);
     }
   #endif
   #if BEDS > 0
     LOOP_BED() {
       beds[h].setTarget(job_info.bed_target_temperature[h]);
-      beds[h].waitForTarget(true);
+      beds[h].wait_for_target(true);
     }
   #endif
   #if HOTENDS > 0
     LOOP_HOTEND() {
       hotends[h].setTarget(job_info.target_temperature[h]);
-      hotends[h].waitForTarget(true);
+      hotends[h].wait_for_target(true);
     }
   #endif
 
   // Set fan
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].Speed = job_info.fan_speed[f];
+    LOOP_FAN() fans[f].speed = job_info.fan_speed[f];
   #endif
 
   // Set leveling

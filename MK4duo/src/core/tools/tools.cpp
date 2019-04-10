@@ -72,7 +72,7 @@
       UNUSED(fr_mm_s);
       UNUSED(no_move);
 
-      mmu2.toolChange(tmp_extruder);
+      mmu2.tool_change(tmp_extruder);
 
     #elif EXTRUDERS < 2
 

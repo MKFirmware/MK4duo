@@ -53,10 +53,10 @@ class Sound {
 
   public: /** Public Function */
 
-    static void playTone(const uint16_t duration, const uint16_t freq);
+    static void playtone(const uint16_t duration, const uint16_t freq);
     static void spin();
 
-    static void cycleState();
+    static void cyclestate();
 
     static void feedback(const bool good=true);
 

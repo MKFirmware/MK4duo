@@ -36,7 +36,7 @@ union flagheater_t {
     bool  Active            : 1;
     bool  UsePid            : 1;
     bool  Tuning            : 1;
-    bool  HWInverted        : 1;
+    bool  HWInvert          : 1;
     bool  Thermalprotection : 1;
     bool  Idle              : 1;
     bool  Fault             : 1;
@@ -102,9 +102,9 @@ class Heater {
     void init();
 
     void setTarget(const int16_t celsius);
-    void waitForTarget(bool no_wait_for_cooling=true);
-    void getOutput();
-    void setOutputPwm();
+    void wait_for_target(bool no_wait_for_cooling=true);
+    void get_output();
+    void set_output_pwm();
     void print_M301();
     void print_M305();
     void print_M306();
@@ -117,7 +117,7 @@ class Heater {
     void thermal_runaway_protection();
     void start_watching();
 
-    FORCE_INLINE void updateCurrentTemperature() { this->current_temperature = this->sensor.getTemperature(); }
+    FORCE_INLINE void update_current_temperature() { this->current_temperature = this->sensor.getTemperature(); }
     FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
     FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
     FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
@@ -144,8 +144,8 @@ class Heater {
     FORCE_INLINE bool isTuning() { return data.flag.Tuning; }
 
     // Flag bit 3 Set Hardware inverted
-    FORCE_INLINE void setHWInverted(const bool onoff) { data.flag.HWInverted = onoff; }
-    FORCE_INLINE bool isHWInverted() { return data.flag.HWInverted; }
+    FORCE_INLINE void setHWinvert(const bool onoff) { data.flag.HWInvert = onoff; }
+    FORCE_INLINE bool isHWinvert() { return data.flag.HWInvert; }
 
     // Flag bit 4 Set Thermal Protection
     FORCE_INLINE void setThermalProtection(const bool onoff) { data.flag.Thermalprotection = onoff; }

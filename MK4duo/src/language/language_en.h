@@ -41,6 +41,12 @@
 #ifndef WELCOME_MSG
   #define WELCOME_MSG                         MACHINE_NAME _UxGT(" ready.")
 #endif
+#ifndef MSG_YES
+  #define MSG_YES                             _UxGT("Yes")
+#endif
+#ifndef MSG_NO
+  #define MSG_NO                              _UxGT("No")
+#endif
 #ifndef MSG_BACK
   #define MSG_BACK                            _UxGT("Back")
 #endif
@@ -747,6 +753,15 @@
 #endif
 #ifndef MSG_TUNE
   #define MSG_TUNE                            _UxGT("Tune")
+#endif
+#ifndef MSG_START_PRINT
+  #define MSG_START_PRINT                     _UxGT("Start print")
+#endif
+#ifndef MSG_BUTTON_PRINT
+  #define MSG_BUTTON_PRINT                    _UxGT("Print")
+#endif
+#ifndef MSG_BUTTON_CANCEL
+  #define MSG_BUTTON_CANCEL                   _UxGT("Cancel")
 #endif
 #ifndef MSG_PAUSE_PRINT
   #define MSG_PAUSE_PRINT                     _UxGT("Pause print")
@@ -1511,13 +1526,7 @@
   #define MSG_NEED_TUNE_PID                   _UxGT("Need Tune PID")
 #endif
 #ifndef MSG_ARE_YOU_SURE
-  #define MSG_ARE_YOU_SURE                    _UxGT("Are you sure?")
-#endif
-#ifndef MSG_YES
-  #define MSG_YES                             _UxGT("Yes")
-#endif
-#ifndef MSG_NO
-  #define MSG_NO                              _UxGT("No")
+  #define MSG_ARE_YOU_SURE                    _UxGT("Are you sure")
 #endif
 
 // Rfid module

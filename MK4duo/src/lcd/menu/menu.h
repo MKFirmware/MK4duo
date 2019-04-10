@@ -39,7 +39,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu);
     static inline char* strfunc(const float value) { return STRFUNC((TYPE) value); } \
   };
 
-DECLARE_MENU_EDIT_TYPE(uint8_t,  percent,     ui8tostr_percent,1        );
+DECLARE_MENU_EDIT_TYPE(uint8_t,  percent,     ui8tostr4pct,    1        );
 DECLARE_MENU_EDIT_TYPE(int16_t,  int3,        i16tostr3,       1        );
 DECLARE_MENU_EDIT_TYPE(int16_t,  int4,        i16tostr4sign,   1        );
 DECLARE_MENU_EDIT_TYPE(int8_t,   int8,        i8tostr3,        1        );
@@ -61,6 +61,11 @@ DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f    );
 ////////////////////////////////////////////
 
 void draw_edit_screen(PGM_P const pstr, const char* const value=NULL);
+void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff);
+void do_select_screen(PGM_P const yes, PGM_P const no, bool &yesno, PGM_P const pref, const char * const string=NULL, PGM_P const suff=NULL);
+inline void do_select_screen_yn(bool &yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+  do_select_screen(PSTR(MSG_YES), PSTR(MSG_NO), yesno, pref, string, suff);
+}
 void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char);
 void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center=true, const bool invert=false, const char *valstr=NULL);
 void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm);
@@ -152,7 +157,7 @@ class MenuItemBase {
   protected:
     typedef char* (*strfunc_t)(const int32_t);
     typedef void (*loadfunc_t)(void *, const int32_t);
-    static void init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint32_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le);
+    static void init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le);
     static void edit(strfunc_t, loadfunc_t);
 };
 
@@ -326,7 +331,6 @@ void menu_stop_print();
 
 #if HAS_SD_SUPPORT
   void menu_sdcard();
-  void menu_confirm_sdfile();
 #endif
 
 #if HAS_EEPROM
@@ -429,7 +433,7 @@ void lcd_draw_homing();
 #if HAS_MMU2
   void menu_mmu2();
   void mmu2_M600();
-  uint8_t mmu2_chooseFilament();
+  uint8_t mmu2_choose_filament();
 #endif
 
 #endif // HAS_LCD_MENU

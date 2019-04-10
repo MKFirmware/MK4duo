@@ -140,7 +140,7 @@
 #elif ENABLED(WANHAO_D6_OLED)
 
   #define U8GLIB_SSD1306
-  #define LCD_WIDTH 22
+  #define LCD_WIDTH 21
   #define LCD_HEIGHT 5
   #define LCD_CONTRAST_MIN 10
   #define LCD_CONTRAST_MAX 255

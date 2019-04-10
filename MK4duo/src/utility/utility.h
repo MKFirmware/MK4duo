@@ -56,14 +56,11 @@ void print_hex_long(const uint32_t w, const char delimiter);
 // Utility functions to convert number into string
 //
 
-// Convert float length to string
-void lengthtoString(char *buffer, const float length);
-
 // Crc 16 bit for eeprom check
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
 
 // Convert uint8_t to string percentage
-char* ui8tostr_percent(const uint8_t i);
+char* ui8tostr4pct(const uint8_t i);
 
 // Convert uint8_t to string with 1 format
 char* ui8tostr1(const uint8_t i);
@@ -129,6 +126,9 @@ FORCE_INLINE char* ftostr3(const float &f) { return i16tostr3(int16_t(f + (f < 0
   // Convert float to rj string with 1234, _123, -123, __12, _-12, ___1, or __-1 format
   FORCE_INLINE char* ftostr4sign(const float &f) { return i16tostr4sign(int16_t(f + (f < 0 ? -0.5f : 0.5f))); }
 #endif
+
+// Convert float length to string
+void ftostrlength(char *buffer, const float f);
 
 // Convert uint8_t to uint8_t percentage
 FORCE_INLINE uint8_t ui8topercent(const uint8_t i) { return (int(i) * 100 + 127) / 255; }

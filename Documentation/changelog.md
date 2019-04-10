@@ -6,6 +6,7 @@
 * Add BLTouch V3.0
 * Add Prusa MMU2 Support
 * Add support thermocouples for bed and hotend.
+* Add menu axis limit to menu advanced.
 * M301 - Set PID parameters P I D and C.
 *   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
 *   T[int] 0-3 For Select Beds or Chambers (default 0)

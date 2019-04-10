@@ -50,36 +50,36 @@
 
     if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
 
-    const uint8_t speed = parser.byteval('S', 255);
+    const uint8_t new_speed = parser.byteval('S', 255);
 
     Fan *fan = &fans[f];
 
     if (parser.seen('U')) {
       // Put off the fan
-      fan->Speed = 0;
+      fan->speed = 0;
       fan->data.pin = parser.value_pin();
       SERIAL_LM(ECHO, MSG_CHANGE_PIN);
     }
 
     if (parser.seen('I'))
-      fan->setHWInverted(parser.value_bool());
+      fan->setHWinvert(parser.value_bool());
 
     if (parser.seen('H'))
-      fan->setAutoMonitored(parser.value_int());
+      fan->set_auto_monitor(parser.value_int());
 
-    fan->data.min_Speed           = parser.byteval('L', fan->data.min_Speed);
-    fan->data.max_Speed           = parser.byteval('X', fan->data.max_Speed);
+    fan->data.min_speed           = parser.byteval('L', fan->data.min_speed);
+    fan->data.max_speed           = parser.byteval('X', fan->data.max_speed);
     fan->data.freq                = parser.ushortval('F', fan->data.freq);
-    fan->data.triggerTemperature  = parser.ushortval('T', fan->data.triggerTemperature);
+    fan->data.trigger_temperature  = parser.ushortval('T', fan->data.trigger_temperature);
 
     #if ENABLED(FAN_KICKSTART_TIME)
-      if (fan->Kickstart == 0 && speed > fan->Speed && speed < 85) {
-        if (fan->Speed) fan->Kickstart = FAN_KICKSTART_TIME / 100;
-        else            fan->Kickstart = FAN_KICKSTART_TIME / 25;
+      if (fan->kickstart == 0 && new_speed > fan->speed && new_speed < 85) {
+        if (fan->speed) fan->kickstart = FAN_KICKSTART_TIME / 100;
+        else            fan->kickstart = FAN_KICKSTART_TIME / 25;
       }
     #endif
 
-    fan->Speed = constrain(speed, fan->data.min_Speed, fan->data.max_Speed);
+    fan->speed = constrain(new_speed, fan->data.min_speed, fan->data.max_speed);
 
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M106 report.
@@ -94,7 +94,7 @@
   inline void gcode_M107(void) {
     uint8_t f = 0;
     if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
-    fans[f].Speed = 0;
+    fans[f].speed = 0;
   }
 
 #endif // FAN_COUNT > 0

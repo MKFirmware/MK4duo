@@ -119,7 +119,7 @@
       #endif
 
       #if FAN_COUNT > 0
-        LOOP_FAN() if (fans[f].Speed > 0) return true;
+        LOOP_FAN() if (fans[f].speed > 0) return true;
       #endif
 
       if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON

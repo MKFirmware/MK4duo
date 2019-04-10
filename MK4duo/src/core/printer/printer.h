@@ -156,7 +156,7 @@ class Printer {
 
     FORCE_INLINE static void zero_fan_speed() {
       #if FAN_COUNT > 0
-        LOOP_FAN() fans[f].Speed = 0;
+        LOOP_FAN() fans[f].speed = 0;
       #endif
     }
 

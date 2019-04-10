@@ -95,39 +95,35 @@
     else if (!parser.seen('W'))  // if no S or W parameter, the DXC mode gets reset to the user's default
       mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
-    #if ENABLED(DEBUG_DXC_MODE)
-
-      if (parser.seen('W')) {
-        SERIAL_SM(ECHO, "DXC mode: ");
-        switch (mechanics.dual_x_carriage_mode) {
-          case DXC_FULL_CONTROL_MODE:       SERIAL_MSG("DXC_FULL_CONTROL_MODE");        break;
-          case DXC_AUTO_PARK_MODE:          SERIAL_MSG("DXC_AUTO_PARK_MODE");           break;
-          case DXC_DUPLICATION_MODE:        SERIAL_MSG("DXC_DUPLICATION_MODE");         break;
-          case DXC_SCALED_DUPLICATION_MODE: SERIAL_MSG("DXC_SCALED_DUPLICATION_MODE");  break;
-        }
-        SERIAL_MV("\nActive Ext: ", int(tools.active_extruder));
-        if (!mechanics.active_extruder_parked) SERIAL_MSG(" NOT ");
-        SERIAL_EM(" parked.");
-        SERIAL_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
-        SERIAL_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
-        SERIAL_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
-        SERIAL_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
-        SERIAL_MV("\nextruder_duplication_enabled: ", int(mechanics.extruder_duplication_enabled));
-        SERIAL_MV("\nduplicate_extruder_x_offset: ", mechanics.duplicate_extruder_x_offset);
-        SERIAL_MV("\nduplicate_extruder_temp_offset: ", mechanics.duplicate_extruder_temp_offset);
-        SERIAL_MV("\ndelayed_move_time: ", mechanics.delayed_move_time);
-        SERIAL_MV("\nX1 Home X: ", mechanics.x_home_pos(0));
-        SERIAL_MV("\nX1_MIN_POS=", int(X1_MIN_POS));
-        SERIAL_MV("\nX1_MAX_POS=", int(X1_MAX_POS));
-        SERIAL_MV("\nX1 Home X: ", mechanics.x_home_pos(1));
-        SERIAL_MV("\nX2_MIN_POS=", int(X2_MIN_POS));
-        SERIAL_MV("\nX2_MAX_POS=", int(X2_MAX_POS));
-        SERIAL_MV("\nX2_HOME_DIR=", int(X2_HOME_DIR));
-        SERIAL_MV("\nX2_HOME_POS=", int(X2_HOME_POS));
-        SERIAL_EOL();
+    if (parser.seen('W')) {
+      DEBUG_SM(DEB, "DXC mode: ");
+      switch (mechanics.dual_x_carriage_mode) {
+        case DXC_FULL_CONTROL_MODE:       DEBUG_MSG("DXC_FULL_CONTROL_MODE");        break;
+        case DXC_AUTO_PARK_MODE:          DEBUG_MSG("DXC_AUTO_PARK_MODE");           break;
+        case DXC_DUPLICATION_MODE:        DEBUG_MSG("DXC_DUPLICATION_MODE");         break;
+        case DXC_SCALED_DUPLICATION_MODE: DEBUG_MSG("DXC_SCALED_DUPLICATION_MODE");  break;
       }
-
-    #endif
+      DEBUG_MV("\nActive Ext: ", int(tools.active_extruder));
+      if (!mechanics.active_extruder_parked) DEBUG_MSG(" NOT ");
+      DEBUG_EM(" parked.");
+      DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+      DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
+      DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+      DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
+      DEBUG_MV("\nextruder_duplication_enabled: ", int(mechanics.extruder_duplication_enabled));
+      DEBUG_MV("\nduplicate_extruder_x_offset: ", mechanics.duplicate_extruder_x_offset);
+      DEBUG_MV("\nduplicate_extruder_temp_offset: ", mechanics.duplicate_extruder_temp_offset);
+      DEBUG_MV("\ndelayed_move_time: ", mechanics.delayed_move_time);
+      DEBUG_MV("\nX1 Home X: ", mechanics.x_home_pos(0));
+      DEBUG_MV("\nX1_MIN_POS=", int(X1_MIN_POS));
+      DEBUG_MV("\nX1_MAX_POS=", int(X1_MAX_POS));
+      DEBUG_MV("\nX1 Home X: ", mechanics.x_home_pos(1));
+      DEBUG_MV("\nX2_MIN_POS=", int(X2_MIN_POS));
+      DEBUG_MV("\nX2_MAX_POS=", int(X2_MAX_POS));
+      DEBUG_MV("\nX2_HOME_DIR=", int(X2_HOME_DIR));
+      DEBUG_MV("\nX2_HOME_POS=", int(X2_HOME_POS));
+      DEBUG_EOL();
+    }
 
   }
 

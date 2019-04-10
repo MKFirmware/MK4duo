@@ -595,38 +595,44 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   if (move_watch.stopwatch) {
+    static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       move_watch.start(); // reset stepper move watch to keep steppers powered
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_watch.elapsed()) {
-      #if ENABLED(DISABLE_INACTIVE_X)
-        stepper.disable_X();
-      #endif
-      #if ENABLED(DISABLE_INACTIVE_Y)
-        stepper.disable_Y();
-      #endif
-      #if ENABLED(DISABLE_INACTIVE_Z)
-        stepper.disable_Z();
-      #endif
-      #if ENABLED(DISABLE_INACTIVE_E)
-        stepper.disable_E();
-      #endif
-      #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
-        if (ubl.lcd_map_control) {
-          ubl.lcd_map_control = false;
-          lcdui.defer_status_screen(false);
-        }
-      #endif
-      #if ENABLED(LASER)
-        if (laser.time / 60000 > 0) {
-          laser.lifetime += laser.time / 60000; // convert to minutes
-          laser.time = 0;
-        }
-        laser.extinguish();
-        #if ENABLED(LASER_PERIPHERALS)
-          laser.peripherals_off();
+      if (!already_shutdown_steppers) {
+        already_shutdown_steppers = true; 
+        #if ENABLED(DISABLE_INACTIVE_X)
+          stepper.disable_X();
         #endif
-      #endif
+        #if ENABLED(DISABLE_INACTIVE_Y)
+          stepper.disable_Y();
+        #endif
+        #if ENABLED(DISABLE_INACTIVE_Z)
+          stepper.disable_Z();
+        #endif
+        #if ENABLED(DISABLE_INACTIVE_E)
+          stepper.disable_E();
+        #endif
+        #if HAS_LCD_MENU && ENABLED(AUTO_BED_LEVELING_UBL)
+          if (ubl.lcd_map_control) {
+            ubl.lcd_map_control = false;
+            lcdui.defer_status_screen(false);
+          }
+        #endif
+        #if ENABLED(LASER)
+          if (laser.time / 60000 > 0) {
+            laser.lifetime += laser.time / 60000; // convert to minutes
+            laser.time = 0;
+          }
+          laser.extinguish();
+          #if ENABLED(LASER_PERIPHERALS)
+            laser.peripherals_off();
+          #endif
+        #endif
+      }
     }
+    else
+      already_shutdown_steppers = false;
   }
 
   #if HAS_CHDK // Check if pin should be set to LOW (after M240 set it HIGH)
@@ -776,7 +782,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if HAS_MMU2
-    mmu2.mmuLoop();
+    mmu2.mmu_loop();
   #endif
 
   // Reset the watchdog

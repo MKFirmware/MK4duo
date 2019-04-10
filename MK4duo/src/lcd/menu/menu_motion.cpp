@@ -107,16 +107,16 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
     #endif
 
     // Get the new position
-    const float diff = float((int32_t)lcdui.encoderPosition) * move_menu_scale;
+    const float diff = float((int16_t)lcdui.encoderPosition) * move_menu_scale;
     #if IS_KINEMATIC
       manual_move_offset += diff;
-      if ((int32_t)lcdui.encoderPosition < 0)
+      if ((int16_t)lcdui.encoderPosition < 0)
         NOLESS(manual_move_offset, min - mechanics.current_position[axis]);
       else
         NOMORE(manual_move_offset, max - mechanics.current_position[axis]);
     #else
       mechanics.current_position[axis] += diff;
-      if ((int32_t)lcdui.encoderPosition < 0)
+      if ((int16_t)lcdui.encoderPosition < 0)
         NOLESS(mechanics.current_position[axis], min);
       else
         NOMORE(mechanics.current_position[axis], max);
@@ -160,7 +160,7 @@ static void _lcd_move_e(
   lcdui.encoder_direction_normal();
   if (lcdui.encoderPosition) {
     if (!lcdui.processing_manual_move) {
-      const float diff = float((int32_t)lcdui.encoderPosition) * move_menu_scale;
+      const float diff = float((int16_t)lcdui.encoderPosition) * move_menu_scale;
       #if IS_KINEMATIC
         manual_move_offset += diff;
       #else

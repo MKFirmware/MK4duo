@@ -414,7 +414,7 @@ inline bool turn_on_heaters() {
       beds[0].setTarget(g26_bed_temp);
 
       // Wait for the temperature to stabilize
-      beds[0].waitForTarget(true);
+      beds[0].wait_for_target(true);
       if (!printer.isWaitForHeatUp()) return G26_ERR;
     }
   #endif // HAS_TEMP_BED0
@@ -427,7 +427,7 @@ inline bool turn_on_heaters() {
   hotends[0].setTarget(g26_hotend_temp);
 
   // Wait for the temperature to stabilize
-  hotends[0].waitForTarget(true);
+  hotends[0].wait_for_target(true);
   if (!printer.isWaitForHeatUp()) return G26_ERR;
 
   #if HAS_LCD

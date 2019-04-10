@@ -160,7 +160,7 @@ class LcdUI {
 
     #if HAS_ENCODER_ACTION
 
-      static uint32_t encoderPosition;
+      static uint16_t encoderPosition;
 
       static volatile uint8_t buttons;
       #if ENABLED(REPRAPWORLD_KEYPAD)
@@ -302,7 +302,7 @@ class LcdUI {
 
       static void synchronize(PGM_P const msg=NULL);
 
-      static void goto_screen(const screenFunc_t screen, const uint32_t encoder=0, const int8_t top=0, const int8_t items=0);
+      static void goto_screen(const screenFunc_t screen, const uint16_t encoder=0, const int8_t top=0, const int8_t items=0);
       static void save_previous_screen();
       static void goto_previous_screen();
       static void return_to_status();
@@ -327,7 +327,7 @@ class LcdUI {
       #endif
 
       #if ENABLED(G26_MESH_VALIDATION)
-        static inline void chirp() { sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ); }
+        static inline void chirp() { sound.playtone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ); }
       #endif
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)

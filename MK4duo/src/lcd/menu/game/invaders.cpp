@@ -248,7 +248,7 @@ inline void explode(const int8_t x, const int8_t y, const int8_t v=4) {
 inline void kill_cannon(uint8_t &game_state, const uint8_t st) {
   reset_bullets();
   explode(cannon_x + (CANNON_W) / 2, CANNON_Y, 6);
-  sound.playTone(1000, 10);
+  sound.playtone(1000, 10);
   if (--cannons_left) {
     laser.v = 0;
     game_state = st;
@@ -267,7 +267,7 @@ void InvadersGame::game_screen() {
   if (lcdui.first_page) {
 
     // Update Cannon Position
-    int32_t ep = (int32_t)lcdui.encoderPosition;
+    int16_t ep = (int16_t)lcdui.encoderPosition;
     ep = constrain(ep, 0, (LCD_PIXEL_WIDTH - (CANNON_W)) / (CANNON_VEL));
     lcdui.encoderPosition = ep;
 
@@ -343,7 +343,7 @@ void InvadersGame::game_screen() {
                 // Score!
                 score += INVADER_ROWS - row;
                 // Explode sound!
-                sound.playTone(40, 10);
+                sound.playtone(40, 10);
                 // Explosion bitmap!
                 explode(invx + inv_wide[type] / 2, invaders_y + row * (ROW_H));
                 // If invaders are gone, go to reset invaders state
@@ -377,7 +377,7 @@ void InvadersGame::game_screen() {
         // Score!
         score += 10;
         // Explode!
-        sound.playTone(40, 10);
+        sound.playtone(40, 10);
         // Explosion bitmap
         explode(ufox + (UFO_W) / 2, 1);
       }

@@ -62,9 +62,9 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   #if FAN_COUNT > 0
     #if FAN_COUNT > 1
-      fans[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0].Speed = lcdui.preheat_fan_speed[memory];
+      fans[tools.active_extruder < FAN_COUNT ? tools.active_extruder : 0].speed = lcdui.preheat_fan_speed[memory];
     #else
-      fans[0].Speed = lcdui.preheat_fan_speed[memory];
+      fans[0].speed = lcdui.preheat_fan_speed[memory];
     #endif
   #endif
   lcdui.return_to_status();
@@ -425,22 +425,22 @@ void menu_temperature() {
   //
   #if FAN_COUNT > 0
     #if HAS_FAN0
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].speed, 0, 255);
     #endif
     #if HAS_FAN1
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1].speed, 0, 255);
     #endif
     #if HAS_FAN2
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2].speed, 0, 255);
     #endif
     #if HAS_FAN3
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3].speed, 0, 255);
     #endif
     #if HAS_FAN4
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4].speed, 0, 255);
     #endif
     #if HAS_FAN5
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].speed, 0, 255);
     #endif
   #endif // FAN_COUNT > 0
 

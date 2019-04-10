@@ -68,7 +68,7 @@ inline void gcode_T(const uint8_t tool_id) {
 
   #if HAS_MMU2
     if (parser.string_arg) {
-      mmu2.toolChange(parser.string_arg);   // Special commands T?/Tx/Tc
+      mmu2.tool_change(parser.string_arg);   // Special commands T?/Tx/Tc
       return;
     }
   #endif

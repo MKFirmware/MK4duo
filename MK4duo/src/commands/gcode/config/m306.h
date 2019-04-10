@@ -71,7 +71,7 @@ inline void gcode_M306(void) {
   if (parser.seen('U'))
     act->setUsePid(parser.value_bool());
   if (parser.seen('I'))
-    act->setHWInverted(parser.value_bool());
+    act->setHWinvert(parser.value_bool());
   if (parser.seen('R'))
     act->setThermalProtection(parser.value_bool());
 

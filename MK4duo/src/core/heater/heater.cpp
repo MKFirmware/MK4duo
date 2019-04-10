@@ -57,7 +57,7 @@ void Heater::init() {
 
   if (printer.isRunning()) return; // All running not reinitialize
 
-  if (data.pin > 0) HAL::pinMode(data.pin, (isHWInverted()) ? OUTPUT_HIGH : OUTPUT_LOW);
+  if (data.pin > 0) HAL::pinMode(data.pin, (isHWinvert()) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   #if HAS_MAX6675 || HAS_MAX31855
     if (sensor.type == -2 || sensor.type == -1) {
@@ -87,7 +87,7 @@ void Heater::setTarget(const int16_t celsius) {
   }
 }
 
-void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
+void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
   #if TEMP_RESIDENCY_TIME > 0
     millis_t residency_start_ms = 0;
@@ -174,7 +174,7 @@ void Heater::waitForTarget(bool no_wait_for_cooling/*=true*/) {
   printer.setAutoreportTemp(oldReport);
 }
 
-void Heater::getOutput() {
+void Heater::get_output() {
 
   millis_t now = millis();
 
@@ -238,8 +238,8 @@ void Heater::getOutput() {
 
 }
 
-void Heater::setOutputPwm() {
-  HAL::analogWrite(data.pin, isHWInverted() ? (255 - pwm_value) : pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
+void Heater::set_output_pwm() {
+  HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
 }
 
 void Heater::print_M301() {
@@ -302,7 +302,7 @@ void Heater::print_M306() {
   SERIAL_MV(" L", data.mintemp);
   SERIAL_MV(" O", data.maxtemp);
   SERIAL_MV(" U", isUsePid());
-  SERIAL_MV(" I", isHWInverted());
+  SERIAL_MV(" I", isHWinvert());
   SERIAL_MV(" R", isThermalProtection());
   SERIAL_EOL();
 }
@@ -349,18 +349,18 @@ void Heater::thermal_runaway_protection() {
 
       #if ENABLED(ADAPTIVE_FAN_SPEED) && FAN_COUNT > 0
         if (data.type == IS_HOTEND) {
-          if (fans[0].Speed == 0)
-            fans[0].scaled_Speed = 128;
+          if (fans[0].speed == 0)
+            fans[0].scaled_speed = 128;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.25f))
-            fans[0].scaled_Speed = 128;
+            fans[0].scaled_speed = 128;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.40f))
-            fans[0].scaled_Speed = 96;
+            fans[0].scaled_speed = 96;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.60f))
-            fans[0].scaled_Speed = 64;
+            fans[0].scaled_speed = 64;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.90f))
-            fans[0].scaled_Speed = 32;
+            fans[0].scaled_speed = 32;
           else
-            fans[0].scaled_Speed = 0;
+            fans[0].scaled_speed = 0;
         }
       #endif
 

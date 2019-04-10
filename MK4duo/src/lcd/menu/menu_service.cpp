@@ -33,7 +33,7 @@
 inline void _lcd_reset_service(const int index) {
   print_job_counter.resetServiceTime(index);
   #if HAS_BUZZER
-    sound.playTone(200, 404);
+    sound.playtone(200, 404);
   #endif
   lcdui.reset_status();
   lcdui.return_to_status();

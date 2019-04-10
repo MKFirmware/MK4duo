@@ -347,16 +347,16 @@ void menu_configuration() {
 
     switch (sound.mode) {
       case SOUND_MODE_ON:
-        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cyclestate);
         break;
       case SOUND_MODE_SILENT:
-        MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cycleState);
+        MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cyclestate);
         break;
       case SOUND_MODE_MUTE:
-        MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cycleState);
+        MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cyclestate);
         break;
       default:
-        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cycleState);
+        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cyclestate);
     }
 
   #endif

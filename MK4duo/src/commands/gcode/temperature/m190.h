@@ -46,7 +46,7 @@ inline void gcode_M190(void) {
 
     lcdui.set_status_P(beds[b].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
 
-    beds[b].waitForTarget(no_wait_for_cooling);
+    beds[b].wait_for_target(no_wait_for_cooling);
   }
 }
 

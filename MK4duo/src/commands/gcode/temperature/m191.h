@@ -46,7 +46,7 @@ inline void gcode_M191(void) {
 
     lcdui.set_status_P(chambers[c].isHeating() ? PSTR(MSG_CHAMBER_HEATING) : PSTR(MSG_CHAMBER_COOLING));
 
-    chambers[c].waitForTarget(no_wait_for_cooling);
+    chambers[c].wait_for_target(no_wait_for_cooling);
   }
 }
 

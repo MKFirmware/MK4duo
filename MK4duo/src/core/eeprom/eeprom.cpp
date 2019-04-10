@@ -1574,7 +1574,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1613,7 +1613,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1652,7 +1652,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1691,7 +1691,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1730,7 +1730,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1769,7 +1769,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
-        heat->setHWInverted(INVERTED_HEATER_PINS);
+        heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1823,7 +1823,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
-        heat->setHWInverted(INVERTED_BED_PIN);
+        heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1862,7 +1862,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
-        heat->setHWInverted(INVERTED_BED_PIN);
+        heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1901,7 +1901,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
-        heat->setHWInverted(INVERTED_BED_PIN);
+        heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1940,7 +1940,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
-        heat->setHWInverted(INVERTED_BED_PIN);
+        heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -1994,7 +1994,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
-        heat->setHWInverted(INVERTED_CHAMBER_PIN);
+        heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -2033,7 +2033,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
-        heat->setHWInverted(INVERTED_CHAMBER_PIN);
+        heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -2072,7 +2072,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
-        heat->setHWInverted(INVERTED_CHAMBER_PIN);
+        heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -2111,7 +2111,7 @@ void EEPROM::reset() {
         #endif
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
-        heat->setHWInverted(INVERTED_CHAMBER_PIN);
+        heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setTuning(false);
@@ -2163,7 +2163,7 @@ void EEPROM::reset() {
       #endif
       heat->resetFlag();
       heat->setUsePid(PIDTEMPCOOLER);
-      heat->setHWInverted(INVERTED_COOLER_PIN);
+      heat->setHWinvert(INVERTED_COOLER_PIN);
       heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
       #if HAS_EEPROM
         heat->setTuning(false);
@@ -2193,26 +2193,26 @@ void EEPROM::reset() {
       fdata = &fan->data;
       fdata->ID                   = f;
       fdata->pin                  = (int8_t)pgm_read_byte(&fanCh[f]);
-      fdata->min_Speed            = FAN_MIN_PWM;
-      fdata->max_Speed            = FAN_MAX_PWM;
+      fdata->min_speed            = FAN_MIN_PWM;
+      fdata->max_speed            = FAN_MAX_PWM;
       fdata->freq                 = FAN_PWM_FREQUENCY;
-      fdata->triggerTemperature   = HOTEND_AUTO_FAN_TEMPERATURE;
-      fdata->autoMonitored        = 0;
+      fdata->trigger_temperature   = HOTEND_AUTO_FAN_TEMPERATURE;
+      fdata->auto_monitor         = 0;
       fdata->flag.all             = false;
-      fan->setAutoMonitored((int8_t)pgm_read_byte(&fanAuto[f]));
-      fan->setHWInverted(FAN_INVERTED);
+      fan->set_auto_monitor((int8_t)pgm_read_byte(&fanAuto[f]));
+      fan->setHWinvert(FAN_INVERTED);
       #if ENABLED(TACHOMETRIC)
         fan->tacho.pin            = tacho_temp_pin[f];
       #endif
       LOOP_HOTEND() {
-        if (TEST(fdata->autoMonitored, h)) {
-          fdata->min_Speed        = HOTEND_AUTO_FAN_MIN_SPEED;
-          fdata->max_Speed        = HOTEND_AUTO_FAN_SPEED;
+        if (TEST(fdata->auto_monitor, h)) {
+          fdata->min_speed        = HOTEND_AUTO_FAN_MIN_SPEED;
+          fdata->max_speed        = HOTEND_AUTO_FAN_SPEED;
         }
       }
-      if (TEST(fdata->autoMonitored, 7)) {
-        fdata->min_Speed          = CONTROLLERFAN_MIN_SPEED;
-        fdata->max_Speed          = CONTROLLERFAN_SPEED;
+      if (TEST(fdata->auto_monitor, 7)) {
+        fdata->min_speed          = CONTROLLERFAN_MIN_SPEED;
+        fdata->max_speed          = CONTROLLERFAN_SPEED;
       }
     }
 
