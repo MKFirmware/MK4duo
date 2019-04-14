@@ -2039,7 +2039,8 @@ FORCE_INLINE void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
       E1_DIR_WRITE(!isStepDir(E1_AXIS));
     }
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
-    E0_DIR_WRITE(e ? isStepDir(E0_AXIS) : !isStepDir(E0_AXIS));
+    UNUSED(e);
+    E0_DIR_WRITE(active_extruder ? isStepDir(E0_AXIS) : !isStepDir(E0_AXIS));
   #else
     switch (e) {
       #if DRIVER_EXTRUDERS > 0
@@ -2097,7 +2098,8 @@ FORCE_INLINE void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
       E1_DIR_WRITE(isStepDir(E1_AXIS));
     }
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
-    E0_DIR_WRITE(e ? !isStepDir(E0_AXIS) : isStepDir(E0_AXIS));
+    UNUSED(e);
+    E0_DIR_WRITE(active_extruder ? !isStepDir(E0_AXIS) : isStepDir(E0_AXIS));
   #else
     switch (e) {
       #if DRIVER_EXTRUDERS > 0
