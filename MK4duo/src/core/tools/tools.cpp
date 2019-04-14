@@ -101,10 +101,6 @@
       if (tmp_extruder >= EXTRUDERS)
         return invalid_extruder_error(tmp_extruder);
 
-      #if HAS_LCD_MENU
-        lcdui.return_to_status();
-      #endif
-
       #if HOTENDS > 1
 
         const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : mechanics.feedrate_mm_s;
