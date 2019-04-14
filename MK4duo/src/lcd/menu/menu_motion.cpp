@@ -430,7 +430,7 @@ void menu_motion() {
     #if DISABLED(PROBE_MANUALLY)
       MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
     #endif
-    if (bedlevel.leveling_is_valid()) {
+    if (mechanics.isHomedAll() && bedlevel.leveling_is_valid()) {
       bool new_level_state = bedlevel.flag.leveling_active;
       MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
     }

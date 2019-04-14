@@ -27,8 +27,6 @@
 
 #include "../../../../MK4duo.h"
 
-#define START_BMPHIGH // Costs 399 bytes more flash
-
 #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
 
   #include "../../custom_bootscreen.h"
@@ -46,7 +44,7 @@
 
 #endif
 
-#if ENABLED(START_BMPHIGH)
+#if ENABLED(BOOTSCREEN_MKLOGO_HIGH)
 
   #define START_BMPWIDTH      112
 

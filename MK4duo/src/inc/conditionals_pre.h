@@ -515,3 +515,8 @@
 #ifndef PREHEAT_3_LABEL
   #define PREHEAT_3_LABEL "GUM"
 #endif
+
+// Boot Screen small on slim menu
+#if ENABLED(SLIM_LCD_MENUS) && ENABLED(BOOTSCREEN_MKLOGO_HIGH)
+  #undef BOOTSCREEN_MKLOGO_HIGH
+#endif

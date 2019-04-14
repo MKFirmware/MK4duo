@@ -186,6 +186,9 @@
 #if HAS_SPI_LCD
 
   #if ENABLED(RADDS_DISPLAY) || ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)
+
+    #define ORIG_BEEPER_PIN 62
+
     #define LCD_PINS_RS     63
     #define LCD_PINS_ENABLE 64
     #define LCD_PINS_D4     48
@@ -193,14 +196,11 @@
     #define LCD_PINS_D6     52
     #define LCD_PINS_D7     53
 
-    #define ORIG_BEEPER_PIN 62
-
-    #define BTN_EN1         44
-    #define BTN_EN2         42
-    #define BTN_ENC         40
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+
+    #define ORIG_BEEPER_PIN 62
 
     #define LCD_PINS_RS     52
     #define LCD_PINS_ENABLE 53
@@ -209,33 +209,21 @@
     #define LCD_PINS_D6     52
     #define LCD_PINS_D7     53
 
-    #define ORIG_BEEPER_PIN 62
-
-    #define BTN_EN1         44
-    #define BTN_EN2         42
-    #define BTN_ENC         40
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(SSD1306_OLED_I2C_CONTROLLER)
 
-    #define BTN_EN1         44
-    #define BTN_EN2         42
-    #define BTN_ENC         40
-    #define SD_DETECT_PIN   51
-
     #define ORIG_BEEPER_PIN 62
     #define LCD_SDSS        10
+    #define SD_DETECT_PIN   51
 
   #elif ENABLED(MKS_MINI_12864)
+
+    #define ORIG_BEEPER_PIN 62
 
     #define DOGLCD_A0       52
     #define DOGLCD_CS       50
 
-    #define ORIG_BEEPER_PIN 62
-
-    #define BTN_EN1         44
-    #define BTN_EN2         42
-    #define BTN_ENC         40
     #define SD_DETECT_PIN   51
 
   #elif ENABLED(SPARK_FULL_GRAPHICS)
@@ -248,6 +236,12 @@
     #define BTN_ENC         37
 
   #endif // SPARK_FULL_GRAPHICS
+
+  #if ENABLED(NEWPANEL)
+    #define BTN_EN1         44
+    #define BTN_EN2         42
+    #define BTN_ENC         40
+  #endif
 
 #endif // ULTRA_LCD
 //@@@

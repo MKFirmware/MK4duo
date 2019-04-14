@@ -83,8 +83,8 @@ inline void gcode_M92(void) {
 
   const float layer_wanted = parser.floatval('L');
   if (parser.seen('H') || layer_wanted) {
-    const uint16_t argH = parser.ushortval('H'),
-                   micro_steps = argH ? argH : 1;
+    const uint16_t  argH = parser.ushortval('H'),
+                    micro_steps = argH ? argH : 1;
     const float minimum_layer_height = micro_steps * mechanics.steps_to_mm[Z_AXIS];
     SERIAL_SMV(ECHO, "{ micro steps:", micro_steps);
     SERIAL_MV(", minimum layer height:", minimum_layer_height, 3);
