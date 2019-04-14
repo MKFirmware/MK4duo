@@ -37,29 +37,31 @@
  */
 void Fan::init() {
 
-  Speed               = 0;
-  paused_Speed        = 0;
-  scaled_Speed        = 128;
-  Kickstart           = 0;
+  speed               = 0;
+  paused_speed        = 0;
+  scaled_speed        = 128;
+  kickstart           = 0;
 
   setIdle(false);
 
   if (printer.isRunning()) return; // All running not reinitialize
 
-  if (data.pin > 0) HAL::pinMode(data.pin, isHWInverted() ? OUTPUT_HIGH : OUTPUT_LOW);
+  if (data.pin > 0) HAL::pinMode(data.pin, isHWinvert() ? OUTPUT_HIGH : OUTPUT_LOW);
 
 }
 
-void Fan::setAutoMonitored(const int8_t h) {
+void Fan::set_auto_monitor(const int8_t h) {
   if (WITHIN(h, 0, HOTENDS - 1) || h == 7)
-    SBI(data.autoMonitored, (uint8_t)h);
-  else      
-    data.autoMonitored = 0;
+    SBI(data.auto_monitor, (uint8_t)h);
+  else if (h == -1)
+    data.auto_monitor = 0;
+  else
+    SERIAL_EM(MSG_INVALID_HOTEND);
   spin();
 }
 
-void Fan::setOutputPwm() {
-  const uint8_t new_Speed = isHWInverted() ? 255 - actual_Speed() : actual_Speed();
+void Fan::set_output_pwm() {
+  const uint8_t new_Speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
   HAL::analogWrite(data.pin, new_Speed, data.freq);
 }
 
@@ -67,22 +69,22 @@ void Fan::spin() {
 
   static watch_t controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
 
-  if (data.autoMonitored != 0) {
+  if (data.auto_monitor != 0) {
 
     // Check for Hotend temperature
     LOOP_HOTEND() {
-      if (TEST(data.autoMonitored, h)) {
-        if (hotends[h].current_temperature > data.triggerTemperature) {
-          Speed = data.max_Speed;
+      if (TEST(data.auto_monitor, h)) {
+        if (hotends[h].current_temperature > data.trigger_temperature) {
+          speed = data.max_speed;
           break;
         }
         else
-          Speed = data.min_Speed;
+          speed = data.min_speed;
       }
     }
 
     // Check for Controller fan
-    if (TEST(data.autoMonitored, 7)) {
+    if (TEST(data.auto_monitor, 7)) {
 
       // Check Heaters
       if (thermalManager.heaters_isActive()) controller_fan_watch.start();
@@ -118,12 +120,12 @@ void Fan::spin() {
       }
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      Speed = controller_fan_watch.elapsed() ? data.min_Speed : data.max_Speed;
+      speed = controller_fan_watch.elapsed() ? data.min_speed : data.max_speed;
     }
 
   }
 
-  Speed = Speed ? constrain(Speed, data.min_Speed, data.max_Speed) : 0;
+  speed = speed ? constrain(speed, data.min_speed, data.max_speed) : 0;
 
 }
 
@@ -132,21 +134,21 @@ void Fan::print_M106() {
   SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
   SERIAL_MV(" U", data.pin);
-  SERIAL_MV(" L", data.min_Speed);
-  SERIAL_MV(" X", data.max_Speed);
+  SERIAL_MV(" L", data.min_speed);
+  SERIAL_MV(" X", data.max_speed);
   SERIAL_MV(" F", data.freq);
-  SERIAL_MV(" I", isHWInverted());
+  SERIAL_MV(" I", isHWinvert());
   SERIAL_MSG(" H");
   LOOP_HOTEND() {
-    if (TEST(data.autoMonitored, h)) {
+    if (TEST(data.auto_monitor, h)) {
       SERIAL_VAL((int)h);
-      SERIAL_MV(" T", data.triggerTemperature);
+      SERIAL_MV(" T", data.trigger_temperature);
       found_auto = true;
       break;
     }
   }
   if (!found_auto) {
-    if (TEST(data.autoMonitored, 7))
+    if (TEST(data.auto_monitor, 7))
       SERIAL_CHR('7');
     else
       SERIAL_MSG("-1");

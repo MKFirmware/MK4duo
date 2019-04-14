@@ -284,10 +284,10 @@ void LcdUI::draw_status_screen() {
       // Fan, if a bitmap was provided
       #if DO_DRAW_FAN
         if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
-          const uint8_t spd = fans[0].actual_Speed();
+          const uint8_t spd = fans[0].actual_speed();
           if (spd) {
             lcd_moveto(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y);
-            lcd_put_u8str(ui8tostr_percent(spd));
+            lcd_put_u8str(ui8tostr4pct(spd));
           }
         }
       #endif
@@ -301,7 +301,7 @@ void LcdUI::draw_status_screen() {
       static uint8_t fan_frame;
       if (old_blink != blink) {
         old_blink = blink;
-        if (!fans[0].Speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
+        if (!fans[0].speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
       }
     #endif
     if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
@@ -315,7 +315,7 @@ void LcdUI::draw_status_screen() {
             fan_frame == 3 ? status_fan3_bmp :
           #endif
         #elif STATUS_FAN_FRAMES > 1
-          blink && fans[0].Speed ? status_fan1_bmp :
+          blink && fans[0].speed ? status_fan1_bmp :
         #endif
         status_fan0_bmp
       );

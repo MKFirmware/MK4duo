@@ -70,7 +70,7 @@ inline void gcode_M701(void) {
 
   // Load filament
   #if HAS_MMU2
-    mmu2.loadFilamentToNozzle(tools.target_extruder);
+    mmu2.load_filament_to_nozzle(tools.target_extruder);
   #else
     constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :

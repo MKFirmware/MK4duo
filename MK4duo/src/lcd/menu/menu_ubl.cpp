@@ -454,7 +454,7 @@ void _lcd_ubl_output_map_lcd() {
   lcdui.encoder_direction_normal();
 
   if (lcdui.encoderPosition) {
-    step_scaler += (int32_t)lcdui.encoderPosition;
+    step_scaler += int16_t(lcdui.encoderPosition);
     x_plot += step_scaler / (ENCODER_STEPS_PER_MENU_ITEM);
     if (ABS(step_scaler) >= ENCODER_STEPS_PER_MENU_ITEM) step_scaler = 0;
     lcdui.encoderPosition = 0;

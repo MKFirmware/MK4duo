@@ -1004,7 +1004,7 @@
 //#define FILAMENT_RUNOUT_DAV_SYSTEM
 
 // Enable this option to use an encoder disc that toggles the runout pin
-// as the filament moves. (Be sure to set FILAMENT_RUNOUT_DISTANCE_MM
+// as the filament moves. (Be sure to set FILAMENT RUNOUT DISTANCE MM
 // large enough to avoid false positives.)
 //#define EXTRUDER_ENCODER_CONTROL
 
@@ -1662,7 +1662,8 @@
 #define SHOW_BOOTSCREEN
 #define STRING_SPLASH_LINE1 "v" SHORT_BUILD_VERSION   // will be shown during bootup in line 1
 #define STRING_SPLASH_LINE2 STRING_DISTRIBUTION_DATE  // will be shown during bootup in line 2
-#define BOOTSCREEN_TIMEOUT 2500
+#define BOOTSCREEN_TIMEOUT  2500
+#define BOOTSCREEN_MKLOGO_HIGH                        // Show a hight MK4duo logo on the Boot Screen (disable it saving 399 bytes of flash)
 
 //
 // *** VENDORS PLEASE READ ***

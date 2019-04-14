@@ -82,15 +82,15 @@ void BrickoutGame::game_screen() {
       // Provisionally update the ball position
       const fixed_t newx = ballx + ballh, newy = bally + ballv;  // current next position
       if (!WITHIN(newx, 0, BTOF(LCD_PIXEL_WIDTH - 1))) {    // out in x?
-        ballh = -ballh; sound.playTone(5, 220);                      // bounce x
+        ballh = -ballh; sound.playtone(5, 220);                      // bounce x
       }
       if (newy < 0) {                                       // out in y?
-        ballv = -ballv; sound.playTone(5, 280);                      // bounce v
+        ballv = -ballv; sound.playtone(5, 280);                      // bounce v
         hit_dir = 1;
       }
       // Did the ball go below the bottom?
       else if (newy > BTOF(LCD_PIXEL_HEIGHT)) {
-        sound.playTone(500, 75);
+        sound.playtone(500, 75);
         if (--balls_left) reset_ball(); else game_state = 0;
         break; // done
       }
@@ -107,8 +107,8 @@ void BrickoutGame::game_screen() {
           // If bricks are gone, go to reset state
           if (!--brick_count) game_state = 2;
           // Bounce the ball cleverly
-          if ((ballv < 0) == (hit_dir < 0)) { ballv = -ballv; ballh += fixed_t(random(-16, 16)); sound.playTone(5, 880); }
-          else                              { ballh = -ballh; ballv += fixed_t(random(-16, 16)); sound.playTone(5, 640); }
+          if ((ballv < 0) == (hit_dir < 0)) { ballv = -ballv; ballh += fixed_t(random(-16, 16)); sound.playtone(5, 880); }
+          else                              { ballh = -ballh; ballv += fixed_t(random(-16, 16)); sound.playtone(5, 640); }
         }
       }
       // Is the ball moving down and in paddle range?
@@ -118,7 +118,7 @@ void BrickoutGame::game_screen() {
         if (WITHIN(diff, 0, PADDLE_W - 1)) {
 
           // Reverse Y direction
-          ballv = -ballv; sound.playTone(3, 880);
+          ballv = -ballv; sound.playtone(3, 880);
           hit_dir = -1;
 
           // Near edges affects X velocity

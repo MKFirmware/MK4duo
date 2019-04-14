@@ -35,13 +35,13 @@
  */
 inline void gcode_M116(void) {
   #if HOTENDS > 0
-    LOOP_HOTEND() hotends[h].waitForTarget(true);
+    LOOP_HOTEND() hotends[h].wait_for_target(true);
   #endif
   #if BEDS > 0
-    LOOP_BED() beds[h].waitForTarget(true);
+    LOOP_BED() beds[h].wait_for_target(true);
   #endif
   #if CHAMBERS > 0
-    LOOP_CHAMBER() chambers[h].waitForTarget(true);
+    LOOP_CHAMBER() chambers[h].wait_for_target(true);
   #endif
 }
 

@@ -66,8 +66,7 @@ void LcdGame::init_game(const uint8_t init_state, const screenFunc_t screen) {
 }
 
 void LcdGame::exit_game() {
-  lcdui.goto_previous_screen();
-  lcdui.defer_status_screen(false);
+  lcdui.goto_previous_screen_no_defer();
 }
 
 #endif // HAS_GAMES

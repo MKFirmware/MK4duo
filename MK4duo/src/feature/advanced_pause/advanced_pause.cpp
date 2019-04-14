@@ -581,10 +581,10 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
   #endif
 
   #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
-    LOOP_BED() beds[h].waitForTarget();
+    LOOP_BED() beds[h].wait_for_target();
   #endif
 
-  hotends[TARGET_HOTEND].waitForTarget();
+  hotends[TARGET_HOTEND].wait_for_target();
 
   return printer.isWaitForHeatUp();
 }
@@ -602,7 +602,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     if (ELAPSED(ms, next_buzz)) {
       if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
         next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000 : 500);
-        sound.playTone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);
+        sound.playtone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);
         runout_beep++;
       }
     }

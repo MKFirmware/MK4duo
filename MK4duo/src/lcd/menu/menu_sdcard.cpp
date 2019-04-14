@@ -44,10 +44,10 @@ void lcd_sd_updir() {
 
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
 
-  uint32_t last_sdfile_encoderPosition = 0xFFFF;
+  uint16_t sd_encoder_position = 0xFFFF;
 
   void LcdUI::reselect_last_file() {
-    if (last_sdfile_encoderPosition == 0xFFFF) return;
+    if (sd_encoder_position == 0xFFFF) return;
     //#if HAS_GRAPHICAL_LCD
     //  // This is a hack to force a screen update.
     //  lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
@@ -58,8 +58,8 @@ void lcd_sd_updir() {
     //  lcdui.drawing_screen = screen_changed = true;
     //#endif
 
-    goto_screen(menu_sdcard, last_sdfile_encoderPosition);
-    last_sdfile_encoderPosition = 0xFFFF;
+    goto_screen(menu_sdcard, sd_encoder_position);
+    sd_encoder_position = 0xFFFF;
 
     defer_status_screen();
 
@@ -69,15 +69,34 @@ void lcd_sd_updir() {
   }
 #endif
 
+inline void sdcard_start_selected_file() {
+  card.openAndPrintFile(card.fileName);
+  lcdui.return_to_status();
+  lcdui.reset_status();
+}
+
+bool do_print_file;
+void menu_sd_confirm() {
+  if (lcdui.should_draw())
+    do_select_screen(PSTR(MSG_BUTTON_PRINT), PSTR(MSG_BUTTON_CANCEL), do_print_file, PSTR(MSG_START_PRINT " "), card.fileName, PSTR("?"));
+
+  if (lcdui.use_click()) {
+    if (do_print_file)
+      sdcard_start_selected_file();
+    else
+      lcdui.goto_previous_screen();
+  }
+}
+
 class MenuItem_sdfile {
   public:
     static void action(SDCard &theCard) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
-        last_sdfile_encoderPosition = lcdui.encoderPosition;  // Save which file was selected for later use
+        // Save which file was selected for later use
+        sd_encoder_position = lcdui.encoderPosition;
       #endif
-      card.openAndPrintFile(theCard.fileName);
-      lcdui.return_to_status();
-      lcdui.reset_status();
+      do_print_file = false;
+      MenuItem_submenu::action(menu_sd_confirm);
     }
 };
 
@@ -96,14 +115,6 @@ class MenuItem_sdfolder {
       lcdui.refresh();
     }
 };
-
-void menu_confirm_sdfile() {
-  lcdui.encoder_direction_menus();
-  START_MENU();
-  MENU_ITEM(sdfile, MSG_CARD_MENU, card);
-  MENU_BACK(MSG_BACK);
-  END_MENU();
-}
 
 void menu_sdcard() {
   lcdui.encoder_direction_menus();
@@ -134,22 +145,8 @@ void menu_sdcard() {
 
       if (card.isFilenameIsDir())
         MENU_ITEM(sdfolder, MSG_CARD_MENU, card);
-      else {
-        //MENU_ITEM(sdfile, MSG_CARD_MENU, card);
-        do { 
-          _skipStatic = false; 
-          if (_menuLineNr == _thisItemNr) { 
-            if (encoderLine == _thisItemNr && lcdui.use_click()) { 
-              //_MENU_ITEM_MULTIPLIER_CHECK(USE_MULTIPLIER); 
-              MenuItem_submenu::action(menu_confirm_sdfile); 
-              if (screen_changed) return; 
-            } 
-            if (lcdui.should_draw()) 
-              draw_menu_item_sdfile(encoderLine == _thisItemNr, _lcdLineNr, PSTR(MSG_CARD_MENU), card); 
-          } 
-          ++_thisItemNr; 
-        } while(0);
-      }
+      else
+        MENU_ITEM(sdfile, MSG_CARD_MENU, card);
     }
     else {
       MENU_ITEM_DUMMY();

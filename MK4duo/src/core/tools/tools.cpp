@@ -72,7 +72,7 @@
       UNUSED(fr_mm_s);
       UNUSED(no_move);
 
-      mmu2.toolChange(tmp_extruder);
+      mmu2.tool_change(tmp_extruder);
 
     #elif EXTRUDERS < 2
 
@@ -99,10 +99,6 @@
 
       if (tmp_extruder >= EXTRUDERS)
         return invalid_extruder_error(tmp_extruder);
-
-      #if HAS_LCD_MENU
-        lcdui.return_to_status();
-      #endif
 
       #if HOTENDS > 1
 

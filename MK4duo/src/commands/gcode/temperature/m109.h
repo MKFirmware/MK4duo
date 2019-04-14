@@ -69,7 +69,7 @@
       planner.autotemp_M104_M109();
     #endif
 
-    hotends[TARGET_HOTEND].waitForTarget(no_wait_for_cooling);
+    hotends[TARGET_HOTEND].wait_for_target(no_wait_for_cooling);
   }
 
 #endif // HAS_TEMP_HOTEND

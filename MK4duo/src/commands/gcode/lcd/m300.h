@@ -38,5 +38,5 @@ inline void gcode_M300(void) {
   // Limits the tone duration to 0-5 seconds.
   NOMORE(duration, 5000U);
 
-  sound.playTone(duration, frequency);
+  sound.playtone(duration, frequency);
 }

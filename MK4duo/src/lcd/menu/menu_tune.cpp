@@ -55,7 +55,7 @@ inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
     lcdui.encoder_direction_normal();
     if (lcdui.encoderPosition) {
-      const int16_t babystep_increment = (int32_t)lcdui.encoderPosition * (BABYSTEP_MULTIPLICATOR);
+      const int16_t babystep_increment = int16_t(lcdui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
       lcdui.encoderPosition = 0;
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
       mechanics.babystep_axis(axis, babystep_increment);
@@ -170,21 +170,22 @@ void menu_tune() {
   //
   #if FAN_COUNT > 0
     #if HAS_FAN0
-      #if FAN_COUNT > 1
-        #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED " 0"
-      #else
-        #define MSG_1ST_FAN_SPEED MSG_FAN_SPEED
-      #endif
-      MENU_MULTIPLIER_ITEM_EDIT(uint8, MSG_1ST_FAN_SPEED, &fans[0].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].speed, 0, 255);
     #endif
     #if HAS_FAN1
-      MENU_MULTIPLIER_ITEM_EDIT(uint8, MSG_FAN_SPEED " 1", &fans[1].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1].speed, 0, 255);
     #endif
     #if HAS_FAN2
-      MENU_MULTIPLIER_ITEM_EDIT(uint8, MSG_FAN_SPEED " 2", &fans[2].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2].speed, 0, 255);
     #endif
     #if HAS_FAN3
-      MENU_MULTIPLIER_ITEM_EDIT(uint8, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3].Speed, 0, 255);
+    #endif
+    #if HAS_FAN4
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4].speed, 0, 255);
+    #endif
+    #if HAS_FAN5
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].speed, 0, 255);
     #endif
   #endif // FAN_COUNT > 0
 

@@ -206,7 +206,7 @@ void SnakeGame::game_screen() {
 
       if (!WITHIN(x, 0, GAME_W - 1) || !WITHIN(y, 0, GAME_H - 1)) {
         game_state = 0; // Game Over
-        sound.playTone(400, 40); // Bzzzt!
+        sound.playtone(400, 40); // Bzzzt!
         break;          // ...out of do-while
       }
 
@@ -225,12 +225,12 @@ void SnakeGame::game_screen() {
       // Did the snake collide with itself or go out of bounds?
       if (snake_overlap()) {
         game_state = 0; // Game Over
-        sound.playTone(400, 40); // Bzzzt!
+        sound.playtone(400, 40); // Bzzzt!
       }
       // Is the snake at the food?
       else if (x == foodx && y == foody) {
-        sound.playTone(5, 220);
-        sound.playTone(5, 280);
+        sound.playtone(5, 220);
+        sound.playtone(5, 280);
         score++;
         food_cnt = 2;
         food_reset();

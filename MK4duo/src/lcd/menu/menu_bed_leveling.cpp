@@ -52,7 +52,7 @@
 
 #endif
 
-#if ENABLED(ULTIPANEL) && ENABLED(LCD_BED_LEVELING)
+#if HAS_LCD_MENU && ENABLED(LCD_BED_LEVELING)
 
 #if ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING)
 
@@ -135,7 +135,7 @@
     // Encoder knob or keypad buttons adjust the Z position
     //
     if (lcdui.encoderPosition) {
-      const float z = mechanics.current_position[Z_AXIS] + float((int32_t)lcdui.encoderPosition) * (MESH_EDIT_Z_STEP);
+      const float z = mechanics.current_position[Z_AXIS] + float((int16_t)lcdui.encoderPosition) * (MESH_EDIT_Z_STEP);
       line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f));
       lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
       lcdui.encoderPosition = 0;

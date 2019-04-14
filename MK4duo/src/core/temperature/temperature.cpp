@@ -133,7 +133,7 @@ void Temperature::spin() {
   LOOP_HOTEND() {
     Heater *act = &hotends[h];
     // Update Current Temperature
-    act->updateCurrentTemperature();
+    act->update_current_temperature();
     check_and_power(act);
   }
 
@@ -141,7 +141,7 @@ void Temperature::spin() {
     LOOP_BED() {
       Heater *act = &beds[h];
       // Update Current Temperature
-      act->updateCurrentTemperature();
+      act->update_current_temperature();
       check_and_power(act);
     } // LOOP_BED
   #endif
@@ -150,7 +150,7 @@ void Temperature::spin() {
     LOOP_CHAMBER() {
       Heater *act = &chambers[h];
       // Update Current Temperature
-      act->updateCurrentTemperature();
+      act->update_current_temperature();
       check_and_power(act);
     } // LOOP_CHAMBER
   #endif
@@ -159,7 +159,7 @@ void Temperature::spin() {
     LOOP_COOLER() {
       Heater *act = &coolers[h];
       // Update Current Temperature
-      act->updateCurrentTemperature();
+      act->update_current_temperature();
       check_and_power(act);
     } // LOOP_COOLER
   #endif
@@ -268,7 +268,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
     printer.idle();
     printer.keepalive(WaitHeater);
 
-    act->updateCurrentTemperature();
+    act->update_current_temperature();
 
     const millis_t time = millis();
     current_temp = act->current_temperature;
@@ -651,7 +651,7 @@ void Temperature::check_and_power(Heater *act) {
   // Ignore heater we are currently testing
   if (pid_pointer == act->data.ID) return;
 
-  act->getOutput();
+  act->get_output();
 
   // Make sure temperature is increasing
   if (act->isThermalProtection() && act->watch_next_ms && ELAPSED(now, act->watch_next_ms)) {

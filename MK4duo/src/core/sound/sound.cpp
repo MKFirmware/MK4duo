@@ -27,7 +27,7 @@ SoundModeEnum Sound::mode = SOUND_MODE_ON;
 Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
 Sound sound;
 
-void Sound::playTone(const uint16_t duration, const uint16_t frequency/*=0*/) {
+void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
   if (mode == SOUND_MODE_MUTE) return;
   while (buffer.isFull()) printer.idle(true);
   tone_t tone = { duration, frequency };
@@ -67,7 +67,7 @@ void Sound::spin() {
   }
 }
 
-void Sound::cycleState() {
+void Sound::cyclestate() {
   switch (mode) {
     case SOUND_MODE_ON:
       mode = SOUND_MODE_SILENT;
@@ -87,11 +87,11 @@ void Sound::feedback(const bool good/*=true*/) {
   if (mode != SOUND_MODE_ON) return;
 
   if (good) {
-    playTone(100, NOTE_E5);
-    playTone(100, NOTE_F5);
+    playtone(100, NOTE_E5);
+    playtone(100, NOTE_F5);
   }
   else {
-    playTone(250, NOTE_G4);
-    playTone(500, NOTE_C4);
+    playtone(250, NOTE_G4);
+    playtone(500, NOTE_C4);
   }
 }

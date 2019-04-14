@@ -336,17 +336,17 @@ void HAL::Tick() {
 
   // Heaters set output PWM
   #if HOTENDS > 0
-    LOOP_HOTEND() hotends[h].setOutputPwm();
+    LOOP_HOTEND() hotends[h].set_output_pwm();
   #endif
   #if BEDS > 0
-    LOOP_BED() beds[h].setOutputPwm();
+    LOOP_BED() beds[h].set_output_pwm();
   #endif
   #if CHAMBERS > 0
-    LOOP_CHAMBER() chambers[h].setOutputPwm();
+    LOOP_CHAMBER() chambers[h].set_output_pwm();
   #endif
 
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].setOutputPwm();
+    LOOP_FAN() fans[f].set_output_pwm();
   #endif
 
   // Calculation cycle temp a 100ms

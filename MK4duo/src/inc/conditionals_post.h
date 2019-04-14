@@ -1392,7 +1392,7 @@
  // Get LCD character width/height, which may be overridden by pins, configs, etc.
 #if DISABLED(LCD_WIDTH)
   #if HAS_GRAPHICAL_LCD
-    #define LCD_WIDTH 22
+    #define LCD_WIDTH 21
   #elif ENABLED(ULTIPANEL)
     #define LCD_WIDTH 20
   #elif HAS_SPI_LCD

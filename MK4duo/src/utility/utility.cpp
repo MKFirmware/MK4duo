@@ -82,18 +82,6 @@ void print_hex_long(const uint32_t w, const char delimiter) {
   print_hex_byte(w);
 }
 
-void lengthtoString(char *buffer, const float length) {
-  uint16_t  k   = long(length) / 1000 / 1000,
-            m   = (long(length) / 1000) % 1000,
-            c   = (long(length) / 10) % 100,
-            mm  = long(length) % 10;
-
-  if (k) sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), k, m, c, mm);
-  else if (m) sprintf_P(buffer, PSTR("%um %ucm %umm"), m, c, mm);
-  else if (c) sprintf_P(buffer, PSTR("%ucm %umm"), c, mm);
-  else sprintf_P(buffer, PSTR("%umm"), mm);
-}
-
 void crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
   uint8_t *ptr = (uint8_t *)data;
   while (cnt--) {
@@ -111,7 +99,7 @@ char conv[8] = { 0 };
 #define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
 
 // Convert uint8_t to string percentage
-char* ui8tostr_percent(const uint8_t i) {
+char* ui8tostr4pct(const uint8_t i) {
   const uint8_t percent = ui8topercent(i);
   conv[3] = RJDIGIT(percent, 100);
   conv[4] = RJDIGIT(percent, 10);
@@ -241,23 +229,6 @@ char* ftostr52(const float &f) {
   return &conv[1];
 }
 
-#if ENABLED(LCD_DECIMAL_SMALL_XY)
-
-  // Convert float to rj string with 1234, _123, -123, _-12, 12.3, _1.2, or -1.2 format
-  char* ftostr4sign(const float &f) {
-    const int i = (f * 100 + (f < 0 ? -5: 5)) / 10;
-    if (!WITHIN(i, -99, 999)) return i16tostr4sign((int)f);
-    const bool neg = i < 0;
-    const int ii = neg ? -i : i;
-    conv[3] = neg ? '-' : (ii >= 100 ? DIGIMOD(ii, 100) : ' ');
-    conv[4] = DIGIMOD(ii, 10);
-    conv[5] = '.';
-    conv[6] = DIGIMOD(ii, 1);
-    return &conv[3];
-  }
-
-#endif // LCD_DECIMAL_SMALL_XY
-
 // Convert float to fixed-length string with +123.4 / -123.4 format
 char* ftostr41sign(const float &f) {
   int i = (f * 100 + (f < 0 ? -5: 5)) / 10;
@@ -306,6 +277,31 @@ char* ftostr51sign(const float &f) {
   return conv;
 }
 
+// Convert float to space-padded string with -_23.4_ format
+char* ftostr52sp(const float &f) {
+  long i = (f * 1000 + (f < 0 ? -5: 5)) / 10;
+  uint8_t dig;
+  conv[1] = MINUSOR(i, RJDIGIT(i, 10000));
+  conv[2] = RJDIGIT(i, 1000);
+  conv[3] = DIGIMOD(i, 100);
+
+  if ((dig = i % 10)) {           // second digit after decimal point?
+    conv[4] = '.';
+    conv[5] = DIGIMOD(i, 10);
+    conv[6] = DIGIT(dig);
+  }
+  else {
+    if ((dig = (i / 10) % 10)) {  // first digit after decimal point?
+      conv[4] = '.';
+      conv[5] = DIGIT(dig);
+    }
+    else                          // nothing after decimal point
+      conv[4] = conv[5] = ' ';
+    conv[6] = ' ';
+  }
+  return &conv[1];
+}
+
 // Convert float to string with +123.45 format
 char* ftostr52sign(const float &f) {
   long i = (f * 1000 + (f < 0 ? -5: 5)) / 10;
@@ -332,27 +328,31 @@ char* ftostr62rj(const float &f) {
   return conv;
 }
 
-// Convert float to space-padded string with -_23.4_ format
-char* ftostr52sp(const float &f) {
-  long i = (f * 1000 + (f < 0 ? -5: 5)) / 10;
-  uint8_t dig;
-  conv[1] = MINUSOR(i, RJDIGIT(i, 10000));
-  conv[2] = RJDIGIT(i, 1000);
-  conv[3] = DIGIMOD(i, 100);
+#if ENABLED(LCD_DECIMAL_SMALL_XY)
 
-  if ((dig = i % 10)) {           // second digit after decimal point?
-    conv[4] = '.';
-    conv[5] = DIGIMOD(i, 10);
-    conv[6] = DIGIT(dig);
+  // Convert float to rj string with 1234, _123, -123, _-12, 12.3, _1.2, or -1.2 format
+  char* ftostr4sign(const float &f) {
+    const int i = (f * 100 + (f < 0 ? -5: 5)) / 10;
+    if (!WITHIN(i, -99, 999)) return i16tostr4sign((int)f);
+    const bool neg = i < 0;
+    const int ii = neg ? -i : i;
+    conv[3] = neg ? '-' : (ii >= 100 ? DIGIMOD(ii, 100) : ' ');
+    conv[4] = DIGIMOD(ii, 10);
+    conv[5] = '.';
+    conv[6] = DIGIMOD(ii, 1);
+    return &conv[3];
   }
-  else {
-    if ((dig = (i / 10) % 10)) {  // first digit after decimal point?
-      conv[4] = '.';
-      conv[5] = DIGIT(dig);
-    }
-    else                          // nothing after decimal point
-      conv[4] = conv[5] = ' ';
-    conv[6] = ' ';
-  }
-  return &conv[1];
+
+#endif // LCD_DECIMAL_SMALL_XY
+
+void ftostrlength(char *buffer, const float f) {
+  uint16_t  k   = long(f) / 1000 / 1000,
+            m   = (long(f) / 1000) % 1000,
+            c   = (long(f) / 10) % 100,
+            mm  = long(f) % 10;
+
+  if (k) sprintf_P(buffer, PSTR("%uKm %um %ucm %umm"), k, m, c, mm);
+  else if (m) sprintf_P(buffer, PSTR("%um %ucm %umm"), m, c, mm);
+  else if (c) sprintf_P(buffer, PSTR("%ucm %umm"), c, mm);
+  else sprintf_P(buffer, PSTR("%umm"), mm);
 }

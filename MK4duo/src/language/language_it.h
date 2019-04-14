@@ -32,6 +32,8 @@
 #define DISPLAY_CHARSET_ISO10646_1
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronta.")
+#define MSG_YES                             _UxGT("Si")
+#define MSG_NO                              _UxGT("No")
 #define MSG_BACK                            _UxGT("Indietro")
 #define MSG_SD_INSERTED                     _UxGT("SD Card inserita")
 #define MSG_SD_REMOVED                      _UxGT("SD Card rimossa")
@@ -271,6 +273,9 @@
 #define MSG_WATCH                           _UxGT("Schermata info")
 #define MSG_PREPARE                         _UxGT("Prepara")
 #define MSG_TUNE                            _UxGT("Regola")
+#define MSG_START_PRINT                     _UxGT("Avvia stampa")
+#define MSG_BUTTON_PRINT                    _UxGT("Stampa")
+#define MSG_BUTTON_CANCEL                   _UxGT("Annulla")
 #define MSG_PAUSE_PRINT                     _UxGT("Pausa stampa")
 #define MSG_RESUME_PRINT                    _UxGT("Riprendi stampa")
 #define MSG_STOP_PRINT                      _UxGT("Arresta stampa")
@@ -546,9 +551,7 @@
 #define MSG_RESTORING_POS                   _UxGT("Ripristino posizione")
 #define MSG_INVALID_POS_SLOT                _UxGT("Slot invalido, slot totali:")
 #define MSG_NEED_TUNE_PID                   _UxGT("Necessita Tune PID")
-#define MSG_ARE_YOU_SURE                    _UxGT("Sei sicuro?")
-#define MSG_YES                             _UxGT("Si")
-#define MSG_NO                              _UxGT("No")
+#define MSG_ARE_YOU_SURE                    _UxGT("Sei sicuro")
 
 // Rfid module
 #define MSG_RFID_SPOOL                      _UxGT("Bobina su E")

@@ -40,7 +40,7 @@ inline void gcode_M192(void) {
   if (parser.seen('S'))
     coolers[0].setTarget(parser.value_celsius());
   else return;
-  coolers[0].waitForTarget(false);
+  coolers[0].wait_for_target(false);
 
 }
 

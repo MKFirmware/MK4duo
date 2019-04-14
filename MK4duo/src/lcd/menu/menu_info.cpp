@@ -54,7 +54,7 @@ void menu_info_stats() {
   STATIC_ITEM(MSG_INFO_POWER_ON ":", false, false);
   STATIC_ITEM(">", false, false, buffer);
 
-  lengthtoString(buffer, stats.filamentUsed);
+  ftostrlength(buffer, stats.filamentUsed);
   STATIC_ITEM(MSG_INFO_PRINT_FILAMENT ": ", false, false);
   STATIC_ITEM(">", false, false, buffer);
 

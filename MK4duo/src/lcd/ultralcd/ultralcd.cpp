@@ -83,7 +83,7 @@ millis_t next_button_update_ms;
 
 // Encoder Handling
 #if HAS_ENCODER_ACTION
-  uint32_t LcdUI::encoderPosition;
+  uint16_t LcdUI::encoderPosition;
   volatile int8_t encoderDiff; // Updated in update_buttons, added to encoderPosition every LCD update
 #endif
 
@@ -153,7 +153,25 @@ millis_t next_button_update_ms;
 
   #endif
 
-#endif
+  void wrap_string(uint8_t y, const char * const string) {
+    uint8_t x = LCD_WIDTH;
+    if (string) {
+      uint8_t *p = (uint8_t*)string;
+      for (;;) {
+        if (x >= LCD_WIDTH) {
+          x = 0;
+          SETCURSOR(0, y++);
+        }
+        wchar_t ch;
+        p = get_utf8_value_cb(p, read_byte_ram, &ch);
+        if (!ch) break;
+        lcd_put_wchar(ch);
+        x++;
+      }
+    }
+  }
+
+#endif // HAS_LCD_MENU
 
 void LcdUI::init() {
 
@@ -377,6 +395,7 @@ void LcdUI::status_screen() {
     //
 
     #if DISABLED(PROGRESS_MSG_ONCE) || (PROGRESS_MSG_EXPIRE > 0)
+      #define GOT_MS
       millis_t ms = millis();
     #endif
 
@@ -424,28 +443,35 @@ void LcdUI::status_screen() {
 
   #if ENABLED(ULTIPANEL_FEEDMULTIPLY)
 
-    const int16_t new_frm = mechanics.feedrate_percentage + (int32_t)encoderPosition;
+    const int16_t old_frm = mechanics.feedrate_percentage;
+          int16_t new_frm = old_frm + int16_t(encoderPosition);
+
     // Dead zone at 100% feedrate
-    if ((mechanics.feedrate_percentage < 100 && new_frm > 100) || (mechanics.feedrate_percentage > 100 && new_frm < 100)) {
-      mechanics.feedrate_percentage = 100;
-      encoderPosition = 0;
+    if (old_frm == 100) {
+      if (int16_t(encoderPosition) > ENCODER_FEEDRATE_DEADZONE)
+        new_frm -= ENCODER_FEEDRATE_DEADZONE;
+      else if (int16_t(encoderPosition) < -(ENCODER_FEEDRATE_DEADZONE))
+        new_frm += ENCODER_FEEDRATE_DEADZONE;
+      else
+        new_frm = old_frm;
     }
-    else if (mechanics.feedrate_percentage == 100) {
-      if ((int32_t)encoderPosition > ENCODER_FEEDRATE_DEADZONE) {
-        mechanics.feedrate_percentage += (int32_t)encoderPosition - (ENCODER_FEEDRATE_DEADZONE);
-        encoderPosition = 0;
-      }
-      else if ((int32_t)encoderPosition < -(ENCODER_FEEDRATE_DEADZONE)) {
-        mechanics.feedrate_percentage += (int32_t)encoderPosition + ENCODER_FEEDRATE_DEADZONE;
-        encoderPosition = 0;
-      }
-    }
-    else {
+    else if ((old_frm < 100 && new_frm > 100) || (old_frm > 100 && new_frm < 100))
+      new_frm = 100;
+
+    new_frm = constrain(new_frm, 10, 999);
+
+    if (old_frm != new_frm) {
       mechanics.feedrate_percentage = new_frm;
       encoderPosition = 0;
+      static millis_t next_beep;
+      #if DISABLED(GOT_MS)
+        const millis_t ms = millis();
+      #endif
+      if (ELAPSED(ms, next_beep)) {
+        sound.playtone(10, 440);
+        next_beep = ms + 500UL;
+      }
     }
-
-    mechanics.feedrate_percentage = constrain(mechanics.feedrate_percentage, 10, 999);
 
   #endif // ULTIPANEL_FEEDMULTIPLY
 
@@ -473,7 +499,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
   #endif
 
   // Buzz and wait. The delay is needed for buttons to settle!
-  sound.playTone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
+  sound.playtone(LCD_FEEDBACK_FREQUENCY_DURATION_MS, LCD_FEEDBACK_FREQUENCY_HZ);
 
   #if HAS_LCD_MENU
     #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -760,7 +786,7 @@ void LcdUI::update() {
     #if HAS_LCD_MENU && ENABLED(SCROLL_LONG_FILENAMES)
       // If scrolling of long file names is enabled and we are in the sd card menu,
       // cause a refresh to occur until all the text has scrolled into view.
-      if ((currentScreen == menu_sdcard  || currentScreen == menu_confirm_sdfile) && !status_update_delay--) {
+      if (currentScreen == menu_sdcard && !status_update_delay--) {
         status_update_delay = 4;
         if (++filename_scroll_pos > filename_scroll_max) {
           filename_scroll_pos = 0;

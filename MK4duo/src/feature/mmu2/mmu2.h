@@ -35,7 +35,7 @@ class MMU2 {
     static uint8_t cmd, cmd_arg, last_cmd, extruder;
     static int8_t state;
     static volatile int8_t finda;
-    static volatile bool findaRunoutValid;
+    static volatile bool finda_runout_valid;
     static int16_t version, buildnr;
     static millis_t last_request, next_P0_request;
     static char rx_buffer[16], tx_buffer[16];
@@ -44,18 +44,18 @@ class MMU2 {
 
     static void init();
     static void reset();
-    static void mmuLoop();
-    static void toolChange(uint8_t index);
-    static void toolChange(const char* special);
-    static uint8_t getCurrentTool();
-    static void setFilamentType(uint8_t index, uint8_t type);
+    static void mmu_loop();
+    static void tool_change(uint8_t index);
+    static void tool_change(const char* special);
+    static uint8_t get_current_tool();
+    static void set_filament_type(uint8_t index, uint8_t type);
 
     #if HAS_LCD_MENU
       static bool unload();
-      static void loadFilament(uint8_t);
-      static void loadAll();
-      static bool loadFilamentToNozzle(uint8_t index);
-      static bool ejectFilament(uint8_t index, bool recover);
+      static void load_filament(uint8_t);
+      static void load_all();
+      static bool load_filament_to_nozzle(uint8_t index);
+      static bool eject_filament(uint8_t index, bool recover);
     #endif
 
   private: /** Private Function */
@@ -68,19 +68,19 @@ class MMU2 {
 
     static bool rx_ok();
     static bool rx_start();
-    static void checkVersion();
+    static void check_version();
 
     static void command(const uint8_t cmd);
-    static bool getResponse(void);
-    static void manageResponse(bool move_axes, bool turn_off_nozzle);
+    static bool get_response(void);
+    static void manage_response(bool move_axes, bool turn_off_nozzle);
 
-    static void filamentRunout();
+    static void filament_runout();
     static void set_runout_valid(const bool valid);
 
     #if HAS_LCD_MENU
-      static void loadToNozzle();
-      static void filamentRamming();
-      static void executeExtruderSequence(const E_Step * sequence, int steps);
+      static void load_to_nozzle();
+      static void filament_ramming();
+      static void execute_extruder_sequence(const E_Step * sequence, int steps);
     #endif
 
 };

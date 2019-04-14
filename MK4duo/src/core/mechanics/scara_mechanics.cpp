@@ -865,7 +865,7 @@ void Scara_Mechanics::report_current_position_detail() {
 void Scara_Mechanics::homeaxis(const AxisEnum axis) {
 
   // Only Z homing (with probe) is permitted
-  if (axis != Z_AXIS) { sound.playTone(100, NOTE_A5); return; }
+  if (axis != Z_AXIS) { sound.playtone(100, NOTE_A5); return; }
 
   if (printer.debugFeature()) {
     DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
