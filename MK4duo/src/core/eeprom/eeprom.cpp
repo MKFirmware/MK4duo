@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV61"
+#define EEPROM_VERSION "MKV62"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -269,6 +269,7 @@ typedef struct EepromDataStruct {
   uint32_t          stepper_direction_delay,
                     stepper_maximum_rate;
   uint8_t           stepper_minimum_pulse;
+  bool              stepper_quad_stepping;
 
   //
   // Sound
@@ -715,6 +716,7 @@ void EEPROM::post_process() {
     EEPROM_WRITE(stepper.direction_delay);
     EEPROM_WRITE(stepper.minimum_pulse);
     EEPROM_WRITE(stepper.maximum_rate);
+    EEPROM_WRITE(stepper.quad_stepping);
 
     //
     // Sound
@@ -1123,6 +1125,7 @@ void EEPROM::post_process() {
       EEPROM_READ(stepper.direction_delay);
       EEPROM_READ(stepper.minimum_pulse);
       EEPROM_READ(stepper.maximum_rate);
+      EEPROM_READ(stepper.quad_stepping);
 
       //
       // Sound
@@ -2579,7 +2582,8 @@ void EEPROM::reset() {
       }
     #endif
     SERIAL_LM(CFG, "Stepper driver control");
-    SERIAL_SMV(CFG, "  M569 D", stepper.direction_delay);
+    SERIAL_SMV(CFG, "  M569 Q", stepper.quad_stepping);
+    SERIAL_MV(" D", stepper.direction_delay);
     SERIAL_MV(" P", stepper.minimum_pulse);
     SERIAL_MV(" R", stepper.maximum_rate);
     SERIAL_EOL();

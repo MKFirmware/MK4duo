@@ -645,6 +645,10 @@ void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   current_position[axis] = (axis == C_AXIS ? data.height : 0.0);
 
+  #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    babystep.reset_total(axis);
+  #endif
+
   if (printer.debugFeature()) {
     DEBUG_POS("", current_position);
     DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);

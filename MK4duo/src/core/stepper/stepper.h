@@ -57,6 +57,7 @@ class Stepper {
       static bool   separate_multi_axis;
     #endif
 
+    static bool     quad_stepping;
     static uint8_t  minimum_pulse;
     static uint32_t maximum_rate,
                     direction_delay;
@@ -331,6 +332,10 @@ class Stepper {
     }
     FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
 
+    #if ENABLED(BABYSTEPPING)
+      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
+    #endif
+
     #if ENABLED(LASER)
       static bool laser_status();
       FORCE_INLINE static float laser_intensity() { return current_block->laser_intensity; }
@@ -401,10 +406,6 @@ class Stepper {
       static int32_t _eval_bezier_curve(const uint32_t curr_step);
     #endif
 
-    #if ENABLED(BABYSTEPPING)
-      static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
-    #endif
-
     #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
       static void digipot_init();
     #endif
@@ -424,6 +425,54 @@ class Stepper {
         SET_INPUT(STEPPER_RESET_PIN);       // set to input, which allows it to be pulled high by pullups
       }
     #endif
+
+    FORCE_INLINE static hal_timer_t calc_timer_interval(uint32_t step_rate, uint8_t* loops, uint8_t scale) {
+
+      uint8_t multistep = 1;
+
+      // Scale the frequency, as requested by the caller
+      step_rate <<= scale;
+
+      if (quad_stepping) {
+        // Select the proper multistepping
+        uint8_t idx = 0;
+        while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
+          step_rate >>= 1;
+          multistep <<= 1;
+          ++idx;
+        };
+      }
+      else 
+        NOMORE(step_rate, HAL_frequency_limit[0]);
+
+      *loops = multistep;
+
+      #if ENABLED(CPU_32_BIT)
+        // In case of high-performance processor, it is able to calculate in real-time
+        return uint32_t(STEPPER_TIMER_RATE) / step_rate;
+      #else
+        hal_timer_t timer;
+        constexpr uint32_t min_step_rate = F_CPU / 500000U;
+        NOLESS(step_rate, min_step_rate);
+        step_rate -= min_step_rate;   // Correct for minimal speed
+        if (step_rate >= (8 * 256)) { // higher step rate
+          const uint8_t   tmp_step_rate = (step_rate & 0x00FF);
+          const uint16_t  table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0],
+                          gain = (uint16_t)pgm_read_word_near(table_address + 2);
+          timer = MultiU16X8toH16(tmp_step_rate, gain);
+          timer = (uint16_t)pgm_read_word_near(table_address) - timer;
+        }
+        else { // lower step rates
+          uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
+          table_address += ((step_rate) >> 1) & 0xFFFC;
+          timer = (uint16_t)pgm_read_word_near(table_address)
+                - (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
+        }
+
+        return timer;
+      #endif
+
+    }
 
 };
 

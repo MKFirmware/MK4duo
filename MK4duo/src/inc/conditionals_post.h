@@ -253,6 +253,13 @@
   #define DEFAULT_KEEPALIVE_INTERVAL 2
 #endif
 
+/**
+ * Stepper
+ */
+#if DISABLED(DOUBLE_QUAD_STEPPING)
+  #define DOUBLE_QUAD_STEPPING true
+#endif
+
 // MS1 MS2 Stepper Driver Microstepping mode table
 #define MICROSTEP1 LOW,LOW
 #define MICROSTEP2 HIGH,LOW

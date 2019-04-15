@@ -455,6 +455,10 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     }
   #endif
 
+  #if ENABLED(BABYSTEPPING) && ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    babystep.reset_total(axis);
+  #endif
+
   if (printer.debugFeature()) {
     #if ENABLED(WORKSPACE_OFFSETS)
       DEBUG_MV("> data.home_offset[", axis_codes[axis]);

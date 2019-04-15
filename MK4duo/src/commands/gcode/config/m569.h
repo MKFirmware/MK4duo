@@ -62,6 +62,7 @@ inline void gcode_M569(void) {
   if (parser.seen('D')) stepper.direction_delay = parser.value_ulong();
   if (parser.seen('P')) stepper.minimum_pulse   = parser.value_byte();
   if (parser.seen('R')) stepper.maximum_rate    = parser.value_ulong();
+  if (parser.seen('Q')) stepper.quad_stepping   = parser.value_bool();
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -87,9 +88,10 @@ inline void gcode_M569(void) {
     }
   #endif
 
-  SERIAL_MV(" Direction delay(ns):",  stepper.direction_delay);
-  SERIAL_MV(" Minimum pulse(us):",    stepper.minimum_pulse);
-  SERIAL_MV(" Maximum rate(Hz):",     stepper.maximum_rate);
+  SERIAL_LOGIC(" Double/Quad Stepping", stepper.quad_stepping);
+  SERIAL_MV(" Direction delay(ns):",    stepper.direction_delay);
+  SERIAL_MV(" Minimum pulse(us):",      stepper.minimum_pulse);
+  SERIAL_MV(" Maximum rate(Hz):",       stepper.maximum_rate);
   SERIAL_EOL();
 
   DEBUG_EMV("HAL_min_pulse_cycle:",     HAL_min_pulse_cycle);

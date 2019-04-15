@@ -28,37 +28,37 @@
 
 #if ENABLED(BABYSTEPPING)
 
-  #define CODE_M290
+#define CODE_M290
 
-  #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-    FORCE_INLINE void mod_probe_zoffset(const float &offs) {
-      probe.data.offset[Z_AXIS] += offs;
-      SERIAL_LMV(ECHO, MSG_PROBE_Z_OFFSET ": ", probe.data.offset[Z_AXIS]);
-    }
-  #endif
+#if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+  FORCE_INLINE void mod_probe_zoffset(const float &offs) {
+    probe.data.offset[Z_AXIS] += offs;
+    SERIAL_LMV(ECHO, MSG_PROBE_Z_OFFSET ": ", probe.data.offset[Z_AXIS]);
+  }
+#endif
 
-  /**
-   * M290: Babystepping
-   */
-  inline void gcode_M290(void) {
-    #if ENABLED(BABYSTEP_XY)
-      for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
-        if (parser.seenval(axis_codes[a]) || (a == Z_AXIS && parser.seenval('S'))) {
-          const float offs = constrain(parser.value_axis_units((AxisEnum)a), -2, 2);
-          mechanics.babystep_axis((AxisEnum)a, offs * mechanics.data.axis_steps_per_mm[a]);
-          #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-            if (a == Z_AXIS && parser.boolval('P')) mod_probe_zoffset(offs);
-          #endif
-        }
-    #else
-      if (parser.seenval('Z') || parser.seenval('S')) {
-        const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
-        mechanics.babystep_axis(Z_AXIS, offs * mechanics.data.axis_steps_per_mm[Z_AXIS]);
+/**
+ * M290: Babystepping
+ */
+inline void gcode_M290(void) {
+  #if ENABLED(BABYSTEP_XY)
+    for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
+      if (parser.seenval(axis_codes[a]) || (a == Z_AXIS && parser.seenval('S'))) {
+        const float offs = constrain(parser.value_axis_units((AxisEnum)a), -2, 2);
+        babystep.add_mm((AxisEnum)a, offs);
         #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-          if (parser.boolval('P')) mod_probe_zoffset(offs);
+          if (a == Z_AXIS && (!parser.seen('P') || parser.value_bool())) mod_zprobe_zoffset(offs);
         #endif
       }
-    #endif
-  }
+  #else
+    if (parser.seenval('Z') || parser.seenval('S')) {
+      const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
+      babystep.add_mm(Z_AXIS, offs);
+      #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+        if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+      #endif
+    }
+  #endif
+}
 
 #endif // BABYSTEPPING

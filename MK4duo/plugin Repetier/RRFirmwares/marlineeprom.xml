@@ -1704,7 +1704,7 @@
     <detect>M420.*Z(-?\d*\.?\d*)</detect>
   </entry>
 
-  <!-- M569: Stepper Direction, Direction_delay, minimum_pulse e maximum_rate -->
+  <!-- M569: Stepper Direction, Quad_stepping Direction_delay, minimum_pulse e maximum_rate -->
   <entry type="int" min="0" max="1">
     <description unit="[0-1]">X stepper direction</description>
     <set>M569 X@</set>
@@ -1764,6 +1764,11 @@
     <description unit="[Hz]">Stepper maximum rate</description>
     <set>M569 R@</set>
     <detect>M569.*R(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Stepper Double/Quad Stepping</description>
+    <set>M569 Q@</set>
+    <detect>M569.*Q(-?\d*)</detect>
   </entry>
 
   <!-- M595: AD595 Offset and Gain -->

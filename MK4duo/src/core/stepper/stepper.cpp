@@ -88,6 +88,7 @@ uint16_t Stepper::direction_flag;
   bool Stepper::separate_multi_axis = false;
 #endif
 
+bool      Stepper::quad_stepping    = true;
 uint8_t   Stepper::minimum_pulse    = 0;
 uint32_t  Stepper::maximum_rate     = 0,
           Stepper::direction_delay  = 0;
@@ -400,8 +401,9 @@ void Stepper::factory_parameters() {
   for (uint8_t axis = 0; axis < sizeof(tmpdir); ++axis) 
     setStepDir((AxisEnum)axis, tmpdir[axis]);
 
-  direction_delay = DIRECTION_STEPPER_DELAY;
+  quad_stepping   = DOUBLE_QUAD_STEPPING;
   minimum_pulse   = MINIMUM_STEPPER_PULSE;
+  direction_delay = DIRECTION_STEPPER_DELAY;
   maximum_rate    = MAXIMUM_STEPPER_RATE;
 }
 
@@ -1238,6 +1240,137 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   #endif
 }
 
+#if ENABLED(BABYSTEPPING)
+
+  #if MECH(DELTA)
+    #define CYCLES_EATEN_BABYSTEP (2 * 15)
+  #else
+    #define CYCLES_EATEN_BABYSTEP 0
+  #endif
+  #define EXTRA_CYCLES_BABYSTEP (HAL_min_pulse_tick - (CYCLES_EATEN_BABYSTEP))
+
+  #if EXTRA_CYCLES_BABYSTEP > 20
+    #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
+    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
+  #else
+    #define _SAVE_START NOOP
+    #if EXTRA_CYCLES_BABYSTEP > 0
+      #define _PULSE_WAIT DELAY_NS(EXTRA_CYCLES_BABYSTEP * NS_PER_CYCLE)
+    #elif HAL_min_pulse_tick > 0
+      #define _PULSE_WAIT NOOP
+    #elif MECH(DELTA)
+      #define _PULSE_WAIT DELAY_US(2);
+    #else
+      #define _PULSE_WAIT DELAY_US(4);
+    #endif
+  #endif
+
+  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
+      const uint8_t old_dir = AXIS ##_DIR_READ();             \
+      enable_## AXIS();                                     \
+      set_##AXIS##_dir(isStepDir(AXIS ##_AXIS)^DIR^INVERT); \
+      if (direction_delay >= 50)                            \
+        HAL::delayNanoseconds(direction_delay);             \
+      _SAVE_START;                                          \
+      start_##AXIS##_step();                                \
+      _PULSE_WAIT;                                          \
+      stop_##AXIS##_step();                                 \
+      set_##AXIS##_dir(old_dir);                            \
+    }
+
+  // MUST ONLY BE CALLED BY AN ISR,
+  // No other ISR should ever interrupt this!
+  void Stepper::babystep(const AxisEnum axis, const bool direction) {
+    DISABLE_ISRS();
+
+    switch (axis) {
+
+      #if ENABLED(BABYSTEP_XY)
+
+        case X_AXIS:
+          #if CORE_IS_XY
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Y, false, direction);
+          #elif CORE_IS_XZ
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Z, false, direction);
+          #else
+            BABYSTEP_AXIS(X, false, direction);
+          #endif
+          break;
+
+        case Y_AXIS:
+          #if CORE_IS_XY
+            BABYSTEP_AXIS(X, false, direction);
+            BABYSTEP_AXIS(Y, false, direction^(CORESIGN(1)<0));
+          #elif CORE_IS_YZ
+            BABYSTEP_AXIS(Y, false, direction);
+            BABYSTEP_AXIS(Z, false, direction^(CORESIGN(1)<0));
+          #else
+            BABYSTEP_AXIS(Y, false, direction);
+          #endif
+          break;
+
+      #endif
+
+      case Z_AXIS: {
+
+        #if CORE_IS_XZ
+          BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+        #elif CORE_IS_YZ
+          BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+        #elif NOMECH(DELTA)
+          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
+        #else // DELTA
+
+          const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
+
+          enable_X();
+          enable_Y();
+          enable_Z();
+
+          const uint8_t old_x_dir_pin = X_DIR_READ(),
+                        old_y_dir_pin = Y_DIR_READ(),
+                        old_z_dir_pin = Z_DIR_READ();
+
+          set_X_dir(isStepDir(X_AXIS) ^ z_direction);
+          set_Y_dir(isStepDir(Y_AXIS) ^ z_direction);
+          set_Z_dir(isStepDir(Z_AXIS) ^ z_direction);
+
+          if (direction_delay >= 50)
+            HAL::delayNanoseconds(direction_delay);
+
+          _SAVE_START;
+
+          start_X_step();
+          start_Y_step();
+          start_Z_step();
+
+          _PULSE_WAIT;
+
+          stop_X_step();
+          stop_Y_step();
+          stop_Z_step();
+
+          // Restore direction bits
+          set_X_dir(old_x_dir_pin);
+          set_Y_dir(old_y_dir_pin);
+          set_Z_dir(old_z_dir_pin);
+
+        #endif
+
+      } break;
+
+      default: break;
+    }
+
+    ENABLE_ISRS();
+  }
+
+#endif //BABYSTEPPING
+
 /** Private Function */
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
@@ -1282,9 +1415,6 @@ void Stepper::pulse_phase_step() {
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
     }
 
-    // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
-    if (signed(HAL_add_pulse_ticks) > 0) pulse_end += HAL_add_pulse_ticks;
-
     // Stop an active pulse
     pulse_tick_stop();
 
@@ -1311,6 +1441,9 @@ void Stepper::pulse_phase_step() {
     // Decrement the count of pending pulses to do
     --events_to_do;
 
+    // Add to the value, the value needed for the pulse end and ensuring the maximum driver rate is enforced
+    pulse_end += HAL_add_pulse_ticks;
+
     // For minimum pulse time wait after stopping pulses also
     // Just wait for the requested pulse time.
     if (events_to_do) {
@@ -1322,6 +1455,7 @@ void Stepper::pulse_phase_step() {
     }
 
   } while (events_to_do);
+
 }
 
 uint32_t Stepper::block_phase_step() {
@@ -1365,7 +1499,7 @@ uint32_t Stepper::block_phase_step() {
         // acc_step_rate is in steps/second
 
         // step_rate to timer interval
-        interval = HAL_calc_timer_interval(acc_step_rate, &steps_per_isr, oversampling_factor);
+        interval = calc_timer_interval(acc_step_rate, &steps_per_isr, oversampling_factor);
         acceleration_time += interval;
 
         #if ENABLED(LIN_ADVANCE)
@@ -1411,7 +1545,7 @@ uint32_t Stepper::block_phase_step() {
         // step_rate is in steps/second
 
         // step_rate to timer interval
-        interval = HAL_calc_timer_interval(step_rate, &steps_per_isr, oversampling_factor);
+        interval = calc_timer_interval(step_rate, &steps_per_isr, oversampling_factor);
         deceleration_time += interval;
 
         #if ENABLED(LIN_ADVANCE)
@@ -1438,7 +1572,7 @@ uint32_t Stepper::block_phase_step() {
         // Calculate the ticks_nominal for this nominal speed, if not done yet
         if (ticks_nominal < 0) {
           // step_rate to timer interval and loops for the nominal speed
-          ticks_nominal = HAL_calc_timer_interval(current_block->nominal_rate, &steps_per_isr, oversampling_factor);
+          ticks_nominal = calc_timer_interval(current_block->nominal_rate, &steps_per_isr, oversampling_factor);
         }
 
         // The timer interval is just the nominal value for the nominal speed
@@ -1654,7 +1788,7 @@ uint32_t Stepper::block_phase_step() {
       #endif
 
       // Calculate the initial timer interval
-      interval = HAL_calc_timer_interval(current_block->initial_rate, &steps_per_isr, oversampling_factor);
+      interval = calc_timer_interval(current_block->initial_rate, &steps_per_isr, oversampling_factor);
     }
   }
 
@@ -1666,18 +1800,6 @@ uint32_t Stepper::block_phase_step() {
     if (current_block->laser_status == LASER_OFF)
       laser.extinguish();
   #endif
-
-  #if ENABLED(BABYSTEPPING)
-    LOOP_XYZ(axis) {
-      const int curTodo = mechanics.babystepsTodo[axis]; // get rid of volatile for performance
-
-      if (curTodo) {
-        babystep((AxisEnum)axis, curTodo > 0);
-        if (curTodo > 0)  mechanics.babystepsTodo[axis]--;
-        else              mechanics.babystepsTodo[axis]++;
-      }
-    }
-  #endif // ENABLED(BABYSTEPPING)
 
   // Return the interval to wait
   return interval;
@@ -1737,7 +1859,7 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
 
 }
 
-void Stepper::pulse_tick_stop() {
+FORCE_INLINE void Stepper::pulse_tick_stop() {
 
   #if HAS_X_STEP
     if (delta_error[X_AXIS] >= 0) {
@@ -2206,10 +2328,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       if (minimum_pulse) {
         // Just wait for the requested pulse time.
         while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
+        // Add the delay needed to ensure the maximum driver rate is enforced
+        pulse_end += HAL_add_pulse_ticks;
       }
-
-      // Add the delay needed to ensure the maximum driver rate is enforced
-      if (signed(HAL_add_pulse_ticks) > 0) pulse_end += HAL_add_pulse_ticks;
 
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
@@ -2222,8 +2343,8 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       // For minimum pulse time wait before looping
       // Just wait for the requested pulse time.
       if (LA_steps) {
-        while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
         if (minimum_pulse) {
+          while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
           // Add to the value, the time that the pulse must be active (to be used on the next loop)
           pulse_end += HAL_min_pulse_tick;
         }
@@ -2994,137 +3115,6 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
   #endif // !ENABLED(__AVR__)
 
 #endif // BEZIER_JERK_CONTROL
-
-#if ENABLED(BABYSTEPPING)
-
-  #if MECH(DELTA)
-    #define CYCLES_EATEN_BABYSTEP (2 * 15)
-  #else
-    #define CYCLES_EATEN_BABYSTEP 0
-  #endif
-  #define EXTRA_CYCLES_BABYSTEP (HAL_min_pulse_tick - (CYCLES_EATEN_BABYSTEP))
-
-  #if EXTRA_CYCLES_BABYSTEP > 20
-    #define _SAVE_START const hal_timer_t pulse_start = HAL_timer_get_current_count(STEPPER_TIMER)
-    #define _PULSE_WAIT while (EXTRA_CYCLES_BABYSTEP > (uint32_t)(HAL_timer_get_current_count(STEPPER_TIMER) - pulse_start) * (STEPPER_TIMER_PRESCALE)) { /* nada */ }
-  #else
-    #define _SAVE_START NOOP
-    #if EXTRA_CYCLES_BABYSTEP > 0
-      #define _PULSE_WAIT DELAY_NS(EXTRA_CYCLES_BABYSTEP * NS_PER_CYCLE)
-    #elif HAL_min_pulse_tick > 0
-      #define _PULSE_WAIT NOOP
-    #elif MECH(DELTA)
-      #define _PULSE_WAIT DELAY_US(2);
-    #else
-      #define _PULSE_WAIT DELAY_US(4);
-    #endif
-  #endif
-
-  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
-      const uint8_t old_dir = AXIS ##_DIR_READ();             \
-      enable_## AXIS();                                     \
-      set_##AXIS##_dir(isStepDir(AXIS ##_AXIS)^DIR^INVERT); \
-      if (direction_delay >= 50)                            \
-        HAL::delayNanoseconds(direction_delay);             \
-      _SAVE_START;                                          \
-      start_##AXIS##_step();                                \
-      _PULSE_WAIT;                                          \
-      stop_##AXIS##_step();                                 \
-      set_##AXIS##_dir(old_dir);                            \
-    }
-
-  // MUST ONLY BE CALLED BY AN ISR,
-  // No other ISR should ever interrupt this!
-  void Stepper::babystep(const AxisEnum axis, const bool direction) {
-    DISABLE_ISRS();
-
-    switch (axis) {
-
-      #if ENABLED(BABYSTEP_XY)
-
-        case X_AXIS:
-          #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction);
-          #elif CORE_IS_XZ
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Z, false, direction);
-          #else
-            BABYSTEP_AXIS(X, false, direction);
-          #endif
-          break;
-
-        case Y_AXIS:
-          #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction^(CORESIGN(1)<0));
-          #elif CORE_IS_YZ
-            BABYSTEP_AXIS(Y, false, direction);
-            BABYSTEP_AXIS(Z, false, direction^(CORESIGN(1)<0));
-          #else
-            BABYSTEP_AXIS(Y, false, direction);
-          #endif
-          break;
-
-      #endif
-
-      case Z_AXIS: {
-
-        #if CORE_IS_XZ
-          BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
-        #elif CORE_IS_YZ
-          BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
-        #elif NOMECH(DELTA)
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
-        #else // DELTA
-
-          const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
-
-          enable_X();
-          enable_Y();
-          enable_Z();
-
-          const uint8_t old_x_dir_pin = X_DIR_READ(),
-                        old_y_dir_pin = Y_DIR_READ(),
-                        old_z_dir_pin = Z_DIR_READ();
-
-          set_X_dir(isStepDir(X_AXIS) ^ z_direction);
-          set_Y_dir(isStepDir(Y_AXIS) ^ z_direction);
-          set_Z_dir(isStepDir(Z_AXIS) ^ z_direction);
-
-          if (direction_delay >= 50)
-            HAL::delayNanoseconds(direction_delay);
-
-          _SAVE_START;
-
-          start_X_step();
-          start_Y_step();
-          start_Z_step();
-
-          _PULSE_WAIT;
-
-          stop_X_step();
-          stop_Y_step();
-          stop_Z_step();
-
-          // Restore direction bits
-          set_X_dir(old_x_dir_pin);
-          set_Y_dir(old_y_dir_pin);
-          set_Z_dir(old_z_dir_pin);
-
-        #endif
-
-      } break;
-
-      default: break;
-    }
-
-    ENABLE_ISRS();
-  }
-
-#endif //BABYSTEPPING
 
 #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM
 

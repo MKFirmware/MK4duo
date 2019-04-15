@@ -44,7 +44,8 @@ void lcd_sd_updir() {
 
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
 
-  uint16_t sd_encoder_position = 0xFFFF;
+  uint16_t  sd_encoder_position = 0xFFFF;
+  int8_t    sd_top_line, sd_items;
 
   void LcdUI::reselect_last_file() {
     if (sd_encoder_position == 0xFFFF) return;
@@ -58,7 +59,7 @@ void lcd_sd_updir() {
     //  lcdui.drawing_screen = screen_changed = true;
     //#endif
 
-    goto_screen(menu_sdcard, sd_encoder_position);
+    goto_screen(menu_sdcard, sd_encoder_position, sd_top_line, sd_items);
     sd_encoder_position = 0xFFFF;
 
     defer_status_screen();
@@ -94,6 +95,8 @@ class MenuItem_sdfile {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         // Save which file was selected for later use
         sd_encoder_position = lcdui.encoderPosition;
+        sd_top_line = encoderTopLine;
+        sd_items = screen_items;
       #endif
       do_print_file = false;
       MenuItem_submenu::action(menu_sd_confirm);
@@ -105,7 +108,7 @@ class MenuItem_sdfolder {
     static void action(SDCard &theCard) {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
-      lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
+      lcdui.encoderPosition = 2 * (ENCODER_STEPS_PER_MENU_ITEM);
       screen_changed = true;
       #if HAS_GRAPHICAL_LCD
         lcdui.drawing_screen = false;

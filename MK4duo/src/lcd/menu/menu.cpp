@@ -318,7 +318,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
                   ;
       if (WITHIN(new_offs, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
 
-        mechanics.babystep_axis(Z_AXIS, babystep_increment);
+        babystep.add_steps(Z_AXIS, babystep_increment);
 
         if (do_probe) probe.data.offset[Z_AXIS] = new_offs;
         #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)

@@ -1007,7 +1007,7 @@ void LcdUI::draw_status_screen() {
   }
 
   void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
-    lcd_moveto(1, 1);
+    lcd_moveto(0, 1);
     lcd_put_u8str_P(pstr);
     if (value != NULL) {
       lcd_put_wchar(':');

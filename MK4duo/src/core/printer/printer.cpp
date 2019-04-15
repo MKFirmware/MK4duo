@@ -587,6 +587,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     rfid522.spin();
   #endif
 
+  #if ENABLED(BABYSTEPPING)
+    babystep.spin();
+  #endif
+
   // Prevent steppers timing-out in the middle of M600
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
     #define MOVE_AWAY_TEST !advancedpause.did_pause_print

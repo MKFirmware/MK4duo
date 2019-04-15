@@ -55,26 +55,50 @@ inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
     lcdui.encoder_direction_normal();
     if (lcdui.encoderPosition) {
-      const int16_t babystep_increment = int16_t(lcdui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
+      const int16_t steps = int16_t(lcdui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
       lcdui.encoderPosition = 0;
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
-      mechanics.babystep_axis(axis, babystep_increment);
-      babysteps_done += babystep_increment;
+      babystep.add_steps(axis, steps);
     }
-    if (lcdui.should_draw())
-      draw_edit_screen(msg, ftostr43sign(mechanics.steps_to_mm[axis] * babysteps_done));
+    if (lcdui.should_draw()) {
+      const float spm = mechanics.steps_to_mm[axis];
+      draw_edit_screen(msg, ftostr54sign(spm * babystep.accum));
+      #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+        const bool in_view = (true
+          #if HAS_GRAPHICAL_LCD
+            && PAGE_CONTAINS(LCD_PIXEL_HEIGHT - MENU_FONT_HEIGHT, LCD_PIXEL_HEIGHT - 1)
+          #endif
+        );
+        if (in_view) {
+          #if HAS_GRAPHICAL_LCD
+            lcdui.set_font(FONT_MENU);
+            lcd_moveto(0, LCD_PIXEL_HEIGHT - MENU_FONT_DESCENT);
+          #else
+            lcd_moveto(0, LCD_HEIGHT - 1);
+          #endif
+          lcd_put_u8str_P(PSTR(MSG_BABYSTEP_TOTAL ":"));
+          lcd_put_u8str(ftostr54sign(spm * babystep.axis_total[BS_TOTAL_AXIS(axis)]));
+        }
+      #endif
+    }
+  }
+
+  inline void _lcd_babystep_go(const screenFunc_t screen) {
+    lcdui.goto_screen(screen);
+    lcdui.defer_status_screen();
+    babystep.accum = 0;
   }
 
   #if ENABLED(BABYSTEP_XY)
-    void _lcd_babystep_x() { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEP_X)); }
-    void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEP_Y)); }
-    void lcd_babystep_x() { lcdui.goto_screen(_lcd_babystep_x); babysteps_done = 0; lcdui.defer_status_screen(); }
-    void lcd_babystep_y() { lcdui.goto_screen(_lcd_babystep_y); babysteps_done = 0; lcdui.defer_status_screen(); }
+    void _lcd_babystep_x()  { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEP_X)); }
+    void _lcd_babystep_y()  { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEP_Y)); }
+    void lcd_babystep_x()   { _lcd_babystep_go(_lcd_babystep_x); }
+    void lcd_babystep_y()   { _lcd_babystep_go(_lcd_babystep_y); }
   #endif
 
   #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
-    void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEP_Z)); }
-    void lcd_babystep_z() { lcdui.goto_screen(_lcd_babystep_z); babysteps_done = 0; lcdui.defer_status_screen(); }
+    void _lcd_babystep_z()  { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEP_Z)); }
+    void lcd_babystep_z()   { _lcd_babystep_go(_lcd_babystep_z); }
   #endif
 
 #endif // BABYSTEPPING
