@@ -169,11 +169,6 @@ class Planner {
       static bool abort_on_endstop_hit;
     #endif
 
-    #if ENABLED(HYSTERESIS_FEATURE)
-      static float  hysteresis_mm[XYZ],
-                    hysteresis_correction;
-    #endif
-
   private: /** Private Parameters */
 
     /**
@@ -674,10 +669,6 @@ class Planner {
       }
 
     #endif // JUNCTION_DEVIATION
-
-    #if ENABLED(HYSTERESIS_FEATURE)
-      static void insert_hysteresis_correction(block_t * const block);
-    #endif
 
 };
 

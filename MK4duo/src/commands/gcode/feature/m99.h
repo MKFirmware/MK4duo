@@ -28,39 +28,39 @@
 
 #if ENABLED(HYSTERESIS_FEATURE)
 
-  #define CODE_M99
+#define CODE_M99
 
-  /**
-   * M99: Set Hysteresis value
-   *  F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
-   *  X[float] Sets the hysteresis distance on X (0 to disable)
-   *  Y[float] Sets the hysteresis distance on Y (0 to disable)
-   *  Z[float] Sets the hysteresis distance on Z (0 to disable)
-   *
-   */
-  inline void gcode_M99(void) {
+/**
+ * M99: Set Hysteresis value
+ *  F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
+ *  X[float] Sets the hysteresis distance on X (0 to disable)
+ *  Y[float] Sets the hysteresis distance on Y (0 to disable)
+ *  Z[float] Sets the hysteresis distance on Z (0 to disable)
+ *
+ */
+inline void gcode_M99(void) {
 
-    LOOP_XYZ(axis) {
-      if (parser.seen(axis_codes[axis]))
-        planner.hysteresis_mm[axis] = parser.value_float();
-    }
-
-    if (parser.seen('F'))
-      planner.hysteresis_correction = MAX(0, MIN(1.0, parser.value_float()));
-
-    if (planner.hysteresis_correction > 0)
-      SERIAL_EM("Hysteresis correction is active:");
-    else
-      SERIAL_EM("Hysteresis correction is inactive:");
-
-    SERIAL_MV(" Correction Amount/Fade-out: F", planner.hysteresis_correction);
-    SERIAL_EM(" (F1.0 = full, F0.0 = none)");
-    SERIAL_MSG("  Hysteresis Distance (mm): ");
-    SERIAL_MV(" X", planner.hysteresis_mm[X_AXIS]);
-    SERIAL_MV(" Y", planner.hysteresis_mm[Y_AXIS]);
-    SERIAL_MV(" Z", planner.hysteresis_mm[Z_AXIS]);
-    SERIAL_EOL();
-
+  LOOP_XYZ(axis) {
+    if (parser.seen(axis_codes[axis]))
+      hysteresis.mm[axis] = parser.value_float();
   }
+
+  if (parser.seen('F'))
+    hysteresis.correction = MAX(0, MIN(1.0, parser.value_float()));
+
+  if (hysteresis.correction > 0)
+    SERIAL_EM("Hysteresis correction is active:");
+  else
+    SERIAL_EM("Hysteresis correction is inactive:");
+
+  SERIAL_MV(" Correction Amount/Fade-out: F", hysteresis.correction);
+  SERIAL_EM(" (F1.0 = full, F0.0 = none)");
+  SERIAL_MSG("  Hysteresis Distance (mm): ");
+  SERIAL_MV(" X", hysteresis.mm[X_AXIS]);
+  SERIAL_MV(" Y", hysteresis.mm[Y_AXIS]);
+  SERIAL_MV(" Z", hysteresis.mm[Z_AXIS]);
+  SERIAL_EOL();
+
+}
 
 #endif // HYSTERESIS_FEATURE

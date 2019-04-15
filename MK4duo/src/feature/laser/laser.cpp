@@ -193,7 +193,7 @@
           if (laser.diagnostics)
             SERIAL_LM(ER, "Peripheral control board failed to respond");
 
-          printer.Stop();
+          printer.stop();
           break;
         }
       }

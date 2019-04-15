@@ -38,96 +38,96 @@ union flagpower_t {
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
-  class Power {
+class Power {
 
-    public: /** Constructor */
+  public: /** Constructor */
 
     Power() {};
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      static flagpower_t flag;
+    static flagpower_t flag;
 
-      #if HAS_POWER_CONSUMPTION_SENSOR
-        static int16_t  current_raw_powconsumption;
-        static float    consumption_meas;   // holds the power consumption as accurately measured
-        static uint32_t startpower;
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      static int16_t  current_raw_powconsumption;
+      static float    consumption_meas;   // holds the power consumption as accurately measured
+      static uint32_t startpower;
+    #endif
+
+  private: /** Private Parameters */
+
+    #if HAS_POWER_SWITCH
+      static bool powersupply_on;
+      #if (POWER_TIMEOUT > 0)
+        static watch_t watch_lastPowerOn;
       #endif
+    #endif
 
-    private: /** Private Parameters */
+  public: /** Public Function */
 
-      #if HAS_POWER_SWITCH
-        static bool powersupply_on;
-        #if (POWER_TIMEOUT > 0)
-          static watch_t watch_lastPowerOn;
-        #endif
-      #endif
+    #if HAS_POWER_SWITCH || HAS_POWER_CHECK
 
-    public: /** Public Function */
+      /**
+       * Initialize the Power switch and Power Check pins
+       */
+      static void init();
 
-      #if HAS_POWER_SWITCH || HAS_POWER_CHECK
+    #endif
 
-        /**
-         * Initialize the Power switch and Power Check pins
-         */
-        static void init();
+    #if HAS_POWER_CHECK
 
-      #endif
+      /**
+       * Initialize Factory parameters
+       */
+      static void factory_parameters();
 
-      #if HAS_POWER_CHECK
+      /**
+       * Setup Pullup
+       */
+      static void setup_pullup();
 
-        /**
-         * Initialize Factory parameters
-         */
-        static void factory_parameters();
+      /**
+       * Print logical and pullup
+       */
+      static void report();
 
-        /**
-         * Setup Pullup
-         */
-        static void setup_pullup();
+    #endif
 
-        /**
-         * Print logical and pullup
-         */
-        static void report();
+    #if HAS_POWER_SWITCH
 
-      #endif
+      static void spin();
+      static void power_on();
+      static void power_off();
 
-      #if HAS_POWER_SWITCH
+      FORCE_INLINE static bool is_on() { return powersupply_on; }
 
-        static void spin();
-        static void power_on();
-        static void power_off();
+    #endif
 
-        FORCE_INLINE static bool is_on() { return powersupply_on; }
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      static float  analog2voltage(),
+                    analog2current(),
+                    analog2power(),
+                    raw_analog2voltage(),
+                    analog2error(float current),
+                    analog2efficiency(float watt);
+    #endif
 
-      #endif
+    // Flag bit 0 Set power check logic
+    FORCE_INLINE static void setLogic(const bool logic) { flag.Logic = logic; }
+    FORCE_INLINE static bool isLogic() { return flag.Logic; }
 
-      #if HAS_POWER_CONSUMPTION_SENSOR
-        static float  analog2voltage(),
-                      analog2current(),
-                      analog2power(),
-                      raw_analog2voltage(),
-                      analog2error(float current),
-                      analog2efficiency(float watt);
-      #endif
+    // Flag bit 1 Set power check pullup
+    FORCE_INLINE static void setPullup(const bool pullup) { flag.Pullup = pullup; }
+    FORCE_INLINE static bool isPullup() { return flag.Pullup; }
 
-      // Flag bit 0 Set power check logic
-      FORCE_INLINE static void setLogic(const bool logic) { flag.Logic = logic; }
-      FORCE_INLINE static bool isLogic() { return flag.Logic; }
+  private: /** Private Function */
 
-      // Flag bit 1 Set power check pullup
-      FORCE_INLINE static void setPullup(const bool pullup) { flag.Pullup = pullup; }
-      FORCE_INLINE static bool isPullup() { return flag.Pullup; }
+    #if HAS_POWER_SWITCH
+      static bool is_power_needed();
+    #endif
 
-    private: /** Private Function */
+};
 
-      #if HAS_POWER_SWITCH
-        static bool is_power_needed();
-      #endif
-
-  };
-
-  extern Power powerManager;
+extern Power powerManager;
 
 #endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR

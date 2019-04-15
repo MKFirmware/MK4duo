@@ -65,7 +65,7 @@ bool Bltouch::set_deployed(const bool deploy) {
     if (test()) {                 // If it still claims to be triggered...
       SERIAL_LM(ER, MSG_STOP_BLTOUCH);
       sound.feedback(false);
-      printer.Stop();
+      printer.stop();
       return true;
     }
   }
