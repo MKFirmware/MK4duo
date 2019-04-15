@@ -68,20 +68,19 @@ bool Probe::set_deployed(const bool deploy) {
     if (mechanics.axis_unhomed_error(true, false, false)) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
       sound.feedback(false);
-      printer.Stop();
+      printer.stop();
       return true;
     }
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
-    if (mechanics.axis_unhomed_error(true, true,  true )) {
+    if (mechanics.axis_unhomed_error()) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
       sound.feedback(false);
-      printer.Stop();
+      printer.stop();
       return true;
     }
   #endif
 
-  const float oldXpos = mechanics.current_position[X_AXIS],
-              oldYpos = mechanics.current_position[Y_AXIS];
+  COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
 
   #if ENABLED(Z_PROBE_ALLEN_KEY)
 
@@ -101,10 +100,10 @@ bool Probe::set_deployed(const bool deploy) {
     if (PROBE_STOWED() == deploy) {
       if (printer.isRunning()) {
         SERIAL_LM(ER, "Z-Probe failed");
-        LCD_ALERTMESSAGEPGM("Err: Z-Probe");
+        LCD_ALERTMESSAGEPGM("Err: ZPROBE");
         sound.feedback(false);
       }
-      printer.Stop();
+      printer.stop();
       return true;
     }
 
@@ -114,7 +113,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #endif
 
-  mechanics.do_blocking_move_to(oldXpos, oldYpos, mechanics.current_position[Z_AXIS]); // return to position before deploy
+  mechanics.do_blocking_move_to(mechanics.stored_position[1][X_AXIS], mechanics.stored_position[1][Y_AXIS], mechanics.current_position[Z_AXIS]); // return to position before deploy
   endstops.setProbeEnabled(deploy);
   return false;
 }

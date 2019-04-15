@@ -130,7 +130,7 @@ class Printer {
     static void kill(PGM_P const lcd_msg=NULL);
     static void minikill();
 
-    static void Stop();
+    static void stop();
 
     static void idle(const bool ignore_stepper_queue=false);
     static void setInterruptEvent(const InterruptEventEnum event);

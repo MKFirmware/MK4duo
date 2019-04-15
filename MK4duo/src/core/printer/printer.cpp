@@ -498,7 +498,7 @@ void Printer::minikill() {
  * Turn off heaters and stop the print in progress
  * After a stop the machine may be resumed with M999
  */
-void Printer::Stop() {
+void Printer::stop() {
 
   thermalManager.disable_all_heaters();
 
@@ -513,7 +513,7 @@ void Printer::Stop() {
   #endif
 
   #if ENABLED(LASER)
-    if (laser.diagnostics) SERIAL_EM("Laser set to off, Stop() called");
+    if (laser.diagnostics) SERIAL_EM("Laser set to off, stop() called");
     laser.extinguish();
     #if ENABLED(LASER_PERIPHERALS)
       laser.peripherals_off();

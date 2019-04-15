@@ -128,11 +128,6 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
   #endif
 #endif
 
-#if ENABLED(HYSTERESIS_FEATURE)
-  float Planner::hysteresis_mm[XYZ]     = { 0.0 },
-        Planner::hysteresis_correction  = 0.0;
-#endif
-
 #if HAS_SPI_LCD
   volatile uint32_t Planner::block_buffer_runtime_us = 0;
 #endif
@@ -1163,7 +1158,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       );
 
     #if ENABLED(HYSTERESIS_FEATURE)
-      insert_hysteresis_correction(block);
+      hysteresis.add_correction_step(block);
     #endif
 
   }
@@ -2686,30 +2681,3 @@ void Planner::recalculate() {
 
   recalculate_trapezoids();
 }
-
-#if ENABLED(HYSTERESIS_FEATURE)
-
-  void Planner::insert_hysteresis_correction(block_t * const block) {
-
-    static uint8_t last_direction_bits = 0;
-    uint8_t direction_change_bits = last_direction_bits ^ block->direction_bits;
-
-    LOOP_XYZ(axis)
-      if (!block->steps[axis]) CBI(direction_change_bits, axis);
-
-    last_direction_bits ^= direction_change_bits;
-
-    if (hysteresis_correction == 0.0f || !direction_change_bits) return;
-
-    LOOP_XYZ(axis) {
-      if (hysteresis_mm[axis]) {
-        // When an axis changes direction, add axis hysteresis
-        if (TEST(direction_change_bits, axis)) {
-          const uint32_t fix = hysteresis_correction * hysteresis_mm[axis] * mechanics.data.axis_steps_per_mm[axis];
-          block->steps[axis] += fix;
-        }
-      }
-    }
-  }
-
-#endif

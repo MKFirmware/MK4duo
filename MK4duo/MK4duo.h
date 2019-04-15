@@ -161,6 +161,7 @@
 #include "src/feature/babystep/babystep.h"
 #include "src/feature/bltouch/bltouch.h"
 #include "src/feature/external_dac/external_dac.h"
+#include "src/feature/hysteresis/hysteresis.h"
 #include "src/feature/tmc/tmc.h"
 #include "src/feature/power/power.h"
 #include "src/feature/mixing/mixing.h"

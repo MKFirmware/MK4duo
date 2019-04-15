@@ -294,8 +294,8 @@ typedef struct EepromDataStruct {
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
-    float           planner_hysteresis_mm[XYZ],
-                    planner_hysteresis_correction;
+    float           hysteresis_mm[XYZ],
+                    hysteresis_correction;
   #endif
 
   //
@@ -741,8 +741,8 @@ void EEPROM::post_process() {
     // Hysteresis Feature
     //
     #if ENABLED(HYSTERESIS_FEATURE)
-      EEPROM_WRITE(planner.hysteresis_mm);
-      EEPROM_WRITE(planner.hysteresis_correction);
+      EEPROM_WRITE(hysteresis.mm);
+      EEPROM_WRITE(hysteresis.correction);
     #endif
 
     //
@@ -1150,8 +1150,8 @@ void EEPROM::post_process() {
       // Hysteresis Feature
       //
       #if ENABLED(HYSTERESIS_FEATURE)
-        EEPROM_READ(planner.hysteresis_mm);
-        EEPROM_READ(planner.hysteresis_correction);
+        EEPROM_READ(hysteresis.mm);
+        EEPROM_READ(hysteresis.correction);
       #endif
 
       //
@@ -2237,6 +2237,10 @@ void EEPROM::reset() {
     fwretract.reset();
   #endif
 
+  #if ENABLED(HYSTERESIS_FEATURE)
+    hysteresis.factory_parameters();
+  #endif
+
   #if ENABLED(VOLUMETRIC_EXTRUSION)
 
     #if ENABLED(VOLUMETRIC_DEFAULT_ON)
@@ -2266,12 +2270,6 @@ void EEPROM::reset() {
 
   #if ENABLED(LIN_ADVANCE)
     planner.extruder_advance_K = LIN_ADVANCE_K;
-  #endif
-
-  #if ENABLED(HYSTERESIS_FEATURE)
-    static const float tmp2[] PROGMEM = HYSTERESIS_AXIS_MM;
-    LOOP_XYZ(i) planner.hysteresis_mm[i] = pgm_read_float(&tmp2[ALIM(i, tmp2)]);
-    planner.hysteresis_correction  = HYSTERESIS_CORRECTION;
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -2644,12 +2642,7 @@ void EEPROM::reset() {
      * Hysteresis Feature
      */
     #if ENABLED(HYSTERESIS_FEATURE)
-      SERIAL_LM(CFG, "Hysteresis Correction");
-      SERIAL_SMV(CFG, "  M99 X", planner.hysteresis_mm[X_AXIS]);
-      SERIAL_MV(" Y", planner.hysteresis_mm[Y_AXIS]);
-      SERIAL_MV(" Z", planner.hysteresis_mm[Z_AXIS]);
-      SERIAL_MV(" F", planner.hysteresis_correction);
-      SERIAL_EOL();
+      hysteresis.print_M99();
     #endif
 
     /**
