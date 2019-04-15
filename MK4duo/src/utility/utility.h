@@ -98,19 +98,22 @@ char* ftostr52(const float &f);
 // Convert float to fixed-length string with +123.4 / -123.4 format
 char* ftostr41sign(const float &f);
 
-// Convert float to string (6 digit) with -1.234 / _0.000 / +1.234 format
+// Convert signed float to string (6 digit) with -1.234 / _0.000 / +1.234 format
 char* ftostr43sign(const float &f, char plus=' ');
+
+// Convert signed float to string (5 digit) with -1.2345 / _0.0000 / +1.2345 format
+char* ftostr54sign(const float &x, char plus=' ');
 
 // Convert float to rj string with 12345 format
 char* ftostr5rj(const float &f);
 
-// Convert float to string with +1234.5 format
+// Convert signed float to string with +1234.5 format
 char* ftostr51sign(const float &f);
 
 // Convert float to space-padded string with -_23.4_ format
 char* ftostr52sp(const float &f);
 
-// Convert float to string with +123.45 format
+// Convert signed float to string with +123.45 format
 char* ftostr52sign(const float &f);
 
 // Convert float to string with 1234.56 format omitting trailing zeros

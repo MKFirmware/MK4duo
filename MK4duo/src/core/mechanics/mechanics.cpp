@@ -58,10 +58,6 @@ uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
   float Mechanics::workspace_offset[XYZ] = { 0.0 };
 #endif
 
-#if ENABLED(BABYSTEPPING)
-  volatile int16_t Mechanics::babystepsTodo[XYZ] = { 0 };
-#endif
-
 /** Private Parameters */
 float   Mechanics::saved_feedrate_mm_s = 0.0;
 int16_t Mechanics::saved_feedrate_percentage = 0;
@@ -291,41 +287,6 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   }
 
 #endif
-
-#if ENABLED(BABYSTEPPING)
-
-  void Mechanics::babystep_axis(const AxisEnum axis, const int16_t distance) {
-
-    if (isAxisHomed(axis)) {
-      #if IS_CORE
-        #if ENABLED(BABYSTEP_XY)
-          switch (axis) {
-            case CORE_AXIS_1: // X on CoreXY and CoreXZ, Y on CoreYZ
-              babystepsTodo[CORE_AXIS_1] += distance * 2;
-              babystepsTodo[CORE_AXIS_2] += distance * 2;
-              break;
-            case CORE_AXIS_2: // Y on CoreXY, Z on CoreXZ and CoreYZ
-              babystepsTodo[CORE_AXIS_1] += CORESIGN(distance * 2);
-              babystepsTodo[CORE_AXIS_2] -= CORESIGN(distance * 2);
-              break;
-            case NORMAL_AXIS: // Z on CoreXY, Y on CoreXZ, X on CoreYZ
-              babystepsTodo[NORMAL_AXIS] += distance;
-              break;
-          }
-        #elif CORE_IS_XZ || CORE_IS_YZ
-          // Only Z stepping needs to be handled here
-          babystepsTodo[CORE_AXIS_1] += CORESIGN(distance * 2);
-          babystepsTodo[CORE_AXIS_2] -= CORESIGN(distance * 2);
-        #else
-          babystepsTodo[Z_AXIS] += distance;
-        #endif
-      #else
-        babystepsTodo[axis] += distance;
-      #endif
-    }
-  }
-
-#endif // BABYSTEPPING
 
 /** Protected Function */
 #if ENABLED(SENSORLESS_HOMING)

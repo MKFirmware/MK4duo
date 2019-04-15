@@ -151,9 +151,9 @@ uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
 }
 
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle   = MAX((uint32_t)(F_CPU) / stepper.maximum_rate, ((F_CPU) / 500000UL) * (uint32_t)stepper.minimum_pulse);
-  HAL_min_pulse_tick    = (stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (uint32_t)(PULSE_TIMER_PRESCALE));
-  HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.minimum_pulse, 1UL));
+  HAL_min_pulse_tick  = uint32_t(stepper.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
+  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -164,49 +164,6 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
   HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
-}
-
-uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
-
-  uint32_t timer = 0;
-  uint8_t multistep = 1;
-
-  // Scale the frequency, as requested by the caller
-  step_rate <<= scale;
-
-  #if DISABLED(DISABLE_MULTI_STEPPING)
-    // Select the proper multistepping
-    uint8_t idx = 0;
-    while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
-      step_rate >>= 1;
-      multistep <<= 1;
-      ++idx;
-    };
-  #else
-    NOMORE(step_rate, HAL_frequency_limit[0]);
-  #endif
-
-  *loops = multistep;
-
-  constexpr uint32_t min_step_rate = F_CPU / 500000U;
-  NOLESS(step_rate, min_step_rate);
-  step_rate -= min_step_rate;   // Correct for minimal speed
-  if (step_rate >= (8 * 256)) { // higher step rate
-    const uint8_t   tmp_step_rate = (step_rate & 0x00FF);
-    const uint16_t  table_address = (uint16_t)&speed_lookuptable_fast[(uint8_t)(step_rate >> 8)][0],
-                    gain = (uint16_t)pgm_read_word_near(table_address + 2);
-    timer = MultiU16X8toH16(tmp_step_rate, gain);
-    timer = (uint16_t)pgm_read_word_near(table_address) - timer;
-  }
-  else { // lower step rates
-    uint16_t table_address = (uint16_t)&speed_lookuptable_slow[0][0];
-    table_address += ((step_rate) >> 1) & 0xFFFC;
-    timer = (uint16_t)pgm_read_word_near(table_address)
-          - (((uint16_t)pgm_read_word_near(table_address + 2) * (uint8_t)(step_rate & 0x0007)) >> 3);
-  }
-
-  return timer;
-
 }
 
 // Return available memory

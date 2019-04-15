@@ -483,8 +483,6 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
 void HAL_calc_pulse_cycle();
 
-uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale);
-
 class HAL {
 
   public: /** Constructor */

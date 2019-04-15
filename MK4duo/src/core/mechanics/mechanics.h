@@ -207,10 +207,6 @@ class Mechanics {
       static WorkspacePlaneEnum workspace_plane = PLANE_XY;
     #endif
 
-    #if ENABLED(BABYSTEPPING)
-      static volatile int16_t babystepsTodo[XYZ];
-    #endif
-
   private: /** Private Parameters */
 
     static float saved_feedrate_mm_s;
@@ -346,10 +342,6 @@ class Mechanics {
           );
         }
       }
-    #endif
-
-    #if ENABLED(BABYSTEPPING)
-      static void babystep_axis(const AxisEnum axis, const int16_t distance);
     #endif
 
   protected: /** Protected Function */

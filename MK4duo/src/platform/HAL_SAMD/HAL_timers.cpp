@@ -149,9 +149,9 @@ uint32_t HAL_isr_execution_cycle(const uint32_t rate) {
 }
 
 void HAL_calc_pulse_cycle() {
-  HAL_min_pulse_cycle   = MAX((uint32_t)((F_CPU) / stepper.maximum_rate), ((F_CPU) / 500000UL) * (uint32_t)stepper.minimum_pulse);
-  HAL_min_pulse_tick    = ((uint32_t)stepper.minimum_pulse * (STEPPER_TIMER_TICKS_PER_US)) + ((MIN_ISR_START_LOOP_CYCLES) / (uint32_t)(PULSE_TIMER_PRESCALE));
-  HAL_add_pulse_ticks   = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+  HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.minimum_pulse, 1UL));
+  HAL_min_pulse_tick  = uint32_t(stepper.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
+  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execution_cycle(1))   >> 0;
@@ -162,34 +162,6 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execution_cycle(32))  >> 5;
   HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execution_cycle(64))  >> 6;
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execution_cycle(128)) >> 7;
-}
-
-
-uint32_t HAL_calc_timer_interval(uint32_t step_rate, uint8_t* loops, const uint8_t scale) {
-
-  uint8_t multistep = 1;
-
-  // Scale the frequency, as requested by the caller
-  step_rate <<= scale;
-
-  #if DISABLED(DISABLE_DOUBLE_QUAD_STEPPING)
-  // Select the proper multistepping
-    uint8_t idx = 0;
-    while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {
-      step_rate >>= 1;
-      multistep <<= 1;
-      ++idx;
-    };
-  #else
-    NOMORE(step_rate, HAL_frequency_limit[0]);
-  #endif
-
-
-  *loops = multistep;
-
-  // In case of high-performance processor, it is able to calculate in real-time
-  return uint32_t(HAL_TIMER_RATE) / step_rate;
-
 }
 
 STEPPER_TIMER_ISR() {

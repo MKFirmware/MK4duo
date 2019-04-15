@@ -1652,16 +1652,28 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     // Limit acceleration per axis
     if (block->step_event_count <= cutoff_long) {
-      LIMIT_ACCEL_LONG(X_AXIS, 0);
-      LIMIT_ACCEL_LONG(Y_AXIS, 0);
-      LIMIT_ACCEL_LONG(Z_AXIS, 0);
-      LIMIT_ACCEL_LONG(E_AXIS, extruder);
+      LOOP_XYZ(axis) {
+        if (block->steps[axis] && mechanics.max_acceleration_steps_per_s2[axis] < accel) {
+          const uint32_t comp = mechanics.max_acceleration_steps_per_s2[axis] * block->step_event_count;
+          if (accel * block->steps[axis] > comp) accel = comp / block->steps[axis];
+        }
+      }
+      if (block->steps[E_AXIS] && mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) {
+        const uint32_t comp = mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] * block->step_event_count;
+        if (accel * block->steps[E_AXIS] > comp) accel = comp / block->steps[E_AXIS];
+      }
     }
     else {
-      LIMIT_ACCEL_FLOAT(X_AXIS, 0);
-      LIMIT_ACCEL_FLOAT(Y_AXIS, 0);
-      LIMIT_ACCEL_FLOAT(Z_AXIS, 0);
-      LIMIT_ACCEL_FLOAT(E_AXIS, extruder);
+      LOOP_XYZ(axis) {
+        if (block->steps[axis] && mechanics.max_acceleration_steps_per_s2[axis] < accel) {
+          const float comp = (float)mechanics.max_acceleration_steps_per_s2[axis] * (float)block->step_event_count;
+          if ((float)accel * (float)block->steps[axis] > comp) accel = comp / (float)block->steps[axis];
+        }
+      }
+      if (block->steps[E_AXIS] && mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) {
+        const float comp = (float)mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] * (float)block->step_event_count;
+        if ((float)accel * (float)block->steps[E_AXIS] > comp) accel = comp / (float)block->steps[E_AXIS];
+      }
     }
   }
   block->acceleration_steps_per_s2 = accel;

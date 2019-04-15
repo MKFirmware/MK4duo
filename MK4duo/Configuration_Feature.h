@@ -741,6 +741,8 @@
 #define BABYSTEP_INVERT_Z false
 // Babysteps are very small. Increase for faster motion.
 #define BABYSTEP_MULTIPLICATOR 1
+// Display total babysteps since last G28
+//#define BABYSTEP_DISPLAY_TOTAL
 // Enable to combine M851 and Babystepping
 //#define BABYSTEP_ZPROBE_OFFSET
 // Double-click on the Status Screen for Z Babystepping.
@@ -2053,10 +2055,10 @@
  ********************** Double / Quad Stepping *************************
  ***********************************************************************
  *                                                                     *
- * Disable double / quad stepping                                      *
+ * Enable/Disable double / quad stepping                               *
  *                                                                     *
  ***********************************************************************/
-//#define DISABLE_DOUBLE_QUAD_STEPPING
+#define DOUBLE_QUAD_STEPPING true
 /***********************************************************************/
 
 

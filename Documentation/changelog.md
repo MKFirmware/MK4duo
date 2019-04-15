@@ -7,6 +7,7 @@
 * Add Prusa MMU2 Support
 * Add support thermocouples for bed and hotend.
 * Add menu axis limit to menu advanced.
+* Add Double-Quad Stepping to command M569 Q and save it into EEPROM.
 * M301 - Set PID parameters P I D and C.
 *   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
 *   T[int] 0-3 For Select Beds or Chambers (default 0)
