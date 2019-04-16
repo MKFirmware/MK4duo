@@ -31,7 +31,7 @@ class mesh_bed_leveling {
 
   public: /** Constructor */
 
-    mesh_bed_leveling();
+    mesh_bed_leveling() {}
 
   public: /** Public Parameters */
 
@@ -111,10 +111,6 @@ class mesh_bed_leveling {
         #endif
       ;
     }
-
-  private: /** Private Parameters */
-
-  private: /** Private Function */
 
 };
 

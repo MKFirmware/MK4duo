@@ -26,32 +26,6 @@
  * Available chip select pins for HW SPI are 4 10 52 53 59 60 77
  */
 #if (SDSS == 4) || (SDSS == 10) || (SDSS == 52) || (SDSS == 53) || (SDSS == 59) || (SDSS == 60) || (SDSS == 77)
-  #if (SDSS == 4)
-    #define SPI_PIN         87
-    #define SPI_CHAN         1
-  #elif (SDSS == 10)
-    #define SPI_PIN         77
-    #define SPI_CHAN         0
-  #elif (SDSS == 52)
-    #define SPI_PIN         86
-    #define SPI_CHAN         2
-  #elif (SDSS == 53)
-    #define SPI_PIN         53
-    #define SPI_CHAN         0
-  #elif (SDSS == 59)
-    #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-      #define SOFTWARE_SPI
-    #else
-      #define SPI_PIN        4
-      #define SPI_CHAN       1
-    #endif
-  #elif (SDSS == 60)
-    #define SPI_PIN         60
-    #define SPI_CHAN         1
-  #else
-    #define SPI_PIN         77
-    #define SPI_CHAN         0
-  #endif
   #define MISO_PIN          74
   #define MOSI_PIN          75
   #define SCK_PIN           76
@@ -68,8 +42,4 @@
   #endif
 #endif
 
-#if ENABLED(REPRAPWORLD_GRAPHICAL_LCD) && MB(ULTRATRONICS)
-  #define SS_PIN            4
-#else
-  #define SS_PIN            SDSS
-#endif
+#define SS_PIN            SDSS

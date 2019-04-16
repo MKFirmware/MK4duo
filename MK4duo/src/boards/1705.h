@@ -190,6 +190,8 @@
 //###IF_BLOCKS
 #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
+  #define LCD_SDSS            53
+
   #define LCD_PINS_RS         62
   #define LCD_PINS_ENABLE     75
   #define LCD_PINS_D4         76
