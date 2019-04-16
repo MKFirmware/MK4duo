@@ -902,6 +902,10 @@ void Printer::setup_pinout() {
     OUT_WRITE(SS_PIN, HIGH);
   #endif
 
+  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
+    OUT_WRITE(LCD_SDSS, HIGH);
+  #endif
+
   #if PIN_EXISTS(MAX6675_SS)
     OUT_WRITE(MAX6675_SS_PIN, HIGH);
   #endif

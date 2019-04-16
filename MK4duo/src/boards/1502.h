@@ -185,8 +185,8 @@
 
 //###UNKNOWN_PINS
 #undef NUM_DIGITAL_PINS
-#define NUM_DIGITAL_PINS 111
-
+#define NUM_DIGITAL_PINS     111
+#define SPI_CHAN               0
 #define SPI_CHAN_DAC           1
 #define X_MS1_PIN             99
 #define Y_MS1_PIN             10
