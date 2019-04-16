@@ -135,7 +135,7 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
       lcd_custom_bootscreen();
     #endif
 
-    #if ENABLED(START_BMPHIGH)
+    #if ENABLED(BOOTSCREEN_MKLOGO_HIGH)
       constexpr uint8_t offy = 0; // NOT TOUCH THIS!! MK4DUO LOGO!!
     #else
       constexpr uint8_t offy = MENU_FONT_HEIGHT;
