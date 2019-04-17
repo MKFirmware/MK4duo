@@ -36,7 +36,7 @@ void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
 
 void Sound::spin() {
   static tone_t tone = { 0, 0 };
-  static watch_t tone_watch;
+  static watch_s tone_watch;
 
   if (tone_watch.elapsed(tone.duration)) {
 

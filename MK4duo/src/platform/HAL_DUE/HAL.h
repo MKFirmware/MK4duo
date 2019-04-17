@@ -261,6 +261,9 @@ class HAL {
     #if CHAMBERS > 0
       static ADCAveragingFilter CHAMBERsensorFilters[CHAMBERS];
     #endif
+    #if COOLERS > 0
+      static ADCAveragingFilter COOLERsensorFilters[COOLERS];
+    #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static ADCAveragingFilter filamentFilter;

@@ -30,8 +30,8 @@
 
 #if ENABLED(DHT_SENSOR)
 
-constexpr uint32_t DHTMinimumReadInterval = 2000; // ms
-constexpr uint32_t DHTMaximumReadTime     = 20;   // ms
+constexpr uint16_t  DHTMinimumReadInterval = 2000, // ms
+                    DHTMaximumReadTime     = 20;   // ms
 
 DHTSensor dhtsensor;
 
@@ -101,7 +101,7 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static watch_t  min_read_watch(DHTMinimumReadInterval),
+  static watch_s  min_read_watch(DHTMinimumReadInterval),
                   operation_watch;
 
   if (!min_read_watch.elapsed()) return;

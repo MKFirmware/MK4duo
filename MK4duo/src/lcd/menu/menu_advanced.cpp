@@ -622,31 +622,31 @@ void menu_advanced_temperature() {
     MENU_BACK(MSG_ADVANCED_SETTINGS);
 
     #if MECH(DELTA)
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_STEPS_PER_MM, &mechanics.data.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_STEPS_PER_MM, &mechanics.data.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
     #else
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ASTEPS, &mechanics.data.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_BSTEPS, &mechanics.data.axis_steps_per_mm[Y_AXIS], 5, 9999, _mechanics_refresh_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_CSTEPS, &mechanics.data.axis_steps_per_mm[Z_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ASTEPS, &mechanics.data.axis_steps_per_mm[X_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_BSTEPS, &mechanics.data.axis_steps_per_mm[Y_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_CSTEPS, &mechanics.data.axis_steps_per_mm[Z_AXIS], 5, 9999, _mechanics_refresh_positioning);
     #endif
 
     #if EXTRUDERS > 1
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + tools.active_extruder], 5, 9999, _mechanics_refresh_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E1STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS], 5, 9999, _mechanics_refresh_e0_positioning);
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E2STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 1], 5, 9999, _mechanics_refresh_e1_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + tools.active_extruder], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E1STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS], 5, 9999, _mechanics_refresh_e0_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E2STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 1], 5, 9999, _mechanics_refresh_e1_positioning);
       #if EXTRUDERS > 2
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E3STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 2], 5, 9999, _mechanics_refresh_e2_positioning);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E3STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 2], 5, 9999, _mechanics_refresh_e2_positioning);
         #if EXTRUDERS > 3
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E4STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 3], 5, 9999, _mechanics_refresh_e3_positioning);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E4STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 3], 5, 9999, _mechanics_refresh_e3_positioning);
           #if EXTRUDERS > 4
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E5STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 4], 5, 9999, _mechanics_refresh_e4_positioning);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E5STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 4], 5, 9999, _mechanics_refresh_e4_positioning);
             #if EXTRUDERS > 5
-              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_E6STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 5], 5, 9999, _mechanics_refresh_e4_positioning);
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E6STEPS, &mechanics.data.axis_steps_per_mm[E_AXIS + 5], 5, 9999, _mechanics_refresh_e4_positioning);
             #endif // EXTRUDERS > 5
           #endif // EXTRUDERS > 4
         #endif // EXTRUDERS > 3
       #endif // EXTRUDERS > 2
     #else
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float62, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm[E_AXIS], 5, 9999, _mechanics_refresh_positioning);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm[E_AXIS], 5, 9999, _mechanics_refresh_positioning);
     #endif
 
     END_MENU();

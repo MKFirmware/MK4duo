@@ -104,6 +104,12 @@ void Temperature::set_current_temp_raw() {
         chambers[h].sensor.raw = HAL::AnalogInputValues[chambers[h].sensor.pin];
     }
   #endif
+  #if COOLERS > 0
+    LOOP_COOLER() {
+      if (WITHIN(coolers[h].sensor.pin, 0, 15))
+        coolers[h].sensor.raw = HAL::AnalogInputValues[coolers[h].sensor.pin];
+    }
+  #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
@@ -286,7 +292,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         t1 = time;
         t_high = t1 - t2;
 
-        #if HAS_TEMP_COOLER
+        #if COOLERS > 0
           if (act->data.type == IS_COOLER)
             minTemp = target_temp;
           else
@@ -360,7 +366,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         act->pwm_value = (bias + d);
         cycles++;
 
-        #if HAS_TEMP_COOLER
+        #if COOLERS > 0
           if (act->data.type == IS_COOLER)
             maxTemp = target_temp;
           else
@@ -375,7 +381,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
       #define MAX_OVERSHOOT_PID_AUTOTUNE 20
     #endif
     if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
-      #if HAS_TEMP_COOLER
+      #if COOLERS > 0
         && act->data.type != IS_COOLER
       #endif
     ) {
@@ -384,7 +390,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
       pid_pointer = 255;
       break;
     }
-    #if HAS_TEMP_COOLER
+    #if COOLERS > 0
       else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && act->data.type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
@@ -431,7 +437,7 @@ void Temperature::PID_autotune(Heater *act, const float target_temp, const uint8
         }
       #endif
 
-      #if HAS_TEMP_COOLER
+      #if COOLERS > 0
         if (act->data.type == IS_COOLER) {
           SERIAL_EMV("#define COOLER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define COOLER_Ki ", tune_pid.Ki);
@@ -873,7 +879,7 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
   #endif
 
   #if COOLERS > 0
-    if (act->data.type == IS_COOLER) SERIAL_CHR('C');
+    if (act->data.type == IS_COOLER) SERIAL_CHR('W');
   #endif
 
   const int16_t targetTemperature = act->isIdle() ? act->idle_temperature : act->target_temperature;

@@ -21,29 +21,40 @@
  */
 #pragma once
 
-struct watch_t {
+template <class T>
+class Watch {
 
-  millis_t  startwatch = 0,
-            stopwatch  = 0;
+  public: /** Constructor */
 
-  watch_t(const millis_t duration=0) {
-    this->stopwatch = duration;
-    if (duration) this->start();
-  }
-
-  FORCE_INLINE void start() { this->startwatch = millis(); }
-  FORCE_INLINE void stop()  { this->startwatch = 0; }
-  FORCE_INLINE bool isRunning() { return this->startwatch; }
-
-  FORCE_INLINE bool elapsed(const millis_t period=0) {
-    const millis_t  now = millis(),
-                    end = period ? period : this->stopwatch;
-
-    if (this->startwatch == 0 || now >= this->startwatch + end || now < this->startwatch) {
-      this->startwatch = 0;
-      return true;
+    Watch(const T duration=0) {
+      stopwatch = duration;
+      if (duration) start();
     }
-    return false;
-  }
+
+  public: /** Public Parameters */
+
+    T startwatch = 0,
+      stopwatch  = 0;
+
+  public: /** Public Function */
+
+    void start() { startwatch = millis(); }
+    void stop()  { startwatch = 0; }
+
+    bool isRunning() { return startwatch; }
+
+    bool elapsed(const T period=0) {
+      const T now = millis(),
+              end = period ? period : stopwatch;
+
+      if (startwatch == 0 || now >= startwatch + end || now < startwatch) {
+        startwatch = 0;
+        return true;
+      }
+      return false;
+    }
 
 };
+
+using watch_l = Watch<uint32_t>;
+using watch_s = Watch<uint16_t>;

@@ -33,9 +33,9 @@
 /**
  * M303: PID relay autotune
  *
- *   H[heaters]   0-5 Hotend, -1 BED, -2 CHAMBER
+ *   H[heaters]   0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *
- *    T[int]      0-3 For Select Beds or Chambers (default 0)
+ *    T[int]      0-3 For Select Beds, Chambers or Cooler(default 0)
  *
  *    S[temp]     sets the target temperature. (default target temperature = 150C)
  *    C[cycles]   minimum 3 (default 5)
@@ -53,7 +53,7 @@ inline void gcode_M303(void) {
   uint8_t     method  = parser.intval('R', 0);
   const bool  store   = parser.boolval('U');
 
-  const int16_t target = parser.celsiusval('S', act->data.type == IS_BED ? 70 : 200);
+  const int16_t target = parser.celsiusval('S', act->data.type == IS_HOTEND ? 200 : 70);
 
   if (target > act->data.maxtemp - 10) {
     SERIAL_EM(MSG_PID_TEMP_TOO_HIGH);
@@ -67,7 +67,8 @@ inline void gcode_M303(void) {
   switch (act->data.type) {
     case IS_HOTEND:   SERIAL_MV("Hotend:", act->data.ID); break;
     case IS_BED:      SERIAL_MV("BED:", act->data.ID);    break;
-    case IS_CHAMBER:  SERIAL_MV("CHAMBER", act->data.ID); break;
+    case IS_CHAMBER:  SERIAL_MV("CHAMBER:", act->data.ID); break;
+    case IS_COOLER:   SERIAL_MV("COOLER:", act->data.ID); break;
     default: break;
   }
 

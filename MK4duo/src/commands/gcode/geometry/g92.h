@@ -33,41 +33,66 @@
  */
 inline void gcode_G92(void) {
 
-  bool  didXYZ = false,
-        didE = false;
+  bool didE = false;
+  #if IS_SCARA || DISABLED(WORKSPACE_OFFSETS)
+    bool didXYZ = false;
+  #else
+    constexpr bool didXYZ = false;
+  #endif
 
-  LOOP_XYZE(i) {
-    if (parser.seenval(axis_codes[i])) {
-      const float l = parser.value_axis_units((AxisEnum)i),
-                  v = (i == E_AXIS) ? l : mechanics.logical_to_native(l, (AxisEnum)i),
-                  d = v - mechanics.current_position[i];
+  #if USE_GCODE_SUBCODES
+    const uint8_t subcode_G92 = parser.subcode;
+  #else
+    constexpr uint8_t subcode_G92 = 0;
+  #endif
 
-      if (!NEAR_ZERO(d)) {
-        if (i == E_AXIS)
-          didE = true;
-        else
-          didXYZ = true;
-
-        #if IS_SCARA
-          mechanics.current_position[i] = v;        // For SCARA just set the position directly
-        #elif ENABLED(WORKSPACE_OFFSETS)
-          if (i == E_AXIS)
-            mechanics.current_position[E_AXIS] = v; // When using coordinate spaces, only E is set directly
-          else {
-            mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
-            endstops.update_software_endstops((AxisEnum)i);
+  switch (subcode_G92) {
+    #if HAS_SD_RESTART
+      case 9: {
+        LOOP_XYZE(i) {
+          if (parser.seenval(axis_codes[i])) {
+            mechanics.current_position[i] = parser.value_axis_units((AxisEnum)i);
+            #if IS_SCARA || DISABLED(WORKSPACE_OFFSETS)
+              if (i == E_AXIS) didE = true; else didXYZ = true;
+            #endif
           }
-        #else
-          mechanics.current_position[i] = v;
-        #endif
+        }
+      } break;
+    #endif
+    default:
+    case 0: {
+      LOOP_XYZE(i) {
+        if (parser.seenval(axis_codes[i])) {
+          const float l = parser.value_axis_units((AxisEnum)i),
+                      v = (i == E_AXIS) ? l : mechanics.logical_to_native(l, (AxisEnum)i),
+                      d = v - mechanics.current_position[i];
+
+          if (!NEAR_ZERO(d)) {
+            if (i == E_AXIS)
+              didE = true;
+            else
+              didXYZ = true;
+
+            #if IS_SCARA
+              mechanics.current_position[i] = v;        // For SCARA just set the position directly
+            #elif ENABLED(WORKSPACE_OFFSETS)
+              if (i == E_AXIS)
+                mechanics.current_position[E_AXIS] = v; // When using coordinate spaces, only E is set directly
+              else {
+                mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
+                endstops.update_software_endstops((AxisEnum)i);
+              }
+            #else
+              mechanics.current_position[i] = v;
+            #endif
+          }
+        }
       }
-    }
+    } break;
   }
 
-  if (didXYZ)
-    mechanics.sync_plan_position();
-  else if (didE)
-    mechanics.sync_plan_position_e();
+  if    (didXYZ)  mechanics.sync_plan_position();
+  else if (didE)  mechanics.sync_plan_position_e();
 
   mechanics.report_current_position();
 }

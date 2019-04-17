@@ -77,6 +77,9 @@ bool    HAL::Analog_is_ready = false;
 #if CHAMBERS > 0
   ADCAveragingFilter HAL::CHAMBERsensorFilters[CHAMBERS];
 #endif
+#if COOLERS > 0
+  ADCAveragingFilter HAL::COOLERsensorFilters[COOLERS];
+#endif
 
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
   ADCAveragingFilter  HAL::filamentFilter;
@@ -309,6 +312,14 @@ void HAL::analogStart(void) {
       if (WITHIN(chambers[h].sensor.pin, 0, 15)) {
         AnalogInEnablePin(chambers[h].sensor.pin, true);
         CHAMBERsensorFilters[h].Init(0);
+      }
+    }
+  #endif
+  #if COOLERS > 0
+    LOOP_COOLER() {
+      if (WITHIN(coolers[h].sensor.pin, 0, 15)) {
+        AnalogInEnablePin(coolers[h].sensor.pin, true);
+        COOLERsensorFilters[h].Init(0);
       }
     }
   #endif
@@ -593,6 +604,9 @@ void HAL::Tick() {
   #if CHAMBERS > 0
     LOOP_CHAMBER() chambers[h].set_output_pwm();
   #endif
+  #if COOLERS > 0
+    LOOP_COOLER() coolers[h].set_output_pwm();
+  #endif
 
   // Fans set output PWM
   #if FAN_COUNT > 0
@@ -620,7 +634,7 @@ void HAL::Tick() {
     if (adc_get_status(ADC)) { // conversion finished?
 
       #if HOTENDS > 0
-        for (uint8_t h = 0; h < HOTENDS; h++) {
+        LOOP_HOTEND() {
           if (WITHIN(hotends[h].sensor.pin, 0, 15)) {
             ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
             currentFilter.ProcessReading(AnalogInReadPin(hotends[h].sensor.pin));
@@ -632,7 +646,7 @@ void HAL::Tick() {
         }
       #endif
       #if BEDS > 0
-        for (uint8_t h = 0; h < BEDS; h++) {
+        LOOP_BED() {
           if (WITHIN(beds[h].sensor.pin, 0, 15)) {
             ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
             currentFilter.ProcessReading(AnalogInReadPin(beds[h].sensor.pin));
@@ -644,12 +658,24 @@ void HAL::Tick() {
         }
       #endif
       #if CHAMBERS > 0
-        for (uint8_t h = 0; h < CHAMBERS; h++) {
+        LOOP_CHAMBER() {
           if (WITHIN(chambers[h].sensor.pin, 0, 15)) {
             ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
             currentFilter.ProcessReading(AnalogInReadPin(chambers[h].sensor.pin));
             if (currentFilter.IsValid()) {
               AnalogInputValues[chambers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+              Analog_is_ready = true;
+            }
+          }
+        }
+      #endif
+      #if COOLERS > 0
+        LOOP_COOLER() {
+          if (WITHIN(coolers[h].sensor.pin, 0, 15)) {
+            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
+            currentFilter.ProcessReading(AnalogInReadPin(coolers[h].sensor.pin));
+            if (currentFilter.IsValid()) {
+              AnalogInputValues[coolers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
               Analog_is_ready = true;
             }
           }

@@ -67,7 +67,7 @@ void Fan::set_output_pwm() {
 
 void Fan::spin() {
 
-  static watch_t controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
+  static watch_l controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
 
   if (data.auto_monitor != 0) {
 
