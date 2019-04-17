@@ -87,11 +87,11 @@ class Printer {
 
     static uint8_t  progress;
 
-    static watch_t  max_inactivity_watch,
+    static watch_l  max_inactivity_watch,
                     move_watch;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      static watch_t  host_keepalive_watch;
+      static watch_l host_keepalive_watch;
     #endif
 
     static InterruptEventEnum interruptEvent;
@@ -107,7 +107,7 @@ class Printer {
     #endif
 
     #if HAS_CHDK
-      static watch_t chdk_watch;
+      static watch_l chdk_watch;
     #endif
 
   private: /** Private Parameters */

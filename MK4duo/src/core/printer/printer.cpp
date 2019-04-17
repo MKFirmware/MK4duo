@@ -46,11 +46,11 @@ char    Printer::printName[21] = "";   // max. 20 chars + 0
 uint8_t Printer::progress = 0;
 
 // Inactivity shutdown
-watch_t Printer::max_inactivity_watch,
+watch_l Printer::max_inactivity_watch,
         Printer::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  watch_t Printer::host_keepalive_watch(DEFAULT_KEEPALIVE_INTERVAL * 1000UL);
+  watch_l Printer::host_keepalive_watch(DEFAULT_KEEPALIVE_INTERVAL * 1000UL);
 #endif
 
 // Interrupt Event
@@ -84,7 +84,7 @@ PrinterModeEnum Printer::mode =
 #endif
 
 #if HAS_CHDK
-  watch_t Printer::chdk_watch(PHOTO_SWITCH_MS);
+  watch_l Printer::chdk_watch(PHOTO_SWITCH_MS);
 #endif
 
 /** Public Function */
@@ -686,7 +686,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
 
-    static watch_t extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
+    static watch_l extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
 
     if (hotends[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
       && extruder_runout_watch.elapsed()
@@ -861,7 +861,7 @@ void Printer::handle_interrupt_events() {
  */
 void Printer::handle_safety_watch() {
 
-  static watch_t safety_watch(30 * 60 * 1000UL); // Set 30 minutes
+  static watch_l safety_watch(30 * 60 * 1000UL); // Set 30 minutes
 
   if (safety_watch.isRunning() && (isPrinting() || isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
@@ -878,8 +878,8 @@ void Printer::handle_safety_watch() {
 /**
  * isPrinting check
  */
-bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
-bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused();  }
+bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning() || planner.movesplanned(); }
+bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused(); }
 
 /**
  * Sensitive pin test for M42, M226

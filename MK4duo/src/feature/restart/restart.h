@@ -37,8 +37,14 @@ typedef struct {
   uint32_t sdpos;
 
   // Mechanics state
-  float     current_position[XYZE];
-  uint16_t  feedrate;
+  float   current_position[XYZE];
+
+  #if ENABLED(WORKSPACE_OFFSETS)
+    float home_offset[XYZ];
+    float position_shift[XYZ];
+  #endif
+
+  uint16_t feedrate;
 
   #if HOTENDS > 0
     int16_t target_temperature[HOTENDS];
@@ -74,8 +80,7 @@ typedef struct {
   bool relative_mode, relative_modes_e;
 
   // Command buffer
-  uint8_t buffer_head,
-          buffer_count;
+  uint8_t buffer_head, buffer_count;
   char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
   // Job elapsed time
@@ -111,9 +116,9 @@ class Restart {
 
     static void check();
 
-    static inline bool exists() { return card.exist_restart_file(); }
-    static inline void open(const bool read) { card.open_restart_file(read); }
-    static inline void close() { job_file.close(); }
+    static inline bool exists()               { return card.exist_restart_file(); }
+    static inline void open(const bool read)  { card.open_restart_file(read); }
+    static inline void close()                { job_file.close(); }
 
     static void purge_job();
     static void load_job();

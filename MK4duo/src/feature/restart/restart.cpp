@@ -73,15 +73,16 @@ void Restart::load_job() {
   debug_info(PSTR("Load"));
 }
 
+/**
+ * Save the current job state to the restart file
+ */
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
-  static watch_t save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
+  static watch_l save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
 
   // Did Z change since the last call?
-  const float zmoved = mechanics.current_position[Z_AXIS] - job_info.current_position[Z_AXIS];
   if (save_restart_watch.elapsed() || force_save
-      || zmoved > 0   // Z moved up (including Z-hop)
-      || zmoved < -5  // Z moved down a lot
+      || mechanics.current_position[Z_AXIS] > job_info.current_position[Z_AXIS]
   ) {
 
     save_restart_watch.start();
@@ -91,8 +92,13 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     // Mechanics state
     COPY_ARRAY(job_info.current_position, mechanics.current_position);
+    #if ENABLED(WORKSPACE_OFFSETS)
+      COPY_ARRAY(job_info.home_offset, mechanics.home_offset);
+      COPY_ARRAY(job_info.position_shift, mechanics.position_shift);
+    #endif
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
+    // Heater
     #if HOTENDS > 0
       LOOP_HOTEND()
         job_info.target_temperature[h] = hotends[h].target_temperature;
@@ -119,12 +125,11 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Leveling      
     #if HAS_LEVELING
       job_info.leveling = bedlevel.flag.leveling_active;
-      job_info.z_fade_height = 
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          bedlevel.z_fade_height;
-        #else
-          0.0;
-        #endif
+      #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        job_info.z_fade_height = bedlevel.z_fade_height;
+      #else
+        job_info.z_fade_height = 0.0;
+      #endif
     #endif
 
     #if ENABLED(COLOR_MIXING_EXTRUDER) && HAS_GRADIENT_MIX
@@ -158,7 +163,12 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
   }
 }
 
+/**
+ * Resume the saved print job
+ */
 void Restart::resume_job() {
+
+  #define RESTART_ZRAISE 2
 
   char cmd[40], str1[16];
 
@@ -167,16 +177,16 @@ void Restart::resume_job() {
     commands.process_now_P(PSTR("M420 S0 Z0"));
   #endif
 
-  // Auto home
+  // Reset E, raise Z, home XY...
+  commands.process_now_P(PSTR("G92.9 E0"));
   #if Z_HOME_DIR > 0
     commands.process_now_P(PSTR("G28"));
   #else
+    commands.process_now_P(PSTR("G92.9 Z0"));
     mechanics.home_flag.ZHomed = true;
     stepper.enable_Z();
-    dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
-    sprintf_P(cmd, PSTR("G92 Z%s"), str1);
-    commands.process_now(cmd);
-    commands.process_now_P(PSTR("G28 X Y"));
+    commands.process_now_P(PSTR("G1 Z" STRINGIFY(RESTART_ZRAISE)));
+    commands.process_now_P(PSTR("G28 XY"));
   #endif
 
   // Select the previously active tool (with no_move)
@@ -223,10 +233,14 @@ void Restart::resume_job() {
     memcpy(&mixer.gradient, &job_info.gradient, sizeof(job_info.gradient));
   #endif
 
-  // Restore E position
-  dtostrf(job_info.current_position[E_AXIS], 1, 3, str1);
-  sprintf_P(cmd, PSTR("G92 E%s"), str1);
-  commands.process_now(cmd);
+  // Extrude and retract to clean the nozzle
+  #if SD_RESTART_FILE_PURGE_LEN > 0
+    commands.process_now_P(PSTR("G1 E" STRINGIFY(SD_RESTART_FILE_PURGE_LEN) " F200"));
+  #endif
+  #if SD_RESTART_FILE_RETRACT_LEN > 0
+    sprintf_P(cmd, PSTR("G1 E%d F3000"), SD_RESTART_FILE_PURGE_LEN - SD_RESTART_FILE_RETRACT_LEN);
+    commands.process_now(cmd);
+  #endif
 
   #if Z_HOME_DIR > 0
     // Move back to the saved XYZ
@@ -253,9 +267,22 @@ void Restart::resume_job() {
   sprintf_P(cmd, PSTR("G1 F%d"), job_info.feedrate);
   commands.process_now(cmd);
 
+  // Restore E position
+  dtostrf(job_info.current_position[E_AXIS], 1, 3, str1);
+  sprintf_P(cmd, PSTR("G92.9 E%s"), str1);
+  commands.process_now(cmd);
+
   // Relative mode
   printer.setRelativeMode(job_info.relative_mode);
   printer.axis_relative_modes[E_AXIS] = job_info.relative_modes_e;
+
+  #if ENABLED(WORKSPACE_OFFSETS)
+    LOOP_XYZ(i) {
+      mechanics.home_offset[i] = job_info.home_offset[i];
+      mechanics.position_shift[i] = job_info.position_shift[i];
+      mechanics.update_workspace_offset((AxisEnum)i);
+    }
+  #endif
 
   // Process commands from the old pending queue
   uint8_t h = job_info.buffer_head, c = job_info.buffer_count;

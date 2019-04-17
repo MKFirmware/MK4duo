@@ -38,7 +38,7 @@ class Stopwatch {
 
     static Stopwatch::State state;
 
-    static watch_t  Timestamp;
+    static watch_l  Timestamp;
 
     static millis_t accumulator;
 

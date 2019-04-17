@@ -24,7 +24,7 @@
 
 Stopwatch::State Stopwatch::state = STOPPED;
 
-watch_t Stopwatch::Timestamp;
+watch_l Stopwatch::Timestamp;
 
 millis_t Stopwatch::accumulator = 0;
 

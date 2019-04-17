@@ -51,9 +51,9 @@ DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
 DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr52,      100        );
 DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
 DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f    );
-DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51sign,   10        );
+DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51rj,     10        );
+DECLARE_MENU_EDIT_TYPE(float,    float51sign, ftostr51sign,   10        );
 DECLARE_MENU_EDIT_TYPE(float,    float52sign, ftostr52sign,  100        );
-DECLARE_MENU_EDIT_TYPE(float,    float62,     ftostr62rj,    100        );
 DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f    );
 
 ////////////////////////////////////////////
@@ -118,8 +118,8 @@ DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float43);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float5);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float51);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float51sign);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52sign);
-DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float62);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(long5);
 
 #define draw_menu_item_edit_bool(sel, row, pstr, pstr2, data, ...)           DRAW_BOOL_SETTING(sel, row, pstr, data)
@@ -171,8 +171,10 @@ class TMenuItem : MenuItemBase {
     static char* to_string(const int32_t value)       { return NAME::strfunc(unscale(value)); }
   public:
     static void action_edit(PGM_P const pstr, type_t * const ptr, const type_t minValue, const type_t maxValue, const screenFunc_t callback=NULL, const bool live=false) {
-      const int32_t minv = scale(minValue);
-      init(pstr, ptr, minv, int32_t(scale(maxValue)) - minv, int32_t(scale(*ptr)) - minv, edit, callback, live);
+      // Make sure minv and maxv fit within int16_t
+      const int16_t minv = MAX(scale(minValue), INT_MIN),
+                    maxv = MIN(scale(maxValue), INT_MAX);
+      init(pstr, ptr, minv, maxv - minv, scale(*ptr) - minv, edit, callback, live);
     }
     static void edit() { MenuItemBase::edit(to_string, load); }
 };
@@ -192,8 +194,8 @@ DECLARE_MENU_EDIT_ITEM(float52);
 DECLARE_MENU_EDIT_ITEM(float43);
 DECLARE_MENU_EDIT_ITEM(float5);
 DECLARE_MENU_EDIT_ITEM(float51);
+DECLARE_MENU_EDIT_ITEM(float51sign);
 DECLARE_MENU_EDIT_ITEM(float52sign);
-DECLARE_MENU_EDIT_ITEM(float62);
 DECLARE_MENU_EDIT_ITEM(long5);
 
 class MenuItem_bool {

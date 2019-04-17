@@ -43,7 +43,7 @@ int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 PGM_P Commands::injected_commands_P = NULL;
 
-watch_t Commands::last_command_watch(NO_TIMEOUTS);
+watch_l Commands::last_command_watch(NO_TIMEOUTS);
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
@@ -256,7 +256,7 @@ Heater* Commands::get_target_heater() {
     if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
   #endif
   #if COOLERS > 0
-    if (h == -2 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
+    if (h == -3 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
   #endif
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return NULL;
