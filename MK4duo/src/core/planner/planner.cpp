@@ -1449,7 +1449,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   float inverse_secs = fr_mm_s * inverse_millimeters;
 
   // Get the number of non busy movements in queue (non busy means that they can be altered)
-  const uint8_t moves_queued = nonbusy_movesplanned();
+  const uint8_t moves_queued = nonbusy_moves_planned();
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if ENABLED(SLOWDOWN) || HAS_SPI_LCD || ENABLED(XY_FREQUENCY_LIMIT)

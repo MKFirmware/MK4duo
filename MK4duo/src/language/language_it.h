@@ -528,7 +528,7 @@
 #define MSG_SERVICE_RESET                   _UxGT("Reset Servizi")
 
 // Max Inactivity Time
-#define MSG_MAX_INACTIVITY_TIME             _UxGT("Tempo massimo inattivita'. Riscaldamenti spenti!")
+#define MSG_MAX_INACTIVITY_TIME             _UxGT("Riscaldamenti spenti da safety timer.")
 
 // Heater
 #define MSG_HEATING                         _UxGT("Riscaldamento...")

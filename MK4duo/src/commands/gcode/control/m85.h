@@ -33,7 +33,7 @@
  */
 inline void gcode_M85(void) {
   if (parser.seenval('S'))
-    printer.max_inactivity_watch.stopwatch = parser.value_millis_from_seconds();
+    printer.max_inactive_time = parser.value_byte();
   else
-    SERIAL_EMV("M85 S", int(printer.max_inactivity_watch.stopwatch / 1000UL));
+    SERIAL_EMV("M85 S", printer.max_inactive_time);
 }

@@ -78,10 +78,10 @@ void Restart::load_job() {
  */
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
-  static watch_l save_restart_watch((SD_RESTART_FILE_SAVE_TIME) * 1000UL);
+  static watch_s save_restart_watch(true);
 
   // Did Z change since the last call?
-  if (save_restart_watch.elapsed() || force_save
+  if (save_restart_watch.elapsed((SD_RESTART_FILE_SAVE_TIME) * 1000U) || force_save
       || mechanics.current_position[Z_AXIS] > job_info.current_position[Z_AXIS]
   ) {
 

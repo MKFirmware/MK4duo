@@ -67,7 +67,7 @@ void Fan::set_output_pwm() {
 
 void Fan::spin() {
 
-  static watch_l controller_fan_watch(CONTROLLERFAN_SECS * 1000UL);
+  static watch_s controller_fan_watch;
 
   if (data.auto_monitor != 0) {
 
@@ -120,7 +120,7 @@ void Fan::spin() {
       }
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      speed = controller_fan_watch.elapsed() ? data.min_speed : data.max_speed;
+      speed = controller_fan_watch.elapsed(CONTROLLERFAN_SECS * 1000UL) ? data.min_speed : data.max_speed;
     }
 
   }

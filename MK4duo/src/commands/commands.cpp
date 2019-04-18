@@ -43,7 +43,7 @@ int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 PGM_P Commands::injected_commands_P = NULL;
 
-watch_l Commands::last_command_watch(NO_TIMEOUTS);
+watch_s Commands::last_command_watch;
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
@@ -310,7 +310,7 @@ void Commands::ok_to_send() {
       while (NUMERIC_SIGNED(*p))
         SERIAL_CHR(*p++);
     }
-    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.movesplanned() - 1, DEC);
+    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.moves_planned() - 1, DEC);
     SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);
   #endif
 
@@ -339,7 +339,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_watch.elapsed()) {
+    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_watch.elapsed(NO_TIMEOUTS)) {
       SERIAL_STR(WT);
       SERIAL_EOL();
       last_command_watch.start();

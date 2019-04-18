@@ -75,6 +75,7 @@
 #include "control/m18_m84.h"
 #include "control/m42.h"
 #include "control/m85.h"
+#include "control/m86.h"
 #include "control/m106_m107.h"
 #include "control/m112.h"
 #include "control/m120.h"

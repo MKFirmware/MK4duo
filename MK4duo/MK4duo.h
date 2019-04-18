@@ -62,7 +62,7 @@
 #include "src/lib/restorer.h"
 #include "src/lib/circular_queue.h"
 #include "src/lib/driver_types.h"
-#include "src/lib/watch.h"
+#include "src/lib/duration_t.h"
 #include "src/lib/matrix.h"
 #include "Boards.h"
 
@@ -112,7 +112,7 @@
 
 // Utility modules
 #include "src/utility/utility.h"
-#include "src/utility/stopwatch.h"
+#include "src/utility/watch.h"
 #include "src/utility/point_t.h"
 #include "src/utility/bezier.h"
 

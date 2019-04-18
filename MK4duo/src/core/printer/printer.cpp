@@ -38,19 +38,24 @@ flagVarious_t Printer::various_flag;  // For various
 bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
 // Print status related
-int16_t Printer::currentLayer  = 0,
-        Printer::maxLayer      = -1;   // -1 = unknown
+int16_t Printer::currentLayer   = 0,
+        Printer::maxLayer       = -1;   // -1 = unknown
 
-char    Printer::printName[21] = "";   // max. 20 chars + 0
+char    Printer::printName[21]  = "";   // max. 20 chars + 0
 
-uint8_t Printer::progress = 0;
+uint8_t Printer::progress       = 0;
+
+uint8_t Printer::safety_time    = SAFETYTIMER_TIME_MINS;
 
 // Inactivity shutdown
-watch_l Printer::max_inactivity_watch,
-        Printer::move_watch(DEFAULT_STEPPER_DEACTIVE_TIME * 1000UL);
+uint8_t Printer::max_inactive_time  = 0,
+        Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
+watch_s Printer::max_inactivity_watch,
+        Printer::move_watch(true);
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  watch_l Printer::host_keepalive_watch(DEFAULT_KEEPALIVE_INTERVAL * 1000UL);
+  uint8_t Printer::host_keepalive_time = DEFAULT_KEEPALIVE_INTERVAL;
+  watch_s Printer::host_keepalive_watch(true);
 #endif
 
 // Interrupt Event
@@ -84,7 +89,7 @@ PrinterModeEnum Printer::mode =
 #endif
 
 #if HAS_CHDK
-  watch_l Printer::chdk_watch(PHOTO_SWITCH_MS);
+  watch_s Printer::chdk_watch;
 #endif
 
 /** Public Function */
@@ -560,7 +565,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   handle_safety_watch();
 
-  if (max_inactivity_watch.stopwatch && max_inactivity_watch.elapsed()) {
+  if (max_inactivity_watch.elapsed(max_inactive_time * 1000U)) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
@@ -598,11 +603,11 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     #define MOVE_AWAY_TEST true
   #endif
 
-  if (move_watch.stopwatch) {
+  if (move_time) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       move_watch.start(); // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_watch.elapsed()) {
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_watch.elapsed(move_time * 1000U)) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true; 
         #if ENABLED(DISABLE_INACTIVE_X)
@@ -640,10 +645,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   }
 
   #if HAS_CHDK // Check if pin should be set to LOW (after M240 set it HIGH)
-    if (chdk_watch.isRunning() && chdk_watch.elapsed()) {
-      chdk_watch.stop();
-      WRITE(CHDK_PIN, LOW);
-    }
+    if (chdk_watch.elapsed(PHOTO_SWITCH_MS)) WRITE(CHDK_PIN, LOW);
   #endif
 
   #if HAS_KILL
@@ -686,10 +688,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
 
-    static watch_l extruder_runout_watch(EXTRUDER_RUNOUT_SECONDS * 1000UL);
+    static watch_s extruder_runout_watch(true);
 
     if (hotends[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
-      && extruder_runout_watch.elapsed()
+      && extruder_runout_watch.elapsed(EXTRUDER_RUNOUT_SECONDS * 1000U)
       && !planner.has_blocks_queued()
     ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
@@ -861,16 +863,15 @@ void Printer::handle_interrupt_events() {
  */
 void Printer::handle_safety_watch() {
 
-  static watch_l safety_watch(30 * 60 * 1000UL); // Set 30 minutes
+  static watch_l safety_watch;
 
   if (safety_watch.isRunning() && (isPrinting() || isPaused() || !thermalManager.heaters_isActive()))
     safety_watch.stop();
   else if (!safety_watch.isRunning() && thermalManager.heaters_isActive())
     safety_watch.start();
-  else if (safety_watch.isRunning() && safety_watch.elapsed()) {
-    safety_watch.stop();
+  else if (safety_watch.elapsed(safety_time * 60 * 1000UL)) {
     thermalManager.disable_all_heaters();
-    SERIAL_EM("Max inactivity time (30 minutes) Heaters switch off!");
+    SERIAL_EM("Heating disabled by safety timer.");
     lcdui.set_status_P(PSTR(MSG_MAX_INACTIVITY_TIME), 99);
   }
 }
@@ -878,7 +879,7 @@ void Printer::handle_safety_watch() {
 /**
  * isPrinting check
  */
-bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning() || planner.movesplanned(); }
+bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning() || planner.moves_planned(); }
 bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused(); }
 
 /**
@@ -1021,7 +1022,7 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
    * while the machine is not accepting
    */
   void Printer::keepalive(const BusyStateEnum state) {
-    if (!isSuspendAutoreport() && host_keepalive_watch.stopwatch && host_keepalive_watch.elapsed()) {
+    if (!isSuspendAutoreport() && host_keepalive_watch.elapsed(host_keepalive_time * 1000U)) {
       switch (state) {
         case InHandler:
         case InProcess:
