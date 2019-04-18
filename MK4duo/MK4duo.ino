@@ -146,6 +146,7 @@
  * M84  - Disable steppers until next move,
  *        or use S[seconds] to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
  * M85  - Set inactivity shutdown timer with parameter S[seconds]. To disable set zero (default)
+ * M86  - Set safety timer expiration with parameter M[minutes]. To disable set zero
  * M92  - Set axis_steps_per_unit - same syntax as G92
  * M99  - Set Hysteresis parameter X[in mm] Y[in mm] Z[in mm] E[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
  * M100 - Watch Free Memory (For Debugging Only)
@@ -161,6 +162,7 @@
  * M110 - Set the current line number
  * M111 - Set debug flags with S[mask].
  * M112 - Emergency stop
+ * M113 - Set Host Keepalive interval with parameter S[seconds]. To disable set zero
  * M114 - Output current position to serial port
  * M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
  * M116 - Wait for all heaters to reach target temperature

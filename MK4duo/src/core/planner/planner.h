@@ -260,12 +260,12 @@ class Planner {
     /**
      * Number of moves currently in the planner including the busy block, if any
      */
-    FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail); }
+    FORCE_INLINE static uint8_t moves_planned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail); }
 
     /**
      * Number of nonbusy moves currently in the planner
      */
-    FORCE_INLINE static uint8_t nonbusy_movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_nonbusy); }
+    FORCE_INLINE static uint8_t nonbusy_moves_planned() { return BLOCK_MOD(block_buffer_head - block_buffer_nonbusy); }
 
     /**
      * Remove all blocks from the buffer
@@ -280,7 +280,7 @@ class Planner {
     /**
      * Get count of movement slots free
      */
-    FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - movesplanned(); }
+    FORCE_INLINE static uint8_t moves_free() { return BLOCK_BUFFER_SIZE - 1 - moves_planned(); }
 
     /**
      * Planner::get_next_free_block
@@ -496,7 +496,7 @@ class Planner {
     static block_t* get_current_block() {
 
       // Get the number of moves in the planner queue so far
-      const uint8_t nr_moves = movesplanned();
+      const uint8_t nr_moves = moves_planned();
 
       // If there are any moves queued ...
       if (nr_moves) {

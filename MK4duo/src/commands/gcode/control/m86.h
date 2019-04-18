@@ -19,42 +19,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#pragma once
 
-template <class T>
-class Watch {
+/**
+ * mcode
+ *
+ * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ */
 
-  public: /** Constructor */
+#define CODE_M86
 
-    Watch(const T duration=0) {
-      stopwatch = duration;
-      if (duration) start();
-    }
-
-  public: /** Public Parameters */
-
-    T startwatch = 0,
-      stopwatch  = 0;
-
-  public: /** Public Function */
-
-    void start() { startwatch = millis(); }
-    void stop()  { startwatch = 0; }
-
-    bool isRunning() { return startwatch; }
-
-    bool elapsed(const T period=0) {
-      const T now = millis(),
-              end = period ? period : stopwatch;
-
-      if (startwatch == 0 || now >= startwatch + end || now < startwatch) {
-        startwatch = 0;
-        return true;
-      }
-      return false;
-    }
-
-};
-
-using watch_l = Watch<uint32_t>;
-using watch_s = Watch<uint16_t>;
+/**
+ * M86: Set safety timer expiration with parameter M[minutes]. To disable set zero
+ */
+inline void gcode_M86(void) {
+  if (parser.seenval('M'))
+    printer.safety_time = parser.value_byte();
+  else
+    SERIAL_EMV("M86 M", printer.safety_time);
+}

@@ -101,47 +101,46 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static watch_s  min_read_watch(DHTMinimumReadInterval),
+  static watch_s  min_read_watch(true),
                   operation_watch;
 
-  if (!min_read_watch.elapsed()) return;
+  if (min_read_watch.isRunning() && !min_read_watch.elapsed(DHTMinimumReadInterval)) return;
 
   switch (state) {
 
     case Init:
-      HAL::digitalWrite(data.pin, HIGH);
-      state = Wait_250ms;
+      // Start the reading process
+      HAL::digitalWrite(data.pin, INPUT_PULLUP);
+      delay(1);
+
+      // First set data line low for a period according to sensor type
+      HAL::pinMode(data.pin, OUTPUT);
+      HAL::digitalWrite(data.pin, LOW);
+      switch (data.type) {
+        case DHT22:
+        case DHT21:
+          HAL::delayMicroseconds(1100); // data sheet says "at least 1ms"
+          break;
+        default:
+          delay(20); // data sheet says at least 18ms, 20ms just to be safe
+          break;
+      }
+
+      // End the start signal by setting data line high for 40 microseconds.
+      HAL::pinMode(data.pin, INPUT_PULLUP);
+
+      HAL::delayMicroseconds(60); // Delay a bit to let sensor pull data line low.
+
+      // Now start reading the data line to get the value from the DHT sensor.
+      // Read from the DHT sensor using an DHT_ISR
+      numPulses = COUNT(pulses);
+      attachInterrupt(digitalPinToInterrupt(data.pin), DHT_ISR, CHANGE);
+      lastPulseTime = 0;
+      numPulses = 0;
+
+      // Wait for the next operation to complete
+      state = Read;
       operation_watch.start();
-      break;
-
-    case Wait_250ms:
-      if (operation_watch.elapsed(250)) {
-        HAL::pinMode(data.pin, OUTPUT);
-        HAL::digitalWrite(data.pin, LOW);
-        state = Wait_20ms;
-        operation_watch.start();
-      }
-      break;
-
-    case Wait_20ms:
-      if (operation_watch.elapsed(20)) {
-
-        // End the start signal by setting data line high for 40 microseconds.
-        HAL::pinMode(data.pin, INPUT_PULLUP);
-
-        // Now start reading the data line to get the value from the DHT sensor.
-        HAL::delayMicroseconds(60); // Delay a bit to let sensor pull data line low.
-
-        // Read from the DHT sensor using an DHT_ISR
-        numPulses = COUNT(pulses);
-        attachInterrupt(digitalPinToInterrupt(data.pin), DHT_ISR, CHANGE);
-        lastPulseTime = 0;
-        numPulses = 0;
-
-        // Wait for the next operation to complete
-        state = Read;
-        operation_watch.start();
-      }
       break;
 
     case Read:

@@ -37,9 +37,9 @@
  */
 inline void gcode_M113(void) {
   if (parser.seenval('S'))
-    printer.host_keepalive_watch.stopwatch = parser.value_millis_from_seconds();
+    printer.host_keepalive_time = parser.value_byte();
   else
-    SERIAL_EMV("M113 S", int(printer.host_keepalive_watch.stopwatch / 1000UL));
+    SERIAL_EMV("M113 S", printer.host_keepalive_time);
 }
 
 #endif

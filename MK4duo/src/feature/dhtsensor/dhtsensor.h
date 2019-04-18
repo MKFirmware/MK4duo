@@ -57,8 +57,6 @@
 
       static enum SensorState {
         Init,
-        Wait_250ms,
-        Wait_20ms,
         Read
       } state;
   

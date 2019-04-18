@@ -1497,7 +1497,7 @@
 
 // Max Inactivity Time
 #ifndef MSG_MAX_INACTIVITY_TIME
-  #define MSG_MAX_INACTIVITY_TIME             _UxGT("Max inactivity time. Heaters switch off!")
+  #define MSG_MAX_INACTIVITY_TIME             _UxGT("Heating disabled by safety timer.")
 #endif
 
 // Extra

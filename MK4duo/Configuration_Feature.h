@@ -236,7 +236,7 @@
 #define HOTEND_AUTO_FAN_SPEED       255 // 255 = full speed
 #define HOTEND_AUTO_FAN_MIN_SPEED     0
 // Parameters for Controller Fan
-#define CONTROLLERFAN_SECS           60 // How many seconds, after all motors were disabled, the fan should run
+#define CONTROLLERFAN_SECS           60 // How many seconds, after all motors were disabled, the fan should run (max 60 seconds)
 #define CONTROLLERFAN_SPEED         255 // 255 = full speed
 #define CONTROLLERFAN_MIN_SPEED       0
 

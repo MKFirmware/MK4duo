@@ -22,33 +22,13 @@
 
 #include "../../MK4duo.h"
 
-Stopwatch::State Stopwatch::state = STOPPED;
+StopWatch::State StopWatch::state = STOPPED;
 
-watch_l Stopwatch::Timestamp;
+millis_t  StopWatch::startwatch   = 0,
+          StopWatch::stopwatch    = 0,
+          StopWatch::accumulator  = 0;
 
-millis_t Stopwatch::accumulator = 0;
-
-bool Stopwatch::stop() {
-  if (isRunning() || isPaused()) {
-    state = STOPPED;
-    Timestamp.stopwatch = millis();
-    return true;
-  }
-  else
-    return false;
-}
-
-bool Stopwatch::pause() {
-  if (isRunning()) {
-    state = PAUSED;
-    Timestamp.stopwatch = millis();
-    return true;
-  }
-  else
-    return false;
-}
-
-bool Stopwatch::start() {
+bool StopWatch::start() {
   if (!isRunning()) {
 
     if (isPaused())
@@ -57,25 +37,45 @@ bool Stopwatch::start() {
       reset();
 
     state = RUNNING;
-    Timestamp.start();
+    startwatch = millis();
     return true;
   }
   else
     return false;
 }
 
-void Stopwatch::resume(const millis_t this_time) {
+bool StopWatch::stop() {
+  if (isRunning() || isPaused()) {
+    state = STOPPED;
+    stopwatch = millis();
+    return true;
+  }
+  else
+    return false;
+}
+
+bool StopWatch::pause() {
+  if (isRunning()) {
+    state = PAUSED;
+    stopwatch = millis();
+    return true;
+  }
+  else
+    return false;
+}
+
+void StopWatch::resume(const millis_t this_time) {
   reset();
   if ((accumulator = this_time)) state = RUNNING;
 }
 
-void Stopwatch::reset() {
+void StopWatch::reset() {
   state = STOPPED;
-  Timestamp.stop();
+  startwatch  = 0;
+  stopwatch   = 0;
   accumulator = 0;
 }
 
-millis_t Stopwatch::duration() {
-  return (((isRunning()) ? millis() : Timestamp.stopwatch)
-          - Timestamp.startwatch) / 1000UL + accumulator;
+millis_t StopWatch::duration() {
+  return (((isRunning()) ? millis() : stopwatch) - startwatch) / 1000UL + accumulator;
 }

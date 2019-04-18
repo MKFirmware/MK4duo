@@ -39,7 +39,7 @@ flagpower_t Power::flag;
 #if HAS_POWER_SWITCH
   bool      Power::powersupply_on = false;
   #if (POWER_TIMEOUT > 0)
-    watch_l Power::watch_lastPowerOn(POWER_TIMEOUT * 1000UL);
+    watch_s Power::watch_lastPowerOn;
   #endif
 #endif
 
@@ -82,7 +82,7 @@ flagpower_t Power::flag;
     if (is_power_needed())
       power_on();
     #if (POWER_TIMEOUT > 0)
-      else if (watch_lastPowerOn.elapsed())
+      else if (watch_lastPowerOn.elapsed(POWER_TIMEOUT * 1000U))
         power_off();
     #endif
   }

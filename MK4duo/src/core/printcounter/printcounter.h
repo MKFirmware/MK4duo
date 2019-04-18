@@ -21,8 +21,6 @@
  */
 #pragma once
 
-#include "duration_t.h"
-
 //#define DEBUG_PRINTCOUNTER
 
 struct printStatistics {
@@ -45,11 +43,11 @@ struct printStatistics {
 
 };
 
-class PrintCounter: public Stopwatch {
+class PrintCounter: public StopWatch {
 
   private: /** Private Parameters */
 
-    typedef Stopwatch super;
+    typedef StopWatch stopwatch;
 
     static printStatistics data;
 
@@ -72,7 +70,7 @@ class PrintCounter: public Stopwatch {
      * @brief Initialize the print counter
      */
     static inline void init() {
-      super::init();
+      stopwatch::init();
       loadStats();
     }
 

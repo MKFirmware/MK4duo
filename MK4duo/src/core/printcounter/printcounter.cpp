@@ -288,7 +288,7 @@ bool PrintCounter::start() {
     powerManager.startpower = data.consumptionHour;
   #endif
 
-  if (super::start()) {
+  if (stopwatch::start()) {
     if (!paused) {
       data.totalPrints++;
       lastDuration = 0;
@@ -303,7 +303,7 @@ bool PrintCounter::stop() {
     debug(PSTR("stop"));
   #endif
 
-  if (super::stop()) {
+  if (stopwatch::stop()) {
     data.finishedPrints++;
     data.timePrint += deltaDuration();
 
@@ -321,7 +321,7 @@ void PrintCounter::reset() {
     debug(PSTR("stop"));
   #endif
 
-  super::reset();
+  stopwatch::reset();
   lastDuration = 0;
 }
 

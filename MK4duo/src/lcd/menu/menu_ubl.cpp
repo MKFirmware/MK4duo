@@ -485,7 +485,7 @@ void _lcd_ubl_output_map_lcd() {
   if (lcdui.should_draw()) {
     lcdui.ubl_plot(x_plot, y_plot);
 
-    if (planner.movesplanned()) // If the nozzle is already moving, cancel the move.
+    if (planner.moves_planned()) // If the nozzle is already moving, cancel the move.
       _lcd_hard_stop();
 
     ubl_map_move_to_xy();       // Move to new location
