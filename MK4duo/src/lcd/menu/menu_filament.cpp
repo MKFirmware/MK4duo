@@ -317,9 +317,7 @@ static PGM_P advanced_pause_header() {
   // Portions from STATIC_ITEM...
   #define HOTEND_STATUS_ITEM() do { \
     if (_menuLineNr == _thisItemNr) { \
-      if (lcdui.should_draw()) { \
-        lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
-      } \
+      lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
         lcdui.encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
         ++encoderLine; \

@@ -828,7 +828,8 @@ void Nextion_draw_update() {
 
 #if HAS_LCD_MENU
 
-  constexpr uint16_t  sel_color = 2016,
+  constexpr uint16_t  hot_color = 63488,
+                      sel_color = 2016,
                       txt_color = 65535;
 
   // Page txtmenu touch listen
@@ -1517,6 +1518,8 @@ void LcdUI::stop_print() {
 
   void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
 
+    UNUSED(row);
+
     static millis_t nex_update = 0;
     millis_t now = millis();
 
@@ -1533,7 +1536,9 @@ void LcdUI::stop_print() {
       if (get_blink() || !heaters[hotend].isIdle())
         strcat(buffer, i8tostr3(heaters[hotend].target_temperature));
 
-      nexlcd.setText(*txtmenu_list[row], buffer);
+      nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
+      nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], buffer);
+
     }
   }
 
