@@ -252,7 +252,7 @@ class LcdUI {
       static inline void reset_alert_level() { status_message_level = 0; }
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        static void draw_hotend_status(const uint8_t row, const uint8_t extruder);
+        static void draw_hotend_status(const uint8_t row, const uint8_t hotend);
       #endif
 
       static void status_screen();

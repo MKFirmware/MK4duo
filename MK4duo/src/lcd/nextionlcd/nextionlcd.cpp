@@ -828,7 +828,8 @@ void Nextion_draw_update() {
 
 #if HAS_LCD_MENU
 
-  constexpr uint16_t  sel_color = 2016,
+  constexpr uint16_t  hot_color = 63488,
+                      sel_color = 2016,
                       txt_color = 65535;
 
   // Page txtmenu touch listen
@@ -1533,23 +1534,26 @@ void LcdUI::stop_print() {
 
   void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
 
-    static millis_t nex_update = 0;
-    millis_t now = millis();
+    UNUSED(row);
 
-    if (ELAPSED(now, nex_update)) {
-      nex_update = now + 1500UL;
+    static watch_s nex_update_watch(true);
+
+    if (nex_update_watch.elapsed(1500UL)) {
 
       ZERO(buffer);
       strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
       strcat(buffer, ui8tostr1(hotend));
       strcat(buffer, " ");
-      strcat(buffer, i8tostr3(hotends[hotend].current_temperature));
+      strcat(buffer, i16tostr3(hotends[hotend].current_temperature));
       strcat(buffer, "/");
 
       if (get_blink() || !hotends[hotend].isIdle())
-        strcat(buffer, i8tostr3(hotends[hotend].target_temperature));
+        strcat(buffer, i16tostr3(hotends[hotend].target_temperature));
 
-      nexlcd.setText(*txtmenu_list[row], buffer);
+      nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
+      nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], buffer);
+
+      nex_update_watch.start();
     }
   }
 

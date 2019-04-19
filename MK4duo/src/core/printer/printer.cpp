@@ -40,15 +40,12 @@ bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 // Print status related
 int16_t Printer::currentLayer   = 0,
         Printer::maxLayer       = -1;   // -1 = unknown
-
 char    Printer::printName[21]  = "";   // max. 20 chars + 0
-
 uint8_t Printer::progress       = 0;
 
-uint8_t Printer::safety_time    = SAFETYTIMER_TIME_MINS;
-
 // Inactivity shutdown
-uint8_t Printer::max_inactive_time  = 0,
+uint8_t Printer::safety_time        = SAFETYTIMER_TIME_MINS,
+        Printer::max_inactive_time  = 0,
         Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
 watch_s Printer::max_inactivity_watch,
         Printer::move_watch(true);
