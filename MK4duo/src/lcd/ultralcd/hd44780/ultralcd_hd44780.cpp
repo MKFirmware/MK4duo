@@ -965,7 +965,7 @@ void LcdUI::draw_status_screen() {
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend=TARGET_HOTEND) {
+    void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
       if (row < LCD_HEIGHT) {
         lcd_moveto(LCD_WIDTH - 9, row);
         _draw_heater_status(&hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());

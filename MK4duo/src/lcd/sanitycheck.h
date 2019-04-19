@@ -208,9 +208,6 @@ static_assert(1 >= 0
   #if DISABLED(STRING_SPLASH_LINE1)
     #error "DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1."
   #endif
-  #if DISABLED(BOOTSCREEN_TIMEOUT)
-    #error "DEPENDENCY ERROR: Missing setting BOOTSCREEN_TIMEOUT."
-  #endif
 #endif
 
 // Encoder rate multipliers
