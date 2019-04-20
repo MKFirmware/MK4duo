@@ -803,18 +803,6 @@ inline void gcode_G26(void) {
         const float save_feedrate = mechanics.feedrate_mm_s;
         mechanics.feedrate_mm_s = PLANNER_XY_FEEDRATE() / 10.0;
 
-        if (g26_debug_flag) {
-          SERIAL_MV(" plan_arc(ex=", endpoint[X_AXIS]);
-          SERIAL_MV(", ey=", endpoint[Y_AXIS]);
-          SERIAL_MV(", ez=", endpoint[Z_AXIS]);
-          SERIAL_MV(", len=", arc_length);
-          SERIAL_MV(") -> (ex=", current_position[X_AXIS]);
-          SERIAL_MV(", ey=", current_position[Y_AXIS]);
-          SERIAL_MV(", ez=", current_position[Z_AXIS]);
-          SERIAL_CHR(')');
-          SERIAL_EOL();
-        }
-
         plan_arc(endpoint, arc_offset, false);  // Draw a counter-clockwise arc
         mechanics.feedrate_mm_s = save_feedrate;
         mechanics.set_destination_to_current();
