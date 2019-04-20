@@ -120,7 +120,7 @@ void NextionLCD::getText(NexObject &nexobject, char *buffer) {
 }
 
 void NextionLCD::setText(NexObject &nexobject, PGM_P buffer) {
-  char cmd[40];
+  char cmd[NEXTION_MAX_MESSAGE_LENGTH];
   sprintf_P(cmd, PSTR("p[%u].b[%u].txt=\"%s\""), nexobject.pid, nexobject.cid, buffer);
   sendCommand(cmd);
   recvRetCommandFinished();
