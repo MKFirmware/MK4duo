@@ -393,7 +393,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
   #endif
 
   #if HAS_MESH
-    if (bedlevel.flag.leveling_active) {
+    if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination[Z_AXIS])) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
         ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.active_extruder);
         return true;
@@ -414,7 +414,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
     }
   #endif // HAS_MESH
 
-  line_to_destination(MMS_SCALED(feedrate_mm_s));
+  buffer_line_to_destination(MMS_SCALED(feedrate_mm_s));
   return false;
 }
 
