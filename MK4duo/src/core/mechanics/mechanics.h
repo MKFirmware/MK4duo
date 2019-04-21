@@ -263,12 +263,11 @@ class Mechanics {
     static void line_to_current_position(const float &fr_mm_s=feedrate_mm_s);
 
     /**
-     * line_to_destination
      * Move the planner to the position stored in the destination array, which is
      * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
      */
-    static void line_to_destination(const float fr_mm_s);
-    FORCE_INLINE static void line_to_destination() { line_to_destination(feedrate_mm_s); }
+    static void buffer_line_to_destination(const float fr_mm_s);
+    FORCE_INLINE static void buffer_line_to_destination() { buffer_line_to_destination(feedrate_mm_s); }
 
     /**
      * Prepare a single move and get ready for the next one

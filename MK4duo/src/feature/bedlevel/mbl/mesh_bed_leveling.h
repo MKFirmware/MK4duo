@@ -70,23 +70,23 @@ class mesh_bed_leveling {
     }
 
     static int8_t cell_index_x(const float &x) {
-      int8_t cx = (x - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST));
+      int8_t cx = (x - (MESH_MIN_X)) * (1.0f / (MESH_X_DIST));
       return constrain(cx, 0, (GRID_MAX_POINTS_X) - 2);
     }
 
     static int8_t cell_index_y(const float &y) {
-      int8_t cy = (y - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
+      int8_t cy = (y - (MESH_MIN_Y)) * (1.0f / (MESH_Y_DIST));
       return constrain(cy, 0, (GRID_MAX_POINTS_Y) - 2);
     }
 
     static int8_t probe_index_x(const float &x) {
-      int8_t px = (x - (MESH_MIN_X) + (MESH_X_DIST) * 0.5) * (1.0 / (MESH_X_DIST));
-      return (px >= 0 && px < (GRID_MAX_POINTS_X)) ? px : -1;
+      int8_t px = (x - (MESH_MIN_X) + (MESH_X_DIST) * 0.5f) * (1.0f / (MESH_X_DIST));
+      return WITHIN(px, 0, GRID_MAX_POINTS_X - 1) ? px : -1;
     }
 
     static int8_t probe_index_y(const float &y) {
       int8_t py = (y - (MESH_MIN_Y) + (MESH_Y_DIST) * 0.5) * (1.0 / (MESH_Y_DIST));
-      return (py >= 0 && py < (GRID_MAX_POINTS_Y)) ? py : -1;
+      return WITHIN(py, 0, GRID_MAX_POINTS_Y - 1) ? py : -1;
     }
 
     static float calc_z0(const float &a0, const float &a1, const float &z1, const float &a2, const float &z2) {

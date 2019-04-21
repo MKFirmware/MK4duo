@@ -50,7 +50,7 @@
 
 LcdUI       lcdui;
 
-char        LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH] = WELCOME_MSG;
+char        LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1] = WELCOME_MSG;
 uint8_t     LcdUI::status_message_level; // = 0
 
 #if HAS_LCD_MENU

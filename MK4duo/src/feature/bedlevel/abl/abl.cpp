@@ -355,7 +355,7 @@
 
       if (cx1 == cx2 && cy1 == cy2) {
         // Start and end on same mesh square
-        mechanics.line_to_destination(fr_mm_s);
+        mechanics.buffer_line_to_destination(fr_mm_s);
         mechanics.set_current_to_destination();
         return;
       }
@@ -382,7 +382,7 @@
       }
       else {
         // Already split on a border
-        mechanics.line_to_destination(fr_mm_s);
+        mechanics.buffer_line_to_destination(fr_mm_s);
         mechanics.set_current_to_destination();
         return;
       }
