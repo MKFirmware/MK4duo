@@ -36,9 +36,11 @@ void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
 
 void Sound::spin() {
   static tone_t tone = { 0, 0 };
-  static watch_s tone_watch;
+  static millis_t tone_watch_ms = 0;
 
-  if (tone_watch.elapsed(tone.duration)) {
+  const millis_t now = millis();
+
+  if (ELAPSED(now, tone_watch_ms)) {
 
     #if ENABLED(SPEAKER)
       CRITICAL_SECTION_START
@@ -51,7 +53,7 @@ void Sound::spin() {
     if (buffer.isEmpty()) return;
 
     tone = buffer.dequeue();
-    tone_watch.start();
+    tone_watch_ms = now + tone.duration;
 
     if (tone.frequency > 0) {
       #if ENABLED(LCD_USE_I2C_BUZZER)
