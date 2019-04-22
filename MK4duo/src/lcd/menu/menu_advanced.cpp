@@ -336,12 +336,12 @@ void menu_advanced_temperature() {
         MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.maxtemp - 10, lcd_autotune_callback_CHAMBER ## hindex)
     #endif
   #else
-    #define PID_MENU_ITEMS(HLABEL, hindex)        _PID_MENU_ITEMS(HLABEL, hindex)
+    #define PID_MENU_ITEMS(HLABEL, hindex)            _PID_MENU_ITEMS(HLABEL, hindex)
     #if BEDS > 0
-      #define PID_BED_MENU_ITEMS()                _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex)
+      #define PID_BED_MENU_ITEMS(HLABEL, hindex)      _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
     #if CHAMBERS > 0
-      #define PID_CHAMBER_MENU_ITEMS()            _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex)
+      #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
   #endif
 
