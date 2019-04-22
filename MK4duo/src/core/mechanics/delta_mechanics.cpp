@@ -215,11 +215,8 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
     // Calculate and execute the segments
     while (--numLines) {
 
-      static millis_t next_idle_ms = millis() + 200UL;
-      if (ELAPSED(millis(), next_idle_ms)) {
-        next_idle_ms = millis() + 200UL;
-        printer.idle();
-      }
+      static millis_s next_idle_ms = 0;
+      if (expired(&next_idle_ms, 200U)) printer.idle();
 
       LOOP_XYZE(i) raw[i] += segment_distance[i];
 

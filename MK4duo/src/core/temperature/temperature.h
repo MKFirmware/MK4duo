@@ -51,10 +51,6 @@ class Temperature {
 
   private: /** Private Parameters */
 
-    static uint8_t pid_pointer;
-
-    static millis_t next_check_ms[HEATER_COUNT];
-
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static int8_t   meas_shift_index;     // Index of a delayed sample in buffer
       static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
@@ -80,11 +76,6 @@ class Temperature {
      * Call periodically to HAL isr
      */
     static void spin();
-
-    /**
-     * Perform auto-tuning for hotend, bed, chamber or cooler in response to M303
-     */
-    static void PID_autotune(Heater *act, const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
 
     /**
      * Switch off all heaters, set all target temperatures to 0
@@ -169,8 +160,6 @@ class Temperature {
 
   private: /** Private Function */
 
-    static void check_and_power(Heater *act);
-
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static float analog2widthFil(); // Convert raw Filament Width to millimeters
     #endif
@@ -178,10 +167,6 @@ class Temperature {
     #if HAS_MCU_TEMPERATURE
       static float analog2tempMCU(const int raw);
     #endif
-
-    static void _temp_error(Heater *act, PGM_P const serial_msg, PGM_P const lcd_msg);
-    static void min_temp_error(Heater *act);
-    static void max_temp_error(Heater *act);
 
     #if HEATER_COUNT > 0
       static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);

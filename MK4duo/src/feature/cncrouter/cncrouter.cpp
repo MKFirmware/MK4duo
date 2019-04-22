@@ -49,7 +49,6 @@
 
   #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
     uint32_t Cncrouter::rpm_target = 0;
-    millis_t Cncrouter::next_speed_step = 0; 
   #endif
 
   #if ENABLED(FAST_PWM_CNCROUTER)
@@ -65,13 +64,9 @@
 
   void Cncrouter::manage() {
     #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-      if (rpm_target != rpm_instant) {
-        millis_t ms = millis();
-        if (ELAPSED(ms, next_speed_step)) {
-          next_speed_step = ms + (CNCROUTER_SLOWSTART_INTERVAL * 1000L);
-          speed_step();   
-        }
-      }
+      static millis_s next_speed_step_ms(true);
+      if (rpm_target != rpm_instant && expired(&next_speed_step_ms, millis_s(CNCROUTER_SLOWSTART_INTERVAL * 1000U)))
+        speed_step();   
     #endif
   }
 
@@ -106,7 +101,7 @@
         printer.keepalive(PausedforUser);
 
         #if HAS_BUZZER
-          millis_t next_buzz = millis();
+          millis_l next_buzz = millis();
         #endif
 
         while (printer.isWaitForUser()) {

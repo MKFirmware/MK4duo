@@ -163,8 +163,8 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   // Start the heater idle timers
-  const millis_t nozzle_timeout = (millis_t)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL;
-  const millis_t bed_timeout    = (millis_t)(PAUSE_PARK_PRINTER_OFF) * 60000UL;
+  constexpr millis_l  nozzle_timeout  = (millis_l)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL,
+                      bed_timeout     = (millis_l)(PAUSE_PARK_PRINTER_OFF)    * 60000UL;
 
   LOOP_HOTEND()
     hotends[h].start_idle_timer(nozzle_timeout);
@@ -593,15 +593,15 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
 
   void AdvancedPause::filament_change_beep(const int8_t max_beep_count, const bool init/*=false*/) {
     if (mode == PAUSE_MODE_PAUSE_PRINT) return;
-    static millis_t next_buzz = 0;
-    static int8_t runout_beep = 0;
+    static millis_l next_buzz_ms  = 0;
+    static int8_t   runout_beep   = 0;
 
-    if (init) next_buzz = runout_beep = 0;
+    if (init) next_buzz_ms = runout_beep = 0;
 
-    const millis_t ms = millis();
-    if (ELAPSED(ms, next_buzz)) {
+    const millis_l now = millis();
+    if (int32_t(now - next_buzz_ms) >= 0) {
       if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
-        next_buzz = ms + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000 : 500);
+        next_buzz_ms = now + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000UL : 500UL);
         sound.playtone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);
         runout_beep++;
       }

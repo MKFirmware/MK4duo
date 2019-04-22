@@ -37,9 +37,9 @@ flagpower_t Power::flag;
 
 /** Private Parameters */
 #if HAS_POWER_SWITCH
-  bool      Power::powersupply_on = false;
+  bool        Power::powersupply_on   = false;
   #if (POWER_TIMEOUT > 0)
-    watch_s Power::watch_lastPowerOn;
+    millis_s  Power::last_Power_On_ms = 0;
   #endif
 #endif
 
@@ -82,14 +82,14 @@ flagpower_t Power::flag;
     if (is_power_needed())
       power_on();
     #if (POWER_TIMEOUT > 0)
-      else if (watch_lastPowerOn.elapsed(POWER_TIMEOUT * 1000U))
+      else if (expired(&last_Power_On_ms, millis_s(POWER_TIMEOUT * 1000U)))
         power_off();
     #endif
   }
 
   void Power::power_on() {
     #if (POWER_TIMEOUT > 0)
-      watch_lastPowerOn.start();
+      last_Power_On_ms = millis();
     #endif
     if (!powersupply_on) {
       OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
@@ -107,7 +107,7 @@ flagpower_t Power::flag;
       OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
       powersupply_on = false;
       #if (POWER_TIMEOUT > 0)
-        watch_lastPowerOn.stop();
+        last_Power_On_ms = 0;
       #endif
     }
   }

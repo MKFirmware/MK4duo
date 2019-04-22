@@ -36,20 +36,35 @@ class Sound {
       #if PIN_EXISTS(BEEPER)
         OUT_WRITE(BEEPER_PIN, LOW);
       #endif
+      reset();
     }
 
   public: /** Public Parameters */
 
     static SoundModeEnum mode;
 
+  private: /** Private Parameters */
+
+    static millis_s tone_ms;
+
   protected: /** Protected Parameters */
 
     static Circular_Queue<tone_t, TONE_QUEUE_LENGTH> buffer;
 
+  protected: /** Protected Function */
+
     #if PIN_EXISTS(BEEPER)
       FORCE_INLINE static void off()  { WRITE(BEEPER_PIN, LOW);   }
       FORCE_INLINE static void on()   { WRITE(BEEPER_PIN, HIGH);  }
+    #else
+      FORCE_INLINE static void off()  {}
+      FORCE_INLINE static void on()   {}
     #endif
+
+    static inline void reset() {
+      off();
+      tone_ms = 0;
+    }
 
   public: /** Public Function */
 

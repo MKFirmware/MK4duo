@@ -46,7 +46,7 @@ class mesh_bed_leveling {
 
     static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
 
-    static void line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
+    static void line_to_destination(const float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
 
     static void report_mesh();
 

@@ -22,6 +22,34 @@
 
 #include "../../MK4duo.h"
 
+bool expired(millis_l *start, const millis_l period) {
+  if (!period) return false;
+  bool _expired = false;
+  const millis_l now = millis();
+  if (*start <= *start + period) {
+    if (now >= *start + period || now < *start) _expired = true;
+  }
+  else {
+    if (now >= *start + period && now < *start) _expired = true;
+  }
+  if (_expired) *start = now;
+  return _expired;
+}
+
+bool expired(millis_s *start, const millis_s period) {
+  if (!period) return false;
+  bool _expired = false;
+  const millis_s now = millis();
+  if (*start <= *start + period) {
+    if (now >= *start + period || now < *start) _expired = true;
+  }
+  else {
+    if (now >= *start + period && now < *start) _expired = true;
+  }
+  if (_expired) *start = now;
+  return _expired;
+}
+
 #ifdef CPU_32_BIT
   constexpr int byte_start = 4;
   static char _hex[] = "0x00000000";

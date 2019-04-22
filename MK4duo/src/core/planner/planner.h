@@ -549,7 +549,7 @@ class Planner {
           if (was_enabled) DISABLE_STEPPER_INTERRUPT();
         #endif
 
-        millis_t bbru = block_buffer_runtime_us;
+        millis_l bbru = block_buffer_runtime_us;
 
         #if ENABLED(__AVR__)
           // Reenable Stepper ISR
@@ -561,7 +561,7 @@ class Planner {
         // Doesn't matter because block_buffer_runtime_us is already too small an estimation.
         bbru >>= 10;
         // limit to about a minute.
-        NOMORE(bbru, 0xFFFFul);
+        NOMORE(bbru, 0xFFFFUL);
         return bbru;
       }
 

@@ -58,7 +58,7 @@ class FlowMeter {
 
   private: /** Private Parameters */
 
-    static millis_t lastflow;
+    static millis_l lastflow;
 
   public: /** Public Function */
 

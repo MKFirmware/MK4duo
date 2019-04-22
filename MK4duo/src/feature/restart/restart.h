@@ -84,7 +84,7 @@ typedef struct {
   char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
 
   // Job elapsed time
-  millis_t print_job_counter_elapsed;
+  millis_l print_job_counter_elapsed;
 
   // Utility
   bool just_restart;

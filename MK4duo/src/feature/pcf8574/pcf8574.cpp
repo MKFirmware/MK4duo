@@ -31,7 +31,7 @@
         PCF8574::byteBuffered       = 0,
         PCF8574::writeByteBuffered  = 0;
 
-  millis_t PCF8574::lastReadMillis  = 0;
+  millis_l PCF8574::lastReadMillis  = 0;
 
   void PCF8574::begin() {
 

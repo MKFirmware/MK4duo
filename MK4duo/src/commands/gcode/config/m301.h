@@ -71,7 +71,7 @@ inline void gcode_M301(void) {
   #endif
 
   act->pid.update();
-  act->setTuning(true);
+  act->setPidTuned(true);
   act->ResetFault();
 
 }

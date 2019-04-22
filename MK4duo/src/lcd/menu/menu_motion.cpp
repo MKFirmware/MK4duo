@@ -28,7 +28,7 @@
 
 #if HAS_LCD_MENU
 
-extern millis_t manual_move_start_time;
+extern millis_s manual_move_ms;
 extern int8_t manual_move_axis;
 #if ENABLED(MANUAL_E_MOVES_RELATIVE)
   float manual_move_e_origin = 0;
@@ -48,7 +48,7 @@ inline void manual_move_to_current(AxisEnum axis
   #if E_MANUAL > 1
     if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : tools.active_extruder;
   #endif
-  manual_move_start_time = millis() + (move_menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
+  manual_move_ms = millis(); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
 

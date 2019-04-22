@@ -52,7 +52,7 @@ class Cartesian_Mechanics : public Mechanics {
                             raised_parked_position[XYZE],   // used in mode 1
                             duplicate_extruder_x_offset;    // used in mode 2 & 3
       static int16_t        duplicate_extruder_temp_offset; // used in mode 2 & 3
-      static millis_t       delayed_move_time;              // used in mode 1
+      static millis_s       delayed_move_ms;                // used in mode 1
       static bool           active_extruder_parked,         // used in mode 1, 2 & 3
                             extruder_duplication_enabled,   // used in mode 2
                             scaled_duplication_mode;        // used in mode 3

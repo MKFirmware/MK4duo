@@ -53,8 +53,8 @@
 
 // Alligator board
 #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-  #if DISABLED(UI_VOLTAGE_LEVEL)
-    #error "DEPENDENCY ERROR: Missing setting UI_VOLTAGE_LEVEL."
+  #if DISABLED(LCD_ALLIGATOR_VOLTAGE_LEVEL)
+    #error "DEPENDENCY ERROR: Missing setting LCD_ALLIGATOR_VOLTAGE_LEVEL."
   #endif
 #endif
 

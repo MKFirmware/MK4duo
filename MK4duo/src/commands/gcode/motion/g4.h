@@ -32,7 +32,7 @@
  * G4: Dwell S<seconds> or P<milliseconds>
  */
 inline void gcode_G4(void) {
-  millis_t dwell_ms = 0;
+  millis_s dwell_ms = 0;
 
   if (parser.seenval('P')) dwell_ms = parser.value_millis();              // milliseconds to wait
   if (parser.seenval('S')) dwell_ms = parser.value_millis_from_seconds(); // seconds to wait
@@ -43,7 +43,7 @@ inline void gcode_G4(void) {
 
   dwell_ms += millis();
 
-  while (PENDING(millis(), dwell_ms)) {
+  while (millis_s(millis()) - dwell_ms < 0) {
     printer.keepalive(InProcess);
     printer.idle();
   }

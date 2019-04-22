@@ -72,9 +72,9 @@ class LcdUI {
       #endif
 
       #if HAS_CHARACTER_LCD && ENABLED(LCD_PROGRESS_BAR)
-        static millis_t progress_bar_ms;  // Start time for the current progress bar cycle
+        static millis_s progress_bar_ms;  // Start time for the current progress bar cycle
         #if PROGRESS_MSG_EXPIRE > 0
-          static millis_t expire_status_ms; // = 0
+          static millis_l expire_status_ms; // = 0
         #endif
       #endif
 
@@ -93,8 +93,8 @@ class LcdUI {
           static uint8_t contrast;
         #endif
 
-        #if ENABLED(FILAMENT_LCD_DISPLAY) && HAS_SD_SUPPORT
-          static millis_t previous_status_ms;
+        #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
+          static millis_s previous_status_ms;
         #endif
         
       #endif
@@ -107,7 +107,7 @@ class LcdUI {
 
       #if ENABLED(ENCODER_RATE_MULTIPLIER)
         static bool encoderRateMultiplierEnabled;
-        static millis_t lastEncoderMovementMillis;
+        static millis_l lastEncoderMovementMillis;
       #endif
 
       #if ENABLED(SCROLL_LONG_FILENAMES)

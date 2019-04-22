@@ -188,9 +188,6 @@
 #define PIN_EXISTS(PN)            (defined(PN##_PIN) && PN##_PIN > NoPin)
 #define BUTTON_EXISTS(BN)         (defined(BTN_## BN) && BTN_## BN >= 0)
 
-#define PENDING(NOW,SOON)         ((int32_t)(NOW-(SOON))<0)
-#define ELAPSED(NOW,SOON)         (!PENDING(NOW,SOON))
-
 #define NOOP                      (void(0))
 
 #define CEILING(x,y)              (((x) + (y) - 1) / (y))

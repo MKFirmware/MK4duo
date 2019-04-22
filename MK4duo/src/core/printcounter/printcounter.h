@@ -43,11 +43,11 @@ struct printStatistics {
 
 };
 
-class PrintCounter: public StopWatch {
+class PrintCounter: public Watch {
 
   private: /** Private Parameters */
 
-    typedef StopWatch stopwatch;
+    typedef Watch watch;
 
     static printStatistics data;
 
@@ -62,7 +62,7 @@ class PrintCounter: public StopWatch {
      * @details Stores the timestamp of the last deltaDuration(), this is
      * required due to the updateInterval cycle.
      */
-    static millis_t lastDuration;
+    static millis_l lastDuration;
 
   public: /** Public Function */
 
@@ -70,7 +70,7 @@ class PrintCounter: public StopWatch {
      * @brief Initialize the print counter
      */
     static inline void init() {
-      stopwatch::init();
+      watch::init();
       loadStats();
     }
 
@@ -171,7 +171,7 @@ class PrintCounter: public StopWatch {
      * used internally for print statistics accounting is not intended to be a
      * user callable function.
      */
-    static millis_t deltaDuration();
+    static millis_l deltaDuration();
 
 };
 

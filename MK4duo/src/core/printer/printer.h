@@ -91,12 +91,11 @@ class Printer {
                     max_inactive_time,
                     move_time;
 
-    static watch_s  max_inactivity_watch,
-                    move_watch;
+    static millis_s max_inactivity_ms,
+                    move_ms;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      static uint8_t host_keepalive_time;
-      static watch_s host_keepalive_watch;
+      static uint8_t  host_keepalive_time;
     #endif
 
     static InterruptEventEnum interruptEvent;
@@ -112,13 +111,12 @@ class Printer {
     #endif
 
     #if HAS_CHDK
-      static watch_s chdk_watch;
+      static millis_s chdk_ms;
     #endif
 
   private: /** Private Parameters */
 
     #if ENABLED(IDLE_OOZING_PREVENT)
-      static millis_t axis_last_activity;
       static bool     IDLE_OOZING_retracted[EXTRUDERS];
     #endif
 
@@ -128,7 +126,7 @@ class Printer {
     static void loop();   // Main loop
 
     static void check_periodical_actions();
-    static void safe_delay(millis_t ms);
+    static void safe_delay(millis_l ms);
 
     static void quickstop_stepper();
 

@@ -142,7 +142,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
     const float inv_duration = fr_mm_s / MM_PER_ARC_SEGMENT;
   #endif
 
-  millis_t next_idle_ms = millis() + 200UL;
+  millis_s next_idle_ms = millis();
 
   #if N_ARC_CORRECTION > 1
     int8_t arc_recalc_count = N_ARC_CORRECTION;
@@ -151,10 +151,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
     printer.check_periodical_actions();
-    if (ELAPSED(millis(), next_idle_ms)) {
-      next_idle_ms = millis() + 200UL;
-      printer.idle();
-    }
+    if (expired(&next_idle_ms, 200U)) printer.idle();
 
     #if N_ARC_CORRECTION > 1
       if (--arc_recalc_count) {
@@ -323,7 +320,7 @@ void gcode_G2_G3(const bool clockwise) {
 
       // Send an arc to the planner
       plan_arc(mechanics.destination, arc_offset, clockwise);
-      printer.move_watch.start();
+      printer.move_ms = millis();
     }
     else {
       // Bad arguments

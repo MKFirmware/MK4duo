@@ -30,7 +30,7 @@
 
 #define PROTOCOL_VERSION "2.0"
 
-// For character-based LCD controllers (DISPLAY_CHARSET_HD44780)
+// For character-based LCD controllers (LCD_CHARSET_HD44780)
 #define JAPANESE 1
 #define WESTERN  2
 #define CYRILLIC 3
@@ -263,11 +263,11 @@
 #define MSG_T_MAX                           " max:"
 #define MSG_KU                              " Ku:"
 #define MSG_TU                              " Tu:"
-#define MSG_CLASSIC_PID                     " Classic PID"
-#define MSG_SOME_OVERSHOOT_PID              " Some Overshoot PID"
-#define MSG_NO_OVERSHOOT_PID                " No Overshoot PID"
-#define MSG_PESSEN_PID                      " Pessen Integral Rule PID"
-#define MSG_TYREUS_LYBEN_PID                " Tyreus-Lyben PID"
+#define MSG_CLASSIC_PID                     " Classic PID:"
+#define MSG_SOME_OVERSHOOT_PID              " Some Overshoot PID:"
+#define MSG_NO_OVERSHOOT_PID                " No Overshoot PID:"
+#define MSG_PESSEN_PID                      " Pessen Integral Rule PID:"
+#define MSG_TYREUS_LYBEN_PID                " Tyreus-Lyben PID:"
 #define MSG_KP                              " Kp:"
 #define MSG_KI                              " Ki:"
 #define MSG_KD                              " Kd:"

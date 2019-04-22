@@ -34,6 +34,7 @@ Heater beds[BEDS];
 Heater chambers[CHAMBERS];
 Heater coolers[COOLERS];
 
+/** Public Function */
 void Heater::init() {
 
   // Reset valor
@@ -46,10 +47,11 @@ void Heater::init() {
 
   setActive(false);
   setIdle(false);
+  setPidTuning(false);
 
   watch_target_temp     = 0;
   watch_next_ms         = 0;
-  thermal_runaway_timer = 0;
+  idle_timeout_time     = 0;
 
   thermal_runaway_state = TRInactive;
 
@@ -71,7 +73,7 @@ void Heater::setTarget(const int16_t celsius) {
 
   if (celsius == 0)
     SwitchOff();
-  else if (!isTuning() && isUsePid()) {
+  else if (!isPidTuned() && isUsePid()) {
     SERIAL_LM(ER, " Need Tuning PID");
     LCD_MESSAGEPGM(MSG_NEED_TUNE_PID);
   }
@@ -90,18 +92,17 @@ void Heater::setTarget(const int16_t celsius) {
 void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
   #if TEMP_RESIDENCY_TIME > 0
-    millis_t residency_start_ms = 0;
+    millis_s residency_start_ms = 0;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
+    #define TEMP_CONDITIONS (!residency_start_ms || !expired(&residency_start_ms, millis_s((TEMP_RESIDENCY_TIME) * 1000U)))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
 
-  float     old_temp            = 9999.0;
-  bool      wants_to_cool       = false,
-            first_loop          = true;
-  millis_t  now,
-            next_cool_check_ms  = 0;
+  float   old_temp      = 9999.0;
+  bool    wants_to_cool = false;
+
+  millis_s next_cool_check_ms = 0;
 
   const bool oldReport = printer.isAutoreportTemp();
   
@@ -120,10 +121,9 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
 
-    now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    printer.move_watch.start(); // Keep steppers powered
+    printer.move_ms = millis(); // Keep steppers powered
 
     const float temp = current_temperature;
 
@@ -136,15 +136,12 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
       const float temp_diff = ABS(target_temperature - temp);
 
       if (!residency_start_ms) {
-        // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-        if (temp_diff < TEMP_WINDOW) {
-          residency_start_ms = now;
-          if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
-        }
+        // Start the residency_start_ms timer when we reach target temp for the first time.
+        if (temp_diff < TEMP_WINDOW) residency_start_ms = millis();
       }
       else if (temp_diff > temp_hysteresis[data.type]) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
-        residency_start_ms = now;
+        residency_start_ms = millis();
       }
 
     #endif
@@ -153,14 +150,11 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     if (wants_to_cool) {
       // Break after 60 seconds
       // if the temperature did not drop at least 1.5
-      if (!next_cool_check_ms || ELAPSED(now, next_cool_check_ms)) {
+      if (!next_cool_check_ms || expired(&next_cool_check_ms, 60000U)) {
         if (old_temp - temp < 1.5) break;
-        next_cool_check_ms = now + 60000UL;
         old_temp = temp;
       }
     }
-
-    first_loop = false;
 
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
@@ -176,9 +170,10 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
 void Heater::get_output() {
 
-  millis_t now = millis();
+  static millis_l idle_timeout_ms = millis();
+  static millis_s next_check_ms   = millis();
 
-  if (!isIdle() && idle_timeout_ms && ELAPSED(now, idle_timeout_ms)) setIdle(true);
+  if (!isIdle() && idle_timeout_time && expired(&idle_timeout_ms, idle_timeout_time)) setIdle(true);
 
   if (isActive()) {
 
@@ -188,14 +183,13 @@ void Heater::get_output() {
     #if COOLERS > 0
       if (data.type == IS_COOLER) {
         if (isUsePid()) {
-          pwm_value = pid.spin(current_temperature, targetTemperature, now
+          pwm_value = pid.spin(current_temperature, targetTemperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , 0xFF
             #endif
           );
         }
-        else if (ELAPSED(now, next_check_ms)) {
-          next_check_ms = now + temp_check_interval[data.type];
+        else if (expired(&next_check_ms, temp_check_interval[data.type])) {
           if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
             pwm_value = 0;
           else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
@@ -209,14 +203,13 @@ void Heater::get_output() {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             const uint8_t id = (data.type == IS_HOTEND) ? data.ID : 0xFF;
           #endif
-          pwm_value = pid.spin(targetTemperature, current_temperature, now
+          pwm_value = pid.spin(targetTemperature, current_temperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , id
             #endif
           );
         }
-        else if (ELAPSED(now, next_check_ms)) {
-          next_check_ms = now + temp_check_interval[data.type];
+        else if (expired(&next_check_ms, temp_check_interval[data.type])) {
           if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
             pwm_value = 0;
           else if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
@@ -240,6 +233,291 @@ void Heater::get_output() {
 
 void Heater::set_output_pwm() {
   HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
+}
+
+void Heater::check_and_power() {
+
+  constexpr uint8_t watch_period[HEATER_TYPE] = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD, WATCH_COOLER_PERIOD };
+
+  if (isActive() && current_temperature > data.maxtemp) max_temp_error();
+  if (isActive() && current_temperature < data.mintemp) {
+    if (++consecutive_low_temp >= MAX_CONSECUTIVE_LOW_TEMP)
+      min_temp_error();
+  }
+  else
+    consecutive_low_temp = 0;
+
+  // Check for thermal runaway
+  if (isThermalProtection()) {
+    thermal_runaway_protection();
+    if (thermal_runaway_state == TRRunaway)
+      _temp_error(PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+  }
+
+  // Ignore heater we are currently testing
+  if (isPidTuning()) return;
+
+  get_output();
+
+  // Make sure temperature is increasing
+  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_s(watch_period[data.type] * 1000U))) {
+    if (current_temperature < watch_target_temp)
+      _temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
+    else
+      start_watching(); // Start again if the target is still far off
+  }
+}
+
+/**
+ * PID Autotuning (M303)
+ *
+ * Alternately heat and cool the nozzle, observing its behavior to
+ * determine the best PID values to achieve a stable temperature.
+ */
+void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues/*=false*/) {
+
+  float       current_temp  = 0.0;
+  int         cycles        = 0;
+  bool        heating       = true;
+  const bool  isHotend      = data.type == IS_HOTEND,
+              oldReport     = printer.isAutoreportTemp();
+
+  thermalManager.disable_all_heaters(); // switch off all heaters.
+
+  millis_l  t1      = millis(),
+            t2      = t1;
+
+  int32_t   t_high  = 0.0,
+            t_low   = 0.0;
+
+  float     maxTemp = 0.0,
+            minTemp = 1000.0;
+
+  pid_data_t tune_pid;
+
+  pwm_value = pid.Max;
+
+  int32_t bias  = pid.Max >> 1,
+          d     = pid.Max >> 1;
+
+  printer.setWaitForHeatUp(true);
+  printer.setAutoreportTemp(true);
+
+  setPidTuning(true);
+
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    const float start_temp = current_temperature;
+    LEDColor color = ledevents.onHeatingStart(isHotend);
+  #endif
+
+  // PID Tuning loop
+  while (printer.isWaitForHeatUp()) {
+
+    watchdog.reset(); // Reset the watchdog
+    printer.idle();
+    printer.keepalive(WaitHeater);
+
+    update_current_temperature();
+
+    const millis_l now = millis();
+
+    current_temp = current_temperature;
+    NOLESS(maxTemp, current_temp);
+    NOMORE(minTemp, current_temp);
+
+    #if ENABLED(PRINTER_EVENT_LEDS)
+      ledevents.onHeating(isHotend, start_temp, current_temp, target_temp);
+    #endif
+
+    if (heating && current_temp > target_temp) {
+      if (int32_t(now - (t2 + 5000UL)) >= 0) {
+        heating = false;
+        pwm_value = (bias - d);
+        t1 = now;
+        t_high = t1 - t2;
+
+        #if COOLERS > 0
+          if (data.type == IS_COOLER)
+            minTemp = target_temp;
+          else
+            maxTemp = target_temp;
+        #else
+          maxTemp = target_temp;
+        #endif
+      }
+    }
+
+    if (!heating && current_temp < target_temp) {
+      if (int32_t(now - (t1 + 5000UL)) >= 0) {
+        heating = true;
+        t2 = now;
+        t_low = t2 - t1;
+        if (cycles > 0) {
+
+          bias += (d * (t_high - t_low)) / (t_low + t_high);
+          bias = constrain(bias, 20, pid.Max - 20);
+          d = (bias > pid.Max >> 1) ? pid.Max - 1 - bias : bias;
+
+          SERIAL_MV(MSG_BIAS, bias);
+          SERIAL_MV(MSG_D, d);
+          SERIAL_MV(MSG_T_MIN, minTemp);
+          SERIAL_MV(MSG_T_MAX, maxTemp);
+
+          if (cycles > 2) {
+            float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
+                  Tu = ((float)(t_low + t_high) * 0.001f);
+            SERIAL_MV(MSG_KU, Ku);
+            SERIAL_MV(MSG_TU, Tu);
+            SERIAL_EOL();
+
+            if (method == 0) {
+              tune_pid.Kp = 0.6f * Ku;
+              tune_pid.Ki = 1.2f * Ku / Tu;
+              tune_pid.Kd = 0.075f * Ku * Tu;
+              SERIAL_MSG(MSG_CLASSIC_PID);
+            }
+            else if (method == 1) {
+              tune_pid.Kp = 0.33f * Ku;
+              tune_pid.Ki = 0.66f * Ku / Tu;
+              tune_pid.Kd = 0.11f * Ku * Tu;
+              SERIAL_MSG(MSG_SOME_OVERSHOOT_PID);
+            }
+            else if (method == 2) {
+              tune_pid.Kp = 0.2f * Ku;
+              tune_pid.Ki = 0.4f * Ku / Tu;
+              tune_pid.Kd = 0.2f * Ku * Tu / 3.0f;
+              SERIAL_MSG(MSG_NO_OVERSHOOT_PID);
+            }
+            else if (method == 3) {
+              tune_pid.Kp = 0.7f * Ku;
+              tune_pid.Ki = 1.75f * Ku / Tu;
+              tune_pid.Kd = 0.105f * Ku * Tu;
+              SERIAL_MSG(MSG_PESSEN_PID);
+            }
+            else if (method == 4) {
+              tune_pid.Kp = 0.4545f * Ku;
+              tune_pid.Ki = 0.4545f * Ku / Tu / 2.2f;
+              tune_pid.Kd = 0.4545f * Ku * Tu / 6.3f;
+              SERIAL_MSG(MSG_TYREUS_LYBEN_PID);
+            }
+            SERIAL_MV(MSG_KP, tune_pid.Kp);
+            SERIAL_MV(MSG_KI, tune_pid.Ki);
+            SERIAL_MV(MSG_KD, tune_pid.Kd);
+          }
+        }
+
+        SERIAL_EOL();
+
+        pwm_value = (bias + d);
+        cycles++;
+
+        #if COOLERS > 0
+          if (data.type == IS_COOLER)
+            maxTemp = target_temp;
+          else
+            minTemp = target_temp;
+        #else
+          minTemp = target_temp;
+        #endif
+      }
+    }
+
+    #if DISABLED(MAX_OVERSHOOT_PID_AUTOTUNE)
+      #define MAX_OVERSHOOT_PID_AUTOTUNE 20
+    #endif
+    if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
+      #if COOLERS > 0
+        && data.type != IS_COOLER
+      #endif
+    ) {
+      SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
+      LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_HIGH);
+      setPidTuning(false);
+      break;
+    }
+    #if COOLERS > 0
+      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && data.type == IS_COOLER) {
+        SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
+        LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
+        setPidTuning(false);
+        break;
+      }
+    #endif
+
+    // Timeout after MAX_CYCLE_TIME_PID_AUTOTUNE minutes since the last undershoot/overshoot cycle
+    #if DISABLED(MAX_CYCLE_TIME_PID_AUTOTUNE)
+      #define MAX_CYCLE_TIME_PID_AUTOTUNE 20L
+    #endif
+    if (((now - t1) + (now - t2)) > (MAX_CYCLE_TIME_PID_AUTOTUNE * 60L * 1000L)) {
+      SERIAL_LM(ER, MSG_PID_TIMEOUT);
+      LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
+      setPidTuning(false);
+      break;
+    }
+
+    if (cycles > ncycles) {
+
+      SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
+      setPidTuning(false);
+
+      if (isHotend) {
+        SERIAL_MV(MSG_KP, tune_pid.Kp);
+        SERIAL_MV(MSG_KI, tune_pid.Ki);
+        SERIAL_EMV(MSG_KD, tune_pid.Kd);
+      }
+
+      #if BEDS > 0
+        if (data.type == IS_BED) {
+          SERIAL_EMV("#define BED_Kp ", tune_pid.Kp);
+          SERIAL_EMV("#define BED_Ki ", tune_pid.Ki);
+          SERIAL_EMV("#define BED_Kd ", tune_pid.Kd);
+        }
+      #endif
+
+      #if CHAMBERS > 0
+        if (data.type == IS_CHAMBER) {
+          SERIAL_EMV("#define CHAMBER_Kp ", tune_pid.Kp);
+          SERIAL_EMV("#define CHAMBER_Ki ", tune_pid.Ki);
+          SERIAL_EMV("#define CHAMBER_Kd ", tune_pid.Kd);
+        }
+      #endif
+
+      #if COOLERS > 0
+        if (data.type == IS_COOLER) {
+          SERIAL_EMV("#define COOLER_Kp ", tune_pid.Kp);
+          SERIAL_EMV("#define COOLER_Ki ", tune_pid.Ki);
+          SERIAL_EMV("#define COOLER_Kd ", tune_pid.Kd);
+        }
+      #endif
+
+      pid.Kp = tune_pid.Kp;
+      pid.Ki = tune_pid.Ki;
+      pid.Kd = tune_pid.Kd;
+      pid.update();
+
+      setPidTuned(true);
+      setPidTuning(false);
+      ResetFault();
+
+      if (storeValues) eeprom.store();
+
+      #if ENABLED(PRINTER_EVENT_LEDS)
+        ledevents.onPidTuningDone(color);
+      #endif
+
+      break;
+    }
+
+    lcdui.update();
+
+  }
+
+  thermalManager.disable_all_heaters();
+
+  printer.setAutoreportTemp(oldReport);
+
+  LCD_MESSAGEPGM(WELCOME_MSG);
+
 }
 
 void Heater::print_M301() {
@@ -321,18 +599,20 @@ void Heater::print_M306() {
   }
 #endif
 
-void Heater::start_idle_timer(const millis_t timeout_ms) {
-  idle_timeout_ms = millis() + timeout_ms;
+void Heater::start_idle_timer(const millis_l timeout_time) {
+  idle_timeout_time = timeout_time;
   setIdle(false);
 }
 
 void Heater::reset_idle_timer() {
-  idle_timeout_ms = 0;
+  idle_timeout_time = 0;
   setIdle(false);
   start_watching();
 }
 
 void Heater::thermal_runaway_protection() {
+
+  static millis_s thermal_runaway_ms = millis();
 
   switch (thermal_runaway_state) {
 
@@ -365,10 +645,10 @@ void Heater::thermal_runaway_protection() {
       #endif
 
       if (current_temperature >= target_temperature - THERMAL_PROTECTION_HYSTERESIS) {
-        thermal_runaway_timer = millis() + THERMAL_PROTECTION_PERIOD * 1000UL;
+        thermal_runaway_ms = millis();
         break;
       }
-      else if (PENDING(millis(), thermal_runaway_timer)) break;
+      else if (pending(&thermal_runaway_ms, millis_s(THERMAL_PROTECTION_PERIOD * 1000U))) break;
       thermal_runaway_state = TRRunaway;
 
     default: break;
@@ -387,11 +667,84 @@ void Heater::start_watching() {
   const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
   if (isActive() && current_temperature < targetTemperature - (watch_increase[data.type] + temp_hysteresis[data.type] + 1)) {
     watch_target_temp = current_temperature + watch_increase[data.type];
-    watch_next_ms = millis() + watch_period[data.type] * 1000UL;
+    watch_next_ms = millis();
   }
   else
     watch_next_ms = 0;
 
+}
+
+/** Private Function */
+// Temperature Error Handlers
+void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
+  if (isActive()) {
+    SERIAL_STR(ER);
+    SERIAL_STR(serial_msg);
+    SERIAL_MSG(MSG_HEATER_STOPPED);
+    switch (data.type) {
+      case IS_HOTEND:
+        SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
+        break;
+      #if BEDS > 0
+        case IS_BED:
+          SERIAL_EMV(MSG_HEATER_BED " ", int(data.ID));
+          break;
+      #endif
+      #if CHAMBERS > 0
+        case IS_CHAMBER:
+          SERIAL_EMV(MSG_HEATER_CHAMBER " ", int(data.ID));
+          break;
+      #endif
+      #if HAS_TEMP_COOLER
+        case IS_COOLER:
+          SERIAL_EM(MSG_HEATER_COOLER);
+          break;
+      #endif
+      default: break;
+    }
+  }
+
+  lcdui.set_status_P(lcd_msg);
+  setFault();
+
+}
+
+void Heater::min_temp_error() {
+  switch (data.type) {
+    case IS_HOTEND:
+      _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
+      break;
+    #if BEDS > 0
+      case IS_BED:
+        _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
+        break;
+    #endif
+    #if CHAMBERS > 0
+      case IS_CHAMBER:
+        _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
+        break;
+    #endif
+    default: break;
+  }
+}
+
+void Heater::max_temp_error() {
+  switch (data.type) {
+    case IS_HOTEND:
+      _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
+      break;
+    #if BEDS > 0
+      case IS_BED:
+        _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
+        break;
+    #endif
+    #if CHAMBERS > 0
+      case IS_CHAMBER:
+        _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
+        break;
+    #endif
+    default: break;
+  }
 }
 
 #endif // HEATER_COUNT > 0

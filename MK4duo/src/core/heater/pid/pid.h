@@ -50,13 +50,13 @@ typedef struct {
 
   public: /** Public Function */
 
-    uint8_t spin(const int16_t target_temp, const float current_temp, const millis_t tnow
+    uint8_t spin(const int16_t target_temp, const float current_temp
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         , const uint8_t tid
       #endif
     ) {
 
-      static millis_t cycle_1s = 0;
+      static millis_s cycle_1s_ms = 0;
       float pid_output = 0.0;
 
       const float pid_error = target_temp - current_temp;
@@ -99,8 +99,7 @@ typedef struct {
         }
       }
 
-      if (ELAPSED(tnow, cycle_1s)) {
-        cycle_1s = tnow + 1000UL;
+      if (expired(&cycle_1s_ms, 1000U)) {
         last_temperature = temperature_1s;
         temperature_1s = current_temp;
       }

@@ -80,10 +80,10 @@ inline void gcode_M303(void) {
   SERIAL_MV(" Temp:", target);
   SERIAL_MV(" Cycles:", cycle);
   SERIAL_MV(" Method:", method);
-  if (store) SERIAL_MSG(" Apply result");
+  if (store) SERIAL_MSG(" Apply into EEPROM");
   SERIAL_EOL();
 
-  thermalManager.PID_autotune(act, target, cycle, method, store);
+  act->PID_autotune(target, cycle, method, store);
 
 }
 

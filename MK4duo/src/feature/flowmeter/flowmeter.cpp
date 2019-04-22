@@ -51,7 +51,7 @@ float     FlowMeter::flowrate             = 0.0;
 int       FlowMeter::flowrate_pulsecount  = 0;
 
 /** Private Parameters */
-millis_t  FlowMeter::lastflow             = 0;
+millis_l  FlowMeter::lastflow             = 0;
 
 /** Public Function */
 void flowrate_pulsecounter() {
@@ -69,7 +69,7 @@ void FlowMeter::init() {
 
 void FlowMeter::spin() {
 
-  millis_t now = millis();
+  millis_l now = millis();
 
   detachInterrupt(digitalPinToInterrupt(FLOWMETER_PIN));
   flowrate  = (float)(((1000.0 / (float)((float)now - (float)lastflow)) * (float)flowrate_pulsecount) / (float)FLOWMETER_CALIBRATION);

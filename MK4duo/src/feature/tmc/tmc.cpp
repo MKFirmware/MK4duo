@@ -477,17 +477,16 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
   #define HAS_HW_COMMS(ST)  ST##_HAS_DRV(TMC2130) || ST##_HAS_DRV(TMC2160) || ST##_HAS_DRV(TMC2660) || ST##_HAS_DRV(TMC5130) || (ST##_HAS_DRV(TMC2208) && ENABLED(ST##_HARDWARE_SERIAL))
 
   void TMC_Stepper::monitor_driver() {
-    static millis_t next_poll = 0;
-    const millis_t ms = millis();
-    bool need_update_error_counters = ELAPSED(ms, next_poll);
+    static millis_s next_poll_ms = millis();
+    bool need_update_error_counters = expired(&next_poll_ms, MONITOR_DRIVER_STATUS_INTERVAL_MS);
     bool need_debug_reporting = false;
     if (need_update_error_counters) {
-      next_poll = ms + MONITOR_DRIVER_STATUS_INTERVAL_MS;
+      next_poll_ms = millis();
       #if ENABLED(TMC_DEBUG)
-        static millis_t next_debug_reporting = 0;
-        if (report_status_interval && ELAPSED(ms, next_debug_reporting)) {
+        static millis_s next_debug_reporting_ms = millis();
+        if (expired(&next_debug_reporting_ms, report_status_interval)) {
           need_debug_reporting = true;
-          next_debug_reporting = ms + report_status_interval;
+          next_debug_reporting_ms = millis();
         }
       #endif
       if (need_update_error_counters || need_debug_reporting) {

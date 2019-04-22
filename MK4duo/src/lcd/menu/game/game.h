@@ -50,7 +50,7 @@ class LcdGame {
 
     static int score;
     static uint8_t game_state;
-    static millis_t next_frame;
+    static millis_l next_frame;
 
   protected: /** Protected Function */
 

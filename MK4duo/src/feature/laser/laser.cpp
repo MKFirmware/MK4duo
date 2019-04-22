@@ -58,7 +58,7 @@
             Laser::firing       = LASER_OFF,
             Laser::diagnostics  = false;
 
-  millis_t  Laser::last_firing  = 0;
+  millis_l  Laser::last_firing  = 0;
   
   uint16_t  Laser::time         = 0,
             Laser::lifetime     = 0;
