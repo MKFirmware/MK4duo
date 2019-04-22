@@ -1580,9 +1580,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE0
 
@@ -1619,9 +1619,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE1
 
@@ -1658,9 +1658,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE2
 
@@ -1697,9 +1697,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE3
 
@@ -1736,9 +1736,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE4
 
@@ -1775,9 +1775,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_HEATER_PINS);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_HE3
 
@@ -1829,9 +1829,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_BED0
 
@@ -1868,9 +1868,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_BED1
 
@@ -1907,9 +1907,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_BED2
 
@@ -1946,9 +1946,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_BED_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_BED3
 
@@ -2000,9 +2000,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_CHAMBER0
 
@@ -2039,9 +2039,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_CHAMBER1
 
@@ -2078,9 +2078,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_CHAMBER2
 
@@ -2117,9 +2117,9 @@ void EEPROM::reset() {
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
-          heat->setTuning(false);
+          heat->setPidTuned(false);
         #else
-          heat->setTuning(true);
+          heat->setPidTuned(true);
         #endif
       #endif // HAS_HEATER_CHAMBER0
 
@@ -2169,9 +2169,9 @@ void EEPROM::reset() {
       heat->setHWinvert(INVERTED_COOLER_PIN);
       heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
       #if HAS_EEPROM
-        heat->setTuning(false);
+        heat->setPidTuned(false);
       #else
-        heat->setTuning(true);
+        heat->setPidTuned(true);
       #endif
 
     #endif // CHAMBERS > 0

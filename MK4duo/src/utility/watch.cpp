@@ -22,13 +22,13 @@
 
 #include "../../MK4duo.h"
 
-StopWatch::State StopWatch::state = STOPPED;
+Watch::State Watch::state = STOPPED;
 
-millis_t  StopWatch::startwatch   = 0,
-          StopWatch::stopwatch    = 0,
-          StopWatch::accumulator  = 0;
+millis_l  Watch::startwatch   = 0,
+          Watch::stopwatch    = 0,
+          Watch::accumulator  = 0;
 
-bool StopWatch::start() {
+bool Watch::start() {
   if (!isRunning()) {
 
     if (isPaused())
@@ -44,7 +44,7 @@ bool StopWatch::start() {
     return false;
 }
 
-bool StopWatch::stop() {
+bool Watch::stop() {
   if (isRunning() || isPaused()) {
     state = STOPPED;
     stopwatch = millis();
@@ -54,7 +54,7 @@ bool StopWatch::stop() {
     return false;
 }
 
-bool StopWatch::pause() {
+bool Watch::pause() {
   if (isRunning()) {
     state = PAUSED;
     stopwatch = millis();
@@ -64,18 +64,18 @@ bool StopWatch::pause() {
     return false;
 }
 
-void StopWatch::resume(const millis_t this_time) {
+void Watch::resume(const millis_l this_time) {
   reset();
   if ((accumulator = this_time)) state = RUNNING;
 }
 
-void StopWatch::reset() {
+void Watch::reset() {
   state = STOPPED;
   startwatch  = 0;
   stopwatch   = 0;
   accumulator = 0;
 }
 
-millis_t StopWatch::duration() {
+millis_l Watch::duration() {
   return (((isRunning()) ? millis() : stopwatch) - startwatch) / 1000UL + accumulator;
 }

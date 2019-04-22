@@ -75,13 +75,13 @@ uint8_t     LcdUI::status_message_level; // = 0
 
   #if LCD_TIMEOUT_TO_STATUS > 0
     bool      LcdUI::defer_return_to_status;
-    millis_t  return_to_status_ms = 0;
+    millis_s  return_to_status_ms = 0;
   #endif
 
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  millis_t manual_move_start_time = 0;
+  millis_s manual_move_ms = 0;
 
   #if IS_KINEMATIC
     bool LcdUI::processing_manual_move = false;
@@ -692,8 +692,14 @@ void Nextion_draw_update() {
           targetdegtoLCD(3, PrevioustargetdegHeater[1]);
         }
       #elif ENABLED(DHT_SENSOR)
-        if (PreviousdegHeater[1] != dhtsensor.Humidity) {
-          PreviousdegHeater[1] = dhtsensor.Humidity;
+        if (lcdui.get_blink()) {
+          if (PreviousdegHeater[1] != dhtsensor.Humidity)
+            PreviousdegHeater[1] = dhtsensor.Humidity;
+          degtoLCD(4, PreviousdegHeater[1]);
+        }
+        else {
+          if (PreviousdegHeater[1] != dhtsensor.Temperature)
+            PreviousdegHeater[1] = dhtsensor.Temperature;
           degtoLCD(4, PreviousdegHeater[1]);
         }
       #endif
@@ -878,7 +884,7 @@ void Nextion_draw_update() {
     }
 
     #if LCD_TIMEOUT_TO_STATUS > 0
-      return_to_status_ms = millis() + LCD_TIMEOUT_TO_STATUS;
+      return_to_status_ms = millis();
     #endif
 
     lcdui.refresh(LCDVIEW_REDRAW_NOW);
@@ -1021,7 +1027,7 @@ void Nextion_draw_update() {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && expired(&manual_move_ms, (move_menu_scale < 0.99f ? 1U : 250U)) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
@@ -1257,7 +1263,7 @@ void LcdUI::init() {
 
     setpagePrinter();
 
-    return_to_status_ms = millis() + 60000UL;
+    return_to_status_ms = millis();
 
     #if HAS_LCD_MENU
       // Check the Nextion Firmware
@@ -1269,18 +1275,13 @@ void LcdUI::init() {
 
 bool LcdUI::get_blink() {
   static uint8_t blink = 0;
-  static millis_t next_blink_ms = 0;
-  millis_t ms = millis();
-  if (ELAPSED(ms, next_blink_ms)) {
-    blink ^= 0xFF;
-    next_blink_ms = ms + 250;
-  }
+  static millis_s next_blink_ms = 0;
+  if (expired(&next_blink_ms, 2000U)) blink ^= 0xFF;
   return blink != 0;
 }
 
 void LcdUI::update() {
-  static millis_t next_lcd_update_ms;
-  const millis_t ms = millis();
+  static millis_s next_lcd_update_ms = 0;
 
   if (!NextionON) return;
 
@@ -1316,10 +1317,8 @@ void LcdUI::update() {
 
   #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
 
-  if (ELAPSED(ms, next_lcd_update_ms)) {
-    next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
+  if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL))
     Nextion_draw_update();
-  }
 
   #if HAS_LCD_MENU
 
@@ -1327,8 +1326,8 @@ void LcdUI::update() {
 
       #if LCD_TIMEOUT_TO_STATUS > 0
         if (defer_return_to_status)
-          return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
-        else if (ELAPSED(ms, return_to_status_ms))
+          return_to_status_ms = millis();
+        else if (expired(&return_to_status_ms, (LCD_TIMEOUT_TO_STATUS)))
           return_to_status();
       #endif
 
@@ -1360,7 +1359,7 @@ void LcdUI::update() {
     }
     else {
       #if LCD_TIMEOUT_TO_STATUS > 0
-        return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+        return_to_status_ms = millis();
       #endif
     }
 
@@ -1536,9 +1535,9 @@ void LcdUI::stop_print() {
 
     UNUSED(row);
 
-    static watch_s nex_update_watch(true);
+    static millis_s nex_update_ms = 0;
 
-    if (nex_update_watch.elapsed(1500UL)) {
+    if (expired(&nex_update_ms, 1500U)) {
 
       ZERO(buffer);
       strcat(buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
@@ -1553,7 +1552,6 @@ void LcdUI::stop_print() {
       nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
       nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], buffer);
 
-      nex_update_watch.start();
     }
   }
 

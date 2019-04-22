@@ -68,17 +68,17 @@ LcdUI lcdui;
 uint8_t LcdUI::status_update_delay = 1; // First update one loop delayed
 
 #if (HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT) || HAS_LCD_POWER_SENSOR
-  millis_t LcdUI::previous_status_ms = 0;
+  millis_s LcdUI::previous_status_ms = 0;
 #endif
 
-millis_t next_button_update_ms;
+millis_l next_button_update_ms;
 
 #if HAS_GRAPHICAL_LCD
   bool LcdUI::drawing_screen, LcdUI::first_page; // = false
 #endif
 
 #if HAS_LCD_POWER_SENSOR
-  millis_t LcdUI::print_millis = 0;
+  millis_l LcdUI::print_millis = 0;
 #endif
 
 // Encoder Handling
@@ -122,7 +122,7 @@ millis_t next_button_update_ms;
 
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
     bool LcdUI::encoderRateMultiplierEnabled;
-    millis_t LcdUI::lastEncoderMovementMillis = 0;
+    millis_l LcdUI::lastEncoderMovementMillis = 0;
     void LcdUI::enable_encoder_multiplier(const bool onoff) {
       encoderRateMultiplierEnabled = onoff;
       lastEncoderMovementMillis = 0;
@@ -249,12 +249,8 @@ void LcdUI::init() {
 
 bool LcdUI::get_blink() {
   static uint8_t blink = 0;
-  static millis_t next_blink_ms = 0;
-  millis_t ms = millis();
-  if (ELAPSED(ms, next_blink_ms)) {
-    blink ^= 0xFF;
-    next_blink_ms = ms + 1000 - (LCD_UPDATE_INTERVAL) / 2;
-  }
+  static millis_s next_blink_ms = 0;
+  if (expired(&next_blink_ms, (1000U - (LCD_UPDATE_INTERVAL) / 2))) blink ^= 0xFF;
   return blink != 0;
 }
 
@@ -289,7 +285,7 @@ bool LcdUI::get_blink() {
 
     #if HAS_ADC_BUTTONS
 
-      #define ADC_MIN_KEY_DELAY 100
+      #define ADC_MIN_KEY_DELAY 100UL
       if (keypad_buttons) {
         #if HAS_ENCODER_ACTION
           refresh(LCDVIEW_REDRAW_NOW);
@@ -373,9 +369,9 @@ bool LcdUI::get_blink() {
  */
 
 #if ENABLED(LCD_PROGRESS_BAR)
-  millis_t LcdUI::progress_bar_ms = 0;
+  millis_s LcdUI::progress_bar_ms = 0;
   #if PROGRESS_MSG_EXPIRE > 0
-    millis_t LcdUI::expire_status_ms = 0;
+    millis_l LcdUI::expire_status_ms = 0;
   #endif
 #endif
 
@@ -394,15 +390,9 @@ void LcdUI::status_screen() {
     // share the same line on the display.
     //
 
-    #if DISABLED(PROGRESS_MSG_ONCE) || (PROGRESS_MSG_EXPIRE > 0)
-      #define GOT_MS
-      millis_t ms = millis();
-    #endif
-
     // If the message will blink rather than expire...
     #if DISABLED(PROGRESS_MSG_ONCE)
-      if (ELAPSED(ms, progress_bar_ms + PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME))
-        progress_bar_ms = ms;
+      (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME))
     #endif
 
     #if PROGRESS_MSG_EXPIRE > 0
@@ -412,7 +402,7 @@ void LcdUI::status_screen() {
 
         // Expire the message if a job is active and the bar has ticks
         if (printer.progress > 2 && print_job_counter.isPaused()) {
-          if (ELAPSED(ms, expire_status_ms)) {
+          if (int32_t(millis() - expire_status_ms) >= 0) {
             status_message[0] = '\0';
             expire_status_ms = 0;
           }
@@ -463,14 +453,9 @@ void LcdUI::status_screen() {
     if (old_frm != new_frm) {
       mechanics.feedrate_percentage = new_frm;
       encoderPosition = 0;
-      static millis_t next_beep;
-      #if DISABLED(GOT_MS)
-        const millis_t ms = millis();
-      #endif
-      if (ELAPSED(ms, next_beep)) {
+      static millis_s next_beep_ms;
+      if (expired(&next_beep_ms, 500U))
         sound.playtone(10, 440);
-        next_beep = ms + 500UL;
-      }
     }
 
   #endif // ULTIPANEL_FEEDMULTIPLY
@@ -493,7 +478,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
   #if HAS_ENCODER_ACTION
     if (clear_buttons) buttons = 0;
-    next_button_update_ms = millis() + 500;
+    next_button_update_ms = millis() + 500UL;
   #else
     UNUSED(clear_buttons);
   #endif
@@ -517,7 +502,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  millis_t manual_move_start_time = 0;
+  millis_s manual_move_ms = 0;
 
   #if IS_KINEMATIC
     bool LcdUI::processing_manual_move = false;
@@ -536,7 +521,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && ELAPSED(millis(), manual_move_start_time) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && expired(&manual_move_ms, (move_menu_scale < 0.99f ? 1U : 250U)) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
@@ -628,12 +613,12 @@ bool LcdUI::detected() {
 void LcdUI::update() {
 
   static uint16_t max_display_update_time = 0;
-  static millis_t next_lcd_update_ms;
+  static millis_s next_lcd_update_ms;
 
   #if HAS_LCD_MENU
 
-    #if LCD_TIMEOUT_TO_STATUS
-      static millis_t return_to_status_ms = 0;
+    #if LCD_TIMEOUT_TO_STATUS > 0
+      static millis_s return_to_status_ms = 0;
     #endif
 
     // Handle any queued Move Axis motion
@@ -694,14 +679,12 @@ void LcdUI::update() {
 
   #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
 
-  const millis_t ms = millis();
-  if (ELAPSED(ms, next_lcd_update_ms)
+  const millis_l ms = millis();
+  if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL)
     #if HAS_GRAPHICAL_LCD
       || drawing_screen
     #endif
   ) {
-
-    next_lcd_update_ms = ms + LCD_UPDATE_INTERVAL;
 
     #if ENABLED(LCD_HAS_STATUS_INDICATORS)
       update_indicators();
@@ -716,8 +699,8 @@ void LcdUI::update() {
       #if ENABLED(REPRAPWORLD_KEYPAD)
 
         if (handle_keypad()) {
-          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
-            return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
+            return_to_status_ms = millis();
           #endif
         }
 
@@ -763,8 +746,8 @@ void LcdUI::update() {
           encoderPosition += (encoderDiff * encoderMultiplier) / (ENCODER_PULSES_PER_STEP);
           encoderDiff = 0;
         }
-        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
-          return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
+          return_to_status_ms = millis();
         #endif
         refresh(LCDVIEW_REDRAW_NOW);
       }
@@ -793,8 +776,8 @@ void LcdUI::update() {
           status_update_delay = 12;
         }
         refresh(LCDVIEW_REDRAW_NOW);
-        #if LCD_TIMEOUT_TO_STATUS
-          return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
+        #if LCD_TIMEOUT_TO_STATUS > 0
+          return_to_status_ms = millis();
         #endif
       }
     #endif
@@ -855,11 +838,11 @@ void LcdUI::update() {
       NOLESS(max_display_update_time, millis() - ms);
     }
 
-    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
+    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
       // Return to Status Screen after a timeout
       if (on_status_screen() || defer_return_to_status)
-        return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS;
-      else if (ELAPSED(ms, return_to_status_ms))
+        return_to_status_ms = millis();
+      else if (expired(&return_to_status_ms, LCD_TIMEOUT_TO_STATUS))
         return_to_status();
     #endif
 
@@ -875,7 +858,7 @@ void LcdUI::update() {
       default: break;
     } // switch
 
-  } // ELAPSED(ms, next_lcd_update_ms)
+  } // expired(next_lcd_update_ms)
 }
 
 #if HAS_ADC_BUTTONS
@@ -956,8 +939,8 @@ void LcdUI::update() {
    * Warning: This function is called from interrupt context!
    */
   void LcdUI::update_buttons() {
-    const millis_t now = millis();
-    if (ELAPSED(now, next_button_update_ms)) {
+    const millis_l now = millis();
+    if (int32_t(now - next_button_update_ms) >= 0) {
 
       #if HAS_DIGITAL_BUTTONS
 
@@ -997,25 +980,25 @@ void LcdUI::update() {
           #if BUTTON_EXISTS(UP)
             else if (BUTTON_PRESSED(UP)) {
               encoderDiff = (ENCODER_STEPS_PER_MENU_ITEM) * pulses;
-              next_button_update_ms = now + 300;
+              next_button_update_ms = now + 300UL;
             }
           #endif
           #if BUTTON_EXISTS(DWN)
             else if (BUTTON_PRESSED(DWN)) {
               encoderDiff = -(ENCODER_STEPS_PER_MENU_ITEM) * pulses;
-              next_button_update_ms = now + 300;
+              next_button_update_ms = now + 300UL;
             }
           #endif
           #if BUTTON_EXISTS(LFT)
             else if (BUTTON_PRESSED(LFT)) {
               encoderDiff = -pulses;
-              next_button_update_ms = now + 300;
+              next_button_update_ms = now + 300UL;
             }
           #endif
           #if BUTTON_EXISTS(RT)
             else if (BUTTON_PRESSED(RT)) {
               encoderDiff = pulses;
-              next_button_update_ms = now + 300;
+              next_button_update_ms = now + 300UL;
             }
           #endif
 
@@ -1099,7 +1082,7 @@ void LcdUI::update() {
         // so they are called during normal lcdui.update
         uint8_t slow_bits = lcd.readButtons() << B_I2C_BTN_OFFSET;
         #if ENABLED(LCD_I2C_VIKI)
-          if ((slow_bits & (B_MI | B_RI)) && PENDING(millis(), next_button_update_ms)) // LCD clicked
+          if ((slow_bits & (B_MI | B_RI)) && int32_t(millis() - next_button_update_ms) < 0) // LCD clicked
             slow_bits &= ~(B_MI | B_RI); // Disable LCD clicked buttons if screen is updated
         #endif // LCD_I2C_VIKI
         return slow_bits;

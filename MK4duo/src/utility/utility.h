@@ -22,6 +22,14 @@
 #pragma once
 
 //
+// Utility functions for timer expired and pending
+//
+bool expired(millis_l *start, const millis_l period);
+bool expired(millis_s *start, const millis_s period);
+FORCE_INLINE bool pending(millis_l *start, const millis_l period) { return !expired(start, period); }
+FORCE_INLINE bool pending(millis_s *start, const millis_s period) { return !expired(start, period); }
+
+//
 // Utility functions to create and print hex strings as nybble, byte, and word.
 //
 FORCE_INLINE char hex_nybble(const uint8_t n) {

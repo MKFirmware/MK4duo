@@ -80,7 +80,7 @@ typedef struct {
     static constexpr uint32_t MaxInterruptCount = 32;  // number of tacho interrupts that we average over
 
     uint32_t InterruptCount;          // accessed only in ISR, so no need to declare it volatile
-    volatile millis_t LastResetTime,  // time (microseconds) at which we last reset the interrupt count, accessed inside and outside ISR
+    volatile millis_l LastResetTime,  // time (microseconds) at which we last reset the interrupt count, accessed inside and outside ISR
                       Interval;       // written by ISR, read outside the ISR
 
   public: /** Public Function */

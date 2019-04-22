@@ -531,7 +531,7 @@
       const float xhome = mechanics.x_home_pos(active_extruder);
       if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
           && printer.isRunning()
-          && (mechanics.delayed_move_time || mechanics.current_position[X_AXIS] != xhome)
+          && (mechanics.delayed_move_ms || mechanics.current_position[X_AXIS] != xhome)
       ) {
         float raised_z = mechanics.current_position[Z_AXIS] + TOOLCHANGE_PARK_ZLIFT;
         #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
@@ -585,7 +585,7 @@
             NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
           #endif
           mechanics.active_extruder_parked = true;
-          mechanics.delayed_move_time = 0;
+          mechanics.delayed_move_ms = 0;
           break;
       }
 

@@ -57,7 +57,6 @@
 
       #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
         static uint32_t rpm_target;
-        static millis_t next_speed_step; 
       #endif
 
       #if ENABLED(FAST_PWM_CNCROUTER)

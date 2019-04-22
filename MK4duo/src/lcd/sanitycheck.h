@@ -235,8 +235,8 @@ static_assert(1 >= 0
 #endif
 
 // Required LCD language
-#if DISABLED(DOGLCD) && HAS_SPI_LCD && DISABLED(DISPLAY_CHARSET_HD44780)
-  #error "DEPENDENCY ERROR: You must set DISPLAY_CHARSET_HD44780 to JAPANESE, WESTERN or CYRILLIC for your LCD controller."
+#if DISABLED(DOGLCD) && HAS_SPI_LCD && DISABLED(LCD_CHARSET_HD44780)
+  #error "DEPENDENCY ERROR: You must set LCD_CHARSET_HD44780 to JAPANESE, WESTERN or CYRILLIC for your LCD controller."
 #endif
 
 // ULTIPANEL encoder

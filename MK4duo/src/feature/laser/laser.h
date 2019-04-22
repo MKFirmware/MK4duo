@@ -59,7 +59,7 @@
                       firing,       // LASER_ON / LASER_OFF - instantaneous
                       diagnostics;  // Verbose debugging output over serial
 
-      static millis_t last_firing;  // microseconds since last laser firing
+      static millis_l last_firing;  // microseconds since last laser firing
 
       static uint16_t time,         // temporary counter to limit eeprom writes
                       lifetime;     // laser lifetime firing counter in minutes

@@ -22,11 +22,18 @@
 
 #include "../../../MK4duo.h"
 
-SoundModeEnum Sound::mode = SOUND_MODE_ON;
-
-Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
 Sound sound;
 
+/** Public Parameters */
+SoundModeEnum Sound::mode = SOUND_MODE_ON;
+
+/** Private Parameters */
+millis_s Sound::tone_ms;
+
+/** Protected Parameters */
+Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
+
+/** Public Function */
 void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
   if (mode == SOUND_MODE_MUTE) return;
   while (buffer.isFull()) printer.idle(true);
@@ -35,25 +42,14 @@ void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
 }
 
 void Sound::spin() {
+
   static tone_t tone = { 0, 0 };
-  static millis_t tone_watch_ms = 0;
 
-  const millis_t now = millis();
-
-  if (ELAPSED(now, tone_watch_ms)) {
-
-    #if ENABLED(SPEAKER)
-      CRITICAL_SECTION_START
-        ::noTone(BEEPER_PIN);
-      CRITICAL_SECTION_END
-    #elif PIN_EXISTS(BEEPER)
-      off();
-    #endif
-
+  if (!tone_ms) {
     if (buffer.isEmpty()) return;
 
     tone = buffer.dequeue();
-    tone_watch_ms = now + tone.duration;
+    tone_ms = millis();
 
     if (tone.frequency > 0) {
       #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -67,6 +63,8 @@ void Sound::spin() {
       #endif
     }
   }
+  else if (expired(&tone_ms, tone.duration)) reset();
+
 }
 
 void Sound::cyclestate() {

@@ -28,73 +28,80 @@
 
 #if HAS_RESUME_CONTINUE
 
-  #define CODE_M0
-  #define CODE_M1
+#define CODE_M0
+#define CODE_M1
 
-  /**
-   * M0: Unconditional stop - Wait for user button press on LCD
-   * M1: Same as M0
-   */
-  inline void gcode_M0_M1(void) {
+/**
+ * M0: Unconditional stop - Wait for user button press on LCD
+ * M1: Same as M0
+ */
+inline void gcode_M0_M1(void) {
 
-    PGM_P const args = parser.string_arg;
-    millis_t ms = 0;
-    bool hasP = false, hasS = false;
+  PGM_P const args = parser.string_arg;
+  millis_s ms = 0;
+  bool hasP = false, hasS = false;
 
-    if (parser.seenval('P')) {
-      ms = parser.value_millis(); // milliseconds to wait
-      hasP = ms > 0;
-    }
-
-    if (parser.seenval('S')) {
-      ms = parser.value_millis_from_seconds(); // seconds to wait
-      hasS = ms > 0;
-    }
-
-    planner.synchronize();
-
-    #if ENABLED(ULTIPANEL)
-
-      if (!hasP && !hasS && args && *args)
-        lcdui.set_status(args, true);
-      else {
-        LCD_MESSAGEPGM(MSG_USERWAIT);
-        #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-          dontExpireStatus();
-        #endif
-      }
-
-    #else
-
-      if (!hasP && !hasS && args && *args)
-        SERIAL_LT(ECHO, args);
-
-    #endif
-
-    printer.keepalive(PausedforUser);
-    printer.setWaitForUser(true);
-
-    #if HAS_NEXTION_LCD
-      lcdui.goto_screen(menu_m0);
-    #endif
-
-    if (ms > 0) {
-      ms += millis();
-      while (PENDING(millis(), ms) && printer.isWaitForUser()) printer.idle();
-    }
-    else
-      while (printer.isWaitForUser()) printer.idle();
-
-    #if HAS_NEXTION_LCD
-      lcdui.return_to_status();
-    #endif
-
-    #if ENABLED(ULTIPANEL)
-      lcdui.reset_status();
-    #endif
-
-    printer.setWaitForUser(false);
-    printer.keepalive(InHandler);
+  if (parser.seenval('P')) {
+    ms = parser.value_millis(); // milliseconds to wait
+    hasP = ms > 0;
   }
+
+  if (parser.seenval('S')) {
+    ms = parser.value_millis_from_seconds(); // seconds to wait
+    hasS = ms > 0;
+  }
+
+  planner.synchronize();
+
+  #if ENABLED(ULTIPANEL)
+
+    if (!hasP && !hasS && args && *args)
+      lcdui.set_status(args, true);
+    else {
+      LCD_MESSAGEPGM(MSG_USERWAIT);
+      #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
+        dontExpireStatus();
+      #endif
+    }
+
+  #else
+
+    if (!hasP && !hasS && args && *args)
+      SERIAL_LT(ECHO, args);
+
+  #endif
+
+  printer.keepalive(PausedforUser);
+  printer.setWaitForUser(true);
+
+  #if HAS_NEXTION_LCD
+    lcdui.goto_screen(menu_m0);
+  #endif
+
+  if (ms > 0) {
+    ms += millis();
+    while ((millis_s(millis()) - ms < 0) && printer.isWaitForUser()) {
+      printer.keepalive(InProcess);
+      printer.idle();
+    }
+  }
+  else {
+    while (printer.isWaitForUser()) {
+      printer.keepalive(InProcess);
+      printer.idle();
+    }
+  }
+
+  #if HAS_NEXTION_LCD
+    lcdui.return_to_status();
+  #endif
+
+  #if ENABLED(ULTIPANEL)
+    lcdui.reset_status();
+  #endif
+
+  printer.setWaitForUser(false);
+  printer.keepalive(InHandler);
+}
 
 #endif // HAS_RESUME_CONTINUE

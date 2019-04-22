@@ -228,8 +228,8 @@ class GCodeParser {
     static inline uint32_t  value_ulong() { return value_ptr ? strtoul(value_ptr, NULL, 10) : 0UL; }
 
     // Code value for use as time
-    static inline millis_t  value_millis()              { return value_ulong(); }
-    static inline millis_t  value_millis_from_seconds() { return (millis_t)(value_float() * 1000); }
+    static inline millis_l  value_millis()              { return value_ulong(); }
+    static inline millis_l  value_millis_from_seconds() { return (millis_l)(value_float() * 1000); }
 
     // Reduce to fewer bits
     static inline int16_t   value_int()     { return  (int16_t)value_long(); }

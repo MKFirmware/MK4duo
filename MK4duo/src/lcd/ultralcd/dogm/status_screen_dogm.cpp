@@ -524,13 +524,13 @@ void LcdUI::draw_status_screen() {
     lcd_moveto(0, STATUS_BASELINE);
 
     #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-      if (PENDING(millis(), previous_status_ms + 5000UL)) { // Display both Status message line and Filament display on the last line
+      if (pending(&previous_status_ms, 5000U)) { // Display both Status message line and Filament display on the last line
         lcd_implementation_status_message(blink);
       }
 
       #if HAS_LCD_POWER_SENSOR
         #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT))
-          else if (PENDING(millis(), previous_status_ms + 10000UL))
+          else if (pending(&previous_status_ms, 10000U))
         #else
           else
         #endif

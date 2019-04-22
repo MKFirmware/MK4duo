@@ -67,7 +67,9 @@ void Fan::set_output_pwm() {
 
 void Fan::spin() {
 
-  static watch_s controller_fan_watch;
+  static millis_s controller_fan_ms = 0;
+
+  const millis_s ms = millis();
 
   if (data.auto_monitor != 0) {
 
@@ -87,11 +89,11 @@ void Fan::spin() {
     if (TEST(data.auto_monitor, 7)) {
 
       // Check Heaters
-      if (thermalManager.heaters_isActive()) controller_fan_watch.start();
+      if (thermalManager.heaters_isActive()) controller_fan_ms = ms;
 
       #if HAS_MCU_TEMPERATURE
         // Check MSU
-        if (thermalManager.mcu_current_temperature >= 50) controller_fan_watch.start();
+        if (thermalManager.mcu_current_temperature >= 50) controller_fan_ms = ms;
       #endif
 
       // Check Motors
@@ -116,11 +118,11 @@ void Fan::spin() {
           #endif
         #endif
       ) {
-        controller_fan_watch.start();
+        controller_fan_ms = ms;
       }
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      speed = controller_fan_watch.elapsed(CONTROLLERFAN_SECS * 1000UL) ? data.min_speed : data.max_speed;
+      speed = expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U)) ? data.min_speed : data.max_speed;
     }
 
   }

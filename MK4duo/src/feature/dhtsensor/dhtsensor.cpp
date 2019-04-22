@@ -30,16 +30,16 @@
 
 #if ENABLED(DHT_SENSOR)
 
-constexpr uint16_t  DHTMinimumReadInterval = 2000, // ms
+constexpr millis_s  DHTMinimumReadInterval = 2000, // ms
                     DHTMaximumReadTime     = 20;   // ms
 
 DHTSensor dhtsensor;
 
 /** Public Parameters */
-dht_data_t  DHTSensor::data;
+dht_data_t DHTSensor::data;
 
-float   DHTSensor::Temperature  = 20,
-        DHTSensor::Humidity     = 10;
+float DHTSensor::Temperature  = 20,
+      DHTSensor::Humidity     = 10;
 
 /** Private Parameters */
 uint8_t DHTSensor::read_data[5] = { 0, 0, 0, 0, 0 };
@@ -101,10 +101,10 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static watch_s  min_read_watch(true),
-                  operation_watch;
+  static millis_s min_read_ms   = millis(),
+                  operation_ms  = 0;
 
-  if (min_read_watch.isRunning() && !min_read_watch.elapsed(DHTMinimumReadInterval)) return;
+  if (min_read_ms && !expired(&min_read_ms, DHTMinimumReadInterval)) return;
 
   switch (state) {
 
@@ -140,15 +140,16 @@ void DHTSensor::spin() {
 
       // Wait for the next operation to complete
       state = Read;
-      operation_watch.start();
+      min_read_ms = 0;
+      operation_ms = millis();
       break;
 
     case Read:
       // Make sure we don't time out
-      if (operation_watch.elapsed(DHTMaximumReadTime)) {
+      if (expired(&operation_ms, DHTMaximumReadTime)) {
         detachInterrupt(data.pin);
         state = Init;
-        min_read_watch.start();
+        min_read_ms = millis();
         break;
       }
 
@@ -157,7 +158,7 @@ void DHTSensor::spin() {
 
       // We're reading now - reset the state
       state = Init;
-      min_read_watch.start();
+      min_read_ms = millis();
 
       // Check start bit
       if (pulses[0] < 40) break;

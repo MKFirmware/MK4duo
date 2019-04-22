@@ -42,7 +42,7 @@ typedef struct _hd44780_charmap_t {
 
 static const hd44780_charmap_t g_hd44780_charmap_device[] PROGMEM = {
   // sorted by uchar:
-  #if DISPLAY_CHARSET_HD44780 == JAPANESE
+  #if LCD_CHARSET_HD44780 == JAPANESE
 
     {IV('¢'), 0xEC, 0}, // A2
     {IV('°'), 0xDF, 0}, // B0, MK4duo special: '°'  LCD_STR_DEGREE (0x09)
@@ -258,7 +258,7 @@ static const hd44780_charmap_t g_hd44780_charmap_device[] PROGMEM = {
 
     {IV('￥'), 0x5C, 0},
 
-  #elif DISPLAY_CHARSET_HD44780 == WESTERN
+  #elif LCD_CHARSET_HD44780 == WESTERN
     // 0x10 -- 0x1F (except 0x1C)
     // 0x80 -- 0xFF (except 0xA7,0xB0,0xB1,0xB3,0xB4,0xBF,0xD1,0xF8,0xFA,0xFC-0xFF)
 
@@ -438,7 +438,7 @@ static const hd44780_charmap_t g_hd44780_charmap_device[] PROGMEM = {
     //{IV(''), 0xFE, 0}, // error
     //{IV(''), 0xFF, 0}, // error
 
-  #elif DISPLAY_CHARSET_HD44780 == CYRILLIC
+  #elif LCD_CHARSET_HD44780 == CYRILLIC
 
     {IV('¢'), 0x5C, 0}, // 00A2
     {IV('£'), 0xCF, 0}, // 00A3

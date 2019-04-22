@@ -24,67 +24,15 @@
 /**
  * Class Watch
  */
-template <class T>
 class Watch {
-
-  public: /** Constructor */
-
-    Watch(const bool _start=false) {
-      if (_start) start();
-      else         stop();
-    }
-
-  private: /** Private Parameters */
-
-    T startwatch = 0;
-
-    bool running = false;
-
-  public: /** Public Function */
-
-    void start() { startwatch = millis(); running = true; }
-    void stop()  { running = false; }
-
-    bool isRunning() { return running; }
-
-    bool elapsed(const T period) {
-
-      if (!running || !period) return false;
-
-      bool elapsed = false;
-      const T now = millis();
-
-      if (startwatch <= startwatch + period) {
-        if (now >= startwatch + period || now < startwatch)
-          elapsed = true;
-      }
-      else {
-        if (now >= startwatch + period && now < startwatch)
-          elapsed = true;
-      }
-
-      if (elapsed) running = false;
-
-      return elapsed;
-    }
-
-};
-
-using watch_l = Watch<uint32_t>;  // Maximum period is at least 49 days.
-using watch_s = Watch<uint16_t>;  // Maximum period is at least 65 seconds.
-
-/**
- * Class StopWatch
- */
-class StopWatch {
 
   private: /** Private Parameters */
 
     enum State : char { STOPPED, RUNNING, PAUSED };
 
-    static StopWatch::State state;
+    static Watch::State state;
 
-    static millis_t startwatch,
+    static millis_l startwatch,
                     stopwatch,
                     accumulator;
 
@@ -96,12 +44,12 @@ class StopWatch {
     static bool stop();
     static bool pause();
 
-    static void resume(const millis_t this_time);
+    static void resume(const millis_l this_time);
     static void reset();
 
     FORCE_INLINE static bool isRunning()  { return state == RUNNING;  }
     FORCE_INLINE static bool isPaused()   { return state == PAUSED;   }
 
-    static millis_t duration();
+    static millis_l duration();
 
 };

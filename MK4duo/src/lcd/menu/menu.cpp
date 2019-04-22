@@ -174,14 +174,14 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
     #endif
 
     #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
-      static millis_t doubleclick_expire_ms = 0;
+      static millis_s doubleclick_expire_ms = millis();
       // Going to menu_main from status screen? Remember first click time.
       // Going back to status screen within a very short time? Go to Z babystepping.
       if (screen == menu_main) {
         if (on_status_screen())
-          doubleclick_expire_ms = millis() + DOUBLECLICK_MAX_INTERVAL;
+          doubleclick_expire_ms = millis();
       }
-      else if (screen == status_screen && currentScreen == menu_main && PENDING(millis(), doubleclick_expire_ms)) {
+      else if (screen == status_screen && currentScreen == menu_main && pending(&doubleclick_expire_ms, DOUBLECLICK_MAX_INTERVAL)) {
         screen =
           #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
             lcd_babystep_zoffset

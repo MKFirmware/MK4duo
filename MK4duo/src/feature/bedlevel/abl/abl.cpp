@@ -363,25 +363,29 @@
       #define LINE_SEGMENT_END(A) (mechanics.current_position[_AXIS(A)] + (mechanics.destination[_AXIS(A)] - mechanics.current_position[_AXIS(A)]) * normalized_dist)
 
       float normalized_dist, end[XYZE];
+      const int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);
 
-      // Split at the left/front border of the right/top square
-      int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);
+      // Crosses on the X and not already split on this X?
+      // The x_splits flags are insurance against rounding errors.
       if (cx2 != cx1 && TEST(x_splits, gcx)) {
+        // Split on the X grid line
+        CBI(x_splits, gcx);
         COPY_ARRAY(end, mechanics.destination);
         mechanics.destination[X_AXIS] = bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx;
         normalized_dist = (mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS]) / (end[X_AXIS] - mechanics.current_position[X_AXIS]);
         mechanics.destination[Y_AXIS] = LINE_SEGMENT_END(Y);
-        CBI(x_splits, gcx);
       }
+      // Crosses on the Y and not already split on this Y?
       else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+        CBI(y_splits, gcy);
         COPY_ARRAY(end, mechanics.destination);
         mechanics.destination[Y_AXIS] = bilinear_start[Y_AXIS] + ABL_BG_SPACING(Y_AXIS) * gcy;
         normalized_dist = (mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS]) / (end[Y_AXIS] - mechanics.current_position[Y_AXIS]);
         mechanics.destination[X_AXIS] = LINE_SEGMENT_END(X);
-        CBI(y_splits, gcy);
       }
       else {
-        // Already split on a border
+        // Must already have been split on these border(s)
+        // This should be a rare case.
         mechanics.buffer_line_to_destination(fr_mm_s);
         mechanics.set_current_to_destination();
         return;

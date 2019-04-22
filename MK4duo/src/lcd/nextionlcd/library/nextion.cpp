@@ -241,7 +241,7 @@ void NextionLCD::recvRetString(char *buffer) {
   uint8_t cnt_0xFF  = 0,
           index     = 0;
 
-  millis_t start = millis();
+  millis_l start = millis();
   while (millis() - start <= NEX_TIMEOUT) {
     while (nexSerial.available()) {
       uint8_t c = nexSerial.read();
@@ -354,7 +354,7 @@ void NextionLCD::sendRefreshAll(void) {
 
   uint16_t NexUpload::recvRetString(String &string, uint32_t timeout, bool recv_flag) {
     bool exit_flag = false;
-    millis_t start = millis();
+    millis_l start = millis();
 
     while (millis() - start <= timeout) {
       while (nexSerial.available()) {

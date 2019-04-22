@@ -56,7 +56,7 @@ printStatistics PrintCounter::data;
   const uint16_t PrintCounter::address = STATS_EEPROM_ADDRESS;
 #endif
 
-millis_t PrintCounter::lastDuration;
+millis_l PrintCounter::lastDuration;
 
 /** Public Function */
 void PrintCounter::initStats() {
@@ -198,16 +198,14 @@ void PrintCounter::saveStats() {
 
 void PrintCounter::tick() {
 
-  static millis_t update_next = 0,
-                  eeprom_next = 0;
+  static millis_s update_next_ms = 0; // Max 60 seconds
+  static millis_l eeprom_next_ms = 0; // Up  60 seconds
 
-  millis_t now = millis();
-
-  if (ELAPSED(now, update_next)) {
+  if (expired(&update_next_ms, millis_s(STATS_UPDATE_INTERVAL * 1000U))) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
       debug(PSTR("tick"));
     #endif
-    millis_t delta = deltaDuration();
+    millis_l delta = deltaDuration();
     data.timePrint += delta;
     data.timePowerOn += STATS_UPDATE_INTERVAL;
 
@@ -220,14 +218,10 @@ void PrintCounter::tick() {
     #if ENABLED(SERVICE_TIME_3)
       data.ServiceTime3 -= MIN(delta, data.ServiceTime3);
     #endif
-
-    update_next = now + (STATS_UPDATE_INTERVAL * 1000);
   }
 
-  if (ELAPSED(now, eeprom_next)) {
-    eeprom_next = now + (STATS_SAVE_INTERVAL * 1000);
+  if (expired(&eeprom_next_ms, millis_l(STATS_SAVE_INTERVAL * 1000UL)))
     saveStats();
-  }
 
 }
 
@@ -288,7 +282,7 @@ bool PrintCounter::start() {
     powerManager.startpower = data.consumptionHour;
   #endif
 
-  if (stopwatch::start()) {
+  if (watch::start()) {
     if (!paused) {
       data.totalPrints++;
       lastDuration = 0;
@@ -303,7 +297,7 @@ bool PrintCounter::stop() {
     debug(PSTR("stop"));
   #endif
 
-  if (stopwatch::stop()) {
+  if (watch::stop()) {
     data.finishedPrints++;
     data.timePrint += deltaDuration();
 
@@ -321,7 +315,7 @@ void PrintCounter::reset() {
     debug(PSTR("stop"));
   #endif
 
-  stopwatch::reset();
+  watch::reset();
   lastDuration = 0;
 }
 
@@ -357,12 +351,12 @@ void PrintCounter::reset() {
 #endif
 
 /** Protected Function */
-millis_t PrintCounter::deltaDuration() {
+millis_l PrintCounter::deltaDuration() {
   #if ENABLED(DEBUG_PRINTCOUNTER)
     debug(PSTR("deltaDuration"));
   #endif
 
-  millis_t tmp = lastDuration;
+  millis_l tmp = lastDuration;
   lastDuration = duration();
   return lastDuration - tmp;
 }

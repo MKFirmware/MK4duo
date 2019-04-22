@@ -143,14 +143,11 @@ typedef struct {
       #define MAX6675_DISCARD_BITS    3
 
       int16_t read_max6675() {
-        static millis_t next_max6675_ms = 0;
-        static uint16_t max6675_temp = 2000;
 
-        millis_t ms = millis();
+        static millis_s next_max6675_ms = 0;
+        static uint16_t max6675_temp    = 2000;
 
-        if (PENDING(ms, next_max6675_ms)) return (int)max6675_temp;
-
-        next_max6675_ms = ms + MAX6675_HEAT_INTERVAL;
+        if (pending(&next_max6675_ms, MAX6675_HEAT_INTERVAL)) return int16_t(max6675_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();
@@ -193,27 +190,24 @@ typedef struct {
           max6675_temp >>= MAX6675_DISCARD_BITS;
         }
 
-        return (int)max6675_temp;
+        return int16_t(max6675_temp);
       }
 
     #endif // HAS_MAX6675
 
     #if HAS_MAX31855
 
+      #define MAX31855_HEAT_INTERVAL 250u
       #define MAX31855_DISCARD_BITS 18
-
-      int16_t last_max31855_temp = 2000;
-      millis_t next_max31855_ms = 0;
 
       int16_t read_max31855() {
 
+        static millis_s next_max31855_ms    = 0;
+        static uint16_t last_max31855_temp  = 2000;
+
         uint32_t data = 0;
 
-        millis_t ms = millis();
-
-        if (PENDING(ms, next_max31855_ms)) return (int)last_max31855_temp;
-
-        next_max31855_ms = ms + 250u;
+        if (pending(&next_max31855_ms, MAX31855_HEAT_INTERVAL)) return int16_t(last_max31855_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();
@@ -253,7 +247,7 @@ typedef struct {
           }
         }
 
-        return last_max31855_temp;
+        return int16_t(last_max31855_temp);
       }
 
     #endif // HAS_MAX6675

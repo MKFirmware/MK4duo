@@ -88,15 +88,11 @@
     bez_target[Y_AXIS] = position[Y_AXIS];
     float step = MAX_STEP;
 
-    millis_t next_idle_ms = millis() + 200UL;
+    millis_s next_idle_ms = millis();
 
     while (t < 1.0) {
 
-      millis_t now = millis();
-      if (ELAPSED(now, next_idle_ms)) {
-        next_idle_ms = now + 200UL;
-        printer.idle();
-      }
+      if (expired(&next_idle_ms, 200U)) printer.idle();
 
       // First try to reduce the step in order to make it sufficiently
       // close to a linear interpolation.

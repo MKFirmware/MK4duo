@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.9 revision 18042019
+## Version 4.3.9 dev revision 22042019
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 

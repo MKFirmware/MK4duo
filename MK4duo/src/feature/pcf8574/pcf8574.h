@@ -42,7 +42,7 @@
                   byteBuffered,
                   writeByteBuffered;
 
-      static millis_t lastReadMillis;
+      static millis_l lastReadMillis;
 
       bool        _usingInterrupt = false;
 

@@ -35,12 +35,12 @@ union flagheater_t {
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
-    bool  Tuning            : 1;
+    bool  Pidtuned          : 1;
     bool  HWInvert          : 1;
     bool  Thermalprotection : 1;
     bool  Idle              : 1;
     bool  Fault             : 1;
-    bool  bit7              : 1;
+    bool  Pidtuning         : 1;
   };
   flagheater_t() { all = 0x00; }
 };
@@ -50,7 +50,6 @@ enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway 
 
 constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { HOTEND_CHECK_INTERVAL, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
 constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { HOTEND_HYSTERESIS, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
-constexpr uint8_t   watch_period[HEATER_TYPE]         = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD, WATCH_COOLER_PERIOD };
 constexpr uint8_t   watch_increase[HEATER_TYPE]       = { WATCH_HOTEND_INCREASE, WATCH_BED_INCREASE, WATCH_CHAMBER_INCREASE, WATCH_COOLER_INCREASE };
 
 // Struct Heater data
@@ -87,31 +86,31 @@ class Heater {
 
     float         current_temperature;
 
-    millis_t      next_check_ms,
-                  idle_timeout_ms,
-                  thermal_runaway_timer,
-                  watch_next_ms;
+  private: /** Private Function */
 
     TRState       thermal_runaway_state;
 
+    millis_s      watch_next_ms;
+
+    uint16_t      idle_timeout_time;
+
   public: /** Public Function */
 
-    /**
-     * Initialize Heater
-     */
     void init();
 
     void setTarget(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
     void get_output();
     void set_output_pwm();
+    void check_and_power();
+    void PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
     void print_M301();
     void print_M305();
     void print_M306();
     #if HAS_AD8495 || HAS_AD595
       void print_M595();
     #endif
-    void start_idle_timer(const millis_t timeout_ms);
+    void start_idle_timer(const millis_l timeout_time);
     void reset_idle_timer();
 
     void thermal_runaway_protection();
@@ -139,9 +138,9 @@ class Heater {
     FORCE_INLINE void setUsePid(const bool onoff) { data.flag.UsePid = onoff; }
     FORCE_INLINE bool isUsePid() { return data.flag.UsePid; }
 
-    // Flag bit 2 Set tuning
-    FORCE_INLINE void setTuning(const bool onoff) { data.flag.Tuning = onoff; }
-    FORCE_INLINE bool isTuning() { return data.flag.Tuning; }
+    // Flag bit 2 Set Set Pid Tuned
+    FORCE_INLINE void setPidTuned(const bool onoff) { data.flag.Pidtuned = onoff; }
+    FORCE_INLINE bool isPidTuned() { return data.flag.Pidtuned; }
 
     // Flag bit 3 Set Hardware inverted
     FORCE_INLINE void setHWinvert(const bool onoff) { data.flag.HWInvert = onoff; }
@@ -171,6 +170,10 @@ class Heater {
     }
     FORCE_INLINE bool isFault() { return data.flag.Fault; }
 
+    // Flag bit 7 Set Pid Tuning
+    FORCE_INLINE void setPidTuning(const bool onoff) { data.flag.Pidtuning = onoff; }
+    FORCE_INLINE bool isPidTuning() { return data.flag.Pidtuning; }
+
     FORCE_INLINE void resetFlag() { data.flag.all = false; }
 
     FORCE_INLINE void SwitchOff() {
@@ -178,6 +181,12 @@ class Heater {
       pwm_value = 0;
       setActive(false);
     }
+
+  private: /** Private Function */
+
+    void _temp_error(PGM_P const serial_msg, PGM_P const lcd_msg);
+    void min_temp_error();
+    void max_temp_error();
 
 };
 

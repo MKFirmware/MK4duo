@@ -589,8 +589,7 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static millis_t cycle_check_temp = 0;
-  millis_t now = millis();
+  static millis_s cycle_check_temp_ms = 0;
 
   if (printer.isStopped()) return;
 
@@ -617,8 +616,7 @@ void HAL::Tick() {
   softpwm.spin();
 
   // Calculation cycle temp a 100ms
-  if (ELAPSED(now, cycle_check_temp)) {
-    cycle_check_temp = now + 100UL;
+  if (expired(&cycle_check_temp_ms, 100U)) {
     // Temperature Spin
     thermalManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
