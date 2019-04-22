@@ -47,7 +47,7 @@ inline void gcode_M290(void) {
         const float offs = constrain(parser.value_axis_units((AxisEnum)a), -2, 2);
         babystep.add_mm((AxisEnum)a, offs);
         #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-          if (a == Z_AXIS && (!parser.seen('P') || parser.value_bool())) mod_zprobe_zoffset(offs);
+          if (a == Z_AXIS && (!parser.seen('P') || parser.value_bool())) mod_probe_zoffset(offs);
         #endif
       }
   #else
@@ -55,7 +55,7 @@ inline void gcode_M290(void) {
       const float offs = constrain(parser.value_axis_units(Z_AXIS), -2, 2);
       babystep.add_mm(Z_AXIS, offs);
       #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-        if (!parser.seen('P') || parser.value_bool()) mod_zprobe_zoffset(offs);
+        if (!parser.seen('P') || parser.value_bool()) mod_probe_zoffset(offs);
       #endif
     }
   #endif
