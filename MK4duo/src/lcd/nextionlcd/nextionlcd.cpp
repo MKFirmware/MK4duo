@@ -911,8 +911,8 @@ void Nextion_draw_update() {
   }
 
   inline static void mark_as_selected(const uint8_t row, const bool sel) {
-    if (sel) nexlcd.Set_font_color_pco(*txtmenu_list[row], sel_color);
-    else nexlcd.Set_font_color_pco(*txtmenu_list[row], txt_color);
+    const uint16_t color = sel ? sel_color : txt_color;
+    nexlcd.Set_font_color_pco(*txtmenu_list[row], color);
   }
 
   // Draw a static line of text in the same idiom as a menu item
