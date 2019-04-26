@@ -152,13 +152,13 @@ void menu_tmc();
 #if ENABLED(PID_AUTOTUNE_MENU)
 
   #if HOTENDS > 0
-    int16_t autotune_temp[HOTENDS]            = ARRAY_BY_HOTENDS(200);
+    int16_t autotune_temp[HOTENDS]          = ARRAY_BY_HOTENDS(200);
   #endif
   #if BEDS > 0
-    int16_t autotune_temp_bed[BEDS]           = ARRAY_BY_BEDS(60);
+    int16_t autotune_temp_bed[BEDS]         = ARRAY_BY_BEDS(60);
   #endif
   #if CHAMBERS > 0
-    int16_t autotune_temp_chambers[CHAMBERS]  = ARRAY_BY_CHAMBERS(60);
+    int16_t autotune_temp_chamber[CHAMBERS] = ARRAY_BY_CHAMBERS(60);
   #endif
 
   #if HOTENDS > 0
@@ -180,7 +180,7 @@ void menu_tmc();
   #if CHAMBERS > 0
     void _lcd_autotune_chamber(const int8_t t) {
       char cmd[30];
-      sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chambers[t]);
+      sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chamber[t]);
       lcd_enqueue_command(cmd);
     }
   #endif
