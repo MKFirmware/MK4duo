@@ -276,7 +276,7 @@ class GCodeParser {
           return input_temp_units == TEMPUNIT_K ? 'K' : input_temp_units == TEMPUNIT_F ? 'F' : 'C';
         }
 
-        static inline char* temp_units_name() {
+        static inline PGM_P temp_units_name() {
           return input_temp_units == TEMPUNIT_K ? PSTR("Kelvin") : input_temp_units == TEMPUNIT_F ? PSTR("Fahrenheit") : PSTR("Celsius");
         }
 
