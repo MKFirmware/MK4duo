@@ -48,8 +48,8 @@
 
       static dht_data_t data;
 
-      static float      Temperature,
-                        Humidity;
+      static float  Temperature,
+                    Humidity;
 
     private: /** Private Parameters */
 

@@ -43,7 +43,7 @@
 
 #if HAS_NEXTION_LCD
 
-#define NEXTION_LCD_FIRMWARE_VERSION  113
+#define NEXTION_LCD_FIRMWARE_VERSION  114
 
 #include "library/nextion.h"
 #include "nextion_gfx.h"
@@ -552,12 +552,12 @@ void filamentPopCallback(NexObject *nexobject) {
   }
 }
 
-static void degtoLCD(const uint8_t h, float temp) {
+static void degtoLCD(const uint8_t h, uint16_t temp) {
   NOMORE(temp, 999);
   nexlcd.setValue(*heater_list0[h], temp);
 }
 
-static void targetdegtoLCD(const uint8_t h, const float temp) {
+static void targetdegtoLCD(const uint8_t h, const uint16_t temp) {
   nexlcd.setValue(*heater_list1[h], temp);
 }
 
@@ -605,8 +605,7 @@ void Nextion_draw_update() {
                   Previousfeedrate            = 0,
                   PreviousfanSpeed            = 0,
                   PreviouspercentDone         = 0;
-  static float    PreviousdegHeater[3]        = { 0.0 },
-                  PrevioustargetdegHeater[3]  = { 0.0 };
+  static uint16_t PrevioustargetdegHeater[3]  = { 0.0 };
 
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
@@ -664,52 +663,34 @@ void Nextion_draw_update() {
       }
 
       #if HAS_TEMP_HE0
-        if (PreviousdegHeater[0] != hotends[0].current_temperature) {
-          PreviousdegHeater[0] = hotends[0].current_temperature;
-          degtoLCD(0, PreviousdegHeater[0]);
-        }
-        if (PrevioustargetdegHeater[0] != hotends[0].target_temperature) {
-          PrevioustargetdegHeater[0] = hotends[0].target_temperature;
+        degtoLCD(0, hotends[0].current_temperature);
+        if (PrevioustargetdegHeater[0] != uint16_t(hotends[0].target_temperature)) {
+          PrevioustargetdegHeater[0] = uint16_t(hotends[0].target_temperature);
           targetdegtoLCD(0, PrevioustargetdegHeater[0]);
         }
       #endif
       #if HAS_TEMP_HE1
-        if (PreviousdegHeater[1] != hotends[1].current_temperature) {
-          PreviousdegHeater[1] = hotends[1].current_temperature;
-          degtoLCD(1, PreviousdegHeater[1]);
-        }
-        if (PrevioustargetdegHeater[1] != hotends[1].target_temperature) {
-          PrevioustargetdegHeater[1] = hotends[1].target_temperature;
+        degtoLCD(1, hotends[1].current_temperature);
+        if (PrevioustargetdegHeater[1] != uint16_t(hotends[1].target_temperature)) {
+          PrevioustargetdegHeater[1] = uint16_t(hotends[1].target_temperature);
           targetdegtoLCD(1, PrevioustargetdegHeater[1]);
         }
       #elif CHAMBERS > 0
-        if (PreviousdegHeater[1] != hotends.current_temperature) {
-          PreviousdegHeater[1] = hotends.current_temperature;
-          degtoLCD(3, PreviousdegHeater[1]);
-        }
-        if (PrevioustargetdegHeater[1] != hotends.target_temperature) {
-          PrevioustargetdegHeater[1] = hotends.target_temperature;
+        degtoLCD(3, chambers[0].current_temperature);
+        if (PrevioustargetdegHeater[1] != uint16_t(chambers[0].target_temperature)) {
+          PrevioustargetdegHeater[1] = uint16_t(chambers[0].target_temperature);
           targetdegtoLCD(3, PrevioustargetdegHeater[1]);
         }
       #elif ENABLED(DHT_SENSOR)
-        if (lcdui.get_blink()) {
-          if (PreviousdegHeater[1] != dhtsensor.Humidity)
-            PreviousdegHeater[1] = dhtsensor.Humidity;
-          degtoLCD(4, PreviousdegHeater[1]);
-        }
-        else {
-          if (PreviousdegHeater[1] != dhtsensor.Temperature)
-            PreviousdegHeater[1] = dhtsensor.Temperature;
-          degtoLCD(4, PreviousdegHeater[1]);
-        }
+        if (lcdui.get_blink(3))
+          degtoLCD(4, dhtsensor.Humidity + 500);
+        else
+          degtoLCD(4, dhtsensor.Temperature);
       #endif
       #if BEDS > 0
-        if (PreviousdegHeater[2] != beds[0].current_temperature) {
-          PreviousdegHeater[2] = beds[0].current_temperature;
-          degtoLCD(2, PreviousdegHeater[2]);
-        }
-        if (PrevioustargetdegHeater[2] != beds[0].target_temperature) {
-          PrevioustargetdegHeater[2] = beds[0].target_temperature;
+        degtoLCD(2, beds[0].current_temperature);
+        if (PrevioustargetdegHeater[2] != uint16_t(beds[0].target_temperature)) {
+          PrevioustargetdegHeater[2] = uint16_t(beds[0].target_temperature);
           targetdegtoLCD(2, PrevioustargetdegHeater[2]);
         }
       #endif
@@ -1273,10 +1254,10 @@ void LcdUI::init() {
   }
 }
 
-bool LcdUI::get_blink() {
+bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
   static millis_s next_blink_ms = 0;
-  if (expired(&next_blink_ms, 2000U)) blink ^= 0xFF;
+  if (expired(&next_blink_ms, millis_s(1000U * moltiplicator))) blink ^= 0xFF;
   return blink != 0;
 }
 

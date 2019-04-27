@@ -257,7 +257,7 @@ class LcdUI {
 
       static void status_screen();
 
-      static bool get_blink();
+      static bool get_blink(uint8_t moltiplicator=1);
       static void kill_screen(PGM_P const lcd_msg);
       static void draw_kill_screen();
       static void set_status(const char* const message, const bool persist=false);

@@ -247,10 +247,10 @@ void LcdUI::init() {
 
 }
 
-bool LcdUI::get_blink() {
+bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
   static millis_s next_blink_ms = 0;
-  if (expired(&next_blink_ms, (1000U - (LCD_UPDATE_INTERVAL) / 2))) blink ^= 0xFF;
+  if (expired(&next_blink_ms, millis_s(1000U * moltiplicator))) blink ^= 0xFF;
   return blink != 0;
 }
 
