@@ -91,7 +91,7 @@
     if (retracted[tools.active_extruder] == retracting) return;
 
     #if EXTRUDERS > 1
-      // Allow G10 S1 only after G10
+      // Allow G10 S1 only after G11
       if (swapping && retracted_swap[tools.active_extruder] == retracting) return;
       // G11 priority to recover the long retract if activated
       if (!retracting) swapping = retracted_swap[tools.active_extruder];
