@@ -133,7 +133,7 @@
       }
 
       // Elapsed print job time
-      job_info.print_job_counter_elapsed = print_job_counter.duration() * 1000UL;
+      job_info.print_job_counter_elapsed = print_job_counter.duration();
 
       // SD file e position
       if (!job_info.just_restart) {
