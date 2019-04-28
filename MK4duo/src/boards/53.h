@@ -127,6 +127,7 @@
 #define ORIG_HEATER_CHAMBER1_PIN   NoPin
 #define ORIG_HEATER_CHAMBER2_PIN   NoPin
 #define ORIG_HEATER_CHAMBER3_PIN   NoPin
+#define ORIG_HEATER_COOLER_PIN     NoPin
 
 //###TEMPERATURE
 #define ORIG_TEMP_HE0_PIN          13
@@ -143,6 +144,7 @@
 #define ORIG_TEMP_CHAMBER1_PIN     NoPin
 #define ORIG_TEMP_CHAMBER2_PIN     NoPin
 #define ORIG_TEMP_CHAMBER3_PIN     NoPin
+#define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
 #define ORIG_FAN0_PIN               9

@@ -128,6 +128,7 @@
 #define ORIG_HEATER_CHAMBER1_PIN   NoPin
 #define ORIG_HEATER_CHAMBER2_PIN   NoPin
 #define ORIG_HEATER_CHAMBER3_PIN   NoPin
+#define ORIG_HEATER_COOLER_PIN     NoPin
 
 //###TEMPERATURE
 #define ORIG_TEMP_HE0_PIN           1
@@ -144,6 +145,7 @@
 #define ORIG_TEMP_CHAMBER1_PIN     NoPin
 #define ORIG_TEMP_CHAMBER2_PIN     NoPin
 #define ORIG_TEMP_CHAMBER3_PIN     NoPin
+#define ORIG_TEMP_COOLER_PIN       NoPin
 
 //###FAN
 #define ORIG_FAN0_PIN              12
@@ -184,9 +186,11 @@
 #undef INVERTED_HEATER_PINS
 #undef INVERTED_BED_PIN
 #undef INVERTED_CHAMBER_PIN
+#undef INVERTED_COOLER_PIN
 #define INVERTED_HEATER_PINS true
 #define INVERTED_BED_PIN true
 #define INVERTED_CHAMBER_PIN true
+#define INVERTED_COOLER_PIN true
 
 #if HAS_SPI_LCD
   // ramps-fd lcd adaptor
