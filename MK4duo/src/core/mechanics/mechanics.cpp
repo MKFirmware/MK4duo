@@ -393,12 +393,16 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       SERIAL_MSG("Mesh Bed Leveling");
       if (bedlevel.flag.leveling_active) {
         SERIAL_EM(" (enabled)");
-        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS])));
+        SERIAL_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS]
+          #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          , 1.0
+        #endif
+        )));
         SERIAL_CHR('+');
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (bedlevel.z_fade_height) {
-            SERIAL_MV(" (", ftostr43sign(
-              mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS], bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS]))));
+            SERIAL_MV(" (", ftostr43sign(mbl.get_z(current_position[X_AXIS], current_position[Y_AXIS],
+              bedlevel.fade_scaling_factor_for_z(current_position[Z_AXIS]))));
             SERIAL_MSG("+)");
           }
         #endif
