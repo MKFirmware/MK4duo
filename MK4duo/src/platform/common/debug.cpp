@@ -135,12 +135,16 @@ void Debug::log_machine_info() {
     DEBUG_SM(DEB, " Mesh Bed Leveling");
     if (bedlevel.flag.leveling_active) {
       DEBUG_EM(" (enabled)");
-      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS])));
+      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS]
+        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
+          , 1.0
+        #endif
+      )));
       DEBUG_CHR('+');
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         if (bedlevel.z_fade_height) {
-          DEBUG_MV(" (", ftostr43sign(
-            mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], bedlevel.fade_scaling_factor_for_z(mechanics.current_position[Z_AXIS]))));
+          DEBUG_MV(" (", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS],
+            bedlevel.fade_scaling_factor_for_z(mechanics.current_position[Z_AXIS]))));
           DEBUG_MSG("+)");
         }
       #endif
