@@ -30,6 +30,8 @@
 
 #define CODE_M306
 
+#define MAX_PWM_FREQUENCY 1000U
+
 /**
  * M306: Set Heaters parameters
  *
@@ -40,12 +42,14 @@
  *    A[int]    Pid Drive Min
  *    B[int]    Pid Drive Max
  *    C[int]    Pid Max
+ *    F[int}    PWM frequency
  *    L[int]    Min temperature
  *    O[int]    Max temperature
  *    U[bool]   Use Pid/bang bang
  *    I[bool]   Hardware Inverted
  *    R[bool]   Thermal Protection
  *    P[int]    Sensor Pin
+ *    Q[bool]   PWM Hardware
  *
  */
 inline void gcode_M306(void) {
@@ -56,7 +60,7 @@ inline void gcode_M306(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M306 report.
-    if (!parser.seen("ABCLOUIRP")) {
+    if (!parser.seen("ABCFLOUIRPQ")) {
       act->print_M306();
       return;
     }
@@ -67,11 +71,14 @@ inline void gcode_M306(void) {
   act->pid.Max      = parser.intval('C', act->pid.Max);
   act->data.mintemp = parser.intval('L', act->data.mintemp);
   act->data.maxtemp = parser.intval('O', act->data.maxtemp);
+  act->data.freq    = MIN(parser.intval('F', act->data.freq), MAX_PWM_FREQUENCY);
 
   if (parser.seen('U'))
     act->setUsePid(parser.value_bool());
   if (parser.seen('I'))
     act->setHWinvert(parser.value_bool());
+  if (parser.seen('Q'))
+    act->setHWpwm(parser.value_bool());
   if (parser.seen('R'))
     act->setThermalProtection(parser.value_bool());
 

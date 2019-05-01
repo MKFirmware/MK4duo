@@ -122,7 +122,12 @@ void Fan::spin() {
       }
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      speed = expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U)) ? data.min_speed : data.max_speed;
+      if (!controller_fan_ms || expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U))) {
+        controller_fan_ms = 0;
+        speed = data.min_speed;
+      }
+      else
+        speed = data.max_speed;
     }
 
   }

@@ -514,7 +514,7 @@ class HAL {
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000);
+    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U, const bool hwpwm=true);
 
     static inline void digitalWrite(const pin_t pin, const uint8_t value) {
       ::digitalWrite(pin, value);
