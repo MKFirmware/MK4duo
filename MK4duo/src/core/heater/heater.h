@@ -37,10 +37,10 @@ union flagheater_t {
     bool  UsePid            : 1;
     bool  Pidtuned          : 1;
     bool  HWInvert          : 1;
+    bool  HWpwm             : 1;
     bool  Thermalprotection : 1;
     bool  Idle              : 1;
     bool  Fault             : 1;
-    bool  Pidtuning         : 1;
   };
   flagheater_t() { all = 0x00; }
 };
@@ -66,6 +66,8 @@ typedef struct {
   int16_t         mintemp,
                   maxtemp;
 
+  uint16_t        freq;
+
 } heater_data_t;
 
 class Heater {
@@ -86,13 +88,15 @@ class Heater {
 
     float         current_temperature;
 
-  private: /** Private Function */
+  private: /** Private Parameters */
 
     TRState       thermal_runaway_state;
 
     millis_s      watch_next_ms;
 
     uint16_t      idle_timeout_time;
+
+    bool          Pidtuning;
 
   public: /** Public Function */
 
@@ -146,11 +150,15 @@ class Heater {
     FORCE_INLINE void setHWinvert(const bool onoff) { data.flag.HWInvert = onoff; }
     FORCE_INLINE bool isHWinvert() { return data.flag.HWInvert; }
 
-    // Flag bit 4 Set Thermal Protection
+    // Flag bit 4 Set PWM Hardware
+    FORCE_INLINE void setHWpwm(const bool onoff) { data.flag.HWpwm = onoff; }
+    FORCE_INLINE bool isHWpwm() { return data.flag.HWpwm; }
+
+    // Flag bit 5 Set Thermal Protection
     FORCE_INLINE void setThermalProtection(const bool onoff) { data.flag.Thermalprotection = onoff; }
     FORCE_INLINE bool isThermalProtection() { return data.flag.Thermalprotection; }
 
-    // Flag bit 5 Set Idle
+    // Flag bit 6 Set Idle
     FORCE_INLINE void setIdle(const bool onoff, const int16_t idle_temp=0) {
       data.flag.Idle = onoff;
       idle_temperature = idle_temp;
@@ -158,7 +166,7 @@ class Heater {
     }
     FORCE_INLINE bool isIdle() { return data.flag.Idle; }
 
-    // Flag bit 6 Set Fault
+    // Flag bit 7 Set Fault
     FORCE_INLINE void setFault() {
       pwm_value = 0;
       setActive(false);
@@ -169,10 +177,6 @@ class Heater {
       SwitchOff();
     }
     FORCE_INLINE bool isFault() { return data.flag.Fault; }
-
-    // Flag bit 7 Set Pid Tuning
-    FORCE_INLINE void setPidTuning(const bool onoff) { data.flag.Pidtuning = onoff; }
-    FORCE_INLINE bool isPidTuning() { return data.flag.Pidtuning; }
 
     FORCE_INLINE void resetFlag() { data.flag.all = false; }
 

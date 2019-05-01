@@ -47,11 +47,11 @@ void Heater::init() {
 
   setActive(false);
   setIdle(false);
-  setPidTuning(false);
 
   watch_target_temp     = 0;
   watch_next_ms         = 0;
   idle_timeout_time     = 0;
+  Pidtuning             = false;
 
   thermal_runaway_state = TRInactive;
 
@@ -232,7 +232,7 @@ void Heater::get_output() {
 }
 
 void Heater::set_output_pwm() {
-  HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, (data.type == IS_HOTEND) ? 250 : 10);
+  HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, data.freq, data.flag.HWpwm);
 }
 
 void Heater::check_and_power() {
@@ -255,7 +255,7 @@ void Heater::check_and_power() {
   }
 
   // Ignore heater we are currently testing
-  if (isPidTuning()) return;
+  if (Pidtuning) return;
 
   get_output();
 
@@ -303,7 +303,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   printer.setWaitForHeatUp(true);
   printer.setAutoreportTemp(true);
 
-  setPidTuning(true);
+  Pidtuning = true;
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = current_temperature;
@@ -432,14 +432,14 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
     ) {
       SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
       LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_HIGH);
-      setPidTuning(false);
+      Pidtuning = false;
       break;
     }
     #if COOLERS > 0
       else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && data.type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
-        setPidTuning(false);
+        Pidtuning = false;
         break;
       }
     #endif
@@ -451,14 +451,14 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
     if (((now - t1) + (now - t2)) > (MAX_CYCLE_TIME_PID_AUTOTUNE * 60L * 1000L)) {
       SERIAL_LM(ER, MSG_PID_TIMEOUT);
       LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
-      setPidTuning(false);
+      Pidtuning = false;
       break;
     }
 
     if (cycles > ncycles) {
 
       SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
-      setPidTuning(false);
+      Pidtuning = false;
 
       if (isHotend) {
         SERIAL_MV(MSG_KP, tune_pid.Kp);
@@ -496,7 +496,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       pid.update();
 
       setPidTuned(true);
-      setPidTuning(false);
+      Pidtuning = false;
       ResetFault();
 
       if (storeValues) eeprom.store();
@@ -570,17 +570,19 @@ void Heater::print_M306() {
   const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
   SERIAL_SM(CFG, "Heater parameters: H<Heater>");
   if (heater_id < 0) SERIAL_MSG(" T<tools>");
-  SERIAL_EM(" P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1>:");
+  SERIAL_EM(" P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> F<Freq> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1> Q<Pwm Hardware 0-1>:");
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
   if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
   SERIAL_MV(" P", data.pin);
   SERIAL_MV(" A", pid.DriveMin);
   SERIAL_MV(" B", pid.DriveMax);
   SERIAL_MV(" C", pid.Max);
+  SERIAL_MV(" F", data.freq);
   SERIAL_MV(" L", data.mintemp);
   SERIAL_MV(" O", data.maxtemp);
   SERIAL_MV(" U", isUsePid());
   SERIAL_MV(" I", isHWinvert());
+  SERIAL_MV(" Q", isHWpwm());
   SERIAL_MV(" R", isThermalProtection());
   SERIAL_EOL();
 }

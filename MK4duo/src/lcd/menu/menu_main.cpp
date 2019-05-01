@@ -148,7 +148,7 @@ void menu_main() {
         if (!card.isFileOpen()) {
           MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
           #if !PIN_EXISTS(SD_DETECT)
-            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
+            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M22"));  // SD-card changed by user
           #endif
         }
       }

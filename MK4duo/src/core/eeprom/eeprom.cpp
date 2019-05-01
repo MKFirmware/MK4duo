@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV63"
+#define EEPROM_VERSION "MKV64"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -1558,6 +1558,7 @@ void EEPROM::reset() {
         data->ID              = 0;
         data->mintemp         = HOTEND_0_MINTEMP;
         data->maxtemp         = HOTEND_0_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1578,6 +1579,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1597,6 +1599,7 @@ void EEPROM::reset() {
         data->ID              = 1;
         data->mintemp         = HOTEND_1_MINTEMP;
         data->maxtemp         = HOTEND_1_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1617,6 +1620,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1636,6 +1640,7 @@ void EEPROM::reset() {
         data->ID              = 2;
         data->mintemp         = HOTEND_2_MINTEMP;
         data->maxtemp         = HOTEND_2_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1656,6 +1661,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1675,6 +1681,7 @@ void EEPROM::reset() {
         data->ID              = 3;
         data->mintemp         = HOTEND_3_MINTEMP;
         data->maxtemp         = HOTEND_3_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1695,6 +1702,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1714,6 +1722,7 @@ void EEPROM::reset() {
         data->ID              = 4;
         data->mintemp         = HOTEND_4_MINTEMP;
         data->maxtemp         = HOTEND_4_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1734,6 +1743,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1753,6 +1763,7 @@ void EEPROM::reset() {
         data->ID              = 5;
         data->mintemp         = HOTEND_5_MINTEMP;
         data->maxtemp         = HOTEND_5_MAXTEMP;
+        data->freq            = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1773,6 +1784,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMP);
         heat->setHWinvert(INVERTED_HEATER_PINS);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1807,6 +1819,7 @@ void EEPROM::reset() {
         data->ID              = 0;
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
+        data->freq            = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1827,6 +1840,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
         heat->setHWinvert(INVERTED_BED_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1846,6 +1860,7 @@ void EEPROM::reset() {
         data->ID              = 1;
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
+        data->freq            = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1866,6 +1881,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
         heat->setHWinvert(INVERTED_BED_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1885,6 +1901,7 @@ void EEPROM::reset() {
         data->ID              = 2;
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
+        data->freq            = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1905,6 +1922,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
         heat->setHWinvert(INVERTED_BED_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1924,6 +1942,7 @@ void EEPROM::reset() {
         data->ID              = 3;
         data->mintemp         = BED_MINTEMP;
         data->maxtemp         = BED_MAXTEMP;
+        data->freq            = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1944,6 +1963,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPBED);
         heat->setHWinvert(INVERTED_BED_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_BED);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -1978,6 +1998,7 @@ void EEPROM::reset() {
         data->ID              = 0;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
+        data->freq            = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -1998,6 +2019,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -2017,6 +2039,7 @@ void EEPROM::reset() {
         data->ID              = 1;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
+        data->freq            = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2037,6 +2060,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -2056,6 +2080,7 @@ void EEPROM::reset() {
         data->ID              = 2;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
+        data->freq            = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2076,6 +2101,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -2095,6 +2121,7 @@ void EEPROM::reset() {
         data->ID              = 3;
         data->mintemp         = CHAMBER_MINTEMP;
         data->maxtemp         = CHAMBER_MAXTEMP;
+        data->freq            = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2115,6 +2142,7 @@ void EEPROM::reset() {
         heat->resetFlag();
         heat->setUsePid(PIDTEMPCHAMBER);
         heat->setHWinvert(INVERTED_CHAMBER_PIN);
+        heat->setHWpwm(HARDWARE_PWM);
         heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
         #if HAS_EEPROM
           heat->setPidTuned(false);
@@ -2147,6 +2175,7 @@ void EEPROM::reset() {
       data->ID              = 0;
       data->mintemp         = COOLER_MINTEMP;
       data->maxtemp         = COOLER_MAXTEMP;
+      data->freq            = COOLER_PWM_FREQUENCY;
       // Pid
       pid->DriveMin         = COOLER_PID_DRIVE_MIN;
       pid->DriveMax         = COOLER_PID_DRIVE_MAX;
@@ -2167,6 +2196,7 @@ void EEPROM::reset() {
       heat->resetFlag();
       heat->setUsePid(PIDTEMPCOOLER);
       heat->setHWinvert(INVERTED_COOLER_PIN);
+      heat->setHWpwm(HARDWARE_PWM);
       heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
       #if HAS_EEPROM
         heat->setPidTuned(false);

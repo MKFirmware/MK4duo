@@ -1424,6 +1424,11 @@
     <set>M306 H0 C@</set>
     <detect>M306 H0.*C(-?\d*)</detect>
   </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 0 PWM frequency</description>
+    <set>M306 H0 F@</set>
+    <detect>M306 H0.*F(-?\d*)</detect>
+  </entry>
   <entry type="int">
     <description unit="">Hotend 0 min temperature</description>
     <set>M306 H0 L@</set>
@@ -1454,6 +1459,11 @@
     <set>M306 H0 P@</set>
     <detect>M306 H0.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 0 PWM Hardware</description>
+    <set>M306 H0 Q@</set>
+    <detect>M306 H0.*Q(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Hotend 1 PID drive min</description>
@@ -1469,6 +1479,11 @@
     <description unit="[0-255]">Hotend 1 PID max</description>
     <set>M306 H1 C@</set>
     <detect>M306 H1.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 1 PWM frequency</description>
+    <set>M306 H1 F@</set>
+    <detect>M306 H1.*F(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Hotend 1 min temperature</description>
@@ -1500,6 +1515,11 @@
     <set>M306 H1 P@</set>
     <detect>M306 H1.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 1 PWM Hardware</description>
+    <set>M306 H1 Q@</set>
+    <detect>M306 H1.*Q(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Hotend 2 PID drive min</description>
@@ -1515,6 +1535,11 @@
     <description unit="[0-255]">Hotend 2 PID max</description>
     <set>M306 H2 C@</set>
     <detect>M306 H2.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 2 PWM frequency</description>
+    <set>M306 H2 F@</set>
+    <detect>M306 H2.*F(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Hotend 2 min temperature</description>
@@ -1546,6 +1571,11 @@
     <set>M306 H2 P@</set>
     <detect>M306 H2.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 2 PWM Hardware</description>
+    <set>M306 H2 Q@</set>
+    <detect>M306 H2.*Q(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Hotend 3 PID drive min</description>
@@ -1561,6 +1591,11 @@
     <description unit="[0-255]">Hotend 3 PID max</description>
     <set>M306 H3 C@</set>
     <detect>M306 H3.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 3 PWM frequency</description>
+    <set>M306 H3 F@</set>
+    <detect>M306 H3.*F(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Hotend 3 min temperature</description>
@@ -1592,6 +1627,123 @@
     <set>M306 H3 P@</set>
     <detect>M306 H3.*P(-?\d*)</detect>
   </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 3 PWM Hardware</description>
+    <set>M306 H3 Q@</set>
+    <detect>M306 H3.*Q(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 4 PID drive min</description>
+    <set>M306 H4 A@</set>
+    <detect>M306 H4.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 4 PID drive max</description>
+    <set>M306 H4 B@</set>
+    <detect>M306 H4.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 4 PID max</description>
+    <set>M306 H4 C@</set>
+    <detect>M306 H4.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 4 PWM frequency</description>
+    <set>M306 H4 F@</set>
+    <detect>M306 H4.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 4 min temperature</description>
+    <set>M306 H4 L@</set>
+    <detect>M306 H4.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 4 max temperature</description>
+    <set>M306 H4 O@</set>
+    <detect>M306 H4.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 4 use BangBang/PID</description>
+    <set>M306 H4 U@</set>
+    <detect>M306 H4.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 4 hardware inverted</description>
+    <set>M306 H4 I@</set>
+    <detect>M306 H4.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 4 Thermal Protection</description>
+    <set>M306 H4 R@</set>
+    <detect>M306 H4.*R(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 4 heater pin</description>
+    <set>M306 H4 P@</set>
+    <detect>M306 H4.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 4 PWM Hardware</description>
+    <set>M306 H4 Q@</set>
+    <detect>M306 H4.*Q(-?\d*)</detect>
+  </entry>
+  <!-- ########################## -->
+  <entry type="int" min="0">
+    <description unit="[Ohm]">Hotend 5 PID drive min</description>
+    <set>M306 H5 A@</set>
+    <detect>M306 H5.*A(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 5 PID drive max</description>
+    <set>M306 H5 B@</set>
+    <detect>M306 H5.*B(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="255">
+    <description unit="[0-255]">Hotend 5 PID max</description>
+    <set>M306 H5 C@</set>
+    <detect>M306 H5.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Hotend 5 PWM frequency</description>
+    <set>M306 H5 F@</set>
+    <detect>M306 H5.*F(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 5 min temperature</description>
+    <set>M306 H5 L@</set>
+    <detect>M306 H5.*L(-?\d*)</detect>
+  </entry>
+  <entry type="int">
+    <description unit="">Hotend 5 max temperature</description>
+    <set>M306 H5 O@</set>
+    <detect>M306 H5.*O(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 5 use BangBang/PID</description>
+    <set>M306 H5 U@</set>
+    <detect>M306 H5.*U(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 5 hardware inverted</description>
+    <set>M306 H5 I@</set>
+    <detect>M306 H5.*I(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0" max="1">
+    <description unit="[0-1]">Hotend 5 Thermal Protection</description>
+    <set>M306 H5 R@</set>
+    <detect>M306 H5.*R(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="">Hotend 5 heater pin</description>
+    <set>M306 H5 P@</set>
+    <detect>M306 H5.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Hotend 5 PWM Hardware</description>
+    <set>M306 H5 Q@</set>
+    <detect>M306 H5.*Q(-?\d*)</detect>
+  </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
     <description unit="[Ohm]">Bed PID drive min</description>
@@ -1607,6 +1759,11 @@
     <description unit="[0-255]">Bed PID max</description>
     <set>M306 H-1 T0 C@</set>
     <detect>M306 H-1 T0.*C(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="1" max="1000">
+    <description unit="[Hz]">Bed PWM frequency</description>
+    <set>M306 H-1 F@</set>
+    <detect>M306 H-1 T0.*F(-?\d*)</detect>
   </entry>
   <entry type="int">
     <description unit="">Bed min temperature</description>
@@ -1636,7 +1793,12 @@
   <entry type="int" min="0">
     <description unit="">Bed heater pin</description>
     <set>M306 H-1 P@</set>
-    <detect>M306 H-1.*P(-?\d*)</detect>
+    <detect>M306 H-1 T0.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="0">
+    <description unit="[0-1]">Bed PWM Hardware</description>
+    <set>M306 H-1 Q@</set>
+    <detect>M306 H-1 T0.*Q(-?\d*)</detect>
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
