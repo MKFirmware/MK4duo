@@ -1,6 +1,6 @@
 /****************************************************************************************
-* 76
-* GT2560 V3.0
+* 86
+* GT2560 V3.0 A20
 ****************************************************************************************/
 
 //###CHIP
@@ -186,16 +186,16 @@
   #define ST7920_DELAY_3 DELAY_NS(125)
 #endif
 
-#define LCD_PINS_RS        20
-#define LCD_PINS_ENABLE    17
-#define LCD_PINS_D4        16
+#define LCD_PINS_RS         5
+#define LCD_PINS_ENABLE    36
+#define LCD_PINS_D4        21
 #define LCD_PINS_D5        21
 #define LCD_PINS_D6         5
-#define LCD_PINS_D7        36
+#define LCD_PINS_D7         6
 
 #if ENABLED(NEWPANEL)
-  #define BTN_EN1          42
-  #define BTN_EN2          40
+  #define BTN_EN1          16
+  #define BTN_EN2          17
   #define BTN_ENC          19
 #endif
 //@@@
