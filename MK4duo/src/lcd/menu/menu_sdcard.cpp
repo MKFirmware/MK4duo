@@ -76,17 +76,12 @@ inline void sdcard_start_selected_file() {
   lcdui.reset_status();
 }
 
-bool do_print_file;
 void menu_sd_confirm() {
-  if (lcdui.should_draw())
-    do_select_screen(PSTR(MSG_BUTTON_PRINT), PSTR(MSG_BUTTON_CANCEL), do_print_file, PSTR(MSG_START_PRINT " "), card.fileName, PSTR("?"));
-
-  if (lcdui.use_click()) {
-    if (do_print_file)
-      sdcard_start_selected_file();
-    else
-      lcdui.goto_previous_screen();
-  }
+  do_select_screen(
+    PSTR(MSG_BUTTON_PRINT), PSTR(MSG_BUTTON_CANCEL),
+    sdcard_start_selected_file, lcdui.goto_previous_screen,
+    PSTR(MSG_START_PRINT " "), card.fileName, PSTR("?")
+  );
 }
 
 class MenuItem_sdfile {
@@ -98,7 +93,6 @@ class MenuItem_sdfile {
         sd_top_line = encoderTopLine;
         sd_items = screen_items;
       #endif
-      do_print_file = false;
       MenuItem_submenu::action(menu_sd_confirm);
     }
 };

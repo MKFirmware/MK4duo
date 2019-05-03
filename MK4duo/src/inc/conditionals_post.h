@@ -1425,10 +1425,20 @@
 #endif
 
 /**
- * LCD define
+ * Z STEPPER COUNT
  */
+#if ENABLED(Z_THREE_STEPPER_DRIVERS)
+  #define Z_STEPPER_COUNT 3
+#elif ENABLED(Z_TWO_STEPPER_DRIVERS)
+  #define Z_STEPPER_COUNT 2
+#else
+  #define Z_STEPPER_COUNT 1
+#endif
 
- // Get LCD character width/height, which may be overridden by pins, configs, etc.
+/**
+ * LCD define
+ * Get LCD character width/height, which may be overridden by pins, configs, etc.
+ */
 #if DISABLED(LCD_WIDTH)
   #if HAS_GRAPHICAL_LCD
     #define LCD_WIDTH 21

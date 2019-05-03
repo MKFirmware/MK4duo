@@ -84,7 +84,7 @@ Stepper stepper;
 /** Public Parameters */
 uint16_t Stepper::direction_flag;
 
-#if HAS_MULTI_ENDSTOP
+#if HAS_MULTI_ENDSTOP || ENABLED(Z_STEPPER_AUTO_ALIGN)
   bool Stepper::separate_multi_axis = false;
 #endif
 
@@ -111,9 +111,9 @@ bool    Stepper::abort_current_block  = false;
 #if ENABLED(Y_TWO_ENDSTOPS)
   bool Stepper::locked_Y_motor = false, Stepper::locked_Y2_motor = false;
 #endif
-#if ENABLED(Z_THREE_ENDSTOPS)
+#if ENABLED(Z_THREE_ENDSTOPS) || (ENABLED(Z_STEPPER_AUTO_ALIGN) && ENABLED(Z_THREE_STEPPER_DRIVERS))
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false, Stepper::locked_Z3_motor = false;
-#elif ENABLED(Z_TWO_ENDSTOPS)
+#elif ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_STEPPER_AUTO_ALIGN)
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
@@ -1907,11 +1907,11 @@ FORCE_INLINE void Stepper::start_X_step() {
     #if ENABLED(X_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (X_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, X_MIN)  && count_direction[X_AXIS] < 0) && !locked_X_motor) X_STEP_WRITE(!INVERT_X_STEP_PIN);
+          if (!(TEST(endstops.live_state, X_MIN)  && count_direction[X_AXIS] < 0) && !locked_X_motor)   X_STEP_WRITE(!INVERT_X_STEP_PIN);
           if (!(TEST(endstops.live_state, X2_MIN) && count_direction[X_AXIS] < 0) && !locked_X2_motor) X2_STEP_WRITE(!INVERT_X_STEP_PIN);
         }
         else {
-          if (!(TEST(endstops.live_state, X_MAX)  && count_direction[X_AXIS] > 0) && !locked_X_motor) X_STEP_WRITE(!INVERT_X_STEP_PIN);
+          if (!(TEST(endstops.live_state, X_MAX)  && count_direction[X_AXIS] > 0) && !locked_X_motor)   X_STEP_WRITE(!INVERT_X_STEP_PIN);
           if (!(TEST(endstops.live_state, X2_MAX) && count_direction[X_AXIS] > 0) && !locked_X2_motor) X2_STEP_WRITE(!INVERT_X_STEP_PIN);
         }
       }
@@ -1945,11 +1945,11 @@ FORCE_INLINE void Stepper::start_Y_step() {
     #if ENABLED(Y_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Y_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction[Y_AXIS] < 0) && !locked_Y_motor) Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
+          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction[Y_AXIS] < 0) && !locked_Y_motor)   Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
           if (!(TEST(endstops.live_state, Y2_MIN) && count_direction[Y_AXIS] < 0) && !locked_Y2_motor) Y2_STEP_WRITE(!INVERT_Y_STEP_PIN);
         }
         else {
-          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction[Y_AXIS] > 0) && !locked_Y_motor) Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
+          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction[Y_AXIS] > 0) && !locked_Y_motor)   Y_STEP_WRITE(!INVERT_Y_STEP_PIN);
           if (!(TEST(endstops.live_state, Y2_MAX) && count_direction[Y_AXIS] > 0) && !locked_Y2_motor) Y2_STEP_WRITE(!INVERT_Y_STEP_PIN);
         }
       }
@@ -1972,18 +1972,29 @@ FORCE_INLINE void Stepper::start_Z_step() {
     #if ENABLED(Z_THREE_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z3_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z3_motor) Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z3_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z3_motor) Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
         }
       }
       else {
-        Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+         Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      }
+    #elif ENABLED(Z_STEPPER_AUTO_ALIGN)
+      if (separate_multi_axis) {
+        if (!locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        if (!locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        if (!locked_Z3_motor) Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      }
+      else {
+         Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
         Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
         Z3_STEP_WRITE(!INVERT_Z_STEP_PIN);
       }
@@ -1996,16 +2007,25 @@ FORCE_INLINE void Stepper::start_Z_step() {
     #if ENABLED(Z_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor) Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
           if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
         }
       }
       else {
-        Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+         Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      }
+    #elif ENABLED(Z_STEPPER_AUTO_ALIGN)
+      if (separate_multi_axis) {
+        if (!locked_Z_motor)   Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
+        if (!locked_Z2_motor) Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
+      }
+      else {
+         Z_STEP_WRITE(!INVERT_Z_STEP_PIN);
         Z2_STEP_WRITE(!INVERT_Z_STEP_PIN);
       }
     #else

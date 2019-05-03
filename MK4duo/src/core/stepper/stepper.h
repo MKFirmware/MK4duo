@@ -53,7 +53,7 @@ class Stepper {
 
     static uint16_t direction_flag; // Driver Stepper direction flag
 
-    #if HAS_MULTI_ENDSTOP
+    #if HAS_MULTI_ENDSTOP || ENABLED(Z_STEPPER_AUTO_ALIGN)
       static bool   separate_multi_axis;
     #endif
 
@@ -84,9 +84,9 @@ class Stepper {
     #if ENABLED(Y_TWO_ENDSTOPS)
       static bool locked_Y_motor, locked_Y2_motor;
     #endif
-    #if ENABLED(Z_THREE_ENDSTOPS)
+    #if ENABLED(Z_THREE_ENDSTOPS) || (ENABLED(Z_STEPPER_AUTO_ALIGN) && ENABLED(Z_THREE_STEPPER_DRIVERS))
       static bool locked_Z_motor, locked_Z2_motor, locked_Z3_motor;
-    #elif ENABLED(Z_TWO_ENDSTOPS)
+    #elif ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_STEPPER_AUTO_ALIGN)
       static bool locked_Z_motor, locked_Z2_motor;
     #endif
 
@@ -300,7 +300,7 @@ class Stepper {
       static void microstep_readings();
     #endif
 
-    #if HAS_MULTI_ENDSTOP
+    #if HAS_MULTI_ENDSTOP || ENABLED(Z_STEPPER_AUTO_ALIGN)
       FORCE_INLINE static void set_separate_multi_axis(const bool state) { separate_multi_axis = state; }
     #endif
     #if ENABLED(X_TWO_ENDSTOPS)
@@ -311,11 +311,11 @@ class Stepper {
       FORCE_INLINE static void set_y_lock(const bool state) { locked_Y_motor = state; }
       FORCE_INLINE static void set_y2_lock(const bool state) { locked_Y2_motor = state; }
     #endif
-    #if ENABLED(Z_THREE_ENDSTOPS)
+    #if ENABLED(Z_THREE_ENDSTOPS) || (ENABLED(Z_STEPPER_AUTO_ALIGN) && ENABLED(Z_THREE_STEPPER_DRIVERS))
       FORCE_INLINE static void set_z_lock(const bool state) { locked_Z_motor = state; }
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_Z2_motor = state; }
       FORCE_INLINE static void set_z3_lock(const bool state) { locked_Z3_motor = state; }
-    #elif ENABLED(Z_TWO_ENDSTOPS)
+    #elif ENABLED(Z_TWO_ENDSTOPS) || ENABLED(Z_STEPPER_AUTO_ALIGN)
       FORCE_INLINE static void set_z_lock(const bool state) { locked_Z_motor = state; }
       FORCE_INLINE static void set_z2_lock(const bool state) { locked_Z2_motor = state; }
     #endif

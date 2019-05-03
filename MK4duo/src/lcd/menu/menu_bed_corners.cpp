@@ -82,6 +82,7 @@ void _lcd_level_bed_corners_homing() {
   if (mechanics.isHomedAll()) {
     bed_corner = 0;
     lcdui.goto_screen(menu_level_bed_corners);
+    set_lcdui_selection(true);
     _lcd_goto_next_corner();
   }
 }

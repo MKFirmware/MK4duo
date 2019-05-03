@@ -41,6 +41,7 @@
 #endif
 
 using screenFunc_t = void(*)();
+using selectFunc_t = void(*)();
 using menuAction_t = void(*)();
 
 class LcdUI {
