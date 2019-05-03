@@ -972,7 +972,7 @@ void Nextion_draw_update() {
     if (string) {
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[1]);
-      nextion_put_str_P(string);
+      nextion_put_str(string);
     }
     if (suff) nextion_put_str_P(suff);
     nexlcd.endChar();
