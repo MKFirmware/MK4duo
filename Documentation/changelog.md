@@ -33,7 +33,7 @@
 *   A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
 *   L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
 *   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
-* G34 I<iterations> T<accuracy> A<amplification>
+* G34 I[iterations] [accuracy] A[amplification]
 * Add Game menu
 * Fix MBL
 * Fix and clear code
