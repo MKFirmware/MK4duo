@@ -9,6 +9,7 @@
 * Add menu axis limit to menu advanced.
 * Add Double-Quad Stepping to command M569 Q and save it into EEPROM.
 * Add Option for Safety Timer in configuration_temperature.h
+* Add G34 and M422 Z Steppers Auto-Alignment (Cartesian and CORE)
 * Add M86 M[min] set safety timer expiration time in minute. M86 M0 will disable safety timer
 * M301 - Set PID parameters P I D and C.
 *   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
@@ -32,7 +33,9 @@
 *   A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
 *   L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
 *   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
+* G34 I<iterations> T<accuracy> A<amplification>
 * Add Game menu
+* Fix MBL
 * Fix and clear code
 
 ### Version 4.3.8
