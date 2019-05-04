@@ -23,12 +23,13 @@
 |  G30 | Single Z Probe, probes bed at current XY location.
 |  G31 | Dock Z Probe sled (if enabled)
 |  G32 | Undock Z Probe sled (if enabled)
-|  G33 | Delta geometry Autocalibration[br/>F[nfactor] P[npoint] Q[debugging> (Requires **DELTA AUTO CALIBRATION 1**)<br/>P[npoints] V[nverbose> (Requires **DELTA AUTO CALIBRATION 2**)
+|  G33 | Delta geometry Autocalibration F[nfactor] P[npoint] Q[debugging] (Requires **DELTA AUTO CALIBRATION 1**) P[npoints] V[nverbose] (Requires **DELTA AUTO CALIBRATION 2**)
 |  G34 | Set Delta Height calculated from toolhead position (only DELTA)
+|  G34 | Z Stepper auto allign I[iterations] T[accuracy] A[amplification] (Requires Z_STEPPER_AUTO_ALIGN)
 |  G38 | Probe target - similar to **G28** except it uses the Z MIN endstop for all three axes
 |  G42 | Coordinated move to a mesh point. (Requires **MESH BED LEVELING** or **AUTO BED LEVELING BILINEAR**)
-|  G60 | Save current position coordinates (all axes, for active extruder).<br/>S[SLOT] - specifies memory slot # (0-based) to save into (default 0)
-|  G61 | Apply/restore saved coordinates to the active extruder.<br/>X Y Z E - Value to add at stored coordinates<br/>F[speed] - Set Feedrate<br/>S[SLOT] - specifies memory slot # (0-based) to restore from (default 0)
+|  G60 | Save current position coordinates (all axes, for active extruder). S[SLOT] - specifies memory slot # (0-based) to save into (default 0)
+|  G61 | Apply/restore saved coordinates to the active extruder. X Y Z E - Value to add at stored coordinates F[speed] - Set Feedrate S[SLOT] - specifies memory slot # (0-based) to restore from (default 0)
 |  G90 | Use Absolute Coordinates
 |  G91 | Use Relative Coordinates
 |  G92 | Set current position to cordinates given
@@ -38,7 +39,7 @@
 | ---: | :---: | :--- |
 |   M0 | ULTRA LCD | Unconditional stop - Wait for user to press a button on the LCD
 |   M1 | \\\ | Same as M0
-|   M3 | LASER | S[value] L[duration] P[ppm] D[diagnostic] B[set mode> in laser beam control
+|   M3 | LASER | S[value] L[duration] P[ppm] D[diagnostic] B[set mode] in laser beam control
 |   M4 | CNCROUTERS | S[value] - CNC clockwise speed
 |   M5 | LASER or CNCROUTERS | Turn off laser beam or CNC
 |   M6 | CNCROUTERS | Tool change CNC
@@ -61,9 +62,9 @@
 |  M35 | NEXTION | Upload Firmware to Nextion from SD
 |  M36 | SDCARD | Set SD Card Sorting Options
 |  M42 | ? | Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
-|  M43 | PINS DEBUGGING | Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins[br/>Report name and state of pin(s)<br/>P[pin] - Pin to read or watch. If omitted, reads all pins<br/>I - Flag to ignore Mk4duo's pin protection<br/>`W` - Watch pins -reporting changes- until reset, click, or M108[br/>P[pin] - Pin to read or watch. If omitted, read/watch all pins<br/>I - Flag to ignore Marlin's pin protection<br/>`E[bool>` - Enable / disable background endstop monitoring[br/>- Machine continues to operate[br/>- Reports changes to endstops[br/>- Toggles LED when an endstop changes[br/>- Can not reliably catch the 5mS pulse from BLTouch type probes[br/>`T` - Toggle pin(s) and report which pin is being toggled[br/>S[pin] - Start Pin number.   If not given, will default to 0<br/>L[pin] - End Pin number.   If not given, will default to last pin defined for this board<br/>I - Flag to ignore Mk4duo's pin protection **Use with caution!!!**<br/>R - Repeat pulses on each pin this number of times before continueing to next pin<br/>W - Wait time (in miliseconds) between pulses.  If not given will default to 500<br/>`S` - Servo probe test[br/>P[index] - Probe index (optional - defaults to 0<br/>
+|  M43 | PINS DEBUGGING | Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins Report name and state of pin(s) P[pin] - Pin to read or watch. If omitted, reads all pins I - Flag to ignore Mk4duo's pin protection `W` - Watch pins -reporting changes- until reset, click, or M108 P[pin] - Pin to read or watch. If omitted, read/watch all pins I - Flag to ignore Marlin's pin protection, E[bool] - Enable / disable background endstop monitoring - Machine continues to operate - Reports changes to endstops - Toggles LED when an endstop changes - Can not reliably catch the 5mS pulse from BLTouch type probes `T` - Toggle pin(s) and report which pin is being toggled S[pin] - Start Pin number. If not given, will default to 0 L[pin] - End Pin number. If not given, will default to last pin defined for this board I - Flag to ignore Mk4duo's pin protection **Use with caution!!!** R - Repeat pulses on each pin this number of times before continueing to next pin W - Wait time (in miliseconds) between pulses.  If not given will default to 500 `S` - Servo probe test P[index] - Probe index (optional - defaults to 0
 |  M43 | ? | M43 S1 P[servo] Z servo probe test.
-|  M44 | ? | Codes debug - report codes available (and how many of them there are)<br/>I - G-code list<br/>J - M-code list
+|  M44 | ? | Codes debug - report codes available (and how many of them there are) I - G-code list J - M-code list
 |  M48 | ? | Measure Z Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
 |  M48 | G26 MESH VALIDATION | Turn on or off G26 debug flag for verbose output.
 |  M70 | ? | Power consumption sensor calibration
@@ -87,9 +88,9 @@
 | M106 | ? | P[fan] S[speed] F[frequency] U[pin] L[min speed] X[max speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[int] Triggered temperature
 | M107 | ? | P[fan] Fan off
 | M108 | EMERGENCY PARSER | Break out of heating loops (M109, M190, M303). With no controller, breaks out of M0/M1.
-| M109 | ? | S[xxx] - Wait for hotend current temp to reach target temp. Waits only when heating<br/>R[xxx] - Wait for hotend current temp to reach target temp. Waits when heating and cooling<br/>IF AUTOTEMP is enabled, S[mintemp] B[maxtemp] F[factor>. Exit autotemp by any M109 without F
+| M109 | ? | S[xxx] - Wait for hotend current temp to reach target temp. Waits only when heating R[xxx] - Wait for hotend current temp to reach target temp. Waits when heating and cooling. IF AUTOTEMP is enabled, S[mintemp] B[maxtemp] F[factor]. Exit autotemp by any M109 without F
 | M110 | ? | Set the current line number
-| M111 | ? | Set debug flags with S[mask>.
+| M111 | ? | Set debug flags with S[mask].
 | M112 | ? | Emergency stop
 | M113 | ? | Set Host Keepalive interval with parameter S[seconds]. To disable set zero
 | M114 | ? | Output current position to serial port
@@ -101,8 +102,8 @@
 | M120 | ? | Enable endstop detection
 | M121 | ? | Disable endstop detection
 | M122 | MIN SOFTWARE ENDSTOPS or MAX SOFTWARE ENDSTOPS | S[bool] Enable or disable check software endstop
-| M123 | ENDSTOP | Set Endstop Logic[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
-| M124 | ENDSTOP | Set Endstop Pullup[br/>X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+| M123 | ENDSTOP | Set Endstop Logic X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
+| M124 | ENDSTOP | Set Endstop Pullup X[bool] Y[bool] Z[bool] I[X2 bool] J[Y2 bool] K[Z2 bool] P[Probe bool] D[Door bool]
 | M125 | PARK HEAD ON PAUSE | Save current position and move to pause park position 
 | M126 | ? | Solenoid Air Valve Open (BariCUDA support by jmil)
 | M127 | ? | Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
@@ -119,8 +120,8 @@
 | M164 | COLOR MIXING EXTRUDER | S[index] Save the mix as a virtual extruder 
 | M165 | COLOR MIXING EXTRUDER | Set the proportions for a mixing extruder. Use parameters ABCDHI to set the mixing factors
 | M166 | COLOR MIXING EXTRUDER | S[bool] A[float] Z[float] I[index] J[index] Set the Gradient Mix for the mixing extruder. (only firts two Extruder)
-| M190 | ? | Sxxx - Wait for bed current temp to reach target temp. Waits only when heating<br/>Rxxx - Wait for bed current temp to reach target temp. Waits when heating and cooling
-| M191 | ? | Sxxx - Wait for chamber current temp to reach target temp. Waits only when heating<br/>Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
+| M190 | ? | Sxxx - Wait for bed current temp to reach target temp. Waits only when heating Rxxx - Wait for bed current temp to reach target temp. Waits when heating and cooling
+| M191 | ? | Sxxx - Wait for chamber current temp to reach target temp. Waits only when heating Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
 | M192 | ? | Sxxx - Wait for cooler current temp to reach target temp. Waits only when cooling
 | M200 | ? | D[millimeters]- set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).
 | M201 | ? | Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000 Z1000 E0 S1000 E1 S1000 E2 S1000 E3 S1000) in mm/sec^2
@@ -131,7 +132,7 @@
 | M207 | ? | set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
 | M208 | ? | set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
 | M209 | ? | S[1=true/0=false] enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
-| M218 | ? | set hotend offset (in mm): H[hotend_number] X[offset_on_X] Y[offset_on_Y]> Z[offset_on_Z]
+| M218 | ? | set hotend offset (in mm): H[hotend_number] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
 | M220 | ? | S[factor in percent] - set speed factor override percentage
 | M221 | ? | T[extruder] S[factor in percent] - set extrude factor override percentage
 | M222 | ? | T[extruder] S[factor in percent] - set density extrude factor percentage for purge
@@ -142,7 +143,7 @@
 | M281 | SERVO | Set servo low|up angles position. P[index] L[low] U[up]
 | M300 | ? | Play beep sound S[frequency Hz] P[duration ms]
 | M301 | ? | Set PID parameters P I D and C. H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, P[float] Kp term, I[float] Ki term, D[float] Kd term. With PID ADD EXTRUSION RATE: C[float] Kc term, L[float] LPQ length
-| M302 | ? | Allow cold extrudes, or set the minimum extrude S[temperature>.
+| M302 | ? | Allow cold extrudes, or set the minimum extrude S[temperature].
 | M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S[temperature] sets the target temperature (default target temperature = 200C), C[cycles>, R[method>, U[Apply result>, R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid.
 | M305 | ? | Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value, L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin. Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
 | M306 | ? | Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max, F[int] Frequency, L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin, Q[bool] PWM Hardware
@@ -167,6 +168,7 @@
 | M410 | ? | Quickstop. Abort all the planned moves
 | M413 | SD_RESTART_FILE | S[bool] Enable / Disable Restart Job
 | M420 | ? | Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MBL, UBL or ABL), Z[height] for leveling fade height (Requires ENABLE LEVELING FADE HEIGHT)
+| M422 | Z_STEPPER_AUTO_ALIGN | Z-Stepper automatic alignment parameter selection S[stepper] X[value] Y[value]
 | M421 | ? | Set a single Z coordinate in the Mesh Leveling grid. M421 X[mm] Y[mm] Z[mm>' or 'M421 I[xindex] J[yindex] Z[mm] (Requires MBL, UBL or ABL BILINEAR)
 | M428 | ? | Set the home_offset logically based on the current_position
 | M450 | ? | Report Printer Mode

@@ -63,6 +63,7 @@
  *          F[nfactor] p[npoint] Q[debugging] (Requires DELTA_AUTO_CALIBRATION_1)
  *          P[points] [F] [O] [T] V[verbose] (Requires DELTA_AUTO_CALIBRATION_2)
  * G34  - Set Delta Height calculated from toolhead position (only DELTA)
+ * G34  - I<iterations> T<accuracy> A<amplification> (Requires Z_STEPPER_AUTO_ALIGN)
  * G38  - Probe target - similar to G28 except it uses the Z_MIN endstop for all three axes
  * G42  - Coordinated move to a mesh point. (Requires MESH_BED_LEVELING or AUTO_BED_LEVELING_BILINEAR)
  * G60  - Save current position coordinates (all axes, for active extruder).
