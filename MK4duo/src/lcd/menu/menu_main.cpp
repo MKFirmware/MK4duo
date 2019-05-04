@@ -34,15 +34,7 @@
 
 bool stop_print_file;
 void menu_stop_print() {
-  if (lcdui.should_draw())
-    do_select_screen_yn(stop_print_file, PSTR(MSG_ARE_YOU_SURE), NULL, PSTR("?"));
-
-  if (lcdui.use_click()) {
-    if (stop_print_file)
-      lcdui.stop_print();
-    else
-      lcdui.goto_previous_screen();
-  }
+  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), NULL, PSTR("?"));
 }
 
 #if HAS_EEPROM

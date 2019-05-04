@@ -219,6 +219,8 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
     #if HAS_GRAPHICAL_LCD
       drawing_screen = false;
     #endif
+
+    set_lcdui_selection(false);
   }
 }
 
@@ -471,12 +473,21 @@ void lcd_draw_homing() {
   lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
 }
 
-void do_select_screen(PGM_P const yes, PGM_P const no, bool &yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+//
+// Selection screen presents a prompt and two options
+//
+bool lcdui_selection; // = false
+void set_lcdui_selection(const bool sel) { lcdui_selection = sel; }
+void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=NULL*/, PGM_P const suff/*=NULL*/) {
   if (lcdui.encoderPosition) {
-    yesno = int16_t(lcdui.encoderPosition) > 0;
+    lcdui_selection = int16_t(lcdui.encoderPosition) > 0;
     lcdui.encoderPosition = 0;
   }
-  draw_select_screen(yes, no, yesno, pref, string, suff);
+  const bool got_click = lcdui.use_click();
+  if (got_click || lcdui.should_draw()) {
+    draw_select_screen(yes, no, lcdui_selection, pref, string, suff);
+    if (got_click) { lcdui_selection ? yesFunc() : noFunc(); }
+  }
 }
 
 #if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))

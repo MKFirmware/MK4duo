@@ -318,21 +318,22 @@ char* ftostr51sign(const float &f) {
   return conv;
 }
 
-// Convert float to space-padded string with -_23.4_ format
+// Convert signed float to space-padded string with -_23.4_ format
 char* ftostr52sp(const float &f) {
   long i = (f * 1000 + (f < 0 ? -5: 5)) / 10;
   uint8_t dig;
-  conv[1] = MINUSOR(i, RJDIGIT(i, 10000));
+  conv[0] = MINUSOR(i, ' ');
+  conv[1] = RJDIGIT(i, 10000);
   conv[2] = RJDIGIT(i, 1000);
   conv[3] = DIGIMOD(i, 100);
 
-  if ((dig = i % 10)) {           // second digit after decimal point?
+  if ((dig = i % 10)) {          // second digit after decimal point?
     conv[4] = '.';
     conv[5] = DIGIMOD(i, 10);
     conv[6] = DIGIT(dig);
   }
   else {
-    if ((dig = (i / 10) % 10)) {  // first digit after decimal point?
+    if ((dig = (i / 10) % 10)) { // first digit after decimal point?
       conv[4] = '.';
       conv[5] = DIGIT(dig);
     }
@@ -340,7 +341,7 @@ char* ftostr52sp(const float &f) {
       conv[4] = conv[5] = ' ';
     conv[6] = ' ';
   }
-  return &conv[1];
+  return conv;
 }
 
 // Convert float to string with +123.45 format

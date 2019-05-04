@@ -938,6 +938,7 @@ void EEPROM::post_process() {
       //
       #if ENABLED(MESH_BED_LEVELING)
         uint8_t mesh_num_x = 0, mesh_num_y = 0;
+        mbl.reset();
         EEPROM_READ(mbl.z_offset);
         EEPROM_READ_ALWAYS(mesh_num_x);
         EEPROM_READ_ALWAYS(mesh_num_y);
@@ -947,7 +948,6 @@ void EEPROM::post_process() {
         }
         else {
           // EEPROM data is stale
-          mbl.reset();
           for (uint8_t q = 0; q < mesh_num_x * mesh_num_y; q++) EEPROM_READ(dummy);
         }
       #endif // MESH_BED_LEVELING
@@ -2463,11 +2463,11 @@ void EEPROM::reset() {
       #if ENABLED(MESH_BED_LEVELING)
 
         if (bedlevel.leveling_is_valid()) {
-          for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
+          for (uint8_t iy = 0; iy < GRID_MAX_POINTS_Y; iy++) {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
-              SERIAL_SMV(CFG, "  G29 S3 X", (int)px + 1);
-              SERIAL_MV(" Y", (int)py + 1);
-              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][py]), 5);
+              SERIAL_SMV(CFG, "  G29 S3 I", (int)px);
+              SERIAL_MV(" J", (int)iy);
+              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][iy]), 3);
             }
           }
         }

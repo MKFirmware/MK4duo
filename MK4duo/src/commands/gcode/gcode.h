@@ -41,6 +41,7 @@
 
 // Calibrate Commands
 #include "calibrate/g28.h"                // Home
+#include "calibrate/g34_m422.h"           // Z stepper auto align
 #include "calibrate/m48.h"                // Repeatability probe
 #include "calibrate/m666.h"               // Set Two Endstops offsets
 

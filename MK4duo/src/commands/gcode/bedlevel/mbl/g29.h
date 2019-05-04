@@ -45,7 +45,7 @@
    *  S0              Produce a mesh report
    *  S1              Start probing mesh points
    *  S2              Probe the next mesh point
-   *  S3 Xn Yn Zn.nn  Manually modify a single point
+   *  S3 In Jn Zn.nn  Manually modify a single point
    *  S4 Zn.nn        Set z offset. Positive away from bed, negative closer to bed.
    *  S5              Reset and disable mesh
    *
@@ -70,7 +70,7 @@
       return;
     }
 
-    int8_t px, py;
+    int8_t ix, iy;
 
     switch (state) {
       case MeshReport:
@@ -121,8 +121,8 @@
             endstops.setSoftEndstop(false);
           #endif
 
-          mbl.zigzag(mbl_probe_index++, px, py);
-          bedlevel.manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
+          mbl.zigzag(mbl_probe_index++, ix, iy);
+          bedlevel.manual_goto_xy(mbl.index_to_xpos[ix], mbl.index_to_ypos[iy]);
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
@@ -152,34 +152,34 @@
         break;
 
       case MeshSet:
-        if (parser.seenval('X')) {
-          px = parser.value_int() - 1;
-          if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
-            SERIAL_MV("X out of range (0-", int(GRID_MAX_POINTS_X));
+        if (parser.seenval('I')) {
+          ix = parser.value_int();
+          if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1)) {
+            SERIAL_MV("I out of range (0-", int(GRID_MAX_POINTS_X - 1));
             SERIAL_EM(")");
             return;
           }
         }
         else {
-          say_not_entered('X');
+          say_not_entered('I');
           return;
         }
 
-        if (parser.seenval('Y')) {
-          py = parser.value_int() - 1;
-          if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
-            SERIAL_MV("Y out of range (0-", int(GRID_MAX_POINTS_Y));
+        if (parser.seenval('J')) {
+          iy = parser.value_int();
+          if (!WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1)) {
+            SERIAL_MV("J out of range (0-", int(GRID_MAX_POINTS_Y - 1));
             SERIAL_EM(")");
             return;
           }
         }
         else {
-          say_not_entered('Y');
+          say_not_entered('J');
           return;
         }
 
         if (parser.seenval('Z')) {
-          mbl.z_values[px][py] = parser.value_linear_units();
+          mbl.z_values[ix][iy] = parser.value_linear_units();
         }
         else {
           say_not_entered('Z');
