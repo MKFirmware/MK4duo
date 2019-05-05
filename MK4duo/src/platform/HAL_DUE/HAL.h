@@ -382,6 +382,10 @@ void cli(void);
 // Enable interrupts
 void sei(void);
 
+// Task Function
+void Task_Tick(void *pvParameters);
+void Task_Loop(void *pvParameters);
+
 // SPI: Extended functions which take a channel number (hardware SPI only)
 /** Write single byte to specified SPI channel */
 void spiSend(uint32_t chan, byte b);

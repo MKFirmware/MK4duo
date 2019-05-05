@@ -139,16 +139,21 @@ void menu_main() {
       if (card.isDetected()) {
         if (!card.isFileOpen()) {
           MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
-          #if !PIN_EXISTS(SD_DETECT)
-            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M22"));  // SD-card changed by user
+          #if PIN_EXISTS(SD_DETECT)
+            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));
+          #else
+            MENU_ITEM(gcode, MSG_RELEASE_SDCARD, PSTR("M22"));
           #endif
         }
       }
       else {
-        #if !PIN_EXISTS(SD_DETECT)
-          MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
+        #if PIN_EXISTS(SD_DETECT)
+          MENU_ITEM(function, MSG_NO_CARD, NULL);
+        #else
+          MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21"));
+          MENU_ITEM(function, MSG_SD_RELEASED, NULL);
         #endif
-        MENU_ITEM(function, MSG_NO_CARD, NULL);
+        
       }
     #endif // !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 

@@ -45,6 +45,9 @@
       if (!parser.seen("DHRS")) {
         SERIAL_STR(ECHO);
         SERIAL_EONOFF("Filament runout", filamentrunout.isEnabled());
+        #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+          SERIAL_EMV("Filament runout distance (mm): ", filamentrunout.runout_distance());
+        #endif
         return;
       }
     #endif
@@ -57,7 +60,7 @@
     if (parser.seen('H')) filamentrunout.setHostHandling(parser.value_bool());
 
     #if FILAMENT_RUNOUT_DISTANCE_MM > 0
-      if (parser.seen('D')) filamentrunout.response.runout_distance_mm = parser.value_float();
+      if (parser.seen('D')) filamentrunout.set_runout_distance(parser.value_linear_units());
     #endif
 
   }

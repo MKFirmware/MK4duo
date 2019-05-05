@@ -22,32 +22,23 @@
 #pragma once
 
 /**
- * Description:
- *
- * Supports platforms:
- *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
- *    __AVR__           : For all Atmel AVR boards
+ * \file
+ * \brief FreeRTOS for Due
  */
 
-#include "common/memory_store.h"
-#include "common/communication.h"
-#include "common/debug.h"
-#include "common/host_action.h"
-#include "common/servo.h"
-#include "common/softpwm.h"
-
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #define CPU_32_BIT
-  #include "HAL_DUE/FreeRTOS_ARM/FreeRTOS_ARM.h"
-  #include "HAL_DUE/spi_pins.h"
-  #include "HAL_DUE/HAL.h"
-#elif ENABLED(ARDUINO_ARCH_SAMD)
-  #define CPU_32_BIT
-  #include "HAL_SAMD/spi_pins.h"
-  #include "HAL_SAMD/HAL.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/spi_pins.h"
-  #include "HAL_AVR/HAL.h"
+#ifndef __arm__
+  #error "ARM Due required"
 #else
-  #error "Unsupported Platform!"
-#endif
+
+  /** FreeRTOS_ARM version YYYYMMDD */
+  #define FREE_RTOS_ARM_VERSION 20151113
+  #define FREE_RTOS_SYSTEM
+
+  #include "utility/FreeRTOS.h"
+  #include "utility/task.h"
+  #include "utility/queue.h"
+  #include "utility/semphr.h"
+  #include "utility/portmacro.h"
+  //#include "utility/cmsis_os.h"
+
+#endif  // __arm__

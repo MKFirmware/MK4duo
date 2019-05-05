@@ -516,6 +516,8 @@ class HAL {
 
     static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U, const bool hwpwm=true);
 
+    static void Tick();
+
     static inline void digitalWrite(const pin_t pin, const uint8_t value) {
       ::digitalWrite(pin, value);
     }

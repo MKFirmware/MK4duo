@@ -348,5 +348,7 @@ void setup() {
 }
 
 void loop() {
-  printer.loop();
+  #if DISABLED(FREE_RTOS_SYSTEM)
+    printer.loop();
+  #endif
 }

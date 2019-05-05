@@ -175,12 +175,6 @@ static inline void ConfigurePin(const PinDescription& pinDesc) {
   PIO_Configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
 }
 
-// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
-extern "C" int sysTickHook() {
-  HAL::Tick();
-  return 0;
-}
-
 HAL::HAL() {
   // ctor
 }
@@ -191,17 +185,10 @@ HAL::~HAL() {
 
 // do any hardware-specific initialization here
 void HAL::hwSetup(void) {
-
   #if DISABLED(USE_WATCHDOG)
     // Disable watchdog
     WDT_Disable(WDT);
   #endif
-
-  TimeTick_Configure(F_CPU);
-
-  NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
-  NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
-
 }
 
 // Print apparent cause of start/restart
@@ -582,7 +569,7 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
 }
 
 /**
- * Task Tick is is called 1000 timer per second.
+ * Tick is is called from Task Tick
  * It is used to update pwm values for heater and some other frequent jobs.
  *
  *  - Manage PWM to all the heaters and fan
@@ -714,6 +701,22 @@ void HAL::Tick() {
   // Tick endstops state, if required
   endstops.Tick();
 
+}
+
+/**
+ * Task Tick and Task Loop is is called 1000 time per second.
+ */
+void Task_Tick(void *pvParameters) {
+  for (;;) {
+    HAL::Tick();
+    vTaskDelay(1); // Sleep until next tick
+  }
+}
+void Task_Loop(void *pvParameters) {
+  for (;;) {
+    printer.loop();
+    vTaskDelay(5); // Sleep 5 millisecond;
+  }
 }
 
 #endif // ARDUINO_ARCH_SAM

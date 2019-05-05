@@ -56,6 +56,9 @@
 #ifndef MSG_SD_REMOVED
   #define MSG_SD_REMOVED                      _UxGT("Card removed")
 #endif
+#ifndef MSG_SD_RELEASED
+  #define MSG_SD_RELEASED                     _UxGT("Card released")
+#endif
 #ifndef MSG_LCD_ENDSTOPS
   #define MSG_LCD_ENDSTOPS                    _UxGT("Endstops") // Max length 8 characters
 #endif
@@ -757,6 +760,15 @@
 #ifndef MSG_START_PRINT
   #define MSG_START_PRINT                     _UxGT("Start print")
 #endif
+#ifndef MSG_BUTTON_NEXT
+  #define MSG_BUTTON_NEXT                     _UxGT("Next")
+#endif
+#ifndef MSG_BUTTON_INIT
+  #define MSG_BUTTON_INIT                     _UxGT("Init")
+#endif
+#ifndef MSG_BUTTON_STOP
+  #define MSG_BUTTON_STOP                     _UxGT("Stop")
+#endif
 #ifndef MSG_BUTTON_PRINT
   #define MSG_BUTTON_PRINT                    _UxGT("Print")
 #endif
@@ -870,6 +882,9 @@
 #endif
 #ifndef MSG_CHANGE_SDCARD
   #define MSG_CHANGE_SDCARD                   _UxGT("Change SD card")
+#endif
+#ifndef MSG_RELEASE_SDCARD
+  #define MSG_RELEASE_SDCARD                  _UxGT("Release SD card")
 #endif
 #ifndef MSG_ZPROBE_OUT
   #define MSG_ZPROBE_OUT                      _UxGT("Z Probe past bed")

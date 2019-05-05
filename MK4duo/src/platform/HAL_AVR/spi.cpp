@@ -48,7 +48,7 @@
 // Public functions
 // --------------------------------------------------------------------------
 
-#if ENABLED(SOFTWARE_SPI)
+#if ENABLED(SOFTWARE_SPI) || ENABLED(FORCE_SOFT_SPI)
 
   #include <SoftSPI.h>
 
