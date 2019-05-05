@@ -455,7 +455,7 @@ void Stepper::Step() {
     #endif
 
     // Limit the value to the maximum possible value of the timer
-    NOMORE(interval, HAL_TIMER_TYPE_MAX);
+    NOMORE(interval, uint32_t(HAL_TIMER_TYPE_MAX));
 
     // Compute the time remaining for the main isr
     nextMainISR -= interval;

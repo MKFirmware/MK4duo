@@ -46,7 +46,7 @@
 
     float diff[XYZ];
     LOOP_XYZ(i) {
-      diff[i] = mechanics.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
+      diff[i] = mechanics.data.base_home_pos[(AxisEnum)i] - mechanics.current_position[i];
       if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)
         diff[i] = -mechanics.current_position[i];
       if (!WITHIN(diff[i], -20, 20)) {
