@@ -65,7 +65,6 @@ inline void gcode_M305(void) {
       dhtsensor.data.pin = parser.intval('P', DHT_DATA_PIN);
       if (parser.seen('S'))
         dhtsensor.change_type(DHTEnum(parser.value_int()));
-      dhtsensor.init();
       return;
     }
   #endif

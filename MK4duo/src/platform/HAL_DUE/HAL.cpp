@@ -704,18 +704,12 @@ void HAL::Tick() {
 }
 
 /**
- * Task Tick and Task Loop is is called 1000 time per second.
+ * Heater Task is called 1000 time per second.
  */
-void Task_Tick(void *pvParameters) {
+void HeaterTask(void *pvParameters) {
   for (;;) {
     HAL::Tick();
     vTaskDelay(1); // Sleep until next tick
-  }
-}
-void Task_Loop(void *pvParameters) {
-  for (;;) {
-    printer.loop();
-    vTaskDelay(5); // Sleep 5 millisecond;
   }
 }
 

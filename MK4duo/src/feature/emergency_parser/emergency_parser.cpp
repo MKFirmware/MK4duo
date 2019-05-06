@@ -52,11 +52,14 @@ void EmergencyParser::update(EmergencyStateEnum &state, const uint8_t c) {
       break;
 
     case EP_N:
-      if (isdigit(c) || c == '-' || c == ' ') break;
-      else if (c == 'M')
-        state = EP_M;
-      else
-        state = EP_IGNORE;
+      switch (c) {
+        case '0': case '1': case '2':
+        case '3': case '4': case '5':
+        case '6': case '7': case '8':
+        case '9': case '-': case ' ':break;
+        case 'M': state = EP_M;      break;
+        default:  state = EP_IGNORE;
+      }
       break;
 
     case EP_M:
@@ -103,21 +106,22 @@ void EmergencyParser::update(EmergencyStateEnum &state, const uint8_t c) {
 
     case EP_M876:
       switch (c) {
-        case ' ':
-          break;
-        case 'S':
-          state = EP_M876S;
-          break;
-        default:
-          state =  EP_IGNORE;
-          break;
+        case ' ': break;
+        case 'S': state = EP_M876S; break;
+        default:  state = EP_IGNORE; break;
       }
       break;
 
     case EP_M876S:
-      if (isdigit(c)) {
-        state = EP_M876SN;
-        M876_response = uint8_t(c - '0');
+      switch (c) {
+        case ' ': break;
+        case '0': case '1': case '2':
+        case '3': case '4': case '5':
+        case '6': case '7': case '8':
+        case '9':
+          state = EP_M876SN;
+          M876_response = (uint8_t)(c - '0');
+          break;
       }
       break;
 

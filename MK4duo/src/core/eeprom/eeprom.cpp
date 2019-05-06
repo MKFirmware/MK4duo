@@ -364,10 +364,6 @@ void EEPROM::post_process() {
     }
   #endif
 
-  #if ENABLED(DHT_SENSOR)
-    dhtsensor.init();
-  #endif
-
   #if FAN_COUNT > 0
     LOOP_FAN() {
       fans[f].init();

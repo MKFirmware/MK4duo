@@ -90,6 +90,20 @@ PrinterModeEnum Printer::mode =
 
 /** Public Function */
 
+#if ENABLED(FREE_RTOS_SYSTEM)
+
+  /**
+   * Loop Task is called 1000 time per second.
+   */
+  extern "C" void LoopTask(void *pvParameters) {
+    for (;;) {
+      printer.loop();
+      vTaskDelay(5); // Sleep 5 millisecond;
+    }
+  }
+
+#endif // FREE_RTOS_SYSTEM
+
 /**
  * MK4duo entry-point: Set up before the program loop
  *  - Set up Hardware Board
@@ -285,6 +299,10 @@ void Printer::setup() {
     tmc.test_connection(true, true, true, true);
   #endif
 
+  #if ENABLED(DHT_SENSOR)
+    dhtsensor.init();
+  #endif
+
   #if HAS_MMU2
     mmu2.init();
   #endif
@@ -292,10 +310,10 @@ void Printer::setup() {
   #if ENABLED(FREE_RTOS_SYSTEM)
 
     // Create high priority Task Tick
-    xTaskCreate(Task_Tick, "Task_Tick", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(HeaterTask, "HEAT", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
 
     // Create lower priority Task Loop
-    xTaskCreate(Task_Loop, "Task_Loop", 10000, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(LoopTask, "LOOP", 10000, NULL, tskIDLE_PRIORITY + 1, NULL);
 
     // Start FreeRTOS
     vTaskStartScheduler();
@@ -428,7 +446,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
 
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
-  #if HAS_SPI_LCD
+  #if HAS_LCD
     lcdui.kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
   #else
     UNUSED(lcd_msg);

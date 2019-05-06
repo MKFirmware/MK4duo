@@ -383,8 +383,7 @@ void cli(void);
 void sei(void);
 
 // Task Function
-void Task_Tick(void *pvParameters);
-void Task_Loop(void *pvParameters);
+extern "C" void HeaterTask(void *pvParameters);
 
 // SPI: Extended functions which take a channel number (hardware SPI only)
 /** Write single byte to specified SPI channel */

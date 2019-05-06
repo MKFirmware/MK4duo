@@ -55,23 +55,23 @@
 
       static uint8_t read_data[5];
 
-      static enum SensorState {
-        Init,
-        Read
-      } state;
-  
     public: /** Public Function */
 
       static void init();
       static void factory_parameters();
+      #if ENABLED(FREE_RTOS_SYSTEM)
+        FORCE_INLINE static void spin() {}
+      #else
+        static void spin();
+      #endif
+      static void sensor_read();
       static void change_type(const DHTEnum dhtType);
       static void print_M305();
-      static void spin();
 
     private: /** Private Function */
 
-      static float readTemperature();
-      static float readHumidity();
+      static float read_temperature();
+      static float read_humidity();
 
   };
 
