@@ -330,7 +330,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
     #endif
 
     if (heating && current_temp > target_temp) {
-      if (int32_t(now - (t2 + 5000UL)) >= 0) {
+      if (int32_t(now - t2) >= 5000UL) {
         heating = false;
         pwm_value = (bias - d);
         t1 = now;
@@ -348,7 +348,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
     }
 
     if (!heating && current_temp < target_temp) {
-      if (int32_t(now - (t1 + 5000UL)) >= 0) {
+      if (int32_t(now - t1) >= 5000UL) {
         heating = true;
         t2 = now;
         t_low = t2 - t1;

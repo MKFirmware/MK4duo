@@ -132,7 +132,7 @@ void Temperature::set_current_temp_raw() {
 void Temperature::spin() {
 
   #if ENABLED(EMERGENCY_PARSER)
-    if (emergency_parser.killed_by_M112) printer.kill();
+    if (emergency_parser.killed_by_M112) printer.kill(PSTR("M112"));
   #endif
 
   LOOP_HOTEND() {

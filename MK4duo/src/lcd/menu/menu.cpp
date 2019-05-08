@@ -41,11 +41,11 @@ uint8_t screen_history_depth = 0;
 bool screen_changed;
 
 // Value Editing
-PGM_P editLabel;
-void *editValue;
-int32_t minEditValue, maxEditValue;
-screenFunc_t callbackFunc;
-bool liveEdit;
+PGM_P MenuItemBase::editLabel;
+void* MenuItemBase::editValue;
+int16_t MenuItemBase::minEditValue, MenuItemBase::maxEditValue;
+screenFunc_t MenuItemBase::callbackFunc;
+bool MenuItemBase::liveEdit;
 
 // Prevent recursion into screen handlers
 bool no_reentry = false;
@@ -143,10 +143,12 @@ DEFINE_MENU_EDIT_ITEM(float3);
 DEFINE_MENU_EDIT_ITEM(float52);
 DEFINE_MENU_EDIT_ITEM(float43);
 DEFINE_MENU_EDIT_ITEM(float5);
+DEFINE_MENU_EDIT_ITEM(float5_25);
 DEFINE_MENU_EDIT_ITEM(float51);
 DEFINE_MENU_EDIT_ITEM(float51sign);
 DEFINE_MENU_EDIT_ITEM(float52sign);
 DEFINE_MENU_EDIT_ITEM(long5);
+DEFINE_MENU_EDIT_ITEM(long5_25);
 
 void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
   UNUSED(pstr); *ptr ^= true; lcdui.refresh();

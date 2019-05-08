@@ -118,11 +118,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
     MENU_ITEM(function, MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
     MENU_ITEM(function, MSG_BLTOUCH_DEPLOY, bltouch.cmd_deploy);
     MENU_ITEM(function, MSG_BLTOUCH_STOW, bltouch.cmd_stow);
-    #if ENABLED(BLTOUCH_V3)
-      MENU_ITEM(function, MSG_BLTOUCH_SW_MODE, bltouch.cmd_SW_mode);
-      MENU_ITEM(function, MSG_BLTOUCH_5V_MODE, bltouch.cmd_5V_mode);
-      MENU_ITEM(function, MSG_BLTOUCH_OD_MODE, bltouch.cmd_OD_mode);
-    #endif
+    MENU_ITEM(function, MSG_BLTOUCH_SW_MODE, bltouch.cmd_SW_mode);
+    MENU_ITEM(function, MSG_BLTOUCH_5V_MODE, bltouch.cmd_5V_mode);
+    MENU_ITEM(function, MSG_BLTOUCH_OD_MODE, bltouch.cmd_OD_mode);
     END_MENU();
   }
 

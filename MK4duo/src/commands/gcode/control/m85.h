@@ -32,8 +32,10 @@
  * M85: Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
  */
 inline void gcode_M85(void) {
-  if (parser.seenval('S'))
+  if (parser.seenval('S')) {
     printer.max_inactive_time = parser.value_byte();
+    printer.max_inactivity_ms = millis();
+  }
   else
     SERIAL_EMV("M85 S", printer.max_inactive_time);
 }

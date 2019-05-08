@@ -91,10 +91,11 @@ class Printer {
                     max_inactive_time,
                     move_time;
 
-    static millis_s max_inactivity_ms,
+    static millis_l max_inactivity_ms,
                     move_ms;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
+      static BusyStateEnum busy_state;
       static uint8_t  host_keepalive_time;
     #endif
 
@@ -152,7 +153,7 @@ class Printer {
     #endif
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      static void keepalive(const BusyStateEnum state);
+      FORCE_INLINE static void keepalive(const BusyStateEnum state) { Printer::busy_state = state; }
     #else
       FORCE_INLINE static void keepalive(const BusyStateEnum state) { UNUSED(state); }
     #endif
@@ -243,6 +244,10 @@ class Printer {
     static void handle_interrupt_events();
 
     static void handle_safety_watch();
+
+    #if ENABLED(HOST_KEEPALIVE_FEATURE)
+      static void host_keepalive_tick();
+    #endif
 
     #if ENABLED(TEMP_STAT_LEDS)
       static void handle_status_leds();

@@ -51,10 +51,12 @@ DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
 DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr52,      100        );
 DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
 DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f    );
+DECLARE_MENU_EDIT_TYPE(float,    float5_25,   ftostr5rj,       0.04f    );
 DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51rj,     10        );
 DECLARE_MENU_EDIT_TYPE(float,    float51sign, ftostr51sign,   10        );
 DECLARE_MENU_EDIT_TYPE(float,    float52sign, ftostr52sign,  100        );
 DECLARE_MENU_EDIT_TYPE(uint32_t, long5,       ftostr5rj,       0.01f    );
+DECLARE_MENU_EDIT_TYPE(uint32_t, long5_25,    ftostr5rj,       0.04f    );
 
 ////////////////////////////////////////////
 ///////// Menu Item Draw Functions /////////
@@ -119,10 +121,12 @@ DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float3);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float43);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float5);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float5_25);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float51);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float51sign);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52sign);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(long5);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(long5_25);
 
 #define draw_menu_item_edit_bool(sel, row, pstr, pstr2, data, ...)           DRAW_BOOL_SETTING(sel, row, pstr, data)
 #define draw_menu_item_edit_accessor_bool(sel, row, pstr, pstr2, pget, pset) DRAW_BOOL_SETTING(sel, row, pstr, data)
@@ -156,6 +160,12 @@ class MenuItem_function {
 ////////////////////////////////////////////
 
 class MenuItemBase {
+  private:
+    static PGM_P editLabel;
+    static void *editValue;
+    static int16_t minEditValue, maxEditValue;
+    static screenFunc_t callbackFunc;
+    static bool liveEdit;
   protected:
     typedef char* (*strfunc_t)(const int32_t);
     typedef void (*loadfunc_t)(void *, const int32_t);
@@ -195,10 +205,12 @@ DECLARE_MENU_EDIT_ITEM(float3);
 DECLARE_MENU_EDIT_ITEM(float52);
 DECLARE_MENU_EDIT_ITEM(float43);
 DECLARE_MENU_EDIT_ITEM(float5);
+DECLARE_MENU_EDIT_ITEM(float5_25);
 DECLARE_MENU_EDIT_ITEM(float51);
 DECLARE_MENU_EDIT_ITEM(float51sign);
 DECLARE_MENU_EDIT_ITEM(float52sign);
 DECLARE_MENU_EDIT_ITEM(long5);
+DECLARE_MENU_EDIT_ITEM(long5_25);
 
 class MenuItem_bool {
   public:

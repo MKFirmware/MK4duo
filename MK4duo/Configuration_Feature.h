@@ -1054,6 +1054,8 @@
 // 0 disabled
 #define FILAMENT_RUNOUT_DISTANCE_MM 0
 
+#define FILAMENT_RUNOUT_THRESHOLD 5
+
 // Script execute when filament run out
 #define FILAMENT_RUNOUT_SCRIPT "M600"
 /**********************************************************************************/
@@ -1215,6 +1217,12 @@
 // Uncomment this to enable EEPROM Serial responses.
 //#define EEPROM_CHITCHAT
 
+// Disabled M503 report
+//#define DISABLE_M503
+
+// Init EEPROM automatically on any errors.
+//#define EEPROM_AUTO_INIT
+
 // Type EEPROM Hardware
 //  Caution!!! The cards that mount the eeprom by default
 //  have already enabled the correct define, do not touch this.
@@ -1222,9 +1230,6 @@
 //#define EEPROM_SPI
 //#define EEPROM_SD
 //#define EEPROM_FLASH
-
-// Disabled M503 report
-//#define DISABLE_M503
 /************************************************************************************************************************/
 
 

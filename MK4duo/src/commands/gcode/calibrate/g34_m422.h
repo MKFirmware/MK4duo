@@ -94,8 +94,7 @@ inline void gcode_G34(void) {
     #endif
 
     #if ENABLED(BLTOUCH)
-      bltouch.reset();
-      bltouch.stow();
+      bltouch.init();
     #endif
 
     // Always home with tool 0 active

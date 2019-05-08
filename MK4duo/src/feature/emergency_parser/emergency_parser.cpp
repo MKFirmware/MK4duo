@@ -103,14 +103,9 @@ void EmergencyParser::update(EmergencyStateEnum &state, const uint8_t c) {
 
     case EP_M876:
       switch (c) {
-        case ' ':
-          break;
-        case 'S':
-          state = EP_M876S;
-          break;
-        default:
-          state =  EP_IGNORE;
-          break;
+        case ' ': break;
+        case 'S': state = EP_M876S; break;
+        default:  state = EP_IGNORE; break;
       }
       break;
 
