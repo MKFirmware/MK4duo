@@ -47,11 +47,12 @@ uint8_t Printer::progress       = 0;
 uint8_t   Printer::safety_time        = SAFETYTIMER_TIME_MINS,
           Printer::max_inactive_time  = 0,
           Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
-millis_s  Printer::max_inactivity_ms  = 0,
-          Printer::move_ms            = millis();
+millis_l  Printer::max_inactivity_ms  = 0,
+          Printer::move_ms            = 0;
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
-  uint8_t Printer::host_keepalive_time = DEFAULT_KEEPALIVE_INTERVAL;
+  BusyStateEnum Printer::busy_state     = NotBusy;
+  uint8_t Printer::host_keepalive_time  = DEFAULT_KEEPALIVE_INTERVAL;
 #endif
 
 // Interrupt Event
@@ -177,7 +178,13 @@ void Printer::setup() {
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
-  const bool eeprom_loaded = eeprom.load();
+  bool eeprom_loaded = eeprom.load();
+  #if ENABLED(EEPROM_AUTO_INIT)
+    if (!eeprom_loaded) {
+      eeprom_loaded = eeprom.store();
+      SERIAL_EM("EEPROM Initialized");
+    }
+  #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
@@ -302,8 +309,6 @@ void Printer::loop() {
 
   for (;;) {
 
-    printer.keepalive(NotBusy);
-
     #if HAS_SD_SUPPORT
 
       card.checkautostart();
@@ -353,12 +358,6 @@ void Printer::check_periodical_actions() {
 
   static millis_s cycle_1s_ms = 0;
 
-  // Control interrupt events
-  handle_interrupt_events();
-
-  // Tick timer job counter
-  print_job_counter.tick();
-
   // Event 1.0 Second
   if (expired(&cycle_1s_ms, 1000U)) {
 
@@ -392,6 +391,7 @@ void Printer::check_periodical_actions() {
       flowmeter.spin();
     #endif
   }
+
 }
 
 void Printer::safe_delay(millis_l ms) {
@@ -421,7 +421,7 @@ void Printer::kill(PGM_P const lcd_msg/*=NULL*/) {
 
   SERIAL_LM(ER, MSG_ERR_KILLED);
 
-  #if HAS_SPI_LCD
+  #if HAS_LCD
     lcdui.kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
   #else
     UNUSED(lcd_msg);
@@ -550,7 +550,18 @@ void Printer::stop() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
+  // LCD Update
   lcdui.update();
+
+  #if ENABLED(HOST_KEEPALIVE_FEATURE)
+    host_keepalive_tick();
+  #endif
+
+  // Control interrupt events
+  handle_interrupt_events();
+
+  // Tick timer job counter
+  print_job_counter.tick();
 
   check_periodical_actions();
 
@@ -558,7 +569,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   handle_safety_watch();
 
-  if (expired(&max_inactivity_ms, millis_s(max_inactive_time * 1000U))) {
+  if (expired(&max_inactivity_ms, millis_l(max_inactive_time * 1000UL))) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
@@ -600,8 +611,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       move_ms = millis(); // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_s(move_time * 1000U))) {
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_l(move_time * 1000UL))) {
       if (!already_shutdown_steppers) {
+        if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");
         already_shutdown_steppers = true; 
         #if ENABLED(DISABLE_INACTIVE_X)
           stepper.disable_X();
@@ -787,6 +799,102 @@ void Printer::setInterruptEvent(const InterruptEventEnum event) {
     interruptEvent = event;
 }
 
+/**
+ * isPrinting check
+ */
+bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
+bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused();  }
+
+/**
+ * Sensitive pin test for M42, M226
+ */
+bool Printer::pin_is_protected(const pin_t pin) {
+  static const int8_t sensitive_pins[] PROGMEM = SENSITIVE_PINS;
+  for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
+    if (pin == pgm_read_byte(&sensitive_pins[i])) return true;
+  return false;
+}
+
+#if HAS_SUICIDE
+  void Printer::suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
+#endif
+
+/**
+ * Debug Flags Function
+ */
+void Printer::setDebugLevel(const uint8_t newLevel) {
+  if (newLevel != debug_flag.all) {
+    debug_flag.all = newLevel;
+    if (debugDryrun() || debugSimulation()) {
+      // Disable all heaters in case they were on
+      thermalManager.disable_all_heaters();
+    }
+  }
+  SERIAL_EMV("DebugLevel:", (int)debug_flag.all);
+}
+
+/** Private Function */
+void Printer::setup_pinout() {
+
+  #if PIN_EXISTS(SS)
+    OUT_WRITE(SS_PIN, HIGH);
+  #endif
+
+  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
+    OUT_WRITE(LCD_SDSS, HIGH);
+  #endif
+
+  #if PIN_EXISTS(MAX6675_SS)
+    OUT_WRITE(MAX6675_SS_PIN, HIGH);
+  #endif
+
+  #if PIN_EXISTS(MAX31855_SS0)
+    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS1)
+    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS2)
+    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
+  #endif
+  #if PIN_EXISTS(MAX31855_SS3)
+    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
+  #endif
+
+  #if HAS_SUICIDE
+    OUT_WRITE(SUICIDE_PIN, HIGH);
+  #endif
+
+  #if HAS_KILL
+    SET_INPUT_PULLUP(KILL_PIN);
+  #endif
+
+  #if HAS_PHOTOGRAPH
+    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
+  #endif
+
+  #if HAS_CASE_LIGHT && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+    SET_OUTPUT(CASE_LIGHT_PIN);
+  #endif
+
+  #if HAS_Z_PROBE_SLED
+    OUT_WRITE(SLED_PIN, LOW); // turn it off
+  #endif
+
+  #if HAS_HOME
+    SET_INPUT_PULLUP(HOME_PIN);
+  #endif
+
+  #if PIN_EXISTS(STAT_LED_RED)
+    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
+  #endif
+
+  #if PIN_EXISTS(STAT_LED_BLUE)
+    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
+  #endif
+
+}
+
 void Printer::handle_interrupt_events() {
 
   if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
@@ -862,87 +970,39 @@ void Printer::handle_safety_watch() {
   }
 }
 
-/**
- * isPrinting check
- */
-bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning() || planner.moves_planned(); }
-bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused(); }
+#if ENABLED(HOST_KEEPALIVE_FEATURE)
 
-/**
- * Sensitive pin test for M42, M226
- */
-bool Printer::pin_is_protected(const pin_t pin) {
-  static const int8_t sensitive_pins[] PROGMEM = SENSITIVE_PINS;
-  for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
-    if (pin == pgm_read_byte(&sensitive_pins[i])) return true;
-  return false;
-}
+  /**
+   * Output a "busy" message at regular intervals
+   * while the machine is not accepting
+   */
+  void Printer::host_keepalive_tick() {
+    static millis_s host_keepalive_ms = millis();
+    if (!isSuspendAutoreport() && expired(&host_keepalive_ms, millis_s(host_keepalive_time * 1000U))) {
+      switch (busy_state) {
+        case InHandler:
+        case InProcess:
+          SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
+          break;
+        case WaitHeater:
+          SERIAL_LM(BUSY, MSG_BUSY_WAIT_HEATER);
+          break;
+        case DoorOpen:
+          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
+          break;
+        case PausedforUser:
+          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
+          break;
+        case PausedforInput:
+          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_INPUT);
+          break;
+        default:
+          break;
+      }
+    }
+  }
 
-#if HAS_SUICIDE
-  void Printer::suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
-#endif
-
-/** Private Function */
-void Printer::setup_pinout() {
-
-  #if PIN_EXISTS(SS)
-    OUT_WRITE(SS_PIN, HIGH);
-  #endif
-
-  #if ENABLED(LCD_SDSS) && LCD_SDSS >= 0
-    OUT_WRITE(LCD_SDSS, HIGH);
-  #endif
-
-  #if PIN_EXISTS(MAX6675_SS)
-    OUT_WRITE(MAX6675_SS_PIN, HIGH);
-  #endif
-
-  #if PIN_EXISTS(MAX31855_SS0)
-    OUT_WRITE(MAX31855_SS0_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS1)
-    OUT_WRITE(MAX31855_SS1_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS2)
-    OUT_WRITE(MAX31855_SS2_PIN, HIGH);
-  #endif
-  #if PIN_EXISTS(MAX31855_SS3)
-    OUT_WRITE(MAX31855_SS3_PIN, HIGH);
-  #endif
-
-  #if HAS_SUICIDE
-    OUT_WRITE(SUICIDE_PIN, HIGH);
-  #endif
-
-  #if HAS_KILL
-    SET_INPUT_PULLUP(KILL_PIN);
-  #endif
-
-  #if HAS_PHOTOGRAPH
-    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
-  #endif
-
-  #if HAS_CASE_LIGHT && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
-    SET_OUTPUT(CASE_LIGHT_PIN);
-  #endif
-
-  #if HAS_Z_PROBE_SLED
-    OUT_WRITE(SLED_PIN, LOW); // turn it off
-  #endif
-
-  #if HAS_HOME
-    SET_INPUT_PULLUP(HOME_PIN);
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_RED)
-    OUT_WRITE(STAT_LED_RED_PIN, LOW); // turn it off
-  #endif
-
-  #if PIN_EXISTS(STAT_LED_BLUE)
-    OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
-  #endif
-
-}
+#endif // HOST_KEEPALIVE_FEATURE
 
 #if ENABLED(IDLE_OOZING_PREVENT)
 
@@ -986,54 +1046,6 @@ void Printer::setup_pinout() {
   }
 
 #endif
-
-/**
- * Debug Flags Function
- */
-void Printer::setDebugLevel(const uint8_t newLevel) {
-  if (newLevel != debug_flag.all) {
-    debug_flag.all = newLevel;
-    if (debugDryrun() || debugSimulation()) {
-      // Disable all heaters in case they were on
-      thermalManager.disable_all_heaters();
-    }
-  }
-  SERIAL_EMV("DebugLevel:", (int)debug_flag.all);
-}
-
-#if ENABLED(HOST_KEEPALIVE_FEATURE)
-
-  /**
-   * Output a "busy" message at regular intervals
-   * while the machine is not accepting
-   */
-  void Printer::keepalive(const BusyStateEnum state) {
-    static millis_s host_keepalive_ms = millis();
-    if (!isSuspendAutoreport() && expired(&host_keepalive_ms, millis_s(host_keepalive_time * 1000U))) {
-      switch (state) {
-        case InHandler:
-        case InProcess:
-          SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
-          break;
-        case WaitHeater:
-          SERIAL_LM(BUSY, MSG_BUSY_WAIT_HEATER);
-          break;
-        case DoorOpen:
-          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
-          break;
-        case PausedforUser:
-          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
-          break;
-        case PausedforInput:
-          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_INPUT);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-#endif // HOST_KEEPALIVE_FEATURE
 
 #if ENABLED(TEMP_STAT_LEDS)
 

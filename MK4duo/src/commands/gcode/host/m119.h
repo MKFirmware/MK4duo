@@ -40,6 +40,10 @@ static void print_state(const bool is_hit, PGM_P const label=NULL) {
  */
 inline void gcode_M119(void) {
 
+  #if ENABLED(BLTOUCH)
+    bltouch.cmd_SW_mode();
+  #endif
+
   SERIAL_EM(MSG_M119_REPORT);
 
   #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(MSG_##S))
@@ -112,5 +116,10 @@ inline void gcode_M119(void) {
   #endif
   #if HAS_POWER_CHECK
     print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), PSTR(MSG_POWER_CHECK));
+  #endif
+
+  #if ENABLED(BLTOUCH)
+    bltouch.cmd_reset();
+    if (endstops.isGlobally()) bltouch.stow();
   #endif
 }

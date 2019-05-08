@@ -448,7 +448,7 @@ void Commands::get_serial() {
               printer.setWaitForUser(false);
             #endif
           }
-          if (strcmp(command, "M112") == 0) printer.kill();
+          if (strcmp(command, "M112") == 0) printer.kill(PSTR("M112"));
           if (strcmp(command, "M410") == 0) printer.quickstop_stepper();
         #endif
 
