@@ -30,17 +30,17 @@
 
 #if ENABLED(BLTOUCH)
 
-Bltouch bltouch;
+BLTouch bltouch;
 
 /** Public Function */
-void Bltouch::init() {
+void BLTouch::init() {
   #if ENABLED(BLTOUCH_FORCE_5V_MODE)
     cmd_5V_mode();
   #endif
   clear();
 }
 
-bool Bltouch::test() {
+bool BLTouch::test() {
   #if HAS_Z_PROBE_PIN
     return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
   #else
@@ -48,19 +48,19 @@ bool Bltouch::test() {
   #endif
 }
 
-bool Bltouch::deploy() {
+bool BLTouch::deploy() {
   // Do a DEPLOY
-  if (printer.debugFeature()) DEBUG_EM("BLTouch DEPLOY requested");
+  if (printer.debugFeature()) DEBUG_EM(">>> bltouch.deploy() start");
 
   // Attempt to DEPLOY, wait for DEPLOY_DELAY or ALARM
-  if (deploy_query_alarm()) {
+  if (cmd_deploy_alarm()) {
     // The deploy might have failed or the probe is already triggered (nozzle too low?)
     if (printer.debugFeature()) DEBUG_EM("BLTouch ALARM or TRIGGER after DEPLOY, recovering");
 
     clear();                            // Get the probe into start condition
 
     // Last attempt to DEPLOY
-    if (deploy_query_alarm()) {
+    if (cmd_deploy_alarm()) {
       // The deploy might have failed or the probe is actually triggered (nozzle too low?) again
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
@@ -75,14 +75,14 @@ bool Bltouch::deploy() {
   // The trigger STOW (see motion.cpp for example) will pull up the probes pin as soon as the pulse
   // is registered.
 
-  if (printer.debugFeature()) DEBUG_EM("bltouch.deploy() end");
+  if (printer.debugFeature()) DEBUG_EM("<<< bltouch.deploy() end");
 
   return false; // report success to caller
 }
 
-bool Bltouch::stow() {
+bool BLTouch::stow() {
   // Do a STOW
-  if (printer.debugFeature()) DEBUG_EM("BLTouch STOW requested");
+  if (printer.debugFeature()) DEBUG_EM(">>> bltouch.stow() start");
 
   // A STOW will clear a triggered condition in the probe (10ms pulse).
   // At the moment that we come in here, we might (pulse) or will (SW mode) see the trigger on the pin.
@@ -91,7 +91,7 @@ bool Bltouch::stow() {
   // and the ALARM condition will still be there. --> ANTClabs should change this behaviour maybe
 
   // Attempt to STOW, wait for STOW_DELAY or ALARM
-  if (stow_query_alarm()) {
+  if (cmd_stow_alarm()) {
     // The stow might have failed
     if (printer.debugFeature()) DEBUG_EM("BLTouch ALARM or TRIGGER after STOW, recovering");
 
@@ -100,7 +100,7 @@ bool Bltouch::stow() {
                                           // an ALARM condition though.
                                           // But one more STOW will catch that
     // Last attempt to STOW
-    if (stow_query_alarm()) {             // so if there is now STILL an ALARM condition:
+    if (cmd_stow_alarm()) {             // so if there is now STILL an ALARM condition:
 
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
@@ -111,25 +111,23 @@ bool Bltouch::stow() {
     }
   }
 
-  if (printer.debugFeature()) DEBUG_EM("bltouch.stow() end");
+  if (printer.debugFeature()) DEBUG_EM("<<< bltouch.stow() end");
 
   return false; // report success to caller
 }
 
-bool Bltouch::status() {
-  /**
-   * Return a TRUE for "YES, it is DEPLOYED"
-   * This function will ensure switch state is reset after execution
-   * This may change pin position in some scenarios, specifically
-   * if the pin has been triggered but not yet stowed.
-   */
+bool BLTouch::status() {
+  // Return a TRUE for "YES, it is DEPLOYED"
+  // This function will ensure switch state is reset after execution
+  // This may change pin position in some scenarios, specifically
+  // if the pin has been triggered but not yet stowed.
 
   if (printer.debugFeature()) DEBUG_EM("BLTouch STATUS requested");
 
   cmd_SW_mode();
   const bool trig = test();         // If triggered in SW mode, the pin is up, it is STOWED
 
-  if (printer.debugFeature()) DEBUG_EMV("BLTouch is ", (int)trig);
+  if (printer.debugFeature()) DEBUG_ELOGIC("BLTouch is ", trig);
 
   cmd_reset();                      // turn off the SW Mode
   if (trig) stow();
@@ -138,7 +136,7 @@ bool Bltouch::status() {
 }
 
 /** Private Functions */
-void Bltouch::clear() {
+void BLTouch::clear() {
   cmd_reset();  // RESET or RESET_SW will clear an alarm condition but...
                 // ...it will not clear a triggered condition in SW mode when the pin is currently up
                 // ANTClabs <-- CODE ERROR
@@ -147,7 +145,7 @@ void Bltouch::clear() {
   stow();       // STOW to be ready for meaningful work. Could fail, don't care
 }
 
-bool Bltouch::command(const BLTCommand cmd, const millis_s &ms) {
+bool BLTouch::command(const BLTCommand cmd, const millis_s &ms) {
   if (printer.debugFeature()) SERIAL_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
   printer.safe_delay(MAX(ms, BLTOUCH_DELAY));

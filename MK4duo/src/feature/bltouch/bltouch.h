@@ -66,11 +66,11 @@
 
 typedef unsigned char BLTCommand;
 
-class Bltouch {
+class BLTouch {
 
   public: /** Constructor */
 
-    Bltouch() {};
+    BLTouch() {};
 
   public: /** Public Function */
 
@@ -98,11 +98,11 @@ class Bltouch {
     static void clear();
     static bool command(const BLTCommand cmd, const millis_s &ms);
 
-    FORCE_INLINE static bool deploy_query_alarm() { return command(BLTOUCH_DEPLOY,  BLTOUCH_DEPLOY_DELAY);  }
-    FORCE_INLINE static bool stow_query_alarm()   { return command(BLTOUCH_STOW,    BLTOUCH_STOW_DELAY);    }
+    FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_DEPLOY,  BLTOUCH_DEPLOY_DELAY);  }
+    FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_STOW,    BLTOUCH_STOW_DELAY);    }
 
 };
 
-extern Bltouch bltouch;
+extern BLTouch bltouch;
 
 #endif // ENABLED(BLTOUCH)
