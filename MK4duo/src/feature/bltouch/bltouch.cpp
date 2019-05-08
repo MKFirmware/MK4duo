@@ -145,10 +145,10 @@ void BLTouch::clear() {
   stow();       // STOW to be ready for meaningful work. Could fail, don't care
 }
 
-bool BLTouch::command(const BLTCommand cmd, const millis_s &ms) {
+bool BLTouch::command(const BLTCommand cmd) {
   if (printer.debugFeature()) SERIAL_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
-  printer.safe_delay(MAX(ms, BLTOUCH_DELAY));
+  printer.safe_delay(BLTOUCH_DELAY);
   return test();
 }
 
