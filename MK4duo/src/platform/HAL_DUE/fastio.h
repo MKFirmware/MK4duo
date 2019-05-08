@@ -232,8 +232,11 @@ FORCE_INLINE static void SET_OUTPUT(const pin_t pin) {
   #endif
   {
     const PinDescription& pinDesc = g_APinDescription[pin];
-    if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
       PIO_Configure(pinDesc.pPort, PIO_OUTPUT_0, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+      if (pinDesc.pPort->PIO_OSR == 0xffffffff)
+        pmc_disable_periph_clk(pinDesc.ulPeripheralId);
+    }
   }
 }
 FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
@@ -246,8 +249,11 @@ FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
   #endif
   {
     const PinDescription& pinDesc = g_APinDescription[pin];
-    if (pinDesc.ulPinType != PIO_NOT_A_PIN)
+    if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
       PIO_Configure(pinDesc.pPort, PIO_OUTPUT_1, pinDesc.ulPin, pinDesc.ulPinConfiguration);
+      if (pinDesc.pPort->PIO_OSR == 0xffffffff)
+        pmc_disable_periph_clk(pinDesc.ulPeripheralId);
+    }
   }
 }
 

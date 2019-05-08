@@ -47,8 +47,8 @@ uint8_t Printer::progress       = 0;
 uint8_t   Printer::safety_time        = SAFETYTIMER_TIME_MINS,
           Printer::max_inactive_time  = 0,
           Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
-millis_s  Printer::max_inactivity_ms  = 0,
-          Printer::move_ms            = millis();
+millis_l  Printer::max_inactivity_ms  = 0,
+          Printer::move_ms            = 0;
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   BusyStateEnum Printer::busy_state     = NotBusy;
@@ -192,7 +192,13 @@ void Printer::setup() {
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
-  const bool eeprom_loaded = eeprom.load();
+  bool eeprom_loaded = eeprom.load();
+  #if ENABLED(EEPROM_AUTO_INIT)
+    if (!eeprom_loaded) {
+      eeprom_loaded = eeprom.store();
+      SERIAL_EM("EEPROM Initialized");
+    }
+  #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
@@ -578,12 +584,12 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   // LCD Update
   lcdui.update();
 
-  // Control interrupt events
-  handle_interrupt_events();
-
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
     host_keepalive_tick();
   #endif
+
+  // Control interrupt events
+  handle_interrupt_events();
 
   // Tick timer job counter
   print_job_counter.tick();
@@ -594,7 +600,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   handle_safety_watch();
 
-  if (expired(&max_inactivity_ms, millis_s(max_inactive_time * 1000U))) {
+  if (expired(&max_inactivity_ms, millis_l(max_inactive_time * 1000UL))) {
     SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(PSTR(MSG_KILLED));
   }
@@ -636,8 +642,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       move_ms = millis(); // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_s(move_time * 1000U))) {
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_l(move_time * 1000UL))) {
       if (!already_shutdown_steppers) {
+        if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");
         already_shutdown_steppers = true; 
         #if ENABLED(DISABLE_INACTIVE_X)
           stepper.disable_X();
@@ -826,8 +833,8 @@ void Printer::setInterruptEvent(const InterruptEventEnum event) {
 /**
  * isPrinting check
  */
-bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning() || planner.moves_planned(); }
-bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused(); }
+bool Printer::isPrinting()  { return IS_SD_PRINTING() || print_job_counter.isRunning(); }
+bool Printer::isPaused()    { return IS_SD_PAUSED()   || print_job_counter.isPaused();  }
 
 /**
  * Sensitive pin test for M42, M226

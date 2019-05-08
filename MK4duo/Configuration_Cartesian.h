@@ -177,11 +177,11 @@
 // The BLTouch probe uses a Hall effect sensor and emulates a servo.
 // The default connector is SERVO 0.
 //#define BLTOUCH
-//#define BLTOUCH_DELAY 375 // (ms) Enable and increase if needed
+// Minimum Command delay (ms). Enable and increase if needed
+//#define BLTOUCH_DELAY 500
 // BLTouch V3.0 and newer smart series
 // For genuine BLTouch 3.0 sensors. Clones may be confused by 3.0 command angles. YMMV.
 // If the pin trigger is not detected, first try swapping the black and white wires then toggle this.
-//#define BLTOUCH_V3
 //#define BLTOUCH_FORCE_5V_MODE
 
 // If you have TMC2130 or TMC5130 you can use StallGuard2 to probe the bed with the nozzle.

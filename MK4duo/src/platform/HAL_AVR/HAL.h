@@ -458,25 +458,10 @@ extern uint32_t HAL_frequency_limit[8];
 // Public functions
 // --------------------------------------------------------------------------
 
-class InterruptProtectedBlock {
-  uint8_t sreg;
+class InterruptLock {
   public:
-    inline void protect() {
-      cli();
-    }
-
-    inline void unprotect() {
-      SREG = sreg;
-    }
-
-    inline InterruptProtectedBlock(bool later = false) {
-      sreg = SREG;
-      if (!later) cli();
-    }
-
-    inline ~InterruptProtectedBlock() {
-      SREG = sreg;
-    }
+   InterruptLock()  { noInterrupts(); }
+   ~InterruptLock() { interrupts();   }
 };
 
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);

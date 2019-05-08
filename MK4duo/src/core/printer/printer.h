@@ -91,7 +91,7 @@ class Printer {
                     max_inactive_time,
                     move_time;
 
-    static millis_s max_inactivity_ms,
+    static millis_l max_inactivity_ms,
                     move_ms;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)

@@ -158,7 +158,7 @@ class FilamentSensorBase {
     // Return a bitmask of runout pin states
     static inline uint8_t read() {
       return (
-        (READ(FIL_RUNOUT_0_PIN ) ^ isLogic(FIL_RUNOUT_0) ? _BV(0) : 0)
+        (READ(FIL_RUNOUT_0_PIN) ^ isLogic(FIL_RUNOUT_0) ? _BV(0) : 0)
         #if HAS_FIL_RUNOUT_1
           | (READ(FIL_RUNOUT_1_PIN) ^ isLogic(FIL_RUNOUT_1) ? _BV(1) : 0)
           #if HAS_FIL_RUNOUT_2
@@ -338,22 +338,21 @@ class FilamentSensorBase {
 #else // !FILAMENT_RUNOUT_DISTANCE_MM
 
   // RunoutResponseDebounced triggers a runout event after a runout
-  // condition has been detected runout_threshold times in a row.
+  // condition has been detected FILAMENT_RUNOUT_THRESHOLD times in a row.
 
   class RunoutResponseDebounced {
 
     private: /** Private Parameters */
 
-      static constexpr int8_t runout_threshold = 5;
       static int8_t runout_count;
 
     public: /** Public Function */
 
-      static inline void reset()                                  { runout_count = runout_threshold; }
-      static inline void run()                                    { runout_count--; }
+      static inline void reset()                                  { runout_count = FILAMENT_RUNOUT_THRESHOLD; }
+      static inline void run()                                    { if (runout_count >= 0) runout_count--; }
       static inline bool has_run_out()                            { return runout_count < 0; }
       static inline void block_completed(const block_t* const b)  { UNUSED(b); }
-      static inline void filament_present(const uint8_t extruder) { runout_count = runout_threshold; UNUSED(extruder); }
+      static inline void filament_present(const uint8_t extruder) { runout_count = FILAMENT_RUNOUT_THRESHOLD; UNUSED(extruder); }
 
   };
 

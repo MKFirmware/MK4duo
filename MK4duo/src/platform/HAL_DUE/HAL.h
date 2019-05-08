@@ -115,6 +115,9 @@ typedef uint32_t  ptr_int_t;
 #ifndef strncpy_P
   #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
 #endif
+#ifndef strchr_P
+  #define strchr_P(s,c) strchr(s,c)
+#endif
 #ifndef vsnprintf_P
   #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
 #endif
@@ -236,6 +239,12 @@ using pfnISR_Handler = void(*)(void);
 
 // Install a new interrupt vector handler for the given irq, returning the old one
 pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler);
+
+class InterruptLock {
+  public:
+   InterruptLock()  { noInterrupts(); }
+   ~InterruptLock() { interrupts();   }
+};
 
 class HAL {
 
