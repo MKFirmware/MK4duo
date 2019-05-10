@@ -47,6 +47,7 @@ void Heater::init() {
 
   setActive(false);
   setIdle(false);
+  ResetFault();
 
   watch_target_temp     = 0;
   watch_next_ms         = 0;
@@ -92,17 +93,18 @@ void Heater::setTarget(const int16_t celsius) {
 void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
   #if TEMP_RESIDENCY_TIME > 0
-    millis_s residency_start_ms = 0;
+    millis_l residency_start_ms = 0;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || !expired(&residency_start_ms, millis_s((TEMP_RESIDENCY_TIME) * 1000U)))
+    #define TEMP_CONDITIONS (!residency_start_ms || (int32_t(now - residency_start_ms) <= (TEMP_RESIDENCY_TIME) * 1000UL))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
 
-  float   old_temp      = 9999.0;
-  bool    wants_to_cool = false;
-
-  millis_s next_cool_check_ms = 0;
+  float     old_temp            = 9999.0;
+  bool      wants_to_cool       = false,
+            first_loop          = true;
+  millis_l  now                 = 0,
+            next_cool_check_ms  = 0;
 
   const bool oldReport = printer.isAutoreportTemp();
   
@@ -121,9 +123,10 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
 
+    now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    printer.move_ms = millis(); // Keep steppers powered
+    printer.move_ms = now;          // Keep steppers powered
 
     const float temp = current_temperature;
 
@@ -137,11 +140,14 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
       if (!residency_start_ms) {
         // Start the residency_start_ms timer when we reach target temp for the first time.
-        if (temp_diff < TEMP_WINDOW) residency_start_ms = millis();
+        if (temp_diff < TEMP_WINDOW) {
+          residency_start_ms = now;
+          if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
+        }
       }
       else if (temp_diff > temp_hysteresis[data.type]) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
-        residency_start_ms = millis();
+        residency_start_ms = now;
       }
 
     #endif
@@ -150,11 +156,14 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     if (wants_to_cool) {
       // Break after 60 seconds
       // if the temperature did not drop at least 1.5
-      if (!next_cool_check_ms || expired(&next_cool_check_ms, 60000U)) {
+      if (!next_cool_check_ms || expired(&next_cool_check_ms, 60000UL)) {
         if (old_temp - temp < 1.5) break;
+        next_cool_check_ms = now;
         old_temp = temp;
       }
     }
+
+    first_loop = false;
 
   } while (printer.isWaitForHeatUp() && TEMP_CONDITIONS);
 
@@ -217,6 +226,7 @@ void Heater::get_output() {
         }
       }
 
+    /**
     if (printer.debugFeature() && data.type == IS_HOTEND) {
       DEBUG_SMV(DEB, MSG_PID_DEBUG, ACTIVE_HOTEND);
       DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
@@ -226,6 +236,7 @@ void Heater::get_output() {
       DEBUG_MV(MSG_PID_DEBUG_DTERM, pid.Kd);
       DEBUG_EOL();
     }
+    */
 
   }
 
@@ -295,8 +306,6 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
   pid_data_t tune_pid;
 
-  pwm_value = pid.Max;
-
   int32_t bias  = pid.Max >> 1,
           d     = pid.Max >> 1;
 
@@ -304,6 +313,10 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   printer.setAutoreportTemp(true);
 
   Pidtuning = true;
+  ResetFault();
+
+  // Turn ON this heater to max power.
+  pwm_value = pid.Max;
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = current_temperature;

@@ -29,6 +29,10 @@
 
 //#define DEBUG_RESTART
 
+#if ENABLED(COLOR_MIXING_EXTRUDER) && HAS_GRADIENT_MIX
+  #include "../mixing/mixing.h"
+#endif
+
 typedef struct {
   uint8_t valid_head;
 

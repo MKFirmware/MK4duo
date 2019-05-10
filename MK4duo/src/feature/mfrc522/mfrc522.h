@@ -116,7 +116,7 @@ class MFRC522 {
     bool writeBlock(const uint8_t e);
 
     // Function for Serial rfid module
-    bool communicate(const uint8_t sendDataLength, const uint8_t command, const uint8_t* sendData = NULL);
+    bool communicate(const uint8_t sendDataLength, const uint8_t command, const uint8_t* sendData=NULL);
     void write(const uint8_t value);
     byte read();
     void clear();

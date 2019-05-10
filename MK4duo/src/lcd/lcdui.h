@@ -301,7 +301,7 @@ class LcdUI {
       static bool lcd_clicked;
       static bool use_click();
 
-      static void synchronize(PGM_P const msg=NULL);
+      static void synchronize(PGM_P const msg=nullptr);
 
       static void goto_screen(const screenFunc_t screen, const uint16_t encoder=0, const int8_t top=0, const int8_t items=0);
       static void save_previous_screen();

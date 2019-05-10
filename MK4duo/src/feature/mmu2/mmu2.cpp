@@ -130,7 +130,7 @@ void MMU2::init() {
 
 void MMU2::reset() {
   #if ENABLED(MMU2_DEBUG)
-    SERIAL_EM("MMU <= reset");
+    DEBUG_EM("MMU <= reset");
   #endif
 
   #if PIN_EXISTS(MMU2_RST)
@@ -155,8 +155,8 @@ void MMU2::mmu_loop() {
     case -1:
       if (rx_start()) {
         #if ENABLED(MMU2_DEBUG)
-          SERIAL_EM("MMU => 'start'");
-          SERIAL_EM("MMU <= 'S1'");
+          DEBUG_EM("MMU => 'start'");
+          DEBUG_EM("MMU <= 'S1'");
         #endif
 
         // send "read version" request
@@ -175,8 +175,8 @@ void MMU2::mmu_loop() {
         sscanf(rx_buffer, "%uok\n", &version);
 
         #if ENABLED(MMU2_DEBUG)
-          SERIAL_EMV("MMU => ", version);
-          SERIAL_EM("MMU <= 'S2'");
+          DEBUG_EMV("MMU => ", version);
+          DEBUG_EM("MMU <= 'S2'");
         #endif
 
         tx_str_P(PSTR("S2\n")); // read build number
@@ -188,14 +188,14 @@ void MMU2::mmu_loop() {
       if (rx_ok()) {
         sscanf(rx_buffer, "%uok\n", &buildnr);
         #if ENABLED(MMU2_DEBUG)
-          SERIAL_EMV("MMU => ", buildnr);
+          DEBUG_EMV("MMU => ", buildnr);
         #endif
 
         check_version();
 
         #if ENABLED(MMU2_MODE_12V)
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU <= 'M1'");
+            DEBUG_EM("MMU <= 'M1'");
           #endif
 
           tx_str_P(PSTR("M1\n")); // switch to stealth mode
@@ -203,7 +203,7 @@ void MMU2::mmu_loop() {
 
         #else
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU <= 'P0'");
+            DEBUG_EM("MMU <= 'P0'");
           #endif
 
           tx_str_P(PSTR("P0\n")); // read finda
@@ -212,31 +212,31 @@ void MMU2::mmu_loop() {
       }
       break;
 
-    case -5:
-      // response to M1
-      if (rx_ok()) {
-        #if ENABLED(MMU2_DEBUG)
-          SERIAL_EM("MMU => ok");
-        #endif
+    #if ENABLED(MMU2_MODE_12V)
+      case -5:
+        // response to M1
+        if (rx_ok()) {
+          #if ENABLED(MMU2_DEBUG)
+            DEBUG_EM("MMU => ok");
+          #endif
 
-        check_version();
+          #if ENABLED(MMU2_DEBUG)
+            DEBUG_EM("MMU <= 'P0'");
+          #endif
 
-        #if ENABLED(MMU2_DEBUG)
-          SERIAL_EM("MMU <= 'P0'");
-        #endif
-
-        tx_str_P(PSTR("P0\n")); // read finda
-        state = -4;
-      }
-      break;
+          tx_str_P(PSTR("P0\n")); // read finda
+          state = -4;
+        }
+        break;
+    #endif
 
     case -4:
       if (rx_ok()) {
         sscanf(rx_buffer, "%hhuok\n", &finda);
 
         #if ENABLED(MMU2_DEBUG)
-          SERIAL_EMV("MMU => ", finda);
-          SERIAL_EM("MMU - ENABLED");
+          DEBUG_EMV("MMU => ", finda);
+          DEBUG_EM("MMU - ENABLED");
         #endif
 
         enabled = true;
@@ -251,7 +251,7 @@ void MMU2::mmu_loop() {
           int filament = cmd - MMU_CMD_T0;
 
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EMV("MMU <= T", filament);
+            DEBUG_EMV("MMU <= T", filament);
           #endif
 
           tx_printf_P(PSTR("T%d\n"), filament);
@@ -262,7 +262,7 @@ void MMU2::mmu_loop() {
           int filament = cmd - MMU_CMD_L0;
 
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EMV("MMU <= L", filament);
+            DEBUG_EMV("MMU <= L", filament);
           #endif
 
           tx_printf_P(PSTR("L%d\n"), filament);
@@ -272,7 +272,7 @@ void MMU2::mmu_loop() {
           // continue loading
 
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU <= 'C0'");
+            DEBUG_EM("MMU <= 'C0'");
           #endif
 
           tx_str_P(PSTR("C0\n"));
@@ -281,7 +281,7 @@ void MMU2::mmu_loop() {
         else if (cmd == MMU_CMD_U0) {
           // unload current
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU <= 'U0'");
+            DEBUG_EM("MMU <= 'U0'");
           #endif
 
           tx_str_P(PSTR("U0\n"));
@@ -292,7 +292,7 @@ void MMU2::mmu_loop() {
           int filament = cmd - MMU_CMD_E0;
 
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EMV("MMU <= E", filament);
+            DEBUG_EMV("MMU <= E", filament);
           #endif
           tx_printf_P(PSTR("E%d\n"), filament);
           state = 3; // wait for response
@@ -300,7 +300,7 @@ void MMU2::mmu_loop() {
         else if (cmd == MMU_CMD_R0) {
           // recover after eject
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU <= 'R0'");
+            DEBUG_EM("MMU <= 'R0'");
           #endif
 
           tx_str_P(PSTR("R0\n"));
@@ -310,9 +310,9 @@ void MMU2::mmu_loop() {
           // filament type
           int filament = cmd - MMU_CMD_F0;
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_MV("MMU <= F", filament);
-            SERIAL_MV(" ", cmd_arg, DEC);
-            SERIAL_MSG("\n");
+            DEBUG_MV("MMU <= F", filament);
+            DEBUG_MV(" ", cmd_arg, DEC);
+            DEBUG_MSG("\n");
           #endif
 
           tx_printf_P(PSTR("F%d %d\n"), filament, cmd_arg);
@@ -337,10 +337,10 @@ void MMU2::mmu_loop() {
           // This is super annoying. Only activate if necessary
           /*
             if (finda_runout_valid) {
-              SERIAL_EM("MMU <= 'P0'");
-              SERIAL_MSG("MMU => ");
+              DEBUG_EM("MMU <= 'P0'");
+              DEBUG_MSG("MMU => ");
               SERIAL_VAL(finda, DEC);
-              SERIAL_MSG("\n");
+              DEBUG_MSG("\n");
             }
           */
         #endif
@@ -359,7 +359,7 @@ void MMU2::mmu_loop() {
     case 3:   // response to mmu commands
       if (rx_ok()) {
         #if ENABLED(MMU2_DEBUG)
-          SERIAL_EM("MMU => 'ok'");
+          DEBUG_EM("MMU => 'ok'");
         #endif
 
         ready = true;
@@ -370,7 +370,7 @@ void MMU2::mmu_loop() {
         // resend request after timeout
         if (last_cmd) {
           #if ENABLED(MMU2_DEBUG)
-            SERIAL_EM("MMU retry");
+            DEBUG_EM("MMU retry");
           #endif
 
           cmd = last_cmd;
@@ -406,7 +406,7 @@ bool MMU2::rx_str_P(const char* str) {
 
     if (i == sizeof(rx_buffer) - 1) {
       #if ENABLED(MMU2_DEBUG)
-        SERIAL_EM("rx buffer overrun");
+        DEBUG_EM("rx buffer overrun");
       #endif
 
       break;
@@ -871,9 +871,9 @@ void MMU2::set_runout_valid(const bool valid) {
                   fr = pgm_read_float(&(step->feedRate));
 
       #if ENABLED(MMU2_DEBUG)
-        SERIAL_SMV(ECHO, "E step ", es);
-        SERIAL_CHR('/');
-        SERIAL_EV(fr);
+        DEBUG_SMV(ECHO, "E step ", es);
+        DEBUG_CHR('/');
+        DEBUG_EV(fr);
       #endif
 
       mechanics.current_position[E_AXIS] += es;

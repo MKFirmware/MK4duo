@@ -28,7 +28,7 @@
 
 #define CODE_M119
 
-static void print_state(const bool is_hit, PGM_P const label=NULL) {
+static void print_state(const bool is_hit, PGM_P const label=nullptr) {
   if (label) SERIAL_STR(label);
   SERIAL_MSG(": ");
   SERIAL_STR(is_hit ? PSTR(MSG_ENDSTOP_HIT) : PSTR(MSG_ENDSTOP_OPEN));

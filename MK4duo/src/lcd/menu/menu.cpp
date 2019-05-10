@@ -111,7 +111,7 @@ void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   if (lcdui.should_draw())
     draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
-    if (editValue != NULL) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
+    if (editValue != nullptr) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
     if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
     if (lcdui.use_click()) lcdui.goto_previous_screen();
   }
@@ -251,7 +251,7 @@ void LcdUI::_synchronize() {
 
 // Display the synchronize screen with a custom message
 // ** This blocks the command queue! **
-void LcdUI::synchronize(PGM_P const msg/*=NULL*/) {
+void LcdUI::synchronize(PGM_P const msg/*=nullptr*/) {
   static const char moving[] PROGMEM = MSG_MOVING;
   sync_message = msg ? msg : moving;
   _synchronize();
@@ -480,7 +480,7 @@ void lcd_draw_homing() {
 //
 bool lcdui_selection; // = false
 void set_lcdui_selection(const bool sel) { lcdui_selection = sel; }
-void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=NULL*/, PGM_P const suff/*=NULL*/) {
+void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
   if (lcdui.encoderPosition) {
     lcdui_selection = int16_t(lcdui.encoderPosition) > 0;
     lcdui.encoderPosition = 0;

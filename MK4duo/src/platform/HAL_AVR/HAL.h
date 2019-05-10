@@ -181,7 +181,7 @@ typedef uint16_t  ptr_int_t;
 
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
-#define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 64.0) // 3096 Hz
+#define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 256.0) // 976 Hz
 
 #define STEPPER_TIMER               1
 #define STEPPER_TCCR                TCCR1A
@@ -500,6 +500,8 @@ class HAL {
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
     static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U, const bool hwpwm=true);
+
+    static void Tick();
 
     static inline void digitalWrite(const pin_t pin, const uint8_t value) {
       ::digitalWrite(pin, value);
