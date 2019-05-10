@@ -25,9 +25,11 @@
  * restart.h - Restart an SD print after power-loss
  */
 
-#include "../../../MK4duo.h"
-
 #if HAS_SD_RESTART
+
+  #if ENABLED(COLOR_MIXING_EXTRUDER)
+    #include "../mixing/mixing.h"
+  #endif
 
   //#define DEBUG_RESTART
 
