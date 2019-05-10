@@ -217,7 +217,7 @@ void HAL::showStartReason() {
 
 // Return available memory
 extern "C" {
-  extern unsigned int _ebss; // end of bss section
+  extern char _ebss; // end of bss section
 }
 int HAL::getFreeRam() {
   int free_memory, heap_end = (int)_sbrk(0);

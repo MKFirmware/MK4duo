@@ -1261,6 +1261,10 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   return blink != 0;
 }
 
+void LcdUI::kill_screen(PGM_P lcd_msg) {
+  set_alert_status_P(lcd_msg);
+}
+
 void LcdUI::update() {
   static millis_s next_lcd_update_ms = 0;
 

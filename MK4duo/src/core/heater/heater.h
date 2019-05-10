@@ -131,7 +131,7 @@ class Heater {
 
     // Flag bit 0 Set Active
     FORCE_INLINE void setActive(const bool onoff) {
-      if (!isFault() && sensor.type != 0 && onoff)
+      if (!data.flag.Fault && sensor.type != 0 && onoff)
         data.flag.Active = true;
       else
         data.flag.Active = false;

@@ -34,7 +34,7 @@
 
 bool stop_print_file;
 void menu_stop_print() {
-  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), NULL, PSTR("?"));
+  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
 }
 
 #if HAS_EEPROM
@@ -148,10 +148,10 @@ void menu_main() {
       }
       else {
         #if PIN_EXISTS(SD_DETECT)
-          MENU_ITEM(function, MSG_NO_CARD, NULL);
+          MENU_ITEM(function, MSG_NO_CARD, nullptr);
         #else
           MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21"));
-          MENU_ITEM(function, MSG_SD_RELEASED, NULL);
+          MENU_ITEM(function, MSG_SD_RELEASED, nullptr);
         #endif
         
       }
@@ -230,7 +230,7 @@ void menu_main() {
       #if !PIN_EXISTS(SD_DETECT)
         MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
       #endif
-      MENU_ITEM(function, MSG_NO_CARD, NULL);
+      MENU_ITEM(function, MSG_NO_CARD, nullptr);
     }
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 

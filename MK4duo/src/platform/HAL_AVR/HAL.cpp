@@ -140,8 +140,9 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       break;
 
     case TEMP_TIMER:
-      TEMP_TCCR =  0; // set entire TEMP_TCCR register to 0
-      TEMP_OCR  = 64; // Set divisor for 64 3906 Hz
+      // Use timer0 for temperature measurement
+      // Interleave temperature interrupt with millies interrupt
+      TEMP_OCR  = 256;
       break;
   }
 }
@@ -325,10 +326,10 @@ void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq
   softpwm.set(pin, uValue);
 }
 
-void HAL_temp_isr() {
+void HAL::Tick() {
 
-  static uint16_t cycle_100ms = 0;
-  static uint8_t  channel     = 0;
+  static millis_s cycle_100_ms  = millis();
+  static uint8_t  channel       = 0;
 
   // Heaters set output PWM
   #if HOTENDS > 0
@@ -350,8 +351,7 @@ void HAL_temp_isr() {
   softpwm.spin();
 
   // Calculation cycle approximate a 100ms
-  if (++cycle_100ms >= (F_CPU / 40960)) {
-    cycle_100ms = 0;
+  if (expired(&cycle_100_ms, 100U)) {
     // Temperature Spin
     thermalManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
@@ -403,19 +403,20 @@ void HAL_temp_isr() {
 }
 
 /**
- * Timer 0 is is called 3906 timer per second.
- * It is used to update pwm values for heater and some other frequent jobs.
+ * Timer 0 is shared with millies so don't change the prescaler.
+ *
+ * On AVR this ISR uses the compare method so it runs at the base
+ * frequency (16 MHz / 64 / 256 = 976.5625 Hz), but at the TCNT0 set
+ * in OCR0B above (128 or halfway between OVFs).
  *
  *  - Manage PWM to all the heaters and fan
  *  - Prepare or Measure one of the raw ADC sensor values
- *  - Step the babysteps value for each axis towards 0
- *  - For PINS_DEBUGGING, monitor and report endstop pins
  *  - For ENDSTOP_INTERRUPTS_FEATURE check endstops if flagged
  */
 HAL_TEMP_TIMER_ISR {
   if (printer.isStopped()) return;
-  TEMP_OCR += 64;
-  HAL_temp_isr();
+  TEMP_OCR += 256;
+  HAL::Tick();
 }
 
 /**

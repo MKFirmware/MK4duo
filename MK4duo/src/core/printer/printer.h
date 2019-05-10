@@ -131,7 +131,7 @@ class Printer {
 
     static void quickstop_stepper();
 
-    static void kill(PGM_P const lcd_msg=NULL);
+    static void kill(PGM_P const lcd_msg=nullptr);
     static void minikill();
 
     static void stop();

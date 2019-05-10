@@ -41,7 +41,7 @@ long  Commands::gcode_N = 0;
 
 int Commands::serial_count[NUM_SERIAL] = { 0 };
 
-PGM_P Commands::injected_commands_P = NULL;
+PGM_P Commands::injected_commands_P = nullptr;
 
 millis_s Commands::last_command_ms = 0;
 
@@ -259,7 +259,7 @@ Heater* Commands::get_target_heater() {
     if (h == -3 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
   #endif
   SERIAL_LM(ER, MSG_INVALID_HEATER);
-  return NULL;
+  return nullptr;
 
 }
 
@@ -377,18 +377,18 @@ void Commands::get_serial() {
         char *command = serial_line_buffer[i];
 
         while (*command == ' ') command++;                // Skip leading spaces
-        char *npos = (*command == 'N') ? command : NULL;  // Require the N parameter to start the line
+        char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
 
         if (npos) {
 
-          bool M110 = strstr_P(command, PSTR("M110")) != NULL;
+          bool M110 = strstr_P(command, PSTR("M110")) != nullptr;
 
           if (M110) {
             char *n2pos = strchr(command + 4, 'N');
             if (n2pos) npos = n2pos;
           }
 
-          gcode_N = strtol(npos + 1, NULL, 10);
+          gcode_N = strtol(npos + 1, nullptr, 10);
 
           if (gcode_N != gcode_LastN + 1 && !M110) {
             gcode_line_error(PSTR(MSG_ERR_LINE_NO), i);
@@ -399,7 +399,7 @@ void Commands::get_serial() {
           if (apos) {
             uint8_t checksum = 0, count = uint8_t(apos - command);
             while (count) checksum ^= command[--count];
-            if (strtol(apos + 1, NULL, 10) != checksum) {
+            if (strtol(apos + 1, nullptr, 10) != checksum) {
               gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH), i);
               return;
             }
@@ -423,7 +423,7 @@ void Commands::get_serial() {
         if (printer.isStopped()) {
           char *gpos = strrchr(command, 'G');
           if (gpos) {
-            switch (strtol(gpos + 1, NULL, 10)) {
+            switch (strtol(gpos + 1, nullptr, 10)) {
               case 0:
               case 1:
               #if ENABLED(ARC_SUPPORT)
@@ -626,7 +626,7 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
 }
 
 bool Commands::drain_injected_P() {
-  if (injected_commands_P != NULL) {
+  if (injected_commands_P != nullptr) {
     size_t i = 0;
     char c, cmd[30];
     strncpy_P(cmd, injected_commands_P, sizeof(cmd) - 1);
@@ -634,9 +634,9 @@ bool Commands::drain_injected_P() {
     while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
     cmd[i] = '\0';
     if (enqueue_and_echo(cmd))     // success?
-      injected_commands_P = c ? injected_commands_P + i + 1 : NULL; // next command or done
+      injected_commands_P = c ? injected_commands_P + i + 1 : nullptr; // next command or done
   }
-  return (injected_commands_P != NULL);    // return whether any more remain
+  return (injected_commands_P != nullptr);    // return whether any more remain
 }
 
 /**
