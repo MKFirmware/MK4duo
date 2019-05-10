@@ -25,6 +25,8 @@
  * restart.h - Restart an SD print after power-loss
  */
 
+#include "../../../MK4duo.h"
+
 #if HAS_SD_RESTART
 
   //#define DEBUG_RESTART
