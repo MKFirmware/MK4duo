@@ -106,7 +106,7 @@ inline void gcode_G34(void) {
     // Before moving other axes raise Z, if needed. Never lower Z.
     if (mechanics.current_position[Z_AXIS] < Z_PROBE_BETWEEN_HEIGHT) {
       if (printer.debugFeature()) DEBUG_EMV("Raise Z (before moving to probe pos) to ", Z_PROBE_BETWEEN_HEIGHT);
-      do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
+      mechanics.do_blocking_move_to_z(Z_PROBE_BETWEEN_HEIGHT);
     }
 
     // Remember corrections to determine errors on each iteration
@@ -121,7 +121,7 @@ inline void gcode_G34(void) {
       // For each iteration go through all probe positions (one per Z-Stepper)
       for (uint8_t zstepper = 0; zstepper < Z_STEPPER_COUNT; ++zstepper) {
         // Probe a Z height for each stepper
-        z_measured[zstepper] = probecheck_pt(z_auto_align_xpos[zstepper], z_auto_align_ypos[zstepper], PROBE_PT_RAISE, false);
+        z_measured[zstepper] = probe.check_pt(z_auto_align_xpos[zstepper], z_auto_align_ypos[zstepper], PROBE_PT_RAISE, false);
 
         // Stop on error
         if (isnan(z_measured[zstepper])) {
@@ -130,7 +130,10 @@ inline void gcode_G34(void) {
           break;
         }
 
-        if (printer.debugFeature()) DEBUG_EMV("> Z", int(zstepper + 1), " measured position is ", z_measured[zstepper]);
+        if (printer.debugFeature()) {
+          DEBUG_MV("> Z", int(zstepper + 1));
+          DEBUG_EMV(" measured position is ", z_measured[zstepper]);
+        }
 
         // Remember the maximum position to calculate the correction
         z_measured_min = MIN(z_measured_min, z_measured[zstepper]);
@@ -165,7 +168,10 @@ inline void gcode_G34(void) {
         // Only stop early if all measured points achieve accuracy target
         if (z_align_abs > z_auto_align_accuracy) success_break = false;
 
-        if (printer.debugFeature()) DEBUG_EMV("> Z", int(zstepper + 1), " corrected by ", z_align_move);
+        if (printer.debugFeature()) {
+          DEBUG_MV("> Z", int(zstepper + 1));
+          DEBUG_EMV(" corrected by ", z_align_move);
+        }
 
         switch (zstepper) {
           case 0: stepper.set_z_lock(false); break;
