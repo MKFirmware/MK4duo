@@ -230,13 +230,13 @@ inline void gcode_M422() {
   }
 
   const float x_pos = parser.floatval('X', z_auto_align_xpos[zstepper]);
-  if (!WITHIN(x_pos, data.base_pos[X_AXIS].min, data.base_pos[X_AXIS].max)) {
+  if (!WITHIN(x_pos, mechanics.data.base_pos[X_AXIS].min, mechanics.data.base_pos[X_AXIS].max)) {
     SERIAL_EM("?(X) out of bounds.");
     return;
   }
 
   const float y_pos = parser.floatval('Y', z_auto_align_ypos[zstepper]);
-  if (!WITHIN(y_pos, data.base_pos[Y_AXIS].min, data.base_pos[Y_AXIS].max)) {
+  if (!WITHIN(y_pos, mechanics.data.base_pos[Y_AXIS].min, mechanics.data.base_pos[Y_AXIS].max)) {
     SERIAL_EM("?(Y) out of bounds.");
     return;
   }
