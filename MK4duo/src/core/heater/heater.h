@@ -48,14 +48,8 @@ union flagheater_t {
 enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
 enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
-constexpr uint16_t  temp_check_interval[HEATER_TYPE]  = { HOTEND_CHECK_INTERVAL, BED_CHECK_INTERVAL, CHAMBER_CHECK_INTERVAL, COOLER_CHECK_INTERVAL };
-constexpr uint8_t   temp_hysteresis[HEATER_TYPE]      = { HOTEND_HYSTERESIS, BED_HYSTERESIS, CHAMBER_HYSTERESIS, COOLER_HYSTERESIS };
-constexpr uint8_t   watch_increase[HEATER_TYPE]       = { WATCH_HOTEND_INCREASE, WATCH_BED_INCREASE, WATCH_CHAMBER_INCREASE, WATCH_COOLER_INCREASE };
-
 // Struct Heater data
 typedef struct {
-
-  HeatertypeEnum  type;
 
   pin_t           pin;
 
@@ -71,6 +65,16 @@ typedef struct {
 } heater_data_t;
 
 class Heater {
+
+  public: /** Constructor */
+
+    Heater(HeatertypeEnum type_p, uint16_t temp_check_interval_p, uint8_t temp_hysteresis_p, uint8_t watch_period_p, uint8_t watch_increase_p) :
+      type(type_p),
+      temp_check_interval(temp_check_interval_p),
+      temp_hysteresis(temp_hysteresis_p),
+      watch_period(watch_period_p),
+      watch_increase(watch_increase_p)
+    {}
 
   public: /** Public Parameters */
 
@@ -88,7 +92,14 @@ class Heater {
 
     float         current_temperature;
 
+    const HeatertypeEnum type;
+
   private: /** Private Parameters */
+
+    const uint16_t  temp_check_interval;
+    const uint8_t   temp_hysteresis,
+                    watch_period,
+                    watch_increase;
 
     TRState       thermal_runaway_state;
 
@@ -126,7 +137,7 @@ class Heater {
     FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
 
     FORCE_INLINE bool wait_for_heating() {
-      return this->isActive() && ABS(this->current_temperature - this->target_temperature) > temp_hysteresis[data.type];
+      return this->isActive() && ABS(this->current_temperature - this->target_temperature) > temp_hysteresis;
     }
 
     // Flag bit 0 Set Active

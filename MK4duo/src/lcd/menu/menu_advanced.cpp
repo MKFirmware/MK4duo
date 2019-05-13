@@ -57,7 +57,7 @@ void menu_tmc();
     MENU_BACK(MSG_ADVANCED_SETTINGS);
 
     #if ENABLED(LIN_ADVANCE)
-      MENU_ITEM_EDIT(float51, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
+      MENU_ITEM_EDIT(float52, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)

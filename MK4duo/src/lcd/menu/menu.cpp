@@ -33,7 +33,7 @@ int8_t encoderTopLine, encoderLine, screen_items;
 
 typedef struct {
   screenFunc_t menu_function;
-  uint16_t  encoder_position;
+  uint32_t  encoder_position;
   int8_t    top_line, items;
 } menuPosition;
 menuPosition screen_history[6];
@@ -43,7 +43,7 @@ bool screen_changed;
 // Value Editing
 PGM_P MenuItemBase::editLabel;
 void* MenuItemBase::editValue;
-int16_t MenuItemBase::minEditValue, MenuItemBase::maxEditValue;
+int32_t MenuItemBase::minEditValue, MenuItemBase::maxEditValue;
 screenFunc_t MenuItemBase::callbackFunc;
 bool MenuItemBase::liveEdit;
 
