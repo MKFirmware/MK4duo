@@ -20,14 +20,38 @@
  *
  */
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * Included in Marlin to Thinkyhead
+ */
+ 
+#include "../../../MK4duo.h"
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.9"
-#define FIRMWARE_REVISION         "13052019"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+#if ENABLED(DHT_SENSOR)
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+#include "menu.h"
+
+void menu_dht() {
+  START_MENU();
+  MENU_BACK(MSG_MAIN);
+  switch (dhtsensor.data.type) {
+    case DHT11:
+      STATIC_ITEM(MSG_DHT_11, false, false);
+      break;
+    case DHT12:
+      STATIC_ITEM(MSG_DHT_12, false, false);
+      break;
+    case DHT21:
+      STATIC_ITEM(MSG_DHT_21, false, false);
+      break;
+    case DHT22:
+      STATIC_ITEM(MSG_DHT_22, false, false);
+      break;
+    default: break;
+  }
+  STATIC_ITEM(MSG_TEMPERATURE " (C):", false, false, ftostr52sp(dhtsensor.Temperature));
+  STATIC_ITEM(MSG_HUMIDITY " (%):", false, false, ftostr52sp(dhtsensor.Humidity));
+  STATIC_ITEM(MSG_DEWPOINT " (C):", false, false, ftostr52sp(dhtsensor.dewPoint()));
+  END_MENU();
+}
+
+#endif // DHT_SENSOR
