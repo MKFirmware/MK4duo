@@ -106,10 +106,6 @@ void menu_led();
   void menu_mixer();
 #endif
 
-#if ENABLED(DHT_SENSOR)
-  void menu_dht();
-#endif
-
 #if ENABLED(SERVICE_TIME_1)
   void menu_service1();
 #endif
@@ -176,10 +172,6 @@ void menu_main() {
       if (!busy) MENU_ITEM(submenu, MSG_MMU2_MENU, menu_mmu2);
     #endif
   }
-
-  #if ENABLED(DHT_SENSOR)
-    MENU_ITEM(submenu, MSG_DHT, menu_dht);
-  #endif
 
   MENU_ITEM(submenu, MSG_CONFIGURATION, menu_configuration);
 

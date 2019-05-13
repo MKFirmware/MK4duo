@@ -1628,26 +1628,3 @@
 #ifndef MSG_NEXTION_M0_M1_2
   #define MSG_NEXTION_M0_M1_2                  _UxGT("to resume print")
 #endif
-
-// DHT
-#ifndef MSG_DHT
-  #define MSG_DHT                              _UxGT("DHT")
-#endif
-#ifndef MSG_DHT_11
-  #define MSG_DHT_11                           _UxGT("DHT11")
-#endif
-#ifndef MSG_DHT_12
-  #define MSG_DHT_12                           _UxGT("DHT12")
-#endif
-#ifndef MSG_DHT_21
-  #define MSG_DHT_21                           _UxGT("DHT21")
-#endif
-#ifndef MSG_DHT_22
-  #define MSG_DHT_22                           _UxGT("DHT22")
-#endif
-#ifndef MSG_HUMIDITY
-  #define MSG_HUMIDITY                         _UxGT("Humidity")
-#endif
-#ifndef MSG_DEWPOINT
-  #define MSG_DEWPOINT                         _UxGT("Dew Point")
-#endif

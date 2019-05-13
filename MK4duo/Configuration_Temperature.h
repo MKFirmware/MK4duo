@@ -289,7 +289,7 @@
 #define BED_PID_DRIVE_MAX 230 // Limits max current to bed while PID is active;  255 = full current
 
 #define BED_HYSTERESIS        2 // Only disable heating if T>target+BED HYSTERESIS and enable heating if T<target-BED HYSTERESIS
-#define BED_CHECK_INTERVAL  500 // ms between checks in bang-bang control
+#define BED_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 //      BED     {BED0,BED1,BED2,BED3}
 #define BED_Kp  {10,10,10,10}
@@ -325,7 +325,7 @@
 #define CHAMBER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
 
 #define CHAMBER_HYSTERESIS        2 // Only disable heating if T>target+CHAMBER HYSTERESIS and enable heating if T<target-CHAMBER HYSTERESIS
-#define CHAMBER_CHECK_INTERVAL  500 // ms between checks in bang-bang control
+#define CHAMBER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
@@ -362,7 +362,7 @@
 #define COOLER_PID_DRIVE_MAX 255   // Limits max current to chamber while PID is active; 255 = full current
 
 #define COOLER_HYSTERESIS        2 // only disable heating if T<target-COOLER_HYSTERESIS and enable heating if T>target+COOLER_HYSTERESIS
-#define COOLER_CHECK_INTERVAL  500 // ms between checks in bang-bang control
+#define COOLER_CHECK_INTERVAL 5000 // ms between checks in bang-bang control
 
 // 120v 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
 // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)

@@ -35,8 +35,6 @@
 *   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
 * G34 I[iterations] [accuracy] A[amplification]
 * Add Game menu
-* Add DHT menu
-* Add DHT disply Dew Point
 * Fix MBL
 * Fix and clear code
 

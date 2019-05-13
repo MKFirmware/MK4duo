@@ -59,7 +59,6 @@
 
 #if HAS_GRAPHICAL_LCD
 
-#include "u8g_com_sw_spi_shared.h"
 #include <U8glib.h>
 
 void u8g_SetPIOutput_DUE(u8g_t *u8g, uint8_t pin_index) {
@@ -73,10 +72,10 @@ void u8g_SetPILevel_DUE(u8g_t *u8g, uint8_t pin_index, uint8_t level) {
   if (level) port->PIO_SODR = mask; else port->PIO_CODR = mask;
 }
 
-Pio *SCK_pPio, *MOSI_pPio;
-uint32_t SCK_dwMask, MOSI_dwMask;
+extern Pio *SCK_pPio, *MOSI_pPio;
+extern uint32_t SCK_dwMask, MOSI_dwMask;
 
-void u8g_spiSend_sw_DUE_mode_0(uint8_t val) { // 3MHz
+void U8G_spiSend_sw_DUE_mode_0(uint8_t val) { // 800KHz
   for (uint8_t i = 0; i < 8; i++) {
     if (val & 0x80)
       MOSI_pPio->PIO_SODR = MOSI_dwMask;
@@ -84,24 +83,24 @@ void u8g_spiSend_sw_DUE_mode_0(uint8_t val) { // 3MHz
       MOSI_pPio->PIO_CODR = MOSI_dwMask;
     DELAY_NS(48);
     SCK_pPio->PIO_SODR = SCK_dwMask;
-    DELAY_NS(125);
+    DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
     val <<= 1;
     SCK_pPio->PIO_CODR = SCK_dwMask;
   }
 }
 
-void u8g_spiSend_sw_DUE_mode_3(uint8_t val) { // 3.5MHz
+
+void U8G_spiSend_sw_DUE_mode_3(uint8_t val) { // 800KHz
   for (uint8_t i = 0; i < 8; i++) {
     SCK_pPio->PIO_CODR = SCK_dwMask;
-    DELAY_NS(50);
+    DELAY_NS(48);
     if (val & 0x80)
       MOSI_pPio->PIO_SODR = MOSI_dwMask;
     else
       MOSI_pPio->PIO_CODR = MOSI_dwMask;
-    val <<= 1;
-    DELAY_NS(10);
     SCK_pPio->PIO_SODR = SCK_dwMask;
-    DELAY_NS(70);
+    DELAY_NS(905); // 762 dead, 810 garbage, 858/0 900kHz, 905/1 825k, 953/1 800k, 1000/2 725KHz
+    val <<= 1;
   }
 }
 

@@ -53,7 +53,7 @@ inline void gcode_M303(void) {
   uint8_t     method  = parser.intval('R', 0);
   const bool  store   = parser.boolval('U');
 
-  const int16_t target = parser.celsiusval('S', act->type == IS_HOTEND ? 200 : 70);
+  const int16_t target = parser.celsiusval('S', act->data.type == IS_HOTEND ? 200 : 70);
 
   if (target > act->data.maxtemp - 10) {
     SERIAL_EM(MSG_PID_TEMP_TOO_HIGH);
@@ -64,7 +64,7 @@ inline void gcode_M303(void) {
   lcdui.reset_alert_level();
   LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 
-  switch (act->type) {
+  switch (act->data.type) {
     case IS_HOTEND:   SERIAL_MV("Hotend:", act->data.ID); break;
     case IS_BED:      SERIAL_MV("BED:", act->data.ID);    break;
     case IS_CHAMBER:  SERIAL_MV("CHAMBER:", act->data.ID); break;

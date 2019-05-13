@@ -486,8 +486,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if ENABLED(DHT_SENSOR)
-    SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 1);
-    SERIAL_MV(", Humidity:", dhtsensor.Humidity, 1);
+    SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 0);
+    SERIAL_MV(", Humidity:", dhtsensor.Humidity, 0);
   #endif
 
 }
@@ -506,7 +506,7 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
   SERIAL_CHR(' ');
 
   #if HAS_TEMP_HOTEND
-    if (act->type == IS_HOTEND) {
+    if (act->data.type == IS_HOTEND) {
       SERIAL_CHR('T');
       #if HOTENDS > 1
         if (print_ID) SERIAL_VAL(act->data.ID);
@@ -517,15 +517,15 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
   #endif
 
   #if BEDS > 0
-    if (act->type == IS_BED) SERIAL_CHR('B');
+    if (act->data.type == IS_BED) SERIAL_CHR('B');
   #endif
 
   #if CHAMBERS > 0
-    if (act->type == IS_CHAMBER) SERIAL_CHR('C');
+    if (act->data.type == IS_CHAMBER) SERIAL_CHR('C');
   #endif
 
   #if COOLERS > 0
-    if (act->type == IS_COOLER) SERIAL_CHR('W');
+    if (act->data.type == IS_COOLER) SERIAL_CHR('W');
   #endif
 
   const int16_t targetTemperature = act->isIdle() ? act->idle_temperature : act->target_temperature;

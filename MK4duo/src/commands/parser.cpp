@@ -120,23 +120,25 @@ void GCodeParser::parse(char *p) {
       // Skip spaces to get the numeric part
       while (*p == ' ') ++p;
 
+      // Bail if there's no command code number
+      // Prusa MMU2 has T?/Tx/Tc commands
+      #if !HAS_MMU2
+        if (!NUMERIC(*p)) return;
+      #endif
+
+      // Save the command letter at this point
+      // A '?' signifies an unknown command
+      command_letter = letter;
+
       #if HAS_MMU2
         if (letter == 'T') {
           // check for special MMU2 T?/Tx/Tc commands
           if (*p == '?' || *p == 'x' || *p == 'c') {
-            command_letter = letter;
             string_arg = p;
             return;
           }
         }
       #endif
-
-      // Bail if there's no command code number
-      if (!NUMERIC(*p)) return;
-
-      // Save the command letter at this point
-      // A '?' signifies an unknown command
-      command_letter = letter;
 
       // Get the code number - integer digits only
       codenum = 0;
@@ -168,10 +170,7 @@ void GCodeParser::parse(char *p) {
   #endif
 
   // Only use string_arg for these M codes
-  if (letter == 'M') switch (codenum) {
-    case 23: case 28: case 30: case 117: case 118: case 928: string_arg = p; return;
-    default: break;
-  }
+  if (letter == 'M') switch (codenum) { case 23: case 28: case 30: case 117: case 118: case 928: string_arg = p; return; default: break; }
 
   #if ENABLED(DEBUG_GCODE_PARSER)
     const bool debug = (codenum == 1000);
@@ -212,7 +211,7 @@ void GCodeParser::parse(char *p) {
 
       #if ENABLED(DEBUG_GCODE_PARSER)
         if (debug) {
-          SERIAL_MT("Got letter ", code);
+          SERIAL_MV("Got letter ", code);
           SERIAL_MV(" at index ", (int)(p - command_ptr - 1));
           if (has_num) SERIAL_MSG(" (has_num)");
         }

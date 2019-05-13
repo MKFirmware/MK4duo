@@ -179,6 +179,12 @@ void Printer::setup() {
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere
   bool eeprom_loaded = eeprom.load();
+  #if ENABLED(EEPROM_AUTO_INIT)
+    if (!eeprom_loaded) {
+      eeprom_loaded = eeprom.store();
+      SERIAL_EM("EEPROM Initialized");
+    }
+  #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
