@@ -29,52 +29,54 @@
 
 #if ENABLED(DHT_SENSOR)
 
-  // Define types of sensors.
-  enum DHTEnum : uint8_t { DHT11=11, DHT12=12, DHT21=21, DHT22=22 };
+// Define types of sensors.
+enum DHTEnum : uint8_t { DHT11=11, DHT12=12, DHT21=21, DHT22=22 };
 
-  // Struct DHT data
-  typedef struct {
-    pin_t   pin;
-    DHTEnum type;
-  } dht_data_t;
+// Struct DHT data
+typedef struct {
+  pin_t   pin;
+  DHTEnum type;
+} dht_data_t;
 
-  class DHTSensor {
+class DHTSensor {
 
-    public: /** Constructor */
+  public: /** Constructor */
 
-      DHTSensor() {}
+    DHTSensor() {}
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      static dht_data_t data;
+    static dht_data_t data;
 
-      static float  Temperature,
-                    Humidity;
+    static float  Temperature,
+                  Humidity;
 
-    private: /** Private Parameters */
+  private: /** Private Parameters */
 
-      static uint8_t read_data[5];
+    static const millis_l _maxcycles;
 
-      static enum SensorState {
-        Init,
-        Read
-      } state;
-  
-    public: /** Public Function */
+    static uint8_t read_data[5];
 
-      static void init();
-      static void factory_parameters();
-      static void change_type(const DHTEnum dhtType);
-      static void print_M305();
-      static void spin();
+  public: /** Public Function */
 
-    private: /** Private Function */
+    static void init();
+    static void factory_parameters();
+    static void change_type(const DHTEnum dhtType);
+    static void print_M305();
+    static void spin();
 
-      static float readTemperature();
-      static float readHumidity();
+    static float dewPoint();
+    static float dewPointFast();
 
-  };
+  private: /** Private Function */
 
-  extern DHTSensor dhtsensor;
+    static uint32_t expectPulse(bool level);
+
+    static float read_temperature();
+    static float read_humidity();
+
+};
+
+extern DHTSensor dhtsensor;
 
 #endif // ENABLED(DHT_SENSOR)

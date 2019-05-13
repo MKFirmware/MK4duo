@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+void u8g_SetPIOutput_DUE(u8g_t *u8g, uint8_t pin_index);
+void u8g_SetPILevel_DUE(u8g_t *u8g, uint8_t pin_index, uint8_t level);
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.9"
-#define FIRMWARE_REVISION         "13052019"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  __DATE__ " " __TIME__    // build date and time
-#define FIRMWARE_URL              "marlinkimbra.it"
+void u8g_spiSend_sw_DUE_mode_0(uint8_t val);
+void u8g_spiSend_sw_DUE_mode_3(uint8_t val);
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+extern Pio *SCK_pPio, *MOSI_pPio;
+extern uint32_t SCK_dwMask, MOSI_dwMask;

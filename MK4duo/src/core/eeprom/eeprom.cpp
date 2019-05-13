@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV64"
+#define EEPROM_VERSION "MKV65"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -1326,6 +1326,10 @@ void EEPROM::post_process() {
   bool EEPROM::load() {
     if (validate()) return _load();
     reset();
+    #if ENABLED(EEPROM_AUTO_INIT)
+      (void)store();
+      SERIAL_EM("EEPROM Initialized");
+    #endif
     return false;
   }
 
@@ -1553,7 +1557,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE0_PIN;
         data->ID              = 0;
         data->mintemp         = HOTEND_0_MINTEMP;
@@ -1594,7 +1597,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE1_PIN;
         data->ID              = 1;
         data->mintemp         = HOTEND_1_MINTEMP;
@@ -1635,7 +1637,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE2_PIN;
         data->ID              = 2;
         data->mintemp         = HOTEND_2_MINTEMP;
@@ -1676,7 +1677,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE3_PIN;
         data->ID              = 3;
         data->mintemp         = HOTEND_3_MINTEMP;
@@ -1717,7 +1717,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE4_PIN;
         data->ID              = 4;
         data->mintemp         = HOTEND_4_MINTEMP;
@@ -1758,7 +1757,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_HOTEND;
         data->pin             = HEATER_HE5_PIN;
         data->ID              = 5;
         data->mintemp         = HOTEND_5_MINTEMP;
@@ -1814,7 +1812,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_BED;
         data->pin             = HEATER_BED0_PIN;
         data->ID              = 0;
         data->mintemp         = BED_MINTEMP;
@@ -1855,7 +1852,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_BED;
         data->pin             = HEATER_BED1_PIN;
         data->ID              = 1;
         data->mintemp         = BED_MINTEMP;
@@ -1896,7 +1892,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_BED;
         data->pin             = HEATER_BED2_PIN;
         data->ID              = 2;
         data->mintemp         = BED_MINTEMP;
@@ -1937,7 +1932,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_BED;
         data->pin             = HEATER_BED3_PIN;
         data->ID              = 3;
         data->mintemp         = BED_MINTEMP;
@@ -1993,7 +1987,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER0_PIN;
         data->ID              = 0;
         data->mintemp         = CHAMBER_MINTEMP;
@@ -2034,7 +2027,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER1_PIN;
         data->ID              = 1;
         data->mintemp         = CHAMBER_MINTEMP;
@@ -2075,7 +2067,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER2_PIN;
         data->ID              = 2;
         data->mintemp         = CHAMBER_MINTEMP;
@@ -2116,7 +2107,6 @@ void EEPROM::reset() {
         data  = &heat->data;
         sens  = &heat->sensor;
         pid   = &heat->pid;
-        data->type            = IS_CHAMBER;
         data->pin             = HEATER_CHAMBER3_PIN;
         data->ID              = 3;
         data->mintemp         = CHAMBER_MINTEMP;
@@ -2170,7 +2160,6 @@ void EEPROM::reset() {
       data  = &heat->data;
       sens  = &heat->sensor;
       pid   = &heat->pid;
-      data->type            = IS_COOLER;
       data->pin             = HEATER_COOLER_PIN;
       data->ID              = 0;
       data->mintemp         = COOLER_MINTEMP;

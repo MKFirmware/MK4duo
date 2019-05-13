@@ -35,7 +35,7 @@
 /**
  * M306: Set Heaters parameters
  *
- *   H[heaters] H = 0-5 Hotend, H = -1 BED, H = -2 CHAMBER
+ *   H[heaters] H = 0-5 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 = COOLER
  *
  *    T[int]      0-3 For Select Beds or Chambers
  *

@@ -29,10 +29,10 @@
 
 #if HEATER_COUNT > 0
 
-Heater hotends[HOTENDS];
-Heater beds[BEDS];
-Heater chambers[CHAMBERS];
-Heater coolers[COOLERS];
+Heater hotends[HOTENDS]   = Heater(IS_HOTEND, HOTEND_CHECK_INTERVAL, HOTEND_HYSTERESIS, WATCH_HOTEND_PERIOD, WATCH_HOTEND_INCREASE);
+Heater beds[BEDS]         = Heater(IS_BED, BED_CHECK_INTERVAL, BED_HYSTERESIS, WATCH_BED_PERIOD, WATCH_BED_INCREASE);
+Heater chambers[CHAMBERS] = Heater(IS_CHAMBER, CHAMBER_CHECK_INTERVAL, CHAMBER_HYSTERESIS, WATCH_CHAMBER_PERIOD, WATCH_CHAMBER_INCREASE);
+Heater coolers[COOLERS]   = Heater(IS_COOLER, COOLER_CHECK_INTERVAL, COOLER_HYSTERESIS, WATCH_COOLER_PERIOD, WATCH_COOLER_INCREASE);
 
 /** Public Function */
 void Heater::init() {
@@ -113,7 +113,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = current_temperature;
-    const bool isHotend = data.type == IS_HOTEND;
+    const bool isHotend = type == IS_HOTEND;
     ledevents.onHeatingStart(isHotend);
   #endif
 
@@ -145,7 +145,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
           if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
         }
       }
-      else if (temp_diff > temp_hysteresis[data.type]) {
+      else if (temp_diff > temp_hysteresis) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
         residency_start_ms = now;
       }
@@ -190,7 +190,7 @@ void Heater::get_output() {
     const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
     #if COOLERS > 0
-      if (data.type == IS_COOLER) {
+      if (type == IS_COOLER) {
         if (isUsePid()) {
           pwm_value = pid.spin(current_temperature, targetTemperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -198,10 +198,10 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&next_check_ms, temp_check_interval[data.type])) {
-          if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+        else if (expired(&next_check_ms, temp_check_interval)) {
+          if (current_temperature <= targetTemperature - temp_hysteresis)
             pwm_value = 0;
-          else if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
+          else if (current_temperature >= targetTemperature + temp_hysteresis)
             pwm_value = pid.Max;
         }
       }
@@ -210,7 +210,7 @@ void Heater::get_output() {
       {
         if (isUsePid()) {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
-            const uint8_t id = (data.type == IS_HOTEND) ? data.ID : 0xFF;
+            const uint8_t id = (type == IS_HOTEND) ? data.ID : 0xFF;
           #endif
           pwm_value = pid.spin(targetTemperature, current_temperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
@@ -218,16 +218,16 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&next_check_ms, temp_check_interval[data.type])) {
-          if (current_temperature >= targetTemperature + temp_hysteresis[data.type])
+        else if (expired(&next_check_ms, temp_check_interval)) {
+          if (current_temperature >= targetTemperature + temp_hysteresis)
             pwm_value = 0;
-          else if (current_temperature <= targetTemperature - temp_hysteresis[data.type])
+          else if (current_temperature <= targetTemperature - temp_hysteresis)
             pwm_value = pid.Max;
         }
       }
 
     /**
-    if (printer.debugFeature() && data.type == IS_HOTEND) {
+    if (printer.debugFeature() && type == IS_HOTEND) {
       DEBUG_SMV(DEB, MSG_PID_DEBUG, ACTIVE_HOTEND);
       DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       DEBUG_MV(MSG_PID_DEBUG_OUTPUT, pwm_value);
@@ -247,8 +247,6 @@ void Heater::set_output_pwm() {
 }
 
 void Heater::check_and_power() {
-
-  constexpr uint8_t watch_period[HEATER_TYPE] = { WATCH_HOTEND_PERIOD, WATCH_BED_PERIOD, WATCH_CHAMBER_PERIOD, WATCH_COOLER_PERIOD };
 
   if (isActive() && current_temperature > data.maxtemp) max_temp_error();
   if (isActive() && current_temperature < data.mintemp) {
@@ -271,7 +269,7 @@ void Heater::check_and_power() {
   get_output();
 
   // Make sure temperature is increasing
-  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_s(watch_period[data.type] * 1000U))) {
+  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_s(watch_period * 1000U))) {
     if (current_temperature < watch_target_temp)
       _temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
     else
@@ -290,7 +288,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   float       current_temp  = 0.0;
   int         cycles        = 0;
   bool        heating       = true;
-  const bool  isHotend      = data.type == IS_HOTEND,
+  const bool  isHotend      = type == IS_HOTEND,
               oldReport     = printer.isAutoreportTemp();
 
   thermalManager.disable_all_heaters(); // switch off all heaters.
@@ -350,7 +348,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         t_high = t1 - t2;
 
         #if COOLERS > 0
-          if (data.type == IS_COOLER)
+          if (type == IS_COOLER)
             minTemp = target_temp;
           else
             maxTemp = target_temp;
@@ -425,7 +423,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         cycles++;
 
         #if COOLERS > 0
-          if (data.type == IS_COOLER)
+          if (type == IS_COOLER)
             maxTemp = target_temp;
           else
             minTemp = target_temp;
@@ -440,7 +438,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
     #endif
     if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
       #if COOLERS > 0
-        && data.type != IS_COOLER
+        && type != IS_COOLER
       #endif
     ) {
       SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
@@ -449,7 +447,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       break;
     }
     #if COOLERS > 0
-      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && data.type == IS_COOLER) {
+      else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
         Pidtuning = false;
@@ -480,7 +478,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       }
 
       #if BEDS > 0
-        if (data.type == IS_BED) {
+        if (type == IS_BED) {
           SERIAL_EMV("#define BED_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define BED_Ki ", tune_pid.Ki);
           SERIAL_EMV("#define BED_Kd ", tune_pid.Kd);
@@ -488,7 +486,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       #endif
 
       #if CHAMBERS > 0
-        if (data.type == IS_CHAMBER) {
+        if (type == IS_CHAMBER) {
           SERIAL_EMV("#define CHAMBER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define CHAMBER_Ki ", tune_pid.Ki);
           SERIAL_EMV("#define CHAMBER_Kd ", tune_pid.Kd);
@@ -496,7 +494,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       #endif
 
       #if COOLERS > 0
-        if (data.type == IS_COOLER) {
+        if (type == IS_COOLER) {
           SERIAL_EMV("#define COOLER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define COOLER_Ki ", tune_pid.Ki);
           SERIAL_EMV("#define COOLER_Kd ", tune_pid.Kd);
@@ -535,12 +533,12 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
 void Heater::print_M301() {
   if (isUsePid()) {
-    const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+    const int8_t heater_id = type == IS_HOTEND ? data.ID : -type;
     SERIAL_SM(CFG, "Heater PID parameters: H<Heater>");
     if (heater_id < 0) SERIAL_MSG(" T<tools>");
     SERIAL_MSG(" P<Proportional> I<Integral> D<Derivative>");
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      if (data.type == IS_HOTEND) SERIAL_MSG(" C<Kc term> L<LPQ length>");
+      if (type == IS_HOTEND) SERIAL_MSG(" C<Kc term> L<LPQ length>");
     #endif
     SERIAL_CHR(':');
     SERIAL_EOL();
@@ -550,7 +548,7 @@ void Heater::print_M301() {
     SERIAL_MV(" I", pid.Ki);
     SERIAL_MV(" D", pid.Kd);
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      if (data.type == IS_HOTEND) {
+      if (type == IS_HOTEND) {
         SERIAL_MV(" C", pid.Kc);
         SERIAL_MV(" L", (int)tools.lpq_len);
       }
@@ -560,7 +558,7 @@ void Heater::print_M301() {
 }
 
 void Heater::print_M305() {
-  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+  const int8_t heater_id = type == IS_HOTEND ? data.ID : -type;
   SERIAL_SM(CFG, "Heater Sensor parameters: H<Heater>");
   if (heater_id < 0) SERIAL_MSG(" T<tools>");
   SERIAL_EM(" P<Pin> S<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
@@ -580,7 +578,7 @@ void Heater::print_M305() {
 }
 
 void Heater::print_M306() {
-  const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+  const int8_t heater_id = type == IS_HOTEND ? data.ID : -type;
   SERIAL_SM(CFG, "Heater parameters: H<Heater>");
   if (heater_id < 0) SERIAL_MSG(" T<tools>");
   SERIAL_EM(" P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> F<Freq> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1> Q<Pwm Hardware 0-1>:");
@@ -598,11 +596,21 @@ void Heater::print_M306() {
   SERIAL_MV(" Q", isHWpwm());
   SERIAL_MV(" R", isThermalProtection());
   SERIAL_EOL();
+
+  if (printer.debugFeature()) {
+    DEBUG_SMV(DEB, " Type:", type);
+    DEBUG_MV(" temp_check_interval:", temp_check_interval);
+    DEBUG_MV(" temp_hysteresis:", temp_hysteresis);
+    DEBUG_MV(" watch_period:", watch_period);
+    DEBUG_MV(" watch_increase:", watch_increase);
+    DEBUG_EOL();
+  }
+
 }
 
 #if HAS_AD8495 || HAS_AD595
   void Heater::print_M595() {
-    const int8_t heater_id = data.type == IS_HOTEND ? data.ID : -data.type;
+    const int8_t heater_id = type == IS_HOTEND ? data.ID : -type;
     SERIAL_LM(CFG, "AD595 or AD8495 parameters: H<Hotend>");
     if (heater_id < 0) SERIAL_MSG(" T<tools>");
     SERIAL_MSG(" O<Offset> S<Gain>:");
@@ -643,7 +651,7 @@ void Heater::thermal_runaway_protection() {
     case TRStable:
 
       #if ENABLED(ADAPTIVE_FAN_SPEED) && FAN_COUNT > 0
-        if (data.type == IS_HOTEND) {
+        if (type == IS_HOTEND) {
           if (fans[0].speed == 0)
             fans[0].scaled_speed = 128;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.25f))
@@ -680,8 +688,8 @@ void Heater::start_watching() {
   if (!isThermalProtection()) return;
 
   const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
-  if (isActive() && current_temperature < targetTemperature - (watch_increase[data.type] + temp_hysteresis[data.type] + 1)) {
-    watch_target_temp = current_temperature + watch_increase[data.type];
+  if (isActive() && current_temperature < targetTemperature - (watch_increase + temp_hysteresis + 1)) {
+    watch_target_temp = current_temperature + watch_increase;
     watch_next_ms = millis();
   }
   else
@@ -696,7 +704,7 @@ void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
     SERIAL_STR(ER);
     SERIAL_STR(serial_msg);
     SERIAL_MSG(MSG_HEATER_STOPPED);
-    switch (data.type) {
+    switch (type) {
       case IS_HOTEND:
         SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
         break;
@@ -725,7 +733,7 @@ void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
 }
 
 void Heater::min_temp_error() {
-  switch (data.type) {
+  switch (type) {
     case IS_HOTEND:
       _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
       break;
@@ -744,7 +752,7 @@ void Heater::min_temp_error() {
 }
 
 void Heater::max_temp_error() {
-  switch (data.type) {
+  switch (type) {
     case IS_HOTEND:
       _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
       break;

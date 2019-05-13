@@ -53,7 +53,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef __AVR__
+#if defined(ARDUINO) && !defined(ARDUINO_ARCH_SAM)
 
 #include "../../../MK4duo.h"
 
@@ -61,10 +61,8 @@
 
 #include <U8glib.h>
 
-uint8_t u8g_bitData, u8g_bitNotData;
-uint8_t u8g_bitClock, u8g_bitNotClock;
-volatile uint8_t *u8g_outData;
-volatile uint8_t *u8g_outClock;
+uint8_t u8g_bitData, u8g_bitNotData, u8g_bitClock, u8g_bitNotClock;
+volatile uint8_t *u8g_outData, *u8g_outClock;
 
 static void u8g_com_arduino_init_shift_out(uint8_t dataPin, uint8_t clockPin) {
   u8g_outData = portOutputRegister(digitalPinToPort(dataPin));
@@ -79,13 +77,13 @@ static void u8g_com_arduino_init_shift_out(uint8_t dataPin, uint8_t clockPin) {
   u8g_bitNotData ^= 0xFF;
 }
 
-void U8G_spiSend_sw_AVR_mode_0(uint8_t val) {
-  uint8_t bitData = u8g_bitData;
-  uint8_t bitNotData = u8g_bitNotData;
-  uint8_t bitClock = u8g_bitClock;
-  uint8_t bitNotClock = u8g_bitNotClock;
-  volatile uint8_t *outData = u8g_outData;
-  volatile uint8_t *outClock = u8g_outClock;
+void u8g_spiSend_sw_AVR_mode_0(uint8_t val) {
+  uint8_t bitData = u8g_bitData,
+          bitNotData = u8g_bitNotData,
+          bitClock = u8g_bitClock,
+          bitNotClock = u8g_bitNotClock;
+  volatile uint8_t *outData = u8g_outData,
+                   *outClock = u8g_outClock;
   U8G_ATOMIC_START();
   for (uint8_t i = 0; i < 8; i++) {
     if (val & 0x80)
@@ -99,13 +97,13 @@ void U8G_spiSend_sw_AVR_mode_0(uint8_t val) {
   U8G_ATOMIC_END();
 }
 
-void U8G_spiSend_sw_AVR_mode_3(uint8_t val) {
-  uint8_t bitData = u8g_bitData;
-  uint8_t bitNotData = u8g_bitNotData;
-  uint8_t bitClock = u8g_bitClock;
-  uint8_t bitNotClock = u8g_bitNotClock;
-  volatile uint8_t *outData = u8g_outData;
-  volatile uint8_t *outClock = u8g_outClock;
+void u8g_spiSend_sw_AVR_mode_3(uint8_t val) {
+  uint8_t bitData = u8g_bitData,
+          bitNotData = u8g_bitNotData,
+          bitClock = u8g_bitClock,
+          bitNotClock = u8g_bitNotClock;
+  volatile uint8_t *outData = u8g_outData,
+                   *outClock = u8g_outClock;
   U8G_ATOMIC_START();
   for (uint8_t i = 0; i < 8; i++) {
     *outClock &= bitNotClock;
@@ -121,9 +119,9 @@ void U8G_spiSend_sw_AVR_mode_3(uint8_t val) {
 
 
 #if ENABLED(FYSETC_MINI_12864)
-  #define U8G_spiSend_sw_AVR U8G_spiSend_sw_AVR_mode_3
+  #define SPISEND_SW_AVR u8g_spiSend_sw_AVR_mode_3
 #else
-  #define U8G_spiSend_sw_AVR U8G_spiSend_sw_AVR_mode_0
+  #define SPISEND_SW_AVR u8g_spiSend_sw_AVR_mode_0
 #endif
 
 uint8_t u8g_com_HAL_AVR_sw_sp_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
@@ -159,13 +157,13 @@ uint8_t u8g_com_HAL_AVR_sw_sp_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      U8G_spiSend_sw_AVR(arg_val);
+      SPISEND_SW_AVR(arg_val);
       break;
 
     case U8G_COM_MSG_WRITE_SEQ: {
         uint8_t *ptr = (uint8_t *)arg_ptr;
         while (arg_val > 0) {
-          U8G_spiSend_sw_AVR(*ptr++);
+          SPISEND_SW_AVR(*ptr++);
           arg_val--;
         }
       }
@@ -174,7 +172,7 @@ uint8_t u8g_com_HAL_AVR_sw_sp_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
       case U8G_COM_MSG_WRITE_SEQ_P: {
         uint8_t *ptr = (uint8_t *)arg_ptr;
         while (arg_val > 0) {
-          U8G_spiSend_sw_AVR(u8g_pgm_read(ptr));
+          SPISEND_SW_AVR(u8g_pgm_read(ptr));
           ptr++;
           arg_val--;
         }
