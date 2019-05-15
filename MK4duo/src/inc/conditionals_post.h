@@ -55,6 +55,11 @@
  */
 #if MECH(DELTA)
 
+  // BLTouch
+  #if ENABLED(BLTOUCH)
+    #define BLTOUCH_HIGH_SPEED_MODE
+  #endif
+
   // DELTA must have same valour for 3 axis Home Feedrate
   #define HOMING_FEEDRATE_X HOMING_FEEDRATE_XYZ
   #define HOMING_FEEDRATE_Y HOMING_FEEDRATE_XYZ

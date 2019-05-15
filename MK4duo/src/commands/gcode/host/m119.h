@@ -45,7 +45,7 @@ inline void gcode_M119(void) {
   #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(MSG_##S))
 
   #if ENABLED(BLTOUCH)
-    bltouch.cmd_SW_mode();
+    bltouch.cmd_mode_SW();
   #endif
 
   #if HAS_X_MIN
@@ -119,7 +119,6 @@ inline void gcode_M119(void) {
   #endif
 
   #if ENABLED(BLTOUCH)
-    bltouch.cmd_reset();
-    if (endstops.isGlobally()) bltouch.stow();
+    bltouch.cmd_reset_mode_SW();
   #endif
 }

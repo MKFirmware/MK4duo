@@ -127,14 +127,12 @@ void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const f
     line_to_current_position(z_feedrate);
   }
 
-  feedrate_mm_s = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
   current_position[X_AXIS] = rx;
   current_position[Y_AXIS] = ry;
   line_to_current_position(xy_feedrate);
 
   // If Z needs to lower, do it after moving XY
   if (current_position[Z_AXIS] > rz) {
-    feedrate_mm_s = z_feedrate;
     current_position[Z_AXIS] = rz;
     line_to_current_position(z_feedrate);
   }
@@ -202,17 +200,20 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   REMEMBER(fr, feedrate_mm_s);
   COPY_ARRAY(stored_position[1], current_position);
 
-  const bool home_all = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
+  const bool  home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
+              doX       = home_all || homeX,
+              doY       = home_all || homeY,
+              doZ       = home_all || homeZ;
 
   set_destination_to_current();
 
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
-    if (home_all || homeZ) homeaxis(Z_AXIS);
+    if (doZ) homeaxis(Z_AXIS);
   #endif
 
   const float z_homing_height = home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
 
-  if (z_homing_height && (home_all || homeX || homeY)) {
+  if (z_homing_height && (doX || doY)) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
     destination[Z_AXIS] = z_homing_height;
     if (destination[Z_AXIS] > current_position[Z_AXIS]) {
@@ -222,25 +223,28 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   }
 
   #if ENABLED(QUICK_HOME)
-    if (home_all || (homeX && homeY)) quick_home_xy();
+    if (doX && doY) quick_home_xy();
   #endif
 
   #if ENABLED(HOME_Y_BEFORE_X)
     // Home Y (before X)
-    if (home_all || homeY) homeaxis(Y_AXIS);
+    if (doY) homeaxis(Y_AXIS);
   #endif
 
   // Home X
-  if (home_all || homeX) homeaxis(X_AXIS);
+  if (doX) homeaxis(X_AXIS);
 
   #if DISABLED(HOME_Y_BEFORE_X)
     // Home Y (after X)
-    if (home_all || homeY) homeaxis(Y_AXIS);
+    if (doY) homeaxis(Y_AXIS);
   #endif
 
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
-    if (home_all || homeZ) {
+    if (doZ) {
+      #if ENABLED(BLTOUCH)
+        bltouch.init();
+      #endif
       #if ENABLED(Z_SAFE_HOMING)
         home_z_safely();
       #else
@@ -251,10 +255,10 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
         probe.move_z_after_probing();
       #endif
 
-    } // home_all || homeZ
+    } // doZ
 
   #elif ENABLED(DOUBLE_Z_HOMING)
-    if (home_all || homeZ) double_home_z();
+    if (doZ) double_home_z();
   #endif
 
   sync_plan_position();
@@ -518,7 +522,7 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
-    SERIAL_TXT(stepper.position((AxisEnum)i));
+    SERIAL_VAL(stepper.position((AxisEnum)i));
   }
   SERIAL_EOL();
 
@@ -946,7 +950,6 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< Z_SAFE_HOMING");
-
   }
 
 #endif // Z_SAFE_HOMING
@@ -996,7 +999,6 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< DOUBLE_Z_HOMING");
-
   }
 
 #endif // ENABLED(DOUBLE_Z_HOMING)
