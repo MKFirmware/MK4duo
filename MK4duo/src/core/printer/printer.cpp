@@ -604,7 +604,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   if (move_time) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
-      move_ms = millis(); // reset stepper move watch to keep steppers powered
+      reset_move_ms();  // reset stepper move watch to keep steppers powered
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_l(move_time * 1000UL))) {
       if (!already_shutdown_steppers) {
         if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");

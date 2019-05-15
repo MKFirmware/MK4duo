@@ -320,7 +320,7 @@ void gcode_G2_G3(const bool clockwise) {
 
       // Send an arc to the planner
       plan_arc(mechanics.destination, arc_offset, clockwise);
-      printer.move_ms = millis();
+      printer.reset_move_ms();
     }
     else {
       // Bad arguments

@@ -767,7 +767,7 @@
       lcdui.wait_for_release();
       while (!lcdui.button_pressed()) {
         printer.idle();
-        printer.move_ms = millis(); // Keep steppers powered
+        printer.reset_move_ms();  // Keep steppers powered
         if (encoder_diff) {
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
           encoder_diff = 0;

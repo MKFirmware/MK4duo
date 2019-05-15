@@ -585,7 +585,7 @@ void Commands::process_next() {
     SERIAL_LT(ECHO, cmd.gcode);
   }
 
-  printer.move_ms = millis(); // Keep steppers powered
+  printer.reset_move_ms(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
   parser.parse(cmd.gcode);

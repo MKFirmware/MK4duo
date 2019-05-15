@@ -144,6 +144,8 @@ class Printer {
 
     static bool pin_is_protected(const pin_t pin);
 
+    FORCE_INLINE static void reset_move_ms() { move_ms = millis(); }
+
     #if HAS_SUICIDE
       static void suicide();
     #endif

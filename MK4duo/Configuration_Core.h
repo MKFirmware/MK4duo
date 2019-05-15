@@ -193,6 +193,8 @@
 //#define BLTOUCH
 // Minimum Command delay (ms). Enable and increase if needed
 //#define BLTOUCH_DELAY 500
+// BLTouch high speed
+//#define BLTOUCH_HIGH_SPEED_MODE
 // BLTouch V3.0 and newer smart series
 // For genuine BLTouch 3.0 sensors. Clones may be confused by 3.0 command angles. YMMV.
 // If the pin trigger is not detected, first try swapping the black and white wires then toggle this.

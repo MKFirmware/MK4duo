@@ -99,7 +99,7 @@ class Probe {
 
   private: /** Private Function */
 
-    static bool specific_action(const bool deploy);
+    static void specific_action(const bool deploy);
 
     static bool move_to_z(const float z, const float fr_mm_s);
 

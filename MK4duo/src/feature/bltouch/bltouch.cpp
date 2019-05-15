@@ -35,9 +35,10 @@ BLTouch bltouch;
 /** Public Function */
 void BLTouch::init() {
   #if ENABLED(BLTOUCH_FORCE_5V_MODE)
-    cmd_5V_mode();
+    cmd_mode_5V();
   #endif
-  clear();
+  cmd_reset();
+  cmd_stow();
 }
 
 bool BLTouch::test() {
@@ -124,14 +125,14 @@ bool BLTouch::status() {
 
   if (printer.debugFeature()) DEBUG_EM("BLTouch STATUS requested");
 
-  cmd_SW_mode();
-  const bool trig = test();         // If triggered in SW mode, the pin is up, it is STOWED
+  cmd_mode_SW();
+  const bool trig = test();         // If triggered in mode SW, the pin is up, it is STOWED
 
   if (printer.debugFeature()) DEBUG_ELOGIC("BLTouch is ", trig);
 
-  cmd_reset();                      // turn off the SW Mode
+  cmd_reset();                      // Turn off the mode SW
   if (trig) stow();
-  else deploy();                    // and reset any triggered signal, restore state
+  else deploy();                    // Turn off mode SW, reset any trigger
   return !trig;
 }
 

@@ -126,7 +126,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     now = millis();
     printer.idle();
     printer.keepalive(WaitHeater);
-    printer.move_ms = now;          // Keep steppers powered
+    printer.reset_move_ms();  // Keep steppers powered
 
     const float temp = current_temperature;
 

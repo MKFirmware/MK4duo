@@ -221,17 +221,20 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   REMEMBER(fr, feedrate_mm_s);
   COPY_ARRAY(stored_position[1], current_position);
 
-  const bool home_all = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ);
+  const bool  home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
+              doX       = home_all || homeX,
+              doY       = home_all || homeY,
+              doZ       = home_all || homeZ;
 
   set_destination_to_current();
 
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
-    if (home_all || homeZ) homeaxis(Z_AXIS);
+    if (doZ) homeaxis(Z_AXIS);
   #endif
 
   const float z_homing_height = home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
 
-  if (z_homing_height && (home_all || homeX || homeY)) {
+  if (z_homing_height && (doX || doY)) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
     destination[Z_AXIS] = z_homing_height;
     if (destination[Z_AXIS] > current_position[Z_AXIS]) {
@@ -241,16 +244,16 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   }
 
   #if ENABLED(QUICK_HOME)
-    if (home_all || (homeX && homeY)) quick_home_xy();
+    if (doX && doY) quick_home_xy();
   #endif
 
   #if ENABLED(HOME_Y_BEFORE_X)
     // Home Y (before X)
-    if (home_all || homeY) homeaxis(Y_AXIS);
+    if (doY) homeaxis(Y_AXIS);
   #endif
 
   // Home X
-  if (home_all || homeX) {
+  if (doX) {
     #if ENABLED(DUAL_X_CARRIAGE)
       // Always home the 2nd (right) extruder first
       tools.active_extruder = 1;
@@ -274,12 +277,15 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 
   #if DISABLED(HOME_Y_BEFORE_X)
     // Home Y (after X)
-    if (home_all || homeY) homeaxis(Y_AXIS);
+    if (doY) homeaxis(Y_AXIS);
   #endif
 
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
-    if (home_all || homeZ) {
+    if (doZ) {
+      #if ENABLED(BLTOUCH)
+        bltouch.init();
+      #endif
       #if ENABLED(Z_SAFE_HOMING)
         home_z_safely();
       #else
@@ -290,10 +296,10 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
         probe.move_z_after_probing();
       #endif
 
-    } // home_all || homeZ
+    } // doZ
 
   #elif ENABLED(DOUBLE_Z_HOMING)
-    if (home_all || homeZ) double_home_z();
+    if (doZ) double_home_z();
   #endif
 
   sync_plan_position();

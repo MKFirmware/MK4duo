@@ -109,7 +109,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #else
 
-    if (specific_action(deploy)) return true;
+    specific_action(deploy);
 
   #endif
 
@@ -274,15 +274,15 @@ void Probe::servo_test() {
     SERIAL_EMV(".  Deploy angle: ", servo[probe_index].angle[0]);
     SERIAL_EMV(".  Stow angle:   ", servo[probe_index].angle[1]);
 
-    bool probe_logic;
+    bool probe_logic, deploy_state, stow_state;
 
     #if HAS_Z_PROBE_PIN
 
       #define PROBE_TEST_PIN Z_PROBE_PIN
 
-      SERIAL_EMV("Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-      SERIAL_EM(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-      SERIAL_MSG(".  Z_PROBE_ENDSTOP_LOGIC: ");
+      SERIAL_EMV(". Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+      SERIAL_EM(". uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
+      SERIAL_MSG(". Z_PROBE_ENDSTOP_LOGIC:");
 
       if (endstops.isLogic(Z_PROBE))
         SERIAL_EM("true");
@@ -295,9 +295,9 @@ void Probe::servo_test() {
 
       #define PROBE_TEST_PIN Z_MIN_PIN
 
-      SERIAL_EMV("Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
-      SERIAL_EM(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-      SERIAL_MSG(".  Z_MIN_ENDSTOP_LOGIC: ");
+      SERIAL_EMV(". Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
+      SERIAL_EM(". uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
+      SERIAL_MSG(". Z_MIN_ENDSTOP_LOGIC:");
 
       if (endstops.isLogic(Z_MIN))
         SERIAL_EM("true");
@@ -308,26 +308,53 @@ void Probe::servo_test() {
 
     #endif
 
-    SERIAL_EM("Deploy & stow 4 times");
-    SET_INPUT_PULLUP(PROBE_TEST_PIN);
-    uint8_t i = 0;
-    bool deploy_state, stow_state;
+    // First, check for a probe that recognizes an advanced BLTouch sequence.
+    // In addition to STOW and DEPLOY, it uses SW MODE (and RESET in the beginning).
+    // To see if this is a BLTOUCH Classic 1.2, 1.3, Smart 1.0, 2.0, 2.2, 3.0, 3.1.
+    bool blt = false;
 
+    #if ENABLED(BLTOUCH)
+      SERIAL_EM(". check for BLTOUCH");
+      bltouch.cmd_reset();
+      bltouch.cmd_stow();
+      if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
+        #if ENABLED(BLTOUCH_FORCE_5V_MODE)
+          bltouch.cmd_mode_5V();
+        #endif
+        bltouch.cmd_mode_SW();
+        if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
+          bltouch.cmd_deploy();
+          if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
+            bltouch.cmd_stow();
+            SERIAL_EM("= BLTouch Classic 1.2, 1.3, Smart 1.0, 2.0, 2.2, 3.0, 3.1 detected");
+            // we will check for a 3.1 by letting the user trigger it, later
+            blt = true;
+          }
+        }
+      }
+    #endif
+
+    // DEPLOY and STOW 4 times and see if the signal follows
+    // Then it is a mechanical switch
+    uint8_t i = 0;
+    SERIAL_EM(". deploy & stow 4 times");
     do {
-      MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // deploy
+      MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // Deploy
       printer.safe_delay(500);
       deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
-      MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // stow
+      MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // Stow
       printer.safe_delay(500);
       stow_state = HAL::digitalRead(PROBE_TEST_PIN);
     } while (++i < 4);
 
     if (probe_logic != deploy_state) SERIAL_EM("WARNING - INVERTING setting probably backwards");
 
-    printer.move_ms = millis();
-
     if (deploy_state != stow_state) {
-      SERIAL_EM("BLTouch clone detected");
+      #if ENABLED(BLTOUCH)
+        SERIAL_EM("= BLTouch clone detected");
+      #else
+        SERIAL_EM("= Mechanical Switch detected");
+      #endif
       if (deploy_state) {
         SERIAL_EM(".  DEPLOYED state: HIGH (logic 1)");
         SERIAL_EM(".  STOWED (triggered) state: LOW (logic 0)");
@@ -337,44 +364,47 @@ void Probe::servo_test() {
         SERIAL_EM(".  STOWED (triggered) state: HIGH (logic 1)");
       }
       #if ENABLED(BLTOUCH)
-        SERIAL_EM("ERROR: BLTOUCH enabled - set this device up as a Z Servo Probe with inverting as true.");
+        SERIAL_LM(ER, " BLTOUCH enabled - set this device up as a Z Servo Probe with inverting as true.");
       #endif
+      return;
     }
-    else {    // measure active signal length
-      MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // deploy
-      printer.safe_delay(500);
-      SERIAL_EM("please trigger probe");
-      uint16_t probe_counter = 0;
 
-      // Allow 30 seconds max for operator to trigger probe
-      for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
+    // Ask the user for a trigger event and measure the pulse width
+    // Since it could be a real servo or a BLTouch (any kind) or clone
+    // use only "common" functions - i.e. SERVO_MOVE. No bltouch.xxxx stuff.
+    MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // Deploy
+    printer.safe_delay(500);
+    SERIAL_EM("** Please trigger probe within 30 sec **");
+    uint16_t probe_counter = 0;
 
-        printer.safe_delay(2);
+    // Allow 30 seconds max for operator to trigger probe
+    for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
 
-        if (0 == j % (500 * 1)) // keep cmd_timeout happy
-          printer.move_ms = millis();
+      printer.safe_delay(2);
 
-        if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) { // probe triggered
+      if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
 
-          for (probe_counter = 1; probe_counter < 50 && (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)); probe_counter ++)
-            printer.safe_delay(2);
+      if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 
-          if (probe_counter == 50)
-            SERIAL_EM("Z Servo Probe detected");   // >= 100mS active time
-          else if (probe_counter >= 2 )
-            SERIAL_EMV("BLTouch original probe detected - pulse width (+/- 4mS): ", probe_counter * 2 );   // allow 4 - 100mS pulse
-          else
-            SERIAL_EM("noise detected - please re-run test");   // less than 2mS pulse
+        for (probe_counter = 1; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
+          printer.safe_delay(2);
 
-          MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // stow
+        SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
 
-        } // pulse detected
+        if (blt && probe_counter == 15) SERIAL_EM("= BLTouch V3.1 detected");
+        else if (probe_counter == 15)   SERIAL_EM("= Z Servo Probe detected");
+        else if (probe_counter >= 2)    SERIAL_EM("= BLTouch pre V3.1 or compatible probe detected");
+        else                            SERIAL_LM(ER, " noise detected - please re-run test");
 
-      } // for loop waiting for trigger
+        MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // Stow
 
-      if (probe_counter == 0) SERIAL_EM("trigger not detected");
+        return;
 
-    } // measure active signal length
+      }  // pulse detected
+
+    } // for loop waiting for trigger
+
+    if (probe_counter == 0) SERIAL_LM(ER, " Trigger not detected");
 
   #endif // HAS_Z_SERVO_PROBE
 
@@ -382,7 +412,7 @@ void Probe::servo_test() {
 
 /** Private Function */
 // returns false for ok and true for failure
-bool Probe::specific_action(const bool deploy) {
+void Probe::specific_action(const bool deploy) {
 
   #if ENABLED(PAUSE_BEFORE_DEPLOY_STOW)
 
@@ -403,15 +433,14 @@ bool Probe::specific_action(const bool deploy) {
 
   #if ENABLED(Z_PROBE_SLED)
     dock_sled(!deploy);
-  #elif ENABLED(BLTOUCH) && MECH(DELTA)
-    if (bltouch.set_deployed(deploy)) return true;
+  #elif ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
+    if (deploy) bltouch.cmd_deploy(); else bltouch.cmd_stow();
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
     MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
   #endif
 
-  return false;
 }
 
 /**
@@ -427,7 +456,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
 
   // Deploy BLTouch at the start of any probe
-  #if ENABLED(BLTOUCH) && NOMECH(DELTA)
+  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
      if (bltouch.deploy()) return true;
   #endif
 
@@ -481,7 +510,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   #endif
 
   // Retract BLTouch immediately after a probe if it was triggered
-  #if ENABLED(BLTOUCH) && NOMECH(DELTA)
+  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
     if (probe_triggered && bltouch.stow()) return true;
   #endif
 
