@@ -43,7 +43,7 @@
 
 #if HAS_NEXTION_LCD
 
-#define NEXTION_LCD_FIRMWARE_VERSION  115
+#define NEXTION_LCD_FIRMWARE_VERSION  114
 
 #include "library/nextion.h"
 #include "nextion_gfx.h"
@@ -140,49 +140,37 @@ NexObject Ptxtmenu      = NexObject(11, 0);
  * Nextion component for page:menu
  *******************************************************************
  */
-NexObject SDMenu        = NexObject(1,  2);
+NexObject SDMenu      = NexObject(1,  2);
 
 /**
  *******************************************************************
  * Nextion component for page:printer
  *******************************************************************
  */
-NexObject LcdX          = NexObject(2,  5);
-NexObject LcdY          = NexObject(2,  6);
-NexObject LcdZ          = NexObject(2,  7);
-NexObject Hotend00      = NexObject(2,  9);
-NexObject Hotend01      = NexObject(2, 10);
-#if HOTENDS > 1
-  NexObject Hotend10    = NexObject(2, 11);
-  NexObject Hotend11    = NexObject(2, 12);
-  #if HOTENDS > 2
-    NexObject Hotend20  = NexObject(2, 13);
-    NexObject Hotend21  = NexObject(2, 14);
-  #endif
-#endif
-#if BEDS > 0
-  NexObject Bed0        = NexObject(2, 15);
-  NexObject Bed1        = NexObject(2, 16);
-#endif
-#if CHAMBERS > 0
-  NexObject Chamber0    = NexObject(2, 17);
-  NexObject Chamber1    = NexObject(2, 18);
-#endif
-#if ENABLED(DHT_SENSOR)
-  NexObject DHT0        = NexObject(2, 19);
-#endif
-NexObject SD            = NexObject(2, 20);
-NexObject Fanspeed      = NexObject(2, 23);
-NexObject VSpeed        = NexObject(2, 24);
-NexObject LightStatus   = NexObject(2, 26);
-NexObject NStop         = NexObject(2, 37);
-NexObject NPlay         = NexObject(2, 38);
-NexObject Light         = NexObject(2, 39);
-NexObject LcdStatus     = NexObject(2, 94);
-NexObject LcdCommand    = NexObject(2, 95);
-NexObject LcdTime       = NexObject(2, 96);
-NexObject progressbar   = NexObject(2, 97);
-NexObject FanTouch      = NexObject(2, 102);
+NexObject LcdX        = NexObject(2,  5);
+NexObject LcdY        = NexObject(2,  6);
+NexObject LcdZ        = NexObject(2,  7);
+NexObject Hotend00    = NexObject(2,  9);
+NexObject Hotend01    = NexObject(2, 10);
+NexObject Hotend10    = NexObject(2, 11);
+NexObject Hotend11    = NexObject(2, 12);
+NexObject Bed0        = NexObject(2, 13);
+NexObject Bed1        = NexObject(2, 14);
+NexObject Chamber0    = NexObject(2, 15);
+NexObject Chamber1    = NexObject(2, 16);
+NexObject DHT0        = NexObject(2, 17);
+NexObject SD          = NexObject(2, 18);
+NexObject Fanspeed    = NexObject(2, 21);
+NexObject VSpeed      = NexObject(2, 22);
+NexObject LightStatus = NexObject(2, 24);
+NexObject NStop       = NexObject(2, 35);
+NexObject NPlay       = NexObject(2, 36);
+NexObject Light       = NexObject(2, 37);
+NexObject LcdStatus   = NexObject(2, 92);
+NexObject LcdCommand  = NexObject(2, 93);
+NexObject LcdTime     = NexObject(2, 94);
+NexObject progressbar = NexObject(2, 95);
+NexObject FanTouch    = NexObject(2, 100);
 
 /**
  *******************************************************************
@@ -319,6 +307,25 @@ NexObject *nex_listen_list[] =
   NULL
 };
 
+NexObject *heater_list0[] =
+{
+  &Hotend00,
+  &Hotend10,
+  &Bed0,
+  &Chamber0,
+  &DHT0,
+  NULL
+};
+
+NexObject *heater_list1[] =
+{
+  &Hotend01,
+  &Hotend11,
+  &Bed1,
+  &Chamber1,
+  NULL
+};
+
 NexObject *speed_list[] =
 {
   &SpeedX,
@@ -334,25 +341,18 @@ void setpagePrinter() {
   nexlcd.sendCommandPGM(PSTR("p[1].b[10].txt=\"" SHORT_BUILD_VERSION "\""));
 
   #if HOTENDS > 0
-    nexlcd.setValue(Hotend00, 25);
+    nexlcd.setValue(Hotend00, 1);
     #if HOTENDS > 1
-      nexlcd.setValue(Hotend10, 25);
-      #if HOTENDS > 2
-        nexlcd.setValue(Hotend20, 25);
-      #endif
+      nexlcd.setValue(Hotend10, 1);
+    #elif HAS_TEMP_CHAMBER0
+      nexlcd.setValue(Chamber0, 1);
+    #elif ENABLED(DHT_SENSOR)
+      nexlcd.setValue(DHT0, 1);
     #endif
   #endif
 
   #if BEDS > 0
-    nexlcd.setValue(Bed0, 25);
-  #endif
-
-  #if HAS_TEMP_CHAMBER0
-    nexlcd.setValue(Chamber0, 25);
-  #endif
-
-  #if ENABLED(DHT_SENSOR)
-    nexlcd.setValue(DHT0, 25);
+    nexlcd.setValue(Bed0, 1);
   #endif
 
   #define EXTRUDERS_STRING(M) STRINGIFY(M)
@@ -380,7 +380,7 @@ void setpagePrinter() {
   nexlcd.setValue(VSpeed, 100);
 
   #if FAN_COUNT > 0
-    nexlcd.sendCommandPGM(PSTR("p[2].b[22].val=1"));
+    nexlcd.sendCommandPGM(PSTR("p[2].b[20].val=1"));
   #endif
 
   #if HAS_CASE_LIGHT
@@ -388,12 +388,12 @@ void setpagePrinter() {
   #endif
 
   #if ENABLED(RFID_MODULE)
-    nexlcd.sendCommandPGM(PSTR("p[2].b[21].val=1"));
+    nexlcd.sendCommandPGM(PSTR("p[2].b[19].val=1"));
   #endif
 
   #define LANGUAGE_STRING(M) STRINGIFY(M)
   #define NEXTION_LANGUAGE LANGUAGE_STRING(LCD_LANGUAGE)
-  nexlcd.sendCommandPGM(PSTR("p[2].b[25].txt=\"" NEXTION_LANGUAGE "\""));
+  nexlcd.sendCommandPGM(PSTR("p[2].b[23].txt=\"" NEXTION_LANGUAGE "\""));
 
 }
 
@@ -552,6 +552,15 @@ void filamentPopCallback(NexObject *nexobject) {
   }
 }
 
+static void degtoLCD(const uint8_t h, uint16_t temp) {
+  NOMORE(temp, 999);
+  nexlcd.setValue(*heater_list0[h], temp);
+}
+
+static void targetdegtoLCD(const uint8_t h, const uint16_t temp) {
+  nexlcd.setValue(*heater_list1[h], temp);
+}
+
 static void coordtoLCD() {
   char* valuetemp;
   ZERO(buffer);
@@ -653,33 +662,38 @@ void Nextion_draw_update() {
         Previousfeedrate = mechanics.feedrate_percentage;
       }
 
-      #if HOTENDS > 0
-        nexlcd.setValue(Hotend00, hotends[0].current_temperature);
-        nexlcd.setValue(Hotend01, hotends[0].target_temperature);
+      #if HAS_TEMP_HE0
+        degtoLCD(0, hotends[0].current_temperature);
+        if (PrevioustargetdegHeater[0] != uint16_t(hotends[0].target_temperature)) {
+          PrevioustargetdegHeater[0] = uint16_t(hotends[0].target_temperature);
+          targetdegtoLCD(0, PrevioustargetdegHeater[0]);
+        }
       #endif
-      #if HOTENDS > 1
-        nexlcd.setValue(Hotend10, hotends[1].current_temperature);
-        nexlcd.setValue(Hotend11, hotends[1].target_temperature);
-      #endif
-      #if HOTENDS > 2
-        nexlcd.setValue(Hotend20, hotends[2].current_temperature);
-        nexlcd.setValue(Hotend21, hotends[2].target_temperature);
+      #if HAS_TEMP_HE1
+        degtoLCD(1, hotends[1].current_temperature);
+        if (PrevioustargetdegHeater[1] != uint16_t(hotends[1].target_temperature)) {
+          PrevioustargetdegHeater[1] = uint16_t(hotends[1].target_temperature);
+          targetdegtoLCD(1, PrevioustargetdegHeater[1]);
+        }
+      #elif CHAMBERS > 0
+        degtoLCD(3, chambers[0].current_temperature);
+        if (PrevioustargetdegHeater[1] != uint16_t(chambers[0].target_temperature)) {
+          PrevioustargetdegHeater[1] = uint16_t(chambers[0].target_temperature);
+          targetdegtoLCD(3, PrevioustargetdegHeater[1]);
+        }
+      #elif ENABLED(DHT_SENSOR)
+        if (lcdui.get_blink(3))
+          degtoLCD(4, dhtsensor.Humidity + 500);
+        else
+          degtoLCD(4, dhtsensor.Temperature);
       #endif
       #if BEDS > 0
-        nexlcd.setValue(Bed0, beds[0].current_temperature);
-        nexlcd.setValue(Bed1, beds[0].target_temperature);
+        degtoLCD(2, beds[0].current_temperature);
+        if (PrevioustargetdegHeater[2] != uint16_t(beds[0].target_temperature)) {
+          PrevioustargetdegHeater[2] = uint16_t(beds[0].target_temperature);
+          targetdegtoLCD(2, PrevioustargetdegHeater[2]);
+        }
       #endif
-      #if CHAMBERS > 0
-        nexlcd.setValue(Chamber0, chambers[0].current_temperature);
-        nexlcd.setValue(Chamber1, chambers[0].target_temperature);
-      #endif
-      #if ENABLED(DHT_SENSOR)
-        if (lcdui.get_blink(3))
-          nexlcd.setValue(DHT0, dhtsensor.Humidity + 500);
-        else
-          nexlcd.setValue(DHT0, dhtsensor.Temperature);
-      #endif
-      
 
       coordtoLCD();
 
