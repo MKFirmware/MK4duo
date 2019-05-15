@@ -41,7 +41,100 @@ void BLTouch::init() {
   cmd_stow();
 }
 
-bool BLTouch::test() {
+void BLTouch::test() {
+
+  bool probe_logic, deploy_state, stow_state;
+
+  SERIAL_EM("BLTouch test.");
+  SERIAL_EMV(".  Using index:  ", 0);
+  SERIAL_EMV(".  Deploy angle: ", servo[0].angle[0]);
+  SERIAL_EMV(".  Stow angle:   ", servo[0].angle[1]);
+
+  #if HAS_Z_PROBE_PIN
+
+    #define PROBE_TEST_PIN Z_PROBE_PIN
+    probe_logic = endstops.isLogic(Z_PROBE);
+    SERIAL_EMV(". BLTouch uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+    SERIAL_EM(". Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
+    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+
+  #elif HAS_Z_MIN
+
+    #define PROBE_TEST_PIN Z_MIN_PIN
+    probe_logic = endstops.isLogic(Z_MIN);
+    SERIAL_EMV(". BLTouch uses Z_MIN pin: ", PROBE_TEST_PIN);
+    SERIAL_EM(". Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
+    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+
+  #endif
+
+  cmd_reset();
+  cmd_stow();
+
+  // DEPLOY and STOW 4 times and see if the signal follows
+  uint8_t i = 0;
+  SERIAL_EM(". Deploy & stow 4 times");
+  do {
+    cmd_deploy();
+    deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
+    cmd_stow();
+    stow_state = HAL::digitalRead(PROBE_TEST_PIN);
+  } while (++i < 4);
+
+  if (probe_logic != deploy_state) SERIAL_EM("WARNING: INVERTING setting probably backwards.");
+
+  if (deploy_state != stow_state) {
+    SERIAL_EM("= BLTouch clone detected");
+    if (deploy_state) {
+      SERIAL_EM(".  DEPLOYED state: HIGH (logic 1)");
+      SERIAL_EM(".  STOWED (triggered) state: LOW (logic 0)");
+    }
+    else {
+      SERIAL_EM(".  DEPLOYED state: LOW (logic 0)");
+      SERIAL_EM(".  STOWED (triggered) state: HIGH (logic 1)");
+    }
+    SERIAL_EM("FAIL: BLTOUCH enabled - Set up this device as a Servo Probe with INVERTING set to 'true'.");
+    return;
+  }
+
+  // Ask the user for a trigger event and measure the pulse width.
+  cmd_deploy();
+  SERIAL_EM("** Please trigger probe within 30 sec **");
+  uint16_t probe_counter = 0;
+
+  // Wait 30 seconds for user to trigger probe
+  for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
+
+    printer.safe_delay(2);
+
+    if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
+
+    if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
+
+      for (probe_counter = 1; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
+        printer.safe_delay(2);
+
+      SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
+
+      if (probe_counter >= 4) {
+        if (probe_counter == 15) SERIAL_MSG("= BLTouch V3.1");
+        else SERIAL_MSG("= BLTouch pre V3.1 or compatible probe");
+        SERIAL_EM(" detected.");
+      }
+      else SERIAL_EM("FAIL: Noise detected - please re-run test");
+
+      cmd_stow();
+
+      return;
+
+    }  // pulse detected
+
+  } // for loop waiting for trigger
+
+  if (probe_counter == 0) SERIAL_LM(ER, " Trigger not detected");
+}
+
+bool BLTouch::triggered() {
   #if HAS_Z_PROBE_PIN
     return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
   #else
@@ -126,7 +219,7 @@ bool BLTouch::status() {
   if (printer.debugFeature()) DEBUG_EM("BLTouch STATUS requested");
 
   cmd_mode_SW();
-  const bool trig = test();         // If triggered in mode SW, the pin is up, it is STOWED
+  const bool trig = triggered();         // If triggered in mode SW, the pin is up, it is STOWED
 
   if (printer.debugFeature()) DEBUG_ELOGIC("BLTouch is ", trig);
 
@@ -150,7 +243,7 @@ bool BLTouch::command(const BLTCommand cmd) {
   if (printer.debugFeature()) SERIAL_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
   printer.safe_delay(BLTOUCH_DELAY);
-  return test();
+  return triggered();
 }
 
 #endif // BLTOUCH
