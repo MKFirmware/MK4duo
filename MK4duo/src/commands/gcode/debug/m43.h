@@ -86,7 +86,7 @@ inline void toggle_pins() {
  *                  R       - Repeat pulses on each pin this number of times before continueing to next pin
  *                  W       - Wait time (in miliseconds) between pulses.  If not given will default to 500
  *
- *  M43 S       - Servo probe test
+ *  M43 S       - Servo probe test or BLTouch test
  *                  P<index> - Probe index (optional - defaults to 0)
  */
 inline void gcode_M43(void) {
@@ -104,7 +104,13 @@ inline void gcode_M43(void) {
   }
 
   // 'S' Run servo probe test and return
-  if (parser.seen('S')) return probe.servo_test();
+  if (parser.seen('S')) {
+    #if ENABLED(BLTOUCH)
+      return bltouch.test();
+    #else
+      return probe.servo_test();
+    #endif
+  }
 
   // 'P' Get the range of pins to test or watch
   uint8_t first_pin = PARSED_PIN_INDEX('P', 0),
@@ -178,8 +184,16 @@ inline void gcode_M43(void) {
 /**
  * M43: Servo probe test/report
  *
- *  M43 S - Servo probe test
+ *  M43 S - Servo probe test or BLTouch test
  */
-inline void gcode_M43(void) { if (parser.seen('S')) probe.servo_test(); }
+inline void gcode_M43(void) {
+  if (parser.seen('S')) {
+    #if ENABLED(BLTOUCH)
+      return bltouch.test();
+    #else
+      return probe.servo_test();
+    #endif
+  }
+}
 
 #endif // DISABLED(PINS_DEBUGGING)

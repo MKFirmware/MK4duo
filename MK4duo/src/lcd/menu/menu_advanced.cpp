@@ -728,9 +728,9 @@ void menu_advanced_settings() {
   // BLTouch Self-Test and Reset
   //
   #if ENABLED(BLTOUCH)
-    MENU_ITEM(gcode, MSG_BLTOUCH_SELFTEST, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_SELFTEST)));
-    if (!endstops.isProbeEnabled() && bltouch.test())
-      MENU_ITEM(gcode, MSG_BLTOUCH_RESET, PSTR("M280 P" STRINGIFY(Z_PROBE_SERVO_NR) " S" STRINGIFY(BLTOUCH_RESET)));
+    MENU_ITEM(function, MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
+    if (!endstops.isProbeEnabled() && bltouch.triggered())
+      MENU_ITEM(function, MSG_BLTOUCH_RESET, bltouch.cmd_reset);
   #endif
 
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)

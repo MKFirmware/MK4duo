@@ -838,7 +838,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
 
   void Cartesian_Mechanics::print_M228() {
     SERIAL_LM(CFG, "Set axis max travel:");
-    SERIAL_SMV(CFG, "  M228 X", LINEAR_UNIT(data.base_pos[X_AXIS].max), 3);
+    SERIAL_SMV(CFG, "  M228 S0 X", LINEAR_UNIT(data.base_pos[X_AXIS].max), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(data.base_pos[Y_AXIS].max), 3);
     SERIAL_EMV(" Z", LINEAR_UNIT(data.base_pos[Z_AXIS].max), 3);
     SERIAL_LM(CFG, "Set axis min travel:");

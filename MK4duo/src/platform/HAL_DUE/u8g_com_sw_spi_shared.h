@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include <U8glib.h>
+
 void u8g_SetPIOutput_DUE(u8g_t *u8g, uint8_t pin_index);
 void u8g_SetPILevel_DUE(u8g_t *u8g, uint8_t pin_index, uint8_t level);
 

@@ -60,7 +60,8 @@ class BLTouch {
   public: /** Public Function */
 
     static void init();
-    static bool test();
+    static void test();
+    static bool triggered();
 
     static bool deploy();
     static bool stow();

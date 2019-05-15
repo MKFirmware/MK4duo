@@ -861,8 +861,8 @@
   </entry>
   <entry type="float">
     <description unit="[unit]">Axis X max</description>
-    <set>M228 X@</set>
-    <detect>M228.*X(-?\d*\.?\d*)</detect>
+    <set>M228 S0 X@</set>
+    <detect>M228 S0.*X(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">Axis Y min</description>
@@ -871,8 +871,8 @@
   </entry>
   <entry type="float">
     <description unit="[unit]">Axis Y max</description>
-    <set>M228 Y@</set>
-    <detect>M228.*Y(-?\d*\.?\d*)</detect>
+    <set>M228 S0 Y@</set>
+    <detect>M228 S0.*Y(-?\d*\.?\d*)</detect>
   </entry>
   <entry type="float">
     <description unit="[unit]">Axis Z min</description>
@@ -881,8 +881,8 @@
   </entry>
   <entry type="float">
     <description unit="[unit]">Axis Z max</description>
-    <set>M228 Z@</set>
-    <detect>M228.*Z(-?\d*\.?\d*)</detect>
+    <set>M228 S0 Z@</set>
+    <detect>M228 S0.*Z(-?\d*\.?\d*)</detect>
   </entry>
 
   <!-- M250: LCD Contrast -->

@@ -261,15 +261,11 @@ void Probe::servo_test() {
 
     SERIAL_LM(ER, "Z_PROBE_SERVO_NR not setup");
 
-  #else // HAS_Z_SERVO_PROBE
+  #elif DISABLED(BLTOUCH)// HAS_Z_SERVO_PROBE
 
     const uint8_t probe_index = parser.seen('P') ? parser.value_byte() : Z_PROBE_SERVO_NR;
 
-    #if ENABLED(BLTOUCH)
-      SERIAL_EM("BLTouch test.");
-    #else
-      SERIAL_EM("Servo probe test.");
-    #endif
+    SERIAL_EM("Servo probe test.");
     SERIAL_EMV(".  Using index:  ", probe_index);
     SERIAL_EMV(".  Deploy angle: ", servo[probe_index].angle[0]);
     SERIAL_EMV(".  Stow angle:   ", servo[probe_index].angle[1]);
@@ -294,32 +290,6 @@ void Probe::servo_test() {
 
     #endif
 
-    // First, check for a probe that recognizes an advanced BLTouch sequence.
-    // In addition to STOW and DEPLOY, it uses SW MODE (and RESET in the beginning).
-    // To see if this is a BLTOUCH Classic 1.2, 1.3, Smart 1.0, 2.0, 2.2, 3.0, 3.1.
-    bool blt = false;
-
-    #if ENABLED(BLTOUCH)
-      SERIAL_EM(". Check for BLTOUCH");
-      bltouch.cmd_reset();
-      bltouch.cmd_stow();
-      if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
-        #if ENABLED(BLTOUCH_FORCE_5V_MODE)
-          bltouch.cmd_mode_5V();
-        #endif
-        bltouch.cmd_mode_SW();
-        if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
-          bltouch.cmd_deploy();
-          if (probe_logic == HAL::digitalRead(PROBE_TEST_PIN)) {
-            bltouch.cmd_stow();
-            SERIAL_EM("= BLTouch Classic 1.2, 1.3, Smart 1.0, 2.0, 2.2, 3.0, 3.1 detected.");
-            // we will check for a 3.1 by letting the user trigger it, later
-            blt = true;
-          }
-        }
-      }
-    #endif
-
     // DEPLOY and STOW 4 times and see if the signal follows
     // Then it is a mechanical switch
     uint8_t i = 0;
@@ -336,11 +306,6 @@ void Probe::servo_test() {
     if (probe_logic != deploy_state) SERIAL_EM("WARNING: INVERTING setting probably backwards.");
 
     if (deploy_state != stow_state) {
-      #if ENABLED(BLTOUCH)
-        SERIAL_EM("= BLTouch clone detected");
-      #else
-        SERIAL_EM("= Mechanical Switch detected");
-      #endif
       if (deploy_state) {
         SERIAL_EM(".  DEPLOYED state: HIGH (logic 1)");
         SERIAL_EM(".  STOWED (triggered) state: LOW (logic 0)");
@@ -349,9 +314,6 @@ void Probe::servo_test() {
         SERIAL_EM(".  DEPLOYED state: LOW (logic 0)");
         SERIAL_EM(".  STOWED (triggered) state: HIGH (logic 1)");
       }
-      #if ENABLED(BLTOUCH)
-        SERIAL_EM("FAIL: BLTOUCH enabled - Set up this device as a Servo Probe with INVERTING set to 'true'.");
-      #endif
       return;
     }
 
@@ -377,14 +339,7 @@ void Probe::servo_test() {
 
         SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
 
-        if (probe_counter >= 4) {
-          if (probe_counter == 15) {
-            if (blt)  SERIAL_MSG("= BLTouch V3.1");
-            else      SERIAL_MSG("= Z Servo Probe");
-          }
-          else SERIAL_MSG("= BLTouch pre V3.1 or compatible probe");
-          SERIAL_EM(" detected.");
-        }
+        if (probe_counter >= 4) SERIAL_MSG("= Z Servo Probe detected.");
         else SERIAL_EM("FAIL: Noise detected - please re-run test");
 
         MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // Stow

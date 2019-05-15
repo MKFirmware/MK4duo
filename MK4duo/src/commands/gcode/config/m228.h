@@ -48,7 +48,7 @@ inline void gcode_M228(void) {
     }
   #endif
 
-  const bool minimum = parser.seenval('S');
+  const bool minimum = parser.boolval('S');
 
   if (minimum) {
     if (parser.seenval('X')) mechanics.data.base_pos[X_AXIS].min = parser.value_linear_units();
