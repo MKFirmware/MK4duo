@@ -59,10 +59,8 @@
 
 #if ENABLED(U8GLIB_ST7920)
 
-#include "u8g_com_sw_spi_shared.h"
-
 #include <U8glib.h>
-
+#include "u8g_com_sw_spi_shared.h"
 #define SPISEND_SW_DUE u8g_spiSend_sw_DUE_mode_0
 
 static uint8_t rs_last_state = 255;

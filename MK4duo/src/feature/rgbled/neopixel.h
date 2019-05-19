@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * neopixel.h
@@ -26,29 +27,38 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#ifndef __NEOPIXEL_H__
-#define __NEOPIXEL_H__
-
 #if ENABLED(NEOPIXEL_LED)
 
-  #include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 
-  #define NEOPIXEL_IS_RGB  (NEOPIXEL_TYPE == NEO_RGB || NEOPIXEL_TYPE == NEO_RBG || NEOPIXEL_TYPE == NEO_GRB || NEOPIXEL_TYPE == NEO_GBR || NEOPIXEL_TYPE == NEO_BRG || NEOPIXEL_TYPE == NEO_BGR)
-  #define NEOPIXEL_IS_RGBW !NEOPIXEL_IS_RGB
+#define NEOPIXEL_IS_RGB  (NEOPIXEL_TYPE == NEO_RGB || NEOPIXEL_TYPE == NEO_RBG || NEOPIXEL_TYPE == NEO_GRB || NEOPIXEL_TYPE == NEO_GBR || NEOPIXEL_TYPE == NEO_BRG || NEOPIXEL_TYPE == NEO_BGR)
+#define NEOPIXEL_IS_RGBW !NEOPIXEL_IS_RGB
 
-  #if NEOPIXEL_IS_RGB
-    #define NEO_WHITE 255, 255, 255, 0
-  #else
-    #define NEO_WHITE 0, 0, 0, 255
-  #endif
+#if NEOPIXEL_IS_RGB
+  #define NEO_WHITE 255, 255, 255, 0
+#else
+  #define NEO_WHITE 0, 0, 0, 255
+#endif
 
-  #define NEO_BLACK   0, 0, 0, 0
+#define NEO_BLACK   0, 0, 0, 0
 
-  void setup_neopixel();
-  void set_neopixel_color(const uint32_t color);
+class Neopixel {
 
-  extern Adafruit_NeoPixel strip;
+  public: /** Constructor */
+
+    Neopixel() {}
+
+  public: /** Public Parameters */
+
+    static Adafruit_NeoPixel strip;
+
+  public: /** Public Function */
+
+    static void setup();
+    static void set_color(const uint32_t color);
+
+};
+
+extern Neopixel neopixel;
 
 #endif // ENABLED(NEOPIXEL_LED)
-
-#endif /* __NEOPIXEL_H__ */

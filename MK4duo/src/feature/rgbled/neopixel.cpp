@@ -30,34 +30,36 @@
 
 #if ENABLED(NEOPIXEL_LED)
 
-  #include "neopixel.h"
+#include "neopixel.h"
 
-  Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEOPIXEL_TYPE + NEO_KHZ800);
+/** Public Parameters */
+Adafruit_NeoPixel Neopixel::strip = Adafruit_NeoPixel(NEOPIXEL_PIXELS, NEOPIXEL_PIN, NEOPIXEL_TYPE + NEO_KHZ800);
 
-  void set_neopixel_color(const uint32_t color) {
-    for (uint16_t i = 0; i < strip.numPixels(); ++i)
-      strip.setPixelColor(i, color);
-    strip.show();
-  }
+/** Public Function */
+void Neopixel::set_color(const uint32_t color) {
+  for (uint16_t i = 0; i < strip.numPixels(); ++i)
+    strip.setPixelColor(i, color);
+  strip.show();
+}
 
-  void setup_neopixel() {
+void Neopixel::setup() {
 
-    SET_OUTPUT(NEOPIXEL_PIN);
+  SET_OUTPUT(NEOPIXEL_PIN);
 
-    strip.setBrightness(NEOPIXEL_BRIGHTNESS); // 0 - 255 range
-    strip.begin();
-    strip.show(); // initialize to all off
+  strip.setBrightness(NEOPIXEL_BRIGHTNESS); // 0 - 255 range
+  strip.begin();
+  strip.show(); // initialize to all off
 
-    #if ENABLED(NEOPIXEL_STARTUP_TEST)
-      printer.safe_delay(2000);
-      set_neopixel_color(strip.Color(255, 0, 0, 0));  // red
-      printer.safe_delay(2000);
-      set_neopixel_color(strip.Color(0, 255, 0, 0));  // green
-      printer.safe_delay(2000);
-      set_neopixel_color(strip.Color(0, 0, 255, 0));  // blue
-      printer.safe_delay(2000);
-    #endif
-    set_neopixel_color(strip.Color(NEO_BLACK));       // black
-  }
+  #if ENABLED(NEOPIXEL_STARTUP_TEST)
+    printer.safe_delay(1000);
+    set_color(strip.Color(255, 0, 0, 0));  // red
+    printer.safe_delay(1000);
+    set_color(strip.Color(0, 255, 0, 0));  // green
+    printer.safe_delay(1000);
+    set_color(strip.Color(0, 0, 255, 0));  // blue
+    printer.safe_delay(1000);
+  #endif
+  set_color(strip.Color(NEO_BLACK));       // black
+}
 
 #endif // ENABLED(NEOPIXEL_LED)
