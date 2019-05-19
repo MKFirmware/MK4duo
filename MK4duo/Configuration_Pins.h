@@ -310,10 +310,10 @@
   #define DHT_DATA_PIN NoPin
 #endif
 
-#if HAVE_DRV(TMC2130) && ENABLED(SOFT_SPI_TMC2130)
-  #define SOFT_MOSI_PIN 51
-  #define SOFT_MISO_PIN 50
-  #define SOFT_SCK_PIN  52
+#if HAS_TMCX1X0 && ENABLED(TMC_USE_SW_SPI)
+  #define TMC_SW_MOSI 51
+  #define TMC_SW_MISO 50
+  #define TMC_SW_SCK  52
 #endif
 
 //============================================================================

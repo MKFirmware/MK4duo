@@ -230,7 +230,7 @@ void TMC_Stepper::init() {
 
   #elif HAVE_DRV(TMC2660)
 
-    #if ENABLED(SOFT_SPI_TMC2660)
+    #if ENABLED(TMC_USE_SW_SPI)
       #define _TMC2660_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK)
       #define TMC2660_DEFINE(ST)      _TMC2660_DEFINE(ST, TMC_##ST##_LABEL)
     #else
@@ -238,7 +238,7 @@ void TMC_Stepper::init() {
       #define TMC2660_DEFINE(ST)      _TMC2660_DEFINE(ST, TMC_##ST##_LABEL)
     #endif
 
-    #if DISABLED(SOFT_SPI_TMC2130)
+    #if DISABLED(TMC_USE_SW_SPI)
       SPI.begin();
     #endif
 
@@ -300,15 +300,15 @@ void TMC_Stepper::init() {
 
   #elif HAS_TMCX1X0
 
-    #if ENABLED(SOFT_SPI_TMC2130)
-      #define _TMC_MODEL_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE, SOFT_MOSI_PIN, SOFT_MISO_PIN, SOFT_SCK_PIN)
+    #if ENABLED(TMC_USE_SW_SPI)
+      #define _TMC_MODEL_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK)
       #define TMC_MODEL_DEFINE(ST)      _TMC_MODEL_DEFINE(ST, TMC_##ST##_LABEL)
     #else
       #define _TMC_MODEL_DEFINE(ST, L)  stepper##ST = new MKTMC(L, ST##_CS_PIN, R_SENSE)
       #define TMC_MODEL_DEFINE(ST)      _TMC_MODEL_DEFINE(ST, TMC_##ST##_LABEL)
     #endif
 
-    #if DISABLED(SOFT_SPI_TMC2130)
+    #if DISABLED(TMC_USE_SW_SPI)
       SPI.begin();
     #endif
 
@@ -579,7 +579,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     TMC_REPORT("Stallguard thrs",     TMC_SGT);
 
     DRV_REPORT("DRVSTATUS\t",         TMC_DRV_CODES);
-    #if HAVE_DRV(TMC2130) || HAVE_DRV(TMC2160) || HAVE_DRV(TMC5130) || HAVE_DRV(TMC5160)
+    #if HAS_TMCX1X0
       DRV_REPORT("stallguard\t",      TMC_STALLGUARD);
       DRV_REPORT("sg_result\t",       TMC_SG_RESULT);
       DRV_REPORT("fsactive\t",        TMC_FSACTIVE);

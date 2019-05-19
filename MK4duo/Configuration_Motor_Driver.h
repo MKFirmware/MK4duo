@@ -73,7 +73,7 @@
 #define INTERPOLATE       true  // Interpolate X/Y/Z_MICROSTEPS to 256
 
 // Select this if use software SPI. Choose pins in Configuration_pins.h
-//#define SOFT_SPI_TMC2130
+//#define TMC_USE_SW_SPI
 
 // Use StallGuard2 to sense an obstacle and trigger an endstop.
 // Connect the stepper driver's DIAG1 pin to the X/Y/Z endstop pin.
