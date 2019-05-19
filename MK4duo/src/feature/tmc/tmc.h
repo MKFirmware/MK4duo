@@ -445,7 +445,7 @@ class TMC_Stepper {
       st->toff(off_time_val);
     }
 
-    #if HAVE_DRV(TMC2130)
+    #if HAS_TMCX1X0
 
       FORCE_INLINE static void get_blank_time(MKTMC* st) {
         st->printLabel();
@@ -519,7 +519,7 @@ class TMC_Stepper {
         st->pwm_autoscale(onoff);
       }
 
-    #endif // HAVE_DRV(TMC2130)
+    #endif // HAS_TMCX1X0
 
   private: /** Private Function */
 

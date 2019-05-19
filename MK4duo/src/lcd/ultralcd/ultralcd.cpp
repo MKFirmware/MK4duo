@@ -1256,6 +1256,9 @@ void LcdUI::reset_status() {
  * Print pause, resume and stop
  */
 void LcdUI::pause_print() {
+
+  lcdui.synchronize(PSTR(MSG_PAUSE_PRINT));
+
   #if HAS_SD_RESTART
     if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
   #endif
@@ -1268,8 +1271,6 @@ void LcdUI::pause_print() {
   #else
     host_action.pause();
   #endif
-
-  planner.synchronize();
 
 }
 
