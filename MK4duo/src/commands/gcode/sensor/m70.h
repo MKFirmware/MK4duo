@@ -28,31 +28,31 @@
 
 #if HAS_POWER_CONSUMPTION_SENSOR
 
-  #define CODE_M70
+#define CODE_M70
 
-  /**
-   * M70 - Power consumption sensor calibration
-   *
-   * Z - Calibrate zero current offset
-   * A - Isert readed DC Current value (Ampere)
-   * W - Insert readed AC Wattage value (Watt)
-   */
-  inline void gcode_M70(void) {
-    if (parser.seen('Z')) {
-      SERIAL_EMV("Actual POWER_ZERO:", POWER_ZERO, 7);
-      SERIAL_EMV("New POWER_ZERO:", powerManager.raw_analog2voltage(), 7);
-      SERIAL_EM("Insert new calculated values into the FW and call \"M70 A\" for the next calibration step.");
-    }
-    else if (parser.seen('A')) {
-      SERIAL_EMV("Actual POWER_ERROR:", POWER_ERROR, 7);
-      SERIAL_EMV("New POWER_ERROR:", powerManager.analog2error(parser.value_float()), 7);
-      SERIAL_EM("Insert new calculated values into the FW and call \"M70 W\" for the last calibration step.");
-    }
-    else if (parser.seen('W')) {
-      SERIAL_EMV("Actual POWER_EFFICIENCY:", POWER_EFFICIENCY, 7);
-      SERIAL_EMV("New POWER_EFFICIENCY:", powerManager.analog2efficiency(parser.value_float()), 7);
-      SERIAL_EM("Insert new calculated values into the FW and then ACS712 it should be calibrated correctly.");
-    }
+/**
+ * M70 - Power consumption sensor calibration
+ *
+ * Z - Calibrate zero current offset
+ * A - Isert readed DC Current value (Ampere)
+ * W - Insert readed AC Wattage value (Watt)
+ */
+inline void gcode_M70(void) {
+  if (parser.seen('Z')) {
+    SERIAL_EMV("Actual POWER_ZERO:", POWER_ZERO, 7);
+    SERIAL_EMV("New POWER_ZERO:", powerManager.raw_analog2voltage(), 7);
+    SERIAL_EM("Insert new calculated values into the FW and call \"M70 A\" for the next calibration step.");
   }
+  else if (parser.seen('A')) {
+    SERIAL_EMV("Actual POWER_ERROR:", POWER_ERROR, 7);
+    SERIAL_EMV("New POWER_ERROR:", powerManager.analog2error(parser.value_float()), 7);
+    SERIAL_EM("Insert new calculated values into the FW and call \"M70 W\" for the last calibration step.");
+  }
+  else if (parser.seen('W')) {
+    SERIAL_EMV("Actual POWER_EFFICIENCY:", POWER_EFFICIENCY, 7);
+    SERIAL_EMV("New POWER_EFFICIENCY:", powerManager.analog2efficiency(parser.value_float()), 7);
+    SERIAL_EM("Insert new calculated values into the FW and then ACS712 it should be calibrated correctly.");
+  }
+}
 
 #endif // HAS_POWER_CONSUMPTION_SENSOR

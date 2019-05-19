@@ -1256,10 +1256,10 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
     #define _SAVE_START NOOP
     #if EXTRA_CYCLES_BABYSTEP > 0
       #define _PULSE_WAIT DELAY_NS(EXTRA_CYCLES_BABYSTEP * NS_PER_CYCLE)
-    #elif HAL_min_pulse_tick > 0
-      #define _PULSE_WAIT NOOP
     #elif MECH(DELTA)
       #define _PULSE_WAIT DELAY_US(2);
+    #elif HAL_min_pulse_tick > 0
+      #define _PULSE_WAIT NOOP
     #else
       #define _PULSE_WAIT DELAY_US(4);
     #endif
