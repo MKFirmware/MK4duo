@@ -73,7 +73,7 @@
     fan->data.trigger_temperature  = parser.ushortval('T', fan->data.trigger_temperature);
 
     #if ENABLED(FAN_KICKSTART_TIME)
-      if (fan->kickstart == 0 && new_speed > fan->speed && new_speed < 85) {
+      if (fan->kickstart == 0 && new_speed > fan->speed && new_speed < 128) {
         if (fan->speed) fan->kickstart = FAN_KICKSTART_TIME / 100;
         else            fan->kickstart = FAN_KICKSTART_TIME / 25;
       }
