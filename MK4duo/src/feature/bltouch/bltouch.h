@@ -38,6 +38,13 @@
 #define BLTOUCH_MODE_OD     150
 #define BLTOUCH_RESET       160
 
+#if DISABLED(BLTOUCH_DEPLOY_DELAY)
+  #define BLTOUCH_DEPLOY_DELAY  750
+#endif
+#if DISABLED(BLTOUCH_STOW_DELAY)
+  #define BLTOUCH_STOW_DELAY    750
+#endif
+
 /**
  * The following commands may require different delays.
  *
@@ -67,23 +74,23 @@ class BLTouch {
     static bool stow();
     static bool status();
 
-    FORCE_INLINE static void cmd_reset()          { (void)command(BLTOUCH_RESET);                 }
-    FORCE_INLINE static void cmd_selftest()       { (void)command(BLTOUCH_SELFTEST);              }
+    FORCE_INLINE static void cmd_reset()          { (void)command(BLTOUCH_RESET);                         }
+    FORCE_INLINE static void cmd_selftest()       { (void)command(BLTOUCH_SELFTEST);                      }
 
-    FORCE_INLINE static void cmd_mode_SW()        { (void)command(BLTOUCH_MODE_SW);               }
-    FORCE_INLINE static void cmd_reset_mode_SW()  { if (status()) cmd_stow(); else cmd_deploy();  }
+    FORCE_INLINE static void cmd_mode_SW()        { (void)command(BLTOUCH_MODE_SW);                       }
+    FORCE_INLINE static void cmd_reset_mode_SW()  { if (status()) cmd_stow(); else cmd_deploy();          }
 
-    FORCE_INLINE static void cmd_mode_5V()        { (void)command(BLTOUCH_MODE_5V);               }
-    FORCE_INLINE static void cmd_mode_OD()        { (void)command(BLTOUCH_MODE_OD);               }
-    FORCE_INLINE static void cmd_mode_store()     { (void)command(BLTOUCH_MODE_STORE);            }
+    FORCE_INLINE static void cmd_mode_5V()        { (void)command(BLTOUCH_MODE_5V);                       }
+    FORCE_INLINE static void cmd_mode_OD()        { (void)command(BLTOUCH_MODE_OD);                       }
+    FORCE_INLINE static void cmd_mode_store()     { (void)command(BLTOUCH_MODE_STORE);                    }
 
-    FORCE_INLINE static void cmd_deploy()         { (void)command(BLTOUCH_DEPLOY);                }
-    FORCE_INLINE static void cmd_stow()           { (void)command(BLTOUCH_STOW);                  }
+    FORCE_INLINE static void cmd_deploy()         { (void)command(BLTOUCH_DEPLOY, BLTOUCH_DEPLOY_DELAY);  }
+    FORCE_INLINE static void cmd_stow()           { (void)command(BLTOUCH_STOW,   BLTOUCH_STOW_DELAY);    }
 
   private: /** Private Function */
 
     static void clear();
-    static bool command(const BLTCommand cmd);
+    static bool command(const BLTCommand cmd, const millis_s ms=BLTOUCH_DELAY);
 
     FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_DEPLOY); }
     FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_STOW);   }
