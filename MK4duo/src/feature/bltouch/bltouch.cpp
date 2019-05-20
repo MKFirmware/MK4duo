@@ -35,7 +35,15 @@ BLTouch bltouch;
 /** Public Function */
 void BLTouch::init() {
   #if ENABLED(BLTOUCH_FORCE_5V_MODE)
+    // BLTOUCH < V3.0 and clones: This will be ignored
+    // BLTOUCH V3.0: SET_5V_MODE.
+    //               This mode will stay active until manual SET_OD_MODE or power cycle
+    // BLTOUCH V3.1: SET_5V_MODE. If not the probe will default to the eeprom settings configured by the user
+    deploy();
     cmd_mode_5V();
+    cmd_mode_store();
+    cmd_mode_5V();
+    stow();
   #endif
   cmd_reset();
   cmd_stow();
@@ -189,19 +197,19 @@ bool BLTouch::stow() {
     // The stow might have failed
     if (printer.debugFeature()) DEBUG_EM("BLTouch ALARM or TRIGGER after STOW, recovering");
 
-    cmd_reset();                          // This RESET will then also pull up the pin. If it doesn't
-                                          // work and the pin is still down, there will no longer be
-                                          // an ALARM condition though.
-                                          // But one more STOW will catch that
+    cmd_reset();                        // This RESET will then also pull up the pin. If it doesn't
+                                        // work and the pin is still down, there will no longer be
+                                        // an ALARM condition though.
+                                        // But one more STOW will catch that
     // Last attempt to STOW
     if (cmd_stow_alarm()) {             // so if there is now STILL an ALARM condition:
 
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
-      SERIAL_LM(ER, MSG_STOP_BLTOUCH);    // Tell the user something is wrong, needs action
-      printer.stop();                     // but it's not too bad, no need to kill, allow restart
+      SERIAL_LM(ER, MSG_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
+      printer.stop();                   // but it's not too bad, no need to kill, allow restart
 
-      return true;                        // Tell our caller we goofed in case he cares to know
+      return true;                      // Tell our caller we goofed in case he cares to know
     }
   }
 
@@ -213,19 +221,14 @@ bool BLTouch::stow() {
 bool BLTouch::status() {
   // Return a TRUE for "YES, it is DEPLOYED"
   // This function will ensure switch state is reset after execution
-  // This may change pin position in some scenarios, specifically
-  // if the pin has been triggered but not yet stowed.
-
   if (printer.debugFeature()) DEBUG_EM("BLTouch STATUS requested");
 
   cmd_mode_SW();
-  const bool trig = triggered();         // If triggered in mode SW, the pin is up, it is STOWED
+  const bool trig = triggered();        // If triggered in mode SW, the pin is up, it is STOWED
 
   if (printer.debugFeature()) DEBUG_ELOGIC("BLTouch is ", trig);
 
-  cmd_reset();                      // Turn off the mode SW
-  if (trig) stow();
-  else deploy();                    // Turn off mode SW, reset any trigger
+  if (trig) stow(); else deploy();      // Turn off mode SW, reset any trigger
   return !trig;
 }
 
@@ -239,10 +242,10 @@ void BLTouch::clear() {
   stow();       // STOW to be ready for meaningful work. Could fail, don't care
 }
 
-bool BLTouch::command(const BLTCommand cmd) {
+bool BLTouch::command(const BLTCommand cmd, const millis_s ms/*=BLTOUCH_DELAY*/) {
   if (printer.debugFeature()) SERIAL_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
-  printer.safe_delay(BLTOUCH_DELAY);
+  printer.safe_delay(MAX(ms, BLTOUCH_DELAY));
   return triggered();
 }
 
