@@ -628,7 +628,7 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
 bool Commands::drain_injected_P() {
   if (injected_commands_P != nullptr) {
     size_t i = 0;
-    char c, cmd[30];
+    char c, cmd[60];
     strncpy_P(cmd, injected_commands_P, sizeof(cmd) - 1);
     cmd[sizeof(cmd) - 1] = '\0';
     while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
