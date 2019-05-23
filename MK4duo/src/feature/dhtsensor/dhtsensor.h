@@ -53,9 +53,12 @@ class DHTSensor {
 
   private: /** Private Parameters */
 
-    static const millis_l _maxcycles;
-
     static uint8_t read_data[5];
+
+    static enum SensorState {
+      Init,
+      Read
+    } state;
 
   public: /** Public Function */
 
@@ -69,8 +72,6 @@ class DHTSensor {
     static float dewPointFast();
 
   private: /** Private Function */
-
-    static uint32_t expectPulse(bool level);
 
     static float read_temperature();
     static float read_humidity();
