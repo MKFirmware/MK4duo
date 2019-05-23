@@ -50,57 +50,56 @@ inline void gcode_M940(void) {
     }
   #endif
 
-  LOOP_XYZE(i) {
-    if (const bool value = parser.boolval(axis_codes[i])) {
-      switch (i) {
-        case X_AXIS:
-          #if AXIS_HAS_STEALTHCHOP(X)
-            tmc_set_stealthChop(stepperX, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(X2)
-            tmc_set_stealthChop(stepperX2, value);
-          #endif
-          break;
-        case Y_AXIS:
-          #if AXIS_HAS_STEALTHCHOP(Y)
-            tmc_set_stealthChop(stepperY, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(Y2)
-            tmc_set_stealthChop(stepperY2, value);
-          #endif
-          break;
-        case Z_AXIS:
-          #if AXIS_HAS_STEALTHCHOP(Z)
-            tmc_set_stealthChop(stepperZ, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(Z2)
-            tmc_set_stealthChop(stepperZ2, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(Z3)
-            tmc_set_stealthChop(stepperZ3, value);
-          #endif
-          break;
-        case E_AXIS:
-          #if AXIS_HAS_STEALTHCHOP(E0)
-            tmc_set_stealthChop(stepperE0, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(E1)
-            tmc_set_stealthChop(stepperE1, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(E2)
-            tmc_set_stealthChop(stepperE2, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(E3)
-            tmc_set_stealthChop(stepperE3, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(E4)
-            tmc_set_stealthChop(stepperE4, value);
-          #endif
-          #if AXIS_HAS_STEALTHCHOP(E5)
-            tmc_set_stealthChop(stepperE5, value);
-          #endif
+  LOOP_XYZE(i) if (parser.seen(axis_codes[i])) {
+    const bool value = parser.value_bool();
+    switch (i) {
+      case X_AXIS:
+        #if AXIS_HAS_STEALTHCHOP(X)
+          tmc_set_stealthChop(stepperX, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(X2)
+          tmc_set_stealthChop(stepperX2, value);
+        #endif
         break;
-      }
+      case Y_AXIS:
+        #if AXIS_HAS_STEALTHCHOP(Y)
+          tmc_set_stealthChop(stepperY, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(Y2)
+          tmc_set_stealthChop(stepperY2, value);
+        #endif
+        break;
+      case Z_AXIS:
+        #if AXIS_HAS_STEALTHCHOP(Z)
+          tmc_set_stealthChop(stepperZ, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(Z2)
+          tmc_set_stealthChop(stepperZ2, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(Z3)
+          tmc_set_stealthChop(stepperZ3, value);
+        #endif
+        break;
+      case E_AXIS:
+        #if AXIS_HAS_STEALTHCHOP(E0)
+          tmc_set_stealthChop(stepperE0, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(E1)
+          tmc_set_stealthChop(stepperE1, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(E2)
+          tmc_set_stealthChop(stepperE2, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(E3)
+          tmc_set_stealthChop(stepperE3, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(E4)
+          tmc_set_stealthChop(stepperE4, value);
+        #endif
+        #if AXIS_HAS_STEALTHCHOP(E5)
+          tmc_set_stealthChop(stepperE5, value);
+        #endif
+      break;
     }
   }
 }
