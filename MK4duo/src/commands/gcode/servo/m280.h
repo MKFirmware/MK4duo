@@ -50,7 +50,7 @@
           srv->attach(0);
           srv->write(servo_position);
           #if (DONDOLO_SERVO_DELAY > 0)
-            printer.safe_delay(DONDOLO_SERVO_DELAY);
+            HAL::delayMilliseconds(DONDOLO_SERVO_DELAY);
             srv->detach();
           #endif
         }

@@ -366,24 +366,6 @@ bool Temperature::heaters_isActive() {
 
 #endif
 
-#if HAS_MAX6675 || HAS_MAX31855
-
-  void Temperature::getTemperature_SPI() {
-    LOOP_HOTEND() {
-      Heater *act = &hotends[h];
-      #if HAS_MAX31855
-        if (act->sensor.type == -4)
-          act->sensor.raw = act->sensor.read_max31855();
-      #endif
-      #if HAS_MAX6675
-        if (act->sensor.type == -3)
-          act->sensor.raw = act->sensor.read_max6675();
-      #endif
-    }
-  }
-
-#endif
-
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
 
   // Convert raw Filament Width to millimeters

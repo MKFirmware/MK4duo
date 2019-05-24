@@ -240,12 +240,6 @@ using pfnISR_Handler = void(*)(void);
 // Install a new interrupt vector handler for the given irq, returning the old one
 pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler);
 
-class InterruptLock {
-  public:
-   InterruptLock()  { noInterrupts(); }
-   ~InterruptLock() { interrupts();   }
-};
-
 class HAL {
 
   public: /** Constructor */
@@ -332,14 +326,8 @@ class HAL {
     FORCE_INLINE static void delayMicroseconds(const uint32_t delayUs) {
       HAL_delay_cycles(delayUs * (CYCLES_PER_US));
     }
-    FORCE_INLINE static void delayMilliseconds(uint16_t delayMs) {
-      uint16_t del;
-      while (delayMs > 0) {
-        del = delayMs > 100 ? 100 : delayMs;
-        delay(del);
-        delayMs -= del;
-        watchdog.reset();
-      }
+    FORCE_INLINE static void delayMilliseconds(const uint16_t delayMs) {
+      delay(delayMs);
     }
     FORCE_INLINE static uint32_t timeInMilliseconds() {
       return millis();

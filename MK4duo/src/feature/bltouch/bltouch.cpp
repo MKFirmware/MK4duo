@@ -32,18 +32,24 @@
 
 BLTouch bltouch;
 
+/** Public Parameters */
+bool BLTouch::last_mode = false;
+
 /** Public Function */
-void BLTouch::init() {
-  #if ENABLED(BLTOUCH_FORCE_5V_MODE)
-    // BLTOUCH < V3.0 and clones: This will be ignored
-    // BLTOUCH V3.0: SET_5V_MODE.
-    //               This mode will stay active until manual SET_OD_MODE or power cycle
-    // BLTOUCH V3.1: SET_5V_MODE. If not the probe will default to the eeprom settings configured by the user
-    deploy();
-    cmd_mode_5V();
-    cmd_mode_store();
-    cmd_mode_5V();
-    stow();
+// Init the class and device. Call from setup().
+void BLTouch::init(const bool set_voltage/*=false*/) {
+  #if ENABLED(BLTOUCH_FORCE_MODE)
+    if (set_voltage) mode_conv(BLTOUCH_MODE_5V);
+  #elif HAS_EEPROM
+    if (printer.debugFeature()) {
+      DEBUG_EMV("last_mode:", (int)last_mode);
+      DEBUG_MSG("Set BLTOUCH_MODE_");
+      DEBUG_L(BLTOUCH_MODE_5V ? PSTR("5V") : PSTR("OD"));
+    }
+    if (last_mode != BLTOUCH_MODE_5V && set_voltage)
+      mode_conv(BLTOUCH_MODE_5V);
+  #else
+    UNUSED(set_voltage);
   #endif
   cmd_reset();
   cmd_stow();
@@ -113,14 +119,14 @@ void BLTouch::test() {
   // Wait 30 seconds for user to trigger probe
   for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
 
-    printer.safe_delay(2);
+    HAL::delayMilliseconds(2);
 
     if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
 
     if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 
       for (probe_counter = 1; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
-        printer.safe_delay(2);
+        HAL::delayMilliseconds(2);
 
       SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
 
@@ -140,14 +146,6 @@ void BLTouch::test() {
   } // for loop waiting for trigger
 
   if (probe_counter == 0) SERIAL_LM(ER, " Trigger not detected");
-}
-
-bool BLTouch::triggered() {
-  #if HAS_Z_PROBE_PIN
-    return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
-  #else
-    return HAL::digitalRead(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
-  #endif
 }
 
 bool BLTouch::deploy() {
@@ -172,6 +170,11 @@ bool BLTouch::deploy() {
       return true;                      // Tell our caller we goofed in case he cares to know
     }
   }
+
+  // One of the recommended ANTClabs ways to probe, using SW MODE
+  #if ENABLED(BLTOUCH_FORCE_SW_MODE)
+   cmd_mode_SW();
+  #endif
 
   // Now the probe is ready to issue a 10ms pulse when the pin goes up.
   // The trigger STOW (see motion.cpp for example) will pull up the probes pin as soon as the pulse
@@ -218,20 +221,6 @@ bool BLTouch::stow() {
   return false; // report success to caller
 }
 
-bool BLTouch::status() {
-  // Return a TRUE for "YES, it is DEPLOYED"
-  // This function will ensure switch state is reset after execution
-  if (printer.debugFeature()) DEBUG_EM("BLTouch STATUS requested");
-
-  cmd_mode_SW();
-  const bool trig = triggered();        // If triggered in mode SW, the pin is up, it is STOWED
-
-  if (printer.debugFeature()) DEBUG_ELOGIC("BLTouch is ", trig);
-
-  if (trig) stow(); else deploy();      // Turn off mode SW, reset any trigger
-  return !trig;
-}
-
 /** Private Functions */
 void BLTouch::clear() {
   cmd_reset();  // RESET or RESET_SW will clear an alarm condition but...
@@ -242,11 +231,32 @@ void BLTouch::clear() {
   stow();       // STOW to be ready for meaningful work. Could fail, don't care
 }
 
+void BLTouch::mode_conv(const bool M5V/*=false*/) {
+  if (printer.debugFeature()) {
+    DEBUG_MSG("Set BLTouch mode ");
+    DEBUG_L(M5V ? PSTR("5V") : PSTR("OD"));
+  }
+  cmd_deploy();
+  if (M5V) cmd_mode_5V(); else cmd_mode_OD();
+  cmd_mode_store();
+  if (M5V) cmd_mode_5V(); else cmd_mode_OD();
+  cmd_stow();
+  last_mode = M5V;
+}
+
 bool BLTouch::command(const BLTCommand cmd, const millis_s ms/*=BLTOUCH_DELAY*/) {
-  if (printer.debugFeature()) SERIAL_EMV("BLTouch Command :", cmd);
+  if (printer.debugFeature()) DEBUG_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
-  printer.safe_delay(MAX(ms, BLTOUCH_DELAY));
+  HAL::delayMilliseconds(MAX(ms, (millis_s)BLTOUCH_DELAY));
   return triggered();
+}
+
+bool BLTouch::triggered() {
+  #if HAS_Z_PROBE_PIN
+    return HAL::digitalRead(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE);
+  #else
+    return HAL::digitalRead(Z_MIN_PIN) != endstops.isLogic(Z_MIN);
+  #endif
 }
 
 #endif // BLTOUCH

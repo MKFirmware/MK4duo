@@ -593,7 +593,10 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static millis_s cycle_check_temp_ms = 0;
+  static millis_s cycle_1s_ms   = millis(),
+                  cycle_100_ms  = millis();
+
+  watchdog.reset();
 
   if (printer.isStopped()) return;
 
@@ -613,103 +616,124 @@ void HAL::Tick() {
 
   // Fans set output PWM
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].set_output_pwm();
+    LOOP_FAN() {
+      if (fans[f].kickstart) fans[f].kickstart--;
+      fans[f].set_output_pwm();
+    }
   #endif
 
   // Software PWM modulation
   softpwm.spin();
 
-  // Calculation cycle temp a 100ms
-  if (expired(&cycle_check_temp_ms, 100U)) {
-    // Temperature Spin
-    thermalManager.spin();
-    #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
-      LOOP_FAN() {
-        if (fans[f].kickstart) fans[f].kickstart--;
+  // Event 100 ms
+  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+
+  // Event 1.0 Second
+  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+
+  // Read analog or SPI values
+  if (adc_get_status(ADC)) { // conversion finished?
+
+    #if HOTENDS > 0
+      LOOP_HOTEND() {
+        Heater *act = &hotends[h];
+        if (WITHIN(act->sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
+          currentFilter.ProcessReading(AnalogInReadPin(act->sensor.pin));
+          if (currentFilter.IsValid()) {
+            AnalogInputValues[act->sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+            Analog_is_ready = true;
+          }
+        }
+        #if HAS_MAX31855
+          else if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
       }
     #endif
+    #if BEDS > 0
+      LOOP_BED() {
+        Heater *act = &beds[h];
+        if (WITHIN(act->sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
+          currentFilter.ProcessReading(AnalogInReadPin(act->sensor.pin));
+          if (currentFilter.IsValid()) {
+            AnalogInputValues[act->sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+            Analog_is_ready = true;
+          }
+        }
+        #if HAS_MAX31855
+          else if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
+      }
+    #endif
+    #if CHAMBERS > 0
+      LOOP_CHAMBER() {
+        Heater *act = &chambers[h];
+        if (WITHIN(act->sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
+          currentFilter.ProcessReading(AnalogInReadPin(act->sensor.pin));
+          if (currentFilter.IsValid()) {
+            AnalogInputValues[act->sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+            Analog_is_ready = true;
+          }
+        }
+        #if HAS_MAX31855
+          else if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
+      }
+    #endif
+    #if COOLERS > 0
+      LOOP_COOLER() {
+        if (WITHIN(coolers[h].sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
+          currentFilter.ProcessReading(AnalogInReadPin(coolers[h].sensor.pin));
+          if (currentFilter.IsValid()) {
+            AnalogInputValues[coolers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+            Analog_is_ready = true;
+          }
+        }
+      }
+    #endif
+
+    #if ENABLED(FILAMENT_WIDTH_SENSOR)
+      const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
+      if (filamentFilter.IsValid())
+        AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+    #endif
+
+    #if HAS_POWER_CONSUMPTION_SENSOR
+      const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
+      if (powerFilter.IsValid())
+        AnalogInputValues[POWER_CONSUMPTION_PIN] = (powerFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+    #endif
+
+    #if HAS_MCU_TEMPERATURE
+      const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
+      if (mcuFilter.IsValid())
+        thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+    #endif
+
   }
 
-  // read analog values
-  #if ANALOG_INPUTS > 0
+  AnalogInStartConversion();
 
-    if (adc_get_status(ADC)) { // conversion finished?
-
-      #if HOTENDS > 0
-        LOOP_HOTEND() {
-          if (WITHIN(hotends[h].sensor.pin, 0, 15)) {
-            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
-            currentFilter.ProcessReading(AnalogInReadPin(hotends[h].sensor.pin));
-            if (currentFilter.IsValid()) {
-              AnalogInputValues[hotends[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-              Analog_is_ready = true;
-            }
-          }
-        }
-      #endif
-      #if BEDS > 0
-        LOOP_BED() {
-          if (WITHIN(beds[h].sensor.pin, 0, 15)) {
-            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
-            currentFilter.ProcessReading(AnalogInReadPin(beds[h].sensor.pin));
-            if (currentFilter.IsValid()) {
-              AnalogInputValues[beds[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-              Analog_is_ready = true;
-            }
-          }
-        }
-      #endif
-      #if CHAMBERS > 0
-        LOOP_CHAMBER() {
-          if (WITHIN(chambers[h].sensor.pin, 0, 15)) {
-            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
-            currentFilter.ProcessReading(AnalogInReadPin(chambers[h].sensor.pin));
-            if (currentFilter.IsValid()) {
-              AnalogInputValues[chambers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-              Analog_is_ready = true;
-            }
-          }
-        }
-      #endif
-      #if COOLERS > 0
-        LOOP_COOLER() {
-          if (WITHIN(coolers[h].sensor.pin, 0, 15)) {
-            ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
-            currentFilter.ProcessReading(AnalogInReadPin(coolers[h].sensor.pin));
-            if (currentFilter.IsValid()) {
-              AnalogInputValues[coolers[h].sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-              Analog_is_ready = true;
-            }
-          }
-        }
-      #endif
-
-      #if ENABLED(FILAMENT_WIDTH_SENSOR)
-        const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
-        if (filamentFilter.IsValid())
-          AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-      #endif
-
-      #if HAS_POWER_CONSUMPTION_SENSOR
-        const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
-        if (powerFilter.IsValid())
-          AnalogInputValues[POWER_CONSUMPTION_PIN] = (powerFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-      #endif
-
-      #if HAS_MCU_TEMPERATURE
-        const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
-        if (mcuFilter.IsValid())
-          thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-      #endif
-
-    }
-
-    AnalogInStartConversion();
-
-    // Update the raw values if they've been read. Else we could be updating them during reading.
-    if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
-
-  #endif
+  // Update the raw values if they've been read. Else we could be updating them during reading.
+  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();

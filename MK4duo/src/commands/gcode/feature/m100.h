@@ -138,7 +138,7 @@ int32_t count_test_bytes(const char * const start_free_memory) {
         print_hex_byte(start_free_memory[i]);
         SERIAL_CHR(' ');
       }
-      printer.safe_delay(25);
+      HAL::delayMilliseconds(25);
       SERIAL_CHR('|');                      // Point out non test bytes
       for (uint8_t i = 0; i < 16; i++) {
         char ccc = (char)start_free_memory[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
@@ -152,7 +152,7 @@ int32_t count_test_bytes(const char * const start_free_memory) {
       }
       SERIAL_EOL();
       start_free_memory += 16;
-      printer.safe_delay(25);
+      HAL::delayMilliseconds(25);
       printer.idle();
     }
   }
@@ -181,14 +181,14 @@ inline int check_for_free_memory_corruption(PGM_P const title) {
 
   if (end_free_memory < start_free_memory)  {
     SERIAL_MSG(" end_free_memory < Heap ");
-    // SET_INPUT_PULLUP(63);           // if the developer has a switch wired up to their controller board
-    // printer.safe_delay(5);                  // this code can be enabled to pause the display as soon as the
-    // while ( READ(63))               // malfunction is detected.   It is currently defaulting to a switch
-    //   printer.idle();               // being on pin-63 which is unassigend and available on most controller
-    // printer.safe_delay(20);                 // boards.
+    // SET_INPUT_PULLUP(63);          // if the developer has a switch wired up to their controller board
+    // HAL::delayMilliseconds(5);     // this code can be enabled to pause the display as soon as the
+    // while ( READ(63))              // malfunction is detected.   It is currently defaulting to a switch
+    //   printer.idle();              // being on pin-63 which is unassigend and available on most controller
+    // HAL::delayMilliseconds(20);    // boards.
     // while ( !READ(63))
     //   printer.idle();
-    printer.safe_delay(20);
+    HAL::delayMilliseconds(20);
     #if ENABLED(M100_FREE_MEMORY_DUMPER)
       M100_dump_routine("   Memory corruption detected with sp<Heap\n", (char*)0x1B80, (char*)0x21FF);
     #endif

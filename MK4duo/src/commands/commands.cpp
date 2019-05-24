@@ -369,7 +369,7 @@ void Commands::get_serial() {
         serial_comment_mode[i] = false;                      // end of line == end of comment
 
         // Skip empty lines and comments
-        if (!serial_count[i]) { printer.check_periodical_actions(); continue; }
+        if (!serial_count[i]) continue;
 
         serial_line_buffer[i][serial_count[i]] = 0;       // Terminate string
         serial_count[i] = 0;                              // Reset buffer
@@ -537,7 +537,7 @@ void Commands::get_serial() {
                   #endif
                 ));
               #else
-                printer.safe_delay(2000);
+                HAL::delayMilliseconds(2000);
                 leds.set_off();
               #endif
             #endif // ENABLED(PRINTER_EVENT_LEDS)
@@ -551,7 +551,7 @@ void Commands::get_serial() {
         sd_comment_mode = false; // for new command
 
         // Skip empty lines and comments
-        if (!sd_count) { printer.check_periodical_actions(); continue; }
+        if (!sd_count) continue;
 
         sd_line_buffer[sd_count] = '\0'; // terminate string
         sd_count = 0; // clear sd line buffer

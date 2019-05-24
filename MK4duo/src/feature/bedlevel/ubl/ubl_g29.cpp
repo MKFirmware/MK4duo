@@ -759,7 +759,7 @@
           }
         }
       }
-      printer.safe_delay(15);
+      HAL::delayMilliseconds(15);
       return false;
     }
 
@@ -987,7 +987,7 @@
 
         z_values[location.x_index][location.y_index] = new_z;               // Save the updated Z value
 
-        printer.safe_delay(20);                                             // No switch noise
+        HAL::delayMilliseconds(20);                                             // No switch noise
         lcdui.refresh();
 
       } while (location.x_index >= 0 && --g29_repetition_cnt > 0);
@@ -1479,7 +1479,7 @@
             DEBUG_CHR(',');
             DEBUG_VAL(z_tmp, 7);
             DEBUG_MSG("]   ---> ");
-            printer.safe_delay(20);
+            HAL::delayMilliseconds(20);
           }
 
           apply_rotation_xyz(rotation, x_tmp, y_tmp, z_tmp);
@@ -1492,7 +1492,7 @@
             DEBUG_CHR(',');
             DEBUG_VAL(z_tmp, 7);
             DEBUG_EM("]");
-            printer.safe_delay(55);
+            HAL::delayMilliseconds(55);
           }
 
           z_values[i][j] = z_tmp - lsf_results.D;
@@ -1508,7 +1508,7 @@
         DEBUG_MSG("  D=");
         DEBUG_VAL(lsf_results.D, 7);
         DEBUG_EOL();
-        printer.safe_delay(55);
+        HAL::delayMilliseconds(55);
 
         DEBUG_MSG("bed plane normal = [");
         DEBUG_VAL(normal.x, 7);
@@ -1646,7 +1646,7 @@
         SERIAL_MSG(" Loaded.");
       }
       SERIAL_EOL();
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_EMV("bedlevel.z_fade_height : ", bedlevel.z_fade_height, 4);
@@ -1660,22 +1660,22 @@
 
       SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X);
       SERIAL_EMV("MESH_MIN_Y  " STRINGIFY(MESH_MIN_Y) "=", MESH_MIN_Y);
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
       SERIAL_EMV("MESH_MAX_X  " STRINGIFY(MESH_MAX_X) "=", MESH_MAX_X);
       SERIAL_EMV("MESH_MAX_Y  " STRINGIFY(MESH_MAX_Y) "=", MESH_MAX_Y);
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
       SERIAL_EMV("GRID_MAX_POINTS_X  ", GRID_MAX_POINTS_X);
       SERIAL_EMV("GRID_MAX_POINTS_Y  ", GRID_MAX_POINTS_Y);
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
       SERIAL_EMV("MESH_X_DIST  ", MESH_X_DIST);
       SERIAL_EMV("MESH_Y_DIST  ", MESH_Y_DIST);
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
 
       SERIAL_MSG("X-Axis Mesh Points at: ");
       for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
         SERIAL_VAL(LOGICAL_X_POSITION(mesh_index_to_xpos(i)), 3);
         SERIAL_MSG("  ");
-        printer.safe_delay(25);
+        HAL::delayMilliseconds(25);
       }
       SERIAL_EOL();
 
@@ -1683,7 +1683,7 @@
       for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; i++) {
         SERIAL_VAL(LOGICAL_Y_POSITION(mesh_index_to_ypos(i)), 3);
         SERIAL_MSG("  ");
-        printer.safe_delay(25);
+        HAL::delayMilliseconds(25);
       }
       SERIAL_EOL();
 
@@ -1692,31 +1692,31 @@
         SERIAL_EMV("  state:", READ(KILL_PIN));
       #endif
       SERIAL_EOL();
-      printer.safe_delay(50);
+      HAL::delayMilliseconds(50);
 
       #if ENABLED(UBL_DEVEL_DEBUGGING)
         SERIAL_EMV("ubl_state_at_invocation :", ubl_state_at_invocation);
         SERIAL_EOL();
         SERIAL_EMV("ubl_state_recursion_chk :", ubl_state_recursion_chk);
         SERIAL_EOL();
-        printer.safe_delay(50);
+        HAL::delayMilliseconds(50);
 
         SERIAL_MV("Meshes go from ", hex_address((void*)eeprom.meshes_start_index()));
         SERIAL_EMV(" to ", hex_address((void*)eeprom.meshes_end_index()));
-        printer.safe_delay(50);
+        HAL::delayMilliseconds(50);
 
         SERIAL_EMV("sizeof(ubl) :  ", (int)sizeof(ubl));
         SERIAL_EOL();
         SERIAL_EMV("z_value[][] size: ", (int)sizeof(z_values));
         SERIAL_EOL();
-        printer.safe_delay(25);
+        HAL::delayMilliseconds(25);
 
         SERIAL_EMV("EEPROM free for UBL: ", hex_address((void*)(eeprom.meshes_end_index() - eeprom.meshes_start_index())));
-        printer.safe_delay(50);
+        HAL::delayMilliseconds(50);
 
         SERIAL_MV("EEPROM can hold ", eeprom.calc_num_meshes());
         SERIAL_EM(" meshes.\n");
-        printer.safe_delay(25);
+        HAL::delayMilliseconds(25);
       #endif // UBL_DEVEL_DEBUGGING
 
       if (!sanity_check()) {

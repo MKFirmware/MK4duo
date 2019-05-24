@@ -122,7 +122,7 @@ void MMU2::init() {
   mmuSerial.begin(MMU_BAUD);
   extruder = MMU2_NO_TOOL;
 
-  printer.safe_delay(10);
+  HAL::delayMilliseconds(10);
   reset();
   rx_buffer[0] = '\0';
   state = -1;
@@ -135,7 +135,7 @@ void MMU2::reset() {
 
   #if PIN_EXISTS(MMU2_RST)
     WRITE(MMU2_RST_PIN, LOW);
-    printer.safe_delay(20);
+    HAL::delayMilliseconds(20);
     WRITE(MMU2_RST_PIN, HIGH);
   #else
     tx_str_P(PSTR("X0\n")); // Send soft reset
@@ -548,7 +548,7 @@ void MMU2::tool_change(const char* special) {
     switch (*special) {
       case '?': {
         uint8_t index = mmu2_choose_filament();
-        while (!hotends[0].wait_for_heating()) printer.safe_delay(100);
+        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(100);
         load_filament_to_nozzle(index);
       } break;
 
@@ -567,7 +567,7 @@ void MMU2::tool_change(const char* special) {
       } break;
 
       case 'c': {
-        while (!hotends[0].wait_for_heating()) printer.safe_delay(100);
+        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(100);
         execute_extruder_sequence((const E_Step *)load_to_nozzle_sequence, COUNT(load_to_nozzle_sequence));
       } break;
     }
@@ -657,7 +657,7 @@ void MMU2::manage_response(bool move_axes, bool turn_off_nozzle) {
         LCD_MESSAGEPGM(MSG_HEATING);
         sound.playtone(200, 40);
 
-        while (!hotends[0].wait_for_heating()) printer.safe_delay(1000);
+        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(1000);
       }
 
       if (move_axes && mechanics.isHomedAll()) {

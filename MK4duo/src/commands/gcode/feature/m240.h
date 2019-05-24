@@ -123,7 +123,7 @@ inline void gcode_M240(void) {
       };
       mechanics.do_blocking_move_to_xy(sraw[X_AXIS], sraw[Y_AXIS], mechanics.homing_feedrate_mm_s[X_AXIS] / 2);
       #if PHOTO_SWITCH_MS > 0
-        printer.safe_delay(parser.intval('D', PHOTO_SWITCH_MS));
+        HAL::delayMilliseconds(parser.intval('D', PHOTO_SWITCH_MS));
       #endif
       mechanics.do_blocking_move_to(raw);
     #endif
@@ -145,7 +145,7 @@ inline void gcode_M240(void) {
 
   #if ENABLED(PHOTO_POSITION)
     #if PHOTO_DELAY_MS > 0
-      printer.safe_delay(parser.intval('P', PHOTO_DELAY_MS));
+      HAL::delayMilliseconds(parser.intval('P', PHOTO_DELAY_MS));
     #endif
     mechanics.do_blocking_move_to(mechanics.stored_position[1], fr_mm_s);
     #if ENABLED(PHOTO_RETRACT_MM)

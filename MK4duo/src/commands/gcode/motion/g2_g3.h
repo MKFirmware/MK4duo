@@ -150,7 +150,6 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
 
   for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
-    printer.check_periodical_actions();
     if (expired(&next_idle_ms, 200U)) printer.idle();
 
     #if N_ARC_CORRECTION > 1

@@ -329,7 +329,7 @@
       MOVE_SERVO(MKSE6_SERVO_INDEX, angles[e]);
 
       #if (MKSE6_SERVO_DELAY > 0)
-        printer.safe_delay(MKSE6_SERVO_DELAY);
+        HAL::delayMilliseconds(MKSE6_SERVO_DELAY);
       #endif
 
       // Set the new active extruder
@@ -350,25 +350,25 @@
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
             WRITE_RELE(E1E3_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 3:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
             WRITE_RELE(E1E3_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
         }
@@ -378,17 +378,17 @@
         switch (e) {
           case 0:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(E0E2_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
         }
@@ -398,12 +398,12 @@
         switch (e) {
           case 0:
             WRITE_RELE(E0E1_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(E0E1_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
         }
@@ -427,12 +427,12 @@
         switch (e) {
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
         }
@@ -443,19 +443,19 @@
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
         }
@@ -473,19 +473,19 @@
           case 0:
             WRITE_RELE(EX1_CHOICE_PIN, LOW);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 1:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, LOW);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           case 2:
             WRITE_RELE(EX1_CHOICE_PIN, HIGH);
             WRITE_RELE(EX2_CHOICE_PIN, HIGH);
-            printer.safe_delay(500); // 500 microseconds delay for relay
+            HAL::delayMilliseconds(500); // 500 microseconds delay for relay
             stepper.enable_E();
             break;
           default:
@@ -508,7 +508,7 @@
       planner.synchronize();
       MOVE_SERVO(DONDOLO_SERVO_INDEX, servo[DONDOLO_SERVO_INDEX].angle[e]);
       #if (DONDOLO_SERVO_DELAY > 0)
-        printer.safe_delay(DONDOLO_SERVO_DELAY);
+        HAL::delayMilliseconds(DONDOLO_SERVO_DELAY);
       #endif
     }
 

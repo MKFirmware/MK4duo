@@ -51,13 +51,13 @@ void Neopixel::setup() {
   strip.show(); // initialize to all off
 
   #if ENABLED(NEOPIXEL_STARTUP_TEST)
-    printer.safe_delay(1000);
+    HAL::delayMilliseconds(1000);
     set_color(strip.Color(255, 0, 0, 0));  // red
-    printer.safe_delay(1000);
+    HAL::delayMilliseconds(1000);
     set_color(strip.Color(0, 255, 0, 0));  // green
-    printer.safe_delay(1000);
+    HAL::delayMilliseconds(1000);
     set_color(strip.Color(0, 0, 255, 0));  // blue
-    printer.safe_delay(1000);
+    HAL::delayMilliseconds(1000);
   #endif
   set_color(strip.Color(NEO_BLACK));       // black
 }

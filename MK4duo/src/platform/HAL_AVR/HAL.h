@@ -457,13 +457,6 @@ extern uint32_t HAL_frequency_limit[8];
 // --------------------------------------------------------------------------
 // Public functions
 // --------------------------------------------------------------------------
-
-class InterruptLock {
-  public:
-   InterruptLock()  { noInterrupts(); }
-   ~InterruptLock() { interrupts();   }
-};
-
 void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
 void HAL_calc_pulse_cycle();

@@ -59,7 +59,7 @@ inline void gcode_M150(void) {
           , true
         #endif
       );
-      printer.safe_delay(100);
+      HAL::delayMilliseconds(100);
     } while (pending(&end, millis_s(second * 1000U)));
   } 
   else {

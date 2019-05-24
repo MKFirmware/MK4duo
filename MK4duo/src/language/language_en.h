@@ -919,6 +919,15 @@
 #ifndef MSG_BLTOUCH_STOW
   #define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #endif
+#ifndef MSG_BLTOUCH_MODE_STORE_5V
+  #define MSG_BLTOUCH_MODE_STORE_5V           _UxGT("Set BLTouch to 5V")
+#endif
+#ifndef MSG_BLTOUCH_MODE_STORE_OD
+  #define MSG_BLTOUCH_MODE_STORE_OD           _UxGT("Set BLTouch to OD")
+#endif
+#ifndef MSG_BLTOUCH_MODE_ECHO
+  #define MSG_BLTOUCH_MODE_ECHO               _UxGT("Report Drain")
+#endif
 #ifndef MSG_MANUAL_DEPLOY
   #define MSG_MANUAL_DEPLOY                   _UxGT("Deploy Z-Probe")
 #endif

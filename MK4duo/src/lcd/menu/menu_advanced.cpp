@@ -724,15 +724,6 @@ void menu_advanced_settings() {
     MENU_ITEM_EDIT(bool, MSG_ENDSTOP_ABORT, &planner.abort_on_endstop_hit);
   #endif
 
-  //
-  // BLTouch Self-Test and Reset
-  //
-  #if ENABLED(BLTOUCH)
-    MENU_ITEM(function, MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
-    if (!endstops.isProbeEnabled() && bltouch.triggered())
-      MENU_ITEM(function, MSG_BLTOUCH_RESET, bltouch.cmd_reset);
-  #endif
-
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)
     MENU_ITEM(submenu, MSG_INIT_EEPROM, lcd_init_eeprom_confirm);
   #endif

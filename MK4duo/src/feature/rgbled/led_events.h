@@ -62,7 +62,7 @@
           #if HAS_LEDS_OFF_FLAG
             leds_off_after_print = true;
           #else
-            safe_delay(2000);
+            HAL::delayMilliseconds(2000);
             leds.set_off();
           #endif
         }

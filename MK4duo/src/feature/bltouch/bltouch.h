@@ -29,14 +29,14 @@
 
 #if ENABLED(BLTOUCH)
 
-#define BLTOUCH_DEPLOY       10
-#define BLTOUCH_MODE_SW      60
-#define BLTOUCH_STOW         90
-#define BLTOUCH_SELFTEST    120
-#define BLTOUCH_MODE_STORE  130
-#define BLTOUCH_MODE_5V     140
-#define BLTOUCH_MODE_OD     150
-#define BLTOUCH_RESET       160
+#define BLTOUCH_CMD_DEPLOY       10
+#define BLTOUCH_CMD_MODE_SW      60
+#define BLTOUCH_CMD_STOW         90
+#define BLTOUCH_CMD_SELFTEST    120
+#define BLTOUCH_CMD_MODE_STORE  130
+#define BLTOUCH_CMD_MODE_5V     140
+#define BLTOUCH_CMD_MODE_OD     150
+#define BLTOUCH_CMD_RESET       160
 
 #if DISABLED(BLTOUCH_DEPLOY_DELAY)
   #define BLTOUCH_DEPLOY_DELAY  750
@@ -64,36 +64,43 @@ class BLTouch {
 
     BLTouch() {};
 
+  public: /** Public Parameters */
+
+    static bool last_mode; // Initialized by eeprom.load, 0 = Open Drain; 1 = 5V Drain
+
   public: /** Public Function */
 
-    static void init();
+    static void init(const bool set_voltage=false);
     static void test();
-    static bool triggered();
 
     static bool deploy();
     static bool stow();
-    static bool status();
 
-    FORCE_INLINE static void cmd_reset()          { (void)command(BLTOUCH_RESET);                         }
-    FORCE_INLINE static void cmd_selftest()       { (void)command(BLTOUCH_SELFTEST);                      }
+    FORCE_INLINE static void cmd_reset()          { (void)command(BLTOUCH_CMD_RESET);                         }
+    FORCE_INLINE static void cmd_selftest()       { (void)command(BLTOUCH_CMD_SELFTEST);                      }
 
-    FORCE_INLINE static void cmd_mode_SW()        { (void)command(BLTOUCH_MODE_SW);                       }
-    FORCE_INLINE static void cmd_reset_mode_SW()  { if (status()) cmd_stow(); else cmd_deploy();          }
+    FORCE_INLINE static void cmd_mode_SW()        { (void)command(BLTOUCH_CMD_MODE_SW);                       }
+    FORCE_INLINE static void cmd_reset_mode_SW()  { if (triggered()) cmd_stow(); else cmd_deploy();          }
 
-    FORCE_INLINE static void cmd_mode_5V()        { (void)command(BLTOUCH_MODE_5V);                       }
-    FORCE_INLINE static void cmd_mode_OD()        { (void)command(BLTOUCH_MODE_OD);                       }
-    FORCE_INLINE static void cmd_mode_store()     { (void)command(BLTOUCH_MODE_STORE);                    }
+    FORCE_INLINE static void cmd_mode_5V()        { (void)command(BLTOUCH_CMD_MODE_5V);                       }
+    FORCE_INLINE static void cmd_mode_OD()        { (void)command(BLTOUCH_CMD_MODE_OD);                       }
+    FORCE_INLINE static void cmd_mode_store()     { (void)command(BLTOUCH_CMD_MODE_STORE);                    }
 
-    FORCE_INLINE static void cmd_deploy()         { (void)command(BLTOUCH_DEPLOY, BLTOUCH_DEPLOY_DELAY);  }
-    FORCE_INLINE static void cmd_stow()           { (void)command(BLTOUCH_STOW,   BLTOUCH_STOW_DELAY);    }
+    FORCE_INLINE static void cmd_deploy()         { (void)command(BLTOUCH_CMD_DEPLOY, BLTOUCH_DEPLOY_DELAY);  }
+    FORCE_INLINE static void cmd_stow()           { (void)command(BLTOUCH_CMD_STOW,   BLTOUCH_STOW_DELAY);    }
+
+    FORCE_INLINE static void mode_conv_5V()       { mode_conv(true); }
+    FORCE_INLINE static void mode_conv_OD()       { mode_conv(false); }
 
   private: /** Private Function */
 
     static void clear();
+    static void mode_conv(const bool M5V=false);
     static bool command(const BLTCommand cmd, const millis_s ms=BLTOUCH_DELAY);
+    static bool triggered();
 
-    FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_DEPLOY); }
-    FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_STOW);   }
+    FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_CMD_DEPLOY); }
+    FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_CMD_STOW);   }
 
 };
 

@@ -1283,7 +1283,7 @@ void LcdUI::update() {
     if (sd_status != lcd_sd_status && detected()) {
 
       if (sd_status) {
-        printer.safe_delay(500);  // Some boards need a delay to get settled
+        HAL::delayMilliseconds(500);  // Some boards need a delay to get settled
         card.mount();
         if (lcd_sd_status == 2)
           card.beginautostart();  // Initial boot
@@ -1511,7 +1511,7 @@ void LcdUI::stop_print() {
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
-  void LcdUI::wait_for_release() { printer.safe_delay(50); }
+  void LcdUI::wait_for_release() { HAL::delayMilliseconds(50); }
 #endif
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
