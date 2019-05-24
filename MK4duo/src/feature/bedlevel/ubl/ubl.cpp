@@ -41,7 +41,7 @@
           SERIAL_MV(" J", y);
           SERIAL_MV(" Z", z_values[x][y], 2);
           SERIAL_EOL();
-          printer.safe_delay(75);
+          HAL::delayMilliseconds(75);
         }
       }
     }
@@ -52,7 +52,7 @@
     SERIAL_MSG(" System v" UBL_VERSION " ");
     if (!bedlevel.flag.leveling_active) SERIAL_MSG("in");
     SERIAL_EM("active.");
-    printer.safe_delay(50);
+    HAL::delayMilliseconds(50);
   }
 
   #if ENABLED(UBL_DEVEL_DEBUGGING)
@@ -146,7 +146,7 @@
     if (y < 100) { SERIAL_CHR(' '); if (y < 10) SERIAL_CHR(' '); }
     SERIAL_VAL(y);
     SERIAL_CHR(')');
-    printer.safe_delay(5);
+    HAL::delayMilliseconds(5);
   }
 
   static void serial_echo_column_labels(const uint8_t sp) {
@@ -156,7 +156,7 @@
       SERIAL_VAL(i);
       SERIAL_SP(sp);
     }
-    printer.safe_delay(10);
+    HAL::delayMilliseconds(10);
   }
 
   /**

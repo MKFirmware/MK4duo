@@ -212,8 +212,6 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
     // Calculate and execute the segments
     while (--segments) {
 
-      printer.check_periodical_actions();
-
       LOOP_XYZE(i) raw[i] += segment_distance[i];
       Transform(raw);
 

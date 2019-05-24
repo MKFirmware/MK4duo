@@ -147,8 +147,8 @@ millis_l next_button_update_ms;
     bool LcdUI::external_control; // = false
 
     void LcdUI::wait_for_release() {
-      while (button_pressed()) printer.safe_delay(50);
-      printer.safe_delay(50);
+      while (button_pressed()) HAL::delayMilliseconds(50);
+      HAL::delayMilliseconds(50);
     }
 
   #endif
@@ -658,7 +658,7 @@ void LcdUI::update() {
       lcd_sd_status = sd_status;
 
       if (sd_status) {
-        printer.safe_delay(500);  // Some boards need a delay to get settled
+        HAL::delayMilliseconds(500);  // Some boards need a delay to get settled
         card.mount();
         if (old_sd_status == 2)
           card.beginautostart();  // Initial boot

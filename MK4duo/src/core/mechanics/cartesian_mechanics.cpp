@@ -1138,7 +1138,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
       #endif
 
       #if ENABLED(SENSORLESS_HOMING)
-        printer.safe_delay(500);
+        HAL::delayMilliseconds(500);
       #endif
 
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);

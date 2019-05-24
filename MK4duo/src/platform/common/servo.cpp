@@ -69,7 +69,7 @@
       servo[DONDOLO_SERVO_INDEX].attach(0);
       servo[DONDOLO_SERVO_INDEX].write(DONDOLO_SERVOPOS_E0);
       #if (DONDOLO_SERVO_DELAY > 0)
-        printer.safe_delay(DONDOLO_SERVO_DELAY);
+        HAL::delayMilliseconds(DONDOLO_SERVO_DELAY);
         servo[DONDOLO_SERVO_INDEX].detach();
       #endif
     #endif
@@ -448,7 +448,7 @@
   void Servo::move(int value) {
     if (this->attach(0) >= 0) {
       this->write(value);
-      printer.safe_delay(SERVO_DEACTIVATION_DELAY);
+      HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
       #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
         this->detach();
       #endif

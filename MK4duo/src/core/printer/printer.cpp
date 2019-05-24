@@ -258,7 +258,7 @@ void Printer::setup() {
   #endif
 
   #if ENABLED(BLTOUCH)
-    bltouch.init();
+    bltouch.init(true);
   #endif
 
   // All Initialized set Running to true.
@@ -350,52 +350,44 @@ void Printer::loop() {
 
 void Printer::check_periodical_actions() {
 
-  static millis_s cycle_1s_ms = 0;
+  planner.check_axes_activity();
 
-  // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) {
+  if (!isSuspendAutoreport() && isAutoreportTemp()) {
+    thermalManager.report_temperatures();
+    SERIAL_EOL();
+  }
 
-    planner.check_axes_activity();
+  #if HAS_SD_SUPPORT
+    if (card.isAutoreportSD()) card.printStatus();
+  #endif
 
-    if (!isSuspendAutoreport() && isAutoreportTemp()) {
-      thermalManager.report_temperatures();
-      SERIAL_EOL();
-    }
-
-    #if HAS_SD_SUPPORT
-      if (card.isAutoreportSD()) card.printStatus();
-    #endif
-
-    if (planner.cleaning_buffer_flag) {
-      planner.cleaning_buffer_flag = false;
-      #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
-        commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
-      #endif
-    }
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() fans[f].spin();
-    #endif
-
-    #if HAS_POWER_SWITCH
-      powerManager.spin();
-    #endif
-
-    #if ENABLED(FLOWMETER_SENSOR)
-      flowmeter.spin();
+  if (planner.cleaning_buffer_flag) {
+    planner.cleaning_buffer_flag = false;
+    #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
+      commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
   }
+
+  #if FAN_COUNT > 0
+    LOOP_FAN() fans[f].spin();
+  #endif
+
+  #if HAS_POWER_SWITCH
+    powerManager.spin();
+  #endif
+
+  #if ENABLED(FLOWMETER_SENSOR)
+    flowmeter.spin();
+  #endif
 
 }
 
-void Printer::safe_delay(millis_l ms) {
-  while (ms > 50) {
-    ms -= 50;
-    HAL::delayMilliseconds(50);
-    check_periodical_actions();
+void Printer::safe_delay(millis_l time) {
+  time += millis();
+  while ((int32_t)(millis() - time) < 0) {
+    keepalive(InProcess);
+    idle();
   }
-  HAL::delayMilliseconds(ms);
-  check_periodical_actions();
 }
 
 void Printer::quickstop_stepper() {
@@ -526,12 +518,12 @@ void Printer::stop() {
 /**
  * Manage several activities:
  *  - Lcd update
- *  - Check periodical actions
  *  - Keep the command buffer full
  *  - Host Keepalive
- *  - Check Flow meter sensor
+ *  - DHT spin
  *  - Cnc manage
- *  - Check for Filament Runout
+ *  - Filament Runout spin
+ *  - Read o Write Rfid
  *  - Check for maximum inactive time between commands
  *  - Check for maximum inactive time between stepper commands
  *  - Check if pin CHDK needs to go LOW
@@ -540,7 +532,6 @@ void Printer::stop() {
  *  - Check if cooling fan needs to be switched on
  *  - Check if an idle but hot extruder needs filament extruded (EXTRUDER_RUNOUT_PREVENT)
  *  - Check oozing prevent
- *  - Read o Write Rfid
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
@@ -557,8 +548,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   // Tick timer job counter
   print_job_counter.tick();
 
-  check_periodical_actions();
-
   commands.get_available();
 
   handle_safety_watch();
@@ -569,10 +558,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   }
 
   sound.spin();
-
-  #if HAS_MAX31855 || HAS_MAX6675
-    thermalManager.getTemperature_SPI();
-  #endif
 
   #if ENABLED(DHT_SENSOR)
     dhtsensor.spin();

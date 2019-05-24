@@ -56,7 +56,7 @@ inline void gcode_M81(void) {
     cnc.disable_router();
   #endif
 
-  printer.safe_delay(1000); // Wait 1 second before switching off
+  HAL::delayMilliseconds(1000); // Wait 1 second before switching off
 
   #if HAS_SUICIDE
     printer.suicide();

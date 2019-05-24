@@ -328,8 +328,13 @@ void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq
 
 void HAL::Tick() {
 
-  static millis_s cycle_100_ms  = millis();
+  static millis_s cycle_1s_ms   = millis(),
+                  cycle_100_ms  = millis();
   static uint8_t  channel       = 0;
+
+  watchdog.reset();
+
+  if (printer.isStopped()) return;
 
   // Heaters set output PWM
   #if HOTENDS > 0
@@ -341,61 +346,100 @@ void HAL::Tick() {
   #if CHAMBERS > 0
     LOOP_CHAMBER() chambers[h].set_output_pwm();
   #endif
+  #if COOLERS > 0
+    LOOP_COOLER() coolers[h].set_output_pwm();
+  #endif
 
   // Fans set output PWM
   #if FAN_COUNT > 0
-    LOOP_FAN() fans[f].set_output_pwm();
+    LOOP_FAN() {
+      if (fans[f].kickstart) fans[f].kickstart--;
+      fans[f].set_output_pwm();
+    }
   #endif
 
   // Software PWM modulation
   softpwm.spin();
 
-  // Calculation cycle approximate a 100ms
-  if (expired(&cycle_100_ms, 100U)) {
-    // Temperature Spin
-    thermalManager.spin();
-    #if ENABLED(FAN_KICKSTART_TIME) && FAN_COUNT > 0
-      LOOP_FAN() {
-        if (fans[f].kickstart) fans[f].kickstart--;
+  // Event 100 ms
+  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+
+  // Event 1.0 Second
+  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+
+  // Read analog or SPI values
+  #if HAS_MAX6675 || HAS_MAX31855
+    #if HOTENDS > 0
+      LOOP_HOTEND() {
+        Heater *act = &hotends[h];
+        #if HAS_MAX31855
+          if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
       }
     #endif
+    #if BEDS > 0
+      LOOP_BED() {
+        Heater *act = &beds[h];
+        #if HAS_MAX31855
+          if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
+      }
+    #endif
+    #if CHAMBERS > 0
+      LOOP_CHAMBER() {
+        Heater *act = &chambers[h];
+        #if HAS_MAX31855
+          if (act->sensor.type == -4)
+            act->sensor.raw = act->sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          if (act->sensor.type == -3)
+            act->sensor.raw = act->sensor.read_max6675();
+        #endif
+      }
+    #endif
+  #endif // HAS_MAX6675 || HAS_MAX31855
+
+  if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
+    channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+    AnalogInputRead[adcSamplePos] += ADCW;
+    if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
+
+      // update temperatures
+      HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+
+      AnalogInputRead[adcSamplePos] = 0;
+      adcCounter[adcSamplePos] = 0;
+
+      // Start next conversion
+      if (++adcSamplePos >= ANALOG_INPUTS) {
+        adcSamplePos = 0;
+        HAL::Analog_is_ready = true;
+      }
+      channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
+      #if ENABLED(ADCSRB) && ENABLED(MUX5)
+        if (channel & 8)  // Reading channel 0-7 or 8-15?
+          ADCSRB |= _BV(MUX5);
+        else
+          ADCSRB &= ~_BV(MUX5);
+      #endif
+      ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
+    }
+    ADCSRA |= _BV(ADSC);  // start next conversion
   }
 
-  // read analog values
-  #if ANALOG_INPUTS > 0
-
-    if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
-      channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-      AnalogInputRead[adcSamplePos] += ADCW;
-      if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
-
-        // update temperatures
-        HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
-
-        AnalogInputRead[adcSamplePos] = 0;
-        adcCounter[adcSamplePos] = 0;
-
-        // Start next conversion
-        if (++adcSamplePos >= ANALOG_INPUTS) {
-          adcSamplePos = 0;
-          HAL::Analog_is_ready = true;
-        }
-        channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
-        #if ENABLED(ADCSRB) && ENABLED(MUX5)
-          if (channel & 8)  // Reading channel 0-7 or 8-15?
-            ADCSRB |= _BV(MUX5);
-          else
-            ADCSRB &= ~_BV(MUX5);
-        #endif
-        ADMUX = (ADMUX & ~(0x1F)) | (channel & 7);
-      }
-      ADCSRA |= _BV(ADSC);  // start next conversion
-    }
-
-    // Update the raw values if they've been read. Else we could be updating them during reading.
-    if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
-
-  #endif
+  // Update the raw values if they've been read. Else we could be updating them during reading.
+  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();

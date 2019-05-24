@@ -727,6 +727,11 @@ void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
     }
   }
 
+  sound.playtone(500, NOTE_G4);
+  sound.playtone(500, NOTE_E5);
+  sound.playtone(500, NOTE_G4);
+  sound.playtone(500, NOTE_E5);
+
   lcdui.set_status_P(lcd_msg);
   setFault();
 

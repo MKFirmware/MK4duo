@@ -553,7 +553,7 @@ void Endstops::resync() {
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     update();
   #else
-    printer.safe_delay(2);
+    HAL::delayMilliseconds(2);
   #endif
 }
 

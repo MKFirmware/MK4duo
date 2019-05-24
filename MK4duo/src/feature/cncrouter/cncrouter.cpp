@@ -92,7 +92,7 @@
       #endif
 
       disable_router();
-      printer.safe_delay(300);
+      HAL::delayMilliseconds(300);
 
       if (wait) {
         // LCD click or M108 will clear this

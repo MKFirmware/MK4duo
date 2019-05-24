@@ -50,13 +50,13 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV65"
+#define EEPROM_VERSION "MKV66"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
 
-  char      version[6];                                 // MKVnn\0
-  uint16_t  crc;                                        // Data Checksum
+  char      version[6];   // MKVnn\0
+  uint16_t  crc;          // Data Checksum
 
   //
   // Mechanics data
@@ -238,6 +238,11 @@ typedef struct EepromDataStruct {
   #if HAS_SERVOS
     int             servo_angles[NUM_SERVOS][2];
   #endif
+
+  //
+  // BLTOUCH
+  //
+  bool bltouch_last_mode;
 
   //
   // FWRETRACT
@@ -681,6 +686,11 @@ void EEPROM::post_process() {
     #endif
 
     //
+    // BLTOUCH
+    //
+    EEPROM_WRITE(bltouch.last_mode);
+
+    //
     // Firmware Retraction
     //
     #if ENABLED(FWRETRACT)
@@ -1088,6 +1098,11 @@ void EEPROM::post_process() {
       #if HAS_SERVOS
         LOOP_SERVO() EEPROM_READ(servo[s].angle);
       #endif
+
+      //
+      // BLTOUCH
+      //
+      EEPROM_READ(bltouch.last_mode);
 
       //
       // Firmware Retraction
@@ -1523,7 +1538,14 @@ void EEPROM::reset() {
     #endif
 
   #endif
-  
+
+  //
+  // BLTOUCH
+  //
+  #if ENABLED(BLTOUCH)
+    bltouch.last_mode = false;
+  #endif
+
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     tools.lpq_len = 20; // default last-position-queue size
   #endif

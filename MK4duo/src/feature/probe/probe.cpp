@@ -246,7 +246,7 @@ bool Probe::set_deployed(const bool deploy) {
     #if ENABLED(PROBING_FANS_OFF)
       LOOP_FAN() fans[f].setIdle(onoff);
     #endif
-    if (onoff) printer.safe_delay(25);
+    if (onoff) HAL::delayMilliseconds(25);
   }
 
 #endif // QUIET_PROBING
@@ -296,10 +296,10 @@ void Probe::servo_test() {
     SERIAL_EM(". Deploy & stow 4 times");
     do {
       MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // Deploy
-      printer.safe_delay(500);
+      HAL::delayMilliseconds(500);
       deploy_state = HAL::digitalRead(PROBE_TEST_PIN);
       MOVE_SERVO(probe_index, servo[probe_index].angle[1]); // Stow
-      printer.safe_delay(500);
+      HAL::delayMilliseconds(500);
       stow_state = HAL::digitalRead(PROBE_TEST_PIN);
     } while (++i < 4);
 
@@ -321,21 +321,21 @@ void Probe::servo_test() {
     // Since it could be a real servo or a BLTouch (any kind) or clone
     // use only "common" functions - i.e. SERVO_MOVE. No bltouch.xxxx stuff.
     MOVE_SERVO(probe_index, servo[probe_index].angle[0]); // Deploy
-    printer.safe_delay(500);
+    HAL::delayMilliseconds(500);
     SERIAL_EM("** Please trigger probe within 30 sec **");
     uint16_t probe_counter = 0;
 
     // Wait 30 seconds for user to trigger probe
     for (uint16_t j = 0; j < 500 * 30 && probe_counter == 0 ; j++) {
 
-      printer.safe_delay(2);
+      HAL::delayMilliseconds(2);
 
       if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
 
       if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 
         for (probe_counter = 1; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
-          printer.safe_delay(2);
+          HAL::delayMilliseconds(2);
 
         SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
 

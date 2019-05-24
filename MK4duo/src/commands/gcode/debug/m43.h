@@ -51,9 +51,9 @@ inline void toggle_pins() {
       report_pin_state_extended(pin, I_flag, true, "Pulsing   ");
       HAL::pinMode(pin, OUTPUT);
       for (int16_t j = 0; j < repeat; j++) {
-        HAL::digitalWrite(pin, 0); printer.safe_delay(wait);
-        HAL::digitalWrite(pin, 1); printer.safe_delay(wait);
-        HAL::digitalWrite(pin, 0); printer.safe_delay(wait);
+        HAL::digitalWrite(pin, 0); HAL::delayMilliseconds(wait);
+        HAL::digitalWrite(pin, 1); HAL::delayMilliseconds(wait);
+        HAL::digitalWrite(pin, 0); HAL::delayMilliseconds(wait);
       }
     }
     SERIAL_EOL();
@@ -165,7 +165,7 @@ inline void gcode_M43(void) {
         if (!printer.isWaitForUser()) { printer.keepalive(InHandler); break; }
       #endif
 
-      printer.safe_delay(500);
+      HAL::delayMilliseconds(500);
     }
   }
   else {

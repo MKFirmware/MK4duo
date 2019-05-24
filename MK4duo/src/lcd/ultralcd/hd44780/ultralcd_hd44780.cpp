@@ -373,7 +373,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       lcd_moveto(col, line);
       lcd_put_u8str_max_P(text, len);
       for (; slen < len; ++slen) lcd_put_wchar(' ');
-      printer.safe_delay(time);
+      HAL::delayMilliseconds(time);
     }
     else {
       PGM_P p = text;
@@ -390,7 +390,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
         for (uint8_t ix = slen - i; ix < len; ++ix) lcd_put_wchar(' ');
 
         // Delay
-        printer.safe_delay(dly);
+        HAL::delayMilliseconds(dly);
 
         // Advance to the next UTF8 valid position
         p++;
@@ -417,7 +417,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       if (utf8_strlen(STRING) <= LCD_WIDTH) { \
         lcd_moveto((LCD_WIDTH - utf8_strlen_P(PSTR(STRING))) / 2, 3); \
         lcd_put_u8str_P(PSTR(STRING)); \
-        printer.safe_delay(DELAY); \
+        HAL::delayMilliseconds(DELAY); \
       } \
       else { \
         lcd_scroll(0, 3, PSTR(STRING), LCD_WIDTH, DELAY); \
@@ -435,7 +435,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
         #if ENABLED(STRING_SPLASH_LINE2)
           CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
         #else
-          printer.safe_delay(BOOTSCREEN_TIMEOUT);
+          HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
         #endif
       }
       else {
@@ -460,7 +460,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       //
       if (LCD_EXTRA_SPACE >= utf8_strlen(STRING_SPLASH_LINE2) + 1) {
         logo_lines(PSTR(" " STRING_SPLASH_LINE2));
-        printer.safe_delay(BOOTSCREEN_TIMEOUT);
+        HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
       }
       else {
         logo_lines(PSTR(""));
@@ -471,11 +471,11 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       // Show only the MK4duo logo
       //
       logo_lines(PSTR(""));
-      printer.safe_delay(BOOTSCREEN_TIMEOUT);
+      HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
     #endif
 
     lcd.clear();
-    printer.safe_delay(100);
+    HAL::delayMilliseconds(100);
     set_custom_characters(CHARSET_INFO);
     lcd.clear();
   }

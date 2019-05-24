@@ -938,7 +938,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       if (printer.debugFeature()) DEBUG_POS("Z_SAFE_HOMING", destination);
 
       #if ENABLED(SENSORLESS_HOMING)
-        printer.safe_delay(500);
+        HAL::delayMilliseconds(500);
       #endif
 
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);

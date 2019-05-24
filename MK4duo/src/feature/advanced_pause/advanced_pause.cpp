@@ -535,7 +535,7 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   do_pause_e_move(-FILAMENT_UNLOAD_RETRACT_LENGTH, PAUSE_PARK_RETRACT_FEEDRATE);
 
   // Wait for filament to cool
-  printer.safe_delay(FILAMENT_UNLOAD_DELAY);
+  HAL::delayMilliseconds(FILAMENT_UNLOAD_DELAY);
 
   // Quickly purge
   do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, mechanics.data.max_feedrate_mm_s[E_AXIS]);
@@ -546,7 +546,7 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   // Disable extruders steppers for manual filament changing
   #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
     stepper.disable_E(tools.active_extruder);
-    printer.safe_delay(100);
+    HAL::delayMilliseconds(100);
   #endif
 
   return true;

@@ -53,7 +53,7 @@ void lcd_sd_updir() {
     //  // This is a hack to force a screen update.
     //  lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
     //  lcdui.synchronize();
-    //  safe_delay(50);
+    //  HAL::delayMilliseconds(50);
     //  lcdui.synchronize();
     //  lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
     //  lcdui.drawing_screen = screen_changed = true;

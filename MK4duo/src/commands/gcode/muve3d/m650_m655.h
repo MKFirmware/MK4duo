@@ -68,7 +68,7 @@
       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, tools.active_extruder);
       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, tools.active_extruder);
       planner.synchronize();
-      if (peel_pause > 0) printer.safe_delay(peel_pause);
+      if (peel_pause > 0) HAL::delayMilliseconds(peel_pause);
     }
 
     planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.active_extruder);
