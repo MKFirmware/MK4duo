@@ -73,9 +73,9 @@ uint8_t     LcdUI::status_message_level; // = 0
                 line_encoder_touch = true;
   float         move_menu_scale;
 
-  #if LCD_TIMEOUT_TO_STATUS > 0
+  #if LCD_TIMEOUT_TO_STATUS
     bool      LcdUI::defer_return_to_status;
-    millis_s  return_to_status_ms = 0;
+    millis_l  return_to_status_ms = 0;
   #endif
 
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
@@ -864,7 +864,7 @@ void Nextion_draw_update() {
       }
     }
 
-    #if LCD_TIMEOUT_TO_STATUS > 0
+    #if LCD_TIMEOUT_TO_STATUS
       return_to_status_ms = millis();
     #endif
 
@@ -1244,7 +1244,9 @@ void LcdUI::init() {
 
     setpagePrinter();
 
-    return_to_status_ms = millis();
+    #if LCD_TIMEOUT_TO_STATUS
+      return_to_status_ms = millis();
+    #endif
 
     #if HAS_LCD_MENU
       // Check the Nextion Firmware
@@ -1309,10 +1311,10 @@ void LcdUI::update() {
 
     if (PageID == 11) {
 
-      #if LCD_TIMEOUT_TO_STATUS > 0
+      #if LCD_TIMEOUT_TO_STATUS
         if (defer_return_to_status)
           return_to_status_ms = millis();
-        else if (expired(&return_to_status_ms, (LCD_TIMEOUT_TO_STATUS)))
+        else if (expired(&return_to_status_ms, millis_l(LCD_TIMEOUT_TO_STATUS)))
           return_to_status();
       #endif
 
@@ -1323,7 +1325,7 @@ void LcdUI::update() {
         case LCDVIEW_CLEAR_CALL_REDRAW:
         case LCDVIEW_CALL_REDRAW_NEXT:
           refresh(LCDVIEW_REDRAW_NOW);
-        case LCDVIEW_REDRAW_NOW:        // set above, or by a handler through LCDVIEW_CALL_REDRAW_NEXT
+        case LCDVIEW_REDRAW_NOW:
         case LCDVIEW_NONE:
           break;
       } // switch
@@ -1343,7 +1345,7 @@ void LcdUI::update() {
 
     }
     else {
-      #if LCD_TIMEOUT_TO_STATUS > 0
+      #if LCD_TIMEOUT_TO_STATUS
         return_to_status_ms = millis();
       #endif
     }

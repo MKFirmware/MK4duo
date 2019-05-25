@@ -617,8 +617,8 @@ void LcdUI::update() {
 
   #if HAS_LCD_MENU
 
-    #if LCD_TIMEOUT_TO_STATUS > 0
-      static millis_s return_to_status_ms = 0;
+    #if LCD_TIMEOUT_TO_STATUS
+      static millis_l return_to_status_ms = 0;
     #endif
 
     // Handle any queued Move Axis motion
@@ -699,7 +699,7 @@ void LcdUI::update() {
       #if ENABLED(REPRAPWORLD_KEYPAD)
 
         if (handle_keypad()) {
-          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
+          #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
             return_to_status_ms = millis();
           #endif
         }
@@ -746,7 +746,7 @@ void LcdUI::update() {
           encoderPosition += (encoderDiff * encoderMultiplier) / (ENCODER_PULSES_PER_STEP);
           encoderDiff = 0;
         }
-        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
+        #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
           return_to_status_ms = millis();
         #endif
         refresh(LCDVIEW_REDRAW_NOW);
@@ -776,7 +776,7 @@ void LcdUI::update() {
           status_update_delay = 12;
         }
         refresh(LCDVIEW_REDRAW_NOW);
-        #if LCD_TIMEOUT_TO_STATUS > 0
+        #if LCD_TIMEOUT_TO_STATUS
           return_to_status_ms = millis();
         #endif
       }
@@ -838,11 +838,11 @@ void LcdUI::update() {
       NOLESS(max_display_update_time, millis() - ms);
     }
 
-    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS > 0
+    #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
       // Return to Status Screen after a timeout
       if (on_status_screen() || defer_return_to_status)
         return_to_status_ms = millis();
-      else if (expired(&return_to_status_ms, LCD_TIMEOUT_TO_STATUS))
+      else if (expired(&return_to_status_ms, millis_l(LCD_TIMEOUT_TO_STATUS)))
         return_to_status();
     #endif
 
