@@ -285,8 +285,5 @@ FORCE_INLINE static void OUT_WRITE(const pin_t pin, const uint8_t flag) {
 
 FORCE_INLINE static bool USEABLE_HARDWARE_PWM(const pin_t pin) {
   const uint32_t attr = g_APinDescription[pin].ulPinAttribute;
-  if ((attr & PIN_ATTR_PWM) != 0 || (attr & PIN_ATTR_TIMER) != 0)
-    return true;
-  else
-    return false;
+  return (attr & PIN_ATTR_PWM) != 0 || (attr & PIN_ATTR_TIMER) != 0;
 }

@@ -25,6 +25,8 @@
  * emergency_parser.h - Intercept special commands directly in the serial stream
  */
 
+#if ENABLED(EMERGENCY_PARSER)
+
 class EmergencyParser {
 
   public: /** Constructor */
@@ -51,3 +53,5 @@ class EmergencyParser {
 };
 
 extern EmergencyParser emergency_parser;
+
+#endif // EMERGENCY_PARSER
