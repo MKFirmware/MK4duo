@@ -23,20 +23,20 @@
 
 #if HAS_CASE_LIGHT
 
-  class CaseLight {
+class CaseLight {
 
-    public: /* PUBLIC PARAMETERS */
+  public: /* PUBLIC PARAMETERS */
 
-      static uint8_t  brightness;
-      static bool     status;
+    static uint8_t  brightness;
+    static bool     status;
 
-    public: /* PUBLIC FUNCTIONS */
+  public: /* PUBLIC FUNCTIONS */
 
-      static void update();
-      static void report();
+    static void update();
+    static void report();
 
-  };
+};
 
-  extern CaseLight caselight;
+extern CaseLight caselight;
 
 #endif // HAS_CASE_LIGHT

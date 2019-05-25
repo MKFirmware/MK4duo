@@ -42,56 +42,56 @@
 
 #if ENABLED(CNCROUTER)
 
-  class Cncrouter {
+class Cncrouter {
 
-    public: /** Constructor */
+  public: /** Constructor */
 
-      Cncrouter() {};
+    Cncrouter() {};
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-    private: /** Private Parameters */
+  private: /** Private Parameters */
 
-      static uint8_t active_tool;
-      #define CNC_M6_TOOL_ID 255
+    static uint8_t active_tool;
+    #define CNC_M6_TOOL_ID 255
 
-      #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-        static uint32_t rpm_target;
-      #endif
+    #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
+      static uint32_t rpm_target;
+    #endif
 
-      #if ENABLED(FAST_PWM_CNCROUTER)
-        static uint32_t rpm_instant;
-      #endif
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      static uint32_t rpm_instant;
+    #endif
 
-    public: /** Public Function */
+  public: /** Public Function */
 
-      static void init();    // initialize cnc router
-      static void manage();  // management loop for CNC
+    static void init();    // initialize cnc router
+    static void manage();  // management loop for CNC
 
-      static void tool_change(const uint8_t tool_id, bool wait=true, bool raise_z=true);
+    static void tool_change(const uint8_t tool_id, bool wait=true, bool raise_z=true);
 
-      #if ENABLED(FAST_PWM_CNCROUTER)
-        static uint32_t get_Speed();
-        static void print_Speed();
+    #if ENABLED(FAST_PWM_CNCROUTER)
+      static uint32_t get_Speed();
+      static void print_Speed();
+    #else
+      #if ENABLED(INVERTED_CNCROUTER_PIN)
+        #define get_Speed() READ(CNCROUTER_PIN)
       #else
-        #if ENABLED(INVERTED_CNCROUTER_PIN)
-          #define get_Speed() READ(CNCROUTER_PIN)
-        #else
-          #define get_Speed() !READ(CNCROUTER_PIN)
-        #endif // INVERTED_CNCROUTER_PIN
-      #endif // FAST_PWM_CNCROUTER
+        #define get_Speed() !READ(CNCROUTER_PIN)
+      #endif // INVERTED_CNCROUTER_PIN
+    #endif // FAST_PWM_CNCROUTER
 
-      static void setRouterSpeed(uint32_t rpm, bool clockwise=false);
-      static void disable_router();
+    static void setRouterSpeed(uint32_t rpm, bool clockwise=false);
+    static void disable_router();
 
-    private: /** Private Function */
+  private: /** Private Function */
 
-      static void speed_step();
-      static uint8_t calcPWM(uint32_t rpm);
-      static void setPwm(uint8_t pwm);
+    static void speed_step();
+    static uint8_t calcPWM(uint32_t rpm);
+    static void setPwm(uint8_t pwm);
 
-  };
+};
 
-  extern Cncrouter cnc;
+extern Cncrouter cnc;
 
 #endif // CNCROUTER
