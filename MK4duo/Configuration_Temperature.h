@@ -224,10 +224,10 @@
  * Max 1000 Hz                                                         *
  *                                                                     *
  ***********************************************************************/
-#define HOTEND_PWM_FREQUENCY  1000
-#define BED_PWM_FREQUENCY       10
-#define CHAMBER_PWM_FREQUENCY   10
-#define COOLER_PWM_FREQUENCY    10
+#define HOTEND_PWM_FREQUENCY  250
+#define BED_PWM_FREQUENCY     100
+#define CHAMBER_PWM_FREQUENCY 100
+#define COOLER_PWM_FREQUENCY  100
 /***********************************************************************/
 
 
