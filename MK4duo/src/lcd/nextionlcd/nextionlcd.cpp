@@ -1244,7 +1244,9 @@ void LcdUI::init() {
 
     setpagePrinter();
 
-    return_to_status_ms = millis() + 60000UL;
+    #if LCD_TIMEOUT_TO_STATUS > 0
+      return_to_status_ms = millis() + 60000UL;
+    #endif
 
     #if HAS_LCD_MENU
       // Check the Nextion Firmware
