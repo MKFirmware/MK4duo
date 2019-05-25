@@ -19,35 +19,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _EXTERNAL_DAC_H_
-#define _EXTERNAL_DAC_H_
+/**
+ * external_dac.h - To set stepper current via DAC on Alligator board
+ */
 
 #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
-  class ExternalDac {
+class ExternalDac {
 
-    public: /** Constructor */
+  public: /** Constructor */
 
-      ExternalDac() {}
+    ExternalDac() {}
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      static uint16_t motor_current[3 + DRIVER_EXTRUDERS];
+    static uint16_t motor_current[3 + DRIVER_EXTRUDERS];
 
-    public: /** Public Function */
+  public: /** Public Function */
 
-      static void begin(void);
-      static void set_driver_current();
+    static void begin(void);
+    static void set_driver_current();
 
-    private: /** Private Function */
+  private: /** Private Function */
 
-      static void setValue(uint8_t channel, uint8_t value);
+    static void setValue(uint8_t channel, uint8_t value);
 
-  };
+};
 
-  extern ExternalDac externaldac;
+extern ExternalDac externaldac;
 
 #endif // MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-
-#endif /* _EXTERNAL_DAC_H_ */
