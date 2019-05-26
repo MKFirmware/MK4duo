@@ -98,7 +98,7 @@ static constexpr chopper_timing_t chopper_timing = CHOPPER_TIMING;
 
 extern bool report_tmc_status;
 
-constexpr uint16_t tmc_thrs(const uint16_t msteps, const int32_t thrs, const uint32_t spmm) {
+constexpr uint16_t tmc_thrs(const uint16_t msteps, const uint32_t thrs, const uint32_t spmm) {
   return 12650000UL * msteps / (256 * thrs * spmm);
 }
 
@@ -174,30 +174,44 @@ class TMCStorage {
       inline uint16_t rms_current() { return TMC2208Stepper::rms_current(); }
 
       inline void rms_current(const uint16_t mA) {
-        val_mA = mA;
+        this->val_mA = mA;
         TMC2208Stepper::rms_current(mA);
       }
 
       inline void rms_current(const uint16_t mA, const float mult) {
-        val_mA = mA;
+        this->val_mA = mA;
         TMC2208Stepper::rms_current(mA, mult);
       }
 
       inline uint16_t microsteps() { return TMC2208Stepper::microsteps(); }
 
       inline void microsteps(const uint16_t ms) {
-        val_ms = ms;
+        this->val_ms = ms;
         TMC2208Stepper::microsteps(ms);
       }
 
-      inline void refresh_stepping_mode()   { TMC2208Stepper::en_spreadCycle(!stealthChop_enabled); }
-      inline bool get_stealthChop_status()  { return !TMC2208Stepper::en_spreadCycle(); }
-
-      inline void refresh_stepper_current()   { TMC2208Stepper::rms_current(val_mA); }
-      inline void refresh_stepper_microstep() { TMC2208Stepper::microsteps(val_ms); }
+      inline void refresh_stepping_mode()   { this->en_spreadCycle(!this->stealthChop_enabled); }
+      inline bool get_stealthChop_status()  { return !this->en_spreadCycle(); }
 
       #if ENABLED(HYBRID_THRESHOLD)
-        inline void refresh_hybrid_thrs(const float spmm) { TMC2208Stepper::TPWMTHRS(tmc_thrs(TMC2208Stepper::microsteps(), TMC2208Stepper::hybrid_thrs, spmm)); }
+        uint32_t get_pwm_thrs() {
+          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+        }
+        void set_pwm_thrs(const uint32_t thrs) {
+          TMC2208Stepper::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          #if HAS_LCD_MENU
+            this->hybrid_thrs = thrs;
+          #endif
+        }
+      #endif
+
+      #if HAS_LCD_MENU
+        inline void refresh_stepper_current()   { rms_current(val_mA); }
+        inline void refresh_stepper_microstep() { microsteps(val_ms); }
+
+        #if ENABLED(HYBRID_THRESHOLD)
+          inline void refresh_hybrid_thrs() { set_pwm_thrs(this->hybrid_thrs); }
+        #endif
       #endif
 
   };
@@ -235,20 +249,32 @@ class TMCStorage {
       inline uint16_t rms_current() { return TMC2660Stepper::rms_current(); }
 
       inline void rms_current(uint16_t mA) {
-        val_mA = mA;
+        this->val_mA = mA;
         TMC2660Stepper::rms_current(mA);
       }
 
       inline void microsteps(const uint16_t ms) {
-        val_ms = ms;
+        this->val_ms = ms;
         TMC2660Stepper::microsteps(ms);
       }
 
-      inline void refresh_stepper_current()   { TMC2660Stepper::rms_current(val_mA); }
-      inline void refresh_stepper_microstep() { TMC2660Stepper::microsteps(val_ms); }
+      #if USE_SENSORLESS
+        inline int8_t sgt() { return TMC2660Stepper::sgt(); }
+        void sgt(const int8_t sgt_val) {
+          TMC2660Stepper::sgt(sgt_val);
+          #if HAS_LCD_MENU
+            this->homing_thrs = sgt_val;
+          #endif
+        }
+      #endif
 
-      #if HAS_SENSORLESS
-        inline void refresh_homing_thrs() { TMC2660Stepper::sgt(homing_thrs); }
+      #if HAS_LCD_MENU
+        inline void refresh_stepper_current()   { rms_current(this->val_mA); }
+        inline void refresh_stepper_microstep() { microsteps(this->val_ms); }
+
+        #if HAS_SENSORLESS
+          inline void refresh_homing_thrs() { sgt(this->homing_thrs); }
+        #endif
       #endif
 
   };
@@ -286,33 +312,56 @@ class TMCStorage {
       inline uint16_t rms_current() { return TMC_MODEL_LIB::rms_current(); }
 
       inline void rms_current(const uint16_t mA) {
-        val_mA = mA;
+        this->val_mA = mA;
         TMC_MODEL_LIB::rms_current(mA);
       }
 
       inline void rms_current(const uint16_t mA, const float mult) {
-        val_mA = mA;
+        this->val_mA = mA;
         TMC_MODEL_LIB::rms_current(mA, mult);
       }
 
       inline uint16_t microsteps() { return TMC_MODEL_LIB::microsteps(); }
 
       inline void microsteps(const uint16_t ms) {
-        val_ms = ms;
+        this->val_ms = ms;
         TMC_MODEL_LIB::microsteps(ms);
       }
 
-      inline void refresh_stepping_mode()   { TMC_MODEL_LIB::en_pwm_mode(stealthChop_enabled); }
-      inline bool get_stealthChop_status()  { return TMC_MODEL_LIB::en_pwm_mode(); }
-
-      inline void refresh_stepper_current()   { TMC_MODEL_LIB::rms_current(val_mA); }
-      inline void refresh_stepper_microstep() { TMC_MODEL_LIB::microsteps(val_ms); }
+      inline void refresh_stepping_mode()   { this->en_pwm_mode(this->stealthChop_enabled); }
+      inline bool get_stealthChop_status()  { return this->en_pwm_mode(); }
 
       #if ENABLED(HYBRID_THRESHOLD)
-        inline void refresh_hybrid_thrs(const float spmm) { TMC_MODEL_LIB::TPWMTHRS(tmc_thrs(TMC_MODEL_LIB::microsteps(), hybrid_thrs, spmm)); }
+        uint32_t get_pwm_thrs() {
+          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+        }
+        void set_pwm_thrs(const uint32_t thrs) {
+          TMC_MODEL_LIB::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          #if HAS_LCD_MENU
+            this->hybrid_thrs = thrs;
+          #endif
+        }
       #endif
       #if HAS_SENSORLESS
-        inline void refresh_homing_thrs() { TMC_MODEL_LIB::sgt(homing_thrs); }
+        inline int8_t sgt() { return TMC_MODEL_LIB::sgt(); }
+        void sgt(const int8_t sgt_val) {
+          TMC_MODEL_LIB::sgt(sgt_val);
+          #if HAS_LCD_MENU
+            this->homing_thrs = sgt_val;
+          #endif
+        }
+      #endif
+
+      #if HAS_LCD_MENU
+        inline void refresh_stepper_current()   { rms_current(this->val_mA); }
+        inline void refresh_stepper_microstep() { microsteps(this->val_ms); }
+
+        #if ENABLED(HYBRID_THRESHOLD)
+          inline void refresh_hybrid_thrs() { set_pwm_thrs(this->hybrid_thrs); }
+        #endif
+        #if HAS_SENSORLESS
+          inline void refresh_homing_thrs() { sgt(this->homing_thrs); }
+        #endif
       #endif
 
   };
@@ -376,7 +425,10 @@ class TMC_Stepper {
     static void init();
     static void current_init_to_defaults();
     static void microstep_init_to_defaults();
-    static void hybrid_threshold_init_to_defaults();
+
+    #if ENABLED(HYBRID_THRESHOLD)
+      static void hybrid_threshold_init_to_defaults();
+    #endif
 
     static void restore();
 
@@ -413,7 +465,7 @@ class TMC_Stepper {
 
       FORCE_INLINE static void report_otpw(MKTMC* st) {
         st->printLabel();
-        SERIAL_ELOGIC(" temperature prewarn triggered", st->getOTPW());
+        SERIAL_ELOGIC(" temperature prewarn triggered:", st->getOTPW());
       }
 
       FORCE_INLINE static void clear_otpw(MKTMC* st) {
@@ -422,18 +474,6 @@ class TMC_Stepper {
         SERIAL_EM(" prewarn flag cleared");
       }
 
-    #endif
-
-    FORCE_INLINE static void set_pwmthrs(MKTMC* st, const int32_t thrs, const uint32_t spmm) {
-      st->TPWMTHRS(tmc_thrs(st->microsteps(), thrs, spmm));
-      st->hybrid_thrs = tmc_thrs(st->microsteps(), st->TPWMTHRS(), spmm);
-    }
-
-    #if HAS_SENSORLESS
-      FORCE_INLINE static void set_sgt(MKTMC* st, const int8_t sgt_val) {
-        st->sgt(sgt_val);
-        st->homing_thrs = sgt_val;
-      }
     #endif
 
     FORCE_INLINE static void get_off_time(MKTMC* st) {

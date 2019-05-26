@@ -20,93 +20,91 @@
  *
  */
 
-/***************************************************************
- *
- * External DAC for Alligator Board
- *
- ****************************************************************/
+/**
+ * external_dac.cpp - To set stepper current via DAC on Alligator board
+ */
 
 #include "../../../MK4duo.h"
 
 #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
-  ExternalDac externaldac;
+ExternalDac externaldac;
 
-  uint16_t ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
+uint16_t ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
 
-  void ExternalDac::begin() {
-    uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
+void ExternalDac::begin() {
+  uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
 
-    HAL::spiBegin();
+  HAL::spiBegin();
 
-    // init onboard DAC
+  // init onboard DAC
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
+
+  HAL::spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
+  HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
+
+  #if DRIVER_EXTRUDERS > 1
+    // init Piggy DAC
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
+    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
+    HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
     HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
+    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
 
-    HAL::spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
-    HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
-
-    #if DRIVER_EXTRUDERS > 1
-      // init Piggy DAC
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
-
-      HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
-      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
-    #endif
-
-    return;
-  }
-
-  void ExternalDac::set_driver_current() {
-    uint8_t digipot_motor = 0;
-    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-      digipot_motor = 255 * motor_current[i] / 1000 / 3.3;
-      setValue(i, digipot_motor);
-    }
-  }
-
-  void ExternalDac::setValue(uint8_t channel, uint8_t value) {
-    if(channel >= 7) // max channel (X,Y,Z,E0,E1,E2,E3)
-      return;
-
-    uint8_t externalDac_buf[2] = {0x10, 0x00};
-
-    if (channel > 3)
-      externalDac_buf[0] |= ((7 - channel) << 6);
-    else
-      externalDac_buf[0] |= ((3 - channel) << 6);
-
-    externalDac_buf[0] |= (value >> 4);
-    externalDac_buf[1] |= (value << 4);
-
-    if (channel > 3) { // DAC Piggy E1,E2,E3
-      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
-    }
-    else { // DAC onboard X,Y,Z,E0
-      HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
-      HAL::delayMicroseconds(2U);
-      HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
-    }
-
-    HAL::delayMicroseconds(2U);
     HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+    HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
+  #endif
 
+  return;
+}
+
+void ExternalDac::set_driver_current() {
+  uint8_t digipot_motor = 0;
+  for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
+    digipot_motor = 255 * motor_current[i] / 1000 / 3.3;
+    setValue(i, digipot_motor);
+  }
+}
+
+void ExternalDac::setValue(uint8_t channel, uint8_t value) {
+  if(channel >= 7) // max channel (X,Y,Z,E0,E1,E2,E3)
     return;
+
+  uint8_t externalDac_buf[2] = {0x10, 0x00};
+
+  if (channel > 3)
+    externalDac_buf[0] |= ((7 - channel) << 6);
+  else
+    externalDac_buf[0] |= ((3 - channel) << 6);
+
+  externalDac_buf[0] |= (value >> 4);
+  externalDac_buf[1] |= (value << 4);
+
+  if (channel > 3) { // DAC Piggy E1,E2,E3
+    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
+    HAL::delayMicroseconds(2U);
+    HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
+    HAL::delayMicroseconds(2U);
+    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
+  }
+  else { // DAC onboard X,Y,Z,E0
+    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
+    HAL::delayMicroseconds(2U);
+    HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
+    HAL::delayMicroseconds(2U);
+    HAL::digitalWrite(DAC0_SYNC_PIN, LOW);
   }
 
-#endif
+  HAL::delayMicroseconds(2U);
+  HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+
+  return;
+}
+
+#endif // MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)

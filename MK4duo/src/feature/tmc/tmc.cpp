@@ -395,18 +395,22 @@ void TMC_Stepper::microstep_init_to_defaults() {
   }
 }
 
-void TMC_Stepper::hybrid_threshold_init_to_defaults() {
-  constexpr uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                          X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                          E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                          E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+#if ENABLED(HYBRID_THRESHOLD)
 
-  LOOP_TMC() {
-    MKTMC* st = tmc.driver_by_index(t);
-    if (st)
-      set_pwmthrs(st, tmc_hybrid_threshold[t], mechanics.data.axis_steps_per_mm[st->id]);
+  void TMC_Stepper::hybrid_threshold_init_to_defaults() {
+    constexpr uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                            X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                            E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                            E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+
+    LOOP_TMC() {
+      MKTMC* st = tmc.driver_by_index(t);
+      if (st)
+        st->set_pwm_thrs(tmc_hybrid_threshold[t]);
+    }
   }
-}
+
+#endif
 
 void TMC_Stepper::restore() {
   LOOP_TMC() {
@@ -701,7 +705,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 
     #if ENABLED(HYBRID_THRESHOLD)
 
-      #define TMC_GET_PWMTHRS(ST) tmc_thrs(stepper##ST->microsteps(), stepper##ST->TPWMTHRS(), mechanics.data.axis_steps_per_mm[ST##_AXIS])
+      #define TMC_GET_PWMTHRS(ST) stepper##ST->get_pwm_thrs()
 
       SERIAL_LM(CFG, "Stepper driver Hybrid Threshold");
       #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)

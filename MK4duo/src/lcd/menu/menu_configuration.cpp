@@ -69,7 +69,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void menu_debug() {
     START_MENU();
 
-    MENU_BACK(MSG_MAIN);
+    MENU_BACK(MSG_CONFIGURATION);
 
     #if ENABLED(LCD_PROGRESS_BAR_TEST)
       MENU_ITEM(submenu, MSG_PROGRESS_BAR_TEST, _progress_bar_test);
@@ -91,7 +91,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_DXC() {
     START_MENU();
-    MENU_BACK(MSG_MAIN);
+    MENU_BACK(MSG_CONFIGURATION);
 
     MENU_ITEM(gcode, MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
     const bool need_g28 = !(mechanics.home_flag.YHomed && mechanics.home_flag.ZHomed);

@@ -142,12 +142,12 @@ void menu_main() {
 
       if (card.isDetected()) {
         if (!card.isFileOpen()) {
-          MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
           #if PIN_EXISTS(SD_DETECT)
             MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));
           #else
             MENU_ITEM(gcode, MSG_RELEASE_SDCARD, PSTR("M22"));
           #endif
+          MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
         }
       }
       else {

@@ -350,19 +350,25 @@ void EEPROM::post_process() {
     mechanics.recalc_delta_settings();
   #endif
 
-  #if HEATER_COUNT > 0
+  #if HOTENDS > 0
     LOOP_HOTEND() {
       hotends[h].init();
       hotends[h].pid.update();
     }
+  #endif
+  #if BEDS > 0
     LOOP_BED() {
       beds[h].init();
       beds[h].pid.update();
     }
+  #endif
+  #if CHAMBERS > 0
     LOOP_CHAMBER() {
       chambers[h].init();
       chambers[h].pid.update();
     }
+  #endif
+  #if COOLERS > 0
     LOOP_COOLER() {
       coolers[h].init();
       coolers[h].pid.update();
@@ -615,22 +621,28 @@ void EEPROM::post_process() {
     //
     // Heaters
     //
-    #if HEATER_COUNT > 0
+    #if HOTENDS > 0
       LOOP_HOTEND() {
         EEPROM_WRITE(hotends[h].data);
         EEPROM_WRITE(hotends[h].pid);
         EEPROM_WRITE(hotends[h].sensor);
       }
+    #endif
+    #if BEDS > 0
       LOOP_BED() {
         EEPROM_WRITE(beds[h].data);
         EEPROM_WRITE(beds[h].pid);
         EEPROM_WRITE(beds[h].sensor);
       }
+    #endif
+    #if CHAMBERS > 0
       LOOP_CHAMBER() {
         EEPROM_WRITE(chambers[h].data);
         EEPROM_WRITE(chambers[h].pid);
         EEPROM_WRITE(chambers[h].sensor);
       }
+    #endif
+    #if COOLERS > 0
       LOOP_COOLER() {
         EEPROM_WRITE(coolers[h].data);
         EEPROM_WRITE(coolers[h].pid);
@@ -784,10 +796,10 @@ void EEPROM::post_process() {
           tmc_stepper_current[t]    = st->getMilliamps();
           tmc_stepper_microstep[t]  = st->microsteps();
           #if ENABLED(HYBRID_THRESHOLD)
-            tmc_hybrid_threshold[t] = st->hybrid_thrs;
+            tmc_hybrid_threshold[t] = st->get_pwm_thrs();
           #endif
           #if TMC_HAS_STEALTHCHOP
-            tmc_stealth_enabled[t]  = st->stealthChop_enabled;
+            tmc_stealth_enabled[t]  = st->get_stealthChop_status();
           #endif
         }
       }
@@ -1029,22 +1041,28 @@ void EEPROM::post_process() {
       //
       // Heaters
       //
-      #if HEATER_COUNT > 0
+      #if HOTENDS > 0
         LOOP_HOTEND() {
           EEPROM_READ(hotends[h].data);
           EEPROM_READ(hotends[h].pid);
           EEPROM_READ(hotends[h].sensor);
         }
+      #endif
+      #if BEDS > 0
         LOOP_BED() {
           EEPROM_READ(beds[h].data);
           EEPROM_READ(beds[h].pid);
           EEPROM_READ(beds[h].sensor);
         }
+      #endif
+      #if CHAMBERS > 0
         LOOP_CHAMBER() {
           EEPROM_READ(chambers[h].data);
           EEPROM_READ(chambers[h].pid);
           EEPROM_READ(chambers[h].sensor);
         }
+      #endif
+      #if COOLERS > 0
         LOOP_COOLER() {
           EEPROM_READ(coolers[h].data);
           EEPROM_READ(coolers[h].pid);
@@ -1200,8 +1218,7 @@ void EEPROM::post_process() {
               st->rms_current(tmc_stepper_current[t]);
               st->microsteps(tmc_stepper_microstep[t]);
               #if ENABLED(HYBRID_THRESHOLD)
-                st->hybrid_thrs = tmc_hybrid_threshold[t];
-                st->refresh_hybrid_thrs(mechanics.data.axis_steps_per_mm[st->id]);
+                st->set_pwm_thrs(tmc_hybrid_threshold[t]);
               #endif
               #if TMC_HAS_STEALTHCHOP
                 st->stealthChop_enabled = tmc_stealth_enabled[t];
@@ -2370,26 +2387,34 @@ void EEPROM::reset() {
     /**
      * Print heaters parameters
      */
-    LOOP_HOTEND() {
-      hotends[h].print_M305();
-      hotends[h].print_M306();
-      hotends[h].print_M301();
-    }
-    LOOP_BED() {
-      beds[h].print_M305();
-      beds[h].print_M306();
-      beds[h].print_M301();
-    }
-    LOOP_CHAMBER() {
-      chambers[h].print_M305();
-      chambers[h].print_M306();
-      chambers[h].print_M301();
-    }
-    LOOP_COOLER() {
-      coolers[h].print_M305();
-      coolers[h].print_M306();
-      coolers[h].print_M301();
-    }
+    #if HOTENDS > 0
+      LOOP_HOTEND() {
+        hotends[h].print_M305();
+        hotends[h].print_M306();
+        hotends[h].print_M301();
+      }
+    #endif
+    #if BEDS > 0
+      LOOP_BED() {
+        beds[h].print_M305();
+        beds[h].print_M306();
+        beds[h].print_M301();
+      }
+    #endif
+    #if CHAMBERS > 0
+      LOOP_CHAMBER() {
+        chambers[h].print_M305();
+        chambers[h].print_M306();
+        chambers[h].print_M301();
+      }
+    #endif
+    #if COOLERS > 0
+      LOOP_COOLER() {
+        coolers[h].print_M305();
+        coolers[h].print_M306();
+        coolers[h].print_M301();
+      }
+    #endif
 
     /**
      * Print dht parameters
@@ -2449,7 +2474,7 @@ void EEPROM::reset() {
     #endif
 
     #if HAS_SERVOS
-      LOOP_SERVO() servo[s].print_parameters();
+      LOOP_SERVO() servo[s].print_M281();
     #endif
 
     /**

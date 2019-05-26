@@ -176,37 +176,37 @@
         }
       #endif
 
-      #define TMC_SET_PWMTHRS(P,ST) tmc.set_pwmthrs(stepper##ST, value, mechanics.data.axis_steps_per_mm[P##_AXIS])
-      #define TMC_SET_PWMTHRS_E(E) do{ tmc.set_pwmthrs(stepperE##E, value, mechanics.data.axis_steps_per_mm[E_AXIS_N(E)]); }while(0)
+      #define TMC_SET_PWMTHRS(ST)   stepper##ST->set_pwm_thrs(value)
+      #define TMC_SET_PWMTHRS_E(E)  stepperE##E->set_pwm_thrs(value)
 
       LOOP_XYZE(i) {
         if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
               #if AXIS_HAS_STEALTHCHOP(X)
-                TMC_SET_PWMTHRS(X,X);
+                TMC_SET_PWMTHRS(X);
               #endif
               #if AXIS_HAS_STEALTHCHOP(X2)
-                TMC_SET_PWMTHRS(X,X2);
+                TMC_SET_PWMTHRS(X2);
               #endif
               break;
             case Y_AXIS:
               #if AXIS_HAS_STEALTHCHOP(Y)
-                TMC_SET_PWMTHRS(Y,Y);
+                TMC_SET_PWMTHRS(Y);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Y2)
-                TMC_SET_PWMTHRS(Y,Y2);
+                TMC_SET_PWMTHRS(Y2);
               #endif
               break;
             case Z_AXIS:
               #if AXIS_HAS_STEALTHCHOP(Z)
-                TMC_SET_PWMTHRS(Z,Z);
+                TMC_SET_PWMTHRS(Z);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Z2)
-                TMC_SET_PWMTHRS(Z,Z2);
+                TMC_SET_PWMTHRS(Z2);
               #endif
               #if AXIS_HAS_STEALTHCHOP(Z3)
-                TMC_SET_PWMTHRS(Z,Z3);
+                TMC_SET_PWMTHRS(Z3);
               #endif
               break;
             case E_AXIS: {
@@ -255,7 +255,7 @@
         }
       #endif
 
-      #define TMC_SET_SGT(ST) tmc.set_sgt(stepper##ST, value)
+      #define TMC_SET_SGT(ST) stepper##ST->sgt(value)
 
       LOOP_XYZ(i) {
         if (parser.seen(axis_codes[i])) {

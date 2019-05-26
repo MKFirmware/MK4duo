@@ -446,16 +446,7 @@ void menu_temperature() {
 
   if (printer.mode == PRINTER_MODE_FFF) {
 
-    #if HAS_TEMP_HE0
-
-      //
-      // Cooldown
-      //
-      bool has_heat = false;
-      #if HOTENDS > 0
-        LOOP_HOTEND() if (hotends[h].target_temperature) { has_heat = true; break; }
-      #endif
-      if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
+    #if HOTENDS > 0
 
       //
       // Preheat for Material 1, 2 and 3
@@ -470,7 +461,17 @@ void menu_temperature() {
         MENU_ITEM(function, MSG_PREHEAT_3, lcd_preheat_m3_h0_only);
       #endif
 
-    #endif // HAS_TEMP_HE0
+      //
+      // Cooldown
+      //
+      bool has_heat = false;
+      LOOP_HOTEND() if (hotends[h].target_temperature) { has_heat = true; break; }
+      #if BEDS > 0
+        LOOP_BED() if (beds[h].target_temperature) { has_heat = true; break; }
+      #endif
+      if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
+
+    #endif // HOTENDS > 0
 
   } // printer mode FFF
 
