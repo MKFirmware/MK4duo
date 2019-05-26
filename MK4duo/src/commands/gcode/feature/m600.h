@@ -111,7 +111,7 @@
                       fast_load_length  = 0.0f;
     #else
       // Unload filament
-      const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
+      const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
                                                         : advancedpause.data[tools.active_extruder].unload_length);
 
       // Slow load filament
