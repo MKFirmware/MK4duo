@@ -153,7 +153,7 @@ inline void gcode_M702(void) {
     #endif
     {
       // Unload length
-      const float unload_length = ABS(parser.seen('U')  ? parser.value_axis_units(E_AXIS)
+      const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
                                                         : advancedpause.data[tools.target_extruder].unload_length);
 
       advancedpause.unload_filament(unload_length, true, PAUSE_MODE_UNLOAD_FILAMENT);
