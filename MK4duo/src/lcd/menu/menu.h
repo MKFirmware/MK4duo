@@ -48,7 +48,7 @@ DECLARE_MENU_EDIT_TYPE(uint16_t, microstep,   ui16tostr3,      0.0625f  );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_3,    ui16tostr3,      1        );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_4,    ui16tostr4,      0.1      );
 DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
-DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr52,      100        );
+DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr42_52,   100        );
 DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
 DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f    );
 DECLARE_MENU_EDIT_TYPE(float,    float5_25,   ftostr5rj,       0.04f    );

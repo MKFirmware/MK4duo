@@ -44,7 +44,7 @@
     if (WITHIN(servo_index, 0, NUM_SERVOS - 1)) {
       if (parser.seen('L')) servo[servo_index].angle[0] = parser.value_int();
       if (parser.seen('U')) servo[servo_index].angle[1] = parser.value_int();
-      servo[servo_index].print_parameters();
+      servo[servo_index].print_M281();
     }
     else {
       SERIAL_SMV(ER, "Servo ", servo_index);
