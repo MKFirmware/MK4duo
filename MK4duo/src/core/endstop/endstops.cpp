@@ -27,9 +27,12 @@
 #include "../../../MK4duo.h"
 #include "../../platform/common/endstop_interrupts.h"
 
+#define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
+#define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
+
 Endstops endstops;
 
-// public:
+/** Public Parameters */
 flagendstop_t Endstops::flag;
 
 #if MECH(DELTA)
@@ -55,13 +58,10 @@ uint16_t  Endstops::logic_flag  = 0,
           Endstops::pullup_flag = 0,
           Endstops::live_state  = 0;
 
-// Private
+/** Private Parameters */
 volatile uint8_t Endstops::hit_state = 0;
 
-/**
- * Class and Instance Methods
- */
-
+/** Public Function */
 void Endstops::init() {
 
   #if HAS_X_MIN
@@ -336,17 +336,6 @@ void Endstops::print_parameters() {
   SERIAL_EOL();
 }
 
-// Called from HAL::Tick or HAL_temp_isr. Check endstop state if required
-void Endstops::Tick() {
-  #if ENABLED(PINS_DEBUGGING)
-    run_monitor();  // report changes in endstop status
-  #endif
-
-  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
-    update();
-  #endif
-}
-
 void Endstops::setup_pullup() {
 
   #if HAS_X_MIN
@@ -407,381 +396,16 @@ void Endstops::setup_pullup() {
 
 }
 
-void Endstops::report() {
-
-  SERIAL_EM("Reporting endstop logic and pullup");
-
-  // X Endstop
-  SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.X == -1) {
-    SERIAL_LOGIC(" X Logic",  isLogic(X_MIN));
-    SERIAL_LOGIC(" Pullup",   isPullup(X_MIN));
-    #if HAS_X2_MIN
-      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MIN));
-      SERIAL_LOGIC(" Pullup",   isPullup(X2_MIN));
-    #endif
-  }
-  else {
-    SERIAL_LOGIC(" X Logic",  isLogic(X_MAX));
-    SERIAL_LOGIC(" Pullup",   isPullup(X_MAX));
-    #if HAS_X2_MAX
-      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MAX));
-      SERIAL_LOGIC(" Pullup",   isPullup(X2_MAX));
-    #endif
-  }
-  SERIAL_EOL();
-
-  // Y Endstop
-  SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.Y == -1) {
-    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MIN));
-    SERIAL_LOGIC(" Pullup",   isPullup(Y_MIN));
-    #if HAS_Y2_MIN
-      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MIN));
-      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MIN));
-    #endif
-  }
-  else {
-    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MAX));
-    SERIAL_LOGIC(" Pullup",   isPullup(Y_MAX));
-    #if HAS_Y2_MAX
-      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MAX));
-      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MAX));
-    #endif
-  }
-  SERIAL_EOL();
-
-  // Z Endstop
-  SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.Z == -1) {
-    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MIN));
-    SERIAL_LOGIC(" Pullup",   isPullup(Z_MIN));
-    #if HAS_Z2_MIN
-      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MIN));
-      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MIN));
-    #endif
-    #if HAS_Z3_MIN
-      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MIN));
-      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MIN));
-    #endif
-  }
-  else {
-    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MAX));
-    SERIAL_LOGIC(" Pullup",   isPullup(Z_MAX));
-    #if HAS_Z2_MAX
-      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MAX));
-      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MAX));
-    #endif
-    #if HAS_Z3_MAX
-      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MAX));
-      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MAX));
-    #endif
-  }
-  SERIAL_EOL();
-
-  #if HAS_Z_PROBE_PIN
-    // Probe Endstop
-    SERIAL_LOGIC("Endstop PROBE Logic", isLogic(Z_PROBE));
-    SERIAL_LOGIC(" Pullup", isPullup(Z_PROBE));
-    SERIAL_EOL();
+// Called from HAL::Tick or HAL_temp_isr. Check endstop state if required
+void Endstops::Tick() {
+  #if ENABLED(PINS_DEBUGGING)
+    run_monitor();  // report changes in endstop status
   #endif
 
-  #if HAS_DOOR_OPEN
-    // Door Open
-    SERIAL_LOGIC("Endstop DOOR OPEN Logic", isLogic(DOOR_OPEN));
-    SERIAL_LOGIC(" Pullup", isPullup(DOOR_OPEN));
-    SERIAL_EOL();
-  #endif
-
-}
-
-void Endstops::report_state() {
-
-  static uint8_t prev_hit_state = 0;
-
-  if (hit_state && hit_state != prev_hit_state) {
-
-    #if HAS_LCD
-      char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
-      #define _SET_STOP_CHAR(A,C) (chr## A = C)
-    #else
-      #define _SET_STOP_CHAR(A,C) ;
-    #endif
-
-    #define _ENDSTOP_HIT_ECHO(A,C) do{ \
-      SERIAL_MV(STRINGIFY(A) ":", planner.triggered_position_mm(_AXIS(A))); \
-      _SET_STOP_CHAR(A,C); }while(0)
-
-    #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
-        _ENDSTOP_HIT_ECHO(A,C)
-
-    SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
-    _ENDSTOP_HIT_TEST(X, 'X');
-    _ENDSTOP_HIT_TEST(Y, 'Y');
-    _ENDSTOP_HIT_TEST(Z, 'Z');
-
-    #if HAS_Z_PROBE_PIN
-      #define P_AXIS Z_AXIS
-      if (TEST(hit_state, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
-    #endif
-    SERIAL_EOL();
-
-    #if HAS_LCD
-      lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
-    #endif
-
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
-      if (planner.abort_on_endstop_hit) {
-        card.setSDprinting(false);
-        card.closeFile();
-        printer.quickstop_stepper();
-        thermalManager.disable_all_heaters();
-      }
-    #endif
-  }
-
-  prev_hit_state = hit_state;
-
-} // Endstops::report_state
-
-// Get the stable endstop states when enabled
-void Endstops::resync() {
-
-  if (!abort_enabled()) return;     // If endstops/probes are disabled the loop below can hang
-
-  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+  #if DISABLED(ENDSTOP_INTERRUPTS_FEATURE)
     update();
-  #else
-    HAL::delayMilliseconds(2);
   #endif
 }
-
-// If the last move failed to trigger an endstop, call kill
-void Endstops::validate_homing_move() {
-  if (trigger_state()) hit_on_purpose();
-  else {
-    sound.feedback(false);
-    SERIAL_LM(REQUESTPAUSE, " " MSG_ERR_HOMING_FAILED);
-  }
-}
-
-/**
- * Constrain the given coordinates to the software endstops.
- */
-void Endstops::apply_motion_limits(float target[XYZ]) {
-
-  if (!isSoftEndstop()) return;
-
-  #if MECH(DELTA)
-    const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
-    if (dist_2 > soft_endstop_radius_2) {
-      const float ratio = mechanics.data.print_radius / SQRT(dist_2);
-      target[X_AXIS] *= ratio;
-      target[Y_AXIS] *= ratio;
-    }
-    NOLESS(target[Z_AXIS], 0);
-    NOMORE(target[Z_AXIS], mechanics.data.height);
-  #else
-    #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-      NOLESS(target[X_AXIS], soft_endstop[X_AXIS].min);
-      NOLESS(target[Y_AXIS], soft_endstop[Y_AXIS].min);
-      NOLESS(target[Z_AXIS], soft_endstop[Z_AXIS].min);
-    #endif
-    #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-      NOMORE(target[X_AXIS], soft_endstop[X_AXIS].max);
-      NOMORE(target[Y_AXIS], soft_endstop[Y_AXIS].max);
-      NOMORE(target[Z_AXIS], soft_endstop[Z_AXIS].max);
-    #endif
-  #endif
-}
-
-/**
- * Software endstops can be used to monitor the open end of
- * an axis that has a hardware endstop on the other end. Or
- * they can prevent axes from moving past endstops and grinding.
- *
- * To keep doing their job as the coordinate system changes,
- * the software endstop positions must be refreshed to remain
- * at the same positions relative to the machine.
- */
-void Endstops::update_software_endstops(const AxisEnum axis) {
-
-  #if ENABLED(DUAL_X_CARRIAGE)
-
-    if (axis == X_AXIS) {
-
-      // In Dual X mode tools.hotend_offset[X] is T1's home position
-      float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
-
-      if (tools.active_extruder != 0) {
-        // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-        soft_endstop[X_AXIS].min = X2_MIN_POS;
-        soft_endstop[X_AXIS].max = dual_max_x;
-      }
-      else if (mechanics.dxc_is_duplicating()) {
-        // In Duplication Mode, T0 can move as far left as X_MIN_POS
-        // but not so far to the right that T1 would move past the end
-        soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
-        soft_endstop[X_AXIS].max = MIN(mechanics.data.base_pos[X_AXIS].max, dual_max_x - mechanics.duplicate_extruder_x_offset);
-      }
-      else {
-        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-        soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
-        soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
-      }
-    }
-
-  #elif MECH(DELTA)
-
-    soft_endstop_radius_2 = sq(mechanics.data.print_radius);
-
-  #else
-
-    soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
-    soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
-
-    #if ENABLED(WORKSPACE_OFFSETS)
-      if (printer.debugFeature()) {
-        DEBUG_MV("For ", axis_codes[axis]);
-        DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
-        DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
-        DEBUG_MV("\n soft_endstop_min = ", soft_endstop[axis].min);
-        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop[axis].max);
-      }
-    #endif
-
-  #endif
-
-}
-
-#if ENABLED(PINS_DEBUGGING)
-
-  void Endstops::run_monitor() {
-    if (!isMonitorEnabled()) return;
-    static uint8_t monitor_count = 16;  // offset this check from the others
-    monitor_count += _BV(1);            //  15 Hz
-    monitor_count &= 0x7F;
-    if (!monitor_count) monitor();      // report changes in endstop status
-  }
-
-  /**
-   * monitors endstops & Z probe for changes
-   *
-   * If a change is detected then the LED is toggled and
-   * a message is sent out the serial port
-   *
-   * Yes, we could miss a rapid back & forth change but
-   * that won't matter because this is all manual.
-   *
-   */
-  void Endstops::monitor() {
-
-    static uint16_t old_bits_local = 0;
-    uint16_t current_bits_local = 0;
-    #if HAS_X_MIN
-      if (READ(X_MIN_PIN)) SBI(current_bits_local, X_MIN);
-    #endif
-    #if HAS_X_MAX
-      if (READ(X_MAX_PIN)) SBI(current_bits_local, X_MAX);
-    #endif
-    #if HAS_Y_MIN
-      if (READ(Y_MIN_PIN)) SBI(current_bits_local, Y_MIN);
-    #endif
-    #if HAS_Y_MAX
-      if (READ(Y_MAX_PIN)) SBI(current_bits_local, Y_MAX);
-    #endif
-    #if HAS_Z_MIN
-      if (READ(Z_MIN_PIN)) SBI(current_bits_local, Z_MIN);
-    #endif
-    #if HAS_Z_MAX
-      if (READ(Z_MAX_PIN)) SBI(current_bits_local, Z_MAX);
-    #endif
-    #if HAS_Z_PROBE_PIN
-      if (READ(Z_PROBE_PIN)) SBI(current_bits_local, Z_PROBE);
-    #endif
-    #if HAS_X2_MIN
-      if (READ(X2_MIN_PIN)) SBI(current_bits_local, X2_MIN);
-    #endif
-    #if HAS_X2_MAX
-      if (READ(X2_MAX_PIN)) SBI(current_bits_local, X2_MAX);
-    #endif
-    #if HAS_Y2_MIN
-      if (READ(Y2_MIN_PIN)) SBI(current_bits_local, Y2_MIN);
-    #endif
-    #if HAS_Y2_MAX
-      if (READ(Y2_MAX_PIN)) SBI(current_bits_local, Y2_MAX);
-    #endif
-    #if HAS_Z2_MIN
-      if (READ(Z2_MIN_PIN)) SBI(current_bits_local, Z2_MIN);
-    #endif
-    #if HAS_Z2_MAX
-      if (READ(Z2_MAX_PIN)) SBI(current_bits_local, Z2_MAX);
-    #endif
-    #if HAS_Z3_MIN
-      if (READ(Z3_MIN_PIN)) SBI(current_bits_local, Z3_MIN);
-    #endif
-    #if HAS_Z3_MAX
-      if (READ(Z3_MAX_PIN)) SBI(current_bits_local, Z3_MAX);
-    #endif
-
-    uint16_t endstop_change = current_bits_local ^ old_bits_local;
-
-    if (endstop_change) {
-      #if HAS_X_MIN
-        if (TEST(endstop_change, X_MIN)) SERIAL_MV("  X_MIN:", TEST(current_bits_local, X_MIN));
-      #endif
-      #if HAS_X_MAX
-        if (TEST(endstop_change, X_MAX)) SERIAL_MV("  X_MAX:", TEST(current_bits_local, X_MAX));
-      #endif
-      #if HAS_Y_MIN
-        if (TEST(endstop_change, Y_MIN)) SERIAL_MV("  Y_MIN:", TEST(current_bits_local, Y_MIN));
-      #endif
-      #if HAS_Y_MAX
-        if (TEST(endstop_change, Y_MAX)) SERIAL_MV("  Y_MAX:", TEST(current_bits_local, Y_MAX));
-      #endif
-      #if HAS_Z_MIN
-        if (TEST(endstop_change, Z_MIN)) SERIAL_MV("  Z_MIN:", TEST(current_bits_local, Z_MIN));
-      #endif
-      #if HAS_Z_MAX
-        if (TEST(endstop_change, Z_MAX)) SERIAL_MV("  Z_MAX:", TEST(current_bits_local, Z_MAX));
-      #endif
-      #if HAS_Z_PROBE_PIN
-        if (TEST(endstop_change, Z_PROBE)) SERIAL_MV("  PROBE:", TEST(current_bits_local, Z_PROBE));
-      #endif
-      #if HAS_X2_MIN
-        if (TEST(endstop_change, X2_MIN)) SERIAL_MV("  X2_MIN:", TEST(current_bits_local, X2_MIN));
-      #endif
-      #if HAS_X2_MAX
-        if (TEST(endstop_change, X2_MAX)) SERIAL_MV("  X2_MAX:", TEST(current_bits_local, X2_MAX));
-      #endif
-      #if HAS_Y2_MIN
-        if (TEST(endstop_change, Y2_MIN)) SERIAL_MV("  Y2_MIN:", TEST(current_bits_local, Y2_MIN));
-      #endif
-      #if HAS_Y2_MAX
-        if (TEST(endstop_change, Y2_MAX)) SERIAL_MV("  Y2_MAX:", TEST(current_bits_local, Y2_MAX));
-      #endif
-      #if HAS_Z2_MIN
-        if (TEST(endstop_change, Z2_MIN)) SERIAL_MV("  Z2_MIN:", TEST(current_bits_local, Z2_MIN));
-      #endif
-      #if HAS_Z2_MAX
-        if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", TEST(current_bits_local, Z2_MAX));
-      #endif
-      #if HAS_Z3_MIN
-        if (TEST(endstop_change, Z3_MIN)) SERIAL_MV("  Z3_MIN:", TEST(current_bits_local, Z3_MIN));
-      #endif
-      #if HAS_Z3_MAX
-        if (TEST(endstop_change, Z3_MAX)) SERIAL_MV("  Z3_MAX:", TEST(current_bits_local, Z3_MAX));
-      #endif
-      SERIAL_MSG("\n\n");
-      old_bits_local = current_bits_local;
-    }
-  }
-
-#endif // PINS_DEBUGGING
-
-#define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
-#define _ENDSTOP_PIN(AXIS, MINMAX)  AXIS ##_## MINMAX ##_PIN
 
 // update endstops - Called from ISR!
 void Endstops::update() {
@@ -1053,3 +677,376 @@ void Endstops::update() {
   }
 
 } // Endstops::update()
+
+void Endstops::report() {
+
+  SERIAL_EM("Reporting endstop logic and pullup");
+
+  // X Endstop
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir.X == -1) {
+    SERIAL_LOGIC(" X Logic",  isLogic(X_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(X_MIN));
+    #if HAS_X2_MIN
+      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(X2_MIN));
+    #endif
+  }
+  else {
+    SERIAL_LOGIC(" X Logic",  isLogic(X_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(X_MAX));
+    #if HAS_X2_MAX
+      SERIAL_LOGIC(" X2 Logic", isLogic(X2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(X2_MAX));
+    #endif
+  }
+  SERIAL_EOL();
+
+  // Y Endstop
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir.Y == -1) {
+    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(Y_MIN));
+    #if HAS_Y2_MIN
+      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MIN));
+    #endif
+  }
+  else {
+    SERIAL_LOGIC(" Y Logic",  isLogic(Y_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(Y_MAX));
+    #if HAS_Y2_MAX
+      SERIAL_LOGIC(" Y2 Logic", isLogic(Y2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Y2_MAX));
+    #endif
+  }
+  SERIAL_EOL();
+
+  // Z Endstop
+  SERIAL_MSG("Endstop");
+  if (mechanics.home_dir.Z == -1) {
+    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MIN));
+    SERIAL_LOGIC(" Pullup",   isPullup(Z_MIN));
+    #if HAS_Z2_MIN
+      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MIN));
+    #endif
+    #if HAS_Z3_MIN
+      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MIN));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MIN));
+    #endif
+  }
+  else {
+    SERIAL_LOGIC(" Z Logic",  isLogic(Z_MAX));
+    SERIAL_LOGIC(" Pullup",   isPullup(Z_MAX));
+    #if HAS_Z2_MAX
+      SERIAL_LOGIC(" Z2 Logic", isLogic(Z2_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z2_MAX));
+    #endif
+    #if HAS_Z3_MAX
+      SERIAL_LOGIC(" Z3 Logic", isLogic(Z3_MAX));
+      SERIAL_LOGIC(" Pullup",   isPullup(Z3_MAX));
+    #endif
+  }
+  SERIAL_EOL();
+
+  #if HAS_Z_PROBE_PIN
+    // Probe Endstop
+    SERIAL_LOGIC("Endstop PROBE Logic", isLogic(Z_PROBE));
+    SERIAL_LOGIC(" Pullup", isPullup(Z_PROBE));
+    SERIAL_EOL();
+  #endif
+
+  #if HAS_DOOR_OPEN
+    // Door Open
+    SERIAL_LOGIC("Endstop DOOR OPEN Logic", isLogic(DOOR_OPEN));
+    SERIAL_LOGIC(" Pullup", isPullup(DOOR_OPEN));
+    SERIAL_EOL();
+  #endif
+
+}
+
+void Endstops::report_state() {
+
+  static uint8_t prev_hit_state = 0;
+
+  if (hit_state && hit_state != prev_hit_state) {
+
+    #if HAS_LCD
+      char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
+      #define _SET_STOP_CHAR(A,C) (chr## A = C)
+    #else
+      #define _SET_STOP_CHAR(A,C) ;
+    #endif
+
+    #define _ENDSTOP_HIT_ECHO(A,C) do{ \
+      SERIAL_MV(STRINGIFY(A) ":", planner.triggered_position_mm(_AXIS(A))); \
+      _SET_STOP_CHAR(A,C); }while(0)
+
+    #define _ENDSTOP_HIT_TEST(A,C) \
+      if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
+        _ENDSTOP_HIT_ECHO(A,C)
+
+    SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
+    _ENDSTOP_HIT_TEST(X, 'X');
+    _ENDSTOP_HIT_TEST(Y, 'Y');
+    _ENDSTOP_HIT_TEST(Z, 'Z');
+
+    #if HAS_Z_PROBE_PIN
+      #define P_AXIS Z_AXIS
+      if (TEST(hit_state, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+    #endif
+    SERIAL_EOL();
+
+    #if HAS_LCD
+      lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
+    #endif
+
+    #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
+      if (planner.abort_on_endstop_hit) {
+        card.setSDprinting(false);
+        card.closeFile();
+        printer.quickstop_stepper();
+        thermalManager.disable_all_heaters();
+      }
+    #endif
+  }
+
+  prev_hit_state = hit_state;
+
+} // Endstops::report_state
+
+// If the last move failed to trigger an endstop, call kill
+void Endstops::validate_homing_move() {
+  if (trigger_state()) hit_on_purpose();
+  else {
+    sound.feedback(false);
+    SERIAL_LM(REQUESTPAUSE, " " MSG_ERR_HOMING_FAILED);
+  }
+}
+
+/**
+ * Constrain the given coordinates to the software endstops.
+ */
+void Endstops::apply_motion_limits(float target[XYZ]) {
+
+  if (!isSoftEndstop()) return;
+
+  #if MECH(DELTA)
+    const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
+    if (dist_2 > soft_endstop_radius_2) {
+      const float ratio = mechanics.data.print_radius / SQRT(dist_2);
+      target[X_AXIS] *= ratio;
+      target[Y_AXIS] *= ratio;
+    }
+    NOLESS(target[Z_AXIS], 0);
+    NOMORE(target[Z_AXIS], mechanics.data.height);
+  #else
+    #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
+      NOLESS(target[X_AXIS], soft_endstop[X_AXIS].min);
+      NOLESS(target[Y_AXIS], soft_endstop[Y_AXIS].min);
+      NOLESS(target[Z_AXIS], soft_endstop[Z_AXIS].min);
+    #endif
+    #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
+      NOMORE(target[X_AXIS], soft_endstop[X_AXIS].max);
+      NOMORE(target[Y_AXIS], soft_endstop[Y_AXIS].max);
+      NOMORE(target[Z_AXIS], soft_endstop[Z_AXIS].max);
+    #endif
+  #endif
+}
+
+/**
+ * Software endstops can be used to monitor the open end of
+ * an axis that has a hardware endstop on the other end. Or
+ * they can prevent axes from moving past endstops and grinding.
+ *
+ * To keep doing their job as the coordinate system changes,
+ * the software endstop positions must be refreshed to remain
+ * at the same positions relative to the machine.
+ */
+void Endstops::update_software_endstops(const AxisEnum axis) {
+
+  #if ENABLED(DUAL_X_CARRIAGE)
+
+    if (axis == X_AXIS) {
+
+      // In Dual X mode tools.hotend_offset[X] is T1's home position
+      float dual_max_x = MAX(tools.hotend_offset[X_AXIS][1], X2_MAX_POS);
+
+      if (tools.active_extruder != 0) {
+        // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
+        soft_endstop[X_AXIS].min = X2_MIN_POS;
+        soft_endstop[X_AXIS].max = dual_max_x;
+      }
+      else if (mechanics.dxc_is_duplicating()) {
+        // In Duplication Mode, T0 can move as far left as X_MIN_POS
+        // but not so far to the right that T1 would move past the end
+        soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
+        soft_endstop[X_AXIS].max = MIN(mechanics.data.base_pos[X_AXIS].max, dual_max_x - mechanics.duplicate_extruder_x_offset);
+      }
+      else {
+        // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
+        soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
+        soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+      }
+    }
+
+  #elif MECH(DELTA)
+
+    soft_endstop_radius_2 = sq(mechanics.data.print_radius);
+
+  #else
+
+    soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
+    soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+
+    #if ENABLED(WORKSPACE_OFFSETS)
+      if (printer.debugFeature()) {
+        DEBUG_MV("For ", axis_codes[axis]);
+        DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
+        DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
+        DEBUG_MV("\n soft_endstop_min = ", soft_endstop[axis].min);
+        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop[axis].max);
+      }
+    #endif
+
+  #endif
+
+}
+
+/** Private Function */
+void Endstops::resync() {
+
+  if (!abort_enabled()) return;     // If endstops/probes are disabled the loop below can hang
+
+  #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
+    update();
+  #else
+    HAL::delayMilliseconds(2);
+  #endif
+}
+
+#if ENABLED(PINS_DEBUGGING)
+
+  void Endstops::run_monitor() {
+    if (!isMonitorEnabled()) return;
+    static uint8_t monitor_count = 16;  // offset this check from the others
+    monitor_count += _BV(1);            //  15 Hz
+    monitor_count &= 0x7F;
+    if (!monitor_count) monitor();      // report changes in endstop status
+  }
+
+  /**
+   * monitors endstops & Z probe for changes
+   *
+   * If a change is detected then the LED is toggled and
+   * a message is sent out the serial port
+   *
+   * Yes, we could miss a rapid back & forth change but
+   * that won't matter because this is all manual.
+   *
+   */
+  void Endstops::monitor() {
+
+    static uint16_t old_bits_local = 0;
+    uint16_t current_bits_local = 0;
+    #if HAS_X_MIN
+      if (READ(X_MIN_PIN)) SBI(current_bits_local, X_MIN);
+    #endif
+    #if HAS_X_MAX
+      if (READ(X_MAX_PIN)) SBI(current_bits_local, X_MAX);
+    #endif
+    #if HAS_Y_MIN
+      if (READ(Y_MIN_PIN)) SBI(current_bits_local, Y_MIN);
+    #endif
+    #if HAS_Y_MAX
+      if (READ(Y_MAX_PIN)) SBI(current_bits_local, Y_MAX);
+    #endif
+    #if HAS_Z_MIN
+      if (READ(Z_MIN_PIN)) SBI(current_bits_local, Z_MIN);
+    #endif
+    #if HAS_Z_MAX
+      if (READ(Z_MAX_PIN)) SBI(current_bits_local, Z_MAX);
+    #endif
+    #if HAS_Z_PROBE_PIN
+      if (READ(Z_PROBE_PIN)) SBI(current_bits_local, Z_PROBE);
+    #endif
+    #if HAS_X2_MIN
+      if (READ(X2_MIN_PIN)) SBI(current_bits_local, X2_MIN);
+    #endif
+    #if HAS_X2_MAX
+      if (READ(X2_MAX_PIN)) SBI(current_bits_local, X2_MAX);
+    #endif
+    #if HAS_Y2_MIN
+      if (READ(Y2_MIN_PIN)) SBI(current_bits_local, Y2_MIN);
+    #endif
+    #if HAS_Y2_MAX
+      if (READ(Y2_MAX_PIN)) SBI(current_bits_local, Y2_MAX);
+    #endif
+    #if HAS_Z2_MIN
+      if (READ(Z2_MIN_PIN)) SBI(current_bits_local, Z2_MIN);
+    #endif
+    #if HAS_Z2_MAX
+      if (READ(Z2_MAX_PIN)) SBI(current_bits_local, Z2_MAX);
+    #endif
+    #if HAS_Z3_MIN
+      if (READ(Z3_MIN_PIN)) SBI(current_bits_local, Z3_MIN);
+    #endif
+    #if HAS_Z3_MAX
+      if (READ(Z3_MAX_PIN)) SBI(current_bits_local, Z3_MAX);
+    #endif
+
+    uint16_t endstop_change = current_bits_local ^ old_bits_local;
+
+    if (endstop_change) {
+      #if HAS_X_MIN
+        if (TEST(endstop_change, X_MIN)) SERIAL_MV("  X_MIN:", TEST(current_bits_local, X_MIN));
+      #endif
+      #if HAS_X_MAX
+        if (TEST(endstop_change, X_MAX)) SERIAL_MV("  X_MAX:", TEST(current_bits_local, X_MAX));
+      #endif
+      #if HAS_Y_MIN
+        if (TEST(endstop_change, Y_MIN)) SERIAL_MV("  Y_MIN:", TEST(current_bits_local, Y_MIN));
+      #endif
+      #if HAS_Y_MAX
+        if (TEST(endstop_change, Y_MAX)) SERIAL_MV("  Y_MAX:", TEST(current_bits_local, Y_MAX));
+      #endif
+      #if HAS_Z_MIN
+        if (TEST(endstop_change, Z_MIN)) SERIAL_MV("  Z_MIN:", TEST(current_bits_local, Z_MIN));
+      #endif
+      #if HAS_Z_MAX
+        if (TEST(endstop_change, Z_MAX)) SERIAL_MV("  Z_MAX:", TEST(current_bits_local, Z_MAX));
+      #endif
+      #if HAS_Z_PROBE_PIN
+        if (TEST(endstop_change, Z_PROBE)) SERIAL_MV("  PROBE:", TEST(current_bits_local, Z_PROBE));
+      #endif
+      #if HAS_X2_MIN
+        if (TEST(endstop_change, X2_MIN)) SERIAL_MV("  X2_MIN:", TEST(current_bits_local, X2_MIN));
+      #endif
+      #if HAS_X2_MAX
+        if (TEST(endstop_change, X2_MAX)) SERIAL_MV("  X2_MAX:", TEST(current_bits_local, X2_MAX));
+      #endif
+      #if HAS_Y2_MIN
+        if (TEST(endstop_change, Y2_MIN)) SERIAL_MV("  Y2_MIN:", TEST(current_bits_local, Y2_MIN));
+      #endif
+      #if HAS_Y2_MAX
+        if (TEST(endstop_change, Y2_MAX)) SERIAL_MV("  Y2_MAX:", TEST(current_bits_local, Y2_MAX));
+      #endif
+      #if HAS_Z2_MIN
+        if (TEST(endstop_change, Z2_MIN)) SERIAL_MV("  Z2_MIN:", TEST(current_bits_local, Z2_MIN));
+      #endif
+      #if HAS_Z2_MAX
+        if (TEST(endstop_change, Z2_MAX)) SERIAL_MV("  Z2_MAX:", TEST(current_bits_local, Z2_MAX));
+      #endif
+      #if HAS_Z3_MIN
+        if (TEST(endstop_change, Z3_MIN)) SERIAL_MV("  Z3_MIN:", TEST(current_bits_local, Z3_MIN));
+      #endif
+      #if HAS_Z3_MAX
+        if (TEST(endstop_change, Z3_MAX)) SERIAL_MV("  Z3_MAX:", TEST(current_bits_local, Z3_MAX));
+      #endif
+      SERIAL_MSG("\n\n");
+      old_bits_local = current_bits_local;
+    }
+  }
+
+#endif // PINS_DEBUGGING

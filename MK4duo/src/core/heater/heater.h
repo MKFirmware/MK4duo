@@ -50,18 +50,14 @@ enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway 
 
 // Struct Heater data
 typedef struct {
-
-  pin_t           pin;
-
-  flagheater_t    flag;
-
-  uint8_t         ID;
-
-  int16_t         mintemp,
-                  maxtemp;
-
-  uint16_t        freq;
-
+  pin_t         pin;
+  flagheater_t  flag;
+  uint8_t       ID;
+  int16_t       mintemp,
+                maxtemp;
+  uint16_t      freq;
+  pid_data_t    pid;
+  sensor_data_t sensor;
 } heater_data_t;
 
 class Heater {
@@ -78,19 +74,17 @@ class Heater {
 
   public: /** Public Parameters */
 
-    heater_data_t data;
-    pid_data_t    pid;
-    sensor_data_t sensor;
+    heater_data_t   data;
 
-    uint16_t      watch_target_temp;
+    uint16_t        watch_target_temp;
 
-    uint8_t       pwm_value,
-                  consecutive_low_temp;
+    uint8_t         pwm_value,
+                    consecutive_low_temp;
 
-    int16_t       target_temperature,
-                  idle_temperature;
+    int16_t         target_temperature,
+                    idle_temperature;
 
-    float         current_temperature;
+    float           current_temperature;
 
     const HeatertypeEnum type;
 
@@ -101,13 +95,13 @@ class Heater {
                     watch_period,
                     watch_increase;
 
-    TRState       thermal_runaway_state;
+    TRState         thermal_runaway_state;
 
-    millis_s      watch_next_ms;
+    millis_s        watch_next_ms;
 
-    uint16_t      idle_timeout_time;
+    uint16_t        idle_timeout_time;
 
-    bool          Pidtuning;
+    bool            Pidtuning;
 
   public: /** Public Function */
 
@@ -131,7 +125,7 @@ class Heater {
     void thermal_runaway_protection();
     void start_watching();
 
-    FORCE_INLINE void update_current_temperature() { this->current_temperature = this->sensor.getTemperature(); }
+    FORCE_INLINE void update_current_temperature() { this->current_temperature = this->data.sensor.getTemperature(); }
     FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
     FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
     FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
@@ -142,7 +136,7 @@ class Heater {
 
     // Flag bit 0 Set Active
     FORCE_INLINE void setActive(const bool onoff) {
-      if (!data.flag.Fault && sensor.type != 0 && onoff)
+      if (!data.flag.Fault && data.sensor.type != 0 && onoff)
         data.flag.Active = true;
       else
         data.flag.Active = false;

@@ -22,11 +22,11 @@
 
 #include "../../../MK4duo.h"
 
-#ifdef __AVR__ && HAS_SERVOS
+#if ENABLED(__AVR__) && HAS_SERVOS
 
 #include "../common/servo.h"
 
-static volatile int8_t Channel[_Nbr_16timers ]; // counter for the servo being pulsed for each timer (or -1 if refresh interval)
+static volatile int8_t Channel[_Nbr_16timers]; // counter for the servo being pulsed for each timer (or -1 if refresh interval)
 
 /************ static functions common to all instances ***********************/
 
@@ -170,4 +170,4 @@ void finISR(timer16_Sequence_t timer) {
   #endif
 }
 
-#endif // __AVR__ && HAS_SERVOS
+#endif // ENABLED(__AVR__) && HAS_SERVOS

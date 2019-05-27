@@ -65,10 +65,10 @@ inline void gcode_M303(void) {
   LCD_MESSAGEPGM(MSG_PID_AUTOTUNE_START);
 
   switch (act->type) {
-    case IS_HOTEND:   SERIAL_MV("Hotend:", act->data.ID); break;
-    case IS_BED:      SERIAL_MV("BED:", act->data.ID);    break;
-    case IS_CHAMBER:  SERIAL_MV("CHAMBER:", act->data.ID); break;
-    case IS_COOLER:   SERIAL_MV("COOLER:", act->data.ID); break;
+    case IS_HOTEND:   SERIAL_MV("Hotend:",  act->data.ID);  break;
+    case IS_BED:      SERIAL_MV("BED:",     act->data.ID);  break;
+    case IS_CHAMBER:  SERIAL_MV("CHAMBER:", act->data.ID);  break;
+    case IS_COOLER:   SERIAL_MV("COOLER:",  act->data.ID);  break;
     default: break;
   }
 

@@ -43,7 +43,7 @@ void Heater::init() {
   target_temperature    = 0;
   idle_temperature      = 0;
   current_temperature   = 25.0;
-  sensor.raw            = 0;
+  data.sensor.raw       = 0;
 
   setActive(false);
   setIdle(false);
@@ -56,15 +56,15 @@ void Heater::init() {
 
   thermal_runaway_state = TRInactive;
 
-  sensor.CalcDerivedParameters();
+  data.sensor.CalcDerivedParameters();
 
   if (printer.isRunning()) return; // All running not reinitialize
 
   if (data.pin > 0) HAL::pinMode(data.pin, (isHWinvert()) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   #if HAS_MAX6675 || HAS_MAX31855
-    if (sensor.type == -2 || sensor.type == -1) {
-      HAL::pinMode(sensor.pin, OUTPUT_HIGH);
+    if (data.sensor.type == -2 || data.sensor.type == -1) {
+      HAL::pinMode(data.sensor.pin, OUTPUT_HIGH);
     }
   #endif
 
@@ -192,7 +192,7 @@ void Heater::get_output() {
     #if COOLERS > 0
       if (type == IS_COOLER) {
         if (isUsePid()) {
-          pwm_value = pid.spin(current_temperature, targetTemperature
+          pwm_value = data.pid.spin(current_temperature, targetTemperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , 0xFF
             #endif
@@ -202,7 +202,7 @@ void Heater::get_output() {
           if (current_temperature <= targetTemperature - temp_hysteresis)
             pwm_value = 0;
           else if (current_temperature >= targetTemperature + temp_hysteresis)
-            pwm_value = pid.Max;
+            pwm_value = data.pid.Max;
         }
       }
       else
@@ -212,7 +212,7 @@ void Heater::get_output() {
           #if ENABLED(PID_ADD_EXTRUSION_RATE)
             const uint8_t id = (type == IS_HOTEND) ? data.ID : 0xFF;
           #endif
-          pwm_value = pid.spin(targetTemperature, current_temperature
+          pwm_value = data.pid.spin(targetTemperature, current_temperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
               , id
             #endif
@@ -222,7 +222,7 @@ void Heater::get_output() {
           if (current_temperature >= targetTemperature + temp_hysteresis)
             pwm_value = 0;
           else if (current_temperature <= targetTemperature - temp_hysteresis)
-            pwm_value = pid.Max;
+            pwm_value = data.pid.Max;
         }
       }
 
@@ -231,9 +231,9 @@ void Heater::get_output() {
       DEBUG_SMV(DEB, MSG_PID_DEBUG, ACTIVE_HOTEND);
       DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       DEBUG_MV(MSG_PID_DEBUG_OUTPUT, pwm_value);
-      DEBUG_MV(MSG_PID_DEBUG_PTERM, pid.Kp);
-      DEBUG_MV(MSG_PID_DEBUG_ITERM, pid.Ki);
-      DEBUG_MV(MSG_PID_DEBUG_DTERM, pid.Kd);
+      DEBUG_MV(MSG_PID_DEBUG_PTERM, data.pid.Kp);
+      DEBUG_MV(MSG_PID_DEBUG_ITERM, data.pid.Ki);
+      DEBUG_MV(MSG_PID_DEBUG_DTERM, data.pid.Kd);
       DEBUG_EOL();
     }
     */
@@ -304,8 +304,8 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
   pid_data_t tune_pid;
 
-  int32_t bias  = pid.Max >> 1,
-          d     = pid.Max >> 1;
+  int32_t bias  = data.pid.Max >> 1,
+          d     = data.pid.Max >> 1;
 
   printer.setWaitForHeatUp(true);
   printer.setAutoreportTemp(true);
@@ -314,7 +314,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   ResetFault();
 
   // Turn ON this heater to max power.
-  pwm_value = pid.Max;
+  pwm_value = data.pid.Max;
 
   #if ENABLED(PRINTER_EVENT_LEDS)
     const float start_temp = current_temperature;
@@ -366,8 +366,8 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         if (cycles > 0) {
 
           bias += (d * (t_high - t_low)) / (t_low + t_high);
-          bias = constrain(bias, 20, pid.Max - 20);
-          d = (bias > pid.Max >> 1) ? pid.Max - 1 - bias : bias;
+          bias = constrain(bias, 20, data.pid.Max - 20);
+          d = (bias > data.pid.Max >> 1) ? data.pid.Max - 1 - bias : bias;
 
           SERIAL_MV(MSG_BIAS, bias);
           SERIAL_MV(MSG_D, d);
@@ -501,10 +501,10 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         }
       #endif
 
-      pid.Kp = tune_pid.Kp;
-      pid.Ki = tune_pid.Ki;
-      pid.Kd = tune_pid.Kd;
-      pid.update();
+      data.pid.Kp = tune_pid.Kp;
+      data.pid.Ki = tune_pid.Ki;
+      data.pid.Kd = tune_pid.Kd;
+      data.pid.update();
 
       setPidTuned(true);
       Pidtuning = false;
@@ -544,12 +544,12 @@ void Heater::print_M301() {
     SERIAL_EOL();
     SERIAL_SMV(CFG, "  M301 H", int(heater_id));
     if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
-    SERIAL_MV(" P", pid.Kp);
-    SERIAL_MV(" I", pid.Ki);
-    SERIAL_MV(" D", pid.Kd);
+    SERIAL_MV(" P", data.pid.Kp);
+    SERIAL_MV(" I", data.pid.Ki);
+    SERIAL_MV(" D", data.pid.Kd);
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       if (type == IS_HOTEND) {
-        SERIAL_MV(" C", pid.Kc);
+        SERIAL_MV(" C", data.pid.Kc);
         SERIAL_MV(" L", (int)tools.lpq_len);
       }
     #endif
@@ -564,15 +564,15 @@ void Heater::print_M305() {
   SERIAL_EM(" P<Pin> S<Type> A<R25> B<BetaK> C<Steinhart-Hart C> R<Pullup> L<ADC low offset> O<ADC high offset>:");
   SERIAL_SMV(CFG, "  M305 H", (int)heater_id);
   if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
-  SERIAL_MV(" P", sensor.pin);
-  SERIAL_MV(" S", sensor.type);
-  if (WITHIN(sensor.type, 1, 9)) {
-    SERIAL_MV(" A", sensor.r25, 1);
-    SERIAL_MV(" B", sensor.beta, 1);
-    SERIAL_MV(" C", sensor.shC, 10);
-    SERIAL_MV(" R", sensor.pullupR, 1);
-    SERIAL_MV(" L", sensor.adcLowOffset);
-    SERIAL_MV(" O", sensor.adcHighOffset);
+  SERIAL_MV(" P", data.sensor.pin);
+  SERIAL_MV(" S", data.sensor.type);
+  if (WITHIN(data.sensor.type, 1, 9)) {
+    SERIAL_MV(" A", data.sensor.r25, 1);
+    SERIAL_MV(" B", data.sensor.beta, 1);
+    SERIAL_MV(" C", data.sensor.shC, 10);
+    SERIAL_MV(" R", data.sensor.pullupR, 1);
+    SERIAL_MV(" L", data.sensor.adcLowOffset);
+    SERIAL_MV(" O", data.sensor.adcHighOffset);
   }
   SERIAL_EOL();
 }
@@ -585,9 +585,9 @@ void Heater::print_M306() {
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
   if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
   SERIAL_MV(" P", data.pin);
-  SERIAL_MV(" A", pid.DriveMin);
-  SERIAL_MV(" B", pid.DriveMax);
-  SERIAL_MV(" C", pid.Max);
+  SERIAL_MV(" A", data.pid.DriveMin);
+  SERIAL_MV(" B", data.pid.DriveMax);
+  SERIAL_MV(" C", data.pid.Max);
   SERIAL_MV(" F", data.freq);
   SERIAL_MV(" L", data.mintemp);
   SERIAL_MV(" O", data.maxtemp);
@@ -616,8 +616,8 @@ void Heater::print_M306() {
     SERIAL_MSG(" O<Offset> S<Gain>:");
     SERIAL_SMV(CFG, "  M595 H", (int)heater_id);
     if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
-    SERIAL_MV(" O", sensor.ad595_offset);
-    SERIAL_MV(" S", sensor.ad595_gain);
+    SERIAL_MV(" O", data.sensor.ad595_offset);
+    SERIAL_MV(" S", data.sensor.ad595_gain);
     SERIAL_EOL();
   }
 #endif
