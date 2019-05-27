@@ -33,7 +33,8 @@
 Endstops endstops;
 
 /** Public Parameters */
-flagendstop_t Endstops::flag;
+endstop_data_t  Endstops::data;
+endstop_flag_t  Endstops::flag;
 
 #if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
@@ -41,22 +42,7 @@ flagendstop_t Endstops::flag;
   axis_limits_t Endstops::soft_endstop[XYZ];
 #endif
 
-#if ENABLED(X_TWO_ENDSTOPS)
-  float Endstops::x2_endstop_adj = 0.0;
-#endif
-#if ENABLED(Y_TWO_ENDSTOPS)
-  float Endstops::y2_endstop_adj = 0.0;
-#endif
-#if ENABLED(Z_THREE_ENDSTOPS)
-  float Endstops::z2_endstop_adj = 0.0,
-        Endstops::z3_endstop_adj = 0.0;
-#elif ENABLED(Z_TWO_ENDSTOPS)
-  float Endstops::z2_endstop_adj = 0.0;
-#endif
-
-uint16_t  Endstops::logic_flag  = 0,
-          Endstops::pullup_flag = 0,
-          Endstops::live_state  = 0;
+uint16_t Endstops::live_state = 0;
 
 /** Private Parameters */
 volatile uint8_t Endstops::hit_state = 0;
@@ -154,16 +140,16 @@ void Endstops::factory_parameters() {
   #endif
 
   #if ENABLED(X_TWO_ENDSTOPS)
-    x2_endstop_adj = 0.0f;
+    data.x2_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Y_TWO_ENDSTOPS)
-    y2_endstop_adj = 0.0f;
+    data.y2_endstop_adj = 0.0f;
   #endif
   #if ENABLED(Z_THREE_ENDSTOPS)
-    z2_endstop_adj = 0.0f;
-    z3_endstop_adj = 0.0f;
+    data.z2_endstop_adj = 0.0f;
+    data.z3_endstop_adj = 0.0f;
   #elif ENABLED(Z_TWO_ENDSTOPS)
-    z2_endstop_adj = 0.0f;
+    data.z2_endstop_adj = 0.0f;
   #endif
   
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)

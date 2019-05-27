@@ -82,16 +82,11 @@
 Stepper stepper;
 
 /** Public Parameters */
-uint16_t Stepper::direction_flag;
+stepper_data_t Stepper::data;
 
 #if HAS_MULTI_ENDSTOP || ENABLED(Z_STEPPER_AUTO_ALIGN)
   bool Stepper::separate_multi_axis = false;
 #endif
-
-bool      Stepper::quad_stepping    = true;
-uint8_t   Stepper::minimum_pulse    = 0;
-uint32_t  Stepper::maximum_rate     = 0,
-          Stepper::direction_delay  = 0;
 
 /** Private Parameters */
 block_t* Stepper::current_block = NULL;  // A pointer to the block currently being traced
@@ -401,10 +396,10 @@ void Stepper::factory_parameters() {
   for (uint8_t axis = 0; axis < sizeof(tmpdir); ++axis) 
     setStepDir((AxisEnum)axis, tmpdir[axis]);
 
-  quad_stepping   = DOUBLE_QUAD_STEPPING;
-  minimum_pulse   = MINIMUM_STEPPER_PULSE;
-  direction_delay = DIRECTION_STEPPER_DELAY;
-  maximum_rate    = MAXIMUM_STEPPER_RATE;
+  data.quad_stepping    = DOUBLE_QUAD_STEPPING;
+  data.minimum_pulse    = MINIMUM_STEPPER_PULSE;
+  data.direction_delay  = DIRECTION_STEPPER_DELAY;
+  data.maximum_rate     = MAXIMUM_STEPPER_RATE;
 }
 
 /**
@@ -697,7 +692,7 @@ void Stepper::set_directions() {
 
   // After changing directions, an small delay could be needed.
   // Min delay is 50 Nanoseconds
-  if (direction_delay >= 50) HAL::delayNanoseconds(direction_delay);
+  if (data.direction_delay >= 50) HAL::delayNanoseconds(data.direction_delay);
 
 }
 
@@ -1266,11 +1261,11 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
   #endif
 
   #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
-      const uint8_t old_dir = AXIS ##_DIR_READ();             \
+      const uint8_t old_dir = AXIS ##_DIR_READ();           \
       enable_## AXIS();                                     \
       set_##AXIS##_dir(isStepDir(AXIS ##_AXIS)^DIR^INVERT); \
-      if (direction_delay >= 50)                            \
-        HAL::delayNanoseconds(direction_delay);             \
+      if (data.direction_delay >= 50)                       \
+        HAL::delayNanoseconds(data.direction_delay);        \
       _SAVE_START;                                          \
       start_##AXIS##_step();                                \
       _PULSE_WAIT;                                          \
@@ -1339,8 +1334,8 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           set_Y_dir(isStepDir(Y_AXIS) ^ z_direction);
           set_Z_dir(isStepDir(Z_AXIS) ^ z_direction);
 
-          if (direction_delay >= 50)
-            HAL::delayNanoseconds(direction_delay);
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
 
           _SAVE_START;
 
@@ -1410,7 +1405,7 @@ void Stepper::pulse_phase_step() {
     // Start an active pulse
     pulse_tick_start();
 
-    if (minimum_pulse) {
+    if (data.minimum_pulse) {
       // Just wait for the requested pulse time.
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
     }
@@ -1448,7 +1443,7 @@ void Stepper::pulse_phase_step() {
     // Just wait for the requested pulse time.
     if (events_to_do) {
       while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
-      if (minimum_pulse) {
+      if (data.minimum_pulse) {
         // Add to the value, the time that the pulse must be active (to be used on the next loop)
         pulse_end += HAL_min_pulse_tick;
       }
@@ -2345,7 +2340,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
         E_STEP_WRITE(active_extruder_driver, !INVERT_E_STEP_PIN);
       #endif
 
-      if (minimum_pulse) {
+      if (data.minimum_pulse) {
         // Just wait for the requested pulse time.
         while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
         // Add the delay needed to ensure the maximum driver rate is enforced
@@ -2363,7 +2358,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       // For minimum pulse time wait before looping
       // Just wait for the requested pulse time.
       if (LA_steps) {
-        if (minimum_pulse) {
+        if (data.minimum_pulse) {
           while (HAL_timer_get_current_count(STEPPER_TIMER) < pulse_end) { /* nada */ }
           // Add to the value, the time that the pulse must be active (to be used on the next loop)
           pulse_end += HAL_min_pulse_tick;

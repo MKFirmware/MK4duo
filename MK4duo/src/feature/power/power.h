@@ -21,7 +21,9 @@
  */
 #pragma once
 
-union flagpower_t {
+#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
+
+union power_flag_t {
   uint8_t all;
   struct {
     bool  Logic   : 1;
@@ -33,10 +35,13 @@ union flagpower_t {
     bool  bit6    : 1;
     bool  bit7    : 1;
   };
-  flagpower_t() { all = 0x00; }
+  power_flag_t() { all = 0x00; }
 };
 
-#if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
+// Struct Power data
+typedef struct {
+  power_flag_t flag;
+} power_data_t;
 
 class Power {
 
@@ -46,7 +51,7 @@ class Power {
 
   public: /** Public Parameters */
 
-    static flagpower_t flag;
+    static power_data_t data;
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       static int16_t  current_raw_powconsumption;
@@ -113,12 +118,12 @@ class Power {
     #endif
 
     // Flag bit 0 Set power check logic
-    FORCE_INLINE static void setLogic(const bool logic) { flag.Logic = logic; }
-    FORCE_INLINE static bool isLogic() { return flag.Logic; }
+    FORCE_INLINE static void setLogic(const bool logic) { data.flag.Logic = logic; }
+    FORCE_INLINE static bool isLogic() { return data.flag.Logic; }
 
     // Flag bit 1 Set power check pullup
-    FORCE_INLINE static void setPullup(const bool pullup) { flag.Pullup = pullup; }
-    FORCE_INLINE static bool isPullup() { return flag.Pullup; }
+    FORCE_INLINE static void setPullup(const bool pullup) { data.flag.Pullup = pullup; }
+    FORCE_INLINE static bool isPullup() { return data.flag.Pullup; }
 
   private: /** Private Function */
 

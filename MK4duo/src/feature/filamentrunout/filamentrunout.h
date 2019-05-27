@@ -33,7 +33,7 @@
 
 #include "../../../MK4duo.h"
 
-union flagfilament_t {
+union filament_flag_t {
   uint8_t all;
   struct {
     bool  enabled       : 1;
@@ -45,14 +45,20 @@ union flagfilament_t {
     bool  bit6          : 1;
     bool  bit7          : 1;
   };
-  flagfilament_t() { all = 0x00; }
+  filament_flag_t() { all = 0x00; }
 };
+
+// Struct Filament Runout data
+typedef struct {
+  uint8_t logic_flag,
+          pullup_flag;
+} filament_data_t;
 
 class FilamentRunoutBase {
 
   public: /** Public Parameters */
 
-    static flagfilament_t flag;
+    static filament_flag_t flag;
 
   public: /** Public Function */
 
@@ -130,8 +136,7 @@ class FilamentSensorBase {
 
   public: /** Public Parameters */
 
-    static uint8_t  logic_flag,
-                    pullup_flag;
+    static filament_data_t data;
 
   public: /** Public Function */
 
@@ -178,14 +183,14 @@ class FilamentSensorBase {
     }
 
     FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
-      SET_BIT(logic_flag, filrunout, logic);
+      SET_BIT(data.logic_flag, filrunout, logic);
     }
-    FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(logic_flag, filrunout); }
+    FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(data.logic_flag, filrunout); }
 
     FORCE_INLINE static void setPullup(const FilRunoutEnum filrunout, const bool pullup) {
-      SET_BIT(pullup_flag, filrunout, pullup);
+      SET_BIT(data.pullup_flag, filrunout, pullup);
     }
-    FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(pullup_flag, filrunout); }
+    FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(data.pullup_flag, filrunout); }
 
   protected: /** Protected Function */
 
