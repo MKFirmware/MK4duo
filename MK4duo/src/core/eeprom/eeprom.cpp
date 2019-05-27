@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV66"
+#define EEPROM_VERSION "MKV67"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -71,35 +71,20 @@ typedef struct EepromDataStruct {
   //
   // Endstop
   //
-  uint16_t          endstop_logic_flag,
-                    endstop_pullup_flag;
-
-  #if ENABLED(X_TWO_ENDSTOPS)
-    float           x2_endstop_adj;
-  #endif
-  #if ENABLED(Y_TWO_ENDSTOPS)
-    float           y2_endstop_adj;
-  #endif
-  #if ENABLED(Z_TWO_ENDSTOPS)
-    float           z2_endstop_adj;
-  #endif
-  #if ENABLED(Z_THREE_ENDSTOPS)
-    float           z3_endstop_adj;
-  #endif
+  endstop_data_t    endstop_data;
 
   //
   // Filament Runout
   //
-  #if HAS_FIL_RUNOUT_0
-    uint8_t         filrunout_logic_flag,
-                    filrunout_pullup_flag;
+  #if HAS_FILAMENT_SENSOR
+    filament_data_t filrunout_data;
   #endif
 
   //
   // Power Check
   //
   #if HAS_POWER_CHECK
-    flagpower_t     power_flag;
+    power_data_t    power_data;
   #endif
 
   //
@@ -261,11 +246,7 @@ typedef struct EepromDataStruct {
   //
   // Stepper
   //
-  uint16_t          stepper_direction_flag;
-  uint32_t          stepper_direction_delay,
-                    stepper_maximum_rate;
-  uint8_t           stepper_minimum_pulse;
-  bool              stepper_quad_stepping;
+  stepper_data_t    stepper_data;
 
   //
   // Sound
@@ -496,38 +477,20 @@ void EEPROM::post_process() {
     //
     // Endstops bit
     //
-    EEPROM_WRITE(endstops.logic_flag);
-    EEPROM_WRITE(endstops.pullup_flag);
-
-    //
-    // TWO or THREE Endstops adj
-    //
-    #if ENABLED(X_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.x2_endstop_adj);
-    #endif
-    #if ENABLED(Y_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.y2_endstop_adj);
-    #endif
-    #if ENABLED(Z_THREE_ENDSTOPS)
-      EEPROM_WRITE(endstops.z2_endstop_adj);
-      EEPROM_WRITE(endstops.z3_endstop_adj);
-    #elif ENABLED(Z_TWO_ENDSTOPS)
-      EEPROM_WRITE(endstops.z2_endstop_adj);
-    #endif
+    EEPROM_WRITE(endstops.data);
 
     //
     // Filament Runout
     //
     #if HAS_FILAMENT_SENSOR
-      EEPROM_WRITE(filamentrunout.sensor.logic_flag);
-      EEPROM_WRITE(filamentrunout.sensor.pullup_flag);
+      EEPROM_WRITE(filamentrunout.sensor.data);
     #endif
 
     //
     // Power Check
     //
     #if HAS_POWER_CHECK
-      EEPROM_WRITE(powerManager.flag);
+      EEPROM_WRITE(powerManager.data);
     #endif
 
     //
@@ -706,11 +669,7 @@ void EEPROM::post_process() {
     //
     // Stepper
     //
-    EEPROM_WRITE(stepper.direction_flag);
-    EEPROM_WRITE(stepper.direction_delay);
-    EEPROM_WRITE(stepper.minimum_pulse);
-    EEPROM_WRITE(stepper.maximum_rate);
-    EEPROM_WRITE(stepper.quad_stepping);
+    EEPROM_WRITE(stepper.data);
 
     //
     // Sound
@@ -886,38 +845,20 @@ void EEPROM::post_process() {
       //
       // Endstops bit
       //
-      EEPROM_READ(endstops.logic_flag);
-      EEPROM_READ(endstops.pullup_flag);
-
-      //
-      // TWO or THREE Endstops adj
-      //
-      #if ENABLED(X_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.x2_endstop_adj);
-      #endif
-      #if ENABLED(Y_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.y2_endstop_adj);
-      #endif
-      #if ENABLED(Z_THREE_ENDSTOPS)
-        EEPROM_READ(endstops.z2_endstop_adj);
-        EEPROM_READ(endstops.z3_endstop_adj);
-      #elif ENABLED(Z_TWO_ENDSTOPS)
-        EEPROM_READ(endstops.z2_endstop_adj);
-      #endif
+      EEPROM_READ(endstops.data);
 
       //
       // Filament Runout
       //
       #if HAS_FILAMENT_SENSOR
-        EEPROM_READ(filamentrunout.sensor.logic_flag);
-        EEPROM_READ(filamentrunout.sensor.pullup_flag);
+        EEPROM_READ(filamentrunout.sensor.data);
       #endif
 
       //
       // Power Check
       //
       #if HAS_POWER_CHECK
-        EEPROM_READ(powerManager.flag);
+        EEPROM_READ(powerManager.data);
       #endif
 
       //
@@ -1107,11 +1048,7 @@ void EEPROM::post_process() {
       //
       // Stepper
       //
-      EEPROM_READ(stepper.direction_flag);
-      EEPROM_READ(stepper.direction_delay);
-      EEPROM_READ(stepper.minimum_pulse);
-      EEPROM_READ(stepper.maximum_rate);
-      EEPROM_READ(stepper.quad_stepping);
+      EEPROM_READ(stepper.data);
 
       //
       // Sound
@@ -2034,17 +1971,17 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Endstop adjustment");
       SERIAL_SM(CFG, "  M666");
       #if ENABLED(X_TWO_ENDSTOPS)
-        SERIAL_MV(" X", LINEAR_UNIT(endstops.x2_endstop_adj));
+        SERIAL_MV(" X", LINEAR_UNIT(endstops.data.x2_endstop_adj));
       #endif
       #if ENABLED(Y_TWO_ENDSTOPS)
-        SERIAL_MV(" Y", LINEAR_UNIT(endstops.y2_endstop_adj));
+        SERIAL_MV(" Y", LINEAR_UNIT(endstops.data.y2_endstop_adj));
       #endif
       #if ENABLED(Z_THREE_ENDSTOPS)
         SERIAL_EOL();
-        SERIAL_LMV(CFG, "  M666 S2 Z", LINEAR_UNIT(endstops.z2_endstop_adj));
-        SERIAL_SMV(CFG, "  M666 S3 Z", LINEAR_UNIT(endstops.z3_endstop_adj));
+        SERIAL_LMV(CFG, "  M666 S2 Z", LINEAR_UNIT(endstops.data.z2_endstop_adj));
+        SERIAL_SMV(CFG, "  M666 S3 Z", LINEAR_UNIT(endstops.data.z3_endstop_adj));
       #elif ENABLED(Z_TWO_ENDSTOPS)
-        SERIAL_MV(" Z", LINEAR_UNIT(endstops.z2_endstop_adj));
+        SERIAL_MV(" Z", LINEAR_UNIT(endstops.data.z2_endstop_adj));
       #endif
       SERIAL_EOL();
 
@@ -2142,10 +2079,10 @@ void EEPROM::reset() {
       }
     #endif
     SERIAL_LM(CFG, "Stepper driver control");
-    SERIAL_SMV(CFG, "  M569 Q", stepper.quad_stepping);
-    SERIAL_MV(" D", stepper.direction_delay);
-    SERIAL_MV(" P", stepper.minimum_pulse);
-    SERIAL_MV(" R", stepper.maximum_rate);
+    SERIAL_SMV(CFG, "  M569 Q", stepper.data.quad_stepping);
+    SERIAL_MV(" D", stepper.data.direction_delay);
+    SERIAL_MV(" P", stepper.data.minimum_pulse);
+    SERIAL_MV(" R", stepper.data.maximum_rate);
     SERIAL_EOL();
 
     /**

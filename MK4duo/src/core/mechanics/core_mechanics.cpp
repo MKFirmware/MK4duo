@@ -769,9 +769,9 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     const bool pos_dir = get_homedir(axis) > 0;
     #if ENABLED(X_TWO_ENDSTOPS)
       if (axis == X_AXIS) {
-        const float adj = ABS(endstops.x2_endstop_adj);
+        const float adj = ABS(endstops.data.x2_endstop_adj);
         if (adj) {
-          if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+          if (pos_dir ? (endstops.data.x2_endstop_adj > 0) : (endstops.data.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
           do_homing_move(axis, pos_dir ? -adj : adj);
           stepper.set_x_lock(false);
           stepper.set_x2_lock(false);
@@ -780,9 +780,9 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     #endif
     #if ENABLED(Y_TWO_ENDSTOPS)
       if (axis == Y_AXIS) {
-        const float adj = ABS(endstops.y2_endstop_adj);
+        const float adj = ABS(endstops.data.y2_endstop_adj);
         if (adj) {
-          if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+          if (pos_dir ? (endstops.data.y2_endstop_adj > 0) : (endstops.data.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
           do_homing_move(axis, pos_dir ? -adj : adj);
           stepper.set_y_lock(false);
           stepper.set_y2_lock(false);
@@ -793,7 +793,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       if (axis == Z_AXIS) {
         // we push the function pointers for the stepper lock function into an array
         void (*lock[3]) (bool)= { &stepper.set_z_lock, &stepper.set_z2_lock, &stepper.set_z3_lock };
-        float adj[3] = { 0, endstops.z2_endstop_adj, endstops.z3_endstop_adj };
+        float adj[3] = { 0, endstops.data.z2_endstop_adj, endstops.data.z3_endstop_adj };
 
         void (*tempLock) (bool);
         float tempAdj;
@@ -836,9 +836,9 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       }
     #elif ENABLED(Z_TWO_ENDSTOPS)
       if (axis == Z_AXIS) {
-        const float adj = ABS(endstops.z2_endstop_adj);
+        const float adj = ABS(endstops.data.z2_endstop_adj);
         if (adj) {
-          if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+          if (pos_dir ? (endstops.data.z2_endstop_adj > 0) : (endstops.data.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
           do_homing_move(axis, pos_dir ? -adj : adj);
           stepper.set_z_lock(false);
           stepper.set_z2_lock(false);

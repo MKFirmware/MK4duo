@@ -27,7 +27,7 @@
 Power powerManager;
 
 /** Public Parameters */
-flagpower_t Power::flag;
+power_data_t Power::data;
 
 #if HAS_POWER_CONSUMPTION_SENSOR
   int16_t   Power::current_raw_powconsumption = 0;    // Holds measured power consumption
@@ -71,7 +71,7 @@ flagpower_t Power::flag;
       HAL::setInputPullup(POWER_CHECK_PIN, isPullup());
     }
 
-    void Endstops::report() {
+    void Power::report() {
       SERIAL_LOGIC("POWER CHECK Logic", isLogic());
       SERIAL_LOGIC(" Pullup", isPullup());
     }

@@ -43,6 +43,15 @@
 
 #include "stepper_indirection.h"
 
+// Struct Stepper data
+typedef struct {
+  uint16_t  direction_flag;
+  uint32_t  maximum_rate,
+            direction_delay;
+  uint8_t   minimum_pulse;
+  bool      quad_stepping;
+} stepper_data_t;
+  
 class Stepper {
 
   public: /** Constructor */
@@ -51,16 +60,11 @@ class Stepper {
 
   public: /** Public Parameters */
 
-    static uint16_t direction_flag; // Driver Stepper direction flag
+    static stepper_data_t data;
 
     #if HAS_MULTI_ENDSTOP || ENABLED(Z_STEPPER_AUTO_ALIGN)
       static bool   separate_multi_axis;
     #endif
-
-    static bool     quad_stepping;
-    static uint8_t  minimum_pulse;
-    static uint32_t maximum_rate,
-                    direction_delay;
 
   private: /** Private Parameters */
 
@@ -328,9 +332,9 @@ class Stepper {
      * Flag Stepper direction function
      */
     FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
-      SET_BIT(direction_flag, axis, onoff);
+      SET_BIT(data.direction_flag, axis, onoff);
     }
-    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(direction_flag, axis); }
+    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(data.direction_flag, axis); }
 
     #if ENABLED(BABYSTEPPING)
       static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
@@ -433,7 +437,7 @@ class Stepper {
       // Scale the frequency, as requested by the caller
       step_rate <<= scale;
 
-      if (quad_stepping) {
+      if (data.quad_stepping) {
         // Select the proper multistepping
         uint8_t idx = 0;
         while (idx < 7 && step_rate > HAL_frequency_limit[idx]) {

@@ -25,7 +25,7 @@
  *  endstops.h - manages endstops
  */
 
-union flagendstop_t {
+union endstop_flag_t {
   uint8_t all;
   struct {
     bool  Enabled         : 1;
@@ -37,8 +37,27 @@ union flagendstop_t {
     bool  bit6            : 1;
     bool  bit7            : 1;
   };
-  flagendstop_t() { all = 0x00; }
+  endstop_flag_t() { all = 0x00; }
 };
+
+// Struct Endstop data
+typedef struct {
+  uint16_t  logic_flag,
+            pullup_flag;
+  #if ENABLED(X_TWO_ENDSTOPS)
+    float   x2_endstop_adj;
+  #endif
+  #if ENABLED(Y_TWO_ENDSTOPS)
+    float   y2_endstop_adj;
+  #endif
+  #if ENABLED(Z_TWO_ENDSTOPS)
+    float   z2_endstop_adj;
+  #endif
+  #if ENABLED(Z_THREE_ENDSTOPS)
+    float   z2_endstop_adj,
+            z3_endstop_adj;
+  #endif
+} endstop_data_t;
 
 class Endstops {
 
@@ -48,7 +67,9 @@ class Endstops {
 
   public: /** Public Parameters */
 
-    static flagendstop_t  flag;
+    static endstop_data_t data;
+
+    static endstop_flag_t flag;
 
     #if MECH(DELTA)
       static float  soft_endstop_radius_2;
@@ -56,23 +77,7 @@ class Endstops {
       static axis_limits_t soft_endstop[XYZ];
     #endif
 
-    #if ENABLED(X_TWO_ENDSTOPS)
-      static float  x2_endstop_adj;
-    #endif
-    #if ENABLED(Y_TWO_ENDSTOPS)
-      static float  y2_endstop_adj;
-    #endif
-    #if ENABLED(Z_TWO_ENDSTOPS)
-      static float  z2_endstop_adj;
-    #endif
-    #if ENABLED(Z_THREE_ENDSTOPS)
-      static float  z2_endstop_adj,
-                    z3_endstop_adj;
-    #endif
-
-    static uint16_t logic_flag,
-                    pullup_flag,
-                    live_state;
+    static uint16_t live_state;
 
   private: /** Private Parameters */
 
@@ -142,14 +147,14 @@ class Endstops {
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
-      SET_BIT(logic_flag, endstop, logic);
+      SET_BIT(data.logic_flag, endstop, logic);
     }
-    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(logic_flag, endstop); }
+    FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(data.logic_flag, endstop); }
 
     FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
-      SET_BIT(pullup_flag, endstop, pullup);
+      SET_BIT(data.pullup_flag, endstop, pullup);
     }
-    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(pullup_flag, endstop); }
+    FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(data.pullup_flag, endstop); }
 
     // Flag bit 0 Endstop enabled
     FORCE_INLINE static void setEnabled(const bool onoff) {
