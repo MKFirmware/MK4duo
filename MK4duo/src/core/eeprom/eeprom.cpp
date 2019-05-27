@@ -175,23 +175,15 @@ typedef struct EepromDataStruct {
   //
   #if HOTENDS > 0
     heater_data_t   hotend_data[HOTENDS];
-    pid_data_t      hotend_pid_data[HOTENDS];
-    sensor_data_t   hotend_sensor_data[HOTENDS];
   #endif
   #if BEDS > 0
     heater_data_t   bed_data[BEDS];
-    pid_data_t      bed_pid_data[BEDS];
-    sensor_data_t   bed_sensor_data[BEDS];
   #endif
   #if CHAMBERS > 0
     heater_data_t   chamber_data[CHAMBERS];
-    pid_data_t      chamber_pid_data[CHAMBERS];
-    sensor_data_t   chamber_sensor_data[CHAMBERS];
   #endif
   #if COOLERS > 0
     heater_data_t   cooler_data[COOLERS];
-    pid_data_t      cooler_pid_data[COOLERS];
-    sensor_data_t   cooler_sensor_data[COOLERS];
   #endif
 
   //
@@ -242,7 +234,9 @@ typedef struct EepromDataStruct {
   //
   // BLTOUCH
   //
-  bool bltouch_last_mode;
+  #if ENABLED(BLTOUCH)
+    bool bltouch_last_mode;
+  #endif
 
   //
   // FWRETRACT
@@ -353,25 +347,25 @@ void EEPROM::post_process() {
   #if HOTENDS > 0
     LOOP_HOTEND() {
       hotends[h].init();
-      hotends[h].pid.update();
+      hotends[h].data.pid.update();
     }
   #endif
   #if BEDS > 0
     LOOP_BED() {
       beds[h].init();
-      beds[h].pid.update();
+      beds[h].data.pid.update();
     }
   #endif
   #if CHAMBERS > 0
     LOOP_CHAMBER() {
       chambers[h].init();
-      chambers[h].pid.update();
+      chambers[h].data.pid.update();
     }
   #endif
   #if COOLERS > 0
     LOOP_COOLER() {
       coolers[h].init();
-      coolers[h].pid.update();
+      coolers[h].data.pid.update();
     }
   #endif
 
@@ -622,32 +616,16 @@ void EEPROM::post_process() {
     // Heaters
     //
     #if HOTENDS > 0
-      LOOP_HOTEND() {
-        EEPROM_WRITE(hotends[h].data);
-        EEPROM_WRITE(hotends[h].pid);
-        EEPROM_WRITE(hotends[h].sensor);
-      }
+      LOOP_HOTEND() EEPROM_WRITE(hotends[h].data);
     #endif
     #if BEDS > 0
-      LOOP_BED() {
-        EEPROM_WRITE(beds[h].data);
-        EEPROM_WRITE(beds[h].pid);
-        EEPROM_WRITE(beds[h].sensor);
-      }
+      LOOP_BED() EEPROM_WRITE(beds[h].data);
     #endif
     #if CHAMBERS > 0
-      LOOP_CHAMBER() {
-        EEPROM_WRITE(chambers[h].data);
-        EEPROM_WRITE(chambers[h].pid);
-        EEPROM_WRITE(chambers[h].sensor);
-      }
+      LOOP_CHAMBER() EEPROM_WRITE(chambers[h].data);
     #endif
     #if COOLERS > 0
-      LOOP_COOLER() {
-        EEPROM_WRITE(coolers[h].data);
-        EEPROM_WRITE(coolers[h].pid);
-        EEPROM_WRITE(coolers[h].sensor);
-      }
+      LOOP_COOLER() EEPROM_WRITE(coolers[h].data);
     #endif
 
     //
@@ -700,7 +678,9 @@ void EEPROM::post_process() {
     //
     // BLTOUCH
     //
-    EEPROM_WRITE(bltouch.last_mode);
+    #if ENABLED(BLTOUCH)
+      EEPROM_WRITE(bltouch.last_mode);
+    #endif
 
     //
     // Firmware Retraction
@@ -1042,32 +1022,16 @@ void EEPROM::post_process() {
       // Heaters
       //
       #if HOTENDS > 0
-        LOOP_HOTEND() {
-          EEPROM_READ(hotends[h].data);
-          EEPROM_READ(hotends[h].pid);
-          EEPROM_READ(hotends[h].sensor);
-        }
+        LOOP_HOTEND() EEPROM_READ(hotends[h].data);
       #endif
       #if BEDS > 0
-        LOOP_BED() {
-          EEPROM_READ(beds[h].data);
-          EEPROM_READ(beds[h].pid);
-          EEPROM_READ(beds[h].sensor);
-        }
+        LOOP_BED() EEPROM_READ(beds[h].data);
       #endif
       #if CHAMBERS > 0
-        LOOP_CHAMBER() {
-          EEPROM_READ(chambers[h].data);
-          EEPROM_READ(chambers[h].pid);
-          EEPROM_READ(chambers[h].sensor);
-        }
+        LOOP_CHAMBER() EEPROM_READ(chambers[h].data);
       #endif
       #if COOLERS > 0
-        LOOP_COOLER() {
-          EEPROM_READ(coolers[h].data);
-          EEPROM_READ(coolers[h].pid);
-          EEPROM_READ(coolers[h].sensor);
-        }
+        LOOP_COOLER() EEPROM_READ(coolers[h].data);
       #endif
 
       //
@@ -1120,7 +1084,9 @@ void EEPROM::post_process() {
       //
       // BLTOUCH
       //
-      EEPROM_READ(bltouch.last_mode);
+      #if ENABLED(BLTOUCH)
+        EEPROM_READ(bltouch.last_mode);
+      #endif
 
       //
       // Firmware Retraction
@@ -1571,7 +1537,6 @@ void EEPROM::reset() {
   #if HEATER_COUNT > 0
 
     Heater        *heat;
-    heater_data_t *data;
     pid_data_t    *pid;
     sensor_data_t *sens;
 
@@ -1583,7 +1548,7 @@ void EEPROM::reset() {
                           HEKc[]  PROGMEM = HOTEND_Kc;
 
       LOOP_HOTEND() {
-        pid = &hotends[h].pid;
+        pid = &hotends[h].data.pid;
         pid->Kp  = pgm_read_float(&HEKp[ALIM(h, HEKp)]);
         pid->Ki  = pgm_read_float(&HEKi[ALIM(h, HEKi)]);
         pid->Kd  = pgm_read_float(&HEKd[ALIM(h, HEKd)]);
@@ -1592,15 +1557,14 @@ void EEPROM::reset() {
 
       #if HAS_HEATER_HE0
         // HOTEND 0
-        heat  = &hotends[0];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE0_PIN;
-        data->ID              = 0;
-        data->mintemp         = HOTEND_0_MINTEMP;
-        data->maxtemp         = HOTEND_0_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        heat    = &hotends[0];
+        sens    = &heat->data.sensor;
+        pid     = &heat->data.pid;
+        heat->data.pin        = HEATER_HE0_PIN;
+        heat->data.ID         = 0;
+        heat->data.mintemp    = HOTEND_0_MINTEMP;
+        heat->data.maxtemp    = HOTEND_0_MAXTEMP;
+        heat->data.freq       = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1632,15 +1596,14 @@ void EEPROM::reset() {
 
       #if HAS_HEATER_HE1
         // HOTEND 1
-        heat  = &hotends[1];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE1_PIN;
-        data->ID              = 1;
-        data->mintemp         = HOTEND_1_MINTEMP;
-        data->maxtemp         = HOTEND_1_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        heat    = &hotends[1];
+        sens    = &heat->data.sensor;
+        pid     = &heat->data.pid;
+        heat->data.pin        = HEATER_HE1_PIN;
+        heat->data.ID         = 1;
+        heat->data.mintemp    = HOTEND_1_MINTEMP;
+        heat->data.maxtemp    = HOTEND_1_MAXTEMP;
+        heat->data.freq       = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1673,14 +1636,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_HE2
         // HOTEND 2
         heat  = &hotends[2];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE2_PIN;
-        data->ID              = 2;
-        data->mintemp         = HOTEND_2_MINTEMP;
-        data->maxtemp         = HOTEND_2_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_HE2_PIN;
+        heat->data.ID       = 2;
+        heat->data.mintemp  = HOTEND_2_MINTEMP;
+        heat->data.maxtemp  = HOTEND_2_MAXTEMP;
+        heat->data.freq     = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1713,14 +1675,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_HE3
         // HOTEND 3
         heat  = &hotends[3];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE3_PIN;
-        data->ID              = 3;
-        data->mintemp         = HOTEND_3_MINTEMP;
-        data->maxtemp         = HOTEND_3_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_HE3_PIN;
+        heat->data.ID       = 3;
+        heat->data.mintemp  = HOTEND_3_MINTEMP;
+        heat->data.maxtemp  = HOTEND_3_MAXTEMP;
+        heat->data.freq     = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1753,14 +1714,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_HE4
         // HOTEND 4
         heat  = &hotends[4];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE4_PIN;
-        data->ID              = 4;
-        data->mintemp         = HOTEND_4_MINTEMP;
-        data->maxtemp         = HOTEND_4_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_HE4_PIN;
+        heat->data.ID       = 4;
+        heat->data.mintemp  = HOTEND_4_MINTEMP;
+        heat->data.maxtemp  = HOTEND_4_MAXTEMP;
+        heat->data.freq     = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1793,14 +1753,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_HE5
         // HOTEND 5
         heat  = &hotends[5];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_HE5_PIN;
-        data->ID              = 5;
-        data->mintemp         = HOTEND_5_MINTEMP;
-        data->maxtemp         = HOTEND_5_MAXTEMP;
-        data->freq            = HOTEND_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_HE5_PIN;
+        heat->data.ID       = 5;
+        heat->data.mintemp  = HOTEND_5_MINTEMP;
+        heat->data.maxtemp  = HOTEND_5_MAXTEMP;
+        heat->data.freq     = HOTEND_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = PID_DRIVE_MIN;
         pid->DriveMax         = PID_DRIVE_MAX;
@@ -1839,7 +1798,7 @@ void EEPROM::reset() {
                           BEDKd[] PROGMEM = BED_Kd;
 
       LOOP_BED() {
-        pid = &beds[h].pid;
+        pid = &beds[h].data.pid;
         pid->Kp  = pgm_read_float(&BEDKp[ALIM(h, BEDKp)]);
         pid->Ki  = pgm_read_float(&BEDKi[ALIM(h, BEDKi)]);
         pid->Kd  = pgm_read_float(&BEDKd[ALIM(h, BEDKd)]);
@@ -1848,14 +1807,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_BED0
         // BED 0
         heat  = &beds[0];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_BED0_PIN;
-        data->ID              = 0;
-        data->mintemp         = BED_MINTEMP;
-        data->maxtemp         = BED_MAXTEMP;
-        data->freq            = BED_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_BED0_PIN;
+        heat->data.ID       = 0;
+        heat->data.mintemp  = BED_MINTEMP;
+        heat->data.maxtemp  = BED_MAXTEMP;
+        heat->data.freq     = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1888,14 +1846,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_BED1
         // BED 1
         heat  = &beds[1];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_BED1_PIN;
-        data->ID              = 1;
-        data->mintemp         = BED_MINTEMP;
-        data->maxtemp         = BED_MAXTEMP;
-        data->freq            = BED_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_BED1_PIN;
+        heat->data.ID       = 1;
+        heat->data.mintemp  = BED_MINTEMP;
+        heat->data.maxtemp  = BED_MAXTEMP;
+        heat->data.freq     = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1928,14 +1885,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_BED2
         // BED 2
         heat  = &beds[2];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_BED2_PIN;
-        data->ID              = 2;
-        data->mintemp         = BED_MINTEMP;
-        data->maxtemp         = BED_MAXTEMP;
-        data->freq            = BED_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_BED2_PIN;
+        heat->data.ID       = 2;
+        heat->data.mintemp  = BED_MINTEMP;
+        heat->data.maxtemp  = BED_MAXTEMP;
+        heat->data.freq     = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -1968,14 +1924,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_BED3
         // BED 3
         heat  = &beds[3];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_BED3_PIN;
-        data->ID              = 3;
-        data->mintemp         = BED_MINTEMP;
-        data->maxtemp         = BED_MAXTEMP;
-        data->freq            = BED_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_BED3_PIN;
+        heat->data.ID       = 3;
+        heat->data.mintemp  = BED_MINTEMP;
+        heat->data.maxtemp  = BED_MAXTEMP;
+        heat->data.freq     = BED_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = BED_PID_DRIVE_MIN;
         pid->DriveMax         = BED_PID_DRIVE_MAX;
@@ -2014,7 +1969,7 @@ void EEPROM::reset() {
                           CHAMBERKd[] PROGMEM = CHAMBER_Kd;
 
       LOOP_CHAMBER() {
-        pid = &chambers[h].pid;
+        pid = &chambers[h].data.pid;
         pid->Kp  = pgm_read_float(&CHAMBERKp[ALIM(h, CHAMBERKp)]);
         pid->Ki  = pgm_read_float(&CHAMBERKi[ALIM(h, CHAMBERKi)]);
         pid->Kd  = pgm_read_float(&CHAMBERKd[ALIM(h, CHAMBERKd)]);
@@ -2023,14 +1978,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_CHAMBER0
         // CHAMBER 0
         heat  = &chambers[0];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_CHAMBER0_PIN;
-        data->ID              = 0;
-        data->mintemp         = CHAMBER_MINTEMP;
-        data->maxtemp         = CHAMBER_MAXTEMP;
-        data->freq            = CHAMBER_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_CHAMBER0_PIN;
+        heat->data.ID       = 0;
+        heat->data.mintemp  = CHAMBER_MINTEMP;
+        heat->data.maxtemp  = CHAMBER_MAXTEMP;
+        heat->data.freq     = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2063,14 +2017,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_CHAMBER1
         // CHAMBER 1
         heat  = &chambers[0];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_CHAMBER1_PIN;
-        data->ID              = 1;
-        data->mintemp         = CHAMBER_MINTEMP;
-        data->maxtemp         = CHAMBER_MAXTEMP;
-        data->freq            = CHAMBER_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_CHAMBER1_PIN;
+        heat->data.ID       = 1;
+        heat->data.mintemp  = CHAMBER_MINTEMP;
+        heat->data.maxtemp  = CHAMBER_MAXTEMP;
+        heat->data.freq     = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2103,14 +2056,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_CHAMBER2
         // CHAMBER 2
         heat  = &chambers[2];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_CHAMBER2_PIN;
-        data->ID              = 2;
-        data->mintemp         = CHAMBER_MINTEMP;
-        data->maxtemp         = CHAMBER_MAXTEMP;
-        data->freq            = CHAMBER_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_CHAMBER2_PIN;
+        heat->data.ID       = 2;
+        heat->data.mintemp  = CHAMBER_MINTEMP;
+        heat->data.maxtemp  = CHAMBER_MAXTEMP;
+        heat->data.freq     = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2143,14 +2095,13 @@ void EEPROM::reset() {
       #if HAS_HEATER_CHAMBER3
         // CHAMBER 3
         heat  = &chambers[3];
-        data  = &heat->data;
-        sens  = &heat->sensor;
-        pid   = &heat->pid;
-        data->pin             = HEATER_CHAMBER3_PIN;
-        data->ID              = 3;
-        data->mintemp         = CHAMBER_MINTEMP;
-        data->maxtemp         = CHAMBER_MAXTEMP;
-        data->freq            = CHAMBER_PWM_FREQUENCY;
+        sens  = &heat->data.sensor;
+        pid   = &heat->data.pid;
+        heat->data.pin      = HEATER_CHAMBER3_PIN;
+        heat->data.ID       = 3;
+        heat->data.mintemp  = CHAMBER_MINTEMP;
+        heat->data.maxtemp  = CHAMBER_MAXTEMP;
+        heat->data.freq     = CHAMBER_PWM_FREQUENCY;
         // Pid
         pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
         pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
@@ -2189,21 +2140,20 @@ void EEPROM::reset() {
                           COOLERKd PROGMEM = COOLER_Kd;
 
       LOOP_COOLER() {
-        pid = &coolers[h].pid;
+        pid = &coolers[h].data.pid;
         pid->Kp  = pgm_read_float(&COOLERKp);
         pid->Ki  = pgm_read_float(&COOLERKi);
         pid->Kd  = pgm_read_float(&COOLERKd);
       }
 
       heat  = &coolers[0];
-      data  = &heat->data;
-      sens  = &heat->sensor;
-      pid   = &heat->pid;
-      data->pin             = HEATER_COOLER_PIN;
-      data->ID              = 0;
-      data->mintemp         = COOLER_MINTEMP;
-      data->maxtemp         = COOLER_MAXTEMP;
-      data->freq            = COOLER_PWM_FREQUENCY;
+      sens  = &heat->data.sensor;
+      pid   = &heat->data.pid;
+      heat->data.pin      = HEATER_COOLER_PIN;
+      heat->data.ID       = 0;
+      heat->data.mintemp  = COOLER_MINTEMP;
+      heat->data.maxtemp  = COOLER_MAXTEMP;
+      heat->data.freq     = COOLER_PWM_FREQUENCY;
       // Pid
       pid->DriveMin         = COOLER_PID_DRIVE_MIN;
       pid->DriveMax         = COOLER_PID_DRIVE_MAX;
