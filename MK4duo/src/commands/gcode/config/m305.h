@@ -82,13 +82,13 @@ inline void gcode_M305(void) {
     }
   #endif
 
-  act->sensor.r25           = parser.floatval('A', act->sensor.r25);
-  act->sensor.beta          = parser.floatval('B', act->sensor.beta);
-  act->sensor.shC           = parser.floatval('C', act->sensor.shC);
-  act->sensor.pullupR       = parser.floatval('R', act->sensor.pullupR);
-  act->sensor.adcLowOffset  = parser.intval('L', act->sensor.adcLowOffset);
-  act->sensor.adcHighOffset = parser.intval('O', act->sensor.adcHighOffset);
-  act->sensor.type          = parser.intval('S', act->sensor.type);
+  act->data.sensor.r25            = parser.floatval('A', act->data.sensor.r25);
+  act->data.sensor.beta           = parser.floatval('B', act->data.sensor.beta);
+  act->data.sensor.shC            = parser.floatval('C', act->data.sensor.shC);
+  act->data.sensor.pullupR        = parser.floatval('R', act->data.sensor.pullupR);
+  act->data.sensor.adcLowOffset   = parser.intval('L', act->data.sensor.adcLowOffset);
+  act->data.sensor.adcHighOffset  = parser.intval('O', act->data.sensor.adcHighOffset);
+  act->data.sensor.type           = parser.intval('S', act->data.sensor.type);
 
   if (parser.seen('P')) {
     // Put off the heaters
@@ -96,13 +96,13 @@ inline void gcode_M305(void) {
 
     const pin_t new_pin = parser.analog_value_pin();
     if (new_pin != NoPin) {
-      const pin_t old_pin = act->sensor.pin;
-      act->sensor.pin = new_pin;
-      HAL::AdcChangePin(old_pin, act->sensor.pin);
+      const pin_t old_pin = act->data.sensor.pin;
+      act->data.sensor.pin = new_pin;
+      HAL::AdcChangePin(old_pin, act->data.sensor.pin);
     }
   }
 
-  act->sensor.CalcDerivedParameters();
+  act->data.sensor.CalcDerivedParameters();
 
 }
 

@@ -53,9 +53,9 @@ inline void gcode_M595(void) {
     }
   #endif
 
-  act->sensor.ad595_offset = parser.floatval('O');
-  act->sensor.ad595_gain   = parser.floatval('P', 1);
-  if (act->sensor.ad595_gain == 0) act->sensor.ad595_gain = 1.0;
+  act->data.sensor.ad595_offset = parser.floatval('O');
+  act->data.sensor.ad595_gain   = parser.floatval('P', 1);
+  if (act->data.sensor.ad595_gain == 0) act->data.sensor.ad595_gain = 1.0;
 
 }
 

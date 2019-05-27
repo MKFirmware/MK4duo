@@ -125,10 +125,14 @@ void BLTouch::test() {
 
     if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 
-      for (probe_counter = 1; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
+      for (probe_counter = 0; probe_counter < 15 && deploy_state != HAL::digitalRead(PROBE_TEST_PIN); ++probe_counter)
         HAL::delayMilliseconds(2);
 
-      SERIAL_EMV(". Pulse width (+/- 4mS): ", probe_counter * 2);
+      SERIAL_MSG(". Pulse width");
+      if (probe_counter == 15)
+        SERIAL_EM(": 30ms or more");
+      else
+        SERIAL_EMV(" (+/- 4ms): ", probe_counter * 2);
 
       if (probe_counter >= 4) {
         if (probe_counter == 15) SERIAL_MSG("= BLTouch V3.1");
@@ -145,7 +149,7 @@ void BLTouch::test() {
 
   } // for loop waiting for trigger
 
-  if (probe_counter == 0) SERIAL_LM(ER, " Trigger not detected");
+  if (!probe_counter) SERIAL_EM("FAIL: No trigger detected");
 }
 
 bool BLTouch::deploy() {

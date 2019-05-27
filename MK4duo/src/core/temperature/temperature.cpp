@@ -87,26 +87,26 @@ void Temperature::set_current_temp_raw() {
 
   #if HOTENDS > 0
     LOOP_HOTEND() {
-      if (WITHIN(hotends[h].sensor.pin, 0, 15))
-        hotends[h].sensor.raw = HAL::AnalogInputValues[hotends[h].sensor.pin];
+      if (WITHIN(hotends[h].data.sensor.pin, 0, 15))
+        hotends[h].data.sensor.raw = HAL::AnalogInputValues[hotends[h].data.sensor.pin];
     }
   #endif
   #if BEDS > 0
     LOOP_BED() {
-      if (WITHIN(beds[h].sensor.pin, 0, 15))
-        beds[h].sensor.raw = HAL::AnalogInputValues[beds[h].sensor.pin];
+      if (WITHIN(beds[h].data.sensor.pin, 0, 15))
+        beds[h].data.sensor.raw = HAL::AnalogInputValues[beds[h].data.sensor.pin];
     }
   #endif
   #if CHAMBERS > 0
     LOOP_CHAMBER() {
-      if (WITHIN(chambers[h].sensor.pin, 0, 15))
-        chambers[h].sensor.raw = HAL::AnalogInputValues[chambers[h].sensor.pin];
+      if (WITHIN(chambers[h].data.sensor.pin, 0, 15))
+        chambers[h].data.sensor.raw = HAL::AnalogInputValues[chambers[h].data.sensor.pin];
     }
   #endif
   #if COOLERS > 0
     LOOP_COOLER() {
-      if (WITHIN(coolers[h].sensor.pin, 0, 15))
-        coolers[h].sensor.raw = HAL::AnalogInputValues[coolers[h].sensor.pin];
+      if (WITHIN(coolers[h].data.sensor.pin, 0, 15))
+        coolers[h].data.sensor.raw = HAL::AnalogInputValues[coolers[h].data.sensor.pin];
     }
   #endif
 
@@ -515,7 +515,7 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
   SERIAL_VAL(act->current_temperature, 2);
   SERIAL_MV(" /" , targetTemperature);
   if (showRaw) {
-    SERIAL_MV(" (", act->sensor.raw);
+    SERIAL_MV(" (", act->data.sensor.raw);
     SERIAL_CHR(')');
   }
 

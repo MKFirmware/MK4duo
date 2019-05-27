@@ -32,13 +32,13 @@ extern void tacho_interrupt0();
 #if FAN_COUNT > 1
   extern void tacho_interrupt1();
   #if FAN_COUNT > 2
-    void tacho_interrupt2() { fans[2].tacho.interrupt(); }
+    extern void tacho_interrupt2();
     #if FAN_COUNT > 3
-      void tacho_interrupt3() { fans[3].tacho.interrupt(); }
+      extern void tacho_interrupt3();
       #if FAN_COUNT > 4
-        void tacho_interrupt4() { fans[4].tacho.interrupt(); }
+        extern void tacho_interrupt4();
         #if FAN_COUNT > 5
-          void tacho_interrupt5() { fans[5].tacho.interrupt(); }
+          extern void tacho_interrupt5();
         #endif
       #endif
     #endif

@@ -66,12 +66,12 @@ inline void gcode_M306(void) {
     }
   #endif
 
-  act->pid.DriveMin = parser.intval('A', act->pid.DriveMin);
-  act->pid.DriveMax = parser.intval('B', act->pid.DriveMax);
-  act->pid.Max      = parser.intval('C', act->pid.Max);
-  act->data.mintemp = parser.intval('L', act->data.mintemp);
-  act->data.maxtemp = parser.intval('O', act->data.maxtemp);
-  act->data.freq    = MIN(parser.intval('F', act->data.freq), MAX_PWM_FREQUENCY);
+  act->data.pid.DriveMin  = parser.intval('A', act->data.pid.DriveMin);
+  act->data.pid.DriveMax  = parser.intval('B', act->data.pid.DriveMax);
+  act->data.pid.Max       = parser.intval('C', act->data.pid.Max);
+  act->data.mintemp       = parser.intval('L', act->data.mintemp);
+  act->data.maxtemp       = parser.intval('O', act->data.maxtemp);
+  act->data.freq          = MIN(parser.intval('F', act->data.freq), MAX_PWM_FREQUENCY);
 
   if (parser.seen('U'))
     act->setUsePid(parser.value_bool());
@@ -88,7 +88,7 @@ inline void gcode_M306(void) {
     act->data.pin = parser.value_pin();
   }
 
-  act->pid.update();
+  act->data.pid.update();
 
 }
 

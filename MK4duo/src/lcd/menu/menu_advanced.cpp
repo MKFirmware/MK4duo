@@ -187,9 +187,9 @@ void menu_tmc();
 
 #endif //PID_AUTOTUNE_MENU
 
-#define _DEFINE_PIDTEMP_BASE_FUNCS(N)         void updatePID_H ## N()       { hotends[N].pid.update(); }
-#define _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)     void updatePID_BED ## N()     { beds[N].pid.update(); }
-#define _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N) void updatePID_CHAMBER ## N() { chambers[N].pid.update(); }
+#define _DEFINE_PIDTEMP_BASE_FUNCS(N)         void updatePID_H ## N()       { hotends[N].data.pid.update(); }
+#define _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)     void updatePID_BED ## N()     { beds[N].data.pid.update(); }
+#define _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N) void updatePID_CHAMBER ## N() { chambers[N].data.pid.update(); }
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
@@ -297,24 +297,24 @@ void menu_advanced_temperature() {
   // PID-P H5, PID-I H5, PID-D H5, PID-C H5, PID Autotune H5
   //
   #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &hotends[hindex].pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &hotends[hindex].pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
-    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &hotends[hindex].pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &hotends[hindex].data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &hotends[hindex].data.pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
+    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &hotends[hindex].data.pid.Kd, 1, 9990)
 
   #define _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_P HLABEL, &beds[hindex].pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, "Bed " MSG_PID_I HLABEL, &beds[hindex].pid.Ki, 0.01f, 9990, updatePID_BED ## hindex); \
-    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_D HLABEL, &beds[hindex].pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_P HLABEL, &beds[hindex].data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Bed " MSG_PID_I HLABEL, &beds[hindex].data.pid.Ki, 0.01f, 9990, updatePID_BED ## hindex); \
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_D HLABEL, &beds[hindex].data.pid.Kd, 1, 9990)
 
   #define _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_P HLABEL, &chambers[hindex].pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, "Chamber " MSG_PID_I HLABEL, &chambers[hindex].pid.Ki, 0.01f, 9990, updatePID_CHAMBER ## hindex); \
-    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_D HLABEL, &chambers[hindex].pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_P HLABEL, &chambers[hindex].data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Chamber " MSG_PID_I HLABEL, &chambers[hindex].data.pid.Ki, 0.01f, 9990, updatePID_CHAMBER ## hindex); \
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_D HLABEL, &chambers[hindex].data.pid.Kd, 1, 9990)
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     #define _PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
-      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &hotends[hindex].pid.Kc, 1, 9990)
+      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &hotends[hindex].data.pid.Kc, 1, 9990)
   #else
     #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
   #endif

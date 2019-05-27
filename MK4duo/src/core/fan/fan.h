@@ -49,19 +49,17 @@ union flagfan_t {
 
 // Struct Fan data
 typedef struct {
-
-  pin_t       pin;
-
-  flagfan_t   flag;
-
-  uint8_t     ID,
-              min_speed,
-              max_speed,
-              auto_monitor;
-
-  uint16_t    trigger_temperature,
-              freq;
-
+  pin_t           pin;
+  flagfan_t       flag;
+  uint8_t         ID,
+                  min_speed,
+                  max_speed,
+                  auto_monitor;
+  uint16_t        trigger_temperature,
+                  freq;
+  #if ENABLED(TACHOMETRIC)
+    tacho_data_t  tacho;
+  #endif
 } fan_data_t;
 
 class Fan {
@@ -73,10 +71,6 @@ class Fan {
   public: /** Public Parameters */
 
     fan_data_t  data;
-
-    #if ENABLED(TACHOMETRIC)
-      tacho_data_t tacho;
-    #endif
 
     uint8_t     speed,
                 paused_speed,
