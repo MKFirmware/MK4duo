@@ -22,7 +22,7 @@
 
 #include "../../../MK4duo.h"
 
-#ifdef ARDUINO_ARCH_SAM && HAS_SERVOS
+#if ENABLED(ARDUINO_ARCH_SAM) && HAS_SERVOS
 
 #include "../common/servo.h"
 
@@ -145,4 +145,4 @@ void finISR(timer16_Sequence_t timer) {
   #endif
 }
 
-#endif // ARDUINO_ARCH_SAM && HAS_SERVOS
+#endif // ENABLED(ARDUINO_ARCH_SAM) && HAS_SERVOS
