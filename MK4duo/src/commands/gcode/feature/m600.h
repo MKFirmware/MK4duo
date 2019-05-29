@@ -100,8 +100,8 @@
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
     #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
-      park_point.x += (tools.active_extruder ? tools.hotend_offset[X_AXIS][tools.active_extruder] : 0);
-      park_point.y += (tools.active_extruder ? tools.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
+      park_point.x += (tools.active_extruder ? tools.data.hotend_offset[X_AXIS][tools.active_extruder] : 0);
+      park_point.y += (tools.active_extruder ? tools.data.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
     #endif
 
     #if HAS_MMU2
