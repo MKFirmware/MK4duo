@@ -136,11 +136,19 @@ static void lcd_reset_settings() { eeprom.reset(); }
     MENU_ITEM(function, MSG_BLTOUCH_STOW, bltouch.cmd_stow);
     MENU_ITEM(function, MSG_BLTOUCH_MODE_SW, bltouch.cmd_mode_SW);
     #if ENABLED(BLTOUCH_LCD_VOLTAGE_MENU)
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_5V, bltouch.cmd_mode_5V);
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_OD, bltouch.cmd_mode_OD);
+      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_5V, []{
+        do_select_screen(PSTR(MSG_BLTOUCH_MODE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+      });
+      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_OD, []{
+        do_select_screen(PSTR(MSG_BLTOUCH_MODE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+      });
       MENU_ITEM(function, MSG_BLTOUCH_MODE_STORE, bltouch.cmd_mode_store);
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_STORE_5V, bltouch.mode_conv_5V);
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_STORE_OD, bltouch.mode_conv_OD);
+      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_STORE_5V, []{
+        do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+      });
+      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_STORE_OD, []{
+        do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+      });
       MENU_ITEM(function, MSG_BLTOUCH_MODE_ECHO, bltouch_report);
     #endif
     END_MENU();

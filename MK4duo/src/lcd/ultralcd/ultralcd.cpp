@@ -153,20 +153,49 @@ millis_l next_button_update_ms;
 
   #endif
 
-  void wrap_string(uint8_t y, const char * const string) {
-    uint8_t x = LCD_WIDTH;
-    if (string) {
-      uint8_t *p = (uint8_t*)string;
+  void _wrap_string(uint8_t &x, uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, bool wordwrap/*=false*/) {
+    SETCURSOR(x, y);
+    if (!string) return;
+
+    uint8_t *p = (uint8_t*)string;
+    if (wordwrap) {
+      uint8_t *wrd = p, c = 0;
       for (;;) {
-        if (x >= LCD_WIDTH) {
-          x = 0;
-          SETCURSOR(0, y++);
-        }
         wchar_t ch;
-        p = get_utf8_value_cb(p, read_byte_ram, &ch);
+        p = get_utf8_value_cb(p, cb_read_byte, &ch);
+        const bool eol = !ch;
+        if (eol || ch == ' ' || ch == '-' || ch == '+' || ch == '.') {
+          if (!c && ch == ' ') continue; // collapse extra spaces
+          if (x + c > LCD_WIDTH && c < (LCD_WIDTH) * 3 / 4) { // should it wrap?
+            x = 0; y++;               // move x to string len (plus space)
+            SETCURSOR(0, y);          // simulate carriage return
+          }
+          c += !eol;                  // +1 so the space will be printed
+          x += c;                     // advance x to new position
+          while (c--) {               // character countdown
+            wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
+            lcd_put_wchar(ch);        // word (plus space) to the LCD
+          }
+          if (eol) break;             // all done
+          wrd = nullptr;              // set up for next word
+        }
+        else {
+          if (!wrd) wrd = p;          // starting a new word?
+          c++;                        // count word characters
+        }
+      }
+    }
+    else {
+      for (;;) {
+        wchar_t ch;
+        p = get_utf8_value_cb(p, cb_read_byte, &ch);
         if (!ch) break;
         lcd_put_wchar(ch);
         x++;
+        if (x >= LCD_WIDTH) {
+          x = 0; y++;
+          SETCURSOR(0, y);
+        }
       }
     }
   }

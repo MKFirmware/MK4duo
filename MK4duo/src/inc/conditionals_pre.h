@@ -31,7 +31,7 @@
 #endif
 
 #if ENABLED(NEXTION)
-  #define LCD_WIDTH 26
+  #define LCD_WIDTH 25
   #define LCD_HEIGHT 6
   #define LCD_DECIMAL_SMALL_XY
   #undef GAME_BRICKOUT

@@ -896,6 +896,60 @@ void Nextion_draw_update() {
     nexlcd.Set_font_color_pco(*txtmenu_list[row], color);
   }
 
+  void _wrap_string(uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, bool wordwrap/*=false*/) {
+    if (!string) return;
+    uint8_t x = 0;
+    nexlcd.startChar(*txtmenu_list[y]);
+    uint8_t *p = (uint8_t*)string;
+    if (wordwrap) {
+      uint8_t *wrd = p, c = 0;
+      for (;;) {
+        wchar_t ch;
+        p = get_utf8_value_cb(p, cb_read_byte, &ch);
+        const bool eol = !ch;
+        if (eol || ch == ' ' || ch == '-' || ch == '+' || ch == '.') {
+          if (!c && ch == ' ') continue;  // collapse extra spaces
+          if (x + c > LCD_WIDTH && c < (LCD_WIDTH) * 3 / 4) { // should it wrap?
+            x = 0; y++;                   // move x to string len (plus space)
+            nexlcd.endChar();             // simulate carriage return
+            nexlcd.startChar(*txtmenu_list[y]);
+          }
+          c += !eol;                      // +1 so the space will be printed
+          x += c;                         // advance x to new position
+          while (c--) {                   // character countdown
+            wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
+            nexlcd.setChar(ch);           // word (plus space) to the LCD
+          }
+          nexlcd.setChar(' ');
+          if (eol) {                      // all done
+            nexlcd.endChar();
+            break;
+          }
+          wrd = p;                        // set up for next word
+        }
+        else
+          c++;                            // count word characters
+      }
+    }
+    else {
+      for (;;) {
+        wchar_t ch;
+        p = get_utf8_value_cb(p, cb_read_byte, &ch);
+        if (!ch) {
+          nexlcd.endChar();
+          break;
+        }
+        nexlcd.setChar(ch);
+        x++;
+        if (x >= LCD_WIDTH) {
+          x = 0; y++;
+          nexlcd.endChar();
+          nexlcd.startChar(*txtmenu_list[y]);
+        }
+      }
+    }
+  }
+
   // Draw a static line of text in the same idiom as a menu item
   void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
     UNUSED(center);
@@ -926,7 +980,7 @@ void Nextion_draw_update() {
     nexlcd.startChar(*txtmenu_list[row]);
     nextion_put_str_P(pstr);
     nextion_put_str_P(PSTR(":"));
-    nextion_put_space(LCD_WIDTH - labellen - vallen - 2);
+    nextion_put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
       nextion_put_str_P(data);
     else
@@ -934,12 +988,12 @@ void Nextion_draw_update() {
     nexlcd.endChar();
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
+  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
 
     const uint8_t labellen  = strlen_P(pstr),
                   vallen    = strlen(value);
 
-    bool extra_row = labellen > LCD_WIDTH - vallen - 2;
+    bool extra_row = labellen > LCD_WIDTH - vallen - 1;
 
     constexpr uint8_t row = 2;
 
@@ -953,29 +1007,32 @@ void Nextion_draw_update() {
       nextion_put_str_P(pstr);
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
-      nextion_put_space(LCD_WIDTH - vallen - 1);
+      nextion_put_space(LCD_WIDTH - vallen);
       nextion_put_str(value);
     }
     else {
       nexlcd.startChar(*txtmenu_list[row]);
       nextion_put_str_P(pstr);
       nextion_put_str_P(PSTR(":"));
-      nextion_put_space(LCD_WIDTH - labellen - vallen - 2);
+      nextion_put_space(LCD_WIDTH - labellen - vallen - 1);
       nextion_put_str(value);
     }
     nexlcd.endChar();
   }
 
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
-    nexlcd.startChar(*txtmenu_list[0]);
-    nextion_put_str_P(pref);
+  inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+    const uint8_t plen = strlen_P(pref), slen = suff ? strlen_P(suff) : 0;
+    uint8_t y = 1;
+    wrap_string_P(y, pref, true);
     if (string) {
-      nexlcd.endChar();
-      nexlcd.startChar(*txtmenu_list[1]);
-      nextion_put_str(string);
+      y++;
+      wrap_string(y, string);
     }
-    if (suff) nextion_put_str_P(suff);
-    nexlcd.endChar();
+    if (suff) wrap_string_P(y, suff);
+  }
+
+  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+    draw_select_screen_prompt(pref, string, suff);
     nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
     nextion_put_str_P(yesno ? PSTR(" ") : PSTR("["));
     nextion_put_str_P(no);

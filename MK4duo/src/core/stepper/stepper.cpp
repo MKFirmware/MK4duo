@@ -174,7 +174,7 @@ int32_t Stepper::ticks_nominal = -1;
 
 volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
 
-volatile int32_t  Stepper::count_position[NUM_AXIS]   = { 0 };
+volatile int32_t Stepper::count_position[NUM_AXIS]   = { 0 };
 
 int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 

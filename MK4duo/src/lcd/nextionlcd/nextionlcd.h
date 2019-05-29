@@ -74,6 +74,10 @@
       float lcd_probe_pt(const float &rx, const float &ry);
     #endif
 
+    void _wrap_string(uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, const bool wordwrap=false);
+    inline void wrap_string_P(uint8_t &y, PGM_P const pstr, const bool wordwrap=false)        { _wrap_string(y, pstr,    read_byte_rom,  wordwrap);  }
+    inline void wrap_string(uint8_t &y, const char * const string, const bool wordwrap=false) { _wrap_string(y, string,  read_byte_ram,  wordwrap);  }
+
   #endif // HAS_LCD_MENU
 
   void nextion_draw_update();

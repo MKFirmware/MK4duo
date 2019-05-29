@@ -896,37 +896,40 @@
   #define MSG_BLTOUCH                         _UxGT("BLTouch")
 #endif
 #ifndef MSG_BLTOUCH_SELFTEST
-  #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Self-Test")
+  #define MSG_BLTOUCH_SELFTEST                _UxGT("Self-Test")
 #endif
 #ifndef MSG_BLTOUCH_RESET
-  #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
+  #define MSG_BLTOUCH_RESET                   _UxGT("Reset")
 #endif
 #ifndef MSG_BLTOUCH_DEPLOY
-  #define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy BLTouch")
+  #define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy")
 #endif
 #ifndef MSG_BLTOUCH_MODE_SW
-  #define MSG_BLTOUCH_MODE_SW                 _UxGT("BLTouch Mode SW")
+  #define MSG_BLTOUCH_MODE_SW                 _UxGT("Mode SW")
 #endif
 #ifndef MSG_BLTOUCH_MODE_5V
-  #define MSG_BLTOUCH_MODE_5V                 _UxGT("BLTouch Mode 5V")
+  #define MSG_BLTOUCH_MODE_5V                 _UxGT("Mode 5V")
 #endif
 #ifndef MSG_BLTOUCH_MODE_OD
-  #define MSG_BLTOUCH_MODE_OD                 _UxGT("BLTouch Mode OD")
+  #define MSG_BLTOUCH_MODE_OD                 _UxGT("Mode OD")
 #endif
 #ifndef MSG_BLTOUCH_MODE_STORE
-  #define MSG_BLTOUCH_MODE_STORE              _UxGT("BLTouch Mode Store")
+  #define MSG_BLTOUCH_MODE_STORE              _UxGT("Mode Store")
 #endif
 #ifndef MSG_BLTOUCH_STOW
   #define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #endif
 #ifndef MSG_BLTOUCH_MODE_STORE_5V
-  #define MSG_BLTOUCH_MODE_STORE_5V           _UxGT("Set BLTouch to 5V")
+  #define MSG_BLTOUCH_MODE_STORE_5V           _UxGT("Set to 5V")
 #endif
 #ifndef MSG_BLTOUCH_MODE_STORE_OD
-  #define MSG_BLTOUCH_MODE_STORE_OD           _UxGT("Set BLTouch to OD")
+  #define MSG_BLTOUCH_MODE_STORE_OD           _UxGT("Set to OD")
 #endif
 #ifndef MSG_BLTOUCH_MODE_ECHO
   #define MSG_BLTOUCH_MODE_ECHO               _UxGT("Report Drain")
+#endif
+#ifndef MSG_BLTOUCH_MODE_CHANGE
+  #define MSG_BLTOUCH_MODE_CHANGE             _UxGT("DANGER: Bad settings can cause damage! Proceed anyway?")
 #endif
 #ifndef MSG_MANUAL_DEPLOY
   #define MSG_MANUAL_DEPLOY                   _UxGT("Deploy Z-Probe")

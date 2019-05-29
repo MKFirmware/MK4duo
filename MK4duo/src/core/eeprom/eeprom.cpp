@@ -59,9 +59,19 @@ typedef struct EepromDataStruct {
   uint16_t  crc;          // Data Checksum
 
   //
-  // Mechanics data
+  // Mechanics
   //
   mechanics_data_t  mechanics_data;
+
+  //
+  // Endstop
+  //
+  endstop_data_t    endstop_data;
+
+  //
+  // Stepper
+  //
+  stepper_data_t    stepper_data;
 
   //
   // Hotend offset
@@ -69,9 +79,39 @@ typedef struct EepromDataStruct {
   float             hotend_offset[XYZ][HOTENDS];
 
   //
-  // Endstop
+  // Sound
   //
-  endstop_data_t    endstop_data;
+  SoundModeEnum     sound_mode;
+
+  //
+  // Heaters
+  //
+  #if HOTENDS > 0
+    heater_data_t   hotend_data[HOTENDS];
+  #endif
+  #if BEDS > 0
+    heater_data_t   bed_data[BEDS];
+  #endif
+  #if CHAMBERS > 0
+    heater_data_t   chamber_data[CHAMBERS];
+  #endif
+  #if COOLERS > 0
+    heater_data_t   cooler_data[COOLERS];
+  #endif
+
+  //
+  // DHT sensor
+  //
+  #if ENABLED(DHT_SENSOR)
+    dht_data_t      dht_data;
+  #endif
+
+  //
+  // Fans
+  //
+  #if FAN_COUNT > 0
+    fan_data_t      fans_data[FAN_COUNT];
+  #endif
 
   //
   // Filament Runout
@@ -138,7 +178,7 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Ultipanel
+  // LCD menu
   //
   #if HAS_LCD_MENU
     #if HOTENDS > 0
@@ -156,40 +196,10 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Heaters
-  //
-  #if HOTENDS > 0
-    heater_data_t   hotend_data[HOTENDS];
-  #endif
-  #if BEDS > 0
-    heater_data_t   bed_data[BEDS];
-  #endif
-  #if CHAMBERS > 0
-    heater_data_t   chamber_data[CHAMBERS];
-  #endif
-  #if COOLERS > 0
-    heater_data_t   cooler_data[COOLERS];
-  #endif
-
-  //
   // PID add extrusion rate
   //
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     int16_t         lpq_len;
-  #endif
-
-  //
-  // DHT sensor
-  //
-  #if ENABLED(DHT_SENSOR)
-    dht_data_t      dht_data;
-  #endif
-
-  //
-  // Fans
-  //
-  #if FAN_COUNT > 0
-    fan_data_t      fans_data[FAN_COUNT];
   #endif
 
   //
@@ -244,16 +254,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Stepper
-  //
-  stepper_data_t    stepper_data;
-
-  //
-  // Sound
-  //
-  SoundModeEnum     sound_mode;
-
-  //
   // External DAC
   //
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
@@ -289,8 +289,8 @@ typedef struct EepromDataStruct {
     uint16_t  tmc_stepper_current[TMC_AXIS],
               tmc_stepper_microstep[TMC_AXIS];
     uint32_t  tmc_hybrid_threshold[TMC_AXIS];
-    int16_t   tmc_sgt[XYZ];
     bool      tmc_stealth_enabled[TMC_AXIS];
+    int16_t   tmc_sgt[XYZ];
   #endif
 
 } eepromData;
@@ -470,24 +470,64 @@ void EEPROM::post_process() {
     EEPROM_WRITE(mechanics.data);
 
     //
+    // Endstops data
+    //
+    EEPROM_WRITE(endstops.data);
+
+    //
+    // Stepper
+    //
+    EEPROM_WRITE(stepper.data);
+
+    //
     // Hotend offset
     //
     EEPROM_WRITE(tools.hotend_offset);
 
     //
-    // Endstops bit
+    // Sound
     //
-    EEPROM_WRITE(endstops.data);
+    EEPROM_WRITE(sound.mode);
 
     //
-    // Filament Runout
+    // Heaters data
+    //
+    #if HOTENDS > 0
+      LOOP_HOTEND() EEPROM_WRITE(hotends[h].data);
+    #endif
+    #if BEDS > 0
+      LOOP_BED() EEPROM_WRITE(beds[h].data);
+    #endif
+    #if CHAMBERS > 0
+      LOOP_CHAMBER() EEPROM_WRITE(chambers[h].data);
+    #endif
+    #if COOLERS > 0
+      LOOP_COOLER() EEPROM_WRITE(coolers[h].data);
+    #endif
+
+    //
+    // DHT sensor data
+    //
+    #if ENABLED(DHT_SENSOR)
+      EEPROM_WRITE(dhtsensor.data);
+    #endif
+
+    //
+    // Fans data
+    //
+    #if FAN_COUNT > 0
+      LOOP_FAN() EEPROM_WRITE(fans[f].data);
+    #endif
+
+    //
+    // Filament Runout data
     //
     #if HAS_FILAMENT_SENSOR
       EEPROM_WRITE(filamentrunout.sensor.data);
     #endif
 
     //
-    // Power Check
+    // PowerManager data
     //
     #if HAS_POWER_CHECK
       EEPROM_WRITE(powerManager.data);
@@ -555,7 +595,7 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // ULTIPANEL
+    // LCD menu
     //
     #if HAS_LCD_MENU
       #if HOTENDS > 0
@@ -573,40 +613,10 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Heaters
-    //
-    #if HOTENDS > 0
-      LOOP_HOTEND() EEPROM_WRITE(hotends[h].data);
-    #endif
-    #if BEDS > 0
-      LOOP_BED() EEPROM_WRITE(beds[h].data);
-    #endif
-    #if CHAMBERS > 0
-      LOOP_CHAMBER() EEPROM_WRITE(chambers[h].data);
-    #endif
-    #if COOLERS > 0
-      LOOP_COOLER() EEPROM_WRITE(coolers[h].data);
-    #endif
-
-    //
     // PID add extrusion rate
     //
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       EEPROM_WRITE(tools.lpq_len);
-    #endif
-
-    //
-    // DHT sensor
-    //
-    #if ENABLED(DHT_SENSOR)
-      EEPROM_WRITE(dhtsensor.data);
-    #endif
-
-    //
-    // Fans
-    //
-    #if FAN_COUNT > 0
-      LOOP_FAN() EEPROM_WRITE(fans[f].data);
     #endif
 
     //
@@ -667,16 +677,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Stepper
-    //
-    EEPROM_WRITE(stepper.data);
-
-    //
-    // Sound
-    //
-    EEPROM_WRITE(sound.mode);
-
-    //
     // Alligator board
     //
     #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
@@ -699,7 +699,7 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Advanced Pause
+    // Advanced Pause data
     //
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       EEPROM_WRITE(advancedpause.data);
@@ -838,38 +838,78 @@ void EEPROM::post_process() {
       EEPROM_READ(mechanics.data);
 
       //
+      // Endstops data
+      //
+      EEPROM_READ(endstops.data);
+
+      //
+      // Stepper data
+      //
+      EEPROM_READ(stepper.data);
+
+      //
       // Hotend offset
       //
       EEPROM_READ(tools.hotend_offset);
 
       //
-      // Endstops bit
+      // Sound
       //
-      EEPROM_READ(endstops.data);
+      EEPROM_READ(sound.mode);
 
       //
-      // Filament Runout
+      // Heaters data
+      //
+      #if HOTENDS > 0
+        LOOP_HOTEND() EEPROM_READ(hotends[h].data);
+      #endif
+      #if BEDS > 0
+        LOOP_BED() EEPROM_READ(beds[h].data);
+      #endif
+      #if CHAMBERS > 0
+        LOOP_CHAMBER() EEPROM_READ(chambers[h].data);
+      #endif
+      #if COOLERS > 0
+        LOOP_COOLER() EEPROM_READ(coolers[h].data);
+      #endif
+
+      //
+      // DHT sensor data
+      //
+      #if ENABLED(DHT_SENSOR)
+        EEPROM_READ(dhtsensor.data);
+      #endif
+
+      //
+      // Fans data
+      //
+      #if FAN_COUNT > 0
+        LOOP_FAN() EEPROM_READ(fans[f].data);
+      #endif
+
+      //
+      // Filament Runout data
       //
       #if HAS_FILAMENT_SENSOR
         EEPROM_READ(filamentrunout.sensor.data);
       #endif
 
       //
-      // Power Check
+      // PowerManager data
       //
       #if HAS_POWER_CHECK
         EEPROM_READ(powerManager.data);
       #endif
 
       //
-      // General Leveling
+      // Z fade height
       //
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         EEPROM_READ(new_z_fade_height);
       #endif
 
       //
-      // Mesh (Manual) Bed Leveling
+      // Mesh Bed Leveling
       //
       #if ENABLED(MESH_BED_LEVELING)
         uint8_t mesh_num_x = 0, mesh_num_y = 0;
@@ -934,7 +974,7 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // ULTIPANEL
+      // LCD menu
       //
       #if HAS_LCD_MENU
         #if HOTENDS > 0
@@ -952,40 +992,10 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Heaters
-      //
-      #if HOTENDS > 0
-        LOOP_HOTEND() EEPROM_READ(hotends[h].data);
-      #endif
-      #if BEDS > 0
-        LOOP_BED() EEPROM_READ(beds[h].data);
-      #endif
-      #if CHAMBERS > 0
-        LOOP_CHAMBER() EEPROM_READ(chambers[h].data);
-      #endif
-      #if COOLERS > 0
-        LOOP_COOLER() EEPROM_READ(coolers[h].data);
-      #endif
-
-      //
       // PID add extrusion rate
       //
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
         EEPROM_READ(tools.lpq_len);
-      #endif
-
-      //
-      // DHT sensor
-      //
-      #if ENABLED(DHT_SENSOR)
-        EEPROM_READ(dhtsensor.data);
-      #endif
-
-      //
-      // Fans
-      //
-      #if FAN_COUNT > 0
-        LOOP_FAN() EEPROM_READ(fans[f].data);
       #endif
 
       //
@@ -1046,16 +1056,6 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Stepper
-      //
-      EEPROM_READ(stepper.data);
-
-      //
-      // Sound
-      //
-      EEPROM_READ(sound.mode);
-
-      //
       // Alligator board
       //
       #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
@@ -1078,7 +1078,7 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Advanced Pause
+      // Advanced Pause data
       //
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         EEPROM_READ(advancedpause.data);
