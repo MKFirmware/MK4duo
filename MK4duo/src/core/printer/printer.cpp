@@ -312,7 +312,7 @@ void Printer::loop() {
 
         #if HAS_SD_RESTART
           // Save Job for restart
-          if (IS_SD_PRINTING()) restart.save_job(true);
+          if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
         #endif
 
         // Stop SD printing
