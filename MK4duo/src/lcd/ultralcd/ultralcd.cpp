@@ -176,13 +176,12 @@ millis_l next_button_update_ms;
             wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
             lcd_put_wchar(ch);        // word (plus space) to the LCD
           }
+          lcd_put_wchar(' ');
           if (eol) break;             // all done
-          wrd = nullptr;              // set up for next word
+          wrd = p;                    // set up for next word
         }
-        else {
-          if (!wrd) wrd = p;          // starting a new word?
+        else
           c++;                        // count word characters
-        }
       }
     }
     else {
