@@ -154,13 +154,13 @@ inline void gcode_G33(void) {
 
   char    rply[50];
 
-  const uint8_t numFactors = parser.intval('F', 7);
+  const uint8_t numFactors = parser.intval('F', DELTA_AUTO_CALIBRATION_1_DEFAULT_FACTOR);
   if (!WITHIN(numFactors, 3, 7)) {
     SERIAL_EM("?(F)actors is implausible (3 to 7).");
     return;
   }
 
-  uint8_t probe_points  = parser.intval('P', 7);
+  uint8_t probe_points  = parser.intval('P', DELTA_AUTO_CALIBRATION_1_DEFAULT_POINTS);
   if (probe_points <= 7) probe_points = 7;
   else probe_points = 10;
 

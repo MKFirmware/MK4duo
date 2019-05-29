@@ -43,7 +43,9 @@
       #define LCDWRITE(c)             lcd_put_wchar(c)
     #endif
 
-    void wrap_string(uint8_t y, const char * const string);
+    void _wrap_string(uint8_t &x, uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, const bool wordwrap=false);
+    inline void wrap_string_P(uint8_t &x, uint8_t &y, PGM_P const pstr, const bool wordwrap=false)        { _wrap_string(x, y, pstr,    read_byte_rom,  wordwrap);  }
+    inline void wrap_string(uint8_t &x, uint8_t &y, const char * const string, const bool wordwrap=false) { _wrap_string(x, y, string,  read_byte_ram,  wordwrap);  }
 
     // Manual Movement
     constexpr float manual_feedrate_mm_m[XYZE] = MANUAL_FEEDRATE;

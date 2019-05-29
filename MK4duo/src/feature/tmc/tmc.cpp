@@ -1385,24 +1385,17 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
         case TMC_VSENSE: print_vsense(st); break;
         case TMC_MICROSTEPS: SERIAL_VAL(st->microsteps()); break;
         case TMC_TSTEP: {
-            uint32_t tstep_value = st->TSTEP();
-            if (tstep_value == 0xFFFFF) SERIAL_MSG("max");
-            else SERIAL_VAL(tstep_value);
-          }
-          break;
-        case TMC_TPWMTHRS: {
-            uint32_t tpwmthrs_val = st->TPWMTHRS();
-            SERIAL_VAL(tpwmthrs_val);
-          }
-          break;
-        case TMC_TPWMTHRS_MMS: {
-            uint32_t tpwmthrs_val = st->TPWMTHRS();
-            if (tpwmthrs_val)
-              SERIAL_VAL(12650000UL * st->microsteps() / (256 * tpwmthrs_val * spmm));
-            else
-              SERIAL_CHR('-');
-          }
-          break;
+          uint32_t tstep_value = st->TSTEP();
+          if (tstep_value == 0xFFFFF) SERIAL_MSG("max");
+          else SERIAL_VAL(tstep_value);
+        } break;
+        #if ENABLED(HYBRID_THRESHOLD)
+          case TMC_TPWMTHRS: SERIAL_VAL(uint32_t(st->TPWMTHRS())); break;
+          case TMC_TPWMTHRS_MMS: {
+            const uint32_t tpwmthrs_val = st->get_pwm_thrs();
+            if (tpwmthrs_val) SERIAL_VAL(tpwmthrs_val); else SERIAL_CHR('-');
+          } break;
+        #endif
         case TMC_OTPW: SERIAL_LOGIC("", st->otpw()); break;
         #if ENABLED(MONITOR_DRIVER_STATUS)
           case TMC_OTPW_TRIGGERED: SERIAL_LOGIC("", st->getOTPW()); break;

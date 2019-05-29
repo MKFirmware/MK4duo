@@ -347,7 +347,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     }
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=NULL*/) {
+  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     const uint8_t labellen = utf8_strlen_P(pstr),
                     vallen = utf8_strlen(value);
 
@@ -385,7 +385,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     }
 
     // If a value is included, print a colon, then print the value right-justified
-    if (value != NULL) {
+    if (value != nullptr) {
       lcd_put_wchar(':');
       if (extra_row) {
         // Assume the value is numeric (with no descender)
@@ -413,10 +413,23 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     if (inv) u8g.setColorIndex(1);
   }
 
+  inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+    const uint8_t plen = utf8_strlen_P(pref), slen = suff ? utf8_strlen_P(suff) : 0;
+    uint8_t x = 0, y = 0;
+    if (!string && plen + slen <= LCD_WIDTH) {
+      x = (LCD_WIDTH - plen - slen) / 2;
+      y = LCD_HEIGHT > 3 ? 1 : 0;
+    }
+    wrap_string_P(x, y, pref, true);
+    if (string) {
+      if (x) { x = 0; y++; } // Move to the start of the next line
+      wrap_string(x, y, string);
+    }
+    if (suff) wrap_string_P(x, y, suff);
+  }
+
   void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
-    SETCURSOR(0, 0); lcd_put_u8str_P(pref);
-    if (string) wrap_string(1, string);
-    if (suff) lcd_put_u8str_P(suff);
+    draw_select_screen_prompt(pref, string, suff);
     draw_boxed_string(1, LCD_HEIGHT - 1, no, !yesno);
     draw_boxed_string(LCD_WIDTH - (utf8_strlen_P(yes) + 1), LCD_HEIGHT - 1, yes, yesno);
   }
