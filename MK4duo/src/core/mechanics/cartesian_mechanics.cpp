@@ -640,7 +640,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
       // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
       // This allow soft recalibration of the second extruder offset position without firmware reflash
       // (through the M218 command).
-      return tools.hotend_offset[X_AXIS][1] > 0 ? tools.hotend_offset[X_AXIS][1] : X2_HOME_POS;
+      return tools.data.hotend_offset[X_AXIS][1] > 0 ? tools.data.hotend_offset[X_AXIS][1] : X2_HOME_POS;
   }
 
   /**

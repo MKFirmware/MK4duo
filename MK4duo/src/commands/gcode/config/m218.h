@@ -48,8 +48,8 @@ inline void gcode_M218(void) {
     }
   #endif
 
-  if (parser.seenval('X')) tools.hotend_offset[X_AXIS][tools.target_extruder] = parser.value_linear_units();
-  if (parser.seenval('Y')) tools.hotend_offset[Y_AXIS][tools.target_extruder] = parser.value_linear_units();
-  if (parser.seenval('Z')) tools.hotend_offset[Z_AXIS][tools.target_extruder] = parser.value_linear_units();
+  if (parser.seenval('X')) tools.data.hotend_offset[X_AXIS][tools.target_extruder] = parser.value_linear_units();
+  if (parser.seenval('Y')) tools.data.hotend_offset[Y_AXIS][tools.target_extruder] = parser.value_linear_units();
+  if (parser.seenval('Z')) tools.data.hotend_offset[Z_AXIS][tools.target_extruder] = parser.value_linear_units();
 
 }

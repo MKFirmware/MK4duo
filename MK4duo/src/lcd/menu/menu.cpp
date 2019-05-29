@@ -316,7 +316,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
                   new_probe_offset = probe.data.offset[Z_AXIS] + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-                      do_probe ? new_probe_offset : tools.hotend_offset[Z_AXIS][tools.active_extruder] - diff
+                      do_probe ? new_probe_offset : tools.data.hotend_offset[Z_AXIS][tools.active_extruder] - diff
                     #else
                       new_probe_offset
                     #endif
@@ -327,7 +327,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
         if (do_probe) probe.data.offset[Z_AXIS] = new_offs;
         #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-          else tools.hotend_offset[Z_AXIS][tools.active_extruder] = new_offs;
+          else tools.data.hotend_offset[Z_AXIS][tools.active_extruder] = new_offs;
         #endif
 
         lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
@@ -336,7 +336,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(tools.hotend_offset[Z_AXIS][tools.active_extruder]));
+          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(tools.data.hotend_offset[Z_AXIS][tools.active_extruder]));
         else
       #endif
           draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset[Z_AXIS]));

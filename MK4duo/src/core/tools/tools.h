@@ -27,93 +27,97 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
+// Struct Tool data
+typedef struct {
+  float hotend_offset[XYZ][HOTENDS];
+} tool_data_t;
+
 #if EXTRUDERS > 0
 
-  class Tools {
+class Tools {
 
-    public: /** Constructor */
+  public: /** Constructor */
 
-      Tools() {};
+    Tools() {};
 
-    public: /** Public Parameters */
+  public: /** Public Parameters */
 
-      static uint8_t  active_extruder,
-                      previous_extruder,
-                      target_extruder;
+    static tool_data_t data;
 
-      static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
-                      density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
-      static float    e_factor[EXTRUDERS];              // The flow percentage and volumetric multiplier combine to scale E movement
+    static uint8_t  active_extruder,
+                    previous_extruder,
+                    target_extruder;
 
-      #if ENABLED(VOLUMETRIC_EXTRUSION)
-        static float  filament_size[EXTRUDERS],         // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
-                      volumetric_area_nominal,          // Nominal cross-sectional area
-                      volumetric_multiplier[EXTRUDERS]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
-                                                        // May be auto-adjusted by a filament width sensor
-      #endif
+    static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
+                    density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
+    static float    e_factor[EXTRUDERS];              // The flow percentage and volumetric multiplier combine to scale E movement
 
-      // Hotend offset
-      static float    hotend_offset[XYZ][HOTENDS];
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      static float  filament_size[EXTRUDERS],         // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+                    volumetric_area_nominal,          // Nominal cross-sectional area
+                    volumetric_multiplier[EXTRUDERS]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
+                                                      // May be auto-adjusted by a filament width sensor
+    #endif
 
-      #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        static int16_t lpq_len;
-      #endif
+    #if ENABLED(PID_ADD_EXTRUSION_RATE)
+      static int16_t lpq_len;
+    #endif
 
-    public: /** Public Function */
+  public: /** Public Function */
 
-      static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
+    static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
 
-      static void print_M218(const uint8_t h);
+    static void print_M218(const uint8_t h);
 
-      FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
-        e_factor[e] =  (flow_percentage[e] * 0.01
-          #if ENABLED(VOLUMETRIC_EXTRUSION)
-            * volumetric_multiplier[e]
-          #endif
-        );
+    FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
+      e_factor[e] =  (flow_percentage[e] * 0.01
+        #if ENABLED(VOLUMETRIC_EXTRUSION)
+          * volumetric_multiplier[e]
+        #endif
+      );
+    }
+
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+
+      static void calculate_volumetric_multipliers();
+
+      FORCE_INLINE static void set_filament_size(const uint8_t e, const float &v) {
+        filament_size[e] = v;
+        // make sure all extruders have some sane value for the filament size
+        for (uint8_t i = 0; i < COUNT(filament_size); i++)
+          if (!filament_size[i]) filament_size[i] = DEFAULT_NOMINAL_FILAMENT_DIA;
       }
 
-      #if ENABLED(VOLUMETRIC_EXTRUSION)
+    #endif
 
-        static void calculate_volumetric_multipliers();
+    #if ENABLED(EXT_SOLENOID)
+      static void enable_solenoid(const uint8_t e);
+      static void enable_solenoid_on_active_extruder();
+      static void disable_all_solenoids();
+    #endif
 
-        FORCE_INLINE static void set_filament_size(const uint8_t e, const float &v) {
-          filament_size[e] = v;
-          // make sure all extruders have some sane value for the filament size
-          for (uint8_t i = 0; i < COUNT(filament_size); i++)
-            if (!filament_size[i]) filament_size[i] = DEFAULT_NOMINAL_FILAMENT_DIA;
-        }
+  private: /** Private Function */
 
-      #endif
+    static void invalid_extruder_error(const uint8_t e);
 
-      #if ENABLED(EXT_SOLENOID)
-        static void enable_solenoid(const uint8_t e);
-        static void enable_solenoid_on_active_extruder();
-        static void disable_all_solenoids();
-      #endif
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      static float calculate_volumetric_multiplier(const float diameter);
+    #endif
 
-    private: /** Private Function */
+    #if HAS_MKMULTI_TOOLS
+      static void MK_multi_tool_change(const uint8_t e);
+    #endif
 
-      static void invalid_extruder_error(const uint8_t e);
+    #if HAS_DONDOLO
+      static void move_extruder_servo(const uint8_t e);
+    #endif
 
-      #if ENABLED(VOLUMETRIC_EXTRUSION)
-        static float calculate_volumetric_multiplier(const float diameter);
-      #endif
+    #if ENABLED(DUAL_X_CARRIAGE)
+      static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
+    #endif
 
-      #if HAS_MKMULTI_TOOLS
-        static void MK_multi_tool_change(const uint8_t e);
-      #endif
+};
 
-      #if HAS_DONDOLO
-        static void move_extruder_servo(const uint8_t e);
-      #endif
-
-      #if ENABLED(DUAL_X_CARRIAGE)
-        static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
-      #endif
-
-  };
-
-  extern Tools tools;
+extern Tools tools;
 
 #endif

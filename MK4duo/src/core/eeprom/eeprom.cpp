@@ -59,24 +59,24 @@ typedef struct EepromDataStruct {
   uint16_t  crc;          // Data Checksum
 
   //
-  // Mechanics
+  // Mechanics data
   //
   mechanics_data_t  mechanics_data;
 
   //
-  // Endstop
+  // Endstop data
   //
   endstop_data_t    endstop_data;
 
   //
-  // Stepper
+  // Stepper data
   //
   stepper_data_t    stepper_data;
 
   //
-  // Hotend offset
+  // Tool data
   //
-  float             hotend_offset[XYZ][HOTENDS];
+  tool_data_t       tool_data;
 
   //
   // Sound
@@ -84,7 +84,7 @@ typedef struct EepromDataStruct {
   SoundModeEnum     sound_mode;
 
   //
-  // Heaters
+  // Heaters data
   //
   #if HOTENDS > 0
     heater_data_t   hotend_data[HOTENDS];
@@ -100,28 +100,28 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // DHT sensor
+  // DHT sensor data
   //
   #if ENABLED(DHT_SENSOR)
     dht_data_t      dht_data;
   #endif
 
   //
-  // Fans
+  // Fans data
   //
   #if FAN_COUNT > 0
     fan_data_t      fans_data[FAN_COUNT];
   #endif
 
   //
-  // Filament Runout
+  // Filament Runout data
   //
   #if HAS_FILAMENT_SENSOR
     filament_data_t filrunout_data;
   #endif
 
   //
-  // Power Check
+  // Power Check data
   //
   #if HAS_POWER_CHECK
     power_data_t    power_data;
@@ -171,7 +171,7 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Probe offset
+  // Probe data
   //
   #if HAS_BED_PROBE
     probe_data_t    probe_data;
@@ -482,7 +482,7 @@ void EEPROM::post_process() {
     //
     // Hotend offset
     //
-    EEPROM_WRITE(tools.hotend_offset);
+    EEPROM_WRITE(tools.data);
 
     //
     // Sound
@@ -850,7 +850,7 @@ void EEPROM::post_process() {
       //
       // Hotend offset
       //
-      EEPROM_READ(tools.hotend_offset);
+      EEPROM_READ(tools.data);
 
       //
       // Sound
@@ -1362,7 +1362,7 @@ void EEPROM::reset() {
     "Offsets for the first hotend must be 0.0."
   );
   LOOP_XYZ(i) {
-    LOOP_HOTEND() tools.hotend_offset[i][h] = HEoffset[i][h];
+    LOOP_HOTEND() tools.data.hotend_offset[i][h] = HEoffset[i][h];
   }
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
