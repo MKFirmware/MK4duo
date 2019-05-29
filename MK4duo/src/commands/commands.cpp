@@ -192,7 +192,7 @@ void Commands::get_destination() {
   }
 
   #if HAS_SD_RESTART
-    if ((seen[E_AXIS] || seen[Z_AXIS]) && IS_SD_PRINTING()) restart.save_job();
+    if (restart.enabled && IS_SD_PRINTING() && (seen[E_AXIS] || seen[Z_AXIS])) restart.save_job();
   #endif
 
   if (parser.linearval('F') > 0)

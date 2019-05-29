@@ -87,8 +87,8 @@
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
 
 // Estimate the amount of time the ISR will take to execute
-// The base ISR takes 792 cycles
-#define ISR_BASE_CYCLES               792UL
+// The base ISR takes 752 cycles
+#define ISR_BASE_CYCLES               752UL
 
 // Linear advance base time is 64 cycles
 #if ENABLED(LIN_ADVANCE)
