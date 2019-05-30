@@ -1476,7 +1476,7 @@ void EEPROM::reset() {
                         SE_type[] = { TEMP_SENSOR_HE0, TEMP_SENSOR_HE1, TEMP_SENSOR_HE2, TEMP_SENSOR_HE3, TEMP_SENSOR_HE4, TEMP_SENSOR_HE5 };
 
       LOOP_HOTEND() {
-        heat                  = &hotends[0];
+        heat                  = &hotends[h];
         sens                  = &heat->data.sensor;
         pid                   = &heat->data.pid;
         heat->data.pin        = HE_pin[h];
