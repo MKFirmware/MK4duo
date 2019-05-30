@@ -34,7 +34,7 @@
  */
 inline void gcode_M18_M84(void) {
   if (parser.seenval('S')) {
-    printer.move_time = parser.value_byte();
+    printer.move_time = parser.value_ushort();
   }
   else {
     bool all_axis = !(parser.seen_axis());
