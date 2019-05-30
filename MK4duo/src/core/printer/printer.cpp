@@ -44,7 +44,7 @@ char    Printer::printName[21]  = "";   // max. 20 chars + 0
 uint8_t Printer::progress       = 0;
 
 // Inactivity shutdown
-uint8_t   Printer::safety_time        = SAFETYTIMER_TIME_MINS,
+uint16_t  Printer::safety_time        = SAFETYTIMER_TIME_MINS,
           Printer::max_inactive_time  = 0,
           Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
 millis_l  Printer::max_inactivity_ms  = 0,

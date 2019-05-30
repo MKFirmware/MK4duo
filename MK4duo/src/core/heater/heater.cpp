@@ -635,7 +635,7 @@ void Heater::reset_idle_timer() {
 
 void Heater::thermal_runaway_protection() {
 
-  static millis_s thermal_runaway_ms = millis();
+  static millis_l thermal_runaway_ms = millis();
 
   switch (thermal_runaway_state) {
 
@@ -671,7 +671,7 @@ void Heater::thermal_runaway_protection() {
         thermal_runaway_ms = millis();
         break;
       }
-      else if (pending(&thermal_runaway_ms, millis_s(THERMAL_PROTECTION_PERIOD * 1000U))) break;
+      else if (pending(&thermal_runaway_ms, millis_l(THERMAL_PROTECTION_PERIOD * 1000UL))) break;
       thermal_runaway_state = TRRunaway;
 
     default: break;

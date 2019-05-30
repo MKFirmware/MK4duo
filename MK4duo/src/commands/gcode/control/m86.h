@@ -33,7 +33,7 @@
  */
 inline void gcode_M86(void) {
   if (parser.seenval('M'))
-    printer.safety_time = parser.value_byte();
+    printer.safety_time = parser.value_ushort();
   else
-    SERIAL_EMV("M86 M", printer.safety_time);
+    SERIAL_EMV("M86 M", int(printer.safety_time));
 }

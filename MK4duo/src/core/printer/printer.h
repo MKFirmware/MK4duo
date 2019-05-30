@@ -87,7 +87,7 @@ class Printer {
 
     static uint8_t  progress;
 
-    static uint8_t  safety_time,
+    static uint16_t safety_time,
                     max_inactive_time,
                     move_time;
 
