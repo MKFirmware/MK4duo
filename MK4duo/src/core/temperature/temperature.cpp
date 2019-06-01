@@ -366,6 +366,57 @@ bool Temperature::heaters_isActive() {
 
 #endif
 
+#if HAS_MAX31855 || HAS_MAX6675
+
+  void Temperature::getTemperature_SPI() {
+
+    #if HOTENDS > 0
+      LOOP_HOTEND() {
+        Heater *act = &hotends[h];
+        if (false) {}
+        #if HAS_MAX31855
+          else if (act->data.sensor.type == -4)
+            act->data.sensor.raw = act->data.sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->data.sensor.type == -3)
+            act->data.sensor.raw = act->data.sensor.read_max6675();
+        #endif
+      }
+    #endif
+    #if BEDS > 0
+      LOOP_BED() {
+        Heater *act = &beds[h];
+        if (false) {}
+        #if HAS_MAX31855
+          else if (act->data.sensor.type == -4)
+            act->data.sensor.raw = act->data.sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->data.sensor.type == -3)
+            act->data.sensor.raw = act->data.sensor.read_max6675();
+        #endif
+      }
+    #endif
+    #if CHAMBERS > 0
+      LOOP_CHAMBER() {
+        Heater *act = &chambers[h];
+        if (false) {}
+        #if HAS_MAX31855
+          else if (act->data.sensor.type == -4)
+            act->data.sensor.raw = act->data.sensor.read_max31855();
+        #endif
+        #if HAS_MAX6675
+          else if (act->data.sensor.type == -3)
+            act->data.sensor.raw = act->data.sensor.read_max6675();
+        #endif
+      }
+    #endif
+
+  }
+
+#endif // HAS_MAX31855 || HAS_MAX6675
+
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
 
   // Convert raw Filament Width to millimeters

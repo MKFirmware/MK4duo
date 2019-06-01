@@ -559,6 +559,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   sound.spin();
 
+  #if HAS_MAX31855 || HAS_MAX6675
+    thermalManager.getTemperature_SPI();
+  #endif
+
   #if ENABLED(DHT_SENSOR)
     dhtsensor.spin();
   #endif
