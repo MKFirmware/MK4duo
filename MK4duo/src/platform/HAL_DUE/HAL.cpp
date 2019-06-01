@@ -645,14 +645,6 @@ void HAL::Tick() {
             Analog_is_ready = true;
           }
         }
-        #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
-        #endif
-        #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
-        #endif
       }
     #endif
     #if BEDS > 0
@@ -666,14 +658,6 @@ void HAL::Tick() {
             Analog_is_ready = true;
           }
         }
-        #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
-        #endif
-        #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
-        #endif
       }
     #endif
     #if CHAMBERS > 0
@@ -687,14 +671,6 @@ void HAL::Tick() {
             Analog_is_ready = true;
           }
         }
-        #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
-        #endif
-        #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
-        #endif
       }
     #endif
     #if COOLERS > 0

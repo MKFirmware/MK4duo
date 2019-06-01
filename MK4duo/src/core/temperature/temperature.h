@@ -119,6 +119,10 @@ class Temperature {
       static int16_t cooler_maxtemp_all();
     #endif
 
+    #if HAS_MAX31855 || HAS_MAX6675
+      static void getTemperature_SPI();
+    #endif
+
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio
     #endif    
