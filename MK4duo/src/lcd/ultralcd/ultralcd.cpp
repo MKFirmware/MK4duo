@@ -420,7 +420,7 @@ void LcdUI::status_screen() {
 
     // If the message will blink rather than expire...
     #if DISABLED(PROGRESS_MSG_ONCE)
-      (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME))
+      (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME));
     #endif
 
     #if PROGRESS_MSG_EXPIRE > 0
