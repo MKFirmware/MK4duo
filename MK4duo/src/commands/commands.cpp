@@ -73,7 +73,6 @@ void Commands::advance_queue() {
   #if HAS_SD_SUPPORT
 
     if (card.isSaving()) {
-      SERIAL_EM("Sono in Saving!");
       gcode_t command = buffer_ring.peek();
       if (is_M29(command.gcode)) {
         // M29 closes the file

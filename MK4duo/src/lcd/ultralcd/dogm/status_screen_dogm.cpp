@@ -52,10 +52,11 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 #define EXTRAS_BASELINE (40 + INFO_FONT_ASCENT)
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
-#define DO_DRAW_BED (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
-#define DO_DRAW_FAN (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
-#define ANIM_HOTEND (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
-#define ANIM_BED    (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
+#define DO_DRAW_BED   (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
+#define DO_DRAW_FAN   (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
+#define ANIM_HOTEND   (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
+#define ANIM_BED      (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
+#define ANIM_CHAMBER  (HAS_TEMP_CHAMBER0 && ENABLED(STATUS_CHAMBER_ANIM))
 
 #if ANIM_HOTEND || ANIM_BED
   uint8_t heat_bits;
@@ -66,9 +67,14 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
   #define HOTEND_ALT(N) false
 #endif
 #if ANIM_BED
-  #define BED_ALT() TEST(heat_bits, 7)
+  #define BED_ALT()     TEST(heat_bits, 7)
 #else
-  #define BED_ALT() false
+  #define BED_ALT()     false
+#endif
+#if ANIM_CHAMBER
+  #define CHAMBER_ALT() TEST(heat_bits, 6)
+#else
+  #define CHAMBER_ALT() false
 #endif
 
 #define MAX_HOTEND_DRAW     MIN(HOTENDS, ((LCD_PIXEL_WIDTH - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
@@ -184,6 +190,21 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
 }
 
+#if CHAMBER > 0
+  FORCE_INLINE void _draw_chamber_status(const bool blink) {
+    const float temp    = chambers[0].current_temperature,
+                target  = chambers[0].target_temperature;
+
+    if (PAGE_UNDER(7)) {
+      const bool  is_idle = false,
+                  dodraw  = (blink || !is_idle);
+      if (dodraw) _draw_centered_temp(target + 0.5, STATUS_CHAMBER_TEXT_X, 7);
+    }
+    if (PAGE_CONTAINS(28 - INFO_FONT_ASCENT, 28 - 1))
+      _draw_centered_temp(temp + 0.5f, STATUS_CHAMBER_TEXT_X, 28);
+  }
+#endif
+
 //
 // Before homing, blink '123' <-> '???'.
 // Homed and known, display constantly.
@@ -214,13 +235,16 @@ void LcdUI::draw_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (first_page) {
-    #if ANIM_HOTEND || ANIM_BED
+    #if ANIM_HOTEND || ANIM_BED || ANIM_CHAMBER
       uint8_t new_bits = 0;
       #if ANIM_HOTEND
         LOOP_HOTEND() if (hotends[h].isHeating()) SBI(new_bits, h);
       #endif
       #if ANIM_BED
         if (beds[0].isHeating()) SBI(new_bits, 7);
+      #endif
+      #if ANIM_CHAMBER
+        if (chambers[0].isHeating()) SBI(new_bits, 6);
       #endif
       heat_bits = new_bits;
     #endif
@@ -267,6 +291,20 @@ void LcdUI::draw_status_screen() {
         u8g.drawBitmapP(STATUS_BED_X, bedy, STATUS_BED_BYTEWIDTH, bedh, BED_BITMAP(BED_ALT()));
     #endif
 
+    #if DO_DRAW_CHAMBER
+      #if ANIM_HAMBER
+        #define CHAMBER_BITMAP(S) ((S) ? status_chamber_on_bmp : status_chamber_bmp)
+      #else
+        #define CHAMBER_BITMAP(S) status_chamber_bmp
+      #endif
+      if (PAGE_CONTAINS(STATUS_CHAMBER_Y, STATUS_CHAMBER_Y + STATUS_CHAMBER_HEIGHT - 1))
+        u8g.drawBitmapP(
+          STATUS_CHAMBER_X, STATUS_CHAMBER_Y,
+          STATUS_CHAMBER_BYTEWIDTH, STATUS_CHAMBER_HEIGHT,
+          CHAMBER_BITMAP(CHAMBER_ALT())
+        );
+    #endif
+
     //
     // Temperature Graphics and Info
     //
@@ -279,6 +317,10 @@ void LcdUI::draw_status_screen() {
       // Heated bed
       #if HOTENDS < 4 && HAS_TEMP_BED0
         _draw_heater_status(&beds[0], blink);
+      #endif
+
+      #if HAS_HEATED_CHAMBER
+        _draw_chamber_status(blink);
       #endif
 
       // Fan, if a bitmap was provided
