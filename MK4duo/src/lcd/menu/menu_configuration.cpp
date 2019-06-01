@@ -119,8 +119,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
       SERIAL_L(BLTOUCH_MODE_5V ? PSTR("5V") : PSTR("OD"));
       char mess[21];
       strcpy_P(mess, PSTR("BLTouch Mode - "));
-      if (bltouch.last_mode) sprintf(&mess[15], "5V");
-      else sprintf(&mess[15], "OD");
+      strcpy_P(&mess[15], bltouch.last_mode ? PSTR("5V") : PSTR("OD"));
       lcdui.set_status(mess);
       lcdui.return_to_status();
     }

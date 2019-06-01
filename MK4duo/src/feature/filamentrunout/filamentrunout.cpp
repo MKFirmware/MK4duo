@@ -147,19 +147,4 @@ void FilamentSensorBase::filament_present(const uint8_t extruder) {
   filamentrunout.filament_present(extruder);
 }
 
-#if FILAMENT_RUNOUT_DISTANCE_MM > 0
-  void RunoutResponseDelayed::block_completed(const block_t* const b) {
-    if (b->steps[X_AXIS] || b->steps[Y_AXIS] || b->steps[Z_AXIS]
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        || advancedpause.did_pause_print // Allow pause purge move to re-trigger runout state
-      #endif
-    ) {
-      // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
-      const uint8_t e = b->active_extruder;
-      const int32_t steps = b->steps[E_AXIS];
-      runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm[E_AXIS_N(e)];
-    }
-  }
-#endif
-
 #endif // HAS_FILAMENT_SENSOR

@@ -27,11 +27,11 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
+#include "../../../MK4duo.h"
+
 #if HAS_FILAMENT_SENSOR
 
 //#define FILAMENT_RUNOUT_SENSOR_DEBUG
-
-#include "../../../MK4duo.h"
 
 union filament_flag_t {
   uint8_t all;
@@ -336,7 +336,18 @@ class FilamentSensorBase {
         runout_mm_countdown[extruder] = runout_distance_mm;
       }
 
-      static inline void block_completed(const block_t* const b);
+      static inline void block_completed(const block_t* const b) {
+        if (b->steps[X_AXIS] || b->steps[Y_AXIS] || b->steps[Z_AXIS]
+          #if ENABLED(ADVANCED_PAUSE_FEATURE)
+            || advancedpause.did_pause_print // Allow pause purge move to re-trigger runout state
+          #endif
+        ) {
+          // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
+          const uint8_t e = b->active_extruder;
+          const int32_t steps = b->steps[E_AXIS];
+          runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm[E_AXIS_N(e)];
+        }
+      }
 
   };
 

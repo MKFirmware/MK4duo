@@ -1285,11 +1285,15 @@ void LcdUI::reset_status() {
  */
 void LcdUI::pause_print() {
 
-  lcdui.synchronize(PSTR(MSG_PAUSE_PRINT));
+  synchronize(PSTR(MSG_PAUSE_PRINT));
 
   #if HAS_SD_RESTART
     if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);
   #endif
+
+  host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
+
+  set_status_P(PSTR(MSG_PRINT_PAUSED));
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
@@ -1303,11 +1307,16 @@ void LcdUI::pause_print() {
 }
 
 void LcdUI::resume_print() {
+  reset_status();
+  #if ENABLED(PARK_HEAD_ON_PAUSE)
+    printer.setWaitForHeatUp(false);
+    printer.setWaitForUser(false);
+  #endif
   #if HAS_SD_SUPPORT
     commands.enqueue_and_echo_P(PSTR("M24"));
-  #else
-    host_action.resume();
   #endif
+  host_action.resume();
+  print_job_counter.start();
 }
 
 void LcdUI::stop_print() {
@@ -1315,11 +1324,11 @@ void LcdUI::stop_print() {
     printer.setWaitForHeatUp(false);
     printer.setWaitForUser(false);
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
-    else
   #endif
-      host_action.cancel();
-
-  set_status_P(PSTR(MSG_PRINT_ABORTED), -1);
+  host_action.cancel();
+  host_action.prompt_open(PROMPT_INFO, PSTR("Lcd Abort"));
+  print_job_counter.stop();
+  set_status_P(PSTR(MSG_PRINT_ABORTED));
   return_to_status();
 
 }
