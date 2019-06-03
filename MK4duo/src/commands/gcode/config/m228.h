@@ -61,6 +61,11 @@ inline void gcode_M228(void) {
     if (parser.seenval('Z')) mechanics.data.base_pos[Z_AXIS].max = parser.value_linear_units();
   }
 
+  // Base home pos
+  data.base_home_pos[X_AXIS] = X_HOME_POS;
+  data.base_home_pos[Y_AXIS] = Y_HOME_POS;
+  data.base_home_pos[Z_AXIS] = Z_HOME_POS;
+
   LOOP_XYZ(axis) endstops.update_software_endstops(AxisEnum(axis));
 
 }
