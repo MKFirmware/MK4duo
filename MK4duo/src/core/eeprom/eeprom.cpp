@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV67"
+#define EEPROM_VERSION "MKV68"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {

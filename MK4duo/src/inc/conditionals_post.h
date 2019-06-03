@@ -200,23 +200,23 @@
 #if ENABLED(MANUAL_X_HOME_POS)
   #define X_HOME_POS MANUAL_X_HOME_POS
 #elif ENABLED(BED_CENTER_AT_0_0)
-   #define X_HOME_POS ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (X_HOME_DIR) * 0.5)
+   #define X_HOME_POS ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (mechanics.get_homedir(X_AXIS)) * 0.5)
 #else
-  #define X_HOME_POS (X_HOME_DIR < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max)
+  #define X_HOME_POS (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max)
 #endif
 
 #if ENABLED(MANUAL_Y_HOME_POS)
   #define Y_HOME_POS MANUAL_Y_HOME_POS
 #elif ENABLED(BED_CENTER_AT_0_0)
-  #define Y_HOME_POS ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (Y_HOME_DIR) * 0.5)
+  #define Y_HOME_POS ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (mechanics.get_homedir(Y_AXIS)) * 0.5)
 #else
-  #define Y_HOME_POS (Y_HOME_DIR < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max)
+  #define Y_HOME_POS (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max)
 #endif
 
 #if ENABLED(MANUAL_Z_HOME_POS)
   #define Z_HOME_POS MANUAL_Z_HOME_POS
 #else
-  #define Z_HOME_POS (Z_HOME_DIR < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max)
+  #define Z_HOME_POS (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max)
 #endif
 
 /**

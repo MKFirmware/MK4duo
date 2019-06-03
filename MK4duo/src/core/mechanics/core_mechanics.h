@@ -30,10 +30,7 @@
 
 // Struct Core Settings
 typedef struct : public generic_data_t {
-
   axis_limits_t base_pos[XYZ];
-  float         base_home_pos[XYZ];
-
 } mechanics_data_t;
 
 class Core_Mechanics: public Mechanics {
@@ -110,6 +107,17 @@ class Core_Mechanics: public Mechanics {
      */
     static void set_axis_is_at_home(const AxisEnum axis);
 
+    /**
+     * Return Home position
+     */
+    static float axis_home_pos(const AxisEnum axis);
+    static float x_home_pos();
+    static float y_home_pos();
+    static float z_home_pos();
+
+    /**
+     * Check position is reachable
+     */
     static bool position_is_reachable(const float &rx, const float &ry);
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
@@ -133,7 +141,7 @@ class Core_Mechanics: public Mechanics {
     #endif
 
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      static void Nextion_gfx_clear();
+      static void nextion_gfx_clear();
     #endif
 
   private: /** Private Function */

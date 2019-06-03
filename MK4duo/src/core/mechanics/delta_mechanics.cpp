@@ -433,7 +433,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
+      nextion_gfx_clear();
     #endif
     return;
   }
@@ -529,7 +529,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    Nextion_gfx_clear();
+    nextion_gfx_clear();
   #endif
 
   #if HAS_LEVELING
@@ -997,7 +997,7 @@ void Delta_Mechanics::report_current_position_detail() {
 
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
-  void Delta_Mechanics::Nextion_gfx_clear() {
+  void Delta_Mechanics::nextion_gfx_clear() {
     gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
     gfx_cursor_to(current_position[X_AXIS] + data.print_radius, current_position[Y_AXIS] + data.print_radius, current_position[Z_AXIS]);
   }

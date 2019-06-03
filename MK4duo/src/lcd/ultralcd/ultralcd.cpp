@@ -1330,7 +1330,6 @@ void LcdUI::stop_print() {
   print_job_counter.stop();
   set_status_P(PSTR(MSG_PRINT_ABORTED));
   return_to_status();
-
 }
 
 #endif // HAS_SPI_LCD

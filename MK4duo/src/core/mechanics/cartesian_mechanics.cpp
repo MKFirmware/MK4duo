@@ -78,11 +78,6 @@ void Cartesian_Mechanics::factory_parameters() {
   data.base_pos[Y_AXIS].max       = Y_MAX_POS;
   data.base_pos[Z_AXIS].max       = Z_MAX_POS;
 
-  // Base home pos
-  data.base_home_pos[X_AXIS]      = X_HOME_POS;
-  data.base_home_pos[Y_AXIS]      = Y_HOME_POS;
-  data.base_home_pos[Z_AXIS]      = Z_HOME_POS;
-
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
   data.min_feedrate_mm_s          = DEFAULT_MIN_FEEDRATE;
@@ -172,7 +167,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
+      nextion_gfx_clear();
     #endif
     return;
   }
@@ -340,7 +335,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    Nextion_gfx_clear();
+    nextion_gfx_clear();
   #endif
 
   #if HAS_LEVELING
@@ -524,7 +519,7 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     }
   #endif
 
-  current_position[axis] = data.base_home_pos[axis];
+  current_position[axis] = axis_home_pos(axis);
 
   /**
    * Z Probe Z Homing? Account for the probe's Z offset.
@@ -553,6 +548,55 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
+}
+
+float Cartesian_Mechanics::axis_home_pos(const AxisEnum axis) {
+  switch (axis) {
+    case X_AXIS: return x_home_pos(); break;
+    case Y_AXIS: return y_home_pos(); break;
+    case Z_AXIS: return z_home_pos(); break;
+  }
+}
+
+float Cartesian_Mechanics::x_home_pos(const uint8_t extruder/*=0*/) {
+  #if ENABLED(DUAL_X_CARRIAGE)
+    if (extruder == 0)
+  #else
+    UNUSED(extruder);
+  #endif
+  #if ENABLED(MANUAL_X_HOME_POS)
+    return MANUAL_X_HOME_POS;
+  #elif ENABLED(BED_CENTER_AT_0_0)
+     return ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (mechanics.get_homedir(X_AXIS)) * 0.5);
+  #else
+    return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max);
+  #endif
+  #if ENABLED(DUAL_X_CARRIAGE)
+    else
+      // In dual carriage mode the extruder offset provides an override of the
+      // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
+      // This allow soft recalibration of the second extruder offset position without firmware reflash
+      // (through the M218 command).
+      return tools.data.hotend_offset[X_AXIS][1] > 0 ? tools.data.hotend_offset[X_AXIS][1] : X2_HOME_POS;
+  #endif
+}
+
+float Cartesian_Mechanics::y_home_pos() {
+  #if ENABLED(MANUAL_Y_HOME_POS)
+    return MANUAL_Y_HOME_POS;
+  #elif ENABLED(BED_CENTER_AT_0_0)
+    return ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (mechanics.get_homedir(Y_AXIS)) * 0.5);
+  #else
+    return (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max);
+  #endif
+}
+
+float Cartesian_Mechanics::z_home_pos() {
+  #if ENABLED(MANUAL_Z_HOME_POS)
+    return MANUAL_Z_HOME_POS;
+  #else
+    return (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max);
+  #endif
 }
 
 // Return true if the given position is within the machine bounds.
@@ -631,17 +675,6 @@ void Cartesian_Mechanics::report_current_position_detail() {
 }
 
 #if ENABLED(DUAL_X_CARRIAGE)
-
-  float Cartesian_Mechanics::x_home_pos(const int extruder) {
-    if (extruder == 0)
-      return data.base_home_pos[X_AXIS];
-    else
-      // In dual carriage mode the extruder offset provides an override of the
-      // second X-carriage offset when homed - otherwise X2_HOME_POS is used.
-      // This allow soft recalibration of the second extruder offset position without firmware reflash
-      // (through the M218 command).
-      return tools.data.hotend_offset[X_AXIS][1] > 0 ? tools.data.hotend_offset[X_AXIS][1] : X2_HOME_POS;
-  }
 
   /**
    * Prepare a linear move in a dual X axis setup
@@ -851,7 +884,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
 
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
-  void Cartesian_Mechanics::Nextion_gfx_clear() {
+  void Cartesian_Mechanics::nextion_gfx_clear() {
     gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
     gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
   }
