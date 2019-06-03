@@ -196,8 +196,8 @@ static_assert(1 >= 0
 
 // LCD_BED_LEVELING requirements
 #if ENABLED(LCD_BED_LEVELING)
-  #if DISABLED(ULTIPANEL)
-    #error "LCD_BED_LEVELING requires an LCD controller."
+  #if !HAS_LCD_MENU
+    #error "LCD_BED_LEVELING requires an LCD controller and LCD MENU."
   #elif !(ENABLED(MESH_BED_LEVELING) || OLD_ABL)
     #error "LCD_BED_LEVELING requires MESH_BED_LEVELING or AUTO_BED_LEVELING."
   #endif
