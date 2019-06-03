@@ -108,61 +108,6 @@ void MFRC522::print_info(const uint8_t e) {
                 millimeter = ((long)RfidData[e].data.lenght) % 10;
   sprintf_P(lung, PSTR("%i Km %i m %i cm %i mm"), kmeter, meter, centimeter, millimeter);
   SERIAL_EMT(MSG_RFID_SPOOL_LENGHT, lung);
-  
-  #if HAS_NEXTION_LCD
-    char titolo[30], message[250];
-    char* temp;
-    ZERO(titolo);
-    ZERO(message);
-
-    strcat(titolo, MSG_RFID_SPOOL);
-    temp = i8tostr3(e);
-    strcat(titolo, temp);
-    strcat(message, PSTR(MSG_RFID_BRAND));
-    strcat(message, RfidData[e].data.brand);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_TYPE);
-    strcat(message, RfidData[e].data.type);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_COLOR);
-    strcat(message, RfidData[e].data.color);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_SIZE);
-    temp = ftostr12ns(RfidData[e].data.size);
-    strcat(message, temp);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_TEMP_HOTEND);
-    itoa(RfidData[e].data.temphotendmin, temp, 10);
-    strcat(message, temp);
-    strcat(message, " - ");
-    itoa(RfidData[e].data.temphotendmax, temp, 10);
-    strcat(message, temp);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_TEMP_BED);
-    itoa(RfidData[e].data.tempbedmin, temp, 10);
-    strcat(message, temp);
-    strcat(message, " - ");
-    itoa(RfidData[e].data.tempbedmax, temp, 10);
-    strcat(message, temp);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_TEMP_USER_HOTEND);
-    itoa(RfidData[e].data.temphotend, temp, 10);
-    strcat(message, temp);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_TEMP_USER_BED);
-    itoa(RfidData[e].data.tempbed, temp, 10);
-    strcat(message, temp);
-    strcat(message, "\r\n");
-    strcat(message, MSG_RFID_DENSITY);
-    itoa(RfidData[e].data.density, temp, 10);
-    strcat(message, temp);
-    strcat(message, "%\r\n");
-    strcat(message, MSG_RFID_SPOOL_LENGHT);
-    strcat(message, "\r\n");
-    strcat(message, lung);
-
-    lcd_scrollinfo(titolo, message);
-  #endif
 }
 
 void MFRC522::spin() {

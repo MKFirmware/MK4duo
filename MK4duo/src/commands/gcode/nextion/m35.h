@@ -26,18 +26,13 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_NEXTION_LCD
+#if HAS_NEXTION_LCD && HAS_SD_SUPPORT
 
-  #if HAS_SD_SUPPORT
+#define CODE_M35
 
-    #define CODE_M35
+/**
+ * M35: Upload Firmware to Nextion from SD
+ */
+inline void gcode_M35(void) { UploadNewFirmware(); }
 
-    /**
-     * M35: Upload Firmware to Nextion from SD
-     */
-    inline void gcode_M35(void) {
-      UploadNewFirmware();
-    }
-  #endif
-
-#endif // HAS_NEXTION_LCD
+#endif // HAS_NEXTION_LCD && HAS_SD_SUPPORT

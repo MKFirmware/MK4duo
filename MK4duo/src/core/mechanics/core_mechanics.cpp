@@ -66,11 +66,6 @@ void Core_Mechanics::factory_parameters() {
   data.base_pos[Y_AXIS].max       = Y_MAX_POS;
   data.base_pos[Z_AXIS].max       = Z_MAX_POS;
 
-  // Base home pos
-  data.base_home_pos[X_AXIS]      = X_HOME_POS;
-  data.base_home_pos[Y_AXIS]      = Y_HOME_POS;
-  data.base_home_pos[Z_AXIS]      = Z_HOME_POS;
-
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
   data.min_feedrate_mm_s          = DEFAULT_MIN_FEEDRATE;
@@ -160,7 +155,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
+      nextion_gfx_clear();
     #endif
     return;
   }
@@ -272,7 +267,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    Nextion_gfx_clear();
+    nextion_gfx_clear();
   #endif
 
   #if HAS_LEVELING
@@ -444,7 +439,7 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     endstops.update_software_endstops(axis);
   #endif
 
-  current_position[axis] = data.base_home_pos[axis];
+  current_position[axis] = axis_home_pos(axis);
 
   /**
    * Z Probe Z Homing? Account for the probe's Z offset.
@@ -473,6 +468,42 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
+}
+
+float Core_Mechanics::axis_home_pos(const AxisEnum axis) {
+  switch (axis) {
+    case X_AXIS: return x_home_pos(); break;
+    case Y_AXIS: return y_home_pos(); break;
+    case Z_AXIS: return z_home_pos(); break;
+  }
+}
+
+float Core_Mechanics::x_home_pos() {
+  #if ENABLED(MANUAL_X_HOME_POS)
+    return MANUAL_X_HOME_POS;
+  #elif ENABLED(BED_CENTER_AT_0_0)
+     return ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (mechanics.get_homedir(X_AXIS)) * 0.5);
+  #else
+    return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max);
+  #endif
+}
+
+float Core_Mechanics::y_home_pos() {
+  #if ENABLED(MANUAL_Y_HOME_POS)
+    return MANUAL_Y_HOME_POS;
+  #elif ENABLED(BED_CENTER_AT_0_0)
+    return ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (mechanics.get_homedir(Y_AXIS)) * 0.5);
+  #else
+    return (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max);
+  #endif
+}
+
+float Core_Mechanics::z_home_pos() {
+  #if ENABLED(MANUAL_Z_HOME_POS)
+    return MANUAL_Z_HOME_POS;
+  #else
+    return (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max);
+  #endif
 }
 
 // Return true if the given position is within the machine bounds.
@@ -681,7 +712,7 @@ void Core_Mechanics::report_current_position_detail() {
 
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
-  void Core_Mechanics::Nextion_gfx_clear() {
+  void Core_Mechanics::nextion_gfx_clear() {
     gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
     gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
   }

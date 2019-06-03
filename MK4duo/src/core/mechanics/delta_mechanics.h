@@ -181,7 +181,7 @@ class Delta_Mechanics : public Mechanics {
     #endif
 
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      static void Nextion_gfx_clear();
+      static void nextion_gfx_clear();
     #endif
 
   private: /** Private Function */

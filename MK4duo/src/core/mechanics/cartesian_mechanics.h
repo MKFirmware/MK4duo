@@ -30,10 +30,7 @@
 
 // Struct Cartesian Settings
 typedef struct : public generic_data_t {
-
   axis_limits_t base_pos[XYZ];
-  float         base_home_pos[XYZ];
-
 } mechanics_data_t;
 
 class Cartesian_Mechanics : public Mechanics {
@@ -122,6 +119,17 @@ class Cartesian_Mechanics : public Mechanics {
      */
     static void set_axis_is_at_home(const AxisEnum axis);
 
+    /**
+     * Return Home position
+     */
+    static float axis_home_pos(const AxisEnum axis);
+    static float x_home_pos(const uint8_t extruder=0);
+    static float y_home_pos();
+    static float z_home_pos();
+
+    /**
+     * Check position is reachable
+     */
     static bool position_is_reachable(const float &rx, const float &ry);
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
@@ -134,9 +142,8 @@ class Cartesian_Mechanics : public Mechanics {
      * Prepare a linear move in a dual X axis setup
      */
     #if ENABLED(DUAL_X_CARRIAGE)
+      static bool dual_x_carriage_unpark();
       FORCE_INLINE static bool dxc_is_duplicating() { return dual_x_carriage_mode >= DXC_DUPLICATION_MODE; }
-      static float  x_home_pos(const int extruder);
-      static bool   dual_x_carriage_unpark();
       FORCE_INLINE static int x_home_dir(const uint8_t extruder) { return extruder ? X2_HOME_DIR : X_HOME_DIR; }
     #endif
 
@@ -155,7 +162,7 @@ class Cartesian_Mechanics : public Mechanics {
     #endif
 
     #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      static void Nextion_gfx_clear();
+      static void nextion_gfx_clear();
     #endif
 
   private: /** Private Function */

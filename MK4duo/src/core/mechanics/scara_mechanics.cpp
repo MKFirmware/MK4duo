@@ -389,9 +389,6 @@ void Scara_Mechanics::home() {
 
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
-    #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-      Nextion_gfx_clear();
-    #endif
     return;
   }
 
@@ -463,10 +460,6 @@ void Scara_Mechanics::home() {
     prepare_move_to_destination();
     RESTORE(feedrate_mm_s);
   }
-
-  #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    Nextion_gfx_clear();
-  #endif
 
   #if HAS_LEVELING
     bedlevel.set_bed_leveling_enabled(leveling_was_active);

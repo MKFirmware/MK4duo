@@ -28,17 +28,17 @@
 
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
-  #define CODE_M995
-  #define CODE_M996
+#define CODE_M995
+#define CODE_M996
 
-  /**
-   * M995: Nextion Origin
-   */
-  inline void gcode_M995(void) { gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
+/**
+ * M995: Nextion Origin
+ */
+inline void gcode_M995(void) { gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
 
-  /**
-   * M996: Nextion Scale
-   */
-  inline void gcode_M996() { if (parser.seenval('S')) gfx_scale(parser.value_float()); }
+/**
+ * M996: Nextion Scale
+ */
+inline void gcode_M996() { if (parser.seenval('S')) gfx_scale(parser.value_float()); }
 
 #endif // HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
