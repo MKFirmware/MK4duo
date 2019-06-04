@@ -37,8 +37,8 @@ union filament_flag_t {
   uint8_t all;
   struct {
     bool  enabled       : 1;
-    bool  FilamentOut   : 1;
-    bool  hosthandling  : 1;
+    bool  ran_out       : 1;
+    bool  host_handling : 1;
     bool  bit3          : 1;
     bool  bit4          : 1;
     bool  bit5          : 1;
@@ -64,10 +64,10 @@ class FilamentRunoutBase {
 
     FORCE_INLINE static void setEnabled(const bool onoff) { flag.enabled = onoff; }
     FORCE_INLINE static bool isEnabled() { return flag.enabled; }
-    FORCE_INLINE static void setFilamentOut(const bool onoff) { flag.FilamentOut = onoff; }
-    FORCE_INLINE static bool isFilamentOut() { return flag.FilamentOut; }
-    FORCE_INLINE static void setHostHandling(const bool onoff) { flag.hosthandling = onoff; }
-    FORCE_INLINE static bool isHostHandling() { return flag.hosthandling; }
+    FORCE_INLINE static void setFilamentOut(const bool onoff) { flag.ran_out = onoff; }
+    FORCE_INLINE static bool isFilamentOut() { return flag.ran_out; }
+    FORCE_INLINE static void setHostHandling(const bool onoff) { flag.host_handling = onoff; }
+    FORCE_INLINE static bool isHostHandling() { return flag.host_handling; }
 
 };
 
@@ -233,7 +233,7 @@ class FilamentSensorBase {
 
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
           if (change) {
-            SERIAL_MSG("Motion detected:");
+            SERIAL_MSG("Motion detected:E");
             for (uint8_t e = 0; e < EXTRUDERS; e++)
               if (TEST(change, e)) { SERIAL_CHR(' '); SERIAL_CHR('0' + e); }
             SERIAL_EOL();

@@ -338,7 +338,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.stored_position[1][E_AXIS]);
 
   #if HAS_FILAMENT_SENSOR
-    filamentrunout.setFilamentOut(false);
+    filamentrunout.reset();
   #endif
 
   #if HAS_LCD_MENU
@@ -346,7 +346,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   #endif
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    mechanics.Nextion_gfx_clear();
+    mechanics.nextion_gfx_clear();
   #endif
 
   host_action.resumed();
