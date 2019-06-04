@@ -423,7 +423,7 @@
 #define MSG_FILAMENT_CHANGE_OPTION_PURGE    _UxGT("Spurga ancora")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Riprendi stampa")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Ugello: ")
-#define MSG_RUNOUT_SENSOR                   _UxGT("Sens.filo termin.")
+#define MSG_RUNOUT_SENSOR                   _UxGT("Sensore filo")
 #define MSG_ERR_HOMING_FAILED               _UxGT("Home fallito")
 #define MSG_ERR_PROBING_FAILED              _UxGT("Probe fallito")
 #define MSG_M600_TOO_COLD                   _UxGT("M600:Troppo freddo")

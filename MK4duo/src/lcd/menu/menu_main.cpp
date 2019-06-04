@@ -33,6 +33,7 @@
 #endif
 
 bool stop_print_file;
+
 void menu_stop_print() {
   do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
 }

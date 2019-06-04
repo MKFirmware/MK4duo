@@ -526,8 +526,9 @@ uint16_t SDCard::get_num_Files() {
 
     if (!restart.job_file.open(fat.vwd(), restart_file_name, read ? O_READ : (O_RDWR | O_CREAT | O_SYNC)))
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
-    else if (!read)
-      SERIAL_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
+    else if (!read) {
+      if (printer.debugFeature()) DEBUG_EMT(MSG_SD_WRITE_TO_FILE, restart_file_name);
+    }
   }
 
   void SDCard::delete_restart_file() {

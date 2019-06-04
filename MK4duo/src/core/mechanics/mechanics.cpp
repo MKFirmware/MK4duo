@@ -70,6 +70,7 @@ int8_t Mechanics::get_homedir(const AxisEnum axis) {
     case X_AXIS:  return home_dir.X; break;
     case Y_AXIS:  return home_dir.Y; break;
     case Z_AXIS:  return home_dir.Z; break;
+    case E_AXIS:  return home_dir.E; break;
     default:      return 0;
   }
 }

@@ -342,8 +342,13 @@ void menu_pause_option() {
   #if LCD_HEIGHT > 2
     STATIC_ITEM(MSG_FILAMENT_CHANGE_OPTION_HEADER, true, false);
   #endif
-  MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_pause_resume_print);
   MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_PURGE, lcd_pause_extrude_more);
+  #if HAS_FILAMENT_SENSOR
+    if (filamentrunout.isFilamentOut())
+      MENU_ITEM(function, MSG_RUNOUT_SENSOR, filamentrunout.reset);
+    else
+  #endif
+    MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_pause_resume_print);
   END_MENU();
 }
 
