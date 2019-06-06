@@ -647,7 +647,7 @@
 
   #define STATUS_CHAMBER_WIDTH 16
 
-  #ifdef STATUS_CHAMBER_ANIM
+  #if ENABLED(STATUS_CHAMBER_ANIM)
 
     const unsigned char status_chamber_bmp[] PROGMEM = {
       B11111111,B11111111,
@@ -1341,15 +1341,11 @@
   #endif
 
   #ifndef STATUS_CHAMBER_HEIGHT
-    #ifdef STATUS_CHAMBER_ANIM
-      #define STATUS_CHAMBER_HEIGHT(S) ((S) ? sizeof(status_chamber_on_bmp) / (STATUS_CHAMBER_BYTEWIDTH) : sizeof(status_chamber_bmp) / (STATUS_CHAMBER_BYTEWIDTH))
-    #else
-      #define STATUS_CHAMBER_HEIGHT(S) (sizeof(status_chamber_bmp) / (STATUS_CHAMBER_BYTEWIDTH))
-    #endif
+    #define STATUS_CHAMBER_HEIGHT (sizeof(status_chamber_bmp) / (STATUS_CHAMBER_BYTEWIDTH))
   #endif
 
   #ifndef STATUS_CHAMBER_Y
-    #define STATUS_CHAMBER_Y(S) (20 - STATUS_CHAMBER_HEIGHT(S))
+    #define STATUS_CHAMBER_Y (20 - STATUS_CHAMBER_HEIGHT)
   #endif
 
   #ifndef STATUS_CHAMBER_TEXT_X
@@ -1357,12 +1353,12 @@
   #endif
 
   static_assert(
-    sizeof(status_chamber_bmp) == (STATUS_CHAMBER_BYTEWIDTH) * (STATUS_CHAMBER_HEIGHT(0)),
+    sizeof(status_chamber_bmp) == (STATUS_CHAMBER_BYTEWIDTH) * (STATUS_CHAMBER_HEIGHT),
     "Status chamber bitmap (status_chamber_bmp) dimensions don't match data."
   );
-  #ifdef STATUS_CHAMBER_ANIM
+  #if ENABLED(STATUS_CHAMBER_ANIM)
     static_assert(
-      sizeof(status_chamber_on_bmp) == (STATUS_CHAMBER_BYTEWIDTH) * (STATUS_CHAMBER_HEIGHT(1)),
+      sizeof(status_chamber_on_bmp) == (STATUS_CHAMBER_BYTEWIDTH) * (STATUS_CHAMBER_HEIGHT),
       "Status chamber bitmap (status_chamber_on_bmp) dimensions don't match data."
     );
   #endif
