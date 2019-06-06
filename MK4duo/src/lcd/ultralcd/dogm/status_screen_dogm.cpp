@@ -52,11 +52,12 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 #define EXTRAS_BASELINE (40 + INFO_FONT_ASCENT)
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
-#define DO_DRAW_BED   (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
-#define DO_DRAW_FAN   (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
-#define ANIM_HOTEND   (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
-#define ANIM_BED      (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
-#define ANIM_CHAMBER  (HAS_TEMP_CHAMBER0 && ENABLED(STATUS_CHAMBER_ANIM))
+#define DO_DRAW_BED     (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
+#define DO_DRAW_FAN     (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
+#define DO_DRAW_CHAMBER (HAS_TEMP_CHAMBER0 && ((HOTENDS <= 2 && DO_DRAW_BED) || (!DO_DRAW_BED && HOTENDS <= 3)))
+#define ANIM_HOTEND     (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
+#define ANIM_BED        (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
+#define ANIM_CHAMBER    (HAS_TEMP_CHAMBER0 && ENABLED(STATUS_CHAMBER_ANIM))
 
 #if ANIM_HOTEND || ANIM_BED
   uint8_t heat_bits;
@@ -190,7 +191,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
 }
 
-#if CHAMBER > 0
+#if DO_DRAW_CHAMBER
   FORCE_INLINE void _draw_chamber_status(const bool blink) {
     const float temp    = chambers[0].current_temperature,
                 target  = chambers[0].target_temperature;
@@ -292,7 +293,7 @@ void LcdUI::draw_status_screen() {
     #endif
 
     #if DO_DRAW_CHAMBER
-      #if ANIM_HAMBER
+      #if ANIM_CHAMBER
         #define CHAMBER_BITMAP(S) ((S) ? status_chamber_on_bmp : status_chamber_bmp)
       #else
         #define CHAMBER_BITMAP(S) status_chamber_bmp
@@ -315,11 +316,11 @@ void LcdUI::draw_status_screen() {
         _draw_heater_status(&hotends[h], blink);
 
       // Heated bed
-      #if HOTENDS < 4 && HAS_TEMP_BED0
+      #if DO_DRAW_BED
         _draw_heater_status(&beds[0], blink);
       #endif
 
-      #if HAS_HEATED_CHAMBER
+      #if DO_DRAW_CHAMBER
         _draw_chamber_status(blink);
       #endif
 
