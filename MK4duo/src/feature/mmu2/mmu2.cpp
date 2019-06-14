@@ -694,7 +694,7 @@ void MMU2::set_filament_type(uint8_t index, uint8_t filamentType) {
 }
 
 void MMU2::filament_runout() {
-  commands.enqueue_and_echo_P(PSTR(MMU2_FILAMENT_RUNOUT_SCRIPT));
+  commands.inject_P(PSTR(MMU2_FILAMENT_RUNOUT_SCRIPT));
   planner.synchronize();
 }
 

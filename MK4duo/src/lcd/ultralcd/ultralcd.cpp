@@ -134,7 +134,6 @@ millis_l next_button_update_ms;
   #endif
 
   bool LcdUI::lcd_clicked;
-  float move_menu_scale;
 
   bool LcdUI::use_click() {
     const bool click = lcd_clicked;
@@ -379,7 +378,7 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
 
         #endif // HAS_LCD_MENU
 
-        if (!homed && RRK(EN_KEYPAD_F1)) commands.enqueue_and_echo_P(PSTR("G28"));
+        if (!homed && RRK(EN_KEYPAD_F1)) commands.inject_P(PSTR("G28"));
         return true;
       }
 
@@ -1244,17 +1243,17 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
  * Reset the status message
  */
 void LcdUI::reset_status() {
-  static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
-  static const char printing[] PROGMEM = MSG_PRINTING;
-  static const char welcome[] PROGMEM = WELCOME_MSG;
+  SFSTRINGVALUE(paused, MSG_PRINT_PAUSED);
+  SFSTRINGVALUE(printing, MSG_PRINTING);
+  SFSTRINGVALUE(welcome, WELCOME_MSG);
   #if ENABLED(SERVICE_TIME_1)
-    static const char service1[] PROGMEM = { "> " SERVICE_NAME_1 "!" };
+    SFSTRINGVALUE(service1, "> " SERVICE_NAME_1 "!");
   #endif
   #if ENABLED(SERVICE_TIME_2)
-    static const char service2[] PROGMEM = { "> " SERVICE_NAME_2 "!" };
+    SFSTRINGVALUE(service2, "> " SERVICE_NAME_2 "!");
   #endif
   #if ENABLED(SERVICE_TIME_3)
-    static const char service3[] PROGMEM = { "> " SERVICE_NAME_3 "!" };
+    SFSTRINGVALUE(service3, "> " SERVICE_NAME_3 "!");
   #endif
   PGM_P msg;
   if (!IS_SD_PRINTING() && print_job_counter.isPaused())
@@ -1297,9 +1296,9 @@ void LcdUI::pause_print() {
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
-    commands.enqueue_and_echo_P(PSTR("M25 P\nM24"));
+    commands.enqueue_now_P(PSTR("M25\nM24"));
   #elif HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M25"));
+    commands.enqueue_now_P(PSTR("M25"));
   #else
     host_action.pause();
   #endif
@@ -1313,7 +1312,7 @@ void LcdUI::resume_print() {
     printer.setWaitForUser(false);
   #endif
   #if HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M24"));
+    commands.inject_P(PSTR("M24"));
   #endif
   host_action.resume();
   print_job_counter.start();

@@ -34,7 +34,7 @@ void _lcd_calibrate_homing() {
 }
 
 void _lcd_delta_calibrate_home() {
-  commands.enqueue_and_echo_P(PSTR("G28"));
+  commands.inject_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_calibrate_homing);
 }
 

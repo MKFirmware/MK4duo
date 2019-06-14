@@ -90,7 +90,7 @@ void Host_Action::response_handler(const uint8_t response) {
       break;
     case PROMPT_PAUSE_RESUME:
       msg = PSTR("LCD_PAUSE_RESUME");
-      commands.enqueue_and_echo_P(PSTR("M24"));
+      commands.inject_P(PSTR("M24"));
       break;
     case PROMPT_INFO:
       msg = PSTR("GCODE_INFO");

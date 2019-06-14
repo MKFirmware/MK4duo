@@ -185,7 +185,7 @@
 | M530 | ? | Enables explicit printing mode (S1) or disables it (S0). L can set layer count
 | M531 | ? | filename - Define filename being printed
 | M532 | ? | X[percent] L[curLayer] - update current print state progress (X=0..100) and layer L
-| M540 | ABORT ON ENDSTOP HIT  FEATURE ENABLED | Use S[0\|1] to enable or disable the stop print on endstop hit
+| M540 | SD_ABORT_ON_ENDSTOP_HIT | Use S[0\|1] to enable or disable the stop print on endstop hit
 | M569 | ? | Stepper driver control X[bool] Y[bool] Z[bool] T[extruders] E[bool] set direction, D[long] set direction delay, P[int] set minimum pulse, R[long] set maximum rate, Q[bool] Enable/Disable Double/Quad stepping.
 | M595 | ? | Set AD595 or AD8495 offset & Gain H[hotend] O[offset] S[gain]
 | M600 | ADVANCED PAUSE FEATURE | Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift] E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]

@@ -87,7 +87,7 @@
         mbl.reset();
         mbl_probe_index = 0;
         if (!lcdui.wait_for_bl_move) {
-          commands.enqueue_and_echo_P(PSTR("G28\nG29 S2"));
+          commands.inject_P(PSTR("G28\nG29 S2"));
           return;
         }
         state = MeshNext;

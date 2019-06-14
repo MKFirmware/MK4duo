@@ -47,29 +47,6 @@
     inline void wrap_string_P(uint8_t &x, uint8_t &y, PGM_P const pstr, const bool wordwrap=false)        { _wrap_string(x, y, pstr,    read_byte_rom,  wordwrap);  }
     inline void wrap_string(uint8_t &x, uint8_t &y, const char * const string, const bool wordwrap=false) { _wrap_string(x, y, string,  read_byte_ram,  wordwrap);  }
 
-    // Manual Movement
-    constexpr float manual_feedrate_mm_m[XYZE] = MANUAL_FEEDRATE;
-    extern float move_menu_scale;
-
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      void lcd_pause_show_message(const PauseMessageEnum message,
-                                           const PauseModeEnum mode=PAUSE_MODE_SAME,
-                                           const uint8_t hotend=TARGET_HOTEND);
-    #endif
-
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      void lcd_mesh_edit_setup(const float &initial);
-      float lcd_mesh_edit();
-    #endif
-
-    #if ENABLED(PROBE_MANUALLY) || MECH(DELTA)
-      void _man_probe_pt(const float &rx, const float &ry);
-    #endif
-
-    #if ENABLED(PROBE_MANUALLY)
-      float lcd_probe_pt(const float &rx, const float &ry);
-    #endif
-
   #endif // HAS_LCD_MENU
 
 #endif // HAS_SPI_LCD

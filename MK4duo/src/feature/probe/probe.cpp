@@ -199,6 +199,11 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
       if (isnan(measured_z)) {
+        #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+          bltouch.stow();
+        #else
+          set_deployed(false);
+        #endif
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
         LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
         sound.feedback(false);

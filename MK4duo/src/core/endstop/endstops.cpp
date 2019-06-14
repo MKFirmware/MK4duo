@@ -788,9 +788,9 @@ void Endstops::report_state() {
       lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
     #endif
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
+    #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
       if (planner.abort_on_endstop_hit) {
-        card.setSDprinting(false);
+        card.setPrinting(false);
         card.closeFile();
         printer.quickstop_stepper();
         thermalManager.disable_all_heaters();

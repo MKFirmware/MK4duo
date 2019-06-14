@@ -34,7 +34,7 @@ Commands commands;
 /** Public Parameters */
 Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 
-long  Commands::gcode_LastN = 0;
+long  Commands::gcode_last_N = 0;
 
 /** Private Parameters */
 long  Commands::gcode_N = 0;
@@ -48,7 +48,7 @@ millis_s Commands::last_command_ms = 0;
 /** Public Function */
 void Commands::flush_and_request_resend() {
   Com::serialFlush();
-  SERIAL_LV(RESEND, gcode_LastN + 1);
+  SERIAL_LV(RESEND, gcode_last_N + 1);
   ok_to_send();
 }
 
@@ -57,7 +57,7 @@ void Commands::get_available() {
   if (buffer_ring.isFull()) return;
 
   // if any immediate commands remain, don't get other commands yet
-  if (drain_injected_P()) return;
+  if (drain_injected()) return;
 
   get_serial();
 
@@ -112,12 +112,12 @@ void Commands::clear_queue() {
   buffer_ring.clear();
 }
 
-void Commands::enqueue_and_echo_P(PGM_P const pgcode) {
+void Commands::inject_P(PGM_P const pgcode) {
   injected_commands_P = pgcode;
-  (void)drain_injected_P(); // first command executed asap (when possible)
+  (void)drain_injected(); // first command executed asap (when possible)
 }
 
-bool Commands::enqueue_and_echo(const char * cmd) {
+bool Commands::enqueue_one(const char * cmd) {
 
   if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
     return true;
@@ -132,13 +132,13 @@ bool Commands::enqueue_and_echo(const char * cmd) {
   return false;
 }
 
-void Commands::enqueue_and_echo_now_P(PGM_P const cmd) {
-  enqueue_and_echo_P(cmd);
-  while (drain_injected_P()) printer.idle();
+void Commands::enqueue_now_P(PGM_P const cmd) {
+  inject_P(cmd);
+  while (drain_injected()) printer.idle();
 }
 
-void Commands::enqueue_and_echo_now(const char * cmd) {
-  while (!enqueue_and_echo(cmd)) printer.idle();
+void Commands::enqueue_one_now(const char * cmd) {
+  while (!enqueue_one(cmd)) printer.idle();
 }
 
 void Commands::process_now_P(PGM_P pgcode) {
@@ -389,7 +389,7 @@ void Commands::get_serial() {
 
           gcode_N = strtol(npos + 1, nullptr, 10);
 
-          if (gcode_N != gcode_LastN + 1 && !M110) {
+          if (gcode_N != gcode_last_N + 1 && !M110) {
             gcode_line_error(PSTR(MSG_ERR_LINE_NO), i);
             return;
           }
@@ -408,7 +408,7 @@ void Commands::get_serial() {
             return;
           }
 
-          gcode_LastN = gcode_N;
+          gcode_last_N = gcode_N;
         }
         #if HAS_SD_SUPPORT
           // Pronterface "M29" and "M29 " has no line number
@@ -528,7 +528,7 @@ void Commands::get_serial() {
               LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
               leds.set_green();
               #if HAS_RESUME_CONTINUE
-                enqueue_and_echo_P(PSTR("M0 S"
+                inject_P(PSTR("M0 S"
                   #if HAS_LCD
                     "1800"
                   #else
@@ -607,7 +607,7 @@ void Commands::gcode_line_error(PGM_P err, const int8_t port) {
   SERIAL_PORT(port);
   SERIAL_STR(ER);
   SERIAL_STR(err);
-  SERIAL_EV(gcode_LastN);
+  SERIAL_EV(gcode_last_N);
   while (Com::serialRead(port) != -1);
   flush_and_request_resend();
   serial_count[port] = 0;
@@ -624,7 +624,7 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
   return true;
 }
 
-bool Commands::drain_injected_P() {
+bool Commands::drain_injected() {
   if (injected_commands_P != nullptr) {
     size_t i = 0;
     char c, cmd[60];
@@ -632,10 +632,12 @@ bool Commands::drain_injected_P() {
     cmd[sizeof(cmd) - 1] = '\0';
     while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
     cmd[i] = '\0';
-    if (enqueue_and_echo(cmd))     // success?
+    if (enqueue_one(cmd))     // success?
       injected_commands_P = c ? injected_commands_P + i + 1 : nullptr; // next command or done
+    else
+      return true;  // buffer is full (or command is comment);
   }
-  return (injected_commands_P != nullptr);    // return whether any more remain
+  return false;     // return whether any more remain
 }
 
 /**

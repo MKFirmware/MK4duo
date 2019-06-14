@@ -47,8 +47,8 @@
 
 // manually add pins that have names that are macros which don't play well with these macros
 #if SERIAL_PORT_1 == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || ENABLED(ARDUINO_ARCH_SAM))
-  static const char RXD_NAME[] PROGMEM = { "RXD" };
-  static const char TXD_NAME[] PROGMEM = { "TXD" };
+  SFSTRINGVALUE(RXD_NAME, "RXD");
+  SFSTRINGVALUE(TXD_NAME, "TXD");
 #endif
 
 /////////////////////////////////////////////////////////////////////////////

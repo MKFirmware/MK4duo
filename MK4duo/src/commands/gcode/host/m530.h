@@ -44,7 +44,7 @@ inline void gcode_M530(void) {
       SERIAL_EOL();
 
       #if ENABLED(START_GCODE)
-        commands.enqueue_and_echo_P(PSTR(START_PRINTING_SCRIPT));
+        commands.inject_P(PSTR(START_PRINTING_SCRIPT));
       #endif
 
       #if HAS_FILAMENT_SENSOR
@@ -57,7 +57,7 @@ inline void gcode_M530(void) {
       SERIAL_EM("Stop Printing");
 
       #if ENABLED(STOP_GCODE)
-        commands.enqueue_and_echo_P(PSTR(STOP_PRINTING_SCRIPT));
+        commands.inject_P(PSTR(STOP_PRINTING_SCRIPT));
       #endif
     }
 

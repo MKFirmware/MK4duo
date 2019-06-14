@@ -71,7 +71,6 @@ uint8_t     LcdUI::status_message_level; // = 0
 
   bool          LcdUI::lcd_clicked = false,
                 line_encoder_touch = true;
-  float         move_menu_scale;
 
   #if LCD_TIMEOUT_TO_STATUS
     bool      LcdUI::defer_return_to_status;
@@ -453,7 +452,7 @@ void PlayPausePopCallback() {
       temp += "W";
 
     temp.toCharArray(buffer, NEXTION_BUFFER_SIZE);
-    commands.enqueue_and_echo(buffer);
+    commands.enqueue_one(buffer);
   }
 
   void rfid_setText(PGM_P message, uint32_t color/*=65535*/) {
@@ -491,7 +490,7 @@ void setgcodePopCallback() {
   ZERO(buffer);
   nexlcd.getText(Tgcode, buffer);
   nexlcd.setText(Tgcode, "");
-  commands.enqueue_and_echo(buffer);
+  commands.enqueue_one(buffer);
 }
 
 #if FAN_COUNT > 0
@@ -518,37 +517,37 @@ void setmovePopCallback() {
     itoa(nexlcd.getValue(ext), temp, 2);
     strcat(buffer, "T");
     strcat(buffer, temp);
-    commands.enqueue_and_echo(buffer);
+    commands.enqueue_one(buffer);
   #endif
 
   ZERO(buffer);
   nexlcd.getText(movecmd, buffer);
-  commands.enqueue_and_echo_P(PSTR("G91"));
-  commands.enqueue_and_echo(buffer);
-  commands.enqueue_and_echo_P(PSTR("G90"));
+  commands.inject_P(PSTR("G91"));
+  commands.enqueue_one(buffer);
+  commands.inject_P(PSTR("G90"));
 
   #if EXTRUDERS > 1
     ZERO(buffer);
     itoa(temp_extruder, temp, 2);
     strcat(buffer, "T");
     strcat(buffer, temp);
-    commands.enqueue_and_echo(buffer);
+    commands.enqueue_one(buffer);
   #endif
 }
 
 void motoroffPopCallback() {
-  commands.enqueue_and_echo_P(PSTR("M84"));
+  commands.inject_P(PSTR("M84"));
 }
 
 void filamentPopCallback(NexObject *nexobject) {
   ZERO(buffer);
   nexlcd.getText(Filgcode, buffer);
   if (nexobject == &FilExtr)
-    commands.enqueue_and_echo(buffer);
+    commands.enqueue_one(buffer);
   else {
-    commands.enqueue_and_echo_P(PSTR("G91"));
-    commands.enqueue_and_echo(buffer);
-    commands.enqueue_and_echo_P(PSTR("G90"));
+    commands.inject_P(PSTR("G91"));
+    commands.enqueue_one(buffer);
+    commands.inject_P(PSTR("G90"));
   }
 }
 
@@ -1534,9 +1533,9 @@ void LcdUI::pause_print() {
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
-    commands.enqueue_and_echo_P(PSTR("M25 P\nM24"));
+    commands.inject_P(PSTR("M25 P\nM24"));
   #elif HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M25"));
+    commands.inject_P(PSTR("M25"));
   #else
     host_action.pause();
   #endif
@@ -1547,7 +1546,7 @@ void LcdUI::pause_print() {
 
 void LcdUI::resume_print() {
   #if HAS_SD_SUPPORT
-    commands.enqueue_and_echo_P(PSTR("M24"));
+    commands.inject_P(PSTR("M24"));
   #else
     host_action.resume();
   #endif

@@ -186,7 +186,7 @@ void SDCard::mount() {
 
 void SDCard::unmount() {
   setDetect(false);
-  setSDprinting(false);
+  setPrinting(false);
 }
 
 void SDCard::ls() {
@@ -233,7 +233,7 @@ void SDCard::getAbsFilename(char* name) {
 
 void SDCard::startFileprint() {
   if (isDetected()) {
-    setSDprinting(true);
+    setPrinting(true);
     #if ENABLED(SDCARD_SORT_ALPHA)
       flush_presort();
     #endif
@@ -244,12 +244,12 @@ void SDCard::openAndPrintFile(PGM_P name) {
   char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
   sprintf_P(cmd, PSTR("M23 %s"), name);
   for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
-  commands.enqueue_and_echo_now(cmd);
-  commands.enqueue_and_echo_P(PSTR("M24"));
+  commands.enqueue_one_now(cmd);
+  commands.inject_P(PSTR("M24"));
 }
 
-void SDCard::stopSDPrint() {
-  setSDprinting(false);
+void SDCard::stop_print() {
+  setPrinting(false);
   if (isFileOpen()) gcode_file.close();
 }
 
@@ -272,8 +272,8 @@ void SDCard::write_command(char* buf) {
   }
 }
 
-void SDCard::printStatus() {
-  if (isFileOpen() && isSDprinting()) {
+void SDCard::print_status() {
+  if (isPrinting()) {
     SERIAL_MV(MSG_SD_PRINTING_BYTE, sdpos);
     SERIAL_EMV(MSG_SD_SLASH, fileSize);
   }
@@ -302,7 +302,7 @@ void SDCard::startWrite(char *filename, const bool silent/*=false*/) {
 
 void SDCard::deleteFile(char *filename) {
   if (!isDetected()) return;
-  setSDprinting(false);
+  setPrinting(false);
   gcode_file.close();
   if (fat.remove(filename)) {
     SERIAL_EMT(MSG_SD_FILE_DELETED, filename);
@@ -329,7 +329,7 @@ void SDCard::finishWrite() {
 
 void SDCard::makeDirectory(char *filename) {
   if (!isDetected()) return;
-  setSDprinting(false);
+  setPrinting(false);
   gcode_file.close();
   if (fat.mkdir(filename)) {
     SERIAL_EM(MSG_SD_DIRECTORY_CREATED);
@@ -351,7 +351,7 @@ void SDCard::closeFile() {
 void SDCard::printingHasFinished() {
   planner.synchronize();
   gcode_file.close();
-  setSDprinting(false);
+  setPrinting(false);
 
   #if HAS_SD_RESTART
     restart.purge_job();
@@ -364,7 +364,7 @@ void SDCard::printingHasFinished() {
   print_job_counter.stop();
 
   if (print_job_counter.duration() > 60)
-    commands.enqueue_and_echo_P(PSTR("M31"));
+    commands.inject_P(PSTR("M31"));
 
   #if ENABLED(SDCARD_SORT_ALPHA)
     presort();
@@ -402,7 +402,7 @@ void SDCard::beginautostart() {
 
 void SDCard::checkautostart() {
   /*
-  if (autostart_index < 0 || isSDprinting()) return;
+  if (autostart_index < 0 || isPrinting()) return;
 
   if (!isDetected()) mount();
   

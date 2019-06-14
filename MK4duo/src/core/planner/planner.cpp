@@ -120,12 +120,8 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
   float Planner::position_cart[XYZE] = { 0.0 };
 #endif
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT)
-  #if ENABLED(ABORT_ON_ENDSTOP_HIT_DEFAULT)
-    bool Planner::abort_on_endstop_hit = ABORT_ON_ENDSTOP_HIT_DEFAULT;
-  #else
-    bool Planner::abort_on_endstop_hit = false;
-  #endif
+#if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
+  bool Planner::abort_on_endstop_hit = false;
 #endif
 
 #if HAS_SPI_LCD

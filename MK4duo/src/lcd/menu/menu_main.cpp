@@ -80,13 +80,7 @@ void menu_stop_print() {
   #if HAS_SD_SUPPORT
 
     void menu_firmware() {
-      lcdui.encoderPosition = 2 * ENCODER_STEPS_PER_MENU_ITEM;
-      START_MENU();
-      MENU_BACK(MSG_MAIN);
-      STATIC_ITEM(MSG_ARE_YOU_SURE);
-      MENU_ITEM(function, MSG_YES, UploadNewFirmware);
-      MENU_ITEM(submenu, MSG_NO, menu_main);
-      END_MENU();
+      do_select_screen_yn(UploadNewFirmware, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
     }
 
   #endif

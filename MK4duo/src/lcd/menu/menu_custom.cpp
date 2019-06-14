@@ -35,7 +35,7 @@
 #endif
 
 void _lcd_user_gcode(PGM_P const cmd) {
-  commands.enqueue_and_echo_P(cmd);
+  commands.inject_P(cmd);
   #if ENABLED(USER_SCRIPT_AUDIBLE_FEEDBACK)
     sound.feedback();
   #endif
