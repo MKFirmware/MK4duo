@@ -31,7 +31,7 @@
 static void lcd_sdcard_restart_resume() {
   // Return to status now
   lcdui.return_to_status();
-  commands.enqueue_and_echo_P(PSTR("M800"));
+  commands.inject_P(PSTR("M800"));
 }
 
 static void lcd_sdcard_restart_cancel() {

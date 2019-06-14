@@ -84,7 +84,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void _recalc_DXC_settings() {
     if (tools.active_extruder) {                // For the 2nd extruder re-home so the next tool-change gets the new offsets.
-      commands.enqueue_and_echo_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
+      commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
       tools.active_extruder = 0;
     }
   }
@@ -197,14 +197,14 @@ static void lcd_reset_settings() { eeprom.reset(); }
   float focalLength = 0;
 
   void laser_test_fire(uint8_t power, int dwell) {
-    commands.enqueue_and_echo_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
+    commands.inject_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
     laser.fire(power);
     delay(dwell);
     laser.extinguish();
   }
 
-  void action_laser_acc_on() { commands.enqueue_and_echo_P(PSTR("M80")); }
-  void action_laser_acc_off() { commands.enqueue_and_echo_P(PSTR("M81")); }
+  void action_laser_acc_on() { commands.inject_P(PSTR("M80")); }
+  void action_laser_acc_off() { commands.inject_P(PSTR("M81")); }
   void action_laser_test_weak() { laser.fire(0.3); }
   void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
   void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
@@ -226,14 +226,14 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void laser_set_focus(float f_length) {
     if (!mechanics.home_flag.ZHomed ) {
-      commands.enqueue_and_echo_P(PSTR("G28 Z F150"));
+      commands.inject_P(PSTR("G28 Z F150"));
     }
     focalLength = f_length;
     float focus = LASER_FOCAL_HEIGHT - f_length;
     char cmd[20];
 
     sprintf_P(cmd, PSTR("G0 Z%s F150"), ftostr52sign(focus));
-    commands.enqueue_and_echo_P(cmd);
+    commands.inject_P(cmd);
   }
 
   void action_laser_focus_custom() { laser_set_focus(focalLength); }

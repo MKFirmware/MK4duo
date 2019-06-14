@@ -61,7 +61,7 @@ class Commands {
      * sending commands to MK4duo, and lines will be checked for sequentiality.
      * M110 N<int> sets the current line number.
      */
-    static long gcode_LastN;
+    static long gcode_last_N;
 
   private: /** Private Parameters */
 
@@ -70,7 +70,7 @@ class Commands {
     static int serial_count[NUM_SERIAL];
 
     /**
-     * Next Injected Command pointer. NULL if no commands are being injected.
+     * Next Injected Command pointer. Nullptr if no commands are being injected.
      * Used by MK4duo internally to ensure that commands initiated from within
      * are enqueued ahead of any pending serial or sd card
      */
@@ -107,24 +107,24 @@ class Commands {
     /**
      * Record one or many commands to run from program memory.
      * Aborts the current queue, if any.
-     * Note: drain_injected_P() must be called repeatedly to drain the commands afterwards
+     * Note: drain_injected() must be called repeatedly to drain the commands afterwards
      */
-    static void enqueue_and_echo_P(PGM_P const pgcode);
+    static void inject_P(PGM_P const pgcode);
 
     /**
      * Enqueue with Serial Echo
      */
-    static bool enqueue_and_echo(const char * cmd);
+    static bool enqueue_one(const char * cmd);
 
     /**
      * Enqueue from program memory and return only when commands are actually enqueued
      */
-    static void enqueue_and_echo_now_P(PGM_P const cmd);
+    static void enqueue_now_P(PGM_P const cmd);
 
     /**
      * Enqueue and return only when commands are actually enqueued
      */
-    static void enqueue_and_echo_now(const char * cmd);
+    static void enqueue_one_now(const char * cmd);
 
     /**
      * Run a series of commands, bypassing the command queue to allow
@@ -224,7 +224,7 @@ class Commands {
      * Inject the next "immediate" command, when possible, onto the front of the buffer_ring.
      * Return true if any immediate commands remain to inject.
      */
-    static bool drain_injected_P();
+    static bool drain_injected();
 
     /**
      * Process parsed gcode and execute command

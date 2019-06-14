@@ -28,6 +28,9 @@
 ///////////// Global Variables /////////////
 ////////////////////////////////////////////
 
+// Manual Movement
+float move_menu_scale;
+
 // Menu Navigation
 int8_t encoderTopLine, encoderLine, screen_items;
 
@@ -74,7 +77,7 @@ void LcdUI::goto_previous_screen() {
 /////////// Common Menu Actions ////////////
 ////////////////////////////////////////////
 
-void MenuItem_gcode::action(PGM_P pgcode) { commands.enqueue_and_echo_P(pgcode); }
+void MenuItem_gcode::action(PGM_P pgcode) { commands.inject_P(pgcode); }
 
 ////////////////////////////////////////////
 /////////// Menu Editing Actions ///////////
@@ -452,13 +455,13 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
   void lcd_enqueue_command(const char * const cmd) {
     no_reentry = true;
-    commands.enqueue_and_echo_now(cmd);
+    commands.enqueue_one_now(cmd);
     no_reentry = false;
   }
 
   void lcd_enqueue_commands_P(PGM_P const cmd) {
     no_reentry = true;
-    commands.enqueue_and_echo_now_P(cmd);
+    commands.enqueue_now_P(cmd);
     no_reentry = false;
   }
 

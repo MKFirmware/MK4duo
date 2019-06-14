@@ -39,9 +39,9 @@ inline void gcode_M27(void) {
   if (parser.seen('C'))
     SERIAL_EMT("Current file: ", card.fileName);
   else if (parser.seenval('S'))
-    card.setAutoreportSD(parser.value_bool());
+    card.setAutoreport(parser.value_bool());
   else
-    card.printStatus();
+    card.print_status();
 }
 
 #endif // HAS_SD_SUPPORT

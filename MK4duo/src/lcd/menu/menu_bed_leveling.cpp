@@ -120,9 +120,9 @@
         lcdui.wait_for_bl_move = true;
         lcdui.goto_screen(_lcd_level_bed_done);
         #if ENABLED(MESH_BED_LEVELING)
-          commands.enqueue_and_echo_P(PSTR("G29 S2"));
+          commands.inject_P(PSTR("G29 S2"));
         #elif ENABLED(PROBE_MANUALLY)
-          commands.enqueue_and_echo_P(PSTR("G29 V1"));
+          commands.inject_P(PSTR("G29 V1"));
         #endif
       }
       else
@@ -172,9 +172,9 @@
     // G29 Records Z, moves, and signals when it pauses
     lcdui.wait_for_bl_move = true;
     #if ENABLED(MESH_BED_LEVELING)
-      commands.enqueue_and_echo_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
+      commands.inject_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
     #elif ENABLED(PROBE_MANUALLY)
-      commands.enqueue_and_echo_P(PSTR("G29 V1"));
+      commands.inject_P(PSTR("G29 V1"));
     #endif
   }
 
@@ -205,7 +205,7 @@
     lcdui.defer_status_screen();
     mechanics.unsetHomedAll();
     lcdui.goto_screen(_lcd_level_bed_homing);
-    commands.enqueue_and_echo_P(PSTR("G28"));
+    commands.inject_P(PSTR("G28"));
   }
 
 #endif // PROBE_MANUALLY || MESH_BED_LEVELING

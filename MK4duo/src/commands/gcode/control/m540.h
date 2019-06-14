@@ -26,15 +26,15 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(ABORT_ON_ENDSTOP_HIT)
+#if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
 
-  #define CODE_M540
+#define CODE_M540
 
-  /**
-   * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
-   */
-  inline void gcode_M540(void) {
-    if (parser.seen('S')) planner.abort_on_endstop_hit = parser.value_bool();
-  }
+/**
+ * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
+ */
+inline void gcode_M540(void) {
+  if (parser.seen('S')) planner.abort_on_endstop_hit = parser.value_bool();
+}
 
-#endif // ENABLED(ABORT_ON_ENDSTOP_HIT)
+#endif // ENABLED(SD_ABORT_ON_ENDSTOP_HIT)

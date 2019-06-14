@@ -35,7 +35,7 @@ void menu_tmc();
   // Set the home offset based on the current_position
   //
   void lcd_set_home_offsets() {
-    commands.enqueue_and_echo_P(PSTR("M428"));
+    commands.inject_P(PSTR("M428"));
     lcdui.return_to_status();
   }
 #endif
@@ -720,7 +720,7 @@ void menu_advanced_settings() {
   }
 
   // M540 S - Abort on endstop hit when SD printing
-  #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+  #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
     MENU_ITEM_EDIT(bool, MSG_ENDSTOP_ABORT, &planner.abort_on_endstop_hit);
   #endif
 

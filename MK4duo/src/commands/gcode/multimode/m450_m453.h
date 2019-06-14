@@ -28,56 +28,56 @@
 
 #if HAS_MULTI_MODE
 
+/**
+ * Shared function for Printer Mode GCodes
+ */
+static void gcode_printer_mode(const int8_t new_mode) {
+  SFSTRINGVALUE(str_tooltype_0, "FFF");
+  SFSTRINGVALUE(str_tooltype_1, "Laser");
+  SFSTRINGVALUE(str_tooltype_2, "CNC");
+  const static char* const tool_strings[] PROGMEM = { str_tooltype_0, str_tooltype_1, str_tooltype_2 };
+  if (new_mode >= 0 && (PrinterModeEnum)new_mode < PRINTER_MODE_COUNT) printer.mode = (PrinterModeEnum)new_mode;
+  SERIAL_SM(ECHO, "Printer-Mode: ");
+  SERIAL_STR((char*)pgm_read_word(&(tool_strings[printer.mode])));
+  SERIAL_CHR(' ');
+  SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? tools.active_extruder : 0));
+}
+
+#define CODE_M450
+#define CODE_M451
+
+/**
+ * M450: Set and/or report current tool type
+ *
+ *  S<type> - The new tool type
+ */
+inline void gcode_M450(void) {
+  gcode_printer_mode(parser.seen('S') ? parser.value_byte() : -1);
+}
+
+/**
+ * M451: Select FFF printer mode
+ */
+inline void gcode_M451(void) { gcode_printer_mode(PRINTER_MODE_FFF); }
+
+#if ENABLED(LASER)
+
+  #define CODE_M452
+
   /**
-   * Shared function for Printer Mode GCodes
+   * M452: Select Laser printer mode
    */
-  static void gcode_printer_mode(const int8_t new_mode) {
-    const static char str_tooltype_0[] PROGMEM = "FFF";
-    const static char str_tooltype_1[] PROGMEM = "Laser";
-    const static char str_tooltype_2[] PROGMEM = "CNC";
-    const static char* const tool_strings[] PROGMEM = { str_tooltype_0, str_tooltype_1, str_tooltype_2 };
-    if (new_mode >= 0 && (PrinterModeEnum)new_mode < PRINTER_MODE_COUNT) printer.mode = (PrinterModeEnum)new_mode;
-    SERIAL_SM(ECHO, "Printer-Mode: ");
-    SERIAL_STR((char*)pgm_read_word(&(tool_strings[printer.mode])));
-    SERIAL_CHR(' ');
-    SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? tools.active_extruder : 0));
-  }
+  inline void gcode_M452(void) { gcode_printer_mode(PRINTER_MODE_LASER); }
+#endif
 
-  #define CODE_M450
-  #define CODE_M451
+#if HAS_CNCROUTER
+
+  #define CODE_M453
 
   /**
-   * M450: Set and/or report current tool type
-   *
-   *  S<type> - The new tool type
+   * M453: Select CNC printer mode
    */
-  inline void gcode_M450(void) {
-    gcode_printer_mode(parser.seen('S') ? parser.value_byte() : -1);
-  }
-
-  /**
-   * M451: Select FFF printer mode
-   */
-  inline void gcode_M451(void) { gcode_printer_mode(PRINTER_MODE_FFF); }
-
-  #if ENABLED(LASER)
-
-    #define CODE_M452
-
-    /**
-     * M452: Select Laser printer mode
-     */
-    inline void gcode_M452(void) { gcode_printer_mode(PRINTER_MODE_LASER); }
-  #endif
-
-  #if HAS_CNCROUTER
-
-    #define CODE_M453
-
-    /**
-     * M453: Select CNC printer mode
-     */
-    inline void gcode_M453(void) { gcode_printer_mode(PRINTER_MODE_CNC); }
-  #endif
+  inline void gcode_M453(void) { gcode_printer_mode(PRINTER_MODE_CNC); }
+#endif
 
 #endif // HAS_MULTI_MODE

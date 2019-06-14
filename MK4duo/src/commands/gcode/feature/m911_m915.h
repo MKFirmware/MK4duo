@@ -351,7 +351,7 @@
       endstops.setSoftEndstop(true);
 
       SERIAL_EM("\nHoming Z because we lost steps");
-      commands.enqueue_and_echo_P(PSTR("G28 Z"));
+      commands.inject_P(PSTR("G28 Z"));
     }
 
   #endif

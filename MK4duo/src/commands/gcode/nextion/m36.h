@@ -26,11 +26,27 @@
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#define CODE_M110
+#if HAS_NEXTION_LCD && HAS_SD_SUPPORT
+
+#define CODE_M36
 
 /**
- * M110: Set Current Line Number
+ * M36: Print pause, resume and stop from Nextion
+ *    S - Stop print
+ *    P - Play or resume print
  */
-inline void gcode_M110(void) {
-  if (parser.seenval('N')) commands.gcode_last_N = parser.value_long();
+inline void gcode_M36(void) {
+  if (parser.seen('S')) {
+    #if HAS_LCD_MENU
+      lcdui.goto_screen(menu_stop_print);
+    #else
+      lcdui.stop_print();
+    #endif
+  }
+  else if (parser.seen('P')) {
+    if (printer.isPrinting())     lcdui.pause_print();
+    else if (printer.isPaused())  lcdui.resume_print();
+  }
 }
+
+#endif // HAS_NEXTION_LCD && HAS_SD_SUPPORT

@@ -316,7 +316,7 @@ void Printer::loop() {
         #endif
 
         // Stop SD printing
-        card.stopSDPrint();
+        card.stop_print();
 
         // Clear all command in quee
         commands.clear_queue();
@@ -326,9 +326,9 @@ void Printer::loop() {
 
         // Auto home
         #if Z_HOME_DIR > 0
-          commands.enqueue_and_echo_P(PSTR("G28"));
+          commands.inject_P(PSTR("G28"));
         #else
-          commands.enqueue_and_echo_P(PSTR("G28 X Y"));
+          commands.inject_P(PSTR("G28 X Y"));
         #endif
 
         // Disabled Heaters and Fan
@@ -358,13 +358,13 @@ void Printer::check_periodical_actions() {
   }
 
   #if HAS_SD_SUPPORT
-    if (card.isAutoreportSD()) card.printStatus();
+    if (card.isAutoreport()) card.print_status();
   #endif
 
   if (planner.cleaning_buffer_flag) {
     planner.cleaning_buffer_flag = false;
     #if ENABLED(SD_FINISHED_STEPPERRELEASE) && ENABLED(SD_FINISHED_RELEASECOMMAND)
-      commands.enqueue_and_echo_P(PSTR(SD_FINISHED_RELEASECOMMAND));
+      commands.inject_P(PSTR(SD_FINISHED_RELEASECOMMAND));
     #endif
   }
 
@@ -664,7 +664,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     const int HOME_DEBOUNCE_DELAY = 750;
     if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
       if (!homeDebounceCount) {
-        commands.enqueue_and_echo_P(PSTR("G28"));
+        commands.inject_P(PSTR("G28"));
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
       }
       if (homeDebounceCount < HOME_DEBOUNCE_DELAY)
@@ -920,7 +920,7 @@ void Printer::handle_interrupt_events() {
         SERIAL_EOL();
 
         if (run_runout_script)
-          commands.enqueue_and_echo_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+          commands.enqueue_now_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
 
         break;
       }

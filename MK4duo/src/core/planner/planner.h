@@ -165,7 +165,7 @@ class Planner {
       static float position_cart[XYZE];
     #endif
 
-    #if ENABLED(ABORT_ON_ENDSTOP_HIT)
+    #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
       static bool abort_on_endstop_hit;
     #endif
 

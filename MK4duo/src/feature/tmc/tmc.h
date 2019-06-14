@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000301
-  #error "Update TMCStepper library to 0.3.1 or newer."
+#if TMCSTEPPER_VERSION < 0x000401
+  #error "Update TMCStepper library to 0.4.1 or newer."
 #endif
 
 #if HAVE_DRV(TMC2130)
@@ -569,13 +569,7 @@ class TMC_Stepper {
       static void init_cs_pins();
     #endif
 
-    #if HAVE_DRV(TMC2208)
-      static void config(MKTMC* st, const bool stealth=false);
-    #elif HAVE_DRV(TMC2660)
-      static void config(MKTMC* st, const int8_t sgt=0);
-    #elif HAS_TMCX1X0
-      static void config(MKTMC* st, const bool stealth=false, const int8_t sgt=0);
-    #endif
+    static void config(MKTMC* st, const bool stealth=false);
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 

@@ -53,7 +53,7 @@
  * - Stepper auto deactivation
  * - Software endstops
  * - Endstops only for homing
- * - Abort on endstop hit feature
+ * - SD abort on endstop hit
  * - G38.2 and G38.3 Probe Target
  * - R/C Servo
  * - Late Z axis
@@ -596,7 +596,7 @@
 
 
 /**************************************************************************
- ************************ Abort on endstop hit ****************************
+ ********************** SD abort on endstop hit ***************************
  **************************************************************************
  *                                                                        *
  * This option allows you to abort printing when any endstop is triggered.*
@@ -605,9 +605,7 @@
  * With ENDSTOPS ONLY FOR HOMING you must send "M120" to enable endstops. *
  *                                                                        *
  **************************************************************************/
-//#define ABORT_ON_ENDSTOP_HIT
-
-#define ABORT_ON_ENDSTOP_HIT_DEFAULT true
+//#define SD_ABORT_ON_ENDSTOP_HIT
 /**************************************************************************/
 
 
@@ -1624,7 +1622,15 @@
  *                                                                        *
  * Use Junction Deviation instead of traditional Jerk limiting            *
  *                                                                        *
- * By Scott Latherine @Thinkyhead  and @ejtagle                           *
+ * A = DEFAULT_ACCELERATION (acceleration for printing moves)             *
+ * V = Jerk for X and Y (values typically match)                          *
+ *                                                                        *
+ * Junction Deviation = 0.4 * V^2 / A                                     *
+ *                                                                        *
+ * Ex: If your Jerk value is 8.0 and your acceleration is 1250,           *
+ * then: 0.4 * 8.0^2/ 1250 = 0.02048 (mm)                                 *
+ *                                                                        *
+ * By Scott Latherine @Thinkyhead and @ejtagle                            *
  *                                                                        *
  **************************************************************************/
 //#define JUNCTION_DEVIATION
@@ -1815,43 +1821,6 @@
 /****************************************************************************************
  ************************************** Buffer stuff ************************************
  ****************************************************************************************/
-// The number of linear motions that can be in the plan at any give time.
-// THE BLOCK BUFFER SIZE NEEDS TO BE A POWER OF 2 (i.g. 8, 16, 32) because shifts
-// and ors are used to do the ring-buffering.
-// For Arduino DUE setting BLOCK BUFFER SIZE to 32
-#define BLOCK_BUFFER_SIZE 16
-
-// The ASCII buffer for receiving from the serial:
-#define MAX_CMD_SIZE 96
-// For Arduino DUE setting to 8
-#define BUFSIZE 4
-
-// Transmission to Host Buffer Size
-// To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
-// To buffer a simple "ok" you need 4 bytes.
-// For ADVANCED_OK (M105) you need 32 bytes.
-// For debug-echo: 128 bytes for the optimal speed.
-// Other output doesn't need to be that speedy.
-// 0, 2, 4, 8, 16, 32, 64, 128, 256
-#define TX_BUFFER_SIZE 0
-
-// Host Receive Buffer Size
-// Without XON/XOFF flow control (see SERIAL XON XOFF below) 32 bytes should be enough.
-// To use flow control, set this buffer size to at least 1024 bytes.
-// 0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
-#define RX_BUFFER_SIZE 128
-
-// Enable to have the controller send XON/XOFF control characters to
-// the host to signal the RX buffer is becoming full.
-//#define SERIAL_XON_XOFF
-
-// Enable this option to collect and display the maximum
-// RX queue usage after transferring a file to SD.
-//#define SERIAL_STATS_MAX_RX_QUEUED
-
-// Enable this option to collect and display the number
-// of dropped bytes after a file transfer to SD.
-//#define SERIAL_STATS_DROPPED_RX
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
 // The values should not be less than 2

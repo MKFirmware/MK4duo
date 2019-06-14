@@ -103,14 +103,14 @@ void lcd_z_offset_edit_setup(const float &initial) {
  */
 void _lcd_ubl_build_custom_mesh() {
   char UBL_LCD_GCODE[20];
-  commands.enqueue_and_echo_P(PSTR("G28"));
+  commands.inject_P(PSTR("G28"));
   #if BEDS > 0
     sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
     lcd_enqueue_command(UBL_LCD_GCODE);
   #endif
   sprintf_P(UBL_LCD_GCODE, PSTR("M109 S%i"), custom_hotend_temp);
   lcd_enqueue_command(UBL_LCD_GCODE);
-  commands.enqueue_and_echo_P(PSTR("G29 P1"));
+  commands.inject_P(PSTR("G29 P1"));
 }
 
 /**
@@ -497,7 +497,7 @@ void _lcd_ubl_output_map_lcd() {
  */
 void _lcd_ubl_output_map_lcd_cmd() {
   if (!mechanics.isHomedAll())
-    commands.enqueue_and_echo_P(PSTR("G28"));
+    commands.inject_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_ubl_map_homing);
 }
 

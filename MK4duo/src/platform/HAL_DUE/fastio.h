@@ -205,7 +205,12 @@ FORCE_INLINE static void WRITE_VAR(const uint8_t pin, const bool flag) {
   }
 }
 
-// set pin as input
+// Toogle pin
+FORCE_INLINE static void TOGGLE(const uint8_t pin) {
+  WRITE(pin, !READ(pin));
+}
+
+// Set pin as input
 FORCE_INLINE static void SET_INPUT(const pin_t pin) {
   #if ENABLED(PCF8574_EXPANSION_IO)
     if (pin >= PIN_START_FOR_PCF8574) {

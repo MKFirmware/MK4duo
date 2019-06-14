@@ -19,10 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _CONFIGURATION_MOTOR_DRIVER_H_
-#define _CONFIGURATION_MOTOR_DRIVER_H_
-
+#pragma once
 
 /**********************************************************************************
  ************************** Trinamic TMC26x motor drivers *************************
@@ -91,6 +88,9 @@
 #define Y_STALL_SENSITIVITY 8
 #define Z_STALL_SENSITIVITY 8
 
+// Create a 50/50 square wave step pulse optimal for stepper drivers.
+//#define SQUARE_WAVE_STEPPING
+
 // M922 S0/1 will enable continous reporting.
 //#define TMC_DEBUG
 
@@ -109,6 +109,7 @@
 // function through a communication line such as SPI or UART.
 //#define TMC_SOFTWARE_DRIVER_ENABLE
 
+// TMC2130, TMC2160, TMC2208, TMC5130 and TMC5160 only
 // Use Trinamic's ultra quiet stepping mode.
 // When disabled, MK4duo will use spreadCycle stepping mode.
 #define X_STEALTHCHOP   false
@@ -287,5 +288,3 @@
 #define E5_OVERCURRENT  2000
 #define E5_STALLCURRENT 1500
 /**********************************************************************************/
-
-#endif /* _CONFIGURATION_MOTOR_DRIVER_H_ */

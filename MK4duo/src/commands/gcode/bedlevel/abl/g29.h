@@ -924,7 +924,7 @@ inline void gcode_G29(void) {
         DEBUG_EM(Z_PROBE_END_SCRIPT);
       }
       planner.synchronize();
-      commands.enqueue_and_echo_P(PSTR(Z_PROBE_END_SCRIPT));
+      commands.inject_P(PSTR(Z_PROBE_END_SCRIPT));
     #endif
 
     // Auto Bed Leveling is complete! Enable if possible.

@@ -54,7 +54,7 @@ void Restart::check() {
     if (card.isDetected()) {
       load_job();
       if (!valid()) return purge_job();
-      commands.enqueue_and_echo_P(PSTR("M800 S"));
+      commands.inject_P(PSTR("M800 S"));
     }
   }
 }

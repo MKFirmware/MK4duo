@@ -245,31 +245,31 @@ void TMC_Stepper::init() {
     // Stepper objects of TMC2660 steppers used
     #if X_HAS_DRV(TMC2660)
       TMC2660_DEFINE(X);
-      config(stepperX, X_STALL_SENSITIVITY);
+      config(stepperX);
     #endif
     #if X2_HAS_DRV(TMC2660)
       TMC2660_DEFINE(X2);
-      config(stepperX2, X_STALL_SENSITIVITY);
+      config(stepperX2);
     #endif
     #if Y_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Y);
-      config(stepperY, Y_STALL_SENSITIVITY);
+      config(stepperY);
     #endif
     #if Y2_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Y2);
-      config(stepperY2, Y_STALL_SENSITIVITY);
+      config(stepperY2);
     #endif
     #if Z_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Z);
-      config(stepperZ, Z_STALL_SENSITIVITY);
+      config(stepperZ);
     #endif
     #if Z2_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Z2);
-      config(stepperZ2, Z_STALL_SENSITIVITY);
+      config(stepperZ2);
     #endif
     #if Z3_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Z3);
-      config(stepperZ3, Z_STALL_SENSITIVITY);
+      config(stepperZ3);
     #endif
     #if E0_HAS_DRV(TMC2660)
       TMC2660_DEFINE(E0);
@@ -296,8 +296,6 @@ void TMC_Stepper::init() {
       config(stepperE5);
     #endif
 
-    TMC_ADV();
-
   #elif HAS_TMCX1X0
 
     #if ENABLED(TMC_USE_SW_SPI)
@@ -315,31 +313,31 @@ void TMC_Stepper::init() {
     // Stepper objects of TMC2130 steppers used
     #if X_HAS_DRV(TMC2130) || X_HAS_DRV(TMC2160) || X_HAS_DRV(TMC5130) || X_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(X);
-      config(stepperX, X_STEALTHCHOP, X_STALL_SENSITIVITY);
+      config(stepperX, X_STEALTHCHOP);
     #endif
     #if X2_HAS_DRV(TMC2130) || X2_HAS_DRV(TMC2160) || X2_HAS_DRV(TMC5130) || X2_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(X2);
-      config(stepperX2, X_STEALTHCHOP, X_STALL_SENSITIVITY);
+      config(stepperX2, X_STEALTHCHOP);
     #endif
     #if Y_HAS_DRV(TMC2130) || Y_HAS_DRV(TMC2160) || Y_HAS_DRV(TMC5130) || Y_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Y);
-      config(stepperY, Y_STEALTHCHOP, Y_STALL_SENSITIVITY);
+      config(stepperY, Y_STEALTHCHOP);
     #endif
     #if Y2_HAS_DRV(TMC2130) || Y2_HAS_DRV(TMC2160) || Y2_HAS_DRV(TMC5130) || Y2_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Y2);
-      config(stepperY2, Y_STEALTHCHOP, Y_STALL_SENSITIVITY);
+      config(stepperY2, Y_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2130) || Z_HAS_DRV(TMC2160) || Z_HAS_DRV(TMC5130) || Z_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Z);
-      config(stepperZ, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
+      config(stepperZ, Z_STEALTHCHOP);
     #endif
     #if Z2_HAS_DRV(TMC2130) || Z2_HAS_DRV(TMC2160) || Z2_HAS_DRV(TMC5130) || Z2_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Z2);
-      config(stepperZ2, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
+      config(stepperZ2, Z_STEALTHCHOP);
     #endif
     #if Z3_HAS_DRV(TMC2130) || Z3_HAS_DRV(TMC2160) || Z3_HAS_DRV(TMC5130) || Z3_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Z3);
-      config(stepperZ3, Z_STEALTHCHOP, Z_STALL_SENSITIVITY);
+      config(stepperZ3, Z_STEALTHCHOP);
     #endif
     #if E0_HAS_DRV(TMC2130) || E0_HAS_DRV(TMC2160) || E0_HAS_DRV(TMC5130) || E0_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(E0);
@@ -366,9 +364,39 @@ void TMC_Stepper::init() {
       config(stepperE5, E5_STEALTHCHOP);
     #endif
 
-    TMC_ADV();
-
   #endif
+
+  #if HAS_SENSORLESS
+    #if X_HAS_SENSORLESS
+      #if AXIS_HAS_STALLGUARD(X)
+        stepperX->sgt(X_STALL_SENSITIVITY);
+      #endif
+      #if AXIS_HAS_STALLGUARD(X2)
+        stepperX2->sgt(X_STALL_SENSITIVITY);
+      #endif
+    #endif
+    #if Y_SENSORLESS
+      #if AXIS_HAS_STALLGUARD(Y)
+        stepperY->sgt(Y_STALL_SENSITIVITY);
+      #endif
+      #if AXIS_HAS_STALLGUARD(Y2)
+        stepperY2->sgt(Y_STALL_SENSITIVITY);
+      #endif
+    #endif
+    #if Z_SENSORLESS
+      #if AXIS_HAS_STALLGUARD(Z)
+        stepperZ->sgt(Z_STALL_SENSITIVITY);
+      #endif
+      #if AXIS_HAS_STALLGUARD(Z2)
+        stepperZ2->sgt(Z_STALL_SENSITIVITY);
+      #endif
+      #if AXIS_HAS_STALLGUARD(Z3)
+        stepperZ3->sgt(Z_STALL_SENSITIVITY);
+      #endif
+    #endif
+  #endif
+
+  TMC_ADV();
 
 }
 
@@ -900,13 +928,86 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
 #endif // TMC_HAS_SPI
 
-#if HAVE_DRV(TMC2208)
+// Stepper config for type
+#if HAVE_DRV(TMC2130)
+  
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
+
+    st->begin();
+
+    CHOPCONF_t chopconf{0};
+    chopconf.tbl = 1;
+    chopconf.toff = chopper_timing.toff;
+    chopconf.intpol = INTERPOLATE;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      chopconf.dedge = true;
+    #endif
+    st->CHOPCONF(chopconf.sr);
+
+    st->iholddelay(10);
+    st->TPOWERDOWN(128);
+
+    st->en_pwm_mode(stealth);
+    st->stealthChop_enabled = stealth;
+
+    PWMCONF_t pwmconf{0};
+    pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_grad = 5;
+    pwmconf.pwm_ampl = 180;
+    st->PWMCONF(pwmconf.sr);
+
+    st->GSTAT(); // Clear GSTAT
+
+  }
+
+#elif HAVE_DRV(TMC2160)
+
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
+
+    st->begin();
+
+    CHOPCONF_t chopconf{0};
+    chopconf.tbl = 1;
+    chopconf.toff = chopper_timing.toff;
+    chopconf.intpol = INTERPOLATE;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      chopconf.dedge = true;
+    #endif
+    st->CHOPCONF(chopconf.sr);
+
+    st->iholddelay(10);
+    st->TPOWERDOWN(128);
+    st->TCOOLTHRS(0xFFFFF);
+
+    st->en_pwm_mode(stealth);
+    st->stealthChop_enabled = stealth;
+
+    TMC2160_n::PWMCONF_t pwmconf{0};
+    pwmconf.pwm_lim = 12;
+    pwmconf.pwm_reg = 8;
+    pwmconf.pwm_autograd = true;
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_freq = 0b01;
+    pwmconf.pwm_grad = 14;
+    pwmconf.pwm_ofs = 36;
+    st.PWMCONF(pwmconf.sr);
+
+    st->GSTAT(); // Clear GSTAT
+
+  }
+
+#elif HAVE_DRV(TMC2208)
 
   void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
 
     TMC2208_n::GCONF_t gconf{0};
-    gconf.pdn_disable = true; // Use UART
-    gconf.mstep_reg_select = true; // Select microsteps with UART
+    gconf.pdn_disable = true;       // Use UART
+    gconf.mstep_reg_select = true;  // Select microsteps with UART
     gconf.i_scale_analog = false;
     gconf.en_spreadcycle = !stealth;
     st->GCONF(gconf.sr);
@@ -918,6 +1019,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     chopconf.intpol = INTERPOLATE;
     chopconf.hend = chopper_timing.hend + 3;
     chopconf.hstrt = chopper_timing.hstrt - 1;
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      chopconf.dedge = true;
+    #endif
     st->CHOPCONF(chopconf.sr);
 
     st->iholddelay(10);
@@ -939,7 +1043,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
 
 #elif HAVE_DRV(TMC2660)
 
-  void TMC_Stepper::config(MKTMC* st, const int8_t sgt/*=0*/) {
+  void TMC_Stepper::config(MKTMC* st, const bool) {
 
     st->begin();
 
@@ -950,20 +1054,22 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     chopconf.hstrt = chopper_timing.hstrt - 1;
     st->CHOPCONF(chopconf.sr);
  
-    st->intpol(INTERPOLATE);
-
-    #if HAS_SENSORLESS
-      st->sgt(sgt);
-      homing_thrs = sgt;
+    st->sdoff(0);
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      st->dedge(true);
     #endif
-
+    st->intpol(INTERPOLATE);
     st->diss2g(true); // Disable short to ground protection. Too many false readings?
+
+    #if ENABLED(TMC_DEBUG)
+      st->rdsel(0b01);
+    #endif
 
   }
 
-#elif HAS_TMCX1X0
-  
-  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/, const int8_t sgt/*=0*/) {
+#elif HAVE_DRV(TMC5130)
+
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
 
     st->begin();
 
@@ -973,6 +1079,9 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     chopconf.intpol = INTERPOLATE;
     chopconf.hend = chopper_timing.hend + 3;
     chopconf.hstrt = chopper_timing.hstrt - 1;
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      chopconf.dedge = true;
+    #endif
     st->CHOPCONF(chopconf.sr);
 
     st->iholddelay(10);
@@ -988,10 +1097,42 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     pwmconf.pwm_ampl = 180;
     st->PWMCONF(pwmconf.sr);
 
-    #if HAS_SENSORLESS
-      st->sgt(sgt);
-      st->homing_thrs = sgt;
+    st->GSTAT(); // Clear GSTAT
+
+  }
+
+#elif HAVE_DRV(TMC5160)
+  
+  void TMC_Stepper::config(MKTMC* st, const bool stealth/*=false*/) {
+
+    st->begin();
+
+    CHOPCONF_t chopconf{0};
+    chopconf.tbl = 1;
+    chopconf.toff = chopper_timing.toff;
+    chopconf.intpol = INTERPOLATE;
+    chopconf.hend = chopper_timing.hend + 3;
+    chopconf.hstrt = chopper_timing.hstrt - 1;
+    #if ENABLED(SQUARE_WAVE_STEPPING)
+      chopconf.dedge = true;
     #endif
+    st->CHOPCONF(chopconf.sr);
+
+    st->iholddelay(10);
+    st->TPOWERDOWN(128);
+
+    st->en_pwm_mode(stealth);
+    st->stealthChop_enabled = stealth;
+
+    TMC5160_n::PWMCONF_t pwmconf{0};
+    pwmconf.pwm_lim = 12;
+    pwmconf.pwm_reg = 8;
+    pwmconf.pwm_autograd = true;
+    pwmconf.pwm_autoscale = true;
+    pwmconf.pwm_freq = 0b01;
+    pwmconf.pwm_grad = 14;
+    pwmconf.pwm_ofs = 36;
+    st.PWMCONF(pwmconf.sr);
 
     st->GSTAT(); // Clear GSTAT
 
@@ -1014,28 +1155,28 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     #endif
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint8_t OTPW_bp = 0, OT_bp = 1;
+      cconstexpr uint8_t OTPW_bp = 0, OT_bp = 1;
       constexpr uint8_t S2G_bm = 0b11110; // 2..5
-      constexpr uint8_t CS_ACTUAL_sb = 16;
-      constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
-      constexpr uint8_t STEALTH_bp = 30, STST_bp = 31;
       TMC_driver_data data;
-      data.drv_status = st->DRV_STATUS();
-      data.is_otpw = !!(data.drv_status & _BV(OTPW_bp));
-      data.is_ot = !!(data.drv_status & _BV(OT_bp));
-      data.is_s2g = !!(data.drv_status & S2G_bm);
+      const auto ds = data.drv_status = st->DRV_STATUS();
+      data.is_otpw = TEST(ds, OTPW_bp);
+      data.is_ot = TEST(ds, OT_bp);
+      data.is_s2g = !!(ds & S2G_bm);
       #if ENABLED(TMC_DEBUG)
+        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+        constexpr uint8_t STEALTH_bp = 30, STST_bp = 31;
         #ifdef __AVR__
           // 8-bit optimization saves up to 12 bytes of PROGMEM per axis
-          uint8_t spart = data.drv_status >> 16;
+          uint8_t spart = ds >> 16;
           data.cs_actual = spart & (CS_ACTUAL_bm >> 16);
-          spart = data.drv_status >> 24;
-          data.is_stealth = !!(spart & _BV(STEALTH_bp - 24));
-          data.is_standstill = !!(spart & _BV(STST_bp - 24));
+          spart = ds >> 24;
+          data.is_stealth = TEST(spart, STEALTH_bp - 24);
+          data.is_standstill = TEST(spart, STST_bp - 24);
         #else
-          data.cs_actual = (data.drv_status & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
-          data.is_stealth = !!(data.drv_status & _BV(STEALTH_bp));
-          data.is_standstill = !!(data.drv_status & _BV(STST_bp));
+          constexpr uint8_t CS_ACTUAL_sb = 16;
+          data.cs_actual = (ds & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
+          data.is_stealth = TEST(ds, STEALTH_bp);
+          data.is_standstill = TEST(ds, STST_bp);
         #endif
         data.sg_result_reasonable = false;
       #endif
@@ -1045,21 +1186,21 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   #elif HAVE_DRV(TMC2660)
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint8_t STALL_GUARD_bp = 0;
       constexpr uint8_t OT_bp = 1, OTPW_bp = 2;
       constexpr uint8_t S2G_bm = 0b11000;
-      constexpr uint8_t STST_bp = 7, SG_RESULT_sp = 10;
-      constexpr uint32_t SG_RESULT_bm = 0xFFC00; // 10:19
       TMC_driver_data data;
-      data.drv_status = st->DRVSTATUS();
-      uint8_t spart = data.drv_status & 0xFF;
-      data.is_otpw = !!(spart & _BV(OTPW_bp));
-      data.is_ot = !!(spart & _BV(OT_bp));
-      data.is_s2g = !!(data.drv_status & S2G_bm);
+      const auto ds = data.drv_status = st->DRVSTATUS();
+      uint8_t spart = ds & 0xFF;
+      data.is_otpw = TEST(spart, OTPW_bp);
+      data.is_ot = TEST(spart, OT_bp);
+      data.is_s2g = !!(ds & S2G_bm);
       #if ENABLED(TMC_DEBUG)
-        data.is_stall = !!(spart & _BV(STALL_GUARD_bp));
-        data.is_standstill = !!(spart & _BV(STST_bp));
-        data.sg_result = (data.drv_status & SG_RESULT_bm) >> SG_RESULT_sp;
+        constexpr uint8_t STALL_GUARD_bp = 0;
+        constexpr uint8_t STST_bp = 7, SG_RESULT_sp = 10;
+        constexpr uint32_t SG_RESULT_bm = 0xFFC00; // 10:19
+        data.is_stall = TEST(spart, STALL_GUARD_bp);
+        data.is_standstill = TEST(spart, STST_bp);
+        data.sg_result = (ds & SG_RESULT_bm) >> SG_RESULT_sp;
         data.sg_result_reasonable = true;
       #endif
       return data;
@@ -1068,45 +1209,49 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
   #elif HAS_TMCX1X0
 
     TMC_driver_data TMC_Stepper::get_driver_data(MKTMC* st) {
-      constexpr uint16_t SG_RESULT_bm = 0x3FF; // 0:9
-      constexpr uint8_t STEALTH_bp = 14, CS_ACTUAL_sb = 16;
-      constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
-      constexpr uint8_t STALL_GUARD_bp = 24, OT_bp = 25, OTPW_bp = 26;
+      constexpr uint8_t OT_bp = 25, OTPW_bp = 26;
       constexpr uint32_t S2G_bm = 0x18000000;
-      constexpr uint8_t STST_bp = 31;
+      #if ENABLED(TMC_DEBUG)
+        constexpr uint16_t SG_RESULT_bm = 0x3FF; // 0:9
+        constexpr uint8_t STEALTH_bp = 14;
+        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+        constexpr uint8_t STALL_GUARD_bp = 24;
+        constexpr uint8_t STST_bp = 31;
+      #endif
       TMC_driver_data data;
-      data.drv_status = st->DRV_STATUS();
+      const auto ds = data.drv_status = st->DRV_STATUS();
       #ifdef __AVR__
         // 8-bit optimization saves up to 70 bytes of PROGMEM per axis
         uint8_t spart;
         #if ENABLED(TMC_DEBUG)
-          data.sg_result = data.drv_status & SG_RESULT_bm;
-          spart = data.drv_status >> 8;
-          data.is_stealth = !!(spart & _BV(STEALTH_bp - 8));
-          spart = data.drv_status >> 16;
+          data.sg_result = ds & SG_RESULT_bm;
+          spart = ds >> 8;
+          data.is_stealth = TEST(spart, STEALTH_bp - 8);
+          spart = ds >> 16;
           data.cs_actual = spart & (CS_ACTUAL_bm >> 16);
         #endif
-        spart = data.drv_status >> 24;
-        data.is_ot = !!(spart & _BV(OT_bp - 24));
-        data.is_otpw = !!(spart & _BV(OTPW_bp - 24));
+        spart = ds >> 24;
+        data.is_ot = TEST(spart, OT_bp - 24);
+        data.is_otpw = TEST(spart, OTPW_bp - 24);
         data.is_s2g = !!(spart & (S2G_bm >> 24));
         #if ENABLED(TMC_DEBUG)
-          data.is_stall = !!(spart & _BV(STALL_GUARD_bp - 24));
-          data.is_standstill = !!(spart & _BV(STST_bp - 24));
+          data.is_stall = TEST(spart, STALL_GUARD_bp - 24);
+          data.is_standstill = TEST(spart, STST_bp - 24);
           data.sg_result_reasonable = !data.is_standstill; // sg_result has no reasonable meaning while standstill
         #endif
 
       #else // !__AVR__
 
-        data.is_ot = !!(data.drv_status & _BV(OT_bp));
-        data.is_otpw = !!(data.drv_status & _BV(OTPW_bp));
-        data.is_s2g = !!(data.drv_status & S2G_bm);
+        data.is_ot = TEST(ds, OT_bp);
+        data.is_otpw = TEST(ds, OTPW_bp);
+        data.is_s2g = !!(ds & S2G_bm);
         #if ENABLED(TMC_DEBUG)
-          data.sg_result = data.drv_status & SG_RESULT_bm;
-          data.is_stealth = !!(data.drv_status & _BV(STEALTH_bp));
-          data.cs_actual = (data.drv_status & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
-          data.is_stall = !!(data.drv_status & _BV(STALL_GUARD_bp));
-          data.is_standstill = !!(data.drv_status & _BV(STST_bp));
+          constexpr uint8_t CS_ACTUAL_sb = 16;
+          data.sg_result = ds & SG_RESULT_bm;
+          data.is_stealth = TEST(ds, STEALTH_bp);
+          data.cs_actual = (ds & CS_ACTUAL_bm) >> CS_ACTUAL_sb;
+          data.is_stall = TEST(ds, STALL_GUARD_bp);
+          data.is_standstill = TEST(ds, STST_bp);
           data.sg_result_reasonable = !data.is_standstill; // sg_result has no reasonable meaning while standstill
         #endif
 

@@ -47,7 +47,7 @@
  * Also, there are two support functions that can be called from a developer's C code.
  *
  *    uint16_t check_for_free_memory_corruption(PGM_P const start_free_memory);
- *    void M100_dump_routine(PGM_P const title, PGM_P start, PGM_P end);
+ *    void M100_dump_routine(PGM_P const title, char *start, char *end);
  *
  * Initial version by Roxy-3D
  */
@@ -59,13 +59,13 @@
 
 #ifdef ARDUINO_ARCH_SAM
 
-  extern char   _ebss;
+  extern char _ebss;
 
-  char* end_bss           = &_ebss;
-  char* free_memory_start = end_bss;
-  char* free_memory_end   = 0;
-  char* stacklimit        = 0;
-  char* heaplimit         = 0;
+  char  *end_bss            = &_ebss,
+        *free_memory_start  = end_bss,
+        *free_memory_end    = 0,
+        *stacklimit         = 0,
+        *heaplimit          = 0;
 
   #define MEMORY_END_CORRECTION 0x10000  // need to stay well below 0x20080000 or M100 F crashes
 
@@ -73,11 +73,11 @@
 
   extern char __bss_end;
 
-  char* end_bss           = &__bss_end;
-  char* free_memory_start = end_bss;
-  char* free_memory_end   = 0;
-  char* stacklimit        = 0;
-  char* heaplimit         = 0;
+  char  *end_bss            = &__bss_end,
+        *free_memory_start  = end_bss,
+        *free_memory_end    = 0,
+        *stacklimit         = 0,
+        *heaplimit          = 0;
 
   #define MEMORY_END_CORRECTION 0
 
@@ -95,7 +95,7 @@ char* top_of_stack() {
 }
 
 // Count the number of test bytes at the specified location.
-int32_t count_test_bytes(const char * const start_free_memory) {
+inline int32_t count_test_bytes(const char * const start_free_memory) {
   for (uint32_t i = 0; i < 32000; i++)
     if (char(start_free_memory[i]) != TEST_BYTE)
       return i - 1;
@@ -118,7 +118,7 @@ int32_t count_test_bytes(const char * const start_free_memory) {
    *  the block. If so, it may indicate memory corruption due to a bad pointer.
    *  Unexpected bytes are flagged in the right column.
    */
-  inline void dump_free_memory(const char *start_free_memory, const char *end_free_memory) {
+  inline void dump_free_memory(char *start_free_memory, char *end_free_memory) {
 
     gcode_t tmp = commands.buffer_ring.peek();
 
@@ -142,7 +142,7 @@ int32_t count_test_bytes(const char * const start_free_memory) {
       SERIAL_CHR('|');                      // Point out non test bytes
       for (uint8_t i = 0; i < 16; i++) {
         char ccc = (char)start_free_memory[i]; // cast to char before automatically casting to char on assignment, in case the compiler is broken
-        if (&start_free_memory[i] >= (const char*)tmp.gcode && &start_free_memory[i] < (const char*)(tmp.gcode + sizeof(tmp))) { // Print out ASCII in the command buffer area
+        if (&start_free_memory[i] >= (char*)tmp.gcode && &start_free_memory[i] < (char*)tmp.gcode + sizeof(tmp)) { // Print out ASCII in the command buffer area
           if (!WITHIN(ccc, ' ', 0x7E)) ccc = ' ';
         }
         else { // If not in the command buffer area, flag bytes that don't match the test byte
@@ -157,7 +157,7 @@ int32_t count_test_bytes(const char * const start_free_memory) {
     }
   }
 
-  void M100_dump_routine(PGM_P const title, const char *start, const char *end) {
+  void M100_dump_routine(PGM_P const title, char *start, char *end) {
     SERIAL_ET(title);
     //
     // Round the start and end locations to produce full lines of output
@@ -170,9 +170,10 @@ int32_t count_test_bytes(const char * const start_free_memory) {
 #endif // M100_FREE_MEMORY_DUMPER
 
 inline int check_for_free_memory_corruption(PGM_P const title) {
-  SERIAL_TXT(title);
+  SERIAL_STR(title);
 
-  char *start_free_memory = free_memory_start, *end_free_memory = free_memory_end;
+  char  *start_free_memory = free_memory_start,
+        *end_free_memory = free_memory_end;
   int n = end_free_memory - start_free_memory;
 
   SERIAL_MV("\nfmc() n=", n);
@@ -190,7 +191,7 @@ inline int check_for_free_memory_corruption(PGM_P const title) {
     //   printer.idle();
     HAL::delayMilliseconds(20);
     #if ENABLED(M100_FREE_MEMORY_DUMPER)
-      M100_dump_routine("   Memory corruption detected with sp<Heap\n", (char*)0x1B80, (char*)0x21FF);
+      M100_dump_routine(PSTR("   Memory corruption detected with end_free_memory<Heap\n"), (char*)0x1B80, (char*)0x21FF);
     #endif
   }
 
@@ -206,7 +207,7 @@ inline int check_for_free_memory_corruption(PGM_P const title) {
         block_cnt++;
         SERIAL_MV(" (", block_cnt);
         SERIAL_MV(") found=", j);
-        SERIAL_MSG("   ");
+        SERIAL_EM("   ");
       }
     }
   }
@@ -235,7 +236,7 @@ inline int check_for_free_memory_corruption(PGM_P const title) {
  */
 inline void free_memory_pool_report(char * const start_free_memory, const int32_t size) {
   int32_t max_cnt = -1, block_cnt = 0;
-  char *max_addr = NULL;
+  char *max_addr = nullptr;
   // Find the longest block of test bytes in the buffer
   for (int32_t i = 0; i < size; i++) {
     char *addr = start_free_memory + i;
@@ -258,7 +259,8 @@ inline void free_memory_pool_report(char * const start_free_memory, const int32_
     SERIAL_MV("\nLargest free block is ", max_cnt);
     SERIAL_EMV(" bytes at ", hex_address(max_addr));
   }
-  SERIAL_EMV("check_for_free_memory_corruption() = ", check_for_free_memory_corruption("M100 F "));
+  const int fmc = check_for_free_memory_corruption("M100 F ");
+  SERIAL_EMV("check_for_free_memory_corruption() = ", fmc);
 }
 
 #if ENABLED(M100_FREE_MEMORY_CORRUPTOR)
@@ -268,19 +270,17 @@ inline void free_memory_pool_report(char * const start_free_memory, const int32_
    *  This is useful to check the correctness of the M100 D and the M100 F commands.
    */
   inline void corrupt_free_memory(char *start_free_memory, const uint32_t size) {
-    if (parser.seen('C')) {
-      start_free_memory += 8;
-      const uint32_t near_top = top_of_stack() - start_free_memory - 250, // -250 to avoid interrupt activity that's altered the stack.
-                     j = near_top / (size + 1);
+    start_free_memory += 8;
+    const uint32_t near_top = top_of_stack() - start_free_memory - 250, // -250 to avoid interrupt activity that's altered the stack.
+                   j = near_top / (size + 1);
 
-      SERIAL_EM("Corrupting free memory block.\n");
-      for (uint32_t i = 1; i <= size; i++) {
-        char * const addr = start_free_memory + i * j;
-        *addr = i;
-        SERIAL_MV("\nCorrupting address: ", hex_address(addr));
-      }
-      SERIAL_EOL();
+    SERIAL_EM("Corrupting free memory block.\n");
+    for (uint32_t i = 1; i <= size; i++) {
+      char * const addr = start_free_memory + i * j;
+      *addr = i;
+      SERIAL_MV("\nCorrupting address: ", hex_address(addr));
     }
+    SERIAL_EOL();
   }
 #endif // M100_FREE_MEMORY_CORRUPTOR
 

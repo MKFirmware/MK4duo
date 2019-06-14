@@ -105,9 +105,9 @@ inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
 
 void lcd_tune_fixstep() {
   #if MECH(DELTA)
-    commands.enqueue_and_echo_P(PSTR("G28 B"));
+    commands.inject_P(PSTR("G28 B"));
   #else
-    commands.enqueue_and_echo_P(PSTR("G28 X Y B"));
+    commands.inject_P(PSTR("G28 X Y B"));
   #endif
 }
 

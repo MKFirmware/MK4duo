@@ -109,8 +109,9 @@
 #define L(CODE)       CODE ":\n\t"
 
 // Macros for communication
-#define FSTRINGVALUE(var,value) const char var[] PROGMEM = value
-#define FSTRINGVAR(var)         extern const char var[] PROGMEM
+#define SFSTRINGVALUE(var,value)  static const char var[] PROGMEM = value
+#define FSTRINGVALUE(var,value)   const char var[] PROGMEM = value
+#define FSTRINGVAR(var)           extern const char var[] PROGMEM
 
 // Macros for bit masks
 #undef _BV

@@ -86,7 +86,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define X_DIR_READ()                READ(X_DIR_PIN)
 #endif
 #define X_STEP_INIT()                 SET_OUTPUT(X_STEP_PIN)
-#define X_STEP_WRITE(STATE)           WRITE(X_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(X) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define X_STEP_WRITE(STATE)         do { if(STATE) TOGGLE(X_STEP_PIN); } while(0)
+#else
+  #define X_STEP_WRITE(STATE)         WRITE(X_STEP_PIN,STATE)
+#endif
 #define X_STEP_READ()                 READ(X_STEP_PIN)
 
 // Y Stepper
@@ -118,7 +122,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Y_DIR_READ()                READ(Y_DIR_PIN)
 #endif
 #define Y_STEP_INIT()                 SET_OUTPUT(Y_STEP_PIN)
-#define Y_STEP_WRITE(STATE)           WRITE(Y_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(Y) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define Y_STEP_WRITE(STATE)         do { if(STATE) TOGGLE(Y_STEP_PIN); } while(0)
+#else
+  #define Y_STEP_WRITE(STATE)         WRITE(Y_STEP_PIN,STATE)
+#endif
 #define Y_STEP_READ()                 READ(Y_STEP_PIN)
 
 // Z Stepper
@@ -150,7 +158,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define Z_DIR_READ()                READ(Z_DIR_PIN)
 #endif
 #define Z_STEP_INIT()                 SET_OUTPUT(Z_STEP_PIN)
-#define Z_STEP_WRITE(STATE)           WRITE(Z_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(Z) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define Z_STEP_WRITE(STATE)         do { if(STATE) TOGGLE(Z_STEP_PIN); } while(0)
+#else
+  #define Z_STEP_WRITE(STATE)         WRITE(Z_STEP_PIN,STATE)
+#endif
 #define Z_STEP_READ()                 READ(Z_STEP_PIN)
 
 // X2 Stepper
@@ -183,7 +195,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define X2_DIR_READ()             READ(X2_DIR_PIN)
   #endif
   #define X2_STEP_INIT()              SET_OUTPUT(X2_STEP_PIN)
-  #define X2_STEP_WRITE(STATE)        WRITE(X2_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(X2) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define X2_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(X2_STEP_PIN); } while(0)
+  #else
+    #define X2_STEP_WRITE(STATE)      WRITE(X2_STEP_PIN,STATE)
+  #endif
   #define X2_STEP_READ()              READ(X2_STEP_PIN)
 #endif
 
@@ -217,7 +233,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Y2_DIR_READ()             READ(Y2_DIR_PIN)
   #endif
   #define Y2_STEP_INIT()              SET_OUTPUT(Y2_STEP_PIN)
-  #define Y2_STEP_WRITE(STATE)        WRITE(Y2_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(Y2) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define Y2_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(Y2_STEP_PIN); } while(0)
+  #else
+    #define Y2_STEP_WRITE(STATE)      WRITE(Y2_STEP_PIN,STATE)
+  #endif
   #define Y2_STEP_READ()              READ(Y2_STEP_PIN)
 #endif
 
@@ -251,7 +271,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z2_DIR_READ()             READ(Z2_DIR_PIN)
   #endif
   #define Z2_STEP_INIT()              SET_OUTPUT(Z2_STEP_PIN)
-  #define Z2_STEP_WRITE(STATE)        WRITE(Z2_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(Z2) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define Z2_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(Z2_STEP_PIN); } while(0)
+  #else
+    #define Z2_STEP_WRITE(STATE)      WRITE(Z2_STEP_PIN,STATE)
+  #endif
   #define Z2_STEP_READ()              READ(Z2_STEP_PIN)
 #endif
 
@@ -285,7 +309,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z3_DIR_READ()             READ(Z3_DIR_PIN)
   #endif
   #define Z3_STEP_INIT()              SET_OUTPUT(Z3_STEP_PIN)
-  #define Z3_STEP_WRITE(STATE)        WRITE(Z3_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(Z3) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define Z3_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(Z3_STEP_PIN); } while(0)
+  #else
+    #define Z3_STEP_WRITE(STATE)      WRITE(Z3_STEP_PIN,STATE)
+  #endif
   #define Z3_STEP_READ()              READ(Z3_STEP_PIN)
 #endif
 
@@ -315,7 +343,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
     #define Z4_DIR_READ()             READ(Z4_DIR_PIN)
   #endif
   #define Z4_STEP_INIT()              SET_OUTPUT(Z4_STEP_PIN)
-  #define Z4_STEP_WRITE(STATE)        WRITE(Z4_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(Z4) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define Z4_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(Z4_STEP_PIN); } while(0)
+  #else
+    #define Z4_STEP_WRITE(STATE)      WRITE(Z4_STEP_PIN,STATE)
+  #endif
   #define Z4_STEP_READ()              READ(Z4_STEP_PIN)
 #endif
 
@@ -352,7 +384,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E0_STEP_READ()              READ(E0_STEP_PIN)
 #else
   #define E0_STEP_INIT()              SET_OUTPUT(E0_STEP_PIN)
-  #define E0_STEP_WRITE(STATE)        WRITE(E0_STEP_PIN,STATE)
+  #if AXIS_HAS_TMC(E0) && ENABLED(SQUARE_WAVE_STEPPING)
+    #define E0_STEP_WRITE(STATE)      do { if(STATE) TOGGLE(E0_STEP_PIN); } while(0)
+  #else
+    #define E0_STEP_WRITE(STATE)      WRITE(E0_STEP_PIN,STATE)
+  #endif
   #define E0_STEP_READ()              READ(E0_STEP_PIN)
 #endif
 
@@ -385,7 +421,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E1_DIR_READ()               READ(E1_DIR_PIN)
 #endif
 #define E1_STEP_INIT()                SET_OUTPUT(E1_STEP_PIN)
-#define E1_STEP_WRITE(STATE)          WRITE(E1_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(E1) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define E1_STEP_WRITE(STATE)        do { if(STATE) TOGGLE(E1_STEP_PIN); } while(0)
+#else
+  #define E1_STEP_WRITE(STATE)        WRITE(E1_STEP_PIN,STATE)
+#endif
 #define E1_STEP_READ()                READ(E1_STEP_PIN)
 
 // E2 Stepper
@@ -417,7 +457,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E2_DIR_READ()               READ(E2_DIR_PIN)
 #endif
 #define E2_STEP_INIT()                SET_OUTPUT(E2_STEP_PIN)
-#define E2_STEP_WRITE(STATE)          WRITE(E2_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(E2) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define E2_STEP_WRITE(STATE)        do { if(STATE) TOGGLE(E2_STEP_PIN); } while(0)
+#else
+  #define E2_STEP_WRITE(STATE)        WRITE(E2_STEP_PIN,STATE)
+#endif
 #define E2_STEP_READ()                READ(E2_STEP_PIN)
 
 // E3 Stepper
@@ -449,7 +493,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E3_DIR_READ()               READ(E3_DIR_PIN)
 #endif
 #define E3_STEP_INIT()                SET_OUTPUT(E3_STEP_PIN)
-#define E3_STEP_WRITE(STATE)          WRITE(E3_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(E3) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define E3_STEP_WRITE(STATE)        do { if(STATE) TOGGLE(E3_STEP_PIN); } while(0)
+#else
+  #define E3_STEP_WRITE(STATE)        WRITE(E3_STEP_PIN,STATE)
+#endif
 #define E3_STEP_READ()                READ(E3_STEP_PIN)
 
 // E4 Stepper
@@ -481,7 +529,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E4_DIR_READ()               READ(E4_DIR_PIN)
 #endif
 #define E4_STEP_INIT()                SET_OUTPUT(E4_STEP_PIN)
-#define E4_STEP_WRITE(STATE)          WRITE(E4_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(E4) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define E4_STEP_WRITE(STATE)        do { if(STATE) TOGGLE(E4_STEP_PIN); } while(0)
+#else
+  #define E4_STEP_WRITE(STATE)        WRITE(E4_STEP_PIN,STATE)
+#endif
 #define E4_STEP_READ()                READ(E4_STEP_PIN)
 
 // E5 Stepper
@@ -513,7 +565,11 @@ void reset_stepper_drivers();    // Called by eeprom.load / eeprom.reset
   #define E5_DIR_READ()               READ(E5_DIR_PIN)
 #endif
 #define E5_STEP_INIT()                SET_OUTPUT(E5_STEP_PIN)
-#define E5_STEP_WRITE(STATE)          WRITE(E5_STEP_PIN,STATE)
+#if AXIS_HAS_TMC(E5) && ENABLED(SQUARE_WAVE_STEPPING)
+  #define E5_STEP_WRITE(STATE)        do { if(STATE) TOGGLE(E5_STEP_PIN); } while(0)
+#else
+  #define E5_STEP_WRITE(STATE)        WRITE(E5_STEP_PIN,STATE)
+#endif
 #define E5_STEP_READ()                READ(E5_STEP_PIN)
 
 /**

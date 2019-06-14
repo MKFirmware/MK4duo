@@ -184,6 +184,7 @@
 
 // Nextion Commands
 #include "nextion/m35.h"                  // Upload firmware to Nextion from SD
+#include "nextion/m36.h"                  // Print pause, resume and stop from Nextion
 #include "nextion/m995_m996.h"            // Setting GFX for Nextion
 
 // Power Commands
