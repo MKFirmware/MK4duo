@@ -57,7 +57,7 @@ LcdUI lcdui;
   #endif
 #endif
 
-#if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
+#if HAS_SD_SUPPORT
   uint8_t lcd_sd_status;
 #endif
 
@@ -156,44 +156,44 @@ millis_l next_button_update_ms;
     SETCURSOR(x, y);
     if (!string) return;
 
+    auto _newline = [&x, &y]() {
+      x = 0; y++;               // move x to string len (plus space)
+      SETCURSOR(0, y);          // simulate carriage return
+    };
+
     uint8_t *p = (uint8_t*)string;
+    wchar_t ch;
     if (wordwrap) {
-      uint8_t *wrd = p, c = 0;
+      uint8_t *wrd = nullptr, c = 0;
+      // find the end of the part
       for (;;) {
-        wchar_t ch;
+        if (!wrd) wrd = p;            // Get word start /before/ advancing
         p = get_utf8_value_cb(p, cb_read_byte, &ch);
-        const bool eol = !ch;
+        const bool eol = !ch;         // zero ends the string
         if (eol || ch == ' ' || ch == '-' || ch == '+' || ch == '.') {
-          if (!c && ch == ' ') continue; // collapse extra spaces
-          if (x + c > LCD_WIDTH && c < (LCD_WIDTH) * 3 / 4) { // should it wrap?
-            x = 0; y++;               // move x to string len (plus space)
-            SETCURSOR(0, y);          // simulate carriage return
-          }
+          if (!c && ch == ' ') { if (wrd) wrd++; continue; } // collapse extra spaces
+          // Past the right and the word is not too long?
+          if (x + c > LCD_WIDTH && x >= (LCD_WIDTH) / 4) _newline(); // should it wrap?
           c += !eol;                  // +1 so the space will be printed
           x += c;                     // advance x to new position
-          while (c--) {               // character countdown
+          while (c) {                 // character countdown
+            --c;                      // count down to zero
             wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
-            lcd_put_wchar(ch);        // word (plus space) to the LCD
+            lcd_put_wchar(ch);        // character to the LCD
           }
-          lcd_put_wchar(' ');
-          if (eol) break;             // all done
-          wrd = p;                    // set up for next word
+          if (eol) break;             // all done!
+          wrd = nullptr;              // set up for next word
         }
-        else
-          c++;                        // count word characters
+        else c++;                     // count word characters
       }
     }
     else {
       for (;;) {
-        wchar_t ch;
         p = get_utf8_value_cb(p, cb_read_byte, &ch);
         if (!ch) break;
         lcd_put_wchar(ch);
         x++;
-        if (x >= LCD_WIDTH) {
-          x = 0; y++;
-          SETCURSOR(0, y);
-        }
+        if (x >= LCD_WIDTH) _newline();
       }
     }
   }
@@ -257,8 +257,10 @@ void LcdUI::init() {
 
   #endif // !HAS_DIGITAL_BUTTONS
 
-  #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
-    SET_INPUT_PULLUP(SD_DETECT_PIN);
+  #if HAS_SD_SUPPORT
+    #if PIN_EXISTS(SD_DETECT)
+      SET_INPUT_PULLUP(SD_DETECT_PIN);
+    #endif
     lcd_sd_status = 2; // UNKNOWN
   #endif
 
@@ -676,7 +678,7 @@ void LcdUI::update() {
 
   #endif // HAS_LCD_MENU
 
-  #if HAS_SD_SUPPORT && PIN_EXISTS(SD_DETECT)
+  #if HAS_SD_SUPPORT
 
     const uint8_t sd_status = (uint8_t)IS_SD_INSERTED();
     if (sd_status != lcd_sd_status && detected()) {
@@ -692,19 +694,23 @@ void LcdUI::update() {
         else
           set_status_P(PSTR(MSG_SD_INSERTED));
       }
-      else {
-        card.unmount();
-        if (old_sd_status != 2) {
-          set_status_P(PSTR(MSG_SD_REMOVED));
-          if (!on_status_screen()) return_to_status();
+      #if PIN_EXISTS(SD_DETECT)
+        else {
+          card.unmount();
+          if (old_sd_status != 2) {
+            set_status_P(PSTR(MSG_SD_REMOVED));
+            if (!on_status_screen()) return_to_status();
+          }
         }
-      }
+        init_lcd(); // May revive the LCD if static electricity killed it
+      #endif
 
       refresh();
-      init_lcd(); // May revive the LCD if static electricity killed it
+      next_lcd_update_ms = millis();
+
     }
 
-  #endif // HAS_SD_SUPPORT && SD_DETECT_PIN
+  #endif // HAS_SD_SUPPORT
 
   const millis_l ms = millis();
   if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL)

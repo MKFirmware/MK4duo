@@ -165,7 +165,7 @@ void menu_tmc();
     void _lcd_autotune(const int8_t h) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h, autotune_temp[h]);
-      lcd_enqueue_command(cmd);
+      lcd_enqueue_one_now(cmd);
     }
   #endif
 
@@ -173,7 +173,7 @@ void menu_tmc();
     void _lcd_autotune_bed(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), t, autotune_temp_bed[t]);
-      lcd_enqueue_command(cmd);
+      lcd_enqueue_one_now(cmd);
     }
   #endif
 
@@ -181,7 +181,7 @@ void menu_tmc();
     void _lcd_autotune_chamber(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chamber[t]);
-      lcd_enqueue_command(cmd);
+      lcd_enqueue_one_now(cmd);
     }
   #endif
 

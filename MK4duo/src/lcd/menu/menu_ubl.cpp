@@ -106,10 +106,10 @@ void _lcd_ubl_build_custom_mesh() {
   commands.inject_P(PSTR("G28"));
   #if BEDS > 0
     sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
-    lcd_enqueue_command(UBL_LCD_GCODE);
+    lcd_enqueue_one_now(UBL_LCD_GCODE);
   #endif
   sprintf_P(UBL_LCD_GCODE, PSTR("M109 S%i"), custom_hotend_temp);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
   commands.inject_P(PSTR("G29 P1"));
 }
 
@@ -140,7 +140,7 @@ void _lcd_ubl_adjust_height_cmd() {
   const int ind = ubl_height_amount > 0 ? 9 : 10;
   strcpy_P(UBL_LCD_GCODE, PSTR("G29 P6 C -"));
   sprintf_P(&UBL_LCD_GCODE[ind], PSTR(".%i"), ABS(ubl_height_amount));
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -191,8 +191,8 @@ void _lcd_ubl_validate_custom_mesh() {
     #endif
   ;
   sprintf_P(UBL_LCD_GCODE, PSTR("G26 C B%i H%i P"), temp, custom_hotend_temp);
-  lcd_enqueue_commands_P(PSTR("G28"));
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now_P(PSTR("G28"));
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -225,7 +225,7 @@ void _lcd_ubl_validate_mesh() {
 void _lcd_ubl_grid_level_cmd() {
   char UBL_LCD_GCODE[10];
   sprintf_P(UBL_LCD_GCODE, PSTR("G29 J%i"), side_points);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -266,7 +266,7 @@ void _lcd_ubl_mesh_leveling() {
 void _lcd_ubl_fillin_amount_cmd() {
   char UBL_LCD_GCODE[16];
   sprintf_P(UBL_LCD_GCODE, PSTR("G29 P3 R C.%i"), ubl_fillin_amount);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -358,9 +358,9 @@ void _lcd_ubl_build_mesh() {
 void _lcd_ubl_load_mesh_cmd() {
   char UBL_LCD_GCODE[25];
   sprintf_P(UBL_LCD_GCODE, PSTR("G29 L%i"), ubl_storage_slot);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
   sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_LOADED), ubl_storage_slot);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -369,9 +369,9 @@ void _lcd_ubl_load_mesh_cmd() {
 void _lcd_ubl_save_mesh_cmd() {
   char UBL_LCD_GCODE[25];
   sprintf_P(UBL_LCD_GCODE, PSTR("G29 S%i"), ubl_storage_slot);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
   sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_SAVED), ubl_storage_slot);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**
@@ -419,7 +419,7 @@ void _lcd_ubl_map_lcd_edit_cmd() {
   dtostrf(ubl.mesh_index_to_xpos(x_plot), 0, 2, str);
   dtostrf(ubl.mesh_index_to_ypos(y_plot), 0, 2, str2);
   snprintf_P(UBL_LCD_GCODE, sizeof(UBL_LCD_GCODE), PSTR("G29 P4 X%s Y%s R%i"), str, str2, n_edit_pts);
-  lcd_enqueue_command(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(UBL_LCD_GCODE);
 }
 
 /**

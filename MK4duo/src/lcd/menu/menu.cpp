@@ -453,13 +453,13 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)
 
-  void lcd_enqueue_command(const char * const cmd) {
+  void lcd_enqueue_one_now(const char * const cmd) {
     no_reentry = true;
     commands.enqueue_one_now(cmd);
     no_reentry = false;
   }
 
-  void lcd_enqueue_commands_P(PGM_P const cmd) {
+  void lcd_enqueue_one_now_P(PGM_P const cmd) {
     no_reentry = true;
     commands.enqueue_now_P(cmd);
     no_reentry = false;

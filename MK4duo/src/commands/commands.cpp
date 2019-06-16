@@ -56,9 +56,6 @@ void Commands::get_available() {
 
   if (buffer_ring.isFull()) return;
 
-  // if any immediate commands remain, don't get other commands yet
-  if (drain_injected()) return;
-
   get_serial();
 
   #if HAS_SD_SUPPORT
@@ -68,6 +65,10 @@ void Commands::get_available() {
 
 void Commands::advance_queue() {
 
+  // Process immediate commands
+  if (process_injected()) return;
+
+  // Return if the G-code buffer is empty
   if (!buffer_ring.count()) return;
 
   #if HAS_SD_SUPPORT
@@ -114,31 +115,25 @@ void Commands::clear_queue() {
 
 void Commands::inject_P(PGM_P const pgcode) {
   injected_commands_P = pgcode;
-  (void)drain_injected(); // first command executed asap (when possible)
-}
-
-bool Commands::enqueue_one(const char * cmd) {
-
-  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
-    return true;
-
-  if (enqueue(cmd)) {
-    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
-    SERIAL_CHR('"');
-    SERIAL_EOL();
-    return true;
-  }
-
-  return false;
-}
-
-void Commands::enqueue_now_P(PGM_P const cmd) {
-  inject_P(cmd);
-  while (drain_injected()) printer.idle();
 }
 
 void Commands::enqueue_one_now(const char * cmd) {
   while (!enqueue_one(cmd)) printer.idle();
+}
+
+void Commands::enqueue_now_P(PGM_P const pgcode) {
+  size_t i = 0;
+  PGM_P p = pgcode;
+  for (;;) {
+    char c;
+    while ((c = p[i]) && c != '\n'); i++;
+    char cmd[i + 1];
+    memcpy_P(cmd, p, i);
+    cmd[i] = '\0';
+    enqueue_one_now(cmd);
+    if (!c) break;
+    p += i + 1;
+  }
 }
 
 void Commands::process_now_P(PGM_P pgcode) {
@@ -309,8 +304,8 @@ void Commands::ok_to_send() {
       while (NUMERIC_SIGNED(*p))
         SERIAL_CHR(*p++);
     }
-    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.moves_planned() - 1, DEC);
-    SERIAL_MV(" B", BUFSIZE - buffer_ring.count(), DEC);
+    SERIAL_MV(" P", BLOCK_BUFFER_SIZE - planner.moves_planned() - 1);
+    SERIAL_MV(" B", BUFSIZE - buffer_ring.count());
   #endif
 
   SERIAL_EOL();
@@ -328,12 +323,6 @@ void Commands::get_serial() {
       return;  // do nothing while door is open
     }
   #endif
-
-  // Buffer Ring is full
-  if (buffer_ring.isFull()) {
-    printer.keepalive(InProcess);
-    return;
-  }
 
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
@@ -614,6 +603,21 @@ void Commands::gcode_line_error(PGM_P err, const int8_t port) {
   SERIAL_PORT(-1);
 }
 
+bool Commands::enqueue_one(const char * cmd) {
+
+  if (*cmd == 0 || *cmd == '\n' || *cmd == '\r')
+    return true;
+
+  if (enqueue(cmd)) {
+    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
+    SERIAL_CHR('"');
+    SERIAL_EOL();
+    return true;
+  }
+
+  return false;
+}
+
 bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2*/) {
   if (*cmd == ';' || buffer_ring.isFull()) return false;
   gcode_t temp_cmd;
@@ -624,20 +628,25 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
   return true;
 }
 
-bool Commands::drain_injected() {
-  if (injected_commands_P != nullptr) {
-    size_t i = 0;
-    char c, cmd[60];
-    strncpy_P(cmd, injected_commands_P, sizeof(cmd) - 1);
-    cmd[sizeof(cmd) - 1] = '\0';
-    while ((c = cmd[i]) && c != '\n') i++; // find the end of this gcode command
-    cmd[i] = '\0';
-    if (enqueue_one(cmd))     // success?
-      injected_commands_P = c ? injected_commands_P + i + 1 : nullptr; // next command or done
-    else
-      return true;  // buffer is full (or command is comment);
-  }
-  return false;     // return whether any more remain
+bool Commands::process_injected() {
+
+  if (injected_commands_P == nullptr) return false;
+
+  char c;
+  size_t i = 0;
+  while ((c = injected_commands_P[i]) && c != '\n') i++;
+  if (!i) return false;
+
+  char cmd[i + 1];
+  memcpy_P(cmd, injected_commands_P, i);
+  cmd[i] = '\0';
+
+  injected_commands_P = c ? injected_commands_P + i + 1 : nullptr;
+
+  parser.parse(cmd);
+  process_parsed();
+
+  return true;
 }
 
 /**
