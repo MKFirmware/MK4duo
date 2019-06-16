@@ -431,8 +431,8 @@ void lcd_draw_homing();
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)
-  void lcd_enqueue_command(const char * const cmd);
-  void lcd_enqueue_commands_P(PGM_P const cmd);
+  void lcd_enqueue_one_now(const char * const cmd);
+  void lcd_enqueue_one_now_P(PGM_P const cmd);
 #endif
 
 #if ENABLED(LEVEL_BED_CORNERS)

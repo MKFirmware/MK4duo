@@ -133,7 +133,7 @@ void PrintCounter::showStats() {
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     SERIAL_MSG(MSG_STATS);
-    SERIAL_MV(CFG, "Watt/h consumed:", data.consumptionHour);
+    SERIAL_MV("Watt/h consumed:", data.consumptionHour);
     SERIAL_EM(" Wh");
   #endif
 

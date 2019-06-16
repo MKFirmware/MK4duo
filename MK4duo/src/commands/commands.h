@@ -112,26 +112,21 @@ class Commands {
     static void inject_P(PGM_P const pgcode);
 
     /**
-     * Enqueue with Serial Echo
-     */
-    static bool enqueue_one(const char * cmd);
-
-    /**
-     * Enqueue from program memory and return only when commands are actually enqueued
-     */
-    static void enqueue_now_P(PGM_P const cmd);
-
-    /**
      * Enqueue and return only when commands are actually enqueued
      */
     static void enqueue_one_now(const char * cmd);
 
     /**
+     * Enqueue from program memory and return only when commands are actually enqueued
+     */
+    static void enqueue_now_P(PGM_P const pgcode);
+
+    /**
      * Run a series of commands, bypassing the command queue to allow
      * G-code "macros" to be called from within other G-code handlers.
      */
-    static void process_now_P(PGM_P pgcode);
     static void process_now(char * gcode);
+    static void process_now_P(PGM_P pgcode);
 
     /**
      * Set XYZE mechanics.destination and mechanics.feedrate_mm_s from the current GCode command
@@ -214,6 +209,12 @@ class Commands {
     static void gcode_line_error(PGM_P err, const int8_t tmp_port);
 
     /**
+     * Enqueue with Serial Echo
+     * Return true on success
+     */
+    static bool enqueue_one(const char * cmd);
+
+    /**
      * Copy a command from RAM into the main command buffer.
      * Return true if the command was successfully added.
      * Return false for a full buffer, or if the 'command' is a comment.
@@ -221,10 +222,9 @@ class Commands {
     static bool enqueue(const char * cmd, bool say_ok=false, int8_t port=-2);
 
     /**
-     * Inject the next "immediate" command, when possible, onto the front of the buffer_ring.
-     * Return true if any immediate commands remain to inject.
+     * Process the next "immediate" command
      */
-    static bool drain_injected();
+    static bool process_injected();
 
     /**
      * Process parsed gcode and execute command
