@@ -47,7 +47,7 @@ inline void gcode_M201(void) {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = (i == E_AXIS ? E_INDEX : i);
+      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
       #if MECH(DELTA)
         const float value = parser.value_per_axis_unit((AxisEnum)a);
         if (i == E_AXIS)
