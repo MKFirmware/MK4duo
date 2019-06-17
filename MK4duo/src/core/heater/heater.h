@@ -99,7 +99,7 @@ class Heater {
 
     millis_s        watch_next_ms;
 
-    uint16_t        idle_timeout_time;
+    millis_l        idle_timeout_ms;
 
     bool            Pidtuning;
 
@@ -119,7 +119,8 @@ class Heater {
     #if HAS_AD8495 || HAS_AD595
       void print_M595();
     #endif
-    void start_idle_timer(const millis_l timeout_time);
+
+    void start_idle_timer(const millis_l &ms);
     void reset_idle_timer();
 
     void thermal_runaway_protection();
@@ -196,6 +197,8 @@ class Heater {
     void _temp_error(PGM_P const serial_msg, PGM_P const lcd_msg);
     void min_temp_error();
     void max_temp_error();
+
+    void update_idle_timer();
 
 };
 

@@ -74,7 +74,6 @@ enum BusyStateEnum : uint8_t {
   NotBusy,          // Not in a handler
   InHandler,        // Processing a GCode
   InProcess,        // Known to be blocking command input (as in G29)
-  WaitHeater,       // Wait heater
   PausedforUser,    // Blocking pending any input
   PausedforInput,   // Blocking pending text input
   DoorOpen          // Door open

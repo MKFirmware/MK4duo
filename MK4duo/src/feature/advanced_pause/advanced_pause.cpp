@@ -212,7 +212,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
         if (!bed_timed_out) {
           #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
             LOOP_BED()
-              bed_timed_out = beds[h].isIdle();
+              bed_timed_out |= beds[h].isIdle();
           #endif
         }
         else {
@@ -574,7 +574,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
 
   if (printer.debugDryrun()) return true;
 
-  #if HAS_LCD
+  #if HAS_LCD_MENU
     lcd_pause_show_message(PAUSE_MESSAGE_HEATING, tmode);
   #else
     UNUSED(tmode);
@@ -592,7 +592,6 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
 #if HAS_BUZZER
 
   void AdvancedPause::filament_change_beep(const int8_t max_beep_count, const bool init/*=false*/) {
-    if (mode == PAUSE_MODE_PAUSE_PRINT) return;
     static millis_l next_buzz_ms  = 0;
     static int8_t   runout_beep   = 0;
 
