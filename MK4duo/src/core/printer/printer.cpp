@@ -961,23 +961,20 @@ void Printer::handle_safety_watch() {
    */
   void Printer::host_keepalive_tick() {
     static millis_s host_keepalive_ms = millis();
-    if (!isSuspendAutoreport() && expired(&host_keepalive_ms, millis_s(host_keepalive_time * 1000U))) {
+    if (!isSuspendAutoreport() && expired(&host_keepalive_ms, millis_s(host_keepalive_time * 1000U)) && busy_state != NotBusy) {
       switch (busy_state) {
         case InHandler:
         case InProcess:
           SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
-          break;
-        case WaitHeater:
-          SERIAL_LM(BUSY, MSG_BUSY_WAIT_HEATER);
-          break;
-        case DoorOpen:
-          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
           break;
         case PausedforUser:
           SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
           break;
         case PausedforInput:
           SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_INPUT);
+          break;
+        case DoorOpen:
+          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
           break;
         default:
           break;

@@ -51,7 +51,7 @@ void Heater::init() {
 
   watch_target_temp     = 0;
   watch_next_ms         = 0;
-  idle_timeout_time     = 0;
+  idle_timeout_ms       = 0;
   Pidtuning             = false;
 
   thermal_runaway_state = TRInactive;
@@ -95,7 +95,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
   #if TEMP_RESIDENCY_TIME > 0
     millis_l residency_start_ms = 0;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || (int32_t(now - residency_start_ms) <= (TEMP_RESIDENCY_TIME) * 1000UL))
+    #define TEMP_CONDITIONS (!residency_start_ms || (int32_t(now - (residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL)) < 0))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
@@ -107,7 +107,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
             next_cool_check_ms  = 0;
 
   const bool oldReport = printer.isAutoreportTemp();
-  
+
   printer.setWaitForHeatUp(true);
   printer.setAutoreportTemp(true);
 
@@ -125,7 +125,6 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
     now = millis();
     printer.idle();
-    printer.keepalive(WaitHeater);
     printer.reset_move_ms();  // Keep steppers powered
 
     const float temp = current_temperature;
@@ -179,10 +178,9 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
 void Heater::get_output() {
 
-  static millis_l idle_timeout_ms = millis();
-  static millis_s next_check_ms   = millis();
+  static millis_s next_check_ms = millis();
 
-  if (!isIdle() && idle_timeout_time && expired(&idle_timeout_ms, idle_timeout_time)) setIdle(true);
+  update_idle_timer();
 
   if (isActive()) {
 
@@ -326,7 +324,6 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
     watchdog.reset(); // Reset the watchdog
     printer.idle();
-    printer.keepalive(WaitHeater);
 
     update_current_temperature();
 
@@ -622,15 +619,15 @@ void Heater::print_M306() {
   }
 #endif
 
-void Heater::start_idle_timer(const millis_l timeout_time) {
-  idle_timeout_time = timeout_time;
+void Heater::start_idle_timer(const millis_l &ms) {
+  idle_timeout_ms = millis() + ms;
   setIdle(false);
 }
 
 void Heater::reset_idle_timer() {
-  idle_timeout_time = 0;
+  idle_timeout_ms = 0;
   setIdle(false);
-  start_watching();
+  //start_watching();
 }
 
 void Heater::thermal_runaway_protection() {
@@ -773,6 +770,11 @@ void Heater::max_temp_error() {
     #endif
     default: break;
   }
+}
+
+void Heater::update_idle_timer() {
+  if (!isIdle() && idle_timeout_ms && (int32_t(millis() - idle_timeout_ms) >= 0))
+    setIdle(true);
 }
 
 #endif // HEATER_COUNT > 0
