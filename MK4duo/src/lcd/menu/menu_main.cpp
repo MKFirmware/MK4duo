@@ -247,7 +247,7 @@ void menu_main() {
     MENU_ITEM(submenu, SERVICE_NAME_3, menu_service3);
   #endif
 
-  #if ENABLED(GAME_BRICKOUT) || ENABLED(GAME_INVADERS) || ENABLED(GAME_SNAKE) || ENABLED(GAME_MAZE)
+  #if HAS_GAMES
     MENU_ITEM(submenu, "Game", (
       #if HAS_GAME_MENU
         menu_game

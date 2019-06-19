@@ -107,15 +107,12 @@
 #endif
 
 // Check auto bed leveling sub-options, especially probe points
-#if ABL_GRID
-
-  #if DISABLED(DELTA_PROBEABLE_RADIUS)
-    // Be sure points are in the right order
-    #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
-      #error "DEPENDENCY ERROR: LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
-    #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
-      #error "DEPENDENCY ERROR: FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
-    #endif
+#if ABL_GRID && DISABLED(DELTA_PROBEABLE_RADIUS)
+  // Be sure points are in the right order
+  #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
+    #error "DEPENDENCY ERROR: LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
+  #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
+    #error "DEPENDENCY ERROR: FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
   #endif
 #endif
 
