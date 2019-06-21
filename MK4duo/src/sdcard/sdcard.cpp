@@ -96,7 +96,7 @@ LsActionEnum SDCard::lsAction   = LS_Count;
       #if ENABLED(SDSORT_DYNAMIC_RAM)
         uint8_t *SDCard::isDir;
       #elif ENABLED(SDSORT_CACHE_NAMES) || DISABLED(SDSORT_USES_STACK)
-        uint8_t SDCard::isDir[(SDSORT_LIMIT + 7)>>3];
+        uint8_t SDCard::isDir[(SDSORT_LIMIT + 7) >> 3];
       #endif
     #endif
 
@@ -614,7 +614,7 @@ uint16_t SDCard::get_num_Files() {
 
       // Never sort more than the max allowed
       // If you use folders to organize, 20 may be enough
-      if (fileCnt > SDSORT_LIMIT) fileCnt = SDSORT_LIMIT;
+      NOMORE(fileCnt, uint16_t(SDSORT_LIMIT));
 
       // Sort order is always needed. May be static or dynamic.
       #if ENABLED(SDSORT_DYNAMIC_RAM)

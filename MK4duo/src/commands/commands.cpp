@@ -53,11 +53,8 @@ void Commands::flush_and_request_resend() {
 }
 
 void Commands::get_available() {
-
   if (buffer_ring.isFull()) return;
-
   get_serial();
-
   #if HAS_SD_SUPPORT
     get_sdcard();
   #endif
