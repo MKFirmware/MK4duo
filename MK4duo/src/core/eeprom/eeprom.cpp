@@ -823,7 +823,6 @@ void EEPROM::post_process() {
         SERIAL_MT("(EEPROM=", stored_ver);
         SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
       #endif
-      reset();
       eeprom_error = true;
     }
     else {
