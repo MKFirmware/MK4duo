@@ -173,7 +173,7 @@ class SDCard {
     static void getfilename(uint16_t nr, PGM_P const match=NULL);
     static void getAbsFilename(char* name);
     static void startFileprint();
-    static void openAndPrintFile(PGM_P name);
+    static void openAndPrintFile(const char *name);
     static void stop_print();
     static void write_command(char* buf);
     static void print_status();
