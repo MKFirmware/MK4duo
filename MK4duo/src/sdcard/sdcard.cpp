@@ -194,9 +194,9 @@ void SDCard::ls() {
   root.ls();
 }
 
-void SDCard::getfilename(uint16_t nr, PGM_P const match/*=NULL*/) {
+void SDCard::getfilename(uint16_t nr, PGM_P const match/*=nullptr*/) {
   #if ENABLED(SDCARD_SORT_ALPHA) && ENABLED(SDSORT_CACHE_NAMES)
-    if (match != NULL) {
+    if (match != nullptr) {
       while (nr < sort_count) {
         if (strcasecmp(match, sortshort[nr]) == 0) break;
         nr++;
@@ -213,7 +213,7 @@ void SDCard::getfilename(uint16_t nr, PGM_P const match/*=NULL*/) {
   lsDive(workDir, match);
 }
 
-void SDCard::getAbsFilename(char* name) {
+void SDCard::getAbsFilename(char * name) {
 
   *name++ = '/';
   uint8_t cnt = 1;
@@ -240,7 +240,7 @@ void SDCard::startFileprint() {
   }
 }
 
-void SDCard::openAndPrintFile(const char *name) {
+void SDCard::openAndPrintFile(const char * name) {
   char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
   sprintf_P(cmd, PSTR("M23 %s"), name);
   for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
@@ -281,7 +281,7 @@ void SDCard::print_status() {
     SERIAL_EM(MSG_SD_NOT_PRINTING);
 }
 
-void SDCard::startWrite(char *filename, const bool silent/*=false*/) {
+void SDCard::startWrite(char * filename, const bool silent/*=false*/) {
   if (!isDetected()) return;
 
   fat.chdir();
@@ -300,7 +300,7 @@ void SDCard::startWrite(char *filename, const bool silent/*=false*/) {
   }
 }
 
-void SDCard::deleteFile(char *filename) {
+void SDCard::deleteFile(char * filename) {
   if (!isDetected()) return;
   setPrinting(false);
   gcode_file.close();
@@ -327,7 +327,7 @@ void SDCard::finishWrite() {
   SERIAL_EM(MSG_SD_FILE_SAVED);
 }
 
-void SDCard::makeDirectory(char *filename) {
+void SDCard::makeDirectory(char * filename) {
   if (!isDetected()) return;
   setPrinting(false);
   gcode_file.close();
