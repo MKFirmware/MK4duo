@@ -631,7 +631,7 @@ bool Commands::process_injected() {
 
   char c;
   size_t i = 0;
-  while ((c = injected_commands_P[i]) && c != '\n') i++;
+  while ((c = pgm_read_byte(&injected_commands_P[i])) && c != '\n') i++;
   if (!i) return false;
 
   char cmd[i + 1];
