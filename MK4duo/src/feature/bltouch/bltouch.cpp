@@ -38,9 +38,11 @@ bool BLTouch::last_mode = false;
 /** Public Function */
 // Init the class and device. Call from setup().
 void BLTouch::init(const bool set_voltage/*=false*/) {
+  cmd_reset();
+  cmd_stow();
   #if ENABLED(BLTOUCH_FORCE_MODE)
     if (set_voltage) mode_conv(BLTOUCH_MODE_5V);
-  #elif HAS_EEPROM
+  #else
     if (printer.debugFeature()) {
       DEBUG_EMV("last_mode:", (int)last_mode);
       DEBUG_MSG("Set BLTOUCH_MODE_");
@@ -48,11 +50,7 @@ void BLTouch::init(const bool set_voltage/*=false*/) {
     }
     if (last_mode != BLTOUCH_MODE_5V && set_voltage)
       mode_conv(BLTOUCH_MODE_5V);
-  #else
-    UNUSED(set_voltage);
   #endif
-  cmd_reset();
-  cmd_stow();
 }
 
 void BLTouch::test() {

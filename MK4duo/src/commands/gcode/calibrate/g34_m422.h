@@ -259,14 +259,12 @@ inline void gcode_G34(void) {
     // After this operation the z position needs correction
     mechanics.setAxisHomed(Z_AXIS, false);
 
-    #if ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
-      // In BLTOUCH High Speed mode, the pin is still deployed at this point.
-      // The upcoming G28 means travel, so it is better to stow the pin.
-      bltouch.stow();
-    #endif
+    // Stow the probe, as the last call to probe_pt(...) left
+    // the probe deployed if it was successful.
+    probe.set_deployed(false);
 
-    // Home after the alignment procedure
-    mechanics.home();
+    // Home Z after the alignment procedure
+    mechanics.home(false, false, true);
 
   } while(0);
 

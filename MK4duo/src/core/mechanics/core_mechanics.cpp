@@ -202,6 +202,10 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   set_destination_to_current();
 
+  #if HAS_BED_PROBE
+    probe.set_deployed(false);
+  #endif
+
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
     if (doZ) homeaxis(Z_AXIS);
   #endif
@@ -237,9 +241,6 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
     if (doZ) {
-      #if ENABLED(BLTOUCH)
-        bltouch.init();
-      #endif
       #if ENABLED(Z_SAFE_HOMING)
         home_z_safely();
       #else

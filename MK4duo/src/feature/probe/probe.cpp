@@ -199,11 +199,7 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
       if (isnan(measured_z)) {
-        #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
-          bltouch.stow();
-        #else
-          set_deployed(false);
-        #endif
+        set_deployed(false);
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
         LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
         sound.feedback(false);
@@ -384,14 +380,15 @@ void Probe::specific_action(const bool deploy) {
 
   #if ENABLED(Z_PROBE_SLED)
     dock_sled(!deploy);
-  #elif ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
-    if (deploy) bltouch.cmd_deploy(); else bltouch.cmd_stow();
-  #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
+  #elif ENABLED(BLTOUCH)
+    deploy ? bltouch.cmd_deploy() : bltouch.cmd_stow();
+  #elif HAS_Z_SERVO_PROBE
     MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
+  #elif DISABLED(PAUSE_BEFORE_DEPLOY_STOW)
+    UNUSED(deploy);
   #endif
-
 }
 
 /**
@@ -536,9 +533,7 @@ float Probe::run_probing() {
 
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
-  float z = Z_PROBE_DEPLOY_HEIGHT + 5.0;
-  if (data.offset[Z_AXIS] < 0) z -= data.offset[Z_AXIS];
-
+  const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset[Z_AXIS] < 0 ? -data.offset[Z_AXIS] : 0);
   if (mechanics.current_position[Z_AXIS] > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));

@@ -345,10 +345,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         t_high = t1 - t2;
 
         #if COOLERS > 0
-          if (type == IS_COOLER)
-            minTemp = target_temp;
-          else
-            maxTemp = target_temp;
+          type == IS_COOLER ? minTemp = target_temp : maxTemp = target_temp;
         #else
           maxTemp = target_temp;
         #endif
@@ -372,8 +369,8 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
           SERIAL_MV(MSG_T_MAX, maxTemp);
 
           if (cycles > 2) {
-            float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
-                  Tu = ((float)(t_low + t_high) * 0.001f);
+            const float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
+                        Tu = ((float)(t_low + t_high) * 0.001f);
             SERIAL_MV(MSG_KU, Ku);
             SERIAL_MV(MSG_TU, Tu);
             SERIAL_EOL();
