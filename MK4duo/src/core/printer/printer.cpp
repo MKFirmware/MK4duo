@@ -161,15 +161,7 @@ void Printer::setup() {
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
-  lcdui.init();
-  lcdui.reset_status();
-
-  // Show MK4duo boot screen
-  #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
-    lcdui.show_bootscreen();
-  #endif
-
-  #if HAS_SD_SUPPORT && !PIN_EXISTS(SD_DETECT)
+  #if HAS_SD_SUPPORT
     if (!card.isDetected()) card.mount();
   #endif
 
@@ -251,6 +243,14 @@ void Printer::setup() {
   #if ENABLED(RFID_MODULE)
     setRfid(rfid522.init());
     if (IsRfid()) SERIAL_EM("RFID CONNECT");
+  #endif
+
+  lcdui.init();
+  lcdui.reset_status();
+
+  // Show MK4duo boot screen
+  #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
+    lcdui.show_bootscreen();
   #endif
 
   #if ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1

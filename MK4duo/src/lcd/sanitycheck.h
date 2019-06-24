@@ -247,9 +247,4 @@ static_assert(1 >= 0
   #error "DEPENDENCY ERROR: ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
 #endif
 
-// Babystepping
-#if ENABLED(BABYSTEPPING) && !HAS_LCD
-  #error "DEPENDENCY ERROR: BABYSTEPPING requires an LCD controller."
-#endif
-
 #endif /* _LCD_SANITYCHECK_H_ */

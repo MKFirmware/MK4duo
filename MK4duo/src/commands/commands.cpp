@@ -123,7 +123,7 @@ void Commands::enqueue_now_P(PGM_P const pgcode) {
   PGM_P p = pgcode;
   for (;;) {
     char c;
-    while ((c = pgm_read_byte(&p[i])) && c != '\n'); i++;
+    while ((c = pgm_read_byte(&p[i])) && c != '\n') i++;
     char cmd[i + 1];
     memcpy_P(cmd, p, i);
     cmd[i] = '\0';
@@ -631,7 +631,7 @@ bool Commands::process_injected() {
 
   char c;
   size_t i = 0;
-  while ((c = injected_commands_P[i]) && c != '\n') i++;
+  while ((c = pgm_read_byte(&injected_commands_P[i])) && c != '\n') i++;
   if (!i) return false;
 
   char cmd[i + 1];
