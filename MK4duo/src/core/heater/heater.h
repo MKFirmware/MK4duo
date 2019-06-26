@@ -97,9 +97,8 @@ class Heater {
 
     TRState         thermal_runaway_state;
 
-    millis_s        watch_next_ms;
-
-    millis_l        idle_timeout_ms;
+    millis_l        watch_next_ms,
+                    idle_timeout_ms;
 
     bool            Pidtuning;
 
