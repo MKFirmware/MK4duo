@@ -223,10 +223,6 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 
   set_destination_to_current();
 
-  #if HAS_BED_PROBE
-    probe.set_deployed(false);
-  #endif
-
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
     if (doZ) homeaxis(Z_AXIS);
   #endif
@@ -282,6 +278,9 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
     if (doZ) {
+      #if ENABLED(BLTOUCH)
+        bltouch.init();
+      #endif
       #if ENABLED(Z_SAFE_HOMING)
         home_z_safely();
       #else
@@ -393,16 +392,9 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
 
   if (is_home_dir) {
 
-    if (axis == Z_AXIS) {
-      #if HOMING_Z_WITH_PROBE
-        #if ENABLED(BLTOUCH)
-          bltouch.deploy();
-        #endif
-        #if QUIET_PROBING
-          probe.probing_pause(true);
-        #endif
-      #endif
-    }
+    #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(true);
+    #endif
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
@@ -422,16 +414,9 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
 
   if (is_home_dir) {
 
-    if (axis == Z_AXIS) {
-      #if HOMING_Z_WITH_PROBE
-        #if QUIET_PROBING
-          probe.probing_pause(false);
-        #endif
-        #if ENABLED(BLTOUCH)
-          bltouch.stow();
-        #endif
-      #endif
-    }
+    #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+      if (axis == Z_AXIS) probe.probing_pause(false);
+    #endif
 
     endstops.validate_homing_move();
 
@@ -930,16 +915,10 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
   // Fast move towards endstop until triggered
   if (printer.debugFeature()) DEBUG_EM("Home 1 Fast:");
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    // BLTOUCH needs to be deployed every time
-    if (axis == Z_AXIS && bltouch.deploy()) return;
-  #endif
-
   do_homing_move(axis, 1.5f * data.base_pos[axis].max * axis_home_dir);
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    // BLTOUCH needs to be deployed every time
-    if (axis == Z_AXIS) bltouch.stow();
+  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+    if (axis == Z_AXIS) STOW_PROBE(); // Intermediate STOW (in LOW SPEED MODE)
   #endif
 
   // When homing Z with probe respect probe clearance
@@ -963,16 +942,16 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     // Slow move towards endstop until triggered
     if (printer.debugFeature()) DEBUG_EM("Home 2 Slow:");
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS && bltouch.deploy()) return;
+      if (axis == Z_AXIS && DEPLOY_PROBE()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
     #endif
 
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    #if HOMING_Z_WITH_PROBE
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS) bltouch.stow();
+      if (axis == Z_AXIS) STOW_PROBE(); // The final STOW
     #endif
   }
 

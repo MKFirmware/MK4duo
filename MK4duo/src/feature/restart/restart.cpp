@@ -168,7 +168,7 @@ void Restart::resume_job() {
 
   #define RESTART_ZRAISE 2
 
-  char cmd[40], str1[16];
+  char cmd[MAX_CMD_SIZE + 16], str1[16];
 
   #if HAS_LEVELING
     // Make sure leveling is off before any G92 and G28
@@ -236,7 +236,7 @@ void Restart::resume_job() {
     commands.process_now_P(PSTR("G1 E" STRINGIFY(SD_RESTART_FILE_PURGE_LEN) " F200"));
   #endif
   #if SD_RESTART_FILE_RETRACT_LEN > 0
-    sprintf_P(cmd, PSTR("G1 E%d F3000"), SD_RESTART_FILE_PURGE_LEN - SD_RESTART_FILE_RETRACT_LEN);
+    sprintf_P(cmd, PSTR("G1 E%d F3000"), SD_RESTART_FILE_PURGE_LEN - (SD_RESTART_FILE_RETRACT_LEN));
     commands.process_now(cmd);
   #endif
 
@@ -257,8 +257,14 @@ void Restart::resume_job() {
     commands.process_now(cmd);
     // Move back to the saved Z
     dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
-    sprintf_P(cmd, PSTR("G1 Z%s F200"), str1);
+    commands.process_now_P(PSTR("G1 Z0 F200"));
+    sprintf_P(cmd, PSTR("G92.9 Z%s"), str1);
     commands.process_now(cmd);
+  #endif
+
+  // Un-retract
+  #if SD_RESTART_FILE_PURGE_LEN > 0
+    commands.process_now_P(PSTR("G1 E" STRINGIFY(SD_RESTART_FILE_PURGE_LEN) " F3000"));
   #endif
 
   // Restore the feedrate
