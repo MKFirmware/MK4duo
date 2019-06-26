@@ -196,12 +196,8 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&next_check_ms, temp_check_interval)) {
-          if (current_temperature <= targetTemperature - temp_hysteresis)
-            pwm_value = 0;
-          else if (current_temperature >= targetTemperature + temp_hysteresis)
-            pwm_value = data.pid.Max;
-        }
+        else if (expired(&next_check_ms, temp_check_interval))
+          pwm_value = current_temperature >= targetTemperature ? data.pid.Max >> 1 : 0;
       }
       else
     #endif
@@ -217,10 +213,12 @@ void Heater::get_output() {
           );
         }
         else if (expired(&next_check_ms, temp_check_interval)) {
-          if (current_temperature >= targetTemperature + temp_hysteresis)
+          if (current_temperature > targetTemperature + temp_hysteresis)
             pwm_value = 0;
-          else if (current_temperature <= targetTemperature - temp_hysteresis)
+          else if (current_temperature < targetTemperature - temp_hysteresis)
             pwm_value = data.pid.Max;
+          else
+            pwm_value = current_temperature < targetTemperature ? data.pid.Max >> 1 : 0;
         }
       }
 
@@ -267,7 +265,7 @@ void Heater::check_and_power() {
   get_output();
 
   // Make sure temperature is increasing
-  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_s(watch_period * 1000U))) {
+  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_l(watch_period * 1000UL))) {
     if (current_temperature < watch_target_temp)
       _temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
     else
@@ -370,15 +368,17 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
           if (cycles > 2) {
             const float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
-                        Tu = ((float)(t_low + t_high) * 0.001f);
+                        Tu = float(t_low + t_high) * 0.001f,
+                        pf = type == IS_HOTEND ? 0.6f : 0.2f,
+                        df = type == IS_HOTEND ? 1.0f / 8.0f : 1.0f / 3.0f;
             SERIAL_MV(MSG_KU, Ku);
             SERIAL_MV(MSG_TU, Tu);
             SERIAL_EOL();
 
             if (method == 0) {
-              tune_pid.Kp = 0.6f * Ku;
-              tune_pid.Ki = 1.2f * Ku / Tu;
-              tune_pid.Kd = 0.075f * Ku * Tu;
+              tune_pid.Kp = Ku * pf;
+              tune_pid.Ki = Ku * pf * 2 / Tu;
+              tune_pid.Kd = Ku * pf * df * Tu;
               SERIAL_MSG(MSG_CLASSIC_PID);
             }
             else if (method == 1) {
