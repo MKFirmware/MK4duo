@@ -202,7 +202,7 @@
  * M192 - Sxxx Wait for cooler current temp to reach target temp. Waits only when cooling
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D[millimeters]- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
- * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
+ * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z10 E50) in mm/sec
  * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and V for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
  * M205 - Set advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk, J=Junction mm
  * M206 - Set additional homing offset

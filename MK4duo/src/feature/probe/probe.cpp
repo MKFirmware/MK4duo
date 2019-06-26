@@ -180,13 +180,13 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.do_blocking_move_to(nx, ny, nz);
 
       float measured_z = NAN;
-      if (!set_deployed(true)) {
+      if (!DEPLOY_PROBE()) {
         measured_z = run_probing() + data.offset[Z_AXIS];
 
         if (raise_after == PROBE_PT_RAISE)
           mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
         else if (raise_after == PROBE_PT_STOW)
-          if (set_deployed(false)) measured_z = NAN;
+          if (STOW_PROBE()) measured_z = NAN;
       }
 
       if (verbose_level > 2) {
@@ -199,7 +199,7 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
 
       if (isnan(measured_z)) {
-        set_deployed(false);
+        STOW_PROBE();
         SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
         LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
         sound.feedback(false);
@@ -380,9 +380,9 @@ void Probe::specific_action(const bool deploy) {
 
   #if ENABLED(Z_PROBE_SLED)
     dock_sled(!deploy);
-  #elif ENABLED(BLTOUCH)
+  #elif ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
     deploy ? bltouch.cmd_deploy() : bltouch.cmd_stow();
-  #elif HAS_Z_SERVO_PROBE
+  #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
     MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
   #elif ENABLED(Z_PROBE_ALLEN_KEY)
     deploy ? run_deploy_moves_script() : run_stow_moves_script();

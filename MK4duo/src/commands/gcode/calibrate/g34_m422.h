@@ -261,7 +261,7 @@ inline void gcode_G34(void) {
 
     // Stow the probe, as the last call to probe_pt(...) left
     // the probe deployed if it was successful.
-    probe.set_deployed(false);
+    STOW_PROBE();
 
     // Home Z after the alignment procedure
     mechanics.home(false, false, true);

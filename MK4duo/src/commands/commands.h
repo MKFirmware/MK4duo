@@ -105,9 +105,9 @@ class Commands {
     static void clear_queue();
 
     /**
-     * Record one or many commands to run from program memory.
+     * Enqueue one or many commands to run from program memory.
      * Aborts the current queue, if any.
-     * Note: drain_injected() must be called repeatedly to drain the commands afterwards
+     * Note: process_injected() will process them.
      */
     static void inject_P(PGM_P const pgcode);
 
