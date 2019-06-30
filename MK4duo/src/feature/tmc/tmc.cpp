@@ -995,7 +995,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     pwmconf.pwm_freq = 0b01;
     pwmconf.pwm_grad = 14;
     pwmconf.pwm_ofs = 36;
-    st.PWMCONF(pwmconf.sr);
+    st->PWMCONF(pwmconf.sr);
 
     st->GSTAT(); // Clear GSTAT
 
@@ -1124,7 +1124,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     st->en_pwm_mode(stealth);
     st->stealthChop_enabled = stealth;
 
-    TMC5160_n::PWMCONF_t pwmconf{0};
+    TMC2160_n::PWMCONF_t pwmconf{0};
     pwmconf.pwm_lim = 12;
     pwmconf.pwm_reg = 8;
     pwmconf.pwm_autograd = true;
@@ -1132,7 +1132,7 @@ bool TMC_Stepper::test_connection(MKTMC* st) {
     pwmconf.pwm_freq = 0b01;
     pwmconf.pwm_grad = 14;
     pwmconf.pwm_ofs = 36;
-    st.PWMCONF(pwmconf.sr);
+    st->PWMCONF(pwmconf.sr);
 
     st->GSTAT(); // Clear GSTAT
 
