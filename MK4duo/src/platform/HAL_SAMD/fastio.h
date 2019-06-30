@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
  * Description: Fast IO functions for Arduino Due and compatible (SAM3X8E)
  *
  * Contributors:
- *  Copyright (C) 2014 Bob Cousins bobcousins42@googlemail.com
- *  Copyright (C) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
- *  Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ *  Copyright (c) 2014 Bob Cousins bobcousins42@googlemail.com
+ *  Copyright (c) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
+ *  Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 // **************************************************************************

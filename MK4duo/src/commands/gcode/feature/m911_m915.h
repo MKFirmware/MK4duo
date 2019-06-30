@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * mcode
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #if HAS_TRINAMIC
@@ -313,10 +313,8 @@
       const uint16_t  _rms  = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
                       _z    = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;
 
-      if (!mechanics.home_flag.ZHomed) {
-        SERIAL_EM("\nPlease home Z axis first");
-        return;
-      }
+      if (mechanics.axis_unhomed_error(NO_HOME_X, NO_HOME_Y, HOME_Z))
+        mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
 
       #if AXIS_HAS_TMC(Z)
         const uint16_t Z_current_1 = stepperZ->rms_current();
@@ -351,7 +349,7 @@
       endstops.setSoftEndstop(true);
 
       SERIAL_EM("\nHoming Z because we lost steps");
-      commands.inject_P(PSTR("G28 Z"));
+      mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
     }
 
   #endif

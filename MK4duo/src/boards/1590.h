@@ -225,6 +225,6 @@
     #define encrot3 1
   #endif  // NEWPANEL
 
-#endif // ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 

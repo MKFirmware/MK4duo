@@ -268,7 +268,7 @@
     #define LCD_PINS_D7 29
   #endif
 
-#endif //ULTRA_LCD
+#endif // HAS_SPI_LCD
 
 #if ENABLED(VIKI2) || ENABLED(miniVIKI)
   #define ORIG_BEEPER_PIN  33

@@ -3,7 +3,7 @@
 * Add command M228 for setting axis limit min/max
 * Add Prompt support for host
 * Rewrite filament runout
-* Add BLTouch V3.0
+* Add BLTouch V3.0/V3.1
 * Add Prusa MMU2 Support
 * Add support thermocouples for bed and hotend.
 * Add menu axis limit to menu advanced.

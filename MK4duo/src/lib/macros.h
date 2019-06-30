@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,14 @@
 #define XYZ       3
 
 #define _AXIS(A)  (A##_AXIS)
+
+// Home Macro
+#define HOME_X    true
+#define HOME_Y    true
+#define HOME_Z    true
+#define NO_HOME_X false
+#define NO_HOME_Y false
+#define NO_HOME_Z false
 
 // Function macro
 #define _FORCE_INLINE_  __attribute__((__always_inline__)) __inline__

@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * mcode
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define CODE_M530
@@ -44,7 +44,7 @@ inline void gcode_M530(void) {
       SERIAL_EOL();
 
       #if ENABLED(START_GCODE)
-        commands.inject_P(PSTR(START_PRINTING_SCRIPT));
+        commands.enqueue_now_P(PSTR(START_PRINTING_SCRIPT));
       #endif
 
       #if HAS_FILAMENT_SENSOR
@@ -57,7 +57,7 @@ inline void gcode_M530(void) {
       SERIAL_EM("Stop Printing");
 
       #if ENABLED(STOP_GCODE)
-        commands.inject_P(PSTR(STOP_PRINTING_SCRIPT));
+        commands.enqueue_now_P(PSTR(STOP_PRINTING_SCRIPT));
       #endif
     }
 

@@ -249,6 +249,6 @@
     #define BLEN_B 1
     #define BLEN_A 0
   #endif
-#endif //ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 

@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * printer.cpp
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -326,9 +326,9 @@ void Printer::loop() {
 
         // Auto home
         #if Z_HOME_DIR > 0
-          commands.inject_P(PSTR("G28"));
+          mechanics.home();
         #else
-          commands.inject_P(PSTR("G28 X Y"));
+          mechanics.home(HOME_X, HOME_Y, NO_HOME_Z);
         #endif
 
         // Disabled Heaters and Fan
@@ -658,28 +658,22 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if HAS_HOME
-    // Check to see if we have to home, use poor man's debouncer
-    // ---------------------------------------------------------
-    static int homeDebounceCount = 0;   // poor man's debouncing count
-    const int HOME_DEBOUNCE_DELAY = 750;
+    // Handle a standalone HOME button
+    static millis_l next_home_key_ms = millis();
     if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
-      if (!homeDebounceCount) {
-        commands.inject_P(PSTR("G28"));
+      if (expired(&next_home_key_ms, HOME_DEBOUNCE_DELAY)) {
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
+        commands.enqueue_now_P(PSTR("G28"));
       }
-      if (homeDebounceCount < HOME_DEBOUNCE_DELAY)
-        homeDebounceCount++;
-      else
-        homeDebounceCount = 0;
     }
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
 
-    static millis_s extruder_runout_ms = 0;
+    static millis_l extruder_runout_ms = 0;
 
     if (hotends[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
-      && expired(&extruder_runout_ms, millis_s(EXTRUDER_RUNOUT_SECONDS * 1000U))
+      && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
       && !planner.has_blocks_queued()
     ) {
       #if ENABLED(DONDOLO_SINGLE_MOTOR)

@@ -219,6 +219,6 @@
     #define BTN_ENC             30
 
    #endif 
-#endif // ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 
