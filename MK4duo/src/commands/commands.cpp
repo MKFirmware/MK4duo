@@ -475,7 +475,7 @@ void Commands::get_serial() {
     #endif
 
     #if HAS_POWER_CHECK
-      if (READ(POWER_CHECK_PIN) != endstops.isLogic(POWER_CHECK)) {
+      if (READ(POWER_CHECK_PIN) != powerManager.isLogic()) {
         card.setAbortSDprinting(true);
         return;
       }

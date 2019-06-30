@@ -176,7 +176,7 @@ enum EndstopEnum : uint8_t {
   Z2_MAX,       // Bit 12
   Z3_MIN,       // Bit 13
   Z3_MAX,       // Bit 14
-  DOOR_OPEN,    // Bit 15
+  DOOR_OPEN     // Bit 15
 };
 
 /**

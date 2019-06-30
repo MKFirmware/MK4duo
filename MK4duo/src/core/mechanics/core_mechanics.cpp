@@ -264,7 +264,6 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
     COPY_ARRAY(destination, stored_position[1]);
     prepare_move_to_destination();
-    RESTORE(fr);
   }
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
