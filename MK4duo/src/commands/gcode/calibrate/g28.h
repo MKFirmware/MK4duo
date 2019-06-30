@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * gcode.h
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #define CODE_G28
@@ -36,13 +36,17 @@
  *  None  Home to all axes with no parameters.
  *        With QUICK_HOME enabled XY will home together, then Z.
  *
- *  O   Home only if position is unknown
+ *  O     Home only if position is unknown
+ *
+ *  B     Back, after home return to back position.
+ *
+ *  Rn    Raise by n mm/inches before homing
  *
  * Cartesian parameters
  *
- *  X   Home to the X endstop
- *  Y   Home to the Y endstop
- *  Z   Home to the Z endstop
+ *  X     Home to the X endstop
+ *  Y     Home to the Y endstop
+ *  Z     Home to the Z endstop
  *
  */
 inline void gcode_G28(void) { 
@@ -59,7 +63,7 @@ inline void gcode_G28(void) {
 
   #if IS_KINEMATIC
 
-    (void)mechanics.home();
+    mechanics.home();
 
   #else
 
@@ -73,7 +77,7 @@ inline void gcode_G28(void) {
                   homeZ = parser.seen('Z');
     #endif
 
-    (void)mechanics.home(homeX, homeY, homeZ);
+    mechanics.home(homeX, homeY, homeZ);
 
   #endif
 

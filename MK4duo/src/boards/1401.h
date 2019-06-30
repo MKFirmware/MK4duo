@@ -249,7 +249,7 @@
 
 	#endif // SPARK_FULL_GRAPHICS
 
-#endif // ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 
 //###MB_SETUP

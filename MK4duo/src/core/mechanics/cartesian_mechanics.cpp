@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * cartesian_mechanics.cpp
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #include "../../../MK4duo.h"
@@ -227,7 +227,8 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
     if (doZ) homeaxis(Z_AXIS);
   #endif
 
-  const float z_homing_height = home_flag.ZHomed ? MIN_Z_HEIGHT_FOR_HOMING : 0;
+  const float z_homing_height = !home_flag.ZHomed ? 0 :
+    (parser.seenval('R') ? parser.value_linear_units() : MIN_Z_HEIGHT_FOR_HOMING);
 
   if (z_homing_height && (doX || doY)) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
@@ -244,7 +245,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 
   #if ENABLED(HOME_Y_BEFORE_X)
     // Home Y (before X)
-    if (doY) homeaxis(Y_AXIS);
+    if (doY || doX) homeaxis(Y_AXIS);
   #endif
 
   // Home X
@@ -915,10 +916,14 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
   // Fast move towards endstop until triggered
   if (printer.debugFeature()) DEBUG_EM("Home 1 Fast:");
 
+  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    if (axis == Z_AXIS && bltouch.deploy()) return; // The initial DEPLOY
+  #endif
+
   do_homing_move(axis, 1.5f * data.base_pos[axis].max * axis_home_dir);
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
-    if (axis == Z_AXIS) STOW_PROBE(); // Intermediate STOW (in LOW SPEED MODE)
+    if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
   #endif
 
   // When homing Z with probe respect probe clearance
@@ -944,14 +949,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
       // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS && DEPLOY_PROBE()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
+      if (axis == Z_AXIS && bltouch.deploy()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
     #endif
 
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
-    #if HOMING_Z_WITH_PROBE
-      // BLTOUCH needs to be deployed every time
-      if (axis == Z_AXIS) STOW_PROBE(); // The final STOW
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      if (axis == Z_AXIS) bltouch.stow(); // The final STOW
     #endif
   }
 

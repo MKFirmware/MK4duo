@@ -2,7 +2,7 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
@@ -273,7 +273,6 @@
  *                                                                     *
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  * Select PID or bang-bang with PIDTEMPBED.                            *
- * If bang-bang, BED LIMIT SWITCHING will enable hysteresis            *
  *                                                                     *
  ***********************************************************************/
 // Put true to enable PID on the bed. It uses the same frequency PWM as the hotend.
@@ -306,7 +305,6 @@
  *                                                                     *
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  * Select PID or bang-bang with PIDTEMPCHAMBER.                        *
- * If bang-bang, CHAMBER_LIMIT_SWITCHING will enable hysteresis        *
  *                                                                     *
  ***********************************************************************/
 // Put true to enable PID on the chamber. It uses the same frequency PWM as the hotend.
@@ -342,7 +340,6 @@
  *                                                                     *
  * PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning            *
  * Select PID or bang-bang with PIDTEMPCOOLER.                         *
- * If bang-bang, COOLER_LIMIT_SWITCHING will enable hysteresis         *
  *                                                                     *
  ***********************************************************************/
 // Put true to enable PID on the cooler. It uses the same frequency PWM as the hotend.

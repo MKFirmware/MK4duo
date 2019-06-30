@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -225,9 +225,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
   }  
 
   void laser_set_focus(float f_length) {
-    if (!mechanics.home_flag.ZHomed ) {
+    if (mechanics.axis_unhomed_error(NO_HOME_X, NO_HOME_Y, HOME_Z))
       commands.inject_P(PSTR("G28 Z F150"));
-    }
+
     focalLength = f_length;
     float focus = LASER_FOCAL_HEIGHT - f_length;
     char cmd[20];

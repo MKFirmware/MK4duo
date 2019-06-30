@@ -212,6 +212,6 @@
     #define LCD_PINS_D7         29
   #endif
 
-#endif //ULTRA_LCD
+#endif //HAS_SPI_LCD
 //@@@
 

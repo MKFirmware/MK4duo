@@ -285,6 +285,6 @@
     #define LCD_PINS_D6         27
     #define LCD_PINS_D7         29
   #endif // NEWPANEL
-#endif // ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 

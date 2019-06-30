@@ -206,6 +206,6 @@
     #define SD_DETECT_PIN NoPin   // Ramps does not use this port
   #endif //NEWPANEL
 
-#endif //ULTRA_LCD
+#endif // HAS_SPI_LCD
 //@@@
 

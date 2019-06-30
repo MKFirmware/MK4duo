@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 /**
  * gcode.h
  *
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
@@ -114,7 +114,7 @@ inline void gcode_G34(void) {
       #endif
     );
 
-    mechanics.home();
+    if (mechanics.axis_unhomed_error()) mechanics.home();
 
     // Move the Z coordinate realm towards the positive - dirty trick
     mechanics.current_position[Z_AXIS] -= z_probe * 0.5;
@@ -256,15 +256,12 @@ inline void gcode_G34(void) {
       bedlevel.set_bed_leveling_enabled(leveling_was_active);
     #endif
 
-    // After this operation the z position needs correction
-    mechanics.setAxisHomed(Z_AXIS, false);
-
     // Stow the probe, as the last call to probe_pt(...) left
     // the probe deployed if it was successful.
     STOW_PROBE();
 
     // Home Z after the alignment procedure
-    mechanics.home(false, false, true);
+    mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
 
   } while(0);
 

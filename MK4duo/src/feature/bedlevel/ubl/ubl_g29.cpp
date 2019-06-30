@@ -2,8 +2,8 @@
  * MK4duo Firmware for 3D Printer, Laser and CNC
  *
  * Based on Marlin, Sprinter and grbl
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (C) 2019 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -284,6 +284,7 @@
       return;
     }
 
+    bool probe_deployed = false;
     if (g29_parameter_parsing()) return; // Abort on parameter error
 
     const int8_t p_val = parser.intval('P', -1);
@@ -381,6 +382,7 @@
         }
         mechanics.do_blocking_move_to_xy(0.5f * (MESH_MAX_X - (MESH_MIN_X)), 0.5f * (MESH_MAX_Y - (MESH_MIN_Y)));
         mechanics.report_current_position();
+        probe_deployed = true;
       }
 
     #endif // HAS_BED_PROBE
@@ -419,6 +421,7 @@
                               parser.seen('T'), parser.seen('E'), parser.seen('U'));
 
             mechanics.report_current_position();
+            probe_deployed = true;
             break;
 
         #endif // HAS_BED_PROBE
@@ -454,6 +457,7 @@
                 SERIAL_EM("?Error in Business Card measurement.");
                 return;
               }
+              probe_deployed = true;
             }
 
             if (!mechanics.position_is_reachable(g29_x_pos, g29_y_pos)) {
@@ -630,6 +634,17 @@
       lcdui.quick_feedback();
       lcdui.reset_status();
       lcdui.release();
+    #endif
+
+    #if ENABLED(Z_PROBE_END_SCRIPT)
+      if (printer.debugFeature()) {
+        DEBUG_MSG("Z Probe End Script: ");
+        DEBUG_EM(Z_PROBE_END_SCRIPT);
+      }
+      if (probe_deployed) {
+        planner.synchronize();
+        commands.process_now_P(PSTR(Z_PROBE_END_SCRIPT));
+      }
     #endif
 
     return;
