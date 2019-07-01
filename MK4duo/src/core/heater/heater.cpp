@@ -50,6 +50,7 @@ void Heater::init() {
   ResetFault();
 
   watch_target_temp     = 0;
+  check_next_ms         = 0;
   watch_next_ms         = 0;
   idle_timeout_ms       = 0;
   Pidtuning             = false;
@@ -178,8 +179,6 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
 void Heater::get_output() {
 
-  static millis_s next_check_ms = millis();
-
   update_idle_timer();
 
   if (isActive()) {
@@ -196,7 +195,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&next_check_ms, temp_check_interval))
+        else if (expired(&check_next_ms, temp_check_interval))
           pwm_value = current_temperature >= targetTemperature ? data.pid.Max >> 1 : 0;
       }
       else
@@ -212,7 +211,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&next_check_ms, temp_check_interval)) {
+        else if (expired(&check_next_ms, temp_check_interval)) {
           if (current_temperature > targetTemperature + temp_hysteresis)
             pwm_value = 0;
           else if (current_temperature < targetTemperature - temp_hysteresis)
