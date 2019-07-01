@@ -113,13 +113,16 @@ typedef uint32_t  ptr_int_t;
 #undef pgm_read_ptr
 #define pgm_read_ptr(addr) (*(addr))
 #ifndef strncpy_P
-  #define strncpy_P(dest, src, num) strncpy((dest), (src), (num))
+  #define strncpy_P strncpy
 #endif
 #ifndef strchr_P
-  #define strchr_P(s,c) strchr(s,c)
+  #define strchr_P strchr
 #endif
 #ifndef vsnprintf_P
-  #define vsnprintf_P(buf, size, a, b) vsnprintf((buf), (size), (a), (b))
+  #define vsnprintf_P vsnprintf
+#endif
+#ifndef snprintf_P
+  #define snprintf_P snprintf
 #endif
 
 // SERIAL ports
