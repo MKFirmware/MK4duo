@@ -169,6 +169,7 @@
 #include "src/feature/mmu2/mmu2.h"
 #include "src/feature/filament/filament.h"
 #include "src/feature/fwretract/fwretract.h"
+#include "src/feature/flowmeter/flowmeter.h"
 #include "src/feature/advanced_pause/advanced_pause.h"
 #include "src/feature/filamentrunout/filamentrunout.h"
 #include "src/feature/laser/base64/base64.h"

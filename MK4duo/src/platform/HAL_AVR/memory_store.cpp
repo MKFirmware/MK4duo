@@ -66,6 +66,6 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc
 
 size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
 
-#endif HAS_EEPROM
+#endif // HAS_EEPROM
 
 #endif // __AVR__
