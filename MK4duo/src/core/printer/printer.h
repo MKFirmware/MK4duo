@@ -237,7 +237,7 @@ class Printer {
     FORCE_INLINE static void setRfid(const bool onoff) { various_flag.RFID = onoff; }
     FORCE_INLINE static bool IsRfid() { return various_flag.RFID; }
 
-    FORCE_INLINE static bool reset_flag() { various_flag.all = 0; }
+    FORCE_INLINE static void reset_flag() { various_flag.all = 0; }
 
   private: /** Private Function */
 
