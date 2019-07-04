@@ -80,7 +80,7 @@ void menu_stop_print() {
   #if HAS_SD_SUPPORT
 
     void menu_firmware() {
-      do_select_screen_yn(nexlcd.UploadNewFirmware, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
+      do_select_screen_yn(UploadNewFirmware, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
     }
 
   #endif
