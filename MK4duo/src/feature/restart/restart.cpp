@@ -50,7 +50,7 @@ void Restart::changed() {
 
 void Restart::check() {
   if (enabled) {
-    if (!card.isDetected()) card.mount();
+    card.mount();
     if (card.isDetected()) {
       load_job();
       if (!valid()) return purge_job();

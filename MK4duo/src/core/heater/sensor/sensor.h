@@ -38,9 +38,9 @@ typedef struct {
             raw,
             adcLowOffset,
             adcHighOffset;
-    float   r25,
+    float   res_25,
             beta,
-            pullupR,
+            pullup_res,
             shA,
             shB,
             shC;
@@ -54,7 +54,7 @@ typedef struct {
 
     void CalcDerivedParameters() {
       shB = 1.0 / beta;
-      const float lnR25 = LOG(r25);
+      const float lnR25 = LOG(res_25);
       shA = 1.0 / (25.0 - ABS_ZERO) - shB * lnR25 - shC * lnR25 * lnR25 * lnR25;
     }
 
@@ -81,7 +81,7 @@ typedef struct {
         const float denom = (float)(averagedVrefReading - raw) - 0.5;
         if (denom <= 0.0) return ABS_ZERO;
 
-        const float resistance = pullupR * ((float)(raw - averagedVssaReading) + 0.5) / denom;
+        const float resistance = pullup_res * ((float)(raw - averagedVssaReading) + 0.5) / denom;
         const float logResistance = LOG(resistance);
         const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 
@@ -134,6 +134,42 @@ typedef struct {
       if (type == 999) return DUMMY_THERMISTOR_999_VALUE;
 
       return 25;
+    }
+
+    bool set_pullup_res(const float value) {
+      if (!WITHIN(value, 1, 1000000)) return false;
+      pullup_res = value;
+      return true;
+    }
+
+    bool set_res_25(const float value) {
+      if (!WITHIN(value, 1, 10000000)) return false;
+      res_25 = value;
+      return true;
+    }
+
+    bool set_beta(const float value) {
+      if (!WITHIN(value, 1, 1000000)) return false;
+      beta = value;
+      return true;
+    }
+
+    bool set_shC(const float value) {
+      if (!WITHIN(value, -0.01f, 0.01f)) return false;
+      shC = value;
+      return true;
+    }
+
+    bool set_LowOffset(const int16_t value) {
+      if (!WITHIN(value, -1000, 1000)) return false;
+      adcLowOffset = value;
+      return true;
+    }
+
+    bool set_HighOffset(const int16_t value) {
+      if (!WITHIN(value, -1000, 1000)) return false;
+      adcHighOffset = value;
+      return true;
     }
 
     #if HAS_MAX6675

@@ -135,6 +135,7 @@ LsActionEnum SDCard::lsAction   = LS_Count;
 /** Public Function */
 
 void SDCard::mount() {
+
   if (isDetected()) return;
 
   if (root.isOpen()) root.close();

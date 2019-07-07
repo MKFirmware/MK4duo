@@ -41,11 +41,10 @@
 
   float lcd_probe_pt(const float &rx, const float &ry) {
     _man_probe_pt(rx, ry);
-    printer.keepalive(PausedforUser);
+    PRINTER_KEEPALIVE(PausedforUser);
     lcdui.defer_status_screen();
     printer.setWaitForUser(true);
     while (printer.isWaitForUser()) printer.idle();
-    printer.keepalive(InHandler);
     lcdui.goto_previous_screen_no_defer();
     return mechanics.current_position[Z_AXIS];
   }

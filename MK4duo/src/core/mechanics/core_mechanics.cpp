@@ -699,8 +699,8 @@ void Core_Mechanics::report_current_position_detail() {
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
   void Core_Mechanics::nextion_gfx_clear() {
-    gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
-    gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+    nexlcd.gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
+    nexlcd.gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
   }
 
 #endif

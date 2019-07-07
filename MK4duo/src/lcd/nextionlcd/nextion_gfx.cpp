@@ -43,8 +43,9 @@
 
 #if ENABLED(NEXTION_GFX)
 
-#include "library/nextion.h"
 #include "nextion_gfx.h"
+
+GFX gfx = GFX(1, 1, 1, 1);
 
 const int INSIDE  = 0;  // 0000
 const int LEFT    = 1;  // 0001
@@ -212,6 +213,67 @@ void GFX::line_to(const uint8_t color_index, const float *pos, bool shade) {
   for (int i = 0; i < 3; i++) _cursor.position[i] = pos[i];
 
   _cursor.point = loc;
+}
+
+void GFX::fill(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
+  char buf0[10], buf1[10], buf2[10], buf3[10], buf4[10] = {0};
+  String cmd;
+  utoa(x0, buf0, 10);
+  utoa(y0, buf1, 10);
+  utoa(x1, buf2, 10);
+  utoa(y1, buf3, 10);
+  utoa(color, buf4,10);
+  cmd += "fill ";
+  cmd += buf0;
+  cmd += ",";
+  cmd += buf1;
+  cmd += ",";
+  cmd += buf2;
+  cmd += ",";
+  cmd += buf3;
+  cmd += ",";
+  cmd += buf4;
+  nexlcd.sendCommand(cmd.c_str());
+}
+
+void GFX::drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color) {
+  char bufx0[10], bufy0[10], bufx1[10], bufy1[10], bufc[10] = {0};
+  String cmd;
+  utoa(x0, bufx0, 10);
+  utoa(y0, bufy0, 10);
+  utoa(x1, bufx1, 10);
+  utoa(y1, bufy1, 10);
+  utoa(color, bufc, 10);
+  cmd += "line ";
+  cmd += bufx0;
+  cmd += ",";
+  cmd += bufy0;
+  cmd += ",";
+  cmd += bufx1;
+  cmd += ",";
+  cmd += bufy1;
+  cmd += ",";
+  cmd += bufc;
+  nexlcd.sendCommand(cmd.c_str());
+}
+
+void GFX::drawPixel(const int x, const int y, uint16_t color) {
+  char buf0[10], buf1[10], buf2[10] = {0};
+  String cmd;
+  utoa(x, buf0, 10);
+  utoa(y, buf1, 10);
+  utoa(color, buf2,10);
+  cmd += "line ";
+  cmd += buf0;
+  cmd += ",";
+  cmd += buf1;
+  cmd += ",";
+  cmd += buf0;
+  cmd += ",";
+  cmd += buf1;
+  cmd += ",";
+  cmd += buf2;
+  nexlcd.sendCommand(cmd.c_str());
 }
 
 #endif // NEXTION_GFX

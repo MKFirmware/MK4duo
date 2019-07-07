@@ -162,7 +162,7 @@ void Printer::setup() {
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
 
   #if HAS_SD_SUPPORT
-    if (!card.isDetected()) card.mount();
+    card.mount();
   #endif
 
   // Init endstops
@@ -385,7 +385,7 @@ void Printer::check_periodical_actions() {
 void Printer::safe_delay(millis_l time) {
   time += millis();
   while ((int32_t)(millis() - time) < 0) {
-    keepalive(InProcess);
+    PRINTER_KEEPALIVE(InProcess);
     idle();
   }
 }

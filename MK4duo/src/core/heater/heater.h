@@ -76,8 +76,6 @@ class Heater {
 
     heater_data_t   data;
 
-    uint16_t        watch_target_temp;
-
     uint8_t         pwm_value,
                     consecutive_low_temp;
 
@@ -95,6 +93,8 @@ class Heater {
                     watch_period,
                     watch_increase;
 
+    uint16_t        watch_target_temp;
+
     TRState         thermal_runaway_state;
 
     millis_s        check_next_ms;
@@ -110,10 +110,14 @@ class Heater {
 
     void setTarget(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
+    
     void get_output();
     void set_output_pwm();
+    
     void check_and_power();
+    
     void PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
+    
     void print_M301();
     void print_M305();
     void print_M306();

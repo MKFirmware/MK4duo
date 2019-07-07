@@ -71,7 +71,7 @@ inline void gcode_M0_M1(void) {
 
   #endif
 
-  printer.keepalive(PausedforUser);
+  PRINTER_KEEPALIVE(PausedforUser);
   printer.setWaitForUser(true);
 
   #if HAS_NEXTION_LCD
@@ -80,16 +80,10 @@ inline void gcode_M0_M1(void) {
 
   if (ms > 0) {
     ms += millis();
-    while ((millis_s(millis()) - ms < 0) && printer.isWaitForUser()) {
-      printer.keepalive(InProcess);
-      printer.idle();
-    }
+    while ((millis_s(millis()) - ms < 0) && printer.isWaitForUser()) printer.idle();
   }
   else {
-    while (printer.isWaitForUser()) {
-      printer.keepalive(InProcess);
-      printer.idle();
-    }
+    while (printer.isWaitForUser()) printer.idle();
   }
 
   #if HAS_NEXTION_LCD
@@ -101,7 +95,6 @@ inline void gcode_M0_M1(void) {
   #endif
 
   printer.setWaitForUser(false);
-  printer.keepalive(InHandler);
 }
 
 #endif // HAS_RESUME_CONTINUE

@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
 
-## Version 4.3.9 dev revision 01072019
+## Version 4.3.9 revision 07072019
 
 #### Please donate to support this project https://www.paypal.me/MagoKimbra
 
@@ -85,6 +85,9 @@ The new features are:
 * Added TMC2130 motor driver
 * Added TMC2208 motor driver
 * Added TMC2660 motor driver
+* Added TMC2160 motor driver
+* Added TMC5130 motor driver
+* Added TMC5160 motor driver
 * Added Power Check pin for restart job
 * Added Probe BLTouch
 * Added Probe BLTouch V3.0
