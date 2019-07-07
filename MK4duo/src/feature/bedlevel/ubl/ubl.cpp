@@ -39,7 +39,7 @@
         if (!isnan(z_values[x][y])) {
           SERIAL_SMV(ECHO, "  M421 I", x);
           SERIAL_MV(" J", y);
-          SERIAL_MV(" Z", z_values[x][y], 2);
+          SERIAL_MV(" Z", z_values[x][y], 4);
           SERIAL_EOL();
           HAL::delayMilliseconds(75);
         }
