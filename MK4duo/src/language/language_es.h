@@ -27,8 +27,6 @@
  * LCD Menu Messages
  *
  */
-#ifndef LANGUAGE_ES_UTF_H
-#define LANGUAGE_ES_UTF_H
 
 #define DISPLAY_CHARSET_ISO10646_1
 #define CHARSIZE 2
@@ -47,7 +45,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Origen X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Origen Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Origen Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Calibrar Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Origen XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Iniciar (Presione)")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Siguiente punto")
@@ -82,6 +79,7 @@
 #define MSG_MOVE_Y                          _UxGT("Mover Y")
 #define MSG_MOVE_Z                          _UxGT("Mover Z")
 #define MSG_MOVE_E                          _UxGT("Extrusor")
+#define MSG_MOVE_0025MM                     _UxGT("Mover 0.025mm")
 #define MSG_MOVE_01MM                       _UxGT("Mover 0.1mm")
 #define MSG_MOVE_1MM                        _UxGT("Mover 1mm")
 #define MSG_MOVE_10MM                       _UxGT("Mover 10mm")
@@ -205,7 +203,7 @@
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocolo")
 #define MSG_CASE_LIGHT                      _UxGT("Luz cabina")
 
-#if LCD_WIDTH > 19
+#if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Conteo de impresión")
   #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Completadas")
   #define MSG_INFO_PRINT_TIME               _UxGT("Tiempo total de imp.")
@@ -234,28 +232,25 @@
 #define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp Mínima es ")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT("  Boquilla: ")
 
-#define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Esperando iniciar")
+#define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Esperando para")
 
-#define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserte filamento")
+#define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Inserte el filamento")
 #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("y presione el botón")
 
 #if LCD_HEIGHT >= 4
   // Up to 3 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_2        _UxGT("del filamento")
-  #define MSG_FILAMENT_CHANGE_INIT_3        _UxGT("cambiar")
+  #define MSG_FILAMENT_CHANGE_INIT_2        _UxGT("iniciar cambio")
+  #define MSG_FILAMENT_CHANGE_INIT_3        _UxGT("de filamento")
   #define MSG_FILAMENT_CHANGE_INSERT_3      _UxGT("para continuar...")
 #else // LCD_HEIGHT < 4
   // Up to 2 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_2        _UxGT("del fil. cambiar")
-  #define MSG_FILAMENT_CHANGE_INSERT_1      _UxGT("Inserte filamento")
+  #define MSG_FILAMENT_CHANGE_INIT_2        _UxGT("iniciar cambio fil.")
 #endif // LCD_HEIGHT < 4
 
-#define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Esperado por")
-#define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("filamento expulsado")
-#define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Esperado por")
-#define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("Cargar filamento")
-#define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Esperado por")
-#define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("Extruir filamento")
+#define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Esperando para")
+#define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("expulsar filamento")
+#define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Esperado para")
+#define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("cargar el filamento")
 #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Esperando imp.")
 #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("para resumir")
 #define MSG_FILAMENT_CHANGE_HEAT_1          _UxGT("Oprima botón para")

@@ -34,11 +34,11 @@
 /**
  * M995: Nextion Origin
  */
-inline void gcode_M995(void) { gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
+inline void gcode_M995(void) { nexlcd.gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
 
 /**
  * M996: Nextion Scale
  */
-inline void gcode_M996() { if (parser.seenval('S')) gfx_scale(parser.value_float()); }
+inline void gcode_M996() { if (parser.seenval('S')) nexlcd.gfx_scale(parser.value_float()); }
 
 #endif // HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)

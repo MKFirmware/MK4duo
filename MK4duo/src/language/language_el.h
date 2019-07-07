@@ -42,7 +42,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Αρχικό σημείο X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Αρχικό σημείο Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Αρχικό σημείο Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Βαθμονόμηση Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Επαναφορά Επ. Εκτύπωσης") //SHORTEN
 #define MSG_LEVEL_BED_WAITING               _UxGT("Επιπεδοποίηση επ. Εκτύπωσης περιμενει") //SHORTEN
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Επόμενο σημείο")
@@ -72,9 +71,10 @@
 #define MSG_MOVE_Y                          _UxGT("Μετακίνηση Y")
 #define MSG_MOVE_Z                          _UxGT("Μετακίνηση Z")
 #define MSG_MOVE_E                          _UxGT("Εξωθητήρας")
-#define MSG_MOVE_01MM                       _UxGT("Μετακίνηση 0,1μμ")
-#define MSG_MOVE_1MM                        _UxGT("Μετακίνηση 1μμ")
-#define MSG_MOVE_10MM                       _UxGT("Μετακίνηση 10μμ")
+#define MSG_MOVE_0025MM                     _UxGT("Μετακίνηση 0,025 μμ")
+#define MSG_MOVE_01MM                       _UxGT("Μετακίνηση 0,1 μμ")
+#define MSG_MOVE_1MM                        _UxGT("Μετακίνηση 1 μμ")
+#define MSG_MOVE_10MM                       _UxGT("Μετακίνηση 10 μμ")
 #define MSG_SPEED                           _UxGT("Ταχύτητα")
 #define MSG_BED_Z                           _UxGT("Επ. Εκτύπωσης Z")
 #define MSG_NOZZLE                          _UxGT("Ακροφύσιο")

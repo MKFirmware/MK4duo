@@ -284,8 +284,6 @@ void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
     if (printer.debugFeature()) DEBUG_POS("z lower move", current_position);
   }
 
-  RESTORE(fr);
-
   if (printer.debugFeature()) DEBUG_EM("<<< do_blocking_move_to");
 
   planner.synchronize();
@@ -998,8 +996,8 @@ void Delta_Mechanics::report_current_position_detail() {
 #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
 
   void Delta_Mechanics::nextion_gfx_clear() {
-    gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
-    gfx_cursor_to(current_position[X_AXIS] + data.print_radius, current_position[Y_AXIS] + data.print_radius, current_position[Z_AXIS]);
+    nexlcd.gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
+    nexlcd.gfx_cursor_to(current_position[X_AXIS] + data.print_radius, current_position[Y_AXIS] + data.print_radius, current_position[Z_AXIS]);
   }
 
 #endif

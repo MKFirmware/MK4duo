@@ -27,7 +27,9 @@
 Power powerManager;
 
 /** Public Parameters */
-power_data_t Power::data;
+#if HAS_POWER_CHECK
+  power_data_t Power::data;
+#endif
 
 #if HAS_POWER_CONSUMPTION_SENSOR
   int16_t   Power::current_raw_powconsumption = 0;    // Holds measured power consumption
@@ -39,7 +41,7 @@ power_data_t Power::data;
 #if HAS_POWER_SWITCH
   bool        Power::powersupply_on   = false;
   #if (POWER_TIMEOUT > 0)
-    millis_s  Power::last_Power_On_ms = 0;
+    millis_l  Power::last_Power_On_ms = 0;
   #endif
 #endif
 
@@ -80,10 +82,9 @@ power_data_t Power::data;
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      if (is_power_needed())
-        power_on();
+      if (is_power_needed()) power_on();
       #if (POWER_TIMEOUT > 0)
-        else if (expired(&last_Power_On_ms, millis_s(POWER_TIMEOUT * 1000U)))
+        else if (expired(&last_Power_On_ms, millis_l(POWER_TIMEOUT * 1000UL)))
           power_off();
       #endif
     }
@@ -111,41 +112,6 @@ power_data_t Power::data;
           last_Power_On_ms = 0;
         #endif
       }
-    }
-
-    bool Power::is_power_needed() {
-
-      #if HEATER_COUNT > 0
-        if (thermalManager.heaters_isActive()) return true;
-      #endif
-
-      #if FAN_COUNT > 0
-        LOOP_FAN() if (fans[f].speed > 0) return true;
-      #endif
-
-      if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
-          || E0_ENABLE_READ() == E_ENABLE_ON // If any of the drivers are enabled...
-          #if DRIVER_EXTRUDERS > 1
-            || E1_ENABLE_READ() == E_ENABLE_ON
-            #if HAS_X2_ENABLE
-              || X2_ENABLE_READ() == X_ENABLE_ON
-            #endif
-            #if DRIVER_EXTRUDERS > 2
-              || E2_ENABLE_READ() == E_ENABLE_ON
-              #if DRIVER_EXTRUDERS > 3
-                || E3_ENABLE_READ() == E_ENABLE_ON
-                #if DRIVER_EXTRUDERS > 4
-                  || E4_ENABLE_READ() == E_ENABLE_ON
-                  #if DRIVER_EXTRUDERS > 5
-                    || E5_ENABLE_READ() == E_ENABLE_ON
-                  #endif
-                #endif
-              #endif
-            #endif
-          #endif
-      ) return true;
-
-      return false;
     }
 
   #endif // HAS_POWER_SWITCH
@@ -188,5 +154,45 @@ power_data_t Power::data;
   }
 
 #endif // HAS_POWER_CONSUMPTION_SENSOR
+
+/** Private Function */
+#if HAS_POWER_SWITCH
+
+  bool Power::is_power_needed() {
+
+    #if HEATER_COUNT > 0
+      if (thermalManager.heaters_isActive()) return true;
+    #endif
+
+    #if FAN_COUNT > 0
+      LOOP_FAN() if (fans[f].speed > 0) return true;
+    #endif
+
+    if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
+        || E0_ENABLE_READ() == E_ENABLE_ON // If any of the drivers are enabled...
+        #if DRIVER_EXTRUDERS > 1
+          || E1_ENABLE_READ() == E_ENABLE_ON
+          #if HAS_X2_ENABLE
+            || X2_ENABLE_READ() == X_ENABLE_ON
+          #endif
+          #if DRIVER_EXTRUDERS > 2
+            || E2_ENABLE_READ() == E_ENABLE_ON
+            #if DRIVER_EXTRUDERS > 3
+              || E3_ENABLE_READ() == E_ENABLE_ON
+              #if DRIVER_EXTRUDERS > 4
+                || E4_ENABLE_READ() == E_ENABLE_ON
+                #if DRIVER_EXTRUDERS > 5
+                  || E5_ENABLE_READ() == E_ENABLE_ON
+                #endif
+              #endif
+            #endif
+          #endif
+        #endif
+    ) return true;
+
+    return false;
+  }
+
+#endif // HAS_POWER_SWITCH
 
 #endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK

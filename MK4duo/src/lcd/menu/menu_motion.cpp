@@ -238,9 +238,10 @@ void _goto_manual_move(const float scale) {
   move_menu_scale = scale;
   lcdui.goto_screen(_manual_move_func_ptr);
 }
-void menu_move_10mm()     { _goto_manual_move(10); }
-void menu_move_1mm()      { _goto_manual_move( 1); }
-void menu_move_01mm()     { _goto_manual_move( 0.1f); }
+void menu_move_10mm()     { _goto_manual_move(10);      }
+void menu_move_1mm()      { _goto_manual_move( 1);      }
+void menu_move_01mm()     { _goto_manual_move( 0.1f);   }
+void menu_move_0025mm()   { _goto_manual_move( 0.025f); }
 void menu_move_z_probe()  { move_menu_scale = MESH_EDIT_Z_STEP ; lcdui.goto_screen(lcd_move_z); }
 
 void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int8_t eindex=-1) {
@@ -268,6 +269,8 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
     MENU_ITEM(submenu, MSG_MOVE_10MM, menu_move_10mm);
     MENU_ITEM(submenu, MSG_MOVE_1MM, menu_move_1mm);
     MENU_ITEM(submenu, MSG_MOVE_01MM, menu_move_01mm);
+    if (axis == Z_AXIS)
+      MENU_ITEM(submenu, MSG_MOVE_0025MM, menu_move_0025mm);
   }
   END_MENU();
 }

@@ -207,14 +207,14 @@ void Commands::get_destination() {
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
       else
-        gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
     #else
       if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
       else
-        gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
     #endif
   #endif
 }
@@ -316,7 +316,7 @@ void Commands::get_serial() {
 
   #if HAS_DOOR_OPEN
     if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
-      printer.keepalive(DoorOpen);
+      PRINTER_KEEPALIVE(DoorOpen);
       return;  // do nothing while door is open
     }
   #endif
@@ -469,7 +469,7 @@ void Commands::get_serial() {
 
     #if HAS_DOOR_OPEN
       if (READ(DOOR_OPEN_PIN) != endstops.isLogic(DOOR_OPEN)) {
-        printer.keepalive(DoorOpen);
+        PRINTER_KEEPALIVE(DoorOpen);
         return;  // do nothing while door is open
       }
     #endif
@@ -660,7 +660,7 @@ bool Commands::process_injected() {
 
 void Commands::process_parsed(const bool say_ok/*=true*/) {
 
-  printer.keepalive(InHandler);
+  PRINTER_KEEPALIVE(InHandler);
 
   #if ENABLED(FASTER_GCODE_EXECUTE) || ENABLED(ARDUINO_ARCH_SAM)
 
@@ -713,10 +713,8 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
         }
 
         // With M105 "ok" already sended
-        if (code_num == 105) {
-          printer.keepalive(NotBusy);
-          return;
-        }
+        if (code_num == 105) return;
+
       }
       break;
 
@@ -1352,7 +1350,7 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
           case 104: gcode_M104(); break;
         #endif
         #if ENABLED(CODE_M105)
-          case 105: gcode_M105(); printer.keepalive(NotBusy); return;
+          case 105: gcode_M105(); return;
         #endif
         #if ENABLED(CODE_M106)
           case 106: gcode_M106(); break;
@@ -4054,8 +4052,6 @@ void Commands::process_parsed(const bool say_ok/*=true*/) {
     }
 
   #endif
-
-  printer.keepalive(NotBusy);
 
   if (say_ok) ok_to_send();
 

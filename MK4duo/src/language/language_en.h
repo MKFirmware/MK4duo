@@ -520,6 +520,9 @@
 #ifndef MSG_HOTEND_TOO_COLD
   #define MSG_HOTEND_TOO_COLD                 _UxGT("Hotend too cold")
 #endif
+#ifndef MSG_MOVE_0025MM
+  #define MSG_MOVE_0025MM                     _UxGT("Move 0.025mm")
+#endif
 #ifndef MSG_MOVE_01MM
   #define MSG_MOVE_01MM                       _UxGT("Move 0.1mm")
 #endif
@@ -772,8 +775,14 @@
 #ifndef MSG_BUTTON_PRINT
   #define MSG_BUTTON_PRINT                    _UxGT("Print")
 #endif
+#ifndef MSG_BUTTON_RESET
+  #define MSG_BUTTON_RESET                    _UxGT("Reset")
+#endif
 #ifndef MSG_BUTTON_CANCEL
   #define MSG_BUTTON_CANCEL                   _UxGT("Cancel")
+#endif
+#ifndef MSG_BUTTON_DONE
+  #define MSG_BUTTON_DONE                     _UxGT("Done")
 #endif
 #ifndef MSG_PAUSE_PRINT
   #define MSG_PAUSE_PRINT                     _UxGT("Pause print")
@@ -901,6 +910,9 @@
 #ifndef MSG_BLTOUCH_RESET
   #define MSG_BLTOUCH_RESET                   _UxGT("Reset")
 #endif
+#ifndef MSG_BLTOUCH_STOW
+  #define MSG_BLTOUCH_STOW                    _UxGT("Stow")
+#endif
 #ifndef MSG_BLTOUCH_DEPLOY
   #define MSG_BLTOUCH_DEPLOY                  _UxGT("Deploy")
 #endif
@@ -915,9 +927,6 @@
 #endif
 #ifndef MSG_BLTOUCH_MODE_STORE
   #define MSG_BLTOUCH_MODE_STORE              _UxGT("Mode Store")
-#endif
-#ifndef MSG_BLTOUCH_STOW
-  #define MSG_BLTOUCH_STOW                    _UxGT("Stow BLTouch")
 #endif
 #ifndef MSG_BLTOUCH_MODE_STORE_5V
   #define MSG_BLTOUCH_MODE_STORE_5V           _UxGT("Set to 5V")
@@ -938,7 +947,7 @@
   #define MSG_MANUAL_STOW                     _UxGT("Stow Z-Probe")
 #endif
 #ifndef MSG_HOME
-  #define MSG_HOME                            _UxGT("Home") // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
+  #define MSG_HOME                            _UxGT("Home")
 #endif
 #ifndef MSG_FIRST
   #define MSG_FIRST                           _UxGT("first")
@@ -964,14 +973,14 @@
 #ifndef MSG_HEATING_FAILED_LCD_BED
   #define MSG_HEATING_FAILED_LCD_BED          _UxGT("Bed heating failed")
 #endif
+#ifndef MSG_HEATING_FAILED_LCD_CHAMBER
+  #define MSG_HEATING_FAILED_LCD_CHAMBER      _UxGT("Chamber heating fail")
+#endif
 #ifndef MSG_ERR_REDUNDANT_TEMP
   #define MSG_ERR_REDUNDANT_TEMP              _UxGT("Err: REDUNDANT TEMP")
 #endif
 #ifndef MSG_THERMAL_RUNAWAY
   #define MSG_THERMAL_RUNAWAY                 _UxGT("THERMAL RUNAWAY")
-#endif
-#ifndef MSG_THERMAL_RUNAWAY_BED
-  #define MSG_THERMAL_RUNAWAY_BED             _UxGT("BED THERMAL RUNAWAY")
 #endif
 #ifndef MSG_AD595
   #define MSG_AD595                           _UxGT("AD595 Offset & Gain")
@@ -1246,6 +1255,9 @@
 #ifndef MSG_RUNOUT_SENSOR
   #define MSG_RUNOUT_SENSOR                   _UxGT("Runout Sensor")
 #endif
+#ifndef MSG_RUNOUT_DISTANCE_MM
+  #define MSG_RUNOUT_DISTANCE_MM              _UxGT("Runout Dist mm")
+#endif
 #ifndef MSG_ERR_HOMING_FAILED
   #define MSG_ERR_HOMING_FAILED               _UxGT("Homing failed")
 #endif
@@ -1469,6 +1481,9 @@
   #ifndef MSG_ADVANCED_PAUSE_WAITING_1
     #define MSG_ADVANCED_PAUSE_WAITING_1      _UxGT("Click to continue")
   #endif
+  #ifndef MSG_PAUSE_PRINT_INIT_1
+    #define MSG_PAUSE_PRINT_INIT_1            _UxGT("Parking...")
+  #endif
   #ifndef MSG_FILAMENT_CHANGE_INIT_1
     #define MSG_FILAMENT_CHANGE_INIT_1        _UxGT("Please wait...")
   #endif
@@ -1522,7 +1537,10 @@
 #endif
 
 #ifndef MSG_SERVICE_RESET
-  #define MSG_SERVICE_RESET                   _UxGT("Service Reset")
+  #define MSG_SERVICE_RESET                   _UxGT("Reset")
+#endif
+#ifndef MSG_SERVICE_IN
+  #define MSG_SERVICE_IN                      _UxGT(" in:")
 #endif
 
 // Max Inactivity Time

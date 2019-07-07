@@ -72,7 +72,7 @@ class MMU2 {
 
     static void command(const uint8_t cmd);
     static bool get_response(void);
-    static void manage_response(bool move_axes, bool turn_off_nozzle);
+    static void manage_response(const bool move_axes, const bool turn_off_nozzle);
 
     static void filament_runout();
     static void set_runout_valid(const bool valid);

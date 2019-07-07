@@ -886,7 +886,7 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 void Planner::synchronize() {
   while (has_blocks_queued() || cleaning_buffer_flag) {
     printer.idle();
-    printer.keepalive(InProcess);
+    PRINTER_KEEPALIVE(InProcess);
   }
 }
 

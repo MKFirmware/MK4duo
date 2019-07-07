@@ -23,25 +23,29 @@
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
-union power_flag_t {
-  uint8_t all;
-  struct {
-    bool  Logic   : 1;
-    bool  Pullup  : 1;
-    bool  bit2    : 1;
-    bool  bit3    : 1;
-    bool  bit4    : 1;
-    bool  bit5    : 1;
-    bool  bit6    : 1;
-    bool  bit7    : 1;
-  };
-  power_flag_t() { all = 0x00; }
-};
+#if HAS_POWER_CHECK
 
-// Struct Power data
-typedef struct {
-  power_flag_t flag;
-} power_data_t;
+  union power_flag_t {
+    uint8_t all;
+    struct {
+      bool  Logic   : 1;
+      bool  Pullup  : 1;
+      bool  bit2    : 1;
+      bool  bit3    : 1;
+      bool  bit4    : 1;
+      bool  bit5    : 1;
+      bool  bit6    : 1;
+      bool  bit7    : 1;
+    };
+    power_flag_t() { all = 0x00; }
+  };
+
+  // Struct Power data
+  typedef struct {
+    power_flag_t flag;
+  } power_data_t;
+
+#endif
 
 class Power {
 
@@ -51,7 +55,9 @@ class Power {
 
   public: /** Public Parameters */
 
-    static power_data_t data;
+    #if HAS_POWER_CHECK
+      static power_data_t data;
+    #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
       static int16_t  current_raw_powconsumption;
@@ -64,7 +70,7 @@ class Power {
     #if HAS_POWER_SWITCH
       static bool powersupply_on;
       #if (POWER_TIMEOUT > 0)
-        static millis_s last_Power_On_ms;
+        static millis_l last_Power_On_ms;
       #endif
     #endif
 
@@ -96,6 +102,14 @@ class Power {
        */
       static void report();
 
+      // Flag bit 0 Set power check logic
+      FORCE_INLINE static void setLogic(const bool logic) { data.flag.Logic = logic; }
+      FORCE_INLINE static bool isLogic() { return data.flag.Logic; }
+
+      // Flag bit 1 Set power check pullup
+      FORCE_INLINE static void setPullup(const bool pullup) { data.flag.Pullup = pullup; }
+      FORCE_INLINE static bool isPullup() { return data.flag.Pullup; }
+
     #endif
 
     #if HAS_POWER_SWITCH
@@ -116,14 +130,6 @@ class Power {
                     analog2error(float current),
                     analog2efficiency(float watt);
     #endif
-
-    // Flag bit 0 Set power check logic
-    FORCE_INLINE static void setLogic(const bool logic) { data.flag.Logic = logic; }
-    FORCE_INLINE static bool isLogic() { return data.flag.Logic; }
-
-    // Flag bit 1 Set power check pullup
-    FORCE_INLINE static void setPullup(const bool pullup) { data.flag.Pullup = pullup; }
-    FORCE_INLINE static bool isPullup() { return data.flag.Pullup; }
 
   private: /** Private Function */
 

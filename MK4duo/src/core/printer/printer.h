@@ -97,6 +97,9 @@ class Printer {
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static BusyStateEnum busy_state;
       static uint8_t  host_keepalive_time;
+      #define PRINTER_KEEPALIVE(N)  REMEMBER(_KA_, printer.busy_state, N)
+    #else
+      #define PRINTER_KEEPALIVE(N)  NOOP
     #endif
 
     static InterruptEventEnum interruptEvent;
@@ -152,12 +155,6 @@ class Printer {
 
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
-    #endif
-
-    #if ENABLED(HOST_KEEPALIVE_FEATURE)
-      FORCE_INLINE static void keepalive(const BusyStateEnum state) { Printer::busy_state = state; }
-    #else
-      FORCE_INLINE static void keepalive(const BusyStateEnum state) { UNUSED(state); }
     #endif
 
     FORCE_INLINE static void zero_fan_speed() {

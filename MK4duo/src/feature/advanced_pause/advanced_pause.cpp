@@ -182,7 +182,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   // Wait for filament insert by user and press button
-  printer.keepalive(PausedforUser);
+  PRINTER_KEEPALIVE(PausedforUser);
   printer.setWaitForUser(true); // LCD click or M108 will clear this
   host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Nozzle Parked"), PSTR("Continue"));
 
@@ -267,7 +267,6 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
     stepper.set_directions();
   #endif
 
-  printer.keepalive(InHandler);
 }
 
 /**
@@ -410,7 +409,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
       UNUSED(max_beep_count);
     #endif
 
-    printer.keepalive(PausedforUser);
+    PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);    // LCD click or M108 will clear this
 
     const char tool = '0' + tools.active_extruder;
@@ -428,7 +427,6 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
       #endif
       printer.idle(true);
     }
-    printer.keepalive(InHandler);
   }
 
   #if HAS_LCD_MENU
@@ -483,11 +481,10 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
 
     #if HAS_LCD_MENU
       if (show_lcd) {
-        printer.keepalive(PausedforUser);
+        PRINTER_KEEPALIVE(PausedforUser);
         printer.setWaitForUser(false);
         lcd_pause_show_message(PAUSE_MESSAGE_OPTION);
         while (menu_response == PAUSE_RESPONSE_WAIT_FOR) printer.idle(true);
-        printer.keepalive(InHandler);
       }
     #endif
 

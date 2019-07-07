@@ -560,10 +560,10 @@ void Heater::print_M305() {
   SERIAL_MV(" P", data.sensor.pin);
   SERIAL_MV(" S", data.sensor.type);
   if (WITHIN(data.sensor.type, 1, 9)) {
-    SERIAL_MV(" A", data.sensor.r25, 1);
+    SERIAL_MV(" A", data.sensor.res_25, 1);
     SERIAL_MV(" B", data.sensor.beta, 1);
     SERIAL_MV(" C", data.sensor.shC, 10);
-    SERIAL_MV(" R", data.sensor.pullupR, 1);
+    SERIAL_MV(" R", data.sensor.pullup_res, 1);
     SERIAL_MV(" L", data.sensor.adcLowOffset);
     SERIAL_MV(" O", data.sensor.adcHighOffset);
   }
@@ -623,7 +623,7 @@ void Heater::start_idle_timer(const millis_l &ms) {
 void Heater::reset_idle_timer() {
   idle_timeout_ms = 0;
   setIdle(false);
-  //start_watching();
+  start_watching();
 }
 
 void Heater::thermal_runaway_protection() {

@@ -369,10 +369,9 @@ void Probe::specific_action(const bool deploy) {
     SERIAL_EOL();
 
     printer.setWaitForUser(true);
-    printer.keepalive(PausedforUser);
+    PRINTER_KEEPALIVE(PausedforUser);
     while (printer.isWaitForUser()) printer.idle();
     lcdui.reset_status();
-    printer.keepalive(InHandler);
 
   #endif // PAUSE_BEFORE_DEPLOY_STOW
 

@@ -141,8 +141,8 @@ inline void gcode_M43(void) {
     }
 
     #if HAS_RESUME_CONTINUE
+      PRINTER_KEEPALIVE(PausedforUser);
       printer.setWaitForUser(true);
-      printer.keepalive(PausedforUser);
     #endif
 
     for(;;) {
@@ -162,7 +162,7 @@ inline void gcode_M43(void) {
       }
 
       #if HAS_RESUME_CONTINUE
-        if (!printer.isWaitForUser()) { printer.keepalive(InHandler); break; }
+        if (!printer.isWaitForUser()) break;
       #endif
 
       HAL::delayMilliseconds(500);

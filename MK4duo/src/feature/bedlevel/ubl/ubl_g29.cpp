@@ -791,9 +791,8 @@
     }
 
     float unified_bed_leveling::measure_point_with_encoder() {
-      printer.keepalive(PausedforUser);
+      PRINTER_KEEPALIVE(PausedforUser);
       move_z_with_encoder(0.01f);
-      printer.keepalive(InHandler);
       return mechanics.current_position[Z_AXIS];
     }
 
@@ -838,15 +837,6 @@
       return thickness;
     }
 
-    void abort_manual_probe_remaining_mesh() {
-      SERIAL_EM("\nMesh only partially populated.");
-      mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
-      lcdui.release();
-      printer.keepalive(InHandler);
-      lcdui.quick_feedback();
-      ubl.restore_ubl_active_state_and_leave();
-    }
-
     void unified_bed_leveling::manually_probe_remaining_mesh(const float &rx, const float &ry, const float &z_clearance, const float &thick, const bool do_ubl_mesh_map) {
 
       lcdui.capture();
@@ -872,7 +862,7 @@
         mechanics.do_blocking_move_to(xProbe, yProbe, Z_PROBE_BETWEEN_HEIGHT);
         mechanics.do_blocking_move_to_z(z_clearance);
 
-        printer.keepalive(PausedforUser);
+        PRINTER_KEEPALIVE(PausedforUser);
         lcdui.capture();
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
@@ -888,7 +878,6 @@
           SERIAL_EM("\nMesh only partially populated.");
           mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
           lcdui.release();
-          printer.keepalive(InHandler);
           restore_ubl_active_state_and_leave();
           return;
         }
@@ -905,7 +894,6 @@
       if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
       restore_ubl_active_state_and_leave();
-      printer.keepalive(InHandler);
       mechanics.do_blocking_move_to(rx, ry, Z_PROBE_DEPLOY_HEIGHT);
     }
 
@@ -971,7 +959,7 @@
           mechanics.do_blocking_move_to_z(h_offset);                        // Move Z to the given 'H' offset before editing
         #endif
 
-        printer.keepalive(PausedforUser);
+        PRINTER_KEEPALIVE(PausedforUser);
 
         if (do_ubl_mesh_map) display_map(g29_map_type);                     // Display the current point
 
@@ -998,19 +986,16 @@
 
         if (!lcd_map_control) lcdui.return_to_status();                     // Just editing a single point? Return to status
 
-        if (click_and_hold(abort_fine_tune)) goto FINE_TUNE_EXIT;           // If the click is held down, abort editing
+        if (click_and_hold(abort_fine_tune)) break;                         // If the click is held down, abort editing
 
         z_values[location.x_index][location.y_index] = new_z;               // Save the updated Z value
 
-        HAL::delayMilliseconds(20);                                             // No switch noise
+        HAL::delayMilliseconds(20);                                         // No switch noise
         lcdui.refresh();
 
       } while (location.x_index >= 0 && --g29_repetition_cnt > 0);
 
-      FINE_TUNE_EXIT:
-
       lcdui.release();
-      printer.keepalive(InHandler);
 
       if (do_ubl_mesh_map) display_map(g29_map_type);
       restore_ubl_active_state_and_leave();

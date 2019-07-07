@@ -936,8 +936,6 @@ inline void gcode_G29(void) {
 
   if (printer.debugFeature()) DEBUG_EM("<<< G29");
 
-  printer.keepalive(InHandler);
-
   if (bedlevel.flag.leveling_active)
     mechanics.sync_plan_position();
 

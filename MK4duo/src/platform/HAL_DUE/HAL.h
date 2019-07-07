@@ -184,9 +184,9 @@ typedef uint32_t  ptr_int_t;
 #define RST_EXTERNAL   2
 #define RST_BROWN_OUT  4
 #define RST_WATCHDOG   8
-#define RST_JTAG       16
-#define RST_SOFTWARE   32
-#define RST_BACKUP     64
+#define RST_JTAG      16
+#define RST_SOFTWARE  32
+#define RST_BACKUP    64
 
 #define SPR0    0
 #define SPR1    1
@@ -232,7 +232,6 @@ typedef uint32_t  ptr_int_t;
 extern uint8_t MCUSR;
 volatile static uint32_t debug_counter;
 
-extern "C" char *sbrk(int i);
 extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
 
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
@@ -308,10 +307,10 @@ class HAL {
       }
     }
     FORCE_INLINE static void digitalWrite(const pin_t pin, const bool value) {
-      WRITE_VAR(pin, value);
+      WRITE(pin, value);
     }
     FORCE_INLINE static bool digitalRead(const pin_t pin) {
-      return READ_VAR(pin);
+      return READ(pin);
     }
     FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
       const PinDescription& pinDesc = g_APinDescription[pin];

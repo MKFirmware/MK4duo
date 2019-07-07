@@ -33,6 +33,6 @@
 /**
  * M35: Upload Firmware to Nextion from SD
  */
-inline void gcode_M35(void) { UploadNewFirmware(); }
+inline void gcode_M35(void) { nexlcd.UploadNewFirmware(); }
 
 #endif // HAS_NEXTION_LCD && HAS_SD_SUPPORT

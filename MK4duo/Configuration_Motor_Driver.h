@@ -129,7 +129,7 @@
 #define CHOPPER_DEFAULT_19V  { 4,  1, 1 }
 #define CHOPPER_DEFAULT_24V  { 4,  2, 1 }
 #define CHOPPER_DEFAULT_36V  { 5,  2, 4 }
-#define CHOPPER_PRUSAMK3_24V { 4,  1, 4 } // Imported parameters from the official Prusa firmware for MK3 (24V)
+#define CHOPPER_PRUSAMK3_24V { 3, -2, 6 } // Imported parameters from the official Prusa firmware for MK3 (24V)
 #define CHOPPER_MK4DUO_436   { 5,  2, 3 } // Old defaults from MK4duo v4.3.6
 //
 // Define you own with

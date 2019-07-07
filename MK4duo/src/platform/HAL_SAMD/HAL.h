@@ -227,10 +227,10 @@ class HAL {
       }
     }
     FORCE_INLINE static void digitalWrite(const pin_t pin, const bool value) {
-      WRITE_VAR(pin, value);
+      WRITE(pin, value);
     }
     FORCE_INLINE static bool digitalRead(const pin_t pin) {
-      return READ_VAR(pin);
+      return READ(pin);
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {

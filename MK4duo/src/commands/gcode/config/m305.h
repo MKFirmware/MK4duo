@@ -37,10 +37,10 @@
  *
  *    T[int]      0-3 For Select Beds or Chambers
  *
- *    A[float]  Thermistor resistance at 25°C
- *    B[float]  BetaK
- *    C[float]  Steinhart-Hart C coefficien
- *    R[float]  Pullup resistor value
+ *    A[ohms]   Thermistor resistance at 25°C
+ *    B[beta]   Thermistor betaK value
+ *    C[coeff]  Steinhart-Hart C coefficient
+ *    R[ohms]   Pullup resistor value
  *    L[int]    ADC low offset correction
  *    O[int]    ADC high offset correction
  *    P[int]    Sensor Pin
@@ -82,13 +82,43 @@ inline void gcode_M305(void) {
     }
   #endif
 
-  act->data.sensor.r25            = parser.floatval('A', act->data.sensor.r25);
-  act->data.sensor.beta           = parser.floatval('B', act->data.sensor.beta);
-  act->data.sensor.shC            = parser.floatval('C', act->data.sensor.shC);
-  act->data.sensor.pullupR        = parser.floatval('R', act->data.sensor.pullupR);
-  act->data.sensor.adcLowOffset   = parser.intval('L', act->data.sensor.adcLowOffset);
-  act->data.sensor.adcHighOffset  = parser.intval('O', act->data.sensor.adcHighOffset);
-  act->data.sensor.type           = parser.intval('S', act->data.sensor.type);
+  // Resistance at 25C// Resistance at 25C
+  if (parser.seen('A')) {
+    if (!act->data.sensor.set_res_25(parser.value_float()))
+      SERIAL_EM("!Invalid 25C resistance. (0 < T < 10000000)");
+  }
+
+  // Beta value
+  if (parser.seen('B')) {
+    if (!act->data.sensor.set_beta(parser.value_float()))
+      SERIAL_EM("!Invalid beta. (0 < B < 1000000)");
+  }
+
+  // Steinhart-Hart C coefficient
+  if (parser.seen('C')) {
+    if (!act->data.sensor.set_shC(parser.value_float()))
+      SERIAL_EM("!Invalid Steinhart-Hart C coeff. (-0.01 < C < +0.01)");
+  }
+
+  // Pullup resistor value
+  if (parser.seen('R')) {
+    if (!act->data.sensor.set_pullup_res(parser.value_float()))
+      SERIAL_EM("!Invalid series resistance. (0 < R < 1000000)");
+  }
+
+  // Adc Low offset
+  if (parser.seen('L')) {
+    if (!act->data.sensor.set_LowOffset(parser.value_int()))
+      SERIAL_EM("!Invalid Low Offset. (-1000 < L < 1000)");
+  }
+
+  // Adc Low offset
+  if (parser.seen('O')) {
+    if (!act->data.sensor.set_HighOffset(parser.value_int()))
+      SERIAL_EM("!Invalid High Offset. (-1000 < O < 1000)");
+  }
+
+  act->data.sensor.type = parser.intval('S', act->data.sensor.type);
 
   if (parser.seen('P')) {
     // Put off the heaters

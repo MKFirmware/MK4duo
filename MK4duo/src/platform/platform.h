@@ -25,8 +25,10 @@
  * Description:
  *
  * Supports platforms:
- *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
  *    __AVR__           : For all Atmel AVR boards
+ *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
+ *    ARDUINO_ARCH_SAMD : For Arduino Due and other boards based on Atmel SAMD21J18
+ *
  */
 
 #include "common/memory_store.h"
@@ -36,7 +38,10 @@
 #include "common/servo.h"
 #include "common/softpwm.h"
 
-#if ENABLED(ARDUINO_ARCH_SAM)
+#if ENABLED(__AVR__)
+  #include "HAL_AVR/spi_pins.h"
+  #include "HAL_AVR/HAL.h"
+#elif ENABLED(ARDUINO_ARCH_SAM)
   #define CPU_32_BIT
   #include "HAL_DUE/spi_pins.h"
   #include "HAL_DUE/HAL.h"
@@ -44,9 +49,6 @@
   #define CPU_32_BIT
   #include "HAL_SAMD/spi_pins.h"
   #include "HAL_SAMD/HAL.h"
-#elif ENABLED(__AVR__)
-  #include "HAL_AVR/spi_pins.h"
-  #include "HAL_AVR/HAL.h"
 #else
   #error "Unsupported Platform!"
 #endif

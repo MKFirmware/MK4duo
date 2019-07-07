@@ -98,7 +98,7 @@ void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=
       // LCD click or M108 will clear this
       printer.setWaitForUser(true);
 
-      printer.keepalive(PausedforUser);
+      PRINTER_KEEPALIVE(PausedforUser);
 
       #if HAS_BUZZER
         millis_l next_buzz = millis();
@@ -124,10 +124,7 @@ void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=
 
     planner.synchronize();
 
-    if (wait) {
-      printer.keepalive(InHandler);
-      host_action.resume();
-    }
+    if (wait) host_action.resume();
 
   }
 }

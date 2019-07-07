@@ -1494,9 +1494,9 @@ void EEPROM::reset() {
         // Sensor
         sens->pin             = SE_pin[h];
         sens->type            = SE_type[h];
-        sens->r25             = HOT0_R25;
+        sens->res_25          = HOT0_R25;
         sens->beta            = HOT0_BETA;
-        sens->pullupR         = THERMISTOR_SERIES_RS;
+        sens->pullup_res      = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
         sens->adcHighOffset   = 0;
@@ -1547,9 +1547,9 @@ void EEPROM::reset() {
         // Sensor
         sens->pin             = SB_pin[h];
         sens->type            = BE_type[h];
-        sens->r25             = BED0_R25;
+        sens->res_25          = BED0_R25;
         sens->beta            = BED0_BETA;
-        sens->pullupR         = THERMISTOR_SERIES_RS;
+        sens->pullup_res      = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
         sens->adcHighOffset   = 0;
@@ -1599,9 +1599,9 @@ void EEPROM::reset() {
         // Sensor
         sens->pin             = SCH_pin[h];
         sens->type            = CH_type[h];
-        sens->r25             = CHAMBER0_R25;
+        sens->res_25          = CHAMBER0_R25;
         sens->beta            = CHAMBER0_BETA;
-        sens->pullupR         = THERMISTOR_SERIES_RS;
+        sens->pullup_res      = THERMISTOR_SERIES_RS;
         sens->shC             = 0;
         sens->adcLowOffset    = 0;
         sens->adcHighOffset   = 0;
@@ -1643,9 +1643,9 @@ void EEPROM::reset() {
       // Sensor
       sens->pin             = TEMP_COOLER_PIN;
       sens->type            = TEMP_SENSOR_COOLER;
-      sens->r25             = COOLER_R25;
+      sens->res_25          = COOLER_R25;
       sens->beta            = COOLER_BETA;
-      sens->pullupR         = THERMISTOR_SERIES_RS;
+      sens->pullup_res      = THERMISTOR_SERIES_RS;
       sens->shC             = 0;
       sens->adcLowOffset    = 0;
       sens->adcHighOffset   = 0;

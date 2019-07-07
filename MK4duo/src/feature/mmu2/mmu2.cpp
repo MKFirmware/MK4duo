@@ -36,8 +36,8 @@ MMU2 mmu2;
 
 #define MMU_TODELAY 100
 #define MMU_TIMEOUT 10
-#define MMU_CMD_TIMEOUT 60000U 	  // 1 min timeout for mmu commands (except P0)
-#define MMU_P0_TIMEOUT   3000U    // timeout for P0 command: 3 seconds
+#define MMU_CMD_TIMEOUT 60000UL // 5 min timeout for mmu commands (except P0)
+#define MMU_P0_TIMEOUT   3000UL // Timeout for P0 command: 3seconds
 
 #define MMU_CMD_NONE 0
 #define MMU_CMD_T0   0x10
@@ -503,14 +503,12 @@ void MMU2::tool_change(uint8_t index) {
 
   if (index != extruder) {
 
-    printer.keepalive(InHandler);
     stepper.disable_E0();
     lcdui.status_printf_P(0, PSTR(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
 
     command(MMU_CMD_T0 + index);
 
     manage_response(true, true);
-    printer.keepalive(InHandler);
 
     command(MMU_CMD_C0);
     extruder = index; // filament change is finished
@@ -521,7 +519,6 @@ void MMU2::tool_change(uint8_t index) {
     SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, int(extruder));
 
     lcdui.reset_status();
-    printer.keepalive(NotBusy);
   }
 
   set_runout_valid(true);
@@ -543,7 +540,6 @@ void MMU2::tool_change(const char* special) {
   #if HAS_LCD_MENU
 
     set_runout_valid(false);
-    printer.keepalive(InHandler);
 
     switch (*special) {
       case '?': {
@@ -571,8 +567,6 @@ void MMU2::tool_change(const char* special) {
         execute_extruder_sequence((const E_Step *)load_to_nozzle_sequence, COUNT(load_to_nozzle_sequence));
       } break;
     }
-
-    printer.keepalive(NotBusy);
 
     set_runout_valid(true);
 
@@ -610,12 +604,14 @@ bool MMU2::get_response(void) {
 /**
  * Wait for response and deal with timeout if nexcessary
  */
-void MMU2::manage_response(bool move_axes, bool turn_off_nozzle) {
+void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
   bool response = false;
   mmu_print_saved = false;
   point_t park_point = NOZZLE_PARK_POINT;
   int16_t resume_hotend_temp;
+
+  PRINTER_KEEPALIVE(PausedforUser);
 
   while (!response) {
 
@@ -644,13 +640,10 @@ void MMU2::manage_response(bool move_axes, bool turn_off_nozzle) {
         sound.playtone(100, 659);
         sound.playtone(300, 440);
         sound.playtone(100, 659);
-
-        printer.keepalive(PausedforUser);
       }
     }
     else if (mmu_print_saved) {
       SERIAL_EM("MMU starts responding\n");
-      printer.keepalive(InHandler);
 
       if (turn_off_nozzle && resume_hotend_temp) {
         hotends[0].setTarget(resume_hotend_temp);
@@ -682,15 +675,9 @@ void MMU2::manage_response(bool move_axes, bool turn_off_nozzle) {
 
 void MMU2::set_filament_type(uint8_t index, uint8_t filamentType) {
   if (!enabled) return;
-
-  printer.keepalive(InHandler);
-
   cmd_arg = filamentType;
   command(MMU_CMD_F0 + index);
-
   manage_response(true, true);
-
-  printer.keepalive(NotBusy);
 }
 
 void MMU2::filament_runout() {
@@ -730,8 +717,6 @@ void MMU2::set_runout_valid(const bool valid) {
       return false;
     }
     else {
-      printer.keepalive(InHandler);
-
       command(MMU_CMD_T0 + index);
       manage_response(true, true);
       command(MMU_CMD_C0);
@@ -744,7 +729,6 @@ void MMU2::set_runout_valid(const bool valid) {
 
       sound.playtone(200, 404);
 
-      printer.keepalive(NotBusy);
       return true;
     }
   }
@@ -772,7 +756,6 @@ void MMU2::set_runout_valid(const bool valid) {
       return false;
     }
 
-    printer.keepalive(InHandler);
     LCD_MESSAGEPGM(MSG_MMU2_EJECTING_FILAMENT);
     const bool saved_e_relative_mode = printer.axis_relative_modes[E_AXIS];
     printer.axis_relative_modes[E_AXIS] = true;
@@ -806,8 +789,6 @@ void MMU2::set_runout_valid(const bool valid) {
 
     sound.playtone(200, 404);
 
-    printer.keepalive(NotBusy);
-
     printer.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
 
     stepper.disable_E0();
@@ -830,8 +811,6 @@ void MMU2::set_runout_valid(const bool valid) {
       return false;
     }
 
-    printer.keepalive(InHandler);
-
     filament_ramming();
 
     command(MMU_CMD_U0);
@@ -843,8 +822,6 @@ void MMU2::set_runout_valid(const bool valid) {
     extruder = MMU2_NO_TOOL;
 
     set_runout_valid(false);
-
-    printer.keepalive(NotBusy);
 
     return true;
   }

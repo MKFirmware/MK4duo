@@ -1174,8 +1174,8 @@ void LcdUI::finish_status(const bool persist) {
 
 bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
-void LcdUI::set_status(const char * const message, const bool persist) {
-  if (status_message_level > 0) return;
+void LcdUI::set_status(const char* const message, const bool persist) {
+  if (status_message_level) return;
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
