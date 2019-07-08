@@ -166,7 +166,7 @@ void menu_info_firmware() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
   START_SCREEN();
   STATIC_ITEM(FIRMWARE_NAME, true, true);
-  STATIC_ITEM("V" SHORT_BUILD_VERSION " R" FIRMWARE_REVISION, true);
+  STATIC_ITEM(SHORT_BUILD_VERSION, true);
   STATIC_ITEM(STRING_DISTRIBUTION_DATE, true);
   STATIC_ITEM(MACHINE_NAME, true);
   STATIC_ITEM(FIRMWARE_URL, true);

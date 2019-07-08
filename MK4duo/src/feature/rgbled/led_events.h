@@ -47,6 +47,14 @@
 
       static void onHeating(const bool Hotend, const float &start, const float &current, const float &target);
 
+      static inline void set_done() {
+        #if ENABLED(LED_COLOR_PRESETS)
+          leds.set_default();
+        #else
+          leds.set_off();
+        #endif
+      }
+
       static inline LEDColor onHeatingStart(const bool Hotend) {
         old_intensity = Hotend ? 0 : 127;
         return leds.get_color();
@@ -63,14 +71,14 @@
             leds_off_after_print = true;
           #else
             HAL::delayMilliseconds(2000);
-            leds.set_off();
+            set_done();
           #endif
         }
 
         static inline void onResumeAfterWait() {
           #if HAS_LEDS_OFF_FLAG
             if (leds_off_after_print) {
-              leds.set_off();
+              set_done();
               leds_off_after_print = false;
             }
           #endif
