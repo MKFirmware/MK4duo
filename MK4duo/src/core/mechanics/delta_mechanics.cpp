@@ -733,7 +733,9 @@ void Delta_Mechanics::report_current_position_detail() {
   // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
   float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
     constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
-    float zHi, zLo, newPos[ABC];
+    float zHi         = 0.0,
+          zLo         = 0.0,
+          newPos[ABC] = { 0.0, 0.0, 0.0 };
 
     switch (deriv) {
       case 0:

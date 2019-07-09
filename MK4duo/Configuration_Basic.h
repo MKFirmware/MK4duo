@@ -228,13 +228,14 @@
  *************************************************************************************
  *                                                                                   *
  * The following define selects which power supply you have.                         *
- * Please choose the one that matches your setup and set to POWER_SUPPLY:            *
+ * Please choose the one that matches your setup and set to POWER SUPPLY:            *
  * 0 Normal power                                                                    *
- * 1 ATX                                                                             *
- * 2 X-Box 360 203 Watts (the blue wire connected to PS_ON and the red wire to VCC)  *
+ * 1 POWER WITH PS-ON TO GND (ATX)                                                   *
+ * 2 POWER WITH PS-ON TO VCC (X-BOX 360)                                             *
  *                                                                                   *
  *************************************************************************************/
 #define POWER_SUPPLY 0
+//#define POWER_NAME "Generic"
 
 // Define this to have the electronics keep the power supply off on startup.
 // If you don't know what this is leave it.

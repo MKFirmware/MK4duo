@@ -65,7 +65,15 @@
 #define NS_PER_CYCLE    (1000000000.0/(F_CPU))
 
 // Remove compiler warning on an unused variable
-#define UNUSED(X)       (void)X
+#ifndef UNUSED
+  #define UNUSED(x)     ((void)(x))
+#endif
+
+/**
+ * Macros for time
+ */
+#define PENDING(NOW,SOON) ((int32_t)(NOW-(SOON))<0)
+#define ELAPSED(NOW,SOON) (!PENDING(NOW,SOON))
 
 /**
  * Macrof for Delay
@@ -125,9 +133,13 @@
 #undef _BV
 #define _BV(b)            (1<<(b))
 #define TEST(n,b)         !!((n)&_BV(b))
-#define SBI(n,b)          (n |= _BV(b))
-#define CBI(n,b)          (n &= ~_BV(b))
 #define SET_BIT(N,B,TF)   do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
+#ifndef SBI
+  #define SBI(n,b)        (n |= (1 << (b)))
+#endif
+#ifndef CBI
+  #define CBI(n,b)        (n &= ~(1 << (b)))
+#endif
 
 #define _BV32(b)          (1UL << (b))
 #define TEST32(n,b)       !!((n)&_BV32(b))

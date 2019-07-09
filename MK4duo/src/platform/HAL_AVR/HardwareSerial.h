@@ -145,6 +145,8 @@ class MKHardwareSerial { //: public Stream
     static void write(const uint8_t c);
     static void flushTX(void);
 
+    operator bool() { return true; }
+
     #if ENABLED(SERIAL_STATS_DROPPED_RX)
         FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }
     #endif

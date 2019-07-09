@@ -46,12 +46,16 @@ int8_t Com::serial_port_index = -1;
 
 /** Public Function */
 void Com::setBaudrate() {
+  uint32_t serial_connect_timeout = millis() + 1000UL;
   MKSERIAL1.begin(BAUDRATE_1);
-  HAL::delayMilliseconds(1000);
+  while (!MKSERIAL1 && int32_t(millis() - serial_connect_timeout) < 0) { /* nada */ }
+
   #if NUM_SERIAL > 1
     MKSERIAL2.begin(BAUDRATE_2);
-    HAL::delayMilliseconds(1000);
+    serial_connect_timeout = millis() + 1000UL;
+    while (!MKSERIAL2 && int32_t(millis() - serial_connect_timeout) < 0) { /* nada */ }
   #endif
+
   printPGM(START);
   println();
 }
