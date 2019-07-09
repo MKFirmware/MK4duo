@@ -310,9 +310,18 @@
 #if (POWER_SUPPLY == 1)     // 1 = ATX
   #define PS_ON_AWAKE  LOW
   #define PS_ON_ASLEEP HIGH
-#elif (POWER_SUPPLY == 2)   // 2 = X-Box 360 203W
+#elif (POWER_SUPPLY == 2)   // 2 = X-Box 360
   #define PS_ON_AWAKE  HIGH
   #define PS_ON_ASLEEP LOW
+#endif
+#if DISABLED(POWER_NAME)
+  #if (POWER_SUPPLY == 1)
+    #define POWER_NAME "ATX"      // ATX style
+  #elif (POWER_SUPPLY == 2)
+    #define POWER_NAME "XBox"     // X-Box 360
+  #else
+    #define POWER_NAME "Generic"  // No control
+  #endif
 #endif
 #if DISABLED(DELAY_AFTER_POWER_ON)
   #define DELAY_AFTER_POWER_ON 5

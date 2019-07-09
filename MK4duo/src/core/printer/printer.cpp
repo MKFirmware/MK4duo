@@ -159,7 +159,7 @@ void Printer::setup() {
   #endif // STRING_DISTRIBUTION_DATE
 
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
-  SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)*BLOCK_BUFFER_SIZE);
+  SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
   #if HAS_SD_SUPPORT
     card.mount();
@@ -535,7 +535,6 @@ void Printer::stop() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
-  // LCD Update
   lcdui.update();
 
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
@@ -766,7 +765,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     mmu2.mmu_loop();
   #endif
 
-  // Reset the watchdog
   watchdog.reset();
 
 }

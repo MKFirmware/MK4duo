@@ -147,13 +147,7 @@ void menu_info_board() {
   STATIC_ITEM(BOARD_NAME, true, true);                              // Board
   STATIC_ITEM(MSG_INFO_BAUDRATE ": " STRINGIFY(BAUDRATE_1), true);  // Baud: 250000
   STATIC_ITEM(MSG_INFO_PROTOCOL ": " PROTOCOL_VERSION, true);       // Protocol: 2.0
-  #if (POWER_SUPPLY == 0)
-    STATIC_ITEM(MSG_INFO_PSU ": Normal", true); // Power Supply: Normal
-  #elif (POWER_SUPPLY == 1)
-    STATIC_ITEM(MSG_INFO_PSU ": ATX", true);    // Power Supply: ATX
-  #elif (POWER_SUPPLY == 2)
-    STATIC_ITEM(MSG_INFO_PSU ": XBox", true);   // Power Supply: XBox
-  #endif
+  STATIC_ITEM(MSG_INFO_PSU ": " POWER_NAME, true);                  // Power Supply: Normal
   END_SCREEN();
 }
 
@@ -166,7 +160,7 @@ void menu_info_firmware() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
   START_SCREEN();
   STATIC_ITEM(FIRMWARE_NAME, true, true);
-  STATIC_ITEM("V" SHORT_BUILD_VERSION " R" FIRMWARE_REVISION, true);
+  STATIC_ITEM(SHORT_BUILD_VERSION, true);
   STATIC_ITEM(STRING_DISTRIBUTION_DATE, true);
   STATIC_ITEM(MACHINE_NAME, true);
   STATIC_ITEM(FIRMWARE_URL, true);

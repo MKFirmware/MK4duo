@@ -189,15 +189,12 @@ void(* resetFunc) (void) = 0; // declare reset function @ address 0
 void HAL::resetHardware() { resetFunc(); }
 
 void HAL::showStartReason() {
-
-  // Check startup - does nothing if bootloader sets MCUSR to 0
   const uint8_t mcu = MCUSR;
-  if (mcu & 1)  SERIAL_EM(MSG_POWERUP);
-  if (mcu & 2)  SERIAL_EM(MSG_EXTERNAL_RESET);
-  if (mcu & 4)  SERIAL_EM(MSG_BROWNOUT_RESET);
-  if (mcu & 8)  SERIAL_EM(MSG_WATCHDOG_RESET);
+  if (mcu &  1) SERIAL_EM(MSG_POWERUP);
+  if (mcu &  2) SERIAL_EM(MSG_EXTERNAL_RESET);
+  if (mcu &  4) SERIAL_EM(MSG_BROWNOUT_RESET);
+  if (mcu &  8) SERIAL_EM(MSG_WATCHDOG_RESET);
   if (mcu & 32) SERIAL_EM(MSG_SOFTWARE_RESET);
-
   MCUSR = 0;
 }
 

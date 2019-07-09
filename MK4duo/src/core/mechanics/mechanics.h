@@ -224,13 +224,15 @@ class Mechanics {
         case X_AXIS: home_flag.XHomed = onoff; break;
         case Y_AXIS: home_flag.YHomed = onoff; break;
         case Z_AXIS: home_flag.ZHomed = onoff; break;
+        default: break;
       }
     }
     FORCE_INLINE static bool isAxisHomed(const AxisEnum axis) {
       switch (axis) {
-        case X_AXIS: return home_flag.XHomed; break;
-        case Y_AXIS: return home_flag.YHomed; break;
-        case Z_AXIS: return home_flag.ZHomed; break;
+        case X_AXIS:  return home_flag.XHomed;  break;
+        case Y_AXIS:  return home_flag.YHomed;  break;
+        case Z_AXIS:  return home_flag.ZHomed;  break;
+        default:      return false;             break;
       }
     }
 

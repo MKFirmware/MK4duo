@@ -23,33 +23,31 @@
 
 #if HAS_SPI_LCD
 
-  #if HAS_ADC_BUTTONS
-    uint8_t get_ADC_keyValue();
+#if HAS_ADC_BUTTONS
+  uint8_t get_ADC_keyValue();
+#endif
+
+#define LCD_UPDATE_INTERVAL       100
+
+#if HAS_LCD_MENU
+
+  #if HAS_GRAPHICAL_LCD
+    #define SETCURSOR(col, row)     lcd_moveto(col * (MENU_FONT_WIDTH), (row + 1) * (MENU_FONT_HEIGHT))
+    #define SETCURSOR_RJ(len, row)  lcd_moveto(LCD_PIXEL_WIDTH - (len) * (MENU_FONT_WIDTH), (row + 1) * (MENU_FONT_HEIGHT))
+    #define LCDPRINT(p)             u8g.print(p)
+    #define LCDWRITE(c)             u8g.print(c)
+  #else
+    #define SETCURSOR(col, row)     lcd_moveto(col, row)
+    #define SETCURSOR_RJ(len, row)  lcd_moveto(LCD_WIDTH - (len), row)
+    #define LCDPRINT(p)             lcd_put_u8str(p)
+    #define LCDWRITE(c)             lcd_put_wchar(c)
   #endif
 
-  #define LCD_UPDATE_INTERVAL       100
+  void _wrap_string(uint8_t &x, uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, const bool wordwrap=false);
+  inline void wrap_string_P(uint8_t &x, uint8_t &y, PGM_P const pstr, const bool wordwrap=false)        { _wrap_string(x, y, pstr,    read_byte_rom,  wordwrap);  }
+  inline void wrap_string(uint8_t &x, uint8_t &y, const char * const string, const bool wordwrap=false) { _wrap_string(x, y, string,  read_byte_ram,  wordwrap);  }
 
-  #if HAS_LCD_MENU
-
-    #if HAS_GRAPHICAL_LCD
-      #define SETCURSOR(col, row)     lcd_moveto(col * (MENU_FONT_WIDTH), (row + 1) * (MENU_FONT_HEIGHT))
-      #define SETCURSOR_RJ(len, row)  lcd_moveto(LCD_PIXEL_WIDTH - (len) * (MENU_FONT_WIDTH), (row + 1) * (MENU_FONT_HEIGHT))
-      #define LCDPRINT(p)             u8g.print(p)
-      #define LCDWRITE(c)             u8g.print(c)
-    #else
-      #define SETCURSOR(col, row)     lcd_moveto(col, row)
-      #define SETCURSOR_RJ(len, row)  lcd_moveto(LCD_WIDTH - (len), row)
-      #define LCDPRINT(p)             lcd_put_u8str(p)
-      #define LCDWRITE(c)             lcd_put_wchar(c)
-    #endif
-
-    void _wrap_string(uint8_t &x, uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, const bool wordwrap=false);
-    inline void wrap_string_P(uint8_t &x, uint8_t &y, PGM_P const pstr, const bool wordwrap=false)        { _wrap_string(x, y, pstr,    read_byte_rom,  wordwrap);  }
-    inline void wrap_string(uint8_t &x, uint8_t &y, const char * const string, const bool wordwrap=false) { _wrap_string(x, y, string,  read_byte_ram,  wordwrap);  }
-
-  #endif // HAS_LCD_MENU
-
-#endif // HAS_SPI_LCD
+#endif // HAS_LCD_MENU
 
 // REPRAPWORLD_KEYPAD (and ADC_KEYPAD)
 #if ENABLED(REPRAPWORLD_KEYPAD)
@@ -147,7 +145,8 @@
 
 #else
 
-  #define BUTTON_EXISTS(BN) false
+  #undef BUTTON_EXISTS
+  #define BUTTON_EXISTS(...) false
 
   // Shift register bits correspond to buttons:
   #define BL_LE 7   // Left
@@ -192,3 +191,6 @@
     #define BUTTON_CLICK()    false
   #endif
 #endif
+
+#endif // HAS_SPI_LCD
+
