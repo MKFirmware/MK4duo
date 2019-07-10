@@ -35,9 +35,6 @@ bool    CaseLight::status     = CASE_LIGHT_DEFAULT_ON;
 
 void CaseLight::update() {
 
-  const uint8_t onoff     = status ? brightness : 0,
-                intensity = INVERT_CASE_LIGHT ? 255 - onoff : onoff;
-
   #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
 
     if (status) {
@@ -55,6 +52,8 @@ void CaseLight::update() {
 
   #else // !CASE_LIGHT_USE_NEOPIXEL
 
+    const uint8_t onoff     = status ? brightness : 0,
+                  intensity = INVERT_CASE_LIGHT ? 255 - onoff : onoff;
     HAL::analogWrite(CASE_LIGHT_PIN, intensity);
 
   #endif // !CASE_LIGHT_USE_NEOPIXEL

@@ -419,7 +419,6 @@ void NextionLCD::status_screen_update() {
                   Previousfeedrate            = 0xFF,
                   PreviousfanSpeed            = 0xFF,
                   PreviouspercentDone         = 0xFF;
-  static uint16_t PrevioustargetdegHeater[3]  = { 0 };
 
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
@@ -1192,7 +1191,7 @@ bool NextionLCD::getConnect(char* buffer) {
 #endif
 
 void LcdUI::clear_lcd() {
-  nexlcd.PageID == 11;
+  nexlcd.PageID = 11;
   nexlcd.sendCommandPGM(PSTR("page pg11"));
 }
 

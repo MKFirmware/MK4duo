@@ -446,7 +446,6 @@ void EEPROM::post_process() {
    */
   bool EEPROM::store() {
 
-    float dummy = 0;
     char ver[6] = "ERROR";
 
     uint16_t working_crc = 0;
