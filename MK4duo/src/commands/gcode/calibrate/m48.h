@@ -184,8 +184,8 @@
                 }
               }
             #else
-              X_current = constrain(X_current, X_MIN_BED, X_MAX_BED);
-              Y_current = constrain(Y_current, Y_MIN_BED, Y_MAX_BED);
+              LIMIT(X_current, X_MIN_BED, X_MAX_BED);
+              LIMIT(Y_current, Y_MIN_BED, Y_MAX_BED);
             #endif
             if (verbose_level > 3) {
               SERIAL_MSG("Going to:");

@@ -82,9 +82,9 @@
     if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
       while (--segments) {
         LOOP_XYZE(i) raw[i] += diff[i];
-        planner.buffer_line(raw, feedrate, tools.active_extruder, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
       }
-      planner.buffer_line(rtarget, feedrate, tools.active_extruder, segment_xyz_mm);
+      planner.buffer_line(rtarget, feedrate, tools.extruder.active, segment_xyz_mm);
       return false; // moved but did not set_current_from_destination();
     }
 
@@ -109,8 +109,8 @@
       int8_t cell_xi = (raw[X_AXIS] - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST)),
              cell_yi = (raw[Y_AXIS] - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
 
-      cell_xi = constrain(cell_xi, 0, (GRID_MAX_POINTS_X) - 1);
-      cell_yi = constrain(cell_yi, 0, (GRID_MAX_POINTS_Y) - 1);
+      LIMIT(cell_xi, 0, (GRID_MAX_POINTS_X) - 1);
+      LIMIT(cell_yi, 0, (GRID_MAX_POINTS_Y) - 1);
 
       const float x0 = mesh_index_to_xpos(cell_xi),   // 64 byte table lookup avoids mul+add
                   y0 = mesh_index_to_ypos(cell_yi);
@@ -160,7 +160,7 @@
 
         const float z = raw[Z_AXIS];
         raw[Z_AXIS] += z_cxcy;
-        planner.buffer_line(raw, feedrate, tools.active_extruder, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
         raw[Z_AXIS] = z;
 
         if (segments == 0)                        // done with last segment

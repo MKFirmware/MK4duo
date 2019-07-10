@@ -72,7 +72,7 @@ void BrickoutGame::game_screen() {
   if (game_frame()) {   // Run logic twice for finer resolution
     // Update Paddle Position
     paddle_x = (int8_t)lcdui.encoderPosition;
-    paddle_x = constrain(paddle_x, 0, (LCD_PIXEL_WIDTH - (PADDLE_W)) / (PADDLE_VEL));
+    LIMIT(paddle_x, 0, (LCD_PIXEL_WIDTH - (PADDLE_W)) / (PADDLE_VEL));
     lcdui.encoderPosition = paddle_x;
     paddle_x *= (PADDLE_VEL);
 

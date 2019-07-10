@@ -268,7 +268,7 @@ void InvadersGame::game_screen() {
 
     // Update Cannon Position
     int16_t ep = (int16_t)lcdui.encoderPosition;
-    ep = constrain(ep, 0, (LCD_PIXEL_WIDTH - (CANNON_W)) / (CANNON_VEL));
+    LIMIT(ep, 0, (LCD_PIXEL_WIDTH - (CANNON_W)) / (CANNON_VEL));
     lcdui.encoderPosition = ep;
 
     ep *= (CANNON_VEL);

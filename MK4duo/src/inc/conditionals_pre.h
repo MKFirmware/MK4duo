@@ -452,8 +452,8 @@
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
   #define HOTEND_INDEX      h
-  #define ACTIVE_HOTEND     tools.active_extruder
-  #define TARGET_HOTEND     tools.target_extruder
+  #define ACTIVE_HOTEND     tools.extruder.active
+  #define TARGET_HOTEND     tools.extruder.target
 #endif
 
 /**
@@ -462,8 +462,8 @@
 #if EXTRUDERS > 1
   #define XYZE_N          (3 + EXTRUDERS)
   #define E_AXIS_N(E)     (uint8_t(E_AXIS) + E)
-  #define E_INDEX         (uint8_t(E_AXIS) + tools.active_extruder)
-  #define TARGET_EXTRUDER tools.target_extruder
+  #define E_INDEX         (uint8_t(E_AXIS) + tools.extruder.active)
+  #define TARGET_EXTRUDER tools.extruder.target
 #elif EXTRUDERS == 1
   #define XYZE_N          XYZE
   #define E_AXIS_N(E)     E_AXIS

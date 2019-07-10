@@ -90,7 +90,7 @@ inline void gcode_G34(void) {
 
     // Always home with tool 0 active
     #if HOTENDS > 1
-      const uint8_t old_tool_index = tools.active_extruder;
+      const uint8_t old_tool_index = tools.extruder.active;
       tools.change(0, 0, true);
     #endif
 

@@ -53,21 +53,21 @@
     if (commands.get_target_tool(600)) return;
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      int8_t DXC_ext = tools.target_extruder;
+      int8_t DXC_ext = tools.extruder.target;
       if (!parser.seen('T')) {  // If no tool index is specified, M600 was (probably) sent in response to filament runout.
                                 // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
         #if HAS_FILAMENT_SENSOR && PIN_EXISTS(FIL_RUNOUT1)
           if (mechanics.dxc_is_duplicating())
             DXC_ext = (READ(FIL_RUNOUT_1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
         #else
-          DXC_ext = tools.active_extruder;
+          DXC_ext = tools.extruder.active;
         #endif
       }
     #endif
 
     // Show initial "wait for start" message
     #if HAS_LCD_MENU && DISABLED(PRUSA_MMU2)
-      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.target_extruder);
+      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.extruder.target);
     #endif
 
     #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
@@ -77,12 +77,12 @@
 
     #if EXTRUDERS > 1
       // Change toolhead if specified
-      uint8_t active_extruder_before_filament_change = tools.active_extruder;
-      if (tools.active_extruder != tools.target_extruder
+      uint8_t active_extruder_before_filament_change = tools.extruder.active;
+      if (tools.extruder.active != tools.extruder.target
         #if ENABLED(DUAL_X_CARRIAGE)
           && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_SCALED_DUPLICATION_MODE
         #endif
-      ) tools.change(tools.target_extruder, 0, false);
+      ) tools.change(tools.extruder.target, 0, false);
     #endif
 
     // Initial retract before move to pause park position
@@ -100,8 +100,8 @@
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
     #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
-      park_point.x += (tools.active_extruder ? tools.data.hotend_offset[X_AXIS][tools.active_extruder] : 0);
-      park_point.y += (tools.active_extruder ? tools.data.hotend_offset[Y_AXIS][tools.active_extruder] : 0);
+      park_point.x += (tools.extruder.active ? tools.data.hotend_offset[X_AXIS][tools.extruder.active] : 0);
+      park_point.y += (tools.extruder.active ? tools.data.hotend_offset[Y_AXIS][tools.extruder.active] : 0);
     #endif
 
     #if HAS_MMU2
@@ -112,14 +112,14 @@
     #else
       // Unload filament
       const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                        : advancedpause.data[tools.active_extruder].unload_length);
+                                                        : advancedpause.data[tools.extruder.active].unload_length);
 
       // Slow load filament
       constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
 
       // Load filament
       const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                          : advancedpause.data[tools.active_extruder].load_length);
+                                                          : advancedpause.data[tools.extruder.active].load_length);
     #endif
 
     if (parser.seenval('S')) hotends[ACTIVE_HOTEND].setTarget(parser.value_celsius());
@@ -144,7 +144,7 @@
 
     #if EXTRUDERS > 1
     // Restore toolhead if it was changed
-      if (active_extruder_before_filament_change != tools.active_extruder)
+      if (active_extruder_before_filament_change != tools.extruder.active)
         tools.change(active_extruder_before_filament_change, 0, false);
     #endif
 

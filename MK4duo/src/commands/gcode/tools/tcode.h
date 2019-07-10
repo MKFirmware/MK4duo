@@ -75,9 +75,9 @@ inline void gcode_T(const uint8_t tool_id) {
 
   #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
 
-    if (printer.mode == PRINTER_MODE_FFF && printer.isPrinting() && tools.previous_extruder != tool_id) {
-      commands.process_now_P(PSTR("M600"));
-      tools.previous_extruder = tool_id;
+    if (printer.mode == PRINTER_MODE_FFF && printer.isPrinting() && tools.extruder.previous != tool_id) {
+      commands.inject_P(PSTR("M600"));
+      tools.extruder.previous = tool_id;
     }
 
   #elif (EXTRUDERS > 1 && HOTENDS == 1) || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
@@ -90,7 +90,7 @@ inline void gcode_T(const uint8_t tool_id) {
       tools.change(
         tool_id,
         MMM_TO_MMS(parser.linearval('F')),
-        (tool_id == tools.active_extruder) || parser.boolval('S')
+        (tool_id == tools.extruder.active) || parser.boolval('S')
       );
     }
 

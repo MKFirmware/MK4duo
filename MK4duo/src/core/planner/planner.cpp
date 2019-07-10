@@ -672,7 +672,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
     }
 
     float t = autotemp_min + high * autotemp_factor;
-    t = constrain(t, autotemp_min, autotemp_max);
+    LIMIT(t, autotemp_min, autotemp_max);
     if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
     hotends[0].setTarget(t);
@@ -759,12 +759,12 @@ void Planner::check_axes_activity() {
    */
   void Planner::apply_retract(float &rz, float &e) {
     rz += fwretract.current_hop;
-    e -= fwretract.current_retract[tools.active_extruder];
+    e -= fwretract.current_retract[tools.extruder.active];
   }
 
   void Planner::unapply_retract(float &rz, float &e) {
     rz -= fwretract.current_hop;
-    e += fwretract.current_retract[tools.active_extruder];
+    e += fwretract.current_retract[tools.extruder.active];
   }
 
 #endif
@@ -2147,10 +2147,10 @@ void Planner::set_position_mm(const float &rx, const float &ry, const float &rz,
 
 void Planner::set_e_position_mm(const float &e) {
 
-  const uint8_t axis_index = E_AXIS + tools.active_extruder;
+  const uint8_t axis_index = E_AXIS + tools.extruder.active;
 
   #if ENABLED(FWRETRACT)
-    float e_new = e - fwretract.current_retract[tools.active_extruder];
+    float e_new = e - fwretract.current_retract[tools.extruder.active];
   #else
     const float e_new = e;
   #endif

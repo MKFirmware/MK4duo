@@ -117,7 +117,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     // Extruders
     #if EXTRUDERS > 1
-      job_info.active_extruder = tools.active_extruder;
+      job_info.active_extruder = tools.extruder.active;
     #endif
 
     // Leveling      

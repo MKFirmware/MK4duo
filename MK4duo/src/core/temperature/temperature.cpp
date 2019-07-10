@@ -183,7 +183,7 @@ void Temperature::spin() {
     if (filament_sensor) {
       meas_shift_index = filwidth_delay_index[0] - meas_delay_cm;
       if (meas_shift_index < 0) meas_shift_index += MAX_MEASUREMENT_DELAY + 1;  //loop around buffer if needed
-      meas_shift_index = constrain(meas_shift_index, 0, MAX_MEASUREMENT_DELAY);
+      LIMIT(meas_shift_index, 0, MAX_MEASUREMENT_DELAY);
 
       // Convert the ratio value given by the filament width sensor
       // into a volumetric multiplier. Conversion differs when using

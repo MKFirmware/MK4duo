@@ -51,7 +51,7 @@ inline void gcode_M569(void) {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? tools.target_extruder : 0);
+      const uint8_t a = i + (i == E_AXIS ? tools.extruder.target : 0);
       stepper.setStepDir((AxisEnum)a, parser.value_bool());
     }
   }

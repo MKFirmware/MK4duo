@@ -39,7 +39,7 @@
  * The "nominal" values are as-specified by gcode, and
  * may never actually be reached due to acceleration limits.
  */
-typedef struct {
+typedef struct block_t {
 
   volatile uint8_t flag;                    // Block flags (See BlockFlagEnum enum above) - Modified by ISR and main thread!
 

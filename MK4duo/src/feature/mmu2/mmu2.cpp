@@ -512,7 +512,7 @@ void MMU2::tool_change(uint8_t index) {
 
     command(MMU_CMD_C0);
     extruder = index; // filament change is finished
-    tools.active_extruder = 0;
+    tools.extruder.active = 0;
 
     stepper.enable_E0();
 
@@ -559,7 +559,7 @@ void MMU2::tool_change(const char* special) {
 
         stepper.enable_E0();
         extruder = index;
-        tools.active_extruder = 0;
+        tools.extruder.active = 0;
       } break;
 
       case 'c': {
@@ -723,7 +723,7 @@ void MMU2::set_runout_valid(const bool valid) {
       mmu_loop();
 
       extruder = index;
-      tools.active_extruder = 0;
+      tools.extruder.active = 0;
 
       load_to_nozzle();
 
@@ -762,7 +762,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     stepper.enable_E0();
     mechanics.current_position[E_AXIS] -= MMU2_FILAMENTCHANGE_EJECT_FEED;
-    planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], 2500 / 60, tools.active_extruder);
+    planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], 2500 / 60, tools.extruder.active);
     planner.synchronize();
     command(MMU_CMD_E0 + index);
     manage_response(false, false);
@@ -855,7 +855,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
       mechanics.current_position[E_AXIS] += es;
       planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS],
-                          mechanics.current_position[E_AXIS], MMM_TO_MMS(fr), tools.active_extruder);
+                          mechanics.current_position[E_AXIS], MMM_TO_MMS(fr), tools.extruder.active);
       planner.synchronize();
 
       step++;

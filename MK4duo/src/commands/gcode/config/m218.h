@@ -43,13 +43,13 @@ inline void gcode_M218(void) {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
     if (!parser.seen("XYZ")) {
-      tools.print_M218(tools.target_extruder);
+      tools.print_M218(tools.extruder.target);
       return;
     }
   #endif
 
-  if (parser.seenval('X')) tools.data.hotend_offset[X_AXIS][tools.target_extruder] = parser.value_linear_units();
-  if (parser.seenval('Y')) tools.data.hotend_offset[Y_AXIS][tools.target_extruder] = parser.value_linear_units();
-  if (parser.seenval('Z')) tools.data.hotend_offset[Z_AXIS][tools.target_extruder] = parser.value_linear_units();
+  if (parser.seenval('X')) tools.data.hotend_offset[X_AXIS][tools.extruder.target] = parser.value_linear_units();
+  if (parser.seenval('Y')) tools.data.hotend_offset[Y_AXIS][tools.extruder.target] = parser.value_linear_units();
+  if (parser.seenval('Z')) tools.data.hotend_offset[Z_AXIS][tools.extruder.target] = parser.value_linear_units();
 
 }

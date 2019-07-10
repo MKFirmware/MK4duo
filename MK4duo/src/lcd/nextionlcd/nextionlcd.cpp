@@ -1148,8 +1148,8 @@ bool NextionLCD::getConnect(char* buffer) {
         mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
 
         #if EXTRUDERS > 1
-          const int8_t old_extruder = tools.active_extruder;
-          if (manual_move_axis == E_AXIS) tools.active_extruder = manual_move_e_index;
+          const int8_t old_extruder = tools.extruder.active;
+          if (manual_move_axis == E_AXIS) tools.extruder.active = manual_move_e_index;
         #endif
 
         // Set movement on a single axis
@@ -1170,12 +1170,12 @@ bool NextionLCD::getConnect(char* buffer) {
 
         mechanics.feedrate_mm_s = old_feedrate;
         #if EXTRUDERS > 1
-          tools.active_extruder = old_extruder;
+          tools.extruder.active = old_extruder;
         #endif
 
       #else
 
-        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.active_extruder);
+        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

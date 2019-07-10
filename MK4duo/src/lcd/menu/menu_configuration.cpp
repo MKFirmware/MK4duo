@@ -49,7 +49,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
       return;
     }
     bar_percent += (int8_t)lcdui.encoderPosition;
-    bar_percent = constrain(bar_percent, 0, 100);
+    LIMIT(bar_percent, 0, 100);
     lcdui.encoderPosition = 0;
     draw_menu_item_static(0, PSTR(MSG_PROGRESS_BAR_TEST), true, true);
     lcd_moveto((LCD_WIDTH) / 2 - 2, LCD_HEIGHT - 2);
@@ -83,9 +83,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
 #if ENABLED(DUAL_X_CARRIAGE)
 
   void _recalc_DXC_settings() {
-    if (tools.active_extruder) {                // For the 2nd extruder re-home so the next tool-change gets the new offsets.
+    if (tools.extruder.active) {                // For the 2nd extruder re-home so the next tool-change gets the new offsets.
       commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
-      tools.active_extruder = 0;
+      tools.extruder.active = 0;
     }
   }
 

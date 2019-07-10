@@ -64,8 +64,8 @@ inline void gcode_M125(void) {
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
   #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-    park_point.x += tools.data.hotend_offset[X_AXIS][tools.active_extruder];
-    park_point.y += tools.data.hotend_offset[Y_AXIS][tools.active_extruder];
+    park_point.x += tools.data.hotend_offset[X_AXIS][tools.extruder.active];
+    park_point.y += tools.data.hotend_offset[Y_AXIS][tools.extruder.active];
   #endif
 
   #if HAS_LCD_MENU

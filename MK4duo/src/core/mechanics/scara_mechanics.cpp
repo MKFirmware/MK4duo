@@ -144,7 +144,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference[X_AXIS] && !difference[Y_AXIS]) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
       return false; // caller will update current_position
     }
 
@@ -228,12 +228,12 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         // For SCARA scale the feed rate from mm/s to degrees/s
         // i.e., Complete the angular vector in the given time.
-        if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], raw[Z_AXIS], raw[E_AXIS], HYPOT(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB) * inverse_secs, tools.active_extruder))
+        if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], raw[Z_AXIS], raw[E_AXIS], HYPOT(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB) * inverse_secs, tools.extruder.active))
           break;
         oldA = delta[A_AXIS];
         oldB = delta[B_AXIS];
       #else
-        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
+        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
           break;
       #endif
 
@@ -256,9 +256,9 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       #endif
       const float diff2 = HYPOT2(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB);
       if (diff2)
-        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination[Z_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.active_extruder);
+        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination[Z_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.extruder.active);
     #else
-      planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
     #endif
 
     return false; // caller will update current_position
@@ -412,7 +412,7 @@ void Scara_Mechanics::home() {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.active_extruder;
+    const uint8_t old_tool_index = tools.extruder.active;
     tools.change(0, 0, true);
   #endif
 
@@ -518,7 +518,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   current_position[axis] = 0;
   sync_plan_position();
   current_position[axis] = distance;
-  planner.buffer_line(current_position, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder);
+  planner.buffer_line(current_position, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
 
   planner.synchronize();
 
@@ -654,7 +654,7 @@ void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_
     && current_position[E_AXIS] == destination[E_AXIS]
   ) return;
 
-  planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+  planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
 
   set_current_to_destination();
 }

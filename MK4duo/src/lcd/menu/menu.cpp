@@ -295,7 +295,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
   void line_to_z(const float &z) {
     mechanics.current_position[Z_AXIS] = z;
-    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), tools.active_extruder);
+    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[Z_AXIS]), tools.extruder.active);
   }
 
 #endif
@@ -306,7 +306,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
     lcdui.defer_status_screen();
     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-      const bool do_probe = (tools.active_extruder == 0);
+      const bool do_probe = (tools.extruder.active == 0);
     #else
       constexpr bool do_probe = true;
     #endif
@@ -319,7 +319,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
                   new_probe_offset = probe.data.offset[Z_AXIS] + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-                      do_probe ? new_probe_offset : tools.data.hotend_offset[Z_AXIS][tools.active_extruder] - diff
+                      do_probe ? new_probe_offset : tools.data.hotend_offset[Z_AXIS][tools.extruder.active] - diff
                     #else
                       new_probe_offset
                     #endif
@@ -330,7 +330,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
         if (do_probe) probe.data.offset[Z_AXIS] = new_offs;
         #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-          else tools.data.hotend_offset[Z_AXIS][tools.active_extruder] = new_offs;
+          else tools.data.hotend_offset[Z_AXIS][tools.extruder.active] = new_offs;
         #endif
 
         lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
@@ -339,7 +339,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(tools.data.hotend_offset[Z_AXIS][tools.active_extruder]));
+          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(tools.data.hotend_offset[Z_AXIS][tools.extruder.active]));
         else
       #endif
           draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset[Z_AXIS]));

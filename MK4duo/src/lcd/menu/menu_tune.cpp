@@ -31,7 +31,7 @@
 // Refresh the E factor after changing flow
 inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
 #if EXTRUDERS > 1
-  inline void _lcd_refresh_e_factor() { tools.refresh_e_factor(tools.active_extruder); }
+  inline void _lcd_refresh_e_factor() { tools.refresh_e_factor(tools.extruder.active); }
   inline void _lcd_refresh_e_factor_1() { tools.refresh_e_factor(1); }
   #if EXTRUDERS > 2
     inline void _lcd_refresh_e_factor_2() { tools.refresh_e_factor(2); }
@@ -220,7 +220,7 @@ void menu_tune() {
   #if EXTRUDERS == 1
     MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
   #else // EXTRUDERS > 1
-    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[tools.active_extruder], 10, 999, _lcd_refresh_e_factor);
+    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[tools.extruder.active], 10, 999, _lcd_refresh_e_factor);
     MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N1, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
     MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N2, &tools.flow_percentage[1], 10, 999, _lcd_refresh_e_factor_1);
     #if EXTRUDERS > 2

@@ -284,8 +284,8 @@ inline void gcode_G29(void) {
           // Get nearest i / j from x / y
           i = (rx - abl.bilinear_start[X_AXIS] + 0.5 * xGridSpacing) / xGridSpacing;
           j = (ry - abl.bilinear_start[Y_AXIS] + 0.5 * yGridSpacing) / yGridSpacing;
-          i = constrain(i, 0, GRID_MAX_POINTS_X - 1);
-          j = constrain(j, 0, GRID_MAX_POINTS_Y - 1);
+          LIMIT(i, 0, GRID_MAX_POINTS_X - 1);
+          LIMIT(j, 0, GRID_MAX_POINTS_Y - 1);
         }
         if (WITHIN(i, 0, GRID_MAX_POINTS_X - 1) && WITHIN(j, 0, GRID_MAX_POINTS_Y)) {
           bedlevel.set_bed_leveling_enabled(false);
