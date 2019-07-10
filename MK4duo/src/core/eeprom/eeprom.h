@@ -21,20 +21,32 @@
  */
 #pragma once
 
+union flageeprom_t {
+  uint8_t all;
+  struct {
+    bool  error       : 1;
+    bool  validating  : 1;
+    bool  bit_2       : 1;
+    bool  bit_3       : 1;
+    bool  bit_4       : 1;
+    bool  bit_5       : 1;
+    bool  bit_6       : 1;
+    bool  bit_7       : 1;
+  };
+  flageeprom_t() { all = 0x00; }
+};
+
 class EEPROM {
 
   public: /** Constructor */
 
     EEPROM() {}
 
-  public: /** Public Parameters */
-
   private: /** Private Parameters */
 
     #if HAS_EEPROM
 
-      static bool eeprom_error,
-                  validating;
+      static flageeprom_t flag;
  
       #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
                                           // That can store is enabled

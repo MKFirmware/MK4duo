@@ -40,7 +40,7 @@
     if (printer.debugDryrun() || printer.debugSimulation()) return;
 
     #if ENABLED(SINGLENOZZLE)
-      if (TARGET_EXTRUDER != tools.active_extruder) return;
+      if (TARGET_EXTRUDER != tools.extruder.active) return;
     #endif
 
     if (parser.seenval('S')) {

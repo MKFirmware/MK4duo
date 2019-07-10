@@ -60,7 +60,7 @@
     SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
     SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
 
-    SERIAL_MV("]},\"currentTool\":", tools.active_extruder);
+    SERIAL_MV("]},\"currentTool\":", tools.extruder.active);
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");

@@ -88,19 +88,19 @@
   ) {
 
     // Simply never allow two retracts or recovers in a row
-    if (retracted[tools.active_extruder] == retracting) return;
+    if (retracted[tools.extruder.active] == retracting) return;
 
     #if EXTRUDERS > 1
       // Allow G10 S1 only after G11
-      if (swapping && retracted_swap[tools.active_extruder] == retracting) return;
+      if (swapping && retracted_swap[tools.extruder.active] == retracting) return;
       // G11 priority to recover the long retract if activated
-      if (!retracting) swapping = retracted_swap[tools.active_extruder];
+      if (!retracting) swapping = retracted_swap[tools.extruder.active];
     #else
       constexpr bool swapping = false;
     #endif
 
     const float old_feedrate_mm_s = mechanics.feedrate_mm_s,
-                unscale_e = RECIPROCAL(tools.e_factor[tools.active_extruder]),
+                unscale_e = RECIPROCAL(tools.e_factor[tools.extruder.active]),
                 unscale_fr = 100.0 / mechanics.feedrate_percentage, // Disable feedrate scaling for retract moves
                 base_retract = swapping ? data.swap_retract_length : data.retract_length;
 
@@ -110,7 +110,7 @@
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position
       mechanics.feedrate_mm_s = data.retract_feedrate_mm_s * unscale_fr;
-      current_retract[tools.active_extruder] = base_retract * unscale_e;
+      current_retract[tools.extruder.active] = base_retract * unscale_e;
       mechanics.prepare_move_to_destination();  // set_current_to_destination
       planner.synchronize();                    // Wait for move to complete
 
@@ -137,18 +137,18 @@
         mechanics.sync_plan_position_e();                     // Sync the planner position so the extra amount is recovered
       }
 
-      current_retract[tools.active_extruder] = 0.0;
+      current_retract[tools.extruder.active] = 0.0;
       mechanics.feedrate_mm_s = (swapping ? data.swap_retract_recover_feedrate_mm_s : data.retract_recover_feedrate_mm_s) * unscale_fr;
       mechanics.prepare_move_to_destination();                // Recover E, set_current_to_destination
       planner.synchronize();                                  // Wait for move to complete
     }
 
     mechanics.feedrate_mm_s = old_feedrate_mm_s;              // Restore original feedrate
-    retracted[tools.active_extruder] = retracting;            // Active extruder now retracted / recovered
+    retracted[tools.extruder.active] = retracting;            // Active extruder now retracted / recovered
 
     // If swap retract/recover then update the retracted_swap flag too
     #if EXTRUDERS > 1
-      if (swapping) retracted_swap[tools.active_extruder] = retracting;
+      if (swapping) retracted_swap[tools.extruder.active] = retracting;
     #endif
 
   }

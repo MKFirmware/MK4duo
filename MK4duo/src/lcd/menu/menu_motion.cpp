@@ -46,7 +46,7 @@ inline void manual_move_to_current(AxisEnum axis
   #endif
 ) {
   #if E_MANUAL > 1
-    if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : tools.active_extruder;
+    if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : tools.extruder.active;
   #endif
   manual_move_ms = millis(); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
@@ -145,14 +145,14 @@ static void _lcd_move_e(
 ) {
   #if E_MANUAL > 1
     static uint8_t old_extruder = 0;
-    if (tools.active_extruder != eindex) {
-      old_extruder = tools.active_extruder;
+    if (tools.extruder.active != eindex) {
+      old_extruder = tools.extruder.active;
       tools.change(eindex, 0, true);
     }
   #endif
   if (lcdui.use_click()) {
     #if E_MANUAL > 1
-      if (tools.active_extruder != old_extruder)
+      if (tools.extruder.active != old_extruder)
         tools.change(old_extruder, 0, true);
     #endif
     return lcdui.goto_previous_screen_no_defer();
@@ -260,7 +260,7 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
     }
   }
   #if ENABLED(PREVENT_COLD_EXTRUSION)
-    if (axis == E_AXIS && thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : tools.active_extruder))
+    if (axis == E_AXIS && thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : tools.extruder.active))
       MENU_BACK(MSG_HOTEND_TOO_COLD);
     else
   #endif
@@ -345,7 +345,7 @@ void menu_move() {
 
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
-    if (tools.active_extruder)
+    if (tools.extruder.active)
       MENU_ITEM(gcode, MSG_SELECT MSG_E1, PSTR("T0"));
     else
       MENU_ITEM(gcode, MSG_SELECT MSG_E2, PSTR("T1"));

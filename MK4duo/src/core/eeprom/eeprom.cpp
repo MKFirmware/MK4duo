@@ -413,19 +413,18 @@ void EEPROM::post_process() {
   #define EEPROM_SKIP(VAR)        eeprom_index += sizeof(VAR)
   #define EEPROM_WRITE(VAR)       memorystore.write_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ_ALWAYS(VAR) memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
-  #define EEPROM_READ(VAR)        memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !validating)
+  #define EEPROM_READ(VAR)        memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !flag.validating)
 
-  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); eeprom_error = true; } }while(0)
+  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); flag.error = true; } }while(0)
   #define _FIELD_TEST(FIELD) \
     EEPROM_ASSERT( \
-      eeprom_error || eeprom_index == offsetof(eepromData, FIELD) + EEPROM_OFFSET, \
+      flag.error || eeprom_index == offsetof(eepromData, FIELD) + EEPROM_OFFSET, \
       "Field " STRINGIFY(FIELD) " mismatch." \
     )
 
   const char version[6] = EEPROM_VERSION;
 
-  bool  EEPROM::eeprom_error  = false,
-        EEPROM::validating    = false;
+  flageeprom_t EEPROM::flag;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     uint16_t EEPROM::meshes_begin = 0;
@@ -452,7 +451,7 @@ void EEPROM::post_process() {
 
     int eeprom_index = EEPROM_OFFSET;
 
-    eeprom_error = false;
+    flag.error = false;
 
     #if HAS_EEPROM_FLASH
       EEPROM_SKIP(ver);       // Flash doesn't allow rewriting without erase
@@ -761,7 +760,7 @@ void EEPROM::post_process() {
     //
     // Validate CRC and Data Size
     //
-    if (!eeprom_error) {
+    if (!flag.error) {
       const uint16_t  eeprom_size = eeprom_index - (EEPROM_OFFSET),
                       final_crc = working_crc;
 
@@ -778,7 +777,7 @@ void EEPROM::post_process() {
         SERIAL_EM(")");
       #endif
 
-      eeprom_error |= size_error(eeprom_size);
+      flag.error |= size_error(eeprom_size);
     }
 
     //
@@ -789,11 +788,11 @@ void EEPROM::post_process() {
         store_mesh(ubl.storage_slot);
     #endif
 
-    eeprom_error |= memorystore.access_write();
+    flag.error |= memorystore.access_write();
 
-    sound.feedback(!eeprom_error);
+    sound.feedback(!flag.error);
 
-    return !eeprom_error;
+    return !flag.error;
   }
 
   /**
@@ -822,11 +821,9 @@ void EEPROM::post_process() {
         SERIAL_MT("(EEPROM=", stored_ver);
         SERIAL_EM(" MK4duo=" EEPROM_VERSION ")");
       #endif
-      eeprom_error = true;
+      flag.error = true;
     }
     else {
-
-      float dummy = 0;
 
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
@@ -921,6 +918,7 @@ void EEPROM::post_process() {
         }
         else {
           // EEPROM data is stale
+          float dummy = 0;
           for (uint8_t q = 0; q < mesh_num_x * mesh_num_y; q++) EEPROM_READ(dummy);
         }
       #endif // MESH_BED_LEVELING
@@ -940,7 +938,7 @@ void EEPROM::post_process() {
         EEPROM_READ_ALWAYS(grid_max_x);            // 1 byte
         EEPROM_READ_ALWAYS(grid_max_y);            // 1 byte
         if (grid_max_x == GRID_MAX_POINTS_X && grid_max_y == GRID_MAX_POINTS_Y) {
-          if (!validating) bedlevel.set_bed_leveling_enabled(false);
+          if (!flag.validating) bedlevel.set_bed_leveling_enabled(false);
           EEPROM_READ(abl.bilinear_grid_spacing); // 2 ints
           EEPROM_READ(abl.bilinear_start);        // 2 ints
           EEPROM_READ(abl.z_values);              // 9 to 256 floats
@@ -950,6 +948,7 @@ void EEPROM::post_process() {
           int bgs[2], bs[2];
           EEPROM_READ(bgs);
           EEPROM_READ(bs);
+          float dummy = 0;
           for (uint16_t q = grid_max_x * grid_max_y; q--;) EEPROM_READ(dummy);
         }
       #endif // AUTO_BED_LEVELING_BILINEAR
@@ -1039,7 +1038,7 @@ void EEPROM::post_process() {
 
         bool volumetric_enabled;
         EEPROM_READ(volumetric_enabled);
-        if (!validating) printer.setVolumetric(volumetric_enabled);
+        if (!flag.validating) printer.setVolumetric(volumetric_enabled);
 
         LOOP_EXTRUDER()
           EEPROM_READ(tools.filament_size[e]);
@@ -1082,7 +1081,7 @@ void EEPROM::post_process() {
         EEPROM_READ(advancedpause.data);
       #endif
 
-      if (!validating) reset_stepper_drivers();
+      if (!flag.validating) reset_stepper_drivers();
 
       //
       // TMC2130 or TMC2208 Stepper Current
@@ -1099,7 +1098,7 @@ void EEPROM::post_process() {
         EEPROM_READ(tmc_hybrid_threshold);
         EEPROM_READ(tmc_stealth_enabled);
 
-        if (!validating) {
+        if (!flag.validating) {
           LOOP_TMC() {
             MKTMC* st = tmc.driver_by_index(t);
             if (st) {
@@ -1125,7 +1124,7 @@ void EEPROM::post_process() {
         int16_t tmc_sgt[XYZ];
         EEPROM_READ(tmc_sgt);
         #if HAS_SENSORLESS
-          if (!validating) {
+          if (!flag.validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
                 stepperX->sgt(tmc_sgt[X_AXIS]);
@@ -1158,8 +1157,8 @@ void EEPROM::post_process() {
 
       #endif // HAS_TRINAMIC
 
-      eeprom_error = size_error(eeprom_index - (EEPROM_OFFSET));
-      if (eeprom_error) {
+      flag.error = size_error(eeprom_index - (EEPROM_OFFSET));
+      if (flag.error) {
         #if ENABLED(EEPROM_CHITCHAT)
           SERIAL_MV("Index: ", int(eeprom_index - (EEPROM_OFFSET)));
           SERIAL_MV(" Size: ", datasize());
@@ -1167,14 +1166,14 @@ void EEPROM::post_process() {
         #endif
       }
       else if (working_crc != stored_crc) {
-        eeprom_error = true;
+        flag.error = true;
         #if ENABLED(EEPROM_CHITCHAT)
           SERIAL_SMV(ER, "EEPROM CRC mismatch - (stored) ", stored_crc);
           SERIAL_MV(" != ", working_crc);
           SERIAL_EM(" (calculated)!");
         #endif
       }
-      else if (!validating) {
+      else if (!flag.validating) {
         #if ENABLED(EEPROM_CHITCHAT)
           SERIAL_ST(ECHO, version);
           SERIAL_MV(" Stored settings retrieved (", eeprom_index - (EEPROM_OFFSET));
@@ -1183,11 +1182,11 @@ void EEPROM::post_process() {
         #endif
       }
 
-      if (!validating && !eeprom_error) post_process();
+      if (!flag.validating && !flag.error) post_process();
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-        if (!validating) {
+        if (!flag.validating) {
           meshes_begin = (eeprom_index + EEPROM_OFFSET + 32) & 0xFFF8;
 
           ubl.report_state();
@@ -1200,7 +1199,7 @@ void EEPROM::post_process() {
             #endif
           }
           else {
-            eeprom_error = true;
+            flag.error = true;
             #if ENABLED(EEPROM_CHITCHAT)
               SERIAL_MSG("?Can't enable ");
               ubl.echo_name();
@@ -1228,18 +1227,18 @@ void EEPROM::post_process() {
     }
 
     #if ENABLED(EEPROM_CHITCHAT) && DISABLED(DISABLE_M503)
-      if (!validating) Print_Settings();
+      if (!flag.validating) Print_Settings();
     #endif
 
-    if (validating) sound.feedback(!eeprom_error);
+    if (flag.validating) sound.feedback(!flag.error);
 
-    return !eeprom_error;
+    return !flag.error;
   }
 
   bool EEPROM::validate() {
-    validating = true;
+    flag.validating = true;
     const bool success = _load();
-    validating = false;
+    flag.validating = false;
     return success;
   }
 

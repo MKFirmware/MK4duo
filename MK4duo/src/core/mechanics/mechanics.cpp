@@ -111,7 +111,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s, tools.active_extruder);
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s, tools.extruder.active);
 }
 
 /**
@@ -119,7 +119,7 @@ void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/)
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
 void Mechanics::buffer_line_to_destination(const float fr_mm_s) {
-  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, tools.active_extruder);
+  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, tools.extruder.active);
 }
 
 /**
@@ -168,7 +168,7 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
    * since Arduino works with limited precision real numbers).
    */
   void Mechanics::plan_cubic_move(const float offset[4]) {
-    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.active_extruder);
+    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.extruder.active);
 
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position

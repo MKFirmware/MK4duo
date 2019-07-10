@@ -21,44 +21,45 @@
  */
 #pragma once
 
-#undef SCK
-#undef MISO
-#undef MOSI
-#undef SS
-
-#if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
-  #define MOSI_PIN            51
-  #define MISO_PIN            50
-  #define SCK_PIN             52
-  #define SS_PIN              53
-#elif ENABLED(__AVR_ATmega644P__) || ENABLED(__AVR_ATmega644__) || ENABLED(__AVR_ATmega1284P__)
-  #define MOSI_PIN             5
-  #define MISO_PIN             6
-  #define SCK_PIN              7
-  #define SS_PIN               4
-#elif ENABLED(__AVR_ATmega32U4__)
-  #define MOSI_PIN             2
-  #define MISO_PIN             3
-  #define SCK_PIN              1
-  #define SS_PIN               4
-#elif ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB1286__)
-  #define MOSI_PIN            22
-  #define MISO_PIN            23
-  #define SCK_PIN             21
-  #define SS_PIN              20
-#elif ENABLED(__AVR_ATmega168__) ||ENABLED(__AVR_ATmega168P__) ||ENABLED(__AVR_ATmega328P__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             13
-  #define SS_PIN              10
-#elif ENABLED(__AVR_ATmega1281__)
-  #define MOSI_PIN            11
-  #define MISO_PIN            12
-  #define SCK_PIN             10
-  #define SS_PIN              16
+/**
+ * Define SPI Pins: SCK, MISO, MOSI, SS
+ */
+#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__)
+  #define AVR_SCK_PIN  13
+  #define AVR_MISO_PIN 12
+  #define AVR_MOSI_PIN 11
+  #define AVR_SS_PIN   10
+#elif defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(__AVR_ATmega1284P__)
+  #define AVR_SCK_PIN  7
+  #define AVR_MISO_PIN 6
+  #define AVR_MOSI_PIN 5
+  #define AVR_SS_PIN   4
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  #define AVR_SCK_PIN  52
+  #define AVR_MISO_PIN 50
+  #define AVR_MOSI_PIN 51
+  #define AVR_SS_PIN   53
+#elif defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB647__)
+  #define AVR_SCK_PIN  21
+  #define AVR_MISO_PIN 23
+  #define AVR_MOSI_PIN 22
+  #define AVR_SS_PIN   20
+#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__)
+  #define AVR_SCK_PIN  10
+  #define AVR_MISO_PIN 12
+  #define AVR_MOSI_PIN 11
+  #define AVR_SS_PIN   16
 #endif
 
-#define SCK   SCK_PIN
-#define MISO  MISO_PIN
-#define MOSI  MOSI_PIN
-#define SS    SS_PIN
+#ifndef SCK_PIN
+  #define SCK_PIN  AVR_SCK_PIN
+#endif
+#ifndef MISO_PIN
+  #define MISO_PIN AVR_MISO_PIN
+#endif
+#ifndef MOSI_PIN
+  #define MOSI_PIN AVR_MOSI_PIN
+#endif
+#ifndef SS_PIN
+  #define SS_PIN   AVR_SS_PIN
+#endif

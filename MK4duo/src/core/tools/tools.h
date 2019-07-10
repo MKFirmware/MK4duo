@@ -32,6 +32,17 @@ typedef struct {
   float hotend_offset[XYZ][HOTENDS];
 } tool_data_t;
 
+union extruder_t {
+  uint16_t all;
+  struct {
+    uint8_t active    : 4;
+    uint8_t previous  : 4;
+    uint8_t target    : 4;
+    uint8_t none      : 4;
+ };
+  extruder_t() { all = 0; }
+};
+
 #if EXTRUDERS > 0
 
 class Tools {
@@ -42,11 +53,9 @@ class Tools {
 
   public: /** Public Parameters */
 
-    static tool_data_t data;
+    static tool_data_t  data;
 
-    static uint8_t  active_extruder,
-                    previous_extruder,
-                    target_extruder;
+    static extruder_t   extruder;
 
     static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
                     density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder

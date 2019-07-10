@@ -79,7 +79,9 @@
       }
     #endif
 
-    fan->speed = constrain(new_speed, fan->data.min_speed, fan->data.max_speed);
+    fan->speed = new_speed;
+
+    LIMIT(fan->speed, fan->data.min_speed, fan->data.max_speed);
 
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M106 report.

@@ -163,7 +163,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference[X_AXIS] && !difference[Y_AXIS]) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
       return false; // caller will update current_position
     }
 
@@ -220,12 +220,12 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
       LOOP_XYZE(i) raw[i] += segment_distance[i];
 
-      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm))
+      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
         break;
 
     }
 
-    planner.buffer_line(destination, _feedrate_mm_s, tools.active_extruder, cartesian_segment_mm);
+    planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm);
 
     return false; // caller will update current_position
 
@@ -365,8 +365,8 @@ void Delta_Mechanics::Transform(const float (&raw)[XYZ]) {
   #if HOTENDS > 1
     // Delta hotend offsets must be applied in Cartesian space
     const float pos[XYZ] = {
-      raw[X_AXIS] - tools.data.hotend_offset[X_AXIS][tools.active_extruder],
-      raw[Y_AXIS] - tools.data.hotend_offset[Y_AXIS][tools.active_extruder],
+      raw[X_AXIS] - tools.data.hotend_offset[X_AXIS][tools.extruder.active],
+      raw[Y_AXIS] - tools.data.hotend_offset[Y_AXIS][tools.extruder.active],
       raw[Z_AXIS]
     };
     delta[A_AXIS] = pos[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - pos[X_AXIS], towerY[A_AXIS] - pos[Y_AXIS]));
@@ -456,7 +456,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.active_extruder;
+    const uint8_t old_tool_index = tools.extruder.active;
     tools.change(0, 0, true);
   #endif
 
@@ -484,7 +484,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Move all carriages together linearly until an endstop is hit.
   destination[Z_AXIS] = data.height + 10;
-  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], homing_feedrate_mm_s[X_AXIS], tools.active_extruder);
+  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], homing_feedrate_mm_s[X_AXIS], tools.extruder.active);
   planner.synchronize();
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -597,7 +597,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #if ENABLED(JUNCTION_DEVIATION)
       , delta_mm_cart
     #endif
-    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.active_extruder
+    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active
   );
 
   planner.synchronize();
@@ -1073,7 +1073,7 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float &fr
       && current_position[E_AXIS] == destination[E_AXIS]
     ) return;
 
-    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.active_extruder);
+    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
   #endif
 
   set_current_to_destination();

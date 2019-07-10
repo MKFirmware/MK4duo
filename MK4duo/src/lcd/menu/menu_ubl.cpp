@@ -428,7 +428,7 @@ void _lcd_ubl_map_lcd_edit_cmd() {
 void ubl_map_move_to_xy() {
   mechanics.current_position[X_AXIS] = ubl.mesh_index_to_xpos(x_plot);
   mechanics.current_position[Y_AXIS] = ubl.mesh_index_to_ypos(y_plot);
-  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.active_extruder);
+  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.extruder.active);
 }
 
 /**
@@ -470,8 +470,8 @@ void _lcd_ubl_output_map_lcd() {
   if (y_plot <= GRID_MAX_POINTS_Y - (GRID_MAX_POINTS_Y + 1)) y_plot = GRID_MAX_POINTS_Y - 1;
 
   // Prevent underrun/overrun of plot numbers
-  x_plot = constrain(x_plot, GRID_MAX_POINTS_X - (GRID_MAX_POINTS_X + 1), GRID_MAX_POINTS_X + 1);
-  y_plot = constrain(y_plot, GRID_MAX_POINTS_Y - (GRID_MAX_POINTS_Y + 1), GRID_MAX_POINTS_Y + 1);
+  LIMIT(x_plot, GRID_MAX_POINTS_X - (GRID_MAX_POINTS_X + 1), GRID_MAX_POINTS_X + 1);
+  LIMIT(y_plot, GRID_MAX_POINTS_Y - (GRID_MAX_POINTS_Y + 1), GRID_MAX_POINTS_Y + 1);
 
   // Determine number of points to edit
   #if IS_KINEMATIC

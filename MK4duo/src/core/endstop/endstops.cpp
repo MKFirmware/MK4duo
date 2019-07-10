@@ -859,7 +859,7 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
       // In Dual X mode tools.data.hotend_offset[X] is T1's home position
       float dual_max_x = MAX(tools.data.hotend_offset[X_AXIS][1], X2_MAX_POS);
 
-      if (tools.active_extruder != 0) {
+      if (tools.extruder.active != 0) {
         // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
         soft_endstop[X_AXIS].min = X2_MIN_POS;
         soft_endstop[X_AXIS].max = dual_max_x;

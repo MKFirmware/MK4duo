@@ -190,13 +190,13 @@ void Commands::get_destination() {
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.previous_extruder] / 100) + mechanics.current_position[E_AXIS];
+    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.extruder.previous] / 100) + mechanics.current_position[E_AXIS];
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
     const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
-      rfid522.RfidData[tools.active_extruder].data.lenght -= diff;
+      rfid522.RfidData[tools.extruder.active].data.lenght -= diff;
     #endif
   }
 
@@ -227,10 +227,10 @@ bool Commands::get_target_tool(const uint16_t code) {
       SERIAL_EMV(" " MSG_INVALID_EXTRUDER " ", t);
       return true;
     }
-    tools.target_extruder = t;
+    tools.extruder.target = t;
   }
   else
-    tools.target_extruder = tools.active_extruder;
+    tools.extruder.target = tools.extruder.active;
 
   return false;
 }
@@ -263,10 +263,10 @@ Heater* Commands::get_target_heater() {
         SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
         return true;
       }
-      tools.target_extruder = t;
+      tools.extruder.target = t;
     }
     else
-      tools.target_extruder = 0;
+      tools.extruder.target = 0;
 
     return false;
   }

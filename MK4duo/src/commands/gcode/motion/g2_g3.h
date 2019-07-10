@@ -193,7 +193,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
       bedlevel.apply_leveling(raw);
     #endif
 
-    if (!planner.buffer_line(raw, fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT
+    if (!planner.buffer_line(raw, fr_mm_s, tools.extruder.active, MM_PER_ARC_SEGMENT
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         , inv_duration
       #endif
@@ -211,7 +211,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
     bedlevel.apply_leveling(raw);
   #endif
 
-  planner.buffer_line(raw, fr_mm_s, tools.active_extruder, MM_PER_ARC_SEGMENT
+  planner.buffer_line(raw, fr_mm_s, tools.extruder.active, MM_PER_ARC_SEGMENT
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       , inv_duration
     #endif

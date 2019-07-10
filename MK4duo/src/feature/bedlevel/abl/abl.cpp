@@ -348,10 +348,10 @@
           cx2 = (mechanics.destination[X_AXIS]      - bilinear_start[X_AXIS]) * ABL_BG_FACTOR(X_AXIS),
           cy2 = (mechanics.destination[Y_AXIS]      - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR(Y_AXIS);
 
-      cx1 = constrain(cx1, 0, ABL_BG_POINTS_X - 2);
-      cy1 = constrain(cy1, 0, ABL_BG_POINTS_Y - 2);
-      cx2 = constrain(cx2, 0, ABL_BG_POINTS_X - 2);
-      cy2 = constrain(cy2, 0, ABL_BG_POINTS_Y - 2);
+      LIMIT(cx1, 0, ABL_BG_POINTS_X - 2);
+      LIMIT(cy1, 0, ABL_BG_POINTS_Y - 2);
+      LIMIT(cx2, 0, ABL_BG_POINTS_X - 2);
+      LIMIT(cy2, 0, ABL_BG_POINTS_Y - 2);
 
       if (cx1 == cx2 && cy1 == cy2) {
         // Start and end on same mesh square
