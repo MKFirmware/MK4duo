@@ -384,7 +384,7 @@ void Printer::check_periodical_actions() {
 
 void Printer::safe_delay(millis_l time) {
   time += millis();
-  while ((int32_t)(millis() - time) < 0) {
+  while (PENDING(millis(), time)) {
     PRINTER_KEEPALIVE(InProcess);
     idle();
   }

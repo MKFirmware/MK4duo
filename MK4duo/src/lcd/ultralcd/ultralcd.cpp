@@ -431,7 +431,7 @@ void LcdUI::status_screen() {
 
         // Expire the message if a job is active and the bar has ticks
         if (printer.progress > 2 && print_job_counter.isPaused()) {
-          if (int32_t(millis() - expire_status_ms) >= 0) {
+          if (ELAPSED(millis(), expire_status_ms)) {
             status_message[0] = '\0';
             expire_status_ms = 0;
           }
@@ -973,7 +973,7 @@ void LcdUI::update() {
    */
   void LcdUI::update_buttons() {
     const millis_l now = millis();
-    if (int32_t(now - next_button_update_ms) >= 0) {
+    if (ELAPSED(now, next_button_update_ms)) {
 
       #if HAS_DIGITAL_BUTTONS
 
@@ -1115,7 +1115,7 @@ void LcdUI::update() {
         // so they are called during normal lcdui.update
         uint8_t slow_bits = lcd.readButtons() << B_I2C_BTN_OFFSET;
         #if ENABLED(LCD_I2C_VIKI)
-          if ((slow_bits & (B_MI | B_RI)) && int32_t(millis() - next_button_update_ms) < 0) // LCD clicked
+          if ((slow_bits & (B_MI | B_RI)) && PENDING(millis(), next_button_update_ms)) // LCD clicked
             slow_bits &= ~(B_MI | B_RI); // Disable LCD clicked buttons if screen is updated
         #endif // LCD_I2C_VIKI
         return slow_bits;

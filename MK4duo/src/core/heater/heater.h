@@ -76,8 +76,7 @@ class Heater {
 
     heater_data_t   data;
 
-    uint8_t         pwm_value,
-                    consecutive_low_temp;
+    uint8_t         pwm_value;
 
     int16_t         target_temperature,
                     idle_temperature;
@@ -92,6 +91,8 @@ class Heater {
     const uint8_t   temp_hysteresis,
                     watch_period,
                     watch_increase;
+
+    uint8_t         consecutive_low_temp;
 
     uint16_t        watch_target_temp;
 
@@ -199,7 +200,7 @@ class Heater {
 
   private: /** Private Function */
 
-    void _temp_error(PGM_P const serial_msg, PGM_P const lcd_msg);
+    void temp_error(PGM_P const serial_msg, PGM_P const lcd_msg);
     void min_temp_error();
     void max_temp_error();
 

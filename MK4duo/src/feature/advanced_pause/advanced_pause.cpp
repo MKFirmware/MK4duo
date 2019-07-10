@@ -595,7 +595,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     if (init) next_buzz_ms = runout_beep = 0;
 
     const millis_l now = millis();
-    if (int32_t(now - next_buzz_ms) >= 0) {
+    if (ELAPSED(now, next_buzz_ms)) {
       if (max_beep_count < 0 || runout_beep < max_beep_count + 5) { // Only beep as long as we're supposed to
         next_buzz_ms = now + ((max_beep_count < 0 || runout_beep < max_beep_count) ? 1000UL : 500UL);
         sound.playtone(50, NOTE_A5 - (runout_beep & 1) * NOTE_A3);

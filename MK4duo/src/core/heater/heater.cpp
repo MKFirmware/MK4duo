@@ -96,7 +96,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
   #if TEMP_RESIDENCY_TIME > 0
     millis_l residency_start_ms = 0;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || (int32_t(now - (residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL)) < 0))
+    #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
@@ -255,7 +255,7 @@ void Heater::check_and_power() {
   if (isThermalProtection()) {
     thermal_runaway_protection();
     if (thermal_runaway_state == TRRunaway)
-      _temp_error(PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+      temp_error(PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
   }
 
   // Ignore heater we are currently testing
@@ -266,7 +266,7 @@ void Heater::check_and_power() {
   // Make sure temperature is increasing
   if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_l(watch_period * 1000UL))) {
     if (current_temperature < watch_target_temp)
-      _temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
+      temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
     else
       start_watching(); // Start again if the target is still far off
   }
@@ -696,7 +696,7 @@ void Heater::start_watching() {
 
 /** Private Function */
 // Temperature Error Handlers
-void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
+void Heater::temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
   if (isActive()) {
     SERIAL_STR(ER);
     SERIAL_STR(serial_msg);
@@ -737,16 +737,16 @@ void Heater::_temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
 void Heater::min_temp_error() {
   switch (type) {
     case IS_HOTEND:
-      _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
+      temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
       break;
     #if BEDS > 0
       case IS_BED:
-        _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
+        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
         break;
     #endif
     #if CHAMBERS > 0
       case IS_CHAMBER:
-        _temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
+        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
         break;
     #endif
     default: break;
@@ -756,16 +756,16 @@ void Heater::min_temp_error() {
 void Heater::max_temp_error() {
   switch (type) {
     case IS_HOTEND:
-      _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
+      temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
       break;
     #if BEDS > 0
       case IS_BED:
-        _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
+        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
         break;
     #endif
     #if CHAMBERS > 0
       case IS_CHAMBER:
-        _temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
+        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
         break;
     #endif
     default: break;
@@ -773,7 +773,7 @@ void Heater::max_temp_error() {
 }
 
 void Heater::update_idle_timer() {
-  if (!isIdle() && idle_timeout_ms && (int32_t(millis() - idle_timeout_ms) >= 0))
+  if (!isIdle() && idle_timeout_ms && (ELAPSED(millis(), idle_timeout_ms)))
     setIdle(true);
 }
 
