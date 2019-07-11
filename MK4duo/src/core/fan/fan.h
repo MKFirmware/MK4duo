@@ -32,7 +32,7 @@
   #include "tachometric.h"
 #endif
 
-union flagfan_t {
+union fan_flag_t {
   uint8_t all;
   struct {
     bool  HWInvert  : 1;
@@ -44,13 +44,13 @@ union flagfan_t {
     bool  bit6      : 1;
     bool  bit7      : 1;
   };
-  flagfan_t() { all = 0x00; }
+  fan_flag_t() { all = 0x00; }
 };
 
 // Struct Fan data
 typedef struct {
   pin_t           pin;
-  flagfan_t       flag;
+  fan_flag_t      flag;
   uint8_t         ID,
                   min_speed,
                   max_speed,

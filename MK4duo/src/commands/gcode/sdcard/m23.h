@@ -35,7 +35,7 @@
  */
 inline void gcode_M23(void) {
   #if HAS_SD_RESTART
-    card.delete_restart_file();
+    restart.purge_job();
   #endif
   // Simplify3D includes the size, so zero out all spaces (#7227)
   // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere

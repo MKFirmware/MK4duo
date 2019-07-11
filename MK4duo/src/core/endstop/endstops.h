@@ -41,7 +41,7 @@ union endstop_flag_t {
 };
 
 // Struct Endstop data
-typedef struct {
+typedef struct endstop_data_t {
   uint16_t  logic_flag,
             pullup_flag;
   #if ENABLED(X_TWO_ENDSTOPS)

@@ -245,7 +245,7 @@ class NextionLCD {
       static void SDMenuPopCallback();
     #endif
 
-    static uint16_t recvRetNumber(void);
+    static uint16_t recvRetNumber();
 
     static bool getConnect(char* buffer);
 

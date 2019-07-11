@@ -30,11 +30,11 @@
 #include "mechanics.h"
 
 /** Public Parameters */
-generic_data_t  Mechanics::data;
+generic_data_t    Mechanics::data;
 
-flaghome_t      Mechanics::home_flag;
+home_flag_t       Mechanics::home_flag;
 
-const flagdir_t Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
+const dir_flag_t  Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 
 const float Mechanics::homing_feedrate_mm_s[XYZ]          = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
             Mechanics::home_bump_mm[XYZ]                  = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };

@@ -424,7 +424,7 @@ void EEPROM::post_process() {
 
   const char version[6] = EEPROM_VERSION;
 
-  flageeprom_t EEPROM::flag;
+  eeprom_flag_t EEPROM::flag;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     uint16_t EEPROM::meshes_begin = 0;

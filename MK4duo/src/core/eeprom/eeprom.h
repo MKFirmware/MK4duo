@@ -21,7 +21,7 @@
  */
 #pragma once
 
-union flageeprom_t {
+union eeprom_flag_t {
   uint8_t all;
   struct {
     bool  error       : 1;
@@ -33,7 +33,7 @@ union flageeprom_t {
     bool  bit_6       : 1;
     bool  bit_7       : 1;
   };
-  flageeprom_t() { all = 0x00; }
+  eeprom_flag_t() { all = 0x00; }
 };
 
 class EEPROM {
@@ -46,7 +46,7 @@ class EEPROM {
 
     #if HAS_EEPROM
 
-      static flageeprom_t flag;
+      static eeprom_flag_t flag;
  
       #if ENABLED(AUTO_BED_LEVELING_UBL)  // Eventually make these available if any leveling system
                                           // That can store is enabled
@@ -55,7 +55,8 @@ class EEPROM {
                                           // live at the very end of the eeprom
 
       #endif
-    #endif
+
+    #endif // HAS_EEPROM
 
   public: /** Public Function */
 
@@ -80,6 +81,7 @@ class EEPROM {
     static bool store();      // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
+
       static bool load();     // Return 'true' if data was loaded ok
       static bool validate(); // Return 'true' if EEPROM data is ok
 
@@ -95,9 +97,12 @@ class EEPROM {
         //static void delete_mesh();    // necessary if we have a MAT
         //static void defrag_meshes();  // "
       #endif
+
     #else
+
       FORCE_INLINE static bool load() { reset(); Print_Settings(); return true; }
-    #endif
+
+    #endif // !HAS_EEPROM
 
     #if DISABLED(DISABLE_M503)
       static void Print_Settings();
@@ -110,8 +115,10 @@ class EEPROM {
     static void post_process();
 
     #if HAS_EEPROM
+
       static bool _load();
       static bool size_error(const uint16_t size);
+
     #endif
 
 };
