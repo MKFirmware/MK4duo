@@ -75,6 +75,7 @@ class SDCard {
     static uint16_t nrFile_index;
 
     #if HAS_EEPROM_SD
+      #define EEPROM_FILE_NAME "eeprom.bin"
       static SdFile eeprom_file;
     #endif
 

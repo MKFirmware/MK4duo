@@ -34,7 +34,7 @@
 #define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
-union flaghome_t {
+union home_flag_t {
   uint8_t all;
   struct {
     bool  XHomed  : 1;
@@ -46,10 +46,10 @@ union flaghome_t {
     bool  bit6    : 1;
     bool  bit7    : 1;
   };
-  flaghome_t() { all = 0x00; }
+  home_flag_t() { all = 0x00; }
 };
 
-union flagdir_t {
+union dir_flag_t {
   int8_t dir;
   struct {
     int8_t X : 2;
@@ -57,7 +57,7 @@ union flagdir_t {
     int8_t Z : 2;
     int8_t E : 2;
  };
-  flagdir_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
+  dir_flag_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
 };
 
 union sensorless_t {
@@ -126,12 +126,12 @@ class Mechanics {
     /**
      * Home flag
      */
-    static flaghome_t       home_flag;
+    static home_flag_t      home_flag;
 
     /**
      * Home direction
      */
-    static const flagdir_t  home_dir;
+    static const dir_flag_t home_dir;
 
     /**
      * Homing feed rates
