@@ -868,6 +868,20 @@ void Printer::setup_pinout() {
     OUT_WRITE(STAT_LED_BLUE_PIN, LOW); // turn it off
   #endif
 
+  // Init Servo Pins
+  #if HAS_SERVO_0
+    OUT_WRITE(SERVO0_PIN, LOW);
+  #endif
+  #if HAS_SERVO_1
+    OUT_WRITE(SERVO1_PIN, LOW);
+  #endif
+  #if HAS_SERVO_2
+    OUT_WRITE(SERVO2_PIN, LOW);
+  #endif
+  #if HAS_SERVO_3
+    OUT_WRITE(SERVO3_PIN, LOW);
+  #endif
+
 }
 
 void Printer::handle_interrupt_events() {

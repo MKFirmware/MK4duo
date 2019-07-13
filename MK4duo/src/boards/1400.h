@@ -161,20 +161,26 @@
 #define SERVO2_PIN                  5
 #define SERVO3_PIN                  6
 
-//###MISC
-#define ORIG_PS_ON_PIN             24
-#define ORIG_BEEPER_PIN            44
-#define LED_PIN                    NoPin
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              14
+//###SAM_SDSS
 #define SDSS                        4
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             NoPin
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
+
+//###MISC
+#define ORIG_PS_ON_PIN             24
+#define ORIG_BEEPER_PIN            NoPin
+#define LED_PIN                    NoPin
 
 
 //###UNKNOWN_PINS
@@ -203,6 +209,9 @@
 //#define DAC1_SYNC                6 // PC24
 
 #if HAS_SPI_LCD
+
+  #undef ORIG_BEEPER_PIN
+
   // LCD panel
   #if ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
     #define LCD_PINS_RS         46

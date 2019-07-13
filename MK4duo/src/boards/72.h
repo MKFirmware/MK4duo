@@ -160,24 +160,29 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###MISC
-#define ORIG_PS_ON_PIN             24
-#define ORIG_BEEPER_PIN            18
-#define LED_PIN                     8
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              39
-#define SDSS                       53
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+//###SAM_SDSS
+#define SDSS                       NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             13
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+//###MISC
+#define ORIG_PS_ON_PIN             24
+#define ORIG_BEEPER_PIN            18
+#define LED_PIN                     8
+
 
 //###UNKNOWN_PINS
-#define MAX6675_SS_PIN            13
 #define SAFETY_TRIGGERED_PIN      28
 #define MAIN_VOLTAGE_MEASURE_PIN  14
 #define MOTOR_CURRENT_PWM_XY_PIN  44
@@ -185,23 +190,26 @@
 #define MOTOR_CURRENT_PWM_E_PIN   46
 #define MOTOR_CURRENT_PWM_RANGE 2782
 #define DEFAULT_PWM_MOTOR_CURRENT  {1300, 1300, 1250}
-#define LCD_PINS_RS               20
-#define LCD_PINS_ENABLE           15
-#define LCD_PINS_D4               14
-#define LCD_PINS_D5               21
-#define LCD_PINS_D6                5
-#define LCD_PINS_D7                6
-#define BTN_EN1                   40
-#define BTN_EN2                   41
-#define BTN_ENC                   19
-#define BLEN_C 2
-#define BLEN_B 1
-#define BLEN_A 0
 //@@@
 
 //###IF_BLOCKS
-#if ENABLED(WANHAO_D6_OLED)
-  #define LCD_RESET_PIN            5
+#if HAS_SPI_LCD
+  #define LCD_PINS_RS             20
+  #define LCD_PINS_ENABLE         15
+  #define LCD_PINS_D4             14
+  #define LCD_PINS_D5             21
+  #define LCD_PINS_D6              5
+  #define LCD_PINS_D7              6
+  #define BTN_EN1                 40
+  #define BTN_EN2                 41
+  #define BTN_ENC                 19
+  #define BLEN_C 2
+  #define BLEN_B 1
+  #define BLEN_A 0
+
+  #if ENABLED(WANHAO_D6_OLED)
+    #define LCD_RESET_PIN          5
+  #endif
 #endif
 //@@@
 

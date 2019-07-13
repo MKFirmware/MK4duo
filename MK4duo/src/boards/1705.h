@@ -161,30 +161,31 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###MISC
-#define ORIG_PS_ON_PIN             32
-#define ORIG_BEEPER_PIN            27
-#define LED_PIN                    13
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              60
+//###SAM_SDSS
 #define SDSS                       59
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             65
+
+//###MAX31855
+#define MAX31855_SS0_PIN           65
+#define MAX31855_SS1_PIN           52
+#define MAX31855_SS2_PIN           51
+#define MAX31855_SS3_PIN           50
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+//###MISC
+#define ORIG_PS_ON_PIN             32
+#define ORIG_BEEPER_PIN            27
+#define LED_PIN                    13
+
 
 //###UNKNOWN_PINS
 #define WIRE_PORT              2
 #define E2END                 0x1FFF
-#define MAX6675_SS_PIN        65
-#define MAX31855_SS0_PIN      65
-#define MAX31855_SS1_PIN      52
-#define MAX31855_SS2_PIN      51
-#define MAX31855_SS3_PIN      50
 #define ENC424_SS_PIN         61
 #define HAVE_MCU_TEMPERATURE
 //@@@
@@ -197,7 +198,6 @@
   #define LCD_PINS_RS         62
   #define LCD_PINS_ENABLE     75
   #define LCD_PINS_D4         76
-  #define ORIG_BEEPER_PIN     NoPin
 
   #define BTN_EN1             20
   #define BTN_EN2             21
@@ -207,9 +207,9 @@
 //@@@
 
 //###MB_SETUP
-#define MB_SETUP                      \
-  OUT_WRITE(ORIG_FAN0_PIN, LOW);      \
-  OUT_WRITE(ORIG_FAN1_PIN, LOW);      \
+#define MB_SETUP                        \
+  OUT_WRITE(ORIG_FAN0_PIN, LOW);        \
+  OUT_WRITE(ORIG_FAN1_PIN, LOW);        \
   OUT_WRITE(ORIG_HEATER_HE0_PIN, LOW);  \
   OUT_WRITE(ORIG_HEATER_HE1_PIN, LOW);  \
   OUT_WRITE(ORIG_HEATER_HE2_PIN, LOW);  \

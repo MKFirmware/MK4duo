@@ -527,11 +527,11 @@
 #define HAS_FAN5            (PIN_EXISTS(FAN5))
 
 // Servos
-#define HAS_SERVO_0         (PIN_EXISTS(SERVO0))
-#define HAS_SERVO_1         (PIN_EXISTS(SERVO1))
-#define HAS_SERVO_2         (PIN_EXISTS(SERVO2))
-#define HAS_SERVO_3         (PIN_EXISTS(SERVO3))
-#define HAS_SERVOS          ((ENABLED(ENABLE_SERVOS) && NUM_SERVOS > 0) && (HAS_SERVO_0 || HAS_SERVO_1 || HAS_SERVO_2 || HAS_SERVO_3))
+#define HAS_SERVO_0         (PIN_EXISTS(SERVO0) && NUM_SERVOS > 0)
+#define HAS_SERVO_1         (PIN_EXISTS(SERVO1) && NUM_SERVOS > 1)
+#define HAS_SERVO_2         (PIN_EXISTS(SERVO2) && NUM_SERVOS > 2)
+#define HAS_SERVO_3         (PIN_EXISTS(SERVO3) && NUM_SERVOS > 3)
+#define HAS_SERVOS          (ENABLED(ENABLE_SERVOS) && (HAS_SERVO_0 || HAS_SERVO_1 || HAS_SERVO_2 || HAS_SERVO_3))
 
 // Sensors
 #define HAS_FILAMENT_SENSOR           ENABLED(FILAMENT_RUNOUT_SENSOR)

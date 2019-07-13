@@ -140,8 +140,8 @@ void SDCard::mount() {
 
   if (root.isOpen()) root.close();
 
-  if (!fat.begin(SDSS, SPI_SPEED)
-    #if ENABLED(LCD_SDSS) && (LCD_SDSS != SDSS)
+  if (!fat.begin(SS_PIN, SPI_SPEED)
+    #if ENABLED(LCD_SDSS) && (LCD_SDSS != SS_PIN)
       && !fat.begin(LCD_SDSS, SPI_SPEED)
     #endif
   ) {
@@ -792,7 +792,7 @@ uint16_t SDCard::get_num_Files() {
 
     card.unmount();
 
-    if (!sd.begin(SDSS, SPI_SPEED)) {
+    if (!sd.begin(SS_PIN, SPI_SPEED)) {
       SERIAL_LM(ER, "SD initialization failure!");
       return;
     }
