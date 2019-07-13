@@ -160,25 +160,28 @@
 #define SERVO2_PIN                  5
 #define SERVO3_PIN                  4
 
-//###MISC
-#define ORIG_PS_ON_PIN             12
-#define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    13
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
-#define SDSS                       53
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+//###SAM_SDSS
+#define SDSS                       NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             66
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+//###MISC
+#define ORIG_PS_ON_PIN             12
+#define ORIG_BEEPER_PIN            NoPin
+#define LED_PIN                    13
 
-//###UNKNOWN_PINS
-#define MAX6675_SS_PIN              66
-//@@@
+
 
 //###IF_BLOCKS
 #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER) || ENABLED(G3D_PANEL)
@@ -188,7 +191,11 @@
 #endif
 
 #if HAS_SPI_LCD
+
+  #undef ORIG_BEEPER_PIN
+
   #if ENABLED(NEWPANEL)
+
     #if ENABLED(PANEL_ONE)
       #define LCD_PINS_RS       40
       #define LCD_PINS_ENABLE   42
@@ -203,6 +210,7 @@
       #define LCD_PINS_D5       25
       #define LCD_PINS_D6       27
       #define LCD_PINS_D7       29
+
     #endif // PANEL_ONE
 
     #if ENABLED(REPRAP_DISCOUNT_SMART_CONTROLLER)

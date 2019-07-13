@@ -171,20 +171,26 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###MISC
-#define ORIG_PS_ON_PIN             NoPin
-#define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    NoPin
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
+//###SAM_SDSS
 #define SDSS                       87
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             NoPin
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
+
+//###MISC
+#define ORIG_PS_ON_PIN             NoPin
+#define ORIG_BEEPER_PIN            NoPin
+#define LED_PIN                    NoPin
 
 
 //###UNKNOWN_PINS
@@ -195,6 +201,8 @@
 
 //###IF_BLOCKS
 #if HAS_SPI_LCD
+
+  #undef ORIG_BEEPER_PIN
 
   #if ENABLED(NEWPANEL)
    //arduino pin which triggers an piezzo beeper

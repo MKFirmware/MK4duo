@@ -5,11 +5,6 @@
 * Board from Alfons3 Please review the pins and adjust it for your needs
 ******************************************************************************/
 
-//###CHIP
-#if DISABLED(__AVR_ATmega644__) && DISABLED(__AVR_ATmega644P__) && DISABLED(__AVR_ATmega1284P__)
-  #error "Oops! Select 'Gen7' in 'Tools > Board.'"
-#endif
-//@@@
 
 #define KNOWN_BOARD 1
 
@@ -162,32 +157,27 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###MISC
-#define ORIG_PS_ON_PIN             19
-#define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    NoPin
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
-#define SDSS                       31
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+//###SAM_SDSS
+#define SDSS                       NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             NoPin
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN         NoPin
 
+//###MISC
+#define ORIG_PS_ON_PIN             19
+#define ORIG_BEEPER_PIN            NoPin
+#define LED_PIN                    NoPin
 
-//###UNKNOWN_PINS
-#define LCD_PINS_RS      18
-#define LCD_PINS_ENABLE  17
-#define LCD_PINS_D4      16
-#define LCD_PINS_D5      15
-#define LCD_PINS_D6      13
-#define LCD_PINS_D7      14
-#define BTN_EN1          11
-#define BTN_EN2          10
-#define BTN_ENC          12  //the click
-//@@@
+
 
 

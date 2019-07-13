@@ -155,20 +155,26 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###MISC
-#define ORIG_PS_ON_PIN             NoPin
-#define ORIG_BEEPER_PIN            NoPin
-#define LED_PIN                    13
-#define SDPOWER_PIN                NoPin
-#define SD_DETECT_PIN              NoPin
-#define SDSS                       53
-#define KILL_PIN                   NoPin
-#define DEBUG_PIN                  NoPin
-#define SUICIDE_PIN                NoPin
+//###SAM_SDSS
+#define SDSS                       NoPin
+
+//###MAX6675
+#define MAX6675_SS_PIN             NoPin
+
+//###MAX31855
+#define MAX31855_SS0_PIN           NoPin
+#define MAX31855_SS1_PIN           NoPin
+#define MAX31855_SS2_PIN           NoPin
+#define MAX31855_SS3_PIN           NoPin
 
 //###LASER
 #define ORIG_LASER_PWR_PIN         NoPin
 #define ORIG_LASER_PWM_PIN          9
+
+//###MISC
+#define ORIG_PS_ON_PIN             NoPin
+#define ORIG_BEEPER_PIN            NoPin
+#define LED_PIN                    13
 
 
 //###UNKNOWN_PINS
@@ -185,12 +191,6 @@
 #define MOTOR_CURRENT_PWM_XY_PIN  46
 #define MOTOR_CURRENT_PWM_Z_PIN   45
 #define MOTOR_CURRENT_PWM_E_PIN   44
-
-#define CASE_LIGHT_PIN 9
-
-// use P1 connector for spindle pins
-#define SPINDLE_LASER_ENABLE_PIN 18  // Pin should have a pullup!
-#define SPINDLE_DIR_PIN          19
 //@@@
 
 //###IF_BLOCKS
@@ -202,7 +202,9 @@
 
 #if HAS_SPI_LCD
 
-    #define KILL_PIN                32
+  #undef ORIG_BEEPER_PIN
+
+  #define KILL_PIN                32
 
   #if ENABLED(NEWPANEL)
 

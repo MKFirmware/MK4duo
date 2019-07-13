@@ -252,7 +252,7 @@ bool Probe::set_deployed(const bool deploy) {
 
 void Probe::servo_test() {
 
-  #if !(NUM_SERVOS >= 1 && HAS_SERVO_0)
+  #if !(HAS_SERVO_0)
 
     SERIAL_LM(ER, "SERVO not setup");
 

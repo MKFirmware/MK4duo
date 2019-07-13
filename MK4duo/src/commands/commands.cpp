@@ -34,10 +34,10 @@ Commands commands;
 /** Public Parameters */
 Circular_Queue<gcode_t, BUFSIZE> Commands::buffer_ring;
 
-long  Commands::gcode_last_N = 0;
+long Commands::gcode_last_N = 0;
 
 /** Private Parameters */
-long  Commands::gcode_N = 0;
+long Commands::gcode_N = 0;
 
 int Commands::serial_count[NUM_SERIAL] = { 0 };
 
@@ -632,16 +632,18 @@ bool Commands::process_injected() {
   char c;
   size_t i = 0;
   while ((c = pgm_read_byte(&injected_commands_P[i])) && c != '\n') i++;
-  if (!i) return false;
 
+  // Extract current command and move pointer to next command
   char cmd[i + 1];
   memcpy_P(cmd, injected_commands_P, i);
   cmd[i] = '\0';
-
   injected_commands_P = c ? injected_commands_P + i + 1 : nullptr;
 
-  parser.parse(cmd);
-  process_parsed();
+  // Execute command if non-blank
+  if (i) {
+    parser.parse(cmd);
+    process_parsed();
+  }
 
   return true;
 }

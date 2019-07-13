@@ -254,24 +254,6 @@
 #if DISABLED(LCD_CONTRAST)
   #define LCD_CONTRAST  NoPin
 #endif
-#if DISABLED(Z2_MIN_PIN)
-  #define Z2_MIN_PIN    NoPin
-#endif
-#if DISABLED(Z2_MAX_PIN)
-  #define Z2_MAX_PIN    NoPin
-#endif
-#if DISABLED(Z3_MIN_PIN)
-  #define Z3_MIN_PIN    NoPin
-#endif
-#if DISABLED(Z3_MAX_PIN)
-  #define Z3_MAX_PIN    NoPin
-#endif
-#if DISABLED(Z4_MIN_PIN)
-  #define Z4_MIN_PIN    NoPin
-#endif
-#if DISABLED(Z4_MAX_PIN)
-  #define Z4_MAX_PIN    NoPin
-#endif
 
 #if DISABLED(ORIG_FAN0_PIN)
   #define ORIG_FAN0_PIN  NoPin
@@ -292,8 +274,27 @@
   #define ORIG_FAN5_PIN NoPin
 #endif
 
+// Misc Pins
+#if DISABLED(ORIG_PS_ON_PIN)
+  #define ORIG_PS_ON_PIN NoPin
+#endif
 #if DISABLED(ORIG_BEEPER_PIN)
   #define ORIG_BEEPER_PIN NoPin
+#endif
+#if DISABLED(LED_PIN)
+  #define LED_PIN NoPin
+#endif
+#if DISABLED(SD_DETECT_PIN)
+  #define SD_DETECT_PIN NoPin
+#endif
+#if DISABLED(SDSS)
+  #define SDSS NoPin
+#endif
+#if DISABLED(KILL_PIN)
+  #define KILL_PIN NoPin
+#endif
+#if DISABLED(SUICIDE_PIN)
+  #define SUICIDE_PIN NoPin
 #endif
 
 /****************************************************************************************/
