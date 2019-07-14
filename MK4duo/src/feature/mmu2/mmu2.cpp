@@ -608,7 +608,6 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
   bool response = false;
   mmu_print_saved = false;
-  point_t park_point = NOZZLE_PARK_POINT;
   int16_t resume_hotend_temp;
 
   PRINTER_KEEPALIVE(PausedforUser);
@@ -630,7 +629,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
 
         if (move_axes && mechanics.isHomedAll())
-          Nozzle::park(2, park_point /*= NOZZLE_PARK_POINT*/);
+          Nozzle::park(2);
 
         if (turn_off_nozzle) hotends[0].setTarget(0);
 

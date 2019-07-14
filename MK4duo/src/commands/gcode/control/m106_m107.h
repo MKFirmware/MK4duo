@@ -70,18 +70,15 @@
     fan->data.min_speed           = parser.byteval('L', fan->data.min_speed);
     fan->data.max_speed           = parser.byteval('X', fan->data.max_speed);
     fan->data.freq                = parser.ushortval('F', fan->data.freq);
-    fan->data.trigger_temperature  = parser.ushortval('T', fan->data.trigger_temperature);
+    fan->data.trigger_temperature = parser.ushortval('T', fan->data.trigger_temperature);
 
-    #if ENABLED(FAN_KICKSTART_TIME)
-      if (fan->kickstart == 0 && new_speed > fan->speed) {
-        if (fan->speed) fan->kickstart = FAN_KICKSTART_TIME / 10;
-        else            fan->kickstart = FAN_KICKSTART_TIME;
-      }
+    fan->set_speed(new_speed);
+
+    #if ENABLED(DUAL_X_CARRIAGE) && FAN_COUNT > 1
+      // Check for Clone fan
+      if (f == 0 && mechanics.dxc_is_duplicating() && TEST(fans[1].data.auto_monitor, 6))
+        fans[1].set_speed(new_speed);
     #endif
-
-    fan->speed = new_speed;
-
-    LIMIT(fan->speed, fan->data.min_speed, fan->data.max_speed);
 
     #if DISABLED(DISABLE_M503)
       // No arguments? Show M106 report.

@@ -80,14 +80,56 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
 #endif
 
-#if ENABLED(DUAL_X_CARRIAGE)
+#if EXTRUDERS > 1
 
-  void _recalc_DXC_settings() {
-    if (tools.extruder.active) {                // For the 2nd extruder re-home so the next tool-change gets the new offsets.
-      commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
-      tools.extruder.active = 0;
-    }
+  void menu_tool_change() {
+    START_MENU();
+    MENU_BACK(MSG_CONFIGURATION);
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+        static constexpr float max_extrude = EXTRUDE_MAXLENGTH;
+      #else
+        static constexpr float max_extrude = 500;
+      #endif
+      MENU_ITEM_EDIT(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude);
+      MENU_ITEM_EDIT(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude);
+      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
+      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.purge_speed, 10, 5400);
+    #endif
+    MENU_ITEM_EDIT(float3, MSG_TOOL_CHANGE_ZLIFT, &tools.data.park_point.z, 0, 10);
+    END_MENU();
   }
+
+#endif
+
+#if HOTENDS > 1
+
+  void menu_tool_offsets() {
+
+    auto _recalc_offsets = []{
+      if (tools.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
+        commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
+        tools.extruder.active = 0;
+      }
+    };
+
+    START_MENU();
+    MENU_BACK(MSG_CONFIGURATION);
+    #if ENABLED(DUAL_X_CARRIAGE)
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_X_OFFSET, &tools.data.hotend_offset[X_AXIS][1], float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
+    #else
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_X_OFFSET, &tools.data.hotend_offset[X_AXIS][1], -10.0, 10.0, _recalc_offsets);
+    #endif
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Y_OFFSET, &tools.data.hotend_offset[Y_AXIS][1], -10.0, 10.0, _recalc_offsets);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Z_OFFSET, &tools.data.hotend_offset[Z_AXIS][1], Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+    #if ENABLED(EEPROM_SETTINGS)
+      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+    #endif
+    END_MENU();
+  }
+#endif
+
+#if ENABLED(DUAL_X_CARRIAGE)
 
   void menu_DXC() {
     START_MENU();
@@ -99,11 +141,11 @@ static void lcd_reset_settings() { eeprom.reset(); }
       ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100")                // If Y or Z is not homed, do a full G28 first
       : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100")
     );
+    MENU_ITEM(gcode, MSG_DXC_MODE_MIRRORED_COPY, need_g28
+      ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100\nM605 S3 X200")  // If Y or Z is not homed, do a full G28 first
+      : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100\nM605 S3 X200")
+    );
     MENU_ITEM(gcode, MSG_DXC_MODE_FULL_CTRL, PSTR("M605 S0\nG28 X"));
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52, MSG_DXC_X_OFFSET , &tools.data.hotend_offset[X_AXIS][1], MIN(X2_HOME_POS, X2_MAX_POS) - 25.0, MAX(X2_HOME_POS, X2_MAX_POS) + 25.0, _recalc_DXC_settings);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52, MSG_DXC_Y_OFFSET , &tools.data.hotend_offset[Y_AXIS][1], -10.0, 10.0, _recalc_DXC_settings);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52, MSG_DXC_Z_OFFSET , &tools.data.hotend_offset[Z_AXIS][1], -10.0, 10.0, _recalc_DXC_settings);
-    MENU_ITEM(gcode, MSG_DXC_SAVE_OFFSETS, PSTR("M500"));
     END_MENU();
   }
 
@@ -324,6 +366,10 @@ void menu_configuration() {
     //
     #if MECH(DELTA)
       MENU_ITEM(submenu, MSG_DELTA_CALIBRATE, menu_delta_calibrate);
+    #endif
+
+    #if HOTENDS > 1
+      MENU_ITEM(submenu, MSG_OFFSETS_MENU, menu_tool_offsets);
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)

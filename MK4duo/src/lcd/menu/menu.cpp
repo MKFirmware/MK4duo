@@ -485,7 +485,7 @@ bool lcdui_selection; // = false
 void set_lcdui_selection(const bool sel) { lcdui_selection = sel; }
 void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
   if (lcdui.encoderPosition) {
-    lcdui_selection = (ENCODERBASE) > 0 == int16_t(lcdui.encoderPosition) > 0;
+    lcdui_selection = ((ENCODERBASE) > 0) == (int16_t(lcdui.encoderPosition) > 0);
     lcdui.encoderPosition = 0;
   }
   const bool got_click = lcdui.use_click();

@@ -28,21 +28,43 @@
 
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  #define CODE_G12
+#define CODE_G12
 
-  /**
-   * G12: Clean the nozzle
-   */
-  inline void gcode_G12(void) {
-    // Don't allow nozzle cleaning without homing first
-    if (mechanics.axis_unhomed_error()) { return; }
+/**
+ * G12: Clean the nozzle
+ */
+inline void gcode_G12(void) {
 
-    const uint8_t pattern = parser.seen('P') ? parser.value_ushort() : 0,
-                  strokes = parser.seen('S') ? parser.value_ushort() : NOZZLE_CLEAN_STROKES,
-                  objects = parser.seen('T') ? parser.value_ushort() : NOZZLE_CLEAN_TRIANGLES;
-    const float   radius  = parser.seen('R') ? parser.value_float()  : NOZZLE_CLEAN_CIRCLE_RADIUS;
+  // Don't allow nozzle cleaning without homing first
+  if (mechanics.axis_unhomed_error()) return;
 
-    Nozzle::clean(pattern, strokes, radius, objects);
-  }
+  const bool seenxyz = parser.seen("XYZ"),
+             clean_x = !seenxyz || parser.boolval('X'),
+             clean_y = !seenxyz || parser.boolval('Y');
+
+  #if ENABLED(NOZZLE_CLEAN_NO_Z)
+    static constexpr bool clean_z = false;
+  #else
+    const bool clean_z = !seenxyz || parser.boolval('Z');
+  #endif
+
+  const uint8_t pattern = parser.ushortval('P', 0),
+                strokes = parser.ushortval('S', NOZZLE_CLEAN_STROKES),
+                objects = parser.ushortval('T', NOZZLE_CLEAN_TRIANGLES);
+  const float   radius  = parser.floatval('R', NOZZLE_CLEAN_CIRCLE_RADIUS);
+
+  #if HAS_LEVELING
+    const bool was_enabled = bedlevel.flag.leveling_active;
+    if (clean_z) bedlevel.set_bed_leveling_enabled(false);
+  #endif
+
+  Nozzle::clean(pattern, strokes, radius, objects, clean_x, clean_y, clean_z);
+
+  // Re-enable bed level correction if it had been on
+  #if HAS_LEVELING
+    if (clean_z) bedlevel.set_bed_leveling_enabled(was_enabled);
+  #endif
+
+}
 
 #endif

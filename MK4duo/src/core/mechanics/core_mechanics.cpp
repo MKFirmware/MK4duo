@@ -185,7 +185,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   // Always home with tool 0 active
   #if HOTENDS > 1
     const uint8_t old_tool_index = tools.extruder.active;
-    tools.change(0, 0, true);
+    tools.change(0, true);
   #endif
 
   setup_for_endstop_or_probe_move();
@@ -280,7 +280,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   // Restore the active tool after homing
   #if HOTENDS > 1
-    tools.change(old_tool_index, 0, true);
+    tools.change(old_tool_index, true);
   #endif
 
   lcdui.refresh();

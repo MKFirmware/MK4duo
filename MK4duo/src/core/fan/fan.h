@@ -80,6 +80,7 @@ class Fan {
   public: /** Public Function */
 
     void init();
+    void set_speed(const uint8_t new_speed);
     void set_auto_monitor(const int8_t h);
     void set_output_pwm();
     void spin();

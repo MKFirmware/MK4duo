@@ -29,7 +29,7 @@
 #define CODE_M218
 
 /**
- * M218 - set hotend offset (in linear units)
+ * M218 - Set hotend offset (in linear units)
  *
  *   T<tools>
  *   X<xoffset>

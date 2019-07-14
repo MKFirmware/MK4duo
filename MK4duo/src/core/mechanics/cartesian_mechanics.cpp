@@ -202,7 +202,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   // Always home with tool 0 active
   #if HOTENDS > 1
     const uint8_t old_tool_index = tools.extruder.active;
-    tools.change(0, 0, true);
+    tools.change(0, true);
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
@@ -348,7 +348,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 
   // Restore the active tool after homing
   #if HOTENDS > 1
-    tools.change(old_tool_index, 0, true);
+    tools.change(old_tool_index, true);
   #endif
 
   lcdui.refresh();

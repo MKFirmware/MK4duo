@@ -610,7 +610,10 @@
  * For the other hotends it is their distance from the hotend 0.                         *
  *                                                                                       *
  *****************************************************************************************/
-#define HOTEND_OFFSET_X {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the X axis
-#define HOTEND_OFFSET_Y {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Y axis
-#define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0} // (in mm) for each hotend, offset of the hotend on the Z axis
+// (in mm) for each hotend, offset of the hotend on the X axis
+#define HOTEND_OFFSET_X {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+// (in mm) for each hotend, offset of the hotend on the Y axis
+#define HOTEND_OFFSET_Y {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+// (in mm) for each hotend, offset of the hotend on the Z axis
+#define HOTEND_OFFSET_Z {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 /*****************************************************************************************/

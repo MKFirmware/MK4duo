@@ -35,11 +35,11 @@
          * @param pattern one of the available patterns
          * @param argument depends on the cleaning pattern
          */
-        static void clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects=0);
+        static void clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const bool clean_x, const bool clean_y, const bool clean_z) _Os;
       #endif
 
       #if ENABLED(NOZZLE_PARK_FEATURE)
-        static void park(const uint8_t z_action, const point_t &park=NOZZLE_PARK_POINT) _Os;
+        static void park(const uint8_t z_action, const point_t &park=tools.data.park_point) _Os;
       #endif
 
     private: /** Private Function */

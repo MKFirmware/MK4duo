@@ -33,6 +33,7 @@
  * FAN FEATURES:
  * - Fan configuration
  * EXTRUDER FEATURES:
+ * - Tool change
  * - Volumetric extrusion
  * - Filament Diameter
  * - Single nozzle
@@ -224,7 +225,7 @@
 // AUTO FAN - Fans for cooling Hotend or Controller Fan
 // Put number Hotend in fan to automatically turn on/off when the associated
 // hotend temperature is above/below HOTEND AUTO FAN TEMPERATURE.
-// Or put 7 for controller fan
+// Or put 6 for Clone Fan (only DXC DUPLICATION MODE) or 7 for Controller Fan
 // -1 disables auto mode.
 // Default fan 1 is auto fan for Hotend 0
 #define AUTO_FAN { -1, 0, -1, -1, -1, -1 }
@@ -245,6 +246,33 @@
 //===========================================================================
 //============================ EXTRUDER FEATURES ============================
 //===========================================================================
+
+/***********************************************************************
+ **************************** Tool change ******************************
+ ***********************************************************************
+ *                                                                     *
+ * Universal tools change settings. Applies to all types of extruders  *
+ * If NOZZLE PARK FEATURE is active Z RAISE is replaced by             *
+ * NOZZLE PARK POINT                                                   *
+ *                                                                     *
+ ***********************************************************************/
+// Z raise distance for tools change, as needed for some extruders
+#define TOOL_CHANGE_Z_RAISE   1   // (mm)
+
+// Nozzle park on tool change (Requires NOZZLE PARK FEATURE)
+//#define TOOL_CHANGE_PARK
+
+// Never return to the previous position on tool change
+//#define TOOL_CHANGE_NO_RETURN
+
+// Retract and purge filament on tool change
+//#define TOOL_CHANGE_FIL_SWAP
+#define TOOL_CHANGE_FIL_SWAP_LENGTH          20  // (mm)
+#define TOOL_CHANGE_FIL_SWAP_PURGE            2  // (mm)
+#define TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED 3000  // (mm/m)
+#define TOOL_CHANGE_FIL_SWAP_PURGE_SPEED    600  // (mm/m)
+/***********************************************************************/
+
 
 /***********************************************************************
  ************************ Volumetric extrusion *************************
@@ -411,7 +439,7 @@
  *                                                                     *
  * Prusa Multi-Material Unit v2                                        *
  *                                                                     *
- * Requires NOZZLE_PARK_FEATURE to park print head in case             *
+ * Requires NOZZLE PARK FEATURE to park print head in case             *
  * MMU unit fails.                                                     *
  * Requires EXTRUDERS = 5                                              *
  *                                                                     *
@@ -808,20 +836,20 @@
 #define X2_MAX_POS 353          // set maximum to the distance between toolheads when both heads are homed
 #define X2_HOME_DIR 1           // the second X-carriage always homes to the maximum endstop position
 #define X2_HOME_POS X2_MAX_POS  // default home position is the maximum carriage position
-// However: In this mode the HOTEND_OFFSET_X value for the second extruder provides a software
-// override for X2_HOME_POS. This also allow recalibration of the distance between the two endstops
+// However: In this mode the HOTEND OFFSET X value for the second extruder provides a software
+// override for X2 HOME POS. This also allow recalibration of the distance between the two endstops
 // without modifying the firmware (through the "M218 T1 X???" command).
 // Remember: you should set the second extruder x-offset to 0 in your slicer.
 
 // There are a few selectable movement modes for dual x-carriages using M605 S<mode>
-//    Mode 0 (DXC_FULL_CONTROL_MODE)        : Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
+//    Mode 0 (DXC FULL CONTROL MODE)        : Full control. The slicer has full control over both x-carriages and can achieve optimal travel results
 //                                            as long as it supports dual x-carriages. (M605 S0)
-//    Mode 1 (DXC_AUTO_PARK_MODE)           : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
+//    Mode 1 (DXC AUTO PARK MODE)           : Auto-park mode. The firmware will automatically park and unpark the x-carriages on tool changes so
 //                                            that additional slicer support is not required. (M605 S1)
-//    Mode 2 (DXC_DUPLICATION_MODE)         : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
+//    Mode 2 (DXC DUPLICATION MODE)         : Duplication mode. The firmware will transparently make the second x-carriage and extruder copy all
 //                                            actions of the first x-carriage. This allows the printer to print 2 arbitrary items at
 //                                            once. (2nd extruder x offset and temp offset are set using: M605 S2 [Xnnn] [Rmmm])
-//    Mode 3 (DXC_SCALED_DUPLICATION_MODE)  : Not working yet, but support routines in place
+//    Mode 3 (DXC SCALED DUPLICATION MODE)  : Not working yet, but support routines in place
 //
 
 // This is the default power-up mode which can be later using M605.
@@ -1913,8 +1941,11 @@
 // Middle point of circle
 #define NOZZLE_CLEAN_CIRCLE_MIDDLE NOZZLE_CLEAN_START_POINT
 
-// Moves the nozzle to the initial position
+// Move the nozzle to the initial position after cleaning
 #define NOZZLE_CLEAN_GOBACK
+
+// Enable for a purge/clean station that's always at the gantry height (thus no Z move)
+//#define NOZZLE_CLEAN_NO_Z
 /****************************************************************************************/
 
 

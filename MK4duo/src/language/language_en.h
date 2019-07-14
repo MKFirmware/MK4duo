@@ -245,29 +245,29 @@
 #ifndef MSG_DXC_MENU
   #define MSG_DXC_MENU                        _UxGT("DXC Mode")
 #endif
+#ifndef MSG_OFFSETS_MENU
+  #define MSG_OFFSETS_MENU                    _UxGT("Tool Offsets")
+#endif
 #ifndef MSG_DXC_MODE_AUTOPARK
   #define MSG_DXC_MODE_AUTOPARK               _UxGT("Auto-Park")
 #endif
 #ifndef MSG_DXC_MODE_DUPLICATE
   #define MSG_DXC_MODE_DUPLICATE              _UxGT("Duplication")
 #endif
-#ifndef MSG_DXC_MODE_SCALED_COPY
-  #define MSG_DXC_MODE_SCALED_COPY            _UxGT("Scaled copy")
+#ifndef MSG_DXC_MODE_MIRRORED_COPY
+  #define MSG_DXC_MODE_MIRRORED_COPY          _UxGT("Mirrored copy")
 #endif
 #ifndef MSG_DXC_MODE_FULL_CTRL
   #define MSG_DXC_MODE_FULL_CTRL              _UxGT("Full control")
 #endif
-#ifndef MSG_DXC_X_OFFSET
-  #define MSG_DXC_X_OFFSET                    _UxGT("2nd nozzle X")
+#ifndef MSG_X_OFFSET
+  #define MSG_X_OFFSET                        _UxGT("2nd nozzle X")
 #endif
-#ifndef MSG_DXC_Y_OFFSET
-  #define MSG_DXC_Y_OFFSET                    _UxGT("2nd nozzle Y")
+#ifndef MSG_Y_OFFSET
+  #define MSG_Y_OFFSET                        _UxGT("2nd nozzle Y")
 #endif
-#ifndef MSG_DXC_Z_OFFSET
-  #define MSG_DXC_Z_OFFSET                    _UxGT("2nd nozzle Z")
-#endif
-#ifndef MSG_DXC_SAVE_OFFSETS
-  #define MSG_DXC_SAVE_OFFSETS                _UxGT("Save Offsets")
+#ifndef MSG_Z_OFFSET
+  #define MSG_Z_OFFSET                        _UxGT("2nd nozzle Z")
 #endif
 #ifndef MSG_UBL_MANUAL_MESH
   #define MSG_UBL_MANUAL_MESH                 _UxGT("Manually Build Mesh")
@@ -857,16 +857,19 @@
   #define MSG_AUTORETRACT                     _UxGT("AutoRetr.")
 #endif
 #ifndef MSG_FILAMENT_SWAP_LENGTH
-  #define MSG_FILAMENT_SWAP_LENGTH            _UxGT("Retract Distance")
+  #define MSG_FILAMENT_SWAP_LENGTH            _UxGT("Swap Lenght")
+#endif
+#ifndef MSG_FILAMENT_PURGE_LENGTH
+  #define MSG_FILAMENT_PURGE_LENGTH           _UxGT("Purge Lenght")
 #endif
 #ifndef MSG_TOOL_CHANGE
-  #define MSG_TOOL_CHANGE                      _UxGT("Tool Change")
+  #define MSG_TOOL_CHANGE                     _UxGT("Tool Change")
 #endif
 #ifndef MSG_TOOL_CHANGE_ZLIFT
-  #define MSG_TOOL_CHANGE_ZLIFT                _UxGT("Z Raise")
+  #define MSG_TOOL_CHANGE_ZLIFT               _UxGT("Z Raise")
 #endif
 #ifndef MSG_SINGLENOZZLE_PRIME_SPD
-  #define MSG_SINGLENOZZLE_PRIME_SPD          _UxGT("Prime Speed")
+  #define MSG_SINGLENOZZLE_PRIME_SPD          _UxGT("Purge Speed")
 #endif
 #ifndef MSG_SINGLENOZZLE_RETRACT_SPD
   #define MSG_SINGLENOZZLE_RETRACT_SPD        _UxGT("Retract Speed")

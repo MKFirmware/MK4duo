@@ -54,6 +54,7 @@
 #include "config/m204.h"
 #include "config/m205.h"
 #include "config/m207_m209.h"             // FW RETRACT
+#include "config/m217.h"                  // Set Park position and tool change parameters
 #include "config/m218.h"                  // Set a tool offset
 #include "config/m220.h"                  // Set speed percentage
 #include "config/m221.h"                  // Set extrusion percentage

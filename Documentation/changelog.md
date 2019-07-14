@@ -2,6 +2,8 @@
 * New graphic for Nextion 4.3, 5.0 or 7.0 Normal and Enanched
 * Add support 6 Hotends, 4 Hot Beds, 4 Hot Chambers and 1 water Cooler
 * Add command M228 for setting axis limit min/max
+* Add Tool change Park
+* Add Tool change filament swap
 * Add Prompt support for host
 * Rewrite filament runout
 * Add support for BLTouch V3.0/V3.1
@@ -12,6 +14,14 @@
 * Add Option for Safety Timer in configuration_temperature.h
 * Add G34 and M422 Z Steppers Auto-Alignment (Cartesian and CORE)
 * Add M86 M[min] set safety timer expiration time in minute. M86 M0 will disable safety timer
+* Add M217 - Set Park position and tool change parameters
+*   S[linear]   Swap length
+*   E[linear]   Purge length
+*   P[linear/m] Purge speed
+*   R[linear/m] Retract speed
+*   X[linear]   Park X (Requires NOZZLE_PARK_FEATURE)
+*   Y[linear]   Park Y (Requires NOZZLE_PARK_FEATURE)
+*   Z[linear]   Park Z Raise
 * M301 - Set PID parameters P I D and C.
 *   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
 *   T[int] 0-3 For Select Beds or Chambers (default 0)

@@ -76,6 +76,7 @@ The new features are:
 * Added Restart for recovery job when power loss an return
 * Added Nozzle Clean Features
 * Added Nozzle Park Features
+* Added Tool change Park
 * Added RGB LED
 * Added Adafruit Neopixel LED
 * Added Case Light
@@ -90,8 +91,8 @@ The new features are:
 * Added TMC5160 motor driver
 * Added Power Check pin for restart job
 * Added Probe BLTouch
-* Added Probe BLTouch V3.0
-* Added Probe Z Sensoreless for TMC2130
+* Added Probe BLTouch V3.0 or V3.1
+* Added Probe Z Sensoreless for TMC
 * Added Probe Manually
 * Added LCD Bed Leveling
 * Added User menu LCD
@@ -102,7 +103,6 @@ The new features are:
 * Added Junction Deviation instead of traditional Jerk limiting
 * Added Bézier Jerk Control see https://github.com/synthetos/TinyG/wiki/Jerk-Controlled-Motion-Explained
 * Added Text Menu to Nextion Display
-* Added Support USB FLASH DRIVE such as SD
 * Added Prompt support for Host
 * Added Prusa MMU2 support
 

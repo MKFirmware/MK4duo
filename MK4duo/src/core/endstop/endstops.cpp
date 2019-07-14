@@ -850,7 +850,11 @@ void Endstops::apply_motion_limits(float target[XYZ]) {
  * the software endstop positions must be refreshed to remain
  * at the same positions relative to the machine.
  */
-void Endstops::update_software_endstops(const AxisEnum axis) {
+void Endstops::update_software_endstops(const AxisEnum axis
+  #if HOTENDS > 1
+    , const uint8_t old_tool_index/*=0*/, const uint8_t new_tool_index/*=0*/
+  #endif
+) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -880,6 +884,19 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
   #elif MECH(DELTA)
 
     soft_endstop_radius_2 = sq(mechanics.data.print_radius);
+
+  #elif HOTENDS > 1
+
+    if (old_tool_index != new_tool_index) {
+      const float offs = tools.data.hotend_offset[axis][new_tool_index] - tools.data.hotend_offset[axis][old_tool_index];
+      soft_endstop[axis].min += offs;
+      soft_endstop[axis].max += offs;
+    }
+    else {
+      const float offs = tools.data.hotend_offset[axis][tools.extruder.active];
+      soft_endstop[axis].min = mechanics.data.base_pos[axis].min + offs;
+      soft_endstop[axis].max = mechanics.data.base_pos[axis].max + offs;
+    }
 
   #else
 

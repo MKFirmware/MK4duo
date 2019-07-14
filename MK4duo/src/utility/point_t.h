@@ -20,8 +20,7 @@
  *
  */
 
-#ifndef __POINT_T__
-#define __POINT_T__
+#pragma once
 
 /**
  * @brief Cartesian Point
@@ -33,6 +32,7 @@
  * @param z The z-coordinate of the point.
  */
 struct point_t {
+
   float x, y, z;
 
   /**
@@ -53,5 +53,3 @@ struct point_t {
   point_t(const float x, const float y) : point_t(x, y, NAN) {}
 
 };
-
-#endif /* __POINT_T__ */
