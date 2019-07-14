@@ -918,15 +918,6 @@ inline void gcode_G29(void) {
 
     #endif // ABL_PLANAR
 
-    #if ENABLED(Z_PROBE_END_SCRIPT)
-      if (printer.debugFeature()) {
-        DEBUG_MSG("Z Probe End Script: ");
-        DEBUG_EM(Z_PROBE_END_SCRIPT);
-      }
-      planner.synchronize();
-      commands.process_now_P(PSTR(Z_PROBE_END_SCRIPT));
-    #endif
-
     // Auto Bed Leveling is complete! Enable if possible.
     bedlevel.flag.leveling_active = dryrun ? abl_should_enable : true;
   } // !isnan(measured_z)
@@ -941,6 +932,15 @@ inline void gcode_G29(void) {
 
   #if HAS_BED_PROBE && Z_PROBE_AFTER_PROBING > 0
     probe.move_z_after_probing();
+  #endif
+
+  #if ENABLED(Z_PROBE_END_SCRIPT)
+    if (printer.debugFeature()) {
+      DEBUG_MSG("Z Probe End Script: ");
+      DEBUG_EM(Z_PROBE_END_SCRIPT);
+    }
+    planner.synchronize();
+    commands.process_now_P(PSTR(Z_PROBE_END_SCRIPT));
   #endif
 
   mechanics.report_current_position();

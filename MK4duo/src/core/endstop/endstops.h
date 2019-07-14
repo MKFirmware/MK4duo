@@ -140,7 +140,11 @@ class Endstops {
 
     // Constrain the given coordinates to the software endstops.
     static void apply_motion_limits(float target[XYZ]);
-    static void update_software_endstops(const AxisEnum axis);
+    static void update_software_endstops(const AxisEnum axis
+      #if HOTENDS > 1
+        , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0
+      #endif
+    );
 
     #if ENABLED(PINS_DEBUGGING)
       static void run_monitor();

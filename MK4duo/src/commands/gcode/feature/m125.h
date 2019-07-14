@@ -54,7 +54,7 @@ inline void gcode_M125(void) {
     #endif
   );
 
-  point_t park_point = NOZZLE_PARK_POINT;
+  point_t park_point = tools.data.park_point;
 
   // Move XY axes to filament change position or given position
   if (parser.seenval('X')) park_point.x = NATIVE_X_POSITION(parser.linearval('X'));

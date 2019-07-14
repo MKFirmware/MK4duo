@@ -91,6 +91,8 @@ class Probe {
       static void probing_pause(const bool onoff);
     #endif
 
+    static void print_M851();
+
     static void servo_test();
 
   private: /** Private Function */

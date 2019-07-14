@@ -147,13 +147,13 @@ static void _lcd_move_e(
     static uint8_t old_extruder = 0;
     if (tools.extruder.active != eindex) {
       old_extruder = tools.extruder.active;
-      tools.change(eindex, 0, true);
+      tools.change(eindex, true);
     }
   #endif
   if (lcdui.use_click()) {
     #if E_MANUAL > 1
       if (tools.extruder.active != old_extruder)
-        tools.change(old_extruder, 0, true);
+        tools.change(old_extruder, true);
     #endif
     return lcdui.goto_previous_screen_no_defer();
   }

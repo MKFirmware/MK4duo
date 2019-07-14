@@ -32,9 +32,7 @@
   Fan fans[FAN_COUNT];
 #endif
 
-/**
- * Initialize Fans
- */
+/** Public Function */
 void Fan::init() {
 
   speed               = 0;
@@ -48,6 +46,19 @@ void Fan::init() {
 
   if (data.pin > 0) HAL::pinMode(data.pin, isHWinvert() ? OUTPUT_HIGH : OUTPUT_LOW);
 
+}
+
+void Fan::set_speed(const uint8_t new_speed) {
+  #if ENABLED(FAN_KICKSTART_TIME)
+    if (kickstart == 0 && new_speed > speed) {
+      if (speed)  kickstart = FAN_KICKSTART_TIME / 10;
+      else        kickstart = FAN_KICKSTART_TIME;
+    }
+  #endif
+
+  speed = new_speed;
+
+  LIMIT(speed, data.min_speed, data.max_speed);
 }
 
 void Fan::set_auto_monitor(const int8_t h) {

@@ -776,6 +776,43 @@
     <detect>M209.*S(-?\d*)</detect>
   </entry>
 
+  <!-- M217: Nozzle Park -->
+  <entry type="float" min="0" max="500">
+    <description unit="[unit]">Swap length</description>
+    <set>M217 S@</set>
+    <detect>M217.*S(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float" min="0" max="500">
+    <description unit="[unit]">Swap extra prime</description>
+    <set>M217 E@</set>
+    <detect>M217.*E(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="int" min="10" max="6000">
+    <description unit="[unit/min]">Swap prime speed</description>
+    <set>M217 P@</set>
+    <detect>M217.*P(-?\d*)</detect>
+  </entry>
+  <entry type="int" min="10" max="6000">
+    <description unit="[unit/min]">Swap retract speed</description>
+    <set>M217 R@</set>
+    <detect>M217.*R(-?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Park X</description>
+    <set>M217 X@</set>
+    <detect>M217.*X(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Park Y</description>
+    <set>M217 Y@</set>
+    <detect>M217.*Y(-?\d*\.?\d*)</detect>
+  </entry>
+  <entry type="float">
+    <description unit="[unit]">Park Z raise</description>
+    <set>M217 Z@</set>
+    <detect>M217.*Z(-?\d*\.?\d*)</detect>
+  </entry>
+
   <!-- M218: Hotend offset -->
   <entry type="float">
     <description unit="[unit]">H1 X offset</description>

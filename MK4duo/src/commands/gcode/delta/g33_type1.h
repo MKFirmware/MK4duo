@@ -42,7 +42,7 @@ static void ac_home() {
 
 static void ac_setup() {
   #if HOTENDS > 1
-    tools.change(0, 0, true);
+    tools.change(0, true);
   #endif
 
   planner.synchronize();
@@ -62,7 +62,7 @@ static void ac_cleanup() {
   mechanics.clean_up_after_endstop_or_probe_move();
 
   #if HOTENDS > 1
-    tools.change(old_tool_index, 0, true);
+    tools.change(old_tool_index, true);
   #endif
 }
 

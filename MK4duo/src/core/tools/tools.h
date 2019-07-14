@@ -30,6 +30,13 @@
 // Struct Tool data
 typedef struct {
   float hotend_offset[XYZ][HOTENDS];
+  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+    float swap_length, purge_lenght;
+    int16_t purge_speed, retract_speed;
+  #endif
+  #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+    point_t park_point = { 0, 0, 0 };
+  #endif
 } tool_data_t;
 
 union extruder_t {
@@ -74,7 +81,13 @@ class Tools {
 
   public: /** Public Function */
 
-    static void change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
+    static void factory_parameters();
+
+    static void change(const uint8_t tmp_extruder, bool no_move=false);
+
+    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+      static void print_M217();
+    #endif
 
     static void print_M218(const uint8_t h);
 
@@ -108,6 +121,8 @@ class Tools {
   private: /** Private Function */
 
     static void invalid_extruder_error(const uint8_t e);
+
+    static void fast_line_to_current(const AxisEnum fr_axis);
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static float calculate_volumetric_multiplier(const float diameter);

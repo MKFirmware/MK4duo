@@ -250,6 +250,18 @@ bool Probe::set_deployed(const bool deploy) {
 
 #endif // QUIET_PROBING
 
+void Probe::print_M851() {
+  SERIAL_LM(CFG, "Probe Offset X Y Z, speed Fast and Slow [mm/min], Repetitions");
+  SERIAL_SM(CFG, "  M851");
+  SERIAL_MV(" X", LINEAR_UNIT(data.offset[X_AXIS]), 3);
+  SERIAL_MV(" Y", LINEAR_UNIT(data.offset[Y_AXIS]), 3);
+  SERIAL_MV(" Z", LINEAR_UNIT(data.offset[Z_AXIS]), 3);
+  SERIAL_MV(" F", data.speed_fast);
+  SERIAL_MV(" S", data.speed_slow);
+  SERIAL_MV(" R", data.repetitions);
+  SERIAL_EOL();
+}
+
 void Probe::servo_test() {
 
   #if !(HAS_SERVO_0)

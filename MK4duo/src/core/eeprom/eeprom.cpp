@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV68"
+#define EEPROM_VERSION "MKV69"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -1344,24 +1344,6 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
-  #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    constexpr float HEoffset[XYZ][4] = {
-      HOTEND_OFFSET_X,
-      HOTEND_OFFSET_Y,
-      HOTEND_OFFSET_Z
-    };
-  #else
-    constexpr float HEoffset[XYZ][HOTENDS] = { 0.0f };
-  #endif
-
-  static_assert(
-    HEoffset[X_AXIS][0] == 0 && HEoffset[Y_AXIS][0] == 0 && HEoffset[Z_AXIS][0] == 0,
-    "Offsets for the first hotend must be 0.0."
-  );
-  LOOP_XYZ(i) {
-    LOOP_HOTEND() tools.data.hotend_offset[i][h] = HEoffset[i][h];
-  }
-
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     constexpr uint16_t tmp1[] = { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT };
     for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
@@ -1376,6 +1358,9 @@ void EEPROM::reset() {
 
   // Call Endstop Factory parameters
   endstops.factory_parameters();
+
+  // Call Tools Factory parameters
+  tools.factory_parameters();
 
   // Reset Printer Flag
   printer.reset_flag();
@@ -1861,6 +1846,13 @@ void EEPROM::reset() {
     #endif
 
     /**
+     * Print Park position and tool change parameters
+     */
+    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+      tools.print_M217();
+    #endif
+
+    /**
      * Print Hotends offsets parameters
      */
     #if HOTENDS > 1
@@ -1988,15 +1980,7 @@ void EEPROM::reset() {
      * Auto Bed Leveling
      */
     #if HAS_BED_PROBE
-      SERIAL_SM(CFG, "Probe Offset X Y Z, speed Fast and Slow [mm/min], Repetitions");
-      SERIAL_UNITS(true);
-      SERIAL_SMV(CFG, "  M851 X", LINEAR_UNIT(probe.data.offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(probe.data.offset[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(probe.data.offset[Z_AXIS]), 3);
-      SERIAL_MV(" F", probe.data.speed_fast);
-      SERIAL_MV(" S", probe.data.speed_slow);
-      SERIAL_MV(" R", probe.data.repetitions);
-      SERIAL_EOL();
+      probe.print_M851();
     #endif
 
     #if HAS_LCD_MENU

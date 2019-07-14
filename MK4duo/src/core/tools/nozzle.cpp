@@ -22,16 +22,66 @@
 
 #include "../../../MK4duo.h"
 
+/** Public Function */
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  /**
-   * @brief Stroke clean pattern
-   * @details Wipes the nozzle back and forth in a linear movement
-   *
-   * @param start defining the starting point
-   * @param end defining the ending point
-   * @param strokes number of strokes to execute
-   */
+  void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const bool clean_x, const bool clean_y, const bool clean_z) {
+
+    point_t start = NOZZLE_CLEAN_START_POINT;
+    point_t end   = NOZZLE_CLEAN_END_POINT;
+    if (!clean_x) start.x = end.x = current_position[X_AXIS];
+    if (!clean_y) start.y = end.y = current_position[Y_AXIS];
+    if (!clean_z) start.z = end.z = current_position[Z_AXIS];
+
+    #if MECH(DELTA)
+      if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
+        mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
+    #endif
+
+    switch (pattern) {
+      case 1:
+        zigzag(start, end, strokes, objects);
+        break;
+
+      case 2:
+        circle(NOZZLE_CLEAN_START_POINT, NOZZLE_CLEAN_CIRCLE_MIDDLE, strokes, radius);
+        break;
+
+      default:
+        stroke(start, end, strokes);
+    }
+  }
+
+#endif // ENABLED(NOZZLE_CLEAN_FEATURE)
+
+#if ENABLED(NOZZLE_PARK_FEATURE)
+
+  void Nozzle::park(const uint8_t z_action, const point_t &park/*= tools.data.park_point*/) {
+
+    const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
+    const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;
+
+    switch (z_action) {
+      case 1: // force Z-park height
+        mechanics.do_blocking_move_to_z(park.z, fr_z);
+        break;
+
+      case 2: // Raise by Z-park height
+        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park.z, Z_MAX_BED), fr_z);
+        break;
+
+      default: // Raise to Z-park height if lower
+        mechanics.do_blocking_move_to_z(MAX(park.z, mechanics.current_position[Z_AXIS]), fr_z);
+    }
+
+    mechanics.do_blocking_move_to_xy(park.x, park.y, fr_xy);
+  }
+
+#endif // ENABLED(NOZZLE_PARK_FEATURE)
+
+/** Private Function */
+#if ENABLED(NOZZLE_CLEAN_FEATURE)
+
   void Nozzle::stroke(const point_t &start, const point_t &end, const uint8_t &strokes) {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
@@ -44,7 +94,11 @@
     #endif
 
     // Move to the starting point
-    mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #if ENABLED(NOZZLE_CLEAN_NO_Z)
+      mechanics.do_blocking_move_to_xy(start.x, start.y);
+    #else
+      mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #endif
 
     // Start the stroke pattern
     for (uint8_t i = 0; i < (strokes >>1); i++) {
@@ -58,15 +112,6 @@
     #endif
   }
 
-  /**
-   * @brief Zig-zag clean pattern
-   * @details Apply a zig-zag cleanning pattern
-   *
-   * @param start defining the starting point
-   * @param end defining the ending point
-   * @param strokes number of strokes to execute
-   * @param objects number of objects to create
-   */
   void Nozzle::zigzag(const point_t &start, const point_t &end, const uint8_t &strokes, const uint8_t &objects) {
 
     const float diffx = end.x - start.x,
@@ -83,7 +128,11 @@
       };
     #endif
 
-    mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #if ENABLED(NOZZLE_CLEAN_NO_Z)
+      mechanics.do_blocking_move_to_xy(start.x, start.y);
+    #else
+      mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #endif
 
     const uint8_t zigs = objects << 1;
     const bool horiz = ABS(diffx) >= ABS(diffy);    // Do a horizontal wipe?
@@ -114,15 +163,6 @@
     #endif
   }
 
-  /**
-   * @brief Circular clean pattern
-   * @details Apply a circular cleaning pattern
-   *
-   * @param start defining the starting point
-   * @param middle defining the middle of circle
-   * @param strokes number of strokes to execute
-   * @param radius of circle
-   */
   void Nozzle::circle(const point_t &start, const point_t &middle, const uint8_t &strokes, const float &radius) {
 
     if (strokes == 0) return;
@@ -136,7 +176,11 @@
       };
     #endif
 
-    mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #if ENABLED(NOZZLE_CLEAN_NO_Z)
+      mechanics.do_blocking_move_to_xy(start.x, start.y);
+    #else
+      mechanics.do_blocking_move_to(start.x, start.y, start.z);
+    #endif
 
     for (uint8_t s = 0; s < strokes; s++) {
       for (uint8_t i = 0; i < NOZZLE_CLEAN_CIRCLE_FN; i++) {
@@ -156,57 +200,4 @@
     #endif
   }
 
-  /**
-   * @brief Clean the nozzle
-   * @details Starts the selected clean procedure pattern
-   *
-   * @param pattern one of the available patterns
-   * @param argument depends on the cleaning pattern
-   */
-  void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects/*=0*/) {
-
-    #if MECH(DELTA)
-      if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
-        mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
-    #endif
-
-    switch (pattern) {
-      case 1:
-        zigzag(NOZZLE_CLEAN_START_POINT, NOZZLE_CLEAN_END_POINT, strokes, objects);
-        break;
-
-      case 2:
-        circle(NOZZLE_CLEAN_START_POINT, NOZZLE_CLEAN_CIRCLE_MIDDLE, strokes, radius);
-        break;
-
-      default:
-        stroke(NOZZLE_CLEAN_START_POINT, NOZZLE_CLEAN_END_POINT, strokes);
-    }
-  }
-
 #endif // ENABLED(NOZZLE_CLEAN_FEATURE)
-
-#if ENABLED(NOZZLE_PARK_FEATURE)
-
-  void Nozzle::park(const uint8_t z_action, const point_t &park/*= NOZZLE_PARK_POINT*/) {
-
-    const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
-    const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;
-
-    switch (z_action) {
-      case 1: // force Z-park height
-        mechanics.do_blocking_move_to_z(park.z, fr_z);
-        break;
-
-      case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park.z, Z_MAX_BED), fr_z);
-        break;
-
-      default: // Raise to Z-park height if lower
-        mechanics.do_blocking_move_to_z(MAX(park.z, mechanics.current_position[Z_AXIS]), fr_z);
-    }
-
-    mechanics.do_blocking_move_to_xy(park.x, park.y, fr_xy);
-  }
-
-#endif // ENABLED(NOZZLE_PARK_FEATURE)

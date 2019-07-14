@@ -42,7 +42,7 @@
  */
 inline void gcode_M701(void) {
 
-  point_t park_point = NOZZLE_PARK_POINT;
+  point_t park_point = tools.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
@@ -61,7 +61,7 @@ inline void gcode_M701(void) {
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = tools.extruder.active;
     if (tools.extruder.active != tools.extruder.target)
-      tools.change(tools.extruder.target, 0, false);
+      tools.change(tools.extruder.target, false);
   #endif
 
   // Lift Z axis
@@ -91,7 +91,7 @@ inline void gcode_M701(void) {
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != tools.extruder.active)
-      tools.change(active_extruder_before_filament_change, 0, false);
+      tools.change(active_extruder_before_filament_change, false);
   #endif
 
   // Show status screen
@@ -112,7 +112,7 @@ inline void gcode_M701(void) {
  */
 inline void gcode_M702(void) {
 
-  point_t park_point = NOZZLE_PARK_POINT;
+  point_t park_point = tools.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
@@ -131,7 +131,7 @@ inline void gcode_M702(void) {
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = tools.extruder.active;
     if (tools.extruder.active != tools.extruder.target)
-      tools.change(tools.extruder.target, 0, false);
+      tools.change(tools.extruder.target, false);
   #endif
 
   // Lift Z axis
@@ -145,7 +145,7 @@ inline void gcode_M702(void) {
     #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
         LOOP_EXTRUDER() {
-          if (e != tools.extruder.active) tools.change(e, 0, false);
+          if (e != tools.extruder.active) tools.change(e, false);
           advancedpause.unload_filament(filament_change_unload_length[e], true, PAUSE_MODE_UNLOAD_FILAMENT);
         }
       }
@@ -167,7 +167,7 @@ inline void gcode_M702(void) {
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != tools.extruder.active)
-      tools.change(active_extruder_before_filament_change, 0, false);
+      tools.change(active_extruder_before_filament_change, false);
   #endif
 
   // Show status screen
