@@ -168,7 +168,20 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
       #if !HAS_DONDOLO
         // Do a small lift to avoid the workpiece in the move back (below)
-        if (can_move_away) nozzle.park(2);
+        if (can_move_away) {
+          // Do a small lift to avoid the workpiece in the move back (below)
+          mechanics.current_position[Z_AXIS] += nozzle.data.park_point.z;
+          #if HAS_SOFTWARE_ENDSTOPS
+            NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
+          #endif
+          fast_line_to_current(Z_AXIS);
+          #if ENABLED(TOOL_CHANGE_PARK)
+            mechanics.current_position[X_AXIS] = nozzle.data.park_point.x;
+            mechanics.current_position[Y_AXIS] = nozzle.data.park_point.y;
+          #endif
+          planner.buffer_line(mechanics.current_position, feedrate_mm_s, extruder.active);
+          planner.synchronize();
+        }
       #endif
 
       #if HOTENDS > 1
