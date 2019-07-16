@@ -65,7 +65,7 @@ class Nozzle {
     #endif
 
     #if ENABLED(NOZZLE_PARK_FEATURE)
-      static void park(const uint8_t z_action, const point_t &park=data.park_point);
+      static void park(const uint8_t z_action, const point_t &park_p=data.park_point);
     #endif
 
   private: /** Private Function */

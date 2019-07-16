@@ -126,25 +126,25 @@ void Nozzle::factory_parameters() {
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  void Nozzle::park(const uint8_t z_action, const point_t &park/*=data.park_point*/) {
+  void Nozzle::park(const uint8_t z_action, const point_t &park_p/*=data.park_point*/) {
 
     const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
     const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;
 
     switch (z_action) {
       case 1: // force Z-park height
-        mechanics.do_blocking_move_to_z(park.z, fr_z);
+        mechanics.do_blocking_move_to_z(park_p.z, fr_z);
         break;
 
       case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park.z, Z_MAX_BED), fr_z);
+        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_p.z, Z_MAX_BED), fr_z);
         break;
 
       default: // Raise to Z-park height if lower
-        mechanics.do_blocking_move_to_z(MAX(park.z, mechanics.current_position[Z_AXIS]), fr_z);
+        mechanics.do_blocking_move_to_z(MAX(park_p.z, mechanics.current_position[Z_AXIS]), fr_z);
     }
 
-    mechanics.do_blocking_move_to_xy(park.x, park.y, fr_xy);
+    mechanics.do_blocking_move_to_xy(park_p.x, park_p.y, fr_xy);
   }
 
 #endif // ENABLED(NOZZLE_PARK_FEATURE)
