@@ -348,6 +348,10 @@ void Printer::loop() {
   }
 }
 
+void Printer::factory_parameters() {
+  various_flag.all = 0;
+}
+
 void Printer::check_periodical_actions() {
 
   planner.check_axes_activity();

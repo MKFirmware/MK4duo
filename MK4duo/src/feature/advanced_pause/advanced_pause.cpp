@@ -121,7 +121,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
     do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
 
   // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
-  Nozzle::park(2, park_point);
+  nozzle.park(2, park_point);
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = tools.extruder.active;

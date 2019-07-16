@@ -646,14 +646,14 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       #endif
 
       #if ENABLED(USE_BIG_EDIT_FONT)
-        const int left = 0, right = 45, nozzle = 95;
+        const int left = 0, right = 45, nozzle_pos = 95;
       #else
-        const int left = 5, right = 90, nozzle = 60;
+        const int left = 5, right = 90, nozzle_pos = 60;
       #endif
 
       // Draw a representation of the nozzle
-      if (PAGE_CONTAINS(3, 16))  u8g.drawBitmapP(nozzle + 6, 4 - dir, 2, 12, nozzle_bmp);
-      if (PAGE_CONTAINS(20, 20)) u8g.drawBitmapP(nozzle + 0, 20, 3, 1, offset_bedline_bmp);
+      if (PAGE_CONTAINS(3, 16))  u8g.drawBitmapP(nozzle_pos + 6, 4 - dir, 2, 12, nozzle_bmp);
+      if (PAGE_CONTAINS(20, 20)) u8g.drawBitmapP(nozzle_pos + 0, 20, 3, 1, offset_bedline_bmp);
 
       // Draw cw/ccw indicator and up/down arrows.
       if (PAGE_CONTAINS(47, 62)) {

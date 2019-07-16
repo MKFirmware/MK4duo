@@ -365,8 +365,8 @@ void Delta_Mechanics::Transform(const float (&raw)[XYZ]) {
   #if HOTENDS > 1
     // Delta hotend offsets must be applied in Cartesian space
     const float pos[XYZ] = {
-      raw[X_AXIS] - tools.data.hotend_offset[X_AXIS][tools.extruder.active],
-      raw[Y_AXIS] - tools.data.hotend_offset[Y_AXIS][tools.extruder.active],
+      raw[X_AXIS] - nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND],
+      raw[Y_AXIS] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
       raw[Z_AXIS]
     };
     delta[A_AXIS] = pos[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - pos[X_AXIS], towerY[A_AXIS] - pos[Y_AXIS]));

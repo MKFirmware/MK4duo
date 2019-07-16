@@ -84,7 +84,7 @@ typedef struct {
             else {
               lpq[lpq_ptr] = 0;
             }
-            if (++lpq_ptr >= tools.lpq_len) lpq_ptr = 0;
+            if (++lpq_ptr >= tools.data.lpq_len) lpq_ptr = 0;
             pid_output += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.extruder.active]) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
