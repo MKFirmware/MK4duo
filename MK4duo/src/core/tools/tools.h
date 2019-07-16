@@ -29,13 +29,15 @@
 
 // Struct Tool data
 typedef struct {
-  float hotend_offset[XYZ][HOTENDS];
-  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    float swap_length, purge_lenght;
-    int16_t purge_speed, retract_speed;
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    float   filament_size[EXTRUDERS];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
   #endif
-  #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-    point_t park_point = { 0, 0, 0 };
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    int16_t lpq_len;
+  #endif
+  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+    float   swap_length, purge_lenght;
+    int16_t purge_speed, retract_speed;
   #endif
 } tool_data_t;
 
@@ -49,8 +51,6 @@ union extruder_t {
  };
   extruder_t() { all = 0; }
 };
-
-#if EXTRUDERS > 0
 
 class Tools {
 
@@ -69,14 +69,9 @@ class Tools {
     static float    e_factor[EXTRUDERS];              // The flow percentage and volumetric multiplier combine to scale E movement
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-      static float  filament_size[EXTRUDERS],         // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
-                    volumetric_area_nominal,          // Nominal cross-sectional area
+      static float  volumetric_area_nominal,          // Nominal cross-sectional area
                     volumetric_multiplier[EXTRUDERS]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
                                                       // May be auto-adjusted by a filament width sensor
-    #endif
-
-    #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      static int16_t lpq_len;
     #endif
 
   public: /** Public Function */
@@ -85,11 +80,13 @@ class Tools {
 
     static void change(const uint8_t tmp_extruder, bool no_move=false);
 
-    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-      static void print_M217();
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      static void print_M200();
     #endif
 
-    static void print_M218(const uint8_t h);
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      static void print_M217();
+    #endif
 
     FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
       e_factor[e] =  (flow_percentage[e] * 0.01
@@ -104,10 +101,10 @@ class Tools {
       static void calculate_volumetric_multipliers();
 
       FORCE_INLINE static void set_filament_size(const uint8_t e, const float &v) {
-        filament_size[e] = v;
+        data.filament_size[e] = v;
         // make sure all extruders have some sane value for the filament size
-        for (uint8_t i = 0; i < COUNT(filament_size); i++)
-          if (!filament_size[i]) filament_size[i] = DEFAULT_NOMINAL_FILAMENT_DIA;
+        for (uint8_t i = 0; i < COUNT(data.filament_size); i++)
+          if (!data.filament_size[i]) data.filament_size[i] = DEFAULT_NOMINAL_FILAMENT_DIA;
       }
 
     #endif
@@ -143,5 +140,3 @@ class Tools {
 };
 
 extern Tools tools;
-
-#endif

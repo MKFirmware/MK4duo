@@ -120,7 +120,7 @@ void MFRC522::spin() {
           Spool_must_read[e] = false;
           tools.density_percentage[e] = rfid522.RfidData[e].data.density;
           #if ENABLED(VOLUMETRIC_EXTRUSION)
-            tools.filament_size[e] = rfid522.RfidData[e].data.size;
+            tools.data.filament_size[e] = rfid522.RfidData[e].data.size;
             tools.calculate_volumetric_multipliers();
           #endif
           tools.refresh_e_factor(e);

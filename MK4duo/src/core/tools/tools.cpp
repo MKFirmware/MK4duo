@@ -42,47 +42,26 @@ int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
 float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0);
 
 #if ENABLED(VOLUMETRIC_EXTRUSION)
-  float Tools::filament_size[EXTRUDERS]         = ARRAY_BY_EXTRUDERS(DEFAULT_NOMINAL_FILAMENT_DIA),
-        Tools::volumetric_area_nominal          = CIRCLE_AREA(float(DEFAULT_NOMINAL_FILAMENT_DIA) * 0.5f),
+  float Tools::volumetric_area_nominal          = CIRCLE_AREA(float(DEFAULT_NOMINAL_FILAMENT_DIA) * 0.5f),
         Tools::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
-#endif
-
-#if ENABLED(PID_ADD_EXTRUSION_RATE)
-  int16_t Tools::lpq_len = 20;
 #endif
 
 /** Public Function */
 void Tools::factory_parameters() {
 
-  #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-    constexpr float HEoffset[XYZ][6] = {
-      HOTEND_OFFSET_X,
-      HOTEND_OFFSET_Y,
-      HOTEND_OFFSET_Z
-    };
-  #else
-    constexpr float HEoffset[XYZ][HOTENDS] = { 0.0f };
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    LOOP_EXTRUDER() data.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
   #endif
 
-  static_assert(
-    HEoffset[X_AXIS][0] == 0 && HEoffset[Y_AXIS][0] == 0 && HEoffset[Z_AXIS][0] == 0,
-    "Offsets for the first hotend must be 0.0."
-  );
-  LOOP_XYZ(i) {
-    LOOP_HOTEND() data.hotend_offset[i][h] = HEoffset[i][h];
-  }
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    data.lpq_len = 20;  // default last-position-queue size
+  #endif
 
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
     data.swap_length    = TOOL_CHANGE_FIL_SWAP_LENGTH;
     data.purge_lenght   = TOOL_CHANGE_FIL_SWAP_PURGE;
     data.purge_speed    = TOOL_CHANGE_FIL_SWAP_PURGE_SPEED;
     data.retract_speed  = TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED;
-  #endif
-
-  #if ENABLED(NOZZLE_PARK_FEATURE)
-    data.park_point = NOZZLE_PARK_POINT;
-  #elif EXTRUDERS > 1
-    data.park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
   #endif
 
 }
@@ -188,30 +167,18 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       mechanics.set_destination_to_current();
 
       #if !HAS_DONDOLO
-        if (can_move_away) {
-          // Do a small lift to avoid the workpiece in the move back (below)
-          mechanics.current_position[Z_AXIS] += data.park_point.z;
-          #if HAS_SOFTWARE_ENDSTOPS
-            NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
-          #endif
-          fast_line_to_current(Z_AXIS);
-          #if ENABLED(TOOL_CHANGE_PARK)
-            mechanics.current_position[X_AXIS] = data.park_point.x;
-            mechanics.current_position[Y_AXIS] = data.park_point.y;
-          #endif
-          planner.buffer_line(mechanics.current_position, feedrate_mm_s, extruder.active);
-          planner.synchronize();
-        }
+        // Do a small lift to avoid the workpiece in the move back (below)
+        if (can_move_away) nozzle.park(2);
       #endif
 
       #if HOTENDS > 1
         #if ENABLED(DUAL_X_CARRIAGE)
           constexpr float x_diff = 0;
         #else
-          const float x_diff = data.hotend_offset[X_AXIS][tmp_extruder] - data.hotend_offset[X_AXIS][extruder.active];
+          const float x_diff = nozzle.data.hotend_offset[X_AXIS][tmp_extruder] - nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
         #endif
-        const float y_diff = data.hotend_offset[Y_AXIS][tmp_extruder] - data.hotend_offset[Y_AXIS][extruder.active],
-                    z_diff = data.hotend_offset[Z_AXIS][tmp_extruder] - data.hotend_offset[Z_AXIS][extruder.active];
+        const float y_diff = nozzle.data.hotend_offset[Y_AXIS][tmp_extruder] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
+                    z_diff = nozzle.data.hotend_offset[Z_AXIS][tmp_extruder] - nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND];
       #else
         constexpr float x_diff = 0, y_diff = 0, z_diff = 0;
       #endif
@@ -320,44 +287,40 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
 }
 
-#if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#if ENABLED(VOLUMETRIC_EXTRUSION)
 
-  void Tools::print_M217() {
-    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      SERIAL_LM(CFG, "Tool change: S<swap_lenght> E<purge_lenght> P<purge_speed> R<retract_speed>");
-      SERIAL_SM(CFG, "  M217");
-      SERIAL_MV(" S", LINEAR_UNIT(tools.data.swap_length));
-      SERIAL_MV(" E", LINEAR_UNIT(tools.data.purge_lenght));
-      SERIAL_MV(" P", LINEAR_UNIT(tools.data.purge_speed));
-      SERIAL_MV(" R", LINEAR_UNIT(tools.data.retract_speed));
+  void Tools::print_M200() {
+    SERIAL_SM(CFG, "Filament settings");
+    if (printer.isVolumetric())
       SERIAL_EOL();
-    #endif
+    else
+      SERIAL_EM(" Disabled");
 
-    #if ENABLED(NOZZLE_PARK_FEATURE)
-      SERIAL_LM(CFG, "Nozzle Park: X<point> Y<point> Z<point>");
-      SERIAL_SM(CFG, "  M217");
-      SERIAL_MV(" X", LINEAR_UNIT(tools.data.park_point.x));
-      SERIAL_MV(" Y", LINEAR_UNIT(tools.data.park_point.y));
-      SERIAL_MV(" Z", LINEAR_UNIT(tools.data.park_point.z));
-      SERIAL_EOL();
-    #else
-      SERIAL_LM(CFG, "Z raise: Z<point>:");
-      SERIAL_SM(CFG, "  M217");
-      SERIAL_MV(" Z", LINEAR_UNIT(tools.data.park_point.z));
-      SERIAL_EOL();
+    #if EXTRUDERS == 1
+      SERIAL_LMV(CFG, "  M200 T0 D", tools.data.filament_size[0], 3);
+    #elif EXTRUDERS > 1
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M200 T", (int)e);
+        SERIAL_EMV(" D", tools.data.filament_size[e], 3);
+      }
     #endif
   }
 
-#endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#endif
 
-void Tools::print_M218(const uint8_t h) {
-  SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");
-  SERIAL_SMV(CFG, "  M218 H", (int)h);
-  SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[X_AXIS][h]), 3);
-  SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[Y_AXIS][h]), 3);
-  SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[Z_AXIS][h]), 3);
-  SERIAL_EOL();
-}
+#if ENABLED(TOOL_CHANGE_FIL_SWAP)
+
+  void Tools::print_M217() {
+    SERIAL_LM(CFG, "Tool change: S<swap_lenght> E<purge_lenght> P<purge_speed> R<retract_speed>");
+    SERIAL_SM(CFG, "  M217");
+    SERIAL_MV(" S", LINEAR_UNIT(data.swap_length));
+    SERIAL_MV(" E", LINEAR_UNIT(data.purge_lenght));
+    SERIAL_MV(" P", LINEAR_UNIT(data.purge_speed));
+    SERIAL_MV(" R", LINEAR_UNIT(data.retract_speed));
+    SERIAL_EOL();
+  }
+
+#endif // ENABLED(TOOL_CHANGE_FIL_SWAP)
 
 #if ENABLED(EXT_SOLENOID)
 
@@ -447,7 +410,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
    */
   void Tools::calculate_volumetric_multipliers() {
     for (uint8_t e = 0; e < EXTRUDERS; e++) {
-      volumetric_multiplier[e] = calculate_volumetric_multiplier(filament_size[e]);
+      volumetric_multiplier[e] = calculate_volumetric_multiplier(data.filament_size[e]);
       refresh_e_factor(e);
     }
   }
@@ -695,8 +658,8 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
     }
 
     // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.current_position[Y_AXIS] -= data.hotend_offset[Y_AXIS][extruder.active] - data.hotend_offset[Y_AXIS][tmp_extruder];
-    mechanics.current_position[Z_AXIS] -= data.hotend_offset[Z_AXIS][extruder.active] - data.hotend_offset[Z_AXIS][tmp_extruder];
+    mechanics.current_position[Y_AXIS] -= nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Y_AXIS][tmp_extruder];
+    mechanics.current_position[Z_AXIS] -= nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Z_AXIS][tmp_extruder];
 
     // Activate the new extruder
     extruder.active = tmp_extruder;

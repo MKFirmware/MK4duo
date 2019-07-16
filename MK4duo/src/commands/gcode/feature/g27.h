@@ -28,15 +28,15 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  #define CODE_G27
+#define CODE_G27
 
-  /**
-   * G27: Park the nozzle
-   */
-  inline void gcode_G27(void) {
-    // Don't allow nozzle parking without homing first
-    if (mechanics.axis_unhomed_error()) { return; }
-    Nozzle::park(parser.ushortval('P'));
-  }
+/**
+ * G27: Park the nozzle
+ */
+inline void gcode_G27(void) {
+  // Don't allow nozzle parking without homing first
+  if (mechanics.axis_unhomed_error()) { return; }
+  nozzle.park(parser.ushortval('P'));
+}
 
 #endif // NOZZLE_PARK_FEATURE

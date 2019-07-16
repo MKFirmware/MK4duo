@@ -50,7 +50,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV69"
+#define EEPROM_VERSION "MKV70"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -79,9 +79,14 @@ typedef struct EepromDataStruct {
   tool_data_t       tool_data;
 
   //
-  // Sound
+  // Nozzle data
   //
-  SoundModeEnum     sound_mode;
+  nozzle_data_t     nozzle_data;
+
+  //
+  // Sound data
+  //
+  sound_data_t      sound_data;
 
   //
   // Heaters data
@@ -196,13 +201,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // PID add extrusion rate
-  //
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    int16_t         lpq_len;
-  #endif
-
-  //
   // LCD contrast
   //
   #if HAS_LCD_CONTRAST
@@ -243,7 +241,6 @@ typedef struct EepromDataStruct {
   //
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     bool            volumetric_enabled;
-    float           filament_size[EXTRUDERS];
   #endif
 
   //
@@ -478,14 +475,19 @@ void EEPROM::post_process() {
     EEPROM_WRITE(stepper.data);
 
     //
-    // Hotend offset
+    // Tools Data
     //
     EEPROM_WRITE(tools.data);
 
     //
+    // Nozzle Data
+    //
+    EEPROM_WRITE(nozzle.data);
+
+    //
     // Sound
     //
-    EEPROM_WRITE(sound.mode);
+    EEPROM_WRITE(sound.data);
 
     //
     // Heaters data
@@ -611,13 +613,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // PID add extrusion rate
-    //
-    #if ENABLED(PID_ADD_EXTRUSION_RATE)
-      EEPROM_WRITE(tools.lpq_len);
-    #endif
-
-    //
     // LCD contrast
     //
     #if HAS_LCD_CONTRAST
@@ -657,14 +652,8 @@ void EEPROM::post_process() {
     // Volumetric & Filament Size
     //
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-
       const bool volumetric_enabled = printer.isVolumetric();
       EEPROM_WRITE(volumetric_enabled);
-
-      // Save filament sizes
-      LOOP_EXTRUDER()
-        EEPROM_WRITE(tools.filament_size[e]);
-
     #endif
 
     //
@@ -843,14 +832,19 @@ void EEPROM::post_process() {
       EEPROM_READ(stepper.data);
 
       //
-      // Hotend offset
+      // Tools Data
       //
       EEPROM_READ(tools.data);
 
       //
+      // Nozzle Data
+      //
+      EEPROM_READ(nozzle.data);
+
+      //
       // Sound
       //
-      EEPROM_READ(sound.mode);
+      EEPROM_READ(sound.data);
 
       //
       // Heaters data
@@ -989,13 +983,6 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // PID add extrusion rate
-      //
-      #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        EEPROM_READ(tools.lpq_len);
-      #endif
-
-      //
       // LCD contrast
       //
       #if HAS_LCD_CONTRAST
@@ -1035,14 +1022,9 @@ void EEPROM::post_process() {
       // Volumetric & Filament Size
       //
       #if ENABLED(VOLUMETRIC_EXTRUSION)
-
         bool volumetric_enabled;
         EEPROM_READ(volumetric_enabled);
         if (!flag.validating) printer.setVolumetric(volumetric_enabled);
-
-        LOOP_EXTRUDER()
-          EEPROM_READ(tools.filament_size[e]);
-
       #endif
 
       //
@@ -1362,11 +1344,14 @@ void EEPROM::reset() {
   // Call Tools Factory parameters
   tools.factory_parameters();
 
-  // Reset Printer Flag
-  printer.reset_flag();
+  // Call Nozzle Factory parameters
+  nozzle.factory_parameters();
 
-  // Reset sound mode
-  sound.mode = SOUND_MODE_ON;
+  // Call Printer Factory parameters
+  printer.factory_parameters();
+
+  // Call Sound Factory parameters
+  sound.factory_parameters();
 
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
     bedlevel.z_fade_height = 0.0f;
@@ -1432,10 +1417,6 @@ void EEPROM::reset() {
   //
   #if ENABLED(BLTOUCH)
     bltouch.last_mode = false;
-  #endif
-
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    tools.lpq_len = 20; // default last-position-queue size
   #endif
 
   // Heaters
@@ -1722,9 +1703,6 @@ void EEPROM::reset() {
       printer.setVolumetric(false);
     #endif
 
-    for (uint8_t q = 0; q < COUNT(tools.filament_size); q++)
-      tools.filament_size[q] = DEFAULT_NOMINAL_FILAMENT_DIA;
-
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
@@ -1846,17 +1824,24 @@ void EEPROM::reset() {
     #endif
 
     /**
-     * Print Park position and tool change parameters
+     * Print Tools data
+     */
+    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+      tools.print_M217();
+    #endif
+
+    /**
+     * Print Nozzle data
      */
     #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-      tools.print_M217();
+      nozzle.print_M217();
     #endif
 
     /**
      * Print Hotends offsets parameters
      */
     #if HOTENDS > 1
-      LOOP_HOTEND() tools.print_M218(h);
+      LOOP_HOTEND() nozzle.print_M218(h);
     #endif
 
     /**
@@ -2021,25 +2006,7 @@ void EEPROM::reset() {
     #endif // FWRETRACT
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-
-      /**
-       * Volumetric extrusion M200
-       */
-      SERIAL_SM(CFG, "Filament settings");
-      if (printer.isVolumetric())
-        SERIAL_EOL();
-      else
-        SERIAL_EM(" Disabled");
-
-      #if EXTRUDERS == 1
-        SERIAL_LMV(CFG, "  M200 T0 D", tools.filament_size[0], 3);
-      #elif EXTRUDERS > 1
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M200 T", (int)e);
-          SERIAL_EMV(" D", tools.filament_size[e], 3);
-        }
-      #endif
-
+      tools.print_M200();
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**

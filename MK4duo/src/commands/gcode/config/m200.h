@@ -28,27 +28,35 @@
 
 #if EXTRUDERS > 0 && ENABLED(VOLUMETRIC_EXTRUSION)
 
-  #define CODE_M200
+#define CODE_M200
 
-  /**
-   * M200: Set filament diameter and set E axis units to cubic units
-   *
-   *    T<extruder> - Optional extruder number. Current extruder if omitted.
-   *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
-   */
-  inline void gcode_M200(void) {
+/**
+ * M200: Set filament diameter and set E axis units to cubic units
+ *
+ *    T<extruder> - Optional extruder number. Current extruder if omitted.
+ *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
+ */
+inline void gcode_M200(void) {
 
-    if (commands.get_target_tool(200)) return;
+  if (commands.get_target_tool(200)) return;
 
-    if (parser.seen('D')) {
-      // setting any extruder filament size disables volumetric on the assumption that
-      // slicers either generate in extruder values as cubic mm or as as filament feeds
-      // for all extruders
-      printer.setVolumetric(parser.value_linear_units() != 0);
-      if (printer.isVolumetric())
-        tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M218 report.
+    if (!parser.seen("TD")) {
+      tools.print_M200();
+      return;
     }
-    tools.calculate_volumetric_multipliers();
+  #endif
+
+  if (parser.seen('D')) {
+    // setting any extruder filament size disables volumetric on the assumption that
+    // slicers either generate in extruder values as cubic mm or as as filament feeds
+    // for all extruders
+    printer.setVolumetric(parser.value_linear_units() != 0);
+    if (printer.isVolumetric())
+      tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
   }
+  tools.calculate_volumetric_multipliers();
+}
 
 #endif // EXTRUDERS > 0

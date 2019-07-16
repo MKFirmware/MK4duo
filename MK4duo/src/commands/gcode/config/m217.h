@@ -65,7 +65,10 @@ inline void gcode_M217(void) {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M217 report.
     if (!parser.seen(SPR_PARAM XY_PARAM "Z")) {
-      tools.print_M217();
+      #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+        tools.print_M217();
+      #endif
+      nozzle.print_M217();
       return;
     }
   #endif
@@ -78,11 +81,11 @@ inline void gcode_M217(void) {
   #endif
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
-    if (parser.seenval('X')) tools.data.park_point.x = parser.value_linear_units();
-    if (parser.seenval('Y')) tools.data.park_point.y = parser.value_linear_units();
+    if (parser.seenval('X')) nozzle.data.park_point.x = parser.value_linear_units();
+    if (parser.seenval('Y')) nozzle.data.park_point.y = parser.value_linear_units();
   #endif
 
-  if (parser.seenval('Z')) tools.data.park_point.z = parser.value_linear_units();
+  if (parser.seenval('Z')) nozzle.data.park_point.z = parser.value_linear_units();
 
 }
 

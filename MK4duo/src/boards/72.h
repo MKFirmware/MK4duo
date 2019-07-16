@@ -206,10 +206,6 @@
   #define BLEN_C 2
   #define BLEN_B 1
   #define BLEN_A 0
-
-  #if ENABLED(WANHAO_D6_OLED)
-    #define LCD_RESET_PIN          5
-  #endif
 #endif
 //@@@
 

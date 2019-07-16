@@ -65,9 +65,9 @@ inline void gcode_M301(void) {
   if (parser.seen('D')) act->data.pid.Kd = parser.value_float();
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     if (parser.seen('C')) act->data.pid.Kc = parser.value_float();
-    if (parser.seen('L')) tools.lpq_len = parser.value_int();
-    NOMORE(tools.lpq_len, LPQ_MAX_LEN);
-    NOLESS(tools.lpq_len, 0);
+    if (parser.seen('L')) tools.data.lpq_len = parser.value_int();
+    NOMORE(tools.data.lpq_len, LPQ_MAX_LEN);
+    NOLESS(tools.data.lpq_len, 0);
   #endif
 
   act->data.pid.update();

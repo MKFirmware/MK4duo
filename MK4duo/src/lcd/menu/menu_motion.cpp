@@ -242,7 +242,7 @@ void menu_move_10mm()     { _goto_manual_move(10);      }
 void menu_move_1mm()      { _goto_manual_move( 1);      }
 void menu_move_01mm()     { _goto_manual_move( 0.1f);   }
 void menu_move_0025mm()   { _goto_manual_move( 0.025f); }
-void menu_move_z_probe()  { move_menu_scale = MESH_EDIT_Z_STEP ; lcdui.goto_screen(lcd_move_z); }
+void menu_move_z_probe()  { move_menu_scale = LCD_Z_STEP ; lcdui.goto_screen(lcd_move_z); }
 
 void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int8_t eindex=-1) {
   _manual_move_func_ptr = func;

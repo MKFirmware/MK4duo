@@ -547,7 +547,7 @@ void Heater::print_M301() {
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       if (type == IS_HOTEND) {
         SERIAL_MV(" C", data.pid.Kc);
-        SERIAL_MV(" L", (int)tools.lpq_len);
+        SERIAL_MV(" L", (int)tools.data.lpq_len);
       }
     #endif
     SERIAL_EOL();

@@ -129,6 +129,8 @@ class Printer {
     static void setup();  // Main setup
     static void loop();   // Main loop
 
+    static void factory_parameters();
+
     static void check_periodical_actions();
     static void safe_delay(millis_l ms);
 
@@ -233,8 +235,6 @@ class Printer {
     // Various flag bit 11 RFID_ON
     FORCE_INLINE static void setRfid(const bool onoff) { various_flag.RFID = onoff; }
     FORCE_INLINE static bool IsRfid() { return various_flag.RFID; }
-
-    FORCE_INLINE static void reset_flag() { various_flag.all = 0; }
 
   private: /** Private Function */
 

@@ -48,7 +48,7 @@
    */
   inline void gcode_M600(void) {
 
-    point_t park_point = tools.data.park_point;
+    point_t park_point = nozzle.data.park_point;
 
     if (commands.get_target_tool(600)) return;
 
@@ -100,8 +100,8 @@
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
     #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
-      park_point.x += (tools.extruder.active ? tools.data.hotend_offset[X_AXIS][tools.extruder.active] : 0);
-      park_point.y += (tools.extruder.active ? tools.data.hotend_offset[Y_AXIS][tools.extruder.active] : 0);
+      park_point.x += (tools.extruder.active ? nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND] : 0);
+      park_point.y += (tools.extruder.active ? nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] : 0);
     #endif
 
     #if HAS_MMU2

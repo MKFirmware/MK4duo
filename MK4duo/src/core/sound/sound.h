@@ -23,10 +23,15 @@
 
 #define TONE_QUEUE_LENGTH 4
 
-struct tone_t {
+// Struct Sound data
+typedef struct {
+  SoundModeEnum mode;
+} sound_data_t;
+
+typedef struct {
   uint16_t duration;
   uint16_t frequency;
-};
+} tone_t;
 
 class Sound {
 
@@ -41,7 +46,7 @@ class Sound {
 
   public: /** Public Parameters */
 
-    static SoundModeEnum mode;
+    static sound_data_t data;
 
   private: /** Private Parameters */
 
@@ -67,6 +72,8 @@ class Sound {
     }
 
   public: /** Public Function */
+
+    static void factory_parameters();
 
     static void playtone(const uint16_t duration, const uint16_t freq);
     static void spin();

@@ -22,7 +22,77 @@
 
 #include "../../../MK4duo.h"
 
+Nozzle nozzle;
+
+/** Public Parameters */
+nozzle_data_t Nozzle::data;
+
 /** Public Function */
+void Nozzle::factory_parameters() {
+
+  #if HOTENDS > 1
+
+    #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
+      constexpr float HEoffset[XYZ][6] = {
+        HOTEND_OFFSET_X,
+        HOTEND_OFFSET_Y,
+        HOTEND_OFFSET_Z
+      };
+    #else
+      constexpr float HEoffset[XYZ][HOTENDS] = { 0.0f };
+    #endif
+
+    static_assert(
+      HEoffset[X_AXIS][0] == 0 && HEoffset[Y_AXIS][0] == 0 && HEoffset[Z_AXIS][0] == 0,
+      "Offsets for the first hotend must be 0.0."
+    );
+    LOOP_XYZ(i) {
+      LOOP_HOTEND() data.hotend_offset[i][h] = HEoffset[i][h];
+    }
+
+  #endif // HOTENDS > 1
+
+  #if ENABLED(NOZZLE_PARK_FEATURE)
+    data.park_point = NOZZLE_PARK_POINT;
+  #elif EXTRUDERS > 1
+    data.park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
+  #endif
+
+}
+
+#if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+
+  void Nozzle::print_M217() {
+    #if ENABLED(NOZZLE_PARK_FEATURE)
+      SERIAL_LM(CFG, "Nozzle Park: X<point> Y<point> Z<point>");
+      SERIAL_SM(CFG, "  M217");
+      SERIAL_MV(" X", LINEAR_UNIT(data.park_point.x));
+      SERIAL_MV(" Y", LINEAR_UNIT(data.park_point.y));
+      SERIAL_MV(" Z", LINEAR_UNIT(data.park_point.z));
+      SERIAL_EOL();
+    #else
+      SERIAL_LM(CFG, "Z raise: Z<point>:");
+      SERIAL_SM(CFG, "  M217");
+      SERIAL_MV(" Z", LINEAR_UNIT(data.park_point.z));
+      SERIAL_EOL();
+    #endif
+  }
+
+#endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+
+#if HOTENDS > 1
+
+  void Nozzle::print_M218(const uint8_t h) {
+    SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");
+    SERIAL_SMV(CFG, "  M218 H", (int)h);
+    SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[X_AXIS][h]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[Y_AXIS][h]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[Z_AXIS][h]), 3);
+    SERIAL_EOL();
+  }
+
+#endif
+
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
   void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const bool clean_x, const bool clean_y, const bool clean_z) {
@@ -56,7 +126,7 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  void Nozzle::park(const uint8_t z_action, const point_t &park/*= tools.data.park_point*/) {
+  void Nozzle::park(const uint8_t z_action, const point_t &park/*=data.park_point*/) {
 
     const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
     const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;

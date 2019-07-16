@@ -67,19 +67,19 @@ void menu_tmc();
 
       if (printer.isVolumetric()) {
         #if EXTRUDERS == 1
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.data.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
         #else // EXTRUDERS > 1
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.filament_size[tools.extruder.active], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.filament_size[1], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.data.filament_size[tools.extruder.active], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.data.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.data.filament_size[1], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
           #if EXTRUDERS > 2
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.filament_size[2], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.data.filament_size[2], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
             #if EXTRUDERS > 3
-              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.filament_size[3], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.data.filament_size[3], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
               #if EXTRUDERS > 4
-                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.filament_size[4], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.data.filament_size[4], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
                 #if EXTRUDERS > 5
-                  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.filament_size[5], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+                  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.data.filament_size[5], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
                 #endif // EXTRUDERS > 5
               #endif // EXTRUDERS > 4
             #endif // EXTRUDERS > 3

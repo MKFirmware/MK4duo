@@ -25,7 +25,7 @@
 Sound sound;
 
 /** Public Parameters */
-SoundModeEnum Sound::mode = SOUND_MODE_ON;
+sound_data_t Sound::data;
 
 /** Private Parameters */
 millis_s Sound::tone_ms;
@@ -34,8 +34,12 @@ millis_s Sound::tone_ms;
 Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
 
 /** Public Function */
+void Sound::factory_parameters() {
+  data.mode = SOUND_MODE_ON;
+}
+ 
 void Sound::playtone(const uint16_t duration, const uint16_t frequency/*=0*/) {
-  if (mode == SOUND_MODE_MUTE) return;
+  if (data.mode == SOUND_MODE_MUTE) return;
   while (buffer.isFull()) printer.idle(true);
   tone_t tone = { duration, frequency };
   buffer.enqueue(tone);
@@ -68,23 +72,23 @@ void Sound::spin() {
 }
 
 void Sound::cyclestate() {
-  switch (mode) {
+  switch (data.mode) {
     case SOUND_MODE_ON:
-      mode = SOUND_MODE_SILENT;
+      data.mode = SOUND_MODE_SILENT;
       break;
     case SOUND_MODE_SILENT:
-      mode = SOUND_MODE_MUTE;
+      data.mode = SOUND_MODE_MUTE;
       break;
     case SOUND_MODE_MUTE:
-      mode = SOUND_MODE_ON;
+      data.mode = SOUND_MODE_ON;
       break;
     default:
-      mode = SOUND_MODE_ON;
+      data.mode = SOUND_MODE_ON;
   }
 }
 
 void Sound::feedback(const bool good/*=true*/) {
-  if (mode != SOUND_MODE_ON) return;
+  if (data.mode != SOUND_MODE_ON) return;
 
   if (good) {
     playtone(100, NOTE_E5);

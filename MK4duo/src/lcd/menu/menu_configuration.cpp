@@ -96,7 +96,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
       MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
       MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.purge_speed, 10, 5400);
     #endif
-    MENU_ITEM_EDIT(float3, MSG_TOOL_CHANGE_ZLIFT, &tools.data.park_point.z, 0, 10);
+    MENU_ITEM_EDIT(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
     END_MENU();
   }
 
@@ -116,12 +116,12 @@ static void lcd_reset_settings() { eeprom.reset(); }
     START_MENU();
     MENU_BACK(MSG_CONFIGURATION);
     #if ENABLED(DUAL_X_CARRIAGE)
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_X_OFFSET, &tools.data.hotend_offset[X_AXIS][1], float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_X_OFFSET, &nozzle.data.hotend_offset[X_AXIS][1], float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
     #else
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_X_OFFSET, &tools.data.hotend_offset[X_AXIS][1], -10.0, 10.0, _recalc_offsets);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_X_OFFSET, &nozzle.data.hotend_offset[X_AXIS][1], -10.0, 10.0, _recalc_offsets);
     #endif
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Y_OFFSET, &tools.data.hotend_offset[Y_AXIS][1], -10.0, 10.0, _recalc_offsets);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Z_OFFSET, &tools.data.hotend_offset[Z_AXIS][1], Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Y_OFFSET, &nozzle.data.hotend_offset[Y_AXIS][1], -10.0, 10.0, _recalc_offsets);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[Z_AXIS][1], Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #if ENABLED(EEPROM_SETTINGS)
       MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
     #endif
@@ -418,7 +418,7 @@ void menu_configuration() {
 
   #if DISABLED(SLIM_LCD_MENUS)
 
-    switch (sound.mode) {
+    switch (sound.data.mode) {
       case SOUND_MODE_ON:
         MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cyclestate);
         break;

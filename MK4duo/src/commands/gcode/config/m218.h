@@ -26,6 +26,8 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
+#if HOTENDS > 1
+
 #define CODE_M218
 
 /**
@@ -43,13 +45,15 @@ inline void gcode_M218(void) {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
     if (!parser.seen("XYZ")) {
-      tools.print_M218(tools.extruder.target);
+      nozzle.print_M218(TARGET_HOTEND);
       return;
     }
   #endif
 
-  if (parser.seenval('X')) tools.data.hotend_offset[X_AXIS][tools.extruder.target] = parser.value_linear_units();
-  if (parser.seenval('Y')) tools.data.hotend_offset[Y_AXIS][tools.extruder.target] = parser.value_linear_units();
-  if (parser.seenval('Z')) tools.data.hotend_offset[Z_AXIS][tools.extruder.target] = parser.value_linear_units();
+  if (parser.seenval('X')) nozzle.data.hotend_offset[X_AXIS][TARGET_HOTEND] = parser.value_linear_units();
+  if (parser.seenval('Y')) nozzle.data.hotend_offset[Y_AXIS][TARGET_HOTEND] = parser.value_linear_units();
+  if (parser.seenval('Z')) nozzle.data.hotend_offset[Z_AXIS][TARGET_HOTEND] = parser.value_linear_units();
 
 }
+
+#endif // HOTENDS > 1
