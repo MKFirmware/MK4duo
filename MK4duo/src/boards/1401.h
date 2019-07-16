@@ -187,6 +187,8 @@
 // I2C EEPROM with 8K of space
 #define EEPROM_I2C
 #define E2END 0x1FFF
+#define RADDS_EXT_VDD_PIN          25
+#define RADDS_EXT_VDD2_PIN         66
 //@@@
 
 //###IF_BLOCKS

@@ -31,7 +31,7 @@
   void _man_probe_pt(const float &rx, const float &ry) {
     mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
     lcdui.synchronize();
-    move_menu_scale = MESH_EDIT_Z_STEP;
+    move_menu_scale = LCD_Z_STEP;
     lcdui.goto_screen(lcd_move_z);
   }
 
@@ -134,7 +134,7 @@
     // Encoder knob or keypad buttons adjust the Z position
     //
     if (lcdui.encoderPosition) {
-      const float z = mechanics.current_position[Z_AXIS] + float((int16_t)lcdui.encoderPosition) * (MESH_EDIT_Z_STEP);
+      const float z = mechanics.current_position[Z_AXIS] + float((int16_t)lcdui.encoderPosition) * (LCD_Z_STEP);
       line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f));
       lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
       lcdui.encoderPosition = 0;

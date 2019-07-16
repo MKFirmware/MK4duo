@@ -317,7 +317,7 @@
 // Add a bed leveling sub-menu for ABL or MBL.
 // Include a guided procedure if manual probing is enabled.
 //#define LCD_BED_LEVELING
-#define MESH_EDIT_Z_STEP 0.025  // Step size while manually probing Z axis.
+#define LCD_Z_STEP 0.025        // Step size while manually probing Z axis.
 #define LCD_PROBE_Z_RANGE 4     // Z Range centered on Z MIN POS for LCD Z adjustment
 //#define MESH_EDIT_MENU        // Add a menu to edit mesh points
 /*****************************************************************************************/
