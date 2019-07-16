@@ -49,7 +49,7 @@ inline void gcode_M18_M84(void) {
       if (parser.seen('E')) stepper.disable_E();
     }
 
-    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)  // Only needed with an LCD
+    #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
       if (ubl.lcd_map_control) {
         ubl.lcd_map_control = false;
         lcdui.defer_status_screen(false);

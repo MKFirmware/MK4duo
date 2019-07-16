@@ -82,7 +82,7 @@
         #if ENABLED(DUAL_X_CARRIAGE)
           && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_SCALED_DUPLICATION_MODE
         #endif
-      ) tools.change(tools.extruder.target, false);
+      ) tools.change(tools.extruder.target);
     #endif
 
     // Initial retract before move to pause park position
@@ -145,7 +145,7 @@
     #if EXTRUDERS > 1
     // Restore toolhead if it was changed
       if (active_extruder_before_filament_change != tools.extruder.active)
-        tools.change(active_extruder_before_filament_change, false);
+        tools.change(active_extruder_before_filament_change);
     #endif
 
   }

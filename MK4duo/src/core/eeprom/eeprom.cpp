@@ -2001,7 +2001,7 @@ void EEPROM::reset() {
         #endif
         SERIAL_EOL();
       }
-    #endif // ULTIPANEL
+    #endif // HAS_LCD_MENU
 
     #if ENABLED(FWRETRACT)
       SERIAL_LM(CFG, "Retract: S<length> F<units/m> W<swap lenght> Z<lift>");
