@@ -384,10 +384,7 @@ void Printer::check_periodical_actions() {
 
 void Printer::safe_delay(millis_l time) {
   time += millis();
-  while (PENDING(millis(), time)) {
-    PRINTER_KEEPALIVE(InProcess);
-    idle();
-  }
+  while (PENDING(millis(), time)) idle();
 }
 
 void Printer::quickstop_stepper() {
