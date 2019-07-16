@@ -285,7 +285,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
           #else
             // Move back to the original (or adjusted) position
             if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
-            mechanics.do_blocking_move_to(destination);
+            mechanics.do_blocking_move_to(mechanics.destination);
           #endif
         }
         else if (printer.debugFeature()) DEBUG_LM(DEB, "Move back skipped");
