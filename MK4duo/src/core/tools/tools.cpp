@@ -170,7 +170,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
     if (tmp_extruder != extruder.active) {
 
-      REMEMBER(fr, feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
+      REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
         #if HOTENDS > 1
@@ -206,21 +206,21 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
       #if HOTENDS > 1
         #if ENABLED(DUAL_X_CARRIAGE)
-          constexpr float xdiff = 0;
+          constexpr float x_diff = 0;
         #else
           const float x_diff = data.hotend_offset[X_AXIS][tmp_extruder] - data.hotend_offset[X_AXIS][extruder.active];
         #endif
         const float y_diff = data.hotend_offset[Y_AXIS][tmp_extruder] - data.hotend_offset[Y_AXIS][extruder.active],
                     z_diff = data.hotend_offset[Z_AXIS][tmp_extruder] - data.hotend_offset[Z_AXIS][extruder.active];
       #else
-        constexpr float xdiff = 0, ydiff = 0, zdiff = 0;
+        constexpr float x_diff = 0, y_diff = 0, z_diff = 0;
       #endif
 
       #if ENABLED(DUAL_X_CARRIAGE)
         dualx_tool_change(tmp_extruder, no_move); // Can modify no_move
       #elif HAS_DONDOLO
         // Always raise by at least 1 to avoid workpiece
-        mechanics.current_position[Z_AXIS] += MAX(-zdiff, 0.0) + data.park_point.z;
+        mechanics.current_position[Z_AXIS] += MAX(-z_diff, 0.0) + data.park_point.z;
         #if HAS_SOFTWARE_ENDSTOPS
           NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
         #endif
@@ -285,7 +285,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
           #else
             // Move back to the original (or adjusted) position
             if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
-            do_blocking_move_to(destination);
+            mechanics.do_blocking_move_to(destination);
           #endif
         }
         else if (printer.debugFeature()) DEBUG_LM(DEB, "Move back skipped");
