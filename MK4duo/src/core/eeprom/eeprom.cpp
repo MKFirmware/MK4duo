@@ -1860,7 +1860,7 @@ void EEPROM::reset() {
       #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
         #define TEMP_UNIT(N) parser.to_temp_units(N)
         SERIAL_SM(CFG, "  M149 ");
-        SERIAL_CHR(parser.temp_units_code);
+        SERIAL_CHR(parser.temp_units_code());
         SERIAL_MSG(" ; Units in ");
         SERIAL_STR(parser.temp_units_name());
       #else
