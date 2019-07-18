@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(Z_PROBE_SLED)
+#if HAS_SLED
 
   #define CODE_G31
   #define CODE_G32
@@ -41,4 +41,4 @@
    */
   inline void gcode_G32(void) { STOW_PROBE(); }
 
-#endif // Z_PROBE_SLED
+#endif // HAS_SLED

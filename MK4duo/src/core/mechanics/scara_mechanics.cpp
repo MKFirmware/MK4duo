@@ -400,13 +400,12 @@ void Scara_Mechanics::home() {
   planner.synchronize();
 
   // Cancel the active G29 session
-  #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
+  #if HAS_LEVELING && HAS_PROBE_MANUALLY
     bedlevel.flag.g29_in_progress = false;
   #endif
 
   // Disable the leveling matrix before homing
   #if HAS_LEVELING
-    const bool leveling_was_active = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   #endif
 
@@ -460,8 +459,9 @@ void Scara_Mechanics::home() {
     prepare_move_to_destination();
   }
 
+  // Re-enable bed level correction if it had been on
   #if HAS_LEVELING
-    bedlevel.set_bed_leveling_enabled(leveling_was_active);
+    bedlevel.restore_bed_leveling_state();
   #endif
 
   clean_up_after_endstop_or_probe_move();
@@ -504,7 +504,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   const bool is_home_dir = (get_homedir(axis) > 0) == (distance > 0);
 
   if (is_home_dir) {
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH
       const bool deploy_bltouch = (axis == Z_AXIS && distance < 0.0);
       if (deploy_bltouch) bltouch.deploy();
     #endif
@@ -527,7 +527,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
       if (axis == Z_AXIS) probe.probing_pause(false);
     #endif
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH
       if (deploy_bltouch) bltouch.stow();
     #endif
 

@@ -35,7 +35,7 @@ inline void gcode_M105(void) {
 
   const bool showRaw = parser.boolval('X');
 
-  #if HEATER_COUNT > 0
+  #if HAS_HEATER
     SERIAL_STR(OK);
     thermalManager.report_temperatures(showRaw);
     #if ENABLED(FLOWMETER_SENSOR)

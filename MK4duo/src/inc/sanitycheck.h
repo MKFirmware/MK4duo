@@ -97,6 +97,7 @@
 #include "../core/stepper/sanitycheck.h"
 #include "../core/temperature/sanitycheck.h"
 #include "../core/tools/sanitycheck.h"
+#include "../core/nozzle/sanitycheck.h"
 
 #include "../lcd/sanitycheck.h"
 #include "../sdcard/sanitycheck.h"

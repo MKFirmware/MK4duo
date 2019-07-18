@@ -58,7 +58,7 @@ void Host_Action::response_handler(const uint8_t response) {
         prompt_button(PSTR("Purge More"));
         if (false
           #if HAS_FILAMENT_SENSOR
-            || filamentrunout.isFilamentOut()
+            || filamentrunout.sensor.isFilamentOut()
           #endif
         )
           prompt_button(PSTR("DisableRunout"));
@@ -70,8 +70,8 @@ void Host_Action::response_handler(const uint8_t response) {
       }
       else if (response == 1) {
         #if HAS_FILAMENT_SENSOR
-          if (filamentrunout.isFilamentOut()) {
-            filamentrunout.setEnabled(false);
+          if (filamentrunout.sensor.isFilamentOut()) {
+            filamentrunout.sensor.setEnabled(false);
             filamentrunout.reset();
           }
         #endif

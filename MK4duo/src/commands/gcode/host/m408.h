@@ -69,7 +69,7 @@
       SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif
 
-    #if FAN_COUNT > 0
+    #if HAS_FANS
       SERIAL_MSG(",\"fanPercent\":[");
       SERIAL_VAL(fans[0].speed);
     #endif
@@ -86,7 +86,7 @@
     SERIAL_EM("]},");
 
     SERIAL_MSG("\"temps\": {");
-    #if BEDS > 0
+    #if HAS_BEDS
       SERIAL_MV("\"bed\": {\"current\":", beds[0].current_temperature, 1);
       SERIAL_MV(",\"active\":", beds[0].target_temperature);
       SERIAL_MSG(",\"state\":");

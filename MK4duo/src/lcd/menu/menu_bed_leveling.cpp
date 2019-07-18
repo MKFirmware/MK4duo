@@ -26,7 +26,7 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_LCD_MENU && (ENABLED(PROBE_MANUALLY) || MECH(DELTA))
+#if HAS_LCD_MENU && (HAS_PROBE_MANUALLY || MECH(DELTA))
 
   void _man_probe_pt(const float &rx, const float &ry) {
     mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
@@ -37,7 +37,7 @@
 
 #endif
 
-#if HAS_LCD_MENU && ENABLED(PROBE_MANUALLY)
+#if HAS_LCD_MENU && HAS_PROBE_MANUALLY
 
   float lcd_probe_pt(const float &rx, const float &ry) {
     _man_probe_pt(rx, ry);
@@ -53,7 +53,7 @@
 
 #if HAS_LCD_MENU && ENABLED(LCD_BED_LEVELING)
 
-#if ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING)
+#if HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)
 
   //
   // Motion > Level Bed handlers
@@ -120,7 +120,7 @@
         lcdui.goto_screen(_lcd_level_bed_done);
         #if ENABLED(MESH_BED_LEVELING)
           commands.inject_P(PSTR("G29 S2"));
-        #elif ENABLED(PROBE_MANUALLY)
+        #elif HAS_PROBE_MANUALLY
           commands.inject_P(PSTR("G29 V1"));
         #endif
       }
@@ -172,7 +172,7 @@
     lcdui.wait_for_bl_move = true;
     #if ENABLED(MESH_BED_LEVELING)
       commands.inject_P(manual_probe_index ? PSTR("G29 S2") : PSTR("G29 S1"));
-    #elif ENABLED(PROBE_MANUALLY)
+    #elif HAS_PROBE_MANUALLY
       commands.inject_P(PSTR("G29 V1"));
     #endif
   }
@@ -254,7 +254,7 @@ void menu_bed_leveling() {
   #endif
 
   // Level Bed
-  #if ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING)
+  #if HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING)
     // Manual leveling uses a guided procedure
     MENU_ITEM(submenu, MSG_LEVEL_BED, _lcd_level_bed_continue);
   #else

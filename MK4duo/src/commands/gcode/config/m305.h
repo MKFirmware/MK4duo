@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_COUNT > 0
+#if HAS_HEATER
 
 #define CODE_M305
 
@@ -53,7 +53,7 @@
  */
 inline void gcode_M305(void) {
 
-  #if ENABLED(DHT_SENSOR)
+  #if HAS_DHT
     if (parser.seen('D')) {
       #if DISABLED(DISABLE_M503)
         // No arguments? Show M305 report.
@@ -136,4 +136,4 @@ inline void gcode_M305(void) {
 
 }
 
-#endif // HEATER_COUNT > 0
+#endif // HAS_HEATER

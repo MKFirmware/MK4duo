@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_COUNT > 0
+#if HAS_HEATER
 
 #define CODE_M116
 
@@ -34,15 +34,15 @@
  * M116: Wait for all heaters to reach target temperature
  */
 inline void gcode_M116(void) {
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].wait_for_target(true);
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h].wait_for_target(true);
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h].wait_for_target(true);
   #endif
 }
 
-#endif
+#endif // HAS_HEATER

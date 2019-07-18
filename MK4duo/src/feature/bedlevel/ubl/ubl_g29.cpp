@@ -1127,8 +1127,6 @@
     return UBL_OK;
   }
 
-  static uint8_t ubl_state_at_invocation = 0;
-
   #if ENABLED(UBL_DEVEL_DEBUGGING)
     static uint8_t ubl_state_recursion_chk = 0;
   #endif
@@ -1144,7 +1142,6 @@
         return;
       }
     #endif
-    ubl_state_at_invocation = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   }
 
@@ -1158,7 +1155,7 @@
         return;
       }
     #endif
-    bedlevel.set_bed_leveling_enabled(ubl_state_at_invocation);
+    bedlevel.restore_bed_leveling_state();
   }
 
   mesh_index_pair unified_bed_leveling::find_furthest_invalid_mesh_point() {
@@ -1695,7 +1692,7 @@
       HAL::delayMilliseconds(50);
 
       #if ENABLED(UBL_DEVEL_DEBUGGING)
-        SERIAL_EMV("ubl_state_at_invocation :", ubl_state_at_invocation);
+        SERIAL_EMV("ubl_state_at_invocation :", bedlevel.flag.leveling_previous);
         SERIAL_EOL();
         SERIAL_EMV("ubl_state_recursion_chk :", ubl_state_recursion_chk);
         SERIAL_EOL();

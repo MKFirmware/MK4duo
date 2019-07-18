@@ -26,7 +26,7 @@
  
 #include "../../../MK4duo.h"
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
 
 #include "menu.h"
 

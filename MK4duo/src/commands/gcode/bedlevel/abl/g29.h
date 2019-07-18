@@ -136,7 +136,7 @@ inline void gcode_G29(void) {
     if (seenQ) return;
   #endif
 
-  #if ENABLED(PROBE_MANUALLY)
+  #if HAS_PROBE_MANUALLY
     const bool seenA = parser.seen('A');
   #else
     constexpr bool seenA = false;
@@ -168,7 +168,7 @@ inline void gcode_G29(void) {
   }
 
   // Define local vars 'static' for manual probing, 'auto' otherwise
-  #if ENABLED(PROBE_MANUALLY)
+  #if HAS_PROBE_MANUALLY
     #define ABL_VAR static
   #else
     #define ABL_VAR
@@ -176,19 +176,19 @@ inline void gcode_G29(void) {
 
   ABL_VAR int verbose_level = 0;
   ABL_VAR float xProbe = 0, yProbe = 0, measured_z = 0;
-  ABL_VAR bool dryrun = false, abl_should_enable = false;
+  ABL_VAR bool dryrun = false;
 
-  #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)
+  #if HAS_PROBE_MANUALLY || ENABLED(AUTO_BED_LEVELING_LINEAR)
     ABL_VAR int abl_probe_index = 0;
   #endif
 
-  #if HAS_SOFTWARE_ENDSTOPS && ENABLED(PROBE_MANUALLY)
+  #if HAS_SOFTWARE_ENDSTOPS && HAS_PROBE_MANUALLY
     ABL_VAR bool enable_soft_endstops = true;
   #endif
 
   #if ABL_GRID
 
-    #if ENABLED(PROBE_MANUALLY)
+    #if HAS_PROBE_MANUALLY
       ABL_VAR uint8_t PR_OUTER_VAR = 0;
       ABL_VAR  int8_t PR_INNER_VAR = 0;
     #endif
@@ -212,7 +212,7 @@ inline void gcode_G29(void) {
 
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       ABL_VAR int abl_points = 0;
-    #elif ENABLED(PROBE_MANUALLY)
+    #elif HAS_PROBE_MANUALLY
       int constexpr abl_points = GRID_MAX_POINTS;
     #endif
 
@@ -231,7 +231,7 @@ inline void gcode_G29(void) {
 
   #elif ENABLED(AUTO_BED_LEVELING_3POINT)
 
-    #if ENABLED(PROBE_MANUALLY)
+    #if HAS_PROBE_MANUALLY
       int constexpr abl_points = 3; // used to show total points
     #endif
 
@@ -254,11 +254,9 @@ inline void gcode_G29(void) {
    */
   if (!bedlevel.flag.g29_in_progress) {
 
-    #if ENABLED(PROBE_MANUALLY) || ENABLED(AUTO_BED_LEVELING_LINEAR)
+    #if HAS_PROBE_MANUALLY || ENABLED(AUTO_BED_LEVELING_LINEAR)
       abl_probe_index = -1;
     #endif
-
-    abl_should_enable = bedlevel.flag.leveling_active;
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
@@ -293,8 +291,8 @@ inline void gcode_G29(void) {
           #if ENABLED(ABL_BILINEAR_SUBDIVISION)
             abl.virt_interpolate();
           #endif
-          bedlevel.set_bed_leveling_enabled(abl_should_enable);
-          if (abl_should_enable) mechanics.report_current_position();
+          bedlevel.restore_bed_leveling_state();
+          mechanics.report_current_position();
         }
         return;
       } // parser.seen('W')
@@ -316,7 +314,7 @@ inline void gcode_G29(void) {
     }
 
     dryrun = parser.boolval('D')
-      #if ENABLED(PROBE_MANUALLY)
+      #if HAS_PROBE_MANUALLY
         || no_action
       #endif
     ;
@@ -394,7 +392,7 @@ inline void gcode_G29(void) {
     #if HAS_BED_PROBE
       // Deploy the probe. Probe will raise if needed.
       if (DEPLOY_PROBE()) {
-        bedlevel.set_bed_leveling_enabled(abl_should_enable);
+        bedlevel.restore_bed_leveling_state();
         return;
       }
     #endif
@@ -403,7 +401,7 @@ inline void gcode_G29(void) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-      #if ENABLED(PROBE_MANUALLY)
+      #if HAS_PROBE_MANUALLY
         if (!no_action)
       #endif
       {
@@ -422,7 +420,7 @@ inline void gcode_G29(void) {
           abl.bilinear_start[Y_AXIS] = front_probe_bed_position;
 
           // Can't re-enable (on error) until the new grid is written
-          abl_should_enable = false;
+          bedlevel.flag.leveling_previous = false;
         }
       }
 
@@ -439,7 +437,7 @@ inline void gcode_G29(void) {
 
   } // !bedlevel.flag.g29_in_progress
 
-  #if ENABLED(PROBE_MANUALLY)
+  #if HAS_PROBE_MANUALLY
 
     // For manual probing, get the next index to probe now.
     // On the first probe this will be incremented to 0.
@@ -454,7 +452,7 @@ inline void gcode_G29(void) {
       #if HAS_SOFTWARE_ENDSTOPS
         endstops.setSoftEndstop(enable_soft_endstops);
       #endif
-      bedlevel.set_bed_leveling_enabled(abl_should_enable);
+      bedlevel.restore_bed_leveling_state();
       bedlevel.flag.g29_in_progress = false;
       #if ENABLED(LCD_BED_LEVELING) && HAS_LCD_MENU
         lcdui.wait_for_bl_move = false;
@@ -607,7 +605,7 @@ inline void gcode_G29(void) {
           bedlevel.matrix = matrix_3x3::create_look_at(planeNormal);
 
           // Can't re-enable (on error) until the new grid is written
-          abl_should_enable = false;
+          bedlevel.flag.leveling_previous = false;
         }
 
       }
@@ -663,7 +661,7 @@ inline void gcode_G29(void) {
           measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
 
           if (isnan(measured_z)) {
-            bedlevel.set_bed_leveling_enabled(abl_should_enable);
+            bedlevel.restore_bed_leveling_state();
             break;
           }
 
@@ -683,7 +681,7 @@ inline void gcode_G29(void) {
 
           #endif
 
-          abl_should_enable = false;
+          bedlevel.flag.leveling_previous = false;
           printer.idle();
 
         } // inner
@@ -699,7 +697,7 @@ inline void gcode_G29(void) {
         yProbe = points[i].y;
         measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
         if (isnan(measured_z)) {
-          bedlevel.set_bed_leveling_enabled(abl_should_enable);
+          bedlevel.restore_bed_leveling_state();
           break;
         }
         points[i].z = measured_z;
@@ -715,14 +713,14 @@ inline void gcode_G29(void) {
         bedlevel.matrix = matrix_3x3::create_look_at(planeNormal);
 
         // Can't re-enable (on error) until the new grid is written
-        abl_should_enable = false;
+        bedlevel.flag.leveling_previous = false;
       }
 
     #endif // AUTO_BED_LEVELING_3POINT
 
     // Raise to _Z_PROBE_DEPLOY_HEIGHT. Stow the probe.
     if (STOW_PROBE()) {
-      bedlevel.set_bed_leveling_enabled(abl_should_enable);
+      bedlevel.restore_bed_leveling_state();
       measured_z = NAN;
     }
   }
@@ -740,7 +738,7 @@ inline void gcode_G29(void) {
 
   if (printer.debugFeature()) DEBUG_POS("> probing complete", mechanics.current_position);
 
-  #if ENABLED(PROBE_MANUALLY)
+  #if HAS_PROBE_MANUALLY
     bedlevel.flag.g29_in_progress = false;
     #if ENABLED(LCD_BED_LEVELING) && HAS_LCD_MENU
       lcdui.wait_for_bl_move = false;
@@ -919,7 +917,7 @@ inline void gcode_G29(void) {
     #endif // ABL_PLANAR
 
     // Auto Bed Leveling is complete! Enable if possible.
-    bedlevel.flag.leveling_active = dryrun ? abl_should_enable : true;
+    bedlevel.flag.leveling_active = dryrun ? bedlevel.flag.leveling_previous : true;
   } // !isnan(measured_z)
 
   // Restore state after probing

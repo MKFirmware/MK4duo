@@ -50,11 +50,11 @@
     // Status Screen Combined Heater bitmaps
     //
 
-    #if BEDS > 0 && HOTENDS == 0
+    #if HAS_BEDS && HOTENDS == 0
       #define STATUS_HEATERS_X 80
     #endif
 
-    #if BEDS > 0 && HOTENDS <= 3
+    #if HAS_BEDS && HOTENDS <= 3
 
       #define STATUS_BED_WIDTH  18
 
@@ -269,7 +269,7 @@
 
         #if HOTENDS >= 2
 
-          #if BEDS > 0
+          #if HAS_BEDS
             #define MAX_HOTEND_BITMAPS 3
           #else
             #define MAX_HOTEND_BITMAPS 4

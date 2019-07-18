@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_COUNT > 0
+#if HAS_HEATER
 
 #define CODE_M301
 
@@ -76,4 +76,4 @@ inline void gcode_M301(void) {
 
 }
 
-#endif // HEATER_COUNT > 0
+#endif // HAS_HEATER

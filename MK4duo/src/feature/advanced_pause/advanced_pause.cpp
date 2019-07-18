@@ -169,7 +169,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   LOOP_HOTEND()
     hotends[h].start_idle_timer(nozzle_timeout);
 
-  #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED()
       beds[h].start_idle_timer(bed_timeout);
   #endif
@@ -210,7 +210,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       while (printer.isWaitForUser()) {
 
         if (!bed_timed_out) {
-          #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+          #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
             LOOP_BED()
               bed_timed_out |= beds[h].isIdle();
           #endif
@@ -227,7 +227,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheating"));
 
       // Re-enable the bed if they timed out
-      #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
         if (bed_timed_out)
           LOOP_BED() beds[h].reset_idle_timer();
       #endif
@@ -243,7 +243,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 
       LOOP_HOTEND() hotends[h].start_idle_timer(nozzle_timeout);
 
-      #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
         LOOP_BED() beds[h].start_idle_timer(bed_timeout);
       #endif
 
@@ -295,7 +295,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   bool  nozzle_timed_out  = false,
         bed_timed_out     = false;
 
-  #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() {
       bed_timed_out |= beds[h].isIdle();
       beds[h].reset_idle_timer();
@@ -469,7 +469,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     host_action.prompt_button(PSTR("PurgeMore"));
     if (false
       #if HAS_FILAMENT_SENSOR
-        || filamentrunout.isFilamentOut()
+        || filamentrunout.sensor.isFilamentOut()
       #endif
     )
       host_action.prompt_button(PSTR("DisableRunout"));
@@ -577,7 +577,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     UNUSED(tmode);
   #endif
 
-  #if BEDS > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() beds[h].wait_for_target();
   #endif
 

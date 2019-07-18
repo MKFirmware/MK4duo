@@ -50,29 +50,16 @@ union filament_flag_t {
 
 // Struct Filament Runout data
 typedef struct {
-  uint8_t logic_flag,
-          pullup_flag;
+  filament_flag_t flag;
+  uint8_t         logic_flag,
+                  pullup_flag;
+  #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+    float         runout_distance_mm;
+  #endif
 } filament_data_t;
 
-class FilamentRunoutBase {
-
-  public: /** Public Parameters */
-
-    static filament_flag_t flag;
-
-  public: /** Public Function */
-
-    FORCE_INLINE static void setEnabled(const bool onoff) { flag.enabled = onoff; }
-    FORCE_INLINE static bool isEnabled() { return flag.enabled; }
-    FORCE_INLINE static void setFilamentOut(const bool onoff) { flag.ran_out = onoff; }
-    FORCE_INLINE static bool isFilamentOut() { return flag.ran_out; }
-    FORCE_INLINE static void setHostHandling(const bool onoff) { flag.host_handling = onoff; }
-    FORCE_INLINE static bool isHostHandling() { return flag.host_handling; }
-
-};
-
 template<class RESPONSE_T, class SENSOR_T>
-class TFilamentRunout : public FilamentRunoutBase {
+class TFilamentRunout {
 
   public: /** Public Parameters */
 
@@ -89,7 +76,7 @@ class TFilamentRunout : public FilamentRunoutBase {
     }
 
     static inline void reset() {
-      setFilamentOut(false);
+      sensor.setFilamentOut(false);
       response.reset();
     }
 
@@ -100,14 +87,14 @@ class TFilamentRunout : public FilamentRunoutBase {
     }
 
     #if FILAMENT_RUNOUT_DISTANCE_MM > 0
-      static inline float& runout_distance() { return response.runout_distance_mm; }
-      static inline void set_runout_distance(const float &mm) { response.runout_distance_mm = mm; }
+      static inline float& runout_distance() { return sensor.data.runout_distance_mm; }
+      static inline void set_runout_distance(const float &mm) { sensor.data.runout_distance_mm = mm; }
     #endif
 
     // Handle a block completion. RunoutResponseDelayed uses this to
     // add up the length of filament moved while the filament is out.
     static inline void block_completed(const block_t* const b) {
-      if (isEnabled()) {
+      if (sensor.isEnabled()) {
         response.block_completed(b);
         sensor.block_completed(b);
       }
@@ -115,7 +102,7 @@ class TFilamentRunout : public FilamentRunoutBase {
 
     // Give the response a chance to update its counter.
     static inline void spin() {
-      if (isEnabled() && !isFilamentOut() && printer.isPrinting()) {
+      if (sensor.isEnabled() && !sensor.isFilamentOut() && printer.isPrinting()) {
         #if FILAMENT_RUNOUT_DISTANCE_MM > 0
           cli(); // Prevent RunoutResponseDelayed::block_completed from accumulating here
         #endif
@@ -181,6 +168,13 @@ class FilamentSensorBase {
         #endif
       );
     }
+
+    FORCE_INLINE static void setEnabled(const bool onoff) { data.flag.enabled = onoff; }
+    FORCE_INLINE static bool isEnabled() { return data.flag.enabled; }
+    FORCE_INLINE static void setFilamentOut(const bool onoff) { data.flag.ran_out = onoff; }
+    FORCE_INLINE static bool isFilamentOut() { return data.flag.ran_out; }
+    FORCE_INLINE static void setHostHandling(const bool onoff) { data.flag.host_handling = onoff; }
+    FORCE_INLINE static bool isHostHandling() { return data.flag.host_handling; }
 
     FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
       SET_BIT(data.logic_flag, filrunout, logic);
@@ -300,11 +294,7 @@ class FilamentSensorBase {
   // of filament specified by FILAMENT_RUNOUT_DISTANCE_MM has been fed
   // during a runout condition.
   class RunoutResponseDelayed {
-    
-    public: /** Public Parameters */
-
-      static float runout_distance_mm;
-
+ 
     private: /** Private Parameters */
 
       static volatile float runout_mm_countdown[EXTRUDERS];
@@ -332,9 +322,7 @@ class FilamentSensorBase {
         return runout_mm_countdown[tools.extruder.active] < 0;
       }
 
-      static inline void filament_present(const uint8_t extruder) {
-        runout_mm_countdown[extruder] = runout_distance_mm;
-      }
+      static void filament_present(const uint8_t extruder);
 
       static inline void block_completed(const block_t* const b) {
         if (b->steps[X_AXIS] || b->steps[Y_AXIS] || b->steps[Z_AXIS]

@@ -128,16 +128,16 @@ class LcdUI {
         static constexpr int8_t manual_move_e_index = 0;
       #endif
 
-      #if HOTENDS > 0
+      #if HAS_HOTENDS
         static int16_t preheat_hotend_temp[3];
       #endif
-      #if BEDS > 0
+      #if HAS_BEDS
         static int16_t preheat_bed_temp[3];
       #endif
-      #if CHAMBERS > 0
+      #if HAS_CHAMBERS
         static int16_t preheat_chamber_temp[3];
       #endif
-      #if FAN_COUNT > 0
+      #if HAS_FANS
         static int16_t preheat_fan_speed[3];
       #endif
 
@@ -153,7 +153,7 @@ class LcdUI {
       static constexpr bool external_control = false;
     #endif
 
-    #if ENABLED(LCD_BED_LEVELING) && (ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING))
+    #if ENABLED(LCD_BED_LEVELING) && (HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING))
       static bool wait_for_bl_move;
     #else
       static constexpr bool wait_for_bl_move = false;

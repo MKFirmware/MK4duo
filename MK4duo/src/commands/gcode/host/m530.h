@@ -48,7 +48,7 @@ inline void gcode_M530(void) {
       #endif
 
       #if HAS_FILAMENT_SENSOR
-        if (filamentrunout.isEnabled())
+        if (filamentrunout.sensor.isEnabled())
           SERIAL_EM("Filament runout activated.");
       #endif
     }
@@ -62,7 +62,7 @@ inline void gcode_M530(void) {
     }
 
     #if HAS_FILAMENT_SENSOR
-      filamentrunout.setFilamentOut(false);
+      filamentrunout.sensor.setFilamentOut(false);
     #endif
 
   }

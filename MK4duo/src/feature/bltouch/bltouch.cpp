@@ -28,7 +28,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(BLTOUCH)
+#if HAS_BLTOUCH
 
 BLTouch bltouch;
 
@@ -261,4 +261,4 @@ bool BLTouch::triggered() {
   #endif
 }
 
-#endif // BLTOUCH
+#endif // HAS_BLTOUCH

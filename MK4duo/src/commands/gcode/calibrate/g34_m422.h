@@ -78,9 +78,6 @@ inline void gcode_G34(void) {
 
     // Disable the leveling matrix before auto-aligning
     #if HAS_LEVELING
-      #if ENABLED(RESTORE_LEVELING_AFTER_G34)
-        const bool leveling_was_active = bedlevel.flag.leveling_active;
-      #endif
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
@@ -94,7 +91,7 @@ inline void gcode_G34(void) {
       tools.change(0, true);
     #endif
 
-    #if ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
+    #if HAS_BLTOUCH && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
       // In BLTOUCH HS mode, the probe travels in a deployed state.
       // Users of G34 might have a badly misaligned bed, so raise Z by the
       // length of the deployed pin (BLTOUCH stroke < 7mm)
@@ -252,8 +249,9 @@ inline void gcode_G34(void) {
       tools.change(old_tool_index, true);
     #endif
 
+    // Re-enable bed level correction if it had been on
     #if HAS_LEVELING && ENABLED(RESTORE_LEVELING_AFTER_G34)
-      bedlevel.set_bed_leveling_enabled(leveling_was_active);
+      bedlevel.restore_bed_leveling_state();
     #endif
 
     // Stow the probe, as the last call to probe_pt(...) left

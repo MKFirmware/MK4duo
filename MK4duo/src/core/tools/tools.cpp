@@ -103,12 +103,6 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
          return invalid_extruder_error(tmp_extruder);
     #endif
 
-    #if HAS_LEVELING
-      // Set current position to the physical position
-      const bool leveling_was_active = bedlevel.flag.leveling_active;
-      bedlevel.set_bed_leveling_enabled(false);
-    #endif
-
     if (tmp_extruder >= EXTRUDERS)
       return invalid_extruder_error(tmp_extruder);
 
@@ -146,6 +140,11 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
         }
       }
     #endif // TOOL_CHANGE_FIL_SWAP
+
+    #if HAS_LEVELING
+      // Set current position to the physical position
+      bedlevel.set_bed_leveling_enabled(false);
+    #endif
 
     if (tmp_extruder != extruder.active) {
 
@@ -290,7 +289,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
     #if HAS_LEVELING
       // Restore leveling to re-establish the logical position
-      bedlevel.set_bed_leveling_enabled(leveling_was_active);
+      bedlevel.restore_bed_leveling_state();
     #endif
 
     SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)extruder.active);

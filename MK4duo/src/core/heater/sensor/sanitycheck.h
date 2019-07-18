@@ -74,7 +74,7 @@
 #endif
 
 // Every hotend needs a temp sensor
-#if HOTENDS > 0
+#if HAS_HOTENDS
   #if TEMP_SENSOR_HE0 == 0
     #error "DEPENDENCY ERROR: Hotend 0 needs a temp sensor."
   #endif
@@ -93,6 +93,6 @@
       #endif // HOTENDS > 3
     #endif // HOTENDS > 2
   #endif // HOTENDS > 1
-#endif // HOTENDS > 0
+#endif // HAS_HOTENDS
 
 #endif /* _TEMP_SENSOR_SANITYCHECK_H_ */

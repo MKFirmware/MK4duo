@@ -97,20 +97,20 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
     // Heater
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND()
         job_info.target_temperature[h] = hotends[h].target_temperature;
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       LOOP_BED()
         job_info.bed_target_temperature[h] = beds[h].target_temperature;
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER()
         job_info.chamber_target_temperature[h] = chambers[h].target_temperature;
     #endif
 
-    #if FAN_COUNT > 0
+    #if HAS_FANS
       LOOP_FAN()
         job_info.fan_speed[f] = fans[f].speed;
     #endif
@@ -194,19 +194,19 @@ void Restart::resume_job() {
   #endif
 
   // Set temperature
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       chambers[h].setTarget(job_info.chamber_target_temperature[h]);
       chambers[h].wait_for_target(true);
     }
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() {
       beds[h].setTarget(job_info.bed_target_temperature[h]);
       beds[h].wait_for_target(true);
     }
   #endif
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       hotends[h].setTarget(job_info.target_temperature[h]);
       hotends[h].wait_for_target(true);
@@ -214,7 +214,7 @@ void Restart::resume_job() {
   #endif
 
   // Set fan
-  #if FAN_COUNT > 0
+  #if HAS_FANS
     LOOP_FAN() fans[f].speed = job_info.fan_speed[f];
   #endif
 

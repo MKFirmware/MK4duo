@@ -90,7 +90,7 @@ class Temperature {
     /**
      * Calc min & max temp of all hotends
      */
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       static int16_t hotend_mintemp_all();
       static int16_t hotend_maxtemp_all();
     #endif
@@ -98,7 +98,7 @@ class Temperature {
     /**
      * Calc min & max temp of all beds
      */
-    #if BEDS > 0
+    #if HAS_BEDS
       static int16_t bed_mintemp_all();
       static int16_t bed_maxtemp_all();
     #endif
@@ -106,7 +106,7 @@ class Temperature {
     /**
      * Calc min & max temp of all chambers
      */
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       static int16_t chamber_mintemp_all();
       static int16_t chamber_maxtemp_all();
     #endif
@@ -114,7 +114,7 @@ class Temperature {
     /**
      * Calc min & max temp of all coolers
      */
-    #if COOLERS > 0
+    #if HAS_COOLERS
       static int16_t cooler_mintemp_all();
       static int16_t cooler_maxtemp_all();
     #endif
@@ -168,7 +168,7 @@ class Temperature {
       static float analog2tempMCU(const int raw);
     #endif
 
-    #if HEATER_COUNT > 0
+    #if HAS_HEATER
       static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);
     #endif
 

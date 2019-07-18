@@ -101,7 +101,7 @@ void menu_led();
   void menu_mixer();
 #endif
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
   void menu_dht();
 #endif
 
@@ -172,7 +172,7 @@ void menu_main() {
     #endif
   }
 
-  #if ENABLED(DHT_SENSOR)
+  #if HAS_DHT
     MENU_ITEM(submenu, MSG_DHT, menu_dht);
   #endif
 

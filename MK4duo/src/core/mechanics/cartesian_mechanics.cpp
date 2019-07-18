@@ -185,13 +185,12 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   planner.synchronize();
 
   // Cancel the active G29 session
-  #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
+  #if HAS_LEVELING && HAS_PROBE_MANUALLY
     bedlevel.flag.g29_in_progress = false;
   #endif
 
   // Disable the leveling matrix before homing
   #if HAS_LEVELING
-    const bool leveling_was_active = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   #endif
 
@@ -279,7 +278,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
     if (doZ) {
-      #if ENABLED(BLTOUCH)
+      #if HAS_BLTOUCH
         bltouch.init();
       #endif
       #if ENABLED(Z_SAFE_HOMING)
@@ -338,8 +337,9 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
     nextion_gfx_clear();
   #endif
 
+  // Re-enable bed level correction if it had been on
   #if HAS_LEVELING
-    bedlevel.set_bed_leveling_enabled(leveling_was_active);
+    bedlevel.restore_bed_leveling_state();
   #endif
 
   clean_up_after_endstop_or_probe_move();
@@ -915,13 +915,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
   // Fast move towards endstop until triggered
   if (printer.debugFeature()) DEBUG_EM("Home 1 Fast:");
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+  #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH
     if (axis == Z_AXIS && bltouch.deploy()) return; // The initial DEPLOY
   #endif
 
   do_homing_move(axis, 1.5f * data.base_pos[axis].max * axis_home_dir);
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+  #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
     if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
   #endif
 
@@ -946,14 +946,14 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     // Slow move towards endstop until triggered
     if (printer.debugFeature()) DEBUG_EM("Home 2 Slow:");
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+    #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
       // BLTOUCH needs to be deployed every time
       if (axis == Z_AXIS && bltouch.deploy()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
     #endif
 
     do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+    #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH
       if (axis == Z_AXIS) bltouch.stow(); // The final STOW
     #endif
   }

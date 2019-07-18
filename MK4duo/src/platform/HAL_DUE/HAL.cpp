@@ -68,16 +68,16 @@ uint8_t MCUSR;
 int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
 bool    HAL::Analog_is_ready = false;
 
-#if HOTENDS > 0
+#if HAS_HOTENDS
   ADCAveragingFilter HAL::sensorFilters[HOTENDS];
 #endif
-#if BEDS > 0
+#if HAS_BEDS
   ADCAveragingFilter HAL::BEDsensorFilters[BEDS];
 #endif
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
   ADCAveragingFilter HAL::CHAMBERsensorFilters[CHAMBERS];
 #endif
-#if COOLERS > 0
+#if HAS_COOLERS
   ADCAveragingFilter HAL::COOLERsensorFilters[COOLERS];
 #endif
 
@@ -292,7 +292,7 @@ void HAL::analogStart(void) {
   ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
   pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       if (WITHIN(hotends[h].data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(hotends[h].data.sensor.pin, true);
@@ -300,7 +300,7 @@ void HAL::analogStart(void) {
       }
     }
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() {
       if (WITHIN(beds[h].data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(beds[h].data.sensor.pin, true);
@@ -308,7 +308,7 @@ void HAL::analogStart(void) {
       }
     }
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       if (WITHIN(chambers[h].data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(chambers[h].data.sensor.pin, true);
@@ -316,7 +316,7 @@ void HAL::analogStart(void) {
       }
     }
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       if (WITHIN(coolers[h].data.sensor.pin, 0, 15)) {
         AnalogInEnablePin(coolers[h].data.sensor.pin, true);
@@ -602,21 +602,21 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].set_output_pwm();
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h].set_output_pwm();
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h].set_output_pwm();
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() coolers[h].set_output_pwm();
   #endif
 
   // Fans set output PWM
-  #if FAN_COUNT > 0
+  #if HAS_FANS
     LOOP_FAN() {
       if (fans[f].kickstart) fans[f].kickstart--;
       fans[f].set_output_pwm();
@@ -635,7 +635,7 @@ void HAL::Tick() {
   // Read analog or SPI values
   if (adc_get_status(ADC)) { // conversion finished?
 
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND() {
         Heater *act = &hotends[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
@@ -648,7 +648,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       LOOP_BED() {
         Heater *act = &beds[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
@@ -661,7 +661,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() {
         Heater *act = &chambers[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
@@ -674,7 +674,7 @@ void HAL::Tick() {
         }
       }
     #endif
-    #if COOLERS > 0
+    #if HAS_COOLERS
       LOOP_COOLER() {
         if (WITHIN(coolers[h].data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);

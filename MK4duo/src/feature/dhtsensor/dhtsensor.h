@@ -27,7 +27,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
 
 // Define types of sensors.
 enum DHTEnum : uint8_t { DHT11=11, DHT12=12, DHT21=21, DHT22=22 };
@@ -80,4 +80,4 @@ class DHTSensor {
 
 extern DHTSensor dhtsensor;
 
-#endif // ENABLED(DHT_SENSOR)
+#endif // HAS_DHT

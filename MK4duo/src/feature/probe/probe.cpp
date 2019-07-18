@@ -55,7 +55,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   // Make room for probe to deploy (or stow)
   // Fix-mounted probe should only raise for deploy
-  #if ENABLED(Z_PROBE_FIX_MOUNTED) && DISABLED(PAUSE_BEFORE_DEPLOY_STOW)
+  #if HAS_PROBE_FIX && DISABLED(PAUSE_BEFORE_DEPLOY_STOW)
     const bool deploy_stow_condition = deploy;
   #else
     constexpr bool deploy_stow_condition = true;
@@ -64,13 +64,13 @@ bool Probe::set_deployed(const bool deploy) {
   if (deploy_stow_condition)
     do_raise(MAX(Z_PROBE_BETWEEN_HEIGHT, Z_PROBE_DEPLOY_HEIGHT));
 
-  #if ENABLED(Z_PROBE_SLED)
+  #if HAS_SLED
     if (mechanics.axis_unhomed_error(true, false, false)) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
       printer.stop();
       return true;
     }
-  #elif ENABLED(Z_PROBE_ALLEN_KEY)
+  #elif HAS_ALLEN_KEY
     if (mechanics.axis_unhomed_error()) {
       SERIAL_LM(ER, MSG_STOP_UNHOMED);
       printer.stop();
@@ -80,7 +80,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
 
-  #if ENABLED(Z_PROBE_ALLEN_KEY)
+  #if HAS_ALLEN_KEY
 
     #if HAS_Z_PROBE_PIN
       #define PROBE_STOWED() (READ(Z_PROBE_PIN) != endstops.isLogic(Z_PROBE))
@@ -126,7 +126,7 @@ bool Probe::set_deployed(const bool deploy) {
   }
 #endif
 
-#if HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
+#if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
   /**
    * Check Pt (ex probe_pt)
@@ -207,7 +207,7 @@ bool Probe::set_deployed(const bool deploy) {
 
       return measured_z;
 
-    #elif ENABLED(PROBE_MANUALLY)
+    #elif HAS_PROBE_MANUALLY
 
       UNUSED(raise_after);
       UNUSED(verbose_level);
@@ -230,11 +230,11 @@ bool Probe::set_deployed(const bool deploy) {
 
       return measured_z;
 
-    #endif // ENABLED(PROBE_MANUALLY)
+    #endif // HAS_PROBE_MANUALLY
 
   }
 
-#endif // HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
+#endif // HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
 #if QUIET_PROBING
 
@@ -387,13 +387,13 @@ void Probe::specific_action(const bool deploy) {
 
   #endif // PAUSE_BEFORE_DEPLOY_STOW
 
-  #if ENABLED(Z_PROBE_SLED)
+  #if HAS_SLED
     dock_sled(!deploy);
-  #elif ENABLED(BLTOUCH) && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
+  #elif HAS_BLTOUCH && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
     deploy ? bltouch.cmd_deploy() : bltouch.cmd_stow();
   #elif HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)
     MOVE_SERVO(Z_PROBE_SERVO_NR, servo[Z_PROBE_SERVO_NR].angle[(deploy ? 0 : 1)]);
-  #elif ENABLED(Z_PROBE_ALLEN_KEY)
+  #elif HAS_ALLEN_KEY
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
   #elif DISABLED(PAUSE_BEFORE_DEPLOY_STOW)
     UNUSED(deploy);
@@ -413,7 +413,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
 
   // Deploy BLTouch at the start of any probe
-  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
      if (bltouch.deploy()) return true;
   #endif
 
@@ -467,7 +467,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   #endif
 
   // Retract BLTouch immediately after a probe if it was triggered
-  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
     if (probe_triggered && bltouch.stow()) return true;
   #endif
 
@@ -567,7 +567,7 @@ float Probe::run_probing() {
   return probe_z / (float)data.repetitions;
 }
 
-#if ENABLED(Z_PROBE_ALLEN_KEY)
+#if HAS_ALLEN_KEY
 
   void Probe::run_deploy_moves_script() {
 

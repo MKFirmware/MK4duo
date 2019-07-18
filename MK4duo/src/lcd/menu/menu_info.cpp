@@ -121,13 +121,13 @@ void menu_info_thermistors() {
     STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(HOTEND_3_MAXTEMP), false);
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     STATIC_ITEM("TBed:" BED0_NAME, false, true);
     STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(BED_MINTEMP), false);
     STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(BED_MAXTEMP), false);
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     STATIC_ITEM("TChamber:" CHAMBER0_NAME, false, true);
     STATIC_ITEM(MSG_INFO_MIN_TEMP ": " STRINGIFY(CHAMBER_MINTEMP), false);
     STATIC_ITEM(MSG_INFO_MAX_TEMP ": " STRINGIFY(CHAMBER_MAXTEMP), false);

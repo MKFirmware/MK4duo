@@ -365,15 +365,6 @@ void menu_stop_print();
   #endif
 #endif
 
-// First Fan Speed title in "Tune" and "Control>Temperature" menus
-#if FAN_COUNT > 0 && HAS_FAN0
-  #if FAN_COUNT > 1
-    #define FAN_SPEED_1_SUFFIX " 1"
-  #else
-    #define FAN_SPEED_1_SUFFIX ""
-  #endif
-#endif
-
 ////////////////////////////////////////////
 //////// Menu Item Helper Functions ////////
 ////////////////////////////////////////////
@@ -381,7 +372,7 @@ void menu_stop_print();
 void lcd_move_z();
 void lcd_draw_homing();
 
-#if HOTENDS > 0
+#if HAS_HOTENDS
   void watch_temp_callback_H0();
   void watch_temp_callback_H1();
   void watch_temp_callback_H2();
@@ -389,23 +380,23 @@ void lcd_draw_homing();
   void watch_temp_callback_E4();
   void watch_temp_callback_E5();
 #endif
-#if BEDS > 0
+#if HAS_BEDS
   void watch_temp_callback_bed0();
   void watch_temp_callback_bed1();
   void watch_temp_callback_bed2();
   void watch_temp_callback_bed3();
 #endif
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
   void watch_temp_callback_chamber0();
   void watch_temp_callback_chamber1();
   void watch_temp_callback_chamber2();
   void watch_temp_callback_chamber3();
 #endif
-#if COOLERS > 0
+#if HAS_COOLERS
   void watch_temp_callback_cooler0();
 #endif
 
-#define HAS_LINE_TO_Z (MECH(DELTA) || ENABLED(PROBE_MANUALLY) || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))
+#define HAS_LINE_TO_Z (MECH(DELTA) || HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))
 
 #if HAS_LINE_TO_Z
   void line_to_z(const float &z);
@@ -422,11 +413,11 @@ void lcd_draw_homing();
   float lcd_mesh_edit();
 #endif
 
-#if ENABLED(PROBE_MANUALLY) || MECH(DELTA)
+#if HAS_PROBE_MANUALLY || MECH(DELTA)
   void _man_probe_pt(const float &rx, const float &ry);
 #endif
 
-#if ENABLED(PROBE_MANUALLY)
+#if HAS_PROBE_MANUALLY
   float lcd_probe_pt(const float &rx, const float &ry);
 #endif
 

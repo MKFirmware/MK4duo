@@ -491,7 +491,6 @@
 #define HAS_TEMP_CHAMBER2   (TEMP_SENSOR_CHAMBER2 != 0)
 #define HAS_TEMP_CHAMBER3   (TEMP_SENSOR_CHAMBER3 != 0)
 #define HAS_TEMP_COOLER     (TEMP_SENSOR_COOLER != 0)
-#define HAS_TEMP_HEATER     (HAS_TEMP_HOTEND || HAS_TEMP_BED0 || HAS_TEMP_CHAMBER0 || HAS_TEMP_COOLER)
 #define HAS_MCU_TEMPERATURE (ENABLED(HAVE_MCU_TEMPERATURE))
 
 // Thermocouples
@@ -517,8 +516,13 @@
 #define HAS_HEATER_CHAMBER2 (TEMP_SENSOR_CHAMBER2 != 0 && PIN_EXISTS(HEATER_CHAMBER2))
 #define HAS_HEATER_CHAMBER3 (TEMP_SENSOR_CHAMBER3 != 0 && PIN_EXISTS(HEATER_CHAMBER3))
 #define HAS_HEATER_COOLER   (TEMP_SENSOR_COOLER != 0 && PIN_EXISTS(HEATER_COOLER))
+#define HAS_HOTENDS         (HOTENDS > 0)
+#define HAS_BEDS            (BEDS > 0)
+#define HAS_CHAMBERS        (CHAMBERS > 0)
+#define HAS_COOLERS         (COOLERS > 0)
 
 // Fans
+#define HAS_FANS            (FAN_COUNT > 0)
 #define HAS_FAN0            (PIN_EXISTS(FAN0))
 #define HAS_FAN1            (PIN_EXISTS(FAN1))
 #define HAS_FAN2            (PIN_EXISTS(FAN2))
@@ -918,6 +922,7 @@
 #endif
 
 #define HEATER_COUNT  (HOTENDS+BEDS+CHAMBERS+COOLERS)
+#define HAS_HEATER    (HEATER_COUNT > 0)
 
 /**
  * FANS
@@ -1095,13 +1100,38 @@
 /**
  * Set a flag for a servo probe
  */
-#define HAS_Z_SERVO_PROBE (HAS_SERVOS && ENABLED(Z_PROBE_SERVO_NR) && Z_PROBE_SERVO_NR >= 0)
+#define HAS_Z_SERVO_PROBE     (HAS_SERVOS && ENABLED(Z_PROBE_SERVO_NR) && Z_PROBE_SERVO_NR >= 0)
+
+/**
+ * Set a flag for Probe Manually
+ */
+#define HAS_PROBE_MANUALLY    (ENABLED(PROBE_MANUALLY))
+
+/**
+ * Set a flag for Probe Fix
+ */
+#define HAS_PROBE_FIX         (ENABLED(Z_PROBE_FIX_MOUNTED))
+
+/**
+ * Set a flag for BLTouch
+ */
+#define HAS_BLTOUCH           (ENABLED(BLTOUCH))
+
+/**
+ * Set a flag for Probe Sled
+ */
+#define HAS_SLED              (ENABLED(Z_PROBE_SLED))
+
+/**
+ * Set a flag for Allen Key
+ */
+#define HAS_ALLEN_KEY         (ENABLED(Z_PROBE_ALLEN_KEY))
 
 /**
  * Set flags for enabled probes
  */
-#define HAS_BED_PROBE         (ENABLED(Z_PROBE_FIX_MOUNTED) || ENABLED(Z_PROBE_SLED) || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(Z_PROBE_SENSORLESS))
-#define PROBE_SELECTED        (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
+#define HAS_BED_PROBE         (HAS_PROBE_FIX || HAS_SLED || ENABLED(Z_PROBE_ALLEN_KEY) || HAS_Z_SERVO_PROBE || ENABLED(Z_PROBE_SENSORLESS))
+#define PROBE_SELECTED        (HAS_BED_PROBE || HAS_PROBE_MANUALLY)
 #define PROBE_PIN_CONFIGURED  (HAS_Z_PROBE_PIN || HAS_Z_MIN)
 
 /**

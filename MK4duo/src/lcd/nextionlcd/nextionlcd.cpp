@@ -158,15 +158,15 @@ NexObject LcdZ          = NexObject(2,  9);
   NexObject Hotend30    = NexObject(2, 17);
   NexObject Hotend31    = NexObject(2, 18);
 #endif
-#if BEDS > 0
+#if HAS_BEDS
   NexObject Bed0        = NexObject(2, 19);
   NexObject Bed1        = NexObject(2, 20);
 #endif
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
   NexObject Chamber0    = NexObject(2, 21);
   NexObject Chamber1    = NexObject(2, 22);
 #endif
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
   NexObject DHT0        = NexObject(2, 23);
 #endif
 NexObject SD            = NexObject(2, 24);
@@ -449,7 +449,7 @@ void NextionLCD::status_screen_update() {
       #endif
     }
 
-    #if FAN_COUNT > 0
+    #if HAS_FANS
       if (PreviousfanSpeed != fans[0].actual_speed()) {
         setValue(Fanspeed, fans[0].percent());
         PreviousfanSpeed = fans[0].actual_speed();
@@ -481,15 +481,15 @@ void NextionLCD::status_screen_update() {
       setValue(Hotend30, hotends[3].current_temperature);
       setValue(Hotend31, hotends[3].target_temperature);
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       setValue(Bed0, beds[0].current_temperature);
       setValue(Bed1, beds[0].target_temperature);
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       setValue(Chamber0, chambers[0].current_temperature);
       setValue(Chamber1, chambers[0].target_temperature);
     #endif
-    #if ENABLED(DHT_SENSOR)
+    #if HAS_DHT
       if (lcdui.get_blink(3))
         setValue(DHT0, dhtsensor.Humidity + 500);
       else
@@ -744,13 +744,13 @@ void NextionLCD::set_status_page() {
   #if HOTENDS > 3
     setValue(Hotend30, 25);
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     setValue(Bed0, 25);
   #endif
   #if HAS_TEMP_CHAMBER0
     setValue(Chamber0, 25);
   #endif
-  #if ENABLED(DHT_SENSOR)
+  #if HAS_DHT
     setValue(DHT0, 25);
   #endif
 
@@ -783,7 +783,7 @@ void NextionLCD::set_status_page() {
 
   setValue(VSpeed, 100);
 
-  #if FAN_COUNT > 0
+  #if HAS_FANS
     setValue(Fanspeed, 1);
   #endif
 

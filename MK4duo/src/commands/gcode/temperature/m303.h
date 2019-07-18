@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HEATER_COUNT > 0
+#if HAS_HEATER
 
 #define CODE_M303
 
@@ -87,4 +87,4 @@ inline void gcode_M303(void) {
 
 }
 
-#endif // HEATER_COUNT > 0
+#endif // HAS_HEATER

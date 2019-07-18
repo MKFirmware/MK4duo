@@ -44,7 +44,7 @@ inline void gcode_M119(void) {
 
   #define ES_REPORT(S) print_state(READ(S##_PIN) ^ endstops.isLogic(S), PSTR(MSG_##S))
 
-  #if ENABLED(BLTOUCH)
+  #if HAS_BLTOUCH
     bltouch.cmd_mode_SW();
   #endif
 
@@ -118,7 +118,7 @@ inline void gcode_M119(void) {
     print_state(READ(POWER_CHECK_PIN) ^ powerManager.isLogic(), PSTR(MSG_POWER_CHECK));
   #endif
 
-  #if ENABLED(BLTOUCH)
+  #if HAS_BLTOUCH
     bltouch.cmd_reset_mode_SW();
   #endif
 }
