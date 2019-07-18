@@ -83,12 +83,7 @@ The new features are:
 * Added ABL or MBL leveling fade height
 * Added save in EEPROM ABL, MBL or UBL
 * Added Door switch for stop job when door is open
-* Added TMC2130 motor driver
-* Added TMC2208 motor driver
-* Added TMC2660 motor driver
-* Added TMC2160 motor driver
-* Added TMC5130 motor driver
-* Added TMC5160 motor driver
+* Added Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160 motor driver
 * Added Power Check pin for restart job
 * Added Probe BLTouch
 * Added Probe BLTouch V3.0 or V3.1
