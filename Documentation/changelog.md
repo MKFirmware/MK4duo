@@ -1,7 +1,7 @@
 ### Version 4.3.9
 * New graphic for Nextion 4.3, 5.0 or 7.0 Normal and Enanched
 * Add support 6 Hotends, 4 Hot Beds, 4 Hot Chambers and 1 water Cooler
-* Add Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160
+* Add Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160 motor driver
 * Add command M228 for setting axis limit min/max
 * Add Tool change Park
 * Add Tool change filament swap
