@@ -344,7 +344,7 @@ void menu_pause_option() {
   #endif
   MENU_ITEM(function, MSG_FILAMENT_CHANGE_OPTION_PURGE, lcd_pause_extrude_more);
   #if HAS_FILAMENT_SENSOR
-    if (filamentrunout.isFilamentOut())
+    if (filamentrunout.sensor.isFilamentOut())
       MENU_ITEM(function, MSG_RUNOUT_SENSOR, filamentrunout.reset);
     else
   #endif

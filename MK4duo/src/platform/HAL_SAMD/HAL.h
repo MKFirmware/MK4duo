@@ -197,7 +197,7 @@ class HAL {
       static bool Analog_is_ready;
     #endif
     
-    #if HEATER_COUNT > 0
+    #if HAS_HEATER
       static ADCAveragingFilter sensorFilters[HEATER_COUNT];
     #endif
 

@@ -160,7 +160,7 @@ class Printer {
     #endif
 
     FORCE_INLINE static void zero_fan_speed() {
-      #if FAN_COUNT > 0
+      #if HAS_FANS
         LOOP_FAN() fans[f].speed = 0;
       #endif
     }

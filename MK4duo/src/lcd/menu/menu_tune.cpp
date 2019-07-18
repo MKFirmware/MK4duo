@@ -192,7 +192,7 @@ void menu_tune() {
   //
   // Fan Speed:
   //
-  #if FAN_COUNT > 0
+  #if HAS_FANS
     #if HAS_FAN0
       MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].speed, 0, 255);
     #endif
@@ -211,7 +211,7 @@ void menu_tune() {
     #if HAS_FAN5
       MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].speed, 0, 255);
     #endif
-  #endif // FAN_COUNT > 0
+  #endif // HAS_FANS
 
   //
   // Flow:

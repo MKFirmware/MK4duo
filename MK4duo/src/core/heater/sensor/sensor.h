@@ -25,7 +25,7 @@
  * sensor.h - sensor object
  */
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
   #include "../../../feature/dhtsensor/dhtsensor.h"
 #endif
 

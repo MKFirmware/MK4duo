@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
 
 #define CODE_M191
 
@@ -50,4 +50,4 @@ inline void gcode_M191(void) {
   }
 }
 
-#endif // CHAMBERS > 0
+#endif // HAS_CHAMBERS

@@ -37,7 +37,7 @@ static int16_t ubl_storage_slot = 0,
                x_plot = 0,
                y_plot = 0;
 
-#if BEDS > 0
+#if HAS_BEDS
   static int16_t custom_bed_temp = 50;
 #endif
 
@@ -104,7 +104,7 @@ void lcd_z_offset_edit_setup(const float &initial) {
 void _lcd_ubl_build_custom_mesh() {
   char UBL_LCD_GCODE[20];
   commands.inject_P(PSTR("G28"));
-  #if BEDS > 0
+  #if HAS_BEDS
     sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
     lcd_enqueue_one_now(UBL_LCD_GCODE);
   #endif
@@ -125,7 +125,7 @@ void _lcd_ubl_custom_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_BUILD_MESH_MENU);
   MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, hotends[0].data.maxtemp - 10);
-  #if BEDS > 0
+  #if HAS_BEDS
     MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, beds[0].data.mintemp, beds[0].data.maxtemp - 10);
   #endif
   MENU_ITEM(function, MSG_UBL_BUILD_CUSTOM_MESH, _lcd_ubl_build_custom_mesh);
@@ -184,7 +184,7 @@ void _lcd_ubl_edit_mesh() {
 void _lcd_ubl_validate_custom_mesh() {
   char UBL_LCD_GCODE[24];
   const int temp =
-    #if BEDS > 0
+    #if HAS_BEDS
       custom_bed_temp
     #else
       0
@@ -207,7 +207,7 @@ void _lcd_ubl_validate_custom_mesh() {
 void _lcd_ubl_validate_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_TOOLS);
-  #if BEDS > 0
+  #if HAS_BEDS
     MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M1, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_1_TEMP_BED) " H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
     MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M2, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_2_TEMP_BED) " H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
   #else
@@ -311,7 +311,7 @@ void _lcd_ubl_invalidate() {
 void _lcd_ubl_build_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_TOOLS);
-  #if BEDS > 0
+  #if HAS_BEDS
     MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M1, PSTR(
       "G28\n"
       "M190 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\n"

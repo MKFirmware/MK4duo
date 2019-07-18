@@ -71,7 +71,7 @@ class Probe {
       static void move_z_after_probing();
     #endif
 
-    #if HAS_BED_PROBE || ENABLED(PROBE_MANUALLY)
+    #if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
       /**
        * Check Pt (ex probe_pt)
@@ -105,7 +105,7 @@ class Probe {
 
     static float run_probing();
 
-    #if ENABLED(Z_PROBE_ALLEN_KEY)
+    #if HAS_ALLEN_KEY
       static void run_deploy_moves_script();
       static void run_stow_moves_script();
     #endif

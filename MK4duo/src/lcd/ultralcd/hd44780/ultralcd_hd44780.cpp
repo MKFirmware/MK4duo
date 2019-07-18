@@ -290,7 +290,7 @@ void LcdUI::set_custom_characters(const HD44780CharSetEnum screen_charset/*=CHAR
     else
   #endif
     { // Info Screen uses 5 special characters
-      #if ENABLED(DHT_SENSOR)
+      #if HAS_DHT
         createChar_P(LCD_STR_BEDTEMP[0], Humidity);
       #else
         createChar_P(LCD_STR_BEDTEMP[0], bedTemp);
@@ -511,7 +511,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
   }
 }
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
   FORCE_INLINE void _draw_humidity_status() {
     lcd_put_wchar(LCD_STR_BEDTEMP[0]);
     lcd_put_u8str(i16tostr3(dhtsensor.Humidity));
@@ -770,7 +770,7 @@ void LcdUI::draw_status_screen() {
           #endif
           LCD_STR_BEDTEMP[0]
         ), blink);
-      #elif ENABLED(DHT_SENSOR)
+      #elif HAS_DHT
         _draw_humidity_status();
       #endif
 
@@ -1064,13 +1064,13 @@ void LcdUI::draw_status_screen() {
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      #if BEDS > 0
+      #if HAS_BEDS
         if (beds[0].target_temperature > 0) leds |= LED_A;
       #endif
 
       if (hotends[0].target_temperature > 0) leds |= LED_B;
 
-      #if FAN_COUNT > 0
+      #if HAS_FANS
         if (0
           #if HAS_FAN0
             || fans[0].speed
@@ -1091,7 +1091,7 @@ void LcdUI::draw_status_screen() {
             || fans[5].speed
           #endif
         ) leds |= LED_C;
-      #endif // FAN_COUNT > 0
+      #endif // HAS_FANS
 
       #if HOTENDS > 1
         if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;

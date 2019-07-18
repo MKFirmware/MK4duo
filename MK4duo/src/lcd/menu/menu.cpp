@@ -355,7 +355,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 /**
  * Watch temperature callbacks
  */
-#if HOTENDS > 0
+#if HAS_HOTENDS
 
   void watch_temp_callback_H0() {
     hotends[0].setTarget(hotends[0].target_temperature);
@@ -392,9 +392,9 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     #endif // HOTENDS > 2
   #endif // HOTENDS > 1
 
-#endif // HAS_TEMP_HOTEND
+#endif // HAS_COOLERS
 
-#if BEDS > 0
+#if HAS_BEDS
   void watch_temp_callback_bed0() {
     beds[0].setTarget(beds[0].target_temperature);
     beds[0].start_watching();
@@ -417,9 +417,9 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       #endif // BEDS > 3
     #endif // BEDS > 2
   #endif // BEDS > 1
-#endif // BEDS > 0
+#endif // HAS_BEDS
 
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
   void watch_temp_callback_chamber0() {
     chambers[0].setTarget(chambers[0].target_temperature);
     chambers[0].start_watching();
@@ -442,9 +442,9 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       #endif // CHAMBERS > 3
     #endif // CHAMBERS > 2
   #endif // CHAMBERS > 1
-#endif // CHAMBERS > 0
+#endif // HAS_CHAMBERS
 
-#if COOLERS > 0
+#if HAS_COOLERS
   void watch_temp_callback_cooler0() {
     coolers[0].setTarget(coolers[0].target_temperature);
     coolers[0].start_watching();

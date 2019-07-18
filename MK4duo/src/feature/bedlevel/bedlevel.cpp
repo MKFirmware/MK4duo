@@ -161,6 +161,8 @@
    */
   void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
 
+    flag.leveling_previous = flag.leveling_active;
+
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       const bool can_change = (!enable || leveling_is_valid());
     #else
@@ -211,7 +213,7 @@
           mechanics.current_position[Y_AXIS],
           mechanics.current_position[Z_AXIS]
         };
-        set_bed_leveling_enabled(true);
+        set_bed_leveling_enabled();
         if (do_report && memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
           mechanics.report_current_position();
       }
@@ -307,7 +309,7 @@
 
   #endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
 
-  #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+  #if ENABLED(MESH_BED_LEVELING) || HAS_PROBE_MANUALLY
 
     void Bedlevel::manual_goto_xy(const float &rx, const float &ry) {
 

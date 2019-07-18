@@ -444,13 +444,12 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   planner.synchronize();
 
   // Cancel the active G29 session
-  #if HAS_LEVELING && ENABLED(PROBE_MANUALLY)
+  #if HAS_LEVELING && HAS_PROBE_MANUALLY
     bedlevel.flag.g29_in_progress = false;
   #endif
 
   // Disable the leveling matrix before homing
   #if HAS_LEVELING
-    const bool leveling_was_active = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   #endif
 
@@ -530,8 +529,9 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
     nextion_gfx_clear();
   #endif
 
+  // Re-enable bed level correction if it had been on
   #if HAS_LEVELING
-    bedlevel.set_bed_leveling_enabled(leveling_was_active);
+    bedlevel.restore_bed_leveling_state();
   #endif
 
   clean_up_after_endstop_or_probe_move();

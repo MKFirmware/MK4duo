@@ -151,7 +151,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
 #endif
 
-#if ENABLED(BLTOUCH)
+#if HAS_BLTOUCH
 
   #if ENABLED(BLTOUCH_LCD_VOLTAGE_MENU)
 
@@ -325,13 +325,13 @@ static void lcd_reset_settings() { eeprom.reset(); }
     START_MENU();
     MENU_BACK(MSG_CONFIGURATION);
     MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       MENU_ITEM_EDIT(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       MENU_ITEM_EDIT(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
@@ -376,7 +376,7 @@ void menu_configuration() {
       MENU_ITEM(submenu, MSG_DXC_MENU, menu_DXC);
     #endif
 
-    #if ENABLED(BLTOUCH)
+    #if HAS_BLTOUCH
       MENU_ITEM(submenu, MSG_BLTOUCH, menu_bltouch);
     #endif
   }

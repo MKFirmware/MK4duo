@@ -33,11 +33,10 @@
 FilamentRunout filamentrunout;
 
 /** Public Parameters */
-filament_flag_t FilamentRunoutBase::flag;
+//filament_flag_t FilamentRunoutBase::flag;
 filament_data_t FilamentSensorBase::data;
 
 #if FILAMENT_RUNOUT_DISTANCE_MM > 0
-  float RunoutResponseDelayed::runout_distance_mm = FILAMENT_RUNOUT_DISTANCE_MM;
   volatile float RunoutResponseDelayed::runout_mm_countdown[EXTRUDERS] = { 0 };
 #endif
 
@@ -51,6 +50,25 @@ filament_data_t FilamentSensorBase::data;
 #endif
 
 /** Public Function */
+void FilamentSensorBase::init() {
+  SET_INPUT(FIL_RUNOUT_0_PIN);
+  #if HAS_FIL_RUNOUT_1
+    SET_INPUT(FIL_RUNOUT_1_PIN);
+    #if HAS_FIL_RUNOUT_2
+      SET_INPUT(FIL_RUNOUT_2_PIN);
+      #if HAS_FIL_RUNOUT_3
+        SET_INPUT(FIL_RUNOUT_3_PIN);
+        #if HAS_FIL_RUNOUT_4
+          SET_INPUT(FIL_RUNOUT_4_PIN);
+          #if HAS_FIL_RUNOUT_5
+            SET_INPUT(FIL_RUNOUT_5_PIN);
+          #endif
+        #endif
+      #endif
+    #endif
+  #endif
+}
+
 void FilamentSensorBase::factory_parameters() {
   setLogic(FIL_RUNOUT_0, FIL_RUNOUT_0_LOGIC);
   setPullup(FIL_RUNOUT_0, FIL_RUNOUT_0_PULLUP);
@@ -74,6 +92,14 @@ void FilamentSensorBase::factory_parameters() {
       #endif
     #endif
   #endif
+
+  data.flag.enabled = true;
+  data.flag.ran_out = data.flag.host_handling = false;
+
+  #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+    data.runout_distance_mm = FILAMENT_RUNOUT_DISTANCE_MM;
+  #endif
+
 }
 
 void FilamentSensorBase::setup_pullup() {
@@ -120,25 +146,6 @@ void FilamentSensorBase::report() {
   #endif
 }
 
-void FilamentSensorBase::init() {
-  SET_INPUT(FIL_RUNOUT_0_PIN);
-  #if HAS_FIL_RUNOUT_1
-    SET_INPUT(FIL_RUNOUT_1_PIN);
-    #if HAS_FIL_RUNOUT_2
-      SET_INPUT(FIL_RUNOUT_2_PIN);
-      #if HAS_FIL_RUNOUT_3
-        SET_INPUT(FIL_RUNOUT_3_PIN);
-        #if HAS_FIL_RUNOUT_4
-          SET_INPUT(FIL_RUNOUT_4_PIN);
-          #if HAS_FIL_RUNOUT_5
-            SET_INPUT(FIL_RUNOUT_5_PIN);
-          #endif
-        #endif
-      #endif
-    #endif
-  #endif
-}
-
 /**
  * Called by FilamentSensorSwitch::run when filament is detected.
  * Called by FilamentSensorEncoder::block_completed when motion is detected.
@@ -146,5 +153,13 @@ void FilamentSensorBase::init() {
 void FilamentSensorBase::filament_present(const uint8_t extruder) {
   filamentrunout.filament_present(extruder);
 }
+
+#if FILAMENT_RUNOUT_DISTANCE_MM > 0
+
+  void RunoutResponseDelayed::filament_present(const uint8_t extruder) {
+    runout_mm_countdown[extruder] = filamentrunout.runout_distance();
+  }
+
+#endif
 
 #endif // HAS_FILAMENT_SENSOR

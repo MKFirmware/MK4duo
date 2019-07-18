@@ -83,7 +83,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
-  #if BEDS > 0
+  #if HAS_BEDS
     const bool isBed = (act->type == IS_BED);
     #define IFBED(A,B) (isBed ? (A) : (B))
   #else

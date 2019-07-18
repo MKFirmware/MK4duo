@@ -105,7 +105,7 @@ inline void gcode_M43(void) {
 
   // 'S' Run servo probe test and return
   if (parser.seen('S')) {
-    #if ENABLED(BLTOUCH)
+    #if HAS_BLTOUCH
       return bltouch.test();
     #else
       return probe.servo_test();
@@ -188,7 +188,7 @@ inline void gcode_M43(void) {
  */
 inline void gcode_M43(void) {
   if (parser.seen('S')) {
-    #if ENABLED(BLTOUCH)
+    #if HAS_BLTOUCH
       return bltouch.test();
     #else
       return probe.servo_test();

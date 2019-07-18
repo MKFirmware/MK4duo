@@ -27,7 +27,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(BLTOUCH)
+#if HAS_BLTOUCH
 
 #define BLTOUCH_CMD_DEPLOY       10
 #define BLTOUCH_CMD_MODE_SW      60
@@ -103,4 +103,4 @@ class BLTouch {
 
 extern BLTouch bltouch;
 
-#endif // ENABLED(BLTOUCH)
+#endif // HAS_BLTOUCH

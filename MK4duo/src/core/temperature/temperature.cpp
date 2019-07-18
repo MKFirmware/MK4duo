@@ -69,41 +69,41 @@ void Temperature::init() {
   #endif
 
   // Reset Fault for all Heaters
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].ResetFault();
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() beds[h].ResetFault();
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() chambers[h].ResetFault();
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() coolers[h].ResetFault();
   #endif
 }
 
 void Temperature::set_current_temp_raw() {
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       if (WITHIN(hotends[h].data.sensor.pin, 0, 15))
         hotends[h].data.sensor.raw = HAL::AnalogInputValues[hotends[h].data.sensor.pin];
     }
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() {
       if (WITHIN(beds[h].data.sensor.pin, 0, 15))
         beds[h].data.sensor.raw = HAL::AnalogInputValues[beds[h].data.sensor.pin];
     }
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       if (WITHIN(chambers[h].data.sensor.pin, 0, 15))
         chambers[h].data.sensor.raw = HAL::AnalogInputValues[chambers[h].data.sensor.pin];
     }
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       if (WITHIN(coolers[h].data.sensor.pin, 0, 15))
         coolers[h].data.sensor.raw = HAL::AnalogInputValues[coolers[h].data.sensor.pin];
@@ -142,7 +142,7 @@ void Temperature::spin() {
     act->check_and_power();
   }
 
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() {
       Heater *act = &beds[h];
       // Update Current Temperature
@@ -151,7 +151,7 @@ void Temperature::spin() {
     } // LOOP_BED
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       Heater *act = &chambers[h];
       // Update Current Temperature
@@ -160,7 +160,7 @@ void Temperature::spin() {
     } // LOOP_CHAMBER
   #endif
 
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       Heater *act = &coolers[h];
       // Update Current Temperature
@@ -234,25 +234,25 @@ void Temperature::disable_all_heaters() {
     planner.autotemp_enabled = false;
   #endif
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() {
       hotends[h].setTarget(0);
       hotends[h].start_watching();
     }
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() {
       beds[h].setTarget(0);
       beds[h].start_watching();
     }
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() {
       chambers[h].setTarget(0);
       chambers[h].start_watching();
     }
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() {
       coolers[h].setTarget(0);
       coolers[h].start_watching();
@@ -278,16 +278,16 @@ void Temperature::disable_all_heaters() {
  * Check if there are heaters Active
  */
 bool Temperature::heaters_isActive() {
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     LOOP_HOTEND() if (hotends[h].isActive()) return true;
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     LOOP_BED() if (beds[h].isActive()) return true;
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     LOOP_CHAMBER() if (chambers[h].isActive()) return true;
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     LOOP_COOLER() if (coolers[h].isActive()) return true;
   #endif
   return false;
@@ -299,7 +299,7 @@ bool Temperature::heaters_isActive() {
  */
 #define MAX_TEMP_RANGE 10
 
-#if HOTENDS > 0
+#if HAS_HOTENDS
 
   /**
    * Calc min & max temp of all hotends
@@ -318,7 +318,7 @@ bool Temperature::heaters_isActive() {
 
 #endif
 
-#if BEDS > 0
+#if HAS_BEDS
 
   int16_t Temperature::bed_mintemp_all() {
     int16_t mintemp = 9999;
@@ -334,7 +334,7 @@ bool Temperature::heaters_isActive() {
 
 #endif
 
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
 
   int16_t Temperature::chamber_mintemp_all() {
     int16_t mintemp = 9999;
@@ -350,7 +350,7 @@ bool Temperature::heaters_isActive() {
 
 #endif
 
-#if COOLERS > 0
+#if HAS_COOLERS
 
   int16_t Temperature::cooler_mintemp_all() {
     int16_t mintemp = 9999;
@@ -370,7 +370,7 @@ bool Temperature::heaters_isActive() {
 
   void Temperature::getTemperature_SPI() {
 
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       LOOP_HOTEND() {
         Heater *act = &hotends[h];
         if (false) {}
@@ -384,7 +384,7 @@ bool Temperature::heaters_isActive() {
         #endif
       }
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       LOOP_BED() {
         Heater *act = &beds[h];
         if (false) {}
@@ -398,7 +398,7 @@ bool Temperature::heaters_isActive() {
         #endif
       }
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       LOOP_CHAMBER() {
         Heater *act = &chambers[h];
         if (false) {}
@@ -454,22 +454,22 @@ bool Temperature::heaters_isActive() {
 
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     print_heater_state(&hotends[ACTIVE_HOTEND], false, showRaw);
     SERIAL_MV(MSG_AT ":", int(hotends[ACTIVE_HOTEND].pwm_value));
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     print_heater_state(&beds[0], false, showRaw);
     SERIAL_MV(MSG_BAT ":", int(beds[0].pwm_value));
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     print_heater_state(&chambers[0], false, showRaw);
     SERIAL_MV(MSG_CAT ":", int(chambers[0].pwm_value));
   #endif
 
-  #if COOLERS > 0
+  #if HAS_COOLERS
     print_heater_state(&coolers[0], false, showRaw);
     SERIAL_MV(MSG_CAT ":", int(coolers[0].pwm_value));
   #endif
@@ -518,7 +518,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       SERIAL_MV(" C->", mcu_current_temperature_raw);
   #endif
 
-  #if ENABLED(DHT_SENSOR)
+  #if HAS_DHT
     SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 1);
     SERIAL_MV(", Humidity:", dhtsensor.Humidity, 1);
   #endif
@@ -549,15 +549,15 @@ void Temperature::print_heater_state(Heater *act, const bool print_ID, const boo
     }
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     if (act->type == IS_BED) SERIAL_CHR('B');
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     if (act->type == IS_CHAMBER) SERIAL_CHR('C');
   #endif
 
-  #if COOLERS > 0
+  #if HAS_COOLERS
     if (act->type == IS_COOLER) SERIAL_CHR('W');
   #endif
 

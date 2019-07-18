@@ -257,7 +257,7 @@ void Printer::setup() {
     mixer.init();
   #endif
 
-  #if ENABLED(BLTOUCH)
+  #if HAS_BLTOUCH
     bltouch.init(true);
   #endif
 
@@ -372,7 +372,7 @@ void Printer::check_periodical_actions() {
     #endif
   }
 
-  #if FAN_COUNT > 0
+  #if HAS_FANS
     LOOP_FAN() fans[f].spin();
   #endif
 
@@ -563,7 +563,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     thermalManager.getTemperature_SPI();
   #endif
 
-  #if ENABLED(DHT_SENSOR)
+  #if HAS_DHT
     dhtsensor.spin();
   #endif
 
@@ -901,14 +901,14 @@ void Printer::handle_interrupt_events() {
 
         const char tool = '0' + tools.extruder.active;
 
-        filamentrunout.setFilamentOut(true);
+        filamentrunout.sensor.setFilamentOut(true);
         host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action.prompt_begin(PSTR("Filament Runout T"), false);
         SERIAL_CHR(tool);
         SERIAL_EOL();
         host_action.prompt_show();
 
-        const bool run_runout_script = !filamentrunout.isHostHandling();
+        const bool run_runout_script = !filamentrunout.sensor.isHostHandling();
 
         if (run_runout_script
           && ( strstr(FILAMENT_RUNOUT_SCRIPT, "M600")
@@ -1044,16 +1044,18 @@ void Printer::handle_safety_watch() {
     // Update every 0.5s
     if (expired(&next_status_led_update_ms, 500U)) {
       float max_temp = 0.0;
-      #if CHAMBERS > 0
+      #if HAS_CHAMBERS
         LOOP_CHAMBER()
           max_temp = MAX(max_temp, chambers[h].target_temperature, chambers[h].current_temperature);
       #endif
-      #if BEDS > 0
+      #if HAS_BEDS
         LOOP_BED()
           max_temp = MAX(max_temp, beds[h].target_temperature, beds[h].current_temperature);
       #endif
-      LOOP_HOTEND()
-        max_temp = MAX(max_temp, hotends[h].current_temperature, hotends[h].target_temperature);
+      #if HAS_HOTENDS
+        LOOP_HOTEND()
+          max_temp = MAX(max_temp, hotends[h].current_temperature, hotends[h].target_temperature);
+      #endif
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {
         red_led = new_led;

@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#if HEATER_COUNT > 0
+#if HAS_HEATER
 
 /**
  * heater.h - heater object
@@ -213,4 +213,4 @@ extern Heater beds[BEDS];
 extern Heater chambers[CHAMBERS];
 extern Heater coolers[COOLERS];
 
-#endif // HEATER_COUNT > 0
+#endif // HAS_HEATER

@@ -40,12 +40,12 @@ void menu_tmc();
   }
 #endif
 
+#if FILAMENT_RUNOUT_DISTANCE_MM > 0
+  float lcd_runout_distance_mm;
+#endif
+
 #if ENABLED(VOLUMETRIC_EXTRUSION)
-  bool lcd_volumetric_enabled = printer.isVolumetric();
-  void lcd_set_volumetric() {
-    printer.setVolumetric(lcd_volumetric_enabled);
-    tools.calculate_volumetric_multipliers;
-  }
+  bool lcd_volumetric_enabled;
 #endif
 
 #if ENABLED(VOLUMETRIC_EXTRUSION) || ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -62,8 +62,10 @@ void menu_tmc();
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
 
-      lcd_volumetric_enabled = printer.isVolumetric();
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &lcd_volumetric_enabled, lcd_set_volumetric);
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_VOLUMETRIC_ENABLED, &lcd_volumetric_enabled, []{
+        printer.setVolumetric(lcd_volumetric_enabled);
+        tools.calculate_volumetric_multipliers;
+      });
 
       if (printer.isVolumetric()) {
         #if EXTRUDERS == 1
@@ -139,6 +141,12 @@ void menu_tmc();
       #endif // EXTRUDERS > 1
     #endif
 
+    #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+      MENU_ITEM_EDIT_CALLBACK(float3, MSG_RUNOUT_DISTANCE_MM, &lcd_runout_distance_mm, 1, 30, []{
+        filamentrunout.set_runout_distance(lcd_runout_distance_mm);
+      });
+    #endif
+
     END_MENU();
 
   }
@@ -151,17 +159,17 @@ void menu_tmc();
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     int16_t autotune_temp[HOTENDS]          = ARRAY_BY_HOTENDS(200);
   #endif
-  #if BEDS > 0
+  #if HAS_BEDS
     int16_t autotune_temp_bed[BEDS]         = ARRAY_BY_BEDS(60);
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     int16_t autotune_temp_chamber[CHAMBERS] = ARRAY_BY_CHAMBERS(60);
   #endif
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     void _lcd_autotune(const int8_t h) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h, autotune_temp[h]);
@@ -169,7 +177,7 @@ void menu_tmc();
     }
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     void _lcd_autotune_bed(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), t, autotune_temp_bed[t]);
@@ -177,7 +185,7 @@ void menu_tmc();
     }
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     void _lcd_autotune_chamber(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chamber[t]);
@@ -193,19 +201,19 @@ void menu_tmc();
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     #define DEFINE_PIDTEMP_FUNCS(N)             \
       _DEFINE_PIDTEMP_BASE_FUNCS(N);            \
       void lcd_autotune_callback_H ## N()       { _lcd_autotune(N); }
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     #define DEFINE_PIDBED_FUNCS(N)              \
       _DEFINE_BED_PIDTEMP_BASE_FUNCS(N);        \
       void lcd_autotune_callback_BED ## N()     { _lcd_autotune_bed(N); }
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     #define DEFINE_PIDCHAMBER_FUNCS(N)          \
       _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N);    \
       void lcd_autotune_callback_CHAMBER ## N() { _lcd_autotune_chamber(N); }
@@ -213,21 +221,21 @@ void menu_tmc();
 
 #else
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     #define DEFINE_PIDTEMP_FUNCS(N)             _DEFINE_PIDTEMP_BASE_FUNCS(N)
   #endif
 
-  #if BEDS > 0
+  #if HAS_BEDS
     #define DEFINE_PIDBED_FUNCS(N)              _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)
   #endif
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     #define DEFINE_PIDCHAMBER_FUNCS(N)          _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N)
   #endif
 
 #endif
 
-#if HOTENDS > 0
+#if HAS_HOTENDS
   DEFINE_PIDTEMP_FUNCS(0);
   #if HOTENDS > 1
     DEFINE_PIDTEMP_FUNCS(1);
@@ -244,9 +252,9 @@ void menu_tmc();
       #endif // HOTENDS > 3
     #endif // HOTENDS > 2
   #endif // HOTENDS > 1
-#endif // HOTENDS > 0
+#endif // HAS_HOTENDS
 
-#if BEDS > 0
+#if HAS_BEDS
   DEFINE_PIDBED_FUNCS(0);
   #if BEDS > 1
     DEFINE_PIDBED_FUNCS(1);
@@ -257,9 +265,9 @@ void menu_tmc();
       #endif // BEDS > 3
     #endif // BEDS > 2
   #endif // BEDS > 1
-#endif // BEDS > 0
+#endif // HAS_BEDS
 
-#if CHAMBERS > 0
+#if HAS_CHAMBERS
   DEFINE_PIDCHAMBER_FUNCS(0);
   #if CHAMBERS > 1
     DEFINE_PIDCHAMBER_FUNCS(1);
@@ -270,7 +278,7 @@ void menu_tmc();
       #endif // CHAMBERS > 3
     #endif // CHAMBERS > 2
   #endif // CHAMBERS > 1
-#endif // CHAMBERS > 0
+#endif // HAS_CHAMBERS
 
 //
 // Advanced Settings > Temperature
@@ -324,28 +332,28 @@ void menu_advanced_temperature() {
       _PID_MENU_ITEMS(HLABEL, hindex); \
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex].data.maxtemp - 10, lcd_autotune_callback_H ## hindex)
 
-    #if BEDS > 0
+    #if HAS_BEDS
       #define PID_BED_MENU_ITEMS(HLABEL, hindex)  \
         _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex); \
         MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex].data.maxtemp - 10, lcd_autotune_callback_BED ## hindex)
     #endif
 
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  \
         _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex); \
         MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.maxtemp - 10, lcd_autotune_callback_CHAMBER ## hindex)
     #endif
   #else
     #define PID_MENU_ITEMS(HLABEL, hindex)            _PID_MENU_ITEMS(HLABEL, hindex)
-    #if BEDS > 0
+    #if HAS_BEDS
       #define PID_BED_MENU_ITEMS(HLABEL, hindex)      _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
-    #if CHAMBERS > 0
+    #if HAS_CHAMBERS
       #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
   #endif
 
-  #if HOTENDS > 0
+  #if HAS_HOTENDS
     if (hotends[0].isUsePid()) { PID_MENU_ITEMS(MSG_H0, 0); }
     #if HOTENDS > 1
       if (hotends[1].isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
@@ -362,9 +370,9 @@ void menu_advanced_temperature() {
         #endif // HOTENDS > 3
       #endif // HOTENDS > 2
     #endif // HOTENDS > 1
-  #endif // HOTENDS > 0
+  #endif // HAS_HOTENDS
 
-  #if BEDS > 0
+  #if HAS_BEDS
     if (beds[0].isUsePid()) { PID_BED_MENU_ITEMS("", 0); }
     #if BEDS > 1
       if (beds[1].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H1, 1); }
@@ -375,9 +383,9 @@ void menu_advanced_temperature() {
         #endif // BEDS > 3
       #endif // BEDS > 2
     #endif // BEDS > 1
-  #endif // BEDS > 0
+  #endif // HAS_BEDS
 
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     if (chambers[0].isUsePid()) { PID_CHAMBER_MENU_ITEMS("", 0); }
     #if CHAMBERS > 1
       if (chambers[1].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H1, 1); }
@@ -388,7 +396,7 @@ void menu_advanced_temperature() {
         #endif // CHAMBERS > 3
       #endif // CHAMBERS > 2
     #endif // CHAMBERS > 1
-  #endif // CHAMBERS > 0
+  #endif // HAS_CHAMBERS
 
   END_MENU();
 
@@ -668,6 +676,15 @@ void menu_advanced_temperature() {
 #endif // !SLIM_LCD_MENUS
 
 void menu_advanced_settings() {
+
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    lcd_volumetric_enabled = printer.isVolumetric();
+  #endif
+
+  #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+    lcd_runout_distance_mm = filamentrunout.runout_distance();
+  #endif
+
   START_MENU();
   MENU_BACK(MSG_CONFIGURATION);
 

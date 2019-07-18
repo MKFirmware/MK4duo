@@ -68,14 +68,14 @@ typedef struct {
 union flaglevel_t {
   uint8_t all;
   struct {
-    bool  leveling_active : 1;
-    bool  g26_debug       : 1;
-    bool  g29_in_progress : 1;
-    bool  bit3            : 1;
-    bool  bit4            : 1;
-    bool  bit5            : 1;
-    bool  bit6            : 1;
-    bool  bit7            : 1;
+    bool  leveling_active   : 1;
+    bool  leveling_previous : 1;
+    bool  g26_debug         : 1;
+    bool  g29_in_progress   : 1;
+    bool  bit4              : 1;
+    bool  bit5              : 1;
+    bool  bit6              : 1;
+    bool  bit7              : 1;
   };
   flaglevel_t() { all = 0x00; }
 };
@@ -122,6 +122,8 @@ class Bedlevel {
     static bool leveling_is_valid();
     static void set_bed_leveling_enabled(const bool enable=true);
     static void reset();
+
+    FORCE_INLINE static void restore_bed_leveling_state() { set_bed_leveling_enabled(flag.leveling_previous); }
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
 
@@ -173,7 +175,7 @@ class Bedlevel {
 
     #endif
 
-    #if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+    #if ENABLED(MESH_BED_LEVELING) || HAS_PROBE_MANUALLY
       /**
        * Manual goto xy for Mesh Bed level or Probe Manually
        */

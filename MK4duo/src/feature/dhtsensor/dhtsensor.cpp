@@ -28,7 +28,7 @@
 
 #include "../../../MK4duo.h"
 
-#if ENABLED(DHT_SENSOR)
+#if HAS_DHT
 
 #define DHT_TIMEOUT -1
 
@@ -257,4 +257,4 @@ float DHTSensor::read_humidity() {
   return f;
 }
 
-#endif // ENABLED(DHT_SENSOR)
+#endif // HAS_DHT

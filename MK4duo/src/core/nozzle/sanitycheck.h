@@ -19,40 +19,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * mcode
+ * sanitycheck.h
  *
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * Test configuration values for errors at compile-time.
  */
-
-#define CODE_M999
-
-/**
- * M999: Restart after being stopped
- *
- * Default behaviour is to flush the serial buffer and request
- * a resend to the host starting on the last N line received.
- *
- * Sending "M999 S1" will resume printing without flushing the
- * existing command buffer.
- *
- */
-inline void gcode_M999(void) {
-  printer.setRunning(true);
-  lcdui.reset_alert_level();
-
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].ResetFault();
-  #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].ResetFault();
-  #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].ResetFault();
-  #endif
-
-  if (parser.boolval('S')) return;
-
-  commands.flush_and_request_resend();
-}

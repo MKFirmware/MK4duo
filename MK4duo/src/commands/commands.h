@@ -160,7 +160,7 @@ class Commands {
       static bool get_target_driver(const uint16_t code);
     #endif
 
-    #if FAN_COUNT > 0
+    #if HAS_FANS
       /**
        * Set target fan from the P parameter
        *

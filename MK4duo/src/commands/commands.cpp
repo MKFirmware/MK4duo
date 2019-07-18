@@ -236,19 +236,25 @@ bool Commands::get_target_tool(const uint16_t code) {
 }
 
 Heater* Commands::get_target_heater() {
+
   const int8_t h = parser.intval('H');
-  if (WITHIN(h, 0 , HOTENDS - 1)) return &hotends[h];
+
+  #if HAS_HOTENDS
+    if (WITHIN(h, 0 , HOTENDS - 1)) return &hotends[h];
+  #endif
 
   const uint8_t t = parser.byteval('T');
-  #if BEDS > 0
+
+  #if HAS_BEDS
     if (h == -1 && WITHIN(t, 0 , BEDS - 1)) return &beds[t];
   #endif
-  #if CHAMBERS > 0
+  #if HAS_CHAMBERS
     if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
   #endif
-  #if COOLERS > 0
+  #if HAS_COOLERS
     if (h == -3 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
   #endif
+
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return nullptr;
 
@@ -272,7 +278,7 @@ Heater* Commands::get_target_heater() {
   }
 #endif
 
-#if FAN_COUNT > 0
+#if HAS_FANS
   bool Commands::get_target_fan(uint8_t &f) {
     f = parser.seen('P') ? parser.value_byte() : 0;
     if (WITHIN(f, 0 , FAN_COUNT - 1)) return true;

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_LCD_MENU && HEATER_COUNT > 0
+#if HAS_LCD_MENU && HAS_HEATER
 
 #define CODE_M145
 
@@ -45,13 +45,13 @@ inline void gcode_M145(void) {
   }
   else {
     int v;
-    #if HOTENDS > 0
+    #if HAS_HOTENDS
       if (parser.seenval('H')) {
         v = parser.value_int();
         lcdui.preheat_hotend_temp[material] = constrain(v, thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
       }
     #endif
-    #if BEDS > 0
+    #if HAS_BEDS
       if (parser.seenval('B')) {
         v = parser.value_int();
         lcdui.preheat_bed_temp[material] = constrain(v, thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
@@ -63,7 +63,7 @@ inline void gcode_M145(void) {
         lcdui.preheat_chamber_temp[material] = constrain(v, thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
       }
     #endif
-    #if FAN_COUNT > 0
+    #if HAS_FANS
       if (parser.seenval('F')) {
         v = parser.value_int();
         lcdui.preheat_fan_speed[material] = constrain(v, 0, 255);
@@ -72,4 +72,4 @@ inline void gcode_M145(void) {
   }
 }
 
-#endif
+#endif // HAS_LCD_MENU && HAS_HEATER
