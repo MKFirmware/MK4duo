@@ -62,7 +62,7 @@ void Fan::set_speed(const uint8_t new_speed) {
 }
 
 void Fan::set_auto_monitor(const int8_t h) {
-  if (WITHIN(h, 0, HOTENDS - 1) || h == 7)
+  if (WITHIN(h, 0, HOTENDS - 1) || h == 6 || h == 7)
     SBI(data.auto_monitor, (uint8_t)h);
   else if (h == -1)
     data.auto_monitor = 0;
