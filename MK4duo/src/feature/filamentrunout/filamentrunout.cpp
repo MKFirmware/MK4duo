@@ -21,7 +21,7 @@
  */
 
 /**
- * filrunout.cpp
+ * filamentrunout.cpp
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
@@ -33,7 +33,6 @@
 FilamentRunout filamentrunout;
 
 /** Public Parameters */
-//filament_flag_t FilamentRunoutBase::flag;
 filament_data_t FilamentSensorBase::data;
 
 #if FILAMENT_RUNOUT_DISTANCE_MM > 0

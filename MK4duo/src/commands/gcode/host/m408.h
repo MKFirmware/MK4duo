@@ -87,31 +87,31 @@
 
     SERIAL_MSG("\"temps\": {");
     #if HAS_BEDS
-      SERIAL_MV("\"bed\": {\"current\":", beds[0].current_temperature, 1);
-      SERIAL_MV(",\"active\":", beds[0].target_temperature);
+      SERIAL_MV("\"bed\": {\"current\":", beds[0].deg_current(), 1);
+      SERIAL_MV(",\"active\":", beds[0].deg_target());
       SERIAL_MSG(",\"state\":");
-      SERIAL_CHR(beds[0].target_temperature > 0 ? '2' : '1');
+      SERIAL_CHR(beds[0].deg_target() > 0 ? '2' : '1');
       SERIAL_MSG("},");
     #endif
     SERIAL_MSG("\"heads\": {\"current\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(hotends[h].current_temperature, 1);
+      SERIAL_VAL(hotends[h].deg_current(), 1);
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"active\":[");
     firstOccurrence = true;
     LOOP_HOTEND() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(hotends[h].target_temperature);
+      SERIAL_VAL(hotends[h].deg_target());
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"state\":[");
     firstOccurrence = true;
     LOOP_HOTEND() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_CHR(hotends[h].target_temperature > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
+      SERIAL_CHR(hotends[h].deg_target() > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
       firstOccurrence = false;
     }
 

@@ -62,21 +62,13 @@ class Delta_Mechanics : public Mechanics {
 
   private: /** Private Parameters */
 
-    static float  delta_diagonal_rod_2[ABC],
+    static float  D2[ABC],
                   towerX[ABC],
                   towerY[ABC],
-                  Xbc,
-                  Xca,
-                  Xab,
-                  Ybc,
-                  Yca,
-                  Yab,
-                  coreFa,
-                  coreFb,
-                  coreFc,
-                  Q,
-                  Q2,
-                  D2;
+                  Xbc, Xca, Xab,
+                  Ybc, Yca, Yab,
+                  coreKa, coreKb, coreKc,
+                  Q, Q2;
 
   public: /** Public Function */
 

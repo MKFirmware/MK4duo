@@ -46,7 +46,7 @@
   float FWRetract::current_retract[EXTRUDERS],      // Retract value used by planner
         FWRetract::current_hop;
 
-  void FWRetract::reset() {
+  void FWRetract::factory_parameters() {
     autoretract_enabled                     = false;
     data.retract_length                     = RETRACT_LENGTH;
     data.retract_feedrate_mm_s              = RETRACT_FEEDRATE;

@@ -403,42 +403,30 @@ void TMC_Stepper::init() {
 // Use internal reference voltage for current calculations. This is the default.
 // Following values from Trinamic's spreadsheet with values for a NEMA17 (42BYGHW609)
 // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
-void TMC_Stepper::current_init_to_defaults() {
+void TMC_Stepper::factory_parameters() {
+
   constexpr uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
-                                                          E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT };
-
-  LOOP_TMC() {
-    MKTMC* st = tmc.driver_by_index(t);
-    if (st) st->rms_current(tmc_stepper_current[t]);
-  }
-}
-
-void TMC_Stepper::microstep_init_to_defaults() {
-  constexpr uint16_t tmc_stepper_microstep[TMC_AXIS]  = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS,
+                                                          E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
+                      tmc_stepper_microstep[TMC_AXIS] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS,
                                                           E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
 
+  constexpr uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                          X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                          E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                          E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+
   LOOP_TMC() {
     MKTMC* st = tmc.driver_by_index(t);
-    if (st) st->microsteps(tmc_stepper_microstep[t]);
-  }
-}
-
-#if ENABLED(HYBRID_THRESHOLD)
-
-  void TMC_Stepper::hybrid_threshold_init_to_defaults() {
-    constexpr uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                            X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                            E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                            E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
-
-    LOOP_TMC() {
-      MKTMC* st = tmc.driver_by_index(t);
-      if (st)
+    if (st) {
+      st->rms_current(tmc_stepper_current[t]);
+      st->microsteps(tmc_stepper_microstep[t]);
+      #if ENABLED(HYBRID_THRESHOLD)
         st->set_pwm_thrs(tmc_hybrid_threshold[t]);
+      #endif
     }
   }
 
-#endif
+}
 
 void TMC_Stepper::restore() {
   LOOP_TMC() {

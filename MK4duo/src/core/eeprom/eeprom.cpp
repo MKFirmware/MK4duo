@@ -320,28 +320,16 @@ void EEPROM::post_process() {
   #endif
 
   #if HAS_HOTENDS
-    LOOP_HOTEND() {
-      hotends[h].init();
-      hotends[h].data.pid.update();
-    }
+    LOOP_HOTEND() hotends[h].init();
   #endif
   #if HAS_BEDS
-    LOOP_BED() {
-      beds[h].init();
-      beds[h].data.pid.update();
-    }
+    LOOP_BED() beds[h].init();
   #endif
   #if HAS_CHAMBERS
-    LOOP_CHAMBER() {
-      chambers[h].init();
-      chambers[h].data.pid.update();
-    }
+    LOOP_CHAMBER() chambers[h].init();
   #endif
   #if HAS_COOLERS
-    LOOP_COOLER() {
-      coolers[h].init();
-      coolers[h].data.pid.update();
-    }
+    LOOP_COOLER() coolers[h].init();
   #endif
 
   #if HAS_DHT
@@ -349,12 +337,7 @@ void EEPROM::post_process() {
   #endif
 
   #if HAS_FANS
-    LOOP_FAN() {
-      fans[f].init();
-      #if ENABLED(TACHOMETRIC)
-        fans[f].data.tacho.init(f);
-      #endif
-    }
+    LOOP_FAN() fans[f].init();
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -1327,17 +1310,14 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    constexpr uint16_t tmp1[] = { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT };
-    for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-      externaldac.motor_current[i] = tmp1[ALIM(i, tmp1)];
-  #endif
-
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
 
   // Call Stepper Factory parameters
   stepper.factory_parameters();
+
+  // Call Planner Factory parameters
+  planner.factory_parameters();
 
   // Call Endstop Factory parameters
   endstops.factory_parameters();
@@ -1348,332 +1328,41 @@ void EEPROM::reset() {
   // Call Nozzle Factory parameters
   nozzle.factory_parameters();
 
+  // Call Temperature Factory parameters
+  thermalManager.factory_parameters();
+
   // Call Printer Factory parameters
   printer.factory_parameters();
 
   // Call Sound Factory parameters
   sound.factory_parameters();
 
-  #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    bedlevel.z_fade_height = 0.0f;
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    externaldac.factory_parameters();
+  #endif
+
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    advancedpause.factory_parameters();
   #endif
 
   #if HAS_LEVELING
-    bedlevel.reset();
+    bedlevel.factory_parameters();
   #endif
 
   #if HAS_BED_PROBE
-    // Call Probe Factory parameters
     probe.factory_parameters();
   #endif
 
-  #if HAS_LCD_MENU
-    #if HAS_HOTENDS
-      lcdui.preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
-      lcdui.preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
-      lcdui.preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
-    #endif
-    #if HAS_BEDS
-      lcdui.preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
-      lcdui.preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
-      lcdui.preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
-    #endif
-    #if HAS_CHAMBERS
-      lcdui.preheat_chamber_temp[0] = PREHEAT_1_TEMP_CHAMBER;
-      lcdui.preheat_chamber_temp[1] = PREHEAT_2_TEMP_CHAMBER;
-      lcdui.preheat_chamber_temp[2] = PREHEAT_3_TEMP_CHAMBER;
-    #endif
-    #if HAS_FANS
-      lcdui.preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
-      lcdui.preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
-      lcdui.preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
-    #endif
-  #endif
-
-  #if HAS_LCD_CONTRAST
-    lcdui.contrast = DEFAULT_LCD_CONTRAST;
+  #if HAS_LCD
+    lcdui.factory_parameters();
   #endif
 
   #if HAS_SD_RESTART
-    restart.enable(true);
+    restart.factory_parameters();
   #endif
 
-  #if HAS_SERVOS
-
-    #if HAS_DONDOLO
-      servo[DONDOLO_SERVO_INDEX].angle[0] = DONDOLO_SERVOPOS_E0;
-      servo[DONDOLO_SERVO_INDEX].angle[1] = DONDOLO_SERVOPOS_E1;
-    #endif
-
-    #if HAS_Z_SERVO_PROBE
-      constexpr uint8_t z_probe_angles[2] = Z_SERVO_ANGLES;
-      servo[Z_PROBE_SERVO_NR].angle[0] = z_probe_angles[0];
-      servo[Z_PROBE_SERVO_NR].angle[1] = z_probe_angles[1];
-    #endif
-
-  #endif
-
-  //
-  // BLTOUCH
-  //
   #if HAS_BLTOUCH
-    bltouch.last_mode = false;
-  #endif
-
-  // Heaters
-  #if HAS_HEATER
-
-    Heater        *heat;
-    pid_data_t    *pid;
-    sensor_data_t *sens;
-
-    #if HAS_HOTENDS
-
-      constexpr float   HEKp[]    = HOTEND_Kp,
-                        HEKi[]    = HOTEND_Ki,
-                        HEKd[]    = HOTEND_Kd,
-                        HEKc[]    = HOTEND_Kc;
-      constexpr pin_t   HE_pin[]  = { HEATER_HE0_PIN, HEATER_HE1_PIN, HEATER_HE2_PIN, HEATER_HE3_PIN, HEATER_HE4_PIN, HEATER_HE5_PIN },
-                        SE_pin[]  = { TEMP_HE0_PIN, TEMP_HE1_PIN, TEMP_HE2_PIN, TEMP_HE3_PIN, TEMP_HE4_PIN, TEMP_HE5_PIN };
-      constexpr int16_t HE_min[]  = { HOTEND_0_MINTEMP, HOTEND_1_MINTEMP, HOTEND_2_MINTEMP, HOTEND_3_MINTEMP, HOTEND_4_MINTEMP, HOTEND_5_MINTEMP },
-                        HE_max[]  = { HOTEND_0_MAXTEMP, HOTEND_1_MAXTEMP, HOTEND_2_MAXTEMP, HOTEND_3_MAXTEMP, HOTEND_4_MAXTEMP, HOTEND_5_MAXTEMP },
-                        SE_type[] = { TEMP_SENSOR_HE0, TEMP_SENSOR_HE1, TEMP_SENSOR_HE2, TEMP_SENSOR_HE3, TEMP_SENSOR_HE4, TEMP_SENSOR_HE5 };
-
-      LOOP_HOTEND() {
-        heat                  = &hotends[h];
-        sens                  = &heat->data.sensor;
-        pid                   = &heat->data.pid;
-        heat->data.pin        = HE_pin[h];
-        heat->data.ID         = h;
-        heat->data.mintemp    = HE_min[h];
-        heat->data.maxtemp    = HE_max[h];
-        heat->data.freq       = HOTEND_PWM_FREQUENCY;
-        // Pid
-        pid->Kp               = HEKp[ALIM(h, HEKp)];
-        pid->Ki               = HEKi[ALIM(h, HEKi)];
-        pid->Kd               = HEKd[ALIM(h, HEKd)];
-        pid->Kc               = HEKc[ALIM(h, HEKc)];
-        pid->DriveMin         = PID_DRIVE_MIN;
-        pid->DriveMax         = PID_DRIVE_MAX;
-        pid->Max              = PID_MAX;
-        // Sensor
-        sens->pin             = SE_pin[h];
-        sens->type            = SE_type[h];
-        sens->res_25          = HOT0_R25;
-        sens->beta            = HOT0_BETA;
-        sens->pullup_res      = THERMISTOR_SERIES_RS;
-        sens->shC             = 0;
-        sens->adcLowOffset    = 0;
-        sens->adcHighOffset   = 0;
-        #if HAS_AD8495 || HAS_AD595
-          sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-          sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-        #endif
-        heat->resetFlag();
-        heat->setUsePid(PIDTEMP);
-        heat->setHWinvert(INVERTED_HEATER_PINS);
-        heat->setHWpwm(HARDWARE_PWM);
-        heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
-        #if HAS_EEPROM
-          heat->setPidTuned(false);
-        #else
-          heat->setPidTuned(true);
-        #endif
-      }
-
-    #endif // HAS_HOTENDS
-
-    #if HAS_BEDS
-
-      constexpr float   BEDKp[]   = BED_Kp,
-                        BEDKi[]   = BED_Ki,
-                        BEDKd[]   = BED_Kd;
-      constexpr pin_t   BE_pin[]  = { HEATER_BED0_PIN, HEATER_BED1_PIN, HEATER_BED2_PIN, HEATER_BED3_PIN },
-                        SB_pin[]  = { TEMP_BED0_PIN, TEMP_BED1_PIN, TEMP_BED2_PIN, TEMP_BED3_PIN };
-      constexpr int16_t BE_type[] = { TEMP_SENSOR_BED0, TEMP_SENSOR_BED1, TEMP_SENSOR_BED2, TEMP_SENSOR_BED3 };
-
-
-      LOOP_BED() {
-        heat                  = &beds[h];
-        sens                  = &heat->data.sensor;
-        pid                   = &heat->data.pid;
-        heat->data.pin        = BE_pin[h];
-        heat->data.ID         = h;
-        heat->data.mintemp    = BED_MINTEMP;
-        heat->data.maxtemp    = BED_MAXTEMP;
-        heat->data.freq       = BED_PWM_FREQUENCY;
-        // Pid
-        pid->Kp               = BEDKp[ALIM(h, BEDKp)];
-        pid->Ki               = BEDKi[ALIM(h, BEDKi)];
-        pid->Kd               = BEDKd[ALIM(h, BEDKd)];
-        pid->DriveMin         = BED_PID_DRIVE_MIN;
-        pid->DriveMax         = BED_PID_DRIVE_MAX;
-        pid->Max              = BED_PID_MAX;
-        // Sensor
-        sens->pin             = SB_pin[h];
-        sens->type            = BE_type[h];
-        sens->res_25          = BED0_R25;
-        sens->beta            = BED0_BETA;
-        sens->pullup_res      = THERMISTOR_SERIES_RS;
-        sens->shC             = 0;
-        sens->adcLowOffset    = 0;
-        sens->adcHighOffset   = 0;
-        #if HAS_AD8495 || HAS_AD595
-          sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-          sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-        #endif
-        heat->resetFlag();
-        heat->setUsePid(PIDTEMPBED);
-        heat->setHWinvert(INVERTED_BED_PIN);
-        heat->setHWpwm(HARDWARE_PWM);
-        heat->setThermalProtection(THERMAL_PROTECTION_BED);
-        #if HAS_EEPROM
-          heat->setPidTuned(false);
-        #else
-          heat->setPidTuned(true);
-        #endif
-      }
-
-    #endif // HAS_BEDS
-
-    #if HAS_CHAMBERS
-
-      constexpr float   CHAMBERKp[] = CHAMBER_Kp,
-                        CHAMBERKi[] = CHAMBER_Ki,
-                        CHAMBERKd[] = CHAMBER_Kd;
-      constexpr pin_t   CH_pin[]    = { HEATER_CHAMBER0_PIN, HEATER_CHAMBER1_PIN, HEATER_CHAMBER2_PIN, HEATER_CHAMBER3_PIN },
-                        SCH_pin[]   = { TEMP_CHAMBER0_PIN, TEMP_CHAMBER1_PIN, TEMP_CHAMBER2_PIN, TEMP_CHAMBER3_PIN };
-      constexpr int16_t CH_type[]   = { TEMP_SENSOR_CHAMBER0, TEMP_SENSOR_CHAMBER1, TEMP_SENSOR_CHAMBER2, TEMP_SENSOR_CHAMBER3 };
-
-      LOOP_CHAMBER() {
-        heat                  = &chambers[h];
-        sens                  = &heat->data.sensor;
-        pid                   = &heat->data.pid;
-        heat->data.pin        = CH_pin[h];
-        heat->data.ID         = h;
-        heat->data.mintemp    = CHAMBER_MINTEMP;
-        heat->data.maxtemp    = CHAMBER_MAXTEMP;
-        heat->data.freq       = CHAMBER_PWM_FREQUENCY;
-        // Pid
-        pid->Kp               = CHAMBERKp[ALIM(h, CHAMBERKp)];
-        pid->Ki               = CHAMBERKi[ALIM(h, CHAMBERKi)];
-        pid->Kd               = CHAMBERKd[ALIM(h, CHAMBERKd)];
-        pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
-        pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
-        pid->Max              = CHAMBER_PID_MAX;
-        // Sensor
-        sens->pin             = SCH_pin[h];
-        sens->type            = CH_type[h];
-        sens->res_25          = CHAMBER0_R25;
-        sens->beta            = CHAMBER0_BETA;
-        sens->pullup_res      = THERMISTOR_SERIES_RS;
-        sens->shC             = 0;
-        sens->adcLowOffset    = 0;
-        sens->adcHighOffset   = 0;
-        #if HAS_AD8495 || HAS_AD595
-          sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-          sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-        #endif
-        heat->resetFlag();
-        heat->setUsePid(PIDTEMPCHAMBER);
-        heat->setHWinvert(INVERTED_CHAMBER_PIN);
-        heat->setHWpwm(HARDWARE_PWM);
-        heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
-        #if HAS_EEPROM
-          heat->setPidTuned(false);
-        #else
-          heat->setPidTuned(true);
-        #endif
-      }
-
-    #endif // HAS_CHAMBERS
-
-    #if HAS_COOLERS
-
-      heat                  = &coolers[0];
-      sens                  = &heat->data.sensor;
-      pid                   = &heat->data.pid;
-      heat->data.pin        = HEATER_COOLER_PIN;
-      heat->data.ID         = 0;
-      heat->data.mintemp    = COOLER_MINTEMP;
-      heat->data.maxtemp    = COOLER_MAXTEMP;
-      heat->data.freq       = COOLER_PWM_FREQUENCY;
-      // Pid
-      pid->Kp               = COOLER_Kp;
-      pid->Ki               = COOLER_Ki;
-      pid->Kd               = COOLER_Kd;
-      pid->DriveMin         = COOLER_PID_DRIVE_MIN;
-      pid->DriveMax         = COOLER_PID_DRIVE_MAX;
-      pid->Max              = COOLER_PID_MAX;
-      // Sensor
-      sens->pin             = TEMP_COOLER_PIN;
-      sens->type            = TEMP_SENSOR_COOLER;
-      sens->res_25          = COOLER_R25;
-      sens->beta            = COOLER_BETA;
-      sens->pullup_res      = THERMISTOR_SERIES_RS;
-      sens->shC             = 0;
-      sens->adcLowOffset    = 0;
-      sens->adcHighOffset   = 0;
-      #if HAS_AD8495 || HAS_AD595
-        sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-      #endif
-      heat->resetFlag();
-      heat->setUsePid(PIDTEMPCOOLER);
-      heat->setHWinvert(INVERTED_COOLER_PIN);
-      heat->setHWpwm(HARDWARE_PWM);
-      heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
-      #if HAS_EEPROM
-        heat->setPidTuned(false);
-      #else
-        heat->setPidTuned(true);
-      #endif
-
-    #endif // HAS_CHAMBERS
-
-  #endif // HAS_HEATER
-
-  // Fans && Tachometric
-  #if HAS_FANS
-
-    constexpr pin_t   fanCh[]   = FANS_CHANNELS;
-    constexpr int8_t  fanAuto[] = AUTO_FAN;
-
-    #if ENABLED(TACHOMETRIC)
-      constexpr pin_t tacho_temp_pin[] = { TACHO0_PIN, TACHO1_PIN, TACHO2_PIN, TACHO3_PIN, TACHO4_PIN, TACHO5_PIN };
-    #endif
-
-    Fan *fan;
-    fan_data_t *fdata;
-
-    LOOP_FAN() {
-      fan   = &fans[f];
-      fdata = &fan->data;
-      fdata->ID                   = f;
-      fdata->pin                  = fanCh[f];
-      fdata->min_speed            = FAN_MIN_PWM;
-      fdata->max_speed            = FAN_MAX_PWM;
-      fdata->freq                 = FAN_PWM_FREQUENCY;
-      fdata->trigger_temperature  = HOTEND_AUTO_FAN_TEMPERATURE;
-      fdata->auto_monitor         = 0;
-      fdata->flag.all             = false;
-      fan->set_auto_monitor(fanAuto[f]);
-      fan->setHWinvert(FAN_INVERTED);
-      #if ENABLED(TACHOMETRIC)
-        fdata->tacho.pin          = tacho_temp_pin[f];
-      #endif
-      LOOP_HOTEND() {
-        if (TEST(fdata->auto_monitor, h)) {
-          fdata->min_speed        = HOTEND_AUTO_FAN_MIN_SPEED;
-          fdata->max_speed        = HOTEND_AUTO_FAN_SPEED;
-        }
-      }
-      if (TEST(fdata->auto_monitor, 7)) {
-        fdata->min_speed          = CONTROLLERFAN_MIN_SPEED;
-        fdata->max_speed          = CONTROLLERFAN_SPEED;
-      }
-    }
-
+    bltouch.factory_parameters();
   #endif
 
   #if HAS_FILAMENT_SENSOR
@@ -1689,47 +1378,18 @@ void EEPROM::reset() {
   #endif
 
   #if ENABLED(FWRETRACT)
-    fwretract.reset();
+    fwretract.factory_parameters();
   #endif
 
   #if ENABLED(HYSTERESIS_FEATURE)
     hysteresis.factory_parameters();
   #endif
 
-  #if ENABLED(VOLUMETRIC_EXTRUSION)
-
-    #if ENABLED(VOLUMETRIC_DEFAULT_ON)
-      printer.setVolumetric(true);
-    #else
-      printer.setVolumetric(false);
-    #endif
-
-  #endif
-
-  #if ENABLED(IDLE_OOZING_PREVENT)
-    printer.IDLE_OOZING_enabled = true;
-  #endif
-
   #if HAS_TRINAMIC
-    tmc.current_init_to_defaults();
-    tmc.microstep_init_to_defaults();
-    #if ENABLED(HYBRID_THRESHOLD)
-      tmc.hybrid_threshold_init_to_defaults();
-    #endif
+    tmc.factory_parameters();
   #endif
 
   reset_stepper_drivers();
-
-  #if ENABLED(LIN_ADVANCE)
-    planner.extruder_advance_K = LIN_ADVANCE_K;
-  #endif
-
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    for (uint8_t e = 0; e < DRIVER_EXTRUDERS; e++) {
-      advancedpause.data[e].unload_length = PAUSE_PARK_UNLOAD_LENGTH;
-      advancedpause.data[e].load_length = PAUSE_PARK_FAST_LOAD_LENGTH;
-    }
-  #endif
 
   // Reset the watchdog
   watchdog.reset();
@@ -2005,6 +1665,10 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Auto-Retract: S=0 to disable, 1 to interpret E-only moves as retract/recover");
       SERIAL_LMV(CFG, "  M209 S", fwretract.autoretract_enabled ? 1 : 0);
     #endif // FWRETRACT
+
+    #if HAS_FILAMENT_SENSOR
+      filamentrunout.print_M412();
+    #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       tools.print_M200();

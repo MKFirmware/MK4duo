@@ -214,6 +214,12 @@ class Planner {
 
   public: /** Public Function */
 
+    static inline void factory_parameters() {
+      #if ENABLED(LIN_ADVANCE)
+        extruder_advance_K = LIN_ADVANCE_K;
+      #endif
+    }
+
     static void reset_acceleration_rates();
     static void refresh_positioning();
 

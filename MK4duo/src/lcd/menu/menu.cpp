@@ -358,32 +358,32 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 #if HAS_HOTENDS
 
   void watch_temp_callback_H0() {
-    hotends[0].setTarget(hotends[0].target_temperature);
+    hotends[0].setTarget(hotends[0].deg_target());
     hotends[0].start_watching();
   }
   #if HOTENDS > 1
     void watch_temp_callback_H1() {
-      hotends[1].setTarget(hotends[1].target_temperature);
+      hotends[1].setTarget(hotends[1].deg_target());
       hotends[1].start_watching();
     }
     #if HOTENDS > 2
       void watch_temp_callback_H2() {
-        hotends[2].setTarget(hotends[2].target_temperature);
+        hotends[2].setTarget(hotends[2].deg_target());
         hotends[2].start_watching();
       }
       #if HOTENDS > 3
         void watch_temp_callback_H3() {
-          hotends[3].setTarget(hotends[3].target_temperature);
+          hotends[3].setTarget(hotends[3].deg_target());
           hotends[3].start_watching();
         }
         #if HOTENDS > 4
           void watch_temp_callback_H4() {
-            hotends[4].setTarget(hotends[4].target_temperature);
+            hotends[4].setTarget(hotends[4].deg_target());
             hotends[4].start_watching();
           }
           #if HOTENDS > 3
             void watch_temp_callback_H5() {
-              hotends[5].setTarget(hotends[5].target_temperature);
+              hotends[5].setTarget(hotends[5].deg_target());
               hotends[5].start_watching();
             }
           #endif // HOTENDS > 5
@@ -396,22 +396,22 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #if HAS_BEDS
   void watch_temp_callback_bed0() {
-    beds[0].setTarget(beds[0].target_temperature);
+    beds[0].setTarget(beds[0].deg_target());
     beds[0].start_watching();
   }
   #if BEDS > 1
     void watch_temp_callback_bed1() {
-      beds[1].setTarget(beds[1].target_temperature);
+      beds[1].setTarget(beds[1].deg_target());
       beds[1].start_watching();
     }
     #if BEDS > 2
       void watch_temp_callback_bed2() {
-        beds[2].setTarget(beds[2].target_temperature);
+        beds[2].setTarget(beds[2].deg_target());
         beds[2].start_watching();
       }
       #if BEDS > 3
         void watch_temp_callback_bed3() {
-          beds[3].setTarget(beds[3].target_temperature);
+          beds[3].setTarget(beds[3].deg_target());
           beds[3].start_watching();
         }
       #endif // BEDS > 3
@@ -421,22 +421,22 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #if HAS_CHAMBERS
   void watch_temp_callback_chamber0() {
-    chambers[0].setTarget(chambers[0].target_temperature);
+    chambers[0].setTarget(chambers[0].deg_target());
     chambers[0].start_watching();
   }
   #if CHAMBERS > 1
     void watch_temp_callback_chamber1() {
-      chambers[1].setTarget(chambers[1].target_temperature);
+      chambers[1].setTarget(chambers[1].deg_target());
       chambers[1].start_watching();
     }
     #if CHAMBERS > 2
       void watch_temp_callback_chamber2() {
-        chambers[2].setTarget(chambers[2].target_temperature);
+        chambers[2].setTarget(chambers[2].deg_target());
         chambers[2].start_watching();
       }
       #if CHAMBERS > 3
         void watch_temp_callback_chamber3() {
-          chambers[3].setTarget(chambers[3].target_temperature);
+          chambers[3].setTarget(chambers[3].deg_target());
           chambers[3].start_watching();
         }
       #endif // CHAMBERS > 3
@@ -446,7 +446,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #if HAS_COOLERS
   void watch_temp_callback_cooler0() {
-    coolers[0].setTarget(coolers[0].target_temperature);
+    coolers[0].setTarget(coolers[0].deg_target());
     coolers[0].start_watching();
   }
 #endif

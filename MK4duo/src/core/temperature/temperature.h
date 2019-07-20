@@ -68,6 +68,11 @@ class Temperature {
     static void init();
 
     /**
+     * Initialize to the factory parameters
+     */
+    static void factory_parameters();
+
+    /**
      * Called from the Temperature ISR
      */
     static void set_current_temp_raw();
@@ -142,13 +147,13 @@ class Temperature {
         #if HOTENDS <= 1
           UNUSED(h);
         #endif
-        return tooCold(hotends[HOTEND_INDEX].current_temperature);
+        return tooCold(hotends[HOTEND_INDEX].deg_current());
       }
       FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
         #if HOTENDS == 1
           UNUSED(h);
         #endif
-        return tooCold(hotends[HOTEND_INDEX].target_temperature);
+        return tooCold(hotends[HOTEND_INDEX].deg_target());
       }
     #else
       FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }

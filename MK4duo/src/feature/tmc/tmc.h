@@ -150,13 +150,13 @@ class TMCStorage {
 
     public: /** Constructor */
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, Stream * SerialPort, float RS, bool has_rx=true) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, Stream * SerialPort, float RS, bool has_rx=true) :
         TMC2208Stepper(SerialPort, RS, has_rx=true),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
         {}
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t RX, uint16_t TX, float RS, bool has_rx=true) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t RX, uint16_t TX, float RS, bool has_rx=true) :
         TMC2208Stepper(RX, TX, RS, has_rx=true),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
@@ -225,13 +225,13 @@ class TMCStorage {
 
     public: /** Constructor */
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t cs_pin, float RS) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t cs_pin, float RS) :
         TMC2660Stepper(cs_pin, RS),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
         {}
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
         TMC2660Stepper(CS, RS, pinMOSI, pinMISO, pinSCK),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
@@ -288,13 +288,13 @@ class TMCStorage {
 
     public: /** Constructor */
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t cs_pin, float RS) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t cs_pin, float RS) :
         TMC_MODEL_LIB(cs_pin, RS),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
         {}
 
-      MKTMC(char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
+      MKTMC(const char* AXIS_LETTER, uint8_t DRIVER_ID, uint16_t CS, float RS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK) :
         TMC_MODEL_LIB(CS, RS, pinMOSI, pinMISO, pinSCK),
         axis_letter(AXIS_LETTER),
         id(DRIVER_ID)
@@ -423,12 +423,7 @@ class TMC_Stepper {
   public: /** Public Function */
 
     static void init();
-    static void current_init_to_defaults();
-    static void microstep_init_to_defaults();
-
-    #if ENABLED(HYBRID_THRESHOLD)
-      static void hybrid_threshold_init_to_defaults();
-    #endif
+    static void factory_parameters();
 
     static void restore();
 

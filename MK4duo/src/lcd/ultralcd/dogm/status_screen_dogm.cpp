@@ -92,8 +92,8 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
   const bool    isHeat  = IFBED(BED_ALT(), HOTEND_ALT(act->data.ID));
   const uint8_t tx      = IFBED(STATUS_BED_TEXT_X, STATUS_HOTEND_TEXT_X(act->data.ID));
-  const float   temp    = act->current_temperature,
-                target  = float(act->isIdle() ? act->idle_temperature : act->target_temperature);
+  const float   temp    = act->deg_current(),
+                target  = float(act->isIdle() ? act->deg_idle() : act->deg_target());
 
   #if DISABLED(STATUS_HOTEND_ANIM)
     #define STATIC_HOTEND true
@@ -193,8 +193,8 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
 #if DO_DRAW_CHAMBER
   FORCE_INLINE void _draw_chamber_status(const bool blink) {
-    const float temp    = chambers[0].current_temperature,
-                target  = chambers[0].target_temperature;
+    const float temp    = chambers[0].deg_current(),
+                target  = chambers[0].deg_target();
 
     if (PAGE_UNDER(7)) {
       const bool  is_idle = false,

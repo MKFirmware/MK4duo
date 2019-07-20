@@ -113,6 +113,8 @@ class Restart {
 
   public: /** Public Function */
 
+    static inline void factory_parameters() { enable(true); }
+
     static void init_job();
 
     static void enable(const bool onoff);

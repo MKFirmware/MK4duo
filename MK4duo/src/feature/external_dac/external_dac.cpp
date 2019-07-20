@@ -30,7 +30,15 @@
 
 ExternalDac externaldac;
 
+/** Public Parameters */
 uint16_t ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
+
+/** Public Function */
+void ExternalDac::factory_parameters() {
+  constexpr uint16_t tmp[] = { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT };
+  for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
+    motor_current[i] = tmp[ALIM(i, tmp)];
+}
 
 void ExternalDac::begin() {
   uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
