@@ -109,6 +109,8 @@ class Bedlevel {
 
   public: /** Public Function */
 
+    static void factory_parameters();
+
     /**
      * Apply leveling to transform a cartesian position
      * as it will be given to the planner and steppers.

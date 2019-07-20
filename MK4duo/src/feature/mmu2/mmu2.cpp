@@ -625,7 +625,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
         SERIAL_EM("MMU not responding");
 
-        resume_hotend_temp = hotends[0].target_temperature;
+        resume_hotend_temp = hotends[0].deg_target();
         COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
 
         if (move_axes && mechanics.isHomedAll())

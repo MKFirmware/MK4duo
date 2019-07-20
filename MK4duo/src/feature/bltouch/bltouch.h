@@ -68,6 +68,9 @@ class BLTouch {
   public: /** Public Function */
 
     static void init(const bool set_voltage=false);
+
+    static inline void factory_parameters() { last_mode = false; }
+
     static void test();
 
     static bool deploy();

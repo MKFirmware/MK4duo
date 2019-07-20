@@ -42,6 +42,10 @@ void Fan::init() {
 
   setIdle(false);
 
+  #if ENABLED(TACHOMETRIC)
+    data.tacho.init(data.ID);
+  #endif
+
   if (printer.isRunning()) return; // All running not reinitialize
 
   if (data.pin > 0) HAL::pinMode(data.pin, isHWinvert() ? OUTPUT_HIGH : OUTPUT_LOW);
@@ -87,7 +91,7 @@ void Fan::spin() {
     // Check for Hotend temperature
     LOOP_HOTEND() {
       if (TEST(data.auto_monitor, h)) {
-        if (hotends[h].current_temperature > data.trigger_temperature) {
+        if (hotends[h].deg_current() > data.trigger_temperature) {
           speed = data.max_speed;
           break;
         }

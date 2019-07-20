@@ -42,8 +42,9 @@ void Heater::init() {
   consecutive_low_temp  = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
-  current_temperature   = 25.0;
   data.sensor.raw       = 0;
+
+  current_temperature   = 25.0;
 
   setActive(false);
   setIdle(false);
@@ -58,6 +59,7 @@ void Heater::init() {
   thermal_runaway_state = TRInactive;
 
   data.sensor.CalcDerivedParameters();
+  data.pid.update();
 
   if (printer.isRunning()) return; // All running not reinitialize
 

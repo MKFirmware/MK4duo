@@ -43,11 +43,7 @@ inline void gcode_M412(void) {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M412 report.
     if (!parser.seen("DHRS")) {
-      SERIAL_STR(ECHO);
-      SERIAL_EONOFF("Filament runout", filamentrunout.sensor.isEnabled());
-      #if FILAMENT_RUNOUT_DISTANCE_MM > 0
-        SERIAL_EMV("Filament runout distance (mm): ", filamentrunout.runout_distance());
-      #endif
+      filamentrunout.print_M412();
       return;
     }
   #endif

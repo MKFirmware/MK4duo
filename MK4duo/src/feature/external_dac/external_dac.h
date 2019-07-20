@@ -39,6 +39,7 @@ class ExternalDac {
 
   public: /** Public Function */
 
+    static void factory_parameters();
     static void begin(void);
     static void set_driver_current();
 

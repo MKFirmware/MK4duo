@@ -22,7 +22,7 @@
 #pragma once
 
 /**
- * filrunout.h
+ * filamentrunout.h
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
@@ -115,6 +115,17 @@ class TFilamentRunout {
         if (ran_out)
           printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
       }
+    }
+
+    static inline void print_M412() {
+      SERIAL_LM(CFG, "Filament runout: S<enable> H<Host control> D<Distanze (mm)>");
+      SERIAL_SM(CFG, "  M412");
+      SERIAL_MV(" S", sensor.isEnabled());
+      SERIAL_MV(" H", sensor.isHostHandling());
+      #if FILAMENT_RUNOUT_DISTANCE_MM > 0
+        SERIAL_MV(" D", runout_distance());
+      #endif
+      SERIAL_EOL();
     }
 
 };

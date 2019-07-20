@@ -52,7 +52,7 @@
           hotends[1].setTarget(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
       #endif
 
-      if (temp > hotends[TARGET_HOTEND].current_temperature) {
+      if (temp > hotends[TARGET_HOTEND].deg_current()) {
         #if HOTENDS > 1
           lcdui.status_printf_P(0, PSTR("H%i " MSG_HEATING), TARGET_HOTEND);
         #else

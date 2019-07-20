@@ -64,7 +64,7 @@
 
     public: /** Public Function */
 
-      static void reset();
+      static void factory_parameters();
 
       static void refresh_autoretract() {
         LOOP_EXTRUDER() retracted[e] = false;

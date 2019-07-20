@@ -465,9 +465,9 @@ void menu_temperature() {
       // Cooldown
       //
       bool has_heat = false;
-      LOOP_HOTEND() if (hotends[h].target_temperature) { has_heat = true; break; }
+      LOOP_HOTEND() if (hotends[h].deg_target()) { has_heat = true; break; }
       #if HAS_BEDS
-        LOOP_BED() if (beds[h].target_temperature) { has_heat = true; break; }
+        LOOP_BED() if (beds[h].deg_target()) { has_heat = true; break; }
       #endif
       if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
 

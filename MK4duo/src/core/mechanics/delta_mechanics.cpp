@@ -45,21 +45,20 @@ float Delta_Mechanics::delta[ABC]                 = { 0.0 },
       Delta_Mechanics::delta_clip_start_height    = 0;
 
 /** Private Parameters */
-float Delta_Mechanics::delta_diagonal_rod_2[ABC]  = { 0.0 },  // Diagonal rod 2
-      Delta_Mechanics::towerX[ABC]                = { 0.0 },  // The X coordinate of each tower
-      Delta_Mechanics::towerY[ABC]                = { 0.0 },  // The Y coordinate of each tower
-      Delta_Mechanics::Xbc                        = 0.0,
-      Delta_Mechanics::Xca                        = 0.0,
-      Delta_Mechanics::Xab                        = 0.0,
-      Delta_Mechanics::Ybc                        = 0.0,
-      Delta_Mechanics::Yca                        = 0.0,
-      Delta_Mechanics::Yab                        = 0.0,
-      Delta_Mechanics::coreFa                     = 0.0,
-      Delta_Mechanics::coreFb                     = 0.0,
-      Delta_Mechanics::coreFc                     = 0.0,
-      Delta_Mechanics::Q                          = 0.0,
-      Delta_Mechanics::Q2                         = 0.0,
-      Delta_Mechanics::D2                         = 0.0;
+float Delta_Mechanics::D2[ABC]      = { 0.0 },  // Diagonal rod ^2
+      Delta_Mechanics::towerX[ABC]  = { 0.0 },  // The X coordinate of each tower
+      Delta_Mechanics::towerY[ABC]  = { 0.0 },  // The Y coordinate of each tower
+      Delta_Mechanics::Xbc          = 0.0,
+      Delta_Mechanics::Xca          = 0.0,
+      Delta_Mechanics::Xab          = 0.0,
+      Delta_Mechanics::Ybc          = 0.0,
+      Delta_Mechanics::Yca          = 0.0,
+      Delta_Mechanics::Yab          = 0.0,
+      Delta_Mechanics::coreKa       = 0.0,
+      Delta_Mechanics::coreKb       = 0.0,
+      Delta_Mechanics::coreKc       = 0.0,
+      Delta_Mechanics::Q            = 0.0,
+      Delta_Mechanics::Q2           = 0.0;
 
 /** Public Function */
 void Delta_Mechanics::factory_parameters() {
@@ -326,27 +325,26 @@ void Delta_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, c
  */
 void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]) {
 
-  const float Fa = coreFa + sq(Ha);
-  const float Fb = coreFb + sq(Hb);
-  const float Fc = coreFc + sq(Hc);
+  // Calculate RSUT such that x = (Uz + S)/Q, y = -(Rz + T)/Q
+  const float R = 2 * ((Xbc * Ha) + (Xca * Hb) + (Xab * Hc)),
+              U = 2 * ((Ybc * Ha) + (Yca * Hb) + (Yab * Hc));
 
-  // Setup PQRSU such that x = -(S - uz)/P, y = (P - Rz)/Q
-  const float P = (Xbc * Fa) + (Xca * Fb) + (Xab * Fc);
-  const float S = (Ybc * Fa) + (Yca * Fb) + (Yab * Fc);
+  const float Ka = coreKa + (sq(Hc) - sq(Hb)),
+              Kb = coreKb + (sq(Ha) - sq(Hc)),
+              Kc = coreKc + (sq(Hb) - sq(Ha));
 
-  const float R = 2 * ((Xbc * Ha) + (Xca * Hb) + (Xab * Hc));
-  const float U = 2 * ((Ybc * Ha) + (Yca * Hb) + (Yab * Hc));
+  const float S = Ka * towerY[A_AXIS] + Kb * towerY[B_AXIS] + Kc * towerY[C_AXIS],
+              T = Ka * towerX[A_AXIS] + Kb * towerX[B_AXIS] + Kc * towerX[C_AXIS];
 
-  const float R2 = sq(R), U2 = sq(U);
-
-  const float A = U2 + R2 + Q2;
-  const float minusHalfB = S * U + P * R + Ha * Q2 + towerX[A_AXIS] * U * Q - towerY[A_AXIS] * R * Q;
-  const float C = sq(S + towerX[A_AXIS] * Q) + sq(P - towerY[A_AXIS] * Q) + (sq(Ha) - D2) * Q2;
+  const float A = sq(U) + sq(R) + Q2;
+  
+  const float minusHalfB =  Q2 * Ha + Q * (U * towerX[A_AXIS] - R * towerY[A_AXIS]) - (R * T + U * S),
+              C = sq(towerX[A_AXIS] * Q - S) + sq(towerY[A_AXIS] * Q + T) + (sq(Ha) - D2[A_AXIS]) * Q2;
 
   const float z = (minusHalfB - SQRT(sq(minusHalfB) - A * C)) / A;
 
-  cartesian[X_AXIS] = (U * z - S) / Q;
-  cartesian[Y_AXIS] = (P - R * z) / Q;
+  cartesian[X_AXIS] = (U * z + S) / Q;
+  cartesian[Y_AXIS] = -(R * z + T) / Q;
   cartesian[Z_AXIS] = z;
 }
 
@@ -369,13 +367,13 @@ void Delta_Mechanics::Transform(const float (&raw)[XYZ]) {
       raw[Y_AXIS] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
       raw[Z_AXIS]
     };
-    delta[A_AXIS] = pos[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - pos[X_AXIS], towerY[A_AXIS] - pos[Y_AXIS]));
-    delta[B_AXIS] = pos[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - pos[X_AXIS], towerY[B_AXIS] - pos[Y_AXIS]));
-    delta[C_AXIS] = pos[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - pos[X_AXIS], towerY[C_AXIS] - pos[Y_AXIS]));
+    delta[A_AXIS] = pos[Z_AXIS] + _SQRT(D2[A_AXIS] - sq(pos[X_AXIS] - towerX[A_AXIS]) - sq(pos[Y_AXIS] - towerY[A_AXIS]));
+    delta[B_AXIS] = pos[Z_AXIS] + _SQRT(D2[B_AXIS] - sq(pos[X_AXIS] - towerX[B_AXIS]) - sq(pos[Y_AXIS] - towerY[B_AXIS]));
+    delta[C_AXIS] = pos[Z_AXIS] + _SQRT(D2[C_AXIS] - sq(pos[X_AXIS] - towerX[C_AXIS]) - sq(pos[Y_AXIS] - towerY[C_AXIS]));
   #else
-    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[A_AXIS] - HYPOT2(towerX[A_AXIS] - raw[X_AXIS], towerY[A_AXIS] - raw[Y_AXIS]));
-    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[B_AXIS] - HYPOT2(towerX[B_AXIS] - raw[X_AXIS], towerY[B_AXIS] - raw[Y_AXIS]));
-    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(delta_diagonal_rod_2[C_AXIS] - HYPOT2(towerX[C_AXIS] - raw[X_AXIS], towerY[C_AXIS] - raw[Y_AXIS]));
+    delta[A_AXIS] = raw[Z_AXIS] + _SQRT(D2[A_AXIS] - sq(raw[X_AXIS] - towerX[A_AXIS]) - sq(raw[Y_AXIS] - towerY[A_AXIS]));
+    delta[B_AXIS] = raw[Z_AXIS] + _SQRT(D2[B_AXIS] - sq(raw[X_AXIS] - towerX[B_AXIS]) - sq(raw[Y_AXIS] - towerY[B_AXIS]));
+    delta[C_AXIS] = raw[Z_AXIS] + _SQRT(D2[C_AXIS] - sq(raw[X_AXIS] - towerX[C_AXIS]) - sq(raw[Y_AXIS] - towerY[C_AXIS]));
   #endif
 
 }
@@ -390,9 +388,9 @@ void Delta_Mechanics::recalc_delta_settings() {
   // Get a minimum radius for clamping
   endstops.soft_endstop_radius_2 = sq(data.print_radius);
 
-  delta_diagonal_rod_2[A_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[A_AXIS]);
-  delta_diagonal_rod_2[B_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[B_AXIS]);
-  delta_diagonal_rod_2[C_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[C_AXIS]);
+  D2[A_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[A_AXIS]);
+  D2[B_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[B_AXIS]);
+  D2[C_AXIS] = sq(data.diagonal_rod + data.diagonal_rod_adj[C_AXIS]);
 
   // Effective X/Y positions of the three vertical towers.
   towerX[A_AXIS] = COS(RADIANS(210 + data.tower_angle_adj[A_AXIS])) * (data.radius + data.tower_radius_adj[A_AXIS]); // front left tower
@@ -408,12 +406,17 @@ void Delta_Mechanics::recalc_delta_settings() {
   Ybc = towerY[C_AXIS] - towerY[B_AXIS];
   Yca = towerY[A_AXIS] - towerY[C_AXIS];
   Yab = towerY[B_AXIS] - towerY[A_AXIS];
-  coreFa = HYPOT2(towerX[A_AXIS], towerY[A_AXIS]);
-  coreFb = HYPOT2(towerX[B_AXIS], towerY[B_AXIS]);
-  coreFc = HYPOT2(towerX[C_AXIS], towerY[C_AXIS]);
-  Q = 2 * (Xca * Yab - Xab * Yca);
+
+  Q = 2 * (Xab * towerY[C_AXIS] + Xca * towerY[B_AXIS] + Xbc * towerY[A_AXIS]);
   Q2 = sq(Q);
-  D2 = sq(data.diagonal_rod);
+
+  const float coreFa = sq(towerX[A_AXIS]) + sq(towerY[A_AXIS]),
+              coreFb = sq(towerX[B_AXIS]) + sq(towerY[B_AXIS]),
+              coreFc = sq(towerX[C_AXIS]) + sq(towerY[C_AXIS]);
+
+  coreKa = (D2[B_AXIS] - D2[C_AXIS]) + (coreFc - coreFb);
+	coreKb = (D2[C_AXIS] - D2[A_AXIS]) + (coreFa - coreFc);
+	coreKc = (D2[A_AXIS] - D2[B_AXIS]) + (coreFb - coreFa);
 
   NOMORE(data.probe_radius, data.print_radius);
 
@@ -852,8 +855,8 @@ void Delta_Mechanics::report_current_position_detail() {
 
   void Delta_Mechanics::print_parameters() {
     print_M92();
-    print_M203();
     print_M201();
+    print_M203();
     print_M204();
     print_M205();
     print_M666();

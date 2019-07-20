@@ -350,6 +350,27 @@ void Printer::loop() {
 
 void Printer::factory_parameters() {
   various_flag.all = 0;
+  #if ENABLED(IDLE_OOZING_PREVENT)
+    IDLE_OOZING_enabled = true;
+  #endif
+  #if ENABLED(VOLUMETRIC_EXTRUSION)
+    #if ENABLED(VOLUMETRIC_DEFAULT_ON)
+      setVolumetric(true);
+    #else
+      setVolumetric(false);
+    #endif
+  #endif
+  #if HAS_SERVOS
+    #if HAS_DONDOLO
+      servo[DONDOLO_SERVO_INDEX].angle[0] = DONDOLO_SERVOPOS_E0;
+      servo[DONDOLO_SERVO_INDEX].angle[1] = DONDOLO_SERVOPOS_E1;
+    #endif
+    #if HAS_Z_SERVO_PROBE
+      constexpr uint8_t z_probe_angles[2] = Z_SERVO_ANGLES;
+      servo[Z_PROBE_SERVO_NR].angle[0] = z_probe_angles[0];
+      servo[Z_PROBE_SERVO_NR].angle[1] = z_probe_angles[1];
+    #endif
+  #endif // HAS_SERVOS
 }
 
 void Printer::check_periodical_actions() {
@@ -672,7 +693,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
     static millis_l extruder_runout_ms = 0;
 
-    if (hotends[ACTIVE_HOTEND].current_temperature > EXTRUDER_RUNOUT_MINTEMP
+    if (hotends[ACTIVE_HOTEND].deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
       && !planner.has_blocks_queued()
     ) {
@@ -746,8 +767,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(IDLE_OOZING_PREVENT)
     static millis_s axis_last_activity_ms = 0;
     if (planner.has_blocks_queued()) axis_last_activity_ms = millis();
-    if (hotends[ACTIVE_HOTEND].current_temperature > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
-      if (hotends[ACTIVE_HOTEND].target_temperature < IDLE_OOZING_MINTEMP)
+    if (hotends[ACTIVE_HOTEND].deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+      if (hotends[ACTIVE_HOTEND].deg_target() < IDLE_OOZING_MINTEMP)
         IDLE_OOZING_retract(false);
       else if (expired(&axis_last_activity_ms, millis_s(IDLE_OOZING_SECONDS * 1000U)))
         IDLE_OOZING_retract(true);
@@ -929,6 +950,8 @@ void Printer::handle_interrupt_events() {
         if (run_runout_script)
           commands.enqueue_now_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
 
+        planner.synchronize();
+
         break;
       }
 
@@ -1046,15 +1069,15 @@ void Printer::handle_safety_watch() {
       float max_temp = 0.0;
       #if HAS_CHAMBERS
         LOOP_CHAMBER()
-          max_temp = MAX(max_temp, chambers[h].target_temperature, chambers[h].current_temperature);
+          max_temp = MAX(max_temp, chambers[h].deg_target(), chambers[h].deg_current());
       #endif
       #if HAS_BEDS
         LOOP_BED()
-          max_temp = MAX(max_temp, beds[h].target_temperature, beds[h].current_temperature);
+          max_temp = MAX(max_temp, beds[h].deg_target(), beds[h].deg_current());
       #endif
       #if HAS_HOTENDS
         LOOP_HOTEND()
-          max_temp = MAX(max_temp, hotends[h].current_temperature, hotends[h].target_temperature);
+          max_temp = MAX(max_temp, hotends[h].deg_current(), hotends[h].deg_target());
       #endif
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {

@@ -520,8 +520,8 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const char prefix, const bool blink) {
 
-  const float t1 = (act->current_temperature),
-              t2 = (act->isIdle() ? act->idle_temperature : act->target_temperature);
+  const float t1 = (act->deg_current()),
+              t2 = (act->isIdle() ? act->deg_idle() : act->deg_target());
 
   if (prefix >= 0) lcd_put_wchar(prefix);
 
@@ -1065,10 +1065,10 @@ void LcdUI::draw_status_screen() {
       uint8_t leds = 0;
 
       #if HAS_BEDS
-        if (beds[0].target_temperature > 0) leds |= LED_A;
+        if (beds[0].deg_target() > 0) leds |= LED_A;
       #endif
 
-      if (hotends[0].target_temperature > 0) leds |= LED_B;
+      if (hotends[0].deg_target() > 0) leds |= LED_B;
 
       #if HAS_FANS
         if (0

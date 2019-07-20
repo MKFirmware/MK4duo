@@ -736,8 +736,8 @@ void Cartesian_Mechanics::report_current_position_detail() {
 
   void Cartesian_Mechanics::print_parameters() {
     print_M92();
-    print_M203();
     print_M201();
+    print_M203();
     print_M204();
     print_M205();
     print_M206();

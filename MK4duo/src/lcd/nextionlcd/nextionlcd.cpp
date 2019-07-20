@@ -466,28 +466,28 @@ void NextionLCD::status_screen_update() {
     }
 
     #if HOTENDS > 0
-      setValue(Hotend00, hotends[0].current_temperature);
-      setValue(Hotend01, hotends[0].target_temperature);
+      setValue(Hotend00, hotends[0].deg_current());
+      setValue(Hotend01, hotends[0].deg_target());
     #endif
     #if HOTENDS > 1
-      setValue(Hotend10, hotends[1].current_temperature);
-      setValue(Hotend11, hotends[1].target_temperature);
+      setValue(Hotend10, hotends[1].deg_current());
+      setValue(Hotend11, hotends[1].deg_target());
     #endif
     #if HOTENDS > 2
-      setValue(Hotend20, hotends[2].current_temperature);
-      setValue(Hotend21, hotends[2].target_temperature);
+      setValue(Hotend20, hotends[2].deg_current());
+      setValue(Hotend21, hotends[2].deg_target());
     #endif
     #if HOTENDS > 3
-      setValue(Hotend30, hotends[3].current_temperature);
-      setValue(Hotend31, hotends[3].target_temperature);
+      setValue(Hotend30, hotends[3].deg_current());
+      setValue(Hotend31, hotends[3].deg_target());
     #endif
     #if HAS_BEDS
-      setValue(Bed0, beds[0].current_temperature);
-      setValue(Bed1, beds[0].target_temperature);
+      setValue(Bed0, beds[0].deg_current());
+      setValue(Bed1, beds[0].deg_target());
     #endif
     #if HAS_CHAMBERS
-      setValue(Chamber0, chambers[0].current_temperature);
-      setValue(Chamber1, chambers[0].target_temperature);
+      setValue(Chamber0, chambers[0].deg_current());
+      setValue(Chamber1, chambers[0].deg_target());
     #endif
     #if HAS_DHT
       if (lcdui.get_blink(3))
@@ -1488,11 +1488,11 @@ void LcdUI::stop_print() {
         strcat(nexlcd.buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
         strcat(nexlcd.buffer, ui8tostr1(hotend));
         strcat(nexlcd.buffer, " ");
-        strcat(nexlcd.buffer, i16tostr3(hotends[hotend].current_temperature));
+        strcat(nexlcd.buffer, i16tostr3(hotends[hotend].deg_current()));
         strcat(nexlcd.buffer, "/");
 
         if (get_blink() || !hotends[hotend].isIdle())
-          strcat(nexlcd.buffer, i16tostr3(hotends[hotend].target_temperature));
+          strcat(nexlcd.buffer, i16tostr3(hotends[hotend].deg_target()));
 
         nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
         nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], nexlcd.buffer);

@@ -133,9 +133,12 @@ class Heater {
     void start_watching();
 
     FORCE_INLINE void update_current_temperature() { this->current_temperature = this->data.sensor.getTemperature(); }
-    FORCE_INLINE bool tempisrange() { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
-    FORCE_INLINE bool isHeating()   { return this->target_temperature > this->current_temperature; }
-    FORCE_INLINE bool isCooling()   { return this->target_temperature <= this->current_temperature; }
+    FORCE_INLINE float deg_current()  { return this->current_temperature; }
+    FORCE_INLINE int16_t deg_target() { return this->target_temperature;  }
+    FORCE_INLINE int16_t deg_idle()   { return this->idle_temperature;    }
+    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
+    FORCE_INLINE bool isHeating()     { return this->target_temperature > this->current_temperature;  }
+    FORCE_INLINE bool isCooling()     { return this->target_temperature <= this->current_temperature; }
 
     FORCE_INLINE bool wait_for_heating() {
       return this->isActive() && ABS(this->current_temperature - this->target_temperature) > temp_hysteresis;

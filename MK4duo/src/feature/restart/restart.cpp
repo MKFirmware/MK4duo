@@ -99,15 +99,15 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Heater
     #if HAS_HOTENDS
       LOOP_HOTEND()
-        job_info.target_temperature[h] = hotends[h].target_temperature;
+        job_info.target_temperature[h] = hotends[h].deg_target();
     #endif
     #if HAS_BEDS
       LOOP_BED()
-        job_info.bed_target_temperature[h] = beds[h].target_temperature;
+        job_info.bed_target_temperature[h] = beds[h].deg_target();
     #endif
     #if HAS_CHAMBERS
       LOOP_CHAMBER()
-        job_info.chamber_target_temperature[h] = chambers[h].target_temperature;
+        job_info.chamber_target_temperature[h] = chambers[h].deg_target();
     #endif
 
     #if HAS_FANS

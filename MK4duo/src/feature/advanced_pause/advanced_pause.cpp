@@ -50,6 +50,13 @@ advanced_pause_data_t AdvancedPause::data[EXTRUDERS];
 uint8_t AdvancedPause::did_pause_print = 0;
 
 /** Public Function */
+void AdvancedPause::factory_parameters() {
+  LOOP_EXTRUDER() {
+    data[e].unload_length = PAUSE_PARK_UNLOAD_LENGTH;
+    data[e].load_length   = PAUSE_PARK_FAST_LOAD_LENGTH;
+  }
+}
+
 void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();

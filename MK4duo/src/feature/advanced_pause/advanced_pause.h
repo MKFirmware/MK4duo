@@ -62,6 +62,8 @@ class AdvancedPause {
 
   public: /** Public Function */
 
+    static void factory_parameters();
+
     static void do_pause_e_move(const float &length, const float &fr_mm_s);
 
     static bool pause_print(const float &retract, const point_t &park_point, const float &unload_length=0, const bool show_lcd=false DXC_PARAMS);
