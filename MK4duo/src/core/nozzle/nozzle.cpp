@@ -60,6 +60,17 @@ void Nozzle::factory_parameters() {
 
 }
 
+#if HAS_LCD
+  void Nozzle::set_heating_message() {
+    const bool heating = hotends[TARGET_HOTEND].isHeating();
+    #if HOTENDS > 1
+      lcdui.status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_HOTEND);
+    #else
+      lcdui.set_status_P(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
+    #endif
+  }
+#endif
+
 #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
 
   void Nozzle::print_M217() {

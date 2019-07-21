@@ -68,6 +68,10 @@ class Tools {
                     density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
     static float    e_factor[EXTRUDERS];              // The flow percentage and volumetric multiplier combine to scale E movement
 
+    #if ENABLED(SINGLENOZZLE)
+      static int16_t singlenozzle_temp[EXTRUDERS];
+    #endif
+
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static float  volumetric_area_nominal,          // Nominal cross-sectional area
                     volumetric_multiplier[EXTRUDERS]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
@@ -117,7 +121,7 @@ class Tools {
 
   private: /** Private Function */
 
-    static void invalid_extruder_error(const uint8_t e);
+    static void invalid_extruder_error();
 
     static void fast_line_to_current(const AxisEnum fr_axis);
 
@@ -126,15 +130,15 @@ class Tools {
     #endif
 
     #if HAS_MKMULTI_TOOLS
-      static void MK_multi_tool_change(const uint8_t e);
+      static void MK_multi_tool_change();
     #endif
 
     #if HAS_DONDOLO
-      static void move_extruder_servo(const uint8_t e);
+      static void move_extruder_servo();
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      static void dualx_tool_change(const uint8_t tmp_extruder, bool &no_move);
+      static void dualx_tool_change(bool &no_move);
     #endif
 
 };

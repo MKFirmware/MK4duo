@@ -41,6 +41,10 @@ int16_t Tools::flow_percentage[EXTRUDERS]       = ARRAY_BY_EXTRUDERS(100),
         Tools::density_percentage[EXTRUDERS]    = ARRAY_BY_EXTRUDERS(100);
 float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0);
 
+#if ENABLED(SINGLENOZZLE)
+  int16_t Tools::singlenozzle_temp[EXTRUDERS]   = ARRAY_BY_EXTRUDERS(0);
+#endif
+
 #if ENABLED(VOLUMETRIC_EXTRUSION)
   float Tools::volumetric_area_nominal          = CIRCLE_AREA(float(DEFAULT_NOMINAL_FILAMENT_DIA) * 0.5f),
         Tools::volumetric_multiplier[EXTRUDERS] = ARRAY_BY_EXTRUDERS(1.0);
@@ -68,29 +72,31 @@ void Tools::factory_parameters() {
 
 void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 
+  extruder.target = tmp_extruder;
+
   #if ENABLED(COLOR_MIXING_EXTRUDER)
 
     UNUSED(no_move);
 
-    if (tmp_extruder >= MIXING_VIRTUAL_TOOLS)
-      return invalid_extruder_error(tmp_extruder);
+    if (extruder.target >= MIXING_VIRTUAL_TOOLS)
+      return invalid_extruder_error();
 
     #if MIXING_VIRTUAL_TOOLS > 1
       // T0-Tnnn: Switch virtual tool by changing the index to the mix
-      mixer.T(tmp_extruder);
+      mixer.T(extruder.target);
     #endif
 
   #elif HAS_MMU2
 
     UNUSED(no_move);
 
-    mmu2.tool_change(tmp_extruder);
+    mmu2.tool_change(extruder.target);
 
   #elif EXTRUDERS < 2
 
     UNUSED(no_move);
 
-    if (tmp_extruder) invalid_extruder_error(tmp_extruder);
+    if (extruder.target) invalid_extruder_error();
     return;
 
   #else // EXTRUDERS > 1
@@ -99,12 +105,12 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
   
     #if ENABLED(DUAL_X_CARRIAGE)  // Only T0 allowed if the Printer is in DXC_DUPLICATION_MODE or DXC_SCALED_DUPLICATION_MODE
       // Only T0 allowed in DXC_DUPLICATION_MODE
-      if (tmp_extruder != 0 && mechanics.dxc_is_duplicating())
-         return invalid_extruder_error(tmp_extruder);
+      if (extruder.target != 0 && mechanics.dxc_is_duplicating())
+         return invalid_extruder_error();
     #endif
 
-    if (tmp_extruder >= EXTRUDERS)
-      return invalid_extruder_error(tmp_extruder);
+    if (extruder.target >= EXTRUDERS)
+      return invalid_extruder_error();
 
     if (!no_move && mechanics.axis_unhomed_error()) {
       no_move = true;
@@ -146,13 +152,13 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       bedlevel.set_bed_leveling_enabled(false);
     #endif
 
-    if (tmp_extruder != extruder.active) {
+    if (extruder.target != extruder.active) {
 
       REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
         #if HOTENDS > 1
-          #define _EXT_ARGS , extruder.active, tmp_extruder
+          #define _EXT_ARGS , extruder.active, extruder.target
         #else
           #define _EXT_ARGS
         #endif
@@ -186,16 +192,16 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
         #if ENABLED(DUAL_X_CARRIAGE)
           constexpr float x_diff = 0;
         #else
-          const float x_diff = nozzle.data.hotend_offset[X_AXIS][tmp_extruder] - nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
+          const float x_diff = nozzle.data.hotend_offset[X_AXIS][extruder.target] - nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
         #endif
-        const float y_diff = nozzle.data.hotend_offset[Y_AXIS][tmp_extruder] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
-                    z_diff = nozzle.data.hotend_offset[Z_AXIS][tmp_extruder] - nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND];
+        const float y_diff = nozzle.data.hotend_offset[Y_AXIS][extruder.target] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
+                    z_diff = nozzle.data.hotend_offset[Z_AXIS][extruder.target] - nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND];
       #else
         constexpr float x_diff = 0, y_diff = 0, z_diff = 0;
       #endif
 
       #if ENABLED(DUAL_X_CARRIAGE)
-        dualx_tool_change(tmp_extruder, no_move); // Can modify no_move
+        dualx_tool_change(no_move); // Can modify no_move
       #elif HAS_DONDOLO
         // Always raise by at least 1 to avoid workpiece
         mechanics.current_position[Z_AXIS] += MAX(-z_diff, 0.0) + data.park_point.z;
@@ -203,7 +209,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
           NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
         #endif
         if (!no_move) fast_line_to_current(Z_AXIS);
-        move_extruder_servo(tmp_extruder);
+        move_extruder_servo();
       #endif
 
       if (printer.debugFeature()) {
@@ -218,13 +224,21 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       mechanics.current_position[Y_AXIS] += y_diff;
       mechanics.current_position[Z_AXIS] += z_diff;
 
-      #if HAS_MKMULTI_TOOLS
-        MK_multi_tool_change(tmp_extruder);
-      #else
-        // Set the new active extruder
-        extruder.previous = extruder.active;
-        extruder.active = tmp_extruder;
+      #if ENABLED(SINGLENOZZLE)
+        if (singlenozzle_temp[extruder.target] && singlenozzle_temp[extruder.target] != hotends[0].target_temperature) {
+          hotends[0].setTarget(singlenozzle_temp[extruder.target]);
+          nozzle.set_heating_message();
+          hotends[0].wait_for_target(true);
+        }
       #endif
+
+      #if HAS_MKMULTI_TOOLS
+        MK_multi_tool_change();
+      #endif
+
+      // Set the new active extruder
+      extruder.previous = extruder.active;
+      extruder.active   = extruder.target;
 
       // Tell the planner the new "current position"
       mechanics.sync_plan_position();
@@ -235,7 +249,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
         constexpr bool safe_to_move = true;
       #endif
 
-      // Raise, move, and lower again
+      // Return to position and lower again
       if (safe_to_move && !no_move && printer.isRunning()) {
 
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
@@ -243,8 +257,8 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
               do_pause_e_move(data.swap_length + data.purge_lenght, MMM_TO_MMS(data.purge_speed));
             #else
-              current_position[E_AXIS] += (data.swap_length + data.purge_lenght) / planner.e_factor[tmp_extruder];
-              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), tmp_extruder);
+              current_position[E_AXIS] += (data.swap_length + data.purge_lenght) / planner.e_factor[extruder.active];
+              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), extruder.active);
             #endif
             planner.synchronize();
             planner.set_e_position_mm((mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.current_position[E_AXIS] - data.purge_lenght));
@@ -278,7 +292,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
           mechanics.do_blocking_move_to_z(mechanics.destination[Z_AXIS], mechanics.data.max_feedrate_mm_s[Z_AXIS]);
         }
       #endif
-    } // (tmp_extruder != extruder.active)
+    } // (extruder.target != extruder.active)
 
     planner.synchronize();
 
@@ -395,8 +409,8 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
 #endif
 
 /** Private Function */
-void Tools::invalid_extruder_error(const uint8_t e) {
-  SERIAL_SMV(ER, "T", (int)e);
+void Tools::invalid_extruder_error() {
+  SERIAL_SMV(ER, "T", (int)extruder.target);
   SERIAL_EM(" " MSG_INVALID_EXTRUDER);
 }
 
@@ -430,7 +444,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
 #if ENABLED(MKSE6)
 
-  void Tools::MK_multi_tool_change(const uint8_t e) {
+  void Tools::MK_multi_tool_change() {
 
     planner.synchronize(); // Finish all movement
 
@@ -439,27 +453,24 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
       MKSE6_SERVOPOS_E2, MKSE6_SERVOPOS_E3,
       MKSE6_SERVOPOS_E4, MKSE6_SERVOPOS_E5
     );
-    MOVE_SERVO(MKSE6_SERVO_INDEX, angles[e]);
+    MOVE_SERVO(MKSE6_SERVO_INDEX, angles[extruder.target]);
 
     #if (MKSE6_SERVO_DELAY > 0)
       HAL::delayMilliseconds(MKSE6_SERVO_DELAY);
     #endif
 
-    // Set the new active extruder
-    extruder.previous = extruder.active;
-    extruder.active = e;
   }
 
 #elif ENABLED(MKR4)
 
-  void Tools::MK_multi_tool_change(const uint8_t e) {
+  void Tools::MK_multi_tool_change() {
 
     planner.synchronize(); // Finish all movement
     stepper.disable_E();
 
     #if (EXTRUDERS == 4) && HAS_E0E2 && HAS_E1E3 && (DRIVER_EXTRUDERS == 2)
 
-      switch (e) {
+      switch (extruder.target) {
         case 0:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
           WRITE_RELE(E1E3_CHOICE_PIN, LOW);
@@ -488,7 +499,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #elif (EXTRUDERS == 3) && HAS_E0E2 && (DRIVER_EXTRUDERS == 2)
 
-      switch (e) {
+      switch (extruder.target) {
         case 0:
           WRITE_RELE(E0E2_CHOICE_PIN, LOW);
           HAL::delayMilliseconds(500); // 500 microseconds delay for relay
@@ -508,7 +519,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #elif (EXTRUDERS == 2) && HAS_E0E1 && (DRIVER_EXTRUDERS == 1)
 
-      switch (e) {
+      switch (extruder.target) {
         case 0:
           WRITE_RELE(E0E1_CHOICE_PIN, LOW);
           HAL::delayMilliseconds(500); // 500 microseconds delay for relay
@@ -523,21 +534,18 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #endif // E0E1_CHOICE_PIN E0E2_CHOICE_PIN E1E3_CHOICE_PIN
 
-    // Set the new active extruder
-    extruder.previous = extruder.active;
-    extruder.active = e;
   }
 
 #elif ENABLED(MKR6) || ENABLED(MKR12)
 
-  void Tools::MK_multi_tool_change(const uint8_t e) {
+  void Tools::MK_multi_tool_change() {
 
     planner.synchronize(); // Finish all movement
     stepper.disable_E();
 
     #if (EXTRUDERS == 2) && HAS_EX1 && (DRIVER_EXTRUDERS == 1)
 
-      switch (e) {
+      switch (extruder.target) {
         case 0:
           WRITE_RELE(EX1_CHOICE_PIN, LOW);
           HAL::delayMilliseconds(500); // 500 microseconds delay for relay
@@ -552,7 +560,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #elif (EXTRUDERS == 3) && HAS_EX1 && HAS_EX2 && (DRIVER_EXTRUDERS == 1)
 
-      switch (e) {
+      switch (extruder.target) {
         case 0:
           WRITE_RELE(EX1_CHOICE_PIN, LOW);
           WRITE_RELE(EX2_CHOICE_PIN, LOW);
@@ -575,7 +583,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #elif (EXTRUDERS > 3) && HAS_EX1 && HAS_EX2
 
-      uint8_t multiply = e, driver;
+      uint8_t multiply = extruder.target, driver;
 
       for (driver = 0; driver < DRIVER_EXTRUDERS; driver++) {
         if (multiply < 3) break;
@@ -608,18 +616,15 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
     #endif
 
-    // Set the new active extruder
-    extruder.previous = extruder.active;
-    extruder.active = e;
   }
 
 #endif
 
 #if HAS_DONDOLO
 
-  void Tools::move_extruder_servo(const uint8_t e) {
+  void Tools::move_extruder_servo() {
     planner.synchronize();
-    MOVE_SERVO(DONDOLO_SERVO_INDEX, servo[DONDOLO_SERVO_INDEX].angle[e]);
+    MOVE_SERVO(DONDOLO_SERVO_INDEX, servo[DONDOLO_SERVO_INDEX].angle[extruder.target]);
     #if (DONDOLO_SERVO_DELAY > 0)
       HAL::delayMilliseconds(DONDOLO_SERVO_DELAY);
     #endif
@@ -629,7 +634,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
 #if ENABLED(DUAL_X_CARRIAGE)
 
-  void Tools::dualx_tool_change(const uint8_t tmp_extruder, bool &no_move) {
+  void Tools::dualx_tool_change(bool &no_move) {
 
     if (printer.debugFeature()) {
       DEBUG_MSG("Dual X Carriage Mode ");
@@ -669,11 +674,11 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
     }
 
     // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.current_position[Y_AXIS] -= nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Y_AXIS][tmp_extruder];
-    mechanics.current_position[Z_AXIS] -= nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Z_AXIS][tmp_extruder];
+    mechanics.current_position[Y_AXIS] -= nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Y_AXIS][extruder.target];
+    mechanics.current_position[Z_AXIS] -= nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Z_AXIS][extruder.target];
 
     // Activate the new extruder
-    extruder.active = tmp_extruder;
+    extruder.active = extruder.target;
 
     // This function resets the max/min values - the current position may be overwritten below.
     mechanics.set_axis_is_at_home(X_AXIS);

@@ -45,6 +45,10 @@ class Nozzle {
 
     static void factory_parameters();
 
+    #if HAS_LCD
+      static void set_heating_message();
+    #endif
+
     #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
       static void print_M217();
     #endif
