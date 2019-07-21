@@ -43,7 +43,7 @@ inline void gcode_M204(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M204 report.
-    if (!parser.seen("SPRVE")) {
+    if (!parser.seen("SPRVT")) {
       mechanics.print_M204();
       return;
     }

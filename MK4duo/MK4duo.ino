@@ -203,8 +203,8 @@
  * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D[millimeters]- 
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z10 E50) in mm/sec
- * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and V for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
- * M205 - Set advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk, J=Junction mm
+ * M204 - Set default acceleration in mm/sec^2: P for Printing moves, R for Retract moves and V for Travel (non printing) moves (ex. M204 P800 V3000 T0 R9000)
+ * M205 - Set advanced settings:  minimum travel speed S=while printing T=travel only, B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk, J=Junction mm
  * M206 - Set additional homing offset
  * M207 - Set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
  * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
