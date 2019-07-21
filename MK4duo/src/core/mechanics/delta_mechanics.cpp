@@ -467,7 +467,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  COPY_ARRAY(stored_position[1], current_position);
+  COPY_ARRAY(stored_position[0], current_position);
 
   if (printer.debugFeature()) DEBUG_POS(">>> home", current_position);
 
@@ -523,7 +523,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   if (come_back) {
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, stored_position[1]);
+    COPY_ARRAY(destination, stored_position[0]);
     prepare_move_to_destination();
     RESTORE(fr);
   }

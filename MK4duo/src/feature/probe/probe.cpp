@@ -78,7 +78,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
+  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
 
   #if HAS_ALLEN_KEY
 
@@ -111,7 +111,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #endif
 
-  mechanics.do_blocking_move_to(mechanics.stored_position[1][X_AXIS], mechanics.stored_position[1][Y_AXIS], mechanics.current_position[Z_AXIS]); // return to position before deploy
+  mechanics.do_blocking_move_to(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], mechanics.current_position[Z_AXIS]); // return to position before deploy
   endstops.setProbeEnabled(deploy);
   return false;
 }

@@ -192,7 +192,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  COPY_ARRAY(stored_position[1], current_position);
+  COPY_ARRAY(stored_position[0], current_position);
 
   const bool  home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
               doX       = home_all || homeX,
@@ -261,7 +261,7 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   if (come_back) {
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, stored_position[1]);
+    COPY_ARRAY(destination, stored_position[0]);
     prepare_move_to_destination();
   }
 

@@ -206,14 +206,14 @@ inline void gcode_G29(void) {
                       abl_grid_points_y = GRID_MAX_POINTS_Y;
       ABL_VAR bool    do_topography_map = false;
     #else // Bilinear
-      uint8_t constexpr abl_grid_points_x = GRID_MAX_POINTS_X,
+      constexpr uint8_t abl_grid_points_x = GRID_MAX_POINTS_X,
                         abl_grid_points_y = GRID_MAX_POINTS_Y;
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       ABL_VAR int abl_points = 0;
     #elif HAS_PROBE_MANUALLY
-      int constexpr abl_points = GRID_MAX_POINTS;
+      constexpr int abl_points = GRID_MAX_POINTS;
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -232,7 +232,7 @@ inline void gcode_G29(void) {
   #elif ENABLED(AUTO_BED_LEVELING_3POINT)
 
     #if HAS_PROBE_MANUALLY
-      int constexpr abl_points = 3; // used to show total points
+      constexpr int abl_points = 3; // used to show total points
     #endif
 
     // Probe at 3 arbitrary points

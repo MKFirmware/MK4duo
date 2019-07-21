@@ -84,7 +84,7 @@
         break;
 
       case MeshStart:
-        mbl.reset();
+        mbl.factory_parameters();
         mbl_probe_index = 0;
         if (!lcdui.wait_for_bl_move) {
           commands.enqueue_now_P(PSTR("G28\nG29 S2"));
@@ -122,7 +122,7 @@
           #endif
 
           mbl.zigzag(mbl_probe_index++, ix, iy);
-          bedlevel.manual_goto_xy(mbl.index_to_xpos[ix], mbl.index_to_ypos[iy]);
+          bedlevel.manual_goto_xy(mbl.data.index_to_xpos[ix], mbl.data.index_to_ypos[iy]);
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
@@ -179,7 +179,7 @@
         }
 
         if (parser.seenval('Z')) {
-          mbl.z_values[ix][iy] = parser.value_linear_units();
+          mbl.data.z_values[ix][iy] = parser.value_linear_units();
         }
         else {
           say_not_entered('Z');
@@ -190,7 +190,7 @@
 
       case MeshSetZOffset:
         if (parser.seenval('Z')) {
-          mbl.z_offset = parser.value_linear_units();
+          mbl.data.z_offset = parser.value_linear_units();
         }
         else {
           say_not_entered('Z');

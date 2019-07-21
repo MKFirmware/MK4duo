@@ -421,7 +421,7 @@ void Scara_Mechanics::home() {
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  COPY_ARRAY(stored_position[1], current_position);
+  COPY_ARRAY(stored_position[0], current_position);
 
   if (printer.debugFeature()) DEBUG_POS(">>> home_scara", current_position);
 
@@ -455,7 +455,7 @@ void Scara_Mechanics::home() {
 
   if (come_back) {
     feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, stored_position[1]);
+    COPY_ARRAY(destination, stored_position[0]);
     prepare_move_to_destination();
   }
 
