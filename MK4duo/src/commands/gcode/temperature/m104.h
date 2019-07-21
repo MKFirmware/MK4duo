@@ -28,43 +28,35 @@
 
 #if HAS_TEMP_HOTEND
 
-  #define CODE_M104
+#define CODE_M104
 
-  /**
-   * M104: Set hotend temperature
-   */
-  inline void gcode_M104(void) {
+/**
+ * M104: Set hotend temperature
+ */
+inline void gcode_M104(void) {
 
-    if (commands.get_target_tool(104)) return;
+  if (commands.get_target_tool(104)) return;
 
-    if (printer.debugDryrun() || printer.debugSimulation()) return;
+  if (printer.debugDryrun() || printer.debugSimulation()) return;
 
+  if (parser.seenval('S')) {
+    const int16_t temp = parser.value_celsius();
     #if ENABLED(SINGLENOZZLE)
+      tools.singlenozzle_temp[TARGET_EXTRUDER] = temp;
       if (TARGET_EXTRUDER != tools.extruder.active) return;
     #endif
+    hotends[TARGET_HOTEND].setTarget(temp);
 
-    if (parser.seenval('S')) {
-      const int16_t temp = parser.value_celsius();
-      hotends[TARGET_HOTEND].setTarget(temp);
-
-      #if ENABLED(DUAL_X_CARRIAGE)
-        if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
-          hotends[1].setTarget(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
-      #endif
-
-      if (temp > hotends[TARGET_HOTEND].deg_current()) {
-        #if HOTENDS > 1
-          lcdui.status_printf_P(0, PSTR("H%i " MSG_HEATING), TARGET_HOTEND);
-        #else
-          LCD_MESSAGEPGM("H " MSG_HEATING);
-        #endif
-      }
-    }
-
-    #if ENABLED(AUTOTEMP)
-      planner.autotemp_M104_M109();
+    #if ENABLED(DUAL_X_CARRIAGE)
+      if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
+        hotends[1].setTarget(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
-
   }
+
+  #if ENABLED(AUTOTEMP)
+    planner.autotemp_M104_M109();
+  #endif
+
+}
 
 #endif
