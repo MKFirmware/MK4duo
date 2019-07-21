@@ -1851,8 +1851,8 @@
  ****************************************************************************************/
 
 // Defines the number of memory slots for saving/restoring position (G60/G61)
-// The values should not be less than 2
-#define NUM_POSITON_SLOTS 2
+// The values should not be less than 1
+#define NUM_POSITON_SLOTS 1
 
 // minimum time in microseconds that a movement needs to take if the buffer is emptied.
 #define DEFAULT_MIN_SEGMENT_TIME 20000

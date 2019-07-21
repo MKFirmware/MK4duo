@@ -45,9 +45,9 @@
  * Stored Position
  */
 #if DISABLED(NUM_POSITON_SLOTS)
-  #define NUM_POSITON_SLOTS 2
-#elif NUM_POSITON_SLOTS < 2
-  #define NUM_POSITON_SLOTS 2
+  #define NUM_POSITON_SLOTS 1
+#elif NUM_POSITON_SLOTS < 1
+  #define NUM_POSITON_SLOTS 1
 #endif
 
 /**

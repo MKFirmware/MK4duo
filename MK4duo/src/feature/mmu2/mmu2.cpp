@@ -626,7 +626,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         SERIAL_EM("MMU not responding");
 
         resume_hotend_temp = hotends[0].deg_target();
-        COPY_ARRAY(mechanics.stored_position[1], mechanics.current_position);
+        COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
 
         if (move_axes && mechanics.isHomedAll())
           Nozzle::park(2);
@@ -658,10 +658,10 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         sound.playtone(200, 404);
 
         // Move XY to starting position, then Z
-        mechanics.do_blocking_move_to_xy(mechanics.stored_position[1][X_AXIS], mechanics.stored_position[1][Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
+        mechanics.do_blocking_move_to_xy(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
 
         // Move Z_AXIS to saved position
-        mechanics.do_blocking_move_to_z(mechanics.stored_position[1][Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
+        mechanics.do_blocking_move_to_z(mechanics.stored_position[0][Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
       }
       else {
         sound.playtone(200, 404);

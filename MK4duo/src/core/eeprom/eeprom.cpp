@@ -143,10 +143,7 @@ typedef struct EepromDataStruct {
   // MESH_BED_LEVELING
   //
   #if ENABLED(MESH_BED_LEVELING)
-    float           mbl_z_offset;
-    uint8_t         mesh_num_x,
-                    mesh_num_y;
-    float           mbl_z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+    mbl_data_t      mbl_data;
   #endif
 
   //
@@ -268,8 +265,7 @@ typedef struct EepromDataStruct {
   // Hysteresis Feature
   //
   #if ENABLED(HYSTERESIS_FEATURE)
-    float           hysteresis_mm[XYZ],
-                    hysteresis_correction;
+    hysteresis_data_t hysteresis_data;
   #endif
 
   //
@@ -290,22 +286,18 @@ typedef struct EepromDataStruct {
     int16_t   tmc_sgt[XYZ];
   #endif
 
-} eepromData;
+} eepromDataStruct;
 
 EEPROM eeprom;
 
-uint16_t EEPROM::datasize() { return sizeof(eepromData); }
+uint16_t EEPROM::datasize() { return sizeof(eepromDataStruct); }
 
 /**
  * Post-process after Retrieve or Reset
  */
 void EEPROM::post_process() {
 
-  const float oldpos[] = {
-    mechanics.current_position[X_AXIS],
-    mechanics.current_position[Y_AXIS],
-    mechanics.current_position[Z_AXIS]
-  };
+  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -383,7 +375,7 @@ void EEPROM::post_process() {
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 
-  if (memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+  if (memcmp(mechanics.stored_position[0], mechanics.current_position, sizeof(mechanics.stored_position[0])))
     mechanics.report_current_position();
 
 }
@@ -398,17 +390,13 @@ void EEPROM::post_process() {
   #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); flag.error = true; } }while(0)
   #define _FIELD_TEST(FIELD) \
     EEPROM_ASSERT( \
-      flag.error || eeprom_index == offsetof(eepromData, FIELD) + EEPROM_OFFSET, \
+      flag.error || eeprom_index == offsetof(eepromDataStruct, FIELD) + EEPROM_OFFSET, \
       "Field " STRINGIFY(FIELD) " mismatch." \
     )
 
   const char version[6] = EEPROM_VERSION;
 
   eeprom_flag_t EEPROM::flag;
-
-  #if ENABLED(AUTO_BED_LEVELING_UBL)
-    uint16_t EEPROM::meshes_begin = 0;
-  #endif
 
   bool EEPROM::size_error(const uint16_t size) {
     if (size != datasize()) {
@@ -528,14 +516,10 @@ void EEPROM::post_process() {
     //
     #if ENABLED(MESH_BED_LEVELING)
       static_assert(
-        sizeof(mbl.z_values) == GRID_MAX_POINTS * sizeof(mbl.z_values[0][0]),
+        sizeof(mbl.data.z_values) == GRID_MAX_POINTS * sizeof(mbl.data.z_values[0][0]),
         "MBL Z array is the wrong size."
       );
-      const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(mbl.z_offset);
-      EEPROM_WRITE(mesh_num_x);
-      EEPROM_WRITE(mesh_num_y);
-      EEPROM_WRITE(mbl.z_values);
+      EEPROM_WRITE(mbl.data);
     #endif // MESH_BED_LEVELING
 
     //
@@ -664,8 +648,7 @@ void EEPROM::post_process() {
     // Hysteresis Feature
     //
     #if ENABLED(HYSTERESIS_FEATURE)
-      EEPROM_WRITE(hysteresis.mm);
-      EEPROM_WRITE(hysteresis.correction);
+      EEPROM_WRITE(hysteresis.data);
     #endif
 
     //
@@ -884,20 +867,7 @@ void EEPROM::post_process() {
       // Mesh Bed Leveling
       //
       #if ENABLED(MESH_BED_LEVELING)
-        uint8_t mesh_num_x = 0, mesh_num_y = 0;
-        mbl.reset();
-        EEPROM_READ(mbl.z_offset);
-        EEPROM_READ_ALWAYS(mesh_num_x);
-        EEPROM_READ_ALWAYS(mesh_num_y);
-        if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
-          // EEPROM data fits the current mesh
-          EEPROM_READ(mbl.z_values);
-        }
-        else {
-          // EEPROM data is stale
-          float dummy = 0;
-          for (uint8_t q = 0; q < mesh_num_x * mesh_num_y; q++) EEPROM_READ(dummy);
-        }
+        EEPROM_READ(mbl.data);
       #endif // MESH_BED_LEVELING
 
       //
@@ -1036,8 +1006,7 @@ void EEPROM::post_process() {
       // Hysteresis Feature
       //
       #if ENABLED(HYSTERESIS_FEATURE)
-        EEPROM_READ(hysteresis.mm);
-        EEPROM_READ(hysteresis.correction);
+        EEPROM_READ(hysteresis.data);
       #endif
 
       //
@@ -1153,7 +1122,6 @@ void EEPROM::post_process() {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
 
         if (!flag.validating) {
-          meshes_begin = (eeprom_index + EEPROM_OFFSET + 32) & 0xFFF8;
 
           ubl.report_state();
 
@@ -1230,6 +1198,11 @@ void EEPROM::post_process() {
 
     const uint16_t EEPROM::meshes_end = memorystore.capacity() - 129;
 
+    uint16_t EEPROM::meshes_start_index() {
+      return (datasize() + EEPROM_OFFSET + 32) & 0xFFF8;  // Pad the end of configuration data so it can float up
+                                                          // or down a little bit without disrupting the mesh data
+    }
+
     uint16_t EEPROM::calc_num_meshes() {
       return (meshes_end - meshes_start_index()) / sizeof(ubl.z_values);
     }
@@ -1242,12 +1215,10 @@ void EEPROM::post_process() {
 
       const int16_t a = calc_num_meshes();
       if (!WITHIN(slot, 0, a - 1)) {
-        #if ENABLED(EEPROM_CHITCHAT)
-          ubl_invalid_slot(a);
-          SERIAL_MV("E2END=", (int)(memorystore.capacity() - 1));
-          SERIAL_MV(" meshes_end=", (int)meshes_end);
-          SERIAL_EMV(" slot=", slot);
-        #endif
+        ubl_invalid_slot(a);
+        DEBUG_MV("E2END=", (int)(memorystore.capacity() - 1));
+        DEBUG_MV(" meshes_end=", (int)meshes_end);
+        DEBUG_EMV(" slot=", slot);
         return;
       }
 
@@ -1256,13 +1227,8 @@ void EEPROM::post_process() {
 
       const bool status = memorystore.write_data(pos, (uint8_t *)&ubl.z_values, sizeof(ubl.z_values), &crc);
 
-      if (status)
-        SERIAL_MSG("?Unable to save mesh data.\n");
-
-      #if ENABLED(EEPROM_CHITCHAT)
-        else
-          SERIAL_EMV("Mesh saved in slot ", slot);
-      #endif
+      if (status) SERIAL_MSG("?Unable to save mesh data.\n");
+      else        DEBUG_EMV("Mesh saved in slot ", slot);
 
     }
 
@@ -1271,9 +1237,7 @@ void EEPROM::post_process() {
       const int16_t a = calc_num_meshes();
 
       if (!WITHIN(slot, 0, a - 1)) {
-        #if ENABLED(EEPROM_CHITCHAT)
-          ubl_invalid_slot(a);
-        #endif
+        ubl_invalid_slot(a);
         return;
       }
 
@@ -1283,13 +1247,8 @@ void EEPROM::post_process() {
 
       const bool status = memorystore.read_data(pos, dest, sizeof(ubl.z_values), &crc);
 
-      if (status)
-        SERIAL_MSG("?Unable to load mesh data.\n");
-
-      #if ENABLED(EEPROM_CHITCHAT)
-        else
-          SERIAL_EMV("Mesh loaded from slot ", slot);
-      #endif
+      if (status) SERIAL_MSG("?Unable to load mesh data.\n");
+      else        DEBUG_EMV("Mesh loaded from slot ", slot);
 
     }
 
@@ -1347,6 +1306,10 @@ void EEPROM::reset() {
 
   #if HAS_LEVELING
     bedlevel.factory_parameters();
+  #endif
+
+  #if ENABLED(MESH_BED_LEVELING)
+    mbl.factory_parameters();
   #endif
 
   #if HAS_BED_PROBE
@@ -1571,7 +1534,7 @@ void EEPROM::reset() {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
               SERIAL_SMV(CFG, "  G29 S3 I", (int)px);
               SERIAL_MV(" J", (int)iy);
-              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.z_values[px][iy]), 3);
+              SERIAL_EMV(" Z", LINEAR_UNIT(mbl.data.z_values[px][iy]), 3);
             }
           }
         }

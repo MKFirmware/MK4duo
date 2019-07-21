@@ -23,9 +23,17 @@
 
 #define MESH_X_DIST     ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
 #define MESH_Y_DIST     ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
-#define _GET_MESH_X(I)  mbl.index_to_xpos[I]
-#define _GET_MESH_Y(J)  mbl.index_to_ypos[J]
-#define Z_VALUES_ARR    mbl.z_values
+#define _GET_MESH_X(I)  mbl.data.index_to_xpos[I]
+#define _GET_MESH_Y(J)  mbl.data.index_to_ypos[J]
+#define Z_VALUES_ARR    mbl.data.z_values
+
+// Struct Mbl data
+typedef struct {
+  float z_offset,
+        index_to_xpos[GRID_MAX_POINTS_X],
+        index_to_ypos[GRID_MAX_POINTS_Y],
+        z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+} mbl_data_t;
 
 class mesh_bed_leveling {
 
@@ -35,16 +43,13 @@ class mesh_bed_leveling {
 
   public: /** Public Parameters */
 
-    static float  z_offset,
-                  z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
-                  index_to_xpos[GRID_MAX_POINTS_X],
-                  index_to_ypos[GRID_MAX_POINTS_Y];
+    static mbl_data_t data;
 
   public: /** Public Function */
 
-    static void reset();
+    static void factory_parameters();
 
-    static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
+    static void set_z(const int8_t px, const int8_t py, const float &z) { data.z_values[px][py] = z; }
 
     static void line_to_destination(const float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
 
@@ -53,7 +58,7 @@ class mesh_bed_leveling {
     FORCE_INLINE static bool has_mesh() {
       for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
         for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-          if (z_values[x][y]) return true;
+          if (data.z_values[x][y]) return true;
       return false;
     }
 
@@ -101,11 +106,11 @@ class mesh_bed_leveling {
       #endif
     ) {
       const int8_t cx = cell_index_x(x0), cy = cell_index_y(y0);
-      const float z1 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy], index_to_xpos[cx + 1], z_values[cx + 1][cy]),
-                  z2 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy + 1], index_to_xpos[cx + 1], z_values[cx + 1][cy + 1]),
-                  z0 = calc_z0(y0, index_to_ypos[cy], z1, index_to_ypos[cy + 1], z2);
+      const float z1 = calc_z0(x0, data.index_to_xpos[cx], data.z_values[cx][cy],     data.index_to_xpos[cx + 1], data.z_values[cx + 1][cy]),
+                  z2 = calc_z0(x0, data.index_to_xpos[cx], data.z_values[cx][cy + 1], data.index_to_xpos[cx + 1], data.z_values[cx + 1][cy + 1]),
+                  z0 = calc_z0(y0, data.index_to_ypos[cy], z1,                        data.index_to_ypos[cy + 1], z2);
 
-      return z_offset + z0
+      return data.z_offset + z0
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           * factor
         #endif

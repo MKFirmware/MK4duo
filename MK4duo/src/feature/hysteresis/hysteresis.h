@@ -23,6 +23,12 @@
 
 #if ENABLED(HYSTERESIS_FEATURE)
 
+// Struct Hysteresis data
+typedef struct {
+  float mm[XYZ],
+        correction;
+} hysteresis_data_t;
+
 class Hysteresis {
 
   public: /** Constructor */
@@ -31,8 +37,7 @@ class Hysteresis {
 
   public: /** Public Parameters */
 
-    static float  mm[XYZ],
-                  correction;
+    static hysteresis_data_t data;
 
   public: /** Public Function */
 

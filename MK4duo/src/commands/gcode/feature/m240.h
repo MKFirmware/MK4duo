@@ -83,10 +83,10 @@ inline void gcode_M240(void) {
 
     if (!mechanics.isHomedAll()) return;
 
-    mechanics.stored_position[1][X_AXIS] = mechanics.current_position[X_AXIS] + parser.linearval('A');
-    mechanics.stored_position[1][Y_AXIS] = mechanics.current_position[Y_AXIS] + parser.linearval('B');
-    mechanics.stored_position[1][Z_AXIS] = mechanics.current_position[Z_AXIS];
-    mechanics.stored_position[1][E_AXIS] = mechanics.current_position[E_AXIS];
+    mechanics.stored_position[0][X_AXIS] = mechanics.current_position[X_AXIS] + parser.linearval('A');
+    mechanics.stored_position[0][Y_AXIS] = mechanics.current_position[Y_AXIS] + parser.linearval('B');
+    mechanics.stored_position[0][Z_AXIS] = mechanics.current_position[Z_AXIS];
+    mechanics.stored_position[0][E_AXIS] = mechanics.current_position[E_AXIS];
 
     #if ENABLED(PHOTO_RETRACT_MM)
       constexpr float rfr = (MMS_TO_MMM(
@@ -147,7 +147,7 @@ inline void gcode_M240(void) {
     #if PHOTO_DELAY_MS > 0
       HAL::delayMilliseconds(parser.intval('P', PHOTO_DELAY_MS));
     #endif
-    mechanics.do_blocking_move_to(mechanics.stored_position[1], fr_mm_s);
+    mechanics.do_blocking_move_to(mechanics.stored_position[0], fr_mm_s);
     #if ENABLED(PHOTO_RETRACT_MM)
       e_move_m240(rval, sval);
     #endif

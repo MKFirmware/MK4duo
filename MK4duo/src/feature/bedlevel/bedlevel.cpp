@@ -235,7 +235,7 @@ void Bedlevel::reset() {
 
   set_bed_leveling_enabled(false);
   #if ENABLED(MESH_BED_LEVELING)
-    mbl.reset();
+    mbl.factory_parameters();
   #elif ENABLED(AUTO_BED_LEVELING_UBL)
     ubl.reset();
   #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
