@@ -376,7 +376,7 @@ void NextionLCD::read_serial() {
   ZERO(buffer);
   while (nexSerial.available()) {
     inputChar = nexSerial.read();
-    HAL::delayMicroseconds(120);
+    HAL::delayMilliseconds(10);
     if (  !str_start_flag && (
           inputChar == NEX_RET_GCODE_OPERATION
       ||  inputChar == NEX_RET_CURRENT_PAGE_ID_HEAD
