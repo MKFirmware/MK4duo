@@ -354,7 +354,11 @@
       endstops.setSoftEndstop(true);
 
       SERIAL_EM("\nHoming Z because we lost steps");
-      mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
+      #if MECH(DELTA)
+        mechanics.home();
+      #else
+        mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
+      #endif
     }
 
   #endif
