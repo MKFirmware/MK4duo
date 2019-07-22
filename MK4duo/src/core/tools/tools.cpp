@@ -70,9 +70,9 @@ void Tools::factory_parameters() {
 
 }
 
-void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
+void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
-  extruder.target = tmp_extruder;
+  extruder.target = new_tool;
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
 
@@ -135,6 +135,11 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       if (should_swap) {
         if (too_cold)
           SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
+          #if ENABLED(SINGLENOZZLE)
+            extruder.previous = extruder.active;
+            extruder.active   = extruder.target;
+            return;
+          #endif
         else {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             advancedpause.do_pause_e_move(-data.swap_length, MMM_TO_MMS(data.retract_speed));
@@ -224,14 +229,6 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       mechanics.current_position[Y_AXIS] += y_diff;
       mechanics.current_position[Z_AXIS] += z_diff;
 
-      #if ENABLED(SINGLENOZZLE)
-        if (singlenozzle_temp[extruder.target] && singlenozzle_temp[extruder.target] != hotends[0].target_temperature) {
-          hotends[0].setTarget(singlenozzle_temp[extruder.target]);
-          nozzle.set_heating_message();
-          hotends[0].wait_for_target(true);
-        }
-      #endif
-
       #if HAS_MKMULTI_TOOLS
         MK_multi_tool_change();
       #endif
@@ -243,7 +240,7 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       // Tell the planner the new "current position"
       mechanics.sync_plan_position();
 
-      #if ENABLED(DELTA)
+      #if MECH(DELTA)
         const bool safe_to_move = mechanics.current_position[Z_AXIS] < mechanics.delta_clip_start_height - 1;
       #else
         constexpr bool safe_to_move = true;
@@ -252,12 +249,24 @@ void Tools::change(const uint8_t tmp_extruder, bool no_move/*=false*/) {
       // Return to position and lower again
       if (safe_to_move && !no_move && printer.isRunning()) {
 
+        #if ENABLED(SINGLENOZZLE)
+          singlenozzle_temp[extruder.previous] = hotends[0].target_temperature;
+          if (singlenozzle_temp[extruder.active] && singlenozzle_temp[extruder.active] != hotends[0].target_temperature) {
+            hotends[0].setTarget(singlenozzle_temp[extruder.active]);
+            nozzle.set_heating_message();
+            hotends[0].wait_for_target(true);
+          }
+        #endif
+
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
           if (should_swap && !too_cold) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
-              do_pause_e_move(data.swap_length + data.purge_lenght, MMM_TO_MMS(data.purge_speed));
+              do_pause_e_move(data.swap_length, MMM_TO_MMS(data.purge_speed));
+              do_pause_e_move(data.purge_lenght, MMM_TO_MMS(data.purge_speed));
             #else
-              current_position[E_AXIS] += (data.swap_length + data.purge_lenght) / planner.e_factor[extruder.active];
+              current_position[E_AXIS] += (data.swap_length) / planner.e_factor[extruder.active];
+              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), extruder.active);
+              current_position[E_AXIS] += (data.purge_lenght) / planner.e_factor[extruder.active];
               planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), extruder.active);
             #endif
             planner.synchronize();

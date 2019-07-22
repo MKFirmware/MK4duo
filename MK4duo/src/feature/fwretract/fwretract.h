@@ -45,7 +45,7 @@
 
     public: /** Constructor */
 
-      FWRetract() { reset(); }
+      FWRetract() { factory_parameters(); }
 
     public: /** Public Parameters */
 

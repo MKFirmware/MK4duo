@@ -313,8 +313,13 @@
       const uint16_t  _rms  = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
                       _z    = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;
 
-      if (mechanics.axis_unhomed_error(NO_HOME_X, NO_HOME_Y, HOME_Z))
-        mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
+      if (mechanics.axis_unhomed_error(NO_HOME_X, NO_HOME_Y, HOME_Z)) {
+        #if MECH(DELTA)
+          mechanics.home();
+        #else
+          mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
+        #endif
+      }
 
       #if AXIS_HAS_TMC(Z)
         const uint16_t Z_current_1 = stepperZ->rms_current();
