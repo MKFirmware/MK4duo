@@ -82,7 +82,7 @@ class Tools {
 
     static void factory_parameters();
 
-    static void change(const uint8_t tmp_extruder, bool no_move=false);
+    static void change(const uint8_t new_tool, bool no_move=false);
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static void print_M200();
