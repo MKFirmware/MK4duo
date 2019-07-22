@@ -324,7 +324,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void _menu_configuration_preheat_settings(const uint8_t material) {
     START_MENU();
     MENU_BACK(MSG_CONFIGURATION);
-    MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
+    #if HAS_FANS
+      MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
+    #endif
     #if HAS_HOTENDS
       MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
