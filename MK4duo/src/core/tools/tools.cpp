@@ -185,7 +185,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
             // Do a small lift to avoid the workpiece in the move back (below)
             mechanics.current_position[Z_AXIS] += nozzle.data.park_point.z;
             #if HAS_SOFTWARE_ENDSTOPS
-              NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
+              endstops.apply_motion_limits(mechanics.current_position);
             #endif
             fast_line_to_current(Z_AXIS);
             planner.synchronize();
@@ -211,7 +211,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
         // Always raise by at least 1 to avoid workpiece
         mechanics.current_position[Z_AXIS] += MAX(-z_diff, 0.0) + data.park_point.z;
         #if HAS_SOFTWARE_ENDSTOPS
-          NOMORE(mechanics.current_position[Z_AXIS], endstops.soft_endstop[Z_AXIS].max);
+          endstops.apply_motion_limits(mechanics.current_position);
         #endif
         if (!no_move) fast_line_to_current(Z_AXIS);
         move_extruder_servo();
