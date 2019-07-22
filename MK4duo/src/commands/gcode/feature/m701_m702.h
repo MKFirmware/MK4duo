@@ -76,7 +76,7 @@ inline void gcode_M701(void) {
     const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
                                                           advancedpause.data[tools.extruder.target].load_length);
 
-    advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
+    advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
                                 true, hotends[TARGET_EXTRUDER].wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
                                 #if ENABLED(DUAL_X_CARRIAGE)
                                   , tools.extruder.target

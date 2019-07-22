@@ -64,7 +64,7 @@ void Tools::factory_parameters() {
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
     data.swap_length    = TOOL_CHANGE_FIL_SWAP_LENGTH;
     data.purge_lenght   = TOOL_CHANGE_FIL_SWAP_PURGE;
-    data.purge_speed    = TOOL_CHANGE_FIL_SWAP_PURGE_SPEED;
+    data.prime_speed    = TOOL_CHANGE_FIL_SWAP_PRIME_SPEED;
     data.retract_speed  = TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED;
   #endif
 
@@ -144,7 +144,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             advancedpause.do_pause_e_move(-data.swap_length, MMM_TO_MMS(data.retract_speed));
           #else
-            mechanics.current_position[E_AXIS] -= data.swap_length / planner.e_factor[extruder.active];
+            mechanics.current_position[E_AXIS] -= data.swap_length / tools.e_factor[extruder.active];
             planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.retract_speed), extruder.active);
             planner.synchronize();
           #endif
@@ -261,13 +261,13 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
           if (should_swap && !too_cold) {
             #if ENABLED(ADVANCED_PAUSE_FEATURE)
-              do_pause_e_move(data.swap_length, MMM_TO_MMS(data.purge_speed));
-              do_pause_e_move(data.purge_lenght, MMM_TO_MMS(data.purge_speed));
+              do_pause_e_move(data.swap_length, MMM_TO_MMS(data.prime_speed));
+              do_pause_e_move(data.purge_lenght, ADVANCED_PAUSE_PURGE_FEEDRATE);
             #else
-              current_position[E_AXIS] += (data.swap_length) / planner.e_factor[extruder.active];
-              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), extruder.active);
-              current_position[E_AXIS] += (data.purge_lenght) / planner.e_factor[extruder.active];
-              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.purge_speed), extruder.active);
+              current_position[E_AXIS] += (data.swap_length) / tools.e_factor[extruder.active];
+              planner.buffer_line(mechanics.current_position, mechanics.data.max_feedrate_mm_s[E_AXIS], extruder.active);
+              current_position[E_AXIS] += (data.purge_lenght) / tools.e_factor[extruder.active];
+              planner.buffer_line(mechanics.current_position, MMM_TO_MMS(data.prime_speed * 0.2f), extruder.active);
             #endif
             planner.synchronize();
             planner.set_e_position_mm((mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.current_position[E_AXIS] - data.purge_lenght));
@@ -345,11 +345,11 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 #if ENABLED(TOOL_CHANGE_FIL_SWAP)
 
   void Tools::print_M217() {
-    SERIAL_LM(CFG, "Tool change: S<swap_lenght> E<purge_lenght> P<purge_speed> R<retract_speed>");
+    SERIAL_LM(CFG, "Tool change: S<swap_lenght> E<purge_lenght> P<prime_speed> R<retract_speed>");
     SERIAL_SM(CFG, "  M217");
     SERIAL_MV(" S", LINEAR_UNIT(data.swap_length));
     SERIAL_MV(" E", LINEAR_UNIT(data.purge_lenght));
-    SERIAL_MV(" P", LINEAR_UNIT(data.purge_speed));
+    SERIAL_MV(" P", LINEAR_UNIT(data.prime_speed));
     SERIAL_MV(" R", LINEAR_UNIT(data.retract_speed));
     SERIAL_EOL();
   }

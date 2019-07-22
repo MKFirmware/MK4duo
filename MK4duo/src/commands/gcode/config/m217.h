@@ -76,7 +76,7 @@ inline void gcode_M217(void) {
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
     if (parser.seenval('S')) { const float    v = parser.value_linear_units();  tools.data.swap_length    = constrain(v, 0,  max_extrude);  }
     if (parser.seenval('E')) { const float    v = parser.value_linear_units();  tools.data.purge_lenght   = constrain(v, 0,  max_extrude);  }
-    if (parser.seenval('P')) { const int16_t  v = parser.value_linear_units();  tools.data.purge_speed    = constrain(v, 10, 6000);         }
+    if (parser.seenval('P')) { const int16_t  v = parser.value_linear_units();  tools.data.prime_speed    = constrain(v, 10, 6000);         }
     if (parser.seenval('R')) { const int16_t  v = parser.value_linear_units();  tools.data.retract_speed  = constrain(v, 10, 6000);         }
   #endif
 

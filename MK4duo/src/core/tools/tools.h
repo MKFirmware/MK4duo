@@ -36,8 +36,10 @@ typedef struct {
     int16_t lpq_len;
   #endif
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    float   swap_length, purge_lenght;
-    int16_t purge_speed, retract_speed;
+    float   swap_length,
+            purge_lenght;
+    int16_t prime_speed,
+            retract_speed;
   #endif
 } tool_data_t;
 

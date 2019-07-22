@@ -138,7 +138,7 @@
         advancedpause.resume_print(slow_load_length, fast_load_length, 0, beep_count DXC_PASS);
       #else
         advancedpause.wait_for_confirmation(true, beep_count DXC_PASS);
-        advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_EXTRUDE_LENGTH, beep_count DXC_PASS);
+        advancedpause.resume_print(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, beep_count DXC_PASS);
       #endif
     }
 

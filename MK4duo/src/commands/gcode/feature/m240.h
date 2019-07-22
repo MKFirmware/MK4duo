@@ -36,7 +36,7 @@
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         advancedpause.do_pause_e_move(length, fr_mm_s);
       #else
-        current_position[E_AXIS] += length / planner.e_factor[tools.extruder.active];
+        current_position[E_AXIS] += length / tools.e_factor[tools.extruder.active];
         planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
       #endif
     }

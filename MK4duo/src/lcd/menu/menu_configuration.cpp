@@ -94,7 +94,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
       MENU_ITEM_EDIT(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude);
       MENU_ITEM_EDIT(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude);
       MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
-      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.purge_speed, 10, 5400);
+      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.prime_speed, 10, 5400);
     #endif
     MENU_ITEM_EDIT(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
     END_MENU();
