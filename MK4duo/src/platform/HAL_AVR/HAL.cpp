@@ -142,7 +142,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
     case TEMP_TIMER:
       // Use timer0 for temperature measurement
       // Interleave temperature interrupt with millies interrupt
-      TEMP_OCR  = 256;
+      TEMP_OCR = 128;
       break;
   }
 }
@@ -413,7 +413,6 @@ void HAL::Tick() {
  */
 HAL_TEMP_TIMER_ISR {
   if (printer.isStopped()) return;
-  TEMP_OCR += 256;
   HAL::Tick();
 }
 

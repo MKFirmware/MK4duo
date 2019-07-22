@@ -294,7 +294,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
  * - Send host action for resume, if configured
  * - Resume the current SD print job, if any
  */
-void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_EXTRUDE_LENGTH*/, const int8_t max_beep_count/*=0*/ DXC_ARGS) {
+void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const float &fast_load_length/*=0*/, const float &purge_length/*=PAUSE_PARK_PURGE_LENGTH*/, const int8_t max_beep_count/*=0*/ DXC_ARGS) {
 
   if (!did_pause_print) return;
 
@@ -467,7 +467,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
       #endif
 
       // Extrude filament to get into hotend
-      do_pause_e_move(purge_length, PAUSE_PARK_EXTRUDE_FEEDRATE);
+      do_pause_e_move(purge_length, PAUSE_PARK_PURGE_FEEDRATE);
     }
 
     // Show "Purge More" / "Resume" menu and wait for reply

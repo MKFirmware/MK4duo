@@ -270,7 +270,7 @@
 #define TOOL_CHANGE_FIL_SWAP_LENGTH          20  // (mm)
 #define TOOL_CHANGE_FIL_SWAP_PURGE            2  // (mm)
 #define TOOL_CHANGE_FIL_SWAP_RETRACT_SPEED 3000  // (mm/m)
-#define TOOL_CHANGE_FIL_SWAP_PURGE_SPEED    600  // (mm/m)
+#define TOOL_CHANGE_FIL_SWAP_PRIME_SPEED    600  // (mm/m)
 /***********************************************************************/
 
 
@@ -2010,8 +2010,8 @@
 #define PAUSE_PARK_FAST_LOAD_LENGTH        5  // (mm) Load length of filament, from extruder gear to nozzle.
                                               //   For Bowden, the full length of the tube and nozzle.
                                               //   For direct drive, the full length of the nozzle.
-#define PAUSE_PARK_EXTRUDE_FEEDRATE        5  // (mm/s) Extrude feedrate (after loading). Should be slower than load feedrate.
-#define PAUSE_PARK_EXTRUDE_LENGTH         50  // (mm) Length to extrude after loading.
+#define PAUSE_PARK_PURGE_FEEDRATE          5  // (mm/s) Purge feedrate (after loading). Should be slower than load feedrate.
+#define PAUSE_PARK_PURGE_LENGTH           50  // (mm) Length to purge after loading.
                                               //   Set to 0 for manual extrusion.
                                               //   Filament can be extruded repeatedly from the Filament Change menu
                                               //   until extrusion is consistent, and to purge old filament.

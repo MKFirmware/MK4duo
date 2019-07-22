@@ -37,14 +37,6 @@
   #include "../../../feature/laser/laserbitmaps.h"
 #endif
 
-FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
-  const char *str = i16tostr3(temp);
-  const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
-  lcd_moveto(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty);
-  lcd_put_u8str(&str[3-len]);
-  lcd_put_wchar(LCD_STR_DEGREE[0]);
-}
-
 #define X_LABEL_POS      3
 #define X_VALUE_POS     11
 #define XYZ_SPACING     37
@@ -80,6 +72,14 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 
 #define MAX_HOTEND_DRAW     MIN(HOTENDS, ((LCD_PIXEL_WIDTH - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
 #define STATUS_HEATERS_BOT  (STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1)
+
+FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
+  const char *str = i16tostr3(temp);
+  const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
+  lcd_moveto(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty);
+  lcd_put_u8str(&str[3-len]);
+  lcd_put_wchar(LCD_STR_DEGREE[0]);
+}
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
@@ -298,12 +298,9 @@ void LcdUI::draw_status_screen() {
       #else
         #define CHAMBER_BITMAP(S) status_chamber_bmp
       #endif
-      if (PAGE_CONTAINS(STATUS_CHAMBER_Y, STATUS_CHAMBER_Y + STATUS_CHAMBER_HEIGHT - 1))
-        u8g.drawBitmapP(
-          STATUS_CHAMBER_X, STATUS_CHAMBER_Y,
-          STATUS_CHAMBER_BYTEWIDTH, STATUS_CHAMBER_HEIGHT,
-          CHAMBER_BITMAP(CHAMBER_ALT())
-        );
+      const uint8_t chay = STATUS_CHAMBER_Y(CHAMBER_ALT()), chah = STATUS_CHAMBER_HEIGHT(CHAMBER_ALT());
+      if (PAGE_CONTAINS(chay, chay + chah - 1))
+        u8g.drawBitmapP(STATUS_CHAMBER_X, chay, STATUS_CHAMBER_BYTEWIDTH, chah, CHAMBER_BITMAP(CHAMBER_ALT()));
     #endif
 
     //
