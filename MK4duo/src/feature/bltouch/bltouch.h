@@ -99,8 +99,8 @@ class BLTouch {
     static bool command(const BLTCommand cmd, const millis_s ms=BLTOUCH_DELAY);
     static bool triggered();
 
-    FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_CMD_DEPLOY); }
-    FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_CMD_STOW);   }
+    FORCE_INLINE static bool cmd_deploy_alarm() { return command(BLTOUCH_CMD_DEPLOY,  BLTOUCH_DEPLOY_DELAY);  }
+    FORCE_INLINE static bool cmd_stow_alarm()   { return command(BLTOUCH_CMD_STOW,    BLTOUCH_STOW_DELAY);    }
 
 };
 
