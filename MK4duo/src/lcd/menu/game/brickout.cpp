@@ -80,12 +80,12 @@ void BrickoutGame::game_screen() {
     if (game_state) do {
 
       // Provisionally update the ball position
-      const fixed_t newx = ballx + ballh, newy = bally + ballv;  // current next position
-      if (!WITHIN(newx, 0, BTOF(LCD_PIXEL_WIDTH - 1))) {    // out in x?
-        ballh = -ballh; sound.playtone(5, 220);                      // bounce x
+      const fixed_t newx = ballx + ballh, newy = bally + ballv; // current next position
+      if (!WITHIN(newx, 0, BTOF(LCD_PIXEL_WIDTH - 1))) {        // out in x?
+        ballh = -ballh; sound.playtone(5, 220);                 // bounce x
       }
-      if (newy < 0) {                                       // out in y?
-        ballv = -ballv; sound.playtone(5, 280);                      // bounce v
+      if (newy < 0) {                                           // out in y?
+        ballv = -ballv; sound.playtone(5, 280);                 // bounce v
         hit_dir = 1;
       }
       // Did the ball go below the bottom?
@@ -131,7 +131,7 @@ void BrickoutGame::game_screen() {
             NOLESS(ballh, BTOF(-2));
             NOMORE(ballh, BTOF(2));
           }
-          else if (diff >= PADDLE_W-1 - 3) {
+          else if (diff >= (PADDLE_W -1 - 3)) {
             ballh += fixed_t(random( 0, 64));
             NOLESS(ballh, BTOF(-2));
             NOMORE(ballh, BTOF(2));
@@ -167,12 +167,12 @@ void BrickoutGame::game_screen() {
   }
 
   // Draw paddle
-  if (PAGE_CONTAINS(PADDLE_Y-1, PADDLE_Y)) {
+  if (PAGE_CONTAINS(PADDLE_Y - 1, PADDLE_Y)) {
     u8g.drawHLine(paddle_x, PADDLE_Y, PADDLE_W);
     #if PADDLE_H > 1
-      u8g.drawHLine(paddle_x, PADDLE_Y-1, PADDLE_W);
+      u8g.drawHLine(paddle_x, PADDLE_Y - 1, PADDLE_W);
       #if PADDLE_H > 2
-        u8g.drawHLine(paddle_x, PADDLE_Y-2, PADDLE_W);
+        u8g.drawHLine(paddle_x, PADDLE_Y - 2, PADDLE_W);
       #endif
     #endif
   }
@@ -180,7 +180,7 @@ void BrickoutGame::game_screen() {
   // Draw ball while game is running
   if (game_state) {
     const uint8_t by = FTOB(bally);
-    if (PAGE_CONTAINS(by, by+1))
+    if (PAGE_CONTAINS(by, by + 1))
       u8g.drawFrame(FTOB(ballx), by, 2, 2);
   }
   // Or draw GAME OVER

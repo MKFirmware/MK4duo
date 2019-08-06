@@ -48,7 +48,7 @@
  *    U[bool]   Use Pid/bang bang
  *    I[bool]   Hardware Inverted
  *    R[bool]   Thermal Protection
- *    P[int]    Sensor Pin
+ *    P[int]    Heater Pin
  *    Q[bool]   PWM Hardware
  *
  */

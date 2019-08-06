@@ -363,7 +363,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         if (cycles > 0) {
 
           bias += (d * (t_high - t_low)) / (t_low + t_high);
-          bias = constrain(bias, 20, data.pid.Max - 20);
+          LIMIT(bias, 20, data.pid.Max - 20);
           d = (bias > data.pid.Max >> 1) ? data.pid.Max - 1 - bias : bias;
 
           SERIAL_MV(MSG_BIAS, bias);
@@ -374,8 +374,8 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
           if (cycles > 2) {
             const float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
                         Tu = float(t_low + t_high) * 0.001f,
-                        pf = type == IS_HOTEND ? 0.6f : 0.2f,
-                        df = type == IS_HOTEND ? 1.0f / 8.0f : 1.0f / 3.0f;
+                        pf = isHotend ? 0.6f : 0.2f,
+                        df = isHotend ? 1.0f / 8.0f : 1.0f / 3.0f;
             SERIAL_MV(MSG_KU, Ku);
             SERIAL_MV(MSG_TU, Tu);
             SERIAL_EOL();

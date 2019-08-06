@@ -176,6 +176,16 @@ char* ui16tostr4(const uint16_t i) {
   return &conv[3];
 }
 
+// Convert uint16_t to string 12345 format
+char* ui16tostr5(const uint16_t i) {
+  conv[2] = RJDIGIT(i, 10000);
+  conv[3] = RJDIGIT(i, 1000);
+  conv[4] = RJDIGIT(i, 100);
+  conv[5] = RJDIGIT(i, 10);
+  conv[6] = DIGIMOD(i, 1);
+  return &conv[2];
+}
+
 // Convert uint32_t to string 1234 format
 char* ui32tostr4(const uint32_t i) {
   conv[3] = RJDIGIT(i, 1000);

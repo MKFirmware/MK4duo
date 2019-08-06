@@ -95,6 +95,23 @@ uint32_t  HAL_frequency_limit[8]  = { 0 };
 // Public functions
 // --------------------------------------------------------------------------
 
+extern "C" {
+  extern char __bss_end;
+  extern char __heap_start;
+  extern void* __brkval;
+
+  int freeMemory() {
+    int free_memory;
+    if ((int)__brkval == 0)
+      free_memory = ((int)&free_memory) - ((int)&__bss_end);
+    else
+      free_memory = ((int)&free_memory) - ((int)__brkval);
+    return free_memory;
+  }
+}
+
+void(* resetFunc) (void) = 0; // declare reset function @ address 0
+
 #if ANALOG_INPUTS > 0
   int32_t AnalogInputRead[ANALOG_INPUTS];
   uint8_t adcCounter[ANALOG_INPUTS],
@@ -166,24 +183,6 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
 }
-
-// Return available memory
-extern "C" {
-  extern char __bss_end;
-  extern char __heap_start;
-  extern void* __brkval;
-
-  int HAL::getFreeRam() {
-    int free_memory;
-    if ((int)__brkval == 0)
-      free_memory = ((int)&free_memory) - ((int)&__bss_end);
-    else
-      free_memory = ((int)&free_memory) - ((int)__brkval);
-    return free_memory;
-  }
-}
-
-void(* resetFunc) (void) = 0; // declare reset function @ address 0
 
 // Reset peripherals and cpu
 void HAL::resetHardware() { resetFunc(); }

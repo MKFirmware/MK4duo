@@ -461,6 +461,13 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
 
 void HAL_calc_pulse_cycle();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+extern "C" {
+  int freeMemory(void);
+}
+#pragma GCC diagnostic pop
+
 class HAL {
 
   public: /** Constructor */
@@ -487,7 +494,6 @@ class HAL {
 
     static void showStartReason();
 
-    static int getFreeRam();
     static void resetHardware();
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);

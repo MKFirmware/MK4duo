@@ -85,6 +85,9 @@ char* ui16tostr3(const uint16_t i);
 // Convert uint16_t to string with 1234 format
 char* ui16tostr4(const uint16_t i);
 
+// Convert uint16_t to string with 12345 format
+char* ui16tostr5(const uint16_t i);
+
 // Convert uint32_t to string with 1234 format
 char* ui32tostr4(const uint32_t i);
 

@@ -158,7 +158,7 @@ void Printer::setup() {
     SERIAL_LM(ECHO, MSG_COMPILED __DATE__);
   #endif // STRING_DISTRIBUTION_DATE
 
-  SERIAL_SMV(ECHO, MSG_FREE_MEMORY, HAL::getFreeRam());
+  SERIAL_SMV(ECHO, MSG_FREE_MEMORY, freeMemory());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
   #if HAS_SD_SUPPORT
