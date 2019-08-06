@@ -51,6 +51,7 @@ DECLARE_MENU_EDIT_TYPE(uint8_t,  uint8,       ui8tostr3,       1        );
 DECLARE_MENU_EDIT_TYPE(uint16_t, microstep,   ui16tostr3,      0.0625f  );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_3,    ui16tostr3,      1        );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_4,    ui16tostr4,      0.1      );
+DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_5,    ui16tostr5,      0.01     );
 DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
 DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr42_52,   100        );
 DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
@@ -121,6 +122,7 @@ DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint8);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(microstep);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint16_3);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint16_4);
+DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(uint16_5);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float3);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float52);
 DEFINE_DRAW_MENU_ITEM_SETTING_EDIT(float43);
@@ -187,8 +189,8 @@ class TMenuItem : MenuItemBase {
     static char* to_string(const int32_t value)       { return NAME::strfunc(unscale(value)); }
   public:
     static void action_edit(PGM_P const pstr, type_t * const ptr, const type_t minValue, const type_t maxValue, const screenFunc_t callback=nullptr, const bool live=false) {
-      // Make sure minv and maxv fit within int16_t
-      const int16_t minv = MAX(scale(minValue), INT16_MIN),
+      // Make sure minv and maxv fit within int32_t
+      const int32_t minv = MAX(scale(minValue), INT16_MIN),
                     maxv = MIN(scale(maxValue), INT16_MAX);
       init(pstr, ptr, minv, maxv - minv, scale(*ptr) - minv, edit, callback, live);
     }
@@ -205,6 +207,7 @@ DECLARE_MENU_EDIT_ITEM(uint8);
 DECLARE_MENU_EDIT_ITEM(microstep);
 DECLARE_MENU_EDIT_ITEM(uint16_3);
 DECLARE_MENU_EDIT_ITEM(uint16_4);
+DECLARE_MENU_EDIT_ITEM(uint16_5);
 DECLARE_MENU_EDIT_ITEM(float3);
 DECLARE_MENU_EDIT_ITEM(float52);
 DECLARE_MENU_EDIT_ITEM(float43);

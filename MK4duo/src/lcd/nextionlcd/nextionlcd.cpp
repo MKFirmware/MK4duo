@@ -108,8 +108,6 @@ bool    NextionLCD::NextionON                   = false;
 
 uint8_t NextionLCD::PageID                      = 0;
 
-char    NextionLCD::buffer[NEXTION_BUFFER_SIZE] = { 0 };
-
 #if HAS_SD_SUPPORT
   uint8_t NextionLCD::lcd_sd_status             = 2; // UNKNOWN
 #endif
@@ -278,14 +276,16 @@ NexObject *nex_listen_list[] =
 /** Public Function */
 void NextionLCD::init() {
 
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
+
   #if ENABLED(NEXTION_CONNECT_DEBUG)
     SERIAL_EM(" NEXTION connected at 115200 baud, ready");
   #endif
 
   for (uint8_t i = 0; i < 10; i++) {
-    ZERO(buffer);
+    ZERO(cmd);
     nexSerial.begin(115200);
-    NextionON = getConnect(buffer);
+    NextionON = getConnect(cmd);
     if (NextionON) break;
     HAL::delayMilliseconds(1000);
   }
@@ -309,31 +309,31 @@ void NextionLCD::init() {
     SERIAL_MSG("Nextion");
 
     // Get Model
-    if (strstr_P(buffer, PSTR("3224"))) {       // Model 2.4" or 2.8" Normal or Enhanced
+    if (strstr_P(cmd, PSTR("3224"))) {       // Model 2.4" or 2.8" Normal or Enhanced
       SERIAL_MSG(" 2.4");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(1, 24, 250, 155);
       #endif
     }
-    else if (strstr_P(buffer, PSTR("4024"))) {  // Model 3.2" Normal or Enhanced
+    else if (strstr_P(cmd, PSTR("4024"))) {  // Model 3.2" Normal or Enhanced
       SERIAL_MSG(" 3.2");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(1, 24, 250, 155);
       #endif
     }
-    else if (strstr_P(buffer, PSTR("4832"))) {  // Model 3.5" Normal or Enhanced
+    else if (strstr_P(cmd, PSTR("4832"))) {  // Model 3.5" Normal or Enhanced
       SERIAL_MSG(" 3.5");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(1, 24, 250, 155);
       #endif
     }
-    else if (strstr_P(buffer, PSTR("4827"))) {  // Model 4.3" Normal or Enhanced
+    else if (strstr_P(cmd, PSTR("4827"))) {  // Model 4.3" Normal or Enhanced
       SERIAL_MSG(" 4.3");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(1, 24, 250, 155);
       #endif
     }
-    else if (strstr_P(buffer, PSTR("8048"))) {  // Model 7" Normal or Enhanced
+    else if (strstr_P(cmd, PSTR("8048"))) {  // Model 7" Normal or Enhanced
       SERIAL_MSG(" 7");
       #if ENABLED(NEXTION_GFX)
         gfx.set_position(274, 213, 250, 155);
@@ -367,39 +367,41 @@ void NextionLCD::init() {
 
 void NextionLCD::read_serial() {
 
-  bool    str_start_flag  = false;
-  uint8_t inputChar       = 0,
-          startChar       = 0,
-          cnt_0xFF        = 0,
-          index           = 0;
+  static char     serial_nextion_buffer[MAX_CMD_SIZE];
+  static uint8_t  cnt_0xFF  = 0,
+                  index     = 0;
 
-  ZERO(buffer);
   while (nexSerial.available()) {
-    inputChar = nexSerial.read();
-    HAL::delayMilliseconds(10);
-    if (  !str_start_flag && (
-          inputChar == NEX_RET_GCODE_OPERATION
-      ||  inputChar == NEX_RET_CURRENT_PAGE_ID_HEAD
-      ||  inputChar == NEX_RET_EVENT_TOUCH_HEAD
-    )) {
-      str_start_flag = true;
-      startChar = inputChar;
+
+    int c;
+    if ((c = nexSerial.read()) < 0) continue;
+
+    char inputChar = c;
+    if (inputChar == 0xFF) cnt_0xFF++;
+    else if (index < MAX_CMD_SIZE - 1) {
+      cnt_0xFF = 0;
+      serial_nextion_buffer[index++] = inputChar;
     }
-    else if (str_start_flag) {
-      if (inputChar == 0xFF) cnt_0xFF++;
-      else buffer[index++] = inputChar;
-      if (cnt_0xFF >= 3 || index == sizeof(buffer)) {
-        if (startChar == NEX_RET_GCODE_OPERATION)
-          commands.process_now(buffer);
-        else if (startChar == NEX_RET_CURRENT_PAGE_ID_HEAD)
-          set_page(uint8_t(buffer[0]));
-        else
-          parse_key_touch();
-        cnt_0xFF = startChar = index = 0;
-        ZERO(buffer);
-        str_start_flag = false;
+
+    if (cnt_0xFF >= 3) {
+      serial_nextion_buffer[index] = 0;
+      char *command = serial_nextion_buffer;
+      cnt_0xFF = index = 0;
+      while (*command == ' ') command++;
+      if (*command == NEX_RET_GCODE_OPERATION) {
+        command++;
+        commands.process_now(command);
+      }
+      else if (*command == NEX_RET_CURRENT_PAGE_ID_HEAD) {
+        command++;
+        set_page(uint8_t(*command));
+      }
+      else if (*command == NEX_RET_EVENT_TOUCH_HEAD) {
+        command++;
+        parse_key_touch(command);
       }
     }
+
   }
 }
 
@@ -419,6 +421,8 @@ void NextionLCD::status_screen_update() {
                   Previousfeedrate            = 0xFF,
                   PreviousfanSpeed            = 0xFF,
                   PreviouspercentDone         = 0xFF;
+
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
@@ -500,21 +504,21 @@ void NextionLCD::status_screen_update() {
       // Progress bar solid part
       setValue(progressbar, printer.progress);
       // Estimate End Time
-      ZERO(buffer);
-      char buffer1[10];
+      ZERO(cmd);
+      char cmd1[10];
       uint8_t digit;
       duration_t Time = print_job_counter.duration();
-      digit = Time.toDigital(buffer1, true);
-      strcat(buffer, "S");
-      strcat(buffer, buffer1);
+      digit = Time.toDigital(cmd1, true);
+      strcat(cmd, "S");
+      strcat(cmd, cmd1);
       Time = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
-      digit += Time.toDigital(buffer1, true);
+      digit += Time.toDigital(cmd1, true);
       if (digit > 14)
-        strcat(buffer, "E");
+        strcat(cmd, "E");
       else
-        strcat(buffer, " E");
-      strcat(buffer, buffer1);
-      setText(LcdTime, buffer);
+        strcat(cmd, " E");
+      strcat(cmd, cmd1);
+      setText(LcdTime, cmd);
       PreviouspercentDone = printer.progress;
     }
 
@@ -550,7 +554,7 @@ void NextionLCD::setText(NexObject &nexobject, PGM_P buffer) {
 }
 
 void NextionLCD::startChar(NexObject &nexobject) {
-  char cmd[40];
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
   sprintf_P(cmd, PSTR("p[%u].b[%u].txt=\""), nexobject.pid, nexobject.cid);
   nexSerial.print(cmd);
 }
@@ -565,13 +569,13 @@ void NextionLCD::endChar() {
 }
 
 void NextionLCD::setValue(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
   sprintf_P(cmd, PSTR("p[%u].b[%u].val=%u"), nexobject.pid, nexobject.cid, number);
   sendCommand(cmd);
 }
 
 void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number) {
-  char cmd[40];
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
   sprintf_P(cmd, PSTR("p[%u].b[%u].pco=%u"), nexobject.pid, nexobject.cid, number);
   sendCommand(cmd);
   Refresh(nexobject);
@@ -784,7 +788,7 @@ void NextionLCD::set_status_page() {
   setValue(VSpeed, 100);
 
   #if HAS_FANS
-    setValue(Fanspeed, 1);
+    sendCommandPGM(PSTR("p[2].b[25].val=1"));
   #endif
 
   #if HAS_CASE_LIGHT
@@ -799,7 +803,7 @@ void NextionLCD::set_status_page() {
 
 void NextionLCD::coordtoLCD() {
   char* valuetemp;
-  ZERO(buffer);
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   if (PageID == 2) {
     setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
@@ -809,29 +813,29 @@ void NextionLCD::coordtoLCD() {
   else if (PageID == 4) {
     if (mechanics.home_flag.XHomed) {
       valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
-      strcat(buffer, "X");
-      strcat(buffer, valuetemp);
+      strcat(cmd, "X");
+      strcat(cmd, valuetemp);
     }
     else
-      strcat(buffer, "?");
+      strcat(cmd, "?");
 
     if (mechanics.home_flag.YHomed) {
       valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
-      strcat(buffer, " Y");
-      strcat(buffer, valuetemp);
+      strcat(cmd, " Y");
+      strcat(cmd, valuetemp);
     }
     else
-      strcat(buffer, " ?");
+      strcat(cmd, " ?");
 
     if (mechanics.home_flag.ZHomed) {
       valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
-      strcat(buffer, " Z");
-      strcat(buffer, valuetemp);
+      strcat(cmd, " Z");
+      strcat(cmd, valuetemp);
     }
     else
-      strcat(buffer, " ?");
+      strcat(cmd, " ?");
 
-    setText(LcdCoord, buffer);
+    setText(LcdCoord, cmd);
   }
 }
 
@@ -839,17 +843,17 @@ void NextionLCD::set_page(const uint8_t page) {
   PageID = page;
 }
 
-void NextionLCD::parse_key_touch() {
+void NextionLCD::parse_key_touch(const char* cmd) {
   for (uint8_t i = 0; nex_listen_list[i] != NULL; i++) {
-    if (nex_listen_list[i]->pid == buffer[0] && nex_listen_list[i]->cid == buffer[1]) {
-      if (buffer[2] == NEX_EVENT_POP) PopCallback(nex_listen_list[i]);
+    if (nex_listen_list[i]->pid == cmd[0] && nex_listen_list[i]->cid == cmd[1]) {
+      if (cmd[2] == NEX_EVENT_POP) PopCallback(nex_listen_list[i]);
       break;
     }
   }
 }
 
 void NextionLCD::Refresh(NexObject &nexobject) {
-  char cmd[20];
+  char cmd[NEXTION_BUFFER_SIZE] = { 0 };
   sprintf_P(cmd, PSTR("ref p[%u].b[%u]"), nexobject.pid, nexobject.cid);
   sendCommand(cmd);
 }
@@ -1482,20 +1486,21 @@ void LcdUI::stop_print() {
 
       static millis_s nex_update_ms = 0;
 
+      char cmd[NEXTION_BUFFER_SIZE] = { 0 };
+
       if (expired(&nex_update_ms, 1500U)) {
 
-        ZERO(nexlcd.buffer);
-        strcat(nexlcd.buffer, MSG_FILAMENT_CHANGE_NOZZLE "H");
-        strcat(nexlcd.buffer, ui8tostr1(hotend));
-        strcat(nexlcd.buffer, " ");
-        strcat(nexlcd.buffer, i16tostr3(hotends[hotend].deg_current()));
-        strcat(nexlcd.buffer, "/");
+        strcat(cmd, MSG_FILAMENT_CHANGE_NOZZLE "H");
+        strcat(cmd, ui8tostr1(hotend));
+        strcat(cmd, " ");
+        strcat(cmd, i16tostr3(hotends[hotend].deg_current()));
+        strcat(cmd, "/");
 
         if (get_blink() || !hotends[hotend].isIdle())
-          strcat(nexlcd.buffer, i16tostr3(hotends[hotend].deg_target()));
+          strcat(cmd, i16tostr3(hotends[hotend].deg_target()));
 
         nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
-        nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], nexlcd.buffer);
+        nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], cmd);
 
       }
     }

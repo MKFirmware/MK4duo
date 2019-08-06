@@ -165,8 +165,6 @@ class NextionLCD {
 
     static uint8_t  PageID;
 
-    static char     buffer[NEXTION_BUFFER_SIZE];
-
     #if HAS_SD_SUPPORT
       static uint8_t lcd_sd_status;
     #endif
@@ -233,7 +231,7 @@ class NextionLCD {
     static void coordtoLCD();
 
     static void set_page(const uint8_t page);
-    static void parse_key_touch();
+    static void parse_key_touch(const char* command);
     static void Refresh(NexObject &nexobject);
 
     static void PopCallback(NexObject *nexobject);

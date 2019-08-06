@@ -232,6 +232,13 @@ typedef uint32_t  ptr_int_t;
 extern uint8_t MCUSR;
 volatile static uint32_t debug_counter;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+extern "C" {
+  int freeMemory(void);
+}
+#pragma GCC diagnostic pop
+
 extern "C" char *dtostrf (double __val, signed char __width, unsigned char __prec, char *__s);
 
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
@@ -337,7 +344,6 @@ class HAL {
 
     static void showStartReason();
 
-    static int getFreeRam();
     static void resetHardware();
 
     // SPI related functions

@@ -145,6 +145,15 @@ void sei(void) {
   interrupts();
 }
 
+// Return available memory
+extern "C" {
+  extern unsigned int _ebss; // end of bss section
+  int freeMemory() {
+    int free_memory, heap_end = (int)_sbrk(0);
+    return (int)&free_memory - (heap_end ? heap_end : (int)&_ebss);
+  }
+}
+
 // Tone for due
 static pin_t tone_pin;
 volatile static int32_t toggles;
@@ -214,15 +223,6 @@ void HAL::showStartReason() {
     case 4: SERIAL_EM(MSG_EXTERNAL_RESET); break;
     default: break;
   }
-}
-
-// Return available memory
-extern "C" {
-  extern unsigned int _ebss; // end of bss section
-}
-int HAL::getFreeRam() {
-  int free_memory, heap_end = (int)_sbrk(0);
-  return (int)&free_memory - (heap_end ? heap_end : (int)&_ebss);
 }
 
 // Convert an Arduino Due analog pin number to the corresponding ADC channel number
