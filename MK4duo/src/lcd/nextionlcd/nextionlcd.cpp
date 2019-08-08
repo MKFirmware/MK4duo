@@ -544,6 +544,11 @@ void NextionLCD::status_screen_update() {
 
 }
 
+void NextionLCD::moveto(const uint8_t col, const uint8_t row) {
+  nexlcd.startChar(*txtmenu_list[row]);
+  nexlcd.put_space(col - 1);
+}
+
 void NextionLCD::setText(NexObject &nexobject, PGM_P buffer) {
   char cmd[NEXTION_MAX_MESSAGE_LENGTH + 5];
   sprintf_P(cmd, PSTR("p[%u].b[%u].txt="), nexobject.pid, nexobject.cid);
@@ -1417,7 +1422,9 @@ bool LcdUI::has_status() { return (status_message[0] != '\0'); }
  */
 void LcdUI::pause_print() {
 
-  synchronize(PSTR(MSG_PAUSE_PRINT));
+  #if HAS_LCD_MENU
+    synchronize(PSTR(MSG_PAUSE_PRINT));
+  #endif
 
   #if HAS_SD_RESTART
     if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);

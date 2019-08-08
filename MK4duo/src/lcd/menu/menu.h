@@ -330,7 +330,11 @@ class MenuItem_bool {
   if (lcdui.should_draw() && _menuLineNr == _thisItemNr - 1) { \
     SETCURSOR(X, _lcdLineNr)
 
-#define MENU_ITEM_ADDON_END() } }while(0)
+#if ENABLED(NEXTION)
+  #define MENU_ITEM_ADDON_END() nexlcd.endChar(); } }while(0)
+#else
+  #define MENU_ITEM_ADDON_END() } }while(0)
+#endif
 
 #define STATIC_ITEM(LABEL, ...)                               STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
 

@@ -208,7 +208,7 @@ void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
-    SERIAL_VAL(dtostrf(pos[i], 9, precision, str));
+    SERIAL_TXT(dtostrf(pos[i], 1, precision, str));
   }
   SERIAL_EOL();
 }
