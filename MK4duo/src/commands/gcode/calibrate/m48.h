@@ -75,21 +75,10 @@
     const float X_probe_location = parser.linearval('X', X_current + probe.data.offset[X_AXIS]),
                 Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset[Y_AXIS]);
 
-    #if NOMECH(DELTA)
-      if (!WITHIN(X_probe_location, MIN_PROBE_X, MAX_PROBE_X)) {
-        out_of_range_error(PSTR("X"));
-        return;
-      }
-      if (!WITHIN(Y_probe_location, MIN_PROBE_Y, MAX_PROBE_Y)) {
-        out_of_range_error(PSTR("Y"));
-        return;
-      }
-    #else
-      if (!mechanics.position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
-        SERIAL_LM(ER, "? (X,Y) location outside of probeable radius.");
-        return;
-      }
-    #endif
+    if (!mechanics.position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
+      SERIAL_LM(ER, "? (X,Y) out of bounds.");
+      return;
+    }
 
     bool seen_L = parser.seen('L');
     uint8_t n_legs = seen_L ? parser.value_byte() : 0;
@@ -128,6 +117,10 @@
       randomSeed(millis());
 
       for (uint8_t n = 0; n < n_samples; n++) {
+        #if HAS_LCD
+          // Display M48 progress in the status bar
+          lcdui.status_printf_P(0, PSTR(MSG_M48_POINT ": %d/%d"), int(n + 1), int(n_samples));
+        #endif
         if (n_legs) {
           const int dir = (random(0, 10) > 5.0) ? -1 : 1;  // clockwise or counter clockwise
           float angle = random(0, 360);
@@ -143,9 +136,9 @@
           if (verbose_level > 3) {
             SERIAL_MV("Starting radius: ", radius);
             SERIAL_MV("   angle: ", angle);
-            SERIAL_MSG(" Direction: ");
-            if (dir > 0) SERIAL_MSG("Counter-");
-            SERIAL_EM("Clockwise");
+            SERIAL_MSG(" dir: ");
+            if (dir > 0) SERIAL_CHR('C');
+            SERIAL_EM("CW");
           }
 
           for (uint8_t l = 0; l < n_legs - 1; l++) {
@@ -186,12 +179,14 @@
               LIMIT(X_current, X_MIN_BED, X_MAX_BED);
               LIMIT(Y_current, Y_MIN_BED, Y_MAX_BED);
             #endif
+
             if (verbose_level > 3) {
               SERIAL_MSG("Going to:");
-              SERIAL_MV(" x: ", X_current);
-              SERIAL_MV(" y: ", Y_current);
-              SERIAL_EMV("  z: ", mechanics.current_position[Z_AXIS]);
+              SERIAL_MV(" X", X_current);
+              SERIAL_MV(" Y", Y_current);
+              SERIAL_EMV(" Z", mechanics.current_position[Z_AXIS]);
             }
+
             mechanics.do_blocking_move_to_xy(X_current, Y_current);
           } // n_legs loop
         } // n_legs
@@ -256,6 +251,13 @@
 
       SERIAL_EMV("Standard Deviation: ", sigma, 6);
       SERIAL_EOL();
+
+      #if HAS_LCD
+        // Display M48 results in the status bar
+        char sigma_str[8];
+        lcdui.status_printf_P(0, PSTR(MSG_M48_DEVIATION ": %s"), dtostrf(sigma, 2, 6, sigma_str));
+      #endif
+
     }
 
     mechanics.clean_up_after_endstop_or_probe_move();

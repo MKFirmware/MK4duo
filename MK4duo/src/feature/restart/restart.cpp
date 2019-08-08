@@ -168,7 +168,7 @@ void Restart::resume_job() {
 
   #define RESTART_ZRAISE 2
 
-  char cmd[MAX_CMD_SIZE + 16], str1[16];
+  char cmd[MAX_CMD_SIZE + 16], str1[16], str2[16];
 
   #if HAS_LEVELING
     // Make sure leveling is off before any G92 and G28
@@ -221,8 +221,7 @@ void Restart::resume_job() {
   // Set leveling
   #if HAS_LEVELING
     if (job_info.z_fade_height || job_info.leveling) {
-      dtostrf(job_info.z_fade_height, 1, 1, str1);
-      sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(job_info.leveling), str1);
+      sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(job_info.leveling), dtostrf(job_info.z_fade_height, 1, 1, str1));
       commands.process_now(cmd);
     }
   #endif
@@ -242,18 +241,19 @@ void Restart::resume_job() {
 
   #if Z_HOME_DIR > 0
     // Move back to the saved XYZ
-    char str2[16], str3[16];
-    dtostrf(job_info.current_position[X_AXIS], 1, 3, str1);
-    dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2);
-    dtostrf(job_info.current_position[Z_AXIS], 1, 3, str3);
-    sprintf_P(cmd, PSTR("G1 X%s Y%s Z%s F3000"), str1, str2, str3);
+    char str3[16];
+    sprintf_P(cmd, PSTR("G1 X%s Y%s Z%s F3000"),
+      dtostrf(job_info.current_position[X_AXIS], 1, 3, str1),
+      dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2),
+      dtostrf(job_info.current_position[Z_AXIS], 1, 3, str3)
+    );
     commands.process_now(cmd);
   #else
     // Move back to the saved XY
-    char str2[16];
-    dtostrf(job_info.current_position[X_AXIS], 1, 3, str1);
-    dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2);
-    sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"), str1, str2);
+    sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
+      dtostrf(job_info.current_position[X_AXIS], 1, 3, str1),
+      dtostrf(job_info.current_position[Y_AXIS], 1, 3, str2)
+    );
     commands.process_now(cmd);
     // Move back to the saved Z
     dtostrf(job_info.current_position[Z_AXIS], 1, 3, str1);
@@ -272,8 +272,7 @@ void Restart::resume_job() {
   commands.process_now(cmd);
 
   // Restore E position
-  dtostrf(job_info.current_position[E_AXIS], 1, 3, str1);
-  sprintf_P(cmd, PSTR("G92.9 E%s"), str1);
+  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(job_info.current_position[E_AXIS], 1, 3, str1));
   commands.process_now(cmd);
 
   // Relative mode

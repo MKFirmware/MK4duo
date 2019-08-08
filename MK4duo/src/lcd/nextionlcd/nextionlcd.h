@@ -86,6 +86,10 @@
 #define LCD_UPDATE_INTERVAL                 300U
 #define NEX_TIMEOUT                         100U
 
+#define SETCURSOR(col, row)                 nexlcd.moveto(col, row)
+#define LCDPRINT(p)                         nexlcd.put_str_P(p)
+#define LCDWRITE(c)                         nexlcd.put_str_P(c)
+
 // 0 card not present, 1 SD not insert, 2 SD insert, 3 SD_HOST printing, 4 SD_HOST paused
 enum SDstatus_enum : uint8_t { NO_SD = 0, SD_NO_INSERT = 1, SD_INSERT = 2, SD_HOST_PRINTING = 3, SD_HOST_PAUSE = 4 };
 
@@ -193,6 +197,7 @@ class NextionLCD {
 
     static void status_screen_update();
 
+    static void moveto(const uint8_t col, const uint8_t row);
     static void setText(NexObject &nexobject, PGM_P buffer);
     static void startChar(NexObject &nexobject);
     static void setChar(const char pchar);

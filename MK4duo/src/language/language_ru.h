@@ -35,9 +35,12 @@
 #define MSG_BACK                            _UxGT("Назад")
 #define MSG_SD_INSERTED                     _UxGT("Карта вставлена")
 #define MSG_SD_REMOVED                      _UxGT("Карта извлечена")
+#define MSG_SD_RELEASED                     _UxGT("SD карта не активна")
 #define MSG_LCD_ENDSTOPS                    _UxGT("Эндстопы") // Max length 8 characters
 #define MSG_LCD_SOFT_ENDSTOPS               _UxGT("Прогр. эндстопы")
 #define MSG_MAIN                            _UxGT("Меню")
+#define MSG_ADVANCED_SETTINGS               _UxGT("Другие настройки")
+#define MSG_CONFIGURATION                   _UxGT("Настройки")
 #define MSG_AUTOSTART                       _UxGT("Автостарт")
 #define MSG_DISABLE_STEPPERS                _UxGT("Выкл. двигатели")
 #define MSG_DEBUG_MENU                      _UxGT("Меню отладки")
@@ -46,7 +49,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Парковка X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Парковка Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Парковка Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Калибровать Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Нулевое положение")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Нажмите чтобы начать")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Следующая точка")
@@ -57,23 +59,16 @@
 #define MSG_SET_ORIGIN                      _UxGT("Запомнить ноль")
 #define MSG_PREHEAT_1                       _UxGT("Преднагрев " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
-#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1_N _UxGT("всё")
-#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1_N _UxGT("сопло")
-#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1_N _UxGT("стол")
-#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1_N _UxGT("настр.")
+#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" всё")
+#define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" сопло")
+#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" стол")
+#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" настр.")
 #define MSG_PREHEAT_2                       _UxGT("Преднагрев " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
-#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2_N _UxGT("всё")
-#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2_N_ _UxGT("сопло")
-#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2_N _UxGT("стол")
-#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2_N _UxGT("настр.")
-#define MSG_PREHEAT_3                       _UxGT("Преднагрев " PREHEAT_3_LABEL)
-#define MSG_PREHEAT_3_N                     MSG_PREHEAT_3 _UxGT(" ")
-#define MSG_PREHEAT_3_ALL                   MSG_PREHEAT_3_N _UxGT("всё")
-#define MSG_PREHEAT_3_END                   MSG_PREHEAT_3_N _UxGT("сопло")
-#define MSG_PREHEAT_3_BEDONLY               MSG_PREHEAT_3_N _UxGT("стол")
-#define MSG_PREHEAT_3_SETTINGS              MSG_PREHEAT_3_N _UxGT("настр.")
-#define MSG_PREHEAT_CUSTOM                  _UxGT("Разогреть обычай")
+#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" всё")
+#define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" сопло")
+#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" стол")
+#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" настр.")
 #define MSG_COOLDOWN                        _UxGT("Охлаждение")
 #define MSG_SWITCH_PS_ON                    _UxGT("Включить питание")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Выключить питание")
@@ -84,8 +79,20 @@
 #define MSG_LEVEL_BED                       _UxGT("Калибровать стол")
 #define MSG_LEVEL_CORNERS                   _UxGT("Выровнять углы")
 #define MSG_NEXT_CORNER                     _UxGT("Следующий угол")
+#define MSG_EDIT_MESH                       _UxGT("Редактировать сетку")
 #define MSG_EDITING_STOPPED                 _UxGT("Ред. сетки завершено")
-#define MSG_USER_MENU                       _UxGT("Свои комманды")
+#define MSG_USER_MENU                       _UxGT("Свои команды")
+
+#define MSG_M48_TEST                        _UxGT("Проверка датчика Z")
+#define MSG_M48_DEVIATION                   _UxGT("Отклонение")
+#define MSG_M48_POINT                       _UxGT("Точка")
+
+// TODO: IDEX Menu
+#define MSG_OFFSETS_MENU                    _UxGT("Размещение сопел")
+
+#define MSG_X_OFFSET                        _UxGT("2-е сопло X")
+#define MSG_Y_OFFSET                        _UxGT("2-е сопло Y")
+#define MSG_Z_OFFSET                        _UxGT("2-е сопло Z")
 
 #define MSG_UBL_DOING_G29                   _UxGT("Выполняем G29")
 #define MSG_UBL_UNHOMED                     _UxGT("Паркуем сначала XYZ")
@@ -129,7 +136,6 @@
 #define MSG_UBL_OUTPUT_MAP_CSV              _UxGT("Вывести в CSV")
 #define MSG_UBL_OUTPUT_MAP_BACKUP           _UxGT("Забекапить сетку")
 #define MSG_UBL_INFO_UBL                    _UxGT("Вывод информации UBL")
-#define MSG_EDIT_MESH                       _UxGT("Редактировать сетку")
 #define MSG_UBL_FILLIN_AMOUNT               _UxGT("Кол-во заполнителя")
 #define MSG_UBL_MANUAL_FILLIN               _UxGT("Ручное заполнение")
 #define MSG_UBL_SMART_FILLIN                _UxGT("Умное заполнение")
@@ -144,7 +150,7 @@
 #define MSG_UBL_SAVE_MESH                   _UxGT("Сохранить сетку стола")
 #define MSG_MESH_LOADED                     _UxGT("Сетка %i загружена")
 #define MSG_MESH_SAVED                      _UxGT("Сетка %i сохранена")
-#define MSG_NO_STORAGE                      _UxGT("Нет хранилища")
+#define MSG_UBL_NO_STORAGE                  _UxGT("Нет хранилища")
 #define MSG_UBL_SAVE_ERROR                  _UxGT("Ошибка: Сохран. UBL")
 #define MSG_UBL_RESTORE_ERROR               _UxGT("Ошибка: Восстан. UBL")
 #define MSG_UBL_Z_OFFSET_STOPPED            _UxGT("Смещение Z останов.")
@@ -175,7 +181,7 @@
 #define MSG_MOVE_Y                          _UxGT("Движение по Y")
 #define MSG_MOVE_Z                          _UxGT("Движение по Z")
 #define MSG_MOVE_E                          _UxGT("Экструдер")
-#define MSG_MOVE_0025MM                     _UxGT("Движение 0.025мм")
+#define MSG_MOVE_Z_DIST                     _UxGT("Движение %sмм")
 #define MSG_MOVE_01MM                       _UxGT("Движение 0.1мм")
 #define MSG_MOVE_1MM                        _UxGT("Движение 1мм")
 #define MSG_MOVE_10MM                       _UxGT("Движение 10мм")
@@ -191,8 +197,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Макс")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Фактор")
 #define MSG_AUTOTEMP                        _UxGT("Автотемпература")
-#define MSG_ON                              _UxGT("Вкл.")
-#define MSG_OFF                             _UxGT("Выкл.")
+#define MSG_LCD_ON                          _UxGT("Вкл.")
+#define MSG_LCD_OFF                         _UxGT("Выкл.")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -246,7 +252,7 @@
 #define MSG_CONTRAST                        _UxGT("Контраст LCD")
 #define MSG_STORE_EEPROM                    _UxGT("Сохранить настройки")
 #define MSG_LOAD_EEPROM                     _UxGT("Загрузить настройки")
-#define MSG_RESTORE_FAILSAFE                _UxGT("Восстановить настр.")
+#define MSG_RESTORE_FAILSAFE                _UxGT("Вернуть настройки")
 #define MSG_INIT_EEPROM                     _UxGT("Инициализация EEPROM")
 #define MSG_REFRESH                         _UxGT("Обновить")
 #define MSG_WATCH                           _UxGT("Информационный экран")
@@ -273,12 +279,21 @@
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("Возврат V")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAPF   _UxGT("Возврат смены V")
 #define MSG_AUTORETRACT                     _UxGT("Авто Втягивание")
+
+// TODO: Filament Change Swap / Purge Length
+
+#define MSG_TOOL_CHANGE                     _UxGT("Смена сопел")
+#define MSG_TOOL_CHANGE_ZLIFT               _UxGT("Поднятие по Z")
+
+// TODO: Singlenozzle, nozzle standby
+
 #define MSG_FILAMENTCHANGE                  _UxGT("Смена филамента")
 #define MSG_FILAMENTLOAD                    _UxGT("Загрузка филамента")
 #define MSG_FILAMENTUNLOAD                  _UxGT("Выгрузка филамента")
 #define MSG_FILAMENTUNLOAD_ALL              _UxGT("Выгрузить всё")
-#define MSG_INIT_SDCARD                     _UxGT("Иниц. SD карту")
+#define MSG_INIT_SDCARD                     _UxGT("Активировать SD")
 #define MSG_CHANGE_SDCARD                   _UxGT("Сменить SD карту")
+#define MSG_RELEASE_SDCARD                  _UxGT("Деактивировать SD")
 #define MSG_ZPROBE_OUT                      _UxGT("Z датчик вне стола")
 #define MSG_SKEW_FACTOR                     _UxGT("Фактор наклона")
 #define MSG_BLTOUCH                         _UxGT("BLTouch")
@@ -286,8 +301,11 @@
 #define MSG_BLTOUCH_RESET                   _UxGT("Сброс BLTouch")
 #define MSG_BLTOUCH_DEPLOY                  _UxGT("Установка BLTouch")
 #define MSG_BLTOUCH_STOW                    _UxGT("Набивка BLTouch")
+
+// TODO: TouchMI Probe, Manual deploy/stow
+
 #define MSG_HOME                            _UxGT("Паркуй") // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
-#define MSG_FIRST                           _UxGT("первый")
+#define MSG_FIRST                           _UxGT("сначала")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("Смещение Z")
 #define MSG_BABYSTEP_X                      _UxGT("Микрошаг X")
 #define MSG_BABYSTEP_Y                      _UxGT("Микрошаг Y")
@@ -298,10 +316,12 @@
 #define MSG_ERR_REDUNDANT_TEMP              _UxGT("Ошибка: Избыточная Т")
 #define MSG_THERMAL_RUNAWAY                 _UxGT("УБЕГАНИЕ ТЕПЛА")
 #define MSG_THERMAL_RUNAWAY_BED             _UxGT("УБЕГАНИЕ ТЕПЛА СТОЛА")
+// TODO: Heated chamber
 #define MSG_ERR_MAXTEMP                     _UxGT("Ошибка: Т макс.")
 #define MSG_ERR_MINTEMP                     _UxGT("Ошибка: Т мин.")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Ошибка: Т стола макс")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Ошибка: Т стола мин.")
+// TODO: Heated chamber
 #define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("ПРИНТЕР ОСТАНОВЛЕН")
 #define MSG_PLEASE_RESET                    _UxGT("Сделайте сброс")
@@ -310,9 +330,9 @@
 #define MSG_SHORT_MINUTE                    _UxGT("м") // One character only
 #define MSG_HEATING                         _UxGT("Нагрев...")
 #define MSG_COOLING                         _UxGT("Охлаждение...")
-#define MSG_COOLING_COMPLETE                _UxGT("Охлаждение выполнено")
 #define MSG_BED_HEATING                     _UxGT("Нагрев стола...")
 #define MSG_BED_COOLING                     _UxGT("Охлаждение стола...")
+// TODO: Heated chamber
 #define MSG_DELTA_CALIBRATE                 _UxGT("Калибровка Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Калибровать X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Калибровать Y")
@@ -345,7 +365,7 @@
   #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Закончено")
   #define MSG_INFO_PRINT_TIME               _UxGT("Общее время печати")
   #define MSG_INFO_PRINT_LONGEST            _UxGT("Наидольшее задание")
-  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Длинна филамента")
+  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Длина филамента")
 #else
   #define MSG_INFO_PRINT_COUNT              _UxGT("Отпечатков")
   #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Закончено")
@@ -355,7 +375,7 @@
 #endif
 #define MSG_INFO_MIN_TEMP                   _UxGT("Мин. Т")
 #define MSG_INFO_MAX_TEMP                   _UxGT("Макс. Т")
-#define MSG_INFO_PSU                        _UxGT("Блок питания")
+#define MSG_INFO_PSU                        _UxGT("БП")
 #define MSG_DRIVE_STRENGTH                  _UxGT("Сила привода")
 #define MSG_DAC_PERCENT                     _UxGT("Привод %")
 #define MSG_DAC_EEPROM_WRITE                _UxGT("Запись DAC EEPROM")
@@ -369,6 +389,16 @@
 #define MSG_ERR_HOMING_FAILED               _UxGT("Возврат не удался")
 #define MSG_ERR_PROBING_FAILED              _UxGT("Не удалось прощупать")
 #define MSG_M600_TOO_COLD                   _UxGT("M600: Низкая Т")
+
+// TODO: MMU2
+
+// TODO: Mixing
+
+#define MSG_GAMES                           _UxGT("Игры")
+#define MSG_BRICKOUT                        _UxGT("Кирпичи")
+#define MSG_INVADERS                        _UxGT("Вторжение")
+#define MSG_SNAKE                           _UxGT("Змейка")
+#define MSG_MAZE                            _UxGT("Лабиринт")
 
 //
 // Filament Change screens show up to 3 lines on a 4-line display
@@ -405,3 +435,14 @@
   #define MSG_FILAMENT_CHANGE_PURGE_1       _UxGT("Выдавливание...")
   #define MSG_FILAMENT_CHANGE_RESUME_1      _UxGT("Возобновление...")
 #endif // LCD_HEIGHT < 4
+
+#define MSG_TMC_DRIVERS                     _UxGT("Драйвера TMC")
+#define MSG_TMC_CURRENT                     _UxGT("Текущие настройки")
+#define MSG_TMC_HYBRID_THRS                 _UxGT("Гибридный режим")
+#define MSG_TMC_HOMING_THRS                 _UxGT("Режим без эндстопов")
+#define MSG_TMC_STEPPING_MODE               _UxGT("Режим шага")
+#define MSG_TMC_STEALTH_ENABLED             _UxGT("Тихий режим вкл")
+
+// TODO: Service
+
+// TODO: Backlash

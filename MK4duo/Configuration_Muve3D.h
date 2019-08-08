@@ -291,11 +291,15 @@
 /*****************************************************************************************
  ********************************** Axis feedrate ****************************************
  *****************************************************************************************/
-//                                       X,   Y,  Z, E0...(per extruder). (mm/sec)
-#define DEFAULT_MAX_FEEDRATE          {600, 600, 20, 20}
-#define MANUAL_FEEDRATE               {50*60, 50*60, 10*60, 10*60}  // Feedrates for manual moves along X, Y, Z, E from panel
-#define DEFAULT_MIN_FEEDRATE       0.0                       // minimum feedrate
-#define DEFAULT_MIN_TRAVEL_FEEDRATE     0.0
+//                                       X,   Y,   Z,  E0...(per extruder). (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {500, 500, 500, 100, 100, 100, 100}
+// Feedrates for manual moves along        X,     Y,     Z,  E from panel
+#define MANUAL_FEEDRATE               {50*60, 50*60, 50*60, 10*60}
+// (mm) Smallest manual Z move (< 0.1mm)
+#define SHORT_MANUAL_Z_MOVE           0.025
+// Minimum feedrate
+#define DEFAULT_MIN_FEEDRATE          0.0
+#define DEFAULT_MIN_TRAVEL_FEEDRATE   0.0
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.

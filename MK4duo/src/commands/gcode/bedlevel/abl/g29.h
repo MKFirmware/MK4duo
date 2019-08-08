@@ -26,12 +26,6 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-void out_of_range_error(PGM_P p_edge) {
-  SERIAL_MSG("?Probe ");
-  SERIAL_STR(p_edge);
-  SERIAL_EM(" position out of range.");
-}
-
 #if OLD_ABL
 
 #define CODE_G29
