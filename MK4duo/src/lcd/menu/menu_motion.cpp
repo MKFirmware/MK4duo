@@ -28,6 +28,14 @@
 
 #if HAS_LCD_MENU
 
+#if HAS_SPI_LCD
+  #include "../ultralcd/lcdprint.h"
+#endif
+
+#if HAS_GRAPHICAL_LCD
+  #include "../ultralcd/dogm/ultralcd_dogm.h"
+#endif
+
 extern millis_s manual_move_ms;
 extern int8_t manual_move_axis;
 #if ENABLED(MANUAL_E_MOVES_RELATIVE)
