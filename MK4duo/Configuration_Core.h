@@ -630,6 +630,9 @@
 #define HOMING_FEEDRATE_Y (50*60)
 #define HOMING_FEEDRATE_Z (2*60)
 
+// Slow Homing feature reduce Acceleration and Jerk only for homing
+//#define SLOW_HOMING
+
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 5
 #define Y_HOME_BUMP_MM 5

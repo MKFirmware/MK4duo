@@ -44,6 +44,10 @@ endstop_flag_t  Endstops::flag;
 
 uint16_t Endstops::live_state = 0;
 
+#if ENABLED(SPI_ENDSTOPS)
+  tmc_spi_flag_t Endstops::tmc_spi_homing;
+#endif
+
 /** Private Parameters */
 volatile uint8_t Endstops::hit_state = 0;
 
@@ -916,6 +920,49 @@ void Endstops::update_software_endstops(const AxisEnum axis
   #endif
 
 }
+
+#if ENABLED(SPI_ENDSTOPS)
+
+  #define X_STOP (X_HOME_DIR < 0 ? X_MIN : X_MAX)
+  #define Y_STOP (Y_HOME_DIR < 0 ? Y_MIN : Y_MAX)
+  #define Z_STOP (Z_HOME_DIR < 0 ? Z_MIN : Z_MAX)
+
+  bool Endstops::tmc_spi_homing_check() {
+    bool hit = false;
+    #if X_SPI_SENSORLESS
+      if (tmc_spi_homing.x && stepperX->test_stall_status()) {
+        SBI(live_state, X_STOP);
+        hit = true;
+      }
+    #endif
+    #if Y_SPI_SENSORLESS
+      if (tmc_spi_homing.y && stepperY->test_stall_status()) {
+        SBI(live_state, Y_STOP);
+        hit = true;
+      }
+    #endif
+    #if Z_SPI_SENSORLESS
+      if (tmc_spi_homing.z && stepperZ->test_stall_status()) {
+        SBI(live_state, Z_STOP);
+        hit = true;
+      }
+    #endif
+    return hit;
+  }
+
+  void Endstops::clear_state() {
+    #if X_SPI_SENSORLESS
+      CBI(live_state, X_STOP);
+    #endif
+    #if Y_SPI_SENSORLESS
+      CBI(live_state, Y_STOP);
+    #endif
+    #if Z_SPI_SENSORLESS
+      CBI(live_state, Z_STOP);
+    #endif
+  }
+
+#endif // SPI_ENDSTOPS
 
 /** Private Function */
 void Endstops::resync() {

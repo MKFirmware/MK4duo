@@ -40,6 +40,18 @@ union endstop_flag_t {
   endstop_flag_t() { all = 0x00; }
 };
 
+#if ENABLED(SPI_ENDSTOPS)
+  union tmc_spi_flag_t {
+    bool any;
+    struct {
+      bool  x:1;
+      bool  y:1;
+      bool  z:1;
+    };
+    tmc_spi_flag_t() { any = false; }
+  };
+#endif
+
 // Struct Endstop data
 typedef struct endstop_data_t {
   uint16_t  logic_flag,
@@ -78,6 +90,10 @@ class Endstops {
     #endif
 
     static uint16_t live_state;
+
+    #if ENABLED(SPI_ENDSTOPS)
+      static tmc_spi_flag_t tmc_spi_homing;
+    #endif
 
   private: /** Private Parameters */
 
@@ -212,6 +228,11 @@ class Endstops {
     FORCE_INLINE static bool abort_enabled() {
       return (isEnabled() || isProbeEnabled());
     }
+
+    #if ENABLED(SPI_ENDSTOPS)
+      static bool tmc_spi_homing_check();
+      static void clear_state();
+    #endif
 
   private: /** Private Function */
 

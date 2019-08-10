@@ -295,7 +295,7 @@ void menu_tmc_microstep() {
 
 #if HAS_SENSORLESS
 
-  #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int8, MSG_##ST, &stepper##ST->homing_thrs, -64, 63, refresh_homing_thrs_##ST);
+  #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int4, MSG_##ST, &stepper##ST->homing_thrs, -64, 63, refresh_homing_thrs_##ST);
 
   #if X_HAS_SENSORLESS
     void refresh_homing_thrs_X()  { stepperX->refresh_homing_thrs(); }

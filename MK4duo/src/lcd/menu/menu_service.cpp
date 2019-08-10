@@ -40,44 +40,42 @@ inline void _lcd_reset_service(const int index) {
 }
 
 #if ENABLED(SERVICE_TIME_1)
-  void menu_action_reset_service1() { _lcd_reset_service(1); }
-#endif
-
-#if ENABLED(SERVICE_TIME_2)
-  void menu_action_reset_service2() { _lcd_reset_service(2); }
-#endif
-
-#if ENABLED(SERVICE_TIME_3)
-  void menu_action_reset_service3() { _lcd_reset_service(3); }
-#endif
-
-inline void _menu_service(const int index) {
-  START_MENU();
-  MENU_BACK(MSG_MAIN);
-  switch (index) {
-    #if ENABLED(SERVICE_TIME_1)
-      case 1: MENU_ITEM(function, MSG_SERVICE_RESET, menu_action_reset_service1); break;
-    #endif
-    #if ENABLED(SERVICE_TIME_2)
-      case 2: MENU_ITEM(function, MSG_SERVICE_RESET, menu_action_reset_service2); break;
-    #endif
-    #if ENABLED(SERVICE_TIME_3)
-      case 3: MENU_ITEM(function, MSG_SERVICE_RESET, menu_action_reset_service3); break;
-    #endif
+  void menu_service1() {
+    char sram[30];
+    strncpy_P(sram, PSTR(SERVICE_NAME_1), 29);
+    do_select_screen(
+      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      []{ _lcd_reset_service(1); },
+      lcdui.goto_previous_screen,
+      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+    );
   }
-  END_MENU();
-}
-
-#if ENABLED(SERVICE_TIME_1)
-  void menu_service1() { _menu_service(1); }
 #endif
 
 #if ENABLED(SERVICE_TIME_2)
-  void menu_service2() { _menu_service(2); }
+  void menu_service2() {
+    char sram[30];
+    strncpy_P(sram, PSTR(SERVICE_NAME_2), 29);
+    do_select_screen(
+      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      []{ _lcd_reset_service(2); },
+      lcdui.goto_previous_screen,
+      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+    );
+  }
 #endif
 
 #if ENABLED(SERVICE_TIME_3)
-  void menu_service3() { _menu_service(3); }
+  void menu_service3() {
+    char sram[30];
+    strncpy_P(sram, PSTR(SERVICE_NAME_3), 29);
+    do_select_screen(
+      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      []{ _lcd_reset_service(3); },
+      lcdui.goto_previous_screen,
+      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+    );
+  }
 #endif
 
 #endif // HAS_LCD_MENU && HAS_SERVICE_TIMES

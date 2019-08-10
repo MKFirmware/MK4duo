@@ -50,6 +50,8 @@
 * Add DHT menu
 * Add DHT disply Dew Point
 * Fix MBL
+* Add SPI Endstop with TMC2130
+* Add Slow Homing
 * Fix and clear code
 
 ### Version 4.3.8

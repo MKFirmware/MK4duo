@@ -342,6 +342,25 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       #endif
     }
 
+    #if ENABLED(SPI_ENDSTOPS)
+      switch (axis) {
+        #if X_SPI_SENSORLESS
+          case X_AXIS: endstops.tmc_spi_homing.x = true; break;
+        #endif
+        #if Y_SPI_SENSORLESS
+          case Y_AXIS: endstops.tmc_spi_homing.y = true; break;
+        #endif
+        #if Z_SPI_SENSORLESS
+          case Z_AXIS: endstops.tmc_spi_homing.z = true; break;
+        #endif
+        default: break;
+      }
+    #endif
+
+    #if ENABLED(IMPROVE_HOMING_RELIABILITY)
+      tmc.sg_guard_period = millis() + tmc.default_sg_guard_duration;
+    #endif
+
     return stealth_states;
   }
 
@@ -393,6 +412,21 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
           break;
       #endif
     }
+
+    #if ENABLED(SPI_ENDSTOPS)
+      switch (axis) {
+        #if X_SPI_SENSORLESS
+          case X_AXIS: endstops.tmc_spi_homing.x = false; break;
+        #endif
+        #if Y_SPI_SENSORLESS
+          case Y_AXIS: endstops.tmc_spi_homing.y = false; break;
+        #endif
+        #if Z_SPI_SENSORLESS
+          case Z_AXIS: endstops.tmc_spi_homing.z = false; break;
+        #endif
+        default: break;
+      }
+    #endif
 
   }
 

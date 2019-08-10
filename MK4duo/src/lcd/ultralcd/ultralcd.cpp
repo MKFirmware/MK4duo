@@ -1290,7 +1290,9 @@ void LcdUI::reset_status() {
  */
 void LcdUI::pause_print() {
 
-  synchronize(PSTR(MSG_PAUSE_PRINT));
+  #if HAS_LCD_MENU
+    synchronize(PSTR(MSG_PAUSE_PRINT));
+  #endif
 
   #if HAS_SD_RESTART
     if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true, false);

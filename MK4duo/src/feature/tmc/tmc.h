@@ -96,6 +96,9 @@ typedef struct {
 
 static constexpr chopper_timing_t chopper_timing = CHOPPER_TIMING;
 
+static constexpr int8_t sgt_min = -64,
+                        sgt_max =  63;
+
 extern bool report_tmc_status;
 
 constexpr uint16_t tmc_thrs(const uint16_t msteps, const uint32_t thrs, const uint32_t spmm) {
@@ -120,7 +123,7 @@ class TMCStorage {
     #endif
 
     #if HAS_SENSORLESS
-      int8_t homing_thrs = 0;
+      int16_t homing_thrs = 0;
     #endif
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
@@ -259,8 +262,9 @@ class TMCStorage {
       }
 
       #if USE_SENSORLESS
-        inline int8_t sgt() { return TMC2660Stepper::sgt(); }
-        void sgt(const int8_t sgt_val) {
+        inline int16_t homing_threshold() { return TMC2660Stepper::sgt(); }
+        void homing_threshold(int16_t sgt_val) {
+          sgt_val = (int16_t)constrain(sgt_val, sgt_min, sgt_max);
           TMC2660Stepper::sgt(sgt_val);
           #if HAS_LCD_MENU
             this->homing_thrs = sgt_val;
@@ -273,7 +277,7 @@ class TMCStorage {
         inline void refresh_stepper_microstep() { microsteps(this->val_ms); }
 
         #if HAS_SENSORLESS
-          inline void refresh_homing_thrs() { sgt(this->homing_thrs); }
+          inline void refresh_homing_thrs() { homing_threshold(this->homing_thrs); }
         #endif
       #endif
 
@@ -343,14 +347,48 @@ class TMCStorage {
         }
       #endif
       #if HAS_SENSORLESS
-        inline int8_t sgt() { return TMC_MODEL_LIB::sgt(); }
-        void sgt(const int8_t sgt_val) {
+        inline int16_t homing_threshold() { return TMC_MODEL_LIB::sgt(); }
+        void homing_threshold(int16_t sgt_val) {
+          sgt_val = (int16_t)constrain(sgt_val, sgt_min, sgt_max);
           TMC_MODEL_LIB::sgt(sgt_val);
           #if HAS_LCD_MENU
             this->homing_thrs = sgt_val;
           #endif
         }
       #endif
+
+      #if ENABLED(SPI_ENDSTOPS)
+
+        bool test_stall_status() {
+          uint16_t sg_result = 0;
+
+          this->switchCSpin(LOW);
+
+          if (this->TMC_SW_SPI != nullptr) {
+            this->TMC_SW_SPI->transfer(TMC2130_n::DRV_STATUS_t::address);
+            this->TMC_SW_SPI->transfer16(0);
+            // We only care about the last 10 bits
+            sg_result = this->TMC_SW_SPI->transfer(0);
+            sg_result <<= 8;
+            sg_result |= this->TMC_SW_SPI->transfer(0);
+          }
+          else {
+            SPI.beginTransaction(SPISettings(16000000/8, MSBFIRST, SPI_MODE3));
+            // Read DRV_STATUS
+            SPI.transfer(TMC2130_n::DRV_STATUS_t::address);
+            SPI.transfer16(0);
+            // We only care about the last 10 bits
+            sg_result = SPI.transfer(0);
+            sg_result <<= 8;
+            sg_result |= SPI.transfer(0);
+            SPI.endTransaction();
+          }
+          this->switchCSpin(HIGH);
+
+          return (sg_result & 0x3FF) == 0;
+        }
+
+      #endif // SPI_ENDSTOPS
 
       #if HAS_LCD_MENU
         inline void refresh_stepper_current()   { rms_current(this->val_mA); }
@@ -360,7 +398,7 @@ class TMCStorage {
           inline void refresh_hybrid_thrs() { set_pwm_thrs(this->hybrid_thrs); }
         #endif
         #if HAS_SENSORLESS
-          inline void refresh_homing_thrs() { sgt(this->homing_thrs); }
+          inline void refresh_homing_thrs() { homing_threshold(this->homing_thrs); }
         #endif
       #endif
 
@@ -415,6 +453,11 @@ class TMC_Stepper {
     TMC_Stepper() {}
 
   public: /** Public Parameters */
+
+    #if HAS_SENSORLESS && ENABLED(IMPROVE_HOMING_RELIABILITY)
+      static millis_l sg_guard_period;
+      static constexpr uint16_t default_sg_guard_duration = 400;
+    #endif
 
   private: /** Private Parameters */
 
