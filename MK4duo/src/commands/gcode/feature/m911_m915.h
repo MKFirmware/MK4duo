@@ -255,7 +255,7 @@
         }
       #endif
 
-      #define TMC_SET_SGT(ST) stepper##ST->sgt(value)
+      #define TMC_SET_SGT(ST) stepper##ST->homing_threshold(value)
 
       LOOP_XYZ(i) {
         if (parser.seen(axis_codes[i])) {

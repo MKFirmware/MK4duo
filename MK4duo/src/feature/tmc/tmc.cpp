@@ -77,6 +77,9 @@
 TMC_Stepper tmc;
 
 /** Public Parameters */
+#if HAS_SENSORLESS && ENABLED(IMPROVE_HOMING_RELIABILITY)
+  millis_l TMC_Stepper::sg_guard_period = 0;
+#endif
 
 /** Private Parameters */
 uint16_t TMC_Stepper::report_status_interval = 0;
@@ -369,29 +372,29 @@ void TMC_Stepper::init() {
   #if HAS_SENSORLESS
     #if X_HAS_SENSORLESS
       #if AXIS_HAS_STALLGUARD(X)
-        stepperX->sgt(X_STALL_SENSITIVITY);
+        stepperX->homing_threshold(X_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(X2)
-        stepperX2->sgt(X_STALL_SENSITIVITY);
+        stepperX2->homing_threshold(X_STALL_SENSITIVITY);
       #endif
     #endif
     #if Y_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Y)
-        stepperY->sgt(Y_STALL_SENSITIVITY);
+        stepperY->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Y2)
-        stepperY2->sgt(Y_STALL_SENSITIVITY);
+        stepperY2->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
     #endif
     #if Z_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Z)
-        stepperZ->sgt(Z_STALL_SENSITIVITY);
+        stepperZ->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z2)
-        stepperZ2->sgt(Z_STALL_SENSITIVITY);
+        stepperZ2->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z3)
-        stepperZ3->sgt(Z_STALL_SENSITIVITY);
+        stepperZ3->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
     #endif
   #endif
@@ -766,13 +769,13 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
         SERIAL_SM(CFG, "  M914");
         #if X_HAS_SENSORLESS
-          SERIAL_MV(" X", stepperX->sgt());
+          SERIAL_MV(" X", stepperX->homing_threshold());
         #endif
         #if Y_HAS_SENSORLESS
-          SERIAL_MV(" Y", stepperY->sgt());
+          SERIAL_MV(" Y", stepperY->homing_threshold());
         #endif
         #if Z_HAS_SENSORLESS
-          SERIAL_MV(" Z", stepperZ->sgt());
+          SERIAL_MV(" Z", stepperZ->homing_threshold());
         #endif
         SERIAL_EOL();
       #endif

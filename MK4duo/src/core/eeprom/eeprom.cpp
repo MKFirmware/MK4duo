@@ -699,13 +699,13 @@ void EEPROM::post_process() {
       int16_t tmc_sgt[XYZ] = { 0, 0, 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt[X_AXIS] = stepperX->sgt();
+          tmc_sgt[X_AXIS] = stepperX->homing_threshold();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt[Y_AXIS] = stepperY->sgt();
+          tmc_sgt[Y_AXIS] = stepperY->homing_threshold();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt[Z_AXIS] = stepperZ->sgt();
+          tmc_sgt[Z_AXIS] = stepperZ->homing_threshold();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -1062,29 +1062,29 @@ void EEPROM::post_process() {
           if (!flag.validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                stepperX->sgt(tmc_sgt[X_AXIS]);
+                stepperX->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                stepperX2->sgt(tmc_sgt[X_AXIS]);
+                stepperX2->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                stepperY->sgt(tmc_sgt[Y_AXIS]);
+                stepperY->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                stepperY2->sgt(tmc_sgt[Y_AXIS]);
+                stepperY2->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                stepperZ->sgt(tmc_sgt[Z_AXIS]);
+                stepperZ->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                stepperZ2->sgt(tmc_sgt[Z_AXIS]);
+                stepperZ2->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                stepperZ3->sgt(tmc_sgt[Z_AXIS]);
+                stepperZ3->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
             #endif
           }

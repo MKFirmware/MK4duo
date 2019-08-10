@@ -85,6 +85,14 @@
 
   #error "DEPENDENCY ERROR: SENSORLESS_HOMING requires TMC2130 stepper drivers."
 
+#elif ENABLED(SPI_ENDSTOPS)
+
+  #error "DEPENDENCY ERROR: SPI_ENDSTOPS requires TMC2130 stepper drivers."
+
+#elif ENABLED(IMPROVE_HOMING_RELIABILITY)
+
+  #error "DEPENDENCY ERROR: IMPROVE_HOMING_RELIABILITY requires TMC2130 stepper drivers."
+
 #endif
 
 /**
