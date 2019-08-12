@@ -243,7 +243,7 @@
  * M306 - Set Heaters parameters.
  *          H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
  *          T[int] 0-3 For Select Beds or Chambers (default 0)
- *          A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max, F[int] Frequency
+ *          A[int] Power Drive Min, B[int] Power Drive Max, C[int] Power Max, F[int] Frequency
  *          L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
  *          I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin, Q[bool] PWM Hardware
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)

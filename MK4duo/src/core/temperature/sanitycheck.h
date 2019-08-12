@@ -126,16 +126,15 @@
   #error "DEPENDENCY ERROR: Missing setting PREHEAT_3_FAN_SPEED."
 #endif
 
-
 // Temperature features
-#if DISABLED(PID_MAX)
-  #error "DEPENDENCY ERROR: Missing setting PID_MAX."
+#if DISABLED(POWER_MAX)
+  #error "DEPENDENCY ERROR: Missing setting POWER_MAX."
 #endif
-#if DISABLED(PID_DRIVE_MIN)
-  #error "DEPENDENCY ERROR: Missing setting PID_DRIVE_MIN."
+#if DISABLED(POWER_DRIVE_MIN)
+  #error "DEPENDENCY ERROR: Missing setting POWER_DRIVE_MIN."
 #endif
-#if DISABLED(PID_DRIVE_MAX)
-  #error "DEPENDENCY ERROR: Missing setting PID_DRIVE_MAX."
+#if DISABLED(POWER_DRIVE_MAX)
+  #error "DEPENDENCY ERROR: Missing setting POWER_DRIVE_MAX."
 #endif
 #if DISABLED(PID_FUNCTIONAL_RANGE)
   #error "DEPENDENCY ERROR: Missing setting PID_FUNCTIONAL_RANGE."
@@ -148,6 +147,24 @@
 #endif
 #if DISABLED(HOTEND_Kd)
   #error "DEPENDENCY ERROR: Missing setting HOTEND_Kd."
+#endif
+
+#if HAS_TEMP_BED0
+  #if DISABLED(BED_POWER_MAX)
+    #error "DEPENDENCY ERROR: Missing setting BED_POWER_MAX."
+  #endif
+  #if DISABLED(BED_POWER_DRIVE_MIN)
+    #error "DEPENDENCY ERROR: Missing setting BED_POWER_DRIVE_MIN."
+  #endif
+  #if DISABLED(BED_POWER_DRIVE_MAX)
+    #error "DEPENDENCY ERROR: Missing setting BED_POWER_DRIVE_MAX."
+  #endif
+  #if DISABLED(BED_HYSTERESIS)
+    #error "DEPENDENCY ERROR: Missing setting BED_HYSTERESIS."
+  #endif
+  #if DISABLED(BED_CHECK_INTERVAL)
+    #error "DEPENDENCY ERROR: Missing setting BED_CHECK_INTERVAL."
+  #endif
 #endif
 #if (PIDTEMPBED)
   #if !HAS_TEMP_BED0
@@ -163,18 +180,27 @@
     #error "DEPENDENCY ERROR: Missing setting BED_Kd."
   #endif
 #endif
+
+#if HAS_TEMP_CHAMBER0
+  #if DISABLED(CHAMBER_POWER_MAX)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_POWER_MAX."
+  #endif
+  #if DISABLED(CHAMBER_POWER_DRIVE_MIN)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_POWER_DRIVE_MIN."
+  #endif
+  #if DISABLED(CHAMBER_POWER_DRIVE_MAX)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_POWER_DRIVE_MAX."
+  #endif
+  #if DISABLED(CHAMBER_HYSTERESIS)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_HYSTERESIS."
+  #endif
+  #if DISABLED(CHAMBER_CHECK_INTERVAL)
+    #error "DEPENDENCY ERROR: Missing setting CHAMBER_CHECK_INTERVAL."
+  #endif
+#endif
 #if (PIDTEMPCHAMBER)
   #if !HAS_TEMP_CHAMBER0
     #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_CHAMBER0."
-  #endif
-  #if DISABLED(CHAMBER_PID_MAX)
-    #error "DEPENDENCY ERROR: Missing setting CHAMBER_PID_MAX."
-  #endif
-  #if DISABLED(CHAMBER_PID_DRIVE_MIN)
-    #error "DEPENDENCY ERROR: Missing setting CHAMBER_PID_DRIVE_MIN."
-  #endif
-  #if DISABLED(CHAMBER_PID_DRIVE_MAX)
-    #error "DEPENDENCY ERROR: Missing setting CHAMBER_PID_DRIVE_MAX."
   #endif
   #if DISABLED(CHAMBER_Kp)
     #error "DEPENDENCY ERROR: Missing setting CHAMBER_Kp."
@@ -187,18 +213,27 @@
   #endif
 
 #endif
+
+#if HAS_TEMP_COOLER
+  #if DISABLED(COOLER_POWER_MAX)
+    #error "DEPENDENCY ERROR: Missing setting COOLER_POWER_MAX."
+  #endif
+  #if DISABLED(COOLER_POWER_DRIVE_MIN)
+    #error "DEPENDENCY ERROR: Missing setting COOLER_POWER_DRIVE_MIN."
+  #endif
+  #if DISABLED(COOLER_POWER_DRIVE_MAX)
+    #error "DEPENDENCY ERROR: Missing setting COOLER_POWER_DRIVE_MAX."
+  #endif
+  #if DISABLED(COOLER_HYSTERESIS)
+    #error "DEPENDENCY ERROR: Missing setting COOLER_HYSTERESIS."
+  #endif
+  #if DISABLED(COOLER_CHECK_INTERVAL)
+    #error "DEPENDENCY ERROR: Missing setting COOLER_CHECK_INTERVAL."
+  #endif
+#endif
 #if (PIDTEMPCOOLER)
   #if !HAS_TEMP_COOLER
     #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_COOLER."
-  #endif
-  #if DISABLED(COOLER_PID_MAX)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_MAX."
-  #endif
-  #if DISABLED(COOLER_PID_DRIVE_MIN)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_DRIVE_MIN."
-  #endif
-  #if DISABLED(COOLER_PID_DRIVE_MAX)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_PID_DRIVE_MAX."
   #endif
   #if DISABLED(COOLER_Kp)
     #error "DEPENDENCY ERROR: Missing setting COOLER_Kp."
@@ -210,30 +245,7 @@
     #error "DEPENDENCY ERROR: Missing setting COOLER_Kd."
   #endif
 #endif
-#if ENABLED(BED_LIMIT_SWITCHING)
-  #if DISABLED(BED_HYSTERESIS)
-    #error "DEPENDENCY ERROR: Missing setting BED_HYSTERESIS."
-  #endif
-  #if DISABLED(BED_CHECK_INTERVAL)
-    #error "DEPENDENCY ERROR: Missing setting BED_CHECK_INTERVAL."
-  #endif
-#endif
-#if ENABLED(CHAMBER_LIMIT_SWITCHING)
-  #if DISABLED(CHAMBER_HYSTERESIS)
-    #error "DEPENDENCY ERROR: Missing setting CHAMBER_HYSTERESIS."
-  #endif
-  #if DISABLED(CHAMBER_CHECK_INTERVAL)
-    #error "DEPENDENCY ERROR: Missing setting CHAMBER_CHECK_INTERVAL."
-  #endif
-#endif
-#if ENABLED(COOLER_LIMIT_SWITCHING)
-  #if DISABLED(COOLER_HYSTERESIS)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_HYSTERESIS."
-  #endif
-  #if DISABLED(COOLER_CHECK_INTERVAL)
-    #error "DEPENDENCY ERROR: Missing setting COOLER_CHECK_INTERVAL."
-  #endif
-#endif
+
 #if THERMAL_PROTECTION_HOTENDS || THERMAL_PROTECTION_BED || THERMAL_PROTECTION_CHAMBER || THERMAL_PROTECTION_COOLER
   #if DISABLED(THERMAL_PROTECTION_PERIOD)
     #error "DEPENDENCY ERROR: Missing setting THERMAL_PROTECTION_PERIOD."

@@ -1447,17 +1447,17 @@
 
   <!-- M306: Heaters parameters -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 0 PID drive min</description>
+    <description unit="[Ohm]">Hotend 0 Power drive min</description>
     <set>M306 H0 A@</set>
     <detect>M306 H0.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 0 PID drive max</description>
+    <description unit="[0-255]">Hotend 0 Power drive max</description>
     <set>M306 H0 B@</set>
     <detect>M306 H0.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 0 PID max</description>
+    <description unit="[0-255]">Hotend 0 Power max</description>
     <set>M306 H0 C@</set>
     <detect>M306 H0.*C(-?\d*)</detect>
   </entry>
@@ -1503,17 +1503,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 1 PID drive min</description>
+    <description unit="[Ohm]">Hotend 1 Power drive min</description>
     <set>M306 H1 A@</set>
     <detect>M306 H1.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 1 PID drive max</description>
+    <description unit="[0-255]">Hotend 1 Power drive max</description>
     <set>M306 H1 B@</set>
     <detect>M306 H1.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 1 PID max</description>
+    <description unit="[0-255]">Hotend 1 Power max</description>
     <set>M306 H1 C@</set>
     <detect>M306 H1.*C(-?\d*)</detect>
   </entry>
@@ -1559,17 +1559,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 2 PID drive min</description>
+    <description unit="[Ohm]">Hotend 2 Power drive min</description>
     <set>M306 H2 A@</set>
     <detect>M306 H2.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 2 PID drive max</description>
+    <description unit="[0-255]">Hotend 2 Power drive max</description>
     <set>M306 H2 B@</set>
     <detect>M306 H2.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 2 PID max</description>
+    <description unit="[0-255]">Hotend 2 Power max</description>
     <set>M306 H2 C@</set>
     <detect>M306 H2.*C(-?\d*)</detect>
   </entry>
@@ -1615,17 +1615,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 3 PID drive min</description>
+    <description unit="[Ohm]">Hotend 3 Power drive min</description>
     <set>M306 H3 A@</set>
     <detect>M306 H3.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 3 PID drive max</description>
+    <description unit="[0-255]">Hotend 3 Power drive max</description>
     <set>M306 H3 B@</set>
     <detect>M306 H3.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 3 PID max</description>
+    <description unit="[0-255]">Hotend 3 Power max</description>
     <set>M306 H3 C@</set>
     <detect>M306 H3.*C(-?\d*)</detect>
   </entry>
@@ -1671,17 +1671,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 4 PID drive min</description>
+    <description unit="[Ohm]">Hotend 4 Power drive min</description>
     <set>M306 H4 A@</set>
     <detect>M306 H4.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 4 PID drive max</description>
+    <description unit="[0-255]">Hotend 4 Power drive max</description>
     <set>M306 H4 B@</set>
     <detect>M306 H4.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 4 PID max</description>
+    <description unit="[0-255]">Hotend 4 Power max</description>
     <set>M306 H4 C@</set>
     <detect>M306 H4.*C(-?\d*)</detect>
   </entry>
@@ -1727,17 +1727,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Hotend 5 PID drive min</description>
+    <description unit="[Ohm]">Hotend 5 Power drive min</description>
     <set>M306 H5 A@</set>
     <detect>M306 H5.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 5 PID drive max</description>
+    <description unit="[0-255]">Hotend 5 Power drive max</description>
     <set>M306 H5 B@</set>
     <detect>M306 H5.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Hotend 5 PID max</description>
+    <description unit="[0-255]">Hotend 5 Power max</description>
     <set>M306 H5 C@</set>
     <detect>M306 H5.*C(-?\d*)</detect>
   </entry>
@@ -1783,17 +1783,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Bed PID drive min</description>
+    <description unit="[Ohm]">Bed Power drive min</description>
     <set>M306 H-1 T0 A@</set>
     <detect>M306 H-1 T0.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Bed PID drive max</description>
+    <description unit="[0-255]">Bed Power drive max</description>
     <set>M306 H-1 T0 B@</set>
     <detect>M306 H-1 T0.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Bed PID max</description>
+    <description unit="[0-255]">Bed Power max</description>
     <set>M306 H-1 T0 C@</set>
     <detect>M306 H-1 T0.*C(-?\d*)</detect>
   </entry>
@@ -1839,17 +1839,17 @@
   </entry>
   <!-- ########################## -->
   <entry type="int" min="0">
-    <description unit="[Ohm]">Chamber PID drive min</description>
+    <description unit="[Ohm]">Chamber Power drive min</description>
     <set>M306 H-2 T0 A@</set>
     <detect>M306 H-2 T0.*A(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Chamber PID drive max</description>
+    <description unit="[0-255]">Chamber Power drive max</description>
     <set>M306 H-2 T0 B@</set>
     <detect>M306 H-2 T0.*B(-?\d*)</detect>
   </entry>
   <entry type="int" min="0" max="255">
-    <description unit="[0-255]">Chamber PID max</description>
+    <description unit="[0-255]">Chamber Power max</description>
     <set>M306 H-2 T0 C@</set>
     <detect>M306 H-2 T0.*C(-?\d*)</detect>
   </entry>
