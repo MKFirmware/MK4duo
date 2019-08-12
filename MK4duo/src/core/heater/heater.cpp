@@ -214,10 +214,12 @@ void Heater::get_output() {
           );
         }
         else if (expired(&check_next_ms, temp_check_interval)) {
-          if (current_temperature <= targetTemperature - temp_hysteresis)
+          if (current_temperature >= targetTemperature + temp_hysteresis)
+            pwm_value = 0;
+          else if (current_temperature <= targetTemperature - temp_hysteresis)
             pwm_value = data.pid.Max;
           else
-            pwm_value = current_temperature < targetTemperature ? data.pid.DriveMax : 0;
+            pwm_value = current_temperature < targetTemperature ? data.pid.DriveMax : data.pid.DriveMin;
         }
       }
 

@@ -115,9 +115,9 @@ void Temperature::factory_parameters() {
       pid->Ki               = HEKi[ALIM(h, HEKi)];
       pid->Kd               = HEKd[ALIM(h, HEKd)];
       pid->Kc               = HEKc[ALIM(h, HEKc)];
-      pid->DriveMin         = PID_DRIVE_MIN;
-      pid->DriveMax         = PID_DRIVE_MAX;
-      pid->Max              = PID_MAX;
+      pid->DriveMin         = POWER_DRIVE_MIN;
+      pid->DriveMax         = POWER_DRIVE_MAX;
+      pid->Max              = POWER_MAX;
       // Sensor
       sens->pin             = SE_pin[h];
       sens->type            = SE_type[h];
@@ -168,9 +168,9 @@ void Temperature::factory_parameters() {
       pid->Kp               = BEDKp[ALIM(h, BEDKp)];
       pid->Ki               = BEDKi[ALIM(h, BEDKi)];
       pid->Kd               = BEDKd[ALIM(h, BEDKd)];
-      pid->DriveMin         = BED_PID_DRIVE_MIN;
-      pid->DriveMax         = BED_PID_DRIVE_MAX;
-      pid->Max              = BED_PID_MAX;
+      pid->DriveMin         = BED_POWER_DRIVE_MIN;
+      pid->DriveMax         = BED_POWER_DRIVE_MAX;
+      pid->Max              = BED_POWER_MAX;
       // Sensor
       sens->pin             = SB_pin[h];
       sens->type            = BE_type[h];
@@ -220,9 +220,9 @@ void Temperature::factory_parameters() {
       pid->Kp               = CHAMBERKp[ALIM(h, CHAMBERKp)];
       pid->Ki               = CHAMBERKi[ALIM(h, CHAMBERKi)];
       pid->Kd               = CHAMBERKd[ALIM(h, CHAMBERKd)];
-      pid->DriveMin         = CHAMBER_PID_DRIVE_MIN;
-      pid->DriveMax         = CHAMBER_PID_DRIVE_MAX;
-      pid->Max              = CHAMBER_PID_MAX;
+      pid->DriveMin         = CHAMBER_POWER_DRIVE_MIN;
+      pid->DriveMax         = CHAMBER_POWER_DRIVE_MAX;
+      pid->Max              = CHAMBER_POWER_MAX;
       // Sensor
       sens->pin             = SCH_pin[h];
       sens->type            = CH_type[h];
@@ -264,9 +264,9 @@ void Temperature::factory_parameters() {
     pid->Kp               = COOLER_Kp;
     pid->Ki               = COOLER_Ki;
     pid->Kd               = COOLER_Kd;
-    pid->DriveMin         = COOLER_PID_DRIVE_MIN;
-    pid->DriveMax         = COOLER_PID_DRIVE_MAX;
-    pid->Max              = COOLER_PID_MAX;
+    pid->DriveMin         = COOLER_POWER_DRIVE_MIN;
+    pid->DriveMax         = COOLER_POWER_DRIVE_MAX;
+    pid->Max              = COOLER_POWER_MAX;
     // Sensor
     sens->pin             = TEMP_COOLER_PIN;
     sens->type            = TEMP_SENSOR_COOLER;
