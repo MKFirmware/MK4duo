@@ -1304,9 +1304,9 @@ void LcdUI::pause_print() {
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
-    commands.enqueue_now_P(PSTR("M25\nM24"));
+    commands.inject_P(PSTR("M25\nM24"));
   #elif HAS_SD_SUPPORT
-    commands.enqueue_now_P(PSTR("M25"));
+    commands.inject_P(PSTR("M25"));
   #else
     host_action.pause();
   #endif
