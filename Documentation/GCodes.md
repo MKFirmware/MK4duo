@@ -146,7 +146,7 @@
 | M302 | ? | Allow cold extrudes, or set the minimum extrude S[temperature].
 | M303 | ? | PID relay autotune: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, S[temperature] sets the target temperature (default target temperature = 200C), C[cycles>, R[method>, U[Apply result>, R[Method] 0 = Classic Pid, 1 = Some overshoot, 2 = No Overshoot, 3 = Pessen Pid.
 | M305 | ? | Set thermistor and ADC parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[float] Thermistor resistance at 25°C, B[float] BetaK, C[float] Steinhart-Hart C coefficien, R[float] Pullup resistor value, L[int] ADC low offset correction, O[int] ADC high offset correction, P[int] Sensor Pin. Set DHT sensor parameter: D0 P[int] Sensor Pin, S[int] Sensor Type (11, 21, 22).
-| M306 | ? | Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max, F[int] Frequency, L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin, Q[bool] PWM Hardware
+| M306 | ? | Set Heaters parameters: H[heaters] H = 0-3 Hotend, H = -1 BED, H = -2 CHAMBER, H = -3 COOLER, A[int] Power Drive Min, B[int] Power Drive Max, C[int] Power Max, F[int] Frequency, L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang, I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin, Q[bool] PWM Hardware
 | M350 | ? | Set microstepping mode.
 | M351 | ? | Toggle MS1 MS2 pins directly.
 | M355 | ? | Turn case lights on/off S[bool] on-off, P[brightness]

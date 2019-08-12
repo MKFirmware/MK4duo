@@ -42,7 +42,7 @@
 * M306 - Set Heaters parameters.
 *   H[heaters] 0-5 Hotend, -1 BED, -2 CHAMBER, -3 COOLER
 *   T[int] 0-3 For Select Beds or Chambers (default 0)
-*   A[int] Pid Drive Min, B[int] Pid Drive Max, C[int] Pid Max,
+*   A[int] Power Drive Min, B[int] Power Drive Max, C[int] Power Max,
 *   L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
 *   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
 * G34 I[iterations] [accuracy] A[amplification]

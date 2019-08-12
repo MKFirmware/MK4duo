@@ -580,7 +580,7 @@ void Heater::print_M306() {
   const int8_t heater_id = type == IS_HOTEND ? data.ID : -type;
   SERIAL_SM(CFG, "Heater parameters: H<Heater>");
   if (heater_id < 0) SERIAL_MSG(" T<tools>");
-  SERIAL_EM(" P<Pin> A<Pid Drive Min> B<Pid Drive Max> C<Pid Max> F<Freq> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1> Q<Pwm Hardware 0-1>:");
+  SERIAL_EM(" P<Pin> A<Power Drive Min> B<Power Drive Max> C<Power Max> F<Freq> L<Min Temp> O<Max Temp> U<Use Pid 0-1> I<Hardware Inverted 0-1> R<Thermal Protection 0-1> Q<Pwm Hardware 0-1>:");
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
   if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
   SERIAL_MV(" P", data.pin);
