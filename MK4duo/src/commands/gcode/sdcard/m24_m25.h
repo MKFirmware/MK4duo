@@ -64,7 +64,7 @@ inline void gcode_M24(void) {
 void gcode_M25(void) {
 
   // Set initial pause flag to prevent more commands from landing in the queue while we try to pause
-  #if ENABLED(SDSUPPORT)
+  #if HAS_SD_SUPPORT
     if (IS_SD_PRINTING()) card.pauseSDPrint();
   #endif
 

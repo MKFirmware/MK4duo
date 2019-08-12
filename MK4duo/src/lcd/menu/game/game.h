@@ -65,18 +65,32 @@ class LcdGame {
 };
 
 #if ENABLED(GAME_BRICKOUT)
-  class BrickoutGame : LcdGame { public: static void enter_game(); static void game_screen(); };
-  extern BrickoutGame brickout;
+  #include "brickout.h"
 #endif
 #if ENABLED(GAME_INVADERS)
-  class InvadersGame : LcdGame { public: static void enter_game(); static void game_screen(); };
-  extern InvadersGame invaders;
-#endif
-#if ENABLED(GAME_SNAKE)
-  class SnakeGame : LcdGame { public: static void enter_game(); static void game_screen(); };
-  extern SnakeGame snake;
+  #include "invaders.h"
 #endif
 #if ENABLED(GAME_MAZE)
-  class MazeGame : LcdGame { public: static void enter_game(); static void game_screen(); };
-  extern MazeGame maze;
+  #include "maze.h"
 #endif
+#if ENABLED(GAME_SNAKE)
+  #include "snake.h"
+#endif
+
+// Pool game data to save SRAM
+union GameData {
+  #if ENABLED(GAME_BRICKOUT)
+    brickout_data_t brickout;
+  #endif
+  #if ENABLED(GAME_INVADERS)
+    invaders_data_t invaders;
+  #endif
+  #if ENABLED(GAME_MAZE)
+    maze_data_t maze;
+  #endif
+  #if ENABLED(GAME_SNAKE)
+    snake_data_t snake;
+  #endif
+};
+
+extern GameData game_data;
