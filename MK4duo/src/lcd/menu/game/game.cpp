@@ -34,6 +34,8 @@ int LcdGame::score;
 uint8_t LcdGame::game_state;
 millis_l LcdGame::next_frame;
 
+GameData game_data;
+
 bool LcdGame::game_frame() {
   static int8_t slew;
   if (lcdui.first_page) slew = 2;
@@ -60,7 +62,6 @@ void LcdGame::draw_game_over() {
 void LcdGame::init_game(const uint8_t init_state, const screenFunc_t screen) {
   score = 0;
   game_state = init_state;
-  lcdui.encoder_direction_normal();
   lcdui.goto_screen(screen);
   lcdui.defer_status_screen();
 }

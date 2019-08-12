@@ -19,14 +19,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * Included in Marlin to Thinkyhead
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.9"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  "12-08-2019"
-#define FIRMWARE_URL              "marlinkimbra.it"
+typedef struct {
+  int8_t  snake_dir,     // NESW
+          foodx, foody,
+          food_cnt,
+          old_encoder;
+  pos_t   snake_tail[50];
+  fixed_t snakex, snakey;
+  uint8_t head_ind;
+} snake_data_t;
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+class SnakeGame : LcdGame { public: static void enter_game(), game_screen(); };
+
+extern SnakeGame snake;

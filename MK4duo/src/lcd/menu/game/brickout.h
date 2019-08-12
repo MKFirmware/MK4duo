@@ -19,14 +19,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
+/**
+ * Included in Marlin to Thinkyhead
+ */
 
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.9"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  "12-08-2019"
-#define FIRMWARE_URL              "marlinkimbra.it"
+#define BRICK_ROWS   4
+#define BRICK_COLS  16
 
-#endif /* _CONFIGURATION_VERSION_H_ */
+typedef struct {
+  uint8_t   balls_left, brick_count;
+  uint16_t  bricks[BRICK_ROWS];
+  int8_t    paddle_x, hit_dir;
+  fixed_t   ballx, bally, ballh, ballv;
+} brickout_data_t;
+
+class BrickoutGame : LcdGame { public: static void enter_game(), game_screen(); };
+extern BrickoutGame brickout;

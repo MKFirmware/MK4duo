@@ -458,26 +458,13 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Reduce Acceleration and Jerk for Homing
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    struct slow_homing_t {
-      struct { uint32_t x, y, z; } acceleration;
-      #if HAS_CLASSIC_JERK
-        struct { float x, y, z; } jerk;
-      #endif
-    };
-    slow_homing_t slow_homing { 0 };
-    slow_homing.acceleration.x = data.max_acceleration_mm_per_s2[X_AXIS];
-    slow_homing.acceleration.y = data.max_acceleration_mm_per_s2[Y_AXIS];
-    slow_homing.acceleration.z = data.max_acceleration_mm_per_s2[Z_AXIS];
-    data.max_acceleration_mm_per_s2[X_AXIS] = 100;
-    data.max_acceleration_mm_per_s2[Y_AXIS] = 100;
-    data.max_acceleration_mm_per_s2[Z_AXIS] = 100;
+    REMEMBER(accel_x, data.max_acceleration_mm_per_s2[X_AXIS], 100);
+    REMEMBER(accel_y, data.max_acceleration_mm_per_s2[Y_AXIS], 100);
+    REMEMBER(accel_z, data.max_acceleration_mm_per_s2[Z_AXIS], 100);
     #if HAS_CLASSIC_JERK
-      slow_homing.jerk.x = data.max_jerk[X_AXIS];
-      slow_homing.jerk.y = data.max_jerk[Y_AXIS];
-      slow_homing.jerk.z = data.max_jerk[Z_AXIS];
-      data.max_jerk[X_AXIS] = 0;
-      data.max_jerk[Y_AXIS] = 0;
-      data.max_jerk[Z_AXIS] = 0;
+      REMEMBER(jerk_x, data.max_jerk[X_AXIS], 0);
+      REMEMBER(jerk_y, data.max_jerk[Y_AXIS], 0);
+      REMEMBER(jerk_z, data.max_jerk[Z_AXIS], 0);
     #endif
     planner.reset_acceleration_rates();
   #endif
@@ -573,13 +560,13 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   #endif
 
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    data.max_acceleration_mm_per_s2[X_AXIS] = slow_homing.acceleration.x;
-    data.max_acceleration_mm_per_s2[Y_AXIS] = slow_homing.acceleration.y;
-    data.max_acceleration_mm_per_s2[Z_AXIS] = slow_homing.acceleration.z;
+    RESTORE(accel_x);
+    RESTORE(accel_y);
+    RESTORE(accel_z);
     #if HAS_CLASSIC_JERK
-      data.max_jerk[X_AXIS] = slow_homing.jerk.x;
-      data.max_jerk[Y_AXIS] = slow_homing.jerk.y;
-      data.max_jerk[Z_AXIS] = slow_homing.jerk.z;
+      RESTORE(jerk_x);
+      RESTORE(jerk_y);
+      RESTORE(jerk_z);
     #endif
     planner.reset_acceleration_rates();
   #endif

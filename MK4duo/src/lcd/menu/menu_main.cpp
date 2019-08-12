@@ -255,10 +255,10 @@ void menu_main() {
         brickout.enter_game
       #elif ENABLED(GAME_INVADERS)
         invaders.enter_game
-      #elif ENABLED(GAME_SNAKE)
-        snake.enter_game
       #elif ENABLED(GAME_MAZE)
         maze.enter_game
+      #elif ENABLED(GAME_SNAKE)
+        snake.enter_game
       #endif
     ));
   #endif

@@ -183,22 +183,11 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   // Reduce Acceleration and Jerk for Homing
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    struct slow_homing_t {
-      struct { uint32_t x, y; } acceleration;
-      #if HAS_CLASSIC_JERK
-        struct { float x, y; } jerk;
-      #endif
-    };
-    slow_homing_t slow_homing { 0 };
-    slow_homing.acceleration.x = data.max_acceleration_mm_per_s2[X_AXIS];
-    slow_homing.acceleration.y = data.max_acceleration_mm_per_s2[Y_AXIS];
-    data.max_acceleration_mm_per_s2[X_AXIS] = 100;
-    data.max_acceleration_mm_per_s2[Y_AXIS] = 100;
+    REMEMBER(accel_x, data.max_acceleration_mm_per_s2[X_AXIS], 100);
+    REMEMBER(accel_y, data.max_acceleration_mm_per_s2[Y_AXIS], 100);
     #if HAS_CLASSIC_JERK
-      slow_homing.jerk.x = data.max_jerk[X_AXIS];
-      slow_homing.jerk.y = data.max_jerk[Y_AXIS];
-      data.max_jerk[X_AXIS] = 0;
-      data.max_jerk[Y_AXIS] = 0;
+      REMEMBER(jerk_x, data.max_jerk[X_AXIS], 0);
+      REMEMBER(jerk_y, data.max_jerk[Y_AXIS], 0);
     #endif
     planner.reset_acceleration_rates();
   #endif
@@ -306,11 +295,11 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   #endif
 
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    data.max_acceleration_mm_per_s2[X_AXIS] = slow_homing.acceleration.x;
-    data.max_acceleration_mm_per_s2[Y_AXIS] = slow_homing.acceleration.y;
+    RESTORE(accel_x);
+    RESTORE(accel_y);
     #if HAS_CLASSIC_JERK
-      data.max_jerk[X_AXIS] = slow_homing.jerk.x;
-      data.max_jerk[Y_AXIS] = slow_homing.jerk.y;
+      RESTORE(jerk_x);
+      RESTORE(jerk_y);
     #endif
     planner.reset_acceleration_rates();
   #endif
