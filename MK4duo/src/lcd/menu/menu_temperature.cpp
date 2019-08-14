@@ -48,16 +48,16 @@
 
 void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_hotend) {
   #if HAS_HOTENDS
-    hotends[hotend].setTarget(MIN(thermalManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
+    hotends[hotend].set_target_temp(MIN(thermalManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
   #else
     UNUSED(hotend);
   #endif
   if (!only_hotend) {
     #if HAS_BEDS
-      LOOP_BED() beds[h].setTarget(lcdui.preheat_bed_temp[memory]);
+      LOOP_BED() beds[h].set_target_temp(lcdui.preheat_bed_temp[memory]);
     #endif
     #if HAS_CHAMBERS
-      LOOP_CHAMBER() chambers[h].setTarget(lcdui.preheat_chamber_temp[memory]);
+      LOOP_CHAMBER() chambers[h].set_target_temp(lcdui.preheat_chamber_temp[memory]);
     #endif
   }
   #if HAS_FANS
@@ -132,7 +132,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
 
   void lcd_preheat_m1_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].setTarget(lcdui.preheat_hotend_temp[0]);
+      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[0]);
     #endif
     #if HAS_BEDS || HAS_CHAMBERS
       lcd_preheat_m1_h0();
@@ -142,7 +142,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   void lcd_preheat_m2_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].setTarget(lcdui.preheat_hotend_temp[1]);
+      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[1]);
     #endif
     #if HAS_BEDS || HAS_CHAMBERS
       lcd_preheat_m2_h0();
@@ -152,7 +152,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   void lcd_preheat_m3_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].setTarget(lcdui.preheat_hotend_temp[2]);
+      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[2]);
     #endif
     #if HAS_BEDS || HAS_CHAMBERS
       lcd_preheat_m3_h0();

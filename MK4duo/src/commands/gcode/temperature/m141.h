@@ -37,7 +37,8 @@ inline void gcode_M141(void) {
   const uint8_t c = parser.byteval('T');
   if (WITHIN(c, 0 , CHAMBERS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
-    if (parser.seenval('S')) chambers[c].setTarget(parser.value_celsius());
+    if (parser.seenval('S')) chambers[c].set_target_temp(parser.value_celsius());
+    if (parser.seenval('R')) chambers[b].setIdle(false, parser.value_celsius());
   }
 }
 

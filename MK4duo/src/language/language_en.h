@@ -592,11 +592,11 @@
 #ifndef MSG_AUTOTEMP
   #define MSG_AUTOTEMP                        _UxGT("Autotemp")
 #endif
-#ifndef MSG_ON
-  #define MSG_ON                              _UxGT("On")
+#ifndef MSG_LCD_ON
+  #define MSG_LCD_ON                              _UxGT("On")
 #endif
-#ifndef MSG_OFF
-  #define MSG_OFF                             _UxGT("Off")
+#ifndef MSG_LCD_OFF
+  #define MSG_LCD_OFF                             _UxGT("Off")
 #endif
 #ifndef MSG_PID_P
   #define MSG_PID_P                           _UxGT("PID-P")
@@ -1189,6 +1189,11 @@
 #ifndef MSG_CASE_LIGHT_BRIGHTNESS
   #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Light Brightness")
 #endif
+
+#ifndef MSG_EXPECTED_PRINTER
+  #define MSG_EXPECTED_PRINTER                _UxGT("Incorrect Printer")
+#endif
+
 #if LCD_WIDTH >= 20
   #ifndef MSG_INFO_PRINT_COUNT
     #define MSG_INFO_PRINT_COUNT              _UxGT("Print Count")

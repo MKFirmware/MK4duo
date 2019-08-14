@@ -45,7 +45,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Home X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Home Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Home Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Kalibreer Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Homing XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Klik voor begin")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Volgende Plaats")
@@ -95,8 +94,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("Aan")
-#define MSG_OFF                             _UxGT("Uit")
+#define MSG_LCD_ON                          _UxGT("Aan")
+#define MSG_LCD_OFF                         _UxGT("Uit")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -215,6 +214,8 @@
 #define MSG_INFO_PRINTER_MENU               _UxGT("Printer Info")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocol")
 #define MSG_CASE_LIGHT                      _UxGT("Case licht")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Onjuiste printer")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Printed Aantal")

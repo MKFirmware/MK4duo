@@ -212,7 +212,7 @@ void Com::print_onoff(PGM_P const label, const bool onoff) {
     printPGM(label);
     write(':');
   }
-  printPGM(onoff ? PSTR(MSG_ON) : PSTR(MSG_OFF));
+  printPGM(onoff ? PSTR("on") : PSTR("off"));
 }
 
 // Capabilities string

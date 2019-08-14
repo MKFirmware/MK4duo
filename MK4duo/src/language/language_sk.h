@@ -222,8 +222,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fakt")
 #define MSG_AUTOTEMP                        _UxGT("Auto-teplota")
-#define MSG_ON                              _UxGT("Zap")
-#define MSG_OFF                             _UxGT("Vyp")
+#define MSG_LCD_ON                          _UxGT("Zap")
+#define MSG_LCD_OFF                         _UxGT("Vyp")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -413,6 +413,8 @@
 #define MSG_INFO_PROTOCOL                   _UxGT("Protokol")
 #define MSG_CASE_LIGHT                      _UxGT("Osvetlenie")
 #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Jas svetla")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Nesprávna tlačiareň")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Počet tlačí")

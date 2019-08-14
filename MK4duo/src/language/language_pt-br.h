@@ -203,8 +203,8 @@
 #define MSG_MAX                             LCD_STR_THERMOMETER _UxGT(" Máx")
 #define MSG_FACTOR                          LCD_STR_THERMOMETER _UxGT(" Fator")
 #define MSG_AUTOTEMP                        _UxGT("Temp. Automática")
-#define MSG_ON                              _UxGT("Ligado")
-#define MSG_OFF                             _UxGT("Desligado")
+#define MSG_LCD_ON                          _UxGT("Ligado")
+#define MSG_LCD_OFF                         _UxGT("Desligado")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -365,6 +365,8 @@
 #define MSG_INFO_PROTOCOL                   _UxGT("Protocolo")
 #define MSG_CASE_LIGHT                      _UxGT("Luz da Impressora")
 #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Intensidade Brilho")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Impressora Incorreta")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Total de Impressões")

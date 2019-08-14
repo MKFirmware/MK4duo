@@ -122,7 +122,7 @@
                                                           : advancedpause.data[tools.extruder.active].load_length);
     #endif
 
-    if (parser.seenval('S')) hotends[ACTIVE_HOTEND].setTarget(parser.value_celsius());
+    if (parser.seenval('S')) hotends[ACTIVE_HOTEND].set_target_temp(parser.value_celsius());
 
     const int beep_count = parser.intval('B',
       #if ENABLED(PAUSE_PARK_NUMBER_OF_ALERT_BEEPS)

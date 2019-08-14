@@ -490,25 +490,25 @@ void Temperature::disable_all_heaters() {
 
   #if HAS_HOTENDS
     LOOP_HOTEND() {
-      hotends[h].setTarget(0);
+      hotends[h].set_target_temp(0);
       hotends[h].start_watching();
     }
   #endif
   #if HAS_BEDS
     LOOP_BED() {
-      beds[h].setTarget(0);
+      beds[h].set_target_temp(0);
       beds[h].start_watching();
     }
   #endif
   #if HAS_CHAMBERS
     LOOP_CHAMBER() {
-      chambers[h].setTarget(0);
+      chambers[h].set_target_temp(0);
       chambers[h].start_watching();
     }
   #endif
   #if HAS_COOLERS
     LOOP_COOLER() {
-      coolers[h].setTarget(0);
+      coolers[h].set_target_temp(0);
       coolers[h].start_watching();
     }
   #endif
@@ -710,22 +710,22 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if HAS_HOTENDS
     print_heater_state(&hotends[ACTIVE_HOTEND], false, showRaw);
-    SERIAL_MV(MSG_AT ":", int(hotends[ACTIVE_HOTEND].pwm_value));
+    SERIAL_MV(MSG_AT ":", hotends[ACTIVE_HOTEND].pwm_value);
   #endif
 
   #if HAS_BEDS
     print_heater_state(&beds[0], false, showRaw);
-    SERIAL_MV(MSG_BAT ":", int(beds[0].pwm_value));
+    SERIAL_MV(MSG_BAT ":", beds[0].pwm_value);
   #endif
 
   #if HAS_CHAMBERS
     print_heater_state(&chambers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", int(chambers[0].pwm_value));
+    SERIAL_MV(MSG_CAT ":", chambers[0].pwm_value);
   #endif
 
   #if HAS_COOLERS
     print_heater_state(&coolers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", int(coolers[0].pwm_value));
+    SERIAL_MV(MSG_CAT ":", coolers[0].pwm_value);
   #endif
 
   #if HOTENDS > 1
@@ -733,7 +733,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       print_heater_state(&hotends[h], true, showRaw);
       SERIAL_MV(MSG_AT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(int(hotends[h].pwm_value));
+      SERIAL_VAL(hotends[h].pwm_value);
     }
   #endif
 
@@ -742,7 +742,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       print_heater_state(&beds[h], true, showRaw);
       SERIAL_MV(MSG_BAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(int(beds[h].pwm_value));
+      SERIAL_VAL(beds[h].pwm_value);
     }
   #endif
 
@@ -751,7 +751,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       print_heater_state(&chambers[h], true, showRaw);
       SERIAL_MV(MSG_CAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(int(chambers[h].pwm_value));
+      SERIAL_VAL(chambers[h].pwm_value);
     }
   #endif
 
@@ -760,7 +760,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
       print_heater_state(&coolers[h], true, showRaw);
       SERIAL_MV(MSG_CAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(int(coolers[h].pwm_value));
+      SERIAL_VAL(coolers[h].pwm_value);
     }
   #endif
 

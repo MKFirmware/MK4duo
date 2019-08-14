@@ -494,6 +494,8 @@
 #define MSG_SNAKE                           _UxGT("Sn4k3")
 #define MSG_MAZE                            _UxGT("Bludište")
 
+#define MSG_EXPECTED_PRINTER                _UxGT("Nesprávná tiskárna")
+
 #if LCD_HEIGHT >= 4
   // Up to 3 lines allowed
   #define MSG_ADVANCED_PAUSE_WAITING_1      _UxGT("Stiknete tlacítko")

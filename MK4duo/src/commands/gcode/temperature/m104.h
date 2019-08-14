@@ -45,13 +45,15 @@ inline void gcode_M104(void) {
       tools.singlenozzle_temp[TARGET_EXTRUDER] = temp;
       if (TARGET_EXTRUDER != tools.extruder.active) return;
     #endif
-    hotends[TARGET_HOTEND].setTarget(temp);
+    hotends[TARGET_HOTEND].set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
-        hotends[1].setTarget(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
+        hotends[1].set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
   }
+
+  if (parser.seenval('R')) hotends[TARGET_HOTEND].setIdle(false, parser.value_celsius());
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();

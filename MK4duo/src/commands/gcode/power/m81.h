@@ -64,6 +64,6 @@ inline void gcode_M81(void) {
     powerManager.power_off();
   #endif
 
-  LCD_MESSAGEPGM(MACHINE_NAME " " MSG_OFF ".");
+  LCD_MESSAGEPGM(MACHINE_NAME " " MSG_LCD_OFF ".");
 
 }

@@ -411,7 +411,7 @@ inline bool turn_on_heaters() {
           lcdui.capture();
         #endif
       #endif
-      beds[0].setTarget(g26_bed_temp);
+      beds[0].set_target_temp(g26_bed_temp);
 
       // Wait for the temperature to stabilize
       beds[0].wait_for_target(true);
@@ -424,7 +424,7 @@ inline bool turn_on_heaters() {
     lcdui.set_status_P(PSTR("G26 Heating Nozzle."), 99);
     lcdui.quick_feedback(true);
   #endif
-  hotends[0].setTarget(g26_hotend_temp);
+  hotends[0].set_target_temp(g26_hotend_temp);
 
   // Wait for the temperature to stabilize
   hotends[0].wait_for_target(true);
@@ -884,9 +884,9 @@ LEAVE:
 
   if (!g26_keep_heaters_on) {
     #if HAS_BEDS
-      beds[0].setTarget(0);
+      beds[0].set_target_temp(0);
     #endif
-    hotends[0].setTarget(0);
+    hotends[0].set_target_temp(0);
   }
 }
 

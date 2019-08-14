@@ -675,7 +675,7 @@ float Planner::previous_speed[NUM_AXIS]   = { 0.0 },
     LIMIT(t, autotemp_min, autotemp_max);
     if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
-    hotends[0].setTarget(t);
+    hotends[0].set_target_temp(t);
   }
 
 #endif // HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)

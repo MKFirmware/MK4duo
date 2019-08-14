@@ -42,7 +42,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Ir orixe X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Ir orixe Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Ir orixe Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Calibrar Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Ir orixes XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Prema pulsador")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Seguinte punto")
@@ -87,8 +86,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("On")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -224,6 +223,8 @@
 #define MSG_DAC_EEPROM_WRITE                _UxGT("Garda DAC EEPROM")
 
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Segue traballo")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Impresora incorrecta")
 
 #if LCD_HEIGHT >= 4
   // Up to 3 lines allowed

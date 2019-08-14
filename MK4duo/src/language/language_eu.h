@@ -45,7 +45,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("X jatorrira")
 #define MSG_AUTO_HOME_Y                     _UxGT("Y jatorrira")
 #define MSG_AUTO_HOME_Z                     _UxGT("Z jatorrira")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Kalibratu Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("XYZ hasieraratzen")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Klik egin hasteko")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Hurrengo Puntua")
@@ -182,8 +181,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fakt")
 #define MSG_AUTOTEMP                        _UxGT("Auto tenperatura")
-#define MSG_ON                              _UxGT("On ")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -354,6 +353,9 @@
 #define MSG_ERR_HOMING_FAILED               _UxGT("Hasi. huts egin du")
 #define MSG_ERR_PROBING_FAILED              _UxGT("Neurketak huts egin du")
 #define MSG_M600_TOO_COLD                   _UxGT("M600: hotzegi")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Inprimagailu okerra")
+
 //
 // Filament Change screens show up to 3 lines on a 4-line display
 //                        ...or up to 2 lines on a 3-line display

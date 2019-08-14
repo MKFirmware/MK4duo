@@ -41,7 +41,7 @@ inline void gcode_M190(void) {
   if (WITHIN(b, 0 , BEDS - 1)) {
     const bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))
-      beds[b].setTarget(parser.value_celsius());
+      beds[b].set_target_temp(parser.value_celsius());
     else return;
 
     lcdui.set_status_P(beds[b].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));

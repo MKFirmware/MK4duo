@@ -87,8 +87,8 @@
 #define MSG_MAX                             _UxGT(" \002 Max")
 #define MSG_FACTOR                          _UxGT(" \002 Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("Til")
-#define MSG_OFF                             _UxGT("Fra")
+#define MSG_LCD_ON                          _UxGT("Til")
+#define MSG_LCD_OFF                         _UxGT("Fra")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -227,6 +227,8 @@
 #define MSG_DAC_EEPROM_WRITE                _UxGT("DAC EEPROM Skriv")
 
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Forsæt print")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Forkert printer")
 
 #if LCD_HEIGHT >= 4
   #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Vent på start")

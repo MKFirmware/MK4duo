@@ -3,7 +3,7 @@
  *
  * Based on Marlin, Sprinter and grbl
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- * Copyright (c) 2013 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,19 +23,15 @@
 /**
  * mcode
  *
- * Copyright (c) 2017 Alberto Cotronei @MagoKimbra
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_COOLERS
-
-#define CODE_M142
+#define CODE_M16
 
 /**
- * M142: Set Cooler temperature
+ * M16: Expected Printer Check
  */
-inline void gcode_M142(void) {
-  if (printer.debugDryrun() || printer.debugSimulation()) return;
-  if (parser.seenval('S')) coolers[0].set_target_temp(parser.value_celsius());
+inline void gcode_M16(void) {
+  if (strcmp_P(parser.string_arg, PSTR(MACHINE_NAME)))
+    printer.kill(PSTR(MSG_EXPECTED_PRINTER));
 }
-
-#endif

@@ -85,7 +85,7 @@ FORCE_INLINE void draw_menu_item_edit_P(const bool sel, const uint8_t row, PGM_P
 #define draw_menu_item_gcode(sel, row, pstr, gcode)   draw_menu_item(sel, row, pstr, '>', ' ')
 #define draw_menu_item_function(sel, row, pstr, data) draw_menu_item(sel, row, pstr, '>', ' ')
 #define DRAW_MENU_ITEM_SETTING_EDIT_GENERIC(VAL)      draw_menu_item_edit(sel, row, pstr, VAL)
-#define DRAW_BOOL_SETTING(sel, row, pstr, data)       draw_menu_item_edit_P(sel, row, pstr, (*(data))?PSTR(MSG_ON):PSTR(MSG_OFF))
+#define DRAW_BOOL_SETTING(sel, row, pstr, data)       draw_menu_item_edit_P(sel, row, pstr, (*(data))?PSTR(MSG_LCD_ON):PSTR(MSG_LCD_OFF))
 
 #if HAS_SD_SUPPORT
   class SDCard;

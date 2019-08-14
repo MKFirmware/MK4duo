@@ -42,7 +42,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Ir para origem X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Ir para origem Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Ir para origem Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Calibrar Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Indo para origem")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Click para iniciar")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Próximo ponto")
@@ -85,8 +84,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Temp. Automática")
-#define MSG_ON                              _UxGT("On")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -185,3 +184,5 @@
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibrar Centro")
 
 #define MSG_LCD_ENDSTOPS                    _UxGT("Fim de curso")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Impressora Incorreta")
