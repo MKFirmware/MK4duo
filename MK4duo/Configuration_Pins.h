@@ -164,24 +164,24 @@
 #define HEATER_COOLER_PIN    ORIG_HEATER_COOLER_PIN
 
 // TEMP pins
-#if TEMP_SENSOR_HE0 > -1
+#if TEMP_SENSOR_HE0   >= -2
   #define TEMP_HE0_PIN       ORIG_TEMP_HE0_PIN
 #elif TEMP_SENSOR_HE0 == -3
   #define TEMP_HE0_PIN       MAX6675_SS_PIN
 #elif TEMP_SENSOR_HE0 == -4
   #define TEMP_HE0_PIN       MAX31855_SS0_PIN
 #endif
-#if TEMP_SENSOR_HE1 > -1
+#if TEMP_SENSOR_HE1   >= -2
   #define TEMP_HE1_PIN       ORIG_TEMP_HE1_PIN
 #elif TEMP_SENSOR_HE1 == -4
   #define TEMP_HE1_PIN       MAX31855_SS1_PIN
 #endif
-#if TEMP_SENSOR_HE2 > -1
+#if TEMP_SENSOR_HE2   >= -2
   #define TEMP_HE2_PIN       ORIG_TEMP_HE2_PIN
 #elif TEMP_SENSOR_HE2 == -4
   #define TEMP_HE2_PIN       MAX31855_SS2_PIN
 #endif
-#if TEMP_SENSOR_HE3 > -1
+#if TEMP_SENSOR_HE3   >= -2
   #define TEMP_HE3_PIN       ORIG_TEMP_HE3_PIN
 #elif TEMP_SENSOR_HE3 == -4
   #define TEMP_HE3_PIN       MAX31855_SS3_PIN
