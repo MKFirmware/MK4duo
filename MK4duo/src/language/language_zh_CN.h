@@ -178,8 +178,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" 最大")  //" " LCD_STR_THERMOMETER " Max"
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" 因数")  //" " LCD_STR_THERMOMETER " Fact"
 #define MSG_AUTOTEMP                        _UxGT("自动控温")  //"Autotemp"
-#define MSG_ON                              _UxGT("开")  //"On"
-#define MSG_OFF                             _UxGT("关")  //"Off"
+#define MSG_LCD_ON                          _UxGT("开")  //"On"
+#define MSG_LCD_OFF                         _UxGT("关")  //"Off"
 #define MSG_PID_P                           _UxGT("PID-P")  //"PID-P"
 #define MSG_PID_I                           _UxGT("PID-I")  //"PID-I"
 #define MSG_PID_D                           _UxGT("PID-D")  //"PID-D"
@@ -321,6 +321,8 @@
 #define MSG_INFO_PROTOCOL                   _UxGT("协议")  //"Protocol"
 #define MSG_CASE_LIGHT                      _UxGT("外壳灯") // "Case light"
 #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("灯亮度") // "Light BRIGHTNESS"
+
+#define MSG_EXPECTED_PRINTER                _UxGT("打印机不正确") // "The printer is incorrect"
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("打印计数")  //"Print Count"

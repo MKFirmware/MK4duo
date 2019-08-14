@@ -50,7 +50,7 @@ inline PGM_P _change_filament_temp_command() {
 static void _change_filament_temp(const uint16_t temperature) {
   char cmd[11];
   sprintf_P(cmd, _change_filament_temp_command(), _change_filament_temp_extruder);
-  hotends[_change_filament_temp_extruder].setTarget(temperature);
+  hotends[_change_filament_temp_extruder].set_target_temp(temperature);
   lcd_enqueue_one_now(cmd);
 }
 inline void _lcd_change_filament_temp_1_func()    { _change_filament_temp(lcdui.preheat_hotend_temp[0]); }

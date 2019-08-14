@@ -286,7 +286,7 @@
 #define MSG_BUTTON_INIT                     _UxGT("Bestätigen")
 #define MSG_BUTTON_STOP                     _UxGT("Stop")
 #define MSG_BUTTON_PRINT                    _UxGT("Drucken")
-#define MSG_BUTTON_RESET                    _UxGT("Zurücksetzen")
+#define MSG_BUTTON_RESET                    _UxGT("Reseten")
 #define MSG_BUTTON_CANCEL                   _UxGT("Abbrechen")
 #define MSG_BUTTON_DONE                     _UxGT("Fertig")
 #define MSG_PAUSE_PRINT                     _UxGT("SD-Druck pausieren")
@@ -407,6 +407,8 @@
 #define MSG_INFO_PROTOCOL                   _UxGT("Protokoll")
 #define MSG_CASE_LIGHT                      _UxGT("Beleuchtung")
 #define MSG_CASE_LIGHT_BRIGHTNESS           _UxGT("Helligkeit")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Falscher Drucker")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Gesamte Drucke")

@@ -86,8 +86,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Макс")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Факт")
 #define MSG_AUTOTEMP                        _UxGT("Автотемпер.")
-#define MSG_ON                              _UxGT("Увімк.")
-#define MSG_OFF                             _UxGT("Вимк.")
+#define MSG_LCD_ON                          _UxGT("Увімк.")
+#define MSG_LCD_OFF                         _UxGT("Вимк.")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -190,6 +190,8 @@
 #define MSG_INFO_BAUDRATE                   _UxGT("біт/с")
 #define MSG_INFO_PROTOCOL                   _UxGT("Протокол")
 #define MSG_CASE_LIGHT                      _UxGT("Підсвітка")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Неправильний принтер")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("К-сть друків")

@@ -136,6 +136,7 @@
 #include "geometry/m428.h"                // Set the home_offset
 
 // Host Commands
+#include "host/m16.h"                     // Expected printer check
 #include "host/m110.h"
 #include "host/m111.h"
 #include "host/m113.h"

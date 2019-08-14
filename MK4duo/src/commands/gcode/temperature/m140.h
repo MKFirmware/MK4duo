@@ -37,7 +37,8 @@ inline void gcode_M140(void) {
   const uint8_t b = parser.byteval('T');
   if (WITHIN(b, 0 , BEDS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
-    if (parser.seenval('S')) beds[b].setTarget(parser.value_celsius());
+    if (parser.seenval('S')) beds[b].set_target_temp(parser.value_celsius());
+    if (parser.seenval('R')) beds[b].setIdle(false, parser.value_celsius());
   }
 }
 

@@ -42,7 +42,6 @@
 #define MSG_AUTO_HOME_X                     _UxGT("Home-aj X")
 #define MSG_AUTO_HOME_Y                     _UxGT("Home-aj Y")
 #define MSG_AUTO_HOME_Z                     _UxGT("Home-aj Z")
-#define MSG_TMC_Z_CALIBRATION               _UxGT("Kalibriraj Z")
 #define MSG_LEVEL_BED_HOMING                _UxGT("Home-aj XYZ")
 #define MSG_LEVEL_BED_WAITING               _UxGT("Klikni za početak")
 #define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Sljedeća točka")
@@ -87,8 +86,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("On")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -203,6 +202,8 @@
 #define MSG_INFO_BAUDRATE                   _UxGT("Baud")
 #define MSG_INFO_PROTOCOL                   _UxGT("Protokol")
 #define MSG_CASE_LIGHT                      _UxGT("Osvjetljenje")
+
+#define MSG_EXPECTED_PRINTER                _UxGT("Neispravan pisač")
 
 #if LCD_WIDTH >= 20
   #define MSG_INFO_PRINT_COUNT              _UxGT("Broj printova")

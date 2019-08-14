@@ -41,7 +41,7 @@ inline void gcode_M122(void) {
     SERIAL_EONOFF(MSG_SOFT_ENDSTOPS, endstops.isSoftEndstop());
   #else
     SERIAL_MSG(MSG_SOFT_ENDSTOPS);
-    SERIAL_MSG(MSG_OFF);
+    SERIAL_MSG(MSG_LCD_OFF);
   #endif
 
   #if !(IS_KINEMATIC)

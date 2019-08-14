@@ -631,7 +631,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         if (move_axes && mechanics.isHomedAll())
           Nozzle::park(2);
 
-        if (turn_off_nozzle) hotends[0].setTarget(0);
+        if (turn_off_nozzle) hotends[0].set_target_temp(0);
 
         LCD_MESSAGEPGM(MSG_MMU2_NOT_RESPONDING);
         sound.playtone(100, 659);
@@ -645,7 +645,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
       SERIAL_EM("MMU starts responding\n");
 
       if (turn_off_nozzle && resume_hotend_temp) {
-        hotends[0].setTarget(resume_hotend_temp);
+        hotends[0].set_target_temp(resume_hotend_temp);
         LCD_MESSAGEPGM(MSG_HEATING);
         sound.playtone(200, 40);
 

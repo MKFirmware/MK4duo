@@ -38,7 +38,7 @@ inline void gcode_M192(void) {
 
   LCD_MESSAGEPGM(MSG_COOLER_COOLING);
   if (parser.seen('S'))
-    coolers[0].setTarget(parser.value_celsius());
+    coolers[0].set_target_temp(parser.value_celsius());
   else return;
   coolers[0].wait_for_target(false);
 

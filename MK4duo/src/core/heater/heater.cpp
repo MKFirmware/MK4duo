@@ -73,7 +73,7 @@ void Heater::init() {
 
 }
 
-void Heater::setTarget(const int16_t celsius) {
+void Heater::set_target_temp(const int16_t celsius) {
 
   if (celsius == 0)
     SwitchOff();

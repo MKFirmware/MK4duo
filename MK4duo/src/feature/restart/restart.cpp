@@ -196,19 +196,19 @@ void Restart::resume_job() {
   // Set temperature
   #if HAS_CHAMBERS
     LOOP_CHAMBER() {
-      chambers[h].setTarget(job_info.chamber_target_temperature[h]);
+      chambers[h].set_target_temp(job_info.chamber_target_temperature[h]);
       chambers[h].wait_for_target(true);
     }
   #endif
   #if HAS_BEDS
     LOOP_BED() {
-      beds[h].setTarget(job_info.bed_target_temperature[h]);
+      beds[h].set_target_temp(job_info.bed_target_temperature[h]);
       beds[h].wait_for_target(true);
     }
   #endif
   #if HAS_HOTENDS
     LOOP_HOTEND() {
-      hotends[h].setTarget(job_info.target_temperature[h]);
+      hotends[h].set_target_temp(job_info.target_temperature[h]);
       hotends[h].wait_for_target(true);
     }
   #endif

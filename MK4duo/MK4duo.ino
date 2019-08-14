@@ -85,6 +85,7 @@
  * M4   - S[value] CNC counter clockwise speed. (Requires CNCROUTERS)
  * M5   - Turn laser/spindle off. (Requires LASER or Requires CNCROUTERS)
  * M6   - Tool change CNC. (Requires CNCROUTERS)
+ * M16  - Expected printer check
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card. (Requires SDSUPPORT)
@@ -151,7 +152,7 @@
  * M92  - Set axis_steps_per_unit - same syntax as G92
  * M99  - Set Hysteresis parameter X[in mm] Y[in mm] Z[in mm] E[in mm] F[float] Enable/disable/fade-out hysteresis correction (0.0 to 1.0)
  * M100 - Watch Free Memory (For Debugging Only)
- * M104 - S[C°] Set hotend target temperature
+ * M104 - S[C°] Set hotend target temperature, R[C°] Set hotend idle temperature
  *          T[int] 0-5 For Select Hotends (default 0)
  * M105 - Read current temp
  * M106 - P[fan] S[speed] F[frequency] U[pin] L[min speed] X[max speed] I[inverted logic] H[int] Set Auto mode - H=7 for controller - H-1 for disabled T[trig temperaure]
@@ -180,9 +181,9 @@
  * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
  * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
  * M129 - EtoP Closed (BariCUDA EtoP = electricity to air pressure transducer by jmil)
- * M140 - S[C°] Set hot bed target temperature
+ * M140 - S[C°] Set hot bed target temperature, R[C°] Set hot bed idle temperature
  *        T[int] 0-3 For Select Beds (default 0)
- * M141 - S[C°] Set hot chamber target temperature
+ * M141 - S[C°] Set hot chamber target temperature, R[C°] Set hot chamber idle temperature
  *        T[int] 0-3 For Select Chambers (default 0)
  * M142 - S[C°] Set cooler target temperature
  * M145 - Set the heatup state H[hotend] B[bed] C[chamber] F[fan speed] for S[material] (0=PLA, 1=ABS, 2=GUM)

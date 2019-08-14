@@ -84,7 +84,7 @@ inline void gcode_M306(void) {
 
   if (parser.seen('P')) {
     // Put off the heaters
-    act->setTarget(0);
+    act->set_target_temp(0);
     act->data.pin = parser.value_pin();
   }
 
