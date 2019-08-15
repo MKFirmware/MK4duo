@@ -44,8 +44,8 @@
 |   M5 | LASER or CNCROUTERS | Turn off laser beam or CNC
 |   M6 | CNCROUTERS | Tool change CNC
 |  M16 | - | Expected printer check
-|  M17 | - | Enable/Power all stepper motors
-|  M18 | - | Disable all stepper motors; same as M84
+|  M17 | - | Enable stepper motors
+|  M18 | - | Disable stepper motors; same as M84
 |  M20 | SDCARD | List SD card
 |  M21 | SDCARD | Init SD card
 |  M22 | SDCARD | Release SD card
@@ -78,7 +78,7 @@
 |  M81 | - | Turn off Power, including Power Supply, if possible
 |  M82 | - | Set E codes absolute (default)
 |  M83 | - | Set E codes relative while in Absolute Coordinates (G90) mode
-|  M84 | - | Disable steppers until next move, or use S[seconds] to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
+|  M84 | - | Disable steppers until next move, or use S[seconds] to specify an inactivity timeout, after which the steppers will be disabled. S0 to disable the timeout.
 |  M85 | - | Set inactivity shutdown timer with parameter S[seconds]. To disable set zero (default)
 |  M86 | - | Set safety timer expiration with parameter M[minutes]. To disable set zero
 |  M92 | - | Set axis steps per unit - same syntax as G92, H[microstep] L[Layer wanted]

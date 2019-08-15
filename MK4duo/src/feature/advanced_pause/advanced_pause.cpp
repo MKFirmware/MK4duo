@@ -548,7 +548,7 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   do_pause_e_move(unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);
 
   // Disable extruders steppers for manual filament changing
-  #if E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN
+  #if HAS_E_STEPPER_ENABLE
     stepper.disable_E(tools.extruder.active);
     HAL::delayMilliseconds(100);
   #endif

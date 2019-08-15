@@ -26,8 +26,27 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
+#define CODE_M17
 #define CODE_M18
 #define CODE_M84
+
+/**
+ * M17: Enable stepper motors
+ */
+inline void gcode_M17(void) {
+  if (parser.seen("XYZE")) {
+    if (parser.seen('X')) stepper.enable_X();
+    if (parser.seen('Y')) stepper.enable_Y();
+    if (parser.seen('Z')) stepper.enable_Z();
+    #if HAS_E_STEPPER_ENABLE
+      if (parser.seen('E')) stepper.enable_E();
+    #endif
+  }
+  else {
+    LCD_MESSAGEPGM(MSG_NO_MOVE);
+    stepper.enable_all();
+  }
+}
 
 /**
  * M18, M84: Disable stepper motors
@@ -37,17 +56,17 @@ inline void gcode_M18_M84(void) {
     printer.move_time = parser.value_ushort();
   }
   else {
-    bool all_axis = !(parser.seen_axis());
-    if (all_axis) {
-      planner.finish_and_disable();
-    }
-    else {
+    if (parser.seen("XYZE")) {
       planner.synchronize();
       if (parser.seen('X')) stepper.disable_X();
       if (parser.seen('Y')) stepper.disable_Y();
       if (parser.seen('Z')) stepper.disable_Z();
-      if (parser.seen('E')) stepper.disable_E();
+      #if HAS_E_STEPPER_ENABLE
+        if (parser.seen('E')) stepper.disable_E();
+      #endif
     }
+    else
+      planner.finish_and_disable();
 
     #if ENABLED(AUTO_BED_LEVELING_UBL) && ENABLED(ULTIPANEL)
       if (ubl.lcd_map_control) {

@@ -62,12 +62,13 @@
 #define E4_HAS_DRV(TYPE)    (DRIVER_EXTRUDERS > 4 && AXIS_DRV_TYPE(E4,TYPE))
 #define E5_HAS_DRV(TYPE)    (DRIVER_EXTRUDERS > 5 && AXIS_DRV_TYPE(E5,TYPE))
 
-#define HAVE_DRV(TYPE) ( \
-            X_HAS_DRV(TYPE) ||  Y_HAS_DRV(TYPE) ||  Z_HAS_DRV(TYPE)   \
-        || X2_HAS_DRV(TYPE) || Y2_HAS_DRV(TYPE) || Z2_HAS_DRV(TYPE)   \
-                                                || Z3_HAS_DRV(TYPE)   \
-        || E0_HAS_DRV(TYPE) || E1_HAS_DRV(TYPE) || E2_HAS_DRV(TYPE)   \
-        || E3_HAS_DRV(TYPE) || E4_HAS_DRV(TYPE) || E5_HAS_DRV(TYPE))
+#define HAVE_E_DRV(TYPE)    ( E0_HAS_DRV(TYPE) || E1_HAS_DRV(TYPE) || E2_HAS_DRV(TYPE)  \
+                           || E3_HAS_DRV(TYPE) || E4_HAS_DRV(TYPE) || E5_HAS_DRV(TYPE) )
+
+#define HAVE_DRV(TYPE)      ( X_HAS_DRV(TYPE) ||  Y_HAS_DRV(TYPE) ||  Z_HAS_DRV(TYPE)   \
+                          || X2_HAS_DRV(TYPE) || Y2_HAS_DRV(TYPE) || Z2_HAS_DRV(TYPE)   \
+                                                                  || Z3_HAS_DRV(TYPE)   \
+                          || HAVE_E_DRV(TYPE) )
 
 #define HAS_TRINAMIC              (HAVE_DRV(TMC2130)      || HAVE_DRV(TMC2160)      || HAVE_DRV(TMC2208)    || HAVE_DRV(TMC2660)    || HAVE_DRV(TMC5130)    || HAVE_DRV(TMC5160))
 #define AXIS_HAS_TMC(A)           (A##_HAS_DRV(TMC2130)   || A##_HAS_DRV(TMC2160)   || A##_HAS_DRV(TMC2208) || A##_HAS_DRV(TMC2660) || A##_HAS_DRV(TMC5130) || A##_HAS_DRV(TMC5160))

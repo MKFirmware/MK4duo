@@ -73,8 +73,7 @@
 #include "config/m908.h"                  // Control digital trimpot directly
 
 // Control Commands
-#include "control/m17.h"
-#include "control/m18_m84.h"
+#include "control/m17_m18_m84.h"
 #include "control/m42.h"
 #include "control/m85.h"
 #include "control/m86.h"
