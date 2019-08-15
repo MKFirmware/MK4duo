@@ -86,8 +86,8 @@
  * M5   - Turn laser/spindle off. (Requires LASER or Requires CNCROUTERS)
  * M6   - Tool change CNC. (Requires CNCROUTERS)
  * M16  - Expected printer check
- * M17  - Enable/Power all stepper motors
- * M18  - Disable all stepper motors; same as M84
+ * M17  - Enable stepper motors
+ * M18  - Disable stepper motors; same as M84
  * M20  - List SD card. (Requires SDSUPPORT)
  * M21  - Init SD card. (Requires SDSUPPORT)
  * M22  - Release SD card. (Requires SDSUPPORT)

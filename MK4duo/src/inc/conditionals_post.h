@@ -455,6 +455,10 @@
   #define Z_STALL_SENSITIVITY 0
 #endif
 
+#define HAS_E_STEPPER_ENABLE  ( HAVE_E_DRV(TMC2660)                     \
+  || ( E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != X_ENABLE_PIN   \
+    && E0_ENABLE_PIN != Y_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN ) )
+
 // Endstops and bed probe
 #define HAS_X_MIN           (PIN_EXISTS(X_MIN))
 #define HAS_X_MAX           (PIN_EXISTS(X_MAX))
