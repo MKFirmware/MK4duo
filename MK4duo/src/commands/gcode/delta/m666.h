@@ -57,7 +57,7 @@ inline void gcode_M666(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M666 report.
-    if (!parser.seen("XYZHDRSLAB") && !parser.seen("CIJKUVWOP")) {
+    if (parser.seen_any()) {
       mechanics.print_M666();
       return;
     }

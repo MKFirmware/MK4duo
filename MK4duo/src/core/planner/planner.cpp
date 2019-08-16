@@ -1472,6 +1472,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
 
     block_buffer_runtime_us += segment_time_us;
+    block->segment_time_us = segment_time_us;
 
     // Reenable Stepper ISR
     if (isr_enabled) ENABLE_STEPPER_INTERRUPT();

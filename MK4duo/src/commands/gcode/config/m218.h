@@ -44,7 +44,7 @@ inline void gcode_M218(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
-    if (!parser.seen("XYZ")) {
+    if (parser.seen_any()) {
       nozzle.print_M218(TARGET_HOTEND);
       return;
     }

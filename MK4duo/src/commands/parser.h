@@ -158,7 +158,7 @@ class GCodeParser {
         }
       #endif
 
-      static inline bool seen_any() { return !!codebits; }
+      static inline bool seen_any() { return !codebits; }
 
       #define SEEN_TEST(L) TEST32(codebits, LETTER_BIT(L))
 

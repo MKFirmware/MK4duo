@@ -37,7 +37,7 @@ inline void gcode_M206(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M206 report.
-    if (!parser.seen("XYZETP")) {
+    if (parser.seen_any()) {
       mechanics.print_M206();
       return;
     }

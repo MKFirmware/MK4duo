@@ -104,7 +104,9 @@ typedef struct block_t {
     uint8_t valve_pressure, e_to_p_pressure;
   #endif
 
-  uint32_t segment_time_us;
+  #if HAS_SPI_LCD
+    uint32_t segment_time_us;
+  #endif
 
   #if ENABLED(LASER)
     uint8_t   laser_mode;       // CONTINUOUS, PULSED, RASTER
