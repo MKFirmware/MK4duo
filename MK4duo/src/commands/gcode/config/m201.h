@@ -39,7 +39,7 @@ inline void gcode_M201(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M201 report.
-    if (!parser.seen("XYZE")) {
+    if (parser.seen_any()) {
       mechanics.print_M201();
       return;
     }

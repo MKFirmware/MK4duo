@@ -42,7 +42,7 @@ inline void gcode_M200(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
-    if (!parser.seen("TD")) {
+    if (parser.seen_any()) {
       tools.print_M200();
       return;
     }

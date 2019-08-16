@@ -64,7 +64,7 @@ inline void gcode_M217(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M217 report.
-    if (!parser.seen(SPR_PARAM XY_PARAM "Z")) {
+    if (parser.seen_any()) {
       #if ENABLED(TOOL_CHANGE_FIL_SWAP)
         tools.print_M217();
       #endif

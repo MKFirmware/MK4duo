@@ -46,7 +46,7 @@ inline void gcode_M205(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M205 report.
-    if (!parser.seen("XYZEBSVJ")) {
+    if (parser.seen_any()) {
       mechanics.print_M205();
       return;
     }

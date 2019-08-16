@@ -39,7 +39,7 @@ inline void gcode_M203(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M203 report.
-    if (!parser.seen("XYZE")) {
+    if (parser.seen_any()) {
       mechanics.print_M203();
       return;
     }

@@ -34,17 +34,17 @@
  * M17: Enable stepper motors
  */
 inline void gcode_M17(void) {
-  if (parser.seen("XYZE")) {
+  if (parser.seen_any()) {
+    LCD_MESSAGEPGM(MSG_NO_MOVE);
+    stepper.enable_all();
+  }
+  else {
     if (parser.seen('X')) stepper.enable_X();
     if (parser.seen('Y')) stepper.enable_Y();
     if (parser.seen('Z')) stepper.enable_Z();
     #if HAS_E_STEPPER_ENABLE
       if (parser.seen('E')) stepper.enable_E();
     #endif
-  }
-  else {
-    LCD_MESSAGEPGM(MSG_NO_MOVE);
-    stepper.enable_all();
   }
 }
 

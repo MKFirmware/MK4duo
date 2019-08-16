@@ -42,7 +42,7 @@ inline void gcode_M412(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M412 report.
-    if (!parser.seen("DHRS")) {
+    if (parser.seen_any()) {
       filamentrunout.print_M412();
       return;
     }

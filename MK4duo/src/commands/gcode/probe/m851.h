@@ -32,7 +32,7 @@ inline void gcode_M851(void) {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M851 report.
-    if (!parser.seen("XYZFSR")) {
+    if (parser.seen_any()) {
       probe.print_M851();
       return;
     }
