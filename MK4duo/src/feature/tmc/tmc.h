@@ -635,7 +635,11 @@ class TMC_Stepper {
 
     #if ENABLED(TMC_DEBUG)
 
-      FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_STR(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+      #if HAVE_DRV(TMC2160) || HAVE_DRV(TMC5160)
+        FORCE_INLINE static void print_vsense(MKTMC* st) {}
+      #else
+        FORCE_INLINE static void print_vsense(MKTMC* st) { SERIAL_STR(st->vsense() ? PSTR("1=.18") : PSTR("0=.325")); }
+      #endif
 
       static void status(MKTMC* st, const TMCdebugEnum i);
       static void status(MKTMC* st, const TMCdebugEnum i, const float spmm);
