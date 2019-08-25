@@ -91,7 +91,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Mechanics state
     COPY_ARRAY(job_info.current_position, mechanics.current_position);
     #if ENABLED(WORKSPACE_OFFSETS)
-      COPY_ARRAY(job_info.home_offset, mechanics.home_offset);
+      COPY_ARRAY(job_info.home_offset, mechanics.data.home_offset);
       COPY_ARRAY(job_info.position_shift, mechanics.position_shift);
     #endif
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
@@ -281,8 +281,8 @@ void Restart::resume_job() {
 
   #if ENABLED(WORKSPACE_OFFSETS)
     LOOP_XYZ(i) {
-      mechanics.home_offset[i] = job_info.home_offset[i];
-      mechanics.position_shift[i] = job_info.position_shift[i];
+      mechanics.data.home_offset[i] = job_info.home_offset[i];
+      mechanics.position_shift[i]   = job_info.position_shift[i];
       mechanics.update_workspace_offset((AxisEnum)i);
     }
   #endif
