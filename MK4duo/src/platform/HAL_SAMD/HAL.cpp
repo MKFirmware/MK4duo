@@ -47,14 +47,12 @@
  * ARDUINO_ARCH_SAMD
  */
 
+#ifdef ARDUINO_ARCH_SAMD
+
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
 #include "../../../MK4duo.h"
-
-#if ENABLED(ARDUINO_ARCH_SAMD)
-
 #include <malloc.h>
 #include <Wire.h>
 #include "wiring_private.h"
@@ -112,10 +110,6 @@ void tone(const pin_t t_pin, const uint16_t frequency, const uint16_t duration) 
     HAL::delayMicroseconds(halfPeriod);
   }
   HAL::pinMode(t_pin, OUTPUT_LOW);
-}
-
-static inline void ConfigurePin(const PinDescription& pinDesc) {
- // PIO_Configure(pinDesc.ulPort, pinDesc.ulPinType, pinDesc.ulPin, 0);
 }
 
 // This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.

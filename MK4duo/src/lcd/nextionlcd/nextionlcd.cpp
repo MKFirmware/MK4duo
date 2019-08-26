@@ -934,8 +934,6 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
 uint16_t NextionLCD::recvRetNumber() {
   uint8_t temp[8] = { 0 };
 
-  nexSerial.setTimeout(NEX_TIMEOUT);
-
   if (sizeof(temp) != nexSerial.readBytes((char *)temp, sizeof(temp)))
     return 0;
 

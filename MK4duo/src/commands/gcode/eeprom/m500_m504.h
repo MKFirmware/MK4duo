@@ -30,6 +30,7 @@
 #define CODE_M501
 #define CODE_M502
 #define CODE_M503
+#define CODE_M504
 
 /**
  * M500: Store settings in EEPROM
@@ -77,4 +78,15 @@ inline void gcode_M503(void) {
   #endif
   (void)eeprom.Print_Settings();
   SERIAL_PORT(-1);
+}
+
+/**
+ * M504: Validate EEPROM Contents
+ */
+inline void gcode_M504(void) {
+  #if HAS_EEPROM
+    if (eeprom.validate()) SERIAL_LM(ECHO, "EEPROM OK");
+  #else
+    SERIAL_LM(ECHO, "No EEPROM active!");
+  #endif
 }

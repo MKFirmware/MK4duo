@@ -65,107 +65,118 @@
  *  move(angle) - Sequence of attach(0), write(angle),
  *                   With DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DELAY and detach.
  */
-
 #pragma once
 
 #if HAS_SERVOS
 
-#include <inttypes.h>
+  #if ENABLED(__AVR__)
+    #define SHARED_SERVOS HAS_SERVOS
+    #define HAL_SERVO_LIB Servo
+    #include "../HAL_AVR/servotimers.h"
+  #elif ENABLED(ARDUINO_ARCH_SAM)
+    #define SHARED_SERVOS HAS_SERVOS
+    #define HAL_SERVO_LIB Servo
+    #include "../HAL_DUE/servotimers.h"
+  #else
+    #error "Unsupported Platform!"
+  #endif
 
-#if ENABLED(ARDUINO_ARCH_SAM)
-  #include "../HAL_DUE/servotimers.h"
-#elif ENABLED(__AVR__)
-  #include "../HAL_AVR/servotimers.h"
-#else
-  #error "Unsupported Platform!"
 #endif
 
-/**
- * Defines for 16 bit timers used with  Servo library
- *
- * If _useTimerX is defined then TimerX is a 16 bit timer on the current board
- * timer16_Sequence_t enumerates the sequence that the timers should be allocated
- * _Nbr_16timers indicates how many 16 bit timers are available.
- */
+#if SHARED_SERVOS
 
-#define Servo_VERSION           2     // software version of this library
+  #include <inttypes.h>
 
-#define MIN_PULSE_WIDTH       544     // the shortest pulse sent to a servo
-#define MAX_PULSE_WIDTH      2400     // the longest pulse sent to a servo
-#define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
-#define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
+  /**
+   * Defines for 16 bit timers used with  Servo library
+   *
+   * If _useTimerX is defined then TimerX is a 16 bit timer on the current board
+   * timer16_Sequence_t enumerates the sequence that the timers should be allocated
+   * _Nbr_16timers indicates how many 16 bit timers are available.
+   */
 
-#define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
-#define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
+  #define Servo_VERSION           2     // software version of this library
 
-#define INVALID_SERVO         255     // flag indicating an invalid servo index
+  #define MIN_PULSE_WIDTH       544     // the shortest pulse sent to a servo
+  #define MAX_PULSE_WIDTH      2400     // the longest pulse sent to a servo
+  #define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
+  #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
 
-// Convert microseconds to ticks and back (PRESCALER depends on architecture)
-#define usToTicks(_us)      (clockCyclesPerMicrosecond() * (_us) / PRESCALER)
-#define ticksToUs(_ticks)   (unsigned(_ticks) * (PRESCALER) / clockCyclesPerMicrosecond())
+  #define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
+  #define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
 
-// Convenience macros
-#define SERVO_INDEX_TO_TIMER(_servo_nbr)    ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
-#define SERVO_INDEX_TO_CHANNEL(_servo_nbr)  (_servo_nbr % SERVOS_PER_TIMER)                       // returns the index of the servo on this timer
-#define SERVO_INDEX(_timer,_channel)        ((_timer*SERVOS_PER_TIMER) + _channel)                // macro to access servo index by timer and channel
-#define SERVO(_timer,_channel)              (servo_info[SERVO_INDEX(_timer, _channel)])           // macro to access servo class by timer and channel
-  
-#define MOVE_SERVO(I, P)    servo[I].move(P)
+  #define INVALID_SERVO         255     // flag indicating an invalid servo index
 
-// Types
-typedef struct {
-  uint8_t nbr        :6 ;             // a pin number from 0 to 63
-  uint8_t isActive   :1 ;             // true if this channel is enabled, pin not pulsed if false
-} ServoPin_t;
+  // Convert microseconds to ticks and back (PRESCALER depends on architecture)
+  #define usToTicks(_us)      (clockCyclesPerMicrosecond() * (_us) / PRESCALER)
+  #define ticksToUs(_ticks)   (unsigned(_ticks) * (PRESCALER) / clockCyclesPerMicrosecond())
 
-typedef struct {
-  ServoPin_t Pin;
-  unsigned int ticks;
-} ServoInfo_t;
+  // Convenience macros
+  #define SERVO_INDEX_TO_TIMER(_servo_nbr)    ((timer16_Sequence_t)(_servo_nbr / SERVOS_PER_TIMER)) // returns the timer controlling this servo
+  #define SERVO_INDEX_TO_CHANNEL(_servo_nbr)  (_servo_nbr % SERVOS_PER_TIMER)                       // returns the index of the servo on this timer
+  #define SERVO_INDEX(_timer,_channel)        ((_timer*SERVOS_PER_TIMER) + _channel)                // macro to access servo index by timer and channel
+  #define SERVO(_timer,_channel)              (servo_info[SERVO_INDEX(_timer, _channel)])           // macro to access servo class by timer and channel
 
-// Global variables
-extern uint8_t ServoCount;
-extern ServoInfo_t servo_info[MAX_SERVOS];
+  // Types
+  typedef struct {
+    uint8_t nbr        :6 ;             // a pin number from 0 to 63
+    uint8_t isActive   :1 ;             // true if this channel is enabled, pin not pulsed if false
+  } ServoPin_t;
 
-// Public functions
-extern void servo_init();
-extern void initISR(timer16_Sequence_t timer);
-extern void finISR(timer16_Sequence_t timer);
+  typedef struct {
+    ServoPin_t Pin;
+    unsigned int ticks;
+  } ServoInfo_t;
 
-class Servo {
+  // Global variables
+  extern uint8_t ServoCount;
+  extern ServoInfo_t servo_info[MAX_SERVOS];
 
-  public: /** Constructor */
+  // Public functions
+  extern void initISR(timer16_Sequence_t timer);
+  extern void finISR(timer16_Sequence_t timer);
 
-    Servo();
+  class Servo {
 
-  public: /** Public Parameters */
+    public: /** Constructor */
 
-    int angle[2];
+      Servo();
 
-  private: /** Private Parameters */
+    public: /** Public Parameters */
 
-    uint8_t index;  // index into the channel data for this servo
-    int8_t  min,    // minimum is this value times 4 added to MIN_PULSE_WIDTH
-            max;    // maximum is this value times 4 added to MAX_PULSE_WIDTH
+      int angle[2];
 
-  public: /** Public Function */
+    private: /** Private Parameters */
 
-    int8_t attach(const pin_t pin);                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
-    int8_t attach(const pin_t pin, int min, int max); // as above but also sets min and max values for writes.
-    void detach();
-    void write(int value);              // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
-    void writeMicroseconds(int value);  // Write pulse width in microseconds
-    void move(int value);               // attach the servo, then move to value
-                                        // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
-                                        // if DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DEACTIVATION_DELAY, then detach
-    int read();                         // returns current pulse width as an angle between 0 and 180 degrees
-    int readMicroseconds();             // returns current pulse width in microseconds for this servo (was read_us() in first release)
-    bool attached();                    // return true if this servo is attached, otherwise false
+      uint8_t index;  // index into the channel data for this servo
+      int8_t  min,    // minimum is this value times 4 added to MIN_PULSE_WIDTH
+              max;    // maximum is this value times 4 added to MAX_PULSE_WIDTH
 
-    void print_M281();
+    public: /** Public Function */
 
-};
+      int8_t attach(const pin_t pin);                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
+      int8_t attach(const pin_t pin, int min, int max); // as above but also sets min and max values for writes.
+      void detach();
+      void write(int value);              // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
+      void writeMicroseconds(int value);  // Write pulse width in microseconds
+      void move(int value);               // attach the servo, then move to value
+                                          // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
+                                          // if DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DEACTIVATION_DELAY, then detach
+      int read();                         // returns current pulse width as an angle between 0 and 180 degrees
+      int readMicroseconds();             // returns current pulse width in microseconds for this servo (was read_us() in first release)
+      bool attached();                    // return true if this servo is attached, otherwise false
 
-extern Servo servo[NUM_SERVOS];
+      void print_M281();
 
-#endif // SERVOS
+  };
+
+#endif // SHARED_SERVOS
+
+#if HAS_SERVOS
+
+  #define MOVE_SERVO(I, P)  servo[I].move(P)
+
+  extern HAL_SERVO_LIB servo[NUM_SERVOS];
+  extern void servo_init();
+
+#endif // HAS_SERVOS

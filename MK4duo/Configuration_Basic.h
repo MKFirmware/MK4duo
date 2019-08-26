@@ -137,7 +137,7 @@
  * startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
  * build by the user have been successfully uploaded into firmware.
  */
-#define STRING_CONFIG_H_AUTHOR "(none, default config)"   // Who made the changes.
+#define STRING_CONFIG_AUTHOR "(none, default config)"   // Who made the changes.
 
 /**
  * Define this to set a unique identifier for this printer, (Used by some programs to differentiate between machines)

@@ -24,8 +24,6 @@
 
 #if HAS_SPI_LCD
 
-#include <stdarg.h>
-
 LcdUI lcdui;
 
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
@@ -152,13 +150,13 @@ millis_l next_button_update_ms;
 
   #endif
 
-  void _wrap_string(uint8_t &x, uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, bool wordwrap/*=false*/) {
-    SETCURSOR(x, y);
+  void _wrap_string(uint8_t &col, uint8_t &row, const char * const string, read_byte_cb_t cb_read_byte, bool wordwrap/*=false*/) {
+    SETCURSOR(col, row);
     if (!string) return;
 
-    auto _newline = [&x, &y]() {
-      x = 0; y++;               // move x to string len (plus space)
-      SETCURSOR(0, y);          // simulate carriage return
+    auto _newline = [&col, &row]() {
+      col = 0; row++;                 // Move col to string len (plus space)
+      SETCURSOR(0, row);              // Simulate carriage return
     };
 
     uint8_t *p = (uint8_t*)string;
@@ -170,12 +168,13 @@ millis_l next_button_update_ms;
         if (!wrd) wrd = p;            // Get word start /before/ advancing
         p = get_utf8_value_cb(p, cb_read_byte, &ch);
         const bool eol = !ch;         // zero ends the string
+        // End or a break between phrases?
         if (eol || ch == ' ' || ch == '-' || ch == '+' || ch == '.') {
           if (!c && ch == ' ') { if (wrd) wrd++; continue; } // collapse extra spaces
           // Past the right and the word is not too long?
-          if (x + c > LCD_WIDTH && x >= (LCD_WIDTH) / 4) _newline(); // should it wrap?
+          if (col + c > LCD_WIDTH && col >= (LCD_WIDTH) / 4) _newline(); // should it wrap?
           c += !eol;                  // +1 so the space will be printed
-          x += c;                     // advance x to new position
+          col += c;                   // advance col to new position
           while (c) {                 // character countdown
             --c;                      // count down to zero
             wrd = get_utf8_value_cb(wrd, cb_read_byte, &ch); // get characters again
@@ -192,8 +191,8 @@ millis_l next_button_update_ms;
         p = get_utf8_value_cb(p, cb_read_byte, &ch);
         if (!ch) break;
         lcd_put_wchar(ch);
-        x++;
-        if (x >= LCD_WIDTH) _newline();
+        col++;
+        if (col >= LCD_WIDTH) _newline();
       }
     }
   }

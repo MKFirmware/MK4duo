@@ -302,12 +302,12 @@ void Temperature::factory_parameters() {
       constexpr pin_t tacho_temp_pin[] = { TACHO0_PIN, TACHO1_PIN, TACHO2_PIN, TACHO3_PIN, TACHO4_PIN, TACHO5_PIN };
     #endif
 
-    Fan *fan;
-    fan_data_t *fdata;
+    Fan         *fan;
+    fan_data_t  *fdata;
 
     LOOP_FAN() {
-      fan   = &fans[f];
-      fdata = &fan->data;
+      fan                         = &fans[f];
+      fdata                       = &fan->data;
       fdata->ID                   = f;
       fdata->pin                  = fanCh[f];
       fdata->min_speed            = FAN_MIN_PWM;
@@ -390,7 +390,7 @@ void Temperature::spin() {
   #endif
 
   LOOP_HOTEND() {
-    Heater *act = &hotends[h];
+    Heater * const act = &hotends[h];
     // Update Current Temperature
     act->update_current_temperature();
     act->check_and_power();
@@ -398,7 +398,7 @@ void Temperature::spin() {
 
   #if HAS_BEDS
     LOOP_BED() {
-      Heater *act = &beds[h];
+      Heater * const act = &beds[h];
       // Update Current Temperature
       act->update_current_temperature();
       act->check_and_power();
@@ -407,7 +407,7 @@ void Temperature::spin() {
 
   #if HAS_CHAMBERS
     LOOP_CHAMBER() {
-      Heater *act = &chambers[h];
+      Heater * const act = &chambers[h];
       // Update Current Temperature
       act->update_current_temperature();
       act->check_and_power();
@@ -416,7 +416,7 @@ void Temperature::spin() {
 
   #if HAS_COOLERS
     LOOP_COOLER() {
-      Heater *act = &coolers[h];
+      Heater * const act = &coolers[h];
       // Update Current Temperature
       act->update_current_temperature();
       act->check_and_power();
@@ -626,7 +626,7 @@ bool Temperature::heaters_isActive() {
 
     #if HAS_HOTENDS
       LOOP_HOTEND() {
-        Heater *act = &hotends[h];
+        Heater * const act = &hotends[h];
         if (false) {}
         #if HAS_MAX31855
           else if (act->data.sensor.type == -4)
@@ -640,7 +640,7 @@ bool Temperature::heaters_isActive() {
     #endif
     #if HAS_BEDS
       LOOP_BED() {
-        Heater *act = &beds[h];
+        Heater * const act = &beds[h];
         if (false) {}
         #if HAS_MAX31855
           else if (act->data.sensor.type == -4)
@@ -654,7 +654,7 @@ bool Temperature::heaters_isActive() {
     #endif
     #if HAS_CHAMBERS
       LOOP_CHAMBER() {
-        Heater *act = &chambers[h];
+        Heater * const act = &chambers[h];
         if (false) {}
         #if HAS_MAX31855
           else if (act->data.sensor.type == -4)
@@ -788,7 +788,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-void Temperature::print_heater_state(Heater *act, const bool print_ID, const bool showRaw) {
+void Temperature::print_heater_state(Heater * const act, const bool print_ID, const bool showRaw) {
 
   SERIAL_CHR(' ');
 

@@ -159,17 +159,17 @@ void Debug::log_machine_info() {
 }
 
 void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
-  Com::printPGM(prefix);
-  Com::write('(');
-  Com::print(x);
-  Com::printPGM(PSTR(", "));
-  Com::print(y);
-  Com::printPGM(PSTR(", "));
-  Com::print(z);
-  Com::write(')');
+  SERIAL_STR(prefix);
+  SERIAL_CHR('(');
+  SERIAL_VAL(x);
+  SERIAL_MSG(", ");
+  SERIAL_VAL(y);
+  SERIAL_MSG(", ");
+  SERIAL_VAL(z);
+  SERIAL_CHR(')');
 
-  if (suffix) Com::printPGM(suffix);
-  else Com::println();
+  if (suffix) SERIAL_STR(suffix);
+  else SERIAL_EOL();
 }
 
 void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {

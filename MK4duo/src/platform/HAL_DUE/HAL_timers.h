@@ -64,10 +64,13 @@
 #define NvicPriorityUart    1
 #define NvicPrioritySystick 15
 
+// Tone for due
+#define TONE_TIMER_NUM              3  // index of timer to use for beeper tones
+#define HAL_TONE_TIMER_ISR()        void TC3_Handler()
+
 #define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
 
-#define STEPPER_TIMER               4
-#define STEPPER_TIMER_ISR()         void TC4_Handler()
+#define STEPPER_TIMER_NUM           4
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                          // 42 - stepper timer ticks per µs
 #define STEPPER_TIMER_PRESCALE      ((F_CPU / 1000000UL) / STEPPER_TIMER_TICKS_PER_US)        // 2
@@ -75,6 +78,7 @@
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 #define STEPPER_CLOCK_RATE          ((F_CPU) / 128)                                           // frequency of the clock used for stepper pulse timing
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
+#define HAL_STEPPER_TIMER_ISR()     void TC4_Handler()
 
 #define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
 #define AD_TRACKING_CYCLES          4   // 0 - 15     + 1 adc clock cycles
@@ -82,9 +86,9 @@
 
 #define ADC_ISR_EOC(channel)        (0x1u << channel)
 
-#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER)
-#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER)
-#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER)
+#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
+#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
+#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER_NUM)
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles
@@ -175,10 +179,6 @@
   #define ISR_LA_LOOP_CYCLES  0UL
 #endif
 
-// Tone for due
-#define TONE_TIMER_NUM        3  // index of timer to use for beeper tones
-#define HAL_TONE_TIMER_ISR()  void TC3_Handler()
-
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
@@ -246,11 +246,6 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint
 FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_CV;
-}
-
-FORCE_INLINE static void HAL_timer_restricts(const uint8_t timer_num, const uint16_t interval_ticks) {
-  const uint32_t mincmp = HAL_timer_get_current_count(timer_num) + interval_ticks;
-  if (HAL_timer_get_count(timer_num) < mincmp) HAL_timer_set_count(timer_num, mincmp);
 }
 
 FORCE_INLINE static void HAL_timer_isr_prologue(const uint8_t timer_num) {

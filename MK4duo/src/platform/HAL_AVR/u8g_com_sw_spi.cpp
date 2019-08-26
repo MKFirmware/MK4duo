@@ -53,7 +53,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(ARDUINO) && !defined(ARDUINO_ARCH_SAM)
+#ifdef __AVR__
 
 #include "../../../MK4duo.h"
 
@@ -187,4 +187,5 @@ uint8_t u8g_com_HAL_AVR_sw_sp_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void 
 }
 
 #endif // HAS_GRAPHICAL_LCD
-#endif // ARDUINO_ARCH_SAM
+
+#endif // __AVR__

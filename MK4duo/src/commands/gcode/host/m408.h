@@ -259,7 +259,7 @@
         SERIAL_MSG(",\"firmwareVersion\":\"");
         SERIAL_MSG(SHORT_BUILD_VERSION);
         SERIAL_MSG("\",\"firmwareDate\":\"");
-        SERIAL_MSG(STRING_DISTRIBUTION_DATE);
+        SERIAL_MSG(STRING_REVISION_DATE);
 
         SERIAL_MSG("\",\"minFeedrates\":[0,0,0");
         for (uint8_t i = 0; i < EXTRUDERS; i++) {

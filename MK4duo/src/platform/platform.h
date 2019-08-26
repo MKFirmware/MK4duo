@@ -37,6 +37,7 @@
 #include "common/host_action.h"
 #include "common/servo.h"
 #include "common/softpwm.h"
+#include "common/serial.h"
 
 #if ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins.h"

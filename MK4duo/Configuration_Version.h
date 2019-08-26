@@ -19,14 +19,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef _CONFIGURATION_VERSION_H_
-#define _CONFIGURATION_VERSION_H_
-
-#define FIRMWARE_NAME             "MK4duo"
-#define SHORT_BUILD_VERSION       "4.3.9"
-#define BUILD_VERSION             FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_DISTRIBUTION_DATE  "16-08-2019"
-#define FIRMWARE_URL              "marlinkimbra.it"
-
-#endif /* _CONFIGURATION_VERSION_H_ */
+#define FIRMWARE_NAME           "MK4duo"
+#define SHORT_BUILD_VERSION     "4.3.9"
+#define BUILD_VERSION           FIRMWARE_NAME "_" SHORT_BUILD_VERSION
+#define STRING_REVISION_DATE    "26-08-2019"
+#define FIRMWARE_URL            "marlinkimbra.it"

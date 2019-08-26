@@ -20,9 +20,11 @@
  *
  */
 
+#ifdef __AVR__
+
 #include "../../../MK4duo.h"
 
-#if ENABLED(__AVR__) && HAS_SERVOS
+#if HAS_SERVOS
 
 #include "../common/servo.h"
 
@@ -170,4 +172,6 @@ void finISR(timer16_Sequence_t timer) {
   #endif
 }
 
-#endif // ENABLED(__AVR__) && HAS_SERVOS
+#endif // HAS_SERVOS
+
+#endif // __AVR__
