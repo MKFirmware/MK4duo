@@ -89,70 +89,78 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
 
   #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
 
-    FORCE_INLINE void draw_custom_bootscreen(const u8g_pgm_uint8_t * const bmp, const bool erase=true) {
-      constexpr u8g_uint_t left = (LCD_PIXEL_WIDTH  - (CUSTOM_BOOTSCREEN_BMPWIDTH)) / 2,
-                           top = (LCD_PIXEL_HEIGHT - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2;
+    // Draws a slice of a particular frame of the custom bootscreen, without the u8g loop
+    void draw_custom_bootscreen(const uint8_t frame=0) {
+      constexpr u8g_uint_t left = u8g_uint_t((LCD_PIXEL_WIDTH  - (CUSTOM_BOOTSCREEN_BMPWIDTH)) / 2),
+                            top = u8g_uint_t((LCD_PIXEL_HEIGHT - (CUSTOM_BOOTSCREEN_BMPHEIGHT)) / 2);
       #if ENABLED(CUSTOM_BOOTSCREEN_INVERTED)
         constexpr u8g_uint_t right = left + CUSTOM_BOOTSCREEN_BMPWIDTH,
                             bottom = top + CUSTOM_BOOTSCREEN_BMPHEIGHT;
       #endif
-      u8g.firstPage();
-      do {
-        u8g.drawBitmapP(
-          left, top,
-          CEILING(CUSTOM_BOOTSCREEN_BMPWIDTH, 8), CUSTOM_BOOTSCREEN_BMPHEIGHT, bmp
-        );
-        #if ENABLED(CUSTOM_BOOTSCREEN_INVERTED)
-          if (erase) {
-            u8g.setColorIndex(1);
-            if (top) u8g.drawBox(0, 0, LCD_PIXEL_WIDTH, top);
-            if (left) u8g.drawBox(0, top, left, CUSTOM_BOOTSCREEN_BMPHEIGHT);
-            if (right < LCD_PIXEL_WIDTH) u8g.drawBox(right, top, LCD_PIXEL_WIDTH - right, CUSTOM_BOOTSCREEN_BMPHEIGHT);
-            if (bottom < LCD_PIXEL_HEIGHT) u8g.drawBox(0, bottom, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT - bottom);
-          }
+
+      const u8g_pgm_uint8_t * const bmp =
+        #if ENABLED(CUSTOM_BOOTSCREEN_ANIMATED)
+          (u8g_pgm_uint8_t*)pgm_read_ptr(&custom_bootscreen_animation[frame])
         #else
-          UNUSED(erase);
+          custom_start_bmp
         #endif
-      } while (u8g.nextPage());
+      ;
+
+      u8g.drawBitmapP(left, top, CUSTOM_BOOTSCREEN_BMP_BYTEWIDTH, CUSTOM_BOOTSCREEN_BMPHEIGHT, bmp);
+
+      #if ENABLED(CUSTOM_BOOTSCREEN_INVERTED)
+        if (frame == 0) {
+          u8g.setColorIndex(1);
+          if (top) u8g.drawBox(0, 0, LCD_PIXEL_WIDTH, top);
+          if (left) u8g.drawBox(0, top, left, CUSTOM_BOOTSCREEN_BMPHEIGHT);
+          if (right < LCD_PIXEL_WIDTH) u8g.drawBox(right, top, LCD_PIXEL_WIDTH - right, CUSTOM_BOOTSCREEN_BMPHEIGHT);
+          if (bottom < LCD_PIXEL_HEIGHT) u8g.drawBox(0, bottom, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT - bottom);
+        }
+      #endif
     }
 
-    void lcd_custom_bootscreen() {
-      #if ENABLED(ANIMATED_BOOTSCREEN)
-        LOOP_L_N(f, COUNT(custom_bootscreen_animation)) {
-          if (f) HAL::delayMilliseconds(CUSTOM_BOOTSCREEN_FRAME_TIME);
-          draw_custom_bootscreen((u8g_pgm_uint8_t*)pgm_read_ptr(&custom_bootscreen_animation[f]), f == 0);
-        }
+    // Shows the custom bootscreen, with the u8g loop, animations and delays
+    void show_custom_bootscreen() {
+      #if DISABLED(CUSTOM_BOOTSCREEN_ANIMATED)
+        constexpr millis_l d = 0;
+        constexpr uint8_t f = 0;
       #else
-        draw_custom_bootscreen(custom_start_bmp);
+        constexpr millis_l d = CUSTOM_BOOTSCREEN_FRAME_TIME;
+        LOOP_L_N(f, COUNT(custom_bootscreen_animation))
+      #endif
+        {
+          u8g.firstPage();
+          do { draw_custom_bootscreen(f); } while (u8g.nextPage());
+          if (d) safe_delay(d);
+        }
+
+      #ifndef CUSTOM_BOOTSCREEN_TIMEOUT
+        #define CUSTOM_BOOTSCREEN_TIMEOUT 2500
       #endif
       HAL::delayMilliseconds(CUSTOM_BOOTSCREEN_TIMEOUT);
     }
 
   #endif // SHOW_CUSTOM_BOOTSCREEN
 
-  void LcdUI::show_bootscreen() {
-    #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
-      lcd_custom_bootscreen();
-    #endif
-
+  // Draws a slice of the MK4duo bootscreen, without the u8g loop
+  void draw_mk4duo_bootscreen() {
     // Screen dimensions.
     //const uint8_t width = u8g.getWidth(), height = u8g.getHeight();
-    constexpr uint8_t width = LCD_PIXEL_WIDTH, height = LCD_PIXEL_HEIGHT;
+    constexpr u8g_uint_t width = LCD_PIXEL_WIDTH, height = LCD_PIXEL_HEIGHT;
 
     // Determine text space needed
     #if DISABLED(STRING_SPLASH_LINE2)
-      constexpr uint8_t text_total_height = MENU_FONT_HEIGHT,
-                        text_width_1 = uint8_t(sizeof(STRING_SPLASH_LINE1) - 1) * uint8_t(MENU_FONT_WIDTH),
-                        text_width_2 = 0;
+      constexpr u8g_uint_t  text_total_height = MENU_FONT_HEIGHT,
+                            text_width_2 = 0;
     #else
-      constexpr uint8_t text_total_height = uint8_t(MENU_FONT_HEIGHT) * 2,
-                        text_width_1 = uint8_t(sizeof(STRING_SPLASH_LINE1) - 1) * uint8_t(MENU_FONT_WIDTH),
-                        text_width_2 = uint8_t(sizeof(STRING_SPLASH_LINE2) - 1) * uint8_t(MENU_FONT_WIDTH);
+      constexpr u8g_uint_t  text_total_height = (MENU_FONT_HEIGHT) * 2,
+                            text_width_2 = u8g_uint_t((sizeof(STRING_SPLASH_LINE2) - 1) * (MENU_FONT_WIDTH));
     #endif
-    constexpr uint8_t text_max_width = MAX(text_width_1, text_width_2),
-                      rspace = width - (START_BMPWIDTH);
+    constexpr u8g_uint_t  text_width_1 = u8g_uint_t((sizeof(STRING_SPLASH_LINE1) - 1) * (MENU_FONT_WIDTH)),
+                          text_max_width = MAX(text_width_1, text_width_2),
+                          rspace = width - (START_BMPWIDTH);
 
-    int8_t offx, offy, txt_base, txt_offx_1, txt_offx_2;
+    u8g_int_t offx, offy, txt_base, txt_offx_1, txt_offx_2;
 
     // Can the text fit to the right of the bitmap?
     if (text_max_width < rspace) {
@@ -173,21 +181,47 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
     NOLESS(offx, 0);
     NOLESS(offy, 0);
 
-    u8g.firstPage();
-    do {
-      u8g.drawBitmapP(offx, offy, (START_BMPWIDTH + 7) / 8, START_BMPHEIGHT, start_bmp);
-      set_font(FONT_MENU);
+    auto draw_bootscreen_bmp = [&](const uint8_t *bitmap) {
+      u8g.drawBitmapP(offx, offy, START_BMP_BYTEWIDTH, START_BMPHEIGHT, bitmap);
+      lcdui.set_font(FONT_MENU);
       #if DISABLED(STRING_SPLASH_LINE2)
-        u8g.drawStr(txt_offx_1, txt_base, STRING_SPLASH_LINE1);
+        lcd_put_u8str_P(txt_offx_1, txt_base, PSTR(STRING_SPLASH_LINE1));
       #else
-        u8g.drawStr(txt_offx_1, txt_base - (MENU_FONT_HEIGHT), STRING_SPLASH_LINE1);
-        u8g.drawStr(txt_offx_2, txt_base, STRING_SPLASH_LINE2);
+        lcd_put_u8str_P(txt_offx_1, txt_base - (MENU_FONT_HEIGHT), PSTR(STRING_SPLASH_LINE1));
+        lcd_put_u8str_P(txt_offx_2, txt_base, PSTR(STRING_SPLASH_LINE2));
       #endif
-    } while (u8g.nextPage());
-    #if DISABLED(BOOTSCREEN_TIMEOUT)
+    };
+
+    #if ENABLED(BOOTSCREEN_MKLOGO_ANIMATED)
+      constexpr millis_t d = MK4DUO_BOOTSCREEN_FRAME_TIME;
+      LOOP_L_N(f, COUNT(mk4duo_bootscreen_animation)) {
+        u8g.firstPage();
+        do {
+          const u8g_pgm_uint8_t * const bmp = (u8g_pgm_uint8_t*)pgm_read_ptr(&mk4duo_bootscreen_animation[f]);
+          draw_bootscreen_bmp(bmp);
+        } while (u8g.nextPage());
+        if (d) HAL::delayMilliseconds(d);
+      }
+    #else
+      draw_bootscreen_bmp(start_bmp);
+    #endif
+  }
+
+  // Shows the MK4duo bootscreen, with the u8g loop and delays
+  void show_mk4duo_bootscreen() {
+    #ifndef BOOTSCREEN_TIMEOUT
       #define BOOTSCREEN_TIMEOUT 2500
     #endif
+    u8g.firstPage();
+    do { draw_mk4duo_bootscreen(); } while (u8g.nextPage());
     HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
+  }
+
+  void LcdUI::show_bootscreen() {
+    #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
+      show_custom_bootscreen();
+    #endif
+    show_mk4duo_bootscreen();
   }
 
 #endif // SHOW_BOOTSCREEN
@@ -234,16 +268,13 @@ void LcdUI::init_lcd() {
 
 // The kill screen is displayed for unrecoverable conditions
 void LcdUI::draw_kill_screen() {
-  const uint8_t h4 = u8g.getHeight() / 4;
+  const u8g_uint_t h4 = u8g.getHeight() / 4;
   u8g.firstPage();
   do {
-    set_font(FONT_MENU);
-    lcd_moveto(0, h4 * 1);
-    lcd_put_u8str(status_message);
-    lcd_moveto(0, h4 * 2);
-    lcd_put_u8str_P(PSTR(MSG_HALTED));
-    lcd_moveto(0, h4 * 3);
-    lcd_put_u8str_P(PSTR(MSG_PLEASE_RESET));
+    lcdui.set_font(FONT_MENU);
+    lcd_put_u8str(0, h4 * 1, status_message);
+    lcd_put_u8str_P(0, h4 * 2, PSTR(MSG_HALTED));
+    lcd_put_u8str_P(0, h4 * 3, PSTR(MSG_PLEASE_RESET));
   } while (u8g.nextPage());
 }
 
@@ -251,7 +282,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
 #if HAS_LCD_MENU
 
-  uint8_t row_y1, row_y2;
+  u8g_uint_t row_y1, row_y2;
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
@@ -261,8 +292,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
       if (!PAGE_CONTAINS(row_y1 + 1, row_y2 + 2)) return;
 
-      lcd_moveto(LCD_PIXEL_WIDTH - 11 * (MENU_FONT_WIDTH), row_y2);
-      lcd_put_wchar('H');
+      lcd_put_wchar(LCD_PIXEL_WIDTH - 11 * (MENU_FONT_WIDTH), row_y2, 'H');
       lcd_put_wchar((char)('0' + hotend));
       lcd_put_wchar(' ');
       lcd_put_u8str(i16tostr3(hotends[hotend].deg_current()));
@@ -308,7 +338,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
     if (mark_as_selected(row, invert)) {
 
-      uint8_t n = LCD_PIXEL_WIDTH; // pixel width of string allowed
+      u8g_uint_t n = LCD_PIXEL_WIDTH; // pixel width of string allowed
 
       if (center && !valstr) {
         int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
@@ -325,11 +355,10 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     UNUSED(pre_char);
 
     if (mark_as_selected(row, sel)) {
-      uint8_t n = (LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
+      u8g_uint_t n = (LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
       n -= lcd_put_u8str_max_P(pstr, n);
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
-      lcd_moveto(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH), row_y2);
-      lcd_put_wchar(post_char);
+      lcd_put_wchar(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH), row_y2, post_char);
       lcd_put_wchar(' ');
     }
   }
@@ -338,7 +367,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
     if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
-      uint8_t n = (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH);
+      u8g_uint_t n = (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH);
       n -= lcd_put_u8str_max_P(pstr, n);
       lcd_put_wchar(':');
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
@@ -348,15 +377,15 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
-    const uint8_t labellen = utf8_strlen_P(pstr),
-                    vallen = utf8_strlen(value);
+    lcdui.encoder_direction_normal();
 
+    const u8g_uint_t labellen = utf8_strlen_P(pstr), vallen = utf8_strlen(value);
     bool extra_row = labellen > LCD_WIDTH - 2 - vallen;
 
     #if ENABLED(USE_BIG_EDIT_FONT)
       // Use the menu font if the label won't fit on a single line
-      constexpr uint8_t lcd_edit_width = (LCD_PIXEL_WIDTH) / (EDIT_FONT_WIDTH);
-      uint8_t lcd_chr_fit, one_chr_width;
+      constexpr u8g_uint_t lcd_edit_width = (LCD_PIXEL_WIDTH) / (EDIT_FONT_WIDTH);
+      u8g_uint_t lcd_chr_fit, one_chr_width;
       if (labellen <= lcd_edit_width - 1) {
         if (labellen + vallen + 1 > lcd_edit_width) extra_row = true;
         lcd_chr_fit = lcd_edit_width + 1;
@@ -369,20 +398,17 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
         lcdui.set_font(FONT_MENU);
       }
     #else
-      constexpr uint8_t lcd_chr_fit   = LCD_WIDTH,
-                        one_chr_width = MENU_FONT_WIDTH;
+      constexpr u8g_uint_t  lcd_chr_fit   = LCD_WIDTH,
+                            one_chr_width = MENU_FONT_WIDTH;
     #endif
 
     // Center the label and value lines on the middle line
-    uint8_t baseline = extra_row ? (LCD_PIXEL_HEIGHT) / 2 - 1
-                                 : (LCD_PIXEL_HEIGHT + EDIT_FONT_ASCENT) / 2;
+    u8g_uint_t  baseline = extra_row  ? (LCD_PIXEL_HEIGHT) / 2 - 1
+                                      : (LCD_PIXEL_HEIGHT + EDIT_FONT_ASCENT) / 2;
 
     // Assume the label is alpha-numeric (with a descender)
     bool onpage = PAGE_CONTAINS(baseline - (EDIT_FONT_ASCENT - 1), baseline + EDIT_FONT_DESCENT);
-    if (onpage) {
-      lcd_moveto(0, baseline);
-      lcd_put_u8str_P(pstr);
-    }
+    if (onpage) lcd_put_u8str_P(0, baseline, pstr);
 
     // If a value is included, print a colon, then print the value right-justified
     if (value != nullptr) {
@@ -393,39 +419,37 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
         onpage = PAGE_CONTAINS(baseline - (EDIT_FONT_ASCENT - 1), baseline);
       }
       if (onpage) {
-        lcd_moveto((lcd_chr_fit - (vallen + 1)) * one_chr_width, baseline); // Right-justified, leaving padded by spaces
-        lcd_put_wchar(' '); // overwrite char if value gets shorter
+        lcd_put_wchar(((lcd_chr_fit - 1) - (vallen + 1)) * one_chr_width, baseline, ' '); // Right-justified, padded, add a leading space
         lcd_put_u8str(value);
       }
     }
   }
 
-  inline void draw_boxed_string(const uint8_t x, const uint8_t y, PGM_P const pstr, const bool inv) {
-    const uint8_t len = utf8_strlen_P(pstr), bw = len * (MENU_FONT_WIDTH),
-                  bx = x * (MENU_FONT_WIDTH), by = (y + 1) * (MENU_FONT_HEIGHT);
+  inline void draw_boxed_string(const u8g_uint_t x, const u8g_uint_t y, PGM_P const pstr, const bool inv) {
+    const u8g_uint_t  len = utf8_strlen_P(pstr), bw = len * (MENU_FONT_WIDTH),
+                       bx = x * (MENU_FONT_WIDTH), by = (y + 1) * (MENU_FONT_HEIGHT);
     if (inv) {
       u8g.setColorIndex(1);
       u8g.drawBox(bx - 1, by - (MENU_FONT_ASCENT) + 1, bw + 2, MENU_FONT_HEIGHT - 1);
       u8g.setColorIndex(0);
     }
-    lcd_moveto(bx, by);
-    lcd_put_u8str_P(pstr);
+    lcd_put_u8str_P(bx, by, pstr);
     if (inv) u8g.setColorIndex(1);
   }
 
   inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
     const uint8_t plen = utf8_strlen_P(pref), slen = suff ? utf8_strlen_P(suff) : 0;
-    uint8_t x = 0, y = 0;
+    uint8_t row = 0, col = 0;
     if (!string && plen + slen <= LCD_WIDTH) {
-      x = (LCD_WIDTH - plen - slen) / 2;
-      y = LCD_HEIGHT > 3 ? 1 : 0;
+      row = (LCD_WIDTH - plen - slen) / 2;
+      col = LCD_HEIGHT > 3 ? 1 : 0;
     }
-    wrap_string_P(x, y, pref, true);
+    wrap_string_P(row, col, pref, true);
     if (string) {
-      if (x) { x = 0; y++; } // Move to the start of the next line
-      wrap_string(x, y, string);
+      if (row) { row = 0; col++; } // Move to the start of the next line
+      wrap_string(row, col, string);
     }
-    if (suff) wrap_string_P(x, y, suff);
+    if (suff) wrap_string_P(row, col, suff);
   }
 
   void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
@@ -442,8 +466,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       if (mark_as_selected(row, sel)) {
         if (isDir) lcd_put_wchar(LCD_STR_FOLDER[0]);
         constexpr uint8_t maxlen = LCD_WIDTH - 1;
-        const uint8_t pixw = maxlen * (MENU_FONT_WIDTH);
-        uint8_t n = pixw - lcd_put_u8str_max(lcdui.scrolled_filename(theCard, maxlen, row, sel), pixw);
+        const u8g_uint_t pixw = maxlen * (MENU_FONT_WIDTH);
+        u8g_uint_t n = pixw - lcd_put_u8str_max(lcdui.scrolled_filename(theCard, maxlen, row, sel), pixw);
         while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
       }
     }
@@ -462,14 +486,14 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
     void LcdUI::ubl_plot(const uint8_t x_plot, const uint8_t y_plot) {
       // Scale the box pixels appropriately
-      uint8_t x_map_pixels = ((MAP_MAX_PIXELS_X - 4) / (GRID_MAX_POINTS_X)) * (GRID_MAX_POINTS_X),
-              y_map_pixels = ((MAP_MAX_PIXELS_Y - 4) / (GRID_MAX_POINTS_Y)) * (GRID_MAX_POINTS_Y),
+      u8g_uint_t  x_map_pixels = ((MAP_MAX_PIXELS_X - 4) / (GRID_MAX_POINTS_X)) * (GRID_MAX_POINTS_X),
+                  y_map_pixels = ((MAP_MAX_PIXELS_Y - 4) / (GRID_MAX_POINTS_Y)) * (GRID_MAX_POINTS_Y),
 
-              pixels_per_x_mesh_pnt = x_map_pixels / (GRID_MAX_POINTS_X),
-              pixels_per_y_mesh_pnt = y_map_pixels / (GRID_MAX_POINTS_Y),
+                  pixels_per_x_mesh_pnt = x_map_pixels / (GRID_MAX_POINTS_X),
+                  pixels_per_y_mesh_pnt = y_map_pixels / (GRID_MAX_POINTS_Y),
 
-              x_offset = MAP_UPPER_LEFT_CORNER_X + 1 + (MAP_MAX_PIXELS_X - x_map_pixels - 2) / 2,
-              y_offset = MAP_UPPER_LEFT_CORNER_Y + 1 + (MAP_MAX_PIXELS_Y - y_map_pixels - 2) / 2;
+                  x_offset = MAP_UPPER_LEFT_CORNER_X + 1 + (MAP_MAX_PIXELS_X - x_map_pixels - 2) / 2,
+                  y_offset = MAP_UPPER_LEFT_CORNER_Y + 1 + (MAP_MAX_PIXELS_Y - y_map_pixels - 2) / 2;
 
       // Clear the Mesh Map
 
@@ -485,8 +509,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       // Display Mesh Point Locations
 
       u8g.setColorIndex(1);
-      const uint8_t sx = x_offset + pixels_per_x_mesh_pnt / 2;
-            uint8_t  y = y_offset + pixels_per_y_mesh_pnt / 2;
+      const u8g_uint_t sx = x_offset + pixels_per_x_mesh_pnt / 2;
+            u8g_uint_t  y = y_offset + pixels_per_y_mesh_pnt / 2;
       for (uint8_t j = 0; j < GRID_MAX_POINTS_Y; j++, y += pixels_per_y_mesh_pnt)
         if (PAGE_CONTAINS(y, y))
           for (uint8_t i = 0, x = sx; i < GRID_MAX_POINTS_X; i++, x += pixels_per_x_mesh_pnt)
@@ -494,10 +518,10 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
       // Fill in the Specified Mesh Point
 
-      uint8_t inverted_y = GRID_MAX_POINTS_Y - y_plot - 1;  // The origin is typically in the lower right corner.  We need to
-                                                            // invert the Y to get it to plot in the right location.
+      const uint8_t y_plot_inv = (GRID_MAX_POINTS_Y - 1) - y_plot;  // The origin is typically in the lower right corner.  We need to
+                                                                    // invert the Y to get it to plot in the right location.
 
-      const uint8_t by = y_offset + inverted_y * pixels_per_y_mesh_pnt;
+      const u8g_uint_t by = y_offset + y_plot_inv * pixels_per_y_mesh_pnt;
       if (PAGE_CONTAINS(by, by + pixels_per_y_mesh_pnt))
         u8g.drawBox(
           x_offset + x_plot * pixels_per_x_mesh_pnt, by,
@@ -509,26 +533,22 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       // Show X and Y positions at top of screen
       u8g.setColorIndex(1);
       if (PAGE_UNDER(7)) {
-        lcd_moveto(5, 7);
-        lcd_put_u8str("X:");
-        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x_plot))));
-        lcd_moveto(74, 7);
-        lcd_put_u8str("Y:");
-        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(y_plot))));
+        lcd_put_u8str(5, 7, "X:");
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]))));
+        lcd_put_u8str(74, 7, "Y:");
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]))));
       }
 
       // Print plot position
       if (PAGE_CONTAINS(LCD_PIXEL_HEIGHT - (INFO_FONT_HEIGHT - 1), LCD_PIXEL_HEIGHT)) {
-        lcd_moveto(5, LCD_PIXEL_HEIGHT);
-        lcd_put_wchar('(');
+        lcd_put_wchar(5, LCD_PIXEL_HEIGHT, '(');
         u8g.print(x_plot);
         lcd_put_wchar(',');
         u8g.print(y_plot);
         lcd_put_wchar(')');
 
         // Show the location value
-        lcd_moveto(74, LCD_PIXEL_HEIGHT);
-        lcd_put_u8str("Z:");
+        lcd_put_u8str(74, LCD_PIXEL_HEIGHT, "Z:");
         if (!isnan(ubl.z_values[x_plot][y_plot]))
           lcd_put_u8str(ftostr43sign(ubl.z_values[x_plot][y_plot]));
         else

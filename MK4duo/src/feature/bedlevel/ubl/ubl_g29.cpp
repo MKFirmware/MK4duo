@@ -231,7 +231,7 @@
    *   T     Topology   Display the Mesh Map Topology.
    *                    'T' can be used alone (e.g., G29 T) or in combination with most of the other commands.
    *                    This option works with all Phase commands (e.g., G29 P4 R 5 T X 50 Y100 C -.1 O)
-   *                    This parameter can also specify a Map Type. T0 (the default) is user-readable. T1 can
+   *                    This parameter can also specify a Map Type. T0 (the default) is user-readable. T1
    *                    is suitable to paste into a spreadsheet for a 3D graph of the mesh.
    *
    *   U     Unlevel    Perform a probe of the outer perimeter to assist in physically leveling unlevel beds.
@@ -292,6 +292,7 @@
 
     // Check for commands that require the printer to be homed
     if (may_move) {
+      planner.synchronize();
       if (mechanics.axis_unhomed_error()) mechanics.home();
       #if ENABLED(DUAL_X_CARRIAGE)
         if (tools.extruder.active != 0) tools.change(0);
@@ -309,7 +310,7 @@
       else {
         while (g29_repetition_cnt--) {
           if (cnt > 20) { cnt = 0; printer.idle(); }
-          const mesh_index_pair location = find_closest_mesh_point_of_type(REAL, g29_x_pos, g29_y_pos, USE_NOZZLE_AS_REFERENCE, NULL);
+          const mesh_index_pair location = find_closest_mesh_point_of_type(REAL, g29_x_pos, g29_y_pos, USE_NOZZLE_AS_REFERENCE, nullptr);
           if (location.x_index < 0) {
             // No more REACHABLE mesh points to invalidate, so we ASSUME the user
             // meant to invalidate the ENTIRE mesh, which cannot be done with
@@ -375,7 +376,6 @@
           restore_ubl_active_state_and_leave();
         }
         else { // grid_size == 0 : A 3-Point leveling has been requested
-
           save_ubl_active_state_and_disable();
           tilt_mesh_based_on_probed_grid(true /* true says to do 3-Point leveling */ );
           restore_ubl_active_state_and_leave();
@@ -413,8 +413,9 @@
               SERIAL_EM("Mesh invalidated. Probing mesh.");
             }
             if (g29_verbose_level > 1) {
-              SERIAL_MV("Probing Mesh Points Closest to (", g29_x_pos);
-              SERIAL_MV(",", g29_y_pos);
+              SERIAL_MV("Probing around (", g29_x_pos);
+              SERIAL_CHR(',');
+              SERIAL_VAL(g29_y_pos);
               SERIAL_EM(").");
             }
             probe_entire_mesh(g29_x_pos + probe.data.offset[X_AXIS], g29_y_pos + probe.data.offset[Y_AXIS],
@@ -494,7 +495,7 @@
             }
             else {
               while (g29_repetition_cnt--) {  // this only populates reachable mesh points near
-                const mesh_index_pair location = find_closest_mesh_point_of_type(INVALID, g29_x_pos, g29_y_pos, USE_NOZZLE_AS_REFERENCE, NULL);
+                const mesh_index_pair location = find_closest_mesh_point_of_type(INVALID, g29_x_pos, g29_y_pos, USE_NOZZLE_AS_REFERENCE, nullptr);
                 if (location.x_index < 0) {
                   // No more REACHABLE INVALID mesh points to populate, so we ASSUME
                   // user meant to populate ALL INVALID mesh points to value
@@ -645,6 +646,8 @@
         planner.synchronize();
         commands.process_now_P(PSTR(Z_PROBE_END_SCRIPT));
       }
+    #else
+      UNUSED(probe_deployed);
     #endif
 
     return;
@@ -672,8 +675,7 @@
           sum_of_diff_squared += sq(z_values[x][y] - mean);
 
     SERIAL_EMV("# of samples: ", n);
-    SERIAL_MV("Mean Mesh Height: ", mean, 6);
-    SERIAL_EOL();
+    SERIAL_EMV("Mean Mesh Height: ", mean, 6);
 
     const float sigma = SQRT(sum_of_diff_squared / (n + 1));
     SERIAL_EMV("Standard Deviation: ", sigma, 6);
@@ -707,10 +709,18 @@
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
       DEPLOY_PROBE();
 
-      uint16_t count = GRID_MAX_POINTS;
+      uint8_t count = GRID_MAX_POINTS;
 
       do {
         if (do_ubl_mesh_map) display_map(g29_map_type);
+
+        const int current = (GRID_MAX_POINTS) - count + 1;
+        SERIAL_MV("\nProbing mesh point ", current);
+        SERIAL_MV("/", int(GRID_MAX_POINTS));
+        SERIAL_EM(".\n");
+        #if HAS_LCD
+          lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), current, int(GRID_MAX_POINTS));
+        #endif
 
         #if HAS_LCD_MENU
           if (lcdui.button_pressed()) {
@@ -720,15 +730,14 @@
             lcdui.wait_for_release();
             lcdui.quick_feedback();
             lcdui.release();
-            restore_ubl_active_state_and_leave();
-            return;
+            return restore_ubl_active_state_and_leave();
           }
         #endif
 
         if (do_furthest)
           location = find_furthest_invalid_mesh_point();
         else
-          location = find_closest_mesh_point_of_type(INVALID, rx, ry, USE_PROBE_AS_REFERENCE, NULL);
+          location = find_closest_mesh_point_of_type(INVALID, rx, ry, USE_PROBE_AS_REFERENCE, nullptr);
 
         if (location.x_index >= 0) {    // mesh point found and is reachable by probe
           const float rawx = mesh_index_to_xpos(location.x_index),
@@ -760,7 +769,7 @@
 
     typedef void (*clickFunc_t)();
 
-    bool click_and_hold(const clickFunc_t func=NULL) {
+    bool click_and_hold(const clickFunc_t func=nullptr) {
       if (lcdui.button_pressed()) {
         lcdui.quick_feedback(false);                // Preserve button state for click-and-hold
         millis_s nxt_ms = millis();
@@ -878,8 +887,7 @@
           SERIAL_EM("\nMesh only partially populated.");
           mechanics.do_blocking_move_to_z(Z_PROBE_DEPLOY_HEIGHT);
           lcdui.release();
-          restore_ubl_active_state_and_leave();
-          return;
+          return restore_ubl_active_state_and_leave();
         }
 
         z_values[location.x_index][location.y_index] = mechanics.current_position[Z_AXIS] - thick;
@@ -971,14 +979,10 @@
 
         lcd_mesh_edit_setup(new_z);
 
-        float old_z;
         do {
           new_z = lcd_mesh_edit();
           #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
-            if (old_z != new_z) {
-              mechanics.do_blocking_move_to_z(h_offset + new_z);            // Move the nozzle as the point is edited
-              old_z = new_z;
-            }
+            mechanics.do_blocking_move_to_z(h_offset + new_z);              // Move the nozzle as the point is edited
           #endif
           printer.idle();
           Com::serialFlush();                                               // Prevent host M105 buffer overrun.
@@ -1127,6 +1131,8 @@
     return UBL_OK;
   }
 
+  static uint8_t ubl_state_at_invocation = 0;
+
   #if ENABLED(UBL_DEVEL_DEBUGGING)
     static uint8_t ubl_state_recursion_chk = 0;
   #endif
@@ -1142,6 +1148,7 @@
         return;
       }
     #endif
+    ubl_state_at_invocation = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
   }
 
@@ -1343,6 +1350,11 @@
       incremental_LSF_reset(&lsf_results);
 
       if (do_3_pt_leveling) {
+        SERIAL_EM("Tilting mesh (1/3)");
+        #if HAS_LCD
+          lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 1/3"));
+        #endif
+
         measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
@@ -1357,6 +1369,11 @@
         }
 
         if (!abort_flag) {
+          SERIAL_EM("Tilting mesh (2/3)");
+          #if HAS_LCD
+            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 2/3"));
+          #endif
+
           measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
           //z2 = measured_z;
           if (isnan(measured_z))
@@ -1372,6 +1389,11 @@
         }
 
         if (!abort_flag) {
+          SERIAL_EM("Tilting mesh (3/3)");
+          #if HAS_LCD
+            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 3/3"));
+          #endif
+
           measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
@@ -1387,21 +1409,33 @@
         }
 
         STOW_PROBE();
+        #if Z_PROBE_AFTER_PROBING > 0
+          probe.move_z_after_probing();
+        #endif
 
         if (abort_flag) {
-          SERIAL_MSG("?Error probing point.  Aborting operation.\n");
+          SERIAL_EM("?Error probing point. Aborting operation.);
           return;
         }
       }
       else { // !do_3_pt_leveling
 
         bool zig_zag = false;
+
+        uint16_t total_points = g29_grid_size * g29_grid_size, current = 1;
+
         for (uint8_t ix = 0; ix < g29_grid_size; ix++) {
           const float rx = float(x_min) + ix * dx;
           for (int8_t iy = 0; iy < g29_grid_size; iy++) {
             const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
 
             if (!abort_flag) {
+              SERIAL_MV("Tilting mesh point ", current);
+              SERIAL_EMV("/", total_points);
+              #if HAS_LCD
+                lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " %i/%i"), current, total_points);
+              #endif
+
               measured_z = probe.check_pt(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
 
               abort_flag = isnan(measured_z);
@@ -1436,12 +1470,17 @@
               }
               incremental_LSF(&lsf_results, rx, ry, measured_z);
             }
+
+            current++;
           }
 
           zig_zag ^= true;
         }
       }
       STOW_PROBE();
+      #if Z_PROBE_AFTER_PROBING > 0
+        probe.move_z_after_probing();
+      #endif
 
       if (abort_flag || finish_incremental_LSF(&lsf_results)) {
         SERIAL_MSG("Could not complete LSF!");
@@ -1643,7 +1682,7 @@
         SERIAL_MSG(" Loaded.");
       }
       SERIAL_EOL();
-      HAL::delayMilliseconds(50);
+      SERIAL_DLY(50);
 
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         SERIAL_EMV("bedlevel.z_fade_height : ", bedlevel.z_fade_height, 4);
@@ -1655,24 +1694,20 @@
         SERIAL_EMV("zprobe_zoffset: ", probe.data.offset[Z_AXIS], 7);
       #endif
 
-      SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X);
-      SERIAL_EMV("MESH_MIN_Y  " STRINGIFY(MESH_MIN_Y) "=", MESH_MIN_Y);
-      HAL::delayMilliseconds(50);
-      SERIAL_EMV("MESH_MAX_X  " STRINGIFY(MESH_MAX_X) "=", MESH_MAX_X);
-      SERIAL_EMV("MESH_MAX_Y  " STRINGIFY(MESH_MAX_Y) "=", MESH_MAX_Y);
-      HAL::delayMilliseconds(50);
-      SERIAL_EMV("GRID_MAX_POINTS_X  ", GRID_MAX_POINTS_X);
-      SERIAL_EMV("GRID_MAX_POINTS_Y  ", GRID_MAX_POINTS_Y);
-      HAL::delayMilliseconds(50);
+      SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X); SERIAL_DLY(50);
+      SERIAL_EMV("MESH_MIN_Y  " STRINGIFY(MESH_MIN_Y) "=", MESH_MIN_Y); SERIAL_DLY(50);
+      SERIAL_EMV("MESH_MAX_X  " STRINGIFY(MESH_MAX_X) "=", MESH_MAX_X); SERIAL_DLY(50);
+      SERIAL_EMV("MESH_MAX_Y  " STRINGIFY(MESH_MAX_Y) "=", MESH_MAX_Y); SERIAL_DLY(50);
+      SERIAL_EMV("GRID_MAX_POINTS_X  ", GRID_MAX_POINTS_X);             SERIAL_DLY(50);
+      SERIAL_EMV("GRID_MAX_POINTS_Y  ", GRID_MAX_POINTS_Y);             SERIAL_DLY(50);
       SERIAL_EMV("MESH_X_DIST  ", MESH_X_DIST);
-      SERIAL_EMV("MESH_Y_DIST  ", MESH_Y_DIST);
-      HAL::delayMilliseconds(50);
+      SERIAL_EMV("MESH_Y_DIST  ", MESH_Y_DIST);                         SERIAL_DLY(50);
 
       SERIAL_MSG("X-Axis Mesh Points at: ");
       for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
         SERIAL_VAL(LOGICAL_X_POSITION(mesh_index_to_xpos(i)), 3);
         SERIAL_MSG("  ");
-        HAL::delayMilliseconds(25);
+        SERIAL_DLY(25);
       }
       SERIAL_EOL();
 
@@ -1680,7 +1715,7 @@
       for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; i++) {
         SERIAL_VAL(LOGICAL_Y_POSITION(mesh_index_to_ypos(i)), 3);
         SERIAL_MSG("  ");
-        HAL::delayMilliseconds(25);
+        SERIAL_DLY(25);
       }
       SERIAL_EOL();
 
@@ -1689,31 +1724,31 @@
         SERIAL_EMV("  state:", READ(KILL_PIN));
       #endif
       SERIAL_EOL();
-      HAL::delayMilliseconds(50);
+      SERIAL_DLY(50);
 
       #if ENABLED(UBL_DEVEL_DEBUGGING)
         SERIAL_EMV("ubl_state_at_invocation :", bedlevel.flag.leveling_previous);
         SERIAL_EOL();
         SERIAL_EMV("ubl_state_recursion_chk :", ubl_state_recursion_chk);
         SERIAL_EOL();
-        HAL::delayMilliseconds(50);
+        SERIAL_DLY(50);
 
         SERIAL_MV("Meshes go from ", hex_address((void*)eeprom.meshes_start_index()));
         SERIAL_EMV(" to ", hex_address((void*)eeprom.meshes_end_index()));
-        HAL::delayMilliseconds(50);
+        SERIAL_DLY(50);
 
         SERIAL_EMV("sizeof(ubl) :  ", (int)sizeof(ubl));
         SERIAL_EOL();
         SERIAL_EMV("z_value[][] size: ", (int)sizeof(z_values));
         SERIAL_EOL();
-        HAL::delayMilliseconds(25);
+        SERIAL_DLY(25);
 
         SERIAL_EMV("EEPROM free for UBL: ", hex_address((void*)(eeprom.meshes_end_index() - eeprom.meshes_start_index())));
-        HAL::delayMilliseconds(50);
+        SERIAL_DLY(50);
 
         SERIAL_MV("EEPROM can hold ", eeprom.calc_num_meshes());
         SERIAL_EM(" meshes.\n");
-        HAL::delayMilliseconds(25);
+        SERIAL_DLY(25);
       #endif // UBL_DEVEL_DEBUGGING
 
       if (!sanity_check()) {

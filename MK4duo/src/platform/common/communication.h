@@ -21,12 +21,6 @@
  */
 #pragma once
 
-#define DEC 10
-#define HEX 16
-#define OCT  8
-#define BIN  2
-#define BYTE 0
-
 FSTRINGVAR(START);              // start for host
 FSTRINGVAR(OK);                 // ok answer for host
 FSTRINGVAR(OKSPACE);            // ok space answer for host
@@ -66,24 +60,6 @@ class Com {
     // Functions for serial printing from PROGMEM. (Saves loads of SRAM.)
     static void printPGM(PGM_P);
 
-    static void write(const uint8_t c);
-    static void write(const char* str);
-    static void write(const uint8_t* buffer, size_t size);
-    static void print(const String& s);
-    static void print(const char* str);
-
-    static void print(char, int=BYTE);
-    static void print(unsigned char, int=DEC);
-    static void print(int, int=DEC);
-    static void print(unsigned int, int=DEC);
-    static void print(long, int=DEC);
-    static void print(unsigned long, int=DEC);
-    static void print(float, int=2);
-    static void print(double, int=2);
-
-    static void println(void);
-    operator bool() { return true; }
-
     static void print_spaces(uint8_t count);
 
     static void print_logic(PGM_P const label, const bool logic);
@@ -92,22 +68,29 @@ class Com {
     // Capabilities string
     static void host_capabilities(PGM_P pstr);
 
-  private: /** Private Function */
-
-    static void printNumber(unsigned long, const uint8_t);
-    static void printFloat(double, uint8_t);
+    // A delay to provide brittle hosts time to receive bytes
+    static void serial_delay(const millis_l ms);
 
 };
 
 // MACRO FOR SERIAL
+#if NUM_SERIAL > 1
+  #define SERIAL_OUT(WHAT,V...) do{ \
+    if (serial_port_index == -1 || serial_port_index == 0) (void)MKSERIAL1.WHAT(V); \
+    if (serial_port_index == -1 || serial_port_index == 1) (void)MKSERIAL2.WHAT(V); \
+  }while(0)
+#else
+  #define SERIAL_OUT(WHAT,V...)     (void)MKSERIAL1.WHAT(V)
+#endif
+
 #define SERIAL_PORT(p)              Com::serial_port_index = p
 
 #define SERIAL_STR(str)             Com::printPGM(str)
 #define SERIAL_MSG(msg)             Com::printPGM(PSTR(msg))
-#define SERIAL_TXT(txt)             Com::print(txt)
-#define SERIAL_VAL(val, ...)        Com::print(val, ## __VA_ARGS__)
-#define SERIAL_CHR(c)               Com::write(c)
-#define SERIAL_EOL()                Com::println()
+#define SERIAL_TXT(txt)             SERIAL_OUT(print,txt)
+#define SERIAL_VAL(val...)          SERIAL_OUT(print,val)
+#define SERIAL_CHR(c)               SERIAL_OUT(write,c)
+#define SERIAL_EOL()                SERIAL_OUT(println)
 
 #define SERIAL_SP(C)                Com::print_spaces(C)
 #define SERIAL_LOGIC(msg,val)       Com::print_logic(PSTR(msg), val)
@@ -143,3 +126,6 @@ class Com {
 
 // HOST Capabilities string
 #define SERIAL_CAP(msg)             Com::host_capabilities(PSTR(msg))
+
+// Serial overrun protection
+#define SERIAL_DLY(ms)              Com::serial_delay(ms)

@@ -41,7 +41,7 @@
  */
 inline void gcode_M595(void) {
 
-  Heater *act = commands.get_target_heater();
+  Heater * const act = commands.get_target_heater();
 
   if (!act) return;
 

@@ -47,18 +47,6 @@
 
 #include "nextion_gfx.h"
 
-#if NEXTION_SERIAL > 0
-  #if NEXTION_SERIAL == 1
-    #define nexSerial Serial1
-  #elif NEXTION_SERIAL == 2
-    #define nexSerial Serial2
-  #elif NEXTION_SERIAL == 3
-    #define nexSerial Serial3
-  #endif
-#else
-  #define nexSerial Serial1
-#endif
-
 #define NEX_RET_CMD_FINISHED                (0x01)
 #define NEX_RET_EVENT_LAUNCHED              (0x88)
 #define NEX_RET_EVENT_UPGRADED              (0x89)
@@ -84,7 +72,6 @@
 
 #define NEXTION_BUFFER_SIZE                  50
 #define LCD_UPDATE_INTERVAL                 300U
-#define NEX_TIMEOUT                         100U
 
 #define SETCURSOR(col, row)                 nexlcd.moveto(col, row)
 #define LCDPRINT(p)                         nexlcd.put_str_P(p)

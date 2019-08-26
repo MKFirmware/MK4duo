@@ -50,14 +50,12 @@
  * ARDUINO_ARCH_SAM
  */
 
-#include "../../../MK4duo.h"
-
-#if ENABLED(ARDUINO_ARCH_SAM)
+#ifdef ARDUINO_ARCH_SAM
 
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
-
+#include "../../../MK4duo.h"
 #include "HAL_timers.h"
 
 // --------------------------------------------------------------------------
@@ -176,18 +174,6 @@ void HAL_calc_pulse_cycle() {
   HAL_frequency_limit[5] = ((F_CPU) / HAL_isr_execuiton_cycle(32))  >> 5;
   HAL_frequency_limit[6] = ((F_CPU) / HAL_isr_execuiton_cycle(64))  >> 6;
   HAL_frequency_limit[7] = ((F_CPU) / HAL_isr_execuiton_cycle(128)) >> 7;
-}
-
-/**
- * Interrupt Service Routines
- */
-STEPPER_TIMER_ISR() {
-
-  HAL_timer_isr_prologue(STEPPER_TIMER);
-
-  // Call the Step
-  stepper.Step();
-
 }
 
 #endif // ARDUINO_ARCH_SAM

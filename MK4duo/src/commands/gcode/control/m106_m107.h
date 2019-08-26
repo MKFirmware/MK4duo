@@ -52,7 +52,7 @@
 
     const uint8_t new_speed = parser.byteval('S', 255);
 
-    Fan *fan = &fans[f];
+    Fan * const fan = &fans[f];
 
     if (parser.seen('U')) {
       // Put off the fan

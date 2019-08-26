@@ -95,7 +95,7 @@ typedef struct {
     void interrupt() {
       ++InterruptCount;
       if (InterruptCount == MaxInterruptCount) {
-        const uint32_t now = HAL_timer_get_current_count(STEPPER_TIMER);
+        const uint32_t now = HAL_timer_get_current_count(STEPPER_TIMER_NUM);
         Interval = now - LastResetTime;
         LastResetTime = now;
         InterruptCount = 0;
@@ -103,7 +103,7 @@ typedef struct {
     }
 
     uint32_t GetRPM() {
-      return (Interval != 0 && HAL_timer_get_current_count(STEPPER_TIMER) - LastResetTime < 3 * STEPPER_CLOCK_RATE)
+      return (Interval != 0 && HAL_timer_get_current_count(STEPPER_TIMER_NUM) - LastResetTime < 3 * STEPPER_CLOCK_RATE)
         ? (STEPPER_CLOCK_RATE * MaxInterruptCount) / (2 * Interval)
         : 0;
     }

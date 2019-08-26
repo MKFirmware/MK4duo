@@ -101,15 +101,26 @@ typedef uint16_t  ptr_int_t;
 #include "watchdog.h"
 #include "speed_lookuptable.h"
 
-// Serial
-//#define EXTERNALSERIAL  // Force using arduino serial
-#ifndef EXTERNALSERIAL
-  #include "HardwareSerial.h"
-  #define MKSERIAL1 MKSerial
-#else
-  #define MKSERIAL1 Serial
+// Serial ports
+#define HardwareSerial_h // Hack to prevent HardwareSerial.h header inclusion
+#include "HardwareSerial.h"
+
+#if !WITHIN(SERIAL_PORT_1, -1, 3)
+  #error "SERIAL_PORT_1 must be from -1 to 3"
 #endif
-#define NUM_SERIAL 1
+#define MKSERIAL1 MKSerial1
+
+#if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
+  #if !WITHIN(SERIAL_PORT_2, -1, 3)
+    #error "SERIAL_PORT_2 must be from -1 to 3"
+  #elif SERIAL_PORT_2 == SERIAL_PORT_1
+    #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
+  #endif
+  #define NUM_SERIAL 2
+  #define MKSERIAL2 MKSerial2
+#else
+  #define NUM_SERIAL 1
+#endif
 
 // --------------------------------------------------------------------------
 // Defines
@@ -183,12 +194,12 @@ typedef uint16_t  ptr_int_t;
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 256.0) // 976 Hz
 
-#define STEPPER_TIMER               1
+#define STEPPER_TIMER_NUM           1
 #define STEPPER_TCCR                TCCR1A
 #define STEPPER_TIMSK               TIMSK1
 #define STEPPER_OCIE                OCIE1A
 
-#define TEMP_TIMER                  0
+#define TEMP_TIMER_NUM              0
 #define TEMP_OCR                    OCR0B
 #define TEMP_TCCR                   TCCR0A
 #define TEMP_TIMSK                  TIMSK0
@@ -210,7 +221,6 @@ typedef uint16_t  ptr_int_t;
 #define HAL_timer_set_count(timer, count)           (_CAT(TIMER_OCR_, timer) = count)
 #define HAL_timer_get_count(timer)                  _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)          _CAT(TIMER_COUNTER_, timer)
-#define HAL_timer_restricts(timer, interval_ticks)  NOLESS(_CAT(TIMER_OCR_, timer), _CAT(TIMER_COUNTER_, timer) + interval_ticks)
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles

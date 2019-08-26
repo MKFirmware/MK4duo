@@ -57,7 +57,7 @@ void Com::setBaudrate() {
   #endif
 
   printPGM(START);
-  println();
+  SERIAL_EOL();
 }
 
 void Com::serialFlush() {
@@ -105,90 +105,6 @@ void Com::printPGM(PGM_P str) {
   }
 }
 
-void Com::write(const uint8_t c) {
-  if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(c);
-  #if NUM_SERIAL > 1
-    if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(c);
-  #endif
-}
-
-void Com::write(const char* str) {
-  while (*str) {
-    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(*str);
-    #if NUM_SERIAL > 1
-    if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(*str);
-    #endif
-    str++;
-  }
-}
-
-void Com::write(const uint8_t* buffer, size_t size) {
-  while (size--) {
-    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(*buffer);
-    #if NUM_SERIAL > 1
-      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(*buffer);
-    #endif
-    buffer++;
-  }
-}
-
-void Com::print(const String& s) {
-  for (int i = 0; i < (int)s.length(); i++) {
-    if (serial_port_index == -1 || serial_port_index == 0) MKSERIAL1.write(s[i]);
-    #if NUM_SERIAL > 1
-      if (serial_port_index == -1 || serial_port_index == 1) MKSERIAL2.write(s[i]);
-    #endif
-  }
-}
-
-void Com::print(const char* str) {
-  write(str);
-}
-
-void Com::print(char c, int base) {
-  print((long)c, base);
-}
-
-void Com::print(unsigned char b, int base) {
-  print((unsigned long)b, base);
-}
-
-void Com::print(int n, int base) {
-  print((long)n, base);
-}
-
-void Com::print(unsigned int n, int base) {
-  print((unsigned long)n, base);
-}
-
-void Com::print(long n, int base) {
-  if (base == 0) write(n);
-  else if (base == 10) {
-    if (n < 0) { print('-'); n = -n; }
-    printNumber(n, 10);
-  }
-  else
-    printNumber(n, base);
-}
-
-void Com::print(unsigned long n, int base) {
-  if (base == 0) write(n);
-  else printNumber(n, base);
-}
-
-void Com::print(float n, int digits) {
-  printFloat(n, digits);
-}
-
-void Com::print(double n, int digits) {
-  printFloat(n, digits);
-}
-
-void Com::println(void) {
-  print('\r');
-  print('\n');
-}
-
 void Com::print_spaces(uint8_t count) {
   count *= (PROPORTIONAL_FONT_RATIO);
   while (count--) {
@@ -202,7 +118,7 @@ void Com::print_spaces(uint8_t count) {
 void Com::print_logic(PGM_P const label, const bool logic) {
   if (label) {
     printPGM(label);
-    write(':');
+    SERIAL_CHR(':');
   }
   printPGM(logic ? PSTR("true") : PSTR("false"));
 }
@@ -210,7 +126,7 @@ void Com::print_logic(PGM_P const label, const bool logic) {
 void Com::print_onoff(PGM_P const label, const bool onoff) {
   if (label) {
     printPGM(label);
-    write(':');
+    SERIAL_CHR(':');
   }
   printPGM(onoff ? PSTR("on") : PSTR("off"));
 }
@@ -219,51 +135,13 @@ void Com::print_onoff(PGM_P const label, const bool onoff) {
 void Com::host_capabilities(PGM_P pstr) {
   printPGM(CAP);
   printPGM(pstr);
-  println();
+  SERIAL_EOL();
 }
 
-// Private function
-void Com::printNumber(unsigned long n, uint8_t base) {
-  if (n) {
-    unsigned char buf[8 * sizeof(long)]; // Enough space for base 2
-    int8_t i = 0;
-    while (n) {
-      buf[i++] = n % base;
-      n /= base;
-    }
-    while (i--)
-      print((char)(buf[i] + (buf[i] < 10 ? '0' : 'A' - 10)));
-  }
-  else
-    print('0');
-}
-
-void Com::printFloat(double number, uint8_t digits) {
-  // Handle negative numbers
-  if (number < 0.0) {
-    print('-');
-    number = -number;
-  }
-
-  // Round correctly so that print(1.999, 2) prints as "2.00"
-  double rounding = 0.5;
-  for (uint8_t i = 0; i < digits; ++i) rounding *= 0.1;
-  number += rounding;
-
-  // Extract the integer part of the number and print it
-  unsigned long int_part = (unsigned long)number;
-  double remainder = number - (double)int_part;
-  print(int_part);
-
-  // Print the decimal point, but only if there are digits beyond
-  if (digits) {
-    print('.');
-    // Extract digits from the remainder one at a time
-    while (digits--) {
-      remainder *= 10.0;
-      int toPrint = int(remainder);
-      print(toPrint);
-      remainder -= toPrint;
-    }
-  }
+void Com::serial_delay(const millis_l ms) {
+  #if ENABLED(SERIAL_OVERRUN_PROTECTION)
+    HAL::delayMilliseconds(ms);
+  #else
+    UNUSED(ms);
+  #endif
 }

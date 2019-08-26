@@ -383,10 +383,11 @@
  *****************************************************************************************/
 
 #define SHOW_BOOTSCREEN
-#define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION       // will be shown during bootup in line 1
-#define STRING_SPLASH_LINE2 STRING_DISTRIBUTION_DATE  // will be shown during bootup in line 2
+#define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION   // Will be shown during bootup in line 1
+#define STRING_SPLASH_LINE2 STRING_REVISION_DATE  // Will be shown during bootup in line 2
 #define BOOTSCREEN_TIMEOUT  2500
-#define BOOTSCREEN_MKLOGO_HIGH                        // Show a hight MK4duo logo on the Boot Screen (disable it saving 399 bytes of flash)
+#define BOOTSCREEN_MKLOGO_HIGH                    // Show a hight MK4duo logo on the Boot Screen (disable it saving 399 bytes of flash)
+//#define BOOTSCREEN_MKLOGO_ANIMATED              // Animated MK4duo logo. Costs ~‭3260 (or ~940) bytes of PROGMEM.
 
 //
 // *** VENDORS PLEASE READ ***

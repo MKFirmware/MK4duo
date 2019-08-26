@@ -153,6 +153,12 @@
 #if ENABLED(SERIAL_XON_XOFF) && RX_BUFFER_SIZE < 1024
   #error "DEPENDENCY ERROR: For SERIAL_XON_XOFF set RX_BUFFER_SIZE to 1024 or more."
 #endif
+#if !IS_POWER_OF_2(RX_BUFFER_SIZE) || RX_BUFFER_SIZE < 2
+  #error "RX_BUFFER_SIZE must be a power of 2 greater than 1."
+#endif
+#if TX_BUFFER_SIZE && (TX_BUFFER_SIZE < 2 || TX_BUFFER_SIZE > 256 || !IS_POWER_OF_2(TX_BUFFER_SIZE))
+  #error "TX_BUFFER_SIZE must be 0 or a power of 2 greater than 1."
+#endif
 #if DISABLED(SDSUPPORT) && ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
   #error "DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_MAX_RX_QUEUED."
 #endif

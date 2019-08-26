@@ -28,14 +28,13 @@
 
 #if HAS_LCD_MENU && ENABLED(AUTO_BED_LEVELING_UBL)
 
-static int16_t ubl_storage_slot = 0,
-               custom_hotend_temp = 190,
-               side_points = 3,
-               ubl_fillin_amount = 5,
-               ubl_height_amount = 1,
-               n_edit_pts = 1,
-               x_plot = 0,
-               y_plot = 0;
+static int16_t  ubl_storage_slot = 0,
+                custom_hotend_temp = 190,
+                side_points = 3,
+                ubl_fillin_amount = 5,
+                ubl_height_amount = 1;
+
+static uint8_t  n_edit_pts = 1, x_plot = 0, y_plot = 0;
 
 #if HAS_BEDS
   static int16_t custom_bed_temp = 50;
@@ -415,20 +414,32 @@ void _lcd_ubl_map_homing() {
  * UBL LCD "radar" map point editing
  */
 void _lcd_ubl_map_lcd_edit_cmd() {
-  char UBL_LCD_GCODE[50], str[10], str2[10];
-  dtostrf(ubl.mesh_index_to_xpos(x_plot), 0, 2, str);
-  dtostrf(ubl.mesh_index_to_ypos(y_plot), 0, 2, str2);
-  snprintf_P(UBL_LCD_GCODE, sizeof(UBL_LCD_GCODE), PSTR("G29 P4 X%s Y%s R%i"), str, str2, n_edit_pts);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  char ubl_lcd_gcode[50], str[10], str2[10];
+  dtostrf(pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]), 0, 2, str);
+  dtostrf(pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]), 0, 2, str2);
+  snprintf_P(ubl_lcd_gcode, sizeof(ubl_lcd_gcode), PSTR("G29 P4 X%s Y%s R%i"), str, str2, int(n_edit_pts));
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
  * UBL LCD Map Movement
  */
 void ubl_map_move_to_xy() {
-  mechanics.current_position[X_AXIS] = ubl.mesh_index_to_xpos(x_plot);
-  mechanics.current_position[Y_AXIS] = ubl.mesh_index_to_ypos(y_plot);
-  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(XY_PROBE_SPEED), tools.extruder.active);
+  REMEMBER(fr, mechanics.feedrate_mm_s, MMM_TO_MMS(XY_PROBE_SPEED));
+
+  mechanics.set_destination_to_current(); // sync destination at the start
+
+  #if MECH(DELTA)
+    if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height) {
+      mechanics.destination[Z_AXIS] = mechanics.delta_clip_start_height;
+      mechanics.prepare_move_to_destination();
+    }
+  #endif
+
+  mechanics.destination[X_AXIS] = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]);
+  mechanics.destination[Y_AXIS] = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
+
+  mechanics.prepare_move_to_destination();
 }
 
 /**
@@ -451,36 +462,49 @@ void _lcd_ubl_output_map_lcd() {
   static int16_t step_scaler = 0;
 
   if (lcdui.use_click()) return _lcd_ubl_map_lcd_edit_cmd();
-  lcdui.encoder_direction_normal();
 
   if (lcdui.encoderPosition) {
     step_scaler += int16_t(lcdui.encoderPosition);
     x_plot += step_scaler / (ENCODER_STEPS_PER_MENU_ITEM);
-    if (ABS(step_scaler) >= ENCODER_STEPS_PER_MENU_ITEM) step_scaler = 0;
     lcdui.encoderPosition = 0;
     lcdui.refresh(LCDVIEW_REDRAW_NOW);
   }
 
-  // Encoder to the right (++)
-  if (x_plot >= GRID_MAX_POINTS_X) { x_plot = 0; y_plot++; }
-  if (y_plot >= GRID_MAX_POINTS_Y) y_plot = 0;
+  #if IS_KINEMATIC
+    #define KEEP_LOOPING true   // Loop until a valid point is found
+  #else
+    #define KEEP_LOOPING false
+  #endif
 
-  // Encoder to the left (--)
-  if (x_plot <= GRID_MAX_POINTS_X - (GRID_MAX_POINTS_X + 1)) { x_plot = GRID_MAX_POINTS_X - 1; y_plot--; }
-  if (y_plot <= GRID_MAX_POINTS_Y - (GRID_MAX_POINTS_Y + 1)) y_plot = GRID_MAX_POINTS_Y - 1;
+  do {
+    // Encoder to the right (++)
+    if (x_plot >= GRID_MAX_POINTS_X) { x_plot = 0; y_plot++; }
+    if (y_plot >= GRID_MAX_POINTS_Y) y_plot = 0;
 
-  // Prevent underrun/overrun of plot numbers
-  LIMIT(x_plot, GRID_MAX_POINTS_X - (GRID_MAX_POINTS_X + 1), GRID_MAX_POINTS_X + 1);
-  LIMIT(y_plot, GRID_MAX_POINTS_Y - (GRID_MAX_POINTS_Y + 1), GRID_MAX_POINTS_Y + 1);
+    // Encoder to the left (--)
+    if (x_plot < 0) { x_plot = GRID_MAX_POINTS_X - 1; y_plot--; }
+    if (y_plot < 0) y_plot = GRID_MAX_POINTS_Y - 1;
+
+    #if IS_KINEMATIC
+      const float x = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]),
+                  y = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
+      if (mechanics.position_is_reachable(x, y)) break; // Found a valid point
+      x_plot += (step_scaler < 0) ? -1 : 1;
+    #endif
+
+  } while(KEEP_LOOPING);
 
   // Determine number of points to edit
   #if IS_KINEMATIC
     n_edit_pts = 9; //TODO: Delta accessible edit points
   #else
-    const bool xc = WITHIN(x_plot, 1, GRID_MAX_POINTS_X - 2),
-               yc = WITHIN(y_plot, 1, GRID_MAX_POINTS_Y - 2);
+    const bool  xc = WITHIN(x_plot, 1, GRID_MAX_POINTS_X - 2),
+                yc = WITHIN(y_plot, 1, GRID_MAX_POINTS_Y - 2);
     n_edit_pts = yc ? (xc ? 9 : 6) : (xc ? 6 : 4); // Corners
   #endif
+
+  // Cleanup
+  if (ABS(step_scaler) >= ENCODER_STEPS_PER_MENU_ITEM) step_scaler = 0;
 
   if (lcdui.should_draw()) {
     lcdui.ubl_plot(x_plot, y_plot);

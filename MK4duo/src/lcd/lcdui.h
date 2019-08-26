@@ -56,7 +56,7 @@ class LcdUI {
 
   public: /** Public Parameters */
 
-    #if HAS_SPI_LCD || HAS_NEXTION_LCD
+    #if HAS_LCD
 
       static LCDViewActionEnum lcdDrawUpdate;
 
@@ -100,7 +100,7 @@ class LcdUI {
         
       #endif
 
-    #endif // HAS_SPI_LCD || HAS_NEXTION_LCD
+    #endif // HAS_LCD
 
     #if HAS_LCD_MENU
 
@@ -181,7 +181,7 @@ class LcdUI {
 
   private: /** Private Parameters */
 
-    #if HAS_SPI_LCD || HAS_NEXTION_LCD
+    #if HAS_LCD
       #if HAS_LCD_MENU
         #if LCD_TIMEOUT_TO_STATUS
           static bool defer_return_to_status;
@@ -218,13 +218,13 @@ class LcdUI {
       #endif
 
       #if HAS_LCD_CONTRAST
-        contrast = DEFAULT_LCD_CONTRAST;
+        contrast = LCD_CONTRAST_INIT;
       #endif
     }
 
     static void clear_lcd();
     
-    #if HAS_SPI_LCD || HAS_NEXTION_LCD
+    #if HAS_LCD
 
       static void init();
       static void update();
@@ -361,7 +361,7 @@ class LcdUI {
       #endif
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        static void ubl_plot(const uint8_t x, const uint8_t inverted_y);
+        static void ubl_plot(const uint8_t x_plot, const uint8_t y_plot);
       #endif
 
     #elif HAS_SPI_LCD

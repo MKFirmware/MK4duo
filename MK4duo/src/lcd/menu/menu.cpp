@@ -109,8 +109,8 @@ void MenuItem_gcode::action(PGM_P pgcode) { commands.inject_P(pgcode); }
  */
 void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   lcdui.encoder_direction_normal();
-  if ((int16_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
-  if ((int16_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
+  if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
+  if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
     draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {

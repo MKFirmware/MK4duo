@@ -174,7 +174,7 @@ class Temperature {
     #endif
 
     #if HAS_HEATER
-      static void print_heater_state(Heater *act, const bool print_ID, const bool showRaw);
+      static void print_heater_state(Heater * const act, const bool print_ID, const bool showRaw);
     #endif
 
 };

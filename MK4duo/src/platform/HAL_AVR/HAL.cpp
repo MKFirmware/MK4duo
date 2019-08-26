@@ -137,7 +137,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
   switch (timer_num) {
 
-    case STEPPER_TIMER:
+    case STEPPER_TIMER_NUM:
       // waveform generation = 0100 = CTC
       SET_WGM(1, CTC_OCRnA);
 
@@ -156,7 +156,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       TCNT1 = 0;
       break;
 
-    case TEMP_TIMER:
+    case TEMP_TIMER_NUM:
       // Use timer0 for temperature measurement
       // Interleave temperature interrupt with millies interrupt
       TEMP_OCR = 128;
@@ -236,7 +236,7 @@ void HAL::showStartReason() {
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
-    HAL_timer_start(TEMP_TIMER, TEMP_TIMER_FREQUENCY);
+    HAL_timer_start(TEMP_TIMER_NUM, TEMP_TIMER_FREQUENCY);
 
     ENABLE_TEMP_INTERRUPT();
 

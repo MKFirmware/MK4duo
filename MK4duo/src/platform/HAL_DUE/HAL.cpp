@@ -169,21 +169,6 @@ void noTone(const pin_t _pin) {
   HAL::digitalWrite(_pin, LOW);
 }
 
-HAL_TONE_TIMER_ISR() {
-  static uint8_t pin_state = 0;
-  HAL_timer_isr_prologue(TONE_TIMER_NUM);
-
-  if (toggles) {
-    toggles--;
-    HAL::digitalWrite(tone_pin, (pin_state ^= 1));
-  }
-  else noTone(tone_pin);
-}
-
-static inline void ConfigurePin(const PinDescription& pinDesc) {
-  PIO_Configure(pinDesc.pPort, pinDesc.ulPinType, pinDesc.ulPin, pinDesc.ulPinConfiguration);
-}
-
 // This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
 extern "C" int sysTickHook() {
   HAL::Tick();
@@ -637,7 +622,7 @@ void HAL::Tick() {
 
     #if HAS_HOTENDS
       LOOP_HOTEND() {
-        Heater *act = &hotends[h];
+        Heater * const act = &hotends[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
           currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
@@ -650,7 +635,7 @@ void HAL::Tick() {
     #endif
     #if HAS_BEDS
       LOOP_BED() {
-        Heater *act = &beds[h];
+        Heater * const act = &beds[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
           currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
@@ -663,7 +648,7 @@ void HAL::Tick() {
     #endif
     #if HAS_CHAMBERS
       LOOP_CHAMBER() {
-        Heater *act = &chambers[h];
+        Heater * const act = &chambers[h];
         if (WITHIN(act->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
           currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
@@ -715,6 +700,26 @@ void HAL::Tick() {
   // Tick endstops state, if required
   endstops.Tick();
 
+}
+
+/**
+ * Interrupt Service Routines
+ */
+HAL_TONE_TIMER_ISR() {
+  static uint8_t pin_state = 0;
+  HAL_timer_isr_prologue(TONE_TIMER_NUM);
+
+  if (toggles) {
+    toggles--;
+    HAL::digitalWrite(tone_pin, (pin_state ^= 1));
+  }
+  else noTone(tone_pin);
+}
+
+HAL_STEPPER_TIMER_ISR() {
+  HAL_timer_isr_prologue(STEPPER_TIMER_NUM);
+  // Call the Step
+  stepper.Step();
 }
 
 #endif // ARDUINO_ARCH_SAM

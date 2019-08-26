@@ -76,8 +76,7 @@
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
   const char *str = i16tostr3(temp);
   const uint8_t len = str[0] != ' ' ? 3 : str[1] != ' ' ? 2 : 1;
-  lcd_moveto(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty);
-  lcd_put_u8str(&str[3-len]);
+  lcd_put_u8str(tx - len * (INFO_FONT_WIDTH) / 2 + 1, ty, &str[3-len]);
   lcd_put_wchar(LCD_STR_DEGREE[0]);
 }
 
@@ -212,8 +211,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 //
 FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool blink) {
   const uint8_t offs = (XYZ_SPACING) * axis;
-  lcd_moveto(X_LABEL_POS + offs, XYZ_BASELINE);
-  lcd_put_wchar('X' + axis);
+  lcd_put_wchar(X_LABEL_POS + offs, XYZ_BASELINE, 'X' + axis);
   lcd_moveto(X_VALUE_POS + offs, XYZ_BASELINE);
   if (blink) {
     lcd_put_u8str(value);
@@ -326,8 +324,7 @@ void LcdUI::draw_status_screen() {
         if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
           const uint8_t spd = fans[0].actual_speed();
           if (spd) {
-            lcd_moveto(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y);
-            lcd_put_u8str(ui8tostr4pct(spd));
+            lcd_put_u8str(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y, ui8tostr4pct(spd));
           }
         }
       #endif
@@ -436,25 +433,19 @@ void LcdUI::draw_status_screen() {
 
     #if HAS_LCD_POWER_SENSOR
       if (millis() < print_millis + 1000) {
-        lcd_moveto(54, 48);
-        lcd_put_wchar('S');
+        lcd_put_wchar(54, 48, 'S');
         lcd_put_u8str(buffer1);
-
-        lcd_moveto(92, 48);
-        lcd_put_wchar('E');
+        lcd_put_wchar(92, 48, 'E');
         lcd_put_u8str(buffer2);
       }
       else {
-        lcd_put_u8str(ui32tostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
+        lcd_put_u8str(54, 48, ui32tostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
         lcd_put_u8str((char*)"Wh");
       }
     #else
-      lcd_moveto(54, 48);
-      lcd_put_wchar('S');
+      lcd_put_wchar(54, 48, 'S');
       lcd_put_u8str(buffer1);
-
-      lcd_moveto(92, 48);
-      lcd_put_wchar('E');
+      lcd_put_wchar(92, 48, 'E');
       lcd_put_u8str(buffer2);
     #endif
   }
@@ -493,8 +484,6 @@ void LcdUI::draw_status_screen() {
 
         // Two-component mix / gradient instead of XY
 
-        lcd_moveto(X_LABEL_POS, XYZ_BASELINE);
-
         char mixer_messages[12];
         const char *mix_label;
         if (mixer.gradient.enabled) {
@@ -506,7 +495,7 @@ void LcdUI::draw_status_screen() {
           mix_label = "Mx";
         }
         sprintf_P(mixer_messages, PSTR("%s %d;%d%% "), mix_label, int(mixer.mix[0]), int(mixer.mix[1]));
-        lcd_put_u8str(mixer_messages);
+        lcd_put_u8str(X_LABEL_POS, XYZ_BASELINE, mixer_messages);
 
       #else
 
@@ -535,24 +524,19 @@ void LcdUI::draw_status_screen() {
     lcd_put_wchar(LCD_STR_FEEDRATE[0]);
 
     set_font(FONT_STATUSMENU);
-    lcd_moveto(12, EXTRAS_2_BASELINE);
-    lcd_put_u8str(i16tostr3(mechanics.feedrate_percentage));
+    lcd_put_u8str(12, EXTRAS_2_BASELINE, i16tostr3(mechanics.feedrate_percentage));
     lcd_put_wchar('%');
 
     //
     // Filament sensor display if SD is disabled
     //
     #if HAS_LCD_FILAMENT_SENSOR && DISABLED(SDSUPPORT)
-      lcd_moveto(56, EXTRAS_2_BASELINE);
-      lcd_put_u8str(wstring);
-      lcd_moveto(102, EXTRAS_2_BASELINE);
-      lcd_put_u8str(mstring);
+      lcd_put_u8str(56, EXTRAS_2_BASELINE, wstring);
+      lcd_put_u8str(102, EXTRAS_2_BASELINE, mstring);
       lcd_put_wchar('%');
       set_font(FONT_MENU);
-      lcd_moveto(47, EXTRAS_2_BASELINE);
-      lcd_put_wchar(LCD_STR_FILAM_DIA[0]); // lcd_put_u8str_P(PSTR(LCD_STR_FILAM_DIA));
-      lcd_moveto(93, EXTRAS_2_BASELINE);
-      lcd_put_wchar(LCD_STR_FILAM_MUL[0]);
+      lcd_put_wchar(47, EXTRAS_2_BASELINE, LCD_STR_FILAM_DIA[0]); // lcd_put_u8str_P(PSTR(LCD_STR_FILAM_DIA));
+      lcd_put_wchar(93, EXTRAS_2_BASELINE, LCD_STR_FILAM_MUL[0]);
     #endif
   }
 
