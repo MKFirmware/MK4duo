@@ -1006,15 +1006,15 @@ void LcdUI::draw_status_screen() {
     const uint8_t plen = utf8_strlen_P(pref), slen = suff ? utf8_strlen_P(suff) : 0;
     uint8_t row = 0, col = 0;
     if (!string && plen + slen <= LCD_WIDTH) {
-      row = (LCD_WIDTH - plen - slen) / 2;
-      col = LCD_HEIGHT > 3 ? 1 : 0;
+      col = (LCD_WIDTH - plen - slen) / 2;
+      row = LCD_HEIGHT > 3 ? 1 : 0;
     }
-    wrap_string_P(row, col, pref, true);
+    wrap_string_P(col, row, pref, true);
     if (string) {
-      if (row) { row = 0; col++; } // Move to the start of the next line
-      wrap_string(row, col, string);
+      if (col) { col = 0; row++; } // Move to the start of the next line
+      wrap_string(col, row, string);
     }
-    if (suff) wrap_string_P(row, col, suff);
+    if (suff) wrap_string_P(col, row, suff);
   }
 
   void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {

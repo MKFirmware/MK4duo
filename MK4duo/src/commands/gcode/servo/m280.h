@@ -46,7 +46,7 @@
         if (servo_index >= 0 && servo_index < NUM_SERVOS && servo_index != DONDOLO_SERVO_INDEX)
           MOVE_SERVO(servo_index, servo_position);
         else if (servo_index == DONDOLO_SERVO_INDEX) {
-          HAL_SERVO_LIB *srv = &servo[servo_index];
+          MKServo *srv = &servo[servo_index];
           srv->attach(0);
           srv->write(servo_position);
           #if (DONDOLO_SERVO_DELAY > 0)
