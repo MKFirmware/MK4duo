@@ -31,7 +31,7 @@
 /**
  * M81: Turn off Power, including Power Supply, if there is one.
  *
- *      This code should ALWAYS be available for EMERGENCY SHUTDOWN!
+ *      This code should ALWAYS be available for FULL SHUTDOWN!
  */
 inline void gcode_M81(void) {
   thermalManager.disable_all_heaters();

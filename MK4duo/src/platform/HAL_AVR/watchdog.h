@@ -37,6 +37,9 @@ class Watchdog {
     // Reset watchdog. MUST be called at least every 4 seconds.
     static void reset(void);
 
+    // Enable the watchdog with the specified timeout.
+    FORCE_INLINE static void enable(uint32_t timeout) { wdt_enable(timeout); }
+
 };
 
 extern Watchdog watchdog;

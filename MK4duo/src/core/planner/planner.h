@@ -466,8 +466,8 @@ class Planner {
     static void finish_and_disable();
 
     /**
-     * Called to force a quick stop of the machine (for example, when an emergency
-     * stop is required, or when endstops are hit)
+     * Called to force a quick stop of the machine (for example, when
+     * a Full Shutdown is required, or when endstops are hit)
      */
     static void quick_stop();
 

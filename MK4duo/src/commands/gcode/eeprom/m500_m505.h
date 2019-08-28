@@ -31,6 +31,7 @@
 #define CODE_M502
 #define CODE_M503
 #define CODE_M504
+#define CODE_M505
 
 /**
  * M500: Store settings in EEPROM
@@ -90,3 +91,8 @@ inline void gcode_M504(void) {
     SERIAL_LM(ECHO, "No EEPROM active!");
   #endif
 }
+
+/**
+ * M505: Clear EEPROM and RESET Printer
+ */
+inline void gcode_M505(void) { eeprom.clear(); }

@@ -222,7 +222,7 @@ typedef struct EepromDataStruct {
   // BLTOUCH
   //
   #if HAS_BLTOUCH
-    bool bltouch_last_mode;
+    bool              bltouch_last_mode;
   #endif
 
   //
@@ -1169,13 +1169,6 @@ void EEPROM::post_process() {
     return !flag.error;
   }
 
-  bool EEPROM::validate() {
-    flag.validating = true;
-    const bool success = _load();
-    flag.validating = false;
-    return success;
-  }
-
   bool EEPROM::load() {
     if (validate()) return _load();
     reset();
@@ -1184,6 +1177,28 @@ void EEPROM::post_process() {
       SERIAL_EM("EEPROM Initialized");
     #endif
     return false;
+  }
+
+  bool EEPROM::validate() {
+    flag.validating = true;
+    const bool success = _load();
+    flag.validating = false;
+    return success;
+  }
+
+  void EEPROM::clear() {
+    uint16_t temp_crc = 0;
+    int eeprom_index = EEPROM_OFFSET;
+
+    SERIAL_LM(ECHO, "Clear EEPROM and RESET!");
+
+    while (eeprom_index <= EEPROM_SIZE)
+      memorystore.write_data(eeprom_index, (uint8_t*)0XFF, 1, &temp_crc);
+
+    // Reset Printer
+    printer.setRunning(false);
+    watchdog.enable(WDTO_15MS);
+    while(1);
   }
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1256,7 +1271,9 @@ void EEPROM::post_process() {
 
 #else // !HAS_EEPROM
 
-  bool EEPROM::store() { SERIAL_LM(ER, "EEPROM disabled"); return false; }
+  bool eeprom_disabled() { SERIAL_LM(ER, "EEPROM disabled"); return false; }
+  bool EEPROM::store() { return eeprom_disabled(); }
+  void EEPROM::clear() { (void)eeprom_disabled(); }
 
 #endif // HAS_EEPROM
 

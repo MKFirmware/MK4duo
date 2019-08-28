@@ -105,7 +105,7 @@
 #include "delta/m666.h"                   // Set delta parameters
 
 // EEPROM Commands
-#include "eeprom/m500_m504.h"             // Eeprom read, write, print and validate
+#include "eeprom/m500_m505.h"             // Eeprom read, write, print, validate and clear
 
 // Feature Commands
 #include "feature/g12.h"
