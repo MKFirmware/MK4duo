@@ -180,7 +180,8 @@
 | M501 | - | Reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 | M502 | - | Reverts to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
 | M503 | - | Print the current settings (from memory not from EEPROM)
-| M503 | - | Validate EEPROM Contents
+| M504 | - | Validate EEPROM Contents
+| M505 | - | Clear EEPROM and RESET Printer
 | M512 | - | Print Extruder Encoder status Pin. (Requires Extruder Encoder)
 | M522 | - | Use for reader o writer tag with MFRC522. M522 T[extruder] R(read) W(write) L(print list data on tag)
 | M524 | SDCARD | Abort the current SD print job (started with M24).

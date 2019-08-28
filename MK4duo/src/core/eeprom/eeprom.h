@@ -83,6 +83,8 @@ class EEPROM {
       static bool load();     // Return 'true' if data was loaded ok
       static bool validate(); // Return 'true' if EEPROM data is ok
 
+      static void clear();    // Clear EEPROM and reset
+
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled
         static uint16_t meshes_start_index();

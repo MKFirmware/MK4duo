@@ -28,11 +28,11 @@
 
 #if DISABLED(EMERGENCY_PARSER)
 
-  #define CODE_M112
+#define CODE_M112
 
-  /**
-   * M112: Emergency Stop
-   */
-  inline void gcode_M112(void) { printer.kill(); }
+/**
+ * M112: Full Shutdown
+ */
+inline void gcode_M112(void) { printer.kill(PSTR("M112 Shutdown"), true); }
 
 #endif

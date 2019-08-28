@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#define WDTO_15MS 1500
+
 // Arduino Due core now has watchdog support
 class Watchdog {
 
@@ -31,10 +33,21 @@ class Watchdog {
   public: /** Public Function */
 
     // Initialize watchdog with a 4 second interrupt time
-    static void init(void);
+    FORCE_INLINE static void init(void) { WDT_Restart(WDT); }
 
     // Reset watchdog. MUST be called at least every 4 seconds.
-    static void reset(void);
+    FORCE_INLINE static void reset(void) { WDT_Restart(WDT); }
+
+    // Enable the watchdog with the specified timeout.
+    FORCE_INLINE static void enable(uint32_t timeout) {
+      timeout = (timeout << 8) / 1000;
+      if (timeout == 0) timeout = 1;
+      else if (timeout > 0xFFF) timeout = 0xFFF;
+      // We want to enable the watchdog with the specified timeout
+      uint32_t value = WDT_MR_WDRSTEN | WDT_MR_WDV(timeout) | WDT_MR_WDD(timeout);
+      WDT_Enable(WDT, value);
+      WDT_Restart(WDT);
+    }
 
 };
 

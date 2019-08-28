@@ -163,7 +163,7 @@
  *        IF AUTOTEMP is enabled, S[mintemp] B[maxtemp] F[factor]. Exit autotemp by any M109 without F
  * M110 - Set the current line number
  * M111 - Set debug flags with S[mask].
- * M112 - Emergency stop
+ * M112 - Full Shutdown
  * M113 - Set Host Keepalive interval with parameter S[seconds]. To disable set zero
  * M114 - Output current position to serial port
  * M115 - Report capabilities. (Extended capabilities requires EXTENDED_CAPABILITIES_REPORT)
@@ -280,6 +280,7 @@
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
  * M503 - Print the current settings (from memory not from EEPROM)
  * M504 - Validate EEPROM Contents
+ * M505 - Clear EEPROM and RESET Printer
  * M522 - Read or Write on card. M522 T[extruders] R[read] or W[write] L[list]
  * M524 - Abort the current SD print job (started with M24). (Requires SDSUPPORT)
  * M530 - Enables explicit printing mode (S1) or disables it (S0). L can set layer count

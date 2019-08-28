@@ -423,7 +423,7 @@ void Printer::quickstop_stepper() {
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
  */
-void Printer::kill(PGM_P const lcd_msg/*=nullptr*/) {
+void Printer::kill(PGM_P const lcd_msg/*=nullptr*/, const bool steppers_off/*=false*/) {
 
   thermalManager.disable_all_heaters();
 
@@ -437,10 +437,10 @@ void Printer::kill(PGM_P const lcd_msg/*=nullptr*/) {
 
   host_action.power_off();
 
-  minikill();
+  minikill(steppers_off);
 }
 
-void Printer::minikill() {
+void Printer::minikill(const bool steppers_off/*=false*/) {
 
   // Wait a short time (allows messages to get out before shutting down.
   for (int i = 1000; i--;) HAL::delayMicroseconds(600);
@@ -452,6 +452,9 @@ void Printer::minikill() {
 
   // Turn off heaters again
   thermalManager.disable_all_heaters(); 
+
+  // Power off all steppers (for M112) or just the E steppers
+  steppers_off ? stepper.disable_all() : stepper.disable_E();
 
   #if ENABLED(FLOWMETER_SENSOR) && ENABLED(MINFLOW_PROTECTION)
     flowmeter.flow_firstread = false;

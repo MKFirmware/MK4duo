@@ -185,17 +185,9 @@ HAL::~HAL() {
 
 // do any hardware-specific initialization here
 void HAL::hwSetup(void) {
-
-  #if DISABLED(USE_WATCHDOG)
-    // Disable watchdog
-    WDT_Disable(WDT);
-  #endif
-
   TimeTick_Configure(F_CPU);
-
   NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
   NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
-
 }
 
 // Print apparent cause of start/restart
@@ -582,9 +574,9 @@ void HAL::Tick() {
   static millis_s cycle_1s_ms   = millis(),
                   cycle_100_ms  = millis();
 
-  watchdog.reset();
-
   if (printer.isStopped()) return;
+
+  watchdog.reset();
 
   // Heaters set output PWM
   #if HAS_HOTENDS

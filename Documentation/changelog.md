@@ -17,6 +17,7 @@
 * Add M86 M[min] set safety timer expiration time in minute. M86 M0 will disable safety timer
 * Add M16 Expected printer check
 * Add M504 - Validate EEPROM Contents
+* Add M505 - Clear EEPROM and RESET Printer
 * Add M217 - Set Park position and tool change parameters
 *   S[linear]   Swap length
 *   E[linear]   Purge length
