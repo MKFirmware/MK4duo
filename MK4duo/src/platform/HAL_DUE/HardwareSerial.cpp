@@ -610,18 +610,23 @@ void MKHardwareSerial<Cfg>::printFloat(double number, uint8_t digits) {
 
 // Instantiate Class
 #if SERIAL_PORT_1 >= 0
-  template class MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>>;
-  MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>> MKSerial1;
+  template class MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>>;
+  MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>> MKSerial1;
 #endif
 
 #if SERIAL_PORT_2 >= 0
-  template class MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>>;
-  MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>> MKSerial2;
+  template class MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>>;
+  MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>> MKSerial2;
 #endif
 
 #if ENABLED(NEXTION) && NEXTION_SERIAL > 0
   template class MKHardwareSerial<MK4duoSerialCfg<NEXTION_SERIAL>>;
   MKHardwareSerial<MK4duoSerialCfg<NEXTION_SERIAL>> nexSerial;
+#endif
+
+#if HAS_MMU2 && MMU2_SERIAL > 0
+  template class MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>>;
+  MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>> mmuSerial;
 #endif
 
 #endif // ARDUINO_ARCH_SAM

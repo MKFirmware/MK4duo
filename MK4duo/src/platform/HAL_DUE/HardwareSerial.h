@@ -125,13 +125,17 @@ class MKHardwareSerial {
 };
 
 #if SERIAL_PORT_1 >= 0
-  extern MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>> MKSerial1;
+  extern MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>> MKSerial1;
 #endif
 
 #if SERIAL_PORT_2 >= 0
-  extern MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>> MKSerial2;
+  extern MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>> MKSerial2;
 #endif
 
 #if ENABLED(NEXTION) && NEXTION_SERIAL > 0
   extern MKHardwareSerial<MK4duoSerialCfg<NEXTION_SERIAL>> nexSerial;
+#endif
+
+#if HAS_MMU2 && MMU2_SERIAL > 0
+  extern MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>> mmuSerial;
 #endif
