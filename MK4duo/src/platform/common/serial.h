@@ -76,7 +76,7 @@ constexpr bool
   );
 
 template <uint8_t serial>
-struct MK4duoSerialCfg {
+struct MK4duoSerialHostCfg {
   static constexpr int PORT               = serial;
   static constexpr unsigned int RX_SIZE   = RX_BUFFER_SIZE;
   static constexpr unsigned int TX_SIZE   = TX_BUFFER_SIZE;
@@ -86,4 +86,17 @@ struct MK4duoSerialCfg {
   static constexpr bool RX_OVERRUNS       = bSERIAL_STATS_RX_BUFFER_OVERRUNS;
   static constexpr bool RX_FRAMING_ERRORS = bSERIAL_STATS_RX_FRAMING_ERRORS;
   static constexpr bool MAX_RX_QUEUED     = bSERIAL_STATS_MAX_RX_QUEUED;
+};
+
+template <uint8_t serial>
+struct MK4duoSerialCfg {
+  static constexpr int PORT               = serial;
+  static constexpr unsigned int RX_SIZE   = 32;
+  static constexpr unsigned int TX_SIZE   = 32;
+  static constexpr bool XONOFF            = false;
+  static constexpr bool EMERGENCYPARSER   = false;
+  static constexpr bool DROPPED_RX        = false;
+  static constexpr bool RX_OVERRUNS       = false;
+  static constexpr bool RX_FRAMING_ERRORS = false;
+  static constexpr bool MAX_RX_QUEUED     = false;
 };

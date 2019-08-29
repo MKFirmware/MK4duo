@@ -73,18 +73,6 @@ MMU2 mmu2;
 #define MMU2_NO_TOOL  99
 #define MMU_BAUD      115200
 
-#if MMU2_SERIAL > 0
-  #if MMU2_SERIAL == 1
-    #define mmuSerial Serial1
-  #elif MMU2_SERIAL == 2
-    #define mmuSerial Serial2
-  #elif MMU2_SERIAL == 3
-    #define mmuSerial Serial3
-  #endif
-#else
-  #define mmuSerial Serial1
-#endif
-
 bool MMU2::enabled, MMU2::ready, MMU2::mmu_print_saved;
 uint8_t MMU2::cmd, MMU2::cmd_arg, MMU2::last_cmd, MMU2::extruder;
 int8_t MMU2::state = 0;

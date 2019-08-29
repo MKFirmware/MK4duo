@@ -207,6 +207,8 @@ class Heater {
     void min_temp_error();
     void max_temp_error();
 
+    void print_low_high_temp(const int16_t celsius, const bool min_temp);
+
     void update_idle_timer();
 
 };

@@ -83,14 +83,20 @@ void Heater::set_target_temp(const int16_t celsius) {
   }
   else if (isFault())
     SERIAL_LM(ER, " Heater not switched on to temperature fault.");
+  else if (celsius < data.mintemp)
+    print_low_high_temp(celsius, true);
+  else if (celsius > data.maxtemp - 10)
+    print_low_high_temp(celsius, false);
   else {
     setActive(true);
-    if (isActive()) {
-      target_temperature = MIN(celsius, data.maxtemp - 10);
-      thermal_runaway_state = target_temperature > 0 ? TRFirstHeating : TRInactive;
-      start_watching();
-    }
+    target_temperature = celsius;
   }
+
+  if (isActive()) {
+    thermal_runaway_state = target_temperature > 0 ? TRFirstHeating : TRInactive;
+    start_watching();
+  }
+
 }
 
 void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
@@ -772,6 +778,14 @@ void Heater::max_temp_error() {
     #endif
     default: break;
   }
+}
+
+void Heater::print_low_high_temp(const int16_t celsius, const bool min_temp) {
+  SERIAL_SMV(ER, " Temperature ", celsius);
+  SERIAL_MSG(" too ");
+  min_temp ? SERIAL_MSG("low") : SERIAL_MSG("high");
+  SERIAL_MSG(" for heater");
+  SERIAL_EOL();
 }
 
 void Heater::update_idle_timer() {

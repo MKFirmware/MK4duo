@@ -669,35 +669,35 @@ void MKHardwareSerial<Cfg>::printFloat(double number, uint8_t digits) {
 
 // Hookup ISR handlers
 ISR(SERIAL_REGNAME(USART,SERIAL_PORT_1,_RX_vect)) {
-  MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>>::store_rxd_char();
+  MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>>::store_rxd_char();
 }
 
 ISR(SERIAL_REGNAME(USART,SERIAL_PORT_1,_UDRE_vect)) {
-  MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>>::_tx_udr_empty_irq();
+  MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>>::_tx_udr_empty_irq();
 }
 
 // Preinstantiate
-template class MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>>;
+template class MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>>;
 
 // Instantiate
-MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>> MKSerial1;
+MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_1>> MKSerial1;
 
 #if SERIAL_PORT_2 >= -1
 
   // Hookup ISR handlers
   ISR(SERIAL_REGNAME(USART,SERIAL_PORT_2,_RX_vect)) {
-    MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>>::store_rxd_char();
+    MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>>::store_rxd_char();
   }
 
   ISR(SERIAL_REGNAME(USART,SERIAL_PORT_2,_UDRE_vect)) {
-    MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>>::_tx_udr_empty_irq();
+    MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>>::_tx_udr_empty_irq();
   }
 
   // Preinstantiate
-  template class MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>>;
+  template class MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>>;
 
   // Instantiate
-  MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_2>> MKSerial2;
+  MKHardwareSerial<MK4duoSerialHostCfg<SERIAL_PORT_2>> MKSerial2;
 
 #endif // SERIAL_PORT_2 >= -1
 
@@ -719,6 +719,25 @@ MKHardwareSerial<MK4duoSerialCfg<SERIAL_PORT_1>> MKSerial1;
   MKHardwareSerial<MK4duoSerialCfg<NEXTION_SERIAL>> nexSerial;
 
 #endif // ENABLED(NEXTION) && NEXTION_SERIAL > 0
+
+#if HAS_MMU2 && MMU2_SERIAL > 0
+
+  // Hookup ISR handlers
+  ISR(SERIAL_REGNAME(USART,MMU2_SERIAL,_RX_vect)) {
+    MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>>::store_rxd_char();
+  }
+
+  ISR(SERIAL_REGNAME(USART,MMU2_SERIAL,_UDRE_vect)) {
+    MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>>::_tx_udr_empty_irq();
+  }
+
+  // Preinstantiate
+  template class MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>>;
+
+  // Instantiate
+  MKHardwareSerial<MK4duoSerialCfg<MMU2_SERIAL>> mmuSerial;
+
+#endif // HAS_MMU2 && MMU2_SERIAL > 0
 
 #endif // (UBRRH || UBRR0H || UBRR1H || UBRR2H || UBRR3H)
 
