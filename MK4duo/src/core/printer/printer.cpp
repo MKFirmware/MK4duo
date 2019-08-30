@@ -161,6 +161,9 @@ void Printer::setup() {
   SERIAL_SMV(ECHO, MSG_FREE_MEMORY, freeMemory());
   SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
+  // Reset Watchdog
+  watchdog.reset();
+
   #if HAS_SD_SUPPORT
     card.mount();
   #endif
@@ -248,6 +251,9 @@ void Printer::setup() {
   lcdui.init();
   lcdui.reset_status();
 
+  // Reset Watchdog
+  watchdog.reset();
+
   // Show MK4duo boot screen
   #if HAS_SPI_LCD && ENABLED(SHOW_BOOTSCREEN)
     lcdui.show_bootscreen();
@@ -278,8 +284,8 @@ void Printer::setup() {
     restart.check();
   #endif
 
-  // Init Watchdog
-  watchdog.init();
+  // Reset Watchdog
+  watchdog.reset();
 
   #if HAS_TRINAMIC && !PS_DEFAULT_OFF
     tmc.test_connection(true, true, true, true);
