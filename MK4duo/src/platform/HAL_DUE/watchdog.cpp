@@ -32,62 +32,98 @@
 // that initialization to a later time.
 void watchdogSetup(void) {
 
-  // 4 seconds timeout
-  uint32_t timeout = 4000;
+  #if ENABLED(USE_WATCHDOG)
 
-  // Calculate timeout value in WDT counter ticks: This assumes
-  // the slow clock is running at 32.768 kHz watchdog
-  // frequency is therefore 32768 / 128 = 256 Hz
-  timeout = (timeout << 8) / 1000;
-  if (timeout == 0) timeout = 1;
-  else if (timeout > 0xFFF) timeout = 0xFFF;
+    // 4 seconds timeout
+    uint32_t timeout = 4000;
 
-  // We want to enable the watchdog with the specified timeout
-  uint32_t value =
-    WDT_MR_WDV(timeout) |               // With the specified timeout
-    WDT_MR_WDD(timeout) |               // and no invalid write window
-  #if !(SAMV70 || SAMV71 || SAME70 || SAMS70)
-    WDT_MR_WDRPROC   |                  // WDT fault resets processor only - We want
-                                        // to keep PIO controller state
-  #endif
-    WDT_MR_WDDBGHLT  |                  // WDT stops in debug state.
-    WDT_MR_WDIDLEHLT;                   // WDT stops in idle state.
+    // Calculate timeout value in WDT counter ticks: This assumes
+    // the slow clock is running at 32.768 kHz watchdog
+    // frequency is therefore 32768 / 128 = 256 Hz
+    timeout = (timeout << 8) / 1000;
+    if (timeout == 0)
+      timeout = 1;
+    else if (timeout > 0xFFF)
+      timeout = 0xFFF;
 
-  #if ENABLED(WATCHDOG_RESET_MANUAL)
-    // We enable the watchdog timer, but only for the interrupt.
+    // We want to enable the watchdog with the specified timeout
+    uint32_t value =
+      WDT_MR_WDV(timeout) |               // With the specified timeout
+      WDT_MR_WDD(timeout) |               // and no invalid write window
+    #if !(SAMV70 || SAMV71 || SAME70 || SAMS70)
+      WDT_MR_WDRPROC   |                  // WDT fault resets processor only - We want
+                                          // to keep PIO controller state
+    #endif
+      WDT_MR_WDDBGHLT  |                  // WDT stops in debug state.
+      WDT_MR_WDIDLEHLT;                   // WDT stops in idle state.
 
-    // Configure WDT to only trigger an interrupt
-    value |= WDT_MR_WDFIEN;             // Enable WDT fault interrupt.
+    #if ENABLED(WATCHDOG_RESET_MANUAL)
+      // We enable the watchdog timer, but only for the interrupt.
 
-    // Disable WDT interrupt (just in case, to avoid triggering it!)
-    NVIC_DisableIRQ(WDT_IRQn);
+      // Configure WDT to only trigger an interrupt
+      value |= WDT_MR_WDFIEN;             // Enable WDT fault interrupt.
 
-    // Initialize WDT with the given parameters
-    WDT_Enable(WDT, value);
+      // Disable WDT interrupt (just in case, to avoid triggering it!)
+      NVIC_DisableIRQ(WDT_IRQn);
 
-    // We NEED memory barriers to ensure Interrupts are actually disabled!
-    // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
-    __DSB();
-    __ISB();
+      // Initialize WDT with the given parameters
+      WDT_Enable(WDT, value);
 
-    // Configure and enable WDT interrupt.
-    NVIC_ClearPendingIRQ(WDT_IRQn);
-    NVIC_SetPriority(WDT_IRQn, 0); // Use highest priority, so we detect all kinds of lockups
-    NVIC_EnableIRQ(WDT_IRQn);
+      // We NEED memory barriers to ensure Interrupts are actually disabled!
+      // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+      __DSB();
+      __ISB();
+
+      // Configure and enable WDT interrupt.
+      NVIC_ClearPendingIRQ(WDT_IRQn);
+      NVIC_SetPriority(WDT_IRQn, 0); // Use highest priority, so we detect all kinds of lockups
+      NVIC_EnableIRQ(WDT_IRQn);
+
+    #else
+
+      // a WDT fault triggers a reset
+      value |= WDT_MR_WDRSTEN;
+
+      // Initialize WDT with the given parameters
+      WDT_Enable(WDT, value);
+
+    #endif
+
+    // Reset the watchdog
+    WDT_Restart(WDT);
 
   #else
 
-    // a WDT fault triggers a reset
-    value |= WDT_MR_WDRSTEN;
-
-    // Initialize WDT with the given parameters
-    WDT_Enable(WDT, value);
+    // Make sure to completely disable the Watchdog
+    WDT_Disable(WDT);
 
   #endif
+}
 
-  // Reset the watchdog
-  WDT_Restart(WDT);
+void Watchdog::init(void) {
+  #if ENABLED(USE_WATCHDOG)
+    WDT_Restart(WDT);
+  #endif
+}
 
+void Watchdog::reset(void) {
+  #if ENABLED(USE_WATCHDOG)
+    WDT_Restart(WDT);
+  #endif
+}
+
+void Watchdog::enable(uint32_t timeout) {
+  #if ENABLED(USE_WATCHDOG)
+    timeout = (timeout << 8) / 1000;
+    if (timeout == 0) timeout = 1;
+    else if (timeout > 0xFFF) timeout = 0xFFF;
+    // We want to enable the watchdog with the specified timeout
+    uint32_t value = WDT_MR_WDRSTEN | WDT_MR_WDV(timeout) | WDT_MR_WDD(timeout);
+    WDT_Enable(WDT, value);
+    WDT_Restart(WDT);
+  #else
+    rstc_start_software_reset(RSTC);
+  #endif
 }
 
 Watchdog watchdog;
