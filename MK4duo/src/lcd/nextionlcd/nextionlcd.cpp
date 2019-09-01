@@ -376,11 +376,10 @@ void NextionLCD::read_serial() {
     int c;
     if ((c = nexSerial.read()) < 0) continue;
 
-    char inputChar = c;
-    if (inputChar == 0xFF) cnt_0xFF++;
+    if (c == 0xFF) cnt_0xFF++;
     else if (index < MAX_CMD_SIZE - 1) {
       cnt_0xFF = 0;
-      serial_nextion_buffer[index++] = inputChar;
+      serial_nextion_buffer[index++] = (char)c;
     }
 
     if (cnt_0xFF >= 3) {
