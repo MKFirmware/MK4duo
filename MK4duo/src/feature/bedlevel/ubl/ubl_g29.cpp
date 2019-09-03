@@ -1414,7 +1414,7 @@
         #endif
 
         if (abort_flag) {
-          SERIAL_EM("?Error probing point. Aborting operation.);
+          SERIAL_EM("?Error probing point. Aborting operation.");
           return;
         }
       }
