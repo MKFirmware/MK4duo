@@ -55,11 +55,6 @@ class DHTSensor {
 
     static uint8_t read_data[5];
 
-    static enum SensorState {
-      Init,
-      Read
-    } state;
-
   public: /** Public Function */
 
     static void init();
@@ -72,6 +67,8 @@ class DHTSensor {
     static float dewPointFast();
 
   private: /** Private Function */
+
+    static void process_reading();
 
     static float read_temperature();
     static float read_humidity();
