@@ -139,6 +139,7 @@
 | M222 | - | T[extruder] S[factor in percent] - set density extrude factor percentage for purge
 | M223 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Logic
 | M224 | FILAMENT_RUNOUT_SENSOR | T[extruder] S[bool] set Filrunout Pullup
+| M228 | - | Set axis min/max travel. S[bool] 0 = set axis maximum (default), 1 = set axis minimum, Xnnn X axis limit, Ynnn Y axis limit, Znnn Z axis limit
 | M240 | - | Trigger a camera to take a photograph
 | M280 | SERVO | Position an RC Servo P[index] S[angle/microseconds], ommit S to report back current angle
 | M281 | SERVO | Set servo low|up angles position. P[index] L[low] U[up]

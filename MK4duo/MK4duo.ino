@@ -218,6 +218,7 @@
  * M223 - T[extruder] S[bool] set Filrunout Logic. (Requires FILAMENT_RUNOUT_SENSOR)
  * M224 - T[extruder] S[bool] set Filrunout Pullup. (Requires FILAMENT_RUNOUT_SENSOR)
  * M226 - Wait until the specified pin reaches the state required: P[pin number] S[pin state]
+ * M228 - Set axis min/max travel. S[bool] 0 = set axis maximum (default), 1 = set axis minimum, Xnnn X axis limit, Ynnn Y axis limit, Znnn Z axis limit
  * M240 - Trigger a camera to take a photograph
  * M250 - Set LCD contrast C[contrast value] (value 0..63)
  * M280 - Set servo position absolute. P<index> S<angle or microseconds>. (Requires servos)
