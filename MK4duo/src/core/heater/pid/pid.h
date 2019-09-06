@@ -65,7 +65,7 @@ typedef struct {
         pid_output = Max;
         tempIState = tempIStateLimitMin;
       }
-      else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temp == 0)
+      else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temp <= 20)
         pid_output = 0;
       else {
         pid_output = Kp * pid_error;
@@ -89,14 +89,8 @@ typedef struct {
           }
         #endif // PID_ADD_EXTRUSION_RATE
 
-        if (pid_output > Max) {
-          if (pid_error > 0) tempIState -= pid_error;
-          pid_output = Max;
-        }
-        else if (pid_output < 0) {
-          if (pid_error < 0) tempIState -= pid_error;
-          pid_output = 0;
-        }
+        LIMIT(pid_output, 0, Max);
+
       }
 
       if (expired(&cycle_1s_ms, 1000U)) {
