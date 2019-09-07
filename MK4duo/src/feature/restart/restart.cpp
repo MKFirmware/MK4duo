@@ -299,7 +299,7 @@ void Restart::resume_job() {
   while (*fn == '/') fn++;
   sprintf_P(cmd, PSTR("M23 %s"), fn);
   commands.process_now(cmd);
-  sprintf_P(cmd, PSTR("M24 S%lu T%lu"), job_info.sdpos, job_info.print_job_counter_elapsed);
+  sprintf_P(cmd, PSTR("M24 S%ld T%ld"), job_info.sdpos, job_info.print_job_counter_elapsed);
   commands.process_now(cmd);
 
 }
