@@ -89,7 +89,9 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     job_info.valid_foot = job_info.valid_head;
 
     // Mechanics state
-    COPY_ARRAY(job_info.current_position, mechanics.current_position);
+    mechanics.get_cartesian_from_steppers();
+    COPY_ARRAY(job_info.current_position, mechanics.cartesian_position);
+    job_info.current_position[E_AXIS] = planner.get_axis_position_mm(E_AXIS);
     #if ENABLED(WORKSPACE_OFFSETS)
       COPY_ARRAY(job_info.home_offset, mechanics.data.home_offset);
       COPY_ARRAY(job_info.position_shift, mechanics.position_shift);

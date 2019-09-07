@@ -34,9 +34,6 @@
  * M23: Select a file
  */
 inline void gcode_M23(void) {
-  #if HAS_SD_RESTART
-    restart.purge_job();
-  #endif
   // Simplify3D includes the size, so zero out all spaces (#7227)
   // Questa funzione blocca il nome al primo spazio quindi file con spazio nei nomi non funziona da rivedere
   //for (char *fn = parser.string_arg; *fn; ++fn) if (*fn == ' ') *fn = '\0';
