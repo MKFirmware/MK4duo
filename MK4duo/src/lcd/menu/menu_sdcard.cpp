@@ -31,7 +31,9 @@
 #if !PIN_EXISTS(SD_DETECT)
   void lcd_sd_refresh() {
     encoderTopLine = 0;
+    card.unmount();
     card.mount();
+    if (card.isDetected()) card.ls();
   }
 #endif
 
