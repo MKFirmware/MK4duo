@@ -1176,7 +1176,7 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
       LOOP_DRV_EXTRUDER() {
         if (driver[d]) {
           SERIAL_SMT(CFG, "  M569 ", driver[d]->axis_letter);
-          SERIAL_EMV(" E", (int)driver[d]->isDir();
+          SERIAL_EMV(" E", (int)driver[d]->isDir());
         }
       }
     #endif
