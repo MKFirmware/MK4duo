@@ -49,6 +49,9 @@ inline void gcode_M24(void) {
   if (card.isFileOpen()) {
     card.startFileprint();
     print_job_counter.start();
+    #if HAS_SD_RESTART
+      restart.start_job();
+    #endif
   }
 
   host_action.prompt_open(PROMPT_INFO, PSTR("Resume SD"));

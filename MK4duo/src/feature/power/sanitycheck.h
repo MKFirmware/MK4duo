@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _POWER_SANITYCHECK_H_
-#define _POWER_SANITYCHECK_H_
 
 // Power consumption sensor
 #if ENABLED(POWER_CONSUMPTION) && !PIN_EXISTS(POWER_CONSUMPTION)
@@ -54,5 +52,3 @@
     #error "DEPENDENCY ERROR: Missing setting POWER_EFFICIENCY."
   #endif
 #endif
-
-#endif /* _POWER_SANITYCHECK_H_ */

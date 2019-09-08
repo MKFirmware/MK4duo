@@ -21,6 +21,7 @@
  */
 
 #include "../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if HAS_SD_SUPPORT
 
@@ -155,6 +156,7 @@ void SDCard::mount() {
                 "Is there a wiring/soldering problem?\n"
                 "errorCode: ", int(fat.card()->errorCode())
                 );
+      SERIAL_EOL();
       return;
     }
     if (fat.vol()->fatType() == 0) {

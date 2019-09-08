@@ -25,6 +25,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 

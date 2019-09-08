@@ -1891,6 +1891,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       mixer.gradient_control(mechanics.current_position[Z_AXIS]);
   #endif
 
+  #if HAS_SD_RESTART
+    block->sdpos = restart.get_sdpos();
+  #endif
+
   // Movement was accepted
   return true;
 

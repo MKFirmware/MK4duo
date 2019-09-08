@@ -76,14 +76,13 @@ class EEPROM {
     static uint16_t datasize();
 
     static void reset();
+    static void clear();      // Clear EEPROM and reset
     static bool store();      // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
 
       static bool load();     // Return 'true' if data was loaded ok
       static bool validate(); // Return 'true' if EEPROM data is ok
-
-      static void clear();    // Clear EEPROM and reset
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled

@@ -1,4 +1,5 @@
 ### Version 4.3.9
+* EEROM Version MKV72
 * New graphic for Nextion 4.3, 5.0 or 7.0 Normal and Enanched
 * Add support 6 Hotends, 4 Hot Beds, 4 Hot Chambers and 1 water Cooler
 * Add Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160 motor driver
@@ -6,18 +7,24 @@
 * Add Tool change Park
 * Add Tool change filament swap
 * Add Prompt support for host
-* Rewrite filament runout
 * Add support for BLTouch V3.0/V3.1
 * Add Prusa MMU2 Support
-* Add support thermocouples for bed and hotend.
+* Add support thermocouples for hotend and bed.
 * Add menu axis limit to menu advanced.
 * Add Double-Quad Stepping to command M569 Q and save it into EEPROM.
 * Add Option for Safety Timer in configuration_temperature.h
+* Add Game menu
+* Add DHT menu
+* Add DHT disply Dew Point
+* Add SPI Endstop with TMC2130
+* Add Slow Homing
 * Add G34 and M422 Z Steppers Auto-Alignment (Cartesian and CORE)
+* Add G34 I[iterations] [accuracy] A[amplification]
 * Add M86 M[min] set safety timer expiration time in minute. M86 M0 will disable safety timer
 * Add M16 Expected printer check
 * Add M504 - Validate EEPROM Contents
 * Add M505 - Clear EEPROM and RESET Printer
+* Add M575 - Change serial baud rate
 * Add M217 - Set Park position and tool change parameters
 *   S[linear]   Swap length
 *   E[linear]   Purge length
@@ -48,13 +55,20 @@
 *   A[int] Power Drive Min, B[int] Power Drive Max, C[int] Power Max,
 *   L[int] Min temperature, O[int] Max temperature, U[bool] Use Pid/bang bang,
 *   I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin
-* G34 I[iterations] [accuracy] A[amplification]
-* Add Game menu
-* Add DHT menu
-* Add DHT disply Dew Point
+* M352 - Set Driver pins and logic
+*    X    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*   X2    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*    Y    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*   Y2    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*    Z    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*   Z2    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*   Z3    E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+*   T0-5  E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
 * Fix MBL
-* Add SPI Endstop with TMC2130
-* Add Slow Homing
+* Rewrite filament runout
+* Rewrite Restart reduce size memory cost
+* Rewrite all driver, now are object
+* Driver pins now save in eeprom
 * Fix and clear code
 
 ### Version 4.3.8

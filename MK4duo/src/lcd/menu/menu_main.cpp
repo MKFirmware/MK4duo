@@ -121,6 +121,11 @@ void menu_main() {
 
   const bool busy = printer.isPrinting();
 
+  #if HAS_SD_SUPPORT
+    const bool  card_detected = card.isDetected(),
+                card_open     = card_detected && card.isFileOpen();
+  #endif
+
   if (busy) {
     MENU_ITEM(function, MSG_PAUSE_PRINT, lcdui.pause_print);
     MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
@@ -135,8 +140,8 @@ void menu_main() {
         if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
       #endif
 
-      if (card.isDetected()) {
-        if (!card.isFileOpen()) {
+      if (card_detected) {
+        if (!card_open) {
           #if PIN_EXISTS(SD_DETECT)
             MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));
           #else
@@ -221,8 +226,8 @@ void menu_main() {
       if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
     #endif
 
-    if (card.isDetected()) {
-      if (!card.isFileOpen()) {
+    if (card_detected) {
+      if (!card_open) {
         MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
         #if !PIN_EXISTS(SD_DETECT)
           MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user

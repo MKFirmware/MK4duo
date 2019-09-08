@@ -27,6 +27,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
@@ -497,7 +498,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
 
     // Keep looping if "Purge More" was selected
   } while (false
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       && (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
     #endif
   );

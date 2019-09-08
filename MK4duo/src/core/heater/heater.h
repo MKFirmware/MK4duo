@@ -110,6 +110,7 @@ class Heater {
     void init();
 
     void set_target_temp(const int16_t celsius);
+    void set_idle_temp(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
     
     void get_output();
@@ -174,9 +175,8 @@ class Heater {
     FORCE_INLINE bool isThermalProtection() { return data.flag.Thermalprotection; }
 
     // Flag bit 6 Set Idle
-    FORCE_INLINE void setIdle(const bool onoff, const int16_t idle_temp=ABS_ZERO) {
+    FORCE_INLINE void setIdle(const bool onoff) {
       data.flag.Idle = onoff;
-      if (idle_temp >= 0) idle_temperature = MIN(idle_temp, data.maxtemp - 10);
       if (onoff) thermal_runaway_state = TRInactive;
     }
     FORCE_INLINE bool isIdle() { return data.flag.Idle; }

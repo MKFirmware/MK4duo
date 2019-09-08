@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _SD_CARD_SANITYCHECK_H_
-#define _SD_CARD_SANITYCHECK_H_
 
 #if ENABLED(SDSUPPORT) && ENABLED(USB_FLASH_DRIVE_SUPPORT)
   #error "DEPENDENCY ERROR: SDSUPPORT and USB_FLASH_DRIVE_SUPPORT not supported!"
@@ -42,4 +40,9 @@
   #error "DEPENDENCY ERROR: You have to enable SDSUPPORT || USB_FLASH_DRIVE_SUPPORT to use EEPROM_SD."
 #endif
 
-#endif /* _SD_CARD_SANITYCHECK_H_ */
+#if DISABLED(SDSUPPORT) && ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+  #error "DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_MAX_RX_QUEUED."
+#endif
+#if DISABLED(SDSUPPORT) && ENABLED(SERIAL_STATS_DROPPED_RX)
+  #error "DEPENDENCY ERROR: You must enable SDSUPPORT for SERIAL_STATS_DROPPED_RX."
+#endif

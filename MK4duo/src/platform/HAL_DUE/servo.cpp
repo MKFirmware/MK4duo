@@ -26,8 +26,6 @@
 
 #if HAS_SERVOS
 
-#include "../common/servo.h"
-
 static volatile int8_t Channel[_Nbr_16timers ]; // counter for the servo being pulsed for each timer (or -1 if refresh interval)
 
 //------------------------------------------------------------------------------

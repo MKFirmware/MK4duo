@@ -249,7 +249,7 @@ void GCodeParser::parse(char *p) {
 
 pin_t GCodeParser::value_pin() {
   const pin_t pin = (int8_t)value_int();
-  return printer.pin_is_protected(pin) ? NoPin : pin;
+  return pin;
 }
 
 pin_t GCodeParser::analog_value_pin() {

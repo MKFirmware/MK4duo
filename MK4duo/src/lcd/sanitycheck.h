@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _LCD_SANITYCHECK_H_
-#define _LCD_SANITYCHECK_H_
 
 /**
  * Make sure only one display is enabled
@@ -203,13 +201,6 @@ static_assert(1 >= 0
   #endif
 #endif
 
-// Bootscreen
-#if ENABLED(SHOW_BOOTSCREEN)
-  #if DISABLED(STRING_SPLASH_LINE1)
-    #error "DEPENDENCY ERROR: Missing setting STRING_SPLASH_LINE1."
-  #endif
-#endif
-
 // Encoder rate multipliers
 #if ENABLED(ULTIPANEL)
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
@@ -246,5 +237,3 @@ static_assert(1 >= 0
 #if ENCODER_PULSES_PER_STEP < 0
   #error "DEPENDENCY ERROR: ENCODER_PULSES_PER_STEP should not be negative, use REVERSE_MENU_DIRECTION instead."
 #endif
-
-#endif /* _LCD_SANITYCHECK_H_ */

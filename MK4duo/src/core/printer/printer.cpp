@@ -27,6 +27,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
@@ -140,6 +141,9 @@ void Printer::setup() {
   SERIAL_L(START);
   SERIAL_STR(ECHO);
 
+  // Create driver stepper
+  stepper.create_driver();
+
   #if HAS_TRINAMIC
     tmc.init();
   #endif
@@ -195,6 +199,9 @@ void Printer::setup() {
 
   // Initialize stepper. This enables interrupts!
   stepper.init();
+
+  // Initialize tools
+  tools.init();
 
   #if ENABLED(CNCROUTER)
     cnc.init();
@@ -303,6 +310,8 @@ void Printer::loop() {
 
   for (;;) {
 
+    idle();
+
     #if HAS_SD_SUPPORT
 
       card.checkautostart();
@@ -340,10 +349,8 @@ void Printer::loop() {
 
     #endif // HAS_SD_SUPPORT
 
-    commands.get_available();
     commands.advance_queue();
     endstops.report_state();
-    idle();
 
   }
 }
@@ -572,6 +579,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   lcdui.update();
+
+  #if HAS_POWER_CHECK
+    powerManager.outage();
+  #endif
 
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
     host_keepalive_tick();

@@ -25,6 +25,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 #include "sensor/thermistor.h"
 
 #if HAS_HEATER
@@ -97,6 +98,15 @@ void Heater::set_target_temp(const int16_t celsius) {
     start_watching();
   }
 
+}
+
+void Heater::set_idle_temp(const int16_t celsius) {
+  if (celsius < data.mintemp)
+    print_low_high_temp(celsius, true);
+  else if (celsius > data.maxtemp - 10)
+    print_low_high_temp(celsius, false);
+  else
+    idle_temperature = celsius;
 }
 
 void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
@@ -182,6 +192,7 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     #endif
   }
 
+  printer.setWaitForHeatUp(false);
   printer.setAutoreportTemp(oldReport);
 }
 

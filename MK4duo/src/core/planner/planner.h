@@ -121,6 +121,10 @@ typedef struct block_t {
     #endif
   #endif
 
+  #if HAS_SD_RESTART
+    uint32_t sdpos;
+  #endif
+
 } block_t;
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))

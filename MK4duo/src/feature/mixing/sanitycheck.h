@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _COLOR_MIXING_SANITYCHECK_H_
-#define _COLOR_MIXING_SANITYCHECK_H_
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
   #if EXTRUDERS > 1
@@ -40,5 +38,3 @@
     #error "DEPENDENCY ERROR: COLOR_MIXING_EXTRUDER is incompatible with FILAMENT_WIDTH_SENSOR. Comment out this line to use it anyway."
   #endif
 #endif
-
-#endif /* _COLOR_MIXING_SANITYCHECK_H_ */

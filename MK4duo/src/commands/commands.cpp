@@ -53,7 +53,7 @@ void Commands::flush_and_request_resend() {
 }
 
 void Commands::get_available() {
-  if (buffer_ring.isFull()) return;
+  if (buffer_ring.isFull() || printer.isWaitForHeatUp()) return;
   get_serial();
   #if HAS_SD_SUPPORT
     get_sdcard();
@@ -235,6 +235,22 @@ bool Commands::get_target_tool(const uint16_t code) {
   return false;
 }
 
+bool Commands::get_target_driver(const uint16_t code) {
+  if (parser.seenval('T')) {
+    const int8_t t = parser.value_byte();
+    if (t >= DRIVER_EXTRUDERS) {
+      SERIAL_SMV(ECHO, "M", code);
+      SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
+      return true;
+    }
+    tools.extruder.target = t;
+  }
+  else
+    tools.extruder.target = 0;
+
+  return false;
+}
+
 Heater* Commands::get_target_heater() {
 
   const int8_t h = parser.intval('H');
@@ -259,24 +275,6 @@ Heater* Commands::get_target_heater() {
   return nullptr;
 
 }
-
-#if ENABLED(COLOR_MIXING_EXTRUDER)
-  bool Commands::get_target_driver(const uint16_t code) {
-    if (parser.seenval('T')) {
-      const int8_t t = parser.value_byte();
-      if (t >= DRIVER_EXTRUDERS) {
-        SERIAL_SMV(ECHO, "M", code);
-        SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
-        return true;
-      }
-      tools.extruder.target = t;
-    }
-    else
-      tools.extruder.target = 0;
-
-    return false;
-  }
-#endif
 
 #if HAS_FANS
   bool Commands::get_target_fan(uint8_t &f) {
@@ -480,13 +478,6 @@ void Commands::get_serial() {
       }
     #endif
 
-    #if HAS_POWER_CHECK
-      if (READ(POWER_CHECK_PIN) != powerManager.isLogic()) {
-        card.setAbortSDprinting(true);
-        return;
-      }
-    #endif
-
     /**
      * '#' stops reading from SD to the buffer prematurely, so procedural
      * macro calls are possible. If it occurs, stop_buffering is triggered
@@ -548,6 +539,10 @@ void Commands::get_serial() {
         sd_count = 0; // clear sd line buffer
 
         enqueue(sd_line_buffer, false, -2); // Port -2 for SD non answer and no send ok.
+
+        #if HAS_SD_RESTART
+          restart.cmd_sdpos = card.getIndex();
+        #endif
 
       }
       else if (sd_count >= MAX_CMD_SIZE - 1) {
@@ -627,6 +622,9 @@ bool Commands::enqueue(const char * cmd, bool say_ok/*=false*/, int8_t port/*=-2
   strcpy(temp_cmd.gcode, cmd);
   temp_cmd.s_port = port;
   temp_cmd.send_ok = say_ok;
+  #if HAS_SD_RESTART
+    restart.set_sdpos();
+  #endif
   buffer_ring.enqueue(temp_cmd);
   return true;
 }

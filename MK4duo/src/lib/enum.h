@@ -50,6 +50,25 @@ enum AxisEnum : uint8_t {
 };
 
 /**
+ * Driver indices as enumerated constants
+ */
+enum DriverEnum : uint8_t {
+  X_DRV   = 0,
+  Y_DRV   = 1,
+  Z_DRV   = 2,
+  E0_DRV  = 3,
+  E1_DRV  = 4,
+  E2_DRV  = 5,
+  E3_DRV  = 6,
+  E4_DRV  = 7,
+  E5_DRV  = 8,
+  X2_DRV  = 9,
+  Y2_DRV  = 10,
+  Z2_DRV  = 11,
+  Z3_DRV  = 12
+};
+
+/**
  * Printer Mode
  */
 enum PrinterModeEnum : uint8_t {

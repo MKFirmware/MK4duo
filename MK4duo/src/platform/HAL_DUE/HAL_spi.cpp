@@ -60,7 +60,7 @@
 
   // bitbanging transfer
   // run at ~100KHz (necessary for init)
-  uint8_t HAL::spiTransfer(uint8_t nbyte) { // using Mode 0
+  static uint8_t spiTransfer(uint8_t nbyte) { // using Mode 0
     for (int bits = 0; bits < 8; bits++) {
       if (nbyte & 0x80) {
         WRITE(MOSI_PIN, HIGH);
@@ -165,22 +165,22 @@
       if (spiInitMaded) return;
 
       // 8.4 MHz, 4 MHz, 2 MHz, 1 MHz, 0.5 MHz, 0.329 MHz, 0.329 MHz
-      constexpr int spiDueDividors[] = { 10, 21, 42, 84, 168, 255, 255 };
+      constexpr int spiDivider[] = { 10, 21, 42, 84, 168, 255, 255 };
       if (spiRate > 6) spiRate = 1;
 
       // Set SPI mode 1, clock, select not active after transfer, with delay between transfers
       SPI_ConfigureNPCS(SPI0, SPI_CHAN_DAC,
-                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiRate]) |
+                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDivider[spiRate]) |
                         SPI_CSR_DLYBCT(1));
 
       // Set SPI mode 0, clock, select not active after transfer, with delay between transfers
       SPI_ConfigureNPCS(SPI0, SPI_CHAN_EEPROM1, SPI_CSR_NCPHA |
-                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiRate]) |
+                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDivider[spiRate]) |
                         SPI_CSR_DLYBCT(1));
 
       // Set SPI mode 0, clock, select not active after transfer, with delay between transfers
       SPI_ConfigureNPCS(SPI0, SPI_CHAN, SPI_CSR_NCPHA |
-                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDueDividors[spiRate]) |
+                        SPI_CSR_CSAAT | SPI_CSR_SCBR(spiDivider[spiRate]) |
                         SPI_CSR_DLYBCT(1));
 
       SPI_Enable(SPI0);
@@ -198,8 +198,10 @@
     }
 
     void HAL::spiInit(uint8_t spiRate/*=6*/) {  // Default to slowest rate if not specified)
+                                                // Also sets U8G SPI rate to 4MHz and the SPI mode to 3
+
       // 8.4 MHz, 4 MHz, 2 MHz, 1 MHz, 0.5 MHz, 0.329 MHz, 0.329 MHz
-      constexpr int spiDueDividors[] = { 10, 21, 42, 84, 168, 255, 255 };
+      constexpr int spiDivider[] = { 10, 21, 42, 84, 168, 255, 255 };
       if (spiRate > 6) spiRate = 1;
 
       // Enable PIOA and SPI0
@@ -219,31 +221,30 @@
       // Master mode, no fault detection, PCS bits in data written to TDR select CSR register
       SPI0->SPI_MR = SPI_MR_MSTR | SPI_MR_PS | SPI_MR_MODFDIS;
       // SPI mode 0, 8 Bit data transfer, baud rate
-      SPI0->SPI_CSR[3] = SPI_CSR_SCBR(spiDueDividors[spiRate]) | SPI_CSR_CSAAT | SPI_MODE_0_DUE_HW;  // use same CSR as TMC2130
+      SPI0->SPI_CSR[3] = SPI_CSR_SCBR(spiDivider[spiRate]) | SPI_CSR_CSAAT | SPI_MODE_0_DUE_HW; // use same CSR as TMC2130
+      SPI0->SPI_CSR[0] = SPI_CSR_SCBR(spiDivider[1]) | SPI_CSR_CSAAT | SPI_MODE_3_DUE_HW;       // U8G default to 4MHz
     }
 
   #endif
 
-    uint8_t HAL::spiTransfer(uint8_t nbyte) {
+    static uint8_t spiTransfer(uint8_t nbyte) {
 
       // Wait until tx register is empty
       while( (SPI0->SPI_SR & SPI_SR_TDRE) == 0 );
       // Send nbyte
       SPI0->SPI_TDR = (uint32_t)nbyte | 0x00070000UL;  // Add TMC2130 PCS bits to every byte
 
-      // wait for transmit register empty
+      // Wait for transmit register empty
       while ((SPI0->SPI_SR & SPI_SR_TDRE) == 0);
 
-      // wait for receive register
+      // Wait for receive register
       while ((SPI0->SPI_SR & SPI_SR_RDRF) == 0);
       // get byte from receive register
       return SPI0->SPI_RDR;
     }
 
     // Write single byte to SPI
-    void HAL::spiSend(uint8_t nbyte) {
-      spiTransfer(nbyte);
-    }
+    void HAL::spiSend(uint8_t nbyte) { spiTransfer(nbyte); }
 
     void HAL::spiSend(const uint8_t* buf, size_t nbyte) {
       if (nbyte == 0) return;

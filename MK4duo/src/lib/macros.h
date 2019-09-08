@@ -238,7 +238,9 @@
 #define LOOP_ABC(VAR)             LOOP_S_LE_N(VAR, A_AXIS, C_AXIS)
 #define LOOP_ABCE(VAR)            LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)
 #define LOOP_ABCE_N(VAR)          LOOP_S_L_N(VAR, A_AXIS, XYZE_N)
-#define LOOP_DRV_EXTRUDER()       LOOP_L_N(d, DRIVER_EXTRUDERS)
+#define LOOP_DRV()                LOOP_L_N(d, MAX_DRIVER)
+#define LOOP_DRV_XYZ()            LOOP_S_LE_N(d, X_DRV, Z_DRV)
+#define LOOP_DRV_EXTRUDER()       LOOP_S_LE_N(d, E0_DRV, E5_DRV)
 #define LOOP_EXTRUDER()           LOOP_L_N(e, EXTRUDERS)
 #define LOOP_HOTEND()             LOOP_L_N(h, HOTENDS)
 #define LOOP_BED()                LOOP_L_N(h, BEDS)
@@ -246,7 +248,6 @@
 #define LOOP_COOLER()             LOOP_L_N(h, COOLERS)
 #define LOOP_FAN()                LOOP_L_N(f, FAN_COUNT)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
-#define LOOP_TMC()                LOOP_L_N(t, TMC_AXIS)
 
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M)          ((MM_M)/60.0f)

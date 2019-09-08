@@ -301,13 +301,13 @@
       }
 
       // Bilinear interpolate. Needed since ry or gridx has changed.
-                  L = z1 + d2 * ratio_y;   // Linear interp. LF -> LB
-      const float R = z3 + d4 * ratio_y;   // Linear interp. RF -> RB
+                  L = z1 + d2 * ratio_y;      // Linear interp. LF -> LB
+      const float R = z3 + d4 * ratio_y;      // Linear interp. RF -> RB
 
       D = R - L;
     }
 
-    const float offset = L + ratio_x * D;   // the offset almost always changes
+    const float offset = L + ratio_x * D;     // the offset almost always changes
 
     /*
     static float last_offset = 0;

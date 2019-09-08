@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _RGBLED_SANITYCHECK_H_
-#define _RGBLED_SANITYCHECK_H_
 
 // RGB_LED Requirements
 #define _RGB_TEST (PIN_EXISTS(RGB_LED_R) && PIN_EXISTS(RGB_LED_G) && PIN_EXISTS(RGB_LED_B))
@@ -57,5 +55,3 @@
 #if ENABLED(CASE_LIGHT_USE_NEOPIXEL) && DISABLED(NEOPIXEL_LED)
   #error "DEPENDENCY ERROR: CASE_LIGHT_USE_NEOPIXEL requires NEOPIXEL_LED."
 #endif
-
-#endif /* _RGBLED_SANITYCHECK_H_ */

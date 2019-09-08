@@ -250,6 +250,7 @@
  *          I[bool] Hardware Inverted, T[bool] Thermal Protection, P[int] Pin, Q[bool] PWM Hardware
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
+ * M352 - Set driver pins and logic. X X2 Y Y2 Z Z2 Z3 T0-5 E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
  * M355 - Turn case lights on/off
  * M380 - Activate solenoid on active extruder
  * M381 - Disable all solenoids
@@ -290,6 +291,7 @@
  * M540 - Use S[0|1] to enable or disable the stop print on endstop hit (requires SD_ABORT_ON_ENDSTOP_HIT)
  * M569 - Stepper driver control X[bool] Y[bool] Z[bool] T[extruders] E[bool] set direction,
  *          D[long] set direction delay, P[int] set minimum pulse, R[long] set maximum rate, Q[bool] Enable/Disable double/quad stepping.
+ * M575 - Change serial baud rate P[Port index] B[Baudrate]
  * M595 - Set AD595 or AD8495 O[offset] and S[gain]
  * M600 - Pause for filament change T[toolhead] X[pos] Y[pos] Z[relative lift]
  *        E[initial retract] U[Retract distance] L[Extrude distance] S[new temp] B[Number of beep]

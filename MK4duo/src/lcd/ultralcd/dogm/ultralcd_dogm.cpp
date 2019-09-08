@@ -64,7 +64,7 @@ U8G_CLASS u8g(U8G_PARAM);
 
 #if HAS_LCD_CONTRAST
 
-  uint8_t LcdUI::contrast; // Initialized by eeprom.load()
+  uint8_t LcdUI::contrast = LCD_CONTRAST_INIT;
 
   void LcdUI::set_contrast(const uint8_t value) {
     contrast = constrain(value, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX);
@@ -142,22 +142,19 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
 
   #endif // SHOW_CUSTOM_BOOTSCREEN
 
-  // Draws a slice of the MK4duo bootscreen, without the u8g loop
-  void draw_mk4duo_bootscreen() {
-    // Screen dimensions.
-    //const uint8_t width = u8g.getWidth(), height = u8g.getHeight();
-    constexpr u8g_uint_t width = LCD_PIXEL_WIDTH, height = LCD_PIXEL_HEIGHT;
+  // Two-part needed to display all info
+  constexpr bool two_part = ((LCD_PIXEL_HEIGHT) - (START_BMPHEIGHT)) < ((MENU_FONT_ASCENT) * 2);
+
+  // Draw the static MK4duo bootscreen from a u8g loop
+  // or the animated boot screen within its own u8g loop
+  void draw_mk4duo_bootscreen(const bool line2=false) {
 
     // Determine text space needed
-    #if DISABLED(STRING_SPLASH_LINE2)
-      constexpr u8g_uint_t  text_total_height = MENU_FONT_HEIGHT,
-                            text_width_2 = 0;
-    #else
-      constexpr u8g_uint_t  text_total_height = (MENU_FONT_HEIGHT) * 2,
-                            text_width_2 = u8g_uint_t((sizeof(STRING_SPLASH_LINE2) - 1) * (MENU_FONT_WIDTH));
-    #endif
-    constexpr u8g_uint_t  text_width_1 = u8g_uint_t((sizeof(STRING_SPLASH_LINE1) - 1) * (MENU_FONT_WIDTH)),
+    constexpr u8g_uint_t  text_width_1 = u8g_uint_t((sizeof(SHORT_BUILD_VERSION) - 1) * (MENU_FONT_WIDTH)),
+                          text_width_2 = u8g_uint_t((sizeof(MK4DUO_FIRMWARE_URL) - 1) * (MENU_FONT_WIDTH)),
                           text_max_width = MAX(text_width_1, text_width_2),
+                          text_total_height = MENU_FONT_HEIGHT * 2,
+                          width = LCD_PIXEL_WIDTH, height = LCD_PIXEL_HEIGHT,
                           rspace = width - (START_BMPWIDTH);
 
     u8g_int_t offx, offy, txt_base, txt_offx_1, txt_offx_2;
@@ -181,25 +178,21 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
     NOLESS(offx, 0);
     NOLESS(offy, 0);
 
-    auto draw_bootscreen_bmp = [&](const uint8_t *bitmap) {
+    auto _draw_bootscreen_bmp = [&](const uint8_t *bitmap) {
       u8g.drawBitmapP(offx, offy, START_BMP_BYTEWIDTH, START_BMPHEIGHT, bitmap);
       lcdui.set_font(FONT_MENU);
-      #if DISABLED(STRING_SPLASH_LINE2)
-        lcd_put_u8str_P(txt_offx_1, txt_base, PSTR(STRING_SPLASH_LINE1));
-      #else
-        lcd_put_u8str_P(txt_offx_1, txt_base - (MENU_FONT_HEIGHT), PSTR(STRING_SPLASH_LINE1));
-        lcd_put_u8str_P(txt_offx_2, txt_base, PSTR(STRING_SPLASH_LINE2));
-      #endif
+      if (!two_part || !line2) lcd_put_u8str_P(txt_offx_1, txt_base - (MENU_FONT_HEIGHT), PSTR(SHORT_BUILD_VERSION));
+      if (!two_part ||  line2) lcd_put_u8str_P(txt_offx_2, txt_base, PSTR(MK4DUO_FIRMWARE_URL));
+    };
+
+    auto draw_bootscreen_bmp = [&](const uint8_t *bitmap) {
+      u8g.firstPage(); do { _draw_bootscreen_bmp(bitmap); } while (u8g.nextPage());
     };
 
     #if ENABLED(BOOTSCREEN_MKLOGO_ANIMATED)
       constexpr millis_t d = MK4DUO_BOOTSCREEN_FRAME_TIME;
       LOOP_L_N(f, COUNT(mk4duo_bootscreen_animation)) {
-        u8g.firstPage();
-        do {
-          const u8g_pgm_uint8_t * const bmp = (u8g_pgm_uint8_t*)pgm_read_ptr(&mk4duo_bootscreen_animation[f]);
-          draw_bootscreen_bmp(bmp);
-        } while (u8g.nextPage());
+        draw_bootscreen_bmp((uint8_t*)pgm_read_ptr(&mk4duo_bootscreen_animation[f]));
         if (d) HAL::delayMilliseconds(d);
       }
     #else
@@ -212,9 +205,11 @@ void LcdUI::set_font(const MK4duoFontEnum font_nr) {
     #ifndef BOOTSCREEN_TIMEOUT
       #define BOOTSCREEN_TIMEOUT 2500
     #endif
-    u8g.firstPage();
-    do { draw_mk4duo_bootscreen(); } while (u8g.nextPage());
-    HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
+    constexpr uint8_t pages = two_part ? 2 : 1;
+    for (uint8_t q = pages; q--;) {
+      draw_mk4duo_bootscreen(q == 0);
+      HAL::delayMilliseconds((BOOTSCREEN_TIMEOUT) / pages);
+    }
   }
 
   void LcdUI::show_bootscreen() {

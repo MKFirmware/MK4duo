@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _LASER_SANITYCHECK_H_
-#define _LASER_SANITYCHECK_H_
 
 #if ENABLED(LASER)
   #if ENABLED(LASER_PERIPHERALS)
@@ -52,5 +50,3 @@
     #endif
   #endif
 #endif
-
-#endif /* _LASER_SANITYCHECK_H_ */

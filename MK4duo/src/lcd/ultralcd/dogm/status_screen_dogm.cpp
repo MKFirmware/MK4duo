@@ -44,14 +44,18 @@
 #define EXTRAS_BASELINE (40 + INFO_FONT_ASCENT)
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
-#define DO_DRAW_BED     (HAS_TEMP_BED0 && STATUS_BED_WIDTH && HOTENDS <= 3 && DISABLED(STATUS_COMBINE_HEATERS))
-#define DO_DRAW_FAN     (HAS_FAN0 && STATUS_FAN_WIDTH && STATUS_FAN_FRAMES)
-#define DO_DRAW_CHAMBER (HAS_TEMP_CHAMBER0 && ((HOTENDS <= 2 && DO_DRAW_BED) || (!DO_DRAW_BED && HOTENDS <= 3)))
+#define DO_DRAW_LOGO    (STATUS_LOGO_WIDTH && ENABLED(CUSTOM_STATUS_SCREEN_IMAGE))
+#define DO_DRAW_BED     (HAS_BEDS && STATUS_BED_WIDTH && HOTENDS <= 4)
+#define DO_DRAW_CHAMBER (HAS_CHAMBERS && STATUS_CHAMBER_WIDTH && HOTENDS <= 4)
+#define DO_DRAW_FAN     (HAS_FAN0 && STATUS_FAN_WIDTH && HOTENDS <= 4 && ENABLED(STATUS_FAN_FRAMES))
+
 #define ANIM_HOTEND     (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
 #define ANIM_BED        (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
-#define ANIM_CHAMBER    (HAS_TEMP_CHAMBER0 && ENABLED(STATUS_CHAMBER_ANIM))
+#define ANIM_CHAMBER    (HAS_CHAMBERS && ENABLED(STATUS_CHAMBER_ANIM))
 
-#if ANIM_HOTEND || ANIM_BED
+#define ANIM_HBC (ANIM_HOTEND || ANIM_BED || ANIM_CHAMBER)
+
+#if ANIM_HBC
   uint8_t heat_bits;
 #endif
 #if ANIM_HOTEND
@@ -82,7 +86,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
-  #if HAS_BEDS
+  #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (HAS_BEDS && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
     const bool isBed = (act->type == IS_BED);
     #define IFBED(A,B) (isBed ? (A) : (B))
   #else
@@ -110,7 +114,13 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
     #define BED_DOT       false
   #endif
 
-  #if ANIM_HOTEND && ENABLED(STATUS_HOTEND_INVERTED)
+  #if ANIM_HOTEND && ENABLED(STATUS_HOTEND_INVERTED) && ENABLED(STATUS_HOTEND_NUMBERLESS)
+    #define OFF_BMP(N) status_hotend_b_bmp
+    #define ON_BMP(N)  status_hotend_a_bmp
+  #elif ANIM_HOTEND && DISABLED(STATUS_HOTEND_INVERTED) && ENABLED(STATUS_HOTEND_NUMBERLESS)
+    #define OFF_BMP(N) status_hotend_a_bmp
+    #define ON_BMP(N)  status_hotend_b_bmp
+  #elif ANIM_HOTEND && ENABLED(STATUS_HOTEND_INVERTED)
     #define OFF_BMP(N) status_hotend##N##_b_bmp
     #define ON_BMP(N)  status_hotend##N##_a_bmp
   #else
@@ -119,9 +129,9 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
   #endif
 
   #if STATUS_HOTEND_BITMAPS > 1
-    static const unsigned char* const status_hotend_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, OFF_BMP(1), OFF_BMP(2), OFF_BMP(3), OFF_BMP(4));
+    static const unsigned char* const status_hotend_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, OFF_BMP(1), OFF_BMP(2), OFF_BMP(3), OFF_BMP(4), OFF_BMP(5), OFF_BMP(6));
     #if ANIM_HOTEND
-      static const unsigned char* const status_hotend_on_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, ON_BMP(1), ON_BMP(2), ON_BMP(3), ON_BMP(4));
+      static const unsigned char* const status_hotend_on_gfx[STATUS_HOTEND_BITMAPS] PROGMEM = ARRAY_N(STATUS_HOTEND_BITMAPS, ON_BMP(1), ON_BMP(2), ON_BMP(3), ON_BMP(4), ON_BMP(5), ON_BMP(6));
       #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr((S) ? &status_hotend_on_gfx[(N) % (STATUS_HOTEND_BITMAPS)] : &status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
     #else
       #define HOTEND_BITMAP(N,S)  (unsigned char*)pgm_read_ptr(&status_hotend_gfx[(N) % (STATUS_HOTEND_BITMAPS)])
@@ -138,13 +148,14 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
     const float prop = target - 20,
                 perc = prop > 0 && temp >= 20 ? (temp - 20) / prop : 0;
-    uint8_t tall = uint8_t(perc * BAR_TALL + 0.5f);
+    uint8_t     tall = uint8_t(perc * BAR_TALL + 0.5f);
     NOMORE(tall, BAR_TALL);
 
-    #if ENABLED(STATUS_HOTEND_ANIM)
+   #if ANIM_HOTEND
       // Draw hotend bitmap, either whole or split by the heating percent
       if (IFBED(0, 1)) {
-        const uint8_t hx = STATUS_HOTEND_X(act->data.ID), bw = STATUS_HOTEND_BYTEWIDTH(act->data.ID);
+        const uint8_t hx = STATUS_HOTEND_X(act->data.ID),
+                      bw = STATUS_HOTEND_BYTEWIDTH(act->data.ID);
         #if ENABLED(STATUS_HEAT_PERCENT)
           if (isHeat && tall <= BAR_TALL) {
             const uint8_t ph = STATUS_HEATERS_HEIGHT - 1 - tall;
@@ -158,7 +169,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
     #endif
 
     // Draw a heating progress bar, if specified
-    #if ENABLED(STATUS_HEAT_PERCENT)
+    #if DO_DRAW_BED && ENABLED(STATUS_HEAT_PERCENT)
 
       if (IFBED(true, STATIC_HOTEND) && isHeat) {
         const uint8_t bx = IFBED(STATUS_BED_X + STATUS_BED_WIDTH, STATUS_HOTEND_X(act->data.ID) + STATUS_HOTEND_WIDTH(act->data.ID)) + 1;
@@ -196,9 +207,8 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
                 target  = chambers[0].deg_target();
 
     if (PAGE_UNDER(7)) {
-      const bool  is_idle = false,
-                  dodraw  = (blink || !is_idle);
-      if (dodraw) _draw_centered_temp(target + 0.5, STATUS_CHAMBER_TEXT_X, 7);
+      const bool  is_idle = chambers[0].isIdle();
+      if (blink || !is_idle) _draw_centered_temp(target + 0.5, STATUS_CHAMBER_TEXT_X, 7);
     }
     if (PAGE_CONTAINS(28 - INFO_FONT_ASCENT, 28 - 1))
       _draw_centered_temp(temp + 0.5f, STATUS_CHAMBER_TEXT_X, 28);
@@ -234,7 +244,7 @@ void LcdUI::draw_status_screen() {
 
   // At the first page, regenerate the XYZ strings
   if (first_page) {
-    #if ANIM_HOTEND || ANIM_BED || ANIM_CHAMBER
+    #if ANIM_HBC
       uint8_t new_bits = 0;
       #if ANIM_HOTEND
         LOOP_HOTEND() if (hotends[h].isHeating()) SBI(new_bits, h);
@@ -242,7 +252,7 @@ void LcdUI::draw_status_screen() {
       #if ANIM_BED
         if (beds[0].isHeating()) SBI(new_bits, 7);
       #endif
-      #if ANIM_CHAMBER
+      #if DO_DRAW_CHAMBER
         if (chambers[0].isHeating()) SBI(new_bits, 6);
       #endif
       heat_bits = new_bits;
@@ -266,7 +276,7 @@ void LcdUI::draw_status_screen() {
   // Status Menu Font
   set_font(FONT_STATUSMENU);
 
-  #if STATUS_LOGO_WIDTH
+  #if DO_DRAW_LOGO
     if (PAGE_CONTAINS(STATUS_LOGO_Y, STATUS_LOGO_Y + STATUS_LOGO_HEIGHT - 1))
       u8g.drawBitmapP(STATUS_LOGO_X, STATUS_LOGO_Y, STATUS_LOGO_BYTEWIDTH, STATUS_LOGO_HEIGHT, status_logo_bmp);
   #endif
@@ -279,13 +289,14 @@ void LcdUI::draw_status_screen() {
         u8g.drawBitmapP(STATUS_HEATERS_X, STATUS_HEATERS_Y, STATUS_HEATERS_BYTEWIDTH, STATUS_HEATERS_HEIGHT, status_heaters_bmp);
     #endif
 
-    #if DO_DRAW_BED
+    #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS)
       #if ANIM_BED
         #define BED_BITMAP(S) ((S) ? status_bed_on_bmp : status_bed_bmp)
       #else
         #define BED_BITMAP(S) status_bed_bmp
       #endif
-      const uint8_t bedy = STATUS_BED_Y(BED_ALT()), bedh = STATUS_BED_HEIGHT(BED_ALT());
+      const uint8_t bedy = STATUS_BED_Y(BED_ALT()),
+                    bedh = STATUS_BED_HEIGHT(BED_ALT());
       if (PAGE_CONTAINS(bedy, bedy + bedh - 1))
         u8g.drawBitmapP(STATUS_BED_X, bedy, STATUS_BED_BYTEWIDTH, bedh, BED_BITMAP(BED_ALT()));
     #endif
@@ -296,11 +307,37 @@ void LcdUI::draw_status_screen() {
       #else
         #define CHAMBER_BITMAP(S) status_chamber_bmp
       #endif
-      const uint8_t chay = STATUS_CHAMBER_Y(CHAMBER_ALT()), chah = STATUS_CHAMBER_HEIGHT(CHAMBER_ALT());
-      if (PAGE_CONTAINS(chay, chay + chah - 1))
-        u8g.drawBitmapP(STATUS_CHAMBER_X, chay, STATUS_CHAMBER_BYTEWIDTH, chah, CHAMBER_BITMAP(CHAMBER_ALT()));
+      const uint8_t chambery = STATUS_CHAMBER_Y(CHAMBER_ALT()),
+                    chamberh = STATUS_CHAMBER_HEIGHT(CHAMBER_ALT());
+      if (PAGE_CONTAINS(chambery, chambery + chamberh - 1))
+        u8g.drawBitmapP(STATUS_CHAMBER_X, chambery, STATUS_CHAMBER_BYTEWIDTH, chamberh, CHAMBER_BITMAP(CHAMBER_ALT()));
     #endif
 
+    #if DO_DRAW_FAN
+      #if STATUS_FAN_FRAMES > 2
+        static bool old_blink;
+        static uint8_t fan_frame;
+        if (old_blink != blink) {
+          old_blink = blink;
+          if (!fans[0].speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
+        }
+      #endif
+      if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
+        u8g.drawBitmapP(
+          STATUS_FAN_X, STATUS_FAN_Y,
+          STATUS_FAN_BYTEWIDTH, STATUS_FAN_HEIGHT,
+          #if STATUS_FAN_FRAMES > 2
+            fan_frame == 1 ? status_fan1_bmp :
+            fan_frame == 2 ? status_fan2_bmp :
+            #if STATUS_FAN_FRAMES > 3
+              fan_frame == 3 ? status_fan3_bmp :
+            #endif
+          #elif STATUS_FAN_FRAMES > 1
+            blink && fans[0].speed ? status_fan1_bmp :
+          #endif
+          status_fan0_bmp
+        );
+    #endif
     //
     // Temperature Graphics and Info
     //
@@ -311,7 +348,7 @@ void LcdUI::draw_status_screen() {
         _draw_heater_status(&hotends[h], blink);
 
       // Heated bed
-      #if DO_DRAW_BED
+      #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (HAS_BEDS && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
         _draw_heater_status(&beds[0], blink);
       #endif
 
@@ -331,32 +368,6 @@ void LcdUI::draw_status_screen() {
     }
 
   } // printer.mode == PRINTER_MODE_FFF
-
-  #if DO_DRAW_FAN
-    #if STATUS_FAN_FRAMES > 2
-      static bool old_blink;
-      static uint8_t fan_frame;
-      if (old_blink != blink) {
-        old_blink = blink;
-        if (!fans[0].speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
-      }
-    #endif
-    if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
-      u8g.drawBitmapP(
-        STATUS_FAN_X, STATUS_FAN_Y,
-        STATUS_FAN_BYTEWIDTH, STATUS_FAN_HEIGHT,
-        #if STATUS_FAN_FRAMES > 2
-          fan_frame == 1 ? status_fan1_bmp :
-          fan_frame == 2 ? status_fan2_bmp :
-          #if STATUS_FAN_FRAMES > 3
-            fan_frame == 3 ? status_fan3_bmp :
-          #endif
-        #elif STATUS_FAN_FRAMES > 1
-          blink && fans[0].speed ? status_fan1_bmp :
-        #endif
-        status_fan0_bmp
-      );
-  #endif
 
   #if ENABLED(LASER)
 
@@ -402,18 +413,17 @@ void LcdUI::draw_status_screen() {
   //
   // Progress bar frame
   //
-
   #define PROGRESS_BAR_X 54
   #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
 
-  if (PAGE_CONTAINS(49, 52))       // 49-52
+  if (PAGE_CONTAINS(49, 52))
     u8g.drawFrame(PROGRESS_BAR_X, 49, PROGRESS_BAR_WIDTH, 4);
 
   //
   // Progress bar solid part
   //
 
-  if (printer.progress && (PAGE_CONTAINS(50, 51)))  // 50-51
+  if (printer.progress && (PAGE_CONTAINS(50, 51)))
     u8g.drawBox(
       PROGRESS_BAR_X + 1, 50,
       (uint16_t)((PROGRESS_BAR_WIDTH - 2) * printer.progress * 0.01), 2
@@ -453,11 +463,6 @@ void LcdUI::draw_status_screen() {
   //
   // XYZ Coordinates
   //
-
-  #define X_LABEL_POS  3
-  #define X_VALUE_POS 11
-  #define XYZ_SPACING 37
-
   #if ENABLED(XYZ_HOLLOW_FRAME)
     #define XYZ_FRAME_TOP 29
     #define XYZ_FRAME_HEIGHT INFO_FONT_ASCENT + 3

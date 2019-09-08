@@ -82,6 +82,14 @@ class Tools {
 
   public: /** Public Function */
 
+    /**
+     * Initialize tools hardware
+     */
+    static void init();
+
+    /**
+     * Initialize Factory parameters
+     */
     static void factory_parameters();
 
     static void change(const uint8_t new_tool, bool no_move=false);

@@ -25,6 +25,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 #include "../../platform/common/endstop_interrupts.h"
 
 #define _ENDSTOP(AXIS, MINMAX)      AXIS ##_## MINMAX
@@ -930,19 +931,19 @@ void Endstops::update_software_endstops(const AxisEnum axis
   bool Endstops::tmc_spi_homing_check() {
     bool hit = false;
     #if X_SPI_SENSORLESS
-      if (tmc_spi_homing.x && stepperX->test_stall_status()) {
+      if (tmc_spi_homing.x && driver[X_DRV]->tmc->test_stall_status()) {
         SBI(live_state, X_STOP);
         hit = true;
       }
     #endif
     #if Y_SPI_SENSORLESS
-      if (tmc_spi_homing.y && stepperY->test_stall_status()) {
+      if (tmc_spi_homing.y && driver[Y_DRV]->tmc->test_stall_status()) {
         SBI(live_state, Y_STOP);
         hit = true;
       }
     #endif
     #if Z_SPI_SENSORLESS
-      if (tmc_spi_homing.z && stepperZ->test_stall_status()) {
+      if (tmc_spi_homing.z && driver[Z_DRV]->tmc->test_stall_status()) {
         SBI(live_state, Z_STOP);
         hit = true;
       }

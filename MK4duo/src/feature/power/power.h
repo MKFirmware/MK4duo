@@ -102,6 +102,11 @@ class Power {
        */
       static void report();
 
+      /**
+       * check the pin and stop printing
+       */
+      static void outage();
+
       // Flag bit 0 Set power check logic
       FORCE_INLINE static void setLogic(const bool logic) { data.flag.Logic = logic; }
       FORCE_INLINE static bool isLogic() { return data.flag.Logic; }
