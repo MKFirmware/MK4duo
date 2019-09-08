@@ -98,22 +98,22 @@
         case E_AXIS: {
           switch (TARGET_EXTRUDER) {
             #if AXIS_HAS_TMC(E0)
-              case 0: driver[E0_DRV]->rms_current(value); break;
+              case 0: driver[E0_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E1)
-              case 1: driver[E1_DRV]->rms_current(value); break;
+              case 1: driver[E1_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E2)
-              case 2: driver[E2_DRV]->rms_current(value); break;
+              case 2: driver[E2_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E3)
-              case 3: driver[E3_DRV]->rms_current(value); break;
+              case 3: driver[E3_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E4)
-              case 4: driver[E4_DRV]->rms_current(value); break;
+              case 4: driver[E4_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E5)
-              case 5: driver[E5_DRV]->rms_current(value); break;
+              case 5: driver[E5_DRV]->tmc->rms_current(value); break;
             #endif
           }
         } break;
