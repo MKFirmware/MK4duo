@@ -275,7 +275,9 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
           singlenozzle_temp[extruder.previous] = hotends[0].deg_target();
           if (singlenozzle_temp[extruder.active] && singlenozzle_temp[extruder.active] != hotends[0].deg_target()) {
             hotends[0].set_target_temp(singlenozzle_temp[extruder.active]);
-            nozzle.set_heating_message();
+            #if HAS_LCD
+              nozzle.set_heating_message();
+            #endif
             hotends[0].wait_for_target(true);
           }
         #endif
