@@ -1397,14 +1397,12 @@ void EEPROM::reset() {
     tmc.factory_parameters();
   #endif
 
-  stepper.reset_drivers();
-
-  // Reset the watchdog
-  watchdog.reset();
-
   post_process();
 
   SERIAL_LM(ECHO, "Factory Settings Loaded");
+
+  // Reset the watchdog
+  watchdog.reset();
 
 }
 
