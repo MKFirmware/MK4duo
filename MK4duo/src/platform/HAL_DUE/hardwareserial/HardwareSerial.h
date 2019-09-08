@@ -33,13 +33,11 @@ class MKHardwareSerial {
 
     MKHardwareSerial() {}
 
-  private: /** Private Parameters */
+  protected: /** Protected Parameters */
 
     static constexpr uint32_t   ADDR_REG[]  = { 0x400E0800U,  0x40098000U,  0x4009C000U,  0x400A0000U,  0x400A4000U };
     static constexpr IRQn_Type  IRQ[]       = { UART_IRQn,    USART0_IRQn,  USART1_IRQn,  USART2_IRQn,  USART3_IRQn };
     static constexpr int        IRQ_ID[]    = { ID_UART,      ID_USART0,    ID_USART1,    ID_USART2,    ID_USART3 };
-
-  protected: /** Protected Parameters */
 
     static constexpr ApplyAddrReg<Uart,ADDR_REG[Cfg::PORT]> HWUART = 0;
     static constexpr IRQn_Type  HWUART_IRQ    = IRQ[Cfg::PORT];
