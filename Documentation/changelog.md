@@ -9,9 +9,9 @@
 * Add Prompt support for host
 * Add support for BLTouch V3.0/V3.1
 * Add Prusa MMU2 Support
-* Add support thermocouples for hotend and bed.
-* Add menu axis limit to menu advanced.
-* Add Double-Quad Stepping to command M569 Q and save it into EEPROM.
+* Add support thermocouples for hotend and bed
+* Add menu axis limit to menu advanced
+* Add Double-Quad Stepping to command M569 Q and save it into EEPROM
 * Add Option for Safety Timer in configuration_temperature.h
 * Add Game menu
 * Add DHT menu
