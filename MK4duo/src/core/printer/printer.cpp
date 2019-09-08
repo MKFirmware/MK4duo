@@ -356,7 +356,7 @@ void Printer::loop() {
 }
 
 void Printer::factory_parameters() {
-  various_flag.all = 0;
+  various_flag.all = 0x0000;
   #if ENABLED(IDLE_OOZING_PREVENT)
     IDLE_OOZING_enabled = true;
   #endif

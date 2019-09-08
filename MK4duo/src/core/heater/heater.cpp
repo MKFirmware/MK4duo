@@ -541,6 +541,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
   thermalManager.disable_all_heaters();
 
+  printer.setWaitForHeatUp(false);
   printer.setAutoreportTemp(oldReport);
 
   LCD_MESSAGEPGM(WELCOME_MSG);
