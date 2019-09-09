@@ -384,7 +384,7 @@ void TMC_Stepper::factory_parameters() {
                                                             X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
 
   LOOP_DRV() {
-    if (driver[d]->tmc) {
+    if (driver[d] && driver[d]->tmc) {
       driver[d]->tmc->rms_current(tmc_stepper_current[d]);
       driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
       #if ENABLED(HYBRID_THRESHOLD)
@@ -400,7 +400,7 @@ void TMC_Stepper::factory_parameters() {
 }
 
 void TMC_Stepper::restore() {
-  LOOP_DRV() if (driver[d]->tmc) driver[d]->tmc->push();
+  LOOP_DRV() if (driver[d] && driver[d]->tmc) driver[d]->tmc->push();
 }
 
 void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bool test_z, const bool test_e) {
@@ -477,7 +477,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #endif
       if (need_update_error_counters || need_debug_reporting) {
         LOOP_DRV() {
-          if (driver[d]->tmc) monitor_driver(DriverEnum(d), need_update_error_counters, need_debug_reporting);
+          if (driver[d] && driver[d]->tmc) monitor_driver(DriverEnum(d), need_update_error_counters, need_debug_reporting);
         }
 
         #if ENABLED(TMC_DEBUG)
@@ -621,7 +621,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
       SERIAL_SM(CFG, "  M350");
       LOOP_DRV_XYZ() {
-        if (driver[d]->tmc) {
+        if (driver[d] && driver[d]->tmc) {
           SERIAL_MSG(" ");
           driver[d]->printLabel();
           SERIAL_VAL(driver[d]->tmc->microsteps());
@@ -631,7 +631,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     #endif
 
     LOOP_DRV_EXTRUDER() {
-      if (driver[d]->tmc) {
+      if (driver[d] && driver[d]->tmc) {
         SERIAL_SM(CFG, "  M350 ");
         driver[d]->printLabel();
         SERIAL_EMV(" E", driver[d]->tmc->microsteps());
@@ -647,7 +647,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
       SERIAL_SM(CFG, "  M906");
       LOOP_DRV_XYZ() {
-        if (driver[d]->tmc) {
+        if (driver[d] && driver[d]->tmc) {
           SERIAL_MSG(" ");
           driver[d]->printLabel();
           SERIAL_VAL(driver[d]->tmc->getMilliamps());
@@ -657,7 +657,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
     #endif
 
     LOOP_DRV_EXTRUDER() {
-      if (driver[d]->tmc) {
+      if (driver[d] && driver[d]->tmc) {
         SERIAL_SM(CFG, "  M906 ");
         driver[d]->printLabel();
         SERIAL_EMV(" E", driver[d]->tmc->microsteps());
@@ -675,7 +675,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Z)
         SERIAL_SM(CFG, "  M913");
         LOOP_DRV_XYZ() {
-          if (driver[d]->tmc) {
+          if (driver[d] && driver[d]->tmc) {
             SERIAL_MSG(" ");
             driver[d]->printLabel();
             SERIAL_VAL(driver[d]->tmc->get_pwm_thrs());
@@ -685,7 +685,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #endif
 
       LOOP_DRV_EXTRUDER() {
-        if (driver[d]->tmc) {
+        if (driver[d] && driver[d]->tmc) {
           SERIAL_SM(CFG, "  M913 ");
           driver[d]->printLabel();
           SERIAL_EMV(" E", driver[d]->tmc->get_pwm_thrs());
