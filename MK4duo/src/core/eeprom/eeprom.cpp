@@ -693,7 +693,7 @@ void EEPROM::post_process() {
                                                       X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
 
       LOOP_DRV() {
-        if (driver[d]->tmc) {
+        if (driver[d] && driver[d]->tmc) {
           tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
           tmc_stepper_microstep[d]  = driver[d]->tmc->microsteps();
           #if ENABLED(HYBRID_THRESHOLD)
@@ -1079,7 +1079,7 @@ void EEPROM::post_process() {
 
         if (!flag.validating) {
           LOOP_DRV() {
-            if (driver[d]->tmc) {
+            if (driver[d] && driver[d]->tmc) {
               driver[d]->tmc->rms_current(tmc_stepper_current[d]);
               driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
               #if ENABLED(HYBRID_THRESHOLD)
