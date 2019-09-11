@@ -37,6 +37,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
   float new_z_fade_height;
@@ -50,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV71"
+#define EEPROM_VERSION "MKV72"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -67,6 +68,11 @@ typedef struct EepromDataStruct {
   // Endstop data
   //
   endstop_data_t    endstop_data;
+
+  //
+  // Driver
+  //
+  driver_data_t     driver_data[MAX_DRIVER];
 
   //
   // Stepper data
@@ -279,10 +285,10 @@ typedef struct EepromDataStruct {
   // Trinamic
   //
   #if HAS_TRINAMIC
-    uint16_t  tmc_stepper_current[TMC_AXIS],
-              tmc_stepper_microstep[TMC_AXIS];
-    uint32_t  tmc_hybrid_threshold[TMC_AXIS];
-    bool      tmc_stealth_enabled[TMC_AXIS];
+    uint16_t  tmc_stepper_current[MAX_DRIVER],
+              tmc_stepper_microstep[MAX_DRIVER];
+    uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
+    bool      tmc_stealth_enabled[MAX_DRIVER];
     int16_t   tmc_sgt[XYZ];
   #endif
 
@@ -304,6 +310,9 @@ void EEPROM::post_process() {
 
   // steps per s2 needs to be updated to agree with units per s2
   planner.reset_acceleration_rates();
+
+  // Init Driver pins
+  LOOP_DRV() if (driver[d]) driver[d]->init();
 
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
@@ -413,11 +422,11 @@ void EEPROM::post_process() {
    */
   bool EEPROM::store() {
 
-    char ver[6] = "ERROR";
+    char ver[6]           = "ERROR";
+    uint16_t working_crc  = 0;
+    int eeprom_index      = EEPROM_OFFSET;
 
-    uint16_t working_crc = 0;
-
-    int eeprom_index = EEPROM_OFFSET;
+    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
 
     flag.error = false;
 
@@ -439,6 +448,12 @@ void EEPROM::post_process() {
     // Endstops data
     //
     EEPROM_WRITE(endstops.data);
+
+    //
+    // Driver Data
+    //
+    LOOP_DRV() if (driver[d]) driver_data[d] = driver[d]->data;
+    EEPROM_WRITE(driver_data);
 
     //
     // Stepper
@@ -659,31 +674,33 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Save TMC2130 or TMC2208 Configuration, and placeholder values
+    // Save Trinamic Driver Configuration, and placeholder values
     //
     #if HAS_TRINAMIC
 
-      uint16_t  tmc_stepper_current[TMC_AXIS]   = { X_CURRENT, Y_CURRENT, Z_CURRENT, X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT,
-                                                    E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
-                tmc_stepper_microstep[TMC_AXIS] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS,
-                                                    E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
-      uint32_t  tmc_hybrid_threshold[TMC_AXIS]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                    X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                    E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                    E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
-      bool      tmc_stealth_enabled[TMC_AXIS]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP,
-                                                    E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP };
+      uint16_t  tmc_stepper_current[MAX_DRIVER]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
+                                                      E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
+                                                      X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
+                tmc_stepper_microstep[MAX_DRIVER] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
+                                                      E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
+                                                      X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
+      uint32_t  tmc_hybrid_threshold[MAX_DRIVER]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                                      E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                      E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
+                                                      X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
+      bool      tmc_stealth_enabled[MAX_DRIVER]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
+                                                      E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
+                                                      X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
 
-      LOOP_TMC() {
-        MKTMC* st = tmc.driver_by_index(t);
-        if (st) {
-          tmc_stepper_current[t]    = st->getMilliamps();
-          tmc_stepper_microstep[t]  = st->microsteps();
+      LOOP_DRV() {
+        if (driver[d] && driver[d]->tmc) {
+          tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
+          tmc_stepper_microstep[d]  = driver[d]->tmc->microsteps();
           #if ENABLED(HYBRID_THRESHOLD)
-            tmc_hybrid_threshold[t] = st->get_pwm_thrs();
+            tmc_hybrid_threshold[d] = driver[d]->tmc->get_pwm_thrs();
           #endif
           #if TMC_HAS_STEALTHCHOP
-            tmc_stealth_enabled[t]  = st->get_stealthChop_status();
+            tmc_stealth_enabled[d]  = driver[d]->tmc->get_stealthChop_status();
           #endif
         }
       }
@@ -699,13 +716,13 @@ void EEPROM::post_process() {
       int16_t tmc_sgt[XYZ] = { 0, 0, 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt[X_AXIS] = stepperX->homing_threshold();
+          tmc_sgt[X_AXIS] = driver[X_DRV]->tmc->homing_threshold();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt[Y_AXIS] = stepperY->homing_threshold();
+          tmc_sgt[Y_AXIS] = driver[Y_DRV]->tmc->homing_threshold();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt[Z_AXIS] = stepperZ->homing_threshold();
+          tmc_sgt[Z_AXIS] = driver[Z_DRV]->tmc->homing_threshold();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -751,14 +768,33 @@ void EEPROM::post_process() {
   }
 
   /**
+   * M505 - Clear EEPROM and reset
+   */
+  void EEPROM::clear() {
+    uint16_t temp_crc = 0;
+    int eeprom_index = EEPROM_OFFSET;
+
+    SERIAL_LM(ECHO, "Clear EEPROM and RESET!");
+
+    while (eeprom_index <= EEPROM_SIZE)
+      memorystore.write_data(eeprom_index, (uint8_t*)0XFF, 1, &temp_crc);
+
+    // Reset Printer
+    printer.setRunning(false);
+    watchdog.enable(WDTO_15MS);
+    while(1);
+  }
+
+  /**
    * M501 - Load Configuration
    */
   bool EEPROM::_load() {
 
     uint16_t  working_crc = 0,
               stored_crc  = 0;
+    char      stored_ver[6];
 
-    char stored_ver[6];
+    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
 
     int eeprom_index = EEPROM_OFFSET;
 
@@ -791,6 +827,14 @@ void EEPROM::post_process() {
       // Endstops data
       //
       EEPROM_READ(endstops.data);
+
+      //
+      // Driver data
+      //
+      EEPROM_READ(driver_data);
+      if (!flag.validating) {
+        LOOP_DRV() if (driver[d]) driver[d]->data = driver_data[d];
+      }
 
       //
       // Stepper data
@@ -1016,17 +1060,17 @@ void EEPROM::post_process() {
         EEPROM_READ(advancedpause.data);
       #endif
 
-      if (!flag.validating) reset_stepper_drivers();
+      if (!flag.validating) stepper.reset_drivers();
 
       //
-      // TMC2130 or TMC2208 Stepper Current
+      // Trinamic Stepper Data
       //
       #if HAS_TRINAMIC
 
-        uint16_t  tmc_stepper_current[TMC_AXIS],
-                  tmc_stepper_microstep[TMC_AXIS];
-        uint32_t  tmc_hybrid_threshold[TMC_AXIS];
-        bool      tmc_stealth_enabled[TMC_AXIS];
+        uint16_t  tmc_stepper_current[MAX_DRIVER],
+                  tmc_stepper_microstep[MAX_DRIVER];
+        uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
+        bool      tmc_stealth_enabled[MAX_DRIVER];
 
         EEPROM_READ(tmc_stepper_current);
         EEPROM_READ(tmc_stepper_microstep);
@@ -1034,17 +1078,16 @@ void EEPROM::post_process() {
         EEPROM_READ(tmc_stealth_enabled);
 
         if (!flag.validating) {
-          LOOP_TMC() {
-            MKTMC* st = tmc.driver_by_index(t);
-            if (st) {
-              st->rms_current(tmc_stepper_current[t]);
-              st->microsteps(tmc_stepper_microstep[t]);
+          LOOP_DRV() {
+            if (driver[d] && driver[d]->tmc) {
+              driver[d]->tmc->rms_current(tmc_stepper_current[d]);
+              driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
               #if ENABLED(HYBRID_THRESHOLD)
-                st->set_pwm_thrs(tmc_hybrid_threshold[t]);
+                driver[d]->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
               #endif
               #if TMC_HAS_STEALTHCHOP
-                st->stealthChop_enabled = tmc_stealth_enabled[t];
-                st->refresh_stepping_mode();
+                driver[d]->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+                driver[d]->tmc->refresh_stepping_mode();
               #endif
             }
           }
@@ -1062,29 +1105,29 @@ void EEPROM::post_process() {
           if (!flag.validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                stepperX->homing_threshold(tmc_sgt[X_AXIS]);
+                driver[X_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                stepperX2->homing_threshold(tmc_sgt[X_AXIS]);
+                driver[X2_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                stepperY->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver[Y_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                stepperY2->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver[Y2_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                stepperZ->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver[Z_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                stepperZ2->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver[Z2_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                stepperZ3->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver[Z3_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
             #endif
           }
@@ -1184,21 +1227,6 @@ void EEPROM::post_process() {
     const bool success = _load();
     flag.validating = false;
     return success;
-  }
-
-  void EEPROM::clear() {
-    uint16_t temp_crc = 0;
-    int eeprom_index = EEPROM_OFFSET;
-
-    SERIAL_LM(ECHO, "Clear EEPROM and RESET!");
-
-    while (eeprom_index <= EEPROM_SIZE)
-      memorystore.write_data(eeprom_index, (uint8_t*)0XFF, 1, &temp_crc);
-
-    // Reset Printer
-    printer.setRunning(false);
-    watchdog.enable(WDTO_15MS);
-    while(1);
   }
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1369,14 +1397,12 @@ void EEPROM::reset() {
     tmc.factory_parameters();
   #endif
 
-  reset_stepper_drivers();
-
-  // Reset the watchdog
-  watchdog.reset();
-
   post_process();
 
   SERIAL_LM(ECHO, "Factory Settings Loaded");
+
+  // Reset the watchdog
+  watchdog.reset();
 
 }
 
@@ -1655,28 +1681,14 @@ void EEPROM::reset() {
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**
+     * Driver Pins M352
+     */
+    stepper.print_M352();
+
+    /**
      * Stepper driver control
      */
-    SERIAL_LM(CFG, "Stepper Direction");
-    SERIAL_SMV(CFG, "  M569 X", (int)stepper.isStepDir(X_AXIS));
-    SERIAL_MV(" Y", (int)stepper.isStepDir(Y_AXIS));
-    SERIAL_MV(" Z", (int)stepper.isStepDir(Z_AXIS));
-    #if DRIVER_EXTRUDERS == 1
-      SERIAL_MV(" T0 E", (int)stepper.isStepDir(E_AXIS));
-    #endif
-    SERIAL_EOL();
-    #if DRIVER_EXTRUDERS > 1
-      for (int8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-        SERIAL_SMV(CFG, "  M569 T", i);
-        SERIAL_EMV(" E" , (int)stepper.isStepDir((AxisEnum)(E_AXIS + i)));
-      }
-    #endif
-    SERIAL_LM(CFG, "Stepper driver control");
-    SERIAL_SMV(CFG, "  M569 Q", stepper.data.quad_stepping);
-    SERIAL_MV(" D", stepper.data.direction_delay);
-    SERIAL_MV(" P", stepper.data.minimum_pulse);
-    SERIAL_MV(" R", stepper.data.maximum_rate);
-    SERIAL_EOL();
+    stepper.print_M569();
 
     /**
      * Alligator current drivers M906
@@ -1705,19 +1717,19 @@ void EEPROM::reset() {
 
     #if HAS_TRINAMIC
 
-      // TMC2130 or TMC2208 stepper driver current
-      tmc.print_M906();
-
-      // TMC2130 or TMC2208 stepper driver microsteps
+      // Trinamic stepper driver microsteps
       tmc.print_M350();
 
-      // TMC2130 or TMC2208 Hybrid Threshold
+      // Trinamic stepper driver current
+      tmc.print_M906();
+
+      // Trinamic Hybrid Threshold
       tmc.print_M913();
 
       // TMC2130 StallGuard threshold
       tmc.print_M914();
 
-      // TMC stepping mode
+      // Trinamic stepping mode
       tmc.print_M940();
 
     #endif // HAS_TRINAMIC

@@ -19,6 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
@@ -26,19 +27,14 @@
  * Test configuration values for errors at compile-time.
  */
 
-#ifndef _ENDSTOP_SANITYCHECK_H_
-#define _ENDSTOP_SANITYCHECK_H_
+#if ENABLED(X_TWO_ENDSTOPS) && DISABLED(X_TWO_STEPPER_DRIVERS)
+  #error "DEPENDENCY ERROR: X_TWO_ENDSTOPS requires X_TWO_STEPPER_DRIVERS"
+#endif
 
-  #if ENABLED(X_TWO_ENDSTOPS) && DISABLED(X_TWO_STEPPER_DRIVERS)
-    #error "DEPENDENCY ERROR: X_TWO_ENDSTOPS requires X_TWO_STEPPER_DRIVERS"
-  #endif
+#if ENABLED(Y_TWO_ENDSTOPS) && DISABLED(Y_TWO_STEPPER_DRIVERS)
+  #error "DEPENDENCY ERROR: Y_TWO_ENDSTOPS requires Y_TWO_STEPPER_DRIVERS"
+#endif
 
-  #if ENABLED(Y_TWO_ENDSTOPS) && DISABLED(Y_TWO_STEPPER_DRIVERS)
-    #error "DEPENDENCY ERROR: Y_TWO_ENDSTOPS requires Y_TWO_STEPPER_DRIVERS"
-  #endif
-
-  #if ENABLED(Z_TWO_ENDSTOPS) && DISABLED(Z_TWO_STEPPER_DRIVERS)
-    #error "DEPENDENCY ERROR: Z_TWO_ENDSTOPS requires Z_TWO_STEPPER_DRIVERS"
-  #endif
-
-#endif /* _ENDSTOP_SANITYCHECK_H_ */
+#if ENABLED(Z_TWO_ENDSTOPS) && DISABLED(Z_TWO_STEPPER_DRIVERS)
+  #error "DEPENDENCY ERROR: Z_TWO_ENDSTOPS requires Z_TWO_STEPPER_DRIVERS"
+#endif

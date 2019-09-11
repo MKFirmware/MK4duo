@@ -335,7 +335,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   const bool is_home_dir = (get_homedir(axis) > 0) == (distance > 0);
 
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
   #endif
 
   if (is_home_dir) {
@@ -922,9 +922,9 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
                 fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(stepperX);
-      stealth_states.y = tmc.enable_stallguard(stepperY);
+      sensorless_flag_t stealth_states;
+      stealth_states.x = tmc.enable_stallguard(X_DRV);
+      stealth_states.y = tmc.enable_stallguard(Y_DRV);
     #endif
 
     do_blocking_move_to_xy(1.5f * data.base_pos[X_AXIS].max * x_axis_home_dir, 1.5f * data.base_pos[Y_AXIS].max * home_dir.Y, fr_mm_s);
@@ -934,8 +934,8 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     current_position[X_AXIS] = current_position[Y_AXIS] = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(stepperX, stealth_states.x);
-      tmc.disable_stallguard(stepperY, stealth_states.y);
+      tmc.disable_stallguard(X_DRV, stealth_states.x);
+      tmc.disable_stallguard(Y_DRV, stealth_states.y);
     #endif
   }
 

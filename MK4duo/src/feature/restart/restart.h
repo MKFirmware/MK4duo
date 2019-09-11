@@ -38,10 +38,10 @@ typedef struct {
 
   // SD file e position
   char fileName[MAX_PATH_NAME_LENGHT];
-  uint32_t sdpos;
+  volatile uint32_t sdpos;
 
   // Mechanics state
-  float   current_position[XYZE];
+  float   axis_position_mm[XYZE];
 
   #if ENABLED(WORKSPACE_OFFSETS)
     float home_offset[XYZ];
@@ -69,6 +69,9 @@ typedef struct {
     uint8_t active_extruder;
   #endif
 
+  int16_t flow_percentage[EXTRUDERS],
+          density_percentage[EXTRUDERS];
+
   // Leveling
   #if HAS_LEVELING
     bool  leveling;
@@ -83,15 +86,8 @@ typedef struct {
   // Relative mode
   bool relative_mode, relative_modes_e;
 
-  // Command buffer
-  uint8_t buffer_head, buffer_count;
-  char    buffer_ring[BUFSIZE][MAX_CMD_SIZE];
-
   // Job elapsed time
   millis_l print_job_counter_elapsed;
-
-  // Utility
-  bool just_restart;
 
   uint8_t valid_foot;
 
@@ -111,29 +107,34 @@ class Restart {
 
     static bool enabled;
 
+    static uint32_t cmd_sdpos,
+                    sdpos[BUFSIZE];
+
   public: /** Public Function */
-
-    static inline void factory_parameters() { enable(true); }
-
-    static void init_job();
 
     static void enable(const bool onoff);
     static void changed();
-
     static void check();
 
-    static inline bool exists()               { return card.exist_restart_file(); }
-    static inline void open(const bool read)  { card.open_restart_file(read); }
-    static inline void close()                { job_file.close(); }
-
+    static void start_job();
     static void purge_job();
     static void load_job();
     static void save_job(const bool force_save=false, const bool save_count=true);
     static void resume_job();
 
-    static inline bool valid() { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }
+    static inline bool exists()               { return card.exist_restart_file(); }
+    static inline void open(const bool read)  { card.open_restart_file(read); }
+    static inline void close()                { job_file.close(); }
+
+    static inline void factory_parameters()   { enable(true); }
+    static inline bool valid()                { return job_info.valid_head && job_info.valid_head == job_info.valid_foot; }
+
+    static inline uint32_t get_sdpos()        { return sdpos[commands.buffer_ring.head()]; }
+    static inline void set_sdpos()            { sdpos[commands.buffer_ring.tail()] = cmd_sdpos; }
 
   private: /** Private Function */
+
+    static void clear_job();
 
     static void write_job();
 

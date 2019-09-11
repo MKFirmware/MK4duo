@@ -48,10 +48,10 @@
   typedef float (*element_2d_fn)(const uint8_t, const uint8_t);
 #endif
 
-typedef struct {
+struct mesh_index_pair {
   int8_t x_index, y_index;
   float distance;
-} mesh_index_pair;
+};
 
 #if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
   #include "math/vector_3.h"
@@ -65,8 +65,8 @@ typedef struct {
   #include "ubl/ubl.h"
 #endif
 
-union flaglevel_t {
-  uint8_t all;
+union level_flag_t {
+  bool all;
   struct {
     bool  leveling_active   : 1;
     bool  leveling_previous : 1;
@@ -77,7 +77,7 @@ union flaglevel_t {
     bool  bit6              : 1;
     bool  bit7              : 1;
   };
-  flaglevel_t() { all = 0x00; }
+  level_flag_t() { all = false; }
 };
 
 class Bedlevel {
@@ -88,7 +88,7 @@ class Bedlevel {
 
   public: /** Public Parameters */
 
-    static flaglevel_t flag;
+    static level_flag_t flag;
 
     #if OLD_ABL
       static int xy_probe_feedrate_mm_s;

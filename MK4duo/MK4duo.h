@@ -56,8 +56,8 @@
 /**
  * Include file
  */
-#include "src/lib/types.h"
 #include "src/lib/macros.h"
+#include "src/lib/types.h"
 #include "src/lib/enum.h"
 #include "src/lib/restorer.h"
 #include "src/lib/circular_queue.h"
@@ -102,11 +102,8 @@
 #endif
 
 #include "src/inc/conditionals_pre.h"
-#include "src/inc/pins.h"
+#include "src/inc/conditionals_pins.h"
 #include "src/inc/conditionals_post.h"
-
-// Sanity Check
-#include "src/inc/sanitycheck.h"
 
 // Platform modules
 #include "src/platform/platform.h"
@@ -163,7 +160,6 @@
 #include "src/feature/bltouch/bltouch.h"
 #include "src/feature/external_dac/external_dac.h"
 #include "src/feature/hysteresis/hysteresis.h"
-#include "src/feature/tmc/tmc.h"
 #include "src/feature/power/power.h"
 #include "src/feature/mixing/mixing.h"
 #include "src/feature/mmu2/mmu2.h"

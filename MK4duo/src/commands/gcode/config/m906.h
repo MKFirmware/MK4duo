@@ -70,50 +70,50 @@
       switch (i) {
         case X_AXIS:
           #if AXIS_HAS_TMC(X)
-            stepperX->rms_current(value);
+            driver[X_DRV]->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(X2)
-            stepperX2->rms_current(value);
+            driver[X2_DRV]->rms_current(value);
           #endif
           break;
         case Y_AXIS:
           #if AXIS_HAS_TMC(Y)
-            stepperY->rms_current(value);
+            driver[Y_DRV]->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Y2)
-            stepperY2->rms_current(value);
+            driver[Y2_DRV]->tmc->rms_current(value);
           #endif
           break;
         case Z_AXIS:
           #if AXIS_HAS_TMC(Z)
-            stepperZ->rms_current(value);
+            driver[Z_DRV]->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Z2)
-            stepperZ2->rms_current(value);
+            driver[Z2_DRV]->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Z3)
-            stepperZ3->rms_current(value);
+            driver[Z3_DRV]->tmc->rms_current(value);
           #endif
           break;
         case E_AXIS: {
           switch (TARGET_EXTRUDER) {
             #if AXIS_HAS_TMC(E0)
-              case 0: stepperE0->rms_current(value); break;
+              case 0: driver[E0_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E1)
-              case 1: stepperE1->rms_current(value); break;
+              case 1: driver[E1_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E2)
-              case 2: stepperE2->rms_current(value); break;
+              case 2: driver[E2_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E3)
-              case 3: stepperE3->rms_current(value); break;
+              case 3: driver[E3_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E4)
-              case 4: stepperE4->rms_current(value); break;
+              case 4: driver[E4_DRV]->tmc->rms_current(value); break;
             #endif
             #if AXIS_HAS_TMC(E5)
-              case 5: stepperE5->rms_current(value); break;
+              case 5: driver[E5_DRV]->tmc->rms_current(value); break;
             #endif
           }
         } break;

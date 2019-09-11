@@ -78,50 +78,50 @@
         switch (i) {
           case X_AXIS:
             #if AXIS_HAS_TMC(X)
-              stepperX->microsteps(value);
+              driver[X_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(X2)
-              stepperX2->microsteps(value);
+              driver[X2_DRV]->tmc->microsteps(value);
             #endif
             break;
           case Y_AXIS:
             #if AXIS_HAS_TMC(Y)
-              stepperY->microsteps(value);
+              driver[Y_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Y2)
-              stepperY2->microsteps(value);
+              driver[Y2_DRV]->tmc->microsteps(value);
             #endif
             break;
           case Z_AXIS:
             #if AXIS_HAS_TMC(Z)
-              stepperZ->microsteps(value);
+              driver[Z_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z2)
-              stepperZ2->microsteps(value);
+              driver[Z2_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z3)
-              stepperZ3->microsteps(value);
+              driver[Z3_DRV]->tmc->microsteps(value);
             #endif
             break;
           case E_AXIS: {
             switch (TARGET_EXTRUDER) {
               #if AXIS_HAS_TMC(E0)
-                case 0: stepperE0->microsteps(value); break;
+                case 0: driver[E0_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E1)
-                case 1: stepperE1->microsteps(value); break;
+                case 1: driver[E1_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E2)
-                case 2: stepperE2->microsteps(value); break;
+                case 2: driver[E2_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E3)
-                case 3: stepperE3->microsteps(value); break;
+                case 3: driver[E3_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E4)
-                case 4: stepperE4->microsteps(value); break;
+                case 4: driver[E4_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E5)
-                case 5: stepperE5->microsteps(value); break;
+                case 5: driver[E5_DRV]->tmc->microsteps(value); break;
               #endif
             }
           } break;

@@ -41,11 +41,10 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stepper_indirection.h"
+#include "stepper_macro.h"
 
 // Struct Stepper data
 typedef struct {
-  uint16_t  direction_flag;
   uint32_t  maximum_rate,
             direction_delay;
   uint8_t   minimum_pulse;
@@ -168,6 +167,11 @@ class Stepper {
   public: /** Public Function */
 
     /**
+     * Create Driver
+     */
+    static void create_driver();
+
+    /**
      * Initialize stepper hardware
      */
     static void init();
@@ -196,6 +200,11 @@ class Stepper {
      * Report the positions of the steppers, in steps
      */
     static void report_positions();
+
+    /**
+     * Called by eeprom.load / eeprom.reset
+     */
+    static void reset_drivers();
 
     /**
      * Set direction bits for all steppers
@@ -328,13 +337,10 @@ class Stepper {
     static void set_position(const int32_t &a, const int32_t &b, const int32_t &c, const int32_t &e);
     static void set_position(const AxisEnum a, const int32_t &v);
 
-    /**
-     * Flag Stepper direction function
-     */
-    FORCE_INLINE static void setStepDir(const AxisEnum axis, const bool onoff) {
-      SET_BIT(data.direction_flag, axis, onoff);
-    }
-    FORCE_INLINE static bool isStepDir(const AxisEnum axis) { return TEST(data.direction_flag, axis); }
+    #if DISABLED(DISABLE_M503)
+      void print_M352();
+      void print_M569();
+    #endif
 
     #if ENABLED(BABYSTEPPING)
       static void babystep(const AxisEnum axis, const bool direction); // perform a short step with a single stepper motor, outside of any convention
@@ -360,35 +366,35 @@ class Stepper {
     /**
      * Pulse tick Start
      */
-    static void pulse_tick_start();
+    FORCE_INLINE static void pulse_tick_start();
 
     /**
      * Pulse tick Stop
      */
-    static void pulse_tick_stop();
+     FORCE_INLINE static void pulse_tick_stop();
 
     /**
      * Start step X Y Z
      */
-    static void start_X_step();
-    static void start_Y_step();
-    static void start_Z_step();
+    FORCE_INLINE static void start_X_step();
+    FORCE_INLINE static void start_Y_step();
+    FORCE_INLINE static void start_Z_step();
 
     /**
      * Stop step X Y Z
      */
-    static void stop_X_step();
-    static void stop_Y_step();
-    static void stop_Z_step();
+    FORCE_INLINE static void stop_X_step();
+    FORCE_INLINE static void stop_Y_step();
+    FORCE_INLINE static void stop_Z_step();
 
     /**
      * Set X Y Z direction
      */
-    static void set_X_dir(const bool dir);
-    static void set_Y_dir(const bool dir);
-    static void set_Z_dir(const bool dir);
-    static void set_nor_E_dir(const uint8_t e=0);
-    static void set_rev_E_dir(const uint8_t e=0);
+    FORCE_INLINE static void set_X_dir(const bool dir);
+    FORCE_INLINE static void set_Y_dir(const bool dir);
+    FORCE_INLINE static void set_Z_dir(const bool dir);
+    FORCE_INLINE static void set_nor_E_dir(const uint8_t e=0);
+    FORCE_INLINE static void set_rev_E_dir(const uint8_t e=0);
 
     /**
      * Set current position in steps

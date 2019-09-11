@@ -491,10 +491,10 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
-    stealth_states.x = tmc.enable_stallguard(stepperX);
-    stealth_states.y = tmc.enable_stallguard(stepperY);
-    stealth_states.z = tmc.enable_stallguard(stepperZ);
+    sensorless_flag_t stealth_states;
+    stealth_states.x = tmc.enable_stallguard(X_DRV);
+    stealth_states.y = tmc.enable_stallguard(Y_DRV);
+    stealth_states.z = tmc.enable_stallguard(Z_DRV);
   #endif
 
   // Move all carriages together linearly until an endstop is hit.
@@ -504,9 +504,9 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    tmc.disable_stallguard(stepperX, stealth_states.x);
-    tmc.disable_stallguard(stepperY, stealth_states.y);
-    tmc.disable_stallguard(stepperZ, stealth_states.z);
+    tmc.disable_stallguard(X_DRV, stealth_states.x);
+    tmc.disable_stallguard(Y_DRV, stealth_states.y);
+    tmc.disable_stallguard(Z_DRV, stealth_states.z);
   #endif
 
   endstops.validate_homing_move();
@@ -601,7 +601,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   const bool is_home_dir = distance > 0;
 
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
   #endif
 
   if (is_home_dir) {

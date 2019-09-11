@@ -27,6 +27,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(COLOR_MIXING_EXTRUDER)
 

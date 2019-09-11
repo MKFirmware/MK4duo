@@ -27,6 +27,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if EXTRUDERS > 0
 
@@ -51,6 +52,27 @@ float   Tools::e_factor[EXTRUDERS]              = ARRAY_BY_EXTRUDERS(1.0);
 #endif
 
 /** Public Function */
+void Tools::init() {
+  #if ENABLED(MKR4) // MKR4 System
+    #if HAS_E0E1
+      OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_E0E2
+      OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_E1E3
+      OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+    #endif
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
+      OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_EX2
+      OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
+    #endif
+  #endif
+}
+
 void Tools::factory_parameters() {
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -253,7 +275,9 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
           singlenozzle_temp[extruder.previous] = hotends[0].deg_target();
           if (singlenozzle_temp[extruder.active] && singlenozzle_temp[extruder.active] != hotends[0].deg_target()) {
             hotends[0].set_target_temp(singlenozzle_temp[extruder.active]);
-            nozzle.set_heating_message();
+            #if HAS_LCD
+              nozzle.set_heating_message();
+            #endif
             hotends[0].wait_for_target(true);
           }
         #endif

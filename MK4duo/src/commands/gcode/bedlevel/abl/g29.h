@@ -119,13 +119,11 @@ inline void gcode_G29(void) {
 
   // G29 Q is also available if debugging
   const bool seenQ = parser.seen('Q');
-  const uint8_t old_debug_flags = printer.getDebugFlags();
-  if (seenQ) printer.debug_flag.feature = true;
-  if (printer.debugFeature()) {
+  if (seenQ) {
     DEBUG_POS(">>> G29", mechanics.current_position);
     DEBUG_LOG_INFO();
   }
-  printer.setDebugLevel(old_debug_flags);
+
   #if DISABLED(PROBE_MANUALLY)
     if (seenQ) return;
   #endif
@@ -247,6 +245,10 @@ inline void gcode_G29(void) {
    * On the initial G29 fetch command parameters.
    */
   if (!bedlevel.flag.g29_in_progress) {
+
+    #if HOTENDS > 1
+      if (tools.extruder.active != 0) tools.change(0);
+    #endif
 
     #if HAS_PROBE_MANUALLY || ENABLED(AUTO_BED_LEVELING_LINEAR)
       abl_probe_index = -1;
@@ -634,6 +636,9 @@ inline void gcode_G29(void) {
 
         zig ^= true; // zag
 
+        // An index to print current state
+        uint8_t pt_index = (PR_OUTER_VAR) * (PR_INNER_END) + 1;
+
         // Inner loop is Y with PROBE_Y_FIRST enabled
         for (int8_t PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
 
@@ -650,6 +655,15 @@ inline void gcode_G29(void) {
           #if IS_KINEMATIC
             // Avoid probing outside the round or hexagonal area
             if (!mechanics.position_is_reachable_by_probe(xProbe, yProbe)) continue;
+          #endif
+
+          if (verbose_level) {
+            SERIAL_MV("Probing mesh point ", int(pt_index));
+            SERIAL_MV("/", int(GRID_MAX_POINTS));
+            SERIAL_EOL();
+          }
+          #if HAS_LCD
+            lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), int(pt_index), int(GRID_MAX_POINTS));
           #endif
 
           measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
@@ -873,7 +887,7 @@ inline void gcode_G29(void) {
         COPY_ARRAY(converted, mechanics.current_position);
 
         bedlevel.flag.leveling_active = true;
-        bedlevel.unapply_leveling(converted); // use conversion machinery
+        bedlevel.unapply_leveling(converted);
         bedlevel.flag.leveling_active = false;
 
         // Use the last measured distance to the bed, if possible

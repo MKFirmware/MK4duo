@@ -247,7 +247,6 @@ class HAL {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
         delayMs -= del;
-        watchdog.reset();
       }
     }
     FORCE_INLINE static unsigned long timeInMilliseconds() {

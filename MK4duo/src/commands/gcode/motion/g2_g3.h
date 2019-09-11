@@ -207,6 +207,8 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
     raw[l_axis] = start_L;
   #endif
 
+  endstops.apply_motion_limits(raw);
+
   #if HAS_LEVELING && !PLANNER_LEVELING
     bedlevel.apply_leveling(raw);
   #endif

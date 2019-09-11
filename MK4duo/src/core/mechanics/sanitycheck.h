@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _MECH_SANITYCHECK_H_
-#define _MECH_SANITYCHECK_H_
 
 // Mechanism
 #if DISABLED(MECHANISM)
@@ -614,5 +612,3 @@
   #endif
 
 #endif // IS_SCARA
-
-#endif /* _MECH_SANITYCHECK_H_ */

@@ -25,6 +25,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(EMERGENCY_PARSER)
 

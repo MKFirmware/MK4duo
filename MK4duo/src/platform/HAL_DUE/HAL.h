@@ -68,10 +68,11 @@ typedef uint32_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
+#include "hardwareserial/HardwareSerial.h"
+#include "watchdog/watchdog.h"
 #include "fastio.h"
 #include "math.h"
 #include "delay.h"
-#include "watchdog.h"
 #include "HAL_timers.h"
 
 // --------------------------------------------------------------------------
@@ -126,8 +127,6 @@ typedef uint32_t  ptr_int_t;
 #endif
 
 // SERIAL ports
-#include "HardwareSerial.h"
-
 #if !WITHIN(SERIAL_PORT_1, -1, 3)
   #error "SERIAL_PORT_1 must be from -1 to 3"
 #endif
@@ -162,7 +161,7 @@ typedef uint32_t  ptr_int_t;
 // Voltage
 #define HAL_VOLTAGE_PIN 3.3
 
-// reset reason
+// Reset reason
 #define RST_POWER_ON   1
 #define RST_EXTERNAL   2
 #define RST_BROWN_OUT  4
@@ -329,34 +328,39 @@ class HAL {
 
     static void resetHardware();
 
+    //
     // SPI related functions
-    #if ENABLED(SOFTWARE_SPI)
-      static uint8_t spiTransfer(uint8_t nbyte); // using Mode 0
-      static void spiBegin();
-      static void spiInit(uint8_t spiRate);
-      static uint8_t spiReceive();
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t nbyte);
-      static void spiSend(const uint8_t* buf , size_t nbyte) ;
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #else
-      // Hardware setup
-      static void spiBegin();
-      static void spiInit(uint8_t spiRate=6);
-      static uint8_t spiTransfer(uint8_t nbyte);
-      // Write single byte to SPI
-      static void spiSend(uint8_t nbyte);
-      static void spiSend(const uint8_t* buf, size_t nbyte);
-      static void spiSend(uint32_t chan, uint8_t nbyte);
-      static void spiSend(uint32_t chan ,const uint8_t* buf, size_t nbyte);
-      // Read single byte from SPI
-      static uint8_t spiReceive(void);
-      static uint8_t spiReceive(uint32_t chan);
-      // Read from SPI into buffer
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      // Write from buffer to SPI
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #endif
+    //
+
+    // Initialize SPI bus
+    static void spiBegin();
+
+    // Configure SPI for specified SPI speed
+    static void spiInit(uint8_t spiRate=6);
+
+    // Write single byte to SPI
+    static void spiSend(uint8_t nbyte);
+
+    // Write buffer to  SPI
+    static void spiSend(const uint8_t* buf, size_t nbyte);
+
+    // Write single byte to specified SPI channel
+    static void spiSend(uint32_t chan, uint8_t nbyte);
+
+    // Write buffer to specified SPI channel
+    static void spiSend(uint32_t chan ,const uint8_t* buf, size_t nbyte);
+
+    // Read single byte from SPI
+    static uint8_t spiReceive(void);
+
+    // Read single byte from specified SPI channel
+    static uint8_t spiReceive(uint32_t chan);
+
+    // Read from SPI into buffer
+    static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+
+    // Write token and then write from 512 byte buffer to SPI (for SD card)
+    static void spiSendBlock(uint8_t token, const uint8_t* buf);
 
 };
 
@@ -369,14 +373,6 @@ void cli(void);
 
 // Enable interrupts
 void sei(void);
-
-// SPI: Extended functions which take a channel number (hardware SPI only)
-/** Write single byte to specified SPI channel */
-void spiSend(uint32_t chan, byte b);
-/** Write buffer to specified SPI channel */
-void spiSend(uint32_t chan, const uint8_t* buf, size_t n);
-/** Read single byte from specified SPI channel */
-uint8_t spiReceive(uint32_t chan);
 
 // Tone for due
 void tone(const pin_t _pin, const uint16_t frequency, const uint16_t duration=0);

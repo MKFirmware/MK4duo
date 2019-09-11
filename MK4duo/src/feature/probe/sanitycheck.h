@@ -28,10 +28,6 @@
  */
 
 /**
- * Probes
- */
-
-/**
  * Allow only one probe option to be defined
  */
 #if 1 < 0 \

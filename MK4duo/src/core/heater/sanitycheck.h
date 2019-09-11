@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _HEATER_SANITYCHECK_H_
-#define _HEATER_SANITYCHECK_H_
 
 // Test required HEATER defines
 #if HOTENDS > 3
@@ -48,4 +46,68 @@
   #endif
 #endif
 
-#endif /* _HEATER_SANITYCHECK_H_ */
+// Thermistors
+#if DISABLED(TEMP_SENSOR_HE0)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE0."
+#endif
+#if DISABLED(TEMP_SENSOR_HE1)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE1."
+#endif
+#if DISABLED(TEMP_SENSOR_HE2)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE2."
+#endif
+#if DISABLED(TEMP_SENSOR_HE3)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE3."
+#endif
+#if DISABLED(TEMP_SENSOR_HE4)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE4."
+#endif
+#if DISABLED(TEMP_SENSOR_HE5)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_HE5."
+#endif
+#if DISABLED(TEMP_SENSOR_BED0)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED0."
+#endif
+#if DISABLED(TEMP_SENSOR_BED1)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED1."
+#endif
+#if DISABLED(TEMP_SENSOR_BED2)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED2."
+#endif
+#if DISABLED(TEMP_SENSOR_BED3)
+  #error "DEPENDENCY ERROR: Missing setting TEMP_SENSOR_BED3."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER0)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER0."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER1)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER1."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER2)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER2."
+#endif
+#if DISABLED(TEMP_SENSOR_CHAMBER3)
+  #error "DEPENDENCY_ERROR: Missing setting TEMP_SENSOR_CHAMBER3."
+#endif
+
+// Every hotend needs a temp sensor
+#if HAS_HOTENDS
+  #if TEMP_SENSOR_HE0 == 0
+    #error "DEPENDENCY ERROR: Hotend 0 needs a temp sensor."
+  #endif
+  #if HOTENDS > 1
+    #if TEMP_SENSOR_HE1 == 0
+      #error "DEPENDENCY ERROR: Hotend 1 needs a temp sensor."
+    #endif
+    #if HOTENDS > 2
+      #if TEMP_SENSOR_HE2 == 0
+        #error "DEPENDENCY ERROR: Hotend 2 needs a temp sensor."
+      #endif
+      #if HOTENDS > 3
+        #if TEMP_SENSOR_HE3 == 0
+          #error "DEPENDENCY ERROR: Hotend 3 needs a temp sensor."
+        #endif
+      #endif // HOTENDS > 3
+    #endif // HOTENDS > 2
+  #endif // HOTENDS > 1
+#endif // HAS_HOTENDS

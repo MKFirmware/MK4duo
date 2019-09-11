@@ -49,8 +49,6 @@
 
 NextionLCD nexlcd;
 
-LcdUI lcdui;
-
 /** LcdUI Parameters */
 char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
 uint8_t LcdUI::status_message_level = 0;
@@ -330,7 +328,7 @@ void NextionLCD::init() {
     else if (strstr_P(cmd, PSTR("4827"))) {  // Model 4.3" Normal or Enhanced
       SERIAL_MSG(" 4.3");
       #if ENABLED(NEXTION_GFX)
-        gfx.set_position(1, 24, 250, 155);
+        gfx.set_position(8, 28, 235, 140);
       #endif
     }
     else if (strstr_P(cmd, PSTR("8048"))) {  // Model 7" Normal or Enhanced
@@ -1462,7 +1460,6 @@ void LcdUI::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   host_action.cancel();
-  host_action.prompt_open(PROMPT_INFO, PSTR("Lcd Abort"));
   print_job_counter.stop();
   set_status_P(PSTR(MSG_PRINT_ABORTED));
   return_to_status();

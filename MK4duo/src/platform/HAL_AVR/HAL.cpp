@@ -328,8 +328,6 @@ void HAL::Tick() {
                   cycle_100_ms  = millis();
   static uint8_t  channel       = 0;
 
-  watchdog.reset();
-
   if (printer.isStopped()) return;
 
   // Heaters set output PWM

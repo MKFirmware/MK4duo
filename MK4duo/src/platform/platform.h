@@ -31,13 +31,13 @@
  *
  */
 
-#include "common/memory_store.h"
-#include "common/communication.h"
-#include "common/debug.h"
-#include "common/host_action.h"
-#include "common/servo.h"
-#include "common/softpwm.h"
+#include "common/communication/communication.h"
+#include "common/debug/debug.h"
+#include "common/host_action/host_action.h"
+#include "common/softpwm/softpwm.h"
+#include "common/servo/servo.h"
 #include "common/serial.h"
+#include "common/memory_store.h"
 
 #if ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins.h"

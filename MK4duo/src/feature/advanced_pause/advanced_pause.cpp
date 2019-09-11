@@ -27,6 +27,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
@@ -88,8 +89,6 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   if (did_pause_print) return false; // already paused
 
   host_action.paused();
-
-  host_action.prompt_open(PROMPT_INFO, PSTR("Pause"));
 
   if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
     SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
@@ -359,8 +358,6 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   --did_pause_print;
 
-  //host_action.prompt_open(PROMPT_INFO, PSTR("Resume"));
-
   #if HAS_SD_SUPPORT
     if (did_pause_print) {
       card.startFileprint();
@@ -497,7 +494,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
 
     // Keep looping if "Purge More" was selected
   } while (false
-    #if HAS_LCD
+    #if HAS_LCD_MENU
       && (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
     #endif
   );

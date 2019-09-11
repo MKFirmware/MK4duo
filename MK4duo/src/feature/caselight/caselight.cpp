@@ -21,6 +21,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if HAS_CASE_LIGHT
 

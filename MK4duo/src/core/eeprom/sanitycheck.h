@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _EEPROM_SANITYCHECK_H_
-#define _EEPROM_SANITYCHECK_H_
 
 #if ENABLED(__AVR__)
 
@@ -46,5 +44,3 @@
   #endif
 
 #endif
-
-#endif /* _EEPROM_SANITYCHECK_H_ */

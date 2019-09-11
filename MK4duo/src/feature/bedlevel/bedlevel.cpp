@@ -27,13 +27,14 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if HAS_LEVELING
 
 Bedlevel bedlevel;
 
 /** Public Parameters */
-flaglevel_t Bedlevel::flag;
+level_flag_t Bedlevel::flag;
 
 #if OLD_ABL
   int Bedlevel::xy_probe_feedrate_mm_s = MMM_TO_MMS(XY_PROBE_SPEED);

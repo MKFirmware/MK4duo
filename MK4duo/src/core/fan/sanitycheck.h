@@ -19,15 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * sanitycheck.h
  *
  * Test configuration values for errors at compile-time.
  */
-
-#ifndef _FAN_SANITYCHECK_H_
-#define _FAN_SANITYCHECK_H_
 
 // Fan
 #if DISABLED(CONTROLLERFAN_SECS)
@@ -49,5 +47,3 @@
 #if DISABLED(HOTEND_AUTO_FAN_MIN_SPEED)
   #error "DEPENDENCY ERROR: Missing setting HOTEND_AUTO_FAN_MIN_SPEED."
 #endif
-
-#endif /* _FAN_SANITYCHECK_H_ */

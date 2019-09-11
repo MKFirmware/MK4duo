@@ -22,7 +22,7 @@
 #pragma once
 
 union eeprom_flag_t {
-  uint8_t all;
+  bool all;
   struct {
     bool  error       : 1;
     bool  validating  : 1;
@@ -33,7 +33,7 @@ union eeprom_flag_t {
     bool  bit_6       : 1;
     bool  bit_7       : 1;
   };
-  eeprom_flag_t() { all = 0x00; }
+  eeprom_flag_t() { all = false; }
 };
 
 class EEPROM {
@@ -76,14 +76,13 @@ class EEPROM {
     static uint16_t datasize();
 
     static void reset();
+    static void clear();      // Clear EEPROM and reset
     static bool store();      // Return 'true' if data was stored ok
 
     #if HAS_EEPROM
 
       static bool load();     // Return 'true' if data was loaded ok
       static bool validate(); // Return 'true' if EEPROM data is ok
-
-      static void clear();    // Clear EEPROM and reset
 
       #if ENABLED(AUTO_BED_LEVELING_UBL) // Eventually make these available if any leveling system
                                          // That can store is enabled

@@ -35,7 +35,7 @@
 #define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
 
 union home_flag_t {
-  uint8_t all;
+  bool all;
   struct {
     bool  XHomed  : 1;
     bool  YHomed  : 1;
@@ -46,7 +46,7 @@ union home_flag_t {
     bool  bit6    : 1;
     bool  bit7    : 1;
   };
-  home_flag_t() { all = 0x00; }
+  home_flag_t() { all = false; }
 };
 
 union dir_flag_t {
@@ -56,12 +56,12 @@ union dir_flag_t {
     int8_t Y : 2;
     int8_t Z : 2;
     int8_t E : 2;
- };
+  };
   dir_flag_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
 };
 
-union sensorless_t {
-  uint8_t all;
+union sensorless_flag_t {
+  bool all;
   struct {
     bool x    : 1;
     bool y    : 1;
@@ -72,11 +72,11 @@ union sensorless_t {
     bool z3   : 1;
     bool bit7 : 1;
   };
-  sensorless_t() { all = 0x00; }
+  sensorless_flag_t() { all = false; }
 };
 
 // Struct Mechanics data
-typedef struct {
+struct generic_data_t {
 
   float     axis_steps_per_mm[XYZE_N],
             max_feedrate_mm_s[XYZE_N],
@@ -108,7 +108,7 @@ typedef struct {
     float   home_offset[XYZ];
   #endif
 
-} generic_data_t;
+};
 
 class Mechanics {
 
@@ -351,8 +351,8 @@ class Mechanics {
      * Set sensorless homing if the axis has it.
      */
     #if ENABLED(SENSORLESS_HOMING)
-      static sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
-      static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
+      static sensorless_flag_t start_sensorless_homing_per_axis(const AxisEnum axis);
+      static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_flag_t enable_stealth);
     #endif
 
     static void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);

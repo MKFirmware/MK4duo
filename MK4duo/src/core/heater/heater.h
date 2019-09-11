@@ -30,8 +30,8 @@
 #include "sensor/sensor.h"
 #include "pid/pid.h"
 
-union flagheater_t {
-  uint8_t all;
+union heater_flag_t {
+  bool all;
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
@@ -42,23 +42,23 @@ union flagheater_t {
     bool  Idle              : 1;
     bool  Fault             : 1;
   };
-  flagheater_t() { all = 0x00; }
+  heater_flag_t() { all = false; }
 };
 
 enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
 enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
 // Struct Heater data
-typedef struct {
+struct heater_data_t {
   pin_t         pin;
-  flagheater_t  flag;
+  heater_flag_t flag;
   uint8_t       ID;
   int16_t       mintemp,
                 maxtemp;
   uint16_t      freq;
   pid_data_t    pid;
   sensor_data_t sensor;
-} heater_data_t;
+};
 
 class Heater {
 
@@ -110,6 +110,7 @@ class Heater {
     void init();
 
     void set_target_temp(const int16_t celsius);
+    void set_idle_temp(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
     
     void get_output();
@@ -174,9 +175,8 @@ class Heater {
     FORCE_INLINE bool isThermalProtection() { return data.flag.Thermalprotection; }
 
     // Flag bit 6 Set Idle
-    FORCE_INLINE void setIdle(const bool onoff, const int16_t idle_temp=ABS_ZERO) {
+    FORCE_INLINE void setIdle(const bool onoff) {
       data.flag.Idle = onoff;
-      if (idle_temp >= 0) idle_temperature = MIN(idle_temp, data.maxtemp - 10);
       if (onoff) thermal_runaway_state = TRInactive;
     }
     FORCE_INLINE bool isIdle() { return data.flag.Idle; }

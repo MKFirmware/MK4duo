@@ -1891,6 +1891,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
       mixer.gradient_control(mechanics.current_position[Z_AXIS]);
   #endif
 
+  #if HAS_SD_RESTART
+    block->sdpos = restart.get_sdpos();
+  #endif
+
   // Movement was accepted
   return true;
 
@@ -2359,18 +2363,18 @@ void Planner::calculate_trapezoid_for_block(block_t* const block, const float &e
 */
 
 // The kernel called by recalculate() when scanning the plan from last to first entry.
-void Planner::reverse_pass_kernel(block_t* const current, const block_t* const next) {
+void Planner::reverse_pass_kernel(block_t* const current_block, const block_t* const next_block) {
 
-  if (current) {
+  if (current_block) {
     // If entry speed is already at the maximum entry speed, and there was no change of speed
     // in the next block, there is no need to recheck. Block is cruising and there is no need to
     // compute anything for this block,
     // If not, block entry speed needs to be recalculated to ensure maximum possible planned speed.
-    const float max_entry_speed_sqr = current->max_entry_speed_sqr;
+    const float max_entry_speed_sqr = current_block->max_entry_speed_sqr;
 
     // Compute maximum entry speed decelerating over the current block from its exit speed.
     // If not at the maximum entry speed, or the previous block entry speed changed
-    if (current->entry_speed_sqr != max_entry_speed_sqr || (next && TEST(next->flag, BLOCK_BIT_RECALCULATE))) {
+    if (current_block->entry_speed_sqr != max_entry_speed_sqr || (next_block && TEST(next_block->flag, BLOCK_BIT_RECALCULATE))) {
 
       // If nominal length true, max junction speed is guaranteed to be reached.
       // If a block can de/ac-celerate from nominal speed to zero within the length of the block, then
@@ -2380,28 +2384,28 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t* const n
       // the reverse and forward planners, the corresponding block junction speed will always be at the
       // the maximum junction speed and may always be ignored for any speed reduction checks.
 
-      const float new_entry_speed_sqr = TEST(current->flag, BLOCK_BIT_NOMINAL_LENGTH)
+      const float new_entry_speed_sqr = TEST(current_block->flag, BLOCK_BIT_NOMINAL_LENGTH)
         ? max_entry_speed_sqr
-        : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next ? next->entry_speed_sqr : sq(MINIMUM_PLANNER_SPEED), current->millimeters));
-      if (current->entry_speed_sqr != new_entry_speed_sqr) {
+        : MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current_block->acceleration, next_block ? next_block->entry_speed_sqr : sq(MINIMUM_PLANNER_SPEED), current_block->millimeters));
+      if (current_block->entry_speed_sqr != new_entry_speed_sqr) {
 
         // Need to recalculate the block speed - Mark it now, so the stepper
         // ISR does not consume the block before being recalculated
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
+        SBI(current_block->flag, BLOCK_BIT_RECALCULATE);
 
         // But there is an inherent race condition here, as the block maybe
         // became BUSY, just before it was marked as RECALCULATE, so check
         // if that is the case!
-        if (stepper.is_block_busy(current)) {
+        if (stepper.is_block_busy(current_block)) {
           // Block became busy. Clear the RECALCULATE flag (no point in
           //  recalculating BUSY blocks and don't set its speed, as it can't
           //  be updated at this time.
-          CBI(current->flag, BLOCK_BIT_RECALCULATE);
+          CBI(current_block->flag, BLOCK_BIT_RECALCULATE);
         }
         else {
           // Block is not BUSY, we won the race against the Stepper ISR:
           // Just Set the new entry speed
-          current->entry_speed_sqr = new_entry_speed_sqr;
+          current_block->entry_speed_sqr = new_entry_speed_sqr;
         }
       }
     }
@@ -2409,41 +2413,41 @@ void Planner::reverse_pass_kernel(block_t* const current, const block_t* const n
 }
 
 // The kernel called by recalculate() when scanning the plan from first to last entry.
-void Planner::forward_pass_kernel(const block_t* const previous, block_t* const current, const uint8_t block_index) {
+void Planner::forward_pass_kernel(const block_t* const previous_block, block_t* const current_block, const uint8_t block_index) {
 
-  if (previous) {
+  if (previous_block) {
     // If the previous block is an acceleration block, too short to complete the full speed
     // change, adjust the entry speed accordingly. Entry speeds have already been reset,
     // maximized, and reverse-planned. If nominal length is set, max junction speed is
     // guaranteed to be reached. No need to recheck.
-    if (!TEST(previous->flag, BLOCK_BIT_NOMINAL_LENGTH) &&
-      previous->entry_speed_sqr < current->entry_speed_sqr) {
+    if (!TEST(previous_block->flag, BLOCK_BIT_NOMINAL_LENGTH) &&
+      previous_block->entry_speed_sqr < current_block->entry_speed_sqr) {
 
       // Compute the maximum allowable speed
-      const float new_entry_speed_sqr = max_allowable_speed_sqr(-previous->acceleration, previous->entry_speed_sqr, previous->millimeters);
+      const float new_entry_speed_sqr = max_allowable_speed_sqr(-previous_block->acceleration, previous_block->entry_speed_sqr, previous_block->millimeters);
 
       // If true, current block is full-acceleration and we can move the planned pointer forward.
-      if (new_entry_speed_sqr < current->entry_speed_sqr) {
+      if (new_entry_speed_sqr < current_block->entry_speed_sqr) {
 
         // Mark we need to recompute the trapezoidal shape, and do it now,
         // so the stepper ISR does not consume the block before being recalculated
-        SBI(current->flag, BLOCK_BIT_RECALCULATE);
+        SBI(current_block->flag, BLOCK_BIT_RECALCULATE);
 
         // But there is an inherent race condition here, as the block maybe
         // became BUSY, just before it was marked as RECALCULATE, so check
         // if that is the case!
-        if (stepper.is_block_busy(current)) {
+        if (stepper.is_block_busy(current_block)) {
 
           // Block became busy... Clear the RECALCULATE flag -There is no point
           //  recalculating BUSY blocks- and do not set it's speed, as it can't
           //  be updated at this time.
-          CBI(current->flag, BLOCK_BIT_RECALCULATE);
+          CBI(current_block->flag, BLOCK_BIT_RECALCULATE);
         }
         else {
           // Block is not BUSY, we won the race against the Stepper ISR:
 
           // Always <= max_entry_speed_sqr. Backward pass sets this.
-          current->entry_speed_sqr = new_entry_speed_sqr; // Always <= max_entry_speed_sqr. Backward pass sets this.
+          current_block->entry_speed_sqr = new_entry_speed_sqr; // Always <= max_entry_speed_sqr. Backward pass sets this.
 
           // Set optimal plan pointer.
           block_buffer_planned = block_index;
@@ -2455,7 +2459,7 @@ void Planner::forward_pass_kernel(const block_t* const previous, block_t* const 
     // point in the buffer. When the plan is bracketed by either the beginning of the
     // buffer and a maximum entry speed or two maximum entry speeds, every block in between
     // cannot logically be further improved. Hence, we don't have to recompute them anymore.
-    if (current->entry_speed_sqr == current->max_entry_speed_sqr)
+    if (current_block->entry_speed_sqr == current_block->max_entry_speed_sqr)
       block_buffer_planned = block_index;
   }
 }
@@ -2481,16 +2485,16 @@ void Planner::reverse_pass() {
   // Reverse Pass: Coarsely maximize all possible deceleration curves back-planning from the last
   // block in buffer. Cease planning when the last optimal planned or tail pointer is reached.
   // NOTE: Forward pass will later refine and correct the reverse pass to create an optimal plan.
-  const block_t *next = NULL;
+  const block_t *next_block = nullptr;
   while (block_index != planned_block_index) {
 
     // Perform the reverse pass
-    block_t *current = &block_buffer[block_index];
+    block_t *current_block = &block_buffer[block_index];
 
     // Only consider non sync blocks
-    if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION)) {
-      reverse_pass_kernel(current, next);
-      next = current;
+    if (!TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
+      reverse_pass_kernel(current_block, next_block);
+      next_block = current_block;
     }
 
     // Advance to the next
@@ -2525,26 +2529,24 @@ void Planner::forward_pass() {
   //  pass will never modify the values at the tail.
   uint8_t block_index = block_buffer_planned;
 
-  const block_t * previous = NULL;
+  block_t *current_block;
+  const block_t * previous_block = nullptr;
   while (block_index != block_buffer_head) {
 
     // Perform the forward pass
-    block_t *current = &block_buffer[block_index];
+    current_block = &block_buffer[block_index];
 
     // Skip SYNC blocks
-    if (!TEST(current->flag, BLOCK_BIT_SYNC_POSITION)) {
-      
-      
+    if (!TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION)) {
       //  If we don't have a previous block or the previous block
       // is not busy (thus, modifiable), run the forward_pass_kernel.
       //  Otherwise, the previous block became BUSY (read only), so
       // we must assume the entry speed of the current block can't be
       // altered (as that would also require to update the exit speed
       // of the previous block)
-      if (!previous || !stepper.is_block_busy(previous)) {
-        forward_pass_kernel(previous, current, block_index);
-      }
-      previous = current;
+      if (!previous_block || !stepper.is_block_busy(previous_block))
+        forward_pass_kernel(previous_block, current_block, block_index);
+      previous_block = current_block;
     }
 
     // Advance to the previous
@@ -2560,12 +2562,12 @@ void Planner::forward_pass() {
  */
 void Planner::recalculate_trapezoids() {
 
-  uint8_t block_index = block_buffer_tail;
+  uint8_t block_index       = block_buffer_tail,
+          head_block_index  = block_buffer_head;
 
-  // As there could be a sync block in the head of the queue, and the next loop must not
-  // recalculate the head block (as it needs to be specially handled), scan backwards until
-  // we find the first non SYNC block
-  uint8_t head_block_index = block_buffer_head;
+  // Since there could be a sync block in the head of the queue, and the
+  // next loop must not recalculate the head block (as it needs to be
+  // specially handled), scan backwards to the first non-SYNC block.
   while (head_block_index != block_index) {
 
     // Go back (head always point to the first free block)
@@ -2582,51 +2584,54 @@ void Planner::recalculate_trapezoids() {
   };
 
   // Go from the tail (currently executed block) to the first block, without including it)
-  block_t *current = NULL, *next = NULL;
-  float current_entry_speed = 0.0, next_entry_speed = 0.0;
+  block_t *current_block  = nullptr,
+          *next_block     = nullptr;
+  float   current_entry_speed = 0.0,
+          next_entry_speed    = 0.0;
+
   while (block_index != head_block_index) {
 
-    next = &block_buffer[block_index];
+    next_block = &block_buffer[block_index];
 
     // Skip sync blocks
-    if (!TEST(next->flag, BLOCK_BIT_SYNC_POSITION)) {
-      next_entry_speed = SQRT(next->entry_speed_sqr);
+    if (!TEST(next_block->flag, BLOCK_BIT_SYNC_POSITION)) {
+      next_entry_speed = SQRT(next_block->entry_speed_sqr);
 
-      if (current) {
+      if (current_block) {
         // Recalculate if current block entry or exit junction speed has changed.
-        if (TEST(current->flag, BLOCK_BIT_RECALCULATE) || TEST(next->flag, BLOCK_BIT_RECALCULATE)) {
+        if (TEST(current_block->flag, BLOCK_BIT_RECALCULATE) || TEST(next_block->flag, BLOCK_BIT_RECALCULATE)) {
 
           // Mark the current block as RECALCULATE, to protect it from the Stepper ISR running it.
           // Note that due to the above condition, there's a chance the current block isn't marked as
           // RECALCULATE yet, but the next one is. That's the reason for the following line.
-          SBI(current->flag, BLOCK_BIT_RECALCULATE);
+          SBI(current_block->flag, BLOCK_BIT_RECALCULATE);
 
           // But there is an inherent race condition here, as the block maybe
           // became BUSY, just before it was marked as RECALCULATE, so check
           // if that is the case!
-          if (!stepper.is_block_busy(current)) {
+          if (!stepper.is_block_busy(current_block)) {
             // Block is not BUSY, we won the race against the Stepper ISR:
 
             // NOTE: Entry and exit factors always > 0 by all previous logic operations.
-            const float current_nominal_speed = SQRT(current->nominal_speed_sqr),
+            const float current_nominal_speed = SQRT(current_block->nominal_speed_sqr),
                         nomr = 1.0f / current_nominal_speed;
-            calculate_trapezoid_for_block(current, current_entry_speed * nomr, next_entry_speed * nomr);
+            calculate_trapezoid_for_block(current_block, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
-              if (current->use_advance_lead) {
-                const float comp = current->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
-                current->max_adv_steps = current_nominal_speed * comp;
-                current->final_adv_steps = next_entry_speed * comp;
+              if (current_block->use_advance_lead) {
+                const float comp = current_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
+                current_block->max_adv_steps = current_nominal_speed * comp;
+                current_block->final_adv_steps = next_entry_speed * comp;
               }
             #endif
           }
 
           // Reset current only to ensure next trapezoid is computed - The
           // stepper is free to use the block from now on.
-          CBI(current->flag, BLOCK_BIT_RECALCULATE);
+          CBI(current_block->flag, BLOCK_BIT_RECALCULATE);
         }
       }
 
-      current = next;
+      current_block = next_block;
       current_entry_speed = next_entry_speed;
     }
 
@@ -2634,34 +2639,34 @@ void Planner::recalculate_trapezoids() {
   }
 
   // Last/newest block in buffer. Exit speed is set with MINIMUM_PLANNER_SPEED. Always recalculated.
-  if (next) {
+  if (next_block) {
 
     // Mark the next(last) block as RECALCULATE, to prevent the Stepper ISR running it.
     // As the last block is always recalculated here, there is a chance the block isn't
     // marked as RECALCULATE yet. That's the reason for the following line.
-    SBI(next->flag, BLOCK_BIT_RECALCULATE);
+    SBI(next_block->flag, BLOCK_BIT_RECALCULATE);
 
     // But there is an inherent race condition here, as the block maybe
     // became BUSY, just before it was marked as RECALCULATE, so check
     // if that is the case!
-    if (!stepper.is_block_busy(current)) {
+    if (!stepper.is_block_busy(current_block)) {
       // Block is not BUSY, we won the race against the Stepper ISR:
 
-      const float next_nominal_speed = SQRT(next->nominal_speed_sqr),
+      const float next_nominal_speed = SQRT(next_block->nominal_speed_sqr),
                   nomr = 1.0f / next_nominal_speed;
-      calculate_trapezoid_for_block(next, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
+      calculate_trapezoid_for_block(next_block, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
-        if (next->use_advance_lead) {
-          const float comp = next->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
-          next->max_adv_steps = next_nominal_speed * comp;
-          next->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
+        if (next_block->use_advance_lead) {
+          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm[E_INDEX];
+          next_block->max_adv_steps = next_nominal_speed * comp;
+          next_block->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }
       #endif
     }
 
     // Reset next only to ensure its trapezoid is computed - The stepper is free to use
     // the block from now on.
-    CBI(next->flag, BLOCK_BIT_RECALCULATE);
+    CBI(next_block->flag, BLOCK_BIT_RECALCULATE);
   }
 
 }

@@ -38,7 +38,7 @@ inline void gcode_M140(void) {
   if (WITHIN(b, 0 , BEDS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
     if (parser.seenval('S')) beds[b].set_target_temp(parser.value_celsius());
-    if (parser.seenval('R')) beds[b].setIdle(false, parser.value_celsius());
+    if (parser.seenval('R')) beds[b].set_idle_temp(parser.value_celsius());
   }
 }
 

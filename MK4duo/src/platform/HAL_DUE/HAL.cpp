@@ -576,8 +576,6 @@ void HAL::Tick() {
 
   if (printer.isStopped()) return;
 
-  watchdog.reset();
-
   // Heaters set output PWM
   #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].set_output_pwm();

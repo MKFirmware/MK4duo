@@ -17,7 +17,7 @@
 ### New features are:
 * One version for all Atmel AVR boards and for Arduino Due or other boards based on Atmel SAM3X8E
 * Stepping-algorithm optmized now for DRV8825 and A4988 (no need for double or quadstepping; no delays)
-* High speed stepping of approx. 295.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
+* High speed stepping of approx. 300.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
 
 ---
 # MK4duo 3D Printer Firmware
@@ -42,8 +42,6 @@ http://www.marlinkimbra.it
 
 
 ## Quick Information
-
-This version of Marlin was made to accommodate some requests made by the community RepRap Italy http://forums.reprap.org/index.php?349
 
 The new features are:
 * A single Firmware for all types of printers; Cartesian, Delta, MORGAN SCARA, MAKERARM SCARA, CoreXY, CoreXZ & CoreYZ and their reverse.
@@ -85,6 +83,7 @@ The new features are:
 * Added Door switch for stop job when door is open
 * Added Support for TMC2130 - TMC2208 - TMC2660 - TMC2160 - TMC5130 - TMC5160 motor driver
 * Added Power Check pin for restart job
+* Added two serial for host.
 * Added Probe BLTouch
 * Added Probe BLTouch V3.0 or V3.1
 * Added Probe Z Sensoreless for TMC

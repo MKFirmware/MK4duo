@@ -26,7 +26,7 @@
  */
 
 union endstop_flag_t {
-  uint8_t all;
+  bool all;
   struct {
     bool  Enabled         : 1;
     bool  Globally        : 1;
@@ -37,7 +37,7 @@ union endstop_flag_t {
     bool  bit6            : 1;
     bool  bit7            : 1;
   };
-  endstop_flag_t() { all = 0x00; }
+  endstop_flag_t() { all = false; }
 };
 
 #if ENABLED(SPI_ENDSTOPS)
@@ -53,7 +53,7 @@ union endstop_flag_t {
 #endif
 
 // Struct Endstop data
-typedef struct endstop_data_t {
+struct endstop_data_t {
   uint16_t  logic_flag,
             pullup_flag;
   #if ENABLED(X_TWO_ENDSTOPS)
@@ -69,7 +69,7 @@ typedef struct endstop_data_t {
     float   z2_endstop_adj,
             z3_endstop_adj;
   #endif
-} endstop_data_t;
+};
 
 class Endstops {
 
@@ -86,7 +86,7 @@ class Endstops {
     #if MECH(DELTA)
       static float  soft_endstop_radius_2;
     #else
-      static axis_limits_t soft_endstop[XYZ];
+      static float_limit_t soft_endstop[XYZ];
     #endif
 
     static uint16_t live_state;

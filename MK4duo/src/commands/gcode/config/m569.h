@@ -43,21 +43,25 @@
  */
 inline void gcode_M569(void) {
 
-  #if ENABLED(COLOR_MIXING_EXTRUDER)
-    if (commands.get_target_driver(569)) return;
-  #else
-    if (commands.get_target_tool(569)) return;
+  if (commands.get_target_driver(569)) return;
+
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M569 report.
+    if (!parser.seen("XYZEDPRQ")) {
+      stepper.print_M569();
+      return;
+    }
   #endif
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
       const uint8_t a = i + (i == E_AXIS ? tools.extruder.target : 0);
-      stepper.setStepDir((AxisEnum)a, parser.value_bool());
+      if (driver[i]) driver[i]->setDir(parser.value_bool());
     }
   }
 
   // Set actually direction
-  reset_stepper_drivers();
+  stepper.reset_drivers();
 
   if (parser.seen('D')) stepper.data.direction_delay  = parser.value_ulong();
   if (parser.seen('P')) stepper.data.minimum_pulse    = parser.value_byte();
@@ -67,33 +71,7 @@ inline void gcode_M569(void) {
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
 
-  SERIAL_EM("Reporting Stepper control");
-  SERIAL_LOGIC(" X dir", stepper.isStepDir(X_AXIS));
-  SERIAL_LOGIC(" Y dir", stepper.isStepDir(Y_AXIS));
-  SERIAL_LOGIC(" Z dir", stepper.isStepDir(Z_AXIS));
-
-  #if DRIVER_EXTRUDERS == 1
-    SERIAL_LOGIC(" E dir", stepper.isStepDir(E_AXIS));
-    SERIAL_EOL();
-  #else
-    SERIAL_EOL();
-    LOOP_DRV_EXTRUDER() {
-      #if HAS_MKMULTI_TOOLS
-        SERIAL_MV(" Driver Extruder", d);
-      #else
-        SERIAL_MV(" E", d);
-      #endif
-      SERIAL_LOGIC(" dir" , stepper.isStepDir((AxisEnum)(E_AXIS + d)));
-      SERIAL_EOL();
-    }
-  #endif
-
-  SERIAL_LOGIC(" Double/Quad Stepping", stepper.data.quad_stepping);
-  SERIAL_MV(" Direction delay(ns):",    stepper.data.direction_delay);
-  SERIAL_MV(" Minimum pulse(us):",      stepper.data.minimum_pulse);
-  SERIAL_MV(" Maximum rate(Hz):",       stepper.data.maximum_rate);
-  SERIAL_EOL();
-
+  /*
   DEBUG_EMV("HAL_min_pulse_cycle:",     HAL_min_pulse_cycle);
   DEBUG_EMV("HAL_min_pulse_tick:",      HAL_min_pulse_tick);
   DEBUG_EMV("HAL_add_pulse_ticks:",     HAL_add_pulse_ticks);
@@ -105,5 +83,6 @@ inline void gcode_M569(void) {
   DEBUG_EMV("HAL_frequency_limit[5]:",  HAL_frequency_limit[5]);
   DEBUG_EMV("HAL_frequency_limit[6]:",  HAL_frequency_limit[6]);
   DEBUG_EMV("HAL_frequency_limit[7]:",  HAL_frequency_limit[7]);
+  */
 
 }

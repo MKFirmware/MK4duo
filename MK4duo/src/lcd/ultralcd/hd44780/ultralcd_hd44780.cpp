@@ -417,56 +417,25 @@ void LcdUI::clear_lcd() { lcd.clear(); }
         lcd_scroll(0, 3, PSTR(STRING), LCD_WIDTH, DELAY); \
       }
 
-    #if ENABLED(STRING_SPLASH_LINE1)
+    //
+    // Show the MK4duo logo with splash line 1
+    //
+    if (LCD_EXTRA_SPACE >= utf8_strlen(SHORT_BUILD_VERSION) + 1) {
+      //
+      // Show the MK4duo logo, splash line1, and splash line 2
+      //
+      logo_lines(PSTR(" " SHORT_BUILD_VERSION));
+      CENTER_OR_SCROLL(MK4DUO_FIRMWARE_URL, BOOTSCREEN_TIMEOUT);
+    }
+    else {
       //
       // Show the MK4duo logo with splash line 1
-      //
-      if (LCD_EXTRA_SPACE >= utf8_strlen(STRING_SPLASH_LINE1) + 1) {
-        //
-        // Show the MK4duo logo, splash line1, and splash line 2
-        //
-        logo_lines(PSTR(STRING_SPLASH_LINE1));
-        #if ENABLED(STRING_SPLASH_LINE2)
-          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
-        #else
-          HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
-        #endif
-      }
-      else {
-        //
-        // Show the MK4duo logo with splash line 1
-        // After a delay show splash line 2, if it exists
-        //
-        #if ENABLED(STRING_SPLASH_LINE2)
-          #define _SPLASH_WAIT_1 (BOOTSCREEN_TIMEOUT - 500)
-        #else
-          #define _SPLASH_WAIT_1 BOOTSCREEN_TIMEOUT
-        #endif
-        logo_lines(PSTR(""));
-        CENTER_OR_SCROLL(STRING_SPLASH_LINE1, _SPLASH_WAIT_1);
-        #if ENABLED(STRING_SPLASH_LINE2)
-          CENTER_OR_SCROLL(STRING_SPLASH_LINE2, _SPLASH_WAIT_1);
-        #endif
-      }
-    #elif ENABLED(STRING_SPLASH_LINE2)
-      //
-      // Show splash line 2 only, alongside the logo if possible
-      //
-      if (LCD_EXTRA_SPACE >= utf8_strlen(STRING_SPLASH_LINE2) + 1) {
-        logo_lines(PSTR(" " STRING_SPLASH_LINE2));
-        HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
-      }
-      else {
-        logo_lines(PSTR(""));
-        CENTER_OR_SCROLL(STRING_SPLASH_LINE2, BOOTSCREEN_TIMEOUT);
-      }
-    #else
-      //
-      // Show only the MK4duo logo
+      // After a delay show the website URL
       //
       logo_lines(PSTR(""));
-      HAL::delayMilliseconds(BOOTSCREEN_TIMEOUT);
-    #endif
+      CENTER_OR_SCROLL(SHORT_BUILD_VERSION, BOOTSCREEN_TIMEOUT);
+      CENTER_OR_SCROLL(MK4DUO_FIRMWARE_URL, BOOTSCREEN_TIMEOUT);
+    }
 
     lcd.clear();
     HAL::delayMilliseconds(100);

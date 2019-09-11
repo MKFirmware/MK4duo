@@ -21,6 +21,7 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK
 
@@ -75,6 +76,11 @@ Power powerManager;
     void Power::report() {
       SERIAL_LOGIC("POWER CHECK Logic", isLogic());
       SERIAL_LOGIC(" Pullup", isPullup());
+    }
+
+    void Power::outage() {
+      if (IS_SD_PRINTING() && READ(POWER_CHECK_PIN) != isLogic())
+        card.setAbortSDprinting(true);
     }
 
   #endif 
@@ -168,21 +174,21 @@ Power powerManager;
       LOOP_FAN() if (fans[f].speed > 0) return true;
     #endif
 
-    if (X_ENABLE_READ() == X_ENABLE_ON || Y_ENABLE_READ() == Y_ENABLE_ON || Z_ENABLE_READ() == Z_ENABLE_ON
-        || E0_ENABLE_READ() == E_ENABLE_ON // If any of the drivers are enabled...
+    if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
+        || E0_ENABLE_READ() == driver[E0_DRV]->isEnable() // If any of the drivers are enabled...
         #if DRIVER_EXTRUDERS > 1
-          || E1_ENABLE_READ() == E_ENABLE_ON
+          || E1_ENABLE_READ() == driver[E1_DRV]->isEnable()
           #if HAS_X2_ENABLE
-            || X2_ENABLE_READ() == X_ENABLE_ON
+            || X2_ENABLE_READ() == driver[X2_DRV]->isEnable()
           #endif
           #if DRIVER_EXTRUDERS > 2
-            || E2_ENABLE_READ() == E_ENABLE_ON
+            || E2_ENABLE_READ() == driver[E2_DRV]->isEnable()
             #if DRIVER_EXTRUDERS > 3
-              || E3_ENABLE_READ() == E_ENABLE_ON
+              || E3_ENABLE_READ() == driver[E3_DRV]->isEnable()
               #if DRIVER_EXTRUDERS > 4
-                || E4_ENABLE_READ() == E_ENABLE_ON
+                || E4_ENABLE_READ() == driver[E4_DRV]->isEnable()
                 #if DRIVER_EXTRUDERS > 5
-                  || E5_ENABLE_READ() == E_ENABLE_ON
+                  || E5_ENABLE_READ() == driver[E5_DRV]->isEnable()
                 #endif
               #endif
             #endif

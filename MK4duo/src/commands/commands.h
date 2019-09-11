@@ -145,20 +145,18 @@ class Commands {
     static bool get_target_tool(const uint16_t code);
 
     /**
+     * Set target driver from the T parameter or the active_driver
+     *
+     * Returns TRUE if the target is invalid
+     */
+    static bool get_target_driver(const uint16_t code);
+
+    /**
      * Set target heather from the H parameter
      *
      * Returns NULL if the target is invalid
      */
     static Heater* get_target_heater();
-
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      /**
-       * Set target driver from the T parameter or the active_driver
-       *
-       * Returns TRUE if the target is invalid
-       */
-      static bool get_target_driver(const uint16_t code);
-    #endif
 
     #if HAS_FANS
       /**

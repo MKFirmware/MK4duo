@@ -24,8 +24,6 @@
 
 #if HAS_SPI_LCD
 
-LcdUI lcdui;
-
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t LcdUI::status_scroll_offset; // = 0
   #if LONG_FILENAME_LENGTH > CHARSIZE * 2 * (LCD_WIDTH)
@@ -642,6 +640,7 @@ void LcdUI::update() {
 
   static uint16_t max_display_update_time = 0;
   static millis_s next_lcd_update_ms;
+  const millis_l ms = millis();
 
   #if HAS_LCD_MENU
 
@@ -705,13 +704,12 @@ void LcdUI::update() {
       #endif
 
       refresh();
-      next_lcd_update_ms = millis();
+      next_lcd_update_ms = ms;
 
     }
 
   #endif // HAS_SD_SUPPORT
 
-  const millis_l ms = millis();
   if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL)
     #if HAS_GRAPHICAL_LCD
       || drawing_screen
@@ -1332,7 +1330,6 @@ void LcdUI::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   host_action.cancel();
-  host_action.prompt_open(PROMPT_INFO, PSTR("Lcd Abort"));
   print_job_counter.stop();
   set_status_P(PSTR(MSG_PRINT_ABORTED));
   return_to_status();

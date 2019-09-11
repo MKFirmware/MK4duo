@@ -33,7 +33,7 @@
 #endif
 
 union fan_flag_t {
-  uint8_t all;
+  bool all;
   struct {
     bool  HWInvert  : 1;
     bool  Idle      : 1;
@@ -44,11 +44,11 @@ union fan_flag_t {
     bool  bit6      : 1;
     bool  bit7      : 1;
   };
-  fan_flag_t() { all = 0x00; }
+  fan_flag_t() { all = false; }
 };
 
 // Struct Fan data
-typedef struct {
+struct fan_data_t {
   pin_t           pin;
   fan_flag_t      flag;
   uint8_t         ID,
@@ -60,7 +60,7 @@ typedef struct {
   #if ENABLED(TACHOMETRIC)
     tacho_data_t  tacho;
   #endif
-} fan_data_t;
+};
 
 class Fan {
 

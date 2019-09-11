@@ -27,13 +27,14 @@
  */
 
 #include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
-flagdebug_t   Printer::debug_flag;    // For debug
-flagVarious_t Printer::various_flag;  // For various
+debug_flag_t    Printer::debug_flag;    // For debug
+various_flag_t  Printer::various_flag;  // For various
 
 bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
@@ -140,6 +141,9 @@ void Printer::setup() {
   SERIAL_L(START);
   SERIAL_STR(ECHO);
 
+  // Create driver stepper
+  stepper.create_driver();
+
   #if HAS_TRINAMIC
     tmc.init();
   #endif
@@ -195,6 +199,9 @@ void Printer::setup() {
 
   // Initialize stepper. This enables interrupts!
   stepper.init();
+
+  // Initialize tools
+  tools.init();
 
   #if ENABLED(CNCROUTER)
     cnc.init();
@@ -303,6 +310,8 @@ void Printer::loop() {
 
   for (;;) {
 
+    idle();
+
     #if HAS_SD_SUPPORT
 
       card.checkautostart();
@@ -340,16 +349,14 @@ void Printer::loop() {
 
     #endif // HAS_SD_SUPPORT
 
-    commands.get_available();
     commands.advance_queue();
     endstops.report_state();
-    idle();
 
   }
 }
 
 void Printer::factory_parameters() {
-  various_flag.all = 0;
+  various_flag.all = 0x0000;
   #if ENABLED(IDLE_OOZING_PREVENT)
     IDLE_OOZING_enabled = true;
   #endif
@@ -572,6 +579,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   lcdui.update();
+
+  #if HAS_POWER_CHECK
+    powerManager.outage();
+  #endif
 
   #if ENABLED(HOST_KEEPALIVE_FEATURE)
     host_keepalive_tick();
@@ -930,13 +941,14 @@ void Printer::handle_interrupt_events() {
 
       case INTERRUPT_EVENT_FIL_RUNOUT: {
 
+        interruptEvent = INTERRUPT_EVENT_NONE;
+        filamentrunout.sensor.setFilamentOut(true);
+
         #if ENABLED(ADVANCED_PAUSE_FEATURE)
           if (advancedpause.did_pause_print) return;
         #endif
 
         const char tool = '0' + tools.extruder.active;
-
-        filamentrunout.sensor.setFilamentOut(true);
         host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action.prompt_begin(PSTR("Filament Runout T"), false);
         SERIAL_CHR(tool);
@@ -957,12 +969,12 @@ void Printer::handle_interrupt_events() {
         else
           host_action.pause(false);
 
-        SERIAL_SM(ECHO, "filament runout T");
+        SERIAL_MSG(" filament_runout T");
         SERIAL_CHR(tool);
         SERIAL_EOL();
 
         if (run_runout_script)
-          commands.enqueue_now_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+          commands.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
 
         planner.synchronize();
 
@@ -974,8 +986,6 @@ void Printer::handle_interrupt_events() {
     default: break;
 
   }
-
-  interruptEvent = INTERRUPT_EVENT_NONE;
 
 }
 

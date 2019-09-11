@@ -408,7 +408,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
 
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
   #endif
 
   if (is_home_dir) {
@@ -1107,14 +1107,14 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
                 fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(stepperX);
-      stealth_states.y = tmc.enable_stallguard(stepperY);
+      sensorless_flag_t stealth_states;
+      stealth_states.x = tmc.enable_stallguard(X_DRV);
+      stealth_states.y = tmc.enable_stallguard(Y_DRV);
       #if X2_HAS_SENSORLESS
-        stealth_states.x2 = tmc.enable_stallguard(stepperX2);
+        stealth_states.x2 = tmc.enable_stallguard(X2_DRV);
       #endif
       #if Y2_HAS_SENSORLESS
-        stealth_states.y2 = tmc.enable_stallguard(stepperY2);
+        stealth_states.y2 = tmc.enable_stallguard(Y2_DRV);
       #endif
     #endif
 
@@ -1125,13 +1125,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     current_position[X_AXIS] = current_position[Y_AXIS] = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(stepperX, stealth_states.x);
-      tmc.disable_stallguard(stepperY, stealth_states.y);
+      tmc.disable_stallguard(X_DRV, stealth_states.x);
+      tmc.disable_stallguard(Y_DRV, stealth_states.y);
       #if X2_HAS_SENSORLESS
-        tmc.disable_stallguard(stepperX2, stealth_states.x2);
+        tmc.disable_stallguard(X2_DRV, stealth_states.x2);
       #endif
       #if Y2_HAS_SENSORLESS
-        tmc.disable_stallguard(stepperY2, stealth_states.y2);
+        tmc.disable_stallguard(Y2_DRV, stealth_states.y2);
       #endif
     #endif
   }

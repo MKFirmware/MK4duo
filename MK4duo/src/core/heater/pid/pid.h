@@ -31,7 +31,7 @@
   static int  lpq_ptr           = 0;
 #endif
 
-typedef struct {
+struct pid_data_t {
 
   public: /** Public Parameters */
 
@@ -108,4 +108,4 @@ typedef struct {
       }
     }
 
-} pid_data_t;
+};

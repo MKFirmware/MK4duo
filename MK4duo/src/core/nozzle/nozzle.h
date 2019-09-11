@@ -22,14 +22,14 @@
 #pragma once
 
 // Struct Nozzle data
-typedef struct {
+struct nozzle_data_t {
   #if HOTENDS > 1
     float hotend_offset[XYZ][HOTENDS];
   #endif
   #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
     point_t park_point = { 0, 0, 0 };
   #endif
-} nozzle_data_t;
+};
 
 class Nozzle {
 

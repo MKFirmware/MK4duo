@@ -53,7 +53,7 @@ inline void gcode_M104(void) {
     #endif
   }
 
-  if (parser.seenval('R')) hotends[TARGET_HOTEND].setIdle(false, parser.value_celsius());
+  if (parser.seenval('R')) hotends[TARGET_HOTEND].set_idle_temp(parser.value_celsius());
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();

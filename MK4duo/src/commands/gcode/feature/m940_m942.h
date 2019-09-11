@@ -32,9 +32,9 @@
 #define CODE_M941
 #define CODE_M942
 
-inline void tmc_set_stealthChop(MKTMC* st, const bool onoff) {
-  st->stealthChop_enabled = onoff;
-  st->refresh_stepping_mode();
+inline void tmc_set_stealthChop(const DriverEnum index, const bool onoff) {
+  driver[index]->tmc->stealthChop_enabled = onoff;
+  driver[index]->tmc->refresh_stepping_mode();
 }
 
 /**
@@ -55,49 +55,49 @@ inline void gcode_M940(void) {
     switch (i) {
       case X_AXIS:
         #if AXIS_HAS_STEALTHCHOP(X)
-          tmc_set_stealthChop(stepperX, value);
+          tmc_set_stealthChop(X_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(X2)
-          tmc_set_stealthChop(stepperX2, value);
+          tmc_set_stealthChop(X2_DRV, value);
         #endif
         break;
       case Y_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Y)
-          tmc_set_stealthChop(stepperY, value);
+          tmc_set_stealthChop(Y_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Y2)
-          tmc_set_stealthChop(stepperY2, value);
+          tmc_set_stealthChop(Y2_DRV, value);
         #endif
         break;
       case Z_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Z)
-          tmc_set_stealthChop(stepperZ, value);
+          tmc_set_stealthChop(Z_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z2)
-          tmc_set_stealthChop(stepperZ2, value);
+          tmc_set_stealthChop(Z2_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z3)
-          tmc_set_stealthChop(stepperZ3, value);
+          tmc_set_stealthChop(Z3_DRV, value);
         #endif
         break;
       case E_AXIS:
         #if AXIS_HAS_STEALTHCHOP(E0)
-          tmc_set_stealthChop(stepperE0, value);
+          tmc_set_stealthChop(E0_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E1)
-          tmc_set_stealthChop(stepperE1, value);
+          tmc_set_stealthChop(E1_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E2)
-          tmc_set_stealthChop(stepperE2, value);
+          tmc_set_stealthChop(E2_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E3)
-          tmc_set_stealthChop(stepperE3, value);
+          tmc_set_stealthChop(E3_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E4)
-          tmc_set_stealthChop(stepperE4, value);
+          tmc_set_stealthChop(E4_DRV, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E5)
-          tmc_set_stealthChop(stepperE5, value);
+          tmc_set_stealthChop(E5_DRV, value);
         #endif
       break;
     }
@@ -110,49 +110,49 @@ inline void gcode_M940(void) {
 inline void gcode_M941(void) {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
-      stepperX->chm(parser.value_bool());
+      driver[X_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
-      stepperX2->chm(parser.value_bool());
+      driver[X2_DRV]->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
     #if AXIS_HAS_TMC(Y)
-      stepperY->chm(parser.value_bool());
+      driver[Y_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
-      stepperY2->chm(parser.value_bool());
+      driver[Y2_DRV]->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
     #if AXIS_HAS_TMC(Z)
-      stepperZ->chm(parser.value_bool());
+      driver[Z_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
-      stepperZ2->chm(parser.value_bool());
+      driver[Z2_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z3)
-      stepperZ3->chm(parser.value_bool());
+      driver[Z3_DRV]->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      stepperE0->chm(parser.value_bool());
+      driver[E0_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      stepperE1->chm(parser.value_bool());
+      driver[E1_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      stepperE2->chm(parser.value_bool());
+      driver[E2_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      stepperE3->chm(parser.value_bool());
+      driver[E3_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      stepperE4->chm(parser.value_bool());
+      driver[E4_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      stepperE5->chm(parser.value_bool());
+      driver[E5_DRV]->tmc->chm(parser.value_bool());
     #endif
   }
 }
@@ -163,49 +163,49 @@ inline void gcode_M941(void) {
 inline void gcode_M942(void) {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
-      stepperX->intpol(parser.value_bool());
+      driver[X_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
-      stepperX2->intpol(parser.value_bool());
+      driver[X2_DRV]->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
     #if AXIS_HAS_TMC(Y)
-      stepperY->intpol(parser.value_bool());
+      driver[Y_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
-      stepperY2->intpol(parser.value_bool());
+      driver[Y2_DRV]->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
     #if AXIS_HAS_TMC(Z)
-      stepperZ->intpol(parser.value_bool());
+      driver[Z_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
-      stepperZ2->intpol(parser.value_bool());
+      driver[Z2_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z3)
-      stepperZ3->intpol(parser.value_bool());
+      driver[Z3_DRV]->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      stepperE0->intpol(parser.value_bool());
+      driver[E0_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      stepperE1->intpol(parser.value_bool());
+      driver[E1_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      stepperE2->intpol(parser.value_bool());
+      driver[E2_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      stepperE3->intpol(parser.value_bool());
+      driver[E3_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      stepperE4->intpol(parser.value_bool());
+      driver[E4_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      stepperE5->intpol(parser.value_bool());
+      driver[E5_DRV]->tmc->intpol(parser.value_bool());
     #endif
   }
 }

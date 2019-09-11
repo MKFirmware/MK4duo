@@ -95,16 +95,15 @@ typedef uint16_t  ptr_int_t;
 // --------------------------------------------------------------------------
 // Includes
 // --------------------------------------------------------------------------
+#define HardwareSerial_h // Hack to prevent HardwareSerial.h header inclusion
+#include "hardwareserial/HardwareSerial.h"
+#include "watchdog/watchdog.h"
 #include "fastio.h"
 #include "math.h"
 #include "delay.h"
-#include "watchdog.h"
 #include "speed_lookuptable.h"
 
 // Serial ports
-#define HardwareSerial_h // Hack to prevent HardwareSerial.h header inclusion
-#include "HardwareSerial.h"
-
 #if !WITHIN(SERIAL_PORT_1, -1, 3)
   #error "SERIAL_PORT_1 must be from -1 to 3"
 #endif
@@ -513,30 +512,62 @@ class HAL {
     static void Tick();
 
     static inline void digitalWrite(const pin_t pin, const uint8_t value) {
-      ::digitalWrite(pin, value);
+      uint8_t bit = digitalPinToBitMask(pin);
+      uint8_t port = digitalPinToPort(pin);
+      volatile uint8_t *out = portOutputRegister(port);
+      if (value)
+        *out |= bit;
+      else
+        *out &= ~bit;
     }
     static inline uint8_t digitalRead(const pin_t pin) {
-      return ::digitalRead(pin);
+      uint8_t bit = digitalPinToBitMask(pin);
+      uint8_t port = digitalPinToPort(pin);
+      if (*portInputRegister(port) & bit) return HIGH;
+      return LOW;
     }
     static inline void pinMode(const pin_t pin, const uint8_t mode) {
+      uint8_t bit = digitalPinToBitMask(pin);
+      uint8_t port = digitalPinToPort(pin);
+      volatile uint8_t  *reg  = portModeRegister(port),
+                        *out  = portOutputRegister(port);
+
+      uint8_t oldSREG = SREG;
       switch (mode) {
         case INPUT:
-          ::pinMode(pin, INPUT); break;
+          cli();
+          *reg &= ~bit;
+          *out &= ~bit;
+          SREG = oldSREG;
+          break;
+        case INPUT_PULLUP:
+          cli();
+          *reg &= ~bit;
+          *out |= bit;
+          SREG = oldSREG;
+          break;
         case OUTPUT:
-          ::pinMode(pin, OUTPUT); break;
+          cli();
+          *reg |= bit;
+          SREG = oldSREG;
+          break;
         case OUTPUT_LOW:
-          ::pinMode(pin, OUTPUT);
-          ::digitalWrite(pin, LOW);
+          cli();
+          *reg |= bit;
+          *out &= ~bit;
+          SREG = oldSREG;
           break;
         case OUTPUT_HIGH:
-          ::pinMode(pin, OUTPUT);
-          ::digitalWrite(pin, HIGH);
+          cli();
+          *reg |= bit;
+          *out |= bit;
+          SREG = oldSREG;
           break;
         default: break;
       }
     }
     static inline void setInputPullup(const pin_t pin, const bool onoff) {
-      ::digitalWrite(pin, onoff);
+      onoff ? pinMode(pin, INPUT_PULLUP) : pinMode(pin, INPUT);
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {
@@ -551,34 +582,44 @@ class HAL {
         del = delayMs > 100 ? 100 : delayMs;
         delay(del);
         delayMs -= del;
-        watchdog.reset();
       }
     }
     static inline uint32_t timeInMilliseconds() {
       return millis();
     }
 
+    //
     // SPI related functions
-    #if ENABLED(SOFTWARE_SPI)
-      static void spiBegin();
-      static void spiInit(uint8_t spiRate);
-      static uint8_t spiReceive(void);
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      static void spiSend(uint8_t b);
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #else
-      // Hardware setup
-      static void spiBegin();
-      static void spiInit(uint8_t spiRate);
-      // Write single byte to SPI
-      static void spiSend(uint8_t b);
-      static void spiSend(const uint8_t* buf, size_t n);
-      // Read single byte from SPI
-      static uint8_t spiReceive(void);
-      // Read from SPI into buffer
-      static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
-      // Write from buffer to SPI
-      static void spiSendBlock(uint8_t token, const uint8_t* buf);
-    #endif
+    //
+
+    // Initialize SPI bus
+    static void spiBegin();
+
+    // Configure SPI for specified SPI speed
+    static void spiInit(uint8_t spiRate=6);
+
+    // Write single byte to SPI
+    static void spiSend(uint8_t nbyte);
+
+    // Write buffer to  SPI
+    static void spiSend(const uint8_t* buf, size_t nbyte);
+
+    // Write single byte to specified SPI channel
+    static void spiSend(uint32_t chan, uint8_t nbyte);
+
+    // Write buffer to specified SPI channel
+    static void spiSend(uint32_t chan ,const uint8_t* buf, size_t nbyte);
+
+    // Read single byte from SPI
+    static uint8_t spiReceive(void);
+
+    // Read single byte from specified SPI channel
+    static uint8_t spiReceive(uint32_t chan);
+
+    // Read from SPI into buffer
+    static void spiReadBlock(uint8_t* buf, uint16_t nbyte);
+
+    // Write token and then write from 512 byte buffer to SPI (for SD card)
+    static void spiSendBlock(uint8_t token, const uint8_t* buf);
 
 };
