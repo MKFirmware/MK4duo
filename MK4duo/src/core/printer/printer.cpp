@@ -941,13 +941,14 @@ void Printer::handle_interrupt_events() {
 
       case INTERRUPT_EVENT_FIL_RUNOUT: {
 
+        interruptEvent = INTERRUPT_EVENT_NONE;
+        filamentrunout.sensor.setFilamentOut(true);
+
         #if ENABLED(ADVANCED_PAUSE_FEATURE)
           if (advancedpause.did_pause_print) return;
         #endif
 
         const char tool = '0' + tools.extruder.active;
-
-        filamentrunout.sensor.setFilamentOut(true);
         host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action.prompt_begin(PSTR("Filament Runout T"), false);
         SERIAL_CHR(tool);
@@ -985,8 +986,6 @@ void Printer::handle_interrupt_events() {
     default: break;
 
   }
-
-  interruptEvent = INTERRUPT_EVENT_NONE;
 
 }
 
