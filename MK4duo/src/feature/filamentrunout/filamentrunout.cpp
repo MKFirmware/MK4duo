@@ -123,22 +123,22 @@ void FilamentSensorBase::setup_pullup() {
 
 void FilamentSensorBase::report() {
   SERIAL_LOGIC("FIL_RUNOUT_0 Logic", isLogic(FIL_RUNOUT_0));
-  SERIAL_EMT(" Pullup", isPullup(FIL_RUNOUT_0));
+  SERIAL_ELOGIC(" Pullup", isPullup(FIL_RUNOUT_0));
   #if HAS_FIL_RUNOUT_1
-    SERIAL_MT("FIL_RUNOUT_1 Logic", isLogic(FIL_RUNOUT_1));
-    SERIAL_EMT(" Pullup", isPullup(FIL_RUNOUT_1));
+    SERIAL_LOGIC("FIL_RUNOUT_1 Logic", isLogic(FIL_RUNOUT_1));
+    SERIAL_ELOGIC(" Pullup", isPullup(FIL_RUNOUT_1));
     #if HAS_FIL_RUNOUT_2
-      SERIAL_MT("FIL_RUNOUT_2 Logic", isLogic(FIL_RUNOUT_2));
-      SERIAL_EMT(" Pullup", isPullup(FIL_RUNOUT_2));
+      SERIAL_LOGIC("FIL_RUNOUT_2 Logic", isLogic(FIL_RUNOUT_2));
+      SERIAL_ELOGIC(" Pullup", isPullup(FIL_RUNOUT_2));
       #if HAS_FIL_RUNOUT_3
-        SERIAL_MT("FIL_RUNOUT_3 Logic", isLogic(FIL_RUNOUT_3));
-        SERIAL_EMT(" Pullup", isPullup(FIL_RUNOUT_3));
+        SERIAL_LOGIC("FIL_RUNOUT_3 Logic", isLogic(FIL_RUNOUT_3));
+        SERIAL_ELOGIC(" Pullup", isPullup(FIL_RUNOUT_3));
         #if HAS_FIL_RUNOUT_4
-          SERIAL_MT("FIL_RUNOUT_4 Logic", isLogic(FIL_RUNOUT_4));
-          SERIAL_EMT(" Pullup", isPullup(FIL_RUNOUT_4));
+          SERIAL_LOGIC("FIL_RUNOUT_4 Logic", isLogic(FIL_RUNOUT_4));
+          SERIAL_ELOGIC(" Pullup", isPullup(FIL_RUNOUT_4));
           #if HAS_FIL_RUNOUT_5
-            SERIAL_MT("FIL_RUNOUT_5 Logic", isLogic(FIL_RUNOUT_5));
-            SERIAL_EMT(" Pullup:", isPullup(FIL_RUNOUT_5));
+            SERIAL_LOGIC("FIL_RUNOUT_5 Logic", isLogic(FIL_RUNOUT_5));
+            SERIAL_ELOGIC(" Pullup:", isPullup(FIL_RUNOUT_5));
           #endif
         #endif
       #endif

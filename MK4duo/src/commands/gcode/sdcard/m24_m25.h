@@ -54,7 +54,6 @@ inline void gcode_M24(void) {
     #endif
   }
 
-  host_action.prompt_open(PROMPT_INFO, PSTR("Resume SD"));
   host_action.resume();
 
   lcdui.reset_status();

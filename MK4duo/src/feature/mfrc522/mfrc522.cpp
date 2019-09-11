@@ -92,21 +92,21 @@ bool MFRC522::init() {
 void MFRC522::print_info(const uint8_t e) {
   char lung[30];
   SERIAL_EMV(MSG_RFID_SPOOL, e);
-  SERIAL_EMT(MSG_RFID_BRAND, RfidData[e].data.brand);
-  SERIAL_EMT(MSG_RFID_TYPE, RfidData[e].data.type);
-  SERIAL_EMT(MSG_RFID_COLOR, RfidData[e].data.color);
-  SERIAL_EMV(MSG_RFID_SIZE, RfidData[e].data.size, 2);
-  SERIAL_MV(MSG_RFID_TEMP_HOTEND, RfidData[e].data.temphotendmin);
-  SERIAL_EMV(" - ", RfidData[e].data.temphotendmax);
-  SERIAL_MV(MSG_RFID_TEMP_BED, RfidData[e].data.tempbedmin);
-  SERIAL_EMV(" - ", RfidData[e].data.tempbedmax);
-  SERIAL_EMV(MSG_RFID_TEMP_USER_HOTEND, RfidData[e].data.temphotend);
-  SERIAL_EMV(MSG_RFID_TEMP_USER_BED, RfidData[e].data.tempbed);
-  SERIAL_MV(MSG_RFID_DENSITY, RfidData[e].data.density); SERIAL_EM("%");
-  unsigned int  kmeter = (long)RfidData[e].data.lenght / 1000 / 1000,
-                meter = ((long)RfidData[e].data.lenght / 1000) % 1000,
-                centimeter = ((long)RfidData[e].data.lenght / 10) % 100,
-                millimeter = ((long)RfidData[e].data.lenght) % 10;
+  SERIAL_EMT(MSG_RFID_BRAND, data[e].data.brand);
+  SERIAL_EMT(MSG_RFID_TYPE, data[e].data.type);
+  SERIAL_EMT(MSG_RFID_COLOR, data[e].data.color);
+  SERIAL_EMV(MSG_RFID_SIZE, data[e].data.size, 2);
+  SERIAL_MV(MSG_RFID_TEMP_HOTEND, data[e].data.temphotendmin);
+  SERIAL_EMV(" - ", data[e].data.temphotendmax);
+  SERIAL_MV(MSG_RFID_TEMP_BED, data[e].data.tempbedmin);
+  SERIAL_EMV(" - ", data[e].data.tempbedmax);
+  SERIAL_EMV(MSG_RFID_TEMP_USER_HOTEND, data[e].data.temphotend);
+  SERIAL_EMV(MSG_RFID_TEMP_USER_BED, data[e].data.tempbed);
+  SERIAL_MV(MSG_RFID_DENSITY, data[e].data.density); SERIAL_EM("%");
+  unsigned int  kmeter = (long)data[e].data.lenght / 1000 / 1000,
+                meter = ((long)data[e].data.lenght / 1000) % 1000,
+                centimeter = ((long)data[e].data.lenght / 10) % 100,
+                millimeter = ((long)data[e].data.lenght) % 10;
   sprintf_P(lung, PSTR("%i Km %i m %i cm %i mm"), kmeter, meter, centimeter, millimeter);
   SERIAL_EMT(MSG_RFID_SPOOL_LENGHT, lung);
 }
@@ -115,13 +115,13 @@ void MFRC522::spin() {
   LOOP_EXTRUDER() {
     if (Spool_must_read[e]) {
       if (getID(e)) {
-        Spool_ID[e] = RfidDataID[e].Spool_ID;
+        Spool_ID[e] = data_id[e].Spool_ID;
         HAL::delayMilliseconds(200);
         if (readBlock(e)) {
           Spool_must_read[e] = false;
-          tools.density_percentage[e] = rfid522.RfidData[e].data.density;
+          tools.density_percentage[e] = rfid522.data[e].data.density;
           #if ENABLED(VOLUMETRIC_EXTRUSION)
-            tools.data.filament_size[e] = rfid522.RfidData[e].data.size;
+            tools.data.filament_size[e] = rfid522.data[e].data.size;
             tools.calculate_volumetric_multipliers();
           #endif
           tools.refresh_e_factor(e);
@@ -132,7 +132,7 @@ void MFRC522::spin() {
 
     if (Spool_must_write[e]) {
       if (getID(e)) {
-        if (Spool_ID[e] == RfidDataID[e].Spool_ID) {
+        if (Spool_ID[e] == data_id[e].Spool_ID) {
           HAL::delayMilliseconds(200);
           if (writeBlock(e)) {
             Spool_must_write[e] = false;
@@ -150,7 +150,7 @@ void MFRC522::spin() {
 bool MFRC522::getID(const uint8_t e) {
   if (communicate(0x02, COMMAND_READ_ID)) {
     for (int i = 0; i < 4; i++)
-      RfidDataID[e].RfidPacketID[i] = MFRC522Data[i];
+      data_id[e].packet[i] = MFRC522Data[i];
     return true;
   }
   return false;
@@ -173,7 +173,7 @@ bool MFRC522::readBlock(const uint8_t e) {
       sendData            // sendData
       )) {
         for (int8_t i = 0; i < 16; i++)
-          RfidData[e].RfidPacket[i + Packetdata] = MFRC522Data[i];
+          data[e].RfidPacket[i + Packetdata] = MFRC522Data[i];
       }
     else {
       return false;
@@ -196,7 +196,7 @@ bool MFRC522::writeBlock(const uint8_t e) {
   for (uint8_t sector = BLOCK_START; sector < BLOCK_TOTAL; sector += 4) {
     sendData[0] = sector;
     for (int8_t i = 0; i < 16; i++) {
-      sendData[i + 8] = RfidData[e].RfidPacket[i + Packetdata];
+      sendData[i + 8] = data[e].RfidPacket[i + Packetdata];
     }
 
     if (!(communicate(

@@ -40,7 +40,7 @@ endstop_flag_t  Endstops::flag;
 #if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
 #else
-  axis_limits_t Endstops::soft_endstop[XYZ];
+  float_limit_t Endstops::soft_endstop[XYZ];
 #endif
 
 uint16_t Endstops::live_state = 0;

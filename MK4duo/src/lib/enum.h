@@ -126,13 +126,12 @@ enum EmergencyStateEnum : uint8_t {
  * Prompt Reason
  *  For M876 command
  */
-enum HostPromptEnum : char {
+enum HostPromptEnum : uint8_t {
   PROMPT_NOT_DEFINED,
   PROMPT_FILAMENT_RUNOUT,
   PROMPT_FILAMENT_RUNOUT_REHEAT,
   PROMPT_USER_CONTINUE,
-  PROMPT_PAUSE_RESUME,
-  PROMPT_INFO
+  PROMPT_PAUSE_RESUME
 };
 
 /**

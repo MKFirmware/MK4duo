@@ -90,8 +90,6 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
 
   host_action.paused();
 
-  host_action.prompt_open(PROMPT_INFO, PSTR("Pause"));
-
   if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
     SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
 
@@ -359,8 +357,6 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   host_action.resumed();
 
   --did_pause_print;
-
-  //host_action.prompt_open(PROMPT_INFO, PSTR("Resume"));
 
   #if HAS_SD_SUPPORT
     if (did_pause_print) {

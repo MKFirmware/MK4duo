@@ -34,7 +34,7 @@ int LcdGame::score;
 uint8_t LcdGame::game_state;
 millis_l LcdGame::next_frame;
 
-GameData game_data;
+game_data_t game_data;
 
 bool LcdGame::game_frame() {
   static int8_t slew;

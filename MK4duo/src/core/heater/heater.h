@@ -30,8 +30,8 @@
 #include "sensor/sensor.h"
 #include "pid/pid.h"
 
-union flagheater_t {
-  uint8_t all;
+union heater_flag_t {
+  bool all;
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
@@ -42,23 +42,23 @@ union flagheater_t {
     bool  Idle              : 1;
     bool  Fault             : 1;
   };
-  flagheater_t() { all = 0x00; }
+  heater_flag_t() { all = false; }
 };
 
 enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
 enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway };
 
 // Struct Heater data
-typedef struct {
+struct heater_data_t {
   pin_t         pin;
-  flagheater_t  flag;
+  heater_flag_t flag;
   uint8_t       ID;
   int16_t       mintemp,
                 maxtemp;
   uint16_t      freq;
   pid_data_t    pid;
   sensor_data_t sensor;
-} heater_data_t;
+};
 
 class Heater {
 

@@ -491,7 +491,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
     stealth_states.x = tmc.enable_stallguard(X_DRV);
     stealth_states.y = tmc.enable_stallguard(Y_DRV);
     stealth_states.z = tmc.enable_stallguard(Z_DRV);
@@ -601,7 +601,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   const bool is_home_dir = distance > 0;
 
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
   #endif
 
   if (is_home_dir) {

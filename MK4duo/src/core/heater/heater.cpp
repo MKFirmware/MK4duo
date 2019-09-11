@@ -342,7 +342,6 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   // PID Tuning loop
   while (printer.isWaitForHeatUp()) {
 
-    watchdog.reset(); // Reset the watchdog
     printer.idle();
 
     update_current_temperature();

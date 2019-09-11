@@ -26,7 +26,7 @@
 #if HAS_POWER_CHECK
 
   union power_flag_t {
-    uint8_t all;
+    bool all;
     struct {
       bool  Logic   : 1;
       bool  Pullup  : 1;
@@ -37,13 +37,13 @@
       bool  bit6    : 1;
       bool  bit7    : 1;
     };
-    power_flag_t() { all = 0x00; }
+    power_flag_t() { all = false; }
   };
 
   // Struct Power data
-  typedef struct {
+  struct power_data_t {
     power_flag_t flag;
-  } power_data_t;
+  };
 
 #endif
 

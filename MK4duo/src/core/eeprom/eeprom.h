@@ -22,7 +22,7 @@
 #pragma once
 
 union eeprom_flag_t {
-  uint8_t all;
+  bool all;
   struct {
     bool  error       : 1;
     bool  validating  : 1;
@@ -33,7 +33,7 @@ union eeprom_flag_t {
     bool  bit_6       : 1;
     bool  bit_7       : 1;
   };
-  eeprom_flag_t() { all = 0x00; }
+  eeprom_flag_t() { all = false; }
 };
 
 class EEPROM {

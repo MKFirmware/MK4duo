@@ -1460,7 +1460,6 @@ void LcdUI::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   host_action.cancel();
-  host_action.prompt_open(PROMPT_INFO, PSTR("Lcd Abort"));
   print_job_counter.stop();
   set_status_P(PSTR(MSG_PRINT_ABORTED));
   return_to_status();

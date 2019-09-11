@@ -78,7 +78,7 @@ class LcdGame {
 #endif
 
 // Pool game data to save SRAM
-union GameData {
+union game_data_t {
   #if ENABLED(GAME_BRICKOUT)
     brickout_data_t brickout;
   #endif
@@ -93,4 +93,4 @@ union GameData {
   #endif
 };
 
-extern GameData game_data;
+extern game_data_t game_data;

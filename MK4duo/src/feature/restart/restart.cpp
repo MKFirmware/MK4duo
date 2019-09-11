@@ -159,7 +159,7 @@ void Restart::resume_job() {
 
   char cmd[MAX_CMD_SIZE + 16], str1[16], str2[16];
 
-  // Save job_info.sdpos because stepper.cpp save new sdpos during first fase resume job.
+  // Save job_info.sdpos because stepper ISR overwrites it
   const uint32_t save_sdpos = job_info.sdpos;
 
   #if HAS_LEVELING

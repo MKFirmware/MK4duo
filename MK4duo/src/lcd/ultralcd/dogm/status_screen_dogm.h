@@ -676,9 +676,9 @@
   #if STATUS_HEATERS_WIDTH
     #if ENABLED(STATUS_COMBINE_HEATERS)
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - 2 - (STATUS_CHAMBER_BYTEWIDTH) * 8)
-    #elif HAS_FAN0 && HAS_BEDS && HOTENDS <= 2
+    #elif HAS_FANS && HAS_BEDS && HOTENDS <= 2
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - 2 - (STATUS_HEATERS_BYTEWIDTH - STATUS_CHAMBER_BYTEWIDTH) * 8)
-    #elif HAS_FAN0 && !HAS_BEDS
+    #elif HAS_FANS && !HAS_BEDS
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - (STATUS_CHAMBER_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8)
     #else
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - (STATUS_CHAMBER_BYTEWIDTH) * 8)
@@ -701,7 +701,6 @@
       B00011111,B11111111,B11111000,
       B00011111,B11111111,B11111000
     };
-
     const unsigned char status_chamber_on_bmp[] PROGMEM = {
       B00011111,B11111111,B11111000,
       B00010000,B00000000,B00001000,
@@ -739,13 +738,13 @@
   #define STATUS_CHAMBER_WIDTH 0
 #endif
 
-#define BED_CHAM (HAS_BEDS || HAS_CHAMBERS)
-#define BED_CHAM_FAN (BED_CHAM || HAS_FAN0)
+#define BED_OR_CHAMBER        (HAS_BEDS || HAS_CHAMBERS)
+#define BED_OR_CHAMBER_OR_FAN (HAS_BEDS || HAS_CHAMBERS || HAS_FANS)
 
 // Can also be overridden in Configuration.h
 // If you can afford it, try the 3-frame fan animation!
 // Don't compile in the fan animation with no fan
-#if !HAS_FAN0 || (HOTENDS == 5 || (HOTENDS == 4 && BED_CHAM) || (ENABLED(STATUS_COMBINE_HEATERS) && HAS_CHAMBERS))
+#if !HAS_FANS || (HOTENDS == 5 || (HOTENDS == 4 && BED_OR_CHAMBER) || (ENABLED(STATUS_COMBINE_HEATERS) && HAS_CHAMBERS))
   #undef STATUS_FAN_FRAMES
 #elif !STATUS_FAN_FRAMES
   #define STATUS_FAN_FRAMES 2
@@ -762,7 +761,7 @@
 //
 // Provide default Fan Bitmaps
 //
-#if !defined(STATUS_FAN_WIDTH) && STATUS_FAN_FRAMES > 0
+#if !STATUS_FAN_WIDTH && STATUS_FAN_FRAMES > 0
 
   // Provide a fan animation if none exists
 
@@ -1202,7 +1201,7 @@
     #undef STATUS_LOGO_WIDTH
   #endif
 
-  #if (HOTENDS > 1 && STATUS_LOGO_WIDTH && BED_CHAM_FAN) || ( HOTENDS >= 3 && !BED_CHAM_FAN)
+  #if (HOTENDS > 1 && STATUS_LOGO_WIDTH && BED_OR_CHAMBER_OR_FAN) || ( HOTENDS >= 3 && !BED_OR_CHAMBER_OR_FAN)
     #define _STATUS_HEATERS_X(H,S,N) (((LCD_PIXEL_WIDTH - (H * (S + N)) - STATUS_LOGO_WIDTH - STATUS_BED_WIDTH - STATUS_CHAMBER_WIDTH - STATUS_FAN_WIDTH) / 2) + STATUS_LOGO_WIDTH)
     #if STATUS_HOTEND1_WIDTH
       #if HOTENDS > 2

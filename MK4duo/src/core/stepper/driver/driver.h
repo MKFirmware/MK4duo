@@ -55,19 +55,19 @@ union driver_flag_t {
     bool  bit_6       : 1;
     bool  bit_7       : 1;
   };
-  driver_flag_t() { all = 0x00; }
+  driver_flag_t() { all = false; }
 };
 
-typedef struct {
+struct driver_pin_t {
   pin_t enable,
         dir,
         step;
-} driver_pin_t;
+};
 
-typedef struct {
+struct driver_data_t {
   driver_pin_t  pin;
   driver_flag_t flag;
-} driver_data_t;
+};
 
 class Driver {
 

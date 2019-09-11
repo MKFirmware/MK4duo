@@ -335,7 +335,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   const bool is_home_dir = (get_homedir(axis) > 0) == (distance > 0);
 
   #if ENABLED(SENSORLESS_HOMING)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
   #endif
 
   if (is_home_dir) {
@@ -922,7 +922,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
                 fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
 
     #if ENABLED(SENSORLESS_HOMING)
-      sensorless_t stealth_states;
+      sensorless_flag_t stealth_states;
       stealth_states.x = tmc.enable_stallguard(X_DRV);
       stealth_states.y = tmc.enable_stallguard(Y_DRV);
     #endif

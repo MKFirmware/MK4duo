@@ -92,9 +92,6 @@ void Host_Action::response_handler(const uint8_t response) {
       msg = PSTR("LCD_PAUSE_RESUME");
       commands.inject_P(PSTR("M24"));
       break;
-    case PROMPT_INFO:
-      msg = PSTR("GCODE_INFO");
-      break;
     default: break;
   }
   say_m876_response(msg);

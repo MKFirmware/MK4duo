@@ -71,7 +71,7 @@ class MFRC522 {
     bool  Spool_must_read[EXTRUDERS]  = ARRAY_BY_EXTRUDERS(false),
           Spool_must_write[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
 
-    typedef struct {
+    struct rfid_data_t {
       char  brand[16],          // 16 byte Block 5
             serialnumber[16],   // 16 byte Block 9
             type[8],            //  8 byte Block 13
@@ -86,20 +86,20 @@ class MFRC522 {
             tempbed,            //  4 byte Block 25
             density;            //  4 byte Block 25
       uint32_t lenght;          //  4 byte Block 25
-    } data_t;
+    };
 
-    typedef union {
-      data_t data;
-      byte RfidPacket[sizeof(data_t)];
-    } RfidPacket_t;
+    union rfid_packet_t {
+      rfid_data_t data;
+      byte RfidPacket[sizeof(rfid_data_t)];
+    };
 
-    typedef union {
+    union rfid_packetID_t {
       unsigned long Spool_ID;
-      byte RfidPacketID[4];
-    } RfidPacketID_t;
+      byte packet[4];
+    };
 
-    RfidPacket_t RfidData[EXTRUDERS];
-    RfidPacketID_t RfidDataID[EXTRUDERS];
+    rfid_packet_t   data[EXTRUDERS];
+    rfid_packetID_t data_id[EXTRUDERS];
 
   private: /** Private Parameters */
 

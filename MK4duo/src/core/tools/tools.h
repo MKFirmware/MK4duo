@@ -49,7 +49,7 @@ union extruder_t {
     uint8_t active    : 4;
     uint8_t previous  : 4;
     uint8_t target    : 4;
-    uint8_t none      : 4;
+    uint8_t total     : 4;
  };
   extruder_t() { all = 0; }
 };

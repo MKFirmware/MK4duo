@@ -196,7 +196,7 @@ void Commands::get_destination() {
     const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
-      rfid522.RfidData[tools.extruder.active].data.lenght -= diff;
+      rfid522.data[tools.extruder.active].data.lenght -= diff;
     #endif
   }
 

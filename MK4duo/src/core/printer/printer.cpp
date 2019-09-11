@@ -33,8 +33,8 @@ const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
 
 Printer printer;
 
-flagdebug_t   Printer::debug_flag;    // For debug
-flagVarious_t Printer::various_flag;  // For various
+debug_flag_t    Printer::debug_flag;    // For debug
+various_flag_t  Printer::various_flag;  // For various
 
 bool Printer::axis_relative_modes[] = AXIS_RELATIVE_MODES;
 
@@ -969,12 +969,12 @@ void Printer::handle_interrupt_events() {
         else
           host_action.pause(false);
 
-        SERIAL_SM(ECHO, "filament runout T");
+        SERIAL_MSG(" filament_runout T");
         SERIAL_CHR(tool);
         SERIAL_EOL();
 
         if (run_runout_script)
-          commands.enqueue_now_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
+          commands.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
 
         planner.synchronize();
 

@@ -420,7 +420,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
 
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
     #if MECH(DELTA)
       stealth_states.x = tmc.enable_stallguard(X_DRV);
       stealth_states.y = tmc.enable_stallguard(Y_DRV);

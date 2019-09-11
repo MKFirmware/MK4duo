@@ -56,8 +56,8 @@
 /**
  * Include file
  */
-#include "src/lib/types.h"
 #include "src/lib/macros.h"
+#include "src/lib/types.h"
 #include "src/lib/enum.h"
 #include "src/lib/restorer.h"
 #include "src/lib/circular_queue.h"

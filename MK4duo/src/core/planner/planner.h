@@ -652,8 +652,8 @@ class Planner {
 
     static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
 
-    static void reverse_pass_kernel(block_t* const current, const block_t* const next);
-    static void forward_pass_kernel(const block_t* const previous, block_t* const current, const uint8_t block_index);
+    static void reverse_pass_kernel(block_t* const current_block, const block_t* const next_block);
+    static void forward_pass_kernel(const block_t* const previous_block, block_t* const current_block, const uint8_t block_index);
 
     static void reverse_pass();
     static void forward_pass();

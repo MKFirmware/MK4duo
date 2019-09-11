@@ -295,9 +295,9 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   /**
    * Start sensorless homing if the axis has it, accounting for Core Kinematics.
    */
-  sensorless_t Mechanics::start_sensorless_homing_per_axis(const AxisEnum axis) {
+  sensorless_flag_t Mechanics::start_sensorless_homing_per_axis(const AxisEnum axis) {
 
-    sensorless_t stealth_states;
+    sensorless_flag_t stealth_states;
 
     switch (axis) {
       default: break;
@@ -368,7 +368,7 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
   /**
    * Stop sensorless homing if the axis has it, accounting for Core Kinematics.
    */
-  void Mechanics::stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth) {
+  void Mechanics::stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_flag_t enable_stealth) {
 
     switch (axis) {
       default: break;

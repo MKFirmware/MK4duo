@@ -69,7 +69,7 @@ constexpr tacho_interrupt_t tacho_table[FAN_COUNT] = {
 };
 
 // Struct Tacho data
-typedef struct {
+struct tacho_data_t {
 
   public: /** Public Parameters */
 
@@ -108,4 +108,4 @@ typedef struct {
         : 0;
     }
 
-} tacho_data_t;
+};

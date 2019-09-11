@@ -119,7 +119,7 @@ class Delta_Mechanics : public Mechanics {
      * Delta function
      */
     static void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
-    static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
+    FORCE_INLINE static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
     static void Transform(const float (&raw)[XYZ]);
     static void Transform(const float (&raw)[XYZE]);
     static void recalc_delta_settings();

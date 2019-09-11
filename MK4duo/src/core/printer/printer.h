@@ -27,7 +27,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-union flagdebug_t {
+union debug_flag_t {
   uint8_t all;
   struct {
     bool  echo          : 1;
@@ -39,10 +39,10 @@ union flagdebug_t {
     bool  mesh          : 1;
     bool  simulation    : 1;
   };
-  flagdebug_t() { all = 0x00; }
+  debug_flag_t() { all = 0x00; }
 };
 
-union flagVarious_t {
+union various_flag_t {
   uint16_t all;
   struct {
     bool  Running           : 1;
@@ -62,7 +62,7 @@ union flagVarious_t {
     bool  bit14             : 1;
     bool  bit15             : 1;
   };
-  flagVarious_t() { all = 0x0000; }
+  various_flag_t() { all = 0x0000; }
 };
 
 extern const char axis_codes[NUM_AXIS];
@@ -75,8 +75,8 @@ class Printer {
 
   public: /** Public Parameters */
 
-    static flagdebug_t    debug_flag;   // For debug
-    static flagVarious_t  various_flag; // For various
+    static debug_flag_t   debug_flag;   // For debug
+    static various_flag_t various_flag; // For various
 
     static bool     axis_relative_modes[];
 
