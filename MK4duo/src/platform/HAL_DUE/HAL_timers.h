@@ -70,6 +70,7 @@
 
 #define HAL_TIMER_RATE              ((F_CPU) / 2) // 42 MHz
 
+// Stepper Timer
 #define STEPPER_TIMER_NUM           4
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)                          // 42 - stepper timer ticks per µs

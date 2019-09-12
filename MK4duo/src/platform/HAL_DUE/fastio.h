@@ -144,7 +144,7 @@ static constexpr fastio_t fastio[] = {
  * now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
  */
 
-// NOT CHANGE uint8_t in Pin, ALLIGATOR board crashed!!!
+// NOT CHANGE uint8_t in pin_t!
 // Read a pin
 FORCE_INLINE static bool READ(const uint8_t pin) {
   #if ENABLED(PCF8574_EXPANSION_IO)
@@ -154,11 +154,15 @@ FORCE_INLINE static bool READ(const uint8_t pin) {
     else
   #endif
   {
-    return bool(fastio[pin].base_address->PIO_PDSR & MASK(fastio[pin].shift_count));
+    const PinDescription& pinDesc = g_APinDescription[pin];
+    if (PIO_Get(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin))
+      return true;
+    else
+      return false;
   }
 }
 
-// write to a pin
+// Write to a pin
 // On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
 FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
   #if ENABLED(PCF8574_EXPANSION_IO)
@@ -199,7 +203,7 @@ FORCE_INLINE static void SET_INPUT(const pin_t pin) {
   }
 }
 
-// set pin as output
+// Set pin as output
 FORCE_INLINE static void SET_OUTPUT(const pin_t pin) {
   #if ENABLED(PCF8574_EXPANSION_IO)
     if (pin >= PIN_START_FOR_PCF8574) {
@@ -234,7 +238,7 @@ FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
   }
 }
 
-// set pin as input with pullup
+// Set pin as input with pullup
 FORCE_INLINE static void SET_INPUT_PULLUP(const pin_t pin) {
   const PinDescription& pinDesc = g_APinDescription[pin];
   if (pinDesc.ulPinType != PIO_NOT_A_PIN) {
