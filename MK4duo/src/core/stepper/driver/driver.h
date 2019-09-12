@@ -148,7 +148,7 @@ class Driver {
     inline bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
     inline void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
     inline void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
-    inline void step_toggle(const bool state)   { if (state) TOGGLE(data.pin.step); }
+    inline void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step);*/ }
     inline bool step_read()                     { return HAL::digitalRead(data.pin.step); }
 
 };
