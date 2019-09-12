@@ -142,14 +142,14 @@ class Driver {
 
     inline void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
     inline void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
-    inline bool enable_read()                   { HAL::digitalRead(data.pin.enable); }
+    inline bool enable_read()                   { return HAL::digitalRead(data.pin.enable); }
     inline void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
     inline void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
-    inline bool dir_read()                      { HAL::digitalRead(data.pin.dir); }
+    inline bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
     inline void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
     inline void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
     inline void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step);*/ }
-    inline bool step_read()                     { HAL::digitalRead(data.pin.step); }
+    inline bool step_read()                     { return HAL::digitalRead(data.pin.step); }
 
 };
 

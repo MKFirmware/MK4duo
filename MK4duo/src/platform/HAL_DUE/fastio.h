@@ -154,11 +154,7 @@ FORCE_INLINE static bool READ(const uint8_t pin) {
     else
   #endif
   {
-    const PinDescription& pinDesc = g_APinDescription[pin];
-    if (PIO_Get(pinDesc.pPort, PIO_INPUT, pinDesc.ulPin))
-      return true;
-    else
-      return false;
+    return (bool)(fastio[pin].base_address->PIO_PDSR & (MASK(fastio[pin].shift_count)));
   }
 }
 
