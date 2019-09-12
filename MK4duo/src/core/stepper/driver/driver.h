@@ -140,16 +140,16 @@ class Driver {
     inline void setStep(const bool onoff)       { data.flag.step = onoff; }
     inline bool isStep()                        { return data.flag.step; }
 
-    inline void enable_init()                   { SET_OUTPUT(data.pin.enable); }
-    inline void enable_write(const bool state)  { WRITE(data.pin.enable, state); }
-    inline bool enable_read()                   { READ(data.pin.enable); }
-    inline void dir_init()                      { SET_OUTPUT(data.pin.dir); }
-    inline void dir_write(const bool state)     { WRITE(data.pin.dir, state); }
-    inline bool dir_read()                      { READ(data.pin.dir); }
-    inline void step_init()                     { SET_OUTPUT(data.pin.step); }
-    inline void step_write(const bool state)    { WRITE(data.pin.step, state); }
-    inline void step_toggle(const bool state)   { if (state) TOGGLE(data.pin.step); }
-    inline bool step_read()                     { READ(data.pin.step); }
+    inline void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
+    inline void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
+    inline bool enable_read()                   { HAL::digitalRead(data.pin.enable); }
+    inline void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
+    inline void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
+    inline bool dir_read()                      { HAL::digitalRead(data.pin.dir); }
+    inline void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
+    inline void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
+    inline void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step);*/ }
+    inline bool step_read()                     { HAL::digitalRead(data.pin.step); }
 
 };
 
