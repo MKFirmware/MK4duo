@@ -36,7 +36,7 @@
 inline void gcode_M32(void) {
   if (IS_SD_PRINTING()) planner.synchronize();
 
-  if (card.isDetected()) {
+  if (card.isMounted()) {
     card.closeFile();
 
     char* namestartpos = parser.string_arg ; // default name position

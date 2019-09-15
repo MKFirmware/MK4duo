@@ -523,10 +523,10 @@ void NextionLCD::status_screen_update() {
       setValue(SD, SD_HOST_PRINTING);
     else if (printer.isPaused())
       setValue(SD, SD_HOST_PAUSE);
-    else if (IS_SD_OK())
+    else if (IS_SD_MOUNTED())
       setValue(SD, SD_INSERT);
     #if HAS_SD_SUPPORT
-      else if (!IS_SD_OK())
+      else if (!IS_SD_MOUNTED())
         setValue(SD, SD_NO_INSERT);
     #else
       else
@@ -586,7 +586,7 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 #if HAS_SD_SUPPORT
 
   void NextionLCD::UploadNewFirmware() {
-    if (IS_SD_INSERTED() || card.isDetected()) {
+    if (IS_SD_INSERTED() || card.isMounted()) {
       Firmware.startUpload();
       nexSerial.end();
       init();
@@ -775,11 +775,11 @@ void NextionLCD::set_status_page() {
   setText(SpeedZ, temp);
 
   #if HAS_SD_SUPPORT
-    if (!card.isDetected()) {
+    if (!card.isMounted()) {
       card.mount();
       HAL::delayMilliseconds(500);
     }
-    if (card.isDetected()) {
+    if (card.isMounted()) {
       setValue(SD, SD_INSERT);
       card.beginautostart();  // Initial boot
     }
@@ -923,7 +923,7 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
 #if HAS_SD_SUPPORT
 
   void NextionLCD::SDMenuPopCallback() {
-    if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
+    if (card.isMounted()) lcdui.goto_screen(menu_sdcard);
   }
 
 #endif

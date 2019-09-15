@@ -28,7 +28,7 @@
 union flagcard_t {
   uint8_t all;
   struct {
-    bool  Detect          : 1;
+    bool  Mounted          : 1;
     bool  Saving          : 1;
     bool  Printing        : 1;
     bool  Autoreport      : 1;
@@ -222,9 +222,9 @@ class SDCard {
       static inline void getfilename_sorted(const uint16_t nr) { getfilename(nr); }
     #endif
 
-    // Card flag bit 0 SD Detect
-    FORCE_INLINE static void setDetect(const bool onoff) { flag.Detect = onoff; }
-    FORCE_INLINE static bool isDetected() { return flag.Detect; }
+    // Card flag bit 0 SD Mounted
+    FORCE_INLINE static void setMounted(const bool onoff) { flag.Mounted = onoff; }
+    FORCE_INLINE static bool isMounted() { return flag.Mounted; }
 
     // Card flag bit 1 saving
     FORCE_INLINE static void setSaving(const bool onoff) { flag.Saving = onoff; }
@@ -247,7 +247,7 @@ class SDCard {
     FORCE_INLINE static bool isFilenameIsDir() { return flag.FilenameIsDir; }
 
     static inline void pauseSDPrint() { setPrinting(false); }
-    static inline bool isFileOpen()   { return isDetected() && gcode_file.isOpen(); }
+    static inline bool isFileOpen()   { return isMounted() && gcode_file.isOpen(); }
     static inline bool isPaused()     { return isFileOpen() && !isPrinting(); }
     static inline void setIndex(uint32_t newpos) { sdpos = newpos; gcode_file.seekSet(sdpos); }
     static inline uint32_t getIndex() { return sdpos; }
@@ -333,7 +333,7 @@ extern SDCard card;
 #define IS_SD_PRINTING()  card.isPrinting()
 #define IS_SD_PAUSED()    card.isPaused()
 #define IS_SD_FILE_OPEN() card.isFileOpen()
-#define IS_SD_OK()        card.isDetected()
+#define IS_SD_MOUNTED()   card.isMounted()
 
 #if PIN_EXISTS(SD_DETECT)
   #if ENABLED(SD_DETECT_INVERTED)
@@ -351,6 +351,6 @@ extern SDCard card;
 #define IS_SD_PRINTING()  false
 #define IS_SD_PAUSED()    false
 #define IS_SD_FILE_OPEN() false
-#define IS_SD_OK()        false
+#define IS_SD_MOUNTED()   false
 
 #endif // HAS_SD_SUPPORT

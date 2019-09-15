@@ -33,7 +33,7 @@
     encoderTopLine = 0;
     card.unmount();
     card.mount();
-    if (card.isDetected()) card.ls();
+    if (card.isMounted()) card.ls();
   }
 #endif
 
@@ -128,7 +128,7 @@ void menu_sdcard() {
       MENU_ITEM(function, LCD_STR_REFRESH MSG_REFRESH, lcd_sd_refresh);
     #endif
   }
-  else if (card.isDetected()) {
+  else if (card.isMounted()) {
     MENU_ITEM(function, LCD_STR_FOLDER "..", lcd_sd_updir);
   }
 

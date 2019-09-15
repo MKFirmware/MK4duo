@@ -137,7 +137,7 @@ LsActionEnum SDCard::lsAction   = LS_Count;
 
 void SDCard::mount() {
 
-  if (isDetected()) return;
+  if (isMounted()) return;
 
   if (root.isOpen()) root.close();
 
@@ -170,7 +170,7 @@ void SDCard::mount() {
     return;
   }
   else {
-    setDetect(true);
+    setMounted(true);
     SERIAL_LM(ECHO, MSG_SD_CARD_OK);
   }
 
@@ -188,7 +188,7 @@ void SDCard::mount() {
 }
 
 void SDCard::unmount() {
-  setDetect(false);
+  setMounted(false);
   setPrinting(false);
 }
 
@@ -235,7 +235,7 @@ void SDCard::getAbsFilename(char * name) {
 }
 
 void SDCard::startFileprint() {
-  if (isDetected()) {
+  if (isMounted()) {
     setPrinting(true);
     #if ENABLED(SDCARD_SORT_ALPHA)
       flush_presort();
@@ -285,7 +285,7 @@ void SDCard::print_status() {
 }
 
 void SDCard::startWrite(char * filename, const bool silent/*=false*/) {
-  if (!isDetected()) return;
+  if (!isMounted()) return;
 
   fat.chdir();
   if (!gcode_file.open(filename, FILE_WRITE)) {
@@ -304,7 +304,7 @@ void SDCard::startWrite(char * filename, const bool silent/*=false*/) {
 }
 
 void SDCard::deleteFile(char * filename) {
-  if (!isDetected()) return;
+  if (!isMounted()) return;
   setPrinting(false);
   gcode_file.close();
   if (fat.remove(filename)) {
@@ -331,7 +331,7 @@ void SDCard::finishWrite() {
 }
 
 void SDCard::makeDirectory(char * filename) {
-  if (!isDetected()) return;
+  if (!isMounted()) return;
   setPrinting(false);
   gcode_file.close();
   if (fat.mkdir(filename)) {
@@ -407,9 +407,9 @@ void SDCard::checkautostart() {
   /*
   if (autostart_index < 0 || isPrinting()) return;
 
-  if (!isDetected()) mount();
+  if (!isMounted()) mount();
   
-  if (isDetected()
+  if (isMounted()
     #if HAS_SD_RESTART
       && !restart.valid() // Don't run auto#.g when a restart file exists
     #endif
@@ -459,7 +459,7 @@ void SDCard::printEscapeChars(PGM_P s) {
 bool SDCard::selectFile(PGM_P filename, const bool silent/*=false*/) {
   PGM_P fname = filename;
 
-  if (!isDetected()) return false;
+  if (!isMounted()) return false;
 
   gcode_file.close();
   if (gcode_file.open(&workDir, filename, O_READ)) {
@@ -525,7 +525,7 @@ uint16_t SDCard::get_num_Files() {
 
   void SDCard::open_restart_file(const bool read) {
 
-    if (!isDetected() || restart.job_file.isOpen()) return;
+    if (!isMounted() || restart.job_file.isOpen()) return;
 
     if (!restart.job_file.open(fat.vwd(), restart_file_name, read ? O_READ : (O_RDWR | O_CREAT | O_SYNC)))
       SERIAL_LMT(ER, MSG_SD_OPEN_FILE_FAIL, restart_file_name);
@@ -563,7 +563,7 @@ uint16_t SDCard::get_num_Files() {
   }
 
   void SDCard::write_eeprom() {
-    if (!isDetected()) {
+    if (!isMounted()) {
       SERIAL_LM(ER, MSG_NO_CARD);
       return;
     }

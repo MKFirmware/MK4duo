@@ -122,8 +122,8 @@ void menu_main() {
   const bool busy = printer.isPrinting();
 
   #if HAS_SD_SUPPORT
-    const bool  card_detected = card.isDetected(),
-                card_open     = card_detected && card.isFileOpen();
+    const bool  card_mounted = card.isMounted(),
+                card_open     = card_mounted && card.isFileOpen();
   #endif
 
   if (busy) {
@@ -140,7 +140,7 @@ void menu_main() {
         if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
       #endif
 
-      if (card_detected) {
+      if (card_mounted) {
         if (!card_open) {
           #if PIN_EXISTS(SD_DETECT)
             MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));
@@ -226,7 +226,7 @@ void menu_main() {
       if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
     #endif
 
-    if (card_detected) {
+    if (card_mounted) {
       if (!card_open) {
         MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
         #if !PIN_EXISTS(SD_DETECT)

@@ -34,7 +34,7 @@
  * M30 <filename>: Delete SD Card file
  */
 inline void gcode_M30(void) {
-  if (card.isDetected()) {
+  if (card.isMounted()) {
     card.closeFile();
     card.deleteFile(parser.string_arg);
   }
