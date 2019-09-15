@@ -47,7 +47,6 @@ union various_flag_t {
   struct {
     bool  Running           : 1;
     bool  PosSaved          : 1;
-    bool  RelativeMode      : 1;
     bool  Volumetric        : 1;
     bool  WaitForUser       : 1;
     bool  WaitForHeatUp     : 1;
@@ -57,6 +56,7 @@ union various_flag_t {
     bool  G38Move           : 1;
     bool  statistics_loaded : 1;
     bool  RFID              : 1;
+    bool  bit11             : 1;
     bool  bit12             : 1;
     bool  bit13             : 1;
     bool  bit14             : 1;
@@ -77,8 +77,6 @@ class Printer {
 
     static debug_flag_t   debug_flag;   // For debug
     static various_flag_t various_flag; // For various
-
-    static bool     axis_relative_modes[];
 
     static int16_t  currentLayer,
                     maxLayer;       // -1 = unknown
@@ -196,43 +194,39 @@ class Printer {
     FORCE_INLINE static void setPosSaved(const bool onoff) { various_flag.PosSaved = onoff; }
     FORCE_INLINE static bool isPosSaved() { return various_flag.PosSaved; }
 
-    // Various flag bit 2 RelativeMode
-    FORCE_INLINE static void setRelativeMode(const bool onoff) { various_flag.RelativeMode = onoff; }
-    FORCE_INLINE static bool isRelativeMode() { return various_flag.RelativeMode; }
-
-    // Various flag bit 3 Volumetric
+    // Various flag bit 2 Volumetric
     FORCE_INLINE static void setVolumetric(const bool onoff) { various_flag.Volumetric = onoff; }
     FORCE_INLINE static bool isVolumetric() { return various_flag.Volumetric; }
 
-    // Various flag bit 4 WaitForUser
+    // Various flag bit 3 WaitForUser
     FORCE_INLINE static void setWaitForUser(const bool onoff) { various_flag.WaitForUser = onoff; }
     FORCE_INLINE static bool isWaitForUser() { return various_flag.WaitForUser; }
 
-    // Various flag bit 5 WaitForHeatUp
+    // Various flag bit 4 WaitForHeatUp
     FORCE_INLINE static void setWaitForHeatUp(const bool onoff) { various_flag.WaitForHeatUp = onoff; }
     FORCE_INLINE static bool isWaitForHeatUp() { return various_flag.WaitForHeatUp; }
 
-    // Various flag bit 6 AllowColdExtrude
+    // Various flag bit 5 AllowColdExtrude
     FORCE_INLINE static void setAllowColdExtrude(const bool onoff) { various_flag.AllowColdExtrude = onoff; }
     FORCE_INLINE static bool isAllowColdExtrude() { return various_flag.AllowColdExtrude; }
 
-    // Various flag bit 7 AutoreportTemp
+    // Various flag bit 6 AutoreportTemp
     FORCE_INLINE static void setAutoreportTemp(const bool onoff) { various_flag.AutoreportTemp = onoff; }
     FORCE_INLINE static bool isAutoreportTemp() { return various_flag.AutoreportTemp; }
 
-    // Various flag bit 8 SuspendAutoreport
+    // Various flag bit 7 SuspendAutoreport
     FORCE_INLINE static void setSuspendAutoreport(const bool onoff) { various_flag.SuspendAutoreport = onoff; }
     FORCE_INLINE static bool isSuspendAutoreport() { return various_flag.SuspendAutoreport; }
 
-    // Various flag bit 9 G38Move
+    // Various flag bit 8 G38Move
     FORCE_INLINE static void setG38Move(const bool onoff) { various_flag.G38Move = onoff; }
     FORCE_INLINE static bool IsG38Move() { return various_flag.G38Move; }
 
-    // Various flag bit 10 Statistics loaded
+    // Various flag bit 9 Statistics loaded
     FORCE_INLINE static void setStatisticsLoaded(const bool onoff) { various_flag.statistics_loaded = onoff; }
     FORCE_INLINE static bool IsStatisticsLoaded() { return various_flag.statistics_loaded; }
 
-    // Various flag bit 11 RFID_ON
+    // Various flag bit 10 RFID_ON
     FORCE_INLINE static void setRfid(const bool onoff) { various_flag.RFID = onoff; }
     FORCE_INLINE static bool IsRfid() { return various_flag.RFID; }
 

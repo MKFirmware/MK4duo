@@ -108,16 +108,16 @@ void Temperature::factory_parameters() {
       pid                   = &heat->data.pid;
       heat->data.pin        = HE_pin[h];
       heat->data.ID         = h;
-      heat->data.mintemp    = HE_min[h];
-      heat->data.maxtemp    = HE_max[h];
+      heat->data.temp.min   = HE_min[h];
+      heat->data.temp.max   = HE_max[h];
       heat->data.freq       = HOTEND_PWM_FREQUENCY;
       // Pid
       pid->Kp               = HEKp[ALIM(h, HEKp)];
       pid->Ki               = HEKi[ALIM(h, HEKi)];
       pid->Kd               = HEKd[ALIM(h, HEKd)];
       pid->Kc               = HEKc[ALIM(h, HEKc)];
-      pid->DriveMin         = POWER_DRIVE_MIN;
-      pid->DriveMax         = POWER_DRIVE_MAX;
+      pid->drive.min        = POWER_DRIVE_MIN;
+      pid->drive.max        = POWER_DRIVE_MAX;
       pid->Max              = POWER_MAX;
       // Sensor
       sens->pin             = SE_pin[h];
@@ -162,15 +162,15 @@ void Temperature::factory_parameters() {
       pid                   = &heat->data.pid;
       heat->data.pin        = BE_pin[h];
       heat->data.ID         = h;
-      heat->data.mintemp    = BED_MINTEMP;
-      heat->data.maxtemp    = BED_MAXTEMP;
+      heat->data.temp.min   = BED_MINTEMP;
+      heat->data.temp.max   = BED_MAXTEMP;
       heat->data.freq       = BED_PWM_FREQUENCY;
       // Pid
       pid->Kp               = BEDKp[ALIM(h, BEDKp)];
       pid->Ki               = BEDKi[ALIM(h, BEDKi)];
       pid->Kd               = BEDKd[ALIM(h, BEDKd)];
-      pid->DriveMin         = BED_POWER_DRIVE_MIN;
-      pid->DriveMax         = BED_POWER_DRIVE_MAX;
+      pid->drive.min        = BED_POWER_DRIVE_MIN;
+      pid->drive.max        = BED_POWER_DRIVE_MAX;
       pid->Max              = BED_POWER_MAX;
       // Sensor
       sens->pin             = SB_pin[h];
@@ -214,15 +214,15 @@ void Temperature::factory_parameters() {
       pid                   = &heat->data.pid;
       heat->data.pin        = CH_pin[h];
       heat->data.ID         = h;
-      heat->data.mintemp    = CHAMBER_MINTEMP;
-      heat->data.maxtemp    = CHAMBER_MAXTEMP;
+      heat->data.temp.min   = CHAMBER_MINTEMP;
+      heat->data.temp.max   = CHAMBER_MAXTEMP;
       heat->data.freq       = CHAMBER_PWM_FREQUENCY;
       // Pid
       pid->Kp               = CHAMBERKp[ALIM(h, CHAMBERKp)];
       pid->Ki               = CHAMBERKi[ALIM(h, CHAMBERKi)];
       pid->Kd               = CHAMBERKd[ALIM(h, CHAMBERKd)];
-      pid->DriveMin         = CHAMBER_POWER_DRIVE_MIN;
-      pid->DriveMax         = CHAMBER_POWER_DRIVE_MAX;
+      pid->drive.min        = CHAMBER_POWER_DRIVE_MIN;
+      pid->drive.max        = CHAMBER_POWER_DRIVE_MAX;
       pid->Max              = CHAMBER_POWER_MAX;
       // Sensor
       sens->pin             = SCH_pin[h];
@@ -258,15 +258,15 @@ void Temperature::factory_parameters() {
     pid                   = &heat->data.pid;
     heat->data.pin        = HEATER_COOLER_PIN;
     heat->data.ID         = 0;
-    heat->data.mintemp    = COOLER_MINTEMP;
-    heat->data.maxtemp    = COOLER_MAXTEMP;
+    heat->data.temp.min   = COOLER_MINTEMP;
+    heat->data.temp.max   = COOLER_MAXTEMP;
     heat->data.freq       = COOLER_PWM_FREQUENCY;
     // Pid
     pid->Kp               = COOLER_Kp;
     pid->Ki               = COOLER_Ki;
     pid->Kd               = COOLER_Kd;
-    pid->DriveMin         = COOLER_POWER_DRIVE_MIN;
-    pid->DriveMax         = COOLER_POWER_DRIVE_MAX;
+    pid->drive.min        = COOLER_POWER_DRIVE_MIN;
+    pid->drive.max        = COOLER_POWER_DRIVE_MAX;
     pid->Max              = COOLER_POWER_MAX;
     // Sensor
     sens->pin             = TEMP_COOLER_PIN;
@@ -311,8 +311,8 @@ void Temperature::factory_parameters() {
       fdata                       = &fan->data;
       fdata->ID                   = f;
       fdata->pin                  = fanCh[f];
-      fdata->min_speed            = FAN_MIN_PWM;
-      fdata->max_speed            = FAN_MAX_PWM;
+      fdata->speed_limit.min      = FAN_MIN_PWM;
+      fdata->speed_limit.max      = FAN_MAX_PWM;
       fdata->freq                 = FAN_PWM_FREQUENCY;
       fdata->trigger_temperature  = HOTEND_AUTO_FAN_TEMPERATURE;
       fdata->auto_monitor         = 0;
@@ -324,13 +324,13 @@ void Temperature::factory_parameters() {
       #endif
       LOOP_HOTEND() {
         if (TEST(fdata->auto_monitor, h)) {
-          fdata->min_speed        = HOTEND_AUTO_FAN_MIN_SPEED;
-          fdata->max_speed        = HOTEND_AUTO_FAN_SPEED;
+          fdata->speed_limit.min  = HOTEND_AUTO_FAN_MIN_SPEED;
+          fdata->speed_limit.max  = HOTEND_AUTO_FAN_SPEED;
         }
       }
       if (TEST(fdata->auto_monitor, 7)) {
-        fdata->min_speed          = CONTROLLERFAN_MIN_SPEED;
-        fdata->max_speed          = CONTROLLERFAN_SPEED;
+        fdata->speed_limit.min    = CONTROLLERFAN_MIN_SPEED;
+        fdata->speed_limit.max    = CONTROLLERFAN_SPEED;
       }
     }
 
@@ -561,13 +561,13 @@ bool Temperature::heaters_isActive() {
    */
   int16_t Temperature::hotend_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_HOTEND() mintemp = MIN(mintemp, hotends[h].data.mintemp);
+    LOOP_HOTEND() mintemp = MIN(mintemp, hotends[h].data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::hotend_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_HOTEND() maxtemp = MAX(maxtemp, hotends[h].data.maxtemp);
+    LOOP_HOTEND() maxtemp = MAX(maxtemp, hotends[h].data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
@@ -577,13 +577,13 @@ bool Temperature::heaters_isActive() {
 
   int16_t Temperature::bed_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_BED() mintemp = MIN(mintemp, beds[h].data.mintemp);
+    LOOP_BED() mintemp = MIN(mintemp, beds[h].data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::bed_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_HOTEND() maxtemp = MAX(maxtemp, beds[h].data.maxtemp);
+    LOOP_HOTEND() maxtemp = MAX(maxtemp, beds[h].data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
@@ -593,13 +593,13 @@ bool Temperature::heaters_isActive() {
 
   int16_t Temperature::chamber_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_CHAMBER() mintemp = MIN(mintemp, chambers[h].data.mintemp);
+    LOOP_CHAMBER() mintemp = MIN(mintemp, chambers[h].data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::chamber_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_CHAMBER() maxtemp = MAX(maxtemp, chambers[h].data.maxtemp);
+    LOOP_CHAMBER() maxtemp = MAX(maxtemp, chambers[h].data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
@@ -609,13 +609,13 @@ bool Temperature::heaters_isActive() {
 
   int16_t Temperature::cooler_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_COOLER() mintemp = MIN(mintemp, coolers[h].data.mintemp);
+    LOOP_COOLER() mintemp = MIN(mintemp, coolers[h].data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::cooler_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_COOLER() maxtemp = MAX(maxtemp, coolers[h].data.maxtemp);
+    LOOP_COOLER() maxtemp = MAX(maxtemp, coolers[h].data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 

@@ -49,14 +49,13 @@ union fan_flag_t {
 
 // Struct Fan data
 struct fan_data_t {
-  pin_t           pin;
-  fan_flag_t      flag;
   uint8_t         ID,
-                  min_speed,
-                  max_speed,
                   auto_monitor;
   uint16_t        trigger_temperature,
                   freq;
+  pin_t           pin;
+  fan_flag_t      flag;
+  uint8_t_limit_t speed_limit;
   #if ENABLED(TACHOMETRIC)
     tacho_data_t  tacho;
   #endif
@@ -86,7 +85,7 @@ class Fan {
     void spin();
     void print_M106();
 
-    inline uint8_t actual_speed() { return ((kickstart ? data.max_speed : speed) * scaled_speed) >> 7; }
+    inline uint8_t actual_speed() { return ((kickstart ? data.speed_limit.max : speed) * scaled_speed) >> 7; }
     inline uint8_t percent()      { return ui8topercent(actual_speed()); }
 
     // Fan flag bit 0 Hardware inverted

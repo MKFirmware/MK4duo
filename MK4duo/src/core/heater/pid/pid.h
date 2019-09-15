@@ -35,18 +35,17 @@ struct pid_data_t {
 
   public: /** Public Parameters */
 
-    float   Kp, Ki, Kd, Kc;
-    uint8_t DriveMin,
-            DriveMax,
-            Max;
+    float           Kp, Ki, Kd, Kc;
+    uint8_t         Max;
+    uint8_t_limit_t drive;
 
   private: /** Private Parameters */
 
-    float tempIState          = 0.0,
-          tempIStateLimitMin  = 0.0,
-          tempIStateLimitMax  = 0.0,
+    float temp_istate         = 0.0,
           last_temperature    = 0.0,
           temperature_1s      = 0.0;
+
+    float_limit_t temp_istate_limit;
 
   public: /** Public Function */
 
@@ -59,18 +58,18 @@ struct pid_data_t {
       static millis_s cycle_1s_ms = 0;
       float pid_output = 0.0;
 
-      const float pid_error = target_temp - current_temp;
+      const float pid_error = float(target_temp) - current_temp;
 
       if (pid_error > PID_FUNCTIONAL_RANGE) {
         pid_output = Max;
-        tempIState = tempIStateLimitMin;
+        temp_istate = temp_istate_limit.min;
       }
       else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temp <= 20)
         pid_output = 0;
       else {
         pid_output = Kp * pid_error;
-        tempIState = constrain(tempIState + pid_error, tempIStateLimitMin, tempIStateLimitMax);
-        pid_output += Ki * tempIState * 0.1;
+        temp_istate = constrain(temp_istate + pid_error, temp_istate_limit.min, temp_istate_limit.max);
+        pid_output += Ki * temp_istate * 0.1;
         float dgain = Kd * (last_temperature - temperature_1s);
         pid_output += dgain;
 
@@ -103,8 +102,8 @@ struct pid_data_t {
 
     void update() {
       if (Ki != 0) {
-        tempIStateLimitMin = (float)DriveMin * 10.0f / Ki;
-        tempIStateLimitMax = (float)DriveMax * 10.0f / Ki;
+        temp_istate_limit.min = (float)drive.min * 10.0f / Ki;
+        temp_istate_limit.max = (float)drive.max * 10.0f / Ki;
       }
     }
 

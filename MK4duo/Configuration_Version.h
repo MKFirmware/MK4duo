@@ -22,7 +22,7 @@
 #pragma once
 
 #define FIRMWARE_NAME           "MK4duo"
-#define SHORT_BUILD_VERSION     "4.3.9"
+#define SHORT_BUILD_VERSION     "4.4.0"
 #define BUILD_VERSION           FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_REVISION_DATE    "12-09-2019"
+#define STRING_REVISION_DATE    "15-09-2019"
 #define MK4DUO_FIRMWARE_URL     "marlinkimbra.it"

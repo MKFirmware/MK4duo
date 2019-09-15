@@ -51,6 +51,14 @@ int16_t Mechanics::feedrate_percentage                    = 100;
 
 uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
 
+static constexpr bool axis_relative_temp[XYZE] = AXIS_RELATIVE_MODES;
+uint8_t Mechanics::axis_relative_modes = (
+    (axis_relative_temp[X_AXIS] ? _BV(X_AXIS) : 0)
+  | (axis_relative_temp[Y_AXIS] ? _BV(Y_AXIS) : 0)
+  | (axis_relative_temp[Z_AXIS] ? _BV(Z_AXIS) : 0)
+  | (axis_relative_temp[E_AXIS] ? _BV(E_AXIS) : 0)
+);
+
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
   float Mechanics::position_shift[XYZ] = { 0.0 };

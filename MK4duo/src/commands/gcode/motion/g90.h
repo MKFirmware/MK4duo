@@ -31,4 +31,4 @@
 /**
  * G90: Absolute mode
  */
-inline void gcode_G90(void) { printer.setRelativeMode(false); }
+inline void gcode_G90(void) { mechanics.set_relative_mode(false); }

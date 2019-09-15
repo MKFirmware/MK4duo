@@ -110,8 +110,7 @@ void DHTSensor::spin() {
   delay(1);
 
   // First set data line low for a period according to sensor type
-  HAL::pinMode(data.pin, OUTPUT);
-  HAL::digitalWrite(data.pin, LOW);
+  HAL::pinMode(data.pin, OUTPUT_LOW);
   switch (data.type) {
     case DHT22:
     case DHT21:

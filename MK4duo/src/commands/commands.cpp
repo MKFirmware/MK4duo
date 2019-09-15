@@ -174,9 +174,9 @@ void Commands::get_destination() {
   LOOP_XYZE(i) {
     if ((seen[i] = parser.seen(axis_codes[i]))) {
       const float v = parser.value_axis_units((AxisEnum)i);
-      mechanics.destination[i] = (printer.axis_relative_modes[i] || printer.isRelativeMode())
-        ? mechanics.current_position[i] + v
-        : (i == E_AXIS) ? v : mechanics.logical_to_native(v, (AxisEnum)i);
+      mechanics.destination[i] = mechanics.axis_is_relative(AxisEnum(i))
+        ? mechanics.current_position[i] + v : (i == E_AXIS)
+        ? v : mechanics.logical_to_native(v, (AxisEnum)i);
     }
     else
       mechanics.destination[i] = mechanics.current_position[i];

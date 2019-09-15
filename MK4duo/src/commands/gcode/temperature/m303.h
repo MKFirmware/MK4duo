@@ -55,7 +55,7 @@ inline void gcode_M303(void) {
 
   const int16_t target = parser.celsiusval('S', act->type == IS_HOTEND ? 200 : 70);
 
-  if (target > act->data.maxtemp - 10) {
+  if (target > act->data.temp.max - 10) {
     SERIAL_EM(MSG_PID_TEMP_TOO_HIGH);
     return;
   }

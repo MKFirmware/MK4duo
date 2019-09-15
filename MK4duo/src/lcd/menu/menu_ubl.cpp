@@ -123,9 +123,9 @@ void _lcd_ubl_build_custom_mesh() {
 void _lcd_ubl_custom_mesh() {
   START_MENU();
   MENU_BACK(MSG_UBL_BUILD_MESH_MENU);
-  MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, hotends[0].data.maxtemp - 10);
+  MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, hotends[0].data.temp.max - 10);
   #if HAS_BEDS
-    MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, beds[0].data.mintemp, beds[0].data.maxtemp - 10);
+    MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, beds[0].data.temp.min, beds[0].data.temp.max - 10);
   #endif
   MENU_ITEM(function, MSG_UBL_BUILD_CUSTOM_MESH, _lcd_ubl_build_custom_mesh);
   END_MENU();

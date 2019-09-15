@@ -28,6 +28,7 @@
  *    __AVR__           : For all Atmel AVR boards
  *    ARDUINO_ARCH_SAM  : For Arduino Due and other boards based on Atmel SAM3X8E
  *    ARDUINO_ARCH_SAMD : For Arduino Due and other boards based on Atmel SAMD21J18
+ *    STM32             : For Arduino STM32 and otherboards based on STM32xx ARM-Cortex M3
  *
  */
 
@@ -50,6 +51,10 @@
   #define CPU_32_BIT
   #include "HAL_SAMD/spi_pins.h"
   #include "HAL_SAMD/HAL.h"
+#elif ENABLED(ARDUINO_ARCH_STM32)
+  #define CPU_32_BIT
+  #include "HAL_STM32/spi_pins.h"
+  #include "HAL_STM32/HAL.h"
 #else
   #error "Unsupported Platform!"
 #endif

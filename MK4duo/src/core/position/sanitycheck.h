@@ -19,37 +19,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #pragma once
 
 /**
- * @brief Cartesian Point
- * @details Represents a three dimensional point on Cartesian coordinate system,
- *          using an additional fourth dimension for the extrusion length.
+ * sanitycheck.h
  *
- * @param x The x-coordinate of the point.
- * @param y The y-coordinate of the point.
- * @param z The z-coordinate of the point.
+ * Test configuration values for errors at compile-time.
  */
-struct point_t {
-
-  float x, y, z;
-
-  /**
-   * @brief Three dimensional point constructor
-   *
-   * @param x The x-coordinate of the point.
-   * @param y The y-coordinate of the point.
-   * @param z The z-coordinate of the point.
-   */
-  point_t(const float x, const float y, const float z) : x(x), y(y), z(z) {}
-
-  /**
-   * @brief Two dimensional point constructor
-   *
-   * @param x The x-coordinate of the point.
-   * @param y The y-coordinate of the point.
-   */
-  point_t(const float x, const float y) : point_t(x, y, NAN) {}
-
-};

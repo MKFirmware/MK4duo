@@ -50,9 +50,9 @@ inline void gcode_M218(void) {
     }
   #endif
 
-  if (parser.seenval('X')) nozzle.data.hotend_offset[X_AXIS][TARGET_HOTEND] = parser.value_linear_units();
-  if (parser.seenval('Y')) nozzle.data.hotend_offset[Y_AXIS][TARGET_HOTEND] = parser.value_linear_units();
-  if (parser.seenval('Z')) nozzle.data.hotend_offset[Z_AXIS][TARGET_HOTEND] = parser.value_linear_units();
+  if (parser.seenval('X')) nozzle.data.hotend_offset[TARGET_HOTEND].x = parser.value_linear_units();
+  if (parser.seenval('Y')) nozzle.data.hotend_offset[TARGET_HOTEND].y = parser.value_linear_units();
+  if (parser.seenval('Z')) nozzle.data.hotend_offset[TARGET_HOTEND].z = parser.value_linear_units();
 
 }
 

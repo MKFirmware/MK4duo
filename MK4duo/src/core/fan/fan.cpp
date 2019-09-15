@@ -63,7 +63,7 @@ void Fan::set_speed(const uint8_t new_speed) {
 
   speed = new_speed;
 
-  LIMIT(speed, data.min_speed, data.max_speed);
+  LIMIT(speed, data.speed_limit.min, data.speed_limit.max);
 }
 
 void Fan::set_auto_monitor(const int8_t h) {
@@ -93,11 +93,11 @@ void Fan::spin() {
     LOOP_HOTEND() {
       if (TEST(data.auto_monitor, h)) {
         if (hotends[h].deg_current() > data.trigger_temperature) {
-          speed = data.max_speed;
+          speed = data.speed_limit.max;
           break;
         }
         else
-          speed = data.min_speed;
+          speed = data.speed_limit.min;
       }
     }
 
@@ -140,15 +140,15 @@ void Fan::spin() {
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
       if (!controller_fan_ms || expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U))) {
         controller_fan_ms = 0;
-        speed = data.min_speed;
+        speed = data.speed_limit.min;
       }
       else
-        speed = data.max_speed;
+        speed = data.speed_limit.max;
     }
 
   }
 
-  speed = speed ? constrain(speed, data.min_speed, data.max_speed) : 0;
+  speed = speed ? constrain(speed, data.speed_limit.min, data.speed_limit.max) : 0;
 
 }
 
@@ -157,8 +157,8 @@ void Fan::print_M106() {
   SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
   SERIAL_MV(" U", data.pin);
-  SERIAL_MV(" L", data.min_speed);
-  SERIAL_MV(" X", data.max_speed);
+  SERIAL_MV(" L", data.speed_limit.min);
+  SERIAL_MV(" X", data.speed_limit.max);
   SERIAL_MV(" F", data.freq);
   SERIAL_MV(" I", isHWinvert());
   SERIAL_MSG(" H");

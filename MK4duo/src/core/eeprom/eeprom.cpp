@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV72"
+#define EEPROM_VERSION "MKV73"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -311,14 +311,14 @@ void EEPROM::post_process() {
   // steps per s2 needs to be updated to agree with units per s2
   planner.reset_acceleration_rates();
 
-  // Init Driver pins
-  LOOP_DRV() if (driver[d]) driver[d]->init();
-
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
     mechanics.recalc_delta_settings();
   #endif
+
+  // Init Driver pins
+  LOOP_DRV() if (driver[d]) driver[d]->init();
 
   #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].init();

@@ -20,15 +20,14 @@
  *
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(DIGIPOT_I2C)
 
 #include <Stream.h>
 #include <Wire.h>
 #include <utility/twi.h>
-
-#include "digipot_mcp4451.h"
 
 static byte current_to_wiper(float current) {
   return byte(CEIL(float((DIGIPOT_I2C_FACTOR * current))));

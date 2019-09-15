@@ -67,8 +67,8 @@
     if (parser.seen('H'))
       fan->set_auto_monitor(parser.value_int());
 
-    fan->data.min_speed           = parser.byteval('L', fan->data.min_speed);
-    fan->data.max_speed           = parser.byteval('X', fan->data.max_speed);
+    fan->data.speed_limit.min     = parser.byteval('L', fan->data.speed_limit.min);
+    fan->data.speed_limit.max     = parser.byteval('X', fan->data.speed_limit.max);
     fan->data.freq                = parser.ushortval('F', fan->data.freq);
     fan->data.trigger_temperature = parser.ushortval('T', fan->data.trigger_temperature);
 

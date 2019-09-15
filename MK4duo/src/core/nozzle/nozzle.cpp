@@ -54,10 +54,11 @@ void Nozzle::factory_parameters() {
   #endif // HOTENDS > 1
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
-    data.park_point = NOZZLE_PARK_POINT;
+    constexpr point_xyz_t nozzle_park_point = NOZZLE_PARK_POINT;
   #elif EXTRUDERS > 1
-    data.park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
+    constexpr point_xyz_t nozzle_park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
   #endif
+  data.park_point = nozzle_park_point;
 
 }
 
@@ -97,9 +98,9 @@ void Nozzle::factory_parameters() {
   void Nozzle::print_M218(const uint8_t h) {
     SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");
     SERIAL_SMV(CFG, "  M218 H", (int)h);
-    SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[X_AXIS][h]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[Y_AXIS][h]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[Z_AXIS][h]), 3);
+    SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[h].x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[h].y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[h].z), 3);
     SERIAL_EOL();
   }
 
@@ -109,8 +110,8 @@ void Nozzle::factory_parameters() {
 
   void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const uint8_t cleans) {
 
-    point_t start = NOZZLE_CLEAN_START_POINT;
-    point_t end   = NOZZLE_CLEAN_END_POINT;
+    point_xyz_t start = NOZZLE_CLEAN_START_POINT;
+    point_xyz_t end   = NOZZLE_CLEAN_END_POINT;
 
     if (pattern == 2) {
       if (!(cleans & (_BV(X_AXIS) | _BV(Y_AXIS)))) {
@@ -148,7 +149,7 @@ void Nozzle::factory_parameters() {
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  void Nozzle::park(const uint8_t z_action, const point_t &park_p/*=data.park_point*/) {
+  void Nozzle::park(const uint8_t z_action, const point_xyz_t &park_p/*=data.park_point*/) {
 
     const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
     const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;
@@ -174,7 +175,7 @@ void Nozzle::factory_parameters() {
 /** Private Function */
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  void Nozzle::stroke(const point_t &start, const point_t &end, const uint8_t &strokes) {
+  void Nozzle::stroke(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes) {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
@@ -204,7 +205,7 @@ void Nozzle::factory_parameters() {
     #endif
   }
 
-  void Nozzle::zigzag(const point_t &start, const point_t &end, const uint8_t &strokes, const uint8_t &objects) {
+  void Nozzle::zigzag(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes, const uint8_t &objects) {
 
     const float diffx = end.x - start.x,
                 diffy = end.y - start.y;
@@ -229,7 +230,7 @@ void Nozzle::factory_parameters() {
     const uint8_t zigs = objects << 1;
     const bool horiz = ABS(diffx) >= ABS(diffy);    // Do a horizontal wipe?
     const float P = (horiz ? diffx : diffy) / zigs;   // Period of each zig / zag
-    const point_t *side;
+    const point_xyz_t *side;
 
     for (uint8_t j = 0; j < strokes; j++) {
       for (int8_t i = 0; i < zigs; i++) {
@@ -255,7 +256,7 @@ void Nozzle::factory_parameters() {
     #endif
   }
 
-  void Nozzle::circle(const point_t &start, const point_t &middle, const uint8_t &strokes, const float &radius) {
+  void Nozzle::circle(const point_xyz_t &start, const point_xyz_t &middle, const uint8_t &strokes, const float &radius) {
 
     if (strokes == 0) return;
 

@@ -83,8 +83,8 @@ typedef struct {
     gradient_t gradient;
   #endif
 
-  // Relative mode
-  bool relative_mode, relative_modes_e;
+  // Relative axis modes
+  uint8_t axis_relative_modes;
 
   // Job elapsed time
   millis_l print_job_counter_elapsed;

@@ -383,7 +383,7 @@ class TMCStorage {
     #define X_ENABLE_READ()         driver[X_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(X)
-    #define X_STEP_WRITE(STATE)     do{ if(STATE) TOGGLE(X_STEP_PIN); }while(0)
+    #define X_STEP_WRITE(STATE)     driver[X_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -395,7 +395,7 @@ class TMCStorage {
     #define X2_ENABLE_READ()        driver[X2_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(X2)
-    #define X2_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(X2_STEP_PIN); }while(0)
+    #define X2_STEP_WRITE(STATE)    driver[X2_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -407,7 +407,7 @@ class TMCStorage {
     #define Y_ENABLE_READ()         driver[Y_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Y)
-    #define Y_STEP_WRITE(STATE)     do{ if (STATE) TOGGLE(Y_STEP_PIN); }while(0)
+    #define Y_STEP_WRITE(STATE)     driver[Y_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -419,7 +419,7 @@ class TMCStorage {
     #define Y2_ENABLE_READ()        driver[Y2_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Y2)
-    #define Y2_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(Y2_STEP_PIN); }while(0)
+    #define Y2_STEP_WRITE(STATE)    driver[Y2_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -431,7 +431,7 @@ class TMCStorage {
     #define Z_ENABLE_READ()         driver[Z_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z)
-    #define Z_STEP_WRITE(STATE)     do{ if(STATE) TOGGLE(Z_STEP_PIN); }while(0)
+    #define Z_STEP_WRITE(STATE)     driver[Z_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -443,7 +443,7 @@ class TMCStorage {
     #define Z2_ENABLE_READ()        driver[Z2_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z2)
-    #define Z2_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(Z2_STEP_PIN); }while(0)
+    #define Z2_STEP_WRITE(STATE)    driver[Z2_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -452,10 +452,10 @@ class TMCStorage {
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Z3_ENABLE_INIT          NOOP
     #define Z3_ENABLE_WRITE(STATE)  driver[Z3_DRV]->toff((STATE)==driver[Z3_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Z3_ENABLE_READ()        driver[Z3_DRV]->isEnabled()
+    #define Z3_ENABLE_READ()        driver[Z3_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z3)
-    #define Z3_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(Z3_STEP_PIN); }while(0)
+    #define Z3_STEP_WRITE(STATE)    driver[Z3_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -467,7 +467,7 @@ class TMCStorage {
     #define E0_ENABLE_READ()        driver[E0_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E0)
-    #define E0_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E0_STEP_PIN); }while(0)
+    #define E0_STEP_WRITE(STATE)    driver[E0_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -479,7 +479,7 @@ class TMCStorage {
     #define E1_ENABLE_READ()        driver[E1_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E1)
-    #define E1_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E1_STEP_PIN); }while(0)
+    #define E1_STEP_WRITE(STATE)    driver[E1_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -491,7 +491,7 @@ class TMCStorage {
     #define E2_ENABLE_READ()        driver[E2_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E2)
-    #define E2_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E2_STEP_PIN); }while(0)
+    #define E2_STEP_WRITE(STATE)    driver[E2_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -503,7 +503,7 @@ class TMCStorage {
     #define E3_ENABLE_READ()        driver[E3_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E3)
-    #define E3_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E3_STEP_PIN); }while(0)
+    #define E3_STEP_WRITE(STATE)    driver[E3_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -515,7 +515,7 @@ class TMCStorage {
     #define E4_ENABLE_READ()        driver[E4_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E4)
-    #define E4_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E4_STEP_PIN); }while(0)
+    #define E4_STEP_WRITE(STATE)    driver[E4_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -527,7 +527,7 @@ class TMCStorage {
     #define E5_ENABLE_READ()        driver[E5_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E5)
-    #define E5_STEP_WRITE(STATE)    do{ if(STATE) TOGGLE(E5_STEP_PIN); }while(0)
+    #define E5_STEP_WRITE(STATE)    driver[E5_DRV]->step_toggle(STATE)
   #endif
 #endif
 

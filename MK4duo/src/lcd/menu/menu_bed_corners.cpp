@@ -55,7 +55,7 @@ void _lcd_goto_next_corner() {
         break;
     #endif
   }
-  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[X_AXIS]), tools.extruder.active);
+  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.x), tools.extruder.active);
   line_to_z(0.0);
   if (++bed_corner > 3
     #if ENABLED(LEVEL_CENTER_TOO)

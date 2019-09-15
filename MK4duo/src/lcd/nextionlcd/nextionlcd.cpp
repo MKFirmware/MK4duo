@@ -765,13 +765,13 @@ void NextionLCD::set_status_page() {
   sendCommandPGM(PSTR("p[2].b[10].val=" NEXTION_EXTRUDERS));
 
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[X_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.x, temp, 10);
   setText(SpeedX, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[Y_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.y, temp, 10);
   setText(SpeedY, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[Z_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.z, temp, 10);
   setText(SpeedZ, temp);
 
   #if HAS_SD_SUPPORT

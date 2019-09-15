@@ -59,7 +59,7 @@ typedef struct {
 } filament_data_t;
 
 template<class RESPONSE_T, class SENSOR_T>
-class TFilamentRunout {
+class FilamentRunoutBase {
 
   public: /** Public Parameters */
 
@@ -375,12 +375,12 @@ class FilamentSensorBase {
 
 #if FILAMENT_RUNOUT_DISTANCE_MM > 0
   #if ENABLED(EXTRUDER_ENCODER_CONTROL)
-    typedef TFilamentRunout<RunoutResponseDelayed, FilamentSensorEncoder> FilamentRunout;
+    typedef FilamentRunoutBase<RunoutResponseDelayed, FilamentSensorEncoder>  FilamentRunout;
   #else
-    typedef TFilamentRunout<RunoutResponseDelayed, FilamentSensorSwitch> FilamentRunout;
+    typedef FilamentRunoutBase<RunoutResponseDelayed, FilamentSensorSwitch>   FilamentRunout;
   #endif
 #else
-  typedef TFilamentRunout<RunoutResponseDebounced, FilamentSensorSwitch> FilamentRunout;
+  typedef FilamentRunoutBase<RunoutResponseDebounced, FilamentSensorSwitch>   FilamentRunout;
 #endif
 
 extern FilamentRunout filamentrunout;

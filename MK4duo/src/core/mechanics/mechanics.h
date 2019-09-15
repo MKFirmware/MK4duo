@@ -189,6 +189,11 @@ class Mechanics {
     static float destination[XYZE];
 
     /**
+     * Relative mode for axis
+     */
+    static uint8_t axis_relative_modes;
+
+    /**
      * Workspace Offset
      */
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
@@ -313,6 +318,22 @@ class Mechanics {
     FORCE_INLINE static void report_xyz(const float pos[]) { report_xyze(pos, 3); }
 
     static bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
+
+    /**
+     * Axis relative function
+     */
+    FORCE_INLINE static bool axis_is_relative(const AxisEnum axis) {
+      return TEST(axis_relative_modes, axis);
+    }
+    FORCE_INLINE static void set_relative_mode(const bool rel) {
+      axis_relative_modes = rel ? _BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS) | _BV(E_AXIS) : 0;
+    }
+    FORCE_INLINE static void set_e_relative() {
+      SBI(axis_relative_modes, E_AXIS);
+    }
+    FORCE_INLINE static void set_e_absolute() {
+      CBI(axis_relative_modes, E_AXIS);
+    }
 
     #if ENABLED(WORKSPACE_OFFSETS)
       /**

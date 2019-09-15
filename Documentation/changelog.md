@@ -1,3 +1,6 @@
+### Version 4.4.0
+
+
 ### Version 4.3.9
 * EEROM Version MKV72
 * New graphic for Nextion 4.3, 5.0 or 7.0 Normal and Enanched

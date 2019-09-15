@@ -132,18 +132,18 @@ void menu_tune() {
   // Nozzle [1-4]:
   //
   #if HOTENDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0].target_temperature, 0, hotends[0].data.maxtemp - 10, watch_temp_callback_H0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0].target_temperature, 0, hotends[0].data.temp.max - 10, watch_temp_callback_H0);
   #elif HOTENDS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0].target_temperature, 0, hotends[0].data.maxtemp - 10, watch_temp_callback_H0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1].target_temperature, 0, hotends[1].data.maxtemp - 10, watch_temp_callback_H1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0].target_temperature, 0, hotends[0].data.temp.max - 10, watch_temp_callback_H0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1].target_temperature, 0, hotends[1].data.temp.max - 10, watch_temp_callback_H1);
     #if HOTENDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2].target_temperature, 0, hotends[2].data.maxtemp - 10, watch_temp_callback_H2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2].target_temperature, 0, hotends[2].data.temp.max - 10, watch_temp_callback_H2);
       #if HOTENDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3].target_temperature, 0, hotends[3].data.maxtemp - 10, watch_temp_callback_H3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3].target_temperature, 0, hotends[3].data.temp.max - 10, watch_temp_callback_H3);
         #if HOTENDS > 4
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4].target_temperature, 0, hotends[4].data.maxtemp - 10, watch_temp_callback_H4);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4].target_temperature, 0, hotends[4].data.temp.max - 10, watch_temp_callback_H4);
           #if HOTENDS > 5
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5].target_temperature, 0, hotends[5].data.maxtemp - 10, watch_temp_callback_H5);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5].target_temperature, 0, hotends[5].data.temp.max - 10, watch_temp_callback_H5);
           #endif // HOTENDS > 5
         #endif // HOTENDS > 4
       #endif // HOTENDS > 3
@@ -154,14 +154,14 @@ void menu_tune() {
   // Bed:
   //
   #if BEDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0].target_temperature, 0, beds[0].data.maxtemp - 10, watch_temp_callback_bed0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0].target_temperature, 0, beds[0].data.temp.max - 10, watch_temp_callback_bed0);
   #elif BEDS > 0
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0].target_temperature, 0, beds[0].data.maxtemp - 10, watch_temp_callback_bed0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1].target_temperature, 0, beds[1].data.maxtemp - 10, watch_temp_callback_bed1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0].target_temperature, 0, beds[0].data.temp.max - 10, watch_temp_callback_bed0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1].target_temperature, 0, beds[1].data.temp.max - 10, watch_temp_callback_bed1);
     #if BEDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2].target_temperature, 0, beds[2].data.maxtemp - 10, watch_temp_callback_bed2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2].target_temperature, 0, beds[2].data.temp.max - 10, watch_temp_callback_bed2);
       #if BEDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3].target_temperature, 0, beds[3].data.maxtemp - 10, watch_temp_callback_bed3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3].target_temperature, 0, beds[3].data.temp.max - 10, watch_temp_callback_bed3);
       #endif // BEDS > 3
     #endif // BEDS > 2
   #endif // BEDS > 1
@@ -170,14 +170,14 @@ void menu_tune() {
   // Chamber:
   //
   #if CHAMBERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0].data.maxtemp - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0].data.temp.max - 10, watch_temp_callback_chamber0);
   #elif CHAMBERS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0].target_temperature, 0, chambers[0].data.maxtemp - 10, watch_temp_callback_chamber0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1].target_temperature, 0, chambers[1].data.maxtemp - 10, watch_temp_callback_chamber1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0].target_temperature, 0, chambers[0].data.temp.max - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1].target_temperature, 0, chambers[1].data.temp.max - 10, watch_temp_callback_chamber1);
     #if CHAMBERS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2].target_temperature, 0, chambers[2].data.maxtemp - 10, watch_temp_callback_chamber2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2].target_temperature, 0, chambers[2].data.temp.max - 10, watch_temp_callback_chamber2);
       #if CHAMBERS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3].target_temperature, 0, chambers[3].data.maxtemp - 10, watch_temp_callback_chamber3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3].target_temperature, 0, chambers[3].data.temp.max - 10, watch_temp_callback_chamber3);
       #endif // CHAMBERS > 3
     #endif // CHAMBERS > 2
   #endif // CHAMBERS > 1
@@ -186,7 +186,7 @@ void menu_tune() {
   // Cooler:
   //
   #if COOLERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0].target_temperature, 0, coolers[0].data.maxtemp - 10, watch_temp_callback_cooler0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0].target_temperature, 0, coolers[0].data.temp.max - 10, watch_temp_callback_cooler0);
   #endif
 
   //

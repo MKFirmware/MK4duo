@@ -84,9 +84,9 @@ void Heater::set_target_temp(const int16_t celsius) {
   }
   else if (isFault())
     SERIAL_LM(ER, " Heater not switched on to temperature fault.");
-  else if (celsius < data.mintemp)
+  else if (celsius < data.temp.min)
     print_low_high_temp(celsius, true);
-  else if (celsius > data.maxtemp - 10)
+  else if (celsius > data.temp.max - 10)
     print_low_high_temp(celsius, false);
   else {
     setActive(true);
@@ -101,9 +101,9 @@ void Heater::set_target_temp(const int16_t celsius) {
 }
 
 void Heater::set_idle_temp(const int16_t celsius) {
-  if (celsius < data.mintemp)
+  if (celsius < data.temp.min)
     print_low_high_temp(celsius, true);
-  else if (celsius > data.maxtemp - 10)
+  else if (celsius > data.temp.max - 10)
     print_low_high_temp(celsius, false);
   else
     idle_temperature = celsius;
@@ -215,7 +215,7 @@ void Heater::get_output() {
           );
         }
         else if (expired(&check_next_ms, temp_check_interval))
-          pwm_value = current_temperature >= targetTemperature ? data.pid.DriveMax : 0;
+          pwm_value = current_temperature >= targetTemperature ? data.pid.drive.max : 0;
       }
       else
     #endif
@@ -236,7 +236,7 @@ void Heater::get_output() {
           else if (current_temperature <= targetTemperature - temp_hysteresis)
             pwm_value = data.pid.Max;
           else
-            pwm_value = current_temperature < targetTemperature ? data.pid.DriveMax : data.pid.DriveMin;
+            pwm_value = current_temperature < targetTemperature ? data.pid.drive.max : data.pid.drive.min;
         }
       }
 
@@ -262,8 +262,8 @@ void Heater::set_output_pwm() {
 
 void Heater::check_and_power() {
 
-  if (isActive() && current_temperature > data.maxtemp) max_temp_error();
-  if (isActive() && current_temperature < data.mintemp) {
+  if (isActive() && current_temperature > data.temp.max) max_temp_error();
+  if (isActive() && current_temperature < data.temp.min) {
     if (++consecutive_low_temp >= MAX_CONSECUTIVE_LOW_TEMP)
       min_temp_error();
   }
@@ -601,12 +601,12 @@ void Heater::print_M306() {
   SERIAL_SMV(CFG, "  M306 H", (int)heater_id);
   if (heater_id < 0) SERIAL_MV(" T", int(data.ID));
   SERIAL_MV(" P", data.pin);
-  SERIAL_MV(" A", data.pid.DriveMin);
-  SERIAL_MV(" B", data.pid.DriveMax);
+  SERIAL_MV(" A", data.pid.drive.min);
+  SERIAL_MV(" B", data.pid.drive.max);
   SERIAL_MV(" C", data.pid.Max);
   SERIAL_MV(" F", data.freq);
-  SERIAL_MV(" L", data.mintemp);
-  SERIAL_MV(" O", data.maxtemp);
+  SERIAL_MV(" L", data.temp.min);
+  SERIAL_MV(" O", data.temp.max);
   SERIAL_MV(" U", isUsePid());
   SERIAL_MV(" I", isHWinvert());
   SERIAL_MV(" Q", isHWpwm());

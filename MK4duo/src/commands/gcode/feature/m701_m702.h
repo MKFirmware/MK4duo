@@ -42,7 +42,7 @@
  */
 inline void gcode_M701(void) {
 
-  point_t park_point = nozzle.data.park_point;
+  point_xyz_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
@@ -112,7 +112,7 @@ inline void gcode_M701(void) {
  */
 inline void gcode_M702(void) {
 
-  point_t park_point = nozzle.data.park_point;
+  point_xyz_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;

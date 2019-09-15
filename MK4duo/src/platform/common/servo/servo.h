@@ -75,6 +75,9 @@
 #elif ENABLED(ARDUINO_ARCH_SAM)
   #define SHARED_SERVOS true
   #include "../../HAL_DUE/servotimers.h"
+#elif ENABLED(ARDUINO_ARCH_STM32)
+  #define SHARED_SERVOS false
+  #include "../../HAL_STM32/servo.h"
 #else
   #error "Unsupported Platform!"
 #endif

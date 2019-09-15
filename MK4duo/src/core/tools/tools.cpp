@@ -219,10 +219,10 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
         #if ENABLED(DUAL_X_CARRIAGE)
           constexpr float x_diff = 0;
         #else
-          const float x_diff = nozzle.data.hotend_offset[X_AXIS][extruder.target] - nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
+          const float x_diff = nozzle.data.hotend_offset[extruder.target].x - nozzle.data.hotend_offset[ACTIVE_HOTEND].x;
         #endif
-        const float y_diff = nozzle.data.hotend_offset[Y_AXIS][extruder.target] - nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND],
-                    z_diff = nozzle.data.hotend_offset[Z_AXIS][extruder.target] - nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND];
+        const float y_diff = nozzle.data.hotend_offset[extruder.target].y - nozzle.data.hotend_offset[ACTIVE_HOTEND].y,
+                    z_diff = nozzle.data.hotend_offset[extruder.target].z - nozzle.data.hotend_offset[ACTIVE_HOTEND].z;
       #else
         constexpr float x_diff = 0, y_diff = 0, z_diff = 0;
       #endif
@@ -707,8 +707,8 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
     }
 
     // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.current_position[Y_AXIS] -= nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Y_AXIS][extruder.target];
-    mechanics.current_position[Z_AXIS] -= nozzle.data.hotend_offset[Z_AXIS][ACTIVE_HOTEND] - nozzle.data.hotend_offset[Z_AXIS][extruder.target];
+    mechanics.current_position[Y_AXIS] -= nozzle.data.hotend_offset[ACTIVE_HOTEND].y - nozzle.data.hotend_offset[extruder.target].y;
+    mechanics.current_position[Z_AXIS] -= nozzle.data.hotend_offset[ACTIVE_HOTEND].z - nozzle.data.hotend_offset[extruder.target].z;
 
     // Activate the new extruder
     extruder.active = extruder.target;

@@ -78,7 +78,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
   MENU_ITEM(function, MSG_PREHEAT_1, _lcd_change_filament_temp_1_func);
   MENU_ITEM(function, MSG_PREHEAT_2, _lcd_change_filament_temp_2_func);
   MENU_ITEM(function, MSG_PREHEAT_3, _lcd_change_filament_temp_3_func);
-  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder].target_temperature, hotends[extruder].data.mintemp, hotends[extruder].data.maxtemp - 10, _lcd_change_filament_temp_custom_cb);
+  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder].target_temperature, hotends[extruder].data.temp.min, hotends[extruder].data.temp.max - 10, _lcd_change_filament_temp_custom_cb);
   END_MENU();
 }
 void menu_temp_e0_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 0); }

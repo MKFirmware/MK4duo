@@ -30,6 +30,8 @@ void endstop_ISR(void) { endstops.update(); }
   #include "../HAL_AVR/endstop_interrupts.h"
 #elif ENABLED(ARDUINO_ARCH_SAM)
   #include "../HAL_DUE/endstop_interrupts.h"
+#elif ENABLED(ARDUINO_ARCH_STM32)
+  #include "../HAL_STM32/endstop_interrupts.h"
 #else
   #error "Unsupported Platform!"
 #endif

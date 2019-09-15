@@ -42,17 +42,55 @@ typedef int8_t    pin_t;
  * Val limit min max
  */
 template<typename T>
-struct limit_val_t {
+struct MinMaxVal {
   union {
     struct { T min, max; };
     T val[2];
   };
-  void set(const T pmin, const T pmax)    { min = pmin; max = pmax; }
-  void reset()                            { min = max = 0; }
-            operator T* ()                { return val; }
-        T&  operator[](const int i)       { return val[i]; }
-  const T&  operator[](const int i) const { return val[i]; }
+  void set(const T pmin)                                  { min = pmin; }
+  void set(const T pmin, const T pmax)                    { min = pmin; max = pmax; }
+  void reset()                                            { min = max = 0; }
+  T length()                                        const { return (T)sqrtf(sq(min) + sq(max)); }
+  operator T* ()                                          { return val; }
+  operator bool()                                         { return min || max; }
+  MinMaxVal<short> asInt()                                { MinMaxVal<short> o = { short(min), short(max) }; return o; }
+  MinMaxVal<long>  asLong()                               { MinMaxVal<long>  o = {  long(min),  long(max) }; return o; }
+  MinMaxVal<float> asFloat()                              { MinMaxVal<float> o = { float(min), float(max) }; return o; }
+  MinMaxVal<short> asInt()                          const { MinMaxVal<short> o = { short(min), short(max) }; return o; }
+  MinMaxVal<long>  asLong()                         const { MinMaxVal<long>  o = {  long(min),  long(max) }; return o; }
+  MinMaxVal<float> asFloat()                        const { MinMaxVal<float> o = { float(min), float(max) }; return o; }
+        T&  operator[](const int i)                       { return val[i]; }
+  const T&  operator[](const int i)                 const { return val[i]; }
+  MinMaxVal<T>& operator= (const MinMaxVal<T> &lh)        { set(lh.min, lh.max); return *this; }
+  MinMaxVal<T>  operator+ (const MinMaxVal<T> &lh)  const { MinMaxVal<T> ls = *this; ls.min += lh.min; ls.max += lh.max; return ls; }
+  MinMaxVal<T>  operator+ (const MinMaxVal<T> &lh)        { MinMaxVal<T> ls = *this; ls.min += lh.min; ls.max += lh.max; return ls; }
+  MinMaxVal<T>  operator- (const MinMaxVal<T> &lh)  const { MinMaxVal<T> ls = *this; ls.min -= lh.min; ls.max -= lh.max; return ls; }
+  MinMaxVal<T>  operator- (const MinMaxVal<T> &lh)        { MinMaxVal<T> ls = *this; ls.min -= lh.min; ls.max -= lh.max; return ls; }
+  MinMaxVal<T>  operator* (const MinMaxVal<T> &lh)  const { MinMaxVal<T> ls = *this; ls.min *= lh.min; ls.max *= lh.max; return ls; }
+  MinMaxVal<T>  operator* (const MinMaxVal<T> &lh)        { MinMaxVal<T> ls = *this; ls.min *= lh.min; ls.max *= lh.max; return ls; }
+  MinMaxVal<T>  operator/ (const MinMaxVal<T> &lh)  const { MinMaxVal<T> ls = *this; ls.min /= lh.min; ls.max /= lh.max; return ls; }
+  MinMaxVal<T>  operator/ (const MinMaxVal<T> &lh)        { MinMaxVal<T> ls = *this; ls.min /= lh.min; ls.max /= lh.max; return ls; }
+  MinMaxVal<T>  operator* (const float &v)          const { MinMaxVal<T> ls = *this; ls.min *= v;      ls.max *= v;      return ls; }
+  MinMaxVal<T>  operator* (const float &v)                { MinMaxVal<T> ls = *this; ls.min *= v;      ls.max *= v;      return ls; }
+  MinMaxVal<T>  operator* (const int &v)            const { MinMaxVal<T> ls = *this; ls.min *= v;      ls.max *= v;      return ls; }
+  MinMaxVal<T>  operator* (const int &v)                  { MinMaxVal<T> ls = *this; ls.min *= v;      ls.max *= v;      return ls; }
+  MinMaxVal<T>  operator/ (const float &v)          const { MinMaxVal<T> ls = *this; ls.min /= v;      ls.max /= v;      return ls; }
+  MinMaxVal<T>  operator/ (const float &v)                { MinMaxVal<T> ls = *this; ls.min /= v;      ls.max /= v;      return ls; }
+  MinMaxVal<T>  operator/ (const int &v)            const { MinMaxVal<T> ls = *this; ls.min /= v;      ls.max /= v;      return ls; }
+  MinMaxVal<T>  operator/ (const int &v)                  { MinMaxVal<T> ls = *this; ls.min /= v;      ls.max /= v;      return ls; }
+  MinMaxVal<T>& operator+=(const MinMaxVal<T> &lh)        { min += lh.min;  max += lh.max;  return *this; }
+  MinMaxVal<T>& operator-=(const MinMaxVal<T> &lh)        { min -= lh.min;  max -= lh.max;  return *this; }
+  MinMaxVal<T>& operator*=(const MinMaxVal<T> &lh)        { min *= lh.min;  max *= lh.max;  return *this; }
+  MinMaxVal<T>& operator*=(const float &lh)               { min *= lh;      max *= lh;      return *this; }
+  MinMaxVal<T>& operator*=(const int &lh)                 { min *= lh;      max *= lh;      return *this; }
+  bool          operator==(const MinMaxVal<T> &lh)        { return min == lh.min && max == lh.max; }
+  bool          operator==(const MinMaxVal<T> &lh)  const { return min == lh.min && max == lh.max; }
+  bool          operator!=(const MinMaxVal<T> &lh)        { return !operator==(lh); }
+  bool          operator!=(const MinMaxVal<T> &lh)  const { return !operator==(lh); }
+  MinMaxVal<T>       operator-()                          { MinMaxVal<T> o = *this; o.min = -min; o.max = -max; return o; }
+  const MinMaxVal<T> operator-()                    const { MinMaxVal<T> o = *this; o.min = -min; o.max = -max; return o; }
 };
-typedef struct limit_val_t<uint8_t> uint8_t_limit_t;
-typedef struct limit_val_t<int16_t>   int16_limit_t;
-typedef struct limit_val_t<float>     float_limit_t;
+
+typedef struct MinMaxVal<uint8_t> uint8_t_limit_t;
+typedef struct MinMaxVal<int16_t>   int16_limit_t;
+typedef struct MinMaxVal<float>     float_limit_t;

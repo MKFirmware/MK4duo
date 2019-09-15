@@ -20,7 +20,8 @@
  *
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 Watch::State Watch::state = STOPPED;
 

@@ -64,6 +64,7 @@
 #include "src/lib/driver_types.h"
 #include "src/lib/duration_t.h"
 #include "src/lib/matrix.h"
+
 #include "Boards.h"
 
 // Configuration settings loading
@@ -108,13 +109,10 @@
 // Platform modules
 #include "src/platform/platform.h"
 
-// Utility modules
-#include "src/utility/utility.h"
-#include "src/utility/watch.h"
-#include "src/utility/point_t.h"
-#include "src/utility/bezier.h"
-
 // Core modules
+#include "src/core/utility/utility.h"
+#include "src/core/position/position.h"
+#include "src/core/watch/watch.h"
 #include "src/core/mechanics/mechanics.h"
 #include "src/core/tools/tools.h"
 #include "src/core/nozzle/nozzle.h"
@@ -153,6 +151,8 @@
 #include "src/sdcard/sdcard.h"
 
 // Feature modules
+#include "src/feature/bezier/bezier.h"
+#include "src/feature/digipot/digipot.h"
 #include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"

@@ -142,9 +142,8 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
       memcpy(&job_info.gradient, &mixer.gradient, sizeof(job_info.gradient));
     #endif
 
-    //relative mode
-    job_info.relative_mode = printer.isRelativeMode();
-    job_info.relative_modes_e = printer.axis_relative_modes[E_AXIS];
+    // Relative axis modes
+    job_info.axis_relative_modes = mechanics.axis_relative_modes;
 
     // Elapsed print job time
     job_info.print_job_counter_elapsed = print_job_counter.duration();
@@ -281,8 +280,7 @@ void Restart::resume_job() {
   commands.process_now(cmd);
 
   // Relative mode
-  printer.setRelativeMode(job_info.relative_mode);
-  printer.axis_relative_modes[E_AXIS] = job_info.relative_modes_e;
+  mechanics.axis_relative_modes = job_info.axis_relative_modes;
 
   #if ENABLED(WORKSPACE_OFFSETS)
     LOOP_XYZ(i) {

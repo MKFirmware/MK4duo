@@ -80,7 +80,7 @@ void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
  *
  * Returns 'true' if pause was completed, 'false' for abort
  */
-bool AdvancedPause::pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
+bool AdvancedPause::pause_print(const float &retract, const point_xyz_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
 
   #if !HAS_LCD_MENU
     UNUSED(show_lcd);

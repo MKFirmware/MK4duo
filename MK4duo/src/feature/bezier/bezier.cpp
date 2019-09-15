@@ -26,7 +26,8 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 #if ENABLED(G5_BEZIER)
 

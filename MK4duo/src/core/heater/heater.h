@@ -50,14 +50,13 @@ enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway 
 
 // Struct Heater data
 struct heater_data_t {
-  pin_t         pin;
-  heater_flag_t flag;
-  uint8_t       ID;
-  int16_t       mintemp,
-                maxtemp;
-  uint16_t      freq;
-  pid_data_t    pid;
-  sensor_data_t sensor;
+  uint8_t         ID;
+  uint16_t        freq;
+  pin_t           pin;
+  heater_flag_t   flag;
+  int16_limit_t   temp;
+  pid_data_t      pid;
+  sensor_data_t   sensor;
 };
 
 class Heater {
@@ -137,7 +136,7 @@ class Heater {
     FORCE_INLINE float deg_current()  { return this->current_temperature; }
     FORCE_INLINE int16_t deg_target() { return this->target_temperature;  }
     FORCE_INLINE int16_t deg_idle()   { return this->idle_temperature;    }
-    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
+    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.temp.min, this->data.temp.max)); }
     FORCE_INLINE bool isHeating()     { return this->target_temperature > this->current_temperature;  }
     FORCE_INLINE bool isCooling()     { return this->target_temperature <= this->current_temperature; }
 

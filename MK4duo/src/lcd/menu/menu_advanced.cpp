@@ -291,8 +291,8 @@ void menu_advanced_temperature() {
   //
   #if ENABLED(AUTOTEMP) && HAS_TEMP_HE0
     MENU_ITEM_EDIT(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
-    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0].data.maxtemp - 10);
-    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0].data.maxtemp - 10);
+    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0].data.temp.max - 10);
+    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0].data.temp.max - 10);
     MENU_ITEM_EDIT(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 1);
   #endif
 
@@ -330,18 +330,18 @@ void menu_advanced_temperature() {
   #if ENABLED(PID_AUTOTUNE_MENU)
     #define PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_MENU_ITEMS(HLABEL, hindex); \
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex].data.maxtemp - 10, lcd_autotune_callback_H ## hindex)
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex].data.temp.max - 10, lcd_autotune_callback_H ## hindex)
 
     #if HAS_BEDS
       #define PID_BED_MENU_ITEMS(HLABEL, hindex)  \
         _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex); \
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex].data.maxtemp - 10, lcd_autotune_callback_BED ## hindex)
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex].data.temp.max - 10, lcd_autotune_callback_BED ## hindex)
     #endif
 
     #if HAS_CHAMBERS
       #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  \
         _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex); \
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.maxtemp - 10, lcd_autotune_callback_CHAMBER ## hindex)
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.temp.max - 10, lcd_autotune_callback_CHAMBER ## hindex)
     #endif
   #else
     #define PID_MENU_ITEMS(HLABEL, hindex)            _PID_MENU_ITEMS(HLABEL, hindex)

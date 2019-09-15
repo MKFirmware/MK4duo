@@ -555,8 +555,8 @@ inline void gcode_G26(void) {
   #if HAS_BEDS
     if (parser.seenval('B')) {
       g26_bed_temp = parser.value_celsius();
-      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0].data.maxtemp - 10)) {
-        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0].data.maxtemp - 15));
+      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0].data.temp.max - 10)) {
+        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0].data.temp.max - 15));
         return;
       }
     }
@@ -626,7 +626,7 @@ inline void gcode_G26(void) {
 
   if (parser.seenval('H')) {
     g26_hotend_temp = parser.value_celsius();
-    if (!WITHIN(g26_hotend_temp, 165, hotends[0].data.maxtemp - 10)) {
+    if (!WITHIN(g26_hotend_temp, 165, hotends[0].data.temp.max - 10)) {
       SERIAL_EM("?Specified nozzle temperature not plausible.");
       return;
     }

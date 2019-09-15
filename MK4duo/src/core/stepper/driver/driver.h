@@ -123,7 +123,7 @@ class Driver {
     /**
      * Initialize Driver hardware
      */
-    inline void init() {
+    FORCE_INLINE void init() {
       dir_init();
       enable_init();
       if (!isEnable()) enable_write(HIGH);
@@ -131,25 +131,25 @@ class Driver {
       step_write(isStep());
     }
 
-    inline void printLabel()                    { SERIAL_TXT(axis_letter); }
+    FORCE_INLINE void printLabel()                    { SERIAL_TXT(axis_letter); }
 
-    inline void setEnable(const bool onoff)     { data.flag.enable = onoff; }
-    inline bool isEnable()                      { return data.flag.enable; }
-    inline void setDir(const bool onoff)        { data.flag.dir = onoff; }
-    inline bool isDir()                         { return data.flag.dir; }
-    inline void setStep(const bool onoff)       { data.flag.step = onoff; }
-    inline bool isStep()                        { return data.flag.step; }
+    FORCE_INLINE void setEnable(const bool onoff)     { data.flag.enable = onoff; }
+    FORCE_INLINE bool isEnable()                      { return data.flag.enable; }
+    FORCE_INLINE void setDir(const bool onoff)        { data.flag.dir = onoff; }
+    FORCE_INLINE bool isDir()                         { return data.flag.dir; }
+    FORCE_INLINE void setStep(const bool onoff)       { data.flag.step = onoff; }
+    FORCE_INLINE bool isStep()                        { return data.flag.step; }
 
-    inline void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
-    inline void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
-    inline bool enable_read()                   { return HAL::digitalRead(data.pin.enable); }
-    inline void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
-    inline void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
-    inline bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
-    inline void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
-    inline void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
-    inline void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step);*/ }
-    inline bool step_read()                     { return HAL::digitalRead(data.pin.step); }
+    FORCE_INLINE void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
+    FORCE_INLINE void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
+    FORCE_INLINE bool enable_read()                   { return HAL::digitalRead(data.pin.enable); }
+    FORCE_INLINE void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
+    FORCE_INLINE void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
+    FORCE_INLINE bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
+    FORCE_INLINE void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
+    FORCE_INLINE void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
+    FORCE_INLINE void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step); */}
+    FORCE_INLINE bool step_read()                     { return HAL::digitalRead(data.pin.step); }
 
 };
 

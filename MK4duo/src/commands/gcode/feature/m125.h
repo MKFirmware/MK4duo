@@ -54,7 +54,7 @@ inline void gcode_M125(void) {
     #endif
   );
 
-  point_t park_point = nozzle.data.park_point;
+  point_xyz_t park_point = nozzle.data.park_point;
 
   // Move XY axes to filament change position or given position
   if (parser.seenval('X')) park_point.x = NATIVE_X_POSITION(parser.linearval('X'));
@@ -64,8 +64,7 @@ inline void gcode_M125(void) {
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
   #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-    park_point.x += nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
-    park_point.y += nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND];
+    park_point += nozzle.data.hotend_offset[ACTIVE_HOTEND];
   #endif
 
   #if HAS_LCD_MENU

@@ -744,8 +744,8 @@ void MMU2::set_runout_valid(const bool valid) {
     }
 
     LCD_MESSAGEPGM(MSG_MMU2_EJECTING_FILAMENT);
-    const bool saved_e_relative_mode = printer.axis_relative_modes[E_AXIS];
-    printer.axis_relative_modes[E_AXIS] = true;
+    const bool saved_e_relative_mode = mechanics.axis_relative_modes[E_AXIS];
+    mechanics.axis_relative_modes[E_AXIS] = true;
 
     stepper.enable_E0();
     mechanics.current_position[E_AXIS] -= MMU2_FILAMENTCHANGE_EJECT_FEED;
@@ -776,7 +776,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     sound.playtone(200, 404);
 
-    printer.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
+    mechanics.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
 
     stepper.disable_E0();
 
@@ -825,8 +825,8 @@ void MMU2::set_runout_valid(const bool valid) {
     planner.synchronize();
     stepper.enable_E0();
 
-    const bool saved_e_relative_mode = printer.axis_relative_modes[E_AXIS];
-    printer.axis_relative_modes[E_AXIS] = true;
+    const bool saved_e_relative_mode = mechanics.axis_relative_modes[E_AXIS];
+    mechanics.axis_relative_modes[E_AXIS] = true;
 
     const E_Step* step = sequence;
 
@@ -848,7 +848,7 @@ void MMU2::set_runout_valid(const bool valid) {
       step++;
     }
 
-    printer.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
+    mechanics.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
 
     stepper.disable_E0();
   }

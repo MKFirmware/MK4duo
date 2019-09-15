@@ -261,8 +261,8 @@ void gcode_G2_G3(const bool clockwise) {
   if (printer.isRunning()) {
 
     #if ENABLED(SF_ARC_FIX)
-      const bool relative_mode_backup = printer.isRelativeMode();
-      printer.setRelativeMode(true);
+      const uint8_t relative_mode_backup = mechanics.axis_relative_modes;
+      mechanics.set_relative_mode(true);
     #endif
 
     commands.get_destination();
@@ -282,7 +282,7 @@ void gcode_G2_G3(const bool clockwise) {
     #endif
 
     #if ENABLED(SF_ARC_FIX)
-      printer.setRelativeMode(relative_mode_backup);
+      mechanics.axis_relative_modes = relative_mode_backup;
     #endif
 
     float arc_offset[2] = { 0.0, 0.0 };

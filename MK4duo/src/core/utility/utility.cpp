@@ -20,7 +20,8 @@
  *
  */
 
-#include "../../MK4duo.h"
+#include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
 bool expired(millis_l *start, const millis_l period) {
   if (!period) return false;
