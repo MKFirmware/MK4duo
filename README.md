@@ -15,6 +15,7 @@
  - [developers of original Marlin](https://github.com/MarlinFirmware)
 
 ### New features are:
+* One version for all Atmel AVR boards, Atmel SAM3X8E and STM32F4
 * Stepping-algorithm optmized now for DRV8825 and A4988 (no need for double or quadstepping; no delays)
 * High speed stepping of approx. 300.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
 
