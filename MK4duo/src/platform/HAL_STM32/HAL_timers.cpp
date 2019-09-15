@@ -1,9 +1,9 @@
 /**
- * Marlin 3D Printer Firmware
+ * MK4duo Firmware for 3D Printer, Laser and CNC
  *
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- * Copyright (c) 2016 Bob Cousins bobcousins42@googlemail.com
- * Copyright (c) 2015-2016 Nico Tonnhofer wurstnase.reprap@gmail.com
+ * Based on Marlin, Sprinter and grbl
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,11 +12,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
