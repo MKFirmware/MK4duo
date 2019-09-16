@@ -660,7 +660,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       if (driver[d] && driver[d]->tmc) {
         SERIAL_SM(CFG, "  M906 ");
         driver[d]->printLabel();
-        SERIAL_EMV(" E", driver[d]->tmc->microsteps());
+        SERIAL_EMV(" E", driver[d]->tmc->getMilliamps());
       }
     }
 
@@ -723,18 +723,22 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       SERIAL_LM(CFG, "Stepper driver StealthChop:");
       SERIAL_SM(CFG, "  M940");
       #if AXIS_HAS_STEALTHCHOP(X)
+        SERIAL_CHR(' ');
         driver[X_DRV]->printLabel();
         SERIAL_VAL(driver[X_DRV]->tmc->get_stealthChop_status());
       #endif
       #if AXIS_HAS_STEALTHCHOP(Y)
+        SERIAL_CHR(' ');
         driver[Y_DRV]->printLabel();
         SERIAL_VAL(driver[Y_DRV]->tmc->get_stealthChop_status());
       #endif
       #if AXIS_HAS_STEALTHCHOP(Z)
+        SERIAL_CHR(' ');
         driver[Z_DRV]->printLabel();
         SERIAL_VAL(driver[Z_DRV]->tmc->get_stealthChop_status());
       #endif
       #if AXIS_HAS_STEALTHCHOP(E0)
+        SERIAL_CHR(' ');
         driver[E0_DRV]->printLabel();
         SERIAL_VAL(driver[E0_DRV]->tmc->get_stealthChop_status());
       #endif
