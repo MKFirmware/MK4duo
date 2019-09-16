@@ -614,7 +614,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         SERIAL_EM("MMU not responding");
 
         resume_hotend_temp = hotends[0].deg_target();
-        COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+        COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position.x);
 
         if (move_axes && mechanics.isHomedAll())
           Nozzle::park(2);
@@ -748,8 +748,8 @@ void MMU2::set_runout_valid(const bool valid) {
     mechanics.axis_relative_modes[E_AXIS] = true;
 
     stepper.enable_E0();
-    mechanics.current_position[E_AXIS] -= MMU2_FILAMENTCHANGE_EJECT_FEED;
-    planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], 2500 / 60, tools.extruder.active);
+    mechanics.current_position.e -= MMU2_FILAMENTCHANGE_EJECT_FEED;
+    planner.buffer_line(mechanics.current_position, 2500 / 60, tools.extruder.active);
     planner.synchronize();
     command(MMU_CMD_E0 + index);
     manage_response(false, false);
@@ -825,8 +825,8 @@ void MMU2::set_runout_valid(const bool valid) {
     planner.synchronize();
     stepper.enable_E0();
 
-    const bool saved_e_relative_mode = mechanics.axis_relative_modes[E_AXIS];
-    mechanics.axis_relative_modes[E_AXIS] = true;
+    const uint8_t saved_e_relative_mode = mechanics.axis_relative_modes;
+    mechanics.set_e_relative();
 
     const E_Step* step = sequence;
 
@@ -840,15 +840,14 @@ void MMU2::set_runout_valid(const bool valid) {
         DEBUG_EV(fr);
       #endif
 
-      mechanics.current_position[E_AXIS] += es;
-      planner.buffer_line(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS],
-                          mechanics.current_position[E_AXIS], MMM_TO_MMS(fr), tools.extruder.active);
+      mechanics.current_position.e += es;
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), tools.extruder.active);
       planner.synchronize();
 
       step++;
     }
 
-    mechanics.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
+    mechanics.axis_relative_modes = saved_e_relative_mode;
 
     stepper.disable_E0();
   }

@@ -64,7 +64,7 @@ inline void gcode_G92(void) {
       LOOP_XYZE(i) {
         if (parser.seenval(axis_codes[i])) {
           const float l = parser.value_axis_units((AxisEnum)i),
-                      v = (i == E_AXIS) ? l : mechanics.logical_to_native(l, (AxisEnum)i),
+                      v = (i == E_AXIS) ? l : LOGICAL_TO_NATIVE(l, (AxisEnum)i),
                       d = v - mechanics.current_position[i];
 
           if (!NEAR_ZERO(d)) {
@@ -74,7 +74,7 @@ inline void gcode_G92(void) {
               mechanics.current_position[i] = v;        // For SCARA just set the position directly
             #elif ENABLED(WORKSPACE_OFFSETS)
               if (i == E_AXIS)
-                mechanics.current_position[E_AXIS] = v; // When using coordinate spaces, only E is set directly
+                mechanics.current_position.e = v; // When using coordinate spaces, only E is set directly
               else {
                 mechanics.position_shift[i] += d;       // Other axes simply offset the coordinate space
                 endstops.update_software_endstops((AxisEnum)i);

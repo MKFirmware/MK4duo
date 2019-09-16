@@ -31,19 +31,20 @@
 // Struct Delta Settings
 typedef struct : public generic_data_t {
 
-  float     diagonal_rod,
-            radius,
-            print_radius,
-            probe_radius,
-            height,
-            diagonal_rod_adj[ABC],
-            endstop_adj[ABC],
-            tower_angle_adj[ABC],
-            tower_radius_adj[ABC];
+  float       diagonal_rod,
+              radius,
+              print_radius,
+              probe_radius,
+              height;
 
-  uint16_t  segments_per_second;
+  abc_float_t diagonal_rod_adj,
+              endstop_adj,
+              tower_angle_adj,
+              tower_radius_adj;
 
-  uint8_t   segments_per_line;
+  uint16_t    segments_per_second;
+
+  uint8_t     segments_per_line;
 
 } mechanics_data_t;
 
@@ -57,18 +58,20 @@ class Delta_Mechanics : public Mechanics {
 
     static mechanics_data_t data;
 
-    static float  delta[ABC],
-                  delta_clip_start_height;
+    static abc_float_t delta;
+
+    static float  delta_clip_start_height;
 
   private: /** Private Parameters */
 
-    static float  D2[ABC],
-                  towerX[ABC],
-                  towerY[ABC],
-                  Xbc, Xca, Xab,
-                  Ybc, Yca, Yab,
-                  coreKa, coreKb, coreKc,
-                  Q, Q2;
+    static abc_float_t  D2,
+                        towerX,
+                        towerY;
+
+    static float        Xbc, Xca, Xab,
+                        Ybc, Yca, Yab,
+                        coreKa, coreKb, coreKc,
+                        Q, Q2;
 
   public: /** Public Function */
 
@@ -84,7 +87,7 @@ class Delta_Mechanics : public Mechanics {
      * The result is in the current coordinate space with
      * leveling applied. The coordinates need to be run through
      * unapply_leveling to obtain the "ideal" coordinates
-     * suitable for current_position, etc.
+     * suitable for current_position.x, etc.
      */
     static void get_cartesian_from_steppers();
 
@@ -99,29 +102,34 @@ class Delta_Mechanics : public Mechanics {
     #endif
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position
-     *  The final current_position may not be the one that was requested
+     *  Plan a move to (X, Y, Z) and set the current_position.x
+     *  The final current_position.x may not be the one that was requested
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+    static void do_blocking_move_to_y(const float &ry, const float &fr_mm_s=0);
     static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
-      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    FORCE_INLINE void do_blocking_move_to(const xy_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
     }
-
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
-      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    FORCE_INLINE void do_blocking_move_to(const xyz_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
+    }
+    FORCE_INLINE void do_blocking_move_to(const xyze_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
+    }
+    FORCE_INLINE void do_blocking_move_to_xy(const xy_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to_xy(raw.x, raw.y, fr_mm_s);
     }
 
     /**
      * Delta function
      */
-    static void InverseTransform(const float Ha, const float Hb, const float Hc, float cartesian[XYZ]);
-    FORCE_INLINE static void InverseTransform(const float point[XYZ], float cartesian[XYZ]) { InverseTransform(point[X_AXIS], point[Y_AXIS], point[Z_AXIS], cartesian); }
-    static void Transform(const float (&raw)[XYZ]);
-    static void Transform(const float (&raw)[XYZE]);
+    static void InverseTransform(const float Ha, const float Hb, const float Hc, xyz_pos_t &cartesian);
+    FORCE_INLINE static void InverseTransform(const xyz_pos_t &pos, xyz_pos_t &cartesian) { InverseTransform(pos.x, pos.x, pos.z, cartesian); }
+    static void Transform(const xyz_pos_t &raw);
     static void recalc_delta_settings();
 
     /**
@@ -138,7 +146,7 @@ class Delta_Mechanics : public Mechanics {
      * Set an axis' current position to its home position (after homing).
      *
      * DELTA should wait until all homing is done before setting the XYZ
-     * current_position to home, because homing is a single operation.
+     * current_position.x to home, because homing is a single operation.
      * In the case where the axis positions are already known and previously
      * homed, DELTA could home to X or Y individually by moving either one
      * to the center. However, homing Z always homes XY and Z.
@@ -148,6 +156,7 @@ class Delta_Mechanics : public Mechanics {
     static void set_axis_is_at_home(const AxisEnum axis);
 
     static bool position_is_reachable(const float &rx, const float &ry);
+    inline static bool position_is_reachable(const xy_pos_t &pos) { return position_is_reachable(pos.x, pos.y); }
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
     /**
@@ -184,7 +193,7 @@ class Delta_Mechanics : public Mechanics {
     static void homeaxis(const AxisEnum axis);
 
     /**
-     * Calculate delta, start a line, and set current_position to destination
+     * Calculate delta, start a line, and set current_position.x to destination
      */
     static void prepare_uninterpolated_move_to_destination(const float &fr_mm_s=0.0);
 

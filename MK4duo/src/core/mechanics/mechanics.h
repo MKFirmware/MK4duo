@@ -27,13 +27,6 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#define LOGICAL_X_POSITION(POS) mechanics.native_to_logical(POS, X_AXIS)
-#define LOGICAL_Y_POSITION(POS) mechanics.native_to_logical(POS, Y_AXIS)
-#define LOGICAL_Z_POSITION(POS) mechanics.native_to_logical(POS, Z_AXIS)
-#define NATIVE_X_POSITION(POS)  mechanics.logical_to_native(POS, X_AXIS)
-#define NATIVE_Y_POSITION(POS)  mechanics.logical_to_native(POS, Y_AXIS)
-#define NATIVE_Z_POSITION(POS)  mechanics.logical_to_native(POS, Z_AXIS)
-
 union home_flag_t {
   bool all;
   struct {
@@ -98,14 +91,14 @@ struct generic_data_t {
 
   #if HAS_CLASSIC_JERK
     #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-      float max_jerk[XYZ];
+      xyz_float_t max_jerk[XYZ];
     #else
       float max_jerk[XYZE_N];
     #endif
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    float   home_offset[XYZ];
+    xyz_pos_t home_offset[XYZ];
   #endif
 
 };
@@ -121,27 +114,27 @@ class Mechanics {
     /**
      * Settings data
      */
-    static generic_data_t   data;
+    static generic_data_t     data;
 
     /**
      * Home flag
      */
-    static home_flag_t      home_flag;
+    static home_flag_t        home_flag;
 
     /**
      * Home direction
      */
-    static const dir_flag_t home_dir;
+    static const dir_flag_t   home_dir;
 
     /**
      * Homing feed rates
      */
-    static const float homing_feedrate_mm_s[XYZ];
+    static const xyz_float_t  homing_feedrate_mm_s;
 
     /**
      * Home bump in mm
      */
-    static const float home_bump_mm[XYZ];
+    static const xyz_float_t  home_bump_mm;
 
     /**
      * Feedrate
@@ -165,7 +158,7 @@ class Mechanics {
      *   Used by 'line_to_current_position' to do a move after changing it.
      *   Used by 'sync_plan_position' to update 'planner.position'.
      */
-    static float current_position[XYZE];
+    static xyze_pos_t current_position;
 
     /**
      * Cartesian Stored Position
@@ -173,12 +166,12 @@ class Mechanics {
      *   Used by G60 for stored.
      *   Used by G61 for move to.
      */
-    static float stored_position[NUM_POSITON_SLOTS][XYZE];
+    static xyze_pos_t stored_position[NUM_POSITON_SLOTS];
 
     /**
      * Cartesian position
      */
-    static float cartesian_position[XYZ];
+    static xyz_pos_t cartesian_position;
 
     /**
      * Cartesian Destination
@@ -186,7 +179,7 @@ class Mechanics {
      *   and expected by functions like 'prepare_move_to_destination'.
      *   Set with 'get_destination' or 'set_destination_to_current'.
      */
-    static float destination[XYZE];
+    static xyze_pos_t destination;
 
     /**
      * Relative mode for axis
@@ -198,10 +191,10 @@ class Mechanics {
      */
     #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
       // The distance that XYZ has been offset by G92. Reset by G28.
-      static float position_shift[XYZ];
+      static xyz_pos_t position_shift;
 
       // The above two are combined to save on computes
-      static float workspace_offset[XYZ];
+      static xyz_pos_t workspace_offset;
     #endif
 
     #if ENABLED(CNC_WORKSPACE_PLANES)
@@ -245,7 +238,7 @@ class Mechanics {
     FORCE_INLINE static bool isHomedAll() { return home_flag.XHomed && home_flag.YHomed && home_flag.ZHomed; }
 
     /**
-     * Set the current_position for an axis based on
+     * Set the current_position.x for an axis based on
      * the stepper positions, removing any leveling that
      * may have been applied.
      *
@@ -253,15 +246,9 @@ class Mechanics {
      * sync_plan_position_mech_specific after updating axes with this.
      *
      * To keep hosts in sync, always call report_current_position
-     * after updating the current_position.
+     * after updating the current_position.x.
      */
     static void set_current_from_steppers_for_axis(const AxisEnum axis);
-
-    /**
-     * Set current to destination and set destination to current
-     */
-    FORCE_INLINE static void set_current_to_destination() { COPY_ARRAY(current_position, destination); }
-    FORCE_INLINE static void set_destination_to_current() { COPY_ARRAY(destination, current_position); }
 
     /**
      * Move the planner to the current position from wherever it last moved
@@ -304,7 +291,7 @@ class Mechanics {
     /**
      * sync_plan_position
      *
-     * Set the planner/stepper positions directly from current_position with
+     * Set the planner/stepper positions directly from current_position.x with
      * no kinematic translation. Used for homing axes and cartesian/core syncing.
      */
     static void sync_plan_position();
@@ -315,7 +302,7 @@ class Mechanics {
      */
     static void report_current_position();
 
-    FORCE_INLINE static void report_xyz(const float pos[]) { report_xyze(pos, 3); }
+    FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, 3); }
 
     static bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
 
@@ -341,17 +328,11 @@ class Mechanics {
        * position and the software endstops to retain the same
        * relative distance to the new home.
        *
-       * Since this changes the current_position, code should
+       * Since this changes the current_position.x, code should
        * call sync_plan_position soon after this.
        */
       static void update_workspace_offset(const AxisEnum axis);
       static void set_home_offset(const AxisEnum axis, const float v);
-
-      static float native_to_logical(const float pos, const AxisEnum axis);
-      static float logical_to_native(const float pos, const AxisEnum axis);
-    #else
-      FORCE_INLINE static float native_to_logical(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
-      FORCE_INLINE static float logical_to_native(const float pos, const AxisEnum axis) { UNUSED(axis); return pos; }
     #endif
 
     #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
@@ -376,7 +357,8 @@ class Mechanics {
       static void stop_sensorless_homing_per_axis(const AxisEnum axis, sensorless_flag_t enable_stealth);
     #endif
 
-    static void report_xyze(const float pos[], const uint8_t n=4, const uint8_t precision=3);
+    static void report_xyz(const xyz_pos_t &pos, const uint8_t precision=3);
+    static void report_xyze(const xyze_pos_t &pos, const uint8_t n=4, const uint8_t precision=3);
 
     /**
      * Homing bump feedrate (mm/s)

@@ -55,10 +55,10 @@
     else
       SERIAL_MSG("0, 0, 0");
 
-    SERIAL_MV("],\"extr\":[", mechanics.current_position[E_AXIS]);
-    SERIAL_MV("],\"xyz\":[", mechanics.current_position[X_AXIS]); // X AXIS
-    SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
-    SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
+    SERIAL_MV("],\"extr\":[", mechanics.current_position.e);
+    SERIAL_MV("],\"xyz\":[", mechanics.current_position.x); // X AXIS
+    SERIAL_MV(",", mechanics.current_position.y);           // Y AXIS
+    SERIAL_MV(",", mechanics.current_position.z);           // Z AXIS
 
     SERIAL_MV("]},\"currentTool\":", tools.extruder.active);
 
@@ -165,7 +165,7 @@
         SERIAL_MSG("\"printer.currentLayer\":");
         #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING() && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
-            SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
+            SERIAL_VAL((int) (mechanics.current_position.z / card.layerHeight));
           }
           else SERIAL_VAL(0);
         #else
@@ -175,7 +175,7 @@
         firstOccurrence = true;
         for (uint8_t e = 0; e < EXTRUDERS; e++) {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.current_position[E_AXIS] * tools.flow_percentage[e]);
+          SERIAL_VAL(mechanics.current_position.e * tools.flow_percentage[e]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");

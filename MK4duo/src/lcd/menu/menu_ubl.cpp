@@ -427,17 +427,17 @@ void _lcd_ubl_map_lcd_edit_cmd() {
 void ubl_map_move_to_xy() {
   REMEMBER(fr, mechanics.feedrate_mm_s, MMM_TO_MMS(XY_PROBE_SPEED));
 
-  mechanics.set_destination_to_current(); // sync destination at the start
+  mechanics.destination = mechanics.current_position; // sync destination at the start
 
   #if MECH(DELTA)
-    if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height) {
-      mechanics.destination[Z_AXIS] = mechanics.delta_clip_start_height;
+    if (mechanics.current_position.z > mechanics.delta_clip_start_height) {
+      mechanics.destination.z = mechanics.delta_clip_start_height;
       mechanics.prepare_move_to_destination();
     }
   #endif
 
-  mechanics.destination[X_AXIS] = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]);
-  mechanics.destination[Y_AXIS] = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
+  mechanics.destination.x = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]);
+  mechanics.destination.y = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
 
   mechanics.prepare_move_to_destination();
 }

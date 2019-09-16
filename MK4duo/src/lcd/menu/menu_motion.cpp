@@ -46,7 +46,7 @@ extern int8_t manual_move_axis;
 #endif
 
 //
-// Tell lcdui.update() to start a move to current_position" after a short delay.
+// Tell lcdui.update() to start a move to current_position.x" after a short delay.
 //
 inline void manual_move_to_current(AxisEnum axis
   #if E_MANUAL > 1
@@ -135,7 +135,7 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
   }
   lcdui.encoderPosition = 0;
   if (lcdui.should_draw()) {
-    const float pos = mechanics.native_to_logical(lcdui.processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
+    const float pos = NATIVE_TO_LOGICAL(lcdui.processing_manual_move ? mechanics.destination[axis] : mechanics.current_position[axis]
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -172,7 +172,7 @@ static void _lcd_move_e(
       #if IS_KINEMATIC
         manual_move_offset += diff;
       #else
-        mechanics.current_position[E_AXIS] += diff;
+        mechanics.current_position.e += diff;
       #endif
       manual_move_to_current(E_AXIS
         #if E_MANUAL > 1
@@ -206,7 +206,7 @@ static void _lcd_move_e(
       }
     #endif // E_MANUAL > 1
 
-    draw_edit_screen(pos_label, ftostr41sign(mechanics.current_position[E_AXIS]
+    draw_edit_screen(pos_label, ftostr41sign(mechanics.current_position.e
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -341,7 +341,7 @@ void menu_move() {
   #endif
   if (do_move_xyz) {
     #if MECH(DELTA)
-      const bool do_move_xy = mechanics.current_position[Z_AXIS] <= mechanics.delta_clip_start_height;
+      const bool do_move_xy = mechanics.current_position.z <= mechanics.delta_clip_start_height;
     #else
       constexpr bool do_move_xy = true;
     #endif

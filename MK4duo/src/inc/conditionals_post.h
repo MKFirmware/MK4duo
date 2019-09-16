@@ -920,10 +920,10 @@
   #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
   // Boundaries for Cartesian probing based on bed limits
-  #define MIN_PROBE_X (MAX(mechanics.data.base_pos[X_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].min + probe.data.offset[X_AXIS]))
-  #define MIN_PROBE_Y (MAX(mechanics.data.base_pos[Y_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].min + probe.data.offset[Y_AXIS]))
-  #define MAX_PROBE_X (MIN(mechanics.data.base_pos[X_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].max + probe.data.offset[X_AXIS]))
-  #define MAX_PROBE_Y (MIN(mechanics.data.base_pos[Y_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].max + probe.data.offset[Y_AXIS]))
+  #define MIN_PROBE_X (MAX(mechanics.data.base_pos[X_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].min + probe.data.offset.x))
+  #define MIN_PROBE_Y (MAX(mechanics.data.base_pos[Y_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].min + probe.data.offset.y))
+  #define MAX_PROBE_X (MIN(mechanics.data.base_pos[X_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].max + probe.data.offset.x))
+  #define MAX_PROBE_Y (MIN(mechanics.data.base_pos[Y_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].max + probe.data.offset.y))
 #endif
 
 /**

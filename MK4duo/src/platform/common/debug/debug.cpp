@@ -47,29 +47,29 @@ void Debug::log_machine_info() {
 
   #if HAS_BED_PROBE
     DEBUG_SM(DEB, " Probe Offset");
-    DEBUG_MV(" X:", probe.data.offset[X_AXIS]);
-    DEBUG_MV(" Y:", probe.data.offset[Y_AXIS]);
-    DEBUG_MV(" Z:", probe.data.offset[Z_AXIS]);
+    DEBUG_MV(" X:", probe.data.offset.x);
+    DEBUG_MV(" Y:", probe.data.offset.y);
+    DEBUG_MV(" Z:", probe.data.offset.z);
 
-    if (probe.data.offset[X_AXIS] > 0)
+    if (probe.data.offset.x > 0)
       DEBUG_MSG(" (Right");
-    else if (probe.data.offset[X_AXIS] < 0)
+    else if (probe.data.offset.x < 0)
       DEBUG_MSG(" (Left");
-    else if (probe.data.offset[Y_AXIS] != 0)
+    else if (probe.data.offset.y != 0)
       DEBUG_MSG(" (Middle");
     else
       DEBUG_MSG(" (Aligned With");
 
-    if (probe.data.offset[Y_AXIS] > 0)
+    if (probe.data.offset.y > 0)
       DEBUG_MSG("-Back");
-    else if (probe.data.offset[Y_AXIS] < 0)
+    else if (probe.data.offset.y < 0)
       DEBUG_MSG("-Front");
-    else if (probe.data.offset[X_AXIS] != 0)
+    else if (probe.data.offset.x != 0)
       DEBUG_MSG("-Center");
 
-    if (probe.data.offset[Z_AXIS] < 0)
+    if (probe.data.offset.z < 0)
       DEBUG_MSG(" & Below");
-    else if (probe.data.offset[Z_AXIS] > 0)
+    else if (probe.data.offset.z > 0)
       DEBUG_MSG(" & Above");
     else
       DEBUG_MSG(" & Same Z as");
@@ -94,24 +94,24 @@ void Debug::log_machine_info() {
           DEBUG_MV("Z Fade: ", bedlevel.z_fade_height);
       #endif
       #if ABL_PLANAR
-        const float diff[XYZ] = {
-          planner.get_axis_position_mm(X_AXIS) - mechanics.current_position[X_AXIS],
-          planner.get_axis_position_mm(Y_AXIS) - mechanics.current_position[Y_AXIS],
-          planner.get_axis_position_mm(Z_AXIS) - mechanics.current_position[Z_AXIS]
+        const xyz_pos_t diff = {
+          planner.get_axis_position_mm(X_AXIS) - mechanics.current_position.x,
+          planner.get_axis_position_mm(Y_AXIS) - mechanics.current_position.y,
+          planner.get_axis_position_mm(Z_AXIS) - mechanics.current_position.z
         };
         DEBUG_MSG("ABL Adjustment X");
-        if (diff[X_AXIS] > 0) DEBUG_CHR('+');
-        DEBUG_VAL(diff[X_AXIS]);
+        if (diff.x > 0) DEBUG_CHR('+');
+        DEBUG_VAL(diff.x);
         DEBUG_MSG(" Y");
-        if (diff[Y_AXIS] > 0) DEBUG_CHR('+');
-        DEBUG_VAL(diff[Y_AXIS]);
+        if (diff.y > 0) DEBUG_CHR('+');
+        DEBUG_VAL(diff.y);
         DEBUG_MSG(" Z");
-        if (diff[Z_AXIS] > 0) DEBUG_CHR('+');
-        DEBUG_VAL(diff[Z_AXIS]);
+        if (diff.z > 0) DEBUG_CHR('+');
+        DEBUG_VAL(diff.z);
       #else
         #if ENABLED(AUTO_BED_LEVELING_UBL)
           DEBUG_MSG("UBL Adjustment Z");
-          const float rz = ubl.get_z_correction(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS]);
+          const float rz = ubl.get_z_correction(mechanics.current_position.x, mechanics.current_position.y);
         #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
           DEBUG_MSG("ABL Adjustment Z");
           const float rz = abl.bilinear_z_offset(mechanics.current_position);
@@ -119,7 +119,7 @@ void Debug::log_machine_info() {
         DEBUG_VAL(ftostr43sign(rz, '+'));
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           if (bedlevel.z_fade_height) {
-            DEBUG_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(mechanics.current_position[Z_AXIS])));
+            DEBUG_MV(" (", ftostr43sign(rz * bedlevel.fade_scaling_factor_for_z(mechanics.current_position.z)));
             DEBUG_MSG("+)");
           }
         #endif
@@ -135,7 +135,7 @@ void Debug::log_machine_info() {
     DEBUG_SM(DEB, " Mesh Bed Leveling");
     if (bedlevel.flag.leveling_active) {
       DEBUG_EM(" (enabled)");
-      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS]
+      DEBUG_MV("MBL Adjustment Z", ftostr43sign(mbl.get_z(mechanics.current_position.x, mechanics.current_position.y
         #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
           , 1.0
         #endif
@@ -143,8 +143,8 @@ void Debug::log_machine_info() {
       DEBUG_CHR('+');
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         if (bedlevel.z_fade_height) {
-          DEBUG_MV(" (", ftostr43sign(mbl.get_z(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS],
-            bedlevel.fade_scaling_factor_for_z(mechanics.current_position[Z_AXIS]))));
+          DEBUG_MV(" (", ftostr43sign(mbl.get_z(mechanics.current_position.x, mechanics.current_position.y,
+            bedlevel.fade_scaling_factor_for_z(mechanics.current_position.z))));
           DEBUG_MSG("+)");
         }
       #endif
@@ -158,8 +158,8 @@ void Debug::log_machine_info() {
 
 }
 
-void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z) {
-  SERIAL_STR(prefix);
+void Debug::print_xyz(const float &x, const float &y, const float &z, PGM_P const prefix/*=nullptr*/, PGM_P const suffix/*=nullptr*/) {
+  ERIAL_STR(prefix);
   SERIAL_CHR('(');
   SERIAL_VAL(x);
   SERIAL_MSG(", ");
@@ -171,15 +171,5 @@ void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, 
   if (suffix) SERIAL_STR(suffix);
   else SERIAL_EOL();
 }
-
-void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]) {
-  print_xyz(prefix, suffix, xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
-}
-
-#if HAS_PLANAR
-  void Debug::print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz) {
-    print_xyz(prefix, suffix, xyz.x, xyz.y, xyz.z);
-  }
-#endif
 
 #endif // DEBUG_FEATURE

@@ -48,10 +48,13 @@
   typedef float (*element_2d_fn)(const uint8_t, const uint8_t);
 #endif
 
-struct mesh_index_pair {
-  int8_t x_index, y_index;
-  float distance;
-};
+typedef struct : xy_uchar_t {
+  float distance;   // When populated, the distance from the search location
+  void invalidate()                   { x = y = -1; }
+  bool valid()                  const { return x >= 0 && y >= 0; }
+  operator        xy_uchar_t&()       { return *(xy_uchar_t*)this; }
+  operator const  xy_uchar_t&() const { return *(const xy_uchar_t*)this; }
+} mesh_index_pair;
 
 #if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
   #include "math/vector_3.h"
@@ -116,10 +119,9 @@ class Bedlevel {
      * as it will be given to the planner and steppers.
      */
     static void apply_leveling(float &rx, float &ry, float &rz);
-    FORCE_INLINE static void apply_leveling(float (&raw)[XYZ])  { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
-    FORCE_INLINE static void apply_leveling(float (&raw)[XYZE]) { apply_leveling(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS]); }
+    FORCE_INLINE static void apply_leveling(xyz_pos_t &raw) { apply_leveling(raw.x, raw.y, raw.z); }
 
-    static void unapply_leveling(float raw[XYZ]);
+    static void unapply_leveling(xyz_pos_t &raw);
 
     static bool leveling_is_valid();
     static void set_bed_leveling_enabled(const bool enable=true);

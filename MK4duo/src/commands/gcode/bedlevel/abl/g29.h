@@ -146,7 +146,7 @@ inline void gcode_G29(void) {
     if (!bedlevel.flag.g29_in_progress) {
       // Homing
       mechanics.home();
-      mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+      mechanics.do_blocking_move_to_z(_Z_PROBE_DEPLOY_HEIGHT, mechanics.homing_feedrate_mm_s.z);
     }
   #else
     // Don't allow auto-leveling without homing first
@@ -263,7 +263,7 @@ inline void gcode_G29(void) {
           return;
         }
 
-        const float rz = parser.seenval('Z') ? NATIVE_Z_POSITION(parser.value_linear_units()) : mechanics.current_position[Z_AXIS];
+        const float rz = parser.seenval('Z') ? NATIVE_Z_POSITION(parser.value_linear_units()) : mechanics.current_position.z;
         if (!WITHIN(rz, -10, 10)) {
           SERIAL_LM(ER, "Bad Z value");
           return;
@@ -484,7 +484,7 @@ inline void gcode_G29(void) {
 
       // For G29 after adjusting Z.
       // Save the previous Z before going to the next point
-      measured_z = mechanics.current_position[Z_AXIS];
+      measured_z = mechanics.current_position.z;
 
       #if ENABLED(AUTO_BED_LEVELING_LINEAR)
 
@@ -883,18 +883,18 @@ inline void gcode_G29(void) {
 
         if (printer.debugFeature()) DEBUG_POS("G29 uncorrected XYZ", mechanics.current_position);
 
-        float converted[XYZ];
-        COPY_ARRAY(converted, mechanics.current_position);
+        xyz_pos_t converted;
+        converted = mechanics.current_position;
 
         bedlevel.flag.leveling_active = true;
         bedlevel.unapply_leveling(converted);
         bedlevel.flag.leveling_active = false;
 
         // Use the last measured distance to the bed, if possible
-        if ( NEAR(mechanics.current_position[X_AXIS], xProbe - probe.data.offset[X_AXIS])
-          && NEAR(mechanics.current_position[Y_AXIS], yProbe - probe.data.offset[Y_AXIS])
+        if ( NEAR(mechanics.current_position.x, xProbe - probe.data.offset.x)
+          && NEAR(mechanics.current_position.y, yProbe - probe.data.offset.y)
         ) {
-          float simple_z = mechanics.current_position[Z_AXIS] - measured_z;
+          float simple_z = mechanics.current_position.z - measured_z;
           if (printer.debugFeature()) {
             DEBUG_MV("Z from Probe:", simple_z);
             DEBUG_MV("  Matrix:", converted[Z_AXIS]);
@@ -903,8 +903,8 @@ inline void gcode_G29(void) {
           converted[Z_AXIS] = simple_z;
         }
 
-        // The rotated XY and corrected Z are now current_position
-        COPY_ARRAY(mechanics.current_position, converted);
+        // The rotated XY and corrected Z are now current_position.x
+        COPY_ARRAY(mechanics.current_position.x, converted);
 
         if (printer.debugFeature()) DEBUG_POS("G29 corrected XYZ", mechanics.current_position);
 
@@ -913,13 +913,13 @@ inline void gcode_G29(void) {
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (!dryrun) {
-        if (printer.debugFeature()) DEBUG_EMV("G29 uncorrected Z:", mechanics.current_position[Z_AXIS]);
+        if (printer.debugFeature()) DEBUG_EMV("G29 uncorrected Z:", mechanics.current_position.z);
 
         // Unapply the offset because it is going to be immediately applied
         // and cause compensation movement in Z
-        mechanics.current_position[Z_AXIS] -= abl.bilinear_z_offset(mechanics.current_position);
+        mechanics.current_position.z -= abl.bilinear_z_offset(mechanics.current_position);
 
-        if (printer.debugFeature()) DEBUG_EMV(" corrected Z:", mechanics.current_position[Z_AXIS]);
+        if (printer.debugFeature()) DEBUG_EMV(" corrected Z:", mechanics.current_position.z);
       }
 
     #endif // ABL_PLANAR

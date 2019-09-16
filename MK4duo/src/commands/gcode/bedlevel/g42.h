@@ -45,12 +45,12 @@
         return;
       }
 
-      mechanics.set_destination_to_current();
-      if (hasI) mechanics.destination[X_AXIS] = _GET_MESH_X(ix);
-      if (hasJ) mechanics.destination[Y_AXIS] = _GET_MESH_Y(iy);
+      mechanics.destination = mechanics.current_position;
+      if (hasI) mechanics.destination.x = _GET_MESH_X(ix);
+      if (hasJ) mechanics.destination.y = _GET_MESH_Y(iy);
       if (parser.boolval('P')) {
-        if (hasI) mechanics.destination[X_AXIS] -= probe.data.offset[X_AXIS];
-        if (hasJ) mechanics.destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
+        if (hasI) mechanics.destination.x -= probe.data.offset.x;
+        if (hasJ) mechanics.destination.y -= probe.data.offset.y;
       }
 
       const float fval = parser.linearval('F');

@@ -221,7 +221,7 @@
 #define NEAR_ZERO(x)              WITHIN(x, -0.000001f, 0.000001f)
 #define NEAR(x,y)                 NEAR_ZERO((x)-(y))
 
-#define RECIPROCAL(x)             ((x) ? 1.0f / float(x) : 0)
+#define RECIPROCAL(x)             (NEAR_ZERO(x) ? 0 : (1.0f / float(x)))
 #define FIXFLOAT(f)               (f + (f < 0 ? -0.00005f : 0.00005f))
 
 // LOOP MACROS

@@ -176,7 +176,7 @@ void Commands::get_destination() {
       const float v = parser.value_axis_units((AxisEnum)i);
       mechanics.destination[i] = mechanics.axis_is_relative(AxisEnum(i))
         ? mechanics.current_position[i] + v : (i == E_AXIS)
-        ? v : mechanics.logical_to_native(v, (AxisEnum)i);
+        ? v : LOGICAL_TO_NATIVE(v, (AxisEnum)i);
     }
     else
       mechanics.destination[i] = mechanics.current_position[i];
@@ -190,10 +190,10 @@ void Commands::get_destination() {
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.extruder.previous] / 100) + mechanics.current_position[E_AXIS];
+    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.extruder.previous] / 100) + mechanics.current_position.e;
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
-    const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
+    const float diff = mechanics.destination.e - mechanics.current_position.e;
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
       rfid522.data[tools.extruder.active].data.lenght -= diff;
@@ -207,14 +207,14 @@ void Commands::get_destination() {
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
     #if MECH(DELTA)
       if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_line_to(mechanics.destination.x + (X_MAX_BED), mechanics.destination.y + (Y_MAX_BED), mechanics.destination.z);
       else
-        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_cursor_to(mechanics.destination.x + (X_MAX_BED), mechanics.destination.y + (Y_MAX_BED), mechanics.destination.z);
     #else
       if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_line_to(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z);
       else
-        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
+        nexlcd.gfx_cursor_to(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z);
     #endif
   #endif
 }

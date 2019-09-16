@@ -53,9 +53,9 @@ typedef struct block_t {
   // Data used by all move blocks
   union {
     // Fields used by the Bresenham algorithm for tracing the line
-    uint32_t steps[NUM_AXIS];               // Step count along each axis
+    xyze_ulong_t steps;                     // Step count along each axis
     // Data used by all sync blocks
-    int32_t position[NUM_AXIS];             // New position to force when this sync block is executed
+    xyze_long_t position;                   // New position to force when this sync block is executed
   };
 
   uint32_t step_event_count;                // The number of step events required to complete this block
@@ -164,11 +164,11 @@ class Planner {
     #endif
 
     #if HAS_POSITION_FLOAT
-      static float  position_float[XYZE];
+      static xyze_pos_t  position_float;
     #endif
 
     #if IS_KINEMATIC
-      static float position_cart[XYZE];
+      static xyze_pos_t position_cart;
     #endif
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
@@ -181,12 +181,12 @@ class Planner {
      * The current position of the tool in absolute steps
      * Recalculated if any data.axis_steps_per_mm are changed by gcode
      */
-    static int32_t position[NUM_AXIS];
+    static xyze_long_t position;
 
     /**
      * Speed of previous path line segment
      */
-    static float previous_speed[NUM_AXIS];
+    static xyze_float_t previous_speed;
 
     /**
      * Nominal speed of previous path line segment (mm/s)^2
@@ -237,15 +237,15 @@ class Planner {
     #if ENABLED(FWRETRACT)
 
       static void apply_retract(float &rz, float &e);
-      FORCE_INLINE static void apply_retract(float (&raw)[XYZE]) { apply_retract(raw[Z_AXIS], raw[E_AXIS]); }
+      FORCE_INLINE static void apply_retract(xyze_float_t &raw)   { apply_retract(raw.z, raw.e); }
       static void unapply_retract(float &rz, float &e);
-      FORCE_INLINE static void unapply_retract(float (&raw)[XYZE]) { unapply_retract(raw[Z_AXIS], raw[E_AXIS]); }
+      FORCE_INLINE static void unapply_retract(xyze_float_t &raw) { unapply_retract(raw.z, raw.e); }
   
     #endif
 
     #if HAS_POSITION_MODIFIERS
 
-      static void apply_modifiers(float (&pos)[XYZE]
+      static void apply_modifiers(xyze_float_t &pos
         #if HAS_LEVELING
           , bool leveling =
           #if PLANNER_LEVELING
@@ -256,7 +256,7 @@ class Planner {
         #endif
       );
 
-      static void unapply_modifiers(float (&pos)[XYZE]
+      static void unapply_modifiers(xyze_float_t &pos
         #if HAS_LEVELING
           , bool leveling =
           #if PLANNER_LEVELING
@@ -323,12 +323,12 @@ class Planner {
      *
      * Returns true if movement was properly queued, false otherwise
      */
-    static bool buffer_steps(const int32_t (&target)[XYZE]
+    static bool buffer_steps(const xyze_long_t &target
       #if HAS_POSITION_FLOAT
-        , const float (&target_float)[XYZE]
+        , const xyze_float_t &target_float
       #endif
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const float (&delta_mm_cart)[XYZE]
+        , const xyze_float_t &delta_mm_cart
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -346,12 +346,12 @@ class Planner {
      * Return true is movement is acceptable, false otherwise
      */
     static bool fill_block(block_t * const block, bool split_move,
-        const int32_t (&target)[XYZE]
+        const xyze_long_t &target
       #if HAS_POSITION_FLOAT
-        , const float (&target_float)[XYZE]
+        , const xyze_float_t &target_float
       #endif
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const float (&delta_mm_cart)[XYZE]
+        , const xyze_float_t &delta_mm_cart
       #endif
       , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
@@ -376,18 +376,18 @@ class Planner {
      */
     static bool buffer_segment(const float &a, const float &b, const float &c, const float &e
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const float (&delta_mm_cart)[XYZE]
+        , const xyze_float_t &delta_mm_cart
       #endif
       , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
-    FORCE_INLINE static bool buffer_segment(const float (&abce)[ABCE]
+    FORCE_INLINE static bool buffer_segment(const abce_float_t &abce
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
-        , const float (&delta_mm_cart)[XYZE]
+        , const xyze_float_t &delta_mm_cart
       #endif
       , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     ) {
-      return buffer_segment(abce[A_AXIS], abce[B_AXIS], abce[C_AXIS], abce[E_AXIS]
+      return buffer_segment(abce.a, abce.b, abce.c, abce.e
         #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
           , delta_mm_cart
         #endif
@@ -408,12 +408,12 @@ class Planner {
      */
     static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
-    FORCE_INLINE static bool buffer_line(const float (&cart)[XYZE], const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
+    FORCE_INLINE static bool buffer_line(const xyze_float_t &cart, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         , const float &inv_duration=0.0
       #endif
     ) {
-      return buffer_line(cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS], cart[E_AXIS], fr_mm_s, extruder, millimeters
+      return buffer_line(cart.x, cart.y, cart.z, cart.e, fr_mm_s, extruder, millimeters
         #if ENABLED(SCARA_FEEDRATE_SCALING)
           , inv_duration
         #endif
@@ -434,7 +434,7 @@ class Planner {
      * Clears previous speed values.
      */
     static void set_position_mm(const float &rx, const float &ry, const float &rz, const float &e);
-    FORCE_INLINE static void set_position_mm(const float (&cart)[XYZE]) { set_position_mm(cart[X_AXIS], cart[Y_AXIS], cart[Z_AXIS], cart[E_AXIS]); }
+    FORCE_INLINE static void set_position_mm(const xyze_pos_t &cart) { set_position_mm(cart.x, cart.y, cart.z, cart.e); }
     static void set_e_position_mm(const float &e);
 
     /**
@@ -444,7 +444,7 @@ class Planner {
      * conversions are applied.
      */
     static void set_machine_position_mm(const float &a, const float &b, const float &c, const float &e);
-    FORCE_INLINE static void set_machine_position_mm(const float (&abce)[ABCE]) { set_machine_position_mm(abce[A_AXIS], abce[B_AXIS], abce[C_AXIS], abce[E_AXIS]); }
+    FORCE_INLINE static void set_machine_position_mm(const abce_pos_t &abce) { set_machine_position_mm(abce.a, abce.b, abce.c, abce.e); }
 
     /**
      * Get an axis position according to stepper position(s)

@@ -24,6 +24,8 @@
 /**
  * position.h
  *
+ * Coordinates structures for XY, XYZ, XYZE...
+ *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
@@ -32,7 +34,6 @@
 #define _LS(N)    (N = (T)(int(N) << v))
 #define _RS(N)    (N = (T)(int(N) >> v))
 
-// Position types
 template<typename T> struct                 XYval;
 template<typename T> struct                XYZval;
 template<typename T> struct               XYZEval;
@@ -93,31 +94,40 @@ typedef ab_float_t                       ab_pos_t;
 typedef abc_float_t                     abc_pos_t;
 typedef abce_float_t                   abce_pos_t;
 
-typedef xyz_float_t                   point_abc_t;
-typedef xyz_float_t                   point_xyz_t;
-typedef xyze_float_t                 point_abce_t;
-typedef xyze_float_t                 point_xyze_t;
-
 #if ENABLED(WORKSPACE_OFFSETS)
 
-  inline void toLogical(xy_pos_t &raw)   { raw += mechanics.workspace_offset; }
-  inline void toLogical(xyz_pos_t &raw)  { raw += mechanics.workspace_offset; }
-  inline void toLogical(xyze_pos_t &raw) { raw += mechanics.workspace_offset; }
-  inline void toNative(xy_pos_t &raw)    { raw -= mechanics.workspace_offset; }
-  inline void toNative(xyz_pos_t &raw)   { raw -= mechanics.workspace_offset; }
-  inline void toNative(xyze_pos_t &raw)  { raw -= mechanics.workspace_offset; }
+  #define NATIVE_TO_LOGICAL(POS, AXIS)    ((POS) + mechanics.workspace_offset[AXIS])
+  #define LOGICAL_TO_NATIVE(POS, AXIS)    ((POS) - mechanics.workspace_offset[AXIS])
+  inline void toLogical(xy_pos_t &raw)    { raw += mechanics.workspace_offset; }
+  inline void toLogical(xyz_pos_t &raw)   { raw += mechanics.workspace_offset; }
+  inline void toLogical(xyze_pos_t &raw)  { raw += mechanics.workspace_offset; }
+  inline void toNative(xy_pos_t &raw)     { raw -= mechanics.workspace_offset; }
+  inline void toNative(xyz_pos_t &raw)    { raw -= mechanics.workspace_offset; }
+  inline void toNative(xyze_pos_t &raw)   { raw -= mechanics.workspace_offset; }
 
 #else
 
-  inline void toLogical(xy_pos_t &raw)   { UNUSED(raw); }
-  inline void toLogical(xyz_pos_t &raw)  { UNUSED(raw); }
-  inline void toLogical(xyze_pos_t &raw) { UNUSED(raw); }
-  inline void toNative(xy_pos_t &raw)    { UNUSED(raw); }
-  inline void toNative(xyz_pos_t &raw)   { UNUSED(raw); }
-  inline void toNative(xyze_pos_t &raw)  { UNUSED(raw); }
+  #define NATIVE_TO_LOGICAL(POS, AXIS)    (POS)
+  #define LOGICAL_TO_NATIVE(POS, AXIS)    (POS)
+  inline void toLogical(xy_pos_t &raw)    { UNUSED(raw); }
+  inline void toLogical(xyz_pos_t &raw)   { UNUSED(raw); }
+  inline void toLogical(xyze_pos_t &raw)  { UNUSED(raw); }
+  inline void toNative(xy_pos_t &raw)     { UNUSED(raw); }
+  inline void toNative(xyz_pos_t &raw)    { UNUSED(raw); }
+  inline void toNative(xyze_pos_t &raw)   { UNUSED(raw); }
 
 #endif
 
+#define LOGICAL_X_POSITION(POS) NATIVE_TO_LOGICAL(POS, X_AXIS)
+#define LOGICAL_Y_POSITION(POS) NATIVE_TO_LOGICAL(POS, Y_AXIS)
+#define LOGICAL_Z_POSITION(POS) NATIVE_TO_LOGICAL(POS, Z_AXIS)
+#define NATIVE_X_POSITION(POS)  LOGICAL_TO_NATIVE(POS, X_AXIS)
+#define NATIVE_Y_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Y_AXIS)
+#define NATIVE_Z_POSITION(POS)  LOGICAL_TO_NATIVE(POS, Z_AXIS)
+
+//
+// XY coordinates, counters, etc.
+//
 template<typename T>
 struct XYval {
   union {
@@ -128,7 +138,7 @@ struct XYval {
   void set(const T px)                               { x = px; }
   void set(const T px, const T py)                   { x = px; y = py; }
   void reset()                                       { x = y = 0; }
-  T length()                                   const { return (T)sqrtf(x*x + y*y); }
+  T magnitude()                                const { return (T)sqrtf(x*x + y*y); }
   operator T* ()                                     { return pos; }
   operator bool()                                    { return x || y; }
   XYval<T>           copy()                    const { XYval<T> o = *this; return o; }
@@ -214,6 +224,9 @@ struct XYval {
   const XYval<T> operator-()                   const { XYval<T> o = *this; o.x = -x; o.y = -y; return o; }
 };
 
+//
+// XYZ coordinates, counters, etc.
+//
 template<typename T>
 struct XYZval {
   union {
@@ -226,7 +239,7 @@ struct XYZval {
   void set(const T px, const T py, const T pz)        { x = px; y = py; z = pz; }
   void set(const XYval<T> pxy, const T pz)            { x = pxy.x; y = pxy.y; z = pz; }
   void reset()                                        { x = y = z = 0; }
-  T length()                                    const { return (T)sqrtf(x*x + y*y + z*z); }
+  T magnitude()                                 const { return (T)sqrtf(x*x + y*y + z*z); }
   operator T* ()                                      { return pos; }
   operator bool()                                     { return z || x || y; }
   XYZval<T>          copy()                     const { XYZval<T> o = *this; return o; }
@@ -241,7 +254,7 @@ struct XYZval {
   XYZval<float>  asNative()                     const { XYZval<float> o = asFloat(); toNative(o); return o; }
   XYZval<T> ABS()                               const { XYZval<T> o; o.set(_ABS(x), _ABS(y), _ABS(z)); return o; }
   operator XYval<T>&()                                { return *(XYval<T>*)this; }
-  operator XYval<T>&()                          const { return *(XYval<T>*)this; }
+  operator const XYval<T>&()                    const { return *(const XYval<T>*)this; }
   operator XYZEval<T>()                               { XYZEval<T> o = { x, y, z }; return o; }
   operator XYZEval<T>()                         const { XYZEval<T> o = { x, y, z }; return o; }
         T&   operator[](const int i)                  { return pos[i]; }
@@ -309,6 +322,9 @@ struct XYZval {
   const XYZval<T> operator-()                   const { XYZval<T> o = *this; o.x = -x; o.y = -y; o.z = -z; return o; }
 };
 
+//
+// XYZE coordinates, counters, etc.
+//
 template<typename T>
 struct XYZEval {
   union {
@@ -317,7 +333,7 @@ struct XYZEval {
     T pos[4];
   };
   void reset()                                             { x = y = z = e = 0; }
-  T length()                                         const { return (T)sqrtf(x*x + y*y + z*z + e*e); }
+  T magnitude()                                      const { return (T)sqrtf(x*x + y*y + z*z + e*e); }
   operator T* ()                                           { return pos; }
   operator bool()                                          { return e || z || x || y; }
   void set(const T px)                                     { x = px; }
@@ -339,9 +355,9 @@ struct XYZEval {
   XYZEval<float>  asNative()                         const { XYZEval<float> o = asFloat(); toNative(o); return o; }
   XYZEval<T> ABS()                                   const { XYZEval<T> o; o.set(_ABS(x), _ABS(y), _ABS(z), _ABS(e)); return o; }
   operator XYval<T>&()                                     { return *(XYval<T>*)this; }
-  operator XYval<T>&()                               const { return *(XYval<T>*)this; }
+  operator const XYval<T>&()                         const { return *(const XYval<T>*)this; }
   operator XYZval<T>&()                                    { return *(XYZval<T>*)this; }
-  operator XYZval<T>&()                              const { return *(XYZval<T>*)this; }
+  operator const XYZval<T>&()                        const { return *(const XYZval<T>*)this; }
         T&    operator[](const int i)                      { return pos[i]; }
   const T&    operator[](const int i)                const { return pos[i]; }
   XYZEval<T>& operator= (const T v)                        { set(v, v, v, v); return *this; }

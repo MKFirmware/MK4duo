@@ -295,7 +295,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 #if HAS_LINE_TO_Z
 
   void line_to_z(const float &z) {
-    mechanics.current_position[Z_AXIS] = z;
+    mechanics.current_position.z = z;
     planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.z), tools.extruder.active);
   }
 
@@ -317,7 +317,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       lcdui.encoderPosition = 0;
 
       const float diff = mechanics.steps_to_mm[Z_AXIS] * babystep_increment,
-                  new_probe_offset = probe.data.offset[Z_AXIS] + diff,
+                  new_probe_offset = probe.data.offset.z + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
                       do_probe ? new_probe_offset : nozzle.data.hotend_offset[ACTIVE_HOTEND].z - diff
@@ -329,7 +329,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
         babystep.add_steps(Z_AXIS, babystep_increment);
 
-        if (do_probe) probe.data.offset[Z_AXIS] = new_offs;
+        if (do_probe) probe.data.offset.z = new_offs;
         #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
           else nozzle.data.hotend_offset[ACTIVE_HOTEND].z = new_offs;
         #endif
@@ -343,10 +343,10 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
           draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[ACTIVE_HOTEND].z));
         else
       #endif
-          draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset[Z_AXIS]));
+          draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
-        if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset[Z_AXIS]);
+        if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);
       #endif
     }
   }

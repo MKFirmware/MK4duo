@@ -39,6 +39,16 @@ typedef int8_t    pin_t;
 #endif
 
 /**
+ * Conditional type assignment magic. For example...
+ *
+ * typename IF<(MYOPT==12), int, float>::type myvar;
+ */
+template <bool, class L, class R>
+struct IF { typedef R type; };
+template <class L, class R>
+struct IF<true, L, R> { typedef L type; };
+
+/**
  * Val limit min max
  */
 template<typename T>

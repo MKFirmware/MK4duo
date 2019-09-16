@@ -106,7 +106,7 @@
                 base_retract = swapping ? data.swap_retract_length : data.retract_length;
 
     // The current position will be the destination for E and Z moves
-    mechanics.set_destination_to_current();
+    mechanics.destination = mechanics.current_position;
 
     if (retracting) {
       // Retract by moving from a faux E position back to the current E position
@@ -128,13 +128,13 @@
       if (current_hop) {
         current_hop = 0.0;
         mechanics.feedrate_mm_s = mechanics.data.max_feedrate_mm_s[Z_AXIS] * unscale_fr; // Z feedrate to max
-        mechanics.prepare_move_to_destination();    // Lower Z and update current_position
+        mechanics.prepare_move_to_destination();    // Lower Z and update current_position.x
         planner.synchronize();                      // Wait for move to complete
       }
 
       const float extra_recover = swapping ? data.swap_retract_recover_length : data.retract_recover_length;
       if (extra_recover != 0.0) {
-        mechanics.current_position[E_AXIS] -= extra_recover;  // Adjust the current E position by the extra amount to recover
+        mechanics.current_position.e -= extra_recover;  // Adjust the current E position by the extra amount to recover
         mechanics.sync_plan_position_e();                     // Sync the planner position so the extra amount is recovered
       }
 

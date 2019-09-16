@@ -66,9 +66,9 @@ inline void gcode_M605(void) {
       }
       mechanics.scaled_duplication_mode = true;
       stepper.set_directions();
-      float x_jog = mechanics.current_position[X_AXIS] - .1;
+      float x_jog = mechanics.current_position.x - .1;
       for (uint8_t i = 2; --i;) {
-        planner.buffer_line(x_jog, mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], mechanics.feedrate_mm_s, 0);
+        planner.buffer_line(x_jog, mechanics.current_position.y, mechanics.current_position.z, mechanics.current_position.e, mechanics.feedrate_mm_s, 0);
         x_jog += .1;
       }
       return;
@@ -106,9 +106,9 @@ inline void gcode_M605(void) {
     DEBUG_MV("\nActive Ext: ", int(tools.extruder.active));
     if (!mechanics.active_extruder_parked) DEBUG_MSG(" NOT ");
     DEBUG_EM(" parked.");
-    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position.x);
     DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
-    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position.x);
     DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
     DEBUG_MV("\nextruder_duplication_enabled: ", int(mechanics.extruder_duplication_enabled));
     DEBUG_MV("\nduplicate_extruder_x_offset: ", mechanics.duplicate_extruder_x_offset);

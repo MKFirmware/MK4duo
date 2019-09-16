@@ -48,7 +48,7 @@
    */
   inline void gcode_M600(void) {
 
-    point_xyz_t park_point = nozzle.data.park_point;
+    xyz_pos_t park_point = nozzle.data.park_point;
 
     if (commands.get_target_tool(600)) return;
 

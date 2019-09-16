@@ -62,7 +62,7 @@ void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();
   #endif
-  mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.extruder.active];
+  mechanics.current_position.e += length / tools.e_factor[tools.extruder.active];
   planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
   planner.synchronize();
 }
@@ -80,7 +80,7 @@ void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
  *
  * Returns 'true' if pause was completed, 'false' for abort
  */
-bool AdvancedPause::pause_print(const float &retract, const point_xyz_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
+bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
 
   #if !HAS_LCD_MENU
     UNUSED(show_lcd);
@@ -117,7 +117,7 @@ bool AdvancedPause::pause_print(const float &retract, const point_xyz_t &park_po
   print_job_counter.pause();
 
   // Save current position
-  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+  mechanics.stored_position[0] = mechanics.current_position;
 
   // Wait for synchronize steppers
   planner.synchronize();
@@ -340,7 +340,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   // Now all extrusion positions are resumed and ready to be confirmed
   // Set extruder to saved position
-  planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.stored_position[0][E_AXIS]);
+  planner.set_e_position_mm(mechanics.destination.e = mechanics.current_position.e = mechanics.stored_position[0][E_AXIS]);
 
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();

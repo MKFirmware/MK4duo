@@ -34,22 +34,17 @@
   /**
    * Prepare a segmented linear move for DELTA/SCARA/CARTESIAN with UBL and FADE semantics.
    * This calls planner.buffer_segment multiple times for small incremental moves.
-   * Returns true if did NOT move, false if moved (requires mechanics.current_position update).
+   * Returns true if did NOT move, false if moved (requires mechanics.current_position.x update).
    */
 
-  bool _O2 unified_bed_leveling::prepare_segmented_line_to(const float (&rtarget)[XYZE], const float &feedrate) {
+  bool _O2 unified_bed_leveling::prepare_segmented_line_to(const xyze_pos_t &rtarget, const float &feedrate) {
 
-    if (!mechanics.position_is_reachable(rtarget[X_AXIS], rtarget[Y_AXIS]))  // fail if moving outside reachable boundary
+    if (!mechanics.position_is_reachable(rtarget.x, rtarget.y))  // fail if moving outside reachable boundary
       return true; // did not move, so mechanics.current_position still accurate
 
-    const float total[XYZE] = {
-      rtarget[X_AXIS] - mechanics.current_position[X_AXIS],
-      rtarget[Y_AXIS] - mechanics.current_position[Y_AXIS],
-      rtarget[Z_AXIS] - mechanics.current_position[Z_AXIS],
-      rtarget[E_AXIS] - mechanics.current_position[E_AXIS]
-    };
+    const xyze_pos_t total = rtarget - mechanics.current_position;
 
-    const float cartesian_xy_mm = HYPOT(total[X_AXIS], total[Y_AXIS]),                    // total horizontal xy distance
+    const float cartesian_xy_mm = HYPOT(total.x, total.y),                    // total horizontal xy distance
                 seconds = cartesian_xy_mm / feedrate;                                     // seconds to move xy distance at requested rate
     uint16_t    segments = LROUND(mechanics.data.segments_per_second * seconds),          // preferred number of segments for distance @ feedrate
                 seglimit = LROUND(cartesian_xy_mm * (1.0f / (DELTA_SEGMENT_MIN_LENGTH))); // number of segments at minimum segment length
@@ -59,29 +54,19 @@
 
     const float inv_segments = 1.0f / segments;  // divide once, multiply thereafter
 
-    const float segment_xyz_mm = HYPOT(cartesian_xy_mm, total[Z_AXIS]) * inv_segments;    // length of each segment
+    const float segment_xyz_mm = HYPOT(cartesian_xy_mm, total.z) * inv_segments;    // length of each segment
 
-    const float diff[XYZE] = {
-      total[X_AXIS] * inv_segments,
-      total[Y_AXIS] * inv_segments,
-      total[Z_AXIS] * inv_segments,
-      total[E_AXIS] * inv_segments
-    };
+    const xyze_pos_t diff = total * inv_segments;
 
     // Note that E segment distance could vary slightly as z mesh height
     // changes for each segment, but small enough to ignore.
 
-    float raw[XYZE] = {
-      mechanics.current_position[X_AXIS],
-      mechanics.current_position[Y_AXIS],
-      mechanics.current_position[Z_AXIS],
-      mechanics.current_position[E_AXIS]
-    };
+    float xyze_pos_t[XYZE] = mechanics.current_position;
 
     // Only compute leveling per segment if ubl active and target below z_fade_height.
-    if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(rtarget[Z_AXIS])) {   // no mesh leveling
+    if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(rtarget.z)) {   // no mesh leveling
       while (--segments) {
-        LOOP_XYZE(i) raw[i] += diff[i];
+        raw += diff;
         planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
       }
       planner.buffer_line(rtarget, feedrate, tools.extruder.active, segment_xyz_mm);
@@ -91,11 +76,11 @@
     // Otherwise perform per-segment leveling
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      const float fade_scaling_factor = bedlevel.fade_scaling_factor_for_z(rtarget[Z_AXIS]);
+      const float fade_scaling_factor = bedlevel.fade_scaling_factor_for_z(rtarget.z);
     #endif
 
     // increment to first segment destination
-    LOOP_XYZE(i) raw[i] += diff[i];
+    raw += diff;
 
     for(;;) {  // for each mesh cell encountered during the move
 
@@ -106,8 +91,8 @@
       // in top of loop and again re-find same adjacent cell and use it, just less efficient
       // for mesh inset area.
 
-      int8_t cell_xi = (raw[X_AXIS] - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST)),
-             cell_yi = (raw[Y_AXIS] - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
+      int8_t cell_xi = (raw.x - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST)),
+             cell_yi = (raw.y - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
 
       LIMIT(cell_xi, 0, (GRID_MAX_POINTS_X) - 1);
       LIMIT(cell_yi, 0, (GRID_MAX_POINTS_Y) - 1);
@@ -125,8 +110,8 @@
       if (isnan(z_x0y1)) z_x0y1 = 0;              //   in order to avoid isnan tests per cell,
       if (isnan(z_x1y1)) z_x1y1 = 0;              //   thus guessing zero for undefined points
 
-      float cx = raw[X_AXIS] - x0,   // cell-relative x and y
-            cy = raw[Y_AXIS] - y0;
+      float cx = raw.x - x0,   // cell-relative x and y
+            cy = raw.y - y0;
 
       const float z_xmy0 = (z_x1y0 - z_x0y0) * (1.0 / (MESH_X_DIST)),   // z slope per x along y0 (lower left to lower right)
                   z_xmy1 = (z_x1y1 - z_x0y1) * (1.0 / (MESH_X_DIST));   // z slope per x along y1 (upper left to upper right)
@@ -144,13 +129,13 @@
       // and the z_cxym slope will change, both as a function of cx within the cell, and
       // each change by a constant for fixed segment lengths.
 
-      const float z_sxy0 = z_xmy0 * diff[X_AXIS],                                     // per-segment adjustment to z_cxy0
-                  z_sxym = (z_xmy1 - z_xmy0) * (1.0 / (MESH_Y_DIST)) * diff[X_AXIS];  // per-segment adjustment to z_cxym
+      const float z_sxy0 = z_xmy0 * diff.x,                                     // per-segment adjustment to z_cxy0
+                  z_sxym = (z_xmy1 - z_xmy0) * (1.0 / (MESH_Y_DIST)) * diff.x;  // per-segment adjustment to z_cxym
 
       for(;;) {  // for all segments within this mesh cell
 
         if (--segments == 0)                      // if this is last segment, use rtarget for exact
-          COPY_ARRAY(raw, rtarget);
+          raw = rtarget;
 
         const float z_cxcy = (z_cxy0 + z_cxym * cy) // interpolated mesh z height along cx at cy
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
@@ -158,18 +143,18 @@
           #endif
         ;
 
-        const float z = raw[Z_AXIS];
-        raw[Z_AXIS] += z_cxcy;
+        const float z = raw.z;
+        raw.z += z_cxcy;
         planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
-        raw[Z_AXIS] = z;
+        raw.z = z;
 
         if (segments == 0)                        // done with last segment
           return false;                           // did not set_current_from_destination()
 
-        LOOP_XYZE(i) raw[i] += diff[i];
+        raw += diff;
 
-        cx += diff[X_AXIS];
-        cy += diff[Y_AXIS];
+        cx += diff.x;
+        cy += diff.y;
 
         if (!WITHIN(cx, 0, MESH_X_DIST) || !WITHIN(cy, 0, MESH_Y_DIST)) // done within this cell, break to next
           break;
@@ -183,7 +168,7 @@
       } // segment loop
     } // cell loop
 
-    return false; // caller will update current_position
+    return false; // caller will update current_position.x
   }
 
 #else
@@ -195,25 +180,25 @@
      * just do the required Z-Height correction, call the Planner's buffer_line() routine, and leave
      */
     #if HAS_POSITION_MODIFIERS
-      float start[XYZE] = { mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS] },
-              end[XYZE] = { mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[E_AXIS] };
+      xyze_pos_t  start = mechanics.current_position,
+                  end   = mechanics.destination;
       planner.apply_modifiers(start);
       planner.apply_modifiers(end);
     #else
-      const float (&start)[XYZE] = mechanics.current_position,
-                    (&end)[XYZE] = mechanics.destination;
+      const xyze_pos_t  &start  = mechanics.current_position,
+                        &end    = mechanics.destination;
     #endif
 
-    const int cell_start_xi = get_cell_index_x(start[X_AXIS]),
-              cell_start_yi = get_cell_index_y(start[Y_AXIS]),
-              cell_dest_xi  = get_cell_index_x(end[X_AXIS]),
-              cell_dest_yi  = get_cell_index_y(end[Y_AXIS]);
+    const int cell_start_xi = get_cell_index_x(start.x),
+              cell_start_yi = get_cell_index_y(start.y),
+              cell_dest_xi  = get_cell_index_x(end.x),
+              cell_dest_yi  = get_cell_index_y(end.y);
 
     if (bedlevel.flag.g26_debug) {
-      SERIAL_MV(" ubl.line_to_destination(xe=", end[X_AXIS]);
-      SERIAL_MV(", ye=", end[Y_AXIS]);
-      SERIAL_MV(", ze=", end[Z_AXIS]);
-      SERIAL_MV(", ee=", end[E_AXIS]);
+      SERIAL_MV(" ubl.line_to_destination(xe=", end.x);
+      SERIAL_MV(", ye=", end.y);
+      SERIAL_MV(", ze=", end.z);
+      SERIAL_MV(", ee=", end.e);
       SERIAL_CHR(')');
       SERIAL_EOL();
       debug_current_and_destination(PSTR("Start of ubl.line_to_destination_cartesian()"));
@@ -234,8 +219,8 @@
             + UBL_Z_RAISE_WHEN_OFF_MESH
           #endif
         ;
-        planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + z_raise, end[E_AXIS], feed_rate, extruder);
-        mechanics.set_current_to_destination();
+        planner.buffer_segment(end.x, end.y, end.z + z_raise, end.e, feed_rate, extruder);
+        mechanics.current_position = mechanics.destination;
 
         if (bedlevel.flag.g26_debug)
           debug_current_and_destination(PSTR("out of bounds in ubl.line_to_destination_cartesian()"));
@@ -246,7 +231,7 @@
       FINAL_MOVE:
 
       // The distance is always MESH_X_DIST so multiply by the constant reciprocal.
-      const float xratio = (end[X_AXIS] - mesh_index_to_xpos(cell_dest_xi)) * (1.0f / (MESH_X_DIST));
+      const float xratio = (end.x - mesh_index_to_xpos(cell_dest_xi)) * (1.0f / (MESH_X_DIST));
 
       float z1 = z_values[cell_dest_xi    ][cell_dest_yi    ] + xratio *
                 (z_values[cell_dest_xi + 1][cell_dest_yi    ] - z_values[cell_dest_xi][cell_dest_yi    ]),
@@ -256,17 +241,17 @@
       if (cell_dest_xi >= GRID_MAX_POINTS_X - 1) z1 = z2 = 0.0;
 
       // X cell-fraction done. Interpolate the two Z offsets with the Y fraction for the final Z offset.
-      const float yratio = (end[Y_AXIS] - mesh_index_to_ypos(cell_dest_yi)) * (1.0f / (MESH_Y_DIST)),
-                  z0 = cell_dest_yi < GRID_MAX_POINTS_Y - 1 ? (z1 + (z2 - z1) * yratio) * bedlevel.fade_scaling_factor_for_z(end[Z_AXIS]) : 0.0;
+      const float yratio = (end.y - mesh_index_to_ypos(cell_dest_yi)) * (1.0f / (MESH_Y_DIST)),
+                  z0 = cell_dest_yi < GRID_MAX_POINTS_Y - 1 ? (z1 + (z2 - z1) * yratio) * bedlevel.fade_scaling_factor_for_z(end.z) : 0.0;
 
       // Undefined parts of the Mesh in z_values[][] are NAN.
       // Replace NAN corrections with 0.0 to prevent NAN propagation.
-      planner.buffer_segment(end[X_AXIS], end[Y_AXIS], end[Z_AXIS] + (isnan(z0) ? 0.0 : z0), end[E_AXIS], feed_rate, extruder);
+      planner.buffer_segment(end.x, end.y, end.z + (isnan(z0) ? 0.0 : z0), end.e, feed_rate, extruder);
 
       if (bedlevel.flag.g26_debug)
         debug_current_and_destination(PSTR("FINAL_MOVE in ubl.line_to_destination_cartesian()"));
 
-      mechanics.set_current_to_destination();
+      mechanics.current_position = mechanics.destination;
       return;
     }
 
@@ -275,8 +260,8 @@
      * case - crossing only one X or Y line - after details are worked out to reduce computation.
      */
 
-    const float dx = end[X_AXIS] - start[X_AXIS],
-                dy = end[Y_AXIS] - start[Y_AXIS];
+    const float dx = end.x - start.x,
+                dy = end.y - start.y;
 
     const int left_flag = dx < 0.0 ? 1 : 0,
               down_flag = dy < 0.0 ? 1 : 0;
@@ -298,8 +283,8 @@
     const bool use_x_dist = adx > ady;
 
     float on_axis_distance = use_x_dist ? dx : dy,
-          e_position = end[E_AXIS] - start[E_AXIS],
-          z_position = end[Z_AXIS] - start[Z_AXIS];
+          e_position = end.e - start.e,
+          z_position = end.z - start.z;
 
     const float e_normalized_dist = e_position / on_axis_distance,
                 z_normalized_dist = z_position / on_axis_distance;
@@ -308,7 +293,7 @@
         current_yi = cell_start_yi;
 
     const float m = dy / dx,
-                c = start[Y_AXIS] - m * start[X_AXIS];
+                c = start.y - m * start.x;
 
     const bool inf_normalized_flag = (isinf(e_normalized_dist) != 0),
                inf_m_flag = (isinf(m) != 0);
@@ -328,9 +313,9 @@
          * For others the next X is the same so this can continue.
          * Calculate X at the next Y mesh line.
          */
-        const float rx = inf_m_flag ? start[X_AXIS] : (next_mesh_line_y - c) / m;
+        const float rx = inf_m_flag ? start.x : (next_mesh_line_y - c) / m;
 
-        float z0 = z_correction_for_x_on_horizontal_mesh_line(rx, current_xi, current_yi) * bedlevel.fade_scaling_factor_for_z(end[Z_AXIS]);
+        float z0 = z_correction_for_x_on_horizontal_mesh_line(rx, current_xi, current_yi) * bedlevel.fade_scaling_factor_for_z(end.z);
 
         // Undefined parts of the Mesh in z_values[][] are NAN.
         // Replace NAN corrections with 0.0 to prevent NAN propagation.
@@ -343,15 +328,15 @@
          * the line is heading down, starting exactly on a mesh line boundary. Since this is rare
          * it might be fine to remove this check and let planner.buffer_segment() filter it out.
          */
-        if (ry != start[Y_AXIS]) {
+        if (ry != start.y) {
           if (!inf_normalized_flag) {
-            on_axis_distance = use_x_dist ? rx - start[X_AXIS] : ry - start[Y_AXIS];
-            e_position = start[E_AXIS] + on_axis_distance * e_normalized_dist;
-            z_position = start[Z_AXIS] + on_axis_distance * z_normalized_dist;
+            on_axis_distance = use_x_dist ? rx - start.x : ry - start.y;
+            e_position = start.e + on_axis_distance * e_normalized_dist;
+            z_position = start.z + on_axis_distance * z_normalized_dist;
           }
           else {
-            e_position = end[E_AXIS];
-            z_position = end[Z_AXIS];
+            e_position = end.e;
+            z_position = end.z;
           }
 
           planner.buffer_segment(rx, ry, z_position + z0, e_position, feed_rate, extruder);
@@ -362,10 +347,10 @@
         debug_current_and_destination(PSTR("vertical move done in ubl.line_to_destination_cartesian()"));
 
       // At the final destination? Usually not, but when on a Y Mesh Line it's completed.
-      if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
+      if (mechanics.current_position.x != end.x || mechanics.current_position.y != end.y)
         goto FINAL_MOVE;
 
-      mechanics.set_current_to_destination();
+      mechanics.current_position = mechanics.destination;
       return;
     }
 
@@ -380,7 +365,7 @@
         const float next_mesh_line_x = mesh_index_to_xpos(current_xi),
                     ry = m * next_mesh_line_x + c;   // Calculate Y at the next X mesh line
 
-        float z0 = z_correction_for_y_on_vertical_mesh_line(ry, current_xi, current_yi) * bedlevel.fade_scaling_factor_for_z(end[Z_AXIS]);
+        float z0 = z_correction_for_y_on_vertical_mesh_line(ry, current_xi, current_yi) * bedlevel.fade_scaling_factor_for_z(end.z);
 
         // Undefined parts of the Mesh in z_values[][] are NAN.
         // Replace NAN corrections with 0.0 to prevent NAN propagation.
@@ -393,15 +378,15 @@
          * the line is heading left, starting exactly on a mesh line boundary. Since this is rare
          * it might be fine to remove this check and let planner.buffer_segment() filter it out.
          */
-        if (rx != start[X_AXIS]) {
+        if (rx != start.x) {
           if (!inf_normalized_flag) {
-            on_axis_distance = use_x_dist ? rx - start[X_AXIS] : ry - start[Y_AXIS];
-            e_position = start[E_AXIS] + on_axis_distance * e_normalized_dist;  // is based on X or Y because this is a horizontal move
-            z_position = start[Z_AXIS] + on_axis_distance * z_normalized_dist;
+            on_axis_distance = use_x_dist ? rx - start.x : ry - start.y;
+            e_position = start.e + on_axis_distance * e_normalized_dist;  // is based on X or Y because this is a horizontal move
+            z_position = start.z + on_axis_distance * z_normalized_dist;
           }
           else {
-            e_position = end[E_AXIS];
-            z_position = end[Z_AXIS];
+            e_position = end.e;
+            z_position = end.z;
           }
 
           if (!planner.buffer_segment(rx, ry, z_position + z0, e_position, feed_rate, extruder))
@@ -409,10 +394,10 @@
         } //else printf("FIRST MOVE PRUNED  ");
       }
 
-      if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
+      if (mechanics.current_position.x != end.x || mechanics.current_position.y != end.y)
         goto FINAL_MOVE;
 
-      mechanics.set_current_to_destination();
+      mechanics.current_position = mechanics.destination;
       return;
     }
 
@@ -444,20 +429,20 @@
       if (left_flag == (rx > next_mesh_line_x)) {   // Check if we hit the Y line first
         // Yes!  Crossing a Y Mesh Line next
         float z0 = z_correction_for_x_on_horizontal_mesh_line(rx, current_xi - left_flag, current_yi + dyi)
-                   * bedlevel.fade_scaling_factor_for_z(end[Z_AXIS]);
+                   * bedlevel.fade_scaling_factor_for_z(end.z);
 
         // Undefined parts of the Mesh in z_values[][] are NAN.
         // Replace NAN corrections with 0.0 to prevent NAN propagation.
         if (isnan(z0)) z0 = 0.0;
 
         if (!inf_normalized_flag) {
-          on_axis_distance = use_x_dist ? rx - start[X_AXIS] : next_mesh_line_y - start[Y_AXIS];
-          e_position = start[E_AXIS] + on_axis_distance * e_normalized_dist;
-          z_position = start[Z_AXIS] + on_axis_distance * z_normalized_dist;
+          on_axis_distance = use_x_dist ? rx - start.x : next_mesh_line_y - start.y;
+          e_position = start.e + on_axis_distance * e_normalized_dist;
+          z_position = start.z + on_axis_distance * z_normalized_dist;
         }
         else {
-          e_position = end[E_AXIS];
-          z_position = end[Z_AXIS];
+          e_position = end.e;
+          z_position = end.z;
         }
         if (!planner.buffer_segment(rx, next_mesh_line_y, z_position + z0, e_position, feed_rate, extruder))
           break;
@@ -467,20 +452,20 @@
       else {
         // Yes!  Crossing a X Mesh Line next
         float z0 = z_correction_for_y_on_vertical_mesh_line(ry, current_xi + dxi, current_yi - down_flag)
-                   * bedlevel.fade_scaling_factor_for_z(end[Z_AXIS]);
+                   * bedlevel.fade_scaling_factor_for_z(end.z);
 
         // Undefined parts of the Mesh in z_values[][] are NAN.
         // Replace NAN corrections with 0.0 to prevent NAN propagation.
         if (isnan(z0)) z0 = 0.0;
 
         if (!inf_normalized_flag) {
-          on_axis_distance = use_x_dist ? next_mesh_line_x - start[X_AXIS] : ry - start[Y_AXIS];
-          e_position = start[E_AXIS] + on_axis_distance * e_normalized_dist;
-          z_position = start[Z_AXIS] + on_axis_distance * z_normalized_dist;
+          on_axis_distance = use_x_dist ? next_mesh_line_x - start.x : ry - start.y;
+          e_position = start.e + on_axis_distance * e_normalized_dist;
+          z_position = start.z + on_axis_distance * z_normalized_dist;
         }
         else {
-          e_position = end[E_AXIS];
-          z_position = end[Z_AXIS];
+          e_position = end.e;
+          z_position = end.z;
         }
 
         if (!planner.buffer_segment(next_mesh_line_x, ry, z_position + z0, e_position, feed_rate, extruder))
@@ -495,10 +480,10 @@
     if (bedlevel.flag.g26_debug)
       debug_current_and_destination(PSTR("generic move done in ubl.line_to_destination_cartesian()"));
 
-    if (mechanics.current_position[X_AXIS] != end[X_AXIS] || mechanics.current_position[Y_AXIS] != end[Y_AXIS])
+    if (mechanics.current_position.x != end.x || mechanics.current_position.y != end.y)
       goto FINAL_MOVE;
 
-    mechanics.set_current_to_destination();
+    mechanics.current_position = mechanics.destination;
   }
 
 #endif // UBL_DELTA

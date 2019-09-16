@@ -256,17 +256,15 @@ static bool probe_calibration_points(float z_pt[NPP + 1], const uint8_t probe_po
  *  - formulae for approximative forward kinematics in the end-stop displacement matrix
  *  - definition of the matrix scaling parameters
  */
-static void reverse_kinematics_probe_points(float z_pt[NPP + 1], float mm_at_pt_axis[NPP + 1][ABC]) {
-  float pos[XYZ] = { 0.0 };
+static void reverse_kinematics_probe_points(float z_pt[NPP + 1], abc_float_t mm_at_pt_axis[NPP + 1]) {
+  xyz_pos_t pos = { 0.0 };
 
   LOOP_CAL_ALL(rad) {
     const float a = RADIANS(210 + (360 / NPP) *  (rad - 1)),
                 r = (rad == CEN ? 0.0 : mechanics.data.probe_radius);
-    pos[X_AXIS] = cos(a) * r;
-    pos[Y_AXIS] = sin(a) * r;
-    pos[Z_AXIS] = z_pt[rad];
+    pos,set(cos(a) * r, sin(a) * r, z_pt[rad]);
     mechanics.Transform(pos);
-    LOOP_XYZ(axis) mm_at_pt_axis[rad][axis] = mechanics.delta[axis];           
+    mm_at_pt_axis[rad] = mechanics.delta;
   }
 }
 

@@ -50,7 +50,7 @@ class AutoBedLevel {
 
   public: /** Public Function */
 
-    static float bilinear_z_offset(const float raw[XYZ]);
+    static float bilinear_z_offset(const xyz_pos_t &raw);
     static void refresh_bed_level();
 
     /**

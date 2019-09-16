@@ -36,22 +36,22 @@ void _lcd_goto_next_corner() {
   line_to_z(4.0);
   switch (bed_corner) {
     case 0:
-      mechanics.current_position[X_AXIS] = X_MIN_BED + LEVEL_CORNERS_INSET;
-      mechanics.current_position[Y_AXIS] = Y_MIN_BED + LEVEL_CORNERS_INSET;
+      mechanics.current_position.x = X_MIN_BED + LEVEL_CORNERS_INSET;
+      mechanics.current_position.y = Y_MIN_BED + LEVEL_CORNERS_INSET;
       break;
     case 1:
-      mechanics.current_position[X_AXIS] = X_MAX_BED - LEVEL_CORNERS_INSET;
+      mechanics.current_position.x = X_MAX_BED - LEVEL_CORNERS_INSET;
       break;
     case 2:
-      mechanics.current_position[Y_AXIS] = Y_MAX_BED - LEVEL_CORNERS_INSET;
+      mechanics.current_position.y = Y_MAX_BED - LEVEL_CORNERS_INSET;
       break;
     case 3:
-      mechanics.current_position[X_AXIS] = X_MIN_BED + LEVEL_CORNERS_INSET;
+      mechanics.current_position.x = X_MIN_BED + LEVEL_CORNERS_INSET;
       break;
     #if ENABLED(LEVEL_CENTER_TOO)
       case 4:
-        mechanics.current_position[X_AXIS] = X_CENTER;
-        mechanics.current_position[Y_AXIS] = Y_CENTER;
+        mechanics.current_position.x = X_CENTER;
+        mechanics.current_position.y = Y_CENTER;
         break;
     #endif
   }

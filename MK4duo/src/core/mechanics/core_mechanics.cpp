@@ -97,38 +97,35 @@ void Core_Mechanics::factory_parameters() {
  * The result is in the current coordinate space with
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
- * suitable for current_position, etc.
+ * suitable for current_position.x, etc.
  */
 void Core_Mechanics::get_cartesian_from_steppers() {
-  cartesian_position[X_AXIS] = planner.get_axis_position_mm(X_AXIS);
-  cartesian_position[Y_AXIS] = planner.get_axis_position_mm(Y_AXIS);
-  cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
+  cartesian_position.set(planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS), planner.get_axis_position_mm(Z_AXIS));
 }
 
 /**
- *  Plan a move to (X, Y, Z) and set the current_position
- *  The final current_position may not be the one that was requested
+ *  Plan a move to (X, Y, Z) and set the current_position.x
+ *  The final current_position.x may not be the one that was requested
  */
 void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), nullptr, rx, ry, rz);
+  if (printer.debugFeature()) DEBUG_XYZ(rx, ry, rz, PSTR(">>> do_blocking_move_to"), nullptr);
 
-  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS],
+  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
   // If Z needs to raise, do it before moving XY
-  if (current_position[Z_AXIS] < rz) {
-    current_position[Z_AXIS] = rz;
+  if (current_position.z < rz) {
+    current_position.z = rz;
     line_to_current_position(z_feedrate);
   }
 
-  current_position[X_AXIS] = rx;
-  current_position[Y_AXIS] = ry;
+  current_position.set(rx, ry);
   line_to_current_position(xy_feedrate);
 
   // If Z needs to lower, do it after moving XY
-  if (current_position[Z_AXIS] > rz) {
-    current_position[Z_AXIS] = rz;
+  if (current_position.z > rz) {
+    current_position.z = rz;
     line_to_current_position(z_feedrate);
   }
 
@@ -138,13 +135,16 @@ void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const f
 
 }
 void Core_Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+  do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
+}
+void Core_Mechanics::do_blocking_move_to_y(const float &ry, const float &fr_mm_s/*=0.0*/) {
+  do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
 }
 void Core_Mechanics::do_blocking_move_to_z(const float &rz, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], rz, fr_mm_s);
+  do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
 }
 void Core_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, ry, current_position[Z_AXIS], fr_mm_s);
+  do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
 }
 
 /**
@@ -203,14 +203,14 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  COPY_ARRAY(stored_position[0], current_position);
+  stored_position[0] = current_position;
 
   const bool  home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
               doX       = home_all || homeX,
               doY       = home_all || homeY,
               doZ       = home_all || homeZ;
 
-  set_destination_to_current();
+  destination = current_position;
 
   #if Z_HOME_DIR > 0  // If homing away from BED do Z first
     if (doZ) homeaxis(Z_AXIS);
@@ -221,10 +221,10 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   if (z_homing_height && (doX || doY)) {
     // Raise Z before homing any other axes and z is not already high enough (never lower z)
-    destination[Z_AXIS] = z_homing_height;
-    if (destination[Z_AXIS] > current_position[Z_AXIS]) {
-      if (printer.debugFeature()) DEBUG_EMV("Raise Z (before homing) to ", destination[Z_AXIS]);
-      do_blocking_move_to_z(destination[Z_AXIS]);
+    destination.z = z_homing_height;
+    if (destination.z > current_position.z) {
+      if (printer.debugFeature()) DEBUG_EMV("Raise Z (before homing) to ", destination.z);
+      do_blocking_move_to_z(destination.z);
     }
   }
 
@@ -271,8 +271,8 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   endstops.setNotHoming();
 
   if (come_back) {
-    feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
-    COPY_ARRAY(destination, stored_position[0]);
+    feedrate_mm_s = homing_feedrate_mm_s.x;
+    destination = stored_position[0];
     prepare_move_to_destination();
   }
 
@@ -350,7 +350,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
     #endif
   }
 
-  float target[ABCE] = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+  abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
   target[axis] = 0;
   planner.set_machine_position_mm(target);
   target[axis] = distance;
@@ -392,14 +392,14 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
 bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
   #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
-    if (current_position[E_AXIS] < destination[E_AXIS] && ((current_position[X_AXIS] != destination [X_AXIS]) || (current_position[Y_AXIS] != destination [Y_AXIS])))
+    if (current_position.e < destination.e && ((current_position.x != destination.x) || (current_position.y != destination.y)))
       laser.status = LASER_ON;
     else
       laser.status = LASER_OFF;
   #endif
 
   #if HAS_MESH
-    if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination[Z_AXIS])) {
+    if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
         ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.extruder.active);
         return true;
@@ -408,7 +408,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
          * For MBL and ABL-BILINEAR only segment moves when X or Y are involved.
          * Otherwise fall through to do a direct single move.
          */
-        if (current_position[X_AXIS] != destination[X_AXIS] || current_position[Y_AXIS] != destination[Y_AXIS]) {
+        if (current_position.x != destination.x || current_position.y != destination.y) {
           #if ENABLED(MESH_BED_LEVELING)
             mbl.line_to_destination(MMS_SCALED(feedrate_mm_s));
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -453,10 +453,10 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
    */
   #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
-      current_position[Z_AXIS] -= probe.data.offset[Z_AXIS];
+      current_position.z -= probe.data.offset.z;
       if (printer.debugFeature()) {
         DEBUG_EM("*** Z HOMED WITH PROBE ***");
-        DEBUG_EMV("zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
+        DEBUG_EMV("zprobe_zoffset = ", probe.data.offset.z);
       }
     }
   #endif
@@ -470,7 +470,7 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
       DEBUG_MV("> data.home_offset[", axis_codes[axis]);
       DEBUG_EMV("] = ", data.home_offset[axis]);
     #endif
-    DEBUG_POS("", current_position);
+    DEBUG_POS("", current_position.x);
     DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
@@ -521,7 +521,7 @@ bool Core_Mechanics::position_is_reachable(const float &rx, const float &ry) {
 // Return whether the given position is within the bed, and whether the nozzle
 //  can reach the position required to put the probe at the given position.
 bool Core_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
-  return position_is_reachable(rx - probe.data.offset[X_AXIS], ry - probe.data.offset[Y_AXIS])
+  return position_is_reachable(rx - probe.data.offset.x, ry - probe.data.offset.y)
       && WITHIN(rx, MIN_PROBE_X - slop, MAX_PROBE_X + slop)
       && WITHIN(ry, MIN_PROBE_Y - slop, MAX_PROBE_Y + slop);
 }
@@ -530,17 +530,12 @@ bool Core_Mechanics::position_is_reachable_by_probe(const float &rx, const float
 void Core_Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("\nLogical:");
-  const float logical[XYZ] = {
-    LOGICAL_X_POSITION(current_position[X_AXIS]),
-    LOGICAL_Y_POSITION(current_position[Y_AXIS]),
-    LOGICAL_Z_POSITION(current_position[Z_AXIS])
-  };
-  report_xyz(logical);
+  report_xyz(current_position.asLogical());
 
   SERIAL_MSG("Raw:    ");
-  report_xyze(current_position);
+  report_xyz(current_position);
 
-  float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+  xyze_pos_t leveled = current_position;
 
   #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
@@ -548,7 +543,7 @@ void Core_Mechanics::report_current_position_detail() {
     report_xyz(leveled);
 
     SERIAL_MSG("UnLevel:");
-    float unleveled[XYZ] = { leveled[X_AXIS], leveled[Y_AXIS], leveled[Z_AXIS] };
+    xyze_pos_t unleveled = leveled;
     bedlevel.unapply_leveling(unleveled);
     report_xyz(unleveled);
   #endif
@@ -566,15 +561,10 @@ void Core_Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
+  xyze_pos_t from_steppers = { cartesian_position.x, cartesian_position.y, cartesian_position.z, planner.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
-  const float diff[XYZE] = {
-    from_steppers[X_AXIS] - leveled[X_AXIS],
-    from_steppers[Y_AXIS] - leveled[Y_AXIS],
-    from_steppers[Z_AXIS] - leveled[Z_AXIS],
-    from_steppers[E_AXIS] - current_position[E_AXIS]
-  };
+  const xyze_float_t diff = from_steppers - leveled;
 
   SERIAL_MSG("Differ: ");
   report_xyze(diff);
@@ -698,9 +688,9 @@ void Core_Mechanics::report_current_position_detail() {
   void Core_Mechanics::print_M206() {
     #if ENABLED(WORKSPACE_OFFSETS)
       SERIAL_LM(CFG, "Home offset:");
-      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(data.home_offset[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(data.home_offset[Y_AXIS]), 3);
-      SERIAL_EMV(" Z", LINEAR_UNIT(data.home_offset[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M206 X", LINEAR_UNIT(data.home_offset.x), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(data.home_offset.y), 3);
+      SERIAL_EMV(" Z", LINEAR_UNIT(data.home_offset.z), 3);
     #endif
   }
 
@@ -721,7 +711,7 @@ void Core_Mechanics::report_current_position_detail() {
 
   void Core_Mechanics::nextion_gfx_clear() {
     nexlcd.gfx_clear(X_MAX_BED, Y_MAX_BED, Z_MAX_BED);
-    nexlcd.gfx_cursor_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
+    nexlcd.gfx_cursor_to(current_position);
   }
 
 #endif
@@ -770,7 +760,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
   // When homing Z with probe respect probe clearance
   const float bump = get_homedir(axis) * (
     #if HOMING_Z_WITH_PROBE
-      (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm.z) :
     #endif
     home_bump_mm[axis]
   );
@@ -915,11 +905,11 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
   void Core_Mechanics::quick_home_xy() {
 
     // Pretend the current position is 0,0
-    current_position[X_AXIS] = current_position[Y_AXIS] = 0;
+    current_position.x = current_position.y = 0;
     sync_plan_position();
 
     const float mlratio = data.base_pos[X_AXIS].max > data.base_pos[Y_AXIS].max ? data.base_pos[Y_AXIS].max / data.base_pos[X_AXIS].max : data.base_pos[X_AXIS].max / data.base_pos[Y_AXIS].max,
-                fr_mm_s = MIN(homing_feedrate_mm_s[X_AXIS], homing_feedrate_mm_s[Y_AXIS]) * SQRT(sq(mlratio) + 1.0);
+                fr_mm_s = MIN(homing_feedrate_mm_s.x, homing_feedrate_mm_s.y) * SQRT(sq(mlratio) + 1.0);
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_flag_t stealth_states;
@@ -931,7 +921,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
 
     endstops.validate_homing_move();
 
-    current_position[X_AXIS] = current_position[Y_AXIS] = 0.0f;
+    current_position.x = current_position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
       tmc.disable_stallguard(X_DRV, stealth_states.x);
@@ -958,17 +948,15 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
 
     /**
      * Move the Z probe (or just the nozzle) to the safe homing point
+     * (Z is already at the right height)
      */
-    destination[X_AXIS] = Z_SAFE_HOMING_X_POINT;
-    destination[Y_AXIS] = Z_SAFE_HOMING_Y_POINT;
-    destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
+    destination.set(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT, current_position.z);
 
     #if HOMING_Z_WITH_PROBE
-      destination[X_AXIS] -= probe.data.offset[X_AXIS];
-      destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
+      destination -= probe.data.offset;
     #endif
 
-    if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
+    if (position_is_reachable(destination)) {
 
       if (printer.debugFeature()) DEBUG_POS("Z_SAFE_HOMING", destination);
 
@@ -976,7 +964,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
         HAL::delayMilliseconds(500);
       #endif
 
-      do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
+      do_blocking_move_to_xy(destination);
       homeaxis(Z_AXIS);
     }
     else {
@@ -1006,23 +994,21 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
 
     /**
      * Move the Z probe (or just the nozzle) to the safe homing point
+     * Z is already at the right height
      */
-    destination[X_AXIS] = DOUBLE_Z_HOMING_X_POINT;
-    destination[Y_AXIS] = DOUBLE_Z_HOMING_Y_POINT;
-    destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
+    destination.set(DOUBLE_Z_HOMING_X_POINT, DOUBLE_Z_HOMING_Y_POINT, current_position.z);
 
     #if HAS_BED_PROBE
-      destination[X_AXIS] -= probe.data.offset[X_AXIS];
-      destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
+      destination -= probe.data.offset;
     #endif
 
-    if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
+    if (position_is_reachable(destination)) {
 
       if (printer.debugFeature()) DEBUG_POS("DOUBLE_Z_HOMING", destination);
 
-      const float newzero = probe_pt(destination[X_AXIS], destination[Y_AXIS], true, 1) - (2 * probe.data.offset[Z_AXIS]);
-      current_position[Z_AXIS] -= newzero;
-      destination[Z_AXIS] = current_position[Z_AXIS];
+      const float newzero = probe_pt(destination.x, destination.y, true, 1) - (2 * probe.data.offset.z);
+      current_position.z -= newzero;
+      destination.z = current_position.z;
       endstops.soft_endstop[Z_AXIS].max = data.base_pos[Z_AXIS].max - newzero;
 
       sync_plan_position();

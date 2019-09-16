@@ -257,9 +257,9 @@ void LcdUI::draw_status_screen() {
       #endif
       heat_bits = new_bits;
     #endif
-    strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
-    strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
-    strcpy(zstring, ftostr52sp (LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
+    strcpy(xstring, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x)));
+    strcpy(ystring, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y)));
+    strcpy(zstring, ftostr52sp (LOGICAL_Z_POSITION(mechanics.current_position.z)));
     #if HAS_LCD_FILAMENT_SENSOR
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, i16tostr3(100.0 * (

@@ -69,11 +69,11 @@
 
     const ProbePtRaiseEnum raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
-    float X_current = mechanics.current_position[X_AXIS],
-          Y_current = mechanics.current_position[Y_AXIS];
+    float X_current = mechanics.current_position.x,
+          Y_current = mechanics.current_position.y;
 
-    const float X_probe_location = parser.linearval('X', X_current + probe.data.offset[X_AXIS]),
-                Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset[Y_AXIS]);
+    const float X_probe_location = parser.linearval('X', X_current + probe.data.offset.x),
+                Y_probe_location = parser.linearval('Y', Y_current + probe.data.offset.y);
 
     if (!mechanics.position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
       SERIAL_LM(ER, "? (X,Y) out of bounds.");
@@ -161,8 +161,8 @@
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - probe.data.offset[X_AXIS] + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - probe.data.offset[Y_AXIS] + sin(RADIANS(angle)) * radius;
+            X_current = X_probe_location - probe.data.offset.x + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - probe.data.offset.y + sin(RADIANS(angle)) * radius;
 
             #if MECH(DELTA)
               // If we have gone out too far, we can do a simple fix and scale the numbers
@@ -184,7 +184,7 @@
               SERIAL_MSG("Going to:");
               SERIAL_MV(" X", X_current);
               SERIAL_MV(" Y", Y_current);
-              SERIAL_EMV(" Z", mechanics.current_position[Z_AXIS]);
+              SERIAL_EMV(" Z", mechanics.current_position.z);
             }
 
             mechanics.do_blocking_move_to_xy(X_current, Y_current);

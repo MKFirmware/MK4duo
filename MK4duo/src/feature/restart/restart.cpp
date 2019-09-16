@@ -87,7 +87,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
   // Did Z change since the last call?
   if (expired(&save_restart_ms, millis_s((SD_RESTART_FILE_SAVE_TIME) * 1000U)) || force_save
-      || mechanics.current_position[Z_AXIS] > job_info.axis_position_mm[Z_AXIS]
+      || mechanics.current_position.z > job_info.axis_position_mm.z
   ) {
 
     if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
@@ -96,8 +96,8 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Mechanics state
     LOOP_XYZE(axis) job_info.axis_position_mm[axis] = planner.get_axis_position_mm(AxisEnum(axis));
     #if ENABLED(WORKSPACE_OFFSETS)
-      COPY_ARRAY(job_info.home_offset, mechanics.data.home_offset);
-      COPY_ARRAY(job_info.position_shift, mechanics.position_shift);
+      job_info.home_offset = mechanics.data.home_offset;
+      job_info.position_shift = mechanics.position_shift;
     #endif
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
@@ -236,9 +236,9 @@ void Restart::resume_job() {
   // For DELTA must inversetrasform coordinate
   #if MECH(DELTA)
     mechanics.InverseTransform(
-      job_info.axis_position_mm[X_AXIS],
-      job_info.axis_position_mm[Y_AXIS],
-      job_info.axis_position_mm[Z_AXIS],
+      job_info.axis_position_mm.x,
+      job_info.axis_position_mm.y,
+      job_info.axis_position_mm.z,
       job_info.axis_position_mm
     );
   #endif
@@ -247,20 +247,20 @@ void Restart::resume_job() {
     // Move back to the saved XYZ
     char str3[16];
     sprintf_P(cmd, PSTR("G1 X%s Y%s Z%s F3000"),
-      dtostrf(job_info.axis_position_mm[X_AXIS], 1, 3, str1),
-      dtostrf(job_info.axis_position_mm[Y_AXIS], 1, 3, str2),
-      dtostrf(job_info.axis_position_mm[Z_AXIS], 1, 3, str3)
+      dtostrf(job_info.axis_position_mm.x, 1, 3, str1),
+      dtostrf(job_info.axis_position_mm.y, 1, 3, str2),
+      dtostrf(job_info.axis_position_mm.z, 1, 3, str3)
     );
     commands.process_now(cmd);
   #else
     // Move back to the saved XY
     sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
-      dtostrf(job_info.axis_position_mm[X_AXIS], 1, 3, str1),
-      dtostrf(job_info.axis_position_mm[Y_AXIS], 1, 3, str2)
+      dtostrf(job_info.axis_position_mm.x, 1, 3, str1),
+      dtostrf(job_info.axis_position_mm.y, 1, 3, str2)
     );
     commands.process_now(cmd);
     // Move back to the saved Z
-    dtostrf(job_info.axis_position_mm[Z_AXIS], 1, 3, str1);
+    dtostrf(job_info.axis_position_mm.z, 1, 3, str1);
     commands.process_now_P(PSTR("G1 Z0 F200"));
     sprintf_P(cmd, PSTR("G92.9 Z%s"), str1);
     commands.process_now(cmd);
@@ -276,7 +276,7 @@ void Restart::resume_job() {
   commands.process_now(cmd);
 
   // Restore E position
-  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(job_info.axis_position_mm[E_AXIS], 1, 3, str1));
+  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(job_info.axis_position_mm.e, 1, 3, str1));
   commands.process_now(cmd);
 
   // Relative mode
@@ -325,7 +325,7 @@ void Restart::write_job() {
     SERIAL_EMV(" Valid Foot:", (int)job_info.valid_foot);
     if (job_info.valid_head) {
       if (job_info.valid_head == job_info.valid_foot) {
-        SERIAL_MSG("current_position");
+        SERIAL_MSG("current_position.x");
         LOOP_XYZE(i) SERIAL_MV(": ", job_info.axis_position_mm[i]);
         SERIAL_EOL();
         SERIAL_MSG("target_temperature");

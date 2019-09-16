@@ -24,10 +24,10 @@
 // Struct Nozzle data
 struct nozzle_data_t {
   #if HOTENDS > 1
-    point_xyz_t hotend_offset[HOTENDS];
+    xyz_pos_t hotend_offset[HOTENDS];
   #endif
   #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-    point_xyz_t park_point;
+    xyz_pos_t park_point;
   #endif
 };
 
@@ -69,7 +69,7 @@ class Nozzle {
     #endif
 
     #if ENABLED(NOZZLE_PARK_FEATURE)
-      static void park(const uint8_t z_action, const point_xyz_t &park_p=data.park_point);
+      static void park(const uint8_t z_action, const xyz_pos_t &park_p=data.park_point);
     #endif
 
   private: /** Private Function */
@@ -84,7 +84,7 @@ class Nozzle {
        * @param end defining the ending point
        * @param strokes number of strokes to execute
        */
-      static void stroke(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes) _Os;
+      static void stroke(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes) _Os;
 
       /**
        * @brief Zig-zag clean pattern
@@ -95,7 +95,7 @@ class Nozzle {
        * @param strokes number of strokes to execute
        * @param objects number of objects to create
        */
-      static void zigzag(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes, const uint8_t &objects) _Os;
+      static void zigzag(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes, const uint8_t &objects) _Os;
 
       /**
        * @brief Circular clean pattern
@@ -106,7 +106,7 @@ class Nozzle {
        * @param strokes number of strokes to execute
        * @param radius of circle
        */
-      static void circle(const point_xyz_t &start, const point_xyz_t &middle, const uint8_t &strokes, const float &radius) _Os;
+      static void circle(const xyz_pos_t &start, const xyz_pos_t &middle, const uint8_t &strokes, const float &radius) _Os;
 
     #endif
 

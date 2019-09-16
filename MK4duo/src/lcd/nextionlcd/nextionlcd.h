@@ -211,6 +211,9 @@ class NextionLCD {
       static void gfx_cursor_to(const float x, const float y, const float z, bool force_cursor=false);
       static void gfx_line_to(const float x, const float y, const float z);
       static void gfx_plane_to(const float x, const float y, const float z);
+      FORCE_INLINE static void gfx_cursor_to(const xyz_pos_t &pos) { gfx_cursor_to(pos.x, pos.y, pos.z); }
+      FORCE_INLINE static void gfx_line_to(const xyz_pos_t &pos)   { gfx_line_to(pos.x, pos.y, pos.z); }
+      FORCE_INLINE static void gfx_plane_to(const xyz_pos_t &pos)  { gfx_plane_to(pos.x, pos.y, pos.z); }
     #endif
 
     #if ENABLED(RFID_MODULE)

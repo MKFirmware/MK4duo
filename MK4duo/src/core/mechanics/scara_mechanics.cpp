@@ -110,7 +110,7 @@ void Scara_Mechanics::factory_parameters() {
  * The result is in the current coordinate space with
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
- * suitable for current_position, etc.
+ * suitable for current_position.x, etc.
  */
 void Scara_Mechanics::get_cartesian_from_steppers() {
   InverseTransform(
@@ -118,7 +118,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
     planner.get_axis_position_mm(B_AXIS),
     cartesian_position
   );
-  cartesian_position[Z_AXIS] = planner.get_axis_position_mm(Z_AXIS);
+  cartesian_position.z = planner.get_axis_position_mm(Z_AXIS);
 }
 
 #if DISABLED(AUTO_BED_LEVELING_UBL)
@@ -136,20 +136,20 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
 
     // Get the cartesian distances moved in XYZE
     const float difference[XYZE] = {
-      destination[X_AXIS] - current_position[X_AXIS],
-      destination[Y_AXIS] - current_position[Y_AXIS],
-      destination[Z_AXIS] - current_position[Z_AXIS],
-      destination[E_AXIS] - current_position[E_AXIS]
+      destination.x - current_position.x,
+      destination.y - current_position.y,
+      destination.z - current_position.z,
+      destination.e - current_position.e
     };
 
     // If the move is only in Z/E don't split up the move
     if (!difference[X_AXIS] && !difference[Y_AXIS]) {
       planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
-      return false; // caller will update current_position
+      return false; // caller will update current_position.x
     }
 
     // Fail if attempting move outside printable radius
-    if (endstops.isSoftEndstop() && !position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) return true;
+    if (endstops.isSoftEndstop() && !position_is_reachable(destination.x, destination.y)) return true;
 
     // Get the linear distance in XYZ
     float cartesian_mm = SQRT(sq(difference[X_AXIS]) + sq(difference[Y_AXIS]) + sq(difference[Z_AXIS]));
@@ -207,7 +207,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
 
     // Get the current position as starting point
     float raw[XYZE];
-    COPY_ARRAY(raw, current_position);
+    COPY_ARRAY(raw, current_position.x);
 
     // Calculate and execute the segments
     while (--segments) {
@@ -256,44 +256,44 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       #endif
       const float diff2 = HYPOT2(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB);
       if (diff2)
-        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination[Z_AXIS], destination[E_AXIS], SQRT(diff2) * inverse_secs, tools.extruder.active);
+        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination.z, destination.e, SQRT(diff2) * inverse_secs, tools.extruder.active);
     #else
       planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
     #endif
 
-    return false; // caller will update current_position
+    return false; // caller will update current_position.x
   }
 
 #endif // DISABLED(AUTO_BED_LEVELING_UBL)
 
 /**
- *  Plan a move to (X, Y, Z) and set the current_position
- *  The final current_position may not be the one that was requested
+ *  Plan a move to (X, Y, Z) and set the current_position.x
+ *  The final current_position.x may not be the one that was requested
  */
 void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), nullptr, rx, ry, rz);
+  if (printer.debugFeature()) DEBUG_XYZ(rx, ry, rz, PSTR(">>> do_blocking_move_to"), nullptr);
 
-  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[Z_AXIS],
+  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
   if (!position_is_reachable(rx, ry)) return;
 
-  set_destination_to_current();
+  destination = current_position;
 
   // If Z needs to raise, do it before moving XY
-  if (destination[Z_AXIS] < rz) {
-    destination[Z_AXIS] = rz;
+  if (destination.z < rz) {
+    destination.z = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);
   }
 
-  destination[X_AXIS] = rx;
-  destination[Y_AXIS] = ry;
+  destination.x = rx;
+  destination.y = ry;
   prepare_uninterpolated_move_to_destination(xy_feedrate);
 
   // If Z needs to lower, do it after moving XY
-  if (destination[Z_AXIS] > rz) {
-    destination[Z_AXIS] = rz;
+  if (destination.z > rz) {
+    destination.z = rz;
     prepare_uninterpolated_move_to_destination(z_feedrate);
   }
 
@@ -303,13 +303,13 @@ void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const 
 
 }
 void Scara_Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, current_position[Y_AXIS], current_position[Z_AXIS], fr_mm_s);
+  do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
 }
 void Scara_Mechanics::do_blocking_move_to_z(const float &rz, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], rz, fr_mm_s);
+  do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
 }
 void Scara_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, ry, current_position[Z_AXIS], fr_mm_s);
+  do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
 }
 
 /**
@@ -372,9 +372,9 @@ void Scara_Mechanics::Transform(const float raw[XYZ]) {
   bool Scara_Mechanics::move_to_cal(uint8_t delta_a, uint8_t delta_b) {
     if (printer.isRunning()) {
       InverseTransform(delta_a, delta_b, cartesian_position);
-      destination[X_AXIS] = cartesian_position[X_AXIS];
-      destination[Y_AXIS] = cartesian_position[Y_AXIS];
-      destination[Z_AXIS] = current_position[Z_AXIS];
+      destination.x = cartesian_position.x;
+      destination.y = cartesian_position.y;
+      destination.z = current_position.z;
       prepare_move_to_destination();
       return true;
     }
@@ -421,7 +421,7 @@ void Scara_Mechanics::home() {
 
   bool come_back = parser.boolval('B');
   REMEMBER(fr, feedrate_mm_s);
-  COPY_ARRAY(stored_position[0], current_position);
+  COPY_ARRAY(stored_position[0], current_position.x);
 
   if (printer.debugFeature()) DEBUG_POS(">>> home_scara", current_position);
 
@@ -454,7 +454,7 @@ void Scara_Mechanics::home() {
   endstops.setNotHoming();
 
   if (come_back) {
-    feedrate_mm_s = homing_feedrate_mm_s[X_AXIS];
+    feedrate_mm_s = homing_feedrate_mm_s.x;
     COPY_ARRAY(destination, stored_position[0]);
     prepare_move_to_destination();
   }
@@ -518,7 +518,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   current_position[axis] = 0;
   sync_plan_position();
   current_position[axis] = distance;
-  planner.buffer_line(current_position, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
+  planner.buffer_line(current_position.x, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
 
   planner.synchronize();
 
@@ -545,7 +545,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
  * Set an axis' current position to its home position (after homing).
  *
  * SCARA should wait until all XY homing is done before setting the XY
- * current_position to home, because neither X nor Y is at home until
+ * current_position.x to home, because neither X nor Y is at home until
  * both are at home. Z can however be homed individually.
  *
  * Callers must sync the planner position after calling this!
@@ -602,11 +602,11 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
     if (axis == Z_AXIS) {
       #if HOMING_Z_WITH_PROBE
 
-        current_position[Z_AXIS] -= probe.data.offset[Z_AXIS];
+        current_position.z -= probe.data.offset.z;
 
         if (printer.debugFeature()) {
           DEBUG_EM("*** Z HOMED WITH PROBE ***");
-          DEBUG_EMV("> zprobe_zoffset = ", probe.data.offset[Z_AXIS]);
+          DEBUG_EMV("> zprobe_zoffset = ", probe.data.offset.z);
         }
 
       #else
@@ -618,7 +618,7 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
   #endif
 
   if (printer.debugFeature()) {
-    DEBUG_POS("", current_position);
+    DEBUG_POS("", current_position.x);
     DEBUG_MT("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')');
     DEBUG_EOL();
@@ -638,25 +638,25 @@ bool Scara_Mechanics::position_is_reachable(const float &rx, const float &ry) {
 // Return true if the both nozzle and the probe can reach the given point.
 bool Scara_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
   return position_is_reachable(rx, ry)
-      && position_is_reachable(rx - probe.data.offset[X_AXIS], ry - probe.data.offset[Y_AXIS]);
+      && position_is_reachable(rx - probe.data.offset.x, ry - probe.data.offset.y);
 }
 
 /**
- * Calculate delta, start a line, and set current_position to destination
+ * Calculate delta, start a line, and set current_position.x to destination
  */
 void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_mm_s=0.0) {
 
   if (printer.debugFeature()) DEBUG_POS("prepare_uninterpolated_move_to_destination", destination);
 
-  if ( current_position[X_AXIS] == destination[X_AXIS]
-    && current_position[Y_AXIS] == destination[Y_AXIS]
-    && current_position[Z_AXIS] == destination[Z_AXIS]
-    && current_position[E_AXIS] == destination[E_AXIS]
+  if ( current_position.x == destination.x
+    && current_position.y == destination.y
+    && current_position.z == destination.z
+    && current_position.e == destination.e
   ) return;
 
   planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
 
-  set_current_to_destination();
+  current_position = destination;
 }
 
 // Report detail current position to host
@@ -664,16 +664,16 @@ void Scara_Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("\nLogical:");
   const float logical[XYZ] = {
-    LOGICAL_X_POSITION(current_position[X_AXIS]),
-    LOGICAL_Y_POSITION(current_position[Y_AXIS]),
-    LOGICAL_Z_POSITION(current_position[Z_AXIS])
+    LOGICAL_X_POSITION(current_position.x),
+    LOGICAL_Y_POSITION(current_position.y),
+    LOGICAL_Z_POSITION(current_position.z)
   };
   report_xyz(logical);
 
   SERIAL_MSG("Raw:    ");
-  report_xyze(current_position);
+  report_xyze(current_position.x);
 
-  float leveled[XYZ] = { current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] };
+  float leveled[XYZ] = { current_position.x, current_position.y, current_position.z };
 
   #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
@@ -710,14 +710,14 @@ void Scara_Mechanics::report_current_position_detail() {
 
   SERIAL_MSG("FromStp:");
   get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
-  const float from_steppers[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], planner.get_axis_position_mm(E_AXIS) };
+  const float from_steppers[XYZE] = { cartesian_position.x, cartesian_position.y, cartesian_position.z, planner.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
   const float diff[XYZE] = {
     from_steppers[X_AXIS] - leveled[X_AXIS],
     from_steppers[Y_AXIS] - leveled[Y_AXIS],
     from_steppers[Z_AXIS] - leveled[Z_AXIS],
-    from_steppers[E_AXIS] - current_position[E_AXIS]
+    from_steppers[E_AXIS] - current_position.e
   };
 
   SERIAL_MSG("Differ: ");
@@ -876,7 +876,7 @@ void Scara_Mechanics::homeaxis(const AxisEnum axis) {
   // When homing Z with probe respect probe clearance
   const float bump = get_homedir(axis) * (
     #if HOMING_Z_WITH_PROBE
-      (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm[Z_AXIS]) :
+      (axis == Z_AXIS) ? MAX(Z_PROBE_BETWEEN_HEIGHT, home_bump_mm.z) :
     #endif
     home_bump_mm[axis]
   );

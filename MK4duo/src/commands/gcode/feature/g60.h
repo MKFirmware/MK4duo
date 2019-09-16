@@ -40,7 +40,7 @@ inline void gcode_G60(void) {
     SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
     return;
   } 
-  COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position);
+  COPY_ARRAY(mechanics.stored_position[slot], mechanics.current_position.x);
   printer.setPosSaved(true);
 
   SERIAL_MSG(MSG_SAVED_POS);

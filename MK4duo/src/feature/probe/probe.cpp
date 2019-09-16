@@ -36,9 +36,7 @@ probe_data_t Probe::data;
 
 /** Public Function */
 void Probe::factory_parameters() {
-  data.offset[X_AXIS] = X_PROBE_OFFSET_FROM_NOZZLE;
-  data.offset[Y_AXIS] = Y_PROBE_OFFSET_FROM_NOZZLE;
-  data.offset[Z_AXIS] = Z_PROBE_OFFSET_FROM_NOZZLE;
+  data.offset.set(X_PROBE_OFFSET_FROM_NOZZLE, Y_PROBE_OFFSET_FROM_NOZZLE, Z_PROBE_OFFSET_FROM_NOZZLE);
   data.speed_fast     = Z_PROBE_SPEED_FAST;
   data.speed_slow     = Z_PROBE_SPEED_SLOW;
   data.repetitions    = Z_PROBE_REPETITIONS;
@@ -79,7 +77,7 @@ bool Probe::set_deployed(const bool deploy) {
     }
   #endif
 
-  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+  mechanics.stored_position[0] = mechanics.current_position;
 
   #if HAS_ALLEN_KEY
 
@@ -112,7 +110,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #endif
 
-  mechanics.do_blocking_move_to(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], mechanics.current_position[Z_AXIS]); // return to position before deploy
+  mechanics.do_blocking_move_to(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], mechanics.current_position.z); // return to position before deploy
   endstops.setProbeEnabled(deploy);
   return false;
 }
@@ -120,9 +118,9 @@ bool Probe::set_deployed(const bool deploy) {
 #if Z_PROBE_AFTER_PROBING > 0
   // After probing move to a preferred Z position
   void Probe::move_z_after_probing() {
-    if (mechanics.current_position[Z_AXIS] != Z_PROBE_AFTER_PROBING) {
+    if (mechanics.current_position.z != Z_PROBE_AFTER_PROBING) {
       mechanics.do_blocking_move_to_z(Z_PROBE_AFTER_PROBING);
-      mechanics.current_position[Z_AXIS] = Z_PROBE_AFTER_PROBING;
+      mechanics.current_position.z = Z_PROBE_AFTER_PROBING;
     }
   }
 #endif
@@ -158,17 +156,17 @@ bool Probe::set_deployed(const bool deploy) {
       float nx = rx, ny = ry;
       if (probe_relative) {
         if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
-        nx -= data.offset[X_AXIS];
-        ny -= data.offset[Y_AXIS];
+        nx -= data.offset.x;
+        ny -= data.offset.y;
       }
       else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
 
       const float nz = 
         #if MECH(DELTA)
           // Move below clip height or xy move will be aborted by do_blocking_move_to
-          MIN(mechanics.current_position[Z_AXIS], mechanics.delta_clip_start_height)
+          MIN(mechanics.current_position.z, mechanics.delta_clip_start_height)
         #else
-          mechanics.current_position[Z_AXIS]
+          mechanics.current_position.z
         #endif
       ;
 
@@ -180,10 +178,10 @@ bool Probe::set_deployed(const bool deploy) {
 
       float measured_z = NAN;
       if (!DEPLOY_PROBE()) {
-        measured_z = run_probing() + data.offset[Z_AXIS];
+        measured_z = run_probing() + data.offset.z;
 
         if (raise_after == PROBE_PT_RAISE)
-          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+          mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
         else if (raise_after == PROBE_PT_STOW)
           if (STOW_PROBE()) measured_z = NAN;
       }
@@ -254,9 +252,9 @@ bool Probe::set_deployed(const bool deploy) {
 void Probe::print_M851() {
   SERIAL_LM(CFG, "Probe Offset X Y Z, speed Fast and Slow [mm/min], Repetitions");
   SERIAL_SM(CFG, "  M851");
-  SERIAL_MV(" X", LINEAR_UNIT(data.offset[X_AXIS]), 3);
-  SERIAL_MV(" Y", LINEAR_UNIT(data.offset[Y_AXIS]), 3);
-  SERIAL_MV(" Z", LINEAR_UNIT(data.offset[Z_AXIS]), 3);
+  SERIAL_MV(" X", LINEAR_UNIT(data.offset.x), 3);
+  SERIAL_MV(" Y", LINEAR_UNIT(data.offset.y), 3);
+  SERIAL_MV(" Z", LINEAR_UNIT(data.offset.z), 3);
   SERIAL_MV(" F", data.speed_fast);
   SERIAL_MV(" S", data.speed_slow);
   SERIAL_MV(" R", data.repetitions);
@@ -437,7 +435,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
   endstops.setEnabled(true);
 
   #if MECH(DELTA)
-    const float z_start = mechanics.current_position[Z_AXIS];
+    const float z_start = mechanics.current_position.z;
     const int32_t steps_start[ABC] = {
       stepper.position(A_AXIS),
       stepper.position(B_AXIS),
@@ -492,7 +490,7 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
     LOOP_ABC(i)
       z_dist += ABS(steps_start[i] - stepper.position((AxisEnum)i)) / mechanics.data.axis_steps_per_mm[i];
 
-    mechanics.current_position[Z_AXIS] = z_start - (z_dist / ABC);
+    mechanics.current_position.z = z_start - (z_dist / ABC);
   #else
     mechanics.set_current_from_steppers_for_axis(Z_AXIS);
   #endif
@@ -517,17 +515,17 @@ void Probe::do_raise(const float z_raise) {
   }
 
   float z_dest = z_raise;
-  if (data.offset[Z_AXIS] < 0) z_dest -= data.offset[Z_AXIS];
+  if (data.offset.z < 0) z_dest -= data.offset.z;
 
   NOMORE(z_dest, Z_MAX_BED);
 
-  if (z_dest > mechanics.current_position[Z_AXIS])
+  if (z_dest > mechanics.current_position.z)
     mechanics.do_blocking_move_to_z(z_dest);
 }
 
 /**
  * Used by check_pt to do a single Z probe at the current position.
- * Leaves current_position[Z_AXIS] at the height where the probe triggered.
+ * Leaves current_position.z at the height where the probe triggered.
  *
  * return The raw Z position where the probe was triggered
  */
@@ -537,14 +535,14 @@ float Probe::run_probing() {
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
-  const float z_probe_low_point = mechanics.isAxisHomed(Z_AXIS) ? Z_PROBE_LOW_POINT - data.offset[Z_AXIS] : -10.0;
+  const float z_probe_low_point = mechanics.isAxisHomed(Z_AXIS) ? Z_PROBE_LOW_POINT - data.offset.z : -10.0;
 
   if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
 
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
-  const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset[Z_AXIS] < 0 ? -data.offset[Z_AXIS] : 0);
-  if (mechanics.current_position[Z_AXIS] > z) {
+  const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
+  if (mechanics.current_position.z > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
       mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
@@ -560,8 +558,8 @@ float Probe::run_probing() {
       return NAN;
     }
 
-    probe_z += mechanics.current_position[Z_AXIS];
-    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+    probe_z += mechanics.current_position.z;
+    if (r > 1) mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
 
   }
 
@@ -576,13 +574,13 @@ float Probe::run_probing() {
                 z_probe_deploy_end_location[]    = Z_PROBE_DEPLOY_END_LOCATION;
 
     // Move to the start position to initiate deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s.z);
 
     // Move to engage deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_deploy_end_location, mechanics.homing_feedrate_mm_s.z / 10);
 
     // Move to trigger deployment
-    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_deploy_start_location, mechanics.homing_feedrate_mm_s.z);
   }
   void Probe::run_stow_moves_script() {
 
@@ -590,13 +588,13 @@ float Probe::run_probing() {
                 z_probe_retract_end_location[] = Z_PROBE_RETRACT_END_LOCATION;
 
     // Move to the start position to initiate retraction
-    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s.z);
 
     // Move the nozzle down to push the Z probe into retracted position
-    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s[Z_AXIS] / 10);
+    mechanics.do_blocking_move_to(z_probe_retract_end_location, mechanics.homing_feedrate_mm_s.z / 10);
 
     // Move up for safety
-    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s[Z_AXIS]);
+    mechanics.do_blocking_move_to(z_probe_retract_start_location, mechanics.homing_feedrate_mm_s.z);
   }
 
 #endif

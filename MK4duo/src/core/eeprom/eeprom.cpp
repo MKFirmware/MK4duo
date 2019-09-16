@@ -303,7 +303,7 @@ uint16_t EEPROM::datasize() { return sizeof(eepromDataStruct); }
  */
 void EEPROM::post_process() {
 
-  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+  mechanics.stored_position[0] = mechanics.current_position;
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -381,10 +381,10 @@ void EEPROM::post_process() {
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
-  // and init stepper.count[], planner.position[] with current_position
+  // and init stepper.count[], planner.position[] with current_position.x
   planner.refresh_positioning();
 
-  if (memcmp(mechanics.stored_position[0], mechanics.current_position, sizeof(mechanics.stored_position[0])))
+  if (mechanics.stored_position[0] != mechanics.current_position)
     mechanics.report_current_position();
 
 }

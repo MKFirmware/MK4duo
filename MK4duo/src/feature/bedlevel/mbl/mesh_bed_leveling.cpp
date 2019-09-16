@@ -46,15 +46,15 @@ void mesh_bed_leveling::factory_parameters() {
  * splitting the move where it crosses mesh borders.
  */
 void mesh_bed_leveling::line_to_destination(float fr_mm_s, uint16_t x_splits/*=0xFFFF*/, uint16_t y_splits/*=0xFFFF*/) {
-  int cx1 = cell_index_x(mechanics.current_position[X_AXIS]),
-      cy1 = cell_index_y(mechanics.current_position[Y_AXIS]),
-      cx2 = cell_index_x(mechanics.destination[X_AXIS]),
-      cy2 = cell_index_y(mechanics.destination[Y_AXIS]);
+  int cx1 = cell_index_x(mechanics.current_position.x),
+      cy1 = cell_index_y(mechanics.current_position.y),
+      cx2 = cell_index_x(mechanics.destination.x),
+      cy2 = cell_index_y(mechanics.destination.y);
 
   if (cx1 == cx2 && cy1 == cy2) {
     // Start and end on same mesh square
     mechanics.buffer_line_to_destination(fr_mm_s);
-    mechanics.set_current_to_destination();
+    mechanics.current_position = mechanics.destination;
     return;
   }
 
@@ -69,29 +69,29 @@ void mesh_bed_leveling::line_to_destination(float fr_mm_s, uint16_t x_splits/*=0
     // Split on the X grid line
     CBI(x_splits, gcx);
     COPY_ARRAY(end, mechanics.destination);
-    mechanics.destination[X_AXIS] = data.index_to_xpos[gcx];
-    normalized_dist = (mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS]) / (end[X_AXIS] - mechanics.current_position[X_AXIS]);
-    mechanics.destination[Y_AXIS] = MBL_SEGMENT_END(Y);
+    mechanics.destination.x = data.index_to_xpos[gcx];
+    normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end[X_AXIS] - mechanics.current_position.x);
+    mechanics.destination.y = MBL_SEGMENT_END(Y);
   }
   // Crosses on the Y and not already split on this Y?
   else if (cy2 != cy1 && TEST(y_splits, gcy)) {
     // Split on the Y grid line
     CBI(y_splits, gcy);
     COPY_ARRAY(end, mechanics.destination);
-    mechanics.destination[Y_AXIS] = data.index_to_ypos[gcy];
-    normalized_dist = (mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS]) / (end[Y_AXIS] - mechanics.current_position[Y_AXIS]);
-    mechanics.destination[X_AXIS] = MBL_SEGMENT_END(X);
+    mechanics.destination.y = data.index_to_ypos[gcy];
+    normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end[Y_AXIS] - mechanics.current_position.y);
+    mechanics.destination.x = MBL_SEGMENT_END(X);
   }
   else {
     // Must already have been split on these border(s)
     // This should be a rare case.
     mechanics.buffer_line_to_destination(fr_mm_s);
-    mechanics.set_current_to_destination();
+    mechanics.current_position = mechanics.destination;
     return;
   }
 
-  mechanics.destination[Z_AXIS] = MBL_SEGMENT_END(Z);
-  mechanics.destination[E_AXIS] = MBL_SEGMENT_END(E);
+  mechanics.destination.z = MBL_SEGMENT_END(Z);
+  mechanics.destination.e = MBL_SEGMENT_END(E);
 
   // Do the split and look for more borders
   line_to_destination(fr_mm_s, x_splits, y_splits);

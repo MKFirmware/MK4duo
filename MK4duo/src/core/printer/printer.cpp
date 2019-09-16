@@ -184,12 +184,12 @@ void Printer::setup() {
 
   #if ENABLED(WORKSPACE_OFFSETS)
     // Initialize current position based on data.home_offset
-    COPY_ARRAY(mechanics.current_position, mechanics.data.home_offset);
+    mechanics.current_position = mechanics.data.home_offset;
   #else
-    ZERO(mechanics.current_position);
+    mechanics.current_position.reset();
   #endif
 
-  // Vital to init stepper/planner equivalent for current_position
+  // Vital to init stepper/planner equivalent for current_position.x
   mechanics.sync_plan_position();
 
   // Initialize temperature loop
@@ -745,10 +745,10 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
         }
       #endif // !DONDOLO_SINGLE_MOTOR
 
-      const float olde = mechanics.current_position[E_AXIS];
-      mechanics.current_position[E_AXIS] += EXTRUDER_RUNOUT_EXTRUDE;
+      const float olde = mechanics.current_position.e;
+      mechanics.current_position.e += EXTRUDER_RUNOUT_EXTRUDE;
       planner.buffer_line(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.extruder.active);
-      mechanics.current_position[E_AXIS] = olde;
+      mechanics.current_position.e = olde;
       planner.set_e_position_mm(olde);
       planner.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
@@ -782,7 +782,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     if (mechanics.delayed_move_ms && expired(&mechanics.delayed_move_ms, 1000U) && isRunning()) {
       // travel moves have been received so enact them
       mechanics.delayed_move_ms = 0xFFFFU; // force moves to be done
-      mechanics.set_destination_to_current();
+      mechanics.destination = mechanics.current_position;
       mechanics.prepare_move_to_destination();
     }
   #endif
@@ -1044,14 +1044,14 @@ void Printer::handle_safety_watch() {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
-      mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] += IDLE_OOZING_LENGTH
+      mechanics.destination = mechanics.current_position;
+      mechanics.current_position.e += IDLE_OOZING_LENGTH
         #if ENABLED(VOLUMETRIC_EXTRUSION)
           / tools.volumetric_multiplier[tools.extruder.active]
         #endif
       ;
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      planner.set_e_position_mm(mechanics.current_position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[tools.extruder.active] = true;
@@ -1061,15 +1061,15 @@ void Printer::handle_safety_watch() {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
-      mechanics.set_destination_to_current();
-      mechanics.current_position[E_AXIS] -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
+      mechanics.destination = mechanics.current_position;
+      mechanics.current_position.e -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
         #if ENABLED(VOLUMETRIC_EXTRUSION)
           / tools.volumetric_multiplier[tools.extruder.active]
         #endif
       ;
 
       mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position[E_AXIS]);
+      planner.set_e_position_mm(mechanics.current_position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
       IDLE_OOZING_retracted[tools.extruder.active] = false;

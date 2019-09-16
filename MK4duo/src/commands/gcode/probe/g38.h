@@ -61,7 +61,7 @@
       G38_pass_fail = true;
 
       // Move away by the retract distance
-      mechanics.set_destination_to_current();
+      mechanics.destination = mechanics.current_position;
       LOOP_XYZ(i) mechanics.destination[i] += retract_mm[i];
       endstops.setEnabled(false);
       mechanics.prepare_move_to_destination();

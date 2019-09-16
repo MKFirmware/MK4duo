@@ -54,17 +54,13 @@
 #include <SPI.h>
 
 /**
- * Include file
+ * Macro for start
  */
 #include "src/lib/macros.h"
-#include "src/lib/types.h"
-#include "src/lib/enum.h"
-#include "src/lib/restorer.h"
-#include "src/lib/circular_queue.h"
-#include "src/lib/driver_types.h"
-#include "src/lib/duration_t.h"
-#include "src/lib/matrix.h"
 
+/**
+ * Include file
+ */
 #include "Boards.h"
 
 // Configuration settings loading
@@ -105,6 +101,15 @@
 #include "src/inc/conditionals_pre.h"
 #include "src/inc/conditionals_pins.h"
 #include "src/inc/conditionals_post.h"
+
+// Lib modules
+#include "src/lib/types.h"
+#include "src/lib/enum.h"
+#include "src/lib/restorer.h"
+#include "src/lib/circular_queue.h"
+#include "src/lib/driver_types.h"
+#include "src/lib/duration_t.h"
+#include "src/lib/matrix.h"
 
 // Platform modules
 #include "src/platform/platform.h"

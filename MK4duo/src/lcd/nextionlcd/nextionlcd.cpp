@@ -808,13 +808,13 @@ void NextionLCD::coordtoLCD() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   if (PageID == 2) {
-    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
-    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
-    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
+    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position.x)));
+    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position.y)));
+    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z))));
   }
   else if (PageID == 4) {
     if (mechanics.home_flag.XHomed) {
-      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
+      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x));
       strcat(cmd, "X");
       strcat(cmd, valuetemp);
     }
@@ -822,7 +822,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, "?");
 
     if (mechanics.home_flag.YHomed) {
-      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
+      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y));
       strcat(cmd, " Y");
       strcat(cmd, valuetemp);
     }
@@ -830,7 +830,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, " ?");
 
     if (mechanics.home_flag.ZHomed) {
-      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
+      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z)));
       strcat(cmd, " Z");
       strcat(cmd, valuetemp);
     }
@@ -1157,7 +1157,7 @@ bool NextionLCD::getConnect(char* buffer) {
         #endif
 
         // Set movement on a single axis
-        mechanics.set_destination_to_current();
+        mechanics.destination = mechanics.current_position;
         mechanics.destination[manual_move_axis] += manual_move_offset;
 
         // Reset for the next move

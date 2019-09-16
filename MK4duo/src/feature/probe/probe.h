@@ -42,7 +42,7 @@
 
 // Struct Probe data
 typedef struct {
-  float     offset[XYZ];
+  xyz_pos_t offset;
   uint16_t  speed_fast,
             speed_slow;
   uint8_t   repetitions;

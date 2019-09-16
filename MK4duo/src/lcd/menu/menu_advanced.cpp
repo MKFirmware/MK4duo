@@ -32,7 +32,7 @@ void menu_tmc();
 
 #if ENABLED(WORKSPACE_OFFSETS)
   //
-  // Set the home offset based on the current_position
+  // Set the home offset based on the current_position.x
   //
   void lcd_set_home_offsets() {
     commands.inject_P(PSTR("M428"));
@@ -691,7 +691,7 @@ void menu_advanced_settings() {
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
   #elif HAS_BED_PROBE
-    MENU_ITEM_EDIT(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+    MENU_ITEM_EDIT(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
   #endif
 
   #if DISABLED(SLIM_LCD_MENUS)

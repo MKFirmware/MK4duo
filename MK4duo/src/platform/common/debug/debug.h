@@ -23,6 +23,8 @@
 
 #if ENABLED(DEBUG_FEATURE)
 
+  #include "../../../core/position/position.h"
+
   class Debug {
 
     public: /** Constructor */
@@ -33,18 +35,23 @@
 
       static void log_machine_info();
 
-      static void print_xyz(PGM_P prefix, PGM_P suffix, const float x, const float y, const float z);
-      static void print_xyz(PGM_P prefix, PGM_P suffix, const float xyz[]);
+      static void print_xyz(const float &x, const float &y, const float &z, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr);
+
+      inline static void print_xyz(const xyz_pos_t &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
+        print_xyz(pos.x, pos.y, pos.z, prefix, suffix);
+      }
       #if HAS_PLANAR
-        static void print_xyz(PGM_P prefix, PGM_P suffix, const vector_3 &xyz);
+        inline static void print_xyz(const vector_3 &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
+          print_xyz(pos.x, pos.y, pos.z, prefix, suffix);
+        }
       #endif
 
   };
 
-  #define DEBUG_LOG_INFO()            Debug::log_machine_info()
+  #define DEBUG_LOG_INFO()            do { Debug::log_machine_info(); }while(0)
 
-  #define DEBUG_POS(SUFFIX,VAR)       Debug::print_xyz(PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"), VAR)
-  #define DEBUG_XYZ(PREF,SUFF,X,Y,Z)  Debug::print_xyz(PREF, SUFF, X, Y, Z)
+  #define DEBUG_POS(SUFFIX,VAR)       do { Debug::print_xyz(VAR, PSTR("  " STRINGIFY(VAR) "="), PSTR(" : " SUFFIX "\n"));  }while(0)
+  #define DEBUG_XYZ(PREFIX,V...)      do { Debug::print_xyz(V, PSTR(PREFIX), nullptr); }while(0)
 
   #define DEBUG_STR                   SERIAL_STR
   #define DEBUG_MSG                   SERIAL_MSG

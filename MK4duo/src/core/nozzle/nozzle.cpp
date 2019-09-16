@@ -54,9 +54,9 @@ void Nozzle::factory_parameters() {
   #endif // HOTENDS > 1
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
-    constexpr point_xyz_t nozzle_park_point = NOZZLE_PARK_POINT;
+    constexpr xyz_pos_t nozzle_park_point = NOZZLE_PARK_POINT;
   #elif EXTRUDERS > 1
-    constexpr point_xyz_t nozzle_park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
+    constexpr xyz_pos_t nozzle_park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
   #endif
   data.park_point = nozzle_park_point;
 
@@ -110,8 +110,8 @@ void Nozzle::factory_parameters() {
 
   void Nozzle::clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const uint8_t cleans) {
 
-    point_xyz_t start = NOZZLE_CLEAN_START_POINT;
-    point_xyz_t end   = NOZZLE_CLEAN_END_POINT;
+    xyz_pos_t start = NOZZLE_CLEAN_START_POINT;
+    xyz_pos_t end   = NOZZLE_CLEAN_END_POINT;
 
     if (pattern == 2) {
       if (!(cleans & (_BV(X_AXIS) | _BV(Y_AXIS)))) {
@@ -121,13 +121,13 @@ void Nozzle::factory_parameters() {
       end = NOZZLE_CLEAN_CIRCLE_MIDDLE;
     }
     else {
-      if (!TEST(cleans, X_AXIS))  start.x = end.x = mechanics.current_position[X_AXIS];
-      if (!TEST(cleans, X_AXIS))  start.y = end.y = mechanics.current_position[Y_AXIS];
+      if (!TEST(cleans, X_AXIS))  start.x = end.x = mechanics.current_position.x;
+      if (!TEST(cleans, X_AXIS))  start.y = end.y = mechanics.current_position.y;
     }
-    if (!TEST(cleans, Z_AXIS))    start.z = end.z = mechanics.current_position[Z_AXIS];
+    if (!TEST(cleans, Z_AXIS))    start.z = end.z = mechanics.current_position.z;
 
     #if MECH(DELTA)
-      if (mechanics.current_position[Z_AXIS] > mechanics.delta_clip_start_height)
+      if (mechanics.current_position.z > mechanics.delta_clip_start_height)
         mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height);
     #endif
 
@@ -149,7 +149,7 @@ void Nozzle::factory_parameters() {
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
-  void Nozzle::park(const uint8_t z_action, const point_xyz_t &park_p/*=data.park_point*/) {
+  void Nozzle::park(const uint8_t z_action, const xyz_pos_t &park_p/*=data.park_point*/) {
 
     const float fr_xy = NOZZLE_PARK_XY_FEEDRATE;
     const float fr_z  = NOZZLE_PARK_Z_FEEDRATE;
@@ -160,11 +160,11 @@ void Nozzle::factory_parameters() {
         break;
 
       case 2: // Raise by Z-park height
-        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_p.z, Z_MAX_BED), fr_z);
+        mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_p.z, Z_MAX_BED), fr_z);
         break;
 
       default: // Raise to Z-park height if lower
-        mechanics.do_blocking_move_to_z(MAX(park_p.z, mechanics.current_position[Z_AXIS]), fr_z);
+        mechanics.do_blocking_move_to_z(MAX(park_p.z, mechanics.current_position.z), fr_z);
     }
 
     mechanics.do_blocking_move_to_xy(park_p.x, park_p.y, fr_xy);
@@ -175,15 +175,11 @@ void Nozzle::factory_parameters() {
 /** Private Function */
 #if ENABLED(NOZZLE_CLEAN_FEATURE)
 
-  void Nozzle::stroke(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes) {
+  void Nozzle::stroke(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes) {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const float initial[XYZ] = {
-        mechanics.current_position[X_AXIS],
-        mechanics.current_position[Y_AXIS],
-        mechanics.current_position[Z_AXIS]
-      };
+      const xyz_pos_t initial = mechanics.current_position;
     #endif
 
     // Move to the starting point
@@ -205,7 +201,7 @@ void Nozzle::factory_parameters() {
     #endif
   }
 
-  void Nozzle::zigzag(const point_xyz_t &start, const point_xyz_t &end, const uint8_t &strokes, const uint8_t &objects) {
+  void Nozzle::zigzag(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes, const uint8_t &objects) {
 
     const float diffx = end.x - start.x,
                 diffy = end.y - start.y;
@@ -214,11 +210,7 @@ void Nozzle::factory_parameters() {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const float initial[XYZ] = {
-        mechanics.current_position[X_AXIS],
-        mechanics.current_position[Y_AXIS],
-        mechanics.current_position[Z_AXIS]
-      };
+      const xyz_pos_t initial = mechanics.current_position;
     #endif
 
     #if ENABLED(NOZZLE_CLEAN_NO_Z)
@@ -230,7 +222,7 @@ void Nozzle::factory_parameters() {
     const uint8_t zigs = objects << 1;
     const bool horiz = ABS(diffx) >= ABS(diffy);    // Do a horizontal wipe?
     const float P = (horiz ? diffx : diffy) / zigs;   // Period of each zig / zag
-    const point_xyz_t *side;
+    const xyz_pos_t *side;
 
     for (uint8_t j = 0; j < strokes; j++) {
       for (int8_t i = 0; i < zigs; i++) {
@@ -256,17 +248,13 @@ void Nozzle::factory_parameters() {
     #endif
   }
 
-  void Nozzle::circle(const point_xyz_t &start, const point_xyz_t &middle, const uint8_t &strokes, const float &radius) {
+  void Nozzle::circle(const xyz_pos_t &start, const xyz_pos_t &middle, const uint8_t &strokes, const float &radius) {
 
     if (strokes == 0) return;
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Store the current coords
-      const float initial[XYZ] = {
-        mechanics.current_position[X_AXIS],
-        mechanics.current_position[Y_AXIS],
-        mechanics.current_position[Z_AXIS]
-      };
+      const xyz_pos_t initial = mechanics.current_position;
     #endif
 
     #if ENABLED(NOZZLE_CLEAN_NO_Z)
@@ -289,7 +277,7 @@ void Nozzle::factory_parameters() {
 
     #if ENABLED(NOZZLE_CLEAN_GOBACK)
       // Move the nozzle to the initial point
-      mechanics.do_blocking_move_to_xy(initial[X_AXIS], initial[Y_AXIS], initial[Z_AXIS]);
+      mechanics.do_blocking_move_to(initial);
     #endif
   }
 

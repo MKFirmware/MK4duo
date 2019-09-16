@@ -42,7 +42,7 @@
  */
 inline void gcode_M701(void) {
 
-  point_xyz_t park_point = nozzle.data.park_point;
+  xyz_pos_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
@@ -66,7 +66,7 @@ inline void gcode_M701(void) {
 
   // Lift Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
 
   // Load filament
   #if HAS_MMU2
@@ -86,7 +86,7 @@ inline void gcode_M701(void) {
 
   // Restore Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
@@ -112,7 +112,7 @@ inline void gcode_M701(void) {
  */
 inline void gcode_M702(void) {
 
-  point_xyz_t park_point = nozzle.data.park_point;
+  xyz_pos_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
@@ -136,7 +136,7 @@ inline void gcode_M702(void) {
 
   // Lift Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position[Z_AXIS] + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MIN(mechanics.current_position.z + park_point.z, Z_MAX_BED), NOZZLE_PARK_Z_FEEDRATE);
 
   // Unload filament
   #if HAS_MMU2
@@ -162,7 +162,7 @@ inline void gcode_M702(void) {
 
   // Restore Z axis
   if (park_point.z > 0)
-    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position[Z_AXIS] - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
+    mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
   #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed

@@ -42,7 +42,7 @@
  * larger segments will tend to be more efficient. Your slicer should have
  * options for G2/G3 arc generation. In future these options may be GCode tunable.
  */
-void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise) {
+void plan_arc(const xyze_pos_t &cart, const float (&offset)[2], const uint8_t clockwise) {
 
   #if ENABLED(CNC_WORKSPACE_PLANES)
     AxisEnum p_axis, q_axis, l_axis;
@@ -68,7 +68,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
               rt_X = cart[p_axis] - center_P,
               rt_Y = cart[q_axis] - center_Q,
               linear_travel = cart[l_axis] - mechanics.current_position[l_axis],
-              extruder_travel = cart[E_AXIS] - mechanics.current_position[E_AXIS];
+              extruder_travel = cart[E_AXIS] - mechanics.current_position.e;
 
   // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
   float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
@@ -123,7 +123,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
    * This is important when there are successive arc motions.
    */
   // Vector rotation matrix values
-  float raw[XYZE];
+  xyze_pos_t raw;
   const float theta_per_segment = angular_travel / segments,
               linear_per_segment = linear_travel / segments,
               extruder_per_segment = extruder_travel / segments,
@@ -134,7 +134,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   raw[l_axis] = mechanics.current_position[l_axis];
 
   // Initialize the extruder axis
-  raw[E_AXIS] = mechanics.current_position[E_AXIS];
+  raw[E_AXIS] = mechanics.current_position.e;
 
   const float fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
 
@@ -222,7 +222,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     raw[l_axis] = start_L;
   #endif
-  COPY_ARRAY(mechanics.current_position, raw);
+  mechanics.current_position = raw;
 
 }
 
@@ -288,8 +288,8 @@ void gcode_G2_G3(const bool clockwise) {
     float arc_offset[2] = { 0.0, 0.0 };
     if (parser.seenval('R')) {
       const float r = parser.value_linear_units(),
-                  p1 = mechanics.current_position[X_AXIS], q1 = mechanics.current_position[Y_AXIS],
-                  p2 = mechanics.destination[X_AXIS],      q2 = mechanics.destination[Y_AXIS];
+                  p1 = mechanics.current_position.x, q1 = mechanics.current_position.y,
+                  p2 = mechanics.destination.x,      q2 = mechanics.destination.y;
       if (r && (p2 != p1 || q2 != q1)) {
         const float e = clockwise ^ (r < 0) ? -1 : 1,             // clockwise -1/1, counterclockwise 1/-1
                     dx = p2 - p1, dy = q2 - q1,                   // X and Y differences
@@ -316,7 +316,7 @@ void gcode_G2_G3(const bool clockwise) {
         if (!WITHIN(circles_to_do, 0, 100))
           SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
         while (circles_to_do--)
-          plan_arc(mechanics.current_position, arc_offset, clockwise);
+          plan_arc(mechanics.current_position.x, arc_offset, clockwise);
       #endif
 
       // Send an arc to the planner

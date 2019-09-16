@@ -560,7 +560,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
         #endif
 
         // Set movement on a single axis
-        mechanics.set_destination_to_current();
+        mechanics.destination = mechanics.current_position;
         mechanics.destination[manual_move_axis] += manual_move_offset;
 
         // Reset for the next move

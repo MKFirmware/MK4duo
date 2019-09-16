@@ -61,7 +61,7 @@
       if (mechanics.current_position[axis] == mechanics.destination[axis])
         SERIAL_MSG("-------------");
       else
-        SERIAL_VAL(mechanics.destination[X_AXIS], 6);
+        SERIAL_VAL(mechanics.destination.x, 6);
     }
 
     void debug_current_and_destination(PGM_P title) {
@@ -70,12 +70,12 @@
       // ignore the status of the bedlevel.flag.g26_debug
       if (*title != '!' && !bedlevel.flag.g26_debug) return;
 
-      const float de = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
+      const float de = mechanics.destination.e - mechanics.current_position.e;
 
       if (de == 0.0) return; // Printing moves only
 
-      const float dx = mechanics.destination[X_AXIS] - mechanics.current_position[X_AXIS],
-                  dy = mechanics.destination[Y_AXIS] - mechanics.current_position[Y_AXIS],
+      const float dx = mechanics.destination.x - mechanics.current_position.x,
+                  dy = mechanics.destination.y - mechanics.current_position.y,
                   xy_dist = HYPOT(dx, dy);
 
       if (xy_dist == 0.0) return;
@@ -83,10 +83,10 @@
       const float fpmm = de / xy_dist;
       SERIAL_MV("   fpmm=", fpmm, 6);
 
-      SERIAL_MV("    current=( ", mechanics.current_position[X_AXIS], 6);
-      SERIAL_MV(", ", mechanics.current_position[Y_AXIS], 6);
-      SERIAL_MV(", ", mechanics.current_position[Z_AXIS], 6);
-      SERIAL_MV(", ", mechanics.current_position[E_AXIS], 6);
+      SERIAL_MV("    current=( ", mechanics.current_position.x, 6);
+      SERIAL_MV(", ", mechanics.current_position.y, 6);
+      SERIAL_MV(", ", mechanics.current_position.z, 6);
+      SERIAL_MV(", ", mechanics.current_position.e, 6);
       SERIAL_MSG(" )   destination=( ");
       debug_echo_axis(X_AXIS); SERIAL_MSG(", ");
       debug_echo_axis(Y_AXIS); SERIAL_MSG(", ");
@@ -190,8 +190,8 @@
     // Add XY_PROBE_OFFSET_FROM_EXTRUDER because probe_pt() subtracts these when
     // moving to the xy position to be measured. This ensures better agreement between
     // the current Z position after G28 and the mesh values.
-    const float current_xi = find_closest_x_index(mechanics.current_position[X_AXIS] + probe.data.offset[X_AXIS]),
-                current_yi = find_closest_y_index(mechanics.current_position[Y_AXIS] + probe.data.offset[Y_AXIS]);
+    const float current_xi = find_closest_x_index(mechanics.current_position.x + probe.data.offset.x),
+                current_yi = find_closest_y_index(mechanics.current_position.y + probe.data.offset.y);
 
     if (!lcd) SERIAL_EOL();
     for (int8_t j = GRID_MAX_POINTS_Y - 1; j >= 0; j--) {

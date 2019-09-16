@@ -41,11 +41,11 @@ typedef struct {
   volatile uint32_t sdpos;
 
   // Mechanics state
-  float   axis_position_mm[XYZE];
+  xyze_pos_t  axis_position_mm;
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    float home_offset[XYZ];
-    float position_shift[XYZ];
+    xyz_pos_t home_offset,
+              position_shift;
   #endif
 
   uint16_t feedrate;

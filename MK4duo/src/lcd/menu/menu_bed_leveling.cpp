@@ -46,7 +46,7 @@
     printer.setWaitForUser(true);
     while (printer.isWaitForUser()) printer.idle();
     lcdui.goto_previous_screen_no_defer();
-    return mechanics.current_position[Z_AXIS];
+    return mechanics.current_position.z;
   }
 
 #endif
@@ -134,7 +134,7 @@
     // Encoder knob or keypad buttons adjust the Z position
     //
     if (lcdui.encoderPosition) {
-      const float z = mechanics.current_position[Z_AXIS] + float((int16_t)lcdui.encoderPosition) * (LCD_Z_STEP);
+      const float z = mechanics.current_position.z + float((int16_t)lcdui.encoderPosition) * (LCD_Z_STEP);
       line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f));
       lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
       lcdui.encoderPosition = 0;
@@ -144,7 +144,7 @@
     // Draw on first display, then only on Z change
     //
     if (lcdui.should_draw()) {
-      const float v = mechanics.current_position[Z_AXIS];
+      const float v = mechanics.current_position.z;
       draw_edit_screen(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
   }
@@ -288,7 +288,7 @@ void menu_bed_leveling() {
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
   #elif HAS_BED_PROBE
-    MENU_ITEM_EDIT(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset[Z_AXIS], Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+    MENU_ITEM_EDIT(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)

@@ -87,7 +87,7 @@ void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
       if (raise_z) {
         saved_speed = get_Speed();
-        saved_z = mechanics.current_position[Z_AXIS];
+        saved_z = mechanics.current_position.z;
         mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
       }
     #endif

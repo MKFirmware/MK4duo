@@ -46,18 +46,22 @@ void print_hex_word(const uint16_t w);
 void print_hex_address(const void * const w);
 void print_hex_long(const uint32_t w, const char delimiter);
 
+// 16x16 bit arrays
+template <int W, int H>
+struct FlagBits {
+  typename IF<(W>8), uint16_t, uint8_t>::type bits[H];
+  void fill()                                   { memset(bits, 0xFF, sizeof(bits)); }
+  void reset()                                  { memset(bits, 0x00, sizeof(bits)); }
+  void unmark(const uint8_t x, const uint8_t y) { CBI(bits[y], x); }
+  void mark(const uint8_t x, const uint8_t y)   { SBI(bits[y], x); }
+  bool marked(const uint8_t x, const uint8_t y) { return TEST(bits[y], x); }
+  inline void unmark(const xy_uchar_t xy)       { unmark(xy.y, xy.x); }
+  inline void mark(const xy_uchar_t xy)         { mark(xy.y, xy.x); }
+  inline bool marked(const xy_uchar_t xy)       { return marked(xy.y, xy.x); }
+};
+
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
-
-  /**
-   * These support functions allow the use of large bit arrays of flags that take very
-   * little RAM. Currently they are limited to being 16x16 in size. Changing the declaration
-   * to unsigned long will allow us to go to 32x32 if higher resolution Mesh's are needed
-   * in the future.
-   */
-  FORCE_INLINE void bitmap_clear(uint16_t bits[16], const uint8_t x, const uint8_t y)  { CBI(bits[y], x); }
-  FORCE_INLINE void bitmap_set(uint16_t bits[16], const uint8_t x, const uint8_t y)    { SBI(bits[y], x); }
-  FORCE_INLINE bool is_bitmap_set(uint16_t bits[16], const uint8_t x, const uint8_t y) { return TEST(bits[y], x); }
-
+  typedef FlagBits<GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y> MeshFlags;
 #endif
 
 //

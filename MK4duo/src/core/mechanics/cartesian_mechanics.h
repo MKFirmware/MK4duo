@@ -68,25 +68,31 @@ class Cartesian_Mechanics : public Mechanics {
      * The result is in the current coordinate space with
      * leveling applied. The coordinates need to be run through
      * unapply_leveling to obtain the "ideal" coordinates
-     * suitable for current_position, etc.
+     * suitable for current_position.x, etc.
      */
     static void get_cartesian_from_steppers();
 
     /**
-     *  Plan a move to (X, Y, Z) and set the current_position
-     *  The final current_position may not be the one that was requested
+     *  Plan a move to (X, Y, Z) and set the current_position.x
+     *  The final current_position.x may not be the one that was requested
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
+    static void do_blocking_move_to_y(const float &ry, const float &fr_mm_s=0);
     static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
     static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
 
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
-      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    FORCE_INLINE void do_blocking_move_to(const xy_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
     }
-
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
-      do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
+    FORCE_INLINE void do_blocking_move_to(const xyz_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
+    }
+    FORCE_INLINE void do_blocking_move_to(const xyze_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
+    }
+    FORCE_INLINE void do_blocking_move_to_xy(const xy_pos_t &raw, const float &fr_mm_s=0) {
+      do_blocking_move_to_xy(raw.x, raw.y, fr_mm_s);
     }
 
     /**
@@ -131,6 +137,7 @@ class Cartesian_Mechanics : public Mechanics {
      * Check position is reachable
      */
     static bool position_is_reachable(const float &rx, const float &ry);
+    inline static bool position_is_reachable(const xy_pos_t &pos) { return position_is_reachable(pos.x, pos.y); }
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
 
     /**
