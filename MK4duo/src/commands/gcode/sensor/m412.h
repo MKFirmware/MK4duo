@@ -38,7 +38,7 @@
  *  D[float]  Distance mm
  *
  */
-inline void gcode_M412(void) {
+inline void gcode_M412() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M412 report.

@@ -29,8 +29,6 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
-const char axis_codes[XYZE] = {'X', 'Y', 'Z', 'E'};
-
 Printer printer;
 
 debug_flag_t    Printer::debug_flag;    // For debug

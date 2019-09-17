@@ -36,7 +36,7 @@
      * M911:  Report TMC stepper driver overtemperature pre-warn flag
      *        The flag is held by the library and persist until manually cleared by M912
      */
-    inline void gcode_M911(void) {
+    inline void gcode_M911() {
       #if AXIS_HAS_TMC(X)
         tmc.report_otpw(X_DRV);
       #endif
@@ -92,15 +92,15 @@
      *       M912 X E ; clear X, X2, and all E
      *       M912 E1  ; clear E1 only
      */
-    inline void gcode_M912(void) {
-      const bool  hasX = parser.seen(axis_codes[X_AXIS]),
-                  hasY = parser.seen(axis_codes[Y_AXIS]),
-                  hasZ = parser.seen(axis_codes[Z_AXIS]),
-                  hasE = parser.seen(axis_codes[E_AXIS]),
+    inline void gcode_M912() {
+      const bool  hasX = parser.seen(axis_codes.x),
+                  hasY = parser.seen(axis_codes.y),
+                  hasZ = parser.seen(axis_codes.z),
+                  hasE = parser.seen(axis_codes.e),
                   hasNone = !hasX && !hasY && !hasZ && !hasE;
 
       #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(X2)
-        const int8_t xval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
+        const int8_t xval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(X)
           if (hasNone || xval == 1 || (hasX && xval < 0)) tmc.clear_otpw(X_DRV);
         #endif
@@ -110,7 +110,7 @@
       #endif
 
       #if AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Y2)
-        const int8_t yval = int8_t(parser.byteval(axis_codes[X_AXIS], 0xFF));
+        const int8_t yval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(Y)
           if (hasNone || yval == 1 || (hasY && yval < 0)) tmc.clear_otpw(Y_DRV);
         #endif
@@ -120,7 +120,7 @@
       #endif
 
       #if AXIS_HAS_TMC(Z) || AXIS_HAS_TMC(Z2) || AXIS_HAS_TMC(Z3)
-        const int8_t zval = int8_t(parser.byteval(axis_codes[Z_AXIS], 0xFF));
+        const int8_t zval = int8_t(parser.byteval(axis_codes.z, 0xFF));
         #if AXIS_HAS_TMC(Z)
           if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc.clear_otpw(Z_DRV);
         #endif
@@ -132,7 +132,7 @@
         #endif
       #endif
 
-      const uint8_t eval = int8_t(parser.byteval(axis_codes[E_AXIS], 0xFF));
+      const uint8_t eval = int8_t(parser.byteval(axis_codes.e, 0xFF));
 
       #if AXIS_HAS_TMC(E0)
         if (hasNone || eval == 0 || (hasE && eval < 0)) tmc.clear_otpw(E0_DRV);
@@ -164,7 +164,7 @@
 
     #define CODE_M913
 
-    inline void gcode_M913(void) {
+    inline void gcode_M913() {
 
       if (commands.get_target_tool(913)) return;
 
@@ -244,7 +244,7 @@
 
     #define CODE_M914
 
-    inline void gcode_M914(void) {
+    inline void gcode_M914() {
 
       #if DISABLED(DISABLE_M503)
         // No arguments? Show M914 report.
@@ -307,7 +307,7 @@
 
     #define CODE_M915
 
-    inline void gcode_M915(void) {
+    inline void gcode_M915() {
 
       const uint16_t  _rms  = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
                       _z    = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;

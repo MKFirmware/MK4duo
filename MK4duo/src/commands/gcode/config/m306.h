@@ -52,7 +52,7 @@
  *    Q[bool]   PWM Hardware
  *
  */
-inline void gcode_M306(void) {
+inline void gcode_M306() {
 
   Heater * const act = commands.get_target_heater();
 

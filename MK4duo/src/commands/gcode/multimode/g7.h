@@ -30,7 +30,7 @@
 
   #define CODE_G7
 
-  inline void gcode_G7(void) {
+  inline void gcode_G7() {
 
     if (parser.seenval('L')) laser.raster_raw_length = parser.value_int();
 

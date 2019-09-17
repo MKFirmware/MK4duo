@@ -33,7 +33,7 @@
   /**
    * G42: Move X & Y axes to mesh coordinates (I & J)
    */
-  inline void gcode_G42(void) {
+  inline void gcode_G42() {
     if (printer.isRunning()) {
       const bool hasI = parser.seenval('I');
       const int8_t ix = hasI ? parser.value_int() : 0;

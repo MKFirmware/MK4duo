@@ -85,12 +85,12 @@ static void syncTCC(Tcc* TCCx) {
 }
 
 // disable interrupts
-void cli(void) {
+void cli() {
   noInterrupts();
 }
 
 // enable interrupts
-void sei(void) {
+void sei() {
   interrupts();
 }
 
@@ -121,7 +121,7 @@ extern "C" int sysTickHook() {
 bool HAL::SPIReady = false;
 
 // do any hardware-specific initialization here
-void HAL::hwSetup(void) { SPIReady= true; }
+void HAL::hwSetup() { SPIReady= true; }
 
 HAL::HAL() {
   // ctor

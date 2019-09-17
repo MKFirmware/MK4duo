@@ -26,7 +26,7 @@
 #include "SdSpiDriver.h"
 static volatile bool SPI_DMA_TransferCompleted = false;
 //-----------------------------------------------------------------------------
-static void SD_SPI_DMA_TransferComplete_Callback(void) {
+static void SD_SPI_DMA_TransferComplete_Callback() {
     SPI_DMA_TransferCompleted = true;
 }
 //------------------------------------------------------------------------------

@@ -45,7 +45,7 @@
    *       M302 S170    ; only allow extrusion above 170
    *       M302 S170 P1 ; set min extrude temp to 170 but leave disabled
    */
-  inline void gcode_M302(void) {
+  inline void gcode_M302() {
     bool seen_S = parser.seen('S');
     if (seen_S) {
       thermalManager.extrude_min_temp = parser.value_celsius();

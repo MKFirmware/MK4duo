@@ -33,7 +33,7 @@
   /**
    * M906: Set motor currents
    */
-  inline void gcode_M906(void) {
+  inline void gcode_M906() {
 
     if (commands.get_target_tool(906)) return;
 
@@ -54,7 +54,7 @@
    * M906: Set motor current in milliamps using axis codes X, Y, Z, E
    * Report driver currents when no axis specified
    */
-  inline void gcode_M906(void) {
+  inline void gcode_M906() {
 
     if (commands.get_target_tool(906)) return;
 

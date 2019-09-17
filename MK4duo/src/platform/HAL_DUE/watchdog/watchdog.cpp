@@ -30,7 +30,7 @@
 // process, because watchdog initialization at hardware reset on SAM3X8E
 // is unreliable, and there is risk of unintended resets if we delay
 // that initialization to a later time.
-void watchdogSetup(void) {
+void watchdogSetup() {
 
   #if ENABLED(USE_WATCHDOG)
 
@@ -100,13 +100,13 @@ void watchdogSetup(void) {
   #endif
 }
 
-void Watchdog::init(void) {
+void Watchdog::init() {
   #if ENABLED(USE_WATCHDOG)
     WDT_Restart(WDT);
   #endif
 }
 
-void Watchdog::reset(void) {
+void Watchdog::reset() {
   #if ENABLED(USE_WATCHDOG)
     WDT_Restart(WDT);
   #endif

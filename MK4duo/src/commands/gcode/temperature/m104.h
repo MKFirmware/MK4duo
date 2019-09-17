@@ -33,7 +33,7 @@
 /**
  * M104: Set hotend temperature
  */
-inline void gcode_M104(void) {
+inline void gcode_M104() {
 
   if (commands.get_target_tool(104)) return;
 

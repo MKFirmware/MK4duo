@@ -42,7 +42,7 @@
  *  Z[linear]   Park Z Raise
  *
  */
-inline void gcode_M217(void) {
+inline void gcode_M217() {
 
   #define SPR_PARAM
   #define XY_PARAM

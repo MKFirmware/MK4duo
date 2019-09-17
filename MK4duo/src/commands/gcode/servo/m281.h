@@ -36,7 +36,7 @@
    *  L<min>
    *  U<max>
    */
-  inline void gcode_M281(void) {
+  inline void gcode_M281() {
 
     if (!parser.seen('P')) return;
     const int servo_index = parser.value_int();

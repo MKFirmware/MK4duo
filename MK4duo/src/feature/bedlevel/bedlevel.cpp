@@ -85,7 +85,7 @@ void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      const float raw[XYZ] = { rx, ry, 0 };
+      const xyz_pos_t raw = { rx, ry, 0 };
     #endif
 
     rz += (
@@ -181,7 +181,7 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       // Force abl.bilinear_z_offset to re-calculate next time
-      const float reset[XYZ] = { -9999.999, -9999.999, 0 };
+      const xyz_pos_t reset = { -9999.999, -9999.999, 0 };
       (void)abl.bilinear_z_offset(reset);
     #endif
 

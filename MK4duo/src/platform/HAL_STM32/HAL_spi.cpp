@@ -87,7 +87,7 @@ void HAL::spiSend(uint8_t nbyte) {
 }
 
 // Read single byte from SPI
-uint8_t HAL::spiReceive(void) {
+uint8_t HAL::spiReceive() {
   SPI.beginTransaction(spiConfig);
   uint8_t returnByte = SPI.transfer(0xFF);
   SPI.endTransaction();

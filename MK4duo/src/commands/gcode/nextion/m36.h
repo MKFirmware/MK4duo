@@ -35,7 +35,7 @@
  *    S - Stop print
  *    P - Play or resume print
  */
-inline void gcode_M36(void) {
+inline void gcode_M36() {
   if (parser.seen('S')) {
     #if HAS_LCD_MENU
       lcdui.goto_screen(menu_stop_print);

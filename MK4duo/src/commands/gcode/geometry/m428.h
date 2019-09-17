@@ -41,7 +41,7 @@
    *
    *       Use M206 to set these values directly.
    */
-  inline void gcode_M428(void) {
+  inline void gcode_M428() {
     if (mechanics.axis_unhomed_error()) return;
 
     float diff[XYZ];

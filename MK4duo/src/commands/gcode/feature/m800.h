@@ -37,7 +37,7 @@ void menu_sdcard_restart();
  *   - With 'S' go to the Restart/Cancel menu
  *   - With no parameters run restart commands
  */
-inline void gcode_M800(void) {
+inline void gcode_M800() {
   if (restart.valid()) {
     #if HAS_LCD_MENU
       if (parser.seen('S'))

@@ -33,7 +33,7 @@
 /**
  * M142: Set Cooler temperature
  */
-inline void gcode_M142(void) {
+inline void gcode_M142() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
   if (parser.seenval('S')) coolers[0].set_target_temp(parser.value_celsius());
 }

@@ -28,7 +28,7 @@
 
 #define CODE_M851
 
-inline void gcode_M851(void) {
+inline void gcode_M851() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M851 report.

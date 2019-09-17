@@ -82,7 +82,7 @@
     return b;
   }
 
-  void HAL::spiBegin(void) {
+  void HAL::spiBegin() {
     SET_OUTPUT(SS_PIN);
     WRITE(SS_PIN, HIGH);
     SET_OUTPUT(SCK_PIN);
@@ -97,7 +97,7 @@
     WRITE(SCK_PIN, LOW);
   }
 
-  uint8_t HAL::spiReceive(void) {
+  uint8_t HAL::spiReceive() {
     WRITE(SS_PIN, LOW);
     uint8_t b = spiTransfer(0xFF);
     WRITE(SS_PIN, HIGH);
@@ -179,7 +179,7 @@
   void HAL::spiSend(uint32_t chan, const uint8_t* buf, size_t n) { }
 
   // Read single byte from SPI
-  uint8_t HAL::spiReceive(void) {
+  uint8_t HAL::spiReceive() {
     return  SPI.transfer(0xFF);
   }
 

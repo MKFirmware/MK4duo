@@ -34,7 +34,7 @@
  *   P<index>    - Serial port index. Omit for all.
  *   B<baudrate> - Baud rate (bits per second)
  */
-inline void gcode_M575(void) {
+inline void gcode_M575() {
 
   const int8_t port   = parser.intval('P', -99);
   const int32_t baud  = parser.ulongval('B');

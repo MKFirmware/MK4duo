@@ -38,7 +38,7 @@
  *   P[float]   The mix value
  *
  */
-inline void gcode_M163(void) {
+inline void gcode_M163() {
   const int mix_index = parser.intval('S');
   if (mix_index < MIXING_STEPPERS)
     mixer.set_collector(mix_index, parser.floatval('P'));
@@ -53,7 +53,7 @@ inline void gcode_M163(void) {
  *              If 'S' is omitted update the active virtual tool.
  *
  */
-inline void gcode_M164(void) {
+inline void gcode_M164() {
   #if MIXING_VIRTUAL_TOOLS > 1
     const int tool_index = parser.intval('S', -1);
   #else
@@ -79,7 +79,7 @@ inline void gcode_M164(void) {
  *   I[factor] Mix factor for extruder stepper 6
  *
  */
-inline void gcode_M165(void) {
+inline void gcode_M165() {
   // Get mixing parameters from the GCode
   // The total "must" be 1.0 (but it will be normalized)
   // If no mix factors are given, the old mix is preserved
@@ -142,7 +142,7 @@ inline void gcode_M165(void) {
    *
    * Example: M166 S1 A0 Z20 I0 J1
    */
-  inline void gcode_M166(void) {
+  inline void gcode_M166() {
     if (parser.seenval('A')) mixer.gradient.start_z = parser.value_float();
     if (parser.seenval('Z')) mixer.gradient.end_z = parser.value_float();
     if (parser.seenval('I')) mixer.gradient.start_vtool = (uint8_t)constrain(parser.value_int(), 0, MIXING_VIRTUAL_TOOLS);

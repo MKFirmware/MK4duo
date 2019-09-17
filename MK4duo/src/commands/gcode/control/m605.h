@@ -48,7 +48,7 @@
  *
  *    Note: the X axis should be homed after changing dual x-carriage mode.
  */
-inline void gcode_M605(void) {
+inline void gcode_M605() {
   planner.synchronize();
 
   if (parser.seen('S')) {

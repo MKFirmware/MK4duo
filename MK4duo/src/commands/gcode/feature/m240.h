@@ -77,7 +77,7 @@
  *    I - Switch trigger position override X
  *    J - Switch trigger position override Y
  */
-inline void gcode_M240(void) {
+inline void gcode_M240() {
 
   #if ENABLED(PHOTO_POSITION)
 

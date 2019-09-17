@@ -33,7 +33,7 @@
 /**
  * M522: Read or Write on card. M522 T<extruders> R<read> or W<write> L<list>
  */
-inline void gcode_M522(void) {
+inline void gcode_M522() {
 
   if (commands.get_target_tool(522)) return;
 

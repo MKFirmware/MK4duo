@@ -40,7 +40,7 @@ inline void tmc_set_stealthChop(const DriverEnum index, const bool onoff) {
 /**
  * M940: TMC switch StealthChop.
  */
-inline void gcode_M940(void) {
+inline void gcode_M940() {
   
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M940 report.
@@ -107,7 +107,7 @@ inline void gcode_M940(void) {
 /**
  * M941: TMC switch ChopperMode.
  */
-inline void gcode_M941(void) {
+inline void gcode_M941() {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
       driver[X_DRV]->tmc->chm(parser.value_bool());
@@ -160,7 +160,7 @@ inline void gcode_M941(void) {
 /**
  * M942: TMC switch interpolation.
  */
-inline void gcode_M942(void) {
+inline void gcode_M942() {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
       driver[X_DRV]->tmc->intpol(parser.value_bool());

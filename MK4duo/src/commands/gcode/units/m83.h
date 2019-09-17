@@ -31,4 +31,4 @@
 /**
  * M83: Set E codes relative while in Absolute Coordinates (G90) mode
  */
-inline void gcode_M83(void) { mechanics.set_e_relative(); }
+inline void gcode_M83() { mechanics.set_e_relative(); }

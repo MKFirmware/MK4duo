@@ -43,7 +43,7 @@
   #define CODE_M655
 
   // M650: Set peel distance
-  inline void gcode_M650(void) {
+  inline void gcode_M650() {
 
     planner.synchronize();
 
@@ -62,7 +62,7 @@
   }
 
   // M651: Run peel move and return back to start.
-  inline void gcode_M651(void) {
+  inline void gcode_M651() {
 
     if (peel_distance > 0) {
       planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z + peel_distance, mechanics.destination.z, peel_speed, tools.extruder.active);
@@ -76,7 +76,7 @@
   }
 
   // M653: Execute tilt move
-  inline void gcode_M653(void) {
+  inline void gcode_M653() {
     // Double tilts are not allowed.
     if (!tilted) {
       planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z + tilt_distance, mechanics.destination.z, retract_speed, tools.extruder.active);
@@ -85,7 +85,7 @@
   }
 
   // M654 - execute untilt move
-  inline void gcode_M654(void) {
+  inline void gcode_M654() {
     // Can only untilt if tilted
     if (tilted) {
        // To prevent subsequent commands from not knowing our
@@ -100,7 +100,7 @@
   }
 
   // M655: Send projector control commands via serial
-  inline void gcode_M655(void) {
+  inline void gcode_M655() {
 
     // Viewsonic commands
     if (parser.seen('V')) {

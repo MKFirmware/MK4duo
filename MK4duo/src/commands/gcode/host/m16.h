@@ -31,7 +31,7 @@
 /**
  * M16: Expected Printer Check
  */
-inline void gcode_M16(void) {
+inline void gcode_M16() {
   if (strcmp_P(parser.string_arg, PSTR(MACHINE_NAME)))
     printer.kill(PSTR(MSG_EXPECTED_PRINTER));
 }

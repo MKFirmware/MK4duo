@@ -33,7 +33,7 @@
 /**
  * M192: Sxxx Wait for cooler current temp to reach target temp.
  */
-inline void gcode_M192(void) {
+inline void gcode_M192() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
   LCD_MESSAGEPGM(MSG_COOLER_COOLING);

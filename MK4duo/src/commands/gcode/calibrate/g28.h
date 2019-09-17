@@ -49,7 +49,7 @@
  *  Z     Home to the Z endstop
  *
  */
-inline void gcode_G28(void) { 
+inline void gcode_G28() { 
 
   if (printer.debugFeature()) {
     DEBUG_EM(">>> G28");

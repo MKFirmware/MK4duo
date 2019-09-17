@@ -44,7 +44,7 @@
  *  W<bool> - Endstop Power Check set false or true
  *
  */
-inline void gcode_M123(void) {
+inline void gcode_M123() {
 
   if (parser.seen('X')) {
     if (mechanics.home_dir.X == -1)
@@ -133,7 +133,7 @@ inline void gcode_M123(void) {
  *  W<bool> - Endstop Power Check set false or true
  *
  */
-inline void gcode_M124(void) {
+inline void gcode_M124() {
 
   if (parser.seen('X')) {
     if (mechanics.home_dir.X == -1)

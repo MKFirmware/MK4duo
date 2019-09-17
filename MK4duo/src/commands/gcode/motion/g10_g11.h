@@ -34,7 +34,7 @@
   /**
    * G10 - Retract filament according to settings of M207
    */
-  inline void gcode_G10(void) {
+  inline void gcode_G10() {
     #if EXTRUDERS > 1
       const bool rs = parser.boolval('S');
     #endif
@@ -48,6 +48,6 @@
   /**
    * G11 - Recover filament according to settings of M208
    */
-  inline void gcode_G11(void) { fwretract.retract(false); }
+  inline void gcode_G11() { fwretract.retract(false); }
 
 #endif // FWRETRACT

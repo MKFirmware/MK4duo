@@ -910,7 +910,7 @@ void LcdUI::update() {
     {  70,  90, BLEN_KEYPAD_MIDDLE + 1  },  // ENTER
   };
 
-  uint8_t get_ADC_keyValue(void) {
+  uint8_t get_ADC_keyValue() {
 
     static uint8_t ADCKey_count = 0;
     const uint16_t currentkpADCValue = (HAL::AnalogInputValues[ADC_KEYPAD_PIN] >> 2);

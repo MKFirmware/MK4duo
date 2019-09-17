@@ -34,7 +34,7 @@
  *  P<pin>  Pin number (LED if omitted)
  *  S<byte> Pin status from 0 - 255
  */
-inline void gcode_M42(void) {
+inline void gcode_M42() {
   if (!parser.seenval('S')) return;
   const byte pin_status = parser.value_byte();
 

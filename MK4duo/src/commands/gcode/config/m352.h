@@ -44,7 +44,7 @@
  *  M[bool]           - Set Step Logic
  *
  */
-inline void gcode_M352(void) {
+inline void gcode_M352() {
 
   if (commands.get_target_driver(352)) return;
   

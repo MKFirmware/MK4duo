@@ -379,7 +379,7 @@ static float auto_tune_a() {
  *
  *   E   Engage the probe for each point
  */
-inline void gcode_G33(void) {
+inline void gcode_G33() {
 
   const uint8_t probe_points = parser.intval('P', DELTA_AUTO_CALIBRATION_2_DEFAULT_POINTS);
   if (!WITHIN(probe_points, 0, 10)) {

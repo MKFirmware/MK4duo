@@ -34,7 +34,7 @@
 /**
  * M24: Start or Resume SD Print
  */
-inline void gcode_M24(void) {
+inline void gcode_M24() {
 
   if (parser.seenval('S')) card.setIndex(parser.value_long());
   if (parser.seenval('T')) print_job_counter.resume(parser.value_long());
@@ -63,7 +63,7 @@ inline void gcode_M24(void) {
 /**
  * M25: Pause SD Print
  */
-void gcode_M25(void) {
+void gcode_M25() {
 
   // Set initial pause flag to prevent more commands from landing in the queue while we try to pause
   #if HAS_SD_SUPPORT

@@ -35,7 +35,7 @@
  *      OR, with 'S<bool>' set the SD status auto-report.
  *      OR, with 'C' get the current filename.
  */
-inline void gcode_M27(void) {
+inline void gcode_M27() {
   if (parser.seen('C'))
     SERIAL_EMT("Current file: ", card.fileName);
   else if (parser.seenval('S'))

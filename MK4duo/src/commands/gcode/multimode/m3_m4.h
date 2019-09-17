@@ -75,7 +75,7 @@
 
   }
 
-  inline void gcode_M3(void) { gcode_M3_M4(true); }
-  inline void gcode_M4(void) { gcode_M3_M4(false); }
+  inline void gcode_M3() { gcode_M3_M4(true); }
+  inline void gcode_M4() { gcode_M3_M4(false); }
 
 #endif // HAS_MULTI_MODE

@@ -334,7 +334,7 @@ void gcode_G2_G3(const bool clockwise) {
   }
 }
 
-inline void gcode_G2(void) { gcode_G2_G3(true); }
-inline void gcode_G3(void) { gcode_G2_G3(false); }
+inline void gcode_G2() { gcode_G2_G3(true); }
+inline void gcode_G3() { gcode_G2_G3(false); }
 
 #endif // ARC_SUPPORT

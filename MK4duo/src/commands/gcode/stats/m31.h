@@ -31,7 +31,7 @@
 /**
  * M31: Get the time since the start of SD Print
  */
-inline void gcode_M31(void) {
+inline void gcode_M31() {
   char buffer[21];
   duration_t elapsed = print_job_counter.duration();
   elapsed.toString(buffer);

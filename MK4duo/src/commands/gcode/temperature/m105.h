@@ -31,7 +31,7 @@
 /**
  * M105: Read hot end and bed temperature
  */
-inline void gcode_M105(void) {
+inline void gcode_M105() {
 
   const bool showRaw = parser.boolval('X');
 

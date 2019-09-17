@@ -57,7 +57,7 @@
    *  v Y-axis  1-n
    *
    */
-  inline void gcode_G29(void) {
+  inline void gcode_G29() {
 
     static int mbl_probe_index = -1;
     #if HAS_SOFTWARE_ENDSTOPS

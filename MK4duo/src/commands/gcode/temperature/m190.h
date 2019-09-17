@@ -34,7 +34,7 @@
  * M190: Sxxx Wait for bed current temp to reach target temp. Waits only when heating
  *       Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
  */
-inline void gcode_M190(void) {
+inline void gcode_M190() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
   const uint8_t b = parser.byteval('T');

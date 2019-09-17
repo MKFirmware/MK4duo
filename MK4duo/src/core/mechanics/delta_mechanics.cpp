@@ -219,7 +219,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
  */
 void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(rx, ry, rz, PSTR(">>> do_blocking_move_to"), NULL);
+  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), rx, ry, rz);
 
   const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
@@ -725,9 +725,9 @@ void Delta_Mechanics::report_current_position_detail() {
   // 7, 8 = X tilt, Y tilt. We scale these by the printable radius to get sensible values in the range -1..1
   float Delta_Mechanics::ComputeDerivative(unsigned int deriv, float ha, float hb, float hc) {
     constexpr float perturb = 0.2;      // perturbation amount in mm or degrees
-    float zHi         = 0.0,
-          zLo         = 0.0,
-          newPos[ABC] = { 0.0, 0.0, 0.0 };
+    float zHi = 0.0,
+          zLo = 0.0;
+    abc_float_t newPos  = { 0.0, 0.0, 0.0 };
 
     switch (deriv) {
       case 0:

@@ -34,7 +34,7 @@
  * M109: Sxxx Wait for hotend(s) to reach temperature. Waits only when heating.
  *       Rxxx Wait for hotend(s) to reach temperature. Waits when heating and cooling.
  */
-inline void gcode_M109(void) {
+inline void gcode_M109() {
 
   if (commands.get_target_tool(109)) return;
 

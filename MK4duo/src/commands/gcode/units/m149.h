@@ -33,7 +33,7 @@
 /**
  * M149: Set temperature units
  */
-inline void gcode_M149(void) {
+inline void gcode_M149() {
        if (parser.seenval('C')) parser.set_input_temp_units(TEMPUNIT_C);
   else if (parser.seenval('K')) parser.set_input_temp_units(TEMPUNIT_K);
   else if (parser.seenval('F')) parser.set_input_temp_units(TEMPUNIT_F);

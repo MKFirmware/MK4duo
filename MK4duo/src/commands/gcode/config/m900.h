@@ -35,7 +35,7 @@
  *
  *  K<factor>   Set advance K factor
  */
-inline void gcode_M900(void) {
+inline void gcode_M900() {
   if (parser.seenval('K')) {
     const float newK = parser.floatval('K');
     if (WITHIN(newK, 0, 10)) {

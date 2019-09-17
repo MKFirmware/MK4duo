@@ -39,7 +39,7 @@
  *  1   Flexible
  *  2   PVA
  */
-inline void gcode_M403(void) {
+inline void gcode_M403() {
   int8_t index = parser.intval('E', -1),
          type = parser.intval('F', -1);
 

@@ -42,7 +42,7 @@
    *   M355 P200 S0 turns off the light & sets the brightness level
    *   M355 S1 turns on the light with a brightness of 200 (assuming a PWM pin)
    */
-  inline void gcode_M355(void) {
+  inline void gcode_M355() {
 
     if (parser.seen('P')) caselight.brightness = parser.value_byte();
 

@@ -216,9 +216,9 @@ void Mechanics::report_current_position() {
   stepper.report_positions();
 }
 
-void Mechanics::report_xyz(const xyz_pos_t &pos, const uint8_t precision=3) {
+void Mechanics::report_xyz(const xyz_pos_t &pos, const uint8_t precision/*=3*/) {
   char str[12];
-  for (uint8_t a = X_AXIS; a <= Z_AXIS; a++) {
+  for (uint8_t i = X_AXIS; i <= Z_AXIS; i++) {
     SERIAL_CHR(' ');
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');

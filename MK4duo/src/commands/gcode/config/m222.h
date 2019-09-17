@@ -33,7 +33,7 @@
   /**
    * M222: Set density extrusion percentage (M222 T0 S95)
    */
-  inline void gcode_M222(void) {
+  inline void gcode_M222() {
 
     if (commands.get_target_tool(222)) return;
 

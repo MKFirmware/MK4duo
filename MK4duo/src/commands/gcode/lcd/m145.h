@@ -38,7 +38,7 @@
  *   C<chamber temp>
  *   F<fan speed>
  */
-inline void gcode_M145(void) {
+inline void gcode_M145() {
   uint8_t material = (uint8_t)parser.intval('S');
   if (material >= COUNT(lcdui.preheat_hotend_temp)) {
     SERIAL_LM(ER, MSG_ERR_MATERIAL_INDEX);

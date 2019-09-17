@@ -41,7 +41,7 @@
  *      'H' specifies micro-steps to use. We guess if it's not supplied.
  *      'L' specifies a desired layer height. Nearest good heights are shown.
  */
-inline void gcode_M92(void) {
+inline void gcode_M92() {
 
   if (commands.get_target_tool(92)) return;
 

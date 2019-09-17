@@ -39,7 +39,7 @@
  *   M421 I<xindex> J<yindex> Z<linear>
  *   M421 I<xindex> J<yindex> Q<offset>
  */
-inline void gcode_M421(void) {
+inline void gcode_M421() {
   const bool hasX = parser.seen('X'), hasI = parser.seen('I');
   const int8_t ix = hasI ? parser.value_int() : hasX ? mbl.probe_index_x(NATIVE_X_POSITION(parser.value_linear_units())) : -1;
   const bool hasY = parser.seen('Y'), hasJ = parser.seen('J');

@@ -33,6 +33,6 @@
   /**
    * M9999: Banzai code for erase bootloader on DUE
    */
-  inline void gcode_M9999(void) { initiateReset(1000); }
+  inline void gcode_M9999() { initiateReset(1000); }
 
 #endif

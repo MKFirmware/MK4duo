@@ -33,7 +33,7 @@
   /**
    * G34: Set Delta Height calculated from toolhead position (only DELTA)
    */
-  inline void gcode_G34(void) {
+  inline void gcode_G34() {
 
     if (mechanics.axis_unhomed_error()) return;
 

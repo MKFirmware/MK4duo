@@ -34,11 +34,11 @@
 /**
  * M21: Mount SD Card
  */
-inline void gcode_M21(void) { card.mount(); }
+inline void gcode_M21() { card.mount(); }
 
 /**
  * M22: Unmount SD Card
  */
-inline void gcode_M22(void) { card.unmount(); }
+inline void gcode_M22() { card.unmount(); }
 
 #endif // HAS_SD_SUPPORT

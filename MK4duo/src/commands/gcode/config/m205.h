@@ -40,7 +40,7 @@
  *    E = Max E Jerk (units/sec^2)
  *    J = Junction Deviation mm
  */
-inline void gcode_M205(void) {
+inline void gcode_M205() {
 
   if (commands.get_target_tool(205)) return;
 

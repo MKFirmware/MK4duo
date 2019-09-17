@@ -40,7 +40,7 @@
    *      Z   <bool> with a non-zero value will apply the result to current data.height (ONLY DELTA)
    *      P   <bool> with a non-zero value will apply the result to current probe offset[Z_AXIS] (ONLY DELTA)
    */
-  inline void gcode_G30(void) {
+  inline void gcode_G30() {
 
     const float xpos = parser.linearval('X', mechanics.current_position.x + probe.data.offset.x),
                 ypos = parser.linearval('Y', mechanics.current_position.y + probe.data.offset.y);

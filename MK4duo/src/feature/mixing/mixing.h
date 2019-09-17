@@ -96,7 +96,7 @@ class Mixer {
     static void normalize(const uint8_t tool_index);
     FORCE_INLINE static void normalize() { normalize(selected_vtool); }
 
-    FORCE_INLINE static uint8_t get_current_vtool(void) { return selected_vtool; }
+    FORCE_INLINE static uint8_t get_current_vtool() { return selected_vtool; }
 
     FORCE_INLINE static void T(const uint_fast8_t c) {
       selected_vtool = c;
@@ -179,8 +179,8 @@ class Mixer {
     #endif // HAS_GRADIENT_MIX
 
     // Used in Stepper
-    FORCE_INLINE static uint8_t get_stepper(void) { return runner; }
-    FORCE_INLINE static uint8_t get_next_stepper(void) {
+    FORCE_INLINE static uint8_t get_stepper() { return runner; }
+    FORCE_INLINE static uint8_t get_next_stepper() {
       for (;;) {
         if (--runner < 0) runner = MIXING_STEPPERS - 1;
         accu[runner] += s_color[runner];

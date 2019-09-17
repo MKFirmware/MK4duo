@@ -48,7 +48,7 @@
  *
  *    C         Center mesh on the mean of the lowest and highest
  */
-inline void gcode_M420(void) {
+inline void gcode_M420() {
 
   const bool  seen_S = parser.seen('S'),
               to_enable = seen_S ? parser.value_bool() : bedlevel.flag.leveling_active;

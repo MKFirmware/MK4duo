@@ -96,7 +96,7 @@ bool    HAL::Analog_is_ready = false;
 __attribute__ ((aligned(256)))
 static DeviceVectors ram_tab = { NULL };
 
-static pfnISR_Handler* get_relocated_table_addr(void) {
+static pfnISR_Handler* get_relocated_table_addr() {
   // Get the address of the interrupt/exception table
   uint32_t isrtab = SCB->VTOR;
 
@@ -136,12 +136,12 @@ pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler) {
 }
 
 // disable interrupts
-void cli(void) {
+void cli() {
   noInterrupts();
 }
 
 // enable interrupts
-void sei(void) {
+void sei() {
   interrupts();
 }
 
@@ -184,7 +184,7 @@ HAL::~HAL() {
 }
 
 // do any hardware-specific initialization here
-void HAL::hwSetup(void) {
+void HAL::hwSetup() {
   TimeTick_Configure(F_CPU);
   NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
   NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
@@ -250,7 +250,7 @@ uint16_t AnalogInReadPin(const pin_t r_pin) {
 }
 
 // Initialize ADC channels
-void HAL::analogStart(void) {
+void HAL::analogStart() {
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     PIO_Configure(

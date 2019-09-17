@@ -34,7 +34,7 @@
  * M191: Sxxx Wait for chamber current temp to reach target temp. Waits only when heating
  *       Rxxx Wait for chamber current temp to reach target temp. Waits when heating and cooling
  */
-inline void gcode_M191(void) {
+inline void gcode_M191() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
   const uint8_t c = parser.byteval('T');

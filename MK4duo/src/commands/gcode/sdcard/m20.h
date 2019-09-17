@@ -33,7 +33,7 @@
 /**
  * M20: List SD card to serial output
  */
-inline void gcode_M20(void) {
+inline void gcode_M20() {
   SERIAL_EM(MSG_BEGIN_FILE_LIST);
   card.ls();
   SERIAL_EM(MSG_END_FILE_LIST);

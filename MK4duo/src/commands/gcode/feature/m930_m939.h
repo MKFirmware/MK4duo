@@ -42,7 +42,7 @@
   /**
    * M930: TMC set blank_time.
    */
-  inline void gcode_M930(void) {
+  inline void gcode_M930() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_blank_time(X_DRV, parser.value_int());
@@ -129,7 +129,7 @@
   /**
    * M931: TMC set off_time.
    */
-  inline void gcode_M931(void) {
+  inline void gcode_M931() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_off_time(X_DRV, parser.value_int());
@@ -216,7 +216,7 @@
   /**
    * M932: TMC set hysteresis_start.
    */
-  inline void gcode_M932(void) {
+  inline void gcode_M932() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_hysteresis_start(X_DRV, parser.value_int());
@@ -303,7 +303,7 @@
   /**
    * M933: TMC set hysteresis_end.
    */
-  inline void gcode_M933(void) {
+  inline void gcode_M933() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_hysteresis_end(X_DRV, parser.value_int());
@@ -390,7 +390,7 @@
   /**
    * M934: TMC set fast_decay_time (chm = 1).
     not user for now
-  inline void gcode_M934(void) {
+  inline void gcode_M934() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_fast_decay_time(X_DRV, (uint8_t)parser.value_int());
@@ -478,7 +478,7 @@
   /**
    * M935: TMC set disable_I_comparator (chm = 1).
    */
-  inline void gcode_M935(void) {
+  inline void gcode_M935() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_disable_I_comparator(X_DRV, parser.value_bool());
@@ -565,7 +565,7 @@
   /**
    * M936: TMC set stealth_gradient.
    */
-  inline void gcode_M936(void) {
+  inline void gcode_M936() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_stealth_gradient(X_DRV, parser.value_int());
@@ -652,7 +652,7 @@
   /**
    * M937: TMC set stealth_amplitude.
    */
-  inline void gcode_M937(void) {
+  inline void gcode_M937() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_stealth_amplitude(X_DRV, parser.value_int());
@@ -739,7 +739,7 @@
   /**
    * M938: TMC set stealth_freq.
    */
-  inline void gcode_M938(void) {
+  inline void gcode_M938() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_stealth_freq(X_DRV, parser.value_int());
@@ -826,7 +826,7 @@
   /**
    * M939: TMC switch stealth_autoscale.
    */
-  inline void gcode_M939(void) {
+  inline void gcode_M939() {
     if (parser.seenval('X')) {
       #if AXIS_HAS_TMC(X)
         tmc.set_stealth_autoscale(X_DRV, parser.value_int());

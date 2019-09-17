@@ -33,7 +33,7 @@
  *
  * Usage: M122 S1 to enable, M122 S0 to disable, M122 alone for report
  */
-inline void gcode_M122(void) {
+inline void gcode_M122() {
 
   #if HAS_SOFTWARE_ENDSTOPS
     if (parser.seen('S')) endstops.setSoftEndstop(parser.value_bool());

@@ -46,7 +46,7 @@ void SoftPWM::init() {
   }
 }
 
-void SoftPWM::spin(void) {
+void SoftPWM::spin() {
 
   if (soft_pwm_count == 0) {
     for (uint8_t i = 0; i < used_channel; i++) {

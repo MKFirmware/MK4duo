@@ -94,7 +94,7 @@ HAL::~HAL() {
 }
 
 // do any hardware-specific initialization here
-void HAL::hwSetup(void) {
+void HAL::hwSetup() {
   FastIO_init();
 }
 
@@ -108,7 +108,7 @@ void HAL::showStartReason() {
 }
 
 // Initialize ADC channels
-void HAL::analogStart(void) {
+void HAL::analogStart() {
 
   #if HAS_HOTENDS
     LOOP_HOTEND() {

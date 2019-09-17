@@ -33,7 +33,7 @@
 /**
  * M140: Set Bed temperature
  */
-inline void gcode_M140(void) {
+inline void gcode_M140() {
   const uint8_t b = parser.byteval('T');
   if (WITHIN(b, 0 , BEDS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;

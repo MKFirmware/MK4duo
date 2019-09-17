@@ -38,7 +38,7 @@
  *   Ynnn Y axis limit
  *   Znnn Z axis limit
  */
-inline void gcode_M228(void) {
+inline void gcode_M228() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M201 report.

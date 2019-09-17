@@ -43,7 +43,7 @@
  *    U[bool]     with a non-zero value will apply the result to current settings
  *
  */
-inline void gcode_M303(void) {
+inline void gcode_M303() {
 
   Heater * const act = commands.get_target_heater();
 

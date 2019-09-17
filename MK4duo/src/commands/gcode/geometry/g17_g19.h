@@ -51,8 +51,8 @@
    * G18: Select Plane ZX
    * G19: Select Plane YZ
    */
-  inline void gcode_G17(void) { set_workspace_plane(mechanics.PLANE_XY); }
-  inline void gcode_G18(void) { set_workspace_plane(mechanics.PLANE_ZX); }
-  inline void gcode_G19(void) { set_workspace_plane(mechanics.PLANE_YZ); }
+  inline void gcode_G17() { set_workspace_plane(mechanics.PLANE_XY); }
+  inline void gcode_G18() { set_workspace_plane(mechanics.PLANE_ZX); }
+  inline void gcode_G19() { set_workspace_plane(mechanics.PLANE_YZ); }
 
 #endif // CNC_WORKSPACE_PLANES

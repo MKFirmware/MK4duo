@@ -115,7 +115,7 @@
  *     There's no extra effect if you have a fixed Z probe.
  *
  */
-inline void gcode_G29(void) {
+inline void gcode_G29() {
 
   // G29 Q is also available if debugging
   const bool seenQ = parser.seen('Q');

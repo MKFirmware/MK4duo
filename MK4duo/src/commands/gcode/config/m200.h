@@ -36,7 +36,7 @@
  *    T<extruder> - Optional extruder number. Current extruder if omitted.
  *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
  */
-inline void gcode_M200(void) {
+inline void gcode_M200() {
 
   if (commands.get_target_tool(200)) return;
 

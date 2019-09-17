@@ -31,6 +31,6 @@
 /**
  * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
  */
-inline void gcode_M220(void) {
+inline void gcode_M220() {
   if (parser.seenval('S')) mechanics.feedrate_percentage = parser.value_int();
 }

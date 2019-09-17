@@ -30,7 +30,7 @@
 
 #define CODE_M49
 
-inline void gcode_M49(void) {
+inline void gcode_M49() {
   bedlevel.flag.g26_debug ^= true;
   SERIAL_MSG("G26 Debug ");
   SERIAL_STR(bedlevel.flag.g26_debug ? PSTR("on.") : PSTR("off."));

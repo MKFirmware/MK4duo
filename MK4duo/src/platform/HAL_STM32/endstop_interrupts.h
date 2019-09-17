@@ -21,7 +21,7 @@
  */
 #pragma once
 
-void Endstops::setup_interrupts(void) {
+void Endstops::setup_interrupts() {
 
   #if HAS_X_MAX
     attachInterrupt(digitalPinToInterrupt(X_MAX_PIN), endstop_ISR, CHANGE); // assign it

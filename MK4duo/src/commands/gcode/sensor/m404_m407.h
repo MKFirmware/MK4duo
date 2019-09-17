@@ -36,7 +36,7 @@
   /**
    * M404: Display or set (in current units) the nominal filament width (3mm, 1.75mm ) W<3.0>
    */
-  inline void gcode_M404(void) {
+  inline void gcode_M404() {
     if (parser.seen('W')) {
       filament_width_nominal = parser.value_linear_units();
       tools.volumetric_area_nominal = CIRCLE_AREA(filament_width_nominal * 0.5f);
@@ -49,7 +49,7 @@
   /**
    * M405: Turn on filament sensor for control
    */
-  inline void gcode_M405(void) {
+  inline void gcode_M405() {
     // This is technically a linear measurement, but since it's quantized to centimeters and is a different unit than
     // everything else, it uses parser.value_int() instead of parser.value_linear_units().
     if (parser.seen('D')) {
@@ -72,7 +72,7 @@
   /**
    * M406: Turn off filament sensor for control
    */
-  inline void gcode_M406(void) {
+  inline void gcode_M406() {
     filament_sensor = false;
     tools.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
   }
@@ -80,7 +80,7 @@
   /**
    * M407: Get measured filament diameter on serial output
    */
-  inline void gcode_M407(void) {
+  inline void gcode_M407() {
     SERIAL_EMV("Filament dia (measured mm):", filament_width_meas);
   }
 

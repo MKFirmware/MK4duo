@@ -33,7 +33,7 @@
 /**
  * M17: Enable stepper motors
  */
-inline void gcode_M17(void) {
+inline void gcode_M17() {
   if (parser.seen_any()) {
     LCD_MESSAGEPGM(MSG_NO_MOVE);
     stepper.enable_all();
@@ -51,7 +51,7 @@ inline void gcode_M17(void) {
 /**
  * M18, M84: Disable stepper motors
  */
-inline void gcode_M18_M84(void) {
+inline void gcode_M18_M84() {
   if (parser.seenval('S')) {
     printer.move_time = parser.value_ushort();
   }

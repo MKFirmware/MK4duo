@@ -35,14 +35,14 @@
     /**
      * M126: Heater 1 valve open
      */
-    inline void gcode_M126(void) { printer.baricuda_valve_pressure = parser.byteval('S', 255); }
+    inline void gcode_M126() { printer.baricuda_valve_pressure = parser.byteval('S', 255); }
 
     #define CODE_M127
 
     /**
      * M127: Heater 1 valve close
      */
-    inline void gcode_M127(void) { printer.baricuda_valve_pressure = 0; }
+    inline void gcode_M127() { printer.baricuda_valve_pressure = 0; }
 
   #endif
 
@@ -53,14 +53,14 @@
     /**
      * M128: Heater 2 valve open
      */
-    inline void gcode_M128(void) { printer.baricuda_e_to_p_pressure = parser.byteval('S', 255); }
+    inline void gcode_M128() { printer.baricuda_e_to_p_pressure = parser.byteval('S', 255); }
 
     #define CODE_M129
 
     /**
      * M129: Heater 2 valve close
      */
-    inline void gcode_M129(void) { printer.baricuda_e_to_p_pressure = 0; }
+    inline void gcode_M129() { printer.baricuda_e_to_p_pressure = 0; }
 
   #endif
 

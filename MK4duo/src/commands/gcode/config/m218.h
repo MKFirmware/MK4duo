@@ -38,7 +38,7 @@
  *   Y<yoffset>
  *   Z<zoffset>
  */
-inline void gcode_M218(void) {
+inline void gcode_M218() {
 
   if (!commands.get_target_tool(218)) return;
 

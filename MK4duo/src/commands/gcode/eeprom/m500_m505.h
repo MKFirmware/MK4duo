@@ -36,7 +36,7 @@
 /**
  * M500: Store settings in EEPROM
  */
-inline void gcode_M500(void) {
+inline void gcode_M500() {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
@@ -48,7 +48,7 @@ inline void gcode_M500(void) {
 /**
  * M501: Read settings from EEPROM
  */
-inline void gcode_M501(void) {
+inline void gcode_M501() {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
@@ -60,7 +60,7 @@ inline void gcode_M501(void) {
 /**
  * M502: Revert to factory settings
  */
-inline void gcode_M502(void) {
+inline void gcode_M502() {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
@@ -72,7 +72,7 @@ inline void gcode_M502(void) {
 /**
  * M503: print settings currently in memory
  */
-inline void gcode_M503(void) {
+inline void gcode_M503() {
   #if NUM_SERIAL > 1
     gcode_t tmp = commands.buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
@@ -84,7 +84,7 @@ inline void gcode_M503(void) {
 /**
  * M504: Validate EEPROM Contents
  */
-inline void gcode_M504(void) {
+inline void gcode_M504() {
   #if HAS_EEPROM
     if (eeprom.validate()) SERIAL_LM(ECHO, "EEPROM OK");
   #else
@@ -95,4 +95,4 @@ inline void gcode_M504(void) {
 /**
  * M505: Clear EEPROM and RESET Printer
  */
-inline void gcode_M505(void) { eeprom.clear(); }
+inline void gcode_M505() { eeprom.clear(); }

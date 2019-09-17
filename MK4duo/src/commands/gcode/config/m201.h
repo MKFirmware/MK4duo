@@ -33,7 +33,7 @@
  *
  *       With multiple extruders use T to specify which one.
  */
-inline void gcode_M201(void) {
+inline void gcode_M201() {
 
   if (commands.get_target_tool(201)) return;
 

@@ -33,7 +33,7 @@
   /**
    * M221: Set extrusion percentage (M221 T0 S95)
    */
-  inline void gcode_M221(void) {
+  inline void gcode_M221() {
 
     if (commands.get_target_tool(221)) return;
 

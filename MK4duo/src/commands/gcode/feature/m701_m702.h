@@ -40,7 +40,7 @@
  *
  *  Default values are used for omitted arguments.
  */
-inline void gcode_M701(void) {
+inline void gcode_M701() {
 
   xyz_pos_t park_point = nozzle.data.park_point;
 
@@ -110,7 +110,7 @@ inline void gcode_M701(void) {
  *
  *  Default values are used for omitted arguments.
  */
-inline void gcode_M702(void) {
+inline void gcode_M702() {
 
   xyz_pos_t park_point = nozzle.data.park_point;
 

@@ -36,7 +36,7 @@
  *    F1 for formatting card.
  *
  */
-inline void gcode_M39(void) {
+inline void gcode_M39() {
   if (parser.seen('F')) {
     card.formatSD();
     card.mount();

@@ -168,7 +168,7 @@ void Commands::get_destination() {
   bool seen[XYZE] = { false, false, false, false };
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (parser.seen(axis_codes[E_AXIS])) printer.IDLE_OOZING_retract(false);
+    if (parser.seen(axis_codes.e)) printer.IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {

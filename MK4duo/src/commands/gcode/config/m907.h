@@ -31,7 +31,7 @@
 /**
  * M907: Set digital trimpot motor current using axis codes X, Y, Z, E, B, S
  */
-inline void gcode_M907(void) {
+inline void gcode_M907() {
   #if HAS_DIGIPOTSS
     LOOP_XYZE(i)
       if (parser.seen(axis_codes[i])) stepper.digipot_current(i, parser.value_int());

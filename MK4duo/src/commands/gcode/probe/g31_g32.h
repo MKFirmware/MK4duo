@@ -34,11 +34,11 @@
   /**
    * G31: Deploy the Z probe
    */
-  inline void gcode_G31(void) { DEPLOY_PROBE(); }
+  inline void gcode_G31() { DEPLOY_PROBE(); }
 
   /**
    * G32: Stow the Z probe
    */
-  inline void gcode_G32(void) { STOW_PROBE(); }
+  inline void gcode_G32() { STOW_PROBE(); }
 
 #endif // HAS_SLED

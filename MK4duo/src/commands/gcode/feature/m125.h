@@ -45,7 +45,7 @@
  *    Y = override Y
  *    Z = override Z raise
  */
-inline void gcode_M125(void) {
+inline void gcode_M125() {
 
   // Initial retract before move to pause park position
   const float retract = -ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0

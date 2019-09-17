@@ -33,7 +33,7 @@
   /**
    * M280: Get or set servo position. P<index> S<angle>
    */
-  inline void gcode_M280(void) {
+  inline void gcode_M280() {
 
     if (!parser.seen('P')) return;
     const int servo_index = parser.value_int();

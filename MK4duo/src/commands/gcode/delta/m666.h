@@ -53,7 +53,7 @@
  *    P = Probe radius
  *    H = Z Height
  */
-inline void gcode_M666(void) {
+inline void gcode_M666() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M666 report.

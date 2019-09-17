@@ -51,14 +51,14 @@ static void gcode_printer_mode(const int8_t new_mode) {
  *
  *  S<type> - The new tool type
  */
-inline void gcode_M450(void) {
+inline void gcode_M450() {
   gcode_printer_mode(parser.seen('S') ? parser.value_byte() : -1);
 }
 
 /**
  * M451: Select FFF printer mode
  */
-inline void gcode_M451(void) { gcode_printer_mode(PRINTER_MODE_FFF); }
+inline void gcode_M451() { gcode_printer_mode(PRINTER_MODE_FFF); }
 
 #if ENABLED(LASER)
 
@@ -67,7 +67,7 @@ inline void gcode_M451(void) { gcode_printer_mode(PRINTER_MODE_FFF); }
   /**
    * M452: Select Laser printer mode
    */
-  inline void gcode_M452(void) { gcode_printer_mode(PRINTER_MODE_LASER); }
+  inline void gcode_M452() { gcode_printer_mode(PRINTER_MODE_LASER); }
 #endif
 
 #if HAS_CNCROUTER
@@ -77,7 +77,7 @@ inline void gcode_M451(void) { gcode_printer_mode(PRINTER_MODE_FFF); }
   /**
    * M453: Select CNC printer mode
    */
-  inline void gcode_M453(void) { gcode_printer_mode(PRINTER_MODE_CNC); }
+  inline void gcode_M453() { gcode_printer_mode(PRINTER_MODE_CNC); }
 #endif
 
 #endif // HAS_MULTI_MODE

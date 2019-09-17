@@ -40,7 +40,7 @@
 /**
  * M290: Babystepping
  */
-inline void gcode_M290(void) {
+inline void gcode_M290() {
   #if ENABLED(BABYSTEP_XY)
     for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
       if (parser.seenval(axis_codes[a]) || (a == Z_AXIS && parser.seenval('S'))) {

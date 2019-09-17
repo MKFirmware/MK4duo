@@ -489,7 +489,7 @@ float valid_trig_angle(float d) {
  *  X  X position
  *  Y  Y position
  */
-inline void gcode_G26(void) {
+inline void gcode_G26() {
   SERIAL_EM("G26 command started. Waiting for heater(s).");
 
   // Don't allow Mesh Validation without homing first,

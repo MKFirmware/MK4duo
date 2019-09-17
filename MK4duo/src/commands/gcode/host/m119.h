@@ -38,7 +38,7 @@ static void print_state(const bool is_hit, PGM_P const label=nullptr) {
 /**
  * M119: Output endstop states to serial output
  */
-inline void gcode_M119(void) {
+inline void gcode_M119() {
 
   SERIAL_EM(MSG_M119_REPORT);
 

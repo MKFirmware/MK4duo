@@ -33,7 +33,7 @@
  *
  *      This code should ALWAYS be available for FULL SHUTDOWN!
  */
-inline void gcode_M81(void) {
+inline void gcode_M81() {
   thermalManager.disable_all_heaters();
   planner.finish_and_disable();
 

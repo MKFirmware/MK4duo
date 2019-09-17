@@ -31,7 +31,7 @@
 /**
  * G92: Set current position to given X Y Z E
  */
-inline void gcode_G92(void) {
+inline void gcode_G92() {
 
   bool didE = false;
   #if IS_SCARA || DISABLED(WORKSPACE_OFFSETS)

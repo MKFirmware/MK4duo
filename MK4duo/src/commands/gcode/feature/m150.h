@@ -46,7 +46,7 @@
  *   M150 P127       ; Set LED 50% brightness
  *   M150 P          ; Set LED full brightness
  */
-inline void gcode_M150(void) {
+inline void gcode_M150() {
   if (parser.seen('S')) {
     millis_s end = millis();
     const uint8_t second = parser.value_byte();

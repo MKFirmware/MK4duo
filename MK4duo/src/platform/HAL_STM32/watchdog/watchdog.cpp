@@ -24,7 +24,7 @@
 
 #include "../../../../MK4duo.h"
 
-void Watchdog::init(void) {
+void Watchdog::init() {
   #if ENABLED(USE_WATCHDOG)
     hiwdg.Instance = IWDG;
     hiwdg.Init.Prescaler = IWDG_PRESCALER_32; // 32kHz LSI clock and 32x prescalar = 1024Hz IWDG clock
@@ -35,7 +35,7 @@ void Watchdog::init(void) {
   #endif
 }
 
-void Watchdog::reset(void) {
+void Watchdog::reset() {
   #if ENABLED(USE_WATCHDOG)
     /* Refresh IWDG: reload counter */
     if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {

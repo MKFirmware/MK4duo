@@ -272,7 +272,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
  */
 void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(rx, ry, rz, PSTR(">>> do_blocking_move_to"), nullptr);
+  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), rx, ry, rz);
 
   const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;

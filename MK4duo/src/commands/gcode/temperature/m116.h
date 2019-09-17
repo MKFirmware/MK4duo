@@ -33,7 +33,7 @@
 /**
  * M116: Wait for all heaters to reach target temperature
  */
-inline void gcode_M116(void) {
+inline void gcode_M116() {
   #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].wait_for_target(true);
   #endif

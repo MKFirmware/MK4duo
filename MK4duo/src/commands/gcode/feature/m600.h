@@ -46,7 +46,7 @@
    *  Default values are used for omitted arguments.
    *
    */
-  inline void gcode_M600(void) {
+  inline void gcode_M600() {
 
     xyz_pos_t park_point = nozzle.data.park_point;
 

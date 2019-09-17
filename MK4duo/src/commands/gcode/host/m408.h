@@ -39,7 +39,7 @@
   /**
    * M408: JSON STATUS OUTPUT
    */
-  inline void gcode_M408(void) {
+  inline void gcode_M408() {
     bool firstOccurrence;
     uint8_t type = 0;
 

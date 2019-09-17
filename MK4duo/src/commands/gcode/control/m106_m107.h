@@ -44,7 +44,7 @@
    *  X<int>    Max Speed
    *  I<bool>   Inverted pin output
    */
-  inline void gcode_M106(void) {
+  inline void gcode_M106() {
 
     uint8_t f = 0;
 
@@ -90,7 +90,7 @@
   /**
    * M107: Fan Off
    */
-  inline void gcode_M107(void) {
+  inline void gcode_M107() {
     uint8_t f = 0;
     if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
     fans[f].speed = 0;

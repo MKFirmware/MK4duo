@@ -31,7 +31,7 @@
   #define CODE_M649
 
   // M649 set laser options
-  inline void gcode_M649(void) {
+  inline void gcode_M649() {
     // do this at the start so we can debug if needed!
     if (parser.seen('D') && printer.isRunning()) laser.diagnostics = parser.value_bool();
 

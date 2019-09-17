@@ -32,7 +32,7 @@
   #define CODE_M351
 
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
-  inline void gcode_M350(void) {
+  inline void gcode_M350() {
     if (parser.seen('S')) for (int i = 0; i <= 4; i++) stepper.microstep_mode(i, parser.value_byte());
     LOOP_XYZE(i) if (parser.seen(axis_codes[i])) stepper.microstep_mode(i, parser.value_byte());
     if (parser.seen('B')) stepper.microstep_mode(4, parser.value_byte());
@@ -43,7 +43,7 @@
    * M351: Toggle MS1 MS2 pins directly with axis codes X Y Z E B
    *       S# determines MS1 or MS2, X# sets the pin high/low.
    */
-  inline void gcode_M351(void) {
+  inline void gcode_M351() {
     if (parser.seen('S')) switch (parser.value_byte()) {
       case 1:
         LOOP_XYZE(i) if (parser.seen(axis_codes[i])) stepper.microstep_ms(i, parser.value_byte(), -1);
@@ -61,7 +61,7 @@
 
   #define CODE_M350
 
-  inline void gcode_M350(void) {
+  inline void gcode_M350() {
 
     if (commands.get_target_tool(350)) return;
 

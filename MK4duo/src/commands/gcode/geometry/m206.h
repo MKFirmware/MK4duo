@@ -33,7 +33,7 @@
 /**
  * M206: Set Additional Homing Offset (X Y Z). SCARA aliases T=X, P=Y
  */
-inline void gcode_M206(void) {
+inline void gcode_M206() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M206 report.

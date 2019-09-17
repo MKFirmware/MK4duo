@@ -38,7 +38,7 @@
    *  S<bool>   - Set false or true
    *
    */
-  inline void gcode_M223(void) {
+  inline void gcode_M223() {
     if (commands.get_target_tool(223)) return;
     filamentrunout.sensor.setLogic((FilRunoutEnum)tools.extruder.target, parser.value_bool());
     filamentrunout.sensor.report();
@@ -51,7 +51,7 @@
    *  S<bool>   - Set false or true
    *
    */
-  inline void gcode_M224(void) {
+  inline void gcode_M224() {
     if (commands.get_target_tool(224)) return;
     filamentrunout.sensor.setPullup((FilRunoutEnum)tools.extruder.target, parser.value_bool());
     filamentrunout.sensor.setup_pullup();

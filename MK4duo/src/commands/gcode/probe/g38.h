@@ -113,7 +113,7 @@
     mechanics.clean_up_after_endstop_or_probe_move();
   }
 
-  inline void gcode_G38(void) {
+  inline void gcode_G38() {
     if (parser.subcode == 2 || parser.subcode == 3)
       gcode_G38_S(parser.subcode == 2);
   }

@@ -46,7 +46,7 @@ inline void set_all_z_lock(const bool lock) {
  *
  * Parameters: I<iterations> T<accuracy> A<amplification>
  */
-inline void gcode_G34(void) {
+inline void gcode_G34() {
 
   if (printer.debugFeature()) {
     DEBUG_EM(">>> G34");

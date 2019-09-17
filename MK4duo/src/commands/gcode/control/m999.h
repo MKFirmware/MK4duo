@@ -38,7 +38,7 @@
  * existing command buffer.
  *
  */
-inline void gcode_M999(void) {
+inline void gcode_M999() {
   printer.setRunning(true);
   lcdui.reset_alert_level();
 

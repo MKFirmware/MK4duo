@@ -31,7 +31,7 @@
 /**
  * M115: Capabilities string
  */
-inline void gcode_M115(void) {
+inline void gcode_M115() {
 
   SERIAL_EM(MSG_M115_REPORT);
 

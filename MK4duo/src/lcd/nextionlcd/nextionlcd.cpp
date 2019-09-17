@@ -990,7 +990,7 @@ bool NextionLCD::getConnect(char* buffer) {
     _upload_baudrate = upload_baudrate;
   }
 
-  void NexUpload::startUpload(void) {
+  void NexUpload::startUpload() {
     if (!_checkFile()) {
       SERIAL_LM(ER, "The file is error");
       return;
@@ -1012,7 +1012,7 @@ bool NextionLCD::getConnect(char* buffer) {
     SERIAL_EM("upload ok");
   }
 
-  uint16_t NexUpload::_getBaudrate(void) {
+  uint16_t NexUpload::_getBaudrate() {
     const uint32_t baudrate_array[7] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400 };
     for (uint8_t i = 0; i < 7; i++) {
       if (_searchBaudrate(baudrate_array[i])) {
@@ -1023,7 +1023,7 @@ bool NextionLCD::getConnect(char* buffer) {
     return _baudrate;
   }
 
-  bool NexUpload::_checkFile(void) {
+  bool NexUpload::_checkFile() {
     SERIAL_EMT("Start checkFile ", _file_name);
     if (!nextion_file.open(&card.root, _file_name, FILE_READ)) {
       SERIAL_LM(ER, "file is not exit");
@@ -1090,7 +1090,7 @@ bool NextionLCD::getConnect(char* buffer) {
     return false;
   }
 
-  bool NexUpload::_uploadTftFile(void) {
+  bool NexUpload::_uploadTftFile() {
     uint8_t c;
     uint16_t  send_timer = 0,
               last_send_num = 0;

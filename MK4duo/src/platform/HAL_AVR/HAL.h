@@ -314,7 +314,7 @@ typedef uint16_t  ptr_int_t;
 #define HAL_STEPPER_TIMER_ISR() \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
-void TIMER1_COMPA_vect (void) { \
+void TIMER1_COMPA_vect () { \
   __asm__ __volatile__ ( \
     A("push r16")                      /* 2 Save R16 */ \
     A("in r16, __SREG__")              /* 1 Get SREG */ \
@@ -387,7 +387,7 @@ void TIMER1_COMPA_vect_bottom(void)
 #define HAL_TEMP_TIMER_ISR \
 extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
-void TIMER0_COMPB_vect (void) { \
+void TIMER0_COMPB_vect () { \
   __asm__ __volatile__ ( \
     A("push r16")                       /* 2 Save R16 */ \
     A("in r16, __SREG__")               /* 1 Get SREG */ \

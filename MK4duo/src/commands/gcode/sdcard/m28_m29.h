@@ -34,12 +34,12 @@
 /**
  * M28: Start SD Write
  */
-inline void gcode_M28(void) { card.startWrite(parser.string_arg, false); }
+inline void gcode_M28() { card.startWrite(parser.string_arg, false); }
 
 /**
  * M29: Stop SD Write
  * (Processed in write-to-file routine)
  */
-inline void gcode_M29(void) { card.setSaving(false); }
+inline void gcode_M29() { card.setSaving(false); }
 
 #endif // HAS_SD_SUPPORT

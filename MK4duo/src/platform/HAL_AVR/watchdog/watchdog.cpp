@@ -27,7 +27,7 @@
 Watchdog watchdog;
 
 // Initialize watchdog with a 4 sec interrupt time
-void Watchdog::init(void) {
+void Watchdog::init() {
   #if ENABLED(USE_WATCHDOG)
     #if ENABLED(WATCHDOG_DURATION_8S) && ENABLED(WDTO_8S)
       #define WDTO_NS WDTO_8S
@@ -51,7 +51,7 @@ void Watchdog::init(void) {
   #endif // USE_WATCHDOG
 }
 
-void Watchdog::reset(void) {
+void Watchdog::reset() {
   #if ENABLED(USE_WATCHDOG)
     wdt_reset();
   #endif

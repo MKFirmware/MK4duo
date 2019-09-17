@@ -89,7 +89,7 @@ inline void toggle_pins() {
  *  M43 S       - Servo probe test or BLTouch test
  *                  P<index> - Probe index (optional - defaults to 0)
  */
-inline void gcode_M43(void) {
+inline void gcode_M43() {
 
   // 'T' must be first. It uses 'S' and 'E' differently.
   if (parser.seen('T')) return toggle_pins();
@@ -186,7 +186,7 @@ inline void gcode_M43(void) {
  *
  *  M43 S - Servo probe test or BLTouch test
  */
-inline void gcode_M43(void) {
+inline void gcode_M43() {
   if (parser.seen('S')) {
     #if HAS_BLTOUCH
       return bltouch.test();

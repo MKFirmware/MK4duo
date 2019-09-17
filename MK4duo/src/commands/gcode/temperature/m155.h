@@ -32,4 +32,4 @@
  * M155: S<1/0> Enable/disable auto report temperatures.
  *       When enabled firmware will report temperatures every second.
  */
-inline void gcode_M155(void) { printer.setAutoreportTemp(parser.boolval('S')); }
+inline void gcode_M155() { printer.setAutoreportTemp(parser.boolval('S')); }

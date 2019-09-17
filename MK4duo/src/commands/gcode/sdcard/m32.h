@@ -33,7 +33,7 @@
 /**
  * M32: Select file and start SD print
  */
-inline void gcode_M32(void) {
+inline void gcode_M32() {
   if (IS_SD_PRINTING()) planner.synchronize();
 
   if (card.isMounted()) {

@@ -34,7 +34,7 @@
    * M80   : Turn on Power Supply
    * M80 S : Report the current state and exit
    */
-  inline void gcode_M80(void) {
+  inline void gcode_M80() {
 
     // S: Report the current power supply state and exit
     if (parser.seen('S')) {

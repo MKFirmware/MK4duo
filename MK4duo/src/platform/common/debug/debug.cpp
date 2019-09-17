@@ -159,7 +159,7 @@ void Debug::log_machine_info() {
 }
 
 void Debug::print_xyz(const float &x, const float &y, const float &z, PGM_P const prefix/*=nullptr*/, PGM_P const suffix/*=nullptr*/) {
-  ERIAL_STR(prefix);
+  SERIAL_STR(prefix);
   SERIAL_CHR('(');
   SERIAL_VAL(x);
   SERIAL_MSG(", ");

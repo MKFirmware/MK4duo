@@ -35,7 +35,7 @@
  * M0: Unconditional stop - Wait for user button press on LCD
  * M1: Same as M0
  */
-inline void gcode_M0_M1(void) {
+inline void gcode_M0_M1() {
 
   PGM_P const args = parser.string_arg;
   millis_s ms = 0;

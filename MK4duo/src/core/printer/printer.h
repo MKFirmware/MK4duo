@@ -65,8 +65,6 @@ union various_flag_t {
   various_flag_t() { all = 0x0000; }
 };
 
-extern const char axis_codes[NUM_AXIS];
-
 class Printer {
 
   public: /** Constructor */

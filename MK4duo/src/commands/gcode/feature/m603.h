@@ -38,7 +38,7 @@
    *  L[distance] - Extrude distance for insertion, for the specified extruder
    *
    */
-  inline void gcode_M603(void) {
+  inline void gcode_M603() {
 
     if (commands.get_target_tool(603)) return;
 

@@ -34,7 +34,7 @@
  *        F<speed> - Set Feedrate.
  *        S<slot> specifies memory slot # (0-based) to save into (default 0).
  */
-inline void gcode_G61(void) {
+inline void gcode_G61() {
 
   if (!printer.isPosSaved()) return;
 

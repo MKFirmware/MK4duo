@@ -41,7 +41,7 @@
  *  D[long]           - Set Direction delay
  *
  */
-inline void gcode_M569(void) {
+inline void gcode_M569() {
 
   if (commands.get_target_driver(569)) return;
 

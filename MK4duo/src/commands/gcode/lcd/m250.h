@@ -33,7 +33,7 @@
   /**
    * M250: Read and optionally set the LCD contrast
    */
-  inline void gcode_M250(void) {
+  inline void gcode_M250() {
     if (parser.seenval('C')) lcdui.set_contrast(parser.value_int());
     SERIAL_EMV("lcd contrast value: ", lcdui.contrast);
   }

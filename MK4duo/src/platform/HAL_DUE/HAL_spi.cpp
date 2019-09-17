@@ -82,7 +82,7 @@
     return nbyte;
   }
 
-  void HAL::spiBegin(void) {
+  void HAL::spiBegin() {
     SET_OUTPUT(SS_PIN);
     WRITE(SS_PIN, HIGH);
     SET_OUTPUT(SCK_PIN);
@@ -97,7 +97,7 @@
     WRITE(SCK_PIN, LOW);
   }
 
-  uint8_t HAL::spiReceive(void) {
+  uint8_t HAL::spiReceive() {
     WRITE(SS_PIN, LOW);
     uint8_t b = spiTransfer(0xFF);
     WRITE(SS_PIN, HIGH);
@@ -283,7 +283,7 @@
     }
 
     // Read single byte from SPI
-    uint8_t HAL::spiReceive(void) { return spiTransfer(0xFF); }
+    uint8_t HAL::spiReceive() { return spiTransfer(0xFF); }
 
     uint8_t HAL::spiReceive(uint32_t chan) {
       uint8_t spirec_tmp;

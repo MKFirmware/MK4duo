@@ -176,7 +176,7 @@ FORCE_INLINE void MKHardwareSerial<Cfg>::store_rxd_char() {
 }
 
 template<typename Cfg>
-FORCE_INLINE void MKHardwareSerial<Cfg>::_tx_thr_empty_irq(void) {
+FORCE_INLINE void MKHardwareSerial<Cfg>::_tx_thr_empty_irq() {
 
   if (Cfg::TX_SIZE > 0) {
 
@@ -221,7 +221,7 @@ FORCE_INLINE void MKHardwareSerial<Cfg>::_tx_thr_empty_irq(void) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::UART_ISR(void) {
+void MKHardwareSerial<Cfg>::UART_ISR() {
 
   const uint32_t status = HWUART->UART_SR;
 
@@ -311,13 +311,13 @@ void MKHardwareSerial<Cfg>::end() {
 }
 
 template<typename Cfg>
-int MKHardwareSerial<Cfg>::peek(void) {
+int MKHardwareSerial<Cfg>::peek() {
   const int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
   return v;
 }
 
 template<typename Cfg>
-int MKHardwareSerial<Cfg>::read(void) {
+int MKHardwareSerial<Cfg>::read() {
 
   const ring_buffer_pos_t h = rx_buffer.head;
   ring_buffer_pos_t t = rx_buffer.tail;
@@ -358,13 +358,13 @@ int MKHardwareSerial<Cfg>::read(void) {
 }
 
 template<typename Cfg>
-typename MKHardwareSerial<Cfg>::ring_buffer_pos_t MKHardwareSerial<Cfg>::available(void) {
+typename MKHardwareSerial<Cfg>::ring_buffer_pos_t MKHardwareSerial<Cfg>::available() {
   const ring_buffer_pos_t h = rx_buffer.head, t = rx_buffer.tail;
   return (ring_buffer_pos_t)(Cfg::RX_SIZE + h - t) & (Cfg::RX_SIZE - 1);
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::flush(void) {
+void MKHardwareSerial<Cfg>::flush() {
 
   rx_buffer.tail = rx_buffer.head;
 
@@ -439,7 +439,7 @@ void MKHardwareSerial<Cfg>::write(const uint8_t c) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::flushTX(void) {
+void MKHardwareSerial<Cfg>::flushTX() {
 
   // TX
   if (Cfg::TX_SIZE == 0) {
@@ -551,7 +551,7 @@ void MKHardwareSerial<Cfg>::print(double n, int digits) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::println(void) {
+void MKHardwareSerial<Cfg>::println() {
   print('\r');
   print('\n');
 }
