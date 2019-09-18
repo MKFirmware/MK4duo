@@ -165,7 +165,7 @@ void Commands::process_now(char * gcode) {
 
 void Commands::get_destination() {
 
-  bool seen[XYZE] = { false, false, false, false };
+  xyze_bool_t seen{false};
 
   #if ENABLED(IDLE_OOZING_PREVENT)
     if (parser.seen(axis_codes.e)) printer.IDLE_OOZING_retract(false);
@@ -183,20 +183,20 @@ void Commands::get_destination() {
   }
 
   #if HAS_SD_RESTART
-    if (restart.enabled && IS_SD_PRINTING() && (seen[E_AXIS] || seen[Z_AXIS])) restart.save_job();
+    if (restart.enabled && IS_SD_PRINTING() && (seen.e || seen.z)) restart.save_job();
   #endif
 
   if (parser.linearval('F') > 0)
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.extruder.previous] / 100) + mechanics.current_position.e;
+    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.data.extruder.previous] * 0.01f) + mechanics.current_position.e;
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
     const float diff = mechanics.destination.e - mechanics.current_position.e;
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
-      rfid522.data[tools.extruder.active].data.lenght -= diff;
+      rfid522.data[tools.data.extruder.active].data.lenght -= diff;
     #endif
   }
 
@@ -205,32 +205,25 @@ void Commands::get_destination() {
   #endif
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    #if MECH(DELTA)
-      if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination.x + (X_MAX_BED), mechanics.destination.y + (Y_MAX_BED), mechanics.destination.z);
-      else
-        nexlcd.gfx_cursor_to(mechanics.destination.x + (X_MAX_BED), mechanics.destination.y + (Y_MAX_BED), mechanics.destination.z);
-    #else
-      if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z);
-      else
-        nexlcd.gfx_cursor_to(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z);
-    #endif
+    if ((seen.x || seen.y) && seen.e)
+      nexlcd.gfx_line_to(mechanics.destination);
+    else
+      nexlcd.gfx_cursor_to(mechanics.destination);
   #endif
 }
 
 bool Commands::get_target_tool(const uint16_t code) {
   if (parser.seenval('T')) {
     const int8_t t = parser.value_byte();
-    if (t >= EXTRUDERS) {
+    if (t >= tools.data.extruder.total) {
       SERIAL_SMV(ECHO, "M", code);
       SERIAL_EMV(" " MSG_INVALID_EXTRUDER " ", t);
       return true;
     }
-    tools.extruder.target = t;
+    tools.data.extruder.target = t;
   }
   else
-    tools.extruder.target = tools.extruder.active;
+    tools.data.extruder.target = tools.data.extruder.active;
 
   return false;
 }
@@ -243,10 +236,10 @@ bool Commands::get_target_driver(const uint16_t code) {
       SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
       return true;
     }
-    tools.extruder.target = t;
+    tools.data.extruder.target = t;
   }
   else
-    tools.extruder.target = 0;
+    tools.data.extruder.target = 0;
 
   return false;
 }

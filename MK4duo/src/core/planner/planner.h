@@ -684,6 +684,6 @@ class Planner {
 
 };
 
-#define PLANNER_XY_FEEDRATE() (MIN(mechanics.data.max_feedrate_mm_s[X_AXIS], mechanics.data.max_feedrate_mm_s[Y_AXIS]))
+#define PLANNER_XY_FEEDRATE() (MIN(mechanics.data.max_feedrate_mm_s.x, mechanics.data.max_feedrate_mm_s.y))
 
 extern Planner planner;

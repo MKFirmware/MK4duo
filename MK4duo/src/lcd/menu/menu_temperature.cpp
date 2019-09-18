@@ -62,7 +62,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   #if HAS_FANS
     #if FAN_COUNT > 1
-      fans[tools.extruder.active < FAN_COUNT ? tools.extruder.active : 0].speed = lcdui.preheat_fan_speed[memory];
+      fans[tools.data.extruder.active < FAN_COUNT ? tools.data.extruder.active : 0].speed = lcdui.preheat_fan_speed[memory];
     #else
       fans[0].speed = lcdui.preheat_fan_speed[memory];
     #endif

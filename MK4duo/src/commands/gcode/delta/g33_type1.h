@@ -31,7 +31,7 @@
 #define CODE_G33
 
 #if HOTENDS > 1
-  const uint8_t old_tool_index = tools.extruder.active;
+  const uint8_t old_tool_index = tools.data.extruder.active;
 #endif
 
 static void ac_home() {
@@ -182,25 +182,25 @@ inline void gcode_G33() {
   Calc_homed_height();
 
   for (uint8_t probe_index = 0; probe_index < NperifericalPoints; probe_index++) {
-    xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / NperifericalPoints);
-    yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / NperifericalPoints);
-    zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
+    xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / float(NperifericalPoints));
+    yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / float(NperifericalPoints));
+    zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
     if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
   }
 
   if (probe_points == 10) {
     for (uint8_t index = 0; index < NinternalPoints; index++) {
       const uint8_t probe_index = index + NperifericalPoints;
-      xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / NinternalPoints);
-      yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / NinternalPoints);
-      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
+      xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / float(NinternalPoints));
+      yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / float(NinternalPoints));
+      zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
       if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
     }
   }
 
-  xBedProbePoints[probe_points - 1] = 0.0;
-  yBedProbePoints[probe_points - 1] = 0.0;
-  zBedProbePoints[probe_points - 1] = probe.check_pt(0.0, 0.0, PROBE_PT_STOW, 4);
+  xBedProbePoints[probe_points - 1] = 0.0f;
+  yBedProbePoints[probe_points - 1] = 0.0f;
+  zBedProbePoints[probe_points - 1] = probe.check_at_point(0.0f, 0.0f, PROBE_PT_STOW, 4);
   if (isnan(zBedProbePoints[probe_points - 1])) return ac_cleanup();
 
   // convert data.endstop_adj;
@@ -214,7 +214,7 @@ inline void gcode_G33() {
   // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
   for (uint8_t i = 0; i < probe_points; ++i) {
     corrections[i] = 0.0;
-    abc_float_t machinePos = { xBedProbePoints[i], yBedProbePoints[i], 0.0 };
+    abc_float_t machinePos = { xBedProbePoints[i], yBedProbePoints[i], 0.0f };
 
     mechanics.Transform(machinePos);
 
@@ -310,7 +310,7 @@ inline void gcode_G33() {
 
     // Calculate the expected probe heights using the new parameters
     float expectedResiduals[MaxCalibrationPoints];
-    float sumOfSquares = 0.0;
+    float sumOfSquares = 0.0f;
 
     for (int8_t i = 0; i < probe_points; i++) {
       LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
@@ -339,7 +339,7 @@ inline void gcode_G33() {
 
   ac_home();
 
-  const float measured_z = probe.check_pt(0, 0, PROBE_PT_RAISE, 0);
+  const float measured_z = probe.check_at_point(0.0f, 0.0f, PROBE_PT_RAISE, 0);
   mechanics.data.height -= measured_z;
   mechanics.recalc_delta_settings();
 

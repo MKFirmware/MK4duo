@@ -23,8 +23,6 @@
 
 #if ENABLED(DEBUG_FEATURE)
 
-  #include "../../../core/position/position.h"
-
   class Debug {
 
     public: /** Constructor */

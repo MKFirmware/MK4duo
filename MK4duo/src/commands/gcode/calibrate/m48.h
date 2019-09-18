@@ -109,7 +109,7 @@
     float mean = 0.0, sigma = 0.0, min = 99999.9, max = -99999.9, sample_set[n_samples];
 
     // Move to the first point, deploy, and probe
-    const float t = probe.check_pt(X_probe_location, Y_probe_location, raise_after, verbose_level);
+    const float t = probe.check_at_point(X_probe_location, Y_probe_location, raise_after, verbose_level);
     bool probing_good = !isnan(t);
 
     if (probing_good) {
@@ -192,7 +192,7 @@
         } // n_legs
 
         // Probe a single point
-        sample_set[n] = probe.check_pt(X_probe_location, Y_probe_location, raise_after, 0);
+        sample_set[n] = probe.check_at_point(X_probe_location, Y_probe_location, raise_after, 0);
 
         // Break the loop if the probe fails
         probing_good = !isnan(sample_set[n]);

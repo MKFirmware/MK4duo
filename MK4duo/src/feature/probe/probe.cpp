@@ -139,12 +139,12 @@ bool Probe::set_deployed(const bool deploy) {
    * - Return the probed Z position
    */
 
-  float Probe::check_pt(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/) {
+  float Probe::check_at_point(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/) {
 
     #if HAS_BED_PROBE
 
       if (printer.debugFeature()) {
-        DEBUG_MV(">>> check_pt(", LOGICAL_X_POSITION(rx));
+        DEBUG_MV(">>> check_at_point(", LOGICAL_X_POSITION(rx));
         DEBUG_MV(", ", LOGICAL_Y_POSITION(ry));
         DEBUG_MT(", ", raise_after == PROBE_PT_RAISE ? "raise" : raise_after == PROBE_PT_STOW ? "stow" : "none");
         DEBUG_MV(", ", int(verbose_level));
@@ -202,7 +202,7 @@ bool Probe::set_deployed(const bool deploy) {
         sound.feedback(false);
       }
 
-      if (printer.debugFeature()) DEBUG_EM("<<< check_pt");
+      if (printer.debugFeature()) DEBUG_EM("<<< check_at_point");
 
       return measured_z;
 
@@ -524,14 +524,14 @@ void Probe::do_raise(const float z_raise) {
 }
 
 /**
- * Used by check_pt to do a single Z probe at the current position.
+ * Used by check_at_point to do a single Z probe at the current position.
  * Leaves current_position.z at the height where the probe triggered.
  *
  * return The raw Z position where the probe was triggered
  */
 float Probe::run_probing() {
 
-  float probe_z = 0.0;
+  float probe_z = 0.0f;
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.

@@ -46,13 +46,13 @@ inline void gcode_M122() {
 
   #if !(IS_KINEMATIC)
     SERIAL_MSG(MSG_SOFT_MIN);
-    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop[X_AXIS].min));
-    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop[Y_AXIS].min));
-    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop[Z_AXIS].min));
+    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop.min.x));
+    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop.min.y));
+    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop.min.z));
     SERIAL_MSG(MSG_SOFT_MAX);
-    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop[X_AXIS].max));
-    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop[Y_AXIS].max));
-    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop[Z_AXIS].max));
+    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop.max.x));
+    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop.max.y));
+    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop.max.z));
     SERIAL_EOL();
   #endif
 }

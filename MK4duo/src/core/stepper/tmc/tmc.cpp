@@ -1583,52 +1583,52 @@ bool TMC_Stepper::test_connection(const DriverEnum index) {
 
     if (print_x) {
       #if AXIS_HAS_TMC(X)
-        status(X_DRV, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
+        status(X_DRV, i, mechanics.data.axis_steps_per_mm.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        status(X2_DRV, i, mechanics.data.axis_steps_per_mm[X_AXIS]);
+        status(X2_DRV, i, mechanics.data.axis_steps_per_mm.x);
       #endif
     }
 
     if (print_y) {
       #if AXIS_HAS_TMC(Y)
-        status(Y_DRV, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
+        status(Y_DRV, i, mechanics.data.axis_steps_per_mm.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        status(Y2_DRV, i, mechanics.data.axis_steps_per_mm[Y_AXIS]);
+        status(Y2_DRV, i, mechanics.data.axis_steps_per_mm.y);
       #endif
     }
 
     if (print_z) {
       #if AXIS_HAS_TMC(Z)
-        status(Z_DRV, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+        status(Z_DRV, i, mechanics.data.axis_steps_per_mm.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        status(Z2_DRV,i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+        status(Z2_DRV,i, mechanics.data.axis_steps_per_mm.z);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        status(Z3_DRV, i, mechanics.data.axis_steps_per_mm[Z_AXIS]);
+        status(Z3_DRV, i, mechanics.data.axis_steps_per_mm.z);
       #endif
     }
 
     if (print_e) {
       #if AXIS_HAS_TMC(E0)
-        status(E0_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(0)]);
+        status(E0_DRV, i, mechanics.data.axis_steps_per_mm.e[0]);
       #endif
       #if AXIS_HAS_TMC(E1)
-        status(E1_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(1)]);
+        status(E1_DRV, i, mechanics.data.axis_steps_per_mm.e[1];
       #endif
       #if AXIS_HAS_TMC(E2)
-        status(E2_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(2)]);
+        status(E2_DRV, i, mechanics.data.axis_steps_per_mm.e[2];
       #endif
       #if AXIS_HAS_TMC(E3)
-        status(E3_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(3)]);
+        status(E3_DRV, i, mechanics.data.axis_steps_per_mm.e[3];
       #endif
       #if AXIS_HAS_TMC(E4)
-        status(E4_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(4)]);
+        status(E4_DRV, i, mechanics.data.axis_steps_per_mm.e[4];
       #endif
       #if AXIS_HAS_TMC(E5)
-        status(E5_DRV, i, mechanics.data.axis_steps_per_mm[E_AXIS_N(5)]);
+        status(E5_DRV, i, mechanics.data.axis_steps_per_mm.e[5];
       #endif
     }
 

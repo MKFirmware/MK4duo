@@ -42,13 +42,13 @@ inline void gcode_M104() {
   if (parser.seenval('S')) {
     const int16_t temp = parser.value_celsius();
     #if ENABLED(SINGLENOZZLE)
-      tools.singlenozzle_temp[TARGET_EXTRUDER] = temp;
-      if (TARGET_EXTRUDER != tools.extruder.active) return;
+      tools.singlenozzle_temp[tools.data.extruder.target] = temp;
+      if (tools.data.extruder.target != tools.data.extruder.active) return;
     #endif
     hotends[TARGET_HOTEND].set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
+      if (mechanics.dxc_is_duplicating() && tools.data.extruder.target == 0)
         hotends[1].set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
   }

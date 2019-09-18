@@ -41,13 +41,13 @@ Delta_Mechanics mechanics;
 /** Public Parameters */
 mechanics_data_t Delta_Mechanics::data;
 
-abc_float_t Delta_Mechanics::delta                    = { 0.0, 0.0, 0.0 };
+abc_float_t Delta_Mechanics::delta{0};
 float       Delta_Mechanics::delta_clip_start_height  = 0;
 
 /** Private Parameters */
-abc_float_t Delta_Mechanics::D2     = { 0.0, 0.0, 0.0 },  // Diagonal rod ^2
-            Delta_Mechanics::towerX = { 0.0, 0.0, 0.0 },  // The X coordinate of each tower
-            Delta_Mechanics::towerY = { 0.0, 0.0, 0.0 };  // The Y coordinate of each tower
+abc_float_t Delta_Mechanics::D2{0},         // Diagonal rod ^2
+            Delta_Mechanics::towerX{0},     // The X coordinate of each tower
+            Delta_Mechanics::towerY{0};     // The Y coordinate of each tower
 float       Delta_Mechanics::Xbc    = 0.0,
             Delta_Mechanics::Xca    = 0.0,
             Delta_Mechanics::Xab    = 0.0,
@@ -67,7 +67,7 @@ void Delta_Mechanics::factory_parameters() {
                         tmp_maxfeedrate[]   PROGMEM = DEFAULT_MAX_FEEDRATE;
 
   static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
-                        tmp_retractacc[]    PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+                        tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
   LOOP_XYZE_N(i) {
     data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
@@ -76,7 +76,7 @@ void Delta_Mechanics::factory_parameters() {
   }
 
   LOOP_EXTRUDER()
-    data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retractacc[e < COUNT(tmp_retractacc) ? e : COUNT(tmp_retractacc) - 1]);
+    data.retract_acceleration[e]        = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
@@ -89,12 +89,10 @@ void Delta_Mechanics::factory_parameters() {
   #endif
 
   static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
-  data.max_jerk[X_AXIS]  = DEFAULT_XJERK;
-  data.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
-  data.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+  data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
   #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
     LOOP_EXTRUDER()
-      data.max_jerk[E_AXIS + e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
+      data.max_jerk.e[e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
   #endif
 
   data.diagonal_rod         = DELTA_DIAGONAL_ROD;
@@ -149,7 +147,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference.x && !difference.y) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active);
       return false; // caller will update current_position.x
     }
 
@@ -200,12 +198,12 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
       raw += segment_distance;
 
-      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
+      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.data.extruder.active, cartesian_segment_mm))
         break;
 
     }
 
-    planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm);
+    planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active, cartesian_segment_mm);
 
     return false; // caller will update current_position.x
 
@@ -219,7 +217,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
  */
 void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), rx, ry, rz);
+  if (printer.debugFeature()) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
   const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
@@ -324,7 +322,7 @@ void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const flo
 
   const float z = (minusHalfB - SQRT(sq(minusHalfB) - A * C)) / A;
 
-  cartesian.x = (U * z + S) / Q;
+  cartesian.x =  (U * z + S) / Q;
   cartesian.y = -(R * z + T) / Q;
   cartesian.z = z;
 }
@@ -433,20 +431,20 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Reduce Acceleration and Jerk for Homing
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    REMEMBER(accel_x, data.max_acceleration_mm_per_s2[X_AXIS], 100);
-    REMEMBER(accel_y, data.max_acceleration_mm_per_s2[Y_AXIS], 100);
-    REMEMBER(accel_z, data.max_acceleration_mm_per_s2[Z_AXIS], 100);
+    REMEMBER(accel_x, data.max_acceleration_mm_per_s2.x, 100);
+    REMEMBER(accel_y, data.max_acceleration_mm_per_s2.y, 100);
+    REMEMBER(accel_z, data.max_acceleration_mm_per_s2.z, 100);
     #if HAS_CLASSIC_JERK
-      REMEMBER(jerk_x, data.max_jerk[X_AXIS], 0);
-      REMEMBER(jerk_y, data.max_jerk[Y_AXIS], 0);
-      REMEMBER(jerk_z, data.max_jerk[Z_AXIS], 0);
+      REMEMBER(jerk_x, data.max_jerk.x, 0);
+      REMEMBER(jerk_y, data.max_jerk.y, 0);
+      REMEMBER(jerk_z, data.max_jerk.z, 0);
     #endif
     planner.reset_acceleration_rates();
   #endif
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
+    const uint8_t old_tool_index = tools.data.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -474,7 +472,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Move all carriages together linearly until an endstop is hit.
   destination.z = data.height + 10;
-  planner.buffer_line(destination, homing_feedrate_mm_s.x, tools.extruder.active);
+  planner.buffer_line(destination, homing_feedrate_mm_s.x, tools.data.extruder.active);
   planner.synchronize();
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -548,9 +546,10 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   lcdui.refresh();
 
+  if (report_position) report_current_position();
+
   if (printer.debugFeature()) DEBUG_EM("<<< G28");
 
-  if (report_position) report_current_position();
 }
 
 /**
@@ -592,7 +591,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   target[axis] = distance;
 
   #if ENABLED(JUNCTION_DEVIATION)
-    const xyze_pos_t delta_mm_cart = {0, 0, 0, 0};
+    const xyze_pos_t delta_mm_cart{0};
   #endif
 
   // Set delta axes directly
@@ -600,7 +599,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #if ENABLED(JUNCTION_DEVIATION)
       , delta_mm_cart
     #endif
-    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active
+    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active
   );
 
   planner.synchronize();
@@ -671,10 +670,12 @@ void Delta_Mechanics::report_current_position_detail() {
   SERIAL_MSG("\nLogical:");
   report_xyz(current_position.asLogical());
 
+  SERIAL_MSG("Raw:    ");
+  report_xyz(current_position);
+
   xyze_pos_t leveled = current_position;
 
-  #if PLANNER_LEVELING
-
+  #if HAS_LEVELING
     SERIAL_MSG("Leveled:");
     bedlevel.apply_leveling(leveled);
     report_xyz(leveled);
@@ -683,7 +684,6 @@ void Delta_Mechanics::report_current_position_detail() {
     xyze_pos_t unleveled = leveled;
     bedlevel.unapply_leveling(unleveled);
     report_xyz(unleveled);
-
   #endif
 
   SERIAL_MSG("DeltaK: ");
@@ -698,7 +698,6 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_CHR(axis_codes[i]);
     SERIAL_CHR(':');
     SERIAL_VAL(stepper.position((AxisEnum)i));
-    SERIAL_MSG("    ");
   }
   SERIAL_EOL();
 
@@ -853,63 +852,39 @@ void Delta_Mechanics::report_current_position_detail() {
 
   void Delta_Mechanics::print_M92() {
     SERIAL_LM(CFG, "Steps per unit:");
-    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm[X_AXIS]), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS]), 3);
-    #endif
-    SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M92 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS + e]), 3);
-      }
-    #endif // EXTRUDERS > 1
+    SERIAL_LMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm.x), 3);
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M92 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
+    }
   }
 
   void Delta_Mechanics::print_M201() {
     SERIAL_LM(CFG, "Maximum Acceleration (units/s2):");
-    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2[X_AXIS]));
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS]));
-    #endif
-    SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M201 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS + e]));
-      }
-    #endif // EXTRUDERS > 1
+    SERIAL_LMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2.x));
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M201 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
+    }
   }
 
   void Delta_Mechanics::print_M203() {
     SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
-    #endif
-    SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M203 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
-      }
-    #endif // EXTRUDERS > 1
+    SERIAL_LMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M203 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
+    }
   }
 
   void Delta_Mechanics::print_M204() {
     SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
     SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(data.acceleration), 3);
-    SERIAL_MV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 R", LINEAR_UNIT(data.retract_acceleration[0]), 3);
-    #endif
-    SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M204 T", (int)e);
-        SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
-      }
-    #endif
+    SERIAL_EMV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M204 T", (int)e);
+      SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
+    }
   }
 
   void Delta_Mechanics::print_M205() {
@@ -929,17 +904,17 @@ void Delta_Mechanics::report_current_position_detail() {
     #endif
     SERIAL_EOL();
 
-    SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk[X_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
 
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk[E_AXIS]), 3);
+        SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk.e[0]), 3);
       #endif
       SERIAL_EOL();
       #if (EXTRUDERS > 1)
         LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M205 T", (int)e);
-          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk[E_AXIS + e]), 3);
+          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
         }
       #endif
     #else
@@ -991,7 +966,7 @@ void Delta_Mechanics::report_current_position_detail() {
 
   void Delta_Mechanics::nextion_gfx_clear() {
     nexlcd.gfx_clear(data.print_radius * 2, data.print_radius * 2, data.height);
-    nexlcd.gfx_cursor_to(current_position.x + data.print_radius, current_position.y + data.print_radius, current_position.z);
+    nexlcd.gfx_cursor_to(current_position);
   }
 
 #endif
@@ -1006,7 +981,6 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
   if (printer.debugFeature()) {
     DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
-    DEBUG_EM("Home 1 Fast:");
   }
 
   // Fast move towards endstop until triggered
@@ -1036,14 +1010,15 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
     do_homing_move(axis, data.endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * steps_to_mm[axis]);
   }
 
-  // Clear z_lift if homing the Z axis
+  // Clear retracted status if homing the Z axis
   #if ENABLED(FWRETRACT)
     if (axis == Z_AXIS) fwretract.current_hop = 0.0;
   #endif
 
   if (printer.debugFeature()) {
     DEBUG_MV("<<< homeaxis(", axis_codes[axis]);
-    DEBUG_CHR(')'); DEBUG_EOL();
+    DEBUG_CHR(')');
+    DEBUG_EOL();
   }
 
 }
@@ -1060,14 +1035,14 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const float &fr
     ubl.prepare_segmented_line_to(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
   #else
     if (current_position == destination) return;
-    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
+    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.data.extruder.active);
   #endif
 
   current_position = destination;
 }
 
 void Delta_Mechanics::Set_clip_start_height() {
-  xyz_pos_t cartesian = { 0, 0, 0 };
+  xyz_pos_t cartesian{0};
   Transform(cartesian);
   float distance = delta.a;
   cartesian.y = data.print_radius;

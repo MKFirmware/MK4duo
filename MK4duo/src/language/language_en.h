@@ -700,6 +700,9 @@
 #ifndef MSG_ESTEPS
   #define MSG_ESTEPS                          _UxGT("Esteps/mm")
 #endif
+#ifndef MSG_E0STEPS
+  #define MSG_E0STEPS                         _UxGT("E0steps/mm")
+#endif
 #ifndef MSG_E1STEPS
   #define MSG_E1STEPS                         _UxGT("E1steps/mm")
 #endif
@@ -1573,6 +1576,11 @@
 // Max Inactivity Time
 #ifndef MSG_MAX_INACTIVITY_TIME
   #define MSG_MAX_INACTIVITY_TIME             _UxGT("Heating disabled by safety timer.")
+#endif
+
+// Max extruder
+#ifndef MSG_MAX_EXTRUDERS
+  #define MSG_MAX_EXTRUDERS                   _UxGT("Extruders")
 #endif
 
 // Extra

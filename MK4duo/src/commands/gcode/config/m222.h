@@ -38,9 +38,9 @@
     if (commands.get_target_tool(222)) return;
 
     if (parser.seenval('S')) {
-      tools.density_percentage[TARGET_EXTRUDER] = parser.value_int();
+      tools.density_percentage[tools.data.extruder.target] = parser.value_int();
       #if ENABLED(RFID_MODULE)
-        rfid522.data[TARGET_EXTRUDER].data.density = tools.density_percentage[TARGET_EXTRUDER];
+        rfid522.data[tools.data.extruder.target].data.density = tools.density_percentage[tools.data.extruder.target];
       #endif
     }
   }

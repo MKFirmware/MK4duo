@@ -60,7 +60,7 @@
     SERIAL_MV(",", mechanics.current_position.y);           // Y AXIS
     SERIAL_MV(",", mechanics.current_position.z);           // Z AXIS
 
-    SERIAL_MV("]},\"currentTool\":", tools.extruder.active);
+    SERIAL_MV("]},\"currentTool\":", tools.data.extruder.active);
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
@@ -173,7 +173,7 @@
         #endif
         SERIAL_MSG(",\"extrRaw\":[");
         firstOccurrence = true;
-        for (uint8_t e = 0; e < EXTRUDERS; e++) {
+        LOOP_EXTRUDER() {
           if (!firstOccurrence) SERIAL_CHR(',');
           SERIAL_VAL(mechanics.current_position.e * tools.flow_percentage[e]);
           firstOccurrence = false;
@@ -215,14 +215,14 @@
         SERIAL_CHR(',');
         SERIAL_VAL((int) Z_MAX_BED);
         SERIAL_MSG("],\"planner.accelerations\":[");
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.x);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.y);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Z_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.z);
         for (uint8_t i = 0; i < EXTRUDERS; i++) {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.e[i]);
         }
         SERIAL_MSG("],");
 
@@ -266,14 +266,14 @@
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.x);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.y);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Z_AXIS]);
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.z);
+        LOOP_EXTRUDER()
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_VAL(mechanics.data.max_feedrate_mm_s.e[e]);
         }
         SERIAL_CHR(']');
         break;

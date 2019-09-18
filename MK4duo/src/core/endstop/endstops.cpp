@@ -40,7 +40,7 @@ endstop_flag_t  Endstops::flag;
 #if MECH(DELTA)
   float Endstops::soft_endstop_radius_2 = 0.0;
 #else
-  float_limit_t Endstops::soft_endstop[XYZ];
+  xyz_limit_float_t Endstops::soft_endstop{0};
 #endif
 
 uint16_t Endstops::live_state = 0;
@@ -136,12 +136,8 @@ void Endstops::factory_parameters() {
   );
 
   #if NOMECH(DELTA)
-    soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
-    soft_endstop[Y_AXIS].min = mechanics.data.base_pos[Y_AXIS].min;
-    soft_endstop[Z_AXIS].min = mechanics.data.base_pos[Z_AXIS].min;
-    soft_endstop[X_AXIS].max = mechanics.data.base_pos[X_AXIS].max;
-    soft_endstop[Y_AXIS].max = mechanics.data.base_pos[Y_AXIS].max;
-    soft_endstop[Z_AXIS].max = mechanics.data.base_pos[Z_AXIS].max;
+    soft_endstop.min = mechanics.data.base_pos.min;
+    soft_endstop.max = mechanics.data.base_pos.max;
   #endif
 
   #if ENABLED(X_TWO_ENDSTOPS)
@@ -675,7 +671,7 @@ void Endstops::report() {
 
   // X Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.X == -1) {
+  if (mechanics.home_dir.x == -1) {
     SERIAL_LOGIC(" X Logic",  isLogic(X_MIN));
     SERIAL_LOGIC(" Pullup",   isPullup(X_MIN));
     #if HAS_X2_MIN
@@ -695,7 +691,7 @@ void Endstops::report() {
 
   // Y Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.Y == -1) {
+  if (mechanics.home_dir.y == -1) {
     SERIAL_LOGIC(" Y Logic",  isLogic(Y_MIN));
     SERIAL_LOGIC(" Pullup",   isPullup(Y_MIN));
     #if HAS_Y2_MIN
@@ -715,7 +711,7 @@ void Endstops::report() {
 
   // Z Endstop
   SERIAL_MSG("Endstop");
-  if (mechanics.home_dir.Z == -1) {
+  if (mechanics.home_dir.z == -1) {
     SERIAL_LOGIC(" Z Logic",  isLogic(Z_MIN));
     SERIAL_LOGIC(" Pullup",   isPullup(Z_MIN));
     #if HAS_Z2_MIN
@@ -819,29 +815,29 @@ void Endstops::validate_homing_move() {
 /**
  * Constrain the given coordinates to the software endstops.
  */
-void Endstops::apply_motion_limits(float target[XYZ]) {
+void Endstops::apply_motion_limits(xyz_pos_t &target) {
 
   if (!isSoftEndstop()) return;
 
   #if MECH(DELTA)
-    const float dist_2 = HYPOT2(target[X_AXIS], target[Y_AXIS]);
+    const float dist_2 = HYPOT2(target.x, target.y);
     if (dist_2 > soft_endstop_radius_2) {
       const float ratio = mechanics.data.print_radius / SQRT(dist_2);
-      target[X_AXIS] *= ratio;
-      target[Y_AXIS] *= ratio;
+      target.x *= ratio;
+      target.y *= ratio;
     }
-    NOLESS(target[Z_AXIS], 0);
-    NOMORE(target[Z_AXIS], mechanics.data.height);
+    NOLESS(target.z, 0);
+    NOMORE(target.z, mechanics.data.height);
   #else
     #if ENABLED(MIN_SOFTWARE_ENDSTOPS)
-      NOLESS(target[X_AXIS], soft_endstop[X_AXIS].min);
-      NOLESS(target[Y_AXIS], soft_endstop[Y_AXIS].min);
-      NOLESS(target[Z_AXIS], soft_endstop[Z_AXIS].min);
+      NOLESS(target.x, soft_endstop.min.x);
+      NOLESS(target.y, soft_endstop.min.y);
+      NOLESS(target.z, soft_endstop.min.z);
     #endif
     #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
-      NOMORE(target[X_AXIS], soft_endstop[X_AXIS].max);
-      NOMORE(target[Y_AXIS], soft_endstop[Y_AXIS].max);
-      NOMORE(target[Z_AXIS], soft_endstop[Z_AXIS].max);
+      NOMORE(target.x, soft_endstop.max.x);
+      NOMORE(target.y, soft_endstop.max.y);
+      NOMORE(target.z, soft_endstop.max.z);
     #endif
   #endif
 }
@@ -868,21 +864,21 @@ void Endstops::update_software_endstops(const AxisEnum axis
       // In Dual X mode nozzle.data.hotend_offset[X] is T1's home position
       float dual_max_x = MAX(nozzle.data.hotend_offset[1].x, X2_MAX_POS);
 
-      if (tools.extruder.active != 0) {
+      if (tools.data.extruder.active != 0) {
         // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
-        soft_endstop[X_AXIS].min = X2_MIN_POS;
-        soft_endstop[X_AXIS].max = dual_max_x;
+        soft_endstop.min.x = X2_MIN_POS;
+        soft_endstop.max.x = dual_max_x;
       }
       else if (mechanics.dxc_is_duplicating()) {
         // In Duplication Mode, T0 can move as far left as X_MIN_POS
         // but not so far to the right that T1 would move past the end
-        soft_endstop[X_AXIS].min = mechanics.data.base_pos[X_AXIS].min;
-        soft_endstop[X_AXIS].max = MIN(mechanics.data.base_pos[X_AXIS].max, dual_max_x - mechanics.duplicate_extruder_x_offset);
+        soft_endstop.min.x = mechanics.data.base_pos.min.x;
+        soft_endstop.max.x = MIN(mechanics.data.base_pos.max.x, dual_max_x - mechanics.duplicate_extruder_x_offset);
       }
       else {
         // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
-        soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
-        soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+        soft_endstop.min[axis] = mechanics.data.base_pos.min[axis];
+        soft_endstop.max[axis] = mechanics.data.base_pos.max[axis];
       }
     }
 
@@ -894,27 +890,26 @@ void Endstops::update_software_endstops(const AxisEnum axis
 
     if (old_tool_index != new_tool_index) {
       const float offs = nozzle.data.hotend_offset[axis][new_tool_index] - nozzle.data.hotend_offset[axis][old_tool_index];
-      soft_endstop[axis].min += offs;
-      soft_endstop[axis].max += offs;
+      soft_endstop[axis] += offs;
     }
     else {
       const float offs = nozzle.data.hotend_offset[axis][ACTIVE_HOTEND];
-      soft_endstop[axis].min = mechanics.data.base_pos[axis].min + offs;
-      soft_endstop[axis].max = mechanics.data.base_pos[axis].max + offs;
+      soft_endstop.min[axis] = mechanics.data.base_pos.min[axis] + offs;
+      soft_endstop.max[axis] = mechanics.data.base_pos.max[axis] + offs;
     }
 
   #else
 
-    soft_endstop[axis].min = mechanics.data.base_pos[axis].min;
-    soft_endstop[axis].max = mechanics.data.base_pos[axis].max;
+    soft_endstop.min[axis] = mechanics.data.base_pos.min[axis];
+    soft_endstop.max[axis] = mechanics.data.base_pos.max[axis];
 
     #if ENABLED(WORKSPACE_OFFSETS)
       if (printer.debugFeature()) {
         DEBUG_MV("For ", axis_codes[axis]);
         DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
         DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
-        DEBUG_MV("\n soft_endstop_min = ", soft_endstop[axis].min);
-        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop[axis].max);
+        DEBUG_MV("\n soft_endstop_min = ", soft_endstop.min[axis]);
+        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop.max[axis]);
       }
     #endif
 

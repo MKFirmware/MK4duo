@@ -116,7 +116,6 @@
 
 // Core modules
 #include "src/core/utility/utility.h"
-#include "src/core/position/position.h"
 #include "src/core/watch/watch.h"
 #include "src/core/mechanics/mechanics.h"
 #include "src/core/tools/tools.h"

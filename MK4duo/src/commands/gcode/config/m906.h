@@ -39,7 +39,7 @@
 
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
-        const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+        const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
         externaldac.motor_current[a] = parser.value_ushort();
       }
     }
@@ -96,7 +96,7 @@
           #endif
           break;
         case E_AXIS: {
-          switch (TARGET_EXTRUDER) {
+          switch (tools.data.extruder.target) {
             #if AXIS_HAS_TMC(E0)
               case 0: driver[E0_DRV]->tmc->rms_current(value); break;
             #endif

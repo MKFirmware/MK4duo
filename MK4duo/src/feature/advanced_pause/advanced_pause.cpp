@@ -62,8 +62,8 @@ void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();
   #endif
-  mechanics.current_position.e += length / tools.e_factor[tools.extruder.active];
-  planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
+  mechanics.current_position.e += length / tools.e_factor[tools.data.extruder.active];
+  planner.buffer_line(mechanics.current_position, fr_mm_s, tools.data.extruder.active);
   planner.synchronize();
 }
 
@@ -130,9 +130,9 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   nozzle.park(2, park_point);
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = tools.data.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    tools.data.extruder.active = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -141,7 +141,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
     unload_filament(unload_length, show_lcd);
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    tools.data.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -181,9 +181,9 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = tools.data.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    tools.data.extruder.active = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -268,7 +268,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   }
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    tools.data.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -313,7 +313,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     hotends[h].reset_idle_timer();
   }
 
-  if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(TARGET_EXTRUDER)) {
+  if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(tools.data.extruder.target)) {
     // Load the new filament
     load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT DXC_PASS);
   }
@@ -325,7 +325,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   // Intelligent resuming
   #if ENABLED(FWRETRACT)
     // If retracted before goto pause
-    if (fwretract.retracted[tools.extruder.active])
+    if (fwretract.retracted[tools.data.extruder.active])
       do_pause_e_move(-fwretract.data.retract_length, fwretract.data.retract_feedrate_mm_s);
   #endif
 
@@ -416,7 +416,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);    // LCD click or M108 will clear this
 
-    const char tool = '0' + tools.extruder.active;
+    const char tool = '0' + tools.data.extruder.active;
 
     host_action.prompt_reason = PROMPT_USER_CONTINUE;
     host_action.prompt_begin(PSTR("Load Filament T"), false);
@@ -438,9 +438,9 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = tools.data.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    tools.data.extruder.active = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -451,7 +451,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   if (fast_load_length) do_pause_e_move(fast_load_length, PAUSE_PARK_FAST_LOAD_FEEDRATE);
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    tools.data.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -546,7 +546,7 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
 
   // Disable extruders steppers for manual filament changing
   #if HAS_E_STEPPER_ENABLE
-    stepper.disable_E(tools.extruder.active);
+    stepper.disable_E(tools.data.extruder.active);
     HAL::delayMilliseconds(100);
   #endif
 

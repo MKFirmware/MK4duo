@@ -37,21 +37,22 @@ home_flag_t       Mechanics::home_flag;
 
 const dir_flag_t  Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 
-const xyz_float_t Mechanics::homing_feedrate_mm_s               = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-                  Mechanics::home_bump_mm                       = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+const xyz_float_t Mechanics::homing_feedrate_mm_s = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
+                  Mechanics::home_bump_mm         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
-float             Mechanics::feedrate_mm_s                      = MMM_TO_MMS(1500.0),
-                  Mechanics::steps_to_mm[XYZE_N]                = { 0.0 };
+float             Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
 
-xyze_pos_t        Mechanics::current_position                   = { 0.0, 0.0, 0.0, 0.0 },
-                  Mechanics::destination                        = { 0.0, 0.0, 0.0, 0.0 },
-                  Mechanics::stored_position[NUM_POSITON_SLOTS] = { 0.0 };
+xyzen_float_t     Mechanics::steps_to_mm{0};
 
-xyz_pos_t         Mechanics::cartesian_position                 = { 0.0, 0.0, 0.0 };
+int16_t           Mechanics::feedrate_percentage  = 100;
 
-int16_t           Mechanics::feedrate_percentage                = 100;
+xyzen_ulong_t     Mechanics::max_acceleration_steps_per_s2{0};
 
-uint32_t          Mechanics::max_acceleration_steps_per_s2[XYZE_N]  = { 0 };
+xyze_pos_t        Mechanics::current_position{0},
+                  Mechanics::destination{0},
+                  Mechanics::stored_position[NUM_POSITON_SLOTS]{0};
+
+xyz_pos_t         Mechanics::cartesian_position{0};
 
 static constexpr bool axis_relative_temp[XYZE] = AXIS_RELATIVE_MODES;
 uint8_t Mechanics::axis_relative_modes = (
@@ -78,10 +79,10 @@ int16_t Mechanics::saved_feedrate_percentage = 0;
  */
 int8_t Mechanics::get_homedir(const AxisEnum axis) {
   switch (axis) {
-    case X_AXIS:  return home_dir.X; break;
-    case Y_AXIS:  return home_dir.Y; break;
-    case Z_AXIS:  return home_dir.Z; break;
-    case E_AXIS:  return home_dir.E; break;
+    case X_AXIS:  return home_dir.x; break;
+    case Y_AXIS:  return home_dir.y; break;
+    case Z_AXIS:  return home_dir.z; break;
+    case E_AXIS:  return home_dir.e; break;
     default:      return 0;
   }
 }
@@ -108,13 +109,13 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
         , true
       #endif
     );
-    xyze_pos_t &cartes = pos;
+    xyze_pos_t &cartesian_position = pos;
   #endif
 
   if (axis == ALL_AXES)
-    current_position = cartes;
+    current_position = cartesian_position;
   else
-    current_position[axis] = cartes[axis];
+    current_position[axis] = cartesian_position[axis];
 }
 
 /**
@@ -122,7 +123,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position, fr_mm_s, tools.extruder.active);
+  planner.buffer_line(current_position, fr_mm_s, tools.data.extruder.active);
 }
 
 /**
@@ -130,7 +131,7 @@ void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/)
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
 void Mechanics::buffer_line_to_destination(const float fr_mm_s) {
-  planner.buffer_line(destination, fr_mm_s, tools.extruder.active);
+  planner.buffer_line(destination, fr_mm_s, tools.data.extruder.active);
 }
 
 /**
@@ -179,7 +180,7 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
    * since Arduino works with limited precision real numbers).
    */
   void Mechanics::plan_cubic_move(const float offset[4]) {
-    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.extruder.active);
+    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.data.extruder.active);
 
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position

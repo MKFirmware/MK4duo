@@ -104,7 +104,7 @@
             #endif
             break;
           case E_AXIS: {
-            switch (TARGET_EXTRUDER) {
+            switch (tools.data.extruder.target) {
               #if AXIS_HAS_TMC(E0)
                 case 0: driver[E0_DRV]->tmc->microsteps(value); break;
               #endif

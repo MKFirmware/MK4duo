@@ -122,7 +122,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     // Extruders
     #if EXTRUDERS > 1
-      job_info.active_extruder = tools.extruder.active;
+      job_info.active_extruder = tools.data.extruder.active;
     #endif
 
     COPY_ARRAY(job_info.flow_percentage, tools.flow_percentage);

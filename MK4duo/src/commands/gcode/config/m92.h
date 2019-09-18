@@ -55,7 +55,7 @@ inline void gcode_M92() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
+      const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
       const float value = MAX(parser.value_per_axis_unit((AxisEnum)a), 1.0f); // don't allow zero or negative
       if (i == E_AXIS) {
         if (value < 20) {
@@ -70,8 +70,7 @@ inline void gcode_M92() {
       }
       else {
         #if MECH(DELTA)
-          LOOP_XYZ(axis)
-            mechanics.data.axis_steps_per_mm[axis] = value;
+          mechanics.data.axis_steps_per_mm = value;
         #else
           mechanics.data.axis_steps_per_mm[a] = value;
         #endif
@@ -85,7 +84,7 @@ inline void gcode_M92() {
   if (parser.seen('H') || layer_wanted) {
     const uint16_t  argH = parser.ushortval('H'),
                     micro_steps = argH ? argH : 1;
-    const float minimum_layer_height = micro_steps * mechanics.steps_to_mm[Z_AXIS];
+    const float minimum_layer_height = micro_steps * mechanics.steps_to_mm.z;
     SERIAL_SMV(ECHO, "{ micro steps:", micro_steps);
     SERIAL_MV(", minimum layer height:", minimum_layer_height, 3);
     if (layer_wanted) {

@@ -127,7 +127,7 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_
     // Change filament
     #if DRIVER_EXTRUDERS == 1
       PGM_P msg0 = PSTR(MSG_FILAMENTCHANGE);
-      if (thermalManager.targetTooColdToExtrude(tools.extruder.active))
+      if (thermalManager.targetTooColdToExtrude(tools.data.extruder.active))
         MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_change);
       else
         MENU_ITEM_P(gcode, msg0, PSTR("M600 B0"));
@@ -177,7 +177,7 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_
         // Load filament
         #if DRIVER_EXTRUDERS == 1
           PGM_P msg0 = PSTR(MSG_FILAMENTLOAD);
-          if (thermalManager.targetTooColdToExtrude(tools.extruder.active))
+          if (thermalManager.targetTooColdToExtrude(tools.data.extruder.active))
             MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_load);
           else
             MENU_ITEM_P(gcode, msg0, PSTR("M701"));
@@ -224,7 +224,7 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_
 
         // Unload filament
         #if DRIVER_EXTRUDERS == 1
-          if (thermalManager.targetHotEnoughToExtrude(tools.extruder.active))
+          if (thermalManager.targetHotEnoughToExtrude(tools.data.extruder.active))
             MENU_ITEM(gcode, MSG_FILAMENTUNLOAD, PSTR("M702"));
           else
             MENU_ITEM(submenu, MSG_FILAMENTUNLOAD, menu_temp_e0_filament_unload);

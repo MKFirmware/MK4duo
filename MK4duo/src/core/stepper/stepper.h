@@ -97,13 +97,13 @@ class Stepper {
     static uint8_t  steps_per_isr;                        // Count of steps to perform per Stepper ISR call
 
     // Delta error variables for the Bresenham line tracer
-    static int32_t  delta_error[XYZE];
-    static uint32_t advance_dividend[XYZE],
-                    advance_divisor,
-                    step_events_completed,  // The number of step events executed in the current block
-                    accelerate_until,       // The point from where we need to stop data.acceleration
-                    decelerate_after,       // The point from where we need to start decelerating
-                    step_event_count;       // The total event count for the current block
+    static xyze_long_t  delta_error;
+    static xyze_ulong_t advance_dividend;
+    static uint32_t     advance_divisor,
+                        step_events_completed,  // The number of step events executed in the current block
+                        accelerate_until,       // The point from where we need to stop data.acceleration
+                        decelerate_after,       // The point from where we need to start decelerating
+                        step_event_count;       // The total event count for the current block
 
     #if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
       static uint8_t  active_extruder,        // Active extruder
@@ -138,17 +138,17 @@ class Stepper {
       static uint32_t acc_step_rate; // needed for deceleration start point
     #endif
 
-    static volatile int32_t endstops_trigsteps[XYZ];
+    static xyz_vlong_t endstops_trigsteps;
 
     /**
      * Positions of stepper motors, in step units
      */
-    static volatile int32_t count_position[NUM_AXIS];
+    static xyz_vlong_t count_position;
 
     /**
      * Current direction of stepper motors (+1 or -1)
      */
-    static int8_t count_direction[NUM_AXIS];
+    static xyze_char_t count_direction;
 
     #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
       #ifndef PWM_MOTOR_CURRENT

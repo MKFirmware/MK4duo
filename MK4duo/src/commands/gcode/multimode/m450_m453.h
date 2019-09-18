@@ -40,7 +40,7 @@ static void gcode_printer_mode(const int8_t new_mode) {
   SERIAL_SM(ECHO, "Printer-Mode: ");
   SERIAL_STR((char*)pgm_read_word(&(tool_strings[printer.mode])));
   SERIAL_CHR(' ');
-  SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? tools.extruder.active : 0));
+  SERIAL_EV((int)(printer.mode == PRINTER_MODE_FFF ? tools.data.extruder.active : 0));
 }
 
 #define CODE_M450

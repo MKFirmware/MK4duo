@@ -47,21 +47,21 @@
 inline void gcode_M123() {
 
   if (parser.seen('X')) {
-    if (mechanics.home_dir.X == -1)
+    if (mechanics.home_dir.x == -1)
       endstops.setLogic(X_MIN, parser.value_bool());
     else
       endstops.setLogic(X_MAX, parser.value_bool());
   }
 
   if (parser.seen('Y')) {
-    if (mechanics.home_dir.Y == -1)
+    if (mechanics.home_dir.y == -1)
       endstops.setLogic(Y_MIN, parser.value_bool());
     else
       endstops.setLogic(Y_MAX, parser.value_bool());
   }
 
   if (parser.seen('Z')) {
-    if (mechanics.home_dir.Z == -1)
+    if (mechanics.home_dir.z == -1)
       endstops.setLogic(Z_MIN, parser.value_bool());
     else
       endstops.setLogic(Z_MAX, parser.value_bool());
@@ -69,7 +69,7 @@ inline void gcode_M123() {
 
   #if HAS_X2_MIN || HAS_X2_MAX
     if (parser.seen('I')) {
-      if (mechanics.home_dir.X == -1)
+      if (mechanics.home_dir.x == -1)
         endstops.setLogic(X2_MIN, parser.value_bool());
       else
         endstops.setLogic(X2_MAX, parser.value_bool());
@@ -78,7 +78,7 @@ inline void gcode_M123() {
 
   #if HAS_Y2_MIN || HAS_Y2_MAX
     if (parser.seen('J')) {
-      if (mechanics.home_dir.Y == -1)
+      if (mechanics.home_dir.y == -1)
         endstops.setLogic(Y2_MIN, parser.value_bool());
       else
         endstops.setLogic(Y2_MAX, parser.value_bool());
@@ -87,7 +87,7 @@ inline void gcode_M123() {
 
   #if HAS_Z2_MIN || HAS_Z2_MAX
     if (parser.seen('K')) {
-      if (mechanics.home_dir.Z == -1)
+      if (mechanics.home_dir.z == -1)
         endstops.setLogic(Z2_MIN, parser.value_bool());
       else
         endstops.setLogic(Z2_MAX, parser.value_bool());
@@ -96,7 +96,7 @@ inline void gcode_M123() {
 
   #if HAS_Z3_MIN || HAS_Z3_MAX
     if (parser.seen('L')) {
-      if (mechanics.home_dir.Z == -1)
+      if (mechanics.home_dir.z == -1)
         endstops.setLogic(Z3_MIN, parser.value_bool());
       else
         endstops.setLogic(Z3_MAX, parser.value_bool());
@@ -136,21 +136,21 @@ inline void gcode_M123() {
 inline void gcode_M124() {
 
   if (parser.seen('X')) {
-    if (mechanics.home_dir.X == -1)
+    if (mechanics.home_dir.x == -1)
       endstops.setPullup(X_MIN, parser.value_bool());
     else
       endstops.setPullup(X_MAX, parser.value_bool());
   }
 
   if (parser.seen('Y')) {
-    if (mechanics.home_dir.Y == -1)
+    if (mechanics.home_dir.y == -1)
       endstops.setPullup(Y_MIN, parser.value_bool());
     else
       endstops.setPullup(Y_MAX, parser.value_bool());
   }
 
   if (parser.seen('Z')) {
-    if (mechanics.home_dir.Z == -1)
+    if (mechanics.home_dir.z == -1)
       endstops.setPullup(Z_MIN, parser.value_bool());
     else
       endstops.setPullup(Z_MAX, parser.value_bool());
@@ -158,7 +158,7 @@ inline void gcode_M124() {
 
   #if HAS_X2_MIN || HAS_X2_MAX
     if (parser.seen('I')) {
-      if (mechanics.home_dir.X == -1)
+      if (mechanics.home_dir.x == -1)
         endstops.setPullup(X2_MIN, parser.value_bool());
       else
         endstops.setPullup(X2_MAX, parser.value_bool());
@@ -167,7 +167,7 @@ inline void gcode_M124() {
 
   #if HAS_Y2_MIN || HAS_Y2_MAX
     if (parser.seen('J')) {
-      if (mechanics.home_dir.Y == -1)
+      if (mechanics.home_dir.y == -1)
         endstops.setPullup(Y2_MIN, parser.value_bool());
       else
         endstops.setPullup(Y2_MAX, parser.value_bool());
@@ -176,7 +176,7 @@ inline void gcode_M124() {
 
   #if HAS_Z2_MIN || HAS_Z2_MAX
     if (parser.seen('K')) {
-      if (mechanics.home_dir.Z == -1)
+      if (mechanics.home_dir.z == -1)
         endstops.setPullup(Z2_MIN, parser.value_bool());
       else
         endstops.setPullup(Z2_MAX, parser.value_bool());
@@ -185,7 +185,7 @@ inline void gcode_M124() {
 
   #if HAS_Z3_MIN || HAS_Z3_MAX
     if (parser.seen('L')) {
-      if (mechanics.home_dir.Z == -1)
+      if (mechanics.home_dir.z == -1)
         endstops.setPullup(Z3_MIN, parser.value_bool());
       else
         endstops.setPullup(Z3_MAX, parser.value_bool());

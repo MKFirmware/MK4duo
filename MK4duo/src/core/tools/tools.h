@@ -27,10 +27,22 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
+union extruder_t {
+  uint16_t all;
+  struct {
+    uint8_t active    : 4;
+    uint8_t previous  : 4;
+    uint8_t target    : 4;
+    uint8_t total     : 4;
+ };
+  extruder_t() { all = 0; }
+};
+
 // Struct Tool data
 typedef struct {
+  extruder_t extruder;
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    float   filament_size[EXTRUDERS];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+    float   filament_size[MAX_EXTRUDER];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
   #endif
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     int16_t lpq_len;
@@ -43,17 +55,6 @@ typedef struct {
   #endif
 } tool_data_t;
 
-union extruder_t {
-  uint16_t all;
-  struct {
-    uint8_t active    : 4;
-    uint8_t previous  : 4;
-    uint8_t target    : 4;
-    uint8_t total     : 4;
- };
-  extruder_t() { all = 0; }
-};
-
 class Tools {
 
   public: /** Constructor */
@@ -64,19 +65,17 @@ class Tools {
 
     static tool_data_t  data;
 
-    static extruder_t   extruder;
-
-    static int16_t  flow_percentage[EXTRUDERS],       // Extrusion factor for each extruder
-                    density_percentage[EXTRUDERS];    // Extrusion density factor for each extruder
-    static float    e_factor[EXTRUDERS];              // The flow percentage and volumetric multiplier combine to scale E movement
+    static int16_t  flow_percentage[MAX_EXTRUDER],       // Extrusion factor for each extruder
+                    density_percentage[MAX_EXTRUDER];    // Extrusion density factor for each extruder
+    static float    e_factor[MAX_EXTRUDER];              // The flow percentage and volumetric multiplier combine to scale E movement
 
     #if ENABLED(SINGLENOZZLE)
-      static int16_t singlenozzle_temp[EXTRUDERS];
+      static int16_t singlenozzle_temp[MAX_EXTRUDER];
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static float  volumetric_area_nominal,          // Nominal cross-sectional area
-                    volumetric_multiplier[EXTRUDERS]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
+                    volumetric_multiplier[MAX_EXTRUDER]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
                                                       // May be auto-adjusted by a filament width sensor
     #endif
 
@@ -92,6 +91,14 @@ class Tools {
      */
     static void factory_parameters();
 
+    /**
+     * Change number extruder
+     */
+    static void change_number_extruder(const uint8_t ext);
+
+    /**
+     * Change tools
+     */
     static void change(const uint8_t new_tool, bool no_move=false);
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -103,7 +110,7 @@ class Tools {
     #endif
 
     FORCE_INLINE static void refresh_e_factor(const uint8_t e) {
-      e_factor[e] =  (flow_percentage[e] * 0.01
+      e_factor[e] = (flow_percentage[e] * 0.01
         #if ENABLED(VOLUMETRIC_EXTRUSION)
           * volumetric_multiplier[e]
         #endif

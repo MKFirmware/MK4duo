@@ -86,12 +86,12 @@ static void lcd_reset_settings() { eeprom.reset(); }
     MENU_BACK(MSG_CONFIGURATION);
     #if ENABLED(TOOL_CHANGE_FIL_SWAP)
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        static constexpr float max_extrude = EXTRUDE_MAXLENGTH;
+        static constexpr float max_extrude_lenght = EXTRUDE_MAXLENGTH;
       #else
-        static constexpr float max_extrude = 500;
+        static constexpr float max_extrude_lenght = 500;
       #endif
-      MENU_ITEM_EDIT(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude);
-      MENU_ITEM_EDIT(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude);
+      MENU_ITEM_EDIT(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude_lenght);
+      MENU_ITEM_EDIT(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
       MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
       MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.prime_speed, 10, 5400);
     #endif
@@ -106,9 +106,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void menu_tool_offsets() {
 
     auto _recalc_offsets = []{
-      if (tools.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
+      if (tools.data.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
         commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
-        tools.extruder.active = 0;
+        tools.data.extruder.active = 0;
       }
     };
 
@@ -362,9 +362,7 @@ void menu_configuration() {
 
   const bool busy = printer.isPrinting();
   if (!busy) {
-    //
-    // Delta Calibration
-    //
+
     #if MECH(DELTA)
       MENU_ITEM(submenu, MSG_DELTA_CALIBRATE, menu_delta_calibrate);
     #endif

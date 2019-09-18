@@ -77,12 +77,12 @@ inline void gcode_M205() {
         LOOP_XYZ(axis) mechanics.data.max_jerk[axis] = value;
       }
     #else
-      if (parser.seen('X')) mechanics.data.max_jerk[X_AXIS] = parser.value_linear_units();
-      if (parser.seen('Y')) mechanics.data.max_jerk[Y_AXIS] = parser.value_linear_units();
-      if (parser.seen('Z')) mechanics.data.max_jerk[Z_AXIS] = parser.value_linear_units();
+      if (parser.seen('X')) mechanics.data.max_jerk.x = parser.value_linear_units();
+      if (parser.seen('Y')) mechanics.data.max_jerk.y = parser.value_linear_units();
+      if (parser.seen('Z')) mechanics.data.max_jerk.z = parser.value_linear_units();
     #endif
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-      if (parser.seen('E')) mechanics.data.max_jerk[E_AXIS] = parser.value_linear_units();
+      if (parser.seen('E')) mechanics.data.max_jerk.e[tools.data.extruder.target] = parser.value_linear_units();
     #endif
   #endif
 

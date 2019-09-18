@@ -296,7 +296,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
   void line_to_z(const float &z) {
     mechanics.current_position.z = z;
-    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.z), tools.extruder.active);
+    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.z), tools.data.extruder.active);
   }
 
 #endif
@@ -307,7 +307,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
     lcdui.defer_status_screen();
     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
-      const bool do_probe = (tools.extruder.active == 0);
+      const bool do_probe = (tools.data.extruder.active == 0);
     #else
       constexpr bool do_probe = true;
     #endif
@@ -316,7 +316,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
       const int16_t babystep_increment = (int16_t)lcdui.encoderPosition * (BABYSTEP_MULTIPLICATOR);
       lcdui.encoderPosition = 0;
 
-      const float diff = mechanics.steps_to_mm[Z_AXIS] * babystep_increment,
+      const float diff = mechanics.steps_to_mm.z * babystep_increment,
                   new_probe_offset = probe.data.offset.z + diff,
                   new_offs =
                     #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)

@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV73"
+#define EEPROM_VERSION "MKV74"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -1314,6 +1314,9 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
+  // Call Tools Factory parameters
+  tools.factory_parameters();
+
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
 
@@ -1325,9 +1328,6 @@ void EEPROM::reset() {
 
   // Call Endstop Factory parameters
   endstops.factory_parameters();
-
-  // Call Tools Factory parameters
-  tools.factory_parameters();
 
   // Call Nozzle Factory parameters
   nozzle.factory_parameters();

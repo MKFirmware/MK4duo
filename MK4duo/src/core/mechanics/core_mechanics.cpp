@@ -54,17 +54,11 @@ void Core_Mechanics::factory_parameters() {
   }
 
   LOOP_EXTRUDER()
-    data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
+    data.retract_acceleration[e]        = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
-  // Base min pos
-  data.base_pos[X_AXIS].min       = X_MIN_POS;
-  data.base_pos[Y_AXIS].min       = Y_MIN_POS;
-  data.base_pos[Z_AXIS].min       = Z_MIN_POS;
-
-  // Base max pos
-  data.base_pos[X_AXIS].max       = X_MAX_POS;
-  data.base_pos[Y_AXIS].max       = Y_MAX_POS;
-  data.base_pos[Z_AXIS].max       = Z_MAX_POS;
+  // Base pos
+  data.base_pos.min.set(X_MIN_POS, Y_MIN_POS, Z_MIN_POS);
+  data.base_pos.max.set(X_MAX_POS, Y_MAX_POS, Z_MAX_POS);
 
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
@@ -76,12 +70,10 @@ void Core_Mechanics::factory_parameters() {
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #else
     static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
-    data.max_jerk[X_AXIS]  = DEFAULT_XJERK;
-    data.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
-    data.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+    data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
     #if DISABLED(LIN_ADVANCE)
       LOOP_EXTRUDER()
-        data.max_jerk[E_AXIS + e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
+        data.max_jerk.e[e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
     #endif
   #endif
 
@@ -109,7 +101,7 @@ void Core_Mechanics::get_cartesian_from_steppers() {
  */
 void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), rx, ry, rz);
+  if (printer.debugFeature()) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
   const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
@@ -183,18 +175,18 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 
   // Reduce Acceleration and Jerk for Homing
   #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    REMEMBER(accel_x, data.max_acceleration_mm_per_s2[X_AXIS], 100);
-    REMEMBER(accel_y, data.max_acceleration_mm_per_s2[Y_AXIS], 100);
+    REMEMBER(accel_x, data.max_acceleration_mm_per_s2.x, 100);
+    REMEMBER(accel_y, data.max_acceleration_mm_per_s2.y, 100);
     #if HAS_CLASSIC_JERK
-      REMEMBER(jerk_x, data.max_jerk[X_AXIS], 0);
-      REMEMBER(jerk_y, data.max_jerk[Y_AXIS], 0);
+      REMEMBER(jerk_x, data.max_jerk.x, 0);
+      REMEMBER(jerk_y, data.max_jerk.y, 0);
     #endif
     planner.reset_acceleration_rates();
   #endif
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
+    const uint8_t old_tool_index = tools.data.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -356,7 +348,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
+  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active);
 
   planner.synchronize();
 
@@ -401,7 +393,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.extruder.active);
+        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.data.extruder.active);
         return true;
       #else
         /**
@@ -470,7 +462,7 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
       DEBUG_MV("> data.home_offset[", axis_codes[axis]);
       DEBUG_EMV("] = ", data.home_offset[axis]);
     #endif
-    DEBUG_POS("", current_position.x);
+    DEBUG_POS("", current_position);
     DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
@@ -489,9 +481,9 @@ float Core_Mechanics::x_home_pos() {
   #if ENABLED(MANUAL_X_HOME_POS)
     return MANUAL_X_HOME_POS;
   #elif ENABLED(BED_CENTER_AT_0_0)
-     return ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (mechanics.get_homedir(X_AXIS)) * 0.5);
+     return ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5);
   #else
-    return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max);
+    return (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x);
   #endif
 }
 
@@ -499,9 +491,9 @@ float Core_Mechanics::y_home_pos() {
   #if ENABLED(MANUAL_Y_HOME_POS)
     return MANUAL_Y_HOME_POS;
   #elif ENABLED(BED_CENTER_AT_0_0)
-    return ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (mechanics.get_homedir(Y_AXIS)) * 0.5);
+    return ((mechanics.data.base_pos.max.y - mechanics.data.base_pos.min.y) * (mechanics.get_homedir(Y_AXIS)) * 0.5);
   #else
-    return (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max);
+    return (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos.min.y : mechanics.data.base_pos.max.y);
   #endif
 }
 
@@ -509,14 +501,14 @@ float Core_Mechanics::z_home_pos() {
   #if ENABLED(MANUAL_Z_HOME_POS)
     return MANUAL_Z_HOME_POS;
   #else
-    return (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max);
+    return (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos.min.z : mechanics.data.base_pos.max.z);
   #endif
 }
 
 // Return true if the given position is within the machine bounds.
 bool Core_Mechanics::position_is_reachable(const float &rx, const float &ry) {
-  if (!WITHIN(ry, data.base_pos[Y_AXIS].min - slop, data.base_pos[Y_AXIS].max + slop)) return false;
-  return WITHIN(rx, data.base_pos[X_AXIS].min - slop, data.base_pos[X_AXIS].max + slop);
+  if (!WITHIN(ry, data.base_pos.min.y - slop, data.base_pos.max.y + slop)) return false;
+  return WITHIN(rx, data.base_pos.min.x - slop, data.base_pos.max.x + slop);
 }
 // Return whether the given position is within the bed, and whether the nozzle
 //  can reach the position required to put the probe at the given position.
@@ -565,7 +557,6 @@ void Core_Mechanics::report_current_position_detail() {
   report_xyze(from_steppers);
 
   const xyze_float_t diff = from_steppers - leveled;
-
   SERIAL_MSG("Differ: ");
   report_xyze(diff);
 
@@ -585,51 +576,51 @@ void Core_Mechanics::report_current_position_detail() {
 
   void Core_Mechanics::print_M92() {
     SERIAL_LM(CFG, "Steps per unit:");
-    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm.y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm.z), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[0]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M92 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS + e]), 3);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
       }
     #endif // EXTRUDERS > 1
   }
 
   void Core_Mechanics::print_M201() {
     SERIAL_LM(CFG, "Maximum Acceleration (units/s2):");
-    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2[X_AXIS]));
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Y_AXIS]));
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Z_AXIS]));
+    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2.x));
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2.y));
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2.z));
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS]));
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[0]));
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M201 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS + e]));
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
       }
     #endif // EXTRUDERS > 1
   }
 
   void Core_Mechanics::print_M203() {
     SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s.y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s.z), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[0]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M203 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS + e]), 3);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
       }
     #endif // EXTRUDERS > 1
   }
@@ -666,19 +657,19 @@ void Core_Mechanics::report_current_position_detail() {
       #endif
       SERIAL_EOL();
 
-      SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk[X_AXIS]), 3);
-      SERIAL_MV(" Y", LINEAR_UNIT(data.max_jerk[Y_AXIS]), 3);
-      SERIAL_MV(" Z", LINEAR_UNIT(data.max_jerk[Z_AXIS]), 3);
+      SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(data.max_jerk.y), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(data.max_jerk.z), 3);
 
       #if DISABLED(LIN_ADVANCE)
         #if EXTRUDERS == 1
-          SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk[E_AXIS]), 3);
+          SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk.e[0]), 3);
         #endif
         SERIAL_EOL();
         #if (EXTRUDERS > 1)
           LOOP_EXTRUDER() {
             SERIAL_SMV(CFG, "  M205 T", (int)e);
-            SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk[E_AXIS + e]), 3);
+            SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
           }
         #endif
       #endif
@@ -696,13 +687,13 @@ void Core_Mechanics::report_current_position_detail() {
 
   void Core_Mechanics::print_M228() {
     SERIAL_LM(CFG, "Set axis max travel:");
-    SERIAL_SMV(CFG, "  M228 S0 X", LINEAR_UNIT(data.base_pos[X_AXIS].max), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.base_pos[Y_AXIS].max), 3);
-    SERIAL_EMV(" Z", LINEAR_UNIT(data.base_pos[Z_AXIS].max), 3);
+    SERIAL_SMV(CFG, "  M228 S0 X", LINEAR_UNIT(data.base_pos.max.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.base_pos.max.y), 3);
+    SERIAL_EMV(" Z", LINEAR_UNIT(data.base_pos.max.z), 3);
     SERIAL_LM(CFG, "Set axis min travel:");
-    SERIAL_SMV(CFG, "  M228 S1 X", LINEAR_UNIT(data.base_pos[X_AXIS].min), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.base_pos[Y_AXIS].min), 3);
-    SERIAL_EMV(" Z", LINEAR_UNIT(data.base_pos[Z_AXIS].min), 3);
+    SERIAL_SMV(CFG, "  M228 S1 X", LINEAR_UNIT(data.base_pos.min.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.base_pos.min.y), 3);
+    SERIAL_EMV(" Z", LINEAR_UNIT(data.base_pos.min.z), 3);
   }
 
 #endif // DISABLED(DISABLE_M503)
@@ -751,7 +742,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     if (axis == Z_AXIS && bltouch.deploy()) return; // The initial DEPLOY
   #endif
 
-  do_homing_move(axis, 1.5f * data.base_pos[axis].max * get_homedir(axis));
+  do_homing_move(axis, 1.5f * data.base_pos.max[axis] * get_homedir(axis));
 
   #if HOMING_Z_WITH_PROBE && HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
     if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
@@ -908,7 +899,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     current_position.x = current_position.y = 0;
     sync_plan_position();
 
-    const float mlratio = data.base_pos[X_AXIS].max > data.base_pos[Y_AXIS].max ? data.base_pos[Y_AXIS].max / data.base_pos[X_AXIS].max : data.base_pos[X_AXIS].max / data.base_pos[Y_AXIS].max,
+    const float mlratio = data.base_pos.max.x > data.base_pos.max.y ? data.base_pos.max.y / data.base_pos.max.x : data.base_pos.max.x / data.base_pos.max.y,
                 fr_mm_s = MIN(homing_feedrate_mm_s.x, homing_feedrate_mm_s.y) * SQRT(sq(mlratio) + 1.0);
 
     #if ENABLED(SENSORLESS_HOMING)
@@ -917,7 +908,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       stealth_states.y = tmc.enable_stallguard(Y_DRV);
     #endif
 
-    do_blocking_move_to_xy(1.5f * data.base_pos[X_AXIS].max * x_axis_home_dir, 1.5f * data.base_pos[Y_AXIS].max * home_dir.Y, fr_mm_s);
+    do_blocking_move_to_xy(1.5f * data.base_pos.max.x * x_axis_home_dir, 1.5f * data.base_pos.max.y * home_dir.y, fr_mm_s);
 
     endstops.validate_homing_move();
 
@@ -1009,7 +1000,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
       const float newzero = probe_pt(destination.x, destination.y, true, 1) - (2 * probe.data.offset.z);
       current_position.z -= newzero;
       destination.z = current_position.z;
-      endstops.soft_endstop[Z_AXIS].max = data.base_pos[Z_AXIS].max - newzero;
+      endstops.soft_endstop.max.z = data.base_pos.max.z - newzero;
 
       sync_plan_position();
       do_blocking_move_to_z(MIN_Z_HEIGHT_FOR_HOMING);

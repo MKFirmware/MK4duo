@@ -295,7 +295,7 @@
       planner.synchronize();
       if (mechanics.axis_unhomed_error()) mechanics.home();
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (tools.extruder.active != 0) tools.change(0);
+        if (tools.data.extruder.active != 0) tools.change(0);
       #endif
     }
 
@@ -743,7 +743,7 @@
           const float rawx = mesh_index_to_xpos(location.x_index),
                       rawy = mesh_index_to_ypos(location.y_index);
 
-          const float measured_z = probe.check_pt(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
+          const float measured_z = probe.check_at_point(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
           z_values[location.x_index][location.y_index] = measured_z;
         }
         Com::serialFlush(); // Prevent host M105 buffer overrun.
@@ -879,7 +879,7 @@
         SERIAL_STR(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                       // existing behavior: 0.01mm per click, occasionally step
-        //const float z_step = mechanics.data.axis_steps_per_mm[Z_AXIS];  // approx one step each click
+        //const float z_step = mechanics.data.axis_steps_per_mm.z;  // approx one step each click
 
         move_z_with_encoder(z_step);
 
@@ -1355,7 +1355,7 @@
           lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 1/3"));
         #endif
 
-        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
+        measured_z = probe.check_at_point(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
         else {
@@ -1374,7 +1374,7 @@
             lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 2/3"));
           #endif
 
-          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
+          measured_z = probe.check_at_point(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
           //z2 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1394,7 +1394,7 @@
             lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 3/3"));
           #endif
 
-          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
+          measured_z = probe.check_at_point(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
@@ -1436,7 +1436,7 @@
                 lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " %i/%i"), point_num, total_points);
               #endif
 
-              measured_z = probe.check_pt(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
+              measured_z = probe.check_at_point(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
 
               abort_flag = isnan(measured_z);
 

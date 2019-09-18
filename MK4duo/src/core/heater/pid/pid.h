@@ -37,7 +37,7 @@ struct pid_data_t {
 
     float           Kp, Ki, Kd, Kc;
     uint8_t         Max;
-    uint8_t_limit_t drive;
+    limit_uchar_t drive;
 
   private: /** Private Parameters */
 
@@ -45,7 +45,7 @@ struct pid_data_t {
           last_temperature    = 0.0,
           temperature_1s      = 0.0;
 
-    float_limit_t temp_istate_limit;
+    limit_float_t temp_istate_limit;
 
   public: /** Public Function */
 
@@ -84,7 +84,7 @@ struct pid_data_t {
               lpq[lpq_ptr] = 0;
             }
             if (++lpq_ptr >= tools.data.lpq_len) lpq_ptr = 0;
-            pid_output += (lpq[lpq_ptr] * mechanics.steps_to_mm[E_AXIS + tools.extruder.active]) * Kc;
+            pid_output += (lpq[lpq_ptr] * mechanics.steps_to_mm.e[tools.data.extruder.active]) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
 

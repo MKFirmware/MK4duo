@@ -113,19 +113,20 @@ bool    Stepper::abort_current_block  = false;
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
-uint32_t  Stepper::acceleration_time  = 0,
-          Stepper::deceleration_time  = 0;
+uint32_t      Stepper::acceleration_time  = 0,
+              Stepper::deceleration_time  = 0;
 
-uint8_t   Stepper::steps_per_isr = 0;
+uint8_t       Stepper::steps_per_isr = 0;
 
-int32_t   Stepper::delta_error[XYZE] = { 0 };
+xyze_long_t   Stepper::delta_error{0};
 
-uint32_t  Stepper::advance_dividend[XYZE] = { 0 },
-          Stepper::advance_divisor        = 0,
-          Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
-          Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
-          Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
-          Stepper::step_event_count       = 0;  // The total event count for the current block
+xyze_ulong_t  Stepper::advance_dividend{0};
+
+uint32_t      Stepper::advance_divisor        = 0,
+              Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
+              Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
+              Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
+              Stepper::step_event_count       = 0;  // The total event count for the current block
 
 #if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
   uint8_t Stepper::active_extruder        = 0,
@@ -173,11 +174,10 @@ int32_t Stepper::ticks_nominal = -1;
   uint32_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
-volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
+xyz_vlong_t Stepper::endstops_trigsteps{0},
+            Stepper::count_position{0};
 
-volatile int32_t Stepper::count_position[NUM_AXIS]   = { 0 };
-
-int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
+xyze_char_t Stepper::count_direction{1};
 
 #if ENABLED(LASER)
   int32_t Stepper::delta_error_laser = 0;
@@ -486,16 +486,19 @@ int32_t Stepper::position(const AxisEnum axis) {
 
 void Stepper::report_positions() {
 
-  // Disable stepper ISR
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  #ifdef __AVR__
+    // Protect the access to the position.
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  #endif
 
-  const int32_t xpos = count_position[X_AXIS],
-                ypos = count_position[Y_AXIS],
-                zpos = count_position[Z_AXIS];
+  const int32_t xpos = count_position.x,
+                ypos = count_position.y,
+                zpos = count_position.z;
 
-  // Reenable Stepper ISR
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #ifdef __AVR__
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #endif
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
     SERIAL_MSG(MSG_COUNT_A);
@@ -554,33 +557,33 @@ void Stepper::set_directions() {
   #if HAS_X_DIR
     if (motor_direction(X_AXIS)) {
       set_X_dir(driver[X_DRV]->isDir());
-      count_direction[X_AXIS] = -1;
+      count_direction.x = -1;
     }
     else {
       set_X_dir(!driver[X_DRV]->isDir());
-      count_direction[X_AXIS] = 1;
+      count_direction.x = 1;
     }
   #endif
 
   #if HAS_Y_DIR
     if (motor_direction(Y_AXIS)) {
       set_Y_dir(driver[Y_DRV]->isDir());
-      count_direction[Y_AXIS] = -1;
+      count_direction.y = -1;
     }
     else {
       set_Y_dir(!driver[Y_DRV]->isDir());
-      count_direction[Y_AXIS] = 1;
+      count_direction.y = 1;
     }
   #endif
 
   #if HAS_Z_DIR
     if (motor_direction(Z_AXIS)) {
       set_Z_dir(driver[Z_DRV]->isDir());
-      count_direction[Z_AXIS] = -1;
+      count_direction.z = -1;
     }
     else {
       set_Z_dir(!driver[Z_DRV]->isDir());
-      count_direction[Z_AXIS] = 1;
+      count_direction.z = 1;
     }
   #endif
 
@@ -588,26 +591,26 @@ void Stepper::set_directions() {
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (motor_direction(E_AXIS)) {
         set_rev_E_dir();
-        count_direction[E_AXIS] = -1;
+        count_direction.e = -1;
       }
       else {
         set_nor_E_dir();
-        count_direction[E_AXIS] = 1;
+        count_direction.e = 1;
       }
     #else
       if (motor_direction(E_AXIS)) {
         set_rev_E_dir(active_extruder_driver);
-        count_direction[E_AXIS] = -1;
+        count_direction.e = -1;
       }
       else {
         set_nor_E_dir(active_extruder_driver);
-        count_direction[E_AXIS] = 1;
+        count_direction.e = 1;
       }
     #endif
   #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
 
   #if HAS_EXT_ENCODER
-    tools.encLastDir[active_extruder] = count_direction[E_AXIS];
+    tools.encLastDir[active_extruder] = count_direction.e;
   #endif
 
   // After changing directions, an small delay could be needed.
@@ -1621,7 +1624,7 @@ uint32_t Stepper::block_phase_step() {
       if (X_MOVE_TEST) SBI(axis_bits, A_AXIS);
       if (Y_MOVE_TEST) SBI(axis_bits, B_AXIS);
       if (Z_MOVE_TEST) SBI(axis_bits, C_AXIS);
-      //if (!!current_block->steps[E_AXIS]) SBI(axis_bits, E_AXIS);
+      //if (!!current_block->steps.e) SBI(axis_bits, E_AXIS);
       //if (!!current_block->steps[A_AXIS]) SBI(axis_bits, X_HEAD);
       //if (!!current_block->steps[B_AXIS]) SBI(axis_bits, Y_HEAD);
       //if (!!current_block->steps[C_AXIS]) SBI(axis_bits, Z_HEAD);
@@ -1647,18 +1650,18 @@ uint32_t Stepper::block_phase_step() {
       step_event_count = current_block->step_event_count << oversampling;
 
       // Initialize Bresenham delta errors to 1/2
-      delta_error[X_AXIS] = delta_error[Y_AXIS] = delta_error[Z_AXIS] = delta_error[E_AXIS] = -int32_t(step_event_count);
+      delta_error.x = delta_error.y = delta_error.z = delta_error.e = -int32_t(step_event_count);
 
       #if ENABLED(LASER)
-        delta_error_laser = delta_error[X_AXIS];
+        delta_error_laser = delta_error.x;
         laser.dur = current_block->laser_duration;
       #endif
 
       // Calculate Bresenham dividends
-      advance_dividend[X_AXIS] = current_block->steps[X_AXIS] << 1;
-      advance_dividend[Y_AXIS] = current_block->steps[Y_AXIS] << 1;
-      advance_dividend[Z_AXIS] = current_block->steps[Z_AXIS] << 1;
-      advance_dividend[E_AXIS] = current_block->steps[E_AXIS] << 1;
+      advance_dividend.x = current_block->steps.x << 1;
+      advance_dividend.y = current_block->steps.y << 1;
+      advance_dividend.z = current_block->steps.z << 1;
+      advance_dividend.e = current_block->steps.e << 1;
 
       // Calculate Bresenham divisor
       advance_divisor = step_event_count << 1;
@@ -1721,7 +1724,7 @@ uint32_t Stepper::block_phase_step() {
         // If delayed Z enable, enable it now. This option will severely interfere with
         // timing between pulses when chaining motion between blocks, and it could lead
         // to lost steps in both X and Y axis, so avoid using it unless strictly necessary!!
-        if (current_block->steps[Z_AXIS]) enable_Z();
+        if (current_block->steps.z) enable_Z();
       #endif
 
       // Mark the time_nominal as not calculated yet
@@ -1762,37 +1765,37 @@ uint32_t Stepper::block_phase_step() {
 FORCE_INLINE void Stepper::pulse_tick_start() {
 
   #if HAS_X_STEP
-    delta_error[X_AXIS] += advance_dividend[X_AXIS];
-    if (delta_error[X_AXIS] >= 0) {
+    delta_error.x += advance_dividend.x;
+    if (delta_error.x >= 0) {
       start_X_step();
-      count_position[X_AXIS] += count_direction[X_AXIS];
+      count_position.x += count_direction.x;
     }
   #endif
 
   #if HAS_Y_STEP
-    delta_error[Y_AXIS] += advance_dividend[Y_AXIS];
-    if (delta_error[Y_AXIS] >= 0) {
+    delta_error.y += advance_dividend.y;
+    if (delta_error.y >= 0) {
       start_Y_step();
-      count_position[Y_AXIS] += count_direction[Y_AXIS];
+      count_position.y += count_direction.y;
     }
   #endif
 
   #if HAS_Z_STEP
-    delta_error[Z_AXIS] += advance_dividend[Z_AXIS];
-    if (delta_error[Z_AXIS] >= 0) {
+    delta_error.z += advance_dividend.z;
+    if (delta_error.z >= 0) {
       start_Z_step();
-      count_position[Z_AXIS] += count_direction[Z_AXIS];
+      count_position.z += count_direction.z;
     }
   #endif
 
   // Pulse Extruders
   // Tick the E axis, correct error term and update position
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
-    delta_error[E_AXIS] += advance_dividend[E_AXIS];
-    if (delta_error[E_AXIS] >= 0) {
-      count_position[E_AXIS] += count_direction[E_AXIS];
+    delta_error.e += advance_dividend.e;
+    if (delta_error.e >= 0) {
+      count_position[E_AXIS] += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
-        delta_error[E_AXIS] -= advance_divisor;
+        delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform
         motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
       #else
@@ -1803,10 +1806,10 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
 
   #elif HAS_EXTRUDERS
 
-    delta_error[E_AXIS] += advance_dividend[E_AXIS];
-    if (delta_error[E_AXIS] >= 0) {
+    delta_error.e += advance_dividend.e;
+    if (delta_error.e >= 0) {
       E_STEP_WRITE(active_extruder_driver, !driver[E0_DRV]->isStep());
-      count_position[E_AXIS] += count_direction[E_AXIS];
+      count_position[E_AXIS] += count_direction.e;
     }
 
   #endif
@@ -1816,35 +1819,35 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
 FORCE_INLINE void Stepper::pulse_tick_stop() {
 
   #if HAS_X_STEP
-    if (delta_error[X_AXIS] >= 0) {
-      delta_error[X_AXIS] -= advance_divisor;
+    if (delta_error.x >= 0) {
+      delta_error.x -= advance_divisor;
       stop_X_step();
     }
   #endif
 
   #if HAS_Y_STEP
-    if (delta_error[Y_AXIS] >= 0) {
-      delta_error[Y_AXIS] -= advance_divisor;
+    if (delta_error.y >= 0) {
+      delta_error.y -= advance_divisor;
       stop_Y_step();
     }
   #endif
 
   #if HAS_Z_STEP
-    if (delta_error[Z_AXIS] >= 0) {
-      delta_error[Z_AXIS] -= advance_divisor;
+    if (delta_error.z >= 0) {
+      delta_error.z -= advance_divisor;
       stop_Z_step();
     }
   #endif
 
   #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      if (delta_error[E_AXIS] >= 0) {
-        delta_error[E_AXIS] -= advance_divisor;
+      if (delta_error.e >= 0) {
+        delta_error.e -= advance_divisor;
         E_STEP_WRITE(mixer.get_stepper(), driver[E0_DRV]->isStep());
       }
     #elif HAS_EXTRUDERS
-      if (delta_error[E_AXIS] >= 0) {
-        delta_error[E_AXIS] -= advance_divisor;
+      if (delta_error.e >= 0) {
+        delta_error.e -= advance_divisor;
         E_STEP_WRITE(active_extruder_driver, driver[E0_DRV]->isStep());
       }
     #endif
@@ -1861,12 +1864,12 @@ FORCE_INLINE void Stepper::start_X_step() {
     #if ENABLED(X_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (X_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, X_MIN)  && count_direction[X_AXIS] < 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
-          if (!(TEST(endstops.live_state, X2_MIN) && count_direction[X_AXIS] < 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X_MIN)  && count_direction.x < 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X2_MIN) && count_direction.x < 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, X_MAX)  && count_direction[X_AXIS] > 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
-          if (!(TEST(endstops.live_state, X2_MAX) && count_direction[X_AXIS] > 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X_MAX)  && count_direction.x > 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X2_MAX) && count_direction.x > 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
         }
       }
       else {
@@ -1899,12 +1902,12 @@ FORCE_INLINE void Stepper::start_Y_step() {
     #if ENABLED(Y_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Y_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction[Y_AXIS] < 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Y2_MIN) && count_direction[Y_AXIS] < 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction.y < 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y2_MIN) && count_direction.y < 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction[Y_AXIS] > 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Y2_MAX) && count_direction[Y_AXIS] > 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction.y > 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y2_MAX) && count_direction.y > 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
         }
       }
       else {
@@ -1926,14 +1929,14 @@ FORCE_INLINE void Stepper::start_Z_step() {
     #if ENABLED(Z_THREE_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z3_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction.z < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction.z < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z3_MIN) && count_direction.z < 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z3_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction.z > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction.z > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z3_MAX) && count_direction.z > 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
         }
       }
       else {
@@ -1961,12 +1964,12 @@ FORCE_INLINE void Stepper::start_Z_step() {
     #if ENABLED(Z_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction.z < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction.z < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction.z > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction.z > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
         }
       }
       else {
@@ -2188,22 +2191,22 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     // corexy positioning
     count_position[A_AXIS] = a + (CORE_FACTOR) * b;
     count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-    count_position[Z_AXIS] = c;
+    count_position.z = c;
   #elif CORE_IS_XZ
     // corexz planning
     count_position[A_AXIS] = a + (CORE_FACTOR) * c;
-    count_position[Y_AXIS] = b;
+    count_position.y = b;
     count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
   #elif CORE_IS_YZ
     // coreyz planning
-    count_position[X_AXIS] = a;
+    count_position.x = a;
     count_position[B_AXIS] = b + (CORE_FACTOR) * c;
     count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
   #else
     // default non-h-bot planning
-    count_position[X_AXIS] = a;
-    count_position[Y_AXIS] = b;
-    count_position[Z_AXIS] = c;
+    count_position.x = a;
+    count_position.y = b;
+    count_position.z = c;
   #endif
 
   count_position[E_AXIS] = e;

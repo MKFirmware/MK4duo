@@ -685,7 +685,8 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 #if ENABLED(NEXTION_GFX)
 
   void NextionLCD::gfx_origin(const float x, const float y, const float z) {
-    gfx.origin(x, y, z);
+    const xyz_pos_t pos = { x, y, z };
+    gfx.origin(pos);
   }
 
   void NextionLCD::gfx_scale(const float scale) {
@@ -693,31 +694,46 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
   }
 
   void NextionLCD::gfx_clear(const float x, const float y, const float z) {
-    if (PageID == 2 && printer.isPrinting())
-      gfx.clear(x, y, z);
-  }
-
-  void NextionLCD::gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-    if (PageID == 2 && (printer.isPrinting() || force_cursor))
-      gfx.cursor_to(x, y, z);
-  }
-
-  void NextionLCD::gfx_line_to(const float x, const float y, const float z) {
     if (PageID == 2 && printer.isPrinting()) {
+      const xyz_pos_t pos = { x, y, z };
+      gfx.clear(pos);
+    }
+  }
+
+  void NextionLCD::gfx_cursor_to(xyz_pos_t &pos, bool force_cursor) {
+    if (PageID == 2 && (printer.isPrinting() || force_cursor)) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
+      gfx.cursor_to(pos);
+    }
+  }
+
+  void NextionLCD::gfx_line_to(xyz_pos_t &pos) {
+    if (PageID == 2 && printer.isPrinting()) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
       #if ENABLED(ARDUINO_ARCH_SAM)
-        gfx.line_to(NX_TOOL, x, y, z, true);
+        gfx.line_to(NX_TOOL, pos, true);
       #else
-        gfx.line_to(NX_TOOL, x, y, z);
+        gfx.line_to(NX_TOOL, pos);
       #endif
     }
   }
 
-  void NextionLCD::gfx_plane_to(const float x, const float y, const float z) {
+  void NextionLCD::gfx_plane_to(xyz_pos_t &pos) {
     uint8_t color;
-    if (PageID == 2) {
-      if (z < 10) color = NX_LOW;
+    if (PageID == 2 && printer.isPrinting()) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
+      if (pos.z < 10) color = NX_LOW;
       else color = NX_HIGH;
-      gfx.line_to(color, x, y, z, true);
+      gfx.line_to(color, pos, true);
     }
   }
 
@@ -1152,8 +1168,8 @@ bool NextionLCD::getConnect(char* buffer) {
         mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
 
         #if EXTRUDERS > 1
-          const int8_t old_extruder = tools.extruder.active;
-          if (manual_move_axis == E_AXIS) tools.extruder.active = manual_move_e_index;
+          const int8_t old_extruder = tools.data.extruder.active;
+          if (manual_move_axis == E_AXIS) tools.data.extruder.active = manual_move_e_index;
         #endif
 
         // Set movement on a single axis
@@ -1174,12 +1190,12 @@ bool NextionLCD::getConnect(char* buffer) {
 
         mechanics.feedrate_mm_s = old_feedrate;
         #if EXTRUDERS > 1
-          tools.extruder.active = old_extruder;
+          tools.data.extruder.active = old_extruder;
         #endif
 
       #else
 
-        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.extruder.active);
+        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.data.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

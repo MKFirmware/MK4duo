@@ -299,7 +299,7 @@ void Heater::check_and_power() {
  */
 void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues/*=false*/) {
 
-  float       current_temp  = 0.0;
+  float       current_temp  = 0.0f;
   int         cycles        = 0;
   bool        heating       = true;
   const bool  isHotend      = type == IS_HOTEND,
@@ -310,11 +310,11 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   millis_l  t1      = millis(),
             t2      = t1;
 
-  int32_t   t_high  = 0.0,
-            t_low   = 0.0;
+  long      t_high  = 0,
+            t_low   = 0;
 
-  float     maxTemp = 0.0,
-            minTemp = 1000.0;
+  float     maxTemp = 0.0f,
+            minTemp = 1000.0f;
 
   pid_data_t tune_pid;
 
@@ -322,7 +322,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   tune_pid.Ki = 0.0;
   tune_pid.Kd = 0.0;
 
-  int32_t bias  = data.pid.Max >> 1,
+  long    bias  = data.pid.Max >> 1,
           d     = data.pid.Max >> 1;
 
   printer.setWaitForHeatUp(true);

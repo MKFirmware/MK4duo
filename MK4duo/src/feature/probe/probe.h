@@ -74,7 +74,7 @@ class Probe {
     #if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
       /**
-       * Check Pt (ex probe_pt)
+       * Check at Pt
        * - Move to the given XY
        * - Deploy the probe, if not already deployed
        * - Probe the bed, get the Z position
@@ -83,7 +83,7 @@ class Probe {
        *   - Raise to the BETWEEN height
        * - Return the probed Z position
        */
-      static float check_pt(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
+      static float check_at_point(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
 
     #endif
 

@@ -54,7 +54,7 @@ inline void gcode_M200() {
     // for all extruders
     printer.setVolumetric(parser.value_linear_units() != 0);
     if (printer.isVolumetric())
-      tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
+      tools.set_filament_size(tools.data.extruder.target, parser.value_linear_units());
   }
   tools.calculate_volumetric_multipliers();
 }

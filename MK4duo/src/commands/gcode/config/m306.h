@@ -60,7 +60,7 @@ inline void gcode_M306() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M306 report.
-    if (!parser.seen("ABCFLOUIRPQ")) {
+    if (!parser.seen("ABCFLO") && !parser.seen("UIRPQ")) {
       act->print_M306();
       return;
     }

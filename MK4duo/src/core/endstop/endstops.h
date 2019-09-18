@@ -86,7 +86,7 @@ class Endstops {
     #if MECH(DELTA)
       static float  soft_endstop_radius_2;
     #else
-      static float_limit_t soft_endstop[XYZ];
+      static xyz_limit_float_t soft_endstop;
     #endif
 
     static uint16_t live_state;
@@ -155,7 +155,7 @@ class Endstops {
     FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
 
     // Constrain the given coordinates to the software endstops.
-    static void apply_motion_limits(float target[XYZ]);
+    static void apply_motion_limits(xyz_pos_t &target);
     static void update_software_endstops(const AxisEnum axis
       #if HOTENDS > 1
         , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0

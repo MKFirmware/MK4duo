@@ -44,17 +44,17 @@
 
     // Unload length
     if (parser.seen('U')) {
-      advancedpause.data[tools.extruder.target].unload_length = ABS(parser.value_axis_units(E_AXIS));
+      advancedpause.data[tools.data.extruder.target].unload_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(advancedpause.data[tools.extruder.target].unload_length, EXTRUDE_MAXLENGTH);
+        NOMORE(advancedpause.data[tools.data.extruder.target].unload_length, EXTRUDE_MAXLENGTH);
       #endif
     }
 
     // Load length
     if (parser.seen('L')) {
-      advancedpause.data[tools.extruder.target].load_length = ABS(parser.value_axis_units(E_AXIS));
+      advancedpause.data[tools.data.extruder.target].load_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(advancedpause.data[tools.extruder.target].load_length, EXTRUDE_MAXLENGTH);
+        NOMORE(advancedpause.data[tools.data.extruder.target].load_length, EXTRUDE_MAXLENGTH);
       #endif
     }
   }

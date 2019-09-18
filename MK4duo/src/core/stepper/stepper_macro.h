@@ -30,9 +30,6 @@
  * Copyright (c) 2015 Dominik Wenger
  */
 
-// Max driver for all Axis
-#define MAX_DRIVER                  13
-
 #include "l6470/l6470.h"
 #include "tmc/tmc.h"
 #include "tmc26x/tmc26x.h"

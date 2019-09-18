@@ -209,7 +209,7 @@
               #endif
               break;
             case E_AXIS: {
-              switch (TARGET_EXTRUDER) {
+              switch (tools.data.extruder.target) {
                 #if AXIS_HAS_STEALTHCHOP(E0)
                   case 0: TMC_SET_PWMTHRS(E0); break;
                 #endif

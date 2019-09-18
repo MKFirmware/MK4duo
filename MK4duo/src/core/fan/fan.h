@@ -55,7 +55,7 @@ struct fan_data_t {
                   freq;
   pin_t           pin;
   fan_flag_t      flag;
-  uint8_t_limit_t speed_limit;
+  limit_uchar_t speed_limit;
   #if ENABLED(TACHOMETRIC)
     tacho_data_t  tacho;
   #endif

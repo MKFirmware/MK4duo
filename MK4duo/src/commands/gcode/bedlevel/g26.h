@@ -218,12 +218,12 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
   if (z != last_z) {
     last_z = mechanics.destination.z = z;
-    feed_value = mechanics.data.max_feedrate_mm_s[Z_AXIS] * 0.5f; // Use half of the Z_AXIS max feed rate
+    feed_value = mechanics.data.max_feedrate_mm_s.z * 0.5f; // Use half of the Z_AXIS max feed rate
     G26_line_to_destination(feed_value);
   }
 
   // If X or Y is involved do a 'normal' move. Otherwise retract/recover/hop.
-  feed_value = has_xy_component ? G26_XY_FEEDRATE : mechanics.data.max_feedrate_mm_s[E_AXIS] * 0.666f;
+  feed_value = has_xy_component ? G26_XY_FEEDRATE : mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] * 0.666f;
   mechanics.destination = dest;
   mechanics.destination.e += e_delta;
   G26_line_to_destination(feed_value);
@@ -427,7 +427,7 @@ inline bool prime_nozzle() {
           Total_Prime += 0.25;
           if (Total_Prime >= EXTRUDE_MAXLENGTH) return G26_ERR;
         #endif
-        G26_line_to_destination(mechanics.data.max_feedrate_mm_s[E_AXIS] / 15.0);
+        G26_line_to_destination(mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] / 15.0);
         mechanics.destination = mechanics.current_position;
         planner.synchronize();    // Without this synchronize, the purge is more consistent,
                                   // but because the planner has a buffer, we won't be able
@@ -456,12 +456,6 @@ inline bool prime_nozzle() {
   }
 
   return G26_OK;
-}
-
-float valid_trig_angle(float d) {
-  while (d > 360.0) d -= 360.0;
-  while (d < 0.0) d += 360.0;
-  return d;
 }
 
 /**

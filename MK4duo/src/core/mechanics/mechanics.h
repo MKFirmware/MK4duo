@@ -45,12 +45,12 @@ union home_flag_t {
 union dir_flag_t {
   int8_t dir;
   struct {
-    int8_t X : 2;
-    int8_t Y : 2;
-    int8_t Z : 2;
-    int8_t E : 2;
+    int8_t x : 2;
+    int8_t y : 2;
+    int8_t z : 2;
+    int8_t e : 2;
   };
-  dir_flag_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { X = dirx; Y = diry; Z = dirz; E = -1; }
+  dir_flag_t(const int8_t dirx=0, const int8_t diry=0, const int8_t dirz=0) { x = dirx; y = diry; z = dirz; e = -1; }
 };
 
 union sensorless_flag_t {
@@ -71,34 +71,36 @@ union sensorless_flag_t {
 // Struct Mechanics data
 struct generic_data_t {
 
-  float     axis_steps_per_mm[XYZE_N],
-            max_feedrate_mm_s[XYZE_N],
-            acceleration,
-            travel_acceleration,
-            retract_acceleration[EXTRUDERS],
-            min_feedrate_mm_s,
-            min_travel_feedrate_mm_s;
+  xyzen_float_t axis_steps_per_mm,
+                max_feedrate_mm_s;
 
-  uint32_t  max_acceleration_mm_per_s2[XYZE_N],
-            min_segment_time_us;
+  float         acceleration,
+                travel_acceleration,
+                retract_acceleration[MAX_EXTRUDER],
+                min_feedrate_mm_s,
+                min_travel_feedrate_mm_s;
+
+  xyzen_ulong_t max_acceleration_mm_per_s2;
+
+  uint32_t      min_segment_time_us;
 
   #if ENABLED(JUNCTION_DEVIATION)
     float     junction_deviation_mm;
     #if ENABLED(LIN_ADVANCE)
-      float max_e_jerk[EXTRUDERS];
+      float max_e_jerk[MAX_EXTRUDER];
     #endif
   #endif
 
   #if HAS_CLASSIC_JERK
     #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-      xyz_float_t max_jerk[XYZ];
+      xyz_float_t max_jerk;
     #else
-      float max_jerk[XYZE_N];
+      xyzen_float_t max_jerk;
     #endif
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    xyz_pos_t home_offset[XYZ];
+    xyz_pos_t home_offset;
   #endif
 
 };
@@ -145,12 +147,12 @@ class Mechanics {
     /**
      * Step
      */
-    static float    steps_to_mm[XYZE_N];
+    static xyzen_float_t steps_to_mm;
 
     /**
      * Acceleration
      */
-    static uint32_t max_acceleration_steps_per_s2[XYZE_N];
+    static xyzen_ulong_t max_acceleration_steps_per_s2;
 
     /**
      * Cartesian Current Position

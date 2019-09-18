@@ -44,7 +44,7 @@
   inline void gcode_M428() {
     if (mechanics.axis_unhomed_error()) return;
 
-    float diff[XYZ];
+    xyz_pos_t diff;
     LOOP_XYZ(i) {
       diff[i] = mechanics.axis_home_pos(AxisEnum(i)) - mechanics.current_position[i];
       if (WITHIN(diff[i], -20, 20) && mechanics.get_homedir((AxisEnum)i) > 0)

@@ -191,7 +191,7 @@
 #define ARRAY_BY_N(N, v1)         ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_EXTRUDERS based on EXTRUDERS
-#define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(EXTRUDERS, __VA_ARGS__)
+#define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(MAX_EXTRUDER, __VA_ARGS__)
 #define ARRAY_BY_EXTRUDERS(v1)    ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
 // ARRAY_BY_HOTENDS based on HOTENDS
@@ -241,7 +241,7 @@
 #define LOOP_DRV()                LOOP_L_N(d, MAX_DRIVER)
 #define LOOP_DRV_XYZ()            LOOP_S_LE_N(d, X_DRV, Z_DRV)
 #define LOOP_DRV_EXTRUDER()       LOOP_S_LE_N(d, E0_DRV, E5_DRV)
-#define LOOP_EXTRUDER()           LOOP_L_N(e, EXTRUDERS)
+#define LOOP_EXTRUDER()           LOOP_L_N(e, tools.data.extruder.total)
 #define LOOP_HOTEND()             LOOP_L_N(h, HOTENDS)
 #define LOOP_BED()                LOOP_L_N(h, BEDS)
 #define LOOP_CHAMBER()            LOOP_L_N(h, CHAMBERS)

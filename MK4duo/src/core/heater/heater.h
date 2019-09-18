@@ -54,7 +54,7 @@ struct heater_data_t {
   uint16_t        freq;
   pin_t           pin;
   heater_flag_t   flag;
-  int16_limit_t   temp;
+  limit_int_t   temp;
   pid_data_t      pid;
   sensor_data_t   sensor;
 };

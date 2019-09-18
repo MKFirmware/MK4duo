@@ -38,13 +38,13 @@
     if (commands.get_target_tool(221)) return;
 
     if (parser.seenval('S')) {
-      tools.flow_percentage[TARGET_EXTRUDER] = parser.value_int();
-      tools.refresh_e_factor(TARGET_EXTRUDER);
+      tools.flow_percentage[tools.data.extruder.target] = parser.value_int();
+      tools.refresh_e_factor(tools.data.extruder.target);
     }
     else {
       SERIAL_SM(ECHO, "E");
-      SERIAL_CHR('0' + TARGET_EXTRUDER);
-      SERIAL_MV(" Flow: ", tools.flow_percentage[TARGET_EXTRUDER]);
+      SERIAL_CHR('0' + tools.data.extruder.target);
+      SERIAL_MV(" Flow: ", tools.flow_percentage[tools.data.extruder.target]);
       SERIAL_CHR('%');
       SERIAL_EOL();
     }

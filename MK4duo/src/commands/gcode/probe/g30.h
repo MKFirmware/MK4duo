@@ -58,7 +58,7 @@
     mechanics.setup_for_endstop_or_probe_move();
 
     const ProbePtRaiseEnum raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
-    const float measured_z = probe.check_pt(xpos, ypos, raise_after, 1);
+    const float measured_z = probe.check_at_point(xpos, ypos, raise_after, 1);
 
     if (!isnan(measured_z)) {
       SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);

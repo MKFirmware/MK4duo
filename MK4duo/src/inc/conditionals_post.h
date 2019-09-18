@@ -122,12 +122,12 @@
 
 #else // !MECH(DELTA)
 
-  #define X_MIN_BED   (mechanics.data.base_pos[X_AXIS].min)
-  #define X_MAX_BED   (mechanics.data.base_pos[X_AXIS].max)
-  #define Y_MIN_BED   (mechanics.data.base_pos[Y_AXIS].min)
-  #define Y_MAX_BED   (mechanics.data.base_pos[Y_AXIS].max)
-  #define Z_MIN_BED   (mechanics.data.base_pos[Z_AXIS].min)
-  #define Z_MAX_BED   (mechanics.data.base_pos[Z_AXIS].max)
+  #define X_MIN_BED   (mechanics.data.base_pos.min.x)
+  #define X_MAX_BED   (mechanics.data.base_pos.max.x)
+  #define Y_MIN_BED   (mechanics.data.base_pos.min.y)
+  #define Y_MAX_BED   (mechanics.data.base_pos.max.y)
+  #define Z_MIN_BED   (mechanics.data.base_pos.min.z)
+  #define Z_MAX_BED   (mechanics.data.base_pos.max.z)
 
   #define MESH_MIN_X  (X_MIN_BED + (MESH_INSET))
   #define MESH_MAX_X  (X_MAX_BED - (MESH_INSET))
@@ -200,23 +200,23 @@
 #if ENABLED(MANUAL_X_HOME_POS)
   #define X_HOME_POS MANUAL_X_HOME_POS
 #elif ENABLED(BED_CENTER_AT_0_0)
-   #define X_HOME_POS ((mechanics.data.base_pos[X_AXIS].max - mechanics.data.base_pos[X_AXIS].min) * (mechanics.get_homedir(X_AXIS)) * 0.5)
+   #define X_HOME_POS ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5)
 #else
-  #define X_HOME_POS (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos[X_AXIS].min : mechanics.data.base_pos[X_AXIS].max)
+  #define X_HOME_POS (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x)
 #endif
 
 #if ENABLED(MANUAL_Y_HOME_POS)
   #define Y_HOME_POS MANUAL_Y_HOME_POS
 #elif ENABLED(BED_CENTER_AT_0_0)
-  #define Y_HOME_POS ((mechanics.data.base_pos[Y_AXIS].max - mechanics.data.base_pos[Y_AXIS].min) * (mechanics.get_homedir(Y_AXIS)) * 0.5)
+  #define Y_HOME_POS ((mechanics.data.base_pos.max.y - mechanics.data.base_pos.min.y) * (mechanics.get_homedir(Y_AXIS)) * 0.5)
 #else
-  #define Y_HOME_POS (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos[Y_AXIS].min : mechanics.data.base_pos[Y_AXIS].max)
+  #define Y_HOME_POS (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos.min.y : mechanics.data.base_pos.max.y)
 #endif
 
 #if ENABLED(MANUAL_Z_HOME_POS)
   #define Z_HOME_POS MANUAL_Z_HOME_POS
 #else
-  #define Z_HOME_POS (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos[Z_AXIS].min : mechanics.data.base_pos[Z_AXIS].max)
+  #define Z_HOME_POS (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos.min.z : mechanics.data.base_pos.max.z)
 #endif
 
 /**
@@ -236,10 +236,10 @@
  */
 #if ENABLED(Z_SAFE_HOMING)
   #if DISABLED(Z_SAFE_HOMING_X_POINT)
-    #define Z_SAFE_HOMING_X_POINT ((mechanics.data.base_pos[X_AXIS].min + mechanics.data.base_pos[X_AXIS].max) / 2)
+    #define Z_SAFE_HOMING_X_POINT ((mechanics.data.base_pos.min.x + mechanics.data.base_pos.max.x) / 2)
   #endif
   #if DISABLED(Z_SAFE_HOMING_Y_POINT)
-    #define Z_SAFE_HOMING_Y_POINT ((mechanics.data.base_pos[Y_AXIS].min + mechanics.data.base_pos[Y_AXIS].max) / 2)
+    #define Z_SAFE_HOMING_Y_POINT ((mechanics.data.base_pos.min.y + mechanics.data.base_pos.max.y) / 2)
   #endif
   #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
   #define Y_TILT_FULCRUM Z_SAFE_HOMING_Y_POINT
@@ -920,10 +920,10 @@
   #define MAX_PROBE_Y (Y_CENTER + (SCARA_PRINTABLE_RADIUS) - (MIN_PROBE_EDGE))
 #else
   // Boundaries for Cartesian probing based on bed limits
-  #define MIN_PROBE_X (MAX(mechanics.data.base_pos[X_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].min + probe.data.offset.x))
-  #define MIN_PROBE_Y (MAX(mechanics.data.base_pos[Y_AXIS].min + (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].min + probe.data.offset.y))
-  #define MAX_PROBE_X (MIN(mechanics.data.base_pos[X_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[X_AXIS].max + probe.data.offset.x))
-  #define MAX_PROBE_Y (MIN(mechanics.data.base_pos[Y_AXIS].max - (MIN_PROBE_EDGE), mechanics.data.base_pos[Y_AXIS].max + probe.data.offset.y))
+  #define MIN_PROBE_X (MAX(mechanics.data.base_pos.min.x + (MIN_PROBE_EDGE), mechanics.data.base_pos.min.x + probe.data.offset.x))
+  #define MIN_PROBE_Y (MAX(mechanics.data.base_pos.min.y + (MIN_PROBE_EDGE), mechanics.data.base_pos.min.y + probe.data.offset.y))
+  #define MAX_PROBE_X (MIN(mechanics.data.base_pos.max.x - (MIN_PROBE_EDGE), mechanics.data.base_pos.max.x + probe.data.offset.x))
+  #define MAX_PROBE_Y (MIN(mechanics.data.base_pos.max.y - (MIN_PROBE_EDGE), mechanics.data.base_pos.max.y + probe.data.offset.y))
 #endif
 
 /**

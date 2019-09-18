@@ -723,7 +723,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
         enable_E0();
       #else // !DONDOLO_SINGLE_MOTOR
         bool oldstatus;
-        switch (tools.extruder.active) {
+        switch (tools.data.extruder.active) {
           case 0: oldstatus = E0_ENABLE_READ(); enable_E0(); break;
           #if DRIVER_EXTRUDERS > 1
             case 1: oldstatus = E1_ENABLE_READ(); enable_E1(); break;
@@ -745,14 +745,14 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
       const float olde = mechanics.current_position.e;
       mechanics.current_position.e += EXTRUDER_RUNOUT_EXTRUDE;
-      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.extruder.active);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.data.extruder.active);
       mechanics.current_position.e = olde;
       planner.set_e_position_mm(olde);
       planner.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
         E0_ENABLE_WRITE(oldstatus);
       #else
-        switch (tools.extruder.active) {
+        switch (tools.data.extruder.active) {
           case 0: E0_ENABLE_WRITE(oldstatus); break;
           #if DRIVER_EXTRUDERS > 1
             case 1: E1_ENABLE_WRITE(oldstatus); break;
@@ -944,7 +944,7 @@ void Printer::handle_interrupt_events() {
           if (advancedpause.did_pause_print) return;
         #endif
 
-        const char tool = '0' + tools.extruder.active;
+        const char tool = '0' + tools.data.extruder.active;
         host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action.prompt_begin(PSTR("Filament Runout T"), false);
         SERIAL_CHR(tool);
@@ -1038,31 +1038,31 @@ void Printer::handle_safety_watch() {
 
   void Printer::IDLE_OOZING_retract(bool retracting) {
 
-    if (retracting && !IDLE_OOZING_retracted[tools.extruder.active]) {
+    if (retracting && !IDLE_OOZING_retracted[tools.data.extruder.active]) {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
       mechanics.destination = mechanics.current_position;
       mechanics.current_position.e += IDLE_OOZING_LENGTH
         #if ENABLED(VOLUMETRIC_EXTRUSION)
-          / tools.volumetric_multiplier[tools.extruder.active]
+          / tools.volumetric_multiplier[tools.data.extruder.active]
         #endif
       ;
       mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
       planner.set_e_position_mm(mechanics.current_position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[tools.extruder.active] = true;
+      IDLE_OOZING_retracted[tools.data.extruder.active] = true;
       //SERIAL_EM("-");
     }
-    else if (!retracting && IDLE_OOZING_retracted[tools.extruder.active]) {
+    else if (!retracting && IDLE_OOZING_retracted[tools.data.extruder.active]) {
 
       float old_feedrate_mm_s = mechanics.feedrate_mm_s;
 
       mechanics.destination = mechanics.current_position;
       mechanics.current_position.e -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
         #if ENABLED(VOLUMETRIC_EXTRUSION)
-          / tools.volumetric_multiplier[tools.extruder.active]
+          / tools.volumetric_multiplier[tools.data.extruder.active]
         #endif
       ;
 
@@ -1070,7 +1070,7 @@ void Printer::handle_safety_watch() {
       planner.set_e_position_mm(mechanics.current_position.e);
       mechanics.prepare_move_to_destination();
       mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[tools.extruder.active] = false;
+      IDLE_OOZING_retracted[tools.data.extruder.active] = false;
       //SERIAL_EM("+");
     }
   }

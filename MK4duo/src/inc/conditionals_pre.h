@@ -372,6 +372,17 @@
 #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 /**
+ * Define for max valor for Driver, Extruder, heater, fan
+ */
+#define MAX_DRIVER       13
+#define MAX_EXTRUDER      6
+#define MAX_HOTEND        6
+#define MAX_BED           4
+#define MAX_CHAMBER       4
+#define MAX_COOLER        1
+#define MAX_FAN           6
+
+/**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
  *
@@ -435,32 +446,15 @@
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
   #define HOTEND_INDEX      h
-  #define ACTIVE_HOTEND     tools.extruder.active
-  #define TARGET_HOTEND     tools.extruder.target
+  #define ACTIVE_HOTEND     tools.data.extruder.active
+  #define TARGET_HOTEND     tools.data.extruder.target
 #endif
 
 /**
  * Multi-extruders support
  */
-#if EXTRUDERS > 1
-  #define XYZE_N          (3 + EXTRUDERS)
-  #define E_AXIS_N(E)     (uint8_t(E_AXIS) + E)
-  #define E_INDEX         (uint8_t(E_AXIS) + tools.extruder.active)
-  #define TARGET_EXTRUDER tools.extruder.target
-#elif EXTRUDERS == 1
-  #define XYZE_N          XYZE
-  #define E_AXIS_N(E)     E_AXIS
-  #define E_INDEX         E_AXIS
-  #define TARGET_EXTRUDER 0
-#elif EXTRUDERS == 0
-  #undef PIDTEMP
-  #define PIDTEMP         false
-  #undef FWRETRACT
-  #define XYZE_N          XYZ
-  #define E_AXIS_N(E)     0
-  #define E_INDEX         0
-  #define TARGET_EXTRUDER 0
-#endif
+#define XYZE_N              (3 + tools.data.extruder.total)
+#define E_INDEX             (uint8_t(E_AXIS) + tools.data.extruder.active)
 
 /**
  * The BLTouch Probe emulates a servo probe

@@ -62,14 +62,14 @@ void Scara_Mechanics::factory_parameters() {
     data.retract_acceleration[e]  = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
   // Base min pos
-  data.base_pos[X_AXIS].min       = X_MIN_POS;
-  data.base_pos[Y_AXIS].min       = Y_MIN_POS;
-  data.base_pos[Z_AXIS].min       = Z_MIN_POS;
+  data.base_pos.min.x       = X_MIN_POS;
+  data.base_pos.min.y       = Y_MIN_POS;
+  data.base_pos.min.z       = Z_MIN_POS;
 
   // Base max pos
-  data.base_pos[X_AXIS].max       = X_MAX_POS;
-  data.base_pos[Y_AXIS].max       = Y_MAX_POS;
-  data.base_pos[Z_AXIS].max       = Z_MAX_POS;
+  data.base_pos.max.x       = X_MAX_POS;
+  data.base_pos.max.y       = Y_MAX_POS;
+  data.base_pos.max.z       = Z_MAX_POS;
 
   // Base home pos
   data.base_home_pos[X_AXIS]      = X_HOME_POS;
@@ -87,9 +87,9 @@ void Scara_Mechanics::factory_parameters() {
   #endif
 
   static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
-  data.max_jerk[X_AXIS]  = DEFAULT_XJERK;
-  data.max_jerk[Y_AXIS]  = DEFAULT_YJERK;
-  data.max_jerk[Z_AXIS]  = DEFAULT_ZJERK;
+  data.max_jerk.x  = DEFAULT_XJERK;
+  data.max_jerk.y  = DEFAULT_YJERK;
+  data.max_jerk.z  = DEFAULT_ZJERK;
   #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
     LOOP_EXTRUDER()
       data.max_jerk[E_AXIS + e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
@@ -144,7 +144,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference[X_AXIS] && !difference[Y_AXIS]) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active);
       return false; // caller will update current_position.x
     }
 
@@ -228,12 +228,12 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         // For SCARA scale the feed rate from mm/s to degrees/s
         // i.e., Complete the angular vector in the given time.
-        if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], raw[Z_AXIS], raw[E_AXIS], HYPOT(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB) * inverse_secs, tools.extruder.active))
+        if (!planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], raw[Z_AXIS], raw[E_AXIS], HYPOT(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB) * inverse_secs, tools.data.extruder.active))
           break;
         oldA = delta[A_AXIS];
         oldB = delta[B_AXIS];
       #else
-        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
+        if (!planner.buffer_line(delta[A_AXIS], delta[B_AXIS], delta[C_AXIS], raw[E_AXIS], _feedrate_mm_s, tools.data.extruder.active, cartesian_segment_mm))
           break;
       #endif
 
@@ -256,9 +256,9 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
       #endif
       const float diff2 = HYPOT2(delta[A_AXIS] - oldA, delta[B_AXIS] - oldB);
       if (diff2)
-        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination.z, destination.e, SQRT(diff2) * inverse_secs, tools.extruder.active);
+        planner.buffer_segment(delta[A_AXIS], delta[B_AXIS], destination.z, destination.e, SQRT(diff2) * inverse_secs, tools.data.extruder.active);
     #else
-      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active);
     #endif
 
     return false; // caller will update current_position.x
@@ -272,7 +272,7 @@ void Scara_Mechanics::get_cartesian_from_steppers() {
  */
 void Scara_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
 
-  if (printer.debugFeature()) DEBUG_XYZ(PSTR(">>> do_blocking_move_to"), rx, ry, rz);
+  if (printer.debugFeature()) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
   const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
               xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
@@ -411,7 +411,7 @@ void Scara_Mechanics::home() {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
+    const uint8_t old_tool_index = tools.data.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -518,7 +518,7 @@ void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   current_position[axis] = 0;
   sync_plan_position();
   current_position[axis] = distance;
-  planner.buffer_line(current_position.x, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
+  planner.buffer_line(current_position.x, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active);
 
   planner.synchronize();
 
@@ -618,7 +618,7 @@ void Scara_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
   #endif
 
   if (printer.debugFeature()) {
-    DEBUG_POS("", current_position.x);
+    DEBUG_POS("", current_position);
     DEBUG_MT("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')');
     DEBUG_EOL();
@@ -654,7 +654,7 @@ void Scara_Mechanics::prepare_uninterpolated_move_to_destination(const float fr_
     && current_position.e == destination.e
   ) return;
 
-  planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
+  planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.data.extruder.active);
 
   current_position = destination;
 }
@@ -738,26 +738,26 @@ void Scara_Mechanics::report_current_position_detail() {
 
   void Scara_Mechanics::print_M92() {
     SERIAL_LM(CFG, "Steps per unit:");
-    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm.y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm.z), 3);
     #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS]), 3);
+      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[0]), 3);
     #endif
     SERIAL_EOL();
     #if EXTRUDERS > 1
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M92 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm[E_AXIS + e]), 3);
+        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
       }
     #endif // EXTRUDERS > 1
   }
 
   void Scara_Mechanics::print_M201() {
     SERIAL_LM(CFG, "Maximum Acceleration (units/s2):");
-    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2[X_AXIS]));
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Y_AXIS]));
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2[Z_AXIS]));
+    SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2.x));
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2.y));
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2.z));
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2[E_AXIS]));
     #endif
@@ -772,9 +772,9 @@ void Scara_Mechanics::report_current_position_detail() {
 
   void Scara_Mechanics::print_M203() {
     SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s.y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s.z), 3);
     #if EXTRUDERS == 1
       SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_AXIS]), 3);
     #endif
@@ -820,7 +820,7 @@ void Scara_Mechanics::report_current_position_detail() {
     #endif
     SERIAL_EOL();
 
-    SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk[X_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
 
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       #if EXTRUDERS == 1

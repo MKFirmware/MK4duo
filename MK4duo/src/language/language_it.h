@@ -253,6 +253,7 @@
   #define MSG_CSTEPS                        _UxGT("Zpassi/mm")
 #endif
 #define MSG_ESTEPS                          _UxGT("Epassi/mm")
+#define MSG_E0STEPS                         _UxGT("E0passi/mm")
 #define MSG_E1STEPS                         _UxGT("E1passi/mm")
 #define MSG_E2STEPS                         _UxGT("E2passi/mm")
 #define MSG_E3STEPS                         _UxGT("E3passi/mm")
@@ -568,6 +569,9 @@
 #define MSG_CHAMBER_DONE                    _UxGT("Camera pronta.")
 #define MSG_COOLER_COOLING                  _UxGT("Raffreddamento...")
 #define MSG_COOLER_DONE                     _UxGT("Raffreddamento finito.")
+
+// Max extruder
+#define MSG_MAX_EXTRUDERS                   _UxGT("Estrusori")
 
 // Extra
 #define MSG_LASER                           _UxGT("Laser Preset")

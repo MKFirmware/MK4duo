@@ -30,7 +30,7 @@
 
 // Struct Cartesian Settings
 typedef struct : public generic_data_t {
-  float_limit_t base_pos[XYZ];
+  xyz_limit_float_t base_pos;
 } mechanics_data_t;
 
 class Cartesian_Mechanics : public Mechanics {

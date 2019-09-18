@@ -87,7 +87,7 @@ inline void gcode_G34() {
 
     // Always home with tool 0 active
     #if HOTENDS > 1
-      const uint8_t old_tool_index = tools.extruder.active;
+      const uint8_t old_tool_index = tools.data.extruder.active;
       tools.change(0, true);
     #endif
 
@@ -139,7 +139,7 @@ inline void gcode_G34() {
         if (iteration == 0 || izstepper > 0) mechanics.do_blocking_move_to_z(z_probe);
 
         // Probe a Z height for each stepper
-        if (isnan(probe.check_pt(z_auto_align_xpos[zstepper], z_auto_align_ypos[zstepper], PROBE_PT_RAISE, true))) {
+        if (isnan(probe.check_at_point(z_auto_align_xpos[zstepper], z_auto_align_ypos[zstepper], PROBE_PT_RAISE, true))) {
           SERIAL_EM("Probing failed.");
           err_break = true;
           break;
@@ -279,13 +279,13 @@ inline void gcode_M422() {
   }
 
   const float x_pos = parser.floatval('X', z_auto_align_xpos[zstepper]);
-  if (!WITHIN(x_pos, mechanics.data.base_pos[X_AXIS].min, mechanics.data.base_pos[X_AXIS].max)) {
+  if (!WITHIN(x_pos, mechanics.data.base_pos.min.x, mechanics.data.base_pos.max.x)) {
     SERIAL_EM("?(X) out of bounds.");
     return;
   }
 
   const float y_pos = parser.floatval('Y', z_auto_align_ypos[zstepper]);
-  if (!WITHIN(y_pos, mechanics.data.base_pos[Y_AXIS].min, mechanics.data.base_pos[Y_AXIS].max)) {
+  if (!WITHIN(y_pos, mechanics.data.base_pos.min.y, mechanics.data.base_pos.max.y)) {
     SERIAL_EM("?(Y) out of bounds.");
     return;
   }

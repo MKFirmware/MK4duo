@@ -247,7 +247,7 @@ inline void gcode_G29() {
   if (!bedlevel.flag.g29_in_progress) {
 
     #if HOTENDS > 1
-      if (tools.extruder.active != 0) tools.change(0);
+      if (tools.data.extruder.active != 0) tools.change(0);
     #endif
 
     #if HAS_PROBE_MANUALLY || ENABLED(AUTO_BED_LEVELING_LINEAR)
@@ -666,7 +666,7 @@ inline void gcode_G29() {
             lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), int(pt_index), int(GRID_MAX_POINTS));
           #endif
 
-          measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
+          measured_z = faux ? 0.001 * random(-100, 101) : probe.check_at_point(xProbe, yProbe, raise_after, verbose_level);
 
           if (isnan(measured_z)) {
             bedlevel.restore_bed_leveling_state();
@@ -703,7 +703,7 @@ inline void gcode_G29() {
         // Retain the last probe position
         xProbe = points[i].x;
         yProbe = points[i].y;
-        measured_z = faux ? 0.001 * random(-100, 101) : probe.check_pt(xProbe, yProbe, raise_after, verbose_level);
+        measured_z = faux ? 0.001 * random(-100, 101) : probe.check_at_point(xProbe, yProbe, raise_after, verbose_level);
         if (isnan(measured_z)) {
           bedlevel.restore_bed_leveling_state();
           break;
