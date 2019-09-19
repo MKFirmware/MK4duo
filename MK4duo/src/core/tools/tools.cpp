@@ -94,6 +94,7 @@ void Tools::factory_parameters() {
 
 void Tools::change_number_extruder(const uint8_t ext) {
   data.extruder.total = ext;
+  stepper.create_driver();
 }
 
 void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {

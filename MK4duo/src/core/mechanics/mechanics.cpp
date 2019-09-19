@@ -42,15 +42,15 @@ const xyz_float_t Mechanics::homing_feedrate_mm_s = { MMM_TO_MMS(HOMING_FEEDRATE
 
 float             Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
 
-xyzen_float_t     Mechanics::steps_to_mm{0};
+xyzen_float_t     Mechanics::steps_to_mm;
 
 int16_t           Mechanics::feedrate_percentage  = 100;
 
-xyzen_ulong_t     Mechanics::max_acceleration_steps_per_s2{0};
+xyzen_ulong_t     Mechanics::max_acceleration_steps_per_s2;
 
-xyze_pos_t        Mechanics::current_position{0},
-                  Mechanics::destination{0},
-                  Mechanics::stored_position[NUM_POSITON_SLOTS]{0};
+xyze_pos_t        Mechanics::current_position,
+                  Mechanics::destination,
+                  Mechanics::stored_position[NUM_POSITON_SLOTS];
 
 xyz_pos_t         Mechanics::cartesian_position{0};
 

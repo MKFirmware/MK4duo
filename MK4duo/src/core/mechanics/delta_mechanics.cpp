@@ -41,13 +41,13 @@ Delta_Mechanics mechanics;
 /** Public Parameters */
 mechanics_data_t Delta_Mechanics::data;
 
-abc_float_t Delta_Mechanics::delta{0};
-float       Delta_Mechanics::delta_clip_start_height  = 0;
+abc_float_t Delta_Mechanics::delta{0.0f};
+float       Delta_Mechanics::delta_clip_start_height = 0;
 
 /** Private Parameters */
-abc_float_t Delta_Mechanics::D2{0},         // Diagonal rod ^2
-            Delta_Mechanics::towerX{0},     // The X coordinate of each tower
-            Delta_Mechanics::towerY{0};     // The Y coordinate of each tower
+abc_float_t Delta_Mechanics::D2{0.0f},      // Diagonal rod ^2
+            Delta_Mechanics::towerX{0.0f},  // The X coordinate of each tower
+            Delta_Mechanics::towerY{0.0f};  // The Y coordinate of each tower
 float       Delta_Mechanics::Xbc    = 0.0,
             Delta_Mechanics::Xca    = 0.0,
             Delta_Mechanics::Xab    = 0.0,
@@ -118,7 +118,7 @@ void Delta_Mechanics::factory_parameters() {
  * The result is in the current coordinate space with
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
- * suitable for current_position.x, etc.
+ * suitable for current_position, etc.
  */
 void Delta_Mechanics::get_cartesian_from_steppers() {
   InverseTransform(
@@ -472,7 +472,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Move all carriages together linearly until an endstop is hit.
   destination.z = data.height + 10;
-  planner.buffer_line(destination, homing_feedrate_mm_s.x, tools.data.extruder.active);
+  planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.data.extruder.active);
   planner.synchronize();
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -558,7 +558,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> do_homing_move(", axis_codes[axis]);
+    DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);
     DEBUG_MV(", ", distance);
     DEBUG_MSG(", ");
     if (fr_mm_s)
@@ -614,7 +614,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   }
 
   if (printer.debugFeature()) {
-    DEBUG_MV("<<< do_homing_move(", axis_codes[axis]);
+    DEBUG_MC("<<< do_homing_move(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -634,7 +634,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
 void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_MC(">>> set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -648,7 +648,7 @@ void Delta_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   if (printer.debugFeature()) {
     DEBUG_POS("", current_position);
-    DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_MC("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -979,7 +979,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
   if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
+    DEBUG_MC(">>> homeaxis(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -1016,9 +1016,8 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
   #endif
 
   if (printer.debugFeature()) {
-    DEBUG_MV("<<< homeaxis(", axis_codes[axis]);
-    DEBUG_CHR(')');
-    DEBUG_EOL();
+    DEBUG_MC("<<< homeaxis(", axis_codes[axis]);
+    DEBUG_CHR(')'); DEBUG_EOL();
   }
 
 }

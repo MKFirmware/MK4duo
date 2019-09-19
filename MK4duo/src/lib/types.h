@@ -223,10 +223,14 @@ struct XYval {
   XYval<T>& operator+=(const XYZEval<T> &rs)         { x += rs.x; y += rs.y; return *this; }
   XYval<T>& operator-=(const XYZEval<T> &rs)         { x -= rs.x; y -= rs.y; return *this; }
   XYval<T>& operator*=(const XYZEval<T> &rs)         { x *= rs.x; y *= rs.y; return *this; }
-  XYval<T>& operator*=(const T &v)                   { x *= v;    y *= v;    return *this; }
-  XYval<T>& operator/=(const T &v)                   { x /= v;    y /= v;    return *this; }
-  XYval<T>& operator+=(const T &v)                   { x += v;    y += v;    return *this; }
-  XYval<T>& operator-=(const T &v)                   { x -= v;    y -= v;    return *this; }
+  XYval<T>& operator*=(const float &v)               { x *= v;    y *= v;    return *this; }
+  XYval<T>& operator*=(const int &v)                 { x *= v;    y *= v;    return *this; }
+  XYval<T>& operator/=(const float &v)               { x /= v;    y /= v;    return *this; }
+  XYval<T>& operator/=(const int &v)                 { x /= v;    y /= v;    return *this; }
+  XYval<T>& operator+=(const float &v)               { x += v;    y += v;    return *this; }
+  XYval<T>& operator+=(const int &v)                 { x += v;    y += v;    return *this; }
+  XYval<T>& operator-=(const float &v)               { x -= v;    y -= v;    return *this; }
+  XYval<T>& operator-=(const int &v)                 { x -= v;    y -= v;    return *this; }
   XYval<T>& operator>>=(const int &v)                { _RS(x);    _RS(y);    return *this; }
   XYval<T>& operator<<=(const int &v)                { _LS(x);    _LS(y);    return *this; }
   bool      operator==(const XYval<T>   &xy)         { return x == xy.x && y == xy.y; }
@@ -331,10 +335,14 @@ struct XYZval {
   XYZval<T>& operator-=(const XYZEval<T> &rs)         { x -= rs.x; y -= rs.y; z -= rs.z; return *this; }
   XYZval<T>& operator*=(const XYZEval<T> &rs)         { x *= rs.x; y *= rs.y; z *= rs.z; return *this; }
   XYZval<T>& operator/=(const XYZEval<T> &rs)         { x /= rs.x; y /= rs.y; z /= rs.z; return *this; }
-  XYZval<T>& operator*=(const T &v)                   { x *= v;    y *= v;    z *= v;    return *this; }
-  XYZval<T>& operator/=(const T &v)                   { x /= v;    y /= v;    z /= v;    return *this; }
-  XYZval<T>& operator+=(const T &v)                   { x += v;    y += v;    z += v;    return *this; }
-  XYZval<T>& operator-=(const T &v)                   { x -= v;    y -= v;    z -= v;    return *this; }
+  XYZval<T>& operator*=(const float &v)               { x *= v;    y *= v;    z *= v;    return *this; }
+  XYZval<T>& operator*=(const int &v)                 { x *= v;    y *= v;    z *= v;    return *this; }
+  XYZval<T>& operator/=(const float &v)               { x /= v;    y /= v;    z /= v;    return *this; }
+  XYZval<T>& operator/=(const int &v)                 { x /= v;    y /= v;    z /= v;    return *this; }
+  XYZval<T>& operator+=(const float &v)               { x += v;    y += v;    z += v;    return *this; }
+  XYZval<T>& operator+=(const int &v)                 { x += v;    y += v;    z += v;    return *this; }
+  XYZval<T>& operator-=(const float &v)               { x -= v;    y -= v;    z -= v;    return *this; }
+  XYZval<T>& operator-=(const int &v)                 { x -= v;    y -= v;    z -= v;    return *this; }
   XYZval<T>& operator>>=(const int &v)                { _RS(x);   _RS(y);   _RS(z);   return *this; }
   XYZval<T>& operator<<=(const int &v)                { _LS(x);   _LS(y);   _LS(z);   return *this; }
   bool       operator==(const XYZEval<T> &xyze)       { return x == xyze.x && y == xyze.y && z == xyze.z; }
@@ -451,103 +459,12 @@ struct XYZEval {
 /**
  * XYZE(n) coordinates, counters, etc.
  */
-template<typename T>
-struct XYZEnval {
-  union {
-    struct { T x, y, z, e[MAX_EXTRUDER]; };
-    struct { T a, b, c; };
-    T val[3 + MAX_EXTRUDER];
-  };
-  void set(const T px)                                  { x = px; }
-  void set(const T px, const T py)                      { x = px; y = py; }
-  void set(const T px, const T py, const T pz)          { x = px; y = py; z = pz; }
-  void set(const XYval<T> pxy, const T pz)              { x = pxy.x; y = pxy.y; z = pz; }
-  void reset()                                          { x = y = z = 0; }
-  T magnitude()                                   const { return (T)sqrtf(x*x + y*y + z*z); }
-  operator T* ()                                        { return val; }
-  operator bool()                                       { return z || x || y; }
-  XYZEnval<T>          copy()                     const { XYZEnval<T> o = *this; return o; }
-  XYZEnval<int16_t>   asInt()                           { XYZEnval<int16_t> o = { int16_t(x), int16_t(y), int16_t(z) }; return o; }
-  XYZEnval<int16_t>   asInt()                     const { XYZEnval<int16_t> o = { int16_t(x), int16_t(y), int16_t(z) }; return o; }
-  XYZEnval<int32_t>  asLong()                           { XYZEnval<int32_t> o = { int32_t(x), int32_t(y), int32_t(z) }; return o; }
-  XYZEnval<int32_t>  asLong()                     const { XYZEnval<int32_t> o = { int32_t(x), int32_t(y), int32_t(z) }; return o; }
-  XYZEnval<float>   asFloat()                           { XYZEnval<float>   o = {   float(x),   float(y),   float(z) }; return o; }
-  XYZEnval<float>   asFloat()                     const { XYZEnval<float>   o = {   float(x),   float(y),   float(z) }; return o; }
-  XYZEnval<float> reciprocal()                    const { XYZEnval<float>   o = {  _RECIP(x),  _RECIP(y),  _RECIP(z) }; return o; }
-  XYZEnval<T> ABS()                               const { XYZEnval<T> o;    o.set(_ABS(x), _ABS(y), _ABS(z)); return o; }
-  operator XYval<T>&()                                  { return *(XYval<T>*)this; }
-  operator const XYval<T>&()                      const { return *(const XYval<T>*)this; }
-  operator XYZEval<T>()                                 { XYZEval<T> o = { x, y, z }; return o; }
-  operator XYZEval<T>()                           const { XYZEval<T> o = { x, y, z }; return o; }
-        T&   operator[](const int i)                    { return val[i]; }
-  const T&   operator[](const int i)              const { return val[i]; }
-  XYZEnval<T>& operator= (const T v)                    { set(v, v, v); return *this; }
-  XYZEnval<T>& operator= (const XYval<T>   &xy)         { set(xy.x, xy.y); return *this; }
-  XYZEnval<T>& operator= (const XYZEval<T> &xyze)       { set(xyze.x, xyze.y, xyze.z); return *this; }
-  XYZEnval<T>  operator+ (const XYval<T>   &rs)   const { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y;               return ls; }
-  XYZEnval<T>  operator+ (const XYval<T>   &rs)         { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y;               return ls; }
-  XYZEnval<T>  operator- (const XYval<T>   &rs)   const { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y;               return ls; }
-  XYZEnval<T>  operator- (const XYval<T>   &rs)         { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y;               return ls; }
-  XYZEnval<T>  operator* (const XYval<T>   &rs)   const { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y;               return ls; }
-  XYZEnval<T>  operator* (const XYval<T>   &rs)         { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y;               return ls; }
-  XYZEnval<T>  operator/ (const XYval<T>   &rs)   const { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y;               return ls; }
-  XYZEnval<T>  operator/ (const XYval<T>   &rs)         { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y;               return ls; }
-  XYZEnval<T>  operator+ (const XYZval<T>  &rs)   const { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y; ls.z += rs.z; return ls; }
-  XYZEnval<T>  operator+ (const XYZval<T>  &rs)         { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y; ls.z += rs.z; return ls; }
-  XYZEnval<T>  operator- (const XYZval<T>  &rs)   const { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y; ls.z -= rs.z; return ls; }
-  XYZEnval<T>  operator- (const XYZval<T>  &rs)         { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y; ls.z -= rs.z; return ls; }
-  XYZEnval<T>  operator* (const XYZval<T>  &rs)   const { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y; ls.z *= rs.z; return ls; }
-  XYZEnval<T>  operator* (const XYZval<T>  &rs)         { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y; ls.z *= rs.z; return ls; }
-  XYZEnval<T>  operator/ (const XYZval<T>  &rs)   const { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
-  XYZEnval<T>  operator/ (const XYZval<T>  &rs)         { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
-  XYZEnval<T>  operator+ (const XYZEval<T> &rs)   const { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y; ls.z += rs.z; return ls; }
-  XYZEnval<T>  operator+ (const XYZEval<T> &rs)         { XYZEnval<T> ls = *this; ls.x += rs.x; ls.y += rs.y; ls.z += rs.z; return ls; }
-  XYZEnval<T>  operator- (const XYZEval<T> &rs)   const { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y; ls.z -= rs.z; return ls; }
-  XYZEnval<T>  operator- (const XYZEval<T> &rs)         { XYZEnval<T> ls = *this; ls.x -= rs.x; ls.y -= rs.y; ls.z -= rs.z; return ls; }
-  XYZEnval<T>  operator* (const XYZEval<T> &rs)   const { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y; ls.z *= rs.z; return ls; }
-  XYZEnval<T>  operator* (const XYZEval<T> &rs)         { XYZEnval<T> ls = *this; ls.x *= rs.x; ls.y *= rs.y; ls.z *= rs.z; return ls; }
-  XYZEnval<T>  operator/ (const XYZEval<T> &rs)   const { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
-  XYZEnval<T>  operator/ (const XYZEval<T> &rs)         { XYZEnval<T> ls = *this; ls.x /= rs.x; ls.y /= rs.y; ls.z /= rs.z; return ls; }
-  XYZEnval<T>  operator* (const float &v)         const { XYZEnval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  XYZEnval<T>  operator* (const float &v)               { XYZEnval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  XYZEnval<T>  operator* (const int &v)           const { XYZEnval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  XYZEnval<T>  operator* (const int &v)                 { XYZEnval<T> ls = *this; ls.x *= v;    ls.y *= v;    ls.z *= z;    return ls; }
-  XYZEnval<T>  operator/ (const float &v)         const { XYZEnval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  XYZEnval<T>  operator/ (const float &v)               { XYZEnval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  XYZEnval<T>  operator/ (const int &v)           const { XYZEnval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  XYZEnval<T>  operator/ (const int &v)                 { XYZEnval<T> ls = *this; ls.x /= v;    ls.y /= v;    ls.z /= z;    return ls; }
-  XYZEnval<T>  operator>>(const int &v)           const { XYZEnval<T> ls = *this; _RS(ls.x); _RS(ls.y); _RS(ls.z); return ls; }
-  XYZEnval<T>  operator>>(const int &v)                 { XYZEnval<T> ls = *this; _RS(ls.x); _RS(ls.y); _RS(ls.z); return ls; }
-  XYZEnval<T>  operator<<(const int &v)           const { XYZEnval<T> ls = *this; _LS(ls.x); _LS(ls.y); _LS(ls.z); return ls; }
-  XYZEnval<T>  operator<<(const int &v)                 { XYZEnval<T> ls = *this; _LS(ls.x); _LS(ls.y); _LS(ls.z); return ls; }
-  XYZEnval<T>& operator+=(const XYval<T>   &rs)         { x += rs.x; y += rs.y;            return *this; }
-  XYZEnval<T>& operator-=(const XYval<T>   &rs)         { x -= rs.x; y -= rs.y;            return *this; }
-  XYZEnval<T>& operator*=(const XYval<T>   &rs)         { x *= rs.x; y *= rs.y;            return *this; }
-  XYZEnval<T>& operator/=(const XYval<T>   &rs)         { x /= rs.x; y /= rs.y;            return *this; }
-  XYZEnval<T>& operator+=(const XYZval<T>  &rs)         { x += rs.x; y += rs.y; z += rs.z; return *this; }
-  XYZEnval<T>& operator-=(const XYZval<T>  &rs)         { x -= rs.x; y -= rs.y; z -= rs.z; return *this; }
-  XYZEnval<T>& operator*=(const XYZval<T>  &rs)         { x *= rs.x; y *= rs.y; z *= rs.z; return *this; }
-  XYZEnval<T>& operator/=(const XYZval<T>  &rs)         { x /= rs.x; y /= rs.y; z /= rs.z; return *this; }
-  XYZEnval<T>& operator+=(const XYZEval<T> &rs)         { x += rs.x; y += rs.y; z += rs.z; return *this; }
-  XYZEnval<T>& operator-=(const XYZEval<T> &rs)         { x -= rs.x; y -= rs.y; z -= rs.z; return *this; }
-  XYZEnval<T>& operator*=(const XYZEval<T> &rs)         { x *= rs.x; y *= rs.y; z *= rs.z; return *this; }
-  XYZEnval<T>& operator/=(const XYZEval<T> &rs)         { x /= rs.x; y /= rs.y; z /= rs.z; return *this; }
-  XYZEnval<T>& operator*=(const T &v)                   { x *= v;    y *= v;    z *= v;    return *this; }
-  XYZEnval<T>& operator/=(const T &v)                   { x /= v;    y /= v;    z /= v;    return *this; }
-  XYZEnval<T>& operator+=(const T &v)                   { x += v;    y += v;    z += v;    return *this; }
-  XYZEnval<T>& operator-=(const T &v)                   { x -= v;    y -= v;    z -= v;    return *this; }
-  XYZEnval<T>& operator>>=(const int &v)                { _RS(x);   _RS(y);   _RS(z);   return *this; }
-  XYZEnval<T>& operator<<=(const int &v)                { _LS(x);   _LS(y);   _LS(z);   return *this; }
-  bool         operator==(const XYZEval<T> &xyze)       { return x == xyze.x && y == xyze.y && z == xyze.z; }
-  bool         operator!=(const XYZEval<T> &xyze)       { return !operator==(xyze); }
-  bool         operator==(const XYZEval<T> &xyze) const { return x == xyze.x && y == xyze.y && z == xyze.z; }
-  bool         operator!=(const XYZEval<T> &xyze) const { return !operator==(xyze); }
-  XYZEnval<T>       operator-()                         { XYZEnval<T> o = *this; o.x = -x; o.y = -y; o.z = -z; return o; }
-  const XYZEnval<T> operator-()                   const { XYZEnval<T> o = *this; o.x = -x; o.y = -y; o.z = -z; return o; }
+struct xyzen_float_t : xyz_float_t {
+  float e[MAX_EXTRUDER];
 };
-
-typedef struct XYZEnval<uint32_t>   xyzen_ulong_t;
-typedef struct XYZEnval<float>      xyzen_float_t;
+struct xyzen_ulong_t : xyz_ulong_t {
+  uint32_t e[MAX_EXTRUDER];
+};
 
 /**
  * Val limit min max

@@ -124,11 +124,13 @@ class Driver {
      * Initialize Driver hardware
      */
     FORCE_INLINE void init() {
-      dir_init();
-      enable_init();
-      if (!isEnable()) enable_write(HIGH);
-      step_init();
-      step_write(isStep());
+      if (data.pin.enable != NoPin && data.pin.dir != NoPin && data.pin.step != NoPin) {
+        dir_init();
+        enable_init();
+        if (!isEnable()) enable_write(HIGH);
+        step_init();
+        step_write(isStep());
+      }
     }
 
     FORCE_INLINE void printLabel()                    { SERIAL_TXT(axis_letter); }

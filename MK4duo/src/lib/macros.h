@@ -43,8 +43,10 @@
 #define NUM_AXIS  4
 #define XYZE      4
 #define ABCE      4
+#define XYZEN     3 + MAX_EXTRUDER
 #define ABC       3
 #define XYZ       3
+#define XY        2
 
 #define _AXIS(A)  (A##_AXIS)
 

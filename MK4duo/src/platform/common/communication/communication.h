@@ -101,6 +101,7 @@ class Com {
 
 #define SERIAL_MT(msg,txt)          do{ SERIAL_MSG(msg);  SERIAL_TXT(txt);                                    }while(0)
 #define SERIAL_MV(msg,val, ...)     do{ SERIAL_MSG(msg);  SERIAL_VAL(val, ## __VA_ARGS__);                    }while(0)
+#define SERIAL_MC(msg,c)            do{ SERIAL_MSG(msg);  SERIAL_CHR(c);                                      }while(0)
 
 #define SERIAL_SM(str,msg)          do{ SERIAL_STR(str);  SERIAL_MSG(msg);                                    }while(0)
 #define SERIAL_ST(str,txt)          do{ SERIAL_STR(str);  SERIAL_TXT(txt);                                    }while(0)

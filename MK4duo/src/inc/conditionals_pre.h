@@ -374,13 +374,23 @@
 /**
  * Define for max valor for Driver, Extruder, heater, fan
  */
-#define MAX_DRIVER       13
-#define MAX_EXTRUDER      6
-#define MAX_HOTEND        6
-#define MAX_BED           4
-#define MAX_CHAMBER       4
-#define MAX_COOLER        1
-#define MAX_FAN           6
+#ifdef __AVR__
+  #define MAX_DRIVER      8
+  #define MAX_EXTRUDER    4
+  #define MAX_HOTEND      4
+  #define MAX_BED         2
+  #define MAX_CHAMBER     2
+  #define MAX_COOLER      1
+  #define MAX_FAN         6
+#else
+  #define MAX_DRIVER     13
+  #define MAX_EXTRUDER    6
+  #define MAX_HOTEND      6
+  #define MAX_BED         4
+  #define MAX_CHAMBER     4
+  #define MAX_COOLER      1
+  #define MAX_FAN         6
+#endif
 
 /**
  * Extruders have some combination of stepper motors and hotends
@@ -455,6 +465,7 @@
  */
 #define XYZE_N              (3 + tools.data.extruder.total)
 #define E_INDEX             (uint8_t(E_AXIS) + tools.data.extruder.active)
+#define E_INDEX_N(N)        (uint8_t(E_AXIS) + N)
 
 /**
  * The BLTouch Probe emulates a servo probe

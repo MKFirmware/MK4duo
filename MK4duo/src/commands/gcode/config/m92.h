@@ -70,7 +70,8 @@ inline void gcode_M92() {
       }
       else {
         #if MECH(DELTA)
-          mechanics.data.axis_steps_per_mm = value;
+          LOOP_XYZ(axis)
+            mechanics.data.axis_steps_per_mm[axis] = value;
         #else
           mechanics.data.axis_steps_per_mm[a] = value;
         #endif

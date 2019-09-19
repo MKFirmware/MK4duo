@@ -60,6 +60,11 @@ typedef struct EepromDataStruct {
   uint16_t  crc;          // Data Checksum
 
   //
+  // Tool data
+  //
+  tool_data_t       tool_data;
+
+  //
   // Mechanics data
   //
   mechanics_data_t  mechanics_data;
@@ -78,11 +83,6 @@ typedef struct EepromDataStruct {
   // Stepper data
   //
   stepper_data_t    stepper_data;
-
-  //
-  // Tool data
-  //
-  tool_data_t       tool_data;
 
   //
   // Nozzle data
@@ -317,9 +317,6 @@ void EEPROM::post_process() {
     mechanics.recalc_delta_settings();
   #endif
 
-  // Init Driver pins
-  LOOP_DRV() if (driver[d]) driver[d]->init();
-
   #if HAS_HOTENDS
     LOOP_HOTEND() hotends[h].init();
   #endif
@@ -381,7 +378,7 @@ void EEPROM::post_process() {
   #endif
 
   // Refresh steps_to_mm with the reciprocal of axis_steps_per_mm
-  // and init stepper.count[], planner.position[] with current_position.x
+  // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 
   if (mechanics.stored_position[0] != mechanics.current_position)
@@ -440,6 +437,11 @@ void EEPROM::post_process() {
     working_crc = 0; // clear before first "real data"
 
     //
+    // Tools Data
+    //
+    EEPROM_WRITE(tools.data);
+
+    //
     // Mechanics data
     //
     EEPROM_WRITE(mechanics.data);
@@ -459,11 +461,6 @@ void EEPROM::post_process() {
     // Stepper
     //
     EEPROM_WRITE(stepper.data);
-
-    //
-    // Tools Data
-    //
-    EEPROM_WRITE(tools.data);
 
     //
     // Nozzle Data
@@ -819,6 +816,11 @@ void EEPROM::post_process() {
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
       //
+      // Tools Data
+      //
+      EEPROM_READ(tools.data);
+
+      //
       // Mechanics data
       //
       EEPROM_READ(mechanics.data);
@@ -833,6 +835,7 @@ void EEPROM::post_process() {
       //
       EEPROM_READ(driver_data);
       if (!flag.validating) {
+        stepper.create_driver(); // Create driver stepper
         LOOP_DRV() if (driver[d]) driver[d]->data = driver_data[d];
       }
 
@@ -840,11 +843,6 @@ void EEPROM::post_process() {
       // Stepper data
       //
       EEPROM_READ(stepper.data);
-
-      //
-      // Tools Data
-      //
-      EEPROM_READ(tools.data);
 
       //
       // Nozzle Data

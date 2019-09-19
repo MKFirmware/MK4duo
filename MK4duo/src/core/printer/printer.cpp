@@ -137,9 +137,6 @@ void Printer::setup() {
   SERIAL_L(START);
   SERIAL_STR(ECHO);
 
-  // Create driver stepper
-  stepper.create_driver();
-
   #if HAS_TRINAMIC
     tmc.init();
   #endif
@@ -187,7 +184,7 @@ void Printer::setup() {
     mechanics.current_position.reset();
   #endif
 
-  // Vital to init stepper/planner equivalent for current_position.x
+  // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
   // Initialize temperature loop

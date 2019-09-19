@@ -67,6 +67,7 @@
 
   #define DEBUG_MT                    SERIAL_MT
   #define DEBUG_MV                    SERIAL_MV
+  #define DEBUG_MC                    SERIAL_MC
 
   #define DEBUG_SM                    SERIAL_SM
   #define DEBUG_ST                    SERIAL_ST
@@ -113,6 +114,7 @@
 
   #define DEBUG_MT(...)               NOOP
   #define DEBUG_MV(...)               NOOP
+  #define DEBUG_MC(...)               NOOP
 
   #define DEBUG_SM(...)               NOOP
   #define DEBUG_ST(...)               NOOP

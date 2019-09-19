@@ -450,7 +450,7 @@ inline bool prime_nozzle() {
     #endif
     mechanics.destination = mechanics.current_position;
     mechanics.destination.e += g26_prime_length;
-    G26_line_to_destination(mechanics.data.max_feedrate_mm_s[E_AXIS] / 15.0);
+    G26_line_to_destination(mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] / 15.0);
     mechanics.destination = mechanics.current_position;
     retract_filament(mechanics.destination);
   }

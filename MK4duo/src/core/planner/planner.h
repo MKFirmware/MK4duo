@@ -60,11 +60,7 @@ typedef struct block_t {
 
   uint32_t step_event_count;                // The number of step events required to complete this block
 
-  #if EXTRUDERS > 1
-    uint8_t active_extruder;                // The extruder to move (if E move)
-  #else
-    static constexpr uint8_t active_extruder = 0;
-  #endif
+  uint8_t active_extruder;                  // The extruder to move (if E move)
 
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     mixer_color_t b_color[MIXING_STEPPERS]; // Normalized color for the mixing steppers
@@ -211,7 +207,7 @@ class Planner {
       // Old direction bits. Used for speed calculations
       static uint8_t old_direction_bits;
       // Segment times (in µs). Used for speed calculations
-      static uint32_t axis_segment_time_us[2][3];
+      static xy_ulong_t axis_segment_time_us[3];
     #endif
 
     #if HAS_SPI_LCD
@@ -346,7 +342,7 @@ class Planner {
      * Return true is movement is acceptable, false otherwise
      */
     static bool fill_block(block_t * const block, bool split_move,
-        const xyze_long_t &target
+        const abce_long_t &target
       #if HAS_POSITION_FLOAT
         , const xyze_float_t &target_float
       #endif

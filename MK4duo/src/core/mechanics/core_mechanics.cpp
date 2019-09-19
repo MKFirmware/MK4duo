@@ -596,49 +596,34 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_SMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2.x));
     SERIAL_MV(" Y", LINEAR_UNIT(data.max_acceleration_mm_per_s2.y));
     SERIAL_MV(" Z", LINEAR_UNIT(data.max_acceleration_mm_per_s2.z));
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[0]));
-    #endif
     SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M201 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
-      }
-    #endif // EXTRUDERS > 1
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M201 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
+    }
   }
 
   void Core_Mechanics::print_M203() {
     SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s.y), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s.z), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[0]), 3);
-    #endif
+    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
     SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M203 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
-      }
-    #endif // EXTRUDERS > 1
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M203 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_INDEX_N(e)]), 3);
+    }
   }
 
   void Core_Mechanics::print_M204() {
     SERIAL_LM(CFG, "Acceleration (units/s2): P<DEFAULT_ACCELERATION> V<DEFAULT_TRAVEL_ACCELERATION> T* R<DEFAULT_RETRACT_ACCELERATION>");
     SERIAL_SMV(CFG,"  M204 P", LINEAR_UNIT(data.acceleration), 3);
     SERIAL_MV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 R", LINEAR_UNIT(data.retract_acceleration[0]), 3);
-    #endif
     SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M204 T", (int)e);
-        SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
-      }
-    #endif
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M204 T", (int)e);
+      SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
+    }
   }
 
   void Core_Mechanics::print_M205() {
@@ -662,16 +647,11 @@ void Core_Mechanics::report_current_position_detail() {
       SERIAL_MV(" Z", LINEAR_UNIT(data.max_jerk.z), 3);
 
       #if DISABLED(LIN_ADVANCE)
-        #if EXTRUDERS == 1
-          SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk.e[0]), 3);
-        #endif
         SERIAL_EOL();
-        #if (EXTRUDERS > 1)
-          LOOP_EXTRUDER() {
-            SERIAL_SMV(CFG, "  M205 T", (int)e);
-            SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
-          }
-        #endif
+        LOOP_EXTRUDER() {
+          SERIAL_SMV(CFG, "  M205 T", (int)e);
+          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
+        }
       #endif
     #endif
   }

@@ -138,12 +138,12 @@ class Stepper {
       static uint32_t acc_step_rate; // needed for deceleration start point
     #endif
 
-    static xyz_vlong_t endstops_trigsteps;
+    static xyz_long_t endstops_trigsteps;
 
     /**
      * Positions of stepper motors, in step units
      */
-    static xyz_vlong_t count_position;
+    static xyze_long_t count_position;
 
     /**
      * Current direction of stepper motors (+1 or -1)
@@ -352,6 +352,11 @@ class Stepper {
     #endif
 
   private: /** Private Function */
+
+    /**
+     * Driver init
+     */
+    static void driver_factory_parameters(const uint8_t drv);
 
     /**
      * Pulse phase Step

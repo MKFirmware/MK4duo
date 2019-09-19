@@ -106,7 +106,7 @@ float Planner::previous_nominal_speed_sqr = 0.0;
   // Old direction bits. Used for speed calculations
   uint8_t Planner::old_direction_bits = 0;
   // Segment times (in µs). Used for speed calculations
-  uint32_t Planner::axis_segment_time_us[2][3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
+  xy_ulong_t Planner::axis_segment_time_us[3] = { { MAX_FREQ_TIME_US + 1, 0, 0 }, { MAX_FREQ_TIME_US + 1, 0, 0 } };
 #endif
 
 #if ENABLED(LIN_ADVANCE)
@@ -114,11 +114,11 @@ float Planner::previous_nominal_speed_sqr = 0.0;
 #endif
 
 #if HAS_POSITION_FLOAT
-  xyze_pos_t Planner::position_float{0};
+  xyze_pos_t Planner::position_float{0.0f};
 #endif
 
 #if IS_KINEMATIC
-  xyze_pos_t Planner::position_cart{0};
+  xyze_pos_t Planner::position_cart{0.0f};
 #endif
 
 #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
@@ -685,7 +685,7 @@ float Planner::previous_nominal_speed_sqr = 0.0;
  * Manage Axis, paste pressure, etc.
  */
 void Planner::check_axes_activity() {
-  xyze_uchar_t axis_active;
+  xyze_uchar_t axis_active{0};
 
   #if ENABLED(BARICUDA)
     #if HAS_HEATER_HE1
@@ -973,7 +973,7 @@ bool Planner::buffer_steps(const xyze_long_t &target
  * Returns true is movement is acceptable, false otherwise
  */
 bool Planner::fill_block(block_t * const block, bool split_move,
-  const xyze_long_t &target
+  const abce_long_t &target
   #if HAS_POSITION_FLOAT
     , const xyze_float_t &target_float
   #endif
@@ -986,17 +986,16 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   const int32_t dx = target.x - position.x,
                 dy = target.y - position.y,
                 dz = target.z - position.z;
-
-  int32_t de = target.e - position.e;
+  int32_t       de = target.e - position.e;
 
   /* <-- add a slash to enable
     SERIAL_MV("  buffer_steps FR:", fr_mm_s);
     SERIAL_MV(" A:", target.a);
-    SERIAL_MV(" (", da);
+    SERIAL_MV(" (", dx);
     SERIAL_MV(" steps) B:", target.b);
-    SERIAL_MV(" (", db);
+    SERIAL_MV(" (", dy);
     SERIAL_MV(" steps) C:", target.c);
-    SERIAL_MV(" (", dc);
+    SERIAL_MV(" (", dz);
     SERIAL_MV(" steps) E:", target.e);
     SERIAL_MV(" (", de);
     SERIAL_EM(" steps)");
@@ -1078,24 +1077,16 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   // See http://www.corexy.com/theory.html
   #if CORE_IS_XY
     // corexy planning
-    block->steps.a = ABS(da);
-    block->steps.b = ABS(db);
-    block->steps.z = ABS(dz);
+    block->steps.set(ABS(da), ABS(db), ABS(dz));
   #elif CORE_IS_XZ
     // corexz planning
-    block->steps.a = ABS(da);
-    block->steps.y = ABS(dy);
-    block->steps.c = ABS(dc);
+    block->steps.set(ABS(da), ABS(dy), ABS(dc));
   #elif CORE_IS_YZ
     // coreyz planning
-    block->steps.x = ABS(dx);
-    block->steps.b = ABS(db);
-    block->steps.c = ABS(dc);
+    block->steps.set(ABS(dx), ABS(db), ABS(dc));
   #else
     // default non-h-bot planning
-    block->steps.x = ABS(dx);
-    block->steps.y = ABS(dy);
-    block->steps.z = ABS(dz);
+    block->steps.set(ABS(dx), ABS(dy), ABS(dz));
   #endif
 
   /**
@@ -1107,31 +1098,33 @@ bool Planner::fill_block(block_t * const block, bool split_move,
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
   #if IS_CORE
-    float delta_mm[Z_HEAD + 1];
+    struct DeltaMM : abce_float_t {
+      xyz_pos_t head;
+    } delta_mm;
     #if CORE_IS_XY
-      delta_mm[X_HEAD] = dx * mechanics.steps_to_mm.a;
-      delta_mm[Y_HEAD] = dy * mechanics.steps_to_mm.b;
-      delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm.z;
-      delta_mm[A_AXIS] = da * mechanics.steps_to_mm.a;
-      delta_mm[B_AXIS] = CORESIGN(db) * mechanics.steps_to_mm.b;
+      delta_mm.head.x = dx * mechanics.steps_to_mm.a;
+      delta_mm.head.y = dy * mechanics.steps_to_mm.b;
+      delta_mm.z      = dz * mechanics.steps_to_mm.z;
+      delta_mm.a      = da * mechanics.steps_to_mm.a;
+      delta_mm.b      = CORESIGN(db) * mechanics.steps_to_mm.b;
     #elif CORE_IS_XZ
-      delta_mm[X_HEAD] = dx * mechanics.steps_to_mm.a;
-      delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm.y;
-      delta_mm[Z_HEAD] = dz * mechanics.steps_to_mm.c;
-      delta_mm[A_AXIS] = da * mechanics.steps_to_mm.a;
-      delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm.c;
+      delta_mm.head.x = dx * mechanics.steps_to_mm.a;
+      delta_mm.y      = dy * mechanics.steps_to_mm.y;
+      delta_mm.head.z = dz * mechanics.steps_to_mm.c;
+      delta_mm.a      = da * mechanics.steps_to_mm.a;
+      delta_mm.c      = CORESIGN(dc) * mechanics.steps_to_mm.c;
     #elif CORE_IS_YZ
-      delta_mm.x = dx * mechanics.steps_to_mm.x;
-      delta_mm[Y_HEAD] = dy * mechanics.steps_to_mm.b;
-      delta_mm[Z_HEAD] = dz * mechanics.steps_to_mm.c;
-      delta_mm[B_AXIS] = db * mechanics.steps_to_mm.b;
-      delta_mm[C_AXIS] = CORESIGN(dc) * mechanics.steps_to_mm.c;
+      delta_mm.x      = dx * mechanics.steps_to_mm.x;
+      delta_mm.head.y = dy * mechanics.steps_to_mm.b;
+      delta_mm.head.z = dz * mechanics.steps_to_mm.c;
+      delta_mm.b      = db * mechanics.steps_to_mm.b;
+      delta_mm.c      = CORESIGN(dc) * mechanics.steps_to_mm.c;
     #endif
   #else
     xyze_float_t delta_mm;
-    delta_mm.x = dx * mechanics.steps_to_mm.x;
-    delta_mm[Y_AXIS] = dy * mechanics.steps_to_mm.y;
-    delta_mm[Z_AXIS] = dz * mechanics.steps_to_mm.z;
+    delta_mm.x        = dx * mechanics.steps_to_mm.x;
+    delta_mm.y        = dy * mechanics.steps_to_mm.y;
+    delta_mm.z        = dz * mechanics.steps_to_mm.z;
   #endif
   delta_mm.e = esteps_float * mechanics.steps_to_mm.e[extruder];
 
@@ -1144,11 +1137,11 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     else
       block->millimeters = SQRT(
         #if CORE_IS_XY
-          sq(delta_mm[X_HEAD]) + sq(delta_mm[Y_HEAD]) + sq(delta_mm.z)
+          sq(delta_mm.head.x) + sq(delta_mm.head.y) + sq(delta_mm.z)
         #elif CORE_IS_XZ
-          sq(delta_mm[X_HEAD]) + sq(delta_mm.y) + sq(delta_mm[Z_HEAD])
+          sq(delta_mm.head.x) + sq(delta_mm.y) + sq(delta_mm.head.z)
         #elif CORE_IS_YZ
-          sq(delta_mm.x) + sq(delta_mm[Y_HEAD]) + sq(delta_mm[Z_HEAD])
+          sq(delta_mm.x) + sq(delta_mm.head.y) + sq(delta_mm.head.z)
         #else
           sq(delta_mm.x) + sq(delta_mm.y) + sq(delta_mm.z)
         #endif
@@ -1534,23 +1527,23 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     old_direction_bits = block->direction_bits;
     segment_time_us = LROUND((float)segment_time_us / speed_factor);
 
-    uint32_t  xs0 = axis_segment_time_us.x[0],
-              xs1 = axis_segment_time_us.x[1],
-              xs2 = axis_segment_time_us.x[2],
-              ys0 = axis_segment_time_us.y[0],
-              ys1 = axis_segment_time_us.y[1],
-              ys2 = axis_segment_time_us.y[2];
+    uint32_t  xs0 = axis_segment_time_us[0].x,
+              xs1 = axis_segment_time_us[1].x,
+              xs2 = axis_segment_time_us[2].x,
+              ys0 = axis_segment_time_us[0].y,
+              ys1 = axis_segment_time_us[1].y,
+              ys2 = axis_segment_time_us[2].y;
 
     if (TEST(direction_change_bits, X_AXIS)) {
-      xs2 = axis_segment_time_us.x[2] = xs1;
-      xs1 = axis_segment_time_us.x[1] = xs0;
+      xs2 = axis_segment_time_us[2].x = xs1;
+      xs1 = axis_segment_time_us[1].x = xs0;
       xs0 = 0;
     }
-    xs0 = axis_segment_time_us.x[0] = xs0 + segment_time_us;
+    xs0 = axis_segment_time_us[0].x = xs0 + segment_time_us;
 
     if (TEST(direction_change_bits, Y_AXIS)) {
-      ys2 = axis_segment_time_us.y[2] = axis_segment_time_us.y[1];
-      ys1 = axis_segment_time_us.y[1] = axis_segment_time_us.y[0];
+      ys2 = axis_segment_time_us[2].y = axis_segment_time_us[1].y;
+      ys1 = axis_segment_time_us[1].y = axis_segment_time_us[0].y;
       ys0 = 0;
     }
     ys0 = axis_segment_time_us.y[0] = ys0 + segment_time_us;
@@ -1565,10 +1558,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif // XY_FREQUENCY_LIMIT
 
   // Correct the speed
-  if (speed_factor < 1.0) {
+  if (speed_factor < 1.0f) {
     current_speed *= speed_factor;
     block->nominal_rate *= speed_factor;
-    block->nominal_speed_sqr *= sq(speed_factor);
+    block->nominal_speed_sqr = block->nominal_speed_sqr * sq(speed_factor);
   }
 
   // Compute and limit the acceleration rate for the trapezoid generator.
@@ -1677,7 +1670,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(JUNCTION_DEVIATION)
 
     // Unit vector of previous path line segment
-    static float previous_unit_vec[XYZE];
+    static xyze_float_t previous_unit_vec;
 
     #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
       xyze_float_t unit_vec = delta_mm_cart * inverse_millimeters;
@@ -1710,7 +1703,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
                     sin_theta_d2 = SQRT(0.5f * (1.0f - junction_cos_theta)); // Trig half angle identity. Always positive.
 
         vmax_junction_sqr = (junction_acceleration * mechanics.data.junction_deviation_mm * sin_theta_d2) / (1.0f - sin_theta_d2);
-        if (block->millimeters < 1.0) {
+        if (block->millimeters < 1) {
 
           // Fast acos approximation, minus the error bar to be safe
           const float junction_theta = (RADIANS(-40) * sq(junction_cos_theta) - RADIANS(50)) * junction_cos_theta + RADIANS(90) - 0.18f;
@@ -1837,7 +1830,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
   // If we are trying to add a split block, start with the
   // max. allowed speed to avoid an interrupted first move.
-  block->entry_speed_sqr = !split_move ? sq(MINIMUM_PLANNER_SPEED) : MIN(vmax_junction_sqr, v_allowable_sqr);
+  block->entry_speed_sqr = !split_move ? sq(float(MINIMUM_PLANNER_SPEED)) : MIN(vmax_junction_sqr, v_allowable_sqr);
 
   // Initialize planner efficiency flags
   // Set flag if block will always reach maximum junction speed regardless of entry/exit speeds.
@@ -1850,7 +1843,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   block->flag |= block->nominal_speed_sqr <= v_allowable_sqr ? BLOCK_FLAG_RECALCULATE | BLOCK_FLAG_NOMINAL_LENGTH : BLOCK_FLAG_RECALCULATE;
 
   // Update previous path unit_vector and nominal speed
-  COPY_ARRAY(previous_speed, current_speed);
+  previous_speed = current_speed;
   previous_nominal_speed_sqr = block->nominal_speed_sqr;
 
   // Update the position
@@ -1927,10 +1920,10 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
 
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
-  const xyze_long_t target = {
-    static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm.x + 0.5f)),
-    static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm.y + 0.5f)),
-    static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm.z + 0.5f)),
+  const abce_long_t target = {
+    static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm.a + 0.5f)),
+    static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm.b + 0.5f)),
+    static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm.c + 0.5f)),
     static_cast<int32_t>(FLOOR(e * mechanics.data.axis_steps_per_mm.e[extruder] + 0.5f))
   };
 

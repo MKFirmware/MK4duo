@@ -174,9 +174,8 @@ int32_t Stepper::ticks_nominal = -1;
   uint32_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
-xyz_vlong_t Stepper::endstops_trigsteps{0},
-            Stepper::count_position{0};
-
+xyz_long_t  Stepper::endstops_trigsteps;
+xyze_long_t Stepper::count_position{0};
 xyze_char_t Stepper::count_direction{1};
 
 #if ENABLED(LASER)
@@ -189,47 +188,32 @@ xyze_char_t Stepper::count_direction{1};
 /** Public Function */
 void Stepper::create_driver() {
 
+  constexpr char* drv_label[] = { "X", "Y", "Z", "T0", "T1", "T2", "T3", "T4", "T5", "X2", "Y2", "Z2", "Z3" };
+
+  LOOP_XYZE_N(drv) {
+    if (!driver[drv]) {
+      SERIAL_SM(ECHO, "Create driver ");
+      SERIAL_ET(drv_label[drv]);
+      driver[drv] = new Driver(drv_label[drv], drv);
+      driver_factory_parameters(drv);
+      driver[drv]->init();
+    }
+  }
+
   #define _DRIVER_DEFINE_HARDWARE(ST, L)  driver[ST##_DRV] = new Driver(L)
   #define DRIVER_DEFINE_HARDWARE(ST)      _DRIVER_DEFINE_HARDWARE(ST, DRV_##ST##_LABEL)
 
-  #if AXIS_HAS_NORMAL_DRV(X)
-    DRIVER_DEFINE_HARDWARE(X);
-  #endif
   #if AXIS_HAS_NORMAL_DRV(X2)
     DRIVER_DEFINE_HARDWARE(X2);
   #endif
-  #if AXIS_HAS_NORMAL_DRV(Y)
-    DRIVER_DEFINE_HARDWARE(Y);
-  #endif
   #if AXIS_HAS_NORMAL_DRV(Y2)
     DRIVER_DEFINE_HARDWARE(Y2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Z)
-    DRIVER_DEFINE_HARDWARE(Z);
   #endif
   #if AXIS_HAS_NORMAL_DRV(Z2)
     DRIVER_DEFINE_HARDWARE(Z2);
   #endif
   #if AXIS_HAS_NORMAL_DRV(Z3)
     DRIVER_DEFINE_HARDWARE(Z3);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E0)
-    DRIVER_DEFINE_HARDWARE(E0);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E1)
-    DRIVER_DEFINE_HARDWARE(E1);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E2)
-    DRIVER_DEFINE_HARDWARE(E2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E3)
-    DRIVER_DEFINE_HARDWARE(E3);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E4)
-    DRIVER_DEFINE_HARDWARE(E4);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E5)
-    DRIVER_DEFINE_HARDWARE(E5);
   #endif
 
 }
@@ -271,36 +255,9 @@ void Stepper::init() {
 
 void Stepper::factory_parameters() {
 
-  constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
-                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON,
-                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON };
-  constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
-                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR,
-                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR };
-  constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN };
-  constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
-                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN,
-                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN };
-  constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
-                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN,
-                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN };
-  constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
-                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN,
-                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN };
+  create_driver();
 
-  LOOP_DRV() {
-    if (driver[d]) {
-      driver[d]->setEnable(tmpenable[d]);
-      driver[d]->setDir(tmpdir[d]);
-      driver[d]->setStep(tmpstep[d]);
-      driver[d]->data.pin.enable = tmpenpin[d];
-      driver[d]->data.pin.dir    = tmpdrpin[d];
-      driver[d]->data.pin.step   = tmpstpin[d];
-    }
-  }
+  LOOP_DRV() if (driver[d]) driver_factory_parameters(d);
 
   data.quad_stepping    = DOUBLE_QUAD_STEPPING;
   data.minimum_pulse    = MINIMUM_STEPPER_PULSE;
@@ -1325,6 +1282,38 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 #endif //BABYSTEPPING
 
 /** Private Function */
+void Stepper::driver_factory_parameters(const uint8_t drv) {
+
+  constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
+                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON,
+                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON };
+  constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
+                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR,
+                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR };
+  constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
+                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
+                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
+                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN };
+  constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
+                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN,
+                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN };
+  constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
+                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN,
+                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN };
+  constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
+                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN,
+                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN };
+
+  SERIAL_EMV("data.pin.enable:", tmpenpin[drv]);
+  driver[drv]->setEnable(tmpenable[drv]);
+  driver[drv]->setDir(tmpdir[drv]);
+  driver[drv]->setStep(tmpstep[drv]);
+  driver[drv]->data.pin.enable = tmpenpin[drv];
+  driver[drv]->data.pin.dir    = tmpdrpin[drv];
+  driver[drv]->data.pin.step   = tmpstpin[drv];
+
+}
+
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -1581,7 +1570,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
       #else
-        #define X_MOVE_TEST !!current_block->steps[A_AXIS]
+        #define X_MOVE_TEST !!current_block->steps.a
       #endif
 
       #if CORE_IS_XY || CORE_IS_YZ
@@ -1599,7 +1588,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
       #else
-        #define Y_MOVE_TEST !!current_block->steps[B_AXIS]
+        #define Y_MOVE_TEST !!current_block->steps.b
       #endif
 
       #if CORE_IS_XZ || CORE_IS_YZ
@@ -1617,7 +1606,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
       #else
-        #define Z_MOVE_TEST !!current_block->steps[C_AXIS]
+        #define Z_MOVE_TEST !!current_block->steps.c
       #endif
 
       uint8_t axis_bits = 0;
@@ -1650,7 +1639,7 @@ uint32_t Stepper::block_phase_step() {
       step_event_count = current_block->step_event_count << oversampling;
 
       // Initialize Bresenham delta errors to 1/2
-      delta_error.x = delta_error.y = delta_error.z = delta_error.e = -int32_t(step_event_count);
+      delta_error = -int32_t(step_event_count);
 
       #if ENABLED(LASER)
         delta_error_laser = delta_error.x;
@@ -2189,27 +2178,19 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
   #if CORE_IS_XY
     // corexy positioning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * b;
-    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-    count_position.z = c;
+    count_position.set(a + (CORE_FACTOR) * b, CORESIGN(a - (CORE_FACTOR) * b), c);
   #elif CORE_IS_XZ
     // corexz planning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * c;
-    count_position.y = b;
-    count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+    count_position.set(a + (CORE_FACTOR) * c, b, CORESIGN(a - (CORE_FACTOR) * c));
   #elif CORE_IS_YZ
     // coreyz planning
-    count_position.x = a;
-    count_position[B_AXIS] = b + (CORE_FACTOR) * c;
-    count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+    count_position.set(a, b + (CORE_FACTOR) * c, CORESIGN(b - (CORE_FACTOR) * c));
   #else
     // default non-h-bot planning
-    count_position.x = a;
-    count_position.y = b;
-    count_position.z = c;
+    count_position.set(a, b, c);
   #endif
 
-  count_position[E_AXIS] = e;
+  count_position.e = e;
 
 }
 
