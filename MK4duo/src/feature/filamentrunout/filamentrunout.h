@@ -59,7 +59,7 @@ typedef struct {
 } filament_data_t;
 
 template<class RESPONSE_T, class SENSOR_T>
-class TFilamentRunout {
+class FilamentRunoutBase {
 
   public: /** Public Parameters */
 
@@ -335,16 +335,16 @@ class FilamentSensorBase {
 
       static void filament_present(const uint8_t extruder);
 
-      static inline void block_completed(const block_t* const b) {
-        if (b->steps[X_AXIS] || b->steps[Y_AXIS] || b->steps[Z_AXIS]
+      static inline void block_completed(const block_t* const block) {
+        if (block->steps.x || block->steps.y || block->steps.z
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             || advancedpause.did_pause_print // Allow pause purge move to re-trigger runout state
           #endif
         ) {
           // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
-          const uint8_t e = b->active_extruder;
-          const int32_t steps = b->steps[E_AXIS];
-          runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm[E_AXIS_N(e)];
+          const uint8_t e = block->active_extruder;
+          const int32_t steps = block->steps[E_AXIS];
+          runout_mm_countdown[e] -= (TEST(block->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm[E_AXIS_N(e)];
         }
       }
 
@@ -375,12 +375,12 @@ class FilamentSensorBase {
 
 #if FILAMENT_RUNOUT_DISTANCE_MM > 0
   #if ENABLED(EXTRUDER_ENCODER_CONTROL)
-    typedef TFilamentRunout<RunoutResponseDelayed, FilamentSensorEncoder> FilamentRunout;
+    typedef FilamentRunoutBase<RunoutResponseDelayed, FilamentSensorEncoder>  FilamentRunout;
   #else
-    typedef TFilamentRunout<RunoutResponseDelayed, FilamentSensorSwitch> FilamentRunout;
+    typedef FilamentRunoutBase<RunoutResponseDelayed, FilamentSensorSwitch>   FilamentRunout;
   #endif
 #else
-  typedef TFilamentRunout<RunoutResponseDebounced, FilamentSensorSwitch> FilamentRunout;
+  typedef FilamentRunoutBase<RunoutResponseDebounced, FilamentSensorSwitch>   FilamentRunout;
 #endif
 
 extern FilamentRunout filamentrunout;
