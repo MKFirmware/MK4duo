@@ -167,9 +167,19 @@ class Stepper {
   public: /** Public Function */
 
     /**
-     * Create Driver
+     * Create xyz Driver
      */
-    static void create_driver();
+    static void create_xyz_driver();
+
+    /**
+     * Create extruder Driver
+     */
+    static void create_ext_driver();
+
+    /**
+     * Delete Driver
+     */
+    static void delete_ext_driver(const uint8_t drv);
 
     /**
      * Initialize stepper hardware
@@ -354,9 +364,9 @@ class Stepper {
   private: /** Private Function */
 
     /**
-     * Driver init
+     * Driver Factory parameters
      */
-    static void driver_factory_parameters(const uint8_t drv);
+    static void driver_factory_parameters(Driver* act, const uint8_t index);
 
     /**
      * Pulse phase Step

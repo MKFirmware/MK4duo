@@ -359,8 +359,8 @@ struct XYZval {
 template<typename T>
 struct XYZEval {
   union {
-    struct{ T x, y, z, e; };
-    struct{ T a, b, c; };
+    struct { T x, y, z, e; };
+    struct { T a, b, c; };
     T pos[4];
   };
   void reset()                                             { x = y = z = e = 0; }

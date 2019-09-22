@@ -68,46 +68,46 @@ void L6470_init_to_defaults();
 
 // X2 Stepper
 #if HAS_X2_ENABLE && X2_HAS_DRV(L6470)
-  extern L6470 driver[X2_DRV];
+  extern L6470 driver.x2;
   #define X2_ENABLE_INIT()            NOOP
-  #define X2_ENABLE_WRITE(STATE)      do{ if(STATE) driver[X2_DRV].Step_Clock(driver[X2_DRV].getStatus() & STATUS_HIZ); else driver[X2_DRV].softFree(); }while(0)
-  #define X2_ENABLE_READ()            (driver[X2_DRV].getStatus() & STATUS_HIZ)
+  #define X2_ENABLE_WRITE(STATE)      do{ if(STATE) driver.x2.Step_Clock(driver.x2.getStatus() & STATUS_HIZ); else driver.x2.softFree(); }while(0)
+  #define X2_ENABLE_READ()            (driver.x2.getStatus() & STATUS_HIZ)
   #define X2_DIR_INIT()               NOOP
-  #define X2_DIR_WRITE(STATE)         driver[X2_DRV].Step_Clock(STATE)
-  #define X2_DIR_READ()               (driver[X2_DRV].getStatus() & STATUS_DIR)
+  #define X2_DIR_WRITE(STATE)         driver.x2.Step_Clock(STATE)
+  #define X2_DIR_READ()               (driver.x2.getStatus() & STATUS_DIR)
 #endif
 
 // Y2 Stepper
 #if HAS_Y2_ENABLE && Y2_HAS_DRV(L6470)
-  extern L6470 driver[Y2_DRV];
+  extern L6470 driver.y2;
   #define Y2_ENABLE_INIT()            NOOP
-  #define Y2_ENABLE_WRITE(STATE)      do{ if(STATE) driver[Y2_DRV].Step_Clock(driver[Y2_DRV].getStatus() & STATUS_HIZ); else driver[Y2_DRV].softFree(); }while(0)
-  #define Y2_ENABLE_READ()            (driver[Y2_DRV].getStatus() & STATUS_HIZ)
+  #define Y2_ENABLE_WRITE(STATE)      do{ if(STATE) driver.y2.Step_Clock(driver.y2.getStatus() & STATUS_HIZ); else driver.y2.softFree(); }while(0)
+  #define Y2_ENABLE_READ()            (driver.y2.getStatus() & STATUS_HIZ)
   #define Y2_DIR_INIT()               NOOP
-  #define Y2_DIR_WRITE(STATE)         driver[Y2_DRV].Step_Clock(STATE)
-  #define Y2_DIR_READ()               (driver[Y2_DRV].getStatus() & STATUS_DIR)
+  #define Y2_DIR_WRITE(STATE)         driver.y2.Step_Clock(STATE)
+  #define Y2_DIR_READ()               (driver.y2.getStatus() & STATUS_DIR)
 #endif
 
 // Z2 Stepper
 #if HAS_Z2_ENABLE && Z2_HAS_DRV(L6470)
-  extern L6470 driver[Z2_DRV];
+  extern L6470 driver.z2;
   #define Z2_ENABLE_INIT()            NOOP
-  #define Z2_ENABLE_WRITE(STATE)      do{ if(STATE) driver[Z2_DRV].Step_Clock(driver[Z2_DRV].getStatus() & STATUS_HIZ); else driver[Z2_DRV].softFree(); }while(0)
-  #define Z2_ENABLE_READ()            (driver[Z2_DRV].getStatus() & STATUS_HIZ)
+  #define Z2_ENABLE_WRITE(STATE)      do{ if(STATE) driver.z2.Step_Clock(driver.z2.getStatus() & STATUS_HIZ); else driver.z2.softFree(); }while(0)
+  #define Z2_ENABLE_READ()            (driver.z2.getStatus() & STATUS_HIZ)
   #define Z2_DIR_INIT()               NOOP
-  #define Z2_DIR_WRITE(STATE)         driver[Z2_DRV].Step_Clock(STATE)
-  #define Z2_DIR_READ()               (driver[Z2_DRV].getStatus() & STATUS_DIR)
+  #define Z2_DIR_WRITE(STATE)         driver.z2.Step_Clock(STATE)
+  #define Z2_DIR_READ()               (driver.z2.getStatus() & STATUS_DIR)
 #endif
 
 // Z3 Stepper
 #if HAS_Z3_ENABLE && Z3_HAS_DRV(L6470)
-  extern L6470 driver[Z3_DRV];
+  extern L6470 driver.z3;
   #define Z3_ENABLE_INIT()            NOOP
-  #define Z3_ENABLE_WRITE(STATE)      do{ if(STATE) driver[Z3_DRV].Step_Clock(driver[Z3_DRV].getStatus() & STATUS_HIZ); else driver[Z3_DRV].softFree(); }while(0)
-  #define Z3_ENABLE_READ()            (driver[Z3_DRV].getStatus() & STATUS_HIZ)
+  #define Z3_ENABLE_WRITE(STATE)      do{ if(STATE) driver.z3.Step_Clock(driver.z3.getStatus() & STATUS_HIZ); else driver.z3.softFree(); }while(0)
+  #define Z3_ENABLE_READ()            (driver.z3.getStatus() & STATUS_HIZ)
   #define Z3_DIR_INIT()               NOOP
-  #define Z3_DIR_WRITE(STATE)         driver[Z3_DRV].Step_Clock(STATE)
-  #define Z3_DIR_READ()               (driver[Z3_DRV].getStatus() & STATUS_DIR)
+  #define Z3_DIR_WRITE(STATE)         driver.z3.Step_Clock(STATE)
+  #define Z3_DIR_READ()               (driver.z3.getStatus() & STATUS_DIR)
 #endif
 
 // Z4 Stepper
@@ -123,68 +123,68 @@ void L6470_init_to_defaults();
 
 // E0 Stepper
 #if E0_HAS_DRV(L6470)
-  extern L6470 driver[E0_DRV];
+  extern L6470 driver.e[E0_DRV];
   #define E0_ENABLE_INIT()            NOOP
-  #define E0_ENABLE_WRITE(STATE)      do{ if(STATE) driver[E0_DRV].Step_Clock(driver[E0_DRV].getStatus() & STATUS_HIZ); else driver[E0_DRV].softFree(); }while(0)
-  #define E0_ENABLE_READ()            (driver[E0_DRV].getStatus() & STATUS_HIZ)
+  #define E0_ENABLE_WRITE(STATE)      do{ if(STATE) driver.e[E0_DRV].Step_Clock(driver.e[E0_DRV].getStatus() & STATUS_HIZ); else driver.e[E0_DRV].softFree(); }while(0)
+  #define E0_ENABLE_READ()            (driver.e[E0_DRV].getStatus() & STATUS_HIZ)
   #define E0_DIR_INIT()               NOOP
-  #define E0_DIR_WRITE(STATE)         driver[E0_DRV].Step_Clock(STATE)
-  #define E0_DIR_READ()               (driver[E0_DRV].getStatus() & STATUS_DIR)
+  #define E0_DIR_WRITE(STATE)         driver.e[E0_DRV].Step_Clock(STATE)
+  #define E0_DIR_READ()               (driver.e[E0_DRV].getStatus() & STATUS_DIR)
 #endif
 
 // E1 Stepper
 #if E1_HAS_DRV(L6470)
-  extern L6470 driver[E1_DRV];
+  extern L6470 driver.e[E1_DRV];
   #define E1_ENABLE_INIT()            NOOP
-  #define E1_ENABLE_WRITE(STATE)      do{if(STATE) driver[E1_DRV].Step_Clock(driver[E1_DRV].getStatus() & STATUS_HIZ); else driver[E1_DRV].softFree();}while(0)
-  #define E1_ENABLE_READ()            (driver[E1_DRV].getStatus() & STATUS_HIZ)
+  #define E1_ENABLE_WRITE(STATE)      do{if(STATE) driver.e[E1_DRV].Step_Clock(driver.e[E1_DRV].getStatus() & STATUS_HIZ); else driver.e[E1_DRV].softFree();}while(0)
+  #define E1_ENABLE_READ()            (driver.e[E1_DRV].getStatus() & STATUS_HIZ)
   #define E1_DIR_INIT()               NOOP
-  #define E1_DIR_WRITE(STATE)         driver[E1_DRV].Step_Clock(STATE)
-  #define E1_DIR_READ()               (driver[E1_DRV].getStatus() & STATUS_DIR)
+  #define E1_DIR_WRITE(STATE)         driver.e[E1_DRV].Step_Clock(STATE)
+  #define E1_DIR_READ()               (driver.e[E1_DRV].getStatus() & STATUS_DIR)
 #endif
 
 // E2 Stepper
 #if E2_HAS_DRV(L6470)
-  extern L6470 driver[E2_DRV];
+  extern L6470 driver.e[E2_DRV];
   #define E2_ENABLE_INIT()            NOOP
-  #define E2_ENABLE_WRITE(STATE)      do{if(STATE) driver[E2_DRV].Step_Clock(driver[E2_DRV].getStatus() & STATUS_HIZ); else driver[E2_DRV].softFree();}while(0)
-  #define E2_ENABLE_READ()            (driver[E2_DRV].getStatus() & STATUS_HIZ)
+  #define E2_ENABLE_WRITE(STATE)      do{if(STATE) driver.e[E2_DRV].Step_Clock(driver.e[E2_DRV].getStatus() & STATUS_HIZ); else driver.e[E2_DRV].softFree();}while(0)
+  #define E2_ENABLE_READ()            (driver.e[E2_DRV].getStatus() & STATUS_HIZ)
   #define E2_DIR_INIT()               NOOP
-  #define E2_DIR_WRITE(STATE)         driver[E2_DRV].Step_Clock(STATE)
-  #define E2_DIR_READ()               (driver[E2_DRV].getStatus() & STATUS_DIR)
+  #define E2_DIR_WRITE(STATE)         driver.e[E2_DRV].Step_Clock(STATE)
+  #define E2_DIR_READ()               (driver.e[E2_DRV].getStatus() & STATUS_DIR)
 #endif
 
 // E3 Stepper
 #if E3_HAS_DRV(L6470)
-  extern L6470 driver[E3_DRV];
+  extern L6470 driver.e[E3_DRV];
   #define E3_ENABLE_INIT()            NOOP
-  #define E3_ENABLE_WRITE(STATE)      do{if(STATE) driver[E3_DRV].Step_Clock(driver[E3_DRV].getStatus() & STATUS_HIZ); else driver[E3_DRV].softFree();}while(0)
-  #define E3_ENABLE_READ()            (driver[E3_DRV].getStatus() & STATUS_HIZ)
+  #define E3_ENABLE_WRITE(STATE)      do{if(STATE) driver.e[E3_DRV].Step_Clock(driver.e[E3_DRV].getStatus() & STATUS_HIZ); else driver.e[E3_DRV].softFree();}while(0)
+  #define E3_ENABLE_READ()            (driver.e[E3_DRV].getStatus() & STATUS_HIZ)
   #define E3_DIR_INIT()               NOOP
-  #define E3_DIR_WRITE(STATE)         driver[E3_DRV].Step_Clock(STATE)
-  #define E3_DIR_READ()               (driver[E3_DRV].getStatus() & STATUS_DIR)
+  #define E3_DIR_WRITE(STATE)         driver.e[E3_DRV].Step_Clock(STATE)
+  #define E3_DIR_READ()               (driver.e[E3_DRV].getStatus() & STATUS_DIR)
 #endif
 
 // E4 Stepper
 #if E4_HAS_DRV(L6470)
-  extern L6470 driver[E4_DRV];
+  extern L6470 driver.e[E4_DRV];
   #define E4_ENABLE_INIT()            NOOP
-  #define E4_ENABLE_WRITE(STATE)      do{ if (STATE) driver[E4_DRV].Step_Clock(driver[E4_DRV].getStatus() & STATUS_HIZ); else driver[E4_DRV].softFree(); }while(0)
-  #define E4_ENABLE_READ()            (driver[E4_DRV].getStatus() & STATUS_HIZ)
+  #define E4_ENABLE_WRITE(STATE)      do{ if (STATE) driver.e[E4_DRV].Step_Clock(driver.e[E4_DRV].getStatus() & STATUS_HIZ); else driver.e[E4_DRV].softFree(); }while(0)
+  #define E4_ENABLE_READ()            (driver.e[E4_DRV].getStatus() & STATUS_HIZ)
   #define E4_DIR_INIT()               NOOP
-  #define E4_DIR_WRITE(STATE)         driver[E4_DRV].Step_Clock(STATE)
-  #define E4_DIR_READ()               (driver[E4_DRV].getStatus() & STATUS_DIR)
+  #define E4_DIR_WRITE(STATE)         driver.e[E4_DRV].Step_Clock(STATE)
+  #define E4_DIR_READ()               (driver.e[E4_DRV].getStatus() & STATUS_DIR)
 #endif
 
 // E5 Stepper
 #if E5_HAS_DRV(L6470)
-  extern L6470 driver[E5_DRV];
+  extern L6470 driver.e[E5_DRV];
   #define E5_ENABLE_INIT()            NOOP
-  #define E5_ENABLE_WRITE(STATE)      do{if(STATE) driver[E5_DRV].Step_Clock(driver[E5_DRV].getStatus() & STATUS_HIZ); else driver[E5_DRV].softFree();}while(0)
-  #define E5_ENABLE_READ()            (driver[E5_DRV].getStatus() & STATUS_HIZ)
+  #define E5_ENABLE_WRITE(STATE)      do{if(STATE) driver.e[E5_DRV].Step_Clock(driver.e[E5_DRV].getStatus() & STATUS_HIZ); else driver.e[E5_DRV].softFree();}while(0)
+  #define E5_ENABLE_READ()            (driver.e[E5_DRV].getStatus() & STATUS_HIZ)
   #define E5_DIR_INIT()               NOOP
-  #define E5_DIR_WRITE(STATE)         driver[E5_DRV].Step_Clock(STATE)
-  #define E5_DIR_READ()               (driver[E5_DRV].getStatus() & STATUS_DIR)
+  #define E5_DIR_WRITE(STATE)         driver.e[E5_DRV].Step_Clock(STATE)
+  #define E5_DIR_READ()               (driver.e[E5_DRV].getStatus() & STATUS_DIR)
 #endif
 
 #endif // HAVE_DRV(TMC26X)

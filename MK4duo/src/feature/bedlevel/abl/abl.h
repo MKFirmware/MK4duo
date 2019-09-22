@@ -29,23 +29,22 @@ class AutoBedLevel {
 
   public: /** Public Parameters */
 
-    static int    bilinear_grid_spacing[2],
-                  bilinear_start[2];
+    static xy_int_t bilinear_grid_spacing,
+                    bilinear_start;
     static float  z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 
   private: /** Private Parameters */
 
-    static float  bilinear_grid_factor[2];
+    static xy_float_t bilinear_grid_factor;
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
       #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
       #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
       #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
       #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
-
-      static float  bilinear_grid_factor_virt[2],
-                    z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-      static int    bilinear_grid_spacing_virt[2];
+      float             z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
+      static xy_float_t bilinear_grid_factor_virt;
+      static xy_int_t   bilinear_grid_spacing_virt;
     #endif
 
   public: /** Public Function */

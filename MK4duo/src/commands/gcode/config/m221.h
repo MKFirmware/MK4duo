@@ -26,28 +26,24 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0
+#define CODE_M221
 
-  #define CODE_M221
+/**
+ * M221: Set extrusion percentage (M221 T0 S95)
+ */
+inline void gcode_M221() {
 
-  /**
-   * M221: Set extrusion percentage (M221 T0 S95)
-   */
-  inline void gcode_M221() {
+  if (commands.get_target_tool(221)) return;
 
-    if (commands.get_target_tool(221)) return;
-
-    if (parser.seenval('S')) {
-      tools.flow_percentage[tools.data.extruder.target] = parser.value_int();
-      tools.refresh_e_factor(tools.data.extruder.target);
-    }
-    else {
-      SERIAL_SM(ECHO, "E");
-      SERIAL_CHR('0' + tools.data.extruder.target);
-      SERIAL_MV(" Flow: ", tools.flow_percentage[tools.data.extruder.target]);
-      SERIAL_CHR('%');
-      SERIAL_EOL();
-    }
+  if (parser.seenval('S')) {
+    tools.flow_percentage[tools.data.extruder.target] = parser.value_int();
+    tools.refresh_e_factor(tools.data.extruder.target);
   }
-
-#endif // EXTRUDERS > 0
+  else {
+    SERIAL_SM(ECHO, "E");
+    SERIAL_CHR('0' + tools.data.extruder.target);
+    SERIAL_MV(" Flow: ", tools.flow_percentage[tools.data.extruder.target]);
+    SERIAL_CHR('%');
+    SERIAL_EOL();
+  }
+}

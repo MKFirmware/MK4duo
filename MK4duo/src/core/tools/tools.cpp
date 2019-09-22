@@ -36,12 +36,12 @@ Tools tools;
 /** Public Parameters */
 tool_data_t Tools::data;
 
-int16_t Tools::flow_percentage[MAX_EXTRUDER]    = ARRAY_BY_EXTRUDERS(100),
-        Tools::density_percentage[MAX_EXTRUDER] = ARRAY_BY_EXTRUDERS(100);
-float   Tools::e_factor[MAX_EXTRUDER]           = ARRAY_BY_EXTRUDERS(1.0);
+int16_t Tools::flow_percentage[MAX_EXTRUDER]        = ARRAY_BY_EXTRUDERS(100),
+        Tools::density_percentage[MAX_EXTRUDER]     = ARRAY_BY_EXTRUDERS(100);
+float   Tools::e_factor[MAX_EXTRUDER]               = ARRAY_BY_EXTRUDERS(1.0);
 
 #if ENABLED(SINGLENOZZLE)
-  int16_t Tools::singlenozzle_temp[MAX_EXTRUDER] = ARRAY_BY_EXTRUDERS(0);
+  int16_t Tools::singlenozzle_temp[MAX_EXTRUDER]    = ARRAY_BY_EXTRUDERS(0);
 #endif
 
 #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -93,8 +93,15 @@ void Tools::factory_parameters() {
 }
 
 void Tools::change_number_extruder(const uint8_t ext) {
-  data.extruder.total = ext;
-  stepper.create_driver();
+  if (data.extruder.total < ext) {
+    data.extruder.total = ext;
+    stepper.create_ext_driver();
+  }
+  else if (data.extruder.total > ext) {
+    for (uint8_t d = ext; d < MAX_DRIVER_E; d++)
+      stepper.delete_ext_driver(d);
+    data.extruder.total = ext;
+  }
 }
 
 void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
@@ -119,14 +126,14 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     mmu2.tool_change(data.extruder.target);
 
-  #elif EXTRUDERS < 2
+  #elif MAX_EXTRUDER < 2
 
     UNUSED(no_move);
 
-    if (data.extruder.target) invalid_extruder_error();
+    if (extruder.target) invalid_extruder_error();
     return;
 
-  #else // EXTRUDERS > 1
+  #else // MAX_EXTRUDER > 1
 
     planner.synchronize();
   
@@ -359,9 +366,9 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
     else
       SERIAL_EM(" Disabled");
 
-    #if EXTRUDERS == 1
+    #if MAX_EXTRUDER == 1
       SERIAL_LMV(CFG, "  M200 T0 D", tools.data.filament_size[0], 3);
-    #elif EXTRUDERS > 1
+    #elif MAX_EXTRUDER > 1
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M200 T", (int)e);
         SERIAL_EMV(" D", tools.data.filament_size[e], 3);
@@ -623,7 +630,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
 
       uint8_t multiply = data.extruder.target, driver;
 
-      for (driver = 0; driver < DRIVER_EXTRUDERS; driver++) {
+      LOOP_DRV_EXT() {
         if (multiply < 3) break;
         multiply -= 3;
       }

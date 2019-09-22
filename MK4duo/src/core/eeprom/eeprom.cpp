@@ -77,7 +77,8 @@ typedef struct EepromDataStruct {
   //
   // Driver
   //
-  driver_data_t     driver_data[MAX_DRIVER];
+  driver_data_t     driver_data[XYZ];
+  driver_data_t     driver_e_data[MAX_DRIVER_E];
 
   //
   // Stepper data
@@ -254,13 +255,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // External DAC
-  //
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    uint16_t        motor_current[3 + DRIVER_EXTRUDERS];
-  #endif
-
-  //
   // Linear Advance
   //
   #if ENABLED(LIN_ADVANCE)
@@ -423,7 +417,8 @@ void EEPROM::post_process() {
     uint16_t working_crc  = 0;
     int eeprom_index      = EEPROM_OFFSET;
 
-    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
     flag.error = false;
 
@@ -454,8 +449,10 @@ void EEPROM::post_process() {
     //
     // Driver Data
     //
-    LOOP_DRV() if (driver[d]) driver_data[d] = driver[d]->data;
+    LOOP_DRV_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
+    LOOP_DRV_EXT()  if (driver.e[d])  driver_e_data[d]  = driver.e[d]->data;
     EEPROM_WRITE(driver_data);
+    EEPROM_WRITE(driver_e_data);
 
     //
     // Stepper
@@ -643,13 +640,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Alligator board
-    //
-    #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-      EEPROM_WRITE(externaldac.motor_current);
-    #endif
-
-    //
     // Linear Advance
     //
     #if ENABLED(LIN_ADVANCE)
@@ -791,7 +781,8 @@ void EEPROM::post_process() {
               stored_crc  = 0;
     char      stored_ver[6];
 
-    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
     int eeprom_index = EEPROM_OFFSET;
 
@@ -834,9 +825,12 @@ void EEPROM::post_process() {
       // Driver data
       //
       EEPROM_READ(driver_data);
+      EEPROM_READ(driver_e_data);
       if (!flag.validating) {
-        stepper.create_driver(); // Create driver stepper
-        LOOP_DRV() if (driver[d]) driver[d]->data = driver_data[d];
+        stepper.create_xyz_driver();  // Create driver xyz stepper
+        stepper.create_ext_driver();  // Create driver extruder stepper
+        LOOP_DRV_XYZ()  if (driver[d])    driver[d]->data   = driver_data[d];
+        LOOP_DRV_EXT()  if (driver.e[d])  driver.e[d]->data = driver_e_data[d];
       }
 
       //
@@ -1031,13 +1025,6 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Alligator board
-      //
-      #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        EEPROM_READ(externaldac.motor_current);
-      #endif
-
-      //
       // Linear Advance
       //
       #if ENABLED(LIN_ADVANCE)
@@ -1106,7 +1093,7 @@ void EEPROM::post_process() {
                 driver[X_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                driver[X2_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
+                driver.x2->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
@@ -1114,7 +1101,7 @@ void EEPROM::post_process() {
                 driver[Y_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                driver[Y2_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver.y2->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
@@ -1122,10 +1109,10 @@ void EEPROM::post_process() {
                 driver[Z_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                driver[Z2_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z2->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                driver[Z3_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z3->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
             #endif
           }
@@ -1338,10 +1325,6 @@ void EEPROM::reset() {
 
   // Call Sound Factory parameters
   sound.factory_parameters();
-
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    externaldac.factory_parameters();
-  #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     advancedpause.factory_parameters();
@@ -1695,21 +1678,16 @@ void EEPROM::reset() {
 
       SERIAL_LM(CFG, "Stepper driver current (mA)");
       SERIAL_SM(CFG, "  M906");
-      SERIAL_MV(" X", externaldac.motor_current[X_AXIS]);
-      SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS]);
-      SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS]);
-      #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", externaldac.motor_current[E_AXIS]);
-      #endif
+      SERIAL_MV(" X", driver.x->data.ma);
+      SERIAL_MV(" Y", driver.y->data.ma);
+      SERIAL_MV(" Z", driver.z->data.ma);
       SERIAL_EOL();
-      #if DRIVER_EXTRUDERS > 1
-        for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-          SERIAL_SM(CFG, "  M906");
-          SERIAL_MV(" T", int(i));
-          SERIAL_MV(" E", externaldac.motor_current[E_AXIS + i]);
-          SERIAL_EOL();
-        }
-      #endif
+      LOOP_DRV_EXT() {
+        SERIAL_SM(CFG, "  M906");
+        SERIAL_MV(" T", int(d));
+        SERIAL_MV(" E", driver.e[d]->data.ma);
+        SERIAL_EOL();
+      }
 
     #endif // ALLIGATOR_R2 || ALLIGATOR_R3
 

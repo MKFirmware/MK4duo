@@ -372,27 +372,6 @@
 #define LCD_HAS_DIRECTIONAL_BUTTONS (BUTTON_EXISTS(UP) || BUTTON_EXISTS(DWN) || BUTTON_EXISTS(LFT) || BUTTON_EXISTS(RT))
 
 /**
- * Define for max valor for Driver, Extruder, heater, fan
- */
-#ifdef __AVR__
-  #define MAX_DRIVER      8
-  #define MAX_EXTRUDER    4
-  #define MAX_HOTEND      4
-  #define MAX_BED         2
-  #define MAX_CHAMBER     2
-  #define MAX_COOLER      1
-  #define MAX_FAN         6
-#else
-  #define MAX_DRIVER     13
-  #define MAX_EXTRUDER    6
-  #define MAX_HOTEND      6
-  #define MAX_BED         4
-  #define MAX_CHAMBER     4
-  #define MAX_COOLER      1
-  #define MAX_FAN         6
-#endif
-
-/**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
  *
@@ -438,8 +417,10 @@
   #define E_MANUAL          DRIVER_EXTRUDERS
 #endif
 
-// One hotend, multi-extruder
-#if ENABLED(SINGLENOZZLE) || (EXTRUDERS <= 1)
+/**
+ * One hotend, multi-extruder
+ */
+#if ENABLED(SINGLENOZZLE)
   #undef HOTENDS
   #define HOTENDS           1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
@@ -463,7 +444,7 @@
 /**
  * Multi-extruders support
  */
-#define XYZE_N              (3 + tools.data.extruder.total)
+#define XYZE_N              (uint8_t(E_AXIS) + tools.data.extruder.total)
 #define E_INDEX             (uint8_t(E_AXIS) + tools.data.extruder.active)
 #define E_INDEX_N(N)        (uint8_t(E_AXIS) + N)
 

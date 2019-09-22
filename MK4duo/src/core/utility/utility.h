@@ -22,6 +22,12 @@
 #pragma once
 
 //
+// Swap object
+//
+template <class T>
+void swap(T& a, T& b) { T c(a); a = b; b = c; }
+
+//
 // Utility functions for timer expired and pending
 //
 bool expired(millis_l *start, const millis_l period);
@@ -55,9 +61,9 @@ struct FlagBits {
   void unmark(const uint8_t x, const uint8_t y) { CBI(bits[y], x); }
   void mark(const uint8_t x, const uint8_t y)   { SBI(bits[y], x); }
   bool marked(const uint8_t x, const uint8_t y) { return TEST(bits[y], x); }
-  inline void unmark(const xy_uchar_t xy)       { unmark(xy.y, xy.x); }
-  inline void mark(const xy_uchar_t xy)         { mark(xy.y, xy.x); }
-  inline bool marked(const xy_uchar_t xy)       { return marked(xy.y, xy.x); }
+  inline void unmark(const xy_char_t &xy)       { unmark(xy.y, xy.x); }
+  inline void mark(const xy_char_t &xy)         { mark(xy.y, xy.x); }
+  inline bool marked(const xy_char_t &xy)       { return marked(xy.y, xy.x); }
 };
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)

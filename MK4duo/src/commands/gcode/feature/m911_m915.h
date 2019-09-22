@@ -325,12 +325,12 @@
         driver[Z_DRV]->tmc->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        const uint16_t Z2_current_1 = driver[Z2_DRV]->tmc->rms_current();
-        driver[Z2_DRV]->tmc->rms_current(_rms);
+        const uint16_t Z2_current_1 = driver.z2->tmc->rms_current();
+        driver.z2->tmc->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        const uint16_t Z3_current_1 = driver[Z3_DRV]->tmc->rms_current();
-        driver[Z3_DRV]->tmc->rms_current(_rms);
+        const uint16_t Z3_current_1 = driver.z3->tmc->rms_current();
+        driver.z3->tmc->rms_current(_rms);
       #endif
 
       SERIAL_MV("\nCalibration current: Z", _rms);

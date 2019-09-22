@@ -77,7 +77,7 @@ void TMC_Stepper::init() {
         X2_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(X2);
-        driver[X2_DRV]->tmc->beginSerial(115200);
+        driver.x2->tmc->beginSerial(115200);
       #endif
       config(X2_DRV, X_STEALTHCHOP);
     #endif
@@ -97,9 +97,9 @@ void TMC_Stepper::init() {
         Y2_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(Y2);
-        driver[Y2_DRV]->tmc->beginSerial(115200);
+        driver.y2->tmc->beginSerial(115200);
       #endif
-      config(driver[Y2_DRV], Y_STEALTHCHOP);
+      config(driver.y2, Y_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2208)
       #if ENABLED(Z_HARDWARE_SERIAL)
@@ -117,7 +117,7 @@ void TMC_Stepper::init() {
         Z2_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(Z2);
-        driver[Z2_DRV]->tmc->beginSerial(115200);
+        driver.z2->tmc->beginSerial(115200);
       #endif
       config(Z2_DRV, Z_STEALTHCHOP);
     #endif
@@ -127,7 +127,7 @@ void TMC_Stepper::init() {
         Z3_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(Z3);
-        driver[Z3_DRV]->tmc->beginSerial(115200);
+        driver.z3->tmc->beginSerial(115200);
       #endif
       config(Z3_DRV, Z_STEALTHCHOP);
     #endif
@@ -137,7 +137,7 @@ void TMC_Stepper::init() {
         E0_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E0);
-        driver[E0_DRV]->tmc->beginSerial(115200);
+        driver.e[E0_DRV]->tmc->beginSerial(115200);
       #endif
       config(E0_DRV, E0_STEALTHCHOP);
     #endif
@@ -147,7 +147,7 @@ void TMC_Stepper::init() {
         E1_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E1);
-        driver[E1_DRV]->tmc->beginSerial(115200);
+        driver.e[E1_DRV]->tmc->beginSerial(115200);
       #endif
       config(E1_DRV, E1_STEALTHCHOP);
     #endif
@@ -157,7 +157,7 @@ void TMC_Stepper::init() {
         E2_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E2);
-        driver[E2_DRV]->tmc->beginSerial(115200);
+        driver.e[E2_DRV]->tmc->beginSerial(115200);
       #endif
       config(E2_DRV, E2_STEALTHCHOP);
     #endif
@@ -167,7 +167,7 @@ void TMC_Stepper::init() {
         E3_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E3);
-        driver[E3_DRV]->tmc->beginSerial(115200);
+        driver.e[E3_DRV]->tmc->beginSerial(115200);
       #endif
       config(E3_DRV, E3_STEALTHCHOP);
     #endif
@@ -177,7 +177,7 @@ void TMC_Stepper::init() {
         E4_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E4);
-        driver[E4_DRV]->tmc->beginSerial(115200);
+        driver.e[E4_DRV]->tmc->beginSerial(115200);
       #endif
       config(E4_DRV, E4_STEALTHCHOP);
     #endif
@@ -187,7 +187,7 @@ void TMC_Stepper::init() {
         E5_HARDWARE_SERIAL.begin(115200);
       #else
         TMC2208_DEFINE_SOFTWARE(E5);
-        driver[E5_DRV]->tmc->beginSerial(115200);
+        driver.e[E5_DRV]->tmc->beginSerial(115200);
       #endif
       config(E5_DRV, E5_STEALTHCHOP);
     #endif
@@ -221,7 +221,7 @@ void TMC_Stepper::init() {
     #endif
     #if Y2_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Y2);
-      config(driver[Y2_DRV]);
+      config(driver.y2);
     #endif
     #if Z_HAS_DRV(TMC2660)
       TMC2660_DEFINE(Z);
@@ -289,7 +289,7 @@ void TMC_Stepper::init() {
     #endif
     #if Y2_HAS_DRV(TMC2130) || Y2_HAS_DRV(TMC2160) || Y2_HAS_DRV(TMC5130) || Y2_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Y2);
-      config(driver[Y2_DRV], Y_STEALTHCHOP);
+      config(driver.y2, Y_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2130) || Z_HAS_DRV(TMC2160) || Z_HAS_DRV(TMC5130) || Z_HAS_DRV(TMC5160)
       TMC_MODEL_DEFINE(Z);
@@ -336,7 +336,7 @@ void TMC_Stepper::init() {
         driver[X_DRV]->tmc->homing_threshold(X_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(X2)
-        driver[X2_DRV]->homing_threshold(X_STALL_SENSITIVITY);
+        driver.x2->homing_threshold(X_STALL_SENSITIVITY);
       #endif
     #endif
     #if Y_SENSORLESS
@@ -344,7 +344,7 @@ void TMC_Stepper::init() {
         driver[Y_DRV]->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Y2)
-        driver[Y2_DRV]->homing_threshold(Y_STALL_SENSITIVITY);
+        driver.y2->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
     #endif
     #if Z_SENSORLESS
@@ -352,10 +352,10 @@ void TMC_Stepper::init() {
         driver[Z_DRV]->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z2)
-        driver[Z2_DRV]->homing_threshold(Z_STALL_SENSITIVITY);
+        driver.z2->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z3)
-        driver[Z3_DRV]->homing_threshold(Z_STALL_SENSITIVITY);
+        driver.z3->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
     #endif
   #endif
@@ -630,7 +630,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       SERIAL_EOL();
     #endif
 
-    LOOP_DRV_EXTRUDER() {
+    LOOP_DRV_EXT() {
       if (driver[d] && driver[d]->tmc) {
         SERIAL_SM(CFG, "  M350 ");
         driver[d]->printLabel();
@@ -656,7 +656,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       SERIAL_EOL();
     #endif
 
-    LOOP_DRV_EXTRUDER() {
+    LOOP_DRV_EXT() {
       if (driver[d] && driver[d]->tmc) {
         SERIAL_SM(CFG, "  M906 ");
         driver[d]->printLabel();
@@ -684,7 +684,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
         SERIAL_EOL();
       #endif
 
-      LOOP_DRV_EXTRUDER() {
+      LOOP_DRV_EXT() {
         if (driver[d] && driver[d]->tmc) {
           SERIAL_SM(CFG, "  M913 ");
           driver[d]->printLabel();
@@ -739,8 +739,8 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #endif
       #if AXIS_HAS_STEALTHCHOP(E0)
         SERIAL_CHR(' ');
-        driver[E0_DRV]->printLabel();
-        SERIAL_VAL(driver[E0_DRV]->tmc->get_stealthChop_status());
+        driver.e[E0_DRV]->printLabel();
+        SERIAL_VAL(driver.e[E0_DRV]->tmc->get_stealthChop_status());
       #endif
       SERIAL_EOL();
     #endif // TMC_HAS_STEALTHCHOP

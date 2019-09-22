@@ -40,34 +40,34 @@
   void refresh_stepper_current_Z()  { driver[Z_DRV]->tmc->refresh_stepper_current();  }
 #endif
 #if AXIS_HAS_TMC(X2)
-  void refresh_stepper_current_X2() { driver[X2_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_X2() { driver.x2->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(Y2)
-  void refresh_stepper_current_Y2() { driver[Y2_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_Y2() { driver.y2->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(Z2)
-  void refresh_stepper_current_Z2() { driver[Z2_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_Z2() { driver.z2->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(Z3)
-  void refresh_stepper_current_Z3() { driver[Z3_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_Z3() { driver.z3->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E0)
-  void refresh_stepper_current_E0() { driver[E0_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E0() { driver.e[E0_DRV]->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E1)
-  void refresh_stepper_current_E1() { driver[E1_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E1() { driver.e[E1_DRV]->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E2)
-  void refresh_stepper_current_E2() { driver[E2_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E2() { driver.e[E2_DRV]->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E3)
-  void refresh_stepper_current_E3() { driver[E3_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E3() { driver.e[E3_DRV]->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E4)
-  void refresh_stepper_current_E4() { driver[E4_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E4() { driver.e[E4_DRV]->tmc->refresh_stepper_current(); }
 #endif
 #if AXIS_HAS_TMC(E5)
-  void refresh_stepper_current_E5() { driver[E5_DRV]->tmc->refresh_stepper_current(); }
+  void refresh_stepper_current_E5() { driver.e[E5_DRV]->tmc->refresh_stepper_current(); }
 #endif
 
 void menu_tmc_current() {
@@ -127,34 +127,34 @@ void menu_tmc_current() {
   void refresh_stepper_microstep_Z()  { driver[Z_DRV]->tmc->refresh_stepper_microstep();  }
 #endif
 #if AXIS_HAS_TMC(X2)
-  void refresh_stepper_microstep_X2() { driver[X2_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_X2() { driver.x2->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(Y2)
-  void refresh_stepper_microstep_Y2() { driver[Y2_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_Y2() { driver.y2->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(Z2)
-  void refresh_stepper_microstep_Z2() { driver[Z2_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_Z2() { driver.z2->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(Z3)
-  void refresh_stepper_microstep_Z3() { driver[Z3_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_Z3() { driver.z3->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E0)
-  void refresh_stepper_microstep_E0() { driver[E0_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E0() { driver.e[E0_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E1)
-  void refresh_stepper_microstep_E1() { driver[E1_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E1() { driver.e[E1_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E2)
-  void refresh_stepper_microstep_E2() { driver[E2_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E2() { driver.e[E2_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E3)
-  void refresh_stepper_microstep_E3() { driver[E3_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E3() { driver.e[E3_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E4)
-  void refresh_stepper_microstep_E4() { driver[E4_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E4() { driver.e[E4_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 #if AXIS_HAS_TMC(E5)
-  void refresh_stepper_microstep_E5() { driver[E5_DRV]->tmc->refresh_stepper_microstep(); }
+  void refresh_stepper_microstep_E5() { driver.e[E5_DRV]->tmc->refresh_stepper_microstep(); }
 #endif
 
 void menu_tmc_microstep() {
@@ -216,34 +216,34 @@ void menu_tmc_microstep() {
     void refresh_hybrid_thrs_Z()  {  driver[Z_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(X2)
-    void refresh_hybrid_thrs_X2() { driver[X2_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_X2() { driver.x2->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(Y2)
-    void refresh_hybrid_thrs_Y2() { driver[Y2_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_Y2() { driver.y2->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(Z2)
-    void refresh_hybrid_thrs_Z2() { driver[Z2_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_Z2() { driver.z2->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(Z3)
-    void refresh_hybrid_thrs_Z3() { driver[Z3_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_Z3() { driver.z3->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E0)
-    void refresh_hybrid_thrs_E0() { driver[E0_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E0() { driver.e[E0_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E1)
-    void refresh_hybrid_thrs_E1() { driver[E1_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E1() { driver.e[E1_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E2)
-    void refresh_hybrid_thrs_E2() { driver[E2_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E2() { driver.e[E2_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E3)
-    void refresh_hybrid_thrs_E3() { driver[E3_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E3() { driver.e[E3_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E4)
-    void refresh_hybrid_thrs_E4() { driver[E4_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E4() { driver.e[E4_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E5)
-    void refresh_hybrid_thrs_E5() { driver[E5_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E5() { driver.e[E5_DRV]->tmc->refresh_hybrid_thrs(); }
   #endif
 
   void menu_tmc_hybrid_thrs() {
@@ -338,34 +338,34 @@ void menu_tmc_microstep() {
     void refresh_stepping_mode_Z()  { driver[Z_DRV]->tmc->refresh_stepping_mode();  }
   #endif
   #if AXIS_HAS_STEALTHCHOP(X2)
-    void refresh_stepping_mode_X2() { driver[X2_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_X2() { driver.x2->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Y2)
-    void refresh_stepping_mode_Y2() { driver[Y2_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_Y2() { driver.y2->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z2)
-    void refresh_stepping_mode_Z2() { driver[Z2_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_Z2() { driver.z2->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z3)
-    void refresh_stepping_mode_Z3() { driver[Z3_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_Z3() { driver.z3->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E0)
-    void refresh_stepping_mode_E0() { driver[E0_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E0() { driver.e[E0_DRV]->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E1)
-    void refresh_stepping_mode_E1() { driver[E1_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E1() { driver.e[E1_DRV]->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E2)
-    void refresh_stepping_mode_E2() { driver[E2_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E2() { driver.e[E2_DRV]->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E3)
-    void refresh_stepping_mode_E3() { driver[E3_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E3() { driver.e[E3_DRV]->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E4)
-    void refresh_stepping_mode_E4() { driver[E4_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E4() { driver.e[E4_DRV]->tmc->refresh_stepping_mode(); }
   #endif
   #if AXIS_HAS_STEALTHCHOP(E5)
-    void refresh_stepping_mode_E5() { driver[E5_DRV]->tmc->refresh_stepping_mode(); }
+    void refresh_stepping_mode_E5() { driver.e[E5_DRV]->tmc->refresh_stepping_mode(); }
   #endif
 
   void menu_tmc_step_mode() {

@@ -671,9 +671,11 @@ void menu_advanced_settings() {
   #if DISABLED(SLIM_LCD_MENUS)
 
     if (printer.mode == PRINTER_MODE_FFF) {
-      MENU_ITEM_EDIT_CALLBACK(uint8, MSG_MAX_EXTRUDERS, &lcd_extruder_total, 0, MAX_EXTRUDER, []{
-        tools.change_number_extruder(lcd_extruder_total);
-      });
+      #if HAS_LINEAR_EXTRUDER
+        MENU_ITEM_EDIT_CALLBACK(uint8, MSG_MAX_EXTRUDERS, &lcd_extruder_total, 0, MAX_EXTRUDER, []{
+          tools.change_number_extruder(lcd_extruder_total);
+        });
+      #endif
       MENU_ITEM(submenu, MSG_TEMPERATURE, menu_advanced_temperature);
       #if ENABLED(VOLUMETRIC_EXTRUSION) || ENABLED(ADVANCED_PAUSE_FEATURE)
         MENU_ITEM(submenu, MSG_FILAMENT, menu_advanced_filament);

@@ -31,18 +31,9 @@
 
 ExternalDac externaldac;
 
-/** Public Parameters */
-uint16_t ExternalDac::motor_current[3 + DRIVER_EXTRUDERS] = { 0 };
-
 /** Public Function */
-void ExternalDac::factory_parameters() {
-  constexpr uint16_t tmp[] = { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT };
-  for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++)
-    motor_current[i] = tmp[ALIM(i, tmp)];
-}
-
 void ExternalDac::begin() {
-  uint8_t externalDac_buf[2] = {0x20, 0x00};  // all off
+  uint8_t externalDac_buf[2] = { 0x20, 0x00 };  // all off
 
   HAL::spiBegin();
 
@@ -57,33 +48,28 @@ void ExternalDac::begin() {
   HAL::spiSend(SPI_CHAN_DAC, externalDac_buf , 2);
   HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
 
-  #if DRIVER_EXTRUDERS > 1
-    // init Piggy DAC
-    HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
-    HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
-    HAL::delayMicroseconds(2U);
-    HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
+  // init Piggy DAC
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
+  HAL::delayMicroseconds(2U);
+  HAL::digitalWrite(DAC1_SYNC_PIN, LOW);
 
-    HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
-    HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
-  #endif
+  HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+  HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
 
   return;
 }
 
-void ExternalDac::set_driver_current() {
-  uint8_t digipot_motor = 0;
-  for (uint8_t i = 0; i < 3 + DRIVER_EXTRUDERS; i++) {
-    digipot_motor = 255 * motor_current[i] / 1000 / 3.3;
-    setValue(i, digipot_motor);
-  }
+void ExternalDac::set_driver_current(const uint8_t index, const uint16_t ma) {
+  const uint8_t digipot_motor = 255 * ma / 1000 / 3.3;
+  setValue(index, digipot_motor);
 }
 
 void ExternalDac::setValue(uint8_t channel, uint8_t value) {
-  if(channel >= 7) // max channel (X,Y,Z,E0,E1,E2,E3)
-    return;
+
+  if (channel >= 7) return; // max channel (X,Y,Z,E0,E1,E2,E3)
 
   uint8_t externalDac_buf[2] = {0x10, 0x00};
 
@@ -112,6 +98,9 @@ void ExternalDac::setValue(uint8_t channel, uint8_t value) {
 
   HAL::delayMicroseconds(2U);
   HAL::spiSend(SPI_CHAN_DAC, externalDac_buf, 2);
+
+  HAL::digitalWrite(DAC0_SYNC_PIN, HIGH);
+  HAL::digitalWrite(DAC1_SYNC_PIN, HIGH);
 
   return;
 }

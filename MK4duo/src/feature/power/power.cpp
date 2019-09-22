@@ -175,20 +175,17 @@ Power powerManager;
     #endif
 
     if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
-        || E0_ENABLE_READ() == driver[E0_DRV]->isEnable() // If any of the drivers are enabled...
-        #if DRIVER_EXTRUDERS > 1
-          || E1_ENABLE_READ() == driver[E1_DRV]->isEnable()
-          #if HAS_X2_ENABLE
-            || X2_ENABLE_READ() == driver[X2_DRV]->isEnable()
-          #endif
-          #if DRIVER_EXTRUDERS > 2
-            || E2_ENABLE_READ() == driver[E2_DRV]->isEnable()
-            #if DRIVER_EXTRUDERS > 3
-              || E3_ENABLE_READ() == driver[E3_DRV]->isEnable()
-              #if DRIVER_EXTRUDERS > 4
-                || E4_ENABLE_READ() == driver[E4_DRV]->isEnable()
-                #if DRIVER_EXTRUDERS > 5
-                  || E5_ENABLE_READ() == driver[E5_DRV]->isEnable()
+        || E0_ENABLE_READ() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
+        #if MAX_DRIVER_E > 1
+          || E1_ENABLE_READ() == driver.e[E1_DRV]->isEnable()
+          #if MAX_DRIVER_E > 2
+            || E2_ENABLE_READ() == driver.e[E2_DRV]->isEnable()
+            #if MAX_DRIVER_E > 3
+              || E3_ENABLE_READ() == driver.e[E3_DRV]->isEnable()
+              #if MAX_DRIVER_E > 4
+                || E4_ENABLE_READ() == driver.e[E4_DRV]->isEnable()
+                #if MAX_DRIVER_E > 5
+                  || E5_ENABLE_READ() == driver.e[E5_DRV]->isEnable()
                 #endif
               #endif
             #endif

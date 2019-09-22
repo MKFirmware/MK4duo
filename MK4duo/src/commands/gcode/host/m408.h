@@ -78,7 +78,7 @@
 
     SERIAL_MSG(",\"extrFactors\":[");
     firstOccurrence = true;
-    for (uint8_t e = 0; e < EXTRUDERS; e++) {
+    LOOP_EXTRUDER() {
       if (!firstOccurrence) SERIAL_CHR(',');
       SERIAL_VAL(tools.flow_percentage[e]);
       firstOccurrence = false;
@@ -141,7 +141,7 @@
         SERIAL_MSG(CUSTOM_MACHINE_NAME);
         SERIAL_MSG("\",\"tools\":[");
         firstOccurrence = true;
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        LOOP_EXTRUDER() {
           if (!firstOccurrence) SERIAL_CHR(',');
           SERIAL_MV("{\"number\":", i + 1);
           #if HOTENDS > 1
@@ -150,12 +150,10 @@
           #else
             SERIAL_MSG(",\"hotends\":[1],");
           #endif
-          #if DRIVER_EXTRUDERS > 1
+          if (driver.e[i]) {
             SERIAL_MV("\"drives\":[", i);
             SERIAL_MSG("]");
-          #else
-            SERIAL_MSG("\"drives\":[0]");
-          #endif
+          }
           SERIAL_MSG("}");
           firstOccurrence = false;
         }
@@ -228,14 +226,14 @@
 
         #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
           SERIAL_MSG("\"currents\":[");
-          SERIAL_VAL(externaldac.motor_current[X_AXIS]);
+          SERIAL_VAL(driver.x->data.ma);
           SERIAL_CHR(',');
-          SERIAL_VAL(externaldac.motor_current[Y_AXIS]);
+          SERIAL_VAL(driver.y->data.ma);
           SERIAL_CHR(',');
-          SERIAL_VAL(externaldac.motor_current[Z_AXIS]);
-          for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
+          SERIAL_VAL(driver.z->data.ma);
+          LOOP_DRV_EXT() {
             SERIAL_CHR(',');
-            SERIAL_VAL(externaldac.motor_current[E_AXIS + i]);
+            SERIAL_VAL(driver.e[d]->data.ma);
           }
           SERIAL_EM("],");
         #endif
@@ -262,7 +260,7 @@
         SERIAL_MSG(STRING_REVISION_DATE);
 
         SERIAL_MSG("\",\"minFeedrates\":[0,0,0");
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        LOOP_EXTRUDER() {
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");

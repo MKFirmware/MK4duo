@@ -99,7 +99,7 @@ xyze_float_t Planner::previous_speed = { 0.0, 0.0, 0.0, 0.0 };
 float Planner::previous_nominal_speed_sqr = 0.0;
 
 #if ENABLED(DISABLE_INACTIVE_EXTRUDER)
-  uint8_t Planner::g_uc_extruder_last_move[EXTRUDERS] = { 0 };
+  uint8_t Planner::g_uc_extruder_last_move[MAX_EXTRUDER] = { 0 };
 #endif
 
 #if ENABLED(XY_FREQUENCY_LIMIT)
@@ -1216,22 +1216,21 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
     #if !HAS_MKMULTI_TOOLS
 
-      #if EXTRUDERS > 0 && ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
+      #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
-        for (uint8_t i = 0; i < EXTRUDERS; i++)
-          if (g_uc_extruder_last_move[i] > 0) g_uc_extruder_last_move[i]--;
+        LOOP_EXTRUDER() if (g_uc_extruder_last_move[e] > 0) g_uc_extruder_last_move[e]--;
 
         switch (extruder) {
           case 0:
-            #if EXTRUDERS > 1
+            #if MAX_EXTRUDER > 1
               if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-              #if EXTRUDERS > 2
+              #if MAX_EXTRUDER > 2
                 if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                #if EXTRUDERS > 3
+                #if MAX_EXTRUDER > 3
                   if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if EXTRUDERS > 4
+                  #if MAX_EXTRUDER > 4
                     if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if EXTRUDERS > 5
+                    #if MAX_EXTRUDER > 5
                       if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
@@ -1247,16 +1246,16 @@ bool Planner::fill_block(block_t * const block, bool split_move,
               }
             #endif
           break;
-          #if EXTRUDERS > 1
+          #if MAX_EXTRUDER > 1
             case 1:
               if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-              #if EXTRUDERS > 2
+              #if MAX_EXTRUDER > 2
                 if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                #if EXTRUDERS > 3
+                #if MAX_EXTRUDER > 3
                   if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if EXTRUDERS > 4
+                  #if MAX_EXTRUDER > 4
                     if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if EXTRUDERS > 5
+                    #if MAX_EXTRUDER > 5
                       if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
@@ -1265,15 +1264,15 @@ bool Planner::fill_block(block_t * const block, bool split_move,
               stepper.enable_E1();
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
             break;
-            #if EXTRUDERS > 2
+            #if MAX_EXTRUDER > 2
               case 2:
                 if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
                 if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-                #if EXTRUDERS > 3
+                #if MAX_EXTRUDER > 3
                   if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if EXTRUDERS > 4
+                  #if MAX_EXTRUDER > 4
                     if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if EXTRUDERS > 5
+                    #if MAX_EXTRUDER > 5
                       if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
@@ -1281,34 +1280,34 @@ bool Planner::fill_block(block_t * const block, bool split_move,
                 stepper.enable_E2();
                 g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
               break;
-              #if EXTRUDERS > 3
+              #if MAX_EXTRUDER > 3
                 case 3:
                   if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
                   if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
                   if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                  #if EXTRUDERS > 4
+                  #if MAX_EXTRUDER > 4
                     if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if EXTRUDERS > 5
+                    #if MAX_EXTRUDER > 5
                       if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                   #endif
                   stepper.enable_E3();
                   g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
                 break;
-                #if EXTRUDERS > 4
+                #if MAX_EXTRUDER > 4
                   case 4:
                     if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
                     if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
                     if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
                     if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                    #if EXTRUDERS > 5
+                    #if MAX_EXTRUDER > 5
                       if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
                     #endif
                     stepper.enable_E4();
                     g_uc_extruder_last_move[4] = (BLOCK_BUFFER_SIZE) * 2;
                   break;
-                  #if EXTRUDERS > 5
-                    case 4:
+                  #if MAX_EXTRUDER > 5
+                    case 5:
                       if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
                       if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
                       if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
@@ -1317,11 +1316,11 @@ bool Planner::fill_block(block_t * const block, bool split_move,
                       stepper.enable_E5();
                       g_uc_extruder_last_move[5] = (BLOCK_BUFFER_SIZE) * 2;
                     break;
-                  #endif // EXTRUDERS > 5
-                #endif // EXTRUDERS > 4
-              #endif // EXTRUDERS > 3
-            #endif // EXTRUDERS > 2
-          #endif // EXTRUDERS > 1
+                  #endif // MAX_EXTRUDER > 5
+                #endif // MAX_EXTRUDER > 4
+              #endif // MAX_EXTRUDER > 3
+            #endif // MAX_EXTRUDER > 2
+          #endif // MAX_EXTRUDER > 1
         }
       #else // enable all
         stepper.enable_E();
@@ -1362,8 +1361,6 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           stepper.enable_E3();
           break;
       }
-    #elif ENABLED(MKR4) && (EXTRUDERS == 2) && (DRIVER_EXTRUDERS == 1)
-      stepper.enable_E0();
     #elif ENABLED(MKR4)
       switch (extruder) {
         case 0:

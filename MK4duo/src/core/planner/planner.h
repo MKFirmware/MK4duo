@@ -198,7 +198,7 @@ class Planner {
       /**
        * Counters to manage disabling inactive extruders
        */
-      static uint8_t g_uc_extruder_last_move[EXTRUDERS];
+      static uint8_t g_uc_extruder_last_move[MAX_EXTRUDER];
     #endif // DISABLE_INACTIVE_EXTRUDER
 
     #if ENABLED(XY_FREQUENCY_LIMIT)

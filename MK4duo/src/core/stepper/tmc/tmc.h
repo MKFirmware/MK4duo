@@ -391,11 +391,11 @@ class TMCStorage {
 #if HAS_X2_ENABLE && AXIS_HAS_TMC(X2)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define X2_ENABLE_INIT          NOOP
-    #define X2_ENABLE_WRITE(STATE)  driver[X2_DRV]->tmc->toff((STATE)==driver[X2_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define X2_ENABLE_READ()        driver[X2_DRV]->tmc->isEnabled()
+    #define X2_ENABLE_WRITE(STATE)  driver.x2->tmc->toff((STATE)==driver.x2->isEnable() ? chopper_timing.toff : 0)
+    #define X2_ENABLE_READ()        driver.x2->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(X2)
-    #define X2_STEP_WRITE(STATE)    driver[X2_DRV]->step_toggle(STATE)
+    #define X2_STEP_WRITE(STATE)    driver.x2->step_toggle(STATE)
   #endif
 #endif
 
@@ -415,11 +415,11 @@ class TMCStorage {
 #if HAS_Y2_ENABLE && AXIS_HAS_TMC(Y2)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Y2_ENABLE_INIT          NOOP
-    #define Y2_ENABLE_WRITE(STATE)  driver[Y2_DRV]->tmc->toff((STATE)==driver[Y2_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Y2_ENABLE_READ()        driver[Y2_DRV]->tmc->isEnabled()
+    #define Y2_ENABLE_WRITE(STATE)  driver.y2->tmc->toff((STATE)==driver.y2->isEnable() ? chopper_timing.toff : 0)
+    #define Y2_ENABLE_READ()        driver.y2->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Y2)
-    #define Y2_STEP_WRITE(STATE)    driver[Y2_DRV]->step_toggle(STATE)
+    #define Y2_STEP_WRITE(STATE)    driver.y2->step_toggle(STATE)
   #endif
 #endif
 
@@ -439,11 +439,11 @@ class TMCStorage {
 #if HAS_Z2_ENABLE && AXIS_HAS_TMC(Z2)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Z2_ENABLE_INIT          NOOP
-    #define Z2_ENABLE_WRITE(STATE)  driver[Z2_DRV]->tmc->toff((STATE)==driver[Z2_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Z2_ENABLE_READ()        driver[Z2_DRV]->tmc->isEnabled()
+    #define Z2_ENABLE_WRITE(STATE)  driver.z2->tmc->toff((STATE)==driver.z2->isEnable() ? chopper_timing.toff : 0)
+    #define Z2_ENABLE_READ()        driver.z2->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z2)
-    #define Z2_STEP_WRITE(STATE)    driver[Z2_DRV]->step_toggle(STATE)
+    #define Z2_STEP_WRITE(STATE)    driver.z2->step_toggle(STATE)
   #endif
 #endif
 
@@ -451,11 +451,11 @@ class TMCStorage {
 #if HAS_Z3_ENABLE && AXIS_HAS_TMC(Z3)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Z3_ENABLE_INIT          NOOP
-    #define Z3_ENABLE_WRITE(STATE)  driver[Z3_DRV]->toff((STATE)==driver[Z3_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Z3_ENABLE_READ()        driver[Z3_DRV]->tmc->isEnabled()
+    #define Z3_ENABLE_WRITE(STATE)  driver.z3->toff((STATE)==driver.z3->isEnable() ? chopper_timing.toff : 0)
+    #define Z3_ENABLE_READ()        driver.z3->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z3)
-    #define Z3_STEP_WRITE(STATE)    driver[Z3_DRV]->step_toggle(STATE)
+    #define Z3_STEP_WRITE(STATE)    driver.z3->step_toggle(STATE)
   #endif
 #endif
 
@@ -463,11 +463,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E0)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E0_ENABLE_INIT          NOOP
-    #define E0_ENABLE_WRITE(STATE)  driver[E0_DRV]->tmc->toff((STATE)==driver[E0_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E0_ENABLE_READ()        driver[E0_DRV]->tmc->isEnabled()
+    #define E0_ENABLE_WRITE(STATE)  driver.e[E0_DRV]->tmc->toff((STATE)==driver.e[E0_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E0_ENABLE_READ()        driver.e[E0_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E0)
-    #define E0_STEP_WRITE(STATE)    driver[E0_DRV]->step_toggle(STATE)
+    #define E0_STEP_WRITE(STATE)    driver.e[E0_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -475,11 +475,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E1)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E1_ENABLE_INIT          NOOP
-    #define E1_ENABLE_WRITE(STATE)  driver[E1_DRV]->tmc->toff((STATE)==driver[E1_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E1_ENABLE_READ()        driver[E1_DRV]->tmc->isEnabled()
+    #define E1_ENABLE_WRITE(STATE)  driver.e[E1_DRV]->tmc->toff((STATE)==driver.e[E1_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E1_ENABLE_READ()        driver.e[E1_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E1)
-    #define E1_STEP_WRITE(STATE)    driver[E1_DRV]->step_toggle(STATE)
+    #define E1_STEP_WRITE(STATE)    driver.e[E1_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -487,11 +487,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E2)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E2_ENABLE_INIT          NOOP
-    #define E2_ENABLE_WRITE(STATE)  driver[E2_DRV]->tmc->toff((STATE)==driver[E2_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E2_ENABLE_READ()        driver[E2_DRV]->tmc->isEnabled()
+    #define E2_ENABLE_WRITE(STATE)  driver.e[E2_DRV]->tmc->toff((STATE)==driver.e[E2_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E2_ENABLE_READ()        driver.e[E2_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E2)
-    #define E2_STEP_WRITE(STATE)    driver[E2_DRV]->step_toggle(STATE)
+    #define E2_STEP_WRITE(STATE)    driver.e[E2_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -499,11 +499,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E3)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E3_ENABLE_INIT          NOOP
-    #define E3_ENABLE_WRITE(STATE)  driver[E3_DRV]->tmc->toff((STATE)==driver[E3_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E3_ENABLE_READ()        driver[E3_DRV]->tmc->isEnabled()
+    #define E3_ENABLE_WRITE(STATE)  driver.e[E3_DRV]->tmc->toff((STATE)==driver.e[E3_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E3_ENABLE_READ()        driver.e[E3_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E3)
-    #define E3_STEP_WRITE(STATE)    driver[E3_DRV]->step_toggle(STATE)
+    #define E3_STEP_WRITE(STATE)    driver.e[E3_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -511,11 +511,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E4)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E4_ENABLE_INIT          NOOP
-    #define E4_ENABLE_WRITE(STATE)  driver[E4_DRV]->tmc->toff((STATE)==driver[E4_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E4_ENABLE_READ()        driver[E4_DRV]->tmc->isEnabled()
+    #define E4_ENABLE_WRITE(STATE)  driver.e[E4_DRV]->tmc->toff((STATE)==driver.e[E4_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E4_ENABLE_READ()        driver.e[E4_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E4)
-    #define E4_STEP_WRITE(STATE)    driver[E4_DRV]->step_toggle(STATE)
+    #define E4_STEP_WRITE(STATE)    driver.e[E4_DRV]->step_toggle(STATE)
   #endif
 #endif
 
@@ -523,11 +523,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(E5)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define E5_ENABLE_INIT          NOOP
-    #define E5_ENABLE_WRITE(STATE)  driver[E5_DRV]->tmc->toff((STATE)==driver[E5_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define E5_ENABLE_READ()        driver[E5_DRV]->tmc->isEnabled()
+    #define E5_ENABLE_WRITE(STATE)  driver.e[E5_DRV]->tmc->toff((STATE)==driver.e[E5_DRV]->isEnable() ? chopper_timing.toff : 0)
+    #define E5_ENABLE_READ()        driver.e[E5_DRV]->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(E5)
-    #define E5_STEP_WRITE(STATE)    driver[E5_DRV]->step_toggle(STATE)
+    #define E5_STEP_WRITE(STATE)    driver.e[E5_DRV]->step_toggle(STATE)
   #endif
 #endif
 

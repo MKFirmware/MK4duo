@@ -84,56 +84,57 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
 void menu_temp_e0_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 0); }
 void menu_temp_e0_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 0); }
 void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 0); }
-#if DRIVER_EXTRUDERS > 1
+#if MAX_DRIVER_E > 1
   void menu_temp_e1_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 1); }
   void menu_temp_e1_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 1); }
   void menu_temp_e1_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 1); }
   #if ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
     void menu_unload_filament_all_temp() { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, -1); }
   #endif
-  #if DRIVER_EXTRUDERS > 2
+  #if MAX_DRIVER_E > 2
     void menu_temp_e2_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 2); }
     void menu_temp_e2_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 2); }
     void menu_temp_e2_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 2); }
-    #if DRIVER_EXTRUDERS > 3
+    #if MAX_DRIVER_E > 3
       void menu_temp_e3_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 3); }
       void menu_temp_e3_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 3); }
       void menu_temp_e3_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 3); }
-      #if DRIVER_EXTRUDERS > 4
+      #if MAX_DRIVER_E > 4
         void menu_temp_e4_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 4); }
         void menu_temp_e4_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 4); }
         void menu_temp_e4_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 4); }
-        #if DRIVER_EXTRUDERS > 5
+        #if MAX_DRIVER_E > 5
           void menu_temp_e5_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, 5); }
           void menu_temp_e5_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, 5); }
           void menu_temp_e5_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, 5); }
-        #endif // DRIVER_EXTRUDERS > 5
-      #endif // DRIVER_EXTRUDERS > 4
-    #endif // DRIVER_EXTRUDERS > 3
-  #endif // DRIVER_EXTRUDERS > 2
-#endif // DRIVER_EXTRUDERS > 1
+        #endif // MAX_DRIVER_E > 5
+      #endif // MAX_DRIVER_E > 4
+    #endif // MAX_DRIVER_E > 3
+  #endif // MAX_DRIVER_E > 2
+#endif // MAX_DRIVER_E > 1
 
 /**
  *
  * "Change Filament" submenu
  *
  */
-#if DRIVER_EXTRUDERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+#if MAX_DRIVER_E > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
 
   void menu_change_filament() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
 
     // Change filament
-    #if DRIVER_EXTRUDERS == 1
+    if (tools.data.extruder.total == 1) {
       PGM_P msg0 = PSTR(MSG_FILAMENTCHANGE);
       if (thermalManager.targetTooColdToExtrude(tools.data.extruder.active))
         MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_change);
       else
         MENU_ITEM_P(gcode, msg0, PSTR("M600 B0"));
-    #else
-      PGM_P msg0 = PSTR(MSG_FILAMENTCHANGE " " MSG_E1);
-      PGM_P msg1 = PSTR(MSG_FILAMENTCHANGE " " MSG_E2);
+    }
+    else {
+      PGM_P msg0 = PSTR(MSG_FILAMENTCHANGE " " MSG_E0);
+      PGM_P msg1 = PSTR(MSG_FILAMENTCHANGE " " MSG_E1);
       if (thermalManager.targetTooColdToExtrude(0))
         MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_change);
       else
@@ -142,48 +143,49 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_
         MENU_ITEM_P(submenu, msg1, menu_temp_e1_filament_change);
       else
         MENU_ITEM_P(gcode, msg1, PSTR("M600 B0 T1"));
-      #if DRIVER_EXTRUDERS > 2
-        PGM_P msg2 = PSTR(MSG_FILAMENTCHANGE " " MSG_E3);
+      if (tools.data.extruder.total > 2) {
+        PGM_P msg2 = PSTR(MSG_FILAMENTCHANGE " " MSG_E2);
         if (thermalManager.targetTooColdToExtrude(2))
           MENU_ITEM_P(submenu, msg2, menu_temp_e2_filament_change);
         else
           MENU_ITEM_P(gcode, msg2, PSTR("M600 B0 T2"));
-        #if DRIVER_EXTRUDERS > 3
-          PGM_P msg3 = PSTR(MSG_FILAMENTCHANGE " " MSG_E4);
+        if (tools.data.extruder.total > 3) {
+          PGM_P msg3 = PSTR(MSG_FILAMENTCHANGE " " MSG_E3);
           if (thermalManager.targetTooColdToExtrude(3))
             MENU_ITEM_P(submenu, msg3, menu_temp_e3_filament_change);
           else
             MENU_ITEM_P(gcode, msg3, PSTR("M600 B0 T3"));
-          #if DRIVER_EXTRUDERS > 4
-            PGM_P msg4 = PSTR(MSG_FILAMENTCHANGE " " MSG_E5);
+          if (tools.data.extruder.total > 4) {
+            PGM_P msg4 = PSTR(MSG_FILAMENTCHANGE " " MSG_E4);
             if (thermalManager.targetTooColdToExtrude(4))
               MENU_ITEM_P(submenu, msg4, menu_temp_e4_filament_change);
             else
               MENU_ITEM_P(gcode, msg4, PSTR("M600 B0 T4"));
-            #if DRIVER_EXTRUDERS > 5
-              PGM_P msg5 = PSTR(MSG_FILAMENTCHANGE " " MSG_E6);
+            if (tools.data.extruder.total > 5) {
+              PGM_P msg5 = PSTR(MSG_FILAMENTCHANGE " " MSG_E5);
               if (thermalManager.targetTooColdToExtrude(5))
                 MENU_ITEM_P(submenu, msg5, menu_temp_e5_filament_change);
               else
                 MENU_ITEM_P(gcode, msg5, PSTR("M600 B0 T5"));
-            #endif // DRIVER_EXTRUDERS > 5
-          #endif // DRIVER_EXTRUDERS > 4
-        #endif // DRIVER_EXTRUDERS > 3
-      #endif // DRIVER_EXTRUDERS > 2
-    #endif // DRIVER_EXTRUDERS == 1
+            }
+          }
+        }
+      }
+    }
 
     #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       if (!printer.isPrinting()) {
         // Load filament
-        #if DRIVER_EXTRUDERS == 1
+        if (tools.data.extruder.total == 1) {
           PGM_P msg0 = PSTR(MSG_FILAMENTLOAD);
           if (thermalManager.targetTooColdToExtrude(tools.data.extruder.active))
             MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_load);
           else
             MENU_ITEM_P(gcode, msg0, PSTR("M701"));
-        #else
-          PGM_P msg0 = PSTR(MSG_FILAMENTLOAD " " MSG_E1);
-          PGM_P msg1 = PSTR(MSG_FILAMENTLOAD " " MSG_E2);
+        }
+        else {
+          PGM_P msg0 = PSTR(MSG_FILAMENTLOAD " " MSG_E0);
+          PGM_P msg1 = PSTR(MSG_FILAMENTLOAD " " MSG_E1);
           if (thermalManager.targetTooColdToExtrude(0))
             MENU_ITEM_P(submenu, msg0, menu_temp_e0_filament_load);
           else
@@ -192,99 +194,106 @@ void menu_temp_e0_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_
             MENU_ITEM_P(submenu, msg1, menu_temp_e1_filament_load);
           else
             MENU_ITEM_P(gcode, msg1, PSTR("M701 T1"));
-          #if DRIVER_EXTRUDERS > 2
-            PGM_P msg2 = PSTR(MSG_FILAMENTLOAD " " MSG_E3);
+          if (tools.data.extruder.total > 2) {
+            PGM_P msg2 = PSTR(MSG_FILAMENTLOAD " " MSG_E2);
             if (thermalManager.targetTooColdToExtrude(2))
               MENU_ITEM_P(submenu, msg2, menu_temp_e2_filament_load);
             else
               MENU_ITEM_P(gcode, msg2, PSTR("M701 T2"));
-            #if DRIVER_EXTRUDERS > 3
-              PGM_P msg3 = PSTR(MSG_FILAMENTLOAD " " MSG_E4);
+            if (tools.data.extruder.total > 3) {
+              PGM_P msg3 = PSTR(MSG_FILAMENTLOAD " " MSG_E3);
               if (thermalManager.targetTooColdToExtrude(3))
                 MENU_ITEM_P(submenu, msg3, menu_temp_e3_filament_load);
               else
                 MENU_ITEM_P(gcode, msg3, PSTR("M701 T3"));
-              #if DRIVER_EXTRUDERS > 4
-                PGM_P msg4 = PSTR(MSG_FILAMENTLOAD " " MSG_E5);
+              if (tools.data.extruder.total > 4) {
+                PGM_P msg4 = PSTR(MSG_FILAMENTLOAD " " MSG_E4);
                 if (thermalManager.targetTooColdToExtrude(4))
                   MENU_ITEM_P(submenu, msg4, menu_temp_e4_filament_load);
                 else
                   MENU_ITEM_P(gcode, msg4, PSTR("M701 T4"));
-                #if DRIVER_EXTRUDERS > 5
-                  PGM_P msg5 = PSTR(MSG_FILAMENTLOAD " " MSG_E6);
+                if (tools.data.extruder.total > 5) {
+                  PGM_P msg5 = PSTR(MSG_FILAMENTLOAD " " MSG_E5);
                   if (thermalManager.targetTooColdToExtrude(5))
                     MENU_ITEM_P(submenu, msg5, menu_temp_e5_filament_load);
                   else
                     MENU_ITEM_P(gcode, msg4, PSTR("M701 T4"));
-                #endif // DRIVER_EXTRUDERS > 4
-              #endif // DRIVER_EXTRUDERS > 4
-            #endif // DRIVER_EXTRUDERS > 3
-          #endif // DRIVER_EXTRUDERS > 2
-        #endif // DRIVER_EXTRUDERS == 1
+                }
+              }
+            }
+          }
+        }
 
         // Unload filament
-        #if DRIVER_EXTRUDERS == 1
+        if (tools.data.extruder.total == 1) {
           if (thermalManager.targetHotEnoughToExtrude(tools.data.extruder.active))
             MENU_ITEM(gcode, MSG_FILAMENTUNLOAD, PSTR("M702"));
           else
             MENU_ITEM(submenu, MSG_FILAMENTUNLOAD, menu_temp_e0_filament_unload);
-        #else
+        }
+        else {
           #if ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
             if (thermalManager.targetHotEnoughToExtrude(0)
-              #if DRIVER_EXTRUDERS > 1
+              if (tools.data.extruder.total > 1) {
                 && thermalManager.targetHotEnoughToExtrude(1)
-                #if DRIVER_EXTRUDERS > 2
+                if (tools.data.extruder.total > 2) {
                   && thermalManager.targetHotEnoughToExtrude(2)
-                  #if DRIVER_EXTRUDERS > 3
+                  if (tools.data.extruder.total > 3) {
                     && thermalManager.targetHotEnoughToExtrude(3)
-                    #if DRIVER_EXTRUDERS > 4
+                    if (tools.data.extruder.total > 4) {
                       && thermalManager.targetHotEnoughToExtrude(4)
-                      #if DRIVER_EXTRUDERS > 5
+                      if (tools.data.extruder.total > 5) {
                         && thermalManager.targetHotEnoughToExtrude(5)
-                      #endif // DRIVER_EXTRUDERS > 5
-                    #endif // DRIVER_EXTRUDERS > 4
-                  #endif // DRIVER_EXTRUDERS > 3
-                #endif // DRIVER_EXTRUDERS > 2
-              #endif // DRIVER_EXTRUDERS > 1
+                      }
+                    }
+                  }
+                }
+              }
             )
               MENU_ITEM(gcode, MSG_FILAMENTUNLOAD_ALL, PSTR("M702"));
           else
             MENU_ITEM(submenu, MSG_FILAMENTUNLOAD_ALL, menu_unload_filament_all_temp);
           #endif
           if (thermalManager.targetHotEnoughToExtrude(0))
-            MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E1, PSTR("M702 T0"));
+            MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E0, PSTR("M702 T0"));
           else
             MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E1, menu_temp_e0_filament_unload);
           if (thermalManager.targetHotEnoughToExtrude(1))
-            MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E2, PSTR("M702 T1"));
+            MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E1, PSTR("M702 T1"));
           else
-            MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E2, menu_temp_e1_filament_unload);
-          #if DRIVER_EXTRUDERS > 2
+            MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E1, menu_temp_e1_filament_unload);
+          if (tools.data.extruder.total > 2) {
             if (thermalManager.targetHotEnoughToExtrude(2))
-              MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E3, PSTR("M702 T2"));
+              MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E2, PSTR("M702 T2"));
             else
-              MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E3, menu_temp_e2_filament_unload);
-            #if DRIVER_EXTRUDERS > 3
+              MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E2, menu_temp_e2_filament_unload);
+            if (tools.data.extruder.total > 3) {
               if (thermalManager.targetHotEnoughToExtrude(3))
-                MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E4, PSTR("M702 T3"));
+                MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E3, PSTR("M702 T3"));
               else
-                MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E4, menu_temp_e3_filament_unload);
-              #if DRIVER_EXTRUDERS > 4
+                MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E3, menu_temp_e3_filament_unload);
+              if (tools.data.extruder.total > 4) {
                 if (thermalManager.targetHotEnoughToExtrude(4))
-                  MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E5, PSTR("M702 T4"));
+                  MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E4, PSTR("M702 T4"));
                 else
-                  MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E5, menu_temp_e4_filament_unload);
-              #endif // DRIVER_EXTRUDERS > 4
-            #endif // DRIVER_EXTRUDERS > 3
-          #endif // DRIVER_EXTRUDERS > 2
-        #endif // DRIVER_EXTRUDERS == 1
+                  MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E4, menu_temp_e4_filament_unload);
+                if (tools.data.extruder.total > 5) {
+                  if (thermalManager.targetHotEnoughToExtrude(5))
+                    MENU_ITEM(gcode, MSG_FILAMENTUNLOAD " " MSG_E5, PSTR("M702 T5"));
+                  else
+                    MENU_ITEM(submenu, MSG_FILAMENTUNLOAD " " MSG_E5, menu_temp_e5_filament_unload);
+                }
+              }
+            }
+          }
+        }
       }
     #endif
 
     END_MENU();
   }
 
-#endif // DRIVER_EXTRUDERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+#endif // MAX_DRIVER_E > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
 
 static uint8_t hotend_status_extruder = 0;
 

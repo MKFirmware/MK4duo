@@ -189,7 +189,7 @@ void menu_main() {
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      #if DRIVER_EXTRUDERS == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+      #if MAX_DRIVER_E == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         if (thermalManager.targetHotEnoughToExtrude(tools.data.extruder.active))
           MENU_ITEM(gcode, MSG_FILAMENTCHANGE, PSTR("M600 B0"));
         else

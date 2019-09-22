@@ -52,14 +52,14 @@
       static fwretract_data_t data;
 
       static bool   autoretract_enabled,                // M209 S - Autoretract switch
-                    retracted[EXTRUDERS];               // Which extruders are currently retracted
-      static float  current_retract[EXTRUDERS],         // Retract value used by planner
+                    retracted[MAX_EXTRUDER];            // Which extruders are currently retracted
+      static float  current_retract[MAX_EXTRUDER],      // Retract value used by planner
                     current_hop;                        // Hop value used by planner
 
     private: /** Private Parameters */
 
-      #if EXTRUDERS > 1
-        static bool retracted_swap[EXTRUDERS];          // Which extruders are swap-retracted
+      #if MAX_EXTRUDER > 1
+        static bool retracted_swap[MAX_EXTRUDER];       // Which extruders are swap-retracted
       #endif
 
     public: /** Public Function */
@@ -76,7 +76,7 @@
       }
 
       static void retract(const bool retracting
-        #if EXTRUDERS > 1
+        #if MAX_EXTRUDER > 1
           , bool swapping = false
         #endif
       );

@@ -57,7 +57,7 @@ inline void gcode_M701() {
     lcd_pause_show_message(PAUSE_MESSAGE_LOAD, PAUSE_MODE_LOAD_FILAMENT, tools.data.extruder.target);
   #endif
 
-  #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
+  #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = tools.data.extruder.active;
     if (tools.data.extruder.active != tools.data.extruder.target)
@@ -88,7 +88,7 @@ inline void gcode_M701() {
   if (park_point.z > 0)
     mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
-  #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
+  #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != tools.data.extruder.active)
       tools.change(active_extruder_before_filament_change);
@@ -127,7 +127,7 @@ inline void gcode_M702() {
     lcd_pause_show_message(PAUSE_MESSAGE_UNLOAD, PAUSE_MODE_UNLOAD_FILAMENT, tools.data.extruder.target);
   #endif
 
-  #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
+  #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = tools.data.extruder.active;
     if (tools.data.extruder.active != tools.data.extruder.target)
@@ -142,7 +142,7 @@ inline void gcode_M702() {
   #if HAS_MMU2
     mmu2.unload();
   #else
-    #if EXTRUDERS > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
+    #if MAX_EXTRUDER > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
         LOOP_EXTRUDER() {
           if (e != tools.data.extruder.active) tools.change(e);
@@ -164,7 +164,7 @@ inline void gcode_M702() {
   if (park_point.z > 0)
     mechanics.do_blocking_move_to_z(MAX(mechanics.current_position.z - park_point.z, 0), NOZZLE_PARK_Z_FEEDRATE);
 
-  #if EXTRUDERS > 1 && DISABLED(PRUSA_MMU2)
+  #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
     // Restore toolhead if it was changed
     if (active_extruder_before_filament_change != tools.data.extruder.active)
       tools.change(active_extruder_before_filament_change);

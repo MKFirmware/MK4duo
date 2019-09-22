@@ -28,26 +28,27 @@
 
 #if ENABLED(FWRETRACT)
 
-  #define CODE_G10
-  #define CODE_G11
+#define CODE_G10
+#define CODE_G11
 
-  /**
-   * G10 - Retract filament according to settings of M207
-   */
-  inline void gcode_G10() {
-    #if EXTRUDERS > 1
+/**
+ * G10 - Retract filament according to settings of M207
+ */
+inline void gcode_G10() {
+  #if MAX_EXTRUDER > 1
       const bool rs = parser.boolval('S');
     #endif
     fwretract.retract(true
-      #if EXTRUDERS > 1
+      #if MAX_EXTRUDER > 1
         , rs
       #endif
     );
   }
+}
 
-  /**
-   * G11 - Recover filament according to settings of M208
-   */
-  inline void gcode_G11() { fwretract.retract(false); }
+/**
+ * G11 - Recover filament according to settings of M208
+ */
+inline void gcode_G11() { fwretract.retract(false); }
 
 #endif // FWRETRACT

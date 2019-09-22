@@ -231,7 +231,7 @@ bool Commands::get_target_tool(const uint16_t code) {
 bool Commands::get_target_driver(const uint16_t code) {
   if (parser.seenval('T')) {
     const int8_t t = parser.value_byte();
-    if (t >= DRIVER_EXTRUDERS) {
+    if (t >= MAX_DRIVER_E) {
       SERIAL_SMV(ECHO, "M", code);
       SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
       return true;

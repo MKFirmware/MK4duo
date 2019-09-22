@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0 && HAS_FILAMENT_SENSOR
+#if HAS_FILAMENT_SENSOR
 
 #define CODE_M412
 
@@ -61,4 +61,4 @@ inline void gcode_M412() {
 
 }
 
-#endif // EXTRUDERS > 0 && HAS_EXT_ENCODER
+#endif // HAS_EXT_ENCODER

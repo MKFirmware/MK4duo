@@ -70,14 +70,14 @@ inline void gcode_M352() {
   }
 
   if (parser.seenval('T')) {
-    const uint8_t i = E0_DRV + tools.data.extruder.target;
-    if (driver[i]) {
-      if (parser.seen('E')) driver[i]->data.pin.enable   = parser.value_pin();
-      if (parser.seen('D')) driver[i]->data.pin.dir      = parser.value_pin();
-      if (parser.seen('S')) driver[i]->data.pin.step     = parser.value_pin();
-      if (parser.seen('L')) driver[i]->data.flag.enable  = parser.value_bool();
-      if (parser.seen('M')) driver[i]->data.flag.step    = parser.value_bool();
-      driver[i]->init();
+    const uint8_t i = tools.data.extruder.target;
+    if (driver.e[i]) {
+      if (parser.seen('E')) driver.e[i]->data.pin.enable   = parser.value_pin();
+      if (parser.seen('D')) driver.e[i]->data.pin.dir      = parser.value_pin();
+      if (parser.seen('S')) driver.e[i]->data.pin.step     = parser.value_pin();
+      if (parser.seen('L')) driver.e[i]->data.flag.enable  = parser.value_bool();
+      if (parser.seen('M')) driver.e[i]->data.flag.step    = parser.value_bool();
+      driver.e[i]->init();
     }
   }
 

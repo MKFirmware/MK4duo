@@ -1105,7 +1105,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
       return;
     }
 
-    if (printer.debugFeature()) DEBUG_EM("Z_SAFE_HOMING >>>");
+    if (printer.debugFeature()) DEBUG_EM("home_z_safely >>>");
 
     sync_plan_position();
 
@@ -1121,7 +1121,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     if (position_is_reachable(destination)) {
 
-      if (printer.debugFeature()) DEBUG_POS("Z_SAFE_HOMING", destination);
+      if (printer.debugFeature()) DEBUG_POS("home_z_safely", destination);
 
       // This causes the carriage on Dual X to unpark
       #if ENABLED(DUAL_X_CARRIAGE)
@@ -1140,7 +1140,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
       SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
     }
 
-    if (printer.debugFeature()) DEBUG_EM("<<< Z_SAFE_HOMING");
+    if (printer.debugFeature()) DEBUG_EM("<<< home_z_safely");
   }
 
 #endif // Z_SAFE_HOMING

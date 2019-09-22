@@ -124,6 +124,7 @@ void Printer::setup() {
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     HAL::spiBegin();
+    externaldac.begin();
   #endif
 
   #if HAS_STEPPER_RESET
@@ -722,21 +723,21 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
         bool oldstatus;
         switch (tools.data.extruder.active) {
           case 0: oldstatus = E0_ENABLE_READ(); enable_E0(); break;
-          #if DRIVER_EXTRUDERS > 1
+          #if MAX_DRIVER_E > 1
             case 1: oldstatus = E1_ENABLE_READ(); enable_E1(); break;
-            #if DRIVER_EXTRUDERS > 2
+            #if MAX_DRIVER_E > 2
               case 2: oldstatus = E2_ENABLE_READ(); enable_E2(); break;
-              #if DRIVER_EXTRUDERS > 3
+              #if MAX_DRIVER_E > 3
                 case 3: oldstatus = E3_ENABLE_READ(); enable_E3(); break;
-                #if DRIVER_EXTRUDERS > 4
+                #if MAX_DRIVER_E > 4
                   case 4: oldstatus = E4_ENABLE_READ(); enable_E4(); break;
-                  #if DRIVER_EXTRUDERS > 5
+                  #if MAX_DRIVER_E > 5
                     case 5: oldstatus = E5_ENABLE_READ(); enable_E5(); break;
-                  #endif // DRIVER_EXTRUDERS > 5
-                #endif // DRIVER_EXTRUDERS > 4
-              #endif // DRIVER_EXTRUDERS > 3
-            #endif // DRIVER_EXTRUDERS > 2
-          #endif // DRIVER_EXTRUDERS > 1
+                  #endif // MAX_DRIVER_E > 5
+                #endif // MAX_DRIVER_E > 4
+              #endif // MAX_DRIVER_E > 3
+            #endif // MAX_DRIVER_E > 2
+          #endif // MAX_DRIVER_E > 1
         }
       #endif // !DONDOLO_SINGLE_MOTOR
 
@@ -751,21 +752,21 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       #else
         switch (tools.data.extruder.active) {
           case 0: E0_ENABLE_WRITE(oldstatus); break;
-          #if DRIVER_EXTRUDERS > 1
+          #if MAX_DRIVER_E > 1
             case 1: E1_ENABLE_WRITE(oldstatus); break;
-            #if DRIVER_EXTRUDERS > 2
+            #if MAX_DRIVER_E > 2
               case 2: E2_ENABLE_WRITE(oldstatus); break;
-              #if DRIVER_EXTRUDERS > 3
+              #if MAX_DRIVER_E > 3
                 case 3: E3_ENABLE_WRITE(oldstatus); break;
-                #if DRIVER_EXTRUDERS > 4
+                #if MAX_DRIVER_E > 4
                   case 4: E4_ENABLE_WRITE(oldstatus); break;
-                  #if DRIVER_EXTRUDERS > 5
+                  #if MAX_DRIVER_E > 5
                     case 5: E5_ENABLE_WRITE(oldstatus); break;
-                  #endif // DRIVER_EXTRUDERS > 5
-                #endif // DRIVER_EXTRUDERS > 4
-              #endif // DRIVER_EXTRUDERS > 3
-            #endif // DRIVER_EXTRUDERS > 2
-          #endif // DRIVER_EXTRUDERS > 1
+                  #endif // MAX_DRIVER_E > 5
+                #endif // MAX_DRIVER_E > 4
+              #endif // MAX_DRIVER_E > 3
+            #endif // MAX_DRIVER_E > 2
+          #endif // MAX_DRIVER_E > 1
         }
       #endif // !DONDOLO_SINGLE_MOTOR
 

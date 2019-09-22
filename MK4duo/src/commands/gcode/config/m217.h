@@ -26,8 +26,6 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-
 #define CODE_M217
 
 /**
@@ -44,22 +42,12 @@
  */
 inline void gcode_M217() {
 
-  #define SPR_PARAM
-  #define XY_PARAM
-
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    #undef SPR_PARAM
-    #define SPR_PARAM "SEPR"
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
       static constexpr float max_extrude = EXTRUDE_MAXLENGTH;
     #else
       static constexpr float max_extrude = 500;
     #endif
-  #endif
-
-  #if ENABLED(NOZZLE_PARK_FEATURE)
-    #undef XY_PARAM
-    #define XY_PARAM "XY"
   #endif
 
   #if DISABLED(DISABLE_M503)
@@ -88,5 +76,3 @@ inline void gcode_M217() {
   if (parser.seenval('Z')) nozzle.data.park_point.z = parser.value_linear_units();
 
 }
-
-#endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1

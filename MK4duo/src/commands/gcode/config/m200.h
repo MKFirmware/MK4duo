@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0 && ENABLED(VOLUMETRIC_EXTRUSION)
+#if ENABLED(VOLUMETRIC_EXTRUSION)
 
 #define CODE_M200
 
@@ -59,4 +59,4 @@ inline void gcode_M200() {
   tools.calculate_volumetric_multipliers();
 }
 
-#endif // EXTRUDERS > 0
+#endif // ENABLED(VOLUMETRIC_EXTRUSION)

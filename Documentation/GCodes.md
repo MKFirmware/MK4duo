@@ -152,6 +152,7 @@
 | M350 | - | Set microstepping mode.
 | M351 | - | Toggle MS1 MS2 pins directly.
 | M352 | - | Set driver pins. X X2 Y Y2 Z Z2 Z3 T0-5 E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+| M353 | - | Set number total Extruder. S[int] Number total extruder
 | M355 | - | Turn case lights on/off S[bool] on-off, P[brightness]
 | M360 | MECH - SCARA | Move to cal-position ThetaA (0 deg calibration)
 | M361 | MECH - SCARA | Move to cal-position ThetaB (90 deg calibration - steps per degree)

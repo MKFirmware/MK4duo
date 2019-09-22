@@ -75,7 +75,7 @@
       if (mechanics.axis_unhomed_error()) mechanics.home();
     #endif
 
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
       // Change toolhead if specified
       uint8_t active_extruder_before_filament_change = tools.data.extruder.active;
       if (tools.data.extruder.active != tools.data.extruder.target

@@ -672,11 +672,17 @@
 #define HAS_EX1             (PIN_EXISTS(EX1_CHOICE))
 #define HAS_EX2             (PIN_EXISTS(EX2_CHOICE))
 
+// Color Mixing_Extruder
+#define HAS_COLOR_MIXING    (ENABLED(COLOR_MIXING_EXTRUDER))
+
 // Prusa MMU2
 #define HAS_MMU2            (ENABLED(PRUSA_MMU2))
 
 // Dondolo
 #define HAS_DONDOLO         (ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR))
+
+// Linear extruder system
+#define HAS_LINEAR_EXTRUDER (!HAS_MKMULTI_TOOLS && !HAS_COLOR_MIXING && !HAS_MMU2 && !HAS_DONDOLO)
 
 // RGB leds
 #define HAS_COLOR_LEDS      (ENABLED(BLINKM) || ENABLED(RGB_LED) || ENABLED(RGBW_LED) || ENABLED(PCA9632) || ENABLED(NEOPIXEL_LED))
@@ -1538,6 +1544,24 @@
 #endif
 
 /**
+ * X STEPPER CUNT
+ */
+#if ENABLED(DUAL_X_CARRIAGE) || ENABLED(X_TWO_STEPPER_DRIVERS)
+  #define X_STEPPER_COUNT 2
+#else
+  #define X_STEPPER_COUNT 1
+#endif
+
+/**
+ * Y STEPPER CUNT
+ */
+#if ENABLED(Y_TWO_STEPPER_DRIVERS)
+  #define Y_STEPPER_COUNT 2
+#else
+  #define Y_STEPPER_COUNT 1
+#endif
+
+/**
  * Z STEPPER COUNT
  */
 #if ENABLED(Z_THREE_STEPPER_DRIVERS)
@@ -1547,6 +1571,50 @@
 #else
   #define Z_STEPPER_COUNT 1
 #endif
+
+/**
+ * Define for max valor for Driver, Extruder, heater, fan
+ */
+#if HAS_LINEAR_EXTRUDER
+  #ifdef __AVR__
+    #define MAX_DRIVER_E     4
+    #define MAX_EXTRUDER     4
+    #define MAX_HOTEND       4
+    #define MAX_BED          2
+    #define MAX_CHAMBER      2
+    #define MAX_COOLER       1
+    #define MAX_FAN          6
+  #else
+    #define MAX_DRIVER_E     6
+    #define MAX_EXTRUDER     6
+    #define MAX_HOTEND       6
+    #define MAX_BED          4
+    #define MAX_CHAMBER      4
+    #define MAX_COOLER       1
+    #define MAX_FAN          6
+  #endif
+#else
+  #ifdef __AVR__
+    #define MAX_DRIVER_E    DRIVER_EXTRUDERS
+    #define MAX_EXTRUDER    EXTRUDERS
+    #define MAX_HOTEND      HOTENDS
+    #define MAX_BED         2
+    #define MAX_CHAMBER     2
+    #define MAX_COOLER      1
+    #define MAX_FAN         6
+  #else
+    #define MAX_DRIVER_E    DRIVER_EXTRUDERS
+    #define MAX_EXTRUDER    EXTRUDERS
+    #define MAX_HOTEND      HOTENDS
+    #define MAX_BED         4
+    #define MAX_CHAMBER     4
+    #define MAX_COOLER      1
+    #define MAX_FAN         6
+  #endif
+#endif // !HAS_LINEAR_EXTRUDER
+
+#define MAX_DRIVER_XYZ      (X_STEPPER_COUNT + Y_STEPPER_COUNT + Z_STEPPER_COUNT)
+#define MAX_DRIVER          (MAX_DRIVER_XYZ + MAX_DRIVER_E)
 
 /**
  * LCD define

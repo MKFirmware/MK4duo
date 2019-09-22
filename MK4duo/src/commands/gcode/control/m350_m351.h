@@ -81,7 +81,7 @@
               driver[X_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(X2)
-              driver[X2_DRV]->tmc->microsteps(value);
+              driver.x2->tmc->microsteps(value);
             #endif
             break;
           case Y_AXIS:
@@ -89,7 +89,7 @@
               driver[Y_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Y2)
-              driver[Y2_DRV]->tmc->microsteps(value);
+              driver.y2->tmc->microsteps(value);
             #endif
             break;
           case Z_AXIS:
@@ -97,31 +97,31 @@
               driver[Z_DRV]->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z2)
-              driver[Z2_DRV]->tmc->microsteps(value);
+              driver.z2->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z3)
-              driver[Z3_DRV]->tmc->microsteps(value);
+              driver.z3->tmc->microsteps(value);
             #endif
             break;
           case E_AXIS: {
             switch (tools.data.extruder.target) {
               #if AXIS_HAS_TMC(E0)
-                case 0: driver[E0_DRV]->tmc->microsteps(value); break;
+                case 0: driver.e[E0_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E1)
-                case 1: driver[E1_DRV]->tmc->microsteps(value); break;
+                case 1: driver.e[E1_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E2)
-                case 2: driver[E2_DRV]->tmc->microsteps(value); break;
+                case 2: driver.e[E2_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E3)
-                case 3: driver[E3_DRV]->tmc->microsteps(value); break;
+                case 3: driver.e[E3_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E4)
-                case 4: driver[E4_DRV]->tmc->microsteps(value); break;
+                case 4: driver.e[E4_DRV]->tmc->microsteps(value); break;
               #endif
               #if AXIS_HAS_TMC(E5)
-                case 5: driver[E5_DRV]->tmc->microsteps(value); break;
+                case 5: driver.e[E5_DRV]->tmc->microsteps(value); break;
               #endif
             }
           } break;

@@ -113,7 +113,7 @@ inline void gcode_M941() {
       driver[X_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
-      driver[X2_DRV]->tmc->chm(parser.value_bool());
+      driver.x2->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
@@ -121,7 +121,7 @@ inline void gcode_M941() {
       driver[Y_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
-      driver[Y2_DRV]->tmc->chm(parser.value_bool());
+      driver.y2->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
@@ -129,30 +129,30 @@ inline void gcode_M941() {
       driver[Z_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
-      driver[Z2_DRV]->tmc->chm(parser.value_bool());
+      driver.z2->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z3)
-      driver[Z3_DRV]->tmc->chm(parser.value_bool());
+      driver.z3->tmc->chm(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver[E0_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E0_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver[E1_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E1_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver[E2_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E2_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver[E3_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E3_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver[E4_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E4_DRV]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver[E5_DRV]->tmc->chm(parser.value_bool());
+      driver.e[E5_DRV]->tmc->chm(parser.value_bool());
     #endif
   }
 }
@@ -166,7 +166,7 @@ inline void gcode_M942() {
       driver[X_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
-      driver[X2_DRV]->tmc->intpol(parser.value_bool());
+      driver.x2->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Y')) {
@@ -174,7 +174,7 @@ inline void gcode_M942() {
       driver[Y_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
-      driver[Y2_DRV]->tmc->intpol(parser.value_bool());
+      driver.y2->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('Z')) {
@@ -182,30 +182,30 @@ inline void gcode_M942() {
       driver[Z_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
-      driver[Z2_DRV]->tmc->intpol(parser.value_bool());
+      driver.z2->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z3)
-      driver[Z3_DRV]->tmc->intpol(parser.value_bool());
+      driver.z3->tmc->intpol(parser.value_bool());
     #endif
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver[E0_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E0_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver[E1_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E1_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver[E2_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E2_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver[E3_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E3_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver[E4_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E4_DRV]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver[E5_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[E5_DRV]->tmc->intpol(parser.value_bool());
     #endif
   }
 }

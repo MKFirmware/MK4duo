@@ -241,8 +241,8 @@
 #define LOOP_ABCE(VAR)            LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)
 #define LOOP_ABCE_N(VAR)          LOOP_S_L_N(VAR, A_AXIS, XYZE_N)
 #define LOOP_DRV()                LOOP_L_N(d, MAX_DRIVER)
-#define LOOP_DRV_XYZ()            LOOP_S_LE_N(d, X_DRV, Z_DRV)
-#define LOOP_DRV_EXTRUDER()       LOOP_S_LE_N(d, E0_DRV, E5_DRV)
+#define LOOP_DRV_XYZ()            LOOP_L_N(d, XYZ)
+#define LOOP_DRV_EXT()            LOOP_L_N(d, tools.data.extruder.total)
 #define LOOP_EXTRUDER()           LOOP_L_N(e, tools.data.extruder.total)
 #define LOOP_HOTEND()             LOOP_L_N(h, HOTENDS)
 #define LOOP_BED()                LOOP_L_N(h, BEDS)
@@ -316,11 +316,11 @@
 
     template <class A> static inline constexpr const A ABS(const A a) { return a >= 0 ? a : -a; }
 
-    template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) { if (a < b) a = b; }
-    template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) { if (a > b) a = b; }
+    template <class A, class B> static inline constexpr void NOLESS(A& a, const B b) { if (b > a) a = b; }
+    template <class A, class B> static inline constexpr void NOMORE(A& a, const B b) { if (b < a) a = b; }
     template <class A, class B, class C> static inline constexpr void LIMIT(A& a, const B b, const C c) {
-      if (a < b) a = b;
-      else if (a > c) a = c;
+      if (b > a) a = b;
+      else if (c < a) a = c;
     }
   }
 
@@ -354,11 +354,11 @@
 
   #define ABS(a)            ({__typeof__(a) _a = (a); _a >= 0 ? _a : -_a;})
 
-  #define NOLESS(v, n)      do { __typeof__(n) _n = (n); if (v < _n) v = _n; } while(0)
-  #define NOMORE(v, n)      do { __typeof__(n) _n = (n); if (v > _n) v = _n; } while(0)
+  #define NOLESS(v, n)      do { __typeof__(n) _n = (n); if (_n > v) v = _n; } while(0)
+  #define NOMORE(v, n)      do { __typeof__(n) _n = (n); if (_n < v) v = _n; } while(0)
   #define LIMIT(v, n1, n2)  do { __typeof__(n1) _n1 = (n1); __typeof__(n2) _n2 = (n2); \
-                                if (v < _n1) v = _n1; \
-                                else if (v > _n2) v = _n2; \
+                                if (_n1 > v) v = _n1;       \
+                                else if (_n2 < v) v = _n2;  \
                             } while(0)
 
 #endif

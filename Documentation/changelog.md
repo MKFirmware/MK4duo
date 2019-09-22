@@ -1,6 +1,8 @@
 ### Version 4.4.0
 * Start development for STM32F4 on board Rumba32 (Not function now)
-
+* Number extruder is variable with command M353
+* Add M353 - Set number total Extruder. S[int] Number total extruder
+* Fix and clear code
 
 ### Version 4.3.9
 * EEROM Version MKV72
