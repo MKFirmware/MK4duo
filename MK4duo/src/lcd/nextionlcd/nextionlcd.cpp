@@ -700,7 +700,7 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
     }
   }
 
-  void NextionLCD::gfx_cursor_to(xyz_pos_t &pos, bool force_cursor) {
+  void NextionLCD::gfx_cursor_to(xyz_pos_t pos, bool force_cursor) {
     if (PageID == 2 && (printer.isPrinting() || force_cursor)) {
       #if MECH(DELTA)
         pos.x += mechanics.data.print_radius;
@@ -710,7 +710,7 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
     }
   }
 
-  void NextionLCD::gfx_line_to(xyz_pos_t &pos) {
+  void NextionLCD::gfx_line_to(xyz_pos_t pos) {
     if (PageID == 2 && printer.isPrinting()) {
       #if MECH(DELTA)
         pos.x += mechanics.data.print_radius;
@@ -724,7 +724,7 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
     }
   }
 
-  void NextionLCD::gfx_plane_to(xyz_pos_t &pos) {
+  void NextionLCD::gfx_plane_to(xyz_pos_t pos) {
     uint8_t color;
     if (PageID == 2 && printer.isPrinting()) {
       #if MECH(DELTA)
