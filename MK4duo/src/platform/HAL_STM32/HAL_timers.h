@@ -28,48 +28,102 @@
 
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
+#ifdef STM32F0xx
+
+  #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
+
+  #ifndef STEP_TIMER
+    #define STEP_TIMER 16
+  #endif
+
+  #ifndef TEMP_TIMER
+    #define TEMP_TIMER 17
+  #endif
+
+#elif defined(STM32F1xx)
+
+  #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
+
+  #ifndef STEP_TIMER
+    #define STEP_TIMER 4
+  #endif
+
+  #ifndef TEMP_TIMER
+    #define TEMP_TIMER 2
+  #endif
+
+#elif defined(STM32F4xx) || defined(STM32F7xx)
+
+  #define HAL_TIMER_RATE (F_CPU / 2)
+
+  #ifndef STEP_TIMER
+    #define STEP_TIMER 5
+  #endif
+
+  #ifndef TEMP_TIMER
+    #define TEMP_TIMER 7
+  #endif
+
+#endif
+
+#ifndef STEP_TIMER_IRQ_PRIO
+  #define STEP_TIMER_IRQ_PRIO 1
+#endif
+
+#ifndef TEMP_TIMER_IRQ_PRIO
+  #define TEMP_TIMER_IRQ_PRIO 2
+#endif
+
 // Tone for due
 #define TONE_TIMER_NUM
 #define HAL_TONE_TIMER_ISR()
 
-#define HAL_TIMER_RATE              (HAL_RCC_GetSysClockFreq() / 2)  // frequency of timer peripherals
-
 // Stepper Timer
-#define STEP_TIMER_NUM              0                                           // index of timer to use for stepper
-#define STEPPER_TIMER_RATE          (HAL_TIMER_RATE / STEPPER_TIMER_PRESCALE)   // frequency of stepper timer
+#define STEPPER_TIMER_NUM           0                                           // index of timer to use for stepper
+#define STEPPER_TIMER_RATE          2000000                                     // frequency of stepper timer
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)            // stepper timer ticks per µs
-#define STEPPER_TIMER_PRESCALE      54                                          // was 40,prescaler for setting stepper timer, 2Mhz
+#define STEPPER_TIMER_PRESCALE      ((HAL_TIMER_RATE)/(STEPPER_TIMER_RATE))
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 #define STEPPER_CLOCK_RATE          ((F_CPU) / 128)                                           // frequency of the clock used for stepper pulse timing
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
+#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_RATE
 
 // Temperature Timer
-#define TEMP_TIMER_NUM              1  // index of timer to use for temperature
-#define TEMP_TIMER_PRESCALE         1000 // prescaler for setting Temp timer, 72Khz
-#define TEMP_TIMER_FREQUENCY        1000 // temperature interrupt frequency
+#define TEMP_TIMER_NUM              1     // index of timer to use for temperature
+#define TEMP_TIMER_RATE             72000 // 72 Khz
+#define TEMP_TIMER_PRESCALE         ((HAL_TIMER_RATE) / (TEMP_TIMER_RATE))
+#define TEMP_TIMER_FREQUENCY        1000
 
-#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEP_TIMER_NUM)
-#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEP_TIMER_NUM)
-#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEP_TIMER_NUM)
+#define __TIMER_DEV(X)              TIM##X
+#define _TIMER_DEV(X)               __TIMER_DEV(X)
+#define STEP_TIMER_DEV              _TIMER_DEV(STEP_TIMER)
+#define TEMP_TIMER_DEV              _TIMER_DEV(TEMP_TIMER)
+
+#define __TIMER_CALLBACK(X)         TIM##X##_IRQHandler
+#define _TIMER_CALLBACK(X)          __TIMER_CALLBACK(X)
+
+#define STEP_TIMER_CALLBACK         _TIMER_CALLBACK(STEP_TIMER)
+#define TEMP_TIMER_CALLBACK         _TIMER_CALLBACK(TEMP_TIMER)
+
+#define __TIMER_IRQ_NAME(X)         TIM##X##_IRQn
+#define _TIMER_IRQ_NAME(X)          __TIMER_IRQ_NAME(X)
+
+#define STEP_TIMER_IRQ_NAME         _TIMER_IRQ_NAME(STEP_TIMER)
+#define TEMP_TIMER_IRQ_NAME         _TIMER_IRQ_NAME(TEMP_TIMER)
+
+#define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
+#define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
+#define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER_NUM)
 
 #define ENABLE_TEMP_INTERRUPT()     HAL_timer_enable_interrupt(TEMP_TIMER_NUM)
 #define DISABLE_TEMP_INTERRUPT()    HAL_timer_disable_interrupt(TEMP_TIMER_NUM)
 #define TEMP_ISR_ENABLED()          HAL_timer_interrupt_is_enabled(TEMP_TIMER_NUM)
 
-// TODO change this
+extern void Step_Handler(stimer_t *htim);
+extern void Temp_Handler(stimer_t *htim);
+#define HAL_STEPPER_TIMER_ISR()     void Step_Handler(stimer_t *htim)
+#define HAL_TEMP_TIMER_ISR()        void Temp_Handler(stimer_t *htim)
 
-#ifdef STM32GENERIC
-  extern void TC5_Handler();
-  extern void TC7_Handler();
-  #define HAL_STEPPER_TIMER_ISR() void TC5_Handler()
-  #define HAL_TEMP_TIMER_ISR()    void TC7_Handler()
-#else
-  extern void TC5_Handler(stimer_t *htim);
-  extern void TC7_Handler(stimer_t *htim);
-  #define HAL_STEPPER_TIMER_ISR() void TC5_Handler(stimer_t *htim)
-  #define HAL_TEMP_TIMER_ISR()    void TC7_Handler(stimer_t *htim)
-#endif
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles
@@ -164,15 +218,7 @@
 // Types
 // ------------------------
 
-#ifdef STM32GENERIC
-  typedef struct {
-    TIM_HandleTypeDef handle;
-    uint32_t callback;
-  } tTimerConfig;
-  typedef tTimerConfig stm32_timer_t;
-#else
-  typedef stimer_t stm32_timer_t;
-#endif
+typedef stimer_t stm32_timer_t;
 
 // ------------------------
 // Public Variables
@@ -209,11 +255,5 @@ FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num
   return __HAL_TIM_GET_AUTORELOAD(&TimerHandle[timer_num].handle);
 }
 
-#ifdef STM32GENERIC
-  FORCE_INLINE static void HAL_timer_isr_prologue(const uint8_t timer_num) {
-    if (__HAL_TIM_GET_FLAG(&TimerHandle[timer_num].handle, TIM_FLAG_UPDATE) == SET)
-      __HAL_TIM_CLEAR_FLAG(&TimerHandle[timer_num].handle, TIM_FLAG_UPDATE);
-  }
-#else
-  #define HAL_timer_isr_prologue(TIMER_NUM)
-#endif
+#define HAL_timer_isr_prologue(TIMER_NUM)
+#define HAL_timer_isr_epilogue(TIMER_NUM)

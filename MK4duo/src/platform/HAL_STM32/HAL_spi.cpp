@@ -70,19 +70,14 @@ void HAL::spiInit(uint8_t spiRate/*=6*/) {  // Default to slowest rate if not sp
       clock = 4000000; // Default from the SPI library
   }
   spiConfig = SPISettings(clock, MSBFIRST, SPI_MODE0);
-  #if defined(MISO_PIN) && defined(SDSS) && defined(MOSI_PIN) && defined(SCK_PIN)
-    SPI.setMISO(MISO_PIN);
-    SPI.setSSEL(SDSS);
-    SPI.setMOSI(MOSI_PIN);
-    SPI.setSCLK(SCK_PIN);
-  #endif
+
   SPI.begin();
 }
 
 // Write single byte to SPI
 void HAL::spiSend(uint8_t nbyte) {
   SPI.beginTransaction(spiConfig);
-  SPI.transfer(b);
+  SPI.transfer(nbyte);
   SPI.endTransaction();
 }
 
