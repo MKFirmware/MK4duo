@@ -42,7 +42,7 @@ class AutoBedLevel {
       #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
       #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
       #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
-      float             z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
+      static float      z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
       static xy_float_t bilinear_grid_factor_virt;
       static xy_int_t   bilinear_grid_spacing_virt;
     #endif
@@ -66,7 +66,7 @@ class AutoBedLevel {
     #endif
 
     #if !IS_KINEMATIC
-      void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+      static void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
     #endif
 
   private: /** Private Function */
