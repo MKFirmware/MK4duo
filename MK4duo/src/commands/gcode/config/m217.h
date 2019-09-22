@@ -26,6 +26,8 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
+#if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
+
 #define CODE_M217
 
 /**
@@ -76,3 +78,5 @@ inline void gcode_M217() {
   if (parser.seenval('Z')) nozzle.data.park_point.z = parser.value_linear_units();
 
 }
+
+#endif // ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1

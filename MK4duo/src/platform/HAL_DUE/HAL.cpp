@@ -685,7 +685,7 @@ void HAL::Tick() {
   AnalogInStartConversion();
 
   // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
+  if (Analog_is_ready) thermalManager.set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();

@@ -26,7 +26,7 @@ struct nozzle_data_t {
   #if HOTENDS > 1
     xyz_pos_t hotend_offset[HOTENDS];
   #endif
-  #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+  #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
     xyz_pos_t park_point;
   #endif
 };
@@ -49,7 +49,7 @@ class Nozzle {
       static void set_heating_message();
     #endif
 
-    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+    #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
       static void print_M217();
     #endif
 

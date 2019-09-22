@@ -141,33 +141,33 @@
 
 // Macros for bit masks
 #undef _BV
-#define _BV(b)            (1<<(b))
-#define TEST(n,b)         !!((n)&_BV(b))
-#define SET_BIT(N,B,TF)   do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
+#define _BV(b)              (1<<(b))
+#define TEST(n,b)           !!((n)&_BV(b))
+#define SET_BIT_TO(N,B,TF)  do{ if (TF) SBI(N,B); else CBI(N,B); }while(0)
 #ifndef SBI
-  #define SBI(n,b)        (n |= (1 << (b)))
+  #define SBI(n,b)          (n |= (1 << (b)))
 #endif
 #ifndef CBI
-  #define CBI(n,b)        (n &= ~(1 << (b)))
+  #define CBI(n,b)          (n &= ~(1 << (b)))
 #endif
 
-#define _BV32(b)          (1UL << (b))
-#define TEST32(n,b)       !!((n)&_BV32(b))
-#define SBI32(n,b)        (n |= _BV32(b))
-#define CBI32(n,b)        (n &= ~_BV32(b))
+#define _BV32(b)            (1UL << (b))
+#define TEST32(n,b)         !!((n)&_BV32(b))
+#define SBI32(n,b)          (n |= _BV32(b))
+#define CBI32(n,b)          (n &= ~_BV32(b))
 
 // Macros to contrain values
-#define WITHIN(N,L,H)     ((N) >= (L) && (N) <= (H))
-#define NUMERIC(a)        WITHIN(a, '0', '9')
-#define DECIMAL(a)        (NUMERIC(a) || a == '.')
-#define NUMERIC_SIGNED(a) (NUMERIC(a) || (a) == '-' || (a) == '+')
-#define DECIMAL_SIGNED(a) (DECIMAL(a) || (a) == '-' || (a) == '+')
-#define COUNT(a)          (sizeof(a)/sizeof(*a))
-#define ZERO(a)           memset(a,0,sizeof(a))                 // Not touch this and not put &
-#define COPY_ARRAY(a,b)   do{ \
-                            static_assert(sizeof(a[0]) == sizeof(b[0]), "COPY: '" STRINGIFY(a) "' and '" STRINGIFY(b) "' types (sizes) don't match!"); \
-                            memcpy(&a[0],&b[0],MIN(sizeof(a),sizeof(b))); \
-                          }while(0)
+#define WITHIN(N,L,H)       ((N) >= (L) && (N) <= (H))
+#define NUMERIC(a)          WITHIN(a, '0', '9')
+#define DECIMAL(a)          (NUMERIC(a) || a == '.')
+#define NUMERIC_SIGNED(a)   (NUMERIC(a) || (a) == '-' || (a) == '+')
+#define DECIMAL_SIGNED(a)   (DECIMAL(a) || (a) == '-' || (a) == '+')
+#define COUNT(a)            (sizeof(a)/sizeof(*a))
+#define ZERO(a)             memset(a,0,sizeof(a))                 // Not touch this and not put &
+#define COPY_ARRAY(a,b)     do{ \
+                              static_assert(sizeof(a[0]) == sizeof(b[0]), "COPY: '" STRINGIFY(a) "' and '" STRINGIFY(b) "' types (sizes) don't match!"); \
+                              memcpy(&a[0],&b[0],MIN(sizeof(a),sizeof(b))); \
+                            }while(0)
 
 // Macros for initializing arrays
 #define ARRAY_12(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, ...)  v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12

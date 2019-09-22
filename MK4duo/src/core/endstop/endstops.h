@@ -167,12 +167,12 @@ class Endstops {
     #endif
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
-      SET_BIT(data.logic_flag, endstop, logic);
+      SET_BIT_TO(data.logic_flag, endstop, logic);
     }
     FORCE_INLINE static bool isLogic(const EndstopEnum endstop) { return TEST(data.logic_flag, endstop); }
 
     FORCE_INLINE static void setPullup(const EndstopEnum endstop, const bool pullup) {
-      SET_BIT(data.pullup_flag, endstop, pullup);
+      SET_BIT_TO(data.pullup_flag, endstop, pullup);
     }
     FORCE_INLINE static bool isPullup(const EndstopEnum endstop) { return TEST(data.pullup_flag, endstop); }
 

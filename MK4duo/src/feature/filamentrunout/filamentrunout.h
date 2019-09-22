@@ -188,12 +188,12 @@ class FilamentSensorBase {
     FORCE_INLINE static bool isHostHandling() { return data.flag.host_handling; }
 
     FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
-      SET_BIT(data.logic_flag, filrunout, logic);
+      SET_BIT_TO(data.logic_flag, filrunout, logic);
     }
     FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(data.logic_flag, filrunout); }
 
     FORCE_INLINE static void setPullup(const FilRunoutEnum filrunout, const bool pullup) {
-      SET_BIT(data.pullup_flag, filrunout, pullup);
+      SET_BIT_TO(data.pullup_flag, filrunout, pullup);
     }
     FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(data.pullup_flag, filrunout); }
 

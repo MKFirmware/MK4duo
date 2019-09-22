@@ -55,7 +55,7 @@ void Nozzle::factory_parameters() {
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
     constexpr xyz_pos_t nozzle_park_point = NOZZLE_PARK_POINT;
-  #elif EXTRUDERS > 1
+  #elif MAX_EXTRUDER > 1
     constexpr xyz_pos_t nozzle_park_point = { 0, 0, TOOL_CHANGE_Z_RAISE };
   #endif
   data.park_point = nozzle_park_point;
@@ -73,7 +73,7 @@ void Nozzle::factory_parameters() {
   }
 #endif
 
-#if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
 
   void Nozzle::print_M217() {
     #if ENABLED(NOZZLE_PARK_FEATURE)
