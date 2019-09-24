@@ -290,11 +290,11 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       lcd_put_wchar(LCD_PIXEL_WIDTH - 11 * (MENU_FONT_WIDTH), row_y2, 'H');
       lcd_put_wchar((char)('0' + hotend));
       lcd_put_wchar(' ');
-      lcd_put_u8str(i16tostr3(hotends[hotend].deg_current()));
+      lcd_put_u8str(i16tostr3(hotends[hotend]->deg_current()));
       lcd_put_wchar('/');
 
-      if (get_blink() || !hotends[hotend].isIdle())
-        lcd_put_u8str(i16tostr3(hotends[hotend].deg_target()));
+      if (get_blink() || !hotends[hotend]->isIdle())
+        lcd_put_u8str(i16tostr3(hotends[hotend]->deg_target()));
     }
 
   #endif // ADVANCED_PAUSE_FEATURE

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_BEDS
+#if MAX_BED > 0
 
 #define CODE_M140
 
@@ -37,8 +37,8 @@ inline void gcode_M140() {
   const uint8_t b = parser.byteval('T');
   if (WITHIN(b, 0 , BEDS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
-    if (parser.seenval('S')) beds[b].set_target_temp(parser.value_celsius());
-    if (parser.seenval('R')) beds[b].set_idle_temp(parser.value_celsius());
+    if (parser.seenval('S')) beds[b]->set_target_temp(parser.value_celsius());
+    if (parser.seenval('R')) beds[b]->set_idle_temp(parser.value_celsius());
   }
 }
 

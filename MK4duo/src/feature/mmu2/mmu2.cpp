@@ -532,7 +532,7 @@ void MMU2::tool_change(const char* special) {
     switch (*special) {
       case '?': {
         uint8_t index = mmu2_choose_filament();
-        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(100);
+        while (!hotends[0]->wait_for_heating()) HAL::delayMilliseconds(100);
         load_filament_to_nozzle(index);
       } break;
 
@@ -551,7 +551,7 @@ void MMU2::tool_change(const char* special) {
       } break;
 
       case 'c': {
-        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(100);
+        while (!hotends[0]->wait_for_heating()) HAL::delayMilliseconds(100);
         execute_extruder_sequence((const E_Step *)load_to_nozzle_sequence, COUNT(load_to_nozzle_sequence));
       } break;
     }
@@ -613,13 +613,13 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
         SERIAL_EM("MMU not responding");
 
-        resume_hotend_temp = hotends[0].deg_target();
+        resume_hotend_temp = hotends[0]->deg_target();
         COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position.x);
 
         if (move_axes && mechanics.isHomedAll())
           Nozzle::park(2);
 
-        if (turn_off_nozzle) hotends[0].set_target_temp(0);
+        if (turn_off_nozzle) hotends[0]->set_target_temp(0);
 
         LCD_MESSAGEPGM(MSG_MMU2_NOT_RESPONDING);
         sound.playtone(100, 659);
@@ -633,11 +633,11 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
       SERIAL_EM("MMU starts responding\n");
 
       if (turn_off_nozzle && resume_hotend_temp) {
-        hotends[0].set_target_temp(resume_hotend_temp);
+        hotends[0]->set_target_temp(resume_hotend_temp);
         LCD_MESSAGEPGM(MSG_HEATING);
         sound.playtone(200, 40);
 
-        while (!hotends[0].wait_for_heating()) HAL::delayMilliseconds(1000);
+        while (!hotends[0]->wait_for_heating()) HAL::delayMilliseconds(1000);
       }
 
       if (move_axes && mechanics.isHomedAll()) {

@@ -61,7 +61,7 @@
     // Status Screen Combined Heater bitmaps
     //
 
-    #if HAS_BEDS && HOTENDS <= 4
+    #if MAX_BED > 0 && HOTENDS <= 4
 
       #if HOTENDS == 1
 
@@ -145,7 +145,7 @@
 
       #endif // HOTENDS
 
-    #else // !HAS_BEDS
+    #else // !MAX_BED > 0
 
       #if HOTENDS == 1
 
@@ -244,7 +244,7 @@
 
       #endif // HOTENDS
 
-    #endif // !HAS_BEDS || HOTENDS > 3
+    #endif // !MAX_BED > 0 || HOTENDS > 3
 
   #else // !STATUS_COMBINE_HEATERS
 
@@ -577,7 +577,7 @@
 //
 // Default Status Screen Bed bitmaps
 //
-#if !STATUS_BED_WIDTH && HAS_BEDS && DISABLED(STATUS_COMBINE_HEATERS)
+#if !STATUS_BED_WIDTH && MAX_BED > 0 && DISABLED(STATUS_COMBINE_HEATERS)
 
   #if ENABLED(STATUS_ALT_BED_BITMAP)
 
@@ -669,16 +669,16 @@
 //
 // Default Status Screen Chamber bitmaps
 //
-#if !STATUS_CHAMBER_WIDTH && HAS_CHAMBERS && ((HOTENDS <= 4 && !HAS_BEDS) || (HOTENDS <= 3 && HAS_BEDS))
+#if !STATUS_CHAMBER_WIDTH && MAX_CHAMBER > 0 && ((HOTENDS <= 4 && !MAX_BED > 0) || (HOTENDS <= 3 && MAX_BED > 0))
 
   #define STATUS_CHAMBER_WIDTH 21
 
   #if STATUS_HEATERS_WIDTH
     #if ENABLED(STATUS_COMBINE_HEATERS)
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - 2 - (STATUS_CHAMBER_BYTEWIDTH) * 8)
-    #elif HAS_FANS && HAS_BEDS && HOTENDS <= 2
+    #elif MAX_FAN > 0 && MAX_BED > 0 && HOTENDS <= 2
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - 2 - (STATUS_HEATERS_BYTEWIDTH - STATUS_CHAMBER_BYTEWIDTH) * 8)
-    #elif HAS_FANS && !HAS_BEDS
+    #elif MAX_FAN > 0 && !MAX_BED > 0
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - (STATUS_CHAMBER_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8)
     #else
       #define STATUS_CHAMBER_X (LCD_PIXEL_WIDTH - (STATUS_CHAMBER_BYTEWIDTH) * 8)
@@ -738,13 +738,13 @@
   #define STATUS_CHAMBER_WIDTH 0
 #endif
 
-#define BED_OR_CHAMBER        (HAS_BEDS || HAS_CHAMBERS)
-#define BED_OR_CHAMBER_OR_FAN (HAS_BEDS || HAS_CHAMBERS || HAS_FANS)
+#define BED_OR_CHAMBER        (MAX_BED > 0 || MAX_CHAMBER > 0)
+#define BED_OR_CHAMBER_OR_FAN (MAX_BED > 0 || MAX_CHAMBER > 0 || MAX_FAN > 0)
 
 // Can also be overridden in Configuration.h
 // If you can afford it, try the 3-frame fan animation!
 // Don't compile in the fan animation with no fan
-#if !HAS_FANS || (HOTENDS == 5 || (HOTENDS == 4 && BED_OR_CHAMBER) || (ENABLED(STATUS_COMBINE_HEATERS) && HAS_CHAMBERS))
+#if !MAX_FAN > 0 || (HOTENDS == 5 || (HOTENDS == 4 && BED_OR_CHAMBER) || (ENABLED(STATUS_COMBINE_HEATERS) && MAX_CHAMBER > 0))
   #undef STATUS_FAN_FRAMES
 #elif !STATUS_FAN_FRAMES
   #define STATUS_FAN_FRAMES 2
@@ -1261,7 +1261,7 @@
           ((STATUS_CHAMBER_WIDTH || STATUS_FAN_WIDTH  ||  STATUS_BED_WIDTH) && STATUS_HOTEND_BITMAPS == 4)
       #define STATUS_HEATERS_X 5
     #else
-      #if ENABLED(STATUS_COMBINE_HEATERS) && HAS_BEDS && HOTENDS <= 4
+      #if ENABLED(STATUS_COMBINE_HEATERS) && MAX_BED > 0 && HOTENDS <= 4
         #define STATUS_HEATERS_X 5
       #else
         #define STATUS_HEATERS_X 8 // Like the included bitmaps

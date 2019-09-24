@@ -47,15 +47,15 @@ inline void gcode_M109() {
       tools.singlenozzle_temp[tools.data.extruder.target] = temp;
       if (tools.data.extruder.target != tools.data.extruder.active) return;
     #endif
-    hotends[TARGET_HOTEND].set_target_temp(temp);
+    hotends[TARGET_HOTEND]->set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (mechanics.dxc_is_duplicating() && tools.data.extruder.target == 0)
-        hotends[1].set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
+        hotends[1]->set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
 
     #if HAS_LCD
-      if (hotends[TARGET_HOTEND].isHeating() || !no_wait_for_cooling)
+      if (hotends[TARGET_HOTEND]->isHeating() || !no_wait_for_cooling)
         nozzle.set_heating_message();
     #endif
 
@@ -66,7 +66,7 @@ inline void gcode_M109() {
     planner.autotemp_M104_M109();
   #endif
 
-  hotends[TARGET_HOTEND].wait_for_target(no_wait_for_cooling);
+  hotends[TARGET_HOTEND]->wait_for_target(no_wait_for_cooling);
 }
 
 #endif // HAS_TEMP_HOTEND

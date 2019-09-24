@@ -379,7 +379,7 @@ void menu_stop_print();
 void lcd_move_z();
 void lcd_draw_homing();
 
-#if HAS_HOTENDS
+#if MAX_HOTEND > 0
   void watch_temp_callback_H0();
   void watch_temp_callback_H1();
   void watch_temp_callback_H2();
@@ -387,19 +387,19 @@ void lcd_draw_homing();
   void watch_temp_callback_E4();
   void watch_temp_callback_E5();
 #endif
-#if HAS_BEDS
+#if MAX_BED > 0
   void watch_temp_callback_bed0();
   void watch_temp_callback_bed1();
   void watch_temp_callback_bed2();
   void watch_temp_callback_bed3();
 #endif
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
   void watch_temp_callback_chamber0();
   void watch_temp_callback_chamber1();
   void watch_temp_callback_chamber2();
   void watch_temp_callback_chamber3();
 #endif
-#if HAS_COOLERS
+#if MAX_COOLER > 0
   void watch_temp_callback_cooler0();
 #endif
 

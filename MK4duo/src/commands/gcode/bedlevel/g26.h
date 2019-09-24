@@ -362,7 +362,7 @@ inline bool turn_on_heaters() {
 
   SERIAL_EM("Waiting for heatup.");
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     if (g26_bed_temp > 25) {
       #if HAS_LCD
         lcdui.set_status_P(PSTR("G26 Heating Bed."), 99);
@@ -371,10 +371,10 @@ inline bool turn_on_heaters() {
           lcdui.capture();
         #endif
       #endif
-      beds[0].set_target_temp(g26_bed_temp);
+      beds[0]->set_target_temp(g26_bed_temp);
 
       // Wait for the temperature to stabilize
-      beds[0].wait_for_target(true);
+      beds[0]->wait_for_target(true);
       if (!printer.isWaitForHeatUp()) return G26_ERR;
     }
   #endif // HAS_TEMP_BED0
@@ -384,10 +384,10 @@ inline bool turn_on_heaters() {
     lcdui.set_status_P(PSTR("G26 Heating Nozzle."), 99);
     lcdui.quick_feedback(true);
   #endif
-  hotends[0].set_target_temp(g26_hotend_temp);
+  hotends[0]->set_target_temp(g26_hotend_temp);
 
   // Wait for the temperature to stabilize
-  hotends[0].wait_for_target(true);
+  hotends[0]->wait_for_target(true);
   if (!printer.isWaitForHeatUp()) return G26_ERR;
 
   #if HAS_LCD
@@ -508,11 +508,11 @@ inline void gcode_G26() {
   bool  g26_continue_with_closest = parser.boolval('C'),
         g26_keep_heaters_on       = parser.boolval('K');
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     if (parser.seenval('B')) {
       g26_bed_temp = parser.value_celsius();
-      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0].data.temp.max - 10)) {
-        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0].data.temp.max - 15));
+      if (g26_bed_temp && !WITHIN(g26_bed_temp, 40, beds[0]->data.temp.max - 10)) {
+        SERIAL_EMV("?Specified bed temperature not plausible (40-", int(beds[0]->data.temp.max - 15));
         return;
       }
     }
@@ -582,7 +582,7 @@ inline void gcode_G26() {
 
   if (parser.seenval('H')) {
     g26_hotend_temp = parser.value_celsius();
-    if (!WITHIN(g26_hotend_temp, 165, hotends[0].data.temp.max - 10)) {
+    if (!WITHIN(g26_hotend_temp, 165, hotends[0]->data.temp.max - 10)) {
       SERIAL_EM("?Specified nozzle temperature not plausible.");
       return;
     }
@@ -824,10 +824,10 @@ LEAVE:
   #endif
 
   if (!g26_keep_heaters_on) {
-    #if HAS_BEDS
-      beds[0].set_target_temp(0);
+    #if MAX_BED > 0
+      beds[0]->set_target_temp(0);
     #endif
-    hotends[ACTIVE_HOTEND].set_target_temp(0);
+    hotends[ACTIVE_HOTEND]->set_target_temp(0);
   }
 }
 

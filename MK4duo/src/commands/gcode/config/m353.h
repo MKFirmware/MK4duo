@@ -31,17 +31,55 @@
 #define CODE_M353
 
 /**
- * M353: Set Number total extruder
+ * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
  *
- *   S[int] Set number extruder
+ *    E[int] Set number extruder
+ *    H[int] Set number hotend
+ *    B[int] Set number bed
+ *    C[int] Set number chamber
+ *    F[int] Set number fan
  *
  */
 inline void gcode_M353() {
-  if (parser.seen('S')) {
+
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M353 report.
+    if (!parser.seen("EHBCF")) {
+      printer.print_M353();
+      return;
+    }
+  #endif
+
+  if (parser.seen('E')) {
     uint8_t drv = parser.value_int();
     LIMIT(drv, 0, MAX_EXTRUDER);
     tools.change_number_extruder(drv);
   }
+
+  if (parser.seen('H')) {
+    uint8_t h = parser.value_int();
+    LIMIT(h, 0, MAX_HOTEND);
+    thermalManager.change_number_heater(IS_HOTEND, h);
+  }
+
+  if (parser.seen('B')) {
+    uint8_t h = parser.value_int();
+    LIMIT(h, 0, MAX_BED);
+    thermalManager.change_number_heater(IS_BED, h);
+  }
+
+  if (parser.seen('C')) {
+    uint8_t h = parser.value_int();
+    LIMIT(h, 0, MAX_CHAMBER);
+    thermalManager.change_number_heater(IS_CHAMBER, h);
+  }
+
+  if (parser.seen('F')) {
+    uint8_t f = parser.value_int();
+    LIMIT(f, 0, MAX_FAN);
+    //thermalmanager.change_number_fan(f);
+  }
+
 }
 
 #endif // HAS_LINEAR_EXTRUDER

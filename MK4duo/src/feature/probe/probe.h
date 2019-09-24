@@ -99,7 +99,7 @@ class Probe {
 
     static void specific_action(const bool deploy);
 
-    static bool move_to_z(const float z, const float fr_mm_s);
+    static bool move_to_z(const float z, const feedrate_t fr_mm_s);
 
     static void do_raise(const float z_raise);
 

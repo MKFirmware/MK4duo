@@ -31,7 +31,7 @@
 #include "pid/pid.h"
 
 union heater_flag_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
@@ -42,7 +42,7 @@ union heater_flag_t {
     bool  Idle              : 1;
     bool  Fault             : 1;
   };
-  heater_flag_t() { all = false; }
+  heater_flag_t() { all = 0x00; }
 };
 
 enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
@@ -212,9 +212,9 @@ class Heater {
 
 };
 
-extern Heater hotends[HOTENDS];
-extern Heater beds[BEDS];
-extern Heater chambers[CHAMBERS];
-extern Heater coolers[COOLERS];
+extern Heater* hotends[MAX_HOTEND];
+extern Heater* beds[MAX_BED];
+extern Heater* chambers[MAX_CHAMBER];
+extern Heater* coolers[MAX_COOLER];
 
 #endif // HAS_HEATER

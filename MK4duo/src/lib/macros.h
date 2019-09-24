@@ -244,17 +244,12 @@
 #define LOOP_DRV_XYZ()            LOOP_L_N(d, XYZ)
 #define LOOP_DRV_EXT()            LOOP_L_N(d, tools.data.extruder.total)
 #define LOOP_EXTRUDER()           LOOP_L_N(e, tools.data.extruder.total)
-#define LOOP_HOTEND()             LOOP_L_N(h, HOTENDS)
-#define LOOP_BED()                LOOP_L_N(h, BEDS)
-#define LOOP_CHAMBER()            LOOP_L_N(h, CHAMBERS)
-#define LOOP_COOLER()             LOOP_L_N(h, COOLERS)
+#define LOOP_HOTEND()             LOOP_L_N(h, thermalManager.data.hotends)
+#define LOOP_BED()                LOOP_L_N(h, thermalManager.data.beds)
+#define LOOP_CHAMBER()            LOOP_L_N(h, thermalManager.data.chambers)
+#define LOOP_COOLER()             LOOP_L_N(h, thermalManager.data.coolers)
 #define LOOP_FAN()                LOOP_L_N(f, FAN_COUNT)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
-
-// Feedrate scaling and conversion
-#define MMM_TO_MMS(MM_M)          ((MM_M)/60.0f)
-#define MMS_TO_MMM(MM_S)          ((MM_S)*60.0f)
-#define MMS_SCALED(MM_S)          ((MM_S)*mechanics.feedrate_percentage*0.01)
 
 // Macros for maths shortcuts
 #undef M_PI

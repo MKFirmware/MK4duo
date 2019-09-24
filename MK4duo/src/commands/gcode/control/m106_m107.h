@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_FANS
+#if MAX_FAN > 0
 
   #define CODE_M106
   #define CODE_M107
@@ -96,4 +96,4 @@
     fans[f].speed = 0;
   }
 
-#endif // HAS_FANS
+#endif // MAX_FAN > 0

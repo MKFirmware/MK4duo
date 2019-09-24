@@ -77,7 +77,7 @@ inline void gcode_M701() {
                                                           advancedpause.data[tools.data.extruder.target].load_length);
 
     advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
-                                true, hotends[tools.data.extruder.target].wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
+                                true, hotends[TARGET_HOTEND]->wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
                                 #if ENABLED(DUAL_X_CARRIAGE)
                                   , tools.data.extruder.target
                                 #endif

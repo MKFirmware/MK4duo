@@ -34,7 +34,7 @@ uint8_t lcd_extruder_total;
 
 #if ENABLED(WORKSPACE_OFFSETS)
   //
-  // Set the home offset based on the current_position.x
+  // Set the home offset based on the current_position
   //
   void lcd_set_home_offsets() {
     commands.inject_P(PSTR("M428"));
@@ -70,25 +70,25 @@ uint8_t lcd_extruder_total;
       });
 
       if (printer.isVolumetric()) {
-        #if EXTRUDERS == 1
+        #if MAX_EXTRUDER == 1
           MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.data.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-        #else // EXTRUDERS > 1
+        #else // MAX_EXTRUDER > 1
           MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM, &tools.data.filament_size[tools.data.extruder.active], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
           MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E1, &tools.data.filament_size[0], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
           MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E2, &tools.data.filament_size[1], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-          #if EXTRUDERS > 2
+          #if MAX_EXTRUDER > 2
             MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E3, &tools.data.filament_size[2], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-            #if EXTRUDERS > 3
+            #if MAX_EXTRUDER > 3
               MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E4, &tools.data.filament_size[3], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-              #if EXTRUDERS > 4
+              #if MAX_EXTRUDER > 4
                 MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E5, &tools.data.filament_size[4], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-                #if EXTRUDERS > 5
+                #if MAX_EXTRUDER > 5
                   MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float43, MSG_FILAMENT_DIAM MSG_DIAM_E6, &tools.data.filament_size[5], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
-                #endif // EXTRUDERS > 5
-              #endif // EXTRUDERS > 4
-            #endif // EXTRUDERS > 3
-          #endif // EXTRUDERS > 2
-        #endif // EXTRUDERS > 1
+                #endif // MAX_EXTRUDER > 5
+              #endif // MAX_EXTRUDER > 4
+            #endif // MAX_EXTRUDER > 3
+          #endif // MAX_EXTRUDER > 2
+        #endif // MAX_EXTRUDER > 1
       }
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
@@ -102,45 +102,45 @@ uint8_t lcd_extruder_total;
         #endif
       ;
 
-      #if EXTRUDERS == 1
+      #if MAX_EXTRUDER == 1
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD, &advancedpause.data[0].unload_length, 0, extrude_maxlength);
-      #else // EXTRUDERS > 1
+      #else // MAX_EXTRUDER > 1
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD, &advancedpause.data[tools.data.extruder.active].unload_length, 0, extrude_maxlength);
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E1, &advancedpause.data[0].unload_length, 0, extrude_maxlength);
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E2, &advancedpause.data[1].unload_length, 0, extrude_maxlength);
-        #if EXTRUDERS > 2
+        #if MAX_EXTRUDER > 2
           MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E3, &advancedpause.data[2].unload_length, 0, extrude_maxlength);
-          #if EXTRUDERS > 3
+          #if MAX_EXTRUDER > 3
             MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E4, &advancedpause.data[3].unload_length, 0, extrude_maxlength);
-            #if EXTRUDERS > 4
+            #if MAX_EXTRUDER > 4
               MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E5, &advancedpause.data[4].unload_length, 0, extrude_maxlength);
-              #if EXTRUDERS > 5
+              #if MAX_EXTRUDER > 5
                 MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_UNLOAD MSG_DIAM_E6, &advancedpause.data[5].unload_length, 0, extrude_maxlength);
-              #endif // EXTRUDERS > 5
-            #endif // EXTRUDERS > 4
-          #endif // EXTRUDERS > 3
-        #endif // EXTRUDERS > 2
-      #endif // EXTRUDERS > 1
+              #endif // MAX_EXTRUDER > 5
+            #endif // MAX_EXTRUDER > 4
+          #endif // MAX_EXTRUDER > 3
+        #endif // MAX_EXTRUDER > 2
+      #endif // MAX_EXTRUDER > 1
 
-      #if EXTRUDERS == 1
+      #if MAX_EXTRUDER == 1
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD, &advancedpause.data[0].load_length, 0, extrude_maxlength);
-      #else // EXTRUDERS > 1
+      #else // MAX_EXTRUDER > 1
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD, &advancedpause.data[tools.data.extruder.active].load_length, 0, extrude_maxlength);
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E1, &advancedpause.data[0].load_length, 0, extrude_maxlength);
         MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E2, &advancedpause.data[1].load_length, 0, extrude_maxlength);
-        #if EXTRUDERS > 2
+        #if MAX_EXTRUDER > 2
           MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E3, &advancedpause.data[2].load_length, 0, extrude_maxlength);
-          #if EXTRUDERS > 3
+          #if MAX_EXTRUDER > 3
             MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E4, &advancedpause.data[3].load_length, 0, extrude_maxlength);
-            #if EXTRUDERS > 4
+            #if MAX_EXTRUDER > 4
               MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E5, &advancedpause.data[4].load_length, 0, extrude_maxlength);
-              #if EXTRUDERS > 5
+              #if MAX_EXTRUDER > 5
                 MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_FILAMENT_LOAD MSG_DIAM_E6, &advancedpause.data[5].load_length, 0, extrude_maxlength);
-              #endif // EXTRUDERS > 5
-            #endif // EXTRUDERS > 4
-          #endif // EXTRUDERS > 3
-        #endif // EXTRUDERS > 2
-      #endif // EXTRUDERS > 1
+              #endif // MAX_EXTRUDER > 5
+            #endif // MAX_EXTRUDER > 4
+          #endif // MAX_EXTRUDER > 3
+        #endif // MAX_EXTRUDER > 2
+      #endif // MAX_EXTRUDER > 1
     #endif
 
     #if FILAMENT_RUNOUT_DISTANCE_MM > 0
@@ -161,17 +161,17 @@ uint8_t lcd_extruder_total;
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     int16_t autotune_temp[HOTENDS]          = ARRAY_BY_HOTENDS(200);
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     int16_t autotune_temp_bed[BEDS]         = ARRAY_BY_BEDS(60);
   #endif
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     int16_t autotune_temp_chamber[CHAMBERS] = ARRAY_BY_CHAMBERS(60);
   #endif
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     void _lcd_autotune(const int8_t h) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), h, autotune_temp[h]);
@@ -179,7 +179,7 @@ uint8_t lcd_extruder_total;
     }
   #endif
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     void _lcd_autotune_bed(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), t, autotune_temp_bed[t]);
@@ -187,7 +187,7 @@ uint8_t lcd_extruder_total;
     }
   #endif
 
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     void _lcd_autotune_chamber(const int8_t t) {
       char cmd[30];
       sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), t, autotune_temp_chamber[t]);
@@ -197,25 +197,25 @@ uint8_t lcd_extruder_total;
 
 #endif //PID_AUTOTUNE_MENU
 
-#define _DEFINE_PIDTEMP_BASE_FUNCS(N)         void updatePID_H ## N()       { hotends[N].data.pid.update(); }
-#define _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)     void updatePID_BED ## N()     { beds[N].data.pid.update(); }
-#define _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N) void updatePID_CHAMBER ## N() { chambers[N].data.pid.update(); }
+#define _DEFINE_PIDTEMP_BASE_FUNCS(N)         void updatePID_H ## N()       { hotends[N]->data.pid.update(); }
+#define _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)     void updatePID_BED ## N()     { beds[N]->data.pid.update(); }
+#define _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N) void updatePID_CHAMBER ## N() { chambers[N]->data.pid.update(); }
 
 #if ENABLED(PID_AUTOTUNE_MENU)
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     #define DEFINE_PIDTEMP_FUNCS(N)             \
       _DEFINE_PIDTEMP_BASE_FUNCS(N);            \
       void lcd_autotune_callback_H ## N()       { _lcd_autotune(N); }
   #endif
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     #define DEFINE_PIDBED_FUNCS(N)              \
       _DEFINE_BED_PIDTEMP_BASE_FUNCS(N);        \
       void lcd_autotune_callback_BED ## N()     { _lcd_autotune_bed(N); }
   #endif
 
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     #define DEFINE_PIDCHAMBER_FUNCS(N)          \
       _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N);    \
       void lcd_autotune_callback_CHAMBER ## N() { _lcd_autotune_chamber(N); }
@@ -223,64 +223,64 @@ uint8_t lcd_extruder_total;
 
 #else
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     #define DEFINE_PIDTEMP_FUNCS(N)             _DEFINE_PIDTEMP_BASE_FUNCS(N)
   #endif
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     #define DEFINE_PIDBED_FUNCS(N)              _DEFINE_BED_PIDTEMP_BASE_FUNCS(N)
   #endif
 
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     #define DEFINE_PIDCHAMBER_FUNCS(N)          _DEFINE_CHAMBER_PIDTEMP_BASE_FUNCS(N)
   #endif
 
 #endif
 
-#if HAS_HOTENDS
+#if MAX_HOTEND > 0
   DEFINE_PIDTEMP_FUNCS(0);
-  #if HOTENDS > 1
+  #if MAX_HOTEND > 1
     DEFINE_PIDTEMP_FUNCS(1);
-    #if HOTENDS > 2
+    #if MAX_HOTEND > 2
       DEFINE_PIDTEMP_FUNCS(2);
-      #if HOTENDS > 3
+      #if MAX_HOTEND > 3
         DEFINE_PIDTEMP_FUNCS(3);
-        #if HOTENDS > 4
+        #if MAX_HOTEND > 4
           DEFINE_PIDTEMP_FUNCS(4);
-          #if HOTENDS > 5
+          #if MAX_HOTEND > 5
             DEFINE_PIDTEMP_FUNCS(5);
-          #endif // HOTENDS > 5
-        #endif // HOTENDS > 4
-      #endif // HOTENDS > 3
-    #endif // HOTENDS > 2
-  #endif // HOTENDS > 1
-#endif // HAS_HOTENDS
+          #endif // MAX_HOTEND > 5
+        #endif // MAX_HOTEND > 4
+      #endif // MAX_HOTEND > 3
+    #endif // MAX_HOTEND > 2
+  #endif // MAX_HOTEND > 1
+#endif // MAX_HOTEND > 0
 
-#if HAS_BEDS
+#if MAX_BED > 0
   DEFINE_PIDBED_FUNCS(0);
-  #if BEDS > 1
+  #if MAX_BED > 1
     DEFINE_PIDBED_FUNCS(1);
-    #if BEDS > 2
+    #if MAX_BED > 2
       DEFINE_PIDBED_FUNCS(2);
-      #if BEDS > 3
+      #if MAX_BED > 3
         DEFINE_PIDBED_FUNCS(3);
-      #endif // BEDS > 3
-    #endif // BEDS > 2
-  #endif // BEDS > 1
-#endif // HAS_BEDS
+      #endif // MAX_BED > 3
+    #endif // MAX_BED > 2
+  #endif // MAX_BED > 1
+#endif // MAX_BED > 0
 
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
   DEFINE_PIDCHAMBER_FUNCS(0);
-  #if CHAMBERS > 1
+  #if MAX_CHAMBER > 1
     DEFINE_PIDCHAMBER_FUNCS(1);
-    #if CHAMBERS > 2
+    #if MAX_CHAMBER > 2
       DEFINE_PIDCHAMBER_FUNCS(2);
-      #if CHAMBERS > 3
+      #if MAX_CHAMBER > 3
         DEFINE_PIDCHAMBER_FUNCS(3);
-      #endif // CHAMBERS > 3
-    #endif // CHAMBERS > 2
-  #endif // CHAMBERS > 1
-#endif // HAS_CHAMBERS
+      #endif // MAX_CHAMBER > 3
+    #endif // MAX_CHAMBER > 2
+  #endif // MAX_CHAMBER > 1
+#endif // MAX_CHAMBER > 0
 
 //
 // Advanced Settings > Temperature
@@ -291,10 +291,10 @@ void menu_advanced_temperature() {
   //
   // Autotemp, Min, Max, Fact
   //
-  #if ENABLED(AUTOTEMP) && HAS_TEMP_HE0
+  #if ENABLED(AUTOTEMP)
     MENU_ITEM_EDIT(bool, MSG_AUTOTEMP, &planner.autotemp_enabled);
-    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0].data.temp.max - 10);
-    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0].data.temp.max - 10);
+    MENU_ITEM_EDIT(float3, MSG_MIN, &planner.autotemp_min, 0, hotends[0]->data.temp.max - 10);
+    MENU_ITEM_EDIT(float3, MSG_MAX, &planner.autotemp_max, 0, hotends[0]->data.temp.max - 10);
     MENU_ITEM_EDIT(float52, MSG_FACTOR, &planner.autotemp_factor, 0, 1);
   #endif
 
@@ -307,24 +307,24 @@ void menu_advanced_temperature() {
   // PID-P H5, PID-I H5, PID-D H5, PID-C H5, PID Autotune H5
   //
   #define _PID_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &hotends[hindex].data.pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &hotends[hindex].data.pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
-    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &hotends[hindex].data.pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, MSG_PID_P HLABEL, &hotends[hindex]->data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, MSG_PID_I HLABEL, &hotends[hindex]->data.pid.Ki, 0.01f, 9990, updatePID_H ## hindex); \
+    MENU_ITEM_EDIT(float52, MSG_PID_D HLABEL, &hotends[hindex]->data.pid.Kd, 1, 9990)
 
   #define _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_P HLABEL, &beds[hindex].data.pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, "Bed " MSG_PID_I HLABEL, &beds[hindex].data.pid.Ki, 0.01f, 9990, updatePID_BED ## hindex); \
-    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_D HLABEL, &beds[hindex].data.pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_P HLABEL, &beds[hindex]->data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Bed " MSG_PID_I HLABEL, &beds[hindex]->data.pid.Ki, 0.01f, 9990, updatePID_BED ## hindex); \
+    MENU_ITEM_EDIT(float52, "Bed " MSG_PID_D HLABEL, &beds[hindex]->data.pid.Kd, 1, 9990)
 
   #define _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex) \
-    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_P HLABEL, &chambers[hindex].data.pid.Kp, 1, 9990); \
-    MENU_ITEM_EDIT_CALLBACK(float52, "Chamber " MSG_PID_I HLABEL, &chambers[hindex].data.pid.Ki, 0.01f, 9990, updatePID_CHAMBER ## hindex); \
-    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_D HLABEL, &chambers[hindex].data.pid.Kd, 1, 9990)
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_P HLABEL, &chambers[hindex]->data.pid.Kp, 1, 9990); \
+    MENU_ITEM_EDIT_CALLBACK(float52, "Chamber " MSG_PID_I HLABEL, &chambers[hindex]->data.pid.Ki, 0.01f, 9990, updatePID_CHAMBER ## hindex); \
+    MENU_ITEM_EDIT(float52, "Chamber " MSG_PID_D HLABEL, &chambers[hindex]->data.pid.Kd, 1, 9990)
 
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     #define _PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_BASE_MENU_ITEMS(HLABEL, hindex); \
-      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &hotends[hindex].data.pid.Kc, 1, 9990)
+      MENU_ITEM_EDIT(float3, MSG_PID_C HLABEL, &hotends[hindex]->data.pid.Kc, 1, 9990)
   #else
     #define _PID_MENU_ITEMS(HLABEL, hindex) _PID_BASE_MENU_ITEMS(HLABEL, hindex)
   #endif
@@ -332,73 +332,73 @@ void menu_advanced_temperature() {
   #if ENABLED(PID_AUTOTUNE_MENU)
     #define PID_MENU_ITEMS(HLABEL, hindex) \
       _PID_MENU_ITEMS(HLABEL, hindex); \
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex].data.temp.max - 10, lcd_autotune_callback_H ## hindex)
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_PID_AUTOTUNE HLABEL, &autotune_temp[hindex], 150, hotends[hindex]->data.temp.max - 10, lcd_autotune_callback_H ## hindex)
 
-    #if HAS_BEDS
+    #if MAX_BED > 0
       #define PID_BED_MENU_ITEMS(HLABEL, hindex)  \
         _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex); \
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex].data.temp.max - 10, lcd_autotune_callback_BED ## hindex)
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Bed " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_bed[hindex], 30, beds[hindex]->data.temp.max - 10, lcd_autotune_callback_BED ## hindex)
     #endif
 
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  \
         _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex); \
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex].data.temp.max - 10, lcd_autotune_callback_CHAMBER ## hindex)
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, "Chamber " MSG_PID_AUTOTUNE HLABEL, &autotune_temp_chamber[hindex], 30, chambers[hindex]->data.temp.max - 10, lcd_autotune_callback_CHAMBER ## hindex)
     #endif
   #else
     #define PID_MENU_ITEMS(HLABEL, hindex)            _PID_MENU_ITEMS(HLABEL, hindex)
-    #if HAS_BEDS
+    #if MAX_BED > 0
       #define PID_BED_MENU_ITEMS(HLABEL, hindex)      _PID_BED_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       #define PID_CHAMBER_MENU_ITEMS(HLABEL, hindex)  _PID_CHAMBER_BASE_MENU_ITEMS(HLABEL, hindex)
     #endif
   #endif
 
-  #if HAS_HOTENDS
-    if (hotends[0].isUsePid()) { PID_MENU_ITEMS(MSG_H0, 0); }
-    #if HOTENDS > 1
-      if (hotends[1].isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
-      #if HOTENDS > 2
-        if (hotends[2].isUsePid()) { PID_MENU_ITEMS(MSG_H2, 2); }
-        #if HOTENDS > 3
-          if (hotends[3].isUsePid()) { PID_MENU_ITEMS(MSG_H3, 3); }
-          #if HOTENDS > 4
-            if (hotends[4].isUsePid()) { PID_MENU_ITEMS(MSG_H4, 4); }
-            #if HOTENDS > 5
-              if (hotends[5].isUsePid()) { PID_MENU_ITEMS(MSG_H5, 5); }
-            #endif // HOTENDS > 5
-          #endif // HOTENDS > 4
-        #endif // HOTENDS > 3
-      #endif // HOTENDS > 2
-    #endif // HOTENDS > 1
-  #endif // HAS_HOTENDS
+  #if MAX_HOTEND > 0
+    if (hotends[0]->isUsePid()) { PID_MENU_ITEMS(MSG_H0, 0); }
+    #if MAX_HOTEND > 1
+      if (hotends[1]->isUsePid()) { PID_MENU_ITEMS(MSG_H1, 1); }
+      #if MAX_HOTEND > 2
+        if (hotends[2]->isUsePid()) { PID_MENU_ITEMS(MSG_H2, 2); }
+        #if MAX_HOTEND > 3
+          if (hotends[3]->isUsePid()) { PID_MENU_ITEMS(MSG_H3, 3); }
+          #if MAX_HOTEND > 4
+            if (hotends[4]->isUsePid()) { PID_MENU_ITEMS(MSG_H4, 4); }
+            #if MAX_HOTEND > 5
+              if (hotends[5]->isUsePid()) { PID_MENU_ITEMS(MSG_H5, 5); }
+            #endif // MAX_HOTEND > 5
+          #endif // MAX_HOTEND > 4
+        #endif // MAX_HOTEND > 3
+      #endif // MAX_HOTEND > 2
+    #endif // MAX_HOTEND > 1
+  #endif // MAX_HOTEND > 0
 
-  #if HAS_BEDS
-    if (beds[0].isUsePid()) { PID_BED_MENU_ITEMS("", 0); }
-    #if BEDS > 1
-      if (beds[1].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H1, 1); }
-      #if BEDS > 2
-        if (beds[2].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H2, 2); }
-        #if BEDS > 3
-          if (beds[3].isUsePid()) { PID_BED_MENU_ITEMS(MSG_H3, 3); }
-        #endif // BEDS > 3
-      #endif // BEDS > 2
-    #endif // BEDS > 1
-  #endif // HAS_BEDS
+  #if MAX_BED > 0
+    if (beds[0]->isUsePid()) { PID_BED_MENU_ITEMS("", 0); }
+    #if MAX_BED > 1
+      if (beds[1]->isUsePid()) { PID_BED_MENU_ITEMS(MSG_H1, 1); }
+      #if MAX_BED > 2
+        if (beds[2]->isUsePid()) { PID_BED_MENU_ITEMS(MSG_H2, 2); }
+        #if MAX_BED > 3
+          if (beds[3]->isUsePid()) { PID_BED_MENU_ITEMS(MSG_H3, 3); }
+        #endif // MAX_BED > 3
+      #endif // MAX_BED > 2
+    #endif // MAX_BED > 1
+  #endif // MAX_BED > 0
 
-  #if HAS_CHAMBERS
-    if (chambers[0].isUsePid()) { PID_CHAMBER_MENU_ITEMS("", 0); }
-    #if CHAMBERS > 1
-      if (chambers[1].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H1, 1); }
-      #if CHAMBERS > 2
-        if (chambers[2].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H2, 2); }
-        #if CHAMBERS > 3
-          if (chambers[3].isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H3, 3); }
-        #endif // CHAMBERS > 3
-      #endif // CHAMBERS > 2
-    #endif // CHAMBERS > 1
-  #endif // HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
+    if (chambers[0]->isUsePid()) { PID_CHAMBER_MENU_ITEMS("", 0); }
+    #if MAX_CHAMBER > 1
+      if (chambers[1]->isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H1, 1); }
+      #if MAX_CHAMBER > 2
+        if (chambers[2]->isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H2, 2); }
+        #if MAX_CHAMBER > 3
+          if (chambers[3]->isUsePid()) { PID_CHAMBER_MENU_ITEMS(MSG_H3, 3); }
+        #endif // MAX_CHAMBER > 3
+      #endif // MAX_CHAMBER > 2
+    #endif // MAX_CHAMBER > 1
+  #endif // MAX_CHAMBER > 0
 
   END_MENU();
 
@@ -412,13 +412,23 @@ void menu_advanced_temperature() {
     #endif
     planner.reset_acceleration_rates();
   }
-  void _reset_e_acceleration_rate(const uint8_t e) { if (e == tools.data.extruder.active) _reset_acceleration_rates(); }
-  void _reset_e0_acceleration_rate() { _reset_e_acceleration_rate(0); }
-  void _reset_e1_acceleration_rate() { _reset_e_acceleration_rate(1); }
-  void _reset_e2_acceleration_rate() { _reset_e_acceleration_rate(2); }
-  void _reset_e3_acceleration_rate() { _reset_e_acceleration_rate(3); }
-  void _reset_e4_acceleration_rate() { _reset_e_acceleration_rate(4); }
-  void _reset_e5_acceleration_rate() { _reset_e_acceleration_rate(5); }
+  #if MAX_EXTRUDER > 1
+    void _reset_e_acceleration_rate(const uint8_t e) { if (e == tools.data.extruder.active) _reset_acceleration_rates(); }
+    void _reset_e0_acceleration_rate() { _reset_e_acceleration_rate(0); }
+    void _reset_e1_acceleration_rate() { _reset_e_acceleration_rate(1); }
+    #if MAX_EXTRUDER > 2
+      void _reset_e2_acceleration_rate() { _reset_e_acceleration_rate(2); }
+      #if MAX_EXTRUDER > 3
+        void _reset_e3_acceleration_rate() { _reset_e_acceleration_rate(3); }
+        #if MAX_EXTRUDER > 4
+          void _reset_e4_acceleration_rate() { _reset_e_acceleration_rate(4); }
+          #if MAX_EXTRUDER > 5
+            void _reset_e5_acceleration_rate() { _reset_e_acceleration_rate(5); }
+          #endif // MAX_EXTRUDER > 5
+        #endif // MAX_EXTRUDER > 4
+      #endif // MAX_EXTRUDER > 3
+    #endif // MAX_EXTRUDER > 2
+  #endif // MAX_EXTRUDER > 1
 
   void _mechanics_refresh_positioning() {
     #if MECH(DELTA)
@@ -426,18 +436,28 @@ void menu_advanced_temperature() {
     #endif
     planner.refresh_positioning();
   }
-  void _mechanics_refresh_e_positioning(const uint8_t e) {
-    if (e == tools.data.extruder.active)
-      _mechanics_refresh_positioning();
-    else
-      mechanics.steps_to_mm.e[e] = RECIPROCAL(mechanics.data.axis_steps_per_mm.e[e]);
-  }
-  void _mechanics_refresh_e0_positioning() { _mechanics_refresh_e_positioning(0); }
-  void _mechanics_refresh_e1_positioning() { _mechanics_refresh_e_positioning(1); }
-  void _mechanics_refresh_e2_positioning() { _mechanics_refresh_e_positioning(2); }
-  void _mechanics_refresh_e3_positioning() { _mechanics_refresh_e_positioning(3); }
-  void _mechanics_refresh_e4_positioning() { _mechanics_refresh_e_positioning(4); }
-  void _mechanics_refresh_e5_positioning() { _mechanics_refresh_e_positioning(5); }
+  #if MAX_EXTRUDER > 1
+    void _mechanics_refresh_e_positioning(const uint8_t e) {
+      if (e == tools.data.extruder.active)
+        _mechanics_refresh_positioning();
+      else
+        mechanics.steps_to_mm.e[e] = RECIPROCAL(mechanics.data.axis_steps_per_mm.e[e]);
+    }
+    void _mechanics_refresh_e0_positioning() { _mechanics_refresh_e_positioning(0); }
+    void _mechanics_refresh_e1_positioning() { _mechanics_refresh_e_positioning(1); }
+    #if MAX_EXTRUDER > 2
+      void _mechanics_refresh_e2_positioning() { _mechanics_refresh_e_positioning(2); }
+      #if MAX_EXTRUDER > 3
+        void _mechanics_refresh_e3_positioning() { _mechanics_refresh_e_positioning(3); }
+        #if MAX_EXTRUDER > 4
+          void _mechanics_refresh_e4_positioning() { _mechanics_refresh_e_positioning(4); }
+          #if MAX_EXTRUDER > 5
+            void _mechanics_refresh_e5_positioning() { _mechanics_refresh_e_positioning(5); }
+          #endif // MAX_EXTRUDER > 5
+        #endif // MAX_EXTRUDER > 4
+      #endif // MAX_EXTRUDER > 3
+    #endif // MAX_EXTRUDER > 2
+  #endif // MAX_EXTRUDER > 1
 
   #if MECH(DELTA)
     void _mechanics_set_feedrate() {
@@ -462,19 +482,29 @@ void menu_advanced_temperature() {
     if (tools.data.extruder.total == 1)
       MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.data.max_feedrate_mm_s.e[0], 1, 999);
     else {
-      if (tools.data.extruder.total > 1) {
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active], 1, 999);
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E0, &mechanics.data.max_feedrate_mm_s.e[0], 1, 999);
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E1, &mechanics.data.max_feedrate_mm_s.e[1], 1, 999);
-      }
-      if (tools.data.extruder.total > 2)
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E2, &mechanics.data.max_feedrate_mm_s.e[2], 1, 999);
-      if (tools.data.extruder.total > 3)
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E3, &mechanics.data.max_feedrate_mm_s.e[3], 1, 999);
-      if (tools.data.extruder.total > 4)
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E4, &mechanics.data.max_feedrate_mm_s.e[4], 1, 999);
-      if (tools.data.extruder.total > 5)
-        MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E5, &mechanics.data.max_feedrate_mm_s.e[5], 1, 999);
+      #if MAX_EXTRUDER > 1
+        if (tools.data.extruder.total > 1) {
+          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E, &mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active], 1, 999);
+          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E0, &mechanics.data.max_feedrate_mm_s.e[0], 1, 999);
+          MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E1, &mechanics.data.max_feedrate_mm_s.e[1], 1, 999);
+        }
+        #if MAX_EXTRUDER > 2
+          if (tools.data.extruder.total > 2)
+            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E2, &mechanics.data.max_feedrate_mm_s.e[2], 1, 999);
+          #if MAX_EXTRUDER > 3
+            if (tools.data.extruder.total > 3)
+              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E3, &mechanics.data.max_feedrate_mm_s.e[3], 1, 999);
+            #if MAX_EXTRUDER > 4
+              if (tools.data.extruder.total > 4)
+                MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E4, &mechanics.data.max_feedrate_mm_s.e[4], 1, 999);
+              #if MAX_EXTRUDER > 5
+                if (tools.data.extruder.total > 5)
+                  MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VMAX MSG_E5, &mechanics.data.max_feedrate_mm_s.e[5], 1, 999);
+              #endif
+            #endif
+          #endif
+        #endif
+      #endif
     }
 
     // M205 S Min Feedrate
@@ -498,19 +528,29 @@ void menu_advanced_temperature() {
     if (tools.data.extruder.total == 1)
       MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.data.retract_acceleration[0], 100, 99000);
     else {
-      if (tools.data.extruder.total > 1) {
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.data.retract_acceleration[tools.data.extruder.active], 100, 99000);
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E0, &mechanics.data.retract_acceleration[0], 100, 99000);
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E1, &mechanics.data.retract_acceleration[1], 100, 99000);
-      }
-      if (tools.data.extruder.total > 2)
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E2, &mechanics.data.retract_acceleration[2], 100, 99000);
-      if (tools.data.extruder.total > 3)
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E3, &mechanics.data.retract_acceleration[3], 100, 99000);
-      if (tools.data.extruder.total > 4)
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E4, &mechanics.data.retract_acceleration[4], 100, 99000);
-      if (tools.data.extruder.total > 5)
-        MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E5, &mechanics.data.retract_acceleration[5], 100, 99000);
+      #if MAX_EXTRUDER > 1
+        if (tools.data.extruder.total > 1) {
+          MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E, &mechanics.data.retract_acceleration[tools.data.extruder.active], 100, 99000);
+          MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E0, &mechanics.data.retract_acceleration[0], 100, 99000);
+          MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E1, &mechanics.data.retract_acceleration[1], 100, 99000);
+        }
+        #if MAX_EXTRUDER > 2
+          if (tools.data.extruder.total > 2)
+            MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E2, &mechanics.data.retract_acceleration[2], 100, 99000);
+          #if MAX_EXTRUDER > 3
+            if (tools.data.extruder.total > 3)
+              MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E3, &mechanics.data.retract_acceleration[3], 100, 99000);
+            #if MAX_EXTRUDER > 4
+              if (tools.data.extruder.total > 4)
+                MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E4, &mechanics.data.retract_acceleration[4], 100, 99000);
+              #if MAX_EXTRUDER > 5
+                if (tools.data.extruder.total > 5)
+                  MENU_MULTIPLIER_ITEM_EDIT(float5, MSG_A_RETRACT MSG_E5, &mechanics.data.retract_acceleration[5], 100, 99000);
+              #endif
+            #endif
+          #endif
+        #endif
+      #endif
     }
 
     // M204 T Travel Acceleration
@@ -528,19 +568,29 @@ void menu_advanced_temperature() {
     if (tools.data.extruder.total == 1)
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E, &mechanics.data.max_acceleration_mm_per_s2[E_AXIS], 100, 99000, _reset_acceleration_rates);
     else {
-      if (tools.data.extruder.total > 1) {
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E, &mechanics.data.max_acceleration_mm_per_s2.e[tools.data.extruder.active], 100, 99000, _reset_acceleration_rates);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E0, &mechanics.data.max_acceleration_mm_per_s2.e[0], 100, 99000, _reset_e0_acceleration_rate);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E1, &mechanics.data.max_acceleration_mm_per_s2.e[1], 100, 99000, _reset_e1_acceleration_rate);
-      }
-      if (tools.data.extruder.total > 2)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E2, &mechanics.data.max_acceleration_mm_per_s2.e[2], 100, 99000, _reset_e2_acceleration_rate);
-      if (tools.data.extruder.total > 3)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E3, &mechanics.data.max_acceleration_mm_per_s2.e[3], 100, 99000, _reset_e3_acceleration_rate);
-      if (tools.data.extruder.total > 4)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E4, &mechanics.data.max_acceleration_mm_per_s2.e[4], 100, 99000, _reset_e4_acceleration_rate);
-      if (tools.data.extruder.total > 5)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E5, &mechanics.data.max_acceleration_mm_per_s2.e[5], 100, 99000, _reset_e5_acceleration_rate);
+      #if MAX_EXTRUDER > 1
+        if (tools.data.extruder.total > 1) {
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E, &mechanics.data.max_acceleration_mm_per_s2.e[tools.data.extruder.active], 100, 99000, _reset_acceleration_rates);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E0, &mechanics.data.max_acceleration_mm_per_s2.e[0], 100, 99000, _reset_e0_acceleration_rate);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E1, &mechanics.data.max_acceleration_mm_per_s2.e[1], 100, 99000, _reset_e1_acceleration_rate);
+        }
+        #if MAX_EXTRUDER > 2
+          if (tools.data.extruder.total > 2)
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E2, &mechanics.data.max_acceleration_mm_per_s2.e[2], 100, 99000, _reset_e2_acceleration_rate);
+          #if MAX_EXTRUDER > 3
+            if (tools.data.extruder.total > 3)
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E3, &mechanics.data.max_acceleration_mm_per_s2.e[3], 100, 99000, _reset_e3_acceleration_rate);
+            #if MAX_EXTRUDER > 4
+              if (tools.data.extruder.total > 4)
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E4, &mechanics.data.max_acceleration_mm_per_s2.e[4], 100, 99000, _reset_e4_acceleration_rate);
+              #if MAX_EXTRUDER > 5
+                if (tools.data.extruder.total > 5)
+                  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(long5_25, MSG_AMAX MSG_E5, &mechanics.data.max_acceleration_mm_per_s2.e[5], 100, 99000, _reset_e5_acceleration_rate);
+              #endif
+            #endif
+          #endif
+        #endif
+      #endif
     }
 
     END_MENU();
@@ -578,19 +628,29 @@ void menu_advanced_temperature() {
         if (tools.data.extruder.total == 1)
           MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK, &mechanics.data.max_jerk.e[0], 1, 990);
         else {
-          if (tools.data.extruder.total > 1) {
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.data.max_jerk.e[tools.data.extruder.active], 1, 990);
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E0, &mechanics.data.max_jerk.e[0], 1, 990);
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E1, &mechanics.data.max_jerk.e[1], 1, 990);
-          }
-          if (tools.data.extruder.total > 2)
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E2, &mechanics.data.max_jerk.e[2], 1, 990);
-          if (tools.data.extruder.total > 3)
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E3, &mechanics.data.max_jerk.e[3], 1, 990);
-          if (tools.data.extruder.total > 4)
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E4, &mechanics.data.max_jerk.e[4], 1, 990);
-          if (tools.data.extruder.total > 5)
-            MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E5, &mechanics.data.max_jerk.e[5], 1, 990);
+          #if MAX_EXTRUDER > 1
+            if (tools.data.extruder.total > 1) {
+              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E, &mechanics.data.max_jerk.e[tools.data.extruder.active], 1, 990);
+              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E0, &mechanics.data.max_jerk.e[0], 1, 990);
+              MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E1, &mechanics.data.max_jerk.e[1], 1, 990);
+            }
+            #if MAX_EXTRUDER > 2
+              if (tools.data.extruder.total > 2)
+                MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E2, &mechanics.data.max_jerk.e[2], 1, 990);
+              #if MAX_EXTRUDER > 3
+                if (tools.data.extruder.total > 3)
+                  MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E3, &mechanics.data.max_jerk.e[3], 1, 990);
+                #if MAX_EXTRUDER > 4
+                  if (tools.data.extruder.total > 4)
+                    MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E4, &mechanics.data.max_jerk.e[4], 1, 990);
+                  #if MAX_EXTRUDER > 5
+                    if (tools.data.extruder.total > 5)
+                      MENU_MULTIPLIER_ITEM_EDIT(float3, MSG_VE_JERK MSG_E5, &mechanics.data.max_jerk.e[5], 1, 990);
+                  #endif
+                #endif
+              #endif
+            #endif
+          #endif
         }
       #endif // DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
     #endif // AS_CLASSIC_JERK
@@ -614,19 +674,29 @@ void menu_advanced_temperature() {
     if (tools.data.extruder.total == 1)
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm.e[0], 5, 9999, _mechanics_refresh_positioning);
     else {
-      if (tools.data.extruder.total > 1) {
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active], 5, 9999, _mechanics_refresh_positioning);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E0STEPS, &mechanics.data.axis_steps_per_mm.e[0], 5, 9999, _mechanics_refresh_e0_positioning);
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E1STEPS, &mechanics.data.axis_steps_per_mm.e[1], 5, 9999, _mechanics_refresh_e1_positioning);
-      }
-      if (tools.data.extruder.total > 2)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E2STEPS, &mechanics.data.axis_steps_per_mm.e[2], 5, 9999, _mechanics_refresh_e2_positioning);
-      if (tools.data.extruder.total > 3)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E3STEPS, &mechanics.data.axis_steps_per_mm.e[3], 5, 9999, _mechanics_refresh_e3_positioning);
-      if (tools.data.extruder.total > 4)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E4STEPS, &mechanics.data.axis_steps_per_mm.e[4], 5, 9999, _mechanics_refresh_e4_positioning);
-      if (tools.data.extruder.total > 5)
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E5STEPS, &mechanics.data.axis_steps_per_mm.e[5], 5, 9999, _mechanics_refresh_e4_positioning);
+      #if MAX_EXTRUDER > 1
+        if (tools.data.extruder.total > 1) {
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_ESTEPS, &mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active], 5, 9999, _mechanics_refresh_positioning);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E0STEPS, &mechanics.data.axis_steps_per_mm.e[0], 5, 9999, _mechanics_refresh_e0_positioning);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E1STEPS, &mechanics.data.axis_steps_per_mm.e[1], 5, 9999, _mechanics_refresh_e1_positioning);
+        }
+        #if MAX_EXTRUDER > 2
+          if (tools.data.extruder.total > 2)
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E2STEPS, &mechanics.data.axis_steps_per_mm.e[2], 5, 9999, _mechanics_refresh_e2_positioning);
+          #if MAX_EXTRUDER > 3
+            if (tools.data.extruder.total > 3)
+              MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E3STEPS, &mechanics.data.axis_steps_per_mm.e[3], 5, 9999, _mechanics_refresh_e3_positioning);
+            #if MAX_EXTRUDER > 4
+              if (tools.data.extruder.total > 4)
+                MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E4STEPS, &mechanics.data.axis_steps_per_mm.e[4], 5, 9999, _mechanics_refresh_e4_positioning);
+              #if MAX_EXTRUDER > 5
+                if (tools.data.extruder.total > 5)
+                  MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_E5STEPS, &mechanics.data.axis_steps_per_mm.e[5], 5, 9999, _mechanics_refresh_e4_positioning);
+              #endif
+            #endif
+          #endif
+        #endif
+      #endif
     }
 
     END_MENU();

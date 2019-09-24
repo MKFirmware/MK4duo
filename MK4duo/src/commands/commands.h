@@ -158,14 +158,12 @@ class Commands {
      */
     static Heater* get_target_heater();
 
-    #if HAS_FANS
-      /**
-       * Set target fan from the P parameter
-       *
-       * Returns TRUE if the target is invalid
-       */
-      static bool get_target_fan(uint8_t &f);
-    #endif
+    /**
+     * Set target fan from the P parameter
+     *
+     * Returns TRUE if the target is invalid
+     */
+    static bool get_target_fan(uint8_t &f);
 
   private: /** Private Function */
 

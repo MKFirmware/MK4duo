@@ -66,7 +66,7 @@ class AutoBedLevel {
     #endif
 
     #if !IS_KINEMATIC
-      static void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+      static void bilinear_line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
     #endif
 
   private: /** Private Function */

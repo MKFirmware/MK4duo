@@ -21,6 +21,10 @@
  */
 #pragma once
 
+#ifdef USBCON
+  #include <USBSerial.h>
+#endif
+
 // SERIAL ports
 #if SERIAL_PORT_1 == 0
   #error "Serial port 0 does not exist"

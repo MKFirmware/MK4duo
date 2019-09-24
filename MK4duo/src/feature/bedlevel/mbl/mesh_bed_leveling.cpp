@@ -45,7 +45,7 @@ void mesh_bed_leveling::factory_parameters() {
  * Prepare a mesh-leveled linear move in a Cartesian setup,
  * splitting the move where it crosses mesh borders.
  */
-void mesh_bed_leveling::line_to_destination(float fr_mm_s, uint16_t x_splits/*=0xFFFF*/, uint16_t y_splits/*=0xFFFF*/) {
+void mesh_bed_leveling::line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits/*=0xFFFF*/, uint16_t y_splits/*=0xFFFF*/) {
   int cx1 = cell_index_x(mechanics.current_position.x),
       cy1 = cell_index_y(mechanics.current_position.y),
       cx2 = cell_index_x(mechanics.destination.x),

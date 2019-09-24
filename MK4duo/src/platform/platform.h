@@ -39,7 +39,7 @@
 #include "common/servo/servo.h"
 #include "common/serial.h"
 #include "common/memory_store.h"
-#include "common/spi.h"
+#include "common/HAL_spi.h"
 
 #if ENABLED(__AVR__)
   #include "HAL_AVR/spi_pins.h"

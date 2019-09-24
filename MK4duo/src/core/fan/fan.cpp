@@ -92,7 +92,7 @@ void Fan::spin() {
     // Check for Hotend temperature
     LOOP_HOTEND() {
       if (TEST(data.auto_monitor, h)) {
-        if (hotends[h].deg_current() > data.trigger_temperature) {
+        if (hotends[h]->deg_current() > data.trigger_temperature) {
           speed = data.speed_limit.max;
           break;
         }

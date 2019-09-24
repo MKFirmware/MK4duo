@@ -30,10 +30,10 @@
 
 #if HAS_HEATER
 
-Heater hotends[HOTENDS]   = Heater(IS_HOTEND, HOTEND_CHECK_INTERVAL, HOTEND_HYSTERESIS, WATCH_HOTEND_PERIOD, WATCH_HOTEND_INCREASE);
-Heater beds[BEDS]         = Heater(IS_BED, BED_CHECK_INTERVAL, BED_HYSTERESIS, WATCH_BED_PERIOD, WATCH_BED_INCREASE);
-Heater chambers[CHAMBERS] = Heater(IS_CHAMBER, CHAMBER_CHECK_INTERVAL, CHAMBER_HYSTERESIS, WATCH_CHAMBER_PERIOD, WATCH_CHAMBER_INCREASE);
-Heater coolers[COOLERS]   = Heater(IS_COOLER, COOLER_CHECK_INTERVAL, COOLER_HYSTERESIS, WATCH_COOLER_PERIOD, WATCH_COOLER_INCREASE);
+Heater* hotends[MAX_HOTEND]   = { nullptr };
+Heater* beds[MAX_BED]         = { nullptr };
+Heater* chambers[MAX_CHAMBER] = { nullptr };
+Heater* coolers[MAX_COOLER]   = { nullptr };
 
 /** Public Function */
 void Heater::init() {
@@ -205,7 +205,7 @@ void Heater::get_output() {
     // Get the target temperature and the error
     const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
 
-    #if HAS_COOLERS
+    #if MAX_COOLER > 0
       if (type == IS_COOLER) {
         if (isUsePid()) {
           pwm_value = data.pid.spin(current_temperature, targetTemperature
@@ -363,7 +363,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         t1 = now;
         t_high = t1 - t2;
 
-        #if HAS_COOLERS
+        #if MAX_COOLER > 0
           type == IS_COOLER ? minTemp = target_temp : maxTemp = target_temp;
         #else
           maxTemp = target_temp;
@@ -437,7 +437,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         pwm_value = (bias + d);
         cycles++;
 
-        #if HAS_COOLERS
+        #if MAX_COOLER > 0
           if (type == IS_COOLER)
             maxTemp = target_temp;
           else
@@ -452,7 +452,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       #define MAX_OVERSHOOT_PID_AUTOTUNE 20
     #endif
     if (current_temp > target_temp + MAX_OVERSHOOT_PID_AUTOTUNE
-      #if HAS_COOLERS
+      #if MAX_COOLER > 0
         && type != IS_COOLER
       #endif
     ) {
@@ -461,7 +461,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       Pidtuning = false;
       break;
     }
-    #if HAS_COOLERS
+    #if MAX_COOLER > 0
       else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && type == IS_COOLER) {
         SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
         LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
@@ -492,7 +492,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         SERIAL_EMV(MSG_KD, tune_pid.Kd);
       }
 
-      #if HAS_BEDS
+      #if MAX_BED > 0
         if (type == IS_BED) {
           SERIAL_EMV("#define BED_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define BED_Ki ", tune_pid.Ki);
@@ -500,7 +500,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         }
       #endif
 
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         if (type == IS_CHAMBER) {
           SERIAL_EMV("#define CHAMBER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define CHAMBER_Ki ", tune_pid.Ki);
@@ -508,7 +508,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         }
       #endif
 
-      #if HAS_COOLERS
+      #if MAX_COOLER > 0
         if (type == IS_COOLER) {
           SERIAL_EMV("#define COOLER_Kp ", tune_pid.Kp);
           SERIAL_EMV("#define COOLER_Ki ", tune_pid.Ki);
@@ -666,7 +666,7 @@ void Heater::thermal_runaway_protection() {
     // While the temperature is stable watch for a bad temperature
     case TRStable:
 
-      #if ENABLED(ADAPTIVE_FAN_SPEED) && HAS_FANS
+      #if ENABLED(ADAPTIVE_FAN_SPEED) && MAX_FAN > 0
         if (type == IS_HOTEND) {
           if (fans[0].speed == 0)
             fans[0].scaled_speed = 128;
@@ -724,12 +724,12 @@ void Heater::temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
       case IS_HOTEND:
         SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
         break;
-      #if HAS_BEDS
+      #if MAX_BED > 0
         case IS_BED:
           SERIAL_EMV(MSG_HEATER_BED " ", int(data.ID));
           break;
       #endif
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         case IS_CHAMBER:
           SERIAL_EMV(MSG_HEATER_CHAMBER " ", int(data.ID));
           break;
@@ -758,12 +758,12 @@ void Heater::min_temp_error() {
     case IS_HOTEND:
       temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
       break;
-    #if HAS_BEDS
+    #if MAX_BED > 0
       case IS_BED:
         temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
         break;
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       case IS_CHAMBER:
         temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
         break;
@@ -777,12 +777,12 @@ void Heater::max_temp_error() {
     case IS_HOTEND:
       temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
       break;
-    #if HAS_BEDS
+    #if MAX_BED > 0
       case IS_BED:
         temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
         break;
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       case IS_CHAMBER:
         temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
         break;

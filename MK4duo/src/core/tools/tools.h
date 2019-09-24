@@ -34,24 +34,24 @@ union extruder_t {
     uint8_t previous  : 4;
     uint8_t target    : 4;
     uint8_t total     : 4;
- };
+  };
   extruder_t() { all = 0; }
 };
 
 // Struct Tool data
 typedef struct {
-  extruder_t extruder;
+  extruder_t  extruder;
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    float   filament_size[MAX_EXTRUDER];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+    float     filament_size[MAX_EXTRUDER];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
   #endif
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    int16_t lpq_len;
+    int16_t   lpq_len;
   #endif
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    float   swap_length,
-            purge_lenght;
-    int16_t prime_speed,
-            retract_speed;
+    float     swap_length,
+              purge_lenght;
+    int16_t   prime_speed,
+              retract_speed;
   #endif
 } tool_data_t;
 

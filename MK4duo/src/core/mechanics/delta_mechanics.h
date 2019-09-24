@@ -105,22 +105,22 @@ class Delta_Mechanics : public Mechanics {
      *  Plan a move to (X, Y, Z) and set the current_position.x
      *  The final current_position.x may not be the one that was requested
      */
-    static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_y(const float &ry, const float &fr_mm_s=0);
-    static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
+    static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s=0);
+    static void do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0);
 
-    FORCE_INLINE void do_blocking_move_to(const xy_pos_t &raw, const float &fr_mm_s=0) {
+    FORCE_INLINE void do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0) {
       do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
     }
-    FORCE_INLINE void do_blocking_move_to(const xyz_pos_t &raw, const float &fr_mm_s=0) {
+    FORCE_INLINE void do_blocking_move_to(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0) {
       do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
     }
-    FORCE_INLINE void do_blocking_move_to(const xyze_pos_t &raw, const float &fr_mm_s=0) {
+    FORCE_INLINE void do_blocking_move_to(const xyze_pos_t &raw, const feedrate_t &fr_mm_s=0) {
       do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
     }
-    FORCE_INLINE void do_blocking_move_to_xy(const xy_pos_t &raw, const float &fr_mm_s=0) {
+    FORCE_INLINE void do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0) {
       do_blocking_move_to_xy(raw.x, raw.y, fr_mm_s);
     }
 
@@ -140,7 +140,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Home an individual linear axis
      */
-    static void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0);
 
     /**
      * Set an axis' current position to its home position (after homing).
@@ -195,7 +195,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Calculate delta, start a line, and set current_position.x to destination
      */
-    static void prepare_uninterpolated_move_to_destination(const float &fr_mm_s=0.0);
+    static void prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s=0.0);
 
     /**
      * Calculate the highest Z position where the

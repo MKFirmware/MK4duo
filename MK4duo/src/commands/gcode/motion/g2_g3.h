@@ -136,7 +136,7 @@ void plan_arc(const xyze_pos_t &cart, const float (&offset)[2], const uint8_t cl
   // Initialize the extruder axis
   raw[E_AXIS] = mechanics.current_position.e;
 
-  const float fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
+  const feedrate_t fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
 
   #if ENABLED(SCARA_FEEDRATE_SCALING)
     const float inv_duration = fr_mm_s / MM_PER_ARC_SEGMENT;

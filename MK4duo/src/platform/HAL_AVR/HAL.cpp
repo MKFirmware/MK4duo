@@ -331,21 +331,21 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].set_output_pwm();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].set_output_pwm();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].set_output_pwm();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].set_output_pwm();
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->set_output_pwm();
   #endif
 
   // Fans set output PWM
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() {
       if (fans[f].kickstart) fans[f].kickstart--;
       fans[f].set_output_pwm();

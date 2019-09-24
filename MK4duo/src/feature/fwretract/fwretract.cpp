@@ -50,12 +50,12 @@ float FWRetract::current_retract[EXTRUDERS],      // Retract value used by plann
 void FWRetract::factory_parameters() {
   autoretract_enabled                     = false;
   data.retract_length                     = RETRACT_LENGTH;
-  data.retract_feedrate_mm_s              = RETRACT_FEEDRATE;
   data.retract_zlift                      = RETRACT_ZLIFT;
   data.retract_recover_length             = RETRACT_RECOVER_LENGTH;
-  data.retract_recover_feedrate_mm_s      = RETRACT_RECOVER_FEEDRATE;
   data.swap_retract_length                = RETRACT_LENGTH_SWAP;
   data.swap_retract_recover_length        = RETRACT_RECOVER_LENGTH_SWAP;
+  data.retract_feedrate_mm_s              = RETRACT_FEEDRATE;
+  data.retract_recover_feedrate_mm_s      = RETRACT_RECOVER_FEEDRATE;
   data.swap_retract_recover_feedrate_mm_s = RETRACT_RECOVER_FEEDRATE_SWAP;
   current_hop                             = 0.0;
 
@@ -100,8 +100,8 @@ void FWRetract::retract(const bool retracting
     constexpr bool swapping = false;
   #endif
 
-  const float old_feedrate_mm_s = mechanics.feedrate_mm_s,
-              unscale_e = RECIPROCAL(tools.e_factor[tools.data.extruder.active]),
+  feedrate_t  old_feedrate_mm_s = mechanics.feedrate_mm_s;
+  const float unscale_e = RECIPROCAL(tools.e_factor[tools.data.extruder.active]),
               unscale_fr = 100.0 / mechanics.feedrate_percentage, // Disable feedrate scaling for retract moves
               base_retract = swapping ? data.swap_retract_length : data.retract_length;
 
@@ -116,11 +116,11 @@ void FWRetract::retract(const bool retracting
     planner.synchronize();                    // Wait for move to complete
 
     // Is a Z hop set, and has the hop not yet been done?
-    if (data.retract_zlift > 0.01 && !current_hop) {   // Apply hop only once
-      current_hop += data.retract_zlift;               // Add to the hop total (again, only once)
+    if (data.retract_zlift > 0.01 && !current_hop) {  // Apply hop only once
+      current_hop += data.retract_zlift;              // Add to the hop total (again, only once)
       mechanics.feedrate_mm_s = mechanics.data.max_feedrate_mm_s.z * unscale_fr; // Maximum Z feedrate
-      mechanics.prepare_move_to_destination();    // Raise up, set_current_to_destination
-      planner.synchronize();                      // Wait for move to complete
+      mechanics.prepare_move_to_destination();        // Raise up, set_current_to_destination
+      planner.synchronize();                          // Wait for move to complete
     }
   }
   else {
@@ -128,24 +128,24 @@ void FWRetract::retract(const bool retracting
     if (current_hop) {
       current_hop = 0.0;
       mechanics.feedrate_mm_s = mechanics.data.max_feedrate_mm_s.z * unscale_fr; // Z feedrate to max
-      mechanics.prepare_move_to_destination();    // Lower Z and update current_position.x
-      planner.synchronize();                      // Wait for move to complete
+      mechanics.prepare_move_to_destination();        // Lower Z and update current_position.x
+      planner.synchronize();                          // Wait for move to complete
     }
 
     const float extra_recover = swapping ? data.swap_retract_recover_length : data.retract_recover_length;
     if (extra_recover != 0.0) {
       mechanics.current_position.e -= extra_recover;  // Adjust the current E position by the extra amount to recover
-      mechanics.sync_plan_position_e();                     // Sync the planner position so the extra amount is recovered
+      mechanics.sync_plan_position_e();               // Sync the planner position so the extra amount is recovered
     }
 
     current_retract[tools.data.extruder.active] = 0.0;
     mechanics.feedrate_mm_s = (swapping ? data.swap_retract_recover_feedrate_mm_s : data.retract_recover_feedrate_mm_s) * unscale_fr;
-    mechanics.prepare_move_to_destination();                // Recover E, set_current_to_destination
-    planner.synchronize();                                  // Wait for move to complete
+    mechanics.prepare_move_to_destination();          // Recover E, set_current_to_destination
+    planner.synchronize();                            // Wait for move to complete
   }
 
-  mechanics.feedrate_mm_s = old_feedrate_mm_s;              // Restore original feedrate
-  retracted[tools.data.extruder.active] = retracting;            // Active extruder now retracted / recovered
+  mechanics.feedrate_mm_s = old_feedrate_mm_s;        // Restore original feedrate
+  retracted[tools.data.extruder.active] = retracting; // Active extruder now retracted / recovered
 
   // If swap retract/recover then update the retracted_swap flag too
   #if MAX_EXTRUDER > 1

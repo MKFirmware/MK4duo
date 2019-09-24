@@ -154,11 +154,11 @@ NexObject LcdZ          = NexObject(2,  9);
   NexObject Hotend30    = NexObject(2, 17);
   NexObject Hotend31    = NexObject(2, 18);
 #endif
-#if HAS_BEDS
+#if MAX_BED > 0
   NexObject Bed0        = NexObject(2, 19);
   NexObject Bed1        = NexObject(2, 20);
 #endif
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
   NexObject Chamber0    = NexObject(2, 21);
   NexObject Chamber1    = NexObject(2, 22);
 #endif
@@ -450,7 +450,7 @@ void NextionLCD::status_screen_update() {
       #endif
     }
 
-    #if HAS_FANS
+    #if MAX_FAN > 0
       if (PreviousfanSpeed != fans[0].actual_speed()) {
         setValue(Fanspeed, fans[0].percent());
         PreviousfanSpeed = fans[0].actual_speed();
@@ -467,28 +467,28 @@ void NextionLCD::status_screen_update() {
     }
 
     #if HOTENDS > 0
-      setValue(Hotend00, hotends[0].deg_current());
-      setValue(Hotend01, hotends[0].deg_target());
+      setValue(Hotend00, hotends[0]->deg_current());
+      setValue(Hotend01, hotends[0]->deg_target());
     #endif
     #if HOTENDS > 1
-      setValue(Hotend10, hotends[1].deg_current());
-      setValue(Hotend11, hotends[1].deg_target());
+      setValue(Hotend10, hotends[1]->deg_current());
+      setValue(Hotend11, hotends[1]->deg_target());
     #endif
     #if HOTENDS > 2
-      setValue(Hotend20, hotends[2].deg_current());
-      setValue(Hotend21, hotends[2].deg_target());
+      setValue(Hotend20, hotends[2]->deg_current());
+      setValue(Hotend21, hotends[2]->deg_target());
     #endif
     #if HOTENDS > 3
-      setValue(Hotend30, hotends[3].deg_current());
-      setValue(Hotend31, hotends[3].deg_target());
+      setValue(Hotend30, hotends[3]->deg_current());
+      setValue(Hotend31, hotends[3]->deg_target());
     #endif
-    #if HAS_BEDS
-      setValue(Bed0, beds[0].deg_current());
-      setValue(Bed1, beds[0].deg_target());
+    #if MAX_BED > 0
+      setValue(Bed0, beds[0]->deg_current());
+      setValue(Bed1, beds[0]->deg_target());
     #endif
-    #if HAS_CHAMBERS
-      setValue(Chamber0, chambers[0].deg_current());
-      setValue(Chamber1, chambers[0].deg_target());
+    #if MAX_CHAMBER > 0
+      setValue(Chamber0, chambers[0]->deg_current());
+      setValue(Chamber1, chambers[0]->deg_target());
     #endif
     #if HAS_DHT
       if (lcdui.get_blink(3))
@@ -766,7 +766,7 @@ void NextionLCD::set_status_page() {
   #if HOTENDS > 3
     setValue(Hotend30, 25);
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     setValue(Bed0, 25);
   #endif
   #if HAS_TEMP_CHAMBER0
@@ -805,7 +805,7 @@ void NextionLCD::set_status_page() {
 
   setValue(VSpeed, 100);
 
-  #if HAS_FANS
+  #if MAX_FAN > 0
     sendCommandPGM(PSTR("p[2].b[25].val=1"));
   #endif
 
@@ -1510,11 +1510,11 @@ void LcdUI::stop_print() {
         strcat(cmd, MSG_FILAMENT_CHANGE_NOZZLE "H");
         strcat(cmd, ui8tostr1(hotend));
         strcat(cmd, " ");
-        strcat(cmd, i16tostr3(hotends[hotend].deg_current()));
+        strcat(cmd, i16tostr3(hotends[hotend]->deg_current()));
         strcat(cmd, "/");
 
-        if (get_blink() || !hotends[hotend].isIdle())
-          strcat(cmd, i16tostr3(hotends[hotend].deg_target()));
+        if (get_blink() || !hotends[hotend]->isIdle())
+          strcat(cmd, i16tostr3(hotends[hotend]->deg_target()));
 
         nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
         nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], cmd);

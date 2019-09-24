@@ -248,37 +248,27 @@ Heater* Commands::get_target_heater() {
 
   const int8_t h = parser.intval('H');
 
-  #if HAS_HOTENDS
-    if (WITHIN(h, 0 , HOTENDS - 1)) return &hotends[h];
-  #endif
+  if (WITHIN(h, 0 , thermalManager.data.hotends - 1)) return hotends[h];
 
   const uint8_t t = parser.byteval('T');
 
-  #if HAS_BEDS
-    if (h == -1 && WITHIN(t, 0 , BEDS - 1)) return &beds[t];
-  #endif
-  #if HAS_CHAMBERS
-    if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
-  #endif
-  #if HAS_COOLERS
-    if (h == -3 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
-  #endif
+  if (h == -1 && WITHIN(t, 0 , thermalManager.data.beds - 1)) return beds[t];
+  if (h == -2 && WITHIN(t, 0 , thermalManager.data.chambers - 1)) return chambers[t];
+  if (h == -3 && WITHIN(t, 0 , thermalManager.data.coolers - 1)) return coolers[t];
 
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return nullptr;
 
 }
 
-#if HAS_FANS
-  bool Commands::get_target_fan(uint8_t &f) {
-    f = parser.seen('P') ? parser.value_byte() : 0;
-    if (WITHIN(f, 0 , FAN_COUNT - 1)) return true;
-    else {
-      SERIAL_LM(ER, "Invalid Fan");
-      return false;
-    }
+bool Commands::get_target_fan(uint8_t &f) {
+  f = parser.seen('P') ? parser.value_byte() : 0;
+  if (WITHIN(f, 0 , thermalManager.data.fans - 1)) return true;
+  else {
+    SERIAL_LM(ER, "Invalid Fan");
+    return false;
   }
-#endif
+}
 
 /** Private Function */
 void Commands::ok_to_send() {

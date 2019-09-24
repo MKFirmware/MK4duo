@@ -40,7 +40,7 @@ const dir_flag_t  Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 const xyz_float_t Mechanics::homing_feedrate_mm_s = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
                   Mechanics::home_bump_mm         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
-float             Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
+feedrate_t        Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
 
 xyzen_float_t     Mechanics::steps_to_mm;
 
@@ -64,15 +64,15 @@ uint8_t Mechanics::axis_relative_modes = (
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
-  xyz_pos_t Mechanics::position_shift[XYZ] = { 0.0, 0.0, 0.0 };
+  xyz_pos_t Mechanics::position_shift[XYZ] = { 0.0f, 0.0f, 0.0f };
 
   // The above two are combined to save on computes
-  xyz_pos_t Mechanics::workspace_offset[XYZ] = { 0.0, 0.0, 0.0 };
+  xyz_pos_t Mechanics::workspace_offset[XYZ] = { 0.0f, 0.0f, 0.0f };
 #endif
 
 /** Private Parameters */
-float   Mechanics::saved_feedrate_mm_s = 0.0;
-int16_t Mechanics::saved_feedrate_percentage = 0;
+feedrate_t  Mechanics::saved_feedrate_mm_s        = 0.0f;
+int16_t     Mechanics::saved_feedrate_percentage  = 0;
 
 /**
  * Get homedir for axis
@@ -122,7 +122,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * Move the planner to the current position from wherever it last moved
  * (or from wherever it has been told it is located).
  */
-void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/) {
+void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
   planner.buffer_line(current_position, fr_mm_s, tools.data.extruder.active);
 }
 
@@ -130,7 +130,7 @@ void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/)
  * Move the planner to the position stored in the destination array, which is
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
-void Mechanics::buffer_line_to_destination(const float fr_mm_s) {
+void Mechanics::buffer_line_to_destination(const feedrate_t fr_mm_s) {
   planner.buffer_line(destination, fr_mm_s, tools.data.extruder.active);
 }
 

@@ -24,8 +24,6 @@
 // ------------------------
 // Defines
 // ------------------------
-#define NUM_HARDWARE_TIMERS 9
-
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
 #ifdef STM32F0xx
@@ -74,10 +72,6 @@
   #define TEMP_TIMER_IRQ_PRIO 2
 #endif
 
-// Tone for due
-#define TONE_TIMER_NUM
-#define HAL_TONE_TIMER_ISR()
-
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // index of timer to use for stepper
 #define STEPPER_TIMER_RATE          2000000                                     // frequency of stepper timer
@@ -123,7 +117,6 @@ extern void Step_Handler(stimer_t *htim);
 extern void Temp_Handler(stimer_t *htim);
 #define HAL_STEPPER_TIMER_ISR()     void Step_Handler(stimer_t *htim)
 #define HAL_TEMP_TIMER_ISR()        void Temp_Handler(stimer_t *htim)
-
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles

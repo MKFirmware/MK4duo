@@ -30,6 +30,8 @@
 Temperature thermalManager;
 
 /** Public Parameters */
+heater_max_t Temperature::data;
+
 #if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0,
           Temperature::mcu_highest_temperature  = 0.0,
@@ -58,6 +60,46 @@ Temperature thermalManager;
 #endif
 
 /** Public Function */
+void Temperature::create_heater() {
+
+  LOOP_HOTEND() {
+    if (!hotends[h]) {
+      hotends[h] = new Heater(IS_HOTEND, HOTEND_CHECK_INTERVAL, HOTEND_HYSTERESIS, WATCH_HOTEND_PERIOD, WATCH_HOTEND_INCREASE);
+      hotends_factory_parameters(h);
+      SERIAL_LMV(ECHO, "Create H", int(h));
+      hotends[h]->init();
+    }
+  }
+
+  LOOP_BED() {
+    if (!beds[h]) {
+      beds[h] = new Heater(IS_BED, BED_CHECK_INTERVAL, BED_HYSTERESIS, WATCH_BED_PERIOD, WATCH_BED_INCREASE);
+      beds_factory_parameters(h);
+      SERIAL_LMV(ECHO, "Create Bed", int(h));
+      beds[h]->init();
+    }
+  }
+
+  LOOP_CHAMBER() {
+    if (!chambers[h]) {
+      chambers[h] = new Heater(IS_CHAMBER, CHAMBER_CHECK_INTERVAL, CHAMBER_HYSTERESIS, WATCH_CHAMBER_PERIOD, WATCH_CHAMBER_INCREASE);
+      chambers_factory_parameters(h);
+      SERIAL_LMV(ECHO, "Create Chamber", int(h));
+      chambers[h]->init();
+    }
+  }
+
+  LOOP_COOLER() {
+    if (!coolers[h]) {
+      coolers[h] = new Heater(IS_COOLER, COOLER_CHECK_INTERVAL, COOLER_HYSTERESIS, WATCH_COOLER_PERIOD, WATCH_COOLER_INCREASE);
+      coolers_factory_parameters(h);
+      SERIAL_LMV(ECHO, "Create Cooler", int(h));
+      coolers[h]->init();
+    }
+  }
+
+}
+
 void Temperature::init() {
 
   HAL::analogStart();
@@ -70,231 +112,36 @@ void Temperature::init() {
   #endif
 
   // Reset Fault for all Heaters
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].ResetFault();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->ResetFault();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].ResetFault();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->ResetFault();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].ResetFault();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->ResetFault();
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].ResetFault();
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->ResetFault();
   #endif
 }
 
 void Temperature::factory_parameters() {
 
-  Heater        *heat;
-  pid_data_t    *pid;
-  sensor_data_t *sens;
+  data.hotends  = HOTENDS;
+  data.beds     = BEDS;
+  data.chambers = CHAMBERS;
+  data.coolers  = COOLERS;
+  data.fans     = FAN_COUNT;
 
-  #if HAS_HOTENDS
+  create_heater();
 
-    constexpr float   HEKp[]    = HOTEND_Kp,
-                      HEKi[]    = HOTEND_Ki,
-                      HEKd[]    = HOTEND_Kd,
-                      HEKc[]    = HOTEND_Kc;
-    constexpr pin_t   HE_pin[]  = { HEATER_HE0_PIN, HEATER_HE1_PIN, HEATER_HE2_PIN, HEATER_HE3_PIN, HEATER_HE4_PIN, HEATER_HE5_PIN },
-                      SE_pin[]  = { TEMP_HE0_PIN, TEMP_HE1_PIN, TEMP_HE2_PIN, TEMP_HE3_PIN, TEMP_HE4_PIN, TEMP_HE5_PIN };
-    constexpr int16_t HE_min[]  = { HOTEND_0_MINTEMP, HOTEND_1_MINTEMP, HOTEND_2_MINTEMP, HOTEND_3_MINTEMP, HOTEND_4_MINTEMP, HOTEND_5_MINTEMP },
-                      HE_max[]  = { HOTEND_0_MAXTEMP, HOTEND_1_MAXTEMP, HOTEND_2_MAXTEMP, HOTEND_3_MAXTEMP, HOTEND_4_MAXTEMP, HOTEND_5_MAXTEMP },
-                      SE_type[] = { TEMP_SENSOR_HE0, TEMP_SENSOR_HE1, TEMP_SENSOR_HE2, TEMP_SENSOR_HE3, TEMP_SENSOR_HE4, TEMP_SENSOR_HE5 };
+  LOOP_HOTEND()   if (hotends[h])   hotends_factory_parameters(h);
+  LOOP_BED()      if (beds[h])      beds_factory_parameters(h);
+  LOOP_CHAMBER()  if (chambers[h])  chambers_factory_parameters(h);
+  LOOP_COOLER()   if (coolers[h])   coolers_factory_parameters(h);
 
-    LOOP_HOTEND() {
-      heat                  = &hotends[h];
-      sens                  = &heat->data.sensor;
-      pid                   = &heat->data.pid;
-      heat->data.pin        = HE_pin[h];
-      heat->data.ID         = h;
-      heat->data.temp.min   = HE_min[h];
-      heat->data.temp.max   = HE_max[h];
-      heat->data.freq       = HOTEND_PWM_FREQUENCY;
-      // Pid
-      pid->Kp               = HEKp[ALIM(h, HEKp)];
-      pid->Ki               = HEKi[ALIM(h, HEKi)];
-      pid->Kd               = HEKd[ALIM(h, HEKd)];
-      pid->Kc               = HEKc[ALIM(h, HEKc)];
-      pid->drive.min        = POWER_DRIVE_MIN;
-      pid->drive.max        = POWER_DRIVE_MAX;
-      pid->Max              = POWER_MAX;
-      // Sensor
-      sens->pin             = SE_pin[h];
-      sens->type            = SE_type[h];
-      sens->res_25          = HOT0_R25;
-      sens->beta            = HOT0_BETA;
-      sens->pullup_res      = THERMISTOR_SERIES_RS;
-      sens->shC             = 0;
-      sens->adcLowOffset    = 0;
-      sens->adcHighOffset   = 0;
-      #if HAS_AD8495 || HAS_AD595
-        sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-      #endif
-      heat->resetFlag();
-      heat->setUsePid(PIDTEMP);
-      heat->setHWinvert(INVERTED_HEATER_PINS);
-      heat->setHWpwm(HARDWARE_PWM);
-      heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
-      #if HAS_EEPROM
-        heat->setPidTuned(false);
-      #else
-        heat->setPidTuned(true);
-      #endif
-    }
-
-  #endif // HAS_HOTENDS
-
-  #if HAS_BEDS
-
-    constexpr float   BEDKp[]   = BED_Kp,
-                      BEDKi[]   = BED_Ki,
-                      BEDKd[]   = BED_Kd;
-    constexpr pin_t   BE_pin[]  = { HEATER_BED0_PIN, HEATER_BED1_PIN, HEATER_BED2_PIN, HEATER_BED3_PIN },
-                      SB_pin[]  = { TEMP_BED0_PIN, TEMP_BED1_PIN, TEMP_BED2_PIN, TEMP_BED3_PIN };
-    constexpr int16_t BE_type[] = { TEMP_SENSOR_BED0, TEMP_SENSOR_BED1, TEMP_SENSOR_BED2, TEMP_SENSOR_BED3 };
-
-
-    LOOP_BED() {
-      heat                  = &beds[h];
-      sens                  = &heat->data.sensor;
-      pid                   = &heat->data.pid;
-      heat->data.pin        = BE_pin[h];
-      heat->data.ID         = h;
-      heat->data.temp.min   = BED_MINTEMP;
-      heat->data.temp.max   = BED_MAXTEMP;
-      heat->data.freq       = BED_PWM_FREQUENCY;
-      // Pid
-      pid->Kp               = BEDKp[ALIM(h, BEDKp)];
-      pid->Ki               = BEDKi[ALIM(h, BEDKi)];
-      pid->Kd               = BEDKd[ALIM(h, BEDKd)];
-      pid->drive.min        = BED_POWER_DRIVE_MIN;
-      pid->drive.max        = BED_POWER_DRIVE_MAX;
-      pid->Max              = BED_POWER_MAX;
-      // Sensor
-      sens->pin             = SB_pin[h];
-      sens->type            = BE_type[h];
-      sens->res_25          = BED0_R25;
-      sens->beta            = BED0_BETA;
-      sens->pullup_res      = THERMISTOR_SERIES_RS;
-      sens->shC             = 0;
-      sens->adcLowOffset    = 0;
-      sens->adcHighOffset   = 0;
-      #if HAS_AD8495 || HAS_AD595
-        sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-      #endif
-      heat->resetFlag();
-      heat->setUsePid(PIDTEMPBED);
-      heat->setHWinvert(INVERTED_BED_PIN);
-      heat->setHWpwm(HARDWARE_PWM);
-      heat->setThermalProtection(THERMAL_PROTECTION_BED);
-      #if HAS_EEPROM
-        heat->setPidTuned(false);
-      #else
-        heat->setPidTuned(true);
-      #endif
-    }
-
-  #endif // HAS_BEDS
-
-  #if HAS_CHAMBERS
-
-    constexpr float   CHAMBERKp[] = CHAMBER_Kp,
-                      CHAMBERKi[] = CHAMBER_Ki,
-                      CHAMBERKd[] = CHAMBER_Kd;
-    constexpr pin_t   CH_pin[]    = { HEATER_CHAMBER0_PIN, HEATER_CHAMBER1_PIN, HEATER_CHAMBER2_PIN, HEATER_CHAMBER3_PIN },
-                      SCH_pin[]   = { TEMP_CHAMBER0_PIN, TEMP_CHAMBER1_PIN, TEMP_CHAMBER2_PIN, TEMP_CHAMBER3_PIN };
-    constexpr int16_t CH_type[]   = { TEMP_SENSOR_CHAMBER0, TEMP_SENSOR_CHAMBER1, TEMP_SENSOR_CHAMBER2, TEMP_SENSOR_CHAMBER3 };
-
-    LOOP_CHAMBER() {
-      heat                  = &chambers[h];
-      sens                  = &heat->data.sensor;
-      pid                   = &heat->data.pid;
-      heat->data.pin        = CH_pin[h];
-      heat->data.ID         = h;
-      heat->data.temp.min   = CHAMBER_MINTEMP;
-      heat->data.temp.max   = CHAMBER_MAXTEMP;
-      heat->data.freq       = CHAMBER_PWM_FREQUENCY;
-      // Pid
-      pid->Kp               = CHAMBERKp[ALIM(h, CHAMBERKp)];
-      pid->Ki               = CHAMBERKi[ALIM(h, CHAMBERKi)];
-      pid->Kd               = CHAMBERKd[ALIM(h, CHAMBERKd)];
-      pid->drive.min        = CHAMBER_POWER_DRIVE_MIN;
-      pid->drive.max        = CHAMBER_POWER_DRIVE_MAX;
-      pid->Max              = CHAMBER_POWER_MAX;
-      // Sensor
-      sens->pin             = SCH_pin[h];
-      sens->type            = CH_type[h];
-      sens->res_25          = CHAMBER0_R25;
-      sens->beta            = CHAMBER0_BETA;
-      sens->pullup_res      = THERMISTOR_SERIES_RS;
-      sens->shC             = 0;
-      sens->adcLowOffset    = 0;
-      sens->adcHighOffset   = 0;
-      #if HAS_AD8495 || HAS_AD595
-        sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-        sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-      #endif
-      heat->resetFlag();
-      heat->setUsePid(PIDTEMPCHAMBER);
-      heat->setHWinvert(INVERTED_CHAMBER_PIN);
-      heat->setHWpwm(HARDWARE_PWM);
-      heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
-      #if HAS_EEPROM
-        heat->setPidTuned(false);
-      #else
-        heat->setPidTuned(true);
-      #endif
-    }
-
-  #endif // HAS_CHAMBERS
-
-  #if HAS_COOLERS
-
-    heat                  = &coolers[0];
-    sens                  = &heat->data.sensor;
-    pid                   = &heat->data.pid;
-    heat->data.pin        = HEATER_COOLER_PIN;
-    heat->data.ID         = 0;
-    heat->data.temp.min   = COOLER_MINTEMP;
-    heat->data.temp.max   = COOLER_MAXTEMP;
-    heat->data.freq       = COOLER_PWM_FREQUENCY;
-    // Pid
-    pid->Kp               = COOLER_Kp;
-    pid->Ki               = COOLER_Ki;
-    pid->Kd               = COOLER_Kd;
-    pid->drive.min        = COOLER_POWER_DRIVE_MIN;
-    pid->drive.max        = COOLER_POWER_DRIVE_MAX;
-    pid->Max              = COOLER_POWER_MAX;
-    // Sensor
-    sens->pin             = TEMP_COOLER_PIN;
-    sens->type            = TEMP_SENSOR_COOLER;
-    sens->res_25          = COOLER_R25;
-    sens->beta            = COOLER_BETA;
-    sens->pullup_res      = THERMISTOR_SERIES_RS;
-    sens->shC             = 0;
-    sens->adcLowOffset    = 0;
-    sens->adcHighOffset   = 0;
-    #if HAS_AD8495 || HAS_AD595
-      sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
-      sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
-    #endif
-    heat->resetFlag();
-    heat->setUsePid(PIDTEMPCOOLER);
-    heat->setHWinvert(INVERTED_COOLER_PIN);
-    heat->setHWpwm(HARDWARE_PWM);
-    heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
-    #if HAS_EEPROM
-      heat->setPidTuned(false);
-    #else
-      heat->setPidTuned(true);
-    #endif
-
-  #endif // HAS_CHAMBERS
-
-  #if HAS_FANS
+  #if MAX_FAN > 0
 
     constexpr pin_t   fanCh[]   = FANS_CHANNELS;
     constexpr int8_t  fanAuto[] = AUTO_FAN;
@@ -334,35 +181,70 @@ void Temperature::factory_parameters() {
       }
     }
 
-  #endif // HAS_FANS
+  #endif // MAX_FAN > 0
+
+}
+
+void Temperature::change_number_heater(const HeatertypeEnum type, const uint8_t h) {
+
+  if (type == IS_HOTEND) {
+    if (data.hotends < h) {
+      data.hotends = h;
+      create_heater();
+    }
+    else if (data.hotends > h) {
+      for (uint8_t hh = h; hh < MAX_HOTEND; hh++) {
+        Heater * tmpdriver = nullptr;
+        swap(tmpdriver, hotends[hh]);
+        delete(tmpdriver);
+      }
+      data.hotends = h;
+    }
+  }
+  else if (type == IS_BED) {
+    if (data.beds < h) {
+      data.beds = h;
+      create_heater();
+    }
+    else if (data.beds > h) {
+      for (uint8_t hh = h; hh < MAX_BED; hh++) {
+        Heater * tmpdriver = nullptr;
+        swap(tmpdriver, beds[hh]);
+        delete(tmpdriver);
+      }
+      data.beds = h;
+    }
+  }
+  else if (type == IS_CHAMBER) {
+    if (data.chambers < h) {
+      data.chambers = h;
+      create_heater();
+    }
+    else if (data.chambers > h) {
+      for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
+        Heater * tmpdriver = nullptr;
+        swap(tmpdriver, chambers[hh]);
+        delete(tmpdriver);
+      }
+      data.chambers = h;
+    }
+  }
 
 }
 
 void Temperature::set_current_temp_raw() {
 
-  #if HAS_HOTENDS
-    LOOP_HOTEND() {
-      if (WITHIN(hotends[h].data.sensor.pin, 0, 15))
-        hotends[h].data.sensor.raw = HAL::AnalogInputValues[hotends[h].data.sensor.pin];
-    }
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->data.sensor.raw = HAL::AnalogInputValues[hotends[h]->data.sensor.pin];
   #endif
-  #if HAS_BEDS
-    LOOP_BED() {
-      if (WITHIN(beds[h].data.sensor.pin, 0, 15))
-        beds[h].data.sensor.raw = HAL::AnalogInputValues[beds[h].data.sensor.pin];
-    }
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->data.sensor.raw = HAL::AnalogInputValues[beds[h]->data.sensor.pin];
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() {
-      if (WITHIN(chambers[h].data.sensor.pin, 0, 15))
-        chambers[h].data.sensor.raw = HAL::AnalogInputValues[chambers[h].data.sensor.pin];
-    }
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->data.sensor.raw = HAL::AnalogInputValues[chambers[h]->data.sensor.pin];
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() {
-      if (WITHIN(coolers[h].data.sensor.pin, 0, 15))
-        coolers[h].data.sensor.raw = HAL::AnalogInputValues[coolers[h].data.sensor.pin];
-    }
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->data.sensor.raw = HAL::AnalogInputValues[coolers[h]->data.sensor.pin];
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
@@ -390,37 +272,35 @@ void Temperature::spin() {
     if (emergency_parser.killed_by_M112) printer.kill(PSTR("M112"));
   #endif
 
-  LOOP_HOTEND() {
-    Heater * const act = &hotends[h];
-    // Update Current Temperature
-    act->update_current_temperature();
-    act->check_and_power();
-  }
-
-  #if HAS_BEDS
-    LOOP_BED() {
-      Heater * const act = &beds[h];
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() {
       // Update Current Temperature
-      act->update_current_temperature();
-      act->check_and_power();
+      hotends[h]->update_current_temperature();
+      hotends[h]->check_and_power();
+    }
+  #endif
+
+  #if MAX_BED > 0
+    LOOP_BED() {
+      // Update Current Temperature
+      beds[h]->update_current_temperature();
+      beds[h]->check_and_power();
     } // LOOP_BED
   #endif
 
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      Heater * const act = &chambers[h];
       // Update Current Temperature
-      act->update_current_temperature();
-      act->check_and_power();
+      chambers[h]->update_current_temperature();
+      chambers[h]->check_and_power();
     } // LOOP_CHAMBER
   #endif
 
-  #if HAS_COOLERS
+  #if MAX_COOLER > 0
     LOOP_COOLER() {
-      Heater * const act = &coolers[h];
       // Update Current Temperature
-      act->update_current_temperature();
-      act->check_and_power();
+      coolers[h]->update_current_temperature();
+      coolers[h]->check_and_power();
     } // LOOP_COOLER
   #endif
 
@@ -489,28 +369,28 @@ void Temperature::disable_all_heaters() {
     planner.autotemp_enabled = false;
   #endif
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      hotends[h].set_target_temp(0);
-      hotends[h].start_watching();
+      hotends[h]->set_target_temp(0);
+      hotends[h]->start_watching();
     }
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     LOOP_BED() {
-      beds[h].set_target_temp(0);
-      beds[h].start_watching();
+      beds[h]->set_target_temp(0);
+      beds[h]->start_watching();
     }
   #endif
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      chambers[h].set_target_temp(0);
-      chambers[h].start_watching();
+      chambers[h]->set_target_temp(0);
+      chambers[h]->start_watching();
     }
   #endif
-  #if HAS_COOLERS
+  #if MAX_COOLER > 0
     LOOP_COOLER() {
-      coolers[h].set_target_temp(0);
-      coolers[h].start_watching();
+      coolers[h]->set_target_temp(0);
+      coolers[h]->start_watching();
     }
   #endif
 
@@ -533,17 +413,17 @@ void Temperature::disable_all_heaters() {
  * Check if there are heaters Active
  */
 bool Temperature::heaters_isActive() {
-  #if HAS_HOTENDS
-    LOOP_HOTEND() if (hotends[h].isActive()) return true;
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() if (hotends[h]->isActive()) return true;
   #endif
-  #if HAS_BEDS
-    LOOP_BED() if (beds[h].isActive()) return true;
+  #if MAX_BED > 0
+    LOOP_BED() if (beds[h]->isActive()) return true;
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() if (chambers[h].isActive()) return true;
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() if (chambers[h]->isActive()) return true;
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() if (coolers[h].isActive()) return true;
+  #if MAX_COOLER > 0
+    LOOP_COOLER() if (coolers[h]->isActive()) return true;
   #endif
   return false;
 }
@@ -554,68 +434,68 @@ bool Temperature::heaters_isActive() {
  */
 #define MAX_TEMP_RANGE 10
 
-#if HAS_HOTENDS
+#if MAX_HOTEND > 0
 
   /**
    * Calc min & max temp of all hotends
    */
   int16_t Temperature::hotend_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_HOTEND() mintemp = MIN(mintemp, hotends[h].data.temp.min);
+    LOOP_HOTEND() mintemp = MIN(mintemp, hotends[h]->data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::hotend_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_HOTEND() maxtemp = MAX(maxtemp, hotends[h].data.temp.max);
+    LOOP_HOTEND() maxtemp = MAX(maxtemp, hotends[h]->data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
 #endif
 
-#if HAS_BEDS
+#if MAX_BED > 0
 
   int16_t Temperature::bed_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_BED() mintemp = MIN(mintemp, beds[h].data.temp.min);
+    LOOP_BED() mintemp = MIN(mintemp, beds[h]->data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::bed_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_HOTEND() maxtemp = MAX(maxtemp, beds[h].data.temp.max);
+    LOOP_HOTEND() maxtemp = MAX(maxtemp, beds[h]->data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
 #endif
 
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
 
   int16_t Temperature::chamber_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_CHAMBER() mintemp = MIN(mintemp, chambers[h].data.temp.min);
+    LOOP_CHAMBER() mintemp = MIN(mintemp, chambers[h]->data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::chamber_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_CHAMBER() maxtemp = MAX(maxtemp, chambers[h].data.temp.max);
+    LOOP_CHAMBER() maxtemp = MAX(maxtemp, chambers[h]->data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
 #endif
 
-#if HAS_COOLERS
+#if MAX_COOLER > 0
 
   int16_t Temperature::cooler_mintemp_all() {
     int16_t mintemp = 9999;
-    LOOP_COOLER() mintemp = MIN(mintemp, coolers[h].data.temp.min);
+    LOOP_COOLER() mintemp = MIN(mintemp, coolers[h]->data.temp.min);
     return mintemp;
   }
 
   int16_t Temperature::cooler_maxtemp_all() {
     int16_t maxtemp = 0;
-    LOOP_COOLER() maxtemp = MAX(maxtemp, coolers[h].data.temp.max);
+    LOOP_COOLER() maxtemp = MAX(maxtemp, coolers[h]->data.temp.max);
     return maxtemp - MAX_TEMP_RANGE;
   }
 
@@ -625,45 +505,42 @@ bool Temperature::heaters_isActive() {
 
   void Temperature::getTemperature_SPI() {
 
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       LOOP_HOTEND() {
-        Heater * const act = &hotends[h];
         if (false) {}
         #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
+          else if (hotends[h]->data.sensor.type == -4)
+            hotends[h]->data.sensor.raw = hotends[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
+          else if (hotends[h]->data.sensor.type == -3)
+            hotends[h]->data.sensor.raw = hotends[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       LOOP_BED() {
-        Heater * const act = &beds[h];
         if (false) {}
         #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
+          else if (beds[h]->data.sensor.type == -4)
+            beds[h]->data.sensor.raw = beds[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
+          else if (beds[h]->data.sensor.type == -3)
+            beds[h]->data.sensor.raw = beds[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       LOOP_CHAMBER() {
-        Heater * const act = &chambers[h];
         if (false) {}
         #if HAS_MAX31855
-          else if (act->data.sensor.type == -4)
-            act->data.sensor.raw = act->data.sensor.read_max31855();
+          else if (chambers[h]->data.sensor.type == -4)
+            chambers[h]->data.sensor.raw = chambers[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
-          else if (act->data.sensor.type == -3)
-            act->data.sensor.raw = act->data.sensor.read_max6675();
+          else if (chambers[h]->data.sensor.type == -3)
+            chambers[h]->data.sensor.raw = chambers[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
@@ -700,68 +577,68 @@ bool Temperature::heaters_isActive() {
     if (p != paused) {
       paused = p;
       if (p)
-        LOOP_HOTEND() hotends[h].start_idle_timer(0); // timeout immediately
+        LOOP_HOTEND() hotends[h]->start_idle_timer(0); // timeout immediately
       else
-        LOOP_HOTEND() hotends[h].reset_idle_timer();
+        LOOP_HOTEND() hotends[h]->reset_idle_timer();
     }
   }
 #endif // PROBING_HEATERS_OFF
 
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
-  #if HAS_HOTENDS
-    print_heater_state(&hotends[ACTIVE_HOTEND], false, showRaw);
-    SERIAL_MV(MSG_AT ":", hotends[ACTIVE_HOTEND].pwm_value);
+  #if MAX_HOTEND > 0
+    print_heater_state(hotends[ACTIVE_HOTEND], false, showRaw);
+    SERIAL_MV(MSG_AT ":", hotends[ACTIVE_HOTEND]->pwm_value);
   #endif
 
-  #if HAS_BEDS
-    print_heater_state(&beds[0], false, showRaw);
-    SERIAL_MV(MSG_BAT ":", beds[0].pwm_value);
+  #if MAX_BED > 0
+    print_heater_state(beds[0], false, showRaw);
+    SERIAL_MV(MSG_BAT ":", beds[0]->pwm_value);
   #endif
 
-  #if HAS_CHAMBERS
-    print_heater_state(&chambers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", chambers[0].pwm_value);
+  #if MAX_CHAMBER > 0
+    print_heater_state(chambers[0], false, showRaw);
+    SERIAL_MV(MSG_CAT ":", chambers[0]->pwm_value);
   #endif
 
-  #if HAS_COOLERS
-    print_heater_state(&coolers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", coolers[0].pwm_value);
+  #if MAX_COOLER > 0
+    print_heater_state(coolers[0], false, showRaw);
+    SERIAL_MV(MSG_CAT ":", coolers[0]->pwm_value);
   #endif
 
   #if HOTENDS > 1
     LOOP_HOTEND() {
-      print_heater_state(&hotends[h], true, showRaw);
+      print_heater_state(hotends[h], true, showRaw);
       SERIAL_MV(MSG_AT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(hotends[h].pwm_value);
+      SERIAL_VAL(hotends[h]->pwm_value);
     }
   #endif
 
   #if BEDS > 1
     LOOP_BED() {
-      print_heater_state(&beds[h], true, showRaw);
+      print_heater_state(beds[h], true, showRaw);
       SERIAL_MV(MSG_BAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(beds[h].pwm_value);
+      SERIAL_VAL(beds[h]->pwm_value);
     }
   #endif
 
   #if CHAMBERS > 1
     LOOP_CHAMBER() {
-      print_heater_state(&chambers[h], true, showRaw);
+      print_heater_state(chambers[h], true, showRaw);
       SERIAL_MV(MSG_CAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(chambers[h].pwm_value);
+      SERIAL_VAL(chambers[h]->pwm_value);
     }
   #endif
 
   #if COOLERS > 1
     LOOP_COOLER() {
-      print_heater_state(&coolers[h], true, showRaw);
+      print_heater_state(coolers[h], true, showRaw);
       SERIAL_MV(MSG_CAT, int(h));
       SERIAL_CHR(':');
-      SERIAL_VAL(coolers[h].pwm_value);
+      SERIAL_VAL(coolers[h]->pwm_value);
     }
   #endif
 
@@ -780,7 +657,219 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
 }
 
-// Private function
+/** Private Function */
+void Temperature::hotends_factory_parameters(const uint8_t h) {
+
+  Heater        *heat;
+  pid_data_t    *pid;
+  sensor_data_t *sens;
+
+  constexpr float   HEKp[]    = HOTEND_Kp,
+                    HEKi[]    = HOTEND_Ki,
+                    HEKd[]    = HOTEND_Kd,
+                    HEKc[]    = HOTEND_Kc;
+  constexpr pin_t   HE_pin[]  = { HEATER_HE0_PIN, HEATER_HE1_PIN, HEATER_HE2_PIN, HEATER_HE3_PIN, HEATER_HE4_PIN, HEATER_HE5_PIN },
+                    SE_pin[]  = { TEMP_HE0_PIN, TEMP_HE1_PIN, TEMP_HE2_PIN, TEMP_HE3_PIN, TEMP_HE4_PIN, TEMP_HE5_PIN };
+  constexpr int16_t HE_min[]  = { HOTEND_0_MINTEMP, HOTEND_1_MINTEMP, HOTEND_2_MINTEMP, HOTEND_3_MINTEMP, HOTEND_4_MINTEMP, HOTEND_5_MINTEMP },
+                    HE_max[]  = { HOTEND_0_MAXTEMP, HOTEND_1_MAXTEMP, HOTEND_2_MAXTEMP, HOTEND_3_MAXTEMP, HOTEND_4_MAXTEMP, HOTEND_5_MAXTEMP },
+                    SE_type[] = { TEMP_SENSOR_HE0, TEMP_SENSOR_HE1, TEMP_SENSOR_HE2, TEMP_SENSOR_HE3, TEMP_SENSOR_HE4, TEMP_SENSOR_HE5 };
+
+  heat                  = hotends[h];
+  sens                  = &heat->data.sensor;
+  pid                   = &heat->data.pid;
+  heat->data.pin        = HE_pin[h];
+  heat->data.ID         = h;
+  heat->data.temp.min   = HE_min[h];
+  heat->data.temp.max   = HE_max[h];
+  heat->data.freq       = HOTEND_PWM_FREQUENCY;
+  // Pid
+  pid->Kp               = HEKp[ALIM(h, HEKp)];
+  pid->Ki               = HEKi[ALIM(h, HEKi)];
+  pid->Kd               = HEKd[ALIM(h, HEKd)];
+  pid->Kc               = HEKc[ALIM(h, HEKc)];
+  pid->drive.min        = POWER_DRIVE_MIN;
+  pid->drive.max        = POWER_DRIVE_MAX;
+  pid->Max              = POWER_MAX;
+  // Sensor
+  sens->pin             = SE_pin[h];
+  sens->type            = SE_type[h];
+  sens->res_25          = HOT0_R25;
+  sens->beta            = HOT0_BETA;
+  sens->pullup_res      = THERMISTOR_SERIES_RS;
+  sens->shC             = 0;
+  sens->adcLowOffset    = 0;
+  sens->adcHighOffset   = 0;
+  #if HAS_AD8495 || HAS_AD595
+    sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+    sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+  #endif
+  heat->resetFlag();
+  heat->setUsePid(PIDTEMP);
+  heat->setHWinvert(INVERTED_HEATER_PINS);
+  heat->setHWpwm(HARDWARE_PWM);
+  heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
+  #if HAS_EEPROM
+    heat->setPidTuned(false);
+  #else
+    heat->setPidTuned(true);
+  #endif
+
+}
+
+void Temperature::beds_factory_parameters(const uint8_t h) {
+
+  Heater        *heat;
+  pid_data_t    *pid;
+  sensor_data_t *sens;
+
+  constexpr float   BEDKp[]   = BED_Kp,
+                    BEDKi[]   = BED_Ki,
+                    BEDKd[]   = BED_Kd;
+  constexpr pin_t   BE_pin[]  = { HEATER_BED0_PIN, HEATER_BED1_PIN, HEATER_BED2_PIN, HEATER_BED3_PIN },
+                    SB_pin[]  = { TEMP_BED0_PIN, TEMP_BED1_PIN, TEMP_BED2_PIN, TEMP_BED3_PIN };
+  constexpr int16_t BE_type[] = { TEMP_SENSOR_BED0, TEMP_SENSOR_BED1, TEMP_SENSOR_BED2, TEMP_SENSOR_BED3 };
+
+  heat                  = beds[h];
+  sens                  = &heat->data.sensor;
+  pid                   = &heat->data.pid;
+  heat->data.pin        = BE_pin[h];
+  heat->data.ID         = h;
+  heat->data.temp.min   = BED_MINTEMP;
+  heat->data.temp.max   = BED_MAXTEMP;
+  heat->data.freq       = BED_PWM_FREQUENCY;
+  // Pid
+  pid->Kp               = BEDKp[ALIM(h, BEDKp)];
+  pid->Ki               = BEDKi[ALIM(h, BEDKi)];
+  pid->Kd               = BEDKd[ALIM(h, BEDKd)];
+  pid->drive.min        = BED_POWER_DRIVE_MIN;
+  pid->drive.max        = BED_POWER_DRIVE_MAX;
+  pid->Max              = BED_POWER_MAX;
+  // Sensor
+  sens->pin             = SB_pin[h];
+  sens->type            = BE_type[h];
+  sens->res_25          = BED0_R25;
+  sens->beta            = BED0_BETA;
+  sens->pullup_res      = THERMISTOR_SERIES_RS;
+  sens->shC             = 0;
+  sens->adcLowOffset    = 0;
+  sens->adcHighOffset   = 0;
+  #if HAS_AD8495 || HAS_AD595
+    sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+    sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+  #endif
+  heat->resetFlag();
+  heat->setUsePid(PIDTEMPBED);
+  heat->setHWinvert(INVERTED_BED_PIN);
+  heat->setHWpwm(HARDWARE_PWM);
+  heat->setThermalProtection(THERMAL_PROTECTION_BED);
+  #if HAS_EEPROM
+    heat->setPidTuned(false);
+  #else
+    heat->setPidTuned(true);
+  #endif
+
+}
+
+void Temperature::chambers_factory_parameters(const uint8_t h) {
+
+  Heater        *heat;
+  pid_data_t    *pid;
+  sensor_data_t *sens;
+
+  constexpr float   CHAMBERKp[] = CHAMBER_Kp,
+                    CHAMBERKi[] = CHAMBER_Ki,
+                    CHAMBERKd[] = CHAMBER_Kd;
+  constexpr pin_t   CH_pin[]    = { HEATER_CHAMBER0_PIN, HEATER_CHAMBER1_PIN, HEATER_CHAMBER2_PIN, HEATER_CHAMBER3_PIN },
+                    SCH_pin[]   = { TEMP_CHAMBER0_PIN, TEMP_CHAMBER1_PIN, TEMP_CHAMBER2_PIN, TEMP_CHAMBER3_PIN };
+  constexpr int16_t CH_type[]   = { TEMP_SENSOR_CHAMBER0, TEMP_SENSOR_CHAMBER1, TEMP_SENSOR_CHAMBER2, TEMP_SENSOR_CHAMBER3 };
+
+  heat                  = chambers[h];
+  sens                  = &heat->data.sensor;
+  pid                   = &heat->data.pid;
+  heat->data.pin        = CH_pin[h];
+  heat->data.ID         = h;
+  heat->data.temp.min   = CHAMBER_MINTEMP;
+  heat->data.temp.max   = CHAMBER_MAXTEMP;
+  heat->data.freq       = CHAMBER_PWM_FREQUENCY;
+  // Pid
+  pid->Kp               = CHAMBERKp[ALIM(h, CHAMBERKp)];
+  pid->Ki               = CHAMBERKi[ALIM(h, CHAMBERKi)];
+  pid->Kd               = CHAMBERKd[ALIM(h, CHAMBERKd)];
+  pid->drive.min        = CHAMBER_POWER_DRIVE_MIN;
+  pid->drive.max        = CHAMBER_POWER_DRIVE_MAX;
+  pid->Max              = CHAMBER_POWER_MAX;
+  // Sensor
+  sens->pin             = SCH_pin[h];
+  sens->type            = CH_type[h];
+  sens->res_25          = CHAMBER0_R25;
+  sens->beta            = CHAMBER0_BETA;
+  sens->pullup_res      = THERMISTOR_SERIES_RS;
+  sens->shC             = 0;
+  sens->adcLowOffset    = 0;
+  sens->adcHighOffset   = 0;
+  #if HAS_AD8495 || HAS_AD595
+    sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+    sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+  #endif
+  heat->resetFlag();
+  heat->setUsePid(PIDTEMPCHAMBER);
+  heat->setHWinvert(INVERTED_CHAMBER_PIN);
+  heat->setHWpwm(HARDWARE_PWM);
+  heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
+  #if HAS_EEPROM
+    heat->setPidTuned(false);
+  #else
+    heat->setPidTuned(true);
+  #endif
+
+}
+
+void Temperature::coolers_factory_parameters(const uint8_t h) {
+
+  Heater        *heat;
+  pid_data_t    *pid;
+  sensor_data_t *sens;
+
+  heat                  = coolers[h];
+  sens                  = &heat->data.sensor;
+  pid                   = &heat->data.pid;
+  heat->data.pin        = HEATER_COOLER_PIN;
+  heat->data.ID         = 0;
+  heat->data.temp.min   = COOLER_MINTEMP;
+  heat->data.temp.max   = COOLER_MAXTEMP;
+  heat->data.freq       = COOLER_PWM_FREQUENCY;
+  // Pid
+  pid->Kp               = COOLER_Kp;
+  pid->Ki               = COOLER_Ki;
+  pid->Kd               = COOLER_Kd;
+  pid->drive.min        = COOLER_POWER_DRIVE_MIN;
+  pid->drive.max        = COOLER_POWER_DRIVE_MAX;
+  pid->Max              = COOLER_POWER_MAX;
+  // Sensor
+  sens->pin             = TEMP_COOLER_PIN;
+  sens->type            = TEMP_SENSOR_COOLER;
+  sens->res_25          = COOLER_R25;
+  sens->beta            = COOLER_BETA;
+  sens->pullup_res      = THERMISTOR_SERIES_RS;
+  sens->shC             = 0;
+  sens->adcLowOffset    = 0;
+  sens->adcHighOffset   = 0;
+  #if HAS_AD8495 || HAS_AD595
+    sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
+    sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
+  #endif
+  heat->resetFlag();
+  heat->setUsePid(PIDTEMPCOOLER);
+  heat->setHWinvert(INVERTED_COOLER_PIN);
+  heat->setHWpwm(HARDWARE_PWM);
+  heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
+  #if HAS_EEPROM
+    heat->setPidTuned(false);
+  #else
+    heat->setPidTuned(true);
+  #endif
+
+}
 
 #if HAS_MCU_TEMPERATURE
   float Temperature::analog2tempMCU(const int raw) {
@@ -789,7 +878,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   }
 #endif
 
-void Temperature::print_heater_state(Heater * const act, const bool print_ID, const bool showRaw) {
+void Temperature::print_heater_state(Heater* act, const bool print_ID, const bool showRaw) {
 
   SERIAL_CHR(' ');
 
@@ -804,15 +893,15 @@ void Temperature::print_heater_state(Heater * const act, const bool print_ID, co
     }
   #endif
 
-  #if HAS_BEDS
+  #if MAX_BED > 0
     if (act->type == IS_BED) SERIAL_CHR('B');
   #endif
 
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     if (act->type == IS_CHAMBER) SERIAL_CHR('C');
   #endif
 
-  #if HAS_COOLERS
+  #if MAX_COOLER > 0
     if (act->type == IS_COOLER) SERIAL_CHR('W');
   #endif
 

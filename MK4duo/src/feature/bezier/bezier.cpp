@@ -75,18 +75,18 @@
    * the mitigation offered by MIN_STEP and the small computational
    * power available on Arduino, I think it is not wise to implement it.
    */
-  void Bezier::cubic_b_spline(const float position[NUM_AXIS], const float target[NUM_AXIS], const float offset[4], float fr_mm_s, uint8_t extruder) {
+  void Bezier::cubic_b_spline(const xyze_pos_t position, const xyze_pos_t target, const float offset[4], feedrate_t fr_mm_s, uint8_t extruder) {
 
     // Absolute first and second control points are recovered.
-    const float first0 = position[X_AXIS] + offset[0],
-                first1 = position[Y_AXIS] + offset[1],
-                second0 = target[X_AXIS] + offset[2],
-                second1 = target[Y_AXIS] + offset[3];
+    const float first0 = position.x + offset[0],
+                first1 = position.y + offset[1],
+                second0 = target.x + offset[2],
+                second1 = target.y + offset[3];
     float t = 0.0;
 
-    float bez_target[4];
-    bez_target[X_AXIS] = position[X_AXIS];
-    bez_target[Y_AXIS] = position[Y_AXIS];
+    xyze_pos_t bez_target;
+    bez_target.x = position.x;
+    bez_target.y = position.y;
     float step = MAX_STEP;
 
     millis_s next_idle_ms = millis();
@@ -100,15 +100,15 @@
       bool did_reduce = false;
       float new_t = t + step;
       NOMORE(new_t, 1.0);
-      float new_pos0 = eval_bezier(position[X_AXIS], first0, second0, target[X_AXIS], new_t);
-      float new_pos1 = eval_bezier(position[Y_AXIS], first1, second1, target[Y_AXIS], new_t);
+      float new_pos0 = eval_bezier(position.x, first0, second0, target.x, new_t);
+      float new_pos1 = eval_bezier(position.y, first1, second1, target.y, new_t);
       for (;;) {
         if (new_t - t < (MIN_STEP)) break;
         const float candidate_t = 0.5 * (t + new_t),
-                    candidate_pos0 = eval_bezier(position[X_AXIS], first0, second0, target[X_AXIS], candidate_t),
-                    candidate_pos1 = eval_bezier(position[Y_AXIS], first1, second1, target[Y_AXIS], candidate_t),
-                    interp_pos0 = 0.5 * (bez_target[X_AXIS] + new_pos0),
-                    interp_pos1 = 0.5 * (bez_target[Y_AXIS] + new_pos1);
+                    candidate_pos0 = eval_bezier(position.x, first0, second0, target.x, candidate_t),
+                    candidate_pos1 = eval_bezier(position.y, first1, second1, target.y, candidate_t),
+                    interp_pos0 = 0.5 * (bez_target.x + new_pos0),
+                    interp_pos1 = 0.5 * (bez_target.y + new_pos1);
         if (dist1(candidate_pos0, candidate_pos1, interp_pos0, interp_pos1) <= (SIGMA)) break;
         new_t = candidate_t;
         new_pos0 = candidate_pos0;
@@ -121,10 +121,10 @@
         if (new_t - t > MAX_STEP) break;
         const float candidate_t = t + 2.0 * (new_t - t);
         if (candidate_t >= 1.0) break;
-        const float candidate_pos0 = eval_bezier(position[X_AXIS], first0, second0, target[X_AXIS], candidate_t),
-                    candidate_pos1 = eval_bezier(position[Y_AXIS], first1, second1, target[Y_AXIS], candidate_t),
-                    interp_pos0 = 0.5 * (bez_target[X_AXIS] + candidate_pos0),
-                    interp_pos1 = 0.5 * (bez_target[Y_AXIS] + candidate_pos1);
+        const float candidate_pos0 = eval_bezier(position.x, first0, second0, target.x, candidate_t),
+                    candidate_pos1 = eval_bezier(position.y, first1, second1, target.y, candidate_t),
+                    interp_pos0 = 0.5 * (bez_target.x + candidate_pos0),
+                    interp_pos1 = 0.5 * (bez_target.y + candidate_pos1);
         if (dist1(new_pos0, new_pos1, interp_pos0, interp_pos1) > (SIGMA)) break;
         new_t = candidate_t;
         new_pos0 = candidate_pos0;
@@ -135,19 +135,19 @@
       t = new_t;
 
       // Compute and send new position
-      bez_target[X_AXIS] = new_pos0;
-      bez_target[Y_AXIS] = new_pos1;
+      bez_target.x = new_pos0;
+      bez_target.y = new_pos1;
       // FIXME. The following two are wrong, since the parameter t is
       // not linear in the distance.
-      bez_target[Z_AXIS] = interp(position[Z_AXIS], target[Z_AXIS], t);
-      bez_target[E_AXIS] = interp(position[E_AXIS], target[E_AXIS], t);
+      bez_target.z = interp(position.z, target.z, t);
+      bez_target.e = interp(position.e, target.e, t);
       endstops.apply_motion_limits(bez_target);
 
       #if HAS_LEVELING && !PLANNER_LEVELING
-        float pos[XYZE] = { bez_target[X_AXIS], bez_target[Y_AXIS], bez_target[Z_AXIS], bez_target[E_AXIS] };
+        xyze_pos_t pos = { bez_target.x, bez_target.y, bez_target.z, bez_target.e };
         planner.apply_leveling(pos);
       #else
-        const float (&pos)[XYZE] = bez_target;
+        const xyze_pos_t &pos = bez_target;
       #endif
 
       if (!planner.buffer_line(bez_target, fr_mm_s, extruder))

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_BEDS
+#if MAX_BED > 0
 
 #define CODE_M190
 
@@ -41,13 +41,13 @@ inline void gcode_M190() {
   if (WITHIN(b, 0 , BEDS - 1)) {
     const bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))
-      beds[b].set_target_temp(parser.value_celsius());
+      beds[b]->set_target_temp(parser.value_celsius());
     else return;
 
-    lcdui.set_status_P(beds[b].isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
+    lcdui.set_status_P(beds[b]->isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
 
-    beds[b].wait_for_target(no_wait_for_cooling);
+    beds[b]->wait_for_target(no_wait_for_cooling);
   }
 }
 
-#endif // HAS_BEDS
+#endif // MAX_BED > 0

@@ -407,7 +407,7 @@ void Probe::specific_action(const bool deploy) {
  *
  * return true to indicate an error
  */
-bool Probe::move_to_z(const float z, const float fr_mm_s) {
+bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
 
   if (printer.debugFeature()) DEBUG_POS(">>> probe.move_to_z", mechanics.current_position);
 

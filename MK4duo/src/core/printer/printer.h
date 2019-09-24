@@ -145,6 +145,8 @@ class Printer {
 
     static bool pin_is_protected(const pin_t pin);
 
+    static void print_M353();
+
     FORCE_INLINE static void reset_move_ms() { move_ms = millis(); }
 
     #if HAS_SUICIDE
@@ -156,7 +158,7 @@ class Printer {
     #endif
 
     FORCE_INLINE static void zero_fan_speed() {
-      #if HAS_FANS
+      #if MAX_FAN > 0
         LOOP_FAN() fans[f].speed = 0;
       #endif
     }

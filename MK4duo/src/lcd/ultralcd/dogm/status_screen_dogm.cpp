@@ -45,9 +45,9 @@
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
 #define DO_DRAW_LOGO    (STATUS_LOGO_WIDTH && ENABLED(CUSTOM_STATUS_SCREEN_IMAGE))
-#define DO_DRAW_BED     (HAS_BEDS && STATUS_BED_WIDTH && HOTENDS <= 4)
-#define DO_DRAW_CHAMBER (HAS_CHAMBERS && STATUS_CHAMBER_WIDTH && HOTENDS <= 4)
-#define DO_DRAW_FAN     (HAS_FANS && STATUS_FAN_WIDTH && HOTENDS <= 4 && ENABLED(STATUS_FAN_FRAMES))
+#define DO_DRAW_BED     (MAX_BED > 0 && STATUS_BED_WIDTH && HOTENDS <= 4)
+#define DO_DRAW_CHAMBER (MAX_CHAMBER > 0 && STATUS_CHAMBER_WIDTH && HOTENDS <= 4)
+#define DO_DRAW_FAN     (MAX_FAN > 0 && STATUS_FAN_WIDTH && HOTENDS <= 4 && ENABLED(STATUS_FAN_FRAMES))
 
 #define ANIM_HOTEND     (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
 #define ANIM_BED        (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
@@ -86,7 +86,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
-  #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (HAS_BEDS && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
+  #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (MAX_BED > 0 && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
     const bool isBed = (act->type == IS_BED);
     #define IFBED(A,B) (isBed ? (A) : (B))
   #else
@@ -203,8 +203,8 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
 #if DO_DRAW_CHAMBER
   FORCE_INLINE void _draw_chamber_status(const bool blink) {
-    const float temp    = chambers[0].deg_current(),
-                target  = chambers[0].deg_target();
+    const float temp    = chambers[0]->deg_current(),
+                target  = chambers[0]->deg_target();
 
     if (PAGE_UNDER(7)) {
       const bool  is_idle = chambers[0].isIdle();
@@ -247,10 +247,10 @@ void LcdUI::draw_status_screen() {
     #if ANIM_HBC
       uint8_t new_bits = 0;
       #if ANIM_HOTEND
-        LOOP_HOTEND() if (hotends[h].isHeating()) SBI(new_bits, h);
+        LOOP_HOTEND() if (hotends[h]->isHeating()) SBI(new_bits, h);
       #endif
       #if ANIM_BED
-        if (beds[0].isHeating()) SBI(new_bits, 7);
+        if (beds[0]->isHeating()) SBI(new_bits, 7);
       #endif
       #if DO_DRAW_CHAMBER
         if (chambers[0].isHeating()) SBI(new_bits, 6);
@@ -345,11 +345,11 @@ void LcdUI::draw_status_screen() {
     if (PAGE_UNDER(6 + 1 + 12 + 1 + 6 + 1)) {
       // Hotends
       for (uint8_t h = 0; h < MAX_HOTEND_DRAW; ++h)
-        _draw_heater_status(&hotends[h], blink);
+        _draw_heater_status(hotends[h], blink);
 
       // Heated bed
-      #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (HAS_BEDS && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
-        _draw_heater_status(&beds[0], blink);
+      #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (MAX_BED > 0 && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
+        _draw_heater_status(beds[0], blink);
       #endif
 
       #if DO_DRAW_CHAMBER

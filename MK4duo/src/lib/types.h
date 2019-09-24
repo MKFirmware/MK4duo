@@ -53,6 +53,17 @@ struct IF<true, L, R> { typedef L type; };
 #define _LS(N)    (N = (T)(int(N) << v))
 #define _RS(N)    (N = (T)(int(N) >> v))
 
+/**
+ * FeedRate_t
+ */
+typedef float feedrate_t;
+
+// Feedrate scaling and conversion
+#define MMM_TO_MMS(MM_M)  feedrate_t((MM_M)/60.0f)
+#define MMS_TO_MMM(MM_S)  ((MM_S)*60.0f)
+#define MMS_SCALED(MM_S)  ((MM_S)* 0.1f * mechanics.feedrate_percentage)
+/***********************************************************/
+
 template<typename T> struct                 XYval;
 template<typename T> struct                XYZval;
 template<typename T> struct               XYZEval;
@@ -367,13 +378,16 @@ struct XYZEval {
   T magnitude()                                      const { return (T)sqrtf(x*x + y*y + z*z + e*e); }
   operator T* ()                                           { return pos; }
   operator bool()                                          { return e || z || x || y; }
-  void set(const T px)                                     { x = px; }
-  void set(const T px, const T py)                         { x = px; y = py; }
-  void set(const T px, const T py, const T pz)             { x = px; y = py; z = pz; }
-  void set(const T px, const T py, const T pz, const T pe) { x = px; y = py; z = pz; e = pe; }
-  void set(const XYval<T> pxy, const T pz, const T pe)     { x = pxy.x; y = pxy.y; z = pz; e = pe; }
-  void set(const XYval<T> pxy, const XYval<T> pze)         { x = pxy.x; y = pxy.y; z = pze.z; e = pze.e; }
-  void set(const XYZval<T> pxyz, const T pe)               { x = pxyz.x; y = pxyz.y; z = pxyz.z; e = pe; }
+  void set(const T px)                                     { x = px;                                        }
+  void set(const T px, const T py)                         { x = px;     y = py;                            }
+  void set(const T px, const T py, const T pz)             { x = px;     y = py;     z = pz;                }
+  void set(const T px, const T py, const T pz, const T pe) { x = px;     y = py;     z = pz;     e = pe;    }
+  void set(const XYval<T> pxy)                             { x = pxy.x;  y = pxy.y;                         }
+  void set(const XYval<T> pxy, const T pz)                 { x = pxy.x;  y = pxy.y;  z = pz;                }
+  void set(const XYZval<T> pxyz)                           { x = pxyz.x; y = pxyz.y; z = pxyz.z;            }
+  void set(const XYval<T> pxy, const T pz, const T pe)     { x = pxy.x;  y = pxy.y;  z = pz;     e = pe;    }
+  void set(const XYval<T> pxy, const XYval<T> pze)         { x = pxy.x;  y = pxy.y;  z = pze.z;  e = pze.e; }
+  void set(const XYZval<T> pxyz, const T pe)               { x = pxyz.x; y = pxyz.y; z = pxyz.z; e = pe;    }
   XYZEval<T>          copy()                         const { XYZEval<T> o = *this; return o; }
   XYZEval<int16_t>   asInt()                               { XYZEval<int16_t> o = { int16_t(x), int16_t(y), int16_t(z), int16_t(e) }; return o; }
   XYZEval<int16_t>   asInt()                         const { XYZEval<int16_t> o = { int16_t(x), int16_t(y), int16_t(z), int16_t(e) }; return o; }

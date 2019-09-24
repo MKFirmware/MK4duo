@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
 
 #define CODE_M191
 
@@ -41,13 +41,13 @@ inline void gcode_M191() {
   if (WITHIN(c, 0 , CHAMBERS - 1)) {
     bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))
-      chambers[c].set_target_temp(parser.value_celsius());
+      chambers[c]->set_target_temp(parser.value_celsius());
     else return;
 
-    lcdui.set_status_P(chambers[c].isHeating() ? PSTR(MSG_CHAMBER_HEATING) : PSTR(MSG_CHAMBER_COOLING));
+    lcdui.set_status_P(chambers[c]->isHeating() ? PSTR(MSG_CHAMBER_HEATING) : PSTR(MSG_CHAMBER_COOLING));
 
-    chambers[c].wait_for_target(no_wait_for_cooling);
+    chambers[c]->wait_for_target(no_wait_for_cooling);
   }
 }
 
-#endif // HAS_CHAMBERS
+#endif // MAX_CHAMBER > 0

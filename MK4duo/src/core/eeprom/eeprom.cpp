@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV74"
+#define EEPROM_VERSION "MKV75"
 #define EEPROM_OFFSET 100
 
 typedef struct EepromDataStruct {
@@ -63,6 +63,11 @@ typedef struct EepromDataStruct {
   // Tool data
   //
   tool_data_t       tool_data;
+
+  //
+  // thermalManager data
+  //
+  heater_max_t      thermalManager_data;
 
   //
   // Mechanics data
@@ -98,18 +103,10 @@ typedef struct EepromDataStruct {
   //
   // Heaters data
   //
-  #if HAS_HOTENDS
-    heater_data_t   hotend_data[HOTENDS];
-  #endif
-  #if HAS_BEDS
-    heater_data_t   bed_data[BEDS];
-  #endif
-  #if HAS_CHAMBERS
-    heater_data_t   chamber_data[CHAMBERS];
-  #endif
-  #if HAS_COOLERS
-    heater_data_t   cooler_data[COOLERS];
-  #endif
+  heater_data_t     hotend_data[MAX_HOTEND];
+  heater_data_t     bed_data[MAX_BED];
+  heater_data_t     chamber_data[MAX_CHAMBER];
+  heater_data_t     cooler_data[MAX_COOLER];
 
   //
   // DHT sensor data
@@ -121,7 +118,7 @@ typedef struct EepromDataStruct {
   //
   // Fans data
   //
-  #if HAS_FANS
+  #if MAX_FAN > 0
     fan_data_t      fans_data[FAN_COUNT];
   #endif
 
@@ -166,8 +163,8 @@ typedef struct EepromDataStruct {
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     uint8_t         grid_max_x,
                     grid_max_y;
-    int             bilinear_grid_spacing[2],
-                    bilinear_start[2];
+    xy_int_t        bilinear_grid_spacing,
+                    bilinear_start;
     float           z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   #endif
 
@@ -190,16 +187,16 @@ typedef struct EepromDataStruct {
   // LCD menu
   //
   #if HAS_LCD_MENU
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       int16_t       lcdui_preheat_hotend_temp[3];
     #endif
-    #if HAS_BEDS  
+    #if MAX_BED > 0  
       int16_t       lcdui_preheat_bed_temp[3];
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       int16_t       lcdui_preheat_chamber_temp[3];
     #endif
-    #if HAS_FANS
+    #if MAX_FAN > 0
       int16_t       lcdui_preheat_fan_speed[3];
     #endif
   #endif
@@ -311,24 +308,16 @@ void EEPROM::post_process() {
     mechanics.recalc_delta_settings();
   #endif
 
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].init();
-  #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].init();
-  #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].init();
-  #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].init();
-  #endif
+  LOOP_HOTEND()   hotends[h]->init();
+  LOOP_BED()      beds[h]->init();
+  LOOP_CHAMBER()  chambers[h]->init();
+  LOOP_COOLER()   coolers[h]->init();
 
   #if HAS_DHT
     dhtsensor.init();
   #endif
 
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() fans[f].init();
   #endif
 
@@ -420,6 +409,11 @@ void EEPROM::post_process() {
     driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
+    heater_data_t hotend_data[MAX_HOTEND];
+    heater_data_t bed_data[MAX_BED];
+    heater_data_t chamber_data[MAX_CHAMBER];
+    heater_data_t cooler_data[MAX_COOLER];
+
     flag.error = false;
 
     #if HAS_EEPROM_FLASH
@@ -435,6 +429,11 @@ void EEPROM::post_process() {
     // Tools Data
     //
     EEPROM_WRITE(tools.data);
+
+    //
+    // ThermalManager Data
+    //
+    EEPROM_WRITE(thermalManager.data);
 
     //
     // Mechanics data
@@ -472,18 +471,14 @@ void EEPROM::post_process() {
     //
     // Heaters data
     //
-    #if HAS_HOTENDS
-      LOOP_HOTEND() EEPROM_WRITE(hotends[h].data);
-    #endif
-    #if HAS_BEDS
-      LOOP_BED() EEPROM_WRITE(beds[h].data);
-    #endif
-    #if HAS_CHAMBERS
-      LOOP_CHAMBER() EEPROM_WRITE(chambers[h].data);
-    #endif
-    #if HAS_COOLERS
-      LOOP_COOLER() EEPROM_WRITE(coolers[h].data);
-    #endif
+    LOOP_HOTEND()   if (hotends[h])   hotend_data[h]  = hotends[h]->data;
+    LOOP_BED()      if (beds[h])      bed_data[h]     = beds[h]->data;
+    LOOP_CHAMBER()  if (chambers[h])  chamber_data[h] = chambers[h]->data;
+    LOOP_COOLER()   if (coolers[h])   cooler_data[h]  = coolers[h]->data;
+    EEPROM_WRITE(hotend_data);
+    EEPROM_WRITE(bed_data);
+    EEPROM_WRITE(chamber_data);
+    EEPROM_WRITE(cooler_data);
 
     //
     // DHT sensor data
@@ -495,7 +490,7 @@ void EEPROM::post_process() {
     //
     // Fans data
     //
-    #if HAS_FANS
+    #if MAX_FAN > 0
       LOOP_FAN() EEPROM_WRITE(fans[f].data);
     #endif
 
@@ -574,16 +569,16 @@ void EEPROM::post_process() {
     // LCD menu
     //
     #if HAS_LCD_MENU
-      #if HAS_HOTENDS
+      #if MAX_HOTEND > 0
         EEPROM_WRITE(lcdui.preheat_hotend_temp);
       #endif
-      #if HAS_BEDS
+      #if MAX_BED > 0
         EEPROM_WRITE(lcdui.preheat_bed_temp);
       #endif
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         EEPROM_WRITE(lcdui.preheat_chamber_temp);
       #endif
-      #if HAS_FANS
+      #if MAX_FAN > 0
         EEPROM_WRITE(lcdui.preheat_fan_speed);
       #endif
     #endif
@@ -784,6 +779,11 @@ void EEPROM::post_process() {
     driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
+    heater_data_t hotend_data[MAX_HOTEND]     = { -1 };
+    heater_data_t bed_data[MAX_BED]           = { -1 };
+    heater_data_t chamber_data[MAX_CHAMBER]   = { -1 };
+    heater_data_t cooler_data[MAX_COOLER]     = { -1 };
+
     int eeprom_index = EEPROM_OFFSET;
 
     EEPROM_READ_ALWAYS(stored_ver);
@@ -810,6 +810,12 @@ void EEPROM::post_process() {
       // Tools Data
       //
       EEPROM_READ(tools.data);
+
+      //
+      // ThermalManager Data
+      //
+      EEPROM_READ(thermalManager.data);
+      if (!flag.validating) thermalManager.create_heater();
 
       //
       // Mechanics data
@@ -851,18 +857,14 @@ void EEPROM::post_process() {
       //
       // Heaters data
       //
-      #if HAS_HOTENDS
-        LOOP_HOTEND() EEPROM_READ(hotends[h].data);
-      #endif
-      #if HAS_BEDS
-        LOOP_BED() EEPROM_READ(beds[h].data);
-      #endif
-      #if HAS_CHAMBERS
-        LOOP_CHAMBER() EEPROM_READ(chambers[h].data);
-      #endif
-      #if HAS_COOLERS
-        LOOP_COOLER() EEPROM_READ(coolers[h].data);
-      #endif
+      EEPROM_READ(hotend_data);
+      EEPROM_READ(bed_data);
+      EEPROM_READ(chamber_data);
+      EEPROM_READ(cooler_data);
+      LOOP_HOTEND()   if (hotends[h])   hotends[h]->data  = hotend_data[h];
+      LOOP_BED()      if (beds[h])      beds[h]->data     = bed_data[h];
+      LOOP_CHAMBER()  if (chambers[h])  chambers[h]->data = chamber_data[h];
+      LOOP_COOLER()   if (coolers[h])   coolers[h]->data  = cooler_data[h];
 
       //
       // DHT sensor data
@@ -874,7 +876,7 @@ void EEPROM::post_process() {
       //
       // Fans data
       //
-      #if HAS_FANS
+      #if MAX_FAN > 0
         LOOP_FAN() EEPROM_READ(fans[f].data);
       #endif
 
@@ -958,16 +960,16 @@ void EEPROM::post_process() {
       // LCD menu
       //
       #if HAS_LCD_MENU
-        #if HAS_HOTENDS
+        #if MAX_HOTEND > 0
           EEPROM_READ(lcdui.preheat_hotend_temp);
         #endif
-        #if HAS_BEDS
+        #if MAX_BED > 0
           EEPROM_READ(lcdui.preheat_bed_temp);
         #endif
-        #if HAS_CHAMBERS
+        #if MAX_CHAMBER > 0
           EEPROM_READ(lcdui.preheat_chamber_temp);
         #endif
-        #if HAS_FANS
+        #if MAX_FAN > 0
           EEPROM_READ(lcdui.preheat_fan_speed);
         #endif
       #endif
@@ -1302,6 +1304,9 @@ void EEPROM::reset() {
   // Call Tools Factory parameters
   tools.factory_parameters();
 
+  // Call Temperature Factory parameters
+  thermalManager.factory_parameters();
+
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
 
@@ -1316,9 +1321,6 @@ void EEPROM::reset() {
 
   // Call Nozzle Factory parameters
   nozzle.factory_parameters();
-
-  // Call Temperature Factory parameters
-  thermalManager.factory_parameters();
 
   // Call Printer Factory parameters
   printer.factory_parameters();
@@ -1426,36 +1428,33 @@ void EEPROM::reset() {
     mechanics.print_parameters();
 
     /**
+     * Print Number Extruder, Hotend, Bed, Chamber, Fan
+     */
+    printer.print_M353();
+
+    /**
      * Print heaters parameters
      */
-    #if HAS_HOTENDS
-      LOOP_HOTEND() {
-        hotends[h].print_M305();
-        hotends[h].print_M306();
-        hotends[h].print_M301();
-      }
-    #endif
-    #if HAS_BEDS
-      LOOP_BED() {
-        beds[h].print_M305();
-        beds[h].print_M306();
-        beds[h].print_M301();
-      }
-    #endif
-    #if HAS_CHAMBERS
-      LOOP_CHAMBER() {
-        chambers[h].print_M305();
-        chambers[h].print_M306();
-        chambers[h].print_M301();
-      }
-    #endif
-    #if HAS_COOLERS
-      LOOP_COOLER() {
-        coolers[h].print_M305();
-        coolers[h].print_M306();
-        coolers[h].print_M301();
-      }
-    #endif
+    LOOP_HOTEND() {
+      hotends[h]->print_M305();
+      hotends[h]->print_M306();
+      hotends[h]->print_M301();
+    }
+    LOOP_BED() {
+      beds[h]->print_M305();
+      beds[h]->print_M306();
+      beds[h]->print_M301();
+    }
+    LOOP_CHAMBER() {
+      chambers[h]->print_M305();
+      chambers[h]->print_M306();
+      chambers[h]->print_M301();
+    }
+    LOOP_COOLER() {
+      coolers[h]->print_M305();
+      coolers[h]->print_M306();
+      coolers[h]->print_M301();
+    }
 
     /**
      * Print dht parameters
@@ -1468,7 +1467,7 @@ void EEPROM::reset() {
      * Print AD595 parameters
      */
     #if HAS_AD8495 || HAS_AD595
-      LOOP_HOTEND() hotends[h].print_M595();
+      LOOP_HOTEND() hotends[h]->print_M595();
     #endif
 
     /**
@@ -1495,7 +1494,7 @@ void EEPROM::reset() {
     /**
      * Print Fans parameters
      */
-    #if HAS_FANS
+    #if MAX_FAN > 0
       LOOP_FAN() fans[f].print_M106();
     #endif
 
@@ -1620,16 +1619,16 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcdui.preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
-        #if HAS_HOTENDS
+        #if MAX_HOTEND > 0
           SERIAL_MV(" H", TEMP_UNIT(lcdui.preheat_hotend_temp[i]));
         #endif
-        #if HAS_BEDS
+        #if MAX_BED > 0
           SERIAL_MV(" B", TEMP_UNIT(lcdui.preheat_bed_temp[i]));
         #endif
         #if CHAMBER > 0
           SERIAL_MV(" C", TEMP_UNIT(lcdui.preheat_chamber_temp[i]));
         #endif
-        #if HAS_FANS
+        #if MAX_FAN > 0
           SERIAL_MV(" F", lcdui.preheat_fan_speed[i]);
         #endif
         SERIAL_EOL();

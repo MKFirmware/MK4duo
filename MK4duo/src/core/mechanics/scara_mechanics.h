@@ -87,16 +87,16 @@ class Scara_Mechanics : public Mechanics {
      *  Plan a move to (X, Y, Z) and set the current_position.x
      *  The final current_position.x may not be the one that was requested
      */
-    static void do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_x(const float &rx, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_z(const float &rz, const float &fr_mm_s=0.0);
-    static void do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s=0.0);
+    static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s=0.0);
+    static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0);
 
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s=0.0) {
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZ], const feedrate_t &fr_mm_s=0.0) {
       do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
     }
 
-    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const float &fr_mm_s=0.0) {
+    FORCE_INLINE static void do_blocking_move_to(const float (&raw)[XYZE], const feedrate_t &fr_mm_s=0.0) {
       do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
     }
 
@@ -122,7 +122,7 @@ class Scara_Mechanics : public Mechanics {
     /**
      * Home an individual linear axis
      */
-    static void do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s=0.0);
+    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0);
 
     /**
      * Set an axis' current position to its home position (after homing).

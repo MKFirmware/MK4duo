@@ -394,7 +394,7 @@ void Printer::check_periodical_actions() {
     #endif
   }
 
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() fans[f].spin();
   #endif
 
@@ -712,7 +712,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
     static millis_l extruder_runout_ms = 0;
 
-    if (hotends[ACTIVE_HOTEND].deg_current() > EXTRUDER_RUNOUT_MINTEMP
+    if (hotends[ACTIVE_HOTEND]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
       && !planner.has_blocks_queued()
     ) {
@@ -786,8 +786,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(IDLE_OOZING_PREVENT)
     static millis_s axis_last_activity_ms = 0;
     if (planner.has_blocks_queued()) axis_last_activity_ms = millis();
-    if (hotends[ACTIVE_HOTEND].deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
-      if (hotends[ACTIVE_HOTEND].deg_target() < IDLE_OOZING_MINTEMP)
+    if (hotends[ACTIVE_HOTEND]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+      if (hotends[ACTIVE_HOTEND]->deg_target() < IDLE_OOZING_MINTEMP)
         IDLE_OOZING_retract(false);
       else if (expired(&axis_last_activity_ms, millis_s(IDLE_OOZING_SECONDS * 1000U)))
         IDLE_OOZING_retract(true);
@@ -829,6 +829,16 @@ bool Printer::pin_is_protected(const pin_t pin) {
   for (uint8_t i = 0; i < COUNT(sensitive_pins); i++)
     if (pin == pgm_read_byte(&sensitive_pins[i])) return true;
   return false;
+}
+
+void Printer::print_M353() {
+  SERIAL_LM(CFG, "Total number E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
+  SERIAL_SMV(CFG,"  M353 E", tools.data.extruder.total);
+  SERIAL_MV(" H", thermalManager.data.hotends);
+  SERIAL_MV(" B", thermalManager.data.beds);
+  SERIAL_MV(" C", thermalManager.data.chambers);
+  SERIAL_MV(" F", thermalManager.data.fans);
+  SERIAL_EOL();
 }
 
 #if HAS_SUICIDE
@@ -1085,17 +1095,17 @@ void Printer::handle_safety_watch() {
     // Update every 0.5s
     if (expired(&next_status_led_update_ms, 500U)) {
       float max_temp = 0.0;
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         LOOP_CHAMBER()
-          max_temp = MAX(max_temp, chambers[h].deg_target(), chambers[h].deg_current());
+          max_temp = MAX(max_temp, chambers[h]->deg_target(), chambers[h]->deg_current());
       #endif
-      #if HAS_BEDS
+      #if MAX_BED > 0
         LOOP_BED()
-          max_temp = MAX(max_temp, beds[h].deg_target(), beds[h].deg_current());
+          max_temp = MAX(max_temp, beds[h]->deg_target(), beds[h]->deg_current());
       #endif
-      #if HAS_HOTENDS
+      #if MAX_HOTEND > 0
         LOOP_HOTEND()
-          max_temp = MAX(max_temp, hotends[h].deg_current(), hotends[h].deg_target());
+          max_temp = MAX(max_temp, hotends[h]->deg_current(), hotends[h]->deg_target());
       #endif
       const bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
       if (new_led != red_led) {

@@ -133,6 +133,23 @@ float Planner::previous_nominal_speed_sqr = 0.0;
  * Class and Instance Methods
  */
 
+void Planner::init() {
+  position.reset();
+  #if HAS_POSITION_FLOAT
+    position_float.reset();
+  #endif
+  #if IS_KINEMATIC
+    position_cart.reset();
+  #endif
+  previous_speed.reset();
+  previous_nominal_speed_sqr = 0.0f;
+  #if ABL_PLANAR
+    matrix.set_to_identity();
+  #endif
+  clear_block_buffer();
+  delay_before_delivering = 0;
+}
+
 #if ENABLED(BEZIER_JERK_CONTROL)
 
   #if ENABLED(__AVR__)
@@ -661,7 +678,7 @@ float Planner::previous_nominal_speed_sqr = 0.0;
     static float oldt = 0;
 
     if (!autotemp_enabled) return;
-    if (hotends[0].deg_target() + 2 < autotemp_min) return; // probably temperature set to zero.
+    if (hotends[0]->deg_target() + 2 < autotemp_min) return; // probably temperature set to zero.
 
     float high = 0.0;
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
@@ -676,7 +693,7 @@ float Planner::previous_nominal_speed_sqr = 0.0;
     LIMIT(t, autotemp_min, autotemp_max);
     if (t < oldt) t = t * (1 - (AUTOTEMP_OLDWEIGHT)) + oldt * (AUTOTEMP_OLDWEIGHT);
     oldt = t;
-    hotends[0].set_target_temp(t);
+    hotends[0]->set_target_temp(t);
   }
 
 #endif // HAS_TEMP_HOTEND && ENABLED(AUTOTEMP)
@@ -916,7 +933,7 @@ bool Planner::buffer_steps(const xyze_long_t &target
   #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
     , const xyze_float_t &delta_mm_cart
   #endif
-  , float fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
+  , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
 
   // If we are cleaning, do not accept queuing of movements
@@ -1909,7 +1926,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
   #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
     , const xyze_float_t &delta_mm_cart
   #endif
-  , const float &fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
+  , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters/*=0.0*/
 ) {
 
   // If we are cleaning, do not accept queuing of movements
@@ -1995,7 +2012,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
  *  millimeters  - the length of the movement, if known
  *  inv_duration - the reciprocal if the duration of the movement, if known (kinematic only if feeedrate scaling is enabled)
  */
-bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters/*=0.0*/) {
+bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const feedrate_t &fr_mm_s, const uint8_t extruder, const float millimeters/*=0.0*/) {
 
   xyze_pos_t raw = { rx, ry, rz, e };
   #if HAS_POSITION_MODIFIERS

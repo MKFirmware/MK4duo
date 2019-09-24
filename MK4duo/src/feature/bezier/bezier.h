@@ -37,10 +37,10 @@
     public: /** Public Function */
 
       static void cubic_b_spline(
-                    const float position[NUM_AXIS], // current position
-                    const float target[NUM_AXIS],   // target position
-                    const float offset[4],          // a pair of offsets
-                    float fr_mm_s,
+                    const xyze_pos_t position,  // current position
+                    const xyze_pos_t target,    // target position
+                    const float offset[4],      // a pair of offsets
+                    feedrate_t fr_mm_s,
                     uint8_t extruder
                   );
 

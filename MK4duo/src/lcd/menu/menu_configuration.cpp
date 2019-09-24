@@ -323,16 +323,16 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void _menu_configuration_preheat_settings(const uint8_t material) {
     START_MENU();
     MENU_BACK(MSG_CONFIGURATION);
-    #if HAS_FANS
+    #if MAX_FAN > 0
       MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       MENU_ITEM_EDIT(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       MENU_ITEM_EDIT(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)

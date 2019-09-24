@@ -5,8 +5,8 @@
 *****************************************************************************************/
 
 //###CHIP
-#if DISABLED(STM32F4)
-  #error "Oops! Select 'STM32F4' in 'Tools > Board.'"
+#if DISABLED(ARDUINO_ARCH_STM32)
+  #error "Oops! Select 'RUMBA32' in 'Tools > Board.'"
 #endif
 //@@@
 

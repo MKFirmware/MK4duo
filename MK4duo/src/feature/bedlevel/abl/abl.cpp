@@ -345,7 +345,7 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
    * Prepare a bilinear-leveled linear move on Cartesian,
    * splitting the move where it crosses mesh borders.
    */
-  void AutoBedLevel::bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
+  void AutoBedLevel::bilinear_line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
 
     int cx1 = (mechanics.current_position.x - bilinear_start[X_AXIS]) * ABL_BG_FACTOR(X_AXIS),
         cy1 = (mechanics.current_position.y - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR(Y_AXIS),

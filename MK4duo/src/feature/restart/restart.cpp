@@ -102,20 +102,20 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
     // Heater
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       LOOP_HOTEND()
-        job_info.target_temperature[h] = hotends[h].deg_target();
+        job_info.target_temperature[h] = hotends[h]->deg_target();
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       LOOP_BED()
-        job_info.bed_target_temperature[h] = beds[h].deg_target();
+        job_info.bed_target_temperature[h] = beds[h]->deg_target();
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       LOOP_CHAMBER()
-        job_info.chamber_target_temperature[h] = chambers[h].deg_target();
+        job_info.chamber_target_temperature[h] = chambers[h]->deg_target();
     #endif
 
-    #if HAS_FANS
+    #if MAX_FAN > 0
       LOOP_FAN()
         job_info.fan_speed[f] = fans[f].speed;
     #endif
@@ -185,27 +185,27 @@ void Restart::resume_job() {
   #endif
 
   // Set temperature
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      chambers[h].set_target_temp(job_info.chamber_target_temperature[h]);
-      chambers[h].wait_for_target(true);
+      chambers[h]->set_target_temp(job_info.chamber_target_temperature[h]);
+      chambers[h]->wait_for_target(true);
     }
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     LOOP_BED() {
-      beds[h].set_target_temp(job_info.bed_target_temperature[h]);
-      beds[h].wait_for_target(true);
+      beds[h]->set_target_temp(job_info.bed_target_temperature[h]);
+      beds[h]->wait_for_target(true);
     }
   #endif
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      hotends[h].set_target_temp(job_info.target_temperature[h]);
-      hotends[h].wait_for_target(true);
+      hotends[h]->set_target_temp(job_info.target_temperature[h]);
+      hotends[h]->wait_for_target(true);
     }
   #endif
 
   // Set fan
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() fans[f].speed = job_info.fan_speed[f];
   #endif
 

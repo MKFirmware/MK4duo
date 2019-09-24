@@ -328,17 +328,17 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].set_output_pwm();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].set_output_pwm();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].set_output_pwm();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
 
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() fans[f].set_output_pwm();
   #endif
 
@@ -346,7 +346,7 @@ void HAL::Tick() {
   if (expired(&cycle_check_temp_ms, 100U)) {
     // Temperature Spin
     thermalManager.spin();
-    #if ENABLED(FAN_KICKSTART_TIME) && HAS_FANS
+    #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0
       LOOP_FAN() {
         if (fans[f].kickstart) fans[f].kickstart--;
       }
@@ -355,7 +355,7 @@ void HAL::Tick() {
 
   // read analog values
   #if ANALOG_INPUTS > 0
-    LOOP_HOTEND() AnalogInputValues[hotends[h].sensor.pin] = (analogRead(hotends[h].sensor.pin) * 16);
+    LOOP_HOTEND() AnalogInputValues[hotends[h]->sensor.pin] = (analogRead(hotends[h]->sensor.pin) * 16);
     Analog_is_ready = true;
     // Update the raw values if they've been read. Else we could be updating them during reading.
     thermalManager.set_current_temp_raw();

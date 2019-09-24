@@ -284,13 +284,13 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       if (safe_to_move && !no_move && printer.isRunning()) {
 
         #if ENABLED(SINGLENOZZLE)
-          singlenozzle_temp[data.extruder.previous] = hotends[0].deg_target();
-          if (singlenozzle_temp[data.extruder.active] && singlenozzle_temp[data.extruder.active] != hotends[0].deg_target()) {
-            hotends[0].set_target_temp(singlenozzle_temp[data.extruder.active]);
+          singlenozzle_temp[data.extruder.previous] = hotends[0]->deg_target();
+          if (singlenozzle_temp[data.extruder.active] && singlenozzle_temp[data.extruder.active] != hotends[0]->deg_target()) {
+            hotends[0]->set_target_temp(singlenozzle_temp[data.extruder.active]);
             #if HAS_LCD
               nozzle.set_heating_message();
             #endif
-            hotends[0].wait_for_target(true);
+            hotends[0]->wait_for_target(true);
           }
         #endif
 

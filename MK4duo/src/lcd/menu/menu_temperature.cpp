@@ -29,16 +29,16 @@
 #if HAS_LCD_MENU
 
 // Initialized by settings.load()
-#if HAS_HOTENDS
+#if MAX_HOTEND > 0
   int16_t LcdUI::preheat_hotend_temp[3];
 #endif
-#if HAS_BEDS
+#if MAX_BED > 0
   int16_t LcdUI::preheat_bed_temp[3];
 #endif
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
   int16_t LcdUI::preheat_chamber_temp[3];
 #endif
-#if HAS_FANS
+#if MAX_FAN > 0
   int16_t LcdUI::preheat_fan_speed[3];
 #endif
 
@@ -47,20 +47,20 @@
 //
 
 void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_hotend) {
-  #if HAS_HOTENDS
-    hotends[hotend].set_target_temp(MIN(thermalManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
+  #if MAX_HOTEND > 0
+    hotends[hotend]->set_target_temp(MIN(thermalManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
   #else
     UNUSED(hotend);
   #endif
   if (!only_hotend) {
-    #if HAS_BEDS
-      LOOP_BED() beds[h].set_target_temp(lcdui.preheat_bed_temp[memory]);
+    #if MAX_BED > 0
+      LOOP_BED() beds[h]->set_target_temp(lcdui.preheat_bed_temp[memory]);
     #endif
-    #if HAS_CHAMBERS
-      LOOP_CHAMBER() chambers[h].set_target_temp(lcdui.preheat_chamber_temp[memory]);
+    #if MAX_CHAMBER > 0
+      LOOP_CHAMBER() chambers[h]->set_target_temp(lcdui.preheat_chamber_temp[memory]);
     #endif
   }
-  #if HAS_FANS
+  #if MAX_FAN > 0
     #if FAN_COUNT > 1
       fans[tools.data.extruder.active < FAN_COUNT ? tools.data.extruder.active : 0].speed = lcdui.preheat_fan_speed[memory];
     #else
@@ -74,7 +74,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   void lcd_preheat_m1_h1_only() { _lcd_preheat(1, 0, true); }
   void lcd_preheat_m2_h1_only() { _lcd_preheat(1, 1, true); }
   void lcd_preheat_m3_h1_only() { _lcd_preheat(1, 2, true); }
-  #if HAS_BEDS || HAS_CHAMBERS
+  #if MAX_BED > 0 || MAX_CHAMBER > 0
     void lcd_preheat_m1_h1() { _lcd_preheat(1, 0, false); }
     void lcd_preheat_m2_h1() { _lcd_preheat(1, 1, false); }
     void lcd_preheat_m3_h1() { _lcd_preheat(1, 2, false); }
@@ -83,7 +83,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     void lcd_preheat_m1_h2_only() { _lcd_preheat(2, 0, true); }
     void lcd_preheat_m2_h2_only() { _lcd_preheat(2, 1, true); }
     void lcd_preheat_m3_h2_only() { _lcd_preheat(2, 2, true); }
-    #if HAS_BEDS || HAS_CHAMBERS
+    #if MAX_BED > 0 || MAX_CHAMBER > 0
       void lcd_preheat_m1_h2() { _lcd_preheat(2, 0, false); }
       void lcd_preheat_m2_h2() { _lcd_preheat(2, 1, false); }
       void lcd_preheat_m3_h2() { _lcd_preheat(2, 2, false); }
@@ -92,7 +92,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
       void lcd_preheat_m1_h3_only() { _lcd_preheat(3, 0, true); }
       void lcd_preheat_m2_h3_only() { _lcd_preheat(3, 1, true); }
       void lcd_preheat_m3_h3_only() { _lcd_preheat(3, 2, true); }
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         void lcd_preheat_m1_h3() { _lcd_preheat(3, 0, false); }
         void lcd_preheat_m2_h3() { _lcd_preheat(3, 1, false); }
         void lcd_preheat_m3_h3() { _lcd_preheat(3, 2, false); }
@@ -101,7 +101,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
         void lcd_preheat_m1_h4_only() { _lcd_preheat(4, 0, true); }
         void lcd_preheat_m2_h4_only() { _lcd_preheat(4, 1, true); }
         void lcd_preheat_m3_h4_only() { _lcd_preheat(4, 2, true); }
-        #if HAS_BEDS || HAS_CHAMBERS
+        #if MAX_BED > 0 || MAX_CHAMBER > 0
           void lcd_preheat_m1_h4() { _lcd_preheat(4, 0, false); }
           void lcd_preheat_m2_h4() { _lcd_preheat(4, 1, false); }
           void lcd_preheat_m3_h4() { _lcd_preheat(4, 2, false); }
@@ -110,7 +110,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
           void lcd_preheat_m1_h5_only() { _lcd_preheat(5, 0, true); }
           void lcd_preheat_m2_h5_only() { _lcd_preheat(5, 1, true); }
           void lcd_preheat_m3_h5_only() { _lcd_preheat(5, 2, true); }
-          #if HAS_BEDS || HAS_CHAMBERS
+          #if MAX_BED > 0 || MAX_CHAMBER > 0
             void lcd_preheat_m1_h5() { _lcd_preheat(5, 0, false); }
             void lcd_preheat_m2_h5() { _lcd_preheat(5, 1, false); }
             void lcd_preheat_m3_h5() { _lcd_preheat(5, 2, false); }
@@ -120,7 +120,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     #endif // HOTENDS > 3
   #endif // HOTENDS > 2
 
-  #if HAS_BEDS || HAS_CHAMBERS
+  #if MAX_BED > 0 || MAX_CHAMBER > 0
     void lcd_preheat_m1_h0();
     void lcd_preheat_m2_h0();
     void lcd_preheat_m3_h0();
@@ -132,9 +132,9 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
 
   void lcd_preheat_m1_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[0]);
+      LOOP_HOTEND() hotends[h]->set_target_temp(lcdui.preheat_hotend_temp[0]);
     #endif
-    #if HAS_BEDS || HAS_CHAMBERS
+    #if MAX_BED > 0 || MAX_CHAMBER > 0
       lcd_preheat_m1_h0();
     #else
       lcd_preheat_m1_h0_only();
@@ -142,9 +142,9 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   void lcd_preheat_m2_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[1]);
+      LOOP_HOTEND() hotends[h]->set_target_temp(lcdui.preheat_hotend_temp[1]);
     #endif
-    #if HAS_BEDS || HAS_CHAMBERS
+    #if MAX_BED > 0 || MAX_CHAMBER > 0
       lcd_preheat_m2_h0();
     #else
       lcd_preheat_m2_h0_only();
@@ -152,9 +152,9 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   void lcd_preheat_m3_all() {
     #if HOTENDS > 1
-      LOOP_HOTEND() hotends[h].set_target_temp(lcdui.preheat_hotend_temp[2]);
+      LOOP_HOTEND() hotends[h]->set_target_temp(lcdui.preheat_hotend_temp[2]);
     #endif
-    #if HAS_BEDS || HAS_CHAMBERS
+    #if MAX_BED > 0 || MAX_CHAMBER > 0
       lcd_preheat_m3_h0();
     #else
       lcd_preheat_m3_h0_only();
@@ -163,13 +163,13 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
 
 #endif // HOTENDS > 1
 
-#if HOTENDS >0 || HAS_BEDS
+#if HOTENDS >0 || MAX_BED > 0
 
   void lcd_preheat_m1_h0_only() { _lcd_preheat(0, 0, true); }
   void lcd_preheat_m2_h0_only() { _lcd_preheat(0, 1, true); }
   void lcd_preheat_m3_h0_only() { _lcd_preheat(0, 2, true); }
 
-  #if HAS_BEDS || HAS_CHAMBERS
+  #if MAX_BED > 0 || MAX_CHAMBER > 0
     void lcd_preheat_m1_h0() { _lcd_preheat(0, 0, false); }
     void lcd_preheat_m2_h0() { _lcd_preheat(0, 1, false); }
     void lcd_preheat_m3_h0() { _lcd_preheat(0, 2, false); }
@@ -179,14 +179,14 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     MENU_BACK(MSG_TEMPERATURE);
     #if HOTENDS == 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_1, lcd_preheat_m1_h0);
         MENU_ITEM(function, MSG_PREHEAT_1_END, lcd_preheat_m1_h0_only);
       #else
         MENU_ITEM(function, MSG_PREHEAT_1, lcd_preheat_m1_h0_only);
       #endif
     #elif HOTENDS > 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H1, lcd_preheat_m1_h0);
         MENU_ITEM(function, MSG_PREHEAT_1_END " " MSG_H1, lcd_preheat_m1_h0_only);
         MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H2, lcd_preheat_m1_h1);
@@ -196,28 +196,28 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
         MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H2, lcd_preheat_m1_h1_only);
       #endif
       #if HOTENDS > 2
-        #if HAS_BEDS || HAS_CHAMBERS
+        #if MAX_BED > 0 || MAX_CHAMBER > 0
           MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H3, lcd_preheat_m1_h2);
           MENU_ITEM(function, MSG_PREHEAT_1_END " " MSG_H3, lcd_preheat_m1_h2_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H3, lcd_preheat_m1_h2_only);
         #endif
         #if HOTENDS > 3
-          #if HAS_BEDS || HAS_CHAMBERS
+          #if MAX_BED > 0 || MAX_CHAMBER > 0
             MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H4, lcd_preheat_m1_h3);
             MENU_ITEM(function, MSG_PREHEAT_1_END " " MSG_H4, lcd_preheat_m1_h3_only);
           #else
             MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H4, lcd_preheat_m1_h3_only);
           #endif
           #if HOTENDS > 4
-            #if HAS_BEDS || HAS_CHAMBERS
+            #if MAX_BED > 0 || MAX_CHAMBER > 0
               MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H5, lcd_preheat_m1_h4);
               MENU_ITEM(function, MSG_PREHEAT_1_END " " MSG_H5, lcd_preheat_m1_h4_only);
             #else
               MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H5, lcd_preheat_m1_h4_only);
             #endif
             #if HOTENDS > 5
-              #if HAS_BEDS || HAS_CHAMBERS
+              #if MAX_BED > 0 || MAX_CHAMBER > 0
                 MENU_ITEM(function, MSG_PREHEAT_1_N MSG_H6, lcd_preheat_m1_h5);
                 MENU_ITEM(function, MSG_PREHEAT_1_END " " MSG_H6, lcd_preheat_m1_h5_only);
               #else
@@ -236,14 +236,14 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     MENU_BACK(MSG_TEMPERATURE);
     #if HOTENDS == 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_2, lcd_preheat_m2_h0);
         MENU_ITEM(function, MSG_PREHEAT_2_END, lcd_preheat_m2_h0_only);
       #else
         MENU_ITEM(function, MSG_PREHEAT_2, lcd_preheat_m2_h0_only);
       #endif
     #elif HOTENDS > 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H1, lcd_preheat_m2_h0);
         MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H1, lcd_preheat_m2_h0_only);
         MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H2, lcd_preheat_m2_h1);
@@ -253,28 +253,28 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
         MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H2, lcd_preheat_m2_h1_only);
       #endif
       #if HOTENDS > 2
-        #if HAS_BEDS || HAS_CHAMBERS
+        #if MAX_BED > 0 || MAX_CHAMBER > 0
           MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H3, lcd_preheat_m2_h2);
           MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H3, lcd_preheat_m2_h2_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H3, lcd_preheat_m2_h2_only);
         #endif
         #if HOTENDS > 3
-          #if HAS_BEDS || HAS_CHAMBERS
+          #if MAX_BED > 0 || MAX_CHAMBER > 0
             MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H4, lcd_preheat_m2_h3);
             MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H4, lcd_preheat_m2_h3_only);
           #else
             MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H4, lcd_preheat_m2_h3_only);
           #endif
           #if HOTENDS > 4
-            #if HAS_BEDS || HAS_CHAMBERS
+            #if MAX_BED > 0 || MAX_CHAMBER > 0
               MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H5, lcd_preheat_m2_h4);
               MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H5, lcd_preheat_m2_h4_only);
             #else
               MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H5, lcd_preheat_m2_h4_only);
             #endif
             #if HOTENDS > 5
-              #if HAS_BEDS || HAS_CHAMBERS
+              #if MAX_BED > 0 || MAX_CHAMBER > 0
                 MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H6, lcd_preheat_m2_h5);
                 MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H6, lcd_preheat_m2_h5_only);
               #else
@@ -293,14 +293,14 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     MENU_BACK(MSG_TEMPERATURE);
     #if HOTENDS == 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_3, lcd_preheat_m3_h0);
         MENU_ITEM(function, MSG_PREHEAT_3_END, lcd_preheat_m3_h0_only);
       #else
         MENU_ITEM(function, MSG_PREHEAT_3, lcd_preheat_m3_h0_only);
       #endif
     #elif HOTENDS > 1
-      #if HAS_BEDS || HAS_CHAMBERS
+      #if MAX_BED > 0 || MAX_CHAMBER > 0
         MENU_ITEM(function, MSG_PREHEAT_3_N MSG_H1, lcd_preheat_m3_h0);
         MENU_ITEM(function, MSG_PREHEAT_3_END " " MSG_H1, lcd_preheat_m3_h0_only);
         MENU_ITEM(function, MSG_PREHEAT_3_N MSG_H2, lcd_preheat_m3_h1);
@@ -310,28 +310,28 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
         MENU_ITEM(function, MSG_PREHEAT_3_N MSG_H2, lcd_preheat_m3_h1_only);
       #endif
       #if HOTENDS > 2
-        #if HAS_BEDS || HAS_CHAMBERS
+        #if MAX_BED > 0 || MAX_CHAMBER > 0
           MENU_ITEM(function, MSG_PREHEAT_3_N MSG_H3, lcd_preheat_m3_h2);
           MENU_ITEM(function, MSG_PREHEAT_3_END " " MSG_H3, lcd_preheat_m3_h2_only);
         #else
           MENU_ITEM(function, MSG_PREHEAT_3_N MSG_H3, lcd_preheat_m3_h2_only);
         #endif
         #if HOTENDS > 3
-          #if HAS_BEDS || HAS_CHAMBERS
+          #if MAX_BED > 0 || MAX_CHAMBER > 0
             MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H4, lcd_preheat_m3_h3);
             MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H4, lcd_preheat_m3_h3_only);
           #else
             MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H4, lcd_preheat_m3_h3_only);
           #endif
           #if HOTENDS > 4
-            #if HAS_BEDS || HAS_CHAMBERS
+            #if MAX_BED > 0 || MAX_CHAMBER > 0
               MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H5, lcd_preheat_m3_h4);
               MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H5, lcd_preheat_m3_h4_only);
             #else
               MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H5, lcd_preheat_m3_h4_only);
             #endif
             #if HOTENDS > 5
-              #if HAS_BEDS || HAS_CHAMBERS
+              #if MAX_BED > 0 || MAX_CHAMBER > 0
                 MENU_ITEM(function, MSG_PREHEAT_2_N MSG_H6, lcd_preheat_m3_h5);
                 MENU_ITEM(function, MSG_PREHEAT_2_END " " MSG_H6, lcd_preheat_m3_h5_only);
               #else
@@ -363,18 +363,18 @@ void menu_temperature() {
   // Nozzle [1-4]:
   //
   #if HOTENDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0].target_temperature, 0, hotends[0].data.temp.max - 10, watch_temp_callback_H0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0]->target_temperature, 0, hotends[0]->data.temp.max - 10, watch_temp_callback_H0);
   #elif HOTENDS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0].target_temperature, 0, hotends[0].data.temp.max - 10, watch_temp_callback_H0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1].target_temperature, 0, hotends[1].data.temp.max - 10, watch_temp_callback_H1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0]->target_temperature, 0, hotends[0]->data.temp.max - 10, watch_temp_callback_H0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1]->target_temperature, 0, hotends[1]->data.temp.max - 10, watch_temp_callback_H1);
     #if HOTENDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2].target_temperature, 0, hotends[2].data.temp.max - 10, watch_temp_callback_H2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2].target_temperature, 0, hotends[2]->data.temp.max - 10, watch_temp_callback_H2);
       #if HOTENDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3].target_temperature, 0, hotends[3].data.temp.max - 10, watch_temp_callback_H3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3].target_temperature, 0, hotends[3]->data.temp.max - 10, watch_temp_callback_H3);
         #if HOTENDS > 4
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4].target_temperature, 0, hotends[4].data.temp.max - 10, watch_temp_callback_E4);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4].target_temperature, 0, hotends[4]->data.temp.max - 10, watch_temp_callback_E4);
           #if HOTENDS > 5
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5].target_temperature, 0, hotends[5].data.temp.max - 10, watch_temp_callback_E5);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5].target_temperature, 0, hotends[5]->data.temp.max - 10, watch_temp_callback_E5);
           #endif // HOTENDS > 5
         #endif // HOTENDS > 4
       #endif // HOTENDS > 3
@@ -385,14 +385,14 @@ void menu_temperature() {
   // Bed:
   //
   #if BEDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0].target_temperature, 0, beds[0].data.temp.max - 10, watch_temp_callback_bed0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0]->target_temperature, 0, beds[0]->data.temp.max - 10, watch_temp_callback_bed0);
   #elif BEDS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0].target_temperature, 0, beds[0].data.temp.max - 10, watch_temp_callback_bed0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1].target_temperature, 0, beds[1].data.temp.max - 10, watch_temp_callback_bed1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0]->target_temperature, 0, beds[0]->data.temp.max - 10, watch_temp_callback_bed0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1]->target_temperature, 0, beds[1]->data.temp.max - 10, watch_temp_callback_bed1);
     #if BEDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2].target_temperature, 0, beds[2].data.temp.max - 10, watch_temp_callback_bed2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2].target_temperature, 0, beds[2]->data.temp.max - 10, watch_temp_callback_bed2);
       #if BEDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3].target_temperature, 0, beds[3].data.temp.max - 10, watch_temp_callback_bed3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3].target_temperature, 0, beds[3]->data.temp.max - 10, watch_temp_callback_bed3);
       #endif // BEDS > 3
     #endif // BEDS > 2
   #endif // BEDS > 1
@@ -401,14 +401,14 @@ void menu_temperature() {
   // Chamber:
   //
   #if CHAMBERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0].data.temp.max - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
   #elif CHAMBERS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0].target_temperature, 0, chambers[0].data.temp.max - 10, watch_temp_callback_chamber0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1].target_temperature, 0, chambers[1].data.temp.max - 10, watch_temp_callback_chamber1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0].target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1].target_temperature, 0, chambers[1]->data.temp.max - 10, watch_temp_callback_chamber1);
     #if CHAMBERS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2].target_temperature, 0, chambers[2].data.temp.max - 10, watch_temp_callback_chamber2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2].target_temperature, 0, chambers[2]->data.temp.max - 10, watch_temp_callback_chamber2);
       #if CHAMBERS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3].target_temperature, 0, chambers[3].data.temp.max - 10, watch_temp_callback_chamber3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3].target_temperature, 0, chambers[3]->data.temp.max - 10, watch_temp_callback_chamber3);
       #endif // CHAMBERS > 3
     #endif // CHAMBERS > 2
   #endif // CHAMBERS > 1
@@ -417,13 +417,13 @@ void menu_temperature() {
   // Cooler:
   //
   #if COOLERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0].target_temperature, 0, coolers[0].data.temp.max - 10, watch_temp_callback_cooler0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0].target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler0);
   #endif
 
   //
   // Fan Speed:
   //
-  #if HAS_FANS
+  #if MAX_FAN > 0
     #if HAS_FAN0
       MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].speed, 0, 255);
     #endif
@@ -442,16 +442,16 @@ void menu_temperature() {
     #if HAS_FAN5
       MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].speed, 0, 255);
     #endif
-  #endif // HAS_FANS
+  #endif // MAX_FAN > 0
 
   if (printer.mode == PRINTER_MODE_FFF) {
 
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
 
       //
       // Preheat for Material 1, 2 and 3
       //
-      #if HAS_TEMP_HE1 || HAS_TEMP_HE2 || HAS_TEMP_HE3 || HAS_BEDS
+      #if HAS_TEMP_HE1 || HAS_TEMP_HE2 || HAS_TEMP_HE3 || MAX_BED > 0
         MENU_ITEM(submenu, MSG_PREHEAT_1, menu_preheat_m1);
         MENU_ITEM(submenu, MSG_PREHEAT_2, menu_preheat_m2);
         MENU_ITEM(submenu, MSG_PREHEAT_3, menu_preheat_m3);
@@ -465,13 +465,13 @@ void menu_temperature() {
       // Cooldown
       //
       bool has_heat = false;
-      LOOP_HOTEND() if (hotends[h].deg_target()) { has_heat = true; break; }
-      #if HAS_BEDS
-        LOOP_BED() if (beds[h].deg_target()) { has_heat = true; break; }
+      LOOP_HOTEND() if (hotends[h]->deg_target()) { has_heat = true; break; }
+      #if MAX_BED > 0
+        LOOP_BED() if (beds[h]->deg_target()) { has_heat = true; break; }
       #endif
       if (has_heat) MENU_ITEM(function, MSG_COOLDOWN, lcd_cooldown);
 
-    #endif // HAS_HOTENDS
+    #endif // MAX_HOTEND > 0
 
   } // printer mode FFF
 

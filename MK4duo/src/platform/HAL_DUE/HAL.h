@@ -193,8 +193,7 @@ typedef uint32_t  ptr_int_t;
 #define ADC_TEMPERATURE_SENSOR  15
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
-#define OVERSAMPLENR       2
-#define AD_RANGE       16384
+#define AD_RANGE        4095
 #define ABS_ZERO        -273.15f
 #define NUM_ADC_SAMPLES   32
 #define AD595_MAX        330.0f
@@ -246,17 +245,17 @@ class HAL {
 
   private: /** Private Parameters */
 
-    #if HAS_HOTENDS
-      static ADCAveragingFilter sensorFilters[HOTENDS];
+    #if MAX_HOTEND > 0
+      static ADCAveragingFilter HOTENDsensorFilters[MAX_HOTEND];
     #endif
-    #if HAS_BEDS
-      static ADCAveragingFilter BEDsensorFilters[BEDS];
+    #if MAX_BED > 0
+      static ADCAveragingFilter BEDsensorFilters[MAX_BED];
     #endif
-    #if HAS_CHAMBERS
-      static ADCAveragingFilter CHAMBERsensorFilters[CHAMBERS];
+    #if MAX_CHAMBER > 0
+      static ADCAveragingFilter CHAMBERsensorFilters[MAX_CHAMBER];
     #endif
-    #if HAS_COOLERS
-      static ADCAveragingFilter COOLERsensorFilters[COOLERS];
+    #if MAX_COOLER > 0
+      static ADCAveragingFilter COOLERsensorFilters[MAX_COOLER];
     #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)

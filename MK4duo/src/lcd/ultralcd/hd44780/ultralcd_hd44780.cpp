@@ -690,7 +690,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(&hotends[0], -1, blink);
+        _draw_heater_status(hotends[0], -1, blink);
       #endif
 
       //
@@ -698,10 +698,10 @@ void LcdUI::draw_status_screen() {
       //
       #if HOTENDS > 1
         lcd_moveto(8, 0);
-        _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
       #elif HAS_TEMP_BED0
         lcd_moveto(8, 0);
-        _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+        _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
       #endif
 
     #else // LCD_WIDTH >= 20
@@ -710,7 +710,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[0], LCD_STR_THERMOMETER[0], blink);
       #endif
 
       //
@@ -718,10 +718,10 @@ void LcdUI::draw_status_screen() {
       //
       #if HOTENDS > 1
         lcd_moveto(10, 0);
-        _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
       #elif HAS_TEMP_BED0
         lcd_moveto(10, 0);
-        _draw_heater_status(&beds[0], (
+        _draw_heater_status(beds[0], (
           #if HAS_LEVELING
             bedlevel.flag.leveling_active && blink ? '_' :
           #endif
@@ -752,11 +752,11 @@ void LcdUI::draw_status_screen() {
         #if HOTENDS > 2 || (HOTENDS > 1 && HAS_TEMP_BED0)
 
           #if HOTENDS > 2
-            _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
+            _draw_heater_status(hotends[2], LCD_STR_THERMOMETER[0], blink);
             lcd_moveto(10, 1);
           #endif
 
-          _draw_heater_status(&beds[0], (
+          _draw_heater_status(beds[0], (
             #if HAS_LEVELING
               bedlevel.flag.leveling_active && blink ? '_' :
             #endif
@@ -847,7 +847,7 @@ void LcdUI::draw_status_screen() {
     // Hotend 0 Temperature
     //
     #if HAS_TEMP_HOTEND
-      _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[0], LCD_STR_THERMOMETER[0], blink);
     #endif
 
     //
@@ -867,9 +867,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 1);
     #if HOTENDS > 1
-      _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
     #elif HAS_TEMP_BED0
-      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
     #endif
 
     lcd_put_wchar(LCD_WIDTH - 9, 1, LCD_STR_FEEDRATE[0]);
@@ -883,9 +883,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 2);
     #if HOTENDS > 2
-      _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[2], LCD_STR_THERMOMETER[0], blink);
     #elif HOTENDS > 1 && HAS_TEMP_BED0
-      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
     #else
       #define DREW_PRINT_PROGRESS
       _draw_print_progress();
@@ -922,7 +922,7 @@ void LcdUI::draw_status_screen() {
     void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
       if (row < LCD_HEIGHT) {
         lcd_moveto(LCD_WIDTH - 9, row);
-        _draw_heater_status(&hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());
+        _draw_heater_status(hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());
       }
     }
 
@@ -1015,13 +1015,13 @@ void LcdUI::draw_status_screen() {
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      #if HAS_BEDS
-        if (beds[0].deg_target() > 0) leds |= LED_A;
+      #if MAX_BED > 0
+        if (beds[0]->deg_target() > 0) leds |= LED_A;
       #endif
 
-      if (hotends[0].deg_target() > 0) leds |= LED_B;
+      if (hotends[0]->deg_target() > 0) leds |= LED_B;
 
-      #if HAS_FANS
+      #if MAX_FAN > 0
         if (0
           #if HAS_FAN0
             || fans[0].speed
@@ -1042,7 +1042,7 @@ void LcdUI::draw_status_screen() {
             || fans[5].speed
           #endif
         ) leds |= LED_C;
-      #endif // HAS_FANS
+      #endif // MAX_FAN > 0
 
       #if HOTENDS > 1
         if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;

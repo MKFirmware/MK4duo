@@ -108,6 +108,6 @@ class Fan {
 
 };
 
-#if HAS_FANS
+#if MAX_FAN > 0
   extern Fan fans[FAN_COUNT];
-#endif // HAS_FANS
+#endif // MAX_FAN > 0

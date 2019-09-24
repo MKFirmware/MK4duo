@@ -129,7 +129,7 @@ class Planner {
 
   public: /** Constructor */
 
-    Planner() {}
+    Planner() { init(); }
 
   public: /** Public Parameters */
 
@@ -215,6 +215,8 @@ class Planner {
     #endif
 
   public: /** Public Function */
+
+    static void init();
 
     static inline void factory_parameters() {
       #if ENABLED(LIN_ADVANCE)
@@ -326,7 +328,7 @@ class Planner {
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
         , const xyze_float_t &delta_mm_cart
       #endif
-      , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
     /**
@@ -349,7 +351,7 @@ class Planner {
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
         , const xyze_float_t &delta_mm_cart
       #endif
-      , float fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , feedrate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
     /**
@@ -374,14 +376,14 @@ class Planner {
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
         , const xyze_float_t &delta_mm_cart
       #endif
-      , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
     FORCE_INLINE static bool buffer_segment(const abce_float_t &abce
       #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
         , const xyze_float_t &delta_mm_cart
       #endif
-      , const float &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , const feedrate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     ) {
       return buffer_segment(abce.a, abce.b, abce.c, abce.e
         #if IS_KINEMATIC && ENABLED(JUNCTION_DEVIATION)
@@ -402,9 +404,9 @@ class Planner {
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
      */
-    static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
+    static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const feedrate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
-    FORCE_INLINE static bool buffer_line(const xyze_float_t &cart, const float &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
+    FORCE_INLINE static bool buffer_line(const xyze_float_t &cart, const feedrate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         , const float &inv_duration=0.0
       #endif

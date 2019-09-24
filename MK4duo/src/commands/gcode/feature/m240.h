@@ -31,7 +31,7 @@
 #define CODE_M240
 
 #if ENABLED(PHOTO_RETRACT_MM)
-  inline void e_move_m240(const float length, const float fr_mm_s) {
+  inline void e_move_m240(const float length, const feedrate_t fr_mm_s) {
     if (length && thermalManager.hotEnoughToExtrude(ACTIVE_HOTEND)) {
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         advancedpause.do_pause_e_move(length, fr_mm_s);
@@ -103,7 +103,7 @@ inline void gcode_M240() {
       e_move_m240(-rval, sval);
     #endif
 
-    float fr_mm_s = MMM_TO_MMS(parser.linearval('F'));
+    feedrate_t fr_mm_s = MMM_TO_MMS(parser.linearval('F'));
     if (fr_mm_s) NOLESS(fr_mm_s, 10.0f);
 
     constexpr xyz_pos_t photo_position = PHOTO_POSITION;

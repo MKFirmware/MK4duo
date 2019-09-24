@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_CHAMBERS
+#if MAX_CHAMBER > 0
 
 #define CODE_M141
 
@@ -37,8 +37,8 @@ inline void gcode_M141() {
   const uint8_t c = parser.byteval('T');
   if (WITHIN(c, 0 , CHAMBERS - 1)) {
     if (printer.debugDryrun() || printer.debugSimulation()) return;
-    if (parser.seenval('S')) chambers[c].set_target_temp(parser.value_celsius());
-    if (parser.seenval('R')) chambers[c].set_idle_temp(parser.value_celsius());
+    if (parser.seenval('S')) chambers[c]->set_target_temp(parser.value_celsius());
+    if (parser.seenval('R')) chambers[c]->set_idle_temp(parser.value_celsius());
   }
 }
 

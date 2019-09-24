@@ -111,12 +111,12 @@ void Cartesian_Mechanics::get_cartesian_from_steppers() {
  *  Plan a move to (X, Y, Z) and set the current_position.x
  *  The final current_position.x may not be the one that was requested
  */
-void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const float &fr_mm_s /*=0.0*/) {
+void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s /*=0.0*/) {
 
   if (printer.debugFeature()) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
-  const float z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
-              xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
+  const feedrate_t  z_feedrate  = fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z,
+                    xy_feedrate = fr_mm_s ? fr_mm_s : XY_PROBE_FEEDRATE_MM_S;
 
   // If Z needs to raise, do it before moving XY
   if (current_position.z < rz) {
@@ -138,16 +138,16 @@ void Cartesian_Mechanics::do_blocking_move_to(const float rx, const float ry, co
   planner.synchronize();
 
 }
-void Cartesian_Mechanics::do_blocking_move_to_x(const float &rx, const float &fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
 }
-void Cartesian_Mechanics::do_blocking_move_to_y(const float &ry, const float &fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
 }
-void Cartesian_Mechanics::do_blocking_move_to_z(const float &rz, const float &fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
 }
-void Cartesian_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const float &fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s/*=0.0*/) {
   do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
 }
 
@@ -375,7 +375,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 /**
  * Home an individual linear axis
  */
-void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0*/) {
 
   if (printer.debugFeature()) {
     DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);

@@ -141,18 +141,18 @@ class Mechanics {
     /**
      * Feedrate
      */
-    static float    feedrate_mm_s;
-    static int16_t  feedrate_percentage;
+    static feedrate_t         feedrate_mm_s;
+    static int16_t            feedrate_percentage;
 
     /**
      * Step
      */
-    static xyzen_float_t steps_to_mm;
+    static xyzen_float_t      steps_to_mm;
 
     /**
      * Acceleration
      */
-    static xyzen_ulong_t max_acceleration_steps_per_s2;
+    static xyzen_ulong_t      max_acceleration_steps_per_s2;
 
     /**
      * Cartesian Current Position
@@ -209,7 +209,7 @@ class Mechanics {
 
   private: /** Private Parameters */
 
-    static float saved_feedrate_mm_s;
+    static feedrate_t saved_feedrate_mm_s;
     static int16_t saved_feedrate_percentage;
 
   public: /** Public Function */
@@ -256,13 +256,13 @@ class Mechanics {
      * Move the planner to the current position from wherever it last moved
      * (or from wherever it has been told it is located).
      */
-    static void line_to_current_position(const float &fr_mm_s=feedrate_mm_s);
+    static void line_to_current_position(const feedrate_t &fr_mm_s=feedrate_mm_s);
 
     /**
      * Move the planner to the position stored in the destination array, which is
      * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
      */
-    static void buffer_line_to_destination(const float fr_mm_s);
+    static void buffer_line_to_destination(const feedrate_t fr_mm_s);
     FORCE_INLINE static void buffer_line_to_destination() { buffer_line_to_destination(feedrate_mm_s); }
 
     /**
