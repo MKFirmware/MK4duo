@@ -347,27 +347,33 @@
       #define SD_DETECT_PIN     49
       #define KILL_PIN          41
 
-    #elif ENABLED(MKS_MINI_12864)
-      #define DOGLCD_A0         27
-      #define DOGLCD_CS         25
-
-      // GLCD features
-      //#define LCD_CONTRAST   190
-      // Uncomment screen orientation
-      //#define LCD_SCREEN_ROT_90
-      //#define LCD_SCREEN_ROT_180
-      //#define LCD_SCREEN_ROT_270
+    #elif ENABLED(MKS_MINI_12864) || ENABLED(FYSETC_MINI_12864)
 
       #define ORIG_BEEPER_PIN   37
-      // not connected to a pin
-      #define LCD_BACKLIGHT_PIN 65
-
-      #define BTN_EN1           31
-      #define BTN_EN2           33
       #define BTN_ENC           35
-
       #define SD_DETECT_PIN     49
       #define KILL_PIN          64
+
+      #if ENABLED(MKS_MINI_12864)
+
+        #define DOGLCD_A0         27
+        #define DOGLCD_CS         25
+        #define LCD_BACKLIGHT_PIN 65
+
+        #define BTN_EN1           31
+        #define BTN_EN2           33
+
+      #elif ENABLED(FYSETC_MINI_12864)
+
+        #define DOGLCD_A0         16
+        #define DOGLCD_CS         17
+
+        #define BTN_EN1           33
+        #define BTN_EN2           31
+
+        #define LCD_RESET_PIN     23
+
+      #endif
 
     #elif ENABLED(MINIPANEL)
 
