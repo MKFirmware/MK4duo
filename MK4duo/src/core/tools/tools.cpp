@@ -36,13 +36,10 @@ Tools tools;
 /** Public Parameters */
 tool_data_t Tools::data;
 
-int16_t Tools::flow_percentage[MAX_EXTRUDER]        = ARRAY_BY_EXTRUDERS(100),
-        Tools::density_percentage[MAX_EXTRUDER]     = ARRAY_BY_EXTRUDERS(100);
-float   Tools::e_factor[MAX_EXTRUDER]               = ARRAY_BY_EXTRUDERS(1.0);
-
-#if ENABLED(SINGLENOZZLE)
-  int16_t Tools::singlenozzle_temp[MAX_EXTRUDER]    = ARRAY_BY_EXTRUDERS(0);
-#endif
+int16_t Tools::flow_percentage[MAX_EXTRUDER]    = { 100 },
+        Tools::density_percentage[MAX_EXTRUDER] = { 100 },
+        Tools::singlenozzle_temp[MAX_EXTRUDER]  = { 0 };
+float   Tools::e_factor[MAX_EXTRUDER]           = { 1.0f };
 
 #if ENABLED(VOLUMETRIC_EXTRUSION)
   float Tools::volumetric_area_nominal              = CIRCLE_AREA(float(DEFAULT_NOMINAL_FILAMENT_DIA) * 0.5f),
@@ -143,7 +140,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
          return invalid_extruder_error();
     #endif
 
-    if (data.extruder.target >= EXTRUDERS)
+    if (data.extruder.target >= data.extruder.total)
       return invalid_extruder_error();
 
     if (!no_move && mechanics.axis_unhomed_error()) {
@@ -169,11 +166,9 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       if (should_swap) {
         if (too_cold)
           SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
-          #if ENABLED(SINGLENOZZLE)
-            data.extruder.previous = data.extruder.active;
-            data.extruder.active   = data.extruder.target;
-            return;
-          #endif
+          data.extruder.previous = data.extruder.active;
+          data.extruder.active   = data.extruder.target;
+          return;
         else {
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             advancedpause.do_pause_e_move(-data.swap_length, MMM_TO_MMS(data.retract_speed));
@@ -283,7 +278,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       // Return to position and lower again
       if (safe_to_move && !no_move && printer.isRunning()) {
 
-        #if ENABLED(SINGLENOZZLE)
+        if (thermalManager.data.hotends == 1) {
           singlenozzle_temp[data.extruder.previous] = hotends[0]->deg_target();
           if (singlenozzle_temp[data.extruder.active] && singlenozzle_temp[data.extruder.active] != hotends[0]->deg_target()) {
             hotends[0]->set_target_temp(singlenozzle_temp[data.extruder.active]);
@@ -292,7 +287,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
             #endif
             hotends[0]->wait_for_target(true);
           }
-        #endif
+        }
 
         #if ENABLED(TOOL_CHANGE_FIL_SWAP)
           if (should_swap && !too_cold) {

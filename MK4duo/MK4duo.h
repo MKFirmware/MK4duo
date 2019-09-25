@@ -98,9 +98,9 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
-#include "src/inc/conditionals_pre.h"
-#include "src/inc/conditionals_pins.h"
-#include "src/inc/conditionals_post.h"
+#include "src/conditionals/conditionals_pre.h"
+#include "src/conditionals/conditionals_pins.h"
+#include "src/conditionals/conditionals_post.h"
 
 // Lib modules
 #include "src/lib/types.h"

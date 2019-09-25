@@ -134,43 +134,31 @@ NexObject SDMenu        = NexObject(1,  2);
  * Nextion component for page:printer
  *******************************************************************
  */
-NexObject LcdStatus     = NexObject(2,  6);
-NexObject LcdX          = NexObject(2,  7);
-NexObject LcdY          = NexObject(2,  8);
-NexObject LcdZ          = NexObject(2,  9);
-#if HOTENDS > 0
-  NexObject Hotend00    = NexObject(2, 11);
-  NexObject Hotend01    = NexObject(2, 12);
-#endif
-#if HOTENDS > 1
-  NexObject Hotend10    = NexObject(2, 13);
-  NexObject Hotend11    = NexObject(2, 14);
-#endif
-#if HOTENDS > 2
-  NexObject Hotend20    = NexObject(2, 15);
-  NexObject Hotend21    = NexObject(2, 16);
-#endif
-#if HOTENDS > 3
-  NexObject Hotend30    = NexObject(2, 17);
-  NexObject Hotend31    = NexObject(2, 18);
+NexObject LcdStatus       = NexObject(2,  6);
+NexObject LcdX            = NexObject(2,  7);
+NexObject LcdY            = NexObject(2,  8);
+NexObject LcdZ            = NexObject(2,  9);
+#if MAX_HOTEND > 0
+  NexObject Hotend_deg[4] = { NexObject(2, 11), NexObject(2, 13), NexObject(2, 15), NexObject(2, 17) };
+  NexObject Hotend_trg[4] = { NexObject(2, 12), NexObject(2, 14), NexObject(2, 16), NexObject(2, 18) };
 #endif
 #if MAX_BED > 0
-  NexObject Bed0        = NexObject(2, 19);
-  NexObject Bed1        = NexObject(2, 20);
+  NexObject Bed_deg       = NexObject(2, 19);
+  NexObject Bed_trg       = NexObject(2, 20);
 #endif
 #if MAX_CHAMBER > 0
-  NexObject Chamber0    = NexObject(2, 21);
-  NexObject Chamber1    = NexObject(2, 22);
+  NexObject Chamber_deg   = NexObject(2, 21);
+  NexObject Chamber_trg   = NexObject(2, 22);
 #endif
 #if HAS_DHT
-  NexObject DHT0        = NexObject(2, 23);
+  NexObject DHT0          = NexObject(2, 23);
 #endif
-NexObject SD            = NexObject(2, 24);
-NexObject Fanspeed      = NexObject(2, 26);
-NexObject VSpeed        = NexObject(2, 27);
-NexObject LightStatus   = NexObject(2, 28);
-NexObject LcdTime       = NexObject(2, 30);
-NexObject progressbar   = NexObject(2, 31);
+NexObject SD              = NexObject(2, 24);
+NexObject Fanspeed        = NexObject(2, 26);
+NexObject VSpeed          = NexObject(2, 27);
+NexObject LightStatus     = NexObject(2, 28);
+NexObject LcdTime         = NexObject(2, 30);
+NexObject progressbar     = NexObject(2, 31);
 
 /**
  *******************************************************************
@@ -421,6 +409,8 @@ void NextionLCD::status_screen_update() {
 
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
+  const uint8_t max_hotends = MIN(4, thermalManager.data.hotends);
+
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
   #endif
@@ -466,29 +456,23 @@ void NextionLCD::status_screen_update() {
       Previousfeedrate = mechanics.feedrate_percentage;
     }
 
-    #if HOTENDS > 0
-      setValue(Hotend00, hotends[0]->deg_current());
-      setValue(Hotend01, hotends[0]->deg_target());
-    #endif
-    #if HOTENDS > 1
-      setValue(Hotend10, hotends[1]->deg_current());
-      setValue(Hotend11, hotends[1]->deg_target());
-    #endif
-    #if HOTENDS > 2
-      setValue(Hotend20, hotends[2]->deg_current());
-      setValue(Hotend21, hotends[2]->deg_target());
-    #endif
-    #if HOTENDS > 3
-      setValue(Hotend30, hotends[3]->deg_current());
-      setValue(Hotend31, hotends[3]->deg_target());
+    #if MAX_HOTEND > 0
+      for (uint8_t h = 0; h < max_hotends; h++) {
+        setValue(Hotend_deg[h], hotends[h]->deg_current());
+        setValue(Hotend_trg[h], hotends[h]->deg_target());
+      }
     #endif
     #if MAX_BED > 0
-      setValue(Bed0, beds[0]->deg_current());
-      setValue(Bed1, beds[0]->deg_target());
+      if (thermalManager.data.beds) {
+        setValue(Bed_deg, beds[0]->deg_current());
+        setValue(Bed_trg, beds[0]->deg_target());
+      }
     #endif
     #if MAX_CHAMBER > 0
-      setValue(Chamber0, chambers[0]->deg_current());
-      setValue(Chamber1, chambers[0]->deg_target());
+      if (thermalManager.data.chambers) {
+        setValue(Chamber_deg, chambers[0]->deg_current());
+        setValue(Chamber_trg, chambers[0]->deg_target());
+      }
     #endif
     #if HAS_DHT
       if (lcdui.get_blink(3))
@@ -753,24 +737,16 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 /** Private Function */
 void NextionLCD::set_status_page() {
   char temp[10] = { 0 };
+  const uint8_t max_hotends = MIN(4, thermalManager.data.hotends);
 
-  #if HOTENDS > 0
-    setValue(Hotend00, 25);
-  #endif
-  #if HOTENDS > 1
-    setValue(Hotend10, 25);
-  #endif
-  #if HOTENDS > 2
-    setValue(Hotend20, 25);
-  #endif
-  #if HOTENDS > 3
-    setValue(Hotend30, 25);
+  #if MAX_HOTEND > 0
+    for (uint8_t h = 0; h < max_hotends; h++) setValue(Hotend_deg[h], 25);
   #endif
   #if MAX_BED > 0
-    setValue(Bed0, 25);
+    if (thermalManager.data.beds) setValue(Bed_deg, 25);
   #endif
-  #if HAS_TEMP_CHAMBER0
-    setValue(Chamber0, 25);
+  #if MAX_CHAMBER > 0
+    if (thermalManager.data.chambers) setValue(Chamber_deg, 25);
   #endif
   #if HAS_DHT
     setValue(DHT0, 25);

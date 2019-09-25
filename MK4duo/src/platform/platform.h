@@ -35,7 +35,6 @@
 #include "common/communication/communication.h"
 #include "common/debug/debug.h"
 #include "common/host_action/host_action.h"
-#include "common/softpwm/softpwm.h"
 #include "common/servo/servo.h"
 #include "common/serial.h"
 #include "common/memory_store.h"

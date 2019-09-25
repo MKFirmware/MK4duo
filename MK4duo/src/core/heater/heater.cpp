@@ -46,6 +46,8 @@ void Heater::init() {
 
   // Reset valor
   pwm_value             = 0;
+  pwm_soft_pos          = 0;
+  pwm_soft_count        = 0xFF;
   consecutive_low_temp  = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
@@ -70,7 +72,7 @@ void Heater::init() {
 
   if (printer.isRunning()) return; // All running not reinitialize
 
-  if (data.pin > 0) HAL::pinMode(data.pin, (isHWinvert()) ? OUTPUT_HIGH : OUTPUT_LOW);
+  if (data.pin > NoPin) HAL::pinMode(data.pin, (isHWinvert()) ? OUTPUT_HIGH : OUTPUT_LOW);
 
   #if HAS_MAX6675 || HAS_MAX31855
     if (data.sensor.type == -2 || data.sensor.type == -1) {
@@ -263,7 +265,21 @@ void Heater::get_output() {
 }
 
 void Heater::set_output_pwm() {
-  HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, data.freq, data.flag.HWpwm);
+
+  if (isHWpwm())
+    HAL::analogWrite(data.pin, isHWinvert() ? (255 - pwm_value) : pwm_value, data.freq);
+  else {
+    // Now set the pin high (if not 0)
+    if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (pwm_value & SOFT_PWM_MASK)) > 0))
+        HAL::digitalWrite(data.pin, HIGH);
+
+    // If it's a valid pin turn off the channel
+    if (data.pin > NoPin && pwm_soft_pos == pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
+      HAL::digitalWrite(data.pin, LOW);
+
+    pwm_soft_count += SOFT_PWM_STEP;
+  }
+
 }
 
 void Heater::check_and_power() {

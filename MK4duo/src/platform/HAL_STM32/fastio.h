@@ -156,5 +156,13 @@ FORCE_INLINE static void OUT_WRITE(const pin_t pin, const uint8_t flag) {
 }
 
 FORCE_INLINE static bool USEABLE_HARDWARE_PWM(const pin_t pin) {
-  return digitalPinHasPWM(pin);
+  PinName p = digitalPinToPinName(pin);
+  return (
+    #ifdef HAL_DAC_MODULE_ENABLED
+      pin_in_pinmap(p, PinMap_DAC) ||
+    #endif
+    #ifdef HAL_TIM_MODULE_ENABLED
+      pin_in_pinmap(p, PinMap_PWM) ||
+    #endif
+    false);
 }

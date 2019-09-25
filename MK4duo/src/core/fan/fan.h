@@ -76,6 +76,11 @@ class Fan {
                 scaled_speed,
                 kickstart;
 
+  public: /** Private Parameters */
+
+    uint8_t     pwm_soft_pos,
+                pwm_soft_count;
+
   public: /** Public Function */
 
     void init();

@@ -80,9 +80,9 @@ inline void gcode_T(const uint8_t tool_id) {
         commands.inject_P(PSTR("M600"));
         tools.data.extruder.previous = tool_id;
       }
-    #else
-      tools.change(tool_id, (tool_id == tools.data.extruder.active) || parser.boolval('S'));
+      else
     #endif
+      tools.change(tool_id, (tool_id == tools.data.extruder.active) || parser.boolval('S'));
 
   }
 

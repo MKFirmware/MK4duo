@@ -697,7 +697,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     heat->resetFlag();
     heat->setUsePid(PIDTEMP);
     heat->setHWinvert(INVERTED_HEATER_PINS);
-    heat->setHWpwm(HARDWARE_PWM);
+    heat->setHWpwm(USEABLE_HARDWARE_PWM(heat->data.pin));
     heat->setThermalProtection(THERMAL_PROTECTION_HOTENDS);
     #if HAS_EEPROM
       heat->setPidTuned(false);
@@ -753,7 +753,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     heat->resetFlag();
     heat->setUsePid(PIDTEMPBED);
     heat->setHWinvert(INVERTED_BED_PIN);
-    heat->setHWpwm(HARDWARE_PWM);
+    heat->setHWpwm(USEABLE_HARDWARE_PWM(heat->data.pin));
     heat->setThermalProtection(THERMAL_PROTECTION_BED);
     #if HAS_EEPROM
       heat->setPidTuned(false);
@@ -809,7 +809,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     heat->resetFlag();
     heat->setUsePid(PIDTEMPCHAMBER);
     heat->setHWinvert(INVERTED_CHAMBER_PIN);
-    heat->setHWpwm(HARDWARE_PWM);
+    heat->setHWpwm(USEABLE_HARDWARE_PWM(heat->data.pin));
     heat->setThermalProtection(THERMAL_PROTECTION_CHAMBER);
     #if HAS_EEPROM
       heat->setPidTuned(false);
@@ -858,7 +858,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     heat->resetFlag();
     heat->setUsePid(PIDTEMPCOOLER);
     heat->setHWinvert(INVERTED_COOLER_PIN);
-    heat->setHWpwm(HARDWARE_PWM);
+    heat->setHWpwm(USEABLE_HARDWARE_PWM(heat->data.pin));
     heat->setThermalProtection(THERMAL_PROTECTION_COOLER);
     #if HAS_EEPROM
       heat->setPidTuned(false);

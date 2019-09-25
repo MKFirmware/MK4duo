@@ -85,11 +85,14 @@ class Heater {
   private: /** Private Parameters */
 
     const uint16_t  temp_check_interval;
+
     const uint8_t   temp_hysteresis,
                     watch_period,
                     watch_increase;
 
-    uint8_t         consecutive_low_temp;
+    uint8_t         consecutive_low_temp,
+                    pwm_soft_pos,
+                    pwm_soft_count;
 
     uint16_t        watch_target_temp;
 
@@ -109,14 +112,14 @@ class Heater {
     void set_target_temp(const int16_t celsius);
     void set_idle_temp(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
-    
+
     void get_output();
     void set_output_pwm();
-    
+
     void check_and_power();
-    
+
     void PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
-    
+
     void print_M301();
     void print_M305();
     void print_M306();

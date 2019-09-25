@@ -316,9 +316,8 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
+void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000U*/) {
   UNUSED(freq);
-  UNUSED(hwpwm);
   softpwm.set(pin, uValue);
 }
 
@@ -351,9 +350,6 @@ void HAL::Tick() {
       fans[f]->set_output_pwm();
     }
   #endif
-
-  // Software PWM modulation
-  softpwm.spin();
 
   // Event 100 ms
   if (expired(&cycle_100_ms, 100U)) thermalManager.spin();

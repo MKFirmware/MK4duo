@@ -65,18 +65,15 @@ class Tools {
 
     static tool_data_t  data;
 
-    static int16_t  flow_percentage[MAX_EXTRUDER],       // Extrusion factor for each extruder
-                    density_percentage[MAX_EXTRUDER];    // Extrusion density factor for each extruder
-    static float    e_factor[MAX_EXTRUDER];              // The flow percentage and volumetric multiplier combine to scale E movement
-
-    #if ENABLED(SINGLENOZZLE)
-      static int16_t singlenozzle_temp[MAX_EXTRUDER];
-    #endif
+    static int16_t  flow_percentage[MAX_EXTRUDER],      // Extrusion factor for each extruder
+                    density_percentage[MAX_EXTRUDER],   // Extrusion density factor for each extruder
+                    singlenozzle_temp[MAX_EXTRUDER];    // Single nozzle temp for each extuder
+    static float    e_factor[MAX_EXTRUDER];             // The flow percentage and volumetric multiplier combine to scale E movement
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-      static float  volumetric_area_nominal,          // Nominal cross-sectional area
-                    volumetric_multiplier[MAX_EXTRUDER]; // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
-                                                      // May be auto-adjusted by a filament width sensor
+      static float  volumetric_area_nominal,              // Nominal cross-sectional area
+                    volumetric_multiplier[MAX_EXTRUDER];  // Reciprocal of cross-sectional area of filament (in mm^2). Pre-calculated to reduce computation in the planner
+                                                          // May be auto-adjusted by a filament width sensor
     #endif
 
   public: /** Public Function */

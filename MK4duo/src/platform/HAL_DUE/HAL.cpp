@@ -384,7 +384,7 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
 }
 
-void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
+void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/) {
 
   static bool PWMEnabled = false;
   static uint8_t TCChanEnabled[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -392,168 +392,160 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
 
   if (isnan(ulValue) || pin <= 0) return;
 
-  if (hwpwm) {
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
 
-    const PinDescription& pinDesc = g_APinDescription[pin];
-    if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
+  const uint32_t attr = pinDesc.ulPinAttribute;
 
-    const uint32_t attr = pinDesc.ulPinAttribute;
+  if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {
+    EAnalogChannel channel = pinDesc.ulADCChannelNumber;
+    if (channel == DA0 || channel == DA1) {
+      uint32_t chDACC = ((channel == DA0) ? 0 : 1);
+      if (dacc_get_channel_status(DACC_INTERFACE) == 0) {
 
-    if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {
-      EAnalogChannel channel = pinDesc.ulADCChannelNumber;
-      if (channel == DA0 || channel == DA1) {
-        uint32_t chDACC = ((channel == DA0) ? 0 : 1);
-        if (dacc_get_channel_status(DACC_INTERFACE) == 0) {
+        /* Enable clock for DACC_INTERFACE */
+        pmc_enable_periph_clk(DACC_INTERFACE_ID);
 
-          /* Enable clock for DACC_INTERFACE */
-          pmc_enable_periph_clk(DACC_INTERFACE_ID);
+        /* Reset DACC registers */
+        dacc_reset(DACC_INTERFACE);
 
-          /* Reset DACC registers */
-          dacc_reset(DACC_INTERFACE);
+        /* Half word transfer mode */
+        dacc_set_transfer_mode(DACC_INTERFACE, 0);
 
-          /* Half word transfer mode */
-          dacc_set_transfer_mode(DACC_INTERFACE, 0);
+        /* Power save:
+         * sleep mode  - 0 (disabled)
+         * fast wakeup - 0 (disabled)
+         */
+        dacc_set_power_save(DACC_INTERFACE, 0, 0);
 
-          /* Power save:
-           * sleep mode  - 0 (disabled)
-           * fast wakeup - 0 (disabled)
-           */
-          dacc_set_power_save(DACC_INTERFACE, 0, 0);
+        /* Timing:
+         * refresh        - 0x08 (1024*8 dacc clocks)
+         * max speed mode -    0 (disabled)
+         * startup time   - 0x10 (1024 dacc clocks)
+         */
+        dacc_set_timing(DACC_INTERFACE, 0x08, 0, 0x10);
 
-          /* Timing:
-           * refresh        - 0x08 (1024*8 dacc clocks)
-           * max speed mode -    0 (disabled)
-           * startup time   - 0x10 (1024 dacc clocks)
-           */
-          dacc_set_timing(DACC_INTERFACE, 0x08, 0, 0x10);
-
-          /* Set up analog current */
-          dacc_set_analog_control(DACC_INTERFACE, DACC_ACR_IBCTLCH0(0x02) |
-                                  DACC_ACR_IBCTLCH1(0x02) |
-                                  DACC_ACR_IBCTLDACCORE(0x01)
-          );
-        }
-
-        /* Disable TAG and select output channel chDACC */
-        dacc_set_channel_selection(DACC_INTERFACE, chDACC);
-
-        if ((dacc_get_channel_status(DACC_INTERFACE) & (1 << chDACC)) == 0)
-          dacc_enable_channel(DACC_INTERFACE, chDACC);
-
-        // Write user value
-        ulValue = mapResolution(ulValue, writeResolution, DACC_RESOLUTION);
-        dacc_write_conversion_data(DACC_INTERFACE, ulValue);
-        while ((dacc_get_interrupt_status(DACC_INTERFACE) & DACC_ISR_EOC) == 0);
-        return;
-      }
-    }
-
-    if ((attr & PIN_ATTR_PWM) == PIN_ATTR_PWM) {
-
-      ulValue = mapResolution(ulValue, writeResolution, PWM_RESOLUTION);
-
-      if (!PWMEnabled) {
-        // PWM Startup code
-        pmc_enable_periph_clk(PWM_INTERFACE_ID);
-        PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
-        PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
-        PWMEnabled = true;
+        /* Set up analog current */
+        dacc_set_analog_control(DACC_INTERFACE, DACC_ACR_IBCTLCH0(0x02) |
+                                DACC_ACR_IBCTLCH1(0x02) |
+                                DACC_ACR_IBCTLDACCORE(0x01)
+        );
       }
 
-      uint32_t chan = pinDesc.ulPWMChannel;
-      if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
-        // Setup PWM for this pin
-        PIO_Configure(pinDesc.pPort,
-            pinDesc.ulPinType,
-            pinDesc.ulPin,
-            pinDesc.ulPinConfiguration);
-        PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
-        PWMC_SetPeriod(PWM_INTERFACE, chan, PWM_MAX_DUTY_CYCLE);
-        PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
-        PWMC_EnableChannel(PWM_INTERFACE, chan);
-        g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
-      }
+      /* Disable TAG and select output channel chDACC */
+      dacc_set_channel_selection(DACC_INTERFACE, chDACC);
 
-      PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+      if ((dacc_get_channel_status(DACC_INTERFACE) & (1 << chDACC)) == 0)
+        dacc_enable_channel(DACC_INTERFACE, chDACC);
+
+      // Write user value
+      ulValue = mapResolution(ulValue, writeResolution, DACC_RESOLUTION);
+      dacc_write_conversion_data(DACC_INTERFACE, ulValue);
+      while ((dacc_get_interrupt_status(DACC_INTERFACE) & DACC_ISR_EOC) == 0);
       return;
     }
-
-    if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
-
-      static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
-      static const uint32_t channelToAB[]   = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
-      static const uint32_t channelToId[] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8 };
-
-      static Tc *channelToTC[] = {
-        TC0, TC0, TC0, TC0, TC0, TC0,
-        TC1, TC1, TC1, TC1, TC1, TC1,
-        TC2, TC2, TC2, TC2, TC2, TC2
-      };
-
-      // We use MCLK/2 as clock.
-      const uint32_t TC = VARIANT_MCK / 2 / freq;
-
-      // Map value to Timer ranges 0..255 => 0..TC
-      ulValue = mapResolution(ulValue, writeResolution, TC_RESOLUTION);
-      ulValue *= TC / TC_MAX_DUTY_CYCLE;
-
-      // Setup Timer for this pin
-      ETCChannel channel = pinDesc.ulTCChannel;
-      uint32_t chNo = channelToChNo[channel];
-      uint32_t chA  = channelToAB[channel];
-      Tc *chTC = channelToTC[channel];
-      uint32_t interfaceID = channelToId[channel];
-
-      if (!TCChanEnabled[interfaceID]) {
-        pmc_enable_periph_clk(TC_INTERFACE_ID + interfaceID);
-        TC_Configure(chTC, chNo,
-          TC_CMR_TCCLKS_TIMER_CLOCK1 |
-          TC_CMR_WAVE |         // Waveform mode
-          TC_CMR_WAVSEL_UP_RC | // Counter running up and reset when equals to RC
-          TC_CMR_EEVT_XC0 |     // Set external events from XC0 (this setup TIOB as output)
-          TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
-          TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-        chTC->TC_CHANNEL[chNo].TC_RC = TC;
-      }
-
-      if (ulValue == 0) {
-        if (chA)
-          TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
-        else
-          TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-      }
-      else {
-        if (chA) {
-          chTC->TC_CHANNEL[chNo].TC_RA = ulValue;
-          TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-        }
-        else {
-          chTC->TC_CHANNEL[chNo].TC_RB = ulValue;
-          TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
-        }
-      }
-
-      if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
-        PIO_Configure(pinDesc.pPort,
-            pinDesc.ulPinType,
-            pinDesc.ulPin,
-            pinDesc.ulPinConfiguration);
-        g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
-      }
-
-      if (!TCChanEnabled[interfaceID]) {
-        TC_Start(chTC, chNo);
-        TCChanEnabled[interfaceID] = 1;
-      }
-
-      return;
-    }
-
   }
 
-  // If not hardware pwm pin used Software pwm
-  ulValue = mapResolution(ulValue, writeResolution, 8);
-  softpwm.set(pin, ulValue);
+  if ((attr & PIN_ATTR_PWM) == PIN_ATTR_PWM) {
+
+    ulValue = mapResolution(ulValue, writeResolution, PWM_RESOLUTION);
+
+    if (!PWMEnabled) {
+      // PWM Startup code
+      pmc_enable_periph_clk(PWM_INTERFACE_ID);
+      PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
+      PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
+      PWMEnabled = true;
+    }
+
+    uint32_t chan = pinDesc.ulPWMChannel;
+    if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
+      // Setup PWM for this pin
+      PIO_Configure(pinDesc.pPort,
+          pinDesc.ulPinType,
+          pinDesc.ulPin,
+          pinDesc.ulPinConfiguration);
+      PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
+      PWMC_SetPeriod(PWM_INTERFACE, chan, PWM_MAX_DUTY_CYCLE);
+      PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+      PWMC_EnableChannel(PWM_INTERFACE, chan);
+      g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
+    }
+
+    PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+    return;
+  }
+
+  if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
+
+    static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
+    static const uint32_t channelToAB[]   = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
+    static const uint32_t channelToId[] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8 };
+
+    static Tc *channelToTC[] = {
+      TC0, TC0, TC0, TC0, TC0, TC0,
+      TC1, TC1, TC1, TC1, TC1, TC1,
+      TC2, TC2, TC2, TC2, TC2, TC2
+    };
+
+    // We use MCLK/2 as clock.
+    const uint32_t TC = VARIANT_MCK / 2 / freq;
+
+    // Map value to Timer ranges 0..255 => 0..TC
+    ulValue = mapResolution(ulValue, writeResolution, TC_RESOLUTION);
+    ulValue *= TC / TC_MAX_DUTY_CYCLE;
+
+    // Setup Timer for this pin
+    ETCChannel channel = pinDesc.ulTCChannel;
+    uint32_t chNo = channelToChNo[channel];
+    uint32_t chA  = channelToAB[channel];
+    Tc *chTC = channelToTC[channel];
+    uint32_t interfaceID = channelToId[channel];
+
+    if (!TCChanEnabled[interfaceID]) {
+      pmc_enable_periph_clk(TC_INTERFACE_ID + interfaceID);
+      TC_Configure(chTC, chNo,
+        TC_CMR_TCCLKS_TIMER_CLOCK1 |
+        TC_CMR_WAVE |         // Waveform mode
+        TC_CMR_WAVSEL_UP_RC | // Counter running up and reset when equals to RC
+        TC_CMR_EEVT_XC0 |     // Set external events from XC0 (this setup TIOB as output)
+        TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
+        TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+      chTC->TC_CHANNEL[chNo].TC_RC = TC;
+    }
+
+    if (ulValue == 0) {
+      if (chA)
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+      else
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+    }
+    else {
+      if (chA) {
+        chTC->TC_CHANNEL[chNo].TC_RA = ulValue;
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+      }
+      else {
+        chTC->TC_CHANNEL[chNo].TC_RB = ulValue;
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
+      }
+    }
+
+    if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
+      PIO_Configure(pinDesc.pPort,
+          pinDesc.ulPinType,
+          pinDesc.ulPin,
+          pinDesc.ulPinConfiguration);
+      g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
+    }
+
+    if (!TCChanEnabled[interfaceID]) {
+      TC_Start(chTC, chNo);
+      TCChanEnabled[interfaceID] = 1;
+    }
+
+    return;
+  }
 
 }
 
@@ -595,9 +587,6 @@ void HAL::Tick() {
       fans[f]->set_output_pwm();
     }
   #endif
-
-  // Software PWM modulation
-  softpwm.spin();
 
   // Event 100 ms
   if (expired(&cycle_100_ms, 100U)) thermalManager.spin();

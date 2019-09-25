@@ -168,15 +168,9 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
                 print_input_or_output(false);
                 SERIAL_VAL(digitalRead_mod(pin));
               }
-              #if ENABLED(CPU_32_BIT)
-                else if (HAL::pwm_status(pin) || HAL::tc_status(pin)) {
-                  // do nothing
-                }
-              #else
-                else if (pwm_status(pin)) {
-                  // do nothing
-                }
-              #endif
+              else if (USEABLE_HARDWARE_PWM(pin)) {
+                // do nothing
+              }
               else {
                 print_input_or_output(true);
                 SERIAL_VAL(digitalRead_mod(pin));
@@ -235,7 +229,6 @@ inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = fa
           print_input_or_output(false);
           SERIAL_VAL(digitalRead_mod(pin));
         }
-        //if (!pwm_status(pin)) SERIAL_CHR(' ');    // add padding if it's not a PWM pin
         if (extended) pwm_details(pin);  // report PWM capabilities only if doing an extended report
       }
     }

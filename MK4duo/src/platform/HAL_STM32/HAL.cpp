@@ -186,11 +186,26 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
     return value << (to - from);
 }
 
-void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
-  const int writeResolution = 8;
-  // If not hardware pwm pin used Software pwm
-  ulValue = mapResolution(ulValue, writeResolution, 8);
-  softpwm.set(pin, ulValue);
+void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/) {
+
+  PinName p = digitalPinToPinName(pin);
+
+  #ifdef HAL_DAC_MODULE_ENABLED
+    if (pin_in_pinmap(p, PinMap_DAC)) {
+      ulValue = mapResolution(ulValue, 8, DACC_RESOLUTION);
+      dac_write_value(p, ulValue, 1);
+      return;
+    }
+  #endif
+
+  #ifdef HAL_TIM_MODULE_ENABLED
+    if (pin_in_pinmap(p, PinMap_PWM)) {
+      ulValue = mapResolution(ulValue, 8, PWM_RESOLUTION);
+      pwm_start(p, freq * PWM_MAX_DUTY_CYCLE, PWM_MAX_DUTY_CYCLE, ulValue, 1);
+      return;
+    }
+  #endif
+
 }
 
 /**
@@ -231,9 +246,6 @@ void HAL::Tick() {
       fans[f]->set_output_pwm();
     }
   #endif
-
-  // Software PWM modulation
-  softpwm.spin();
 
   // Event 100 ms
   if (expired(&cycle_100_ms, 100U)) thermalManager.spin();

@@ -171,8 +171,6 @@ typedef uint16_t  ptr_int_t;
 #define AD595_MAX             500.0f
 #define AD8495_MAX            1000.0f
 
-#define HARDWARE_PWM          false
-
 #define GET_PIN_MAP_PIN(index) index
 #define GET_PIN_MAP_INDEX(pin) pin
 #define PARSED_PIN_INDEX(code, dval) parser.intval(code, dval)
@@ -507,7 +505,7 @@ class HAL {
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U, const bool hwpwm=true);
+    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U);
 
     static void Tick();
 

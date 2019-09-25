@@ -152,6 +152,13 @@ class Commands {
     static bool get_target_driver(const uint16_t code);
 
     /**
+     * Set target hotend from the T parameter
+     *
+     * Returns TRUE if the target is invalid
+     */
+    static uint8_t get_target_hotend(const uint16_t code);
+
+    /**
      * Set target heather from the H parameter
      *
      * Returns NULL if the target is invalid

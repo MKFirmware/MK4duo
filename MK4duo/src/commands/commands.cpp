@@ -244,6 +244,20 @@ bool Commands::get_target_driver(const uint16_t code) {
   return false;
 }
 
+uint8_t Commands::get_target_hotend(const uint16_t code) {
+  if (parser.seenval('T')) {
+    const int8_t t = parser.value_byte();
+    if (t >= thermalManager.data.hotends) {
+      SERIAL_SMV(ECHO, "M", code);
+      SERIAL_EMV(" " MSG_INVALID_HOTEND " ", t);
+      return 255;
+    }
+    return t;
+  }
+  else
+    return 0;
+}
+
 Heater* Commands::get_target_heater() {
 
   const int8_t h  = parser.intval('H');
