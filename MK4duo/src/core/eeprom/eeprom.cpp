@@ -103,23 +103,31 @@ typedef struct EepromDataStruct {
   //
   // Heaters data
   //
-  heater_data_t     hotend_data[MAX_HOTEND];
-  heater_data_t     bed_data[MAX_BED];
-  heater_data_t     chamber_data[MAX_CHAMBER];
-  heater_data_t     cooler_data[MAX_COOLER];
-
-  //
-  // DHT sensor data
-  //
-  #if HAS_DHT
-    dht_data_t      dht_data;
+  #if MAX_HOTEND > 0
+    heater_data_t   hotend_data[MAX_HOTEND];
+  #endif
+  #if MAX_BED > 0
+    heater_data_t   bed_data[MAX_BED];
+  #endif
+  #if MAX_CHAMBER > 0
+    heater_data_t   chamber_data[MAX_CHAMBER];
+  #endif
+  #if MAX_COOLER > 0
+    heater_data_t   cooler_data[MAX_COOLER];
   #endif
 
   //
   // Fans data
   //
   #if MAX_FAN > 0
-    fan_data_t      fans_data[FAN_COUNT];
+    fan_data_t      fans_data[MAX_FAN];
+  #endif
+
+  //
+  // DHT sensor data
+  //
+  #if HAS_DHT
+    dht_data_t      dht_data;
   #endif
 
   //
@@ -308,17 +316,24 @@ void EEPROM::post_process() {
     mechanics.recalc_delta_settings();
   #endif
 
-  LOOP_HOTEND()   hotends[h]->init();
-  LOOP_BED()      beds[h]->init();
-  LOOP_CHAMBER()  chambers[h]->init();
-  LOOP_COOLER()   coolers[h]->init();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND()   hotends[h]->init();
+  #endif
+  #if MAX_BED > 0
+    LOOP_BED()      beds[h]->init();
+  #endif
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER()  chambers[h]->init();
+  #endif
+  #if MAX_COOLER > 0
+    LOOP_COOLER()   coolers[h]->init();
+  #endif
+  #if MAX_FAN > 0
+    LOOP_FAN()      fans[f]->init();
+  #endif
 
   #if HAS_DHT
     dhtsensor.init();
-  #endif
-
-  #if MAX_FAN > 0
-    LOOP_FAN() fans[f].init();
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
@@ -413,6 +428,7 @@ void EEPROM::post_process() {
     heater_data_t bed_data[MAX_BED];
     heater_data_t chamber_data[MAX_CHAMBER];
     heater_data_t cooler_data[MAX_COOLER];
+    fan_data_t    fan_data[MAX_FAN];
 
     flag.error = false;
 
@@ -471,27 +487,36 @@ void EEPROM::post_process() {
     //
     // Heaters data
     //
-    LOOP_HOTEND()   if (hotends[h])   hotend_data[h]  = hotends[h]->data;
-    LOOP_BED()      if (beds[h])      bed_data[h]     = beds[h]->data;
-    LOOP_CHAMBER()  if (chambers[h])  chamber_data[h] = chambers[h]->data;
-    LOOP_COOLER()   if (coolers[h])   cooler_data[h]  = coolers[h]->data;
-    EEPROM_WRITE(hotend_data);
-    EEPROM_WRITE(bed_data);
-    EEPROM_WRITE(chamber_data);
-    EEPROM_WRITE(cooler_data);
-
-    //
-    // DHT sensor data
-    //
-    #if HAS_DHT
-      EEPROM_WRITE(dhtsensor.data);
+    #if MAX_HOTEND > 0
+      LOOP_HOTEND()   if (hotends[h])   hotend_data[h]  = hotends[h]->data;
+      EEPROM_WRITE(hotend_data);
+    #endif
+    #if MAX_BED > 0
+      LOOP_BED()      if (beds[h])      bed_data[h]     = beds[h]->data;
+      EEPROM_WRITE(bed_data);
+    #endif
+    #if MAX_CHAMBER > 0
+      LOOP_CHAMBER()  if (chambers[h])  chamber_data[h] = chambers[h]->data;
+      EEPROM_WRITE(chamber_data);
+    #endif
+    #if MAX_COOLER > 0
+      LOOP_COOLER()   if (coolers[h])   cooler_data[h]  = coolers[h]->data;
+      EEPROM_WRITE(cooler_data);
     #endif
 
     //
     // Fans data
     //
     #if MAX_FAN > 0
-      LOOP_FAN() EEPROM_WRITE(fans[f].data);
+      LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
+      EEPROM_WRITE(fan_data);
+    #endif
+
+    //
+    // DHT sensor data
+    //
+    #if HAS_DHT
+      EEPROM_WRITE(dhtsensor.data);
     #endif
 
     //
@@ -779,10 +804,11 @@ void EEPROM::post_process() {
     driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
     driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
 
-    heater_data_t hotend_data[MAX_HOTEND]     = { -1 };
-    heater_data_t bed_data[MAX_BED]           = { -1 };
-    heater_data_t chamber_data[MAX_CHAMBER]   = { -1 };
-    heater_data_t cooler_data[MAX_COOLER]     = { -1 };
+    heater_data_t hotend_data[MAX_HOTEND];
+    heater_data_t bed_data[MAX_BED];
+    heater_data_t chamber_data[MAX_CHAMBER];
+    heater_data_t cooler_data[MAX_COOLER];
+    fan_data_t    fan_data[MAX_FAN];
 
     int eeprom_index = EEPROM_OFFSET;
 
@@ -815,7 +841,7 @@ void EEPROM::post_process() {
       // ThermalManager Data
       //
       EEPROM_READ(thermalManager.data);
-      if (!flag.validating) thermalManager.create_heater();
+      if (!flag.validating) thermalManager.create_object();
 
       //
       // Mechanics data
@@ -857,27 +883,47 @@ void EEPROM::post_process() {
       //
       // Heaters data
       //
-      EEPROM_READ(hotend_data);
-      EEPROM_READ(bed_data);
-      EEPROM_READ(chamber_data);
-      EEPROM_READ(cooler_data);
-      LOOP_HOTEND()   if (hotends[h])   hotends[h]->data  = hotend_data[h];
-      LOOP_BED()      if (beds[h])      beds[h]->data     = bed_data[h];
-      LOOP_CHAMBER()  if (chambers[h])  chambers[h]->data = chamber_data[h];
-      LOOP_COOLER()   if (coolers[h])   coolers[h]->data  = cooler_data[h];
+      #if MAX_HOTEND > 0
+        EEPROM_READ(hotend_data);
+      #endif
+      #if MAX_BED > 0
+        EEPROM_READ(bed_data);
+      #endif
+      #if MAX_CHAMBER > 0
+        EEPROM_READ(chamber_data);
+      #endif
+      #if MAX_COOLER > 0
+        EEPROM_READ(cooler_data);
+      #endif
+      if (!flag.validating) {
+        #if MAX_HOTEND > 0
+          LOOP_HOTEND()   if (hotends[h])   hotends[h]->data  = hotend_data[h];
+        #endif
+        #if MAX_BED > 0
+          LOOP_BED()      if (beds[h])      beds[h]->data     = bed_data[h];
+        #endif
+        #if MAX_CHAMBER > 0
+          LOOP_CHAMBER()  if (chambers[h])  chambers[h]->data = chamber_data[h];
+        #endif
+        #if MAX_COOLER > 0
+          LOOP_COOLER()   if (coolers[h])   coolers[h]->data  = cooler_data[h];
+        #endif
+      }
+
+      //
+      // Fans data
+      //
+      #if MAX_FAN > 0
+        EEPROM_READ(fan_data);
+        if (!flag.validating)
+          LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
+      #endif
 
       //
       // DHT sensor data
       //
       #if HAS_DHT
         EEPROM_READ(dhtsensor.data);
-      #endif
-
-      //
-      // Fans data
-      //
-      #if MAX_FAN > 0
-        LOOP_FAN() EEPROM_READ(fans[f].data);
       #endif
 
       //
@@ -1435,26 +1481,34 @@ void EEPROM::reset() {
     /**
      * Print heaters parameters
      */
-    LOOP_HOTEND() {
-      hotends[h]->print_M305();
-      hotends[h]->print_M306();
-      hotends[h]->print_M301();
-    }
-    LOOP_BED() {
-      beds[h]->print_M305();
-      beds[h]->print_M306();
-      beds[h]->print_M301();
-    }
-    LOOP_CHAMBER() {
-      chambers[h]->print_M305();
-      chambers[h]->print_M306();
-      chambers[h]->print_M301();
-    }
-    LOOP_COOLER() {
-      coolers[h]->print_M305();
-      coolers[h]->print_M306();
-      coolers[h]->print_M301();
-    }
+    #if MAX_HOTEND > 0
+      LOOP_HOTEND() {
+        hotends[h]->print_M305();
+        hotends[h]->print_M306();
+        hotends[h]->print_M301();
+      }
+    #endif
+    #if MAX_BED > 0
+      LOOP_BED() {
+        beds[h]->print_M305();
+        beds[h]->print_M306();
+        beds[h]->print_M301();
+      }
+    #endif
+    #if MAX_CHAMBER > 0
+      LOOP_CHAMBER() {
+        chambers[h]->print_M305();
+        chambers[h]->print_M306();
+        chambers[h]->print_M301();
+      }
+    #endif
+    #if MAX_COOLER > 0
+      LOOP_COOLER() {
+        coolers[h]->print_M305();
+        coolers[h]->print_M306();
+        coolers[h]->print_M301();
+      }
+    #endif
 
     /**
      * Print dht parameters
@@ -1487,7 +1541,7 @@ void EEPROM::reset() {
     /**
      * Print Hotends offsets parameters
      */
-    #if HOTENDS > 1
+    #if MAX_HOTEND > 1
       LOOP_HOTEND() nozzle.print_M218(h);
     #endif
 
@@ -1495,7 +1549,7 @@ void EEPROM::reset() {
      * Print Fans parameters
      */
     #if MAX_FAN > 0
-      LOOP_FAN() fans[f].print_M106();
+      LOOP_FAN() fans[f]->print_M106();
     #endif
 
     endstops.print_parameters();

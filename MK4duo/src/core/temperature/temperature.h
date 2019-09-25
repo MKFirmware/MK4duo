@@ -77,9 +77,9 @@ class Temperature {
   public: /** Public Function */
 
     /**
-     * Create Heater
+     * Create Object Heater and fan
      */
-    static void create_heater();
+    static void create_object();
 
     /**
      * Initialize the temperature manager
@@ -192,22 +192,37 @@ class Temperature {
     /**
      * Hotends Factory parameters
      */
-    static void hotends_factory_parameters(const uint8_t h);
+    #if MAX_HOTEND > 0
+      static void hotends_factory_parameters(const uint8_t h);
+    #endif
 
     /**
      * Beds Factory parameters
      */
-    static void beds_factory_parameters(const uint8_t h);
+    #if MAX_BED > 0
+      static void beds_factory_parameters(const uint8_t h);
+    #endif
 
     /**
      * Chambers Factory parameters
      */
-    static void chambers_factory_parameters(const uint8_t h);
+    #if MAX_CHAMBER > 0
+      static void chambers_factory_parameters(const uint8_t h);
+    #endif
 
     /**
      * Coolers Factory parameters
      */
-    static void coolers_factory_parameters(const uint8_t h);
+    #if MAX_COOLER > 0
+      static void coolers_factory_parameters(const uint8_t h);
+    #endif
+
+    /**
+     * Fans Factory parameters
+     */
+    #if MAX_FAN > 0
+      static void fans_factory_parameters(const uint8_t f);
+    #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static float analog2widthFil(); // Convert raw Filament Width to millimeters

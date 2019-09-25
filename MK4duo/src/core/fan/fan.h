@@ -109,5 +109,5 @@ class Fan {
 };
 
 #if MAX_FAN > 0
-  extern Fan fans[FAN_COUNT];
+  extern Fan* fans[MAX_FAN];
 #endif // MAX_FAN > 0

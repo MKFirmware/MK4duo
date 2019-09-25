@@ -192,24 +192,24 @@
 #define ARRAY_BY_N_N(N, ...)      ARRAY_N(N, __VA_ARGS__)
 #define ARRAY_BY_N(N, v1)         ARRAY_BY_N_N(N, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
-// ARRAY_BY_EXTRUDERS based on EXTRUDERS
+// ARRAY_BY_EXTRUDERS based on MAX_EXTRUDER
 #define ARRAY_BY_EXTRUDERS_N(...) ARRAY_N(MAX_EXTRUDER, __VA_ARGS__)
 #define ARRAY_BY_EXTRUDERS(v1)    ARRAY_BY_EXTRUDERS_N(v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1, v1)
 
-// ARRAY_BY_HOTENDS based on HOTENDS
-#define ARRAY_BY_HOTENDS_N(...)   ARRAY_N(HOTENDS, __VA_ARGS__)
+// ARRAY_BY_HOTENDS based on MAX_HOTEND
+#define ARRAY_BY_HOTENDS_N(...)   ARRAY_N(MAX_HOTEND, __VA_ARGS__)
 #define ARRAY_BY_HOTENDS(v1)      ARRAY_BY_HOTENDS_N(v1, v1, v1, v1, v1, v1)
 
-// ARRAY_BY_BEDS based on BEDS
-#define ARRAY_BY_BEDS_N(...)      ARRAY_N(BEDS, __VA_ARGS__)
+// ARRAY_BY_BEDS based on MAX_BED
+#define ARRAY_BY_BEDS_N(...)      ARRAY_N(MAX_BED, __VA_ARGS__)
 #define ARRAY_BY_BEDS(v1)         ARRAY_BY_BEDS_N(v1, v1, v1, v1)
 
-// ARRAY_BY_CHAMBERS based on CHAMBERS
-#define ARRAY_BY_CHAMBERS_N(...)  ARRAY_N(CHAMBERS, __VA_ARGS__)
+// ARRAY_BY_CHAMBERS based on MAX_CHAMBER
+#define ARRAY_BY_CHAMBERS_N(...)  ARRAY_N(MAX_CHAMBER, __VA_ARGS__)
 #define ARRAY_BY_CHAMBERS(v1)     ARRAY_BY_CHAMBERS_N(v1, v1, v1, v1)
 
-// ARRAY_BY_FAN based on FAN_COUNT
-#define ARRAY_BY_FANS_N(...)      ARRAY_N(FAN_COUNT, __VA_ARGS__)
+// ARRAY_BY_FAN based on MAX_FAN
+#define ARRAY_BY_FANS_N(...)      ARRAY_N(MAX_FAN, __VA_ARGS__)
 #define ARRAY_BY_FANS(v1)         ARRAY_BY_FANS_N(v1, v1, v1, v1, v1, v1)
 
 // Limit an index to an array size
@@ -248,7 +248,7 @@
 #define LOOP_BED()                LOOP_L_N(h, thermalManager.data.beds)
 #define LOOP_CHAMBER()            LOOP_L_N(h, thermalManager.data.chambers)
 #define LOOP_COOLER()             LOOP_L_N(h, thermalManager.data.coolers)
-#define LOOP_FAN()                LOOP_L_N(f, FAN_COUNT)
+#define LOOP_FAN()                LOOP_L_N(f, thermalManager.data.fans)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
 
 // Macros for maths shortcuts

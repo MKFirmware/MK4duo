@@ -395,7 +395,7 @@ void Printer::check_periodical_actions() {
   }
 
   #if MAX_FAN > 0
-    LOOP_FAN() fans[f].spin();
+    LOOP_FAN() fans[f]->spin();
   #endif
 
   #if HAS_POWER_SWITCH
@@ -514,7 +514,7 @@ void Printer::stop() {
 
   #if ENABLED(PROBING_FANS_OFF)
     LOOP_FAN() {
-      if (fans[f].isIdle()) fans[f].setIdle(false); // put things back the way they were
+      if (fans[f]->isIdle()) fans[f]->setIdle(false); // put things back the way they were
     }
   #endif
 
@@ -539,6 +539,12 @@ void Printer::stop() {
     SERIAL_LM(ER, MSG_ERR_STOPPED);
     LCD_MESSAGEPGM(MSG_STOPPED);
   }
+}
+
+void Printer::zero_fan_speed() {
+  #if MAX_FAN > 0
+    LOOP_FAN() fans[f]->speed = 0;
+  #endif
 }
 
 /**

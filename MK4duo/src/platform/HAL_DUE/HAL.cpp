@@ -591,8 +591,8 @@ void HAL::Tick() {
   // Fans set output PWM
   #if MAX_FAN > 0
     LOOP_FAN() {
-      if (fans[f].kickstart) fans[f].kickstart--;
-      fans[f].set_output_pwm();
+      if (fans[f]->kickstart) fans[f]->kickstart--;
+      fans[f]->set_output_pwm();
     }
   #endif
 

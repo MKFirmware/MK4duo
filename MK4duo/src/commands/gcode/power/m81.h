@@ -39,9 +39,9 @@ inline void gcode_M81() {
 
   #if MAX_FAN > 0
     LOOP_FAN() {
-      fans[f].speed = 0;
-      fans[f].paused_speed = 0;
-      fans[f].setIdle(false);
+      fans[f]->speed = 0;
+      fans[f]->paused_speed = 0;
+      fans[f]->setIdle(false);
     }
   #endif
 

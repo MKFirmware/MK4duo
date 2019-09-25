@@ -246,15 +246,21 @@ bool Commands::get_target_driver(const uint16_t code) {
 
 Heater* Commands::get_target_heater() {
 
-  const int8_t h = parser.intval('H');
-
-  if (WITHIN(h, 0 , thermalManager.data.hotends - 1)) return hotends[h];
-
+  const int8_t h  = parser.intval('H');
   const uint8_t t = parser.byteval('T');
 
-  if (h == -1 && WITHIN(t, 0 , thermalManager.data.beds - 1)) return beds[t];
-  if (h == -2 && WITHIN(t, 0 , thermalManager.data.chambers - 1)) return chambers[t];
-  if (h == -3 && WITHIN(t, 0 , thermalManager.data.coolers - 1)) return coolers[t];
+  #if MAX_HOTEND > 0
+    if (WITHIN(h, 0 , thermalManager.data.hotends - 1)) return hotends[h];
+  #endif
+  #if MAX_BED > 0
+    if (h == -1 && WITHIN(t, 0 , thermalManager.data.beds - 1)) return beds[t];
+  #endif
+  #if MAX_CHAMBER > 0
+    if (h == -2 && WITHIN(t, 0 , thermalManager.data.chambers - 1)) return chambers[t];
+  #endif
+  #if MAX_COOLER > 0
+    if (h == -3 && WITHIN(t, 0 , thermalManager.data.coolers - 1)) return coolers[t];
+  #endif
 
   SERIAL_LM(ER, MSG_INVALID_HEATER);
   return nullptr;

@@ -137,6 +137,8 @@ class Printer {
 
     static void stop();
 
+    static void zero_fan_speed();
+
     static void idle(const bool ignore_stepper_queue=false);
     static void setInterruptEvent(const InterruptEventEnum event);
 
@@ -156,12 +158,6 @@ class Printer {
     #if ENABLED(IDLE_OOZING_PREVENT)
       static void IDLE_OOZING_retract(bool retracting);
     #endif
-
-    FORCE_INLINE static void zero_fan_speed() {
-      #if MAX_FAN > 0
-        LOOP_FAN() fans[f].speed = 0;
-      #endif
-    }
 
     // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);

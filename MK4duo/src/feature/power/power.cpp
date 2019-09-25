@@ -166,13 +166,7 @@ Power powerManager;
 
   bool Power::is_power_needed() {
 
-    #if HEATER_COUNT > 0
-      if (thermalManager.heaters_isActive()) return true;
-    #endif
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() if (fans[f].speed > 0) return true;
-    #endif
+    if (thermalManager.heaters_isActive()) return true;
 
     if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
         || E0_ENABLE_READ() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...

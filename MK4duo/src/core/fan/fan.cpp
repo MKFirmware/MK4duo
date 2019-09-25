@@ -29,8 +29,8 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
-#if FAN_COUNT > 0
-  Fan fans[FAN_COUNT];
+#if MAX_FAN > 0
+  Fan* fans[MAX_FAN] = { nullptr };
 #endif
 
 /** Public Function */
@@ -177,17 +177,17 @@ void Fan::print_M106() {
 }
 
 #if ENABLED(TACHOMETRIC)
-  void tacho_interrupt0() { fans[0].data.tacho.interrupt(); }
+  void tacho_interrupt0() { fans[0]->data.tacho.interrupt(); }
   #if FAN_COUNT > 1
-    void tacho_interrupt1() { fans[1].data.tacho.interrupt(); }
+    void tacho_interrupt1() { fans[1]->data.tacho.interrupt(); }
     #if FAN_COUNT > 2
-      void tacho_interrupt2() { fans[2].data.tacho.interrupt(); }
+      void tacho_interrupt2() { fans[2]->data.tacho.interrupt(); }
       #if FAN_COUNT > 3
-        void tacho_interrupt3() { fans[3].data.tacho.interrupt(); }
+        void tacho_interrupt3() { fans[3]->data.tacho.interrupt(); }
         #if FAN_COUNT > 4
-          void tacho_interrupt4() { fans[4].data.tacho.interrupt(); }
+          void tacho_interrupt4() { fans[4]->data.tacho.interrupt(); }
           #if FAN_COUNT > 5
-            void tacho_interrupt5() { fans[5].data.tacho.interrupt(); }
+            void tacho_interrupt5() { fans[5]->data.tacho.interrupt(); }
           #endif
         #endif
       #endif

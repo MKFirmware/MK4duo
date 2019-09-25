@@ -31,16 +31,16 @@ nozzle_data_t Nozzle::data;
 /** Public Function */
 void Nozzle::factory_parameters() {
 
-  #if HOTENDS > 1
+  #if MAX_HOTEND > 1
 
     #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-      constexpr float HEoffset[XYZ][6] = {
+      constexpr float HEoffset[XYZ][MAX_HOTEND] = {
         HOTEND_OFFSET_X,
         HOTEND_OFFSET_Y,
         HOTEND_OFFSET_Z
       };
     #else
-      constexpr float HEoffset[XYZ][HOTENDS] = { 0.0f };
+      constexpr float HEoffset[XYZ][MAX_HOTEND] = { 0.0f };
     #endif
 
     static_assert(
@@ -51,7 +51,7 @@ void Nozzle::factory_parameters() {
       LOOP_HOTEND() data.hotend_offset[i][h] = HEoffset[i][h];
     }
 
-  #endif // HOTENDS > 1
+  #endif // MAX_HOTEND > 1
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
     constexpr xyz_pos_t nozzle_park_point = NOZZLE_PARK_POINT;
@@ -65,7 +65,7 @@ void Nozzle::factory_parameters() {
 #if HAS_LCD
   void Nozzle::set_heating_message() {
     const bool heating = hotends[TARGET_HOTEND]->isHeating();
-    #if HOTENDS > 1
+    #if MAX_HOTEND > 1
       lcdui.status_printf_P(0, heating ? PSTR("H%i " MSG_HEATING) : PSTR("H%i " MSG_COOLING), TARGET_HOTEND);
     #else
       lcdui.set_status_P(heating ? PSTR("H " MSG_HEATING) : PSTR("H " MSG_COOLING));
@@ -93,7 +93,7 @@ void Nozzle::factory_parameters() {
 
 #endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
 
-#if HOTENDS > 1
+#if MAX_HOTEND > 1
 
   void Nozzle::print_M218(const uint8_t h) {
     SERIAL_LM(CFG, "Hotend offset (unit): H<Hotend> X<offset> Y<offset> Z<offset>:");

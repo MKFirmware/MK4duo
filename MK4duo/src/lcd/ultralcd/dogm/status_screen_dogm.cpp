@@ -207,7 +207,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
                 target  = chambers[0]->deg_target();
 
     if (PAGE_UNDER(7)) {
-      const bool  is_idle = chambers[0].isIdle();
+      const bool  is_idle = chambers[0]->isIdle();
       if (blink || !is_idle) _draw_centered_temp(target + 0.5, STATUS_CHAMBER_TEXT_X, 7);
     }
     if (PAGE_CONTAINS(28 - INFO_FONT_ASCENT, 28 - 1))
@@ -253,7 +253,7 @@ void LcdUI::draw_status_screen() {
         if (beds[0]->isHeating()) SBI(new_bits, 7);
       #endif
       #if DO_DRAW_CHAMBER
-        if (chambers[0].isHeating()) SBI(new_bits, 6);
+        if (chambers[0]->isHeating()) SBI(new_bits, 6);
       #endif
       heat_bits = new_bits;
     #endif
@@ -319,7 +319,7 @@ void LcdUI::draw_status_screen() {
         static uint8_t fan_frame;
         if (old_blink != blink) {
           old_blink = blink;
-          if (!fans[0].speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
+          if (!fans[0]->speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
         }
       #endif
       if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
@@ -333,7 +333,7 @@ void LcdUI::draw_status_screen() {
               fan_frame == 3 ? status_fan3_bmp :
             #endif
           #elif STATUS_FAN_FRAMES > 1
-            blink && fans[0].speed ? status_fan1_bmp :
+            blink && fans[0]->speed ? status_fan1_bmp :
           #endif
           status_fan0_bmp
         );
@@ -359,7 +359,7 @@ void LcdUI::draw_status_screen() {
       // Fan, if a bitmap was provided
       #if DO_DRAW_FAN
         if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
-          const uint8_t spd = fans[0].actual_speed();
+          const uint8_t spd = fans[0]->actual_speed();
           if (spd) {
             lcd_put_u8str(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y, ui8tostr4pct(spd));
           }

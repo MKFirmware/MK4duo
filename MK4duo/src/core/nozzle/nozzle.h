@@ -23,8 +23,8 @@
 
 // Struct Nozzle data
 struct nozzle_data_t {
-  #if HOTENDS > 1
-    xyz_pos_t hotend_offset[HOTENDS];
+  #if MAX_HOTEND > 1
+    xyz_pos_t hotend_offset[MAX_HOTEND];
   #endif
   #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
     xyz_pos_t park_point;
@@ -53,7 +53,7 @@ class Nozzle {
       static void print_M217();
     #endif
 
-    #if HOTENDS > 1
+    #if MAX_HOTEND > 1
       static void print_M218(const uint8_t h);
     #endif
 

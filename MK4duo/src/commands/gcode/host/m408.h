@@ -71,7 +71,7 @@
 
     #if MAX_FAN > 0
       SERIAL_MSG(",\"fanPercent\":[");
-      SERIAL_VAL(fans[0].speed);
+      SERIAL_VAL(fans[0]->speed);
     #endif
 
     SERIAL_MV("],\"speedFactor\":", mechanics.feedrate_percentage);

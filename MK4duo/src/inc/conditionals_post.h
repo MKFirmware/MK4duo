@@ -942,11 +942,6 @@
 #endif
 
 /**
- * Heaters
- */
-#define HEATER_TYPE 4
-
-/**
  * Heaters Beds
  */
 #if HAS_HEATER_BED3
@@ -1575,10 +1570,10 @@
     #define MAX_DRIVER_E     4
     #define MAX_EXTRUDER     4
     #define MAX_HOTEND       4
-    #define MAX_BED          2
-    #define MAX_CHAMBER      2
-    #define MAX_COOLER       1
-    #define MAX_FAN          6
+    #define MAX_BED          1
+    #define MAX_CHAMBER      1
+    #define MAX_COOLER       COOLERS
+    #define MAX_FAN          4
   #else
     #define MAX_DRIVER_E     6
     #define MAX_EXTRUDER     6
@@ -1593,10 +1588,10 @@
     #define MAX_DRIVER_E    DRIVER_EXTRUDERS
     #define MAX_EXTRUDER    EXTRUDERS
     #define MAX_HOTEND      HOTENDS
-    #define MAX_BED         2
-    #define MAX_CHAMBER     2
-    #define MAX_COOLER      1
-    #define MAX_FAN         6
+    #define MAX_BED         1
+    #define MAX_CHAMBER     1
+    #define MAX_COOLER      COOLERS
+    #define MAX_FAN         4
   #else
     #define MAX_DRIVER_E    DRIVER_EXTRUDERS
     #define MAX_EXTRUDER    EXTRUDERS

@@ -28,12 +28,18 @@
 #include "sanitycheck.h"
 #include "sensor/thermistor.h"
 
-#if HAS_HEATER
-
-Heater* hotends[MAX_HOTEND]   = { nullptr };
-Heater* beds[MAX_BED]         = { nullptr };
-Heater* chambers[MAX_CHAMBER] = { nullptr };
-Heater* coolers[MAX_COOLER]   = { nullptr };
+#if MAX_HOTEND > 0
+  Heater* hotends[MAX_HOTEND]   = { nullptr };
+#endif
+#if MAX_BED > 0
+  Heater* beds[MAX_BED]         = { nullptr };
+#endif
+#if MAX_CHAMBER > 0
+  Heater* chambers[MAX_CHAMBER] = { nullptr };
+#endif
+#if MAX_COOLER > 0
+  Heater* coolers[MAX_COOLER]   = { nullptr };
+#endif
 
 /** Public Function */
 void Heater::init() {
@@ -668,18 +674,18 @@ void Heater::thermal_runaway_protection() {
 
       #if ENABLED(ADAPTIVE_FAN_SPEED) && MAX_FAN > 0
         if (type == IS_HOTEND) {
-          if (fans[0].speed == 0)
-            fans[0].scaled_speed = 128;
+          if (fans[0]->speed == 0)
+            fans[0]->scaled_speed = 128;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.25f))
-            fans[0].scaled_speed = 128;
+            fans[0]->scaled_speed = 128;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.40f))
-            fans[0].scaled_speed = 96;
+            fans[0]->scaled_speed = 96;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.60f))
-            fans[0].scaled_speed = 64;
+            fans[0]->scaled_speed = 64;
           else if (current_temperature >= target_temperature - (THERMAL_PROTECTION_HYSTERESIS * 0.90f))
-            fans[0].scaled_speed = 32;
+            fans[0]->scaled_speed = 32;
           else
-            fans[0].scaled_speed = 0;
+            fans[0]->scaled_speed = 0;
         }
       #endif
 
@@ -721,9 +727,11 @@ void Heater::temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
     SERIAL_STR(serial_msg);
     SERIAL_MSG(MSG_HEATER_STOPPED);
     switch (type) {
-      case IS_HOTEND:
-        SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
-        break;
+      #if MAX_HOTEND > 0
+        case IS_HOTEND:
+          SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
+          break;
+      #endif
       #if MAX_BED > 0
         case IS_BED:
           SERIAL_EMV(MSG_HEATER_BED " ", int(data.ID));
@@ -755,9 +763,11 @@ void Heater::temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
 
 void Heater::min_temp_error() {
   switch (type) {
-    case IS_HOTEND:
-      temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
-      break;
+    #if MAX_HOTEND > 0
+      case IS_HOTEND:
+        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
+        break;
+    #endif
     #if MAX_BED > 0
       case IS_BED:
         temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
@@ -774,9 +784,11 @@ void Heater::min_temp_error() {
 
 void Heater::max_temp_error() {
   switch (type) {
-    case IS_HOTEND:
-      temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
-      break;
+    #if MAX_HOTEND > 0
+      case IS_HOTEND:
+        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
+        break;
+    #endif
     #if MAX_BED > 0
       case IS_BED:
         temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
@@ -803,5 +815,3 @@ void Heater::update_idle_timer() {
   if (!isIdle() && idle_timeout_ms && (ELAPSED(millis(), idle_timeout_ms)))
     setIdle(true);
 }
-
-#endif // HAS_HEATER

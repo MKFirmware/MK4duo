@@ -52,7 +52,7 @@
 
     const uint8_t new_speed = parser.byteval('S', 255);
 
-    Fan * const fan = &fans[f];
+    Fan* fan = fans[f];
 
     if (parser.seen('U')) {
       // Put off the fan
@@ -74,10 +74,10 @@
 
     fan->set_speed(new_speed);
 
-    #if ENABLED(DUAL_X_CARRIAGE) && FAN_COUNT > 1
+    #if ENABLED(DUAL_X_CARRIAGE) && MAX_FAN > 1
       // Check for Clone fan
-      if (f == 0 && mechanics.dxc_is_duplicating() && TEST(fans[1].data.auto_monitor, 6))
-        fans[1].set_speed(new_speed);
+      if (f == 0 && mechanics.dxc_is_duplicating() && TEST(fans[1]->data.auto_monitor, 6))
+        fans[1]->set_speed(new_speed);
     #endif
 
     #if DISABLED(DISABLE_M503)
@@ -93,7 +93,7 @@
   inline void gcode_M107() {
     uint8_t f = 0;
     if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
-    fans[f].speed = 0;
+    fans[f]->speed = 0;
   }
 
 #endif // MAX_FAN > 0

@@ -35,7 +35,7 @@
  */
 inline void gcode_M142() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
-  if (parser.seenval('S')) coolers[0]->set_target_temp(parser.value_celsius());
+  if (parser.seenval('S') && coolers[0]) coolers[0]->set_target_temp(parser.value_celsius());
 }
 
 #endif

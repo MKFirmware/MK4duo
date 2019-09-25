@@ -162,13 +162,13 @@ uint8_t lcd_extruder_total;
 #if ENABLED(PID_AUTOTUNE_MENU)
 
   #if MAX_HOTEND > 0
-    int16_t autotune_temp[HOTENDS]          = ARRAY_BY_HOTENDS(200);
+    int16_t autotune_temp[MAX_HOTEND]           = { 200 };
   #endif
   #if MAX_BED > 0
-    int16_t autotune_temp_bed[BEDS]         = ARRAY_BY_BEDS(60);
+    int16_t autotune_temp_bed[MAX_BED]          = { 60 };
   #endif
   #if MAX_CHAMBER > 0
-    int16_t autotune_temp_chamber[CHAMBERS] = ARRAY_BY_CHAMBERS(60);
+    int16_t autotune_temp_chamber[MAX_CHAMBER]  = { 60 };
   #endif
 
   #if MAX_HOTEND > 0

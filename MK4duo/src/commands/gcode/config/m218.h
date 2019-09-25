@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HOTENDS > 1
+#if MAX_HOTEND > 1
 
 #define CODE_M218
 
@@ -56,4 +56,4 @@ inline void gcode_M218() {
 
 }
 
-#endif // HOTENDS > 1
+#endif // MAX_HOTEND > 1

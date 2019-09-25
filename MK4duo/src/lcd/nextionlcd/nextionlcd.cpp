@@ -451,9 +451,9 @@ void NextionLCD::status_screen_update() {
     }
 
     #if MAX_FAN > 0
-      if (PreviousfanSpeed != fans[0].actual_speed()) {
-        setValue(Fanspeed, fans[0].percent());
-        PreviousfanSpeed = fans[0].actual_speed();
+      if (PreviousfanSpeed != fans[0]->actual_speed()) {
+        setValue(Fanspeed, fans[0]->percent());
+        PreviousfanSpeed = fans[0]->actual_speed();
       }
     #endif
 

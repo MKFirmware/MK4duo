@@ -104,24 +104,23 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Heater
     #if MAX_HOTEND > 0
       LOOP_HOTEND()
-        job_info.target_temperature[h] = hotends[h]->deg_target();
+        if (hotends[h]) job_info.target_temperature[h] = hotends[h]->deg_target();
     #endif
     #if MAX_BED > 0
       LOOP_BED()
-        job_info.bed_target_temperature[h] = beds[h]->deg_target();
+        if (beds[h]) job_info.bed_target_temperature[h] = beds[h]->deg_target();
     #endif
     #if MAX_CHAMBER > 0
       LOOP_CHAMBER()
-        job_info.chamber_target_temperature[h] = chambers[h]->deg_target();
+        if (chambers[h]) job_info.chamber_target_temperature[h] = chambers[h]->deg_target();
     #endif
-
     #if MAX_FAN > 0
       LOOP_FAN()
-        job_info.fan_speed[f] = fans[f].speed;
+        if (fans[f]) job_info.fan_speed[f] = fans[f]->speed;
     #endif
 
     // Extruders
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
       job_info.active_extruder = tools.data.extruder.active;
     #endif
 
@@ -187,26 +186,34 @@ void Restart::resume_job() {
   // Set temperature
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      chambers[h]->set_target_temp(job_info.chamber_target_temperature[h]);
-      chambers[h]->wait_for_target(true);
+      if (chambers[h]) {
+        chambers[h]->set_target_temp(job_info.chamber_target_temperature[h]);
+        chambers[h]->wait_for_target(true);
+      }
     }
   #endif
   #if MAX_BED > 0
     LOOP_BED() {
-      beds[h]->set_target_temp(job_info.bed_target_temperature[h]);
-      beds[h]->wait_for_target(true);
+      if (beds[h]) {
+        beds[h]->set_target_temp(job_info.bed_target_temperature[h]);
+        beds[h]->wait_for_target(true);
+      }
     }
   #endif
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      hotends[h]->set_target_temp(job_info.target_temperature[h]);
-      hotends[h]->wait_for_target(true);
+      if (hotends[h]) {
+        hotends[h]->set_target_temp(job_info.target_temperature[h]);
+        hotends[h]->wait_for_target(true);
+      }
     }
   #endif
 
   // Set fan
   #if MAX_FAN > 0
-    LOOP_FAN() fans[f].speed = job_info.fan_speed[f];
+    LOOP_FAN() {
+      if (fans[f]) fans[f]->speed = job_info.fan_speed[f];
+    }
   #endif
 
   COPY_ARRAY(tools.flow_percentage, job_info.flow_percentage);

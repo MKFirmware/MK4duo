@@ -51,26 +51,26 @@ typedef struct {
   uint16_t feedrate;
 
   #if MAX_HOTEND > 0
-    int16_t target_temperature[HOTENDS];
+    int16_t target_temperature[MAX_HOTEND];
   #endif
   #if MAX_BED > 0
-    int16_t bed_target_temperature[BEDS];
+    int16_t bed_target_temperature[MAX_BED];
   #endif
   #if MAX_CHAMBER > 0
-    int16_t chamber_target_temperature[CHAMBERS];
+    int16_t chamber_target_temperature[MAX_CHAMBER];
   #endif
 
   #if MAX_FAN > 0
-    uint8_t fan_speed[FAN_COUNT];
+    uint8_t fan_speed[MAX_FAN];
   #endif
 
   // Extruders
-  #if EXTRUDERS > 1
+  #if MAX_EXTRUDER > 1
     uint8_t active_extruder;
   #endif
 
-  int16_t flow_percentage[EXTRUDERS],
-          density_percentage[EXTRUDERS];
+  int16_t flow_percentage[MAX_EXTRUDER],
+          density_percentage[MAX_EXTRUDER];
 
   // Leveling
   #if HAS_LEVELING

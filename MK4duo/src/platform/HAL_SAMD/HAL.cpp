@@ -339,7 +339,7 @@ void HAL::Tick() {
   #endif
 
   #if MAX_FAN > 0
-    LOOP_FAN() fans[f].set_output_pwm();
+    LOOP_FAN() fans[f]->set_output_pwm();
   #endif
 
   // Calculation cycle temp a 100ms
@@ -348,7 +348,7 @@ void HAL::Tick() {
     thermalManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0
       LOOP_FAN() {
-        if (fans[f].kickstart) fans[f].kickstart--;
+        if (fans[f]->kickstart) fans[f]->kickstart--;
       }
     #endif
   }

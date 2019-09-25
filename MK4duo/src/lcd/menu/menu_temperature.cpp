@@ -62,9 +62,9 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   #if MAX_FAN > 0
     #if FAN_COUNT > 1
-      fans[tools.data.extruder.active < FAN_COUNT ? tools.data.extruder.active : 0].speed = lcdui.preheat_fan_speed[memory];
+      fans[tools.data.extruder.active < FAN_COUNT ? tools.data.extruder.active : 0]->speed = lcdui.preheat_fan_speed[memory];
     #else
-      fans[0].speed = lcdui.preheat_fan_speed[memory];
+      fans[0]->speed = lcdui.preheat_fan_speed[memory];
     #endif
   #endif
   lcdui.return_to_status();
@@ -368,13 +368,13 @@ void menu_temperature() {
     MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0]->target_temperature, 0, hotends[0]->data.temp.max - 10, watch_temp_callback_H0);
     MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1]->target_temperature, 0, hotends[1]->data.temp.max - 10, watch_temp_callback_H1);
     #if HOTENDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2].target_temperature, 0, hotends[2]->data.temp.max - 10, watch_temp_callback_H2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2]->target_temperature, 0, hotends[2]->data.temp.max - 10, watch_temp_callback_H2);
       #if HOTENDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3].target_temperature, 0, hotends[3]->data.temp.max - 10, watch_temp_callback_H3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3]->target_temperature, 0, hotends[3]->data.temp.max - 10, watch_temp_callback_H3);
         #if HOTENDS > 4
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4].target_temperature, 0, hotends[4]->data.temp.max - 10, watch_temp_callback_E4);
+          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4]->target_temperature, 0, hotends[4]->data.temp.max - 10, watch_temp_callback_E4);
           #if HOTENDS > 5
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5].target_temperature, 0, hotends[5]->data.temp.max - 10, watch_temp_callback_E5);
+            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5]->target_temperature, 0, hotends[5]->data.temp.max - 10, watch_temp_callback_E5);
           #endif // HOTENDS > 5
         #endif // HOTENDS > 4
       #endif // HOTENDS > 3
@@ -390,9 +390,9 @@ void menu_temperature() {
     MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0]->target_temperature, 0, beds[0]->data.temp.max - 10, watch_temp_callback_bed0);
     MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1]->target_temperature, 0, beds[1]->data.temp.max - 10, watch_temp_callback_bed1);
     #if BEDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2].target_temperature, 0, beds[2]->data.temp.max - 10, watch_temp_callback_bed2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2]->target_temperature, 0, beds[2]->data.temp.max - 10, watch_temp_callback_bed2);
       #if BEDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3].target_temperature, 0, beds[3]->data.temp.max - 10, watch_temp_callback_bed3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3]->target_temperature, 0, beds[3]->data.temp.max - 10, watch_temp_callback_bed3);
       #endif // BEDS > 3
     #endif // BEDS > 2
   #endif // BEDS > 1
@@ -401,14 +401,14 @@ void menu_temperature() {
   // Chamber:
   //
   #if CHAMBERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0].target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0]->target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
   #elif CHAMBERS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0].target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1].target_temperature, 0, chambers[1]->data.temp.max - 10, watch_temp_callback_chamber1);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0]->target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1]->target_temperature, 0, chambers[1]->data.temp.max - 10, watch_temp_callback_chamber1);
     #if CHAMBERS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2].target_temperature, 0, chambers[2]->data.temp.max - 10, watch_temp_callback_chamber2);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2]->target_temperature, 0, chambers[2]->data.temp.max - 10, watch_temp_callback_chamber2);
       #if CHAMBERS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3].target_temperature, 0, chambers[3]->data.temp.max - 10, watch_temp_callback_chamber3);
+        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3]->target_temperature, 0, chambers[3]->data.temp.max - 10, watch_temp_callback_chamber3);
       #endif // CHAMBERS > 3
     #endif // CHAMBERS > 2
   #endif // CHAMBERS > 1
@@ -417,7 +417,7 @@ void menu_temperature() {
   // Cooler:
   //
   #if COOLERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0].target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler0);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler0);
   #endif
 
   //
@@ -425,22 +425,22 @@ void menu_temperature() {
   //
   #if MAX_FAN > 0
     #if HAS_FAN0
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0]->speed, 0, 255);
     #endif
     #if HAS_FAN1
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1]->speed, 0, 255);
     #endif
     #if HAS_FAN2
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2]->speed, 0, 255);
     #endif
     #if HAS_FAN3
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3]->speed, 0, 255);
     #endif
     #if HAS_FAN4
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4]->speed, 0, 255);
     #endif
     #if HAS_FAN5
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5].speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5]->speed, 0, 255);
     #endif
   #endif // MAX_FAN > 0
 

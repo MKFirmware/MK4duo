@@ -1024,22 +1024,22 @@ void LcdUI::draw_status_screen() {
       #if MAX_FAN > 0
         if (0
           #if HAS_FAN0
-            || fans[0].speed
+            || fans[0]->speed
           #endif
           #if HAS_FAN1
-            || fans[1].speed
+            || fans[1]->speed
           #endif
           #if HAS_FAN2
-            || fans[2].speed
+            || fans[2]->speed
           #endif
           #if HAS_FAN3
-            || fans[3].speed
+            || fans[3]->speed
           #endif
           #if HAS_FAN4
-            || fans[4].speed
+            || fans[4]->speed
           #endif
           #if HAS_FAN5
-            || fans[5].speed
+            || fans[5]->speed
           #endif
         ) leds |= LED_C;
       #endif // MAX_FAN > 0

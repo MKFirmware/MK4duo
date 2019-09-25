@@ -242,7 +242,7 @@ bool Probe::set_deployed(const bool deploy) {
       thermalManager.pause(onoff);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
-      LOOP_FAN() fans[f].setIdle(onoff);
+      LOOP_FAN() fans[f]->setIdle(onoff);
     #endif
     if (onoff) HAL::delayMilliseconds(25);
   }

@@ -21,8 +21,6 @@
  */
 #pragma once
 
-#if HAS_HEATER
-
 /**
  * heater.h - heater object
  */
@@ -212,9 +210,15 @@ class Heater {
 
 };
 
-extern Heater* hotends[MAX_HOTEND];
-extern Heater* beds[MAX_BED];
-extern Heater* chambers[MAX_CHAMBER];
-extern Heater* coolers[MAX_COOLER];
-
-#endif // HAS_HEATER
+#if MAX_HOTEND > 0
+  extern Heater* hotends[MAX_HOTEND];
+#endif
+#if MAX_BED > 0
+  extern Heater* beds[MAX_BED];
+#endif
+#if MAX_CHAMBER > 0
+  extern Heater* chambers[MAX_CHAMBER];
+#endif
+#if MAX_COOLER > 0
+  extern Heater* coolers[MAX_COOLER];
+#endif
