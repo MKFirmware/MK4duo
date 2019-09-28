@@ -495,7 +495,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #endif
       if (need_update_error_counters || need_debug_reporting) {
         LOOP_DRV() {
-          if (driver[d] && driver[d]->tmc) monitor_driver(DriverEnum(d), need_update_error_counters, need_debug_reporting);
+          if (driver[d] && driver[d]->tmc) monitor_driver(driver[d], need_update_error_counters, need_debug_reporting);
         }
 
         #if ENABLED(TMC_DEBUG)
@@ -1118,14 +1118,14 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
     TMC_driver_data TMC_Stepper::get_driver_data(Driver* drv) {
       constexpr uint8_t OTPW_bp = 0, OT_bp = 1;
-      constexpr uint8_t S2G_bm = 0b11110; // 2..5
+      constexpr uint8_t S2G_bm = 0b11110;
       TMC_driver_data data;
       const auto ds = data.drv_status = drv->tmc->DRV_STATUS();
       data.is_otpw = TEST(ds, OTPW_bp);
       data.is_ot = TEST(ds, OT_bp);
       data.is_s2g = !!(ds & S2G_bm);
       #if ENABLED(TMC_DEBUG)
-        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000;
         constexpr uint8_t STEALTH_bp = 30, STST_bp = 31;
         #ifdef __AVR__
           // 8-bit optimization saves up to 12 bytes of PROGMEM per axis
@@ -1159,7 +1159,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       #if ENABLED(TMC_DEBUG)
         constexpr uint8_t STALL_GUARD_bp = 0;
         constexpr uint8_t STST_bp = 7, SG_RESULT_sp = 10;
-        constexpr uint32_t SG_RESULT_bm = 0xFFC00; // 10:19
+        constexpr uint32_t SG_RESULT_bm = 0xFFC00;
         data.is_stall = TEST(spart, STALL_GUARD_bp);
         data.is_standstill = TEST(spart, STST_bp);
         data.sg_result = (ds & SG_RESULT_bm) >> SG_RESULT_sp;
@@ -1174,9 +1174,9 @@ bool TMC_Stepper::test_connection(Driver* drv) {
       constexpr uint8_t OT_bp = 25, OTPW_bp = 26;
       constexpr uint32_t S2G_bm = 0x18000000;
       #if ENABLED(TMC_DEBUG)
-        constexpr uint16_t SG_RESULT_bm = 0x3FF; // 0:9
+        constexpr uint16_t SG_RESULT_bm = 0x3FF;
         constexpr uint8_t STEALTH_bp = 14;
-        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000; // 16:20
+        constexpr uint32_t CS_ACTUAL_bm = 0x1F0000;
         constexpr uint8_t STALL_GUARD_bp = 24;
         constexpr uint8_t STST_bp = 31;
       #endif
