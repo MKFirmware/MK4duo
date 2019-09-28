@@ -87,10 +87,10 @@ class Com {
 
 #define SERIAL_STR(str)               Com::printPGM(str)
 #define SERIAL_MSG(msg)               Com::printPGM(PSTR(msg))
-#define SERIAL_TXT(txt)               SERIAL_OUT(print,txt)
-#define SERIAL_VAL(val...)            SERIAL_OUT(print,val)
-#define SERIAL_CHR(c)                 SERIAL_OUT(write,c)
-#define SERIAL_EOL()                  SERIAL_OUT(println)
+#define SERIAL_TXT(txt)               SERIAL_OUT(print, txt)
+#define SERIAL_VAL(V...)              SERIAL_OUT(print, V)
+#define SERIAL_CHR(c)                 SERIAL_OUT(write, c)
+#define SERIAL_EOL()                  SERIAL_CHR('\n')
 
 #define SERIAL_SP(C)                  Com::print_spaces(C)
 #define SERIAL_LOGIC(msg,val)         Com::print_logic(PSTR(msg), val)
@@ -100,12 +100,12 @@ class Com {
 #define SERIAL_EONOFF(msg,val)        do{ SERIAL_ONOFF(msg, val);                     SERIAL_EOL(); }while(0)
 
 #define SERIAL_MT(msg,txt)            do{ SERIAL_MSG(msg);  SERIAL_TXT(txt);                        }while(0)
-#define SERIAL_MV(msg,val, V...)      do{ SERIAL_MSG(msg);  SERIAL_VAL(val, ##V);                   }while(0)
+#define SERIAL_MV(msg,val,V...)       do{ SERIAL_MSG(msg);  SERIAL_VAL(val, ##V);                   }while(0)
 #define SERIAL_MC(msg,c)              do{ SERIAL_MSG(msg);  SERIAL_CHR(c);                          }while(0)
 
 #define SERIAL_SM(str,msg)            do{ SERIAL_STR(str);  SERIAL_MSG(msg);                        }while(0)
 #define SERIAL_ST(str,txt)            do{ SERIAL_STR(str);  SERIAL_TXT(txt);                        }while(0)
-#define SERIAL_SV(str,val, V...)      do{ SERIAL_STR(str);  SERIAL_VAL(val, ##V);                   }while(0)
+#define SERIAL_SV(str,val,V...)       do{ SERIAL_STR(str);  SERIAL_VAL(val, ##V);                   }while(0)
 #define SERIAL_SSM(str1,str2,msg)     do{ SERIAL_STR(str1); SERIAL_SM(str2, msg);                   }while(0)
 #define SERIAL_SMT(str,msg,txt)       do{ SERIAL_STR(str);  SERIAL_MT(msg, txt);                    }while(0)
 #define SERIAL_SMV(str,msg,val,V...)  do{ SERIAL_STR(str);  SERIAL_MV(msg, val, ##V);               }while(0)

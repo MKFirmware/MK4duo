@@ -137,22 +137,22 @@ inline void gcode_M941() {
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver.e[driver.e[0]]->tmc->chm(parser.value_bool());
+      driver.e[0]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver.e[driver.e[1]]->tmc->chm(parser.value_bool());
+      driver.e[1]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver.e[driver.e[2]]->tmc->chm(parser.value_bool());
+      driver.e[2]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver.e[driver.e[3]]->tmc->chm(parser.value_bool());
+      driver.e[3]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver.e[driver.e[4]]->tmc->chm(parser.value_bool());
+      driver.e[4]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver.e[driver.e[5]]->tmc->chm(parser.value_bool());
+      driver.e[5]->tmc->chm(parser.value_bool());
     #endif
   }
 }
@@ -190,22 +190,22 @@ inline void gcode_M942() {
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver.e[driver.e[0]]->tmc->intpol(parser.value_bool());
+      driver.e[0]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver.e[driver.e[1]]->tmc->intpol(parser.value_bool());
+      driver.e[1]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver.e[driver.e[2]]->tmc->intpol(parser.value_bool());
+      driver.e[2]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver.e[driver.e[3]]->tmc->intpol(parser.value_bool());
+      driver.e[3]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver.e[driver.e[4]]->tmc->intpol(parser.value_bool());
+      driver.e[4]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver.e[driver.e[5]]->tmc->intpol(parser.value_bool());
+      driver.e[5]->tmc->intpol(parser.value_bool());
     #endif
   }
 }

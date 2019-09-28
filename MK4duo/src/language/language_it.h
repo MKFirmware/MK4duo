@@ -596,9 +596,9 @@
 #define MSG_RFID_SPOOL_LENGHT               _UxGT("Lunghezza bobina: ")
 
 // Sound
-#define MSG_SOUND_MODE_ON                   _UxGT("Suono           [on]")
-#define MSG_SOUND_MODE_SILENT               _UxGT("Suono   [silenzioso]")
-#define MSG_SOUND_MODE_MUTE                 _UxGT("Suono         [muto]")
+#define MSG_SOUND_MODE_ON                   _UxGT("Suono          [on]")
+#define MSG_SOUND_MODE_SILENT               _UxGT("Suono  [silenzioso]")
+#define MSG_SOUND_MODE_MUTE                 _UxGT("Suono        [muto]")
 
 // EEPROM Allert
 #define MSG_EEPROM_CHANGED_ALLERT_1         _UxGT("ATTENZIONE...")

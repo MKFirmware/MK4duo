@@ -430,6 +430,11 @@ void EEPROM::post_process() {
     heater_data_t cooler_data[MAX_COOLER];
     fan_data_t    fan_data[MAX_FAN];
 
+    if (memorystore.access_start()) {
+      SERIAL_EM("No EEPROM.");
+      return false;
+    }
+
     flag.error = false;
 
     #if HAS_EEPROM_FLASH
@@ -686,23 +691,19 @@ void EEPROM::post_process() {
     #if HAS_TRINAMIC
 
       uint16_t  tmc_stepper_current[]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                            E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
-                                            X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
+                                            E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
                 tmc_stepper_microstep[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
-                                            E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
-                                            X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
+                                            E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
       uint32_t  tmc_hybrid_threshold[]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
                                             E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                            E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
-                                            X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
+                                            E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
       bool      tmc_stealth_enabled[]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
-                                            E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
-                                            X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
+                                            E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP };
 
       LOOP_DRV() {
         if (driver[d] && driver[d]->tmc) {
-          tmc_stepper_current[d]    = driver[d]->tmc->rms_current();
-          tmc_stepper_microstep[d]  = driver[d]->tmc->microsteps();
+          tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
+          tmc_stepper_microstep[d]  = driver[d]->tmc->getMicrosteps();
           #if ENABLED(HYBRID_THRESHOLD)
             tmc_hybrid_threshold[d] = driver[d]->tmc->get_pwm_thrs();
           #endif

@@ -118,6 +118,9 @@ class TMCStorage {
 
   public: /** Public Function */
 
+    inline uint16_t getMilliamps()  { return val_mA; }
+    inline uint16_t getMicrosteps() { return val_ms; }
+
     #if ENABLED(MONITOR_DRIVER_STATUS)
       inline bool getOTPW() { return flag_otpw; }
       inline void clear_otpw() { flag_otpw = 0; }

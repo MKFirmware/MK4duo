@@ -36,15 +36,15 @@ extern void eeprom_flush(void);
 #endif
 
 /** Public Function */
+bool MemoryStore::access_start() { return false; }
+
 bool MemoryStore::access_write() {
   #if HAS_EEPROM_FLASH
     eeprom_flush();
-    return false;
   #elif HAS_EEPROM_SD
     card.write_eeprom();
-  #else
-    return false;
   #endif
+  return false;
 }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {

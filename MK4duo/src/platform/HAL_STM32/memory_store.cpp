@@ -26,6 +26,10 @@
 
 #if HAS_EEPROM
 
+#if HAS_EEPROM_FLASH
+  #include <EEPROM.h>
+#endif
+
 MemoryStore memorystore;
 
 /** Public Parameters */
@@ -33,23 +37,38 @@ MemoryStore memorystore;
   char MemoryStore::eeprom_data[EEPROM_SIZE];
 #endif
 
+/** Private Parameters */
+#if HAS_EEPROM_FLASH
+  static bool eeprom_data_written = false;
+#endif
+
 /** Public Function */
-bool MemoryStore::access_write() {
+bool MemoryStore::access_start() {
   #if HAS_EEPROM_FLASH
     eeprom_buffer_fill();
-    return false;
+  #endif
+  return false;
+}
+
+bool MemoryStore::access_write() {
+  #if HAS_EEPROM_FLASH
+    if (eeprom_data_written) {
+      eeprom_buffer_flush();
+      eeprom_data_written = false;
+    }
   #elif HAS_EEPROM_SD
     card.write_eeprom();
-  #else
-    return false;
   #endif
+  return false;
 }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
   while(size--) {
     uint8_t v = *value;
-    #if HAS_EEPROM_SD
+    #if HAS_EEPROM_FLASH
+      eeprom_buffered_write_byte(pos, v);
+    #elif HAS_EEPROM_SD
       eeprom_data[pos] = v;
     #else
       uint8_t * const p = (uint8_t * const)pos;
@@ -69,16 +88,22 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
     value++;
   };
 
+  #if HAS_EEPROM_FLASH
+    eeprom_data_written = true;
+  #endif
+
   return false;
 }
 
 bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
 
   while(size--) {
-    #if HAS_EEPROM_SD
-      uint8_t c = eeprom_data[pos];
+    #if HAS_EEPROM_FLASH
+      const uint8_t c = eeprom_buffered_read_byte(pos);
+    #elif HAS_EEPROM_SD
+      const uint8_t c = eeprom_data[pos];
     #else
-      uint8_t c = eeprom_read_byte((uint8_t*)pos);
+      const uint8_t c = eeprom_read_byte((uint8_t*)pos);
     #endif
     if (writing) *value = c;
     crc16(crc, &c, 1);

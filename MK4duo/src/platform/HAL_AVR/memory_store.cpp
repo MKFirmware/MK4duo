@@ -28,6 +28,7 @@
 
 MemoryStore memorystore;
 
+bool MemoryStore::access_start() { return false; }
 bool MemoryStore::access_write() { return false; }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {

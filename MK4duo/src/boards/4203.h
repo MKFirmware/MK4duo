@@ -183,7 +183,7 @@
 #define LED_PIN                    PB14
 
 //###UNKNOWN_PINS
-#define EEPROM_I2C
+#define EEPROM_FLASH
 #define E2END                      0xFFF
 
 //###IF_BLOCKS
