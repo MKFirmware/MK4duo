@@ -45,14 +45,14 @@ inline void gcode_M218() {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
     if (parser.seen_any()) {
-      nozzle.print_M218(TARGET_HOTEND);
+      nozzle.print_M218(tools.target_hotend());
       return;
     }
   #endif
 
-  if (parser.seenval('X')) nozzle.data.hotend_offset[TARGET_HOTEND].x = parser.value_linear_units();
-  if (parser.seenval('Y')) nozzle.data.hotend_offset[TARGET_HOTEND].y = parser.value_linear_units();
-  if (parser.seenval('Z')) nozzle.data.hotend_offset[TARGET_HOTEND].z = parser.value_linear_units();
+  if (parser.seenval('X')) nozzle.data.hotend_offset[tools.target_hotend()].x = parser.value_linear_units();
+  if (parser.seenval('Y')) nozzle.data.hotend_offset[tools.target_hotend()].y = parser.value_linear_units();
+  if (parser.seenval('Z')) nozzle.data.hotend_offset[tools.target_hotend()].z = parser.value_linear_units();
 
 }
 

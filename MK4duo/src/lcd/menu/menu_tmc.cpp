@@ -31,13 +31,13 @@
 #define TMC_EDIT_STORED_I_RMS(ST) MENU_ITEM_EDIT_CALLBACK(uint16_4, MSG_##ST, &driver[ST##_DRV]->tmc->val_mA, 100, 3000, refresh_stepper_current_##ST)
 
 #if AXIS_HAS_TMC(X)
-  void refresh_stepper_current_X()  { driver[X_DRV]->tmc->refresh_stepper_current();  }
+  void refresh_stepper_current_X()  { driver.x->tmc->refresh_stepper_current();  }
 #endif
 #if AXIS_HAS_TMC(Y)
-  void refresh_stepper_current_Y()  { driver[Y_DRV]->tmc->refresh_stepper_current();  }
+  void refresh_stepper_current_Y()  { driver.y->tmc->refresh_stepper_current();  }
 #endif
 #if AXIS_HAS_TMC(Z)
-  void refresh_stepper_current_Z()  { driver[Z_DRV]->tmc->refresh_stepper_current();  }
+  void refresh_stepper_current_Z()  { driver.z->tmc->refresh_stepper_current();  }
 #endif
 #if AXIS_HAS_TMC(X2)
   void refresh_stepper_current_X2() { driver.x2->tmc->refresh_stepper_current(); }
@@ -118,13 +118,13 @@ void menu_tmc_current() {
 #define TMC_EDIT_STORED_MICROSTEPS(ST) MENU_ITEM_EDIT_CALLBACK(microstep, MSG_##ST, &driver[ST##_DRV]->tmc->val_ms, 16, 128, refresh_stepper_microstep_##ST)
 
 #if AXIS_HAS_TMC(X)
-  void refresh_stepper_microstep_X()  { driver[X_DRV]->tmc->refresh_stepper_microstep();  }
+  void refresh_stepper_microstep_X()  { driver.x->tmc->refresh_stepper_microstep();  }
 #endif
 #if AXIS_HAS_TMC(Y)
-  void refresh_stepper_microstep_Y()  { driver[Y_DRV]->tmc->refresh_stepper_microstep();  }
+  void refresh_stepper_microstep_Y()  { driver.y->tmc->refresh_stepper_microstep();  }
 #endif
 #if AXIS_HAS_TMC(Z)
-  void refresh_stepper_microstep_Z()  { driver[Z_DRV]->tmc->refresh_stepper_microstep();  }
+  void refresh_stepper_microstep_Z()  { driver.z->tmc->refresh_stepper_microstep();  }
 #endif
 #if AXIS_HAS_TMC(X2)
   void refresh_stepper_microstep_X2() { driver.x2->tmc->refresh_stepper_microstep(); }
@@ -207,13 +207,13 @@ void menu_tmc_microstep() {
   #define TMC_EDIT_STORED_HYBRID_THRS(ST) MENU_ITEM_EDIT_CALLBACK(uint8, MSG_##ST, &driver[ST##_DRV]->tmc->hybrid_thrs, 0, 255, refresh_hybrid_thrs_##ST);
 
   #if AXIS_HAS_TMC(X)
-    void refresh_hybrid_thrs_X()  {  driver[X_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_X()  {  driver.x->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(Y)
-    void refresh_hybrid_thrs_Y()  {  driver[Y_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_Y()  {  driver.y->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(Z)
-    void refresh_hybrid_thrs_Z()  {  driver[Z_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_Z()  {  driver.z->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(X2)
     void refresh_hybrid_thrs_X2() { driver.x2->tmc->refresh_hybrid_thrs(); }
@@ -298,13 +298,13 @@ void menu_tmc_microstep() {
   #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int4, MSG_##ST, &driver[ST##_DRV]->tmc->homing_thrs, -64, 63, refresh_homing_thrs_##ST);
 
   #if X_HAS_SENSORLESS
-    void refresh_homing_thrs_X()  { driver[X_DRV]->tmc->refresh_homing_thrs(); }
+    void refresh_homing_thrs_X()  { driver.x->tmc->refresh_homing_thrs(); }
   #endif
   #if Y_HAS_SENSORLESS
-    void refresh_homing_thrs_Y()  { driver[Y_DRV]->tmc->refresh_homing_thrs(); }
+    void refresh_homing_thrs_Y()  { driver.y->tmc->refresh_homing_thrs(); }
   #endif
   #if Z_HAS_SENSORLESS
-    void refresh_homing_thrs_Z()  { driver[Z_DRV]->tmc->refresh_homing_thrs(); }
+    void refresh_homing_thrs_Z()  { driver.z->tmc->refresh_homing_thrs(); }
   #endif
 
   void menu_tmc_homing_thrs() {
@@ -329,13 +329,13 @@ void menu_tmc_microstep() {
   #define TMC_EDIT_STEP_MODE(ST) MENU_ITEM_EDIT_CALLBACK(bool, MSG_##ST, &driver[ST##_DRV]->tmc->stealthChop_enabled, refresh_stepping_mode_##ST)
 
   #if AXIS_HAS_STEALTHCHOP(X)
-    void refresh_stepping_mode_X()  { driver[X_DRV]->tmc->refresh_stepping_mode();  }
+    void refresh_stepping_mode_X()  { driver.x->tmc->refresh_stepping_mode();  }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Y)
-    void refresh_stepping_mode_Y()  { driver[Y_DRV]->tmc->refresh_stepping_mode();  }
+    void refresh_stepping_mode_Y()  { driver.y->tmc->refresh_stepping_mode();  }
   #endif
   #if AXIS_HAS_STEALTHCHOP(Z)
-    void refresh_stepping_mode_Z()  { driver[Z_DRV]->tmc->refresh_stepping_mode();  }
+    void refresh_stepping_mode_Z()  { driver.z->tmc->refresh_stepping_mode();  }
   #endif
   #if AXIS_HAS_STEALTHCHOP(X2)
     void refresh_stepping_mode_X2() { driver.x2->tmc->refresh_stepping_mode(); }

@@ -36,13 +36,7 @@
  */
 inline void gcode_M109() {
 
-  uint8_t h = 0;
-
-  if (thermalManager.data.hotends == 1) {
-    if (commands.get_target_tool(109)) return;
-    h = tools.data.extruder.target;
-  }
-  else if ((h = commands.get_target_hotend(109)) == 255) return;
+  if (commands.get_target_tool(109)) return;
 
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
@@ -50,10 +44,10 @@ inline void gcode_M109() {
   if (no_wait_for_cooling || parser.seenval('R')) {
     const int16_t temp = parser.value_celsius();
     if (thermalManager.data.hotends == 1) {
-      tools.singlenozzle_temp[h] = temp;
-      if (h != tools.data.extruder.active) return;
+      tools.singlenozzle_temp[tools.data.extruder.target] = temp;
+      if (tools.data.extruder.target != tools.data.extruder.active) return;
     }
-    hotends[h]->set_target_temp(temp);
+    hotends[tools.target_hotend()]->set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
       if (mechanics.dxc_is_duplicating() && tools.data.extruder.target == 0)
@@ -61,7 +55,7 @@ inline void gcode_M109() {
     #endif
 
     #if HAS_LCD
-      if (hotends[h]->isHeating() || !no_wait_for_cooling)
+      if (hotends[tools.target_hotend()]->isHeating() || !no_wait_for_cooling)
         nozzle.set_heating_message();
     #endif
 
@@ -72,7 +66,7 @@ inline void gcode_M109() {
     planner.autotemp_M104_M109();
   #endif
 
-  hotends[h]->wait_for_target(no_wait_for_cooling);
+  hotends[tools.target_hotend()]->wait_for_target(no_wait_for_cooling);
 }
 
 #endif // HAS_TEMP_HOTEND

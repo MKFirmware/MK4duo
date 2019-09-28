@@ -298,30 +298,30 @@ class MenuItem_bool {
  *     MenuItem_int3::action_edit(PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)
  *
  */
-#define _MENU_ITEM_VARIANT_P(TYPE, VARIANT, USE_MULTIPLIER, PLABEL, ...) do { \
+#define _MENU_ITEM_VARIANT_P(TYPE, VARIANT, USE_MULTIPLIER, PLABEL, V...) do { \
     _skipStatic = false; \
     if (_menuLineNr == _thisItemNr) { \
       if (encoderLine == _thisItemNr && lcdui.use_click()) { \
         _MENU_ITEM_MULTIPLIER_CHECK(USE_MULTIPLIER); \
-        MenuItem_##TYPE ::action ## VARIANT(__VA_ARGS__); \
+        MenuItem_##TYPE ::action ## VARIANT(V); \
         if (screen_changed) return; \
       } \
       if (lcdui.should_draw()) \
-        draw_menu_item ## VARIANT ## _ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PLABEL, ## __VA_ARGS__); \
+        draw_menu_item ## VARIANT ## _ ## TYPE(encoderLine == _thisItemNr, _lcdLineNr, PLABEL, ##V); \
     } \
   ++_thisItemNr; \
 }while(0)
 
 // Used to print static text with no visible cursor.
 // Parameters: label [, bool center [, bool invert [, char *value] ] ]
-#define STATIC_ITEM_P(PLABEL, ...) do{ \
+#define STATIC_ITEM_P(PLABEL, V...) do{ \
   if (_menuLineNr == _thisItemNr) { \
     if (_skipStatic && encoderLine <= _thisItemNr) { \
       lcdui.encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
       ++encoderLine; \
     } \
     if (lcdui.should_draw()) \
-      draw_menu_item_static(_lcdLineNr, PLABEL, ## __VA_ARGS__); \
+      draw_menu_item_static(_lcdLineNr, PLABEL, ##V); \
   } \
   ++_thisItemNr; \
 } while(0)
@@ -336,16 +336,16 @@ class MenuItem_bool {
   #define MENU_ITEM_ADDON_END() } }while(0)
 #endif
 
-#define STATIC_ITEM(LABEL, ...)                               STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
+#define STATIC_ITEM(LABEL, V...)                              STATIC_ITEM_P(PSTR(LABEL), ##V)
 
 #define MENU_BACK(LABEL)                                      MENU_ITEM(back, LABEL)
 #define MENU_ITEM_DUMMY()                                     do { _thisItemNr++; }while(0)
-#define MENU_ITEM_P(TYPE, PLABEL, ...)                        _MENU_ITEM_VARIANT_P(TYPE,      , false, PLABEL,                   ## __VA_ARGS__)
-#define MENU_ITEM(TYPE, LABEL, ...)                           _MENU_ITEM_VARIANT_P(TYPE,      , false, PSTR(LABEL),              ## __VA_ARGS__)
-#define MENU_ITEM_EDIT(TYPE, LABEL, ...)                      _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
-#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)             _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
-#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, ...)           _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
-#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, ...)  _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ## __VA_ARGS__)
+#define MENU_ITEM_P(TYPE, PLABEL, V...)                       _MENU_ITEM_VARIANT_P(TYPE,      , false, PLABEL,                   ##V)
+#define MENU_ITEM(TYPE, LABEL, V...)                          _MENU_ITEM_VARIANT_P(TYPE,      , false, PSTR(LABEL),              ##V)
+#define MENU_ITEM_EDIT(TYPE, LABEL, V...)                     _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ##V)
+#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...)            _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ##V)
+#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, V...)          _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ##V)
+#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...) _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ##V)
 
 ////////////////////////////////////////////
 /////////////// Menu Screens ///////////////
@@ -412,7 +412,7 @@ void lcd_draw_homing();
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   void lcd_pause_show_message(const PauseMessageEnum message,
                               const PauseModeEnum mode=PAUSE_MODE_SAME,
-                              const uint8_t hotend=TARGET_HOTEND);
+                              const uint8_t hotend=tools.active_hotend());
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)

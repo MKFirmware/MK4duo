@@ -32,27 +32,20 @@ void menu_info_stats() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
   char buffer[21];
-  duration_t elapsed;
   printStatistics stats = print_job_counter.getStats();
 
   START_SCREEN();
   STATIC_ITEM(MSG_INFO_PRINT_COUNT ":", false, false, i16tostr3left(stats.totalPrints));
   STATIC_ITEM(MSG_INFO_COMPLETED_PRINTS ":",  false, false, i16tostr3left(stats.finishedPrints));
 
-  elapsed = stats.timePrint;
-  elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_PRINT_TIME ":", false, false);
-  STATIC_ITEM(">", false, false, buffer);
+  STATIC_ITEM(">", false, false, duration_t(stats.timePrint).toString(buffer));
 
-  elapsed = stats.longestPrint;
-  elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_PRINT_LONGEST ":", false, false);
-  STATIC_ITEM(">", false, false, buffer);
+  STATIC_ITEM(">", false, false, duration_t(stats.longestPrint).toString(buffer));
 
-  elapsed = stats.timePowerOn;
-  elapsed.toString(buffer);
   STATIC_ITEM(MSG_INFO_POWER_ON ":", false, false);
-  STATIC_ITEM(">", false, false, buffer);
+  STATIC_ITEM(">", false, false, duration_t(stats.timePowerOn).toString(buffer));
 
   ftostrlength(buffer, stats.filamentUsed);
   STATIC_ITEM(MSG_INFO_PRINT_FILAMENT ": ", false, false);
@@ -65,24 +58,18 @@ void menu_info_stats() {
   #endif
 
   #if ENABLED(SERVICE_TIME_1)
-    elapsed = stats.ServiceTime1;
-    elapsed.toString(buffer);
     STATIC_ITEM(SERVICE_NAME_1 " in: ", false, false);
-    STATIC_ITEM(">", false, false, buffer);
+    STATIC_ITEM(">", false, false, duration_t(stats.ServiceTime1).toString(buffer));
   #endif
 
   #if ENABLED(SERVICE_TIME_2)
-    elapsed = stats.ServiceTime2;
-    elapsed.toString(buffer);
     STATIC_ITEM(SERVICE_NAME_2 " in: ", false, false);
-    STATIC_ITEM("> ", false, false, buffer);
+    STATIC_ITEM("> ", false, false, duration_t(stats.ServiceTime2).toString(buffer));
   #endif
 
   #if ENABLED(SERVICE_TIME_3)
-    elapsed = stats.ServiceTime3;
-    elapsed.toString(buffer);
     STATIC_ITEM(SERVICE_NAME_3 " in: ", false, false);
-    STATIC_ITEM("> ", false, false, buffer);
+    STATIC_ITEM("> ", false, false, duration_t(stats.ServiceTime3).toString(buffer));
   #endif
 
   END_SCREEN();

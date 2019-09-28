@@ -28,8 +28,6 @@
 
 MemoryStore memorystore;
 
-extern void eeprom_flush(void);
-
 /** Public Parameters */
 #if HAS_EEPROM_SD
   char MemoryStore::eeprom_data[EEPROM_SIZE];
@@ -38,7 +36,7 @@ extern void eeprom_flush(void);
 /** Public Function */
 bool MemoryStore::access_write() {
   #if HAS_EEPROM_FLASH
-    eeprom_flush();
+    eeprom_buffer_fill();
     return false;
   #elif HAS_EEPROM_SD
     card.write_eeprom();

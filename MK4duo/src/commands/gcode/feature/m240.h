@@ -32,7 +32,7 @@
 
 #if ENABLED(PHOTO_RETRACT_MM)
   inline void e_move_m240(const float length, const feedrate_t fr_mm_s) {
-    if (length && thermalManager.hotEnoughToExtrude(ACTIVE_HOTEND)) {
+    if (length && thermalManager.hotEnoughToExtrude(tools.active_hotend())) {
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         advancedpause.do_pause_e_move(length, fr_mm_s);
       #else

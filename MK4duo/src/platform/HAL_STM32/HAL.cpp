@@ -23,12 +23,10 @@
 #ifdef ARDUINO_ARCH_STM32 && !defined(STM32GENERIC)
 
 #include "../../../MK4duo.h"
+#include <Wire.h>
 
 /** Public Parameters */
 uint8_t MCUSR;
-
-int16_t HAL::AnalogInputValues[NUM_DIGITAL_PINS] = { 0 };
-bool    HAL::Analog_is_ready = false;
 
 /** Private Parameters */
 #if MAX_HOTEND > 0
@@ -95,6 +93,10 @@ HAL::~HAL() {
 // do any hardware-specific initialization here
 void HAL::hwSetup() {
   FastIO_init();
+
+  #if PIN_EXISTS(LED)
+    OUT_WRITE(LED_PIN, LOW);
+  #endif
 }
 
 // Print apparent cause of start/restart
@@ -114,41 +116,34 @@ void HAL::analogStart() {
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {
       pinMode(hotends[h]->data.sensor.pin, INPUT);
-      HOTENDsensorFilters[h].Init(0);
     }
   #endif
   #if MAX_BED > 0
     LOOP_BED() {
       pinMode(beds[h]->data.sensor.pin, INPUT);
-      BEDsensorFilters[h].Init(0);
     }
   #endif
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
       pinMode(chambers[h]->data.sensor.pin, INPUT);
-      CHAMBERsensorFilters[h].Init(0);
     }
   #endif
   #if MAX_COOLER > 0
     LOOP_COOLER() {
       pinMode(coolers[h]->data.sensor.pin, INPUT);
-      COOLERsensorFilters[h].Init(0);
     }
   #endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     pinMode(FILWIDTH_PIN, INPUT);
-    filamentFilter.Init(0);
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     pinMode(POWER_CONSUMPTION_PIN, INPUT);
-    powerFilter.Init(0);
   #endif
 
   #if HAS_MCU_TEMPERATURE
     pinMode(ADC_TEMPERATURE_SENSOR, INPUT);
-    mcuFilter.Init(0);
   #endif
 
   HAL_timer_start(TEMP_TIMER_NUM, TEMP_TIMER_FREQUENCY);
@@ -187,7 +182,8 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 }
 
 void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/) {
-
+  ::analogWrite(pin, ulValue);
+/*
   PinName p = digitalPinToPinName(pin);
 
   #ifdef HAL_DAC_MODULE_ENABLED
@@ -205,7 +201,7 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
       return;
     }
   #endif
-
+*/
 }
 
 /**
@@ -256,64 +252,53 @@ void HAL::Tick() {
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
-      currentFilter.ProcessReading(analogRead(hotends[h]->data.sensor.pin));
-      if (currentFilter.IsValid()) {
-        AnalogInputValues[hotends[h]->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
-        Analog_is_ready = true;
-      }
+      currentFilter.process_reading(analogRead(hotends[h]->data.sensor.pin));
+      if (currentFilter.IsValid())
+        hotends[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_BED > 0
     LOOP_BED() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
-      currentFilter.ProcessReading(analogRead(beds[h]->data.sensor.pin));
-      if (currentFilter.IsValid()) {
-        AnalogInputValues[beds[h]->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
-        Analog_is_ready = true;
-      }
+      currentFilter.process_reading(analogRead(beds[h]->data.sensor.pin));
+      if (currentFilter.IsValid())
+        beds[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
-      currentFilter.ProcessReading(analogRead(chambers[h]->data.sensor.pin));
-      if (currentFilter.IsValid()) {
-        AnalogInputValues[chambers[h]->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
-        Analog_is_ready = true;
-      }
+      currentFilter.process_reading(analogRead(chambers[h]->data.sensor.pin));
+      if (currentFilter.IsValid())
+        chambers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_COOLER > 0
     LOOP_COOLER() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
-      currentFilter.ProcessReading(analogRead(coolers[h]->data.sensor.pin));
-      if (currentFilter.IsValid()) {
-        AnalogInputValues[coolers[h]->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
-        Analog_is_ready = true;
-      }
+      currentFilter.process_reading(analogRead(coolers[h]->data.sensor.pin));
+      if (currentFilter.IsValid())
+        coolers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
-    const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(analogRead(FILWIDTH_PIN));
+    const_cast<ADCAveragingFilter&>(filamentFilter).process_reading(analogRead(FILWIDTH_PIN));
     if (filamentFilter.IsValid())
-      AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
+      thermalManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(analogRead(POWER_CONSUMPTION_PIN));
+    const_cast<ADCAveragingFilter&>(powerFilter).process_reading(analogRead(POWER_CONSUMPTION_PIN));
     if (powerFilter.IsValid())
-      AnalogInputValues[POWER_CONSUMPTION_PIN] = (powerFilter.GetSum() / NUM_ADC_SAMPLES);
+      powerManager.current_raw_powconsumption = (powerFilter.GetSum() / NUM_ADC_SAMPLES);
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(analogRead(ADC_TEMPERATURE_SENSOR));
+    const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(analogRead(ADC_TEMPERATURE_SENSOR));
     if (mcuFilter.IsValid())
       thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
   #endif
-
-  // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (Analog_is_ready) thermalManager.set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();

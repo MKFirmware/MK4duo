@@ -47,5 +47,5 @@ class restorer {
 
 };
 
-#define REMEMBER(NAME,X,...)  restorer<typeof(X)> restorer_##NAME(X, ##__VA_ARGS__)
-#define RESTORE(NAME)         restorer_##NAME.restore()
+#define REMEMBER(N,X,V...)  restorer<typeof(X)> restorer_##N(X, ##V)
+#define RESTORE(N)          restorer_##N.restore()

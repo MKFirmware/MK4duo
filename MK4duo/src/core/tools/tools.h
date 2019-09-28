@@ -41,8 +41,9 @@ union extruder_t {
 // Struct Tool data
 typedef struct {
   extruder_t  extruder;
+  uint8_t     hotend[MAX_EXTRUDER];         // Pointer to the hotend  
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    float     filament_size[MAX_EXTRUDER];     // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+    float     filament_size[MAX_EXTRUDER];  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
   #endif
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
     int16_t   lpq_len;
@@ -65,10 +66,10 @@ class Tools {
 
     static tool_data_t  data;
 
-    static int16_t  flow_percentage[MAX_EXTRUDER],      // Extrusion factor for each extruder
-                    density_percentage[MAX_EXTRUDER],   // Extrusion density factor for each extruder
-                    singlenozzle_temp[MAX_EXTRUDER];    // Single nozzle temp for each extuder
-    static float    e_factor[MAX_EXTRUDER];             // The flow percentage and volumetric multiplier combine to scale E movement
+    static int16_t  flow_percentage[MAX_EXTRUDER],        // Extrusion factor for each extruder
+                    density_percentage[MAX_EXTRUDER],     // Extrusion density factor for each extruder
+                    singlenozzle_temp[MAX_EXTRUDER];      // Single nozzle temp for each extuder
+    static float    e_factor[MAX_EXTRUDER];               // The flow percentage and volumetric multiplier combine to scale E movement
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static float  volumetric_area_nominal,              // Nominal cross-sectional area
@@ -94,9 +95,21 @@ class Tools {
     static void change_number_extruder(const uint8_t ext);
 
     /**
+     * Get Active hotend on active extruder
+     */
+    FORCE_INLINE static uint8_t active_hotend() { return data.hotend[data.extruder.active]; }
+
+    /**
+     * Get Target hotend on active extruder
+     */
+    FORCE_INLINE static uint8_t target_hotend() { return data.hotend[data.extruder.target]; }
+
+    /**
      * Change tools
      */
     static void change(const uint8_t new_tool, bool no_move=false);
+
+    static void print_M563();
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static void print_M200();

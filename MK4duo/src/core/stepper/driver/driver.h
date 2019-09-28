@@ -76,54 +76,14 @@ class Driver {
 
   public: /** Constructor */
 
-    Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID) :
-      axis_letter(AXIS_LETTER),
-      id(DRIVER_ID)
+    Driver(const char* AXIS_LETTER) :
+      axis_letter(AXIS_LETTER)
       {}
-
-    #if HAVE_DRV(TMC2208)
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, Stream * SerialPort, const float RS) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(SerialPort, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(RX, TX, RS, has_rx); }
-
-    #elif HAVE_DRV(TMC2660)
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(CS, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(CS, RS, pinMOSI, pinMISO, pinSCK); }
-
-    #elif HAS_TMCX1X0
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(CS, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        axis_letter(AXIS_LETTER),
-        id(DRIVER_ID)
-        { tmc = new MKTMC(CS, RS, pinMOSI, pinMISO, pinSCK); }
-
-    #endif
 
   public: /** Public Parameters */
 
     driver_data_t data;
     const char*   axis_letter;
-    const uint8_t id;
 
     #if HAS_TRINAMIC
       MKTMC* tmc = nullptr;
@@ -161,6 +121,7 @@ class Driver {
 struct driver_t {
   union {
     struct { Driver *x, *y, *z
+      , *e[MAX_DRIVER_E]
       #if X_STEPPER_COUNT == 2
         , x2
       #endif
@@ -173,7 +134,7 @@ struct driver_t {
       #if Z_STEPPER_COUNT == 3
         , z3
       #endif
-      , *e[MAX_DRIVER_E];
+      ;
     };
     Driver* drv[MAX_DRIVER];
   };

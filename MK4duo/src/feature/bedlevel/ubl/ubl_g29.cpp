@@ -719,7 +719,7 @@
         SERIAL_MV("/", int(GRID_MAX_POINTS));
         SERIAL_EM(".\n");
         #if HAS_LCD
-          lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), point_num, int(GRID_MAX_POINTS));
+          lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), PSTR(MSG_PROBING_MESH), int(pt_index), int(GRID_MAX_POINTS));
         #endif
 
         #if HAS_LCD_MENU
@@ -1331,22 +1331,16 @@
   #if HAS_BED_PROBE
 
     void unified_bed_leveling::tilt_mesh_based_on_probed_grid(const bool do_3_pt_leveling) {
-      int16_t x_min = MAX(MIN_PROBE_X, MESH_MIN_X),
-              x_max = MIN(MAX_PROBE_X, MESH_MAX_X),
-              y_min = MAX(MIN_PROBE_Y, MESH_MIN_Y),
-              y_max = MIN(MAX_PROBE_Y, MESH_MAX_Y);
+      const float x_min = probe.min_x(), x_max = probe.max_x(),
+                  y_min = probe.min_y(), y_max = probe.max_y(),
+                  dx = (x_max - x_min) / (g29_grid_size - 1),
+                  dy = (y_max - y_min) / (g29_grid_size - 1);
 
       bool abort_flag = false;
 
       float measured_z;
 
-      const float dx = float(x_max - x_min) / (g29_grid_size - 1),
-                  dy = float(y_max - y_min) / (g29_grid_size - 1);
-
       struct linear_fit_data lsf_results;
-
-      //float z1, z2, z3;  // Needed for algorithm validation down below.
-
       incremental_LSF_reset(&lsf_results);
 
       if (do_3_pt_leveling) {
@@ -1355,17 +1349,16 @@
           lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 1/3"));
         #endif
 
-        measured_z = probe.check_at_point(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
+        measured_z = probe.check_at_point(x_min, y_min, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
         else {
-          measured_z -= get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y);
-          //z1 = measured_z;
+          measured_z -= get_z_correction(x_min, y_min);
           if (g29_verbose_level > 3) {
             SERIAL_SP(16);
             SERIAL_MV("Corrected_Z=", measured_z);
           }
-          incremental_LSF(&lsf_results, PROBE_PT_1_X, PROBE_PT_1_Y, measured_z);
+          incremental_LSF(&lsf_results, x_min, y_min, measured_z);
         }
 
         if (!abort_flag) {
@@ -1374,17 +1367,16 @@
             lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 2/3"));
           #endif
 
-          measured_z = probe.check_at_point(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
-          //z2 = measured_z;
+          measured_z = probe.check_at_point(x_max, y_min, PROBE_PT_RAISE, g29_verbose_level);
           if (isnan(measured_z))
             abort_flag = true;
           else {
-            measured_z -= get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y);
+            measured_z -= get_z_correction(x_max, y_min);
             if (g29_verbose_level > 3) {
               SERIAL_SP(16);
               SERIAL_MV("Corrected_Z=", measured_z);
             }
-            incremental_LSF(&lsf_results, PROBE_PT_2_X, PROBE_PT_2_Y, measured_z);
+            incremental_LSF(&lsf_results, x_max, y_min, measured_z);
           }
         }
 
@@ -1394,17 +1386,18 @@
             lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 3/3"));
           #endif
 
-          measured_z = probe.check_at_point(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
+          const float center_probe = (x_max - x_min) / 2;
+          measured_z = probe.check_at_point(center_probe, y_max, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
           else {
-            measured_z -= get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y);
+            measured_z -= get_z_correction(center_probe, y_max);
             if (g29_verbose_level > 3) {
               SERIAL_SP(16);
               SERIAL_MV("Corrected_Z=", measured_z);
             }
-            incremental_LSF(&lsf_results, PROBE_PT_3_X, PROBE_PT_3_Y, measured_z);
+            incremental_LSF(&lsf_results, center_probe, y_max, measured_z);
           }
         }
 
@@ -1425,9 +1418,9 @@
         uint16_t total_points = g29_grid_size * g29_grid_size, point_num = 1;
 
         for (uint8_t ix = 0; ix < g29_grid_size; ix++) {
-          const float rx = float(x_min) + ix * dx;
+          const float rx = x_min + ix * dx;
           for (int8_t iy = 0; iy < g29_grid_size; iy++) {
-            const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
+            const float ry = y_min + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
 
             if (!abort_flag) {
               SERIAL_MV("Tilting mesh point ", point_num);
@@ -1555,58 +1548,6 @@
         DEBUG_MSG("]\n");
         DEBUG_EOL();
 
-        /**
-         * The following code can be used to check the validity of the mesh tilting algorithm.
-         * When a 3-Point Mesh Tilt is done, the same algorithm is used as the grid based tilting.
-         * The only difference is just 3 points are used in the calculations.   That fact guarantees
-         * each probed point should have an exact match when a get_z_correction() for that location
-         * is calculated.  The Z error between the probed point locations and the get_z_correction()
-         * numbers for those locations should be 0.
-         */
-        #if 0
-        float t, t1, d;
-        t = normal.x * (PROBE_PT_1_X) + normal.y * (PROBE_PT_1_Y);
-        d = t + normal.z * z1;
-        DEBUG_MSG("D from 1st point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z1-get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (PROBE_PT_2_X) + normal.y * (PROBE_PT_2_Y);
-        d = t + normal.z * z2;
-        DEBUG_EOL();
-        DEBUG_MSG("D from 2nd point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z2-get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (PROBE_PT_3_X) + normal.y * (PROBE_PT_3_Y);
-        d = t + normal.z * z3;
-        DEBUG_MSG("D from 3rd point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z3-get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-        d = t + normal.z * 0;
-        DEBUG_MSG("D from home location with Z=0 : ");
-        DEBUG_VAL(d, 6);
-        DEBUG_EOL();
-
-        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-        d = t + get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT); // normal.z * 0.000;
-        DEBUG_MSG("D from home location using mesh value for Z: ");
-        DEBUG_VAL(d, 6);
-
-        DEBUG_MV("   Z error: (", Z_SAFE_HOMING_X_POINT);
-        DEBUG_MV(",", Z_SAFE_HOMING_Y_POINT );
-        DEBUG_MSG(") = ");
-        DEBUG_VAL(get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT), 6);
-        DEBUG_EOL();
-        #endif
       } // printer.debugFeature()
 
     }

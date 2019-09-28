@@ -33,10 +33,9 @@ Temperature thermalManager;
 heater_max_t Temperature::data;
 
 #if HAS_MCU_TEMPERATURE
-  float   Temperature::mcu_current_temperature  = 0.0,
-          Temperature::mcu_highest_temperature  = 0.0,
-          Temperature::mcu_lowest_temperature   = 4096.0,
-          Temperature::mcu_alarm_temperature    = 80.0;
+  float   Temperature::mcu_current_temperature  = 0.0f,
+          Temperature::mcu_highest_temperature  = 0.0f,
+          Temperature::mcu_alarm_temperature    = 80.0f;
   int16_t Temperature::mcu_current_temperature_raw;
 #endif
 
@@ -219,31 +218,6 @@ void Temperature::change_number_heater(const HeatertypeEnum type, const uint8_t 
 
 }
 
-void Temperature::set_current_temp_raw() {
-
-  #if MAX_HOTEND > 0
-    LOOP_HOTEND() hotends[h]->data.sensor.raw = HAL::AnalogInputValues[hotends[h]->data.sensor.pin];
-  #endif
-  #if MAX_BED > 0
-    LOOP_BED() beds[h]->data.sensor.raw = HAL::AnalogInputValues[beds[h]->data.sensor.pin];
-  #endif
-  #if MAX_CHAMBER > 0
-    LOOP_CHAMBER() chambers[h]->data.sensor.raw = HAL::AnalogInputValues[chambers[h]->data.sensor.pin];
-  #endif
-  #if MAX_COOLER > 0
-    LOOP_COOLER() coolers[h]->data.sensor.raw = HAL::AnalogInputValues[coolers[h]->data.sensor.pin];
-  #endif
-
-  #if HAS_POWER_CONSUMPTION_SENSOR
-    powerManager.current_raw_powconsumption = HAL::AnalogInputValues[POWER_CONSUMPTION_PIN];
-  #endif
-
-  #if ENABLED(FILAMENT_WIDTH_SENSOR)
-    current_raw_filwidth = HAL::AnalogInputValues[FILWIDTH_PIN];
-  #endif
-
-}
-
 /**
  * Spin Manage heating activities for heaters, bed, chamber and cooler
  *  - Is called every 100ms.
@@ -294,7 +268,6 @@ void Temperature::spin() {
   #if HAS_MCU_TEMPERATURE
     mcu_current_temperature = analog2tempMCU(mcu_current_temperature_raw);
     NOLESS(mcu_highest_temperature, mcu_current_temperature);
-    NOMORE(mcu_lowest_temperature, mcu_current_temperature);
   #endif
 
   // Control the extruder rate based on the width sensor
@@ -543,7 +516,7 @@ bool Temperature::heaters_isActive() {
 
   // Convert raw Filament Width to millimeters
   float Temperature::analog2widthFil() {
-    return current_raw_filwidth * (HAL_VOLTAGE_PIN) * (1.0 / 16383.0);
+    return current_raw_filwidth * (HAL_VOLTAGE_PIN) * (1.0f / float(AD_RANGE));
   }
 
   /**
@@ -577,72 +550,78 @@ bool Temperature::heaters_isActive() {
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if MAX_HOTEND > 0
-    print_heater_state(hotends[ACTIVE_HOTEND], false, showRaw);
-    SERIAL_MV(MSG_AT ":", hotends[ACTIVE_HOTEND]->pwm_value);
+    if (thermalManager.data.hotends > 0) {
+      print_heater_state(hotends[tools.active_hotend()], false, showRaw);
+      SERIAL_MV(MSG_AT ":", hotends[tools.active_hotend()]->pwm_value);
+    }
   #endif
 
   #if MAX_BED > 0
-    print_heater_state(beds[0], false, showRaw);
-    SERIAL_MV(MSG_BAT ":", beds[0]->pwm_value);
+    if (thermalManager.data.beds > 0) {
+      print_heater_state(beds[0], false, showRaw);
+      SERIAL_MV(MSG_BAT ":", beds[0]->pwm_value);
+    }
   #endif
 
   #if MAX_CHAMBER > 0
-    print_heater_state(chambers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", chambers[0]->pwm_value);
+    if (thermalManager.data.chambers > 0) {
+      print_heater_state(chambers[0], false, showRaw);
+      SERIAL_MV(MSG_CAT ":", chambers[0]->pwm_value);
+    }
   #endif
 
   #if MAX_COOLER > 0
-    print_heater_state(coolers[0], false, showRaw);
-    SERIAL_MV(MSG_CAT ":", coolers[0]->pwm_value);
-  #endif
-
-  #if HOTENDS > 1
-    LOOP_HOTEND() {
-      print_heater_state(hotends[h], true, showRaw);
-      SERIAL_MV(MSG_AT, int(h));
-      SERIAL_CHR(':');
-      SERIAL_VAL(hotends[h]->pwm_value);
+    if (thermalManager.data.coolers > 0) {
+      print_heater_state(coolers[0], false, showRaw);
+      SERIAL_MV(MSG_CAT ":", coolers[0]->pwm_value);
     }
   #endif
 
-  #if BEDS > 1
-    LOOP_BED() {
-      print_heater_state(beds[h], true, showRaw);
-      SERIAL_MV(MSG_BAT, int(h));
-      SERIAL_CHR(':');
-      SERIAL_VAL(beds[h]->pwm_value);
+  #if MAX_HOTEND > 1
+    if (thermalManager.data.hotends > 1) {
+      LOOP_HOTEND() {
+        print_heater_state(hotends[h], true, showRaw);
+        SERIAL_MV(MSG_AT, int(h));
+        SERIAL_CHR(':');
+        SERIAL_VAL(hotends[h]->pwm_value);
+      }
     }
   #endif
 
-  #if CHAMBERS > 1
-    LOOP_CHAMBER() {
-      print_heater_state(chambers[h], true, showRaw);
-      SERIAL_MV(MSG_CAT, int(h));
-      SERIAL_CHR(':');
-      SERIAL_VAL(chambers[h]->pwm_value);
+  #if MAX_BED > 1
+    if (thermalManager.data.beds > 1) {
+      LOOP_BED() {
+        print_heater_state(beds[h], true, showRaw);
+        SERIAL_MV(MSG_BAT, int(h));
+        SERIAL_CHR(':');
+        SERIAL_VAL(beds[h]->pwm_value);
+      }
     }
   #endif
 
-  #if COOLERS > 1
-    LOOP_COOLER() {
-      print_heater_state(coolers[h], true, showRaw);
-      SERIAL_MV(MSG_CAT, int(h));
-      SERIAL_CHR(':');
-      SERIAL_VAL(coolers[h]->pwm_value);
+  #if MAX_CHAMBER > 1
+    if (thermalManager.data.chambers > 1) {
+      LOOP_CHAMBER() {
+        print_heater_state(chambers[h], true, showRaw);
+        SERIAL_MV(MSG_CAT, int(h));
+        SERIAL_CHR(':');
+        SERIAL_VAL(chambers[h]->pwm_value);
+      }
     }
   #endif
 
   #if HAS_MCU_TEMPERATURE
-    SERIAL_MV(" MCU min:", mcu_lowest_temperature, 2);
-    SERIAL_MV(", current:", mcu_current_temperature, 2);
-    SERIAL_MV(", max:", mcu_highest_temperature, 2);
-    if (showRaw)
-      SERIAL_MV(" C->", mcu_current_temperature_raw);
+    SERIAL_MV(" MCU:", mcu_current_temperature, 2);
+    SERIAL_MV(" max:", mcu_highest_temperature, 2);
+    if (showRaw) {
+      SERIAL_MV(" (", mcu_current_temperature_raw);
+      SERIAL_CHR(')');
+    }
   #endif
 
   #if HAS_DHT
     SERIAL_MV(" DHT Temp:", dhtsensor.Temperature, 1);
-    SERIAL_MV(", Humidity:", dhtsensor.Humidity, 1);
+    SERIAL_MV(" Humidity:", dhtsensor.Humidity, 1);
   #endif
 
 }
@@ -915,8 +894,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
 #if HAS_MCU_TEMPERATURE
   float Temperature::analog2tempMCU(const int raw) {
-    const float voltage = (float)raw * ((HAL_VOLTAGE_PIN) / (float)16384);
-    return (voltage - 0.8) * (1000.0 / 2.65) + 27.0; // + mcuTemperatureAdjust;			// accuracy at 27C is +/-45C
+    const float voltage = (float)raw * ((HAL_VOLTAGE_PIN) / (float)AD_RANGE);
+    return (voltage - 0.8f) * (1000.0f / 2.65f) + 27.0f; // + mcuTemperatureAdjust;
   }
 #endif
 
@@ -924,23 +903,25 @@ void Temperature::print_heater_state(Heater* act, const bool print_ID, const boo
 
   SERIAL_CHR(' ');
 
-  #if HAS_TEMP_HOTEND
+  #if MAX_HOTEND > 0
     if (act->type == IS_HOTEND) {
       SERIAL_CHR('T');
-      #if HOTENDS > 1
-        if (print_ID) SERIAL_VAL(act->data.ID);
-      #else
-        UNUSED(print_ID);
-      #endif
+      if (print_ID) SERIAL_VAL(act->data.ID);
     }
   #endif
 
   #if MAX_BED > 0
-    if (act->type == IS_BED) SERIAL_CHR('B');
+    if (act->type == IS_BED) {
+      SERIAL_CHR('B');
+      if (print_ID) SERIAL_VAL(act->data.ID);
+    }
   #endif
 
   #if MAX_CHAMBER > 0
-    if (act->type == IS_CHAMBER) SERIAL_CHR('C');
+    if (act->type == IS_CHAMBER) {
+      SERIAL_CHR('C');
+      if (print_ID) SERIAL_VAL(act->data.ID);
+    }
   #endif
 
   #if MAX_COOLER > 0
@@ -949,7 +930,7 @@ void Temperature::print_heater_state(Heater* act, const bool print_ID, const boo
 
   const int16_t targetTemperature = act->isIdle() ? act->deg_idle() : act->deg_target();
   SERIAL_CHR(':');
-  SERIAL_VAL(act->deg_current(), 2);
+  SERIAL_VAL(act->deg_current());
   SERIAL_MV(" /" , targetTemperature);
   if (showRaw) {
     SERIAL_MV(" (", act->data.sensor.raw);

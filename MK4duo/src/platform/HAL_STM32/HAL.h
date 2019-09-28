@@ -166,12 +166,6 @@ extern "C" {
 
 typedef AveragingFilter<NUM_ADC_SAMPLES> ADCAveragingFilter;
 
-// ISR handler type
-using pfnISR_Handler = void(*)(void);
-
-// Install a new interrupt vector handler for the given irq, returning the old one
-pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler);
-
 class HAL {
 
   public: /** Constructor */
@@ -179,11 +173,6 @@ class HAL {
     HAL();
 
     virtual ~HAL();
-
-  public: /** Public Parameters */
-
-    static int16_t AnalogInputValues[NUM_DIGITAL_PINS];
-    static bool Analog_is_ready;
 
   private: /** Private Parameters */
 
@@ -265,7 +254,7 @@ class HAL {
 
     // SPI related functions
     static void spiBegin();
-    static void spiInit(uint8_t spiRate=6);
+    static void spiInit(uint8_t spiRate);
     // Write single byte to SPI
     static void spiSend(uint8_t nbyte);
     // Read single byte from SPI

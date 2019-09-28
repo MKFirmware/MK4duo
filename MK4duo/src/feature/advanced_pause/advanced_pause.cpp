@@ -90,7 +90,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
 
   host_action.paused();
 
-  if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
+  if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(tools.active_hotend())) {
     SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
 
     #if HAS_LCD_MENU
@@ -123,7 +123,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   planner.synchronize();
 
   // Initial retract before move to filament change position
-  if (retract && !thermalManager.tooColdToExtrude(ACTIVE_HOTEND))
+  if (retract && !thermalManager.tooColdToExtrude(tools.active_hotend()))
     do_pause_e_move(retract, feedrate_t(PAUSE_PARK_RETRACT_FEEDRATE));
 
   // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
@@ -583,7 +583,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     LOOP_BED() beds[h]->wait_for_target();
   #endif
 
-  hotends[TARGET_HOTEND]->wait_for_target();
+  hotends[tools.active_hotend()]->wait_for_target();
 
   return printer.isWaitForHeatUp();
 }

@@ -37,65 +37,65 @@
 
 // X Stepper
 #ifndef X_ENABLE_INIT()
-  #define X_ENABLE_INIT()           driver[X_DRV]->enable_init()
-  #define X_ENABLE_WRITE(STATE)     driver[X_DRV]->enable_write(STATE)
-  #define X_ENABLE_READ()           driver[X_DRV]->enable_read()
+  #define X_ENABLE_INIT()           driver.x->enable_init()
+  #define X_ENABLE_WRITE(STATE)     driver.x->enable_write(STATE)
+  #define X_ENABLE_READ()           driver.x->enable_read()
 #endif
 #ifndef X_DIR_INIT()
-  #define X_DIR_INIT()              driver[X_DRV]->dir_init()
-  #define X_DIR_WRITE(STATE)        driver[X_DRV]->dir_write(STATE)
-  #define X_DIR_READ()              driver[X_DRV]->dir_read()
+  #define X_DIR_INIT()              driver.x->dir_init()
+  #define X_DIR_WRITE(STATE)        driver.x->dir_write(STATE)
+  #define X_DIR_READ()              driver.x->dir_read()
 #endif
 #ifndef X_STEP_INIT()
-  #define X_STEP_INIT()             driver[X_DRV]->step_init()
+  #define X_STEP_INIT()             driver.x->step_init()
 #endif
 #ifndef X_STEP_WRITE()
-  #define X_STEP_WRITE(STATE)       driver[X_DRV]->step_write(STATE)
+  #define X_STEP_WRITE(STATE)       driver.x->step_write(STATE)
 #endif
 #ifndef X_STEP_READ()
-  #define X_STEP_READ()             driver[X_DRV]->step_read()
+  #define X_STEP_READ()             driver.x->step_read()
 #endif
 
 // Y Stepper
 #ifndef Y_ENABLE_INIT()
-  #define Y_ENABLE_INIT()           driver[Y_DRV]->enable_init()
-  #define Y_ENABLE_WRITE(STATE)     driver[Y_DRV]->enable_write(STATE)
-  #define Y_ENABLE_READ()           driver[Y_DRV]->enable_read()
+  #define Y_ENABLE_INIT()           driver.y->enable_init()
+  #define Y_ENABLE_WRITE(STATE)     driver.y->enable_write(STATE)
+  #define Y_ENABLE_READ()           driver.y->enable_read()
 #endif
 #ifndef Y_DIR_INIT()
-  #define Y_DIR_INIT()              driver[Y_DRV]->dir_init()
-  #define Y_DIR_WRITE(STATE)        driver[Y_DRV]->dir_write(STATE)
-  #define Y_DIR_READ()              driver[Y_DRV]->dir_read()
+  #define Y_DIR_INIT()              driver.y->dir_init()
+  #define Y_DIR_WRITE(STATE)        driver.y->dir_write(STATE)
+  #define Y_DIR_READ()              driver.y->dir_read()
 #endif
 #ifndef Y_STEP_INIT()
-  #define Y_STEP_INIT()             driver[Y_DRV]->step_init()
+  #define Y_STEP_INIT()             driver.y->step_init()
 #endif
 #ifndef Y_STEP_WRITE()
-  #define Y_STEP_WRITE(STATE)       driver[Y_DRV]->step_write(STATE)
+  #define Y_STEP_WRITE(STATE)       driver.y->step_write(STATE)
 #endif
 #ifndef Y_STEP_READ()
-  #define Y_STEP_READ()             driver[Y_DRV]->step_read()
+  #define Y_STEP_READ()             driver.y->step_read()
 #endif
 
 // Z Stepper
 #ifndef Z_ENABLE_INIT()
-  #define Z_ENABLE_INIT()           driver[Z_DRV]->enable_init()
-  #define Z_ENABLE_WRITE(STATE)     driver[Z_DRV]->enable_write(STATE)
-  #define Z_ENABLE_READ()           driver[Z_DRV]->enable_read()
+  #define Z_ENABLE_INIT()           driver.z->enable_init()
+  #define Z_ENABLE_WRITE(STATE)     driver.z->enable_write(STATE)
+  #define Z_ENABLE_READ()           driver.z->enable_read()
 #endif
 #ifndef Z_DIR_INIT()
-  #define Z_DIR_INIT()              driver[Z_DRV]->dir_init()
-  #define Z_DIR_WRITE(STATE)        driver[Z_DRV]->dir_write(STATE)
-  #define Z_DIR_READ()              driver[Z_DRV]->dir_read()
+  #define Z_DIR_INIT()              driver.z->dir_init()
+  #define Z_DIR_WRITE(STATE)        driver.z->dir_write(STATE)
+  #define Z_DIR_READ()              driver.z->dir_read()
 #endif
 #ifndef Z_STEP_INIT()
-  #define Z_STEP_INIT()             driver[Z_DRV]->step_init()
+  #define Z_STEP_INIT()             driver.z->step_init()
 #endif
 #ifndef Z_STEP_WRITE()
-  #define Z_STEP_WRITE(STATE)       driver[Z_DRV]->step_write(STATE)
+  #define Z_STEP_WRITE(STATE)       driver.z->step_write(STATE)
 #endif
 #ifndef Z_STEP_READ()
-  #define Z_STEP_READ()             driver[Z_DRV]->step_read()
+  #define Z_STEP_READ()             driver.z->step_read()
 #endif
 
 // X2 Stepper

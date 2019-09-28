@@ -34,5 +34,5 @@
   #define MOSI_PIN  PA7
 #endif
 #ifndef SS_PIN
-  #define SS_PIN    PA8
+  #define SS_PIN    SDSS
 #endif

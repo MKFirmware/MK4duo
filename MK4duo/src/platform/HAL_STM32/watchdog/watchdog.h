@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#define WDTO_15MS 1500
+
 // Arduino Due core now has watchdog support
 class Watchdog {
 
@@ -36,7 +38,9 @@ class Watchdog {
     // Reset watchdog. MUST be called at least every 4 seconds.
     static void reset(void);
 
+    // Enable the watchdog with the specified timeout.
+    static void enable(uint32_t timeout);
+
 };
 
-extern I2C_HandleTypeDef hiwdg;
 extern Watchdog watchdog;

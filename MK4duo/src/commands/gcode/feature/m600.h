@@ -67,7 +67,7 @@
 
     // Show initial "wait for start" message
     #if HAS_LCD_MENU && DISABLED(PRUSA_MMU2)
-      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.data.extruder.target);
+      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.target_hotend());
     #endif
 
     #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
@@ -99,8 +99,8 @@
     if (parser.seenval('X')) park_point.x = parser.linearval('X');
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
-    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
-      park_point += nozzle.data.hotend_offset[ACTIVE_HOTEND];
+    #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
+      if (thermalManager.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
     #endif
 
     #if HAS_MMU2
@@ -121,7 +121,7 @@
                                                           : advancedpause.data[tools.data.extruder.active].load_length);
     #endif
 
-    if (parser.seenval('S')) hotends[ACTIVE_HOTEND]->set_target_temp(parser.value_celsius());
+    if (parser.seenval('S')) hotends[tools.active_hotend()]->set_target_temp(parser.value_celsius());
 
     const int beep_count = parser.intval('B',
       #if ENABLED(PAUSE_PARK_NUMBER_OF_ALERT_BEEPS)

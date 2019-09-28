@@ -28,8 +28,6 @@
 
 #include "../../../MK4duo.h"
 
-#include <SPI.h>
-
 // ------------------------
 // Public Variables
 // ------------------------
@@ -53,11 +51,9 @@ static SPISettings spiConfig;
 // Hardware SPI
 // ------------------------
 
-void HAL::spiBegin() {
-  spiInit();
-}
+void HAL::spiBegin() {}
 
-void HAL::spiInit(uint8_t spiRate/*=6*/) {  // Default to slowest rate if not specified)
+void HAL::spiInit(uint8_t spiRate) {  // Default to slowest rate if not specified)
   uint32_t clock;
   switch (spiRate) {
     case SPI_FULL_SPEED:    clock = 20000000; break; // 13.9mhz=20000000  6.75mhz=10000000  3.38mhz=5000000  .833mhz=1000000

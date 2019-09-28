@@ -505,7 +505,7 @@ class HAL {
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U);
+    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t);
 
     static void Tick();
 
@@ -619,5 +619,12 @@ class HAL {
 
     // Write token and then write from 512 byte buffer to SPI (for SD card)
     static void spiSendBlock(uint8_t token, const uint8_t* buf);
+
+  private: /** Private Function */
+
+    /**
+     * Called from the Temperature ISR
+     */
+    static void set_current_temp_raw();
 
 };

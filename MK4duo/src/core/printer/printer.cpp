@@ -125,6 +125,8 @@ void Printer::setup() {
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     HAL::spiBegin();
     externaldac.begin();
+  #elif TMC_HAS_SPI && DISABLED(TMC_USE_SW_SPI)
+    SPI.begin();
   #endif
 
   #if HAS_STEPPER_RESET
@@ -137,10 +139,6 @@ void Printer::setup() {
   // Check startup
   SERIAL_L(START);
   SERIAL_STR(ECHO);
-
-  #if HAS_TRINAMIC
-    tmc.init();
-  #endif
 
   #if MECH(MUVE3D) && ENABLED(PROJECTOR_PORT) && ENABLED(PROJECTOR_BAUDRATE)
     DLPSerial.begin(PROJECTOR_BAUDRATE);
@@ -718,7 +716,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
     static millis_l extruder_runout_ms = 0;
 
-    if (hotends[ACTIVE_HOTEND]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
+    if (hotends[tools.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
       && !planner.has_blocks_queued()
     ) {
@@ -792,8 +790,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(IDLE_OOZING_PREVENT)
     static millis_s axis_last_activity_ms = 0;
     if (planner.has_blocks_queued()) axis_last_activity_ms = millis();
-    if (hotends[ACTIVE_HOTEND]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
-      if (hotends[ACTIVE_HOTEND]->deg_target() < IDLE_OOZING_MINTEMP)
+    if (hotends[tools.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+      if (hotends[tools.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
         IDLE_OOZING_retract(false);
       else if (expired(&axis_last_activity_ms, millis_s(IDLE_OOZING_SECONDS * 1000U)))
         IDLE_OOZING_retract(true);
@@ -937,6 +935,11 @@ void Printer::setup_pinout() {
   #endif
   #if HAS_SERVO_3
     OUT_WRITE(SERVO3_PIN, LOW);
+  #endif
+
+  // Init CS for TMC SPI
+  #if TMC_HAS_SPI
+    tmc.init_cs_pins();
   #endif
 
 }

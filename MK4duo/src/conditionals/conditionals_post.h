@@ -100,13 +100,6 @@
   #define MESH_MIN_Y -(mechanics.data.probe_radius)
   #define MESH_MAX_Y  (mechanics.data.probe_radius)
 
-  #define PROBE_PT_1_X 0
-  #define PROBE_PT_1_Y 0
-  #define PROBE_PT_2_X 0
-  #define PROBE_PT_2_Y 0
-  #define PROBE_PT_3_X 0
-  #define PROBE_PT_3_Y 0
-
   #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
 
   // DELTA should ignore Z_SAFE_HOMING, SLOWDOWN, WORKSPACE_OFFSETS and LEVEL_BED_CORNERS
@@ -122,6 +115,11 @@
 
 #else // !MECH(DELTA)
 
+  #define LEFT_PROBE_BED_POSITION   MAX(X_CENTER - X_MAX_LENGTH / 2, x_min)
+  #define RIGHT_PROBE_BED_POSITION  MIN(left_probe_bed_position + X_MAX_LENGTH, x_max)
+  #define FRONT_PROBE_BED_POSITION  MAX(Y_CENTER - Y_MAX_LENGTH / 2, y_min)
+  #define BACK_PROBE_BED_POSITION   MIN(front_probe_bed_position + Y_MAX_LENGTH, y_max)
+
   #define X_MIN_BED   (mechanics.data.base_pos.min.x)
   #define X_MAX_BED   (mechanics.data.base_pos.max.x)
   #define Y_MIN_BED   (mechanics.data.base_pos.min.y)
@@ -129,10 +127,10 @@
   #define Z_MIN_BED   (mechanics.data.base_pos.min.z)
   #define Z_MAX_BED   (mechanics.data.base_pos.max.z)
 
-  #define MESH_MIN_X  (X_MIN_BED + (MESH_INSET))
-  #define MESH_MAX_X  (X_MAX_BED - (MESH_INSET))
-  #define MESH_MIN_Y  (Y_MIN_BED + (MESH_INSET))
-  #define MESH_MAX_Y  (Y_MAX_BED - (MESH_INSET))
+  #define MESH_MIN_X  (X_MIN_BED + (MIN_PROBE_EDGE))
+  #define MESH_MAX_X  (X_MAX_BED - (MIN_PROBE_EDGE))
+  #define MESH_MIN_Y  (Y_MIN_BED + (MIN_PROBE_EDGE))
+  #define MESH_MAX_Y  (Y_MAX_BED - (MIN_PROBE_EDGE))
 
 #endif // !MECH(DELTA)
 

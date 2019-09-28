@@ -228,10 +228,14 @@ inline void gcode_G29() {
     #endif
 
     // Probe at 3 arbitrary points
+    const float x_min = probe.min_x(),
+                x_max = probe.max_x(),
+                y_min = probe.min_y(),
+                y_max = probe.max_y();
     ABL_VAR vector_3 points[3] = {
-      vector_3(PROBE_PT_1_X, PROBE_PT_1_Y, 0),
-      vector_3(PROBE_PT_2_X, PROBE_PT_2_Y, 0),
-      vector_3(PROBE_PT_3_X, PROBE_PT_3_Y, 0)
+      vector_3(x_min, y_min, 0),
+      vector_3(x_max, y_min, 0),
+      vector_3((x_max - x_min) / 2, y_max, 0)
     };
 
   #endif // AUTO_BED_LEVELING_3POINT
@@ -346,6 +350,9 @@ inline void gcode_G29() {
     #if ABL_GRID
 
       bedlevel.xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));
+
+      const float x_min = probe.min_x(), x_max = probe.max_x(),
+                  y_min = probe.min_y(), y_max = probe.max_y();
 
       left_probe_bed_position  = parser.seenval('L') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION;
       right_probe_bed_position = parser.seenval('R') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION;
@@ -663,7 +670,7 @@ inline void gcode_G29() {
             SERIAL_EOL();
           }
           #if HAS_LCD
-            lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), int(pt_index), int(GRID_MAX_POINTS));
+            lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), PSTR(MSG_PROBING_MESH), int(pt_index), int(GRID_MAX_POINTS));
           #endif
 
           measured_z = faux ? 0.001 * random(-100, 101) : probe.check_at_point(xProbe, yProbe, raise_after, verbose_level);

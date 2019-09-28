@@ -556,7 +556,7 @@ FORCE_INLINE screenFunc_t ap_message_screen(const PauseMessageEnum message) {
 void lcd_pause_show_message(
   const PauseMessageEnum message,
   const PauseModeEnum mode/*=PAUSE_MODE_SAME*/,
-  const uint8_t hotend/*=TARGET_HOTEND*/
+  const uint8_t hotend/*=tools.target_hotend()*/
 ) {
   if (mode != PAUSE_MODE_SAME) advancedpause.mode = mode;
   hotend_status_extruder = hotend;

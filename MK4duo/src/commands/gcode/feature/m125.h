@@ -63,8 +63,8 @@ inline void gcode_M125() {
   // Lift Z axis
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
-  #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-    park_point += nozzle.data.hotend_offset[ACTIVE_HOTEND];
+  #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
+    if (thermalManager.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
   #endif
 
   #if HAS_LCD_MENU

@@ -250,7 +250,7 @@ void Heater::get_output() {
 
     /**
     if (printer.debugFeature() && type == IS_HOTEND) {
-      DEBUG_SMV(DEB, MSG_PID_DEBUG, ACTIVE_HOTEND);
+      DEBUG_SMV(DEB, MSG_PID_DEBUG, tools.active_hotend());
       DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
       DEBUG_MV(MSG_PID_DEBUG_OUTPUT, pwm_value);
       DEBUG_MV(MSG_PID_DEBUG_PTERM, data.pid.Kp);

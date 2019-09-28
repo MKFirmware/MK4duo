@@ -514,8 +514,8 @@ bool Core_Mechanics::position_is_reachable(const float &rx, const float &ry) {
 //  can reach the position required to put the probe at the given position.
 bool Core_Mechanics::position_is_reachable_by_probe(const float &rx, const float &ry) {
   return position_is_reachable(rx - probe.data.offset.x, ry - probe.data.offset.y)
-      && WITHIN(rx, MIN_PROBE_X - slop, MAX_PROBE_X + slop)
-      && WITHIN(ry, MIN_PROBE_Y - slop, MAX_PROBE_Y + slop);
+      && WITHIN(rx, probe.min_x() - slop, probe.max_x() + slop)
+      && WITHIN(ry, probe.min_y() - slop, probe.max_y() + slop);
 }
 
 // Report detail current position to host

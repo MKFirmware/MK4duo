@@ -406,7 +406,7 @@
  *****************************************************************************************/
 //#define MESH_BED_LEVELING
 
-#define MESH_INSET         10   // Mesh inset margin on print area
+#define MIN_PROBE_EDGE     10   // Mesh inset margin on print area
 #define GRID_MAX_POINTS_X   3   // Don't use more than 7 points per axis, implementation limited.
 #define GRID_MAX_POINTS_Y   3
 #define MESH_HOME_SEARCH_Z  5   // Z after Home, bed somewhere below but above 0.0.
@@ -453,12 +453,6 @@
 #define GRID_MAX_POINTS_X 7
 #define GRID_MAX_POINTS_Y 7
 
-// Set the boundaries for probing (where the probe can reach).
-#define LEFT_PROBE_BED_POSITION   X_MIN_POS + 200
-#define RIGHT_PROBE_BED_POSITION  X_MAX_POS - 200
-#define FRONT_PROBE_BED_POSITION  Y_MIN_POS + 140
-#define BACK_PROBE_BED_POSITION   Y_MAX_POS
-
 // The Z probe minimum outer margin (to validate G29 parameters).
 #define MIN_PROBE_EDGE 10
 
@@ -471,17 +465,6 @@
 // Number of subdivisions between probe points
 #define BILINEAR_SUBDIVISIONS 3
 /** END AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
-
-/** START AUTO_BED_LEVELING_3POINT **/
-// 3 arbitrary points to probe.
-// A simple cross-product is used to estimate the plane of the bed.
-#define PROBE_PT_1_X 15
-#define PROBE_PT_1_Y 180
-#define PROBE_PT_2_X 15
-#define PROBE_PT_2_Y 15
-#define PROBE_PT_3_X 180
-#define PROBE_PT_3_Y 15
-/** END AUTO_BED_LEVELING_3POINT **/
 
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.

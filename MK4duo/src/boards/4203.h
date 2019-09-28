@@ -161,7 +161,7 @@
 #define SERVO2_PIN                 NoPin
 #define SERVO3_PIN                 NoPin
 
-//###SAM_SDSS
+//###SDSS
 #define SDSS                       PA2
 
 //###MAX6675
@@ -182,6 +182,9 @@
 #define ORIG_BEEPER_PIN            PE8
 #define LED_PIN                    PB14
 
+//###UNKNOWN_PINS
+#define EEPROM_I2C
+#define E2END                      0xFFF
 
 //###IF_BLOCKS
 #define LCD_PINS_RS                PE10

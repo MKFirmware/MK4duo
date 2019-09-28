@@ -685,23 +685,23 @@ void EEPROM::post_process() {
     //
     #if HAS_TRINAMIC
 
-      uint16_t  tmc_stepper_current[MAX_DRIVER]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                                      E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
-                                                      X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
-                tmc_stepper_microstep[MAX_DRIVER] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
-                                                      E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
-                                                      X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
-      uint32_t  tmc_hybrid_threshold[MAX_DRIVER]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                      E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                      E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
-                                                      X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
-      bool      tmc_stealth_enabled[MAX_DRIVER]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
-                                                      E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
-                                                      X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
+      uint16_t  tmc_stepper_current[]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
+                                            E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
+                                            X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
+                tmc_stepper_microstep[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
+                                            E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
+                                            X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
+      uint32_t  tmc_hybrid_threshold[]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
+                                            E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                            E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
+                                            X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
+      bool      tmc_stealth_enabled[]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
+                                            E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
+                                            X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
 
       LOOP_DRV() {
         if (driver[d] && driver[d]->tmc) {
-          tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
+          tmc_stepper_current[d]    = driver[d]->tmc->rms_current();
           tmc_stepper_microstep[d]  = driver[d]->tmc->microsteps();
           #if ENABLED(HYBRID_THRESHOLD)
             tmc_hybrid_threshold[d] = driver[d]->tmc->get_pwm_thrs();
@@ -723,13 +723,13 @@ void EEPROM::post_process() {
       int16_t tmc_sgt[XYZ] = { 0, 0, 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt[X_AXIS] = driver[X_DRV]->tmc->homing_threshold();
+          tmc_sgt[X_AXIS] = driver.x->tmc->homing_threshold();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt[Y_AXIS] = driver[Y_DRV]->tmc->homing_threshold();
+          tmc_sgt[Y_AXIS] = driver.y->tmc->homing_threshold();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt[Z_AXIS] = driver[Z_DRV]->tmc->homing_threshold();
+          tmc_sgt[Z_AXIS] = driver.z->tmc->homing_threshold();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -859,8 +859,7 @@ void EEPROM::post_process() {
       EEPROM_READ(driver_data);
       EEPROM_READ(driver_e_data);
       if (!flag.validating) {
-        stepper.create_xyz_driver();  // Create driver xyz stepper
-        stepper.create_ext_driver();  // Create driver extruder stepper
+        stepper.create_driver();  // Create driver stepper
         LOOP_DRV_XYZ()  if (driver[d])    driver[d]->data   = driver_data[d];
         LOOP_DRV_EXT()  if (driver.e[d])  driver.e[d]->data = driver_e_data[d];
       }
@@ -1138,7 +1137,7 @@ void EEPROM::post_process() {
           if (!flag.validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                driver[X_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
+                driver.x->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
                 driver.x2->tmc->homing_threshold(tmc_sgt[X_AXIS]);
@@ -1146,7 +1145,7 @@ void EEPROM::post_process() {
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                driver[Y_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver.y->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
                 driver.y2->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
@@ -1154,7 +1153,7 @@ void EEPROM::post_process() {
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                driver[Z_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
                 driver.z2->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
@@ -1347,11 +1346,11 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
-  // Call Tools Factory parameters
-  tools.factory_parameters();
-
   // Call Temperature Factory parameters
   thermalManager.factory_parameters();
+
+  // Call Tools Factory parameters
+  tools.factory_parameters();
 
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
@@ -1422,10 +1421,6 @@ void EEPROM::reset() {
     hysteresis.factory_parameters();
   #endif
 
-  #if HAS_TRINAMIC
-    tmc.factory_parameters();
-  #endif
-
   post_process();
 
   SERIAL_LM(ECHO, "Factory Settings Loaded");
@@ -1477,6 +1472,11 @@ void EEPROM::reset() {
      * Print Number Extruder, Hotend, Bed, Chamber, Fan
      */
     printer.print_M353();
+
+    /**
+     * Print Hotends tools assignment
+     */
+    tools.print_M563();
 
     /**
      * Print heaters parameters

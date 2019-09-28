@@ -130,7 +130,7 @@ void Fan::spin() {
       #endif
 
       // Check Motors
-      if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
+      if (X_ENABLE_READ() == driver.x->isEnable() || Y_ENABLE_READ() == driver.y->isEnable() || Z_ENABLE_READ() == driver.z->isEnable()
         || E0_ENABLE_READ() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
         #if MAX_DRIVER_E > 1
           || E1_ENABLE_READ() == driver.e[E1_DRV]->isEnable()

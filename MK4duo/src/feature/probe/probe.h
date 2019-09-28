@@ -71,6 +71,53 @@ class Probe {
       static void move_z_after_probing();
     #endif
 
+    #if HAS_LEVELING
+
+      inline float min_x() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MIN_X;
+          #else
+            MAX((X_MIN_BED) + (MIN_PROBE_EDGE), (X_MIN_POS) + offset.x);
+          #endif
+      }
+
+      inline float max_x() {
+        return 
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MAX_X;
+          #else
+            MIN((X_MAX_BED) - (MIN_PROBE_EDGE), (X_MAX_POS) + offset.x);
+          #endif
+      }
+
+      inline float min_y() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MIN_Y;
+          #else
+            MAX((Y_MIN_BED) + (MIN_PROBE_EDGE), (Y_MIN_POS) + offset.y);
+          #endif
+      }
+
+      inline float max_y() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MAX_Y;
+          #else
+            MIN((Y_MAX_BED) - (MIN_PROBE_EDGE), (Y_MAX_POS) + offset.y);
+          #endif
+      }
+
+    #else
+
+      FORCE_INLINE float min_x() { return 0.0f; }
+      FORCE_INLINE float max_x() { return 0.0f; }
+      FORCE_INLINE float min_y() { return 0.0f; }
+      FORCE_INLINE float max_y() { return 0.0f; }
+
+    #endif
+
     #if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
       /**

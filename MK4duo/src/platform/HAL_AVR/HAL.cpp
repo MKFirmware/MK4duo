@@ -316,9 +316,8 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000U*/) {
-  UNUSED(freq);
-  softpwm.set(pin, uValue);
+void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t) {
+  ::analogWrite(pin, uValue);
 }
 
 void HAL::Tick() {
@@ -363,7 +362,7 @@ void HAL::Tick() {
     if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
 
       // update temperatures
-      HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+      AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
 
       AnalogInputRead[adcSamplePos] = 0;
       adcCounter[adcSamplePos] = 0;
@@ -371,7 +370,7 @@ void HAL::Tick() {
       // Start next conversion
       if (++adcSamplePos >= ANALOG_INPUTS) {
         adcSamplePos = 0;
-        HAL::Analog_is_ready = true;
+        Analog_is_ready = true;
       }
       channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
       #if ENABLED(ADCSRB) && ENABLED(MUX5)
@@ -386,10 +385,36 @@ void HAL::Tick() {
   }
 
   // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
+  if (Analog_is_ready) set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();
+
+}
+
+/** Private Function */
+void HAL::set_current_temp_raw() {
+
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->data.sensor.raw = AnalogInputValues[hotends[h]->data.sensor.pin];
+  #endif
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->data.sensor.raw = AnalogInputValues[beds[h]->data.sensor.pin];
+  #endif
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->data.sensor.raw = AnalogInputValues[chambers[h]->data.sensor.pin];
+  #endif
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->data.sensor.raw = AnalogInputValues[coolers[h]->data.sensor.pin];
+  #endif
+
+  #if HAS_POWER_CONSUMPTION_SENSOR
+    powerManager.current_raw_powconsumption = AnalogInputValues[POWER_CONSUMPTION_PIN];
+  #endif
+
+  #if ENABLED(FILAMENT_WIDTH_SENSOR)
+    current_raw_filwidth = AnalogInputValues[FILWIDTH_PIN];
+  #endif
 
 }
 

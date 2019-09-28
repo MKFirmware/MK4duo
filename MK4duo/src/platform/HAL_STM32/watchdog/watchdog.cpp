@@ -26,23 +26,18 @@
 
 void Watchdog::init() {
   #if ENABLED(USE_WATCHDOG)
-    hiwdg.Instance = IWDG;
-    hiwdg.Init.Prescaler = IWDG_PRESCALER_32; // 32kHz LSI clock and 32x prescalar = 1024Hz IWDG clock
-    hiwdg.Init.Reload = 4095;                 // 4095 counts = 4 seconds at 1024Hz
-    if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
-      //Error_Handler();
-    }
+    IWatchdog.begin(4000000); // 4 sec timeout
   #endif
 }
 
 void Watchdog::reset() {
   #if ENABLED(USE_WATCHDOG)
-    /* Refresh IWDG: reload counter */
-    if (HAL_IWDG_Refresh(&hiwdg) != HAL_OK) {
-      /* Refresh Error */
-      //Error_Handler();
-    }
+    IWatchdog.reload();
   #endif
+}
+
+void Watchdog::enable(uint32_t timeout) {
+  NVIC_SystemReset();
 }
 
 Watchdog watchdog;

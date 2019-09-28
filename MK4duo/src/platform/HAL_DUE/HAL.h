@@ -236,11 +236,6 @@ class HAL {
 
     virtual ~HAL();
 
-  public: /** Public Parameters */
-
-    static int16_t AnalogInputValues[NUM_ANALOG_INPUTS];
-    static bool Analog_is_ready;
-
   private: /** Private Parameters */
 
     #if MAX_HOTEND > 0

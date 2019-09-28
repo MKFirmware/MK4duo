@@ -51,33 +51,43 @@ inline void gcode_M353() {
   #endif
 
   if (parser.seen('E')) {
-    uint8_t drv = parser.value_int();
-    LIMIT(drv, 0, MAX_EXTRUDER);
-    tools.change_number_extruder(drv);
+    const uint8_t drv = parser.value_byte();
+    if (drv > MAX_EXTRUDER)
+      SERIAL_LM(ECHO, "Too many extruders");
+    else
+      tools.change_number_extruder(drv);
   }
 
   if (parser.seen('H')) {
-    uint8_t h = parser.value_int();
-    LIMIT(h, 0, MAX_HOTEND);
-    thermalManager.change_number_heater(IS_HOTEND, h);
+    const uint8_t h = parser.value_byte();
+    if (h > tools.data.extruder.total || h > MAX_HOTEND)
+      SERIAL_LM(ECHO, "Too many hotends");
+    else
+      thermalManager.change_number_heater(IS_HOTEND, h);
   }
 
   if (parser.seen('B')) {
-    uint8_t h = parser.value_int();
-    LIMIT(h, 0, MAX_BED);
-    thermalManager.change_number_heater(IS_BED, h);
+    const uint8_t h = parser.value_byte();
+    if (h > MAX_BED)
+      SERIAL_LM(ECHO, "Too many beds");
+    else
+      thermalManager.change_number_heater(IS_BED, h);
   }
 
   if (parser.seen('C')) {
-    uint8_t h = parser.value_int();
-    LIMIT(h, 0, MAX_CHAMBER);
-    thermalManager.change_number_heater(IS_CHAMBER, h);
+    const uint8_t h = parser.value_byte();
+    if (h > MAX_CHAMBER)
+      SERIAL_LM(ECHO, "Too many chambers");
+    else
+      thermalManager.change_number_heater(IS_CHAMBER, h);
   }
 
   if (parser.seen('F')) {
-    uint8_t f = parser.value_int();
-    LIMIT(f, 0, MAX_FAN);
-    //thermalmanager.change_number_fan(f);
+    const uint8_t f = parser.value_byte();
+    if (f > MAX_FAN)
+      SERIAL_LM(ECHO, "Too many fans");
+    //else
+      //thermalmanager.change_number_fan(f);
   }
 
 }

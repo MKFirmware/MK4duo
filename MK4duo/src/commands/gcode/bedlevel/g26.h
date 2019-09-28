@@ -827,7 +827,7 @@ LEAVE:
     #if MAX_BED > 0
       beds[0]->set_target_temp(0);
     #endif
-    hotends[ACTIVE_HOTEND]->set_target_temp(0);
+    hotends[tools.active_hotend()]->set_target_temp(0);
   }
 }
 

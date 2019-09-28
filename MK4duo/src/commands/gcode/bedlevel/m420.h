@@ -57,11 +57,7 @@ inline void gcode_M420() {
   // (Don't disable for just M420 or M420 V)
   if (seen_S && !to_enable) bedlevel.set_bed_leveling_enabled(false);
 
-  const float oldpos[] = {
-    mechanics.current_position.x,
-    mechanics.current_position.y,
-    mechanics.current_position.z
-  };
+  const xyz_pos_t oldpos = mechanics.current_position;
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
 

@@ -437,8 +437,8 @@
 // enable a graphics overly while editing the mesh from auto-level
 //#define MESH_EDIT_GFX_OVERLAY
 
-// Mesh inset margin on print area
-#define MESH_INSET 10
+// The Z probe minimum outer margin (to validate G29 parameters).
+#define MIN_PROBE_EDGE 10
 
 // Enable the G26 Mesh Validation Pattern tool.
 //#define G26_MESH_VALIDATION
@@ -466,15 +466,6 @@
 /** END MESH BED LEVELING or AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR or UNIFIED BED LEVELING **/
 
 /** START AUTO BED LEVELING LINEAR or AUTO BED LEVELING BILINEAR **/
-// Set the boundaries for probing (where the probe can reach).
-#define LEFT_PROBE_BED_POSITION 20
-#define RIGHT_PROBE_BED_POSITION 180
-#define FRONT_PROBE_BED_POSITION 20
-#define BACK_PROBE_BED_POSITION 180
-
-// The Z probe minimum outer margin (to validate G29 parameters).
-#define MIN_PROBE_EDGE 10
-
 // Probe along the Y axis, advancing X after each column
 //#define PROBE_Y_FIRST
 
@@ -484,17 +475,6 @@
 // Number of subdivisions between probe points
 #define BILINEAR_SUBDIVISIONS 3
 /** END AUTO_BED_LEVELING_LINEAR or AUTO_BED_LEVELING_BILINEAR **/
-
-/** START AUTO_BED_LEVELING_3POINT or UNIFIED BED LEVELING **/
-// 3 arbitrary points to probe.
-// A simple cross-product is used to estimate the plane of the bed.
-#define PROBE_PT_1_X 15
-#define PROBE_PT_1_Y 180
-#define PROBE_PT_2_X 15
-#define PROBE_PT_2_Y 15
-#define PROBE_PT_3_X 180
-#define PROBE_PT_3_Y 15
-/** END AUTO_BED_LEVELING_3POINT or UNIFIED BED LEVELING **/
 
 // Commands to execute at the end of G29 probing.
 // Useful to retract or move the Z probe out of the way.

@@ -70,7 +70,7 @@
       switch (i) {
         case X_AXIS:
           #if AXIS_HAS_TMC(X)
-            driver[X_DRV]->tmc->rms_current(value);
+            driver.x->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(X2)
             driver.x2->rms_current(value);
@@ -78,7 +78,7 @@
           break;
         case Y_AXIS:
           #if AXIS_HAS_TMC(Y)
-            driver[Y_DRV]->tmc->rms_current(value);
+            driver.y->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Y2)
             driver.y2->tmc->rms_current(value);
@@ -86,7 +86,7 @@
           break;
         case Z_AXIS:
           #if AXIS_HAS_TMC(Z)
-            driver[Z_DRV]->tmc->rms_current(value);
+            driver.z->tmc->rms_current(value);
           #endif
           #if AXIS_HAS_TMC(Z2)
             driver.z2->tmc->rms_current(value);

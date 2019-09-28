@@ -85,7 +85,7 @@
     for(;;) {  // for each mesh cell encountered during the move
 
       // Compute mesh cell invariants that remain constant for all segments within cell.
-      // Note for cell index, if point is outside the mesh grid (in MESH_INSET perimeter)
+      // Note for cell index, if point is outside the mesh grid (in MIN_PROBE_EDGE perimeter)
       // the bilinear interpolation from the adjacent cell within the mesh will still work.
       // Inner loop will exit each time (because out of cell bounds) but will come back
       // in top of loop and again re-find same adjacent cell and use it, just less efficient

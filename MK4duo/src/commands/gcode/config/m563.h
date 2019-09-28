@@ -21,24 +21,38 @@
  */
 
 /**
- * driver.cpp
+ * mcode
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../../MK4duo.h"
-#include "driver.h"
-#include "sanitycheck.h"
+#define CODE_M563
 
-driver_t driver = { nullptr };
+/**
+ * M563: Set Tools heater assignment
+ *
+ *  T[tools]  - Set Tools
+ *  H[bool]   - Set Hotend for tools
+ *
+ */
+inline void gcode_M563() {
 
-/** Public Function */
-void Driver::init() {
-  if (data.pin.enable != NoPin && data.pin.dir != NoPin && data.pin.step != NoPin) {
-    dir_init();
-    enable_init();
-    if (!isEnable()) enable_write(HIGH);
-    step_init();
-    step_write(isStep());
+  if (commands.get_target_tool(563)) return;
+
+  #if DISABLED(DISABLE_M503)
+    // No arguments? Show M563 report.
+    if (!parser.seen("H")) {
+      tools.print_M563();
+      return;
+    }
+  #endif
+
+  if (parser.seen('H')) {
+    const uint8_t h = parser.value_byte();
+    if (WITHIN(h, 0, thermalManager.data.hotends - 1))
+      tools.data.hotend[tools.data.extruder.target] = h;
+    else
+      SERIAL_LM(ECHO, "Hotend is invalid");
   }
+
 }

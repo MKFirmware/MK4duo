@@ -72,6 +72,13 @@ void Tools::factory_parameters() {
 
   data.extruder.total = EXTRUDERS;
 
+  LOOP_EXTRUDER() {
+    if (data.extruder.total == thermalManager.data.hotends)
+      data.hotend[e] = e;
+    else
+      data.hotend[e] = 0;
+  }
+
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     LOOP_EXTRUDER() data.filament_size[e] = DEFAULT_NOMINAL_FILAMENT_DIA;
   #endif
@@ -90,6 +97,7 @@ void Tools::factory_parameters() {
 }
 
 void Tools::change_number_extruder(const uint8_t ext) {
+
   if (data.extruder.total < ext) {
     data.extruder.total = ext;
     stepper.create_ext_driver();
@@ -99,6 +107,7 @@ void Tools::change_number_extruder(const uint8_t ext) {
       stepper.delete_ext_driver(d);
     data.extruder.total = ext;
   }
+
 }
 
 void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
@@ -159,7 +168,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
     #if ENABLED(TOOL_CHANGE_FIL_SWAP)
       const bool should_swap = can_move_away && data.swap_length;
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        const bool too_cold = !printer.debugDryrun() && (thermalManager.tooColdToExtrude(ACTIVE_HOTEND) || thermalManager.tooColdToExtrude(TARGET_HOTEND));
+        const bool too_cold = !printer.debugDryrun() && (thermalManager.tooColdToExtrude(active_hotend()) || thermalManager.tooColdToExtrude(tools.target_hotend()));
       #else
         constexpr bool too_cold = false;
       #endif
@@ -191,15 +200,10 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
-        #if HOTENDS > 1
-          #define _EXT_ARGS , data.extruder.active, data.extruder.target
-        #else
-          #define _EXT_ARGS
-        #endif
-        endstops.update_software_endstops(X_AXIS _EXT_ARGS);
+        endstops.update_software_endstops(X_AXIS);
         #if DISABLED(DUAL_X_CARRIAGE)
-          endstops.update_software_endstops(Y_AXIS _EXT_ARGS);
-          endstops.update_software_endstops(Z_AXIS _EXT_ARGS);
+          endstops.update_software_endstops(Y_AXIS);
+          endstops.update_software_endstops(Z_AXIS);
         #endif
       #endif
 
@@ -222,17 +226,13 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
         }
       #endif
 
-      #if HOTENDS > 1
-        #if ENABLED(DUAL_X_CARRIAGE)
-          constexpr float x_diff = 0;
-        #else
-          const float x_diff = nozzle.data.hotend_offset[data.extruder.target].x - nozzle.data.hotend_offset[ACTIVE_HOTEND].x;
-        #endif
-        const float y_diff = nozzle.data.hotend_offset[data.extruder.target].y - nozzle.data.hotend_offset[ACTIVE_HOTEND].y,
-                    z_diff = nozzle.data.hotend_offset[data.extruder.target].z - nozzle.data.hotend_offset[ACTIVE_HOTEND].z;
+      #if ENABLED(DUAL_X_CARRIAGE)
+        constexpr float x_diff = 0;
       #else
-        constexpr float x_diff = 0, y_diff = 0, z_diff = 0;
+        const float x_diff = nozzle.data.hotend_offset[target_hotend()].x - nozzle.data.hotend_offset[active_hotend()].x;
       #endif
+      const float y_diff = nozzle.data.hotend_offset[target_hotend()].y - nozzle.data.hotend_offset[active_hotend()].y,
+                  z_diff = nozzle.data.hotend_offset[target_hotend()].z - nozzle.data.hotend_offset[active_hotend()].z;
 
       #if ENABLED(DUAL_X_CARRIAGE)
         dualx_tool_change(no_move); // Can modify no_move
@@ -352,6 +352,16 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
 }
 
+void Tools::print_M563() {
+  SERIAL_LM(CFG, "Hotend assignment T<Tools> H<Hotend>");
+  #if MAX_EXTRUDER > 0
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M563 T", (int)e);
+      SERIAL_EMV(" H", data.hotend[e]);
+    }
+  #endif
+}
+
 #if ENABLED(VOLUMETRIC_EXTRUSION)
 
   void Tools::print_M200() {
@@ -361,12 +371,10 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
     else
       SERIAL_EM(" Disabled");
 
-    #if MAX_EXTRUDER == 1
-      SERIAL_LMV(CFG, "  M200 T0 D", tools.data.filament_size[0], 3);
-    #elif MAX_EXTRUDER > 1
+    #if MAX_EXTRUDER > 0
       LOOP_EXTRUDER() {
         SERIAL_SMV(CFG, "  M200 T", (int)e);
-        SERIAL_EMV(" D", tools.data.filament_size[e], 3);
+        SERIAL_EMV(" D", data.filament_size[e], 3);
       }
     #endif
   }
@@ -714,8 +722,8 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
     }
 
     // apply Y & Z extruder offset (x offset is already used in determining home pos)
-    mechanics.current_position.y -= nozzle.data.hotend_offset[ACTIVE_HOTEND].y - nozzle.data.hotend_offset[data.extruder.target].y;
-    mechanics.current_position.z -= nozzle.data.hotend_offset[ACTIVE_HOTEND].z - nozzle.data.hotend_offset[data.extruder.target].z;
+    mechanics.current_position.y -= nozzle.data.hotend_offset[active_hotend()].y - nozzle.data.hotend_offsettarget_hotend()].y;
+    mechanics.current_position.z -= nozzle.data.hotend_offset[active_hotend()].z - nozzle.data.hotend_offset[target_hotend()].z;
 
     // Activate the new extruder
     data.extruder.active = data.extruder.target;

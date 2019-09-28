@@ -698,7 +698,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
+    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;
@@ -737,7 +737,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
+    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;
@@ -792,7 +792,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
+    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;

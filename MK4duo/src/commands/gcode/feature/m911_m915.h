@@ -38,43 +38,43 @@
      */
     inline void gcode_M911() {
       #if AXIS_HAS_TMC(X)
-        tmc.report_otpw(X_DRV);
+        tmc.report_otpw(driver.x);
       #endif
       #if AXIS_HAS_TMC(X2)
-        tmc.report_otpw(X2_DRV);
+        tmc.report_otpw(driver.x2);
       #endif
       #if AXIS_HAS_TMC(Y)
-        tmc.report_otpw(Y_DRV);
+        tmc.report_otpw(driver.y);
       #endif
       #if AXIS_HAS_TMC(Y2)
-        tmc.report_otpw(Y2_DRV);
+        tmc.report_otpw(driver.y2);
       #endif
       #if AXIS_HAS_TMC(Z)
-        tmc.report_otpw(Z_DRV);
+        tmc.report_otpw(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        tmc.report_otpw(Z2_DRV);
+        tmc.report_otpw(driver.z2);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        tmc.report_otpw(Z3_DRV);
+        tmc.report_otpw(driver.z3);
       #endif
       #if AXIS_HAS_TMC(E0)
-        tmc.report_otpw(E0_DRV);
+        tmc.report_otpw(driver.e[0]);
       #endif
       #if AXIS_HAS_TMC(E1)
-        tmc.report_otpw(E1_DRV);
+        tmc.report_otpw(driver.e[1]);
       #endif
       #if AXIS_HAS_TMC(E2)
-        tmc.report_otpw(E2_DRV);
+        tmc.report_otpw(driver.e[2]);
       #endif
       #if AXIS_HAS_TMC(E3)
-        tmc.report_otpw(E3_DRV);
+        tmc.report_otpw(driver.e[3]);
       #endif
       #if AXIS_HAS_TMC(E4)
-        tmc.report_otpw(E4_DRV);
+        tmc.report_otpw(driver.e[4]);
       #endif
       #if AXIS_HAS_TMC(E5)
-        tmc.report_otpw(E5_DRV);
+        tmc.report_otpw(driver.e[5]);
       #endif
     }
 
@@ -102,55 +102,55 @@
       #if AXIS_HAS_TMC(X) || AXIS_HAS_TMC(X2)
         const int8_t xval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(X)
-          if (hasNone || xval == 1 || (hasX && xval < 0)) tmc.clear_otpw(X_DRV);
+          if (hasNone || xval == 1 || (hasX && xval < 0)) tmc.clear_otpw(driver.x);
         #endif
         #if AXIS_HAS_TMC(X2)
-          if (hasNone || xval == 2 || (hasX && xval < 0)) tmc.clear_otpw(X2_DRV);
+          if (hasNone || xval == 2 || (hasX && xval < 0)) tmc.clear_otpw(driver.x2);
         #endif
       #endif
 
       #if AXIS_HAS_TMC(Y) || AXIS_HAS_TMC(Y2)
         const int8_t yval = int8_t(parser.byteval(axis_codes.x, 0xFF));
         #if AXIS_HAS_TMC(Y)
-          if (hasNone || yval == 1 || (hasY && yval < 0)) tmc.clear_otpw(Y_DRV);
+          if (hasNone || yval == 1 || (hasY && yval < 0)) tmc.clear_otpw(driver.y);
         #endif
         #if AXIS_HAS_TMC(Y2)
-          if (hasNone || yval == 2 || (hasY && yval < 0)) tmc.clear_otpw(Y2_DRV);
+          if (hasNone || yval == 2 || (hasY && yval < 0)) tmc.clear_otpw(driver.y2);
         #endif
       #endif
 
       #if AXIS_HAS_TMC(Z) || AXIS_HAS_TMC(Z2) || AXIS_HAS_TMC(Z3)
         const int8_t zval = int8_t(parser.byteval(axis_codes.z, 0xFF));
         #if AXIS_HAS_TMC(Z)
-          if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc.clear_otpw(Z_DRV);
+          if (hasNone || zval == 1 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z);
         #endif
         #if AXIS_HAS_TMC(Z2)
-          if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc.clear_otpw(Z2_DRV);
+          if (hasNone || zval == 2 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z2);
         #endif
         #if AXIS_HAS_TMC(Z3)
-          if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc.clear_otpw(Z3_DRV);
+          if (hasNone || zval == 3 || (hasZ && zval < 0)) tmc.clear_otpw(driver.z3);
         #endif
       #endif
 
       const uint8_t eval = int8_t(parser.byteval(axis_codes.e, 0xFF));
 
       #if AXIS_HAS_TMC(E0)
-        if (hasNone || eval == 0 || (hasE && eval < 0)) tmc.clear_otpw(E0_DRV);
+        if (hasNone || eval == 0 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[0]);
       #endif
       #if AXIS_HAS_TMC(E1)
-        if (hasNone || eval == 1 || (hasE && eval < 0)) tmc.clear_otpw(E1_DRV);
+        if (hasNone || eval == 1 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[1]);
       #endif
       #if AXIS_HAS_TMC(E2)
-        if (hasNone || eval == 2 || (hasE && eval < 0)) tmc.clear_otpw(E2_DRV);
+        if (hasNone || eval == 2 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[2]);
       #endif
       #if AXIS_HAS_TMC(E3)
-        if (hasNone || eval == 3 || (hasE && eval < 0)) tmc.clear_otpw(E3_DRV);
+        if (hasNone || eval == 3 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[3]);
       #endif
       #if AXIS_HAS_TMC(E4)
-        if (hasNone || eval == 4 || (hasE && eval < 0)) tmc.clear_otpw(E4_DRV);
+        if (hasNone || eval == 4 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[4]);
       #endif
       #if AXIS_HAS_TMC(E5)
-        if (hasNone || eval == 5 || (hasE && eval < 0)) tmc.clear_otpw(E5_DRV);
+        if (hasNone || eval == 5 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[5]);
       #endif
 
     }
@@ -177,6 +177,7 @@
       #endif
 
       #define TMC_SET_PWMTHRS(ST)   driver[ST##_DRV]->tmc->set_pwm_thrs(value)
+      #define TMC_SET_PWMTHRS_E(ST) driver.e[ST##_DRV]->tmc->set_pwm_thrs(value)
 
       LOOP_XYZE(i) {
         if (int32_t value = parser.longval(axis_codes[i])) {
@@ -211,22 +212,22 @@
             case E_AXIS: {
               switch (tools.data.extruder.target) {
                 #if AXIS_HAS_STEALTHCHOP(E0)
-                  case 0: TMC_SET_PWMTHRS(E0); break;
+                  case 0: TMC_SET_PWMTHRS_E(E0); break;
                 #endif
                 #if AXIS_HAS_STEALTHCHOP(E1)
-                  case 1: TMC_SET_PWMTHRS(E1); break;
+                  case 1: TMC_SET_PWMTHRS_E(E1); break;
                 #endif
                 #if AXIS_HAS_STEALTHCHOP(E2)
-                  case 2: TMC_SET_PWMTHRS(E2); break;
+                  case 2: TMC_SET_PWMTHRS_E(E2); break;
                 #endif
                 #if AXIS_HAS_STEALTHCHOP(E3)
-                  case 3: TMC_SET_PWMTHRS(E3); break;
+                  case 3: TMC_SET_PWMTHRS_E(E3); break;
                 #endif
                 #if AXIS_HAS_STEALTHCHOP(E4)
-                  case 4: TMC_SET_PWMTHRS(E4); break;
+                  case 4: TMC_SET_PWMTHRS_E(E4); break;
                 #endif
                 #if AXIS_HAS_STEALTHCHOP(E5)
-                  case 5: TMC_SET_PWMTHRS(E5); break;
+                  case 5: TMC_SET_PWMTHRS_E(E5); break;
                 #endif
               }
             } break;
@@ -321,8 +322,8 @@
       }
 
       #if AXIS_HAS_TMC(Z)
-        const uint16_t Z_current_1 = driver[Z_DRV]->tmc->rms_current();
-        driver[Z_DRV]->tmc->rms_current(_rms);
+        const uint16_t Z_current_1 = driver[driver.z]->tmc->rms_current();
+        driver[driver.z]->tmc->rms_current(_rms);
       #endif
       #if AXIS_HAS_TMC(Z2)
         const uint16_t Z2_current_1 = driver.z2->tmc->rms_current();
@@ -340,13 +341,13 @@
       mechanics.do_blocking_move_to_z(Z_MAX_BED + _z);
 
       #if AXIS_HAS_TMC(Z)
-        driver[Z_DRV]->tmc->rms_current(Z_current_1);
+        driver[driver.z]->tmc->rms_current(Z_current_1);
       #endif
       #if AXIS_HAS_TMC(Z2)
-        driver[Z_DRV]->tmc->rms_current(Z2_current_1);
+        driver[driver.z]->tmc->rms_current(Z2_current_1);
       #endif
       #if AXIS_HAS_TMC(Z3)
-        driver[Z_DRV]->tmc->rms_current(Z3_current_1);
+        driver[driver.z]->tmc->rms_current(Z3_current_1);
       #endif
 
       mechanics.do_blocking_move_to_z(Z_MAX_BED);

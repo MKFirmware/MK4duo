@@ -74,7 +74,7 @@ struct pid_data_t {
         pid_output += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (tid == ACTIVE_HOTEND) {
+          if (tid == tools.active_hotend()) {
             const long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;

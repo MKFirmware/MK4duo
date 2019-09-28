@@ -50,7 +50,6 @@ class Temperature {
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
                       mcu_highest_temperature,
-                      mcu_lowest_temperature,
                       mcu_alarm_temperature;
       static int16_t  mcu_current_temperature_raw;
     #endif
@@ -95,11 +94,6 @@ class Temperature {
      * Change number heater
      */
     static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
-
-    /**
-     * Called from the Temperature ISR
-     */
-    static void set_current_temp_raw();
 
     /**
      * Call periodically to HAL isr
@@ -171,13 +165,13 @@ class Temperature {
         #if HOTENDS <= 1
           UNUSED(h);
         #endif
-        return tooCold(hotends[HOTEND_INDEX]->deg_current());
+        return tooCold(hotends[tools.data.hotend[h]]->deg_current());
       }
       FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
         #if HOTENDS == 1
           UNUSED(h);
         #endif
-        return tooCold(hotends[HOTEND_INDEX]->deg_target());
+        return tooCold(hotends[tools.data.hotend[h]]->deg_target());
       }
     #else
       FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }

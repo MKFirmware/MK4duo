@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000405
-  #error "Update TMCStepper library to 0.4.5 or newer."
+#if TMCSTEPPER_VERSION < 0x000501
+  #error "Update TMCStepper library to 0.5.1 or newer."
 #endif
 
 #if HAVE_DRV(TMC2130)
@@ -48,6 +48,8 @@
 #if ENABLED(MONITOR_DRIVER_STATUS) && DISABLED(MONITOR_DRIVER_STATUS_INTERVAL_MS)
   #define MONITOR_DRIVER_STATUS_INTERVAL_MS 500U
 #endif
+
+class Driver;
 
 struct TMC_driver_data {
   uint32_t  drv_status;
@@ -116,9 +118,6 @@ class TMCStorage {
 
   public: /** Public Function */
 
-    inline uint16_t getMilliamps()  { return val_mA; }
-    inline uint16_t getMicrosteps() { return val_ms; }
-
     #if ENABLED(MONITOR_DRIVER_STATUS)
       inline bool getOTPW() { return flag_otpw; }
       inline void clear_otpw() { flag_otpw = 0; }
@@ -135,12 +134,12 @@ class TMCStorage {
 
     public: /** Constructor */
 
-      MKTMC(const uint8_t DRIVER_ID, Stream * SerialPort, const float RS) :
+      MKTMC(Stream* SerialPort, const float RS) :
         id(DRIVER_ID),
         TMC2208Stepper(SerialPort, RS, /*has_rx=*/true)
         {}
 
-      MKTMC(const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :
+      MKTMC(const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :
         id(DRIVER_ID),
         TMC2208Stepper(RX, TX, RS, has_rx)
         {}
@@ -379,11 +378,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(X)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define X_ENABLE_INIT           NOOP
-    #define X_ENABLE_WRITE(STATE)   driver[X_DRV]->tmc->toff((STATE)==driver[X_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define X_ENABLE_READ()         driver[X_DRV]->tmc->isEnabled()
+    #define X_ENABLE_WRITE(STATE)   driver.x->tmc->toff((STATE)==driver.x->isEnable() ? chopper_timing.toff : 0)
+    #define X_ENABLE_READ()         driver.x->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(X)
-    #define X_STEP_WRITE(STATE)     driver[X_DRV]->step_toggle(STATE)
+    #define X_STEP_WRITE(STATE)     driver.x->step_toggle(STATE)
   #endif
 #endif
 
@@ -403,11 +402,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(Y)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Y_ENABLE_INIT           NOOP
-    #define Y_ENABLE_WRITE(STATE)   driver[Y_DRV]->tmc->toff((STATE)==driver[Y_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Y_ENABLE_READ()         driver[Y_DRV]->tmc->isEnabled()
+    #define Y_ENABLE_WRITE(STATE)   driver.y->tmc->toff((STATE)==driver.y->isEnable() ? chopper_timing.toff : 0)
+    #define Y_ENABLE_READ()         driver.y->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Y)
-    #define Y_STEP_WRITE(STATE)     driver[Y_DRV]->step_toggle(STATE)
+    #define Y_STEP_WRITE(STATE)     driver.y->step_toggle(STATE)
   #endif
 #endif
 
@@ -427,11 +426,11 @@ class TMCStorage {
 #if AXIS_HAS_TMC(Z)
   #if ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
     #define Z_ENABLE_INIT           NOOP
-    #define Z_ENABLE_WRITE(STATE)   driver[Z_DRV]->tmc->toff((STATE)==driver[Z_DRV]->isEnable() ? chopper_timing.toff : 0)
-    #define Z_ENABLE_READ()         driver[Z_DRV]->tmc->isEnabled()
+    #define Z_ENABLE_WRITE(STATE)   driver.z->tmc->toff((STATE)==driver.z->isEnable() ? chopper_timing.toff : 0)
+    #define Z_ENABLE_READ()         driver.z->tmc->isEnabled()
   #endif
   #if AXIS_HAS_SQUARE_WAVE(Z)
-    #define Z_STEP_WRITE(STATE)     driver[Z_DRV]->step_toggle(STATE)
+    #define Z_STEP_WRITE(STATE)     driver.z->step_toggle(STATE)
   #endif
 #endif
 
@@ -550,7 +549,10 @@ class TMC_Stepper {
 
   public: /** Public Function */
 
-    static void init();
+    static void init_cs_pins();
+
+    static void create_tmc();
+
     static void factory_parameters();
 
     static void restore();
@@ -562,8 +564,8 @@ class TMC_Stepper {
     #endif
 
     #if HAS_SENSORLESS
-      static bool enable_stallguard(const DriverEnum index);
-      static void disable_stallguard(const DriverEnum index, const bool enable);
+      static bool enable_stallguard(Driver* drv);
+      static void disable_stallguard(Driver* drv, const bool enable);
     #endif
 
     #if ENABLED(TMC_DEBUG)
@@ -584,73 +586,69 @@ class TMC_Stepper {
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
-      static void report_otpw(const DriverEnum index);
-      static void clear_otpw(const DriverEnum index);
+      static void report_otpw(Driver* drv);
+      static void clear_otpw(Driver* drv);
 
     #endif
 
-    static void get_off_time(const DriverEnum index);
-    static void set_off_time(const DriverEnum index, const uint8_t off_time_val);
+    static void get_off_time(Driver* drv);
+    static void set_off_time(Driver* drv, const uint8_t off_time_val);
 
     #if HAVE_DRV(TMC2130)
 
-      static void get_blank_time(const DriverEnum index);
-      static void set_blank_time(const DriverEnum index, const uint8_t blank_time_val);
-      static void get_hysteresis_end(const DriverEnum index);
-      static void set_hysteresis_end(const DriverEnum index, const int8_t hysteresis_end_val);
-      static void get_hysteresis_start(const DriverEnum index);
-      static void set_hysteresis_start(const DriverEnum index, const uint8_t hysteresis_start_val);
-      static void get_disable_I_comparator(const DriverEnum index);
-      static void set_disable_I_comparator(const DriverEnum index, const bool onoff);
-      static void get_stealth_gradient(const DriverEnum index);
-      static void set_stealth_gradient(const DriverEnum index, const uint8_t stealth_gradient_val);
-      static void get_stealth_amplitude(const DriverEnum index);
-      static void set_stealth_amplitude(const DriverEnum index, const uint8_t stealth_amplitude_val);
-      static void get_stealth_freq(const DriverEnum index);
-      static void set_stealth_freq(const DriverEnum index, const uint8_t stealth_freq_val);
-      static void get_stealth_autoscale(const DriverEnum index);
-      static void set_stealth_autoscale(const DriverEnum index, const bool onoff);
+      static void get_blank_time(Driver* drv);
+      static void set_blank_time(Driver* drv, const uint8_t blank_time_val);
+      static void get_hysteresis_end(Driver* drv);
+      static void set_hysteresis_end(Driver* drv, const int8_t hysteresis_end_val);
+      static void get_hysteresis_start(Driver* drv);
+      static void set_hysteresis_start(Driver* drv, const uint8_t hysteresis_start_val);
+      static void get_disable_I_comparator(Driver* drv);
+      static void set_disable_I_comparator(Driver* drv, const bool onoff);
+      static void get_stealth_gradient(Driver* drv);
+      static void set_stealth_gradient(Driver* drv, const uint8_t stealth_gradient_val);
+      static void get_stealth_amplitude(Driver* drv);
+      static void set_stealth_amplitude(Driver* drv, const uint8_t stealth_amplitude_val);
+      static void get_stealth_freq(Driver* drv);
+      static void set_stealth_freq(Driver* drv, const uint8_t stealth_freq_val);
+      static void get_stealth_autoscale(Driver* drv);
+      static void set_stealth_autoscale(Driver* drv, const bool onoff);
 
     #endif // HAVE_DRV(TMC2130)
 
   private: /** Private Function */
 
-    static bool test_connection(const DriverEnum index);
+    static bool test_connection(Driver* drv);
 
-    #if TMC_HAS_SPI
-      static void init_cs_pins();
-    #endif
-
-    static void config(const DriverEnum index, const bool stealth=false);
+    static void config(Driver* drv, const bool stealth=false);
 
     #if ENABLED(MONITOR_DRIVER_STATUS)
 
       #if ENABLED(TMC_DEBUG)
         #if HAVE_DRV(TMC2208)
-          static uint32_t get_pwm_scale(const DriverEnum index);
+          static uint32_t get_pwm_scale(Driver* drv);
         #elif HAVE_DRV(TMC2660)
-          static uint32_t get_pwm_scale(const DriverEnum index);
+          static uint32_t get_pwm_scale(Driver* drv);
         #elif HAS_TMCX1X0
-          static uint32_t get_pwm_scale(const DriverEnum index);
+          static uint32_t get_pwm_scale(Driver* drv);
         #endif
       #endif
 
-      static TMC_driver_data get_driver_data(const DriverEnum index);
-      static void monitor_driver(const DriverEnum index, const bool need_update_error_counters, const bool need_debug_reporting);
+      static TMC_driver_data get_driver_data(Driver* drv);
+      static void monitor_driver(Driver* drv, const bool need_update_error_counters, const bool need_debug_reporting);
 
     #endif
 
     #if ENABLED(TMC_DEBUG)
 
-      static void print_vsense(const DriverEnum index);
-      static void status(const DriverEnum index, const TMCdebugEnum i);
-      static void status(const DriverEnum index, const TMCdebugEnum i, const float spmm);
-      static void parse_type_drv_status(const DriverEnum index, const TMCdrvStatusEnum i);
-      static void parse_drv_status(const DriverEnum index, const TMCdrvStatusEnum i);
+      static void print_vsense(Driver* drv);
+      static void status(Driver* drv, const TMCdebugEnum i);
+      static void status(Driver* drv, const TMCdebugEnum i, const float spmm);
+      static void parse_type_drv_status(Driver* drv, const TMCdrvStatusEnum i);
+      static void parse_drv_status(Driver* drv, const TMCdrvStatusEnum i);
       static void debug_loop(const TMCdebugEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
       static void status_loop(const TMCdrvStatusEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
-      static void get_ic_registers(const DriverEnum index, const TMCgetRegistersEnum i);
-      static void get_registers(const DriverEnum index, const TMCgetRegistersEnum i);
+      static void get_ic_registers(Driver* drv, const TMCgetRegistersEnum i);
+      static void get_registers(Driver* drv, const TMCgetRegistersEnum i);
       static void get_registers(const TMCgetRegistersEnum i, const bool print_x, const bool print_y, const bool print_z, const bool print_e);
 
     #endif

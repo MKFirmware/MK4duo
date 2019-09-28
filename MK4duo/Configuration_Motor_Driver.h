@@ -191,7 +191,6 @@
  */
 #define  TMC_ADV() {  }
 
-
 // Hardware serial communication ports for TMC2208
 // If undefined software serial is used according to the pins below
 //#define X_HARDWARE_SERIAL  Serial1

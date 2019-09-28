@@ -90,7 +90,6 @@ void PrintCounter::initStats() {
 
 void PrintCounter::showStats() {
   char buffer[21];
-  duration_t elapsed;
 
   SERIAL_MSG(MSG_STATS);
 
@@ -102,19 +101,11 @@ void PrintCounter::showStats() {
 
   SERIAL_MSG(MSG_STATS);
 
-  elapsed = data.timePrint;
-  elapsed.toString(buffer);
-  SERIAL_MT("Total print time:", buffer);
-
-  elapsed = data.longestPrint;
-  elapsed.toString(buffer);
-  SERIAL_EMT(", Longest job:", buffer);
+  SERIAL_MT("Total print time:", duration_t(data.timePrint).toString(buffer));
+  SERIAL_EMT(", Longest job:", duration_t(data.longestPrint).toString(buffer));
 
   SERIAL_MSG(MSG_STATS);
-
-  elapsed = data.timePowerOn;
-  elapsed.toString(buffer);
-  SERIAL_EMT("Power on time:", buffer);
+  SERIAL_EMT("Power on time:", duration_t(data.timePowerOn).toString(buffer));
 
   SERIAL_MSG(MSG_STATS);
 

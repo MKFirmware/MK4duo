@@ -67,6 +67,7 @@
 #include "config/m306.h"                  // Set Heaters
 #include "config/m352.h"                  // Set Driver pins and logic
 #include "config/m353.h"                  // Set Number total driver extruder
+#include "config/m563.h"                  // Set Tools heater assignment
 #include "config/m575.h"                  // Change serial baud rate
 #include "config/m595.h"                  // Set AD595 offset & Gain
 #include "config/m569.h"                  // Set Stepper Direction

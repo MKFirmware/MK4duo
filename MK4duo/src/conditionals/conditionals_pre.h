@@ -410,15 +410,9 @@
   #define HOTEND_OFFSET_X   { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
   #define HOTEND_OFFSET_Y   { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
   #define HOTEND_OFFSET_Z   { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-  #define HOTEND_INDEX      0
-  #define ACTIVE_HOTEND     0
-  #define TARGET_HOTEND     0
 #else
   #undef HOTENDS
   #define HOTENDS           EXTRUDERS
-  #define HOTEND_INDEX      h
-  #define ACTIVE_HOTEND     tools.data.extruder.active
-  #define TARGET_HOTEND     tools.data.extruder.target
 #endif
 
 /**

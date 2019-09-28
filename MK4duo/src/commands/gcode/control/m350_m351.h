@@ -78,7 +78,7 @@
         switch (i) {
           case X_AXIS:
             #if AXIS_HAS_TMC(X)
-              driver[X_DRV]->tmc->microsteps(value);
+              driver.x->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(X2)
               driver.x2->tmc->microsteps(value);
@@ -86,7 +86,7 @@
             break;
           case Y_AXIS:
             #if AXIS_HAS_TMC(Y)
-              driver[Y_DRV]->tmc->microsteps(value);
+              driver.y->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Y2)
               driver.y2->tmc->microsteps(value);
@@ -94,7 +94,7 @@
             break;
           case Z_AXIS:
             #if AXIS_HAS_TMC(Z)
-              driver[Z_DRV]->tmc->microsteps(value);
+              driver.z->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z2)
               driver.z2->tmc->microsteps(value);

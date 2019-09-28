@@ -786,7 +786,7 @@ void Endstops::report_state() {
     SERIAL_EOL();
 
     #if HAS_LCD
-      lcdui.status_printf_P(0, PSTR(MSG_LCD_ENDSTOPS " %c %c %c %c"), chrX, chrY, chrZ, chrP);
+      lcdui.status_printf_P(0, PSTR(S_FMT " %c %c %c %c"), PSTR(MSG_LCD_ENDSTOPS), chrX, chrY, chrZ, chrP);
     #endif
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
@@ -851,11 +851,7 @@ void Endstops::apply_motion_limits(xyz_pos_t &target) {
  * the software endstop positions must be refreshed to remain
  * at the same positions relative to the machine.
  */
-void Endstops::update_software_endstops(const AxisEnum axis
-  #if HOTENDS > 1
-    , const uint8_t old_tool_index/*=0*/, const uint8_t new_tool_index/*=0*/
-  #endif
-) {
+void Endstops::update_software_endstops(const AxisEnum axis) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -886,32 +882,34 @@ void Endstops::update_software_endstops(const AxisEnum axis
 
     soft_endstop_radius_2 = sq(mechanics.data.print_radius);
 
-  #elif HOTENDS > 1
-
-    if (old_tool_index != new_tool_index) {
-      const float offs = nozzle.data.hotend_offset[axis][new_tool_index] - nozzle.data.hotend_offset[axis][old_tool_index];
-      soft_endstop[axis] += offs;
-    }
-    else {
-      const float offs = nozzle.data.hotend_offset[axis][ACTIVE_HOTEND];
-      soft_endstop.min[axis] = mechanics.data.base_pos.min[axis] + offs;
-      soft_endstop.max[axis] = mechanics.data.base_pos.max[axis] + offs;
-    }
-
   #else
 
-    soft_endstop.min[axis] = mechanics.data.base_pos.min[axis];
-    soft_endstop.max[axis] = mechanics.data.base_pos.max[axis];
-
-    #if ENABLED(WORKSPACE_OFFSETS)
-      if (printer.debugFeature()) {
-        DEBUG_MV("For ", axis_codes[axis]);
-        DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
-        DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
-        DEBUG_MV("\n soft_endstop_min = ", soft_endstop.min[axis]);
-        DEBUG_EMV("\n soft_endstop_max = ", soft_endstop.max[axis]);
+    if (thermalManager.data.hotends > 1) {
+      if (tools.data.extruder.active != tools.data.extruder.target) {
+        const float offs = nozzle.data.hotend_offset[axis][tools.target_hotend()] - nozzle.data.hotend_offset[axis][tools.active_hotend()];
+        soft_endstop.min[axis] += offs;
+        soft_endstop.max[axis] += offs;
       }
-    #endif
+      else {
+        const float offs = nozzle.data.hotend_offset[axis][tools.active_hotend()];
+        soft_endstop.min[axis] = mechanics.data.base_pos.min[axis] + offs;
+        soft_endstop.max[axis] = mechanics.data.base_pos.max[axis] + offs;
+      }
+    }
+    else {
+      soft_endstop.min[axis] = mechanics.data.base_pos.min[axis];
+      soft_endstop.max[axis] = mechanics.data.base_pos.max[axis];
+
+      #if ENABLED(WORKSPACE_OFFSETS)
+        if (printer.debugFeature()) {
+          DEBUG_MV("For ", axis_codes[axis]);
+          DEBUG_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
+          DEBUG_MV("\n position_shift = ", mechanics.position_shift[axis]);
+          DEBUG_MV("\n soft_endstop_min = ", soft_endstop.min[axis]);
+          DEBUG_EMV("\n soft_endstop_max = ", soft_endstop.max[axis]);
+        }
+      #endif
+    }
 
   #endif
 
@@ -926,19 +924,19 @@ void Endstops::update_software_endstops(const AxisEnum axis
   bool Endstops::tmc_spi_homing_check() {
     bool hit = false;
     #if X_SPI_SENSORLESS
-      if (tmc_spi_homing.x && driver[X_DRV]->tmc->test_stall_status()) {
+      if (tmc_spi_homing.x && driver.x->tmc->test_stall_status()) {
         SBI(live_state, X_STOP);
         hit = true;
       }
     #endif
     #if Y_SPI_SENSORLESS
-      if (tmc_spi_homing.y && driver[Y_DRV]->tmc->test_stall_status()) {
+      if (tmc_spi_homing.y && driver.y->tmc->test_stall_status()) {
         SBI(live_state, Y_STOP);
         hit = true;
       }
     #endif
     #if Z_SPI_SENSORLESS
-      if (tmc_spi_homing.z && driver[Z_DRV]->tmc->test_stall_status()) {
+      if (tmc_spi_homing.z && driver.z->tmc->test_stall_status()) {
         SBI(live_state, Z_STOP);
         hit = true;
       }

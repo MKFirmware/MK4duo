@@ -54,7 +54,7 @@ inline void gcode_M701() {
 
   // Show initial "wait for load" message
   #if HAS_LCD_MENU
-    lcd_pause_show_message(PAUSE_MESSAGE_LOAD, PAUSE_MODE_LOAD_FILAMENT, tools.data.extruder.target);
+    lcd_pause_show_message(PAUSE_MESSAGE_LOAD, PAUSE_MODE_LOAD_FILAMENT, tools.target_hotend());
   #endif
 
   #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
@@ -77,7 +77,7 @@ inline void gcode_M701() {
                                                           advancedpause.data[tools.data.extruder.target].load_length);
 
     advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
-                                true, hotends[TARGET_HOTEND]->wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
+                                true, hotends[tools.target_hotend()]->wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
                                 #if ENABLED(DUAL_X_CARRIAGE)
                                   , tools.data.extruder.target
                                 #endif
@@ -112,19 +112,19 @@ inline void gcode_M701() {
  */
 inline void gcode_M702() {
 
+  if (commands.get_target_tool(702)) return;
+
   xyz_pos_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
   if (mechanics.axis_unhomed_error()) park_point.z = 0;
-
-  if (commands.get_target_tool(702)) return;
 
   // Z axis lift
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
   // Show initial "wait for unload" message
   #if HAS_LCD_MENU
-    lcd_pause_show_message(PAUSE_MESSAGE_UNLOAD, PAUSE_MODE_UNLOAD_FILAMENT, tools.data.extruder.target);
+    lcd_pause_show_message(PAUSE_MESSAGE_UNLOAD, PAUSE_MODE_UNLOAD_FILAMENT, tools.target_hotend());
   #endif
 
   #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)

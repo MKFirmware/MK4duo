@@ -339,20 +339,15 @@ void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const flo
  */
 void Delta_Mechanics::Transform(const xyz_pos_t &raw) {
 
-  #if HOTENDS > 1
-    // Delta hotend offsets must be applied in Cartesian space
-    const xyz_pos_t pos = { raw.x - nozzle.data.hotend_offset[ACTIVE_HOTEND].x,
-                            raw.y - nozzle.data.hotend_offset[ACTIVE_HOTEND].y,
-                            raw.z
-    };
-    delta.a = pos.z + _SQRT(D2.a - sq(pos.x - towerX.a) - sq(pos.y - towerY.a));
-    delta.b = pos.z + _SQRT(D2.b - sq(pos.x - towerX.b) - sq(pos.y - towerY.b));
-    delta.c = pos.z + _SQRT(D2.c - sq(pos.x - towerX.c) - sq(pos.y - towerY.c));
-  #else
-    delta.a = raw.z + _SQRT(D2.a - sq(raw.x - towerX.a) - sq(raw.y - towerY.a));
-    delta.b = raw.z + _SQRT(D2.b - sq(raw.x - towerX.b) - sq(raw.y - towerY.b));
-    delta.c = raw.z + _SQRT(D2.c - sq(raw.x - towerX.c) - sq(raw.y - towerY.c));
-  #endif
+  // Delta hotend offsets must be applied in Cartesian space
+  const xyz_pos_t pos = { raw.x - nozzle.data.hotend_offset[tools.active_hotend()].x,
+                          raw.y - nozzle.data.hotend_offset[tools.active_hotend()].y,
+                          raw.z
+  };
+
+  delta.a = pos.z + _SQRT(D2.a - sq(pos.x - towerX.a) - sq(pos.y - towerY.a));
+  delta.b = pos.z + _SQRT(D2.b - sq(pos.x - towerX.b) - sq(pos.y - towerY.b));
+  delta.c = pos.z + _SQRT(D2.c - sq(pos.x - towerX.c) - sq(pos.y - towerY.c));
 
 }
 

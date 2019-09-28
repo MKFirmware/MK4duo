@@ -32,9 +32,9 @@
 #define CODE_M941
 #define CODE_M942
 
-inline void tmc_set_stealthChop(const DriverEnum index, const bool onoff) {
-  driver[index]->tmc->stealthChop_enabled = onoff;
-  driver[index]->tmc->refresh_stepping_mode();
+inline void tmc_set_stealthChop(Driver* drv, const bool onoff) {
+  drv->tmc->stealthChop_enabled = onoff;
+  drv->tmc->refresh_stepping_mode();
 }
 
 /**
@@ -55,49 +55,49 @@ inline void gcode_M940() {
     switch (i) {
       case X_AXIS:
         #if AXIS_HAS_STEALTHCHOP(X)
-          tmc_set_stealthChop(X_DRV, value);
+          tmc_set_stealthChop(driver.x, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(X2)
-          tmc_set_stealthChop(X2_DRV, value);
+          tmc_set_stealthChop(driver.x2, value);
         #endif
         break;
       case Y_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Y)
-          tmc_set_stealthChop(Y_DRV, value);
+          tmc_set_stealthChop(driver.y, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Y2)
-          tmc_set_stealthChop(Y2_DRV, value);
+          tmc_set_stealthChop(driver.y2, value);
         #endif
         break;
       case Z_AXIS:
         #if AXIS_HAS_STEALTHCHOP(Z)
-          tmc_set_stealthChop(Z_DRV, value);
+          tmc_set_stealthChop(driver.z, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z2)
-          tmc_set_stealthChop(Z2_DRV, value);
+          tmc_set_stealthChop(driver.z2, value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(Z3)
-          tmc_set_stealthChop(Z3_DRV, value);
+          tmc_set_stealthChop(driver.z3, value);
         #endif
         break;
       case E_AXIS:
         #if AXIS_HAS_STEALTHCHOP(E0)
-          tmc_set_stealthChop(E0_DRV, value);
+          tmc_set_stealthChop(driver.e[0], value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E1)
-          tmc_set_stealthChop(E1_DRV, value);
+          tmc_set_stealthChop(driver.e[1], value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E2)
-          tmc_set_stealthChop(E2_DRV, value);
+          tmc_set_stealthChop(driver.e[2], value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E3)
-          tmc_set_stealthChop(E3_DRV, value);
+          tmc_set_stealthChop(driver.e[3], value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E4)
-          tmc_set_stealthChop(E4_DRV, value);
+          tmc_set_stealthChop(driver.e[4], value);
         #endif
         #if AXIS_HAS_STEALTHCHOP(E5)
-          tmc_set_stealthChop(E5_DRV, value);
+          tmc_set_stealthChop(driver.e[5], value);
         #endif
       break;
     }
@@ -110,7 +110,7 @@ inline void gcode_M940() {
 inline void gcode_M941() {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
-      driver[X_DRV]->tmc->chm(parser.value_bool());
+      driver.x->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
       driver.x2->tmc->chm(parser.value_bool());
@@ -118,7 +118,7 @@ inline void gcode_M941() {
   }
   if (parser.seenval('Y')) {
     #if AXIS_HAS_TMC(Y)
-      driver[Y_DRV]->tmc->chm(parser.value_bool());
+      driver.y->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
       driver.y2->tmc->chm(parser.value_bool());
@@ -126,7 +126,7 @@ inline void gcode_M941() {
   }
   if (parser.seenval('Z')) {
     #if AXIS_HAS_TMC(Z)
-      driver[Z_DRV]->tmc->chm(parser.value_bool());
+      driver.z->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
       driver.z2->tmc->chm(parser.value_bool());
@@ -137,22 +137,22 @@ inline void gcode_M941() {
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver.e[E0_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[0]]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver.e[E1_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[1]]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver.e[E2_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[2]]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver.e[E3_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[3]]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver.e[E4_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[4]]->tmc->chm(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver.e[E5_DRV]->tmc->chm(parser.value_bool());
+      driver.e[driver.e[5]]->tmc->chm(parser.value_bool());
     #endif
   }
 }
@@ -163,7 +163,7 @@ inline void gcode_M941() {
 inline void gcode_M942() {
   if (parser.seenval('X')) {
     #if AXIS_HAS_TMC(X)
-      driver[X_DRV]->tmc->intpol(parser.value_bool());
+      driver.x->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(X2)
       driver.x2->tmc->intpol(parser.value_bool());
@@ -171,7 +171,7 @@ inline void gcode_M942() {
   }
   if (parser.seenval('Y')) {
     #if AXIS_HAS_TMC(Y)
-      driver[Y_DRV]->tmc->intpol(parser.value_bool());
+      driver.y->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Y2)
       driver.y2->tmc->intpol(parser.value_bool());
@@ -179,7 +179,7 @@ inline void gcode_M942() {
   }
   if (parser.seenval('Z')) {
     #if AXIS_HAS_TMC(Z)
-      driver[Z_DRV]->tmc->intpol(parser.value_bool());
+      driver.z->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(Z2)
       driver.z2->tmc->intpol(parser.value_bool());
@@ -190,22 +190,22 @@ inline void gcode_M942() {
   }
   if (parser.seenval('E')) {
     #if AXIS_HAS_TMC(E0)
-      driver.e[E0_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[0]]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E1)
-      driver.e[E1_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[1]]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E2)
-      driver.e[E2_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[2]]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E3)
-      driver.e[E3_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[3]]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E4)
-      driver.e[E4_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[4]]->tmc->intpol(parser.value_bool());
     #endif
     #if AXIS_HAS_TMC(E5)
-      driver.e[E5_DRV]->tmc->intpol(parser.value_bool());
+      driver.e[driver.e[5]]->tmc->intpol(parser.value_bool());
     #endif
   }
 }
