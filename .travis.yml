@@ -1,0 +1,96 @@
+dist: bionic
+sudo: true
+  #
+language: c
+  #
+notifications:
+  email: false
+  #
+before_install:
+  #
+  # Fetch the tag information for the current branch
+  - git fetch origin --tags
+  #
+  # Publish the buildroot script folder
+  - chmod +x ${TRAVIS_BUILD_DIR}/buildroot/bin/*
+  - export PATH=${TRAVIS_BUILD_DIR}/buildroot/bin/:${PATH}
+  #
+  # Start fb X server
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
+  - sleep 3
+  - export DISPLAY=:1.0
+  #
+install:
+  #
+  # Install arduino 1.8.9
+  - wget http://downloads.arduino.cc/arduino-1.8.9-linux64.tar.xz
+  - tar xf arduino-1.8.9-linux64.tar.xz
+  - sudo mv arduino-1.8.9 /usr/local/share/arduino
+  - ln -s /usr/local/share/arduino/arduino ${TRAVIS_BUILD_DIR}/buildroot/bin/arduino
+  #
+  # Install: LiquidCrystal_I2C library
+  - git clone https://github.com/kiyoshigawa/LiquidCrystal_I2C.git
+  - mv LiquidCrystal_I2C/LiquidCrystal_I2C /usr/local/share/arduino/libraries/LiquidCrystal_I2C
+  #
+  # Install: LiquidTWI2 library
+  - git clone https://github.com/lincomatic/LiquidTWI2.git
+  - sudo mv LiquidTWI2 /usr/local/share/arduino/libraries/LiquidTWI2
+  #
+  # Install: Monochrome Graphics Library for LCDs and OLEDs
+  - git clone https://github.com/olikraus/U8glib_Arduino.git
+  - sudo mv U8glib_Arduino /usr/local/share/arduino/libraries/U8glib
+  #
+  # Install: L6470 Stepper Motor Driver library
+  # - git clone https://github.com/ameyer/Arduino-L6470.git
+  # - sudo mv Arduino-L6470/L6470 /usr/local/share/arduino/libraries/L6470
+  #
+  # Install: TMC26X Stepper Motor Controller library
+  # - git clone https://github.com/trinamic/TMC26XStepper.git
+  # - sudo mv TMC26XStepper /usr/local/share/arduino/libraries/TMC26XStepper
+  #
+  # Install: TMCStepper Motor Controller library
+  - git clone https://github.com/teemuatlut/TMCStepper.git
+  - sudo mv TMCStepper /usr/local/share/arduino/libraries/TMCStepper
+  # Install: Adafruit Neopixel library
+  - git clone https://github.com/adafruit/Adafruit_NeoPixel.git
+  - sudo mv Adafruit_NeoPixel /usr/local/share/arduino/libraries/Adafruit_NeoPixel
+  #
+before_script:
+  #
+  # Change current working directory to the build dir
+  - cd ${TRAVIS_BUILD_DIR}
+  #
+  # Generate custom version include
+  - generate_version_header_for_mk4duo ${TRAVIS_BUILD_DIR}/MK4duo
+  - cat ${TRAVIS_BUILD_DIR}/MK4duo/Configuration_Version.h
+  #
+script:
+  #
+  # Backup Configuration pins_RAMPS.h
+  #
+  - cp MK4duo/Configuration_Basic.h MK4duo/Configuration_Basic.h.backup
+  - cp MK4duo/Configuration_Cartesian.h MK4duo/Configuration_Cartesian.h.backup
+  - cp MK4duo/Configuration_Feature.h MK4duo/Configuration_Feature.h.backup
+  - cp MK4duo/Configuration_LCD.h MK4duo/Configuration_LCD.h.backup
+  - cp MK4duo/Configuration_Temperature.h MK4duo/Configuration_Temperature.h.backup
+  - cp MK4duo/src/boards/33.h MK4duo/src/boards/33.h.backup
+  - cp MK4duo/src/boards/34.h MK4duo/src/boards/34.h.backup
+  #
+  # Build with the default configurations
+  #
+  - build_mk4duo
+  #
+  # Test 2 extruders and heated bed on basic RAMPS 1.4
+  # Test a "Fix Mounted" Probe with Safe Homing, some arc options,
+  # linear bed leveling, M48, leveling debug, and firmware retraction.
+  #
+  - opt_set MOTHERBOARD BOARD_RAMPS_13_HHB
+  - opt_set EXTRUDERS 2
+  - opt_set TEMP_SENSOR_HE0 20
+  - opt_set TEMP_SENSOR_HE1 1
+  - opt_set TEMP_SENSOR_BED0 1
+  - opt_set POWER_SUPPLY 1
+  - opt_set PIDTEMPBED true
+  - opt_enable Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
+  - opt_enable REPRAP_DISCOUNT_SMART_CONTROLLER SDSUPPORT EEPROM_SETTINGS
+  - build_mk4duo
