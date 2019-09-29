@@ -60,10 +60,6 @@ before_script:
   # Change current working directory to the build dir
   - cd ${TRAVIS_BUILD_DIR}
   #
-  # Generate custom version include
-  - generate_version_header_for_mk4duo ${TRAVIS_BUILD_DIR}/MK4duo
-  - cat ${TRAVIS_BUILD_DIR}/MK4duo/Configuration_Version.h
-  #
 script:
   #
   # Backup Configuration pins_RAMPS.h
