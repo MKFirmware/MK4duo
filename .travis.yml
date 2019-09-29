@@ -68,13 +68,16 @@ script:
   #
   # Backup Configuration pins_RAMPS.h
   #
-  - cp MK4duo/Configuration_Basic.h MK4duo/Configuration_Basic.h.backup
-  - cp MK4duo/Configuration_Cartesian.h MK4duo/Configuration_Cartesian.h.backup
-  - cp MK4duo/Configuration_Feature.h MK4duo/Configuration_Feature.h.backup
-  - cp MK4duo/Configuration_LCD.h MK4duo/Configuration_LCD.h.backup
-  - cp MK4duo/Configuration_Temperature.h MK4duo/Configuration_Temperature.h.backup
-  - cp MK4duo/src/boards/33.h MK4duo/src/boards/33.h.backup
-  - cp MK4duo/src/boards/34.h MK4duo/src/boards/34.h.backup
+  - cp MK4duo/Configuration_Basic.h         MK4duo/Configuration_Basic.h.backup
+  - cp MK4duo/Configuration_Cartesian.h     MK4duo/Configuration_Cartesian.h.backup
+  - cp MK4duo/Configuration_Core.h          MK4duo/Configuration_Core.h.backup
+  - cp MK4duo/Configuration_Delta.h         MK4duo/Configuration_Delta.h.backup
+  - cp MK4duo/Configuration_Feature.h       MK4duo/Configuration_Feature.h.backup
+  - cp MK4duo/Configuration_LCD.h           MK4duo/Configuration_LCD.h.backup
+  - cp MK4duo/Configuration_Motor_Driver.h  MK4duo/Configuration_Motor_Driver.h.backup
+  - cp MK4duo/Configuration_Temperature.h   MK4duo/Configuration_Temperature.h.backup
+  - cp MK4duo/src/boards/33.h               MK4duo/src/boards/33.h.backup
+  - cp MK4duo/src/boards/34.h               MK4duo/src/boards/34.h.backup
   #
   # Build with the default configurations
   #
@@ -95,3 +98,5 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - build_mk4duo
+  
+  - restore_configs
