@@ -26,6 +26,8 @@
  * Core definitions for SPI, implemented in the HALs
  */
 
+#ifdef __AVR__
+
 /**
  * SPI speed where 0 <= index <= 6
  *
@@ -50,3 +52,9 @@
 #define SPI_SIXTEENTH_SPEED 4   // Set SCK rate to 1/16 of max rate
 #define SPI_SPEED_5         5   // Set SCK rate to 1/32 of max rate
 #define SPI_SPEED_6         6   // Set SCK rate to 1/64 of max rate
+
+#else
+
+#define SPI_FULL_SPEED  SPISettings(20000000, MSBFIRST, SPI_MODE0)
+
+#endif

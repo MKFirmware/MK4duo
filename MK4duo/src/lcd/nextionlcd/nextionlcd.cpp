@@ -1346,6 +1346,8 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   nexlcd.setText(LcdStatus, status_message);
 }
 
+#include <stdarg.h>
+
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
   if (level < status_message_level || !nexlcd.NextionON) return;
   status_message_level = level;
@@ -1452,9 +1454,12 @@ void LcdUI::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   host_action.cancel();
+  host_action.prompt_open(PROMPT_INFO, PSTR("LCD Aborted"), PSTR("Dismiss"));
   print_job_counter.stop();
   set_status_P(PSTR(MSG_PRINT_ABORTED));
-  return_to_status();
+  #if HAS_LCD_MENU
+    return_to_status();
+  #endif
 }
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)

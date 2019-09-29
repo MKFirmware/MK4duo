@@ -961,7 +961,7 @@ void Printer::handle_interrupt_events() {
           if (advancedpause.did_pause_print) return;
         #endif
 
-        const char tool = '0' + tools.data.extruder.active;
+        const char tool = DIGIT(tools.data.extruder.active);
         host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
         host_action.prompt_begin(PSTR("Filament Runout T"), false);
         SERIAL_CHR(tool);

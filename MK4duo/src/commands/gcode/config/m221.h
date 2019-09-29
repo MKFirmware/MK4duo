@@ -41,7 +41,7 @@ inline void gcode_M221() {
   }
   else {
     SERIAL_SM(ECHO, "E");
-    SERIAL_CHR('0' + tools.data.extruder.target);
+    SERIAL_CHR(DIGIT(tools.data.extruder.target));
     SERIAL_MV(" Flow: ", tools.flow_percentage[tools.data.extruder.target]);
     SERIAL_CHR('%');
     SERIAL_EOL();

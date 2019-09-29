@@ -122,11 +122,6 @@ void crc16(uint16_t *crc, const void * const data, uint16_t cnt) {
 
 char conv[8] = { 0 };
 
-#define DIGIT(n)        ('0' + (n))
-#define DIGIMOD(n, f)   DIGIT((n)/(f) % 10)
-#define RJDIGIT(n, f)   ((n) >= (f) ? DIGIMOD(n, f) : ' ')
-#define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
-
 // Convert uint8_t to string percentage
 char* ui8tostr4pct(const uint8_t i) {
   const uint8_t percent = ui8topercent(i);

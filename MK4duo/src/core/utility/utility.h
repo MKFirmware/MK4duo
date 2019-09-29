@@ -21,6 +21,11 @@
  */
 #pragma once
 
+#define DIGIT(n)        ('0' + (n))
+#define DIGIMOD(n, f)   DIGIT((n)/(f) % 10)
+#define RJDIGIT(n, f)   ((n) >= (f) ? DIGIMOD(n, f) : ' ')
+#define MINUSOR(n, alt) (n >= 0 ? (alt) : (n = -n, '-'))
+
 //
 // Swap object
 //

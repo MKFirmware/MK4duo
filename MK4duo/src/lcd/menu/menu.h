@@ -43,19 +43,19 @@ void scroll_screen(const uint8_t limit, const bool is_menu);
     static inline char* strfunc(const float value) { return STRFUNC((TYPE) value); } \
   };
 
-DECLARE_MENU_EDIT_TYPE(uint8_t,  percent,     ui8tostr4pct,    1        );
+DECLARE_MENU_EDIT_TYPE(uint8_t,  percent,     ui8tostr4pct,  100.0/255  );
 DECLARE_MENU_EDIT_TYPE(int16_t,  int3,        i16tostr3,       1        );
 DECLARE_MENU_EDIT_TYPE(int16_t,  int4,        i16tostr4sign,   1        );
 DECLARE_MENU_EDIT_TYPE(int8_t,   int8,        i8tostr3,        1        );
 DECLARE_MENU_EDIT_TYPE(uint8_t,  uint8,       ui8tostr3,       1        );
-DECLARE_MENU_EDIT_TYPE(uint16_t, microstep,   ui16tostr3,      0.0625f  );
+DECLARE_MENU_EDIT_TYPE(uint16_t, microstep,   ui16tostr3,      1/16     );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_3,    ui16tostr3,      1        );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_4,    ui16tostr4,      0.1      );
 DECLARE_MENU_EDIT_TYPE(uint16_t, uint16_5,    ui16tostr5,      0.01     );
 DECLARE_MENU_EDIT_TYPE(float,    float3,      ftostr3,         1        );
 DECLARE_MENU_EDIT_TYPE(float,    float52,     ftostr42_52,   100        );
 DECLARE_MENU_EDIT_TYPE(float,    float43,     ftostr43sign, 1000        );
-DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       0.01f    );
+DECLARE_MENU_EDIT_TYPE(float,    float5,      ftostr5rj,       1        );
 DECLARE_MENU_EDIT_TYPE(float,    float5_25,   ftostr5rj,       0.04f    );
 DECLARE_MENU_EDIT_TYPE(float,    float51,     ftostr51rj,     10        );
 DECLARE_MENU_EDIT_TYPE(float,    float51sign, ftostr51sign,   10        );
@@ -73,6 +73,10 @@ void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, sel
 inline void do_select_screen_yn(selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr) {
   do_select_screen(PSTR(MSG_YES), PSTR(MSG_NO), yesFunc, noFunc, pref, string, suff);
 }
+
+#define SS_LEFT   0x00
+#define SS_CENTER 0x01
+#define SS_INVERT 0x02
 
 void draw_edit_screen(PGM_P const pstr, const char* const value=nullptr);
 void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char);
@@ -336,16 +340,17 @@ class MenuItem_bool {
   #define MENU_ITEM_ADDON_END() } }while(0)
 #endif
 
-#define STATIC_ITEM(LABEL, V...)                              STATIC_ITEM_P(PSTR(LABEL), ##V)
+#define STATIC_ITEM(LABEL, V...)                                    STATIC_ITEM_P(PSTR(LABEL), ##V)
 
-#define MENU_BACK(LABEL)                                      MENU_ITEM(back, LABEL)
-#define MENU_ITEM_DUMMY()                                     do { _thisItemNr++; }while(0)
-#define MENU_ITEM_P(TYPE, PLABEL, V...)                       _MENU_ITEM_VARIANT_P(TYPE,      , false, PLABEL,                   ##V)
-#define MENU_ITEM(TYPE, LABEL, V...)                          _MENU_ITEM_VARIANT_P(TYPE,      , false, PSTR(LABEL),              ##V)
-#define MENU_ITEM_EDIT(TYPE, LABEL, V...)                     _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ##V)
-#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...)            _MENU_ITEM_VARIANT_P(TYPE, _edit, false, PSTR(LABEL), PSTR(LABEL), ##V)
-#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, V...)          _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ##V)
-#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...) _MENU_ITEM_VARIANT_P(TYPE, _edit,  true, PSTR(LABEL), PSTR(LABEL), ##V)
+#define MENU_BACK(LABEL)                                            MENU_ITEM(back, LABEL)
+#define MENU_ITEM_DUMMY()                                           do { _thisItemNr++; }while(0)
+#define MENU_ITEM_P(TYPE, PLABEL, V...)                             _MENU_ITEM_VARIANT_P(TYPE,       ,  false,  PLABEL,                     ##V)
+#define MENU_ITEM(TYPE, LABEL, V...)                                _MENU_ITEM_VARIANT_P(TYPE,       ,  false,  PSTR(LABEL),                ##V)
+#define MENU_ITEM_EDIT(TYPE, LABEL, V...)                           _MENU_ITEM_VARIANT_P(TYPE,  _edit,  false,  PSTR(LABEL),  PSTR(LABEL),  ##V)
+#define MENU_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...)                  _MENU_ITEM_VARIANT_P(TYPE,  _edit,  false,  PSTR(LABEL),  PSTR(LABEL),  ##V)
+#define MENU_MULTIPLIER_ITEM_EDIT(TYPE, LABEL, V...)                _MENU_ITEM_VARIANT_P(TYPE,  _edit,  true,   PSTR(LABEL),  PSTR(LABEL),  ##V)
+#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(TYPE, LABEL, V...)       _MENU_ITEM_VARIANT_P(TYPE,  _edit,  true,   PSTR(LABEL),  PSTR(LABEL),  ##V)
+#define MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(TYPE, LABEL, V...) _MENU_ITEM_VARIANT_P(TYPE,  _edit,  true,   LABEL,        LABEL,        ##V)
 
 ////////////////////////////////////////////
 /////////////// Menu Screens ///////////////
@@ -380,27 +385,16 @@ void lcd_move_z();
 void lcd_draw_homing();
 
 #if MAX_HOTEND > 0
-  void watch_temp_callback_H0();
-  void watch_temp_callback_H1();
-  void watch_temp_callback_H2();
-  void watch_temp_callback_H3();
-  void watch_temp_callback_E4();
-  void watch_temp_callback_E5();
+  void watch_temp_callback_hotend();
 #endif
 #if MAX_BED > 0
-  void watch_temp_callback_bed0();
-  void watch_temp_callback_bed1();
-  void watch_temp_callback_bed2();
-  void watch_temp_callback_bed3();
+  void watch_temp_callback_bed();
 #endif
 #if MAX_CHAMBER > 0
-  void watch_temp_callback_chamber0();
-  void watch_temp_callback_chamber1();
-  void watch_temp_callback_chamber2();
-  void watch_temp_callback_chamber3();
+  void watch_temp_callback_chamber();
 #endif
 #if MAX_COOLER > 0
-  void watch_temp_callback_cooler0();
+  void watch_temp_callback_cooler();
 #endif
 
 #define HAS_LINE_TO_Z (MECH(DELTA) || HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))

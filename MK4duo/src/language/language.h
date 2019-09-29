@@ -355,6 +355,52 @@
 
 #include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE)
 
+FSTRINGVALUE(msg_extruder_0,  MSG_E0);
+FSTRINGVALUE(msg_extruder_1,  MSG_E1);
+FSTRINGVALUE(msg_extruder_2,  MSG_E2);
+FSTRINGVALUE(msg_extruder_3,  MSG_E3);
+FSTRINGVALUE(msg_extruder_4,  MSG_E4);
+FSTRINGVALUE(msg_extruder_5,  MSG_E5);
+FSTRINGVALUE(msg_nozzle_0,    MSG_NOZZLE MSG_N0);
+FSTRINGVALUE(msg_nozzle_1,    MSG_NOZZLE MSG_N1);
+FSTRINGVALUE(msg_nozzle_2,    MSG_NOZZLE MSG_N2);
+FSTRINGVALUE(msg_nozzle_3,    MSG_NOZZLE MSG_N3);
+FSTRINGVALUE(msg_nozzle_4,    MSG_NOZZLE MSG_N4);
+FSTRINGVALUE(msg_nozzle_5,    MSG_NOZZLE MSG_N5);
+FSTRINGVALUE(msg_bed_0,       MSG_BED MSG_N0);
+FSTRINGVALUE(msg_bed_1,       MSG_BED MSG_N1);
+FSTRINGVALUE(msg_bed_2,       MSG_BED MSG_N2);
+FSTRINGVALUE(msg_bed_3,       MSG_BED MSG_N3);
+FSTRINGVALUE(msg_bed_4,       MSG_BED MSG_N4);
+FSTRINGVALUE(msg_bed_5,       MSG_BED MSG_N5);
+FSTRINGVALUE(msg_chamber_0,   MSG_CHAMBER MSG_N0);
+FSTRINGVALUE(msg_chamber_1,   MSG_CHAMBER MSG_N1);
+FSTRINGVALUE(msg_chamber_2,   MSG_CHAMBER MSG_N2);
+FSTRINGVALUE(msg_chamber_3,   MSG_CHAMBER MSG_N3);
+FSTRINGVALUE(msg_chamber_4,   MSG_CHAMBER MSG_N4);
+FSTRINGVALUE(msg_chamber_5,   MSG_CHAMBER MSG_N5);
+FSTRINGVALUE(msg_fan_0,       MSG_FAN_SPEED MSG_N0);
+FSTRINGVALUE(msg_fan_1,       MSG_FAN_SPEED MSG_N1);
+FSTRINGVALUE(msg_fan_2,       MSG_FAN_SPEED MSG_N2);
+FSTRINGVALUE(msg_fan_3,       MSG_FAN_SPEED MSG_N3);
+FSTRINGVALUE(msg_fan_4,       MSG_FAN_SPEED MSG_N4);
+FSTRINGVALUE(msg_fan_5,       MSG_FAN_SPEED MSG_N5);
+FSTRINGVALUE(msg_flow_0,      MSG_FLOW MSG_N0);
+FSTRINGVALUE(msg_flow_1,      MSG_FLOW MSG_N1);
+FSTRINGVALUE(msg_flow_2,      MSG_FLOW MSG_N2);
+FSTRINGVALUE(msg_flow_3,      MSG_FLOW MSG_N3);
+FSTRINGVALUE(msg_flow_4,      MSG_FLOW MSG_N4);
+FSTRINGVALUE(msg_flow_5,      MSG_FLOW MSG_N5);
+
+PGM_P const MSG_EXTRUDER_INDEX[]  PROGMEM = { msg_extruder_0, msg_extruder_1, msg_extruder_2, msg_extruder_3, msg_extruder_4, msg_extruder_5 };
+PGM_P const MSG_NOZZLE_INDEX[]    PROGMEM = { msg_nozzle_0, msg_nozzle_1, msg_nozzle_2, msg_nozzle_3, msg_nozzle_4, msg_nozzle_5 };
+PGM_P const MSG_BED_INDEX[]       PROGMEM = { msg_bed_0, msg_bed_1, msg_bed_2, msg_bed_3, msg_bed_4, msg_bed_5 };
+PGM_P const MSG_CHAMBER_INDEX[]   PROGMEM = { msg_chamber_0, msg_chamber_1, msg_chamber_2, msg_chamber_3, msg_chamber_4, msg_chamber_5 };
+PGM_P const MSG_FAN_INDEX[]       PROGMEM = { msg_fan_0, msg_fan_1, msg_fan_2, msg_fan_3, msg_fan_4, msg_fan_5 };
+PGM_P const MSG_FLOW_INDEX[]      PROGMEM = { msg_flow_0, msg_flow_1, msg_flow_2, msg_flow_3, msg_flow_4, msg_flow_5 };
+
+#define PGM_RD_INDEX(x) (char*)pgm_read_word(&x)
+
 #if DISABLED(DISPLAY_CHARSET_ISO10646_1) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_5) \
  && DISABLED(DISPLAY_CHARSET_ISO10646_KANA) \

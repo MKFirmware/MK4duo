@@ -505,7 +505,7 @@ class HAL {
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t);
+    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U);
 
     static void Tick();
 

@@ -56,12 +56,12 @@ void HAL::spiBegin() {}
 void HAL::spiInit(uint8_t spiRate) {  // Default to slowest rate if not specified)
   uint32_t clock;
   switch (spiRate) {
-    case SPI_FULL_SPEED:    clock = 20000000; break; // 13.9mhz=20000000  6.75mhz=10000000  3.38mhz=5000000  .833mhz=1000000
-    case SPI_HALF_SPEED:    clock =  5000000; break;
-    case SPI_QUARTER_SPEED: clock =  2500000; break;
-    case SPI_EIGHTH_SPEED:  clock =  1250000; break;
-    case SPI_SPEED_5:       clock =   625000; break;
-    case SPI_SPEED_6:       clock =   300000; break;
+    case 0: clock = 20000000; break; // 13.9mhz=20000000  6.75mhz=10000000  3.38mhz=5000000  .833mhz=1000000
+    case 1: clock =  5000000; break;
+    case 2: clock =  2500000; break;
+    case 3: clock =  1250000; break;
+    case 4: clock =   625000; break;
+    case 5: clock =   300000; break;
     default:
       clock = 4000000; // Default from the SPI library
   }

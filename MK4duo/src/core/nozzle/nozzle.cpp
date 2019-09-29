@@ -34,21 +34,23 @@ void Nozzle::factory_parameters() {
   #if MAX_HOTEND > 1
 
     #if ENABLED(HOTEND_OFFSET_X) && ENABLED(HOTEND_OFFSET_Y) && ENABLED(HOTEND_OFFSET_Z)
-      constexpr float HEoffset[XYZ][MAX_HOTEND] = {
-        HOTEND_OFFSET_X,
-        HOTEND_OFFSET_Y,
-        HOTEND_OFFSET_Z
-      };
+      constexpr float HEoffset_X[] = HOTEND_OFFSET_X,
+                      HEoffset_Y[] = HOTEND_OFFSET_Y,
+                      HEoffset_Z[] = HOTEND_OFFSET_Z;
     #else
-      constexpr float HEoffset[XYZ][MAX_HOTEND] = { 0.0f };
+      constexpr float HEoffset_X[MAX_HOTEND] = { 0.0f },
+                      HEoffset_Y[MAX_HOTEND] = { 0.0f },
+                      HEoffset_Z[MAX_HOTEND] = { 0.0f },
     #endif
 
     static_assert(
-      HEoffset[X_AXIS][0] == 0 && HEoffset[Y_AXIS][0] == 0 && HEoffset[Z_AXIS][0] == 0,
+      HEoffset_X[0] == 0 && HEoffset_Y[0] == 0 && HEoffset_Z[0] == 0,
       "Offsets for the first hotend must be 0.0."
     );
-    LOOP_XYZ(i) {
-      LOOP_HOTEND() data.hotend_offset[i][h] = HEoffset[i][h];
+    LOOP_HOTEND() {
+      data.hotend_offset[h].x = HEoffset_X[h];
+      data.hotend_offset[h].y = HEoffset_Y[h];
+      data.hotend_offset[h].z = HEoffset_Z[h];
     }
 
   #endif // MAX_HOTEND > 1

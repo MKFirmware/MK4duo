@@ -29,23 +29,10 @@
 #if HAS_LCD_MENU
 
 // Refresh the E factor after changing flow
-inline void _lcd_refresh_e_factor_0() { tools.refresh_e_factor(0); }
-#if EXTRUDERS > 1
-  inline void _lcd_refresh_e_factor() { tools.refresh_e_factor(tools.data.extruder.active); }
-  inline void _lcd_refresh_e_factor_1() { tools.refresh_e_factor(1); }
-  #if EXTRUDERS > 2
-    inline void _lcd_refresh_e_factor_2() { tools.refresh_e_factor(2); }
-    #if EXTRUDERS > 3
-      inline void _lcd_refresh_e_factor_3() { tools.refresh_e_factor(3); }
-      #if EXTRUDERS > 4
-        inline void _lcd_refresh_e_factor_4() { tools.refresh_e_factor(4); }
-        #if EXTRUDERS > 5
-          inline void _lcd_refresh_e_factor_5() { tools.refresh_e_factor(5); }
-        #endif // EXTRUDERS > 5
-      #endif // EXTRUDERS > 4
-    #endif // EXTRUDERS > 3
-  #endif // EXTRUDERS > 2
-#endif // EXTRUDERS > 1
+inline void _lcd_refresh_e_factor() {
+  LOOP_EXTRUDER()
+    tools.refresh_e_factor(e);
+}
 
 #if ENABLED(BABYSTEPPING)
 
@@ -129,113 +116,51 @@ void menu_tune() {
 
   //
   // Nozzle:
-  // Nozzle [1-4]:
   //
-  #if HOTENDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &hotends[0]->target_temperature, 0, hotends[0]->data.temp.max - 10, watch_temp_callback_H0);
-  #elif HOTENDS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N0, &hotends[0]->target_temperature, 0, hotends[0]->data.temp.max - 10, watch_temp_callback_H0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &hotends[1]->target_temperature, 0, hotends[1]->data.temp.max - 10, watch_temp_callback_H1);
-    #if HOTENDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &hotends[2]->target_temperature, 0, hotends[2]->data.temp.max - 10, watch_temp_callback_H2);
-      #if HOTENDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N3, &hotends[3]->target_temperature, 0, hotends[3]->data.temp.max - 10, watch_temp_callback_H3);
-        #if HOTENDS > 4
-          MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N4, &hotends[4]->target_temperature, 0, hotends[4]->data.temp.max - 10, watch_temp_callback_H4);
-          #if HOTENDS > 5
-            MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N5, &hotends[5]->target_temperature, 0, hotends[5]->data.temp.max - 10, watch_temp_callback_H5);
-          #endif // HOTENDS > 5
-        #endif // HOTENDS > 4
-      #endif // HOTENDS > 3
-    #endif // HOTENDS > 2
-  #endif // HOTENDS > 1
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND()
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_NOZZLE_INDEX[h]), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+  #endif
 
   //
   // Bed:
   //
-  #if BEDS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &beds[0]->target_temperature, 0, beds[0]->data.temp.max - 10, watch_temp_callback_bed0);
-  #elif BEDS > 0
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N0, &beds[0]->target_temperature, 0, beds[0]->data.temp.max - 10, watch_temp_callback_bed0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N1, &beds[1]->target_temperature, 0, beds[1]->data.temp.max - 10, watch_temp_callback_bed1);
-    #if BEDS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[2]->target_temperature, 0, beds[2]->data.temp.max - 10, watch_temp_callback_bed2);
-      #if BEDS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED MSG_N2, &beds[3]->target_temperature, 0, beds[3]->data.temp.max - 10, watch_temp_callback_bed3);
-      #endif // BEDS > 3
-    #endif // BEDS > 2
-  #endif // BEDS > 1
+  #if MAX_BED > 0
+    LOOP_BED()
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_BED_INDEX[h]), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+  #endif
 
   //
   // Chamber:
   //
-  #if CHAMBERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER, &chambers[0]->target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
-  #elif CHAMBERS > 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N0, &chambers[0]->target_temperature, 0, chambers[0]->data.temp.max - 10, watch_temp_callback_chamber0);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N1, &chambers[1]->target_temperature, 0, chambers[1]->data.temp.max - 10, watch_temp_callback_chamber1);
-    #if CHAMBERS > 2
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N2, &chambers[2]->target_temperature, 0, chambers[2]->data.temp.max - 10, watch_temp_callback_chamber2);
-      #if CHAMBERS > 3
-        MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_CHAMBER MSG_N3, &chambers[3]->target_temperature, 0, chambers[3]->data.temp.max - 10, watch_temp_callback_chamber3);
-      #endif // CHAMBERS > 3
-    #endif // CHAMBERS > 2
-  #endif // CHAMBERS > 1
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER()
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_CHAMBER_INDEX[h]), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+  #endif
 
   //
   // Cooler:
   //
-  #if COOLERS == 1
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler0);
+  #if MAX_COOLER > 0
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
   // Fan Speed:
   //
   #if MAX_FAN > 0
-    #if HAS_FAN0
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 0", &fans[0]->speed, 0, 255);
-    #endif
-    #if HAS_FAN1
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 1", &fans[1]->speed, 0, 255);
-    #endif
-    #if HAS_FAN2
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 2", &fans[2]->speed, 0, 255);
-    #endif
-    #if HAS_FAN3
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 3", &fans[3]->speed, 0, 255);
-    #endif
-    #if HAS_FAN4
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 4", &fans[4]->speed, 0, 255);
-    #endif
-    #if HAS_FAN5
-      MENU_MULTIPLIER_ITEM_EDIT(percent, MSG_FAN_SPEED " 5", &fans[5]->speed, 0, 255);
-    #endif
-  #endif // MAX_FAN > 0
+    LOOP_FAN()
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, PGM_RD_INDEX(MSG_FAN_INDEX[f]), &fans[f]->speed, 0, 255);
+  #endif
 
   //
   // Flow:
   // Flow [1-6]:
   //
-  #if EXTRUDERS == 1
-    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
-  #else // EXTRUDERS > 1
-    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW, &tools.flow_percentage[tools.data.extruder.active], 10, 999, _lcd_refresh_e_factor);
-    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N1, &tools.flow_percentage[0], 10, 999, _lcd_refresh_e_factor_0);
-    MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N2, &tools.flow_percentage[1], 10, 999, _lcd_refresh_e_factor_1);
-    #if EXTRUDERS > 2
-      MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N3, &tools.flow_percentage[2], 10, 999, _lcd_refresh_e_factor_2);
-      #if EXTRUDERS > 3
-        MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N4, &tools.flow_percentage[3], 10, 999, _lcd_refresh_e_factor_3);
-        #if EXTRUDERS > 4
-          MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N5, &tools.flow_percentage[4], 10, 999, _lcd_refresh_e_factor_4);
-          #if EXTRUDERS > 5
-            MENU_ITEM_EDIT_CALLBACK(int3, MSG_FLOW MSG_N6, &tools.flow_percentage[5], 10, 999, _lcd_refresh_e_factor_5);
-          #endif // EXTRUDERS > 5
-        #endif // EXTRUDERS > 4
-      #endif // EXTRUDERS > 3
-    #endif // EXTRUDERS > 2
-  #endif // EXTRUDERS > 1
+  #if MAX_EXTRUDER > 0
+    LOOP_EXTRUDER()
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_FLOW_INDEX[e]), &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
+  #endif
 
   //
   // Babystep X:

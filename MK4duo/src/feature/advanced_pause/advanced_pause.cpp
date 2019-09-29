@@ -89,6 +89,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   if (did_pause_print) return false; // already paused
 
   host_action.paused();
+  host_action.prompt_open(PROMPT_INFO, PSTR("Pause"), PSTR("Dismiss"));
 
   if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(tools.active_hotend())) {
     SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
@@ -198,8 +199,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
     // If the nozzle has timed out, wait for the user to press the button to re-heat the nozzle, then
     // re-heat the nozzle, re-show the insert screen, restart the idle timers, and start over
     if (!nozzle_timed_out)
-      LOOP_HOTEND()
-        nozzle_timed_out |= hotends[h]->isIdle();
+      LOOP_HOTEND() nozzle_timed_out |= hotends[h]->isIdle();
 
     if (nozzle_timed_out) {
       #if HAS_LCD_MENU
@@ -215,8 +215,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 
         if (!bed_timed_out) {
           #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
-            LOOP_BED()
-              bed_timed_out |= beds[h]->isIdle();
+            LOOP_BED() bed_timed_out |= beds[h]->isIdle();
           #endif
         }
         else {
@@ -228,12 +227,11 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
         printer.idle(true);
       }
 
-      host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheating"));
+      host_action.prompt_do(PROMPT_INFO, PSTR("Reheating"));
 
       // Re-enable the bed if they timed out
       #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
-        if (bed_timed_out)
-          LOOP_BED() beds[h]->reset_idle_timer();
+        if (bed_timed_out) LOOP_BED() beds[h]->reset_idle_timer();
       #endif
 
       // Re-enable the hotends if they timed out
@@ -356,6 +354,8 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   --did_pause_print;
 
+  host_action.prompt_open(PROMPT_INFO, PSTR("Resuming"), PSTR("Dismiss"));
+
   #if HAS_SD_SUPPORT
     if (did_pause_print) {
       card.startFileprint();
@@ -366,7 +366,12 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   // Resume the print job timer if it was running
   if (print_job_counter.isPaused()) print_job_counter.start();
 
-  lcdui.reset_status();
+  #if HAS_LCD
+    lcdui.reset_status();
+    #if HAS_LCD_MENU
+      lcdui.return_to_status();
+    #endif
+  #endif
 
 }
 
@@ -414,7 +419,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);    // LCD click or M108 will clear this
 
-    const char tool = '0' + tools.data.extruder.active;
+    const char tool = DIGIT(tools.data.extruder.active);
 
     host_action.prompt_reason = PROMPT_USER_CONTINUE;
     host_action.prompt_begin(PSTR("Load Filament T"), false);

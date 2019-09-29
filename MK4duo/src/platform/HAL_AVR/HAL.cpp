@@ -316,7 +316,8 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t) {
+void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000u*/) {
+  UNUSED(freq);
   ::analogWrite(pin, uValue);
 }
 

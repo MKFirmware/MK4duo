@@ -356,75 +356,32 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 /**
  * Watch temperature callbacks
  */
-void watch_temp_callback_H0() {
-  hotends[0]->set_target_temp(hotends[0]->deg_target());
-  hotends[0]->start_watching();
-}
-void watch_temp_callback_H1() {
-  hotends[1]->set_target_temp(hotends[1]->deg_target());
-  hotends[1]->start_watching();
-}
-void watch_temp_callback_H2() {
-  hotends[2]->set_target_temp(hotends[2]->deg_target());
-  hotends[2]->start_watching();
-}
-void watch_temp_callback_H3() {
-  hotends[3]->set_target_temp(hotends[3]->deg_target());
-  hotends[3]->start_watching();
-}
-void watch_temp_callback_H4() {
-  hotends[4]->set_target_temp(hotends[4]->deg_target());
-  hotends[4]->start_watching();
-}
-void watch_temp_callback_H5() {
-  hotends[5]->set_target_temp(hotends[5]->deg_target());
-  hotends[5]->start_watching();
-}
-
-void watch_temp_callback_bed0() {
-  beds[0]->set_target_temp(beds[0]->deg_target());
-  beds[0]->start_watching();
-}
-void watch_temp_callback_bed1() {
-  beds[1]->set_target_temp(beds[1]->deg_target());
-  beds[1]->start_watching();
-}
-void watch_temp_callback_bed2() {
-  beds[2]->set_target_temp(beds[2]->deg_target());
-  beds[2]->start_watching();
-}
-void watch_temp_callback_bed3() {
-  beds[3]->set_target_temp(beds[3]->deg_target());
-  beds[3]->start_watching();
-}
-
-#if MAX_CHAMBER > 0
-  void watch_temp_callback_chamber0() {
-    chambers[0]->set_target_temp(chambers[0]->deg_target());
-    chambers[0]->start_watching();
-  }
-  #if CHAMBERS > 1
-    void watch_temp_callback_chamber1() {
-      chambers[1]->set_target_temp(chambers[1]->deg_target());
-      chambers[1]->start_watching();
+#if MAX_HOTEND > 0
+  void watch_temp_callback_hotend() {
+    LOOP_HOTEND() {
+      hotends[h]->set_target_temp(hotends[h]->deg_target());
+      hotends[h]->start_watching();
     }
-    #if CHAMBERS > 2
-      void watch_temp_callback_chamber2() {
-        chambers[2]->set_target_temp(chambers[2]->deg_target());
-        chambers[2]->start_watching();
-      }
-      #if CHAMBERS > 3
-        void watch_temp_callback_chamber3() {
-          chambers[3]->set_target_temp(chambers[3]->deg_target());
-          chambers[3]->start_watching();
-        }
-      #endif // CHAMBERS > 3
-    #endif // CHAMBERS > 2
-  #endif // CHAMBERS > 1
-#endif // MAX_CHAMBER > 0
-
+  }
+#endif
+#if MAX_BED > 0
+  void watch_temp_callback_bed() {
+    LOOP_BED() {
+      beds[h]->set_target_temp(beds[h]->deg_target());
+      beds[h]->start_watching();
+    }
+  }
+#endif
+#if MAX_CHAMBER > 0
+  void watch_temp_callback_chamber() {
+    LOOP_CHAMBER() {
+      chambers[h]->set_target_temp(chambers[h]->deg_target());
+      chambers[h]->start_watching();
+    }
+  }
+#endif
 #if MAX_COOLER > 0
-  void watch_temp_callback_cooler0() {
+  void watch_temp_callback_cooler() {
     coolers[0]->set_target_temp(coolers[0]->deg_target());
     coolers[0]->start_watching();
   }
