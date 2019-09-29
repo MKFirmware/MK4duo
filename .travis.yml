@@ -81,8 +81,8 @@ script:
   - build_mk4duo
   #
   # Test 2 extruders and heated bed on basic RAMPS 1.4
-  # Test a "Fix Mounted" Probe with Safe Homing, some arc options,
-  # linear bed leveling, M48, leveling debug, and firmware retraction.
+  # Test a "Fix Mounted" Probe with Safe Homing
+  # Display REPRAP_DISCOUNT_SMART_CONTROLLER, sdsupport, eeprom
   #
   - opt_set MOTHERBOARD BOARD_RAMPS_13_HHB
   - opt_set EXTRUDERS 2
