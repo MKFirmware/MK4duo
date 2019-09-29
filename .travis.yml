@@ -84,13 +84,14 @@ script:
   # Test a "Fix Mounted" Probe with Safe Homing
   # Display REPRAP_DISCOUNT_SMART_CONTROLLER, sdsupport, eeprom
   #
-  - opt_set MOTHERBOARD BOARD_RAMPS_13_HHB
-  - opt_set EXTRUDERS 2
-  - opt_set TEMP_SENSOR_HE0 20
-  - opt_set TEMP_SENSOR_HE1 1
-  - opt_set TEMP_SENSOR_BED0 1
-  - opt_set POWER_SUPPLY 1
-  - opt_set PIDTEMPBED true
-  - opt_enable Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
-  - opt_enable REPRAP_DISCOUNT_SMART_CONTROLLER SDSUPPORT EEPROM_SETTINGS
+  - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HHB
+  - opt_set_basic EXTRUDERS 2
+  - opt_set_basic POWER_SUPPLY 1
+  - opt_set_temp TEMP_SENSOR_HE0 20
+  - opt_set_temp TEMP_SENSOR_HE1 1
+  - opt_set_temp TEMP_SENSOR_BED0 1
+  - opt_set_temp PIDTEMPBED true
+  - opt_enable_cartesian Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
+  - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
+  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - build_mk4duo
