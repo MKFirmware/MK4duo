@@ -8,5 +8,3 @@ cp MK4duo/Configuration_Feature.h.backup      MK4duo/Configuration_Feature.h
 cp MK4duo/Configuration_LCD.h.backup          MK4duo/Configuration_LCD.h
 cp MK4duo/Configuration_Motor_Driver.h.backup MK4duo/Configuration_Motor_Driver.h
 cp MK4duo/Configuration_Temperature.h.backup  MK4duo/Configuration_Temperature.h
-cp MK4duo/src/boards/33.h.backup              MK4duo/src/boards/33.h
-cp MK4duo/src/boards/34.h.backup              MK4duo/src/boards/34.h
