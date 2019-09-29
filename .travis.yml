@@ -1,4 +1,4 @@
-dist: bionic
+dist: MagoKimbra
 sudo: true
   #
 language: c
