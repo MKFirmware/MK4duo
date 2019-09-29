@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #!/usr/bin/env bash
 
 case "$#" in
@@ -7,6 +6,3 @@ case "$#" in
 esac
 
 arduino --verify --board $BOARD MK4duo/MK4duo.ino
-=======
-
->>>>>>> origin/V4_4_0_dev
