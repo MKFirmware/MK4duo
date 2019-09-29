@@ -76,8 +76,6 @@ script:
   - cp MK4duo/Configuration_LCD.h           MK4duo/Configuration_LCD.h.backup
   - cp MK4duo/Configuration_Motor_Driver.h  MK4duo/Configuration_Motor_Driver.h.backup
   - cp MK4duo/Configuration_Temperature.h   MK4duo/Configuration_Temperature.h.backup
-  - cp MK4duo/src/boards/33.h               MK4duo/src/boards/33.h.backup
-  - cp MK4duo/src/boards/34.h               MK4duo/src/boards/34.h.backup
   #
   # Build with the default configurations
   #
