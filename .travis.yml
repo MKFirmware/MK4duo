@@ -17,11 +17,45 @@ before_install:
   - chmod +x ${TRAVIS_BUILD_DIR}/buildroot/bin/*
   - export PATH=${TRAVIS_BUILD_DIR}/buildroot/bin/:${PATH}
 
+  # Start fb X server
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
+  - sleep 3
+  - export DISPLAY=:1.0
+
+install:
+  # Install arduino 1.8.9
+  - wget http://downloads.arduino.cc/arduino-1.8.9-linux64.tar.xz
+  - tar xf arduino-1.8.9-linux64.tar.xz
+  - sudo mv arduino-1.8.9 /usr/local/share/arduino
+  - ln -s /usr/local/share/arduino/arduino ${TRAVIS_BUILD_DIR}/buildroot/bin/arduino
+
+  # Install: LiquidCrystal_I2C library
+  - git clone https://github.com/kiyoshigawa/LiquidCrystal_I2C.git
+  - mv LiquidCrystal_I2C/LiquidCrystal_I2C /usr/local/share/arduino/libraries/LiquidCrystal_I2C
+
+  # Install: LiquidTWI2 library
+  - git clone https://github.com/lincomatic/LiquidTWI2.git
+  - sudo mv LiquidTWI2 /usr/local/share/arduino/libraries/LiquidTWI2
+
+  # Install: Monochrome Graphics Library for LCDs and OLEDs
+  - git clone https://github.com/olikraus/U8glib_Arduino.git
+  - sudo mv U8glib_Arduino /usr/local/share/arduino/libraries/U8glib
+
+  # Install: TMCStepper Motor Controller library
+  - git clone https://github.com/teemuatlut/TMCStepper.git
+  - sudo mv TMCStepper /usr/local/share/arduino/libraries/TMCStepper
+
+  # Install: Adafruit Neopixel library
+  - git clone https://github.com/adafruit/Adafruit_NeoPixel.git
+  - sudo mv Adafruit_NeoPixel /usr/local/share/arduino/libraries/Adafruit_NeoPixel
+
+before_script:
   # Change current working directory to the build dir
   - cd ${TRAVIS_BUILD_DIR}
 
-  # Install Arduino processor and library
-  - install_arduino
+  # set the compiler warning level
+  - echo -n "SET BUILD PREFERENCES: ";
+  - DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
 
 script:
 
