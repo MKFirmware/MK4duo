@@ -24,12 +24,12 @@ echo "########################################################################";
 # if .travis.yml does not set version
 if [ -z $ARDUINO_IDE_VERSION ]; then
 export ARDUINO_IDE_VERSION="1.8.9"
-echo "NOTE: YOUR .TRAVIS.YML DOES NOT SPECIFY ARDUINO IDE VERSION, USING $ARDUINO_IDE_VERSION"
+echo "NOTE: YOUR .TRAVIS.YML DOES NOT SPECIFY ARDUINO IDE VERSION, USING $ARDUINO_IDE_VERSION";
 fi
 
 # if newer version is requested
 if [ ! -f $HOME/arduino_ide/$ARDUINO_IDE_VERSION ] && [ -f $HOME/arduino_ide/arduino ]; then
-echo -n "DIFFERENT VERSION OF ARDUINO IDE REQUESTED: "
+echo -n "DIFFERENT VERSION OF ARDUINO IDE REQUESTED: ";
 shopt -s extglob
 cd $HOME/arduino_ide/
 rm -rf *
@@ -40,10 +40,10 @@ fi
 # if not already cached, download and install arduino IDE
 echo -n "ARDUINO IDE STATUS: "
 if [ ! -f $HOME/arduino_ide/arduino ]; then
-echo -n "DOWNLOADING: "
+echo -n "DOWNLOADING: ";
 wget --quiet https://downloads.arduino.cc/arduino-$ARDUINO_IDE_VERSION-linux64.tar.xz
 if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
-echo -n "UNPACKING ARDUINO IDE: "
+echo -n "UNPACKING ARDUINO IDE: ";
 [ ! -d $HOME/arduino_ide/ ] && mkdir $HOME/arduino_ide
 tar xf arduino-$ARDUINO_IDE_VERSION-linux64.tar.xz -C $HOME/arduino_ide/ --strip-components=1
 if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
@@ -81,23 +81,19 @@ git clone https://github.com/adafruit/Adafruit_NeoPixel.git
 sudo mv Adafruit_NeoPixel $HOME/arduino_ide/libraries/Adafruit_NeoPixel
 
 # install the Alligator and STM32
-echo -n "ADD PACKAGE INDEX: "
+echo -n "ADD PACKAGE INDEX: ";
 DEPENDENCY_OUTPUT=$(arduino --pref "boardsmanager.additional.urls=https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/package_stm_index.json" --save-prefs 2>&1)
 if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
 
 INSTALL_DUE=$([[ $INSTALL_PLATFORMS == *"due"* || -z "$INSTALL_PLATFORMS" ]] && echo 1 || echo 0)
 
 if [[ $INSTALL_DUE == 1 ]]; then
-  echo -n "DUE: "
+  echo -n "DUE: ";
   DEPENDENCY_OUTPUT=$(arduino --install-boards arduino:sam 2>&1)
   if [ $? -ne 0 ]; then echo -e "\xe2\x9c\x96 OR CACHED"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
 fi
 
 # set the compiler warning level
-echo -n "SET BUILD PREFERENCES: "
+echo -n "SET BUILD PREFERENCES: ";
 DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
-if [ $? -ne 0 ]; then
-echo -e """$RED""\xe2\x9c\x96";
-else
-echo -e """$GREEN""\xe2\x9c\x93";
-fi
+if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
