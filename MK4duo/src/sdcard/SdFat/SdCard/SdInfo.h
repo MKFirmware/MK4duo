@@ -106,7 +106,7 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 #if defined(__AVR__) || defined(__SAM3X8E__) || defined(__SAM3X8H__)
 // SPI divisor constants
 /** Set SCK to max rate of F_CPU/2. */
-#define SPI_FULL_SPEED SD_SCK_MHZ(50)
+#define SPI_FULL_SPEED SD_SCK_HZ(F_CPU/2)
 /** Set SCK rate to F_CPU/3 for Due */
 #define SPI_DIV3_SPEED SD_SCK_HZ(F_CPU/3)
 /** Set SCK rate to F_CPU/4. */
