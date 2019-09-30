@@ -22,7 +22,7 @@ before_install:
   - chmod +x ${TRAVIS_BUILD_DIR}/buildroot/bin/*
   - export PATH=${TRAVIS_BUILD_DIR}/buildroot/bin/:${PATH}
 
-  - source $TRAVIS_BUILD_DIR/install.sh
+  - source ${TRAVIS_BUILD_DIR}/install.sh
 
 before_script:
   # Change current working directory to the build dir
