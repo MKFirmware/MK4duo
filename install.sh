@@ -49,8 +49,8 @@ tar xf arduino-$ARDUINO_IDE_VERSION-linux64.tar.xz -C $HOME/arduino_ide/ --strip
 if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
 touch $HOME/arduino_ide/$ARDUINO_IDE_VERSION
 else
-echo -n "CACHED: "
-echo -e """$GREEN""\xe2\x9c\x93"
+echo -n "CACHED: ";
+echo -e """$GREEN""\xe2\x9c\x93";
 fi
 
 # define output directory for .hex files
@@ -97,6 +97,7 @@ fi
 echo -n "SET BUILD PREFERENCES: "
 DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
 if [ $? -ne 0 ]; then
-  echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93";
+echo -e """$RED""\xe2\x9c\x96";
+else
+echo -e """$GREEN""\xe2\x9c\x93";
 fi
-
