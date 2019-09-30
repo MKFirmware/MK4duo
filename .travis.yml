@@ -1,7 +1,5 @@
 dist: MagoKimbra
-
 language: c
-
 sudo: true
 
 notifications:
