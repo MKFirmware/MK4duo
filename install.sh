@@ -96,4 +96,7 @@ fi
 # set the compiler warning level
 echo -n "SET BUILD PREFERENCES: "
 DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
-if [ $? -ne 0 ]; then echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93"; fi
+if [ $? -ne 0 ]; then
+  echo -e """$RED""\xe2\x9c\x96"; else echo -e """$GREEN""\xe2\x9c\x93";
+fi
+
