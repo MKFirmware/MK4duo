@@ -56,10 +56,6 @@ fi
 # define output directory for .hex files
 export ARDUINO_HEX_DIR=$HOME/compiled_arduino_sketches/arduino_build_$TRAVIS_BUILD_NUMBER
 
-# Publish the buildroot script folder
-chmod +x ${TRAVIS_BUILD_DIR}/buildroot/bin/*
-export PATH=${TRAVIS_BUILD_DIR}/buildroot/bin/:${PATH}
-
 echo -e "\n########################################################################";
 echo -e "${YELLOW}INSTALLING DEPENDENCIES"
 echo "########################################################################";
