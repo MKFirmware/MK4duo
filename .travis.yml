@@ -17,7 +17,7 @@ notifications:
 before_install:
   # Fetch the tag information for the current branch
   - git fetch origin --tags
-  - source ${TRAVIS_BUILD_DIR}/buildroot/bin/install.sh
+  - source ${TRAVIS_BUILD_DIR}/install.sh
 
 before_script:
   # Change current working directory to the build dir
