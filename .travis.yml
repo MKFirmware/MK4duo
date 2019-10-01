@@ -56,7 +56,6 @@ before_script:
   - DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
 
 script:
-
   # Backup Configuration pins_RAMPS.h
   - cp MK4duo/Configuration_Basic.h         MK4duo/Configuration_Basic.h.backup
   - cp MK4duo/Configuration_Cartesian.h     MK4duo/Configuration_Cartesian.h.backup
