@@ -1,11 +1,9 @@
-dist: MagoKimbra
-language: c
+ddist: MagoKimbra
 sudo: true
+language: c
 
 notifications:
-  email:
-    on_success: true
-    on_failure: false
+  email: false
 
 before_install:
   # Fetch the tag information for the current branch
