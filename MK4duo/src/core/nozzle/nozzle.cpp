@@ -116,7 +116,8 @@ void Nozzle::factory_parameters() {
         SERIAL_EM("Warning: Clean Circle requires XY");
         return;
       }
-      end = NOZZLE_CLEAN_CIRCLE_MIDDLE;
+      constexpr xyz_pos_t middle NOZZLE_CLEAN_CIRCLE_MIDDLE;
+      end = middle;
     }
     else {
       if (!TEST(cleans, X_AXIS))  start.x = end.x = mechanics.current_position.x;
@@ -130,16 +131,9 @@ void Nozzle::factory_parameters() {
     #endif
 
     switch (pattern) {
-      case 1:
-        zigzag(start, end, strokes, objects);
-        break;
-
-      case 2:
-        circle(start, end, strokes, radius);
-        break;
-
-      default:
-        stroke(start, end, strokes);
+      case 1:   zigzag(start, end, strokes, objects); break;
+      case 2:   circle(start, end, strokes, radius);  break;
+      default:  stroke(start, end, strokes);
     }
   }
 
