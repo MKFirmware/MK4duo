@@ -88,20 +88,20 @@ void menu_sd_confirm() {
 
 class MenuItem_sdfile {
   public:
-    static void action(SDCard &theCard) {
+    static void action(PGM_P const pstr, SDCard &) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         // Save which file was selected for later use
         sd_encoder_position = lcdui.encoderPosition;
         sd_top_line = encoderTopLine;
         sd_items = screen_items;
       #endif
-      MenuItem_submenu::action(menu_sd_confirm);
+      MenuItem_submenu::action(pstr, menu_sd_confirm);
     }
 };
 
 class MenuItem_sdfolder {
   public:
-    static void action(SDCard &theCard) {
+    static void action(PGM_P const, SDCard &theCard) {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * (ENCODER_STEPS_PER_MENU_ITEM);

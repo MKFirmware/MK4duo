@@ -126,18 +126,6 @@ void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const f
   planner.synchronize();
 
 }
-void Core_Mechanics::do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
-}
-void Core_Mechanics::do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
-}
-void Core_Mechanics::do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
-}
-void Core_Mechanics::do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s/*=0.0*/) {
-  do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
-}
 
 /**
  * Home Core
