@@ -1508,7 +1508,7 @@ void EEPROM::reset() {
      * Print Hotends offsets parameters
      */
     #if HOTENDS > 1
-      LOOP_HOTEND() nozzle.print_M218(h);
+      nozzle.print_M218();
     #endif
 
     /**
