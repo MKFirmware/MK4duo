@@ -24,6 +24,7 @@ install:
   - tar xf arduino-1.8.9-linux64.tar.xz
   - sudo mv arduino-1.8.9 /usr/local/share/arduino
   - ln -s /usr/local/share/arduino/arduino ${TRAVIS_BUILD_DIR}/buildroot/bin/arduino
+  - eval \"${TRAVIS_BUILD_DIR}/buildroot/bin/arduino\" --pref "compiler.warning_level=none" --save-prefs
 
   # Install: LiquidCrystal_I2C library
   - git clone https://github.com/kiyoshigawa/LiquidCrystal_I2C.git
@@ -49,10 +50,6 @@ before_script:
   # Change current working directory to the build dir
   - cd ${TRAVIS_BUILD_DIR}
 
-  # set the compiler warning level
-  #- echo -n "SET BUILD PREFERENCES: ";
-  #- DEPENDENCY_OUTPUT=$(arduino --pref "compiler.warning_level=none" --save-prefs 2>&1)
-
 script:
   # Backup Configuration pins_RAMPS.h
   - cp MK4duo/Configuration_Basic.h         MK4duo/Configuration_Basic.h.backup
@@ -66,3 +63,21 @@ script:
 
   # Build with the default configurations
   - build_mk4duo
+
+  # Test 2 extruders and heated bed on basic RAMPS 1.4
+  # Test a "Fix Mounted" Probe with Safe Homing
+  # Display REPRAP_DISCOUNT_SMART_CONTROLLER, sdsupport, eeprom
+  - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HHB
+  - opt_set_basic EXTRUDERS 2
+  - opt_set_basic POWER_SUPPLY 1
+  - opt_set_temp TEMP_SENSOR_HE0 20
+  - opt_set_temp TEMP_SENSOR_HE1 1
+  - opt_set_temp TEMP_SENSOR_BED0 1
+  - opt_set_temp PIDTEMPBED true
+  - opt_enable_cartesian Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
+  - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
+  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
+  - build_mk4duo
+
+  # Restore configuration
+  #- restore_configs
