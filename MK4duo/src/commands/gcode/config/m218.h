@@ -40,15 +40,20 @@
  */
 inline void gcode_M218(void) {
 
-  if (!commands.get_target_tool(218)) return;
+  if (commands.get_target_tool(218)) return;
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
     if (parser.seen_any()) {
-      nozzle.print_M218(TARGET_HOTEND);
+      nozzle.print_M218();
       return;
     }
   #endif
+
+  if (TARGET_HOTEND == 0) {
+    SERIAL_LM(ECHO, "Hotend 0 can't have offset");
+    return;
+  }
 
   if (parser.seenval('X')) nozzle.data.hotend_offset[X_AXIS][TARGET_HOTEND] = parser.value_linear_units();
   if (parser.seenval('Y')) nozzle.data.hotend_offset[Y_AXIS][TARGET_HOTEND] = parser.value_linear_units();

@@ -94,13 +94,15 @@ void Nozzle::factory_parameters() {
 
 #if HOTENDS > 1
 
-  void Nozzle::print_M218(const uint8_t h) {
+  void Nozzle::print_M218() {
     SERIAL_LM(CFG, "Hotend offset (unit): T<Tools> X<offset> Y<offset> Z<offset>:");
-    SERIAL_SMV(CFG, "  M218 T", (int)h);
-    SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[X_AXIS][h]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[Y_AXIS][h]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[Z_AXIS][h]), 3);
-    SERIAL_EOL();
+    LOOP_HOTEND() {
+      SERIAL_SMV(CFG, "  M218 T", (int)h);
+      SERIAL_MV(" X", LINEAR_UNIT(data.hotend_offset[X_AXIS][h]), 3);
+      SERIAL_MV(" Y", LINEAR_UNIT(data.hotend_offset[Y_AXIS][h]), 3);
+      SERIAL_MV(" Z", LINEAR_UNIT(data.hotend_offset[Z_AXIS][h]), 3);
+      SERIAL_EOL();
+    }
   }
 
 #endif
