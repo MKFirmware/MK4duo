@@ -157,7 +157,7 @@ class Driver {
       HAL::digitalWrite(data.pin.step, state);
     }
     FORCE_INLINE void step_toggle(const bool state) {
-      if (state) TOGGLE(data.pin.step);
+      if (state) HAL::digitalWrite(data.pin.step, !HAL::digitalRead(data.pin.step));
     }
     FORCE_INLINE bool step_read() {
       return HAL::digitalRead(data.pin.step);
