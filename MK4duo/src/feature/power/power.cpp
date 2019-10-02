@@ -168,7 +168,7 @@ Power powerManager;
 
     if (thermalManager.heaters_isActive()) return true;
 
-    if (driver.x->enable_read() == driver.x->isEnable() || driver.y->enable_read()() == driver.y->isEnable() || driver.z->enable_read()() == driver.z->isEnable()
+    if (driver.x->enable_read() == driver.x->isEnable() || driver.y->enable_read() == driver.y->isEnable() || driver.z->enable_read() == driver.z->isEnable()
         || driver.e[0]->enable_read() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
         #if MAX_DRIVER_E > 1
           || driver.e[1]->enable_read() == driver.e[E1_DRV]->isEnable()
