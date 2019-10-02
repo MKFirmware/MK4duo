@@ -363,7 +363,7 @@ void menu_temperature() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_NOZZLE_INDEX[h]), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_NOZZLE, DIGIT(h), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -371,7 +371,7 @@ void menu_temperature() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_BED_INDEX[h]), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_BED, DIGIT(h), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -379,14 +379,14 @@ void menu_temperature() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_CHAMBER_INDEX[h]), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_CHAMBER, DIGIT(h), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_COOLER, NULL, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -394,7 +394,7 @@ void menu_temperature() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, PGM_RD_INDEX(MSG_FAN_INDEX[f]), &fans[f]->speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, MSG_FAN_SPEED, DIGIT(f), &fans[f]->speed, 0, 255);
   #endif
 
   #if MAX_HOTEND > 0

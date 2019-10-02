@@ -49,7 +49,7 @@ inline void _lcd_refresh_e_factor() {
     }
     if (lcdui.should_draw()) {
       const float spm = mechanics.steps_to_mm[axis];
-      draw_edit_screen(msg, ftostr54sign(spm * babystep.accum));
+      draw_edit_screen(msg, NULL, ftostr54sign(spm * babystep.accum));
       #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
         const bool in_view = (true
           #if HAS_GRAPHICAL_LCD
@@ -119,7 +119,7 @@ void menu_tune() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_NOZZLE_INDEX[h]), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_NOZZLE, DIGIT(h), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -127,7 +127,7 @@ void menu_tune() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_BED_INDEX[h]), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_BED, DIGIT(h), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -135,14 +135,14 @@ void menu_tune() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_CHAMBER_INDEX[h]), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_CHAMBER, DIGIT(h), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_COOLER, NULL, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -150,7 +150,7 @@ void menu_tune() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, PGM_RD_INDEX(MSG_FAN_INDEX[f]), &fans[f]->speed, 0, 255);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, MSG_FAN_SPEED, DIGIT(f), &fans[f]->speed, 0, 255);
   #endif
 
   //
@@ -159,7 +159,7 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, PGM_RD_INDEX(MSG_FLOW_INDEX[e]), &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
+      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_FLOW, DIGIT(e), &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
   #endif
 
   //

@@ -1229,19 +1229,6 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
     #endif
   #endif
 
-  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
-      const uint8_t old_dir = AXIS ##_DIR_READ();           \
-      enable_## AXIS();                                     \
-      set_##AXIS##_dir(driver[AXIS##_DRV]->isDir()^DIR^INVERT);  \
-      if (data.direction_delay >= 50)                       \
-        HAL::delayNanoseconds(data.direction_delay);        \
-      _SAVE_START;                                          \
-      start_##AXIS##_step();                                \
-      _PULSE_WAIT;                                          \
-      stop_##AXIS##_step();                                 \
-      set_##AXIS##_dir(old_dir);                            \
-    }
-
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
@@ -1253,25 +1240,99 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
         case X_AXIS:
           #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Y_dir = driver.y->dir_read(),
+            enable_X();
+            enable_Y();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Y_dir(driver.y->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Y_step();
+            set_X_dir(old_X_dir);
+            set_Y_dir(old_Y_dir);
           #elif CORE_IS_XZ
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Z, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Z_dir = driver.z->dir_read(),
+            enable_X();
+            enable_Z();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Z_dir(driver.z->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Z_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Z_step();
+            set_X_dir(old_X_dir);
+            set_Z_dir(old_Z_dir);
           #else
-            BABYSTEP_AXIS(X, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read();
+            enable_X();
+            set_X_dir(driver.x->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            set_X_dir(old_X_dir);
           #endif
           break;
 
         case Y_AXIS:
           #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction^(CORESIGN(1)<0));
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Y_dir = driver.y->dir_read(),
+            enable_X();
+            enable_Y();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Y_dir(driver.y->isDir()^direction^false^(CORESIGN(1)<0));
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Y_step();
+            set_X_dir(old_X_dir);
+            set_Y_dir(old_Y_dir);
           #elif CORE_IS_YZ
-            BABYSTEP_AXIS(Y, false, direction);
-            BABYSTEP_AXIS(Z, false, direction^(CORESIGN(1)<0));
+            const uint8_t old_Y_dir = driver.y->dir_read(),
+                          old_Z_dir = driver.z->dir_read(),
+            enable_Y();
+            enable_Z();
+            set_Y_dir(driver.y->isDir()^direction^false);
+            set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_Y_step();
+            start_Z_step();
+            _PULSE_WAIT;
+            stop_Y_step();
+            stop_Z_step();
+            set_Y_dir(old_Y_dir);
+            set_Z_dir(old_Z_dir);
           #else
-            BABYSTEP_AXIS(Y, false, direction);
+            const uint8_t old_Y_dir = driver.y->dir_read();
+            enable_Y();
+            set_Y_dir(driver.y->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_Y_step();
+            set_Y_dir(old_Y_dir);
           #endif
           break;
 
@@ -1280,13 +1341,50 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
       case Z_AXIS: {
 
         #if CORE_IS_XZ
-          BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+          const uint8_t old_X_dir = driver.x->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
+          enable_X();
+          enable_Z();
+          set_X_dir(driver.x->isDir()^direction^BABYSTEP_INVERT_Z);
+          set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z^(CORESIGN(1)<0));
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_X_step();
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_X_step();
+          stop_Z_step();
+          set_X_dir(old_X_dir);
+          set_Z_dir(old_Z_dir);
         #elif CORE_IS_YZ
-          BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+          const uint8_t old_Y_dir = driver.y->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
+          enable_Y();
+          enable_Z();
+          set_Y_dir(driver.y->isDir()^direction^false);
+          set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_Y_step();
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_Y_step();
+          stop_Z_step();
+          set_Y_dir(old_Y_dir);
+          set_Z_dir(old_Z_dir);
         #elif NOMECH(DELTA)
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
+          const uint8_t old_Z_dir = driver.z->dir_read();
+          enable_Z();
+          set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z);
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_Z_step();
+          set_Z_dir(old_Z_dir);
         #else // DELTA
 
           const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
@@ -1295,9 +1393,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           enable_Y();
           enable_Z();
 
-          const uint8_t old_x_dir_pin = driver.x->dir_read(),
-                        old_y_dir_pin = driver.y->dir_read(),
-                        old_z_dir_pin = driver.z->dir_read();
+          const uint8_t old_x_dir = driver.x->dir_read(),
+                        old_y_dir = driver.y->dir_read(),
+                        old_z_dir = driver.z->dir_read();
 
           set_X_dir(driver.x->isDir() ^ z_direction);
           set_Y_dir(driver.y->isDir() ^ z_direction);
@@ -1319,9 +1417,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           stop_Z_step();
 
           // Restore direction bits
-          set_X_dir(old_x_dir_pin);
-          set_Y_dir(old_y_dir_pin);
-          set_Z_dir(old_z_dir_pin);
+          set_X_dir(old_x_dir);
+          set_Y_dir(old_y_dir);
+          set_Z_dir(old_z_dir);
 
         #endif
 

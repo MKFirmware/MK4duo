@@ -45,6 +45,7 @@ bool screen_changed;
 
 // Value Editing
 PGM_P MenuItemBase::editLabel;
+char  MenuItemBase::editIndex;
 void* MenuItemBase::editValue;
 int32_t MenuItemBase::minEditValue, MenuItemBase::maxEditValue;
 screenFunc_t MenuItemBase::callbackFunc;
@@ -77,7 +78,7 @@ void LcdUI::goto_previous_screen() {
 /////////// Common Menu Actions ////////////
 ////////////////////////////////////////////
 
-void MenuItem_gcode::action(PGM_P const, PGM_P pgcode) { commands.inject_P(pgcode); }
+void MenuItem_gcode::action(PGM_P const, const char, PGM_P pgcode) { commands.inject_P(pgcode); }
 
 ////////////////////////////////////////////
 /////////// Menu Editing Actions ///////////
@@ -112,7 +113,7 @@ void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
   if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
-    draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
+    draw_edit_screen(editLabel, editIndex, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
     if (editValue != nullptr) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
     if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
@@ -120,10 +121,11 @@ void MenuItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   }
 }
 
-void MenuItemBase::init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
+void MenuItemBase::init(PGM_P const el, const char idx, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
   lcdui.save_previous_screen();
   lcdui.refresh();
   editLabel = el;
+  editIndex = idx;
   editValue = ev;
   minEditValue = minv;
   maxEditValue = maxv;
@@ -154,8 +156,9 @@ DEFINE_MENU_EDIT_ITEM(float52sign);
 DEFINE_MENU_EDIT_ITEM(long5);
 DEFINE_MENU_EDIT_ITEM(long5_25);
 
-void MenuItem_bool::action_edit(PGM_P pstr, bool *ptr, screenFunc_t callback) {
-  UNUSED(pstr); *ptr ^= true; lcdui.refresh();
+void MenuItem_bool::action_edit(PGM_P pstr, const char idx, bool *ptr, screenFunc_t callback) {
+  UNUSED(pstr); UNUSED(idx);
+  *ptr ^= true; lcdui.refresh();
   if (callback) (*callback)();
 }
 
@@ -340,10 +343,10 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
+          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), NULL, ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
         else
       #endif
-          draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
+          draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), NULL, ftostr43sign(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
         if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);

@@ -1506,8 +1506,7 @@ void LcdUI::stop_print() {
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
-    UNUSED(center);
+  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, invert);
     nexlcd.startChar(*txtmenu_list[row]);
@@ -1517,8 +1516,7 @@ void LcdUI::stop_print() {
   }
 
   // Draw a generic menu item
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
-    UNUSED(pre_char); UNUSED(post_char);
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
@@ -1527,14 +1525,15 @@ void LcdUI::stop_print() {
   }
 
   // Draw a menu item with an editable value
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr),
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char idx, const char* const data, const bool pgm) {
+    const uint8_t labellen  = strlen_P(pstr) + (idx ? 2 : 0),
                   vallen = (pgm ? strlen_P(data) : strlen((char*)data));
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    nexlcd.put_str_P(PSTR(":"));
+    if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
+    nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
       nexlcd.put_str_P(data);
@@ -1543,9 +1542,9 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  void draw_edit_screen(PGM_P const pstr, const char idx/*=NULL*/, const char* const value/*=nullptr*/) {
 
-    const uint8_t labellen  = strlen_P(pstr),
+    const uint8_t labellen  = strlen_P(pstr) + (idx ? 2 : 0),
                   vallen    = strlen(value);
 
     bool extra_row = labellen > LCD_WIDTH - vallen - 1;
@@ -1560,6 +1559,7 @@ void LcdUI::stop_print() {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
       nexlcd.put_str_P(pstr);
+      if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_space(LCD_WIDTH - vallen);
@@ -1568,7 +1568,8 @@ void LcdUI::stop_print() {
     else {
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_str_P(pstr);
-      nexlcd.put_str_P(PSTR(":"));
+      if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
+      nexlcd.setChar(':');
       nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
       nexlcd.put_str(value);
     }
@@ -1590,13 +1591,13 @@ void LcdUI::stop_print() {
   void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
     draw_select_screen_prompt(pref, string, suff);
     nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
-    nexlcd.put_str_P(yesno ? PSTR(" ") : PSTR("["));
+    nexlcd.setChar(yesno ? ' ' : '[');
     nexlcd.put_str_P(no);
-    nexlcd.put_str_P(yesno ? PSTR(" ") : PSTR("]"));
+    nexlcd.setChar(yesno ? ' ' : ']');
     nexlcd.put_space(2);
-    nexlcd.put_str_P(yesno ? PSTR("[") : PSTR(" "));
+    nexlcd.setChar(yesno ? '[' : ' ');
     nexlcd.put_str_P(yes);
-    nexlcd.put_str_P(yesno ? PSTR("]") : PSTR(" "));
+    nexlcd.setChar(yesno ? ']' : ' ');
     nexlcd.endChar();
   }
 

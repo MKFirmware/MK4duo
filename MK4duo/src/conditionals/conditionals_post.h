@@ -1578,7 +1578,7 @@
     #define MAX_HOTEND       6
     #define MAX_BED          4
     #define MAX_CHAMBER      4
-    #define MAX_COOLER       1
+    #define MAX_COOLER       COOLERS
     #define MAX_FAN          6
   #endif
 #else
@@ -1596,7 +1596,7 @@
     #define MAX_HOTEND      HOTENDS
     #define MAX_BED         4
     #define MAX_CHAMBER     4
-    #define MAX_COOLER      1
+    #define MAX_COOLER      COOLERS
     #define MAX_FAN         6
   #endif
 #endif // !HAS_LINEAR_EXTRUDER

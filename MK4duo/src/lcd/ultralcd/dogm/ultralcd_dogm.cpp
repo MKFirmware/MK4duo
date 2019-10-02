@@ -346,9 +346,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a generic menu item
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
-    UNUSED(pre_char);
-
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char, const char post_char) {
     if (mark_as_selected(row, sel)) {
       u8g_uint_t n = (LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
       n -= lcd_put_u8str_max_P(pstr, n);
@@ -359,11 +357,12 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a menu item with an editable value
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char idx/*=NULL*/, const char* const data, const bool pgm) {
     if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
       u8g_uint_t n = (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH);
-      n -= lcd_put_u8str_max_P(pstr, n);
+      n -= lcd_put_u8str_max_P(pstr, n) + (idx ? 2 : 0);
+      if (idx) { lcd_put_wchar(' '); lcd_put_wchar(idx); }
       lcd_put_wchar(':');
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
       lcd_moveto(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH) * vallen, row_y2);
@@ -371,10 +370,11 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     }
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  void draw_edit_screen(PGM_P const pstr, const char idx/*=NULL*/, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
-    const u8g_uint_t labellen = utf8_strlen_P(pstr), vallen = utf8_strlen(value);
+    const u8g_uint_t  labellen = utf8_strlen_P(pstr) + (idx ? 2 : 0),
+                      vallen = utf8_strlen(value);
     bool extra_row = labellen > LCD_WIDTH - 2 - vallen;
 
     #if ENABLED(USE_BIG_EDIT_FONT)
@@ -406,7 +406,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     if (onpage) lcd_put_u8str_P(0, baseline, pstr);
 
     // If a value is included, print a colon, then print the value right-justified
-    if (value != nullptr) {
+    if (value) {
+      if (idx) { lcd_put_wchar(' '); lcd_put_wchar(idx); }
       lcd_put_wchar(':');
       if (extra_row) {
         // Assume the value is numeric (with no descender)

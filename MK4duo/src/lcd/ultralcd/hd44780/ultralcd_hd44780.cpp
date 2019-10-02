@@ -941,7 +941,7 @@ void LcdUI::draw_status_screen() {
     for (; n > 0; --n) lcd_put_wchar(' ');
   }
 
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P pstr, const char pre_char, const char post_char) {
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P pstr, const char, const char pre_char, const char post_char) {
     uint8_t n = LCD_WIDTH - 2;
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
     n -= lcd_put_u8str_max_P(pstr, n);
@@ -949,20 +949,22 @@ void LcdUI::draw_status_screen() {
     lcd_put_wchar(post_char);
   }
 
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P pstr, const char* const data, const bool pgm) {
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P pstr, const char idx/*=NULL*/, const char* const data, const bool pgm) {
     uint8_t n = LCD_WIDTH - 2 - (pgm ? utf8_strlen_P(data) : utf8_strlen(data));
     lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
-    n -= lcd_put_u8str_max_P(pstr, n);
+    n -= lcd_put_u8str_max_P(pstr, n) + (idx ? 2 : 0);
+    if (idx) { lcd_put_wchar(' '); lcd_put_wchar(idx); }
     lcd_put_wchar(':');
     for (; n; --n) lcd_put_wchar(' ');
     if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str(data);
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  void draw_edit_screen(PGM_P const pstr, const char idx/*=NULL*/, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
     lcd_put_u8str_P(0, 1, pstr);
-    if (value != nullptr) {
+    if (value) {
+      if (idx) { lcd_put_wchar(' '); lcd_put_wchar(idx); }
       lcd_put_wchar(':');
       int len = utf8_strlen(value);
       const lcd_uint_t valrow = (utf8_strlen_P(pstr) + 1 + len + 1) > (LCD_WIDTH - 2) ? 2 : 1;   // Value on the next row if it won't fit

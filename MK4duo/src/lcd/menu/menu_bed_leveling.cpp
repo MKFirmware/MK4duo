@@ -145,7 +145,7 @@
     //
     if (lcdui.should_draw()) {
       const float v = mechanics.current_position.z;
-      draw_edit_screen(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
+      draw_edit_screen(PSTR(MSG_MOVE_Z), NULL, ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
   }
 
@@ -156,7 +156,7 @@
     if (lcdui.should_draw()) {
       char msg[10];
       sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
-      draw_edit_screen(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
+      draw_edit_screen(PSTR(MSG_LEVEL_BED_NEXT_POINT), NULL, msg);
     }
     lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
     if (!lcdui.wait_for_bl_move) lcdui.goto_screen(_lcd_level_bed_get_z);
@@ -182,7 +182,7 @@
   //         Move to the first probe position
   //
   void _lcd_level_bed_homing_done() {
-    if (lcdui.should_draw()) draw_edit_screen(PSTR(MSG_LEVEL_BED_WAITING));
+    if (lcdui.should_draw()) draw_edit_screen(PSTR(MSG_LEVEL_BED_WAITING), NULL);
     if (lcdui.use_click()) {
       manual_probe_index = 0;
       _lcd_level_goto_next_point();
