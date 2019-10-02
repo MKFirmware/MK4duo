@@ -162,20 +162,14 @@ class Temperature {
         return printer.isAllowColdExtrude() ? false : temp < extrude_min_temp;
       }
       FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
         return tooCold(hotends[tools.data.hotend[h]]->deg_current());
       }
       FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
-        #if HOTENDS == 1
-          UNUSED(h);
-        #endif
         return tooCold(hotends[tools.data.hotend[h]]->deg_target());
       }
     #else
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t) { return false; }
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t) { return false; }
     #endif
 
     FORCE_INLINE static bool hotEnoughToExtrude(const uint8_t h) { return !tooColdToExtrude(h); }

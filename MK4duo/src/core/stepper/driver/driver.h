@@ -105,16 +105,63 @@ class Driver {
     FORCE_INLINE void setStep(const bool onoff)       { data.flag.step = onoff; }
     FORCE_INLINE bool isStep()                        { return data.flag.step; }
 
-    FORCE_INLINE void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
-    FORCE_INLINE void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
-    FORCE_INLINE bool enable_read()                   { return HAL::digitalRead(data.pin.enable); }
-    FORCE_INLINE void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
-    FORCE_INLINE void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
-    FORCE_INLINE bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
-    FORCE_INLINE void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
-    FORCE_INLINE void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
-    FORCE_INLINE void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step); */}
-    FORCE_INLINE bool step_read()                     { return HAL::digitalRead(data.pin.step); }
+    /**
+     * Function for enable
+     */
+    FORCE_INLINE void enable_init() {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc) return;
+      #endif
+      HAL::pinMode(data.pin.enable, OUTPUT);
+      if (!isEnable()) enable_write(HIGH);
+    }
+    FORCE_INLINE void enable_write(const bool state) {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc) {
+          return tmc->toff(state == isEnable() ? chopper_timing.toff : 0);
+        }
+      #endif
+      HAL::digitalWrite(data.pin.enable, state);
+    }
+    FORCE_INLINE bool enable_read() {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc) return tmc->isEnabled();
+      #endif
+      return HAL::digitalRead(data.pin.enable);
+    }
+
+    /**
+     * Function for dir
+     */
+    FORCE_INLINE void dir_init() {
+      HAL::pinMode(data.pin.dir, OUTPUT);
+    }
+    FORCE_INLINE void dir_write(const bool state) {
+      HAL::digitalWrite(data.pin.dir, state);
+    }
+    FORCE_INLINE bool dir_read() {
+      return HAL::digitalRead(data.pin.dir);
+    }
+
+    /**
+     * Function for step
+     */
+    FORCE_INLINE void step_init() {
+      HAL::pinMode(data.pin.step, OUTPUT);
+      step_write(isStep());
+    }
+    FORCE_INLINE void step_write(const bool state) {
+      #if ENABLED(SQUARE_WAVE_STEPPING)
+        if (tmc) return step_toggle(state);
+      #endif
+      HAL::digitalWrite(data.pin.step, state);
+    }
+    FORCE_INLINE void step_toggle(const bool state) {
+      if (state) TOGGLE(data.pin.step);
+    }
+    FORCE_INLINE bool step_read() {
+      return HAL::digitalRead(data.pin.step);
+    }
 
 };
 

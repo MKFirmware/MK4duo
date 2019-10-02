@@ -288,7 +288,7 @@ void Probe::servo_test() {
       probe_logic = endstops.isLogic(Z_PROBE);
       SERIAL_EMV(". Probe uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
       SERIAL_EM(". Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-      SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+      SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC", probe_logic);
 
     #elif HAS_Z_MIN
 
@@ -296,7 +296,7 @@ void Probe::servo_test() {
       probe_logic = endstops.isLogic(Z_MIN);
       SERIAL_EMV(". Probe uses Z_MIN pin: ", PROBE_TEST_PIN);
       SERIAL_EM(". Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-      SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+      SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC", probe_logic);
 
     #endif
 

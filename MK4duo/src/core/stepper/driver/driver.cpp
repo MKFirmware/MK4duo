@@ -37,8 +37,6 @@ void Driver::init() {
   if (data.pin.enable != NoPin && data.pin.dir != NoPin && data.pin.step != NoPin) {
     dir_init();
     enable_init();
-    if (!isEnable()) enable_write(HIGH);
     step_init();
-    step_write(isStep());
   }
 }

@@ -54,7 +54,7 @@ class Nozzle {
     #endif
 
     #if MAX_HOTEND > 1
-      static void print_M218(const uint8_t h);
+      static void print_M218();
     #endif
 
     #if ENABLED(NOZZLE_CLEAN_FEATURE)

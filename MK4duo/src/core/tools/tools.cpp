@@ -371,12 +371,11 @@ void Tools::print_M563() {
     else
       SERIAL_EM(" Disabled");
 
-    #if MAX_EXTRUDER > 0
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M200 T", (int)e);
-        SERIAL_EMV(" D", data.filament_size[e], 3);
-      }
-    #endif
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M200 T", (int)e);
+      SERIAL_EMV(" D", data.filament_size[e], 3);
+    }
+
   }
 
 #endif

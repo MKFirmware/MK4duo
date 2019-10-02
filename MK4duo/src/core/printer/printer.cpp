@@ -752,20 +752,20 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
       planner.set_e_position_mm(olde);
       planner.synchronize();
       #if ENABLED(DONDOLO_SINGLE_MOTOR)
-        E0_ENABLE_WRITE(oldstatus);
+        driver.e[0]->enable_write(oldstatus);
       #else
         switch (tools.data.extruder.active) {
-          case 0: E0_ENABLE_WRITE(oldstatus); break;
+          case 0: driver.e[0]->enable_write(oldstatus); break;
           #if MAX_DRIVER_E > 1
-            case 1: E1_ENABLE_WRITE(oldstatus); break;
+            case 1: driver.e[1]->enable_write(oldstatus); break;
             #if MAX_DRIVER_E > 2
-              case 2: E2_ENABLE_WRITE(oldstatus); break;
+              case 2: driver.e[2]->enable_write(oldstatus); break;
               #if MAX_DRIVER_E > 3
-                case 3: E3_ENABLE_WRITE(oldstatus); break;
+                case 3: driver.e[3]->enable_write(oldstatus); break;
                 #if MAX_DRIVER_E > 4
-                  case 4: E4_ENABLE_WRITE(oldstatus); break;
+                  case 4: driver.e[4]->enable_write(oldstatus); break;
                   #if MAX_DRIVER_E > 5
-                    case 5: E5_ENABLE_WRITE(oldstatus); break;
+                    case 5: driver.e[5]->enable_write(oldstatus); break;
                   #endif // MAX_DRIVER_E > 5
                 #endif // MAX_DRIVER_E > 4
               #endif // MAX_DRIVER_E > 3

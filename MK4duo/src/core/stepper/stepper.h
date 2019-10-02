@@ -41,7 +41,10 @@
  * along with Grbl. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stepper_macro.h"
+#include "l6470/l6470.h"
+#include "tmc/tmc.h"
+#include "tmc26x/tmc26x.h"
+#include "driver/driver.h"
 
 // Struct Stepper data
 typedef struct {
@@ -415,6 +418,26 @@ class Stepper {
     FORCE_INLINE static void set_Z_dir(const bool dir);
     FORCE_INLINE static void set_nor_E_dir(const uint8_t e=0);
     FORCE_INLINE static void set_rev_E_dir(const uint8_t e=0);
+
+    /**
+     * Extruder Step for the single E axis
+     */
+    FORCE_INLINE static void e_step_write(const uint8_t e, const bool state) {
+      #if MAX_DRIVER_E > 2
+        driver.e[e]->step_write(state);
+      #elif MAX_DRIVER_E > 1
+        #if ENABLED(DUAL_X_CARRIAGE)
+          if (mechanics.extruder_duplication_enabled) {
+            driver.e[0]->step_write(state);
+            driver.e[1]->step_write(state);
+          } 
+          else
+        #endif
+        driver.e[e]->step_write(state);
+      #elif MAX_DRIVER_E > 0
+        driver.e[0]->step_write(state);
+      #endif
+    }
 
     /**
      * Set current position in steps

@@ -168,18 +168,18 @@ Power powerManager;
 
     if (thermalManager.heaters_isActive()) return true;
 
-    if (X_ENABLE_READ() == driver.x->isEnable() || Y_ENABLE_READ() == driver.y->isEnable() || Z_ENABLE_READ() == driver.z->isEnable()
-        || E0_ENABLE_READ() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
+    if (driver.x->enable_read() == driver.x->isEnable() || driver.y->enable_read()() == driver.y->isEnable() || driver.z->enable_read()() == driver.z->isEnable()
+        || driver.e[0]->enable_read() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
         #if MAX_DRIVER_E > 1
-          || E1_ENABLE_READ() == driver.e[E1_DRV]->isEnable()
+          || driver.e[1]->enable_read() == driver.e[E1_DRV]->isEnable()
           #if MAX_DRIVER_E > 2
-            || E2_ENABLE_READ() == driver.e[E2_DRV]->isEnable()
+            || driver.e[2]->enable_read() == driver.e[E2_DRV]->isEnable()
             #if MAX_DRIVER_E > 3
-              || E3_ENABLE_READ() == driver.e[E3_DRV]->isEnable()
+              || driver.e[3]->enable_read() == driver.e[E3_DRV]->isEnable()
               #if MAX_DRIVER_E > 4
-                || E4_ENABLE_READ() == driver.e[E4_DRV]->isEnable()
+                || driver.e[4]->enable_read() == driver.e[E4_DRV]->isEnable()
                 #if MAX_DRIVER_E > 5
-                  || E5_ENABLE_READ() == driver.e[E5_DRV]->isEnable()
+                  || driver.e[5]->enable_read() == driver.e[E5_DRV]->isEnable()
                 #endif
               #endif
             #endif
