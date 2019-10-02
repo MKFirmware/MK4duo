@@ -65,8 +65,9 @@ script:
   - build_mk4duo
 
   # Test 2 extruders and heated bed on basic RAMPS 1.4
-  # Test a "Fix Mounted" Probe with Safe Homing
-  # Display REPRAP_DISCOUNT_SMART_CONTROLLER, sdsupport, eeprom
+  # Test SDSUPPORT EEPROM_SETTINGS
+  # Test Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
+  # Display REPRAP_DISCOUNT_SMART_CONTROLLER
   - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HHB
   - opt_set_basic EXTRUDERS 2
   - opt_set_basic POWER_SUPPLY 1
@@ -74,24 +75,28 @@ script:
   - opt_set_temp TEMP_SENSOR_HE1 1
   - opt_set_temp TEMP_SENSOR_BED0 1
   - opt_set_temp PIDTEMPBED true
+  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - opt_enable_cartesian Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
-  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
   - build_mk4duo
 
   # Restore configuration
   - restore_configs
 
   # Test 1 extruders and heated bed on basic RAMPS 1.4
+  # Test SDSUPPORT EEPROM_SETTINGS
+  # Test a NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE 
   # Test a FILAMENT_RUNOUT_SENSOR
   # Display REPRAP_DISCOUNT_SMART_CONTROLLER, sdsupport, eeprom
-  - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HHB
+  - opt_set_basic MOTHERBOARD BOARD_RAMPS_13_HFB
   - opt_set_basic EXTRUDERS 1
   - opt_set_basic POWER_SUPPLY 1
   - opt_set_temp TEMP_SENSOR_HE0 20
   - opt_set_temp TEMP_SENSOR_BED0 1
+  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS
+  - opt_enable_feature NOZZLE_PARK_FEATURE ADVANCED_PAUSE_FEATURE
+  - opt_enable_feature FILAMENT_RUNOUT_SENSOR
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
-  - opt_enable_feature SDSUPPORT EEPROM_SETTINGS FILAMENT_RUNOUT_SENSOR
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
 
