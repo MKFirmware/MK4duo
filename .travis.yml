@@ -1,5 +1,5 @@
 dist: MagoKimbra
-sudo: false
+sudo: true
 language: c
 
 notifications:
