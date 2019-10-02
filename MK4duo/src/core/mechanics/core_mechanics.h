@@ -30,7 +30,7 @@
 
 // Struct Core Settings
 typedef struct : public generic_data_t {
-  limit_float_t base_pos[XYZ];
+  xyz_limit_float_t base_pos;
 } mechanics_data_t;
 
 class Core_Mechanics: public Mechanics {
@@ -107,7 +107,7 @@ class Core_Mechanics: public Mechanics {
     /**
      * Home an individual linear axis
      */
-    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0);
+    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0f);
 
     /**
      * Prepare a linear move in a Cartesian setup.

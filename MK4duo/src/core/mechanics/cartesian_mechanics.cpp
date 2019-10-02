@@ -363,7 +363,7 @@ void Cartesian_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=fa
 /**
  * Home an individual linear axis
  */
-void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0*/) {
+void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
   if (printer.debugFeature()) {
     DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);

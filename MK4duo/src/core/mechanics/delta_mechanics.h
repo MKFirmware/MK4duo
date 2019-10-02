@@ -156,7 +156,7 @@ class Delta_Mechanics : public Mechanics {
     /**
      * Home an individual linear axis
      */
-    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0);
+    static void do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s=0.0f);
 
     /**
      * Set an axis' current position to its home position (after homing).

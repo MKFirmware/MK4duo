@@ -484,7 +484,7 @@ void Scara_Mechanics::home() {
 /**
  * Home an individual linear axis
  */
-void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0*/) {
+void Scara_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
   if (printer.debugFeature()) {
     DEBUG_MV(">>> do_homing_move(", axis_codes[axis]);

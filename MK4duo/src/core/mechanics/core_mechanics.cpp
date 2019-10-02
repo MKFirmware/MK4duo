@@ -99,7 +99,7 @@ void Core_Mechanics::get_cartesian_from_steppers() {
  *  Plan a move to (X, Y, Z) and set the current_position.x
  *  The final current_position.x may not be the one that was requested
  */
-void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s /*=0.0*/) {
+void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s /*=0.0f*/) {
 
   if (printer.debugFeature()) DEBUG_XYZ(">>> do_blocking_move_to", rx, ry, rz);
 
@@ -295,10 +295,10 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
 /**
  * Home an individual linear axis
  */
-void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const float fr_mm_s/*=0.0*/) {
+void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> do_homing_move(", axis_codes[axis]);
+    DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);
     DEBUG_MV(", ", distance);
     DEBUG_MSG(", ");
     if (fr_mm_s)
@@ -355,7 +355,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   }
 
   if (printer.debugFeature()) {
-    DEBUG_MV("<<< do_homing_move(", axis_codes[axis]);
+    DEBUG_MC("<<< do_homing_move(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -415,7 +415,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_MC(">>> set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -447,11 +447,11 @@ void Core_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
 
   if (printer.debugFeature()) {
     #if ENABLED(WORKSPACE_OFFSETS)
-      DEBUG_MV("> data.home_offset[", axis_codes[axis]);
+      DEBUG_MC("> data.home_offset[", axis_codes[axis]);
       DEBUG_EMV("] = ", data.home_offset[axis]);
     #endif
     DEBUG_POS("", current_position);
-    DEBUG_MV("<<< set_axis_is_at_home(", axis_codes[axis]);
+    DEBUG_MC("<<< set_axis_is_at_home(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -540,7 +540,7 @@ void Core_Mechanics::report_current_position_detail() {
   SERIAL_EOL();
 
   SERIAL_MSG("FromStp:");
-  get_cartesian_from_steppers();  // writes cartesian_position[XYZ] (with forward kinematics)
+  get_cartesian_from_steppers();
   xyze_pos_t from_steppers = { cartesian_position.x, cartesian_position.y, cartesian_position.z, planner.get_axis_position_mm(E_AXIS) };
   report_xyze(from_steppers);
 
@@ -567,16 +567,11 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_SMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm.x), 3);
     SERIAL_MV(" Y", LINEAR_UNIT(data.axis_steps_per_mm.y), 3);
     SERIAL_MV(" Z", LINEAR_UNIT(data.axis_steps_per_mm.z), 3);
-    #if EXTRUDERS == 1
-      SERIAL_MV(" T0 E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[0]), 3);
-    #endif
     SERIAL_EOL();
-    #if EXTRUDERS > 1
-      LOOP_EXTRUDER() {
-        SERIAL_SMV(CFG, "  M92 T", (int)e);
-        SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
-      }
-    #endif // EXTRUDERS > 1
+    LOOP_EXTRUDER() {
+      SERIAL_SMV(CFG, "  M92 T", (int)e);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
+    }
   }
 
   void Core_Mechanics::print_M201() {
@@ -593,13 +588,13 @@ void Core_Mechanics::report_current_position_detail() {
 
   void Core_Mechanics::print_M203() {
     SERIAL_LM(CFG, "Maximum feedrates (units/s):");
-    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s[X_AXIS]), 3);
-    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s[Y_AXIS]), 3);
-    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s[Z_AXIS]), 3);
+    SERIAL_SMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
+    SERIAL_MV(" Y", LINEAR_UNIT(data.max_feedrate_mm_s.y), 3);
+    SERIAL_MV(" Z", LINEAR_UNIT(data.max_feedrate_mm_s.z), 3);
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M203 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s[E_INDEX_N(e)]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
     }
   }
 
@@ -683,7 +678,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
   if (!CAN_HOME(X) && !CAN_HOME(Y) && !CAN_HOME(Z)) return;
 
   if (printer.debugFeature()) {
-    DEBUG_MV(">>> homeaxis(", axis_codes[axis]);
+    DEBUG_MC(">>> homeaxis(", axis_codes[axis]);
     DEBUG_CHR(')'); DEBUG_EOL();
   }
 
@@ -852,7 +847,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
   #endif
 
   if (printer.debugFeature()) {
-    DEBUG_MV("<<< homeaxis(", axis_codes[axis]);
+    DEBUG_MC("<<< homeaxis(", axis_codes[axis]);
     DEBUG_CHR(')');
     DEBUG_EOL();
   }

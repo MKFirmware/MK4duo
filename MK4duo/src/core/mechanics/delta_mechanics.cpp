@@ -538,7 +538,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 /**
  * Home an individual linear axis
  */
-void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0*/) {
+void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, const feedrate_t fr_mm_s/*=0.0f*/) {
 
   if (printer.debugFeature()) {
     DEBUG_MC(">>> do_homing_move(", axis_codes[axis]);
