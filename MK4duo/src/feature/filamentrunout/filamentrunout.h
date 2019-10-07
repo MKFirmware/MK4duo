@@ -112,8 +112,11 @@ class FilamentRunoutBase {
         #if FILAMENT_RUNOUT_DISTANCE_MM > 0
           sei();
         #endif
-        if (ran_out)
-          printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
+        if (ran_out) {
+          sensor.setFilamentOut(true);
+          event_runout();
+          planner.synchronize();
+        }
       }
     }
 
@@ -126,6 +129,44 @@ class FilamentRunoutBase {
         SERIAL_MV(" D", runout_distance());
       #endif
       SERIAL_EOL();
+    }
+
+  private: /** Private Function */
+
+    static void event_runout() {
+
+      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+        if (advancedpause.did_pause_print) return;
+      #endif
+
+      const char tool = DIGIT(tools.data.extruder.active);
+      host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
+      host_action.prompt_begin(PSTR("Filament Runout T"), false);
+      SERIAL_CHR(tool);
+      SERIAL_EOL();
+      host_action.prompt_show();
+
+      const bool run_runout_script = !sensor.isHostHandling();
+
+      if (run_runout_script
+        && ( strstr(FILAMENT_RUNOUT_SCRIPT, "M600")
+          || strstr(FILAMENT_RUNOUT_SCRIPT, "M125")
+          #if ENABLED(ADVANCED_PAUSE_FEATURE)
+            || strstr(FILAMENT_RUNOUT_SCRIPT, "M25")
+          #endif
+        )
+      ) {
+        host_action.paused(false);
+      }
+      else
+        host_action.pause(false);
+
+      SERIAL_MSG(" filament_runout T");
+      SERIAL_CHR(tool);
+      SERIAL_EOL();
+
+      if (run_runout_script)
+        commands.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
     }
 
 };

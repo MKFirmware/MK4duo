@@ -510,6 +510,11 @@
 //  If CLOCKWISE normally moves UP this makes it go DOWN.
 //#define REVERSE_MENU_DIRECTION
 
+// This option reverses the encoder direction for Select Screen.
+//  If CLOCKWISE normally moves LEFT this makes it go RIGHT.
+//  If CLOCKWISE normally moves RIGHT this makes it go LEFT.
+//#define REVERSE_SELECT_DIRECTION
+
 #define ENCODER_RATE_MULTIPLIER         // If defined, certain menu edit operations automatically multiply the steps when the encoder is moved quickly
 #define ENCODER_10X_STEPS_PER_SEC 75    // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value
 #define ENCODER_100X_STEPS_PER_SEC 160  // If the encoder steps per sec exceeds this value, multiply steps moved x100 to really quickly advance the value

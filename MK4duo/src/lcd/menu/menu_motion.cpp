@@ -257,27 +257,27 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
   if (LCD_HEIGHT >= 4) {
     switch (axis) {
       case X_AXIS:
-        STATIC_ITEM(MSG_MOVE_X, true, true); break;
+        STATIC_ITEM(MSG_MOVE_X, SS_CENTER|SS_INVERT);break;
       case Y_AXIS:
-        STATIC_ITEM(MSG_MOVE_Y, true, true); break;
+        STATIC_ITEM(MSG_MOVE_Y, SS_CENTER|SS_INVERT); break;
       case Z_AXIS:
-        STATIC_ITEM(MSG_MOVE_Z, true, true); break;
+        STATIC_ITEM(MSG_MOVE_Z, SS_CENTER|SS_INVERT); break;
       default:
-        STATIC_ITEM(MSG_MOVE_E, true, true); break;
+        STATIC_ITEM(MSG_MOVE_E, SS_CENTER|SS_INVERT); break;
     }
   }
   #if ENABLED(PREVENT_COLD_EXTRUSION)
     if (axis == E_AXIS && thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : tools.data.extruder.active))
-      MENU_BACK(MSG_HOTEND_TOO_COLD);
+      BACK_ITEM(MSG_HOTEND_TOO_COLD);
     else
   #endif
   {
-    MENU_BACK(MSG_MOVE_AXIS);
-    MENU_ITEM(submenu, MSG_MOVE_10MM, menu_move_10mm);
-    MENU_ITEM(submenu, MSG_MOVE_1MM, menu_move_1mm);
-    MENU_ITEM(submenu, MSG_MOVE_01MM, menu_move_01mm);
+    BACK_ITEM(MSG_MOVE_AXIS);
+    SUBMENU(MSG_MOVE_10MM, menu_move_10mm);
+    SUBMENU(MSG_MOVE_1MM, menu_move_1mm);
+    SUBMENU(MSG_MOVE_01MM, menu_move_01mm);
     if (axis == Z_AXIS && (SHORT_MANUAL_Z_MOVE) > 0.0f && (SHORT_MANUAL_Z_MOVE) < 0.1f) {
-      MENU_ITEM(submenu, "", []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
+      SUBMENU("", []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
       MENU_ITEM_ADDON_START(1);
         char tmp[20], numstr[10];
         // Determine digits needed right of decimal
@@ -327,11 +327,11 @@ void lcd_move_get_z_amount()            { _menu_move_distance(Z_AXIS, lcd_move_z
 
 void menu_move() {
   START_MENU();
-  MENU_BACK(MSG_MOTION);
+  BACK_ITEM(MSG_MOTION);
 
   #if HAS_SOFTWARE_ENDSTOPS
     bool new_soft_endstop_state = endstops.flag.SoftEndstop;
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, lcd_toggle_soft_endstops);
+    EDIT_ITEM(bool, MSG_LCD_SOFT_ENDSTOPS, &new_soft_endstop_state, lcd_toggle_soft_endstops);
   #endif
 
   #if IS_KINEMATIC
@@ -346,41 +346,41 @@ void menu_move() {
       constexpr bool do_move_xy = true;
     #endif
     if (do_move_xy) {
-      MENU_ITEM(submenu, MSG_MOVE_X, lcd_move_get_x_amount);
-      MENU_ITEM(submenu, MSG_MOVE_Y, lcd_move_get_y_amount);
+      SUBMENU(MSG_MOVE_X, lcd_move_get_x_amount);
+      SUBMENU(MSG_MOVE_Y, lcd_move_get_y_amount);
     }
     #if MECH(DELTA)
       else
-        MENU_ITEM(function, MSG_FREE_XY, lcd_lower_z_to_clip_height);
+        ACTION_ITEM(MSG_FREE_XY, lcd_lower_z_to_clip_height);
     #endif
 
-    MENU_ITEM(submenu, MSG_MOVE_Z, lcd_move_get_z_amount);
+    SUBMENU(MSG_MOVE_Z, lcd_move_get_z_amount);
   }
   else
-    MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
+    GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
 
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
     if (tools.data.extruder.active)
-      MENU_ITEM(gcode, MSG_SELECT MSG_E1, PSTR("T0"));
+      GCODES_ITEM(MSG_SELECT MSG_E1, PSTR("T0"));
     else
-      MENU_ITEM(gcode, MSG_SELECT MSG_E2, PSTR("T1"));
+      GCODES_ITEM(MSG_SELECT MSG_E2, PSTR("T1"));
 
   #endif
 
   #if E_MANUAL == 1
-    MENU_ITEM(submenu, MSG_MOVE_E, lcd_move_get_e_amount);
+    SUBMENU(MSG_MOVE_E, lcd_move_get_e_amount);
   #elif E_MANUAL > 1
-    MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
-    MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
+    SUBMENU(MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
+    SUBMENU(MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
     #if E_MANUAL > 2
-      MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E3, lcd_move_get_e2_amount);
+      SUBMENU(MSG_MOVE_E MSG_MOVE_E3, lcd_move_get_e2_amount);
       #if E_MANUAL > 3
-        MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E4, lcd_move_get_e3_amount);
+        SUBMENU(MSG_MOVE_E MSG_MOVE_E4, lcd_move_get_e3_amount);
         #if E_MANUAL > 4
-          MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E5, lcd_move_get_e4_amount);
+          SUBMENU(MSG_MOVE_E MSG_MOVE_E5, lcd_move_get_e4_amount);
           #if E_MANUAL > 5
-            MENU_ITEM(submenu, MSG_MOVE_E MSG_MOVE_E6, lcd_move_get_e5_amount);
+            SUBMENU(MSG_MOVE_E MSG_MOVE_E6, lcd_move_get_e5_amount);
           #endif
         #endif
       #endif
@@ -399,7 +399,7 @@ void menu_motion() {
   //
   // ^ Main
   //
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
 
   //
   // Move Axis
@@ -407,19 +407,19 @@ void menu_motion() {
   #if ENABLED(DELTA)
     if (mechanics.isHomedAll())
   #endif
-      MENU_ITEM(submenu, MSG_MOVE_AXIS, menu_move);
+      SUBMENU(MSG_MOVE_AXIS, menu_move);
 
   //
   // Auto Home
   //
   if (printer.mode == PRINTER_MODE_LASER)
-    MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28 X Y F2000"));
+    GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28 X Y F2000"));
   else {
-    MENU_ITEM(gcode, MSG_AUTO_HOME, PSTR("G28"));
+    GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
     #if NOMECH(DELTA)
-      MENU_ITEM(gcode, MSG_AUTO_HOME_X, PSTR("G28 X"));
-      MENU_ITEM(gcode, MSG_AUTO_HOME_Y, PSTR("G28 Y"));
-      MENU_ITEM(gcode, MSG_AUTO_HOME_Z, PSTR("G28 Z"));
+      GCODES_ITEM(MSG_AUTO_HOME_X, PSTR("G28 X"));
+      GCODES_ITEM(MSG_AUTO_HOME_Y, PSTR("G28 Y"));
+      GCODES_ITEM(MSG_AUTO_HOME_Z, PSTR("G28 Z"));
     #endif
   }
 
@@ -427,7 +427,7 @@ void menu_motion() {
   // Auto Z-Align
   //
   #if ENABLED(Z_STEPPER_AUTO_ALIGN)
-    MENU_ITEM(gcode, MSG_AUTO_Z_ALIGN, PSTR("G34"));
+    GCODES_ITEM(MSG_AUTO_Z_ALIGN, PSTR("G34"));
   #endif
 
   //
@@ -435,38 +435,38 @@ void menu_motion() {
   //
   #if ENABLED(AUTO_BED_LEVELING_UBL)
 
-    MENU_ITEM(submenu, MSG_UBL_LEVEL_BED, _lcd_ubl_level_bed);
+    SUBMENU(MSG_UBL_LEVEL_BED, _lcd_ubl_level_bed);
 
   #elif ENABLED(LCD_BED_LEVELING)
 
     #if HAS_PROBE_MANUALLY
       if (!bedlevel.flag.g29_in_progress)
     #endif
-        MENU_ITEM(submenu, MSG_BED_LEVELING, menu_bed_leveling);
+        SUBMENU(MSG_BED_LEVELING, menu_bed_leveling);
 
   #elif HAS_LEVELING && DISABLED(SLIM_LCD_MENUS)
 
     #if DISABLED(PROBE_MANUALLY)
-      MENU_ITEM(gcode, MSG_LEVEL_BED, PSTR("G28\nG29"));
+      GCODES_ITEM(MSG_LEVEL_BED, PSTR("G28\nG29"));
     #endif
     if (mechanics.isHomedAll() && bedlevel.leveling_is_valid()) {
       bool new_level_state = bedlevel.flag.leveling_active;
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
+      EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
     }
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
+      EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
     #endif
 
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS) && DISABLED(LCD_BED_LEVELING)
-    MENU_ITEM(function, MSG_LEVEL_CORNERS, lcd_level_bed_corners);
+    ACTION_ITEM(MSG_LEVEL_CORNERS, lcd_level_bed_corners);
   #endif
 
   //
   // Disable Steppers
   //
-  MENU_ITEM(gcode, MSG_DISABLE_STEPPERS, PSTR("M84"));
+  GCODES_ITEM(MSG_DISABLE_STEPPERS, PSTR("M84"));
 
   END_MENU();
 }

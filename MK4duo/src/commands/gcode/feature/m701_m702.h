@@ -45,7 +45,7 @@ inline void gcode_M701() {
   xyz_pos_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
-  if (mechanics.axis_unhomed_error()) park_point.z = 0;
+  if (mechanics.axis_need_homing()) park_point.z = 0;
 
   if (commands.get_target_tool(701)) return;
 
@@ -57,7 +57,7 @@ inline void gcode_M701() {
     lcd_pause_show_message(PAUSE_MESSAGE_LOAD, PAUSE_MODE_LOAD_FILAMENT, tools.target_hotend());
   #endif
 
-  #if MAX_EXTRUDER > 1 && DISABLED(PRUSA_MMU2)
+  #if DISABLED(PRUSA_MMU2)
     // Change toolhead if specified
     uint8_t active_extruder_before_filament_change = tools.data.extruder.active;
     if (tools.data.extruder.active != tools.data.extruder.target)
@@ -72,12 +72,16 @@ inline void gcode_M701() {
   #if HAS_MMU2
     mmu2.load_filament_to_nozzle(tools.data.extruder.target);
   #else
-    constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
-    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
-                                                          advancedpause.data[tools.data.extruder.target].load_length);
+    constexpr float     purge_length = PAUSE_PARK_PURGE_LENGTH,
+                    slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
+    const float     fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) :
+                                                              advancedpause.data[tools.data.extruder.target].load_length);
 
-    advancedpause.load_filament(slow_load_length, fast_load_length, PAUSE_PARK_PURGE_LENGTH, PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
-                                true, hotends[tools.target_hotend()]->wait_for_heating(), PAUSE_MODE_LOAD_FILAMENT
+    advancedpause.load_filament(slow_load_length, fast_load_length, purge_length,
+                                PAUSE_PARK_NUMBER_OF_ALERT_BEEPS,
+                                true,
+                                hotends[tools.target_hotend()]->wait_for_heating(),
+                                PAUSE_MODE_LOAD_FILAMENT
                                 #if ENABLED(DUAL_X_CARRIAGE)
                                   , tools.data.extruder.target
                                 #endif
@@ -103,8 +107,8 @@ inline void gcode_M701() {
 /**
  * M702: Unload filament
  *
- *  T[toolhead] - Optional toolhead number. If omitted, current toolhead
- *                (or ALL extruders with FILAMENT_UNLOAD_ALL_EXTRUDERS).
+ *  T[extruder] - Extruder number. Required for mixing extruder.
+ *                For non-mixing, current extruder if omitted.
  *  Z[distance] - Move the Z axis by this distance
  *  U[distance] - Retract distance for removal (manual reload)
  *
@@ -117,7 +121,7 @@ inline void gcode_M702() {
   xyz_pos_t park_point = nozzle.data.park_point;
 
   // Only raise Z if the machine is homed
-  if (mechanics.axis_unhomed_error()) park_point.z = 0;
+  if (mechanics.axis_need_homing()) park_point.z = 0;
 
   // Z axis lift
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
@@ -142,7 +146,7 @@ inline void gcode_M702() {
   #if HAS_MMU2
     mmu2.unload();
   #else
-    #if MAX_EXTRUDER > 1 && ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
+    #if ENABLED(FILAMENT_UNLOAD_ALL_EXTRUDERS)
       if (!parser.seenval('T')) {
         LOOP_EXTRUDER() {
           if (e != tools.data.extruder.active) tools.change(e);

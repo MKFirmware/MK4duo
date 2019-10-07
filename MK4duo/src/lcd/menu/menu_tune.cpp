@@ -40,7 +40,6 @@ inline void _lcd_refresh_e_factor() {
 
   void _lcd_babystep(const AxisEnum axis, PGM_P msg) {
     if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
-    lcdui.encoder_direction_normal();
     if (lcdui.encoderPosition) {
       const int16_t steps = int16_t(lcdui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
       lcdui.encoderPosition = 0;
@@ -100,18 +99,18 @@ void lcd_tune_fixstep() {
 
 void menu_tune() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
 
   //
   // Speed:
   //
-  MENU_ITEM_EDIT(int3, MSG_SPEED, &mechanics.feedrate_percentage, 10, 999);
+  EDIT_ITEM(int3, MSG_SPEED, &mechanics.feedrate_percentage, 10, 999);
 
   //
   // Manual bed leveling, Bed Z:
   //
   #if ENABLED(MESH_BED_LEVELING) && ENABLED(LCD_BED_LEVELING)
-    MENU_ITEM_EDIT(float43, MSG_BED_Z, &mbl.data.z_offset, -1, 1);
+    EDIT_ITEM(float43, MSG_BED_Z, &mbl.data.z_offset, -1, 1);
   #endif
 
   //
@@ -119,7 +118,7 @@ void menu_tune() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_NOZZLE, DIGIT(h), &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      EDIT_ITEM_FAST_INDEX(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -127,7 +126,7 @@ void menu_tune() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_BED, DIGIT(h), &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      EDIT_ITEM_FAST_INDEX(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -135,14 +134,14 @@ void menu_tune() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_CHAMBER, DIGIT(h), &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      EDIT_ITEM_FAST_INDEX(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_COOLER, NULL, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    EDIT_ITEM_FAST_INDEX(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -150,7 +149,7 @@ void menu_tune() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(percent, MSG_FAN_SPEED, DIGIT(f), &fans[f]->speed, 0, 255);
+      EDIT_ITEM_FAST_INDEX(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
   #endif
 
   //
@@ -159,7 +158,7 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK_INDEX(int3, MSG_FLOW, DIGIT(e), &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
+      EDIT_ITEM_FAST_INDEX(int3, MSG_FLOW, e, &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
   #endif
 
   //
@@ -169,17 +168,17 @@ void menu_tune() {
   //
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
-      MENU_ITEM(submenu, MSG_BABYSTEP_X, lcd_babystep_x);
-      MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
+      SUBMENU(MSG_BABYSTEP_X, lcd_babystep_x);
+      SUBMENU(MSG_BABYSTEP_Y, lcd_babystep_y);
     #endif
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-      MENU_ITEM(submenu, MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
+      SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #else
-      MENU_ITEM(submenu, MSG_BABYSTEP_Z, lcd_babystep_z);
+      SUBMENU(MSG_BABYSTEP_Z, lcd_babystep_z);
     #endif
   #endif
 
-  MENU_ITEM(function, MSG_FIX_LOSE_STEPS, lcd_tune_fixstep);
+  ACTION_ITEM(MSG_FIX_LOSE_STEPS, lcd_tune_fixstep);
 
   END_MENU();
 }

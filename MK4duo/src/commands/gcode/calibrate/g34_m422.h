@@ -259,7 +259,7 @@ inline void gcode_G34() {
     STOW_PROBE();
 
     // Home Z after the alignment procedure
-    mechanics.home(NO_HOME_X, NO_HOME_Y, HOME_Z);
+    mechanics.home(HOME_Z);
 
   } while(0);
 

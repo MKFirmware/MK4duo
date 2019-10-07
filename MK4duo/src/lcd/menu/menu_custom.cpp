@@ -62,21 +62,21 @@ void _lcd_user_gcode(PGM_P const cmd) {
 
 void menu_user() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
   #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
-    MENU_ITEM(function, USER_DESC_1, lcd_user_gcode_1);
+    ACTION_ITEM(USER_DESC_1, lcd_user_gcode_1);
   #endif
   #if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
-    MENU_ITEM(function, USER_DESC_2, lcd_user_gcode_2);
+    ACTION_ITEM(USER_DESC_2, lcd_user_gcode_2);
   #endif
   #if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
-    MENU_ITEM(function, USER_DESC_3, lcd_user_gcode_3);
+    ACTION_ITEM(USER_DESC_3, lcd_user_gcode_3);
   #endif
   #if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
-    MENU_ITEM(function, USER_DESC_4, lcd_user_gcode_4);
+    ACTION_ITEM(USER_DESC_4, lcd_user_gcode_4);
   #endif
   #if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
-    MENU_ITEM(function, USER_DESC_5, lcd_user_gcode_5);
+    ACTION_ITEM(USER_DESC_5, lcd_user_gcode_5);
   #endif
   END_MENU();
 }

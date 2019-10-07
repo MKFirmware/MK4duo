@@ -127,7 +127,7 @@ extern void servo_init();
 
 // Types
 typedef struct {
-  uint8_t nbr        :6 ;             // a pin number from 0 to 63
+  uint8_t nbr        :7 ;             // a pin number from 0 to 127
   uint8_t isActive   :1 ;             // true if this channel is enabled, pin not pulsed if false
 } ServoPin_t;
 
@@ -162,12 +162,12 @@ class MKServo {
 
   public: /** Public Function */
 
-    int8_t attach(const pin_t pin);                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
-    int8_t attach(const pin_t pin, int min, int max); // as above but also sets min and max values for writes.
+    int8_t attach(const pin_t inPin);                                   // attach the given pin to the next free channel, sets pinMode, returns channel number or 0 if failure
+    int8_t attach(const pin_t inPin, const int inMin, const int inMax); // as above but also sets min and max values for writes.
     void detach();
     void write(int value);              // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
     void writeMicroseconds(int value);  // Write pulse width in microseconds
-    void move(int value);               // attach the servo, then move to value
+    void move(const int value);         // attach the servo, then move to value
                                         // if value is < 200 it is treated as an angle, otherwise as pulse width in microseconds
                                         // if DEACTIVATE_SERVOS_AFTER_MOVE wait SERVO_DEACTIVATION_DELAY, then detach
     int read();                         // returns current pulse width as an angle between 0 and 180 degrees

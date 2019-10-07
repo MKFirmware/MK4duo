@@ -51,7 +51,7 @@ static void lcd_reset_settings() { eeprom.reset(); }
     bar_percent += (int8_t)lcdui.encoderPosition;
     LIMIT(bar_percent, 0, 100);
     lcdui.encoderPosition = 0;
-    draw_menu_item_static(0, PSTR(MSG_PROGRESS_BAR_TEST), true, true);
+    draw_menu_item_static(0, PSTR(MSG_PROGRESS_BAR_TEST), SS_CENTER|SS_INVERT);
     lcd_put_int((LCD_WIDTH) / 2 - 2, LCD_HEIGHT - 2, bar_percent); lcd_put_wchar('%');
     lcd_moveto(0, LCD_HEIGHT - 1); lcd_draw_progress_bar(bar_percent);
   }
@@ -68,10 +68,10 @@ static void lcd_reset_settings() { eeprom.reset(); }
   void menu_debug() {
     START_MENU();
 
-    MENU_BACK(MSG_CONFIGURATION);
+    BACK_ITEM(MSG_CONFIGURATION);
 
     #if ENABLED(LCD_PROGRESS_BAR_TEST)
-      MENU_ITEM(submenu, MSG_PROGRESS_BAR_TEST, _progress_bar_test);
+      SUBMENU(MSG_PROGRESS_BAR_TEST, _progress_bar_test);
     #endif
 
     END_MENU();
@@ -79,29 +79,25 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
 #endif
 
-#if EXTRUDERS > 1
-
-  void menu_tool_change() {
-    START_MENU();
-    MENU_BACK(MSG_CONFIGURATION);
-    #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        static constexpr float max_extrude_lenght = EXTRUDE_MAXLENGTH;
-      #else
-        static constexpr float max_extrude_lenght = 500;
-      #endif
-      MENU_ITEM_EDIT(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude_lenght);
-      MENU_ITEM_EDIT(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
-      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
-      MENU_MULTIPLIER_ITEM_EDIT(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.prime_speed, 10, 5400);
+void menu_tool_change() {
+  START_MENU();
+  BACK_ITEM(MSG_CONFIGURATION);
+  #if ENABLED(TOOL_CHANGE_FIL_SWAP)
+    #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
+      static constexpr float max_extrude_lenght = EXTRUDE_MAXLENGTH;
+    #else
+      static constexpr float max_extrude_lenght = 500;
     #endif
-    MENU_ITEM_EDIT(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
-    END_MENU();
-  }
+    EDIT_ITEM_INDEX(float3, MSG_FILAMENT_SWAP_LENGTH, NO_INDEX, &tools.data.swap_length, 0, max_extrude_lenght);
+    EDIT_ITEM_INDEX(float3, MSG_FILAMENT_PURGE_LENGTH, NO_INDEX, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
+    EDIT_ITEM_FAST_INDEX(int4, MSG_SINGLENOZZLE_RETRACT_SPD, NO_INDEX, &tools.data.retract_speed, 10, 5400);
+    EDIT_ITEM_FAST_INDEX(int4, MSG_SINGLENOZZLE_PRIME_SPD, NO_INDEX, &tools.data.prime_speed, 10, 5400);
+  #endif
+  EDIT_ITEM_INDEX(float3, MSG_TOOL_CHANGE_ZLIFT, NO_INDEX, &nozzle.data.park_point.z, 0, 10);
+  END_MENU();
+}
 
-#endif
-
-#if HOTENDS > 1
+#if MAX_HOTEND > 1
 
   void menu_tool_offsets() {
 
@@ -113,16 +109,22 @@ static void lcd_reset_settings() { eeprom.reset(); }
     };
 
     START_MENU();
-    MENU_BACK(MSG_CONFIGURATION);
+    BACK_ITEM(MSG_CONFIGURATION);
+
     #if ENABLED(DUAL_X_CARRIAGE)
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float51, MSG_X_OFFSET, &nozzle.data.hotend_offset[1].x, float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
+      EDIT_ITEM_FAST_INDEX(float51, MSG_X_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].x, float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
+      EDIT_ITEM_FAST_INDEX(float52sign, MSG_Y_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
+      EDIT_ITEM_FAST_INDEX(float52sign, MSG_Z_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
-      MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_X_OFFSET, &nozzle.data.hotend_offset[1].x, -10.0, 10.0, _recalc_offsets);
+      for (uint8_t h = 1; h < thermalManager.data.hotends; h++) {
+        EDIT_ITEM_FAST_INDEX(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_INDEX(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_INDEX(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+      }
     #endif
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Y_OFFSET, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
-    MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
     #endif
     END_MENU();
   }
@@ -132,19 +134,19 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_DXC() {
     START_MENU();
-    MENU_BACK(MSG_CONFIGURATION);
+    BACK_ITEM(MSG_CONFIGURATION);
 
-    MENU_ITEM(gcode, MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
+    GCODES_ITEM(MSG_DXC_MODE_AUTOPARK, PSTR("M605 S1\nG28 X\nG1 X100"));
     const bool need_g28 = !(mechanics.home_flag.YHomed && mechanics.home_flag.ZHomed);
-    MENU_ITEM(gcode, MSG_DXC_MODE_DUPLICATE, need_g28
+    GCODES_ITEM(MSG_DXC_MODE_DUPLICATE, need_g28
       ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100")                // If Y or Z is not homed, do a full G28 first
       : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100")
     );
-    MENU_ITEM(gcode, MSG_DXC_MODE_MIRRORED_COPY, need_g28
+    GCODES_ITEM(MSG_DXC_MODE_MIRRORED_COPY, need_g28
       ? PSTR("M605 S1\nT0\nG28\nM605 S2 X200\nG28 X\nG1 X100\nM605 S3 X200")  // If Y or Z is not homed, do a full G28 first
       : PSTR("M605 S1\nT0\nM605 S2 X200\nG28 X\nG1 X100\nM605 S3 X200")
     );
-    MENU_ITEM(gcode, MSG_DXC_MODE_FULL_CTRL, PSTR("M605 S0\nG28 X"));
+    GCODES_ITEM(MSG_DXC_MODE_FULL_CTRL, PSTR("M605 S0\nG28 X"));
     END_MENU();
   }
 
@@ -169,27 +171,27 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_bltouch() {
     START_MENU();
-    MENU_BACK(MSG_MAIN);
-    MENU_ITEM(function, MSG_BLTOUCH_RESET, bltouch.cmd_reset);
-    MENU_ITEM(function, MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
-    MENU_ITEM(function, MSG_BLTOUCH_DEPLOY, bltouch.cmd_deploy);
-    MENU_ITEM(function, MSG_BLTOUCH_STOW, bltouch.cmd_stow);
-    MENU_ITEM(function, MSG_BLTOUCH_MODE_SW, bltouch.cmd_mode_SW);
+    BACK_ITEM(MSG_MAIN);
+    ACTION_ITEM(MSG_BLTOUCH_RESET, bltouch.cmd_reset);
+    ACTION_ITEM(MSG_BLTOUCH_SELFTEST, bltouch.cmd_selftest);
+    ACTION_ITEM(MSG_BLTOUCH_DEPLOY, bltouch.cmd_deploy);
+    ACTION_ITEM(MSG_BLTOUCH_STOW, bltouch.cmd_stow);
+    ACTION_ITEM(MSG_BLTOUCH_MODE_SW, bltouch.cmd_mode_SW);
     #if ENABLED(BLTOUCH_LCD_VOLTAGE_MENU)
-      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_5V, []{
+      SUBMENU(MSG_BLTOUCH_MODE_5V, []{
         do_select_screen(PSTR(MSG_BLTOUCH_MODE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
       });
-      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_OD, []{
+      SUBMENU(MSG_BLTOUCH_MODE_OD, []{
         do_select_screen(PSTR(MSG_BLTOUCH_MODE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
       });
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_STORE, bltouch.cmd_mode_store);
-      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_STORE_5V, []{
+      ACTION_ITEM(MSG_BLTOUCH_MODE_STORE, bltouch.cmd_mode_store);
+      SUBMENU(MSG_BLTOUCH_MODE_STORE_5V, []{
         do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
       });
-      MENU_ITEM(submenu, MSG_BLTOUCH_MODE_STORE_OD, []{
+      SUBMENU(MSG_BLTOUCH_MODE_STORE_OD, []{
         do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
       });
-      MENU_ITEM(function, MSG_BLTOUCH_MODE_ECHO, bltouch_report);
+      ACTION_ITEM(MSG_BLTOUCH_MODE_ECHO, bltouch_report);
     #endif
     END_MENU();
   }
@@ -200,9 +202,9 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_case_light() {
     START_MENU();
-    MENU_BACK(MSG_MAIN);
-    MENU_ITEM_EDIT_CALLBACK(uint8, MSG_CASE_LIGHT_BRIGHTNESS, &caselight.brightness, 0, 255, caselight.update, true);
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
+    BACK_ITEM(MSG_MAIN);
+    EDIT_ITEM_INDEX(percent, MSG_CASE_LIGHT_BRIGHTNESS, NO_INDEX, &caselight.brightness, 0, 255, caselight.update, true);
+    EDIT_ITEM_INDEX(bool, MSG_CASE_LIGHT, NO_INDEX, (bool*)&caselight.status, caselight.update);
     END_MENU();
   }
 
@@ -212,22 +214,18 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_config_retract() {
     START_MENU();
-    MENU_BACK(MSG_CONTROL);
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_AUTORETRACT, &fwretract.autoretract_enabled, fwretract.refresh_autoretract);
-    MENU_ITEM_EDIT(float52sign, MSG_CONTROL_RETRACT, &fwretract.data.retract_length, 0, 100);
-    #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float52sign, MSG_CONTROL_RETRACT_SWAP, &fwretract.data.swap_retract_length, 0, 100);
-    #endif
-    MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACTF, &fwretract.data.retract_feedrate_mm_s, 1, 999);
-    MENU_ITEM_EDIT(float52sign, MSG_CONTROL_RETRACT_ZHOP, &fwretract.data.retract_zlift, 0, 999);
-    MENU_ITEM_EDIT(float52sign, MSG_CONTROL_RETRACT_RECOVER, &fwretract.data.retract_recover_length, -100, 100);
-    #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, &fwretract.data.swap_retract_recover_length, -100, 100);
-    #endif
-    MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACT_RECOVERF, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
-    #if EXTRUDERS > 1
-      MENU_ITEM_EDIT(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
-    #endif
+    BACK_ITEM(MSG_CONTROL);
+    EDIT_ITEM_INDEX(bool, MSG_AUTORETRACT, NO_INDEX, &fwretract.autoretract_enabled, fwretract.refresh_autoretract);
+    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT, NO_INDEX, &fwretract.data.retract_length, 0, 100);
+    EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACTF, NO_INDEX, &fwretract.data.retract_feedrate_mm_s, 1, 999);
+    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_ZHOP, NO_INDEX, &fwretract.data.retract_zlift, 0, 999);
+    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_RECOVER, NO_INDEX, &fwretract.data.retract_recover_length, -100, 100);
+    EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACT_RECOVERF, NO_INDEX, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
+    if (tools.data.extruder.total > 1) {
+      EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_SWAP, NO_INDEX, &fwretract.data.swap_retract_length, 0, 100);
+      EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, NO_INDEX, &fwretract.data.swap_retract_recover_length, -100, 100);
+      EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, NO_INDEX, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
+    }
     END_MENU();
   }
 
@@ -255,18 +253,18 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_laser_test_fire() {
     START_MENU();
-     MENU_BACK("Laser Functions");
-     MENU_ITEM(function, "Weak ON", action_laser_test_weak);
-     MENU_ITEM(function, " 20%  50ms", action_laser_test_20_50ms);
-     MENU_ITEM(function, " 20% 100ms", action_laser_test_20_100ms);
-     MENU_ITEM(function, "100%  50ms", action_laser_test_100_50ms);
-     MENU_ITEM(function, "100% 100ms", action_laser_test_100_100ms);
-     MENU_ITEM(function, "Warm-up Laser 2sec", action_laser_test_warm);
+     BACK_ITEM("Laser Functions");
+     ACTION_ITEM("Weak ON", action_laser_test_weak);
+     ACTION_ITEM(" 20%  50ms", action_laser_test_20_50ms);
+     ACTION_ITEM(" 20% 100ms", action_laser_test_20_100ms);
+     ACTION_ITEM("100%  50ms", action_laser_test_100_50ms);
+     ACTION_ITEM("100% 100ms", action_laser_test_100_100ms);
+     ACTION_ITEM("Warm-up Laser 2sec", action_laser_test_warm);
      END_MENU();
   }  
 
   void laser_set_focus(float f_length) {
-    if (mechanics.axis_unhomed_error(NO_HOME_X, NO_HOME_Y, HOME_Z))
+    if (mechanics.axis_unhomed_error(HOME_Z))
       commands.inject_P(PSTR("G28 Z F150"));
 
     focalLength = f_length;
@@ -288,29 +286,29 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void menu_laser_focus() {
     START_MENU();
-    MENU_BACK("Laser Functions");
-    MENU_ITEM(function, "1mm", action_laser_focus_1mm);
-    MENU_ITEM(function, "2mm", action_laser_focus_2mm);
-    MENU_ITEM(function, "3mm - 1/8in", action_laser_focus_3mm);
-    MENU_ITEM(function, "4mm", action_laser_focus_4mm);
-    MENU_ITEM(function, "5mm", action_laser_focus_5mm);
-    MENU_ITEM(function, "6mm - 1/4in", action_laser_focus_6mm);
-    MENU_ITEM(function, "7mm", action_laser_focus_7mm);
-    MENU_ITEM_EDIT_CALLBACK(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, action_laser_focus_custom);
+    BACK_ITEM("Laser Functions");
+    ACTION_ITEM("1mm", action_laser_focus_1mm);
+    ACTION_ITEM("2mm", action_laser_focus_2mm);
+    ACTION_ITEM("3mm - 1/8in", action_laser_focus_3mm);
+    ACTION_ITEM("4mm", action_laser_focus_4mm);
+    ACTION_ITEM("5mm", action_laser_focus_5mm);
+    ACTION_ITEM("6mm - 1/4in", action_laser_focus_6mm);
+    ACTION_ITEM("7mm", action_laser_focus_7mm);
+    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, action_laser_focus_custom);
     END_MENU();
   }
 
   void menu_laser() {
     START_MENU();
-    MENU_BACK(MSG_MAIN);
-    MENU_ITEM(submenu, "Set Focus", menu_laser_focus);
-    MENU_ITEM(submenu, "Test Fire", menu_laser_test_fire);
+    BACK_ITEM(MSG_MAIN);
+    SUBMENU("Set Focus", menu_laser_focus);
+    SUBMENU("Test Fire", menu_laser_test_fire);
     #if ENABLED(LASER_PERIPHERALS)
       if (laser.peripherals_ok()) {
-        MENU_ITEM(function, "Turn On Pumps/Fans", action_laser_acc_on);
+        ACTION_ITEM("Turn On Pumps/Fans", action_laser_acc_on);
       }
       else if (!printer.isPrinting()) {
-        MENU_ITEM(function, "Turn Off Pumps/Fans", action_laser_acc_off);
+        ACTION_ITEM("Turn Off Pumps/Fans", action_laser_acc_off);
       }
     #endif // LASER_PERIPHERALS
     END_MENU();
@@ -322,21 +320,21 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
   void _menu_configuration_preheat_settings(const uint8_t material) {
     START_MENU();
-    MENU_BACK(MSG_CONFIGURATION);
+    BACK_ITEM(MSG_CONFIGURATION);
     #if MAX_FAN > 0
-      MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
+      EDIT_ITEM_INDEX(int3, MSG_FAN_SPEED, NO_INDEX, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
     #if MAX_HOTEND > 0
-      MENU_ITEM_EDIT(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
+      EDIT_ITEM_INDEX(int3, MSG_NOZZLE, NO_INDEX, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
     #if MAX_BED > 0
-      MENU_ITEM_EDIT(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
+      EDIT_ITEM_INDEX(int3, MSG_BED, NO_INDEX, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
     #endif
     #if MAX_CHAMBER > 0
-      MENU_ITEM_EDIT(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
+      EDIT_ITEM_INDEX(int3, MSG_CHAMBER, NO_INDEX, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+      ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
     #endif
     END_MENU();
   }
@@ -349,98 +347,100 @@ static void lcd_reset_settings() { eeprom.reset(); }
 
 void menu_configuration() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
 
   //
   // Debug Menu when certain options are enabled
   //
   #if HAS_DEBUG_MENU
-    MENU_ITEM(submenu, MSG_DEBUG_MENU, menu_debug);
+    SUBMENU(MSG_DEBUG_MENU, menu_debug);
   #endif
 
-  MENU_ITEM(submenu, MSG_ADVANCED_SETTINGS, menu_advanced_settings);
+  SUBMENU(MSG_ADVANCED_SETTINGS, menu_advanced_settings);
 
   const bool busy = printer.isPrinting();
   if (!busy) {
 
     #if MECH(DELTA)
-      MENU_ITEM(submenu, MSG_DELTA_CALIBRATE, menu_delta_calibrate);
+      SUBMENU(MSG_DELTA_CALIBRATE, menu_delta_calibrate);
     #endif
 
     #if HOTENDS > 1
-      MENU_ITEM(submenu, MSG_OFFSETS_MENU, menu_tool_offsets);
+      SUBMENU(MSG_OFFSETS_MENU, menu_tool_offsets);
     #endif
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      MENU_ITEM(submenu, MSG_DXC_MENU, menu_DXC);
+      SUBMENU(MSG_DXC_MENU, menu_DXC);
     #endif
 
     #if HAS_BLTOUCH
-      MENU_ITEM(submenu, MSG_BLTOUCH, menu_bltouch);
+      SUBMENU(MSG_BLTOUCH, menu_bltouch);
     #endif
   }
+
+  if (tools.data.extruder.total > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
 
   //
   // Set Case light on/off/brightness
   //
   #if HAS_CASE_LIGHT
     if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
-      MENU_ITEM(submenu, MSG_CASE_LIGHT, menu_case_light);
+      SUBMENU(MSG_CASE_LIGHT, menu_case_light);
     else
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
+      EDIT_ITEM_INDEX(bool, MSG_CASE_LIGHT, NO_INDEX, (bool*)&caselight.status, caselight.update);
   #endif
 
   #if HAS_LCD_CONTRAST
-    MENU_ITEM_EDIT_CALLBACK(uint8, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
+    EDIT_ITEM_INDEX(uint8, MSG_CONTRAST, NO_INDEX, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(IDLE_OOZING_PREVENT)
-      MENU_ITEM_EDIT(bool, MSG_IDLEOOZING, &printer.IDLE_OOZING_enabled);
+      EDIT_ITEM_INDEX(bool, MSG_IDLEOOZING, NO_INDEX, &printer.IDLE_OOZING_enabled);
     #endif
 
     #if ENABLED(FWRETRACT)
-      MENU_ITEM(submenu, MSG_RETRACT, menu_config_retract);
+      SUBMENU(MSG_RETRACT, menu_config_retract);
     #endif
 
     #if DISABLED(SLIM_LCD_MENUS)
       // Preheat configurations
-      MENU_ITEM(submenu, MSG_PREHEAT_1_SETTINGS, menu_preheat_material1_settings);
-      MENU_ITEM(submenu, MSG_PREHEAT_2_SETTINGS, menu_preheat_material2_settings);
-      MENU_ITEM(submenu, MSG_PREHEAT_3_SETTINGS, menu_preheat_material3_settings);
+      SUBMENU(MSG_PREHEAT_1_SETTINGS, menu_preheat_material1_settings);
+      SUBMENU(MSG_PREHEAT_2_SETTINGS, menu_preheat_material2_settings);
+      SUBMENU(MSG_PREHEAT_3_SETTINGS, menu_preheat_material3_settings);
     #endif
   }
 
   #if HAS_SD_RESTART
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_RESTART, &restart.enabled, restart.changed);
+    EDIT_ITEM_INDEX(bool, MSG_RESTART, NO_INDEX, &restart.enabled, restart.changed);
   #endif
 
   #if DISABLED(SLIM_LCD_MENUS)
 
     switch (sound.data.mode) {
       case SOUND_MODE_ON:
-        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cyclestate);
+        ACTION_ITEM(MSG_SOUND_MODE_ON, sound.cyclestate);
         break;
       case SOUND_MODE_SILENT:
-        MENU_ITEM(function, MSG_SOUND_MODE_SILENT, sound.cyclestate);
+        ACTION_ITEM(MSG_SOUND_MODE_SILENT, sound.cyclestate);
         break;
       case SOUND_MODE_MUTE:
-        MENU_ITEM(function, MSG_SOUND_MODE_MUTE, sound.cyclestate);
+        ACTION_ITEM(MSG_SOUND_MODE_MUTE, sound.cyclestate);
         break;
       default:
-        MENU_ITEM(function, MSG_SOUND_MODE_ON, sound.cyclestate);
+        ACTION_ITEM(MSG_SOUND_MODE_ON, sound.cyclestate);
     }
 
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
+    ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
     if (!busy)
-      MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
+      ACTION_ITEM(MSG_LOAD_EEPROM, lcd_load_settings);
   #endif
 
   if (!busy)
-    MENU_ITEM(function, MSG_RESTORE_FAILSAFE, lcd_reset_settings);
+    ACTION_ITEM(MSG_RESTORE_FAILSAFE, lcd_reset_settings);
 
   END_MENU();
 }

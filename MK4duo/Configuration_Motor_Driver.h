@@ -85,7 +85,6 @@
 //
 // It is recommended to set [XYZ]_HOME_BUMP_MM to 0.
 //
-// SPI_ENDSTOPS  *** Beta feature! *** TMC2130 Only ***
 // Poll the driver through SPI to determine load when homing.
 // Removes the need for a wire from DIAG1 to an endstop pin.
 //

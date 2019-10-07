@@ -89,20 +89,20 @@
 
   void lcd_mixer_edit_gradient_menu() {
     START_MENU();
-    MENU_BACK(MSG_GRADIENT);
+    BACK_ITEM(MSG_GRADIENT);
 
-    MENU_ITEM_EDIT_CALLBACK(int8, MSG_START_VTOOL, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
-    MENU_ITEM_EDIT_CALLBACK(int8, MSG_END_VTOOL, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM(int8, MSG_START_VTOOL, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM(int8, MSG_END_VTOOL, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
 
     char tmp[10];
 
-    MENU_ITEM(submenu, MSG_START_Z ":", lcd_mixer_gradient_z_start_edit);
+    SUBMENU(MSG_START_Z ":", lcd_mixer_gradient_z_start_edit);
     MENU_ITEM_ADDON_START(9);
       sprintf_P(tmp, PSTR("%4d.%d mm"), int(mixer.gradient.start_z), int(mixer.gradient.start_z * 10) % 10);
       LCDPRINT(tmp);
     MENU_ITEM_ADDON_END();
 
-    MENU_ITEM(submenu, MSG_END_Z ":", lcd_mixer_gradient_z_end_edit);
+    SUBMENU(MSG_END_Z ":", lcd_mixer_gradient_z_end_edit);
     MENU_ITEM_ADDON_START(9);
       sprintf_P(tmp, PSTR("%4d.%d mm"), int(mixer.gradient.end_z), int(mixer.gradient.end_z * 10) % 10);
       LCDPRINT(tmp);
@@ -151,10 +151,10 @@ void lcd_mixer_mix_edit() {
 
   #if CHANNEL_MIX_EDITING
 
-    #define EDIT_COLOR(N) MENU_MULTIPLIER_ITEM_EDIT(float52, MSG_MIX_COMPONENT " " STRINGIFY(N), &mixer.collector[N-1], 0, 10);
+    #define EDIT_COLOR(N) EDIT_ITEM_FAST(float52, MSG_MIX_COMPONENT " " STRINGIFY(N), &mixer.collector[N-1], 0, 10);
 
     START_MENU();
-    MENU_BACK(MSG_MIXER);
+    BACK_ITEM(MSG_MIXER);
     EDIT_COLOR(1);
     EDIT_COLOR(2);
     #if MIXING_STEPPERS > 2
@@ -169,8 +169,8 @@ void lcd_mixer_mix_edit() {
         #endif
       #endif
     #endif
-    MENU_ITEM(function, MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
-    MENU_ITEM(function, MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);
+    ACTION_ITEM(MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
+    ACTION_ITEM(MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);
     END_MENU();
 
   #elif HAS_GRADIENT_MIX
@@ -192,7 +192,7 @@ void lcd_mixer_mix_edit() {
   #else
 
     START_MENU();
-    MENU_BACK(MSG_MIXER);
+    BACK_ITEM(MSG_MIXER);
     END_MENU();
 
   #endif
@@ -251,23 +251,23 @@ inline void _lcd_reset_vtools() {
 
 void menu_mixer_vtools_reset_confirm() {
   START_MENU();
-  MENU_BACK(MSG_BACK);
-  MENU_ITEM(function, MSG_RESET_VTOOLS, _lcd_reset_vtools);
+  BACK_ITEM(MSG_BACK);
+  ACTION_ITEM(MSG_RESET_VTOOLS, _lcd_reset_vtools);
   END_MENU();
 }
 
 void menu_mixer() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
 
   v_index = mixer.get_current_vtool();
-  MENU_ITEM_EDIT_CALLBACK(uint8, MSG_ACTIVE_VTOOL, &v_index, 0, MIXING_VIRTUAL_TOOLS - 1, _lcd_mixer_select_vtool
+  EDIT_ITEM(uint8, MSG_ACTIVE_VTOOL, &v_index, 0, MIXING_VIRTUAL_TOOLS - 1, _lcd_mixer_select_vtool
     #if HAS_GRADIENT_MIX
       , true
     #endif
   );
 
-  MENU_ITEM(submenu, MSG_MIX,
+  SUBMENU(MSG_MIX,
     #if CHANNEL_MIX_EDITING
       _lcd_goto_mix_edit
     #elif HAS_GRADIENT_MIX
@@ -283,21 +283,21 @@ void menu_mixer() {
       sprintf_P(tmp, PSTR("%3d;%3d%%"), int(mixer.mix[0]), int(mixer.mix[1]));
       LCDPRINT(tmp);
     MENU_ITEM_ADDON_END();
-    MENU_ITEM(function, MSG_TOGGLE_MIX, _lcd_mixer_toggle_mix);
+    ACTION_ITEM(MSG_TOGGLE_MIX, _lcd_mixer_toggle_mix);
   }
   #endif
 
-  MENU_ITEM(submenu, MSG_RESET_VTOOLS, menu_mixer_vtools_reset_confirm);
+  SUBMENU(MSG_RESET_VTOOLS, menu_mixer_vtools_reset_confirm);
 
   #if HAS_GRADIENT_MIX
   {
     char tmp[10];
-    MENU_ITEM(submenu, MSG_GRADIENT, lcd_mixer_edit_gradient_menu);
+    SUBMENU(MSG_GRADIENT, lcd_mixer_edit_gradient_menu);
     MENU_ITEM_ADDON_START(10);
       sprintf_P(tmp, PSTR("T%i->T%i"), mixer.gradient.start_vtool, mixer.gradient.end_vtool);
       LCDPRINT(tmp);
     MENU_ITEM_ADDON_END();
-    MENU_ITEM(function, MSG_REVERSE_GRADIENT, _lcd_mixer_reverse_gradient);
+    ACTION_ITEM(MSG_REVERSE_GRADIENT, _lcd_mixer_reverse_gradient);
   }
   #endif
 

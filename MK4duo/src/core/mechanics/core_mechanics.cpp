@@ -130,7 +130,7 @@ void Core_Mechanics::do_blocking_move_to(const float rx, const float ry, const f
 /**
  * Home Core
  */
-void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/, const bool homeZ/*=false*/) {
+void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   if (printer.debugSimulation()) {
     LOOP_XYZ(axis) set_axis_is_at_home((AxisEnum)axis);
@@ -185,7 +185,10 @@ void Core_Mechanics::home(const bool homeX/*=false*/, const bool homeY/*=false*/
   REMEMBER(fr, feedrate_mm_s);
   stored_position[0] = current_position;
 
-  const bool  home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
+  const bool  homeX = TEST(axis_bits, X_AXIS),
+              homeY = TEST(axis_bits, Y_AXIS),
+              homeZ = TEST(axis_bits, Z_AXIS),
+              home_all  = (!homeX && !homeY && !homeZ) || (homeX && homeY && homeZ),
               doX       = home_all || homeX,
               doY       = home_all || homeY,
               doZ       = home_all || homeZ;

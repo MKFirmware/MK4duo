@@ -70,10 +70,6 @@ enum PrinterModeEnum : uint8_t {
   PRINTER_MODE_PLOTTER,
   PRINTER_MODE_COUNT
 };
-enum InterruptEventEnum : uint8_t {
-  INTERRUPT_EVENT_NONE,
-  INTERRUPT_EVENT_FIL_RUNOUT
-};
 
 /**
  * States for managing MK4duo and host communication
@@ -272,6 +268,7 @@ enum SoundModeEnum : uint8_t {
 enum PauseModeEnum : uint8_t {
   PAUSE_MODE_SAME,
   PAUSE_MODE_PAUSE_PRINT,
+  PAUSE_MODE_CHANGE_FILAMENT,
   PAUSE_MODE_LOAD_FILAMENT,
   PAUSE_MODE_UNLOAD_FILAMENT
 };

@@ -306,7 +306,8 @@ class Mechanics {
 
     FORCE_INLINE static void report_xyz(const xyze_pos_t &pos) { report_xyze(pos, 3); }
 
-    static bool axis_unhomed_error(const bool x=true, const bool y=true, const bool z=true);
+    static uint8_t axis_need_homing(uint8_t axis_bits=0x07);
+    static bool axis_unhomed_error(uint8_t axis_bits=0x07);
 
     /**
      * Axis relative function

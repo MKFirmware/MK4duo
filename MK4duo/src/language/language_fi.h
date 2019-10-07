@@ -155,8 +155,7 @@
 #define MSG_INIT_SDCARD                     _UxGT("Init. SD-Card")
 #define MSG_CHANGE_SDCARD                   _UxGT("Change SD-Card")
 #define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
-#define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
-#define MSG_FIRST                           _UxGT("first")
+#define MSG_HOME_FIRST                      _UxGT("Home %s%s%s first")
 #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
 #define MSG_BABYSTEP_X                      _UxGT("Babystep X")
 #define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")

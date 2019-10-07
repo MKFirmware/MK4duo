@@ -78,7 +78,7 @@ void AdvancedPause::do_pause_e_move(const float &length, const feedrate_t &fr_mm
  * - Park the nozzle at the given position
  * - Call unload_filament (if a length was specified)
  *
- * Returns 'true' if pause was completed, 'false' for abort
+ * Return 'true' if pause was completed, 'false' for abort
  */
 bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
 
@@ -274,7 +274,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 /**
  * Resume or Start print procedure
  *
- * - Abort if not paused
+ * - If not paused, do nothing and return
  * - Reset heater idle timers
  * - Load filament if specified, but only if:
  *   - a nozzle timed out, or
@@ -498,7 +498,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     // Keep looping if "Purge More" was selected
   } while (false
     #if HAS_LCD_MENU
-      && (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
+      || (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
     #endif
   );
 
@@ -584,13 +584,13 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     UNUSED(tmode);
   #endif
 
-  #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+  #if PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() beds[h]->wait_for_target();
   #endif
 
   hotends[tools.active_hotend()]->wait_for_target();
 
-  return printer.isWaitForHeatUp();
+  return !printer.isWaitForHeatUp();
 }
 
 #if HAS_BUZZER

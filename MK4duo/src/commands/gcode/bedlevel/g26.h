@@ -375,7 +375,7 @@ inline bool turn_on_heaters() {
 
       // Wait for the temperature to stabilize
       beds[0]->wait_for_target(true);
-      if (!printer.isWaitForHeatUp()) return G26_ERR;
+      if (printer.isWaitForHeatUp()) return G26_ERR;
     }
   #endif // HAS_TEMP_BED0
 
@@ -388,7 +388,7 @@ inline bool turn_on_heaters() {
 
   // Wait for the temperature to stabilize
   hotends[0]->wait_for_target(true);
-  if (!printer.isWaitForHeatUp()) return G26_ERR;
+  if (printer.isWaitForHeatUp()) return G26_ERR;
 
   #if HAS_LCD
     lcdui.reset_status();

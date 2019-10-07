@@ -67,7 +67,7 @@ uint8_t LcdUI::status_update_delay = 1; // First update one loop delayed
   millis_s LcdUI::previous_status_ms = 0;
 #endif
 
-millis_l next_button_update_ms;
+millis_l LcdUI::next_button_update_ms = 0;
 
 #if HAS_GRAPHICAL_LCD
   bool LcdUI::drawing_screen, LcdUI::first_page; // = false
@@ -125,8 +125,8 @@ millis_l next_button_update_ms;
     }
   #endif
 
-  #if ENABLED(REVERSE_MENU_DIRECTION)
-    int8_t LcdUI::encoderDirection = 1;
+  #if ENABLED(REVERSE_MENU_DIRECTION) || ENABLED(REVERSE_SELECT_DIRECTION)
+    int8_t LcdUI::encoderDirection = ENCODERBASE;
   #endif
 
   bool LcdUI::lcd_clicked;
@@ -1242,13 +1242,16 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
   #endif
 }
 
+SFSTRINGVALUE(print_paused, MSG_PRINT_PAUSED);
+
 /**
  * Reset the status message
  */
 void LcdUI::reset_status() {
-  SFSTRINGVALUE(paused, MSG_PRINT_PAUSED);
+
   SFSTRINGVALUE(printing, MSG_PRINTING);
   SFSTRINGVALUE(welcome, WELCOME_MSG);
+
   #if ENABLED(SERVICE_TIME_1)
     SFSTRINGVALUE(service1, "> " SERVICE_NAME_1 "!");
   #endif
@@ -1259,8 +1262,8 @@ void LcdUI::reset_status() {
     SFSTRINGVALUE(service3, "> " SERVICE_NAME_3 "!");
   #endif
   PGM_P msg;
-  if (!IS_SD_PRINTING() && print_job_counter.isPaused())
-    msg = paused;
+  if (printer.isPaused())
+    msg = print_paused;
   #if HAS_SD_SUPPORT
     else if (IS_SD_PRINTING())
       return lcdui.set_status(card.fileName, true);
@@ -1297,7 +1300,7 @@ void LcdUI::pause_print() {
 
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
 
-  set_status_P(PSTR(MSG_PRINT_PAUSED));
+  set_status_P(print_paused);
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress

@@ -215,6 +215,9 @@
 #ifndef MSG_NEXT_CORNER
   #define MSG_NEXT_CORNER                     _UxGT("Next Corner")
 #endif
+#ifndef MSG_MESH_EDITOR
+  #define MSG_MESH_EDITOR                     _UxGT("Mesh Editor")
+#endif
 #ifndef MSG_EDIT_MESH
   #define MSG_EDIT_MESH                       _UxGT("Edit Mesh")
 #endif
@@ -274,9 +277,6 @@
 #endif
 #ifndef MSG_UBL_DOING_G29
   #define MSG_UBL_DOING_G29                   _UxGT("Doing G29")
-#endif
-#ifndef MSG_UBL_UNHOMED
-  #define MSG_UBL_UNHOMED                     _UxGT("Home XYZ First")
 #endif
 #ifndef MSG_UBL_TOOLS
   #define MSG_UBL_TOOLS                       _UxGT("UBL Tools")
@@ -365,6 +365,27 @@
 #ifndef MSG_UBL_VALIDATE_CUSTOM_MESH
   #define MSG_UBL_VALIDATE_CUSTOM_MESH        _UxGT("Validate Custom Mesh")
 #endif
+#ifndef MSG_G26_HEATING_BED
+  #define MSG_G26_HEATING_BED                 _UxGT("G26 Heating Bed")
+#endif
+#ifndef MSG_G26_HEATING_NOZZLE
+  #define MSG_G26_HEATING_NOZZLE              _UxGT("G26 Heating Nozzle")
+#endif
+#ifndef MSG_G26_MANUAL_PRIME
+  #define MSG_G26_MANUAL_PRIME                _UxGT("Manual priming...")
+#endif
+#ifndef MSG_G26_FIXED_LENGTH
+  #define MSG_G26_FIXED_LENGTH                _UxGT("Fixed Length Prime")
+#endif
+#ifndef MSG_G26_PRIME_DONE
+  #define MSG_G26_PRIME_DONE                  _UxGT("Done Priming")
+#endif
+#ifndef MSG_G26_CANCELED
+  #define MSG_G26_CANCELED                    _UxGT("G26 Canceled")
+#endif
+#ifndef MSG_G26_LEAVING
+  #define MSG_G26_LEAVING                     _UxGT("Leaving G26")
+#endif
 #ifndef MSG_UBL_CONTINUE_MESH
   #define MSG_UBL_CONTINUE_MESH               _UxGT("Continue Bed Mesh")
 #endif
@@ -451,6 +472,9 @@
 #endif
 #ifndef MSG_UBL_RESTORE_ERROR
   #define MSG_UBL_RESTORE_ERROR               _UxGT("Err: UBL Restore")
+#endif
+#ifndef MSG_UBL_Z_OFFSET
+  #define MSG_UBL_Z_OFFSET                    _UxGT("Z-Offset: ")
 #endif
 #ifndef MSG_UBL_Z_OFFSET_STOPPED
   #define MSG_UBL_Z_OFFSET_STOPPED            _UxGT("Z-Offset Stopped")
@@ -593,10 +617,10 @@
   #define MSG_AUTOTEMP                        _UxGT("Autotemp")
 #endif
 #ifndef MSG_LCD_ON
-  #define MSG_LCD_ON                              _UxGT("On")
+  #define MSG_LCD_ON                          _UxGT("On")
 #endif
 #ifndef MSG_LCD_OFF
-  #define MSG_LCD_OFF                             _UxGT("Off")
+  #define MSG_LCD_OFF                         _UxGT("Off")
 #endif
 #ifndef MSG_PID_P
   #define MSG_PID_P                           _UxGT("PID-P")
@@ -967,11 +991,8 @@
 #ifndef MSG_MANUAL_STOW
   #define MSG_MANUAL_STOW                     _UxGT("Stow Z-Probe")
 #endif
-#ifndef MSG_HOME
-  #define MSG_HOME                            _UxGT("Home")
-#endif
-#ifndef MSG_FIRST
-  #define MSG_FIRST                           _UxGT("First")
+#ifndef MSG_HOME_FIRST
+  #define MSG_HOME_FIRST                      _UxGT("Home %s%s%s First")
 #endif
 #ifndef MSG_ZPROBE_ZOFFSET
   #define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
@@ -1257,6 +1278,9 @@
 #ifndef MSG_DAC_EEPROM_WRITE
   #define MSG_DAC_EEPROM_WRITE                _UxGT("DAC EEPROM Write")
 #endif
+#ifndef MSG_FILAMENT_CHANGE_HEADER
+  #define MSG_FILAMENT_CHANGE_HEADER          _UxGT("FILAMENT CHANGE")
+#endif
 #ifndef MSG_FILAMENT_CHANGE_HEADER_PAUSE
   #define MSG_FILAMENT_CHANGE_HEADER_PAUSE    _UxGT("PRINT PAUSED")
 #endif
@@ -1488,8 +1512,8 @@
     #define MSG_FILAMENT_CHANGE_HEATING_2     _UxGT("Please wait...")
   #endif
   #ifndef MSG_FILAMENT_CHANGE_UNLOAD_1
-    #define MSG_FILAMENT_CHANGE_UNLOAD_1      _UxGT("Wait for")
-    #define MSG_FILAMENT_CHANGE_UNLOAD_2      _UxGT("filament unload")
+    #define MSG_FILAMENT_CHANGE_UNLOAD_1      _UxGT("Wait for filament")
+    #define MSG_FILAMENT_CHANGE_UNLOAD_2      _UxGT("to fully unload")
   #endif
   #ifndef MSG_FILAMENT_CHANGE_LOAD_1
     #define MSG_FILAMENT_CHANGE_LOAD_1        _UxGT("Wait for")

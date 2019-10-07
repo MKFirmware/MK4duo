@@ -92,7 +92,6 @@ void menu_motion();
 void menu_temperature();
 void menu_configuration();
 void menu_user();
-void menu_temp_e0_filament_change();
 void menu_change_filament();
 void menu_info();
 void menu_led();
@@ -117,19 +116,19 @@ void menu_led();
 
 void menu_main() {
   START_MENU();
-  MENU_BACK(MSG_WATCH);
+  BACK_ITEM(MSG_WATCH);
 
   const bool busy = printer.isPrinting();
 
   #if HAS_SD_SUPPORT
-    const bool  card_mounted = card.isMounted(),
+    const bool  card_mounted  = card.isMounted(),
                 card_open     = card_mounted && card.isFileOpen();
   #endif
 
   if (busy) {
-    MENU_ITEM(function, MSG_PAUSE_PRINT, lcdui.pause_print);
-    MENU_ITEM(submenu, MSG_STOP_PRINT, menu_stop_print);
-    MENU_ITEM(submenu, MSG_TUNE, menu_tune);
+    ACTION_ITEM(MSG_PAUSE_PRINT, lcdui.pause_print);
+    SUBMENU(MSG_STOP_PRINT, menu_stop_print);
+    SUBMENU(MSG_TUNE, menu_tune);
   }
   else {
     #if !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
@@ -137,75 +136,68 @@ void menu_main() {
       // Autostart
       //
       #if ENABLED(MENU_ADDAUTOSTART)
-        if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
+        if (!busy) ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
       #endif
 
       if (card_mounted) {
         if (!card_open) {
           #if PIN_EXISTS(SD_DETECT)
-            MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));
+            GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));
           #else
-            MENU_ITEM(gcode, MSG_RELEASE_SDCARD, PSTR("M22"));
+            GCODES_ITEM(MSG_RELEASE_SDCARD, PSTR("M22"));
           #endif
-          MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
+          SUBMENU(MSG_CARD_MENU, menu_sdcard);
         }
       }
       else {
         #if PIN_EXISTS(SD_DETECT)
-          MENU_ITEM(function, MSG_NO_CARD, nullptr);
+          ACTION_ITEM(MSG_NO_CARD, nullptr);
         #else
-          MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21"));
-          MENU_ITEM(function, MSG_SD_RELEASED, nullptr);
+          GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21"));
+          ACTION_ITEM(MSG_SD_RELEASED, nullptr);
         #endif
         
       }
     #endif // !HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
     if (printer.isPaused())
-      MENU_ITEM(function, MSG_RESUME_PRINT, lcdui.resume_print);
+      ACTION_ITEM(MSG_RESUME_PRINT, lcdui.resume_print);
 
-    MENU_ITEM(submenu, MSG_MOTION, menu_motion);
+    SUBMENU(MSG_MOTION, menu_motion);
   }
 
   if (printer.mode == PRINTER_MODE_FFF) {
-    MENU_ITEM(submenu, MSG_TEMPERATURE, menu_temperature);
+    SUBMENU(MSG_TEMPERATURE, menu_temperature);
     #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
-      MENU_ITEM(submenu, MSG_MIXER, menu_mixer);
+      SUBMENU(MSG_MIXER, menu_mixer);
     #endif
     #if HAS_MMU2
-      if (!busy) MENU_ITEM(submenu, MSG_MMU2_MENU, menu_mmu2);
+      if (!busy) SUBMENU(MSG_MMU2_MENU, menu_mmu2);
     #endif
   }
 
   #if HAS_DHT
-    MENU_ITEM(submenu, MSG_DHT, menu_dht);
+    SUBMENU(MSG_DHT, menu_dht);
   #endif
 
-  MENU_ITEM(submenu, MSG_CONFIGURATION, menu_configuration);
+  SUBMENU(MSG_CONFIGURATION, menu_configuration);
 
   #if ENABLED(CUSTOM_USER_MENUS)
-    MENU_ITEM(submenu, MSG_USER_MENU, menu_user);
+    SUBMENU(MSG_USER_MENU, menu_user);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      #if MAX_DRIVER_E == 1 && DISABLED(FILAMENT_LOAD_UNLOAD_GCODES)
-        if (thermalManager.targetHotEnoughToExtrude(tools.data.extruder.active))
-          MENU_ITEM(gcode, MSG_FILAMENTCHANGE, PSTR("M600 B0"));
-        else
-          MENU_ITEM(submenu, MSG_FILAMENTCHANGE, menu_temp_e0_filament_change);
-      #else
-        MENU_ITEM(submenu, MSG_FILAMENTCHANGE, menu_change_filament);
-      #endif
+      SUBMENU(MSG_FILAMENTCHANGE, menu_change_filament);
     #endif
   }
 
   #if ENABLED(LCD_INFO_MENU)
-    MENU_ITEM(submenu, MSG_INFO_MENU, menu_info);
+    SUBMENU(MSG_INFO_MENU, menu_info);
   #endif
 
   #if ENABLED(LED_CONTROL_MENU)
-    MENU_ITEM(submenu, MSG_LED_CONTROL, menu_led);
+    SUBMENU(MSG_LED_CONTROL, menu_led);
   #endif
 
   //
@@ -213,9 +205,9 @@ void menu_main() {
   //
   #if HAS_POWER_SWITCH
     if (powerManager.is_on())
-      MENU_ITEM(gcode, MSG_SWITCH_PS_OFF, PSTR("M81"));
+      GCODES_ITEM(MSG_SWITCH_PS_OFF, PSTR("M81"));
     else
-      MENU_ITEM(gcode, MSG_SWITCH_PS_ON, PSTR("M80"));
+      GCODES_ITEM(MSG_SWITCH_PS_ON, PSTR("M80"));
   #endif
 
   #if HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
@@ -223,37 +215,37 @@ void menu_main() {
     // Autostart
     //
     #if ENABLED(MENU_ADDAUTOSTART)
-      if (!busy) MENU_ITEM(function, MSG_AUTOSTART, card.beginautostart);
+      if (!busy) ACTION_ITEM(MSG_AUTOSTART, card.beginautostart);
     #endif
 
     if (card_mounted) {
       if (!card_open) {
-        MENU_ITEM(submenu, MSG_CARD_MENU, menu_sdcard);
+        SUBMENU(MSG_CARD_MENU, menu_sdcard);
         #if !PIN_EXISTS(SD_DETECT)
-          MENU_ITEM(gcode, MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
+          GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
         #endif
       }
     }
     else {
       #if !PIN_EXISTS(SD_DETECT)
-        MENU_ITEM(gcode, MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
+        GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
       #endif
-      MENU_ITEM(function, MSG_NO_CARD, nullptr);
+      ACTION_ITEM(MSG_NO_CARD, nullptr);
     }
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
   #if ENABLED(SERVICE_TIME_1)
-    MENU_ITEM(submenu, SERVICE_NAME_1, menu_service1);
+    SUBMENU(SERVICE_NAME_1, menu_service1);
   #endif
   #if ENABLED(SERVICE_TIME_2)
-    MENU_ITEM(submenu, SERVICE_NAME_2, menu_service2);
+    SUBMENU(SERVICE_NAME_2, menu_service2);
   #endif
   #if ENABLED(SERVICE_TIME_3)
-    MENU_ITEM(submenu, SERVICE_NAME_3, menu_service3);
+    SUBMENU(SERVICE_NAME_3, menu_service3);
   #endif
 
   #if HAS_GAMES
-    MENU_ITEM(submenu, "Game", (
+    SUBMENU("Game", (
       #if HAS_GAME_MENU
         menu_game
       #elif ENABLED(GAME_BRICKOUT)

@@ -74,7 +74,7 @@ uint8_t LcdUI::status_message_level = 0;
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
   #endif
 
-  #if ENABLED(REVERSE_MENU_DIRECTION)
+  #if ENABLED(REVERSE_MENU_DIRECTION) || ENABLED(REVERSE_ENCODER_DIRECTION)
     int8_t LcdUI::encoderDirection = 1;
   #endif
 
@@ -1506,9 +1506,9 @@ void LcdUI::stop_print() {
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
     nexlcd.line_encoder_touch = true;
-    nexlcd.mark_as_selected(row, invert);
+    nexlcd.mark_as_selected(row, (style & SS_INVERT));
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
     if (valstr != NULL) nexlcd.put_str(valstr);
@@ -1516,23 +1516,24 @@ void LcdUI::stop_print() {
   }
 
   // Draw a generic menu item
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char, const char) {
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
+    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
     nexlcd.endChar();
   }
 
   // Draw a menu item with an editable value
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char idx, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr) + (idx ? 2 : 0),
+  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
                   vallen = (pgm ? strlen_P(data) : strlen((char*)data));
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
+    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
     nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
@@ -1542,9 +1543,9 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char idx/*=NULL*/, const char* const value/*=nullptr*/) {
+  void draw_edit_screen(PGM_P const pstr, const uint8_t idx, const char* const value/*=nullptr*/) {
 
-    const uint8_t labellen  = strlen_P(pstr) + (idx ? 2 : 0),
+    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
                   vallen    = strlen(value);
 
     bool extra_row = labellen > LCD_WIDTH - vallen - 1;
@@ -1559,7 +1560,7 @@ void LcdUI::stop_print() {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
       nexlcd.put_str_P(pstr);
-      if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
+      if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_space(LCD_WIDTH - vallen);
@@ -1568,7 +1569,7 @@ void LcdUI::stop_print() {
     else {
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_str_P(pstr);
-      if (idx) { nexlcd.setChar(' '); nexlcd.setChar(idx); }
+      if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
       nexlcd.setChar(':');
       nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
       nexlcd.put_str(value);

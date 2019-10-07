@@ -92,128 +92,128 @@ void TMC_Stepper::create_tmc() {
 
   #if HAVE_DRV(TMC2208)
 
-    #define TMC2208_DEFINE_HARDWARE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                      \
-                                                  driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE);    \
-                                                  ST##_HARDWARE_SERIAL.begin(115200);                                             \
-                                                } }while(0)
+    #define TMC_HW_DEFINE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE);  \
+                                    ST##_HARDWARE_SERIAL.begin(115200);                                           \
+                                  } }while(0)
 
-    #define TMC2208_DEFINE_HARDWARE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                                    \
-                                                  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE):  \
-                                                  ST##_HARDWARE_SERIAL.begin(115200);                                             \
-                                                } }while(0)
+    #define TMC_HW_DEFINE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                              \
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE);\
+                                    ST##_HARDWARE_SERIAL.begin(115200);                                           \
+                                  } }while(0)
 
-    #define TMC2208_DEFINE_SOFTWARE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                                                                  \
-                                                  driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin);   \
-                                                  driver[ST##_DRV]->tmc->beginSerial(115200);                                                                                 \
-                                                } }while(0)
+    #define TMC_SW_DEFINE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                                                            \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
+                                    driver[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
+                                  } }while(0)
 
-    #define TMC2208_DEFINE_SOFTWARE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                                                                                \
-                                                  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
-                                                  driver.e[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
-                                                } }while(0)
+    #define TMC_SW_DEFINE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                                                                            \
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
+                                    driver.e[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
+                                  } }while(0)
 
     // Stepper objects of TMC2208 steppers used
     #if X_HAS_DRV(TMC2208)
       #if ENABLED(X_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(X,X);
+        TMC_HW_DEFINE(X,X);
       #else
-        TMC2208_DEFINE_SOFTWARE(X,X);
+        TMC_SW_DEFINE(X,X);
       #endif
       config(driver.x, X_STEALTHCHOP);
     #endif
     #if X2_HAS_DRV(TMC2208)
       #if ENABLED(X2_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(X2,X);
+        TMC_HW_DEFINE(X2,X);
       #else
-        TMC2208_DEFINE_SOFTWARE(X2,X);
+        TMC_SW_DEFINE(X2,X);
       #endif
       config(driver.x2, X_STEALTHCHOP);
     #endif
     #if Y_HAS_DRV(TMC2208)
       #if ENABLED(Y_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(Y,Y);
+        TMC_HW_DEFINE(Y,Y);
       #else
-        TMC2208_DEFINE_SOFTWARE(Y,Y);
+        TMC_SW_DEFINE(Y,Y);
       #endif
       config(driver.y, Y_STEALTHCHOP);
     #endif
     #if Y2_HAS_DRV(TMC2208)
       #if ENABLED(Y2_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(Y2,Y);
+        TMC_HW_DEFINE(Y2,Y);
       #else
-        TMC2208_DEFINE_SOFTWARE(Y2,Y);
+        TMC_SW_DEFINE(Y2,Y);
       #endif
       config(driver.y2, Y_STEALTHCHOP);
     #endif
     #if Z_HAS_DRV(TMC2208)
       #if ENABLED(Z_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(Z,Z);
+        TMC_HW_DEFINE(Z,Z);
       #else
-        TMC2208_DEFINE_SOFTWARE(Z,Z);
+        TMC_SW_DEFINE(Z,Z);
       #endif
       config(driver.z, Z_STEALTHCHOP);
     #endif
     #if Z2_HAS_DRV(TMC2208)
       #if ENABLED(Z2_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(Z2,Z);
+        TMC_HW_DEFINE(Z2,Z);
       #else
-        TMC2208_DEFINE_SOFTWARE(Z2,Z);
+        TMC_SW_DEFINE(Z2,Z);
       #endif
       config(driver.z2, Z_STEALTHCHOP);
     #endif
     #if Z3_HAS_DRV(TMC2208)
       #if ENABLED(Z3_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE(Z3,Z);
+        TMC_HW_DEFINE(Z3,Z);
       #else
-        TMC2208_DEFINE_SOFTWARE(Z3,Z);
+        TMC_SW_DEFINE(Z3,Z);
       #endif
       config(driver.z3, Z_STEALTHCHOP);
     #endif
     #if E0_HAS_DRV(TMC2208)
       #if ENABLED(E0_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E0,E0);
+        TMC_HW_DEFINE_E(E0,E0);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E0,E0);
+        TMC_SW_DEFINE_E(E0,E0);
       #endif
       config(driver.e[0], E0_STEALTHCHOP);
     #endif
     #if E1_HAS_DRV(TMC2208)
       #if ENABLED(E1_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E1,E1);
+        TMC_HW_DEFINE_E(E1,E1);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E1,E1);
+        TMC_SW_DEFINE_E(E1,E1);
       #endif
       config(driver.e[1], E1_STEALTHCHOP);
     #endif
     #if E2_HAS_DRV(TMC2208)
       #if ENABLED(E2_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E2,E2);
+        TMC_HW_DEFINE_E(E2,E2);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E2,E2);
+        TMC_SW_DEFINE_E(E2,E2);
       #endif
       config(driver.e[2], E2_STEALTHCHOP);
     #endif
     #if E3_HAS_DRV(TMC2208)
       #if ENABLED(E3_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E3,E3);
+        TMC_HW_DEFINE_E(E3,E3);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E3,E3);
+        TMC_SW_DEFINE_E(E3,E3);
       #endif
       config(driver.e[3], E3_STEALTHCHOP);
     #endif
     #if E4_HAS_DRV(TMC2208)
       #if ENABLED(E4_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E4,E4);
+        TMC_HW_DEFINE_E(E4,E4);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E4,E4);
+        TMC_SW_DEFINE_E(E4,E4);
       #endif
       config(driver.e[4], E4_STEALTHCHOP);
     #endif
     #if E5_HAS_DRV(TMC2208)
       #if ENABLED(E5_HARDWARE_SERIAL)
-        TMC2208_DEFINE_HARDWARE_E(E5,E5);
+        TMC_HW_DEFINE_E(E5,E5);
       #else
-        TMC2208_DEFINE_SOFTWARE_E(E5,E5);
+        TMC_SW_DEFINE_E(E5,E5);
       #endif
       config(driver.e[5], E5_STEALTHCHOP);
     #endif

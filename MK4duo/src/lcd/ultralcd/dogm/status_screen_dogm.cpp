@@ -151,7 +151,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
     uint8_t     tall = uint8_t(perc * BAR_TALL + 0.5f);
     NOMORE(tall, BAR_TALL);
 
-   #if ANIM_HOTEND
+    #if ANIM_HOTEND
       // Draw hotend bitmap, either whole or split by the heating percent
       if (IFBED(0, 1)) {
         const uint8_t hx = STATUS_HOTEND_X(act->data.ID),
@@ -223,9 +223,8 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, PGM_P value, const bool 
   const uint8_t offs = (XYZ_SPACING) * axis;
   lcd_put_wchar(X_LABEL_POS + offs, XYZ_BASELINE, 'X' + axis);
   lcd_moveto(X_VALUE_POS + offs, XYZ_BASELINE);
-  if (blink) {
+  if (blink)
     lcd_put_u8str(value);
-  }
   else {
     if (!mechanics.isAxisHomed(axis))
       while (const char c = *value++) lcd_put_wchar(c <= '.' ? c : '?');
@@ -463,6 +462,7 @@ void LcdUI::draw_status_screen() {
   //
   // XYZ Coordinates
   //
+
   #if ENABLED(XYZ_HOLLOW_FRAME)
     #define XYZ_FRAME_TOP 29
     #define XYZ_FRAME_HEIGHT INFO_FONT_ASCENT + 3
@@ -520,13 +520,11 @@ void LcdUI::draw_status_screen() {
   //
   // Feedrate
   //
-
   #define EXTRAS_2_BASELINE (EXTRAS_BASELINE + 3)
 
   if (PAGE_CONTAINS(EXTRAS_2_BASELINE - INFO_FONT_ASCENT, EXTRAS_2_BASELINE - 1)) {
     set_font(FONT_MENU);
-    lcd_moveto(3, EXTRAS_2_BASELINE);
-    lcd_put_wchar(LCD_STR_FEEDRATE[0]);
+    lcd_put_wchar(3, EXTRAS_2_BASELINE, LCD_STR_FEEDRATE[0]);
 
     set_font(FONT_STATUSMENU);
     lcd_put_u8str(12, EXTRAS_2_BASELINE, i16tostr3(mechanics.feedrate_percentage));
@@ -548,7 +546,6 @@ void LcdUI::draw_status_screen() {
   //
   // Status line
   //
-
   if (PAGE_CONTAINS(STATUS_BASELINE - INFO_FONT_ASCENT, STATUS_BASELINE + INFO_FONT_DESCENT)) {
     lcd_moveto(0, STATUS_BASELINE);
 

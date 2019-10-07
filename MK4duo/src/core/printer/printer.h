@@ -98,8 +98,7 @@ class Printer {
       #define PRINTER_KEEPALIVE(N)  NOOP
     #endif
 
-    static InterruptEventEnum interruptEvent;
-    static PrinterModeEnum    mode;
+    static PrinterModeEnum mode;
 
     #if ENABLED(BARICUDA)
       static int baricuda_valve_pressure;
@@ -140,7 +139,6 @@ class Printer {
     static void zero_fan_speed();
 
     static void idle(const bool ignore_stepper_queue=false);
-    static void setInterruptEvent(const InterruptEventEnum event);
 
     static bool isPrinting();
     static bool isPaused();
@@ -229,8 +227,6 @@ class Printer {
   private: /** Private Function */
 
     static void setup_pinout();
-
-    static void handle_interrupt_events();
 
     static void handle_safety_watch();
 

@@ -255,23 +255,30 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
   return homing_feedrate_mm_s[axis] / hbd;
 }
 
-bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !home_flag.XHomed,
-              yy = y && !home_flag.YHomed,
-              zz = z && !home_flag.ZHomed;
+uint8_t Mechanics::axis_need_homing(uint8_t axis_bits/*=0x07*/) {
+  // Clear test bits that are homed
+  if (TEST(axis_bits, X_AXIS) && home_flag.XHomed) CBI(axis_bits, X_AXIS);
+  if (TEST(axis_bits, Y_AXIS) && home_flag.YHomed) CBI(axis_bits, Y_AXIS);
+  if (TEST(axis_bits, Z_AXIS) && home_flag.ZHomed) CBI(axis_bits, Z_AXIS);
+  return axis_bits;
+}
 
-  if (xx || yy || zz) {
-    SERIAL_SM(ECHO, MSG_HOME " ");
-    if (xx) SERIAL_MSG(MSG_X);
-    if (yy) SERIAL_MSG(MSG_Y);
-    if (zz) SERIAL_MSG(MSG_Z);
-    SERIAL_EM(" " MSG_FIRST);
+bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
+  if ((axis_bits = axis_need_homing(axis_bits))) {
+    static const char home_first[] PROGMEM = MSG_HOME_FIRST;
+    char msg[sizeof(home_first)];
+    sprintf_P(msg, home_first,
+      TEST(axis_bits, X_AXIS) ? MSG_X : "",
+      TEST(axis_bits, Y_AXIS) ? MSG_Y : "",
+      TEST(axis_bits, Z_AXIS) ? MSG_Y : ""
+    );
+    SERIAL_STR(ECHO);
+    SERIAL_STR(msg);
+    SERIAL_EOL();
 
-    #if HAS_SPI_LCD
-      lcdui.status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
+    #if HAS_LCD
+      lcdui.set_status(msg);
     #endif
-
-    sound.feedback(false);
 
     return true;
   }

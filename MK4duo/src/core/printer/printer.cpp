@@ -52,9 +52,6 @@ millis_l  Printer::max_inactivity_ms  = 0,
   uint8_t Printer::host_keepalive_time  = DEFAULT_KEEPALIVE_INTERVAL;
 #endif
 
-// Interrupt Event
-InterruptEventEnum Printer::interruptEvent = INTERRUPT_EVENT_NONE;
-
 // Printer mode
 PrinterModeEnum Printer::mode =
   #if ENABLED(PLOTTER)
@@ -329,7 +326,7 @@ void Printer::loop() {
         #if Z_HOME_DIR > 0
           mechanics.home();
         #else
-          mechanics.home(HOME_X, HOME_Y, NO_HOME_Z);
+          mechanics.home(HOME_X | HOME_Y);
         #endif
 
         // Disabled Heaters and Fan
@@ -586,9 +583,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     host_keepalive_tick();
   #endif
 
-  // Control interrupt events
-  handle_interrupt_events();
-
   // Tick timer job counter
   print_job_counter.tick();
 
@@ -814,11 +808,6 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
 }
 
-void Printer::setInterruptEvent(const InterruptEventEnum event) {
-  if (interruptEvent == INTERRUPT_EVENT_NONE)
-    interruptEvent = event;
-}
-
 /**
  * isPrinting check
  */
@@ -941,64 +930,6 @@ void Printer::setup_pinout() {
   #if TMC_HAS_SPI
     tmc.init_cs_pins();
   #endif
-
-}
-
-void Printer::handle_interrupt_events() {
-
-  if (interruptEvent == INTERRUPT_EVENT_NONE) return; // Exit if none Event
-
-  switch (interruptEvent) {
-
-    #if HAS_FILAMENT_SENSOR
-
-      case INTERRUPT_EVENT_FIL_RUNOUT: {
-
-        interruptEvent = INTERRUPT_EVENT_NONE;
-        filamentrunout.sensor.setFilamentOut(true);
-
-        #if ENABLED(ADVANCED_PAUSE_FEATURE)
-          if (advancedpause.did_pause_print) return;
-        #endif
-
-        const char tool = DIGIT(tools.data.extruder.active);
-        host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
-        host_action.prompt_begin(PSTR("Filament Runout T"), false);
-        SERIAL_CHR(tool);
-        SERIAL_EOL();
-        host_action.prompt_show();
-
-        const bool run_runout_script = !filamentrunout.sensor.isHostHandling();
-
-        if (run_runout_script
-          && ( strstr(FILAMENT_RUNOUT_SCRIPT, "M600")
-            || strstr(FILAMENT_RUNOUT_SCRIPT, "M125")
-            #if ENABLED(ADVANCED_PAUSE_FEATURE)
-              || strstr(FILAMENT_RUNOUT_SCRIPT, "M25")
-            #endif
-          )
-        )
-          host_action.paused(false);
-        else
-          host_action.pause(false);
-
-        SERIAL_MSG(" filament_runout T");
-        SERIAL_CHR(tool);
-        SERIAL_EOL();
-
-        if (run_runout_script)
-          commands.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
-
-        planner.synchronize();
-
-        break;
-      }
-
-    #endif // HAS_FILAMENT_SENSOR
-
-    default: break;
-
-  }
 
 }
 

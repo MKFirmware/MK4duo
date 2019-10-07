@@ -32,25 +32,25 @@
 
 void menu_dht() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
   switch (dhtsensor.data.type) {
     case DHT11:
-      STATIC_ITEM(MSG_DHT_11, false, false);
+      STATIC_ITEM(MSG_DHT_11, SS_CENTER|SS_INVERT);
       break;
     case DHT12:
-      STATIC_ITEM(MSG_DHT_12, false, false);
+      STATIC_ITEM(MSG_DHT_12, SS_CENTER|SS_INVERT);
       break;
     case DHT21:
-      STATIC_ITEM(MSG_DHT_21, false, false);
+      STATIC_ITEM(MSG_DHT_21, SS_CENTER|SS_INVERT);
       break;
     case DHT22:
-      STATIC_ITEM(MSG_DHT_22, false, false);
+      STATIC_ITEM(MSG_DHT_22, SS_CENTER|SS_INVERT);
       break;
     default: break;
   }
-  STATIC_ITEM(MSG_TEMPERATURE " (C):", false, false, ftostr52sp(dhtsensor.Temperature));
-  STATIC_ITEM(MSG_HUMIDITY " (%):", false, false, ftostr52sp(dhtsensor.Humidity));
-  STATIC_ITEM(MSG_DEWPOINT " (C):", false, false, ftostr52sp(dhtsensor.dewPoint()));
+  STATIC_ITEM(MSG_TEMPERATURE " (C):", SS_LEFT, ftostr52sp(dhtsensor.Temperature));
+  STATIC_ITEM(MSG_HUMIDITY " (%):", SS_LEFT, ftostr52sp(dhtsensor.Humidity));
+  STATIC_ITEM(MSG_DEWPOINT " (C):", SS_LEFT, ftostr52sp(dhtsensor.dewPoint()));
   END_MENU();
 }
 

@@ -28,7 +28,7 @@
 
 #if HAS_LCD_MENU && HAS_TRINAMIC
 
-#define TMC_EDIT_STORED_I_RMS(ST) MENU_ITEM_EDIT_CALLBACK(uint16_4, MSG_##ST, &driver[ST##_DRV]->tmc->val_mA, 100, 3000, refresh_stepper_current_##ST)
+#define TMC_EDIT_STORED_I_RMS(ST) EDIT_ITEM(uint16_4, MSG_##ST, &driver[ST##_DRV]->tmc->val_mA, 100, 3000, refresh_stepper_current_##ST)
 
 #if AXIS_HAS_TMC(X)
   void refresh_stepper_current_X()  { driver.x->tmc->refresh_stepper_current();  }
@@ -72,7 +72,7 @@
 
 void menu_tmc_current() {
   START_MENU();
-  MENU_BACK(MSG_TMC_DRIVERS);
+  BACK_ITEM(MSG_TMC_DRIVERS);
   #if AXIS_HAS_TMC(X)
     TMC_EDIT_STORED_I_RMS(X);
   #endif
@@ -115,7 +115,7 @@ void menu_tmc_current() {
   END_MENU();
 }
 
-#define TMC_EDIT_STORED_MICROSTEPS(ST) MENU_ITEM_EDIT_CALLBACK(microstep, MSG_##ST, &driver[ST##_DRV]->tmc->val_ms, 16, 128, refresh_stepper_microstep_##ST)
+#define TMC_EDIT_STORED_MICROSTEPS(ST) EDIT_ITEM(microstep, MSG_##ST, &driver[ST##_DRV]->tmc->val_ms, 16, 128, refresh_stepper_microstep_##ST)
 
 #if AXIS_HAS_TMC(X)
   void refresh_stepper_microstep_X()  { driver.x->tmc->refresh_stepper_microstep();  }
@@ -159,7 +159,7 @@ void menu_tmc_current() {
 
 void menu_tmc_microstep() {
   START_MENU();
-  MENU_BACK(MSG_TMC_DRIVERS);
+  BACK_ITEM(MSG_TMC_DRIVERS);
   #if AXIS_HAS_TMC(X)
     TMC_EDIT_STORED_MICROSTEPS(X);
   #endif
@@ -204,7 +204,7 @@ void menu_tmc_microstep() {
 
 #if ENABLED(HYBRID_THRESHOLD)
 
-  #define TMC_EDIT_STORED_HYBRID_THRS(ST) MENU_ITEM_EDIT_CALLBACK(uint8, MSG_##ST, &driver[ST##_DRV]->tmc->hybrid_thrs, 0, 255, refresh_hybrid_thrs_##ST);
+  #define TMC_EDIT_STORED_HYBRID_THRS(ST) EDIT_ITEM(uint8, MSG_##ST, &driver[ST##_DRV]->tmc->hybrid_thrs, 0, 255, refresh_hybrid_thrs_##ST);
 
   #if AXIS_HAS_TMC(X)
     void refresh_hybrid_thrs_X()  {  driver.x->tmc->refresh_hybrid_thrs(); }
@@ -248,7 +248,7 @@ void menu_tmc_microstep() {
 
   void menu_tmc_hybrid_thrs() {
     START_MENU();
-    MENU_BACK(MSG_TMC_DRIVERS);
+    BACK_ITEM(MSG_TMC_DRIVERS);
     #if AXIS_HAS_TMC(X)
       TMC_EDIT_STORED_HYBRID_THRS(X);
     #endif
@@ -295,7 +295,7 @@ void menu_tmc_microstep() {
 
 #if HAS_SENSORLESS
 
-  #define TMC_EDIT_STORED_SGT(ST) MENU_ITEM_EDIT_CALLBACK(int4, MSG_##ST, &driver[ST##_DRV]->tmc->homing_thrs, -64, 63, refresh_homing_thrs_##ST);
+  #define TMC_EDIT_STORED_SGT(ST) EDIT_ITEM(int4, MSG_##ST, &driver[ST##_DRV]->tmc->homing_thrs, -64, 63, refresh_homing_thrs_##ST);
 
   #if X_HAS_SENSORLESS
     void refresh_homing_thrs_X()  { driver.x->tmc->refresh_homing_thrs(); }
@@ -309,7 +309,7 @@ void menu_tmc_microstep() {
 
   void menu_tmc_homing_thrs() {
     START_MENU();
-    MENU_BACK(MSG_TMC_DRIVERS);
+    BACK_ITEM(MSG_TMC_DRIVERS);
     #if X_HAS_SENSORLESS
       TMC_EDIT_STORED_SGT(X);
     #endif
@@ -326,7 +326,7 @@ void menu_tmc_microstep() {
 
 #if TMC_HAS_STEALTHCHOP
 
-  #define TMC_EDIT_STEP_MODE(ST) MENU_ITEM_EDIT_CALLBACK(bool, MSG_##ST, &driver[ST##_DRV]->tmc->stealthChop_enabled, refresh_stepping_mode_##ST)
+  #define TMC_EDIT_STEP_MODE(ST) EDIT_ITEM(bool, MSG_##ST, &driver[ST##_DRV]->tmc->stealthChop_enabled, refresh_stepping_mode_##ST)
 
   #if AXIS_HAS_STEALTHCHOP(X)
     void refresh_stepping_mode_X()  { driver.x->tmc->refresh_stepping_mode();  }
@@ -371,7 +371,7 @@ void menu_tmc_microstep() {
   void menu_tmc_step_mode() {
     START_MENU();
     STATIC_ITEM(MSG_TMC_STEALTH_ENABLED);
-    MENU_BACK(MSG_TMC_DRIVERS);
+    BACK_ITEM(MSG_TMC_DRIVERS);
     #if AXIS_HAS_STEALTHCHOP(X)
       TMC_EDIT_STEP_MODE(X);
     #endif
@@ -418,17 +418,17 @@ void menu_tmc_microstep() {
 
 void menu_tmc() {
   START_MENU();
-  MENU_BACK(MSG_CONTROL);
-  MENU_ITEM(submenu, MSG_TMC_CURRENT, menu_tmc_current);
-  MENU_ITEM(submenu, MSG_TMC_MICROSTEP, menu_tmc_microstep);
+  BACK_ITEM(MSG_CONTROL);
+  SUBMENU(MSG_TMC_CURRENT, menu_tmc_current);
+  SUBMENU(MSG_TMC_MICROSTEP, menu_tmc_microstep);
   #if ENABLED(HYBRID_THRESHOLD)
-    MENU_ITEM(submenu, MSG_TMC_HYBRID_THRS, menu_tmc_hybrid_thrs);
+    SUBMENU(MSG_TMC_HYBRID_THRS, menu_tmc_hybrid_thrs);
   #endif
   #if HAS_SENSORLESS
-    MENU_ITEM(submenu, MSG_TMC_HOMING_THRS, menu_tmc_homing_thrs);
+    SUBMENU(MSG_TMC_HOMING_THRS, menu_tmc_homing_thrs);
   #endif
   #if TMC_HAS_STEALTHCHOP
-    MENU_ITEM(submenu, MSG_TMC_STEPPING_MODE, menu_tmc_step_mode);
+    SUBMENU(MSG_TMC_STEPPING_MODE, menu_tmc_step_mode);
   #endif
   END_MENU();
 }

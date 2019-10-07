@@ -44,8 +44,8 @@ void menu_sdcard_restart() {
   lcdui.defer_status_screen();
   START_MENU();
   STATIC_ITEM(MSG_RESTART);
-  MENU_ITEM(function, MSG_RESUME_PRINT, lcd_sdcard_restart_resume);
-  MENU_ITEM(function, MSG_STOP_PRINT, lcd_sdcard_restart_cancel);
+  ACTION_ITEM(MSG_RESUME_PRINT, lcd_sdcard_restart_resume);
+  ACTION_ITEM(MSG_STOP_PRINT, lcd_sdcard_restart_cancel);
   END_MENU();
 }
 

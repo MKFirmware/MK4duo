@@ -114,7 +114,7 @@ class Cartesian_Mechanics : public Mechanics {
     /**
      * Home all axes according to settings
      */
-    static void home(const bool homeX=false, const bool homeY=false, const bool homeZ=false);
+    static void home(uint8_t axis_bits=0);
 
     /**
      * Home an individual linear axis

@@ -66,14 +66,14 @@ void _lcd_goto_next_corner() {
 
 void menu_level_bed_corners() {
   START_MENU();
-  MENU_ITEM(function,
+  ACTION_ITEM(
     #if ENABLED(LEVEL_CENTER_TOO)
       MSG_LEVEL_BED_NEXT_POINT
     #else
       MSG_NEXT_CORNER
     #endif
     , _lcd_goto_next_corner);
-  MENU_ITEM(function, MSG_BACK, lcdui.goto_previous_screen_no_defer);
+  ACTION_ITEM(MSG_BACK, lcdui.goto_previous_screen_no_defer);
   END_MENU();
 }
 
@@ -82,7 +82,7 @@ void _lcd_level_bed_corners_homing() {
   if (mechanics.isHomedAll()) {
     bed_corner = 0;
     lcdui.goto_screen(menu_level_bed_corners);
-    set_lcdui_selection(true);
+    lcdui.set_selection(true);
     _lcd_goto_next_corner();
   }
 }

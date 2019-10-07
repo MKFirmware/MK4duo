@@ -51,12 +51,9 @@
 #define _AXIS(A)  (A##_AXIS)
 
 // Home Macro
-#define HOME_X    true
-#define HOME_Y    true
-#define HOME_Z    true
-#define NO_HOME_X false
-#define NO_HOME_Y false
-#define NO_HOME_Z false
+#define HOME_X    _BV(X_AXIS)
+#define HOME_Y    _BV(Y_AXIS)
+#define HOME_Z    _BV(Z_AXIS)
 
 // Function macro
 #define _FORCE_INLINE_  __attribute__((__always_inline__)) __inline__
