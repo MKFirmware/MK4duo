@@ -495,7 +495,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     // Keep looping if "Purge More" was selected
   } while (false
     #if HAS_LCD_MENU
-      && (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
+      || (show_lcd && menu_response == PAUSE_RESPONSE_EXTRUDE_MORE)
     #endif
   );
 
@@ -587,7 +587,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
 
   hotends[TARGET_HOTEND].wait_for_target();
 
-  return printer.isWaitForHeatUp();
+  return !printer.isWaitForHeatUp();
 }
 
 #if HAS_BUZZER
