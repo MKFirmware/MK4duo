@@ -433,11 +433,11 @@ void lcd_draw_homing();
 #endif
 
 #if HAS_PROBE_MANUALLY || MECH(DELTA)
-  void _man_probe_pt(const float &rx, const float &ry);
+  void _man_probe_pt(const xy_pos_t &xy);
 #endif
 
 #if HAS_PROBE_MANUALLY
-  float lcd_probe_pt(const float &rx, const float &ry);
+  float lcd_probe_pt(const xy_pos_t &xy);
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)

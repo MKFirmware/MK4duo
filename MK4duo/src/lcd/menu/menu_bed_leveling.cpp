@@ -28,8 +28,8 @@
 
 #if HAS_LCD_MENU && (HAS_PROBE_MANUALLY || MECH(DELTA))
 
-  void _man_probe_pt(const float &rx, const float &ry) {
-    mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
+  void _man_probe_pt(const xy_pos_t &xy) {
+    mechanics.do_blocking_move_to_xy_z(xy, MANUAL_PROBE_HEIGHT);
     lcdui.synchronize();
     move_menu_scale = LCD_Z_STEP;
     lcdui.goto_screen(lcd_move_z);
@@ -39,8 +39,8 @@
 
 #if HAS_LCD_MENU && HAS_PROBE_MANUALLY
 
-  float lcd_probe_pt(const float &rx, const float &ry) {
-    _man_probe_pt(rx, ry);
+  float lcd_probe_pt(const xy_pos_t &xy) {
+    _man_probe_pt(xy);
     PRINTER_KEEPALIVE(PausedforUser);
     lcdui.defer_status_screen();
     printer.setWaitForUser(true);

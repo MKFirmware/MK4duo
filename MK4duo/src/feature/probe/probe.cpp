@@ -220,7 +220,8 @@ bool Probe::set_deployed(const bool deploy) {
         endstops.setSoftEndstop(false);
       #endif
 
-      measured_z = lcd_probe_pt(rx, ry);
+      xy_pos_t pos = { rx, ry };
+      measured_z = lcd_probe_pt(pos);
 
       // Restore the soft endstop status
       #if HAS_SOFTWARE_ENDSTOPS

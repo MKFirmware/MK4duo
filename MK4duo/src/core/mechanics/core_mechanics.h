@@ -62,26 +62,18 @@ class Core_Mechanics: public Mechanics {
 
     /**
      *  Plan a move to (X, Y, Z) and set the current_position
-     *  The final current_position may not be the one that was requested
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to(const xyze_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
 
-    FORCE_INLINE static void do_blocking_move_to(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
-    }
-    FORCE_INLINE static void do_blocking_move_to(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
-    }
-    FORCE_INLINE static void do_blocking_move_to(const xyze_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, raw.z, fr_mm_s);
-    }
+    static void do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s=0.0f);
 
-    FORCE_INLINE static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(rx, ry, current_position.z, fr_mm_s);
-    }
-    FORCE_INLINE static void do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
-    }
+    static void do_blocking_move_to_xy(const float &rx, const float &ry, const feedrate_t &fr_mm_s=0.0f);
+    static void do_blocking_move_to_xy(const xy_pos_t &raw, const feedrate_t &fr_mm_s=0.0f);
     FORCE_INLINE static void do_blocking_move_to_xy(const xyz_pos_t &raw, const feedrate_t &fr_mm_s=0.0f) {
       do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
     }
@@ -89,14 +81,12 @@ class Core_Mechanics: public Mechanics {
       do_blocking_move_to(raw.x, raw.y, current_position.z, fr_mm_s);
     }
 
-    FORCE_INLINE static void do_blocking_move_to_x(const float &rx, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(rx, current_position.y, current_position.z, fr_mm_s);
+    static void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedrate_t &fr_mm_s=0.0f);
+    FORCE_INLINE static void do_blocking_move_to_xy_z(const xyz_pos_t &raw, const float &z, const feedrate_t &fr_mm_s=0.0f) {
+      do_blocking_move_to_xy_z(xy_pos_t(raw), z, fr_mm_s);
     }
-    FORCE_INLINE static void do_blocking_move_to_y(const float &ry, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(current_position.x, ry, current_position.z, fr_mm_s);
-    }
-    FORCE_INLINE static void do_blocking_move_to_z(const float &rz, const feedrate_t &fr_mm_s=0.0f) {
-      do_blocking_move_to(current_position.x, current_position.y, rz, fr_mm_s);
+    FORCE_INLINE static void do_blocking_move_to_xy_z(const xyze_pos_t &raw, const float &z, const feedrate_t &fr_mm_s=0.0f) {
+      do_blocking_move_to_xy_z(xy_pos_t(raw), z, fr_mm_s);
     }
 
     /**

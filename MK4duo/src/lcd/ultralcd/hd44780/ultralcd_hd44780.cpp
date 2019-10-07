@@ -928,11 +928,10 @@ void LcdUI::draw_status_screen() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, const char *valstr/*=NULL*/) {
-    UNUSED(invert);
+  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
     int8_t n = LCD_WIDTH;
     lcd_moveto(0, row);
-    if (center && !valstr) {
+    if ((style & SS_CENTER) && !valstr) {
       int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
       while (--pad >= 0) { lcd_put_wchar(' '); n--; }
     }
@@ -941,7 +940,7 @@ void LcdUI::draw_status_screen() {
     for (; n > 0; --n) lcd_put_wchar(' ');
   }
 
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P pstr, const char idx, const char pre_char, const char post_char) {
+  void draw_menu_item(const bool sel, const uint8_t row, PGM_P pstr, const uint8_t idx, const char pre_char, const char post_char) {
     uint8_t n = LCD_WIDTH - 2;
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
     n -= lcd_put_u8str_max_P(pstr, n);

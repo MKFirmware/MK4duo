@@ -38,10 +38,15 @@ void _lcd_delta_calibrate_home() {
   lcdui.goto_screen(_lcd_calibrate_homing);
 }
 
-void _goto_tower_x() { _man_probe_pt(COS(RADIANS(210)) * mechanics.data.probe_radius, SIN(RADIANS(210)) * mechanics.data.probe_radius); }
-void _goto_tower_y() { _man_probe_pt(COS(RADIANS(330)) * mechanics.data.probe_radius, SIN(RADIANS(330)) * mechanics.data.probe_radius); }
-void _goto_tower_z() { _man_probe_pt(COS(RADIANS( 90)) * mechanics.data.probe_radius, SIN(RADIANS( 90)) * mechanics.data.probe_radius); }
-void _goto_center()  { _man_probe_pt(0, 0); }
+void _goto_tower_angle(const float &a) {
+  xy_pos_t tower_vector = { cos(RADIANS(a)), sin(RADIANS(a)) };
+  _man_probe_pt(tower_vector * mechanics.data.probe_radius);
+}
+
+void _goto_tower_x()  { _goto_tower_angle(210); }
+void _goto_tower_y()  { _goto_tower_angle(330); }
+void _goto_tower_z()  { _goto_tower_angle( 90); }
+void _goto_center()   { xy_pos_t center{0}; _man_probe_pt(center); }
 
 void lcd_delta_settings() {
   START_MENU();
