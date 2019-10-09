@@ -424,17 +424,14 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
     #if MECH(DELTA)
       stealth_states.x = tmc.enable_stallguard(X_DRV);
       stealth_states.y = tmc.enable_stallguard(Y_DRV);
-      stealth_states.z = tmc.enable_stallguard(Z_DRV);
-    #else
-      stealth_states.z = tmc.enable_stallguard(Z_DRV);
     #endif
+    stealth_states.z = tmc.enable_stallguard(Z_DRV);
+    endstops.setEnabled(true);
   #endif
 
   #if QUIET_PROBING
     probing_pause(true);
   #endif
-
-  endstops.setEnabled(true);
 
   #if MECH(DELTA)
     const float z_start = mechanics.current_position[Z_AXIS];
@@ -467,20 +464,18 @@ bool Probe::move_to_z(const float z, const float fr_mm_s) {
     probing_pause(false);
   #endif
 
-  // Retract BLTouch immediately after a probe if it was triggered
-  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
-    if (probe_triggered && bltouch.stow()) return true;
-  #endif
-
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA)
       tmc.disable_stallguard(X_DRV, stealth_states.x);
       tmc.disable_stallguard(Y_DRV, stealth_states.y);
-      tmc.disable_stallguard(Z_DRV, stealth_states.z);
-    #else
-      tmc.disable_stallguard(Z_DRV, stealth_states.z);
     #endif
+    tmc.disable_stallguard(Z_DRV, stealth_states.z);
+  #endif
+
+  // Retract BLTouch immediately after a probe if it was triggered
+  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+    if (probe_triggered && bltouch.stow()) return true;
   #endif
 
   // Clear endstop flags
@@ -533,7 +528,7 @@ void Probe::do_raise(const float z_raise) {
  */
 float Probe::run_probing() {
 
-  float probe_z = 0.0;
+  float probe_z = 0.0f;
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
@@ -546,7 +541,7 @@ float Probe::run_probing() {
   const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset[Z_AXIS] < 0 ? -data.offset[Z_AXIS] : 0);
   if (mechanics.current_position[Z_AXIS] > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
-      mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
   for (uint8_t r = data.repetitions + 1; --r;) {
