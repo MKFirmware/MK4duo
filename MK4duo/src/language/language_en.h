@@ -1192,14 +1192,14 @@
 #ifndef MSG_INFO_HOTENDS
   #define MSG_INFO_HOTENDS                    _UxGT("Hotends")
 #endif
-#ifndef MSG_INFO_BED
-  #define MSG_INFO_BED                        _UxGT("Bed")
+#ifndef MSG_INFO_BEDS
+  #define MSG_INFO_BEDS                       _UxGT("Beds")
 #endif
-#ifndef MSG_INFO_CHAMBER
-  #define MSG_INFO_CHAMBER                    _UxGT("Chamber")
+#ifndef MSG_INFO_CHAMBERS
+  #define MSG_INFO_CHAMBERS                   _UxGT("Chambers")
 #endif
 #ifndef MSG_INFO_COOLER
-  #define MSG_INFO_COOLER                     _UxGT("Cooler")
+  #define MSG_INFO_COOLER                     _UxGT("Coolers")
 #endif
 #ifndef MSG_INFO_BAUDRATE
   #define MSG_INFO_BAUDRATE                   _UxGT("Baud")

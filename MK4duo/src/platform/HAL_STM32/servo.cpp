@@ -20,7 +20,7 @@
  *
  */
 
-#ifdef ARDUINO_ARCH_STM32 && !defined(STM32GENERIC)
+#if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
 
 #include "../../../MK4duo.h"
 
@@ -42,11 +42,9 @@ int8_t MKServo::attach(const int pin, const int min, const int max) {
 }
 
 void MKServo::move(const int value) {
-  constexpr uint16_t servo_delay[] = SERVO_DELAY;
-  static_assert(COUNT(servo_delay) == NUM_SERVOS, "SERVO_DELAY must be an array NUM_SERVOS long.");
   if (this->attach(0) >= 0) {
     this->write(value);
-    safe_delay(servo_delay[this->servoIndex]);
+    HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
     #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
       this->detach();
     #endif

@@ -161,9 +161,22 @@ class Delta_Mechanics : public Mechanics {
      */
     static void set_axis_is_at_home(const AxisEnum axis);
 
+    /**
+     * Check position is reachable
+     */
     static bool position_is_reachable(const float &rx, const float &ry);
     inline static bool position_is_reachable(const xy_pos_t &pos) { return position_is_reachable(pos.x, pos.y); }
+
+    /**
+     * Return whether the given position is within the bed, and whether the nozzle
+     * can reach the position required to put the probe at the given position.
+     *
+     * Example: For a probe offset of -10,+10, then for the probe to reach 0,0 the
+     *          nozzle must be be able to reach +10,-10.
+     */
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
+    inline static bool position_is_reachable_by_probe(const xy_int_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
+    inline static bool position_is_reachable_by_probe(const xy_pos_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
 
     /**
      * Report current position to host

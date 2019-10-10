@@ -936,6 +936,7 @@ void LcdUI::draw_status_screen() {
       while (--pad >= 0) { lcd_put_wchar(' '); n--; }
     }
     n -= lcd_put_u8str_max_P(pstr, n);
+    if (idx != NO_INDEX) { lcd_put_wchar(' '); lcd_put_wchar(DIGIT(idx)); n -= 2; }
     if (valstr) n -= lcd_put_u8str_max(valstr, n);
     for (; n > 0; --n) lcd_put_wchar(' ');
   }

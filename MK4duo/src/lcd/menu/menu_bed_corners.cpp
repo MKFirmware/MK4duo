@@ -33,11 +33,10 @@
  */
 static int8_t bed_corner;
 void _lcd_goto_next_corner() {
-  line_to_z(4.0);
+  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_Z_HOP, MMM_TO_MMS(manual_feedrate_mm_m.z));
   switch (bed_corner) {
     case 0:
-      mechanics.current_position.x = X_MIN_BED + LEVEL_CORNERS_INSET;
-      mechanics.current_position.y = Y_MIN_BED + LEVEL_CORNERS_INSET;
+      mechanics.current_position.set(X_MIN_BED + LEVEL_CORNERS_INSET, Y_MIN_BED + LEVEL_CORNERS_INSET);
       break;
     case 1:
       mechanics.current_position.x = X_MAX_BED - LEVEL_CORNERS_INSET;
@@ -50,13 +49,12 @@ void _lcd_goto_next_corner() {
       break;
     #if ENABLED(LEVEL_CENTER_TOO)
       case 4:
-        mechanics.current_position.x = X_CENTER;
-        mechanics.current_position.y = Y_CENTER;
+        mechanics.current_position.set(X_CENTER, Y_CENTER);
         break;
     #endif
   }
-  planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.x), tools.data.extruder.active);
-  line_to_z(0.0);
+  mechanics.line_to_current_position(MMM_TO_MMS(manual_feedrate_mm_m.x));
+  mechanics.do_blocking_move_to_z(LEVEL_CORNERS_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
   if (++bed_corner > 3
     #if ENABLED(LEVEL_CENTER_TOO)
       + 1
@@ -64,20 +62,22 @@ void _lcd_goto_next_corner() {
   ) bed_corner = 0;
 }
 
-void menu_level_bed_corners() {
-  START_MENU();
-  ACTION_ITEM(
-    #if ENABLED(LEVEL_CENTER_TOO)
-      MSG_LEVEL_BED_NEXT_POINT
-    #else
-      MSG_NEXT_CORNER
-    #endif
-    , _lcd_goto_next_corner);
-  ACTION_ITEM(MSG_BACK, lcdui.goto_previous_screen_no_defer);
-  END_MENU();
+static inline void menu_level_bed_corners() {
+  do_select_screen(
+    PSTR(MSG_BUTTON_NEXT), PSTR(MSG_BUTTON_DONE),
+    _lcd_goto_next_corner,
+    lcdui.goto_previous_screen_no_defer,
+    PSTR(
+      #if ENABLED(LEVEL_CENTER_TOO)
+        MSG_LEVEL_BED_NEXT_POINT
+      #else
+        MSG_NEXT_CORNER
+      #endif
+    ), nullptr, PSTR("?")
+  );
 }
 
-void _lcd_level_bed_corners_homing() {
+static inline void _lcd_level_bed_corners_homing() {
   lcd_draw_homing();
   if (mechanics.isHomedAll()) {
     bed_corner = 0;
@@ -89,8 +89,7 @@ void _lcd_level_bed_corners_homing() {
 
 void lcd_level_bed_corners() {
   lcdui.defer_status_screen();
-  if (!mechanics.isHomedAll())
-    commands.inject_P(PSTR("G28"));
+  if (!mechanics.isHomedAll()) commands.inject_P(PSTR("G28"));
   lcdui.goto_screen(_lcd_level_bed_corners_homing);
 }
 

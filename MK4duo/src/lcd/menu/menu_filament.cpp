@@ -34,6 +34,8 @@
 static PauseModeEnum _change_filament_temp_mode;  // =PAUSE_MODE_PAUSE_PRINT
 static int8_t _change_filament_temp_extruder;     // =0
 
+static char cmd[11];
+
 inline PGM_P _change_filament_temp_command() {
   switch (_change_filament_temp_mode) {
     case PAUSE_MODE_LOAD_FILAMENT:
@@ -49,15 +51,10 @@ inline PGM_P _change_filament_temp_command() {
 }
 
 static void _change_filament_temp(const uint16_t temperature) {
-  char cmd[11];
   sprintf_P(cmd, _change_filament_temp_command(), _change_filament_temp_extruder);
   hotends[_change_filament_temp_extruder]->set_target_temp(temperature);
   lcd_enqueue_one_now(cmd);
 }
-inline void _lcd_change_filament_temp_1_func()    { _change_filament_temp(lcdui.preheat_hotend_temp[0]); }
-inline void _lcd_change_filament_temp_2_func()    { _change_filament_temp(lcdui.preheat_hotend_temp[1]); }
-inline void _lcd_change_filament_temp_3_func()    { _change_filament_temp(lcdui.preheat_hotend_temp[2]); }
-inline void _lcd_change_filament_temp_custom_cb() { _change_filament_temp(hotends[_change_filament_temp_extruder]->target_temperature); }
 
 static PGM_P change_filament_header(const PauseModeEnum mode) {
   switch (mode) {
@@ -70,38 +67,19 @@ static PGM_P change_filament_header(const PauseModeEnum mode) {
   return PSTR(MSG_FILAMENTCHANGE);
 }
 
-void _menu_temp_filament_op(const PauseModeEnum inMode, const int8_t extruder) {
-  // If no print is active, just label as "filament change"
-  const PauseModeEnum mode = (inMode != PAUSE_MODE_PAUSE_PRINT || printer.isPaused()) ? inMode : PAUSE_MODE_CHANGE_FILAMENT;
+void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
   _change_filament_temp_mode = mode;
   _change_filament_temp_extruder = extruder;
   START_MENU();
   if (LCD_HEIGHT >= 4) STATIC_ITEM_P(change_filament_header(mode), SS_CENTER|SS_INVERT);
   BACK_ITEM(MSG_BACK);
-  ACTION_ITEM(MSG_PREHEAT_1, _lcd_change_filament_temp_1_func);
-  ACTION_ITEM(MSG_PREHEAT_2, _lcd_change_filament_temp_2_func);
-  ACTION_ITEM(MSG_PREHEAT_3, _lcd_change_filament_temp_3_func);
-  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - 10, _lcd_change_filament_temp_custom_cb);
+  ACTION_ITEM(MSG_PREHEAT_1, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[0]); });
+  ACTION_ITEM(MSG_PREHEAT_2, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[1]); });
+  ACTION_ITEM(MSG_PREHEAT_3, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[2]); });
+  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - 10, [](){
+    _change_filament_temp(hotends[_change_filament_temp_extruder]->target_temperature);
+  });
   END_MENU();
-}
-void menu_temp_filament_change()  { _menu_temp_filament_op(PAUSE_MODE_PAUSE_PRINT, menu_edit_index); }
-void menu_temp_filament_load()    { _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, menu_edit_index); }
-void menu_temp_filament_unload()  { _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, menu_edit_index); }
-
-void gcode_m600() {
-  char cmd[11];
-  sprintf_P(cmd, PSTR("M600 B0 T%d"), menu_edit_index);
-  lcd_enqueue_one_now(cmd);
-}
-void gcode_m701() {
-  char cmd[11];
-  sprintf_P(cmd, PSTR("M701 T%d"), menu_edit_index);
-  lcd_enqueue_one_now(cmd);
-}
-void gcode_m702() {
-  char cmd[11];
-  sprintf_P(cmd, PSTR("M702 T%d"), menu_edit_index);
-  lcd_enqueue_one_now(cmd);
 }
 
 /**
@@ -116,33 +94,44 @@ void gcode_m702() {
     START_MENU();
     BACK_ITEM(MSG_MAIN);
 
+    editable.int8 = printer.isPaused() ? PAUSE_MODE_PAUSE_PRINT : PAUSE_MODE_CHANGE_FILAMENT;
+
     // Change filament
     LOOP_EXTRUDER() {
       PGM_P msg = PSTR(MSG_FILAMENTCHANGE);
       if (thermalManager.targetTooColdToExtrude(e))
-        MENU_ITEM_P(submenu, msg, e, menu_temp_filament_change);
+        MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PauseModeEnum(editable.int8), menu_edit_index); });
       else
-        MENU_ITEM_P(submenu, msg, e, gcode_m600);
+        MENU_ITEM_P(submenu, msg, e, [](){
+          sprintf_P(cmd, PSTR("M600 B0 T%d"), menu_edit_index);
+          lcd_enqueue_one_now(cmd);
+        });
     }
 
-    if (!printer.isPrinting()) {
+    if (printer.isPaused()) {
 
       // Load filament
       LOOP_EXTRUDER() {
         PGM_P msg = PSTR(MSG_FILAMENTLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          MENU_ITEM_P(submenu, msg, e, menu_temp_filament_load);
+          MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, menu_edit_index); });
         else
-          MENU_ITEM_P(submenu, msg, e, gcode_m701);
+          MENU_ITEM_P(submenu, msg, e, [](){
+            sprintf_P(cmd, PSTR("M701 T%d"), menu_edit_index);
+            lcd_enqueue_one_now(cmd);
+          });
       }
 
       // Unload filament
       LOOP_EXTRUDER() {
         PGM_P msg = PSTR(MSG_FILAMENTUNLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          MENU_ITEM_P(submenu, msg, e, menu_temp_filament_unload);
+          MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, menu_edit_index); });
         else
-          MENU_ITEM_P(submenu, msg, e, gcode_m702);
+          MENU_ITEM_P(submenu, msg, e, [](){
+            sprintf_P(cmd, PSTR("M702 T%d"), menu_edit_index);
+            lcd_enqueue_one_now(cmd);
+          });
       }
 
     }
@@ -186,7 +175,7 @@ static PGM_P pause_header() {
   #define HOTEND_STATUS_ITEM() do { \
     if (_menuLineNr == _thisItemNr) { \
       if (lcdui.should_draw()) { \
-        draw_menu_item_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), SS_INVERT); \
+        draw_menu_item_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), NO_INDEX, SS_INVERT); \
         lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
       } \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
@@ -199,26 +188,22 @@ static PGM_P pause_header() {
   }while(0)
 #endif
 
-void lcd_pause_resume_print() {
-  advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT;
-}
-
-void lcd_pause_extrude_more() {
-  advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE;
-}
-
 void menu_pause_option() {
   START_MENU();
   #if LCD_HEIGHT > 2
     STATIC_ITEM(MSG_FILAMENT_CHANGE_OPTION_HEADER);
   #endif
-  ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_PURGE, lcd_pause_extrude_more);
+  ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_PURGE, [](){ advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE; });
   #if HAS_FILAMENT_SENSOR
+    editable.state = filamentrunout.sensor.isEnabled();
     if (filamentrunout.sensor.isFilamentOut())
-      ACTION_ITEM(MSG_RUNOUT_SENSOR, filamentrunout.reset);
+      EDIT_ITEM_I(bool, MSG_RUNOUT_SENSOR, &editable.state, [](){
+        filamentrunout.sensor.setEnabled(editable.state);
+        filamentrunout.reset();
+      });
     else
   #endif
-    ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_RESUME, lcd_pause_resume_print);
+    ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_RESUME, [](){ advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT; });
   END_MENU();
 }
 
@@ -228,7 +213,7 @@ void menu_pause_option() {
 
 void _lcd_pause_message(PGM_P const msg1, PGM_P const msg2=nullptr, PGM_P const msg3=nullptr) {
   START_SCREEN();
-  STATIC_ITEM_P(pause_header(), SS_CENTER|SS_INVERT);
+  STATIC_ITEM_P(pause_header(), NO_INDEX, SS_CENTER|SS_INVERT);
   STATIC_ITEM_P(msg1);
   if (msg2) STATIC_ITEM_P(msg2);
   if (msg3 && (LCD_HEIGHT) >= 5) STATIC_ITEM_P(msg3);

@@ -23,6 +23,9 @@
 
 #include <Servo.h>
 
+#define SERVOS_PER_TIMER    12 // the maximum number of servos controlled by one timer
+#define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
+
 // Inherit and expand on the official library
 class MKServo : public Servo {
 

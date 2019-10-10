@@ -141,20 +141,20 @@ void menu_main() {
 
       if (card_mounted) {
         if (!card_open) {
+          SUBMENU(MSG_CARD_MENU, menu_sdcard);
           #if PIN_EXISTS(SD_DETECT)
             GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));
           #else
             GCODES_ITEM(MSG_RELEASE_SDCARD, PSTR("M22"));
           #endif
-          SUBMENU(MSG_CARD_MENU, menu_sdcard);
         }
       }
       else {
         #if PIN_EXISTS(SD_DETECT)
-          ACTION_ITEM(MSG_NO_CARD, nullptr);
+          STATIC_ITEM(MSG_NO_CARD);
         #else
           GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21"));
-          ACTION_ITEM(MSG_SD_RELEASED, nullptr);
+          STATIC_ITEM(MSG_SD_RELEASED);
         #endif
         
       }
@@ -222,17 +222,21 @@ void menu_main() {
 
     if (card_mounted) {
       if (!card_open) {
-        SUBMENU(MSG_CARD_MENU, menu_sdcard);
-        #if !PIN_EXISTS(SD_DETECT)
-          GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));  // SD-card changed by user
+        #if PIN_EXISTS(SD_DETECT)
+          GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));
+        #else
+          GCODES_ITEM(MSG_RELEASE_SDCARD, PSTR("M22"));
         #endif
+        SUBMENU(MSG_CARD_MENU, menu_sdcard);
       }
     }
     else {
-      #if !PIN_EXISTS(SD_DETECT)
-        GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21")); // Manually initialize the SD-card via user interface
+      #if PIN_EXISTS(SD_DETECT)
+        STATIC_ITEM(MSG_NO_CARD);
+      #else
+        GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21"));
+        STATIC_ITEM(MSG_SD_RELEASED);
       #endif
-      ACTION_ITEM(MSG_NO_CARD, nullptr);
     }
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 

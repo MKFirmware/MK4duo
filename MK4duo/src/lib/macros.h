@@ -247,6 +247,7 @@
 #define LOOP_DRV()                LOOP_L_N(d, MAX_DRIVER)
 #define LOOP_DRV_XYZ()            LOOP_L_N(d, XYZ)
 #define LOOP_DRV_EXT()            LOOP_L_N(d, tools.data.extruder.total)
+#define LOOP_DRV_MIX()            LOOP_L_N(d, MIXING_STEPPERS)
 #define LOOP_EXTRUDER()           LOOP_L_N(e, tools.data.extruder.total)
 #define LOOP_HOTEND()             LOOP_L_N(h, thermalManager.data.hotends)
 #define LOOP_BED()                LOOP_L_N(h, thermalManager.data.beds)

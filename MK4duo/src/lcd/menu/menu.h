@@ -81,7 +81,7 @@ inline void do_select_screen_yn(selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P
 
 void draw_edit_screen(PGM_P const pstr, const uint8_t idx, const char* const value=nullptr);
 void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char pre_char, const char post_char);
-void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t style=SS_CENTER, const char * const valstr=nullptr);
+void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t idx=NO_INDEX, const uint8_t style=SS_CENTER, const char * const valstr=nullptr);
 void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm);
 FORCE_INLINE void draw_menu_item_back(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx) { draw_menu_item(sel, row, pstr, idx, LCD_STR_UPLEVEL[0], LCD_STR_UPLEVEL[0]); }
 FORCE_INLINE void draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data) { _draw_menu_item_edit(sel, row, pstr, idx, data, false); }
@@ -172,6 +172,19 @@ class MenuItem_function {
 /////////// Menu Editing Actions ///////////
 ////////////////////////////////////////////
 
+typedef union {
+  bool     state;
+  float    decimal;
+  int8_t   int8;
+  int16_t  int16;
+  int32_t  int32;
+  uint8_t  uint8;
+  uint16_t uint16;
+  uint32_t uint32;
+} editable_t;
+
+extern editable_t editable;
+
 // Edit items use long integer encoder units
 class MenuEditItemBase {
   private:
@@ -238,7 +251,7 @@ DECLARE_MENU_EDIT_ITEM(long5_25);
 
 class MenuItem_bool {
   public:
-    static void action(PGM_P const pstr, const char, bool* ptr, const screenFunc_t callbackFunc=nullptr);
+    static void action(PGM_P const pstr, const uint8_t, bool* ptr, const screenFunc_t callbackFunc=nullptr);
 };
 
 ////////////////////////////////////////////
@@ -355,20 +368,24 @@ class MenuItem_bool {
   #define MENU_ITEM_ADDON_END() } }while(0)
 #endif
 
-#define STATIC_ITEM(LABEL, V...)                      STATIC_ITEM_P(PSTR(LABEL), ##V)
+#define STATIC_ITEM(LABEL, V...)                  STATIC_ITEM_P(PSTR(LABEL), NO_INDEX,  ##V)
+#define STATIC_ITEM_I(LABEL, IDX, V...)           STATIC_ITEM_P(PSTR(LABEL),      IDX,  ##V)
 
-#define MENU_ITEM_P(TYPE, PLABEL, IDX, V...)          _MENU_ITEM_P(TYPE, false, PLABEL,            IDX, ##V)
-#define MENU_ITEM(TYPE, LABEL, V...)                  _MENU_ITEM_P(TYPE, false, PSTR(LABEL),  NO_INDEX, ##V)
-#define EDIT_ITEM(TYPE, LABEL, V...)                  _MENU_ITEM_P(TYPE, false, PSTR(LABEL),  NO_INDEX, ##V)
-#define EDIT_ITEM_INDEX(TYPE, LABEL, IDX, V...)       _MENU_ITEM_P(TYPE, false, PSTR(LABEL),       IDX, ##V)
-#define EDIT_ITEM_FAST(TYPE, LABEL, V...)             _MENU_ITEM_P(TYPE,  true, PSTR(LABEL),  NO_INDEX, ##V)
-#define EDIT_ITEM_FAST_INDEX(TYPE, LABEL, IDX, V...)  _MENU_ITEM_P(TYPE,  true, PSTR(LABEL),       IDX, ##V)
+#define MENU_ITEM_P(TYPE, PLABEL, IDX, V...)      _MENU_ITEM_P(TYPE, false, PLABEL,            IDX, ##V)
+#define MENU_ITEM(TYPE, LABEL, V...)              _MENU_ITEM_P(TYPE, false, PSTR(LABEL),  NO_INDEX, ##V)
+#define MENU_ITEM_I(TYPE, LABEL, IDX, V...)       _MENU_ITEM_P(TYPE, false, PSTR(LABEL),       IDX, ##V)
+#define EDIT_ITEM(TYPE, LABEL, V...)              _MENU_ITEM_P(TYPE, false, PSTR(LABEL),  NO_INDEX, ##V)
+#define EDIT_ITEM_I(TYPE, LABEL, IDX, V...)       _MENU_ITEM_P(TYPE, false, PSTR(LABEL),       IDX, ##V)
+#define EDIT_ITEM_FAST(TYPE, LABEL, V...)         _MENU_ITEM_P(TYPE,  true, PSTR(LABEL),  NO_INDEX, ##V)
+#define EDIT_ITEM_FAST_I(TYPE, LABEL, IDX, V...)  _MENU_ITEM_P(TYPE,  true, PSTR(LABEL),       IDX, ##V)
 
-#define SKIP_ITEM()                                   (_thisItemNr++)
-#define BACK_ITEM(LABEL)                              MENU_ITEM(back,     LABEL)
-#define SUBMENU(LABEL, DEST)                          MENU_ITEM(submenu,  LABEL,  DEST)
-#define GCODES_ITEM(LABEL, GCODES)                    MENU_ITEM(gcode,    LABEL,  GCODES)
-#define ACTION_ITEM(LABEL, ACTION)                    MENU_ITEM(function, LABEL,  ACTION)
+#define SKIP_ITEM()                               (_thisItemNr++)
+#define BACK_ITEM(LABEL)                          MENU_ITEM(back,       LABEL)
+#define SUBMENU(LABEL, DEST)                      MENU_ITEM(submenu,    LABEL,        DEST)
+#define SUBMENU_I(LABEL, IDX, DEST)               MENU_ITEM_I(submenu,  LABEL,  IDX,  DEST)
+#define GCODES_ITEM(LABEL, GCODES)                MENU_ITEM(gcode,      LABEL,        GCODES)
+#define ACTION_ITEM(LABEL, ACTION)                MENU_ITEM(function,   LABEL,        ACTION)
+#define ACTION_ITEM_I(LABEL, IDX, ACTION)         MENU_ITEM_I(function, LABEL,  IDX,  ACTION)
 
 ////////////////////////////////////////////
 /////////////// Menu Screens ///////////////
@@ -415,12 +432,6 @@ void lcd_draw_homing();
   void watch_temp_callback_cooler();
 #endif
 
-#define HAS_LINE_TO_Z (MECH(DELTA) || HAS_PROBE_MANUALLY || ENABLED(MESH_BED_LEVELING) || ENABLED(LEVEL_BED_CORNERS))
-
-#if HAS_LINE_TO_Z
-  void line_to_z(const float &z);
-#endif
-
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   void lcd_pause_show_message(const PauseMessageEnum message,
                               const PauseModeEnum mode=PAUSE_MODE_SAME,
@@ -449,15 +460,6 @@ void lcd_draw_homing();
   void lcd_level_bed_corners();
 #endif
 
-#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  extern float lcd_z_fade_height;
-  void lcd_set_z_fade_height();
-#endif
-
-#if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))
-  void lcd_toggle_bed_leveling();
-#endif
-
 #if HAS_SOFTWARE_ENDSTOPS
   void lcd_toggle_soft_endstops(); 
 #endif
@@ -468,11 +470,6 @@ void lcd_draw_homing();
   #else
     void lcd_babystep_z();
   #endif
-#endif
-
-#if ENABLED(EEPROM_SETTINGS)
-  void lcd_store_settings();
-  void lcd_load_settings();
 #endif
 
 #if HAS_SD_RESTART

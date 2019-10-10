@@ -70,6 +70,8 @@ uint8_t LcdUI::status_message_level = 0;
 
   screenFunc_t  LcdUI::currentScreen;
 
+  int8_t LcdUI::manual_move_e_index = 0;
+
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
   #endif
@@ -86,10 +88,6 @@ uint8_t LcdUI::status_message_level = 0;
 
   #if IS_KINEMATIC
     bool LcdUI::processing_manual_move = false;
-  #endif
-
-  #if E_MANUAL > 1
-    int8_t LcdUI::manual_move_e_index = 0;
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
@@ -1506,11 +1504,12 @@ void LcdUI::stop_print() {
   #endif // ADVANCED_PAUSE_FEATURE
 
   // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t idx/*=NO_INDEX*/, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, (style & SS_INVERT));
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
+    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
     if (valstr != NULL) nexlcd.put_str(valstr);
     nexlcd.endChar();
   }

@@ -33,7 +33,7 @@
   void menu_led_presets() {
     START_MENU();
     #if LCD_HEIGHT > 2
-      STATIC_ITEM(MSG_LED_PRESETS, true, true);
+      STATIC_ITEM(MSG_LED_PRESETS, SS_CENTER|SS_INVERT);
     #endif
     BACK_ITEM(MSG_LED_CONTROL);
     ACTION_ITEM(MSG_SET_LEDS_WHITE, leds.set_white);

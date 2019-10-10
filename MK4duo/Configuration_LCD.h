@@ -40,17 +40,17 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *  en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr,                               *
- *  gl, hr, it, jp-kana, nl, pl, pt, pt-br, ru, sk,                                      *
+ *  en, an, bg, ca, cn, cz, de, el, el_gr, es, eu, fi, fr,                               *
+ *  gl, hr, it, jp_kana, nl, pl, pt, pt_br, ru, sk,                                      *
  *  tr, uk, zh_CN, zh_TW                                                                 *
  *                                                                                       *
  * 'en':'English',          'an':'Aragonese', 'bg':'Bulgarian',       'ca':'Catalan',    *
  * 'cn':'Chinese',          'cz':'Czech',     'de':'German',          'el':'Greek',      *
- * 'el-gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
+ * 'el_gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
  * 'fr':'French',           'gl':'Galician',  'hr':'Croatian',        'it':'Italian',    *
- * 'jp-kana':'Japanese',    'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
+ * 'jp_kana':'Japanese',    'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
  * 'ru':'Russian',          'sk':'Slovak',    'tr':'Turkish',         'uk':'Ukrainian',  *
- * 'pt-br':'Portuguese (Brazilian)',                                                     *
+ * 'pt_br':'Portuguese (Brazilian)',                                                     *
  * 'zh_CN':'Chinese (Simplified)'                                                        *
  * 'zh_TW':'Chinese (Traditional)'                                                       *
  *                                                                                       *

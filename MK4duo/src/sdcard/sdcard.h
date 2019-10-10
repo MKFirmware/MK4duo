@@ -28,13 +28,13 @@
 union flagcard_t {
   uint8_t all;
   struct {
-    bool  Mounted          : 1;
+    bool  Mounted         : 1;
     bool  Saving          : 1;
     bool  Printing        : 1;
     bool  Autoreport      : 1;
     bool  Abortprinting   : 1;
     bool  FilenameIsDir   : 1;
-    bool  bit6            : 1;
+    bool  WorkdirIsRoot   : 1;
     bool  bit7            : 1;
   };
   flagcard_t() { all = 0x00; }

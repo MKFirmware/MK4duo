@@ -110,7 +110,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #endif
 
-  mechanics.do_blocking_move_to(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], mechanics.current_position.z); // return to position before deploy
+  mechanics.do_blocking_move_to(mechanics.stored_position[0].x, mechanics.stored_position[0].y, mechanics.current_position.z); // return to position before deploy
   endstops.setProbeEnabled(deploy);
   return false;
 }
@@ -153,15 +153,14 @@ bool Probe::set_deployed(const bool deploy) {
         DEBUG_POS("", mechanics.current_position);
       }
 
-      float nx = rx, ny = ry;
+      xyz_pos_t npos = { rx, ry };
       if (probe_relative) {
-        if (!mechanics.position_is_reachable_by_probe(rx, ry)) return NAN;
-        nx -= data.offset.x;
-        ny -= data.offset.y;
+        if (!mechanics.position_is_reachable_by_probe(npos)) return NAN;
+        npos -= data.offset;
       }
-      else if (!mechanics.position_is_reachable(nx, ny)) return NAN;
+      else if (!mechanics.position_is_reachable(npos)) return NAN;
 
-      const float nz = 
+      npos.z =
         #if MECH(DELTA)
           // Move below clip height or xy move will be aborted by do_blocking_move_to
           MIN(mechanics.current_position.z, mechanics.delta_clip_start_height)
@@ -174,7 +173,7 @@ bool Probe::set_deployed(const bool deploy) {
       mechanics.feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
       // Move the probe to the starting XYZ
-      mechanics.do_blocking_move_to(nx, ny, nz);
+      mechanics.do_blocking_move_to(npos);
 
       float measured_z = NAN;
       if (!DEPLOY_PROBE()) {
@@ -423,17 +422,14 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
     #if MECH(DELTA)
       stealth_states.x = tmc.enable_stallguard(X_DRV);
       stealth_states.y = tmc.enable_stallguard(Y_DRV);
-      stealth_states.z = tmc.enable_stallguard(Z_DRV);
-    #else
-      stealth_states.z = tmc.enable_stallguard(Z_DRV);
     #endif
+    stealth_states.z = tmc.enable_stallguard(Z_DRV);
+    endstops.setEnabled(true);
   #endif
 
   #if QUIET_PROBING
     probing_pause(true);
   #endif
-
-  endstops.setEnabled(true);
 
   #if MECH(DELTA)
     const float z_start = mechanics.current_position.z;
@@ -466,20 +462,18 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
     probing_pause(false);
   #endif
 
-  // Retract BLTouch immediately after a probe if it was triggered
-  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
-    if (probe_triggered && bltouch.stow()) return true;
-  #endif
-
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA)
       tmc.disable_stallguard(X_DRV, stealth_states.x);
       tmc.disable_stallguard(Y_DRV, stealth_states.y);
-      tmc.disable_stallguard(Z_DRV, stealth_states.z);
-    #else
-      tmc.disable_stallguard(Z_DRV, stealth_states.z);
     #endif
+    tmc.disable_stallguard(Z_DRV, stealth_states.z);
+  #endif
+
+  // Retract BLTouch immediately after a probe if it was triggered
+  #if HAS_BLTOUCH && DISABLED(BLTOUCH_HIGH_SPEED_MODE)
+    if (probe_triggered && bltouch.stow()) return true;
   #endif
 
   // Clear endstop flags
@@ -545,7 +539,7 @@ float Probe::run_probing() {
   const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
   if (mechanics.current_position.z > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
-      mechanics.do_blocking_move_to_z(z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
+      mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
   }
 
   for (uint8_t r = data.repetitions + 1; --r;) {

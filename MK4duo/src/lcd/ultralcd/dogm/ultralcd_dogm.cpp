@@ -329,7 +329,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t idx/*=NO_INDEX*/, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
 
     if (mark_as_selected(row, (style & SS_INVERT))) {
 
@@ -340,6 +340,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
         while (--pad >= 0) { lcd_put_wchar(' '); n--; }
       }
       n -= lcd_put_u8str_max_P(pstr, n);
+      if (idx != NO_INDEX) { lcd_put_wchar(' '); lcd_put_wchar(DIGIT(idx)); n -= 2; }
       if (valstr) n -= lcd_put_u8str_max(valstr, n);
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
     }

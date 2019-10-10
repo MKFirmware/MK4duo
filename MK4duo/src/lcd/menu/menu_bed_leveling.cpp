@@ -44,6 +44,7 @@
     PRINTER_KEEPALIVE(PausedforUser);
     lcdui.defer_status_screen();
     printer.setWaitForUser(true);
+    host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Delta Calibration in progress"), PSTR("Continue"));
     while (printer.isWaitForUser()) printer.idle();
     lcdui.goto_previous_screen_no_defer();
     return mechanics.current_position.z;
@@ -87,7 +88,7 @@
     if (!lcdui.wait_for_bl_move) {
       #if MANUAL_PROBE_HEIGHT > 0 && DISABLED(MESH_BED_LEVELING)
         // Display "Done" screen and wait for moves to complete
-        line_to_z(MANUAL_PROBE_HEIGHT);
+        mechanics.do_blocking_move_to_z(MANUAL_PROBE_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
         lcdui.synchronize(PSTR(MSG_LEVEL_BED_DONE));
       #endif
       lcdui.goto_previous_screen_no_defer();
@@ -103,7 +104,6 @@
   // Step 7: Get the Z coordinate, click goes to the next point or exits
   //
   void _lcd_level_bed_get_z() {
-    lcdui.encoder_direction_normal();
 
     if (lcdui.use_click()) {
 
@@ -135,7 +135,7 @@
     //
     if (lcdui.encoderPosition) {
       const float z = mechanics.current_position.z + float((int16_t)lcdui.encoderPosition) * (LCD_Z_STEP);
-      line_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f));
+      mechanics.do_blocking_move_to_z(constrain(z, -(LCD_PROBE_Z_RANGE) * 0.5f, (LCD_PROBE_Z_RANGE) * 0.5f), MMM_TO_MMS(manual_feedrate_mm_m.z));
       lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
       lcdui.encoderPosition = 0;
     }
@@ -145,7 +145,7 @@
     //
     if (lcdui.should_draw()) {
       const float v = mechanics.current_position.z;
-      draw_edit_screen(PSTR(MSG_MOVE_Z), NULL, ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
+      draw_edit_screen(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
   }
 
@@ -156,7 +156,7 @@
     if (lcdui.should_draw()) {
       char msg[10];
       sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
-      draw_edit_screen(PSTR(MSG_LEVEL_BED_NEXT_POINT), NO_INDEX, msg);
+      draw_edit_screen(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
     }
     lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
     if (!lcdui.wait_for_bl_move) lcdui.goto_screen(_lcd_level_bed_get_z);
@@ -182,7 +182,7 @@
   //         Move to the first probe position
   //
   void _lcd_level_bed_homing_done() {
-    if (lcdui.should_draw()) draw_edit_screen(PSTR(MSG_LEVEL_BED_WAITING), NULL);
+    if (lcdui.should_draw()) draw_edit_screen(PSTR(MSG_LEVEL_BED_WAITING), NO_INDEX);
     if (lcdui.use_click()) {
       manual_probe_index = 0;
       _lcd_level_goto_next_point();
@@ -220,9 +220,9 @@
     static uint8_t xind, yind; // =0
     START_MENU();
     BACK_ITEM(MSG_BED_LEVELING);
-    EDIT_ITEM_INDEX(int8, MSG_MESH_X, NO_INDEX, &xind, 0, GRID_MAX_POINTS_X - 1);
-    EDIT_ITEM_INDEX(int8, MSG_MESH_Y, NO_INDEX, &yind, 0, GRID_MAX_POINTS_Y - 1);
-    EDIT_ITEM_FAST_INDEX(float43, MSG_MESH_EDIT_Z, NO_INDEX, &Z_VALUES(xind, yind), -(LCD_PROBE_Z_RANGE) * 0.5, (LCD_PROBE_Z_RANGE) * 0.5, refresh_planner);
+    EDIT_ITEM(int8, MSG_MESH_X, &xind, 0, GRID_MAX_POINTS_X - 1);
+    EDIT_ITEM(int8, MSG_MESH_Y, &yind, 0, GRID_MAX_POINTS_Y - 1);
+    EDIT_ITEM_FAST(float43, MSG_MESH_EDIT_Z, &Z_VALUES(xind, yind), -(LCD_PROBE_Z_RANGE) * 0.5, (LCD_PROBE_Z_RANGE) * 0.5, refresh_planner);
     END_MENU();
   }
 
@@ -270,25 +270,26 @@ void menu_bed_leveling() {
   // Homed and leveling is valid? Then leveling can be toggled.
   if (is_homed && bedlevel.leveling_is_valid()) {
     bool new_level_state = bedlevel.flag.leveling_active;
-    EDIT_ITEM_INDEX(bool, MSG_BED_LEVELING, NO_INDEX, &new_level_state, lcd_toggle_bed_leveling);
+    EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, [](){ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
   }
 
   // Z Fade Height
   #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-    EDIT_ITEM_FAST_INDEX(float3, MSG_Z_FADE_HEIGHT, NO_INDEX, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
+    editable.decimal = bedlevel.z_fade_height;
+    EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &editable.decimal, 0, 100, [](){ bedlevel.set_z_fade_height(editable.decimal); });
   #endif
 
   //
   // Mesh Bed Leveling Z-Offset
   //
   #if ENABLED(MESH_BED_LEVELING)
-    EDIT_ITEM_INDEX(float43, MSG_BED_Z, NO_INDEX, &mbl.data.z_offset, -1, 1);
+    EDIT_ITEM(float43, MSG_BED_Z, &mbl.data.z_offset, -1, 1);
   #endif
 
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
   #elif HAS_BED_PROBE
-    EDIT_ITEM_INDEX(float52, MSG_ZPROBE_ZOFFSET, NO_INDEX, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
+    EDIT_ITEM(float52, MSG_ZPROBE_ZOFFSET, &probe.data.offset.z, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX);
   #endif
 
   #if ENABLED(LEVEL_BED_CORNERS)
@@ -296,8 +297,8 @@ void menu_bed_leveling() {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    ACTION_ITEM(MSG_LOAD_EEPROM, lcd_load_settings);
-    ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
+    ACTION_ITEM(MSG_LOAD_EEPROM, [](){ eeprom.load(); });
+    ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
   #endif
 
   END_MENU();

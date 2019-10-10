@@ -20,7 +20,7 @@
  *
  */
 
-#ifdef ARDUINO_ARCH_STM32 && !defined(STM32GENERIC)
+#if defined(ARDUINO_ARCH_STM32) && !defined(STM32GENERIC)
 
 #include "../../../MK4duo.h"
 #include <Wire.h>

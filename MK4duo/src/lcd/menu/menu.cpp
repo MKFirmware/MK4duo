@@ -45,6 +45,7 @@ uint8_t screen_history_depth = 0;
 bool screen_changed;
 
 // Value Editing
+editable_t    editable;
 PGM_P         MenuEditItemBase::editLabel;
 uint8_t       MenuEditItemBase::editIndex;
 void*         MenuEditItemBase::editValue;
@@ -161,7 +162,7 @@ DEFINE_MENU_EDIT_ITEM(float52sign);
 DEFINE_MENU_EDIT_ITEM(long5);
 DEFINE_MENU_EDIT_ITEM(long5_25);
 
-void MenuItem_bool::action(PGM_P const, const char, bool *ptr, screenFunc_t callback) {
+void MenuItem_bool::action(PGM_P const, const uint8_t, bool *ptr, screenFunc_t callback) {
   *ptr ^= true; lcdui.refresh();
   if (callback) (*callback)();
 }
@@ -169,11 +170,6 @@ void MenuItem_bool::action(PGM_P const, const char, bool *ptr, screenFunc_t call
 ////////////////////////////////////////////
 ///////////////// Menu Tree ////////////////
 ////////////////////////////////////////////
-
-#if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  float lcd_z_fade_height;
-  void lcd_set_z_fade_height() { bedlevel.set_z_fade_height(lcd_z_fade_height); }
-#endif
 
 /**
  * General function to go directly to a screen
@@ -303,15 +299,6 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     encoderTopLine = encoderLine;
 }
 
-#if HAS_LINE_TO_Z
-
-  void line_to_z(const float &z) {
-    mechanics.current_position.z = z;
-    planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m.z), tools.data.extruder.active);
-  }
-
-#endif
-
 #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
 
   void lcd_babystep_zoffset() {
@@ -407,11 +394,6 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 #endif
 
-#if ENABLED(EEPROM_SETTINGS)
-  void lcd_store_settings()   { eeprom.store(); }
-  void lcd_load_settings()    { eeprom.load(); }
-#endif
-
 void lcd_draw_homing() {
   constexpr uint8_t line = (LCD_HEIGHT - 1) / 2;
   if (lcdui.should_draw()) draw_menu_item_static(line, PSTR(MSG_LEVEL_BED_HOMING));
@@ -438,10 +420,6 @@ void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, sel
     if (got_click) { lcdui_selection ? yesFunc() : noFunc(); }
   }
 }
-
-#if ENABLED(LCD_BED_LEVELING) || (HAS_LEVELING && DISABLED(SLIM_LCD_MENUS))
-  void lcd_toggle_bed_leveling() { bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); }
-#endif
 
 #if HAS_SOFTWARE_ENDSTOPS
   void lcd_toggle_soft_endstops() { endstops.setSoftEndstop(!endstops.flag.SoftEndstop); }

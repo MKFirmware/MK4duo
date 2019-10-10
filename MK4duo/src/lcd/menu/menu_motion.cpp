@@ -48,15 +48,9 @@ extern int8_t manual_move_axis;
 //
 // Tell lcdui.update() to start a move to current_position.x" after a short delay.
 //
-inline void manual_move_to_current(AxisEnum axis
-  #if E_MANUAL > 1
-    , const int8_t eindex=-1
-  #endif
-) {
-  #if E_MANUAL > 1
-    if (axis == E_AXIS) lcdui.manual_move_e_index = eindex >= 0 ? eindex : tools.data.extruder.active;
-  #endif
-  manual_move_ms = millis(); // delay for bigger moves
+inline void manual_move_to_current(AxisEnum axis) {
+  if (axis == E_AXIS) lcdui.manual_move_e_index = menu_edit_index;
+  manual_move_ms = millis() + (move_menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
 
@@ -66,7 +60,6 @@ inline void manual_move_to_current(AxisEnum axis
 
 static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
   if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
-  lcdui.encoder_direction_normal();
   if (lcdui.encoderPosition && !lcdui.processing_manual_move) {
 
     // Start with no limits to movement
@@ -140,32 +133,15 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
         + manual_move_offset
       #endif
     , axis);
-    draw_edit_screen(name, NULL, move_menu_scale >= 0.1f ? ftostr41sign(pos) : ftostr43sign(pos));
+    draw_edit_screen(name, NO_INDEX, move_menu_scale >= 0.1f ? ftostr41sign(pos) : ftostr43sign(pos));
   }
 }
 void lcd_move_x() { _lcd_move_xyz(PSTR(MSG_MOVE_X), X_AXIS); }
 void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
 void lcd_move_z() { _lcd_move_xyz(PSTR(MSG_MOVE_Z), Z_AXIS); }
-static void _lcd_move_e(
-  #if E_MANUAL > 1
-    const int8_t eindex=-1
-  #endif
-) {
-  #if E_MANUAL > 1
-    static uint8_t old_extruder = 0;
-    if (tools.data.extruder.active != eindex) {
-      old_extruder = tools.data.extruder.active;
-      tools.change(eindex, true);
-    }
-  #endif
-  if (lcdui.use_click()) {
-    #if E_MANUAL > 1
-      if (tools.data.extruder.active != old_extruder)
-        tools.change(old_extruder, true);
-    #endif
-    return lcdui.goto_previous_screen_no_defer();
-  }
-  lcdui.encoder_direction_normal();
+void lcd_move_e() {
+  
+  if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
   if (lcdui.encoderPosition) {
     if (!lcdui.processing_manual_move) {
       const float diff = float((int16_t)lcdui.encoderPosition) * move_menu_scale;
@@ -174,64 +150,19 @@ static void _lcd_move_e(
       #else
         mechanics.current_position.e += diff;
       #endif
-      manual_move_to_current(E_AXIS
-        #if E_MANUAL > 1
-          , eindex
-        #endif
-      );
+      manual_move_to_current(E_AXIS);
       lcdui.refresh(LCDVIEW_REDRAW_NOW);
     }
     lcdui.encoderPosition = 0;
   }
   if (lcdui.should_draw()) {
-    PGM_P pos_label;
-    #if E_MANUAL == 1
-      pos_label = PSTR(MSG_MOVE_E);
-    #else
-      switch (eindex) {
-        default: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E1); break;
-        case 1: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E2); break;
-        #if E_MANUAL > 2
-          case 2: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E3); break;
-          #if E_MANUAL > 3
-            case 3: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E4); break;
-            #if E_MANUAL > 4
-              case 4: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E5); break;
-              #if E_MANUAL > 5
-                case 5: pos_label = PSTR(MSG_MOVE_E MSG_MOVE_E6); break;
-              #endif // E_MANUAL > 5
-            #endif // E_MANUAL > 4
-          #endif // E_MANUAL > 3
-        #endif // E_MANUAL > 2
-      }
-    #endif // E_MANUAL > 1
-
-    draw_edit_screen(pos_label, NULL, ftostr41sign(mechanics.current_position.e
+    draw_edit_screen(PSTR(MSG_MOVE_E), menu_edit_index, ftostr41sign(mechanics.current_position.e
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
     ));
   }
 }
-
-#if E_MANUAL == 1
-  void lcd_move_e() { _lcd_move_e(); }
-#elif E_MANUAL > 1
-  void lcd_move_e0() { _lcd_move_e(0); }
-  void lcd_move_e1() { _lcd_move_e(1); }
-  #if E_MANUAL > 2
-    void lcd_move_e2() { _lcd_move_e(2); }
-    #if E_MANUAL > 3
-      void lcd_move_e3() { _lcd_move_e(3); }
-      #if E_MANUAL > 4
-        void lcd_move_e4() { _lcd_move_e(4); }
-        #if E_MANUAL > 5
-          void lcd_move_e5() { _lcd_move_e(5); }
-        #endif
-      #endif
-    #endif
-  #endif
-#endif
 
 /**
  *
@@ -246,22 +177,15 @@ void _goto_manual_move(const float scale) {
   move_menu_scale = scale;
   lcdui.goto_screen(_manual_move_func_ptr);
 }
-void menu_move_10mm()     { _goto_manual_move(10);      }
-void menu_move_1mm()      { _goto_manual_move( 1);      }
-void menu_move_01mm()     { _goto_manual_move( 0.1f);   }
-void menu_move_z_probe()  { move_menu_scale = LCD_Z_STEP ; lcdui.goto_screen(lcd_move_z); }
 
 void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int8_t eindex=-1) {
   _manual_move_func_ptr = func;
   START_MENU();
   if (LCD_HEIGHT >= 4) {
     switch (axis) {
-      case X_AXIS:
-        STATIC_ITEM(MSG_MOVE_X, SS_CENTER|SS_INVERT);break;
-      case Y_AXIS:
-        STATIC_ITEM(MSG_MOVE_Y, SS_CENTER|SS_INVERT); break;
-      case Z_AXIS:
-        STATIC_ITEM(MSG_MOVE_Z, SS_CENTER|SS_INVERT); break;
+      case X_AXIS: STATIC_ITEM(MSG_MOVE_X, SS_CENTER|SS_INVERT); break;
+      case Y_AXIS: STATIC_ITEM(MSG_MOVE_Y, SS_CENTER|SS_INVERT); break;
+      case Z_AXIS: STATIC_ITEM(MSG_MOVE_Z, SS_CENTER|SS_INVERT); break;
       default:
         STATIC_ITEM(MSG_MOVE_E, SS_CENTER|SS_INVERT); break;
     }
@@ -273,9 +197,9 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
   #endif
   {
     BACK_ITEM(MSG_MOVE_AXIS);
-    SUBMENU(MSG_MOVE_10MM, menu_move_10mm);
-    SUBMENU(MSG_MOVE_1MM, menu_move_1mm);
-    SUBMENU(MSG_MOVE_01MM, menu_move_01mm);
+    SUBMENU(MSG_MOVE_10MM,  [](){ _goto_manual_move(10);    });
+    SUBMENU(MSG_MOVE_1MM,   [](){ _goto_manual_move( 1);    });
+    SUBMENU(MSG_MOVE_01MM,  [](){ _goto_manual_move( 0.1f); });
     if (axis == Z_AXIS && (SHORT_MANUAL_Z_MOVE) > 0.0f && (SHORT_MANUAL_Z_MOVE) < 0.1f) {
       SUBMENU("", []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
       MENU_ITEM_ADDON_START(1);
@@ -290,41 +214,12 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
   }
   END_MENU();
 }
-void lcd_move_get_x_amount()            { _menu_move_distance(X_AXIS, lcd_move_x); }
-void lcd_move_get_y_amount()            { _menu_move_distance(Y_AXIS, lcd_move_y); }
-void lcd_move_get_z_amount()            { _menu_move_distance(Z_AXIS, lcd_move_z); }
-#if E_MANUAL == 1
-  void lcd_move_get_e_amount()          { _menu_move_distance(E_AXIS, lcd_move_e, -1); }
-#elif E_MANUAL > 1
-  void lcd_move_get_e0_amount()         { _menu_move_distance(E_AXIS, lcd_move_e0, 0); }
-  void lcd_move_get_e1_amount()         { _menu_move_distance(E_AXIS, lcd_move_e1, 1); }
-  #if E_MANUAL > 2
-    void lcd_move_get_e2_amount()       { _menu_move_distance(E_AXIS, lcd_move_e2, 2); }
-    #if E_MANUAL > 3
-      void lcd_move_get_e3_amount()     { _menu_move_distance(E_AXIS, lcd_move_e3, 3); }
-      #if E_MANUAL > 4
-        void lcd_move_get_e4_amount()   { _menu_move_distance(E_AXIS, lcd_move_e4, 4); }
-        #if E_MANUAL > 5
-          void lcd_move_get_e5_amount() { _menu_move_distance(E_AXIS, lcd_move_e5, 5); }
-        #endif
-      #endif
-    #endif
-  #endif
-#endif
 
 /**
  *
  * "Motion" > "Move Axis" submenu
  *
  */
-
-#if MECH(DELTA)
-  void lcd_lower_z_to_clip_height() {
-    line_to_z(mechanics.delta_clip_start_height);
-    lcdui.synchronize();
-  }
-#endif
-
 void menu_move() {
   START_MENU();
   BACK_ITEM(MSG_MOTION);
@@ -339,22 +234,28 @@ void menu_move() {
   #else
     constexpr bool do_move_xyz = true;
   #endif
-  if (do_move_xyz) {
+  if (true
     #if MECH(DELTA)
-      const bool do_move_xy = mechanics.current_position.z <= mechanics.delta_clip_start_height;
-    #else
-      constexpr bool do_move_xy = true;
+      && mechanics.isHomedAll()
     #endif
-    if (do_move_xy) {
-      SUBMENU(MSG_MOVE_X, lcd_move_get_x_amount);
-      SUBMENU(MSG_MOVE_Y, lcd_move_get_y_amount);
+  ) {
+    if (true
+      #if MECH(DELTA)
+        && mechanics.current_position.z <= mechanics.delta_clip_start_height
+      #endif
+    ) {
+      SUBMENU(MSG_MOVE_X, [](){ _menu_move_distance(X_AXIS, lcd_move_x); });
+      SUBMENU(MSG_MOVE_Y, [](){ _menu_move_distance(Y_AXIS, lcd_move_y); });
     }
     #if MECH(DELTA)
       else
-        ACTION_ITEM(MSG_FREE_XY, lcd_lower_z_to_clip_height);
+        ACTION_ITEM(MSG_FREE_XY, [](){
+          mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height, MMM_TO_MMS(manual_feedrate_mm_m.z));
+          lcdui.synchronize();
+        });
     #endif
 
-    SUBMENU(MSG_MOVE_Z, lcd_move_get_z_amount);
+    SUBMENU(MSG_MOVE_Z, [](){ _menu_move_distance(Z_AXIS, lcd_move_z); });
   }
   else
     GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
@@ -362,36 +263,23 @@ void menu_move() {
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
     if (tools.data.extruder.active)
-      GCODES_ITEM(MSG_SELECT MSG_E1, PSTR("T0"));
+      GCODES_ITEM(MSG_SELECT MSG_E0, PSTR("T0"));
     else
-      GCODES_ITEM(MSG_SELECT MSG_E2, PSTR("T1"));
+      GCODES_ITEM(MSG_SELECT MSG_E1, PSTR("T1"));
 
   #endif
 
-  #if E_MANUAL == 1
-    SUBMENU(MSG_MOVE_E, lcd_move_get_e_amount);
-  #elif E_MANUAL > 1
-    SUBMENU(MSG_MOVE_E MSG_MOVE_E1, lcd_move_get_e0_amount);
-    SUBMENU(MSG_MOVE_E MSG_MOVE_E2, lcd_move_get_e1_amount);
-    #if E_MANUAL > 2
-      SUBMENU(MSG_MOVE_E MSG_MOVE_E3, lcd_move_get_e2_amount);
-      #if E_MANUAL > 3
-        SUBMENU(MSG_MOVE_E MSG_MOVE_E4, lcd_move_get_e3_amount);
-        #if E_MANUAL > 4
-          SUBMENU(MSG_MOVE_E MSG_MOVE_E5, lcd_move_get_e4_amount);
-          #if E_MANUAL > 5
-            SUBMENU(MSG_MOVE_E MSG_MOVE_E6, lcd_move_get_e5_amount);
-          #endif
-        #endif
-      #endif
-    #endif
-  #endif
+  LOOP_EXTRUDER()
+    SUBMENU_I(MSG_MOVE_E, e, [](){ _menu_move_distance(E_AXIS, lcd_move_e); });
 
   END_MENU();
 }
 
-void _lcd_ubl_level_bed();
-void menu_bed_leveling();
+#if ENABLED(AUTO_BED_LEVELING_UBL)
+  void _lcd_ubl_level_bed();
+#elif ENABLED(LCD_BED_LEVELING)
+  void menu_bed_leveling();
+#endif
 
 void menu_motion() {
   START_MENU();
@@ -451,10 +339,11 @@ void menu_motion() {
     #endif
     if (mechanics.isHomedAll() && bedlevel.leveling_is_valid()) {
       bool new_level_state = bedlevel.flag.leveling_active;
-      EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, lcd_toggle_bed_leveling);
+      EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, [](){ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
     }
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &lcd_z_fade_height, 0, 100, lcd_set_z_fade_height);
+      editable.decimal = bedlevel.z_fade_height;
+    EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &editable.decimal, 0, 100, [](){ bedlevel.set_z_fade_height(editable.decimal); });
     #endif
 
   #endif

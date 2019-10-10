@@ -530,13 +530,11 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
   int8_t manual_move_axis = (int8_t)NO_AXIS;
   millis_s manual_move_ms = 0;
 
+  int8_t LcdUI::manual_move_e_index = 0;
+
   #if IS_KINEMATIC
     bool LcdUI::processing_manual_move = false;
     float manual_move_offset = 0;
-  #endif
-
-  #if E_MANUAL > 1
-    int8_t LcdUI::manual_move_e_index = 0;
   #endif
 
   /**

@@ -177,6 +177,7 @@ void SDCard::mount() {
   fat.chdir();
   root.openRoot(fat.vol());
   setroot();
+  flag.WorkdirIsRoot = true;
 
   #if HAS_EEPROM_SD
     import_eeprom();
@@ -390,6 +391,7 @@ void SDCard::chdir(PGM_P relpath) {
   }
   else {
     workDir = newDir;
+    flag.WorkdirIsRoot = false;
     if (workDirDepth < SD_MAX_FOLDER_DEPTH)
       workDirParents[workDirDepth++] = workDir;
     #if ENABLED(SDCARD_SORT_ALPHA)
@@ -433,6 +435,7 @@ void SDCard::checkautostart() {
 
 void SDCard::setroot() {
   workDir = root;
+  flag.WorkdirIsRoot = true;
   #if ENABLED(SDCARD_SORT_ALPHA)
     presort();
   #endif
@@ -499,6 +502,7 @@ int8_t SDCard::updir() {
       presort();
     #endif
   }
+  if (!workDirDepth) flag.WorkdirIsRoot = true;
   return workDirDepth;
 }
 

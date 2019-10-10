@@ -127,11 +127,7 @@ class LcdUI {
         static constexpr bool processing_manual_move = false;
       #endif
 
-      #if E_MANUAL > 1
-        static int8_t manual_move_e_index;
-      #else
-        static constexpr int8_t manual_move_e_index = 0;
-      #endif
+      static int8_t manual_move_e_index;
 
       #if MAX_HOTEND > 0
         static int16_t preheat_hotend_temp[3];

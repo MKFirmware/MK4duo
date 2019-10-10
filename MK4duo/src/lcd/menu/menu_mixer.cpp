@@ -38,7 +38,6 @@
 
   void lcd_mixer_gradient_z_start_edit() {
     lcdui.defer_status_screen();
-    lcdui.encoder_direction_normal();
     ENCODER_RATE_MULTIPLY(true);
     if (lcdui.encoderPosition != 0) {
       mixer.gradient.start_z += float((int16_t)lcdui.encoderPosition) * 0.1;
@@ -63,7 +62,6 @@
 
   void lcd_mixer_gradient_z_end_edit() {
     lcdui.defer_status_screen();
-    lcdui.encoder_direction_normal();
     ENCODER_RATE_MULTIPLY(true);
     if (lcdui.encoderPosition != 0) {
       mixer.gradient.end_z += float((int16_t)lcdui.encoderPosition) * 0.1;
@@ -91,8 +89,8 @@
     START_MENU();
     BACK_ITEM(MSG_GRADIENT);
 
-    EDIT_ITEM(int8, MSG_START_VTOOL, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
-    EDIT_ITEM(int8, MSG_END_VTOOL, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM_I(int8, MSG_START_VTOOL, NO_ITEM, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM(int8, MSG_END_VTOOL, NO_ITEM, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
 
     char tmp[10];
 
@@ -151,24 +149,13 @@ void lcd_mixer_mix_edit() {
 
   #if CHANNEL_MIX_EDITING
 
-    #define EDIT_COLOR(N) EDIT_ITEM_FAST(float52, MSG_MIX_COMPONENT " " STRINGIFY(N), &mixer.collector[N-1], 0, 10);
+    #define EDIT_COLOR(N) 
 
     START_MENU();
     BACK_ITEM(MSG_MIXER);
-    EDIT_COLOR(1);
-    EDIT_COLOR(2);
-    #if MIXING_STEPPERS > 2
-      EDIT_COLOR(3);
-      #if MIXING_STEPPERS > 3
-        EDIT_COLOR(4);
-        #if MIXING_STEPPERS > 4
-          EDIT_COLOR(5);
-          #if MIXING_STEPPERS > 5
-            EDIT_COLOR(6);
-          #endif
-        #endif
-      #endif
-    #endif
+    LOOP_DRV_MIX() 
+      EDIT_ITEM_FAST_I(float52, MSG_MIX_COMPONENT, d, &mixer.collector[d], 0, 10);
+
     ACTION_ITEM(MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
     ACTION_ITEM(MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);
     END_MENU();
@@ -243,17 +230,17 @@ void lcd_mixer_mix_edit() {
 //
 // Reset All V-Tools
 //
-inline void _lcd_reset_vtools() {
-  LCD_MESSAGEPGM(MSG_VTOOLS_RESET);
-  lcdui.return_to_status();
-  mixer.reset_vtools();
-}
-
 void menu_mixer_vtools_reset_confirm() {
-  START_MENU();
-  BACK_ITEM(MSG_BACK);
-  ACTION_ITEM(MSG_RESET_VTOOLS, _lcd_reset_vtools);
-  END_MENU();
+  do_select_screen(
+    PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+    []{
+      mixer.reset_vtools();
+      LCD_MESSAGEPGM(MSG_VTOOLS_RESET);
+      lcdui.return_to_status();
+    },
+    lcdui.goto_previous_screen,
+    PSTR(MSG_RESET_VTOOLS), nullptr, PSTR("?")
+  );
 }
 
 void menu_mixer() {
@@ -267,14 +254,6 @@ void menu_mixer() {
     #endif
   );
 
-  SUBMENU(MSG_MIX,
-    #if CHANNEL_MIX_EDITING
-      _lcd_goto_mix_edit
-    #elif HAS_GRADIENT_MIX
-      lcd_mixer_mix_edit
-    #endif
-  );
-
   #if HAS_GRADIENT_MIX
   {
     char tmp[10];
@@ -285,6 +264,8 @@ void menu_mixer() {
     MENU_ITEM_ADDON_END();
     ACTION_ITEM(MSG_TOGGLE_MIX, _lcd_mixer_toggle_mix);
   }
+  #else
+    SUBMENU(MSG_MIX, _lcd_goto_mix_edit);
   #endif
 
   SUBMENU(MSG_RESET_VTOOLS, menu_mixer_vtools_reset_confirm);

@@ -28,22 +28,6 @@
 
 #if HAS_LCD_MENU && HAS_SD_SUPPORT
 
-#if !PIN_EXISTS(SD_DETECT)
-  void lcd_sd_refresh() {
-    encoderTopLine = 0;
-    card.unmount();
-    card.mount();
-    if (card.isMounted()) card.ls();
-  }
-#endif
-
-void lcd_sd_updir() {
-  lcdui.encoderPosition = card.updir() ? ENCODER_STEPS_PER_MENU_ITEM : 0;
-  encoderTopLine = 0;
-  screen_changed = true;
-  lcdui.refresh();
-}
-
 #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
 
   uint16_t  sd_encoder_position = 0xFFFF;
@@ -88,7 +72,7 @@ void menu_sd_confirm() {
 
 class MenuItem_sdfile {
   public:
-    static void action(PGM_P const pstr, const char idx, SDCard &) {
+    static void action(PGM_P const pstr, const uint8_t idx, SDCard &) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         // Save which file was selected for later use
         sd_encoder_position = lcdui.encoderPosition;
@@ -101,7 +85,7 @@ class MenuItem_sdfile {
 
 class MenuItem_sdfolder {
   public:
-    static void action(PGM_P const, const char, SDCard &theCard) {
+    static void action(PGM_P const, const uint8_t, SDCard &theCard) {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * (ENCODER_STEPS_PER_MENU_ITEM);
@@ -118,21 +102,34 @@ class MenuItem_sdfolder {
 void menu_sdcard() {
   lcdui.encoder_direction_menus();
 
-  const uint16_t fileCnt = card.get_num_Files();
+  #if HAS_GRAPHICAL_LCD
+    static uint16_t fileCnt;
+    if (lcdui.first_page) fileCnt = card.get_num_Files();
+  #else
+    const uint16_t fileCnt = card.get_num_Files();
+  #endif
 
   START_MENU();
   BACK_ITEM(MSG_MAIN);
-  card.getWorkDirName();
-  if (card.fileName[0] == '/') {
+  if (card.flag.WorkdirIsRoot) {
     #if !PIN_EXISTS(SD_DETECT)
-      ACTION_ITEM(LCD_STR_REFRESH MSG_REFRESH, lcd_sd_refresh);
+      ACTION_ITEM(LCD_STR_REFRESH MSG_REFRESH, [](){
+        encoderTopLine = 0;
+        card.unmount(); card.mount();
+        if (card.isMounted()) card.ls();
+      });
     #endif
   }
   else if (card.isMounted()) {
-    ACTION_ITEM(LCD_STR_FOLDER "..", lcd_sd_updir);
+    ACTION_ITEM(LCD_STR_FOLDER "..", [](){
+      lcdui.encoderPosition = card.updir() ? ENCODER_STEPS_PER_MENU_ITEM : 0;
+      encoderTopLine = 0;
+      screen_changed = true;
+      lcdui.refresh();
+    });
   }
 
-  for (uint16_t i = 0; i < fileCnt; i++) {
+  if (lcdui.should_draw()) for (uint16_t i = 0; i < fileCnt; i++) {
     if (_menuLineNr == _thisItemNr) {
       const uint16_t nr =
         #if DISABLED(SDCARD_SORT_ALPHA)

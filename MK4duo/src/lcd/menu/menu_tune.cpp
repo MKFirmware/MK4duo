@@ -28,12 +28,6 @@
 
 #if HAS_LCD_MENU
 
-// Refresh the E factor after changing flow
-inline void _lcd_refresh_e_factor() {
-  LOOP_EXTRUDER()
-    tools.refresh_e_factor(e);
-}
-
 #if ENABLED(BABYSTEPPING)
 
   long babysteps_done = 0;
@@ -78,24 +72,13 @@ inline void _lcd_refresh_e_factor() {
   #if ENABLED(BABYSTEP_XY)
     void _lcd_babystep_x()  { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEP_X)); }
     void _lcd_babystep_y()  { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEP_Y)); }
-    void lcd_babystep_x()   { _lcd_babystep_go(_lcd_babystep_x); }
-    void lcd_babystep_y()   { _lcd_babystep_go(_lcd_babystep_y); }
   #endif
 
   #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
     void _lcd_babystep_z()  { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEP_Z)); }
-    void lcd_babystep_z()   { _lcd_babystep_go(_lcd_babystep_z); }
   #endif
 
 #endif // BABYSTEPPING
-
-void lcd_tune_fixstep() {
-  #if MECH(DELTA)
-    commands.inject_P(PSTR("G28 B"));
-  #else
-    commands.inject_P(PSTR("G28 X Y B"));
-  #endif
-}
 
 void menu_tune() {
   START_MENU();
@@ -118,7 +101,7 @@ void menu_tune() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      EDIT_ITEM_FAST_INDEX(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      EDIT_ITEM_FAST_I(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -126,7 +109,7 @@ void menu_tune() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      EDIT_ITEM_FAST_INDEX(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      EDIT_ITEM_FAST_I(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -134,14 +117,14 @@ void menu_tune() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      EDIT_ITEM_FAST_INDEX(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      EDIT_ITEM_FAST_I(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    EDIT_ITEM_FAST_INDEX(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    EDIT_ITEM_FAST_I(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -149,7 +132,7 @@ void menu_tune() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      EDIT_ITEM_FAST_INDEX(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
+      EDIT_ITEM_FAST_I(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
   #endif
 
   //
@@ -158,7 +141,8 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_INDEX(int3, MSG_FLOW, e, &tools.flow_percentage[e], 10, 999, _lcd_refresh_e_factor);
+      EDIT_ITEM_FAST_I(int3, MSG_FLOW, e, &tools.flow_percentage[e], 10, 999, []() { tools.refresh_e_factor(menu_edit_index); });
+    
   #endif
 
   //
@@ -168,17 +152,21 @@ void menu_tune() {
   //
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
-      SUBMENU(MSG_BABYSTEP_X, lcd_babystep_x);
-      SUBMENU(MSG_BABYSTEP_Y, lcd_babystep_y);
+      SUBMENU(MSG_BABYSTEP_X, [](){ _lcd_babystep_go(_lcd_babystep_x); });
+      SUBMENU(MSG_BABYSTEP_Y, [](){ _lcd_babystep_go(_lcd_babystep_y); });
     #endif
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
       SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #else
-      SUBMENU(MSG_BABYSTEP_Z, lcd_babystep_z);
+      SUBMENU(MSG_BABYSTEP_Z, [](){ _lcd_babystep_go(_lcd_babystep_z); });
     #endif
   #endif
 
-  ACTION_ITEM(MSG_FIX_LOSE_STEPS, lcd_tune_fixstep);
+  #if MECH(DELTA)
+    GCODES_ITEM(MSG_FIX_LOSE_STEPS, PSTR("G28 B"));
+  #else
+    GCODES_ITEM(MSG_FIX_LOSE_STEPS, PSTR("G28 X Y B"));
+  #endif
 
   END_MENU();
 }

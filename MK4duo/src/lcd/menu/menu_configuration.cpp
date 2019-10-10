@@ -33,12 +33,6 @@
 void menu_advanced_settings();
 void menu_delta_calibrate();
 
-#if HAS_LCD_CONTRAST
-  void lcd_callback_set_contrast() { lcdui.set_contrast(lcdui.contrast); }
-#endif
-
-static void lcd_reset_settings() { eeprom.reset(); }
-
 #if ENABLED(LCD_PROGRESS_BAR_TEST)
 
   static void progress_bar_test() {
@@ -88,12 +82,12 @@ void menu_tool_change() {
     #else
       static constexpr float max_extrude_lenght = 500;
     #endif
-    EDIT_ITEM_INDEX(float3, MSG_FILAMENT_SWAP_LENGTH, NO_INDEX, &tools.data.swap_length, 0, max_extrude_lenght);
-    EDIT_ITEM_INDEX(float3, MSG_FILAMENT_PURGE_LENGTH, NO_INDEX, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
-    EDIT_ITEM_FAST_INDEX(int4, MSG_SINGLENOZZLE_RETRACT_SPD, NO_INDEX, &tools.data.retract_speed, 10, 5400);
-    EDIT_ITEM_FAST_INDEX(int4, MSG_SINGLENOZZLE_PRIME_SPD, NO_INDEX, &tools.data.prime_speed, 10, 5400);
+    EDIT_ITEM(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude_lenght);
+    EDIT_ITEM(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
+    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
+    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.prime_speed, 10, 5400);
   #endif
-  EDIT_ITEM_INDEX(float3, MSG_TOOL_CHANGE_ZLIFT, NO_INDEX, &nozzle.data.park_point.z, 0, 10);
+  EDIT_ITEM(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
   END_MENU();
 }
 
@@ -112,19 +106,19 @@ void menu_tool_change() {
     BACK_ITEM(MSG_CONFIGURATION);
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      EDIT_ITEM_FAST_INDEX(float51, MSG_X_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].x, float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
-      EDIT_ITEM_FAST_INDEX(float52sign, MSG_Y_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
-      EDIT_ITEM_FAST_INDEX(float52sign, MSG_Z_OFFSET, NO_INDEX, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+      EDIT_ITEM_FAST(float51, MSG_X_OFFSET, &nozzle.data.hotend_offset[1].x, float(X2_HOME_POS - 25), float(X2_HOME_POS + 25), _recalc_offsets);
+      EDIT_ITEM_FAST(float52sign, MSG_Y_OFFSET, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
+      EDIT_ITEM_FAST(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
       for (uint8_t h = 1; h < thermalManager.data.hotends; h++) {
-        EDIT_ITEM_FAST_INDEX(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_INDEX(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_INDEX(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_I(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_I(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_I(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
       }
     #endif
 
     #if ENABLED(EEPROM_SETTINGS)
-      ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
+      ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
     #endif
     END_MENU();
   }
@@ -203,8 +197,8 @@ void menu_tool_change() {
   void menu_case_light() {
     START_MENU();
     BACK_ITEM(MSG_MAIN);
-    EDIT_ITEM_INDEX(percent, MSG_CASE_LIGHT_BRIGHTNESS, NO_INDEX, &caselight.brightness, 0, 255, caselight.update, true);
-    EDIT_ITEM_INDEX(bool, MSG_CASE_LIGHT, NO_INDEX, (bool*)&caselight.status, caselight.update);
+    EDIT_ITEM(percent, MSG_CASE_LIGHT_BRIGHTNESS, &caselight.brightness, 0, 255, caselight.update, true);
+    EDIT_ITEM(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
     END_MENU();
   }
 
@@ -215,16 +209,16 @@ void menu_tool_change() {
   void menu_config_retract() {
     START_MENU();
     BACK_ITEM(MSG_CONTROL);
-    EDIT_ITEM_INDEX(bool, MSG_AUTORETRACT, NO_INDEX, &fwretract.autoretract_enabled, fwretract.refresh_autoretract);
-    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT, NO_INDEX, &fwretract.data.retract_length, 0, 100);
-    EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACTF, NO_INDEX, &fwretract.data.retract_feedrate_mm_s, 1, 999);
-    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_ZHOP, NO_INDEX, &fwretract.data.retract_zlift, 0, 999);
-    EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_RECOVER, NO_INDEX, &fwretract.data.retract_recover_length, -100, 100);
-    EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACT_RECOVERF, NO_INDEX, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
+    EDIT_ITEM(bool, MSG_AUTORETRACT, &fwretract.autoretract_enabled, fwretract.refresh_autoretract);
+    EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT, &fwretract.data.retract_length, 0, 100);
+    EDIT_ITEM(float3, MSG_CONTROL_RETRACTF, &fwretract.data.retract_feedrate_mm_s, 1, 999);
+    EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_ZHOP, &fwretract.data.retract_zlift, 0, 999);
+    EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER, &fwretract.data.retract_recover_length, -100, 100);
+    EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVERF, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
     if (tools.data.extruder.total > 1) {
-      EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_SWAP, NO_INDEX, &fwretract.data.swap_retract_length, 0, 100);
-      EDIT_ITEM_INDEX(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, NO_INDEX, &fwretract.data.swap_retract_recover_length, -100, 100);
-      EDIT_ITEM_INDEX(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, NO_INDEX, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
+      EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_SWAP, &fwretract.data.swap_retract_length, 0, 100);
+      EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, &fwretract.data.swap_retract_recover_length, -100, 100);
+      EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
     }
     END_MENU();
   }
@@ -235,66 +229,47 @@ void menu_tool_change() {
 
   float focalLength = 0;
 
-  void laser_test_fire(uint8_t power, int dwell) {
+  static void laser_test_fire(const uint8_t power, const int dwell) {
     commands.inject_P(PSTR("M80"));  // Enable laser accessories since we don't know if its been done (and there's no penalty for doing it again).
     laser.fire(power);
     delay(dwell);
     laser.extinguish();
   }
 
-  void action_laser_acc_on() { commands.inject_P(PSTR("M80")); }
-  void action_laser_acc_off() { commands.inject_P(PSTR("M81")); }
-  void action_laser_test_weak() { laser.fire(0.3); }
-  void action_laser_test_20_50ms() { laser_test_fire(20, 50); }
-  void action_laser_test_20_100ms() { laser_test_fire(20, 100); }
-  void action_laser_test_100_50ms() { laser_test_fire(100, 50); }
-  void action_laser_test_100_100ms() { laser_test_fire(100, 100); }
-  void action_laser_test_warm() { laser_test_fire(15, 2000); }
-
   void menu_laser_test_fire() {
     START_MENU();
      BACK_ITEM("Laser Functions");
-     ACTION_ITEM("Weak ON", action_laser_test_weak);
-     ACTION_ITEM(" 20%  50ms", action_laser_test_20_50ms);
-     ACTION_ITEM(" 20% 100ms", action_laser_test_20_100ms);
-     ACTION_ITEM("100%  50ms", action_laser_test_100_50ms);
-     ACTION_ITEM("100% 100ms", action_laser_test_100_100ms);
-     ACTION_ITEM("Warm-up Laser 2sec", action_laser_test_warm);
+     ACTION_ITEM("Weak ON",             [](){ laser.fire(0.3); });
+     ACTION_ITEM(" 20%  50ms",          [](){ laser_test_fire( 20,  50); });
+     ACTION_ITEM(" 20% 100ms",          [](){ laser_test_fire( 20, 100); });
+     ACTION_ITEM("100%  50ms",          [](){ laser_test_fire(100,  50); });
+     ACTION_ITEM("100% 100ms",          [](){ laser_test_fire(100, 100); });
+     ACTION_ITEM("Warm-up Laser 2sec",  [](){ laser_test_fire( 15,2000); });
      END_MENU();
   }  
 
-  void laser_set_focus(float f_length) {
+  static void laser_set_focus(const float f_length) {
     if (mechanics.axis_unhomed_error(HOME_Z))
       commands.inject_P(PSTR("G28 Z F150"));
 
     focalLength = f_length;
     float focus = LASER_FOCAL_HEIGHT - f_length;
     char cmd[20];
-
-    sprintf_P(cmd, PSTR("G0 Z%s F150"), ftostr52sign(focus));
-    commands.inject_P(cmd);
+    sprintf_P(cmd, PSTR("G0 Z%f F150"), focus);
+    lcd_enqueue_one_now(cmd);
   }
-
-  void action_laser_focus_custom() { laser_set_focus(focalLength); }
-  void action_laser_focus_1mm() { laser_set_focus(1); }
-  void action_laser_focus_2mm() { laser_set_focus(2); }
-  void action_laser_focus_3mm() { laser_set_focus(3); }
-  void action_laser_focus_4mm() { laser_set_focus(4); }
-  void action_laser_focus_5mm() { laser_set_focus(5); }
-  void action_laser_focus_6mm() { laser_set_focus(6); }
-  void action_laser_focus_7mm() { laser_set_focus(7); }
 
   void menu_laser_focus() {
     START_MENU();
     BACK_ITEM("Laser Functions");
-    ACTION_ITEM("1mm", action_laser_focus_1mm);
-    ACTION_ITEM("2mm", action_laser_focus_2mm);
-    ACTION_ITEM("3mm - 1/8in", action_laser_focus_3mm);
-    ACTION_ITEM("4mm", action_laser_focus_4mm);
-    ACTION_ITEM("5mm", action_laser_focus_5mm);
-    ACTION_ITEM("6mm - 1/4in", action_laser_focus_6mm);
-    ACTION_ITEM("7mm", action_laser_focus_7mm);
-    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, action_laser_focus_custom);
+    ACTION_ITEM("1mm",          [](){ laser_set_focus(1); });
+    ACTION_ITEM("2mm",          [](){ laser_set_focus(2); });
+    ACTION_ITEM("3mm - 1/8in",  [](){ laser_set_focus(3); });
+    ACTION_ITEM("4mm",          [](){ laser_set_focus(4); });
+    ACTION_ITEM("5mm",          [](){ laser_set_focus(5); });
+    ACTION_ITEM("6mm - 1/4in",  [](){ laser_set_focus(6); });
+    ACTION_ITEM("7mm",          [](){ laser_set_focus(7); });
+    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, [](){ laser_set_focus(focalLength); });
     END_MENU();
   }
 
@@ -305,10 +280,10 @@ void menu_tool_change() {
     SUBMENU("Test Fire", menu_laser_test_fire);
     #if ENABLED(LASER_PERIPHERALS)
       if (laser.peripherals_ok()) {
-        ACTION_ITEM("Turn On Pumps/Fans", action_laser_acc_on);
+        GCODES_ITEM("Turn On Pumps/Fans", PSTR("M80"));
       }
       else if (!printer.isPrinting()) {
-        ACTION_ITEM("Turn Off Pumps/Fans", action_laser_acc_off);
+        GCODES_ITEM("Turn Off Pumps/Fans", PSTR("M81"));
       }
     #endif // LASER_PERIPHERALS
     END_MENU();
@@ -322,19 +297,19 @@ void menu_tool_change() {
     START_MENU();
     BACK_ITEM(MSG_CONFIGURATION);
     #if MAX_FAN > 0
-      EDIT_ITEM_INDEX(int3, MSG_FAN_SPEED, NO_INDEX, &lcdui.preheat_fan_speed[material], 0, 255);
+      EDIT_ITEM(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
     #if MAX_HOTEND > 0
-      EDIT_ITEM_INDEX(int3, MSG_NOZZLE, NO_INDEX, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
+      EDIT_ITEM(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
     #endif
     #if MAX_BED > 0
-      EDIT_ITEM_INDEX(int3, MSG_BED, NO_INDEX, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
+      EDIT_ITEM(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
     #endif
     #if MAX_CHAMBER > 0
-      EDIT_ITEM_INDEX(int3, MSG_CHAMBER, NO_INDEX, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
+      EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
+      ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
     #endif
     END_MENU();
   }
@@ -387,16 +362,16 @@ void menu_configuration() {
     if (USEABLE_HARDWARE_PWM(CASE_LIGHT_PIN))
       SUBMENU(MSG_CASE_LIGHT, menu_case_light);
     else
-      EDIT_ITEM_INDEX(bool, MSG_CASE_LIGHT, NO_INDEX, (bool*)&caselight.status, caselight.update);
+      EDIT_ITEM(bool, MSG_CASE_LIGHT, (bool*)&caselight.status, caselight.update);
   #endif
 
   #if HAS_LCD_CONTRAST
-    EDIT_ITEM_INDEX(uint8, MSG_CONTRAST, NO_INDEX, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
+    EDIT_ITEM(uint8, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcdui.refresh_contrast, true);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {
     #if ENABLED(IDLE_OOZING_PREVENT)
-      EDIT_ITEM_INDEX(bool, MSG_IDLEOOZING, NO_INDEX, &printer.IDLE_OOZING_enabled);
+      EDIT_ITEM(bool, MSG_IDLEOOZING, &printer.IDLE_OOZING_enabled);
     #endif
 
     #if ENABLED(FWRETRACT)
@@ -412,7 +387,7 @@ void menu_configuration() {
   }
 
   #if HAS_SD_RESTART
-    EDIT_ITEM_INDEX(bool, MSG_RESTART, NO_INDEX, &restart.enabled, restart.changed);
+    EDIT_ITEM(bool, MSG_RESTART, &restart.enabled, restart.changed);
   #endif
 
   #if DISABLED(SLIM_LCD_MENUS)
@@ -434,13 +409,13 @@ void menu_configuration() {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    ACTION_ITEM(MSG_STORE_EEPROM, lcd_store_settings);
+    ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
     if (!busy)
-      ACTION_ITEM(MSG_LOAD_EEPROM, lcd_load_settings);
+      ACTION_ITEM(MSG_LOAD_EEPROM, [](){ eeprom.load(); });
   #endif
 
   if (!busy)
-    ACTION_ITEM(MSG_RESTORE_FAILSAFE, lcd_reset_settings);
+    ACTION_ITEM(MSG_RESTORE_FAILSAFE, [](){ eeprom.reset(); });
 
   END_MENU();
 }

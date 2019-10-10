@@ -250,7 +250,7 @@ void BLTouch::mode_conv(const bool M5V/*=false*/) {
 bool BLTouch::command(const BLTCommand cmd, const millis_s ms/*=BLTOUCH_DELAY*/) {
   if (printer.debugFeature()) DEBUG_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
-  HAL::delayMilliseconds(MAX(ms, (millis_s)BLTOUCH_DELAY));
+  HAL::delayMilliseconds(MAX(ms, (uint32_t)BLTOUCH_DELAY));
   return triggered();
 }
 
