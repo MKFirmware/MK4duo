@@ -928,7 +928,7 @@ void LcdUI::draw_status_screen() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
+  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const uint8_t idx, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
     int8_t n = LCD_WIDTH;
     lcd_moveto(0, row);
     if ((style & SS_CENTER) && !valstr) {
