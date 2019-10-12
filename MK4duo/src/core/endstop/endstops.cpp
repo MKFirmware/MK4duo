@@ -446,7 +446,6 @@ void Endstops::update() {
         COPY_LIVE_STATE(X_MIN, X2_MIN);
       #endif
     #else
-      #error: "Sono qui"
       UPDATE_ENDSTOP_BIT(X, MIN);
     #endif
   #endif

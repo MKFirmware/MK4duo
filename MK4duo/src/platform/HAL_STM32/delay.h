@@ -25,11 +25,17 @@
 #define nop() __asm__ __volatile__("nop;\n\t":::)
 
 FORCE_INLINE static void HAL_delay_4cycles(uint32_t cy) {
+  #if ARCH_PIPELINE_RELOAD_CYCLES < 2
+    #define EXTRA_NOP_CYCLES A("nop")
+  #else
+    #define EXTRA_NOP_CYCLES ""
+  #endif
+
   __asm__ __volatile__(
     A(".syntax unified") // is to prevent CM0,CM1 non-unified syntax
     L("1")
     A("subs %[cnt],#1")
-    A("nop")
+    EXTRA_NOP_CYCLES
     A("bne 1b")
     : [cnt]"+r"(cy)   // output: +r means input+output
     :                 // input:

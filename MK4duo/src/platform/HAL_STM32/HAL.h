@@ -232,7 +232,7 @@ class HAL {
       return ::digitalRead(pin);
     }
     FORCE_INLINE static void setInputPullup(const pin_t pin, const bool onoff) {
-      ::pinMode(pin, INPUT_PULLUP);
+      onoff ? ::pinMode(pin, INPUT_PULLUP) : ::pinMode(pin, INPUT);
     }
 
     FORCE_INLINE static void delayNanoseconds(const uint32_t delayNs) {

@@ -652,7 +652,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       if (driver.e[d] && driver.e[d]->tmc) {
         SERIAL_SM(CFG, "  M350 ");
         driver.e[d]->printLabel();
-        SERIAL_EMV(" E", driver[d]->tmc->getMicrosteps());
+        SERIAL_EMV(" E", driver.e[d]->tmc->getMicrosteps());
       }
     }
 

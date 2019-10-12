@@ -31,8 +31,6 @@
 
 #if HAS_DHT
 
-#define DHT_TIMEOUT -1
-
 constexpr millis_s  DHTMinimumReadInterval = 2000, // ms
                     DHTMaximumReadTime     = 20;   // ms
 
