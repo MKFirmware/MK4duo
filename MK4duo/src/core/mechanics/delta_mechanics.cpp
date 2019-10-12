@@ -477,9 +477,12 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
     sensorless_flag_t stealth_states;
-    stealth_states.x = tmc.enable_stallguard(X_DRV);
-    stealth_states.y = tmc.enable_stallguard(Y_DRV);
-    stealth_states.z = tmc.enable_stallguard(Z_DRV);
+    stealth_states.x = tmc.enable_stallguard(driver.x);
+    stealth_states.y = tmc.enable_stallguard(driver.y);
+    stealth_states.z = tmc.enable_stallguard(driver.z);
+    #if ENABLED(SPI_ENDSTOPS)
+      endstops.tmc_spi_homing.any = true;
+    #endif
   #endif
 
   // Move all carriages together linearly until an endstop is hit.
@@ -489,9 +492,13 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(SENSORLESS_HOMING)
-    tmc.disable_stallguard(X_DRV, stealth_states.x);
-    tmc.disable_stallguard(Y_DRV, stealth_states.y);
-    tmc.disable_stallguard(Z_DRV, stealth_states.z);
+    tmc.disable_stallguard(driver.x, stealth_states.x);
+    tmc.disable_stallguard(driver.y, stealth_states.y);
+    tmc.disable_stallguard(driver.z, stealth_states.z);
+    #if ENABLED(SPI_ENDSTOPS)
+      endstops.tmc_spi_homing.any = false;
+      endstops.clear_state();
+    #endif
   #endif
 
   endstops.validate_homing_move();
@@ -514,13 +521,18 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   endstops.setNotHoming();
 
+  // Clear endstop state for polled stallGuard endstops
+  #if ENABLED(SPI_ENDSTOPS)
+    endstops.clear_state();
+  #endif
+
   #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
     // move to a height where we can use the full xy-area
-    do_blocking_move_to_z(delta_clip_start_height, homing_feedrate_mm_s.x);
+    do_blocking_move_to_z(delta_clip_start_height, homing_feedrate_mm_s.z);
   #endif
 
   if (come_back) {
-    feedrate_mm_s = homing_feedrate_mm_s.x;
+    feedrate_mm_s = homing_feedrate_mm_s.z;
     destination = stored_position[0];
     prepare_move_to_destination();
     RESTORE(fr);
@@ -576,7 +588,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     if (fr_mm_s)
       DEBUG_VAL(fr_mm_s);
     else {
-      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
+      DEBUG_MV(" [", homing_feedrate_mm_s.z);
       DEBUG_CHR(']');
     }
     DEBUG_CHR(')');
@@ -611,7 +623,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #if ENABLED(JUNCTION_DEVIATION)
       , delta_mm_cart
     #endif
-    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active
+    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z, tools.data.extruder.active
   );
 
   planner.synchronize();

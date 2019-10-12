@@ -1101,13 +1101,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     current_position.x = current_position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(X_DRV, stealth_states.x);
-      tmc.disable_stallguard(Y_DRV, stealth_states.y);
+      tmc.disable_stallguard(driver.x, stealth_states.x);
+      tmc.disable_stallguard(driver.y, stealth_states.y);
       #if X2_HAS_SENSORLESS
-        tmc.disable_stallguard(X2_DRV, stealth_states.x2);
+        tmc.disable_stallguard(driver.x2, stealth_states.x2);
       #endif
       #if Y2_HAS_SENSORLESS
-        tmc.disable_stallguard(Y2_DRV, stealth_states.y2);
+        tmc.disable_stallguard(driver.y2, stealth_states.y2);
       #endif
     #endif
   }

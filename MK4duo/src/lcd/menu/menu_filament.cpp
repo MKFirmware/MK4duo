@@ -197,7 +197,7 @@ void menu_pause_option() {
   #if HAS_FILAMENT_SENSOR
     editable.state = filamentrunout.sensor.isEnabled();
     if (filamentrunout.sensor.isFilamentOut())
-      EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &editable.state, [](){
+      EDIT_ITEM_I(bool, MSG_RUNOUT_SENSOR, &editable.state, [](){
         filamentrunout.sensor.setEnabled(editable.state);
         filamentrunout.reset();
       });

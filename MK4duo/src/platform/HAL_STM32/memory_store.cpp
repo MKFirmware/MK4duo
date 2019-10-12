@@ -24,22 +24,17 @@
 
 #include "../../../MK4duo.h"
 
-#if HAS_EEPROM
-
 #if HAS_EEPROM_FLASH
   #include <EEPROM.h>
 #endif
+
+#if HAS_EEPROM
 
 MemoryStore memorystore;
 
 /** Public Parameters */
 #if HAS_EEPROM_SD
   char MemoryStore::eeprom_data[EEPROM_SIZE];
-#endif
-
-/** Private Parameters */
-#if HAS_EEPROM_FLASH
-  static bool eeprom_data_written = false;
 #endif
 
 /** Public Function */
@@ -52,10 +47,7 @@ bool MemoryStore::access_start() {
 
 bool MemoryStore::access_write() {
   #if HAS_EEPROM_FLASH
-    if (eeprom_data_written) {
-      eeprom_buffer_flush();
-      eeprom_data_written = false;
-    }
+    eeprom_buffer_flush();
   #elif HAS_EEPROM_SD
     card.write_eeprom();
   #endif
@@ -64,7 +56,7 @@ bool MemoryStore::access_write() {
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
 
-  while(size--) {
+  while (size--) {
     uint8_t v = *value;
     #if HAS_EEPROM_FLASH
       eeprom_buffered_write_byte(pos, v);
@@ -88,16 +80,12 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
     value++;
   };
 
-  #if HAS_EEPROM_FLASH
-    eeprom_data_written = true;
-  #endif
-
   return false;
 }
 
 bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
 
-  while(size--) {
+  while (size--) {
     #if HAS_EEPROM_FLASH
       const uint8_t c = eeprom_buffered_read_byte(pos);
     #elif HAS_EEPROM_SD
@@ -114,7 +102,7 @@ bool MemoryStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc
   return false;
 }
 
-size_t MemoryStore::capacity() { return EEPROM_SIZE + 1; }
+size_t MemoryStore::capacity() { return E2END + 1; }
 
 #endif // HAS_EEPROM
 

@@ -344,16 +344,19 @@ class TMCStorage {
             sg_result |= this->TMC_SW_SPI->transfer(0);
           }
           else {
-            SPI.beginTransaction(SPISettings(16000000/8, MSBFIRST, SPI_MODE3));
+            TMC2130_n::DRV_STATUS_t drv_status{0};
+            drv_status.sr = this->DRV_STATUS();      
+            SPI.beginTransaction(SPISettings(spi_speed, MSBFIRST, SPI_MODE3));
             // Read DRV_STATUS
             SPI.transfer(TMC2130_n::DRV_STATUS_t::address);
             SPI.transfer16(0);
             // We only care about the last 10 bits
-            sg_result = SPI.transfer(0);
+            sg_result = SPI.transfer(0x0000);
             sg_result <<= 8;
-            sg_result |= SPI.transfer(0);
+            sg_result |= SPI.transfer(0x0000);
             SPI.endTransaction();
           }
+
           this->switchCSpin(HIGH);
 
           return (sg_result & 0x3FF) == 0;

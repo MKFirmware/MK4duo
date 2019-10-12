@@ -354,26 +354,26 @@ void TMC_Stepper::create_tmc() {
         driver.x->tmc->homing_threshold(X_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(X2)
-        driver.x2->homing_threshold(X_STALL_SENSITIVITY);
+        driver.x2->tmc->homing_threshold(X_STALL_SENSITIVITY);
       #endif
     #endif
-    #if Y_SENSORLESS
+    #if Y_HAS_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Y)
-        driver.y->homing_threshold(Y_STALL_SENSITIVITY);
+        driver.y->tmc->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Y2)
-        driver.y2->homing_threshold(Y_STALL_SENSITIVITY);
+        driver.y2->tmc->homing_threshold(Y_STALL_SENSITIVITY);
       #endif
     #endif
-    #if Z_SENSORLESS
+    #if Z_HAS_SENSORLESS
       #if AXIS_HAS_STALLGUARD(Z)
-        driver.z->homing_threshold(Z_STALL_SENSITIVITY);
+        driver.z->tmc->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z2)
-        driver.z2->homing_threshold(Z_STALL_SENSITIVITY);
+        driver.z2->tmc->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
       #if AXIS_HAS_STALLGUARD(Z3)
-        driver.z3->homing_threshold(Z_STALL_SENSITIVITY);
+        driver.z3->tmc->homing_threshold(Z_STALL_SENSITIVITY);
       #endif
     #endif
   #endif
@@ -720,14 +720,17 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #if X_HAS_SENSORLESS || Y_HAS_SENSORLESS || Z_HAS_SENSORLESS
         SERIAL_SM(CFG, "  M914");
         #if X_HAS_SENSORLESS
+          SERIAL_CHR(' ');
           driver.x->printLabel();
           SERIAL_VAL(driver.x->tmc->homing_threshold());
         #endif
         #if Y_HAS_SENSORLESS
+          SERIAL_CHR(' ');
           driver.y->printLabel();
           SERIAL_VAL(driver.y->tmc->homing_threshold());
         #endif
         #if Z_HAS_SENSORLESS
+          SERIAL_CHR(' ');
           driver.z->printLabel();
           SERIAL_VAL(driver.z->tmc->homing_threshold());
         #endif
@@ -910,6 +913,8 @@ bool TMC_Stepper::test_connection(Driver* drv) {
 
     drv->tmc->iholddelay(10);
     drv->tmc->TPOWERDOWN(128);
+
+    drv->tmc->diag1_onstate(false);
 
     drv->tmc->en_pwm_mode(stealth);
     drv->tmc->stealthChop_enabled = stealth;

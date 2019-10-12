@@ -437,7 +437,7 @@ void Endstops::update() {
   /**
    * Check and update endstops
    */
-  #if HAS_X_MIN
+  #if HAS_X_MIN && !X_SPI_SENSORLESS
     #if ENABLED(X_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(X, MIN);
       #if HAS_X2_MIN
@@ -446,11 +446,12 @@ void Endstops::update() {
         COPY_LIVE_STATE(X_MIN, X2_MIN);
       #endif
     #else
+      #error: "Sono qui"
       UPDATE_ENDSTOP_BIT(X, MIN);
     #endif
   #endif
 
-  #if HAS_X_MAX
+  #if HAS_X_MAX && !X_SPI_SENSORLESS
     #if ENABLED(X_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(X, MAX);
       #if HAS_X2_MAX
@@ -463,7 +464,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MIN
+  #if HAS_Y_MIN && !Y_SPI_SENSORLESS
     #if ENABLED(Y_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Y, MIN);
       #if HAS_Y2_MIN
@@ -476,7 +477,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Y_MAX
+  #if HAS_Y_MAX && !Y_SPI_SENSORLESS
     #if ENABLED(Y_TWO_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Y, MAX);
       #if HAS_Y2_MAX
@@ -489,7 +490,7 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if HAS_Z_MIN
+  #if HAS_Z_MIN && !Z_SPI_SENSORLESS
     #if ENABLED(Z_THREE_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MIN);
       #if HAS_Z3_MIN
@@ -519,7 +520,7 @@ void Endstops::update() {
     UPDATE_ENDSTOP_BIT(Z, PROBE);
   #endif
 
-  #if HAS_Z_MAX
+  #if HAS_Z_MAX && !Z_SPI_SENSORLESS
     #if ENABLED(Z_THREE_ENDSTOPS)
       UPDATE_ENDSTOP_BIT(Z, MAX);
       #if HAS_Z3_MAX
@@ -542,6 +543,10 @@ void Endstops::update() {
     #else
       UPDATE_ENDSTOP_BIT(Z, MAX);
     #endif
+  #endif
+
+  #if ENABLED(SPI_ENDSTOPS)
+    tmc_spi_homing_check();
   #endif
 
   // Test the current status of an endstop
@@ -593,16 +598,18 @@ void Endstops::update() {
   // Now, we must signal, after validation, if an endstop limit is pressed or not
   if (stepper.axis_is_moving(X_AXIS)) {
     if (stepper.motor_direction(X_AXIS_HEAD)) { // -direction
-      #if HAS_X_MIN
+      #if HAS_X_MIN || (X_SPI_SENSORLESS && X_HOME_DIR < 0)
         #if ENABLED(X_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(X, X2, MIN);
         #else
           if (X_MIN_TEST) PROCESS_ENDSTOP(X, MIN);
         #endif
+      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+        PROCESS_ENDSTOP(X, MAX);
       #endif
     }
     else {  // +direction
-      #if HAS_X_MAX
+      #if HAS_X_MAX || (X_SPI_SENSORLESS && X_HOME_DIR > 0)
         #if ENABLED(X_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(X, X2, MAX);
         #else
@@ -614,16 +621,18 @@ void Endstops::update() {
 
   if (stepper.axis_is_moving(Y_AXIS)) {
     if (stepper.motor_direction(Y_AXIS_HEAD)) { // -direction
-      #if HAS_Y_MIN
+      #if HAS_Y_MIN || (Y_SPI_SENSORLESS && Y_HOME_DIR < 0)
         #if ENABLED(Y_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Y, Y2, MIN);
         #else
           PROCESS_ENDSTOP(Y, MIN);
         #endif
+      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+        PROCESS_ENDSTOP(Y, MAX);
       #endif
     }
     else {  // +direction
-      #if HAS_Y_MAX
+      #if HAS_Y_MAX || (Y_SPI_SENSORLESS && Y_HOME_DIR > 0)
         #if ENABLED(Y_TWO_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Y, Y2, MAX);
         #else
@@ -635,7 +644,7 @@ void Endstops::update() {
 
   if (stepper.axis_is_moving(Z_AXIS)) {
     if (stepper.motor_direction(Z_AXIS_HEAD)) { // Z -direction. Gantry down, bed up.
-      #if HAS_Z_MIN
+      #if HAS_Z_MIN || (Z_SPI_SENSORLESS && Z_HOME_DIR < 0)
         #if ENABLED(Z_THREE_ENDSTOPS)
           PROCESS_TRIPLE_ENDSTOP(Z, Z2, Z3, MIN);
         #elif ENABLED(Z_TWO_ENDSTOPS)
@@ -643,6 +652,8 @@ void Endstops::update() {
         #else
           PROCESS_ENDSTOP(Z, MIN);
         #endif
+      #elif MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
+        PROCESS_ENDSTOP(Z, MAX);
       #endif
 
       // When closing the gap check the enabled probe
@@ -651,7 +662,7 @@ void Endstops::update() {
       #endif
     }
     else { // Z +direction. Gantry up, bed down.
-      #if HAS_Z_MAX
+      #if HAS_Z_MAX || (Z_SPI_SENSORLESS && Z_HOME_DIR > 0)
         #if ENABLED(Z_THREE_ENDSTOPS)
           PROCESS_TRIPLE_ENDSTOP(Z, Z2, Z3, MAX);
         #elif ENABLED(Z_TWO_ENDSTOPS)
@@ -921,27 +932,31 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
   #define Y_STOP (Y_HOME_DIR < 0 ? Y_MIN : Y_MAX)
   #define Z_STOP (Z_HOME_DIR < 0 ? Z_MIN : Z_MAX)
 
-  bool Endstops::tmc_spi_homing_check() {
+  void Endstops::tmc_spi_homing_check() {
+
     bool hit = false;
+
     #if X_SPI_SENSORLESS
       if (tmc_spi_homing.x && driver.x->tmc->test_stall_status()) {
         SBI(live_state, X_STOP);
         hit = true;
       }
     #endif
+
     #if Y_SPI_SENSORLESS
       if (tmc_spi_homing.y && driver.y->tmc->test_stall_status()) {
         SBI(live_state, Y_STOP);
         hit = true;
       }
     #endif
+
     #if Z_SPI_SENSORLESS
       if (tmc_spi_homing.z && driver.z->tmc->test_stall_status()) {
         SBI(live_state, Z_STOP);
         hit = true;
       }
     #endif
-    return hit;
+
   }
 
   void Endstops::clear_state() {

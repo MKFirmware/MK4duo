@@ -420,10 +420,10 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   #if ENABLED(Z_PROBE_SENSORLESS)
     sensorless_flag_t stealth_states;
     #if MECH(DELTA)
-      stealth_states.x = tmc.enable_stallguard(X_DRV);
-      stealth_states.y = tmc.enable_stallguard(Y_DRV);
+      stealth_states.x = tmc.enable_stallguard(driver.x);
+      stealth_states.y = tmc.enable_stallguard(driver.y);
     #endif
-    stealth_states.z = tmc.enable_stallguard(Z_DRV);
+    stealth_states.z = tmc.enable_stallguard(driver.z);
     endstops.setEnabled(true);
   #endif
 
@@ -446,7 +446,7 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   // Check to see if the probe was triggered
   const bool probe_triggered =
     #if MECH(DELTA) && ENABLED(Z_PROBE_SENSORLESS)
-      endstops.trigger_state() & (_BV(X_MIN) | _BV(Y_MIN) | _BV(Z_MIN))
+      endstops.trigger_state() & (_BV(X_MAX) | _BV(Y_MAX) | _BV(Z_MAX))
     #else
       TEST(endstops.trigger_state(),
         #if HAS_Z_PROBE_PIN
@@ -465,10 +465,10 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA)
-      tmc.disable_stallguard(X_DRV, stealth_states.x);
-      tmc.disable_stallguard(Y_DRV, stealth_states.y);
+      tmc.disable_stallguard(driver.x, stealth_states.x);
+      tmc.disable_stallguard(driver.y, stealth_states.y);
     #endif
-    tmc.disable_stallguard(Z_DRV, stealth_states.z);
+    tmc.disable_stallguard(driver.z, stealth_states.z);
   #endif
 
   // Retract BLTouch immediately after a probe if it was triggered

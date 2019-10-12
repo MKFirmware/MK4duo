@@ -813,6 +813,11 @@ void EEPROM::post_process() {
 
     int eeprom_index = EEPROM_OFFSET;
 
+    if (memorystore.access_start()) {
+      SERIAL_EM("No EEPROM.");
+      return false;
+    }
+
     EEPROM_READ_ALWAYS(stored_ver);
     EEPROM_READ_ALWAYS(stored_crc);
 

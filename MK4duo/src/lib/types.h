@@ -61,7 +61,7 @@ typedef float feedrate_t;
 // Feedrate scaling and conversion
 #define MMM_TO_MMS(MM_M)  feedrate_t((MM_M)/60.0f)
 #define MMS_TO_MMM(MM_S)  ((MM_S)*60.0f)
-#define MMS_SCALED(MM_S)  ((MM_S)* 0.1f * mechanics.feedrate_percentage)
+#define MMS_SCALED(MM_S)  ((MM_S)* 0.01f * mechanics.feedrate_percentage)
 /***********************************************************/
 
 template<typename T> struct                 XYval;
