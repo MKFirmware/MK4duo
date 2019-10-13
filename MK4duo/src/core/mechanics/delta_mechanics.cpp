@@ -499,6 +499,9 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
       endstops.tmc_spi_homing.any = false;
       endstops.clear_state();
     #endif
+    destination.z -= 5;
+    planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.data.extruder.active);
+    planner.synchronize();
   #endif
 
   endstops.validate_homing_move();
