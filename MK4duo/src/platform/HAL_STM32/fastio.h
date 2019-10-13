@@ -113,6 +113,22 @@ FORCE_INLINE static void SET_OUTPUT(const pin_t pin) {
     }
   }
 }
+FORCE_INLINE static void SET_OUTPUT_LOW(const pin_t pin) {
+  #if ENABLED(PCF8574_EXPANSION_IO)
+    if (pin >= PIN_START_FOR_PCF8574) {
+      pcf8574.pinMode(pin - PIN_START_FOR_PCF8574, OUTPUT);
+      pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, LOW);
+    }
+    else
+  #endif
+  {
+    const PinName p = digitalPinToPinName(pin);
+    if (p != NC) {
+      pin_function(p, STM_PIN_DATA(STM_MODE_OUTPUT_PP, GPIO_NOPULL, 0));
+      digitalWriteFast(p, LOW);
+    }
+  }
+}
 FORCE_INLINE static void SET_OUTPUT_HIGH(const pin_t pin) {
   #if ENABLED(PCF8574_EXPANSION_IO)
     if (pin >= PIN_START_FOR_PCF8574) {

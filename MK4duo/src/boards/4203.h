@@ -184,7 +184,6 @@
 
 //###UNKNOWN_PINS
 #define EEPROM_FLASH
-#define E2END                      0xFFF
 
 //###IF_BLOCKS
 #define LCD_PINS_RS                PE10
