@@ -47,7 +47,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   if (printer.debugFeature()) {
     DEBUG_POS("probe.set_deployed", mechanics.current_position);
-    DEBUG_EMV("deploy: ", deploy);
+    DEBUG_ELOGIC("deploy", deploy);
   }
 
   if (endstops.isProbeEnabled() == deploy) return false;

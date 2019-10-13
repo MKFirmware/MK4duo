@@ -148,7 +148,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
     // If the move is only in Z/E don't split up the move
     if (!difference.x && !difference.y) {
       planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active);
-      return false; // caller will update current_position.x
+      return false; // caller will update current_position
     }
 
     // Fail if attempting move outside printable radius
@@ -588,7 +588,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     if (fr_mm_s)
       DEBUG_VAL(fr_mm_s);
     else {
-      DEBUG_MV(" [", homing_feedrate_mm_s.z);
+      DEBUG_MV(" [", homing_feedrate_mm_s[axis]);
       DEBUG_CHR(']');
     }
     DEBUG_CHR(')');

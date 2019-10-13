@@ -59,17 +59,9 @@
   #endif
 
   #ifndef TEMP_TIMER
-    #define TEMP_TIMER 7
+    #define TEMP_TIMER 4
   #endif
 
-#endif
-
-#ifndef STEP_TIMER_IRQ_PRIO
-  #define STEP_TIMER_IRQ_PRIO 1
-#endif
-
-#ifndef TEMP_TIMER_IRQ_PRIO
-  #define TEMP_TIMER_IRQ_PRIO 2
 #endif
 
 // Stepper Timer
@@ -93,18 +85,6 @@
 #define STEP_TIMER_DEV              _TIMER_DEV(STEP_TIMER)
 #define TEMP_TIMER_DEV              _TIMER_DEV(TEMP_TIMER)
 
-#define __TIMER_CALLBACK(X)         TIM##X##_IRQHandler
-#define _TIMER_CALLBACK(X)          __TIMER_CALLBACK(X)
-
-#define STEP_TIMER_CALLBACK         _TIMER_CALLBACK(STEP_TIMER)
-#define TEMP_TIMER_CALLBACK         _TIMER_CALLBACK(TEMP_TIMER)
-
-#define __TIMER_IRQ_NAME(X)         TIM##X##_IRQn
-#define _TIMER_IRQ_NAME(X)          __TIMER_IRQ_NAME(X)
-
-#define STEP_TIMER_IRQ_NAME         _TIMER_IRQ_NAME(STEP_TIMER)
-#define TEMP_TIMER_IRQ_NAME         _TIMER_IRQ_NAME(TEMP_TIMER)
-
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER_NUM)
@@ -112,11 +92,6 @@
 #define ENABLE_TEMP_INTERRUPT()     HAL_timer_enable_interrupt(TEMP_TIMER_NUM)
 #define DISABLE_TEMP_INTERRUPT()    HAL_timer_disable_interrupt(TEMP_TIMER_NUM)
 #define TEMP_ISR_ENABLED()          HAL_timer_interrupt_is_enabled(TEMP_TIMER_NUM)
-
-extern void Step_Handler(stimer_t *htim);
-extern void Temp_Handler(stimer_t *htim);
-#define HAL_STEPPER_TIMER_ISR()     void Step_Handler(stimer_t *htim)
-#define HAL_TEMP_TIMER_ISR()        void Temp_Handler(stimer_t *htim)
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles
@@ -208,44 +183,87 @@ extern void Temp_Handler(stimer_t *htim);
 #endif
 
 // ------------------------
-// Types
-// ------------------------
-
-typedef stimer_t stm32_timer_t;
-
-// ------------------------
 // Public Variables
 // ------------------------
-
-extern stm32_timer_t TimerHandle[];
-
 extern uint32_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks,
                 HAL_frequency_limit[8];
 
 // ------------------------
+// Hardware Timer
+// ------------------------
+extern HardwareTimer *MK_timer[2];
+
+// ------------------------
 // Public functions
 // ------------------------
-
 void HAL_calc_pulse_cycle();
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
-void HAL_timer_enable_interrupt(const uint8_t timer_num);
-void HAL_timer_disable_interrupt(const uint8_t timer_num);
-bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num);
+
+// ------------------------
+// Public functions for timer
+// ------------------------
+extern void Step_Handler(HardwareTimer*);
+extern void Temp_Handler(HardwareTimer*);
+
+FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
+
+  static bool timers_initialized[2] = { false };
+
+  if (!timers_initialized[timer_num]) {
+
+    switch (timer_num) {
+      case STEPPER_TIMER_NUM:
+        MK_timer[STEPPER_TIMER_NUM] = new HardwareTimer(STEP_TIMER_DEV);
+        MK_timer[STEPPER_TIMER_NUM]->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
+        //MK_timer[STEPPER_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
+        MK_timer[STEPPER_TIMER_NUM]->attachInterrupt(Step_Handler);
+        MK_timer[STEPPER_TIMER_NUM]->resume();
+        break;
+
+      case TEMP_TIMER_NUM:
+        MK_timer[TEMP_TIMER_NUM] = new HardwareTimer(TEMP_TIMER_DEV);
+        MK_timer[TEMP_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
+        MK_timer[TEMP_TIMER_NUM]->attachInterrupt(Temp_Handler);
+        MK_timer[TEMP_TIMER_NUM]->resume();
+        break;
+    }
+    timers_initialized[timer_num] = true;
+  }
+}
+
+FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
+  MK_timer[timer_num]->resume();
+}
+
+FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
+  MK_timer[timer_num]->pause();
+}
+
+FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
+  return true;
+}
 
 FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
-  return __HAL_TIM_GET_COUNTER(&TimerHandle[timer_num].handle);
+  return MK_timer[timer_num]->getCount();
 }
 
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
-  __HAL_TIM_SET_AUTORELOAD(&TimerHandle[timer_num].handle, count);
-  if (HAL_timer_get_count(timer_num) >= count)
-    TimerHandle[timer_num].handle.Instance->EGR |= TIM_EGR_UG; // Generate an immediate update interrupt
+  MK_timer[timer_num]->setOverflow(count);
+  if (HAL_timer_get_count(timer_num) >= count) { // Generate an immediate update interrupt
+    switch (timer_num) {
+      case STEPPER_TIMER_NUM: STEP_TIMER_DEV->EGR |= TIM_EGR_UG; break;
+      case TEMP_TIMER_NUM:    TEMP_TIMER_DEV->EGR |= TIM_EGR_UG; break;
+    }
+  }
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
-  return __HAL_TIM_GET_AUTORELOAD(&TimerHandle[timer_num].handle);
+  return MK_timer[timer_num]->getOverflow();
+}
+
+FORCE_INLINE static uint32_t HAL_timer_get_Clk_Freq(const uint8_t timer_num) {
+  return MK_timer[timer_num]->getTimerClkFreq();
 }
 
 #define HAL_timer_isr_prologue(TIMER_NUM)

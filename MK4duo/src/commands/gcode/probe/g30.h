@@ -28,65 +28,65 @@
 
 #if HAS_BED_PROBE
 
-  #define CODE_G30
+#define CODE_G30
 
-  /**
-   * G30: Do a single Z probe
-   * Usage:
-   *    G30 <X#> <Y#> <S#> <Z#> <P#>
-   *      X   Probe X position (default=current probe position)
-   *      Y   Probe Y position (default=current probe position)
-   *      E   Engage the probe for each probe (default 1)
-   *      Z   <bool> with a non-zero value will apply the result to current data.height (ONLY DELTA)
-   *      P   <bool> with a non-zero value will apply the result to current probe offset[Z_AXIS] (ONLY DELTA)
-   */
-  inline void gcode_G30() {
+/**
+ * G30: Do a single Z probe
+ * Usage:
+ *    G30 <X#> <Y#> <S#> <Z#> <P#>
+ *      X   Probe X position (default=current probe position)
+ *      Y   Probe Y position (default=current probe position)
+ *      E   Engage the probe for each probe (default 1)
+ *      Z   <bool> with a non-zero value will apply the result to current data.height (ONLY DELTA)
+ *      P   <bool> with a non-zero value will apply the result to current probe offset[Z_AXIS] (ONLY DELTA)
+ */
+inline void gcode_G30() {
 
-    const float xpos = parser.linearval('X', mechanics.current_position.x + probe.data.offset.x),
-                ypos = parser.linearval('Y', mechanics.current_position.y + probe.data.offset.y);
+  const float xpos = parser.linearval('X', mechanics.current_position.x + probe.data.offset.x),
+              ypos = parser.linearval('Y', mechanics.current_position.y + probe.data.offset.y);
 
-    // Don't allow G30 without homing first
-    if (mechanics.axis_unhomed_error()) return;
+  // Don't allow G30 without homing first
+  if (mechanics.axis_unhomed_error()) return;
 
-    if (!mechanics.position_is_reachable_by_probe(xpos, ypos)) return;
+  if (!mechanics.position_is_reachable_by_probe(xpos, ypos)) return;
 
-    // Disable leveling so the planner won't mess with us
-    #if HAS_LEVELING
-      bedlevel.set_bed_leveling_enabled(false);
-    #endif
+  // Disable leveling so the planner won't mess with us
+  #if HAS_LEVELING
+    bedlevel.set_bed_leveling_enabled(false);
+  #endif
 
-    mechanics.setup_for_endstop_or_probe_move();
+  mechanics.setup_for_endstop_or_probe_move();
 
-    const ProbePtRaiseEnum raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
-    const float measured_z = probe.check_at_point(xpos, ypos, raise_after, 1);
+  const ProbePtRaiseEnum raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
+  const float measured_z = probe.check_at_point(xpos, ypos, raise_after, 1);
 
-    if (!isnan(measured_z)) {
-      SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
-      SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
-      SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
-    }
-
-    #if MECH(DELTA)
-      if (parser.boolval('Z')) {
-        mechanics.data.height -= measured_z;
-        mechanics.recalc_delta_settings();
-        SERIAL_MV("  New delta height:", mechanics.data.height, 3);
-      }
-      else if (parser.boolval('P')) {
-        probe.data.offset.z -= measured_z;
-        SERIAL_MV("  New Z probe offset:", probe.data.offset.z, 3);
-      }
-    #endif
-
-    SERIAL_EOL();
-
-    mechanics.clean_up_after_endstop_or_probe_move();
-
-    #if Z_PROBE_AFTER_PROBING > 0
-      if (raise_after == PROBE_PT_STOW) probe.move_z_after_probing();
-    #endif
-
-    mechanics.report_current_position();
+  if (!isnan(measured_z)) {
+    SERIAL_MV(MSG_BED_LEVELING_Z, FIXFLOAT(measured_z), 3);
+    SERIAL_MV(MSG_BED_LEVELING_X, FIXFLOAT(xpos), 3);
+    SERIAL_MV(MSG_BED_LEVELING_Y, FIXFLOAT(ypos), 3);
   }
+
+  #if MECH(DELTA)
+    if (parser.boolval('Z')) {
+      mechanics.data.height -= measured_z;
+      mechanics.recalc_delta_settings();
+      SERIAL_MV("  New delta height:", mechanics.data.height, 3);
+    }
+    else if (parser.boolval('P')) {
+      probe.data.offset.z -= measured_z;
+      SERIAL_MV("  New Z probe offset:", probe.data.offset.z, 3);
+    }
+  #endif
+
+  SERIAL_EOL();
+
+  mechanics.clean_up_after_endstop_or_probe_move();
+
+  #if Z_PROBE_AFTER_PROBING > 0
+    if (raise_after == PROBE_PT_STOW) probe.move_z_after_probing();
+  #endif
+
+  mechanics.report_current_position();
+}
 
 #endif // HAS_BED_PROBE

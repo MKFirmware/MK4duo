@@ -67,17 +67,15 @@ void BLTouch::test() {
 
     #define PROBE_TEST_PIN Z_PROBE_PIN
     probe_logic = endstops.isLogic(Z_PROBE);
-    SERIAL_EMV(". BLTouch uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-    SERIAL_EM(". Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+    SERIAL_EMV(".  BLTouch uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+    SERIAL_ELOGIC(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)", probe_logic);
 
   #elif HAS_Z_MIN
 
     #define PROBE_TEST_PIN Z_MIN_PIN
     probe_logic = endstops.isLogic(Z_MIN);
-    SERIAL_EMV(". BLTouch uses Z_MIN pin: ", PROBE_TEST_PIN);
-    SERIAL_EM(". Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+    SERIAL_EMV(".  BLTouch uses Z_MIN pin: ", PROBE_TEST_PIN);
+    SERIAL_ELOGIC(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)", probe_logic);
 
   #endif
 

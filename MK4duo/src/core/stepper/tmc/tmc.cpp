@@ -761,7 +761,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
       #if AXIS_HAS_STEALTHCHOP(E0)
         SERIAL_CHR(' ');
         driver.e[0]->printLabel();
-        SERIAL_VAL(driver.e[0]->tmc->get_stealthChop_status());
+        SERIAL_MV(" E", driver.e[0]->tmc->get_stealthChop_status());
       #endif
       SERIAL_EOL();
     #endif // TMC_HAS_STEALTHCHOP

@@ -101,10 +101,10 @@ void HAL::hwSetup() {
 
 // Print apparent cause of start/restart
 void HAL::showStartReason() {
-  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST) != RESET)  SERIAL_EM(MSG_WATCHDOG_RESET);
-  if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST) != RESET)   SERIAL_EM(MSG_SOFTWARE_RESET);
-  if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST) != RESET)   SERIAL_EM(MSG_EXTERNAL_RESET);
-  if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST) != RESET)   SERIAL_EM(MSG_POWERUP);
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)  != RESET) SERIAL_EM(MSG_WATCHDOG_RESET);
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)   != RESET) SERIAL_EM(MSG_SOFTWARE_RESET);
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)   != RESET) SERIAL_EM(MSG_EXTERNAL_RESET);
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)   != RESET) SERIAL_EM(MSG_POWERUP);
   __HAL_RCC_CLEAR_RESET_FLAGS();
 }
 
@@ -157,7 +157,7 @@ void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
 }
 
 // Reset peripherals and cpu
-void HAL::resetHardware() {}
+void HAL::resetHardware() { NVIC_SystemReset(); }
 
 bool HAL::pwm_status(const pin_t pin) {
   return false;
@@ -308,9 +308,9 @@ void HAL::Tick() {
 /**
  * Interrupt Service Routines
  */
-HAL_STEPPER_TIMER_ISR() { stepper.Step(); }
+void Step_Handler(HardwareTimer*) { stepper.Step(); }
 
-HAL_TEMP_TIMER_ISR() {
+void Temp_Handler(HardwareTimer*) {
   if (printer.isStopped()) return;
   HAL::Tick();
 }
