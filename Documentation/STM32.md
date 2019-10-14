@@ -43,7 +43,11 @@ Now you can find the STM32 boards package in the "**Board**" menu.
 ## Upload process:
 
 1- Press and hold RUMBA32 BOOT button.
+
 2- Press and release RUMBA32 RESET button.
+
 3- Release RUMBA32 BOOT button.
+
 4- RUMBA32 is now in hardware bootloader mode and will accept firmware upload via USB DFU.
+
 5- Press "Upload" in Arduino IDE. If correctly configured and connected, the upload should be successful
