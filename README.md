@@ -21,7 +21,8 @@
 
 ---
 # MK4duo 3D Printer Firmware
-  * [Configuration & Compilation](/Documentation/Compilation.md)
+  * [Configuration & Compilation AVR & DUE](/Documentation/Compilation.md)
+  * [Configuration & Compilation STM32](/Documentation/STM32.md)
   * Supported
     * [Features](/Documentation/Features.md)
     * [Hardware](/Documentation/Hardware.md)
