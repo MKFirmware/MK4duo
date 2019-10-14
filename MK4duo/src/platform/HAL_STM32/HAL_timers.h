@@ -250,12 +250,8 @@ FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
 
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
   MK_timer[timer_num]->setOverflow(count);
-  if (HAL_timer_get_count(timer_num) >= count) { // Generate an immediate update interrupt
-    switch (timer_num) {
-      case STEPPER_TIMER_NUM: STEP_TIMER_DEV->EGR |= TIM_EGR_UG; break;
-      case TEMP_TIMER_NUM:    TEMP_TIMER_DEV->EGR |= TIM_EGR_UG; break;
-    }
-  }
+  if (HAL_timer_get_count(timer_num) >= count)
+    MK_timer[timer_num]->refresh(); // Generate an immediate update interrupt
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {

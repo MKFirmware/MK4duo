@@ -145,4 +145,4 @@
 /**
  * STM32 ARM Cortex-M4F
  */
-#define BOARD_RUMBA32         4203    // RUMBA32 STM32F4-based controller
+#define BOARD_RUMBA32         4203    // RUMBA32 STM32F446 based controller
