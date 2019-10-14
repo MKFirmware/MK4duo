@@ -24,6 +24,9 @@ Select the "**STM32 Cores**" and click on install.
 After installation is complete an "*INSTALLED*" tag appears next to the core name. 
 
 You can close the Board Manager.
+
+To upload through SWD (STLink), Serial or DFU, [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) needs to be installed.
+
 Now you can find the STM32 boards package in the "**Board**" menu.
 
 <img align="center" src="img/boardslist.png"/>
@@ -31,3 +34,7 @@ Now you can find the STM32 boards package in the "**Board**" menu.
 Select the desired boards series: Rumba32
 
 <img align="center" src="img/rumba32.png"/>
+
+Setting all option in this mode
+
+<img align="center" src="img/rumba32option.png"/>
