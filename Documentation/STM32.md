@@ -2,7 +2,7 @@
 
 1- Launch Arduino.cc IDE. Click on "**File**" menu and then "**Preferences**".
 
-[[img/preferences.png|alt=Preferences]]
+<img align="center" src="img/preferences.png"/>
 
 The "**Preferences**" dialog will open, then add the following link to the "*Additional Boards Managers URLs*" field:
 
@@ -12,22 +12,16 @@ Click "**Ok**"
 
 2- Click on "**Tools**" menu and then "**Boards > Boards Manager**"
 
-[[img/menu_bm.png|alt="BoardsManager Menu"]]
+<img align="center" src="img/menu_bm.png"/>
 
 The board manager will open and you will see a list of installed and available boards. 
 
 Select "**Contributed**" type.
 
-[[img/boardsmanager.png|alt="BoardsManager dialog"]]
-
 Select the "**STM32 Cores**" and click on install.
-
-[[img/boardsmanager2.png|alt="BoardsManager dialog"]]
 
 After installation is complete an "*INSTALLED*" tag appears next to the core name. 
 
 You can close the Board Manager.
-
-[[img/boardslist.png|alt="Boards list"]]
 
 Now you can find the STM32 boards package in the "**Board**" menu.
