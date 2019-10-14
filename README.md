@@ -1,6 +1,6 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
 
-# MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
+# MK4duo 3D Printer Firmware for all Atmel AVR boards, Arduino Due and STM32
 
 ## Version 4.4.0 dev
 
@@ -45,7 +45,7 @@ http://www.marlinkimbra.it
 ## Quick Information
 
 The new features are:
-* A single Firmware for all types of printers; Cartesian, Delta, MORGAN SCARA, MAKERARM SCARA, CoreXY, CoreXZ & CoreYZ and their reverse.
+* A single Firmware for all types of printers; Cartesian, Delta, CoreXY, CoreXZ & CoreYZ and their reverse.
 * The possibility of having only one hotend independently from the extruders that you have.
 * The addition of the 6th extruder.
 * Management Color Mixing Extruder
@@ -110,7 +110,6 @@ The current MarlinKimbra dev team consists of:
 More features have been added by:
   - Mr.Goblin
   - [iosonopersia](https://github.com/iosonopersia)
-  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
 
 ## License
 
