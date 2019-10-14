@@ -177,3 +177,11 @@ https://reprapworld.com/documentation/datasheet_ultratronics10_05.pdf
 ```
 #define BOARD_ULTRATRONICS    1705    // Ultratronics v1.0 ARM 32 bit board
 ```
+
+##### RUMBA32
+
+https://github.com/Aus3D/RUMBA32
+
+```
+#define BOARD_RUMBA32         4203    // RUMBA32 STM32F446 based controller
+```
