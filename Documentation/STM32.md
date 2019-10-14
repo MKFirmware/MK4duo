@@ -18,10 +18,16 @@ The board manager will open and you will see a list of installed and available b
 
 Select "**Contributed**" type.
 
-Select the "**STM32 Cores**" and click on install.
+<img align="center" src="img/boardsmanager.png"/>
 
+Select the "**STM32 Cores**" and click on install.
 After installation is complete an "*INSTALLED*" tag appears next to the core name. 
 
 You can close the Board Manager.
-
 Now you can find the STM32 boards package in the "**Board**" menu.
+
+<img align="center" src="img/boardslist.png"/>
+
+Select the desired boards series: Rumba32
+
+<img align="center" src="img/rumba32.png"/>
