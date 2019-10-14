@@ -25,16 +25,25 @@ After installation is complete an "*INSTALLED*" tag appears next to the core nam
 
 You can close the Board Manager.
 
-To upload through SWD (STLink), Serial or DFU, [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) needs to be installed.
+3- To upload through SWD (STLink), Serial or DFU, [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) needs to be installed.
 
 Now you can find the STM32 boards package in the "**Board**" menu.
 
 <img align="center" src="img/boardslist.png"/>
 
-Select the desired boards series: Rumba32
+4- Select the desired boards series: Rumba32
 
 <img align="center" src="img/rumba32.png"/>
 
-Setting all option in this mode
+5- Setting all option in this mode
 
 <img align="center" src="img/rumba32option.png"/>
+
+
+## Upload process:
+
+1- Press and hold RUMBA32 BOOT button.
+2- Press and release RUMBA32 RESET button.
+3- Release RUMBA32 BOOT button.
+4- RUMBA32 is now in hardware bootloader mode and will accept firmware upload via USB DFU.
+5- Press "Upload" in Arduino IDE. If correctly configured and connected, the upload should be successful
