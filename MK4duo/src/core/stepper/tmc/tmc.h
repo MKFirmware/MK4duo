@@ -331,35 +331,9 @@ class TMCStorage {
       #if ENABLED(SPI_ENDSTOPS)
 
         bool test_stall_status() {
-          uint16_t sg_result = 0;
-
-          this->switchCSpin(LOW);
-
-          if (this->TMC_SW_SPI != nullptr) {
-            this->TMC_SW_SPI->transfer(TMC2130_n::DRV_STATUS_t::address);
-            this->TMC_SW_SPI->transfer16(0);
-            // We only care about the last 10 bits
-            sg_result = this->TMC_SW_SPI->transfer(0);
-            sg_result <<= 8;
-            sg_result |= this->TMC_SW_SPI->transfer(0);
-          }
-          else {
-            TMC2130_n::DRV_STATUS_t drv_status{0};
-            drv_status.sr = this->DRV_STATUS();      
-            SPI.beginTransaction(SPISettings(spi_speed, MSBFIRST, SPI_MODE3));
-            // Read DRV_STATUS
-            SPI.transfer(TMC2130_n::DRV_STATUS_t::address);
-            SPI.transfer16(0);
-            // We only care about the last 10 bits
-            sg_result = SPI.transfer(0x0000);
-            sg_result <<= 8;
-            sg_result |= SPI.transfer(0x0000);
-            SPI.endTransaction();
-          }
-
-          this->switchCSpin(HIGH);
-
-          return (sg_result & 0x3FF) == 0;
+          TMC2130_n::DRV_STATUS_t drv_status{0};
+          drv_status.sr = this->DRV_STATUS();
+          return drv_status.stallGuard;
         }
 
       #endif // SPI_ENDSTOPS

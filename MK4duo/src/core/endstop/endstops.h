@@ -226,7 +226,7 @@ class Endstops {
     }
 
     #if ENABLED(SPI_ENDSTOPS)
-      static void tmc_spi_homing_check();
+      static bool tmc_spi_homing_check();
       static void clear_state();
     #endif
 

@@ -32,6 +32,7 @@ uint32_t  HAL_min_pulse_cycle     = 0,
           HAL_min_pulse_tick      = 0,
           HAL_add_pulse_ticks     = 0,
           HAL_frequency_limit[8]  = { 0 };
+bool      HAL_timer_is_active[2]  = { false };
 
 // ------------------------
 // Hardware Timer

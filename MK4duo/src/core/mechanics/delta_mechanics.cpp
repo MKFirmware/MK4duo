@@ -481,6 +481,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
     stealth_states.y = tmc.enable_stallguard(driver.y);
     stealth_states.z = tmc.enable_stallguard(driver.z);
     #if ENABLED(SPI_ENDSTOPS)
+      endstops.clear_state();
       endstops.tmc_spi_homing.any = true;
     #endif
   #endif
@@ -606,7 +607,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
   #endif
 
   if (is_home_dir) {
-    // Disable stealthChop if used. Enable diag1 pin on driver.
+    // Enable diag1 pin on driver.
     #if ENABLED(SENSORLESS_HOMING)
       stealth_states = start_sensorless_homing_per_axis(axis);
     #endif

@@ -562,7 +562,7 @@ void Printer::zero_fan_speed() {
  */
 void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
-  #if ENABLED(SPI_ENDSTOPS5)
+  #if ENABLED(SPI_ENDSTOPS)
     if (endstops.tmc_spi_homing.any
       #if ENABLED(IMPROVE_HOMING_RELIABILITY)
         && ELAPSED(millis(), tmc.sg_guard_period)

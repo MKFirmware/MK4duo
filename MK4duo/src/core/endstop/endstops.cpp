@@ -544,10 +544,6 @@ void Endstops::update() {
     #endif
   #endif
 
-  #if ENABLED(SPI_ENDSTOPS)
-    tmc_spi_homing_check();
-  #endif
-
   // Test the current status of an endstop
   #define TEST_ENDSTOP(ENDSTOP)       (TEST(live_state, ENDSTOP))
 
@@ -931,7 +927,7 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
   #define Y_STOP (Y_HOME_DIR < 0 ? Y_MIN : Y_MAX)
   #define Z_STOP (Z_HOME_DIR < 0 ? Z_MIN : Z_MAX)
 
-  void Endstops::tmc_spi_homing_check() {
+  bool Endstops::tmc_spi_homing_check() {
 
     bool hit = false;
 
@@ -955,6 +951,8 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
         hit = true;
       }
     #endif
+
+    return hit;
 
   }
 

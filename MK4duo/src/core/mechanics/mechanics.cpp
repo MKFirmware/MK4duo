@@ -362,6 +362,7 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
     }
 
     #if ENABLED(SPI_ENDSTOPS)
+      endstops.clear_state();
       switch (axis) {
         #if X_SPI_SENSORLESS
           case X_AXIS: endstops.tmc_spi_homing.x = true; break;
@@ -433,18 +434,8 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
     }
 
     #if ENABLED(SPI_ENDSTOPS)
-      switch (axis) {
-        #if X_SPI_SENSORLESS
-          case X_AXIS: endstops.tmc_spi_homing.x = false; break;
-        #endif
-        #if Y_SPI_SENSORLESS
-          case Y_AXIS: endstops.tmc_spi_homing.y = false; break;
-        #endif
-        #if Z_SPI_SENSORLESS
-          case Z_AXIS: endstops.tmc_spi_homing.z = false; break;
-        #endif
-        default: break;
-      }
+      endstops.clear_state();
+      endstops.tmc_spi_homing.any = false;
     #endif
 
   }

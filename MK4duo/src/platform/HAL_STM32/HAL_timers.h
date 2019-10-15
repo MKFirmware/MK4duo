@@ -31,11 +31,11 @@
   #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
 
   #ifndef STEP_TIMER
-    #define STEP_TIMER 16
+    #define STEP_TIMER TIM16
   #endif
 
   #ifndef TEMP_TIMER
-    #define TEMP_TIMER 17
+    #define TEMP_TIMER TIM17
   #endif
 
 #elif defined(STM32F1xx)
@@ -43,11 +43,11 @@
   #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
 
   #ifndef STEP_TIMER
-    #define STEP_TIMER 4
+    #define STEP_TIMER TIM4
   #endif
 
   #ifndef TEMP_TIMER
-    #define TEMP_TIMER 2
+    #define TEMP_TIMER TIM2
   #endif
 
 #elif defined(STM32F4xx) || defined(STM32F7xx)
@@ -55,11 +55,11 @@
   #define HAL_TIMER_RATE (F_CPU / 2)
 
   #ifndef STEP_TIMER
-    #define STEP_TIMER 5
+    #define STEP_TIMER TIM5
   #endif
 
   #ifndef TEMP_TIMER
-    #define TEMP_TIMER 4
+    #define TEMP_TIMER TIM4
   #endif
 
 #endif
@@ -76,14 +76,7 @@
 
 // Temperature Timer
 #define TEMP_TIMER_NUM              1     // index of timer to use for temperature
-#define TEMP_TIMER_RATE             72000 // 72 Khz
-#define TEMP_TIMER_PRESCALE         ((HAL_TIMER_RATE) / (TEMP_TIMER_RATE))
 #define TEMP_TIMER_FREQUENCY        1000
-
-#define __TIMER_DEV(X)              TIM##X
-#define _TIMER_DEV(X)               __TIMER_DEV(X)
-#define STEP_TIMER_DEV              _TIMER_DEV(STEP_TIMER)
-#define TEMP_TIMER_DEV              _TIMER_DEV(TEMP_TIMER)
 
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
@@ -189,6 +182,7 @@ extern uint32_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks,
                 HAL_frequency_limit[8];
+extern bool     HAL_timer_is_active[2];
 
 // ------------------------
 // Hardware Timer
@@ -214,18 +208,20 @@ FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t
 
     switch (timer_num) {
       case STEPPER_TIMER_NUM:
-        MK_timer[STEPPER_TIMER_NUM] = new HardwareTimer(STEP_TIMER_DEV);
+        MK_timer[STEPPER_TIMER_NUM] = new HardwareTimer(STEP_TIMER);
         MK_timer[STEPPER_TIMER_NUM]->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
         //MK_timer[STEPPER_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
         MK_timer[STEPPER_TIMER_NUM]->attachInterrupt(Step_Handler);
         MK_timer[STEPPER_TIMER_NUM]->resume();
+        HAL_timer_is_active[STEPPER_TIMER_NUM] = true;
         break;
 
       case TEMP_TIMER_NUM:
-        MK_timer[TEMP_TIMER_NUM] = new HardwareTimer(TEMP_TIMER_DEV);
+        MK_timer[TEMP_TIMER_NUM] = new HardwareTimer(TEMP_TIMER);
         MK_timer[TEMP_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
         MK_timer[TEMP_TIMER_NUM]->attachInterrupt(Temp_Handler);
         MK_timer[TEMP_TIMER_NUM]->resume();
+        HAL_timer_is_active[TEMP_TIMER_NUM] = true;
         break;
     }
     timers_initialized[timer_num] = true;
@@ -234,14 +230,16 @@ FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t
 
 FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
   MK_timer[timer_num]->resume();
+  HAL_timer_is_active[timer_num] = true;
 }
 
 FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
   MK_timer[timer_num]->pause();
+  HAL_timer_is_active[timer_num] = false;
 }
 
 FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
-  return true;
+  return HAL_timer_is_active[timer_num];
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {

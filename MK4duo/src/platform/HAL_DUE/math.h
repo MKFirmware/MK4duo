@@ -36,7 +36,7 @@ class AveragingFilter {
 
   public: /** Constructor */
 
-    AveragingFilter() { init(3000); }
+    AveragingFilter() { init(0); }
 
   private: /** Private Parameters */
 
