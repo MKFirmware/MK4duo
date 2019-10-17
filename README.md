@@ -16,7 +16,7 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
 
   name|board|processor|speed|flash|sram|logic|fpu
   ----|-----|---------|-----|-----|----|-----|---
-  [Arduino AVR](https://www.arduino.cc/)|ATmega2560|20MHz|256k|8k|5V|no
+  [Arduino AVR](https://www.arduino.cc/)|[RAMPS 1_4](https://reprap.org/wiki/RAMPS_1.4)|ATmega2560|20MHz|256k|8k|5V|no
   [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|[ULTRATRONICS](https://reprapworld.it/products/elettronica/ultratronics/ultratronics_pro_v1_0/)|[SAM3X8E](http://www.microchip.com/wwwproducts/en/ATsam3x8e) ARM-Cortex M3|84MHz|512k|64+32k|3.3V|no
 
 ### HALs in Development
