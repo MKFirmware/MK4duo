@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware
 
-[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)]
+[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)](https://travis-ci.org/MKFirmware/MK4duo)
 
 ## Version 4.4.0 dev
 
