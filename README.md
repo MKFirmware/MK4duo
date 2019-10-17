@@ -23,7 +23,7 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
 
   name|processor|speed|flash|sram|logic|fpu
   ----|---------|-----|-----|----|-----|---
-  [Arduino STM32F446](https://github.com/stm32duino/Arduino_Core_STM32), [RUMBA32](https://github.com/Aus3D/RUMBA32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256k|128k|3.3V|no
+  [Arduino STM32](https://github.com/stm32duino/Arduino_Core_STM32), [RUMBA32](https://github.com/Aus3D/RUMBA32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256k|128k|3.3V|no
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
