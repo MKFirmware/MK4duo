@@ -2,7 +2,7 @@
 
 # MK4duo 3D Printer Firmware
 
-[Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)(https://travis-ci.org/MKFirmware/MK4duo)
+[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)](https://travis-ci.org/MKFirmware/MK4duo)
 
 ## Version 4.4.0 dev.
 
@@ -17,7 +17,7 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
   name|processor|speed|flash|sram|logic|fpu
   ----|---------|-----|-----|----|-----|---
   [Arduino AVR](https://www.arduino.cc/)|ATmega2560|16-20MHz|64-256k|2-16k|5V|no
-  [Due](https://www.arduino.cc/en/Guide/ArduinoDue), [RAMPS-FD](http://www.reprap.org/wiki/RAMPS-FD), etc.|[SAM3X8E ARM-Cortex M3](http://www.microchip.com/wwwproducts/en/ATsam3x8e)|84MHz|512k|64+32k|3.3V|no
+  [Due](https://www.arduino.cc/en/Guide/ArduinoDue), [ULTRATRONICS](https://reprapworld.it/products/elettronica/ultratronics/ultratronics_pro_v1_0/),|[SAM3X8E](http://www.microchip.com/wwwproducts/en/ATsam3x8e) ARM-Cortex M3|84MHz|512k|64+32k|3.3V|no
   [Arduino STM32F446](https://github.com/stm32duino/Arduino_Core_STM32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256-512k|128k|3.3V|no
 
 ### Special thanks
@@ -27,11 +27,6 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
  - [bobc](https://github.com/bobc)
  - [repetier](https://github.com/repetier)
  - [developers of original Marlin](https://github.com/MarlinFirmware)
-
-### New features are:
-* One version for all Atmel AVR boards, Atmel SAM3X8E and STM32(see Configuration & Compilation STM32)
-* Stepping-algorithm optmized now for DRV8825 and A4988 (no need for double or quadstepping; no delays)
-* High speed stepping of approx. 300.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
 
 ---
 # MK4duo 3D Printer Firmware
