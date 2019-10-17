@@ -2,11 +2,23 @@
 
 # MK4duo 3D Printer Firmware
 
-[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)](https://travis-ci.org/MKFirmware/MK4duo)
+[Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)(https://travis-ci.org/MKFirmware/MK4duo)
 
-## Version 4.4.0 dev
+## Version 4.4.0 dev.
 
-#### Please donate to support this project https://www.paypal.me/MagoKimbra
+Please donate to support this project https://www.paypal.me/MagoKimbra
+
+## Hardware Abstraction Layer (HAL)
+
+MK4duo introduces a layer of abstraction so that all the existing high-level code can be built for 32-bit platforms while still retaining full 8-bit AVR compatibility.
+
+### Current HALs
+
+  name|processor|speed|flash|sram|logic|fpu
+  ----|---------|-----|-----|----|-----|---
+  [Arduino AVR](https://www.arduino.cc/)|ATmega2560|16-20MHz|64-256k|2-16k|5V|no
+  [Due](https://www.arduino.cc/en/Guide/ArduinoDue), [RAMPS-FD](http://www.reprap.org/wiki/RAMPS-FD), etc.|[SAM3X8E ARM-Cortex M3](http://www.microchip.com/wwwproducts/en/ATsam3x8e)|84MHz|512k|64+32k|3.3V|no
+  [Arduino STM32F446](https://github.com/stm32duino/Arduino_Core_STM32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256-512k|128k|3.3V|no
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
