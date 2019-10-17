@@ -1,10 +1,29 @@
 <img align="right" src="Documentation/Logo/MarlinKimbra%20Logo%20GitHub.png"/>
 
-# MK4duo 3D Printer Firmware for all Atmel AVR boards and Arduino Due
+# MK4duo 3D Printer Firmware
+
+[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=master)](https://travis-ci.org/MKFirmware/MK4duo)
 
 ## Version 4.3.9
 
-#### Please donate to support this project https://www.paypal.me/MagoKimbra
+Please donate to support this project https://www.paypal.me/MagoKimbra
+
+## Hardware Abstraction Layer (HAL)
+
+MK4duo introduces a layer of abstraction so that all the existing high-level code can be built for 32-bit platforms while still retaining full 8-bit AVR compatibility.
+
+### Current HALs
+
+  name|board|processor|speed|flash|sram|logic|fpu
+  ----|-----|---------|-----|-----|----|-----|---
+  [Arduino AVR](https://www.arduino.cc/)|[RAMPS 1_4](https://reprap.org/wiki/RAMPS_1.4)|ATmega2560|20MHz|256k|8k|5V|no
+  [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|[ULTRATRONICS](https://reprapworld.it/products/elettronica/ultratronics/ultratronics_pro_v1_0/)|[SAM3X8E](http://www.microchip.com/wwwproducts/en/ATsam3x8e) ARM-Cortex M3|84MHz|512k|64+32k|3.3V|no
+
+### HALs in Development
+
+  name|board|processor|speed|flash|sram|logic|fpu
+  ----|-----|---------|-----|-----|----|-----|---
+  [Arduino Core STM32](https://github.com/stm32duino/Arduino_Core_STM32)|[RUMBA32](https://github.com/Aus3D/RUMBA32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256k|128k|3.3V|no
 
 ### Special thanks
  - [Scott Lahteine](https://github.com/thinkyhead)
@@ -13,11 +32,6 @@
  - [bobc](https://github.com/bobc)
  - [repetier](https://github.com/repetier)
  - [developers of original Marlin](https://github.com/MarlinFirmware)
-
-### New features are:
-* One version for all Atmel AVR boards and for Arduino Due or other boards based on Atmel SAM3X8E
-* Stepping-algorithm optmized now for DRV8825 and A4988 (no need for double or quadstepping; no delays)
-* High speed stepping of approx. 300.000 steps/s, if needed (maybe more with less DOUBLE_STEP_FREQUENCY?)
 
 ---
 # MK4duo 3D Printer Firmware
