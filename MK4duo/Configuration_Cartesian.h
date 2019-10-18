@@ -214,6 +214,7 @@
 #define Z_PROBE_SPEED_FAST 120
 // Speed for the "accurate" probe of each point, in mm/min
 #define Z_PROBE_SPEED_SLOW 60
+
 // Z Probe repetitions, median for best result
 #define Z_PROBE_REPETITIONS 1
 
@@ -543,7 +544,7 @@
  ********************************** Axis feedrate ****************************************
  *****************************************************************************************/
 //                                       X,   Y, Z (mm/sec)
-#define DEFAULT_MAX_FEEDRATE          {300, 300, 2, 100, 100, 100, 100}
+#define DEFAULT_MAX_FEEDRATE          {300, 300, 2}
 //                                      E0, ...(per extruder). (mm/sec)
 #define DEFAULT_MAX_FEEDRATE_E        {100, 100, 100, 100}
 // Feedrates for manual moves along        X,     Y,     Z,  E from panel
@@ -592,7 +593,7 @@
 #define DEFAULT_YJERK 10.0
 #define DEFAULT_ZJERK  0.4
 // E0... (mm/sec) per extruder
-#define DEFAULT_EJERK                   {5.0, 5.0, 5.0, 5.0}
+#define DEFAULT_EJERK {5.0, 5.0, 5.0, 5.0}
 /*****************************************************************************************/
 
 

@@ -228,6 +228,7 @@
 #define Z_PROBE_SPEED_FAST 120
 // Speed for the "accurate" probe of each point, in mm/min
 #define Z_PROBE_SPEED_SLOW 60
+
 // Z Probe repetitions, median for best result
 #define Z_PROBE_REPETITIONS 1
 
@@ -258,9 +259,9 @@
 // Add a bed leveling sub-menu for ABL or MBL.
 // Include a guided procedure if manual probing is enabled.
 //#define LCD_BED_LEVELING
-#define LCD_Z_STEP 0.025        // (mm) Step size while manually probing Z axis.
-#define LCD_PROBE_Z_RANGE 4     // (mm) Z Range centered on Z MIN POS for LCD Z adjustment
-//#define MESH_EDIT_MENU        // Add a menu to edit mesh points
+#define LCD_Z_STEP 0.025      // (mm) Step size while manually probing Z axis.
+#define LCD_PROBE_Z_RANGE 4   // (mm) Z Range centered on Z MIN POS for LCD Z adjustment
+//#define MESH_EDIT_MENU      // Add a menu to edit mesh points
 
 // Add a menu item to move between bed corners for manual bed adjustment
 //#define LEVEL_BED_CORNERS
@@ -546,16 +547,20 @@
  * Override with M92                                                                     *
  *                                                                                       *
  *****************************************************************************************/
-// Default steps per unit               X,  Y,    Z,  E0...(per extruder)
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 3200, 625, 625, 625, 625}
+// Default steps per unit               X,  Y,  Z
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {80, 80, 3200}
+// Default steps per unit               E0, ...(per extruder)
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E {625, 625, 625, 625}
 /*****************************************************************************************/
 
 
 /*****************************************************************************************
  ********************************** Axis feedrate ****************************************
  *****************************************************************************************/
-//                                       X,   Y, Z,  E0...(per extruder). (mm/sec)
-#define DEFAULT_MAX_FEEDRATE          {300, 300, 2, 100, 100, 100, 100}
+//                                       X,   Y, Z (mm/sec)
+#define DEFAULT_MAX_FEEDRATE          {300, 300, 2}
+//                                      E0, ...(per extruder). (mm/sec)
+#define DEFAULT_MAX_FEEDRATE_E        {100, 100, 100, 100}
 // Feedrates for manual moves along        X,     Y,     Z,  E from panel
 #define MANUAL_FEEDRATE               {50*60, 50*60, 4*60, 10*60}
 // (mm) Smallest manual Z move (< 0.1mm)
@@ -573,8 +578,10 @@
 /*****************************************************************************************
  ******************************** Axis acceleration **************************************
  *****************************************************************************************/
-//  Maximum start speed for accelerated moves.    X,    Y,  Z,   E0...(per extruder)
-#define DEFAULT_MAX_ACCELERATION              {3000, 3000, 50, 1000, 1000, 1000, 1000}
+//  Maximum start speed for accelerated moves.    X,    Y,  Z
+#define DEFAULT_MAX_ACCELERATION              {3000, 3000, 50}
+//  Maximum start speed for accelerated moves.   E0, ...(per extruder)
+#define DEFAULT_MAX_ACCELERATION_E            {1000, 1000, 1000, 1000}
 //  Maximum acceleration in mm/s^2 for retracts   E0... (per extruder)
 #define DEFAULT_RETRACT_ACCELERATION          {10000, 10000, 10000, 10000}
 //  X, Y, Z and E* maximum acceleration in mm/s^2 for printing moves
@@ -600,7 +607,7 @@
 #define DEFAULT_YJERK 10.0
 #define DEFAULT_ZJERK  0.4
 // E0... (mm/sec) per extruder
-#define DEFAULT_EJERK                   {5.0, 5.0, 5.0, 5.0}
+#define DEFAULT_EJERK {5.0, 5.0, 5.0, 5.0}
 /*****************************************************************************************/
 
 
