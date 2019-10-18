@@ -36,13 +36,13 @@ inline void gcode_M221() {
   if (commands.get_target_tool(221)) return;
 
   if (parser.seenval('S')) {
-    tools.flow_percentage[tools.data.extruder.target] = parser.value_int();
-    tools.refresh_e_factor(tools.data.extruder.target);
+    extruders[tools.extruder.target]->flow_percentage = parser.value_int();
+    extruders[tools.extruder.target]->refresh_e_factor();
   }
   else {
     SERIAL_SM(ECHO, "E");
-    SERIAL_CHR(DIGIT(tools.data.extruder.target));
-    SERIAL_MV(" Flow: ", tools.flow_percentage[tools.data.extruder.target]);
+    SERIAL_CHR(DIGIT(tools.extruder.target));
+    SERIAL_MV(" Flow: ", extruders[tools.extruder.target]->flow_percentage);
     SERIAL_CHR('%');
     SERIAL_EOL();
   }

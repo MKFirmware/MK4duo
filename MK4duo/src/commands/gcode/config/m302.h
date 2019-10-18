@@ -26,41 +26,41 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+#if ENABLED(PREVENT_COLD_EXTRUSION)
 
-  #define CODE_M302
+#define CODE_M302
 
-  /**
-   * M302: Allow cold extrudes, or set the minimum extrude temperature
-   *
-   *       S<temperature> sets the minimum extrude temperature
-   *       P<bool> enables (1) or disables (0) cold extrusion
-   *
-   *  Examples:
-   *
-   *       M302         ; report current cold extrusion state
-   *       M302 P0      ; enable cold extrusion checking
-   *       M302 P1      ; disables cold extrusion checking
-   *       M302 S0      ; always allow extrusion (disables checking)
-   *       M302 S170    ; only allow extrusion above 170
-   *       M302 S170 P1 ; set min extrude temp to 170 but leave disabled
-   */
-  inline void gcode_M302() {
-    bool seen_S = parser.seen('S');
-    if (seen_S) {
-      thermalManager.extrude_min_temp = parser.value_celsius();
-      printer.setAllowColdExtrude(thermalManager.extrude_min_temp == 0);
-    }
-
-    if (parser.seen('P'))
-      printer.setAllowColdExtrude((thermalManager.extrude_min_temp == 0) || parser.value_bool());
-    else if (!seen_S) {
-      // Report current state
-      SERIAL_MSG("Cold extrudes are ");
-      SERIAL_STR(printer.isAllowColdExtrude() ? PSTR("en") : PSTR("dis"));
-      SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
-      SERIAL_EM("C)");
-    }
+/**
+ * M302: Allow cold extrudes, or set the minimum extrude temperature
+ *
+ *       S<temperature> sets the minimum extrude temperature
+ *       P<bool> enables (1) or disables (0) cold extrusion
+ *
+ *  Examples:
+ *
+ *       M302         ; report current cold extrusion state
+ *       M302 P0      ; enable cold extrusion checking
+ *       M302 P1      ; disables cold extrusion checking
+ *       M302 S0      ; always allow extrusion (disables checking)
+ *       M302 S170    ; only allow extrusion above 170
+ *       M302 S170 P1 ; set min extrude temp to 170 but leave disabled
+ */
+inline void gcode_M302() {
+  bool seen_S = parser.seen('S');
+  if (seen_S) {
+    thermalManager.extrude_min_temp = parser.value_celsius();
+    printer.setAllowColdExtrude(thermalManager.extrude_min_temp == 0);
   }
 
-#endif // HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+  if (parser.seen('P'))
+    printer.setAllowColdExtrude((thermalManager.extrude_min_temp == 0) || parser.value_bool());
+  else if (!seen_S) {
+    // Report current state
+    SERIAL_MSG("Cold extrudes are ");
+    SERIAL_STR(printer.isAllowColdExtrude() ? PSTR("en") : PSTR("dis"));
+    SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
+    SERIAL_EM("C)");
+  }
+}
+
+#endif // ENABLED(PREVENT_COLD_EXTRUSION)

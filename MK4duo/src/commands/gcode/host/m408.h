@@ -60,7 +60,7 @@
     SERIAL_MV(",", mechanics.current_position.y);           // Y AXIS
     SERIAL_MV(",", mechanics.current_position.z);           // Z AXIS
 
-    SERIAL_MV("]},\"currentTool\":", tools.data.extruder.active);
+    SERIAL_MV("]},\"currentTool\":", tools.extruder.active);
 
     #if HAS_POWER_SWITCH
       SERIAL_MSG(",\"params\": {\"atxPower\":");
@@ -80,7 +80,7 @@
     firstOccurrence = true;
     LOOP_EXTRUDER() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(tools.flow_percentage[e]);
+      SERIAL_VAL(extruders[e]->flow_percentage);
       firstOccurrence = false;
     }
     SERIAL_EM("]},");
@@ -218,9 +218,9 @@
         SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.y);
         SERIAL_CHR(',');
         SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.z);
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        LOOP_EXTRUDER() {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.e[i]);
+          SERIAL_VAL(extruders[e]->data.max_acceleration_mm_per_s2);
         }
         SERIAL_MSG("],");
 
@@ -271,7 +271,7 @@
         SERIAL_VAL(mechanics.data.max_feedrate_mm_s.z);
         LOOP_EXTRUDER()
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_feedrate_mm_s.e[e]);
+          SERIAL_VAL(extruders[e]->data.max_feedrate_mm_s);
         }
         SERIAL_CHR(']');
         break;

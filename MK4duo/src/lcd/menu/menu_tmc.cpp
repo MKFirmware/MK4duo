@@ -228,22 +228,22 @@ void menu_tmc_microstep() {
     void refresh_hybrid_thrs_Z3() { driver.z3->tmc->refresh_hybrid_thrs(); }
   #endif
   #if AXIS_HAS_TMC(E0)
-    void refresh_hybrid_thrs_E0() { driver.e[E0_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E0() { driver.e[E0_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
   #if AXIS_HAS_TMC(E1)
-    void refresh_hybrid_thrs_E1() { driver.e[E1_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E1() { driver.e[E1_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
   #if AXIS_HAS_TMC(E2)
-    void refresh_hybrid_thrs_E2() { driver.e[E2_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E2() { driver.e[E2_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
   #if AXIS_HAS_TMC(E3)
-    void refresh_hybrid_thrs_E3() { driver.e[E3_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E3() { driver.e[E3_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
   #if AXIS_HAS_TMC(E4)
-    void refresh_hybrid_thrs_E4() { driver.e[E4_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E4() { driver.e[E4_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
   #if AXIS_HAS_TMC(E5)
-    void refresh_hybrid_thrs_E5() { driver.e[E5_DRV]->tmc->refresh_hybrid_thrs(); }
+    void refresh_hybrid_thrs_E5() { driver.e[E5_DRV]->tmc->refresh_hybrid_thrs_e(); }
   #endif
 
   void menu_tmc_hybrid_thrs() {

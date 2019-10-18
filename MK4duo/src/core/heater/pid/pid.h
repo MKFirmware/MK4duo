@@ -84,7 +84,7 @@ struct pid_data_t {
               lpq[lpq_ptr] = 0;
             }
             if (++lpq_ptr >= tools.data.lpq_len) lpq_ptr = 0;
-            pid_output += (lpq[lpq_ptr] * mechanics.steps_to_mm.e[tools.data.extruder.active]) * Kc;
+            pid_output += (lpq[lpq_ptr] * extruders[tools.extruder.active]->steps_to_mm) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
 

@@ -47,12 +47,13 @@
 #include "driver/driver.h"
 
 // Struct Stepper data
-typedef struct {
-  uint32_t  maximum_rate,
-            direction_delay;
-  uint8_t   minimum_pulse;
-  bool      quad_stepping;
-} stepper_data_t;
+struct stepper_data_t {
+  uint32_t  maximum_rate    : 32,
+            direction_delay : 32;
+  uint8_t   minimum_pulse   :  8,
+            drivers_e       :  3;
+  bool      quad_stepping   :  1;
+};
   
 class Stepper {
 
@@ -185,9 +186,9 @@ class Stepper {
     static void create_ext_driver();
 
     /**
-     * Delete Driver
+     * Change number Driver
      */
-    static void delete_ext_driver(const uint8_t drv);
+    static void change_number_driver(const uint8_t drv);
 
     /**
      * Initialize stepper hardware
@@ -246,38 +247,10 @@ class Stepper {
     static void disable_Z();
     static void enable_E();
     static void disable_E();
-    static void disable_E(const uint8_t e);
     static void enable_all();
     static void disable_all();
-
-    /**
-     * Enabled or Disable Extruder Stepper Driver
-     */
-    static void enable_E0();
-    static void disable_E0();
-    #if ENABLED(COLOR_MIXING_EXTRUDER)
-      FORCE_INLINE static void enable_E1() { /* nada */ }
-      FORCE_INLINE static void enable_E2() { /* nada */ }
-      FORCE_INLINE static void enable_E3() { /* nada */ }
-      FORCE_INLINE static void enable_E4() { /* nada */ }
-      FORCE_INLINE static void enable_E5() { /* nada */ }
-      FORCE_INLINE static void disable_E1() { /* nada */ }
-      FORCE_INLINE static void disable_E2() { /* nada */ }
-      FORCE_INLINE static void disable_E3() { /* nada */ }
-      FORCE_INLINE static void disable_E4() { /* nada */ }
-      FORCE_INLINE static void disable_E5() { /* nada */ }
-    #else
-      static void enable_E1();
-      static void disable_E1();
-      static void enable_E2();
-      static void disable_E2();
-      static void enable_E3();
-      static void disable_E3();
-      static void enable_E4();
-      static void disable_E4();
-      static void enable_E5();
-      static void disable_E5();
-    #endif
+    static void enable_E(const uint8_t e);
+    static void disable_E(const uint8_t e);
 
     /**
      * Quickly stop all steppers and clear the blocks queue
@@ -423,20 +396,14 @@ class Stepper {
      * Extruder Step for the single E axis
      */
     FORCE_INLINE static void e_step_write(const uint8_t e, const bool state) {
-      #if MAX_DRIVER_E > 2
-        driver.e[e]->step_write(state);
-      #elif MAX_DRIVER_E > 1
-        #if ENABLED(DUAL_X_CARRIAGE)
-          if (mechanics.extruder_duplication_enabled) {
-            driver.e[0]->step_write(state);
-            driver.e[1]->step_write(state);
-          } 
-          else
-        #endif
-        driver.e[e]->step_write(state);
-      #elif MAX_DRIVER_E > 0
-        driver.e[0]->step_write(state);
+      #if ENABLED(DUAL_X_CARRIAGE)
+        if (mechanics.extruder_duplication_enabled) {
+          driver.e[0]->step_write(state);
+          driver.e[1]->step_write(state);
+        }
+        else
       #endif
+      driver.e[extruders[e]->get_driver()]->step_write(state);
     }
 
     /**

@@ -471,16 +471,6 @@ struct XYZEval {
 };
 
 /**
- * XYZE(n) coordinates, counters, etc.
- */
-struct xyzen_float_t : xyz_float_t {
-  float e[MAX_EXTRUDER];
-};
-struct xyzen_ulong_t : xyz_ulong_t {
-  uint32_t e[MAX_EXTRUDER];
-};
-
-/**
  * Val limit min max
  */
 template<typename T>

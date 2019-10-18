@@ -47,9 +47,9 @@ enum AxisEnum : uint8_t {
  * Driver indices as enumerated constants
  */
 enum DriverEnum : uint8_t {
-  X_DRV   = 0, X2_DRV = 9,
-  Y_DRV   = 1, Y2_DRV = 10,
-  Z_DRV   = 2, Z2_DRV = 11, Z3_DRV = 12,
+  X_DRV   = 0, X2_DRV = 0,
+  Y_DRV   = 1, Y2_DRV = 1,
+  Z_DRV   = 2, Z2_DRV = 2, Z3_DRV = 2,
   E0_DRV  = 0,
   E1_DRV  = 1,
   E2_DRV  = 2,

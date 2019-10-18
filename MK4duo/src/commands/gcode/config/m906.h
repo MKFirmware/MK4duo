@@ -39,7 +39,7 @@
 
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
-        const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
+        const uint8_t a = i + (i == E_AXIS ? tools.extruder.target : 0);
         driver[a]->data.ma = parser.value_ushort();
         externaldac.set_driver_current(a, driver[a]->data.ma);
       }
@@ -95,28 +95,10 @@
             driver.z3->tmc->rms_current(value);
           #endif
           break;
-        case E_AXIS: {
-          switch (tools.data.extruder.target) {
-            #if AXIS_HAS_TMC(E0)
-              case 0: driver.e[E0_DRV]->tmc->rms_current(value); break;
-            #endif
-            #if AXIS_HAS_TMC(E1)
-              case 1: driver.e[E1_DRV]->tmc->rms_current(value); break;
-            #endif
-            #if AXIS_HAS_TMC(E2)
-              case 2: driver.e[E2_DRV]->tmc->rms_current(value); break;
-            #endif
-            #if AXIS_HAS_TMC(E3)
-              case 3: driver.e[E3_DRV]->tmc->rms_current(value); break;
-            #endif
-            #if AXIS_HAS_TMC(E4)
-              case 4: driver.e[E4_DRV]->tmc->rms_current(value); break;
-            #endif
-            #if AXIS_HAS_TMC(E5)
-              case 5: driver.e[E5_DRV]->tmc->rms_current(value); break;
-            #endif
-          }
-        } break;
+        case E_AXIS:
+          Driver* drv = driver.e[extruders[tools.extruder.target]->get_driver()];
+          if (drv && drv->tmc) drv->tmc->rms_current(value);
+          break;
       }
     }
 

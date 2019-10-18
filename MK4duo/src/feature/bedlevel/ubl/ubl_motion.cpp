@@ -67,9 +67,9 @@
     if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(rtarget.z)) {   // no mesh leveling
       while (--segments) {
         raw += diff;
-        planner.buffer_line(raw, feedrate, tools.data.extruder.active, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
       }
-      planner.buffer_line(rtarget, feedrate, tools.data.extruder.active, segment_xyz_mm);
+      planner.buffer_line(rtarget, feedrate, tools.extruder.active, segment_xyz_mm);
       return false; // moved but did not set_current_from_destination();
     }
 
@@ -145,7 +145,7 @@
 
         const float z = raw.z;
         raw.z += z_cxcy;
-        planner.buffer_line(raw, feedrate, tools.data.extruder.active, segment_xyz_mm);
+        planner.buffer_line(raw, feedrate, tools.extruder.active, segment_xyz_mm);
         raw.z = z;
 
         if (segments == 0)                        // done with last segment

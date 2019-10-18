@@ -55,25 +55,25 @@ inline void gcode_M92() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
-      const float value = MAX(parser.value_per_axis_unit((AxisEnum)a), 1.0f); // don't allow zero or negative
+      const float value = MAX(parser.value_per_axis_unit((AxisEnum)i), 1.0f); // don't allow zero or negative
       if (i == E_AXIS) {
+        const uint8_t t = tools.extruder.target;
         if (value < 20) {
-          float factor = mechanics.data.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
+          float factor = extruders[t]->data.axis_steps_per_mm / value; // increase e constants if M92 E14 is given for netfab.
           #if HAS_CLASSIC_JERK && (DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE))
-            mechanics.data.max_jerk[a] *= factor;
+            extruders[t]->data.max_jerk *= factor;
           #endif
-          mechanics.data.max_feedrate_mm_s[a] *= factor;
-          mechanics.max_acceleration_steps_per_s2[a] *= factor;
+          extruders[t]->data.max_feedrate_mm_s *= factor;
+          extruders[t]->max_acceleration_steps_per_s2 *= factor;
         }
-        mechanics.data.axis_steps_per_mm[a] = value;
+        extruders[t]->data.axis_steps_per_mm = value;
       }
       else {
         #if MECH(DELTA)
           LOOP_XYZ(axis)
             mechanics.data.axis_steps_per_mm[axis] = value;
         #else
-          mechanics.data.axis_steps_per_mm[a] = value;
+          mechanics.data.axis_steps_per_mm[i] = value;
         #endif
       }
     }

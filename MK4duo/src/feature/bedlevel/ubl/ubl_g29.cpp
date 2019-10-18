@@ -295,7 +295,7 @@
       planner.synchronize();
       if (mechanics.axis_unhomed_error()) mechanics.home();
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (tools.data.extruder.active != 0) tools.change(0);
+        if (tools.extruder.active != 0) tools.change(0);
       #endif
     }
 

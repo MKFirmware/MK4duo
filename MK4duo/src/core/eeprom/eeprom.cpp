@@ -54,6 +54,10 @@
 #define EEPROM_VERSION "MKV75"
 #define EEPROM_OFFSET 100
 
+// Check the integrity of data offsets.
+// Can be disabled for production build.
+//#define DEBUG_EEPROM_READWRITE
+
 typedef struct EepromDataStruct {
 
   char      version[6];   // MKVnn\0
@@ -63,11 +67,6 @@ typedef struct EepromDataStruct {
   // Tool data
   //
   tool_data_t       tool_data;
-
-  //
-  // thermalManager data
-  //
-  heater_max_t      thermalManager_data;
 
   //
   // Mechanics data
@@ -274,13 +273,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // Filament Change
-  //
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    advanced_pause_data_t advanced_pause_data[EXTRUDERS];
-  #endif
-
-  //
   // Trinamic
   //
   #if HAS_TRINAMIC
@@ -339,8 +331,7 @@ void EEPROM::post_process() {
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     tools.calculate_volumetric_multipliers();
   #else
-    for (uint8_t i = COUNT(tools.e_factor); i--;)
-      tools.refresh_e_factor(i);
+    LOOP_EXTRUDER() extruders[e]->refresh_e_factor();
   #endif
 
   // Software endstops depend on home_offset
@@ -453,26 +444,25 @@ void EEPROM::post_process() {
     //
     // Tools Data
     //
+    EEPROM_TEST(tool_data);
     EEPROM_WRITE(tools.data);
-
-    //
-    // ThermalManager Data
-    //
-    EEPROM_WRITE(thermalManager.data);
 
     //
     // Mechanics data
     //
+    EEPROM_TEST(mechanics_data);
     EEPROM_WRITE(mechanics.data);
 
     //
     // Endstops data
     //
+    EEPROM_TEST(endstop_data);
     EEPROM_WRITE(endstops.data);
 
     //
     // Driver Data
     //
+    EEPROM_TEST(driver_data);
     LOOP_DRV_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
     LOOP_DRV_EXT()  if (driver.e[d])  driver_e_data[d]  = driver.e[d]->data;
     EEPROM_WRITE(driver_data);
@@ -481,16 +471,19 @@ void EEPROM::post_process() {
     //
     // Stepper
     //
+    EEPROM_TEST(stepper_data);
     EEPROM_WRITE(stepper.data);
 
     //
     // Nozzle Data
     //
+    EEPROM_TEST(nozzle_data);
     EEPROM_WRITE(nozzle.data);
 
     //
     // Sound
     //
+    EEPROM_TEST(sound_data);
     EEPROM_WRITE(sound.data);
 
     //
@@ -517,6 +510,7 @@ void EEPROM::post_process() {
     // Fans data
     //
     #if MAX_FAN > 0
+      EEPROM_TEST(fans_data);
       LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
       EEPROM_WRITE(fan_data);
     #endif
@@ -525,6 +519,7 @@ void EEPROM::post_process() {
     // DHT sensor data
     //
     #if HAS_DHT
+      EEPROM_TEST(dht_data);
       EEPROM_WRITE(dhtsensor.data);
     #endif
 
@@ -596,6 +591,7 @@ void EEPROM::post_process() {
     // Probe data
     //
     #if HAS_BED_PROBE
+      EEPROM_TEST(probe_data);
       EEPROM_WRITE(probe.data);
     #endif
 
@@ -628,6 +624,7 @@ void EEPROM::post_process() {
     // SD Restart
     //
     #if HAS_SD_RESTART
+      EEPROM_TEST(restart_enabled);
       EEPROM_WRITE(restart.enabled);
     #endif
 
@@ -642,6 +639,7 @@ void EEPROM::post_process() {
     // BLTOUCH
     //
     #if HAS_BLTOUCH
+      EEPROM_TEST(bltouch_last_mode);
       EEPROM_WRITE(bltouch.last_mode);
     #endif
 
@@ -683,13 +681,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Advanced Pause data
-    //
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      EEPROM_WRITE(advancedpause.data);
-    #endif
-
-    //
     // Save Trinamic Driver Configuration, and placeholder values
     //
     #if HAS_TRINAMIC
@@ -704,15 +695,29 @@ void EEPROM::post_process() {
       bool      tmc_stealth_enabled[]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
                                             E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP };
 
-      LOOP_DRV() {
-        if (driver[d] && driver[d]->tmc) {
-          tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
-          tmc_stepper_microstep[d]  = driver[d]->tmc->getMicrosteps();
+      LOOP_DRV_XYZ() {
+        Driver* drv = driver[d];
+        if (drv && drv->tmc) {
+          tmc_stepper_current[d]    = drv->tmc->getMilliamps();
+          tmc_stepper_microstep[d]  = drv->tmc->getMicrosteps();
           #if ENABLED(HYBRID_THRESHOLD)
-            tmc_hybrid_threshold[d] = driver[d]->tmc->get_pwm_thrs();
+            tmc_hybrid_threshold[d] = drv->tmc->get_pwm_thrs();
           #endif
           #if TMC_HAS_STEALTHCHOP
-            tmc_stealth_enabled[d]  = driver[d]->tmc->get_stealthChop_status();
+            tmc_stealth_enabled[d]  = drv->tmc->get_stealthChop_status();
+          #endif
+        }
+      }
+      LOOP_DRV_EXT() {
+        Driver* drv = driver.e[d];
+        if (drv && drv->tmc) {
+          tmc_stepper_current[d]    = drv->tmc->getMilliamps();
+          tmc_stepper_microstep[d]  = drv->tmc->getMicrosteps();
+          #if ENABLED(HYBRID_THRESHOLD)
+            tmc_hybrid_threshold[d] = drv->tmc->get_pwm_thrs_e();
+          #endif
+          #if TMC_HAS_STEALTHCHOP
+            tmc_stealth_enabled[d]  = drv->tmc->get_stealthChop_status();
           #endif
         }
       }
@@ -846,12 +851,10 @@ void EEPROM::post_process() {
       // Tools Data
       //
       EEPROM_READ(tools.data);
-
-      //
-      // ThermalManager Data
-      //
-      EEPROM_READ(thermalManager.data);
-      if (!flag.validating) thermalManager.create_object();
+      if (!flag.validating) {
+        tools.create_object();
+        thermalManager.create_object();
+      }
 
       //
       // Mechanics data
@@ -1095,13 +1098,6 @@ void EEPROM::post_process() {
         EEPROM_READ(hysteresis.data);
       #endif
 
-      //
-      // Advanced Pause data
-      //
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        EEPROM_READ(advancedpause.data);
-      #endif
-
       if (!flag.validating) stepper.reset_drivers();
 
       //
@@ -1120,16 +1116,31 @@ void EEPROM::post_process() {
         EEPROM_READ(tmc_stealth_enabled);
 
         if (!flag.validating) {
-          LOOP_DRV() {
-            if (driver[d] && driver[d]->tmc) {
-              driver[d]->tmc->rms_current(tmc_stepper_current[d]);
-              driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
+          LOOP_DRV_XYZ() {
+            Driver* drv = driver[d];
+            if (drv && drv->tmc) {
+              drv->tmc->rms_current(tmc_stepper_current[d]);
+              drv->tmc->microsteps(tmc_stepper_microstep[d]);
               #if ENABLED(HYBRID_THRESHOLD)
-                driver[d]->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
+                drv->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
               #endif
               #if TMC_HAS_STEALTHCHOP
-                driver[d]->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
-                driver[d]->tmc->refresh_stepping_mode();
+                drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+                drv->tmc->refresh_stepping_mode();
+              #endif
+            }
+          }
+          LOOP_DRV_EXT() {
+            Driver* drv = driver.e[d];
+            if (drv && drv->tmc) {
+              drv->tmc->rms_current(tmc_stepper_current[d]);
+              drv->tmc->microsteps(tmc_stepper_microstep[d]);
+              #if ENABLED(HYBRID_THRESHOLD)
+                drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold[d]);
+              #endif
+              #if TMC_HAS_STEALTHCHOP
+                drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+                drv->tmc->refresh_stepping_mode();
               #endif
             }
           }
@@ -1356,6 +1367,9 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
+  // Call Printer Factory parameters
+  printer.factory_parameters();
+
   // Call Temperature Factory parameters
   thermalManager.factory_parameters();
 
@@ -1377,15 +1391,8 @@ void EEPROM::reset() {
   // Call Nozzle Factory parameters
   nozzle.factory_parameters();
 
-  // Call Printer Factory parameters
-  printer.factory_parameters();
-
   // Call Sound Factory parameters
   sound.factory_parameters();
-
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    advancedpause.factory_parameters();
-  #endif
 
   #if HAS_LEVELING
     bedlevel.factory_parameters();
@@ -1544,7 +1551,7 @@ void EEPROM::reset() {
     /**
      * Print Nozzle data
      */
-    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+    #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
       nozzle.print_M217();
     #endif
 
@@ -1748,7 +1755,7 @@ void EEPROM::reset() {
       LOOP_DRV_EXT() {
         SERIAL_SM(CFG, "  M906");
         SERIAL_MV(" T", int(d));
-        SERIAL_MV(" E", driver.e[d]->data.ma);
+        SERIAL_MV(" E", driver.e[extruders[d]->get_driver()]->data.ma);
         SERIAL_EOL();
       }
 
@@ -1793,16 +1800,11 @@ void EEPROM::reset() {
      */
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       SERIAL_LM(CFG, "Filament load/unload lengths");
-      #if EXTRUDERS == 1
-        SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(advancedpause.data[0].load_length), 2);
-        SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[0].unload_length), 2);
-      #else // EXTRUDERS != 1
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M603 T", (int)e);
-          SERIAL_MV(" L", LINEAR_UNIT(advancedpause.data[e].load_length), 2);
-          SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[e].unload_length), 2);
-        }
-      #endif // EXTRUDERS != 1
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M603 T", (int)e);
+        SERIAL_MV(" L", LINEAR_UNIT(extruders[e]->data.load_length), 2);
+        SERIAL_EMV(" U", LINEAR_UNIT(extruders[e]->data.unload_length), 2);
+      }
     #endif // ADVANCED_PAUSE_FEATURE
 
     print_job_counter.showStats();

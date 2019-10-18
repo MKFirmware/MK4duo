@@ -141,8 +141,7 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(int3, MSG_FLOW, e, &tools.flow_percentage[e], 10, 999, []() { tools.refresh_e_factor(menu_edit_index); });
-    
+      EDIT_ITEM_FAST_I(int3, MSG_FLOW, e, &extruders[e]->flow_percentage, 10, 999, []() { extruders[menu_edit_index]->refresh_e_factor(); });
   #endif
 
   //

@@ -55,7 +55,7 @@ inline void gcode_M569() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
+      const uint8_t a = i + (i == E_AXIS ? tools.extruder.target : 0);
       if (driver[i]) driver[i]->setDir(parser.value_bool());
     }
   }

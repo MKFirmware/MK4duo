@@ -30,8 +30,6 @@
 Temperature thermalManager;
 
 /** Public Parameters */
-heater_max_t Temperature::data;
-
 #if HAS_MCU_TEMPERATURE
   float   Temperature::mcu_current_temperature  = 0.0f,
           Temperature::mcu_highest_temperature  = 0.0f,
@@ -109,6 +107,7 @@ void Temperature::create_object() {
     LOOP_FAN() {
       if (!fans[f]) {
         fans[f] = new Fan();
+        SERIAL_LMV(ECHO, "Create Fan", int(f));
         fans_factory_parameters(f);
         fans[f]->init();
       }
@@ -145,12 +144,6 @@ void Temperature::init() {
 
 void Temperature::factory_parameters() {
 
-  data.hotends  = HOTENDS;
-  data.beds     = BEDS;
-  data.chambers = CHAMBERS;
-  data.coolers  = COOLERS;
-  data.fans     = FAN_COUNT;
-
   create_object();
 
   #if MAX_HOTEND > 0
@@ -174,48 +167,63 @@ void Temperature::factory_parameters() {
 void Temperature::change_number_heater(const HeatertypeEnum type, const uint8_t h) {
 
   if (type == IS_HOTEND) {
-    if (data.hotends < h) {
-      data.hotends = h;
+    if (tools.data.hotends < h) {
+      tools.data.hotends = h;
       create_object();
     }
-    else if (data.hotends > h) {
+    else if (tools.data.hotends > h) {
       for (uint8_t hh = h; hh < MAX_HOTEND; hh++) {
         Heater * tmpdriver = nullptr;
         swap(tmpdriver, hotends[hh]);
         delete(tmpdriver);
       }
-      data.hotends = h;
+      tools.data.hotends = h;
     }
   }
   else if (type == IS_BED) {
-    if (data.beds < h) {
-      data.beds = h;
+    if (tools.data.beds < h) {
+      tools.data.beds = h;
       create_object();
     }
-    else if (data.beds > h) {
+    else if (tools.data.beds > h) {
       for (uint8_t hh = h; hh < MAX_BED; hh++) {
         Heater * tmpdriver = nullptr;
         swap(tmpdriver, beds[hh]);
         delete(tmpdriver);
       }
-      data.beds = h;
+      tools.data.beds = h;
     }
   }
   else if (type == IS_CHAMBER) {
-    if (data.chambers < h) {
-      data.chambers = h;
+    if (tools.data.chambers < h) {
+      tools.data.chambers = h;
       create_object();
     }
-    else if (data.chambers > h) {
+    else if (tools.data.chambers > h) {
       for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
         Heater * tmpdriver = nullptr;
         swap(tmpdriver, chambers[hh]);
         delete(tmpdriver);
       }
-      data.chambers = h;
+      tools.data.chambers = h;
     }
   }
 
+}
+
+void Temperature::change_number_fan(const uint8_t f) {
+  if (tools.data.fans < f) {
+    tools.data.fans = f;
+    create_object();
+  }
+  else if (tools.data.fans > f) {
+    for (uint8_t ff = f; ff < MAX_FAN; ff++) {
+      Fan * tmpfan = nullptr;
+      swap(tmpfan, fans[ff]);
+      delete(tmpfan);
+    }
+    tools.data.fans = f;
+  }
 }
 
 /**
@@ -290,7 +298,7 @@ void Temperature::spin() {
         ? ratio_2 / CIRCLE_AREA(filament_width_nominal * 0.5f)  // Volumetric uses a true volumetric multiplier
         : ratio_2;                                              // Linear squares the ratio, which scales the volume
 
-      tools.refresh_e_factor(FILAMENT_SENSOR_EXTRUDER_NUM);
+      extruders[FILAMENT_SENSOR_EXTRUDER_NUM]->refresh_e_factor();
     }
 
   #endif // FILAMENT_WIDTH_SENSOR
@@ -550,35 +558,35 @@ bool Temperature::heaters_isActive() {
 void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 
   #if MAX_HOTEND > 0
-    if (thermalManager.data.hotends > 0) {
+    if (tools.data.hotends > 0) {
       print_heater_state(hotends[tools.active_hotend()], false, showRaw);
       SERIAL_MV(MSG_AT ":", hotends[tools.active_hotend()]->pwm_value);
     }
   #endif
 
   #if MAX_BED > 0
-    if (thermalManager.data.beds > 0) {
+    if (tools.data.beds > 0) {
       print_heater_state(beds[0], false, showRaw);
       SERIAL_MV(MSG_BAT ":", beds[0]->pwm_value);
     }
   #endif
 
   #if MAX_CHAMBER > 0
-    if (thermalManager.data.chambers > 0) {
+    if (tools.data.chambers > 0) {
       print_heater_state(chambers[0], false, showRaw);
       SERIAL_MV(MSG_CAT ":", chambers[0]->pwm_value);
     }
   #endif
 
   #if MAX_COOLER > 0
-    if (thermalManager.data.coolers > 0) {
+    if (tools.data.coolers > 0) {
       print_heater_state(coolers[0], false, showRaw);
       SERIAL_MV(MSG_CAT ":", coolers[0]->pwm_value);
     }
   #endif
 
   #if MAX_HOTEND > 1
-    if (thermalManager.data.hotends > 1) {
+    if (tools.data.hotends > 1) {
       LOOP_HOTEND() {
         print_heater_state(hotends[h], true, showRaw);
         SERIAL_MV(MSG_AT, int(h));
@@ -589,7 +597,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if MAX_BED > 1
-    if (thermalManager.data.beds > 1) {
+    if (tools.data.beds > 1) {
       LOOP_BED() {
         print_heater_state(beds[h], true, showRaw);
         SERIAL_MV(MSG_BAT, int(h));
@@ -600,7 +608,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #endif
 
   #if MAX_CHAMBER > 1
-    if (thermalManager.data.chambers > 1) {
+    if (tools.data.chambers > 1) {
       LOOP_CHAMBER() {
         print_heater_state(chambers[h], true, showRaw);
         SERIAL_MV(MSG_CAT, int(h));

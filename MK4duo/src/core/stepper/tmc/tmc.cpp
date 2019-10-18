@@ -93,22 +93,22 @@ void TMC_Stepper::create_tmc() {
   #if HAVE_DRV(TMC2208)
 
     #define TMC_HW_DEFINE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                \
-                                    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE);  \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, R_SENSE);  \
                                     ST##_HARDWARE_SERIAL.begin(115200);                                           \
                                   } }while(0)
 
     #define TMC_HW_DEFINE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                              \
-                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, &ST##_HARDWARE_SERIAL, R_SENSE);\
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, &ST##_HARDWARE_SERIAL, R_SENSE);\
                                     ST##_HARDWARE_SERIAL.begin(115200);                                           \
                                   } }while(0)
 
     #define TMC_SW_DEFINE(ST,A)   do{ if(!driver[ST##_DRV]->tmc) {                                                                                            \
-                                    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
+                                    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
                                     driver[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
                                   } }while(0)
 
     #define TMC_SW_DEFINE_E(ST,A) do{ if(!driver.e[ST##_DRV]->tmc) {                                                                                            \
-                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
+                                    driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_SERIAL_RX_PIN, ST##_SERIAL_TX_PIN, R_SENSE, ST##_SERIAL_RX_PIN > NoPin); \
                                     driver.e[ST##_DRV]->tmc->beginSerial(115200);                                                                               \
                                   } }while(0)
 
@@ -221,11 +221,11 @@ void TMC_Stepper::create_tmc() {
   #elif HAVE_DRV(TMC2660)
 
     #if ENABLED(TMC_USE_SW_SPI)
-      #define TMC2660_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
-      #define TMC2660_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
+      #define TMC2660_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
+      #define TMC2660_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
     #else
-      #define TMC2660_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE);    }while(0)
-      #define TMC2660_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE);  }while(0)
+      #define TMC2660_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);    }while(0)
+      #define TMC2660_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);  }while(0)
     #endif
 
     // Stepper objects of TMC2660 steppers used
@@ -285,11 +285,11 @@ void TMC_Stepper::create_tmc() {
   #elif HAS_TMCX1X0
 
     #if ENABLED(TMC_USE_SW_SPI)
-      #define TMC_MODEL_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
-      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
+      #define TMC_MODEL_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);    }while(0)
+      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE, TMC_SW_MOSI, TMC_SW_MISO, TMC_SW_SCK);  }while(0)
     #else
-      #define TMC_MODEL_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE);    }while(0)
-      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_AXIS, ST##_CS_PIN, R_SENSE);  }while(0)
+      #define TMC_MODEL_DEFINE(ST,A)    do{ if(!driver[ST##_DRV]->tmc)    driver[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);    }while(0)
+      #define TMC_MODEL_DEFINE_E(ST,A)  do{ if(!driver.e[ST##_DRV]->tmc)  driver.e[ST##_DRV]->tmc = new MKTMC(A##_DRV, ST##_CS_PIN, R_SENSE);  }while(0)
     #endif
 
     // Stepper objects of TMC2130 steppers used
@@ -401,16 +401,32 @@ void TMC_Stepper::factory_parameters() {
                                                   E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
                                                   X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
 
-  LOOP_DRV() {
-    if (driver[d] && driver[d]->tmc) {
-      driver[d]->tmc->rms_current(tmc_stepper_current[d]);
-      driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
+  LOOP_DRV_XYZ() {
+    Driver* drv = driver[d];
+    if (drv && drv->tmc) {
+      drv->tmc->rms_current(tmc_stepper_current[d]);
+      drv->tmc->microsteps(tmc_stepper_microstep[d]);
       #if ENABLED(HYBRID_THRESHOLD)
-        driver[d]->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
+        drv->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
       #endif
       #if TMC_HAS_STEALTHCHOP
-        driver[d]->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
-        driver[d]->tmc->refresh_stepping_mode();
+        drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+        drv->tmc->refresh_stepping_mode();
+      #endif
+    }
+  }
+
+  LOOP_DRV_EXT() {
+    Driver* drv = driver.e[d];
+    if (drv && drv->tmc) {
+      drv->tmc->rms_current(tmc_stepper_current[d]);
+      drv->tmc->microsteps(tmc_stepper_microstep[d]);
+      #if ENABLED(HYBRID_THRESHOLD)
+        drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold[d]);
+      #endif
+      #if TMC_HAS_STEALTHCHOP
+        drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+        drv->tmc->refresh_stepping_mode();
       #endif
     }
   }
@@ -494,10 +510,10 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
         }
       #endif
       if (need_update_error_counters || need_debug_reporting) {
-        LOOP_DRV() {
+        LOOP_DRV_XYZ()
           if (driver[d] && driver[d]->tmc) monitor_driver(driver[d], need_update_error_counters, need_debug_reporting);
-        }
-
+        LOOP_DRV_EXT()
+          if (driver.e[d] && driver.e[d]->tmc) monitor_driver(driver.e[d], need_update_error_counters, need_debug_reporting);
         #if ENABLED(TMC_DEBUG)
           if (need_debug_reporting) SERIAL_EOL();
         #endif
@@ -706,7 +722,7 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
         if (driver.e[d] && driver.e[d]->tmc) {
           SERIAL_SM(CFG, "  M913 ");
           driver.e[d]->printLabel();
-          SERIAL_EMV(" E", driver.e[d]->tmc->get_pwm_thrs());
+          SERIAL_EMV(" E", driver.e[d]->tmc->get_pwm_thrs_e());
         }
       }
 
@@ -1589,24 +1605,7 @@ bool TMC_Stepper::test_connection(Driver* drv) {
     }
 
     if (print_e) {
-      #if AXIS_HAS_TMC(E0)
-        status(driver.e[0], i, mechanics.data.axis_steps_per_mm.e[0]);
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        status(driver.e[1], i, mechanics.data.axis_steps_per_mm.e[1]);
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        status(driver.e[2], i, mechanics.data.axis_steps_per_mm.e[2]);
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        status(driver.e[3], i, mechanics.data.axis_steps_per_mm.e[3]);
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        status(driver.e[4], i, mechanics.data.axis_steps_per_mm.e[4]);
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        status(driver.e[5], i, mechanics.data.axis_steps_per_mm.e[5]);
-      #endif
+      LOOP_EXTRUDER() if (driver.e[0] && driver.e[0]->tmc) status(driver.e[e], i, extruders[e]->data.axis_steps_per_mm);
     }
 
     SERIAL_EOL();

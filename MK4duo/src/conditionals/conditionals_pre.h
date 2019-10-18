@@ -394,7 +394,8 @@
     #define TOOLCHANGE_ZRAISE 0
   #endif
 #else
-  #define E_MANUAL          DRIVER_EXTRUDERS
+  #define DRIVER_EXTRUDERS  EXTRUDERS
+  #define E_MANUAL          EXTRUDERS
 #endif
 
 /**
@@ -418,8 +419,8 @@
 /**
  * Multi-extruders support
  */
-#define XYZE_N              (uint8_t(E_AXIS) + tools.data.extruder.total)
-#define E_INDEX             (uint8_t(E_AXIS) + tools.data.extruder.active)
+#define XYZE_N              (uint8_t(E_AXIS) + tools.data.extruders)
+#define E_INDEX             (uint8_t(E_AXIS) + tools.extruder.active)
 #define E_INDEX_N(N)        (uint8_t(E_AXIS) + N)
 
 /**

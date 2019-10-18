@@ -413,9 +413,6 @@
  * Shorthand for pin tests, used wherever needed
  */
 
-// EXTRUDERS
-#define HAS_EXTRUDERS       (EXTRUDERS > 0)
-
 // Steppers
 #define HAS_X_ENABLE        (PIN_EXISTS(X_ENABLE) || (AXIS_HAS_TMC(X) && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)))
 #define HAS_X_DIR           (PIN_EXISTS(X_DIR))

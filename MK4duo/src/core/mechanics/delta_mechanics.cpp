@@ -69,14 +69,11 @@ void Delta_Mechanics::factory_parameters() {
   static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                         tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
-  LOOP_XYZE_N(i) {
-    data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
-    data.max_feedrate_mm_s[i]           = pgm_read_float(&tmp_maxfeedrate[i < COUNT(tmp_maxfeedrate) ? i : COUNT(tmp_maxfeedrate) - 1]);
-    data.max_acceleration_mm_per_s2[i]  = pgm_read_dword_near(&tmp_maxacc[i < COUNT(tmp_maxacc) ? i : COUNT(tmp_maxacc) - 1]);
+  LOOP_XYZ(axis) {
+    data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
+    data.max_feedrate_mm_s[axis]          = pgm_read_float(&tmp_maxfeedrate[axis < COUNT(tmp_maxfeedrate) ? axis : COUNT(tmp_maxfeedrate) - 1]);
+    data.max_acceleration_mm_per_s2[axis] = pgm_read_dword_near(&tmp_maxacc[axis < COUNT(tmp_maxacc) ? axis : COUNT(tmp_maxacc) - 1]);
   }
-
-  LOOP_EXTRUDER()
-    data.retract_acceleration[e]        = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
   data.acceleration               = DEFAULT_ACCELERATION;
   data.travel_acceleration        = DEFAULT_TRAVEL_ACCELERATION;
@@ -88,12 +85,7 @@ void Delta_Mechanics::factory_parameters() {
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #endif
 
-  static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
   data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
-  #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-    LOOP_EXTRUDER()
-      data.max_jerk.e[e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
-  #endif
 
   data.diagonal_rod         = DELTA_DIAGONAL_ROD;
   data.radius               = DELTA_RADIUS;
@@ -147,7 +139,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference.x && !difference.y) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active);
+      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
       return false; // caller will update current_position
     }
 
@@ -198,12 +190,12 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
       raw += segment_distance;
 
-      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.data.extruder.active, cartesian_segment_mm))
+      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
         break;
 
     }
 
-    planner.buffer_line(destination, _feedrate_mm_s, tools.data.extruder.active, cartesian_segment_mm);
+    planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm);
 
     return false; // caller will update current_position.x
 
@@ -456,7 +448,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.data.extruder.active;
+    const uint8_t old_tool_index = tools.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -488,7 +480,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Move all carriages together linearly until an endstop is hit.
   destination.z = data.height + 10;
-  planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.data.extruder.active);
+  planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.extruder.active);
   planner.synchronize();
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -501,7 +493,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
       endstops.clear_state();
     #endif
     destination.z -= 5;
-    planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.data.extruder.active);
+    planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.extruder.active);
     planner.synchronize();
   #endif
 
@@ -627,7 +619,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #if ENABLED(JUNCTION_DEVIATION)
       , delta_mm_cart
     #endif
-    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z, tools.data.extruder.active
+    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z, tools.extruder.active
   );
 
   planner.synchronize();
@@ -883,7 +875,7 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_LMV(CFG, "  M92 X", LINEAR_UNIT(data.axis_steps_per_mm.x), 3);
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M92 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.axis_steps_per_mm), 3);
     }
   }
 
@@ -892,7 +884,7 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_LMV(CFG, "  M201 X", LINEAR_UNIT(data.max_acceleration_mm_per_s2.x));
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M201 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_acceleration_mm_per_s2));
     }
   }
 
@@ -901,7 +893,7 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_LMV(CFG, "  M203 X", LINEAR_UNIT(data.max_feedrate_mm_s.x), 3);
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M203 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_feedrate_mm_s), 3);
     }
   }
 
@@ -911,7 +903,7 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_EMV(" V", LINEAR_UNIT(data.travel_acceleration), 3);
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M204 T", (int)e);
-      SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
+      SERIAL_EMV(" R", LINEAR_UNIT(extruders[e]->data.retract_acceleration), 3);
     }
   }
 
@@ -935,18 +927,10 @@ void Delta_Mechanics::report_current_position_detail() {
     SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
 
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-      #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", LINEAR_UNIT(data.max_jerk.e[0]), 3);
-      #endif
-      SERIAL_EOL();
-      #if (EXTRUDERS > 1)
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M205 T", (int)e);
-          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
-        }
-      #endif
-    #else
-      SERIAL_EOL();
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M205 T", (int)e);
+        SERIAL_EMV(" E" , LINEAR_UNIT(extruders[e]->data.max_jerk), 3);
+      }
     #endif
   }
 
@@ -1062,7 +1046,7 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
     ubl.prepare_segmented_line_to(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
   #else
     if (current_position == destination) return;
-    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.data.extruder.active);
+    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
   #endif
 
   current_position = destination;

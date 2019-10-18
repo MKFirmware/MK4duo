@@ -118,6 +118,7 @@
 #include "src/core/utility/utility.h"
 #include "src/core/watch/watch.h"
 #include "src/core/mechanics/mechanics.h"
+#include "src/core/extruder/extruder.h"
 #include "src/core/tools/tools.h"
 #include "src/core/nozzle/nozzle.h"
 #include "src/core/fan/fan.h"

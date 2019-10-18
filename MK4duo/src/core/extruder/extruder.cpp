@@ -21,41 +21,35 @@
  */
 
 /**
- * mcode
- *
- * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
+ * extruder.cpp - extruder object
  */
 
-#if HAS_FIL_RUNOUT_0
+#include "../../../MK4duo.h"
+#include "sanitycheck.h"
 
-  #define CODE_M223
-  #define CODE_M224
+#if MAX_EXTRUDER > 0
+  Extruder* extruders[MAX_EXTRUDER] = { nullptr };
+#endif
 
-  /**
-   * M223: Set Filrunout Logic
-   *
-   *  T<tools>  - Set Extruder
-   *  S<bool>   - Set false or true
-   *
-   */
-  inline void gcode_M223() {
-    if (commands.get_target_tool(223)) return;
-    filamentrunout.sensor.setLogic((FilRunoutEnum)tools.extruder.target, parser.value_bool());
-    filamentrunout.sensor.report();
+void Extruder::refresh_e_factor() {
+  e_factor = (flow_percentage * 0.01f
+    #if ENABLED(VOLUMETRIC_EXTRUSION)
+      * volumetric_multiplier
+    #endif
+  );
+}
+
+#if ENABLED(TOOL_CHANGE_FIL_SWAP)
+
+  void Extruder::print_M217(const uint8_t e) {
+    SERIAL_LM(CFG, "Tool change: T<Tools> S<swap_lenght> E<purge_lenght> P<prime_speed> R<retract_speed>");
+    SERIAL_SM(CFG, "  M217");
+    SERIAL_MV(" T", int(e));
+    SERIAL_MV(" S", LINEAR_UNIT(data.swap_length));
+    SERIAL_MV(" E", LINEAR_UNIT(data.purge_lenght));
+    SERIAL_MV(" P", LINEAR_UNIT(data.prime_speed));
+    SERIAL_MV(" R", LINEAR_UNIT(data.retract_speed));
+    SERIAL_EOL();
   }
 
-  /**
-   * M224: Set Filrunout Pullup
-   *
-   *  T<tools>  - Set Extruder
-   *  S<bool>   - Set false or true
-   *
-   */
-  inline void gcode_M224() {
-    if (commands.get_target_tool(224)) return;
-    filamentrunout.sensor.setPullup((FilRunoutEnum)tools.extruder.target, parser.value_bool());
-    filamentrunout.sensor.setup_pullup();
-    filamentrunout.sensor.report();
-  }
-
-#endif // HAS_FIL_RUNOUT_0
+#endif // ENABLED(TOOL_CHANGE_FIL_SWAP)

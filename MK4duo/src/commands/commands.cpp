@@ -168,7 +168,7 @@ void Commands::get_destination() {
   xyze_bool_t seen{false};
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (parser.seen(axis_codes.e)) printer.IDLE_OOZING_retract(false);
+    if (parser.seen(axis_codes.e)) tools.IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {
@@ -190,13 +190,13 @@ void Commands::get_destination() {
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.data.extruder.previous] * 0.01f) + mechanics.current_position.e;
+    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * extruders[tools.extruder.previous]->density_percentage * 0.01f) + mechanics.current_position.e;
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
     const float diff = mechanics.destination.e - mechanics.current_position.e;
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
-      rfid522.data[tools.data.extruder.active].data.lenght -= diff;
+      rfid522.data[tools.extruder.active].data.lenght -= diff;
     #endif
   }
 
@@ -215,15 +215,15 @@ void Commands::get_destination() {
 bool Commands::get_target_tool(const uint16_t code) {
   if (parser.seenval('T')) {
     const int8_t t = parser.value_byte();
-    if (t >= tools.data.extruder.total) {
+    if (t >= tools.data.extruders) {
       SERIAL_SMV(ECHO, "M", code);
       SERIAL_EMV(" " MSG_INVALID_EXTRUDER " ", t);
       return true;
     }
-    tools.data.extruder.target = t;
+    tools.extruder.target = t;
   }
   else
-    tools.data.extruder.target = tools.data.extruder.active;
+    tools.extruder.target = tools.extruder.active;
 
   return false;
 }
@@ -236,10 +236,10 @@ bool Commands::get_target_driver(const uint16_t code) {
       SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
       return true;
     }
-    tools.data.extruder.target = t;
+    tools.extruder.target = t;
   }
   else
-    tools.data.extruder.target = 0;
+    tools.extruder.target = 0;
 
   return false;
 }
@@ -250,16 +250,16 @@ Heater* Commands::get_target_heater() {
   const uint8_t t = parser.byteval('T');
 
   #if MAX_HOTEND > 0
-    if (WITHIN(h, 0 , thermalManager.data.hotends - 1)) return hotends[h];
+    if (WITHIN(h, 0 , tools.data.hotends - 1)) return hotends[h];
   #endif
   #if MAX_BED > 0
-    if (h == -1 && WITHIN(t, 0 , thermalManager.data.beds - 1)) return beds[t];
+    if (h == -1 && WITHIN(t, 0 , tools.data.beds - 1)) return beds[t];
   #endif
   #if MAX_CHAMBER > 0
-    if (h == -2 && WITHIN(t, 0 , thermalManager.data.chambers - 1)) return chambers[t];
+    if (h == -2 && WITHIN(t, 0 , tools.data.chambers - 1)) return chambers[t];
   #endif
   #if MAX_COOLER > 0
-    if (h == -3 && WITHIN(t, 0 , thermalManager.data.coolers - 1)) return coolers[t];
+    if (h == -3 && WITHIN(t, 0 , tools.data.coolers - 1)) return coolers[t];
   #endif
 
   SERIAL_LM(ER, MSG_INVALID_HEATER);
@@ -269,7 +269,7 @@ Heater* Commands::get_target_heater() {
 
 bool Commands::get_target_fan(uint8_t &f) {
   f = parser.seen('P') ? parser.value_byte() : 0;
-  if (WITHIN(f, 0 , thermalManager.data.fans - 1)) return true;
+  if (WITHIN(f, 0 , tools.data.fans - 1)) return true;
   else {
     SERIAL_LM(ER, "Invalid Fan");
     return false;

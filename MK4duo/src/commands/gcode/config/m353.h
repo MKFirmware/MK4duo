@@ -33,6 +33,7 @@
 /**
  * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
  *
+ *    D[int] Set number driver extruder
  *    E[int] Set number extruder
  *    H[int] Set number hotend
  *    B[int] Set number bed
@@ -44,23 +45,31 @@ inline void gcode_M353() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M353 report.
-    if (!parser.seen("EHBCF")) {
+    if (!parser.seen("DEHBCF")) {
       printer.print_M353();
       return;
     }
   #endif
 
+  if (parser.seen('D')) {
+    const uint8_t d = parser.value_byte();
+    if (d > MAX_DRIVER_E)
+      SERIAL_LM(ECHO, "Too many drivers");
+    else
+      stepper.change_number_driver(d);
+  }
+
   if (parser.seen('E')) {
-    const uint8_t drv = parser.value_byte();
-    if (drv > MAX_EXTRUDER)
+    const uint8_t e = parser.value_byte();
+    if (e > MAX_EXTRUDER)
       SERIAL_LM(ECHO, "Too many extruders");
     else
-      tools.change_number_extruder(drv);
+      tools.change_number_extruder(e);
   }
 
   if (parser.seen('H')) {
     const uint8_t h = parser.value_byte();
-    if (h > tools.data.extruder.total || h > MAX_HOTEND)
+    if (h > tools.data.extruders || h > MAX_HOTEND)
       SERIAL_LM(ECHO, "Too many hotends");
     else
       thermalManager.change_number_heater(IS_HOTEND, h);
@@ -86,8 +95,8 @@ inline void gcode_M353() {
     const uint8_t f = parser.value_byte();
     if (f > MAX_FAN)
       SERIAL_LM(ECHO, "Too many fans");
-    //else
-      //thermalmanager.change_number_fan(f);
+    else
+      thermalManager.change_number_fan(f);
   }
 
 }

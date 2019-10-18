@@ -24,19 +24,6 @@
 /**
  * temperature.h - temperature controller
  */
-
-union heater_max_t {
-  uint16_t all;
-  struct {
-    uint8_t hotends   : 4;
-    uint8_t beds      : 4;
-    uint8_t chambers  : 4;
-    uint8_t coolers   : 1;
-    uint8_t fans      : 3;
-  };
-  heater_max_t() { all = 0; }
-};
-
 class Temperature {
 
   public: /** Constructor */
@@ -44,8 +31,6 @@ class Temperature {
     Temperature() {};
 
   public: /** Public Parameters */
-
-    static heater_max_t data;
 
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
@@ -58,7 +43,7 @@ class Temperature {
       static float    redundant_temperature;
     #endif
 
-    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
       static int16_t extrude_min_temp;
     #endif
 
@@ -94,6 +79,11 @@ class Temperature {
      * Change number heater
      */
     static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
+
+    /**
+     * Change number fan
+     */
+    static void change_number_fan(const uint8_t f);
 
     /**
      * Call periodically to HAL isr
@@ -157,15 +147,15 @@ class Temperature {
 
     static void report_temperatures(const bool showRaw=false);
 
-    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
       FORCE_INLINE static bool tooCold(const int16_t temp) {
         return printer.isAllowColdExtrude() ? false : temp < extrude_min_temp;
       }
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) {
-        return tooCold(hotends[tools.data.hotend[h]]->deg_current());
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t e) {
+        return tooCold(hotends[extruders[e]->get_hotend()]->deg_current());
       }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
-        return tooCold(hotends[tools.data.hotend[h]]->deg_target());
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t e) {
+        return tooCold(hotends[extruders[e]->get_hotend()]->deg_target());
       }
     #else
       FORCE_INLINE static bool tooColdToExtrude(const uint8_t) { return false; }

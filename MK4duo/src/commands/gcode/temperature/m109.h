@@ -43,14 +43,14 @@ inline void gcode_M109() {
   const bool no_wait_for_cooling = parser.seenval('S');
   if (no_wait_for_cooling || parser.seenval('R')) {
     const int16_t temp = parser.value_celsius();
-    if (thermalManager.data.hotends == 1) {
-      tools.singlenozzle_temp[tools.data.extruder.target] = temp;
-      if (tools.data.extruder.target != tools.data.extruder.active) return;
+    if (tools.data.hotends == 1) {
+      extruders[tools.extruder.target]->singlenozzle_temp = temp;
+      if (tools.extruder.target != tools.extruder.active) return;
     }
     hotends[tools.target_hotend()]->set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (mechanics.dxc_is_duplicating() && tools.data.extruder.target == 0)
+      if (mechanics.dxc_is_duplicating() && tools.extruder.target == 0)
         hotends[1]->set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
 

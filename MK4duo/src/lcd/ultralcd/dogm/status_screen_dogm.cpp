@@ -45,9 +45,9 @@
 #define STATUS_BASELINE (LCD_PIXEL_HEIGHT - INFO_FONT_DESCENT)
 
 #define DO_DRAW_LOGO    (STATUS_LOGO_WIDTH && ENABLED(CUSTOM_STATUS_SCREEN_IMAGE))
-#define DO_DRAW_BED     (MAX_BED > 0 && STATUS_BED_WIDTH && HOTENDS <= 4)
-#define DO_DRAW_CHAMBER (MAX_CHAMBER > 0 && STATUS_CHAMBER_WIDTH && HOTENDS <= 4)
-#define DO_DRAW_FAN     (MAX_FAN > 0 && STATUS_FAN_WIDTH && HOTENDS <= 4 && ENABLED(STATUS_FAN_FRAMES))
+#define DO_DRAW_BED     (MAX_BED > 0 && STATUS_BED_WIDTH)
+#define DO_DRAW_CHAMBER (MAX_CHAMBER > 0 && STATUS_CHAMBER_WIDTH)
+#define DO_DRAW_FAN     (MAX_FAN > 0 && STATUS_FAN_WIDTH && ENABLED(STATUS_FAN_FRAMES))
 
 #define ANIM_HOTEND     (HOTENDS && ENABLED(STATUS_HOTEND_ANIM))
 #define ANIM_BED        (DO_DRAW_BED && ENABLED(STATUS_BED_ANIM))
@@ -74,8 +74,14 @@
   #define CHAMBER_ALT() false
 #endif
 
-#define MAX_HOTEND_DRAW     MIN(HOTENDS, ((LCD_PIXEL_WIDTH - (STATUS_LOGO_BYTEWIDTH + STATUS_FAN_BYTEWIDTH) * 8) / (STATUS_HEATERS_XSPACE)))
 #define STATUS_HEATERS_BOT  (STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1)
+
+#define PROGRESS_BAR_X 54
+#define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
+
+uint8_t STATUS_BED_X, STATUS_CHAMBER_X;
+#define STATUS_BED_TEXT_X     (STATUS_BED_X + 9)
+#define STATUS_CHAMBER_TEXT_X (STATUS_CHAMBER_X + 11)
 
 FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, const uint8_t ty) {
   const char *str = i16tostr3(temp);
@@ -86,7 +92,7 @@ FORCE_INLINE void _draw_centered_temp(const int16_t temp, const uint8_t tx, cons
 
 FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
 
-  #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (MAX_BED > 0 && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
+  #if DO_DRAW_BED
     const bool isBed = (act->type == IS_BED);
     #define IFBED(A,B) (isBed ? (A) : (B))
   #else
@@ -106,7 +112,7 @@ FORCE_INLINE void _draw_heater_status(Heater *act, const bool blink) {
     #define HOTEND_DOT    false
   #endif
 
-  #if HAS_HEATED_BED && DISABLED(STATUS_BED_ANIM)
+  #if DISABLED(STATUS_BED_ANIM)
     #define STATIC_BED    true
     #define BED_DOT       isHeat
   #else
@@ -241,8 +247,17 @@ void LcdUI::draw_status_screen() {
     static char wstring[5], mstring[4];
   #endif
 
+  static uint8_t  progress_bar_solid_width = 0,
+                  lastProgress    = 0,
+                  lastElapsed     = 0,
+                  elapsed_x_pos   = 0,
+                  finished_x_pos  = 0;
+  static char     elapsed_string[16],
+                  finished_string[10];
+
   // At the first page, regenerate the XYZ strings
   if (first_page) {
+
     #if ANIM_HBC
       uint8_t new_bits = 0;
       #if ANIM_HOTEND
@@ -268,9 +283,36 @@ void LcdUI::draw_status_screen() {
         )
       ));
     #endif
+
+    duration_t elapsed  = print_job_counter.duration();
+    const uint8_t p     = printer.progress & 0xFF,
+                  ev    = elapsed.value & 0xFF;
+
+    if (printer.progress > 1 && p != lastProgress) {
+      lastProgress = p;
+      progress_bar_solid_width = uint8_t((PROGRESS_BAR_WIDTH - 2) * printer.progress * 0.01f);
+    }
+    if (ev != lastElapsed) {
+      lastElapsed = ev;
+      const bool has_days = (elapsed.value >= 60*60*24L);
+      const uint8_t len = elapsed.toDigital(elapsed_string, has_days);
+      elapsed_x_pos = (PROGRESS_BAR_X + (PROGRESS_BAR_WIDTH) / 2 - (len+ 1) * (MENU_FONT_WIDTH) / 2);
+      if (!(ev & 0x3)) {
+        duration_t finished = (elapsed.value * (100 - printer.progress)) / (printer.progress + 0.1);
+        const bool has_days = (finished.value >= 60*60*24L);
+        const uint8_t len = finished.toDigital(finished_string, has_days);
+        finished_x_pos = (PROGRESS_BAR_X + (PROGRESS_BAR_WIDTH) / 2 - (len + 1) * (MENU_FONT_WIDTH) / 2);
+      }
+    }
   }
 
-  const bool blink = get_blink();
+  const bool  blink = get_blink(),
+              draw_fan      = tools.data.fans > 0     && !(tools.data.hotends == 5 || (tools.data.hotends >= 3 && (tools.data.beds > 0 || tools.data.chambers > 0))),
+              draw_bed      = tools.data.beds > 0     && tools.data.hotends <= 4,
+              draw_chamber  = tools.data.chambers > 0 && ((tools.data.hotends <= 4 && tools.data.beds == 0) || (tools.data.hotends <= 3 && tools.data.beds > 0));
+
+  STATUS_BED_X      = LCD_PIXEL_WIDTH - ((STATUS_BED_BYTEWIDTH      + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0)                                        ) * 8),
+  STATUS_CHAMBER_X  = LCD_PIXEL_WIDTH - ((STATUS_CHAMBER_BYTEWIDTH  + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0) + (draw_bed ? STATUS_BED_BYTEWIDTH : 0)) * 8);
 
   // Status Menu Font
   set_font(FONT_STATUSMENU);
@@ -284,11 +326,11 @@ void LcdUI::draw_status_screen() {
 
     #if STATUS_HEATERS_WIDTH
       // Draw all heaters (and maybe the bed) in one go
-      if (PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1))
+      if (tools.data.hotends > 0 && PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1))
         u8g.drawBitmapP(STATUS_HEATERS_X, STATUS_HEATERS_Y, STATUS_HEATERS_BYTEWIDTH, STATUS_HEATERS_HEIGHT, status_heaters_bmp);
     #endif
 
-    #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS)
+    #if DO_DRAW_BED
       #if ANIM_BED
         #define BED_BITMAP(S) ((S) ? status_bed_on_bmp : status_bed_bmp)
       #else
@@ -296,7 +338,7 @@ void LcdUI::draw_status_screen() {
       #endif
       const uint8_t bedy = STATUS_BED_Y(BED_ALT()),
                     bedh = STATUS_BED_HEIGHT(BED_ALT());
-      if (PAGE_CONTAINS(bedy, bedy + bedh - 1))
+      if (draw_bed && PAGE_CONTAINS(bedy, bedy + bedh - 1))
         u8g.drawBitmapP(STATUS_BED_X, bedy, STATUS_BED_BYTEWIDTH, bedh, BED_BITMAP(BED_ALT()));
     #endif
 
@@ -308,7 +350,7 @@ void LcdUI::draw_status_screen() {
       #endif
       const uint8_t chambery = STATUS_CHAMBER_Y(CHAMBER_ALT()),
                     chamberh = STATUS_CHAMBER_HEIGHT(CHAMBER_ALT());
-      if (PAGE_CONTAINS(chambery, chambery + chamberh - 1))
+      if (draw_chamber && PAGE_CONTAINS(chambery, chambery + chamberh - 1))
         u8g.drawBitmapP(STATUS_CHAMBER_X, chambery, STATUS_CHAMBER_BYTEWIDTH, chamberh, CHAMBER_BITMAP(CHAMBER_ALT()));
     #endif
 
@@ -321,7 +363,7 @@ void LcdUI::draw_status_screen() {
           if (!fans[0]->speed || ++fan_frame >= STATUS_FAN_FRAMES) fan_frame = 0;
         }
       #endif
-      if (PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
+      if (draw_fan && PAGE_CONTAINS(STATUS_FAN_Y, STATUS_FAN_Y + STATUS_FAN_HEIGHT - 1))
         u8g.drawBitmapP(
           STATUS_FAN_X, STATUS_FAN_Y,
           STATUS_FAN_BYTEWIDTH, STATUS_FAN_HEIGHT,
@@ -343,21 +385,23 @@ void LcdUI::draw_status_screen() {
 
     if (PAGE_UNDER(6 + 1 + 12 + 1 + 6 + 1)) {
       // Hotends
-      for (uint8_t h = 0; h < MAX_HOTEND_DRAW; ++h)
+      LOOP_HOTEND()
         _draw_heater_status(hotends[h], blink);
 
       // Heated bed
-      #if DO_DRAW_BED && DISABLED(STATUS_COMBINE_HEATERS) || (MAX_BED > 0 && ENABLED(STATUS_COMBINE_HEATERS) && HOTENDS <= 4)
-        _draw_heater_status(beds[0], blink);
+      #if DO_DRAW_BED
+        if (draw_bed)
+          _draw_heater_status(beds[0], blink);
       #endif
 
       #if DO_DRAW_CHAMBER
-        _draw_chamber_status(blink);
+        if (draw_chamber)
+          _draw_chamber_status(blink);
       #endif
 
       // Fan, if a bitmap was provided
       #if DO_DRAW_FAN
-        if (PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
+        if (draw_fan && PAGE_CONTAINS(STATUS_FAN_TEXT_Y - INFO_FONT_ASCENT, STATUS_FAN_TEXT_Y - 1)) {
           const uint8_t spd = fans[0]->actual_speed();
           if (spd) {
             lcd_put_u8str(STATUS_FAN_TEXT_X, STATUS_FAN_TEXT_Y, ui8tostr4pct(spd));
@@ -412,9 +456,6 @@ void LcdUI::draw_status_screen() {
   //
   // Progress bar frame
   //
-  #define PROGRESS_BAR_X 54
-  #define PROGRESS_BAR_WIDTH (LCD_PIXEL_WIDTH - PROGRESS_BAR_X)
-
   if (PAGE_CONTAINS(49, 52))
     u8g.drawFrame(PROGRESS_BAR_X, 49, PROGRESS_BAR_WIDTH, 4);
 
@@ -423,22 +464,22 @@ void LcdUI::draw_status_screen() {
   //
 
   if (printer.progress && (PAGE_CONTAINS(50, 51)))
-    u8g.drawBox(
-      PROGRESS_BAR_X + 1, 50,
-      (uint16_t)((PROGRESS_BAR_WIDTH - 2) * printer.progress * 0.01), 2
-    );
+    u8g.drawBox(PROGRESS_BAR_X + 1, 50, progress_bar_solid_width, 2);
 
   //
   // Elapsed Time
   //
 
-  if (PAGE_CONTAINS(41, 48)) {
+  if (PAGE_CONTAINS(EXTRAS_BASELINE - INFO_FONT_ASCENT, EXTRAS_BASELINE - 1)) {
 
-    char buffer1[10], buffer2[10];
-    duration_t elapsed  = print_job_counter.duration();
-    duration_t finished = (print_job_counter.duration() * (100 - printer.progress)) / (printer.progress + 0.1);
-    (void)elapsed.toDigital(buffer1, false);
-    (void)finished.toDigital(buffer2, false);
+    if (blink && (finished_string[0] != '\0')) {
+      lcd_put_wchar(finished_x_pos, EXTRAS_BASELINE, 'E');
+      lcd_put_u8str(finished_string);
+    }
+    else {
+      lcd_put_wchar(elapsed_x_pos, EXTRAS_BASELINE, 'S');
+      lcd_put_u8str(elapsed_string);
+    }
 
     #if HAS_LCD_POWER_SENSOR
       if (millis() < print_millis + 1000) {
@@ -451,11 +492,6 @@ void LcdUI::draw_status_screen() {
         lcd_put_u8str(54, 48, ui32tostr4(print_job_counter.getConsumptionHour() - powerManager.startpower));
         lcd_put_u8str((char*)"Wh");
       }
-    #else
-      lcd_put_wchar(54, 48, 'S');
-      lcd_put_u8str(buffer1);
-      lcd_put_wchar(92, 48, 'E');
-      lcd_put_u8str(buffer2);
     #endif
   }
 

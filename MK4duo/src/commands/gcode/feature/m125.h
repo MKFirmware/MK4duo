@@ -64,7 +64,7 @@ inline void gcode_M125() {
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
   #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-    if (thermalManager.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
+    if (tools.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
   #endif
 
   #if HAS_LCD_MENU

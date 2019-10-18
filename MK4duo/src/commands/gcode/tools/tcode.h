@@ -76,13 +76,13 @@ inline void gcode_T(const uint8_t tool_id) {
   if (printer.mode == PRINTER_MODE_FFF) {
     
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      if (printer.isPrinting() && tools.data.extruder.previous != tool_id && tools.data.extruder.total == 1) {
+      if (printer.isPrinting() && tools.extruder.previous != tool_id && tools.data.extruders == 1) {
         commands.inject_P(PSTR("M600"));
-        tools.data.extruder.previous = tool_id;
+        tools.extruder.previous = tool_id;
       }
       else
     #endif
-      tools.change(tool_id, (tool_id == tools.data.extruder.active) || parser.boolval('S'));
+      tools.change(tool_id, (tool_id == tools.extruder.active) || parser.boolval('S'));
 
   }
 

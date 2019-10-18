@@ -59,14 +59,11 @@ void Cartesian_Mechanics::factory_parameters() {
   static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                         tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
-  LOOP_XYZE_N(i) {
-    data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
-    data.max_feedrate_mm_s[i]           = pgm_read_float(&tmp_maxfeedrate[i < COUNT(tmp_maxfeedrate) ? i : COUNT(tmp_maxfeedrate) - 1]);
-    data.max_acceleration_mm_per_s2[i]  = pgm_read_dword_near(&tmp_maxacc[i < COUNT(tmp_maxacc) ? i : COUNT(tmp_maxacc) - 1]);
+  LOOP_XYZ(axis) {
+    data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
+    data.max_feedrate_mm_s[axis]          = pgm_read_float(&tmp_maxfeedrate[axis < COUNT(tmp_maxfeedrate) ? axis : COUNT(tmp_maxfeedrate) - 1]);
+    data.max_acceleration_mm_per_s2[axis] = pgm_read_dword_near(&tmp_maxacc[axis < COUNT(tmp_maxacc) ? axis : COUNT(tmp_maxacc) - 1]);
   }
-
-  LOOP_EXTRUDER()
-    data.retract_acceleration[e]        = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
   // Base pos
   data.base_pos.min.set(X_MIN_POS, Y_MIN_POS, Z_MIN_POS);
@@ -81,12 +78,7 @@ void Cartesian_Mechanics::factory_parameters() {
   #if ENABLED(JUNCTION_DEVIATION)
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #else
-    static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
     data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
-    #if DISABLED(LIN_ADVANCE)
-      LOOP_EXTRUDER()
-        data.max_jerk.e[e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
-    #endif
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
@@ -220,7 +212,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.data.extruder.active;
+    const uint8_t old_tool_index = tools.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -274,14 +266,14 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
   if (doX) {
     #if ENABLED(DUAL_X_CARRIAGE)
       // Always home the 2nd (right) extruder first
-      tools.data.extruder.active = 1;
+      tools.extruder.active = 1;
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
 
       // Home the 1st (left) extruder
-      tools.data.extruder.active = 0;
+      tools.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
@@ -327,14 +319,14 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
     if (dxc_is_duplicating()) {
 
       // Always home the 2nd (right) extruder first
-      tools.data.extruder.active = 1;
+      tools.extruder.active = 1;
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
 
       // Home the 1st (left) extruder
-      tools.data.extruder.active = 0;
+      tools.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
@@ -414,7 +406,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   // Only do some things when moving towards an endstop
   const int8_t axis_home_dir =
     #if ENABLED(DUAL_X_CARRIAGE)
-      (axis == X_AXIS) ? x_home_dir(tools.data.extruder.active) :
+      (axis == X_AXIS) ? x_home_dir(tools.extruder.active) :
     #endif
     get_homedir(axis);
   const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
@@ -441,7 +433,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active);
+  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
 
   planner.synchronize();
 
@@ -486,7 +478,7 @@ bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.data.extruder.active);
+        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.extruder.active);
         return true;
       #else
         /**
@@ -532,8 +524,8 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    if (axis == X_AXIS && (tools.data.extruder.active == 1 || dxc_is_duplicating())) {
-      current_position.x = x_home_pos(tools.data.extruder.active);
+    if (axis == X_AXIS && (tools.extruder.active == 1 || dxc_is_duplicating())) {
+      current_position.x = x_home_pos(tools.extruder.active);
       return;
     }
   #endif
@@ -622,7 +614,7 @@ float Cartesian_Mechanics::z_home_pos() {
 bool Cartesian_Mechanics::position_is_reachable(const float &rx, const float &ry) {
   if (!WITHIN(ry, data.base_pos.min.y - slop, data.base_pos.max.y + slop)) return false;
   #if ENABLED(DUAL_X_CARRIAGE)
-    if (tools.data.extruder.active)
+    if (tools.extruder.active)
       return WITHIN(rx, X2_MIN_POS - slop, X2_MAX_POS + slop);
     else
       return WITHIN(rx, X1_MIN_POS - slop, X1_MAX_POS + slop);
@@ -715,16 +707,16 @@ void Cartesian_Mechanics::report_current_position_detail() {
           #define RAISED_Y raised_parked_position[Y_AXIS]
           #define RAISED_Z raised_parked_position[Z_AXIS]
 
-          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, tools.data.extruder.active))
-            if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     tools.data.extruder.active))
-                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, tools.data.extruder.active);
+          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active))
+            if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     tools.extruder.active))
+                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active);
           delayed_move_ms = 0;
           active_extruder_parked = false;
           if (printer.debugFeature()) DEBUG_EM("Clear active_extruder_parked");
           break;
         case DXC_SCALED_DUPLICATION_MODE:
         case DXC_DUPLICATION_MODE:
-          if (tools.data.extruder.active == 0) {
+          if (tools.extruder.active == 0) {
             if (printer.debugFeature()) {
               DEBUG_MV("Set planner X", inactive_extruder_x_pos);
               DEBUG_EMV(" ... Line to X", current_position.x + duplicate_extruder_x_offset);
@@ -774,7 +766,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M92 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.axis_steps_per_mm), 3);
     }
   }
 
@@ -786,7 +778,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M201 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_acceleration_mm_per_s2));
     }
   }
 
@@ -798,7 +790,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M203 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_feedrate_mm_s), 3);
     }
   }
 
@@ -809,7 +801,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M204 T", (int)e);
-      SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
+      SERIAL_EMV(" R", LINEAR_UNIT(extruders[e]->data.retract_acceleration), 3);
     }
   }
 
@@ -837,7 +829,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
         SERIAL_EOL();
         LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M205 T", (int)e);
-          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
+          SERIAL_EMV(" E" , LINEAR_UNIT(extruders[e]->data.max_jerk), 3);
         }
       #endif
     #endif
@@ -888,7 +880,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
   const int axis_home_dir = (
     #if ENABLED(DUAL_X_CARRIAGE)
-      axis == X_AXIS ? x_home_dir(tools.data.extruder.active) :
+      axis == X_AXIS ? x_home_dir(tools.extruder.active) :
     #endif
     get_homedir(axis)
   );
@@ -1074,7 +1066,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     sync_plan_position();
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      const int x_axis_home_dir = x_home_dir(tools.data.extruder.active);
+      const int x_axis_home_dir = x_home_dir(tools.extruder.active);
     #else
       const int x_axis_home_dir = home_dir.x;
     #endif
@@ -1084,13 +1076,13 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_flag_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(X_DRV);
-      stealth_states.y = tmc.enable_stallguard(Y_DRV);
+      stealth_states.x = tmc.enable_stallguard(driver.x);
+      stealth_states.y = tmc.enable_stallguard(driver.y);
       #if X2_HAS_SENSORLESS
-        stealth_states.x2 = tmc.enable_stallguard(X2_DRV);
+        stealth_states.x2 = tmc.enable_stallguard(driver.x2);
       #endif
       #if Y2_HAS_SENSORLESS
-        stealth_states.y2 = tmc.enable_stallguard(Y2_DRV);
+        stealth_states.y2 = tmc.enable_stallguard(driver.y2);
       #endif
     #endif
 

@@ -49,7 +49,7 @@ constexpr uint8_t _7P_STEP = 1,              // 7-point step - to change number 
 #define LOOP_CAL_ACT(VAR,_4P,_OP) LOOP_CAL_PT(VAR, _OP ? _AB : __A, _4P ? _4P_STEP : _7P_STEP)
 
 #if HOTENDS > 1
-  const uint8_t old_tool_index = tools.data.extruder.active;
+  const uint8_t old_tool_index = tools.extruder.active;
 #endif
 
 static void ac_home() {

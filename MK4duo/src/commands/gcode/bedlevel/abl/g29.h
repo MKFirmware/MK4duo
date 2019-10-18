@@ -251,7 +251,7 @@ inline void gcode_G29() {
   if (!bedlevel.flag.g29_in_progress) {
 
     #if HOTENDS > 1
-      if (tools.data.extruder.active != 0) tools.change(0);
+      if (tools.extruder.active != 0) tools.change(0);
     #endif
 
     #if HAS_PROBE_MANUALLY || ENABLED(AUTO_BED_LEVELING_LINEAR)

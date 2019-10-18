@@ -223,7 +223,7 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
   }
 
   // If X or Y is involved do a 'normal' move. Otherwise retract/recover/hop.
-  feed_value = has_xy_component ? G26_XY_FEEDRATE : mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] * 0.666f;
+  feed_value = has_xy_component ? G26_XY_FEEDRATE : extruders[tools.extruder.active]->data.max_feedrate_mm_s * 0.666f;
   mechanics.destination = dest;
   mechanics.destination.e += e_delta;
   G26_line_to_destination(feed_value);
@@ -427,7 +427,7 @@ inline bool prime_nozzle() {
           Total_Prime += 0.25;
           if (Total_Prime >= EXTRUDE_MAXLENGTH) return G26_ERR;
         #endif
-        G26_line_to_destination(mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] / 15.0);
+        G26_line_to_destination(extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0f);
         mechanics.destination = mechanics.current_position;
         planner.synchronize();    // Without this synchronize, the purge is more consistent,
                                   // but because the planner has a buffer, we won't be able
@@ -450,7 +450,7 @@ inline bool prime_nozzle() {
     #endif
     mechanics.destination = mechanics.current_position;
     mechanics.destination.e += g26_prime_length;
-    G26_line_to_destination(mechanics.data.max_feedrate_mm_s.e[tools.data.extruder.active] / 15.0);
+    G26_line_to_destination(extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0);
     mechanics.destination = mechanics.current_position;
     retract_filament(mechanics.destination);
   }

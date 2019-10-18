@@ -69,8 +69,8 @@ void menu_tmc();
       ;
 
       LOOP_EXTRUDER() {
-        EDIT_ITEM_FAST_I(float3, MSG_FILAMENT_UNLOAD, e, &advancedpause.data[e].unload_length, 0, extrude_maxlength);
-        EDIT_ITEM_FAST_I(float3, MSG_FILAMENT_LOAD, e, &advancedpause.data[e].load_length, 0, extrude_maxlength);
+        EDIT_ITEM_FAST_I(float3, MSG_FILAMENT_LOAD,   e, &extruders[e]->data.load_length,   0, extrude_maxlength);
+        EDIT_ITEM_FAST_I(float3, MSG_FILAMENT_UNLOAD, e, &extruders[e]->data.unload_length, 0, extrude_maxlength);
       }
     #endif
 
@@ -191,7 +191,7 @@ void menu_advanced_temperature() {
       EDIT_ITEM_FAST(float3, MSG_VMAX MSG_Z, &mechanics.data.max_feedrate_mm_s.z, 1, 9999);
     #endif
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(float3, MSG_VMAX MSG_E, e, &mechanics.data.max_feedrate_mm_s.e[e], 1, 9999);
+      EDIT_ITEM_FAST_I(float3, MSG_VMAX MSG_E, e, &extruders[e]->data.max_feedrate_mm_s, 1, 9999);
 
     // M205 S Min Feedrate
     EDIT_ITEM_FAST(float3, MSG_VMIN, &mechanics.data.min_feedrate_mm_s, 0, 999);
@@ -212,7 +212,7 @@ void menu_advanced_temperature() {
 
     // M204 R Retract Acceleration
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(float5, MSG_A_RETRACT MSG_E, e, &mechanics.data.retract_acceleration[e], 100, 99000);
+      EDIT_ITEM_FAST_I(float5, MSG_A_RETRACT MSG_E, e, &extruders[e]->data.retract_acceleration, 100, 99000);
 
     // M204 T Travel Acceleration
     EDIT_ITEM_FAST(float5_25, MSG_A_TRAVEL, &mechanics.data.travel_acceleration, 25, 99000);
@@ -230,10 +230,10 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(long5_25, MSG_AMAX MSG_E, e, &mechanics.data.max_acceleration_mm_per_s2.e[e], 100, 99000, [](){
-        if (menu_edit_index == tools.data.extruder.active) planner.reset_acceleration_rates();
+      EDIT_ITEM_FAST_I(long5_25, MSG_AMAX MSG_E, e, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, [](){
+        if (menu_edit_index == tools.extruder.active) planner.reset_acceleration_rates();
       });
-    
+
     END_MENU();
   }
 
@@ -264,7 +264,7 @@ void menu_advanced_temperature() {
 
       #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_I(float3, MSG_VE_JERK MSG_E, e, &mechanics.data.max_jerk.e[e], 1, 990);
+          EDIT_ITEM_FAST_I(float3, MSG_VE_JERK MSG_E, e, &extruders[e]->data.max_jerk, 1, 990);
       #endif // DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
 
     #endif // AS_CLASSIC_JERK
@@ -289,11 +289,11 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(float51, MSG_ESTEPS, e, &mechanics.data.axis_steps_per_mm.e[e], 5, 9999, [](){
-        if (menu_edit_index == tools.data.extruder.active)
+      EDIT_ITEM_FAST_I(float51, MSG_ESTEPS, e, &extruders[e]->data.axis_steps_per_mm, 5, 9999, [](){
+        if (menu_edit_index == tools.extruder.active)
           planner.refresh_positioning();
         else
-          mechanics.steps_to_mm.e[menu_edit_index] = RECIPROCAL(mechanics.data.axis_steps_per_mm.e[menu_edit_index]);
+          extruders[menu_edit_index]->steps_to_mm = RECIPROCAL(extruders[menu_edit_index]->data.axis_steps_per_mm);
       });
 
     END_MENU();
@@ -329,7 +329,7 @@ void menu_advanced_settings() {
 
     if (printer.mode == PRINTER_MODE_FFF) {
       #if HAS_LINEAR_EXTRUDER
-        editable.uint8 = tools.data.extruder.total;
+        editable.uint8 = tools.data.extruders;
         EDIT_ITEM(uint8, MSG_MAX_EXTRUDERS, &editable.uint8, 0, MAX_EXTRUDER, [](){
           tools.change_number_extruder(editable.uint8);
         });

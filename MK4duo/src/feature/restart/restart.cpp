@@ -121,11 +121,13 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     // Extruders
     #if MAX_EXTRUDER > 1
-      job_info.active_extruder = tools.data.extruder.active;
+      job_info.active_extruder = tools.extruder.active;
     #endif
 
-    COPY_ARRAY(job_info.flow_percentage, tools.flow_percentage);
-    COPY_ARRAY(job_info.density_percentage, tools.density_percentage);
+    LOOP_EXTRUDER() {
+      job_info.flow_percentage[e]     = extruders[e]->flow_percentage;
+      job_info.density_percentage[e]  = extruders[e]->density_percentage;
+    }
 
     // Leveling      
     #if HAS_LEVELING
@@ -216,8 +218,10 @@ void Restart::resume_job() {
     }
   #endif
 
-  COPY_ARRAY(tools.flow_percentage, job_info.flow_percentage);
-  COPY_ARRAY(tools.density_percentage, job_info.density_percentage);
+  LOOP_EXTRUDER() {
+    extruders[e]->flow_percentage     = job_info.flow_percentage[e];
+    extruders[e]->density_percentage  = job_info.density_percentage[e];
+  }
 
   // Set leveling
   #if HAS_LEVELING

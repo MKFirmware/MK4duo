@@ -139,7 +139,7 @@ class FilamentRunoutBase {
         if (advancedpause.did_pause_print) return;
       #endif
 
-      const char tool = DIGIT(tools.data.extruder.active);
+      const char tool = DIGIT(tools.extruder.active);
       host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
       host_action.prompt_begin(PSTR("Filament Runout T"), false);
       SERIAL_CHR(tool);
@@ -304,8 +304,8 @@ class FilamentSensorBase {
       static inline void block_completed(const block_t* const b) { UNUSED(b); }
 
       static inline void run() {
-        const bool out = read_runout_state(tools.data.extruder.active);
-        if (!out) filament_present(tools.data.extruder.active);
+        const bool out = read_runout_state(tools.extruder.active);
+        if (!out) filament_present(tools.extruder.active);
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
           static bool was_out = false;
           if (out != was_out) {
@@ -371,7 +371,7 @@ class FilamentSensorBase {
       }
 
       static inline bool has_run_out() {
-        return runout_mm_countdown[tools.data.extruder.active] < 0;
+        return runout_mm_countdown[tools.extruder.active] < 0;
       }
 
       static void filament_present(const uint8_t extruder);
@@ -385,7 +385,7 @@ class FilamentSensorBase {
           // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
           const uint8_t e = block->active_extruder;
           const int32_t steps = block->steps.e;
-          runout_mm_countdown[e] -= (TEST(block->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm.e[e];
+          runout_mm_countdown[e] -= (TEST(block->direction_bits, E_AXIS) ? -steps : steps) * extruders[e]->steps_to_mm;
         }
       }
 

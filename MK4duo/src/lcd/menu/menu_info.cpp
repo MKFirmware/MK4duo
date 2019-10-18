@@ -149,10 +149,10 @@ void menu_info_firmware() {
   STATIC_ITEM(STRING_REVISION_DATE);
   STATIC_ITEM(MACHINE_NAME);
   STATIC_ITEM(MK4DUO_FIRMWARE_URL);
-  STATIC_ITEM(MSG_INFO_EXTRUDERS ":", tools.data.extruder.total);
-  STATIC_ITEM(MSG_INFO_HOTENDS ":", thermalManager.data.hotends);
-  STATIC_ITEM(MSG_INFO_BEDS ":", thermalManager.data.beds);
-  STATIC_ITEM(MSG_INFO_CHAMBERS ":", thermalManager.data.chambers);
+  STATIC_ITEM(MSG_INFO_EXTRUDERS ":", tools.data.extruders);
+  STATIC_ITEM(MSG_INFO_HOTENDS ":", tools.data.hotends);
+  STATIC_ITEM(MSG_INFO_BEDS ":", tools.data.beds);
+  STATIC_ITEM(MSG_INFO_CHAMBERS ":", tools.data.chambers);
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
     STATIC_ITEM(MSG_3POINT_LEVELING);     // 3-Point Leveling
   #elif ENABLED(AUTO_BED_LEVELING_LINEAR)

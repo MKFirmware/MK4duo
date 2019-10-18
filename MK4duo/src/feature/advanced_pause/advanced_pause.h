@@ -29,11 +29,6 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
-typedef struct {
-  float unload_length,
-        load_length;
-} advanced_pause_data_t;
-
 #if ENABLED(DUAL_X_CARRIAGE)
   #define DXC_PARAMS , const int8_t DXC_ext=-1
   #define DXC_ARGS   , const int8_t DXC_ext
@@ -56,13 +51,9 @@ class AdvancedPause {
 
     static PauseMenuResponseEnum menu_response;
 
-    static advanced_pause_data_t data[EXTRUDERS];
-
     static uint8_t did_pause_print;
 
   public: /** Public Function */
-
-    static void factory_parameters();
 
     static void do_pause_e_move(const float &length, const feedrate_t &fr_mm_s);
 

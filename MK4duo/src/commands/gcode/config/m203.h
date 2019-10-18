@@ -47,15 +47,18 @@ inline void gcode_M203() {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? tools.data.extruder.target : 0);
       #if MECH(DELTA)
-        const float value = parser.value_per_axis_unit((AxisEnum)a);
+        const float value = parser.value_per_axis_unit((AxisEnum)i);
         if (i == E_AXIS)
-          mechanics.data.max_feedrate_mm_s[a] = value;
+          extruders[tools.extruder.target]->data.max_feedrate_mm_s = value;
         else
           LOOP_XYZ(axis) mechanics.data.max_feedrate_mm_s[axis] = value;
       #else
-        mechanics.data.max_feedrate_mm_s[a] = parser.value_axis_units((AxisEnum)a);
+        const float value = parser.value_per_axis_unit((AxisEnum)i);
+        if (i == E_AXIS)
+          extruders[tools.extruder.target]->data.max_feedrate_mm_s = value;
+        else
+        mechanics.data.max_feedrate_mm_s[i] = parser.value_axis_units((AxisEnum)i);
       #endif
     }
   }

@@ -777,12 +777,12 @@ void Planner::check_axes_activity() {
    */
   void Planner::apply_retract(float &rz, float &e) {
     rz += fwretract.current_hop;
-    e -= fwretract.current_retract[tools.data.extruder.active];
+    e -= fwretract.current_retract[tools.extruder.active];
   }
 
   void Planner::unapply_retract(float &rz, float &e) {
     rz -= fwretract.current_hop;
-    e += fwretract.current_retract[tools.data.extruder.active];
+    e += fwretract.current_retract[tools.extruder.active];
   }
 
 #endif
@@ -1031,7 +1031,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         }
       #endif
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        if (ABS(de * tools.e_factor[extruder]) > (int32_t)mechanics.data.axis_steps_per_mm.e[extruder] * (EXTRUDE_MAXLENGTH)) {
+        if (ABS(de * extruders[extruder]->e_factor) > (int32_t)extruders[extruder]->data.axis_steps_per_mm * (EXTRUDE_MAXLENGTH)) {
           position.e = target.e; // Behave as if the move really took place, but ignore E part
           #if HAS_POSITION_FLOAT
             position_float.e = target_float.e;
@@ -1081,7 +1081,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   if (de < 0) SBI(dirb, E_AXIS);
 
-  const float esteps_float = de * tools.e_factor[extruder];
+  const float esteps_float = de * extruders[extruder]->e_factor;
   const uint32_t esteps = ABS(esteps_float) + 0.5;
 
   // Clear all flags, including the "busy" bit
@@ -1143,7 +1143,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     delta_mm.y        = dy * mechanics.steps_to_mm.y;
     delta_mm.z        = dz * mechanics.steps_to_mm.z;
   #endif
-  delta_mm.e = esteps_float * mechanics.steps_to_mm.e[extruder];
+  delta_mm.e = esteps_float * extruders[extruder]->steps_to_mm;
 
   if (block->steps.x < MIN_STEPS_PER_SEGMENT && block->steps.y < MIN_STEPS_PER_SEGMENT && block->steps.z < MIN_STEPS_PER_SEGMENT) {
     block->millimeters = ABS(delta_mm.e);
@@ -1235,110 +1235,22 @@ bool Planner::fill_block(block_t * const block, bool split_move,
 
       #if ENABLED(DISABLE_INACTIVE_EXTRUDER) // Enable only the selected extruder
 
-        LOOP_EXTRUDER() if (g_uc_extruder_last_move[e] > 0) g_uc_extruder_last_move[e]--;
-
-        switch (extruder) {
-          case 0:
-            #if MAX_EXTRUDER > 1
-              if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-              #if MAX_EXTRUDER > 2
-                if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                #if MAX_EXTRUDER > 3
-                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if MAX_EXTRUDER > 4
-                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if MAX_EXTRUDER > 5
-                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
-                    #endif
-                  #endif
-                #endif
-              #endif
-            #endif
-            stepper.enable_E0();
-            g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
-            #if ENABLED(DUAL_X_CARRIAGE)
-              if (mechanics.extruder_duplication_enabled) {
-                stepper.enable_E1();
-                g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
-              }
-            #endif
-          break;
-          #if MAX_EXTRUDER > 1
-            case 1:
-              if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-              #if MAX_EXTRUDER > 2
-                if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                #if MAX_EXTRUDER > 3
-                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if MAX_EXTRUDER > 4
-                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if MAX_EXTRUDER > 5
-                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
-                    #endif
-                  #endif
-                #endif
-              #endif
-              stepper.enable_E1();
+        LOOP_EXTRUDER() {
+          if (g_uc_extruder_last_move[e] > 0) g_uc_extruder_last_move[e]--;
+          if (e == extruder) {
+            stepper.enable_E(e);
+            g_uc_extruder_last_move[e] = (BLOCK_BUFFER_SIZE) * 2;
+          }
+          else
+            if (!g_uc_extruder_last_move[e]) stepper.disable_E(e);
+          #if ENABLED(DUAL_X_CARRIAGE)
+            if (e == 0 && mechanics.extruder_duplication_enabled) {
+              stepper.enable_E(1);
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
-            break;
-            #if MAX_EXTRUDER > 2
-              case 2:
-                if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-                if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-                #if MAX_EXTRUDER > 3
-                  if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                  #if MAX_EXTRUDER > 4
-                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if MAX_EXTRUDER > 5
-                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
-                    #endif
-                  #endif
-                #endif
-                stepper.enable_E2();
-                g_uc_extruder_last_move[2] = (BLOCK_BUFFER_SIZE) * 2;
-              break;
-              #if MAX_EXTRUDER > 3
-                case 3:
-                  if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-                  if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-                  if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                  #if MAX_EXTRUDER > 4
-                    if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                    #if MAX_EXTRUDER > 5
-                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
-                    #endif
-                  #endif
-                  stepper.enable_E3();
-                  g_uc_extruder_last_move[3] = (BLOCK_BUFFER_SIZE) * 2;
-                break;
-                #if MAX_EXTRUDER > 4
-                  case 4:
-                    if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-                    if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-                    if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                    if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                    #if MAX_EXTRUDER > 5
-                      if (!g_uc_extruder_last_move[5]) stepper.disable_E5();
-                    #endif
-                    stepper.enable_E4();
-                    g_uc_extruder_last_move[4] = (BLOCK_BUFFER_SIZE) * 2;
-                  break;
-                  #if MAX_EXTRUDER > 5
-                    case 5:
-                      if (!g_uc_extruder_last_move[0]) stepper.disable_E0();
-                      if (!g_uc_extruder_last_move[1]) stepper.disable_E1();
-                      if (!g_uc_extruder_last_move[2]) stepper.disable_E2();
-                      if (!g_uc_extruder_last_move[3]) stepper.disable_E3();
-                      if (!g_uc_extruder_last_move[4]) stepper.disable_E4();
-                      stepper.enable_E5();
-                      g_uc_extruder_last_move[5] = (BLOCK_BUFFER_SIZE) * 2;
-                    break;
-                  #endif // MAX_EXTRUDER > 5
-                #endif // MAX_EXTRUDER > 4
-              #endif // MAX_EXTRUDER > 3
-            #endif // MAX_EXTRUDER > 2
-          #endif // MAX_EXTRUDER > 1
+            }
+          #endif
         }
+
       #else // enable all
         stepper.enable_E();
       #endif
@@ -1347,12 +1259,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         case 0:
         case 1:
         case 2:
-          stepper.enable_E0();
+          stepper.enable_E(0);
           break;
         case 3:
         case 4:
         case 5:
-          stepper.enable_E1();
+          stepper.enable_E(1);
           break;
       }
     #elif ENABLED(MKR12)
@@ -1360,41 +1272,41 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         case 0:
         case 1:
         case 2:
-          stepper.enable_E0();
+          stepper.enable_E(0);
           break;
         case 3:
         case 4:
         case 5:
-          stepper.enable_E1();
+          stepper.enable_E(1);
           break;
         case 6:
         case 7:
         case 8:
-          stepper.enable_E2();
+          stepper.enable_E(2);
           break;
         case 9:
         case 10:
         case 11:
-          stepper.enable_E3();
+          stepper.enable_E(3);
           break;
       }
     #elif ENABLED(MKR4)
       switch (extruder) {
         case 0:
-          stepper.enable_E0();
+          stepper.enable_E(0);
         break;
         case 1:
-          stepper.enable_E1();
+          stepper.enable_E(1);
         break;
         case 2:
-          stepper.enable_E0();
+          stepper.enable_E(0);
         break;
         case 3:
-          stepper.enable_E1();
+          stepper.enable_E(1);
         break;
       }
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
-      stepper.enable_E0();
+      stepper.enable_E(0);
     #endif
   }
 
@@ -1529,8 +1441,10 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   LOOP_XYZE(i) {
     const float delta_mm_i = delta_mm[i];
     const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
-    if (i == E_AXIS) i += extruder;
-    if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
+    if (i == E_AXIS)
+      if (cs > extruders[extruder]->data.max_feedrate_mm_s) NOMORE(speed_factor, extruders[extruder]->data.max_feedrate_mm_s / cs);
+    else
+      if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
   }
 
   // Max segment time in Âµs.
@@ -1583,7 +1497,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   uint32_t accel;
   if (!block->steps.x && !block->steps.y && !block->steps.z) {
     // convert to: acceleration steps/sec^2
-    accel = CEIL(mechanics.data.retract_acceleration[extruder] * steps_per_mm);
+    accel = CEIL(extruders[extruder]->data.retract_acceleration * steps_per_mm);
     #if ENABLED(LIN_ADVANCE)
       block->use_advance_lead = false;
     #endif
@@ -1596,9 +1510,9 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #if ENABLED(LIN_ADVANCE)
 
       #if ENABLED(JUNCTION_DEVIATION)
-        #define MAX_E_JERK mechanics.data.max_e_jerk[extruder]
+        #define MAX_E_JERK extruders[extruder]->data.max_e_jerk
       #else
-        #define MAX_E_JERK mechanics.data.max_jerk.e[extruder]
+        #define MAX_E_JERK extruders[extruder]->data.max_jerk
       #endif
 
       /**
@@ -1646,8 +1560,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           if (accel * block->steps[axis] > comp) accel = comp / block->steps[axis];
         }
       }
-      if (block->steps.e && mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) {
-        const uint32_t comp = mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] * block->step_event_count;
+      if (block->steps.e && extruders[extruder]->max_acceleration_steps_per_s2 < accel) {
+        const uint32_t comp = extruders[extruder]->max_acceleration_steps_per_s2 * block->step_event_count;
         if (accel * block->steps.e > comp) accel = comp / block->steps.e;
       }
     }
@@ -1658,8 +1572,8 @@ bool Planner::fill_block(block_t * const block, bool split_move,
           if ((float)accel * (float)block->steps[axis] > comp) accel = comp / (float)block->steps[axis];
         }
       }
-      if (block->steps.e && mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] < accel) {
-        const float comp = (float)mechanics.max_acceleration_steps_per_s2[E_AXIS + extruder] * (float)block->step_event_count;
+      if (block->steps.e && extruders[extruder]->max_acceleration_steps_per_s2 < accel) {
+        const float comp = (float)extruders[extruder]->max_acceleration_steps_per_s2 * (float)block->step_event_count;
         if ((float)accel * (float)block->steps.e > comp) accel = comp / (float)block->steps.e;
       }
     }
@@ -1671,7 +1585,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #endif
   #if ENABLED(LIN_ADVANCE)
     if (block->use_advance_lead) {
-      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * mechanics.data.axis_steps_per_mm.e[extruder]);
+      block->advance_speed = (STEPPER_TIMER_RATE) / (extruder_advance_K * block->e_D_ratio * block->acceleration * extruders[extruder]->data.axis_steps_per_mm);
       if (extruder_advance_K * block->e_D_ratio * block->acceleration * 2 < SQRT(block->nominal_speed_sqr) * block->e_D_ratio)
         DEBUG_EM("More than 2 steps per eISR loop executed.");
       if (block->advance_speed < 200)
@@ -1758,7 +1672,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
     #endif
     {
       const float jerk = ABS(current_speed[i]),
-                  maxj = (i == E_AXIS) ? mechanics.data.max_jerk[i + extruder] : mechanics.data.max_jerk[i];
+                  maxj = (i == E_AXIS) ? extruders[extruder]->data.max_jerk : mechanics.data.max_jerk[i];
 
       if (jerk > maxj) {
         if (limited) {
@@ -1810,7 +1724,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
             : // v_exit <= v_entry                coasting             axis reversal
               ( (v_entry < 0 || v_exit > 0) ? (v_entry - v_exit) : MAX(-v_exit, v_entry) );
 
-        const float maxj = (axis == E_AXIS) ? mechanics.data.max_jerk[axis + extruder] : mechanics.data.max_jerk[axis];
+        const float maxj = (axis == E_AXIS) ? extruders[extruder]->data.max_jerk : mechanics.data.max_jerk[axis];
         if (jerk > maxj) {
           v_factor *= maxj / jerk;
           ++limited;
@@ -1938,7 +1852,7 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c, con
     static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm.a + 0.5f)),
     static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm.b + 0.5f)),
     static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm.c + 0.5f)),
-    static_cast<int32_t>(FLOOR(e * mechanics.data.axis_steps_per_mm.e[extruder] + 0.5f))
+    static_cast<int32_t>(FLOOR(e * extruders[extruder]->data.axis_steps_per_mm + 0.5f))
   };
 
   #if HAS_POSITION_FLOAT
@@ -2076,7 +1990,7 @@ void Planner::set_machine_position_mm(const float &a, const float &b, const floa
   position.set( static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm.a + 0.5f)),
                 static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm.b + 0.5f)),
                 static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm.c + 0.5f)),
-                static_cast<int32_t>(FLOOR(e * mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active] + 0.5f)));
+                static_cast<int32_t>(FLOOR(e * extruders[tools.extruder.active]->data.axis_steps_per_mm + 0.5f)));
 
   #if HAS_POSITION_FLOAT
     position_float.set(a, b, c, e);
@@ -2116,12 +2030,12 @@ void Planner::set_position_mm(const float &rx, const float &ry, const float &rz,
 void Planner::set_e_position_mm(const float &e) {
 
   #if ENABLED(FWRETRACT)
-    float e_new = e - fwretract.current_retract[tools.data.extruder.active];
+    float e_new = e - fwretract.current_retract[tools.extruder.active];
   #else
     const float e_new = e;
   #endif
 
-  position.e = static_cast<int32_t>(FLOOR(e_new * mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active] + 0.5f));
+  position.e = static_cast<int32_t>(FLOOR(e_new * extruders[tools.extruder.active]->data.axis_steps_per_mm + 0.5f));
 
   #if HAS_POSITION_FLOAT
     position_float.e = e_new;
@@ -2143,17 +2057,15 @@ void Planner::set_e_position_mm(const float &e) {
  */
 void Planner::reset_acceleration_rates() {
 
-  #if EXTRUDERS > 1
-    #define AXIS_CONDITION  (i < E_AXIS || i == E_INDEX)
-  #else
-    #define AXIS_CONDITION  true
-  #endif
-
   uint32_t highest_rate = 1;
 
-  LOOP_XYZE_N(i) {
+  LOOP_XYZ(i) {
     mechanics.max_acceleration_steps_per_s2[i] = mechanics.data.max_acceleration_mm_per_s2[i] * mechanics.data.axis_steps_per_mm[i];
-    if (AXIS_CONDITION) NOLESS(highest_rate, mechanics.max_acceleration_steps_per_s2[i]);
+    NOLESS(highest_rate, mechanics.max_acceleration_steps_per_s2[i]);
+  }
+  LOOP_EXTRUDER() {
+    extruders[e]->max_acceleration_steps_per_s2 = extruders[e]->data.max_acceleration_mm_per_s2 * extruders[e]->data.axis_steps_per_mm;
+    if (e == tools.extruder.active) NOLESS(highest_rate, extruders[e]->max_acceleration_steps_per_s2);
   }
 
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
@@ -2168,7 +2080,8 @@ void Planner::reset_acceleration_rates() {
  * Recalculate position, steps_to_mm if data.axis_steps_per_mm changes!
  */
 void Planner::refresh_positioning() {
-  LOOP_XYZE_N(i) mechanics.steps_to_mm[i] = 1.0f / mechanics.data.axis_steps_per_mm[i];
+  LOOP_XYZ(axis)  mechanics.steps_to_mm[axis] = 1.0f / mechanics.data.axis_steps_per_mm[axis];
+  LOOP_EXTRUDER() extruders[e]->steps_to_mm   = 1.0f / extruders[e]->data.axis_steps_per_mm;
   set_position_mm(mechanics.current_position);
   reset_acceleration_rates();
 }
@@ -2579,7 +2492,7 @@ void Planner::recalculate_trapezoids() {
             calculate_trapezoid_for_block(current_block, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current_block->use_advance_lead) {
-                const float comp = current_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active];
+                const float comp = current_block->e_D_ratio * extruder_advance_K * extruders[tools.extruder.active]->data.axis_steps_per_mm;
                 current_block->max_adv_steps = current_nominal_speed * comp;
                 current_block->final_adv_steps = next_entry_speed * comp;
               }
@@ -2618,7 +2531,7 @@ void Planner::recalculate_trapezoids() {
       calculate_trapezoid_for_block(next_block, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next_block->use_advance_lead) {
-          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[tools.data.extruder.active];
+          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[tools.extruder.active];
           next_block->max_adv_steps = next_nominal_speed * comp;
           next_block->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }

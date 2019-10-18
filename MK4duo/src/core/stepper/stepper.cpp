@@ -271,12 +271,20 @@ void Stepper::create_ext_driver() {
   }
 }
 
-void Stepper::delete_ext_driver(const uint8_t drv) {
-  if (driver.e[drv]) {
-    SERIAL_LMT(ECHO, "Delete driver ", driver.e[drv]->axis_letter);
-    Driver * tmpdriver = nullptr;
-    swap(tmpdriver, driver.e[drv]);
-    delete(tmpdriver);
+void Stepper::change_number_driver(const uint8_t drv) {
+
+  if (data.drivers_e < drv) {
+    data.drivers_e = drv;
+    create_ext_driver();
+  }
+  else if (data.drivers_e > drv) {
+    for (uint8_t dd = drv; dd < MAX_DRIVER_E; dd++) {
+      SERIAL_LMT(ECHO, "Delete driver ", driver.e[dd]->axis_letter);
+      Driver * tmpdriver = nullptr;
+      swap(tmpdriver, driver.e[dd]);
+      delete(tmpdriver);
+    }
+    data.drivers_e = drv;
   }
 }
 
@@ -311,6 +319,12 @@ void Stepper::init() {
 
 void Stepper::factory_parameters() {
 
+  data.quad_stepping    = DOUBLE_QUAD_STEPPING;
+  data.minimum_pulse    = MINIMUM_STEPPER_PULSE;
+  data.direction_delay  = DIRECTION_STEPPER_DELAY;
+  data.maximum_rate     = MAXIMUM_STEPPER_RATE;
+  data.drivers_e        = DRIVER_EXTRUDERS;
+
   create_driver();
 
   LOOP_DRV_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
@@ -319,11 +333,7 @@ void Stepper::factory_parameters() {
   #if HAS_TRINAMIC
     tmc.factory_parameters();
   #endif
-
-  data.quad_stepping    = DOUBLE_QUAD_STEPPING;
-  data.minimum_pulse    = MINIMUM_STEPPER_PULSE;
-  data.direction_delay  = DIRECTION_STEPPER_DELAY;
-  data.maximum_rate     = MAXIMUM_STEPPER_RATE;
+  
 }
 
 /**
@@ -605,7 +615,7 @@ void Stepper::set_directions() {
     }
   #endif
 
-  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #if DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (motor_direction(E_AXIS)) {
         set_rev_E_dir();
@@ -625,7 +635,7 @@ void Stepper::set_directions() {
         count_direction.e = 1;
       }
     #endif
-  #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #endif // DISABLED(LIN_ADVANCE)
 
   #if HAS_EXT_ENCODER
     tools.encLastDir[active_extruder] = count_direction.e;
@@ -703,31 +713,11 @@ void Stepper::disable_Z() {
 }
 
 void Stepper::enable_E() {
-  enable_E0();
-  enable_E1();
-  enable_E2();
-  enable_E3();
-  enable_E4();
-  enable_E5();
+  LOOP_EXTRUDER() enable_E(e);
 }
+
 void Stepper::disable_E() {
-  disable_E0();
-  disable_E1();
-  disable_E2();
-  disable_E3();
-  disable_E4();
-  disable_E5();
-}
-void Stepper::disable_E(const uint8_t e) {
-  switch (e) {
-    case 0: disable_E0(); break;
-    case 1: disable_E1(); break;
-    case 2: disable_E2(); break;
-    case 3: disable_E3(); break;
-    case 4: disable_E4(); break;
-    case 5: disable_E5(); break;
-    default:              break;
-  }
+  LOOP_EXTRUDER() disable_E(e);
 }
 
 void Stepper::enable_all() {
@@ -746,8 +736,9 @@ void Stepper::disable_all() {
   disable_E();
 }
 
-void Stepper::enable_E0() {
+void Stepper::enable_E(const uint8_t e) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
     #if MIXING_STEPPERS > 5
       driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
       driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
@@ -777,13 +768,14 @@ void Stepper::enable_E0() {
 
   #else // !COLOR_MIXING_EXTRUDER
 
-    if (driver.e[E0_DRV]) driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+    if (driver.e[e]) driver.e[e]->enable_write(driver.e[e]->isEnable());
 
   #endif
 
 }
-void Stepper::disable_E0() {
+void Stepper::disable_E(const uint8_t e) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
     #if MIXING_STEPPERS > 5
       driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
       driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
@@ -813,65 +805,10 @@ void Stepper::disable_E0() {
 
   #else // !COLOR_MIXING_EXTRUDER
 
-    if (driver.e[E0_DRV]) driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+    if (driver.e[e]) driver.e[e]->enable_write(!driver.e[e]->isEnable());
 
   #endif
 }
-
-#if DISABLED(COLOR_MIXING_EXTRUDER)
-
-  void Stepper::enable_E1() {
-    #if (MAX_DRIVER_E > 1)
-      driver.e[1]->enable_write(driver[E1_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E1() {
-    #if (MAX_DRIVER_E > 1)
-      driver.e[1]->enable_write(!driver[E1_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E2() {
-    #if (MAX_DRIVER_E > 2)
-      driver.e[2]->enable_write(driver[E2_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E2() {
-    #if (MAX_DRIVER_E > 2)
-      driver.e[2]->enable_write(!driver[E2_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E3() {
-    #if (MAX_DRIVER_E > 3)
-      driver.e[3]->enable_write(driver[E3_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E3() {
-    #if (MAX_DRIVER_E > 3)
-      driver.e[3]->enable_write(!driver[E3_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E4() {
-    #if (MAX_DRIVER_E > 4)
-      driver.e[4]->enable_write(driver[E4_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E4() {
-    #if (MAX_DRIVER_E > 4)
-      driver.e[4]->enable_write(!driver[E4_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E5() {
-    #if (MAX_DRIVER_E > 5)
-      driver.e[5]->enable_write(driver[E5_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E5() {
-    #if (MAX_DRIVER_E > 5)
-      driver.e[5]->enable_write(!driver[E5_DRV]->isEnable());
-    #endif
-  }
-
-#endif // DISABLED(COLOR_MIXING_EXTRUDER)
 
 /**
  * Handle a triggered endstop
@@ -1953,7 +1890,7 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
       #endif
     }
 
-  #elif HAS_EXTRUDERS
+  #else
 
     delta_error.e += advance_dividend.e;
     if (delta_error.e >= 0) {
@@ -1988,13 +1925,13 @@ FORCE_INLINE void Stepper::pulse_tick_stop() {
     }
   #endif
 
-  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #if DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (delta_error.e >= 0) {
         delta_error.e -= advance_divisor;
         e_step_write(mixer.get_stepper(), driver.e[0]->isStep());
       }
-    #elif HAS_EXTRUDERS
+    #else
       if (delta_error.e >= 0) {
         delta_error.e -= advance_divisor;
         e_step_write(active_extruder_driver, driver.e[active_extruder_driver]->isStep());

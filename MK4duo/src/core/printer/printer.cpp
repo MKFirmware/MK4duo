@@ -73,11 +73,6 @@ PrinterModeEnum Printer::mode =
       Printer::baricuda_e_to_p_pressure = 0;
 #endif
 
-#if ENABLED(IDLE_OOZING_PREVENT)
-  bool  Printer::IDLE_OOZING_enabled = true,
-        Printer::IDLE_OOZING_retracted[EXTRUDERS] = ARRAY_BY_EXTRUDERS(false);
-#endif
-
 #if HAS_CHDK
   millis_s Printer::chdk_ms = 0;
 #endif
@@ -188,9 +183,6 @@ void Printer::setup() {
 
   // Initialize stepper. This enables interrupts!
   stepper.init();
-
-  // Initialize tools
-  tools.init();
 
   #if ENABLED(CNCROUTER)
     cnc.init();
@@ -346,9 +338,7 @@ void Printer::loop() {
 
 void Printer::factory_parameters() {
   various_flag.all = 0x0000;
-  #if ENABLED(IDLE_OOZING_PREVENT)
-    IDLE_OOZING_enabled = true;
-  #endif
+
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     #if ENABLED(VOLUMETRIC_DEFAULT_ON)
       setVolumetric(true);
@@ -707,67 +697,17 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-
     static millis_l extruder_runout_ms = 0;
-
     if (hotends[tools.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
       && !planner.has_blocks_queued()
     ) {
-      #if ENABLED(DONDOLO_SINGLE_MOTOR)
-        const bool oldstatus = E0_ENABLE_READ();
-        enable_E0();
-      #else // !DONDOLO_SINGLE_MOTOR
-        bool oldstatus;
-        switch (tools.data.extruder.active) {
-          case 0: oldstatus = E0_ENABLE_READ(); enable_E0(); break;
-          #if MAX_DRIVER_E > 1
-            case 1: oldstatus = E1_ENABLE_READ(); enable_E1(); break;
-            #if MAX_DRIVER_E > 2
-              case 2: oldstatus = E2_ENABLE_READ(); enable_E2(); break;
-              #if MAX_DRIVER_E > 3
-                case 3: oldstatus = E3_ENABLE_READ(); enable_E3(); break;
-                #if MAX_DRIVER_E > 4
-                  case 4: oldstatus = E4_ENABLE_READ(); enable_E4(); break;
-                  #if MAX_DRIVER_E > 5
-                    case 5: oldstatus = E5_ENABLE_READ(); enable_E5(); break;
-                  #endif // MAX_DRIVER_E > 5
-                #endif // MAX_DRIVER_E > 4
-              #endif // MAX_DRIVER_E > 3
-            #endif // MAX_DRIVER_E > 2
-          #endif // MAX_DRIVER_E > 1
-        }
-      #endif // !DONDOLO_SINGLE_MOTOR
-
       const float olde = mechanics.current_position.e;
       mechanics.current_position.e += EXTRUDER_RUNOUT_EXTRUDE;
-      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED), tools.data.extruder.active);
+      mechanics.line_to_current_position(MMM_TO_MMS(EXTRUDER_RUNOUT_SPEED));
       mechanics.current_position.e = olde;
       planner.set_e_position_mm(olde);
       planner.synchronize();
-      #if ENABLED(DONDOLO_SINGLE_MOTOR)
-        driver.e[0]->enable_write(oldstatus);
-      #else
-        switch (tools.data.extruder.active) {
-          case 0: driver.e[0]->enable_write(oldstatus); break;
-          #if MAX_DRIVER_E > 1
-            case 1: driver.e[1]->enable_write(oldstatus); break;
-            #if MAX_DRIVER_E > 2
-              case 2: driver.e[2]->enable_write(oldstatus); break;
-              #if MAX_DRIVER_E > 3
-                case 3: driver.e[3]->enable_write(oldstatus); break;
-                #if MAX_DRIVER_E > 4
-                  case 4: driver.e[4]->enable_write(oldstatus); break;
-                  #if MAX_DRIVER_E > 5
-                    case 5: driver.e[5]->enable_write(oldstatus); break;
-                  #endif // MAX_DRIVER_E > 5
-                #endif // MAX_DRIVER_E > 4
-              #endif // MAX_DRIVER_E > 3
-            #endif // MAX_DRIVER_E > 2
-          #endif // MAX_DRIVER_E > 1
-        }
-      #endif // !DONDOLO_SINGLE_MOTOR
-
     }
   #endif // EXTRUDER_RUNOUT_PREVENT
 
@@ -782,13 +722,13 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    static millis_s axis_last_activity_ms = 0;
+    static millis_l axis_last_activity_ms = 0;
     if (planner.has_blocks_queued()) axis_last_activity_ms = millis();
     if (hotends[tools.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       if (hotends[tools.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
-        IDLE_OOZING_retract(false);
-      else if (expired(&axis_last_activity_ms, millis_s(IDLE_OOZING_SECONDS * 1000U)))
-        IDLE_OOZING_retract(true);
+        tools.IDLE_OOZING_retract(false);
+      else if (expired(&axis_last_activity_ms, IDLE_OOZING_SECONDS * 1000UL))
+        tools.IDLE_OOZING_retract(true);
     }
   #endif
 
@@ -826,11 +766,11 @@ bool Printer::pin_is_protected(const pin_t pin) {
 
 void Printer::print_M353() {
   SERIAL_LM(CFG, "Total number E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
-  SERIAL_SMV(CFG,"  M353 E", tools.data.extruder.total);
-  SERIAL_MV(" H", thermalManager.data.hotends);
-  SERIAL_MV(" B", thermalManager.data.beds);
-  SERIAL_MV(" C", thermalManager.data.chambers);
-  SERIAL_MV(" F", thermalManager.data.fans);
+  SERIAL_SMV(CFG,"  M353 E", tools.data.extruders);
+  SERIAL_MV(" H", tools.data.hotends);
+  SERIAL_MV(" B", tools.data.beds);
+  SERIAL_MV(" C", tools.data.chambers);
+  SERIAL_MV(" F", tools.data.fans);
   SERIAL_EOL();
 }
 
@@ -931,6 +871,25 @@ void Printer::setup_pinout() {
     tmc.init_cs_pins();
   #endif
 
+  #if ENABLED(MKR4) // MKR4 System
+    #if HAS_E0E1
+      OUT_WRITE_RELE(E0E1_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_E0E2
+      OUT_WRITE_RELE(E0E2_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_E1E3
+      OUT_WRITE_RELE(E1E3_CHOICE_PIN, LOW);
+    #endif
+  #elif ENABLED(MKR6) || ENABLED(MKR12) // MKR6 or MKR12 System
+    #if HAS_EX1
+      OUT_WRITE_RELE(EX1_CHOICE_PIN, LOW);
+    #endif
+    #if HAS_EX2
+      OUT_WRITE_RELE(EX2_CHOICE_PIN, LOW);
+    #endif
+  #endif
+
 }
 
 /**
@@ -981,49 +940,6 @@ void Printer::handle_safety_watch() {
   }
 
 #endif // HOST_KEEPALIVE_FEATURE
-
-#if ENABLED(IDLE_OOZING_PREVENT)
-
-  void Printer::IDLE_OOZING_retract(bool retracting) {
-
-    if (retracting && !IDLE_OOZING_retracted[tools.data.extruder.active]) {
-
-      float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-
-      mechanics.destination = mechanics.current_position;
-      mechanics.current_position.e += IDLE_OOZING_LENGTH
-        #if ENABLED(VOLUMETRIC_EXTRUSION)
-          / tools.volumetric_multiplier[tools.data.extruder.active]
-        #endif
-      ;
-      mechanics.feedrate_mm_s = IDLE_OOZING_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position.e);
-      mechanics.prepare_move_to_destination();
-      mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[tools.data.extruder.active] = true;
-      //SERIAL_EM("-");
-    }
-    else if (!retracting && IDLE_OOZING_retracted[tools.data.extruder.active]) {
-
-      float old_feedrate_mm_s = mechanics.feedrate_mm_s;
-
-      mechanics.destination = mechanics.current_position;
-      mechanics.current_position.e -= (IDLE_OOZING_LENGTH + IDLE_OOZING_RECOVER_LENGTH)
-        #if ENABLED(VOLUMETRIC_EXTRUSION)
-          / tools.volumetric_multiplier[tools.data.extruder.active]
-        #endif
-      ;
-
-      mechanics.feedrate_mm_s = IDLE_OOZING_RECOVER_FEEDRATE;
-      planner.set_e_position_mm(mechanics.current_position.e);
-      mechanics.prepare_move_to_destination();
-      mechanics.feedrate_mm_s = old_feedrate_mm_s;
-      IDLE_OOZING_retracted[tools.data.extruder.active] = false;
-      //SERIAL_EM("+");
-    }
-  }
-
-#endif
 
 #if ENABLED(TEMP_STAT_LEDS)
 

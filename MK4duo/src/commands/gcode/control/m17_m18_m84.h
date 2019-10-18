@@ -42,9 +42,7 @@ inline void gcode_M17() {
     if (parser.seen('X')) stepper.enable_X();
     if (parser.seen('Y')) stepper.enable_Y();
     if (parser.seen('Z')) stepper.enable_Z();
-    #if HAS_E_STEPPER_ENABLE
-      if (parser.seen('E')) stepper.enable_E();
-    #endif
+    if (parser.seen('E')) stepper.enable_E();
   }
 }
 
@@ -61,9 +59,7 @@ inline void gcode_M18_M84() {
       if (parser.seen('X')) stepper.disable_X();
       if (parser.seen('Y')) stepper.disable_Y();
       if (parser.seen('Z')) stepper.disable_Z();
-      #if HAS_E_STEPPER_ENABLE
-        if (parser.seen('E')) stepper.disable_E();
-      #endif
+      if (parser.seen('E')) stepper.disable_E();
     }
     else
       planner.finish_and_disable();

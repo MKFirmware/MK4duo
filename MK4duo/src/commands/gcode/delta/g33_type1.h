@@ -31,7 +31,7 @@
 #define CODE_G33
 
 #if HOTENDS > 1
-  const uint8_t old_tool_index = tools.data.extruder.active;
+  const uint8_t old_tool_index = tools.extruder.active;
 #endif
 
 static void ac_home() {

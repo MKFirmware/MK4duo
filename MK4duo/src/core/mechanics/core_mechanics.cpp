@@ -47,14 +47,11 @@ void Core_Mechanics::factory_parameters() {
   static const uint32_t tmp_maxacc[]        PROGMEM = DEFAULT_MAX_ACCELERATION,
                         tmp_retract[]       PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
-  LOOP_XYZE_N(i) {
-    data.axis_steps_per_mm[i]           = pgm_read_float(&tmp_step[i < COUNT(tmp_step) ? i : COUNT(tmp_step) - 1]);
-    data.max_feedrate_mm_s[i]           = pgm_read_float(&tmp_maxfeedrate[i < COUNT(tmp_maxfeedrate) ? i : COUNT(tmp_maxfeedrate) - 1]);
-    data.max_acceleration_mm_per_s2[i]  = pgm_read_dword_near(&tmp_maxacc[i < COUNT(tmp_maxacc) ? i : COUNT(tmp_maxacc) - 1]);
+  LOOP_XYZ(axis) {
+    data.axis_steps_per_mm[axis]          = pgm_read_float(&tmp_step[axis < COUNT(tmp_step) ? axis : COUNT(tmp_step) - 1]);
+    data.max_feedrate_mm_s[axis]          = pgm_read_float(&tmp_maxfeedrate[axis < COUNT(tmp_maxfeedrate) ? axis : COUNT(tmp_maxfeedrate) - 1]);
+    data.max_acceleration_mm_per_s2[axis] = pgm_read_dword_near(&tmp_maxacc[axis < COUNT(tmp_maxacc) ? axis : COUNT(tmp_maxacc) - 1]);
   }
-
-  LOOP_EXTRUDER()
-    data.retract_acceleration[e]        = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
 
   // Base pos
   data.base_pos.min.set(X_MIN_POS, Y_MIN_POS, Z_MIN_POS);
@@ -69,12 +66,7 @@ void Core_Mechanics::factory_parameters() {
   #if ENABLED(JUNCTION_DEVIATION)
     data.junction_deviation_mm = float(JUNCTION_DEVIATION_MM);
   #else
-    static const float tmp_ejerk[] PROGMEM = DEFAULT_EJERK;
     data.max_jerk.set(DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK);
-    #if DISABLED(LIN_ADVANCE)
-      LOOP_EXTRUDER()
-        data.max_jerk.e[e] = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
-    #endif
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
@@ -203,7 +195,7 @@ void Core_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.data.extruder.active;
+    const uint8_t old_tool_index = tools.extruder.active;
     tools.change(0, true);
   #endif
 
@@ -368,7 +360,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.data.extruder.active);
+  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
 
   planner.synchronize();
 
@@ -413,7 +405,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.data.extruder.active);
+        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.extruder.active);
         return true;
       #else
         /**
@@ -602,7 +594,7 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M92 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.axis_steps_per_mm.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.axis_steps_per_mm), 3);
     }
   }
 
@@ -614,7 +606,7 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M201 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_acceleration_mm_per_s2.e[e]));
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_acceleration_mm_per_s2));
     }
   }
 
@@ -626,7 +618,7 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M203 T", (int)e);
-      SERIAL_EMV(" E", VOLUMETRIC_UNIT(data.max_feedrate_mm_s.e[e]), 3);
+      SERIAL_EMV(" E", VOLUMETRIC_UNIT(extruders[e]->data.max_feedrate_mm_s), 3);
     }
   }
 
@@ -637,7 +629,7 @@ void Core_Mechanics::report_current_position_detail() {
     SERIAL_EOL();
     LOOP_EXTRUDER() {
       SERIAL_SMV(CFG, "  M204 T", (int)e);
-      SERIAL_EMV(" R", LINEAR_UNIT(data.retract_acceleration[e]), 3);
+      SERIAL_EMV(" R", LINEAR_UNIT(extruders[e]->data.retract_acceleration), 3);
     }
   }
 
@@ -665,7 +657,7 @@ void Core_Mechanics::report_current_position_detail() {
         SERIAL_EOL();
         LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M205 T", (int)e);
-          SERIAL_EMV(" E" , LINEAR_UNIT(data.max_jerk.e[e]), 3);
+          SERIAL_EMV(" E" , LINEAR_UNIT(extruders[e]->data.max_jerk), 3);
         }
       #endif
     #endif
@@ -899,8 +891,8 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
 
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_flag_t stealth_states;
-      stealth_states.x = tmc.enable_stallguard(X_DRV);
-      stealth_states.y = tmc.enable_stallguard(Y_DRV);
+      stealth_states.x = tmc.enable_stallguard(driver.x);
+      stealth_states.y = tmc.enable_stallguard(driver.y);
     #endif
 
     do_blocking_move_to_xy(1.5f * data.base_pos.max.x * x_axis_home_dir, 1.5f * data.base_pos.max.y * home_dir.y, fr_mm_s);
@@ -910,8 +902,8 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     current_position.x = current_position.y = 0.0f;
 
     #if ENABLED(SENSORLESS_HOMING)
-      tmc.disable_stallguard(X_DRV, stealth_states.x);
-      tmc.disable_stallguard(Y_DRV, stealth_states.y);
+      tmc.disable_stallguard(driver.x, stealth_states.x);
+      tmc.disable_stallguard(driver.y, stealth_states.y);
     #endif
   }
 

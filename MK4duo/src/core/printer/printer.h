@@ -105,18 +105,8 @@ class Printer {
       static int baricuda_e_to_p_pressure;
     #endif
 
-    #if ENABLED(IDLE_OOZING_PREVENT)
-      static bool IDLE_OOZING_enabled;
-    #endif
-
     #if HAS_CHDK
       static millis_s chdk_ms;
-    #endif
-
-  private: /** Private Parameters */
-
-    #if ENABLED(IDLE_OOZING_PREVENT)
-      static bool     IDLE_OOZING_retracted[EXTRUDERS];
     #endif
 
   public: /** Public Function */
@@ -151,10 +141,6 @@ class Printer {
 
     #if HAS_SUICIDE
       static void suicide();
-    #endif
-
-    #if ENABLED(IDLE_OOZING_PREVENT)
-      static void IDLE_OOZING_retract(bool retracting);
     #endif
 
     // Flag Debug function

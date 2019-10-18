@@ -37,20 +37,15 @@
      *        The flag is held by the library and persist until manually cleared by M912
      */
     inline void gcode_M911() {
-      #if AXIS_HAS_TMC(X)
-        tmc.report_otpw(driver.x);
-      #endif
+      LOOP_DRV_XYZ() {
+        Driver* drv = driver[d];
+        if (drv && drv->tmc) tmc.report_otpw(drv);
+      }
       #if AXIS_HAS_TMC(X2)
         tmc.report_otpw(driver.x2);
       #endif
-      #if AXIS_HAS_TMC(Y)
-        tmc.report_otpw(driver.y);
-      #endif
       #if AXIS_HAS_TMC(Y2)
         tmc.report_otpw(driver.y2);
-      #endif
-      #if AXIS_HAS_TMC(Z)
-        tmc.report_otpw(driver.z);
       #endif
       #if AXIS_HAS_TMC(Z2)
         tmc.report_otpw(driver.z2);
@@ -58,24 +53,10 @@
       #if AXIS_HAS_TMC(Z3)
         tmc.report_otpw(driver.z3);
       #endif
-      #if AXIS_HAS_TMC(E0)
-        tmc.report_otpw(driver.e[0]);
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        tmc.report_otpw(driver.e[1]);
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        tmc.report_otpw(driver.e[2]);
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        tmc.report_otpw(driver.e[3]);
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        tmc.report_otpw(driver.e[4]);
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        tmc.report_otpw(driver.e[5]);
-      #endif
+      LOOP_DRV_EXT() {
+        Driver* drv = driver[d];
+        if (drv && drv->tmc) tmc.report_otpw(drv);
+      }
     }
 
     #define CODE_M912
@@ -133,25 +114,10 @@
       #endif
 
       const uint8_t eval = int8_t(parser.byteval(axis_codes.e, 0xFF));
-
-      #if AXIS_HAS_TMC(E0)
-        if (hasNone || eval == 0 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[0]);
-      #endif
-      #if AXIS_HAS_TMC(E1)
-        if (hasNone || eval == 1 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[1]);
-      #endif
-      #if AXIS_HAS_TMC(E2)
-        if (hasNone || eval == 2 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[2]);
-      #endif
-      #if AXIS_HAS_TMC(E3)
-        if (hasNone || eval == 3 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[3]);
-      #endif
-      #if AXIS_HAS_TMC(E4)
-        if (hasNone || eval == 4 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[4]);
-      #endif
-      #if AXIS_HAS_TMC(E5)
-        if (hasNone || eval == 5 || (hasE && eval < 0)) tmc.clear_otpw(driver.e[5]);
-      #endif
+      LOOP_DRV_EXT() {
+        Driver* drv = driver.e[d];
+        if (drv && drv->tmc && (hasNone || eval == d || (hasE && eval < 0))) tmc.clear_otpw(drv);
+      }
 
     }
 
@@ -177,9 +143,8 @@
       #endif
 
       #define TMC_SET_PWMTHRS(ST)   driver[ST##_DRV]->tmc->set_pwm_thrs(value)
-      #define TMC_SET_PWMTHRS_E(ST) driver.e[ST##_DRV]->tmc->set_pwm_thrs(value)
 
-      LOOP_XYZE(i) {
+      LOOP_XYZ(i) {
         if (int32_t value = parser.longval(axis_codes[i])) {
           switch (i) {
             case X_AXIS:
@@ -209,30 +174,13 @@
                 TMC_SET_PWMTHRS(Z3);
               #endif
               break;
-            case E_AXIS: {
-              switch (tools.data.extruder.target) {
-                #if AXIS_HAS_STEALTHCHOP(E0)
-                  case 0: TMC_SET_PWMTHRS_E(E0); break;
-                #endif
-                #if AXIS_HAS_STEALTHCHOP(E1)
-                  case 1: TMC_SET_PWMTHRS_E(E1); break;
-                #endif
-                #if AXIS_HAS_STEALTHCHOP(E2)
-                  case 2: TMC_SET_PWMTHRS_E(E2); break;
-                #endif
-                #if AXIS_HAS_STEALTHCHOP(E3)
-                  case 3: TMC_SET_PWMTHRS_E(E3); break;
-                #endif
-                #if AXIS_HAS_STEALTHCHOP(E4)
-                  case 4: TMC_SET_PWMTHRS_E(E4); break;
-                #endif
-                #if AXIS_HAS_STEALTHCHOP(E5)
-                  case 5: TMC_SET_PWMTHRS_E(E5); break;
-                #endif
-              }
-            } break;
           }
         }
+      }
+
+      if (int32_t value = parser.longval(E_AXIS)) {
+        Driver* drv = driver.e[extruders[tools.extruder.target]->get_driver()];
+        if (drv && drv->tmc) drv->tmc->set_pwm_thrs(value);
       }
     }
 

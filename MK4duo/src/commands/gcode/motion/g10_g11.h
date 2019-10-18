@@ -35,15 +35,8 @@
  * G10 - Retract filament according to settings of M207
  */
 inline void gcode_G10() {
-  #if MAX_EXTRUDER > 1
-      const bool rs = parser.boolval('S');
-    #endif
-    fwretract.retract(true
-      #if MAX_EXTRUDER > 1
-        , rs
-      #endif
-    );
-  }
+  const bool rs = parser.boolval('S');
+  fwretract.retract(true, rs);
 }
 
 /**

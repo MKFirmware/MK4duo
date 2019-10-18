@@ -42,11 +42,11 @@ const xyz_float_t Mechanics::homing_feedrate_mm_s = { MMM_TO_MMS(HOMING_FEEDRATE
 
 feedrate_t        Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
 
-xyzen_float_t     Mechanics::steps_to_mm;
+xyz_float_t       Mechanics::steps_to_mm;
 
 int16_t           Mechanics::feedrate_percentage  = 100;
 
-xyzen_ulong_t     Mechanics::max_acceleration_steps_per_s2;
+xyz_ulong_t       Mechanics::max_acceleration_steps_per_s2;
 
 xyze_pos_t        Mechanics::current_position,
                   Mechanics::destination,
@@ -123,7 +123,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position, fr_mm_s, tools.data.extruder.active);
+  planner.buffer_line(current_position, fr_mm_s, tools.extruder.active);
 }
 
 /**
@@ -131,7 +131,7 @@ void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm
  * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
  */
 void Mechanics::buffer_line_to_destination(const feedrate_t fr_mm_s) {
-  planner.buffer_line(destination, fr_mm_s, tools.data.extruder.active);
+  planner.buffer_line(destination, fr_mm_s, tools.extruder.active);
 }
 
 /**
@@ -180,7 +180,7 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
    * since Arduino works with limited precision real numbers).
    */
   void Mechanics::plan_cubic_move(const float offset[4]) {
-    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.data.extruder.active);
+    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.extruder.active);
 
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position

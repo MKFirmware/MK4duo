@@ -82,7 +82,7 @@ inline void gcode_M205() {
       if (parser.seen('Z')) mechanics.data.max_jerk.z = parser.value_linear_units();
     #endif
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-      if (parser.seen('E')) mechanics.data.max_jerk.e[tools.data.extruder.target] = parser.value_linear_units();
+      if (parser.seen('E')) extruders[tools.extruder.target]->data.max_jerk = parser.value_linear_units();
     #endif
   #endif
 

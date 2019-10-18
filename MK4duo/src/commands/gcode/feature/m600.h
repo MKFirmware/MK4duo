@@ -53,14 +53,14 @@
     if (commands.get_target_tool(600)) return;
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      int8_t DXC_ext = tools.data.extruder.target;
+      int8_t DXC_ext = tools.extruder.target;
       if (!parser.seen('T')) {  // If no tool index is specified, M600 was (probably) sent in response to filament runout.
                                 // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
         #if HAS_FILAMENT_SENSOR && PIN_EXISTS(FIL_RUNOUT1)
           if (mechanics.dxc_is_duplicating())
             DXC_ext = (READ(FIL_RUNOUT_1_PIN) == endstops.isLogic(FIL_RUNOUT) ? 1 : 0;
         #else
-          DXC_ext = tools.data.extruder.active;
+          DXC_ext = tools.extruder.active;
         #endif
       }
     #endif
@@ -77,12 +77,12 @@
 
     #if MAX_EXTRUDER > 1
       // Change toolhead if specified
-      uint8_t active_extruder_before_filament_change = tools.data.extruder.active;
-      if (tools.data.extruder.active != tools.data.extruder.target
+      uint8_t active_extruder_before_filament_change = tools.extruder.active;
+      if (tools.extruder.active != tools.extruder.target
         #if ENABLED(DUAL_X_CARRIAGE)
           && mechanics.dual_x_carriage_mode != DXC_DUPLICATION_MODE && mechanics.dual_x_carriage_mode != DXC_SCALED_DUPLICATION_MODE
         #endif
-      ) tools.change(tools.data.extruder.target);
+      ) tools.change(tools.extruder.target);
     #endif
 
     // Initial retract before move to pause park position
@@ -100,7 +100,7 @@
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
     #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-      if (thermalManager.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
+      if (tools.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
     #endif
 
     #if HAS_MMU2
@@ -111,14 +111,14 @@
     #else
       // Unload filament
       const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                        : advancedpause.data[tools.data.extruder.active].unload_length);
+                                                        : extruders[tools.extruder.active]->data.unload_length);
 
       // Slow load filament
       constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
 
       // Load filament
       const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                          : advancedpause.data[tools.data.extruder.active].load_length);
+                                                          : extruders[tools.extruder.active]->data.load_length);
     #endif
 
     if (parser.seenval('S')) hotends[tools.active_hotend()]->set_target_temp(parser.value_celsius());
@@ -141,9 +141,9 @@
       #endif
     }
 
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
     // Restore toolhead if it was changed
-      if (active_extruder_before_filament_change != tools.data.extruder.active)
+      if (active_extruder_before_filament_change != tools.extruder.active)
         tools.change(active_extruder_before_filament_change);
     #endif
 

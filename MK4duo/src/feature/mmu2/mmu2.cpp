@@ -491,7 +491,7 @@ void MMU2::tool_change(uint8_t index) {
 
   if (index != extruder) {
 
-    stepper.disable_E0();
+    stepper.disable_E(0);
     lcdui.status_printf_P(0, PSTR(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
 
     command(MMU_CMD_T0 + index);
@@ -500,9 +500,9 @@ void MMU2::tool_change(uint8_t index) {
 
     command(MMU_CMD_C0);
     extruder = index; // filament change is finished
-    tools.data.extruder.active = 0;
+    tools.extruder.active = 0;
 
-    stepper.enable_E0();
+    stepper.enable_E(0);
 
     SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, int(extruder));
 
@@ -539,15 +539,15 @@ void MMU2::tool_change(const char* special) {
       case 'x': {
         planner.synchronize();
         uint8_t index = mmu2_choose_filament();
-        stepper.disable_E0();
+        stepper.disable_E(0);
         command(MMU_CMD_T0 + index);
         manage_response(true, true);
         command(MMU_CMD_C0);
         mmu_loop();
 
-        stepper.enable_E0();
+        stepper.enable_E(0);
         extruder = index;
-        tools.data.extruder.active = 0;
+        tools.extruder.active = 0;
       } break;
 
       case 'c': {
@@ -710,7 +710,7 @@ void MMU2::set_runout_valid(const bool valid) {
       mmu_loop();
 
       extruder = index;
-      tools.data.extruder.active = 0;
+      tools.extruder.active = 0;
 
       load_to_nozzle();
 
@@ -747,9 +747,9 @@ void MMU2::set_runout_valid(const bool valid) {
     const bool saved_e_relative_mode = mechanics.axis_relative_modes[E_AXIS];
     mechanics.axis_relative_modes[E_AXIS] = true;
 
-    stepper.enable_E0();
+    stepper.enable_E(0);
     mechanics.current_position.e -= MMU2_FILAMENTCHANGE_EJECT_FEED;
-    planner.buffer_line(mechanics.current_position, 2500 / 60, tools.data.extruder.active);
+    planner.buffer_line(mechanics.current_position, 2500 / 60, tools.extruder.active);
     planner.synchronize();
     command(MMU_CMD_E0 + index);
     manage_response(false, false);
@@ -778,7 +778,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     mechanics.axis_relative_modes[E_AXIS] = saved_e_relative_mode;
 
-    stepper.disable_E0();
+    stepper.disable_E(0);
 
     return true;
   }
@@ -823,7 +823,7 @@ void MMU2::set_runout_valid(const bool valid) {
   void MMU2::execute_extruder_sequence(const E_Step * sequence, int steps) {
 
     planner.synchronize();
-    stepper.enable_E0();
+    stepper.enable_E(0);
 
     const uint8_t saved_e_relative_mode = mechanics.axis_relative_modes;
     mechanics.set_e_relative();
@@ -841,7 +841,7 @@ void MMU2::set_runout_valid(const bool valid) {
       #endif
 
       mechanics.current_position.e += es;
-      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), tools.data.extruder.active);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), tools.extruder.active);
       planner.synchronize();
 
       step++;
@@ -849,7 +849,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     mechanics.axis_relative_modes = saved_e_relative_mode;
 
-    stepper.disable_E0();
+    stepper.disable_E(0);
   }
 
 #endif // HAS_LCD_MENU

@@ -96,9 +96,9 @@ void menu_tool_change() {
   void menu_tool_offsets() {
 
     auto _recalc_offsets = []{
-      if (tools.data.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
+      if (tools.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
         commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
-        tools.data.extruder.active = 0;
+        tools.extruder.active = 0;
       }
     };
 
@@ -110,7 +110,7 @@ void menu_tool_change() {
       EDIT_ITEM_FAST(float52sign, MSG_Y_OFFSET, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
       EDIT_ITEM_FAST(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
-      for (uint8_t h = 1; h < thermalManager.data.hotends; h++) {
+      for (uint8_t h = 1; h < tools.data.hotends; h++) {
         EDIT_ITEM_FAST_I(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
         EDIT_ITEM_FAST_I(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
         EDIT_ITEM_FAST_I(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
@@ -215,7 +215,7 @@ void menu_tool_change() {
     EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_ZHOP, &fwretract.data.retract_zlift, 0, 999);
     EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER, &fwretract.data.retract_recover_length, -100, 100);
     EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVERF, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
-    if (tools.data.extruder.total > 1) {
+    if (tools.data.extruders > 1) {
       EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_SWAP, &fwretract.data.swap_retract_length, 0, 100);
       EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, &fwretract.data.swap_retract_recover_length, -100, 100);
       EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
@@ -353,7 +353,7 @@ void menu_configuration() {
     #endif
   }
 
-  if (tools.data.extruder.total > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
+  if (tools.data.extruders > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
 
   //
   // Set Case light on/off/brightness

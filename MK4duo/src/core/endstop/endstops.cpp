@@ -866,7 +866,7 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
       // In Dual X mode nozzle.data.hotend_offset[X] is T1's home position
       float dual_max_x = MAX(nozzle.data.hotend_offset[1].x, X2_MAX_POS);
 
-      if (tools.data.extruder.active != 0) {
+      if (tools.extruder.active != 0) {
         // T1 can move from X2_MIN_POS to X2_MAX_POS or X2 home position (whichever is larger)
         soft_endstop.min.x = X2_MIN_POS;
         soft_endstop.max.x = dual_max_x;
@@ -890,8 +890,8 @@ void Endstops::update_software_endstops(const AxisEnum axis) {
 
   #else
 
-    if (thermalManager.data.hotends > 1) {
-      if (tools.data.extruder.active != tools.data.extruder.target) {
+    if (tools.data.hotends > 1) {
+      if (tools.extruder.active != tools.extruder.target) {
         const float offs = nozzle.data.hotend_offset[axis][tools.target_hotend()] - nozzle.data.hotend_offset[axis][tools.active_hotend()];
         soft_endstop.min[axis] += offs;
         soft_endstop.max[axis] += offs;

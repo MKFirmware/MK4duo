@@ -117,9 +117,8 @@ class Driver {
     }
     FORCE_INLINE void enable_write(const bool state) {
       #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
-        if (tmc) {
+        if (tmc)
           return tmc->toff(state == isEnable() ? chopper_timing.toff : 0);
-        }
       #endif
       HAL::digitalWrite(data.pin.enable, state);
     }
@@ -186,7 +185,7 @@ struct driver_t {
     Driver* drv[MAX_DRIVER];
   };
 
-  Driver*   operator[](const int i)     { return this->drv[i]; }
+  Driver*   operator[](const int i) { return this->drv[i]; }
 
 };
 

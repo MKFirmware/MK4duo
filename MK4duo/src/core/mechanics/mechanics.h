@@ -71,32 +71,24 @@ union sensorless_flag_t {
 // Struct Mechanics data
 struct generic_data_t {
 
-  xyzen_float_t axis_steps_per_mm,
+  xyz_float_t   axis_steps_per_mm,
                 max_feedrate_mm_s;
 
   float         acceleration,
                 travel_acceleration,
-                retract_acceleration[MAX_EXTRUDER],
                 min_feedrate_mm_s,
                 min_travel_feedrate_mm_s;
 
-  xyzen_ulong_t max_acceleration_mm_per_s2;
+  xyz_ulong_t   max_acceleration_mm_per_s2;
 
   uint32_t      min_segment_time_us;
 
   #if ENABLED(JUNCTION_DEVIATION)
     float     junction_deviation_mm;
-    #if ENABLED(LIN_ADVANCE)
-      float max_e_jerk[MAX_EXTRUDER];
-    #endif
   #endif
 
   #if HAS_CLASSIC_JERK
-    #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
-      xyz_float_t max_jerk;
-    #else
-      xyzen_float_t max_jerk;
-    #endif
+    xyz_float_t max_jerk;
   #endif
 
   #if ENABLED(WORKSPACE_OFFSETS)
@@ -147,12 +139,12 @@ class Mechanics {
     /**
      * Step
      */
-    static xyzen_float_t      steps_to_mm;
+    static xyz_float_t        steps_to_mm;
 
     /**
      * Acceleration
      */
-    static xyzen_ulong_t      max_acceleration_steps_per_s2;
+    static xyz_ulong_t        max_acceleration_steps_per_s2;
 
     /**
      * Cartesian Current Position
@@ -341,9 +333,9 @@ class Mechanics {
     #if ENABLED(JUNCTION_DEVIATION) && ENABLED(LIN_ADVANCE)
       FORCE_INLINE static void recalculate_max_e_jerk() {
         LOOP_EXTRUDER() {
-          data.max_e_jerk[e] = SQRT(SQRT(0.5) *
+          extruders[e]->data.max_e_jerk = SQRT(SQRT(0.5) *
             data.junction_deviation_mm *
-            data.max_acceleration_mm_per_s2[E_AXIS + e] *
+            extruders[e]->data.max_acceleration_mm_per_s2 *
             RECIPROCAL(1.0 - SQRT(0.5))
           );
         }

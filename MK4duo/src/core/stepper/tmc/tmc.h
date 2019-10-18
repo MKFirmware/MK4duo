@@ -137,12 +137,12 @@ class TMCStorage {
 
     public: /** Constructor */
 
-      MKTMC(Stream* SerialPort, const float RS) :
+      MKTMC(const uint8_t DRIVER_ID, Stream* SerialPort, const float RS) :
         id(DRIVER_ID),
         TMC2208Stepper(SerialPort, RS, /*has_rx=*/true)
         {}
 
-      MKTMC(const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :
+      MKTMC(const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :
         id(DRIVER_ID),
         TMC2208Stepper(RX, TX, RS, has_rx)
         {}
@@ -185,6 +185,15 @@ class TMCStorage {
             this->hybrid_thrs = thrs;
           #endif
         }
+        uint32_t get_pwm_thrs_e() {
+          return tmc_thrs(microsteps(), this->TPWMTHRS(), extruders[this->id]->data.axis_steps_per_mm);
+        }
+        void set_pwm_thrs_e(const uint32_t thrs) {
+          TMC2208Stepper::TPWMTHRS(tmc_thrs(microsteps(), thrs, extruders[this->id]->data.axis_steps_per_mm));
+          #if HAS_LCD_MENU
+            this->hybrid_thrs = thrs;
+          #endif
+        }
       #endif
 
       #if HAS_LCD_MENU
@@ -192,7 +201,8 @@ class TMCStorage {
         inline void refresh_stepper_microstep() { microsteps(val_ms); }
 
         #if ENABLED(HYBRID_THRESHOLD)
-          inline void refresh_hybrid_thrs() { set_pwm_thrs(this->hybrid_thrs); }
+          inline void refresh_hybrid_thrs()   { set_pwm_thrs(this->hybrid_thrs); }
+          inline void refresh_hybrid_thrs_e() { set_pwm_thrs_e(this->hybrid_thrs); }
         #endif
       #endif
 
@@ -316,6 +326,15 @@ class TMCStorage {
             this->hybrid_thrs = thrs;
           #endif
         }
+        uint32_t get_pwm_thrs_e() {
+          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+        }
+        void set_pwm_thrs_e(const uint32_t thrs) {
+          TMC_MODEL_LIB::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          #if HAS_LCD_MENU
+            this->hybrid_thrs = thrs;
+          #endif
+        }
       #endif
       #if HAS_SENSORLESS
         inline int16_t homing_threshold() { return TMC_MODEL_LIB::sgt(); }
@@ -343,7 +362,8 @@ class TMCStorage {
         inline void refresh_stepper_microstep() { microsteps(this->val_ms); }
 
         #if ENABLED(HYBRID_THRESHOLD)
-          inline void refresh_hybrid_thrs() { set_pwm_thrs(this->hybrid_thrs); }
+          inline void refresh_hybrid_thrs()   { set_pwm_thrs(this->hybrid_thrs); }
+          inline void refresh_hybrid_thrs_e() { set_pwm_thrs_e(this->hybrid_thrs); }
         #endif
         #if HAS_SENSORLESS
           inline void refresh_homing_thrs() { homing_threshold(this->homing_thrs); }

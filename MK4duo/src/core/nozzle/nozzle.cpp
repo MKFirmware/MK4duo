@@ -89,7 +89,7 @@ void Nozzle::factory_parameters() {
     #endif
   }
 
-#endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#endif // ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
 
 #if MAX_HOTEND > 1
 
