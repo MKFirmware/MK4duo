@@ -99,7 +99,7 @@
 
       #endif
 
-    #elif MAX_HOTEND >= 1
+    #elif MAX_HOTEND > 0
 
       #if ENABLED(STATUS_HOTEND_ANIM)
 
@@ -152,56 +152,58 @@
 
       #endif
 
-    #elif MAX_HOTEND >= 2
+      #if STATUS_HOTEND_BITMAPS > 1
 
-      #if ENABLED(STATUS_HOTEND_ANIM)
+        #if ENABLED(STATUS_HOTEND_ANIM)
 
-        const unsigned char status_hotend2_a_bmp[] PROGMEM = {
-          B00011111,B11100000,
-          B00111111,B11110000,
-          B00111100,B11110000,
-          B00111011,B01110000,
-          B00011111,B01100000,
-          B00011110,B11100000,
-          B00111101,B11110000,
-          B00111011,B11110000,
-          B00111000,B01110000,
-          B00001111,B11000000,
-          B00000111,B10000000,
-          B00000011,B00000000
-        };
+          const unsigned char status_hotend2_a_bmp[] PROGMEM = {
+            B00011111,B11100000,
+            B00111111,B11110000,
+            B00111100,B11110000,
+            B00111011,B01110000,
+            B00011111,B01100000,
+            B00011110,B11100000,
+            B00111101,B11110000,
+            B00111011,B11110000,
+            B00111000,B01110000,
+            B00001111,B11000000,
+            B00000111,B10000000,
+            B00000011,B00000000
+          };
 
-        const unsigned char status_hotend2_b_bmp[] PROGMEM = {
-          B00011111,B11100000,
-          B00100000,B00010000,
-          B00100011,B00010000,
-          B00100100,B10010000,
-          B00010000,B10100000,
-          B00010001,B00100000,
-          B00100010,B00010000,
-          B00100100,B00010000,
-          B00110111,B10110000,
-          B00001000,B01000000,
-          B00000100,B10000000,
-          B00000011,B00000000
-        };
+          const unsigned char status_hotend2_b_bmp[] PROGMEM = {
+            B00011111,B11100000,
+            B00100000,B00010000,
+            B00100011,B00010000,
+            B00100100,B10010000,
+            B00010000,B10100000,
+            B00010001,B00100000,
+            B00100010,B00010000,
+            B00100100,B00010000,
+            B00110111,B10110000,
+            B00001000,B01000000,
+            B00000100,B10000000,
+            B00000011,B00000000
+          };
 
-      #else
+        #else
 
-        const unsigned char status_hotend2_a_bmp[] PROGMEM = {
-          B00011111,B11100000,
-          B00111100,B11110000,
-          B00111011,B01110000,
-          B00111111,B01110000,
-          B00011110,B11100000,
-          B00011101,B11100000,
-          B00111011,B11110000,
-          B00111000,B01110000,
-          B00111111,B11110000,
-          B00001111,B11000000,
-          B00000111,B10000000,
-          B00000011,B00000000
-        };
+          const unsigned char status_hotend2_a_bmp[] PROGMEM = {
+            B00011111,B11100000,
+            B00111100,B11110000,
+            B00111011,B01110000,
+            B00111111,B01110000,
+            B00011110,B11100000,
+            B00011101,B11100000,
+            B00111011,B11110000,
+            B00111000,B01110000,
+            B00111111,B11110000,
+            B00001111,B11000000,
+            B00000111,B10000000,
+            B00000011,B00000000
+          };
+
+        #endif
 
       #endif
 
@@ -260,7 +262,7 @@
 
       #endif
 
-      #if STATUS_HOTEND_BITMAPS >= 4
+      #if STATUS_HOTEND_BITMAPS > 3
 
         #if ENABLED(STATUS_HOTEND_ANIM)
 
@@ -315,7 +317,7 @@
 
       #endif
 
-      #if STATUS_HOTEND_BITMAPS >= 5
+      #if STATUS_HOTEND_BITMAPS > 4
 
         #ifdef STATUS_HOTEND_ANIM
 
