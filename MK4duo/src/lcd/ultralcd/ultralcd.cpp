@@ -402,7 +402,7 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
 
 #if ENABLED(LCD_PROGRESS_BAR)
   millis_s LcdUI::progress_bar_ms = 0;
-  #if PROGRESS_MSG_HOST_EXPIRE > 0
+  #if PROGRESS_MSG_EXPIRE > 0
     millis_l LcdUI::expire_status_ms = 0;
   #endif
 #endif
@@ -423,11 +423,11 @@ void LcdUI::status_screen() {
     //
 
     // If the message will blink rather than expire...
-    #if DISABLED(PROGRESS_MSG_HOST_ONCE)
+    #if DISABLED(PROGRESS_MSG_ONCE)
       (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME));
     #endif
 
-    #if PROGRESS_MSG_HOST_EXPIRE > 0
+    #if PROGRESS_MSG_EXPIRE > 0
 
       // Handle message expire
       if (expire_status_ms > 0) {
@@ -446,7 +446,7 @@ void LcdUI::status_screen() {
         }
       }
 
-    #endif // PROGRESS_MSG_HOST_EXPIRE
+    #endif // PROGRESS_MSG_EXPIRE
 
   #endif // LCD_PROGRESS_BAR
 
@@ -1152,14 +1152,14 @@ void LcdUI::update() {
 
 void LcdUI::finish_status(const bool persist) {
 
-  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_HOST_EXPIRE > 0))
+  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
     UNUSED(persist);
   #endif
 
   #if ENABLED(LCD_PROGRESS_BAR)
     progress_bar_ms = millis();
-    #if PROGRESS_MSG_HOST_EXPIRE > 0
-      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_HOST_EXPIRE;
+    #if PROGRESS_MSG_EXPIRE > 0
+      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_EXPIRE;
     #endif
   #endif
 

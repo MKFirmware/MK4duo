@@ -516,49 +516,30 @@ namespace Language_it {
   // Le schermate di Cambio Filamento possono visualizzare fino a 3 linee su un display a 4 righe
   //                                                  ...o fino a 2 linee su un display a 3 righe.
   #if LCD_HEIGHT >= 4
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_1       , _UxGT("Premi per"));
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_2       , _UxGT("riprendere"));
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_3       , _UxGT("la stampa"));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT_1             , _UxGT("Parcheggiando..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_1         , _UxGT("Attendere avvio"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_2         , _UxGT("del cambio"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_3         , _UxGT("di filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_1       , _UxGT("Inserisci il"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_2       , _UxGT("filamento e premi"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_3       , _UxGT("per continuare"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_1         , _UxGT("Premi per"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_2         , _UxGT("riscaldare ugello"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ_1          , _UxGT(" z   z   z"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ_2          , _UxGT("Z   Z   Z"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_1      , _UxGT("Riscaldam. ugello"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_2      , _UxGT("Attendere prego..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_1       , _UxGT("Attendere"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_2       , _UxGT("l'espulsione"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_3       , _UxGT("del filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_1         , _UxGT("Attendere"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_2         , _UxGT("il caricamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_3         , _UxGT("del filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_1        , _UxGT("Attendere"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_2        , _UxGT("lo spurgo"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_3        , _UxGT("del filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_1   , _UxGT("Premi x terminare"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_2   , _UxGT("lo spurgo"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_3   , _UxGT("del filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_1       , _UxGT("Attendere"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_2       , _UxGT("la ripresa"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_3       , _UxGT("della stampa..."));
+    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_3_LINE("Premi per", "riprendere", "la stampa")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parcheggiando...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Attendere avvio", "del cambio", "di filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Inserisci il", "filamento e premi", "per continuare")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Premi per", "riscaldare ugello")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ            , _UxGT(MSG_2_LINE(" z   z   z", "Z   Z   Z")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING        , _UxGT(MSG_2_LINE("Riscaldam. ugello", "Attendere prego...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_3_LINE("Attendere", "l'espulsione", "del filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_3_LINE("Attendere", "il caricamento", "del filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_3_LINE("Attendere", "lo spurgo", "del filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_3_LINE("Premi x terminare", "lo spurgo", "del filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_3_LINE("Attendere", "la ripresa", "della stampa...")));
   #else // LCD_HEIGHT < 4
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_1       , _UxGT("Premi x continuare"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_1         , _UxGT("Attendere..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_1       , _UxGT("Inserisci e premi"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_1         , _UxGT("Riscalda ugello"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_1      , _UxGT("Riscaldamento..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_1       , _UxGT("Espulsione..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ_1          , _UxGT(" Zz   Zz   Zz"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_1         , _UxGT("Caricamento..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_1        , _UxGT("Spurgo filamento"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_1   , _UxGT("Premi x terminare"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_1       , _UxGT("Ripresa..."));
+    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Premi x continuare")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Attendere...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Inserisci e premi")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Riscalda ugello")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ            , _UxGT(MSG_1_LINE(" Zz   Zz   Zz")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING        , _UxGT(MSG_1_LINE("Riscaldamento...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_1_LINE("Espulsione...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_1_LINE("Caricamento...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_1_LINE("Spurgo filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_1_LINE("Premi x terminare")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_1_LINE("Ripresa...")));
   #endif // LCD_HEIGHT < 4
 
   // TMC Driver

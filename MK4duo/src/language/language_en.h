@@ -533,43 +533,31 @@ namespace Language_en {
   //                        ...or up to 2 lines on a 3-line display
   //
   #if LCD_HEIGHT >= 4
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_1       , _UxGT("Press Button"));
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_2       , _UxGT("to resume print"));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT_1             , _UxGT("Parking..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_1         , _UxGT("Wait for"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_2         , _UxGT("filament change"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_3         , _UxGT("to start"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_1       , _UxGT("Insert filament"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_2       , _UxGT("and press button"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_3       , _UxGT("to continue"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_1         , _UxGT("Press button"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_2         , _UxGT("to heat nozzle"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ_1          , _UxGT(" z   z   z"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ_2          , _UxGT("Z   Z   Z"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_1      , _UxGT("Nozzle heating"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_2      , _UxGT("Please wait..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_1       , _UxGT("Wait for filament"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_2       , _UxGT("to fully unload"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_1         , _UxGT("Wait for"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_2         , _UxGT("filament load"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_1        , _UxGT("Wait for"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_2        , _UxGT("filament purge"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_1   , _UxGT("Click to finish"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_2   , _UxGT("filament purge"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_1       , _UxGT("Wait for print"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_2       , _UxGT("to resume..."));
+    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_2_LINE("Press Button", "to resume print")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parking...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Wait for", "filament change", "to start")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Insert filament", "and press button", "to continue")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_2_LINE("Press button", "to heat nozzle")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ            , _UxGT(MSG_2_LINE(" z   z   z", "Z   Z   Z")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING        , _UxGT(MSG_2_LINE("Nozzle heating", "Please wait...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_2_LINE("Wait for", "filament unload")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_2_LINE("Wait for", "filament load")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_2_LINE("Wait for", "filament purge")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_2_LINE("Click to finish", "filament purge")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_2_LINE("Wait for print", "to resume...")));
   #else // LCD_HEIGHT < 4
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING_1       , _UxGT("Click to continue"));
-    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT_1             , _UxGT("Parking..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT_1         , _UxGT("Please wait..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT_1       , _UxGT("Insert and Click"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT_1         , _UxGT("Click to heat"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING_1      , _UxGT("Heating..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD_1       , _UxGT("Ejecting..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD_1         , _UxGT("Loading..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE_1        , _UxGT("Purging..."));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE_1   , _UxGT("Click to finish"));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME_1       , _UxGT("Resuming..."));
+    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Click to continue")));
+    FSTRINGVALUE(MSG_PAUSE_PRINT_INIT               , _UxGT(MSG_1_LINE("Parking...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Please wait...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Insert and Click")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Click to heat")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_ZZZ            , _UxGT(MSG_1_LINE(" Zz   Zz   Zz")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEATING        , _UxGT(MSG_1_LINE("Heating...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_1_LINE("Ejecting...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_1_LINE("Loading...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_1_LINE("Purging...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_1_LINE("Click to finish")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_1_LINE("Resuming...")));
   #endif  
 
   FSTRINGVALUE(MSG_TMC_DRIVERS                      , _UxGT("TMC Drivers"));

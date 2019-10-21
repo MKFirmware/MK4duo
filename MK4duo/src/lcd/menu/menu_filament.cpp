@@ -211,147 +211,41 @@ void menu_pause_option() {
 // ADVANCED_PAUSE_FEATURE message screens
 //
 
-void _lcd_pause_message(PGM_P const msg1, PGM_P const msg2=nullptr, PGM_P const msg3=nullptr) {
+void _lcd_pause_message(PGM_P const msg) {
+  PGM_P const msg1 = msg;
+  PGM_P const msg2 = msg1 + strlen_P(msg1) + 1;
+  PGM_P const msg3 = msg2 + strlen_P(msg2) + 1;
+  const bool  has2 = msg2[0], has3 = msg3[0],
+              skip = !has2 && (LCD_HEIGHT) >= 5;
+
   START_SCREEN();
-  STATIC_ITEM_P(pause_header(), SS_CENTER|SS_INVERT);
-  STATIC_ITEM_P(msg1);
-  if (msg2) STATIC_ITEM_P(msg2);
-  if (msg3 && (LCD_HEIGHT) >= 5) STATIC_ITEM_P(msg3);
-  if ((!!msg2) + (!!msg3) + 2 < (LCD_HEIGHT) - 1) STATIC_ITEM_P(PSTR(" "));
-  HOTEND_STATUS_ITEM();
+  STATIC_ITEM_P(pause_header(), SS_CENTER|SS_INVERT);           // 1: Header
+  if (skip) SKIP_ITEM();                                        // Move a single-line message down
+  STATIC_ITEM_P(msg1);                                          // 2: Message Line 1
+  if (has2) STATIC_ITEM_P(msg2);                                // 3: Message Line 2
+  if (has3 && (LCD_HEIGHT) >= 5) STATIC_ITEM_P(msg3);           // 4: Message Line 3 (if LCD has 5 lines)
+  if (skip + 1 + has2 + has3 < (LCD_HEIGHT) - 2) SKIP_ITEM();   // Push Hotend Status down, if needed
+  HOTEND_STATUS_ITEM();                                         // 5: Hotend Status
   END_SCREEN();
 }
 
-void lcd_pause_pausing_message() {
-  _lcd_pause_message(GET_TEXT(MSG_PAUSE_PRINT_INIT_1)
-    #ifdef MSG_PAUSE_PRINT_INIT_2
-      , GET_TEXT(MSG_PAUSE_PRINT_INIT_2)
-      #ifdef MSG_PAUSE_PRINT_INIT_3
-        , GET_TEXT(MSG_PAUSE_PRINT_INIT_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_changing_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INIT_1)
-    #ifdef MSG_FILAMENT_CHANGE_INIT_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_INIT_2)
-      #ifdef MSG_FILAMENT_CHANGE_INIT_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_INIT_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_unload_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_1)
-    #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_2)
-      #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_heating_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_1)
-    #ifdef MSG_FILAMENT_CHANGE_HEATING_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_2)
-      #ifdef MSG_FILAMENT_CHANGE_HEATING_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_heat_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_1)
-    #ifdef MSG_FILAMENT_CHANGE_HEAT_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_2)
-      #ifdef MSG_FILAMENT_CHANGE_HEAT_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_insert_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_1)
-    #ifdef MSG_FILAMENT_CHANGE_INSERT_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_2)
-      #ifdef MSG_FILAMENT_CHANGE_INSERT_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_printer_off() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_1)
-    #ifdef MSG_FILAMENT_CHANGE_ZZZ_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_2)
-      #ifdef MSG_FILAMENT_CHANGE_ZZZ_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_load_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_1)
-    #ifdef MSG_FILAMENT_CHANGE_LOAD_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_2)
-      #ifdef MSG_FILAMENT_CHANGE_LOAD_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_waiting_message() {
-  _lcd_pause_message(GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_1)
-    #ifdef MSG_ADVANCED_PAUSE_WAITING_2
-      , GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_2)
-      #ifdef MSG_ADVANCED_PAUSE_WAITING_3
-        , GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_3)
-      #endif
-    #endif
-  );
-}
-
-void lcd_pause_resume_message() {
-  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_1)
-    #ifdef MSG_FILAMENT_CHANGE_RESUME_2
-      , GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_2)
-      #ifdef MSG_FILAMENT_CHANGE_RESUME_3
-        , GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_3)
-      #endif
-    #endif
-  );
-}
+void lcd_pause_pausing_message()  { _lcd_pause_message(GET_TEXT(MSG_PAUSE_PRINT_INIT));         }
+void lcd_pause_changing_message() { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INIT));     }
+void lcd_pause_unload_message()   { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD));   }
+void lcd_pause_heating_message()  { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEATING));  }
+void lcd_pause_heat_message()     { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEAT));     }
+void lcd_pause_insert_message()   { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INSERT));   }
+void lcd_pause_printer_off()      { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ));      }
+void lcd_pause_load_message()     { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_LOAD));     }
+void lcd_pause_waiting_message()  { _lcd_pause_message(GET_TEXT(MSG_ADVANCED_PAUSE_WAITING));   }
+void lcd_pause_resume_message()   { _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_RESUME));   }
 
 void lcd_pause_purge_message() {
-  _lcd_pause_message(
-    #if ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
-      GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_1)
-      #ifdef MSG_FILAMENT_CHANGE_CONT_PURGE_2
-        , GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_2)
-        #ifdef MSG_FILAMENT_CHANGE_CONT_PURGE_3
-          , GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_3)
-        #endif
-      #endif
-    #else
-      GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_1)
-      #ifdef MSG_FILAMENT_CHANGE_PURGE_2
-        , GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_2)
-        #ifdef MSG_FILAMENT_CHANGE_PURGE_3
-          , GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_3)
-        #endif
-      #endif
-    #endif
-  );
+  #if ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
+    _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE));
+  #else
+    _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_PURGE));
+  #endif
 }
 
 FORCE_INLINE screenFunc_t ap_message_screen(const PauseMessageEnum message) {

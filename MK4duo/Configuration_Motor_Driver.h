@@ -96,7 +96,8 @@
 #define Y_STALL_SENSITIVITY 8
 #define Z_STALL_SENSITIVITY 8
 
-//#define SPI_ENDSTOPS                // TMC2130 only
+// TMC2130 only
+//#define SPI_ENDSTOPS
 //#define IMPROVE_HOMING_RELIABILITY
 
 // Create a 50/50 square wave step pulse optimal for stepper drivers.

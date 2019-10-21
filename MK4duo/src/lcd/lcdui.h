@@ -73,7 +73,7 @@ class LcdUI {
 
       #if HAS_CHARACTER_LCD && ENABLED(LCD_PROGRESS_BAR)
         static millis_s progress_bar_ms;  // Start time for the current progress bar cycle
-        #if PROGRESS_MSG_HOST_EXPIRE > 0
+        #if PROGRESS_MSG_EXPIRE > 0
           static millis_l expire_status_ms; // = 0
         #endif
       #endif
@@ -261,7 +261,7 @@ class LcdUI {
             #endif
           );
 
-          #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_HOST_EXPIRE > 0
+          #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
             static inline void reset_progress_bar_timeout() { expire_status_ms = 0; }
           #endif
 

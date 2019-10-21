@@ -186,8 +186,8 @@ static_assert(1 >= 0
     #if DISABLED(PROGRESS_BAR_MSG_TIME)
       #error "DEPENDENCY ERROR: Missing setting PROGRESS_BAR_MSG_TIME."
     #endif
-    #if DISABLED(PROGRESS_MSG_HOST_EXPIRE)
-      #error "DEPENDENCY ERROR: Missing setting PROGRESS_MSG_HOST_EXPIRE."
+    #if DISABLED(PROGRESS_MSG_EXPIRE)
+      #error "DEPENDENCY ERROR: Missing setting PROGRESS_MSG_EXPIRE."
     #endif
   #endif
 #endif

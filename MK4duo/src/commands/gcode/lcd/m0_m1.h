@@ -59,7 +59,7 @@ inline void gcode_M0_M1() {
       lcdui.set_status(args, true);
     else {
       LCD_MESSAGEPGM(MSG_USERWAIT);
-      #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_HOST_EXPIRE > 0
+      #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
         dontExpireStatus();
       #endif
     }
