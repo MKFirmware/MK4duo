@@ -1532,20 +1532,25 @@ void LcdUI::stop_print() {
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    nexlcd.setChar(' ');
-    nexlcd.setChar(DIGIT(idx));
+    if (idx != NO_INDEX) {
+      nexlcd.setChar(' ');
+      nexlcd.setChar(DIGIT(idx));
+    }
     nexlcd.endChar();
   }
 
   // Draw a menu item with a (potentially) editable value
   void  MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr) + 2,
+    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
                   vallen    = data ? (pgm ? strlen_P(data) : strlen((char*)data)) : 0;
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx));
+    if (idx != NO_INDEX) {
+      nexlcd.setChar(' ');
+      nexlcd.setChar(DIGIT(idx));
+    }
     nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)

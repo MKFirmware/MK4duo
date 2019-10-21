@@ -21,8 +21,6 @@
  */
 #pragma once
 
-typedef const char Language_Str[];
-
 #define _UxGT(a) a
 
 // Fallback if no language is set. DON'T CHANGE
