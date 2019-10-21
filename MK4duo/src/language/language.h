@@ -76,30 +76,7 @@
 #define MSG_2_LINE(A,B)   A "\0" B "\0"
 #define MSG_3_LINE(A,B,C) A "\0" B "\0" C
 
-#if HAS_GRAPHICAL_LCD
-  //
-  // Custom characters from MK4duo_symbols.fon which was merged into ISO10646-0-3.bdf
-  // \x00 intentionally skipped to avoid problems in strings
-  //
-  #define LCD_STR_REFRESH     "\x01"
-  #define LCD_STR_FOLDER      "\x02"
-  #define LCD_STR_ARROW_RIGHT "\x03"
-  #define LCD_STR_UPLEVEL     "\x04"
-  #define LCD_STR_CLOCK       "\x05"
-  #define LCD_STR_FEEDRATE    "\x06"
-  #define LCD_STR_BEDTEMP     "\x07"
-  #define LCD_STR_THERMOMETER "\x08"
-  #define LCD_STR_DEGREE      "\x09"
-
-  #define LCD_STR_SPECIAL_MAX '\x09'
-  // Maximum here is 0x1F because 0x20 is ' ' (space) and the normal charsets begin.
-  // Better stay below 0x10 because DISPLAY_CHARSET_HD44780_WESTERN begins here.
-
-  // Symbol characters
-  #define LCD_STR_FILAM_DIA   "\xF8"
-  #define LCD_STR_FILAM_MUL   "\xA4"
-
-#elif HAS_CHARACTER_LCD
+#if HAS_CHARACTER_LCD
 
   // Custom characters defined in the first 8 characters of the LCD
   #define LCD_STR_BEDTEMP     "\x00"
@@ -123,6 +100,30 @@
   #define LCD_STR_FEEDRATE    ""
   #define LCD_STR_CLOCK       ""
   #define LCD_STR_ARROW_RIGHT ">"
+
+#else
+
+  //
+  // Custom characters from MK4duo_symbols.fon which was merged into ISO10646-0-3.bdf
+  // \x00 intentionally skipped to avoid problems in strings
+  //
+  #define LCD_STR_REFRESH     "\x01"
+  #define LCD_STR_FOLDER      "\x02"
+  #define LCD_STR_ARROW_RIGHT "\x03"
+  #define LCD_STR_UPLEVEL     "\x04"
+  #define LCD_STR_CLOCK       "\x05"
+  #define LCD_STR_FEEDRATE    "\x06"
+  #define LCD_STR_BEDTEMP     "\x07"
+  #define LCD_STR_THERMOMETER "\x08"
+  #define LCD_STR_DEGREE      "\x09"
+
+  #define LCD_STR_SPECIAL_MAX '\x09'
+  // Maximum here is 0x1F because 0x20 is ' ' (space) and the normal charsets begin.
+  // Better stay below 0x10 because DISPLAY_CHARSET_HD44780_WESTERN begins here.
+
+  // Symbol characters
+  #define LCD_STR_FILAM_DIA   "\xF8"
+  #define LCD_STR_FILAM_MUL   "\xA4"
 
 #endif
 
