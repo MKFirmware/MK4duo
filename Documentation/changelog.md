@@ -1,7 +1,22 @@
 ### Version 4.4.0
-* Start development for STM32F4 on board Rumba32 (Not function now)
-* Number extruder is variable with command M353
-* Add M353 - Set number total Extruder. S[int] Number total extruder
+* Revision 21-10-2019
+* Start development for STM32F446 on board Rumba32
+* M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
+*    D[int] Set number driver extruder
+*    E[int] Set number extruder
+*    H[int] Set number hotend
+*    B[int] Set number bed
+*    C[int] Set number chamber
+*    F[int] Set number fan
+*
+* M563: Set Tools heater assignment
+*
+*   T[tools]  - Set Tool
+*   D[int]    - Set Driver for tool
+*   H[bool]   - Set Hotend for tool
+*
+* Add multiple Language, max 5, for lcd..
+*
 * Fix and clear code
 
 ### Version 4.3.9

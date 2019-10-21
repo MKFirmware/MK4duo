@@ -44,10 +44,10 @@ inline void _lcd_reset_service(const int index) {
     char sram[30];
     strncpy_P(sram, PSTR(SERVICE_NAME_1), 29);
     do_select_screen(
-      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      GET_TEXT(MSG_BUTTON_RESET), GET_TEXT(MSG_BUTTON_CANCEL),
       []{ _lcd_reset_service(1); },
       lcdui.goto_previous_screen,
-      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+      GET_TEXT(MSG_SERVICE_RESET), sram, PSTR("?")
     );
   }
 #endif
@@ -57,10 +57,10 @@ inline void _lcd_reset_service(const int index) {
     char sram[30];
     strncpy_P(sram, PSTR(SERVICE_NAME_2), 29);
     do_select_screen(
-      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      GET_TEXT(MSG_BUTTON_RESET), GET_TEXT(MSG_BUTTON_CANCEL),
       []{ _lcd_reset_service(2); },
       lcdui.goto_previous_screen,
-      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+      GET_TEXT(MSG_SERVICE_RESET), sram, PSTR("?")
     );
   }
 #endif
@@ -70,10 +70,10 @@ inline void _lcd_reset_service(const int index) {
     char sram[30];
     strncpy_P(sram, PSTR(SERVICE_NAME_3), 29);
     do_select_screen(
-      PSTR(MSG_BUTTON_RESET), PSTR(MSG_BUTTON_CANCEL),
+      GET_TEXT(MSG_BUTTON_RESET), GET_TEXT(MSG_BUTTON_CANCEL),
       []{ _lcd_reset_service(3); },
       lcdui.goto_previous_screen,
-      PSTR(MSG_SERVICE_RESET), sram, PSTR("?")
+      GET_TEXT(MSG_SERVICE_RESET), sram, PSTR("?")
     );
   }
 #endif

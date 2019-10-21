@@ -74,7 +74,7 @@ void Fan::set_auto_monitor(const int8_t h) {
   else if (h == -1)
     data.auto_monitor = 0;
   else
-    SERIAL_EM(MSG_INVALID_HOTEND);
+    SERIAL_EM(MSG_HOST_INVALID_HOTEND);
   spin();
 }
 
@@ -130,26 +130,7 @@ void Fan::spin() {
       #endif
 
       // Check Motors
-      if (driver.x->enable_read() == driver.x->isEnable() || driver.y->enable_read() == driver.y->isEnable() || driver.z->enable_read() == driver.z->isEnable()
-        || driver.e[0]->enable_read() == driver.e[0]->isEnable() // If any of the drivers are enabled...
-        #if MAX_DRIVER_E > 1
-          || driver.e[1]->enable_read() == driver.e[1]->isEnable()
-          #if MAX_DRIVER_E > 2
-            || driver.e[2]->enable_read() == driver.e[2]->isEnable()
-            #if MAX_DRIVER_E > 3
-              || driver.e[3]->enable_read() == driver.e[3]->isEnable()
-              #if MAX_DRIVER_E > 4
-                || driver.e[4]->enable_read() == driver.e[4]->isEnable()
-                #if MAX_DRIVER_E > 5
-                  || driver.e[5]->enable_read() == driver.e[5]->isEnable()
-                #endif
-              #endif
-            #endif
-          #endif
-        #endif
-      ) {
-        controller_fan_ms = ms;
-      }
+      if (stepper.driver_is_enable()) controller_fan_ms = ms;
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
       if (!controller_fan_ms || expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U))) {

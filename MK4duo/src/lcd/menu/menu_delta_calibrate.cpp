@@ -60,17 +60,17 @@ void lcd_delta_settings() {
   START_MENU();
   BACK_ITEM(MSG_DELTA_CALIBRATE);
   EDIT_ITEM(float52sign, MSG_DELTA_HEIGHT, &mechanics.data.height, mechanics.data.height - 100, mechanics.data.height + 100, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Ex", &mechanics.data.endstop_adj[A_AXIS], -5, 0, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Ey", &mechanics.data.endstop_adj[B_AXIS], -5, 0, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Ez", &mechanics.data.endstop_adj[C_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ex"), &mechanics.data.endstop_adj[A_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ey"), &mechanics.data.endstop_adj[B_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ez"), &mechanics.data.endstop_adj[C_AXIS], -5, 0, _recalc_delta_settings);
   EDIT_ITEM(float52sign, MSG_DELTA_DIAG_ROD, &mechanics.data.diagonal_rod, mechanics.data.diagonal_rod - 10, mechanics.data.diagonal_rod + 10, _recalc_delta_settings);
   EDIT_ITEM(float52sign, MSG_DELTA_RADIUS, &mechanics.data.radius, mechanics.data.radius - 10, mechanics.data.radius + 10, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Tx (deg)", &mechanics.data.tower_angle_adj[A_AXIS], -5, 5, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Ty (deg)", &mechanics.data.tower_angle_adj[B_AXIS], -5, 5, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Tz (deg)", &mechanics.data.tower_angle_adj[C_AXIS], -5, 5, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Tx (radius)", &mechanics.data.tower_radius_adj[A_AXIS], -5, 5, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Ty (radius)", &mechanics.data.tower_radius_adj[B_AXIS], -5, 5, _recalc_delta_settings);
-  EDIT_ITEM(float43, "Tz (radius)", &mechanics.data.tower_radius_adj[C_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tx (deg)"), &mechanics.data.tower_angle_adj[A_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ty (deg)"), &mechanics.data.tower_angle_adj[B_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tz (deg)"), &mechanics.data.tower_angle_adj[C_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tx (radius)"), &mechanics.data.tower_radius_adj[A_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ty (radius)"), &mechanics.data.tower_radius_adj[B_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tz (radius)"), &mechanics.data.tower_radius_adj[C_AXIS], -5, 5, _recalc_delta_settings);
   END_MENU();
 }
 

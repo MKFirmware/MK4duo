@@ -44,7 +44,7 @@ inline void gcode_M191() {
       chambers[c]->set_target_temp(parser.value_celsius());
     else return;
 
-    lcdui.set_status_P(chambers[c]->isHeating() ? PSTR(MSG_CHAMBER_HEATING) : PSTR(MSG_CHAMBER_COOLING));
+    lcdui.set_status_P(chambers[c]->isHeating() ? GET_TEXT(MSG_CHAMBER_HEATING) : GET_TEXT(MSG_CHAMBER_COOLING));
 
     chambers[c]->wait_for_target(no_wait_for_cooling);
   }

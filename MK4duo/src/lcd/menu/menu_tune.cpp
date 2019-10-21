@@ -42,7 +42,7 @@
     }
     if (lcdui.should_draw()) {
       const float spm = mechanics.steps_to_mm[axis];
-      draw_edit_screen(msg, NULL, ftostr54sign(spm * babystep.accum));
+      MenuEditItemBase::edit_screen(msg, ftostr54sign(spm * babystep.accum));
       #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
         const bool in_view = (true
           #if HAS_GRAPHICAL_LCD
@@ -70,12 +70,12 @@
   }
 
   #if ENABLED(BABYSTEP_XY)
-    void _lcd_babystep_x()  { _lcd_babystep(X_AXIS, PSTR(MSG_BABYSTEP_X)); }
-    void _lcd_babystep_y()  { _lcd_babystep(Y_AXIS, PSTR(MSG_BABYSTEP_Y)); }
+    void _lcd_babystep_x()  { _lcd_babystep(X_AXIS, GET_TEXT(MSG_BABYSTEP_X)); }
+    void _lcd_babystep_y()  { _lcd_babystep(Y_AXIS, GET_TEXT(MSG_BABYSTEP_Y)); }
   #endif
 
   #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
-    void _lcd_babystep_z()  { _lcd_babystep(Z_AXIS, PSTR(MSG_BABYSTEP_Z)); }
+    void _lcd_babystep_z()  { _lcd_babystep(Z_AXIS, GET_TEXT(MSG_BABYSTEP_Z)); }
   #endif
 
 #endif // BABYSTEPPING
@@ -101,7 +101,7 @@ void menu_tune() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      EDIT_ITEM_FAST_I(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      EDIT_ITEM_FAST_N(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -109,7 +109,7 @@ void menu_tune() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      EDIT_ITEM_FAST_I(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      EDIT_ITEM_FAST_N(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -117,14 +117,14 @@ void menu_tune() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      EDIT_ITEM_FAST_I(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      EDIT_ITEM_FAST_N(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    EDIT_ITEM_FAST_I(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    EDIT_ITEM_FAST_N(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -132,7 +132,7 @@ void menu_tune() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      EDIT_ITEM_FAST_I(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
+      EDIT_ITEM_FAST_N(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
   #endif
 
   //
@@ -141,7 +141,7 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_I(int3, MSG_FLOW, e, &extruders[e]->flow_percentage, 10, 999, []() { extruders[menu_edit_index]->refresh_e_factor(); });
+      EDIT_ITEM_FAST_N(int3, MSG_FLOW, e, &extruders[e]->flow_percentage, 10, 999, []() { extruders[MenuItemBase::itemIndex]->refresh_e_factor(); });
   #endif
 
   //

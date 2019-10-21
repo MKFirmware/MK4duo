@@ -88,7 +88,7 @@ Power powerManager;
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      if (is_power_needed()) power_on();
+      if (thermalManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
       #if (POWER_TIMEOUT > 0)
         else if (expired(&last_Power_On_ms, millis_l(POWER_TIMEOUT * 1000UL)))
           power_off();
@@ -160,36 +160,5 @@ Power powerManager;
   }
 
 #endif // HAS_POWER_CONSUMPTION_SENSOR
-
-/** Private Function */
-#if HAS_POWER_SWITCH
-
-  bool Power::is_power_needed() {
-
-    if (thermalManager.heaters_isActive()) return true;
-
-    if (driver.x->enable_read() == driver.x->isEnable() || driver.y->enable_read() == driver.y->isEnable() || driver.z->enable_read() == driver.z->isEnable()
-        || driver.e[0]->enable_read() == driver.e[E0_DRV]->isEnable() // If any of the drivers are enabled...
-        #if MAX_DRIVER_E > 1
-          || driver.e[1]->enable_read() == driver.e[E1_DRV]->isEnable()
-          #if MAX_DRIVER_E > 2
-            || driver.e[2]->enable_read() == driver.e[E2_DRV]->isEnable()
-            #if MAX_DRIVER_E > 3
-              || driver.e[3]->enable_read() == driver.e[E3_DRV]->isEnable()
-              #if MAX_DRIVER_E > 4
-                || driver.e[4]->enable_read() == driver.e[E4_DRV]->isEnable()
-                #if MAX_DRIVER_E > 5
-                  || driver.e[5]->enable_read() == driver.e[E5_DRV]->isEnable()
-                #endif
-              #endif
-            #endif
-          #endif
-        #endif
-    ) return true;
-
-    return false;
-  }
-
-#endif // HAS_POWER_SWITCH
 
 #endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK

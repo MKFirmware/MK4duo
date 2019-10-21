@@ -25,8 +25,11 @@
   #include "../sdcard/sdcard.h"
 #endif
 
-#define LCD_MESSAGEPGM(x)       lcdui.set_status_P(PSTR(x))
-#define LCD_ALERTMESSAGEPGM(x)  lcdui.set_alert_status_P(PSTR(x))
+#define LCD_MESSAGEPGM_P(x)       lcdui.set_status_P(x)
+#define LCD_ALERTMESSAGEPGM_P(x)  lcdui.set_alert_status_P(x)
+
+#define LCD_MESSAGEPGM(x)         LCD_MESSAGEPGM_P(GET_TEXT(x))
+#define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)    set_custom_characters(C)
@@ -61,27 +64,26 @@ class LcdUI {
       static LCDViewActionEnum lcdDrawUpdate;
 
       #if HAS_GRAPHICAL_LCD 
-
         static bool drawing_screen,
                     first_page;
-
       #else
-
-        static constexpr bool drawing_screen = false,
-                              first_page = true;
-
+        static constexpr bool drawing_screen  = false,
+                              first_page      = true;
       #endif
 
       #if HAS_CHARACTER_LCD && ENABLED(LCD_PROGRESS_BAR)
         static millis_s progress_bar_ms;  // Start time for the current progress bar cycle
-        #if PROGRESS_MSG_EXPIRE > 0
+        #if PROGRESS_MSG_HOST_EXPIRE > 0
           static millis_l expire_status_ms; // = 0
         #endif
       #endif
 
       // Status message
       static char status_message[];
-      static uint8_t status_message_level; // Higher levels block lower levels
+      static uint8_t alert_level; // Higher levels block lower levels
+
+      // Language
+      static uint8_t lang;
 
       #if HAS_SPI_LCD
 
@@ -139,7 +141,7 @@ class LcdUI {
         static int16_t preheat_chamber_temp[3];
       #endif
       #if MAX_FAN > 0
-        static int16_t preheat_fan_speed[3];
+        static uint8_t preheat_fan_speed[3];
       #endif
 
     #elif HAS_SPI_LCD
@@ -237,6 +239,8 @@ class LcdUI {
         static void init_lcd();
 
         #if ENABLED(SHOW_BOOTSCREEN)
+          static void draw_mk4duo_bootscreen(const bool line2=false);
+          static void show_mk4duo_bootscreen();
           static void show_bootscreen();
         #endif
 
@@ -257,7 +261,7 @@ class LcdUI {
             #endif
           );
 
-          #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
+          #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_HOST_EXPIRE > 0
             static inline void reset_progress_bar_timeout() { expire_status_ms = 0; }
           #endif
 
@@ -280,7 +284,7 @@ class LcdUI {
 
       // Status message
       static bool has_status();
-      static inline void reset_alert_level() { status_message_level = 0; }
+      static inline void reset_alert_level() { alert_level = 0; }
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         static void draw_hotend_status(const uint8_t row, const uint8_t hotend);
@@ -343,6 +347,8 @@ class LcdUI {
       static void return_to_status();
       static inline bool on_status_screen() { return currentScreen == status_screen; }
       static inline void run_current_screen() { (*currentScreen)(); }
+
+      static void draw_select_screen_prompt(PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
 
       static inline void defer_status_screen(const bool defer=true) {
         #if LCD_TIMEOUT_TO_STATUS

@@ -65,13 +65,13 @@ bool Probe::set_deployed(const bool deploy) {
 
   #if HAS_SLED
     if (mechanics.axis_unhomed_error(true, false, false)) {
-      SERIAL_LM(ER, MSG_STOP_UNHOMED);
+      SERIAL_LM(ER, MSG_HOST_STOP_UNHOMED);
       printer.stop();
       return true;
     }
   #elif HAS_ALLEN_KEY
     if (mechanics.axis_unhomed_error()) {
-      SERIAL_LM(ER, MSG_STOP_UNHOMED);
+      SERIAL_LM(ER, MSG_HOST_STOP_UNHOMED);
       printer.stop();
       return true;
     }
@@ -97,7 +97,7 @@ bool Probe::set_deployed(const bool deploy) {
     if (PROBE_STOWED() == deploy) {
       if (printer.isRunning()) {
         SERIAL_LM(ER, "Z-Probe failed");
-        LCD_ALERTMESSAGEPGM("Err: ZPROBE");
+        LCD_ALERTMESSAGEPGM_P(PSTR("Err: ZPROBE"));
         sound.feedback(false);
       }
       printer.stop();
@@ -196,8 +196,8 @@ bool Probe::set_deployed(const bool deploy) {
 
       if (isnan(measured_z)) {
         STOW_PROBE();
-        SERIAL_LM(ER, MSG_ERR_PROBING_FAILED);
-        LCD_MESSAGEPGM(MSG_ERR_PROBING_FAILED);
+        SERIAL_LM(ER, MSG_HOST_ERR_PROBING_FAILED);
+        LCD_MESSAGEPGM(MSG_LCD_PROBING_FAILED);
         sound.feedback(false);
       }
 

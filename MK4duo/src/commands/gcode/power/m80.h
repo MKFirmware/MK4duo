@@ -62,7 +62,7 @@
       laser.wait_for_peripherals();
     #endif
 
-    LCD_MESSAGEPGM(WELCOME_MSG);
+    LCD_MESSAGEPGM(MSG_WELCOME);
   }
 
 #endif // HAS_POWER_SWITCH

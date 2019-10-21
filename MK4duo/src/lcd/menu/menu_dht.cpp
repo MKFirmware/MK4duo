@@ -48,9 +48,9 @@ void menu_dht() {
       break;
     default: break;
   }
-  STATIC_ITEM(MSG_TEMPERATURE " (C):", SS_LEFT, ftostr52sp(dhtsensor.Temperature));
-  STATIC_ITEM(MSG_HUMIDITY " (%):", SS_LEFT, ftostr52sp(dhtsensor.Humidity));
-  STATIC_ITEM(MSG_DEWPOINT " (C):", SS_LEFT, ftostr52sp(dhtsensor.dewPoint()));
+  STATIC_ITEM(MSG_DHT_TEMPERATURE, SS_LEFT, ftostr52sp(dhtsensor.Temperature));
+  STATIC_ITEM(MSG_DHT_HUMIDITY, SS_LEFT, ftostr52sp(dhtsensor.Humidity));
+  STATIC_ITEM(MSG_DHT_DEWPOINT, SS_LEFT, ftostr52sp(dhtsensor.dewPoint()));
   END_MENU();
 }
 

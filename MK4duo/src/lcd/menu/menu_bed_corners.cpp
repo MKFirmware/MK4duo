@@ -39,13 +39,13 @@ void _lcd_goto_next_corner() {
       mechanics.current_position.set(X_MIN_BED + LEVEL_CORNERS_INSET, Y_MIN_BED + LEVEL_CORNERS_INSET);
       break;
     case 1:
-      mechanics.current_position.x = X_MAX_BED - LEVEL_CORNERS_INSET;
+      mechanics.current_position.x = X_MAX_BED - (LEVEL_CORNERS_INSET);
       break;
     case 2:
-      mechanics.current_position.y = Y_MAX_BED - LEVEL_CORNERS_INSET;
+      mechanics.current_position.y = Y_MAX_BED - (LEVEL_CORNERS_INSET);
       break;
     case 3:
-      mechanics.current_position.x = X_MIN_BED + LEVEL_CORNERS_INSET;
+      mechanics.current_position.x = X_MIN_BED + (LEVEL_CORNERS_INSET);
       break;
     #if ENABLED(LEVEL_CENTER_TOO)
       case 4:
@@ -64,10 +64,10 @@ void _lcd_goto_next_corner() {
 
 static inline void menu_level_bed_corners() {
   do_select_screen(
-    PSTR(MSG_BUTTON_NEXT), PSTR(MSG_BUTTON_DONE),
+    GET_TEXT(MSG_BUTTON_NEXT), GET_TEXT(MSG_BUTTON_DONE),
     _lcd_goto_next_corner,
     lcdui.goto_previous_screen_no_defer,
-    PSTR(
+    GET_TEXT(
       #if ENABLED(LEVEL_CENTER_TOO)
         MSG_LEVEL_BED_NEXT_POINT
       #else

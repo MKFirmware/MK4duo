@@ -26,19 +26,14 @@
 
 #if ENABLED(STATUS_MESSAGE_SCROLLING)
   uint8_t LcdUI::status_scroll_offset; // = 0
-  #if LONG_FILENAME_LENGTH > CHARSIZE * 2 * (LCD_WIDTH)
-    #define MAX_MESSAGE_LENGTH LONG_FILENAME_LENGTH
-  #else
-    #define MAX_MESSAGE_LENGTH CHARSIZE * 2 * (LCD_WIDTH)
-  #endif
+  constexpr uint8_t MAX_MESSAGE_LENGTH = MAX(LONG_FILENAME_LENGTH, MAX_LANG_CHARSIZE * 2 * (LCD_WIDTH));
 #else
-  #define MAX_MESSAGE_LENGTH CHARSIZE * (LCD_WIDTH)
+  constexpr uint8_t MAX_MESSAGE_LENGTH = MAX_LANG_CHARSIZE * (LCD_WIDTH);
 #endif
 
-#ifdef MAX_MESSAGE_LENGTH
-  uint8_t LcdUI::status_message_level; // = 0
-  char LcdUI::status_message[MAX_MESSAGE_LENGTH + 1];
-#endif
+uint8_t LcdUI::alert_level  = 0,
+        LcdUI::lang         = 0;
+char    LcdUI::status_message[MAX_MESSAGE_LENGTH + 1];
 
 #if HAS_GRAPHICAL_LCD
   #include "dogm/ultralcd_dogm.h"
@@ -189,6 +184,21 @@ millis_l LcdUI::next_button_update_ms = 0;
         if (col >= LCD_WIDTH) _newline();
       }
     }
+  }
+
+  void LcdUI::draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+    const uint8_t plen = utf8_strlen_P(pref), slen = suff ? utf8_strlen_P(suff) : 0;
+    uint8_t col = 0, row = 0;
+    if (!string && plen + slen <= LCD_WIDTH) {
+      col = (LCD_WIDTH - plen - slen) / 2;
+      row = LCD_HEIGHT > 3 ? 1 : 0;
+    }
+    wrap_string_P(col, row, pref, true);
+    if (string) {
+      if (col) { col = 0; row++; } // Move to the start of the next line
+      wrap_string(col, row, string);
+    }
+    if (suff) wrap_string_P(col, row, suff);
   }
 
 #endif // HAS_LCD_MENU
@@ -392,7 +402,7 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
 
 #if ENABLED(LCD_PROGRESS_BAR)
   millis_s LcdUI::progress_bar_ms = 0;
-  #if PROGRESS_MSG_EXPIRE > 0
+  #if PROGRESS_MSG_HOST_EXPIRE > 0
     millis_l LcdUI::expire_status_ms = 0;
   #endif
 #endif
@@ -413,11 +423,11 @@ void LcdUI::status_screen() {
     //
 
     // If the message will blink rather than expire...
-    #if DISABLED(PROGRESS_MSG_ONCE)
+    #if DISABLED(PROGRESS_MSG_HOST_ONCE)
       (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME));
     #endif
 
-    #if PROGRESS_MSG_EXPIRE > 0
+    #if PROGRESS_MSG_HOST_EXPIRE > 0
 
       // Handle message expire
       if (expire_status_ms > 0) {
@@ -436,7 +446,7 @@ void LcdUI::status_screen() {
         }
       }
 
-    #endif // PROGRESS_MSG_EXPIRE
+    #endif // PROGRESS_MSG_HOST_EXPIRE
 
   #endif // LCD_PROGRESS_BAR
 
@@ -684,13 +694,13 @@ void LcdUI::update() {
         if (old_sd_status == 2)
           card.beginautostart();  // Initial boot
         else
-          set_status_P(PSTR(MSG_SD_INSERTED));
+          set_status_P(GET_TEXT(MSG_SD_INSERTED));
       }
       #if PIN_EXISTS(SD_DETECT)
         else {
           card.unmount();
           if (old_sd_status != 2) {
-            set_status_P(PSTR(MSG_SD_REMOVED));
+            set_status_P(GET_TEXT(MSG_SD_REMOVED));
             if (!on_status_screen()) return_to_status();
           }
         }
@@ -754,7 +764,8 @@ void LcdUI::update() {
                   SERIAL_SMV(DEB, "Enc Step Rate: ", encoderStepRate);
                   SERIAL_MV("  Multiplier: ", encoderMultiplier);
                   SERIAL_MV("  ENCODER_10X_STEPS_PER_SEC: ", ENCODER_10X_STEPS_PER_SEC);
-                  SERIAL_EMV("  ENCODER_100X_STEPS_PER_SEC: ", ENCODER_100X_STEPS_PER_SEC);
+                  SERIAL_MV("  ENCODER_100X_STEPS_PER_SEC: ", ENCODER_100X_STEPS_PER_SEC);
+                  SERIAL_EOL();
                 #endif
               }
 
@@ -1141,14 +1152,14 @@ void LcdUI::update() {
 
 void LcdUI::finish_status(const bool persist) {
 
-  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_EXPIRE > 0))
+  #if !(ENABLED(LCD_PROGRESS_BAR) && (PROGRESS_MSG_HOST_EXPIRE > 0))
     UNUSED(persist);
   #endif
 
   #if ENABLED(LCD_PROGRESS_BAR)
     progress_bar_ms = millis();
-    #if PROGRESS_MSG_EXPIRE > 0
-      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_EXPIRE;
+    #if PROGRESS_MSG_HOST_EXPIRE > 0
+      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_HOST_EXPIRE;
     #endif
   #endif
 
@@ -1166,7 +1177,7 @@ void LcdUI::finish_status(const bool persist) {
 bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
 void LcdUI::set_status(const char* const message, const bool persist) {
-  if (status_message_level) return;
+  if (alert_level) return;
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1193,8 +1204,8 @@ void LcdUI::set_status(const char* const message, const bool persist) {
 #include <stdarg.h>
 
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
-  if (level < status_message_level) return;
-  status_message_level = level;
+  if (level < alert_level) return;
+  alert_level = level;
   va_list args;
   va_start(args, fmt);
   vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, fmt, args);
@@ -1203,9 +1214,9 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
 }
 
 void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
-  if (level < 0) level = status_message_level = 0;
-  if (level < status_message_level) return;
-  status_message_level = level;
+  if (level < 0) level = alert_level = 0;
+  if (level < alert_level) return;
+  alert_level = level;
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1236,15 +1247,15 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
   #endif
 }
 
-SFSTRINGVALUE(print_paused, MSG_PRINT_PAUSED);
+PGM_P print_paused = GET_TEXT(MSG_PRINT_PAUSED);
 
 /**
  * Reset the status message
  */
 void LcdUI::reset_status() {
 
-  SFSTRINGVALUE(printing, MSG_PRINTING);
-  SFSTRINGVALUE(welcome, WELCOME_MSG);
+  PGM_P printing  = GET_TEXT(MSG_PRINTING);
+  PGM_P welcome   = GET_TEXT(MSG_WELCOME);
 
   #if ENABLED(SERVICE_TIME_1)
     SFSTRINGVALUE(service1, "> " SERVICE_NAME_1 "!");
@@ -1285,7 +1296,7 @@ void LcdUI::reset_status() {
 void LcdUI::pause_print() {
 
   #if HAS_LCD_MENU
-    synchronize(PSTR(MSG_PAUSE_PRINT));
+    synchronize(GET_TEXT(MSG_PAUSE_PRINT));
   #endif
 
   #if HAS_SD_RESTART
@@ -1329,7 +1340,7 @@ void LcdUI::stop_print() {
   host_action.cancel();
   host_action.prompt_open(PROMPT_INFO, PSTR("LCD Aborted"), PSTR("Dismiss"));
   print_job_counter.stop();
-  set_status_P(PSTR(MSG_PRINT_ABORTED));
+  set_status_P(GET_TEXT(MSG_PRINT_ABORTED));
   #if HAS_LCD_MENU
     return_to_status();
   #endif

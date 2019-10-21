@@ -64,28 +64,34 @@ inline void sdcard_start_selected_file() {
 
 void menu_sd_confirm() {
   do_select_screen(
-    PSTR(MSG_BUTTON_PRINT), PSTR(MSG_BUTTON_CANCEL),
+    GET_TEXT(MSG_BUTTON_PRINT), GET_TEXT(MSG_BUTTON_CANCEL),
     sdcard_start_selected_file, lcdui.goto_previous_screen,
-    PSTR(MSG_START_PRINT " "), card.fileName, PSTR("?")
+    GET_TEXT(MSG_START_PRINT), card.fileName, PSTR("?")
   );
 }
 
-class MenuItem_sdfile {
+class MenuItem_sdfile : public MenuItem_sdbase {
   public:
-    static void action(PGM_P const pstr, const uint8_t idx, SDCard &) {
+    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) {
+      _draw(sel, row, pstr, theCard, false);
+    }
+    static void action(PGM_P const pstr, SDCard &) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
         // Save which file was selected for later use
         sd_encoder_position = lcdui.encoderPosition;
         sd_top_line = encoderTopLine;
         sd_items = screen_items;
       #endif
-      MenuItem_submenu::action(pstr, idx, menu_sd_confirm);
+      MenuItem_submenu::action(pstr, menu_sd_confirm);
     }
 };
 
-class MenuItem_sdfolder {
+class MenuItem_sdfolder : public MenuItem_sdbase {
   public:
-    static void action(PGM_P const, const uint8_t, SDCard &theCard) {
+    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) {
+      _draw(sel, row, pstr, theCard, true);
+    }
+    static void action(PGM_P const, SDCard &theCard) {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * (ENCODER_STEPS_PER_MENU_ITEM);
@@ -113,7 +119,7 @@ void menu_sdcard() {
   BACK_ITEM(MSG_MAIN);
   if (card.flag.WorkdirIsRoot) {
     #if !PIN_EXISTS(SD_DETECT)
-      ACTION_ITEM(LCD_STR_REFRESH MSG_REFRESH, [](){
+      ACTION_ITEM(MSG_REFRESH, [](){
         encoderTopLine = 0;
         card.unmount(); card.mount();
         if (card.isMounted()) card.ls();
@@ -121,7 +127,7 @@ void menu_sdcard() {
     #endif
   }
   else if (card.isMounted()) {
-    ACTION_ITEM(LCD_STR_FOLDER "..", [](){
+    ACTION_ITEM_P(PSTR(LCD_STR_FOLDER ".."), [](){
       lcdui.encoderPosition = card.updir() ? ENCODER_STEPS_PER_MENU_ITEM : 0;
       encoderTopLine = 0;
       screen_changed = true;

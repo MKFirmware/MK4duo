@@ -204,7 +204,7 @@ typedef struct EepromDataStruct {
       int16_t       lcdui_preheat_chamber_temp[3];
     #endif
     #if MAX_FAN > 0
-      int16_t       lcdui_preheat_fan_speed[3];
+      uint8_t       lcdui_preheat_fan_speed[3];
     #endif
   #endif
 

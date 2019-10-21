@@ -213,7 +213,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       #endif
       if (should_swap) {
         if (too_cold)
-          SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
+          SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
           extruder.previous = extruder.active;
           extruder.active   = extruder.target;
           return;
@@ -385,7 +385,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
       bedlevel.restore_bed_leveling_state();
     #endif
 
-    SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, (int)extruder.active);
+    SERIAL_LMV(ECHO, MSG_HOST_ACTIVE_EXTRUDER, (int)extruder.active);
 
   #endif // EXTRUDERS > 1
 
@@ -497,7 +497,7 @@ void Tools::print_M563() {
             break;
         #endif
       default:
-        SERIAL_LM(ER, MSG_INVALID_SOLENOID);
+        SERIAL_LM(ER, MSG_HOST_INVALID_SOLENOID);
         break;
     }
   }
@@ -528,7 +528,7 @@ void Tools::print_M563() {
 /** Private Function */
 void Tools::invalid_extruder_error() {
   SERIAL_SMV(ER, "T", (int)extruder.target);
-  SERIAL_EM(" " MSG_INVALID_EXTRUDER);
+  SERIAL_EM(" " MSG_HOST_INVALID_EXTRUDER);
 }
 
 void Tools::fast_line_to_current(const AxisEnum fr_axis) {

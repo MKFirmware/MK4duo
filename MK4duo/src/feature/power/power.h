@@ -136,12 +136,6 @@ class Power {
                     analog2efficiency(float watt);
     #endif
 
-  private: /** Private Function */
-
-    #if HAS_POWER_SWITCH
-      static bool is_power_needed();
-    #endif
-
 };
 
 extern Power powerManager;

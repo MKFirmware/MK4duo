@@ -51,7 +51,8 @@ NextionLCD nexlcd;
 
 /** LcdUI Parameters */
 char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
-uint8_t LcdUI::status_message_level = 0;
+uint8_t LcdUI::alert_level = 0,
+        LcdUI::lang = 0;
 
 #if HAS_LCD_MENU
 
@@ -1234,12 +1235,12 @@ void LcdUI::update() {
         if (old_sd_status == 2)
           card.beginautostart();  // Initial boot
         else
-          set_status_P(PSTR(MSG_SD_INSERTED));
+          set_status_P(GET_TEXT(MSG_SD_INSERTED));
       }
       #if PIN_EXISTS(SD_DETECT)
         else {
           card.unmount();
-          if (nexlcd.lcd_sd_status != 2) set_status_P(PSTR(MSG_SD_REMOVED));
+          if (nexlcd.lcd_sd_status != 2) set_status_P(GET_TEXT(MSG_SD_REMOVED));
         }
       #endif
 
@@ -1319,15 +1320,15 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
 
 void LcdUI::set_status(const char* const message, bool persist) {
   UNUSED(persist);
-  if (status_message_level || !nexlcd.NextionON) return;
+  if (alert_level || !nexlcd.NextionON) return;
   strncpy(status_message, message, NEXTION_MAX_MESSAGE_LENGTH);
   nexlcd.setText(LcdStatus, status_message);
 }
 
 void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
-  if (level < 0) level = status_message_level = 0;
-  if (level < status_message_level || !nexlcd.NextionON) return;
-  status_message_level = level;
+  if (level < 0) level = alert_level = 0;
+  if (level < alert_level || !nexlcd.NextionON) return;
+  alert_level = level;
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);
@@ -1347,8 +1348,8 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
 #include <stdarg.h>
 
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
-  if (level < status_message_level || !nexlcd.NextionON) return;
-  status_message_level = level;
+  if (level < alert_level || !nexlcd.NextionON) return;
+  alert_level = level;
   va_list args;
   va_start(args, fmt);
   vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, fmt, args);
@@ -1356,10 +1357,13 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
   nexlcd.setText(LcdStatus, status_message);
 }
 
+PGM_P print_paused = GET_TEXT(MSG_PRINT_PAUSED);
+
 void LcdUI::reset_status() {
-  static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
-  static const char printing[] PROGMEM = MSG_PRINTING;
-  static const char welcome[] PROGMEM = WELCOME_MSG;
+
+  PGM_P printing  = GET_TEXT(MSG_PRINTING);
+  PGM_P welcome   = GET_TEXT(MSG_WELCOME);
+
   #if ENABLED(SERVICE_TIME_1)
     static const char service1[] PROGMEM = { "> " SERVICE_NAME_1 "!" };
   #endif
@@ -1371,7 +1375,7 @@ void LcdUI::reset_status() {
   #endif
   PGM_P msg;
   if (print_job_counter.isPaused())
-    msg = paused;
+    msg = print_paused;
   #if HAS_SD_SUPPORT
     else if (IS_SD_PRINTING())
       return lcdui.set_status(card.fileName, true);
@@ -1410,7 +1414,7 @@ bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 void LcdUI::pause_print() {
 
   #if HAS_LCD_MENU
-    synchronize(PSTR(MSG_PAUSE_PRINT));
+    synchronize(GET_TEXT(MSG_PAUSE_PRINT));
   #endif
 
   #if HAS_SD_RESTART
@@ -1419,7 +1423,7 @@ void LcdUI::pause_print() {
 
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
 
-  set_status_P(PSTR(MSG_PRINT_PAUSED));
+  set_status_P(print_paused);
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
@@ -1454,7 +1458,7 @@ void LcdUI::stop_print() {
   host_action.cancel();
   host_action.prompt_open(PROMPT_INFO, PSTR("LCD Aborted"), PSTR("Dismiss"));
   print_job_counter.stop();
-  set_status_P(PSTR(MSG_PRINT_ABORTED));
+  set_status_P(GET_TEXT(MSG_PRINT_ABORTED));
   #if HAS_LCD_MENU
     return_to_status();
   #endif
@@ -1486,7 +1490,7 @@ void LcdUI::stop_print() {
 
       if (expired(&nex_update_ms, 1500U)) {
 
-        strcat(cmd, MSG_FILAMENT_CHANGE_NOZZLE "H");
+        strcat(cmd, "H");
         strcat(cmd, ui8tostr1(hotend));
         strcat(cmd, " ");
         strcat(cmd, i16tostr3(hotends[hotend]->deg_current()));
@@ -1503,36 +1507,45 @@ void LcdUI::stop_print() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const uint8_t idx/*=NO_INDEX*/, const uint8_t style/*=SS_CENTER*/, const char * const valstr/*=nullptr*/) {
+  // Draw a static item with no left-right margin required. Centered by default.
+  void MenuItem_static::draw(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_DEFAULT*/, const char * const valstr/*=nullptr*/) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, (style & SS_INVERT));
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
     if (valstr != NULL) nexlcd.put_str(valstr);
     nexlcd.endChar();
   }
 
-  // Draw a generic menu item
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char) {
+  // Draw a generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
     nexlcd.endChar();
   }
 
-  // Draw a menu item with an editable value
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
-                  vallen = (pgm ? strlen_P(data) : strlen((char*)data));
+  // Draw an indexed generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
-    if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
+    nexlcd.setChar(' ');
+    nexlcd.setChar(DIGIT(idx));
+    nexlcd.endChar();
+  }
+
+  // Draw a menu item with a (potentially) editable value
+  void  MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+    const uint8_t labellen  = strlen_P(pstr) + 2,
+                  vallen    = data ? (pgm ? strlen_P(data) : strlen((char*)data)) : 0;
+    nexlcd.line_encoder_touch = true;
+    nexlcd.mark_as_selected(row, sel);
+    nexlcd.startChar(*txtmenu_list[row]);
+    nexlcd.put_str_P(pstr);
+    nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx));
     nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
@@ -1542,9 +1555,11 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_edit_screen(PGM_P const pstr, const uint8_t idx, const char* const value/*=nullptr*/) {
+  // Low-level edit_screen can be used to draw an edit screen from anyplace
+  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+    lcdui.encoder_direction_normal();
 
-    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
+    const uint8_t labellen  = strlen_P(pstr),
                   vallen    = strlen(value);
 
     bool extra_row = labellen > LCD_WIDTH - vallen - 1;
@@ -1559,7 +1574,6 @@ void LcdUI::stop_print() {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
       nexlcd.put_str_P(pstr);
-      if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_space(LCD_WIDTH - vallen);
@@ -1568,7 +1582,6 @@ void LcdUI::stop_print() {
     else {
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_str_P(pstr);
-      if (idx != NO_INDEX) { nexlcd.setChar(' '); nexlcd.setChar(DIGIT(idx)); }
       nexlcd.setChar(':');
       nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
       nexlcd.put_str(value);
@@ -1576,7 +1589,7 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+  void LcdUI::draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
     nexlcd.startChar(*txtmenu_list[1]);
     nexlcd.put_str_P(pref);
     if (string) {
@@ -1589,7 +1602,7 @@ void LcdUI::stop_print() {
   }
 
   void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
-    draw_select_screen_prompt(pref, string, suff);
+    lcdui.draw_select_screen_prompt(pref, string, suff);
     nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
     nexlcd.setChar(yesno ? ' ' : '[');
     nexlcd.put_str_P(no);
@@ -1603,8 +1616,7 @@ void LcdUI::stop_print() {
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
-      UNUSED(pstr);
+    void MenuItem_sdbase::_draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
       nexlcd.mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
       if (isDir) nexlcd.put_str_P(PSTR(LCD_STR_FOLDER));

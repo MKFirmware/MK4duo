@@ -19,10 +19,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#pragma once
 
-#define FIRMWARE_NAME           "MK4duo"
-#define SHORT_BUILD_VERSION     "4.4.0"
-#define BUILD_VERSION           FIRMWARE_NAME "_" SHORT_BUILD_VERSION
-#define STRING_REVISION_DATE    "21-10-2019"
-#define MK4DUO_FIRMWARE_URL     "marlinkimbra.it"
+//
+// Custom User Menu
+//
+
+#include "../../../MK4duo.h"
+
+#if HAS_LCD_MENU && NUM_LANGUAGES > 1
+
+void menu_language() {
+  START_MENU();
+  BACK_ITEM(MSG_CONFIGURATION);
+  ACTION_ITEM_P(GET_LANGUAGE_NAME(0), []() { lcdui.lang = 0; });
+  ACTION_ITEM_P(GET_LANGUAGE_NAME(1), []() { lcdui.lang = 1; });
+  #if NUM_LANGUAGES > 2
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(2), []() { lcdui.lang = 2; });
+  #endif
+  #if NUM_LANGUAGES > 3
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(3), []() { lcdui.lang = 3; });
+  #endif
+  #if NUM_LANGUAGES > 4
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(4), []() { lcdui.lang = 4; });
+  #endif
+  END_MENU();
+}
+
+#endif // HAS_LCD_MENU && NUM_LANGUAGES > 1

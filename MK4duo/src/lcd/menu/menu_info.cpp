@@ -28,52 +28,56 @@
 
 #if HAS_LCD_MENU && ENABLED(LCD_INFO_MENU)
 
-#define STATIC_PAIR(MSG, VALUE, STYL)     do{ strcpy_P(buffer, PSTR(": ")); strcpy(buffer + 2, VALUE);          STATIC_ITEM(MSG, STYL, buffer); }while(0)
-#define STATIC_PAIR_P(MSG, PVALUE, STYL)  do{ strcpy_P(buffer, PSTR(": ")); strcpy_P(buffer + 2, PSTR(PVALUE)); STATIC_ITEM(MSG, STYL, buffer); }while(0)
+#define VALUE_ITEM(MSG, VALUE, STYL)    do{ strcpy_P(buffer, PSTR(": ")); strcpy(buffer + 2, VALUE);          STATIC_ITEM(MSG, STYL, buffer); }while(0)
+#define VALUE_ITEM_P(MSG, PVALUE, STYL) do{ strcpy_P(buffer, PSTR(": ")); strcpy_P(buffer + 2, PSTR(PVALUE)); STATIC_ITEM(MSG, STYL, buffer); }while(0)
 
 void menu_info_stats() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
-  char buffer[21];  // for STATIC_PAIR_P
+  char buffer[21];
 
   printStatistics stats = print_job_counter.getStats();
 
   START_SCREEN();
-  STATIC_PAIR(MSG_INFO_PRINT_COUNT, i16tostr3left(stats.totalPrints), SS_LEFT);
-  STATIC_PAIR(MSG_INFO_COMPLETED_PRINTS, i16tostr3left(stats.finishedPrints), SS_LEFT);
+  VALUE_ITEM(MSG_INFO_PRINT_COUNT, i16tostr3left(stats.totalPrints), SS_LEFT);
+  VALUE_ITEM(MSG_INFO_COMPLETED_PRINTS, i16tostr3left(stats.finishedPrints), SS_LEFT);
 
-  STATIC_PAIR_P(MSG_INFO_PRINT_TIME, "", SS_LEFT);  
-  STATIC_ITEM(">", SS_LEFT, duration_t(stats.timePrint).toString(buffer));
+  STATIC_ITEM(MSG_INFO_PRINT_TIME, SS_LEFT);  
+  STATIC_ITEM_P(">", SS_LEFT, duration_t(stats.timePrint).toString(buffer));
 
-  STATIC_PAIR_P(MSG_INFO_PRINT_LONGEST, "", SS_LEFT);
-  STATIC_ITEM(">", SS_LEFT, duration_t(stats.longestPrint).toString(buffer));
+  STATIC_ITEM(MSG_INFO_PRINT_LONGEST, SS_LEFT);
+  STATIC_ITEM_P(">", SS_LEFT, duration_t(stats.longestPrint).toString(buffer));
 
-  STATIC_PAIR_P(MSG_INFO_POWER_ON, "", SS_LEFT);
-  STATIC_ITEM(">", SS_LEFT, duration_t(stats.timePowerOn).toString(buffer));
+  STATIC_ITEM(MSG_INFO_POWER_ON, SS_LEFT);
+  STATIC_ITEM_P(">", SS_LEFT, duration_t(stats.timePowerOn).toString(buffer));
 
-  ftostrlength(buffer, stats.filamentUsed);
-  STATIC_PAIR_P(MSG_INFO_PRINT_FILAMENT, "", SS_LEFT); 
-  STATIC_ITEM(">", SS_LEFT, buffer);
+  STATIC_ITEM(MSG_INFO_PRINT_FILAMENT, SS_LEFT);
+  sprintf_P(buffer, PSTR("%ld.%im"), long(stats.filamentUsed / 1000), int16_t(stats.filamentUsed / 100) % 10);
+  STATIC_ITEM_P(">", SS_LEFT, buffer);
 
   #if HAS_POWER_CONSUMPTION_SENSOR
     sprintf_P(buffer, PSTR("%uWh"), stats.consumptionHour);
-    STATIC_PAIR_P(MSG_INFO_PWRCONSUMED, "", SS_LEFT); 
-    STATIC_ITEM(">", SS_LEFT, buffer);
+    STATIC_ITEM(MSG_INFO_PWRCONSUMED, SS_LEFT); 
+    STATIC_ITEM_P(">", SS_LEFT, buffer);
+  #endif
+
+  #if SERVICE_INTERVAL_1 > 0 || SERVICE_INTERVAL_2 > 0 || SERVICE_INTERVAL_3 > 0
+    strcpy_P(buffer, GET_TEXT(MSG_SERVICE_IN));
   #endif
 
   #if ENABLED(SERVICE_TIME_1)
-    STATIC_ITEM(SERVICE_NAME_1 " in: ", SS_LEFT);
-    STATIC_ITEM(">", SS_LEFT, duration_t(stats.ServiceTime1).toString(buffer));
+    STATIC_ITEM_P(PSTR(SERVICE_NAME_1 " "), SS_LEFT, buffer);
+    STATIC_ITEM_P(PSTR("> "), SS_LEFT, duration_t(stats.ServiceTime1).toString(buffer));
   #endif
 
   #if ENABLED(SERVICE_TIME_2)
-    STATIC_ITEM(SERVICE_NAME_2 " in: ", SS_LEFT);
-    STATIC_ITEM("> ", SS_LEFT, duration_t(stats.ServiceTime2).toString(buffer));
+    STATIC_ITEM_P(PSTR(SERVICE_NAME_2 " "), SS_LEFT, buffer);
+    STATIC_ITEM_P(PSTR("> "), SS_LEFT, duration_t(stats.ServiceTime2).toString(buffer));
   #endif
 
   #if ENABLED(SERVICE_TIME_3)
-    STATIC_ITEM(SERVICE_NAME_3 " in: ", SS_LEFT);
-    STATIC_ITEM("> ", SS_LEFT, duration_t(stats.ServiceTime3).toString(buffer));
+    STATIC_ITEM_P(PSTR(SERVICE_NAME_3 " "), SS_LEFT, buffer);
+    STATIC_ITEM_P(PSTR("> "), SS_LEFT, duration_t(stats.ServiceTime3).toString(buffer));
   #endif
 
   END_SCREEN();
@@ -87,31 +91,31 @@ void menu_info_stats() {
 void menu_info_thermistors() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
-  char buffer[21];  // for STATIC_PAIR_P
+  char buffer[21];  // for VALUE_ITEM_P
 
   START_SCREEN();
 
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      STATIC_ITEM_I("Hotend", h, SS_INVERT);
-      STATIC_PAIR(MSG_INFO_MIN_TEMP, i16tostr3left(hotends[h]->data.temp.min), SS_LEFT);
-      STATIC_PAIR(MSG_INFO_MAX_TEMP, i16tostr3left(hotends[h]->data.temp.max), SS_LEFT);
+      STATIC_ITEM_P(PSTR("Hotend"), SS_INVERT);
+      VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(hotends[h]->data.temp.min), SS_LEFT);
+      VALUE_ITEM(MSG_INFO_MAX_TEMP, i16tostr3left(hotends[h]->data.temp.max), SS_LEFT);
     }
   #endif
 
   #if MAX_BED > 0
     LOOP_BED() {
-      STATIC_ITEM_I("Bed", h, SS_INVERT);
-      STATIC_PAIR(MSG_INFO_MIN_TEMP, i16tostr3left(beds[h]->data.temp.min), SS_LEFT);
-      STATIC_PAIR(MSG_INFO_MAX_TEMP, i16tostr3left(beds[h]->data.temp.max), SS_LEFT);
+      STATIC_ITEM_P(PSTR("Bed"), SS_INVERT);
+      VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(beds[h]->data.temp.min), SS_LEFT);
+      VALUE_ITEM(MSG_INFO_MAX_TEMP, i16tostr3left(beds[h]->data.temp.max), SS_LEFT);
     }
   #endif
 
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      STATIC_ITEM_I("Chamber", h, SS_INVERT);
-      STATIC_PAIR(MSG_INFO_MIN_TEMP, i16tostr3left(chambers[h]->data.temp.min), SS_LEFT);
-      STATIC_PAIR(MSG_INFO_MAX_TEMP, i16tostr3left(chambers[h]->data.temp.max), SS_LEFT);
+      STATIC_ITEM_P(PSTR("Chamber"), SS_INVERT);
+      VALUE_ITEM(MSG_INFO_MIN_TEMP, i16tostr3left(chambers[h]->data.temp.min), SS_LEFT);
+      VALUE_ITEM(MSG_INFO_MAX_TEMP, i16tostr3left(chambers[h]->data.temp.max), SS_LEFT);
     }
   #endif
 
@@ -126,13 +130,13 @@ void menu_info_thermistors() {
 void menu_info_board() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
 
-  char buffer[21];  // for STATIC_PAIR_P
+  char buffer[21];  // for VALUE_ITEM
 
   START_SCREEN();
-  STATIC_ITEM(BOARD_NAME, SS_CENTER|SS_INVERT);                       // Board
-  STATIC_PAIR_P(MSG_INFO_BAUDRATE, STRINGIFY(BAUDRATE_1), SS_CENTER); // Baud: 250000
-  STATIC_PAIR_P(MSG_INFO_PROTOCOL, PROTOCOL_VERSION, SS_CENTER);      // Protocol: 2.0
-  STATIC_PAIR_P(MSG_INFO_PSU, POWER_NAME, SS_CENTER);                 // Power Supply: Normal
+  STATIC_ITEM_P(PSTR(BOARD_NAME), SS_CENTER|SS_INVERT);             // Board
+  VALUE_ITEM(MSG_INFO_BAUDRATE, STRINGIFY(BAUDRATE_1), SS_CENTER);  // Baud: 250000
+  VALUE_ITEM(MSG_INFO_PROTOCOL, PROTOCOL_VERSION, SS_CENTER);       // Protocol: 2.0
+  VALUE_ITEM(MSG_INFO_PSU, POWER_NAME, SS_CENTER);                  // Power Supply: Normal
   END_SCREEN();
 }
 
@@ -143,16 +147,19 @@ void menu_info_board() {
  */
 void menu_info_firmware() {
   if (lcdui.use_click()) return lcdui.goto_previous_screen();
+
+  char buffer[21];  // for VALUE_ITEM
+
   START_SCREEN();
-  STATIC_ITEM(FIRMWARE_NAME, SS_CENTER|SS_INVERT);
-  STATIC_ITEM(SHORT_BUILD_VERSION);
-  STATIC_ITEM(STRING_REVISION_DATE);
-  STATIC_ITEM(MACHINE_NAME);
-  STATIC_ITEM(MK4DUO_FIRMWARE_URL);
-  STATIC_ITEM(MSG_INFO_EXTRUDERS ":", tools.data.extruders);
-  STATIC_ITEM(MSG_INFO_HOTENDS ":", tools.data.hotends);
-  STATIC_ITEM(MSG_INFO_BEDS ":", tools.data.beds);
-  STATIC_ITEM(MSG_INFO_CHAMBERS ":", tools.data.chambers);
+  STATIC_ITEM_P(PSTR(FIRMWARE_NAME), SS_CENTER|SS_INVERT);
+  STATIC_ITEM_P(PSTR(SHORT_BUILD_VERSION));
+  STATIC_ITEM_P(PSTR(STRING_REVISION_DATE));
+  STATIC_ITEM_P(PSTR(MACHINE_NAME));
+  STATIC_ITEM_P(PSTR(MK4DUO_FIRMWARE_URL));
+  VALUE_ITEM(MSG_INFO_EXTRUDERS, ui8tostr3(tools.data.extruders), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_HOTENDS, ui8tostr3(tools.data.hotends), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_BEDS, ui8tostr3(tools.data.beds), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_CHAMBERS, ui8tostr3(tools.data.chambers), SS_CENTER);
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
     STATIC_ITEM(MSG_3POINT_LEVELING);     // 3-Point Leveling
   #elif ENABLED(AUTO_BED_LEVELING_LINEAR)

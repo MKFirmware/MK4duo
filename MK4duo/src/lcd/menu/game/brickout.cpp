@@ -187,8 +187,9 @@ void BrickoutGame::game_screen() {
     lcd_put_int(sx, MENU_FONT_ASCENT - 1, score);
 
     // Balls Left
+    lcd_moveto(LCD_PIXEL_WIDTH - MENU_FONT_WIDTH * 3, MENU_FONT_ASCENT - 1);
     PGM_P const ohs = PSTR("ooo\0\0");
-    lcd_put_u8str_P(LCD_PIXEL_WIDTH - MENU_FONT_WIDTH * 3, MENU_FONT_ASCENT - 1, ohs + 3 - bdat.balls_left);
+    lcd_put_u8str_P(ohs + 3 - bdat.balls_left);
   }
 
   // A click always exits this game

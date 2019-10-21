@@ -81,25 +81,11 @@ inline void gcode_M940() {
         #endif
         break;
       case E_AXIS:
-        #if AXIS_HAS_STEALTHCHOP(E0)
-          tmc_set_stealthChop(driver.e[0], value);
-        #endif
-        #if AXIS_HAS_STEALTHCHOP(E1)
-          tmc_set_stealthChop(driver.e[1], value);
-        #endif
-        #if AXIS_HAS_STEALTHCHOP(E2)
-          tmc_set_stealthChop(driver.e[2], value);
-        #endif
-        #if AXIS_HAS_STEALTHCHOP(E3)
-          tmc_set_stealthChop(driver.e[3], value);
-        #endif
-        #if AXIS_HAS_STEALTHCHOP(E4)
-          tmc_set_stealthChop(driver.e[4], value);
-        #endif
-        #if AXIS_HAS_STEALTHCHOP(E5)
-          tmc_set_stealthChop(driver.e[5], value);
-        #endif
-      break;
+        LOOP_DRV_EXT() {
+          Driver* drv = driver.e[d];
+          if (drv && drv->tmc) tmc_set_stealthChop(drv, value);
+        }
+        break;
     }
   }
 }
@@ -136,24 +122,11 @@ inline void gcode_M941() {
     #endif
   }
   if (parser.seenval('E')) {
-    #if AXIS_HAS_TMC(E0)
-      driver.e[0]->tmc->chm(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      driver.e[1]->tmc->chm(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      driver.e[2]->tmc->chm(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      driver.e[3]->tmc->chm(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      driver.e[4]->tmc->chm(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      driver.e[5]->tmc->chm(parser.value_bool());
-    #endif
+    const bool state = parser.value_bool();
+    LOOP_DRV_EXT() {
+      Driver* drv = driver.e[d];
+      if (drv && drv->tmc) drv->tmc->chm(state);
+    }
   }
 }
 
@@ -189,24 +162,11 @@ inline void gcode_M942() {
     #endif
   }
   if (parser.seenval('E')) {
-    #if AXIS_HAS_TMC(E0)
-      driver.e[0]->tmc->intpol(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E1)
-      driver.e[1]->tmc->intpol(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E2)
-      driver.e[2]->tmc->intpol(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E3)
-      driver.e[3]->tmc->intpol(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E4)
-      driver.e[4]->tmc->intpol(parser.value_bool());
-    #endif
-    #if AXIS_HAS_TMC(E5)
-      driver.e[5]->tmc->intpol(parser.value_bool());
-    #endif
+    const bool state = parser.value_bool();
+    LOOP_DRV_EXT() {
+      Driver* drv = driver.e[d];
+      if (drv && drv->tmc) drv->tmc->intpol(state);
+    }
   }
 }
 

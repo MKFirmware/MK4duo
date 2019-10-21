@@ -37,13 +37,13 @@ inline void gcode_G60() {
   const uint8_t slot = parser.byteval('S');
 
   if (slot >= NUM_POSITON_SLOTS) {
-    SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
+    SERIAL_LMV(ER, MSG_HOST_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
     return;
   } 
   mechanics.stored_position[slot] = mechanics.current_position;
   printer.setPosSaved(true);
 
-  SERIAL_MSG(MSG_SAVED_POS);
+  SERIAL_MSG(MSG_HOST_SAVED_POS);
   SERIAL_MV(" S", slot);
   SERIAL_MV("<-X:", mechanics.stored_position[slot].x);
   SERIAL_MV(" Y:", mechanics.stored_position[slot].y);

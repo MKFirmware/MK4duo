@@ -250,12 +250,12 @@ void Heater::get_output() {
 
     /**
     if (printer.debugFeature() && type == IS_HOTEND) {
-      DEBUG_SMV(DEB, MSG_PID_DEBUG, tools.active_hotend());
-      DEBUG_MV(MSG_PID_DEBUG_INPUT, current_temperature);
-      DEBUG_MV(MSG_PID_DEBUG_OUTPUT, pwm_value);
-      DEBUG_MV(MSG_PID_DEBUG_PTERM, data.pid.Kp);
-      DEBUG_MV(MSG_PID_DEBUG_ITERM, data.pid.Ki);
-      DEBUG_MV(MSG_PID_DEBUG_DTERM, data.pid.Kd);
+      DEBUG_SMV(DEB, MSG_HOST_PID_DEBUG, tools.active_hotend());
+      DEBUG_MV(MSG_HOST_PID_DEBUG_INPUT, current_temperature);
+      DEBUG_MV(MSG_HOST_PID_DEBUG_OUTPUT, pwm_value);
+      DEBUG_MV(MSG_HOST_PID_DEBUG_PTERM, data.pid.Kp);
+      DEBUG_MV(MSG_HOST_PID_DEBUG_ITERM, data.pid.Ki);
+      DEBUG_MV(MSG_HOST_PID_DEBUG_DTERM, data.pid.Kd);
       DEBUG_EOL();
     }
     */
@@ -296,7 +296,7 @@ void Heater::check_and_power() {
   if (isThermalProtection()) {
     thermal_runaway_protection();
     if (thermal_runaway_state == TRRunaway)
-      temp_error(PSTR(MSG_T_THERMAL_RUNAWAY), PSTR(MSG_THERMAL_RUNAWAY));
+      temp_error(PSTR(MSG_HOST_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
   }
 
   // Ignore heater we are currently testing
@@ -307,7 +307,7 @@ void Heater::check_and_power() {
   // Make sure temperature is increasing
   if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_l(watch_period * 1000UL))) {
     if (current_temperature < watch_target_temp)
-      temp_error(PSTR(MSG_HEATING_FAILED), PSTR(MSG_HEATING_FAILED_LCD));
+      temp_error(PSTR(MSG_HOST_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED));
     else
       start_watching(); // Start again if the target is still far off
   }
@@ -404,53 +404,53 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
           LIMIT(bias, 20, data.pid.Max - 20);
           d = (bias > data.pid.Max >> 1) ? data.pid.Max - 1 - bias : bias;
 
-          SERIAL_MV(MSG_BIAS, bias);
-          SERIAL_MV(MSG_D, d);
-          SERIAL_MV(MSG_T_MIN, minTemp);
-          SERIAL_MV(MSG_T_MAX, maxTemp);
+          SERIAL_MV(MSG_HOST_BIAS, bias);
+          SERIAL_MV(MSG_HOST_D, d);
+          SERIAL_MV(MSG_HOST_T_MIN, minTemp);
+          SERIAL_MV(MSG_HOST_T_MAX, maxTemp);
 
           if (cycles > 2) {
             const float Ku = (4.0f * d) / (float(M_PI) * (maxTemp - minTemp) * 0.5f),
                         Tu = float(t_low + t_high) * 0.001f,
                         pf = isHotend ? 0.6f : 0.2f,
                         df = isHotend ? 1.0f / 8.0f : 1.0f / 3.0f;
-            SERIAL_MV(MSG_KU, Ku);
-            SERIAL_MV(MSG_TU, Tu);
+            SERIAL_MV(MSG_HOST_KU, Ku);
+            SERIAL_MV(MSG_HOST_TU, Tu);
             SERIAL_EOL();
 
             if (method == 0) {
               tune_pid.Kp = Ku * pf;
               tune_pid.Ki = Ku * pf * 2 / Tu;
               tune_pid.Kd = Ku * pf * df * Tu;
-              SERIAL_MSG(MSG_CLASSIC_PID);
+              SERIAL_MSG(MSG_HOST_CLASSIC_PID);
             }
             else if (method == 1) {
               tune_pid.Kp = 0.33f * Ku;
               tune_pid.Ki = 0.66f * Ku / Tu;
               tune_pid.Kd = 0.11f * Ku * Tu;
-              SERIAL_MSG(MSG_SOME_OVERSHOOT_PID);
+              SERIAL_MSG(MSG_HOST_SOME_OVERSHOOT_PID);
             }
             else if (method == 2) {
               tune_pid.Kp = 0.2f * Ku;
               tune_pid.Ki = 0.4f * Ku / Tu;
               tune_pid.Kd = 0.2f * Ku * Tu / 3.0f;
-              SERIAL_MSG(MSG_NO_OVERSHOOT_PID);
+              SERIAL_MSG(MSG_HOST_NO_OVERSHOOT_PID);
             }
             else if (method == 3) {
               tune_pid.Kp = 0.7f * Ku;
               tune_pid.Ki = 1.75f * Ku / Tu;
               tune_pid.Kd = 0.105f * Ku * Tu;
-              SERIAL_MSG(MSG_PESSEN_PID);
+              SERIAL_MSG(MSG_HOST_PESSEN_PID);
             }
             else if (method == 4) {
               tune_pid.Kp = 0.4545f * Ku;
               tune_pid.Ki = 0.4545f * Ku / Tu / 2.2f;
               tune_pid.Kd = 0.4545f * Ku * Tu / 6.3f;
-              SERIAL_MSG(MSG_TYREUS_LYBEN_PID);
+              SERIAL_MSG(MSG_HOST_TYREUS_LYBEN_PID);
             }
-            SERIAL_MV(MSG_KP, tune_pid.Kp);
-            SERIAL_MV(MSG_KI, tune_pid.Ki);
-            SERIAL_MV(MSG_KD, tune_pid.Kd);
+            SERIAL_MV(MSG_HOST_KP, tune_pid.Kp);
+            SERIAL_MV(MSG_HOST_KI, tune_pid.Ki);
+            SERIAL_MV(MSG_HOST_KD, tune_pid.Kd);
           }
         }
 
@@ -478,15 +478,15 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
         && type != IS_COOLER
       #endif
     ) {
-      SERIAL_LM(ER, MSG_PID_TEMP_TOO_HIGH);
-      LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_HIGH);
+      SERIAL_LM(ER, MSG_HOST_PID_TEMP_TOO_HIGH);
+      LCD_ALERTMESSAGEPGM_P(PSTR(MSG_HOST_PID_TEMP_TOO_HIGH));
       Pidtuning = false;
       break;
     }
     #if MAX_COOLER > 0
       else if (current_temp < target_temp + MAX_OVERSHOOT_PID_AUTOTUNE && type == IS_COOLER) {
-        SERIAL_LM(ER, MSG_PID_TEMP_TOO_LOW);
-        LCD_ALERTMESSAGEPGM(MSG_PID_TEMP_TOO_LOW);
+        SERIAL_LM(ER, MSG_HOST_PID_TEMP_TOO_LOW);
+        LCD_ALERTMESSAGEPGM_P(PSTR(MSG_HOST_PID_TEMP_TOO_LOW));
         Pidtuning = false;
         break;
       }
@@ -497,21 +497,21 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
       #define MAX_CYCLE_TIME_PID_AUTOTUNE 20L
     #endif
     if (((now - t1) + (now - t2)) > (MAX_CYCLE_TIME_PID_AUTOTUNE * 60L * 1000L)) {
-      SERIAL_LM(ER, MSG_PID_TIMEOUT);
-      LCD_ALERTMESSAGEPGM(MSG_PID_TIMEOUT);
+      SERIAL_LM(ER, MSG_HOST_PID_TIMEOUT);
+      LCD_ALERTMESSAGEPGM_P(PSTR(MSG_HOST_PID_TIMEOUT));
       Pidtuning = false;
       break;
     }
 
     if (cycles > ncycles) {
 
-      SERIAL_EM(MSG_PID_AUTOTUNE_FINISHED);
+      SERIAL_EM(MSG_HOST_PID_AUTOTUNE_FINISHED);
       Pidtuning = false;
 
       if (isHotend) {
-        SERIAL_MV(MSG_KP, tune_pid.Kp);
-        SERIAL_MV(MSG_KI, tune_pid.Ki);
-        SERIAL_EMV(MSG_KD, tune_pid.Kd);
+        SERIAL_MV(MSG_HOST_KP, tune_pid.Kp);
+        SERIAL_MV(MSG_HOST_KI, tune_pid.Ki);
+        SERIAL_EMV(MSG_HOST_KD, tune_pid.Kd);
       }
 
       #if MAX_BED > 0
@@ -565,7 +565,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   printer.setWaitForHeatUp(false);
   printer.setAutoreportTemp(oldReport);
 
-  LCD_MESSAGEPGM(WELCOME_MSG);
+  LCD_MESSAGEPGM(MSG_WELCOME);
 
 }
 
@@ -741,26 +741,26 @@ void Heater::temp_error(PGM_P const serial_msg, PGM_P const lcd_msg) {
   if (isActive()) {
     SERIAL_STR(ER);
     SERIAL_STR(serial_msg);
-    SERIAL_MSG(MSG_HEATER_STOPPED);
+    SERIAL_MSG(MSG_HOST_HEATER_STOPPED);
     switch (type) {
       #if MAX_HOTEND > 0
         case IS_HOTEND:
-          SERIAL_EMV(MSG_HEATER_HOTEND " ", int(data.ID));
+          SERIAL_EMV(MSG_HOST_HEATER_HOTEND " ", int(data.ID));
           break;
       #endif
       #if MAX_BED > 0
         case IS_BED:
-          SERIAL_EMV(MSG_HEATER_BED " ", int(data.ID));
+          SERIAL_EMV(MSG_HOST_HEATER_BED " ", int(data.ID));
           break;
       #endif
       #if MAX_CHAMBER > 0
         case IS_CHAMBER:
-          SERIAL_EMV(MSG_HEATER_CHAMBER " ", int(data.ID));
+          SERIAL_EMV(MSG_HOST_HEATER_CHAMBER " ", int(data.ID));
           break;
       #endif
       #if HAS_TEMP_COOLER
         case IS_COOLER:
-          SERIAL_EM(MSG_HEATER_COOLER);
+          SERIAL_EM(MSG_HOST_HEATER_COOLER);
           break;
       #endif
       default: break;
@@ -781,17 +781,17 @@ void Heater::min_temp_error() {
   switch (type) {
     #if MAX_HOTEND > 0
       case IS_HOTEND:
-        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP));
+        temp_error(PSTR(MSG_HOST_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
         break;
     #endif
     #if MAX_BED > 0
       case IS_BED:
-        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_BED));
+        temp_error(PSTR(MSG_HOST_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
         break;
     #endif
     #if MAX_CHAMBER > 0
       case IS_CHAMBER:
-        temp_error(PSTR(MSG_T_MINTEMP), PSTR(MSG_ERR_MINTEMP_CHAMBER));
+        temp_error(PSTR(MSG_HOST_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_CHAMBER));
         break;
     #endif
     default: break;
@@ -802,17 +802,17 @@ void Heater::max_temp_error() {
   switch (type) {
     #if MAX_HOTEND > 0
       case IS_HOTEND:
-        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP));
+        temp_error(PSTR(MSG_HOST_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
         break;
     #endif
     #if MAX_BED > 0
       case IS_BED:
-        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_BED));
+        temp_error(PSTR(MSG_HOST_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_BED));
         break;
     #endif
     #if MAX_CHAMBER > 0
       case IS_CHAMBER:
-        temp_error(PSTR(MSG_T_MAXTEMP), PSTR(MSG_ERR_MAXTEMP_CHAMBER));
+        temp_error(PSTR(MSG_HOST_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_CHAMBER));
         break;
     #endif
     default: break;

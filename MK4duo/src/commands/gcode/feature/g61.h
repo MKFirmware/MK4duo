@@ -41,11 +41,11 @@ inline void gcode_G61() {
   const uint8_t slot = parser.byteval('S');
 
   if (slot >= NUM_POSITON_SLOTS) {
-    SERIAL_LMV(ER, MSG_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
+    SERIAL_LMV(ER, MSG_HOST_INVALID_POS_SLOT, NUM_POSITON_SLOTS);
     return;
   }
 
-  SERIAL_MSG(MSG_RESTORING_POS);
+  SERIAL_MSG(MSG_HOST_RESTORING_POS);
   SERIAL_MV(" S", int(slot));
   SERIAL_MSG("->");
 

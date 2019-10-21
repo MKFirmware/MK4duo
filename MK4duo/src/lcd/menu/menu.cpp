@@ -33,7 +33,6 @@ float move_menu_scale;
 
 // Menu Navigation
 int8_t encoderTopLine, encoderLine, screen_items;
-uint8_t menu_edit_index;
 
 typedef struct {
   screenFunc_t menu_function;
@@ -44,12 +43,17 @@ menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
 bool screen_changed;
 
+// Menu Items of various kinds
+uint8_t MenuItemBase::itemIndex;
+
 // Value Editing
 editable_t    editable;
+
+// Menu Edit Items
 PGM_P         MenuEditItemBase::editLabel;
-uint8_t       MenuEditItemBase::editIndex;
 void*         MenuEditItemBase::editValue;
-int32_t       MenuEditItemBase::minEditValue, MenuEditItemBase::maxEditValue;
+int32_t       MenuEditItemBase::minEditValue,
+              MenuEditItemBase::maxEditValue;
 screenFunc_t  MenuEditItemBase::callbackFunc;
 bool          MenuEditItemBase::liveEdit;
 
@@ -80,7 +84,7 @@ void LcdUI::goto_previous_screen() {
 /////////// Common Menu Actions ////////////
 ////////////////////////////////////////////
 
-void MenuItem_gcode::action(PGM_P const, const uint8_t, PGM_P const pgcode) { commands.inject_P(pgcode); }
+void MenuItem_gcode::action(PGM_P const, PGM_P const pgcode) { commands.inject_P(pgcode); }
 
 ////////////////////////////////////////////
 /////////// Menu Editing Actions ///////////
@@ -109,19 +113,16 @@ void MenuItem_gcode::action(PGM_P const, const uint8_t, PGM_P const pgcode) { co
  *
  * ...which calls:
  *       MenuItem_int3::action(plabel, &feedrate_percentage, 10, 999)
- *       draw_menu_item_int3(encoderLine == _thisItemNr, _lcdLineNr, plabel, &feedrate_percentage, 10, 999)
+ *       MenuItem_int3::draw(encoderLine == _thisItemNr, _lcdLineNr, plabel, &feedrate_percentage, 10, 999)
  */
 void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
   if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
-    draw_edit_screen(editLabel, editIndex, strfunc(lcdui.encoderPosition + minEditValue));
+    edit_screen(strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
     if (editValue != nullptr) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
-    if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) {
-      menu_edit_index = editIndex;
-      (*callbackFunc)();
-    }
+    if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
     if (lcdui.use_click()) lcdui.goto_previous_screen();
   }
 }
@@ -129,8 +130,8 @@ void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
 void MenuEditItemBase::init(PGM_P const el, const uint8_t idx, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
   lcdui.save_previous_screen();
   lcdui.refresh();
+  MenuItemBase::init(idx);
   editLabel = el;
-  editIndex = idx;
   editValue = ev;
   minEditValue = minv;
   maxEditValue = maxv;
@@ -140,29 +141,7 @@ void MenuEditItemBase::init(PGM_P const el, const uint8_t idx, void * const ev, 
   liveEdit = le;
 }
 
-#define DEFINE_MENU_EDIT_ITEM(NAME) template class TMenuEditItem<MenuEditItemInfo_##NAME>
-
-DEFINE_MENU_EDIT_ITEM(percent);
-DEFINE_MENU_EDIT_ITEM(int3);
-DEFINE_MENU_EDIT_ITEM(int4);
-DEFINE_MENU_EDIT_ITEM(int8);
-DEFINE_MENU_EDIT_ITEM(uint8);
-DEFINE_MENU_EDIT_ITEM(microstep);
-DEFINE_MENU_EDIT_ITEM(uint16_3);
-DEFINE_MENU_EDIT_ITEM(uint16_4);
-DEFINE_MENU_EDIT_ITEM(uint16_5);
-DEFINE_MENU_EDIT_ITEM(float3);
-DEFINE_MENU_EDIT_ITEM(float52);
-DEFINE_MENU_EDIT_ITEM(float43);
-DEFINE_MENU_EDIT_ITEM(float5);
-DEFINE_MENU_EDIT_ITEM(float5_25);
-DEFINE_MENU_EDIT_ITEM(float51);
-DEFINE_MENU_EDIT_ITEM(float51sign);
-DEFINE_MENU_EDIT_ITEM(float52sign);
-DEFINE_MENU_EDIT_ITEM(long5);
-DEFINE_MENU_EDIT_ITEM(long5_25);
-
-void MenuItem_bool::action(PGM_P const, const uint8_t, bool *ptr, screenFunc_t callback) {
+void MenuItem_bool::action(PGM_P const, const uint8_t, bool * const ptr, screenFunc_t callback) {
   *ptr ^= true; lcdui.refresh();
   if (callback) (*callback)();
 }
@@ -249,7 +228,7 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
 static PGM_P sync_message;
 
 void LcdUI::_synchronize() {
-  if (should_draw()) draw_menu_item_static(LCD_HEIGHT >= 4 ? 1 : 0, sync_message);
+  if (should_draw()) MenuItem_static::draw(LCD_HEIGHT >= 4 ? 1 : 0, sync_message);
   if (no_reentry) return;
   // Make this the current handler till all moves are done
   no_reentry = true;
@@ -263,8 +242,7 @@ void LcdUI::_synchronize() {
 // Display the synchronize screen with a custom message
 // ** This blocks the command queue! **
 void LcdUI::synchronize(PGM_P const msg/*=nullptr*/) {
-  static const char moving[] PROGMEM = MSG_MOVING;
-  sync_message = msg ? msg : moving;
+  sync_message = msg ?: GET_TEXT(MSG_MOVING);
   _synchronize();
 }
 
@@ -337,10 +315,10 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), NO_INDEX, ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
+          MenuEditItemBase::edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
         else
       #endif
-          draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), NO_INDEX, ftostr43sign(probe.data.offset.z));
+          MenuEditItemBase::edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
         if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);
@@ -355,20 +333,20 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
  */
 #if MAX_HOTEND > 0
   void watch_temp_callback_hotend() {
-    hotends[menu_edit_index]->set_target_temp(hotends[menu_edit_index]->deg_target());
-    hotends[menu_edit_index]->start_watching();
+    hotends[MenuItemBase::itemIndex]->set_target_temp(hotends[MenuItemBase::itemIndex]->deg_target());
+    hotends[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
 #if MAX_BED > 0
   void watch_temp_callback_bed() {
-    beds[menu_edit_index]->set_target_temp(beds[menu_edit_index]->deg_target());
-    beds[menu_edit_index]->start_watching();
+    beds[MenuItemBase::itemIndex]->set_target_temp(beds[MenuItemBase::itemIndex]->deg_target());
+    beds[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
 #if MAX_CHAMBER > 0
   void watch_temp_callback_chamber() {
-    chambers[menu_edit_index]->set_target_temp(chambers[menu_edit_index]->deg_target());
-    chambers[menu_edit_index]->start_watching();
+    chambers[MenuItemBase::itemIndex]->set_target_temp(chambers[MenuItemBase::itemIndex]->deg_target());
+    chambers[MenuItemBase::itemIndex]->start_watching();
   }
 #endif
 #if MAX_COOLER > 0
@@ -396,7 +374,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
 
 void lcd_draw_homing() {
   constexpr uint8_t line = (LCD_HEIGHT - 1) / 2;
-  if (lcdui.should_draw()) draw_menu_item_static(line, PSTR(MSG_LEVEL_BED_HOMING));
+  if (lcdui.should_draw()) MenuItem_static::draw(line, GET_TEXT(MSG_LEVEL_BED_HOMING));
   lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
 }
 

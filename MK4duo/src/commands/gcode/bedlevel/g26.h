@@ -154,7 +154,7 @@ int8_t g26_prime_flag;
    */
   bool user_canceled() {
     if (!lcdui.button_pressed()) return false; // Return if the button isn't pressed
-    lcdui.set_status_P(PSTR("Mesh Validation Stopped."), 99);
+    lcdui.set_status_P(GET_TEXT(MSG_G26_CANCELED), 99);
     #if HAS_LCD_MENU
       lcdui.quick_feedback(true);
     #endif
@@ -365,7 +365,7 @@ inline bool turn_on_heaters() {
   #if MAX_BED > 0
     if (g26_bed_temp > 25) {
       #if HAS_LCD
-        lcdui.set_status_P(PSTR("G26 Heating Bed."), 99);
+        lcdui.set_status_P(GET_TEXT(MSG_G26_HEATING_BED), 99);
         lcdui.quick_feedback(true);
         #if HAS_LCD_MENU
           lcdui.capture();
@@ -381,7 +381,7 @@ inline bool turn_on_heaters() {
 
   // Start heating the active nozzle
   #if HAS_LCD
-    lcdui.set_status_P(PSTR("G26 Heating Nozzle."), 99);
+    lcdui.set_status_P(GET_TEXT(MSG_G26_HEATING_NOZZLE), 99);
     lcdui.quick_feedback(true);
   #endif
   hotends[0]->set_target_temp(g26_hotend_temp);
@@ -413,7 +413,7 @@ inline bool prime_nozzle() {
     if (g26_prime_flag == -1) {  // The user wants to control how much filament gets purged
 
       lcdui.capture();
-      lcdui.set_status_P(PSTR("User-Controlled Prime"), 99);
+      lcdui.set_status_P(GET_TEXT(MSG_G26_MANUAL_PRIME), 99);
       lcdui.chirp();
 
       mechanics.destination = mechanics.current_position;
@@ -437,7 +437,7 @@ inline bool prime_nozzle() {
 
       lcdui.wait_for_release();
 
-      lcdui.set_status_P(PSTR("Done Priming"), 99);
+      lcdui.set_status_P(GET_TEXT(MSG_G26_PRIME_DONE), 99);
       lcdui.quick_feedback(true);
       lcdui.release();
     }
@@ -445,7 +445,7 @@ inline bool prime_nozzle() {
   #endif
   {
     #if HAS_LCD
-      lcdui.set_status_P(PSTR("Fixed Length Prime."), 99);
+      lcdui.set_status_P(GET_TEXT(MSG_G26_FIXED_LENGTH), 99);
       lcdui.quick_feedback(true);
     #endif
     mechanics.destination = mechanics.current_position;
@@ -808,7 +808,7 @@ inline void gcode_G26() {
 
 LEAVE:
   SERIAL_EM("Leaving G26");
-  lcdui.set_status_P(PSTR("Leaving G26"), -1);
+  lcdui.set_status_P(GET_TEXT(MSG_G26_LEAVING), -1);
 
   retract_filament(mechanics.destination);
   mechanics.destination.z = Z_PROBE_BETWEEN_HEIGHT;

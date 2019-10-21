@@ -83,7 +83,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   host_action.prompt_open(PROMPT_INFO, PSTR("Pause"), PSTR("Dismiss"));
 
   if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(tools.active_hotend())) {
-    SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
+    SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
 
     #if HAS_LCD_MENU
       if (show_lcd) { // Show status screen
@@ -197,7 +197,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
         lcd_pause_show_message(PAUSE_MESSAGE_HEAT);
       #endif
       SERIAL_STR(ECHO);
-      SERIAL_EM(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
+      SERIAL_EM(_PMSG(MSG_HOST_FILAMENT_CHANGE_HEAT));
 
       host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("HeaterTimeout"), PSTR("Reheat"));
 
@@ -399,7 +399,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     #if HAS_LCD_MENU
       if (show_lcd) lcd_pause_show_message(PAUSE_MESSAGE_INSERT, tmode);
     #endif
-    SERIAL_LM(ECHO, MSG_FILAMENT_CHANGE_INSERT);
+    SERIAL_LM(ECHO, MSG_HOST_FILAMENT_CHANGE_INSERT);
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
@@ -553,7 +553,7 @@ void AdvancedPause::show_continue_prompt(const bool is_reload) {
     lcd_pause_show_message(is_reload ? PAUSE_MESSAGE_INSERT : PAUSE_MESSAGE_WAITING);
   #endif
   SERIAL_STR(ECHO);
-  SERIAL_STR(is_reload ? PSTR(_PMSG(MSG_FILAMENT_CHANGE_INSERT) "\n") : PSTR(_PMSG(MSG_FILAMENT_CHANGE_WAIT) "\n"));
+  SERIAL_STR(is_reload ? PSTR(_PMSG(MSG_HOST_FILAMENT_CHANGE_INSERT) "\n") : PSTR(_PMSG(MSG_HOST_FILAMENT_CHANGE_WAIT) "\n"));
 }
 
 /**

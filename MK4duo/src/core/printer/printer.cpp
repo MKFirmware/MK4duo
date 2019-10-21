@@ -142,12 +142,12 @@ void Printer::setup() {
   SERIAL_LM(ECHO, BUILD_VERSION);
 
   #if ENABLED(STRING_REVISION_DATE) && ENABLED(STRING_CONFIG_AUTHOR)
-    SERIAL_LM(ECHO, MSG_CONFIGURATION_VER STRING_REVISION_DATE MSG_AUTHOR STRING_CONFIG_AUTHOR);
-    SERIAL_LM(ECHO, MSG_COMPILED __DATE__);
+    SERIAL_LM(ECHO, MSG_HOST_CONFIGURATION_VER STRING_REVISION_DATE MSG_HOST_AUTHOR STRING_CONFIG_AUTHOR);
+    SERIAL_LM(ECHO, MSG_HOST_COMPILED __DATE__);
   #endif // STRING_REVISION_DATE
 
-  SERIAL_SMV(ECHO, MSG_FREE_MEMORY, freeMemory());
-  SERIAL_EMV(MSG_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
+  SERIAL_SMV(ECHO, MSG_HOST_FREE_MEMORY, freeMemory());
+  SERIAL_EMV(MSG_HOST_PLANNER_BUFFER_BYTES, (int)sizeof(block_t)* (BLOCK_BUFFER_SIZE));
 
   #if HAS_SD_SUPPORT
     card.mount();
@@ -413,10 +413,10 @@ void Printer::kill(PGM_P const lcd_msg/*=nullptr*/, const bool steppers_off/*=fa
 
   thermalManager.disable_all_heaters();
 
-  SERIAL_LM(ER, MSG_ERR_KILLED);
+  SERIAL_LM(ER, MSG_HOST_ERR_KILLED);
 
   #if HAS_LCD
-    lcdui.kill_screen(lcd_msg ? lcd_msg : PSTR(MSG_KILLED));
+    lcdui.kill_screen(lcd_msg ? lcd_msg : GET_TEXT(MSG_KILLED));
   #else
     UNUSED(lcd_msg);
   #endif
@@ -521,7 +521,7 @@ void Printer::stop() {
 
   if (isRunning()) {
     setRunning(false);
-    SERIAL_LM(ER, MSG_ERR_STOPPED);
+    SERIAL_LM(ER, MSG_HOST_ERR_STOPPED);
     LCD_MESSAGEPGM(MSG_STOPPED);
   }
 }
@@ -581,8 +581,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   handle_safety_watch();
 
   if (expired(&max_inactivity_ms, millis_l(max_inactive_time * 1000UL))) {
-    SERIAL_LMT(ER, MSG_KILL_INACTIVE_TIME, parser.command_ptr);
-    kill(PSTR(MSG_KILLED));
+    SERIAL_LMT(ER, MSG_HOST_KILL_INACTIVE_TIME, parser.command_ptr);
+    kill(GET_TEXT(MSG_KILLED));
   }
 
   sound.spin();
@@ -680,8 +680,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     // KILL the machine
     // ----------------------------------------------------------------
     if (killCount >= KILL_DELAY) {
-      SERIAL_LM(ER, MSG_KILL_BUTTON);
-      kill(PSTR(MSG_KILLED));
+      SERIAL_LM(ER, MSG_HOST_KILL_BUTTON);
+      kill(GET_TEXT(MSG_KILLED));
     }
   #endif
 
@@ -905,8 +905,8 @@ void Printer::handle_safety_watch() {
     safety_ms = millis();
   else if (safety_ms && expired(&safety_ms, millis_l(safety_time * 60000UL))) {
     thermalManager.disable_all_heaters();
-    SERIAL_EM("Heating disabled by safety timer.");
-    lcdui.set_status_P(PSTR(MSG_MAX_INACTIVITY_TIME), 99);
+    SERIAL_EM(MSG_HOST_MAX_INACTIVITY_TIME);
+    lcdui.set_status_P(GET_TEXT(MSG_MAX_INACTIVITY_TIME), 99);
   }
 }
 
@@ -922,16 +922,16 @@ void Printer::handle_safety_watch() {
       switch (busy_state) {
         case InHandler:
         case InProcess:
-          SERIAL_LM(BUSY, MSG_BUSY_PROCESSING);
+          SERIAL_LM(BUSY, MSG_HOST_BUSY_PROCESSING);
           break;
         case PausedforUser:
-          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_USER);
+          SERIAL_LM(BUSY, MSG_HOST_BUSY_PAUSED_FOR_USER);
           break;
         case PausedforInput:
-          SERIAL_LM(BUSY, MSG_BUSY_PAUSED_FOR_INPUT);
+          SERIAL_LM(BUSY, MSG_HOST_BUSY_PAUSED_FOR_INPUT);
           break;
         case DoorOpen:
-          SERIAL_LM(BUSY, MSG_BUSY_DOOR_OPEN);
+          SERIAL_LM(BUSY, MSG_HOST_BUSY_DOOR_OPEN);
           break;
         default:
           break;

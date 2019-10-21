@@ -265,12 +265,12 @@ uint8_t Mechanics::axis_need_homing(uint8_t axis_bits/*=0x07*/) {
 
 bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
   if ((axis_bits = axis_need_homing(axis_bits))) {
-    static const char home_first[] PROGMEM = MSG_HOME_FIRST;
-    char msg[sizeof(home_first)];
+    PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
+    char msg[strlen_P(home_first)+1];
     sprintf_P(msg, home_first,
-      TEST(axis_bits, X_AXIS) ? MSG_X : "",
-      TEST(axis_bits, Y_AXIS) ? MSG_Y : "",
-      TEST(axis_bits, Z_AXIS) ? MSG_Y : ""
+      TEST(axis_bits, X_AXIS) ? MSG_HOST_X : "",
+      TEST(axis_bits, Y_AXIS) ? MSG_HOST_Y : "",
+      TEST(axis_bits, Z_AXIS) ? MSG_HOST_Y : ""
     );
     SERIAL_STR(ECHO);
     SERIAL_STR(msg);

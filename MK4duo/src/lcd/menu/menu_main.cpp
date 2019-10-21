@@ -35,7 +35,7 @@
 bool stop_print_file;
 
 void menu_stop_print() {
-  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
+  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, GET_TEXT(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
 }
 
 #if HAS_EEPROM
@@ -80,7 +80,7 @@ void menu_stop_print() {
   #if HAS_SD_SUPPORT
 
     void menu_firmware() {
-      do_select_screen_yn(nexlcd.UploadNewFirmware, lcdui.goto_previous_screen, PSTR(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
+      do_select_screen_yn(nexlcd.UploadNewFirmware, lcdui.goto_previous_screen, GET_TEXT(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
     }
 
   #endif
@@ -241,17 +241,17 @@ void menu_main() {
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
   #if ENABLED(SERVICE_TIME_1)
-    SUBMENU(SERVICE_NAME_1, menu_service1);
+    SUBMENU_P(PSTR(SERVICE_NAME_1), menu_service1);
   #endif
   #if ENABLED(SERVICE_TIME_2)
-    SUBMENU(SERVICE_NAME_2, menu_service2);
+    SUBMENU_P(PSTR(SERVICE_NAME_2), menu_service2);
   #endif
   #if ENABLED(SERVICE_TIME_3)
-    SUBMENU(SERVICE_NAME_3, menu_service3);
+    SUBMENU_P(PSTR(SERVICE_NAME_3), menu_service3);
   #endif
 
   #if HAS_GAMES
-    SUBMENU("Game", (
+    SUBMENU(MSG_GAMES, (
       #if HAS_GAME_MENU
         menu_game
       #elif ENABLED(GAME_BRICKOUT)

@@ -44,7 +44,7 @@ inline void gcode_M190() {
       beds[b]->set_target_temp(parser.value_celsius());
     else return;
 
-    lcdui.set_status_P(beds[b]->isHeating() ? PSTR(MSG_BED_HEATING) : PSTR(MSG_BED_COOLING));
+    lcdui.set_status_P(beds[b]->isHeating() ? GET_TEXT(MSG_BED_HEATING) : GET_TEXT(MSG_BED_COOLING));
 
     beds[b]->wait_for_target(no_wait_for_cooling);
   }

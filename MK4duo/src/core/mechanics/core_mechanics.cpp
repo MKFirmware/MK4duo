@@ -916,7 +916,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
       return;
     }
 
@@ -962,7 +962,7 @@ void Core_Mechanics::homeaxis(const AxisEnum axis) {
     // Disallow Z homing if X or Y are unknown
     if (!home_flag.XHomed || !home_flag.YHomed) {
       LCD_MESSAGEPGM(MSG_ERR_Z_HOMING);
-      SERIAL_LM(ECHO, MSG_ERR_Z_HOMING);
+      SERIAL_LM(ECHO, MSG_HOST_ERR_Z_HOMING);
       return;
     }
 

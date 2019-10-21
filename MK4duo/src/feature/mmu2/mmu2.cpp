@@ -504,7 +504,7 @@ void MMU2::tool_change(uint8_t index) {
 
     stepper.enable_E(0);
 
-    SERIAL_LMV(ECHO, MSG_ACTIVE_EXTRUDER, int(extruder));
+    SERIAL_LMV(ECHO, MSG_HOST_ACTIVE_EXTRUDER, int(extruder));
 
     lcdui.reset_status();
   }

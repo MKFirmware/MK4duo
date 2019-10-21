@@ -189,11 +189,11 @@ void HAL::resetHardware() { resetFunc(); }
 
 void HAL::showStartReason() {
   const uint8_t mcu = MCUSR;
-  if (mcu &  1) SERIAL_EM(MSG_POWERUP);
-  if (mcu &  2) SERIAL_EM(MSG_EXTERNAL_RESET);
-  if (mcu &  4) SERIAL_EM(MSG_BROWNOUT_RESET);
-  if (mcu &  8) SERIAL_EM(MSG_WATCHDOG_RESET);
-  if (mcu & 32) SERIAL_EM(MSG_SOFTWARE_RESET);
+  if (mcu &  1) SERIAL_EM(MSG_HOST_POWERUP);
+  if (mcu &  2) SERIAL_EM(MSG_HOST_EXTERNAL_RESET);
+  if (mcu &  4) SERIAL_EM(MSG_HOST_BROWNOUT_RESET);
+  if (mcu &  8) SERIAL_EM(MSG_HOST_WATCHDOG_RESET);
+  if (mcu & 32) SERIAL_EM(MSG_HOST_SOFTWARE_RESET);
   MCUSR = 0;
 }
 

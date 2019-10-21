@@ -159,7 +159,7 @@ void menu_mmu2_pause() {
   currentTool = mmu2.get_current_tool();
   START_MENU();
   #if LCD_HEIGHT > 2
-    STATIC_ITEM(MSG_MMU2_FILAMENT_CHANGE_HEADER, SS_CENTER|SS_INVERT);
+    STATIC_ITEM(MSG_MMU2_CHOOSE_FILAMENT_HEADER, SS_CENTER|SS_INVERT);
   #endif
   ACTION_ITEM(MSG_MMU2_RESUME,          [](){ mmuMenuWait = false; });
   ACTION_ITEM(MSG_MMU2_UNLOAD_FILAMENT, [](){ mmu2.unload(); });

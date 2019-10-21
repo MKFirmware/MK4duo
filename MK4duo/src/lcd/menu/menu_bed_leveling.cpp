@@ -89,12 +89,12 @@
       #if MANUAL_PROBE_HEIGHT > 0 && DISABLED(MESH_BED_LEVELING)
         // Display "Done" screen and wait for moves to complete
         mechanics.do_blocking_move_to_z(MANUAL_PROBE_HEIGHT, MMM_TO_MMS(manual_feedrate_mm_m.z));
-        lcdui.synchronize(PSTR(MSG_LEVEL_BED_DONE));
+        lcdui.synchronize(GET_TEXT(MSG_LEVEL_BED_DONE));
       #endif
       lcdui.goto_previous_screen_no_defer();
       sound.feedback();
     }
-    if (lcdui.should_draw()) draw_menu_item_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_DONE));
+    if (lcdui.should_draw()) draw_menu_item_static(LCD_HEIGHT >= 4 ? 1 : 0, GET_TEXT(MSG_LEVEL_BED_DONE));
     lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
   }
 
@@ -145,7 +145,7 @@
     //
     if (lcdui.should_draw()) {
       const float v = mechanics.current_position.z;
-      draw_edit_screen(PSTR(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
+      MenuEditItemBase::edit_screen(GET_TEXT(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
   }
 
@@ -156,7 +156,7 @@
     if (lcdui.should_draw()) {
       char msg[10];
       sprintf_P(msg, PSTR("%i / %u"), (int)(manual_probe_index + 1), total_probe_points);
-      draw_edit_screen(PSTR(MSG_LEVEL_BED_NEXT_POINT), msg);
+      MenuEditItemBase::edit_screen(GET_TEXT(MSG_LEVEL_BED_NEXT_POINT), msg);
     }
     lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
     if (!lcdui.wait_for_bl_move) lcdui.goto_screen(_lcd_level_bed_get_z);
@@ -182,7 +182,7 @@
   //         Move to the first probe position
   //
   void _lcd_level_bed_homing_done() {
-    if (lcdui.should_draw()) draw_edit_screen(PSTR(MSG_LEVEL_BED_WAITING), NO_INDEX);
+    if (lcdui.should_draw()) MenuItem_static::draw(1, GET_TEXT(MSG_LEVEL_BED_WAITING));
     if (lcdui.use_click()) {
       manual_probe_index = 0;
       _lcd_level_goto_next_point();

@@ -89,7 +89,7 @@
     START_MENU();
     BACK_ITEM(MSG_GRADIENT);
 
-    EDIT_ITEM_I(int8, MSG_START_VTOOL, NO_ITEM, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM_N(int8, MSG_START_VTOOL, NO_ITEM, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
     EDIT_ITEM(int8, MSG_END_VTOOL, NO_ITEM, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
 
     char tmp[10];
@@ -154,7 +154,7 @@ void lcd_mixer_mix_edit() {
     START_MENU();
     BACK_ITEM(MSG_MIXER);
     LOOP_DRV_MIX() 
-      EDIT_ITEM_FAST_I(float52, MSG_MIX_COMPONENT, d, &mixer.collector[d], 0, 10);
+      EDIT_ITEM_FAST_N(float52, MSG_MIX_COMPONENT, d, &mixer.collector[d], 0, 10);
 
     ACTION_ITEM(MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
     ACTION_ITEM(MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);

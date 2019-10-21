@@ -49,7 +49,7 @@ extern int8_t manual_move_axis;
 // Tell lcdui.update() to start a move to current_position.x" after a short delay.
 //
 inline void manual_move_to_current(AxisEnum axis) {
-  if (axis == E_AXIS) lcdui.manual_move_e_index = menu_edit_index;
+  if (axis == E_AXIS) lcdui.manual_move_e_index = MenuItemBase::itemIndex;
   manual_move_ms = millis() + (move_menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
@@ -133,14 +133,14 @@ static void _lcd_move_xyz(PGM_P name, AxisEnum axis) {
         + manual_move_offset
       #endif
     , axis);
-    draw_edit_screen(name, NO_INDEX, move_menu_scale >= 0.1f ? ftostr41sign(pos) : ftostr43sign(pos));
+    MenuEditItemBase::edit_screen(name, move_menu_scale >= 0.1f ? ftostr41sign(pos) : ftostr43sign(pos));
   }
 }
-void lcd_move_x() { _lcd_move_xyz(PSTR(MSG_MOVE_X), X_AXIS); }
-void lcd_move_y() { _lcd_move_xyz(PSTR(MSG_MOVE_Y), Y_AXIS); }
-void lcd_move_z() { _lcd_move_xyz(PSTR(MSG_MOVE_Z), Z_AXIS); }
+void lcd_move_x() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_X), X_AXIS); }
+void lcd_move_y() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_Y), Y_AXIS); }
+void lcd_move_z() { _lcd_move_xyz(GET_TEXT(MSG_MOVE_Z), Z_AXIS); }
+
 void lcd_move_e() {
-  
   if (lcdui.use_click()) return lcdui.goto_previous_screen_no_defer();
   if (lcdui.encoderPosition) {
     if (!lcdui.processing_manual_move) {
@@ -156,7 +156,7 @@ void lcd_move_e() {
     lcdui.encoderPosition = 0;
   }
   if (lcdui.should_draw()) {
-    draw_edit_screen(PSTR(MSG_MOVE_E), menu_edit_index, ftostr41sign(mechanics.current_position.e
+    MenuEditItemBase::edit_screen(ftostr41sign(mechanics.current_position.e
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -201,13 +201,13 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
     SUBMENU(MSG_MOVE_1MM,   [](){ _goto_manual_move( 1);    });
     SUBMENU(MSG_MOVE_01MM,  [](){ _goto_manual_move( 0.1f); });
     if (axis == Z_AXIS && (SHORT_MANUAL_Z_MOVE) > 0.0f && (SHORT_MANUAL_Z_MOVE) < 0.1f) {
-      SUBMENU("", []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
+      SUBMENU_P(PSTR(""), []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
       MENU_ITEM_ADDON_START(1);
         char tmp[20], numstr[10];
         // Determine digits needed right of decimal
         const uint8_t digs = !UNEAR_ZERO((SHORT_MANUAL_Z_MOVE) * 1000 - int((SHORT_MANUAL_Z_MOVE) * 1000)) ? 4 :
                              !UNEAR_ZERO((SHORT_MANUAL_Z_MOVE) *  100 - int((SHORT_MANUAL_Z_MOVE) *  100)) ? 3 : 2;
-        sprintf_P(tmp, PSTR(MSG_MOVE_Z_DIST), dtostrf(SHORT_MANUAL_Z_MOVE, 1, digs, numstr));
+        sprintf_P(tmp, GET_TEXT(MSG_MOVE_Z_DIST), dtostrf(SHORT_MANUAL_Z_MOVE, 1, digs, numstr));
         LCDPRINT(tmp);
       MENU_ITEM_ADDON_END();
     }
@@ -263,14 +263,14 @@ void menu_move() {
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
     if (tools.extruder.active)
-      GCODES_ITEM(MSG_SELECT MSG_E0, PSTR("T0"));
+      GCODES_ITEM(MSG_SELECT "E0", PSTR("T0"));
     else
-      GCODES_ITEM(MSG_SELECT MSG_E1, PSTR("T1"));
+      GCODES_ITEM(MSG_SELECT "E1", PSTR("T1"));
 
   #endif
 
   LOOP_EXTRUDER()
-    SUBMENU_I(MSG_MOVE_E, e, [](){ _menu_move_distance(E_AXIS, lcd_move_e); });
+    SUBMENU_N(MSG_MOVE_E, e, [](){ _menu_move_distance(E_AXIS, lcd_move_e); });
 
   END_MENU();
 }

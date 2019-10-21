@@ -560,28 +560,28 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
   #if MAX_HOTEND > 0
     if (tools.data.hotends > 0) {
       print_heater_state(hotends[tools.active_hotend()], false, showRaw);
-      SERIAL_MV(MSG_AT ":", hotends[tools.active_hotend()]->pwm_value);
+      SERIAL_MV(MSG_HOST_AT ":", hotends[tools.active_hotend()]->pwm_value);
     }
   #endif
 
   #if MAX_BED > 0
     if (tools.data.beds > 0) {
       print_heater_state(beds[0], false, showRaw);
-      SERIAL_MV(MSG_BAT ":", beds[0]->pwm_value);
+      SERIAL_MV(MSG_HOST_BAT ":", beds[0]->pwm_value);
     }
   #endif
 
   #if MAX_CHAMBER > 0
     if (tools.data.chambers > 0) {
       print_heater_state(chambers[0], false, showRaw);
-      SERIAL_MV(MSG_CAT ":", chambers[0]->pwm_value);
+      SERIAL_MV(MSG_HOST_CAT ":", chambers[0]->pwm_value);
     }
   #endif
 
   #if MAX_COOLER > 0
     if (tools.data.coolers > 0) {
       print_heater_state(coolers[0], false, showRaw);
-      SERIAL_MV(MSG_CAT ":", coolers[0]->pwm_value);
+      SERIAL_MV(MSG_HOST_CAT ":", coolers[0]->pwm_value);
     }
   #endif
 
@@ -589,7 +589,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     if (tools.data.hotends > 1) {
       LOOP_HOTEND() {
         print_heater_state(hotends[h], true, showRaw);
-        SERIAL_MV(MSG_AT, int(h));
+        SERIAL_MV(MSG_HOST_AT, int(h));
         SERIAL_CHR(':');
         SERIAL_VAL(hotends[h]->pwm_value);
       }
@@ -600,7 +600,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     if (tools.data.beds > 1) {
       LOOP_BED() {
         print_heater_state(beds[h], true, showRaw);
-        SERIAL_MV(MSG_BAT, int(h));
+        SERIAL_MV(MSG_HOST_BAT, int(h));
         SERIAL_CHR(':');
         SERIAL_VAL(beds[h]->pwm_value);
       }
@@ -611,7 +611,7 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     if (tools.data.chambers > 1) {
       LOOP_CHAMBER() {
         print_heater_state(chambers[h], true, showRaw);
-        SERIAL_MV(MSG_CAT, int(h));
+        SERIAL_MV(MSG_HOST_CAT, int(h));
         SERIAL_CHR(':');
         SERIAL_VAL(chambers[h]->pwm_value);
       }

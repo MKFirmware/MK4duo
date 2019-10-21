@@ -315,7 +315,7 @@ void gcode_G2_G3(const bool clockwise) {
         // P indicates number of circles to do
         int8_t circles_to_do = parser.byteval('P');
         if (!WITHIN(circles_to_do, 0, 100))
-          SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+          SERIAL_LM(ER, MSG_HOST_ERR_ARC_ARGS);
         while (circles_to_do--)
           plan_arc(mechanics.current_position, arc_offset, clockwise);
       #endif
@@ -326,7 +326,7 @@ void gcode_G2_G3(const bool clockwise) {
     }
     else {
       // Bad arguments
-      SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+      SERIAL_LM(ER, MSG_HOST_ERR_ARC_ARGS);
     }
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)

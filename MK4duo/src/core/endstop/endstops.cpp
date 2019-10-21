@@ -780,7 +780,7 @@ void Endstops::report_state() {
       if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
         _ENDSTOP_HIT_ECHO(A,C)
 
-    SERIAL_SM(ECHO, MSG_ENDSTOPS_HIT);
+    SERIAL_SM(ECHO, MSG_HOST_ENDSTOPS_HIT);
     _ENDSTOP_HIT_TEST(X, 'X');
     _ENDSTOP_HIT_TEST(Y, 'Y');
     _ENDSTOP_HIT_TEST(Z, 'Z');
@@ -792,7 +792,7 @@ void Endstops::report_state() {
     SERIAL_EOL();
 
     #if HAS_LCD
-      lcdui.status_printf_P(0, PSTR(S_FMT " %c %c %c %c"), PSTR(MSG_LCD_ENDSTOPS), chrX, chrY, chrZ, chrP);
+      lcdui.status_printf_P(0, PSTR(S_FMT " %c %c %c %c"), GET_TEXT(MSG_LCD_ENDSTOPS), chrX, chrY, chrZ, chrP);
     #endif
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT) && HAS_SD_SUPPORT
@@ -814,7 +814,7 @@ void Endstops::validate_homing_move() {
   if (trigger_state()) hit_on_purpose();
   else {
     sound.feedback(false);
-    SERIAL_LM(REQUESTPAUSE, " " MSG_ERR_HOMING_FAILED);
+    SERIAL_LM(REQUESTPAUSE, " Homing Failed");
   }
 }
 

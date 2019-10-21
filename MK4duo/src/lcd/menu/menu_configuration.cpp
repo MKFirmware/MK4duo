@@ -33,6 +33,10 @@
 void menu_advanced_settings();
 void menu_delta_calibrate();
 
+#if NUM_LANGUAGES > 1
+  void menu_language();
+#endif
+
 #if ENABLED(LCD_PROGRESS_BAR_TEST)
 
   static void progress_bar_test() {
@@ -45,7 +49,7 @@ void menu_delta_calibrate();
     bar_percent += (int8_t)lcdui.encoderPosition;
     LIMIT(bar_percent, 0, 100);
     lcdui.encoderPosition = 0;
-    draw_menu_item_static(0, PSTR(MSG_PROGRESS_BAR_TEST), SS_CENTER|SS_INVERT);
+    MenuItem_static::draw(0, GET_TEXT(MSG_PROGRESS_BAR_TEST), SS_CENTER|SS_INVERT);
     lcd_put_int((LCD_WIDTH) / 2 - 2, LCD_HEIGHT - 2, bar_percent); lcd_put_wchar('%');
     lcd_moveto(0, LCD_HEIGHT - 1); lcd_draw_progress_bar(bar_percent);
   }
@@ -111,9 +115,9 @@ void menu_tool_change() {
       EDIT_ITEM_FAST(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
       for (uint8_t h = 1; h < tools.data.hotends; h++) {
-        EDIT_ITEM_FAST_I(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_I(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_I(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
       }
     #endif
 
@@ -173,17 +177,17 @@ void menu_tool_change() {
     ACTION_ITEM(MSG_BLTOUCH_MODE_SW, bltouch.cmd_mode_SW);
     #if ENABLED(BLTOUCH_LCD_VOLTAGE_MENU)
       SUBMENU(MSG_BLTOUCH_MODE_5V, []{
-        do_select_screen(PSTR(MSG_BLTOUCH_MODE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_5V), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.cmd_mode_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       });
       SUBMENU(MSG_BLTOUCH_MODE_OD, []{
-        do_select_screen(PSTR(MSG_BLTOUCH_MODE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.cmd_mode_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_OD), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.cmd_mode_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       });
       ACTION_ITEM(MSG_BLTOUCH_MODE_STORE, bltouch.cmd_mode_store);
       SUBMENU(MSG_BLTOUCH_MODE_STORE_5V, []{
-        do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_5V), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_5V, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_STORE_5V), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.mode_conv_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       });
       SUBMENU(MSG_BLTOUCH_MODE_STORE_OD, []{
-        do_select_screen(PSTR(MSG_BLTOUCH_MODE_STORE_OD), PSTR(MSG_BUTTON_CANCEL), bltouch.mode_conv_OD, lcdui.goto_previous_screen, PSTR(MSG_BLTOUCH_MODE_CHANGE));
+        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_STORE_OD), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.mode_conv_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       });
       ACTION_ITEM(MSG_BLTOUCH_MODE_ECHO, bltouch_report);
     #endif
@@ -276,14 +280,14 @@ void menu_tool_change() {
   void menu_laser() {
     START_MENU();
     BACK_ITEM(MSG_MAIN);
-    SUBMENU("Set Focus", menu_laser_focus);
-    SUBMENU("Test Fire", menu_laser_test_fire);
+    SUBMENU_P(PSTR("Set Focus"), menu_laser_focus);
+    SUBMENU(PSTR("Test Fire"), menu_laser_test_fire);
     #if ENABLED(LASER_PERIPHERALS)
       if (laser.peripherals_ok()) {
-        GCODES_ITEM("Turn On Pumps/Fans", PSTR("M80"));
+        GCODES_ITEM_P(PSTR("Turn On Pumps/Fans"), PSTR("M80"));
       }
       else if (!printer.isPrinting()) {
-        GCODES_ITEM("Turn Off Pumps/Fans", PSTR("M81"));
+        GCODES_ITEM_P(PSTR("Turn Off Pumps/Fans"), PSTR("M81"));
       }
     #endif // LASER_PERIPHERALS
     END_MENU();
@@ -297,7 +301,7 @@ void menu_tool_change() {
     START_MENU();
     BACK_ITEM(MSG_CONFIGURATION);
     #if MAX_FAN > 0
-      EDIT_ITEM(int3, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
+      EDIT_ITEM(percent, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
     #if MAX_HOTEND > 0
       EDIT_ITEM(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
@@ -406,6 +410,10 @@ void menu_configuration() {
         ACTION_ITEM(MSG_SOUND_MODE_ON, sound.cyclestate);
     }
 
+  #endif
+
+  #if NUM_LANGUAGES > 1
+    SUBMENU(MSG_LANGUAGE, menu_language);
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)

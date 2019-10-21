@@ -55,7 +55,11 @@
  * 'zh_TW':'Chinese (Traditional)'                                                       *
  *                                                                                       *
  *****************************************************************************************/
-#define LCD_LANGUAGE en
+#define LCD_LANGUAGE    en
+//#define LCD_LANGUAGE_1  en
+//#define LCD_LANGUAGE_2  en
+//#define LCD_LANGUAGE_3  en
+//#define LCD_LANGUAGE_4  en
 /*****************************************************************************************/
 
 
@@ -568,9 +572,9 @@
 // Amount of time (ms) to show the status message
 #define PROGRESS_BAR_MSG_TIME 1500U
 // Amount of time (ms) to retain the status message (0=forever)
-#define PROGRESS_MSG_EXPIRE 0
+#define PROGRESS_MSG_HOST_EXPIRE 0
 // Uncomment this to show messages for MSG_TIME then hide them
-//#define PROGRESS_MSG_ONCE
+//#define PROGRESS_MSG_HOST_ONCE
 // Add a menu item to test the progress bar:
 //#define LCD_PROGRESS_BAR_TEST
 /*****************************************************************************************/

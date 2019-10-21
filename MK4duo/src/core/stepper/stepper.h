@@ -109,13 +109,8 @@ class Stepper {
                         decelerate_after,       // The point from where we need to start decelerating
                         step_event_count;       // The total event count for the current block
 
-    #if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
-      static uint8_t  active_extruder,        // Active extruder
-                      active_extruder_driver; // Active extruder driver
-    #else
-      static constexpr uint8_t  active_extruder = 0,
-                                active_extruder_driver = 0;
-    #endif
+    static uint8_t      active_extruder,        // Active extruder
+                        active_extruder_driver; // Active extruder driver
 
     #if ENABLED(BEZIER_JERK_CONTROL)
       static int32_t  bezier_A,     // A coefficient in Bézier speed curve
@@ -251,6 +246,11 @@ class Stepper {
     static void disable_all();
     static void enable_E(const uint8_t e);
     static void disable_E(const uint8_t e);
+
+    /**
+     * Read motor is enable for fan or power
+     */
+    static bool driver_is_enable();
 
     /**
      * Quickly stop all steppers and clear the blocks queue
@@ -403,7 +403,7 @@ class Stepper {
         }
         else
       #endif
-      driver.e[extruders[e]->get_driver()]->step_write(state);
+      driver.e[e]->step_write(state);
     }
 
     /**

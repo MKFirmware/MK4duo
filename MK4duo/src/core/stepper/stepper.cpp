@@ -128,10 +128,8 @@ uint32_t      Stepper::advance_divisor        = 0,
               Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
               Stepper::step_event_count       = 0;  // The total event count for the current block
 
-#if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
-  uint8_t Stepper::active_extruder        = 0,
-          Stepper::active_extruder_driver = 0;
-#endif
+uint8_t       Stepper::active_extruder        = 0,
+              Stepper::active_extruder_driver = 0;
 
 #if ENABLED(BEZIER_JERK_CONTROL)
   int32_t __attribute__((used)) Stepper::bezier_A __asm__("bezier_A");    // A coefficient in Bézier speed curve with alias for assembler
@@ -529,11 +527,11 @@ void Stepper::report_positions() {
   #endif
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
-    SERIAL_MSG(MSG_COUNT_A);
+    SERIAL_MSG(MSG_HOST_COUNT_A);
   #elif MECH(DELTA)
-    SERIAL_MSG(MSG_COUNT_ALPHA);
+    SERIAL_MSG(MSG_HOST_COUNT_ALPHA);
   #else
-    SERIAL_MSG(MSG_COUNT_X);
+    SERIAL_MSG(MSG_HOST_COUNT_X);
   #endif
   SERIAL_VAL(xpos);
 
@@ -810,6 +808,15 @@ void Stepper::disable_E(const uint8_t e) {
   #endif
 }
 
+bool Stepper::driver_is_enable() {
+  bool driver_enable = false;
+  LOOP_DRV_XYZ()
+    driver_enable |= driver[d]->enable_read() == driver[d]->isEnable();
+  LOOP_DRV_EXT()
+    driver_enable |= driver.e[d]->enable_read() == driver.e[d]->isEnable();
+  return driver_enable;
+}
+
 /**
  * Handle a triggered endstop
  */
@@ -985,9 +992,9 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
   }
 
   void Stepper::microstep_readings() {
-    SERIAL_MSG(MSG_MICROSTEP_MS1_MS2);
+    SERIAL_MSG(MSG_HOST_MICROSTEP_MS1_MS2);
     #if HAS_X_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_X);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_X);
       SERIAL_VAL(READ(X_MS1_PIN));
       #if PIN_EXISTS(X_MS2)
         SERIAL_EV(READ(X_MS2_PIN));
@@ -996,7 +1003,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_Y_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_Y);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_Y);
       SERIAL_VAL(READ(Y_MS1_PIN));
       #if PIN_EXISTS(Y_MS2)
         SERIAL_EV(READ(Y_MS2_PIN));
@@ -1005,7 +1012,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_Z_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_Z);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_Z);
       SERIAL_VAL(READ(Z_MS1_PIN));
       #if PIN_EXISTS(Z_MS2)
         SERIAL_EV(READ(Z_MS2_PIN));
@@ -1014,55 +1021,55 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_E0_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E0);
-      SERIAL_VAL(READ(E0_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 0);
+      SERIAL_MV(":", READ(E0_MS1_PIN));
       #if PIN_EXISTS(E0_MS2)
-        SERIAL_EV(READ(E0_MS2_PIN));
+        SERIAL_EMV(" ", READ(E0_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E1_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E1);
-      SERIAL_VAL(READ(E1_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 1);
+      SERIAL_MV(":", READ(E1_MS1_PIN));
       #if PIN_EXISTS(E1_MS2)
-        SERIAL_EV(READ(E1_MS2_PIN));
+        SERIAL_EMV(" ", READ(E1_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E2_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E2);
-      SERIAL_VAL(READ(E2_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 2);
+      SERIAL_MV(":", READ(E2_MS1_PIN));
       #if PIN_EXISTS(E2_MS2)
-        SERIAL_EV(READ(E2_MS2_PIN));
+        SERIAL_EMV(" ", READ(E2_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E3_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E3);
-      SERIAL_VAL(READ(E3_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 3);
+      SERIAL_MV(":", READ(E3_MS1_PIN));
       #if PIN_EXISTS(E3_MS2)
-        SERIAL_EV(READ(E3_MS2_PIN));
+        SERIAL_EMV(" ", READ(E3_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E4_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E4);
-      SERIAL_VAL(READ(E4_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 4);
+      SERIAL_MV(":", READ(E4_MS1_PIN));
       #if PIN_EXISTS(E4_MS2)
-        SERIAL_EV(READ(E4_MS2_PIN));
+        SERIAL_EMV(" ", READ(E4_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E5_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E5);
-      SERIAL_VAL(READ(E5_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 5);
+      SERIAL_MV(":", READ(E5_MS1_PIN));
       #if PIN_EXISTS(E5_MS2)
-        SERIAL_EV(READ(E5_MS2_PIN));
+        SERIAL_EMV(" ", READ(E5_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
@@ -1763,10 +1770,8 @@ uint32_t Stepper::block_phase_step() {
         mixer.stepper_setup(current_block->b_color);
       #endif
 
-      #if EXTRUDERS > 1
-        active_extruder = current_block->active_extruder;
-        active_extruder_driver = get_active_extruder_driver();
-      #endif
+      active_extruder = current_block->active_extruder;
+      active_extruder_driver = get_active_extruder_driver();
 
       // Initialize the trapezoid generator from the current block.
       #if ENABLED(LIN_ADVANCE)
@@ -2210,12 +2215,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 }
 
 #if DISABLED(COLOR_MIXING_EXTRUDER)
-
-  /**
-   * Get active driver for Multitools MKr, MKs o Dondolo
-   */
   uint8_t Stepper::get_active_extruder_driver() {
-
     #if HAS_MKMULTI_TOOLS
       #if ENABLED(MKSE6)
         return 0;
@@ -2238,11 +2238,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
       return 0;
     #else
-      return active_extruder;
+      return extruders[tools.extruder.active]->get_driver(); 
     #endif
-
   }
-
 #endif
 
 /**

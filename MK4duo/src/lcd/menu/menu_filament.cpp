@@ -47,7 +47,7 @@ inline PGM_P _change_filament_temp_command() {
     default:
       return PSTR("M600 B0 T%d");
   }
-  return PSTR(MSG_FILAMENTCHANGE);
+  return GET_TEXT(MSG_FILAMENTCHANGE);
 }
 
 static void _change_filament_temp(const uint16_t temperature) {
@@ -59,12 +59,12 @@ static void _change_filament_temp(const uint16_t temperature) {
 static PGM_P change_filament_header(const PauseModeEnum mode) {
   switch (mode) {
     case PAUSE_MODE_LOAD_FILAMENT:
-      return PSTR(MSG_FILAMENTLOAD);
+      return GET_TEXT(MSG_FILAMENTLOAD);
     case PAUSE_MODE_UNLOAD_FILAMENT:
-      return PSTR(MSG_FILAMENTUNLOAD);
+      return GET_TEXT(MSG_FILAMENTUNLOAD);
     default: break;
   }
-  return PSTR(MSG_FILAMENTCHANGE);
+  return GET_TEXT(MSG_FILAMENTCHANGE);
 }
 
 void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
@@ -98,12 +98,12 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
 
     // Change filament
     LOOP_EXTRUDER() {
-      PGM_P msg = PSTR(MSG_FILAMENTCHANGE);
+      PGM_P const msg = GET_TEXT(MSG_FILAMENTCHANGE);
       if (thermalManager.targetTooColdToExtrude(e))
-        MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PauseModeEnum(editable.int8), menu_edit_index); });
+        SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
       else
-        MENU_ITEM_P(submenu, msg, e, [](){
-          sprintf_P(cmd, PSTR("M600 B0 T%d"), menu_edit_index);
+        SUBMENU_N_P(msg, e, [](){
+          sprintf_P(cmd, PSTR("M600 B0 T%d"), MenuItemBase::itemIndex);
           lcd_enqueue_one_now(cmd);
         });
     }
@@ -112,24 +112,24 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
 
       // Load filament
       LOOP_EXTRUDER() {
-        PGM_P msg = PSTR(MSG_FILAMENTLOAD);
+        PGM_P const msg = GET_TEXT(MSG_FILAMENTLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, menu_edit_index); });
+          SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          MENU_ITEM_P(submenu, msg, e, [](){
-            sprintf_P(cmd, PSTR("M701 T%d"), menu_edit_index);
+          SUBMENU_N_P(msg, e, [](){
+            sprintf_P(cmd, PSTR("M701 T%d"), MenuItemBase::itemIndex);
             lcd_enqueue_one_now(cmd);
           });
       }
 
       // Unload filament
       LOOP_EXTRUDER() {
-        PGM_P msg = PSTR(MSG_FILAMENTUNLOAD);
+        PGM_P const msg = GET_TEXT(MSG_FILAMENTUNLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          MENU_ITEM_P(submenu, msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, menu_edit_index); });
+          SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          MENU_ITEM_P(submenu, msg, e, [](){
-            sprintf_P(cmd, PSTR("M702 T%d"), menu_edit_index);
+          SUBMENU_N_P(msg, e, [](){
+            sprintf_P(cmd, PSTR("M702 T%d"), MenuItemBase::itemIndex);
             lcd_enqueue_one_now(cmd);
           });
       }
@@ -147,15 +147,15 @@ static uint8_t hotend_status_extruder = 0;
 static PGM_P pause_header() {
   switch (advancedpause.mode) {
     case PAUSE_MODE_CHANGE_FILAMENT:
-      return PSTR(MSG_FILAMENT_CHANGE_HEADER);
+      return GET_TEXT(MSG_FILAMENT_CHANGE_HEADER);
     case PAUSE_MODE_LOAD_FILAMENT:
-      return PSTR(MSG_FILAMENT_CHANGE_HEADER_LOAD);
+      return GET_TEXT(MSG_FILAMENT_CHANGE_HEADER_LOAD);
     case PAUSE_MODE_UNLOAD_FILAMENT:
-      return PSTR(MSG_FILAMENT_CHANGE_HEADER_UNLOAD);
+      return GET_TEXT(MSG_FILAMENT_CHANGE_HEADER_UNLOAD);
     case PAUSE_MODE_PAUSE_PRINT:
     default: break;
   }
-  return PSTR(MSG_FILAMENT_CHANGE_HEADER_PAUSE);
+  return GET_TEXT(MSG_FILAMENT_CHANGE_HEADER_PAUSE);
 }
 
 #if HAS_NEXTION_LCD
@@ -175,7 +175,7 @@ static PGM_P pause_header() {
   #define HOTEND_STATUS_ITEM() do { \
     if (_menuLineNr == _thisItemNr) { \
       if (lcdui.should_draw()) { \
-        draw_menu_item_static(_lcdLineNr, PSTR(MSG_FILAMENT_CHANGE_NOZZLE), NO_INDEX, SS_INVERT); \
+        MenuItem_static::draw(_lcdLineNr, GET_TEXT(MSG_FILAMENT_CHANGE_NOZZLE), SS_INVERT); \
         lcdui.draw_hotend_status(_lcdLineNr, hotend_status_extruder); \
       } \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
@@ -213,120 +213,120 @@ void menu_pause_option() {
 
 void _lcd_pause_message(PGM_P const msg1, PGM_P const msg2=nullptr, PGM_P const msg3=nullptr) {
   START_SCREEN();
-  STATIC_ITEM_P(pause_header(), NO_INDEX, SS_CENTER|SS_INVERT);
+  STATIC_ITEM_P(pause_header(), SS_CENTER|SS_INVERT);
   STATIC_ITEM_P(msg1);
   if (msg2) STATIC_ITEM_P(msg2);
   if (msg3 && (LCD_HEIGHT) >= 5) STATIC_ITEM_P(msg3);
-  if ((!!msg2) + (!!msg3) + 2 < (LCD_HEIGHT) - 1) STATIC_ITEM(" ");
+  if ((!!msg2) + (!!msg3) + 2 < (LCD_HEIGHT) - 1) STATIC_ITEM_P(PSTR(" "));
   HOTEND_STATUS_ITEM();
   END_SCREEN();
 }
 
 void lcd_pause_pausing_message() {
-  _lcd_pause_message(PSTR(MSG_PAUSE_PRINT_INIT_1)
+  _lcd_pause_message(GET_TEXT(MSG_PAUSE_PRINT_INIT_1)
     #ifdef MSG_PAUSE_PRINT_INIT_2
-      , PSTR(MSG_PAUSE_PRINT_INIT_2)
+      , GET_TEXT(MSG_PAUSE_PRINT_INIT_2)
       #ifdef MSG_PAUSE_PRINT_INIT_3
-        , PSTR(MSG_PAUSE_PRINT_INIT_3)
+        , GET_TEXT(MSG_PAUSE_PRINT_INIT_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_changing_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_INIT_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INIT_1)
     #ifdef MSG_FILAMENT_CHANGE_INIT_2
-      , PSTR(MSG_FILAMENT_CHANGE_INIT_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_INIT_2)
       #ifdef MSG_FILAMENT_CHANGE_INIT_3
-        , PSTR(MSG_FILAMENT_CHANGE_INIT_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_INIT_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_unload_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_UNLOAD_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_1)
     #ifdef MSG_FILAMENT_CHANGE_UNLOAD_2
-      , PSTR(MSG_FILAMENT_CHANGE_UNLOAD_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_2)
       #ifdef MSG_FILAMENT_CHANGE_UNLOAD_3
-        , PSTR(MSG_FILAMENT_CHANGE_UNLOAD_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_UNLOAD_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_heating_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_HEATING_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_1)
     #ifdef MSG_FILAMENT_CHANGE_HEATING_2
-      , PSTR(MSG_FILAMENT_CHANGE_HEATING_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_2)
       #ifdef MSG_FILAMENT_CHANGE_HEATING_3
-        , PSTR(MSG_FILAMENT_CHANGE_HEATING_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_HEATING_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_heat_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_HEAT_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_1)
     #ifdef MSG_FILAMENT_CHANGE_HEAT_2
-      , PSTR(MSG_FILAMENT_CHANGE_HEAT_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_2)
       #ifdef MSG_FILAMENT_CHANGE_HEAT_3
-        , PSTR(MSG_FILAMENT_CHANGE_HEAT_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_HEAT_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_insert_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_INSERT_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_1)
     #ifdef MSG_FILAMENT_CHANGE_INSERT_2
-      , PSTR(MSG_FILAMENT_CHANGE_INSERT_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_2)
       #ifdef MSG_FILAMENT_CHANGE_INSERT_3
-        , PSTR(MSG_FILAMENT_CHANGE_INSERT_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_INSERT_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_printer_off() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_ZZZ_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_1)
     #ifdef MSG_FILAMENT_CHANGE_ZZZ_2
-      , PSTR(MSG_FILAMENT_CHANGE_ZZZ_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_2)
       #ifdef MSG_FILAMENT_CHANGE_ZZZ_3
-        , PSTR(MSG_FILAMENT_CHANGE_ZZZ_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_ZZZ_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_load_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_LOAD_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_1)
     #ifdef MSG_FILAMENT_CHANGE_LOAD_2
-      , PSTR(MSG_FILAMENT_CHANGE_LOAD_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_2)
       #ifdef MSG_FILAMENT_CHANGE_LOAD_3
-        , PSTR(MSG_FILAMENT_CHANGE_LOAD_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_LOAD_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_waiting_message() {
-  _lcd_pause_message(PSTR(MSG_ADVANCED_PAUSE_WAITING_1)
+  _lcd_pause_message(GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_1)
     #ifdef MSG_ADVANCED_PAUSE_WAITING_2
-      , PSTR(MSG_ADVANCED_PAUSE_WAITING_2)
+      , GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_2)
       #ifdef MSG_ADVANCED_PAUSE_WAITING_3
-        , PSTR(MSG_ADVANCED_PAUSE_WAITING_3)
+        , GET_TEXT(MSG_ADVANCED_PAUSE_WAITING_3)
       #endif
     #endif
   );
 }
 
 void lcd_pause_resume_message() {
-  _lcd_pause_message(PSTR(MSG_FILAMENT_CHANGE_RESUME_1)
+  _lcd_pause_message(GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_1)
     #ifdef MSG_FILAMENT_CHANGE_RESUME_2
-      , PSTR(MSG_FILAMENT_CHANGE_RESUME_2)
+      , GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_2)
       #ifdef MSG_FILAMENT_CHANGE_RESUME_3
-        , PSTR(MSG_FILAMENT_CHANGE_RESUME_3)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_RESUME_3)
       #endif
     #endif
   );
@@ -335,19 +335,19 @@ void lcd_pause_resume_message() {
 void lcd_pause_purge_message() {
   _lcd_pause_message(
     #if ENABLED(ADVANCED_PAUSE_CONTINUOUS_PURGE)
-      PSTR(MSG_FILAMENT_CHANGE_CONT_PURGE_1)
+      GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_1)
       #ifdef MSG_FILAMENT_CHANGE_CONT_PURGE_2
-        , PSTR(MSG_FILAMENT_CHANGE_CONT_PURGE_2)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_2)
         #ifdef MSG_FILAMENT_CHANGE_CONT_PURGE_3
-          , PSTR(MSG_FILAMENT_CHANGE_CONT_PURGE_3)
+          , GET_TEXT(MSG_FILAMENT_CHANGE_CONT_PURGE_3)
         #endif
       #endif
     #else
-      PSTR(MSG_FILAMENT_CHANGE_PURGE_1)
+      GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_1)
       #ifdef MSG_FILAMENT_CHANGE_PURGE_2
-        , PSTR(MSG_FILAMENT_CHANGE_PURGE_2)
+        , GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_2)
         #ifdef MSG_FILAMENT_CHANGE_PURGE_3
-          , PSTR(MSG_FILAMENT_CHANGE_PURGE_3)
+          , GET_TEXT(MSG_FILAMENT_CHANGE_PURGE_3)
         #endif
       #endif
     #endif
