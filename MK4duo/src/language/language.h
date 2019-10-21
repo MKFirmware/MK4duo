@@ -205,6 +205,7 @@
 #define MSG_HOST_SOFT_ENDSTOPS                  "Soft endstops: "
 #define MSG_HOST_SOFT_MIN                       "  Min:"
 #define MSG_HOST_SOFT_MAX                       "  Max:"
+#define MSG_HOST_ZPROBE_OUT                     "Z Probe Past Bed"
 
 // Slot
 #define MSG_HOST_SAVED_POS                      "Saved position"

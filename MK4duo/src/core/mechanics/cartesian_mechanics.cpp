@@ -1149,7 +1149,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
+      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< home_z_safely");
@@ -1196,7 +1196,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
-      SERIAL_LM(ECHO, MSG_ZPROBE_OUT);
+      SERIAL_LM(ECHO, MSG_HOST_ZPROBE_OUT);
     }
 
     if (printer.debugFeature()) DEBUG_EM("<<< DOUBLE_Z_HOMING");
