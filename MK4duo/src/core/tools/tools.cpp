@@ -181,7 +181,10 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     if (extruder.target != extruder.active) {
 
-      REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
+      if (parser.linearval('F') > 0)
+        mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
+      else
+        REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
         #if HOTENDS > 1
