@@ -59,44 +59,36 @@ void Bedlevel::factory_parameters() {
 }
 
 /**
- * rx, ry, rz - Cartesian positions in mm
- *              Leveled XYZ on completion
+ * raw  - Cartesian positions in mm
+ *        Leveled XYZ on completion
  */
-void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
+void Bedlevel::apply_leveling(xyz_pos_t &raw) {
 
   if (!flag.leveling_active) return;
 
   #if ABL_PLANAR
 
-    float dx = rx - (X_TILT_FULCRUM),
-          dy = ry - (Y_TILT_FULCRUM);
-
-    apply_rotation_xyz(matrix, dx, dy, rz);
-
-    rx = dx + X_TILT_FULCRUM;
-    ry = dy + Y_TILT_FULCRUM;
+    xy_pos_t d = raw - level_fulcrum();
+    apply_rotation_xyz(matrix, d.x, d.y, raw.z);
+    raw = d + level_fulcrum();
 
   #elif HAS_MESH
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
+      const float fade_scaling_factor = fade_scaling_factor_for_z(raw.z);
     #else
       constexpr float fade_scaling_factor = 1.0;
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      const xyz_pos_t raw = { rx, ry, 0 };
-    #endif
-
-    rz += (
+    raw.z += (
       #if ENABLED(MESH_BED_LEVELING)
-        mbl.get_z(rx, ry
+        mbl.get_z(raw
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif
         )
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(rx, ry) : 0.0
+        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw) : 0.0
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
       #endif
@@ -131,7 +123,7 @@ void Bedlevel::unapply_leveling(xyz_pos_t &raw) {
 
     raw.z -= (
       #if ENABLED(MESH_BED_LEVELING)
-        mbl.get_z(raw.x, raw.y
+        mbl.get_z(raw
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif
@@ -187,7 +179,7 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
 
     if (flag.leveling_active) {      // leveling from on to off
       // change unleveled current_position.x to physical current_position.x without moving steppers.
-      apply_leveling(mechanics.current_position.x, mechanics.current_position.y, mechanics.current_position.z);
+      apply_leveling(mechanics.current_position);
       flag.leveling_active = false;  // disable only AFTER calling apply_leveling
     }
     else {                          // leveling from off to on
@@ -313,18 +305,17 @@ void Bedlevel::reset() {
 
 #if ENABLED(MESH_BED_LEVELING) || HAS_PROBE_MANUALLY
 
-  void Bedlevel::manual_goto_xy(const float &rx, const float &ry) {
+  void Bedlevel::manual_goto_xy(const xy_pos_t &pos) {
 
     #if MANUAL_PROBE_HEIGHT > 0
       const float prev_z = mechanics.current_position.z;
-      mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
+      mechanics.do_blocking_move_to_xy_z(pos, MANUAL_PROBE_HEIGHT);
       mechanics.do_blocking_move_to_z(prev_z);
     #else
-      mechanics.do_blocking_move_to_xy(rx, ry);
+      mechanics.do_blocking_move_to_xy(pos);
     #endif
 
-    mechanics.current_position.x = rx;
-    mechanics.current_position.y = ry;
+    mechanics.current_position = pos;
 
     #if ENABLED(LCD_BED_LEVELING)
       lcdui.wait_for_bl_move = false;

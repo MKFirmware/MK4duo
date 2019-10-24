@@ -147,7 +147,7 @@ class Stepper {
     /**
      * Current direction of stepper motors (+1 or -1)
      */
-    static xyze_char_t count_direction;
+    static xyze_int8_t count_direction;
 
     #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
       #ifndef PWM_MOTOR_CURRENT

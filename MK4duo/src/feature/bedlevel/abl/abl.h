@@ -29,9 +29,9 @@ class AutoBedLevel {
 
   public: /** Public Parameters */
 
-    static xy_int_t bilinear_grid_spacing,
-                    bilinear_start;
-    static float  z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+    static xy_int_t   bilinear_grid_spacing,
+                      bilinear_start;
+    static bed_mesh_t z_values;
 
   private: /** Private Parameters */
 
@@ -86,6 +86,6 @@ class AutoBedLevel {
 
 extern AutoBedLevel abl;
 
-#define _GET_MESH_X(I) (abl.bilinear_start[X_AXIS] + (I) * abl.bilinear_grid_spacing[X_AXIS])
-#define _GET_MESH_Y(J) (abl.bilinear_start[Y_AXIS] + (J) * abl.bilinear_grid_spacing[Y_AXIS])
+#define _GET_MESH_X(I) (abl.bilinear_start.x + (I) * abl.bilinear_grid_spacing.x)
+#define _GET_MESH_Y(J) (abl.bilinear_start.y + (J) * abl.bilinear_grid_spacing.y)
 #define Z_VALUES_ARR    abl.z_values

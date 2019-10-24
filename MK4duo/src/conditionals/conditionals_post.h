@@ -113,9 +113,9 @@
 #else // !MECH(DELTA)
 
   #define LEFT_PROBE_BED_POSITION   MAX(X_CENTER - X_MAX_LENGTH / 2, x_min)
-  #define RIGHT_PROBE_BED_POSITION  MIN(left_probe_bed_position + X_MAX_LENGTH, x_max)
+  #define RIGHT_PROBE_BED_POSITION  MIN(probe_position_lf.x + X_MAX_LENGTH, x_max)
   #define FRONT_PROBE_BED_POSITION  MAX(Y_CENTER - Y_MAX_LENGTH / 2, y_min)
-  #define BACK_PROBE_BED_POSITION   MIN(front_probe_bed_position + Y_MAX_LENGTH, y_max)
+  #define BACK_PROBE_BED_POSITION   MIN(probe_position_lf.y + Y_MAX_LENGTH, y_max)
 
   #define X_MIN_BED   (mechanics.data.base_pos.min.x)
   #define X_MAX_BED   (mechanics.data.base_pos.max.x)
@@ -141,9 +141,9 @@
 /**
  * Axis lengths and center
  */
-#define X_MAX_LENGTH (X_MAX_POS - (X_MIN_POS))
-#define Y_MAX_LENGTH (Y_MAX_POS - (Y_MIN_POS))
-#define Z_MAX_LENGTH (Z_MAX_POS - (Z_MIN_POS))
+#define X_MAX_LENGTH (X_MAX_BED - (X_MIN_BED))
+#define Y_MAX_LENGTH (Y_MAX_BED - (Y_MIN_BED))
+#define Z_MAX_LENGTH (Z_MAX_BED - (Z_MIN_BED))
 
 /**
  * Define center values
@@ -155,7 +155,7 @@
   #define X_CENTER ((X_MAX_LENGTH) / 2)
   #define Y_CENTER ((Y_MAX_LENGTH) / 2)
 #endif
-#define Z_CENTER ((Z_MIN_POS + Z_MAX_POS) / 2)
+#define Z_CENTER ((Z_MIN_BED + Z_MAX_BED) / 2)
 
 /**
  * CoreXY, CoreXZ, and CoreYZ - and their reverse
@@ -193,25 +193,27 @@
  * Set the home position based on settings or manual overrides
  */
 #if ENABLED(MANUAL_X_HOME_POS)
-  #define X_HOME_POS MANUAL_X_HOME_POS
-#elif ENABLED(BED_CENTER_AT_0_0)
-   #define X_HOME_POS ((mechanics.data.base_pos.max.x - mechanics.data.base_pos.min.x) * (mechanics.get_homedir(X_AXIS)) * 0.5)
+  #define X_HOME_POS  MANUAL_X_HOME_POS
+#elif MECH(DELTA)
+  #define X_HOME_POS  0
 #else
-  #define X_HOME_POS (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x)
+  #define X_HOME_POS  (mechanics.get_homedir(X_AXIS) < 0 ? mechanics.data.base_pos.min.x : mechanics.data.base_pos.max.x)
 #endif
 
 #if ENABLED(MANUAL_Y_HOME_POS)
-  #define Y_HOME_POS MANUAL_Y_HOME_POS
-#elif ENABLED(BED_CENTER_AT_0_0)
-  #define Y_HOME_POS ((mechanics.data.base_pos.max.y - mechanics.data.base_pos.min.y) * (mechanics.get_homedir(Y_AXIS)) * 0.5)
+  #define Y_HOME_POS  MANUAL_Y_HOME_POS
+#elif MECH(DELTA)
+  #define Y_HOME_POS  0
 #else
-  #define Y_HOME_POS (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos.min.y : mechanics.data.base_pos.max.y)
+  #define Y_HOME_POS  (mechanics.get_homedir(Y_AXIS) < 0 ? mechanics.data.base_pos.min.y : mechanics.data.base_pos.max.y)
 #endif
 
 #if ENABLED(MANUAL_Z_HOME_POS)
-  #define Z_HOME_POS MANUAL_Z_HOME_POS
+  #define Z_HOME_POS  MANUAL_Z_HOME_POS
+#elif MECH(DELTA)
+  #define Z_HOME_POS  (mechanics.data.height)
 #else
-  #define Z_HOME_POS (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos.min.z : mechanics.data.base_pos.max.z)
+  #define Z_HOME_POS  (mechanics.get_homedir(Z_AXIS) < 0 ? mechanics.data.base_pos.min.z : mechanics.data.base_pos.max.z)
 #endif
 
 /**
@@ -236,11 +238,6 @@
   #if DISABLED(Z_SAFE_HOMING_Y_POINT)
     #define Z_SAFE_HOMING_Y_POINT ((mechanics.data.base_pos.min.y + mechanics.data.base_pos.max.y) / 2)
   #endif
-  #define X_TILT_FULCRUM Z_SAFE_HOMING_X_POINT
-  #define Y_TILT_FULCRUM Z_SAFE_HOMING_Y_POINT
-#else
-  #define X_TILT_FULCRUM X_HOME_POS
-  #define Y_TILT_FULCRUM Y_HOME_POS
 #endif
 
 /**

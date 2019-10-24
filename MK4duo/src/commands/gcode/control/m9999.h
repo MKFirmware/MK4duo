@@ -28,11 +28,22 @@
 
 #if ENABLED(ARDUINO_ARCH_SAM)
 
-  #define CODE_M9999
+#define CODE_M9999
 
-  /**
-   * M9999: Banzai code for erase bootloader on DUE
-   */
-  inline void gcode_M9999() { initiateReset(1000); }
+/**
+ * M9999: Banzai code for erase bootloader on DUE
+ */
+inline void gcode_M9999() { initiateReset(1000); }
+
+#elif ENABLED(ARDUINO_ARCH_STM32)
+
+#define CODE_M9999
+
+#include <bootloader.h>
+
+/**
+ * M9999: DFU mode software in STM32
+ */
+inline void gcode_M9999() { jumpToBootloaderRequested(); }
 
 #endif

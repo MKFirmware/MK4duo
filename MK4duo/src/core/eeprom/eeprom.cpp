@@ -1370,11 +1370,11 @@ void EEPROM::reset() {
   // Call Printer Factory parameters
   printer.factory_parameters();
 
-  // Call Temperature Factory parameters
-  thermalManager.factory_parameters();
-
   // Call Tools Factory parameters
   tools.factory_parameters();
+
+  // Call Temperature Factory parameters
+  thermalManager.factory_parameters();
 
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();

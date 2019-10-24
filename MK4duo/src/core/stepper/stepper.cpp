@@ -174,7 +174,7 @@ int32_t Stepper::ticks_nominal = -1;
 
 xyz_long_t  Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
-xyze_char_t Stepper::count_direction{1};
+xyze_int8_t Stepper::count_direction{1};
 
 #if ENABLED(LASER)
   int32_t Stepper::delta_error_laser = 0;

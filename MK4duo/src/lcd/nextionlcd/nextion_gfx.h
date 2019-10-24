@@ -143,7 +143,7 @@ class GFX {
 
     static void line_to(const uint8_t color_index, const xyz_pos_t &pos, const bool shade=false);
 
-    inline static void line_to(const uint8_t color_index, const float x, const float y, const float z, const bool shade=false) {
+    static inline void line_to(const uint8_t color_index, const float x, const float y, const float z, const bool shade=false) {
       const xyz_pos_t pos = { x, y, z };
       line_to(color_index, pos, shade);
     }

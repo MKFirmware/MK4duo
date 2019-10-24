@@ -67,7 +67,7 @@ uint8_t LcdUI::alert_level = 0,
 
   LCDViewActionEnum LcdUI::lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
 
-  uint16_t      LcdUI::encoderPosition;
+  uint32_t      LcdUI::encoderPosition;
 
   screenFunc_t  LcdUI::currentScreen;
 

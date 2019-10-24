@@ -127,14 +127,6 @@ void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm
 }
 
 /**
- * Move the planner to the position stored in the destination array, which is
- * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
- */
-void Mechanics::buffer_line_to_destination(const feedrate_t fr_mm_s) {
-  planner.buffer_line(destination, fr_mm_s, tools.extruder.active);
-}
-
-/**
  * Prepare a single move and get ready for the next one
  *
  * This may result in several calls to planner.buffer_line to

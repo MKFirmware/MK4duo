@@ -29,7 +29,7 @@ AutoBedLevel abl;
 /** Public Parameters */
 xy_int_t    AutoBedLevel::bilinear_grid_spacing,
             AutoBedLevel::bilinear_start;
-float       AutoBedLevel::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y] = { 0, 0 };
+bed_mesh_t  AutoBedLevel::z_values;
 
 /** Private Parameters */
 xy_float_t  AutoBedLevel::bilinear_grid_factor;
@@ -210,10 +210,10 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
   }
 
   void AutoBedLevel::virt_interpolate() {
-    bilinear_grid_spacing_virt[X_AXIS] = bilinear_grid_spacing[X_AXIS] / (BILINEAR_SUBDIVISIONS);
-    bilinear_grid_spacing_virt[Y_AXIS] = bilinear_grid_spacing[Y_AXIS] / (BILINEAR_SUBDIVISIONS);
-    bilinear_grid_factor_virt[X_AXIS] = RECIPROCAL(bilinear_grid_spacing_virt[X_AXIS]);
-    bilinear_grid_factor_virt[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing_virt[Y_AXIS]);
+    bilinear_grid_spacing_virt.x = bilinear_grid_spacing.x / (BILINEAR_SUBDIVISIONS);
+    bilinear_grid_spacing_virt.y = bilinear_grid_spacing.y / (BILINEAR_SUBDIVISIONS);
+    bilinear_grid_factor_virt.x = RECIPROCAL(bilinear_grid_spacing_virt.x);
+    bilinear_grid_factor_virt.y = RECIPROCAL(bilinear_grid_spacing_virt.y);
     for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
       for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
         for (uint8_t ty = 0; ty < BILINEAR_SUBDIVISIONS; ty++) {
@@ -237,8 +237,8 @@ void AutoBedLevel::print_bilinear_leveling_grid() {
 
 // Refresh after other values have been updated
 void AutoBedLevel::refresh_bed_level() {
-  bilinear_grid_factor[X_AXIS] = RECIPROCAL(bilinear_grid_spacing[X_AXIS]);
-  bilinear_grid_factor[Y_AXIS] = RECIPROCAL(bilinear_grid_spacing[Y_AXIS]);
+  bilinear_grid_factor.x = RECIPROCAL(bilinear_grid_spacing.x);
+  bilinear_grid_factor.y = RECIPROCAL(bilinear_grid_spacing.y);
   #if ENABLED(ABL_BILINEAR_SUBDIVISION)
     virt_interpolate();
   #endif
@@ -269,8 +269,8 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
                 last_gridx = -99, last_gridy = -99;
 
   // XY relative to the probed area
-  const float rx = raw.x - bilinear_start[X_AXIS],
-              ry = raw.y - bilinear_start[Y_AXIS];
+  const float rx = raw.x - bilinear_start.x,
+              ry = raw.y - bilinear_start.y;
 
   if (last_x != rx) {
     last_x = rx;
@@ -345,66 +345,65 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
    * Prepare a bilinear-leveled linear move on Cartesian,
    * splitting the move where it crosses mesh borders.
    */
-  void AutoBedLevel::bilinear_line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
+  void AutoBedLevel::bilinear_line_to_destination(feedrate_t scaled_fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
 
-    int cx1 = (mechanics.current_position.x - bilinear_start[X_AXIS]) * ABL_BG_FACTOR(X_AXIS),
-        cy1 = (mechanics.current_position.y - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR(Y_AXIS),
-        cx2 = (mechanics.destination.x      - bilinear_start[X_AXIS]) * ABL_BG_FACTOR(X_AXIS),
-        cy2 = (mechanics.destination.y      - bilinear_start[Y_AXIS]) * ABL_BG_FACTOR(Y_AXIS);
+    // Get current and destination cells for this line
+    xy_int_t  c1 { CELL_INDEX(x, mechanics.current_position.x), CELL_INDEX(y, mechanics.current_position.y) },
+              c2 { CELL_INDEX(x, mechanics.destination.x),      CELL_INDEX(y, mechanics.destination.y) };
 
-    LIMIT(cx1, 0, ABL_BG_POINTS_X - 2);
-    LIMIT(cy1, 0, ABL_BG_POINTS_Y - 2);
-    LIMIT(cx2, 0, ABL_BG_POINTS_X - 2);
-    LIMIT(cy2, 0, ABL_BG_POINTS_Y - 2);
+    LIMIT(c1.x, 0, ABL_BG_POINTS_X - 2);
+    LIMIT(c1.y, 0, ABL_BG_POINTS_Y - 2);
+    LIMIT(c2.x, 0, ABL_BG_POINTS_X - 2);
+    LIMIT(c2.y, 0, ABL_BG_POINTS_Y - 2);
 
-    if (cx1 == cx2 && cy1 == cy2) {
-      // Start and end on same mesh square
-      mechanics.buffer_line_to_destination(fr_mm_s);
+    // Start and end on same mesh square
+    if (c1 == c2) {
       mechanics.current_position = mechanics.destination;
+      mechanics.line_to_current_position(scaled_fr_mm_s);
       return;
     }
 
-    #define LINE_SEGMENT_END(A) (mechanics.current_position[_AXIS(A)] + (mechanics.destination[_AXIS(A)] - mechanics.current_position[_AXIS(A)]) * normalized_dist)
+    #define LINE_SEGMENT_END(A) (mechanics.current_position.A + (mechanics.destination.A - mechanics.current_position.A) * normalized_dist)
 
     xyze_pos_t end;
     float normalized_dist;
-    const int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);
+    const xy_int8_t gc { MAX(c1.x, c2.x), MAX(c1.y, c2.y) };
 
     // Crosses on the X and not already split on this X?
     // The x_splits flags are insurance against rounding errors.
-    if (cx2 != cx1 && TEST(x_splits, gcx)) {
+    if (c2.x != c1.x && TEST(x_splits, gc.x)) {
       // Split on the X grid line
-      CBI(x_splits, gcx);
+      CBI(x_splits, gc.x);
       end = mechanics.destination;
-      mechanics.destination.x = bilinear_start[X_AXIS] + ABL_BG_SPACING(X_AXIS) * gcx;
+      mechanics.destination.x = bilinear_start.x + ABL_BG_SPACING(X_AXIS) * gc.x;
       normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end.x - mechanics.current_position.x);
-      mechanics.destination.y = LINE_SEGMENT_END(Y);
+      mechanics.destination.y = LINE_SEGMENT_END(y);
     }
     // Crosses on the Y and not already split on this Y?
-    else if (cy2 != cy1 && TEST(y_splits, gcy)) {
-      CBI(y_splits, gcy);
+    else if (c2.y != c1.y && TEST(y_splits, gc.y)) {
+      CBI(y_splits, gc.y);
       COPY_ARRAY(end, mechanics.destination);
-      mechanics.destination.y = bilinear_start[Y_AXIS] + ABL_BG_SPACING(Y_AXIS) * gcy;
+      mechanics.destination.y = bilinear_start.y + ABL_BG_SPACING(Y_AXIS) * gc.y;
       normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end.y - mechanics.current_position.y);
-      mechanics.destination.x = LINE_SEGMENT_END(X);
+      mechanics.destination.x = LINE_SEGMENT_END(x);
     }
     else {
       // Must already have been split on these border(s)
       // This should be a rare case.
-      mechanics.buffer_line_to_destination(fr_mm_s);
       mechanics.current_position = mechanics.destination;
+      mechanics.line_to_current_position(scaled_fr_mm_s);
       return;
     }
 
-    mechanics.destination.z = LINE_SEGMENT_END(Z);
-    mechanics.destination.e = LINE_SEGMENT_END(E);
+    mechanics.destination.z = LINE_SEGMENT_END(z);
+    mechanics.destination.e = LINE_SEGMENT_END(e);
 
     // Do the split and look for more borders
-    bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+    bilinear_line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
 
     // Restore destination from stack
     mechanics.destination = end;
-    bilinear_line_to_destination(fr_mm_s, x_splits, y_splits);
+    bilinear_line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
   }
 
 #endif // !IS_KINEMATIC

@@ -487,6 +487,7 @@ void menu_stop_print();
 ////////////////////////////////////////////
 
 void lcd_move_z();
+void lcd_line_to_z(const float &z);
 void lcd_draw_homing();
 
 #if MAX_HOTEND > 0

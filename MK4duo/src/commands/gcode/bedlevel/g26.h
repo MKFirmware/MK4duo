@@ -166,39 +166,38 @@ int8_t g26_prime_flag;
 
 mesh_index_pair find_closest_circle_to_print(const xy_pos_t &pos) {
   float closest = 99999.99;
-  mesh_index_pair return_val;
+  mesh_index_pair out_point;
 
-  return_val.x = return_val.y = -1;
+  out_point.pos = -1;
 
   for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
     for (uint8_t j = 0; j < GRID_MAX_POINTS_Y; j++) {
       if (!circle_flags.marked(i, j)) {
         // We found a circle that needs to be printed
-        const xyze_pos_t m = { _GET_MESH_X(i), _GET_MESH_Y(j) };
+        const xy_pos_t m = { _GET_MESH_X(i), _GET_MESH_Y(j) };
 
         // Get the distance to this intersection
-        float f = HYPOT(pos.x - m.x, pos.y - m.y);
+        float f = (pos - m).magnitude();
 
         // It is possible that we are being called with the values
         // to let us find the closest circle to the start position.
         // But if this is not the case, add a small weighting to the
         // distance calculation to help it choose a better place to continue.
-        f += HYPOT(g26_pos.x - m.x, g26_pos.y - m.y) / 15.0;
+        f += (g26_pos - m).magnitude() / 15.0f;
 
         // Add in the specified amount of Random Noise to our search
         if (random_deviation > 1.0) f += random(0.0, random_deviation);
 
         if (f < closest) {
-          closest = f;        // Found a closer un-printed location
-          return_val.x = i;   // Save its data
-          return_val.y = j;
-          return_val.distance = closest;
+          closest = f;              // Found a closer un-printed location
+          out_point.pos.set(i, j);  // Save its data
+          out_point.distance = closest;
         }
       }
     }
   }
-  circle_flags.mark(return_val); // Mark this location as done.
-  return return_val;
+  circle_flags.mark(out_point); // Mark this location as done.
+  return out_point;
 }
 
 void G26_line_to_destination(const float &feed_rate) {
@@ -207,7 +206,7 @@ void G26_line_to_destination(const float &feed_rate) {
 }
 
 void move_to(const float &rx, const float &ry, const float &z, const float &e_delta) {
-  float feed_value;
+
   static float last_z = -999.99;
 
   const xy_pos_t dest = { rx, ry };
@@ -218,15 +217,17 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
 
   if (z != last_z) {
     last_z = mechanics.destination.z = z;
-    feed_value = mechanics.data.max_feedrate_mm_s.z * 0.5f; // Use half of the Z_AXIS max feed rate
-    G26_line_to_destination(feed_value);
+    const feedrate_t feed_value = mechanics.data.max_feedrate_mm_s.z * 0.5f; // Use half of the Z_AXIS max feed rate
+    mechanics.prepare_internal_move_to_destination(feed_value);
+    mechanics.destination = mechanics.current_position;
   }
 
   // If X or Y is involved do a 'normal' move. Otherwise retract/recover/hop.
-  feed_value = has_xy_component ? G26_XY_FEEDRATE : extruders[tools.extruder.active]->data.max_feedrate_mm_s * 0.666f;
+  const feedrate_t feed_value = has_xy_component ? G26_XY_FEEDRATE : extruders[tools.extruder.active]->data.max_feedrate_mm_s * 0.666f;
   mechanics.destination = dest;
   mechanics.destination.e += e_delta;
-  G26_line_to_destination(feed_value);
+  mechanics.prepare_internal_move_to_destination(feed_value);
+  mechanics.destination = mechanics.current_position;
 }
 
 FORCE_INLINE void move_to(const xyze_pos_t &where, const float &de) {
@@ -242,12 +243,12 @@ void retract_filament(const xyze_pos_t &where) {
 void retract_lift_move(const xyz_pos_t &s) {
   retract_filament(mechanics.destination);
   move_to(mechanics.current_position.x, mechanics.current_position.y, mechanics.current_position.z + 0.500, 0.0);  // Z lift to minimize scraping
-  move_to(s.x, s.y, s.z + 0.500, 0.0);  // Get to the starting point with no extrusion while lifted
+  move_to(s.x, s.y, s.z + 0.5f, 0.0);  // Get to the starting point with no extrusion while lifted
 }
 
 void recover_filament(const xyze_pos_t &where) {
   if (g26_retracted) { // Only un-retract if we are retracted.
-    move_to(where, 1.2 * g26_retraction_multiplier);
+    move_to(where, 1.2f * g26_retraction_multiplier);
     g26_retracted = false;
   }
 }
@@ -405,6 +406,8 @@ inline bool turn_on_heaters() {
  */
 inline bool prime_nozzle() {
 
+  const feedrate_t fr_slow_e = extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0f;
+
   #if HAS_LCD_MENU
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
       float Total_Prime = 0.0;
@@ -427,7 +430,7 @@ inline bool prime_nozzle() {
           Total_Prime += 0.25;
           if (Total_Prime >= EXTRUDE_MAXLENGTH) return G26_ERR;
         #endif
-        G26_line_to_destination(extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0f);
+        mechanics.prepare_internal_move_to_destination(fr_slow_e);
         mechanics.destination = mechanics.current_position;
         planner.synchronize();    // Without this synchronize, the purge is more consistent,
                                   // but because the planner has a buffer, we won't be able
@@ -450,7 +453,7 @@ inline bool prime_nozzle() {
     #endif
     mechanics.destination = mechanics.current_position;
     mechanics.destination.e += g26_prime_length;
-    G26_line_to_destination(extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0);
+    mechanics.prepare_internal_move_to_destination(fr_slow_e);
     mechanics.destination = mechanics.current_position;
     retract_filament(mechanics.destination);
   }
@@ -663,9 +666,9 @@ inline void gcode_G26() {
     /**
      * Pre-generate radius offset values at 30 degree intervals to reduce CPU load.
      */
-    #define A_INT 30
-    #define _ANGS (360 / A_INT)
-    #define A_CNT (_ANGS / 2)
+    #define A_INT   30
+    #define _ANGS   (360 / A_INT)
+    #define A_CNT   (_ANGS / 2)
     #define _IND(A) ((A + _ANGS * 8) % _ANGS)
     #define _COS(A) (trig_table[_IND(A) % A_CNT] * (_IND(A) >= A_CNT ? -1 : 1))
     #define _SIN(A) (-_COS((A + A_CNT / 2) % _ANGS))
@@ -684,14 +687,14 @@ inline void gcode_G26() {
     location = find_closest_circle_to_print(g26_continue_with_closest ? xy_pos_t(mechanics.current_position) : g26_pos);
 
     if (location.valid()) {
-      xyze_pos_t circle = { _GET_MESH_X(location.x), _GET_MESH_Y(location.y) };
+      xy_pos_t circle = _GET_MESH_POS(location.pos);
 
       // If this mesh location is outside the printable_radius, skip it.
       if (!mechanics.position_is_reachable(circle.x, circle.y)) continue;
 
       // Determine where to start and end the circle,
       // which is always drawn counter-clockwise.
-      const xy_uchar_t st = location;
+      const xy_int8_t st = location;
       const bool f = st.y == 0,
                  r = st.x >= GRID_MAX_POINTS_X - 1,
                  b = st.y >= GRID_MAX_POINTS_Y - 1;
@@ -744,12 +747,12 @@ inline void gcode_G26() {
         move_to(s, 0.0);  // Get to the starting point with no extrusion / un-Z lift
 
         recover_filament(mechanics.destination);
-        const float save_feedrate = mechanics.feedrate_mm_s;
-        mechanics.feedrate_mm_s = PLANNER_XY_FEEDRATE() / 10.0;
 
+        REMEMBER(fr, mechanics.feedrate_mm_s, PLANNER_XY_FEEDRATE() / 10.0);
         plan_arc(endpoint, arc_offset, false);  // Draw a counter-clockwise arc
-        mechanics.feedrate_mm_s = save_feedrate;
+        RESTORE(fr);
         mechanics.destination = mechanics.current_position;
+
         #if HAS_LCD_MENU
           if (user_canceled()) goto LEAVE; // Check if the user wants to stop the Mesh Validation
         #endif

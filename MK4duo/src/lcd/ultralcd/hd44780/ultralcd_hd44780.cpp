@@ -959,18 +959,18 @@ void LcdUI::draw_status_screen() {
   }
 
   // Draw an indexed generic menu item with pre_char (if selected) and post_char
-  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t ind, const char pre_char, const char post_char) {
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char pre_char, const char post_char) {
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
-    uint8_t n = lcd_put_u8str_ind_P(pstr, ind, LCD_WIDTH - 2);
+    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2);
     for (; n; --n) lcd_put_wchar(' ');
     lcd_put_wchar(post_char);
   }
 
   // Draw a menu item with a (potentially) editable value
-  void MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t ind, const char* const data, const bool pgm) {
+  void MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     const uint8_t vallen = data ? (pgm ? utf8_strlen_P(data) : utf8_strlen(data)) : 0;
     lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
-    uint8_t n = lcd_put_u8str_ind_P(pstr, ind, LCD_WIDTH - 2 - vallen);
+    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2 - vallen);
     if (vallen) {
       lcd_put_wchar(':');
       for (; n; --n) lcd_put_wchar(' ');

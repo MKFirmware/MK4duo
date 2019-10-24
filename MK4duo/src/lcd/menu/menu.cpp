@@ -103,7 +103,7 @@ void MenuItem_gcode::action(PGM_P const, PGM_P const pgcode) { commands.inject_P
  *
  *   bool MenuItem_int3::_edit();
  *   void MenuItem_int3::edit(); // edit int16_t (interactively)
- *   void MenuItem_int3::action(PGM_P const pstr, int16_t * const ptr, const int16_t minValue, const int16_t maxValue, const screenFunc_t callback = null, const bool live = false);
+ *   void MenuItem_int3::action(PGM_P const pstr, int16_t * const ptr, const int32_t minValue, const int32_t maxValue, const screenFunc_t callback = null, const bool live = false);
  *
  * You can then use one of the menu macros to present the edit interface:
  *   EDIT_ITEM(int3, MSG_SPEED, &feedrate_percentage, 10, 999)
@@ -116,8 +116,8 @@ void MenuItem_gcode::action(PGM_P const, PGM_P const pgcode) { commands.inject_P
  *       MenuItem_int3::draw(encoderLine == _thisItemNr, _lcdLineNr, plabel, &feedrate_percentage, 10, 999)
  */
 void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
-  if ((int32_t)lcdui.encoderPosition < 0) lcdui.encoderPosition = 0;
-  if ((int32_t)lcdui.encoderPosition > maxEditValue) lcdui.encoderPosition = maxEditValue;
+  if (int32_t(lcdui.encoderPosition) < 0) lcdui.encoderPosition = 0;
+  if (int32_t(lcdui.encoderPosition) > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
     edit_screen(strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
@@ -259,7 +259,7 @@ void LcdUI::synchronize(PGM_P const msg/*=nullptr*/) {
 void scroll_screen(const uint8_t limit, const bool is_menu) {
   lcdui.encoder_direction_menus();
   ENCODER_RATE_MULTIPLY(false);
-  if (lcdui.encoderPosition > 0x8000) lcdui.encoderPosition = 0;
+  if (int32_t(lcdui.encoderPosition) < 0) lcdui.encoderPosition = 0;
   if (lcdui.first_page) {
     encoderLine = lcdui.encoderPosition / (ENCODER_STEPS_PER_MENU_ITEM);
     screen_changed = false;
@@ -275,6 +275,11 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
   }
   else
     encoderTopLine = encoderLine;
+}
+
+void lcd_line_to_z(const float &z) {
+  mechanics.current_position.z = z;
+  mechanics.line_to_current_position(MMM_TO_MMS(manual_feedrate_mm_m.z));
 }
 
 #if ENABLED(BABYSTEP_ZPROBE_OFFSET)

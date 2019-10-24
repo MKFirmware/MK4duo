@@ -87,6 +87,17 @@ void Core_Mechanics::get_cartesian_from_steppers() {
   cartesian_position.set(planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS), planner.get_axis_position_mm(Z_AXIS));
 }
 
+void Core_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s/*=0.0f*/) {
+
+  REMEMBER(old_fr, feedrate_mm_s);
+  if (fr_mm_s) feedrate_mm_s = fr_mm_s;
+
+  REMEMBER(old_pct, feedrate_percentage, 100);
+  REMEMBER(old_fac, extruders[tools.extruder.active]->e_factor, 1.0f);
+
+  prepare_move_to_destination();
+}
+
 /**
  *  Plan a move to (X, Y, Z) and set the current_position
  */
@@ -395,6 +406,8 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
  */
 bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
 
+  const float scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
+
   #if ENABLED(LASER) && ENABLED(LASER_FIRE_E)
     if (current_position.e < destination.e && ((current_position.x != destination.x) || (current_position.y != destination.y)))
       laser.status = LASER_ON;
@@ -405,7 +418,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(MMS_SCALED(feedrate_mm_s), tools.extruder.active);
+        ubl.line_to_destination_cartesian(scaled_fr_mm_s, tools.extruder.active);
         return true;
       #else
         /**
@@ -414,9 +427,9 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
          */
         if (current_position.x != destination.x || current_position.y != destination.y) {
           #if ENABLED(MESH_BED_LEVELING)
-            mbl.line_to_destination(MMS_SCALED(feedrate_mm_s));
+            mbl.line_to_destination(scaled_fr_mm_s);
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            abl.bilinear_line_to_destination(MMS_SCALED(feedrate_mm_s));
+            abl.bilinear_line_to_destination(scaled_fr_mm_s);
           #endif
           return true;
         }
@@ -424,7 +437,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
     }
   #endif // HAS_MESH
 
-  buffer_line_to_destination(MMS_SCALED(feedrate_mm_s));
+  planner.buffer_line(destination, scaled_fr_mm_s, tools.extruder.active);
   return false;
 }
 

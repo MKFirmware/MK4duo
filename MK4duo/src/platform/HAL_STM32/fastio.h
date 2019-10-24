@@ -164,10 +164,7 @@ FORCE_INLINE static void OUT_WRITE(const pin_t pin, const uint8_t flag) {
     else
   #endif
   {
-    if (flag)
-      SET_OUTPUT_HIGH(pin);
-    else
-      SET_OUTPUT(pin);
+    flag ? SET_OUTPUT_HIGH(pin) : SET_OUTPUT_LOW(pin);
   }
 }
 

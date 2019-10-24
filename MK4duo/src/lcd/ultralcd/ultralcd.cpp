@@ -70,7 +70,7 @@ millis_l LcdUI::next_button_update_ms = 0;
 
 // Encoder Handling
 #if HAS_ENCODER_ACTION
-  uint16_t LcdUI::encoderPosition;
+  uint32_t LcdUI::encoderPosition;
   volatile int8_t encoderDiff; // Updated in update_buttons, added to encoderPosition every LCD update
 #endif
 

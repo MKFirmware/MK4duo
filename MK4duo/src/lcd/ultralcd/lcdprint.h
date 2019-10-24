@@ -63,8 +63,8 @@ inline void lcd_put_int(const lcd_uint_t col, const lcd_uint_t row, const int i)
 inline int lcd_put_u8str_P(PGM_P const pstr) { return lcd_put_u8str_max_P(pstr, PIXEL_LEN_NOLIMIT); }
 inline int lcd_put_u8str_P(const lcd_uint_t col, const lcd_uint_t row, PGM_P const pstr) { lcd_moveto(col, row); return lcd_put_u8str_P(pstr); }
 
-uint8_t lcd_put_u8str_ind_P(PGM_P const pstr, const uint8_t idx, const uint8_t maxlen=20);
-inline uint8_t lcd_put_u8str_ind_P(const lcd_uint_t col, const lcd_uint_t row, PGM_P const pstr, const uint8_t idx, const uint8_t maxlen=20) {
+uint8_t lcd_put_u8str_ind_P(PGM_P const pstr, const uint8_t idx, const uint8_t maxlen=LCD_WIDTH);
+inline uint8_t lcd_put_u8str_ind_P(const lcd_uint_t col, const lcd_uint_t row, PGM_P const pstr, const uint8_t idx, const uint8_t maxlen=LCD_WIDTH) {
   lcd_moveto(col, row);
   return lcd_put_u8str_ind_P(pstr, idx, maxlen);
 }

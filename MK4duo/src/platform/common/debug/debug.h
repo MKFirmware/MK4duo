@@ -35,11 +35,11 @@
 
       static void print_xyz(const float &x, const float &y, const float &z, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr);
 
-      inline static void print_xyz(const xyz_pos_t &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
+      static inline void print_xyz(const xyz_pos_t &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
         print_xyz(pos.x, pos.y, pos.z, prefix, suffix);
       }
       #if HAS_PLANAR
-        inline static void print_xyz(const vector_3 &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
+        static inline void print_xyz(const vector_3 &pos, PGM_P const prefix=nullptr, PGM_P const suffix=nullptr) {
           print_xyz(pos.x, pos.y, pos.z, prefix, suffix);
         }
       #endif

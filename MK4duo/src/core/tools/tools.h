@@ -40,6 +40,7 @@ struct extruder_t {
   uint8_t active    : 4;
   uint8_t previous  : 4;
   uint8_t target    : 4;
+  uint8_t dummy     : 4;
 };
 
 class Tools {

@@ -702,7 +702,8 @@ void Planner::init() {
  * Manage Axis, paste pressure, etc.
  */
 void Planner::check_axes_activity() {
-  xyze_uchar_t axis_active{0};
+
+  xyze_bool_t axis_active = { false };
 
   #if ENABLED(BARICUDA)
     #if HAS_HEATER_HE1
@@ -729,7 +730,7 @@ void Planner::check_axes_activity() {
 
     for (uint8_t b = block_buffer_tail; b != block_buffer_head; b = next_block_index(b)) {
       block = &block_buffer[b];
-      LOOP_XYZE(i) if (block->steps[i]) axis_active[i]++;
+      LOOP_XYZE(i) if (block->steps[i]) axis_active[i] = true;
     }
   }
   else {

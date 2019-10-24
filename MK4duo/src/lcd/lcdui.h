@@ -164,7 +164,7 @@ class LcdUI {
 
     #if HAS_ENCODER_ACTION
 
-      static uint16_t encoderPosition;
+      static uint32_t encoderPosition;
 
       static volatile uint8_t buttons;
       #if ENABLED(REPRAPWORLD_KEYPAD)

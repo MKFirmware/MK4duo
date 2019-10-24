@@ -26,7 +26,7 @@
  
 #include "../../../MK4duo.h"
 
-#if HAS_DHT
+#if HAS_LCD_MENU && HAS_DHT
 
 #include "menu.h"
 
@@ -54,4 +54,4 @@ void menu_dht() {
   END_MENU();
 }
 
-#endif // DHT_SENSOR
+#endif // HAS_LCD_MENU && HAS_DHT

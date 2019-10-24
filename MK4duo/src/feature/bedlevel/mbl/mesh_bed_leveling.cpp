@@ -45,65 +45,68 @@ void mesh_bed_leveling::factory_parameters() {
  * Prepare a mesh-leveled linear move in a Cartesian setup,
  * splitting the move where it crosses mesh borders.
  */
-void mesh_bed_leveling::line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits/*=0xFFFF*/, uint16_t y_splits/*=0xFFFF*/) {
-  int cx1 = cell_index_x(mechanics.current_position.x),
-      cy1 = cell_index_y(mechanics.current_position.y),
-      cx2 = cell_index_x(mechanics.destination.x),
-      cy2 = cell_index_y(mechanics.destination.y);
+void mesh_bed_leveling::line_to_destination(const feedrate_t &scaled_fr_mm_s, uint8_t x_splits/*=0xFF*/, uint8_t y_splits/*=0xFF*/) {
+  // Get current and destination cells for this line
+  xy_int8_t scel = cell_indexes(mechanics.current_position), ecel = cell_indexes(mechanics.destination);
+  NOMORE(scel.x, GRID_MAX_POINTS_X - 2);
+  NOMORE(scel.y, GRID_MAX_POINTS_Y - 2);
+  NOMORE(ecel.x, GRID_MAX_POINTS_X - 2);
+  NOMORE(ecel.y, GRID_MAX_POINTS_Y - 2);
 
-  if (cx1 == cx2 && cy1 == cy2) {
-    // Start and end on same mesh square
-    mechanics.buffer_line_to_destination(fr_mm_s);
+  // Start and end in the same cell? No split needed.
+  if (scel == ecel) {
+    line_to_destination(scaled_fr_mm_s);
     mechanics.current_position = mechanics.destination;
     return;
   }
 
-  #define MBL_SEGMENT_END(A) (mechanics.current_position[_AXIS(A)] + (mechanics.destination[_AXIS(A)] - mechanics.current_position[_AXIS(A)]) * normalized_dist)
+  #define MBL_SEGMENT_END(A) (mechanics.current_position.A + (mechanics.destination.A - mechanics.current_position.A) * normalized_dist)
 
-  float normalized_dist, end[XYZE];
-  const int8_t gcx = MAX(cx1, cx2), gcy = MAX(cy1, cy2);
+  float normalized_dist;
+  xyze_pos_t end;
+  const int8_t gcx = MAX(scel.x, ecel.x), gcy = MAX(scel.y, ecel.y);
 
   // Crosses on the X and not already split on this X?
   // The x_splits flags are insurance against rounding errors.
-  if (cx2 != cx1 && TEST(x_splits, gcx)) {
+  if (ecel.x != scel.x && TEST(x_splits, gcx)) {
     // Split on the X grid line
     CBI(x_splits, gcx);
-    COPY_ARRAY(end, mechanics.destination);
+    end = mechanics.destination;
     mechanics.destination.x = data.index_to_xpos[gcx];
-    normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end[X_AXIS] - mechanics.current_position.x);
-    mechanics.destination.y = MBL_SEGMENT_END(Y);
+    normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end.x - mechanics.current_position.x);
+    mechanics.destination.y = MBL_SEGMENT_END(y);
   }
   // Crosses on the Y and not already split on this Y?
-  else if (cy2 != cy1 && TEST(y_splits, gcy)) {
+  else if (ecel.y != scel.y && TEST(y_splits, gcy)) {
     // Split on the Y grid line
     CBI(y_splits, gcy);
-    COPY_ARRAY(end, mechanics.destination);
+    end = mechanics.destination;
     mechanics.destination.y = data.index_to_ypos[gcy];
-    normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end[Y_AXIS] - mechanics.current_position.y);
-    mechanics.destination.x = MBL_SEGMENT_END(X);
+    normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end.y - mechanics.current_position.y);
+    mechanics.destination.x = MBL_SEGMENT_END(x);
   }
   else {
     // Must already have been split on these border(s)
     // This should be a rare case.
-    mechanics.buffer_line_to_destination(fr_mm_s);
+    line_to_destination(scaled_fr_mm_s);
     mechanics.current_position = mechanics.destination;
     return;
   }
 
-  mechanics.destination.z = MBL_SEGMENT_END(Z);
-  mechanics.destination.e = MBL_SEGMENT_END(E);
+  mechanics.destination.z = MBL_SEGMENT_END(z);
+  mechanics.destination.e = MBL_SEGMENT_END(e);
 
   // Do the split and look for more borders
-  line_to_destination(fr_mm_s, x_splits, y_splits);
+  line_to_destination(scaled_fr_mm_s, x_splits, y_splits);
 
   // Restore destination from stack
-  COPY_ARRAY(mechanics.destination, end);
-  line_to_destination(fr_mm_s, x_splits, y_splits);  
+  mechanics.destination = end;
+  line_to_destination(scaled_fr_mm_s, x_splits, y_splits);  
 }
 
 void mesh_bed_leveling::report_mesh() {
-  SERIAL_EM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
-  SERIAL_EMV("Z offset: ", data.z_offset, 5);
+  SERIAL_MSG("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
+  SERIAL_EMV(" mesh. Z offset: ", data.z_offset, 5);
   SERIAL_EM("Measured points:");
   bedlevel.print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
     [](const uint8_t ix, const uint8_t iy) { return data.z_values[ix][iy]; }

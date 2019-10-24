@@ -55,7 +55,7 @@ class Host_Action {
 
     static void prompt_do(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn=NULL);
 
-    inline static void prompt_open(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn=NULL) {
+    static inline void prompt_open(const HostPromptEnum reason, PGM_P const pstr, PGM_P const pbtn=NULL) {
       if (prompt_reason == PROMPT_NOT_DEFINED) prompt_do(reason, pstr, pbtn);
     }
 

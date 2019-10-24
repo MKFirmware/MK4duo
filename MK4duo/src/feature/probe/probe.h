@@ -73,48 +73,48 @@ class Probe {
 
     #if HAS_LEVELING
 
-      inline float min_x() {
+      static inline float min_x() {
         return
           #if MECH(DELTA) || IS_SCARA
             MESH_MIN_X;
           #else
-            MAX((X_MIN_BED) + (MIN_PROBE_EDGE), (X_MIN_POS) + offset.x);
+            MAX((X_MIN_BED) + (MIN_PROBE_EDGE), (X_MIN_POS) + data.offset.x);
           #endif
       }
 
-      inline float max_x() {
+      static inline float max_x() {
         return 
           #if MECH(DELTA) || IS_SCARA
             MESH_MAX_X;
           #else
-            MIN((X_MAX_BED) - (MIN_PROBE_EDGE), (X_MAX_POS) + offset.x);
+            MIN((X_MAX_BED) - (MIN_PROBE_EDGE), (X_MAX_POS) + data.offset.x);
           #endif
       }
 
-      inline float min_y() {
+      static inline float min_y() {
         return
           #if MECH(DELTA) || IS_SCARA
             MESH_MIN_Y;
           #else
-            MAX((Y_MIN_BED) + (MIN_PROBE_EDGE), (Y_MIN_POS) + offset.y);
+            MAX((Y_MIN_BED) + (MIN_PROBE_EDGE), (Y_MIN_POS) + data.offset.y);
           #endif
       }
 
-      inline float max_y() {
+      static inline float max_y() {
         return
           #if MECH(DELTA) || IS_SCARA
             MESH_MAX_Y;
           #else
-            MIN((Y_MAX_BED) - (MIN_PROBE_EDGE), (Y_MAX_POS) + offset.y);
+            MIN((Y_MAX_BED) - (MIN_PROBE_EDGE), (Y_MAX_POS) + data.offset.y);
           #endif
       }
 
     #else
 
-      FORCE_INLINE float min_x() { return 0.0f; }
-      FORCE_INLINE float max_x() { return 0.0f; }
-      FORCE_INLINE float min_y() { return 0.0f; }
-      FORCE_INLINE float max_y() { return 0.0f; }
+      FORCE_INLINE static float min_x() { return 0.0f; }
+      FORCE_INLINE static float max_x() { return 0.0f; }
+      FORCE_INLINE static float min_y() { return 0.0f; }
+      FORCE_INLINE static float max_y() { return 0.0f; }
 
     #endif
 
@@ -131,6 +131,9 @@ class Probe {
        * - Return the probed Z position
        */
       static float check_at_point(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
+      static inline float check_at_point(const xy_pos_t &pos, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true) {
+        return check_at_point(pos.x, pos.y, raise_after, verbose_level, probe_relative);
+      }
 
     #endif
 

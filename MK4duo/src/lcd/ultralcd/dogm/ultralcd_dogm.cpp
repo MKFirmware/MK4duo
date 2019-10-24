@@ -357,8 +357,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   // Draw an indexed generic menu item
   void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char post_char) {
     if (mark_as_selected(row, sel)) {
-      u8g_uint_t n = (LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
-      n = lcd_put_u8str_ind_P(pstr, idx, n);
+      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, idx, (LCD_WIDTH - 2) * (MENU_FONT_WIDTH));
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
       lcd_put_wchar(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH), row_y2, post_char);
       lcd_put_wchar(' ');
@@ -369,8 +368,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   void MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
-      u8g_uint_t n = (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH);
-      n = lcd_put_u8str_ind_P(pstr, idx, n);
+      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, idx, (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH));
       if (vallen) {
         lcd_put_wchar(':');
         while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
@@ -412,7 +410,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
     // Assume the label is alpha-numeric (with a descender)
     bool onpage = PAGE_CONTAINS(baseline - (EDIT_FONT_ASCENT - 1), baseline + EDIT_FONT_DESCENT);
-    if (onpage) lcd_put_u8str_ind_P(0, baseline, pstr, itemIndex);
+    if (onpage) lcd_put_u8str_ind_P(0, baseline, pstr, itemIndex, (LCD_WIDTH - 2) * (MENU_FONT_WIDTH));
 
     // If a value is included, print a colon, then print the value right-justified
     if (value) {

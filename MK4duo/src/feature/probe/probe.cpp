@@ -431,15 +431,6 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
     probing_pause(true);
   #endif
 
-  #if MECH(DELTA)
-    const float z_start = mechanics.current_position.z;
-    const int32_t steps_start[ABC] = {
-      stepper.position(A_AXIS),
-      stepper.position(B_AXIS),
-      stepper.position(C_AXIS)
-    };
-  #endif
-
   // Move down until probe triggered
   mechanics.do_blocking_move_to_z(z, fr_mm_s);
 
@@ -480,20 +471,15 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   endstops.hit_on_purpose();
 
   // Get Z where the steppers were interrupted
-  #if MECH(DELTA)
-    float z_dist = 0.0;
-    LOOP_ABC(i)
-      z_dist += ABS(steps_start[i] - stepper.position((AxisEnum)i)) / mechanics.data.axis_steps_per_mm[i];
-
-    mechanics.current_position.z = z_start - (z_dist / ABC);
-  #else
-    mechanics.set_current_from_steppers_for_axis(Z_AXIS);
-  #endif
+  mechanics.set_current_from_steppers_for_axis(Z_AXIS);
 
   // Tell the planner where we actually are
   mechanics.sync_plan_position();
 
-  if (printer.debugFeature()) DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
+  if (printer.debugFeature()) {
+    DEBUG_ELOGIC(" Probe triggered", probe_triggered);
+    DEBUG_POS("<<< probe.move_to_z", mechanics.current_position);
+  }
 
   return !probe_triggered;
 }
@@ -528,15 +514,15 @@ float Probe::run_probing() {
 
   float probe_z = 0.0f;
 
+  if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
+
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
   const float z_probe_low_point = mechanics.isAxisHomed(Z_AXIS) ? Z_PROBE_LOW_POINT - data.offset.z : -10.0;
 
-  if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
-
   // If the nozzle is well over the travel height then
   // move down quickly before doing the slow probe
-  const float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
+  float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
   if (mechanics.current_position.z > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
       mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));

@@ -73,6 +73,15 @@ class Cartesian_Mechanics : public Mechanics {
     static void get_cartesian_from_steppers();
 
     /**
+     * Move the planner to the current position from wherever it last moved
+     * (or from wherever it has been told it is located).
+     */
+    static void internal_move_to_destination(const feedrate_t &fr_mm_s=0.0f);
+    static inline void prepare_internal_move_to_destination(const feedrate_t &fr_mm_s=0.0f) {
+      internal_move_to_destination(fr_mm_s);
+    }
+
+    /**
      *  Plan a move to (X, Y, Z) and set the current_position
      */
     static void do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s=0.0f);
@@ -143,7 +152,7 @@ class Cartesian_Mechanics : public Mechanics {
      * Check position is reachable
      */
     static bool position_is_reachable(const float &rx, const float &ry);
-    inline static bool position_is_reachable(const xy_pos_t &pos) { return position_is_reachable(pos.x, pos.y); }
+    static inline bool position_is_reachable(const xy_pos_t &pos) { return position_is_reachable(pos.x, pos.y); }
 
     /**
      * Return whether the given position is within the bed, and whether the nozzle
@@ -153,8 +162,8 @@ class Cartesian_Mechanics : public Mechanics {
      *          nozzle must be be able to reach +10,-10.
      */
     static bool position_is_reachable_by_probe(const float &rx, const float &ry);
-    inline static bool position_is_reachable_by_probe(const xy_int_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
-    inline static bool position_is_reachable_by_probe(const xy_pos_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
+    static inline bool position_is_reachable_by_probe(const xy_int_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
+    static inline bool position_is_reachable_by_probe(const xy_pos_t &pos) { return position_is_reachable_by_probe(pos.x, pos.y); }
 
     /**
      * Report current position to host

@@ -204,6 +204,24 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 #endif // DISABLED(AUTO_BED_LEVELING_UBL)
 
 /**
+ * Move the planner to the current position from wherever it last moved
+ * (or from wherever it has been told it is located).
+ */
+void Delta_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s/*=0.0f*/, const bool is_fast/*=false*/) {
+  REMEMBER(old_fr, feedrate_mm_s);
+  if (fr_mm_s) feedrate_mm_s = fr_mm_s;
+
+  REMEMBER(old_pct, feedrate_percentage, 100);
+  REMEMBER(old_fac, extruders[tools.extruder.active]->e_factor, 1.0f);
+
+  if (is_fast)
+    prepare_uninterpolated_move_to_destination();
+  else
+    prepare_move_to_destination();
+
+}
+
+/**
  *  Plan a move to (X, Y, Z) and set the current_position
  */
 void Delta_Mechanics::do_blocking_move_to(const float rx, const float ry, const float rz, const feedrate_t &fr_mm_s/*=0.0f*/) {
@@ -1035,7 +1053,7 @@ void Delta_Mechanics::homeaxis(const AxisEnum axis) {
 }
 
 /**
- * Calculate delta, start a line, and set current_position.x to destination
+ * Buffer a fast move without interpolation. Set current_position to destination
  */
 void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_t &fr_mm_s/*=0.0*/) {
 

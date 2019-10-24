@@ -42,19 +42,27 @@
 
 #if HAS_MESH
   #define Z_VALUES(X,Y) Z_VALUES_ARR[X][Y]
+  #define _GET_MESH_POS(M) { _GET_MESH_X(M.a), _GET_MESH_Y(M.b) }
+  typedef float bed_mesh_t[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
   typedef float (*element_2d_fn)(const uint8_t, const uint8_t);
 #endif
 
-typedef struct : xy_uchar_t {
+struct mesh_index_pair {
+  xy_int8_t pos;
   float distance;   // When populated, the distance from the search location
-  void invalidate()                   { x = y = -1; }
-  bool valid()                  const { return x >= 0 && y >= 0; }
-  operator        xy_uchar_t&()       { return *(xy_uchar_t*)this; }
-  operator const  xy_uchar_t&() const { return *(const xy_uchar_t*)this; }
-} mesh_index_pair;
+  void invalidate()                   { pos = -1; }
+  bool valid()                  const { return pos.x >= 0 && pos.y >= 0; }
+  #if ENABLED(AUTO_BED_LEVELING_UBL)
+    xy_pos_t meshpos() {
+      return { ubl.mesh_index_to_xpos(pos.x), ubl.mesh_index_to_ypos(pos.y) };
+    }
+  #endif
+  operator        xy_int8_t&()        { return pos; }
+  operator const  xy_int8_t&()  const { return pos; }
+};
 
 #if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
   #include "math/vector_3.h"
@@ -118,10 +126,13 @@ class Bedlevel {
      * Apply leveling to transform a cartesian position
      * as it will be given to the planner and steppers.
      */
-    static void apply_leveling(float &rx, float &ry, float &rz);
-    FORCE_INLINE static void apply_leveling(xyz_pos_t &raw) { apply_leveling(raw.x, raw.y, raw.z); }
-
+    static void apply_leveling(xyz_pos_t &raw);
     static void unapply_leveling(xyz_pos_t &raw);
+    FORCE_INLINE static void force_unapply_leveling(xyz_pos_t &raw) {
+      flag.leveling_active = true;
+      unapply_leveling(raw);
+      flag.leveling_active = false;
+    }
 
     static bool leveling_is_valid();
     static void set_bed_leveling_enabled(const bool enable=true);
@@ -183,8 +194,18 @@ class Bedlevel {
       /**
        * Manual goto xy for Mesh Bed level or Probe Manually
        */
-      void manual_goto_xy(const float &rx, const float &ry);
+      static void manual_goto_xy(const xy_pos_t &pos);
     #endif
+
+  private:
+
+    static inline xy_pos_t level_fulcrum() {
+      #if ENABLED(Z_SAFE_HOMING)
+      return { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
+      #else
+        return { X_HOME_POS, Y_HOME_POS };
+      #endif
+    };
 
 };
 

@@ -40,7 +40,7 @@
     lcdui.defer_status_screen();
     ENCODER_RATE_MULTIPLY(true);
     if (lcdui.encoderPosition != 0) {
-      mixer.gradient.start_z += float((int16_t)lcdui.encoderPosition) * 0.1;
+      mixer.gradient.start_z += float(int32_t(lcdui.encoderPosition)) * 0.1;
       lcdui.encoderPosition = 0;
       NOLESS(mixer.gradient.start_z, 0);
       NOMORE(mixer.gradient.start_z, Z_MAX_BED);
@@ -64,7 +64,7 @@
     lcdui.defer_status_screen();
     ENCODER_RATE_MULTIPLY(true);
     if (lcdui.encoderPosition != 0) {
-      mixer.gradient.end_z += float((int16_t)lcdui.encoderPosition) * 0.1;
+      mixer.gradient.end_z += float(int32_t(lcdui.encoderPosition)) * 0.1;
       lcdui.encoderPosition = 0;
       NOLESS(mixer.gradient.end_z, 0);
       NOMORE(mixer.gradient.end_z, Z_MAX_BED);
@@ -163,7 +163,7 @@ void lcd_mixer_mix_edit() {
   #elif HAS_GRADIENT_MIX
 
     if (lcdui.encoderPosition != 0) {
-      mixer.mix[0] += (int16_t)lcdui.encoderPosition;
+      mixer.mix[0] += int32_t(lcdui.encoderPosition);
       lcdui.encoderPosition = 0;
       if (mixer.mix[0] < 0) mixer.mix[0] += 101;
       if (mixer.mix[0] > 100) mixer.mix[0] -= 101;

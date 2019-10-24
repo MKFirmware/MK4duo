@@ -464,7 +464,7 @@ void _lcd_ubl_output_map_lcd() {
   if (lcdui.use_click()) return _lcd_ubl_map_lcd_edit_cmd();
 
   if (lcdui.encoderPosition) {
-    step_scaler += int16_t(lcdui.encoderPosition);
+    step_scaler += int32_t(lcdui.encoderPosition);
     x_plot += step_scaler / (ENCODER_STEPS_PER_MENU_ITEM);
     lcdui.encoderPosition = 0;
     lcdui.refresh(LCDVIEW_REDRAW_NOW);

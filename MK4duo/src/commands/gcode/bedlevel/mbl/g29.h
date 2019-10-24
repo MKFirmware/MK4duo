@@ -122,7 +122,7 @@
           #endif
 
           mbl.zigzag(mbl_probe_index++, ix, iy);
-          bedlevel.manual_goto_xy(mbl.data.index_to_xpos[ix], mbl.data.index_to_ypos[iy]);
+          bedlevel.manual_goto_xy({ mbl.data.index_to_xpos[ix], mbl.data.index_to_ypos[iy] });
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
@@ -140,8 +140,7 @@
 
           #if ENABLED(MESH_G28_REST_ORIGIN)
             mechanics.current_position.z = 0;
-            mechanics.destination = mechanics.current_position;
-            mechanics.buffer_line_to_destination(mechanics.homing_feedrate_mm_s.z);
+            mechanics.line_to_current_position(mechanics.homing_feedrate_mm_s.z);
             planner.synchronize();
           #endif
 

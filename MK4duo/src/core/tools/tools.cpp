@@ -69,6 +69,8 @@ void Tools::factory_parameters() {
   data.coolers    = COOLERS;
   data.fans       = FAN_COUNT;
 
+  extruder.active = extruder.previous = extruder.target = 0;
+
   create_object();
 
   LOOP_EXTRUDER() if (extruders[e]) extruder_factory_parameters(e);
@@ -84,15 +86,16 @@ void Tools::factory_parameters() {
 }
 
 void Tools::extruder_factory_parameters(const uint8_t e) {
-  const float     tmp_step[]        PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT_E,
-                  tmp_maxfeedrate[] PROGMEM = DEFAULT_MAX_FEEDRATE_E;
+  static const float  tmp_step[]        PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT_E,
+                      tmp_maxfeedrate[] PROGMEM = DEFAULT_MAX_FEEDRATE_E;
 
-  const uint32_t  tmp_maxacc[]      PROGMEM = DEFAULT_MAX_ACCELERATION_E,
-                  tmp_retract[]     PROGMEM = DEFAULT_RETRACT_ACCELERATION;
+  static const uint32_t tmp_maxacc[]    PROGMEM = DEFAULT_MAX_ACCELERATION_E,
+                        tmp_retract[]   PROGMEM = DEFAULT_RETRACT_ACCELERATION;
 
-  const float     tmp_ejerk[]       PROGMEM = DEFAULT_EJERK;
+  static const float    tmp_ejerk[]     PROGMEM = DEFAULT_EJERK;
 
-  extruders[e]->data.axis_steps_per_mm = pgm_read_float(&tmp_step[e < COUNT(tmp_step) ? e : COUNT(tmp_step) - 1]);
+  const float step_per_mm = pgm_read_float(&tmp_step[e < COUNT(tmp_step) ? e : COUNT(tmp_step) - 1]);
+  extruders[e]->data.axis_steps_per_mm = step_per_mm;
   extruders[e]->data.max_feedrate_mm_s = pgm_read_float(&tmp_maxfeedrate[e < COUNT(tmp_maxfeedrate) ? e : COUNT(tmp_maxfeedrate) - 1]);
   extruders[e]->data.max_acceleration_mm_per_s2 = pgm_read_dword_near(&tmp_maxacc[e < COUNT(tmp_maxacc) ? e : COUNT(tmp_maxacc) - 1]);
   extruders[e]->data.retract_acceleration = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
@@ -236,7 +239,10 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     if (extruder.target != extruder.active) {
 
-      REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
+      if (parser.linearval('F') > 0)
+        mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
+      else
+        REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
         endstops.update_software_endstops(X_AXIS);
