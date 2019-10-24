@@ -44,6 +44,6 @@ inline void gcode_M9999() { initiateReset(1000); }
 /**
  * M9999: DFU mode software in STM32
  */
-inline void gcode_M9999() { jumpToBootloaderRequested(); }
+inline void gcode_M9999() { /*jumpToBootloaderRequested();*/ }
 
 #endif
