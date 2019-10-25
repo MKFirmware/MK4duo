@@ -301,6 +301,16 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
     if (doY) homeaxis(Y_AXIS);
   #endif
 
+  #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
+    RESTORE(accel_x);
+    RESTORE(accel_y);
+    #if HAS_CLASSIC_JERK
+      RESTORE(jerk_x);
+      RESTORE(jerk_y);
+    #endif
+    planner.reset_acceleration_rates();
+  #endif
+
   // Home Z last if homing towards the bed
   #if Z_HOME_DIR < 0
     if (doZ) {
@@ -375,16 +385,6 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
   // Restore the active tool after homing
   #if HOTENDS > 1
     tools.change(old_tool_index, true);
-  #endif
-
-  #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    RESTORE(accel_x);
-    RESTORE(accel_y);
-    #if HAS_CLASSIC_JERK
-      RESTORE(jerk_x);
-      RESTORE(jerk_y);
-    #endif
-    planner.reset_acceleration_rates();
   #endif
 
   lcdui.refresh();
@@ -837,9 +837,9 @@ void Cartesian_Mechanics::report_current_position_detail() {
       SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
       SERIAL_MV(" Y", LINEAR_UNIT(data.max_jerk.y), 3);
       SERIAL_MV(" Z", LINEAR_UNIT(data.max_jerk.z), 3);
+      SERIAL_EOL();
 
       #if DISABLED(LIN_ADVANCE)
-        SERIAL_EOL();
         LOOP_EXTRUDER() {
           SERIAL_SMV(CFG, "  M205 T", (int)e);
           SERIAL_EMV(" E" , LINEAR_UNIT(extruders[e]->data.max_jerk), 3);

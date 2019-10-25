@@ -198,7 +198,7 @@ class NextionLCD {
 
     #if HAS_LCD_MENU
       static void put_space(const uint8_t max_length);
-      static void put_str_P(PGM_P str);
+      static void put_str_P(PGM_P str, const uint8_t idx=0xFF);
       static void put_str(const char * str);
       static void mark_as_selected(const uint8_t row, const bool sel);
       static void wrap_string(uint8_t &y, const char * const string, read_byte_cb_t cb_read_byte, const bool wordwrap=false);

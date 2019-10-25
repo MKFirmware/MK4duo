@@ -64,10 +64,6 @@ struct mesh_index_pair {
   operator const  xy_int8_t&()  const { return pos; }
 };
 
-#if ABL_PLANAR || ENABLED(AUTO_BED_LEVELING_UBL)
-  #include "math/vector_3.h"
-  #include "math/least_squares_fit.h"
-#endif
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   #include "abl/abl.h"
 #elif ENABLED(MESH_BED_LEVELING)

@@ -589,11 +589,15 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
       setChar(' ');
   }
 
-  void NextionLCD::put_str_P(PGM_P str) {
+  void NextionLCD::put_str_P(PGM_P str, const uint8_t idx/*=0xFF*/) {
     const uint8_t len = strlen_P(str);
     for (uint8_t i = 0; i < len; i++) {
       char ch = pgm_read_byte(str++);
       setChar(ch);
+    }
+    if (idx != 0xFF) {
+      setChar(' ');
+      setChar(DIGIT(idx));
     }
   }
 
@@ -1531,11 +1535,7 @@ void LcdUI::stop_print() {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr);
-    if (idx != NO_INDEX) {
-      nexlcd.setChar(' ');
-      nexlcd.setChar(DIGIT(idx));
-    }
+    nexlcd.put_str_P(pstr, idx);
     nexlcd.endChar();
   }
 
@@ -1546,11 +1546,7 @@ void LcdUI::stop_print() {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr);
-    if (idx != NO_INDEX) {
-      nexlcd.setChar(' ');
-      nexlcd.setChar(DIGIT(idx));
-    }
+    nexlcd.put_str_P(pstr, idx);
     nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
@@ -1564,7 +1560,7 @@ void LcdUI::stop_print() {
   void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
-    const uint8_t labellen  = strlen_P(pstr),
+    const uint8_t labellen  = strlen_P(pstr)+ (itemIndex != 0xFF ? 2 : 0),
                   vallen    = strlen(value);
 
     bool extra_row = labellen > LCD_WIDTH - vallen - 1;
@@ -1578,7 +1574,7 @@ void LcdUI::stop_print() {
     if (extra_row) {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
-      nexlcd.put_str_P(pstr);
+      nexlcd.put_str_P(pstr, itemIndex);
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_space(LCD_WIDTH - vallen);
@@ -1586,7 +1582,7 @@ void LcdUI::stop_print() {
     }
     else {
       nexlcd.startChar(*txtmenu_list[row]);
-      nexlcd.put_str_P(pstr);
+      nexlcd.put_str_P(pstr, itemIndex);
       nexlcd.setChar(':');
       nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
       nexlcd.put_str(value);

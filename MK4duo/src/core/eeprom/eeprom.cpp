@@ -74,9 +74,9 @@ typedef struct EepromDataStruct {
   mechanics_data_t  mechanics_data;
 
   //
-  // Endstop data
+  // Stepper data
   //
-  endstop_data_t    endstop_data;
+  stepper_data_t    stepper_data;
 
   //
   // Driver
@@ -85,9 +85,9 @@ typedef struct EepromDataStruct {
   driver_data_t     driver_e_data[MAX_DRIVER_E];
 
   //
-  // Stepper data
+  // Endstop data
   //
-  stepper_data_t    stepper_data;
+  endstop_data_t    endstop_data;
 
   //
   // Nozzle data
@@ -454,10 +454,10 @@ void EEPROM::post_process() {
     EEPROM_WRITE(mechanics.data);
 
     //
-    // Endstops data
+    // Stepper
     //
-    EEPROM_TEST(endstop_data);
-    EEPROM_WRITE(endstops.data);
+    EEPROM_TEST(stepper_data);
+    EEPROM_WRITE(stepper.data);
 
     //
     // Driver Data
@@ -469,10 +469,10 @@ void EEPROM::post_process() {
     EEPROM_WRITE(driver_e_data);
 
     //
-    // Stepper
+    // Endstops data
     //
-    EEPROM_TEST(stepper_data);
-    EEPROM_WRITE(stepper.data);
+    EEPROM_TEST(endstop_data);
+    EEPROM_WRITE(endstops.data);
 
     //
     // Nozzle Data
@@ -862,9 +862,9 @@ void EEPROM::post_process() {
       EEPROM_READ(mechanics.data);
 
       //
-      // Endstops data
+      // Stepper data
       //
-      EEPROM_READ(endstops.data);
+      EEPROM_READ(stepper.data);
 
       //
       // Driver data
@@ -878,9 +878,9 @@ void EEPROM::post_process() {
       }
 
       //
-      // Stepper data
+      // Endstops data
       //
-      EEPROM_READ(stepper.data);
+      EEPROM_READ(endstops.data);
 
       //
       // Nozzle Data

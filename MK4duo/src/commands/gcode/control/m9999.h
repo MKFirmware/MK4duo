@@ -40,10 +40,15 @@ inline void gcode_M9999() { initiateReset(1000); }
 #define CODE_M9999
 
 #include <bootloader.h>
+#include <backup.h>
 
 /**
  * M9999: DFU mode software in STM32
  */
-inline void gcode_M9999() { /*jumpToBootloaderRequested();*/ }
+inline void gcode_M9999() {
+  enableBackupDomain();
+  setBackupRegister(LL_RTC_BKP_DR2, 0x515B);
+  NVIC_SystemReset();
+}
 
 #endif

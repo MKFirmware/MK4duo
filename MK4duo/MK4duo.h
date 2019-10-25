@@ -110,6 +110,8 @@
 #include "src/lib/driver_types.h"
 #include "src/lib/duration_t.h"
 #include "src/lib/matrix.h"
+#include "src/lib/vector_3/vector_3.h"
+#include "src/lib/least_squares_fit/least_squares_fit.h"
 
 // Platform modules
 #include "src/platform/platform.h"

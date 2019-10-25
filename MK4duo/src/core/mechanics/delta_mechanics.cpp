@@ -540,6 +540,18 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
     endstops.clear_state();
   #endif
 
+  #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
+    RESTORE(accel_x);
+    RESTORE(accel_y);
+    RESTORE(accel_z);
+    #if HAS_CLASSIC_JERK
+      RESTORE(jerk_x);
+      RESTORE(jerk_y);
+      RESTORE(jerk_z);
+    #endif
+    planner.reset_acceleration_rates();
+  #endif
+
   #if ENABLED(DELTA_HOME_TO_SAFE_ZONE)
     // move to a height where we can use the full xy-area
     do_blocking_move_to_z(delta_clip_start_height, homing_feedrate_mm_s.z);
@@ -568,18 +580,6 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
   // Restore the active tool after homing
   #if HOTENDS > 1
     tools.change(old_tool_index, true);
-  #endif
-
-  #if ENABLED(SLOW_HOMING) || ENABLED(IMPROVE_HOMING_RELIABILITY)
-    RESTORE(accel_x);
-    RESTORE(accel_y);
-    RESTORE(accel_z);
-    #if HAS_CLASSIC_JERK
-      RESTORE(jerk_x);
-      RESTORE(jerk_y);
-      RESTORE(jerk_z);
-    #endif
-    planner.reset_acceleration_rates();
   #endif
 
   lcdui.refresh();
@@ -942,7 +942,7 @@ void Delta_Mechanics::report_current_position_detail() {
     #endif
     SERIAL_EOL();
 
-    SERIAL_SMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
+    SERIAL_LMV(CFG, "  M205 X", LINEAR_UNIT(data.max_jerk.x), 3);
 
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       LOOP_EXTRUDER() {

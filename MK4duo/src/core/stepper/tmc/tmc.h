@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000501
-  #error "Update TMCStepper library to 0.5.1 or newer."
+#if TMCSTEPPER_VERSION < 0x000502
+  #error "Update TMCStepper library to 0.5.2 or newer."
 #endif
 
 #if HAVE_DRV(TMC2130)
@@ -85,7 +85,7 @@ static constexpr int8_t sgt_min = -64,
 
 extern bool report_tmc_status;
 
-constexpr uint16_t tmc_thrs(const uint16_t msteps, const uint32_t thrs, const uint32_t spmm) {
+constexpr uint16_t _tmc_thrs(const uint16_t msteps, const uint32_t thrs, const uint32_t spmm) {
   return 12650000UL * msteps / (256 * thrs * spmm);
 }
 
@@ -106,7 +106,7 @@ class TMCStorage {
       bool stealthChop_enabled = false;
     #endif
 
-    #if HAS_SENSORLESS
+    #if HAS_SENSORLESS && HAS_LCD_MENU
       int16_t homing_thrs = 0;
     #endif
 
@@ -177,19 +177,19 @@ class TMCStorage {
 
       #if ENABLED(HYBRID_THRESHOLD)
         uint32_t get_pwm_thrs() {
-          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+          return _tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
         }
         void set_pwm_thrs(const uint32_t thrs) {
-          TMC2208Stepper::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          TMC2208Stepper::TPWMTHRS(_tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
           #if HAS_LCD_MENU
             this->hybrid_thrs = thrs;
           #endif
         }
         uint32_t get_pwm_thrs_e() {
-          return tmc_thrs(microsteps(), this->TPWMTHRS(), extruders[this->id]->data.axis_steps_per_mm);
+          return _tmc_thrs(microsteps(), this->TPWMTHRS(), extruders[this->id]->data.axis_steps_per_mm);
         }
         void set_pwm_thrs_e(const uint32_t thrs) {
-          TMC2208Stepper::TPWMTHRS(tmc_thrs(microsteps(), thrs, extruders[this->id]->data.axis_steps_per_mm));
+          TMC2208Stepper::TPWMTHRS(_tmc_thrs(microsteps(), thrs, extruders[this->id]->data.axis_steps_per_mm));
           #if HAS_LCD_MENU
             this->hybrid_thrs = thrs;
           #endif
@@ -318,19 +318,19 @@ class TMCStorage {
 
       #if ENABLED(HYBRID_THRESHOLD)
         uint32_t get_pwm_thrs() {
-          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+          return _tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
         }
         void set_pwm_thrs(const uint32_t thrs) {
-          TMC_MODEL_LIB::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          TMC_MODEL_LIB::TPWMTHRS(_tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
           #if HAS_LCD_MENU
             this->hybrid_thrs = thrs;
           #endif
         }
         uint32_t get_pwm_thrs_e() {
-          return tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
+          return _tmc_thrs(microsteps(), this->TPWMTHRS(), mechanics.data.axis_steps_per_mm[this->id]);
         }
         void set_pwm_thrs_e(const uint32_t thrs) {
-          TMC_MODEL_LIB::TPWMTHRS(tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
+          TMC_MODEL_LIB::TPWMTHRS(_tmc_thrs(microsteps(), thrs, mechanics.data.axis_steps_per_mm[this->id]));
           #if HAS_LCD_MENU
             this->hybrid_thrs = thrs;
           #endif
