@@ -200,17 +200,18 @@ void HAL_calc_pulse_cycle();
 extern void Step_Handler(HardwareTimer*);
 extern void Temp_Handler(HardwareTimer*);
 
+FORCE_INLINE static bool HAL_timer_initialized(const uint8_t timer_num) {
+  return MK_timer[timer_num] != nullptr;
+}
+
 FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
 
-  static bool timers_initialized[2] = { false };
-
-  if (!timers_initialized[timer_num]) {
+  if (!HAL_timer_initialized(timer_num)) {
 
     switch (timer_num) {
       case STEPPER_TIMER_NUM:
         MK_timer[STEPPER_TIMER_NUM] = new HardwareTimer(STEP_TIMER);
         MK_timer[STEPPER_TIMER_NUM]->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
-        //MK_timer[STEPPER_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
         MK_timer[STEPPER_TIMER_NUM]->attachInterrupt(Step_Handler);
         MK_timer[STEPPER_TIMER_NUM]->resume();
         HAL_timer_is_active[STEPPER_TIMER_NUM] = true;
@@ -224,18 +225,22 @@ FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t
         HAL_timer_is_active[TEMP_TIMER_NUM] = true;
         break;
     }
-    timers_initialized[timer_num] = true;
+
   }
 }
 
 FORCE_INLINE static void HAL_timer_enable_interrupt(const uint8_t timer_num) {
-  MK_timer[timer_num]->resume();
-  HAL_timer_is_active[timer_num] = true;
+  if (HAL_timer_initialized(timer_num) && !HAL_timer_is_active[timer_num]) {
+    MK_timer[timer_num]->resume();
+    HAL_timer_is_active[timer_num] = true;
+  }
 }
 
 FORCE_INLINE static void HAL_timer_disable_interrupt(const uint8_t timer_num) {
-  MK_timer[timer_num]->pause();
-  HAL_timer_is_active[timer_num] = false;
+  if (HAL_timer_initialized(timer_num) && HAL_timer_is_active[timer_num]) {
+    MK_timer[timer_num]->pause();
+    HAL_timer_is_active[timer_num] = false;
+  }
 }
 
 FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num) {
@@ -247,17 +252,19 @@ FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
 }
 
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
-  MK_timer[timer_num]->setOverflow(count);
-  if (HAL_timer_get_count(timer_num) >= count)
-    MK_timer[timer_num]->refresh(); // Generate an immediate update interrupt
+  if (HAL_timer_initialized(timer_num)) {
+    MK_timer[timer_num]->setOverflow(count);
+    if (MK_timer[timer_num]->getCount() >= count)
+      MK_timer[timer_num]->refresh(); // Generate an immediate update interrupt
+  }
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
-  return MK_timer[timer_num]->getOverflow();
+  return HAL_timer_initialized(timer_num) ? MK_timer[timer_num]->getOverflow() : 0;
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_Clk_Freq(const uint8_t timer_num) {
-  return MK_timer[timer_num]->getTimerClkFreq();
+  return HAL_timer_initialized(timer_num) ? MK_timer[timer_num]->getTimerClkFreq() : 0;
 }
 
 #define HAL_timer_isr_prologue(TIMER_NUM)

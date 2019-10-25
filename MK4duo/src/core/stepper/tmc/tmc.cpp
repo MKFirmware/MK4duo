@@ -387,19 +387,18 @@ void TMC_Stepper::create_tmc() {
 // https://www.trinamic.com/products/integrated-circuits/details/tmc2130/
 void TMC_Stepper::factory_parameters() {
 
-  constexpr uint16_t  tmc_stepper_current[]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                                  E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
-                                                  X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
-                      tmc_stepper_microstep[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
-                                                  E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
-                                                  X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
-  constexpr uint32_t  tmc_hybrid_threshold[]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                  E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                  E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
-                                                  X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
-  constexpr bool      tmc_stealth_enabled[]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
-                                                  E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
-                                                  X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
+  constexpr uint16_t  tmc_stepper_current[]     = { X_CURRENT, Y_CURRENT, Z_CURRENT },
+                      tmc_stepper_current_e[]   = { E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT },
+                      tmc_stepper_microstep[]   = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS },
+                      tmc_stepper_microstep_e[] = { E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS };
+
+  constexpr uint32_t  tmc_hybrid_threshold[]    = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD },
+                      tmc_hybrid_threshold_e[]  = { E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
+                                                    E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD };
+
+  constexpr bool      tmc_stealth_enabled[]     = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP },
+                      tmc_stealth_enabled_e[]   = { E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP,
+                                                    E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP };
 
   LOOP_DRV_XYZ() {
     Driver* drv = driver[d];
@@ -419,13 +418,13 @@ void TMC_Stepper::factory_parameters() {
   LOOP_DRV_EXT() {
     Driver* drv = driver.e[d];
     if (drv && drv->tmc) {
-      drv->tmc->rms_current(tmc_stepper_current[d]);
-      drv->tmc->microsteps(tmc_stepper_microstep[d]);
+      drv->tmc->rms_current(tmc_stepper_current_e[d]);
+      drv->tmc->microsteps(tmc_stepper_microstep_e[d]);
       #if ENABLED(HYBRID_THRESHOLD)
-        drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold[d]);
+        drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold_e[d]);
       #endif
       #if TMC_HAS_STEALTHCHOP
-        drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+        drv->tmc->stealthChop_enabled = tmc_stealth_enabled_e[d];
         drv->tmc->refresh_stepping_mode();
       #endif
     }

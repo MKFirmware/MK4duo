@@ -62,7 +62,7 @@ extern "C" void DHT_ISR() {
 }
 
 /** Public Function */
-void DHTSensor::init() { HAL::pinMode(data.pin, OUTPUT); }
+void DHTSensor::init() { /*HAL::pinMode(data.pin, OUTPUT);*/ }
 
 void DHTSensor::factory_parameters() {
   data.pin  = DHT_DATA_PIN;
