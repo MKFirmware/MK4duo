@@ -181,9 +181,6 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     if (extruder.target != extruder.active) {
 
-      if (parser.linearval('F') > 0)
-        mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
-      else
         REMEMBER(fr, mechanics.feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
@@ -313,7 +310,7 @@ void Tools::change(const uint8_t new_tool, bool no_move/*=false*/) {
           #else
             // Move back to the original (or adjusted) position
             if (printer.debugFeature()) DEBUG_POS("Move back", mechanics.destination);
-            mechanics.do_blocking_move_to(mechanics.destination);
+            mechanics.do_blocking_move_to(mechanics.destination, MMM_TO_MMS(parser.linearval('F', TOOL_CHANGE_SPEED)));
           #endif
         }
         else if (printer.debugFeature()) DEBUG_LM(DEB, "Move back skipped");
