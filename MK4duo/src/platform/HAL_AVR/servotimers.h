@@ -57,8 +57,8 @@
 // Say which 16 bit timers can be used and in what order
 #if ENABLED(__AVR_ATmega1280__) || ENABLED(__AVR_ATmega2560__)
   #define _useTimer3
-  #define _useTimer4
-  #define _useTimer5
+  //#define _useTimer4
+  //#define _useTimer5
 #elif ENABLED(__AVR_ATmega32U4__)
   #define _useTimer3
 #elif ENABLED(__AVR_AT90USB646__) || ENABLED(__AVR_AT90USB1286__)
