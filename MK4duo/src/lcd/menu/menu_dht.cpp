@@ -35,16 +35,16 @@ void menu_dht() {
   BACK_ITEM(MSG_MAIN);
   switch (dhtsensor.data.type) {
     case DHT11:
-      STATIC_ITEM(MSG_DHT_11, SS_CENTER|SS_INVERT);
+      STATIC_ITEM(MSG_DHT_11);
       break;
     case DHT12:
-      STATIC_ITEM(MSG_DHT_12, SS_CENTER|SS_INVERT);
+      STATIC_ITEM(MSG_DHT_12);
       break;
     case DHT21:
-      STATIC_ITEM(MSG_DHT_21, SS_CENTER|SS_INVERT);
+      STATIC_ITEM(MSG_DHT_21);
       break;
     case DHT22:
-      STATIC_ITEM(MSG_DHT_22, SS_CENTER|SS_INVERT);
+      STATIC_ITEM(MSG_DHT_22);
       break;
     default: break;
   }

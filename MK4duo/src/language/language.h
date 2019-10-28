@@ -72,9 +72,10 @@
   #define MACHINE_TYPE                      "Muve3D"
 #endif  
 
-#define MSG_1_LINE(A)     A "\0"   "\0"
-#define MSG_2_LINE(A,B)   A "\0" B "\0"
-#define MSG_3_LINE(A,B,C) A "\0" B "\0" C
+#define MSG_1_LINE(A)         A "\0"   "\0"
+#define MSG_2_LINE(A,B)       A "\0" B "\0"
+#define MSG_3_LINE(A,B,C)     A "\0" B "\0" C
+#define MSG_4_LINE(A,B,C,D)   A "\0" B "\0" C "\0" D
 
 #if HAS_CHARACTER_LCD
 
@@ -309,14 +310,14 @@
 #define MSG_HOST_T_MINTEMP                      "MINTEMP triggered"
 
 // other
-#define MSG_BED_LEVELING_X                  " X:"
-#define MSG_BED_LEVELING_Y                  " Y:"
-#define MSG_BED_LEVELING_Z                  "Z-probe:"
+#define MSG_HOST_BED_LEVELING_X                 " X:"
+#define MSG_HOST_BED_LEVELING_Y                 " Y:"
+#define MSG_HOST_BED_LEVELING_Z                 "Z-probe:"
 #define MSG_HOST_ERR_PROBING_FAILED             "Probing Failed"
 #define MSG_HOST_ERR_Z_HOMING                   "Home XY First"
 
 // Pins
-#define MSG_CHANGE_PIN                      "For change pin please write in EEPROM and reset the printer."
+#define MSG_HOST_CHANGE_PIN                     "For change pin please write in EEPROM and reset the printer."
 
 // Never translate these strings
 #define MSG_HOST_X "X"
@@ -377,7 +378,7 @@
   #define LCD_LANGUAGE_4  LCD_LANGUAGE_3
 #endif
 
-#define _GET_LANG(LANG)   Language_##LANG
+#define _GET_LANG(LANG)   language_##LANG
 #define GET_LANG(LANG)    _GET_LANG(LANG)
 
 #if NUM_LANGUAGES > 1
@@ -398,7 +399,6 @@
   #define GET_TEXT(MSG)     GET_LANG(LCD_LANGUAGE)::MSG
   #define MAX_LANG_CHARSIZE GET_LANG(LCD_LANGUAGE)::CHARSIZE
 #endif
-#define GET_TEXT_F(MSG) (const __FlashStringHelper*)GET_TEXT(MSG)
 
 #include "language_en.h"
 #include INCLUDE_BY_LANGUAGE(LCD_LANGUAGE_0)

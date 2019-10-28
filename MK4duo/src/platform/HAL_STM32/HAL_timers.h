@@ -34,20 +34,12 @@
     #define STEP_TIMER TIM16
   #endif
 
-  #ifndef TEMP_TIMER
-    #define TEMP_TIMER TIM17
-  #endif
-
 #elif defined(STM32F1xx)
 
   #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
 
   #ifndef STEP_TIMER
     #define STEP_TIMER TIM4
-  #endif
-
-  #ifndef TEMP_TIMER
-    #define TEMP_TIMER TIM2
   #endif
 
 #elif defined(STM32F4xx) || defined(STM32F7xx)
@@ -58,11 +50,10 @@
     #define STEP_TIMER TIM5
   #endif
 
-  #ifndef TEMP_TIMER
-    #define TEMP_TIMER TIM4
-  #endif
-
 #endif
+
+#define NUM_HARDWARE_TIMERS         1                                           // Only Stepper use Hardware Timer
+#define NvicPrioritySystick         15
 
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // index of timer to use for stepper
@@ -74,17 +65,9 @@
 #define STEPPER_CLOCK_RATE          ((F_CPU) / 128)                                           // frequency of the clock used for stepper pulse timing
 #define PULSE_TIMER_PRESCALE        STEPPER_TIMER_RATE
 
-// Temperature Timer
-#define TEMP_TIMER_NUM              1     // index of timer to use for temperature
-#define TEMP_TIMER_FREQUENCY        1000
-
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER_NUM)
-
-#define ENABLE_TEMP_INTERRUPT()     HAL_timer_enable_interrupt(TEMP_TIMER_NUM)
-#define DISABLE_TEMP_INTERRUPT()    HAL_timer_disable_interrupt(TEMP_TIMER_NUM)
-#define TEMP_ISR_ENABLED()          HAL_timer_interrupt_is_enabled(TEMP_TIMER_NUM)
 
 // Estimate the amount of time the ISR will take to execute
 // The base ISR takes 752 cycles
@@ -182,12 +165,12 @@ extern uint32_t HAL_min_pulse_cycle,
                 HAL_min_pulse_tick,
                 HAL_add_pulse_ticks,
                 HAL_frequency_limit[8];
-extern bool     HAL_timer_is_active[2];
+extern bool     HAL_timer_is_active[NUM_HARDWARE_TIMERS];
 
 // ------------------------
 // Hardware Timer
 // ------------------------
-extern HardwareTimer *MK_timer[2];
+extern HardwareTimer *MK_timer[NUM_HARDWARE_TIMERS];
 
 // ------------------------
 // Public functions
@@ -198,7 +181,6 @@ void HAL_calc_pulse_cycle();
 // Public functions for timer
 // ------------------------
 extern void Step_Handler(HardwareTimer*);
-extern void Temp_Handler(HardwareTimer*);
 
 FORCE_INLINE static bool HAL_timer_initialized(const uint8_t timer_num) {
   return MK_timer[timer_num] != nullptr;
@@ -212,18 +194,12 @@ FORCE_INLINE static void HAL_timer_start(const uint8_t timer_num, const uint32_t
       case STEPPER_TIMER_NUM:
         MK_timer[STEPPER_TIMER_NUM] = new HardwareTimer(STEP_TIMER);
         MK_timer[STEPPER_TIMER_NUM]->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
+        MK_timer[STEPPER_TIMER_NUM]->setOverflow((STEPPER_TIMER_RATE) / frequency, TICK_FORMAT);
         MK_timer[STEPPER_TIMER_NUM]->attachInterrupt(Step_Handler);
         MK_timer[STEPPER_TIMER_NUM]->resume();
         HAL_timer_is_active[STEPPER_TIMER_NUM] = true;
         break;
-
-      case TEMP_TIMER_NUM:
-        MK_timer[TEMP_TIMER_NUM] = new HardwareTimer(TEMP_TIMER);
-        MK_timer[TEMP_TIMER_NUM]->setOverflow(frequency, HERTZ_FORMAT);
-        MK_timer[TEMP_TIMER_NUM]->attachInterrupt(Temp_Handler);
-        MK_timer[TEMP_TIMER_NUM]->resume();
-        HAL_timer_is_active[TEMP_TIMER_NUM] = true;
-        break;
+      default: break;
     }
 
   }

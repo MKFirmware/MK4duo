@@ -28,8 +28,8 @@
  *
  */
 
-namespace Language_zh_TW {
-  using namespace Language_en;  // Inherit undefined strings from English
+namespace language_zh_TW {
+  using namespace language_en;  // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 3;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Traditional Chinese"));

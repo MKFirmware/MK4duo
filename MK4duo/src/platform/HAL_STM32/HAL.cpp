@@ -92,6 +92,9 @@ HAL::~HAL() {
 
 // do any hardware-specific initialization here
 void HAL::hwSetup() {
+
+  HAL_InitTick(NvicPrioritySystick); // Start SysTick to priority low
+
   FastIO_init();
 
   #if PIN_EXISTS(LED)
@@ -145,9 +148,6 @@ void HAL::analogStart() {
   #if HAS_MCU_TEMPERATURE
     pinMode(ADC_TEMPERATURE_SENSOR, INPUT);
   #endif
-
-  HAL_timer_start(TEMP_TIMER_NUM, TEMP_TIMER_FREQUENCY);
-  ENABLE_TEMP_INTERRUPT();
 
 }
 
@@ -308,11 +308,11 @@ void HAL::Tick() {
 /**
  * Interrupt Service Routines
  */
+
+// This intercepts the 1ms system tick.
+extern "C" void HAL_SYSTICK_Callback(void) { HAL::Tick(); }
+
 void Step_Handler(HardwareTimer*) { stepper.Step(); }
 
-void Temp_Handler(HardwareTimer*) {
-  if (printer.isStopped()) return;
-  HAL::Tick();
-}
 
 #endif // ARDUINO_ARCH_STM32

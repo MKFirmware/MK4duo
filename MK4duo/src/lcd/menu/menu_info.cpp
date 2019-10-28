@@ -28,6 +28,10 @@
 
 #if HAS_LCD_MENU && ENABLED(LCD_INFO_MENU)
 
+#if HAS_DHT
+  void menu_dht();
+#endif
+
 #define VALUE_ITEM(MSG, VALUE, STYL)    do{ strcpy_P(buffer, PSTR(": ")); strcpy(buffer + 2, VALUE);          STATIC_ITEM(MSG, STYL, buffer); }while(0)
 #define VALUE_ITEM_P(MSG, PVALUE, STYL) do{ strcpy_P(buffer, PSTR(": ")); strcpy_P(buffer + 2, PSTR(PVALUE)); STATIC_ITEM(MSG, STYL, buffer); }while(0)
 
@@ -182,10 +186,13 @@ void menu_info_firmware() {
 void menu_info() {
   START_MENU();
   BACK_ITEM(MSG_MAIN);
-  SUBMENU(MSG_INFO_FIRMWARE_MENU, menu_info_firmware);       // Printer Info >
-  SUBMENU(MSG_INFO_BOARD_MENU, menu_info_board);             // Board Info >
-  SUBMENU(MSG_INFO_THERMISTOR_MENU, menu_info_thermistors);  // Thermistors >
-  SUBMENU(MSG_INFO_STATS_MENU, menu_info_stats);             // Printer Statistics >
+  SUBMENU(MSG_INFO_FIRMWARE_MENU, menu_info_firmware);      // Printer Info >
+  SUBMENU(MSG_INFO_BOARD_MENU, menu_info_board);            // Board Info >
+  SUBMENU(MSG_INFO_THERMISTOR_MENU, menu_info_thermistors); // Thermistors >
+  #if HAS_DHT
+    SUBMENU(MSG_DHT, menu_dht);                             // DHT >
+  #endif
+  SUBMENU(MSG_INFO_STATS_MENU, menu_info_stats);            // Printer Statistics >
   END_MENU();
 }
 

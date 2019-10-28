@@ -32,7 +32,7 @@ SdFile Restart::job_file;
 
 restart_job_t Restart::job_info;
 
-bool Restart::enabled;
+bool  Restart::enabled;
 
 uint32_t  Restart::cmd_sdpos      = 0,
           Restart::sdpos[BUFSIZE] = { 0 };  
@@ -161,6 +161,10 @@ void Restart::resume_job() {
 
   // Save job_info.sdpos because stepper ISR overwrites it
   const uint32_t save_sdpos = job_info.sdpos;
+
+  #if HAS_LCD
+    lcdui.status_printf_P(0, GET_TEXT(MSG_RESUMING));
+  #endif
 
   #if HAS_LEVELING
     // Make sure leveling is off before any G92 and G28

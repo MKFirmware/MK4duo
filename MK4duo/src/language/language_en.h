@@ -34,8 +34,8 @@
 #endif
 #undef en
 
-namespace Language_en {
-  constexpr uint8_t    CHARSIZE                     = 2;
+namespace language_en {
+  constexpr uint8_t CHARSIZE                        = 2;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("English"));
 
   #ifdef NOT_EXTENDED_ISO10646_1_5X7
@@ -601,17 +601,10 @@ namespace Language_en {
   FSTRINGVALUE(MSG_SOUND_MODE_MUTE                  , _UxGT("Sound        [mute]"));
 
   // EEPROM Allert
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_1          , _UxGT("ATTENTION..."));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_2          , _UxGT("EEPROM Changed."));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_3          , _UxGT("Press button"));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_4          , _UxGT("to continue..."));
+  FSTRINGVALUE(MSG_EEPROM_ALLERT                    , _UxGT(MSG_3_LINE("ATTENTION...", "EEPROM Changed.", "Click to continue")));
 
   // Nextion Allert
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_1         , _UxGT("ATTENTION..."));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_2         , _UxGT("NEXTION FW changed."));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_3         , _UxGT("Please upload new FW"));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_4         , _UxGT("Press button"));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_5         , _UxGT("to continue..."));
+  FSTRINGVALUE(MSG_NEXTION_ALLERT                   , _UxGT(MSG_4_LINE("ATTENTION...", "NEXTION FW changed.", "Please upload new FW", "Click to continue")));
 
   // Nextion M0 M1
   FSTRINGVALUE(MSG_NEXTION_M0_M1_1                  , _UxGT("Press button enter"));

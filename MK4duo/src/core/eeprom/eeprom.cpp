@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV75"
+#define EEPROM_VERSION "MKV76"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -188,6 +188,13 @@ typedef struct EepromDataStruct {
   //
   #if HAS_BED_PROBE
     probe_data_t    probe_data;
+  #endif
+
+  //
+  // LCD Language
+  //
+  #if HAS_LCD
+    uint8_t lang;
   #endif
 
   //
@@ -593,6 +600,13 @@ void EEPROM::post_process() {
     #if HAS_BED_PROBE
       EEPROM_TEST(probe_data);
       EEPROM_WRITE(probe.data);
+    #endif
+
+    //
+    // LCD Language
+    //
+    #if HAS_LCD
+      EEPROM_WRITE(lcdui.lang);
     #endif
 
     //
@@ -1007,6 +1021,13 @@ void EEPROM::post_process() {
       //
       #if HAS_BED_PROBE
         EEPROM_READ(probe.data);
+      #endif
+
+      //
+      // LCD Language
+      //
+      #if HAS_LCD
+        EEPROM_READ(lcdui.lang);
       #endif
 
       //

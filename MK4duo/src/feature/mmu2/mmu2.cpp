@@ -476,7 +476,7 @@ void MMU2::check_version() {
   if (buildnr < MMU_REQUIRED_FW_BUILDNR) {
     SERIAL_SM(ER, "MMU2 firmware version invalid. Required version >= ");
     SERIAL_EV(MMU_REQUIRED_FW_BUILDNR);
-    printer.kill(MSG_MMU2_WRONG_FIRMWARE);
+    printer.kill(GET_TEXT(MSG_MMU2_WRONG_FIRMWARE));
   }
 }
 
@@ -492,7 +492,7 @@ void MMU2::tool_change(uint8_t index) {
   if (index != extruder) {
 
     stepper.disable_E(0);
-    lcdui.status_printf_P(0, PSTR(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
+    lcdui.status_printf_P(0, GET_TEXT(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
 
     command(MMU_CMD_T0 + index);
 

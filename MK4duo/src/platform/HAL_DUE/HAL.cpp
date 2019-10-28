@@ -164,12 +164,6 @@ void noTone(const pin_t _pin) {
   HAL::digitalWrite(_pin, LOW);
 }
 
-// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
-extern "C" int sysTickHook() {
-  HAL::Tick();
-  return 0;
-}
-
 HAL::HAL() {
   // ctor
 }
@@ -662,6 +656,13 @@ void HAL::Tick() {
 /**
  * Interrupt Service Routines
  */
+
+// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
+extern "C" int sysTickHook() {
+  HAL::Tick();
+  return 0;
+}
+
 HAL_TONE_TIMER_ISR() {
   static uint8_t pin_state = 0;
   HAL_timer_isr_prologue(TONE_TIMER_NUM);

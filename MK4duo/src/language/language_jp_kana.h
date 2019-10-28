@@ -31,8 +31,8 @@
 
 //#define DISPLAY_CHARSET_ISO10646_KANA
 
-namespace Language_jp_kana {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_jp_kana {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 3;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Japanese"));

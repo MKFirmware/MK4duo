@@ -31,8 +31,8 @@
 
 #define DISPLAY_CHARSET_ISO10646_1
 
-namespace Language_it {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_it {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 1;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Italiano"));
@@ -305,7 +305,7 @@ namespace Language_it {
   FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Premi tasto.."));
   FSTRINGVALUE(MSG_PRINT_PAUSED                     , _UxGT("Stampa sospesa"));
   FSTRINGVALUE(MSG_PRINTING                         , _UxGT("Stampa..."));
-  FSTRINGVALUE(MSG_RESUMING                         , _UxGT("Riprendi Stampa"));
+  FSTRINGVALUE(MSG_RESUMING                         , _UxGT("Ripresa Stampa"));
   FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Stampa annullata"));
   FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("Nessun Movimento"));
   FSTRINGVALUE(MSG_KILLED                           , _UxGT("UCCISO. "));
@@ -526,10 +526,10 @@ namespace Language_it {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_3_LINE("Attendere", "l'espulsione", "del filamento")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_3_LINE("Attendere", "il caricamento", "del filamento")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_3_LINE("Attendere", "lo spurgo", "del filamento")));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_3_LINE("Premi x terminare", "lo spurgo", "del filamento")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_3_LINE("Premi per terminare", "lo spurgo", "del filamento")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_3_LINE("Attendere", "la ripresa", "della stampa...")));
   #else // LCD_HEIGHT < 4
-    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Premi x continuare")));
+    FSTRINGVALUE(MSG_ADVANCED_PAUSE_WAITING         , _UxGT(MSG_1_LINE("Premi per continuare")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Attendere...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Inserisci e premi")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_HEAT           , _UxGT(MSG_1_LINE("Riscalda ugello")));
@@ -538,7 +538,7 @@ namespace Language_it {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_1_LINE("Espulsione...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_1_LINE("Caricamento...")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_PURGE          , _UxGT(MSG_1_LINE("Spurgo filamento")));
-    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_1_LINE("Premi x terminare")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_CONT_PURGE     , _UxGT(MSG_1_LINE("Premi per terminare")));
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_1_LINE("Ripresa...")));
   #endif // LCD_HEIGHT < 4
 
@@ -584,17 +584,10 @@ namespace Language_it {
   FSTRINGVALUE(MSG_SOUND_MODE_MUTE                  , _UxGT("Suono        [muto]"));
 
   // EEPROM Allert
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_1          , _UxGT("ATTENZIONE..."));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_2          , _UxGT("EEPROM Cambiata."));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_3          , _UxGT("Premere il bottone"));
-  FSTRINGVALUE(MSG_EEPROM_CHANGED_ALLERT_4          , _UxGT("per continuare..."));
+  FSTRINGVALUE(MSG_EEPROM_ALLERT                    , _UxGT(MSG_3_LINE("ATTENZIONE...", "EEPROM Cambiata.", "Premi per continuare")));
 
   // Nextion Allert
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_1         , _UxGT("ATTENTION..."));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_2         , _UxGT("NEXTION FW cambiato."));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_3         , _UxGT("Aggiornare con nuovo FW"));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_4         , _UxGT("Premere il bottone"));
-  FSTRINGVALUE(MSG_NEXTION_CHANGED_ALLERT_5         , _UxGT("per continuare..."));
+  FSTRINGVALUE(MSG_NEXTION_ALLERT                   , _UxGT(MSG_4_LINE("ATTENTIONE...", "NEXTION FW cambiato.", "Aggiornare con nuovo FW", "Premi per continuare")));
 
   // Nextion M0 M1
   FSTRINGVALUE(MSG_NEXTION_M0_M1_1                  , _UxGT("Premi enter per"));

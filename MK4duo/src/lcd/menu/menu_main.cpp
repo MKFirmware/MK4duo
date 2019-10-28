@@ -38,32 +38,31 @@ void menu_stop_print() {
   do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, GET_TEXT(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
 }
 
-#if HAS_EEPROM
-  void menu_eeprom() {
+#if HAS_EEPROM || HAS_NEXTION_LCD
+  void menu_allert(PGM_P const msg) {
+    PGM_P const msg1 = msg;
+    PGM_P const msg2 = msg1 + strlen_P(msg1) + 1;
+    PGM_P const msg3 = msg2 + strlen_P(msg2) + 1;
+    PGM_P const msg4 = msg3 + strlen_P(msg3) + 1;
+    const bool  has2 = msg2[0], has3 = msg3[0], has4 = msg4[0];
     lcdui.defer_status_screen();
     if (lcdui.use_click()) return lcdui.return_to_status();
     START_SCREEN();
-    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_1);
-    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_2);
-    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_3);
-    STATIC_ITEM(MSG_EEPROM_CHANGED_ALLERT_4);
+    STATIC_ITEM_P(msg1);
+    if (has2) STATIC_ITEM_P(msg2);
+    if (has3) STATIC_ITEM_P(msg3);
+    if (has4) STATIC_ITEM_P(msg4);
     END_SCREEN();
   }
 #endif
 
+#if HAS_EEPROM
+  void lcd_eeprom_allert() { menu_allert(GET_TEXT(MSG_EEPROM_ALLERT)); }
+#endif
+
 #if HAS_NEXTION_LCD
 
-  void menu_nextion() {
-    lcdui.defer_status_screen();
-    if (lcdui.use_click()) return lcdui.return_to_status();
-    START_SCREEN();
-    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_1);
-    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_2);
-    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_3);
-    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_4);
-    STATIC_ITEM(MSG_NEXTION_CHANGED_ALLERT_5);
-    END_SCREEN();
-  }
+  void lcd_nextion_allert() { menu_allert(GET_TEXT(MSG_NEXTION_ALLERT)); }
 
   void menu_m0() {
     lcdui.defer_status_screen();
@@ -98,10 +97,6 @@ void menu_led();
 
 #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
   void menu_mixer();
-#endif
-
-#if HAS_DHT
-  void menu_dht();
 #endif
 
 #if ENABLED(SERVICE_TIME_1)
@@ -175,10 +170,6 @@ void menu_main() {
       if (!busy) SUBMENU(MSG_MMU2_MENU, menu_mmu2);
     #endif
   }
-
-  #if HAS_DHT
-    SUBMENU(MSG_DHT, menu_dht);
-  #endif
 
   SUBMENU(MSG_CONFIGURATION, menu_configuration);
 

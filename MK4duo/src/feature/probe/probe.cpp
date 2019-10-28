@@ -186,9 +186,9 @@ bool Probe::set_deployed(const bool deploy) {
       }
 
       if (verbose_level > 2) {
-        SERIAL_MV(MSG_BED_LEVELING_Z, measured_z, 3);
-        SERIAL_MV(MSG_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
-        SERIAL_MV(MSG_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
+        SERIAL_MV(MSG_HOST_BED_LEVELING_Z, measured_z, 3);
+        SERIAL_MV(MSG_HOST_BED_LEVELING_X, LOGICAL_X_POSITION(rx), 3);
+        SERIAL_MV(MSG_HOST_BED_LEVELING_Y, LOGICAL_Y_POSITION(ry), 3);
         SERIAL_EOL();
       }
 

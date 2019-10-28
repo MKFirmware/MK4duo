@@ -471,11 +471,11 @@ void menu_stop_print();
 #endif
 
 #if HAS_EEPROM
-  void menu_eeprom();
+  void lcd_eeprom_allert();
 #endif
 
 #if HAS_NEXTION_LCD
-  void menu_nextion();
+  void lcd_nextion_allert();
   void menu_m0();
   #if HAS_SD_SUPPORT
     void menu_firmware();

@@ -1442,10 +1442,12 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   LOOP_XYZE(i) {
     const float delta_mm_i = delta_mm[i];
     const float cs = ABS(current_speed[i] = delta_mm_i * inverse_secs);
-    if (i == E_AXIS)
+    if (i == E_AXIS) {
       if (cs > extruders[extruder]->data.max_feedrate_mm_s) NOMORE(speed_factor, extruders[extruder]->data.max_feedrate_mm_s / cs);
-    else
+    }
+    else {
       if (cs > mechanics.data.max_feedrate_mm_s[i]) NOMORE(speed_factor, mechanics.data.max_feedrate_mm_s[i] / cs);
+    }
   }
 
   // Max segment time in Âµs.

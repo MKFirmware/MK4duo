@@ -71,7 +71,7 @@ inline void gcode_M569() {
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
 
-  /*
+  /* // <- put a / for activate code
   DEBUG_EMV("HAL_min_pulse_cycle:",     HAL_min_pulse_cycle);
   DEBUG_EMV("HAL_min_pulse_tick:",      HAL_min_pulse_tick);
   DEBUG_EMV("HAL_add_pulse_ticks:",     HAL_add_pulse_ticks);
@@ -83,6 +83,6 @@ inline void gcode_M569() {
   DEBUG_EMV("HAL_frequency_limit[5]:",  HAL_frequency_limit[5]);
   DEBUG_EMV("HAL_frequency_limit[6]:",  HAL_frequency_limit[6]);
   DEBUG_EMV("HAL_frequency_limit[7]:",  HAL_frequency_limit[7]);
-  */
+  /*/
 
 }

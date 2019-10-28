@@ -77,7 +77,7 @@
   #include "../../HAL_DUE/servotimers.h"
 #elif ENABLED(ARDUINO_ARCH_STM32)
   #define SHARED_SERVOS false
-  #include "../../HAL_STM32/servo.h"
+  #include "../../HAL_STM32/servotimers.h"
 #else
   #error "Unsupported Platform!"
 #endif
@@ -92,6 +92,12 @@ extern void servo_init();
 #endif
 
 #if SHARED_SERVOS
+
+  // Public functions
+  extern void initISR(timer16_Sequence_t timer);
+  extern void finISR(timer16_Sequence_t timer);
+
+#endif
 
 #include <inttypes.h>
 
@@ -110,7 +116,7 @@ extern void servo_init();
 #define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
 #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
 
-#define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer
+#define SERVOS_PER_TIMER       4      // the maximum number of servos controlled by one timer
 #define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
 
 #define INVALID_SERVO         255     // flag indicating an invalid servo index
@@ -139,10 +145,6 @@ typedef struct {
 // Global variables
 extern uint8_t ServoCount;
 extern ServoInfo_t servo_info[MAX_SERVOS];
-
-// Public functions
-extern void initISR(timer16_Sequence_t timer);
-extern void finISR(timer16_Sequence_t timer);
 
 class MKServo {
 
@@ -177,5 +179,3 @@ class MKServo {
     void print_M281();
 
 };
-
-#endif // SHARED_SERVOS

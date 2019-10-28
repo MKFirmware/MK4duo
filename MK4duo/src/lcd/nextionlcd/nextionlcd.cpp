@@ -344,7 +344,7 @@ void NextionLCD::init() {
 
     #if HAS_LCD_MENU
       // Check the Nextion Firmware
-      if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(menu_nextion);
+      if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(lcd_nextion_allert);
     #endif
 
   }

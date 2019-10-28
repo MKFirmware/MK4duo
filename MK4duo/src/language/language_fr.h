@@ -30,8 +30,8 @@
 
 #define DISPLAY_CHARSET_ISO10646_1
 
-namespace Language_fr {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_fr {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 2;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Français"));

@@ -31,8 +31,8 @@
 #define DISPLAY_CHARSET_ISO10646_1
 #define NOT_EXTENDED_ISO10646_1_5X7
 
-namespace Language_nl {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_nl {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 1;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Dutch"));

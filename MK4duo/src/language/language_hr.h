@@ -30,8 +30,8 @@
 
 #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
 
-namespace Language_hr {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_hr {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 2;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Croatian"));

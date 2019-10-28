@@ -259,7 +259,7 @@ void Printer::setup() {
   zero_fan_speed();
 
   #if HAS_LCD_MENU && HAS_EEPROM
-    if (!eeprom_loaded) lcdui.goto_screen(menu_eeprom);
+    if (!eeprom_loaded) lcdui.goto_screen(lcd_eeprom_allert);
   #endif
 
   #if HAS_SD_RESTART

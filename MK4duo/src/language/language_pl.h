@@ -27,8 +27,8 @@
 
 #define DISPLAY_CHARSET_ISO10646_PL
 
-namespace Language_pl {
-  using namespace Language_en; // Inherit undefined strings from English
+namespace language_pl {
+  using namespace language_en; // Inherit undefined strings from English
 
   constexpr uint8_t CHARSIZE                        = 2;
   FSTRINGVALUE(LANGUAGE                             , _UxGT("Polish"));

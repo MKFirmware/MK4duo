@@ -36,7 +36,7 @@ bool mmuMenuWait;
 void _mmu2_load_filamentToNozzle(uint8_t index) {
   lcdui.reset_status();
   lcdui.return_to_status();
-  lcdui.status_printf_P(0, PSTR(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
+  lcdui.status_printf_P(0, GET_TEXT(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
   if (mmu2.load_filament_to_nozzle(index)) lcdui.reset_status();
 }
 
@@ -47,7 +47,7 @@ inline void action_mmu2_load_filament_to_nozzle(const uint8_t tool) {
 
 void _mmu2_load_filament(uint8_t index) {
   lcdui.return_to_status();
-  lcdui.status_printf_P(0, PSTR(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
+  lcdui.status_printf_P(0, GET_TEXT(MSG_MMU2_LOADING_FILAMENT), int(index + 1));
   mmu2.load_filament(index);
   lcdui.reset_status();
 }
@@ -87,7 +87,7 @@ void menu_mmu2_load_to_nozzle() {
 void _mmu2_eject_filament(uint8_t index) {
   lcdui.reset_status();
   lcdui.return_to_status();
-  lcdui.status_printf_P(0, PSTR(MSG_MMU2_EJECTING_FILAMENT), int(index + 1));
+  lcdui.status_printf_P(0, GET_TEXT(MSG_MMU2_EJECTING_FILAMENT), int(index + 1));
   if (mmu2.eject_filament(index, true)) lcdui.reset_status();
 }
 

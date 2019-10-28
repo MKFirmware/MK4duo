@@ -31,16 +31,16 @@
 void menu_language() {
   START_MENU();
   BACK_ITEM(MSG_CONFIGURATION);
-  ACTION_ITEM_P(GET_LANGUAGE_NAME(0), []() { lcdui.lang = 0; });
-  ACTION_ITEM_P(GET_LANGUAGE_NAME(1), []() { lcdui.lang = 1; });
+  ACTION_ITEM_P(GET_LANGUAGE_NAME(0), []() { lcdui.lang = 0; lcdui.goto_previous_screen(); });
+  ACTION_ITEM_P(GET_LANGUAGE_NAME(1), []() { lcdui.lang = 1; lcdui.goto_previous_screen(); });
   #if NUM_LANGUAGES > 2
-    ACTION_ITEM_P(GET_LANGUAGE_NAME(2), []() { lcdui.lang = 2; });
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(2), []() { lcdui.lang = 2; lcdui.goto_previous_screen(); });
   #endif
   #if NUM_LANGUAGES > 3
-    ACTION_ITEM_P(GET_LANGUAGE_NAME(3), []() { lcdui.lang = 3; });
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(3), []() { lcdui.lang = 3; lcdui.goto_previous_screen(); });
   #endif
   #if NUM_LANGUAGES > 4
-    ACTION_ITEM_P(GET_LANGUAGE_NAME(4), []() { lcdui.lang = 4; });
+    ACTION_ITEM_P(GET_LANGUAGE_NAME(4), []() { lcdui.lang = 4; lcdui.goto_previous_screen(); });
   #endif
   END_MENU();
 }

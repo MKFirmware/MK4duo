@@ -1346,7 +1346,7 @@
       if (do_3_pt_leveling) {
         SERIAL_EM("Tilting mesh (1/3)");
         #if HAS_LCD
-          lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 1/3"));
+          lcdui.status_printf_P(0, PSTR(S_FMT " 1/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
         #endif
 
         measured_z = probe.check_at_point(x_min, y_min, PROBE_PT_RAISE, g29_verbose_level);
@@ -1364,7 +1364,7 @@
         if (!abort_flag) {
           SERIAL_EM("Tilting mesh (2/3)");
           #if HAS_LCD
-            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 2/3"));
+            lcdui.status_printf_P(0, PSTR(S_FMT " 2/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
           #endif
 
           measured_z = probe.check_at_point(x_max, y_min, PROBE_PT_RAISE, g29_verbose_level);
@@ -1383,7 +1383,7 @@
         if (!abort_flag) {
           SERIAL_EM("Tilting mesh (3/3)");
           #if HAS_LCD
-            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 3/3"));
+            lcdui.status_printf_P(0, PSTR(S_FMT " 3/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
           #endif
 
           const float center_probe = (x_max - x_min) / 2;
@@ -1426,7 +1426,7 @@
               SERIAL_MV("Tilting mesh point ", point_num);
               SERIAL_EMV("/", total_points);
               #if HAS_LCD
-                lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " %i/%i"), point_num, total_points);
+                lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_LCD_TILTING_MESH), point_num, total_points);
               #endif
 
               measured_z = probe.check_at_point(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
