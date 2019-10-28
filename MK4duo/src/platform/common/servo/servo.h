@@ -89,8 +89,6 @@ class MKServo;
 extern MKServo servo[NUM_SERVOS];
 extern void servo_init();
 
-#endif
-
 #if SHARED_SERVOS
 
   // Public functions
@@ -117,7 +115,7 @@ extern void servo_init();
 #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds
 
 #define SERVOS_PER_TIMER       4      // the maximum number of servos controlled by one timer
-#define MAX_SERVOS          (_Nbr_16timers  * SERVOS_PER_TIMER)
+#define MAX_SERVOS          (_Nbr_16timers * SERVOS_PER_TIMER)
 
 #define INVALID_SERVO         255     // flag indicating an invalid servo index
 
@@ -179,3 +177,5 @@ class MKServo {
     void print_M281();
 
 };
+
+#endif // HAS_SERVOS

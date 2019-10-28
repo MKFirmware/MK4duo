@@ -47,7 +47,7 @@
  */
 #pragma once
 
-// Uses one timer. Allows until 12 servos.
+// Uses one timer.
 typedef enum {
   _timer1,
   _Nbr_16timers
