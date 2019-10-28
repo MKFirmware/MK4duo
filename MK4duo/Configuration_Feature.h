@@ -259,6 +259,9 @@
 // Z raise distance for tools change, as needed for some extruders
 #define TOOL_CHANGE_Z_RAISE   1   // (mm)
 
+// Feedrate in mm per minute of Tool Change X Y Offset AKA Tool Change Speed.  Tool Change Feedrate can be changed on a temporary basis with (ie.) T1 F9000
+#define TOOL_CHANGE_SPEED 10000
+
 // Nozzle park on tool change (Requires NOZZLE PARK FEATURE)
 //#define TOOL_CHANGE_PARK
 
