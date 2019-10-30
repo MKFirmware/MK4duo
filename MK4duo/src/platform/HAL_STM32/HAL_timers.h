@@ -223,10 +223,6 @@ FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num)
   return HAL_timer_is_active[timer_num];
 }
 
-FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
-  return MK_timer[timer_num]->getCount();
-}
-
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
   if (HAL_timer_initialized(timer_num)) {
     MK_timer[timer_num]->setOverflow(count);
@@ -236,7 +232,7 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_current_count(const uint8_t timer_num) {
-  return HAL_timer_initialized(timer_num) ? MK_timer[timer_num]->getOverflow() : 0;
+  return HAL_timer_initialized(timer_num) ? MK_timer[timer_num]->getCount() : 0;
 }
 
 FORCE_INLINE static uint32_t HAL_timer_get_Clk_Freq(const uint8_t timer_num) {

@@ -216,7 +216,6 @@ typedef uint16_t  ptr_int_t;
 #define TEMP_ISR_ENABLED()          TEST(TEMP_TIMSK, TEMP_OCIE)
 
 #define HAL_timer_set_count(timer, count)   (_CAT(TIMER_OCR_, timer) = count)
-#define HAL_timer_get_count(timer)          _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)  _CAT(TIMER_COUNTER_, timer)
 
 // Estimate the amount of time the ISR will take to execute

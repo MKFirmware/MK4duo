@@ -234,11 +234,6 @@ FORCE_INLINE static bool HAL_timer_interrupt_is_enabled(const uint8_t timer_num)
   return (NVIC->ISER[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)));
 }
 
-FORCE_INLINE static uint32_t HAL_timer_get_count(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  return pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC;
-}
-
 FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, const uint32_t count) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   pConfig->pTimerRegs->TC_CHANNEL[pConfig->channel].TC_RC = count;

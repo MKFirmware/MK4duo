@@ -134,11 +134,6 @@ class Endstops {
     static void update();
 
     /**
-     * Get Endstop hit state.
-     */
-    FORCE_INLINE static uint8_t trigger_state() { return hit_state; }
-
-    /**
      * Print logical and pullup
      */
     static void report();
@@ -151,9 +146,6 @@ class Endstops {
     // If the last move failed to trigger an endstop, call kill
     static void validate_homing_move();
 
-    // Clear endstops (i.e., they were hit intentionally) to suppress the report
-    FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
-
     // Constrain the given coordinates to the software endstops.
     static void apply_motion_limits(xyz_pos_t &target);
     static void update_software_endstops(const AxisEnum axis);
@@ -161,6 +153,14 @@ class Endstops {
     #if ENABLED(PINS_DEBUGGING)
       static void run_monitor();
     #endif
+
+    /**
+     * Get Endstop hit state.
+     */
+    FORCE_INLINE static uint8_t trigger_state() { return hit_state; }
+
+    // Clear endstops state
+    FORCE_INLINE static void hit_on_purpose() { hit_state = 0; }
 
     FORCE_INLINE static void setLogic(const EndstopEnum endstop, const bool logic) {
       SET_BIT_TO(data.logic_flag, endstop, logic);

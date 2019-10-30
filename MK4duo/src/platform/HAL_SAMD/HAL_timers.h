@@ -267,16 +267,6 @@ FORCE_INLINE static void HAL_timer_set_count(const uint8_t timer_num, hal_timer_
   pConfig->pTimerRegs->COUNT16.CC[0].reg = count;
 }
 
-FORCE_INLINE static hal_timer_t HAL_timer_get_count(const uint8_t timer_num) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  return pConfig->pTimerRegs->COUNT16.CC[0].reg;
-}
-
-FORCE_INLINE static void HAL_timer_set_current_count(const uint8_t timer_num, const hal_timer_t count) {
-  const tTimerConfig * const pConfig = &TimerConfig[timer_num];
-  pConfig->pTimerRegs->COUNT16.COUNT.reg = count;
-}
-
 FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t timer_num) {
   const tTimerConfig * const pConfig = &TimerConfig[timer_num];
   return pConfig->pTimerRegs->COUNT16.COUNT.reg;
