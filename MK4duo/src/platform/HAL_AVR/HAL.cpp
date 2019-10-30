@@ -323,9 +323,10 @@ void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq
 
 void HAL::Tick() {
 
-  static millis_s cycle_1s_ms   = millis(),
-                  cycle_100_ms  = millis();
-  static uint8_t  channel       = 0;
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
+
+  static uint8_t channel = 0;
 
   if (printer.isStopped()) return;
 
@@ -352,10 +353,10 @@ void HAL::Tick() {
   #endif
 
   // Event 100 ms
-  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) thermalManager.spin();
 
   // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
     channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);

@@ -43,7 +43,7 @@ int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 PGM_P Commands::injected_commands_P = nullptr;
 
-millis_s Commands::last_command_ms = 0;
+short_timer_t Commands::last_command_timer;
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
@@ -317,7 +317,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && expired(&last_command_ms, NO_TIMEOUTS)) {
+    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_timer.expired(NO_TIMEOUTS)) {
       SERIAL_STR(WT);
       SERIAL_EOL();
     }
@@ -332,8 +332,8 @@ void Commands::get_serial() {
 
       int c;
 
-      last_command_ms = millis();
-      printer.max_inactivity_ms = millis();
+      last_command_timer.start();
+      printer.max_inactivity_timer.start();
 
       if ((c = Com::serialRead(i)) < 0) continue;
 
@@ -482,8 +482,8 @@ void Commands::get_serial() {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
-      last_command_ms = millis();
-      printer.max_inactivity_ms = millis();
+      last_command_timer.start();
+      printer.max_inactivity_timer.start();
       if (card_eof || n == -1
           || sd_char == '\n'  || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
@@ -560,7 +560,7 @@ void Commands::process_next() {
     SERIAL_LT(ECHO, cmd.gcode);
   }
 
-  printer.reset_move_ms(); // Keep steppers powered
+  printer.reset_move_timer(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
   parser.parse(cmd.gcode);

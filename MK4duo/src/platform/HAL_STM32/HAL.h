@@ -138,7 +138,7 @@ typedef uint32_t  ptr_int_t;
 
 // Bits of the ADC converter
 #define ANALOG_INPUT_BITS 12
-#define AD_RANGE        4095
+#define AD_RANGE        4095      // 12-bit resolution
 #define ABS_ZERO        -273.15f
 #define NUM_ADC_SAMPLES   32
 #define AD595_MAX        330.0f
@@ -170,9 +170,9 @@ class HAL {
 
   public: /** Constructor */
 
-    HAL();
+    HAL() { }
 
-    virtual ~HAL();
+    virtual ~HAL() {}
 
   private: /** Private Parameters */
 

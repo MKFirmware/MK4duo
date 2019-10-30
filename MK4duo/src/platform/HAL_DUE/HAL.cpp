@@ -549,8 +549,8 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static millis_s cycle_1s_ms   = millis(),
-                  cycle_100_ms  = millis();
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
 
   if (printer.isStopped()) return;
 
@@ -577,10 +577,10 @@ void HAL::Tick() {
   #endif
 
   // Event 100 ms
-  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) thermalManager.spin();
 
   // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   // Read analog or SPI values
   if (adc_get_status(ADC)) { // conversion finished?

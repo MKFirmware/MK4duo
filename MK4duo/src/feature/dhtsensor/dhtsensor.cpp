@@ -99,9 +99,9 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static millis_s min_read_ms = millis();
+  static short_timer_t min_read_timer(true);
 
-  if (!expired(&min_read_ms, DHTMinimumReadInterval)) return;
+  if (min_read_timer.pending(DHTMinimumReadInterval)) return;
 
   // Start the reading process
   HAL::pinMode(data.pin, INPUT_PULLUP);

@@ -76,7 +76,7 @@ class Commands {
      */
     static PGM_P injected_commands_P;
 
-    static millis_s last_command_ms;
+    static short_timer_t last_command_timer;
 
   public: /** Public Function */
 

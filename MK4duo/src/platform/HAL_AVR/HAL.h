@@ -167,7 +167,7 @@ typedef uint16_t  ptr_int_t;
 #define ANALOG_PRESCALER      _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define OVERSAMPLENR          16
 #define ABS_ZERO              -273.15
-#define AD_RANGE              1023
+#define AD_RANGE              1023  // 10-bit resolution
 #define AD595_MAX             500.0f
 #define AD8495_MAX            1000.0f
 

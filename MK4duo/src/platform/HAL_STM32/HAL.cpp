@@ -30,16 +30,16 @@ uint8_t MCUSR;
 
 /** Private Parameters */
 #if MAX_HOTEND > 0
-  ADCAveragingFilter HAL::HOTENDsensorFilters[MAX_HOTEND];
+  ADCAveragingFilter  HAL::HOTENDsensorFilters[MAX_HOTEND];
 #endif
 #if MAX_BED > 0
-  ADCAveragingFilter HAL::BEDsensorFilters[MAX_BED];
+  ADCAveragingFilter  HAL::BEDsensorFilters[MAX_BED];
 #endif
 #if MAX_CHAMBER > 0
-  ADCAveragingFilter HAL::CHAMBERsensorFilters[MAX_CHAMBER];
+  ADCAveragingFilter  HAL::CHAMBERsensorFilters[MAX_CHAMBER];
 #endif
 #if MAX_COOLER > 0
-  ADCAveragingFilter HAL::COOLERsensorFilters[MAX_COOLER];
+  ADCAveragingFilter  HAL::COOLERsensorFilters[MAX_COOLER];
 #endif
 
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
@@ -82,14 +82,6 @@ void noTone(const pin_t _pin) {
   */
 }
 
-HAL::HAL() {
-  // ctor
-}
-
-HAL::~HAL() {
-  // dtor
-}
-
 // do any hardware-specific initialization here
 void HAL::hwSetup() {
 
@@ -100,6 +92,7 @@ void HAL::hwSetup() {
   #if PIN_EXISTS(LED)
     OUT_WRITE(LED_PIN, LOW);
   #endif
+
 }
 
 // Print apparent cause of start/restart
@@ -216,8 +209,8 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static millis_s cycle_1s_ms   = millis(),
-                  cycle_100_ms  = millis();
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
 
   if (printer.isStopped()) return;
 
@@ -244,10 +237,10 @@ void HAL::Tick() {
   #endif
 
   // Event 100 ms
-  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) thermalManager.spin();
 
   // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {

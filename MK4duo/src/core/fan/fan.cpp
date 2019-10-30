@@ -100,9 +100,7 @@ void Fan::set_output_pwm() {
 
 void Fan::spin() {
 
-  static millis_s controller_fan_ms = 0;
-
-  const millis_s ms = millis();
+  static short_timer_t controller_fan_timer;
 
   if (data.auto_monitor != 0) {
 
@@ -122,19 +120,18 @@ void Fan::spin() {
     if (TEST(data.auto_monitor, 7)) {
 
       // Check Heaters
-      if (thermalManager.heaters_isActive()) controller_fan_ms = ms;
+      if (thermalManager.heaters_isActive()) controller_fan_timer.start();
 
       #if HAS_MCU_TEMPERATURE
         // Check MSU
-        if (thermalManager.mcu_current_temperature >= 50) controller_fan_ms = ms;
+        if (thermalManager.mcu_current_temperature >= 50) controller_fan_timer.start();
       #endif
 
       // Check Motors
-      if (stepper.driver_is_enable()) controller_fan_ms = ms;
+      if (stepper.driver_is_enable()) controller_fan_timer.start();
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      if (!controller_fan_ms || expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U))) {
-        controller_fan_ms = 0;
+      if (!controller_fan_timer.isRunning() || controller_fan_timer.expired((CONTROLLERFAN_SECS) * 1000, false)) {
         speed = data.speed_limit.min;
       }
       else

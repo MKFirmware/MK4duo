@@ -763,7 +763,11 @@ void Endstops::report_state() {
 
   static uint8_t prev_hit_state = 0;
 
-  if (hit_state && hit_state != prev_hit_state) {
+  if (hit_state == prev_hit_state) return;
+
+  prev_hit_state = hit_state;
+
+  if (hit_state) {
 
     #if HAS_LCD
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
@@ -804,8 +808,6 @@ void Endstops::report_state() {
       }
     #endif
   }
-
-  prev_hit_state = hit_state;
 
 } // Endstops::report_state
 

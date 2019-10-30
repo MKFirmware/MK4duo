@@ -98,12 +98,12 @@ void sei() {
 // input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
 void tone(const pin_t t_pin, const uint16_t frequency, const uint16_t duration) {
 
-  millis_s endTime = millis();
+  short_timer_t end_timer(true);
   const uint32_t halfPeriod = 1000000L / frequency / 2;
 
   HAL::pinMode(t_pin, OUTPUT_LOW);
 
-  while (pending(endTime, duration)) {
+  while (end_timer.pending(duration)) {
     HAL::digitalWrite(t_pin, HIGH);
     HAL::delayMicroseconds(halfPeriod);
     HAL::digitalWrite(t_pin, LOW);
@@ -323,7 +323,7 @@ void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000U*/) 
  */
 void HAL::Tick() {
 
-  static millis_s cycle_check_temp_ms = 0;
+  static short_timer_t cycle_check_temp_timer(true);
 
   if (printer.isStopped()) return;
 
@@ -343,7 +343,7 @@ void HAL::Tick() {
   #endif
 
   // Calculation cycle temp a 100ms
-  if (expired(&cycle_check_temp_ms, 100U)) {
+  if (cycle_check_temp_timer.expired(100)) {
     // Temperature Spin
     thermalManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0

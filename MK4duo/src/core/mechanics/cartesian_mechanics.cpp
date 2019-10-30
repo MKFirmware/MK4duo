@@ -41,10 +41,10 @@ mechanics_data_t Cartesian_Mechanics::data;
                 Cartesian_Mechanics::raised_parked_position[XYZE],
                 Cartesian_Mechanics::duplicate_extruder_x_offset    = DEFAULT_DUPLICATION_X_OFFSET;
   int16_t       Cartesian_Mechanics::duplicate_extruder_temp_offset = 0;
-  millis_s      Cartesian_Mechanics::delayed_move_ms                = 0;
   bool          Cartesian_Mechanics::active_extruder_parked         = false,
                 Cartesian_Mechanics::extruder_duplication_enabled   = false,
                 Cartesian_Mechanics::scaled_duplication_mode        = false;
+  short_timer_t Cartesian_Mechanics::delayed_move_timer;
 #endif
 
 /** Private Parameters */
@@ -289,7 +289,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
       // Consider the active extruder to be parked
       raised_parked_position, current_position;
-      delayed_move_ms = 0;
+      delayed_move_timer.stop();
       active_extruder_parked = true;
     #else
       homeaxis(X_AXIS);
@@ -352,7 +352,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
       // Consider the active extruder to be parked
       COPY_ARRAY(raised_parked_position, current_position.x);
-      delayed_move_ms = 0;
+      delayed_move_timer.stop();
       active_extruder_parked = true;
       extruder_duplication_enabled  = false;
       dual_x_carriage_mode          = DXC_saved_mode;
@@ -704,10 +704,10 @@ void Cartesian_Mechanics::report_current_position_detail() {
             // This is a travel move (with no extrusion)
             // Skip it, but keep track of the current position
             // (so it can be used as the start of the next non-travel move)
-            if (delayed_move_ms != 0xFFFFU) {
+            if (!delayed_move_timer.isRunning()) {
               current_position = destination;
               NOLESS(raised_parked_position[Z_AXIS], destination.z);
-              delayed_move_ms = millis();
+              delayed_move_timer.start();
               return true;
             }
           }
@@ -723,7 +723,7 @@ void Cartesian_Mechanics::report_current_position_detail() {
           if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active))
             if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     tools.extruder.active))
                 planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active);
-          delayed_move_ms = 0;
+          delayed_move_timer.stop();
           active_extruder_parked = false;
           if (printer.debugFeature()) DEBUG_EM("Clear active_extruder_parked");
           break;

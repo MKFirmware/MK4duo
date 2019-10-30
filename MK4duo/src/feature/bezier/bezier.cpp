@@ -89,11 +89,11 @@
     bez_target.y = position.y;
     float step = MAX_STEP;
 
-    millis_s next_idle_ms = millis();
+    short_timer_t next_idle_timer(true);
 
     while (t < 1.0) {
 
-      if (expired(&next_idle_ms, 200U)) printer.idle();
+      if (next_idle_timer.expired(200)) printer.idle();
 
       // First try to reduce the step in order to make it sufficiently
       // close to a linear interpolation.
