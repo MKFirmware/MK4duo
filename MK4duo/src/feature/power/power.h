@@ -70,7 +70,7 @@ class Power {
     #if HAS_POWER_SWITCH
       static bool powersupply_on;
       #if (POWER_TIMEOUT > 0)
-        static millis_l last_Power_On_ms;
+        static long_timer_t last_power_on_timer;
       #endif
     #endif
 

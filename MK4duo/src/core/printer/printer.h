@@ -87,8 +87,8 @@ class Printer {
                     max_inactive_time,
                     move_time;
 
-    static millis_l max_inactivity_ms,
-                    move_ms;
+    static long_timer_t max_inactivity_timer,
+                        move_timer;
 
     #if ENABLED(HOST_KEEPALIVE_FEATURE)
       static BusyStateEnum busy_state;
@@ -106,7 +106,7 @@ class Printer {
     #endif
 
     #if HAS_CHDK
-      static millis_s chdk_ms;
+      static short_timer_t chdk_timer;
     #endif
 
   public: /** Public Function */
@@ -137,11 +137,15 @@ class Printer {
 
     static void print_M353();
 
-    FORCE_INLINE static void reset_move_ms() { move_ms = millis(); }
+    #if HAS_SD_SUPPORT
+      static void abort_sd_printing();
+    #endif
 
     #if HAS_SUICIDE
       static void suicide();
     #endif
+
+    FORCE_INLINE static void reset_move_timer() { move_timer.start(); }
 
     // Flag Debug function
     static void setDebugLevel(const uint8_t newLevel);

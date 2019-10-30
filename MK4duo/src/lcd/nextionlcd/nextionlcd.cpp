@@ -59,7 +59,7 @@ uint8_t LcdUI::alert_level = 0,
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  millis_s manual_move_ms = 0;
+  short_timer_t manual_move_timer;
 
   #if IS_KINEMATIC
     float manual_move_offset = 0;
@@ -112,7 +112,7 @@ uint8_t NextionLCD::PageID                      = 0;
 #if HAS_LCD_MENU
   bool  NextionLCD::line_encoder_touch          = false;
   #if LCD_TIMEOUT_TO_STATUS
-    millis_l NextionLCD::return_to_status_ms    = millis();
+    short_timer_t NextionLCD::return_to_status_timer(true);
   #endif
 #endif
 
@@ -339,7 +339,7 @@ void NextionLCD::init() {
     set_status_page();
 
     #if LCD_TIMEOUT_TO_STATUS
-      return_to_status_ms = millis();
+      return_to_status_timer.start();
     #endif
 
     #if HAS_LCD_MENU
@@ -906,7 +906,7 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
     }
 
     #if LCD_TIMEOUT_TO_STATUS
-      return_to_status_ms = millis();
+      return_to_status_timer.start();
     #endif
 
     lcdui.refresh(LCDVIEW_REDRAW_NOW);
@@ -1139,7 +1139,7 @@ bool NextionLCD::getConnect(char* buffer) {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && expired(&manual_move_ms, (move_menu_scale < 0.99f ? 1U : 250U)) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && manual_move_timer.expired(move_menu_scale < 0.99f ? 1 : 250, false) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
@@ -1198,8 +1198,8 @@ void LcdUI::init() { nexlcd.init(); }
 
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
-  static millis_s next_blink_ms = 0;
-  if (expired(&next_blink_ms, millis_s(1000U * moltiplicator))) blink ^= 0xFF;
+  static short_timer_t next_blink_timer(true);
+  if (next_blink_timer.expired(moltiplicator * 1000)) blink ^= 0xFF;
   return blink != 0;
 }
 
@@ -1209,7 +1209,7 @@ void LcdUI::kill_screen(PGM_P lcd_msg) {
 
 void LcdUI::update() {
 
-  static millis_s next_lcd_update_ms = 0;
+  static short_timer_t next_lcd_update_timer(true);
 
   if (!nexlcd.NextionON) return;
 
@@ -1249,12 +1249,12 @@ void LcdUI::update() {
       #endif
 
       refresh();
-      next_lcd_update_ms = millis();
+      next_lcd_update_timer.start();
     }
 
   #endif // HAS_SD_SUPPORT
 
-  if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL))
+  if (next_lcd_update_timer.expired(LCD_UPDATE_INTERVAL))
     nexlcd.status_screen_update();
 
   #if HAS_LCD_MENU
@@ -1263,8 +1263,8 @@ void LcdUI::update() {
 
       #if LCD_TIMEOUT_TO_STATUS
         if (defer_return_to_status)
-          nexlcd.return_to_status_ms = millis();
-        else if (expired(&nexlcd.return_to_status_ms, millis_l(LCD_TIMEOUT_TO_STATUS)))
+          nexlcd.return_to_status_timer.start();
+        else if (nexlcd.return_to_status_timer.expired(LCD_TIMEOUT_TO_STATUS))
           return_to_status();
       #endif
 
@@ -1296,7 +1296,7 @@ void LcdUI::update() {
     }
     else {
       #if LCD_TIMEOUT_TO_STATUS
-        nexlcd.return_to_status_ms = millis();
+        nexlcd.return_to_status_timer = millis();
       #endif
     }
 
@@ -1488,11 +1488,11 @@ void LcdUI::stop_print() {
 
       UNUSED(row);
 
-      static millis_s nex_update_ms = 0;
+      static short_timer_t nex_update_timer(true);
 
       char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
-      if (expired(&nex_update_ms, 1500U)) {
+      if (nex_update_timer.expired(1500)) {
 
         strcat(cmd, "H");
         strcat(cmd, ui8tostr1(hotend));

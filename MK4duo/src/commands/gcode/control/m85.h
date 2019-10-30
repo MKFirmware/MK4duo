@@ -34,7 +34,7 @@
 inline void gcode_M85() {
   if (parser.seenval('S')) {
     printer.max_inactive_time = parser.value_ushort();
-    printer.max_inactivity_ms = millis();
+    printer.max_inactivity_timer.start();
   }
   else
     SERIAL_EMV("M85 S", int(printer.max_inactive_time));

@@ -59,7 +59,7 @@ char    LcdUI::status_message[MAX_MESSAGE_LENGTH + 1];
 uint8_t LcdUI::status_update_delay = 1; // First update one loop delayed
 
 #if (HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT) || HAS_LCD_POWER_SENSOR
-  millis_s LcdUI::previous_status_ms = 0;
+  short_timer_t LcdUI::previous_status_timer;
 #endif
 
 millis_l LcdUI::next_button_update_ms = 0;
@@ -281,8 +281,8 @@ void LcdUI::init() {
 
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
-  static millis_s next_blink_ms = 0;
-  if (expired(&next_blink_ms, millis_s(1000U * moltiplicator))) blink ^= 0xFF;
+  static short_timer_t next_blink_timer(true);
+  if (next_blink_timer.expired(1000 * moltiplicator)) blink ^= 0xFF;
   return blink != 0;
 }
 
@@ -401,9 +401,9 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
  */
 
 #if ENABLED(LCD_PROGRESS_BAR)
-  millis_s LcdUI::progress_bar_ms = 0;
+  short_timer_t LcdUI::progress_bar_timer;
   #if PROGRESS_MSG_EXPIRE > 0
-    millis_l LcdUI::expire_status_ms = 0;
+    millis_s LcdUI::expire_status_time = 0;
   #endif
 #endif
 
@@ -424,25 +424,25 @@ void LcdUI::status_screen() {
 
     // If the message will blink rather than expire...
     #if DISABLED(PROGRESS_MSG_ONCE)
-      (void)expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME + PROGRESS_BAR_BAR_TIME));
+      (void)progress_bar_timer.expired((PROGRESS_BAR_MSG_TIME) + (PROGRESS_BAR_BAR_TIME));
     #endif
 
     #if PROGRESS_MSG_EXPIRE > 0
 
       // Handle message expire
-      if (expire_status_ms > 0) {
+      if (expire_status_time > 0) {
 
         // Expire the message if a job is active and the bar has ticks
         if (printer.progress > 2 && print_job_counter.isPaused()) {
-          if (ELAPSED(millis(), expire_status_ms)) {
+          if (ELAPSED(millis(), expire_status_time)) {
             status_message[0] = '\0';
-            expire_status_ms = 0;
+            expire_status_time = 0;
           }
         }
         else {
           // Defer message expiration before bar appears
           // and during any pause (not just SD)
-          expire_status_ms += LCD_UPDATE_INTERVAL;
+          expire_status_time += LCD_UPDATE_INTERVAL;
         }
       }
 
@@ -454,7 +454,7 @@ void LcdUI::status_screen() {
 
     if (use_click()) {
       #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-        previous_status_ms = millis();  // Show status message for 5s
+        previous_status_timer.start();  // Show status message for 5s
       #endif
       goto_screen(menu_main);
       init_lcd(); // May revive the LCD if static electricity killed it
@@ -485,8 +485,8 @@ void LcdUI::status_screen() {
     if (old_frm != new_frm) {
       mechanics.feedrate_percentage = new_frm;
       encoderPosition = 0;
-      static millis_s next_beep_ms;
-      if (expired(&next_beep_ms, 500U))
+      static short_timer_t next_beep_timer(true);
+      if (next_beep_timer.expired(500))
         sound.playtone(10, 440);
     }
 
@@ -534,7 +534,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  millis_s manual_move_ms = 0;
+  short_timer_t manual_move_timer;
 
   int8_t LcdUI::manual_move_e_index = 0;
 
@@ -551,7 +551,7 @@ void LcdUI::quick_feedback(const bool clear_buttons/*=true*/) {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && expired(&manual_move_ms, (move_menu_scale < 0.99f ? 1U : 250U)) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && manual_move_timer.expired(move_menu_scale < 0.99f ? 1 : 250, false) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
@@ -643,13 +643,13 @@ bool LcdUI::detected() {
 void LcdUI::update() {
 
   static uint16_t max_display_update_time = 0;
-  static millis_s next_lcd_update_ms;
+  static short_timer_t next_lcd_update_timer(true);
   const millis_l ms = millis();
 
   #if HAS_LCD_MENU
 
     #if LCD_TIMEOUT_TO_STATUS
-      static millis_l return_to_status_ms = 0;
+      static short_timer_t return_to_status_timer;
     #endif
 
     // Handle any queued Move Axis motion
@@ -708,13 +708,13 @@ void LcdUI::update() {
       #endif
 
       refresh();
-      next_lcd_update_ms = ms;
+      next_lcd_update_timer.start();
 
     }
 
   #endif // HAS_SD_SUPPORT
 
-  if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL)
+  if (next_lcd_update_timer.expired(LCD_UPDATE_INTERVAL)
     #if HAS_GRAPHICAL_LCD
       || drawing_screen
     #endif
@@ -734,7 +734,7 @@ void LcdUI::update() {
 
         if (handle_keypad()) {
           #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
-            return_to_status_ms = millis();
+            return_to_status_timer.start();
           #endif
         }
 
@@ -782,7 +782,7 @@ void LcdUI::update() {
           encoderDiff = 0;
         }
         #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
-          return_to_status_ms = millis();
+          return_to_status_timer.start();
         #endif
         refresh(LCDVIEW_REDRAW_NOW);
       }
@@ -812,7 +812,7 @@ void LcdUI::update() {
         }
         refresh(LCDVIEW_REDRAW_NOW);
         #if LCD_TIMEOUT_TO_STATUS
-          return_to_status_ms = millis();
+          return_to_status_timer.start();
         #endif
       }
     #endif
@@ -876,8 +876,8 @@ void LcdUI::update() {
     #if HAS_LCD_MENU && LCD_TIMEOUT_TO_STATUS
       // Return to Status Screen after a timeout
       if (on_status_screen() || defer_return_to_status)
-        return_to_status_ms = millis();
-      else if (expired(&return_to_status_ms, millis_l(LCD_TIMEOUT_TO_STATUS)))
+        return_to_status_timer.start();
+      else if (return_to_status_timer.expired(LCD_TIMEOUT_TO_STATUS))
         return_to_status();
     #endif
 
@@ -893,7 +893,7 @@ void LcdUI::update() {
       default: break;
     } // switch
 
-  } // expired(next_lcd_update_ms)
+  } // expired(next_lcd_update_timer)
 }
 
 #if HAS_ADC_BUTTONS
@@ -1157,14 +1157,14 @@ void LcdUI::finish_status(const bool persist) {
   #endif
 
   #if ENABLED(LCD_PROGRESS_BAR)
-    progress_bar_ms = millis();
+    progress_bar_timer.start();
     #if PROGRESS_MSG_EXPIRE > 0
-      expire_status_ms = persist ? 0 : progress_bar_ms + PROGRESS_MSG_EXPIRE;
+      expire_status_time = persist ? 0 : progress_bar_timer.started() + PROGRESS_MSG_EXPIRE;
     #endif
   #endif
 
   #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-    previous_status_ms = millis(); // Show status message for 5s
+    previous_status_timer.start(); // Show status message for 5s
   #endif
 
   #if ENABLED(STATUS_MESSAGE_SCROLLING)

@@ -192,10 +192,10 @@ void PrintCounter::saveStats() {
 
 void PrintCounter::tick() {
 
-  static millis_s update_next_ms = 0; // Max 60 seconds
-  static millis_l eeprom_next_ms = 0; // Up  60 seconds
+  static short_timer_t  update_next_timer(true);  // Max 60 seconds
+  static long_timer_t   eeprom_next_timer(true);  // Up  60 seconds
 
-  if (expired(&update_next_ms, millis_s(STATS_UPDATE_INTERVAL * 1000U))) {
+  if (update_next_timer.expired((STATS_UPDATE_INTERVAL) * 1000U)) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
       debug(PSTR("tick"));
     #endif
@@ -214,7 +214,7 @@ void PrintCounter::tick() {
     #endif
   }
 
-  if (expired(&eeprom_next_ms, millis_l(STATS_SAVE_INTERVAL * 1000UL)))
+  if (eeprom_next_timer.expired((STATS_SAVE_INTERVAL) * 1000UL))
     saveStats();
 
 }

@@ -72,9 +72,9 @@ class LcdUI {
       #endif
 
       #if HAS_CHARACTER_LCD && ENABLED(LCD_PROGRESS_BAR)
-        static millis_s progress_bar_ms;  // Start time for the current progress bar cycle
+        static short_timer_t progress_bar_timer(true); // Start time for the current progress bar cycle
         #if PROGRESS_MSG_EXPIRE > 0
-          static millis_l expire_status_ms; // = 0
+          static millis_s expire_status_time;     // = 0
         #endif
       #endif
 
@@ -99,7 +99,7 @@ class LcdUI {
         #endif
 
         #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-          static millis_s previous_status_ms;
+          static short_timer_t previous_status_timer;
         #endif
         
       #endif
@@ -262,7 +262,7 @@ class LcdUI {
           );
 
           #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-            static inline void reset_progress_bar_timeout() { expire_status_ms = 0; }
+            static inline void reset_progress_bar_timeout() { expire_status_time = 0; }
           #endif
 
         #endif

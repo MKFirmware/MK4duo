@@ -90,7 +90,7 @@ inline void gcode_M605() {
     mechanics.active_extruder_parked = false;
     mechanics.extruder_duplication_enabled = false;
     stepper.set_directions();
-    mechanics.delayed_move_ms = 0;
+    mechanics.delayed_move_timer.stop();
   }
   else if (!parser.seen('W'))  // if no S or W parameter, the DXC mode gets reset to the user's default
     mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -113,7 +113,7 @@ inline void gcode_M605() {
     DEBUG_MV("\nextruder_duplication_enabled: ", int(mechanics.extruder_duplication_enabled));
     DEBUG_MV("\nduplicate_extruder_x_offset: ", mechanics.duplicate_extruder_x_offset);
     DEBUG_MV("\nduplicate_extruder_temp_offset: ", mechanics.duplicate_extruder_temp_offset);
-    DEBUG_MV("\ndelayed_move_time: ", mechanics.delayed_move_ms);
+    DEBUG_MV("\ndelayed_move_time: ", mechanics.delayed_move_timer.started());
     DEBUG_MV("\nX1 Home X: ", mechanics.x_home_pos(0));
     DEBUG_MV("\nX1_MIN_POS=", int(X1_MIN_POS));
     DEBUG_MV("\nX1_MAX_POS=", int(X1_MAX_POS));

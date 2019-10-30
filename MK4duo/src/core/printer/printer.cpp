@@ -44,8 +44,9 @@ uint8_t Printer::progress       = 0;
 uint16_t  Printer::safety_time        = SAFETYTIMER_TIME_MINS,
           Printer::max_inactive_time  = 0,
           Printer::move_time          = DEFAULT_STEPPER_DEACTIVE_TIME;
-millis_l  Printer::max_inactivity_ms  = 0,
-          Printer::move_ms            = 0;
+
+long_timer_t  Printer::max_inactivity_timer,
+              Printer::move_timer;
 
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   BusyStateEnum Printer::busy_state     = NotBusy;
@@ -74,7 +75,7 @@ PrinterModeEnum Printer::mode =
 #endif
 
 #if HAS_CHDK
-  millis_s Printer::chdk_ms = 0;
+  short_timer_t Printer::chdk_timer;
 #endif
 
 /** Public Function */
@@ -294,40 +295,8 @@ void Printer::loop() {
     idle();
 
     #if HAS_SD_SUPPORT
-
       card.checkautostart();
-
-      if (card.isAbortSDprinting()) {
-        card.setAbortSDprinting(false);
-
-        #if HAS_SD_RESTART
-          // Save Job for restart
-          if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
-        #endif
-
-        // Stop SD printing
-        card.stop_print();
-
-        // Clear all command in quee
-        commands.clear_queue();
-
-        // Stop printer job timer
-        print_job_counter.stop();
-
-        // Auto home
-        #if Z_HOME_DIR > 0
-          mechanics.home();
-        #else
-          mechanics.home(HOME_X | HOME_Y);
-        #endif
-
-        // Disabled Heaters and Fan
-        thermalManager.disable_all_heaters();
-        zero_fan_speed();
-        setWaitForHeatUp(false);
-
-      }
-
+      if (card.isAbortSDprinting()) abort_sd_printing();
     #endif // HAS_SD_SUPPORT
 
     commands.advance_queue();
@@ -580,7 +549,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   handle_safety_watch();
 
-  if (expired(&max_inactivity_ms, millis_l(max_inactive_time * 1000UL))) {
+  if (max_inactivity_timer.expired(max_inactive_time * 1000)) {
     SERIAL_LMT(ER, MSG_HOST_KILL_INACTIVE_TIME, parser.command_ptr);
     kill(GET_TEXT(MSG_KILLED));
   }
@@ -621,8 +590,8 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   if (move_time) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
-      reset_move_ms();  // reset stepper move watch to keep steppers powered
-    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && expired(&move_ms, millis_l(move_time * 1000UL))) {
+      reset_move_timer();  // reset stepper move watch to keep steppers powered
+    else if (MOVE_AWAY_TEST && !ignore_stepper_queue && move_timer.expired(move_time * 1000UL, false)) {
       if (!already_shutdown_steppers) {
         if (printer.debugFeature()) DEBUG_EM("Stepper shutdown");
         already_shutdown_steppers = true; 
@@ -661,7 +630,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   }
 
   #if HAS_CHDK // Check if pin should be set to LOW (after M240 set it HIGH)
-    if (expired(&chdk_ms, millis_s(PHOTO_SWITCH_MS))) WRITE(CHDK_PIN, LOW);
+    if (chdk_timer.expired(PHOTO_SWITCH_MS)) WRITE(CHDK_PIN, LOW);
   #endif
 
   #if HAS_KILL
@@ -687,9 +656,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if HAS_HOME
     // Handle a standalone HOME button
-    static millis_l next_home_key_ms = millis();
+    static long_timer_t next_home_key_timer(true);
     if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
-      if (expired(&next_home_key_ms, HOME_DEBOUNCE_DELAY)) {
+      if (next_home_key_timer.expired(HOME_DEBOUNCE_DELAY)) {
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
         commands.enqueue_now_P(PSTR("G28"));
       }
@@ -697,9 +666,9 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #endif
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
-    static millis_l extruder_runout_ms = 0;
+    static long_timer_t extruder_runout_timer(true);
     if (hotends[tools.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
-      && expired(&extruder_runout_ms, millis_l(EXTRUDER_RUNOUT_SECONDS * 1000UL))
+      && extruder_runout_timer.expired((EXTRUDER_RUNOUT_SECONDS) * 1000)
       && !planner.has_blocks_queued()
     ) {
       const float olde = mechanics.current_position.e;
@@ -713,21 +682,20 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(DUAL_X_CARRIAGE)
     // handle delayed move timeout
-    if (mechanics.delayed_move_ms && expired(&mechanics.delayed_move_ms, 1000U) && isRunning()) {
+    if (delayed_move_timer.expired(1000, false) && isRunning()) {
       // travel moves have been received so enact them
-      mechanics.delayed_move_ms = 0xFFFFU; // force moves to be done
       mechanics.destination = mechanics.current_position;
       mechanics.prepare_move_to_destination();
     }
   #endif
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    static millis_l axis_last_activity_ms = 0;
-    if (planner.has_blocks_queued()) axis_last_activity_ms = millis();
+    static long_timer_t axis_last_activity_timer;
+    if (planner.has_blocks_queued()) axis_last_activity_timer.start();
     if (hotends[tools.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
       if (hotends[tools.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
         tools.IDLE_OOZING_retract(false);
-      else if (expired(&axis_last_activity_ms, IDLE_OOZING_SECONDS * 1000UL))
+      else if (axis_last_activity_timer.expired((IDLE_OOZING_SECONDS) * 1000))
         tools.IDLE_OOZING_retract(true);
     }
   #endif
@@ -773,6 +741,41 @@ void Printer::print_M353() {
   SERIAL_MV(" F", tools.data.fans);
   SERIAL_EOL();
 }
+
+#if HAS_SD_SUPPORT
+
+  void Printer::abort_sd_printing() {
+
+    card.setAbortSDprinting(false);
+
+    #if HAS_SD_RESTART
+      // Save Job for restart
+      if (restart.enabled && IS_SD_PRINTING()) restart.save_job(true);
+    #endif
+
+    // Stop SD printing
+    card.stop_print();
+
+    // Clear all command in quee
+    commands.clear_queue();
+
+    // Stop printer job timer
+    print_job_counter.stop();
+
+    // Auto home
+    #if Z_HOME_DIR > 0
+      mechanics.home();
+    #else
+      mechanics.home(HOME_X | HOME_Y);
+    #endif
+
+    // Disabled Heaters and Fan
+    thermalManager.disable_all_heaters();
+    zero_fan_speed();
+    setWaitForHeatUp(false);
+  }
+
+#endif
 
 #if HAS_SUICIDE
   void Printer::suicide() { OUT_WRITE(SUICIDE_PIN, LOW); }
@@ -897,13 +900,13 @@ void Printer::setup_pinout() {
  */
 void Printer::handle_safety_watch() {
 
-  static millis_l safety_ms = 0;
+  static long_timer_t safety_timer;
 
   if (isPrinting() || isPaused() || !thermalManager.heaters_isActive())
-    safety_ms = 0;
-  else if (!safety_ms && thermalManager.heaters_isActive())
-    safety_ms = millis();
-  else if (safety_ms && expired(&safety_ms, millis_l(safety_time * 60000UL))) {
+    safety_timer.stop();
+  else if (!safety_timer.isRunning() && thermalManager.heaters_isActive())
+    safety_timer.start();
+  else if (safety_timer.expired(safety_time * 60000)) {
     thermalManager.disable_all_heaters();
     SERIAL_EM(MSG_HOST_MAX_INACTIVITY_TIME);
     lcdui.set_status_P(GET_TEXT(MSG_MAX_INACTIVITY_TIME), 99);
@@ -917,8 +920,8 @@ void Printer::handle_safety_watch() {
    * while the machine is not accepting
    */
   void Printer::host_keepalive_tick() {
-    static millis_s host_keepalive_ms = millis();
-    if (!isSuspendAutoreport() && expired(&host_keepalive_ms, millis_s(host_keepalive_time * 1000U)) && busy_state != NotBusy) {
+    static short_timer_t host_keepalive_timer(true);
+    if (!isSuspendAutoreport() && host_keepalive_timer.expired(host_keepalive_time * 1000) && busy_state != NotBusy) {
       switch (busy_state) {
         case InHandler:
         case InProcess:
@@ -946,10 +949,10 @@ void Printer::handle_safety_watch() {
   void Printer::handle_status_leds() {
 
     static bool red_led = false;
-    static millis_s next_status_led_update_ms;
+    static short_timer_t next_status_led_update_timer(true);
 
     // Update every 0.5s
-    if (expired(&next_status_led_update_ms, 500U)) {
+    if (next_status_led_update_timer.expired(500)) {
       float max_temp = 0.0;
       #if MAX_CHAMBER > 0
         LOOP_CHAMBER()

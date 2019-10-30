@@ -496,17 +496,14 @@ void TMC_Stepper::test_connection(const bool test_x, const bool test_y, const bo
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
   void TMC_Stepper::monitor_driver() {
-    static millis_s next_poll_ms = millis();
-    bool need_update_error_counters = expired(&next_poll_ms, MONITOR_DRIVER_STATUS_INTERVAL_MS);
+    static short_timer_t next_poll_timer(true);
+    bool need_update_error_counters = next_poll_timer.expired(MONITOR_DRIVER_STATUS_INTERVAL_MS);
     bool need_debug_reporting = false;
     if (need_update_error_counters) {
-      next_poll_ms = millis();
       #if ENABLED(TMC_DEBUG)
-        static millis_s next_debug_reporting_ms = millis();
-        if (expired(&next_debug_reporting_ms, report_status_interval)) {
+        static short_timer_t next_debug_reporting_timer(true);
+        if (next_debug_reporting_timer.expired(report_status_interval))
           need_debug_reporting = true;
-          next_debug_reporting_ms = millis();
-        }
       #endif
       if (need_update_error_counters || need_debug_reporting) {
         LOOP_DRV_XYZ()

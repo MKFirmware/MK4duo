@@ -340,7 +340,7 @@ void Probe::servo_test() {
 
       HAL::delayMilliseconds(2);
 
-      if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
+      if (0 == j % (500 * 1)) printer.reset_move_timer();       // Keep steppers powered
 
       if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 

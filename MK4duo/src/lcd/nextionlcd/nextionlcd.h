@@ -163,7 +163,7 @@ class NextionLCD {
     #if HAS_LCD_MENU
       static bool line_encoder_touch;
       #if LCD_TIMEOUT_TO_STATUS
-        static millis_l return_to_status_ms;
+        static short_timer_t return_to_status_timer;
       #endif
     #endif
 

@@ -133,7 +133,7 @@ inline void gcode_M240() {
   #if HAS_CHDK
 
     OUT_WRITE(CHDK_PIN, HIGH);
-    printer.chdk_ms = millis();
+    printer.chdk_timer.start();
 
   #elif HAS_PHOTOGRAPH
 

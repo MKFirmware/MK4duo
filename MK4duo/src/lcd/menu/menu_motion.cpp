@@ -36,7 +36,7 @@
   #include "../ultralcd/dogm/ultralcd_dogm.h"
 #endif
 
-extern millis_s manual_move_ms;
+extern short_timer_t manual_move_timer;
 extern int8_t manual_move_axis;
 #if ENABLED(MANUAL_E_MOVES_RELATIVE)
   float manual_move_e_origin = 0;
@@ -50,7 +50,7 @@ extern int8_t manual_move_axis;
 //
 inline void manual_move_to_current(AxisEnum axis) {
   if (axis == E_AXIS) lcdui.manual_move_e_index = MenuItemBase::itemIndex;
-  manual_move_ms = millis() + (move_menu_scale < 0.99f ? 0UL : 250UL); // delay for bigger moves
+  manual_move_timer.start(move_menu_scale < 0.99f ? 0 : 250); // delay for bigger moves
   manual_move_axis = (int8_t)axis;
 }
 

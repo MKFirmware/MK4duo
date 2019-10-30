@@ -40,9 +40,9 @@ Power powerManager;
 
 /** Private Parameters */
 #if HAS_POWER_SWITCH
-  bool        Power::powersupply_on   = false;
+  bool        Power::powersupply_on = false;
   #if (POWER_TIMEOUT > 0)
-    millis_l  Power::last_Power_On_ms = 0;
+    long_timer_t  Power::last_power_on_timer;
   #endif
 #endif
 
@@ -90,14 +90,14 @@ Power powerManager;
     void Power::spin() {
       if (thermalManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
       #if (POWER_TIMEOUT > 0)
-        else if (expired(&last_Power_On_ms, millis_l(POWER_TIMEOUT * 1000UL)))
+        else if (last_power_on_timer.expired((POWER_TIMEOUT) * 1000))
           power_off();
       #endif
     }
 
     void Power::power_on() {
       #if (POWER_TIMEOUT > 0)
-        last_Power_On_ms = millis();
+        last_power_on_timer.start();
       #endif
       if (!powersupply_on) {
         OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
@@ -115,7 +115,7 @@ Power powerManager;
         OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
         powersupply_on = false;
         #if (POWER_TIMEOUT > 0)
-          last_Power_On_ms = 0;
+          last_power_on_timer.stop();
         #endif
       }
     }

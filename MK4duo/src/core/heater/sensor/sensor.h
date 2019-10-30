@@ -180,10 +180,11 @@ typedef struct {
 
       int16_t read_max6675() {
 
-        static millis_s next_max6675_ms = 0;
-        static uint16_t max6675_temp    = 2000;
+        static short_timer_t next_max6675_timer(true);
+        static uint16_t max6675_temp = 2000;
 
-        if (pending(&next_max6675_ms, MAX6675_HEAT_INTERVAL)) return int16_t(max6675_temp);
+        if (next_max6675_timer.pending(MAX6675_HEAT_INTERVAL))
+          return int16_t(max6675_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();
@@ -238,12 +239,13 @@ typedef struct {
 
       int16_t read_max31855() {
 
-        static millis_s next_max31855_ms    = 0;
+        static short_timer_t next_max31855_timer(true);
         static uint16_t last_max31855_temp  = 2000;
 
         uint32_t data = 0;
 
-        if (pending(&next_max31855_ms, MAX31855_HEAT_INTERVAL)) return int16_t(last_max31855_temp);
+        if (next_max31855_timer.pending(MAX31855_HEAT_INTERVAL))
+          return int16_t(last_max31855_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();

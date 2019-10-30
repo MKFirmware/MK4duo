@@ -83,10 +83,10 @@ void Restart::load_job() {
 
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
-  static millis_s save_restart_ms = millis();
+  static short_timer_t save_restart_timer(true);
 
   // Did Z change since the last call?
-  if (expired(&save_restart_ms, millis_s((SD_RESTART_FILE_SAVE_TIME) * 1000U)) || force_save
+  if (save_restart_timer.expired((SD_RESTART_FILE_SAVE_TIME) * 1000) || force_save
       || mechanics.current_position.z > job_info.axis_position_mm.z
   ) {
 

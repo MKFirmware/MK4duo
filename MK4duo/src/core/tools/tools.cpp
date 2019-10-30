@@ -772,7 +772,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
     const float xhome = mechanics.x_home_pos(extruder.active);
     if (mechanics.dual_x_carriage_mode == DXC_AUTO_PARK_MODE
         && printer.isRunning()
-        && (mechanics.delayed_move_ms || mechanics.current_position.x != xhome)
+        && (mechanics.delayed_move_timer.isRunning() || mechanics.current_position.x != xhome)
     ) {
       float raised_z = mechanics.current_position.z + TOOLCHANGE_PARK_ZLIFT;
       #if ENABLED(MAX_SOFTWARE_ENDSTOPS)
@@ -826,7 +826,7 @@ void Tools::fast_line_to_current(const AxisEnum fr_axis) {
           NOMORE(mechanics.raised_parked_position[Z_AXIS], endstops.soft_endstop.max.z);
         #endif
         mechanics.active_extruder_parked = true;
-        mechanics.delayed_move_ms = 0;
+        mechanics.delayed_move_timer.stop();
         break;
     }
 

@@ -79,7 +79,7 @@ int8_t MMU2::state = 0;
 volatile int8_t MMU2::finda = 1;
 volatile bool MMU2::finda_runout_valid;
 int16_t MMU2::version = -1, MMU2::buildnr = -1;
-millis_s MMU2::last_request_ms, MMU2::next_P0_request_ms;
+short_timer_t MMU2::last_request_timer, MMU2::next_P0_request_timer;
 char MMU2::rx_buffer[16], MMU2::tx_buffer[16];
 
 #if HAS_LCD_MENU
@@ -310,7 +310,7 @@ void MMU2::mmu_loop() {
         last_cmd = cmd;
         cmd = MMU_CMD_NONE;
       }
-      else if (expired(&next_P0_request_ms, 300U)) {
+      else if (next_P0_request_timer.expired(300)) {
         // read FINDA
         tx_str_P(PSTR("P0\n"));
         state = 2; // wait for response
@@ -339,7 +339,7 @@ void MMU2::mmu_loop() {
 
         if (!finda && finda_runout_valid) filament_runout();
       }
-      else if (expired(&last_request_ms, MMU_P0_TIMEOUT)) // Resend request after timeout (30s)
+      else if (last_request_timer.expired(MMU_P0_TIMEOUT)) // Resend request after timeout (30s)
         state = 1;
 
       break;
@@ -354,7 +354,7 @@ void MMU2::mmu_loop() {
         state = 1;
         last_cmd = MMU_CMD_NONE;
       }
-      else if (expired(&last_request_ms, MMU_CMD_TIMEOUT)) {
+      else if (last_request_timer.expired(MMU_CMD_TIMEOUT)) {
         // resend request after timeout
         if (last_cmd) {
           #if ENABLED(MMU2_DEBUG)
@@ -376,7 +376,7 @@ void MMU2::mmu_loop() {
 bool MMU2::rx_start() {
   // check for start message
   if (rx_str_P(PSTR("start\n"))) {
-    next_P0_request_ms = millis();
+    next_P0_request_timer.start();
     return true;
   }
   return false;
@@ -425,7 +425,7 @@ void MMU2::tx_str_P(const char* str) {
   uint8_t len = strlen_P(str);
   for (uint8_t i = 0; i < len; i++) mmuSerial.write(pgm_read_byte(str++));
   rx_buffer[0] = '\0';
-  last_request_ms = millis();
+  last_request_timer.start();
 }
 
 /**
@@ -436,7 +436,7 @@ void MMU2::tx_printf_P(const char* format, int argument = -1) {
   uint8_t len = sprintf_P(tx_buffer, format, argument);
   for (uint8_t i = 0; i < len; i++) mmuSerial.write(tx_buffer[i]);
   rx_buffer[0] = '\0';
-  last_request_ms = millis();
+  last_request_timer.start();
 }
 
 /**
@@ -447,7 +447,7 @@ void MMU2::tx_printf_P(const char* format, int argument1, int argument2) {
   uint8_t len = sprintf_P(tx_buffer, format, argument1, argument2);
   for (uint8_t i = 0; i < len; i++) mmuSerial.write(tx_buffer[i]);
   rx_buffer[0] = '\0';
-  last_request_ms = millis();
+  last_request_timer.start();
 }
 
 /**
@@ -463,7 +463,7 @@ void MMU2::clear_rx_buffer() {
  */
 bool MMU2::rx_ok() {
   if (rx_str_P(PSTR("ok\n"))) {
-    next_P0_request_ms = millis();
+    next_P0_request_timer.start();
     return true;
   }
   return false;

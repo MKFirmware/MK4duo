@@ -48,7 +48,7 @@
  */
 inline void gcode_M150() {
   if (parser.seen('S')) {
-    millis_s end = millis();
+    short_timer_t end_timer(true);
     const uint8_t second = parser.value_byte();
     do {
       const uint8_t red   = random(256);
@@ -60,7 +60,7 @@ inline void gcode_M150() {
         #endif
       );
       HAL::delayMilliseconds(100);
-    } while (pending(&end, millis_s(second * 1000U)));
+    } while (end_timer.pending(second * 1000));
   } 
   else {
     leds.set_color(MakeLEDColor(

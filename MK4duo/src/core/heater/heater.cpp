@@ -60,8 +60,6 @@ void Heater::init() {
   ResetFault();
 
   watch_target_temp     = 0;
-  check_next_ms         = 0;
-  watch_next_ms         = 0;
   idle_timeout_ms       = 0;
   Pidtuning             = false;
 
@@ -120,18 +118,18 @@ void Heater::set_idle_temp(const int16_t celsius) {
 void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
   #if TEMP_RESIDENCY_TIME > 0
-    millis_l residency_start_ms = 0;
+    long_timer_t residency_start_timer;
     // Loop until the temperature has stabilized
-    #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
+    #define TEMP_CONDITIONS (!residency_start_timer.isRunning() || residency_start_timer.pending((TEMP_RESIDENCY_TIME) * 1000))
   #else
     #define TEMP_CONDITIONS (wants_to_cool ? isCooling() : isHeating())
   #endif
 
-  float     old_temp            = 9999.0;
-  bool      wants_to_cool       = false,
-            first_loop          = true;
-  millis_l  now                 = 0,
-            next_cool_check_ms  = 0;
+  float old_temp      = 9999.0;
+  bool  wants_to_cool = false,
+        first_loop    = true;
+
+  short_timer_t next_cool_check_timer;
 
   const bool oldReport = printer.isAutoreportTemp();
 
@@ -150,9 +148,8 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
     if (no_wait_for_cooling && wants_to_cool) break;
 
-    now = millis();
     printer.idle();
-    printer.reset_move_ms();  // Keep steppers powered
+    printer.reset_move_timer();  // Keep steppers powered
 
     const float temp = current_temperature;
 
@@ -164,16 +161,15 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
 
       const float temp_diff = ABS(target_temperature - temp);
 
-      if (!residency_start_ms) {
-        // Start the residency_start_ms timer when we reach target temp for the first time.
+      if (!residency_start_timer.isRunning()) {
+        // Start the residency_start_timer timer when we reach target temp for the first time.
         if (temp_diff < TEMP_WINDOW) {
-          residency_start_ms = now;
-          if (first_loop) residency_start_ms += (TEMP_RESIDENCY_TIME) * 1000UL;
+          first_loop ? residency_start_timer.start((TEMP_RESIDENCY_TIME) * 1000UL) : residency_start_timer.start();
         }
       }
       else if (temp_diff > temp_hysteresis) {
         // Restart the timer whenever the temperature falls outside the hysteresis.
-        residency_start_ms = now;
+        residency_start_timer.start();
       }
 
     #endif
@@ -182,9 +178,9 @@ void Heater::wait_for_target(bool no_wait_for_cooling/*=true*/) {
     if (wants_to_cool) {
       // Break after 60 seconds
       // if the temperature did not drop at least 1.5
-      if (!next_cool_check_ms || expired(&next_cool_check_ms, 60000UL)) {
+      if (!next_cool_check_timer.isRunning() || next_cool_check_timer.expired(60000)) {
         if (old_temp - temp < 1.5) break;
-        next_cool_check_ms = now;
+        next_cool_check_timer.start();
         old_temp = temp;
       }
     }
@@ -222,7 +218,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&check_next_ms, temp_check_interval))
+        else if (check_next_timer.expired(temp_check_interval))
           pwm_value = current_temperature >= targetTemperature ? data.pid.drive.max : 0;
       }
       else
@@ -238,7 +234,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (expired(&check_next_ms, temp_check_interval)) {
+        else if (check_next_timer.expired(temp_check_interval)) {
           if (current_temperature >= targetTemperature + temp_hysteresis)
             pwm_value = 0;
           else if (current_temperature <= targetTemperature - temp_hysteresis)
@@ -305,7 +301,7 @@ void Heater::check_and_power() {
   get_output();
 
   // Make sure temperature is increasing
-  if (isThermalProtection() && watch_next_ms && expired(&watch_next_ms, millis_l(watch_period * 1000UL))) {
+  if (isThermalProtection() && watch_next_timer.isRunning() && watch_next_timer.expired(watch_period * 1000, false)) {
     if (current_temperature < watch_target_temp)
       temp_error(PSTR(MSG_HOST_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED));
     else
@@ -673,7 +669,7 @@ void Heater::reset_idle_timer() {
 
 void Heater::thermal_runaway_protection() {
 
-  static millis_l thermal_runaway_ms = millis();
+  static long_timer_t thermal_runaway_timer(true);
 
   switch (thermal_runaway_state) {
 
@@ -706,10 +702,10 @@ void Heater::thermal_runaway_protection() {
       #endif
 
       if (current_temperature >= target_temperature - THERMAL_PROTECTION_HYSTERESIS) {
-        thermal_runaway_ms = millis();
+        thermal_runaway_timer.start();
         break;
       }
-      else if (pending(&thermal_runaway_ms, millis_l(THERMAL_PROTECTION_PERIOD * 1000UL))) break;
+      else if (thermal_runaway_timer.pending((THERMAL_PROTECTION_PERIOD) * 1000)) break;
       thermal_runaway_state = TRRunaway;
 
     default: break;
@@ -728,10 +724,10 @@ void Heater::start_watching() {
   const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
   if (isActive() && current_temperature < targetTemperature - (watch_increase + temp_hysteresis + 1)) {
     watch_target_temp = current_temperature + watch_increase;
-    watch_next_ms = millis();
+    watch_next_timer.start();
   }
   else
-    watch_next_ms = 0;
+    watch_next_timer.stop();
 
 }
 

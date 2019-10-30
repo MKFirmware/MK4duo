@@ -552,7 +552,7 @@ void LcdUI::draw_status_message(const bool blink) {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (printer.progress && expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME)) || !has_status())
+    if (printer.progress && progress_bar_timer.expired(PROGRESS_BAR_MSG_TIME) || !has_status())
       return lcd_draw_progress_bar(printer.progress);
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
@@ -560,7 +560,7 @@ void LcdUI::draw_status_message(const bool blink) {
     #if HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
       // After allowing status_message to show for 5 seconds
-      if (expired(&previous_status_ms, 5000U)) {
+      if (previous_status_timer.expired(5000)) {
         lcd_put_u8str_P(PSTR("Dia "));
         lcd_put_u8str(ftostr12ns(filament_width_meas));
         lcd_put_u8str_P(PSTR(" V"));
@@ -568,15 +568,14 @@ void LcdUI::draw_status_message(const bool blink) {
           printer.isVolumetric()
             ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
-        )
-      ));
-      lcd_put_wchar('%');
-      return;
+        )));
+        lcd_put_wchar('%');
+        return;
       }
     #endif
 
     #if HAS_LCD_POWER_SENSOR
-      else if (expired(&previous_status_ms, 10000U)) {
+      else if (previous_status_timer.expired(10000)) {
         lcd_put_u8str_P(PSTR("P:"));
         lcd_put_u8str(ftostr43sign(powerManager.consumption_meas));
         lcd_put_u8str_P(PSTR("W C:"));

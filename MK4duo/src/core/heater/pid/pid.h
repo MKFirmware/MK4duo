@@ -55,7 +55,7 @@ struct pid_data_t {
       #endif
     ) {
 
-      static millis_s cycle_1s_ms = 0;
+      static short_timer_t cycle_1s_timer(true);
       float pid_output = 0.0;
 
       const float pid_error = float(target_temp) - current_temp;
@@ -92,7 +92,7 @@ struct pid_data_t {
 
       }
 
-      if (expired(&cycle_1s_ms, 1000U)) {
+      if (cycle_1s_timer.expired(1000U)) {
         last_temperature = temperature_1s;
         temperature_1s = current_temp;
       }
