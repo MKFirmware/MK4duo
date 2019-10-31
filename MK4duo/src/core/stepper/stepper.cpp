@@ -293,9 +293,8 @@ void Stepper::init() {
     microstep_init();
   #endif
 
-  // Init Stepper ISR to 128 Hz for quick starting
-  HAL_timer_start(STEPPER_TIMER_NUM, 128);
-
+  // Init Stepper ISR
+  START_STEPPER_INTERRUPT();
   ENABLE_STEPPER_INTERRUPT();
 
   sei();

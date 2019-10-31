@@ -80,15 +80,14 @@ typedef struct {
 #define HAL_TIMER_RATE              ((F_CPU)/2) // 24 MHz
 
 #define STEPPER_TIMER_NUM           2
-#define STEPPER_TIMER_PRESCALE      2.0
+#define STEPPER_TIMER_PRESCALE      2
 #define STEPPER_TIMER_RATE          HAL_TIMER_RATE
-#define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)  // 24 stepper timer ticks per us
+#define STEPPER_TIMER_TICKS_PER_US  (HAL_TIMER_RATE / 1000000)                                // 24 stepper timer ticks per us
 #define STEPPER_TIMER_MIN_INTERVAL  5                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 #define HAL_STEPPER_TIMER_ISR()     void TC5_Handler()
 
 #define PULSE_TIMER_NUM             STEPPER_TIMER_NUM
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 #define STEPPER_ISR_ENABLED()       HAL_timer_interrupt_is_enabled(STEPPER_TIMER_NUM)
 #define AD_PRESCALE_FACTOR          84  // 500 kHz ADC clock 
 #define AD_TRACKING_CYCLES          4   // 0 - 15     + 1 adc clock cycles
@@ -96,7 +95,7 @@ typedef struct {
 
 #define ADC_ISR_EOC(channel)        (0x1u << channel)
 
-#define HAL_STEPPER_TIMER_START()   HAL_timer_start(STEPPER_TIMER_NUM)
+#define START_STEPPER_INTERRUPT()   HAL_timer_start(STEPPER_TIMER_NUM)
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt(STEPPER_TIMER_NUM)
 #define DISABLE_STEPPER_INTERRUPT() HAL_timer_disable_interrupt(STEPPER_TIMER_NUM)
 
@@ -256,7 +255,7 @@ extern uint32_t HAL_min_pulse_cycle,
 // Public functions
 // --------------------------------------------------------------------------
 
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
+void HAL_timer_start(const uint8_t timer_num);
 void HAL_timer_enable_interrupt(const uint8_t timer_num);
 void HAL_timer_disable_interrupt(const uint8_t timer_num);
 

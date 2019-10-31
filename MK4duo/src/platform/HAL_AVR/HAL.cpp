@@ -131,9 +131,7 @@ HAL::~HAL() {
   // dtor
 }
 
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
-
-  UNUSED(frequency);
+void HAL_timer_start(const uint8_t timer_num) {
 
   switch (timer_num) {
 
@@ -170,8 +168,13 @@ uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
 
 void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.data.minimum_pulse, 1UL));
-  HAL_min_pulse_tick  = uint32_t(stepper.data.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+
+  if (stepper.data.minimum_pulse)
+    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * uint32_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE));
+  else
+    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE)));
+
+  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -236,8 +239,7 @@ void HAL::showStartReason() {
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
-    HAL_timer_start(TEMP_TIMER_NUM, TEMP_TIMER_FREQUENCY);
-
+    HAL_timer_start(TEMP_TIMER_NUM);
     ENABLE_TEMP_INTERRUPT();
 
   }

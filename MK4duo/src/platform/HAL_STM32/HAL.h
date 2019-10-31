@@ -129,8 +129,6 @@ typedef uint32_t  ptr_int_t;
 // Macros for stepper.cpp
 #define HAL_MULTI_ACC(A,B)  MultiU32X24toH32(A,B)
 
-#define HAL_TIMER_TYPE_MAX  0xFFFFFFFF
-
 // TEMPERATURE
 #ifndef analogInputToDigitalPin
   #define analogInputToDigitalPin(p) (p)

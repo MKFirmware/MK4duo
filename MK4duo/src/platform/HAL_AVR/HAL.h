@@ -187,8 +187,6 @@ typedef uint16_t  ptr_int_t;
 #define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
 
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
-
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 256.0) // 976 Hz
 
 #define STEPPER_TIMER_NUM           1
@@ -207,6 +205,7 @@ typedef uint16_t  ptr_int_t;
 #define TIMER_COUNTER_0             TCNT0
 #define TIMER_COUNTER_1             TCNT1
 
+#define START_STEPPER_INTERRUPT()   HAL_timer_start(STEPPER_TIMER_NUM)
 #define ENABLE_STEPPER_INTERRUPT()  SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT() CBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define STEPPER_ISR_ENABLED()       TEST(STEPPER_TIMSK, STEPPER_OCIE)
@@ -463,7 +462,7 @@ extern uint32_t HAL_frequency_limit[8];
 // --------------------------------------------------------------------------
 // Public functions
 // --------------------------------------------------------------------------
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
+void HAL_timer_start(const uint8_t timer_num);
 
 void HAL_calc_pulse_cycle();
 

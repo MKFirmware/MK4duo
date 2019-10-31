@@ -83,6 +83,6 @@ inline void gcode_M569() {
   DEBUG_EMV("HAL_frequency_limit[5]:",  HAL_frequency_limit[5]);
   DEBUG_EMV("HAL_frequency_limit[6]:",  HAL_frequency_limit[6]);
   DEBUG_EMV("HAL_frequency_limit[7]:",  HAL_frequency_limit[7]);
-  /*/
+  //*/
 
 }
