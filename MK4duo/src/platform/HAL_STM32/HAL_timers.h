@@ -28,7 +28,7 @@
 
 #ifdef STM32F0xx
 
-  #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
+  #define HAL_TIMER_RATE (F_CPU)
 
   #ifndef STEP_TIMER
     #define STEP_TIMER TIM16
@@ -36,7 +36,7 @@
 
 #elif defined(STM32F1xx)
 
-  #define HAL_TIMER_RATE (F_CPU) // frequency of timer peripherals
+  #define HAL_TIMER_RATE (F_CPU)
 
   #ifndef STEP_TIMER
     #define STEP_TIMER TIM4

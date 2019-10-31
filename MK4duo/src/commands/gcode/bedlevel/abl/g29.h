@@ -182,7 +182,7 @@ inline void gcode_G29() {
   #if ABL_GRID
 
     #if HAS_PROBE_MANUALLY
-      ABL_VAR xy_int8_t meshCount;
+      ABL_VAR xy_uint8_t meshCount;
     #endif
 
     ABL_VAR xy_int_t    probe_position_lf,
@@ -615,7 +615,7 @@ inline void gcode_G29() {
 
       bool zig = PR_OUTER_END & 1;  // Always end at RIGHT and BACK_PROBE_BED_POSITION
 
-      xy_int8_t meshCount;
+      xy_uint8_t meshCount;
 
       // Outer loop is X with PROBE_Y_FIRST enabled
       // Outer loop is Y with PROBE_Y_FIRST disabled

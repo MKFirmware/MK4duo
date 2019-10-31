@@ -67,13 +67,13 @@
 #define T8_R25    100000.0  // Resistance in Ohms @ 25°C
 #define T8_BETA     3960.0  // Beta Value (K)
 
-#define _THERMISTOR_NAME_IS(n)  T ## n ## _NAME
-#define _THERMISTOR_R25_IS(n)   T ## n ## _R25
-#define _THERMISTOR_BETA_IS(n)  T ## n ## _BETA
+#define _THERMISTOR_NAME_IS(N)  T ## N ## _NAME
+#define _THERMISTOR_R25_IS(N)   T ## N ## _R25
+#define _THERMISTOR_BETA_IS(N)  T ## N ## _BETA
 
-#define THERMISTOR_NAME_IS(n) _THERMISTOR_NAME_IS(n)
-#define THERMISTOR_R25_IS(n)  _THERMISTOR_R25_IS(n)
-#define THERMISTOR_BETA_IS(n) _THERMISTOR_BETA_IS(n)
+#define THERMISTOR_NAME_IS(N) _THERMISTOR_NAME_IS(N)
+#define THERMISTOR_R25_IS(N)  _THERMISTOR_R25_IS(N)
+#define THERMISTOR_BETA_IS(N) _THERMISTOR_BETA_IS(N)
 
 #if TEMP_SENSOR_HE0 > 0 && TEMP_SENSOR_HE0 < 10
   #define HOT0_NAME THERMISTOR_NAME_IS(TEMP_SENSOR_HE0)
@@ -213,6 +213,10 @@
   #define HOT1_NAME "DUMMY SENSOR"
   #define HOT1_R25  0.0
   #define HOT1_BETA 0.0
+#elif TEMP_SENSOR_HE1 == 0
+  #define HOT1_NAME ""
+  #define HOT1_R25  0.0
+  #define HOT1_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_HE2 == -4
@@ -241,6 +245,10 @@
   #define HOT2_BETA 0.0
 #elif TEMP_SENSOR_HE2 == 998 || TEMP_SENSOR_HE2 == 999
   #define HOT2_NAME "DUMMY SENSOR"
+  #define HOT2_R25  0.0
+  #define HOT2_BETA 0.0
+#elif TEMP_SENSOR_HE2 == 0
+  #define HOT2_NAME ""
   #define HOT2_R25  0.0
   #define HOT2_BETA 0.0
 #endif
@@ -273,6 +281,10 @@
   #define HOT3_NAME "DUMMY SENSOR"
   #define HOT3_R25  0.0
   #define HOT3_BETA 0.0
+#elif TEMP_SENSOR_HE3 == 0
+  #define HOT3_NAME ""
+  #define HOT3_R25  0.0
+  #define HOT3_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_HE4 == -4
@@ -303,6 +315,10 @@
   #define HOT4_NAME "DUMMY SENSOR"
   #define HOT4_R25  0.0
   #define HOT4_BETA 0.0
+#elif TEMP_SENSOR_HE4 == 0
+  #define HOT4_NAME ""
+  #define HOT4_R25  0.0
+  #define HOT4_BETA 0.0
 #endif
 
 #if TEMP_SENSOR_HE5 == -4
@@ -331,6 +347,10 @@
   #define HOT5_BETA 0.0
 #elif TEMP_SENSOR_HE5 == 998 || TEMP_SENSOR_HE5 == 999
   #define HOT5_NAME "DUMMY SENSOR"
+  #define HOT5_R25  0.0
+  #define HOT5_BETA 0.0
+#elif TEMP_SENSOR_HE5 == 0
+  #define HOT5_NAME ""
   #define HOT5_R25  0.0
   #define HOT5_BETA 0.0
 #endif
