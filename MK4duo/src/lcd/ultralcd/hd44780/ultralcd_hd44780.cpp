@@ -440,7 +440,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       // Show the MK4duo logo with splash line 1
       // After a delay show the website URL
       //
-      logo_lines(PSTR(""));
+      logo_lines(NULL_STR);
       CENTER_OR_SCROLL(SHORT_BUILD_VERSION, BOOTSCREEN_TIMEOUT);
       CENTER_OR_SCROLL(MK4DUO_FIRMWARE_URL, BOOTSCREEN_TIMEOUT);
     }
@@ -950,9 +950,8 @@ void LcdUI::draw_status_screen() {
 
   // Draw a generic menu item with pre_char (if selected) and post_char
   void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
-    uint8_t n = LCD_WIDTH - 2;
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
-    n -= lcd_put_u8str_max_P(pstr, n);
+    uint8_t n = lcd_put_u8str_max_P(pstr, LCD_WIDTH - 2);
     for (; n; --n) lcd_put_wchar(' ');
     lcd_put_wchar(post_char);
   }
@@ -966,7 +965,7 @@ void LcdUI::draw_status_screen() {
   }
 
   // Draw a menu item with a (potentially) editable value
-  void MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     const uint8_t vallen = data ? (pgm ? utf8_strlen_P(data) : utf8_strlen(data)) : 0;
     lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
     uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2 - vallen);
@@ -978,7 +977,7 @@ void LcdUI::draw_status_screen() {
   }
 
   // Low-level edit_screen can be used to draw an edit screen from anyplace
-  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value) {
+  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
     uint8_t n = lcd_put_u8str_ind_P(0, 1, pstr, itemIndex, LCD_WIDTH - 1);
@@ -992,7 +991,7 @@ void LcdUI::draw_status_screen() {
   }
 
   // The Select Screen is the best thing since sliced pixels
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+  void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
     lcdui.draw_select_screen_prompt(pref, string, suff);
     SETCURSOR(0, LCD_HEIGHT - 1);
     lcd_put_wchar(yesno ? ' ' : '['); lcd_put_u8str_P(no); lcd_put_wchar(yesno ? ' ' : ']');
@@ -1002,7 +1001,7 @@ void LcdUI::draw_status_screen() {
 
   #if HAS_SD_SUPPORT
 
-    void MenuItem_sdbase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
+    void MenuItem_sdbase::draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
       lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
       constexpr uint8_t maxlen = LCD_WIDTH - 2;
       uint8_t n = maxlen - lcd_put_u8str_max(lcdui.scrolled_filename(theCard, maxlen, row, sel), maxlen);

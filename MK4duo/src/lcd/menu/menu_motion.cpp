@@ -156,7 +156,7 @@ void lcd_move_e() {
     lcdui.encoderPosition = 0;
   }
   if (lcdui.should_draw()) {
-    MenuEditItemBase::edit_screen(ftostr41sign(mechanics.current_position.e
+    MenuEditItemBase::edit_screen(GET_TEXT(MSG_MOVE_E), ftostr41sign(mechanics.current_position.e
       #if IS_KINEMATIC
         + manual_move_offset
       #endif
@@ -201,7 +201,7 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
     SUBMENU(MSG_MOVE_1MM,   [](){ _goto_manual_move( 1);    });
     SUBMENU(MSG_MOVE_01MM,  [](){ _goto_manual_move( 0.1f); });
     if (axis == Z_AXIS && (SHORT_MANUAL_Z_MOVE) > 0.0f && (SHORT_MANUAL_Z_MOVE) < 0.1f) {
-      SUBMENU_P(PSTR(""), []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
+      SUBMENU_P(NULL_STR, []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
       MENU_ITEM_ADDON_START(1);
         char tmp[20], numstr[10];
         // Determine digits needed right of decimal
@@ -258,7 +258,7 @@ void menu_move() {
     SUBMENU(MSG_MOVE_Z, [](){ _menu_move_distance(Z_AXIS, lcd_move_z); });
   }
   else
-    GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
+    GCODES_ITEM(MSG_AUTO_HOME, G28_CMD);
 
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
@@ -303,7 +303,7 @@ void menu_motion() {
   if (printer.mode == PRINTER_MODE_LASER)
     GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28 X Y F2000"));
   else {
-    GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
+    GCODES_ITEM(MSG_AUTO_HOME, G28_CMD);
     #if NOMECH(DELTA)
       GCODES_ITEM(MSG_AUTO_HOME_X, PSTR("G28 X"));
       GCODES_ITEM(MSG_AUTO_HOME_Y, PSTR("G28 Y"));

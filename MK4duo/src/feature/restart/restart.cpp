@@ -174,7 +174,7 @@ void Restart::resume_job() {
   // Reset E, raise Z, home XY...
   commands.process_now_P(PSTR("G92.9 E0"));
   #if Z_HOME_DIR > 0
-    commands.process_now_P(PSTR("G28"));
+    commands.process_now_P(G28_CMD);
   #else
     commands.process_now_P(PSTR("G92.9 Z0"));
     mechanics.home_flag.ZHomed = true;
@@ -308,7 +308,7 @@ void Restart::resume_job() {
   // Resume the SD file from the last position
   char *fn = job_info.fileName;
   while (*fn == '/') fn++;
-  sprintf_P(cmd, PSTR("M23 %s"), fn);
+  sprintf_P(cmd, M23_CMD, fn);
   commands.process_now(cmd);
   sprintf_P(cmd, PSTR("M24 S%ld T%ld"), save_sdpos, job_info.print_job_counter_elapsed);
   commands.process_now(cmd);

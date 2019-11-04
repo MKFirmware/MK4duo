@@ -62,26 +62,24 @@ void _lcd_goto_next_corner() {
   ) bed_corner = 0;
 }
 
-static inline void menu_level_bed_corners() {
-  do_select_screen(
-    GET_TEXT(MSG_BUTTON_NEXT), GET_TEXT(MSG_BUTTON_DONE),
-    _lcd_goto_next_corner,
-    lcdui.goto_previous_screen_no_defer,
-    GET_TEXT(
-      #if ENABLED(LEVEL_CENTER_TOO)
-        MSG_LEVEL_BED_NEXT_POINT
-      #else
-        MSG_NEXT_CORNER
-      #endif
-    ), nullptr, PSTR("?")
-  );
-}
-
 static inline void _lcd_level_bed_corners_homing() {
   lcd_draw_homing();
   if (mechanics.isHomedAll()) {
     bed_corner = 0;
-    lcdui.goto_screen(menu_level_bed_corners);
+    MenuItem_confirm::select_screen(
+      GET_TEXT(MSG_BUTTON_NEXT), GET_TEXT(MSG_BUTTON_DONE),
+      _lcd_goto_next_corner,
+      []{
+        lcdui.goto_previous_screen_no_defer();
+      },
+      GET_TEXT(
+        #if ENABLED(LEVEL_CENTER_TOO)
+          MSG_LEVEL_BED_NEXT_POINT
+        #else
+          MSG_NEXT_CORNER
+        #endif
+      ), (PGM_P)nullptr, PSTR("?")
+    );
     lcdui.set_selection(true);
     _lcd_goto_next_corner();
   }
@@ -89,7 +87,7 @@ static inline void _lcd_level_bed_corners_homing() {
 
 void lcd_level_bed_corners() {
   lcdui.defer_status_screen();
-  if (!mechanics.isHomedAll()) commands.inject_P(PSTR("G28"));
+  if (!mechanics.isHomedAll()) commands.inject_P(G28_CMD);
   lcdui.goto_screen(_lcd_level_bed_corners_homing);
 }
 

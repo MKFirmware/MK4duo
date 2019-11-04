@@ -36,12 +36,6 @@ void scroll_screen(const uint8_t limit, const bool is_menu);
 ///////// Menu Item Draw Functions /////////
 ////////////////////////////////////////////
 
-void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff);
-void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
-inline void do_select_screen_yn(selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr) {
-  do_select_screen(GET_TEXT(MSG_YES), GET_TEXT(MSG_NO), yesFunc, noFunc, pref, string, suff);
-}
-
 #define SS_LEFT     0x00
 #define SS_CENTER   0x01
 #define SS_INVERT   0x02
@@ -96,8 +90,44 @@ class MenuItemBase {
     static void _draw(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char);
 
     // Draw an item either selected ('>') or not (space) with post_char
-    static inline void _draw(const bool sel, const uint8_t row, PGM_P const pstr, const char post_char) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const char post_char) {
       _draw(sel, row, pstr, '>', post_char);
+    }
+};
+
+// CONFIRM_ITEM(PLABEL,Y,N,FY,FN,V...), YESNO_ITEM(PLABEL,FY,FN,V...)
+class MenuItem_confirm : MenuItemBase {
+  public:
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
+      _draw(sel, row, pstr, '>', LCD_STR_ARROW_RIGHT[0]);
+    }
+    // Implemented for HD44780 and DOGM
+    // Draw the prompt, buttons, and state
+    static void draw_select_screen(
+      PGM_P const yes,            // Right option label
+      PGM_P const no,             // Left option label
+      const bool yesno,           // Is "yes" selected?
+      PGM_P const pref,           // Prompt prefix
+      const char * const string,  // Prompt runtime string
+      PGM_P const suff            // Prompt suffix
+    );
+    static void select_screen(
+      PGM_P const yes, PGM_P const no,
+      selectFunc_t yesFunc, selectFunc_t noFunc,
+      PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr
+    );
+    static inline void select_screen(
+      PGM_P const yes, PGM_P const no,
+      selectFunc_t yesFunc, selectFunc_t noFunc,
+      PGM_P const pref, const progmem_str string, PGM_P const suff=nullptr
+    ) {
+      char str[strlen_P((PGM_P)string) + 1];
+      strcpy_P(str, (PGM_P)string);
+      select_screen(yes, no, yesFunc, noFunc, pref, str, suff);
+    }
+    // Shortcut for prompt with "NO"/ "YES" labels
+    FORCE_INLINE static void confirm_screen(selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr) {
+      select_screen(GET_TEXT(MSG_YES), GET_TEXT(MSG_NO), yesFunc, noFunc, pref, string, suff);
     }
 };
 
@@ -105,26 +135,22 @@ class MenuItemBase {
 class MenuItem_back : public MenuItemBase {
   public:
     // Back Item just draws the label with up-level indicators
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
       _draw(sel, row, pstr, LCD_STR_UPLEVEL[0], LCD_STR_UPLEVEL[0]);
     }
     // Back Item action is to go back in the history
     static inline void action(PGM_P const=nullptr) {
-      lcdui.goto_previous_screen(
-        #if ENABLED(TURBO_BACK_MENU_ITEM)
-          true
-        #endif
-      );
+      lcdui.goto_previous_screen();
     }
 };
 
 // SUBMENU(PLABEL, FUNC)
 class MenuItem_submenu : public MenuItemBase {
   public:
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
       _draw(sel, row, pstr, '>', LCD_STR_ARROW_RIGHT[0]);
     }
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, ...) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, ...) {
       init(idx);
       _draw(sel, row, pstr, idx, '>', LCD_STR_ARROW_RIGHT[0]);
     }
@@ -132,25 +158,19 @@ class MenuItem_submenu : public MenuItemBase {
     static inline void action(PGM_P const, const uint8_t idx, const screenFunc_t func) { init(idx); lcdui.save_previous_screen(); lcdui.goto_screen(func); }
 };
 
-class MenuItem_button : public MenuItemBase {
-  public:
-    // IDXEXED Button-y Items are selectable lines with no other indicator
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, ...) {
-      init(idx);
-      _draw(sel, row, pstr, idx, '>', ' ');
-    }
-    // Button-y Items are selectable lines with no other indicator
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
-      _draw(sel, row, pstr, '>', ' ');
-    }
-};
-
 // GCODES_ITEM(LABEL, GCODES)
 // GCODES_ITEM_P(PLABEL, GCODES)
 // GCODES_ITEM_N(LABEL, IDX, GCODES)
 // GCODES_ITEM_N_P(PLABEL, IDX, GCODES)
-class MenuItem_gcode : public MenuItem_button {
+class MenuItem_gcode : public MenuItemBase {
   public:
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, ...) {
+      init(idx);
+      _draw(sel, row, pstr, idx, '>', ' ');
+    }
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
+      _draw(sel, row, pstr, '>', ' ');
+    }
     static void action(PGM_P const, const char * const pgcode);
     static inline void action(PGM_P const pstr, const uint8_t, const char * const pgcode) { action(pstr, pgcode); }
 };
@@ -159,9 +179,15 @@ class MenuItem_gcode : public MenuItem_button {
 // ACTION_ITEM_P(PLABEL, FUNC)
 // ACTION_ITEM_N(LABEL, IDX, FUNC)
 // ACTION_ITEM_N_P(PLABEL, IDX, FUNC)
-class MenuItem_function : public MenuItem_button {
+class MenuItem_function : public MenuItemBase {
   public:
-    //static inline void action(PGM_P const, const uint8_t, const menuAction_t func) { (*func)(); };
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, ...) {
+      init(idx);
+      _draw(sel, row, pstr, idx, '>', ' ');
+    }
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {
+      _draw(sel, row, pstr, '>', ' ');
+    }
     static inline void action(PGM_P const, const menuAction_t func) { (*func)(); };
     static inline void action(PGM_P const, const uint8_t idx, const screenFunc_t func) { init(idx); (*func)(); };
 };
@@ -171,7 +197,7 @@ class MenuItem_function : public MenuItem_button {
   class MenuItem_sdbase {
     public:
       // Implemented for HD44780 and DOGM
-      static void _draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir);
+      static void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir);
   };
 #endif
 
@@ -200,19 +226,17 @@ class MenuEditItemBase : public MenuItemBase {
   public:
     // Implemented for HD44780 and DOGM
     // Low-level method to draw (sel,row,pstr,idx,data,pgm), used by both MenuEditItem_NAME::_draw methods
-    static void _draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm);
+    static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm);
 
     // Draw the current item at specified row with edit data
-    static void _draw(const bool sel, const uint8_t row, const char* const data, const bool pgm) {
-      _draw(sel, row, editLabel, itemIndex, data, pgm);
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, const char* const data, const bool pgm) {
+      draw(sel, row, editLabel, itemIndex, data, pgm);
     }
 
     // Implemented for HD44780 and DOGM
     // This low-level method is good to draw from anywhere
-    static void edit_screen(PGM_P const pstr, const char* const value);
+    static void edit_screen(PGM_P const pstr, const char* const value=nullptr);
 
-    // This method is for the current menu item
-    static inline void edit_screen(const char* const value) { edit_screen(editLabel, value); }
 };
 
 // Template for specific Menu Edit Item Types
@@ -227,11 +251,11 @@ class TMenuEditItem : MenuEditItemBase {
   public:
     // These methods call the specific type-plus-formatting class
     // for the given NAME.
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, type_t * const data, ...) { \
-      NAME::_draw(sel, row, pstr, idx, data);
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, type_t * const data, ...) { \
+      MenuEditItemBase::draw(sel, row, pstr, idx, NAME::strfunc(*(data)), false);
     }
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, PGM_P const, type_t (*pget)(), ...) { \
-      NAME::_draw(sel, row, pstr, idx, pget);
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, PGM_P const, type_t (*pget)(), ...) { \
+      MenuEditItemBase::draw(sel, row, pstr, idx, NAME::strfunc(pget()), false);
     }
     static void action(
       PGM_P const pstr,                     // Edit label
@@ -258,12 +282,6 @@ class TMenuEditItem : MenuEditItemBase {
     typedef TYPE type_t; \
     static constexpr float scale = SCALE; \
     static inline const char* strfunc(const float value) { return STRFUNC((TYPE)value); } \
-    static inline void _draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, TYPE * const data) { \
-      MenuEditItemBase::_draw(sel, row, pstr, idx, STRFUNC(*(data)), false); \
-    } \
-    static inline void _draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, TYPE (*pget)()) { \
-      MenuEditItemBase::_draw(sel, row, pstr, idx, STRFUNC(pget()), false); \
-    } \
   }; \
   typedef TMenuEditItem<MenuEditItemInfo_##NAME> MenuItem_##NAME
 
@@ -283,6 +301,7 @@ DEFINE_MENU_EDIT_ITEM_TYPE(float,    float43,     ftostr43sign, 1000     );   //
 DEFINE_MENU_EDIT_ITEM_TYPE(float,    float5,      ftostr5rj,       1     );   // 12345      right-justified
 DEFINE_MENU_EDIT_ITEM_TYPE(float,    float5_25,   ftostr5rj,       0.04f );   // 12345      right-justified (25 increment)
 DEFINE_MENU_EDIT_ITEM_TYPE(float,    float51,     ftostr51rj,     10     );   // 1234.5     right-justified
+DEFINE_MENU_EDIT_ITEM_TYPE(float,    float41sign, ftostr41sign,   10     );   // +123.4
 DEFINE_MENU_EDIT_ITEM_TYPE(float,    float51sign, ftostr51sign,   10     );   // +1234.5
 DEFINE_MENU_EDIT_ITEM_TYPE(float,    float52sign, ftostr52sign,  100     );   // +123.45
 DEFINE_MENU_EDIT_ITEM_TYPE(uint32_t, long5,       ftostr5rj,       0.01f );   // 12345      right-justified
@@ -291,13 +310,13 @@ DEFINE_MENU_EDIT_ITEM_TYPE(uint32_t, long5_25,    ftostr5rj,       0.04f );   //
 class MenuItem_bool : MenuEditItemBase {
   public:
     static void action(PGM_P const pstr, const uint8_t idx, bool * const ptr, const screenFunc_t callbackFunc=nullptr);
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const bool onoff) {
-      _draw(sel, row, pstr, idx, onoff ? GET_TEXT(MSG_LCD_ON) : GET_TEXT(MSG_LCD_OFF), true);
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const bool onoff) {
+      MenuEditItemBase::draw(sel, row, pstr, idx, onoff ? GET_TEXT(MSG_LCD_ON) : GET_TEXT(MSG_LCD_OFF), true);
     }
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, bool * const data, ...) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, bool * const data, ...) {
       draw(sel, row, pstr, idx, *data);
     }
-    static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, PGM_P const, bool (*pget)(), ...) {
+    FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, PGM_P const, bool (*pget)(), ...) {
       draw(sel, row, pstr, idx, pget());
     }
 };
@@ -419,6 +438,19 @@ class MenuItem_bool : MenuEditItemBase {
   ++_thisItemNr;                                            \
 } while(0)
 
+#define _CONFIRM_ITEM_P(PLABEL, V...) do {                        \
+  _skipStatic = false;                                            \
+  if (_menuLineNr == _thisItemNr) {                               \
+    if (encoderLine == _thisItemNr && lcdui.use_click()) {        \
+      lcdui.goto_screen([]{MenuItem_confirm::select_screen(V);}); \
+      return;                                                     \
+    }                                                             \
+    if (lcdui.should_draw()) MenuItem_confirm::draw               \
+      (encoderLine == _thisItemNr, _lcdLineNr, PLABEL, ##V);      \
+  }                                                               \
+  ++_thisItemNr;                                                  \
+}while(0)
+
 #define STATIC_ITEM(LABEL, V...)             STATIC_ITEM_P(GET_TEXT(LABEL), ##V)
 
 #define SKIP_ITEM() (_thisItemNr++)
@@ -456,6 +488,11 @@ class MenuItem_bool : MenuEditItemBase {
 #define EDIT_ITEM_FAST_P(TYPE, PLABEL, V...)   EDIT_ITEM_FAST_N_P(TYPE, PLABEL,               NO_INDEX, ##V)
 #define EDIT_ITEM_FAST_N(TYPE, LABEL, N, V...) EDIT_ITEM_FAST_N_P(TYPE, GET_TEXT(LABEL),      N,        ##V)
 #define EDIT_ITEM_FAST(TYPE, LABEL, V...)        EDIT_ITEM_FAST_N(TYPE, LABEL,                NO_INDEX, ##V)
+
+#define CONFIRM_ITEM_P(PLABEL,A,B,V...)           _CONFIRM_ITEM_P(PLABEL, GET_TEXT(A), GET_TEXT(B),     ##V)
+#define CONFIRM_ITEM(LABEL, V...)                  CONFIRM_ITEM_P(GET_TEXT(LABEL),                      ##V)
+#define YESNO_ITEM_P(PLABEL, V...)                _CONFIRM_ITEM_P(PLABEL,                               ##V)
+#define YESNO_ITEM(LABEL, V...)                   _CONFIRM_ITEM_P(GET_TEXT(LABEL),                      ##V)
 
 ////////////////////////////////////////////
 /////////////// Menu Screens ///////////////

@@ -246,10 +246,10 @@ void SDCard::startFileprint() {
 
 void SDCard::openAndPrintFile(const char * name) {
   char cmd[4 + strlen(name) + 1]; // Room for "M23 ", filename, and null
-  sprintf_P(cmd, PSTR("M23 %s"), name);
+  sprintf_P(cmd, M23_CMD, name);
   for (char *c = &cmd[4]; *c; c++) *c = tolower(*c);
   commands.enqueue_one_now(cmd);
-  commands.enqueue_now_P(PSTR("M24"));
+  commands.enqueue_now_P(M24_CMD);
 }
 
 void SDCard::stop_print() {

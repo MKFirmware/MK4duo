@@ -21,6 +21,7 @@
  */
 #pragma once
 
+// String for HOST in Progmem
 FSTRINGVAR(START);              // start for host
 FSTRINGVAR(OK);                 // ok answer for host
 FSTRINGVAR(OKSPACE);            // ok space answer for host
@@ -39,6 +40,14 @@ FSTRINGVAR(TINF);               // INF for host
 FSTRINGVAR(REQUESTPAUSE);       // command for host that support action
 FSTRINGVAR(REQUESTCONTINUE);    // command for host that support action
 FSTRINGVAR(REQUESTSTOP);        // command for host that support action
+FSTRINGVAR(NULL_STR);           // NULL string
+
+// String for Gcode in Progmen
+FSTRINGVAR(G28_CMD);            // G28 command
+FSTRINGVAR(M21_CMD);            // M21 command
+FSTRINGVAR(M22_CMD);            // M22 command
+FSTRINGVAR(M23_CMD);            // M23 command
+FSTRINGVAR(M24_CMD);            // M24 command
 
 class Com {
 

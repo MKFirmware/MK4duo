@@ -299,19 +299,6 @@ void menu_advanced_temperature() {
     END_MENU();
   }
 
-  #if ENABLED(EEPROM_SETTINGS)
-
-    static void lcd_init_eeprom_confirm() {
-      do_select_screen(
-        GET_TEXT(MSG_BUTTON_INIT), GET_TEXT(MSG_BUTTON_CANCEL),
-        []{ sound.feedback(eeprom.Init()); },
-        lcdui.goto_previous_screen,
-        GET_TEXT(MSG_INIT_EEPROM), nullptr, PSTR("?")
-      );
-    }
-
-  #endif
-
 #endif // !SLIM_LCD_MENUS
 
 void menu_advanced_settings() {
@@ -379,7 +366,12 @@ void menu_advanced_settings() {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS) && DISABLED(SLIM_LCD_MENUS)
-    SUBMENU(MSG_INIT_EEPROM, lcd_init_eeprom_confirm);
+    CONFIRM_ITEM(MSG_INIT_EEPROM,
+      MSG_BUTTON_INIT, MSG_BUTTON_CANCEL,
+      []{ sound.feedback(eeprom.Init()); },
+      lcdui.goto_previous_screen,
+      GET_TEXT(MSG_INIT_EEPROM), (PGM_P)nullptr, PSTR("?")
+    );
   #endif
 
   END_MENU();

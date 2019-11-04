@@ -101,7 +101,7 @@ void menu_tool_change() {
 
     auto _recalc_offsets = []{
       if (tools.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
-        commands.inject_P(PSTR("G28")); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
+        commands.inject_P(G28_CMD); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
         tools.extruder.active = 0;
       }
     };
@@ -176,19 +176,11 @@ void menu_tool_change() {
     ACTION_ITEM(MSG_BLTOUCH_STOW, bltouch.cmd_stow);
     ACTION_ITEM(MSG_BLTOUCH_MODE_SW, bltouch.cmd_mode_SW);
     #if ENABLED(BLTOUCH_LCD_VOLTAGE_MENU)
-      SUBMENU(MSG_BLTOUCH_MODE_5V, []{
-        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_5V), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.cmd_mode_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
-      });
-      SUBMENU(MSG_BLTOUCH_MODE_OD, []{
-        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_OD), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.cmd_mode_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
-      });
+      CONFIRM_ITEM(MSG_BLTOUCH_MODE_5V, MSG_BLTOUCH_MODE_5V, MSG_BUTTON_CANCEL, bltouch.cmd_mode_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
+      CONFIRM_ITEM(MSG_BLTOUCH_MODE_OD, MSG_BLTOUCH_MODE_OD, MSG_BUTTON_CANCEL, bltouch.cmd_mode_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       ACTION_ITEM(MSG_BLTOUCH_MODE_STORE, bltouch.cmd_mode_store);
-      SUBMENU(MSG_BLTOUCH_MODE_STORE_5V, []{
-        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_STORE_5V), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.mode_conv_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
-      });
-      SUBMENU(MSG_BLTOUCH_MODE_STORE_OD, []{
-        do_select_screen(GET_TEXT(MSG_BLTOUCH_MODE_STORE_OD), GET_TEXT(MSG_BUTTON_CANCEL), bltouch.mode_conv_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
-      });
+      CONFIRM_ITEM(MSG_BLTOUCH_MODE_STORE_5V, MSG_BLTOUCH_MODE_STORE_5V, MSG_BUTTON_CANCEL, bltouch.mode_conv_5V, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
+      CONFIRM_ITEM(MSG_BLTOUCH_MODE_STORE_OD, MSG_BLTOUCH_MODE_STORE_OD, MSG_BUTTON_CANCEL, bltouch.mode_conv_OD, lcdui.goto_previous_screen, GET_TEXT(MSG_BLTOUCH_MODE_CHANGE));
       ACTION_ITEM(MSG_BLTOUCH_MODE_ECHO, bltouch_report);
     #endif
     END_MENU();

@@ -22,6 +22,7 @@
 
 #include "../../../../MK4duo.h"
 
+// String for HOST in Progmem
 FSTRINGVALUE(START, "start");
 FSTRINGVALUE(OK, "ok");
 FSTRINGVALUE(OKSPACE, "ok ");
@@ -40,6 +41,14 @@ FSTRINGVALUE(TINF, "INF");
 FSTRINGVALUE(REQUESTPAUSE, "RequestPause:");
 FSTRINGVALUE(REQUESTCONTINUE, "RequestContinue:");
 FSTRINGVALUE(REQUESTSTOP, "RequestStop:");
+FSTRINGVALUE(NULL_STR, "");
+
+// String for Gcode in Progmen
+FSTRINGVALUE(G28_CMD, "G28");
+FSTRINGVALUE(M21_CMD, "M21");
+FSTRINGVALUE(M22_CMD, "M22");
+FSTRINGVALUE(M23_CMD, "M23 %s");
+FSTRINGVALUE(M24_CMD, "M24");
 
 /** Public Parameters */
 int8_t Com::serial_port_index = -1;

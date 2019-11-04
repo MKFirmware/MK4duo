@@ -621,7 +621,7 @@ inline void gcode_G29() {
       // Outer loop is Y with PROBE_Y_FIRST disabled
       for (PR_OUTER_VAR = 0; PR_OUTER_VAR < PR_OUTER_END && !isnan(measured_z); PR_OUTER_VAR++) {
 
-        int8_t inStart, inStop, inInc;
+        uint8_t inStart, inStop, inInc;
 
         if (zig) { // away from origin
           inStart = 0;
@@ -630,8 +630,8 @@ inline void gcode_G29() {
         }
         else {     // towards origin
           inStart = PR_INNER_END - 1;
-          inStop = -1;
-          inInc = -1;
+          inStop = 0xFF;
+          inInc = 0xFF;
         }
 
         zig ^= true; // zag

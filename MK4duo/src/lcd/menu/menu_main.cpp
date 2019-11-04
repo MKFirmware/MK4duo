@@ -35,7 +35,10 @@
 bool stop_print_file;
 
 void menu_stop_print() {
-  do_select_screen_yn(lcdui.stop_print, lcdui.goto_previous_screen, GET_TEXT(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
+  MenuItem_confirm::confirm_screen(
+    lcdui.stop_print, lcdui.goto_previous_screen,
+    GET_TEXT(MSG_ARE_YOU_SURE), (PGM_P)nullptr, PSTR("?")
+  );
 }
 
 #if HAS_EEPROM || HAS_NEXTION_LCD
@@ -79,7 +82,10 @@ void menu_stop_print() {
   #if HAS_SD_SUPPORT
 
     void menu_firmware() {
-      do_select_screen_yn(nexlcd.UploadNewFirmware, lcdui.goto_previous_screen, GET_TEXT(MSG_ARE_YOU_SURE), nullptr, PSTR("?"));
+      MenuItem_confirm::confirm_screen(
+        nexlcd.UploadNewFirmware, lcdui.goto_previous_screen,
+        GET_TEXT(MSG_ARE_YOU_SURE), (PGM_P)nullptr, PSTR("?")
+      );
     }
 
   #endif
@@ -97,16 +103,6 @@ void menu_led();
 
 #if ENABLED(COLOR_MIXING_EXTRUDER) && DISABLED(NEXTION)
   void menu_mixer();
-#endif
-
-#if ENABLED(SERVICE_TIME_1)
-  void menu_service1();
-#endif
-#if ENABLED(SERVICE_TIME_2)
-  void menu_service2();
-#endif
-#if ENABLED(SERVICE_TIME_3)
-  void menu_service3();
 #endif
 
 void menu_main() {
@@ -138,9 +134,9 @@ void menu_main() {
         if (!card_open) {
           SUBMENU(MSG_CARD_MENU, menu_sdcard);
           #if PIN_EXISTS(SD_DETECT)
-            GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));
+            GCODES_ITEM(MSG_CHANGE_SDCARD, M21_CMD);
           #else
-            GCODES_ITEM(MSG_RELEASE_SDCARD, PSTR("M22"));
+            GCODES_ITEM(MSG_RELEASE_SDCARD, M22_CMD);
           #endif
         }
       }
@@ -148,7 +144,7 @@ void menu_main() {
         #if PIN_EXISTS(SD_DETECT)
           STATIC_ITEM(MSG_NO_CARD);
         #else
-          GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21"));
+          GCODES_ITEM(MSG_INIT_SDCARD, M21_CMD);
           STATIC_ITEM(MSG_SD_RELEASED);
         #endif
         
@@ -214,9 +210,9 @@ void menu_main() {
     if (card_mounted) {
       if (!card_open) {
         #if PIN_EXISTS(SD_DETECT)
-          GCODES_ITEM(MSG_CHANGE_SDCARD, PSTR("M21"));
+          GCODES_ITEM(MSG_CHANGE_SDCARD, M21_CMD);
         #else
-          GCODES_ITEM(MSG_RELEASE_SDCARD, PSTR("M22"));
+          GCODES_ITEM(MSG_RELEASE_SDCARD, M22_CMD);
         #endif
         SUBMENU(MSG_CARD_MENU, menu_sdcard);
       }
@@ -225,21 +221,43 @@ void menu_main() {
       #if PIN_EXISTS(SD_DETECT)
         STATIC_ITEM(MSG_NO_CARD);
       #else
-        GCODES_ITEM(MSG_INIT_SDCARD, PSTR("M21"));
+        GCODES_ITEM(MSG_INIT_SDCARD, M21_CMD);
         STATIC_ITEM(MSG_SD_RELEASED);
       #endif
     }
   #endif // HAS_ENCODER_WHEEL && HAS_SD_SUPPORT
 
-  #if ENABLED(SERVICE_TIME_1)
-    SUBMENU_P(PSTR(SERVICE_NAME_1), menu_service1);
-  #endif
-  #if ENABLED(SERVICE_TIME_2)
-    SUBMENU_P(PSTR(SERVICE_NAME_2), menu_service2);
-  #endif
-  #if ENABLED(SERVICE_TIME_3)
-    SUBMENU_P(PSTR(SERVICE_NAME_3), menu_service3);
-  #endif
+  #if HAS_SERVICE_TIMES
+    static auto _service_reset = [](const int index) {
+      print_job_counter.resetServiceTime(index);
+      #if HAS_BUZZER
+        sound.playtone(200, 404);
+      #endif
+      lcdui.reset_status();
+      lcdui.return_to_status();
+    };
+    #if ENABLED(SERVICE_TIME_1)
+      CONFIRM_ITEM_P(PSTR(SERVICE_NAME_1),
+        MSG_BUTTON_RESET, MSG_BUTTON_CANCEL,
+        []{ _service_reset(1); }, lcdui.goto_previous_screen,
+        GET_TEXT(MSG_SERVICE_RESET), PSTR(SERVICE_NAME_1), PSTR("?")
+      );
+    #endif
+    #if ENABLED(SERVICE_TIME_2)
+      CONFIRM_ITEM_P(PSTR(SERVICE_NAME_2),
+        MSG_BUTTON_RESET, MSG_BUTTON_CANCEL,
+        []{ _service_reset(2); }, lcdui.goto_previous_screen,
+        GET_TEXT(MSG_SERVICE_RESET), PSTR(SERVICE_NAME_2), PSTR("?")
+      );
+    #endif
+    #if ENABLED(SERVICE_TIME_3)
+      CONFIRM_ITEM_P(PSTR(SERVICE_NAME_3),
+        MSG_BUTTON_RESET, MSG_BUTTON_CANCEL,
+        []{ _service_reset(3); }, lcdui.goto_previous_screen,
+        GET_TEXT(MSG_SERVICE_RESET), PSTR(SERVICE_NAME_3), PSTR("?")
+      );
+    #endif
+  #endif // HAS_SERVICE_TIMES
 
   #if HAS_GAMES
     SUBMENU(MSG_GAMES, (

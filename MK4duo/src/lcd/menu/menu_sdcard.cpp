@@ -63,7 +63,7 @@ inline void sdcard_start_selected_file() {
 }
 
 void menu_sd_confirm() {
-  do_select_screen(
+  MenuItem_confirm::select_screen(
     GET_TEXT(MSG_BUTTON_PRINT), GET_TEXT(MSG_BUTTON_CANCEL),
     sdcard_start_selected_file, lcdui.goto_previous_screen,
     GET_TEXT(MSG_START_PRINT), card.fileName, PSTR("?")
@@ -73,7 +73,7 @@ void menu_sd_confirm() {
 class MenuItem_sdfile : public MenuItem_sdbase {
   public:
     static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) {
-      _draw(sel, row, pstr, theCard, false);
+      MenuItem_sdbase::draw(sel, row, pstr, theCard, false);
     }
     static void action(PGM_P const pstr, SDCard &) {
       #if ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
@@ -89,7 +89,7 @@ class MenuItem_sdfile : public MenuItem_sdbase {
 class MenuItem_sdfolder : public MenuItem_sdbase {
   public:
     static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) {
-      _draw(sel, row, pstr, theCard, true);
+      MenuItem_sdbase::draw(sel, row, pstr, theCard, true);
     }
     static void action(PGM_P const, SDCard &theCard) {
       card.chdir(theCard.fileName);

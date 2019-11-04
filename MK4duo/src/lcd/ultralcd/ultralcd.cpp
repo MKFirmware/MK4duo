@@ -383,7 +383,7 @@ bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
 
         #endif // HAS_LCD_MENU
 
-        if (!homed && RRK(EN_KEYPAD_F1)) commands.inject_P(PSTR("G28"));
+        if (!homed && RRK(EN_KEYPAD_F1)) commands.inject_P(G28_CMD);
         return true;
       }
 
@@ -1325,7 +1325,7 @@ void LcdUI::resume_print() {
     printer.setWaitForUser(false);
   #endif
   #if HAS_SD_SUPPORT
-    commands.inject_P(PSTR("M24"));
+    commands.inject_P(M24_CMD);
   #endif
   host_action.resume();
   print_job_counter.start();

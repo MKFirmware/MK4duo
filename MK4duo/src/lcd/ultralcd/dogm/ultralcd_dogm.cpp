@@ -365,7 +365,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a menu item with an editable value
-  void MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
       u8g_uint_t n = lcd_put_u8str_ind_P(pstr, idx, (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH));
@@ -439,7 +439,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
     if (inv) u8g.setColorIndex(1);
   }
 
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+  void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
     lcdui.draw_select_screen_prompt(pref, string, suff);
     draw_boxed_string(1, LCD_HEIGHT - 1, no, !yesno);
     draw_boxed_string(LCD_WIDTH - (utf8_strlen_P(yes) + 1), LCD_HEIGHT - 1, yes, yesno);
@@ -447,7 +447,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
 
   #if HAS_SD_SUPPORT
 
-    void MenuItem_sdbase::_draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
+    void MenuItem_sdbase::draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
       if (mark_as_selected(row, sel)) {
         if (isDir) lcd_put_wchar(LCD_STR_FOLDER[0]);
         constexpr uint8_t maxlen = LCD_WIDTH - 1;

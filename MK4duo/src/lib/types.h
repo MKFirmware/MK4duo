@@ -21,6 +21,9 @@
  */
 #pragma once
 
+class __FlashStringHelper;
+typedef const __FlashStringHelper *progmem_str;
+
 typedef uint32_t  millis_l;
 typedef uint16_t  millis_s;
 typedef int8_t    pin_t;

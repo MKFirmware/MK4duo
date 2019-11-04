@@ -119,7 +119,7 @@ void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   if (int32_t(lcdui.encoderPosition) < 0) lcdui.encoderPosition = 0;
   if (int32_t(lcdui.encoderPosition) > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
-    edit_screen(strfunc(lcdui.encoderPosition + minEditValue));
+    edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
     if (editValue != nullptr) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
     if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
@@ -228,7 +228,7 @@ void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const
 static PGM_P sync_message;
 
 void LcdUI::_synchronize() {
-  if (should_draw()) MenuItem_static::draw(LCD_HEIGHT >= 4 ? 1 : 0, sync_message);
+  if (should_draw()) MenuItem_static::draw(LCD_HEIGHT >= 4, sync_message);
   if (no_reentry) return;
   // Make this the current handler till all moves are done
   no_reentry = true;
@@ -395,12 +395,12 @@ bool LcdUI::update_selection() {
   }
   return selection;
 }
-void do_select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
-  const bool  lcdui_selection = lcdui.update_selection(),
-              got_click       = lcdui.use_click();
+
+void MenuItem_confirm::select_screen(PGM_P const yes, PGM_P const no, selectFunc_t yesFunc, selectFunc_t noFunc, PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+  const bool ui_selection = lcdui.update_selection(), got_click = lcdui.use_click();
   if (got_click || lcdui.should_draw()) {
-    draw_select_screen(yes, no, lcdui_selection, pref, string, suff);
-    if (got_click) { lcdui_selection ? yesFunc() : noFunc(); }
+    draw_select_screen(yes, no, ui_selection, pref, string, suff);
+    if (got_click) { ui_selection ? yesFunc() : noFunc(); }
   }
 }
 

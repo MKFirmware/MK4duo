@@ -1033,7 +1033,7 @@ bool NextionLCD::getConnect(char* buffer) {
     nexSerial.end();
     HAL::delayMilliseconds(100);
     nexSerial.begin(baudrate);
-    nexlcd.sendCommandPGM(PSTR(""));
+    nexlcd.sendCommandPGM(NULL_STR);
     nexlcd.sendCommandPGM(PSTR("connect"));
     recvRetString(string);
 
@@ -1074,7 +1074,7 @@ bool NextionLCD::getConnect(char* buffer) {
     String baudrate_str = String(baudrate, 10);
     cmd = "whmi-wri " + filesize_str + "," + baudrate_str + ",0";
 
-    nexlcd.sendCommandPGM(PSTR(""));
+    nexlcd.sendCommandPGM(NULL_STR);
     nexlcd.sendCommand(cmd.c_str());
     HAL::delayMilliseconds(50);
     nexSerial.begin(baudrate);
@@ -1447,7 +1447,7 @@ void LcdUI::resume_print() {
     printer.setWaitForUser(false);
   #endif
   #if HAS_SD_SUPPORT
-    commands.inject_P(PSTR("M24"));
+    commands.inject_P(M24_CMD);
   #endif
   host_action.resume();
   print_job_counter.start();
@@ -1540,7 +1540,7 @@ void LcdUI::stop_print() {
   }
 
   // Draw a menu item with a (potentially) editable value
-  void  MenuEditItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+  void  MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
                   vallen    = data ? (pgm ? strlen_P(data) : strlen((char*)data)) : 0;
     nexlcd.line_encoder_touch = true;
@@ -1602,7 +1602,7 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+  void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
     lcdui.draw_select_screen_prompt(pref, string, suff);
     nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
     nexlcd.setChar(yesno ? ' ' : '[');
@@ -1617,7 +1617,7 @@ void LcdUI::stop_print() {
 
   #if HAS_SD_SUPPORT
 
-    void MenuItem_sdbase::_draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
+    void MenuItem_sdbase::draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
       nexlcd.mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
       if (isDir) nexlcd.put_str_P(PSTR(LCD_STR_FOLDER));

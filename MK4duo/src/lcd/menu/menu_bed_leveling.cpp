@@ -206,7 +206,7 @@
     lcdui.defer_status_screen();
     mechanics.unsetHomedAll();
     lcdui.goto_screen(_lcd_level_bed_homing);
-    commands.inject_P(PSTR("G28"));
+    commands.inject_P(G28_CMD);
   }
 
 #endif // PROBE_MANUALLY || MESH_BED_LEVELING
@@ -252,7 +252,7 @@ void menu_bed_leveling() {
 
   // Auto Home if not using manual probing
   #if DISABLED(PROBE_MANUALLY) && DISABLED(MESH_BED_LEVELING)
-    if (!is_homed) GCODES_ITEM(MSG_AUTO_HOME, PSTR("G28"));
+    if (!is_homed) GCODES_ITEM(MSG_AUTO_HOME, G28_CMD);
   #endif
 
   // Level Bed

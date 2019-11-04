@@ -660,7 +660,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
     if (!IS_SD_PRINTING() && !READ(HOME_PIN)) {
       if (next_home_key_timer.expired(HOME_DEBOUNCE_DELAY)) {
         LCD_MESSAGEPGM(MSG_AUTO_HOME);
-        commands.enqueue_now_P(PSTR("G28"));
+        commands.enqueue_now_P(G28_CMD);
       }
     }
   #endif
