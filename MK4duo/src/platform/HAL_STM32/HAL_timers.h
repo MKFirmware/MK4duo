@@ -26,39 +26,14 @@
 // ------------------------
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
-#ifdef STM32F0xx
-
-  #define HAL_TIMER_RATE (F_CPU)
-
-  #ifndef STEP_TIMER
-    #define STEP_TIMER TIM16
-  #endif
-
-#elif defined(STM32F1xx)
-
-  #define HAL_TIMER_RATE (F_CPU)
-
-  #ifndef STEP_TIMER
-    #define STEP_TIMER TIM4
-  #endif
-
-#elif defined(STM32F4xx) || defined(STM32F7xx)
-
-  #define HAL_TIMER_RATE ((F_CPU)/2)
-
-  #ifndef STEP_TIMER
-    #define STEP_TIMER TIM5
-  #endif
-
-#endif
-
 #define HAL_TIMER_TYPE_MAX          0xFFFFFFFF
-
+#define HAL_TIMER_RATE              ((F_CPU)/2)
 #define NUM_HARDWARE_TIMERS         1                                           // Only Stepper use Hardware Timer
 #define NvicPrioritySystick         15
 
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // Index of timer to use for stepper
+#define STEP_TIMER                  TIM5
 #define STEPPER_TIMER_PRESCALE      2                                           // Stepper prescaler 2
 #define STEPPER_TIMER_RATE          ((HAL_TIMER_RATE)/STEPPER_TIMER_PRESCALE)   // Frequency of stepper timer 45Mhz
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000UL)          // 45 Stepper timer ticks per µs
@@ -163,11 +138,11 @@
 // ------------------------
 // Public Variables
 // ------------------------
-extern uint32_t HAL_min_pulse_cycle,
-                HAL_min_pulse_tick,
-                HAL_add_pulse_ticks,
-                HAL_frequency_limit[8];
-extern bool     HAL_timer_is_active;
+extern hal_timer_t  HAL_min_pulse_cycle,
+                    HAL_min_pulse_tick,
+                    HAL_add_pulse_ticks,
+                    HAL_frequency_limit[8];
+extern bool         HAL_timer_is_active;
 
 // ------------------------
 // Hardware Timer
@@ -175,60 +150,35 @@ extern bool     HAL_timer_is_active;
 extern HardwareTimer *MK_timer;
 
 // ------------------------
-// Public functions
-// ------------------------
-void HAL_calc_pulse_cycle();
-
-// ------------------------
 // Public functions for timer
 // ------------------------
 extern void Step_Handler(HardwareTimer*);
 
-FORCE_INLINE static bool HAL_timer_initialized() {
+// ------------------------
+// Public functions
+// ------------------------
+void HAL_calc_pulse_cycle();
+void HAL_timer_start();
+void HAL_timer_enable_interrupt();
+void HAL_timer_disable_interrupt();
+bool HAL_timer_interrupt_is_enabled();
+uint32_t HAL_timer_get_Clk_Freq();
+
+FORCE_INLINE bool HAL_timer_initialized() {
   return MK_timer != nullptr;
 }
 
-FORCE_INLINE static void HAL_timer_start() {
-  if (!HAL_timer_initialized()) {
-    MK_timer = new HardwareTimer(STEP_TIMER);
-    MK_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
-    MK_timer->setOverflow(HAL_TIMER_TYPE_MAX, TICK_FORMAT);
-    MK_timer->attachInterrupt(Step_Handler);
-  }
+FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
+  return HAL_timer_initialized() && HAL_timer_is_active;
 }
 
-FORCE_INLINE static void HAL_timer_enable_interrupt() {
-  if (HAL_timer_initialized() && !HAL_timer_is_active) {
-    MK_timer->resume();
-    HAL_timer_is_active = true;
-  }
-}
-
-FORCE_INLINE static void HAL_timer_disable_interrupt() {
-  if (HAL_timer_initialized() && HAL_timer_is_active) {
-    MK_timer->pause();
-    HAL_timer_is_active = false;
-  }
-}
-
-FORCE_INLINE static bool HAL_timer_interrupt_is_enabled() {
-  return HAL_timer_is_active;
-}
-
-FORCE_INLINE static void HAL_timer_set_count(const uint8_t, const hal_timer_t count) {
-  if (HAL_timer_initialized()) {
-    MK_timer->setOverflow(count);
-    if (MK_timer->getCount() >= count) MK_timer->refresh(); // Generate an immediate update interrupt
-  }
-}
-
-FORCE_INLINE static hal_timer_t HAL_timer_get_current_count(const uint8_t) {
+FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {
   return HAL_timer_initialized() ? MK_timer->getCount() : 0;
 }
 
-FORCE_INLINE static uint32_t HAL_timer_get_Clk_Freq() {
-  return HAL_timer_initialized() ? MK_timer->getTimerClkFreq() : 0;
+FORCE_INLINE void HAL_timer_set_count(const uint8_t, const hal_timer_t count) {
+  if (HAL_timer_initialized()) {
+    MK_timer->setOverflow(count + 1, TICK_FORMAT);
+    if (count < MK_timer->getCount()) MK_timer->refresh(); // Generate an immediate update interrupt
+  }
 }
-
-#define HAL_timer_isr_prologue(TIMER_NUM)
-#define HAL_timer_isr_epilogue(TIMER_NUM)

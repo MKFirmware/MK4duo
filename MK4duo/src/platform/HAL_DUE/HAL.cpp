@@ -591,7 +591,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(hotends[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            hotends[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
@@ -601,7 +601,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(beds[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            beds[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
@@ -611,7 +611,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(chambers[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            chambers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
@@ -621,7 +621,7 @@ void HAL::Tick() {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
           currentFilter.process_reading(AnalogInReadPin(coolers[h]->data.sensor.pin));
           if (currentFilter.IsValid())
-            coolers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+            coolers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif

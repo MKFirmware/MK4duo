@@ -126,7 +126,7 @@ Power powerManager;
 
 #if HAS_POWER_CONSUMPTION_SENSOR
 
-  // Convert raw Power Consumption to watt
+  // Convert adc_raw Power Consumption to watt
   float Power::raw_analog2voltage() {
     return ((HAL_VOLTAGE_PIN) * current_raw_powconsumption) / (AD_RANGE);
   }

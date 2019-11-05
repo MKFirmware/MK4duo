@@ -310,7 +310,7 @@ void Temperature::spin() {
     millis_l from_last_update = temp_last_update - last_update;
     static float watt_overflow = 0.0;
     powerManager.consumption_meas = powerManager.analog2power();
-    /*SERIAL_MV("raw:", powerManager.raw_analog2voltage(), 5);
+    /*SERIAL_MV("adc_raw:", powerManager.raw_analog2voltage(), 5);
     SERIAL_MV(" - V:", powerManager.analog2voltage(), 5);
     SERIAL_MV(" - I:", powerManager.analog2current(), 5);
     SERIAL_EMV(" - P:", powerManager.analog2power(), 5);*/
@@ -481,11 +481,11 @@ bool Temperature::heaters_isActive() {
         if (false) {}
         #if HAS_MAX31855
           else if (hotends[h]->data.sensor.type == -4)
-            hotends[h]->data.sensor.raw = hotends[h]->data.sensor.read_max31855();
+            hotends[h]->data.sensor.adc_raw = hotends[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
           else if (hotends[h]->data.sensor.type == -3)
-            hotends[h]->data.sensor.raw = hotends[h]->data.sensor.read_max6675();
+            hotends[h]->data.sensor.adc_raw = hotends[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
@@ -494,11 +494,11 @@ bool Temperature::heaters_isActive() {
         if (false) {}
         #if HAS_MAX31855
           else if (beds[h]->data.sensor.type == -4)
-            beds[h]->data.sensor.raw = beds[h]->data.sensor.read_max31855();
+            beds[h]->data.sensor.adc_raw = beds[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
           else if (beds[h]->data.sensor.type == -3)
-            beds[h]->data.sensor.raw = beds[h]->data.sensor.read_max6675();
+            beds[h]->data.sensor.adc_raw = beds[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
@@ -507,11 +507,11 @@ bool Temperature::heaters_isActive() {
         if (false) {}
         #if HAS_MAX31855
           else if (chambers[h]->data.sensor.type == -4)
-            chambers[h]->data.sensor.raw = chambers[h]->data.sensor.read_max31855();
+            chambers[h]->data.sensor.adc_raw = chambers[h]->data.sensor.read_max31855();
         #endif
         #if HAS_MAX6675
           else if (chambers[h]->data.sensor.type == -3)
-            chambers[h]->data.sensor.raw = chambers[h]->data.sensor.read_max6675();
+            chambers[h]->data.sensor.adc_raw = chambers[h]->data.sensor.read_max6675();
         #endif
       }
     #endif
@@ -522,7 +522,7 @@ bool Temperature::heaters_isActive() {
 
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
 
-  // Convert raw Filament Width to millimeters
+  // Convert adc_raw Filament Width to millimeters
   float Temperature::analog2widthFil() {
     return current_raw_filwidth * (HAL_VOLTAGE_PIN) * (1.0f / float(AD_RANGE));
   }
@@ -677,8 +677,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     sens->beta            = HE_BETA[h];
     sens->pullup_res      = THERMISTOR_SERIES_RS;
     sens->shC             = 0;
-    sens->adcLowOffset    = 0;
-    sens->adcHighOffset   = 0;
+    sens->adc_low_offset  = 0;
+    sens->adc_high_offset = 0;
     #if HAS_AD8495 || HAS_AD595
       sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
       sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
@@ -733,8 +733,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     sens->beta            = BED0_BETA;
     sens->pullup_res      = THERMISTOR_SERIES_RS;
     sens->shC             = 0;
-    sens->adcLowOffset    = 0;
-    sens->adcHighOffset   = 0;
+    sens->adc_low_offset  = 0;
+    sens->adc_high_offset = 0;
     #if HAS_AD8495 || HAS_AD595
       sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
       sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
@@ -789,8 +789,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     sens->beta            = CHAMBER0_BETA;
     sens->pullup_res      = THERMISTOR_SERIES_RS;
     sens->shC             = 0;
-    sens->adcLowOffset    = 0;
-    sens->adcHighOffset   = 0;
+    sens->adc_low_offset  = 0;
+    sens->adc_high_offset = 0;
     #if HAS_AD8495 || HAS_AD595
       sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
       sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
@@ -838,8 +838,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     sens->beta            = COOLER_BETA;
     sens->pullup_res      = THERMISTOR_SERIES_RS;
     sens->shC             = 0;
-    sens->adcLowOffset    = 0;
-    sens->adcHighOffset   = 0;
+    sens->adc_low_offset  = 0;
+    sens->adc_high_offset = 0;
     #if HAS_AD8495 || HAS_AD595
       sens->ad595_offset  = TEMP_SENSOR_AD595_OFFSET;
       sens->ad595_gain    = TEMP_SENSOR_AD595_GAIN;
@@ -903,8 +903,8 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
 #endif
 
 #if HAS_MCU_TEMPERATURE
-  float Temperature::analog2tempMCU(const int raw) {
-    const float voltage = (float)raw * ((HAL_VOLTAGE_PIN) / (float)AD_RANGE);
+  float Temperature::analog2tempMCU(const int adc_raw) {
+    const float voltage = (float)adc_raw * ((HAL_VOLTAGE_PIN) / (float)AD_RANGE);
     return (voltage - 0.8f) * (1000.0f / 2.65f) + 27.0f; // + mcuTemperatureAdjust;
   }
 #endif
@@ -943,7 +943,7 @@ void Temperature::print_heater_state(Heater* act, const bool print_ID, const boo
   SERIAL_VAL(act->deg_current());
   SERIAL_MV(" /" , targetTemperature);
   if (showRaw) {
-    SERIAL_MV(" (", act->data.sensor.raw);
+    SERIAL_MV(" (", act->data.sensor.adc_raw);
     SERIAL_CHR(')');
   }
 

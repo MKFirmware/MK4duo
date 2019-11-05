@@ -68,7 +68,7 @@ static void Servo_PeriodElapsedCallback(HardwareTimer*) {
 }
 
 static void TimerServoInit() {
-  // prescaler is computed so that timer tick correspond to 1 microseconde
+  // prescaler is computed so that timer tick correspond to 1 microsecond
   uint32_t prescaler = TimerServo.getTimerClkFreq() / 1000000;
   TimerServo.setMode(1, TIMER_OUTPUT_COMPARE, NC);
   TimerServo.setPrescaleFactor(prescaler);

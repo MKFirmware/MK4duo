@@ -134,13 +134,17 @@ typedef uint32_t  ptr_int_t;
   #define analogInputToDigitalPin(p) (p)
 #endif
 
+// Bits for PWM
+#undef PWM_RESOLUTION
+#define PWM_RESOLUTION       8
+
 // Bits of the ADC converter
-#define ANALOG_INPUT_BITS 12
-#define AD_RANGE        4095      // 12-bit resolution
-#define ABS_ZERO        -273.15f
-#define NUM_ADC_SAMPLES   32
-#define AD595_MAX        330.0f
-#define AD8495_MAX       660.0f
+#define ANALOG_INPUT_BITS   12
+#define AD_RANGE          _BV(ANALOG_INPUT_BITS)
+#define ABS_ZERO          -273.15f
+#define NUM_ADC_SAMPLES     32
+#define AD595_MAX          330.0f
+#define AD8495_MAX         660.0f
 
 #define GET_PIN_MAP_PIN(index) index
 #define GET_PIN_MAP_INDEX(pin) pin
@@ -206,10 +210,7 @@ class HAL {
 
     static void hwSetup(void);
 
-    static bool pwm_status(const pin_t pin);
-    static bool tc_status(const pin_t pin);
-
-    static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq=1000U);
+    static void analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t PWM_freq=1000U);
 
     static void Tick();
 

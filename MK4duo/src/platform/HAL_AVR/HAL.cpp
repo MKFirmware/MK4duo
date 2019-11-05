@@ -400,16 +400,16 @@ void HAL::Tick() {
 void HAL::set_current_temp_raw() {
 
   #if MAX_HOTEND > 0
-    LOOP_HOTEND() hotends[h]->data.sensor.raw = AnalogInputValues[hotends[h]->data.sensor.pin];
+    LOOP_HOTEND() hotends[h]->data.sensor.adc_raw = AnalogInputValues[hotends[h]->data.sensor.pin];
   #endif
   #if MAX_BED > 0
-    LOOP_BED() beds[h]->data.sensor.raw = AnalogInputValues[beds[h]->data.sensor.pin];
+    LOOP_BED() beds[h]->data.sensor.adc_raw = AnalogInputValues[beds[h]->data.sensor.pin];
   #endif
   #if MAX_CHAMBER > 0
-    LOOP_CHAMBER() chambers[h]->data.sensor.raw = AnalogInputValues[chambers[h]->data.sensor.pin];
+    LOOP_CHAMBER() chambers[h]->data.sensor.adc_raw = AnalogInputValues[chambers[h]->data.sensor.pin];
   #endif
   #if MAX_COOLER > 0
-    LOOP_COOLER() coolers[h]->data.sensor.raw = AnalogInputValues[coolers[h]->data.sensor.pin];
+    LOOP_COOLER() coolers[h]->data.sensor.adc_raw = AnalogInputValues[coolers[h]->data.sensor.pin];
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR

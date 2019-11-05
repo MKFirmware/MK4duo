@@ -152,49 +152,41 @@ void HAL::AdcChangePin(const pin_t old_pin, const pin_t new_pin) {
 // Reset peripherals and cpu
 void HAL::resetHardware() { NVIC_SystemReset(); }
 
-bool HAL::pwm_status(const pin_t pin) {
-  return false;
-}
-
-bool HAL::tc_status(const pin_t pin) {
-  return false;
-}
-
 /**
  * PWM output only work on the pins with hardware support.
  *  For the rest of the pins, we default to digital output
  */
 
 static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to) {
-  if (from == to)
-    return value;
-  if (from > to)
-    return value >> (from - to);
-  else
-    return value << (to - from);
+  if (from != to) {
+    if (from > to)
+      value = (value < (uint32_t)(1 << (from - to))) ? 0 : ((value + 1) >> (from - to)) - 1;
+    else if (value != 0)
+      value = ((value + 1) << (to - from)) - 1;
+  }
+  return value;
 }
 
-void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/) {
-  ::analogWrite(pin, ulValue);
-/*
+void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t PWM_freq/*=1000U*/) {
+
+  HardwareTimer* MK_pwm;
+
   PinName p = digitalPinToPinName(pin);
+  TIM_TypeDef *Instance = (TIM_TypeDef *)pinmap_peripheral(p, PinMap_PWM);
+  uint32_t index = get_timer_index(Instance);
 
-  #ifdef HAL_DAC_MODULE_ENABLED
-    if (pin_in_pinmap(p, PinMap_DAC)) {
-      ulValue = mapResolution(ulValue, 8, DACC_RESOLUTION);
-      dac_write_value(p, ulValue, 1);
-      return;
-    }
-  #endif
+  if (HardwareTimer_Handle[index] == NULL)
+    HardwareTimer_Handle[index]->__this = new HardwareTimer(Instance);
 
-  #ifdef HAL_TIM_MODULE_ENABLED
-    if (pin_in_pinmap(p, PinMap_PWM)) {
-      ulValue = mapResolution(ulValue, 8, PWM_RESOLUTION);
-      pwm_start(p, freq * PWM_MAX_DUTY_CYCLE, PWM_MAX_DUTY_CYCLE, ulValue, 1);
-      return;
-    }
-  #endif
-*/
+  MK_pwm = (HardwareTimer *)(HardwareTimer_Handle[index]->__this);
+
+  uint32_t channel = STM_PIN_CHANNEL(pinmap_function(p, PinMap_PWM));
+
+  MK_pwm->setMode(channel, TIMER_OUTPUT_COMPARE_PWM1, p);
+  MK_pwm->setOverflow(PWM_freq, HERTZ_FORMAT);
+  MK_pwm->setCaptureCompare(channel, ulValue, RESOLUTION_8B_COMPARE_FORMAT);
+  MK_pwm->resume();
+
 }
 
 /**
@@ -247,7 +239,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
       currentFilter.process_reading(analogRead(hotends[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        hotends[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_BED > 0
@@ -255,7 +247,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
       currentFilter.process_reading(analogRead(beds[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        beds[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_CHAMBER > 0
@@ -263,7 +255,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
       currentFilter.process_reading(analogRead(chambers[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        chambers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
   #if MAX_COOLER > 0
@@ -271,7 +263,7 @@ void HAL::Tick() {
       ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
       currentFilter.process_reading(analogRead(coolers[h]->data.sensor.pin));
       if (currentFilter.IsValid())
-        coolers[h]->data.sensor.raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
+        coolers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
     }
   #endif
 

@@ -203,11 +203,11 @@ class Temperature {
     #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      static float analog2widthFil(); // Convert raw Filament Width to millimeters
+      static float analog2widthFil(); // Convert adc_raw Filament Width to millimeters
     #endif
 
     #if HAS_MCU_TEMPERATURE
-      static float analog2tempMCU(const int raw);
+      static float analog2tempMCU(const int adc_raw);
     #endif
 
     static void print_heater_state(Heater* act, const bool print_ID, const bool showRaw);

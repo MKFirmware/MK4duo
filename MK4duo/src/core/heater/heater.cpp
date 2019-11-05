@@ -51,7 +51,7 @@ void Heater::init() {
   consecutive_low_temp  = 0;
   target_temperature    = 0;
   idle_temperature      = 0;
-  data.sensor.raw       = 0;
+  data.sensor.adc_raw   = 0;
 
   current_temperature   = 25.0;
 
@@ -267,7 +267,7 @@ void Heater::set_output_pwm() {
   else {
     // Now set the pin high (if not 0)
     if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (pwm_value & SOFT_PWM_MASK)) > 0))
-        HAL::digitalWrite(data.pin, HIGH);
+      HAL::digitalWrite(data.pin, HIGH);
 
     // If it's a valid pin turn off the channel
     if (data.pin > NoPin && pwm_soft_pos == pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
@@ -605,8 +605,8 @@ void Heater::print_M305() {
     SERIAL_MV(" B", data.sensor.beta, 1);
     SERIAL_MV(" C", data.sensor.shC, 10);
     SERIAL_MV(" R", data.sensor.pullup_res, 1);
-    SERIAL_MV(" L", data.sensor.adcLowOffset);
-    SERIAL_MV(" O", data.sensor.adcHighOffset);
+    SERIAL_MV(" L", data.sensor.adc_low_offset);
+    SERIAL_MV(" O", data.sensor.adc_high_offset);
   }
   SERIAL_EOL();
 }
