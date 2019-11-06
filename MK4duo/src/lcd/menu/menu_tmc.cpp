@@ -28,8 +28,8 @@
 
 #if HAS_LCD_MENU && HAS_TRINAMIC
 
-#define TMC_EDIT_STORED_I_RMS(ST)   EDIT_ITEM_P(uint16_4, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->val_mA, 100, 3000, [](){ driver[ST##_DRV]->tmc->refresh_stepper_current(); })
-#define TMC_EDIT_STORED_I_RMS_E(I)  EDIT_ITEM_N_P(uint16_4, PSTR(MSG_HOST_E), I, &driver.e[I]->tmc->val_mA, 100, 3000,  [](){ driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_current(); })
+#define TMC_EDIT_STORED_I_RMS(ST)   EDIT_ITEM_P(uint16_4, PSTR(MSG_HOST_##ST), &driver[ST##_DRV]->tmc->val_mA, 100, 3000, []{ driver[ST##_DRV]->tmc->refresh_stepper_current(); })
+#define TMC_EDIT_STORED_I_RMS_E(I)  EDIT_ITEM_N_P(uint16_4, PSTR(MSG_HOST_E), I, &driver.e[I]->tmc->val_mA, 100, 3000,  []{ driver.e[MenuItemBase::itemIndex]->tmc->refresh_stepper_current(); })
 
 void menu_tmc_current() {
   START_MENU();

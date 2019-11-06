@@ -197,9 +197,9 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
   #endif
   {
     BACK_ITEM(MSG_MOVE_AXIS);
-    SUBMENU(MSG_MOVE_10MM,  [](){ _goto_manual_move(10);    });
-    SUBMENU(MSG_MOVE_1MM,   [](){ _goto_manual_move( 1);    });
-    SUBMENU(MSG_MOVE_01MM,  [](){ _goto_manual_move( 0.1f); });
+    SUBMENU(MSG_MOVE_10MM,  []{ _goto_manual_move(10);    });
+    SUBMENU(MSG_MOVE_1MM,   []{ _goto_manual_move( 1);    });
+    SUBMENU(MSG_MOVE_01MM,  []{ _goto_manual_move( 0.1f); });
     if (axis == Z_AXIS && (SHORT_MANUAL_Z_MOVE) > 0.0f && (SHORT_MANUAL_Z_MOVE) < 0.1f) {
       SUBMENU_P(NULL_STR, []{ _goto_manual_move(float(SHORT_MANUAL_Z_MOVE)); });
       MENU_ITEM_ADDON_START(1);
@@ -244,18 +244,18 @@ void menu_move() {
         && mechanics.current_position.z <= mechanics.delta_clip_start_height
       #endif
     ) {
-      SUBMENU(MSG_MOVE_X, [](){ _menu_move_distance(X_AXIS, lcd_move_x); });
-      SUBMENU(MSG_MOVE_Y, [](){ _menu_move_distance(Y_AXIS, lcd_move_y); });
+      SUBMENU(MSG_MOVE_X, []{ _menu_move_distance(X_AXIS, lcd_move_x); });
+      SUBMENU(MSG_MOVE_Y, []{ _menu_move_distance(Y_AXIS, lcd_move_y); });
     }
     #if MECH(DELTA)
       else
-        ACTION_ITEM(MSG_FREE_XY, [](){
+        ACTION_ITEM(MSG_FREE_XY, []{
           mechanics.do_blocking_move_to_z(mechanics.delta_clip_start_height, MMM_TO_MMS(manual_feedrate_mm_m.z));
           lcdui.synchronize();
         });
     #endif
 
-    SUBMENU(MSG_MOVE_Z, [](){ _menu_move_distance(Z_AXIS, lcd_move_z); });
+    SUBMENU(MSG_MOVE_Z, []{ _menu_move_distance(Z_AXIS, lcd_move_z); });
   }
   else
     GCODES_ITEM(MSG_AUTO_HOME, G28_CMD);
@@ -270,7 +270,7 @@ void menu_move() {
   #endif
 
   LOOP_EXTRUDER()
-    SUBMENU_N(MSG_MOVE_E, e, [](){ _menu_move_distance(E_AXIS, lcd_move_e); });
+    SUBMENU_N(MSG_MOVE_E, e, []{ _menu_move_distance(E_AXIS, lcd_move_e); });
 
   END_MENU();
 }
@@ -339,11 +339,11 @@ void menu_motion() {
     #endif
     if (mechanics.isHomedAll() && bedlevel.leveling_is_valid()) {
       bool new_level_state = bedlevel.flag.leveling_active;
-      EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, [](){ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
+      EDIT_ITEM(bool, MSG_BED_LEVELING, &new_level_state, []{ bedlevel.set_bed_leveling_enabled(!bedlevel.flag.leveling_active); });
     }
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
       editable.decimal = bedlevel.z_fade_height;
-    EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &editable.decimal, 0, 100, [](){ bedlevel.set_z_fade_height(editable.decimal); });
+    EDIT_ITEM_FAST(float3, MSG_Z_FADE_HEIGHT, &editable.decimal, 0, 100, []{ bedlevel.set_z_fade_height(editable.decimal); });
     #endif
 
   #endif

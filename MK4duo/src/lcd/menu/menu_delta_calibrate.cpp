@@ -83,8 +83,8 @@ void menu_delta_calibrate() {
   #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2)
     GCODES_ITEM(MSG_DELTA_AUTO_CALIBRATE, PSTR("G33"));
     #if ENABLED(EEPROM_SETTINGS)
-      ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
-      ACTION_ITEM(MSG_LOAD_EEPROM, [](){ eeprom.load(); });
+      ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
+      ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
     #endif
   #endif
 

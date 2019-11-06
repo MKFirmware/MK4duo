@@ -122,7 +122,7 @@ void menu_tool_change() {
     #endif
 
     #if ENABLED(EEPROM_SETTINGS)
-      ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
+      ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
     #endif
     END_MENU();
   }
@@ -235,12 +235,12 @@ void menu_tool_change() {
   void menu_laser_test_fire() {
     START_MENU();
      BACK_ITEM("Laser Functions");
-     ACTION_ITEM("Weak ON",             [](){ laser.fire(0.3); });
-     ACTION_ITEM(" 20%  50ms",          [](){ laser_test_fire( 20,  50); });
-     ACTION_ITEM(" 20% 100ms",          [](){ laser_test_fire( 20, 100); });
-     ACTION_ITEM("100%  50ms",          [](){ laser_test_fire(100,  50); });
-     ACTION_ITEM("100% 100ms",          [](){ laser_test_fire(100, 100); });
-     ACTION_ITEM("Warm-up Laser 2sec",  [](){ laser_test_fire( 15,2000); });
+     ACTION_ITEM("Weak ON",             []{ laser.fire(0.3); });
+     ACTION_ITEM(" 20%  50ms",          []{ laser_test_fire( 20,  50); });
+     ACTION_ITEM(" 20% 100ms",          []{ laser_test_fire( 20, 100); });
+     ACTION_ITEM("100%  50ms",          []{ laser_test_fire(100,  50); });
+     ACTION_ITEM("100% 100ms",          []{ laser_test_fire(100, 100); });
+     ACTION_ITEM("Warm-up Laser 2sec",  []{ laser_test_fire( 15,2000); });
      END_MENU();
   }  
 
@@ -258,14 +258,14 @@ void menu_tool_change() {
   void menu_laser_focus() {
     START_MENU();
     BACK_ITEM("Laser Functions");
-    ACTION_ITEM("1mm",          [](){ laser_set_focus(1); });
-    ACTION_ITEM("2mm",          [](){ laser_set_focus(2); });
-    ACTION_ITEM("3mm - 1/8in",  [](){ laser_set_focus(3); });
-    ACTION_ITEM("4mm",          [](){ laser_set_focus(4); });
-    ACTION_ITEM("5mm",          [](){ laser_set_focus(5); });
-    ACTION_ITEM("6mm - 1/4in",  [](){ laser_set_focus(6); });
-    ACTION_ITEM("7mm",          [](){ laser_set_focus(7); });
-    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, [](){ laser_set_focus(focalLength); });
+    ACTION_ITEM("1mm",          []{ laser_set_focus(1); });
+    ACTION_ITEM("2mm",          []{ laser_set_focus(2); });
+    ACTION_ITEM("3mm - 1/8in",  []{ laser_set_focus(3); });
+    ACTION_ITEM("4mm",          []{ laser_set_focus(4); });
+    ACTION_ITEM("5mm",          []{ laser_set_focus(5); });
+    ACTION_ITEM("6mm - 1/4in",  []{ laser_set_focus(6); });
+    ACTION_ITEM("7mm",          []{ laser_set_focus(7); });
+    EDIT_ITEM(float52, "Custom", &focalLength, 0, LASER_FOCAL_HEIGHT, []{ laser_set_focus(focalLength); });
     END_MENU();
   }
 
@@ -305,7 +305,7 @@ void menu_tool_change() {
       EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
-      ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
+      ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
     #endif
     END_MENU();
   }
@@ -409,13 +409,13 @@ void menu_configuration() {
   #endif
 
   #if ENABLED(EEPROM_SETTINGS)
-    ACTION_ITEM(MSG_STORE_EEPROM, [](){ eeprom.store(); });
+    ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
     if (!busy)
-      ACTION_ITEM(MSG_LOAD_EEPROM, [](){ eeprom.load(); });
+      ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
   #endif
 
   if (!busy)
-    ACTION_ITEM(MSG_RESTORE_FAILSAFE, [](){ eeprom.reset(); });
+    ACTION_ITEM(MSG_RESTORE_FAILSAFE, []{ eeprom.reset(); });
 
   END_MENU();
 }

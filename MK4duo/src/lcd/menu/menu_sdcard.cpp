@@ -119,7 +119,7 @@ void menu_sdcard() {
   BACK_ITEM(MSG_MAIN);
   if (card.flag.WorkdirIsRoot) {
     #if !PIN_EXISTS(SD_DETECT)
-      ACTION_ITEM(MSG_REFRESH, [](){
+      ACTION_ITEM(MSG_REFRESH, []{
         encoderTopLine = 0;
         card.unmount(); card.mount();
         if (card.isMounted()) card.ls();
@@ -127,7 +127,7 @@ void menu_sdcard() {
     #endif
   }
   else if (card.isMounted()) {
-    ACTION_ITEM_P(PSTR(LCD_STR_FOLDER ".."), [](){
+    ACTION_ITEM_P(PSTR(LCD_STR_FOLDER ".."), []{
       lcdui.encoderPosition = card.updir() ? ENCODER_STEPS_PER_MENU_ITEM : 0;
       encoderTopLine = 0;
       screen_changed = true;

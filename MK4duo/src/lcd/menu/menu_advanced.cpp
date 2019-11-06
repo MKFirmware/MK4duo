@@ -47,7 +47,7 @@ void menu_tmc();
     #if ENABLED(VOLUMETRIC_EXTRUSION)
 
       editable.state = printer.isVolumetric();
-      EDIT_ITEM(bool, MSG_VOLUMETRIC_ENABLED, &editable.state, [](){
+      EDIT_ITEM(bool, MSG_VOLUMETRIC_ENABLED, &editable.state, []{
         printer.setVolumetric(editable.state);
         tools.calculate_volumetric_multipliers;
       });
@@ -76,7 +76,7 @@ void menu_tmc();
 
     #if FILAMENT_RUNOUT_DISTANCE_MM > 0
       editable.decimal = filamentrunout.runout_distance();
-      EDIT_ITEM(float3, MSG_RUNOUT_DISTANCE_MM, &editable.decimal, 1, 30, [](){
+      EDIT_ITEM(float3, MSG_RUNOUT_DISTANCE_MM, &editable.decimal, 1, 30, []{
         filamentrunout.set_runout_distance(editable.decimal);
       });
     #endif
@@ -126,12 +126,12 @@ void menu_advanced_temperature() {
     LOOP_HOTEND() {
       if (hotends[h]->isUsePid()) {
         EDIT_ITEM_N(float52, MSG_PID_P, h, &hotends[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_PID_I, h, &hotends[h]->data.pid.Ki, 0.01f, 9990, [](){ hotends[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, MSG_PID_I, h, &hotends[h]->data.pid.Ki, 0.01f, 9990, []{ hotends[MenuItemBase::itemIndex]->data.pid.update(); });
         EDIT_ITEM_N(float52, MSG_PID_D, h, &hotends[h]->data.pid.Kd, 1, 9990);
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
           EDIT_ITEM_N(float3, MSG_PID_C, h, &hotends[h]->data.pid.Kc, 1, 9990);
         #endif
-        EDIT_ITEM_FAST_N(int3, MSG_PID_AUTOTUNE, h, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, [](){
+        EDIT_ITEM_FAST_N(int3, MSG_PID_AUTOTUNE, h, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, []{
           sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), MenuItemBase::itemIndex, autotune_temp[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
@@ -144,9 +144,9 @@ void menu_advanced_temperature() {
     LOOP_BED() {
       if (beds[h]->isUsePid()) {
         EDIT_ITEM_N(float52, MSG_BED_PID_P, h, &beds[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_BED_PID_I, h, &beds[h]->data.pid.Ki, 0.01f, 9990, [](){ beds[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, MSG_BED_PID_I, h, &beds[h]->data.pid.Ki, 0.01f, 9990, []{ beds[MenuItemBase::itemIndex]->data.pid.update(); });
         EDIT_ITEM_N(float52, MSG_BED_PID_D, h, &beds[h]->data.pid.Kd, 1, 9990);
-        EDIT_ITEM_FAST_N(int3, MSG_PID_BED_AUTOTUNE, h, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, [](){
+        EDIT_ITEM_FAST_N(int3, MSG_PID_BED_AUTOTUNE, h, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, []{
           sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_bed[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
@@ -159,9 +159,9 @@ void menu_advanced_temperature() {
     LOOP_CHAMBER() {
       if (chambers[h]->isUsePid()) {
         EDIT_ITEM_N(float52, MSG_CHAMBER_PID_P, h, &chambers[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_CHAMBER_PID_I, h, &chambers[h]->data.pid.Ki, 0.01f, 9990, [](){ chambers[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, MSG_CHAMBER_PID_I, h, &chambers[h]->data.pid.Ki, 0.01f, 9990, []{ chambers[MenuItemBase::itemIndex]->data.pid.update(); });
         EDIT_ITEM_N(float52, MSG_CHAMBER_PID_D, h, &chambers[h]->data.pid.Kd, 1, 9990);
-        EDIT_ITEM_FAST_N(int3, MSG_PID_CHAMBER_AUTOTUNE, h, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, [](){
+        EDIT_ITEM_FAST_N(int3, MSG_PID_CHAMBER_AUTOTUNE, h, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, []{
           sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_chamber[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
@@ -182,7 +182,7 @@ void menu_advanced_temperature() {
 
     // M203 Max Feedrate
     #if MECH(DELTA)
-      EDIT_ITEM_FAST(float3, MSG_VMAX_A, &mechanics.data.max_feedrate_mm_s.x, 1, 9999, [](){
+      EDIT_ITEM_FAST(float3, MSG_VMAX_A, &mechanics.data.max_feedrate_mm_s.x, 1, 9999, []{
         mechanics.data.max_feedrate_mm_s.y = mechanics.data.max_feedrate_mm_s.z = mechanics.data.max_feedrate_mm_s.x;
       });
     #else
@@ -219,7 +219,7 @@ void menu_advanced_temperature() {
 
     // M201 settings
     #if MECH(DELTA)
-      EDIT_ITEM_FAST(long5_25, MSG_AMAX_A, &mechanics.data.max_acceleration_mm_per_s2.x, 100, 99000, [](){
+      EDIT_ITEM_FAST(long5_25, MSG_AMAX_A, &mechanics.data.max_acceleration_mm_per_s2.x, 100, 99000, []{
         mechanics.data.max_acceleration_mm_per_s2.y = mechanics.data.max_acceleration_mm_per_s2.z = mechanics.data.max_acceleration_mm_per_s2.x;
         planner.reset_acceleration_rates();
       });
@@ -230,7 +230,7 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(long5_25, MSG_AMAX_E, e, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, [](){
+      EDIT_ITEM_FAST_N(long5_25, MSG_AMAX_E, e, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, []{
         if (MenuItemBase::itemIndex == tools.extruder.active) planner.reset_acceleration_rates();
       });
 
@@ -253,7 +253,7 @@ void menu_advanced_temperature() {
     #if HAS_CLASSIC_JERK
 
       #if MECH(DELTA)
-        EDIT_ITEM(float3, MSG_JERK, &mechanics.data.max_jerk.x, 1, 990, [](){
+        EDIT_ITEM(float3, MSG_JERK, &mechanics.data.max_jerk.x, 1, 990, []{
           mechanics.data.max_jerk.y = mechanics.data.max_jerk.z = mechanics.data.max_jerk.x;
         });
       #else
@@ -278,7 +278,7 @@ void menu_advanced_temperature() {
     BACK_ITEM(MSG_ADVANCED_SETTINGS);
 
     #if MECH(DELTA)
-      EDIT_ITEM_FAST(float51, MSG_STEPS_PER_MM, &mechanics.data.axis_steps_per_mm.x, 5, 9999, [](){
+      EDIT_ITEM_FAST(float51, MSG_STEPS_PER_MM, &mechanics.data.axis_steps_per_mm.x, 5, 9999, []{
         mechanics.data.axis_steps_per_mm.y = mechanics.data.axis_steps_per_mm.z = mechanics.data.axis_steps_per_mm.x;
         planner.refresh_positioning();
       });
@@ -289,7 +289,7 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(float51, MSG_E_STEPS, e, &extruders[e]->data.axis_steps_per_mm, 5, 9999, [](){
+      EDIT_ITEM_FAST_N(float51, MSG_E_STEPS, e, &extruders[e]->data.axis_steps_per_mm, 5, 9999, []{
         if (MenuItemBase::itemIndex == tools.extruder.active)
           planner.refresh_positioning();
         else
@@ -317,7 +317,7 @@ void menu_advanced_settings() {
     if (printer.mode == PRINTER_MODE_FFF) {
       #if HAS_LINEAR_EXTRUDER
         editable.uint8 = tools.data.extruders;
-        EDIT_ITEM(uint8, MSG_MAX_EXTRUDERS, &editable.uint8, 0, MAX_EXTRUDER, [](){
+        EDIT_ITEM(uint8, MSG_MAX_EXTRUDERS, &editable.uint8, 0, MAX_EXTRUDER, []{
           tools.change_number_extruder(editable.uint8);
         });
       #endif
@@ -333,7 +333,7 @@ void menu_advanced_settings() {
       //
       // Set Home Offsets
       //
-      ACTION_ITEM(MSG_SET_HOME_OFFSETS, [](){ commands.inject_P(PSTR("M428")); lcdui.return_to_status(); });
+      ACTION_ITEM(MSG_SET_HOME_OFFSETS, []{ commands.inject_P(PSTR("M428")); lcdui.return_to_status(); });
     #endif
 
     // M203 / M205 - Feedrate items

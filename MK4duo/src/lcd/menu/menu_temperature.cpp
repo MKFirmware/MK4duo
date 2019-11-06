@@ -76,10 +76,10 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     BACK_ITEM(MSG_TEMPERATURE);
     LOOP_HOTEND() {
-      ACTION_ITEM_N(MSG_PREHEAT_1_H,    h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 0, false);  });
-      ACTION_ITEM_N(MSG_PREHEAT_1_END,  h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 0, true);   });
+      ACTION_ITEM_N(MSG_PREHEAT_1_H,    h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 0, false);  });
+      ACTION_ITEM_N(MSG_PREHEAT_1_END,  h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 0, true);   });
     }
-    ACTION_ITEM(MSG_PREHEAT_1_ALL,          [](){ LOOP_HOTEND() _lcd_preheat(h, 0, false);  });
+    ACTION_ITEM(MSG_PREHEAT_1_ALL,          []{ LOOP_HOTEND() _lcd_preheat(h, 0, false);  });
     END_MENU();
   }
 
@@ -87,10 +87,10 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     BACK_ITEM(MSG_TEMPERATURE);
     LOOP_HOTEND() {
-      ACTION_ITEM_N(MSG_PREHEAT_2_H,    h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 1, false);  });
-      ACTION_ITEM_N(MSG_PREHEAT_2_END,  h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 1, true);   });
+      ACTION_ITEM_N(MSG_PREHEAT_2_H,    h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 1, false);  });
+      ACTION_ITEM_N(MSG_PREHEAT_2_END,  h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 1, true);   });
     }
-    ACTION_ITEM(MSG_PREHEAT_2_ALL,          [](){ LOOP_HOTEND() _lcd_preheat(h, 1, false);  });
+    ACTION_ITEM(MSG_PREHEAT_2_ALL,          []{ LOOP_HOTEND() _lcd_preheat(h, 1, false);  });
     END_MENU();
   }
 
@@ -98,10 +98,10 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
     START_MENU();
     BACK_ITEM(MSG_TEMPERATURE);
     LOOP_HOTEND() {
-      ACTION_ITEM_N(MSG_PREHEAT_2_H,    h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 2, false);  });
-      ACTION_ITEM_N(MSG_PREHEAT_3_END,  h,  [](){ _lcd_preheat(MenuItemBase::itemIndex, 2, true);   });
+      ACTION_ITEM_N(MSG_PREHEAT_2_H,    h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 2, false);  });
+      ACTION_ITEM_N(MSG_PREHEAT_3_END,  h,  []{ _lcd_preheat(MenuItemBase::itemIndex, 2, true);   });
     }
-    ACTION_ITEM(MSG_PREHEAT_3_ALL,          [](){ LOOP_HOTEND() _lcd_preheat(h, 2, false);  });
+    ACTION_ITEM(MSG_PREHEAT_3_ALL,          []{ LOOP_HOTEND() _lcd_preheat(h, 2, false);  });
     END_MENU();
   }
 

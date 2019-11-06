@@ -151,13 +151,13 @@ void menu_tune() {
   //
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
-      SUBMENU(MSG_BABYSTEP_X, [](){ _lcd_babystep_go(_lcd_babystep_x); });
-      SUBMENU(MSG_BABYSTEP_Y, [](){ _lcd_babystep_go(_lcd_babystep_y); });
+      SUBMENU(MSG_BABYSTEP_X, []{ _lcd_babystep_go(_lcd_babystep_x); });
+      SUBMENU(MSG_BABYSTEP_Y, []{ _lcd_babystep_go(_lcd_babystep_y); });
     #endif
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
       SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #else
-      SUBMENU(MSG_BABYSTEP_Z, [](){ _lcd_babystep_go(_lcd_babystep_z); });
+      SUBMENU(MSG_BABYSTEP_Z, []{ _lcd_babystep_go(_lcd_babystep_z); });
     #endif
   #endif
 

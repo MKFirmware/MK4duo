@@ -73,10 +73,10 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
   START_MENU();
   if (LCD_HEIGHT >= 4) STATIC_ITEM_P(change_filament_header(mode), SS_CENTER|SS_INVERT);
   BACK_ITEM(MSG_BACK);
-  ACTION_ITEM(MSG_PREHEAT_1, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[0]); });
-  ACTION_ITEM(MSG_PREHEAT_2, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[1]); });
-  ACTION_ITEM(MSG_PREHEAT_3, [](){ _change_filament_temp(lcdui.preheat_hotend_temp[2]); });
-  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - 10, [](){
+  ACTION_ITEM(MSG_PREHEAT_1, []{ _change_filament_temp(lcdui.preheat_hotend_temp[0]); });
+  ACTION_ITEM(MSG_PREHEAT_2, []{ _change_filament_temp(lcdui.preheat_hotend_temp[1]); });
+  ACTION_ITEM(MSG_PREHEAT_3, []{ _change_filament_temp(lcdui.preheat_hotend_temp[2]); });
+  EDIT_ITEM_FAST(int3, MSG_PREHEAT_CUSTOM, &hotends[_change_filament_temp_extruder]->target_temperature, hotends[extruder]->data.temp.min, hotends[extruder]->data.temp.max - 10, []{
     _change_filament_temp(hotends[_change_filament_temp_extruder]->target_temperature);
   });
   END_MENU();
@@ -100,9 +100,9 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
     LOOP_EXTRUDER() {
       PGM_P const msg = GET_TEXT(MSG_FILAMENTCHANGE);
       if (thermalManager.targetTooColdToExtrude(e))
-        SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
+        SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
       else
-        SUBMENU_N_P(msg, e, [](){
+        SUBMENU_N_P(msg, e, []{
           sprintf_P(cmd, PSTR("M600 B0 T%d"), MenuItemBase::itemIndex);
           lcd_enqueue_one_now(cmd);
         });
@@ -114,9 +114,9 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
+          SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(msg, e, [](){
+          SUBMENU_N_P(msg, e, []{
             sprintf_P(cmd, PSTR("M701 T%d"), MenuItemBase::itemIndex);
             lcd_enqueue_one_now(cmd);
           });
@@ -126,9 +126,9 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTUNLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          SUBMENU_N_P(msg, e, [](){ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
+          SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(msg, e, [](){
+          SUBMENU_N_P(msg, e, []{
             sprintf_P(cmd, PSTR("M702 T%d"), MenuItemBase::itemIndex);
             lcd_enqueue_one_now(cmd);
           });
@@ -193,17 +193,17 @@ void menu_pause_option() {
   #if LCD_HEIGHT > 2
     STATIC_ITEM(MSG_FILAMENT_CHANGE_OPTION_HEADER);
   #endif
-  ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_PURGE, [](){ advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE; });
+  ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_PURGE, []{ advancedpause.menu_response = PAUSE_RESPONSE_EXTRUDE_MORE; });
   #if HAS_FILAMENT_SENSOR
     editable.state = filamentrunout.sensor.isEnabled();
     if (filamentrunout.sensor.isFilamentOut())
-      EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &editable.state, [](){
+      EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &editable.state, []{
         filamentrunout.sensor.setEnabled(editable.state);
         filamentrunout.reset();
       });
     else
   #endif
-    ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_RESUME, [](){ advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT; });
+    ACTION_ITEM(MSG_FILAMENT_CHANGE_OPTION_RESUME, []{ advancedpause.menu_response = PAUSE_RESPONSE_RESUME_PRINT; });
   END_MENU();
 }
 
