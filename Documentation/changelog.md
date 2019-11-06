@@ -1,6 +1,20 @@
 ### Version 4.4.0
-* Revision 21-10-2019
-* Start development for STM32F446 on board Rumba32
+* Revision 07-11-2019
+* Start development for STM32 on board Rumba32
+*   Hardware Timer for stepper  OK
+*   Systick for temp            OK
+*   PWM Hardware                OK
+*   SD                          OK
+*   Serial                      OK
+*   EEPROM on FLASH             OK
+*   Display Nextion             OK
+*   DHT                         OK
+*   SERVO                       OK
+*   BLTOUCH                     OK
+*   DISPLAY 20x4                No Test
+*   DISPLAY Graphics            No Test
+*   Neopixel                    Not function
+*   
 * M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
 *    D[int] Set number driver extruder
 *    E[int] Set number extruder
