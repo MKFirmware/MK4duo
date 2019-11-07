@@ -389,63 +389,6 @@
 #endif
 
 /****************************************************************************************/
-<<<<<<< HEAD:MK4duo/src/inc/conditionals_pins.h
-
-// List of pins which to ignore when asked to change by gcode, 0 and 1 are RX and TX, do not mess with those!
-#if HOTENDS > 0
-  #define _H0_PINS HEATER_HE0_PIN, analogInputToDigitalPin(TEMP_HE0_PIN),
-#else
-  #define _H0_PINS
-#endif
-#if HOTENDS > 1
-  #define _H1_PINS HEATER_HE1_PIN, analogInputToDigitalPin(TEMP_HE1_PIN),
-#else
-  #define _H1_PINS
-#endif
-#if HOTENDS > 2
-  #define _H2_PINS HEATER_HE2_PIN, analogInputToDigitalPin(TEMP_HE2_PIN),
-#else
-  #define _H2_PINS
-#endif
-#if HOTENDS > 3
-  #define _H3_PINS HEATER_HE3_PIN, analogInputToDigitalPin(TEMP_HE3_PIN),
-#else
-  #define _H3_PINS
-#endif
-
-#if DRIVER_EXTRUDERS > 0
-  #define _E0_PINS E0_STEP_PIN, E0_DIR_PIN, E0_ENABLE_PIN,
-#else
-  #define _E0_PINS
-#endif
-#if DRIVER_EXTRUDERS > 1
-  #define _E1_PINS E1_STEP_PIN, E1_DIR_PIN, E1_ENABLE_PIN,
-#else
-  #define _E1_PINS
-#endif
-#if DRIVER_EXTRUDERS > 2
-  #define _E2_PINS E2_STEP_PIN, E2_DIR_PIN, E2_ENABLE_PIN,
-#else
-  #define _E2_PINS
-#endif
-#if DRIVER_EXTRUDERS > 3
-  #define _E3_PINS E3_STEP_PIN, E3_DIR_PIN, E3_ENABLE_PIN,
-#else
-  #define _E3_PINS
-#endif
-#if DRIVER_EXTRUDERS > 4
-  #define _E4_PINS E4_STEP_PIN, E4_DIR_PIN, E4_ENABLE_PIN,
-#else
-  #define _E4_PINS
-#endif
-#if DRIVER_EXTRUDERS > 5
-  #define _E5_PINS E5_STEP_PIN, E5_DIR_PIN, E5_ENABLE_PIN,
-#else
-  #define _E5_PINS
-#endif
-
-=======
->>>>>>> V4_4_0_dev:MK4duo/src/conditionals/conditionals_pins.h
 #define SENSITIVE_PINS { 0, 1, \
                         X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, \
                         Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, \

@@ -1,11 +1,7 @@
 dist: MagoKimbra
-<<<<<<< HEAD
-sudo: true
-=======
 
 sudo: true
 
->>>>>>> V4_4_0_dev
 language: c
 
 notifications:
@@ -70,8 +66,6 @@ script:
   # Build with the default configurations
   - build_mk4duo
 
-<<<<<<< HEAD
-=======
   # Test 1 extruders and heated bed on basic RAMPS 1.4
   # Test MECH_CARTESIAN
   # Test SDSUPPORT EEPROM_SETTINGS
@@ -150,7 +144,6 @@ script:
   - build_mk4duo
   - restore_configs
 
->>>>>>> V4_4_0_dev
   # Test 2 extruders and heated bed on basic RAMPS 1.4
   # Test SDSUPPORT EEPROM_SETTINGS
   # Test Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
@@ -166,11 +159,6 @@ script:
   - opt_enable_cartesian Z_PROBE_FIX_MOUNTED Z_SAFE_HOMING
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - build_mk4duo
-<<<<<<< HEAD
-
-  # Restore configuration
-=======
->>>>>>> V4_4_0_dev
   - restore_configs
 
   # Test 1 extruders and heated bed on basic RAMPS 1.4
@@ -189,9 +177,4 @@ script:
   - opt_enable_lcd REPRAP_DISCOUNT_SMART_CONTROLLER
   - pin_set FIL_RUNOUT_0_PIN ORIG_X_MAX_PIN
   - build_mk4duo
-<<<<<<< HEAD
-
-  # Restore configuration
-=======
->>>>>>> V4_4_0_dev
   - restore_configs

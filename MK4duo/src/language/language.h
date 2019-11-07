@@ -320,51 +320,6 @@
 #define MSG_HOST_CHANGE_PIN                     "For change pin please write in EEPROM and reset the printer."
 
 // Never translate these strings
-<<<<<<< HEAD
-#define MSG_X "X"
-#define MSG_Y "Y"
-#define MSG_Z "Z"
-#define MSG_E "E"
-#define MSG_X2 "X2"
-#define MSG_Y2 "Y2"
-#define MSG_Z2 "Z2"
-#define MSG_Z3 "Z3"
-#define MSG_H0 "0"
-#define MSG_H1 "1"
-#define MSG_H2 "2"
-#define MSG_H3 "3"
-#define MSG_H4 "4"
-#define MSG_H5 "5"
-#define MSG_H6 "6"
-#define MSG_N0 " 0"
-#define MSG_N1 " 1"
-#define MSG_N2 " 2"
-#define MSG_N3 " 3"
-#define MSG_N4 " 4"
-#define MSG_N5 " 5"
-#define MSG_N6 " 6"
-#define MSG_E0 "E0"
-#define MSG_E1 "E1"
-#define MSG_E2 "E2"
-#define MSG_E3 "E3"
-#define MSG_E4 "E4"
-#define MSG_E5 "E5"
-#define MSG_E6 "E6"
-#define MSG_MOVE_E0 "0"
-#define MSG_MOVE_E1 "1"
-#define MSG_MOVE_E2 "2"
-#define MSG_MOVE_E3 "3"
-#define MSG_MOVE_E4 "4"
-#define MSG_MOVE_E5 "5"
-#define MSG_MOVE_E6 "6"
-#define MSG_DIAM_E0 " 0"
-#define MSG_DIAM_E1 " 1"
-#define MSG_DIAM_E2 " 2"
-#define MSG_DIAM_E3 " 3"
-#define MSG_DIAM_E4 " 4"
-#define MSG_DIAM_E5 " 5"
-#define MSG_DIAM_E6 " 6"
-=======
 #define MSG_HOST_X "X"
 #define MSG_HOST_Y "Y"
 #define MSG_HOST_Z "Z"
@@ -387,7 +342,6 @@
 #define LCD_STR_B MSG_HOST_B
 #define LCD_STR_C MSG_HOST_C
 #define LCD_STR_E MSG_HOST_E
->>>>>>> V4_4_0_dev
 
 #define LANGUAGE_INCL(M)        STRINGIFY(language_##M.h)
 #define INCLUDE_BY_LANGUAGE(M)  LANGUAGE_INCL(M)

@@ -420,17 +420,10 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   #if ENABLED(Z_PROBE_SENSORLESS)
     sensorless_flag_t stealth_states;
     #if MECH(DELTA)
-<<<<<<< HEAD
-      stealth_states.x = tmc.enable_stallguard(X_DRV);
-      stealth_states.y = tmc.enable_stallguard(Y_DRV);
-    #endif
-    stealth_states.z = tmc.enable_stallguard(Z_DRV);
-=======
       stealth_states.x = tmc.enable_stallguard(driver.x);
       stealth_states.y = tmc.enable_stallguard(driver.y);
     #endif
     stealth_states.z = tmc.enable_stallguard(driver.z);
->>>>>>> V4_4_0_dev
     endstops.setEnabled(true);
   #endif
 
@@ -438,18 +431,6 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
     probing_pause(true);
   #endif
 
-<<<<<<< HEAD
-  #if MECH(DELTA)
-    const float z_start = mechanics.current_position[Z_AXIS];
-    const int32_t steps_start[ABC] = {
-      stepper.position(A_AXIS),
-      stepper.position(B_AXIS),
-      stepper.position(C_AXIS)
-    };
-  #endif
-
-=======
->>>>>>> V4_4_0_dev
   // Move down until probe triggered
   mechanics.do_blocking_move_to_z(z, fr_mm_s);
 
@@ -475,17 +456,10 @@ bool Probe::move_to_z(const float z, const feedrate_t fr_mm_s) {
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
   #if ENABLED(Z_PROBE_SENSORLESS)
     #if MECH(DELTA)
-<<<<<<< HEAD
-      tmc.disable_stallguard(X_DRV, stealth_states.x);
-      tmc.disable_stallguard(Y_DRV, stealth_states.y);
-    #endif
-    tmc.disable_stallguard(Z_DRV, stealth_states.z);
-=======
       tmc.disable_stallguard(driver.x, stealth_states.x);
       tmc.disable_stallguard(driver.y, stealth_states.y);
     #endif
     tmc.disable_stallguard(driver.z, stealth_states.z);
->>>>>>> V4_4_0_dev
   #endif
 
   // Retract BLTouch immediately after a probe if it was triggered
@@ -539,11 +513,8 @@ void Probe::do_raise(const float z_raise) {
 float Probe::run_probing() {
 
   float probe_z = 0.0f;
-<<<<<<< HEAD
-=======
 
   if (printer.debugFeature()) DEBUG_POS(">>> probe.run_probing", mechanics.current_position);
->>>>>>> V4_4_0_dev
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
@@ -554,11 +525,7 @@ float Probe::run_probing() {
   float z = Z_PROBE_DEPLOY_HEIGHT + 5.0 + (data.offset.z < 0 ? -data.offset.z : 0);
   if (mechanics.current_position.z > z) {
     if (!move_to_z(z, MMM_TO_MMS(data.speed_fast)))
-<<<<<<< HEAD
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
-=======
       mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT, MMM_TO_MMS(data.speed_fast));
->>>>>>> V4_4_0_dev
   }
 
   for (uint8_t r = data.repetitions + 1; --r;) {

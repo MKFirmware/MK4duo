@@ -554,15 +554,8 @@ namespace language_it {
   FSTRINGVALUE(MSG_SERVICE_RESET                    , _UxGT("Reset Servizi"));
   FSTRINGVALUE(MSG_SERVICE_IN                       , _UxGT(" tra:"));
 
-<<<<<<< HEAD
-// Sound
-#define MSG_SOUND_MODE_ON                   _UxGT("Suono          [on]")
-#define MSG_SOUND_MODE_SILENT               _UxGT("Suono  [silenzioso]")
-#define MSG_SOUND_MODE_MUTE                 _UxGT("Suono        [muto]")
-=======
   // Max Inactivity Time
   FSTRINGVALUE(MSG_MAX_INACTIVITY_TIME              , _UxGT("Riscaldamenti spenti da safety timer."));
->>>>>>> V4_4_0_dev
 
   // Max extruder
   FSTRINGVALUE(MSG_MAX_EXTRUDERS                    , _UxGT("Estrusori"));

@@ -53,11 +53,7 @@ class Nozzle {
       static void print_M217();
     #endif
 
-<<<<<<< HEAD
-    #if HOTENDS > 1
-=======
     #if MAX_HOTEND > 1
->>>>>>> V4_4_0_dev
       static void print_M218();
     #endif
 

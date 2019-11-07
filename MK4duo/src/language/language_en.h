@@ -560,18 +560,6 @@ namespace language_en {
     FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_1_LINE("Resuming...")));
   #endif  
 
-<<<<<<< HEAD
-// Sound
-#ifndef MSG_SOUND_MODE_ON
-  #define MSG_SOUND_MODE_ON                   _UxGT("Sound          [on]")
-#endif
-#ifndef MSG_SOUND_MODE_SILENT
-  #define MSG_SOUND_MODE_SILENT               _UxGT("Sound      [silent]")
-#endif
-#ifndef MSG_SOUND_MODE_MUTE
-  #define MSG_SOUND_MODE_MUTE                 _UxGT("Sound        [mute]")
-#endif
-=======
   FSTRINGVALUE(MSG_TMC_DRIVERS                      , _UxGT("TMC Drivers"));
   FSTRINGVALUE(MSG_TMC_CURRENT                      , _UxGT("Driver Current"));
   FSTRINGVALUE(MSG_TMC_MICROSTEP                    , _UxGT("Driver Microstep"));
@@ -579,7 +567,6 @@ namespace language_en {
   FSTRINGVALUE(MSG_TMC_HOMING_THRS                  , _UxGT("Sensorless Homing"));
   FSTRINGVALUE(MSG_TMC_STEPPING_MODE                , _UxGT("Stepping Mode"));
   FSTRINGVALUE(MSG_TMC_STEALTH_ENABLED              , _UxGT("StealthChop Enabled"));
->>>>>>> V4_4_0_dev
 
   FSTRINGVALUE(MSG_SERVICE_RESET                    , _UxGT("Reset"));
   FSTRINGVALUE(MSG_SERVICE_IN                       , _UxGT(" in:"));

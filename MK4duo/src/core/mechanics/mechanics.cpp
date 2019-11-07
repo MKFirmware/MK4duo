@@ -280,10 +280,10 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
 #if ENABLED(WORKSPACE_OFFSETS)
 
   void Mechanics::update_workspace_offset(const AxisEnum axis) {
-    workspace_offset[axis] = data.home_offset[axis] + position_shift[axis];
+    workspace_offset[axis] = mechanics.data.home_offset[axis] + position_shift[axis];
     if (printer.debugFeature()) {
       DEBUG_MT("For ", axis_codes[axis]);
-      DEBUG_MV(" axis:\n home_offset = ", data.home_offset[axis]);
+      DEBUG_MV(" axis:\n home_offset = ", home_offset[axis]);
       DEBUG_EMV("\n position_shift = ", position_shift[axis]);
     }
   }
@@ -293,7 +293,7 @@ bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
    * Also refreshes the workspace offset.
    */
   void Mechanics::set_home_offset(const AxisEnum axis, const float v) {
-    data.home_offset[axis] = v;
+    mechanics.data.home_offset[axis] = v;
     update_workspace_offset(axis);
   }
 

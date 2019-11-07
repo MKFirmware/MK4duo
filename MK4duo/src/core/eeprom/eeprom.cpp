@@ -1574,11 +1574,7 @@ void EEPROM::reset() {
     /**
      * Print Hotends offsets parameters
      */
-<<<<<<< HEAD
-    #if HOTENDS > 1
-=======
     #if MAX_HOTEND > 1
->>>>>>> V4_4_0_dev
       nozzle.print_M218();
     #endif
 
