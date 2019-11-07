@@ -39,7 +39,7 @@
  *
  *    O<offset> P<gain>
  */
-inline void gcode_M595(void) {
+inline void gcode_M595() {
 
   Heater * const act = commands.get_target_heater();
 

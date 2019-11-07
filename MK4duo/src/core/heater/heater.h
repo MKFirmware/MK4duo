@@ -21,8 +21,6 @@
  */
 #pragma once
 
-#if HAS_HEATER
-
 /**
  * heater.h - heater object
  */
@@ -31,7 +29,7 @@
 #include "pid/pid.h"
 
 union heater_flag_t {
-  bool all;
+  uint8_t all;
   struct {
     bool  Active            : 1;
     bool  UsePid            : 1;
@@ -42,7 +40,7 @@ union heater_flag_t {
     bool  Idle              : 1;
     bool  Fault             : 1;
   };
-  heater_flag_t() { all = false; }
+  heater_flag_t() { all = 0x00; }
 };
 
 enum HeatertypeEnum : uint8_t { IS_HOTEND, IS_BED, IS_CHAMBER, IS_COOLER };
@@ -50,14 +48,13 @@ enum TRState        : uint8_t { TRInactive, TRFirstHeating, TRStable, TRRunaway 
 
 // Struct Heater data
 struct heater_data_t {
-  pin_t         pin;
-  heater_flag_t flag;
-  uint8_t       ID;
-  int16_t       mintemp,
-                maxtemp;
-  uint16_t      freq;
-  pid_data_t    pid;
-  sensor_data_t sensor;
+  uint8_t         ID;
+  uint16_t        freq;
+  pin_t           pin;
+  heater_flag_t   flag;
+  limit_int_t     temp;
+  pid_data_t      pid;
+  sensor_data_t   sensor;
 };
 
 class Heater {
@@ -88,20 +85,23 @@ class Heater {
   private: /** Private Parameters */
 
     const uint16_t  temp_check_interval;
+
     const uint8_t   temp_hysteresis,
                     watch_period,
                     watch_increase;
 
-    uint8_t         consecutive_low_temp;
+    uint8_t         consecutive_low_temp,
+                    pwm_soft_pos,
+                    pwm_soft_count;
 
     uint16_t        watch_target_temp;
 
     TRState         thermal_runaway_state;
 
-    millis_s        check_next_ms;
+    millis_l        idle_timeout_ms;
 
-    millis_l        watch_next_ms,
-                    idle_timeout_ms;
+    short_timer_t   check_next_timer;
+    long_timer_t    watch_next_timer;
 
     bool            Pidtuning;
 
@@ -112,14 +112,14 @@ class Heater {
     void set_target_temp(const int16_t celsius);
     void set_idle_temp(const int16_t celsius);
     void wait_for_target(bool no_wait_for_cooling=true);
-    
+
     void get_output();
     void set_output_pwm();
-    
+
     void check_and_power();
-    
+
     void PID_autotune(const float target_temp, const uint8_t ncycles, const uint8_t method, const bool storeValues=false);
-    
+
     void print_M301();
     void print_M305();
     void print_M306();
@@ -137,7 +137,7 @@ class Heater {
     FORCE_INLINE float deg_current()  { return this->current_temperature; }
     FORCE_INLINE int16_t deg_target() { return this->target_temperature;  }
     FORCE_INLINE int16_t deg_idle()   { return this->idle_temperature;    }
-    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.mintemp, this->data.maxtemp)); }
+    FORCE_INLINE bool tempisrange()   { return (WITHIN(this->current_temperature, this->data.temp.min, this->data.temp.max)); }
     FORCE_INLINE bool isHeating()     { return this->target_temperature > this->current_temperature;  }
     FORCE_INLINE bool isCooling()     { return this->target_temperature <= this->current_temperature; }
 
@@ -213,9 +213,15 @@ class Heater {
 
 };
 
-extern Heater hotends[HOTENDS];
-extern Heater beds[BEDS];
-extern Heater chambers[CHAMBERS];
-extern Heater coolers[COOLERS];
-
-#endif // HAS_HEATER
+#if MAX_HOTEND > 0
+  extern Heater* hotends[MAX_HOTEND];
+#endif
+#if MAX_BED > 0
+  extern Heater* beds[MAX_BED];
+#endif
+#if MAX_CHAMBER > 0
+  extern Heater* chambers[MAX_CHAMBER];
+#endif
+#if MAX_COOLER > 0
+  extern Heater* coolers[MAX_COOLER];
+#endif

@@ -40,7 +40,7 @@
   /**
    * G5: Cubic B-spline
    */
-  inline void gcode_G5(void) {
+  inline void gcode_G5() {
     if (printer.isRunning()) {
 
       commands.get_destination();

@@ -29,7 +29,7 @@
 #define WDT_CONFIG_PER_Pos 0
 #define WDT_CONFIG_PER_7 (WDT_CONFIG_PER_7_Val << WDT_CONFIG_PER_Pos)
 
-void Watchdog::init(void) { 
+void Watchdog::init() { 
 
   #if ENABLED(USE_WATCHDOG)
 
@@ -60,7 +60,7 @@ void Watchdog::init(void) {
 
 }
 
-void Watchdog::reset(void) { 
+void Watchdog::reset() { 
   #if ENABLED(USE_WATCHDOG) 
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY; 
     while (WDT->STATUS.bit.SYNCBUSY);

@@ -85,7 +85,6 @@
 //
 // It is recommended to set [XYZ]_HOME_BUMP_MM to 0.
 //
-// SPI_ENDSTOPS  *** Beta feature! *** TMC2130 Only ***
 // Poll the driver through SPI to determine load when homing.
 // Removes the need for a wire from DIAG1 to an endstop pin.
 //
@@ -97,6 +96,7 @@
 #define Y_STALL_SENSITIVITY 8
 #define Z_STALL_SENSITIVITY 8
 
+// TMC2130 only
 //#define SPI_ENDSTOPS
 //#define IMPROVE_HOMING_RELIABILITY
 
@@ -190,7 +190,6 @@
  * }
  */
 #define  TMC_ADV() {  }
-
 
 // Hardware serial communication ports for TMC2208
 // If undefined software serial is used according to the pins below

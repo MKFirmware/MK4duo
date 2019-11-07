@@ -76,7 +76,7 @@ class Commands {
      */
     static PGM_P injected_commands_P;
 
-    static millis_s last_command_ms;
+    static short_timer_t last_command_timer;
 
   public: /** Public Function */
 
@@ -158,14 +158,12 @@ class Commands {
      */
     static Heater* get_target_heater();
 
-    #if HAS_FANS
-      /**
-       * Set target fan from the P parameter
-       *
-       * Returns TRUE if the target is invalid
-       */
-      static bool get_target_fan(uint8_t &f);
-    #endif
+    /**
+     * Set target fan from the P parameter
+     *
+     * Returns TRUE if the target is invalid
+     */
+    static bool get_target_fan(uint8_t &f);
 
   private: /** Private Function */
 

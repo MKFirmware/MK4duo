@@ -53,22 +53,23 @@
 #define NX_MAX          8
 #define NX_SCALE        4.0
 
-struct Point {
-  uint16_t x, y;
+struct cursor_t {
+  xy_uint_t point;
+  xyz_pos_t position;
 };
-
+    
 class GFX {
 
   public: /** Constructor */
 
-    GFX(const uint16_t px=0, const uint16_t py=0, const uint16_t width=1, const uint16_t height=1) {
+    GFX(const uint16_t px=0, const uint16_t py=0, const uint16_t pwidth=1, const uint16_t pheight=1) {
 
-      _left   = px;
-      _top    = py;
-      _width  = width;
-      _height = height;
+      left   = px;
+      top    = py;
+      width  = pwidth;
+      height = pheight;
 
-      for (uint8_t i = 0; i < 3; i++) _max[i] = 1000.0;
+      point_max = 1000.0f;
       for (uint8_t i = 0; i < NX_MAX; i++) color_tool[i] = 65535;
 
       color_tool[NX_BACKGROUND] = 0;
@@ -77,106 +78,100 @@ class GFX {
   private: /** Private Parameters */
 
     /* Location of visualization in NEXTION LCD*/
-    uint16_t _top, _left, _width, _height;
-    float _scale, _max[3], _origin[3];
+    static uint16_t   left, top, width, height,
+                      color_tool[NX_MAX];
+    
+    static float      scale;
+    
+    static xyz_pos_t  point_max,
+                      point_origin;
 
-    uint16_t color_tool[NX_MAX];
-
-    struct {
-      struct Point point;
-      float position[3];
-    } _cursor;
+    static cursor_t   cursor;
 
   public: /** Public Function */
 
-    void set_position(const uint16_t px = 0, const uint16_t py = 0, const uint16_t width = 1, const uint16_t height = 1) {
-      _left   = px;
-      _top    = py;
-      _width  = width;
-      _height = height;
+    static void set_position(const uint16_t px = 0, const uint16_t py = 0, const uint16_t pwidth = 1, const uint16_t pheight = 1) {
+      left   = px;
+      top    = py;
+      width  = pwidth;
+      height = pheight;
     }
 
-    void clear() {
-      const float zero[3] = { 0, 0, 0 };
-      fill(_left, _top, _width, _height, color_tool[NX_BACKGROUND]);
+    static void clear() {
+      const xyz_pos_t zero{0.0f};
+      const xy_uint_t point_a = { left, top },
+                      point_b = { width, height };
 
-      for (uint8_t i = 0; i < 3; i++) {
-        float pos[3] = { 0, 0, 0 };
-        pos[i] = _max[i];
+      fill(point_a, point_b, color_tool[NX_BACKGROUND]);
+
+      LOOP_XYZ(i) {
+        xyz_pos_t pos{0.0f};
+        pos[i] = point_max[i];
         cursor_to(zero);
         line_to(NX_AXIS + i, pos, true);
       }
       cursor_to(zero);
     }
 
-    void set_scale(const float scale) {
-      _scale = scale;
+    static void set_scale(const float _scale) {
+      scale = _scale;
       clear();
     }
 
-    void clear(const float x_mm, const float y_mm, const float z_mm) {
+    static void clear(const xyz_pos_t &pos) {
       /* Bounding box for the build volume */
-      const float scale_y = _height / (z_mm + y_mm / NX_SCALE);
-      const float scale_x = _width  / (x_mm + y_mm / NX_SCALE);
+      const float scale_y = height / (pos.z + pos.y / NX_SCALE);
+      const float scale_x = width  / (pos.x + pos.y / NX_SCALE);
 
-      _max[X_AXIS] = x_mm;
-      _max[Y_AXIS] = y_mm;
-      _max[Z_AXIS] = z_mm;
+      point_max = pos;
 
       set_scale(scale_x > scale_y ? scale_y : scale_x);
     }
 
-    void origin(const float x, const float y, const float z) {
-      _origin[X_AXIS] = x;
-      _origin[Y_AXIS] = y;
-      _origin[Z_AXIS] = z;
+    static void origin(const xyz_pos_t &pos) {
+      point_origin = pos;
     }
 
-    void color_set(const uint8_t color_index, uint16_t color) {
+    static void color_set(const uint8_t color_index, uint16_t color) {
       color_tool[color_index] = color;
     }
 
-    void cursor_to(const float *pos) {
-      for (int i = 0; i < 3; i++)
-        _cursor.position[i] = pos[i];
-      _flatten(_cursor.position, &_cursor.point);
+    static void cursor_to(const xyz_pos_t &pos) {
+      cursor.position = pos;
+      _flatten(cursor.position, cursor.point);
     }
 
-    void cursor_to(float x, float y, float z) {
-      const float pos[3] = { x, y, z };
-      cursor_to(pos);
-    }
+    static void line_to(const uint8_t color_index, const xyz_pos_t &pos, const bool shade=false);
 
-    void line_to(const uint8_t color_index, const float *pos, bool shade=false);
-
-    void line_to(const uint8_t color_index, float x, float y, float z, bool shade=false) {
-      float pos[3] = { x, y, z };
+    static inline void line_to(const uint8_t color_index, const float x, const float y, const float z, const bool shade=false) {
+      const xyz_pos_t pos = { x, y, z };
       line_to(color_index, pos, shade);
     }
 
   private: /** Private Function */
 
-    int ComputeOutCode(const int x, const int y, const int w, const int h);
+    static int ComputeOutCode(const xy_uint_t &point, const int w, const int h);
 
-    uint16_t r5g6b5(const float *color_a, const float *cinc, const int pixel);
+    static uint16_t r5g6b5(const float *color_a, const float *cinc, const int pixel);
 
-    void fcolor(float *c, uint16_t r5g6b5, float y, float max_y);
+    static void fcolor(float *c, uint16_t r5g6b5, const float y, float max_y);
 
-    void _flatten(const float *pos, struct Point *pt) {
-      pt->x = ((pos[X_AXIS] - _origin[X_AXIS]) +
-               (pos[Y_AXIS] - _origin[Y_AXIS]) / NX_SCALE) * _scale + 1;
-      pt->y = (_height - 1) -
-              ((pos[Z_AXIS] - _origin[Z_AXIS]) +
-               (pos[Y_AXIS] - _origin[Y_AXIS]) / NX_SCALE) * _scale - 1;
+    static void _flatten(const xyz_pos_t &pos, xy_uint_t &pt) {
+      pt.x  = ((pos.x - point_origin.x) +
+               (pos.y - point_origin.y) / NX_SCALE) * scale + 1;
+      pt.y  = (height - 1) -
+              ((pos.z - point_origin.z) +
+               (pos.y - point_origin.y) / NX_SCALE) * scale - 1;
     }
 
-    void nextion_line2d_shade(const float *a_color, const struct Point *a,
-                              const float *b_color, const struct Point *b,
-                              bool shade=false);
+    static void nextion_line2d_shade( const float *a_color, xy_uint_t &point_a,
+                                      const float *b_color, xy_uint_t &point_b,
+                                      const bool shade=false);
 
-    void fill(const int x0, const int y0, const int x1, const int y1, uint16_t color);
-    void drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color);
-    void drawPixel(const int x, const int y, uint16_t color);
+    static void fill(const xy_uint_t &point_a, const xy_uint_t &point_b, uint16_t color);
+
+    static void drawLine(const int x0, const int y0, const int x1, const int y1, uint16_t color);
+    static void drawPixel(const int x, const int y, uint16_t color);
 
 };
 

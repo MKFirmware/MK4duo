@@ -40,7 +40,7 @@
  *    E = Max E Jerk (units/sec^2)
  *    J = Junction Deviation mm
  */
-inline void gcode_M205(void) {
+inline void gcode_M205() {
 
   if (commands.get_target_tool(205)) return;
 
@@ -77,12 +77,12 @@ inline void gcode_M205(void) {
         LOOP_XYZ(axis) mechanics.data.max_jerk[axis] = value;
       }
     #else
-      if (parser.seen('X')) mechanics.data.max_jerk[X_AXIS] = parser.value_linear_units();
-      if (parser.seen('Y')) mechanics.data.max_jerk[Y_AXIS] = parser.value_linear_units();
-      if (parser.seen('Z')) mechanics.data.max_jerk[Z_AXIS] = parser.value_linear_units();
+      if (parser.seen('X')) mechanics.data.max_jerk.x = parser.value_linear_units();
+      if (parser.seen('Y')) mechanics.data.max_jerk.y = parser.value_linear_units();
+      if (parser.seen('Z')) mechanics.data.max_jerk.z = parser.value_linear_units();
     #endif
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-      if (parser.seen('E')) mechanics.data.max_jerk[E_AXIS] = parser.value_linear_units();
+      if (parser.seen('E')) extruders[tools.extruder.target]->data.max_jerk = parser.value_linear_units();
     #endif
   #endif
 

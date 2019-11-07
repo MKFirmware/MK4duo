@@ -35,7 +35,7 @@
 /**
  * G20: Set input mode to inches
  */
-inline void gcode_G20(void) {
+inline void gcode_G20() {
   #if ENABLED(INCH_MODE_SUPPORT)
     parser.set_input_linear_units(INCH_FACTOR);
   #else
@@ -46,7 +46,7 @@ inline void gcode_G20(void) {
 /**
  * G21: Set input mode to millimeters
  */
-inline void gcode_G21(void) {
+inline void gcode_G21() {
   #if ENABLED(INCH_MODE_SUPPORT)
     parser.set_input_linear_units(MM_FACTOR);
   #else

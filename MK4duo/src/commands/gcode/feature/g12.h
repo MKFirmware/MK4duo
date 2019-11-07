@@ -33,7 +33,7 @@
 /**
  * G12: Clean the nozzle
  */
-inline void gcode_G12(void) {
+inline void gcode_G12() {
 
   // Don't allow nozzle cleaning without homing first
   if (mechanics.axis_unhomed_error()) return;

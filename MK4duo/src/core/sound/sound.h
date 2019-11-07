@@ -50,7 +50,7 @@ class Sound {
 
   private: /** Private Parameters */
 
-    static millis_s tone_ms;
+    static short_timer_t tone_timer;
 
   protected: /** Protected Parameters */
 
@@ -68,7 +68,7 @@ class Sound {
 
     static inline void reset() {
       off();
-      tone_ms = 0;
+      tone_timer.stop();
     }
 
   public: /** Public Function */

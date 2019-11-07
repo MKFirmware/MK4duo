@@ -39,7 +39,7 @@
  *   M421 I<xindex> J<yindex> Z<linear>
  *   M421 I<xindex> J<yindex> Q<offset>
  */
-inline void gcode_M421(void) {
+inline void gcode_M421() {
   const bool hasX = parser.seen('X'), hasI = parser.seen('I');
   const int8_t ix = hasI ? parser.value_int() : hasX ? mbl.probe_index_x(NATIVE_X_POSITION(parser.value_linear_units())) : -1;
   const bool hasY = parser.seen('Y'), hasJ = parser.seen('J');
@@ -47,10 +47,10 @@ inline void gcode_M421(void) {
   const bool hasZ = parser.seen('Z'), hasQ = !hasZ && parser.seen('Q');
 
   if (int(hasI && hasJ) + int(hasX && hasY) != 1 || !(hasZ || hasQ)) {
-    SERIAL_LM(ER, MSG_ERR_M421_PARAMETERS);
+    SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);
   }
   else if (ix < 0 || iy < 0) {
-    SERIAL_LM(ER, MSG_ERR_MESH_XY);
+    SERIAL_LM(ER, MSG_HOST_ERR_MESH_XY);
   }
   else
     mbl.set_z(ix, iy, parser.value_linear_units() + (hasQ ? mbl.data.z_values[ix][iy] : 0));

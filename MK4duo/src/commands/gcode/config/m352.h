@@ -44,7 +44,7 @@
  *  M[bool]           - Set Step Logic
  *
  */
-inline void gcode_M352(void) {
+inline void gcode_M352() {
 
   if (commands.get_target_driver(352)) return;
   
@@ -70,14 +70,14 @@ inline void gcode_M352(void) {
   }
 
   if (parser.seenval('T')) {
-    const uint8_t i = E0_DRV + tools.extruder.target;
-    if (driver[i]) {
-      if (parser.seen('E')) driver[i]->data.pin.enable   = parser.value_pin();
-      if (parser.seen('D')) driver[i]->data.pin.dir      = parser.value_pin();
-      if (parser.seen('S')) driver[i]->data.pin.step     = parser.value_pin();
-      if (parser.seen('L')) driver[i]->data.flag.enable  = parser.value_bool();
-      if (parser.seen('M')) driver[i]->data.flag.step    = parser.value_bool();
-      driver[i]->init();
+    const uint8_t i = tools.extruder.target;
+    if (driver.e[i]) {
+      if (parser.seen('E')) driver.e[i]->data.pin.enable   = parser.value_pin();
+      if (parser.seen('D')) driver.e[i]->data.pin.dir      = parser.value_pin();
+      if (parser.seen('S')) driver.e[i]->data.pin.step     = parser.value_pin();
+      if (parser.seen('L')) driver.e[i]->data.flag.enable  = parser.value_bool();
+      if (parser.seen('M')) driver.e[i]->data.flag.step    = parser.value_bool();
+      driver.e[i]->init();
     }
   }
 

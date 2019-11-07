@@ -67,47 +67,18 @@ struct driver_pin_t {
 struct driver_data_t {
   driver_pin_t  pin;
   driver_flag_t flag;
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    uint16_t ma;
+  #endif
 };
 
 class Driver {
 
   public: /** Constructor */
 
-    Driver(const char* AXIS_LETTER, uint8_t) :
+    Driver(const char* AXIS_LETTER) :
       axis_letter(AXIS_LETTER)
       {}
-
-    #if HAVE_DRV(TMC2208)
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, Stream * SerialPort, const float RS) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, SerialPort, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, RX, TX, RS, has_rx); }
-
-    #elif HAVE_DRV(TMC2660)
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, CS, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, CS, RS, pinMOSI, pinMISO, pinSCK); }
-
-    #elif HAS_TMCX1X0
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, CS, RS); }
-
-      Driver(const char* AXIS_LETTER, const uint8_t DRIVER_ID, const uint16_t CS, const float RS, const uint16_t pinMOSI, const uint16_t pinMISO, const uint16_t pinSCK) :
-        axis_letter(AXIS_LETTER)
-        { tmc = new MKTMC(DRIVER_ID, CS, RS, pinMOSI, pinMISO, pinSCK); }
-
-    #endif
 
   public: /** Public Parameters */
 
@@ -123,34 +94,99 @@ class Driver {
     /**
      * Initialize Driver hardware
      */
-    inline void init() {
-      dir_init();
-      enable_init();
+    void init();
+
+    FORCE_INLINE void printLabel()                    { SERIAL_TXT(axis_letter); }
+
+    FORCE_INLINE void setEnable(const bool onoff)     { data.flag.enable = onoff; }
+    FORCE_INLINE bool isEnable()                      { return data.flag.enable; }
+    FORCE_INLINE void setDir(const bool onoff)        { data.flag.dir = onoff; }
+    FORCE_INLINE bool isDir()                         { return data.flag.dir; }
+    FORCE_INLINE void setStep(const bool onoff)       { data.flag.step = onoff; }
+    FORCE_INLINE bool isStep()                        { return data.flag.step; }
+
+    /**
+     * Function for enable
+     */
+    FORCE_INLINE void enable_init() {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc) return;
+      #endif
+      HAL::pinMode(data.pin.enable, OUTPUT);
       if (!isEnable()) enable_write(HIGH);
-      step_init();
-      step_write(isStep());
+    }
+    FORCE_INLINE void enable_write(const bool state) {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc)
+          return tmc->toff(state == isEnable() ? chopper_timing.toff : 0);
+      #endif
+      HAL::digitalWrite(data.pin.enable, state);
+    }
+    FORCE_INLINE bool enable_read() {
+      #if HAS_TRINAMIC && ENABLED(TMC_SOFTWARE_DRIVER_ENABLE)
+        if (tmc) return tmc->isEnabled();
+      #endif
+      return HAL::digitalRead(data.pin.enable);
     }
 
-    inline void printLabel()                    { SERIAL_TXT(axis_letter); }
+    /**
+     * Function for dir
+     */
+    FORCE_INLINE void dir_init() {
+      HAL::pinMode(data.pin.dir, OUTPUT);
+    }
+    FORCE_INLINE void dir_write(const bool state) {
+      HAL::digitalWrite(data.pin.dir, state);
+    }
+    FORCE_INLINE bool dir_read() {
+      return HAL::digitalRead(data.pin.dir);
+    }
 
-    inline void setEnable(const bool onoff)     { data.flag.enable = onoff; }
-    inline bool isEnable()                      { return data.flag.enable; }
-    inline void setDir(const bool onoff)        { data.flag.dir = onoff; }
-    inline bool isDir()                         { return data.flag.dir; }
-    inline void setStep(const bool onoff)       { data.flag.step = onoff; }
-    inline bool isStep()                        { return data.flag.step; }
-
-    inline void enable_init()                   { HAL::pinMode(data.pin.enable, OUTPUT); }
-    inline void enable_write(const bool state)  { HAL::digitalWrite(data.pin.enable, state); }
-    inline bool enable_read()                   { return HAL::digitalRead(data.pin.enable); }
-    inline void dir_init()                      { HAL::pinMode(data.pin.dir, OUTPUT); }
-    inline void dir_write(const bool state)     { HAL::digitalWrite(data.pin.dir, state); }
-    inline bool dir_read()                      { return HAL::digitalRead(data.pin.dir); }
-    inline void step_init()                     { HAL::pinMode(data.pin.step, OUTPUT); }
-    inline void step_write(const bool state)    { HAL::digitalWrite(data.pin.step, state); }
-    inline void step_toggle(const bool state)   { /*if (state) TOGGLE(data.pin.step);*/ }
-    inline bool step_read()                     { return HAL::digitalRead(data.pin.step); }
+    /**
+     * Function for step
+     */
+    FORCE_INLINE void step_init() {
+      HAL::pinMode(data.pin.step, OUTPUT);
+      step_write(isStep());
+    }
+    FORCE_INLINE void step_write(const bool state) {
+      #if ENABLED(SQUARE_WAVE_STEPPING)
+        if (tmc) return step_toggle(state);
+      #endif
+      HAL::digitalWrite(data.pin.step, state);
+    }
+    FORCE_INLINE void step_toggle(const bool state) {
+      if (state) HAL::digitalWrite(data.pin.step, !HAL::digitalRead(data.pin.step));
+    }
+    FORCE_INLINE bool step_read() {
+      return HAL::digitalRead(data.pin.step);
+    }
 
 };
 
-extern Driver* driver[MAX_DRIVER];
+struct driver_t {
+  union {
+    struct { Driver *x, *y, *z
+      , *e[MAX_DRIVER_E]
+      #if X_STEPPER_COUNT == 2
+        , x2
+      #endif
+      #if Y_STEPPER_COUNT == 2
+        , y2
+      #endif
+      #if Z_STEPPER_COUNT >= 2
+        , z2
+      #endif
+      #if Z_STEPPER_COUNT == 3
+        , z3
+      #endif
+      ;
+    };
+    Driver* drv[MAX_DRIVER];
+  };
+
+  Driver*   operator[](const int i) { return this->drv[i]; }
+
+};
+
+extern driver_t driver;

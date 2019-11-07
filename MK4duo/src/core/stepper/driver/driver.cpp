@@ -30,4 +30,13 @@
 #include "driver.h"
 #include "sanitycheck.h"
 
-Driver* driver[MAX_DRIVER] = { nullptr };
+driver_t driver = { nullptr };
+
+/** Public Function */
+void Driver::init() {
+  if (data.pin.enable != NoPin && data.pin.dir != NoPin && data.pin.step != NoPin) {
+    dir_init();
+    enable_init();
+    step_init();
+  }
+}

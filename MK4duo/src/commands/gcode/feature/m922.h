@@ -33,7 +33,7 @@
 /**
  * M922: Debug TMC drivers
  */
-inline void gcode_M922(void) {
+inline void gcode_M922() {
 
   bool print_axis[XYZE] = { false, false, false, false },
        print_all = true;

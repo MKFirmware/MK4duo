@@ -141,3 +141,8 @@
  * SAMD21J18
  */
 #define BOARD_MINITRONICS_V2  2706    // Minitronics v2.0
+
+/**
+ * STM32 ARM Cortex-M4F
+ */
+#define BOARD_RUMBA32         4203    // RUMBA32 STM32F446 based controller

@@ -46,7 +46,7 @@
  *    C[float]    Kc term
  *    L[int]      LPQ length
  */
-inline void gcode_M301(void) {
+inline void gcode_M301() {
 
   Heater * const act = commands.get_target_heater();
 

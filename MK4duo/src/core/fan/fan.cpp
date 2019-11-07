@@ -29,8 +29,8 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
-#if FAN_COUNT > 0
-  Fan fans[FAN_COUNT];
+#if MAX_FAN > 0
+  Fan* fans[MAX_FAN] = { nullptr };
 #endif
 
 /** Public Function */
@@ -40,6 +40,8 @@ void Fan::init() {
   paused_speed        = 0;
   scaled_speed        = 128;
   kickstart           = 0;
+  pwm_soft_pos        = 0;
+  pwm_soft_count      = 0xFF;
 
   setIdle(false);
 
@@ -63,7 +65,7 @@ void Fan::set_speed(const uint8_t new_speed) {
 
   speed = new_speed;
 
-  LIMIT(speed, data.min_speed, data.max_speed);
+  LIMIT(speed, data.speed_limit.min, data.speed_limit.max);
 }
 
 void Fan::set_auto_monitor(const int8_t h) {
@@ -72,32 +74,45 @@ void Fan::set_auto_monitor(const int8_t h) {
   else if (h == -1)
     data.auto_monitor = 0;
   else
-    SERIAL_EM(MSG_INVALID_HOTEND);
+    SERIAL_EM(MSG_HOST_INVALID_HOTEND);
   spin();
 }
 
 void Fan::set_output_pwm() {
+
   const uint8_t new_Speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
-  HAL::analogWrite(data.pin, new_Speed, data.freq);
+
+  if (USEABLE_HARDWARE_PWM(data.pin))
+    HAL::analogWrite(data.pin, new_Speed, data.freq);
+  else {
+    // Now set the pin high (if not 0)
+    if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (new_Speed & SOFT_PWM_MASK)) > 0))
+        HAL::digitalWrite(data.pin, HIGH);
+
+    // If it's a valid pin turn off the channel
+    if (data.pin > NoPin && pwm_soft_pos == pwm_soft_count && pwm_soft_pos != SOFT_PWM_MASK)
+      HAL::digitalWrite(data.pin, LOW);
+
+    pwm_soft_count += SOFT_PWM_STEP;
+  }
+
 }
 
 void Fan::spin() {
 
-  static millis_s controller_fan_ms = 0;
-
-  const millis_s ms = millis();
+  static short_timer_t controller_fan_timer;
 
   if (data.auto_monitor != 0) {
 
     // Check for Hotend temperature
     LOOP_HOTEND() {
       if (TEST(data.auto_monitor, h)) {
-        if (hotends[h].deg_current() > data.trigger_temperature) {
-          speed = data.max_speed;
+        if (hotends[h]->deg_current() > data.trigger_temperature) {
+          speed = data.speed_limit.max;
           break;
         }
         else
-          speed = data.min_speed;
+          speed = data.speed_limit.min;
       }
     }
 
@@ -105,50 +120,27 @@ void Fan::spin() {
     if (TEST(data.auto_monitor, 7)) {
 
       // Check Heaters
-      if (thermalManager.heaters_isActive()) controller_fan_ms = ms;
+      if (thermalManager.heaters_isActive()) controller_fan_timer.start();
 
       #if HAS_MCU_TEMPERATURE
         // Check MSU
-        if (thermalManager.mcu_current_temperature >= 50) controller_fan_ms = ms;
+        if (thermalManager.mcu_current_temperature >= 50) controller_fan_timer.start();
       #endif
 
       // Check Motors
-      if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
-        || E0_ENABLE_READ() == driver[E0_DRV]->isEnable() // If any of the drivers are enabled...
-        #if DRIVER_EXTRUDERS > 1
-          || E1_ENABLE_READ() == driver[E1_DRV]->isEnable()
-          #if HAS_X2_ENABLE
-            || X2_ENABLE_READ() == driver[X2_DRV]->isEnable()
-          #endif
-          #if DRIVER_EXTRUDERS > 2
-            || E2_ENABLE_READ() == driver[E2_DRV]->isEnable()
-            #if DRIVER_EXTRUDERS > 3
-              || E3_ENABLE_READ() == driver[E3_DRV]->isEnable()
-              #if DRIVER_EXTRUDERS > 4
-                || E4_ENABLE_READ() == driver[E4_DRV]->isEnable()
-                #if DRIVER_EXTRUDERS > 5
-                  || E5_ENABLE_READ() == driver[E5_DRV]->isEnable()
-                #endif
-              #endif
-            #endif
-          #endif
-        #endif
-      ) {
-        controller_fan_ms = ms;
-      }
+      if (stepper.driver_is_enable()) controller_fan_timer.start();
 
       // Fan off if no steppers or heaters have been enabled for CONTROLLERFAN_SECS seconds
-      if (!controller_fan_ms || expired(&controller_fan_ms, millis_s(CONTROLLERFAN_SECS * 1000U))) {
-        controller_fan_ms = 0;
-        speed = data.min_speed;
+      if (!controller_fan_timer.isRunning() || controller_fan_timer.expired((CONTROLLERFAN_SECS) * 1000, false)) {
+        speed = data.speed_limit.min;
       }
       else
-        speed = data.max_speed;
+        speed = data.speed_limit.max;
     }
 
   }
 
-  speed = speed ? constrain(speed, data.min_speed, data.max_speed) : 0;
+  speed = speed ? constrain(speed, data.speed_limit.min, data.speed_limit.max) : 0;
 
 }
 
@@ -157,8 +149,8 @@ void Fan::print_M106() {
   SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
   SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
   SERIAL_MV(" U", data.pin);
-  SERIAL_MV(" L", data.min_speed);
-  SERIAL_MV(" X", data.max_speed);
+  SERIAL_MV(" L", data.speed_limit.min);
+  SERIAL_MV(" X", data.speed_limit.max);
   SERIAL_MV(" F", data.freq);
   SERIAL_MV(" I", isHWinvert());
   SERIAL_MSG(" H");
@@ -180,17 +172,17 @@ void Fan::print_M106() {
 }
 
 #if ENABLED(TACHOMETRIC)
-  void tacho_interrupt0() { fans[0].data.tacho.interrupt(); }
+  void tacho_interrupt0() { fans[0]->data.tacho.interrupt(); }
   #if FAN_COUNT > 1
-    void tacho_interrupt1() { fans[1].data.tacho.interrupt(); }
+    void tacho_interrupt1() { fans[1]->data.tacho.interrupt(); }
     #if FAN_COUNT > 2
-      void tacho_interrupt2() { fans[2].data.tacho.interrupt(); }
+      void tacho_interrupt2() { fans[2]->data.tacho.interrupt(); }
       #if FAN_COUNT > 3
-        void tacho_interrupt3() { fans[3].data.tacho.interrupt(); }
+        void tacho_interrupt3() { fans[3]->data.tacho.interrupt(); }
         #if FAN_COUNT > 4
-          void tacho_interrupt4() { fans[4].data.tacho.interrupt(); }
+          void tacho_interrupt4() { fans[4]->data.tacho.interrupt(); }
           #if FAN_COUNT > 5
-            void tacho_interrupt5() { fans[5].data.tacho.interrupt(); }
+            void tacho_interrupt5() { fans[5]->data.tacho.interrupt(); }
           #endif
         #endif
       #endif

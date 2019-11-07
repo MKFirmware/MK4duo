@@ -112,8 +112,11 @@ class FilamentRunoutBase {
         #if FILAMENT_RUNOUT_DISTANCE_MM > 0
           sei();
         #endif
-        if (ran_out)
-          printer.setInterruptEvent(INTERRUPT_EVENT_FIL_RUNOUT);
+        if (ran_out) {
+          sensor.setFilamentOut(true);
+          event_runout();
+          planner.synchronize();
+        }
       }
     }
 
@@ -126,6 +129,44 @@ class FilamentRunoutBase {
         SERIAL_MV(" D", runout_distance());
       #endif
       SERIAL_EOL();
+    }
+
+  private: /** Private Function */
+
+    static void event_runout() {
+
+      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+        if (advancedpause.did_pause_print) return;
+      #endif
+
+      const char tool = DIGIT(tools.extruder.active);
+      host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
+      host_action.prompt_begin(PSTR("Filament Runout T"), false);
+      SERIAL_CHR(tool);
+      SERIAL_EOL();
+      host_action.prompt_show();
+
+      const bool run_runout_script = !sensor.isHostHandling();
+
+      if (run_runout_script
+        && ( strstr(FILAMENT_RUNOUT_SCRIPT, "M600")
+          || strstr(FILAMENT_RUNOUT_SCRIPT, "M125")
+          #if ENABLED(ADVANCED_PAUSE_FEATURE)
+            || strstr(FILAMENT_RUNOUT_SCRIPT, "M25")
+          #endif
+        )
+      ) {
+        host_action.paused(false);
+      }
+      else
+        host_action.pause(false);
+
+      SERIAL_MSG(" filament_runout T");
+      SERIAL_CHR(tool);
+      SERIAL_EOL();
+
+      if (run_runout_script)
+        commands.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
     }
 
 };
@@ -188,12 +229,12 @@ class FilamentSensorBase {
     FORCE_INLINE static bool isHostHandling() { return data.flag.host_handling; }
 
     FORCE_INLINE static void setLogic(const FilRunoutEnum filrunout, const bool logic) {
-      SET_BIT(data.logic_flag, filrunout, logic);
+      SET_BIT_TO(data.logic_flag, filrunout, logic);
     }
     FORCE_INLINE static bool isLogic(const FilRunoutEnum filrunout) { return TEST(data.logic_flag, filrunout); }
 
     FORCE_INLINE static void setPullup(const FilRunoutEnum filrunout, const bool pullup) {
-      SET_BIT(data.pullup_flag, filrunout, pullup);
+      SET_BIT_TO(data.pullup_flag, filrunout, pullup);
     }
     FORCE_INLINE static bool isPullup(const FilRunoutEnum filrunout) { return TEST(data.pullup_flag, filrunout); }
 
@@ -318,8 +359,8 @@ class FilamentSensorBase {
 
       static inline void run() {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          static millis_s nex_ms = millis();
-          if (expired(&nex_ms, 1000U)) {
+          static short_timer_t nex_timer(true);
+          if (nex_timer.expired(1000)) {
             LOOP_EXTRUDER() {
               SERIAL_STR(e ? PSTR(", ") : PSTR("Remaining mm: "));
               SERIAL_VAL(runout_mm_countdown[e]);
@@ -335,16 +376,16 @@ class FilamentSensorBase {
 
       static void filament_present(const uint8_t extruder);
 
-      static inline void block_completed(const block_t* const b) {
-        if (b->steps[X_AXIS] || b->steps[Y_AXIS] || b->steps[Z_AXIS]
+      static inline void block_completed(const block_t* const block) {
+        if (block->steps.x || block->steps.y || block->steps.z
           #if ENABLED(ADVANCED_PAUSE_FEATURE)
             || advancedpause.did_pause_print // Allow pause purge move to re-trigger runout state
           #endif
         ) {
           // Only trigger on extrusion with XYZ movement to allow filament change and retract/recover.
-          const uint8_t e = b->active_extruder;
-          const int32_t steps = b->steps[E_AXIS];
-          runout_mm_countdown[e] -= (TEST(b->direction_bits, E_AXIS) ? -steps : steps) * mechanics.steps_to_mm[E_AXIS_N(e)];
+          const uint8_t e = block->active_extruder;
+          const int32_t steps = block->steps.e;
+          runout_mm_countdown[e] -= (TEST(block->direction_bits, E_AXIS) ? -steps : steps) * extruders[e]->steps_to_mm;
         }
       }
 

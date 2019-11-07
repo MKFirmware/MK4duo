@@ -80,54 +80,48 @@
   #define Z3_CS_PIN           ORIG_E2_CS_PIN
 #endif
 
-// E axis pins
-#if DRIVER_EXTRUDERS > 0
-  #define E0_STEP_PIN         ORIG_E0_STEP_PIN
-  #define E0_DIR_PIN          ORIG_E0_DIR_PIN
-  #define E0_ENABLE_PIN       ORIG_E0_ENABLE_PIN
-  #define E0_CS_PIN           ORIG_E0_CS_PIN
-  #define SOL0_PIN            ORIG_SOL0_PIN
-#endif
+// E0 axis pins
+#define E0_STEP_PIN           ORIG_E0_STEP_PIN
+#define E0_DIR_PIN            ORIG_E0_DIR_PIN
+#define E0_ENABLE_PIN         ORIG_E0_ENABLE_PIN
+#define E0_CS_PIN             ORIG_E0_CS_PIN
+#define SOL0_PIN              ORIG_SOL0_PIN
 
-#if DRIVER_EXTRUDERS > 1
-  #define E1_STEP_PIN         ORIG_E1_STEP_PIN
-  #define E1_DIR_PIN          ORIG_E1_DIR_PIN
-  #define E1_ENABLE_PIN       ORIG_E1_ENABLE_PIN
-  #define E1_CS_PIN           ORIG_E1_CS_PIN
-  #define SOL1_PIN            ORIG_SOL1_PIN
-#endif
 
-#if DRIVER_EXTRUDERS > 2
-  #define E2_STEP_PIN         ORIG_E2_STEP_PIN
-  #define E2_DIR_PIN          ORIG_E2_DIR_PIN
-  #define E2_ENABLE_PIN       ORIG_E2_ENABLE_PIN
-  #define E2_CS_PIN           ORIG_E2_CS_PIN
-  #define SOL2_PIN            ORIG_SOL2_PIN
-#endif
+// E1 axis pins
+#define E1_STEP_PIN           ORIG_E1_STEP_PIN
+#define E1_DIR_PIN            ORIG_E1_DIR_PIN
+#define E1_ENABLE_PIN         ORIG_E1_ENABLE_PIN
+#define E1_CS_PIN             ORIG_E1_CS_PIN
+#define SOL1_PIN              ORIG_SOL1_PIN
 
-#if DRIVER_EXTRUDERS > 3
-  #define E3_STEP_PIN         ORIG_E3_STEP_PIN
-  #define E3_DIR_PIN          ORIG_E3_DIR_PIN
-  #define E3_ENABLE_PIN       ORIG_E3_ENABLE_PIN
-  #define E3_CS_PIN           ORIG_E3_CS_PIN
-  #define SOL3_PIN            ORIG_SOL3_PIN
-#endif
+// E2 axis pins
+#define E2_STEP_PIN           ORIG_E2_STEP_PIN
+#define E2_DIR_PIN            ORIG_E2_DIR_PIN
+#define E2_ENABLE_PIN         ORIG_E2_ENABLE_PIN
+#define E2_CS_PIN             ORIG_E2_CS_PIN
+#define SOL2_PIN              ORIG_SOL2_PIN
 
-#if DRIVER_EXTRUDERS > 4
-  #define E4_STEP_PIN         ORIG_E4_STEP_PIN
-  #define E4_DIR_PIN          ORIG_E4_DIR_PIN
-  #define E4_ENABLE_PIN       ORIG_E4_ENABLE_PIN
-  #define E4_CS_PIN           ORIG_E4_CS_PIN
-  #define SOL4_PIN            ORIG_SOL4_PIN
-#endif
+// E3 axis pins
+#define E3_STEP_PIN           ORIG_E3_STEP_PIN
+#define E3_DIR_PIN            ORIG_E3_DIR_PIN
+#define E3_ENABLE_PIN         ORIG_E3_ENABLE_PIN
+#define E3_CS_PIN             ORIG_E3_CS_PIN
+#define SOL3_PIN              ORIG_SOL3_PIN
 
-#if DRIVER_EXTRUDERS > 5
-  #define E5_STEP_PIN         ORIG_E5_STEP_PIN
-  #define E5_DIR_PIN          ORIG_E5_DIR_PIN
-  #define E5_ENABLE_PIN       ORIG_E5_ENABLE_PIN
-  #define E5_CS_PIN           ORIG_E5_CS_PIN
-  #define SOL5_PIN            ORIG_SOL5_PIN
-#endif
+// E4 axis pins
+#define E4_STEP_PIN           ORIG_E4_STEP_PIN
+#define E4_DIR_PIN            ORIG_E4_DIR_PIN
+#define E4_ENABLE_PIN         ORIG_E4_ENABLE_PIN
+#define E4_CS_PIN             ORIG_E4_CS_PIN
+#define SOL4_PIN              ORIG_SOL4_PIN
+
+// E5 axis pins
+#define E5_STEP_PIN           ORIG_E5_STEP_PIN
+#define E5_DIR_PIN            ORIG_E5_DIR_PIN
+#define E5_ENABLE_PIN         ORIG_E5_ENABLE_PIN
+#define E5_CS_PIN             ORIG_E5_CS_PIN
+#define SOL5_PIN              ORIG_SOL5_PIN
 
 // ENDSTOP pins
 #define X_MIN_PIN             ORIG_X_MIN_PIN

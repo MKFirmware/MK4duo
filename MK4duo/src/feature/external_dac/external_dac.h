@@ -33,15 +33,10 @@ class ExternalDac {
 
     ExternalDac() {}
 
-  public: /** Public Parameters */
-
-    static uint16_t motor_current[3 + DRIVER_EXTRUDERS];
-
   public: /** Public Function */
 
-    static void factory_parameters();
-    static void begin(void);
-    static void set_driver_current();
+    static void begin();
+    static void set_driver_current(const uint8_t index, const uint16_t ma);
 
   private: /** Private Function */
 

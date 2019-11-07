@@ -28,42 +28,46 @@
 
 #if HAS_MESH
 
-  #define CODE_G42
+#define CODE_G42
 
-  /**
-   * G42: Move X & Y axes to mesh coordinates (I & J)
-   */
-  inline void gcode_G42(void) {
-    if (printer.isRunning()) {
-      const bool hasI = parser.seenval('I');
-      const int8_t ix = hasI ? parser.value_int() : 0;
-      const bool hasJ = parser.seenval('J');
-      const int8_t iy = hasJ ? parser.value_int() : 0;
+/**
+ * G42: Move X & Y axes to mesh coordinates (I & J)
+ */
+inline void gcode_G42() {
+  if (printer.isRunning()) {
+    const bool hasI = parser.seenval('I');
+    const int8_t ix = hasI ? parser.value_int() : 0;
+    const bool hasJ = parser.seenval('J');
+    const int8_t iy = hasJ ? parser.value_int() : 0;
 
-      if ((hasI && !WITHIN(ix, 0, GRID_MAX_POINTS_X - 1)) || (hasJ && !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))) {
-        SERIAL_EM(MSG_ERR_MESH_XY);
-        return;
-      }
-
-      mechanics.set_destination_to_current();
-      if (hasI) mechanics.destination[X_AXIS] = _GET_MESH_X(ix);
-      if (hasJ) mechanics.destination[Y_AXIS] = _GET_MESH_Y(iy);
-      if (parser.boolval('P')) {
-        if (hasI) mechanics.destination[X_AXIS] -= probe.data.offset[X_AXIS];
-        if (hasJ) mechanics.destination[Y_AXIS] -= probe.data.offset[Y_AXIS];
-      }
-
-      const float fval = parser.linearval('F');
-      if (fval > 0.0) mechanics.feedrate_mm_s = MMM_TO_MMS(fval);
-
-      // SCARA kinematic has "safe" XY raw moves
-      #if IS_SCARA
-        mechanics.prepare_uninterpolated_move_to_destination();
-      #else
-        mechanics.prepare_move_to_destination();
-      #endif
-
+    if ((hasI && !WITHIN(ix, 0, GRID_MAX_POINTS_X - 1)) || (hasJ && !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))) {
+      SERIAL_EM(MSG_HOST_ERR_MESH_XY);
+      return;
     }
-  }
 
-#endif // ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
+    mechanics.destination = mechanics.current_position;
+
+    if (hasI) mechanics.destination.x = _GET_MESH_X(ix);
+    if (hasJ) mechanics.destination.y = _GET_MESH_Y(iy);
+
+    #if HAS_BED_PROBE
+      if (parser.boolval('P')) {
+        if (hasI) mechanics.destination.x -= probe.data.offset.x;
+        if (hasJ) mechanics.destination.y -= probe.data.offset.y;
+      }
+    #endif
+
+    const feedrate_t  fval = parser.linearval('F'),
+                      fr_mm_s = fval > 0 ? MMM_TO_MMS(fval) : 0.0f;
+
+    // SCARA kinematic has "safe" XY raw moves
+    #if IS_SCARA
+      mechanics.prepare_uninterpolated_move_to_destination();
+    #else
+      mechanics.prepare_internal_move_to_destination();
+    #endif
+
+  }
+}
+
+#endif // HAS_MESH

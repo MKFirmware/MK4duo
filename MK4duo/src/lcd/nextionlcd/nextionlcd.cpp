@@ -51,14 +51,15 @@ NextionLCD nexlcd;
 
 /** LcdUI Parameters */
 char    LcdUI::status_message[NEXTION_MAX_MESSAGE_LENGTH + 1];
-uint8_t LcdUI::status_message_level = 0;
+uint8_t LcdUI::alert_level = 0,
+        LcdUI::lang = 0;
 
 #if HAS_LCD_MENU
 
   extern bool no_reentry; // Flag to prevent recursion into menu handlers
 
   int8_t manual_move_axis = (int8_t)NO_AXIS;
-  millis_s manual_move_ms = 0;
+  short_timer_t manual_move_timer;
 
   #if IS_KINEMATIC
     float manual_move_offset = 0;
@@ -66,15 +67,17 @@ uint8_t LcdUI::status_message_level = 0;
 
   LCDViewActionEnum LcdUI::lcdDrawUpdate = LCDVIEW_CLEAR_CALL_REDRAW;
 
-  uint16_t      LcdUI::encoderPosition;
+  uint32_t      LcdUI::encoderPosition;
 
   screenFunc_t  LcdUI::currentScreen;
+
+  int8_t LcdUI::manual_move_e_index = 0;
 
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
   #endif
 
-  #if ENABLED(REVERSE_MENU_DIRECTION)
+  #if ENABLED(REVERSE_MENU_DIRECTION) || ENABLED(REVERSE_ENCODER_DIRECTION)
     int8_t LcdUI::encoderDirection = 1;
   #endif
 
@@ -86,10 +89,6 @@ uint8_t LcdUI::status_message_level = 0;
 
   #if IS_KINEMATIC
     bool LcdUI::processing_manual_move = false;
-  #endif
-
-  #if E_MANUAL > 1
-    int8_t LcdUI::manual_move_e_index = 0;
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(G26_MESH_VALIDATION)
@@ -113,7 +112,7 @@ uint8_t NextionLCD::PageID                      = 0;
 #if HAS_LCD_MENU
   bool  NextionLCD::line_encoder_touch          = false;
   #if LCD_TIMEOUT_TO_STATUS
-    millis_l NextionLCD::return_to_status_ms    = millis();
+    short_timer_t NextionLCD::return_to_status_timer(true);
   #endif
 #endif
 
@@ -134,43 +133,31 @@ NexObject SDMenu        = NexObject(1,  2);
  * Nextion component for page:printer
  *******************************************************************
  */
-NexObject LcdStatus     = NexObject(2,  6);
-NexObject LcdX          = NexObject(2,  7);
-NexObject LcdY          = NexObject(2,  8);
-NexObject LcdZ          = NexObject(2,  9);
-#if HOTENDS > 0
-  NexObject Hotend00    = NexObject(2, 11);
-  NexObject Hotend01    = NexObject(2, 12);
+NexObject LcdStatus       = NexObject(2,  6);
+NexObject LcdX            = NexObject(2,  7);
+NexObject LcdY            = NexObject(2,  8);
+NexObject LcdZ            = NexObject(2,  9);
+#if MAX_HOTEND > 0
+  NexObject Hotend_deg[4] = { NexObject(2, 11), NexObject(2, 13), NexObject(2, 15), NexObject(2, 17) };
+  NexObject Hotend_trg[4] = { NexObject(2, 12), NexObject(2, 14), NexObject(2, 16), NexObject(2, 18) };
 #endif
-#if HOTENDS > 1
-  NexObject Hotend10    = NexObject(2, 13);
-  NexObject Hotend11    = NexObject(2, 14);
+#if MAX_BED > 0
+  NexObject Bed_deg       = NexObject(2, 19);
+  NexObject Bed_trg       = NexObject(2, 20);
 #endif
-#if HOTENDS > 2
-  NexObject Hotend20    = NexObject(2, 15);
-  NexObject Hotend21    = NexObject(2, 16);
-#endif
-#if HOTENDS > 3
-  NexObject Hotend30    = NexObject(2, 17);
-  NexObject Hotend31    = NexObject(2, 18);
-#endif
-#if HAS_BEDS
-  NexObject Bed0        = NexObject(2, 19);
-  NexObject Bed1        = NexObject(2, 20);
-#endif
-#if HAS_CHAMBERS
-  NexObject Chamber0    = NexObject(2, 21);
-  NexObject Chamber1    = NexObject(2, 22);
+#if MAX_CHAMBER > 0
+  NexObject Chamber_deg   = NexObject(2, 21);
+  NexObject Chamber_trg   = NexObject(2, 22);
 #endif
 #if HAS_DHT
-  NexObject DHT0        = NexObject(2, 23);
+  NexObject DHT0          = NexObject(2, 23);
 #endif
-NexObject SD            = NexObject(2, 24);
-NexObject Fanspeed      = NexObject(2, 26);
-NexObject VSpeed        = NexObject(2, 27);
-NexObject LightStatus   = NexObject(2, 28);
-NexObject LcdTime       = NexObject(2, 30);
-NexObject progressbar   = NexObject(2, 31);
+NexObject SD              = NexObject(2, 24);
+NexObject Fanspeed        = NexObject(2, 26);
+NexObject VSpeed          = NexObject(2, 27);
+NexObject LightStatus     = NexObject(2, 28);
+NexObject LcdTime         = NexObject(2, 30);
+NexObject progressbar     = NexObject(2, 31);
 
 /**
  *******************************************************************
@@ -352,12 +339,12 @@ void NextionLCD::init() {
     set_status_page();
 
     #if LCD_TIMEOUT_TO_STATUS
-      return_to_status_ms = millis();
+      return_to_status_timer.start();
     #endif
 
     #if HAS_LCD_MENU
       // Check the Nextion Firmware
-      if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(menu_nextion);
+      if (nextion_version < NEXTION_LCD_FIRMWARE_VERSION) lcdui.goto_screen(lcd_nextion_allert);
     #endif
 
   }
@@ -421,6 +408,8 @@ void NextionLCD::status_screen_update() {
 
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
+  const uint8_t max_hotends = MIN(4, tools.data.hotends);
+
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
   #endif
@@ -450,10 +439,10 @@ void NextionLCD::status_screen_update() {
       #endif
     }
 
-    #if HAS_FANS
-      if (PreviousfanSpeed != fans[0].actual_speed()) {
-        setValue(Fanspeed, fans[0].percent());
-        PreviousfanSpeed = fans[0].actual_speed();
+    #if MAX_FAN > 0
+      if (PreviousfanSpeed != fans[0]->actual_speed()) {
+        setValue(Fanspeed, fans[0]->percent());
+        PreviousfanSpeed = fans[0]->actual_speed();
       }
     #endif
 
@@ -466,29 +455,23 @@ void NextionLCD::status_screen_update() {
       Previousfeedrate = mechanics.feedrate_percentage;
     }
 
-    #if HOTENDS > 0
-      setValue(Hotend00, hotends[0].deg_current());
-      setValue(Hotend01, hotends[0].deg_target());
+    #if MAX_HOTEND > 0
+      for (uint8_t h = 0; h < max_hotends; h++) {
+        setValue(Hotend_deg[h], hotends[h]->deg_current());
+        setValue(Hotend_trg[h], hotends[h]->deg_target());
+      }
     #endif
-    #if HOTENDS > 1
-      setValue(Hotend10, hotends[1].deg_current());
-      setValue(Hotend11, hotends[1].deg_target());
+    #if MAX_BED > 0
+      if (tools.data.beds) {
+        setValue(Bed_deg, beds[0]->deg_current());
+        setValue(Bed_trg, beds[0]->deg_target());
+      }
     #endif
-    #if HOTENDS > 2
-      setValue(Hotend20, hotends[2].deg_current());
-      setValue(Hotend21, hotends[2].deg_target());
-    #endif
-    #if HOTENDS > 3
-      setValue(Hotend30, hotends[3].deg_current());
-      setValue(Hotend31, hotends[3].deg_target());
-    #endif
-    #if HAS_BEDS
-      setValue(Bed0, beds[0].deg_current());
-      setValue(Bed1, beds[0].deg_target());
-    #endif
-    #if HAS_CHAMBERS
-      setValue(Chamber0, chambers[0].deg_current());
-      setValue(Chamber1, chambers[0].deg_target());
+    #if MAX_CHAMBER > 0
+      if (tools.data.chambers) {
+        setValue(Chamber_deg, chambers[0]->deg_current());
+        setValue(Chamber_trg, chambers[0]->deg_target());
+      }
     #endif
     #if HAS_DHT
       if (lcdui.get_blink(3))
@@ -523,10 +506,10 @@ void NextionLCD::status_screen_update() {
       setValue(SD, SD_HOST_PRINTING);
     else if (printer.isPaused())
       setValue(SD, SD_HOST_PAUSE);
-    else if (IS_SD_OK())
+    else if (IS_SD_MOUNTED())
       setValue(SD, SD_INSERT);
     #if HAS_SD_SUPPORT
-      else if (!IS_SD_OK())
+      else if (!IS_SD_MOUNTED())
         setValue(SD, SD_NO_INSERT);
     #else
       else
@@ -586,7 +569,7 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 #if HAS_SD_SUPPORT
 
   void NextionLCD::UploadNewFirmware() {
-    if (IS_SD_INSERTED() || card.isDetected()) {
+    if (IS_SD_INSERTED() || card.isMounted()) {
       Firmware.startUpload();
       nexSerial.end();
       init();
@@ -606,11 +589,15 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
       setChar(' ');
   }
 
-  void NextionLCD::put_str_P(PGM_P str) {
+  void NextionLCD::put_str_P(PGM_P str, const uint8_t idx/*=0xFF*/) {
     const uint8_t len = strlen_P(str);
     for (uint8_t i = 0; i < len; i++) {
       char ch = pgm_read_byte(str++);
       setChar(ch);
+    }
+    if (idx != 0xFF) {
+      setChar(' ');
+      setChar(DIGIT(idx));
     }
   }
 
@@ -685,7 +672,8 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 #if ENABLED(NEXTION_GFX)
 
   void NextionLCD::gfx_origin(const float x, const float y, const float z) {
-    gfx.origin(x, y, z);
+    const xyz_pos_t pos = { x, y, z };
+    gfx.origin(pos);
   }
 
   void NextionLCD::gfx_scale(const float scale) {
@@ -693,31 +681,46 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
   }
 
   void NextionLCD::gfx_clear(const float x, const float y, const float z) {
-    if (PageID == 2 && printer.isPrinting())
-      gfx.clear(x, y, z);
-  }
-
-  void NextionLCD::gfx_cursor_to(const float x, const float y, const float z, bool force_cursor) {
-    if (PageID == 2 && (printer.isPrinting() || force_cursor))
-      gfx.cursor_to(x, y, z);
-  }
-
-  void NextionLCD::gfx_line_to(const float x, const float y, const float z) {
     if (PageID == 2 && printer.isPrinting()) {
+      const xyz_pos_t pos = { x, y, z };
+      gfx.clear(pos);
+    }
+  }
+
+  void NextionLCD::gfx_cursor_to(xyz_pos_t pos, bool force_cursor) {
+    if (PageID == 2 && (printer.isPrinting() || force_cursor)) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
+      gfx.cursor_to(pos);
+    }
+  }
+
+  void NextionLCD::gfx_line_to(xyz_pos_t pos) {
+    if (PageID == 2 && printer.isPrinting()) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
       #if ENABLED(ARDUINO_ARCH_SAM)
-        gfx.line_to(NX_TOOL, x, y, z, true);
+        gfx.line_to(NX_TOOL, pos, true);
       #else
-        gfx.line_to(NX_TOOL, x, y, z);
+        gfx.line_to(NX_TOOL, pos);
       #endif
     }
   }
 
-  void NextionLCD::gfx_plane_to(const float x, const float y, const float z) {
+  void NextionLCD::gfx_plane_to(xyz_pos_t pos) {
     uint8_t color;
-    if (PageID == 2) {
-      if (z < 10) color = NX_LOW;
+    if (PageID == 2 && printer.isPrinting()) {
+      #if MECH(DELTA)
+        pos.x += mechanics.data.print_radius;
+        pos.y += mechanics.data.print_radius;
+      #endif
+      if (pos.z < 10) color = NX_LOW;
       else color = NX_HIGH;
-      gfx.line_to(color, x, y, z, true);
+      gfx.line_to(color, pos, true);
     }
   }
 
@@ -737,24 +740,16 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 /** Private Function */
 void NextionLCD::set_status_page() {
   char temp[10] = { 0 };
+  const uint8_t max_hotends = MIN(4, tools.data.hotends);
 
-  #if HOTENDS > 0
-    setValue(Hotend00, 25);
+  #if MAX_HOTEND > 0
+    for (uint8_t h = 0; h < max_hotends; h++) setValue(Hotend_deg[h], 25);
   #endif
-  #if HOTENDS > 1
-    setValue(Hotend10, 25);
+  #if MAX_BED > 0
+    if (tools.data.beds) setValue(Bed_deg, 25);
   #endif
-  #if HOTENDS > 2
-    setValue(Hotend20, 25);
-  #endif
-  #if HOTENDS > 3
-    setValue(Hotend30, 25);
-  #endif
-  #if HAS_BEDS
-    setValue(Bed0, 25);
-  #endif
-  #if HAS_TEMP_CHAMBER0
-    setValue(Chamber0, 25);
+  #if MAX_CHAMBER > 0
+    if (tools.data.chambers) setValue(Chamber_deg, 25);
   #endif
   #if HAS_DHT
     setValue(DHT0, 25);
@@ -765,21 +760,21 @@ void NextionLCD::set_status_page() {
   sendCommandPGM(PSTR("p[2].b[10].val=" NEXTION_EXTRUDERS));
 
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[X_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.x, temp, 10);
   setText(SpeedX, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[Y_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.y, temp, 10);
   setText(SpeedY, temp);
   ZERO(temp);
-  itoa(manual_feedrate_mm_m[Z_AXIS], temp, 10);
+  itoa(manual_feedrate_mm_m.z, temp, 10);
   setText(SpeedZ, temp);
 
   #if HAS_SD_SUPPORT
-    if (!card.isDetected()) {
+    if (!card.isMounted()) {
       card.mount();
       HAL::delayMilliseconds(500);
     }
-    if (card.isDetected()) {
+    if (card.isMounted()) {
       setValue(SD, SD_INSERT);
       card.beginautostart();  // Initial boot
     }
@@ -789,7 +784,7 @@ void NextionLCD::set_status_page() {
 
   setValue(VSpeed, 100);
 
-  #if HAS_FANS
+  #if MAX_FAN > 0
     sendCommandPGM(PSTR("p[2].b[25].val=1"));
   #endif
 
@@ -808,13 +803,13 @@ void NextionLCD::coordtoLCD() {
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
   if (PageID == 2) {
-    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])));
-    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])));
-    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS]))));
+    setText(LcdX, ftostr41sign(LOGICAL_X_POSITION(mechanics.current_position.x)));
+    setText(LcdY, ftostr41sign(LOGICAL_Y_POSITION(mechanics.current_position.y)));
+    setText(LcdZ, ftostr41sign(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z))));
   }
   else if (PageID == 4) {
     if (mechanics.home_flag.XHomed) {
-      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS]));
+      valuetemp = ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x));
       strcat(cmd, "X");
       strcat(cmd, valuetemp);
     }
@@ -822,7 +817,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, "?");
 
     if (mechanics.home_flag.YHomed) {
-      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS]));
+      valuetemp = ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y));
       strcat(cmd, " Y");
       strcat(cmd, valuetemp);
     }
@@ -830,7 +825,7 @@ void NextionLCD::coordtoLCD() {
       strcat(cmd, " ?");
 
     if (mechanics.home_flag.ZHomed) {
-      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])));
+      valuetemp = ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(mechanics.current_position.z)));
       strcat(cmd, " Z");
       strcat(cmd, valuetemp);
     }
@@ -911,7 +906,7 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
     }
 
     #if LCD_TIMEOUT_TO_STATUS
-      return_to_status_ms = millis();
+      return_to_status_timer.start();
     #endif
 
     lcdui.refresh(LCDVIEW_REDRAW_NOW);
@@ -923,7 +918,7 @@ void NextionLCD::PopCallback(NexObject *nexobject) {
 #if HAS_SD_SUPPORT
 
   void NextionLCD::SDMenuPopCallback() {
-    if (card.isDetected()) lcdui.goto_screen(menu_sdcard);
+    if (card.isMounted()) lcdui.goto_screen(menu_sdcard);
   }
 
 #endif
@@ -990,7 +985,7 @@ bool NextionLCD::getConnect(char* buffer) {
     _upload_baudrate = upload_baudrate;
   }
 
-  void NexUpload::startUpload(void) {
+  void NexUpload::startUpload() {
     if (!_checkFile()) {
       SERIAL_LM(ER, "The file is error");
       return;
@@ -1012,7 +1007,7 @@ bool NextionLCD::getConnect(char* buffer) {
     SERIAL_EM("upload ok");
   }
 
-  uint16_t NexUpload::_getBaudrate(void) {
+  uint16_t NexUpload::_getBaudrate() {
     const uint32_t baudrate_array[7] = { 115200, 57600, 38400, 19200, 9600, 4800, 2400 };
     for (uint8_t i = 0; i < 7; i++) {
       if (_searchBaudrate(baudrate_array[i])) {
@@ -1023,7 +1018,7 @@ bool NextionLCD::getConnect(char* buffer) {
     return _baudrate;
   }
 
-  bool NexUpload::_checkFile(void) {
+  bool NexUpload::_checkFile() {
     SERIAL_EMT("Start checkFile ", _file_name);
     if (!nextion_file.open(&card.root, _file_name, FILE_READ)) {
       SERIAL_LM(ER, "file is not exit");
@@ -1038,7 +1033,7 @@ bool NextionLCD::getConnect(char* buffer) {
     nexSerial.end();
     HAL::delayMilliseconds(100);
     nexSerial.begin(baudrate);
-    nexlcd.sendCommandPGM(PSTR(""));
+    nexlcd.sendCommandPGM(NULL_STR);
     nexlcd.sendCommandPGM(PSTR("connect"));
     recvRetString(string);
 
@@ -1079,7 +1074,7 @@ bool NextionLCD::getConnect(char* buffer) {
     String baudrate_str = String(baudrate, 10);
     cmd = "whmi-wri " + filesize_str + "," + baudrate_str + ",0";
 
-    nexlcd.sendCommandPGM(PSTR(""));
+    nexlcd.sendCommandPGM(NULL_STR);
     nexlcd.sendCommand(cmd.c_str());
     HAL::delayMilliseconds(50);
     nexSerial.begin(baudrate);
@@ -1090,7 +1085,7 @@ bool NextionLCD::getConnect(char* buffer) {
     return false;
   }
 
-  bool NexUpload::_uploadTftFile(void) {
+  bool NexUpload::_uploadTftFile() {
     uint8_t c;
     uint16_t  send_timer = 0,
               last_send_num = 0;
@@ -1144,7 +1139,7 @@ bool NextionLCD::getConnect(char* buffer) {
 
     if (processing_manual_move) return;
 
-    if (manual_move_axis != (int8_t)NO_AXIS && expired(&manual_move_ms, (move_menu_scale < 0.99f ? 1U : 250U)) && !planner.is_full()) {
+    if (manual_move_axis != (int8_t)NO_AXIS && manual_move_timer.expired(move_menu_scale < 0.99f ? 1 : 250, false) && !planner.is_full()) {
 
       #if IS_KINEMATIC
 
@@ -1157,7 +1152,7 @@ bool NextionLCD::getConnect(char* buffer) {
         #endif
 
         // Set movement on a single axis
-        mechanics.set_destination_to_current();
+        mechanics.destination = mechanics.current_position;
         mechanics.destination[manual_move_axis] += manual_move_offset;
 
         // Reset for the next move
@@ -1203,8 +1198,8 @@ void LcdUI::init() { nexlcd.init(); }
 
 bool LcdUI::get_blink(uint8_t moltiplicator/*=1*/) {
   static uint8_t blink = 0;
-  static millis_s next_blink_ms = 0;
-  if (expired(&next_blink_ms, millis_s(1000U * moltiplicator))) blink ^= 0xFF;
+  static short_timer_t next_blink_timer(true);
+  if (next_blink_timer.expired(moltiplicator * 1000)) blink ^= 0xFF;
   return blink != 0;
 }
 
@@ -1214,7 +1209,7 @@ void LcdUI::kill_screen(PGM_P lcd_msg) {
 
 void LcdUI::update() {
 
-  static millis_s next_lcd_update_ms = 0;
+  static short_timer_t next_lcd_update_timer(true);
 
   if (!nexlcd.NextionON) return;
 
@@ -1244,22 +1239,22 @@ void LcdUI::update() {
         if (old_sd_status == 2)
           card.beginautostart();  // Initial boot
         else
-          set_status_P(PSTR(MSG_SD_INSERTED));
+          set_status_P(GET_TEXT(MSG_SD_INSERTED));
       }
       #if PIN_EXISTS(SD_DETECT)
         else {
           card.unmount();
-          if (nexlcd.lcd_sd_status != 2) set_status_P(PSTR(MSG_SD_REMOVED));
+          if (nexlcd.lcd_sd_status != 2) set_status_P(GET_TEXT(MSG_SD_REMOVED));
         }
       #endif
 
       refresh();
-      next_lcd_update_ms = millis();
+      next_lcd_update_timer.start();
     }
 
   #endif // HAS_SD_SUPPORT
 
-  if (expired(&next_lcd_update_ms, LCD_UPDATE_INTERVAL))
+  if (next_lcd_update_timer.expired(LCD_UPDATE_INTERVAL))
     nexlcd.status_screen_update();
 
   #if HAS_LCD_MENU
@@ -1268,8 +1263,8 @@ void LcdUI::update() {
 
       #if LCD_TIMEOUT_TO_STATUS
         if (defer_return_to_status)
-          nexlcd.return_to_status_ms = millis();
-        else if (expired(&nexlcd.return_to_status_ms, millis_l(LCD_TIMEOUT_TO_STATUS)))
+          nexlcd.return_to_status_timer.start();
+        else if (nexlcd.return_to_status_timer.expired(LCD_TIMEOUT_TO_STATUS))
           return_to_status();
       #endif
 
@@ -1301,7 +1296,7 @@ void LcdUI::update() {
     }
     else {
       #if LCD_TIMEOUT_TO_STATUS
-        nexlcd.return_to_status_ms = millis();
+        nexlcd.return_to_status_timer = millis();
       #endif
     }
 
@@ -1329,15 +1324,15 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
 
 void LcdUI::set_status(const char* const message, bool persist) {
   UNUSED(persist);
-  if (status_message_level || !nexlcd.NextionON) return;
+  if (alert_level || !nexlcd.NextionON) return;
   strncpy(status_message, message, NEXTION_MAX_MESSAGE_LENGTH);
   nexlcd.setText(LcdStatus, status_message);
 }
 
 void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
-  if (level < 0) level = status_message_level = 0;
-  if (level < status_message_level || !nexlcd.NextionON) return;
-  status_message_level = level;
+  if (level < 0) level = alert_level = 0;
+  if (level < alert_level || !nexlcd.NextionON) return;
+  alert_level = level;
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);
@@ -1354,9 +1349,11 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   nexlcd.setText(LcdStatus, status_message);
 }
 
+#include <stdarg.h>
+
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
-  if (level < status_message_level || !nexlcd.NextionON) return;
-  status_message_level = level;
+  if (level < alert_level || !nexlcd.NextionON) return;
+  alert_level = level;
   va_list args;
   va_start(args, fmt);
   vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, fmt, args);
@@ -1364,10 +1361,13 @@ void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
   nexlcd.setText(LcdStatus, status_message);
 }
 
+PGM_P print_paused = GET_TEXT(MSG_PRINT_PAUSED);
+
 void LcdUI::reset_status() {
-  static const char paused[] PROGMEM = MSG_PRINT_PAUSED;
-  static const char printing[] PROGMEM = MSG_PRINTING;
-  static const char welcome[] PROGMEM = WELCOME_MSG;
+
+  PGM_P printing  = GET_TEXT(MSG_PRINTING);
+  PGM_P welcome   = GET_TEXT(MSG_WELCOME);
+
   #if ENABLED(SERVICE_TIME_1)
     static const char service1[] PROGMEM = { "> " SERVICE_NAME_1 "!" };
   #endif
@@ -1379,7 +1379,7 @@ void LcdUI::reset_status() {
   #endif
   PGM_P msg;
   if (print_job_counter.isPaused())
-    msg = paused;
+    msg = print_paused;
   #if HAS_SD_SUPPORT
     else if (IS_SD_PRINTING())
       return lcdui.set_status(card.fileName, true);
@@ -1418,7 +1418,7 @@ bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 void LcdUI::pause_print() {
 
   #if HAS_LCD_MENU
-    synchronize(PSTR(MSG_PAUSE_PRINT));
+    synchronize(GET_TEXT(MSG_PAUSE_PRINT));
   #endif
 
   #if HAS_SD_RESTART
@@ -1427,7 +1427,7 @@ void LcdUI::pause_print() {
 
   host_action.prompt_open(PROMPT_PAUSE_RESUME, PSTR("LCD Pause"), PSTR("Resume"));
 
-  set_status_P(PSTR(MSG_PRINT_PAUSED));
+  set_status_P(print_paused);
 
   #if ENABLED(PARK_HEAD_ON_PAUSE)
     lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);  // Show message immediately to let user know about pause in progress
@@ -1447,7 +1447,7 @@ void LcdUI::resume_print() {
     printer.setWaitForUser(false);
   #endif
   #if HAS_SD_SUPPORT
-    commands.inject_P(PSTR("M24"));
+    commands.inject_P(M24_CMD);
   #endif
   host_action.resume();
   print_job_counter.start();
@@ -1460,9 +1460,12 @@ void LcdUI::stop_print() {
     if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
   #endif
   host_action.cancel();
+  host_action.prompt_open(PROMPT_INFO, PSTR("LCD Aborted"), PSTR("Dismiss"));
   print_job_counter.stop();
-  set_status_P(PSTR(MSG_PRINT_ABORTED));
-  return_to_status();
+  set_status_P(GET_TEXT(MSG_PRINT_ABORTED));
+  #if HAS_LCD_MENU
+    return_to_status();
+  #endif
 }
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -1485,20 +1488,20 @@ void LcdUI::stop_print() {
 
       UNUSED(row);
 
-      static millis_s nex_update_ms = 0;
+      static short_timer_t nex_update_timer(true);
 
       char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
-      if (expired(&nex_update_ms, 1500U)) {
+      if (nex_update_timer.expired(1500)) {
 
-        strcat(cmd, MSG_FILAMENT_CHANGE_NOZZLE "H");
+        strcat(cmd, "H");
         strcat(cmd, ui8tostr1(hotend));
         strcat(cmd, " ");
-        strcat(cmd, i16tostr3(hotends[hotend].deg_current()));
+        strcat(cmd, i16tostr3(hotends[hotend]->deg_current()));
         strcat(cmd, "/");
 
-        if (get_blink() || !hotends[hotend].isIdle())
-          strcat(cmd, i16tostr3(hotends[hotend].deg_target()));
+        if (get_blink() || !hotends[hotend]->isIdle())
+          strcat(cmd, i16tostr3(hotends[hotend]->deg_target()));
 
         nexlcd.Set_font_color_pco(*txtmenu_list[LCD_HEIGHT - 1], hot_color);
         nexlcd.setText(*txtmenu_list[LCD_HEIGHT - 1], cmd);
@@ -1508,20 +1511,18 @@ void LcdUI::stop_print() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  // Draw a static line of text in the same idiom as a menu item
-  void draw_menu_item_static(const uint8_t row, PGM_P const pstr, const bool center/*=true*/, const bool invert/*=false*/, const char* valstr/*=NULL*/) {
-    UNUSED(center);
+  // Draw a static item with no left-right margin required. Centered by default.
+  void MenuItem_static::draw(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_DEFAULT*/, const char * const valstr/*=nullptr*/) {
     nexlcd.line_encoder_touch = true;
-    nexlcd.mark_as_selected(row, invert);
+    nexlcd.mark_as_selected(row, (style & SS_INVERT));
     nexlcd.startChar(*txtmenu_list[row]);
     nexlcd.put_str_P(pstr);
     if (valstr != NULL) nexlcd.put_str(valstr);
     nexlcd.endChar();
   }
 
-  // Draw a generic menu item
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
-    UNUSED(pre_char); UNUSED(post_char);
+  // Draw a generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
@@ -1529,15 +1530,24 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  // Draw a menu item with an editable value
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr),
-                  vallen = (pgm ? strlen_P(data) : strlen((char*)data));
+  // Draw an indexed generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr);
-    nexlcd.put_str_P(PSTR(":"));
+    nexlcd.put_str_P(pstr, idx);
+    nexlcd.endChar();
+  }
+
+  // Draw a menu item with a (potentially) editable value
+  void  MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
+                  vallen    = data ? (pgm ? strlen_P(data) : strlen((char*)data)) : 0;
+    nexlcd.line_encoder_touch = true;
+    nexlcd.mark_as_selected(row, sel);
+    nexlcd.startChar(*txtmenu_list[row]);
+    nexlcd.put_str_P(pstr, idx);
+    nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)
       nexlcd.put_str_P(data);
@@ -1546,9 +1556,11 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  // Low-level edit_screen can be used to draw an edit screen from anyplace
+  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+    lcdui.encoder_direction_normal();
 
-    const uint8_t labellen  = strlen_P(pstr),
+    const uint8_t labellen  = strlen_P(pstr)+ (itemIndex != 0xFF ? 2 : 0),
                   vallen    = strlen(value);
 
     bool extra_row = labellen > LCD_WIDTH - vallen - 1;
@@ -1562,7 +1574,7 @@ void LcdUI::stop_print() {
     if (extra_row) {
       nexlcd.Set_font_color_pco(*txtmenu_list[row - 1], sel_color);
       nexlcd.startChar(*txtmenu_list[row - 1]);
-      nexlcd.put_str_P(pstr);
+      nexlcd.put_str_P(pstr, itemIndex);
       nexlcd.endChar();
       nexlcd.startChar(*txtmenu_list[row]);
       nexlcd.put_space(LCD_WIDTH - vallen);
@@ -1570,15 +1582,15 @@ void LcdUI::stop_print() {
     }
     else {
       nexlcd.startChar(*txtmenu_list[row]);
-      nexlcd.put_str_P(pstr);
-      nexlcd.put_str_P(PSTR(":"));
+      nexlcd.put_str_P(pstr, itemIndex);
+      nexlcd.setChar(':');
       nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
       nexlcd.put_str(value);
     }
     nexlcd.endChar();
   }
 
-  inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
+  void LcdUI::draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
     nexlcd.startChar(*txtmenu_list[1]);
     nexlcd.put_str_P(pref);
     if (string) {
@@ -1590,23 +1602,22 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
-    draw_select_screen_prompt(pref, string, suff);
+  void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+    lcdui.draw_select_screen_prompt(pref, string, suff);
     nexlcd.startChar(*txtmenu_list[LCD_HEIGHT - 1]);
-    nexlcd.put_str_P(yesno ? PSTR(" ") : PSTR("["));
+    nexlcd.setChar(yesno ? ' ' : '[');
     nexlcd.put_str_P(no);
-    nexlcd.put_str_P(yesno ? PSTR(" ") : PSTR("]"));
+    nexlcd.setChar(yesno ? ' ' : ']');
     nexlcd.put_space(2);
-    nexlcd.put_str_P(yesno ? PSTR("[") : PSTR(" "));
+    nexlcd.setChar(yesno ? '[' : ' ');
     nexlcd.put_str_P(yes);
-    nexlcd.put_str_P(yesno ? PSTR("]") : PSTR(" "));
+    nexlcd.setChar(yesno ? ']' : ' ');
     nexlcd.endChar();
   }
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
-      UNUSED(pstr);
+    void MenuItem_sdbase::draw(const bool sel, const uint8_t row, PGM_P const, SDCard &theCard, const bool isDir) {
       nexlcd.mark_as_selected(row, sel);
       nexlcd.startChar(*txtmenu_list[row]);
       if (isDir) nexlcd.put_str_P(PSTR(LCD_STR_FOLDER));

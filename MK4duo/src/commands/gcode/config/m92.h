@@ -41,7 +41,7 @@
  *      'H' specifies micro-steps to use. We guess if it's not supplied.
  *      'L' specifies a desired layer height. Nearest good heights are shown.
  */
-inline void gcode_M92(void) {
+inline void gcode_M92() {
 
   if (commands.get_target_tool(92)) return;
 
@@ -55,25 +55,25 @@ inline void gcode_M92(void) {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
-      const float value = MAX(parser.value_per_axis_unit((AxisEnum)a), 1.0f); // don't allow zero or negative
+      const float value = MAX(parser.value_per_axis_unit((AxisEnum)i), 1.0f); // don't allow zero or negative
       if (i == E_AXIS) {
+        const uint8_t t = tools.extruder.target;
         if (value < 20) {
-          float factor = mechanics.data.axis_steps_per_mm[a] / value; // increase e constants if M92 E14 is given for netfab.
+          float factor = extruders[t]->data.axis_steps_per_mm / value; // increase e constants if M92 E14 is given for netfab.
           #if HAS_CLASSIC_JERK && (DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE))
-            mechanics.data.max_jerk[a] *= factor;
+            extruders[t]->data.max_jerk *= factor;
           #endif
-          mechanics.data.max_feedrate_mm_s[a] *= factor;
-          mechanics.max_acceleration_steps_per_s2[a] *= factor;
+          extruders[t]->data.max_feedrate_mm_s *= factor;
+          extruders[t]->max_acceleration_steps_per_s2 *= factor;
         }
-        mechanics.data.axis_steps_per_mm[a] = value;
+        extruders[t]->data.axis_steps_per_mm = value;
       }
       else {
         #if MECH(DELTA)
           LOOP_XYZ(axis)
             mechanics.data.axis_steps_per_mm[axis] = value;
         #else
-          mechanics.data.axis_steps_per_mm[a] = value;
+          mechanics.data.axis_steps_per_mm[i] = value;
         #endif
       }
     }
@@ -85,7 +85,7 @@ inline void gcode_M92(void) {
   if (parser.seen('H') || layer_wanted) {
     const uint16_t  argH = parser.ushortval('H'),
                     micro_steps = argH ? argH : 1;
-    const float minimum_layer_height = micro_steps * mechanics.steps_to_mm[Z_AXIS];
+    const float minimum_layer_height = micro_steps * mechanics.steps_to_mm.z;
     SERIAL_SMV(ECHO, "{ micro steps:", micro_steps);
     SERIAL_MV(", minimum layer height:", minimum_layer_height, 3);
     if (layer_wanted) {

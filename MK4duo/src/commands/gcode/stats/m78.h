@@ -32,7 +32,7 @@
  * M78: Show print statistics
  *  X1 - Force save statistics
  */
-inline void gcode_M78(void) {
+inline void gcode_M78() {
 
   if (parser.seenval('X')) {
     SERIAL_EM("Statistics stored");

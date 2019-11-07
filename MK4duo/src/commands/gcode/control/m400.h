@@ -31,4 +31,4 @@
 /**
  * M400: Finish all moves
  */
-inline void gcode_M400(void) { planner.synchronize(); }
+inline void gcode_M400() { planner.synchronize(); }

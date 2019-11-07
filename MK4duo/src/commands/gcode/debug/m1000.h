@@ -30,6 +30,6 @@
 
 #define CODE_M1000
 
-inline void gcode_M1000(void) { parser.debug(); }
+inline void gcode_M1000() { parser.debug(); }
 
 #endif // DEBUG_GCODE_PARSER

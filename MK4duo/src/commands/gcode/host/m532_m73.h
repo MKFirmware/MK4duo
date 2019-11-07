@@ -49,9 +49,9 @@ void gcode_M73_M532() {
  *   M73 P25 ; Set progress to 25%
  *
  */
-inline void gcode_M73(void) { gcode_M73_M532(); }
+inline void gcode_M73() { gcode_M73_M532(); }
 
 /**
  * M532: X<percent> L<curLayer> - update current print state progress (X=0..100) and layer L
  */
-inline void gcode_M532(void) { gcode_M73_M532(); }
+inline void gcode_M532() { gcode_M73_M532(); }

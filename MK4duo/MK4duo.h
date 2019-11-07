@@ -54,16 +54,13 @@
 #include <SPI.h>
 
 /**
- * Include file
+ * Macro for start
  */
 #include "src/lib/macros.h"
-#include "src/lib/types.h"
-#include "src/lib/enum.h"
-#include "src/lib/restorer.h"
-#include "src/lib/circular_queue.h"
-#include "src/lib/driver_types.h"
-#include "src/lib/duration_t.h"
-#include "src/lib/matrix.h"
+
+/**
+ * Include file
+ */
 #include "Boards.h"
 
 // Configuration settings loading
@@ -101,21 +98,29 @@
   #include "Configuration_CNCRouter.h"
 #endif
 
-#include "src/inc/conditionals_pre.h"
-#include "src/inc/conditionals_pins.h"
-#include "src/inc/conditionals_post.h"
+#include "src/conditionals/conditionals_pre.h"
+#include "src/conditionals/conditionals_pins.h"
+#include "src/conditionals/conditionals_post.h"
+
+// Lib modules
+#include "src/lib/types.h"
+#include "src/lib/enum.h"
+#include "src/lib/restorer.h"
+#include "src/lib/circular_queue.h"
+#include "src/lib/driver_types.h"
+#include "src/lib/duration_t.h"
+#include "src/lib/matrix.h"
+#include "src/lib/vector_3/vector_3.h"
+#include "src/lib/least_squares_fit/least_squares_fit.h"
 
 // Platform modules
 #include "src/platform/platform.h"
 
-// Utility modules
-#include "src/utility/utility.h"
-#include "src/utility/watch.h"
-#include "src/utility/point_t.h"
-#include "src/utility/bezier.h"
-
 // Core modules
+#include "src/core/utility/utility.h"
+#include "src/core/watch/watch.h"
 #include "src/core/mechanics/mechanics.h"
+#include "src/core/extruder/extruder.h"
 #include "src/core/tools/tools.h"
 #include "src/core/nozzle/nozzle.h"
 #include "src/core/fan/fan.h"
@@ -153,6 +158,8 @@
 #include "src/sdcard/sdcard.h"
 
 // Feature modules
+#include "src/feature/bezier/bezier.h"
+#include "src/feature/digipot/digipot.h"
 #include "src/feature/emergency_parser/emergency_parser.h"
 #include "src/feature/probe/probe.h"
 #include "src/feature/bedlevel/bedlevel.h"

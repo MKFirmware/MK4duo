@@ -34,7 +34,7 @@
 /**
  * M995: Nextion Origin
  */
-inline void gcode_M995(void) { nexlcd.gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
+inline void gcode_M995() { nexlcd.gfx_origin(parser.linearval('X'), parser.linearval('Y'), parser.linearval('Z')); }
 
 /**
  * M996: Nextion Scale

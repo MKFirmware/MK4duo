@@ -38,7 +38,7 @@
  *  Z[float] Sets the hysteresis distance on Z (0 to disable)
  *
  */
-inline void gcode_M99(void) {
+inline void gcode_M99() {
 
   LOOP_XYZ(axis) {
     if (parser.seen(axis_codes[axis]))

@@ -144,9 +144,8 @@ static constexpr fastio_t fastio[] = {
  * now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
  */
 
-// NOT CHANGE uint8_t in pin_t!
 // Read a pin
-FORCE_INLINE static bool READ(const uint8_t pin) {
+FORCE_INLINE static bool READ(const pin_t pin) {
   #if ENABLED(PCF8574_EXPANSION_IO)
     if (pin >= PIN_START_FOR_PCF8574) {
       return pcf8574.digitalRead(pin - PIN_START_FOR_PCF8574);
@@ -154,13 +153,12 @@ FORCE_INLINE static bool READ(const uint8_t pin) {
     else
   #endif
   {
-    return (bool)(fastio[pin].base_address->PIO_PDSR & (MASK(fastio[pin].shift_count)));
+    return (bool)(fastio[uint8_t(pin)].base_address->PIO_PDSR & (MASK(fastio[uint8_t(pin)].shift_count)));
   }
 }
 
 // Write to a pin
-// On some boards pins > 0x100 are used. These are not converted to atomic actions. An critical section is needed.
-FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
+FORCE_INLINE static void WRITE(const pin_t pin, const bool flag) {
   #if ENABLED(PCF8574_EXPANSION_IO)
     if (pin >= PIN_START_FOR_PCF8574) {
       pcf8574.digitalWrite(pin - PIN_START_FOR_PCF8574, flag);
@@ -168,8 +166,8 @@ FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
     else
   #endif
   {
-    volatile Pio* pPio = fastio[pin].base_address;
-    const uint32_t dwMask = MASK(fastio[pin].shift_count);
+    volatile Pio* pPio = fastio[uint8_t(pin)].base_address;
+    const uint32_t dwMask = MASK(fastio[uint8_t(pin)].shift_count);
     if (flag)
       pPio->PIO_SODR = dwMask;
     else
@@ -178,7 +176,7 @@ FORCE_INLINE static void WRITE(const uint8_t pin, const bool flag) {
 }
 
 // Toogle pin
-FORCE_INLINE static void TOGGLE(const uint8_t pin) {
+FORCE_INLINE static void TOGGLE(const pin_t pin) {
   WRITE(pin, !READ(pin));
 }
 

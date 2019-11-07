@@ -70,20 +70,20 @@ static void ac_cleanup() {
 float homed_height;
 static void Calc_homed_height() {
   const float tempHeight = mechanics.data.diagonal_rod;		// any sensible height will do here, probably even zero
-  float cartesian[ABC];
+  abc_pos_t cartesian;
   mechanics.InverseTransform(tempHeight, tempHeight, tempHeight, cartesian);
-  homed_height = mechanics.data.height + tempHeight - cartesian[Z_AXIS];
+  homed_height = mechanics.data.height + tempHeight - cartesian.z;
 }
 
 // Convert data.endstop_adj
 static void Convert_endstop_adj() {
-  LOOP_XYZ(i) mechanics.data.endstop_adj[i] *= -1;
+  mechanics.data.endstop_adj *= -1;
 }
 
 // Normalize Endstop
 static void NormaliseEndstopAdjustments() {
-  const float min_endstop = MIN(mechanics.data.endstop_adj[A_AXIS], mechanics.data.endstop_adj[B_AXIS], mechanics.data.endstop_adj[C_AXIS]);
-  LOOP_XYZ(i) mechanics.data.endstop_adj[i] -= min_endstop;
+  const float min_endstop = MIN(mechanics.data.endstop_adj.a, mechanics.data.endstop_adj.b, mechanics.data.endstop_adj.c);
+  mechanics.data.endstop_adj -= min_endstop;
   mechanics.data.height += min_endstop;
   homed_height += min_endstop;
 }
@@ -97,20 +97,20 @@ static void NormaliseEndstopAdjustments() {
 //  Diagonal rod length adjustment
 static void Adjust(const uint8_t numFactors, const float v[]) {
 
-  const float oldHeightA = homed_height + mechanics.data.endstop_adj[A_AXIS];
+  const float oldHeightA = homed_height + mechanics.data.endstop_adj.a;
 
   // Update endstop adjustments
-  mechanics.data.endstop_adj[A_AXIS] += v[0];
-  mechanics.data.endstop_adj[B_AXIS] += v[1];
-  mechanics.data.endstop_adj[C_AXIS] += v[2];
+  mechanics.data.endstop_adj.a += v[0];
+  mechanics.data.endstop_adj.b += v[1];
+  mechanics.data.endstop_adj.c += v[2];
   NormaliseEndstopAdjustments();
 
   if (numFactors >= 4) {
     mechanics.data.radius += v[3];
 
     if (numFactors >= 6) {
-      mechanics.data.tower_angle_adj[A_AXIS] += v[4];
-      mechanics.data.tower_angle_adj[B_AXIS] += v[5];
+      mechanics.data.tower_angle_adj.a += v[4];
+      mechanics.data.tower_angle_adj.b += v[5];
 
       if (numFactors == 7) mechanics.data.diagonal_rod += v[6];
 
@@ -119,7 +119,7 @@ static void Adjust(const uint8_t numFactors, const float v[]) {
 
   mechanics.recalc_delta_settings();
   Calc_homed_height();
-  const float heightError = homed_height + mechanics.data.endstop_adj[A_AXIS] - oldHeightA - v[0];
+  const float heightError = homed_height + mechanics.data.endstop_adj.a - oldHeightA - v[0];
   mechanics.data.height -= heightError;
   homed_height -= heightError;
 
@@ -137,7 +137,7 @@ static void Adjust(const uint8_t numFactors, const float v[]) {
  *          Diagonal rod length adjustment
  *      P = Num probe points 7 or 10
  */
-inline void gcode_G33(void) {
+inline void gcode_G33() {
 
   const uint8_t MaxCalibrationPoints  = 10,
                 NperifericalPoints    = 6,
@@ -182,25 +182,25 @@ inline void gcode_G33(void) {
   Calc_homed_height();
 
   for (uint8_t probe_index = 0; probe_index < NperifericalPoints; probe_index++) {
-    xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / NperifericalPoints);
-    yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / NperifericalPoints);
-    zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
+    xBedProbePoints[probe_index] = mechanics.data.probe_radius * SIN((2 * M_PI * probe_index) / float(NperifericalPoints));
+    yBedProbePoints[probe_index] = mechanics.data.probe_radius * COS((2 * M_PI * probe_index) / float(NperifericalPoints));
+    zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
     if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
   }
 
   if (probe_points == 10) {
     for (uint8_t index = 0; index < NinternalPoints; index++) {
       const uint8_t probe_index = index + NperifericalPoints;
-      xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / NinternalPoints);
-      yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / NinternalPoints);
-      zBedProbePoints[probe_index] = probe.check_pt(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
+      xBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * SIN((2 * M_PI * index) / float(NinternalPoints));
+      yBedProbePoints[probe_index] = (mechanics.data.probe_radius / 2) * COS((2 * M_PI * index) / float(NinternalPoints));
+      zBedProbePoints[probe_index] = probe.check_at_point(xBedProbePoints[probe_index], yBedProbePoints[probe_index], PROBE_PT_RAISE, 4);
       if (isnan(zBedProbePoints[probe_index])) return ac_cleanup();
     }
   }
 
-  xBedProbePoints[probe_points - 1] = 0.0;
-  yBedProbePoints[probe_points - 1] = 0.0;
-  zBedProbePoints[probe_points - 1] = probe.check_pt(0.0, 0.0, PROBE_PT_STOW, 4);
+  xBedProbePoints[probe_points - 1] = 0.0f;
+  yBedProbePoints[probe_points - 1] = 0.0f;
+  zBedProbePoints[probe_points - 1] = probe.check_at_point(0.0f, 0.0f, PROBE_PT_STOW, 4);
   if (isnan(zBedProbePoints[probe_points - 1])) return ac_cleanup();
 
   // convert data.endstop_adj;
@@ -214,7 +214,7 @@ inline void gcode_G33(void) {
   // Transform the probing points to motor endpoints and store them in a matrix, so that we can do multiple iterations using the same data
   for (uint8_t i = 0; i < probe_points; ++i) {
     corrections[i] = 0.0;
-    float machinePos[ABC] = { xBedProbePoints[i], yBedProbePoints[i], 0.0 };
+    abc_float_t machinePos = { xBedProbePoints[i], yBedProbePoints[i], 0.0f };
 
     mechanics.Transform(machinePos);
 
@@ -310,14 +310,14 @@ inline void gcode_G33(void) {
 
     // Calculate the expected probe heights using the new parameters
     float expectedResiduals[MaxCalibrationPoints];
-    float sumOfSquares = 0.0;
+    float sumOfSquares = 0.0f;
 
     for (int8_t i = 0; i < probe_points; i++) {
       LOOP_XYZ(axis) probeMotorPositions(i, axis) += solution[axis];
-      float newPosition[ABC];
+      abc_pos_t newPosition;
       mechanics.InverseTransform(probeMotorPositions(i, A_AXIS), probeMotorPositions(i, B_AXIS), probeMotorPositions(i, C_AXIS), newPosition);
-      corrections[i] = newPosition[Z_AXIS];
-      expectedResiduals[i] = zBedProbePoints[i] + newPosition[Z_AXIS];
+      corrections[i] = newPosition.z;
+      expectedResiduals[i] = zBedProbePoints[i] + newPosition.z;
       sumOfSquares += sq(expectedResiduals[i]);
     }
 
@@ -339,19 +339,19 @@ inline void gcode_G33(void) {
 
   ac_home();
 
-  const float measured_z = probe.check_pt(0, 0, PROBE_PT_RAISE, 0);
+  const float measured_z = probe.check_at_point(0.0f, 0.0f, PROBE_PT_RAISE, 0);
   mechanics.data.height -= measured_z;
   mechanics.recalc_delta_settings();
 
-  SERIAL_MV("Endstops X", mechanics.data.endstop_adj[A_AXIS], 3);
-  SERIAL_MV(" Y", mechanics.data.endstop_adj[B_AXIS], 3);
-  SERIAL_MV(" Z", mechanics.data.endstop_adj[C_AXIS], 3);
+  SERIAL_MV("Endstops X", mechanics.data.endstop_adj.a, 3);
+  SERIAL_MV(" Y", mechanics.data.endstop_adj.b, 3);
+  SERIAL_MV(" Z", mechanics.data.endstop_adj.c, 3);
   SERIAL_MV(" height ", mechanics.data.height, 3);
   SERIAL_MV(" diagonal rod ", mechanics.data.diagonal_rod, 3);
   SERIAL_MV(" delta radius ", mechanics.data.radius, 3);
-  SERIAL_MV(" Towers angle correction I", mechanics.data.tower_angle_adj[A_AXIS], 2);
-  SERIAL_MV(" J", mechanics.data.tower_angle_adj[B_AXIS], 2);
-  SERIAL_MV(" K", mechanics.data.tower_angle_adj[C_AXIS], 2);
+  SERIAL_MV(" Towers angle correction I", mechanics.data.tower_angle_adj.a, 2);
+  SERIAL_MV(" J", mechanics.data.tower_angle_adj.b, 2);
+  SERIAL_MV(" K", mechanics.data.tower_angle_adj.c, 2);
   SERIAL_EOL();
 
   ac_cleanup();

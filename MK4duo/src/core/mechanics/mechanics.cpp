@@ -37,41 +37,52 @@ home_flag_t       Mechanics::home_flag;
 
 const dir_flag_t  Mechanics::home_dir(X_HOME_DIR, Y_HOME_DIR, Z_HOME_DIR);
 
-const float Mechanics::homing_feedrate_mm_s[XYZ]          = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
-            Mechanics::home_bump_mm[XYZ]                  = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
+const xyz_float_t Mechanics::homing_feedrate_mm_s = { MMM_TO_MMS(HOMING_FEEDRATE_X), MMM_TO_MMS(HOMING_FEEDRATE_Y), MMM_TO_MMS(HOMING_FEEDRATE_Z) },
+                  Mechanics::home_bump_mm         = { X_HOME_BUMP_MM, Y_HOME_BUMP_MM, Z_HOME_BUMP_MM };
 
-float Mechanics::feedrate_mm_s                            = MMM_TO_MMS(1500.0),
-      Mechanics::steps_to_mm[XYZE_N]                      = { 0.0 },
-      Mechanics::current_position[XYZE]                   = { 0.0 },
-      Mechanics::cartesian_position[XYZ]                  = { 0.0 },
-      Mechanics::destination[XYZE]                        = { 0.0 },
-      Mechanics::stored_position[NUM_POSITON_SLOTS][XYZE] = { { 0.0 } };
+feedrate_t        Mechanics::feedrate_mm_s        = MMM_TO_MMS(1500.0);
 
-int16_t Mechanics::feedrate_percentage                    = 100;
+xyz_float_t       Mechanics::steps_to_mm;
 
-uint32_t Mechanics::max_acceleration_steps_per_s2[XYZE_N] = { 0 };
+int16_t           Mechanics::feedrate_percentage  = 100;
+
+xyz_ulong_t       Mechanics::max_acceleration_steps_per_s2;
+
+xyze_pos_t        Mechanics::current_position,
+                  Mechanics::destination,
+                  Mechanics::stored_position[NUM_POSITON_SLOTS];
+
+xyz_pos_t         Mechanics::cartesian_position{0};
+
+static constexpr bool axis_relative_temp[XYZE] = AXIS_RELATIVE_MODES;
+uint8_t Mechanics::axis_relative_modes = (
+    (axis_relative_temp[X_AXIS] ? _BV(X_AXIS) : 0)
+  | (axis_relative_temp[Y_AXIS] ? _BV(Y_AXIS) : 0)
+  | (axis_relative_temp[Z_AXIS] ? _BV(Z_AXIS) : 0)
+  | (axis_relative_temp[E_AXIS] ? _BV(E_AXIS) : 0)
+);
 
 #if ENABLED(WORKSPACE_OFFSETS) || ENABLED(DUAL_X_CARRIAGE)
   // The distance that XYZ has been offset by G92. Reset by G28.
-  float Mechanics::position_shift[XYZ] = { 0.0 };
+  xyz_pos_t Mechanics::position_shift[XYZ] = { 0.0f, 0.0f, 0.0f };
 
   // The above two are combined to save on computes
-  float Mechanics::workspace_offset[XYZ] = { 0.0 };
+  xyz_pos_t Mechanics::workspace_offset[XYZ] = { 0.0f, 0.0f, 0.0f };
 #endif
 
 /** Private Parameters */
-float   Mechanics::saved_feedrate_mm_s = 0.0;
-int16_t Mechanics::saved_feedrate_percentage = 0;
+feedrate_t  Mechanics::saved_feedrate_mm_s        = 0.0f;
+int16_t     Mechanics::saved_feedrate_percentage  = 0;
 
 /**
  * Get homedir for axis
  */
 int8_t Mechanics::get_homedir(const AxisEnum axis) {
   switch (axis) {
-    case X_AXIS:  return home_dir.X; break;
-    case Y_AXIS:  return home_dir.Y; break;
-    case Z_AXIS:  return home_dir.Z; break;
-    case E_AXIS:  return home_dir.E; break;
+    case X_AXIS:  return home_dir.x; break;
+    case Y_AXIS:  return home_dir.y; break;
+    case Z_AXIS:  return home_dir.z; break;
+    case E_AXIS:  return home_dir.e; break;
     default:      return 0;
   }
 }
@@ -92,17 +103,17 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
   mechanics.get_cartesian_from_steppers();
 
   #if HAS_POSITION_MODIFIERS
-    float pos[XYZE] = { cartesian_position[X_AXIS], cartesian_position[Y_AXIS], cartesian_position[Z_AXIS], current_position[E_AXIS] };
+    xyze_pos_t pos = { cartesian_position.x, cartesian_position.y, cartesian_position.z, current_position.e };
     planner.unapply_modifiers(pos
       #if HAS_LEVELING
         , true
       #endif
     );
-    const float (&cartesian_position)[XYZE] = pos;
+    xyze_pos_t &cartesian_position = pos;
   #endif
 
   if (axis == ALL_AXES)
-    COPY_ARRAY(current_position, cartesian_position);
+    current_position = cartesian_position;
   else
     current_position[axis] = cartesian_position[axis];
 }
@@ -111,16 +122,8 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * Move the planner to the current position from wherever it last moved
  * (or from wherever it has been told it is located).
  */
-void Mechanics::line_to_current_position(const float &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], fr_mm_s, tools.extruder.active);
-}
-
-/**
- * Move the planner to the position stored in the destination array, which is
- * used by G0/G1/G2/G3/G5 and many other functions to set a destination.
- */
-void Mechanics::buffer_line_to_destination(const float fr_mm_s) {
-  planner.buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], fr_mm_s, tools.extruder.active);
+void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
+  planner.buffer_line(current_position, fr_mm_s, tools.extruder.active);
 }
 
 /**
@@ -146,7 +149,7 @@ void Mechanics::prepare_move_to_destination() {
     ) return;
   }
 
-  set_current_to_destination();
+  current_position = destination;
 }
 
 void Mechanics::setup_for_endstop_or_probe_move() {
@@ -174,7 +177,7 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position
     // in any intermediate location.
-    set_current_to_destination();
+    current_position = destination;
   }
 
 #endif // G5_BEZIER
@@ -187,23 +190,37 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
  */
 void Mechanics::sync_plan_position() {
   if (printer.debugFeature()) DEBUG_POS("sync_plan_position", current_position);
-  planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+  planner.set_position_mm(current_position);
 }
 void Mechanics::sync_plan_position_e() {
-  planner.set_e_position_mm(current_position[E_AXIS]);
+  planner.set_e_position_mm(current_position.e);
 }
 
 /**
  * Report current position to host
  */
 void Mechanics::report_current_position() {
-  SERIAL_MV( "X:", LOGICAL_X_POSITION(current_position[X_AXIS]), 2);
-  SERIAL_MV(" Y:", LOGICAL_Y_POSITION(current_position[Y_AXIS]), 2);
-  SERIAL_MV(" Z:", LOGICAL_Z_POSITION(current_position[Z_AXIS]), 3);
-  SERIAL_EMV(" E:", current_position[E_AXIS], 4);
+  const xyz_pos_t lpos = current_position.asLogical();
+  SERIAL_MV( "X:", lpos.x);
+  SERIAL_MV(" Y:", lpos.y);
+  SERIAL_MV(" Z:", lpos.z);
+  SERIAL_EMV(" E:", current_position.e);
+
+  //stepper.report_positions();
 }
 
-void Mechanics::report_xyze(const float pos[], const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
+void Mechanics::report_xyz(const xyz_pos_t &pos, const uint8_t precision/*=3*/) {
+  char str[12];
+  for (uint8_t i = X_AXIS; i <= Z_AXIS; i++) {
+    SERIAL_CHR(' ');
+    SERIAL_CHR(axis_codes[i]);
+    SERIAL_CHR(':');
+    SERIAL_TXT(dtostrf(pos[i], 1, precision, str));
+  }
+  SERIAL_EOL();
+}
+
+void Mechanics::report_xyze(const xyze_pos_t &pos, const uint8_t n/*=4*/, const uint8_t precision/*=3*/) {
   char str[12];
   for (uint8_t i = 0; i < n; i++) {
     SERIAL_CHR(' ');
@@ -230,23 +247,30 @@ float Mechanics::get_homing_bump_feedrate(const AxisEnum axis) {
   return homing_feedrate_mm_s[axis] / hbd;
 }
 
-bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/, const bool z/*=true*/) {
-  const bool  xx = x && !home_flag.XHomed,
-              yy = y && !home_flag.YHomed,
-              zz = z && !home_flag.ZHomed;
+uint8_t Mechanics::axis_need_homing(uint8_t axis_bits/*=0x07*/) {
+  // Clear test bits that are homed
+  if (TEST(axis_bits, X_AXIS) && home_flag.XHomed) CBI(axis_bits, X_AXIS);
+  if (TEST(axis_bits, Y_AXIS) && home_flag.YHomed) CBI(axis_bits, Y_AXIS);
+  if (TEST(axis_bits, Z_AXIS) && home_flag.ZHomed) CBI(axis_bits, Z_AXIS);
+  return axis_bits;
+}
 
-  if (xx || yy || zz) {
-    SERIAL_SM(ECHO, MSG_HOME " ");
-    if (xx) SERIAL_MSG(MSG_X);
-    if (yy) SERIAL_MSG(MSG_Y);
-    if (zz) SERIAL_MSG(MSG_Z);
-    SERIAL_EM(" " MSG_FIRST);
+bool Mechanics::axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
+  if ((axis_bits = axis_need_homing(axis_bits))) {
+    PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
+    char msg[strlen_P(home_first)+1];
+    sprintf_P(msg, home_first,
+      TEST(axis_bits, X_AXIS) ? MSG_HOST_X : "",
+      TEST(axis_bits, Y_AXIS) ? MSG_HOST_Y : "",
+      TEST(axis_bits, Z_AXIS) ? MSG_HOST_Y : ""
+    );
+    SERIAL_STR(ECHO);
+    SERIAL_STR(msg);
+    SERIAL_EOL();
 
-    #if HAS_SPI_LCD
-      lcdui.status_printf_P(0, PSTR(MSG_HOME " %s%s%s " MSG_FIRST), xx ? MSG_X : "", yy ? MSG_Y : "", zz ? MSG_Z : "");
+    #if HAS_LCD
+      lcdui.set_status(msg);
     #endif
-
-    sound.feedback(false);
 
     return true;
   }
@@ -273,20 +297,6 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
     update_workspace_offset(axis);
   }
 
-  float Mechanics::native_to_logical(const float pos, const AxisEnum axis) {
-    if (axis == E_AXIS)
-      return pos;
-    else
-      return pos + workspace_offset[axis];
-  }
-
-  float Mechanics::logical_to_native(const float pos, const AxisEnum axis) {
-    if (axis == E_AXIS)
-      return pos;
-    else
-      return pos - workspace_offset[axis];
-  }
-
 #endif
 
 /** Protected Function */
@@ -303,47 +313,48 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       default: break;
       #if X_HAS_SENSORLESS
         case X_AXIS:
-          stealth_states.x = tmc.enable_stallguard(X_DRV);
+          stealth_states.x = tmc.enable_stallguard(driver.x);
           #if X2_HAS_SENSORLESS
-            stealth_states.x2 = tmc.enable_stallguard(X2_DRV);
+            stealth_states.x2 = tmc.enable_stallguard(driver.x2);
           #elif CORE_IS_XY && Y_HAS_SENSORLESS
-            stealth_states.y = tmc.enable_stallguard(Y_DRV);
+            stealth_states.y = tmc.enable_stallguard(driver.y);
           #elif CORE_IS_XZ && Z_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(Z_DRV);
+            stealth_states.z = tmc.enable_stallguard(driver.z);
           #endif
           break;
       #endif
       #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          stealth_states.y = tmc.enable_stallguard(Y_DRV);
+          stealth_states.y = tmc.enable_stallguard(driver.y);
           #if Y2_HAS_SENSORLESS
-            stealth_states.y2 = tmc.enable_stallguard(Y2_DRV);
+            stealth_states.y2 = tmc.enable_stallguard(driver.y2);
           #elif CORE_IS_XY && X_HAS_SENSORLESS
-            stealth_states.x = tmc.enable_stallguard(X_DRV);
+            stealth_states.x = tmc.enable_stallguard(driver.x);
           #elif CORE_IS_YZ && Z_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(Z_DRV);
+            stealth_states.z = tmc.enable_stallguard(driver.z);
           #endif
           break;
       #endif
       #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          stealth_states.z = tmc.enable_stallguard(Z_DRV);
+          stealth_states.z = tmc.enable_stallguard(driver.z);
           #if Z2_HAS_SENSORLESS
-            stealth_states.z2 = tmc.enable_stallguard(Z2_DRV);
+            stealth_states.z2 = tmc.enable_stallguard(driver.z2);
           #endif
           #if Z3_HAS_SENSORLESS
-            stealth_states.z3 = tmc.enable_stallguard(Z3_DRV);
+            stealth_states.z3 = tmc.enable_stallguard(driver.z3);
           #endif
           #if CORE_IS_XZ && X_HAS_SENSORLESS
-            stealth_states.x = tmc.enable_stallguard(X_DRV);
+            stealth_states.x = tmc.enable_stallguard(driver.x);
           #elif CORE_IS_YZ && Y_HAS_SENSORLESS
-            stealth_states.z = tmc.enable_stallguard(Z_DRV);
+            stealth_states.z = tmc.enable_stallguard(driver.y);
           #endif
           break;
       #endif
     }
 
     #if ENABLED(SPI_ENDSTOPS)
+      endstops.clear_state();
       switch (axis) {
         #if X_SPI_SENSORLESS
           case X_AXIS: endstops.tmc_spi_homing.x = true; break;
@@ -374,59 +385,49 @@ bool Mechanics::axis_unhomed_error(const bool x/*=true*/, const bool y/*=true*/,
       default: break;
       #if X_HAS_SENSORLESS
         case X_AXIS:
-          tmc.disable_stallguard(X_DRV, enable_stealth.x);
+          tmc.disable_stallguard(driver.x, enable_stealth.x);
           #if X2_HAS_SENSORLESS
-            tmc.disable_stallguard(X2_DRV, enable_stealth.x2);
+            tmc.disable_stallguard(driver.x2, enable_stealth.x2);
           #elif CORE_IS_XY && Y_HAS_SENSORLESS
-            tmc.disable_stallguard(Y_DRV, enable_stealth.y);
+            tmc.disable_stallguard(driver.y, enable_stealth.y);
           #elif CORE_IS_XZ && Z_HAS_SENSORLESS
-            tmc.disable_stallguard(Z_DRV, enable_stealth.z);
+            tmc.disable_stallguard(driver.z, enable_stealth.z);
           #endif
           break;
       #endif
       #if Y_HAS_SENSORLESS
         case Y_AXIS:
-          tmc.disable_stallguard(Y_DRV, enable_stealth.y);
+          tmc.disable_stallguard(driver.y, enable_stealth.y);
           #if Y2_HAS_SENSORLESS
-            tmc.disable_stallguard(Y2_DRV, enable_stealth.y2);
+            tmc.disable_stallguard(driver.y2, enable_stealth.y2);
           #elif CORE_IS_XY && X_HAS_SENSORLESS
-            tmc.disable_stallguard(X_DRV, enable_stealth.x);
+            tmc.disable_stallguard(driver.x, enable_stealth.x);
           #elif CORE_IS_YZ && Z_HAS_SENSORLESS
-            tmc.disable_stallguard(Z_DRV, enable_stealth.z);
+            tmc.disable_stallguard(driver.z, enable_stealth.z);
           #endif
           break;
       #endif
       #if Z_HAS_SENSORLESS
         case Z_AXIS:
-          tmc.disable_stallguard(Z_DRV, enable_stealth.z);
+          tmc.disable_stallguard(driver.z, enable_stealth.z);
           #if Z2_HAS_SENSORLESS
-            tmc.disable_stallguard(Z2_DRV, enable_stealth.z2);
+            tmc.disable_stallguard(driver.z2, enable_stealth.z2);
           #endif
           #if Z3_HAS_SENSORLESS
-            tmc.disable_stallguard(Z3_DRV, enable_stealth.z3);
+            tmc.disable_stallguard(driver.z3, enable_stealth.z3);
           #endif
           #if CORE_IS_XZ && X_HAS_SENSORLESS
-            tmc.disable_stallguard(X_DRV, enable_stealth.x);
+            tmc.disable_stallguard(driver.x, enable_stealth.x);
           #elif CORE_IS_YZ && Y_HAS_SENSORLESS
-            tmc.disable_stallguard(Y_DRV, enable_stealth.y);
+            tmc.disable_stallguard(driver.y, enable_stealth.y);
           #endif
           break;
       #endif
     }
 
     #if ENABLED(SPI_ENDSTOPS)
-      switch (axis) {
-        #if X_SPI_SENSORLESS
-          case X_AXIS: endstops.tmc_spi_homing.x = false; break;
-        #endif
-        #if Y_SPI_SENSORLESS
-          case Y_AXIS: endstops.tmc_spi_homing.y = false; break;
-        #endif
-        #if Z_SPI_SENSORLESS
-          case Z_AXIS: endstops.tmc_spi_homing.z = false; break;
-        #endif
-        default: break;
-      }
+      endstops.clear_state();
+      endstops.tmc_spi_homing.any = false;
     #endif
 
   }

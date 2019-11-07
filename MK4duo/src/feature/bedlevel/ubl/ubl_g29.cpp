@@ -418,7 +418,7 @@
               SERIAL_VAL(g29_y_pos);
               SERIAL_EM(").");
             }
-            probe_entire_mesh(g29_x_pos + probe.data.offset[X_AXIS], g29_y_pos + probe.data.offset[Y_AXIS],
+            probe_entire_mesh(g29_x_pos + probe.data.offset.x, g29_y_pos + probe.data.offset.y,
                               parser.seen('T'), parser.seen('E'), parser.seen('U'));
 
             mechanics.report_current_position();
@@ -447,8 +447,8 @@
                 g29_x_pos = 0;
                 g29_y_pos = 0;
               #else // cartesian
-                g29_x_pos = probe.data.offset[X_AXIS] > 0 ? X_MAX_BED : 0;
-                g29_y_pos = probe.data.offset[Y_AXIS] < 0 ? Y_MAX_BED : 0;
+                g29_x_pos = probe.data.offset.x > 0 ? X_MAX_BED : 0;
+                g29_y_pos = probe.data.offset.y < 0 ? Y_MAX_BED : 0;
               #endif
             }
 
@@ -719,7 +719,7 @@
         SERIAL_MV("/", int(GRID_MAX_POINTS));
         SERIAL_EM(".\n");
         #if HAS_LCD
-          lcdui.status_printf_P(0, PSTR(MSG_PROBING_MESH " %i/%i"), point_num, int(GRID_MAX_POINTS));
+          lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), PSTR(MSG_PROBING_MESH), int(pt_index), int(GRID_MAX_POINTS));
         #endif
 
         #if HAS_LCD_MENU
@@ -743,7 +743,7 @@
           const float rawx = mesh_index_to_xpos(location.x_index),
                       rawy = mesh_index_to_ypos(location.y_index);
 
-          const float measured_z = probe.check_pt(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
+          const float measured_z = probe.check_at_point(rawx, rawy, stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
           z_values[location.x_index][location.y_index] = measured_z;
         }
         Com::serialFlush(); // Prevent host M105 buffer overrun.
@@ -758,8 +758,8 @@
       restore_ubl_active_state_and_leave();
 
       mechanics.do_blocking_move_to_xy(
-        constrain(rx - (probe.data.offset[X_AXIS]), MESH_MIN_X, MESH_MAX_X),
-        constrain(ry - (probe.data.offset[Y_AXIS]), MESH_MIN_Y, MESH_MAX_Y)
+        constrain(rx - (probe.data.offset.x), MESH_MIN_X, MESH_MAX_X),
+        constrain(ry - (probe.data.offset.y), MESH_MIN_Y, MESH_MAX_Y)
       );
     }
 
@@ -772,10 +772,10 @@
     bool click_and_hold(const clickFunc_t func=nullptr) {
       if (lcdui.button_pressed()) {
         lcdui.quick_feedback(false);                // Preserve button state for click-and-hold
-        millis_s nxt_ms = millis();
+        short_timer_t nxt_timer(true);
         while (lcdui.button_pressed()) {            // Loop while the encoder is pressed. Uses hardware flag!
           printer.idle();                           // idle, of course
-          if (expired(&nxt_ms, 1500U)) {            // After 1.5 seconds
+          if (nxt_timer.expired(1500)) {            // After 1.5 seconds
             lcdui.quick_feedback();
             if (func) (*func)();
             lcdui.wait_for_release();
@@ -791,9 +791,9 @@
       lcdui.wait_for_release();
       while (!lcdui.button_pressed()) {
         printer.idle();
-        printer.reset_move_ms();  // Keep steppers powered
+        printer.reset_move_timer();  // Keep steppers powered
         if (encoder_diff) {
-          mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + float(encoder_diff) * multiplier);
+          mechanics.do_blocking_move_to_z(mechanics.current_position.z + float(encoder_diff) * multiplier);
           encoder_diff = 0;
         }
       }
@@ -802,7 +802,7 @@
     float unified_bed_leveling::measure_point_with_encoder() {
       PRINTER_KEEPALIVE(PausedforUser);
       move_z_with_encoder(0.01f);
-      return mechanics.current_position[Z_AXIS];
+      return mechanics.current_position.z;
     }
 
     static void echo_and_take_a_measurement() { SERIAL_EM(" and take a measurement."); }
@@ -820,7 +820,7 @@
       echo_and_take_a_measurement();
 
       const float z1 = measure_point_with_encoder();
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + SIZE_OF_LITTLE_RAISE);
+      mechanics.do_blocking_move_to_z(mechanics.current_position.z + SIZE_OF_LITTLE_RAISE);
       planner.synchronize();
 
       SERIAL_MSG("Remove shim");
@@ -829,7 +829,7 @@
 
       const float z2 = measure_point_with_encoder();
 
-      mechanics.do_blocking_move_to_z(mechanics.current_position[Z_AXIS] + Z_PROBE_BETWEEN_HEIGHT);
+      mechanics.do_blocking_move_to_z(mechanics.current_position.z + Z_PROBE_BETWEEN_HEIGHT);
 
       const float thickness = ABS(z1 - z2);
 
@@ -851,7 +851,7 @@
       lcdui.capture();
 
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
-      mechanics.do_blocking_move_to(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], z_clearance);
+      mechanics.do_blocking_move_to(mechanics.current_position.x, mechanics.current_position.y, z_clearance);
 
       lcdui.return_to_status();
 
@@ -879,7 +879,7 @@
         SERIAL_STR(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                       // existing behavior: 0.01mm per click, occasionally step
-        //const float z_step = mechanics.data.axis_steps_per_mm[Z_AXIS];  // approx one step each click
+        //const float z_step = mechanics.data.axis_steps_per_mm.z;  // approx one step each click
 
         move_z_with_encoder(z_step);
 
@@ -890,7 +890,7 @@
           return restore_ubl_active_state_and_leave();
         }
 
-        z_values[location.x_index][location.y_index] = mechanics.current_position[Z_AXIS] - thick;
+        z_values[location.x_index][location.y_index] = mechanics.current_position.z - thick;
         if (g29_verbose_level > 2) {
           SERIAL_MSG("Mesh Point Measured at: ");
           SERIAL_VAL(z_values[location.x_index][location.y_index], 6);
@@ -1028,9 +1028,9 @@
     g29_repetition_cnt = 0;
 
     g29_x_flag = parser.seenval('X');
-    g29_x_pos = g29_x_flag ? parser.value_float() : mechanics.current_position[X_AXIS];
+    g29_x_pos = g29_x_flag ? parser.value_float() : mechanics.current_position.x;
     g29_y_flag = parser.seenval('Y');
-    g29_y_pos = g29_y_flag ? parser.value_float() : mechanics.current_position[Y_AXIS];
+    g29_y_pos = g29_y_flag ? parser.value_float() : mechanics.current_position.y;
 
     if (parser.seen('R')) {
       g29_repetition_cnt = parser.has_value() ? parser.value_int() : GRID_MAX_POINTS;
@@ -1235,8 +1235,8 @@
     out_mesh.distance = -99999.9f;
 
     // Get our reference position. Either the nozzle or probe location.
-    const float px = rx + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[X_AXIS] : 0),
-                py = ry + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset[Y_AXIS] : 0);
+    const float px = rx + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset.x : 0),
+                py = ry + (probe_as_reference == USE_PROBE_AS_REFERENCE ? probe.data.offset.y : 0);
 
     float best_so_far = 99999.99f;
 
@@ -1265,7 +1265,7 @@
 
           // factor in the distance from the current location for the normal case
           // so the nozzle isn't running all over the bed.
-          distance += HYPOT(mechanics.current_position[X_AXIS] - mx, mechanics.current_position[Y_AXIS] - my) * 0.1f;
+          distance += HYPOT(mechanics.current_position.x - mx, mechanics.current_position.y - my) * 0.1f;
           if (distance < best_so_far) {
             best_so_far = distance;   // We found a closer location with
             out_mesh.x_index = i;     // the specified type of mesh value.
@@ -1331,80 +1331,73 @@
   #if HAS_BED_PROBE
 
     void unified_bed_leveling::tilt_mesh_based_on_probed_grid(const bool do_3_pt_leveling) {
-      int16_t x_min = MAX(MIN_PROBE_X, MESH_MIN_X),
-              x_max = MIN(MAX_PROBE_X, MESH_MAX_X),
-              y_min = MAX(MIN_PROBE_Y, MESH_MIN_Y),
-              y_max = MIN(MAX_PROBE_Y, MESH_MAX_Y);
+      const float x_min = probe.min_x(), x_max = probe.max_x(),
+                  y_min = probe.min_y(), y_max = probe.max_y(),
+                  dx = (x_max - x_min) / (g29_grid_size - 1),
+                  dy = (y_max - y_min) / (g29_grid_size - 1);
 
       bool abort_flag = false;
 
       float measured_z;
 
-      const float dx = float(x_max - x_min) / (g29_grid_size - 1),
-                  dy = float(y_max - y_min) / (g29_grid_size - 1);
-
       struct linear_fit_data lsf_results;
-
-      //float z1, z2, z3;  // Needed for algorithm validation down below.
-
       incremental_LSF_reset(&lsf_results);
 
       if (do_3_pt_leveling) {
         SERIAL_EM("Tilting mesh (1/3)");
         #if HAS_LCD
-          lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 1/3"));
+          lcdui.status_printf_P(0, PSTR(S_FMT " 1/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
         #endif
 
-        measured_z = probe.check_pt(PROBE_PT_1_X, PROBE_PT_1_Y, PROBE_PT_RAISE, g29_verbose_level);
+        measured_z = probe.check_at_point(x_min, y_min, PROBE_PT_RAISE, g29_verbose_level);
         if (isnan(measured_z))
           abort_flag = true;
         else {
-          measured_z -= get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y);
-          //z1 = measured_z;
+          measured_z -= get_z_correction(x_min, y_min);
           if (g29_verbose_level > 3) {
             SERIAL_SP(16);
             SERIAL_MV("Corrected_Z=", measured_z);
           }
-          incremental_LSF(&lsf_results, PROBE_PT_1_X, PROBE_PT_1_Y, measured_z);
+          incremental_LSF(&lsf_results, x_min, y_min, measured_z);
         }
 
         if (!abort_flag) {
           SERIAL_EM("Tilting mesh (2/3)");
           #if HAS_LCD
-            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 2/3"));
+            lcdui.status_printf_P(0, PSTR(S_FMT " 2/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
           #endif
 
-          measured_z = probe.check_pt(PROBE_PT_2_X, PROBE_PT_2_Y, PROBE_PT_RAISE, g29_verbose_level);
-          //z2 = measured_z;
+          measured_z = probe.check_at_point(x_max, y_min, PROBE_PT_RAISE, g29_verbose_level);
           if (isnan(measured_z))
             abort_flag = true;
           else {
-            measured_z -= get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y);
+            measured_z -= get_z_correction(x_max, y_min);
             if (g29_verbose_level > 3) {
               SERIAL_SP(16);
               SERIAL_MV("Corrected_Z=", measured_z);
             }
-            incremental_LSF(&lsf_results, PROBE_PT_2_X, PROBE_PT_2_Y, measured_z);
+            incremental_LSF(&lsf_results, x_max, y_min, measured_z);
           }
         }
 
         if (!abort_flag) {
           SERIAL_EM("Tilting mesh (3/3)");
           #if HAS_LCD
-            lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " 3/3"));
+            lcdui.status_printf_P(0, PSTR(S_FMT " 3/3"), GET_TEXT(MSG_LCD_TILTING_MESH));
           #endif
 
-          measured_z = probe.check_pt(PROBE_PT_3_X, PROBE_PT_3_Y, PROBE_PT_STOW, g29_verbose_level);
+          const float center_probe = (x_max - x_min) / 2;
+          measured_z = probe.check_at_point(center_probe, y_max, PROBE_PT_STOW, g29_verbose_level);
           //z3 = measured_z;
           if (isnan(measured_z))
             abort_flag = true;
           else {
-            measured_z -= get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y);
+            measured_z -= get_z_correction(center_probe, y_max);
             if (g29_verbose_level > 3) {
               SERIAL_SP(16);
               SERIAL_MV("Corrected_Z=", measured_z);
             }
-            incremental_LSF(&lsf_results, PROBE_PT_3_X, PROBE_PT_3_Y, measured_z);
+            incremental_LSF(&lsf_results, center_probe, y_max, measured_z);
           }
         }
 
@@ -1425,18 +1418,18 @@
         uint16_t total_points = g29_grid_size * g29_grid_size, point_num = 1;
 
         for (uint8_t ix = 0; ix < g29_grid_size; ix++) {
-          const float rx = float(x_min) + ix * dx;
+          const float rx = x_min + ix * dx;
           for (int8_t iy = 0; iy < g29_grid_size; iy++) {
-            const float ry = float(y_min) + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
+            const float ry = y_min + dy * (zig_zag ? g29_grid_size - 1 - iy : iy);
 
             if (!abort_flag) {
               SERIAL_MV("Tilting mesh point ", point_num);
               SERIAL_EMV("/", total_points);
               #if HAS_LCD
-                lcdui.status_printf_P(0, PSTR(MSG_LCD_TILTING_MESH " %i/%i"), point_num, total_points);
+                lcdui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_LCD_TILTING_MESH), point_num, total_points);
               #endif
 
-              measured_z = probe.check_pt(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
+              measured_z = probe.check_at_point(rx, ry, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); // TODO: Needs error handling
 
               abort_flag = isnan(measured_z);
 
@@ -1555,58 +1548,6 @@
         DEBUG_MSG("]\n");
         DEBUG_EOL();
 
-        /**
-         * The following code can be used to check the validity of the mesh tilting algorithm.
-         * When a 3-Point Mesh Tilt is done, the same algorithm is used as the grid based tilting.
-         * The only difference is just 3 points are used in the calculations.   That fact guarantees
-         * each probed point should have an exact match when a get_z_correction() for that location
-         * is calculated.  The Z error between the probed point locations and the get_z_correction()
-         * numbers for those locations should be 0.
-         */
-        #if 0
-        float t, t1, d;
-        t = normal.x * (PROBE_PT_1_X) + normal.y * (PROBE_PT_1_Y);
-        d = t + normal.z * z1;
-        DEBUG_MSG("D from 1st point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z1-get_z_correction(PROBE_PT_1_X, PROBE_PT_1_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (PROBE_PT_2_X) + normal.y * (PROBE_PT_2_Y);
-        d = t + normal.z * z2;
-        DEBUG_EOL();
-        DEBUG_MSG("D from 2nd point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z2-get_z_correction(PROBE_PT_2_X, PROBE_PT_2_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (PROBE_PT_3_X) + normal.y * (PROBE_PT_3_Y);
-        d = t + normal.z * z3;
-        DEBUG_MSG("D from 3rd point: ");
-        DEBUG_VAL(d, 6);
-        DEBUG_MSG("   Z error: ");
-        DEBUG_VAL(normal.z*z3-get_z_correction(PROBE_PT_3_X, PROBE_PT_3_Y), 6);
-        DEBUG_EOL();
-
-        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-        d = t + normal.z * 0;
-        DEBUG_MSG("D from home location with Z=0 : ");
-        DEBUG_VAL(d, 6);
-        DEBUG_EOL();
-
-        t = normal.x * (Z_SAFE_HOMING_X_POINT) + normal.y * (Z_SAFE_HOMING_Y_POINT);
-        d = t + get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT); // normal.z * 0.000;
-        DEBUG_MSG("D from home location using mesh value for Z: ");
-        DEBUG_VAL(d, 6);
-
-        DEBUG_MV("   Z error: (", Z_SAFE_HOMING_X_POINT);
-        DEBUG_MV(",", Z_SAFE_HOMING_Y_POINT );
-        DEBUG_MSG(") = ");
-        DEBUG_VAL(get_z_correction(Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT), 6);
-        DEBUG_EOL();
-        #endif
       } // printer.debugFeature()
 
     }
@@ -1691,7 +1632,7 @@
       adjust_mesh_to_mean(g29_c_flag, g29_constant);
 
       #if HAS_BED_PROBE
-        SERIAL_EMV("zprobe_zoffset: ", probe.data.offset[Z_AXIS], 7);
+        SERIAL_EMV("zprobe_zoffset: ", probe.data.offset.z, 7);
       #endif
 
       SERIAL_EMV("MESH_MIN_X  " STRINGIFY(MESH_MIN_X) "=", MESH_MIN_X); SERIAL_DLY(50);

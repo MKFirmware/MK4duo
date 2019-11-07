@@ -34,52 +34,71 @@ void _lcd_calibrate_homing() {
 }
 
 void _lcd_delta_calibrate_home() {
-  commands.inject_P(PSTR("G28"));
+  commands.inject_P(G28_CMD);
   lcdui.goto_screen(_lcd_calibrate_homing);
 }
 
-void _goto_tower_x() { _man_probe_pt(COS(RADIANS(210)) * mechanics.data.probe_radius, SIN(RADIANS(210)) * mechanics.data.probe_radius); }
-void _goto_tower_y() { _man_probe_pt(COS(RADIANS(330)) * mechanics.data.probe_radius, SIN(RADIANS(330)) * mechanics.data.probe_radius); }
-void _goto_tower_z() { _man_probe_pt(COS(RADIANS( 90)) * mechanics.data.probe_radius, SIN(RADIANS( 90)) * mechanics.data.probe_radius); }
-void _goto_center()  { _man_probe_pt(0, 0); }
+void _goto_tower_angle(const float &a) {
+  xy_pos_t tower_vector = { cos(RADIANS(a)), sin(RADIANS(a)) };
+  _man_probe_pt(tower_vector * mechanics.data.probe_radius);
+}
+
+void _goto_tower_x()  { _goto_tower_angle(210); }
+void _goto_tower_y()  { _goto_tower_angle(330); }
+void _goto_tower_z()  { _goto_tower_angle( 90); }
+void _goto_center()   { xy_pos_t center{0}; _man_probe_pt(center); }
 
 void lcd_delta_settings() {
+
+  auto _recalc_delta_settings = []() {
+    #if HAS_LEVELING
+      bedlevel.reset();
+    #endif
+    mechanics.recalc_delta_settings();
+  };
+
   START_MENU();
-  MENU_BACK(MSG_DELTA_CALIBRATE);
-  MENU_ITEM_EDIT(float52sign, MSG_DELTA_HEIGHT, &mechanics.data.height, mechanics.data.height - 10, mechanics.data.height + 10);
-  MENU_ITEM_EDIT(float43, "Ex", &mechanics.data.endstop_adj[A_AXIS], -5, 0);
-  MENU_ITEM_EDIT(float43, "Ey", &mechanics.data.endstop_adj[B_AXIS], -5, 0);
-  MENU_ITEM_EDIT(float43, "Ez", &mechanics.data.endstop_adj[C_AXIS], -5, 0);
-  MENU_ITEM_EDIT(float52sign, MSG_DELTA_DIAG_ROD, &mechanics.data.diagonal_rod, mechanics.data.diagonal_rod - 10, mechanics.data.diagonal_rod + 10);
-  MENU_ITEM_EDIT(float52sign, MSG_DELTA_RADIUS, &mechanics.data.radius, mechanics.data.radius - 10, mechanics.data.radius + 10);
-  MENU_ITEM_EDIT(float43, "Tx (deg)", &mechanics.data.tower_angle_adj[A_AXIS], -5, 5);
-  MENU_ITEM_EDIT(float43, "Ty (deg)", &mechanics.data.tower_angle_adj[B_AXIS], -5, 5);
-  MENU_ITEM_EDIT(float43, "Tz (deg)", &mechanics.data.tower_angle_adj[C_AXIS], -5, 5);
-  MENU_ITEM_EDIT(float43, "Tx (radius)", &mechanics.data.tower_radius_adj[A_AXIS], -5, 5);
-  MENU_ITEM_EDIT(float43, "Ty (radius)", &mechanics.data.tower_radius_adj[B_AXIS], -5, 5);
-  MENU_ITEM_EDIT(float43, "Tz (radius)", &mechanics.data.tower_radius_adj[C_AXIS], -5, 5);
+  BACK_ITEM(MSG_DELTA_CALIBRATE);
+  EDIT_ITEM(float52sign, MSG_DELTA_HEIGHT, &mechanics.data.height, mechanics.data.height - 100, mechanics.data.height + 100, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ex"), &mechanics.data.endstop_adj[A_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ey"), &mechanics.data.endstop_adj[B_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ez"), &mechanics.data.endstop_adj[C_AXIS], -5, 0, _recalc_delta_settings);
+  EDIT_ITEM(float52sign, MSG_DELTA_DIAG_ROD, &mechanics.data.diagonal_rod, mechanics.data.diagonal_rod - 10, mechanics.data.diagonal_rod + 10, _recalc_delta_settings);
+  EDIT_ITEM(float52sign, MSG_DELTA_RADIUS, &mechanics.data.radius, mechanics.data.radius - 10, mechanics.data.radius + 10, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tx (deg)"), &mechanics.data.tower_angle_adj[A_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ty (deg)"), &mechanics.data.tower_angle_adj[B_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tz (deg)"), &mechanics.data.tower_angle_adj[C_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tx (radius)"), &mechanics.data.tower_radius_adj[A_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Ty (radius)"), &mechanics.data.tower_radius_adj[B_AXIS], -5, 5, _recalc_delta_settings);
+  EDIT_ITEM_P(float43, PSTR("Tz (radius)"), &mechanics.data.tower_radius_adj[C_AXIS], -5, 5, _recalc_delta_settings);
   END_MENU();
 }
 
 void menu_delta_calibrate() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
-  MENU_ITEM(submenu, MSG_DELTA_SETTINGS, lcd_delta_settings);
+  BACK_ITEM(MSG_MAIN);
+
+  SUBMENU(MSG_DELTA_SETTINGS, lcd_delta_settings);
+
   #if ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2)
-    MENU_ITEM(gcode, MSG_DELTA_AUTO_CALIBRATE, PSTR("G33"));
+    GCODES_ITEM(MSG_DELTA_AUTO_CALIBRATE, PSTR("G33"));
     #if ENABLED(EEPROM_SETTINGS)
-      MENU_ITEM(function, MSG_STORE_EEPROM, lcd_store_settings);
-      MENU_ITEM(function, MSG_LOAD_EEPROM, lcd_load_settings);
+      ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
+      ACTION_ITEM(MSG_LOAD_EEPROM, []{ eeprom.load(); });
     #endif
   #endif
-  MENU_ITEM(submenu, MSG_AUTO_HOME, _lcd_delta_calibrate_home);
+
+  SUBMENU(MSG_AUTO_HOME, _lcd_delta_calibrate_home);
+
   if (mechanics.home_flag.ZHomed) {
-    MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_X, _goto_tower_x);
-    MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
-    MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
-    MENU_ITEM(submenu, MSG_DELTA_CALIBRATE_CENTER, _goto_center);
+    SUBMENU(MSG_DELTA_CALIBRATE_X, _goto_tower_x);
+    SUBMENU(MSG_DELTA_CALIBRATE_Y, _goto_tower_y);
+    SUBMENU(MSG_DELTA_CALIBRATE_Z, _goto_tower_z);
+    SUBMENU(MSG_DELTA_CALIBRATE_CENTER, _goto_center);
   }
+
   END_MENU();
+
 }
 
 #endif // HAS_LCD_MENU && MECH(DELTA)

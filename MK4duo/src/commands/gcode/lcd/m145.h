@@ -38,20 +38,20 @@
  *   C<chamber temp>
  *   F<fan speed>
  */
-inline void gcode_M145(void) {
+inline void gcode_M145() {
   uint8_t material = (uint8_t)parser.intval('S');
   if (material >= COUNT(lcdui.preheat_hotend_temp)) {
-    SERIAL_LM(ER, MSG_ERR_MATERIAL_INDEX);
+    SERIAL_LM(ER, MSG_HOST_ERR_MATERIAL_INDEX);
   }
   else {
     int v;
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       if (parser.seenval('H')) {
         v = parser.value_int();
         lcdui.preheat_hotend_temp[material] = constrain(v, thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
       }
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       if (parser.seenval('B')) {
         v = parser.value_int();
         lcdui.preheat_bed_temp[material] = constrain(v, thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
@@ -63,7 +63,7 @@ inline void gcode_M145(void) {
         lcdui.preheat_chamber_temp[material] = constrain(v, thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
       }
     #endif
-    #if HAS_FANS
+    #if MAX_FAN > 0
       if (parser.seenval('F')) {
         v = parser.value_int();
         lcdui.preheat_fan_speed[material] = constrain(v, 0, 255);

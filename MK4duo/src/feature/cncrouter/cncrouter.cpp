@@ -65,8 +65,8 @@ void Cncrouter::init() {
 
 void Cncrouter::manage() {
   #if ENABLED(CNCROUTER_SLOWSTART) && ENABLED(FAST_PWM_CNCROUTER)
-    static millis_s next_speed_step_ms(true);
-    if (rpm_target != rpm_instant && expired(&next_speed_step_ms, millis_s(CNCROUTER_SLOWSTART_INTERVAL * 1000U)))
+    static short_timer_t next_speed_step_timer(true);
+    if (rpm_target != rpm_instant && next_speed_step_timer.expired((CNCROUTER_SLOWSTART_INTERVAL) * 1000))
       speed_step();   
   #endif
 }
@@ -87,7 +87,7 @@ void Cncrouter::tool_change(uint8_t tool_id, bool wait/*=true*/, bool raise_z/*=
     #if !ENABLED(CNCROUTER_AUTO_TOOL_CHANGE)
       if (raise_z) {
         saved_speed = get_Speed();
-        saved_z = mechanics.current_position[Z_AXIS];
+        saved_z = mechanics.current_position.z;
         mechanics.do_blocking_move_to_z(CNCROUTER_SAFE_Z);
       }
     #endif

@@ -45,7 +45,7 @@
  *    Y = override Y
  *    Z = override Z raise
  */
-inline void gcode_M125(void) {
+inline void gcode_M125() {
 
   // Initial retract before move to pause park position
   const float retract = -ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
@@ -54,7 +54,7 @@ inline void gcode_M125(void) {
     #endif
   );
 
-  point_t park_point = nozzle.data.park_point;
+  xyz_pos_t park_point = nozzle.data.park_point;
 
   // Move XY axes to filament change position or given position
   if (parser.seenval('X')) park_point.x = NATIVE_X_POSITION(parser.linearval('X'));
@@ -63,9 +63,8 @@ inline void gcode_M125(void) {
   // Lift Z axis
   if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
 
-  #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
-    park_point.x += nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND];
-    park_point.y += nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND];
+  #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
+    if (tools.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
   #endif
 
   #if HAS_LCD_MENU

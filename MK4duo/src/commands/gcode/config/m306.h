@@ -52,7 +52,7 @@
  *    Q[bool]   PWM Hardware
  *
  */
-inline void gcode_M306(void) {
+inline void gcode_M306() {
 
   Heater * const act = commands.get_target_heater();
 
@@ -66,11 +66,11 @@ inline void gcode_M306(void) {
     }
   #endif
 
-  act->data.pid.DriveMin  = parser.intval('A', act->data.pid.DriveMin);
-  act->data.pid.DriveMax  = parser.intval('B', act->data.pid.DriveMax);
+  act->data.pid.drive.min = parser.intval('A', act->data.pid.drive.min);
+  act->data.pid.drive.max = parser.intval('B', act->data.pid.drive.max);
   act->data.pid.Max       = parser.intval('C', act->data.pid.Max);
-  act->data.mintemp       = parser.intval('L', act->data.mintemp);
-  act->data.maxtemp       = parser.intval('O', act->data.maxtemp);
+  act->data.temp.min      = parser.intval('L', act->data.temp.min);
+  act->data.temp.max      = parser.intval('O', act->data.temp.max);
   act->data.freq          = MIN(parser.intval('F', act->data.freq), MAX_PWM_FREQUENCY);
 
   if (parser.seen('U'))

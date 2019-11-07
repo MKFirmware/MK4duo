@@ -47,19 +47,15 @@ enum AxisEnum : uint8_t {
  * Driver indices as enumerated constants
  */
 enum DriverEnum : uint8_t {
-  X_DRV   = 0,
-  Y_DRV   = 1,
-  Z_DRV   = 2,
-  E0_DRV  = 3,
-  E1_DRV  = 4,
-  E2_DRV  = 5,
-  E3_DRV  = 6,
-  E4_DRV  = 7,
-  E5_DRV  = 8,
-  X2_DRV  = 9,
-  Y2_DRV  = 10,
-  Z2_DRV  = 11,
-  Z3_DRV  = 12
+  X_DRV   = 0, X2_DRV = 0,
+  Y_DRV   = 1, Y2_DRV = 1,
+  Z_DRV   = 2, Z2_DRV = 2, Z3_DRV = 2,
+  E0_DRV  = 0,
+  E1_DRV  = 1,
+  E2_DRV  = 2,
+  E3_DRV  = 3,
+  E4_DRV  = 4,
+  E5_DRV  = 5
 };
 
 /**
@@ -73,10 +69,6 @@ enum PrinterModeEnum : uint8_t {
   PRINTER_MODE_SOLDER,        // M450 S4
   PRINTER_MODE_PLOTTER,
   PRINTER_MODE_COUNT
-};
-enum InterruptEventEnum : uint8_t {
-  INTERRUPT_EVENT_NONE,
-  INTERRUPT_EVENT_FIL_RUNOUT
 };
 
 /**
@@ -125,7 +117,8 @@ enum HostPromptEnum : uint8_t {
   PROMPT_FILAMENT_RUNOUT,
   PROMPT_FILAMENT_RUNOUT_REHEAT,
   PROMPT_USER_CONTINUE,
-  PROMPT_PAUSE_RESUME
+  PROMPT_PAUSE_RESUME,
+  PROMPT_INFO
 };
 
 /**
@@ -275,6 +268,7 @@ enum SoundModeEnum : uint8_t {
 enum PauseModeEnum : uint8_t {
   PAUSE_MODE_SAME,
   PAUSE_MODE_PAUSE_PRINT,
+  PAUSE_MODE_CHANGE_FILAMENT,
   PAUSE_MODE_LOAD_FILAMENT,
   PAUSE_MODE_UNLOAD_FILAMENT
 };

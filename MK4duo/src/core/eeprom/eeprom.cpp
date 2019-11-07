@@ -51,8 +51,12 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV72"
+#define EEPROM_VERSION "MKV76"
 #define EEPROM_OFFSET 100
+
+// Check the integrity of data offsets.
+// Can be disabled for production build.
+//#define DEBUG_EEPROM_READWRITE
 
 typedef struct EepromDataStruct {
 
@@ -60,19 +64,14 @@ typedef struct EepromDataStruct {
   uint16_t  crc;          // Data Checksum
 
   //
+  // Tool data
+  //
+  tool_data_t       tool_data;
+
+  //
   // Mechanics data
   //
   mechanics_data_t  mechanics_data;
-
-  //
-  // Endstop data
-  //
-  endstop_data_t    endstop_data;
-
-  //
-  // Driver
-  //
-  driver_data_t     driver_data[MAX_DRIVER];
 
   //
   // Stepper data
@@ -80,9 +79,15 @@ typedef struct EepromDataStruct {
   stepper_data_t    stepper_data;
 
   //
-  // Tool data
+  // Driver
   //
-  tool_data_t       tool_data;
+  driver_data_t     driver_data[XYZ];
+  driver_data_t     driver_e_data[MAX_DRIVER_E];
+
+  //
+  // Endstop data
+  //
+  endstop_data_t    endstop_data;
 
   //
   // Nozzle data
@@ -97,17 +102,24 @@ typedef struct EepromDataStruct {
   //
   // Heaters data
   //
-  #if HAS_HOTENDS
-    heater_data_t   hotend_data[HOTENDS];
+  #if MAX_HOTEND > 0
+    heater_data_t   hotend_data[MAX_HOTEND];
   #endif
-  #if HAS_BEDS
-    heater_data_t   bed_data[BEDS];
+  #if MAX_BED > 0
+    heater_data_t   bed_data[MAX_BED];
   #endif
-  #if HAS_CHAMBERS
-    heater_data_t   chamber_data[CHAMBERS];
+  #if MAX_CHAMBER > 0
+    heater_data_t   chamber_data[MAX_CHAMBER];
   #endif
-  #if HAS_COOLERS
-    heater_data_t   cooler_data[COOLERS];
+  #if MAX_COOLER > 0
+    heater_data_t   cooler_data[MAX_COOLER];
+  #endif
+
+  //
+  // Fans data
+  //
+  #if MAX_FAN > 0
+    fan_data_t      fans_data[MAX_FAN];
   #endif
 
   //
@@ -115,13 +127,6 @@ typedef struct EepromDataStruct {
   //
   #if HAS_DHT
     dht_data_t      dht_data;
-  #endif
-
-  //
-  // Fans data
-  //
-  #if HAS_FANS
-    fan_data_t      fans_data[FAN_COUNT];
   #endif
 
   //
@@ -165,8 +170,8 @@ typedef struct EepromDataStruct {
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     uint8_t         grid_max_x,
                     grid_max_y;
-    int             bilinear_grid_spacing[2],
-                    bilinear_start[2];
+    xy_int_t        bilinear_grid_spacing,
+                    bilinear_start;
     float           z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
   #endif
 
@@ -186,20 +191,27 @@ typedef struct EepromDataStruct {
   #endif
 
   //
+  // LCD Language
+  //
+  #if HAS_LCD
+    uint8_t lang;
+  #endif
+
+  //
   // LCD menu
   //
   #if HAS_LCD_MENU
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       int16_t       lcdui_preheat_hotend_temp[3];
     #endif
-    #if HAS_BEDS  
+    #if MAX_BED > 0  
       int16_t       lcdui_preheat_bed_temp[3];
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       int16_t       lcdui_preheat_chamber_temp[3];
     #endif
-    #if HAS_FANS
-      int16_t       lcdui_preheat_fan_speed[3];
+    #if MAX_FAN > 0
+      uint8_t       lcdui_preheat_fan_speed[3];
     #endif
   #endif
 
@@ -254,13 +266,6 @@ typedef struct EepromDataStruct {
   #endif
 
   //
-  // External DAC
-  //
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    uint16_t        motor_current[3 + DRIVER_EXTRUDERS];
-  #endif
-
-  //
   // Linear Advance
   //
   #if ENABLED(LIN_ADVANCE)
@@ -272,13 +277,6 @@ typedef struct EepromDataStruct {
   //
   #if ENABLED(HYSTERESIS_FEATURE)
     hysteresis_data_t hysteresis_data;
-  #endif
-
-  //
-  // Filament Change
-  //
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    advanced_pause_data_t advanced_pause_data[EXTRUDERS];
   #endif
 
   //
@@ -303,7 +301,7 @@ uint16_t EEPROM::datasize() { return sizeof(eepromDataStruct); }
  */
 void EEPROM::post_process() {
 
-  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+  mechanics.stored_position[0] = mechanics.current_position;
 
   // Recalculate pulse cycle
   HAL_calc_pulse_cycle();
@@ -311,41 +309,36 @@ void EEPROM::post_process() {
   // steps per s2 needs to be updated to agree with units per s2
   planner.reset_acceleration_rates();
 
-  // Init Driver pins
-  LOOP_DRV() if (driver[d]) driver[d]->init();
-
   // Make sure delta kinematics are updated before refreshing the
   // planner position so the stepper counts will be set correctly.
   #if MECH(DELTA)
     mechanics.recalc_delta_settings();
   #endif
 
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].init();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND()   hotends[h]->init();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].init();
+  #if MAX_BED > 0
+    LOOP_BED()      beds[h]->init();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].init();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER()  chambers[h]->init();
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].init();
+  #if MAX_COOLER > 0
+    LOOP_COOLER()   coolers[h]->init();
+  #endif
+  #if MAX_FAN > 0
+    LOOP_FAN()      fans[f]->init();
   #endif
 
   #if HAS_DHT
     dhtsensor.init();
   #endif
 
-  #if HAS_FANS
-    LOOP_FAN() fans[f].init();
-  #endif
-
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     tools.calculate_volumetric_multipliers();
   #else
-    for (uint8_t i = COUNT(tools.e_factor); i--;)
-      tools.refresh_e_factor(i);
+    LOOP_EXTRUDER() extruders[e]->refresh_e_factor();
   #endif
 
   // Software endstops depend on home_offset
@@ -384,7 +377,7 @@ void EEPROM::post_process() {
   // and init stepper.count[], planner.position[] with current_position
   planner.refresh_positioning();
 
-  if (memcmp(mechanics.stored_position[0], mechanics.current_position, sizeof(mechanics.stored_position[0])))
+  if (mechanics.stored_position[0] != mechanics.current_position)
     mechanics.report_current_position();
 
 }
@@ -396,12 +389,16 @@ void EEPROM::post_process() {
   #define EEPROM_READ_ALWAYS(VAR) memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc)
   #define EEPROM_READ(VAR)        memorystore.read_data(eeprom_index, (uint8_t*)&VAR, sizeof(VAR), &working_crc, !flag.validating)
 
-  #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); flag.error = true; } }while(0)
-  #define _FIELD_TEST(FIELD) \
-    EEPROM_ASSERT( \
-      flag.error || eeprom_index == offsetof(eepromDataStruct, FIELD) + EEPROM_OFFSET, \
-      "Field " STRINGIFY(FIELD) " mismatch." \
-    )
+  #if ENABLED(DEBUG_EEPROM_READWRITE)
+    #define EEPROM_ASSERT(TST,ERR) do{ if (!(TST)) { SERIAL_LM(ER, ERR); flag.error = true; } }while(0)
+    #define EEPROM_TEST(FIELD) \
+      EEPROM_ASSERT( \
+        flag.error || eeprom_index == offsetof(eepromDataStruct, FIELD) + EEPROM_OFFSET, \
+        "Field " STRINGIFY(FIELD) " mismatch." \
+      )
+  #else
+    #define EEPROM_TEST(FIELD)    NOOP
+  #endif
 
   const char version[6] = EEPROM_VERSION;
 
@@ -426,7 +423,19 @@ void EEPROM::post_process() {
     uint16_t working_crc  = 0;
     int eeprom_index      = EEPROM_OFFSET;
 
-    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
+
+    heater_data_t hotend_data[MAX_HOTEND];
+    heater_data_t bed_data[MAX_BED];
+    heater_data_t chamber_data[MAX_CHAMBER];
+    heater_data_t cooler_data[MAX_COOLER];
+    fan_data_t    fan_data[MAX_FAN];
+
+    if (memorystore.access_start()) {
+      SERIAL_EM("No EEPROM.");
+      return false;
+    }
 
     flag.error = false;
 
@@ -440,69 +449,85 @@ void EEPROM::post_process() {
     working_crc = 0; // clear before first "real data"
 
     //
+    // Tools Data
+    //
+    EEPROM_TEST(tool_data);
+    EEPROM_WRITE(tools.data);
+
+    //
     // Mechanics data
     //
+    EEPROM_TEST(mechanics_data);
     EEPROM_WRITE(mechanics.data);
-
-    //
-    // Endstops data
-    //
-    EEPROM_WRITE(endstops.data);
-
-    //
-    // Driver Data
-    //
-    LOOP_DRV() if (driver[d]) driver_data[d] = driver[d]->data;
-    EEPROM_WRITE(driver_data);
 
     //
     // Stepper
     //
+    EEPROM_TEST(stepper_data);
     EEPROM_WRITE(stepper.data);
 
     //
-    // Tools Data
+    // Driver Data
     //
-    EEPROM_WRITE(tools.data);
+    EEPROM_TEST(driver_data);
+    LOOP_DRV_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
+    LOOP_DRV_EXT()  if (driver.e[d])  driver_e_data[d]  = driver.e[d]->data;
+    EEPROM_WRITE(driver_data);
+    EEPROM_WRITE(driver_e_data);
+
+    //
+    // Endstops data
+    //
+    EEPROM_TEST(endstop_data);
+    EEPROM_WRITE(endstops.data);
 
     //
     // Nozzle Data
     //
+    EEPROM_TEST(nozzle_data);
     EEPROM_WRITE(nozzle.data);
 
     //
     // Sound
     //
+    EEPROM_TEST(sound_data);
     EEPROM_WRITE(sound.data);
 
     //
     // Heaters data
     //
-    #if HAS_HOTENDS
-      LOOP_HOTEND() EEPROM_WRITE(hotends[h].data);
+    #if MAX_HOTEND > 0
+      LOOP_HOTEND()   if (hotends[h])   hotend_data[h]  = hotends[h]->data;
+      EEPROM_WRITE(hotend_data);
     #endif
-    #if HAS_BEDS
-      LOOP_BED() EEPROM_WRITE(beds[h].data);
+    #if MAX_BED > 0
+      LOOP_BED()      if (beds[h])      bed_data[h]     = beds[h]->data;
+      EEPROM_WRITE(bed_data);
     #endif
-    #if HAS_CHAMBERS
-      LOOP_CHAMBER() EEPROM_WRITE(chambers[h].data);
+    #if MAX_CHAMBER > 0
+      LOOP_CHAMBER()  if (chambers[h])  chamber_data[h] = chambers[h]->data;
+      EEPROM_WRITE(chamber_data);
     #endif
-    #if HAS_COOLERS
-      LOOP_COOLER() EEPROM_WRITE(coolers[h].data);
+    #if MAX_COOLER > 0
+      LOOP_COOLER()   if (coolers[h])   cooler_data[h]  = coolers[h]->data;
+      EEPROM_WRITE(cooler_data);
+    #endif
+
+    //
+    // Fans data
+    //
+    #if MAX_FAN > 0
+      EEPROM_TEST(fans_data);
+      LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
+      EEPROM_WRITE(fan_data);
     #endif
 
     //
     // DHT sensor data
     //
     #if HAS_DHT
+      EEPROM_TEST(dht_data);
       EEPROM_WRITE(dhtsensor.data);
-    #endif
-
-    //
-    // Fans data
-    //
-    #if HAS_FANS
-      LOOP_FAN() EEPROM_WRITE(fans[f].data);
     #endif
 
     //
@@ -573,23 +598,31 @@ void EEPROM::post_process() {
     // Probe data
     //
     #if HAS_BED_PROBE
+      EEPROM_TEST(probe_data);
       EEPROM_WRITE(probe.data);
+    #endif
+
+    //
+    // LCD Language
+    //
+    #if HAS_LCD
+      EEPROM_WRITE(lcdui.lang);
     #endif
 
     //
     // LCD menu
     //
     #if HAS_LCD_MENU
-      #if HAS_HOTENDS
+      #if MAX_HOTEND > 0
         EEPROM_WRITE(lcdui.preheat_hotend_temp);
       #endif
-      #if HAS_BEDS
+      #if MAX_BED > 0
         EEPROM_WRITE(lcdui.preheat_bed_temp);
       #endif
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         EEPROM_WRITE(lcdui.preheat_chamber_temp);
       #endif
-      #if HAS_FANS
+      #if MAX_FAN > 0
         EEPROM_WRITE(lcdui.preheat_fan_speed);
       #endif
     #endif
@@ -605,6 +638,7 @@ void EEPROM::post_process() {
     // SD Restart
     //
     #if HAS_SD_RESTART
+      EEPROM_TEST(restart_enabled);
       EEPROM_WRITE(restart.enabled);
     #endif
 
@@ -619,6 +653,7 @@ void EEPROM::post_process() {
     // BLTOUCH
     //
     #if HAS_BLTOUCH
+      EEPROM_TEST(bltouch_last_mode);
       EEPROM_WRITE(bltouch.last_mode);
     #endif
 
@@ -646,13 +681,6 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Alligator board
-    //
-    #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-      EEPROM_WRITE(externaldac.motor_current);
-    #endif
-
-    //
     // Linear Advance
     //
     #if ENABLED(LIN_ADVANCE)
@@ -667,40 +695,38 @@ void EEPROM::post_process() {
     #endif
 
     //
-    // Advanced Pause data
-    //
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
-      EEPROM_WRITE(advancedpause.data);
-    #endif
-
-    //
     // Save Trinamic Driver Configuration, and placeholder values
     //
     #if HAS_TRINAMIC
 
-      uint16_t  tmc_stepper_current[MAX_DRIVER]   = { X_CURRENT, Y_CURRENT, Z_CURRENT,
-                                                      E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
-                                                      X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT },
-                tmc_stepper_microstep[MAX_DRIVER] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS,
-                                                      E0_MICROSTEPS, E1_MICROSTEPS, E2_MICROSTEPS, E3_MICROSTEPS, E4_MICROSTEPS, E5_MICROSTEPS,
-                                                      X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, Z_MICROSTEPS };
-      uint32_t  tmc_hybrid_threshold[MAX_DRIVER]  = { X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD,
-                                                      E0_HYBRID_THRESHOLD, E1_HYBRID_THRESHOLD, E2_HYBRID_THRESHOLD,
-                                                      E3_HYBRID_THRESHOLD, E4_HYBRID_THRESHOLD, E5_HYBRID_THRESHOLD,
-                                                      X_HYBRID_THRESHOLD, Y_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD, Z_HYBRID_THRESHOLD };
-      bool      tmc_stealth_enabled[MAX_DRIVER]   = { X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP,
-                                                      E0_STEALTHCHOP, E1_STEALTHCHOP, E2_STEALTHCHOP, E3_STEALTHCHOP, E4_STEALTHCHOP, E5_STEALTHCHOP,
-                                                      X_STEALTHCHOP, Y_STEALTHCHOP, Z_STEALTHCHOP, Z_STEALTHCHOP };
+      uint16_t  tmc_stepper_current[MAX_DRIVER],
+                tmc_stepper_microstep[MAX_DRIVER];
+      uint32_t  tmc_hybrid_threshold[MAX_DRIVER];
+      bool      tmc_stealth_enabled[MAX_DRIVER];
 
-      LOOP_DRV() {
-        if (driver[d] && driver[d]->tmc) {
-          tmc_stepper_current[d]    = driver[d]->tmc->getMilliamps();
-          tmc_stepper_microstep[d]  = driver[d]->tmc->microsteps();
+      LOOP_DRV_XYZ() {
+        Driver* drv = driver[d];
+        if (drv && drv->tmc) {
+          tmc_stepper_current[d]    = drv->tmc->getMilliamps();
+          tmc_stepper_microstep[d]  = drv->tmc->getMicrosteps();
           #if ENABLED(HYBRID_THRESHOLD)
-            tmc_hybrid_threshold[d] = driver[d]->tmc->get_pwm_thrs();
+            tmc_hybrid_threshold[d] = drv->tmc->get_pwm_thrs();
           #endif
           #if TMC_HAS_STEALTHCHOP
-            tmc_stealth_enabled[d]  = driver[d]->tmc->get_stealthChop_status();
+            tmc_stealth_enabled[d]  = drv->tmc->get_stealthChop_status();
+          #endif
+        }
+      }
+      LOOP_DRV_EXT() {
+        Driver* drv = driver.e[d];
+        if (drv && drv->tmc) {
+          tmc_stepper_current[XYZ + d]    = drv->tmc->getMilliamps();
+          tmc_stepper_microstep[XYZ + d]  = drv->tmc->getMicrosteps();
+          #if ENABLED(HYBRID_THRESHOLD)
+            tmc_hybrid_threshold[XYZ + d] = drv->tmc->get_pwm_thrs_e();
+          #endif
+          #if TMC_HAS_STEALTHCHOP
+            tmc_stealth_enabled[XYZ + d]  = drv->tmc->get_stealthChop_status();
           #endif
         }
       }
@@ -713,16 +739,16 @@ void EEPROM::post_process() {
       //
       // TMC2130 StallGuard threshold
       //
-      int16_t tmc_sgt[XYZ] = { 0, 0, 0 };
+      int16_t tmc_sgt[XYZ] = { 0 };
       #if HAS_SENSORLESS
         #if X_HAS_SENSORLESS
-          tmc_sgt[X_AXIS] = driver[X_DRV]->tmc->homing_threshold();
+          tmc_sgt[X_AXIS] = driver.x->tmc->homing_threshold();
         #endif
         #if Y_HAS_SENSORLESS
-          tmc_sgt[Y_AXIS] = driver[Y_DRV]->tmc->homing_threshold();
+          tmc_sgt[Y_AXIS] = driver.y->tmc->homing_threshold();
         #endif
         #if Z_HAS_SENSORLESS
-          tmc_sgt[Z_AXIS] = driver[Z_DRV]->tmc->homing_threshold();
+          tmc_sgt[Z_AXIS] = driver.z->tmc->homing_threshold();
         #endif
       #endif
       EEPROM_WRITE(tmc_sgt);
@@ -794,9 +820,21 @@ void EEPROM::post_process() {
               stored_crc  = 0;
     char      stored_ver[6];
 
-    driver_data_t driver_data[MAX_DRIVER] = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_data[XYZ]            = { { NoPin, NoPin, NoPin }, false };
+    driver_data_t driver_e_data[MAX_DRIVER_E] = { { NoPin, NoPin, NoPin }, false };
+
+    heater_data_t hotend_data[MAX_HOTEND];
+    heater_data_t bed_data[MAX_BED];
+    heater_data_t chamber_data[MAX_CHAMBER];
+    heater_data_t cooler_data[MAX_COOLER];
+    fan_data_t    fan_data[MAX_FAN];
 
     int eeprom_index = EEPROM_OFFSET;
+
+    if (memorystore.access_start()) {
+      SERIAL_EM("No EEPROM.");
+      return false;
+    }
 
     EEPROM_READ_ALWAYS(stored_ver);
     EEPROM_READ_ALWAYS(stored_crc);
@@ -819,22 +857,18 @@ void EEPROM::post_process() {
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
       //
+      // Tools Data
+      //
+      EEPROM_READ(tools.data);
+      if (!flag.validating) {
+        tools.create_object();
+        thermalManager.create_object();
+      }
+
+      //
       // Mechanics data
       //
       EEPROM_READ(mechanics.data);
-
-      //
-      // Endstops data
-      //
-      EEPROM_READ(endstops.data);
-
-      //
-      // Driver data
-      //
-      EEPROM_READ(driver_data);
-      if (!flag.validating) {
-        LOOP_DRV() if (driver[d]) driver[d]->data = driver_data[d];
-      }
 
       //
       // Stepper data
@@ -842,9 +876,20 @@ void EEPROM::post_process() {
       EEPROM_READ(stepper.data);
 
       //
-      // Tools Data
+      // Driver data
       //
-      EEPROM_READ(tools.data);
+      EEPROM_READ(driver_data);
+      EEPROM_READ(driver_e_data);
+      if (!flag.validating) {
+        stepper.create_driver();  // Create driver stepper
+        LOOP_DRV_XYZ()  if (driver[d])    driver[d]->data   = driver_data[d];
+        LOOP_DRV_EXT()  if (driver.e[d])  driver.e[d]->data = driver_e_data[d];
+      }
+
+      //
+      // Endstops data
+      //
+      EEPROM_READ(endstops.data);
 
       //
       // Nozzle Data
@@ -859,17 +904,40 @@ void EEPROM::post_process() {
       //
       // Heaters data
       //
-      #if HAS_HOTENDS
-        LOOP_HOTEND() EEPROM_READ(hotends[h].data);
+      #if MAX_HOTEND > 0
+        EEPROM_READ(hotend_data);
       #endif
-      #if HAS_BEDS
-        LOOP_BED() EEPROM_READ(beds[h].data);
+      #if MAX_BED > 0
+        EEPROM_READ(bed_data);
       #endif
-      #if HAS_CHAMBERS
-        LOOP_CHAMBER() EEPROM_READ(chambers[h].data);
+      #if MAX_CHAMBER > 0
+        EEPROM_READ(chamber_data);
       #endif
-      #if HAS_COOLERS
-        LOOP_COOLER() EEPROM_READ(coolers[h].data);
+      #if MAX_COOLER > 0
+        EEPROM_READ(cooler_data);
+      #endif
+      if (!flag.validating) {
+        #if MAX_HOTEND > 0
+          LOOP_HOTEND()   if (hotends[h])   hotends[h]->data  = hotend_data[h];
+        #endif
+        #if MAX_BED > 0
+          LOOP_BED()      if (beds[h])      beds[h]->data     = bed_data[h];
+        #endif
+        #if MAX_CHAMBER > 0
+          LOOP_CHAMBER()  if (chambers[h])  chambers[h]->data = chamber_data[h];
+        #endif
+        #if MAX_COOLER > 0
+          LOOP_COOLER()   if (coolers[h])   coolers[h]->data  = cooler_data[h];
+        #endif
+      }
+
+      //
+      // Fans data
+      //
+      #if MAX_FAN > 0
+        EEPROM_READ(fan_data);
+        if (!flag.validating)
+          LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
       #endif
 
       //
@@ -877,13 +945,6 @@ void EEPROM::post_process() {
       //
       #if HAS_DHT
         EEPROM_READ(dhtsensor.data);
-      #endif
-
-      //
-      // Fans data
-      //
-      #if HAS_FANS
-        LOOP_FAN() EEPROM_READ(fans[f].data);
       #endif
 
       //
@@ -963,19 +1024,26 @@ void EEPROM::post_process() {
       #endif
 
       //
+      // LCD Language
+      //
+      #if HAS_LCD
+        EEPROM_READ(lcdui.lang);
+      #endif
+
+      //
       // LCD menu
       //
       #if HAS_LCD_MENU
-        #if HAS_HOTENDS
+        #if MAX_HOTEND > 0
           EEPROM_READ(lcdui.preheat_hotend_temp);
         #endif
-        #if HAS_BEDS
+        #if MAX_BED > 0
           EEPROM_READ(lcdui.preheat_bed_temp);
         #endif
-        #if HAS_CHAMBERS
+        #if MAX_CHAMBER > 0
           EEPROM_READ(lcdui.preheat_chamber_temp);
         #endif
-        #if HAS_FANS
+        #if MAX_FAN > 0
           EEPROM_READ(lcdui.preheat_fan_speed);
         #endif
       #endif
@@ -1033,13 +1101,6 @@ void EEPROM::post_process() {
       #endif
 
       //
-      // Alligator board
-      //
-      #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-        EEPROM_READ(externaldac.motor_current);
-      #endif
-
-      //
       // Linear Advance
       //
       #if ENABLED(LIN_ADVANCE)
@@ -1051,13 +1112,6 @@ void EEPROM::post_process() {
       //
       #if ENABLED(HYSTERESIS_FEATURE)
         EEPROM_READ(hysteresis.data);
-      #endif
-
-      //
-      // Advanced Pause data
-      //
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
-        EEPROM_READ(advancedpause.data);
       #endif
 
       if (!flag.validating) stepper.reset_drivers();
@@ -1078,16 +1132,31 @@ void EEPROM::post_process() {
         EEPROM_READ(tmc_stealth_enabled);
 
         if (!flag.validating) {
-          LOOP_DRV() {
-            if (driver[d] && driver[d]->tmc) {
-              driver[d]->tmc->rms_current(tmc_stepper_current[d]);
-              driver[d]->tmc->microsteps(tmc_stepper_microstep[d]);
+          LOOP_DRV_XYZ() {
+            Driver* drv = driver[d];
+            if (drv && drv->tmc) {
+              drv->tmc->rms_current(tmc_stepper_current[d]);
+              drv->tmc->microsteps(tmc_stepper_microstep[d]);
               #if ENABLED(HYBRID_THRESHOLD)
-                driver[d]->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
+                drv->tmc->set_pwm_thrs(tmc_hybrid_threshold[d]);
               #endif
               #if TMC_HAS_STEALTHCHOP
-                driver[d]->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
-                driver[d]->tmc->refresh_stepping_mode();
+                drv->tmc->stealthChop_enabled = tmc_stealth_enabled[d];
+                drv->tmc->refresh_stepping_mode();
+              #endif
+            }
+          }
+          LOOP_DRV_EXT() {
+            Driver* drv = driver.e[d];
+            if (drv && drv->tmc) {
+              drv->tmc->rms_current(tmc_stepper_current[XYZ + d]);
+              drv->tmc->microsteps(tmc_stepper_microstep[XYZ + d]);
+              #if ENABLED(HYBRID_THRESHOLD)
+                drv->tmc->set_pwm_thrs_e(tmc_hybrid_threshold[XYZ + d]);
+              #endif
+              #if TMC_HAS_STEALTHCHOP
+                drv->tmc->stealthChop_enabled = tmc_stealth_enabled[XYZ + d];
+                drv->tmc->refresh_stepping_mode();
               #endif
             }
           }
@@ -1105,29 +1174,29 @@ void EEPROM::post_process() {
           if (!flag.validating) {
             #if ENABLED(X_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(X)
-                driver[X_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
+                driver.x->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(X2)
-                driver[X2_DRV]->tmc->homing_threshold(tmc_sgt[X_AXIS]);
+                driver.x2->tmc->homing_threshold(tmc_sgt[X_AXIS]);
               #endif
             #endif
             #if ENABLED(Y_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Y)
-                driver[Y_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver.y->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Y2)
-                driver[Y2_DRV]->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
+                driver.y2->tmc->homing_threshold(tmc_sgt[Y_AXIS]);
               #endif
             #endif
             #if ENABLED(Z_STALL_SENSITIVITY)
               #if AXIS_HAS_STALLGUARD(Z)
-                driver[Z_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z2)
-                driver[Z2_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z2->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
               #if AXIS_HAS_STALLGUARD(Z3)
-                driver[Z3_DRV]->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
+                driver.z3->tmc->homing_threshold(tmc_sgt[Z_AXIS]);
               #endif
             #endif
           }
@@ -1314,6 +1383,15 @@ void EEPROM::reset() {
     new_z_fade_height = 0.0f;
   #endif
 
+  // Call Printer Factory parameters
+  printer.factory_parameters();
+
+  // Call Tools Factory parameters
+  tools.factory_parameters();
+
+  // Call Temperature Factory parameters
+  thermalManager.factory_parameters();
+
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
 
@@ -1326,28 +1404,11 @@ void EEPROM::reset() {
   // Call Endstop Factory parameters
   endstops.factory_parameters();
 
-  // Call Tools Factory parameters
-  tools.factory_parameters();
-
   // Call Nozzle Factory parameters
   nozzle.factory_parameters();
 
-  // Call Temperature Factory parameters
-  thermalManager.factory_parameters();
-
-  // Call Printer Factory parameters
-  printer.factory_parameters();
-
   // Call Sound Factory parameters
   sound.factory_parameters();
-
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    externaldac.factory_parameters();
-  #endif
-
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    advancedpause.factory_parameters();
-  #endif
 
   #if HAS_LEVELING
     bedlevel.factory_parameters();
@@ -1391,10 +1452,6 @@ void EEPROM::reset() {
 
   #if ENABLED(HYSTERESIS_FEATURE)
     hysteresis.factory_parameters();
-  #endif
-
-  #if HAS_TRINAMIC
-    tmc.factory_parameters();
   #endif
 
   post_process();
@@ -1445,34 +1502,44 @@ void EEPROM::reset() {
     mechanics.print_parameters();
 
     /**
+     * Print Number Extruder, Hotend, Bed, Chamber, Fan
+     */
+    printer.print_M353();
+
+    /**
+     * Print Hotends tools assignment
+     */
+    tools.print_M563();
+
+    /**
      * Print heaters parameters
      */
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       LOOP_HOTEND() {
-        hotends[h].print_M305();
-        hotends[h].print_M306();
-        hotends[h].print_M301();
+        hotends[h]->print_M305();
+        hotends[h]->print_M306();
+        hotends[h]->print_M301();
       }
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       LOOP_BED() {
-        beds[h].print_M305();
-        beds[h].print_M306();
-        beds[h].print_M301();
+        beds[h]->print_M305();
+        beds[h]->print_M306();
+        beds[h]->print_M301();
       }
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       LOOP_CHAMBER() {
-        chambers[h].print_M305();
-        chambers[h].print_M306();
-        chambers[h].print_M301();
+        chambers[h]->print_M305();
+        chambers[h]->print_M306();
+        chambers[h]->print_M301();
       }
     #endif
-    #if HAS_COOLERS
+    #if MAX_COOLER > 0
       LOOP_COOLER() {
-        coolers[h].print_M305();
-        coolers[h].print_M306();
-        coolers[h].print_M301();
+        coolers[h]->print_M305();
+        coolers[h]->print_M306();
+        coolers[h]->print_M301();
       }
     #endif
 
@@ -1487,7 +1554,7 @@ void EEPROM::reset() {
      * Print AD595 parameters
      */
     #if HAS_AD8495 || HAS_AD595
-      LOOP_HOTEND() hotends[h].print_M595();
+      LOOP_HOTEND() hotends[h]->print_M595();
     #endif
 
     /**
@@ -1500,22 +1567,26 @@ void EEPROM::reset() {
     /**
      * Print Nozzle data
      */
-    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+    #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
       nozzle.print_M217();
     #endif
 
     /**
      * Print Hotends offsets parameters
      */
+<<<<<<< HEAD
     #if HOTENDS > 1
+=======
+    #if MAX_HOTEND > 1
+>>>>>>> V4_4_0_dev
       nozzle.print_M218();
     #endif
 
     /**
      * Print Fans parameters
      */
-    #if HAS_FANS
-      LOOP_FAN() fans[f].print_M106();
+    #if MAX_FAN > 0
+      LOOP_FAN() fans[f]->print_M106();
     #endif
 
     endstops.print_parameters();
@@ -1639,16 +1710,16 @@ void EEPROM::reset() {
       SERIAL_LM(CFG, "Material heatup parameters");
       for (uint8_t i = 0; i < COUNT(lcdui.preheat_hotend_temp); i++) {
         SERIAL_SMV(CFG, "  M145 S", i);
-        #if HAS_HOTENDS
+        #if MAX_HOTEND > 0
           SERIAL_MV(" H", TEMP_UNIT(lcdui.preheat_hotend_temp[i]));
         #endif
-        #if HAS_BEDS
+        #if MAX_BED > 0
           SERIAL_MV(" B", TEMP_UNIT(lcdui.preheat_bed_temp[i]));
         #endif
         #if CHAMBER > 0
           SERIAL_MV(" C", TEMP_UNIT(lcdui.preheat_chamber_temp[i]));
         #endif
-        #if HAS_FANS
+        #if MAX_FAN > 0
           SERIAL_MV(" F", lcdui.preheat_fan_speed[i]);
         #endif
         SERIAL_EOL();
@@ -1697,21 +1768,16 @@ void EEPROM::reset() {
 
       SERIAL_LM(CFG, "Stepper driver current (mA)");
       SERIAL_SM(CFG, "  M906");
-      SERIAL_MV(" X", externaldac.motor_current[X_AXIS]);
-      SERIAL_MV(" Y", externaldac.motor_current[Y_AXIS]);
-      SERIAL_MV(" Z", externaldac.motor_current[Z_AXIS]);
-      #if EXTRUDERS == 1
-        SERIAL_MV(" T0 E", externaldac.motor_current[E_AXIS]);
-      #endif
+      SERIAL_MV(" X", driver.x->data.ma);
+      SERIAL_MV(" Y", driver.y->data.ma);
+      SERIAL_MV(" Z", driver.z->data.ma);
       SERIAL_EOL();
-      #if DRIVER_EXTRUDERS > 1
-        for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
-          SERIAL_SM(CFG, "  M906");
-          SERIAL_MV(" T", int(i));
-          SERIAL_MV(" E", externaldac.motor_current[E_AXIS + i]);
-          SERIAL_EOL();
-        }
-      #endif
+      LOOP_DRV_EXT() {
+        SERIAL_SM(CFG, "  M906");
+        SERIAL_MV(" T", int(d));
+        SERIAL_MV(" E", driver.e[extruders[d]->get_driver()]->data.ma);
+        SERIAL_EOL();
+      }
 
     #endif // ALLIGATOR_R2 || ALLIGATOR_R3
 
@@ -1754,16 +1820,11 @@ void EEPROM::reset() {
      */
     #if ENABLED(ADVANCED_PAUSE_FEATURE)
       SERIAL_LM(CFG, "Filament load/unload lengths");
-      #if EXTRUDERS == 1
-        SERIAL_SMV(CFG, "  M603 L", LINEAR_UNIT(advancedpause.data[0].load_length), 2);
-        SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[0].unload_length), 2);
-      #else // EXTRUDERS != 1
-        LOOP_EXTRUDER() {
-          SERIAL_SMV(CFG, "  M603 T", (int)e);
-          SERIAL_MV(" L", LINEAR_UNIT(advancedpause.data[e].load_length), 2);
-          SERIAL_EMV(" U", LINEAR_UNIT(advancedpause.data[e].unload_length), 2);
-        }
-      #endif // EXTRUDERS != 1
+      LOOP_EXTRUDER() {
+        SERIAL_SMV(CFG, "  M603 T", (int)e);
+        SERIAL_MV(" L", LINEAR_UNIT(extruders[e]->data.load_length), 2);
+        SERIAL_EMV(" U", LINEAR_UNIT(extruders[e]->data.unload_length), 2);
+      }
     #endif // ADVANCED_PAUSE_FEATURE
 
     print_job_counter.showStats();

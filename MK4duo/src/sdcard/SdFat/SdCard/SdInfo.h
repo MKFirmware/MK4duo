@@ -103,9 +103,10 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 //------------------------------------------------------------------------------
 #define SD_SCK_HZ(maxSpeed) SPISettings(maxSpeed, MSBFIRST, SPI_MODE0)
 #define SD_SCK_MHZ(maxMhz) SPISettings(1000000UL*maxMhz, MSBFIRST, SPI_MODE0)
+#if defined(__AVR__) || defined(__SAM3X8E__) || defined(__SAM3X8H__)
 // SPI divisor constants
 /** Set SCK to max rate of F_CPU/2. */
-#define SPI_FULL_SPEED SD_SCK_MHZ(50)
+#define SPI_FULL_SPEED SD_SCK_HZ(F_CPU/2)
 /** Set SCK rate to F_CPU/3 for Due */
 #define SPI_DIV3_SPEED SD_SCK_HZ(F_CPU/3)
 /** Set SCK rate to F_CPU/4. */
@@ -118,6 +119,18 @@ const uint8_t SD_CARD_TYPE_SDHC = 3;
 #define SPI_EIGHTH_SPEED SD_SCK_HZ(F_CPU/16)
 /** Set SCK rate to F_CPU/32. */
 #define SPI_SIXTEENTH_SPEED SD_SCK_HZ(F_CPU/32)
+#else
+#define SPI_FULL_SPEED SD_SCK_HZ(20000000)
+/** Set SCK rate to F_CPU/4. */
+#define SPI_HALF_SPEED SD_SCK_HZ(5000000)
+/** Set SCK rate to F_CPU/8. */
+#define SPI_QUARTER_SPEED SD_SCK_HZ(2500000)
+/** Set SCK rate to F_CPU/16. */
+#define SPI_EIGHTH_SPEED SD_SCK_HZ(1250000)
+/** Set SCK rate to F_CPU/32. */
+#define SPI_SIXTEENTH_SPEED SD_SCK_HZ(300000)
+#endif
+
 //------------------------------------------------------------------------------
 // SD operation timeouts
 /** CMD0 retry count */

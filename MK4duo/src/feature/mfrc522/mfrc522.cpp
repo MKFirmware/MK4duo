@@ -119,12 +119,12 @@ void MFRC522::spin() {
         HAL::delayMilliseconds(200);
         if (readBlock(e)) {
           Spool_must_read[e] = false;
-          tools.density_percentage[e] = rfid522.data[e].data.density;
+          extruders[e]->density_percentage = rfid522.data[e].data.density;
           #if ENABLED(VOLUMETRIC_EXTRUSION)
-            tools.data.filament_size[e] = rfid522.data[e].data.size;
+            extruders[e]->data.filament_size = rfid522.data[e].data.size;
             tools.calculate_volumetric_multipliers();
           #endif
-          tools.refresh_e_factor(e);
+          extruders[e]->refresh_e_factor();
           print_info(e);
         }
       }

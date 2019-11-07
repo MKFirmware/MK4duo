@@ -30,6 +30,6 @@
 
 #define CODE_G29
 
-inline void gcode_G29(void) { ubl.G29(); }
+inline void gcode_G29() { ubl.G29(); }
 
 #endif // AUTO_BED_LEVELING_UBL

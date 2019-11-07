@@ -51,7 +51,7 @@
  *    P[int]    Sensor Pin
  *
  */
-inline void gcode_M305(void) {
+inline void gcode_M305() {
 
   #if HAS_DHT
     if (parser.seen('D')) {

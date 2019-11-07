@@ -31,4 +31,4 @@
 /**
  * M82: Set E codes absolute (default)
  */
-inline void gcode_M82(void) { printer.axis_relative_modes[E_AXIS] = false; }
+inline void gcode_M82() { mechanics.set_e_absolute(); }

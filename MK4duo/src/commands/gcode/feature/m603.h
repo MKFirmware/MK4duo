@@ -38,23 +38,23 @@
    *  L[distance] - Extrude distance for insertion, for the specified extruder
    *
    */
-  inline void gcode_M603(void) {
+  inline void gcode_M603() {
 
     if (commands.get_target_tool(603)) return;
 
     // Unload length
     if (parser.seen('U')) {
-      advancedpause.data[tools.extruder.target].unload_length = ABS(parser.value_axis_units(E_AXIS));
+      extruders[tools.extruder.target]->data.unload_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(advancedpause.data[tools.extruder.target].unload_length, EXTRUDE_MAXLENGTH);
+        NOMORE(extruders[tools.extruder.target]->data.unload_length, EXTRUDE_MAXLENGTH);
       #endif
     }
 
     // Load length
     if (parser.seen('L')) {
-      advancedpause.data[tools.extruder.target].load_length = ABS(parser.value_axis_units(E_AXIS));
+      extruders[tools.extruder.target]->data.load_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(advancedpause.data[tools.extruder.target].load_length, EXTRUDE_MAXLENGTH);
+        NOMORE(extruders[tools.extruder.target]->data.load_length, EXTRUDE_MAXLENGTH);
       #endif
     }
   }

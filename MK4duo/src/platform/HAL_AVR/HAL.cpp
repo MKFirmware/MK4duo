@@ -131,9 +131,7 @@ HAL::~HAL() {
   // dtor
 }
 
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
-
-  UNUSED(frequency);
+void HAL_timer_start(const uint8_t timer_num) {
 
   switch (timer_num) {
 
@@ -170,8 +168,13 @@ uint32_t HAL_isr_execuiton_cycle(const uint32_t rate) {
 
 void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.data.minimum_pulse, 1UL));
-  HAL_min_pulse_tick  = uint32_t(stepper.data.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+
+  if (stepper.data.minimum_pulse)
+    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * uint32_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE));
+  else
+    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE)));
+
+  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execuiton_cycle(1))       ;
@@ -189,11 +192,11 @@ void HAL::resetHardware() { resetFunc(); }
 
 void HAL::showStartReason() {
   const uint8_t mcu = MCUSR;
-  if (mcu &  1) SERIAL_EM(MSG_POWERUP);
-  if (mcu &  2) SERIAL_EM(MSG_EXTERNAL_RESET);
-  if (mcu &  4) SERIAL_EM(MSG_BROWNOUT_RESET);
-  if (mcu &  8) SERIAL_EM(MSG_WATCHDOG_RESET);
-  if (mcu & 32) SERIAL_EM(MSG_SOFTWARE_RESET);
+  if (mcu &  1) SERIAL_EM(MSG_HOST_POWERUP);
+  if (mcu &  2) SERIAL_EM(MSG_HOST_EXTERNAL_RESET);
+  if (mcu &  4) SERIAL_EM(MSG_HOST_BROWNOUT_RESET);
+  if (mcu &  8) SERIAL_EM(MSG_HOST_WATCHDOG_RESET);
+  if (mcu & 32) SERIAL_EM(MSG_HOST_SOFTWARE_RESET);
   MCUSR = 0;
 }
 
@@ -236,8 +239,7 @@ void HAL::showStartReason() {
 
     // Use timer for temperature measurement
     // Interleave temperature interrupt with millies interrupt
-    HAL_timer_start(TEMP_TIMER_NUM, TEMP_TIMER_FREQUENCY);
-
+    HAL_timer_start(TEMP_TIMER_NUM);
     ENABLE_TEMP_INTERRUPT();
 
   }
@@ -316,50 +318,47 @@ void HAL::setPwmFrequency(const pin_t pin, uint8_t val) {
   }
 }
 
-void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
+void HAL::analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq/*=1000u*/) {
   UNUSED(freq);
-  UNUSED(hwpwm);
-  softpwm.set(pin, uValue);
+  ::analogWrite(pin, uValue);
 }
 
 void HAL::Tick() {
 
-  static millis_s cycle_1s_ms   = millis(),
-                  cycle_100_ms  = millis();
-  static uint8_t  channel       = 0;
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
+
+  static uint8_t channel = 0;
 
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].set_output_pwm();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].set_output_pwm();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].set_output_pwm();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].set_output_pwm();
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->set_output_pwm();
   #endif
 
   // Fans set output PWM
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() {
-      if (fans[f].kickstart) fans[f].kickstart--;
-      fans[f].set_output_pwm();
+      if (fans[f]->kickstart) fans[f]->kickstart--;
+      fans[f]->set_output_pwm();
     }
   #endif
 
-  // Software PWM modulation
-  softpwm.spin();
-
   // Event 100 ms
-  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) thermalManager.spin();
 
   // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   if ((ADCSRA & _BV(ADSC)) == 0) {  // Conversion finished?
     channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
@@ -367,7 +366,7 @@ void HAL::Tick() {
     if (++adcCounter[adcSamplePos] >= (OVERSAMPLENR)) {
 
       // update temperatures
-      HAL::AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
+      AnalogInputValues[channel] = AnalogInputRead[adcSamplePos] / (OVERSAMPLENR);
 
       AnalogInputRead[adcSamplePos] = 0;
       adcCounter[adcSamplePos] = 0;
@@ -375,7 +374,7 @@ void HAL::Tick() {
       // Start next conversion
       if (++adcSamplePos >= ANALOG_INPUTS) {
         adcSamplePos = 0;
-        HAL::Analog_is_ready = true;
+        Analog_is_ready = true;
       }
       channel = pgm_read_byte(&AnalogInputChannels[adcSamplePos]);
       #if ENABLED(ADCSRB) && ENABLED(MUX5)
@@ -390,10 +389,36 @@ void HAL::Tick() {
   }
 
   // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
+  if (Analog_is_ready) set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();
+
+}
+
+/** Private Function */
+void HAL::set_current_temp_raw() {
+
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->data.sensor.adc_raw = AnalogInputValues[hotends[h]->data.sensor.pin];
+  #endif
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->data.sensor.adc_raw = AnalogInputValues[beds[h]->data.sensor.pin];
+  #endif
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->data.sensor.adc_raw = AnalogInputValues[chambers[h]->data.sensor.pin];
+  #endif
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->data.sensor.adc_raw = AnalogInputValues[coolers[h]->data.sensor.pin];
+  #endif
+
+  #if HAS_POWER_CONSUMPTION_SENSOR
+    powerManager.current_raw_powconsumption = AnalogInputValues[POWER_CONSUMPTION_PIN];
+  #endif
+
+  #if ENABLED(FILAMENT_WIDTH_SENSOR)
+    current_raw_filwidth = AnalogInputValues[FILWIDTH_PIN];
+  #endif
 
 }
 

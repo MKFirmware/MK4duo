@@ -46,23 +46,14 @@ PauseModeEnum AdvancedPause::mode = PAUSE_MODE_PAUSE_PRINT;
 
 PauseMenuResponseEnum AdvancedPause::menu_response;
 
-advanced_pause_data_t AdvancedPause::data[EXTRUDERS];
-
 uint8_t AdvancedPause::did_pause_print = 0;
 
 /** Public Function */
-void AdvancedPause::factory_parameters() {
-  LOOP_EXTRUDER() {
-    data[e].unload_length = PAUSE_PARK_UNLOAD_LENGTH;
-    data[e].load_length   = PAUSE_PARK_FAST_LOAD_LENGTH;
-  }
-}
-
-void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
+void AdvancedPause::do_pause_e_move(const float &length, const feedrate_t &fr_mm_s) {
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();
   #endif
-  mechanics.current_position[E_AXIS] += length / tools.e_factor[tools.extruder.active];
+  mechanics.current_position.e += length /extruders[tools.extruder.active]->e_factor;
   planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
   planner.synchronize();
 }
@@ -78,9 +69,9 @@ void AdvancedPause::do_pause_e_move(const float &length, const float &fr_mm_s) {
  * - Park the nozzle at the given position
  * - Call unload_filament (if a length was specified)
  *
- * Returns 'true' if pause was completed, 'false' for abort
+ * Return 'true' if pause was completed, 'false' for abort
  */
-bool AdvancedPause::pause_print(const float &retract, const point_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
+bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_point, const float &unload_length/*=0*/, const bool show_lcd/*=false*/ DXC_ARGS) {
 
   #if !HAS_LCD_MENU
     UNUSED(show_lcd);
@@ -89,9 +80,10 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   if (did_pause_print) return false; // already paused
 
   host_action.paused();
+  host_action.prompt_open(PROMPT_INFO, PSTR("Pause"), PSTR("Dismiss"));
 
-  if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(ACTIVE_HOTEND)) {
-    SERIAL_LM(ER, MSG_HOTEND_TOO_COLD);
+  if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(tools.active_hotend())) {
+    SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
 
     #if HAS_LCD_MENU
       if (show_lcd) { // Show status screen
@@ -117,14 +109,14 @@ bool AdvancedPause::pause_print(const float &retract, const point_t &park_point,
   print_job_counter.pause();
 
   // Save current position
-  COPY_ARRAY(mechanics.stored_position[0], mechanics.current_position);
+  mechanics.stored_position[0] = mechanics.current_position;
 
   // Wait for synchronize steppers
   planner.synchronize();
 
   // Initial retract before move to filament change position
-  if (retract && !thermalManager.tooColdToExtrude(ACTIVE_HOTEND))
-    do_pause_e_move(retract, PAUSE_PARK_RETRACT_FEEDRATE);
+  if (retract && !thermalManager.tooColdToExtrude(tools.active_hotend()))
+    do_pause_e_move(retract, feedrate_t(PAUSE_PARK_RETRACT_FEEDRATE));
 
   // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
   nozzle.park(2, park_point);
@@ -169,21 +161,19 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   // Start the heater idle timers
-  constexpr millis_l  nozzle_timeout  = (millis_l)(PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL,
-                      bed_timeout     = (millis_l)(PAUSE_PARK_PRINTER_OFF)    * 60000UL;
+  constexpr millis_l  nozzle_timeout  = (PAUSE_PARK_NOZZLE_TIMEOUT) * 1000UL,
+                      bed_timeout     = (PAUSE_PARK_PRINTER_OFF)    * 60000UL;
 
-  LOOP_HOTEND()
-    hotends[h].start_idle_timer(nozzle_timeout);
+  LOOP_HOTEND() hotends[h]->start_idle_timer(nozzle_timeout);
 
-  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
-    LOOP_BED()
-      beds[h].start_idle_timer(bed_timeout);
+  #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+    LOOP_BED() beds[h]->start_idle_timer(bed_timeout);
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = tools.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    tools.extruder.active    = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -200,15 +190,14 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
     // If the nozzle has timed out, wait for the user to press the button to re-heat the nozzle, then
     // re-heat the nozzle, re-show the insert screen, restart the idle timers, and start over
     if (!nozzle_timed_out)
-      LOOP_HOTEND()
-        nozzle_timed_out |= hotends[h].isIdle();
+      LOOP_HOTEND() nozzle_timed_out |= hotends[h]->isIdle();
 
     if (nozzle_timed_out) {
       #if HAS_LCD_MENU
         lcd_pause_show_message(PAUSE_MESSAGE_HEAT);
       #endif
       SERIAL_STR(ECHO);
-      SERIAL_EM(_PMSG(MSG_FILAMENT_CHANGE_HEAT));
+      SERIAL_EM(_PMSG(MSG_HOST_FILAMENT_CHANGE_HEAT));
 
       host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("HeaterTimeout"), PSTR("Reheat"));
 
@@ -216,9 +205,8 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       while (printer.isWaitForUser()) {
 
         if (!bed_timed_out) {
-          #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
-            LOOP_BED()
-              bed_timed_out |= beds[h].isIdle();
+          #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+            LOOP_BED() bed_timed_out |= beds[h]->isIdle();
           #endif
         }
         else {
@@ -230,16 +218,15 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
         printer.idle(true);
       }
 
-      host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheating"));
+      host_action.prompt_do(PROMPT_INFO, PSTR("Reheating"));
 
       // Re-enable the bed if they timed out
-      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
-        if (bed_timed_out)
-          LOOP_BED() beds[h].reset_idle_timer();
+      #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+        if (bed_timed_out) LOOP_BED() beds[h]->reset_idle_timer();
       #endif
 
       // Re-enable the hotends if they timed out
-      LOOP_HOTEND() hotends[h].reset_idle_timer();
+      LOOP_HOTEND() hotends[h]->reset_idle_timer();
 
       // Wait for the heaters to reach the target temperatures
       ensure_safe_temperature();
@@ -247,10 +234,10 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
       // Show the prompt to continue
       show_continue_prompt(is_reload);
 
-      LOOP_HOTEND() hotends[h].start_idle_timer(nozzle_timeout);
+      LOOP_HOTEND() hotends[h]->start_idle_timer(nozzle_timeout);
 
-      #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
-        LOOP_BED() beds[h].start_idle_timer(bed_timeout);
+      #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
+        LOOP_BED() beds[h]->start_idle_timer(bed_timeout);
       #endif
 
       host_action.prompt_do(PROMPT_USER_CONTINUE, PSTR("Reheat Done"), PSTR("Continue"));
@@ -278,7 +265,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
 /**
  * Resume or Start print procedure
  *
- * - Abort if not paused
+ * - If not paused, do nothing and return
  * - Reset heater idle timers
  * - Load filament if specified, but only if:
  *   - a nozzle timed out, or
@@ -301,19 +288,19 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   bool  nozzle_timed_out  = false,
         bed_timed_out     = false;
 
-  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
+  #if MAX_BED > 0 && PAUSE_PARK_PRINTER_OFF > 0
     LOOP_BED() {
-      bed_timed_out |= beds[h].isIdle();
-      beds[h].reset_idle_timer();
+      bed_timed_out |= beds[h]->isIdle();
+      beds[h]->reset_idle_timer();
     }
   #endif
 
   LOOP_HOTEND() {
-    nozzle_timed_out |= hotends[h].isIdle();
-    hotends[h].reset_idle_timer();
+    nozzle_timed_out |= hotends[h]->isIdle();
+    hotends[h]->reset_idle_timer();
   }
 
-  if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(TARGET_EXTRUDER)) {
+  if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(tools.extruder.target)) {
     // Load the new filament
     load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT DXC_PASS);
   }
@@ -330,17 +317,17 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   #endif
 
   // If stored_position[0] is negative
-  if (mechanics.stored_position[0][E_AXIS] < 0) do_pause_e_move(mechanics.stored_position[0][E_AXIS], PAUSE_PARK_RETRACT_FEEDRATE);
+  if (mechanics.stored_position[0][E_AXIS] < 0) do_pause_e_move(mechanics.stored_position[0][E_AXIS], feedrate_t(PAUSE_PARK_RETRACT_FEEDRATE));
 
   // Move XY to starting position, then Z
-  mechanics.do_blocking_move_to_xy(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], NOZZLE_PARK_XY_FEEDRATE);
+  mechanics.do_blocking_move_to_xy(mechanics.stored_position[0][X_AXIS], mechanics.stored_position[0][Y_AXIS], feedrate_t(NOZZLE_PARK_XY_FEEDRATE));
 
   // Set Z_AXIS to saved position
-  mechanics.do_blocking_move_to_z(mechanics.stored_position[0][Z_AXIS], NOZZLE_PARK_Z_FEEDRATE);
+  mechanics.do_blocking_move_to_z(mechanics.stored_position[0][Z_AXIS], feedrate_t(NOZZLE_PARK_Z_FEEDRATE));
 
   // Now all extrusion positions are resumed and ready to be confirmed
   // Set extruder to saved position
-  planner.set_e_position_mm(mechanics.destination[E_AXIS] = mechanics.current_position[E_AXIS] = mechanics.stored_position[0][E_AXIS]);
+  planner.set_e_position_mm(mechanics.destination.e = mechanics.current_position.e = mechanics.stored_position[0].e);
 
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();
@@ -358,6 +345,8 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
 
   --did_pause_print;
 
+  host_action.prompt_open(PROMPT_INFO, PSTR("Resuming"), PSTR("Dismiss"));
+
   #if HAS_SD_SUPPORT
     if (did_pause_print) {
       card.startFileprint();
@@ -368,7 +357,12 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   // Resume the print job timer if it was running
   if (print_job_counter.isPaused()) print_job_counter.start();
 
-  lcdui.reset_status();
+  #if HAS_LCD
+    lcdui.reset_status();
+    #if HAS_LCD_MENU
+      lcdui.return_to_status();
+    #endif
+  #endif
 
 }
 
@@ -405,7 +399,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     #if HAS_LCD_MENU
       if (show_lcd) lcd_pause_show_message(PAUSE_MESSAGE_INSERT, tmode);
     #endif
-    SERIAL_LM(ECHO, MSG_FILAMENT_CHANGE_INSERT);
+    SERIAL_LM(ECHO, MSG_HOST_FILAMENT_CHANGE_INSERT);
 
     #if HAS_BUZZER
       filament_change_beep(max_beep_count, true);
@@ -416,7 +410,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);    // LCD click or M108 will clear this
 
-    const char tool = '0' + tools.extruder.active;
+    const char tool = DIGIT(tools.extruder.active);
 
     host_action.prompt_reason = PROMPT_USER_CONTINUE;
     host_action.prompt_begin(PSTR("Load Filament T"), false);
@@ -445,10 +439,10 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   #endif
 
   // Slow Load filament
-  if (slow_load_length) do_pause_e_move(slow_load_length, PAUSE_PARK_SLOW_LOAD_FEEDRATE);
+  if (slow_load_length) do_pause_e_move(slow_load_length, feedrate_t(PAUSE_PARK_SLOW_LOAD_FEEDRATE));
 
   // Fast Load Filament
-  if (fast_load_length) do_pause_e_move(fast_load_length, PAUSE_PARK_FAST_LOAD_FEEDRATE);
+  if (fast_load_length) do_pause_e_move(fast_load_length, feedrate_t(PAUSE_PARK_FAST_LOAD_FEEDRATE));
 
   #if ENABLED(DUAL_X_CARRIAGE)
     tools.extruder.active = saved_ext;
@@ -464,7 +458,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
       #endif
 
       // Extrude filament to get into hotend
-      do_pause_e_move(purge_length, PAUSE_PARK_PURGE_FEEDRATE);
+      do_pause_e_move(purge_length, feedrate_t(PAUSE_PARK_PURGE_FEEDRATE));
     }
 
     // Show "Purge More" / "Resume" menu and wait for reply
@@ -533,16 +527,16 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   #endif
 
   // Retract filament
-  do_pause_e_move(-FILAMENT_UNLOAD_RETRACT_LENGTH, PAUSE_PARK_RETRACT_FEEDRATE);
+  do_pause_e_move(-FILAMENT_UNLOAD_RETRACT_LENGTH, feedrate_t(PAUSE_PARK_RETRACT_FEEDRATE));
 
   // Wait for filament to cool
   HAL::delayMilliseconds(FILAMENT_UNLOAD_DELAY);
 
   // Quickly purge
-  do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, mechanics.data.max_feedrate_mm_s[E_AXIS]);
+  do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, extruders[tools.extruder.active]->data.max_feedrate_mm_s);
 
   // Unload filament
-  do_pause_e_move(unload_length, PAUSE_PARK_UNLOAD_FEEDRATE);
+  do_pause_e_move(unload_length, feedrate_t(PAUSE_PARK_UNLOAD_FEEDRATE));
 
   // Disable extruders steppers for manual filament changing
   #if HAS_E_STEPPER_ENABLE
@@ -559,7 +553,7 @@ void AdvancedPause::show_continue_prompt(const bool is_reload) {
     lcd_pause_show_message(is_reload ? PAUSE_MESSAGE_INSERT : PAUSE_MESSAGE_WAITING);
   #endif
   SERIAL_STR(ECHO);
-  SERIAL_STR(is_reload ? PSTR(_PMSG(MSG_FILAMENT_CHANGE_INSERT) "\n") : PSTR(_PMSG(MSG_FILAMENT_CHANGE_WAIT) "\n"));
+  SERIAL_STR(is_reload ? PSTR(_PMSG(MSG_HOST_FILAMENT_CHANGE_INSERT) "\n") : PSTR(_PMSG(MSG_HOST_FILAMENT_CHANGE_WAIT) "\n"));
 }
 
 /**
@@ -581,11 +575,11 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     UNUSED(tmode);
   #endif
 
-  #if HAS_BEDS && PAUSE_PARK_PRINTER_OFF > 0
-    LOOP_BED() beds[h].wait_for_target();
+  #if PAUSE_PARK_PRINTER_OFF > 0
+    LOOP_BED() beds[h]->wait_for_target();
   #endif
 
-  hotends[TARGET_HOTEND].wait_for_target();
+  hotends[tools.active_hotend()]->wait_for_target();
 
   return !printer.isWaitForHeatUp();
 }

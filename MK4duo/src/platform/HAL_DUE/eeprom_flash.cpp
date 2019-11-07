@@ -995,7 +995,7 @@ void eeprom_read_block(void* pos, const void* eeprom_address, size_t n) {
   }
 }
 
-void eeprom_flush(void) {
+void eeprom_flush() {
   ee_Flush();
 }
 

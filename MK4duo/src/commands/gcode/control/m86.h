@@ -31,7 +31,7 @@
 /**
  * M86: Set safety timer expiration with parameter M[minutes]. To disable set zero
  */
-inline void gcode_M86(void) {
+inline void gcode_M86() {
   if (parser.seenval('M'))
     printer.safety_time = parser.value_ushort();
   else

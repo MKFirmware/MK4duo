@@ -44,39 +44,23 @@ void _lcd_user_gcode(PGM_P const cmd) {
   #endif
 }
 
-#if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
-  void lcd_user_gcode_1() { _lcd_user_gcode(PSTR(USER_GCODE_1 _DONE_SCRIPT)); }
-#endif
-#if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
-  void lcd_user_gcode_2() { _lcd_user_gcode(PSTR(USER_GCODE_2 _DONE_SCRIPT)); }
-#endif
-#if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
-  void lcd_user_gcode_3() { _lcd_user_gcode(PSTR(USER_GCODE_3 _DONE_SCRIPT)); }
-#endif
-#if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
-  void lcd_user_gcode_4() { _lcd_user_gcode(PSTR(USER_GCODE_4 _DONE_SCRIPT)); }
-#endif
-#if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
-  void lcd_user_gcode_5() { _lcd_user_gcode(PSTR(USER_GCODE_5 _DONE_SCRIPT)); }
-#endif
-
 void menu_user() {
   START_MENU();
-  MENU_BACK(MSG_MAIN);
+  BACK_ITEM(MSG_MAIN);
   #if ENABLED(USER_DESC_1) && ENABLED(USER_GCODE_1)
-    MENU_ITEM(function, USER_DESC_1, lcd_user_gcode_1);
+    ACTION_ITEM(USER_DESC_1, []{ _lcd_user_gcode(PSTR(USER_GCODE_1 _DONE_SCRIPT)); });
   #endif
   #if ENABLED(USER_DESC_2) && ENABLED(USER_GCODE_2)
-    MENU_ITEM(function, USER_DESC_2, lcd_user_gcode_2);
+    ACTION_ITEM(USER_DESC_2, []{ _lcd_user_gcode(PSTR(USER_GCODE_2 _DONE_SCRIPT)); });
   #endif
   #if ENABLED(USER_DESC_3) && ENABLED(USER_GCODE_3)
-    MENU_ITEM(function, USER_DESC_3, lcd_user_gcode_3);
+    ACTION_ITEM(USER_DESC_3, []{ _lcd_user_gcode(PSTR(USER_GCODE_3 _DONE_SCRIPT)); });
   #endif
   #if ENABLED(USER_DESC_4) && ENABLED(USER_GCODE_4)
-    MENU_ITEM(function, USER_DESC_4, lcd_user_gcode_4);
+    ACTION_ITEM(USER_DESC_4, []{ _lcd_user_gcode(PSTR(USER_GCODE_4 _DONE_SCRIPT)); });
   #endif
   #if ENABLED(USER_DESC_5) && ENABLED(USER_GCODE_5)
-    MENU_ITEM(function, USER_DESC_5, lcd_user_gcode_5);
+    ACTION_ITEM(USER_DESC_5, []{ _lcd_user_gcode(PSTR(USER_GCODE_5 _DONE_SCRIPT)); });
   #endif
   END_MENU();
 }

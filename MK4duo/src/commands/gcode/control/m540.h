@@ -33,7 +33,7 @@
 /**
  * M540: Set whether SD card print should abort on endstop hit (M540 S<0|1>)
  */
-inline void gcode_M540(void) {
+inline void gcode_M540() {
   if (parser.seen('S')) planner.abort_on_endstop_hit = parser.value_bool();
 }
 

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_FANS
+#if MAX_FAN > 0
 
   #define CODE_M106
   #define CODE_M107
@@ -44,7 +44,7 @@
    *  X<int>    Max Speed
    *  I<bool>   Inverted pin output
    */
-  inline void gcode_M106(void) {
+  inline void gcode_M106() {
 
     uint8_t f = 0;
 
@@ -52,13 +52,13 @@
 
     const uint8_t new_speed = parser.byteval('S', 255);
 
-    Fan * const fan = &fans[f];
+    Fan* fan = fans[f];
 
     if (parser.seen('U')) {
       // Put off the fan
       fan->speed = 0;
       fan->data.pin = parser.value_pin();
-      SERIAL_LM(ECHO, MSG_CHANGE_PIN);
+      SERIAL_LM(ECHO, MSG_HOST_CHANGE_PIN);
     }
 
     if (parser.seen('I'))
@@ -67,17 +67,17 @@
     if (parser.seen('H'))
       fan->set_auto_monitor(parser.value_int());
 
-    fan->data.min_speed           = parser.byteval('L', fan->data.min_speed);
-    fan->data.max_speed           = parser.byteval('X', fan->data.max_speed);
+    fan->data.speed_limit.min     = parser.byteval('L', fan->data.speed_limit.min);
+    fan->data.speed_limit.max     = parser.byteval('X', fan->data.speed_limit.max);
     fan->data.freq                = parser.ushortval('F', fan->data.freq);
     fan->data.trigger_temperature = parser.ushortval('T', fan->data.trigger_temperature);
 
     fan->set_speed(new_speed);
 
-    #if ENABLED(DUAL_X_CARRIAGE) && FAN_COUNT > 1
+    #if ENABLED(DUAL_X_CARRIAGE) && MAX_FAN > 1
       // Check for Clone fan
-      if (f == 0 && mechanics.dxc_is_duplicating() && TEST(fans[1].data.auto_monitor, 6))
-        fans[1].set_speed(new_speed);
+      if (f == 0 && mechanics.dxc_is_duplicating() && TEST(fans[1]->data.auto_monitor, 6))
+        fans[1]->set_speed(new_speed);
     #endif
 
     #if DISABLED(DISABLE_M503)
@@ -90,10 +90,10 @@
   /**
    * M107: Fan Off
    */
-  inline void gcode_M107(void) {
+  inline void gcode_M107() {
     uint8_t f = 0;
     if (printer.debugSimulation() || !commands.get_target_fan(f)) return;
-    fans[f].speed = 0;
+    fans[f]->speed = 0;
   }
 
-#endif // HAS_FANS
+#endif // MAX_FAN > 0

@@ -31,7 +31,7 @@
 /**
  * G4: Dwell S<seconds> or P<milliseconds>
  */
-inline void gcode_G4(void) {
+inline void gcode_G4() {
   millis_l dwell_ms = 0;
   if (parser.seenval('P')) dwell_ms = parser.value_millis();              // milliseconds to wait
   if (parser.seenval('S')) dwell_ms = parser.value_millis_from_seconds(); // seconds to wait

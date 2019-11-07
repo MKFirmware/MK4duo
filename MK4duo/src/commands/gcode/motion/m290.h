@@ -32,15 +32,15 @@
 
 #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
   FORCE_INLINE void mod_probe_zoffset(const float &offs) {
-    probe.data.offset[Z_AXIS] += offs;
-    SERIAL_LMV(ECHO, MSG_PROBE_Z_OFFSET ": ", probe.data.offset[Z_AXIS]);
+    probe.data.offset.z += offs;
+    SERIAL_LMV(ECHO, MSG_HOST_PROBE_Z_OFFSET ": ", probe.data.offset.z);
   }
 #endif
 
 /**
  * M290: Babystepping
  */
-inline void gcode_M290(void) {
+inline void gcode_M290() {
   #if ENABLED(BABYSTEP_XY)
     for (uint8_t a = X_AXIS; a <= Z_AXIS; a++)
       if (parser.seenval(axis_codes[a]) || (a == Z_AXIS && parser.seenval('S'))) {

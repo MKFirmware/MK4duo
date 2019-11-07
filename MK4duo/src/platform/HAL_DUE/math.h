@@ -31,35 +31,33 @@ static FORCE_INLINE uint32_t MultiU32X24toH32(uint32_t longIn1, uint32_t longIn2
 
 // Class to perform averaging of values read from the ADC
 // numAveraged should be a power of 2 for best efficiency
-template <size_t numAveraged> class AveragingFilter {
+template <size_t numAveraged>
+class AveragingFilter {
 
   public: /** Constructor */
 
-    AveragingFilter() { Init(0); }
+    AveragingFilter() { init(0); }
 
   private: /** Private Parameters */
 
-    uint16_t  readings[numAveraged];
+    uint16_t  sample[numAveraged];
     size_t    index;
     uint32_t  sum;
     bool      valid;
 
   public: /** Public Function */
 
-    void Init(uint16_t val) volatile {
-
-      irqflags_t flags = cpu_irq_save();
+    void init(uint16_t val) volatile {
       sum = (uint32_t)val * (uint32_t)numAveraged;
       index = 0;
       valid = false;
       for (size_t i = 0; i < numAveraged; ++i)
-        readings[i] = val;
-      cpu_irq_restore(flags);
+        sample[i] = val;
     }
 
-    void ProcessReading(const uint16_t read) {
-      sum = sum - readings[index] + read;
-      readings[index] = read;
+    void process_reading(const uint16_t read_adc) {
+      sum += read_adc - sample[index];
+      sample[index] = read_adc;
       if (++index == numAveraged) {
         index = 0;
         valid = true;
@@ -68,6 +66,6 @@ template <size_t numAveraged> class AveragingFilter {
 
     uint32_t GetSum() const volatile { return sum; }
 
-    bool IsValid() const volatile	{ return valid; }
+    bool IsValid() const volatile { return valid; }
 
 };

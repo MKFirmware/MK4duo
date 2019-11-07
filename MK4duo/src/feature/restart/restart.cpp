@@ -32,7 +32,7 @@ SdFile Restart::job_file;
 
 restart_job_t Restart::job_info;
 
-bool Restart::enabled;
+bool  Restart::enabled;
 
 uint32_t  Restart::cmd_sdpos      = 0,
           Restart::sdpos[BUFSIZE] = { 0 };  
@@ -53,7 +53,7 @@ void Restart::changed() {
 void Restart::check() {
   if (enabled) {
     card.mount();
-    if (card.isDetected()) {
+    if (card.isMounted()) {
       load_job();
       if (!valid()) return purge_job();
       commands.inject_P(PSTR("M800 S"));
@@ -83,11 +83,11 @@ void Restart::load_job() {
 
 void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=true*/) {
 
-  static millis_s save_restart_ms = millis();
+  static short_timer_t save_restart_timer(true);
 
   // Did Z change since the last call?
-  if (expired(&save_restart_ms, millis_s((SD_RESTART_FILE_SAVE_TIME) * 1000U)) || force_save
-      || mechanics.current_position[Z_AXIS] > job_info.axis_position_mm[Z_AXIS]
+  if (save_restart_timer.expired((SD_RESTART_FILE_SAVE_TIME) * 1000) || force_save
+      || mechanics.current_position.z > job_info.axis_position_mm.z
   ) {
 
     if (!++job_info.valid_head) ++job_info.valid_head; // non-zero in sequence
@@ -96,37 +96,38 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
     // Mechanics state
     LOOP_XYZE(axis) job_info.axis_position_mm[axis] = planner.get_axis_position_mm(AxisEnum(axis));
     #if ENABLED(WORKSPACE_OFFSETS)
-      COPY_ARRAY(job_info.home_offset, mechanics.data.home_offset);
-      COPY_ARRAY(job_info.position_shift, mechanics.position_shift);
+      job_info.home_offset = mechanics.data.home_offset;
+      job_info.position_shift = mechanics.position_shift;
     #endif
     job_info.feedrate = uint16_t(MMS_TO_MMM(mechanics.feedrate_mm_s));
 
     // Heater
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       LOOP_HOTEND()
-        job_info.target_temperature[h] = hotends[h].deg_target();
+        if (hotends[h]) job_info.target_temperature[h] = hotends[h]->deg_target();
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       LOOP_BED()
-        job_info.bed_target_temperature[h] = beds[h].deg_target();
+        if (beds[h]) job_info.bed_target_temperature[h] = beds[h]->deg_target();
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       LOOP_CHAMBER()
-        job_info.chamber_target_temperature[h] = chambers[h].deg_target();
+        if (chambers[h]) job_info.chamber_target_temperature[h] = chambers[h]->deg_target();
     #endif
-
-    #if HAS_FANS
+    #if MAX_FAN > 0
       LOOP_FAN()
-        job_info.fan_speed[f] = fans[f].speed;
+        if (fans[f]) job_info.fan_speed[f] = fans[f]->speed;
     #endif
 
     // Extruders
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
       job_info.active_extruder = tools.extruder.active;
     #endif
 
-    COPY_ARRAY(job_info.flow_percentage, tools.flow_percentage);
-    COPY_ARRAY(job_info.density_percentage, tools.density_percentage);
+    LOOP_EXTRUDER() {
+      job_info.flow_percentage[e]     = extruders[e]->flow_percentage;
+      job_info.density_percentage[e]  = extruders[e]->density_percentage;
+    }
 
     // Leveling      
     #if HAS_LEVELING
@@ -142,9 +143,8 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
       memcpy(&job_info.gradient, &mixer.gradient, sizeof(job_info.gradient));
     #endif
 
-    //relative mode
-    job_info.relative_mode = printer.isRelativeMode();
-    job_info.relative_modes_e = printer.axis_relative_modes[E_AXIS];
+    // Relative axis modes
+    job_info.axis_relative_modes = mechanics.axis_relative_modes;
 
     // Elapsed print job time
     job_info.print_job_counter_elapsed = print_job_counter.duration();
@@ -162,6 +162,10 @@ void Restart::resume_job() {
   // Save job_info.sdpos because stepper ISR overwrites it
   const uint32_t save_sdpos = job_info.sdpos;
 
+  #if HAS_LCD
+    lcdui.status_printf_P(0, GET_TEXT(MSG_RESUMING));
+  #endif
+
   #if HAS_LEVELING
     // Make sure leveling is off before any G92 and G28
     commands.process_now_P(PSTR("M420 S0 Z0"));
@@ -170,7 +174,7 @@ void Restart::resume_job() {
   // Reset E, raise Z, home XY...
   commands.process_now_P(PSTR("G92.9 E0"));
   #if Z_HOME_DIR > 0
-    commands.process_now_P(PSTR("G28"));
+    commands.process_now_P(G28_CMD);
   #else
     commands.process_now_P(PSTR("G92.9 Z0"));
     mechanics.home_flag.ZHomed = true;
@@ -186,32 +190,42 @@ void Restart::resume_job() {
   #endif
 
   // Set temperature
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      chambers[h].set_target_temp(job_info.chamber_target_temperature[h]);
-      chambers[h].wait_for_target(true);
+      if (chambers[h]) {
+        chambers[h]->set_target_temp(job_info.chamber_target_temperature[h]);
+        chambers[h]->wait_for_target(true);
+      }
     }
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     LOOP_BED() {
-      beds[h].set_target_temp(job_info.bed_target_temperature[h]);
-      beds[h].wait_for_target(true);
+      if (beds[h]) {
+        beds[h]->set_target_temp(job_info.bed_target_temperature[h]);
+        beds[h]->wait_for_target(true);
+      }
     }
   #endif
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      hotends[h].set_target_temp(job_info.target_temperature[h]);
-      hotends[h].wait_for_target(true);
+      if (hotends[h]) {
+        hotends[h]->set_target_temp(job_info.target_temperature[h]);
+        hotends[h]->wait_for_target(true);
+      }
     }
   #endif
 
   // Set fan
-  #if HAS_FANS
-    LOOP_FAN() fans[f].speed = job_info.fan_speed[f];
+  #if MAX_FAN > 0
+    LOOP_FAN() {
+      if (fans[f]) fans[f]->speed = job_info.fan_speed[f];
+    }
   #endif
 
-  COPY_ARRAY(tools.flow_percentage, job_info.flow_percentage);
-  COPY_ARRAY(tools.density_percentage, job_info.density_percentage);
+  LOOP_EXTRUDER() {
+    extruders[e]->flow_percentage     = job_info.flow_percentage[e];
+    extruders[e]->density_percentage  = job_info.density_percentage[e];
+  }
 
   // Set leveling
   #if HAS_LEVELING
@@ -237,9 +251,9 @@ void Restart::resume_job() {
   // For DELTA must inversetrasform coordinate
   #if MECH(DELTA)
     mechanics.InverseTransform(
-      job_info.axis_position_mm[X_AXIS],
-      job_info.axis_position_mm[Y_AXIS],
-      job_info.axis_position_mm[Z_AXIS],
+      job_info.axis_position_mm.x,
+      job_info.axis_position_mm.y,
+      job_info.axis_position_mm.z,
       job_info.axis_position_mm
     );
   #endif
@@ -248,20 +262,20 @@ void Restart::resume_job() {
     // Move back to the saved XYZ
     char str3[16];
     sprintf_P(cmd, PSTR("G1 X%s Y%s Z%s F3000"),
-      dtostrf(job_info.axis_position_mm[X_AXIS], 1, 3, str1),
-      dtostrf(job_info.axis_position_mm[Y_AXIS], 1, 3, str2),
-      dtostrf(job_info.axis_position_mm[Z_AXIS], 1, 3, str3)
+      dtostrf(job_info.axis_position_mm.x, 1, 3, str1),
+      dtostrf(job_info.axis_position_mm.y, 1, 3, str2),
+      dtostrf(job_info.axis_position_mm.z, 1, 3, str3)
     );
     commands.process_now(cmd);
   #else
     // Move back to the saved XY
     sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
-      dtostrf(job_info.axis_position_mm[X_AXIS], 1, 3, str1),
-      dtostrf(job_info.axis_position_mm[Y_AXIS], 1, 3, str2)
+      dtostrf(job_info.axis_position_mm.x, 1, 3, str1),
+      dtostrf(job_info.axis_position_mm.y, 1, 3, str2)
     );
     commands.process_now(cmd);
     // Move back to the saved Z
-    dtostrf(job_info.axis_position_mm[Z_AXIS], 1, 3, str1);
+    dtostrf(job_info.axis_position_mm.z, 1, 3, str1);
     commands.process_now_P(PSTR("G1 Z0 F200"));
     sprintf_P(cmd, PSTR("G92.9 Z%s"), str1);
     commands.process_now(cmd);
@@ -277,12 +291,11 @@ void Restart::resume_job() {
   commands.process_now(cmd);
 
   // Restore E position
-  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(job_info.axis_position_mm[E_AXIS], 1, 3, str1));
+  sprintf_P(cmd, PSTR("G92.9 E%s"), dtostrf(job_info.axis_position_mm.e, 1, 3, str1));
   commands.process_now(cmd);
 
   // Relative mode
-  printer.setRelativeMode(job_info.relative_mode);
-  printer.axis_relative_modes[E_AXIS] = job_info.relative_modes_e;
+  mechanics.axis_relative_modes = job_info.axis_relative_modes;
 
   #if ENABLED(WORKSPACE_OFFSETS)
     LOOP_XYZ(i) {
@@ -295,7 +308,7 @@ void Restart::resume_job() {
   // Resume the SD file from the last position
   char *fn = job_info.fileName;
   while (*fn == '/') fn++;
-  sprintf_P(cmd, PSTR("M23 %s"), fn);
+  sprintf_P(cmd, M23_CMD, fn);
   commands.process_now(cmd);
   sprintf_P(cmd, PSTR("M24 S%ld T%ld"), save_sdpos, job_info.print_job_counter_elapsed);
   commands.process_now(cmd);
@@ -327,7 +340,7 @@ void Restart::write_job() {
     SERIAL_EMV(" Valid Foot:", (int)job_info.valid_foot);
     if (job_info.valid_head) {
       if (job_info.valid_head == job_info.valid_foot) {
-        SERIAL_MSG("current_position");
+        SERIAL_MSG("current_position.x");
         LOOP_XYZE(i) SERIAL_MV(": ", job_info.axis_position_mm[i]);
         SERIAL_EOL();
         SERIAL_MSG("target_temperature");

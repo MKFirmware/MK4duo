@@ -28,6 +28,7 @@
 
 MemoryStore memorystore;
 
+bool MemoryStore::access_start() { return false; }
 bool MemoryStore::access_write() { return false; }
 
 bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
@@ -41,7 +42,7 @@ bool MemoryStore::write_data(int &pos, const uint8_t *value, size_t size, uint16
     if (v != eeprom_read_byte(p)) {
       eeprom_write_byte(p, v);
       if (eeprom_read_byte(p) != v) {
-        SERIAL_LM(ECHO, MSG_ERR_EEPROM_WRITE);
+        SERIAL_LM(ECHO, MSG_HOST_ERR_EEPROM_WRITE);
         return true;
       }
     }

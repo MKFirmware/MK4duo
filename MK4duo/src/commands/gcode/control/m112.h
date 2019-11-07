@@ -33,6 +33,6 @@
 /**
  * M112: Full Shutdown
  */
-inline void gcode_M112(void) { printer.kill(PSTR("M112 Shutdown"), true); }
+inline void gcode_M112() { printer.kill(PSTR("M112 Shutdown"), true); }
 
 #endif

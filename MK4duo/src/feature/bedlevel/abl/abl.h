@@ -29,28 +29,27 @@ class AutoBedLevel {
 
   public: /** Public Parameters */
 
-    static int    bilinear_grid_spacing[2],
-                  bilinear_start[2];
-    static float  z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+    static xy_int_t   bilinear_grid_spacing,
+                      bilinear_start;
+    static bed_mesh_t z_values;
 
   private: /** Private Parameters */
 
-    static float  bilinear_grid_factor[2];
+    static xy_float_t bilinear_grid_factor;
 
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
       #define ABL_GRID_POINTS_VIRT_X (GRID_MAX_POINTS_X - 1) * (BILINEAR_SUBDIVISIONS) + 1
       #define ABL_GRID_POINTS_VIRT_Y (GRID_MAX_POINTS_Y - 1) * (BILINEAR_SUBDIVISIONS) + 1
       #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
       #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
-
-      static float  bilinear_grid_factor_virt[2],
-                    z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
-      static int    bilinear_grid_spacing_virt[2];
+      static float      z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
+      static xy_float_t bilinear_grid_factor_virt;
+      static xy_int_t   bilinear_grid_spacing_virt;
     #endif
 
   public: /** Public Function */
 
-    static float bilinear_z_offset(const float raw[XYZ]);
+    static float bilinear_z_offset(const xyz_pos_t &raw);
     static void refresh_bed_level();
 
     /**
@@ -67,7 +66,7 @@ class AutoBedLevel {
     #endif
 
     #if !IS_KINEMATIC
-      void bilinear_line_to_destination(float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+      static void bilinear_line_to_destination(feedrate_t fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
     #endif
 
   private: /** Private Function */
@@ -87,6 +86,6 @@ class AutoBedLevel {
 
 extern AutoBedLevel abl;
 
-#define _GET_MESH_X(I) (abl.bilinear_start[X_AXIS] + (I) * abl.bilinear_grid_spacing[X_AXIS])
-#define _GET_MESH_Y(J) (abl.bilinear_start[Y_AXIS] + (J) * abl.bilinear_grid_spacing[Y_AXIS])
+#define _GET_MESH_X(I) (abl.bilinear_start.x + (I) * abl.bilinear_grid_spacing.x)
+#define _GET_MESH_Y(J) (abl.bilinear_start.y + (J) * abl.bilinear_grid_spacing.y)
 #define Z_VALUES_ARR    abl.z_values

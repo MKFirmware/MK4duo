@@ -42,7 +42,7 @@
 
 // Struct Probe data
 typedef struct {
-  float     offset[XYZ];
+  xyz_pos_t offset;
   uint16_t  speed_fast,
             speed_slow;
   uint8_t   repetitions;
@@ -71,10 +71,57 @@ class Probe {
       static void move_z_after_probing();
     #endif
 
+    #if HAS_LEVELING
+
+      static inline float min_x() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MIN_X;
+          #else
+            MAX((X_MIN_BED) + (MIN_PROBE_EDGE), (X_MIN_POS) + data.offset.x);
+          #endif
+      }
+
+      static inline float max_x() {
+        return 
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MAX_X;
+          #else
+            MIN((X_MAX_BED) - (MIN_PROBE_EDGE), (X_MAX_POS) + data.offset.x);
+          #endif
+      }
+
+      static inline float min_y() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MIN_Y;
+          #else
+            MAX((Y_MIN_BED) + (MIN_PROBE_EDGE), (Y_MIN_POS) + data.offset.y);
+          #endif
+      }
+
+      static inline float max_y() {
+        return
+          #if MECH(DELTA) || IS_SCARA
+            MESH_MAX_Y;
+          #else
+            MIN((Y_MAX_BED) - (MIN_PROBE_EDGE), (Y_MAX_POS) + data.offset.y);
+          #endif
+      }
+
+    #else
+
+      FORCE_INLINE static float min_x() { return 0.0f; }
+      FORCE_INLINE static float max_x() { return 0.0f; }
+      FORCE_INLINE static float min_y() { return 0.0f; }
+      FORCE_INLINE static float max_y() { return 0.0f; }
+
+    #endif
+
     #if HAS_BED_PROBE || HAS_PROBE_MANUALLY
 
       /**
-       * Check Pt (ex probe_pt)
+       * Check at Pt
        * - Move to the given XY
        * - Deploy the probe, if not already deployed
        * - Probe the bed, get the Z position
@@ -83,7 +130,10 @@ class Probe {
        *   - Raise to the BETWEEN height
        * - Return the probed Z position
        */
-      static float check_pt(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
+      static float check_at_point(const float &rx, const float &ry, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
+      static inline float check_at_point(const xy_pos_t &pos, const ProbePtRaiseEnum raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true) {
+        return check_at_point(pos.x, pos.y, raise_after, verbose_level, probe_relative);
+      }
 
     #endif
 
@@ -99,7 +149,7 @@ class Probe {
 
     static void specific_action(const bool deploy);
 
-    static bool move_to_z(const float z, const float fr_mm_s);
+    static bool move_to_z(const float z, const feedrate_t fr_mm_s);
 
     static void do_raise(const float z_raise);
 

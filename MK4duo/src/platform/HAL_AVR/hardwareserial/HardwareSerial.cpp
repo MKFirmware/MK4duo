@@ -160,13 +160,13 @@ void MKHardwareSerial<Cfg>::end() {
 }
 
 template<typename Cfg>
-int MKHardwareSerial<Cfg>::peek(void) {
+int MKHardwareSerial<Cfg>::peek() {
   const ring_buffer_pos_t h = atomic_read_rx_head(), t = rx_buffer.tail;
   return h == t ? -1 : rx_buffer.buffer[t];
 }
 
 template<typename Cfg>
-int MKHardwareSerial<Cfg>::read(void) {
+int MKHardwareSerial<Cfg>::read() {
   const ring_buffer_pos_t h = atomic_read_rx_head();
 
   // Read the tail. Main thread owns it, so it is safe to directly read it
@@ -209,7 +209,7 @@ int MKHardwareSerial<Cfg>::read(void) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::flush(void) {
+void MKHardwareSerial<Cfg>::flush() {
 
   // Set the tail to the head:
   //  - Read the RX head index in a safe way. (See atomic_read_rx_head.)
@@ -237,7 +237,7 @@ void MKHardwareSerial<Cfg>::flush(void) {
 }
 
 template<typename Cfg>
-typename MKHardwareSerial<Cfg>::ring_buffer_pos_t MKHardwareSerial<Cfg>::available(void) {
+typename MKHardwareSerial<Cfg>::ring_buffer_pos_t MKHardwareSerial<Cfg>::available() {
   const ring_buffer_pos_t h = atomic_read_rx_head(), t = rx_buffer.tail;
   return (ring_buffer_pos_t)(Cfg::RX_SIZE + h - t) & (Cfg::RX_SIZE - 1);
 }
@@ -302,7 +302,7 @@ void MKHardwareSerial<Cfg>::write(const uint8_t c) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::flushTX(void) {
+void MKHardwareSerial<Cfg>::flushTX() {
 
   if (Cfg::TX_SIZE == 0) {
     // No bytes written, no need to flush. This special case is needed since there's
@@ -513,7 +513,7 @@ FORCE_INLINE void MKHardwareSerial<Cfg>::store_rxd_char() {
 
 // (called with TX irqs disabled)
 template<typename Cfg>
-FORCE_INLINE void MKHardwareSerial<Cfg>::_tx_udr_empty_irq(void) {
+FORCE_INLINE void MKHardwareSerial<Cfg>::_tx_udr_empty_irq() {
   if (Cfg::TX_SIZE > 0) {
     // Read positions
     uint8_t t = tx_buffer.tail;
@@ -610,7 +610,7 @@ void MKHardwareSerial<Cfg>::print(double n, int digits) {
 }
 
 template<typename Cfg>
-void MKHardwareSerial<Cfg>::println(void) {
+void MKHardwareSerial<Cfg>::println() {
   print('\r');
   print('\n');
 }

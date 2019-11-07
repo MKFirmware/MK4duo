@@ -38,7 +38,7 @@
  *   Ynnn Y axis limit
  *   Znnn Z axis limit
  */
-inline void gcode_M228(void) {
+inline void gcode_M228() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M201 report.
@@ -51,14 +51,14 @@ inline void gcode_M228(void) {
   const bool minimum = parser.boolval('S');
 
   if (minimum) {
-    if (parser.seenval('X')) mechanics.data.base_pos[X_AXIS].min = parser.value_linear_units();
-    if (parser.seenval('Y')) mechanics.data.base_pos[Y_AXIS].min = parser.value_linear_units();
-    if (parser.seenval('Z')) mechanics.data.base_pos[Z_AXIS].min = parser.value_linear_units();
+    if (parser.seenval('X')) mechanics.data.base_pos.min.x = parser.value_linear_units();
+    if (parser.seenval('Y')) mechanics.data.base_pos.min.y = parser.value_linear_units();
+    if (parser.seenval('Z')) mechanics.data.base_pos.min.z = parser.value_linear_units();
   }
   else {
-    if (parser.seenval('X')) mechanics.data.base_pos[X_AXIS].max = parser.value_linear_units();
-    if (parser.seenval('Y')) mechanics.data.base_pos[Y_AXIS].max = parser.value_linear_units();
-    if (parser.seenval('Z')) mechanics.data.base_pos[Z_AXIS].max = parser.value_linear_units();
+    if (parser.seenval('X')) mechanics.data.base_pos.max.x = parser.value_linear_units();
+    if (parser.seenval('Y')) mechanics.data.base_pos.max.y = parser.value_linear_units();
+    if (parser.seenval('Z')) mechanics.data.base_pos.max.z = parser.value_linear_units();
   }
 
   LOOP_XYZ(axis) endstops.update_software_endstops(AxisEnum(axis));

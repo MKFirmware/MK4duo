@@ -31,12 +31,12 @@
 #define CODE_M240
 
 #if ENABLED(PHOTO_RETRACT_MM)
-  inline void e_move_m240(const float length, const float fr_mm_s) {
-    if (length && thermalManager.hotEnoughToExtrude(ACTIVE_HOTEND)) {
+  inline void e_move_m240(const float length, const feedrate_t fr_mm_s) {
+    if (length && thermalManager.hotEnoughToExtrude(tools.active_hotend())) {
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         advancedpause.do_pause_e_move(length, fr_mm_s);
       #else
-        current_position[E_AXIS] += length / tools.e_factor[tools.extruder.active];
+        current_position.e += length / extruders[tools.extruder.active]->e_factor;
         planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
       #endif
     }
@@ -77,16 +77,16 @@
  *    I - Switch trigger position override X
  *    J - Switch trigger position override Y
  */
-inline void gcode_M240(void) {
+inline void gcode_M240() {
 
   #if ENABLED(PHOTO_POSITION)
 
     if (!mechanics.isHomedAll()) return;
 
-    mechanics.stored_position[0][X_AXIS] = mechanics.current_position[X_AXIS] + parser.linearval('A');
-    mechanics.stored_position[0][Y_AXIS] = mechanics.current_position[Y_AXIS] + parser.linearval('B');
-    mechanics.stored_position[0][Z_AXIS] = mechanics.current_position[Z_AXIS];
-    mechanics.stored_position[0][E_AXIS] = mechanics.current_position[E_AXIS];
+    mechanics.stored_position[0].x = mechanics.current_position.x + parser.linearval('A');
+    mechanics.stored_position[0].y = mechanics.current_position.y + parser.linearval('B');
+    mechanics.stored_position[0].z = mechanics.current_position.z;
+    mechanics.stored_position[0].e = mechanics.current_position.e;
 
     #if ENABLED(PHOTO_RETRACT_MM)
       constexpr float rfr = (MMS_TO_MMM(
@@ -103,25 +103,25 @@ inline void gcode_M240(void) {
       e_move_m240(-rval, sval);
     #endif
 
-    float fr_mm_s = MMM_TO_MMS(parser.linearval('F'));
+    feedrate_t fr_mm_s = MMM_TO_MMS(parser.linearval('F'));
     if (fr_mm_s) NOLESS(fr_mm_s, 10.0f);
 
-    constexpr float photo_position[XYZ] = PHOTO_POSITION;
-    float raw[XYZ] = {
-       parser.seenval('X') ? NATIVE_X_POSITION(parser.value_linear_units()) : photo_position[X_AXIS],
-       parser.seenval('Y') ? NATIVE_Y_POSITION(parser.value_linear_units()) : photo_position[Y_AXIS],
-      (parser.seenval('Z') ? parser.value_linear_units() : photo_position[Z_AXIS]) + mechanics.current_position[Z_AXIS]
+    constexpr xyz_pos_t photo_position = PHOTO_POSITION;
+    xyz_pos_t raw = {
+       parser.seenval('X') ? NATIVE_X_POSITION(parser.value_linear_units()) : photo_position.x,
+       parser.seenval('Y') ? NATIVE_Y_POSITION(parser.value_linear_units()) : photo_position.y,
+      (parser.seenval('Z') ? parser.value_linear_units() : photo_position.z) + mechanics.current_position.z
     };
     endstops.apply_motion_limits(raw);
     mechanics.do_blocking_move_to(raw, fr_mm_s);
 
     #if ENABLED(PHOTO_SWITCH_POSITION)
-      constexpr float photo_switch_position[2] = PHOTO_SWITCH_POSITION;
-      const float sraw[] = {
-         parser.seenval('I') ? NATIVE_X_POSITION(parser.value_linear_units()) : photo_switch_position[X_AXIS],
-         parser.seenval('J') ? NATIVE_Y_POSITION(parser.value_linear_units()) : photo_switch_position[Y_AXIS]
+      constexpr xy_pos_t photo_switch_position = PHOTO_SWITCH_POSITION;
+      const xy_pos_t sraw = {
+         parser.seenval('I') ? NATIVE_X_POSITION(parser.value_linear_units()) : photo_switch_position.x,
+         parser.seenval('J') ? NATIVE_Y_POSITION(parser.value_linear_units()) : photo_switch_position.y
       };
-      mechanics.do_blocking_move_to_xy(sraw[X_AXIS], sraw[Y_AXIS], mechanics.homing_feedrate_mm_s[X_AXIS] / 2);
+      mechanics.do_blocking_move_to_xy(sraw.x, sraw.y, mechanics.homing_feedrate_mm_s.x / 2);
       #if PHOTO_SWITCH_MS > 0
         HAL::delayMilliseconds(parser.intval('D', PHOTO_SWITCH_MS));
       #endif
@@ -133,7 +133,7 @@ inline void gcode_M240(void) {
   #if HAS_CHDK
 
     OUT_WRITE(CHDK_PIN, HIGH);
-    printer.chdk_ms = millis();
+    printer.chdk_timer.start();
 
   #elif HAS_PHOTOGRAPH
 

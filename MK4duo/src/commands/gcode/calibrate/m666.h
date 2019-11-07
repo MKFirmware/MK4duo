@@ -42,7 +42,7 @@
  *        Set Z3 Only: M666 S3 Z<offset>
  *           Set Both: M666 Z<offset>
  */
-inline void gcode_M666(void) {
+inline void gcode_M666() {
 
   SERIAL_MSG("Dual Endstop Adjustment (mm): ");
   #if ENABLED(X_TWO_ENDSTOPS)

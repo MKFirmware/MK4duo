@@ -87,7 +87,7 @@ void FlowMeter::spin() {
   #if ENABLED(MINFLOW_PROTECTION)
     if (flow_firstread && print_job_counter.isRunning() && (flowrate < (float)MINFLOW_PROTECTION)) {
       flow_firstread = false;
-      printer.kill(PSTR(MSG_KILLED));
+      printer.kill(GET_TEXT(MSG_KILLED));
     }
   #endif
 

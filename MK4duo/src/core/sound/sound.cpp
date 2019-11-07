@@ -28,7 +28,7 @@ Sound sound;
 sound_data_t Sound::data;
 
 /** Private Parameters */
-millis_s Sound::tone_ms;
+short_timer_t Sound::tone_timer;
 
 /** Protected Parameters */
 Circular_Queue<tone_t, TONE_QUEUE_LENGTH> Sound::buffer;
@@ -49,11 +49,11 @@ void Sound::spin() {
 
   static tone_t tone = { 0, 0 };
 
-  if (!tone_ms) {
+  if (!tone_timer.isRunning()) {
     if (buffer.isEmpty()) return;
 
     tone = buffer.dequeue();
-    tone_ms = millis();
+    tone_timer.start();
 
     if (tone.frequency > 0) {
       #if ENABLED(LCD_USE_I2C_BUZZER)
@@ -67,7 +67,7 @@ void Sound::spin() {
       #endif
     }
   }
-  else if (expired(&tone_ms, tone.duration)) reset();
+  else if (tone_timer.expired(tone.duration)) reset();
 
 }
 

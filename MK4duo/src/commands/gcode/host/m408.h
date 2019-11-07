@@ -39,7 +39,7 @@
   /**
    * M408: JSON STATUS OUTPUT
    */
-  inline void gcode_M408(void) {
+  inline void gcode_M408() {
     bool firstOccurrence;
     uint8_t type = 0;
 
@@ -55,10 +55,10 @@
     else
       SERIAL_MSG("0, 0, 0");
 
-    SERIAL_MV("],\"extr\":[", mechanics.current_position[E_AXIS]);
-    SERIAL_MV("],\"xyz\":[", mechanics.current_position[X_AXIS]); // X AXIS
-    SERIAL_MV(",", mechanics.current_position[Y_AXIS]);           // Y AXIS
-    SERIAL_MV(",", mechanics.current_position[Z_AXIS]);           // Z AXIS
+    SERIAL_MV("],\"extr\":[", mechanics.current_position.e);
+    SERIAL_MV("],\"xyz\":[", mechanics.current_position.x); // X AXIS
+    SERIAL_MV(",", mechanics.current_position.y);           // Y AXIS
+    SERIAL_MV(",", mechanics.current_position.z);           // Z AXIS
 
     SERIAL_MV("]},\"currentTool\":", tools.extruder.active);
 
@@ -69,49 +69,49 @@
       SERIAL_MSG(",\"params\": {\"NormPower\":");
     #endif
 
-    #if HAS_FANS
+    #if MAX_FAN > 0
       SERIAL_MSG(",\"fanPercent\":[");
-      SERIAL_VAL(fans[0].speed);
+      SERIAL_VAL(fans[0]->speed);
     #endif
 
     SERIAL_MV("],\"speedFactor\":", mechanics.feedrate_percentage);
 
     SERIAL_MSG(",\"extrFactors\":[");
     firstOccurrence = true;
-    for (uint8_t e = 0; e < EXTRUDERS; e++) {
+    LOOP_EXTRUDER() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(tools.flow_percentage[e]);
+      SERIAL_VAL(extruders[e]->flow_percentage);
       firstOccurrence = false;
     }
     SERIAL_EM("]},");
 
     SERIAL_MSG("\"temps\": {");
-    #if HAS_BEDS
-      SERIAL_MV("\"bed\": {\"current\":", beds[0].deg_current(), 1);
-      SERIAL_MV(",\"active\":", beds[0].deg_target());
+    #if MAX_BED > 0
+      SERIAL_MV("\"bed\": {\"current\":", beds[0]->deg_current(), 1);
+      SERIAL_MV(",\"active\":", beds[0]->deg_target());
       SERIAL_MSG(",\"state\":");
-      SERIAL_CHR(beds[0].deg_target() > 0 ? '2' : '1');
+      SERIAL_CHR(beds[0]->deg_target() > 0 ? '2' : '1');
       SERIAL_MSG("},");
     #endif
     SERIAL_MSG("\"heads\": {\"current\":[");
     firstOccurrence = true;
     for (int8_t h = 0; h < HOTENDS; h++) {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(hotends[h].deg_current(), 1);
+      SERIAL_VAL(hotends[h]->deg_current(), 1);
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"active\":[");
     firstOccurrence = true;
     LOOP_HOTEND() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_VAL(hotends[h].deg_target());
+      SERIAL_VAL(hotends[h]->deg_target());
       firstOccurrence = false;
     }
     SERIAL_MSG("],\"state\":[");
     firstOccurrence = true;
     LOOP_HOTEND() {
       if (!firstOccurrence) SERIAL_CHR(',');
-      SERIAL_CHR(hotends[h].deg_target() > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
+      SERIAL_CHR(hotends[h]->deg_target() > HOTEND_AUTO_FAN_TEMPERATURE ? '2' : '1');
       firstOccurrence = false;
     }
 
@@ -141,7 +141,7 @@
         SERIAL_MSG(CUSTOM_MACHINE_NAME);
         SERIAL_MSG("\",\"tools\":[");
         firstOccurrence = true;
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        LOOP_EXTRUDER() {
           if (!firstOccurrence) SERIAL_CHR(',');
           SERIAL_MV("{\"number\":", i + 1);
           #if HOTENDS > 1
@@ -150,12 +150,10 @@
           #else
             SERIAL_MSG(",\"hotends\":[1],");
           #endif
-          #if DRIVER_EXTRUDERS > 1
+          if (driver.e[i]) {
             SERIAL_MV("\"drives\":[", i);
             SERIAL_MSG("]");
-          #else
-            SERIAL_MSG("\"drives\":[0]");
-          #endif
+          }
           SERIAL_MSG("}");
           firstOccurrence = false;
         }
@@ -165,7 +163,7 @@
         SERIAL_MSG("\"printer.currentLayer\":");
         #if HAS_SD_SUPPORT
           if (IS_SD_PRINTING() && card.layerHeight > 0) { // ONLY CAN TELL WHEN SD IS PRINTING
-            SERIAL_VAL((int) (mechanics.current_position[Z_AXIS] / card.layerHeight));
+            SERIAL_VAL((int) (mechanics.current_position.z / card.layerHeight));
           }
           else SERIAL_VAL(0);
         #else
@@ -173,9 +171,9 @@
         #endif
         SERIAL_MSG(",\"extrRaw\":[");
         firstOccurrence = true;
-        for (uint8_t e = 0; e < EXTRUDERS; e++) {
+        LOOP_EXTRUDER() {
           if (!firstOccurrence) SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.current_position[E_AXIS] * tools.flow_percentage[e]);
+          SERIAL_VAL(mechanics.current_position.e * tools.flow_percentage[e]);
           firstOccurrence = false;
         }
         SERIAL_MSG("],");
@@ -215,27 +213,27 @@
         SERIAL_CHR(',');
         SERIAL_VAL((int) Z_MAX_BED);
         SERIAL_MSG("],\"planner.accelerations\":[");
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.x);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.y);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[Z_AXIS]);
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2.z);
+        LOOP_EXTRUDER() {
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_acceleration_mm_per_s2[E_AXIS + i]);
+          SERIAL_VAL(extruders[e]->data.max_acceleration_mm_per_s2);
         }
         SERIAL_MSG("],");
 
         #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
           SERIAL_MSG("\"currents\":[");
-          SERIAL_VAL(externaldac.motor_current[X_AXIS]);
+          SERIAL_VAL(driver.x->data.ma);
           SERIAL_CHR(',');
-          SERIAL_VAL(externaldac.motor_current[Y_AXIS]);
+          SERIAL_VAL(driver.y->data.ma);
           SERIAL_CHR(',');
-          SERIAL_VAL(externaldac.motor_current[Z_AXIS]);
-          for (uint8_t i = 0; i < DRIVER_EXTRUDERS; i++) {
+          SERIAL_VAL(driver.z->data.ma);
+          LOOP_DRV_EXT() {
             SERIAL_CHR(',');
-            SERIAL_VAL(externaldac.motor_current[E_AXIS + i]);
+            SERIAL_VAL(driver.e[d]->data.ma);
           }
           SERIAL_EM("],");
         #endif
@@ -262,18 +260,18 @@
         SERIAL_MSG(STRING_REVISION_DATE);
 
         SERIAL_MSG("\",\"minFeedrates\":[0,0,0");
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        LOOP_EXTRUDER() {
           SERIAL_MSG(",0");
         }
         SERIAL_MSG("],\"maxFeedrates\":[");
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[X_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.x);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Y_AXIS]);
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.y);
         SERIAL_CHR(',');
-        SERIAL_VAL(mechanics.data.max_feedrate_mm_s[Z_AXIS]);
-        for (uint8_t i = 0; i < EXTRUDERS; i++) {
+        SERIAL_VAL(mechanics.data.max_feedrate_mm_s.z);
+        LOOP_EXTRUDER()
           SERIAL_CHR(',');
-          SERIAL_VAL(mechanics.data.max_feedrate_mm_s[E_AXIS + i]);
+          SERIAL_VAL(extruders[e]->data.max_feedrate_mm_s);
         }
         SERIAL_CHR(']');
         break;

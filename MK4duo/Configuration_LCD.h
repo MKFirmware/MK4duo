@@ -40,22 +40,26 @@
  *                                                                                       *
  * Here you may choose the language used by MK4duo on the LCD menus,                     *
  * the following list of languages are available:                                        *
- *  en, an, bg, ca, cn, cz, de, el, el-gr, es, eu, fi, fr,                               *
- *  gl, hr, it, jp-kana, nl, pl, pt, pt-br, ru, sk,                                      *
+ *  en, an, bg, ca, cn, cz, de, el, el_gr, es, eu, fi, fr,                               *
+ *  gl, hr, it, jp_kana, nl, pl, pt, pt_br, ru, sk,                                      *
  *  tr, uk, zh_CN, zh_TW                                                                 *
  *                                                                                       *
  * 'en':'English',          'an':'Aragonese', 'bg':'Bulgarian',       'ca':'Catalan',    *
  * 'cn':'Chinese',          'cz':'Czech',     'de':'German',          'el':'Greek',      *
- * 'el-gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
+ * 'el_gr':'Greek (Greece)' 'es':'Spanish',   'eu':'Basque-Euskera',  'fi':'Finnish',    *
  * 'fr':'French',           'gl':'Galician',  'hr':'Croatian',        'it':'Italian',    *
- * 'jp-kana':'Japanese',    'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
+ * 'jp_kana':'Japanese',    'nl':'Dutch',     'pl':'Polish',          'pt':'Portuguese', *
  * 'ru':'Russian',          'sk':'Slovak',    'tr':'Turkish',         'uk':'Ukrainian',  *
- * 'pt-br':'Portuguese (Brazilian)',                                                     *
+ * 'pt_br':'Portuguese (Brazilian)',                                                     *
  * 'zh_CN':'Chinese (Simplified)'                                                        *
  * 'zh_TW':'Chinese (Traditional)'                                                       *
  *                                                                                       *
  *****************************************************************************************/
-#define LCD_LANGUAGE en
+#define LCD_LANGUAGE    en
+//#define LCD_LANGUAGE_1  en
+//#define LCD_LANGUAGE_2  en
+//#define LCD_LANGUAGE_3  en
+//#define LCD_LANGUAGE_4  en
 /*****************************************************************************************/
 
 
@@ -449,7 +453,6 @@
 // Status (Info) Screen customizations
 // These options may affect code size and screen render time.
 // Custom status screens can forcibly override these settings.
-//#define STATUS_COMBINE_HEATERS    // Use combined heater images instead of separate ones
 //#define STATUS_HOTEND_NUMBERLESS  // Use plain hotend icons instead of numbered ones (with 2+ hotends)
 #define STATUS_HOTEND_INVERTED      // Show solid nozzle bitmaps when heating (Requires STATUS_HOTEND_ANIM)
 #define STATUS_HOTEND_ANIM          // Use a second bitmap to indicate hotend heating
@@ -509,6 +512,11 @@
 //  If CLOCKWISE normally moves DOWN this makes it go UP.
 //  If CLOCKWISE normally moves UP this makes it go DOWN.
 //#define REVERSE_MENU_DIRECTION
+
+// This option reverses the encoder direction for Select Screen.
+//  If CLOCKWISE normally moves LEFT this makes it go RIGHT.
+//  If CLOCKWISE normally moves RIGHT this makes it go LEFT.
+//#define REVERSE_SELECT_DIRECTION
 
 #define ENCODER_RATE_MULTIPLIER         // If defined, certain menu edit operations automatically multiply the steps when the encoder is moved quickly
 #define ENCODER_10X_STEPS_PER_SEC 75    // If the encoder steps per sec exceeds this value, multiply steps moved x10 to quickly advance the value

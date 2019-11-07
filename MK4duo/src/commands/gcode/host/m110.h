@@ -31,6 +31,6 @@
 /**
  * M110: Set Current Line Number
  */
-inline void gcode_M110(void) {
+inline void gcode_M110() {
   if (parser.seenval('N')) commands.gcode_last_N = parser.value_long();
 }

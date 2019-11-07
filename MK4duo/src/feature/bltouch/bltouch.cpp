@@ -67,17 +67,15 @@ void BLTouch::test() {
 
     #define PROBE_TEST_PIN Z_PROBE_PIN
     probe_logic = endstops.isLogic(Z_PROBE);
-    SERIAL_EMV(". BLTouch uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
-    SERIAL_EM(". Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)");
-    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+    SERIAL_EMV(".  BLTouch uses Z_MIN_PROBE_PIN: ", PROBE_TEST_PIN);
+    SERIAL_ELOGIC(".  Uses Z_PROBE_ENDSTOP_LOGIC (ignores Z_MIN_ENDSTOP_LOGIC)", probe_logic);
 
   #elif HAS_Z_MIN
 
     #define PROBE_TEST_PIN Z_MIN_PIN
     probe_logic = endstops.isLogic(Z_MIN);
-    SERIAL_EMV(". BLTouch uses Z_MIN pin: ", PROBE_TEST_PIN);
-    SERIAL_EM(". Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)");
-    SERIAL_ELOGIC(". Z_MIN_ENDSTOP_LOGIC:", probe_logic);
+    SERIAL_EMV(".  BLTouch uses Z_MIN pin: ", PROBE_TEST_PIN);
+    SERIAL_ELOGIC(".  Uses Z_MIN_ENDSTOP_LOGIC (ignores Z_PROBE_ENDSTOP_LOGIC)", probe_logic);
 
   #endif
 
@@ -120,7 +118,7 @@ void BLTouch::test() {
 
     HAL::delayMilliseconds(2);
 
-    if (0 == j % (500 * 1)) printer.reset_move_ms();          // Keep steppers powered
+    if (0 == j % (500 * 1)) printer.reset_move_timer();       // Keep steppers powered
 
     if (deploy_state != HAL::digitalRead(PROBE_TEST_PIN)) {   // probe triggered
 
@@ -167,7 +165,7 @@ bool BLTouch::deploy() {
       // The deploy might have failed or the probe is actually triggered (nozzle too low?) again
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
-      SERIAL_LM(ER, MSG_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
+      SERIAL_LM(ER, MSG_HOST_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
       printer.stop();                   // but it's not too bad, no need to kill, allow restart
 
       return true;                      // Tell our caller we goofed in case he cares to know
@@ -212,7 +210,7 @@ bool BLTouch::stow() {
 
       if (printer.debugFeature()) DEBUG_EM("BLTouch Recovery Failed");
 
-      SERIAL_LM(ER, MSG_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
+      SERIAL_LM(ER, MSG_HOST_STOP_BLTOUCH);  // Tell the user something is wrong, needs action
       printer.stop();                   // but it's not too bad, no need to kill, allow restart
 
       return true;                      // Tell our caller we goofed in case he cares to know
@@ -250,7 +248,7 @@ void BLTouch::mode_conv(const bool M5V/*=false*/) {
 bool BLTouch::command(const BLTCommand cmd, const millis_s ms/*=BLTOUCH_DELAY*/) {
   if (printer.debugFeature()) DEBUG_EMV("BLTouch Command :", cmd);
   MOVE_SERVO(Z_PROBE_SERVO_NR, cmd);
-  HAL::delayMilliseconds(MAX(ms, (millis_s)BLTOUCH_DELAY));
+  HAL::delayMilliseconds(MAX(ms, (uint32_t)BLTOUCH_DELAY));
   return triggered();
 }
 

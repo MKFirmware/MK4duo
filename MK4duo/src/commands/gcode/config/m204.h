@@ -37,7 +37,7 @@
  *
  *  Also sets minimum segment time in ms (B20000) to prevent buffer under-runs and M20 minimum mechanics.feedrate_mm_s
  */
-inline void gcode_M204(void) {
+inline void gcode_M204() {
 
   if (commands.get_target_tool(204)) return;
 
@@ -56,7 +56,7 @@ inline void gcode_M204(void) {
     mechanics.data.acceleration = parser.value_linear_units();
 
   if (parser.seen('R'))
-    mechanics.data.retract_acceleration[TARGET_EXTRUDER] = parser.value_linear_units();
+    extruders[tools.extruder.target]->data.retract_acceleration = parser.value_linear_units();
 
   if (parser.seen('V'))
     mechanics.data.travel_acceleration = parser.value_linear_units();

@@ -167,11 +167,9 @@ typedef uint16_t  ptr_int_t;
 #define ANALOG_PRESCALER      _BV(ADPS0)|_BV(ADPS1)|_BV(ADPS2)
 #define OVERSAMPLENR          16
 #define ABS_ZERO              -273.15
-#define AD_RANGE              1024
+#define AD_RANGE              1023  // 10-bit resolution
 #define AD595_MAX             500.0f
 #define AD8495_MAX            1000.0f
-
-#define HARDWARE_PWM          false
 
 #define GET_PIN_MAP_PIN(index) index
 #define GET_PIN_MAP_INDEX(pin) pin
@@ -188,8 +186,6 @@ typedef uint16_t  ptr_int_t;
 #define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000)
 #define STEPPER_TIMER_MIN_INTERVAL  8                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-
-#define PULSE_TIMER_PRESCALE        STEPPER_TIMER_PRESCALE
 
 #define TEMP_TIMER_FREQUENCY        ((F_CPU) / 64.0 / 256.0) // 976 Hz
 
@@ -209,6 +205,7 @@ typedef uint16_t  ptr_int_t;
 #define TIMER_COUNTER_0             TCNT0
 #define TIMER_COUNTER_1             TCNT1
 
+#define START_STEPPER_INTERRUPT()   HAL_timer_start(STEPPER_TIMER_NUM)
 #define ENABLE_STEPPER_INTERRUPT()  SBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define DISABLE_STEPPER_INTERRUPT() CBI(STEPPER_TIMSK, STEPPER_OCIE)
 #define STEPPER_ISR_ENABLED()       TEST(STEPPER_TIMSK, STEPPER_OCIE)
@@ -218,7 +215,6 @@ typedef uint16_t  ptr_int_t;
 #define TEMP_ISR_ENABLED()          TEST(TEMP_TIMSK, TEMP_OCIE)
 
 #define HAL_timer_set_count(timer, count)   (_CAT(TIMER_OCR_, timer) = count)
-#define HAL_timer_get_count(timer)          _CAT(TIMER_OCR_, timer)
 #define HAL_timer_get_current_count(timer)  _CAT(TIMER_COUNTER_, timer)
 
 // Estimate the amount of time the ISR will take to execute
@@ -314,7 +310,7 @@ typedef uint16_t  ptr_int_t;
 #define HAL_STEPPER_TIMER_ISR() \
 extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
-void TIMER1_COMPA_vect (void) { \
+void TIMER1_COMPA_vect () { \
   __asm__ __volatile__ ( \
     A("push r16")                      /* 2 Save R16 */ \
     A("in r16, __SREG__")              /* 1 Get SREG */ \
@@ -387,7 +383,7 @@ void TIMER1_COMPA_vect_bottom(void)
 #define HAL_TEMP_TIMER_ISR \
 extern "C" void TIMER0_COMPB_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
 extern "C" void TIMER0_COMPB_vect_bottom(void)  asm ("TIMER0_COMPB_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
-void TIMER0_COMPB_vect (void) { \
+void TIMER0_COMPB_vect () { \
   __asm__ __volatile__ ( \
     A("push r16")                       /* 2 Save R16 */ \
     A("in r16, __SREG__")               /* 1 Get SREG */ \
@@ -466,7 +462,7 @@ extern uint32_t HAL_frequency_limit[8];
 // --------------------------------------------------------------------------
 // Public functions
 // --------------------------------------------------------------------------
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency);
+void HAL_timer_start(const uint8_t timer_num);
 
 void HAL_calc_pulse_cycle();
 
@@ -507,7 +503,7 @@ class HAL {
 
     static void setPwmFrequency(const pin_t pin, uint8_t val);
 
-    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U, const bool hwpwm=true);
+    static void analogWrite(const pin_t pin, const uint8_t uValue, const uint16_t freq=1000U);
 
     static void Tick();
 
@@ -621,5 +617,12 @@ class HAL {
 
     // Write token and then write from 512 byte buffer to SPI (for SD card)
     static void spiSendBlock(uint8_t token, const uint8_t* buf);
+
+  private: /** Private Function */
+
+    /**
+     * Called from the Temperature ISR
+     */
+    static void set_current_temp_raw();
 
 };

@@ -315,7 +315,7 @@ inline void init_free_memory(char *start_free_memory, int32_t size) {
 /**
  * M100: Free Memory Check
  */
-inline void gcode_M100(void) {
+inline void gcode_M100() {
 
   char *sp = top_of_stack();
   if (!free_memory_end) free_memory_end = sp - MEMORY_END_CORRECTION;

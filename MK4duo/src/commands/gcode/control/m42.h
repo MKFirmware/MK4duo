@@ -34,7 +34,7 @@
  *  P<pin>  Pin number (LED if omitted)
  *  S<byte> Pin status from 0 - 255
  */
-inline void gcode_M42(void) {
+inline void gcode_M42() {
   if (!parser.seenval('S')) return;
   const byte pin_status = parser.value_byte();
 
@@ -42,7 +42,7 @@ inline void gcode_M42(void) {
   if (pin_number == NoPin) return;
 
   if (printer.pin_is_protected(pin_number)) {
-    SERIAL_LM(ER, MSG_ERR_PROTECTED_PIN);
+    SERIAL_LM(ER, MSG_HOST_ERR_PROTECTED_PIN);
     return;
   }
 

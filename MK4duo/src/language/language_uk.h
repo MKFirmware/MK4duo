@@ -29,214 +29,217 @@
  */
 
 #define DISPLAY_CHARSET_ISO10646_5
-#define CHARSIZE 2
 
-#define WELCOME_MSG                         MACHINE_NAME _UxGT(" готовий.")
-#define MSG_SD_INSERTED                     _UxGT("Картка вставлена")
-#define MSG_SD_REMOVED                      _UxGT("Картка видалена")
-#define MSG_LCD_ENDSTOPS                    _UxGT("Кінцевик") // Max length 8 characters
-#define MSG_MAIN                            _UxGT("Меню")
-#define MSG_AUTOSTART                       _UxGT("Автостарт")
-#define MSG_DISABLE_STEPPERS                _UxGT("Вимк. двигуни")
-#define MSG_AUTO_HOME                       _UxGT("Авто паркування")
-#define MSG_AUTO_HOME_X                     _UxGT("Паркування X")
-#define MSG_AUTO_HOME_Y                     _UxGT("Паркування Y")
-#define MSG_AUTO_HOME_Z                     _UxGT("Паркування Z")
-#define MSG_LEVEL_BED_HOMING                _UxGT("Паркування XYZ")
-#define MSG_LEVEL_BED_WAITING               _UxGT("Почати")
-#define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Слідуюча Точка")
-#define MSG_LEVEL_BED_DONE                  _UxGT("Завершено!")
-#define MSG_SET_HOME_OFFSETS                _UxGT("Зберегти паркув.")
-#define MSG_HOME_OFFSETS_APPLIED            _UxGT("Зміщення застос.")
-#define MSG_SET_ORIGIN                      _UxGT("Встанов. початок")
-#define MSG_PREHEAT_1                       _UxGT("Нагрів " PREHEAT_1_LABEL)
-#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
-#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Все")
-#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Стіл")
-#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" нал.")
-#define MSG_PREHEAT_2                       _UxGT("Нагрів " PREHEAT_2_LABEL)
-#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
-#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Все")
-#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Стіл")
-#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" нал.")
-#define MSG_COOLDOWN                        _UxGT("Охолодження")
-#define MSG_SWITCH_PS_ON                    _UxGT("Увімкнути живлення")
-#define MSG_SWITCH_PS_OFF                   _UxGT("Вимкнути живлення")
-#define MSG_EXTRUDE                         _UxGT("Екструзія")
-#define MSG_RETRACT                         _UxGT("Втягування")
-#define MSG_MOVE_AXIS                       _UxGT("Рух по осям")
-#define MSG_BED_LEVELING                    _UxGT("Нівелювання столу")
-#define MSG_LEVEL_BED                       _UxGT("Нівелювання столу")
-#define MSG_MOVE_X                          _UxGT("Рух по X")
-#define MSG_MOVE_Y                          _UxGT("Рух по Y")
-#define MSG_MOVE_Z                          _UxGT("Рух по Z")
-#define MSG_MOVE_E                          _UxGT("Екструдер")
-#define MSG_MOVE_Z_DIST                     _UxGT("Рух по %smm")
-#define MSG_MOVE_01MM                       _UxGT("Рух по 0.1mm")
-#define MSG_MOVE_1MM                        _UxGT("Рух по 1mm")
-#define MSG_MOVE_10MM                       _UxGT("Рух по 10mm")
-#define MSG_SPEED                           _UxGT("Швидкість")
-#define MSG_BED_Z                           _UxGT("Z Столу")
-#define MSG_NOZZLE                          _UxGT("Сопло")
-#define MSG_BED                             _UxGT("Стіл")
-#define MSG_FAN_SPEED                       _UxGT("Охолодж.")
-#define MSG_FLOW                            _UxGT("Потік")
-#define MSG_CONTROL                         _UxGT("Налаштування")
-#define MSG_MIN                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Мін")
-#define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Макс")
-#define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Факт")
-#define MSG_AUTOTEMP                        _UxGT("Автотемпер.")
-#define MSG_LCD_ON                          _UxGT("Увімк.")
-#define MSG_LCD_OFF                         _UxGT("Вимк.")
-#define MSG_PID_P                           _UxGT("PID-P")
-#define MSG_PID_I                           _UxGT("PID-I")
-#define MSG_PID_D                           _UxGT("PID-D")
-#define MSG_PID_C                           _UxGT("PID-C")
-#define MSG_SELECT                          _UxGT("Вибрати")
-#define MSG_ACC                             _UxGT("Приск.")
-#define MSG_JERK                            _UxGT("Ривок")
-#if IS_KINEMATIC
-  #define MSG_VA_JERK                       _UxGT("Va-ривок")
-  #define MSG_VB_JERK                       _UxGT("Vb-ривок")
-  #define MSG_VC_JERK                       _UxGT("Vc-ривок")
-#else
-  #define MSG_VA_JERK                       _UxGT("Vx-ривок")
-  #define MSG_VB_JERK                       _UxGT("Vy-ривок")
-  #define MSG_VC_JERK                       _UxGT("Vz-ривок")
-#endif
-#define MSG_VE_JERK                         _UxGT("Ve-ривок")
-#define MSG_VMAX                            _UxGT("Vмакс")
-#define MSG_VMIN                            _UxGT("Vмін")
-#define MSG_VTRAV_MIN                       _UxGT("Vруху мін")
-#define MSG_AMAX                            _UxGT("Aмакс ")
-#define MSG_A_RETRACT                       _UxGT("A-втягув.")
-#define MSG_A_TRAVEL                        _UxGT("A-руху")
-#define MSG_STEPS_PER_MM                    _UxGT("Кроків/мм")
-#if IS_KINEMATIC
-  #define MSG_ASTEPS                        _UxGT("Aкроків/мм")
-  #define MSG_BSTEPS                        _UxGT("Bкроків/мм")
-  #define MSG_CSTEPS                        _UxGT("Cкроків/мм")
-#else
-  #define MSG_ASTEPS                        _UxGT("Xкроків/мм")
-  #define MSG_BSTEPS                        _UxGT("Yкроків/мм")
-  #define MSG_CSTEPS                        _UxGT("Zкроків/мм")
-#endif
-#define MSG_ESTEPS                          _UxGT("Eкроків/мм")
-#define MSG_E1STEPS                         _UxGT("E1кроків/мм")
-#define MSG_E2STEPS                         _UxGT("E2кроків/мм")
-#define MSG_E3STEPS                         _UxGT("E3кроків/мм")
-#define MSG_E4STEPS                         _UxGT("E4кроків/мм")
-#define MSG_E5STEPS                         _UxGT("E5кроків/мм")
-#define MSG_E6STEPS                         _UxGT("E6кроків/мм")
-#define MSG_TEMPERATURE                     _UxGT("Температура")
-#define MSG_MOTION                          _UxGT("Рух")
-#define MSG_FILAMENT                        _UxGT("Волокно")
-#define MSG_VOLUMETRIC_ENABLED              _UxGT("E в мм3")
-#define MSG_FILAMENT_DIAM                   _UxGT("Діам. волок.")
-#define MSG_CONTRAST                        _UxGT("контраст LCD")
-#define MSG_STORE_EEPROM                    _UxGT("Зберегти в ПЗП")
-#define MSG_LOAD_EEPROM                     _UxGT("Зчитати з ПЗП")
-#define MSG_RESTORE_FAILSAFE                _UxGT("Відновити базові")
-#define MSG_REFRESH                         _UxGT("Поновити")
-#define MSG_WATCH                           _UxGT("Інформація")
-#define MSG_PREPARE                         _UxGT("Підготувати")
-#define MSG_TUNE                            _UxGT("Підлаштування")
-#define MSG_PAUSE_PRINT                     _UxGT("Призупинити друк")
-#define MSG_RESUME_PRINT                    _UxGT("Відновити друк")
-#define MSG_STOP_PRINT                      _UxGT("Скасувати друк")
-#define MSG_CARD_MENU                       _UxGT("Друкувати з SD")
-#define MSG_NO_CARD                         _UxGT("Відсутня SD карт.")
-#define MSG_DWELL                           _UxGT("Сплячка...")
-#define MSG_USERWAIT                        _UxGT("Очікування дій...")
-#define MSG_PRINT_ABORTED                   _UxGT("Друк скасовано")
-#define MSG_NO_MOVE                         _UxGT("Немає руху.")
-#define MSG_KILLED                          _UxGT("ПЕРЕРВАНО. ")
-#define MSG_STOPPED                         _UxGT("ЗУПИНЕНО. ")
-#define MSG_FILAMENTCHANGE                  _UxGT("Зміна волокна")
-#define MSG_INIT_SDCARD                     _UxGT("Старт SD картки")
-#define MSG_CHANGE_SDCARD                   _UxGT("Заміна SD карти")
-#define MSG_ZPROBE_OUT                      _UxGT("Z дет. не в межах")
-#define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Само-Тест")
-#define MSG_BLTOUCH_RESET                   _UxGT("Скинути BLTouch")
-#define MSG_HOME                            _UxGT("Дім")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
-#define MSG_FIRST                           _UxGT("перший")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("Зміщення Z")
-#define MSG_BABYSTEP_X                      _UxGT("Мікрокрок X")
-#define MSG_BABYSTEP_Y                      _UxGT("Мікрокрок Y")
-#define MSG_BABYSTEP_Z                      _UxGT("Мікрокрок Z")
-#define MSG_ENDSTOP_ABORT                   _UxGT("невдача кінцевика")
-#define MSG_HEATING_FAILED_LCD              _UxGT("Невдалий нагрів")
-#define MSG_THERMAL_RUNAWAY                 _UxGT("ЗБІЙ ТЕМПЕРАТУРИ")
-#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
-#define MSG_HALTED                          _UxGT("ПРИНТЕР ЗУПИНЕНО")
-#define MSG_PLEASE_RESET                    _UxGT("Перезавантажте")
-#define MSG_SHORT_DAY                       _UxGT("д") // One character only
-#define MSG_SHORT_HOUR                      _UxGT("г") // One character only
-#define MSG_SHORT_MINUTE                    _UxGT("х") // One character only
-#define MSG_HEATING                         _UxGT("Нагрівання...")
-#define MSG_BED_HEATING                     _UxGT("Нагрівання столу...")
-#define MSG_DELTA_CALIBRATE                 _UxGT("Калібр. Delta")
-#define MSG_DELTA_CALIBRATE_X               _UxGT("Калібрування X")
-#define MSG_DELTA_CALIBRATE_Y               _UxGT("Калібрування Y")
-#define MSG_DELTA_CALIBRATE_Z               _UxGT("Калібрування Z")
-#define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Калібр. Центру")
+namespace language_uk {
+  using namespace language_en; // Inherit undefined strings from English
 
-#define MSG_INFO_MENU                       _UxGT("Про принтер")
-#define MSG_INFO_PRINTER_MENU               _UxGT("Інформація")
-#define MSG_INFO_STATS_MENU                 _UxGT("Статистика")
-#define MSG_INFO_BOARD_MENU                 _UxGT("Про плату")
-#define MSG_INFO_THERMISTOR_MENU            _UxGT("Термістори")
-#define MSG_INFO_EXTRUDERS                  _UxGT("Екструдери")
-#define MSG_INFO_BAUDRATE                   _UxGT("біт/с")
-#define MSG_INFO_PROTOCOL                   _UxGT("Протокол")
-#define MSG_CASE_LIGHT                      _UxGT("Підсвітка")
+  constexpr uint8_t CHARSIZE                        = 2;
+  FSTRINGVALUE(LANGUAGE                             , _UxGT("Ukranian"));
 
-#define MSG_EXPECTED_PRINTER                _UxGT("Неправильний принтер")
+  FSTRINGVALUE(WELCOME_MSG                          , MACHINE_NAME _UxGT(" готовий."));
+  FSTRINGVALUE(MSG_MEDIA_INSERTED                   , _UxGT("Картка вставлена"));
+  FSTRINGVALUE(MSG_MEDIA_REMOVED                    , _UxGT("Картка видалена"));
+  FSTRINGVALUE(MSG_LCD_ENDSTOPS                     , _UxGT("Кінцевик")); // Max length 8 characters
+  FSTRINGVALUE(MSG_MAIN                             , _UxGT("Меню"));
+  FSTRINGVALUE(MSG_AUTOSTART                        , _UxGT("Автостарт"));
+  FSTRINGVALUE(MSG_DISABLE_STEPPERS                 , _UxGT("Вимк. двигуни"));
+  FSTRINGVALUE(MSG_AUTO_HOME                        , _UxGT("Авто паркування"));
+  FSTRINGVALUE(MSG_AUTO_HOME_X                      , _UxGT("Паркування X"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Y                      , _UxGT("Паркування Y"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Z                      , _UxGT("Паркування Z"));
+  FSTRINGVALUE(MSG_LEVEL_BED_HOMING                 , _UxGT("Паркування XYZ"));
+  FSTRINGVALUE(MSG_LEVEL_BED_WAITING                , _UxGT("Почати"));
+  FSTRINGVALUE(MSG_LEVEL_BED_NEXT_POINT             , _UxGT("Слідуюча Точка"));
+  FSTRINGVALUE(MSG_LEVEL_BED_DONE                   , _UxGT("Завершено!"));
+  FSTRINGVALUE(MSG_SET_HOME_OFFSETS                 , _UxGT("Зберегти паркув."));
+  FSTRINGVALUE(MSG_HOME_OFFSETS_APPLIED             , _UxGT("Зміщення застос."));
+  FSTRINGVALUE(MSG_SET_ORIGIN                       , _UxGT("Встанов. початок"));
+  FSTRINGVALUE(MSG_PREHEAT_1                        , _UxGT("Нагрів ") PREHEAT_1_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_1_H                      , _UxGT("Нагрів ") PREHEAT_1_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_1_END                    , _UxGT("Нагрів ") PREHEAT_1_LABEL _UxGT(" Сопло"));
+  FSTRINGVALUE(MSG_PREHEAT_1_END_E                  , _UxGT("Нагрів ") PREHEAT_1_LABEL _UxGT(" Сопло ~"));
+  FSTRINGVALUE(MSG_PREHEAT_1_ALL                    , _UxGT("Нагрів ") PREHEAT_1_LABEL _UxGT(" Все"));
+  FSTRINGVALUE(MSG_PREHEAT_1_BEDONLY                , _UxGT("Нагрів ") PREHEAT_1_LABEL _UxGT(" Стіл"));
+  FSTRINGVALUE(MSG_PREHEAT_1_SETTINGS               , _UxGT("Нагрів ") PREHEAT_1_LABEL _UxGT(" нал."));
+  FSTRINGVALUE(MSG_PREHEAT_2                        , _UxGT("Нагрів ") PREHEAT_2_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_2_H                      , _UxGT("Нагрів ") PREHEAT_2_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_2_END                    , _UxGT("Нагрів ") PREHEAT_2_LABEL _UxGT(" Сопло"));
+  FSTRINGVALUE(MSG_PREHEAT_2_END_E                  , _UxGT("Нагрів ") PREHEAT_2_LABEL _UxGT(" Сопло ~"));
+  FSTRINGVALUE(MSG_PREHEAT_2_ALL                    , _UxGT("Нагрів ") PREHEAT_2_LABEL _UxGT(" Все"));
+  FSTRINGVALUE(MSG_PREHEAT_2_BEDONLY                , _UxGT("Нагрів ") PREHEAT_2_LABEL _UxGT(" Стіл"));
+  FSTRINGVALUE(MSG_PREHEAT_2_SETTINGS               , _UxGT("Нагрів ") PREHEAT_2_LABEL _UxGT(" нал."));
+  FSTRINGVALUE(MSG_COOLDOWN                         , _UxGT("Охолодження"));
+  FSTRINGVALUE(MSG_SWITCH_PS_ON                     , _UxGT("Увімкнути живлення"));
+  FSTRINGVALUE(MSG_SWITCH_PS_OFF                    , _UxGT("Вимкнути живлення"));
+  FSTRINGVALUE(MSG_EXTRUDE                          , _UxGT("Екструзія"));
+  FSTRINGVALUE(MSG_RETRACT                          , _UxGT("Втягування"));
+  FSTRINGVALUE(MSG_MOVE_AXIS                        , _UxGT("Рух по осям"));
+  FSTRINGVALUE(MSG_BED_LEVELING                     , _UxGT("Нівелювання столу"));
+  FSTRINGVALUE(MSG_LEVEL_BED                        , _UxGT("Нівелювання столу"));
+  FSTRINGVALUE(MSG_MOVE_X                           , _UxGT("Рух по X"));
+  FSTRINGVALUE(MSG_MOVE_Y                           , _UxGT("Рух по Y"));
+  FSTRINGVALUE(MSG_MOVE_Z                           , _UxGT("Рух по Z"));
+  FSTRINGVALUE(MSG_MOVE_E                           , _UxGT("Екструдер"));
+  FSTRINGVALUE(MSG_MOVE_EN                          , _UxGT("Екструдер *"));
+  FSTRINGVALUE(MSG_MOVE_Z_DIST                      , _UxGT("Рух по %smm"));
+  FSTRINGVALUE(MSG_MOVE_01MM                        , _UxGT("Рух по 0.1mm"));
+  FSTRINGVALUE(MSG_MOVE_1MM                         , _UxGT("Рух по 1mm"));
+  FSTRINGVALUE(MSG_MOVE_10MM                        , _UxGT("Рух по 10mm"));
+  FSTRINGVALUE(MSG_SPEED                            , _UxGT("Швидкість"));
+  FSTRINGVALUE(MSG_BED_Z                            , _UxGT("Z Столу"));
+  FSTRINGVALUE(MSG_NOZZLE                           , _UxGT("Сопло"));
+  FSTRINGVALUE(MSG_NOZZLE_N                         , _UxGT("Сопло ~"));
+  FSTRINGVALUE(MSG_BED                              , _UxGT("Стіл"));
+  FSTRINGVALUE(MSG_FAN_SPEED                        , _UxGT("Охолодж."));
+  FSTRINGVALUE(MSG_FAN_SPEED_N                      , _UxGT("Охолодж. ="));
+  FSTRINGVALUE(MSG_FLOW                             , _UxGT("Потік"));
+  FSTRINGVALUE(MSG_FLOW_N                           , _UxGT("Потік ~"));
+  FSTRINGVALUE(MSG_CONTROL                          , _UxGT("Налаштування"));
+  FSTRINGVALUE(MSG_MIN                              , " " LCD_STR_THERMOMETER _UxGT(" Мін"));
+  FSTRINGVALUE(MSG_MAX                              , " " LCD_STR_THERMOMETER _UxGT(" Макс"));
+  FSTRINGVALUE(MSG_FACTOR                           , " " LCD_STR_THERMOMETER _UxGT(" Факт"));
+  FSTRINGVALUE(MSG_AUTOTEMP                         , _UxGT("Автотемпер."));
+  FSTRINGVALUE(MSG_LCD_ON                           , _UxGT("Увімк."));
+  FSTRINGVALUE(MSG_LCD_OFF                          , _UxGT("Вимк."));
+  FSTRINGVALUE(MSG_PID_P                            , _UxGT("PID-P"));
+  FSTRINGVALUE(MSG_PID_P_E                          , _UxGT("PID-P *"));
+  FSTRINGVALUE(MSG_PID_I                            , _UxGT("PID-I"));
+  FSTRINGVALUE(MSG_PID_I_E                          , _UxGT("PID-I *"));
+  FSTRINGVALUE(MSG_PID_D                            , _UxGT("PID-D"));
+  FSTRINGVALUE(MSG_PID_D_E                          , _UxGT("PID-D *"));
+  FSTRINGVALUE(MSG_PID_C                            , _UxGT("PID-C"));
+  FSTRINGVALUE(MSG_PID_C_E                          , _UxGT("PID-C *"));
+  FSTRINGVALUE(MSG_SELECT                           , _UxGT("Вибрати"));
+  FSTRINGVALUE(MSG_SELECT_E                         , _UxGT("Вибрати *"));
+  FSTRINGVALUE(MSG_ACC                              , _UxGT("Приск."));
+  FSTRINGVALUE(MSG_JERK                             , _UxGT("Ривок"));
+  FSTRINGVALUE(MSG_VA_JERK                          , _UxGT("V") LCD_STR_A _UxGT("-ривок"));
+  FSTRINGVALUE(MSG_VB_JERK                          , _UxGT("V") LCD_STR_B _UxGT("-ривок"));
+  FSTRINGVALUE(MSG_VC_JERK                          , _UxGT("V") LCD_STR_C _UxGT("-ривок"));
+  FSTRINGVALUE(MSG_VE_JERK                          , _UxGT("Ve-ривок"));
+  FSTRINGVALUE(MSG_VMAX_A                           , _UxGT("Vмакс") LCD_STR_A);
+  FSTRINGVALUE(MSG_VMAX_B                           , _UxGT("Vмакс") LCD_STR_B);
+  FSTRINGVALUE(MSG_VMAX_C                           , _UxGT("Vмакс") LCD_STR_C);
+  FSTRINGVALUE(MSG_VMAX_E                           , _UxGT("Vмакс") LCD_STR_E);
+  FSTRINGVALUE(MSG_VMAX_EN                          , _UxGT("Vмакс *"));
+  FSTRINGVALUE(MSG_VMIN                             , _UxGT("Vмін"));
+  FSTRINGVALUE(MSG_VTRAV_MIN                        , _UxGT("Vруху мін"));
+  FSTRINGVALUE(MSG_AMAX_A                           , _UxGT("Aмакс ") LCD_STR_A);
+  FSTRINGVALUE(MSG_AMAX_B                           , _UxGT("Aмакс ") LCD_STR_B);
+  FSTRINGVALUE(MSG_AMAX_C                           , _UxGT("Aмакс ") LCD_STR_C);
+  FSTRINGVALUE(MSG_AMAX_E                           , _UxGT("Aмакс ") LCD_STR_E);
+  FSTRINGVALUE(MSG_AMAX_EN                          , _UxGT("Aмакс *"));
+  FSTRINGVALUE(MSG_A_RETRACT                        , _UxGT("A-втягув."));
+  FSTRINGVALUE(MSG_A_TRAVEL                         , _UxGT("A-руху"));
+  FSTRINGVALUE(MSG_STEPS_PER_MM                     , _UxGT("Кроків/мм"));
+  FSTRINGVALUE(MSG_A_STEPS                          , LCD_STR_A _UxGT("кроків/мм"));
+  FSTRINGVALUE(MSG_B_STEPS                          , LCD_STR_B _UxGT("кроків/мм"));
+  FSTRINGVALUE(MSG_C_STEPS                          , LCD_STR_C _UxGT("кроків/мм"));
+  FSTRINGVALUE(MSG_E_STEPS                          , _UxGT("Eкроків/мм"));
+  FSTRINGVALUE(MSG_EN_STEPS                         , _UxGT("*кроків/мм"));
+  FSTRINGVALUE(MSG_TEMPERATURE                      , _UxGT("Температура"));
+  FSTRINGVALUE(MSG_MOTION                           , _UxGT("Рух"));
+  FSTRINGVALUE(MSG_FILAMENT                         , _UxGT("Волокно"));
+  FSTRINGVALUE(MSG_VOLUMETRIC_ENABLED               , _UxGT("E в мм3"));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM                    , _UxGT("Діам. волок."));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM_E                  , _UxGT("Діам. волок. *"));
+  FSTRINGVALUE(MSG_CONTRAST                         , _UxGT("контраст LCD"));
+  FSTRINGVALUE(MSG_STORE_EEPROM                     , _UxGT("Зберегти в ПЗП"));
+  FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Зчитати з ПЗП"));
+  FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Відновити базові"));
+  FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Поновити"));
+  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Інформація"));
+  FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Підготувати"));
+  FSTRINGVALUE(MSG_TUNE                             , _UxGT("Підлаштування"));
+  FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Призупинити друк"));
+  FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Відновити друк"));
+  FSTRINGVALUE(MSG_STOP_PRINT                       , _UxGT("Скасувати друк"));
+  FSTRINGVALUE(MSG_MEDIA_MENU                       , _UxGT("Друкувати з SD"));
+  FSTRINGVALUE(MSG_NO_MEDIA                         , _UxGT("Відсутня SD карт."));
+  FSTRINGVALUE(MSG_DWELL                            , _UxGT("Сплячка..."));
+  FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Очікування дій..."));
+  FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Друк скасовано"));
+  FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("Немає руху."));
+  FSTRINGVALUE(MSG_KILLED                           , _UxGT("ПЕРЕРВАНО. "));
+  FSTRINGVALUE(MSG_STOPPED                          , _UxGT("ЗУПИНЕНО. "));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE                   , _UxGT("Зміна волокна"));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE_E                 , _UxGT("Зміна волокна *"));
+  FSTRINGVALUE(MSG_INIT_MEDIA                       , _UxGT("Старт SD картки"));
+  FSTRINGVALUE(MSG_CHANGE_MEDIA                     , _UxGT("Заміна SD карти"));
+  FSTRINGVALUE(MSG_ZPROBE_OUT                       , _UxGT("Z дет. не в межах"));
+  FSTRINGVALUE(MSG_BLTOUCH_SELFTEST                 , _UxGT("BLTouch Само-Тест"));
+  FSTRINGVALUE(MSG_BLTOUCH_RESET                    , _UxGT("Скинути BLTouch"));
+  FSTRINGVALUE(MSG_HOME_FIRST                       , _UxGT("Дім %s%s%s перший"));
+  FSTRINGVALUE(MSG_ZPROBE_ZOFFSET                   , _UxGT("Зміщення Z"));
+  FSTRINGVALUE(MSG_BABYSTEP_X                       , _UxGT("Мікрокрок X"));
+  FSTRINGVALUE(MSG_BABYSTEP_Y                       , _UxGT("Мікрокрок Y"));
+  FSTRINGVALUE(MSG_BABYSTEP_Z                       , _UxGT("Мікрокрок Z"));
+  FSTRINGVALUE(MSG_ENDSTOP_ABORT                    , _UxGT("невдача кінцевика"));
+  FSTRINGVALUE(MSG_HEATING_FAILED_LCD               , _UxGT("Невдалий нагрів"));
+  FSTRINGVALUE(MSG_THERMAL_RUNAWAY                  , _UxGT("ЗБІЙ ТЕМПЕРАТУРИ"));
+  FSTRINGVALUE(MSG_ERR_Z_HOMING                     , _UxGT("Дім XY перший"));
+  FSTRINGVALUE(MSG_HALTED                           , _UxGT("ПРИНТЕР ЗУПИНЕНО"));
+  FSTRINGVALUE(MSG_PLEASE_RESET                     , _UxGT("Перезавантажте"));
+  FSTRINGVALUE(MSG_SHORT_DAY                        , _UxGT("д")); // One character only
+  FSTRINGVALUE(MSG_SHORT_HOUR                       , _UxGT("г")); // One character only
+  FSTRINGVALUE(MSG_SHORT_MINUTE                     , _UxGT("х")); // One character only
+  FSTRINGVALUE(MSG_HEATING                          , _UxGT("Нагрівання..."));
+  FSTRINGVALUE(MSG_BED_HEATING                      , _UxGT("Нагрівання столу..."));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE                  , _UxGT("Калібр. Delta"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_X                , _UxGT("Калібрування X"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Y                , _UxGT("Калібрування Y"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Z                , _UxGT("Калібрування Z"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_CENTER           , _UxGT("Калібр. Центру"));
 
-#if LCD_WIDTH >= 20
-  #define MSG_INFO_PRINT_COUNT              _UxGT("К-сть друків")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Завершено")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Весь час друку")
-  #define MSG_INFO_PRINT_LONGEST            _UxGT("Найдовший час")
-  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Екструдовано")
-#else
-  #define MSG_INFO_PRINT_COUNT              _UxGT("Друків")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Завершено")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Загалом")
-  #define MSG_INFO_PRINT_LONGEST            _UxGT("Найдовший")
-  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Ексдруд.")
-#endif
+  FSTRINGVALUE(MSG_INFO_MENU                        , _UxGT("Про принтер"));
+  FSTRINGVALUE(MSG_INFO_PRINTER_MENU                , _UxGT("Інформація"));
+  FSTRINGVALUE(MSG_INFO_STATS_MENU                  , _UxGT("Статистика"));
+  FSTRINGVALUE(MSG_INFO_BOARD_MENU                  , _UxGT("Про плату"));
+  FSTRINGVALUE(MSG_INFO_THERMISTOR_MENU             , _UxGT("Термістори"));
+  FSTRINGVALUE(MSG_INFO_EXTRUDERS                   , _UxGT("Екструдери"));
+  FSTRINGVALUE(MSG_INFO_BAUDRATE                    , _UxGT("біт/с"));
+  FSTRINGVALUE(MSG_INFO_PROTOCOL                    , _UxGT("Протокол"));
+  FSTRINGVALUE(MSG_CASE_LIGHT                       , _UxGT("Підсвітка"));
 
-#define MSG_INFO_MIN_TEMP                   _UxGT("Мін Темп.")
-#define MSG_INFO_MAX_TEMP                   _UxGT("Макс Темп.")
-#define MSG_INFO_PSU                        _UxGT("Джерело жив.")
+  FSTRINGVALUE(MSG_EXPECTED_PRINTER                 , _UxGT("Неправильний принтер"));
 
-#define MSG_DRIVE_STRENGTH                  _UxGT("Сила мотору")
-#define MSG_DAC_PERCENT                     _UxGT("% мотору")
-#define MSG_DAC_EEPROM_WRITE                _UxGT("Запис ЦАП на ПЗП")
+  #if LCD_WIDTH >= 20
+    FSTRINGVALUE(MSG_INFO_PRINT_COUNT               , _UxGT("К-сть друків"));
+    FSTRINGVALUE(MSG_INFO_COMPLETED_PRINTS          , _UxGT("Завершено"));
+    FSTRINGVALUE(MSG_INFO_PRINT_TIME                , _UxGT("Весь час друку"));
+    FSTRINGVALUE(MSG_INFO_PRINT_LONGEST             , _UxGT("Найдовший час"));
+    FSTRINGVALUE(MSG_INFO_PRINT_FILAMENT            , _UxGT("Екструдовано"));
+  #else
+    FSTRINGVALUE(MSG_INFO_PRINT_COUNT               , _UxGT("Друків"));
+    FSTRINGVALUE(MSG_INFO_COMPLETED_PRINTS          , _UxGT("Завершено"));
+    FSTRINGVALUE(MSG_INFO_PRINT_TIME                , _UxGT("Загалом"));
+    FSTRINGVALUE(MSG_INFO_PRINT_LONGEST             , _UxGT("Найдовший"));
+    FSTRINGVALUE(MSG_INFO_PRINT_FILAMENT            , _UxGT("Ексдруд."));
+  #endif
 
-#define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Відновити друк")
+  FSTRINGVALUE(MSG_INFO_MIN_TEMP                    , _UxGT("Мін Темп."));
+  FSTRINGVALUE(MSG_INFO_MAX_TEMP                    , _UxGT("Макс Темп."));
+  FSTRINGVALUE(MSG_INFO_PSU                         , _UxGT("Джерело жив."));
 
-#if LCD_HEIGHT >= 4
-  // Up to 3 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Зачекайте на")
-  #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("початок заміни")
-  #define MSG_FILAMENT_CHANGE_INIT_3          _UxGT("волокна")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Зачекайте на")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("вивід волокна")
-  #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Вставте волокно")
-  #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("та натисніть для")
-  #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("продовження...")
-  #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Зачекайте на")
-  #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("ввід волокна")
-  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Зачекайте на")
-  #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("відновлення")
-  #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("друку")
-#else // LCD_HEIGHT < 4
-  // Up to 2 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Зачекайте...")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Вивід...")
-  #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Вставте і нат.")
-  #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Ввід...")
-  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Відновлення...")
-#endif // LCD_HEIGHT < 4
+  FSTRINGVALUE(MSG_DRIVE_STRENGTH                   , _UxGT("Сила мотору"));
+  FSTRINGVALUE(MSG_DAC_PERCENT                      , _UxGT("% мотору"));
+  FSTRINGVALUE(MSG_DAC_EEPROM_WRITE                 , _UxGT("Запис ЦАП на ПЗП"));
+
+  FSTRINGVALUE(MSG_FILAMENT_CHANGE_OPTION_RESUME    , _UxGT("Відновити друк"));
+
+  #if LCD_HEIGHT >= 4
+    // Up to 3 lines allowed
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Зачекайте на", "початок заміни", "волокна")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_2_LINE("Зачекайте на", "вивід волокна")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Вставте волокно", "та натисніть для", "продовження...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_2_LINE("Зачекайте на", "ввід волокна")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_3_LINE("Зачекайте на", "відновлення", "друку")));
+  #else
+    // Up to 2 lines allowed
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_1_LINE("Зачекайте...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD         , _UxGT(MSG_1_LINE("Вивід...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_1_LINE("Вставте і нат.")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD           , _UxGT(MSG_1_LINE("Ввід...")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME         , _UxGT(MSG_1_LINE("Відновлення...")));
+  #endif
+}

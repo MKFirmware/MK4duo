@@ -41,36 +41,36 @@ typedef struct {
   volatile uint32_t sdpos;
 
   // Mechanics state
-  float   axis_position_mm[XYZE];
+  xyze_pos_t  axis_position_mm;
 
   #if ENABLED(WORKSPACE_OFFSETS)
-    float home_offset[XYZ];
-    float position_shift[XYZ];
+    xyz_pos_t home_offset,
+              position_shift;
   #endif
 
   uint16_t feedrate;
 
-  #if HAS_HOTENDS
-    int16_t target_temperature[HOTENDS];
+  #if MAX_HOTEND > 0
+    int16_t target_temperature[MAX_HOTEND];
   #endif
-  #if HAS_BEDS
-    int16_t bed_target_temperature[BEDS];
+  #if MAX_BED > 0
+    int16_t bed_target_temperature[MAX_BED];
   #endif
-  #if HAS_CHAMBERS
-    int16_t chamber_target_temperature[CHAMBERS];
+  #if MAX_CHAMBER > 0
+    int16_t chamber_target_temperature[MAX_CHAMBER];
   #endif
 
-  #if HAS_FANS
-    uint8_t fan_speed[FAN_COUNT];
+  #if MAX_FAN > 0
+    uint8_t fan_speed[MAX_FAN];
   #endif
 
   // Extruders
-  #if EXTRUDERS > 1
+  #if MAX_EXTRUDER > 1
     uint8_t active_extruder;
   #endif
 
-  int16_t flow_percentage[EXTRUDERS],
-          density_percentage[EXTRUDERS];
+  int16_t flow_percentage[MAX_EXTRUDER],
+          density_percentage[MAX_EXTRUDER];
 
   // Leveling
   #if HAS_LEVELING
@@ -83,8 +83,8 @@ typedef struct {
     gradient_t gradient;
   #endif
 
-  // Relative mode
-  bool relative_mode, relative_modes_e;
+  // Relative axis modes
+  uint8_t axis_relative_modes;
 
   // Job elapsed time
   millis_l print_job_counter_elapsed;

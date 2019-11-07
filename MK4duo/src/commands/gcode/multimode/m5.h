@@ -33,7 +33,7 @@
   /**
    * M5: Turn off laser beam - CNC off
    */
-  inline void gcode_M5(void) {
+  inline void gcode_M5() {
     planner.synchronize();
 
     switch (printer.mode) {

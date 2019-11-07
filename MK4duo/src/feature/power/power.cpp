@@ -40,9 +40,9 @@ Power powerManager;
 
 /** Private Parameters */
 #if HAS_POWER_SWITCH
-  bool        Power::powersupply_on   = false;
+  bool        Power::powersupply_on = false;
   #if (POWER_TIMEOUT > 0)
-    millis_l  Power::last_Power_On_ms = 0;
+    long_timer_t  Power::last_power_on_timer;
   #endif
 #endif
 
@@ -88,16 +88,16 @@ Power powerManager;
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      if (is_power_needed()) power_on();
+      if (thermalManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
       #if (POWER_TIMEOUT > 0)
-        else if (expired(&last_Power_On_ms, millis_l(POWER_TIMEOUT * 1000UL)))
+        else if (last_power_on_timer.expired((POWER_TIMEOUT) * 1000))
           power_off();
       #endif
     }
 
     void Power::power_on() {
       #if (POWER_TIMEOUT > 0)
-        last_Power_On_ms = millis();
+        last_power_on_timer.start();
       #endif
       if (!powersupply_on) {
         OUT_WRITE(PS_ON_PIN, PS_ON_AWAKE);
@@ -115,7 +115,7 @@ Power powerManager;
         OUT_WRITE(PS_ON_PIN, PS_ON_ASLEEP);
         powersupply_on = false;
         #if (POWER_TIMEOUT > 0)
-          last_Power_On_ms = 0;
+          last_power_on_timer.stop();
         #endif
       }
     }
@@ -126,7 +126,7 @@ Power powerManager;
 
 #if HAS_POWER_CONSUMPTION_SENSOR
 
-  // Convert raw Power Consumption to watt
+  // Convert adc_raw Power Consumption to watt
   float Power::raw_analog2voltage() {
     return ((HAL_VOLTAGE_PIN) * current_raw_powconsumption) / (AD_RANGE);
   }
@@ -160,45 +160,5 @@ Power powerManager;
   }
 
 #endif // HAS_POWER_CONSUMPTION_SENSOR
-
-/** Private Function */
-#if HAS_POWER_SWITCH
-
-  bool Power::is_power_needed() {
-
-    #if HEATER_COUNT > 0
-      if (thermalManager.heaters_isActive()) return true;
-    #endif
-
-    #if FAN_COUNT > 0
-      LOOP_FAN() if (fans[f].speed > 0) return true;
-    #endif
-
-    if (X_ENABLE_READ() == driver[X_DRV]->isEnable() || Y_ENABLE_READ() == driver[Y_DRV]->isEnable() || Z_ENABLE_READ() == driver[Z_DRV]->isEnable()
-        || E0_ENABLE_READ() == driver[E0_DRV]->isEnable() // If any of the drivers are enabled...
-        #if DRIVER_EXTRUDERS > 1
-          || E1_ENABLE_READ() == driver[E1_DRV]->isEnable()
-          #if HAS_X2_ENABLE
-            || X2_ENABLE_READ() == driver[X2_DRV]->isEnable()
-          #endif
-          #if DRIVER_EXTRUDERS > 2
-            || E2_ENABLE_READ() == driver[E2_DRV]->isEnable()
-            #if DRIVER_EXTRUDERS > 3
-              || E3_ENABLE_READ() == driver[E3_DRV]->isEnable()
-              #if DRIVER_EXTRUDERS > 4
-                || E4_ENABLE_READ() == driver[E4_DRV]->isEnable()
-                #if DRIVER_EXTRUDERS > 5
-                  || E5_ENABLE_READ() == driver[E5_DRV]->isEnable()
-                #endif
-              #endif
-            #endif
-          #endif
-        #endif
-    ) return true;
-
-    return false;
-  }
-
-#endif // HAS_POWER_SWITCH
 
 #endif // HAS_POWER_SWITCH || HAS_POWER_CONSUMPTION_SENSOR || HAS_POWER_CHECK

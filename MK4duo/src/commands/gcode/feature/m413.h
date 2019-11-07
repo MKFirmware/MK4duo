@@ -36,7 +36,7 @@
  * Parameters
  *  S[bool] - Flag to enable / disable.
  */
-inline void gcode_M413(void) {
+inline void gcode_M413() {
 
   if (parser.seen('S')) restart.enable(parser.value_bool());
 

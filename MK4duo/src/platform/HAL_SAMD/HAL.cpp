@@ -85,12 +85,12 @@ static void syncTCC(Tcc* TCCx) {
 }
 
 // disable interrupts
-void cli(void) {
+void cli() {
   noInterrupts();
 }
 
 // enable interrupts
-void sei(void) {
+void sei() {
   interrupts();
 }
 
@@ -98,12 +98,12 @@ void sei(void) {
 // input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
 void tone(const pin_t t_pin, const uint16_t frequency, const uint16_t duration) {
 
-  millis_s endTime = millis();
+  short_timer_t end_timer(true);
   const uint32_t halfPeriod = 1000000L / frequency / 2;
 
   HAL::pinMode(t_pin, OUTPUT_LOW);
 
-  while (pending(endTime, duration)) {
+  while (end_timer.pending(duration)) {
     HAL::digitalWrite(t_pin, HIGH);
     HAL::delayMicroseconds(halfPeriod);
     HAL::digitalWrite(t_pin, LOW);
@@ -121,7 +121,7 @@ extern "C" int sysTickHook() {
 bool HAL::SPIReady = false;
 
 // do any hardware-specific initialization here
-void HAL::hwSetup(void) { SPIReady= true; }
+void HAL::hwSetup() { SPIReady= true; }
 
 HAL::HAL() {
   // ctor
@@ -185,7 +185,7 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 }
 
 
-void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
+void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000U*/) {
 
   PinDescription pinDesc = g_APinDescription[pin];
   uint32_t attr = pinDesc.ulPinAttribute;
@@ -323,39 +323,39 @@ void HAL::analogWrite(pin_t pin, uint32_t value, const uint16_t freq/*=1000U*/, 
  */
 void HAL::Tick() {
 
-  static millis_s cycle_check_temp_ms = 0;
+  static short_timer_t cycle_check_temp_timer(true);
 
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].set_output_pwm();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].set_output_pwm();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].set_output_pwm();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
 
-  #if HAS_FANS
-    LOOP_FAN() fans[f].set_output_pwm();
+  #if MAX_FAN > 0
+    LOOP_FAN() fans[f]->set_output_pwm();
   #endif
 
   // Calculation cycle temp a 100ms
-  if (expired(&cycle_check_temp_ms, 100U)) {
+  if (cycle_check_temp_timer.expired(100)) {
     // Temperature Spin
     thermalManager.spin();
-    #if ENABLED(FAN_KICKSTART_TIME) && HAS_FANS
+    #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0
       LOOP_FAN() {
-        if (fans[f].kickstart) fans[f].kickstart--;
+        if (fans[f]->kickstart) fans[f]->kickstart--;
       }
     #endif
   }
 
   // read analog values
   #if ANALOG_INPUTS > 0
-    LOOP_HOTEND() AnalogInputValues[hotends[h].sensor.pin] = (analogRead(hotends[h].sensor.pin) * 16);
+    LOOP_HOTEND() AnalogInputValues[hotends[h]->sensor.pin] = (analogRead(hotends[h]->sensor.pin) * 16);
     Analog_is_ready = true;
     // Update the raw values if they've been read. Else we could be updating them during reading.
     thermalManager.set_current_temp_raw();

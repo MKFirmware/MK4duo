@@ -43,7 +43,7 @@ int Commands::serial_count[NUM_SERIAL] = { 0 };
 
 PGM_P Commands::injected_commands_P = nullptr;
 
-millis_s Commands::last_command_ms = 0;
+short_timer_t Commands::last_command_timer;
 
 /** Public Function */
 void Commands::flush_and_request_resend() {
@@ -165,35 +165,35 @@ void Commands::process_now(char * gcode) {
 
 void Commands::get_destination() {
 
-  bool seen[XYZE] = { false, false, false, false };
+  xyze_bool_t seen{false};
 
   #if ENABLED(IDLE_OOZING_PREVENT)
-    if (parser.seen(axis_codes[E_AXIS])) printer.IDLE_OOZING_retract(false);
+    if (parser.seen(axis_codes.e)) tools.IDLE_OOZING_retract(false);
   #endif
 
   LOOP_XYZE(i) {
     if ((seen[i] = parser.seen(axis_codes[i]))) {
       const float v = parser.value_axis_units((AxisEnum)i);
-      mechanics.destination[i] = (printer.axis_relative_modes[i] || printer.isRelativeMode())
-        ? mechanics.current_position[i] + v
-        : (i == E_AXIS) ? v : mechanics.logical_to_native(v, (AxisEnum)i);
+      mechanics.destination[i] = mechanics.axis_is_relative(AxisEnum(i))
+        ? mechanics.current_position[i] + v : (i == E_AXIS)
+        ? v : LOGICAL_TO_NATIVE(v, (AxisEnum)i);
     }
     else
       mechanics.destination[i] = mechanics.current_position[i];
   }
 
   #if HAS_SD_RESTART
-    if (restart.enabled && IS_SD_PRINTING() && (seen[E_AXIS] || seen[Z_AXIS])) restart.save_job();
+    if (restart.enabled && IS_SD_PRINTING() && (seen.e || seen.z)) restart.save_job();
   #endif
 
   if (parser.linearval('F') > 0)
     mechanics.feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
 
   if (parser.seen('P'))
-    mechanics.destination[E_AXIS] = (parser.value_axis_units(E_AXIS) * tools.density_percentage[tools.extruder.previous] / 100) + mechanics.current_position[E_AXIS];
+    mechanics.destination.e = (parser.value_axis_units(E_AXIS) * extruders[tools.extruder.previous]->density_percentage * 0.01f) + mechanics.current_position.e;
 
   if (!printer.debugDryrun() && !printer.debugSimulation()) {
-    const float diff = mechanics.destination[E_AXIS] - mechanics.current_position[E_AXIS];
+    const float diff = mechanics.destination.e - mechanics.current_position.e;
     print_job_counter.incFilamentUsed(diff);
     #if ENABLED(RFID_MODULE)
       rfid522.data[tools.extruder.active].data.lenght -= diff;
@@ -205,26 +205,19 @@ void Commands::get_destination() {
   #endif
 
   #if HAS_NEXTION_LCD && ENABLED(NEXTION_GFX)
-    #if MECH(DELTA)
-      if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
-      else
-        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS] + (X_MAX_BED), mechanics.destination[Y_AXIS] + (Y_MAX_BED), mechanics.destination[Z_AXIS]);
-    #else
-      if ((seen[X_AXIS] || seen[Y_AXIS]) && seen[E_AXIS])
-        nexlcd.gfx_line_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
-      else
-        nexlcd.gfx_cursor_to(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS]);
-    #endif
+    if ((seen.x || seen.y) && seen.e)
+      nexlcd.gfx_line_to(mechanics.destination);
+    else
+      nexlcd.gfx_cursor_to(mechanics.destination);
   #endif
 }
 
 bool Commands::get_target_tool(const uint16_t code) {
   if (parser.seenval('T')) {
     const int8_t t = parser.value_byte();
-    if (t >= EXTRUDERS) {
+    if (t >= tools.data.extruders) {
       SERIAL_SMV(ECHO, "M", code);
-      SERIAL_EMV(" " MSG_INVALID_EXTRUDER " ", t);
+      SERIAL_EMV(" " MSG_HOST_INVALID_EXTRUDER " ", t);
       return true;
     }
     tools.extruder.target = t;
@@ -238,9 +231,9 @@ bool Commands::get_target_tool(const uint16_t code) {
 bool Commands::get_target_driver(const uint16_t code) {
   if (parser.seenval('T')) {
     const int8_t t = parser.value_byte();
-    if (t >= DRIVER_EXTRUDERS) {
+    if (t >= MAX_DRIVER_E) {
       SERIAL_SMV(ECHO, "M", code);
-      SERIAL_EMV(" " MSG_INVALID_DRIVER " ", t);
+      SERIAL_EMV(" " MSG_HOST_INVALID_DRIVER " ", t);
       return true;
     }
     tools.extruder.target = t;
@@ -253,39 +246,35 @@ bool Commands::get_target_driver(const uint16_t code) {
 
 Heater* Commands::get_target_heater() {
 
-  const int8_t h = parser.intval('H');
-
-  #if HAS_HOTENDS
-    if (WITHIN(h, 0 , HOTENDS - 1)) return &hotends[h];
-  #endif
-
+  const int8_t h  = parser.intval('H');
   const uint8_t t = parser.byteval('T');
 
-  #if HAS_BEDS
-    if (h == -1 && WITHIN(t, 0 , BEDS - 1)) return &beds[t];
+  #if MAX_HOTEND > 0
+    if (WITHIN(h, 0 , tools.data.hotends - 1)) return hotends[h];
   #endif
-  #if HAS_CHAMBERS
-    if (h == -2 && WITHIN(t, 0 , CHAMBERS - 1)) return &chambers[t];
+  #if MAX_BED > 0
+    if (h == -1 && WITHIN(t, 0 , tools.data.beds - 1)) return beds[t];
   #endif
-  #if HAS_COOLERS
-    if (h == -3 && WITHIN(t, 0 , COOLERS - 1)) return &coolers[t];
+  #if MAX_CHAMBER > 0
+    if (h == -2 && WITHIN(t, 0 , tools.data.chambers - 1)) return chambers[t];
+  #endif
+  #if MAX_COOLER > 0
+    if (h == -3 && WITHIN(t, 0 , tools.data.coolers - 1)) return coolers[t];
   #endif
 
-  SERIAL_LM(ER, MSG_INVALID_HEATER);
+  SERIAL_LM(ER, MSG_HOST_INVALID_HEATER);
   return nullptr;
 
 }
 
-#if HAS_FANS
-  bool Commands::get_target_fan(uint8_t &f) {
-    f = parser.seen('P') ? parser.value_byte() : 0;
-    if (WITHIN(f, 0 , FAN_COUNT - 1)) return true;
-    else {
-      SERIAL_LM(ER, "Invalid Fan");
-      return false;
-    }
+bool Commands::get_target_fan(uint8_t &f) {
+  f = parser.seen('P') ? parser.value_byte() : 0;
+  if (WITHIN(f, 0 , tools.data.fans - 1)) return true;
+  else {
+    SERIAL_LM(ER, "Invalid Fan");
+    return false;
   }
-#endif
+}
 
 /** Private Function */
 void Commands::ok_to_send() {
@@ -328,7 +317,7 @@ void Commands::get_serial() {
   // If the command buffer is empty for too long,
   // send "wait" to indicate MK4duo is still waiting.
   #if NO_TIMEOUTS > 0
-    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && expired(&last_command_ms, NO_TIMEOUTS)) {
+    if (buffer_ring.isEmpty() && !Com::serialDataAvailable() && last_command_timer.expired(NO_TIMEOUTS)) {
       SERIAL_STR(WT);
       SERIAL_EOL();
     }
@@ -343,8 +332,8 @@ void Commands::get_serial() {
 
       int c;
 
-      last_command_ms = millis();
-      printer.max_inactivity_ms = millis();
+      last_command_timer.start();
+      printer.max_inactivity_timer.start();
 
       if ((c = Com::serialRead(i)) < 0) continue;
 
@@ -380,7 +369,7 @@ void Commands::get_serial() {
           gcode_N = strtol(npos + 1, nullptr, 10);
 
           if (gcode_N != gcode_last_N + 1 && !M110) {
-            gcode_line_error(PSTR(MSG_ERR_LINE_NO), i);
+            gcode_line_error(PSTR(MSG_HOST_ERR_LINE_NO), i);
             return;
           }
 
@@ -389,12 +378,12 @@ void Commands::get_serial() {
             uint8_t checksum = 0, count = uint8_t(apos - command);
             while (count) checksum ^= command[--count];
             if (strtol(apos + 1, nullptr, 10) != checksum) {
-              gcode_line_error(PSTR(MSG_ERR_CHECKSUM_MISMATCH), i);
+              gcode_line_error(PSTR(MSG_HOST_ERR_CHECKSUM_MISMATCH), i);
               return;
             }
           }
           else {
-            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            gcode_line_error(PSTR(MSG_HOST_ERR_NO_CHECKSUM), i);
             return;
           }
 
@@ -403,7 +392,7 @@ void Commands::get_serial() {
         #if HAS_SD_SUPPORT
           // Pronterface "M29" and "M29 " has no line number
           else if (card.isSaving() && !is_M29(command)) {
-            gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM), i);
+            gcode_line_error(PSTR(MSG_HOST_ERR_NO_CHECKSUM), i);
             return;
           }
         #endif
@@ -422,7 +411,7 @@ void Commands::get_serial() {
               #if ENABLED(G5_BEZIER)
                 case 5:
               #endif
-                SERIAL_LM(ER, MSG_ERR_STOPPED);
+                SERIAL_LM(ER, MSG_HOST_ERR_STOPPED);
                 LCD_MESSAGEPGM(MSG_STOPPED);
                 break;
             }
@@ -493,8 +482,8 @@ void Commands::get_serial() {
       const int16_t n = card.get();
       char sd_char = (char)n;
       card_eof = card.eof();
-      last_command_ms = millis();
-      printer.max_inactivity_ms = millis();
+      last_command_timer.start();
+      printer.max_inactivity_timer.start();
       if (card_eof || n == -1
           || sd_char == '\n'  || sd_char == '\r'
           || ((sd_char == '#' || sd_char == ':') && !sd_comment_mode)
@@ -506,7 +495,7 @@ void Commands::get_serial() {
           if (IS_SD_PRINTING())
             sd_count = 0; // If a sub-file was printing, continue from call point
           else {
-            SERIAL_EM(MSG_FILE_PRINTED);
+            SERIAL_EM(MSG_HOST_FILE_PRINTED);
             #if ENABLED(PRINTER_EVENT_LEDS)
               LCD_MESSAGEPGM(MSG_INFO_COMPLETED_PRINTS);
               leds.set_green();
@@ -526,7 +515,7 @@ void Commands::get_serial() {
           }
         }
         else if (n == -1) {
-          SERIAL_LM(ER, MSG_SD_ERR_READ);
+          SERIAL_LM(ER, MSG_HOST_SD_ERR_READ);
         }
         if (sd_char == '#') stop_buffering = true;
 
@@ -571,7 +560,7 @@ void Commands::process_next() {
     SERIAL_LT(ECHO, cmd.gcode);
   }
 
-  printer.reset_move_ms(); // Keep steppers powered
+  printer.reset_move_timer(); // Keep steppers powered
 
   // Parse the next command in the buffer_ring
   parser.parse(cmd.gcode);
@@ -584,7 +573,7 @@ void Commands::unknown_error() {
     gcode_t tmp = buffer_ring.peek();
     SERIAL_PORT(tmp.s_port);
   #endif
-  SERIAL_SMV(ECHO, MSG_UNKNOWN_COMMAND, parser.command_ptr);
+  SERIAL_SMV(ECHO, MSG_HOST_UNKNOWN_COMMAND, parser.command_ptr);
   SERIAL_CHR('"');
   SERIAL_EOL();
   SERIAL_PORT(-1);
@@ -607,7 +596,7 @@ bool Commands::enqueue_one(const char * cmd) {
     return true;
 
   if (enqueue(cmd)) {
-    SERIAL_SMT(ECHO, MSG_ENQUEUEING, cmd);
+    SERIAL_SMT(ECHO, MSG_HOST_ENQUEUEING, cmd);
     SERIAL_CHR('"');
     SERIAL_EOL();
     return true;

@@ -25,8 +25,11 @@
   #include "../sdcard/sdcard.h"
 #endif
 
-#define LCD_MESSAGEPGM(x)       lcdui.set_status_P(PSTR(x))
-#define LCD_ALERTMESSAGEPGM(x)  lcdui.set_alert_status_P(PSTR(x))
+#define LCD_MESSAGEPGM_P(x)       lcdui.set_status_P(x)
+#define LCD_ALERTMESSAGEPGM_P(x)  lcdui.set_alert_status_P(x)
+
+#define LCD_MESSAGEPGM(x)         LCD_MESSAGEPGM_P(GET_TEXT(x))
+#define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
   #define LCD_SET_CHARSET(C)    set_custom_characters(C)
@@ -61,29 +64,30 @@ class LcdUI {
       static LCDViewActionEnum lcdDrawUpdate;
 
       #if HAS_GRAPHICAL_LCD 
-
         static bool drawing_screen,
                     first_page;
-
       #else
-
-        static constexpr bool drawing_screen = false,
-                              first_page = true;
-
+        static constexpr bool drawing_screen  = false,
+                              first_page      = true;
       #endif
 
       #if HAS_CHARACTER_LCD && ENABLED(LCD_PROGRESS_BAR)
-        static millis_s progress_bar_ms;  // Start time for the current progress bar cycle
+        static short_timer_t progress_bar_timer(true); // Start time for the current progress bar cycle
         #if PROGRESS_MSG_EXPIRE > 0
-          static millis_l expire_status_ms; // = 0
+          static millis_s expire_status_time;     // = 0
         #endif
       #endif
 
       // Status message
       static char status_message[];
-      static uint8_t status_message_level; // Higher levels block lower levels
+      static uint8_t alert_level; // Higher levels block lower levels
+
+      // Language
+      static uint8_t lang;
 
       #if HAS_SPI_LCD
+
+        static millis_l next_button_update_ms;
 
         #if ENABLED(STATUS_MESSAGE_SCROLLING)
           static uint8_t status_scroll_offset;
@@ -95,7 +99,7 @@ class LcdUI {
         #endif
 
         #if (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
-          static millis_s previous_status_ms;
+          static short_timer_t previous_status_timer;
         #endif
         
       #endif
@@ -105,6 +109,9 @@ class LcdUI {
     #if HAS_LCD_MENU
 
       static screenFunc_t currentScreen;
+
+      // Select Screen (modal NO/YES style dialog)
+      static bool selection;
 
       #if ENABLED(ENCODER_RATE_MULTIPLIER)
         static bool encoderRateMultiplierEnabled;
@@ -122,23 +129,19 @@ class LcdUI {
         static constexpr bool processing_manual_move = false;
       #endif
 
-      #if E_MANUAL > 1
-        static int8_t manual_move_e_index;
-      #else
-        static constexpr int8_t manual_move_e_index = 0;
-      #endif
+      static int8_t manual_move_e_index;
 
-      #if HAS_HOTENDS
+      #if MAX_HOTEND > 0
         static int16_t preheat_hotend_temp[3];
       #endif
-      #if HAS_BEDS
+      #if MAX_BED > 0
         static int16_t preheat_bed_temp[3];
       #endif
-      #if HAS_CHAMBERS
+      #if MAX_CHAMBER > 0
         static int16_t preheat_chamber_temp[3];
       #endif
-      #if HAS_FANS
-        static int16_t preheat_fan_speed[3];
+      #if MAX_FAN > 0
+        static uint8_t preheat_fan_speed[3];
       #endif
 
     #elif HAS_SPI_LCD
@@ -161,7 +164,7 @@ class LcdUI {
 
     #if HAS_ENCODER_ACTION
 
-      static uint16_t encoderPosition;
+      static uint32_t encoderPosition;
 
       static volatile uint8_t buttons;
       #if ENABLED(REPRAPWORLD_KEYPAD)
@@ -171,7 +174,7 @@ class LcdUI {
         static volatile uint8_t slow_buttons;
       #endif
 
-      #if ENABLED(REVERSE_MENU_DIRECTION)
+      #if ENABLED(REVERSE_MENU_DIRECTION) || ENABLED(REVERSE_SELECT_DIRECTION)
         static int8_t encoderDirection;
       #else
         static constexpr int8_t encoderDirection = ENCODERBASE;
@@ -195,22 +198,22 @@ class LcdUI {
 
     static inline void factory_parameters() {
       #if HAS_LCD_MENU
-        #if HAS_HOTENDS
+        #if MAX_HOTEND > 0
           preheat_hotend_temp[0] = PREHEAT_1_TEMP_HOTEND;
           preheat_hotend_temp[1] = PREHEAT_2_TEMP_HOTEND;
           preheat_hotend_temp[2] = PREHEAT_3_TEMP_HOTEND;
         #endif
-        #if HAS_BEDS
+        #if MAX_BED > 0
           preheat_bed_temp[0] = PREHEAT_1_TEMP_BED;
           preheat_bed_temp[1] = PREHEAT_2_TEMP_BED;
           preheat_bed_temp[2] = PREHEAT_3_TEMP_BED;
         #endif
-        #if HAS_CHAMBERS
+        #if MAX_CHAMBER > 0
           preheat_chamber_temp[0] = PREHEAT_1_TEMP_CHAMBER;
           preheat_chamber_temp[1] = PREHEAT_2_TEMP_CHAMBER;
           preheat_chamber_temp[2] = PREHEAT_3_TEMP_CHAMBER;
         #endif
-        #if HAS_FANS
+        #if MAX_FAN > 0
           preheat_fan_speed[0] = PREHEAT_1_FAN_SPEED;
           preheat_fan_speed[1] = PREHEAT_2_FAN_SPEED;
           preheat_fan_speed[2] = PREHEAT_3_FAN_SPEED;
@@ -236,6 +239,8 @@ class LcdUI {
         static void init_lcd();
 
         #if ENABLED(SHOW_BOOTSCREEN)
+          static void draw_mk4duo_bootscreen(const bool line2=false);
+          static void show_mk4duo_bootscreen();
           static void show_bootscreen();
         #endif
 
@@ -257,7 +262,7 @@ class LcdUI {
           );
 
           #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-            static inline void reset_progress_bar_timeout() { expire_status_ms = 0; }
+            static inline void reset_progress_bar_timeout() { expire_status_time = 0; }
           #endif
 
         #endif
@@ -279,7 +284,7 @@ class LcdUI {
 
       // Status message
       static bool has_status();
-      static inline void reset_alert_level() { status_message_level = 0; }
+      static inline void reset_alert_level() { alert_level = 0; }
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         static void draw_hotend_status(const uint8_t row, const uint8_t hotend);
@@ -325,6 +330,10 @@ class LcdUI {
         static const char * scrolled_filename(SDCard &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll);
       #endif
 
+      // Select Screen (modal NO/YES style dialog)
+      static void set_selection(const bool sel) { selection = sel; }
+      static bool update_selection();
+
       static void manage_manual_move();
 
       static bool lcd_clicked;
@@ -332,12 +341,14 @@ class LcdUI {
 
       static void synchronize(PGM_P const msg=nullptr);
 
-      static void goto_screen(const screenFunc_t screen, const uint16_t encoder=0, const int8_t top=0, const int8_t items=0);
+      static void goto_screen(const screenFunc_t screen, const uint16_t encoder=0, const uint8_t top=0, const uint8_t items=0);
       static void save_previous_screen();
       static void goto_previous_screen();
       static void return_to_status();
       static inline bool on_status_screen() { return currentScreen == status_screen; }
       static inline void run_current_screen() { (*currentScreen)(); }
+
+      static void draw_select_screen_prompt(PGM_P const pref, const char * const string=nullptr, PGM_P const suff=nullptr);
 
       static inline void defer_status_screen(const bool defer=true) {
         #if LCD_TIMEOUT_TO_STATUS
@@ -390,17 +401,22 @@ class LcdUI {
         static void wait_for_release();
       #endif
 
-      #if ENABLED(REVERSE_ENCODER_DIRECTION)
-        #define ENCODERBASE -1
+      #if ENABLED(REVERSE_MENU_DIRECTION) || ENABLED(REVERSE_SELECT_DIRECTION)
+        static inline void encoder_direction_normal() { encoderDirection = ENCODERBASE; }
       #else
-        #define ENCODERBASE +1
+        static inline void encoder_direction_normal() {}
       #endif
+
       #if ENABLED(REVERSE_MENU_DIRECTION)
-        static inline void encoder_direction_normal() { encoderDirection = +(ENCODERBASE); }
         static inline void encoder_direction_menus()  { encoderDirection = -(ENCODERBASE); }
       #else
-        static inline void encoder_direction_normal() { }
-        static inline void encoder_direction_menus()  { }
+        static inline void encoder_direction_menus()  {}
+      #endif
+
+      #if ENABLED(REVERSE_SELECT_DIRECTION)
+        static inline void encoder_direction_select() { encoderDirection = -(ENCODERBASE); }
+      #else
+        static inline void encoder_direction_select() {}
       #endif
 
     #else

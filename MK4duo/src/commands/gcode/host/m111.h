@@ -31,7 +31,7 @@
 /**
  * M111: Debug mode Repetier Host compatibile
  */
-inline void gcode_M111(void) {
+inline void gcode_M111() {
   if (parser.seenval('S'))
     printer.setDebugLevel(parser.value_byte());
   if (parser.seenval('P')) {

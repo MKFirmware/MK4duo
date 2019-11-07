@@ -29,27 +29,16 @@
 
 #if HAS_EEPROM_I2C
 
-// --------------------------------------------------------------------------
-// Includes
-// --------------------------------------------------------------------------
-
 #include "../platform.h"
-
-// --------------------------------------------------------------------------
-// Local defines
-// --------------------------------------------------------------------------
+#include <Wire.h>
 
 #ifndef EEPROM_DELAY
   #define EEPROM_DELAY 5
 #endif
 
-// --------------------------------------------------------------------------
-// Public functions
-// --------------------------------------------------------------------------
-
 static uint8_t eeprom_device_address = 0x50;
 
-static void eeprom_init(void) {
+static void eeprom_init() {
   static bool eeprom_initialised = false;
   if (!eeprom_initialised) {
     WIRE.begin();

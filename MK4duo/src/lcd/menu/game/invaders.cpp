@@ -52,7 +52,7 @@
 
 #define INVADER_RIGHT ((INVADER_COLS) * (INVADER_COL_W))
 
-/// 11x8
+// 11x8
 const unsigned char invader[3][2][16] PROGMEM = {
   { { B00000110,B00000000,
       B00001111,B00000000,
@@ -147,11 +147,11 @@ const unsigned char ufo[] PROGMEM = {
 };
 
 constexpr uint8_t inv_type[] = {
-  #if INVADER_ROWS ==   5
+  #if INVADER_ROWS    == 5
     0, 1, 1, 2, 2
-  #elif INVADER_ROWS == 4
+  #elif INVADER_ROWS  == 4
     0, 1, 1, 2
-  #elif INVADER_ROWS == 3
+  #elif INVADER_ROWS  == 3
     0, 1, 2
   #else
     #error "INVASION_SIZE must be 3, 4, or 5."

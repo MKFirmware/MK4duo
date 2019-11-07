@@ -59,26 +59,21 @@
 #include <malloc.h>
 #include <Wire.h>
 
-// --------------------------------------------------------------------------
-// Public Variables
-// --------------------------------------------------------------------------
-
+/** Public Parameters */
 uint8_t MCUSR;
 
-int16_t HAL::AnalogInputValues[NUM_ANALOG_INPUTS] = { 0 };
-bool    HAL::Analog_is_ready = false;
-
-#if HAS_HOTENDS
-  ADCAveragingFilter HAL::sensorFilters[HOTENDS];
+/** Private Parameters */
+#if MAX_HOTEND > 0
+  ADCAveragingFilter HAL::HOTENDsensorFilters[MAX_HOTEND];
 #endif
-#if HAS_BEDS
-  ADCAveragingFilter HAL::BEDsensorFilters[BEDS];
+#if MAX_BED > 0
+  ADCAveragingFilter HAL::BEDsensorFilters[MAX_BED];
 #endif
-#if HAS_CHAMBERS
-  ADCAveragingFilter HAL::CHAMBERsensorFilters[CHAMBERS];
+#if MAX_CHAMBER > 0
+  ADCAveragingFilter HAL::CHAMBERsensorFilters[MAX_CHAMBER];
 #endif
-#if HAS_COOLERS
-  ADCAveragingFilter HAL::COOLERsensorFilters[COOLERS];
+#if MAX_COOLER > 0
+  ADCAveragingFilter HAL::COOLERsensorFilters[MAX_COOLER];
 #endif
 
 #if ENABLED(FILAMENT_WIDTH_SENSOR)
@@ -96,7 +91,7 @@ bool    HAL::Analog_is_ready = false;
 __attribute__ ((aligned(256)))
 static DeviceVectors ram_tab = { NULL };
 
-static pfnISR_Handler* get_relocated_table_addr(void) {
+static pfnISR_Handler* get_relocated_table_addr() {
   // Get the address of the interrupt/exception table
   uint32_t isrtab = SCB->VTOR;
 
@@ -136,12 +131,12 @@ pfnISR_Handler install_isr(IRQn_Type irq, pfnISR_Handler newHandler) {
 }
 
 // disable interrupts
-void cli(void) {
+void cli() {
   noInterrupts();
 }
 
 // enable interrupts
-void sei(void) {
+void sei() {
   interrupts();
 }
 
@@ -169,12 +164,6 @@ void noTone(const pin_t _pin) {
   HAL::digitalWrite(_pin, LOW);
 }
 
-// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
-extern "C" int sysTickHook() {
-  HAL::Tick();
-  return 0;
-}
-
 HAL::HAL() {
   // ctor
 }
@@ -184,7 +173,7 @@ HAL::~HAL() {
 }
 
 // do any hardware-specific initialization here
-void HAL::hwSetup(void) {
+void HAL::hwSetup() {
   TimeTick_Configure(F_CPU);
   NVIC_SetPriority(SysTick_IRQn, NvicPrioritySystick);
   NVIC_SetPriority(UART_IRQn, NvicPriorityUart);
@@ -193,11 +182,11 @@ void HAL::hwSetup(void) {
 // Print apparent cause of start/restart
 void HAL::showStartReason() {
   switch ((RSTC->RSTC_SR >> 8) & 0x07) {
-    case 0: SERIAL_EM(MSG_POWERUP); break;
-    case 1: SERIAL_EM(MSG_BROWNOUT_RESET); break;
-    case 2: SERIAL_EM(MSG_WATCHDOG_RESET); break;
-    case 3: SERIAL_EM(MSG_SOFTWARE_RESET); break;
-    case 4: SERIAL_EM(MSG_EXTERNAL_RESET); break;
+    case 0: SERIAL_EM(MSG_HOST_POWERUP); break;
+    case 1: SERIAL_EM(MSG_HOST_BROWNOUT_RESET); break;
+    case 2: SERIAL_EM(MSG_HOST_WATCHDOG_RESET); break;
+    case 3: SERIAL_EM(MSG_HOST_SOFTWARE_RESET); break;
+    case 4: SERIAL_EM(MSG_HOST_EXTERNAL_RESET); break;
     default: break;
   }
 }
@@ -250,7 +239,7 @@ uint16_t AnalogInReadPin(const pin_t r_pin) {
 }
 
 // Initialize ADC channels
-void HAL::analogStart(void) {
+void HAL::analogStart() {
 
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
     PIO_Configure(
@@ -269,52 +258,49 @@ void HAL::analogStart(void) {
   ADC->ADC_WPMR = 0x41444300u;    // ADC_WPMR_WPKEY(0);
   pmc_enable_periph_clk(ID_ADC);  // enable adc clock
 
-  #if HAS_HOTENDS
+  #if MAX_HOTEND > 0
     LOOP_HOTEND() {
-      if (WITHIN(hotends[h].data.sensor.pin, 0, 15)) {
-        AnalogInEnablePin(hotends[h].data.sensor.pin, true);
-        sensorFilters[h].Init(0);
+      if (WITHIN(hotends[h]->data.sensor.pin, 0, 15)) {
+        AnalogInEnablePin(hotends[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if HAS_BEDS
+  #if MAX_BED > 0
     LOOP_BED() {
-      if (WITHIN(beds[h].data.sensor.pin, 0, 15)) {
-        AnalogInEnablePin(beds[h].data.sensor.pin, true);
-        BEDsensorFilters[h].Init(0);
+      if (WITHIN(beds[h]->data.sensor.pin, 0, 15)) {
+        AnalogInEnablePin(beds[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if HAS_CHAMBERS
+  #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
-      if (WITHIN(chambers[h].data.sensor.pin, 0, 15)) {
-        AnalogInEnablePin(chambers[h].data.sensor.pin, true);
-        CHAMBERsensorFilters[h].Init(0);
+      if (WITHIN(chambers[h]->data.sensor.pin, 0, 15)) {
+        AnalogInEnablePin(chambers[h]->data.sensor.pin, true);
       }
     }
   #endif
-  #if HAS_COOLERS
+  #if MAX_COOLER > 0
     LOOP_COOLER() {
-      if (WITHIN(coolers[h].data.sensor.pin, 0, 15)) {
-        AnalogInEnablePin(coolers[h].data.sensor.pin, true);
-        COOLERsensorFilters[h].Init(0);
+      if (WITHIN(coolers[h]->data.sensor.pin, 0, 15)) {
+        AnalogInEnablePin(coolers[h]->data.sensor.pin, true);
       }
     }
   #endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
-    AnalogInEnablePin(FILWIDTH_PIN, true);
-    filamentFilter.Init(0);
+    if (WITHIN(FILWIDTH_PIN, 0, 15) {
+      AnalogInEnablePin(FILWIDTH_PIN, true);
+    }
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    AnalogInEnablePin(POWER_CONSUMPTION_PIN, true);
-    powerFilter.Init(0);
+    if (WITHIN(POWER_CONSUMPTION_PIN, 0, 15) {
+      AnalogInEnablePin(POWER_CONSUMPTION_PIN, true);
+    }
   #endif
 
   #if HAS_MCU_TEMPERATURE
     AnalogInEnablePin(ADC_TEMPERATURE_SENSOR, true);
-    mcuFilter.Init(0);
   #endif
 
   // Initialize ADC mode register (some of the following params are not used here)
@@ -386,7 +372,7 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v) {
   tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xF0FFFFFF) | v;
 }
 
-void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/, const bool hwpwm/*=true*/) {
+void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1000U*/) {
 
   static bool PWMEnabled = false;
   static uint8_t TCChanEnabled[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -394,168 +380,160 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
 
   if (isnan(ulValue) || pin <= 0) return;
 
-  if (hwpwm) {
+  const PinDescription& pinDesc = g_APinDescription[pin];
+  if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
 
-    const PinDescription& pinDesc = g_APinDescription[pin];
-    if (pinDesc.ulPinType == PIO_NOT_A_PIN) return;
+  const uint32_t attr = pinDesc.ulPinAttribute;
 
-    const uint32_t attr = pinDesc.ulPinAttribute;
+  if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {
+    EAnalogChannel channel = pinDesc.ulADCChannelNumber;
+    if (channel == DA0 || channel == DA1) {
+      uint32_t chDACC = ((channel == DA0) ? 0 : 1);
+      if (dacc_get_channel_status(DACC_INTERFACE) == 0) {
 
-    if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {
-      EAnalogChannel channel = pinDesc.ulADCChannelNumber;
-      if (channel == DA0 || channel == DA1) {
-        uint32_t chDACC = ((channel == DA0) ? 0 : 1);
-        if (dacc_get_channel_status(DACC_INTERFACE) == 0) {
+        /* Enable clock for DACC_INTERFACE */
+        pmc_enable_periph_clk(DACC_INTERFACE_ID);
 
-          /* Enable clock for DACC_INTERFACE */
-          pmc_enable_periph_clk(DACC_INTERFACE_ID);
+        /* Reset DACC registers */
+        dacc_reset(DACC_INTERFACE);
 
-          /* Reset DACC registers */
-          dacc_reset(DACC_INTERFACE);
+        /* Half word transfer mode */
+        dacc_set_transfer_mode(DACC_INTERFACE, 0);
 
-          /* Half word transfer mode */
-          dacc_set_transfer_mode(DACC_INTERFACE, 0);
+        /* Power save:
+         * sleep mode  - 0 (disabled)
+         * fast wakeup - 0 (disabled)
+         */
+        dacc_set_power_save(DACC_INTERFACE, 0, 0);
 
-          /* Power save:
-           * sleep mode  - 0 (disabled)
-           * fast wakeup - 0 (disabled)
-           */
-          dacc_set_power_save(DACC_INTERFACE, 0, 0);
+        /* Timing:
+         * refresh        - 0x08 (1024*8 dacc clocks)
+         * max speed mode -    0 (disabled)
+         * startup time   - 0x10 (1024 dacc clocks)
+         */
+        dacc_set_timing(DACC_INTERFACE, 0x08, 0, 0x10);
 
-          /* Timing:
-           * refresh        - 0x08 (1024*8 dacc clocks)
-           * max speed mode -    0 (disabled)
-           * startup time   - 0x10 (1024 dacc clocks)
-           */
-          dacc_set_timing(DACC_INTERFACE, 0x08, 0, 0x10);
-
-          /* Set up analog current */
-          dacc_set_analog_control(DACC_INTERFACE, DACC_ACR_IBCTLCH0(0x02) |
-                                  DACC_ACR_IBCTLCH1(0x02) |
-                                  DACC_ACR_IBCTLDACCORE(0x01)
-          );
-        }
-
-        /* Disable TAG and select output channel chDACC */
-        dacc_set_channel_selection(DACC_INTERFACE, chDACC);
-
-        if ((dacc_get_channel_status(DACC_INTERFACE) & (1 << chDACC)) == 0)
-          dacc_enable_channel(DACC_INTERFACE, chDACC);
-
-        // Write user value
-        ulValue = mapResolution(ulValue, writeResolution, DACC_RESOLUTION);
-        dacc_write_conversion_data(DACC_INTERFACE, ulValue);
-        while ((dacc_get_interrupt_status(DACC_INTERFACE) & DACC_ISR_EOC) == 0);
-        return;
-      }
-    }
-
-    if ((attr & PIN_ATTR_PWM) == PIN_ATTR_PWM) {
-
-      ulValue = mapResolution(ulValue, writeResolution, PWM_RESOLUTION);
-
-      if (!PWMEnabled) {
-        // PWM Startup code
-        pmc_enable_periph_clk(PWM_INTERFACE_ID);
-        PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
-        PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
-        PWMEnabled = true;
+        /* Set up analog current */
+        dacc_set_analog_control(DACC_INTERFACE, DACC_ACR_IBCTLCH0(0x02) |
+                                DACC_ACR_IBCTLCH1(0x02) |
+                                DACC_ACR_IBCTLDACCORE(0x01)
+        );
       }
 
-      uint32_t chan = pinDesc.ulPWMChannel;
-      if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
-        // Setup PWM for this pin
-        PIO_Configure(pinDesc.pPort,
-            pinDesc.ulPinType,
-            pinDesc.ulPin,
-            pinDesc.ulPinConfiguration);
-        PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
-        PWMC_SetPeriod(PWM_INTERFACE, chan, PWM_MAX_DUTY_CYCLE);
-        PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
-        PWMC_EnableChannel(PWM_INTERFACE, chan);
-        g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
-      }
+      /* Disable TAG and select output channel chDACC */
+      dacc_set_channel_selection(DACC_INTERFACE, chDACC);
 
-      PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+      if ((dacc_get_channel_status(DACC_INTERFACE) & (1 << chDACC)) == 0)
+        dacc_enable_channel(DACC_INTERFACE, chDACC);
+
+      // Write user value
+      ulValue = mapResolution(ulValue, writeResolution, DACC_RESOLUTION);
+      dacc_write_conversion_data(DACC_INTERFACE, ulValue);
+      while ((dacc_get_interrupt_status(DACC_INTERFACE) & DACC_ISR_EOC) == 0);
       return;
     }
-
-    if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
-
-      static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
-      static const uint32_t channelToAB[]   = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
-      static const uint32_t channelToId[] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8 };
-
-      static Tc *channelToTC[] = {
-        TC0, TC0, TC0, TC0, TC0, TC0,
-        TC1, TC1, TC1, TC1, TC1, TC1,
-        TC2, TC2, TC2, TC2, TC2, TC2
-      };
-
-      // We use MCLK/2 as clock.
-      const uint32_t TC = VARIANT_MCK / 2 / freq;
-
-      // Map value to Timer ranges 0..255 => 0..TC
-      ulValue = mapResolution(ulValue, writeResolution, TC_RESOLUTION);
-      ulValue *= TC / TC_MAX_DUTY_CYCLE;
-
-      // Setup Timer for this pin
-      ETCChannel channel = pinDesc.ulTCChannel;
-      uint32_t chNo = channelToChNo[channel];
-      uint32_t chA  = channelToAB[channel];
-      Tc *chTC = channelToTC[channel];
-      uint32_t interfaceID = channelToId[channel];
-
-      if (!TCChanEnabled[interfaceID]) {
-        pmc_enable_periph_clk(TC_INTERFACE_ID + interfaceID);
-        TC_Configure(chTC, chNo,
-          TC_CMR_TCCLKS_TIMER_CLOCK1 |
-          TC_CMR_WAVE |         // Waveform mode
-          TC_CMR_WAVSEL_UP_RC | // Counter running up and reset when equals to RC
-          TC_CMR_EEVT_XC0 |     // Set external events from XC0 (this setup TIOB as output)
-          TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
-          TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-        chTC->TC_CHANNEL[chNo].TC_RC = TC;
-      }
-
-      if (ulValue == 0) {
-        if (chA)
-          TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
-        else
-          TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
-      }
-      else {
-        if (chA) {
-          chTC->TC_CHANNEL[chNo].TC_RA = ulValue;
-          TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
-        }
-        else {
-          chTC->TC_CHANNEL[chNo].TC_RB = ulValue;
-          TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
-        }
-      }
-
-      if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
-        PIO_Configure(pinDesc.pPort,
-            pinDesc.ulPinType,
-            pinDesc.ulPin,
-            pinDesc.ulPinConfiguration);
-        g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
-      }
-
-      if (!TCChanEnabled[interfaceID]) {
-        TC_Start(chTC, chNo);
-        TCChanEnabled[interfaceID] = 1;
-      }
-
-      return;
-    }
-
   }
 
-  // If not hardware pwm pin used Software pwm
-  ulValue = mapResolution(ulValue, writeResolution, 8);
-  softpwm.set(pin, ulValue);
+  if ((attr & PIN_ATTR_PWM) == PIN_ATTR_PWM) {
+
+    ulValue = mapResolution(ulValue, writeResolution, PWM_RESOLUTION);
+
+    if (!PWMEnabled) {
+      // PWM Startup code
+      pmc_enable_periph_clk(PWM_INTERFACE_ID);
+      PWMC_ConfigureClocks(freq * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
+      PWM_INTERFACE->PWM_SCM = 0; // ensure no sync channels
+      PWMEnabled = true;
+    }
+
+    uint32_t chan = pinDesc.ulPWMChannel;
+    if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
+      // Setup PWM for this pin
+      PIO_Configure(pinDesc.pPort,
+          pinDesc.ulPinType,
+          pinDesc.ulPin,
+          pinDesc.ulPinConfiguration);
+      PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
+      PWMC_SetPeriod(PWM_INTERFACE, chan, PWM_MAX_DUTY_CYCLE);
+      PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+      PWMC_EnableChannel(PWM_INTERFACE, chan);
+      g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
+    }
+
+    PWMC_SetDutyCycle(PWM_INTERFACE, chan, ulValue);
+    return;
+  }
+
+  if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
+
+    static const uint32_t channelToChNo[] = { 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2 };
+    static const uint32_t channelToAB[]   = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
+    static const uint32_t channelToId[] = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8 };
+
+    static Tc *channelToTC[] = {
+      TC0, TC0, TC0, TC0, TC0, TC0,
+      TC1, TC1, TC1, TC1, TC1, TC1,
+      TC2, TC2, TC2, TC2, TC2, TC2
+    };
+
+    // We use MCLK/2 as clock.
+    const uint32_t TC = VARIANT_MCK / 2 / freq;
+
+    // Map value to Timer ranges 0..255 => 0..TC
+    ulValue = mapResolution(ulValue, writeResolution, TC_RESOLUTION);
+    ulValue *= TC / TC_MAX_DUTY_CYCLE;
+
+    // Setup Timer for this pin
+    ETCChannel channel = pinDesc.ulTCChannel;
+    uint32_t chNo = channelToChNo[channel];
+    uint32_t chA  = channelToAB[channel];
+    Tc *chTC = channelToTC[channel];
+    uint32_t interfaceID = channelToId[channel];
+
+    if (!TCChanEnabled[interfaceID]) {
+      pmc_enable_periph_clk(TC_INTERFACE_ID + interfaceID);
+      TC_Configure(chTC, chNo,
+        TC_CMR_TCCLKS_TIMER_CLOCK1 |
+        TC_CMR_WAVE |         // Waveform mode
+        TC_CMR_WAVSEL_UP_RC | // Counter running up and reset when equals to RC
+        TC_CMR_EEVT_XC0 |     // Set external events from XC0 (this setup TIOB as output)
+        TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR |
+        TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+      chTC->TC_CHANNEL[chNo].TC_RC = TC;
+    }
+
+    if (ulValue == 0) {
+      if (chA)
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_CLEAR);
+      else
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_CLEAR);
+    }
+    else {
+      if (chA) {
+        chTC->TC_CHANNEL[chNo].TC_RA = ulValue;
+        TC_SetCMR_ChannelA(chTC, chNo, TC_CMR_ACPA_CLEAR | TC_CMR_ACPC_SET);
+      }
+      else {
+        chTC->TC_CHANNEL[chNo].TC_RB = ulValue;
+        TC_SetCMR_ChannelB(chTC, chNo, TC_CMR_BCPB_CLEAR | TC_CMR_BCPC_SET);
+      }
+    }
+
+    if ((g_pinStatus[pin] & 0xF) != PIN_STATUS_PWM) {
+      PIO_Configure(pinDesc.pPort,
+          pinDesc.ulPinType,
+          pinDesc.ulPin,
+          pinDesc.ulPinConfiguration);
+      g_pinStatus[pin] = (g_pinStatus[pin] & 0xF0) | PIN_STATUS_PWM;
+    }
+
+    if (!TCChanEnabled[interfaceID]) {
+      TC_Start(chTC, chNo);
+      TCChanEnabled[interfaceID] = 1;
+    }
+
+    return;
+  }
 
 }
 
@@ -571,121 +549,104 @@ void HAL::analogWrite(const pin_t pin, uint32_t ulValue, const uint16_t freq/*=1
  */
 void HAL::Tick() {
 
-  static millis_s cycle_1s_ms   = millis(),
-                  cycle_100_ms  = millis();
+  static short_timer_t  cycle_1s_timer(true),
+                        cycle_100_timer(true);
 
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if HAS_HOTENDS
-    LOOP_HOTEND() hotends[h].set_output_pwm();
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
   #endif
-  #if HAS_BEDS
-    LOOP_BED() beds[h].set_output_pwm();
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
   #endif
-  #if HAS_CHAMBERS
-    LOOP_CHAMBER() chambers[h].set_output_pwm();
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
   #endif
-  #if HAS_COOLERS
-    LOOP_COOLER() coolers[h].set_output_pwm();
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->set_output_pwm();
   #endif
 
   // Fans set output PWM
-  #if HAS_FANS
+  #if MAX_FAN > 0
     LOOP_FAN() {
-      if (fans[f].kickstart) fans[f].kickstart--;
-      fans[f].set_output_pwm();
+      if (fans[f]->kickstart) fans[f]->kickstart--;
+      fans[f]->set_output_pwm();
     }
   #endif
 
-  // Software PWM modulation
-  softpwm.spin();
-
   // Event 100 ms
-  if (expired(&cycle_100_ms, 100U)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) thermalManager.spin();
 
   // Event 1.0 Second
-  if (expired(&cycle_1s_ms, 1000U)) printer.check_periodical_actions();
+  if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
 
   // Read analog or SPI values
   if (adc_get_status(ADC)) { // conversion finished?
 
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       LOOP_HOTEND() {
-        Heater * const act = &hotends[h];
-        if (WITHIN(act->data.sensor.pin, 0, 15)) {
-          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(sensorFilters[h]);
-          currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
-          if (currentFilter.IsValid()) {
-            AnalogInputValues[act->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-            Analog_is_ready = true;
-          }
+        if (WITHIN(hotends[h]->data.sensor.pin, 0, 15)) {
+          ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(HOTENDsensorFilters[h]);
+          currentFilter.process_reading(AnalogInReadPin(hotends[h]->data.sensor.pin));
+          if (currentFilter.IsValid())
+            hotends[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
-    #if HAS_BEDS
+    #if MAX_BED > 0
       LOOP_BED() {
-        Heater * const act = &beds[h];
-        if (WITHIN(act->data.sensor.pin, 0, 15)) {
+        if (WITHIN(beds[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(BEDsensorFilters[h]);
-          currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
-          if (currentFilter.IsValid()) {
-            AnalogInputValues[act->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-            Analog_is_ready = true;
-          }
+          currentFilter.process_reading(AnalogInReadPin(beds[h]->data.sensor.pin));
+          if (currentFilter.IsValid())
+            beds[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       LOOP_CHAMBER() {
-        Heater * const act = &chambers[h];
-        if (WITHIN(act->data.sensor.pin, 0, 15)) {
+        if (WITHIN(chambers[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(CHAMBERsensorFilters[h]);
-          currentFilter.ProcessReading(AnalogInReadPin(act->data.sensor.pin));
-          if (currentFilter.IsValid()) {
-            AnalogInputValues[act->data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-            Analog_is_ready = true;
-          }
+          currentFilter.process_reading(AnalogInReadPin(chambers[h]->data.sensor.pin));
+          if (currentFilter.IsValid())
+            chambers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
-    #if HAS_COOLERS
+    #if MAX_COOLER > 0
       LOOP_COOLER() {
-        if (WITHIN(coolers[h].data.sensor.pin, 0, 15)) {
+        if (WITHIN(coolers[h]->data.sensor.pin, 0, 15)) {
           ADCAveragingFilter& currentFilter = const_cast<ADCAveragingFilter&>(COOLERsensorFilters[h]);
-          currentFilter.ProcessReading(AnalogInReadPin(coolers[h].data.sensor.pin));
-          if (currentFilter.IsValid()) {
-            AnalogInputValues[coolers[h].data.sensor.pin] = (currentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
-            Analog_is_ready = true;
-          }
+          currentFilter.process_reading(AnalogInReadPin(coolers[h]->data.sensor.pin));
+          if (currentFilter.IsValid())
+            coolers[h]->data.sensor.adc_raw = (currentFilter.GetSum() / NUM_ADC_SAMPLES);
         }
       }
     #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      const_cast<ADCAveragingFilter&>(filamentFilter).ProcessReading(AnalogInReadPin(FILWIDTH_PIN));
+      const_cast<ADCAveragingFilter&>(filamentFilter).process_reading(AnalogInReadPin(FILWIDTH_PIN));
       if (filamentFilter.IsValid())
-        AnalogInputValues[FILWIDTH_PIN] = (filamentFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+        thermalManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
     #endif
 
     #if HAS_POWER_CONSUMPTION_SENSOR
-      const_cast<ADCAveragingFilter&>(powerFilter).ProcessReading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
+      const_cast<ADCAveragingFilter&>(powerFilter).process_reading(AnalogInReadPin(POWER_CONSUMPTION_PIN));
       if (powerFilter.IsValid())
-        AnalogInputValues[POWER_CONSUMPTION_PIN] = (powerFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+        powerManager.current_raw_powconsumption = (powerFilter.GetSum() / NUM_ADC_SAMPLES);
     #endif
 
     #if HAS_MCU_TEMPERATURE
-      const_cast<ADCAveragingFilter&>(mcuFilter).ProcessReading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
+      const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(AnalogInReadPin(ADC_TEMPERATURE_SENSOR));
       if (mcuFilter.IsValid())
-        thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES) << OVERSAMPLENR;
+        thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
     #endif
 
   }
 
   AnalogInStartConversion();
-
-  // Update the raw values if they've been read. Else we could be updating them during reading.
-  if (HAL::Analog_is_ready) thermalManager.set_current_temp_raw();
 
   // Tick endstops state, if required
   endstops.Tick();
@@ -695,6 +656,13 @@ void HAL::Tick() {
 /**
  * Interrupt Service Routines
  */
+
+// This intercepts the 1ms system tick. It must return 'false', otherwise the Arduino core tick handler will be bypassed.
+extern "C" int sysTickHook() {
+  HAL::Tick();
+  return 0;
+}
+
 HAL_TONE_TIMER_ISR() {
   static uint8_t pin_state = 0;
   HAL_timer_isr_prologue(TONE_TIMER_NUM);

@@ -211,7 +211,7 @@
  * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
  * M209 - S[1/0] enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
  * M217 - Set Park position and tool change parameters. (Requires NOZZLE_PARK_FEATURE or TOOL_CHANGE_FIL_SWAP)
- * M218 - Set hotend offset (in mm): T[tools] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
+ * M218 - Set hotend offset (in mm): T[tool] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
  * M220 - Set speed factor override percentage: S[factor in percent]
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
@@ -251,6 +251,7 @@
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M352 - Set driver pins and logic. X X2 Y Y2 Z Z2 Z3 T0-5 E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
+ * M353 - Set number total Extruder. S[int] Number total extruder
  * M355 - Turn case lights on/off
  * M380 - Activate solenoid on active extruder
  * M381 - Disable all solenoids

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0 && ENABLED(VOLUMETRIC_EXTRUSION)
+#if ENABLED(VOLUMETRIC_EXTRUSION)
 
 #define CODE_M200
 
@@ -36,7 +36,7 @@
  *    T<extruder> - Optional extruder number. Current extruder if omitted.
  *    D<linear> - Diameter of the filament. Use "D0" to switch back to linear units on the E axis.
  */
-inline void gcode_M200(void) {
+inline void gcode_M200() {
 
   if (commands.get_target_tool(200)) return;
 
@@ -54,9 +54,9 @@ inline void gcode_M200(void) {
     // for all extruders
     printer.setVolumetric(parser.value_linear_units() != 0);
     if (printer.isVolumetric())
-      tools.set_filament_size(TARGET_EXTRUDER, parser.value_linear_units());
+      extruders[tools.extruder.target]->set_filament_size(parser.value_linear_units());
   }
   tools.calculate_volumetric_multipliers();
 }
 
-#endif // EXTRUDERS > 0
+#endif // ENABLED(VOLUMETRIC_EXTRUSION)

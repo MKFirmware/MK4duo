@@ -26,16 +26,16 @@
  * Copyright (c) 2017 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_COOLERS
+#if MAX_COOLER > 0
 
 #define CODE_M142
 
 /**
  * M142: Set Cooler temperature
  */
-inline void gcode_M142(void) {
+inline void gcode_M142() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
-  if (parser.seenval('S')) coolers[0].set_target_temp(parser.value_celsius());
+  if (parser.seenval('S') && coolers[0]) coolers[0]->set_target_temp(parser.value_celsius());
 }
 
 #endif

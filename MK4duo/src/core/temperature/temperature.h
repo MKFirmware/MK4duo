@@ -24,7 +24,6 @@
 /**
  * temperature.h - temperature controller
  */
-
 class Temperature {
 
   public: /** Constructor */
@@ -36,7 +35,6 @@ class Temperature {
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
                       mcu_highest_temperature,
-                      mcu_lowest_temperature,
                       mcu_alarm_temperature;
       static int16_t  mcu_current_temperature_raw;
     #endif
@@ -45,7 +43,7 @@ class Temperature {
       static float    redundant_temperature;
     #endif
 
-    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
       static int16_t extrude_min_temp;
     #endif
 
@@ -63,6 +61,11 @@ class Temperature {
   public: /** Public Function */
 
     /**
+     * Create Object Heater and fan
+     */
+    static void create_object();
+
+    /**
      * Initialize the temperature manager
      */
     static void init();
@@ -73,9 +76,14 @@ class Temperature {
     static void factory_parameters();
 
     /**
-     * Called from the Temperature ISR
+     * Change number heater
      */
-    static void set_current_temp_raw();
+    static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
+
+    /**
+     * Change number fan
+     */
+    static void change_number_fan(const uint8_t f);
 
     /**
      * Call periodically to HAL isr
@@ -95,7 +103,7 @@ class Temperature {
     /**
      * Calc min & max temp of all hotends
      */
-    #if HAS_HOTENDS
+    #if MAX_HOTEND > 0
       static int16_t hotend_mintemp_all();
       static int16_t hotend_maxtemp_all();
     #endif
@@ -103,7 +111,7 @@ class Temperature {
     /**
      * Calc min & max temp of all beds
      */
-    #if HAS_BEDS
+    #if MAX_BED > 0
       static int16_t bed_mintemp_all();
       static int16_t bed_maxtemp_all();
     #endif
@@ -111,7 +119,7 @@ class Temperature {
     /**
      * Calc min & max temp of all chambers
      */
-    #if HAS_CHAMBERS
+    #if MAX_CHAMBER > 0
       static int16_t chamber_mintemp_all();
       static int16_t chamber_maxtemp_all();
     #endif
@@ -119,7 +127,7 @@ class Temperature {
     /**
      * Calc min & max temp of all coolers
      */
-    #if HAS_COOLERS
+    #if MAX_COOLER > 0
       static int16_t cooler_mintemp_all();
       static int16_t cooler_maxtemp_all();
     #endif
@@ -139,25 +147,19 @@ class Temperature {
 
     static void report_temperatures(const bool showRaw=false);
 
-    #if HAS_EXTRUDERS && ENABLED(PREVENT_COLD_EXTRUSION)
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
       FORCE_INLINE static bool tooCold(const int16_t temp) {
         return printer.isAllowColdExtrude() ? false : temp < extrude_min_temp;
       }
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) {
-        #if HOTENDS <= 1
-          UNUSED(h);
-        #endif
-        return tooCold(hotends[HOTEND_INDEX].deg_current());
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t e) {
+        return tooCold(hotends[extruders[e]->get_hotend()]->deg_current());
       }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) {
-        #if HOTENDS == 1
-          UNUSED(h);
-        #endif
-        return tooCold(hotends[HOTEND_INDEX].deg_target());
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t e) {
+        return tooCold(hotends[extruders[e]->get_hotend()]->deg_target());
       }
     #else
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t h) { UNUSED(h); return false; }
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t) { return false; }
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t) { return false; }
     #endif
 
     FORCE_INLINE static bool hotEnoughToExtrude(const uint8_t h) { return !tooColdToExtrude(h); }
@@ -165,17 +167,50 @@ class Temperature {
 
   private: /** Private Function */
 
+    /**
+     * Hotends Factory parameters
+     */
+    #if MAX_HOTEND > 0
+      static void hotends_factory_parameters(const uint8_t h);
+    #endif
+
+    /**
+     * Beds Factory parameters
+     */
+    #if MAX_BED > 0
+      static void beds_factory_parameters(const uint8_t h);
+    #endif
+
+    /**
+     * Chambers Factory parameters
+     */
+    #if MAX_CHAMBER > 0
+      static void chambers_factory_parameters(const uint8_t h);
+    #endif
+
+    /**
+     * Coolers Factory parameters
+     */
+    #if MAX_COOLER > 0
+      static void coolers_factory_parameters(const uint8_t h);
+    #endif
+
+    /**
+     * Fans Factory parameters
+     */
+    #if MAX_FAN > 0
+      static void fans_factory_parameters(const uint8_t f);
+    #endif
+
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      static float analog2widthFil(); // Convert raw Filament Width to millimeters
+      static float analog2widthFil(); // Convert adc_raw Filament Width to millimeters
     #endif
 
     #if HAS_MCU_TEMPERATURE
-      static float analog2tempMCU(const int raw);
+      static float analog2tempMCU(const int adc_raw);
     #endif
 
-    #if HAS_HEATER
-      static void print_heater_state(Heater * const act, const bool print_ID, const bool showRaw);
-    #endif
+    static void print_heater_state(Heater* act, const bool print_ID, const bool showRaw);
 
 };
 

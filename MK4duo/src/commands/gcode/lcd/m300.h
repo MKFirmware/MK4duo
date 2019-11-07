@@ -31,7 +31,7 @@
 /**
  * M300: Play beep sound S<frequency Hz> P<duration ms>
  */
-inline void gcode_M300(void) {
+inline void gcode_M300() {
   uint16_t const frequency = parser.seen('S') ? parser.value_ushort() : 260;
   uint16_t duration = parser.seen('P') ? parser.value_ushort() : 1000;
 

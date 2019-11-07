@@ -29,224 +29,139 @@
  */
 
 #define DISPLAY_CHARSET_ISO10646_1 // use the better font on full graphic displays.
-#define CHARSIZE 2
 
-#define WELCOME_MSG                         MACHINE_NAME _UxGT(" spreman.")
-#define MSG_SD_INSERTED                     _UxGT("SD kartica umetnuta")
-#define MSG_SD_REMOVED                      _UxGT("SD kartica uklonjena")
-#define MSG_LCD_ENDSTOPS                    _UxGT("Endstops") // Max length 8 characters
-#define MSG_MAIN                            _UxGT("Main")
-#define MSG_AUTOSTART                       _UxGT("Auto pokretanje")
-#define MSG_DISABLE_STEPPERS                _UxGT("Ugasi steppere")
-#define MSG_AUTO_HOME                       _UxGT("Automatski homing")
-#define MSG_AUTO_HOME_X                     _UxGT("Home-aj X")
-#define MSG_AUTO_HOME_Y                     _UxGT("Home-aj Y")
-#define MSG_AUTO_HOME_Z                     _UxGT("Home-aj Z")
-#define MSG_LEVEL_BED_HOMING                _UxGT("Home-aj XYZ")
-#define MSG_LEVEL_BED_WAITING               _UxGT("Klikni za početak")
-#define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Sljedeća točka")
-#define MSG_LEVEL_BED_DONE                  _UxGT("Niveliranje gotovo!")
-#define MSG_SET_HOME_OFFSETS                _UxGT("Postavi home offsete")
-#define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offsets postavljeni")
-#define MSG_SET_ORIGIN                      _UxGT("Postavi ishodište")
-#define MSG_PREHEAT_1                       _UxGT("Predgrij " PREHEAT_1_LABEL)
-#define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
-#define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Sve")
-#define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Bed")
-#define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" conf")
-#define MSG_PREHEAT_2                       _UxGT("Predgrij " PREHEAT_2_LABEL)
-#define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
-#define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Sve")
-#define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Bed")
-#define MSG_PREHEAT_2_SETTINGS              MSG_PREHEAT_2 _UxGT(" conf")
-#define MSG_COOLDOWN                        _UxGT("Hlađenje")
-#define MSG_SWITCH_PS_ON                    _UxGT("Uključi napajanje")
-#define MSG_SWITCH_PS_OFF                   _UxGT("Isključi napajanje")
-#define MSG_EXTRUDE                         _UxGT("Extrude")
-#define MSG_RETRACT                         _UxGT("Retract")
-#define MSG_MOVE_AXIS                       _UxGT("Miči os")
-#define MSG_BED_LEVELING                    _UxGT("Niveliraj bed")
-#define MSG_LEVEL_BED                       _UxGT("Niveliraj bed")
-#define MSG_MOVE_X                          _UxGT("Miči X")
-#define MSG_MOVE_Y                          _UxGT("Miči Y")
-#define MSG_MOVE_Z                          _UxGT("Miči Z")
-#define MSG_MOVE_E                          _UxGT("Extruder")
-#define MSG_MOVE_Z_DIST                     _UxGT("Miči %smm")
-#define MSG_MOVE_01MM                       _UxGT("Miči 0.1mm")
-#define MSG_MOVE_1MM                        _UxGT("Miči 1mm")
-#define MSG_MOVE_10MM                       _UxGT("Miči 10mm")
-#define MSG_SPEED                           _UxGT("Brzina")
-#define MSG_BED_Z                           _UxGT("Bed Z")
-#define MSG_NOZZLE                          _UxGT("Dizna")
-#define MSG_BED                             _UxGT("Bed")
-#define MSG_FAN_SPEED                       _UxGT("Brzina ventilatora")
-#define MSG_FLOW                            _UxGT("Flow")
-#define MSG_CONTROL                         _UxGT("Control")
-#define MSG_MIN                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Min")
-#define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
-#define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
-#define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_LCD_ON                          _UxGT("On")
-#define MSG_LCD_OFF                         _UxGT("Off")
-#define MSG_PID_P                           _UxGT("PID-P")
-#define MSG_PID_I                           _UxGT("PID-I")
-#define MSG_PID_D                           _UxGT("PID-D")
-#define MSG_PID_C                           _UxGT("PID-C")
-#define MSG_SELECT                          _UxGT("Odaberi")
-#define MSG_ACC                             _UxGT("Accel")
-#define MSG_JERK                            _UxGT("Jerk")
-#if IS_KINEMATIC
-  #define MSG_VA_JERK                       _UxGT("Va-jerk")
-  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
-  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
-#else
-  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
-  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
-  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
-#endif
-#define MSG_VE_JERK                         _UxGT("Ve-jerk")
-#define MSG_VMAX                            _UxGT("Vmax ")
-#define MSG_VMIN                            _UxGT("Vmin")
-#define MSG_VTRAV_MIN                       _UxGT("VTrav min")
-#define MSG_AMAX                            _UxGT("Amax ")
-#define MSG_A_RETRACT                       _UxGT("A-retract")
-#define MSG_A_TRAVEL                        _UxGT("A-travel")
-#define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
-#if IS_KINEMATIC
-  #define MSG_ASTEPS                        _UxGT("Asteps/mm")
-  #define MSG_BSTEPS                        _UxGT("Bsteps/mm")
-  #define MSG_CSTEPS                        _UxGT("Csteps/mm")
-#else
-  #define MSG_ASTEPS                        _UxGT("Xsteps/mm")
-  #define MSG_BSTEPS                        _UxGT("Ysteps/mm")
-  #define MSG_CSTEPS                        _UxGT("Zsteps/mm")
-#endif
-#define MSG_ESTEPS                          _UxGT("Esteps/mm")
-#define MSG_E1STEPS                         _UxGT("E1steps/mm")
-#define MSG_E2STEPS                         _UxGT("E2steps/mm")
-#define MSG_E3STEPS                         _UxGT("E3steps/mm")
-#define MSG_E4STEPS                         _UxGT("E4steps/mm")
-#define MSG_E5STEPS                         _UxGT("E5steps/mm")
-#define MSG_E6STEPS                         _UxGT("E6steps/mm")
-#define MSG_TEMPERATURE                     _UxGT("Temperature")
-#define MSG_MOTION                          _UxGT("Gibanje")
-#define MSG_FILAMENT                        _UxGT("Filament")
-#define MSG_VOLUMETRIC_ENABLED              _UxGT("E in mm3")
-#define MSG_FILAMENT_DIAM                   _UxGT("Fil. Dia.")
-#define MSG_CONTRAST                        _UxGT("Kontrast LCD-a")
-#define MSG_STORE_EEPROM                    _UxGT("Pohrani u memoriju")
-#define MSG_LOAD_EEPROM                     _UxGT("Učitaj memoriju")
-#define MSG_RESTORE_FAILSAFE                _UxGT("Učitaj failsafe")
-#define MSG_REFRESH                         _UxGT("Osvježi")
-#define MSG_WATCH                           _UxGT("Info screen")
-#define MSG_PREPARE                         _UxGT("Pripremi")
-#define MSG_TUNE                            _UxGT("Tune")
-#define MSG_PAUSE_PRINT                     _UxGT("Pauziraj print")
-#define MSG_RESUME_PRINT                    _UxGT("Nastavi print")
-#define MSG_STOP_PRINT                      _UxGT("Zaustavi print")
-#define MSG_CARD_MENU                       _UxGT("Printaj s SD kartice")
-#define MSG_NO_CARD                         _UxGT("Nema SD kartice")
-#define MSG_DWELL                           _UxGT("Sleep...")
-#define MSG_USERWAIT                        _UxGT("Čekaj korisnika...")
-#define MSG_PRINT_ABORTED                   _UxGT("Print otkazan")
-#define MSG_NO_MOVE                         _UxGT("No move.")
-#define MSG_KILLED                          _UxGT("KILLED. ")
-#define MSG_STOPPED                         _UxGT("ZAUSTAVLJEN. ")
-#define MSG_CONTROL_RETRACT                 _UxGT("Retract mm")
-#define MSG_CONTROL_RETRACT_SWAP            _UxGT("Swap Re.mm")
-#define MSG_CONTROL_RETRACTF                _UxGT("Retract  V")
-#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Hop mm")
-#define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
-#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("S UnRet mm")
-#define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  V")
-#define MSG_AUTORETRACT                     _UxGT("AutoRetr.")
-#define MSG_FILAMENTCHANGE                  _UxGT("Promijeni filament")
-#define MSG_INIT_SDCARD                     _UxGT("Init. SD karticu")
-#define MSG_CHANGE_SDCARD                   _UxGT("Promijeni SD karticu")
-#define MSG_ZPROBE_OUT                      _UxGT("Z probe out. bed")
-#define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Self-Test")
-#define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
-#define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
-#define MSG_FIRST                           _UxGT("first")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("Z Offset")
-#define MSG_BABYSTEP_X                      _UxGT("Babystep X")
-#define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")
-#define MSG_BABYSTEP_Z                      _UxGT("Babystep Z")
-#define MSG_ENDSTOP_ABORT                   _UxGT("Endstop abort")
-#define MSG_HEATING_FAILED_LCD              _UxGT("Grijanje neuspješno")
-#define MSG_ERR_REDUNDANT_TEMP              _UxGT("Err: REDUNDANT TEMP")
-#define MSG_THERMAL_RUNAWAY                 _UxGT("THERMAL RUNAWAY")
-#define MSG_ERR_MAXTEMP                     _UxGT("Err: MAXTEMP")
-#define MSG_ERR_MINTEMP                     _UxGT("Err: MINTEMP")
-#define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: MAXTEMP BED")
-#define MSG_ERR_MINTEMP_BED                 _UxGT("Err: MINTEMP BED")
-#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
-#define MSG_HALTED                          _UxGT("PRINTER HALTED")
-#define MSG_PLEASE_RESET                    _UxGT("Please reset")
-#define MSG_SHORT_DAY                       _UxGT("d") // One character only
-#define MSG_SHORT_HOUR                      _UxGT("h") // One character only
-#define MSG_SHORT_MINUTE                    _UxGT("m") // One character only
-#define MSG_HEATING                         _UxGT("Grijanje...")
-#define MSG_BED_HEATING                     _UxGT("Grijanje Bed-a...")
-#define MSG_DELTA_CALIBRATE                 _UxGT("Delta Kalibracija")
-#define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibriraj X")
-#define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibriraj Y")
-#define MSG_DELTA_CALIBRATE_Z               _UxGT("Kalibriraj Z")
-#define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Kalibriraj Središte")
-#define MSG_INFO_MENU                       _UxGT("O printeru")
-#define MSG_INFO_PRINTER_MENU               _UxGT("Podaci o printeru")
-#define MSG_INFO_STATS_MENU                 _UxGT("Statistika printera")
-#define MSG_INFO_BOARD_MENU                 _UxGT("Podaci o elektronici")
-#define MSG_INFO_THERMISTOR_MENU            _UxGT("Termistori")
-#define MSG_INFO_EXTRUDERS                  _UxGT("Extruderi")
-#define MSG_INFO_BAUDRATE                   _UxGT("Baud")
-#define MSG_INFO_PROTOCOL                   _UxGT("Protokol")
-#define MSG_CASE_LIGHT                      _UxGT("Osvjetljenje")
+namespace language_hr {
+  using namespace language_en; // Inherit undefined strings from English
 
-#define MSG_EXPECTED_PRINTER                _UxGT("Neispravan pisač")
+  constexpr uint8_t CHARSIZE                        = 2;
+  FSTRINGVALUE(LANGUAGE                             , _UxGT("Croatian"));
 
-#if LCD_WIDTH >= 20
-  #define MSG_INFO_PRINT_COUNT              _UxGT("Broj printova")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Završeni")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Ukupno printanja")
-  #define MSG_INFO_PRINT_LONGEST            _UxGT("Najduži print")
-  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Extrudirano ukupno")
-#else
-  #define MSG_INFO_PRINT_COUNT              _UxGT("Printovi")
-  #define MSG_INFO_COMPLETED_PRINTS         _UxGT("Završeni")
-  #define MSG_INFO_PRINT_TIME               _UxGT("Ukupno")
-  #define MSG_INFO_PRINT_LONGEST            _UxGT("Najduži")
-  #define MSG_INFO_PRINT_FILAMENT           _UxGT("Extrudirano")
-#endif
+  FSTRINGVALUE(WELCOME_MSG                          , MACHINE_NAME _UxGT(" spreman."));
+  FSTRINGVALUE(MSG_MEDIA_INSERTED                   , _UxGT("SD kartica umetnuta"));
+  FSTRINGVALUE(MSG_MEDIA_REMOVED                    , _UxGT("SD kartica uklonjena"));
+  FSTRINGVALUE(MSG_LCD_ENDSTOPS                     , _UxGT("Endstops")); // Max length 8 characters
+  FSTRINGVALUE(MSG_MAIN                             , _UxGT("Main"));
+  FSTRINGVALUE(MSG_AUTOSTART                        , _UxGT("Auto pokretanje"));
+  FSTRINGVALUE(MSG_DISABLE_STEPPERS                 , _UxGT("Ugasi steppere"));
+  FSTRINGVALUE(MSG_AUTO_HOME                        , _UxGT("Automatski homing"));
+  FSTRINGVALUE(MSG_AUTO_HOME_X                      , _UxGT("Home-aj X"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Y                      , _UxGT("Home-aj Y"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Z                      , _UxGT("Home-aj Z"));
+  FSTRINGVALUE(MSG_LEVEL_BED_HOMING                 , _UxGT("Home-aj XYZ"));
+  FSTRINGVALUE(MSG_LEVEL_BED_WAITING                , _UxGT("Klikni za početak"));
+  FSTRINGVALUE(MSG_LEVEL_BED_NEXT_POINT             , _UxGT("Sljedeća točka"));
+  FSTRINGVALUE(MSG_LEVEL_BED_DONE                   , _UxGT("Niveliranje gotovo!"));
+  FSTRINGVALUE(MSG_SET_HOME_OFFSETS                 , _UxGT("Postavi home offsete"));
+  FSTRINGVALUE(MSG_HOME_OFFSETS_APPLIED             , _UxGT("Offsets postavljeni"));
+  FSTRINGVALUE(MSG_SET_ORIGIN                       , _UxGT("Postavi ishodište"));
+  FSTRINGVALUE(MSG_PREHEAT_1                        , _UxGT("Predgrij ") PREHEAT_1_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_1_H                      , _UxGT("Predgrij ") PREHEAT_1_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_1_END                    , _UxGT("Predgrij ") PREHEAT_1_LABEL _UxGT(" Dizna"));
+  FSTRINGVALUE(MSG_PREHEAT_1_END_E                  , _UxGT("Predgrij ") PREHEAT_1_LABEL _UxGT(" Dizna ~"));
+  FSTRINGVALUE(MSG_PREHEAT_1_ALL                    , _UxGT("Predgrij ") PREHEAT_1_LABEL _UxGT(" Sve"));
+  FSTRINGVALUE(MSG_PREHEAT_1_BEDONLY                , _UxGT("Predgrij ") PREHEAT_1_LABEL _UxGT(" Bed"));
+  FSTRINGVALUE(MSG_PREHEAT_1_SETTINGS               , _UxGT("Predgrij ") PREHEAT_1_LABEL _UxGT(" conf"));
+  FSTRINGVALUE(MSG_PREHEAT_2                        , _UxGT("Predgrij ") PREHEAT_2_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_2_H                      , _UxGT("Predgrij ") PREHEAT_2_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_2_END                    , _UxGT("Predgrij ") PREHEAT_2_LABEL _UxGT(" Dizna"));
+  FSTRINGVALUE(MSG_PREHEAT_2_END_E                  , _UxGT("Predgrij ") PREHEAT_2_LABEL _UxGT(" Dizna ~"));
+  FSTRINGVALUE(MSG_PREHEAT_2_ALL                    , _UxGT("Predgrij ") PREHEAT_2_LABEL _UxGT(" Sve"));
+  FSTRINGVALUE(MSG_PREHEAT_2_BEDONLY                , _UxGT("Predgrij ") PREHEAT_2_LABEL _UxGT(" Bed"));
+  FSTRINGVALUE(MSG_PREHEAT_2_SETTINGS               , _UxGT("Predgrij ") PREHEAT_2_LABEL _UxGT(" conf"));
+  FSTRINGVALUE(MSG_COOLDOWN                         , _UxGT("Hlađenje"));
+  FSTRINGVALUE(MSG_SWITCH_PS_ON                     , _UxGT("Uključi napajanje"));
+  FSTRINGVALUE(MSG_SWITCH_PS_OFF                    , _UxGT("Isključi napajanje"));
+  FSTRINGVALUE(MSG_MOVE_AXIS                        , _UxGT("Miči os"));
+  FSTRINGVALUE(MSG_BED_LEVELING                     , _UxGT("Niveliraj bed"));
+  FSTRINGVALUE(MSG_LEVEL_BED                        , _UxGT("Niveliraj bed"));
+  FSTRINGVALUE(MSG_MOVE_X                           , _UxGT("Miči X"));
+  FSTRINGVALUE(MSG_MOVE_Y                           , _UxGT("Miči Y"));
+  FSTRINGVALUE(MSG_MOVE_Z_DIST                      , _UxGT("Miči %smm"));
+  FSTRINGVALUE(MSG_MOVE_01MM                        , _UxGT("Miči 0.1mm"));
+  FSTRINGVALUE(MSG_MOVE_1MM                         , _UxGT("Miči 1mm"));
+  FSTRINGVALUE(MSG_MOVE_10MM                        , _UxGT("Miči 10mm"));
+  FSTRINGVALUE(MSG_SPEED                            , _UxGT("Brzina"));
+  FSTRINGVALUE(MSG_BED_Z                            , _UxGT("Bed Z"));
+  FSTRINGVALUE(MSG_NOZZLE                           , _UxGT("Dizna"));
+  FSTRINGVALUE(MSG_NOZZLE_N                         , _UxGT("Dizna ~"));
+  FSTRINGVALUE(MSG_BED                              , _UxGT("Bed"));
+  FSTRINGVALUE(MSG_FAN_SPEED                        , _UxGT("Brzina ventilatora"));
+  FSTRINGVALUE(MSG_FAN_SPEED_N                      , _UxGT("Brzina ventilatora ~"));
+  FSTRINGVALUE(MSG_SELECT                           , _UxGT("Odaberi"));
+  FSTRINGVALUE(MSG_SELECT_E                         , _UxGT("Odaberi *"));
+  FSTRINGVALUE(MSG_TEMPERATURE                      , _UxGT("Temperature"));
+  FSTRINGVALUE(MSG_MOTION                           , _UxGT("Gibanje"));
+  FSTRINGVALUE(MSG_VOLUMETRIC_ENABLED               , _UxGT("E in mm3"));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM                    , _UxGT("Fil. Dia."));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM_E                  , _UxGT("Fil. Dia. *"));
+  FSTRINGVALUE(MSG_CONTRAST                         , _UxGT("Kontrast LCD-a"));
+  FSTRINGVALUE(MSG_STORE_EEPROM                     , _UxGT("Pohrani u memoriju"));
+  FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Učitaj memoriju"));
+  FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Učitaj failsafe"));
+  FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH  _UxGT("Osvježi"));
+  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Info screen"));
+  FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Pripremi"));
+  FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pauziraj print"));
+  FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Nastavi print"));
+  FSTRINGVALUE(MSG_STOP_PRINT                       , _UxGT("Zaustavi print"));
+  FSTRINGVALUE(MSG_MEDIA_MENU                       , _UxGT("Printaj s SD kartice"));
+  FSTRINGVALUE(MSG_NO_MEDIA                         , _UxGT("Nema SD kartice"));
+  FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Čekaj korisnika..."));
+  FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Print otkazan"));
+  FSTRINGVALUE(MSG_STOPPED                          , _UxGT("ZAUSTAVLJEN. "));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE                   , _UxGT("Promijeni filament"));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE_E                 , _UxGT("Promijeni filament *"));
+  FSTRINGVALUE(MSG_INIT_MEDIA                       , _UxGT("Init. SD karticu"));
+  FSTRINGVALUE(MSG_CHANGE_MEDIA                     , _UxGT("Promijeni SD karticu"));
+  FSTRINGVALUE(MSG_HEATING_FAILED_LCD               , _UxGT("Grijanje neuspješno"));
+  FSTRINGVALUE(MSG_HEATING                          , _UxGT("Grijanje..."));
+  FSTRINGVALUE(MSG_BED_HEATING                      , _UxGT("Grijanje Bed-a..."));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE                  , _UxGT("Delta Kalibracija"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_X                , _UxGT("Kalibriraj X"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Y                , _UxGT("Kalibriraj Y"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Z                , _UxGT("Kalibriraj Z"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_CENTER           , _UxGT("Kalibriraj Središte"));
+  FSTRINGVALUE(MSG_INFO_MENU                        , _UxGT("O printeru"));
+  FSTRINGVALUE(MSG_INFO_PRINTER_MENU                , _UxGT("Podaci o printeru"));
+  FSTRINGVALUE(MSG_INFO_STATS_MENU                  , _UxGT("Statistika printera"));
+  FSTRINGVALUE(MSG_INFO_BOARD_MENU                  , _UxGT("Podaci o elektronici"));
+  FSTRINGVALUE(MSG_INFO_THERMISTOR_MENU             , _UxGT("Termistori"));
+  FSTRINGVALUE(MSG_INFO_EXTRUDERS                   , _UxGT("Extruderi"));
+  FSTRINGVALUE(MSG_INFO_BAUDRATE                    , _UxGT("Baud"));
+  FSTRINGVALUE(MSG_INFO_PROTOCOL                    , _UxGT("Protokol"));
+  FSTRINGVALUE(MSG_CASE_LIGHT                       , _UxGT("Osvjetljenje"));
 
-#define MSG_INFO_MIN_TEMP                   _UxGT("Min Temp")
-#define MSG_INFO_MAX_TEMP                   _UxGT("Max Temp")
-#define MSG_INFO_PSU                        _UxGT("Napajanje")
-#define MSG_DRIVE_STRENGTH                  _UxGT("Drive Strength")
-#define MSG_DAC_PERCENT                     _UxGT("Driver %")
-#define MSG_DAC_EEPROM_WRITE                _UxGT("DAC EEPROM Write")
+  FSTRINGVALUE(MSG_EXPECTED_PRINTER                 , _UxGT("Neispravan pisač"));
 
-#define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Nastavi print")
+  #if LCD_WIDTH >= 20
+    FSTRINGVALUE(MSG_INFO_PRINT_COUNT               , _UxGT("Broj printova"));
+    FSTRINGVALUE(MSG_INFO_COMPLETED_PRINTS          , _UxGT("Završeni"));
+    FSTRINGVALUE(MSG_INFO_PRINT_TIME                , _UxGT("Ukupno printanja"));
+    FSTRINGVALUE(MSG_INFO_PRINT_LONGEST             , _UxGT("Najduži print"));
+    FSTRINGVALUE(MSG_INFO_PRINT_FILAMENT            , _UxGT("Extrudirano ukupno"));
+  #else
+    FSTRINGVALUE(MSG_INFO_PRINT_COUNT               , _UxGT("Printovi"));
+    FSTRINGVALUE(MSG_INFO_COMPLETED_PRINTS          , _UxGT("Završeni"));
+    FSTRINGVALUE(MSG_INFO_PRINT_TIME                , _UxGT("Ukupno"));
+    FSTRINGVALUE(MSG_INFO_PRINT_LONGEST             , _UxGT("Najduži"));
+    FSTRINGVALUE(MSG_INFO_PRINT_FILAMENT            , _UxGT("Extrudirano"));
+  #endif
 
-#if LCD_HEIGHT >= 4
-  // Up to 3 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Čekaj početak")
-  #define MSG_FILAMENT_CHANGE_INIT_2          _UxGT("filamenta")
-  #define MSG_FILAMENT_CHANGE_INIT_3          _UxGT("promijeni")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Čekaj")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_2        _UxGT("filament unload")
-  #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Umetni filament")
-  #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("i pritisni tipku")
-  #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("za nastavak...")
-  #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Pričekaj")
-  #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("filament load")
-  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wait for print")
-  #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("to resume")
-#else // LCD_HEIGHT < 4
-  // Up to 2 lines allowed
-  #define MSG_FILAMENT_CHANGE_INIT_1          _UxGT("Pričekaj...")
-  #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Ejecting...")
-  #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insert and Click")
-  #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Loading...")
-  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Nastavljam...")
-#endif // LCD_HEIGHT < 4
+  FSTRINGVALUE(MSG_INFO_PSU                         , _UxGT("Napajanje"));
+
+  FSTRINGVALUE(MSG_FILAMENT_CHANGE_OPTION_RESUME    , _UxGT("Nastavi print"));
+
+  FSTRINGVALUE(MSG_FILAMENT_CHANGE_UNLOAD           , _UxGT(MSG_2_LINE("Čekaj", "filament unload")));
+  FSTRINGVALUE(MSG_FILAMENT_CHANGE_LOAD             , _UxGT(MSG_2_LINE("Pričekaj", "filament load")));
+  FSTRINGVALUE(MSG_FILAMENT_CHANGE_RESUME           , _UxGT(MSG_1_LINE("Nastavljam...")));
+
+  #if LCD_HEIGHT >= 4
+    // Up to 3 lines allowed
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT(MSG_3_LINE("Čekaj početak", "filamenta", "promijeni")));
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT         , _UxGT(MSG_3_LINE("Umetni filament", "i pritisni tipku", "za nastavak...")));
+  #else
+    // Up to 2 lines allowed
+    FSTRINGVALUE(MSG_FILAMENT_CHANGE_INIT           , _UxGT("Pričekaj..."));
+    //FSTRINGVALUE(MSG_FILAMENT_CHANGE_INSERT       , _UxGT(MSG_2_LINE("?", "?")));
+  #endif
+}

@@ -99,7 +99,7 @@ bool tcIsSyncing()
   return TC5->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY;
 }
 
-void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) { /* moet nog iets met freq */
+void HAL_timer_start(const uint8_t timer_num) { /* moet nog iets met freq */
 
     GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID( GCM_TC4_TC5 )) ;
     while (GCLK->STATUS.bit.SYNCBUSY);
@@ -112,7 +112,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) { /* moe
     TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |=TC_CTRLA_MODE_COUNT16;
     TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_WAVEGEN_MFRQ;
     TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV2;
-    TimerConfig[timer_num].pTimerRegs->COUNT16.CC[0].reg = VARIANT_MCK / 2/ frequency;
+    TimerConfig[timer_num].pTimerRegs->COUNT16.CC[0].reg = VARIANT_MCK / 2/ 100;
     TimerConfig[timer_num].pTimerRegs->COUNT16.INTENSET.reg = TC_INTFLAG_MC0;
     TimerConfig[timer_num].pTimerRegs->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;
     TimerConfig[timer_num].pTimerRegs->COUNT16.INTFLAG.reg = 0xFF;
@@ -149,8 +149,13 @@ uint32_t HAL_isr_execution_cycle(const uint32_t rate) {
 
 void HAL_calc_pulse_cycle() {
   HAL_min_pulse_cycle = MAX((uint32_t)((F_CPU) / stepper.data.maximum_rate), ((F_CPU) / 500000UL) * MAX((uint32_t)stepper.data.minimum_pulse, 1UL));
-  HAL_min_pulse_tick  = uint32_t(stepper.data.minimum_pulse) * (STEPPER_TIMER_TICKS_PER_US);
-  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (PULSE_TIMER_PRESCALE)) - HAL_min_pulse_tick;
+
+  if (stepper.data.minimum_pulse)
+    HAL_min_pulse_tick = (STEPPER_TIMER_TICKS_PER_US) * uint32_t(stepper.data.minimum_pulse) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE));
+  else
+    HAL_min_pulse_tick = ((((STEPPER_TIMER_TICKS_PER_US) + 1) / 2) + ((MIN_ISR_START_LOOP_CYCLES) / uint32_t(STEPPER_TIMER_PRESCALE)));
+
+  HAL_add_pulse_ticks = (HAL_min_pulse_cycle / (STEPPER_TIMER_PRESCALE)) - HAL_min_pulse_tick;
 
   // The stepping frequency limits for each multistepping rate
   HAL_frequency_limit[0] = ((F_CPU) / HAL_isr_execution_cycle(1))   >> 0;

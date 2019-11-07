@@ -35,7 +35,7 @@
  *
  *   S<seconds> Optional. Set the keepalive interval.
  */
-inline void gcode_M113(void) {
+inline void gcode_M113() {
   if (parser.seenval('S'))
     printer.host_keepalive_time = parser.value_byte();
   else

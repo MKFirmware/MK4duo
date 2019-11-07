@@ -59,44 +59,36 @@ void Bedlevel::factory_parameters() {
 }
 
 /**
- * rx, ry, rz - Cartesian positions in mm
- *              Leveled XYZ on completion
+ * raw  - Cartesian positions in mm
+ *        Leveled XYZ on completion
  */
-void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
+void Bedlevel::apply_leveling(xyz_pos_t &raw) {
 
   if (!flag.leveling_active) return;
 
   #if ABL_PLANAR
 
-    float dx = rx - (X_TILT_FULCRUM),
-          dy = ry - (Y_TILT_FULCRUM);
-
-    apply_rotation_xyz(matrix, dx, dy, rz);
-
-    rx = dx + X_TILT_FULCRUM;
-    ry = dy + Y_TILT_FULCRUM;
+    xy_pos_t d = raw - level_fulcrum();
+    apply_rotation_xyz(matrix, d.x, d.y, raw.z);
+    raw = d + level_fulcrum();
 
   #elif HAS_MESH
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      const float fade_scaling_factor = fade_scaling_factor_for_z(rz);
+      const float fade_scaling_factor = fade_scaling_factor_for_z(raw.z);
     #else
       constexpr float fade_scaling_factor = 1.0;
     #endif
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      const float raw[XYZ] = { rx, ry, 0 };
-    #endif
-
-    rz += (
+    raw.z += (
       #if ENABLED(MESH_BED_LEVELING)
-        mbl.get_z(rx, ry
+        mbl.get_z(raw
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif
         )
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(rx, ry) : 0.0
+        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw) : 0.0
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
       #endif
@@ -105,7 +97,7 @@ void Bedlevel::apply_leveling(float &rx, float &ry, float &rz) {
   #endif
 }
 
-void Bedlevel::unapply_leveling(float raw[XYZ]) {
+void Bedlevel::unapply_leveling(xyz_pos_t &raw) {
 
   if (!flag.leveling_active) return;
 
@@ -113,31 +105,31 @@ void Bedlevel::unapply_leveling(float raw[XYZ]) {
 
     matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
-    float dx = raw[X_AXIS] - (X_TILT_FULCRUM),
-          dy = raw[Y_AXIS] - (Y_TILT_FULCRUM);
+    float dx = raw.x - (X_TILT_FULCRUM),
+          dy = raw.y - (Y_TILT_FULCRUM);
 
-    apply_rotation_xyz(inverse, dx, dy, raw[Z_AXIS]);
+    apply_rotation_xyz(inverse, dx, dy, raw.z);
 
-    raw[X_AXIS] = dx + X_TILT_FULCRUM;
-    raw[Y_AXIS] = dy + Y_TILT_FULCRUM;
+    raw.x = dx + X_TILT_FULCRUM;
+    raw.y = dy + Y_TILT_FULCRUM;
 
   #elif HAS_MESH
 
     #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      const float fade_scaling_factor = fade_scaling_factor_for_z(raw[Z_AXIS]);
+      const float fade_scaling_factor = fade_scaling_factor_for_z(raw.z);
     #elif HAS_MESH
       constexpr float fade_scaling_factor = 1.0;
     #endif
 
-    raw[Z_AXIS] -= (
+    raw.z -= (
       #if ENABLED(MESH_BED_LEVELING)
-        mbl.get_z(raw[X_AXIS], raw[Y_AXIS]
+        mbl.get_z(raw
           #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
             , fade_scaling_factor
           #endif
         )
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
-        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw[X_AXIS], raw[Y_AXIS]) : 0.0
+        fade_scaling_factor ? fade_scaling_factor * ubl.get_z_correction(raw.x, raw.y) : 0.0
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         fade_scaling_factor ? fade_scaling_factor * abl.bilinear_z_offset(raw) : 0.0
       #endif
@@ -181,18 +173,18 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       // Force abl.bilinear_z_offset to re-calculate next time
-      const float reset[XYZ] = { -9999.999, -9999.999, 0 };
+      const xyz_pos_t reset = { -9999.999, -9999.999, 0 };
       (void)abl.bilinear_z_offset(reset);
     #endif
 
     if (flag.leveling_active) {      // leveling from on to off
-      // change unleveled current_position to physical current_position without moving steppers.
-      apply_leveling(mechanics.current_position[X_AXIS], mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS]);
+      // change unleveled current_position.x to physical current_position.x without moving steppers.
+      apply_leveling(mechanics.current_position);
       flag.leveling_active = false;  // disable only AFTER calling apply_leveling
     }
     else {                          // leveling from off to on
       flag.leveling_active = true;  // enable BEFORE calling unapply_leveling, otherwise ignored
-      // change physical current_position to unleveled current_position without moving steppers.
+      // change physical current_position.x to unleveled current_position.x without moving steppers.
       unapply_leveling(mechanics.current_position);
     }
 
@@ -214,13 +206,9 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
     force_fade_recalc();
 
     if (leveling_was_active) {
-      const float oldpos[] = {
-        mechanics.current_position[X_AXIS],
-        mechanics.current_position[Y_AXIS],
-        mechanics.current_position[Z_AXIS]
-      };
+      const xyz_pos_t oldpos = mechanics.current_position;
       set_bed_leveling_enabled();
-      if (do_report && memcmp(oldpos, mechanics.current_position, sizeof(oldpos)))
+      if (do_report && oldpos !=,mechanics.current_position)
         mechanics.report_current_position();
     }
   }
@@ -317,18 +305,17 @@ void Bedlevel::reset() {
 
 #if ENABLED(MESH_BED_LEVELING) || HAS_PROBE_MANUALLY
 
-  void Bedlevel::manual_goto_xy(const float &rx, const float &ry) {
+  void Bedlevel::manual_goto_xy(const xy_pos_t &pos) {
 
     #if MANUAL_PROBE_HEIGHT > 0
-      const float prev_z = mechanics.current_position[Z_AXIS];
-      mechanics.do_blocking_move_to(rx, ry, MANUAL_PROBE_HEIGHT);
+      const float prev_z = mechanics.current_position.z;
+      mechanics.do_blocking_move_to_xy_z(pos, MANUAL_PROBE_HEIGHT);
       mechanics.do_blocking_move_to_z(prev_z);
     #else
-      mechanics.do_blocking_move_to_xy(rx, ry);
+      mechanics.do_blocking_move_to_xy(pos);
     #endif
 
-    mechanics.current_position[X_AXIS] = rx;
-    mechanics.current_position[Y_AXIS] = ry;
+    mechanics.current_position = pos;
 
     #if ENABLED(LCD_BED_LEVELING)
       lcdui.wait_for_bl_move = false;

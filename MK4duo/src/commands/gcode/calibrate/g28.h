@@ -49,7 +49,7 @@
  *  Z     Home to the Z endstop
  *
  */
-inline void gcode_G28(void) { 
+inline void gcode_G28() { 
 
   if (printer.debugFeature()) {
     DEBUG_EM(">>> G28");
@@ -68,16 +68,19 @@ inline void gcode_G28(void) {
   #else
 
     #if ENABLED(FORCE_HOME_XY_BEFORE_Z)
-      const bool  homeZ = parser.seen('Z'),
-                  homeX = homeZ || parser.seen('X'),
-                  homeY = homeZ || parser.seen('Y');
+      const bool    homeZ = parser.seen('Z');
+      const uint8_t axis_bit =
+                      (homeZ ?  HOME_Z : 0)
+                    | (homeZ || parser.seen('X') ? HOME_X : 0)
+                    | (homeZ || parser.seen('Y') ? HOME_Y : 0);
     #else
-      const bool  homeX = parser.seen('X'),
-                  homeY = parser.seen('Y'),
-                  homeZ = parser.seen('Z');
+      const uint8_t axis_bit =
+                      (parser.seen('X') ? HOME_X : 0)
+                    | (parser.seen('Y') ? HOME_Y : 0)
+                    | (parser.seen('Z') ? HOME_Z : 0);
     #endif
 
-    mechanics.home(homeX, homeY, homeZ);
+    mechanics.home(axis_bit);
 
   #endif
 

@@ -33,7 +33,7 @@
 /**
  * M524: Abort the current SD print job (started with M24)
  */
-inline void gcode_M524(void) {
+inline void gcode_M524() {
   if (IS_SD_PRINTING()) card.setAbortSDprinting(true);
 }
 

@@ -37,7 +37,7 @@
   /**
    * M360: SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
    */
-  inline bool gcode_M360(void) {
+  inline bool gcode_M360() {
     SERIAL_LM(ECHO, " Cal: Theta 0");
     return mechanics.move_to_cal(0, 120);
   }
@@ -45,7 +45,7 @@
   /**
    * M361: SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
    */
-  inline bool gcode_M361(void) {
+  inline bool gcode_M361() {
     SERIAL_LM(ECHO, " Cal: Theta 90");
     return mechanics.move_to_cal(90, 130);
   }
@@ -53,7 +53,7 @@
   /**
    * M362: SCARA calibration: Move to cal-position PsiA (0 deg calibration)
    */
-  inline bool gcode_M362(void) {
+  inline bool gcode_M362() {
     SERIAL_LM(ECHO, " Cal: Psi 0");
     return mechanics.move_to_cal(60, 180);
   }
@@ -61,7 +61,7 @@
   /**
    * M363: SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
    */
-  inline bool gcode_M363(void) {
+  inline bool gcode_M363() {
     SERIAL_LM(ECHO, " Cal: Psi 90");
     return mechanics.move_to_cal(50, 90);
   }
@@ -69,7 +69,7 @@
   /**
    * M364: SCARA calibration: Move to cal-position PsiC (90 deg to Theta calibration position)
    */
-  inline bool gcode_M364(void) {
+  inline bool gcode_M364() {
     SERIAL_LM(ECHO, " Cal: Theta-Psi 90");
     return mechanics.move_to_cal(45, 135);
   }

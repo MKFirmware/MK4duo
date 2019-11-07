@@ -46,9 +46,9 @@
    *  Default values are used for omitted arguments.
    *
    */
-  inline void gcode_M600(void) {
+  inline void gcode_M600() {
 
-    point_t park_point = nozzle.data.park_point;
+    xyz_pos_t park_point = nozzle.data.park_point;
 
     if (commands.get_target_tool(600)) return;
 
@@ -67,7 +67,7 @@
 
     // Show initial "wait for start" message
     #if HAS_LCD_MENU && DISABLED(PRUSA_MMU2)
-      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.extruder.target);
+      lcd_pause_show_message(PAUSE_MESSAGE_CHANGING, PAUSE_MODE_PAUSE_PRINT, tools.target_hotend());
     #endif
 
     #if ENABLED(HOME_BEFORE_FILAMENT_CHANGE)
@@ -75,7 +75,7 @@
       if (mechanics.axis_unhomed_error()) mechanics.home();
     #endif
 
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
       // Change toolhead if specified
       uint8_t active_extruder_before_filament_change = tools.extruder.active;
       if (tools.extruder.active != tools.extruder.target
@@ -99,9 +99,8 @@
     if (parser.seenval('X')) park_point.x = parser.linearval('X');
     if (parser.seenval('Y')) park_point.y = parser.linearval('Y');
 
-    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE) && !MECH(DELTA)
-      park_point.x += (tools.extruder.active ? nozzle.data.hotend_offset[X_AXIS][ACTIVE_HOTEND] : 0);
-      park_point.y += (tools.extruder.active ? nozzle.data.hotend_offset[Y_AXIS][ACTIVE_HOTEND] : 0);
+    #if DISABLED(DUAL_X_CARRIAGE) && NOMECH(DELTA)
+      if (tools.data.hotends > 1) park_point += nozzle.data.hotend_offset[tools.active_hotend()];
     #endif
 
     #if HAS_MMU2
@@ -112,17 +111,17 @@
     #else
       // Unload filament
       const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                        : advancedpause.data[tools.extruder.active].unload_length);
+                                                        : extruders[tools.extruder.active]->data.unload_length);
 
       // Slow load filament
       constexpr float slow_load_length = PAUSE_PARK_SLOW_LOAD_LENGTH;
 
       // Load filament
       const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                          : advancedpause.data[tools.extruder.active].load_length);
+                                                          : extruders[tools.extruder.active]->data.load_length);
     #endif
 
-    if (parser.seenval('S')) hotends[ACTIVE_HOTEND].set_target_temp(parser.value_celsius());
+    if (parser.seenval('S')) hotends[tools.active_hotend()]->set_target_temp(parser.value_celsius());
 
     const int beep_count = parser.intval('B',
       #if ENABLED(PAUSE_PARK_NUMBER_OF_ALERT_BEEPS)
@@ -142,7 +141,7 @@
       #endif
     }
 
-    #if EXTRUDERS > 1
+    #if MAX_EXTRUDER > 1
     // Restore toolhead if it was changed
       if (active_extruder_before_filament_change != tools.extruder.active)
         tools.change(active_extruder_before_filament_change);

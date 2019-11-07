@@ -113,24 +113,23 @@ bool    Stepper::abort_current_block  = false;
   bool Stepper::locked_Z_motor = false, Stepper::locked_Z2_motor = false;
 #endif
 
-uint32_t  Stepper::acceleration_time  = 0,
-          Stepper::deceleration_time  = 0;
+uint32_t      Stepper::acceleration_time  = 0,
+              Stepper::deceleration_time  = 0;
 
-uint8_t   Stepper::steps_per_isr = 0;
+uint8_t       Stepper::steps_per_isr = 0;
 
-int32_t   Stepper::delta_error[XYZE] = { 0 };
+xyze_long_t   Stepper::delta_error{0};
 
-uint32_t  Stepper::advance_dividend[XYZE] = { 0 },
-          Stepper::advance_divisor        = 0,
-          Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
-          Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
-          Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
-          Stepper::step_event_count       = 0;  // The total event count for the current block
+xyze_ulong_t  Stepper::advance_dividend{0};
 
-#if EXTRUDERS > 1 || ENABLED(COLOR_MIXING_EXTRUDER)
-  uint8_t Stepper::active_extruder        = 0,
-          Stepper::active_extruder_driver = 0;
-#endif
+uint32_t      Stepper::advance_divisor        = 0,
+              Stepper::step_events_completed  = 0,  // The number of step events executed in the current block
+              Stepper::accelerate_until       = 0,  // The point from where we need to stop data.acceleration
+              Stepper::decelerate_after       = 0,  // The point from where we need to start decelerating
+              Stepper::step_event_count       = 0;  // The total event count for the current block
+
+uint8_t       Stepper::active_extruder        = 0,
+              Stepper::active_extruder_driver = 0;
 
 #if ENABLED(BEZIER_JERK_CONTROL)
   int32_t __attribute__((used)) Stepper::bezier_A __asm__("bezier_A");    // A coefficient in Bézier speed curve with alias for assembler
@@ -173,11 +172,9 @@ int32_t Stepper::ticks_nominal = -1;
   uint32_t Stepper::acc_step_rate = 0; // needed for deceleration start point
 #endif
 
-volatile int32_t Stepper::endstops_trigsteps[XYZ] = { 0 };
-
-volatile int32_t Stepper::count_position[NUM_AXIS]   = { 0 };
-
-int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
+xyz_long_t  Stepper::endstops_trigsteps;
+xyze_long_t Stepper::count_position{0};
+xyze_int8_t Stepper::count_direction{1};
 
 #if ENABLED(LASER)
   int32_t Stepper::delta_error_laser = 0;
@@ -188,50 +185,105 @@ int8_t  Stepper::count_direction[NUM_AXIS]  = { 1, 1, 1, 1 };
 
 /** Public Function */
 void Stepper::create_driver() {
+  create_xyz_driver();
+  create_ext_driver();
+  #if HAS_TRINAMIC
+    tmc.create_tmc();
+  #endif
+}
 
-  #define _DRIVER_DEFINE_HARDWARE(ST, L)  driver[ST##_DRV] = new Driver(L)
-  #define DRIVER_DEFINE_HARDWARE(ST)      _DRIVER_DEFINE_HARDWARE(ST, DRV_##ST##_LABEL)
+void Stepper::create_xyz_driver() {
 
-  #if AXIS_HAS_NORMAL_DRV(X)
-    DRIVER_DEFINE_HARDWARE(X);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(X2)
-    DRIVER_DEFINE_HARDWARE(X2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Y)
-    DRIVER_DEFINE_HARDWARE(Y);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Y2)
-    DRIVER_DEFINE_HARDWARE(Y2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Z)
-    DRIVER_DEFINE_HARDWARE(Z);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Z2)
-    DRIVER_DEFINE_HARDWARE(Z2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(Z3)
-    DRIVER_DEFINE_HARDWARE(Z3);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E0)
-    DRIVER_DEFINE_HARDWARE(E0);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E1)
-    DRIVER_DEFINE_HARDWARE(E1);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E2)
-    DRIVER_DEFINE_HARDWARE(E2);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E3)
-    DRIVER_DEFINE_HARDWARE(E3);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E4)
-    DRIVER_DEFINE_HARDWARE(E4);
-  #endif
-  #if AXIS_HAS_NORMAL_DRV(E5)
-    DRIVER_DEFINE_HARDWARE(E5);
+  constexpr char* drv_xyz_label[] = { "X", "Y", "Z" };
+
+  LOOP_DRV_XYZ() {
+    if (!driver.drv[d]) {
+      driver.drv[d] = new Driver(drv_xyz_label[d]);
+      driver_factory_parameters(driver[d], d);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver[d]->printLabel(); SERIAL_EOL();
+      driver[d]->init();
+      #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+        externaldac.set_driver_current(d, driver[d]->data.ma);
+      #endif
+    }
+  }
+
+  #if X_STEPPER_COUNT == 2
+    if (!driver.x2) {
+      driver.x2 = new Driver("X2");
+      driver_factory_parameters(driver.x2, X2_DRV);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.x2->printLabel(); SERIAL_EOL();
+      driver.x2->init();
+    }
   #endif
 
+  #if Y_STEPPER_COUNT == 2
+    if (!driver.y2) {
+      driver.y2 = new Driver("Y2");
+      driver_factory_parameters(driver.y2, Y2_DRV);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.y2->printLabel(); SERIAL_EOL();
+      driver.y2->init();
+    }
+  #endif
+
+  #if Z_STEPPER_COUNT == 3
+    if (!driver.z3) {
+      driver.z3 = new Driver("Z3");
+      driver_factory_parameters(driver.z3, Z3_DRV);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.z3->printLabel(); SERIAL_EOL();
+      driver.z3->init();
+    }
+  #endif
+
+  #if Z_STEPPER_COUNT >= 2
+    if (!driver.z2) {
+      driver.z2 = new Driver("Z2");
+      driver_factory_parameters(driver.z2, Z2_DRV);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.z2->printLabel(); SERIAL_EOL();
+      driver.z2->init();
+    }
+  #endif
+
+}
+
+void Stepper::create_ext_driver() {
+
+  constexpr char* drv_e_label[] = { "T0", "T1", "T2", "T3", "T4", "T5" };
+
+  LOOP_DRV_EXT() {
+    if (!driver.e[d]) {
+      driver.e[d] = new Driver(drv_e_label[d]);
+      driver_factory_parameters(driver.e[d], d + XYZ);
+      SERIAL_SM(ECHO, "Create driver ");
+      driver.e[d]->printLabel(); SERIAL_EOL();
+      driver.e[d]->init();
+      #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+        externaldac.set_driver_current(d + XYZ, driver.e[d]->data.ma);
+      #endif
+    }
+  }
+}
+
+void Stepper::change_number_driver(const uint8_t drv) {
+
+  if (data.drivers_e < drv) {
+    data.drivers_e = drv;
+    create_ext_driver();
+  }
+  else if (data.drivers_e > drv) {
+    for (uint8_t dd = drv; dd < MAX_DRIVER_E; dd++) {
+      SERIAL_LMT(ECHO, "Delete driver ", driver.e[dd]->axis_letter);
+      Driver * tmpdriver = nullptr;
+      swap(tmpdriver, driver.e[dd]);
+      delete(tmpdriver);
+    }
+    data.drivers_e = drv;
+  }
 }
 
 void Stepper::init() {
@@ -241,18 +293,17 @@ void Stepper::init() {
     microstep_init();
   #endif
 
-  // Init Stepper ISR to 128 Hz for quick starting
-  HAL_timer_start(STEPPER_TIMER_NUM, 128);
-
+  // Init Stepper ISR
+  START_STEPPER_INTERRUPT();
   ENABLE_STEPPER_INTERRUPT();
 
   sei();
 
   // Init direction bits for first moves
   last_direction_bits = 0
-    | (driver[X_DRV]->isDir() ? _BV(X_AXIS) : 0)
-    | (driver[Y_DRV]->isDir() ? _BV(Y_AXIS) : 0)
-    | (driver[Z_DRV]->isDir() ? _BV(Z_AXIS) : 0);
+    | (driver.x->isDir() ? _BV(X_AXIS) : 0)
+    | (driver.y->isDir() ? _BV(Y_AXIS) : 0)
+    | (driver.z->isDir() ? _BV(Z_AXIS) : 0);
 
   set_directions();
 
@@ -261,51 +312,25 @@ void Stepper::init() {
     digipot_init();
   #endif
 
-  // Init Alligator DAC
-  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
-    externaldac.begin();
-    externaldac.set_driver_current();
-  #endif
-
 }
 
 void Stepper::factory_parameters() {
-
-  constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
-                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON,
-                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON };
-  constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
-                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR,
-                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR };
-  constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
-                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN };
-  constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
-                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN,
-                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN };
-  constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
-                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN,
-                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN };
-  constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
-                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN,
-                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN };
-
-  LOOP_DRV() {
-    if (driver[d]) {
-      driver[d]->setEnable(tmpenable[d]);
-      driver[d]->setDir(tmpdir[d]);
-      driver[d]->setStep(tmpstep[d]);
-      driver[d]->data.pin.enable = tmpenpin[d];
-      driver[d]->data.pin.dir    = tmpdrpin[d];
-      driver[d]->data.pin.step   = tmpstpin[d];
-    }
-  }
 
   data.quad_stepping    = DOUBLE_QUAD_STEPPING;
   data.minimum_pulse    = MINIMUM_STEPPER_PULSE;
   data.direction_delay  = DIRECTION_STEPPER_DELAY;
   data.maximum_rate     = MAXIMUM_STEPPER_RATE;
+  data.drivers_e        = DRIVER_EXTRUDERS;
+
+  create_driver();
+
+  LOOP_DRV_XYZ()  if (driver[d]) driver_factory_parameters(driver[d], d);
+  LOOP_DRV_EXT()  if (driver[d]) driver_factory_parameters(driver.e[d], d + XYZ);
+
+  #if HAS_TRINAMIC
+    tmc.factory_parameters();
+  #endif
+  
 }
 
 /**
@@ -322,7 +347,7 @@ void Stepper::Step() {
   // Program timer compare for the maximum period, so it does NOT
   // flag an interrupt while this ISR is running - So changes from small
   // periods to big periods are respected and the timer does not reset to 0
-  HAL_timer_set_count(STEPPER_TIMER_NUM, HAL_TIMER_TYPE_MAX);
+  HAL_timer_set_count(STEPPER_TIMER_NUM, hal_timer_t(HAL_TIMER_TYPE_MAX));
 
   // Count of ticks for the next ISR
   hal_timer_t next_isr_ticks = 0;
@@ -486,23 +511,26 @@ int32_t Stepper::position(const AxisEnum axis) {
 
 void Stepper::report_positions() {
 
-  // Disable stepper ISR
-  const bool isr_enabled = STEPPER_ISR_ENABLED();
-  if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  #ifdef __AVR__
+    // Protect the access to the position.
+    const bool isr_enabled = STEPPER_ISR_ENABLED();
+    if (isr_enabled) DISABLE_STEPPER_INTERRUPT();
+  #endif
 
-  const int32_t xpos = count_position[X_AXIS],
-                ypos = count_position[Y_AXIS],
-                zpos = count_position[Z_AXIS];
+  const int32_t xpos = count_position.x,
+                ypos = count_position.y,
+                zpos = count_position.z;
 
-  // Reenable Stepper ISR
-  if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #ifdef __AVR__
+    if (isr_enabled) ENABLE_STEPPER_INTERRUPT();
+  #endif
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_SCARA
-    SERIAL_MSG(MSG_COUNT_A);
+    SERIAL_MSG(MSG_HOST_COUNT_A);
   #elif MECH(DELTA)
-    SERIAL_MSG(MSG_COUNT_ALPHA);
+    SERIAL_MSG(MSG_HOST_COUNT_ALPHA);
   #else
-    SERIAL_MSG(MSG_COUNT_X);
+    SERIAL_MSG(MSG_HOST_COUNT_X);
   #endif
   SERIAL_VAL(xpos);
 
@@ -553,61 +581,61 @@ void Stepper::set_directions() {
 
   #if HAS_X_DIR
     if (motor_direction(X_AXIS)) {
-      set_X_dir(driver[X_DRV]->isDir());
-      count_direction[X_AXIS] = -1;
+      set_X_dir(driver.x->isDir());
+      count_direction.x = -1;
     }
     else {
-      set_X_dir(!driver[X_DRV]->isDir());
-      count_direction[X_AXIS] = 1;
+      set_X_dir(!driver.x->isDir());
+      count_direction.x = 1;
     }
   #endif
 
   #if HAS_Y_DIR
     if (motor_direction(Y_AXIS)) {
-      set_Y_dir(driver[Y_DRV]->isDir());
-      count_direction[Y_AXIS] = -1;
+      set_Y_dir(driver.y->isDir());
+      count_direction.y = -1;
     }
     else {
-      set_Y_dir(!driver[Y_DRV]->isDir());
-      count_direction[Y_AXIS] = 1;
+      set_Y_dir(!driver.y->isDir());
+      count_direction.y = 1;
     }
   #endif
 
   #if HAS_Z_DIR
     if (motor_direction(Z_AXIS)) {
-      set_Z_dir(driver[Z_DRV]->isDir());
-      count_direction[Z_AXIS] = -1;
+      set_Z_dir(driver.z->isDir());
+      count_direction.z = -1;
     }
     else {
-      set_Z_dir(!driver[Z_DRV]->isDir());
-      count_direction[Z_AXIS] = 1;
+      set_Z_dir(!driver.z->isDir());
+      count_direction.z = 1;
     }
   #endif
 
-  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #if DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
       if (motor_direction(E_AXIS)) {
         set_rev_E_dir();
-        count_direction[E_AXIS] = -1;
+        count_direction.e = -1;
       }
       else {
         set_nor_E_dir();
-        count_direction[E_AXIS] = 1;
+        count_direction.e = 1;
       }
     #else
       if (motor_direction(E_AXIS)) {
         set_rev_E_dir(active_extruder_driver);
-        count_direction[E_AXIS] = -1;
+        count_direction.e = -1;
       }
       else {
         set_nor_E_dir(active_extruder_driver);
-        count_direction[E_AXIS] = 1;
+        count_direction.e = 1;
       }
     #endif
-  #endif // HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #endif // DISABLED(LIN_ADVANCE)
 
   #if HAS_EXT_ENCODER
-    tools.encLastDir[active_extruder] = count_direction[E_AXIS];
+    tools.encLastDir[active_extruder] = count_direction.e;
   #endif
 
   // After changing directions, an small delay could be needed.
@@ -621,92 +649,72 @@ void Stepper::set_directions() {
  */
 void Stepper::enable_X() {
   #if HAS_X2_ENABLE
-    X_ENABLE_WRITE( driver[X_DRV]->isEnable());
-    X2_ENABLE_WRITE(driver[X2_DRV]->isEnable());
+    driver.x->enable_write( driver.x->isEnable());
+    driver.x2->enable_write(driver.x2->isEnable());
   #elif HAS_X_ENABLE
-    X_ENABLE_WRITE(driver[X_DRV]->isEnable());
+    driver.x->enable_write(driver.x->isEnable());
   #endif
 }
 void Stepper::disable_X() {
   #if HAS_X2_ENABLE
-    X_ENABLE_WRITE( !driver[X_DRV]->isEnable());
-    X2_ENABLE_WRITE(!driver[X2_DRV]->isEnable());
+    driver.x->enable_write( !driver.x->isEnable());
+    driver.x2->enable_write(!driver.x2->isEnable());
   #elif HAS_X_ENABLE
-    X_ENABLE_WRITE(!driver[X_DRV]->isEnable());
+    driver.x->enable_write(!driver.x->isEnable());
   #endif
   mechanics.home_flag.XHomed = false;
 }
 
 void Stepper::enable_Y() {
   #if HAS_Y2_ENABLE
-    Y_ENABLE_WRITE( driver[Y_DRV]->isEnable());
-    Y2_ENABLE_WRITE(driver[Y2_DRV]->isEnable());
+    driver.y->enable_write( driver.y->isEnable());
+    driver.y2->enable_write(driver.y2->isEnable());
   #elif HAS_Y_ENABLE
-    Y_ENABLE_WRITE(driver[Y_DRV]->isEnable());
+    driver.y->enable_write(driver.y->isEnable());
   #endif
 }
 void Stepper::disable_Y() {
   #if HAS_Y2_ENABLE
-    Y_ENABLE_WRITE( !driver[Y_DRV]->isEnable());
-    Y2_ENABLE_WRITE(!driver[Y2_DRV]->isEnable());
+    driver.y->enable_write( !driver.y->isEnable());
+    driver.y2->enable_write(!driver.y2->isEnable());
   #elif HAS_Y_ENABLE
-    Y_ENABLE_WRITE(!driver[Y_DRV]->isEnable());
+    driver.y->enable_write(!driver.y->isEnable());
   #endif
   mechanics.home_flag.YHomed = false;
 }
 
 void Stepper::enable_Z() {
   #if HAS_Z3_ENABLE
-    Z_ENABLE_WRITE( driver[Z_DRV]->isEnable());
-    Z2_ENABLE_WRITE(driver[Z2_DRV]->isEnable());
-    Z3_ENABLE_WRITE(driver[Z3_DRV]->isEnable());
+    driver.z->enable_write( driver.z->isEnable());
+    driver.z2->enable_write(driver.z2->isEnable());
+    driver.z3->enable_write(driver.z3->isEnable());
   #elif HAS_Z2_ENABLE
-    Z_ENABLE_WRITE( driver[Z_DRV]->isEnable());
-    Z2_ENABLE_WRITE(driver[Z2_DRV]->isEnable());
+    driver.z->enable_write( driver.z->isEnable());
+    driver.z2->enable_write(driver.z2->isEnable());
   #elif HAS_Z_ENABLE
-    Z_ENABLE_WRITE( driver[Z_DRV]->isEnable());
+    driver.z->enable_write( driver.z->isEnable());
   #endif
 }
 void Stepper::disable_Z() {
   #if HAS_Z3_ENABLE
-    Z_ENABLE_WRITE( !driver[Z_DRV]->isEnable());
-    Z2_ENABLE_WRITE(!driver[Z2_DRV]->isEnable());
-    Z3_ENABLE_WRITE(!driver[Z3_DRV]->isEnable());
+    driver.z->enable_write( !driver.z->isEnable());
+    driver.z2->enable_write(!driver.z2->isEnable());
+    driver.z3->enable_write(!driver.z3->isEnable());
   #elif HAS_Z2_ENABLE
-    Z_ENABLE_WRITE( !driver[Z_DRV]->isEnable());
-    Z2_ENABLE_WRITE(!driver[Z2_DRV]->isEnable());
+    driver.z->enable_write( !driver.z->isEnable());
+    driver.z2->enable_write(!driver.z2->isEnable());
   #elif HAS_Z_ENABLE
-    Z_ENABLE_WRITE( !driver[Z_DRV]->isEnable());
+    driver.z->enable_write( !driver.z->isEnable());
   #endif
   mechanics.home_flag.ZHomed = false;
 }
 
 void Stepper::enable_E() {
-  enable_E0();
-  enable_E1();
-  enable_E2();
-  enable_E3();
-  enable_E4();
-  enable_E5();
+  LOOP_EXTRUDER() enable_E(e);
 }
+
 void Stepper::disable_E() {
-  disable_E0();
-  disable_E1();
-  disable_E2();
-  disable_E3();
-  disable_E4();
-  disable_E5();
-}
-void Stepper::disable_E(const uint8_t e) {
-  switch (e) {
-    case 0: disable_E0(); break;
-    case 1: disable_E1(); break;
-    case 2: disable_E2(); break;
-    case 3: disable_E3(); break;
-    case 4: disable_E4(); break;
-    case 5: disable_E5(); break;
-    default:              break;
-  }
+  LOOP_EXTRUDER() disable_E(e);
 }
 
 void Stepper::enable_all() {
@@ -725,136 +733,88 @@ void Stepper::disable_all() {
   disable_E();
 }
 
-void Stepper::enable_E0() {
+void Stepper::enable_E(const uint8_t e) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
     #if MIXING_STEPPERS > 5
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(driver[E3_DRV]->isEnable());
-      E4_ENABLE_WRITE(driver[E4_DRV]->isEnable());
-      E5_ENABLE_WRITE(driver[E5_DRV]->isEnable());
+      driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(driver.e[E3_DRV]->isEnable());
+      driver.e[4]->enable_write(driver.e[E4_DRV]->isEnable());
+      driver.e[5]->enable_write(driver.e[E5_DRV]->isEnable());
     #elif MIXING_STEPPERS > 4
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(driver[E3_DRV]->isEnable());
-      E4_ENABLE_WRITE(driver[E4_DRV]->isEnable());
+      driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(driver.e[E3_DRV]->isEnable());
+      driver.e[4]->enable_write(driver.e[E4_DRV]->isEnable());
     #elif MIXING_STEPPERS > 3
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(driver[E3_DRV]->isEnable());
+      driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(driver.e[E3_DRV]->isEnable());
     #elif MIXING_STEPPERS > 2
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(driver[E2_DRV]->isEnable());
+      driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(driver.e[E2_DRV]->isEnable());
     #else
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
+      driver.e[0]->enable_write(driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(driver.e[E1_DRV]->isEnable());
     #endif
 
   #else // !COLOR_MIXING_EXTRUDER
 
-    #if (DRIVER_EXTRUDERS > 0) && HAS_E0_ENABLE
-      E0_ENABLE_WRITE(driver[E0_DRV]->isEnable());
-    #endif
+    if (driver.e[e]) driver.e[e]->enable_write(driver.e[e]->isEnable());
 
   #endif
 
 }
-void Stepper::disable_E0() {
+void Stepper::disable_E(const uint8_t e) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
+    UNUSED(e);
     #if MIXING_STEPPERS > 5
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(!driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(!driver[E3_DRV]->isEnable());
-      E4_ENABLE_WRITE(!driver[E4_DRV]->isEnable());
-      E5_ENABLE_WRITE(!driver[E5_DRV]->isEnable());
+      driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(!driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(!driver.e[E3_DRV]->isEnable());
+      driver.e[3]->enable_write(!driver.e[E4_DRV]->isEnable());
+      driver.e[5]->enable_write(!driver.e[E5_DRV]->isEnable());
     #elif MIXING_STEPPERS > 4
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(!driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(!driver[E3_DRV]->isEnable());
-      E4_ENABLE_WRITE(!driver[E4_DRV]->isEnable());
+      driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(!driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(!driver.e[E3_DRV]->isEnable());
+      driver.e[3]->enable_write(!driver.e[E4_DRV]->isEnable());
     #elif MIXING_STEPPERS > 3
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(!driver[E2_DRV]->isEnable());
-      E3_ENABLE_WRITE(!driver[E3_DRV]->isEnable());
+      driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(!driver.e[E2_DRV]->isEnable());
+      driver.e[3]->enable_write(!driver.e[E3_DRV]->isEnable());
     #elif MIXING_STEPPERS > 2
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
-      E2_ENABLE_WRITE(!driver[E2_DRV]->isEnable());
+      driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
+      driver.e[2]->enable_write(!driver.e[E2_DRV]->isEnable());
     #else
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
+      driver.e[0]->enable_write(!driver.e[E0_DRV]->isEnable());
+      driver.e[1]->enable_write(!driver.e[E1_DRV]->isEnable());
     #endif
 
   #else // !COLOR_MIXING_EXTRUDER
 
-    #if (DRIVER_EXTRUDERS > 0) && HAS_E0_ENABLE
-      E0_ENABLE_WRITE(!driver[E0_DRV]->isEnable());
-    #endif
+    if (driver.e[e]) driver.e[e]->enable_write(!driver.e[e]->isEnable());
 
   #endif
 }
 
-#if DISABLED(COLOR_MIXING_EXTRUDER)
-
-  void Stepper::enable_E1() {
-    #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
-      E1_ENABLE_WRITE(driver[E1_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E1() {
-    #if (DRIVER_EXTRUDERS > 1) && HAS_E1_ENABLE
-      E1_ENABLE_WRITE(!driver[E1_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E2() {
-    #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
-      E2_ENABLE_WRITE(driver[E2_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E2() {
-    #if (DRIVER_EXTRUDERS > 2) && HAS_E2_ENABLE
-      E2_ENABLE_WRITE(!driver[E2_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E3() {
-    #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
-      E3_ENABLE_WRITE(driver[E3_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E3() {
-    #if (DRIVER_EXTRUDERS > 3) && HAS_E3_ENABLE
-      E3_ENABLE_WRITE(!driver[E3_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E4() {
-    #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
-      E4_ENABLE_WRITE(driver[E4_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E4() {
-    #if (DRIVER_EXTRUDERS > 4) && HAS_E4_ENABLE
-      E4_ENABLE_WRITE(!driver[E4_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::enable_E5() {
-    #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
-      E5_ENABLE_WRITE(driver[E5_DRV]->isEnable());
-    #endif
-  }
-  void Stepper::disable_E5() {
-    #if (DRIVER_EXTRUDERS > 5) && HAS_E5_ENABLE
-      E5_ENABLE_WRITE(!driver[E5_DRV]->isEnable());
-    #endif
-  }
-
-#endif // DISABLED(COLOR_MIXING_EXTRUDER)
+bool Stepper::driver_is_enable() {
+  bool driver_enable = false;
+  LOOP_DRV_XYZ()
+    driver_enable |= driver[d]->enable_read() == driver[d]->isEnable();
+  LOOP_DRV_EXT()
+    driver_enable |= driver.e[d]->enable_read() == driver.e[d]->isEnable();
+  return driver_enable;
+}
 
 /**
  * Handle a triggered endstop
@@ -1031,9 +991,9 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
   }
 
   void Stepper::microstep_readings() {
-    SERIAL_MSG(MSG_MICROSTEP_MS1_MS2);
+    SERIAL_MSG(MSG_HOST_MICROSTEP_MS1_MS2);
     #if HAS_X_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_X);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_X);
       SERIAL_VAL(READ(X_MS1_PIN));
       #if PIN_EXISTS(X_MS2)
         SERIAL_EV(READ(X_MS2_PIN));
@@ -1042,7 +1002,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_Y_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_Y);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_Y);
       SERIAL_VAL(READ(Y_MS1_PIN));
       #if PIN_EXISTS(Y_MS2)
         SERIAL_EV(READ(Y_MS2_PIN));
@@ -1051,7 +1011,7 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_Z_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_Z);
+      SERIAL_MSG(MSG_HOST_MICROSTEP_Z);
       SERIAL_VAL(READ(Z_MS1_PIN));
       #if PIN_EXISTS(Z_MS2)
         SERIAL_EV(READ(Z_MS2_PIN));
@@ -1060,55 +1020,55 @@ int32_t Stepper::triggered_position(const AxisEnum axis) {
       #endif
     #endif
     #if HAS_E0_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E0);
-      SERIAL_VAL(READ(E0_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 0);
+      SERIAL_MV(":", READ(E0_MS1_PIN));
       #if PIN_EXISTS(E0_MS2)
-        SERIAL_EV(READ(E0_MS2_PIN));
+        SERIAL_EMV(" ", READ(E0_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E1_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E1);
-      SERIAL_VAL(READ(E1_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 1);
+      SERIAL_MV(":", READ(E1_MS1_PIN));
       #if PIN_EXISTS(E1_MS2)
-        SERIAL_EV(READ(E1_MS2_PIN));
+        SERIAL_EMV(" ", READ(E1_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E2_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E2);
-      SERIAL_VAL(READ(E2_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 2);
+      SERIAL_MV(":", READ(E2_MS1_PIN));
       #if PIN_EXISTS(E2_MS2)
-        SERIAL_EV(READ(E2_MS2_PIN));
+        SERIAL_EMV(" ", READ(E2_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E3_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E3);
-      SERIAL_VAL(READ(E3_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 3);
+      SERIAL_MV(":", READ(E3_MS1_PIN));
       #if PIN_EXISTS(E3_MS2)
-        SERIAL_EV(READ(E3_MS2_PIN));
+        SERIAL_EMV(" ", READ(E3_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E4_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E4);
-      SERIAL_VAL(READ(E4_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 4);
+      SERIAL_MV(":", READ(E4_MS1_PIN));
       #if PIN_EXISTS(E4_MS2)
-        SERIAL_EV(READ(E4_MS2_PIN));
+        SERIAL_EMV(" ", READ(E4_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
     #endif
     #if HAS_E5_MICROSTEPS
-      SERIAL_MSG(MSG_MICROSTEP_E5);
-      SERIAL_VAL(READ(E5_MS1_PIN));
+      SERIAL_MV(MSG_HOST_MICROSTEP_E, 5);
+      SERIAL_MV(":", READ(E5_MS1_PIN));
       #if PIN_EXISTS(E5_MS2)
-        SERIAL_EV(READ(E5_MS2_PIN));
+        SERIAL_EMV(" ", READ(E5_MS2_PIN));
       #else
         SERIAL_EOL();
       #endif
@@ -1165,18 +1125,15 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
   void Stepper::print_M569() {
     SERIAL_LM(CFG, "Stepper Direction");
-    SERIAL_SMV(CFG, "  M569 X", (int)driver[X_DRV]->isDir());
-    SERIAL_MV(" Y", (int)driver[Y_DRV]->isDir());
-    SERIAL_MV(" Z", (int)driver[Z_DRV]->isDir());
-    #if DRIVER_EXTRUDERS == 1
-      SERIAL_MV(" T0 E", (int)driver[E0_DRV]->isDir());
-    #endif
+    SERIAL_SMV(CFG, "  M569 X", (int)driver.x->isDir());
+    SERIAL_MV(" Y", (int)driver.y->isDir());
+    SERIAL_MV(" Z", (int)driver.z->isDir());
     SERIAL_EOL();
-    #if DRIVER_EXTRUDERS > 1
-      LOOP_DRV_EXTRUDER() {
+    #if MAX_DRIVER_E > 0
+      LOOP_DRV_EXT() {
         if (driver[d]) {
-          SERIAL_SMT(CFG, "  M569 ", driver[d]->axis_letter);
-          SERIAL_EMV(" E", (int)driver[d]->isDir());
+          SERIAL_SMT(CFG, "  M569 ", driver.e[d]->axis_letter);
+          SERIAL_EMV(" E", (int)driver.e[d]->isDir());
         }
       }
     #endif
@@ -1215,19 +1172,6 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
     #endif
   #endif
 
-  #define BABYSTEP_AXIS(AXIS, INVERT, DIR) {                \
-      const uint8_t old_dir = AXIS ##_DIR_READ();           \
-      enable_## AXIS();                                     \
-      set_##AXIS##_dir(driver[AXIS##_DRV]->isDir()^DIR^INVERT);  \
-      if (data.direction_delay >= 50)                       \
-        HAL::delayNanoseconds(data.direction_delay);        \
-      _SAVE_START;                                          \
-      start_##AXIS##_step();                                \
-      _PULSE_WAIT;                                          \
-      stop_##AXIS##_step();                                 \
-      set_##AXIS##_dir(old_dir);                            \
-    }
-
   // MUST ONLY BE CALLED BY AN ISR,
   // No other ISR should ever interrupt this!
   void Stepper::babystep(const AxisEnum axis, const bool direction) {
@@ -1239,25 +1183,99 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 
         case X_AXIS:
           #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Y_dir = driver.y->dir_read(),
+            enable_X();
+            enable_Y();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Y_dir(driver.y->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Y_step();
+            set_X_dir(old_X_dir);
+            set_Y_dir(old_Y_dir);
           #elif CORE_IS_XZ
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Z, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Z_dir = driver.z->dir_read(),
+            enable_X();
+            enable_Z();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Z_dir(driver.z->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Z_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Z_step();
+            set_X_dir(old_X_dir);
+            set_Z_dir(old_Z_dir);
           #else
-            BABYSTEP_AXIS(X, false, direction);
+            const uint8_t old_X_dir = driver.x->dir_read();
+            enable_X();
+            set_X_dir(driver.x->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            set_X_dir(old_X_dir);
           #endif
           break;
 
         case Y_AXIS:
           #if CORE_IS_XY
-            BABYSTEP_AXIS(X, false, direction);
-            BABYSTEP_AXIS(Y, false, direction^(CORESIGN(1)<0));
+            const uint8_t old_X_dir = driver.x->dir_read(),
+                          old_Y_dir = driver.y->dir_read(),
+            enable_X();
+            enable_Y();
+            set_X_dir(driver.x->isDir()^direction^false);
+            set_Y_dir(driver.y->isDir()^direction^false^(CORESIGN(1)<0));
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_X_step();
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_X_step();
+            stop_Y_step();
+            set_X_dir(old_X_dir);
+            set_Y_dir(old_Y_dir);
           #elif CORE_IS_YZ
-            BABYSTEP_AXIS(Y, false, direction);
-            BABYSTEP_AXIS(Z, false, direction^(CORESIGN(1)<0));
+            const uint8_t old_Y_dir = driver.y->dir_read(),
+                          old_Z_dir = driver.z->dir_read(),
+            enable_Y();
+            enable_Z();
+            set_Y_dir(driver.y->isDir()^direction^false);
+            set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_Y_step();
+            start_Z_step();
+            _PULSE_WAIT;
+            stop_Y_step();
+            stop_Z_step();
+            set_Y_dir(old_Y_dir);
+            set_Z_dir(old_Z_dir);
           #else
-            BABYSTEP_AXIS(Y, false, direction);
+            const uint8_t old_Y_dir = driver.y->dir_read();
+            enable_Y();
+            set_Y_dir(driver.y->isDir()^direction^false);
+            if (data.direction_delay >= 50)
+              HAL::delayNanoseconds(data.direction_delay);
+            _SAVE_START;
+            start_Y_step();
+            _PULSE_WAIT;
+            stop_Y_step();
+            set_Y_dir(old_Y_dir);
           #endif
           break;
 
@@ -1266,13 +1284,50 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
       case Z_AXIS: {
 
         #if CORE_IS_XZ
-          BABYSTEP_AXIS(X, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+          const uint8_t old_X_dir = driver.x->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
+          enable_X();
+          enable_Z();
+          set_X_dir(driver.x->isDir()^direction^BABYSTEP_INVERT_Z);
+          set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z^(CORESIGN(1)<0));
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_X_step();
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_X_step();
+          stop_Z_step();
+          set_X_dir(old_X_dir);
+          set_Z_dir(old_Z_dir);
         #elif CORE_IS_YZ
-          BABYSTEP_AXIS(Y, BABYSTEP_INVERT_Z, direction);
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction^(CORESIGN(1)<0));
+          const uint8_t old_Y_dir = driver.y->dir_read(),
+                        old_Z_dir = driver.z->dir_read(),
+          enable_Y();
+          enable_Z();
+          set_Y_dir(driver.y->isDir()^direction^false);
+          set_Z_dir(driver.z->isDir()^direction^false^(CORESIGN(1)<0));
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_Y_step();
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_Y_step();
+          stop_Z_step();
+          set_Y_dir(old_Y_dir);
+          set_Z_dir(old_Z_dir);
         #elif NOMECH(DELTA)
-          BABYSTEP_AXIS(Z, BABYSTEP_INVERT_Z, direction);
+          const uint8_t old_Z_dir = driver.z->dir_read();
+          enable_Z();
+          set_Z_dir(driver.z->isDir()^direction^BABYSTEP_INVERT_Z);
+          if (data.direction_delay >= 50)
+            HAL::delayNanoseconds(data.direction_delay);
+          _SAVE_START;
+          start_Z_step();
+          _PULSE_WAIT;
+          stop_Z_step();
+          set_Z_dir(old_Z_dir);
         #else // DELTA
 
           const bool z_direction = direction ^ BABYSTEP_INVERT_Z;
@@ -1281,13 +1336,13 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           enable_Y();
           enable_Z();
 
-          const uint8_t old_x_dir_pin = X_DIR_READ(),
-                        old_y_dir_pin = Y_DIR_READ(),
-                        old_z_dir_pin = Z_DIR_READ();
+          const uint8_t old_x_dir = driver.x->dir_read(),
+                        old_y_dir = driver.y->dir_read(),
+                        old_z_dir = driver.z->dir_read();
 
-          set_X_dir(driver[X_DRV]->isDir() ^ z_direction);
-          set_Y_dir(driver[Y_DRV]->isDir() ^ z_direction);
-          set_Z_dir(driver[Z_DRV]->isDir() ^ z_direction);
+          set_X_dir(driver.x->isDir() ^ z_direction);
+          set_Y_dir(driver.y->isDir() ^ z_direction);
+          set_Z_dir(driver.z->isDir() ^ z_direction);
 
           if (data.direction_delay >= 50)
             HAL::delayNanoseconds(data.direction_delay);
@@ -1305,9 +1360,9 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
           stop_Z_step();
 
           // Restore direction bits
-          set_X_dir(old_x_dir_pin);
-          set_Y_dir(old_y_dir_pin);
-          set_Z_dir(old_z_dir_pin);
+          set_X_dir(old_x_dir);
+          set_Y_dir(old_y_dir);
+          set_Z_dir(old_z_dir);
 
         #endif
 
@@ -1322,6 +1377,46 @@ void Stepper::set_position(const AxisEnum a, const int32_t &v) {
 #endif //BABYSTEPPING
 
 /** Private Function */
+void Stepper::driver_factory_parameters(Driver* act, const uint8_t index) {
+
+  constexpr bool tmpenable[]  = { X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON,
+                                  E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON, E_ENABLE_ON,
+                                  X_ENABLE_ON, Y_ENABLE_ON, Z_ENABLE_ON, Z_ENABLE_ON };
+  constexpr bool tmpdir[]     = { INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR,
+                                  INVERT_E0_DIR, INVERT_E1_DIR, INVERT_E2_DIR, INVERT_E3_DIR, INVERT_E4_DIR, INVERT_E5_DIR,
+                                  INVERT_X_DIR, INVERT_Y_DIR, INVERT_Z_DIR, INVERT_Z_DIR };
+  constexpr bool tmpstep[]    = { INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN,
+                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
+                                  INVERT_E_STEP_PIN, INVERT_E_STEP_PIN, INVERT_E_STEP_PIN,
+                                  INVERT_X_STEP_PIN, INVERT_Y_STEP_PIN, INVERT_Z_STEP_PIN, INVERT_Z_STEP_PIN };
+  constexpr pin_t tmpenpin[]  = { X_ENABLE_PIN, Y_ENABLE_PIN, Z_ENABLE_PIN,
+                                  E0_ENABLE_PIN, E1_ENABLE_PIN, E2_ENABLE_PIN, E3_ENABLE_PIN, E4_ENABLE_PIN, E5_ENABLE_PIN,
+                                  X2_ENABLE_PIN, Y2_ENABLE_PIN, Z2_ENABLE_PIN, Z3_ENABLE_PIN };
+  constexpr pin_t tmpdrpin[]  = { X_DIR_PIN, Y_DIR_PIN, Z_DIR_PIN,
+                                  E0_DIR_PIN, E1_DIR_PIN, E2_DIR_PIN, E3_DIR_PIN, E4_DIR_PIN, E5_DIR_PIN,
+                                  X2_DIR_PIN, Y2_DIR_PIN, Z2_DIR_PIN, Z3_DIR_PIN };
+  constexpr pin_t tmpstpin[]  = { X_STEP_PIN, Y_STEP_PIN, Z_STEP_PIN,
+                                  E0_STEP_PIN, E1_STEP_PIN, E2_STEP_PIN, E3_STEP_PIN, E4_STEP_PIN, E5_STEP_PIN,
+                                  X2_STEP_PIN, Y2_STEP_PIN, Z2_STEP_PIN, Z3_STEP_PIN };
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    constexpr int tmpma[]     = { X_CURRENT, Y_CURRENT, Z_CURRENT,
+                                  E0_CURRENT, E1_CURRENT, E2_CURRENT, E3_CURRENT, E4_CURRENT, E5_CURRENT,
+                                  X_CURRENT, Y_CURRENT, Z_CURRENT, Z_CURRENT };
+  #endif
+
+  act->setEnable(tmpenable[index]);
+  act->setDir(tmpdir[index]);
+  act->setStep(tmpstep[index]);
+  act->data.pin.enable  = tmpenpin[index];
+  act->data.pin.dir     = tmpdrpin[index];
+  act->data.pin.step    = tmpstpin[index];
+
+  #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
+    act->data.ma        = tmpma[index];
+  #endif
+
+}
+
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -1411,7 +1506,7 @@ void Stepper::pulse_phase_step() {
 uint32_t Stepper::block_phase_step() {
 
   // If no queued movements, just wait 1ms for the next move
-  uint32_t interval = (STEPPER_TIMER_RATE / 1000);
+  uint32_t interval = (STEPPER_TIMER_RATE) / 1000;
 
   // If there is a current block
   if (current_block) {
@@ -1578,7 +1673,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define X_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) X_CMP D_(2)) )
       #else
-        #define X_MOVE_TEST !!current_block->steps[A_AXIS]
+        #define X_MOVE_TEST !!current_block->steps.a
       #endif
 
       #if CORE_IS_XY || CORE_IS_YZ
@@ -1596,7 +1691,7 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define Y_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Y_CMP D_(2)) )
       #else
-        #define Y_MOVE_TEST !!current_block->steps[B_AXIS]
+        #define Y_MOVE_TEST !!current_block->steps.b
       #endif
 
       #if CORE_IS_XZ || CORE_IS_YZ
@@ -1614,14 +1709,14 @@ uint32_t Stepper::block_phase_step() {
         #endif
         #define Z_MOVE_TEST ( S_(1) != S_(2) || (S_(1) > 0 && D_(1) Z_CMP D_(2)) )
       #else
-        #define Z_MOVE_TEST !!current_block->steps[C_AXIS]
+        #define Z_MOVE_TEST !!current_block->steps.c
       #endif
 
       uint8_t axis_bits = 0;
       if (X_MOVE_TEST) SBI(axis_bits, A_AXIS);
       if (Y_MOVE_TEST) SBI(axis_bits, B_AXIS);
       if (Z_MOVE_TEST) SBI(axis_bits, C_AXIS);
-      //if (!!current_block->steps[E_AXIS]) SBI(axis_bits, E_AXIS);
+      //if (!!current_block->steps.e) SBI(axis_bits, E_AXIS);
       //if (!!current_block->steps[A_AXIS]) SBI(axis_bits, X_HEAD);
       //if (!!current_block->steps[B_AXIS]) SBI(axis_bits, Y_HEAD);
       //if (!!current_block->steps[C_AXIS]) SBI(axis_bits, Z_HEAD);
@@ -1647,18 +1742,18 @@ uint32_t Stepper::block_phase_step() {
       step_event_count = current_block->step_event_count << oversampling;
 
       // Initialize Bresenham delta errors to 1/2
-      delta_error[X_AXIS] = delta_error[Y_AXIS] = delta_error[Z_AXIS] = delta_error[E_AXIS] = -int32_t(step_event_count);
+      delta_error = -int32_t(step_event_count);
 
       #if ENABLED(LASER)
-        delta_error_laser = delta_error[X_AXIS];
+        delta_error_laser = delta_error.x;
         laser.dur = current_block->laser_duration;
       #endif
 
       // Calculate Bresenham dividends
-      advance_dividend[X_AXIS] = current_block->steps[X_AXIS] << 1;
-      advance_dividend[Y_AXIS] = current_block->steps[Y_AXIS] << 1;
-      advance_dividend[Z_AXIS] = current_block->steps[Z_AXIS] << 1;
-      advance_dividend[E_AXIS] = current_block->steps[E_AXIS] << 1;
+      advance_dividend.x = current_block->steps.x << 1;
+      advance_dividend.y = current_block->steps.y << 1;
+      advance_dividend.z = current_block->steps.z << 1;
+      advance_dividend.e = current_block->steps.e << 1;
 
       // Calculate Bresenham divisor
       advance_divisor = step_event_count << 1;
@@ -1674,14 +1769,12 @@ uint32_t Stepper::block_phase_step() {
         mixer.stepper_setup(current_block->b_color);
       #endif
 
-      #if EXTRUDERS > 1
-        active_extruder = current_block->active_extruder;
-        active_extruder_driver = get_active_extruder_driver();
-      #endif
+      active_extruder = current_block->active_extruder;
+      active_extruder_driver = get_active_extruder_driver();
 
       // Initialize the trapezoid generator from the current block.
       #if ENABLED(LIN_ADVANCE)
-        #if DISABLED(COLOR_MIXING_EXTRUDER) && DRIVER_EXTRUDERS > 1
+        #if DISABLED(COLOR_MIXING_EXTRUDER) && MAX_DRIVER_E > 1
           // If the now active extruder wasn't in use during the last move, its pressure is most likely gone.
           if (active_extruder != last_moved_extruder) LA_current_adv_steps = 0;
         #endif
@@ -1721,7 +1814,7 @@ uint32_t Stepper::block_phase_step() {
         // If delayed Z enable, enable it now. This option will severely interfere with
         // timing between pulses when chaining motion between blocks, and it could lead
         // to lost steps in both X and Y axis, so avoid using it unless strictly necessary!!
-        if (current_block->steps[Z_AXIS]) enable_Z();
+        if (current_block->steps.z) enable_Z();
       #endif
 
       // Mark the time_nominal as not calculated yet
@@ -1762,51 +1855,51 @@ uint32_t Stepper::block_phase_step() {
 FORCE_INLINE void Stepper::pulse_tick_start() {
 
   #if HAS_X_STEP
-    delta_error[X_AXIS] += advance_dividend[X_AXIS];
-    if (delta_error[X_AXIS] >= 0) {
+    delta_error.x += advance_dividend.x;
+    if (delta_error.x >= 0) {
       start_X_step();
-      count_position[X_AXIS] += count_direction[X_AXIS];
+      count_position.x += count_direction.x;
     }
   #endif
 
   #if HAS_Y_STEP
-    delta_error[Y_AXIS] += advance_dividend[Y_AXIS];
-    if (delta_error[Y_AXIS] >= 0) {
+    delta_error.y += advance_dividend.y;
+    if (delta_error.y >= 0) {
       start_Y_step();
-      count_position[Y_AXIS] += count_direction[Y_AXIS];
+      count_position.y += count_direction.y;
     }
   #endif
 
   #if HAS_Z_STEP
-    delta_error[Z_AXIS] += advance_dividend[Z_AXIS];
-    if (delta_error[Z_AXIS] >= 0) {
+    delta_error.z += advance_dividend.z;
+    if (delta_error.z >= 0) {
       start_Z_step();
-      count_position[Z_AXIS] += count_direction[Z_AXIS];
+      count_position.z += count_direction.z;
     }
   #endif
 
   // Pulse Extruders
   // Tick the E axis, correct error term and update position
   #if ENABLED(LIN_ADVANCE) || ENABLED(COLOR_MIXING_EXTRUDER)
-    delta_error[E_AXIS] += advance_dividend[E_AXIS];
-    if (delta_error[E_AXIS] >= 0) {
-      count_position[E_AXIS] += count_direction[E_AXIS];
+    delta_error.e += advance_dividend.e;
+    if (delta_error.e >= 0) {
+      count_position[E_AXIS] += count_direction.e;
       #if ENABLED(LIN_ADVANCE)
-        delta_error[E_AXIS] -= advance_divisor;
+        delta_error.e -= advance_divisor;
         // Don't step E here - But remember the number of steps to perform
         motor_direction(E_AXIS) ? --LA_steps : ++LA_steps;
       #else
         // !LIN_ADVANCE && COLOR_MIXING_EXTRUDER
-        E_STEP_WRITE(mixer.get_next_stepper(), !driver[E0_DRV]->isStep());
+        e_step_write(mixer.get_next_stepper(), !driver.e[0]->isStep());
       #endif
     }
 
-  #elif HAS_EXTRUDERS
+  #else
 
-    delta_error[E_AXIS] += advance_dividend[E_AXIS];
-    if (delta_error[E_AXIS] >= 0) {
-      E_STEP_WRITE(active_extruder_driver, !driver[E0_DRV]->isStep());
-      count_position[E_AXIS] += count_direction[E_AXIS];
+    delta_error.e += advance_dividend.e;
+    if (delta_error.e >= 0) {
+      e_step_write(active_extruder_driver, !driver.e[active_extruder_driver]->isStep());
+      count_position[E_AXIS] += count_direction.e;
     }
 
   #endif
@@ -1816,36 +1909,36 @@ FORCE_INLINE void Stepper::pulse_tick_start() {
 FORCE_INLINE void Stepper::pulse_tick_stop() {
 
   #if HAS_X_STEP
-    if (delta_error[X_AXIS] >= 0) {
-      delta_error[X_AXIS] -= advance_divisor;
+    if (delta_error.x >= 0) {
+      delta_error.x -= advance_divisor;
       stop_X_step();
     }
   #endif
 
   #if HAS_Y_STEP
-    if (delta_error[Y_AXIS] >= 0) {
-      delta_error[Y_AXIS] -= advance_divisor;
+    if (delta_error.y >= 0) {
+      delta_error.y -= advance_divisor;
       stop_Y_step();
     }
   #endif
 
   #if HAS_Z_STEP
-    if (delta_error[Z_AXIS] >= 0) {
-      delta_error[Z_AXIS] -= advance_divisor;
+    if (delta_error.z >= 0) {
+      delta_error.z -= advance_divisor;
       stop_Z_step();
     }
   #endif
 
-  #if HAS_EXTRUDERS && DISABLED(LIN_ADVANCE)
+  #if DISABLED(LIN_ADVANCE)
     #if ENABLED(COLOR_MIXING_EXTRUDER)
-      if (delta_error[E_AXIS] >= 0) {
-        delta_error[E_AXIS] -= advance_divisor;
-        E_STEP_WRITE(mixer.get_stepper(), driver[E0_DRV]->isStep());
+      if (delta_error.e >= 0) {
+        delta_error.e -= advance_divisor;
+        e_step_write(mixer.get_stepper(), driver.e[0]->isStep());
       }
-    #elif HAS_EXTRUDERS
-      if (delta_error[E_AXIS] >= 0) {
-        delta_error[E_AXIS] -= advance_divisor;
-        E_STEP_WRITE(active_extruder_driver, driver[E0_DRV]->isStep());
+    #else
+      if (delta_error.e >= 0) {
+        delta_error.e -= advance_divisor;
+        e_step_write(active_extruder_driver, driver.e[active_extruder_driver]->isStep());
       }
     #endif
   #endif
@@ -1861,35 +1954,35 @@ FORCE_INLINE void Stepper::start_X_step() {
     #if ENABLED(X_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (X_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, X_MIN)  && count_direction[X_AXIS] < 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
-          if (!(TEST(endstops.live_state, X2_MIN) && count_direction[X_AXIS] < 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X_MIN)  && count_direction.x < 0) && !locked_X_motor)   driver.x->step_write(!driver.x->isStep());
+          if (!(TEST(endstops.live_state, X2_MIN) && count_direction.x < 0) && !locked_X2_motor) driver.x2->step_write(!driver.x2->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, X_MAX)  && count_direction[X_AXIS] > 0) && !locked_X_motor)   X_STEP_WRITE(!driver[X_DRV]->isStep());
-          if (!(TEST(endstops.live_state, X2_MAX) && count_direction[X_AXIS] > 0) && !locked_X2_motor) X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, X_MAX)  && count_direction.x > 0) && !locked_X_motor)   driver.x->step_write(!driver.x->isStep());
+          if (!(TEST(endstops.live_state, X2_MAX) && count_direction.x > 0) && !locked_X2_motor) driver.x2->step_write(!driver.x2->isStep());
         }
       }
       else {
-         X_STEP_WRITE(!driver[X_DRV]->isStep());
-        X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+         driver.x->step_write(!driver.x->isStep());
+        driver.x2->step_write(!driver.x2->isStep());
       }
     #else
-       X_STEP_WRITE(!driver[X_DRV]->isStep());
-      X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+       driver.x->step_write(!driver.x->isStep());
+      driver.x2->step_write(!driver.x2->isStep());
     #endif
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
-       X_STEP_WRITE(!driver[X_DRV]->isStep());
-      X2_STEP_WRITE(!driver[X2_DRV]->isStep());
+       driver.x->step_write(!driver.x->isStep());
+      driver.x2->step_write(!driver.x2->isStep());
     }
     else {
       if (movement_extruder())
-        X2_STEP_WRITE(!driver[X_DRV]->isStep());
+        driver.x2->step_write(!driver.x->isStep());
       else
-        X_STEP_WRITE(!driver[X2_DRV]->isStep());
+        driver.x->step_write(!driver.x2->isStep());
     }
   #else
-    X_STEP_WRITE(!driver[X_DRV]->isStep());
+    driver.x->step_write(!driver.x->isStep());
   #endif
 
 }
@@ -1899,24 +1992,24 @@ FORCE_INLINE void Stepper::start_Y_step() {
     #if ENABLED(Y_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Y_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction[Y_AXIS] < 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Y2_MIN) && count_direction[Y_AXIS] < 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y_MIN)  && count_direction.y < 0) && !locked_Y_motor)   driver.y->step_write(!driver.y->isStep());
+          if (!(TEST(endstops.live_state, Y2_MIN) && count_direction.y < 0) && !locked_Y2_motor) driver.y2->step_write(!driver.y2->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction[Y_AXIS] > 0) && !locked_Y_motor)   Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Y2_MAX) && count_direction[Y_AXIS] > 0) && !locked_Y2_motor) Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Y_MAX)  && count_direction.y > 0) && !locked_Y_motor)   driver.y->step_write(!driver.y->isStep());
+          if (!(TEST(endstops.live_state, Y2_MAX) && count_direction.y > 0) && !locked_Y2_motor) driver.y2->step_write(!driver.y2->isStep());
         }
       }
       else {
-         Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-        Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+         driver.y->step_write(!driver.y->isStep());
+        driver.y2->step_write(!driver.y2->isStep());
       }
     #else
-       Y_STEP_WRITE(!driver[Y_DRV]->isStep());
-      Y2_STEP_WRITE(!driver[Y2_DRV]->isStep());
+       driver.y->step_write(!driver.y->isStep());
+      driver.y2->step_write(!driver.y2->isStep());
     #endif
   #else
-    Y_STEP_WRITE(!driver[Y_DRV]->isStep());
+    driver.y->step_write(!driver.y->isStep());
   #endif
 
 }
@@ -1926,68 +2019,68 @@ FORCE_INLINE void Stepper::start_Z_step() {
     #if ENABLED(Z_THREE_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z3_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction.z < 0) && !locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction.z < 0) && !locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
+          if (!(TEST(endstops.live_state, Z3_MIN) && count_direction.z < 0) && !locked_Z3_motor) driver.z3->step_write(!driver.z3->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z3_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction.z > 0) && !locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction.z > 0) && !locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
+          if (!(TEST(endstops.live_state, Z3_MAX) && count_direction.z > 0) && !locked_Z3_motor) driver.z3->step_write(!driver.z3->isStep());
         }
       }
       else {
-         Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-        Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+         driver.z->step_write(!driver.z->isStep());
+        driver.z2->step_write(!driver.z2->isStep());
+        driver.z3->step_write(!driver.z3->isStep());
       }
     #elif ENABLED(Z_STEPPER_AUTO_ALIGN)
       if (separate_multi_axis) {
-        if (!locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        if (!locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-        if (!locked_Z3_motor) Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+        if (!locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+        if (!locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
+        if (!locked_Z3_motor) driver.z3->step_write(!driver.z3->isStep());
       }
       else {
-         Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-        Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+         driver.z->step_write(!driver.z->isStep());
+        driver.z2->step_write(!driver.z2->isStep());
+        driver.z3->step_write(!driver.z3->isStep());
       }
     #else
-       Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-      Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
-      Z3_STEP_WRITE(!driver[Z3_DRV]->isStep());
+       driver.z->step_write(!driver.z->isStep());
+      driver.z2->step_write(!driver.z2->isStep());
+      driver.z3->step_write(!driver.z3->isStep());
     #endif
   #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
     #if ENABLED(Z_TWO_ENDSTOPS)
       if (separate_multi_axis) {
         if (Z_HOME_DIR < 0) {
-          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction[Z_AXIS] < 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction[Z_AXIS] < 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MIN)  && count_direction.z < 0) && !locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+          if (!(TEST(endstops.live_state, Z2_MIN) && count_direction.z < 0) && !locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
         }
         else {
-          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction[Z_AXIS] > 0) && !locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction[Z_AXIS] > 0) && !locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+          if (!(TEST(endstops.live_state, Z_MAX)  && count_direction.z > 0) && !locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+          if (!(TEST(endstops.live_state, Z2_MAX) && count_direction.z > 0) && !locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
         }
       }
       else {
-         Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+         driver.z->step_write(!driver.z->isStep());
+        driver.z2->step_write(!driver.z2->isStep());
       }
     #elif ENABLED(Z_STEPPER_AUTO_ALIGN)
       if (separate_multi_axis) {
-        if (!locked_Z_motor)   Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        if (!locked_Z2_motor) Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+        if (!locked_Z_motor)   driver.z->step_write(!driver.z->isStep());
+        if (!locked_Z2_motor) driver.z2->step_write(!driver.z2->isStep());
       }
       else {
-         Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-        Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+         driver.z->step_write(!driver.z->isStep());
+        driver.z2->step_write(!driver.z2->isStep());
       }
     #else
-       Z_STEP_WRITE(!driver[Z_DRV]->isStep());
-      Z2_STEP_WRITE(!driver[Z2_DRV]->isStep());
+       driver.z->step_write(!driver.z->isStep());
+      driver.z2->step_write(!driver.z2->isStep());
     #endif
   #else
-    Z_STEP_WRITE(!driver[Z_DRV]->isStep());
+    driver.z->step_write(!driver.z->isStep());
   #endif
 
 }
@@ -1996,24 +2089,24 @@ FORCE_INLINE void Stepper::start_Z_step() {
  * End X Y Z Step
  */
 FORCE_INLINE void Stepper::stop_X_step() {
-  X_STEP_WRITE(driver[X_DRV]->isStep());
+  driver.x->step_write(driver.x->isStep());
   #if ENABLED(X_TWO_STEPPER_DRIVERS) || ENABLED(DUAL_X_CARRIAGE)
-    X2_STEP_WRITE(driver[X2_DRV]->isStep());
+    driver.x2->step_write(driver.x2->isStep());
   #endif
 }
 FORCE_INLINE void Stepper::stop_Y_step() {
-  Y_STEP_WRITE(driver[Y_DRV]->isStep());
+  driver.y->step_write(driver.y->isStep());
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-    Y2_STEP_WRITE(driver[Y2_DRV]->isStep());
+    driver.y2->step_write(driver.y2->isStep());
   #endif
 }
 FORCE_INLINE void Stepper::stop_Z_step() {
-  Z_STEP_WRITE(driver[Z_DRV]->isStep());
+  driver.z->step_write(driver.z->isStep());
   #if ENABLED(Z_THREE_STEPPER_DRIVERS)
-    Z2_STEP_WRITE(driver[Z2_DRV]->isStep());
-    Z3_STEP_WRITE(driver[Z3_DRV]->isStep());
+    driver.z2->step_write(driver.z2->isStep());
+    driver.z3->step_write(driver.z3->isStep());
   #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
-    Z2_STEP_WRITE(driver[Z2_DRV]->isStep());
+    driver.z2->step_write(driver.z2->isStep());
   #endif
 }
 
@@ -2022,154 +2115,72 @@ FORCE_INLINE void Stepper::stop_Z_step() {
  */
 FORCE_INLINE void Stepper::set_X_dir(const bool dir) {
   #if ENABLED(X_TWO_STEPPER_DRIVERS)
-    X_DIR_WRITE(dir);
-    X2_DIR_WRITE((dir) != INVERT_X2_VS_X_DIR);
+    driver.x->dir_write(dir);
+    driver.x2->dir_write((dir) != INVERT_X2_VS_X_DIR);
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
-      X_DIR_WRITE(dir);
-      X2_DIR_WRITE(dir);
+      driver.x->dir_write(dir);
+      driver.x2->dir_write(dir);
     }
     else {
       if (movement_extruder())
-        X2_DIR_WRITE(dir);
+        driver.x2->dir_write(dir);
       else
-        X_DIR_WRITE(dir);
+        driver.x->dir_write(dir);
     }
   #else
-    X_DIR_WRITE(dir);
+    driver.x->dir_write(dir);
   #endif
 }
 FORCE_INLINE void Stepper::set_Y_dir(const bool dir) {
-  Y_DIR_WRITE(dir);
+  driver.y->dir_write(dir);
   #if ENABLED(Y_TWO_STEPPER_DRIVERS)
-    Y2_DIR_WRITE((dir) != INVERT_Y2_VS_Y_DIR);
+    driver.y2->dir_write((dir) != INVERT_Y2_VS_Y_DIR);
   #endif
 }
 FORCE_INLINE void Stepper::set_Z_dir(const bool dir) {
-  Z_DIR_WRITE(dir);
+  driver.z->dir_write(dir);
   #if ENABLED(Z_THREE_STEPPER_DRIVERS)
-    Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
-    Z3_DIR_WRITE((dir) != INVERT_Z3_VS_Z_DIR);
+    driver.z2->dir_write((dir) != INVERT_Z2_VS_Z_DIR);
+    driver.z3->dir_write((dir) != INVERT_Z3_VS_Z_DIR);
   #elif ENABLED(Z_TWO_STEPPER_DRIVERS)
-    Z2_DIR_WRITE((dir) != INVERT_Z2_VS_Z_DIR);
+    driver.z2->dir_write((dir) != INVERT_Z2_VS_Z_DIR);
   #endif
 }
 FORCE_INLINE void Stepper::set_nor_E_dir(const uint8_t e/*=0*/) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     UNUSED(e);
-    #if DRIVER_EXTRUDERS > 0
-      E0_DIR_WRITE(!driver[E0_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 1
-      E1_DIR_WRITE(!driver[E1_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 2
-      E2_DIR_WRITE(!driver[E2_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 3
-      E3_DIR_WRITE(!driver[E3_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 4
-      E4_DIR_WRITE(!driver[E0_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 5
-      E5_DIR_WRITE(!driver[E0_DRV]->isDir());
-    #endif
+    LOOP_DRV_EXT() driver.e[d]->dir_write(!driver.e[d]->isDir());
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
-      E0_DIR_WRITE(!driver[E0_DRV]->isDir());
-      E1_DIR_WRITE(!driver[E1_DRV]->isDir());
+      driver.e[0]->dir_write(!driver.e[0]->isDir());
+      driver.e[1]->dir_write(!driver.e[1]->isDir());
     }
-    else if (e == 0) {
-      E0_DIR_WRITE(!driver[E0_DRV]->isDir());
-    }
-    else {
-      E1_DIR_WRITE(!driver[E1_DRV]->isDir());
-    }
+    else 
+      driver.e[d]->dir_write(!driver.e[d]->isDir());
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
     UNUSED(e);
-    E0_DIR_WRITE(active_extruder ? driver[E0_DRV]->isDir() : !driver[E0_DRV]->isDir());
+    driver.e[active_extruder]->dir_write(active_extruder ? driver.e[0]->isDir() : !driver.e[1]->isDir());
   #else
-    switch (e) {
-      #if DRIVER_EXTRUDERS > 0
-        case 0: E0_DIR_WRITE(!driver[E0_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 1
-        case 1: E1_DIR_WRITE(!driver[E1_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 2
-        case 2: E2_DIR_WRITE(!driver[E2_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 3
-        case 3: E3_DIR_WRITE(!driver[E3_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 4
-        case 4: E4_DIR_WRITE(!driver[E4_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 5
-        case 5: E5_DIR_WRITE(!driver[E5_DRV]->isDir()); break;
-      #endif
-      default: break;
-    }
+    driver.e[e]->dir_write(!driver.e[e]->isDir());
   #endif
 }
 FORCE_INLINE void Stepper::set_rev_E_dir(const uint8_t e/*=0*/) {
   #if ENABLED(COLOR_MIXING_EXTRUDER)
     UNUSED(e);
-    #if DRIVER_EXTRUDERS > 0
-      E0_DIR_WRITE(driver[E0_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 1
-      E1_DIR_WRITE(driver[E1_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 2
-      E2_DIR_WRITE(driver[E2_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 3
-      E3_DIR_WRITE(driver[E3_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 4
-      E4_DIR_WRITE(driver[E4_DRV]->isDir());
-    #endif
-    #if DRIVER_EXTRUDERS > 5
-      E5_DIR_WRITE(driver[E5_DRV]->isDir());
-    #endif
+    LOOP_DRV_EXT() driver.e[d]->dir_write(driver.e[d]->isDir());
   #elif ENABLED(DUAL_X_CARRIAGE)
     if (mechanics.extruder_duplication_enabled) {
-      E0_DIR_WRITE(driver[E0_DRV]->isDir());
-      E1_DIR_WRITE(driver[E1_DRV]->isDir());
+      driver.e[0]->dir_write(driver.e[0]->isDir());
+      driver.e[1]->dir_write(driver.e[1]->isDir());
     }
-    else if (e == 0) {
-      E0_DIR_WRITE(driver[E0_DRV]->isDir());
-    }
-    else {
-      E1_DIR_WRITE(driver[E1_DRV]->isDir());
-    }
+    else 
+      driver.e[d]->dir_write(driver.e[d]->isDir());
   #elif ENABLED(DONDOLO_SINGLE_MOTOR)
     UNUSED(e);
-    E0_DIR_WRITE(active_extruder ? !driver[E0_DRV]->isDir() : driver[E0_DRV]->isDir());
+    driver.e[active_extruder]->dir_write(active_extruder ? !driver.e[0]->isDir() : driver.e[1]->isDir());
   #else
-    switch (e) {
-      #if DRIVER_EXTRUDERS > 0
-        case 0: E0_DIR_WRITE(driver[E0_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 1
-        case 1: E1_DIR_WRITE(driver[E1_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 2
-        case 2: E2_DIR_WRITE(driver[E2_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 3
-        case 3: E3_DIR_WRITE(driver[E3_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 4
-        case 4: E4_DIR_WRITE(driver[E4_DRV]->isDir()); break;
-      #endif
-      #if DRIVER_EXTRUDERS > 5
-        case 5: E5_DIR_WRITE(driver[E5_DRV]->isDir()); break;
-      #endif
-      default: break;
-    }
+    driver.e[e]->dir_write(driver.e[e]->isDir());
   #endif
 }
 
@@ -2186,37 +2197,24 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
 
   #if CORE_IS_XY
     // corexy positioning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * b;
-    count_position[B_AXIS] = CORESIGN(a - (CORE_FACTOR) * b);
-    count_position[Z_AXIS] = c;
+    count_position.set(a + (CORE_FACTOR) * b, CORESIGN(a - (CORE_FACTOR) * b), c);
   #elif CORE_IS_XZ
     // corexz planning
-    count_position[A_AXIS] = a + (CORE_FACTOR) * c;
-    count_position[Y_AXIS] = b;
-    count_position[C_AXIS] = CORESIGN(a - (CORE_FACTOR) * c);
+    count_position.set(a + (CORE_FACTOR) * c, b, CORESIGN(a - (CORE_FACTOR) * c));
   #elif CORE_IS_YZ
     // coreyz planning
-    count_position[X_AXIS] = a;
-    count_position[B_AXIS] = b + (CORE_FACTOR) * c;
-    count_position[C_AXIS] = CORESIGN(b - (CORE_FACTOR) * c);
+    count_position.set(a, b + (CORE_FACTOR) * c, CORESIGN(b - (CORE_FACTOR) * c));
   #else
     // default non-h-bot planning
-    count_position[X_AXIS] = a;
-    count_position[Y_AXIS] = b;
-    count_position[Z_AXIS] = c;
+    count_position.set(a, b, c);
   #endif
 
-  count_position[E_AXIS] = e;
+  count_position.e = e;
 
 }
 
 #if DISABLED(COLOR_MIXING_EXTRUDER)
-
-  /**
-   * Get active driver for Multitools MKr, MKs o Dondolo
-   */
   uint8_t Stepper::get_active_extruder_driver() {
-
     #if HAS_MKMULTI_TOOLS
       #if ENABLED(MKSE6)
         return 0;
@@ -2239,11 +2237,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
       return 0;
     #else
-      return active_extruder;
+      return extruders[tools.extruder.active]->get_driver(); 
     #endif
-
   }
-
 #endif
 
 /**
@@ -2298,9 +2294,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     while (LA_steps) {
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        E_STEP_WRITE(mixer.get_next_stepper(), !driver[E0_DRV]->isStep());
+        e_step_write(mixer.get_next_stepper(), !driver.e[0]->isStep());
       #else
-        E_STEP_WRITE(active_extruder_driver, !driver[E0_DRV]->isStep());
+        e_step_write(active_extruder_driver, !driver.e[active_extruder_driver]->isStep());
       #endif
 
       if (data.minimum_pulse) {
@@ -2313,9 +2309,9 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
       LA_steps < 0 ? ++LA_steps : --LA_steps;
 
       #if ENABLED(COLOR_MIXING_EXTRUDER)
-        E_STEP_WRITE(mixer.get_stepper(), driver[E0_DRV]->isStep());
+        e_step_write(mixer.get_stepper(), driver.e[0]->isStep());
       #else
-        E_STEP_WRITE(active_extruder_driver, driver[E0_DRV]->isStep());
+        e_step_write(active_extruder_driver, driver.e[active_extruder_driver]->isStep());
       #endif
 
       // For minimum pulse time wait before looping

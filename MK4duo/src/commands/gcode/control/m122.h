@@ -33,26 +33,26 @@
  *
  * Usage: M122 S1 to enable, M122 S0 to disable, M122 alone for report
  */
-inline void gcode_M122(void) {
+inline void gcode_M122() {
 
   #if HAS_SOFTWARE_ENDSTOPS
     if (parser.seen('S')) endstops.setSoftEndstop(parser.value_bool());
     SERIAL_STR(ECHO);
-    SERIAL_EONOFF(MSG_SOFT_ENDSTOPS, endstops.isSoftEndstop());
+    SERIAL_EONOFF(MSG_HOST_SOFT_ENDSTOPS, endstops.isSoftEndstop());
   #else
-    SERIAL_MSG(MSG_SOFT_ENDSTOPS);
+    SERIAL_MSG(MSG_HOST_SOFT_ENDSTOPS);
     SERIAL_MSG(MSG_LCD_OFF);
   #endif
 
   #if !(IS_KINEMATIC)
-    SERIAL_MSG(MSG_SOFT_MIN);
-    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop[X_AXIS].min));
-    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop[Y_AXIS].min));
-    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop[Z_AXIS].min));
-    SERIAL_MSG(MSG_SOFT_MAX);
-    SERIAL_MV(    MSG_X, LOGICAL_X_POSITION(endstops.soft_endstop[X_AXIS].max));
-    SERIAL_MV(" " MSG_Y, LOGICAL_Y_POSITION(endstops.soft_endstop[Y_AXIS].max));
-    SERIAL_MV(" " MSG_Z, LOGICAL_Z_POSITION(endstops.soft_endstop[Z_AXIS].max));
+    SERIAL_MSG(MSG_HOST_SOFT_MIN);
+    SERIAL_MV(    MSG_HOST_X, LOGICAL_X_POSITION(endstops.soft_endstop.min.x));
+    SERIAL_MV(" " MSG_HOST_Y, LOGICAL_Y_POSITION(endstops.soft_endstop.min.y));
+    SERIAL_MV(" " MSG_HOST_Z, LOGICAL_Z_POSITION(endstops.soft_endstop.min.z));
+    SERIAL_MSG(MSG_HOST_SOFT_MAX);
+    SERIAL_MV(    MSG_HOST_X, LOGICAL_X_POSITION(endstops.soft_endstop.max.x));
+    SERIAL_MV(" " MSG_HOST_Y, LOGICAL_Y_POSITION(endstops.soft_endstop.max.y));
+    SERIAL_MV(" " MSG_HOST_Z, LOGICAL_Z_POSITION(endstops.soft_endstop.max.z));
     SERIAL_EOL();
   #endif
 }

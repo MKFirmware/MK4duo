@@ -43,7 +43,7 @@
   #define CODE_M655
 
   // M650: Set peel distance
-  inline void gcode_M650(void) {
+  inline void gcode_M650() {
 
     planner.synchronize();
 
@@ -62,45 +62,45 @@
   }
 
   // M651: Run peel move and return back to start.
-  inline void gcode_M651(void) {
+  inline void gcode_M651() {
 
     if (peel_distance > 0) {
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS], peel_speed, tools.extruder.active);
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + peel_distance, mechanics.destination[Z_AXIS] + peel_distance, peel_speed, tools.extruder.active);
+      planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z + peel_distance, mechanics.destination.z, peel_speed, tools.extruder.active);
+      planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z + peel_distance, mechanics.destination.z + peel_distance, peel_speed, tools.extruder.active);
       planner.synchronize();
       if (peel_pause > 0) HAL::delayMilliseconds(peel_pause);
     }
 
-    planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.extruder.active);
+    planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z, mechanics.destination.z, retract_speed, tools.extruder.active);
     planner.synchronize();
   }
 
   // M653: Execute tilt move
-  inline void gcode_M653(void) {
+  inline void gcode_M653() {
     // Double tilts are not allowed.
     if (!tilted) {
-      planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS] + tilt_distance, mechanics.destination[Z_AXIS], retract_speed, tools.extruder.active);
+      planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z + tilt_distance, mechanics.destination.z, retract_speed, tools.extruder.active);
       planner.synchronize();
     }
   }
 
   // M654 - execute untilt move
-  inline void gcode_M654(void) {
+  inline void gcode_M654() {
     // Can only untilt if tilted
     if (tilted) {
        // To prevent subsequent commands from not knowing our
        // actual position, update the Z axis, then move to it.
-       mechanics.destination[Z_AXIS] += tilt_distance;
-       planner.buffer_line(mechanics.destination[X_AXIS], mechanics.destination[Y_AXIS], mechanics.destination[Z_AXIS], mechanics.destination[Z_AXIS], retract_speed, tools.extruder.active);
+       mechanics.destination.z += tilt_distance;
+       planner.buffer_line(mechanics.destination.x, mechanics.destination.y, mechanics.destination.z, mechanics.destination.z, retract_speed, tools.extruder.active);
        // And save it away as our current position, because we're there.
-       mechanics.set_current_to_destination();
+       mechanics.current_position = mechanics.destination;
        planner.synchronize();
        tilted = false;
     }
   }
 
   // M655: Send projector control commands via serial
-  inline void gcode_M655(void) {
+  inline void gcode_M655() {
 
     // Viewsonic commands
     if (parser.seen('V')) {

@@ -29,160 +29,134 @@
  *
  */
 
-#define DISPLAY_CHARSET_ISO10646_1
-#define CHARSIZE 2
+ #define DISPLAY_CHARSET_ISO10646_1
 
-#define WELCOME_MSG                         MACHINE_NAME _UxGT(" pronta.")
-#define MSG_SD_INSERTED                     _UxGT("Cartão inserido")
-#define MSG_SD_REMOVED                      _UxGT("Cartão removido")
-#define MSG_MAIN                            _UxGT("Menu principal")
-#define MSG_AUTOSTART                       _UxGT("Autostart")
-#define MSG_DISABLE_STEPPERS                _UxGT("Desactivar motores")
-#define MSG_AUTO_HOME                       _UxGT("Ir para origem")
-#define MSG_AUTO_HOME_X                     _UxGT("Ir para origem X")
-#define MSG_AUTO_HOME_Y                     _UxGT("Ir para origem Y")
-#define MSG_AUTO_HOME_Z                     _UxGT("Ir para origem Z")
-#define MSG_LEVEL_BED_HOMING                _UxGT("Indo para origem")
-#define MSG_LEVEL_BED_WAITING               _UxGT("Click para iniciar")
-#define MSG_LEVEL_BED_NEXT_POINT            _UxGT("Próximo ponto")
-#define MSG_LEVEL_BED_DONE                  _UxGT("Pronto !")
-#define MSG_SET_HOME_OFFSETS                _UxGT("Definir desvio")
-#define MSG_HOME_OFFSETS_APPLIED            _UxGT("Offsets aplicados")
-#define MSG_SET_ORIGIN                      _UxGT("Definir origem")
-#define MSG_PREHEAT_1                       _UxGT("Pre-aquecer " PREHEAT_1_LABEL)
-#define MSG_PREHEAT_1_N                     _UxGT("Pre-aquecer " PREHEAT_1_LABEL)
-#define MSG_PREHEAT_1_ALL                   _UxGT("Pre-aq. " PREHEAT_1_LABEL " Tudo")
-#define MSG_PREHEAT_1_BEDONLY               _UxGT("Pre-aq. " PREHEAT_1_LABEL " ") LCD_STR_THERMOMETER _UxGT("Base")
-#define MSG_PREHEAT_1_SETTINGS              _UxGT("Definições " PREHEAT_1_LABEL)
-#define MSG_PREHEAT_2                       _UxGT("Pre-aquecer " PREHEAT_2_LABEL)
-#define MSG_PREHEAT_2_N                     _UxGT("Pre-aquecer " PREHEAT_2_LABEL " ")
-#define MSG_PREHEAT_2_ALL                   _UxGT("Pre-aq. " PREHEAT_2_LABEL " Tudo")
-#define MSG_PREHEAT_2_BEDONLY               _UxGT("Pre-aq. " PREHEAT_2_LABEL " ") LCD_STR_THERMOMETER _UxGT("Base")
-#define MSG_PREHEAT_2_SETTINGS              _UxGT("Definições " PREHEAT_2_LABEL)
-#define MSG_COOLDOWN                        _UxGT("Arrefecer")
-#define MSG_SWITCH_PS_ON                    _UxGT("Ligar")
-#define MSG_SWITCH_PS_OFF                   _UxGT("Desligar")
-#define MSG_EXTRUDE                         _UxGT("Extrudir")
-#define MSG_RETRACT                         _UxGT("Retrair")
-#define MSG_MOVE_AXIS                       _UxGT("Mover eixo")
-#define MSG_MOVE_X                          _UxGT("Mover X")
-#define MSG_MOVE_Y                          _UxGT("Mover Y")
-#define MSG_MOVE_Z                          _UxGT("Mover Z")
-#define MSG_MOVE_E                          _UxGT("Mover Extrusor")
-#define MSG_MOVE_Z_DIST                     _UxGT("Mover %smm")
-#define MSG_MOVE_01MM                       _UxGT("Mover 0.1mm")
-#define MSG_MOVE_1MM                        _UxGT("Mover 1mm")
-#define MSG_MOVE_10MM                       _UxGT("Mover 10mm")
-#define MSG_SPEED                           _UxGT("Velocidade")
-#define MSG_BED_Z                           _UxGT("Base Z")
-#define MSG_NOZZLE                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Bico")
-#define MSG_BED                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Base")
-#define MSG_FAN_SPEED                       _UxGT("Vel. ventoinha")
-#define MSG_FLOW                            _UxGT("Fluxo")
-#define MSG_CONTROL                         _UxGT("Controlo")
-#define MSG_MIN                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Min")
-#define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
-#define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
-#define MSG_AUTOTEMP                        _UxGT("Temp. Automática")
-#define MSG_LCD_ON                          _UxGT("On")
-#define MSG_LCD_OFF                         _UxGT("Off")
-#define MSG_PID_P                           _UxGT("PID-P")
-#define MSG_PID_I                           _UxGT("PID-I")
-#define MSG_PID_D                           _UxGT("PID-D")
-#define MSG_PID_C                           _UxGT("PID-C")
-#define MSG_ACC                             _UxGT("Acc")
-#define MSG_JERK                            _UxGT("Jerk")
-#if IS_KINEMATIC
-  #define MSG_VA_JERK                       _UxGT("Va-jerk")
-  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
-  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
-#else
-  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
-  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
-  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
-#endif
-#define MSG_VE_JERK                         _UxGT("Ve-jerk")
-#define MSG_VMAX                            _UxGT(" Vmax ")
-#define MSG_VMIN                            _UxGT("Vmin")
-#define MSG_VTRAV_MIN                       _UxGT("VTrav min")
-#define MSG_AMAX                            _UxGT("Amax ")
-#define MSG_A_RETRACT                       _UxGT("A-retracção")
-#define MSG_A_TRAVEL                        _UxGT("A-movimento")
-#define MSG_STEPS_PER_MM                    _UxGT("Passo/mm")
-#if IS_KINEMATIC
-  #define MSG_ASTEPS                        _UxGT("A passo/mm")
-  #define MSG_BSTEPS                        _UxGT("B passo/mm")
-  #define MSG_CSTEPS                        _UxGT("C passo/mm")
-#else
-  #define MSG_ASTEPS                        _UxGT("X passo/mm")
-  #define MSG_BSTEPS                        _UxGT("Y passo/mm")
-  #define MSG_CSTEPS                        _UxGT("Z passo/mm")
-#endif
-#define MSG_ESTEPS                          _UxGT("E passo/mm")
-#define MSG_E1STEPS                         _UxGT("E1 passo/mm")
-#define MSG_E2STEPS                         _UxGT("E2 passo/mm")
-#define MSG_E3STEPS                         _UxGT("E3 passo/mm")
-#define MSG_E4STEPS                         _UxGT("E4 passo/mm")
-#define MSG_E5STEPS                         _UxGT("E5 passo/mm")
-#define MSG_E6STEPS                         _UxGT("E6 passo/mm")
-#define MSG_TEMPERATURE                     _UxGT("Temperatura")
-#define MSG_MOTION                          _UxGT("Movimento")
-#define MSG_FILAMENT                        _UxGT("Filamento")
-#define MSG_VOLUMETRIC_ENABLED              _UxGT("E em mm3")
-#define MSG_FILAMENT_DIAM                   _UxGT("Fil. Diam.")
-#define MSG_CONTRAST                        _UxGT("Contraste")
-#define MSG_STORE_EEPROM                    _UxGT("Guardar na memoria")
-#define MSG_LOAD_EEPROM                     _UxGT("Carregar da memoria")
-#define MSG_RESTORE_FAILSAFE                _UxGT("Rest. de emergen.")
-#define MSG_REFRESH                         LCD_STR_REFRESH _UxGT(" Recarregar")
-#define MSG_WATCH                           _UxGT("Monitorizar")
-#define MSG_PREPARE                         _UxGT("Preparar")
-#define MSG_TUNE                            _UxGT("Afinar")
-#define MSG_PAUSE_PRINT                     _UxGT("Pausar impressão")
-#define MSG_RESUME_PRINT                    _UxGT("Retomar impressão")
-#define MSG_STOP_PRINT                      _UxGT("Parar impressão")
-#define MSG_CARD_MENU                       _UxGT("Imprimir do SD")
-#define MSG_NO_CARD                         _UxGT("Sem cartão SD")
-#define MSG_DWELL                           _UxGT("Em espera...")
-#define MSG_USERWAIT                        _UxGT("Á espera de ordem")
-#define MSG_PRINT_ABORTED                   _UxGT("Impressão cancelada")
-#define MSG_NO_MOVE                         _UxGT("Sem movimento")
-#define MSG_KILLED                          _UxGT("EMERGÊNCIA. ")
-#define MSG_STOPPED                         _UxGT("PARADO. ")
-#define MSG_CONTROL_RETRACT                 _UxGT(" Retrair mm")
-#define MSG_CONTROL_RETRACT_SWAP            _UxGT("Troca Retrair mm")
-#define MSG_CONTROL_RETRACTF                _UxGT(" Retrair  V")
-#define MSG_CONTROL_RETRACT_ZHOP            _UxGT(" Levantar mm")
-#define MSG_CONTROL_RETRACT_RECOVER         _UxGT(" DesRet mm")
-#define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("Troca DesRet mm")
-#define MSG_CONTROL_RETRACT_RECOVERF        _UxGT(" DesRet  V")
-#define MSG_AUTORETRACT                     _UxGT(" AutoRetr.")
-#define MSG_FILAMENTCHANGE                  _UxGT("Trocar filamento")
-#define MSG_INIT_SDCARD                     _UxGT("Inici. cartão SD")
-#define MSG_CHANGE_SDCARD                   _UxGT("Trocar cartão SD")
-#define MSG_ZPROBE_OUT                      _UxGT("Sensor fora/base")
-#define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
-#define MSG_FIRST                           _UxGT("first")
-#define MSG_ZPROBE_ZOFFSET                  _UxGT("Desvio Z")
-#define MSG_BABYSTEP_X                      _UxGT("Babystep X")
-#define MSG_BABYSTEP_Y                      _UxGT("Babystep Y")
-#define MSG_BABYSTEP_Z                      _UxGT("Babystep Z")
-#define MSG_ENDSTOP_ABORT                   _UxGT("Fim de curso")
-#define MSG_HEATING_FAILED_LCD              _UxGT("Aquecimento falhou")
-#define MSG_ERR_REDUNDANT_TEMP              _UxGT("Err: REDUNDANT TEMP")
-#define MSG_THERMAL_RUNAWAY                 _UxGT("THERMAL RUNAWAY")
-#define MSG_ERR_MAXTEMP                     _UxGT("Err: T Máxima")
-#define MSG_ERR_MINTEMP                     _UxGT("Err: T Mínima")
-#define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: T Base Máxima")
-#define MSG_ERR_MINTEMP_BED                 _UxGT("Err: T Base Mínima")
-#define MSG_HEATING                         _UxGT("Aquecendo...")
-#define MSG_BED_HEATING                     _UxGT("Aquecendo base...")
-#define MSG_DELTA_CALIBRATE                 _UxGT("Calibração Delta")
-#define MSG_DELTA_CALIBRATE_X               _UxGT("Calibrar X")
-#define MSG_DELTA_CALIBRATE_Y               _UxGT("Calibrar Y")
-#define MSG_DELTA_CALIBRATE_Z               _UxGT("Calibrar Z")
-#define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Calibrar Centro")
+namespace language_pt {
+  using namespace language_en; // Inherit undefined strings from English
 
-#define MSG_LCD_ENDSTOPS                    _UxGT("Fim de curso")
+  constexpr uint8_t CHARSIZE                        = 2;
+  FSTRINGVALUE(LANGUAGE                             , _UxGT("Portuguese"));
 
-#define MSG_EXPECTED_PRINTER                _UxGT("Impressora Incorreta")
+  FSTRINGVALUE(WELCOME_MSG                          , MACHINE_NAME _UxGT(" pronta."));
+  FSTRINGVALUE(MSG_MEDIA_INSERTED                   , _UxGT("Cartão inserido"));
+  FSTRINGVALUE(MSG_MEDIA_REMOVED                    , _UxGT("Cartão removido"));
+  FSTRINGVALUE(MSG_MAIN                             , _UxGT("Menu principal"));
+  FSTRINGVALUE(MSG_DISABLE_STEPPERS                 , _UxGT("Desactivar motores"));
+  FSTRINGVALUE(MSG_AUTO_HOME                        , _UxGT("Ir para origem"));
+  FSTRINGVALUE(MSG_AUTO_HOME_X                      , _UxGT("Ir para origem X"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Y                      , _UxGT("Ir para origem Y"));
+  FSTRINGVALUE(MSG_AUTO_HOME_Z                      , _UxGT("Ir para origem Z"));
+  FSTRINGVALUE(MSG_LEVEL_BED_HOMING                 , _UxGT("Indo para origem"));
+  FSTRINGVALUE(MSG_LEVEL_BED_WAITING                , _UxGT("Click para iniciar"));
+  FSTRINGVALUE(MSG_LEVEL_BED_NEXT_POINT             , _UxGT("Próximo ponto"));
+  FSTRINGVALUE(MSG_LEVEL_BED_DONE                   , _UxGT("Pronto !"));
+  FSTRINGVALUE(MSG_SET_HOME_OFFSETS                 , _UxGT("Definir desvio"));
+  FSTRINGVALUE(MSG_HOME_OFFSETS_APPLIED             , _UxGT("Offsets aplicados"));
+  FSTRINGVALUE(MSG_SET_ORIGIN                       , _UxGT("Definir origem"));
+  FSTRINGVALUE(MSG_PREHEAT_1                        , _UxGT("Pre-aquecer ") PREHEAT_1_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_1_H                      , _UxGT("Pre-aquecer ") PREHEAT_1_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_1_END                    , _UxGT("Pre-aquecer ") PREHEAT_1_LABEL _UxGT(" Bico"));
+  FSTRINGVALUE(MSG_PREHEAT_1_END_E                  , _UxGT("Pre-aquecer ") PREHEAT_1_LABEL _UxGT(" Bico ~"));
+  FSTRINGVALUE(MSG_PREHEAT_1_ALL                    , _UxGT("Pre-aq. ") PREHEAT_1_LABEL _UxGT(" Tudo"));
+  FSTRINGVALUE(MSG_PREHEAT_1_BEDONLY                , _UxGT("Pre-aq. ") PREHEAT_1_LABEL _UxGT(" ") LCD_STR_THERMOMETER _UxGT("Base"));
+  FSTRINGVALUE(MSG_PREHEAT_1_SETTINGS               , _UxGT("Definições ") PREHEAT_1_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_2                        , _UxGT("Pre-aquecer ") PREHEAT_2_LABEL);
+  FSTRINGVALUE(MSG_PREHEAT_2_H                      , _UxGT("Pre-aquecer ") PREHEAT_2_LABEL " ~");
+  FSTRINGVALUE(MSG_PREHEAT_2_END                    , _UxGT("Pre-aquecer ") PREHEAT_2_LABEL _UxGT(" Bico"));
+  FSTRINGVALUE(MSG_PREHEAT_2_END_E                  , _UxGT("Pre-aquecer ") PREHEAT_2_LABEL _UxGT(" Bico ~"));
+  FSTRINGVALUE(MSG_PREHEAT_2_ALL                    , _UxGT("Pre-aq. ") PREHEAT_2_LABEL _UxGT(" Tudo"));
+  FSTRINGVALUE(MSG_PREHEAT_2_BEDONLY                , _UxGT("Pre-aq. ") PREHEAT_2_LABEL _UxGT(" ") LCD_STR_THERMOMETER _UxGT("Base"));
+  FSTRINGVALUE(MSG_PREHEAT_2_SETTINGS               , _UxGT("Definições ") PREHEAT_2_LABEL);
+  FSTRINGVALUE(MSG_COOLDOWN                         , _UxGT("Arrefecer"));
+  FSTRINGVALUE(MSG_SWITCH_PS_ON                     , _UxGT("Ligar"));
+  FSTRINGVALUE(MSG_SWITCH_PS_OFF                    , _UxGT("Desligar"));
+  FSTRINGVALUE(MSG_EXTRUDE                          , _UxGT("Extrudir"));
+  FSTRINGVALUE(MSG_RETRACT                          , _UxGT("Retrair"));
+  FSTRINGVALUE(MSG_MOVE_AXIS                        , _UxGT("Mover eixo"));
+  FSTRINGVALUE(MSG_MOVE_X                           , _UxGT("Mover X"));
+  FSTRINGVALUE(MSG_MOVE_Y                           , _UxGT("Mover Y"));
+  FSTRINGVALUE(MSG_MOVE_Z                           , _UxGT("Mover Z"));
+  FSTRINGVALUE(MSG_MOVE_E                           , _UxGT("Mover Extrusor"));
+  FSTRINGVALUE(MSG_MOVE_EN                          , _UxGT("Mover Extrusor *"));
+  FSTRINGVALUE(MSG_MOVE_Z_DIST                      , _UxGT("Mover %smm"));
+  FSTRINGVALUE(MSG_MOVE_01MM                        , _UxGT("Mover 0.1mm"));
+  FSTRINGVALUE(MSG_MOVE_1MM                         , _UxGT("Mover 1mm"));
+  FSTRINGVALUE(MSG_MOVE_10MM                        , _UxGT("Mover 10mm"));
+  FSTRINGVALUE(MSG_SPEED                            , _UxGT("Velocidade"));
+  FSTRINGVALUE(MSG_BED_Z                            , _UxGT("Base Z"));
+  FSTRINGVALUE(MSG_NOZZLE                           , " " LCD_STR_THERMOMETER _UxGT(" Bico"));
+  FSTRINGVALUE(MSG_NOZZLE_N                         , " " LCD_STR_THERMOMETER _UxGT(" Bico ~"));
+  FSTRINGVALUE(MSG_BED                              , " " LCD_STR_THERMOMETER _UxGT(" Base"));
+  FSTRINGVALUE(MSG_FAN_SPEED                        , _UxGT("Vel. ventoinha"));
+  FSTRINGVALUE(MSG_FAN_SPEED_N                      , _UxGT("Vel. ventoinha ="));
+  FSTRINGVALUE(MSG_FLOW                             , _UxGT("Fluxo"));
+  FSTRINGVALUE(MSG_FLOW_N                           , _UxGT("Fluxo ~"));
+  FSTRINGVALUE(MSG_CONTROL                          , _UxGT("Controlo"));
+  FSTRINGVALUE(MSG_MIN                              , " " LCD_STR_THERMOMETER _UxGT(" Min"));
+  FSTRINGVALUE(MSG_MAX                              , " " LCD_STR_THERMOMETER _UxGT(" Max"));
+  FSTRINGVALUE(MSG_FACTOR                           , " " LCD_STR_THERMOMETER _UxGT(" Fact"));
+  FSTRINGVALUE(MSG_A_RETRACT                        , _UxGT("A-retracção"));
+  FSTRINGVALUE(MSG_A_TRAVEL                         , _UxGT("A-movimento"));
+  FSTRINGVALUE(MSG_STEPS_PER_MM                     , _UxGT("Passo/mm"));
+  FSTRINGVALUE(MSG_A_STEPS                          , LCD_STR_A _UxGT(" passo/mm"));
+  FSTRINGVALUE(MSG_B_STEPS                          , LCD_STR_B _UxGT(" passo/mm"));
+  FSTRINGVALUE(MSG_C_STEPS                          , LCD_STR_C _UxGT(" passo/mm"));
+  FSTRINGVALUE(MSG_E_STEPS                          , _UxGT("E passo/mm"));
+  FSTRINGVALUE(MSG_EN_STEPS                         , _UxGT("* passo/mm"));
+  FSTRINGVALUE(MSG_TEMPERATURE                      , _UxGT("Temperatura"));
+  FSTRINGVALUE(MSG_MOTION                           , _UxGT("Movimento"));
+  FSTRINGVALUE(MSG_FILAMENT                         , _UxGT("Filamento"));
+  FSTRINGVALUE(MSG_VOLUMETRIC_ENABLED               , _UxGT("E em mm3"));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM                    , _UxGT("Fil. Diam."));
+  FSTRINGVALUE(MSG_FILAMENT_DIAM_E                  , _UxGT("Fil. Diam. *"));
+  FSTRINGVALUE(MSG_CONTRAST                         , _UxGT("Contraste"));
+  FSTRINGVALUE(MSG_STORE_EEPROM                     , _UxGT("Guardar na memoria"));
+  FSTRINGVALUE(MSG_LOAD_EEPROM                      , _UxGT("Carregar da memoria"));
+  FSTRINGVALUE(MSG_RESTORE_FAILSAFE                 , _UxGT("Rest. de emergen."));
+  FSTRINGVALUE(MSG_REFRESH                          , LCD_STR_REFRESH _UxGT(" Recarregar"));
+  FSTRINGVALUE(MSG_WATCH                            , _UxGT("Monitorizar"));
+  FSTRINGVALUE(MSG_PREPARE                          , _UxGT("Preparar"));
+  FSTRINGVALUE(MSG_TUNE                             , _UxGT("Afinar"));
+  FSTRINGVALUE(MSG_PAUSE_PRINT                      , _UxGT("Pausar impressão"));
+  FSTRINGVALUE(MSG_RESUME_PRINT                     , _UxGT("Retomar impressão"));
+  FSTRINGVALUE(MSG_STOP_PRINT                       , _UxGT("Parar impressão"));
+  FSTRINGVALUE(MSG_MEDIA_MENU                       , _UxGT("Imprimir do SD"));
+  FSTRINGVALUE(MSG_NO_MEDIA                         , _UxGT("Sem cartão SD"));
+  FSTRINGVALUE(MSG_DWELL                            , _UxGT("Em espera..."));
+  FSTRINGVALUE(MSG_USERWAIT                         , _UxGT("Á espera de ordem"));
+  FSTRINGVALUE(MSG_PRINT_ABORTED                    , _UxGT("Impressão cancelada"));
+  FSTRINGVALUE(MSG_NO_MOVE                          , _UxGT("Sem movimento"));
+  FSTRINGVALUE(MSG_KILLED                           , _UxGT("EMERGÊNCIA. "));
+  FSTRINGVALUE(MSG_STOPPED                          , _UxGT("PARADO. "));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT                  , _UxGT(" Retrair mm"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT_SWAP             , _UxGT("Troca Retrair mm"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACTF                 , _UxGT(" Retrair  V"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT_ZHOP             , _UxGT(" Levantar mm"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT_RECOVER          , _UxGT(" DesRet mm"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT_RECOVER_SWAP     , _UxGT("Troca DesRet mm"));
+  FSTRINGVALUE(MSG_CONTROL_RETRACT_RECOVERF         , _UxGT(" DesRet  V"));
+  FSTRINGVALUE(MSG_AUTORETRACT                      , _UxGT(" AutoRetr."));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE                   , _UxGT("Trocar filamento"));
+  FSTRINGVALUE(MSG_FILAMENTCHANGE_E                 , _UxGT("Trocar filamento *"));
+  FSTRINGVALUE(MSG_INIT_MEDIA                       , _UxGT("Inici. cartão SD"));
+  FSTRINGVALUE(MSG_CHANGE_MEDIA                     , _UxGT("Trocar cartão SD"));
+  FSTRINGVALUE(MSG_ZPROBE_OUT                       , _UxGT("Sensor fora/base"));
+  FSTRINGVALUE(MSG_ZPROBE_ZOFFSET                   , _UxGT("Desvio Z"));
+  FSTRINGVALUE(MSG_ENDSTOP_ABORT                    , _UxGT("Fim de curso"));
+  FSTRINGVALUE(MSG_HEATING_FAILED_LCD               , _UxGT("Aquecimento falhou"));
+  FSTRINGVALUE(MSG_ERR_MAXTEMP                      , _UxGT("Err: T Máxima"));
+  FSTRINGVALUE(MSG_ERR_MINTEMP                      , _UxGT("Err: T Mínima"));
+  FSTRINGVALUE(MSG_ERR_MAXTEMP_BED                  , _UxGT("Err: T Base Máxima"));
+  FSTRINGVALUE(MSG_ERR_MINTEMP_BED                  , _UxGT("Err: T Base Mínima"));
+  FSTRINGVALUE(MSG_HEATING                          , _UxGT("Aquecendo..."));
+  FSTRINGVALUE(MSG_BED_HEATING                      , _UxGT("Aquecendo base..."));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE                  , _UxGT("Calibração Delta"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_X                , _UxGT("Calibrar X"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Y                , _UxGT("Calibrar Y"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_Z                , _UxGT("Calibrar Z"));
+  FSTRINGVALUE(MSG_DELTA_CALIBRATE_CENTER           , _UxGT("Calibrar Centro"));
+
+  FSTRINGVALUE(MSG_LCD_ENDSTOPS                     , _UxGT("Fim de curso"));
+
+  FSTRINGVALUE(MSG_EXPECTED_PRINTER                 , _UxGT("Impressora Incorreta"));
+}

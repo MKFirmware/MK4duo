@@ -31,7 +31,7 @@
 /**
  * M531: filename - Define filename being printed
  */
-inline void gcode_M531(void) {
+inline void gcode_M531() {
   strncpy(printer.printName, parser.string_arg, 20);
   printer.printName[20] = 0;
   lcdui.set_status(printer.printName);

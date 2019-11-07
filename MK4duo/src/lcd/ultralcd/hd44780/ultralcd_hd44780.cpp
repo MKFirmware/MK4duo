@@ -64,6 +64,14 @@
     #endif
   );
 
+#elif ENABLED(SR_LCD_3W_NL)
+
+  // NewLiquidCrystal was not working
+  // https://github.com/mikeshub/SailfishLCD
+  // uses the code directly from Sailfish
+
+  LCD_CLASS lcd(SR_STROBE_PIN, SR_DATA_PIN, SR_CLK_PIN);
+
 #elif ENABLED(LCM1602)
 
   LCD_CLASS lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
@@ -255,7 +263,7 @@ void LcdUI::set_custom_characters(const HD44780CharSetEnum screen_charset/*=CHAR
 
   #endif // LCD_PROGRESS_BAR
 
-  #if HAS_SD_SUPPORT
+  #if HAS_SD_SUPPORT && HAS_LCD_MENU
 
     // CHARSET_MENU
     const static PROGMEM byte refresh[8] = {
@@ -309,7 +317,7 @@ void LcdUI::set_custom_characters(const HD44780CharSetEnum screen_charset/*=CHAR
       #endif
         {
           createChar_P(LCD_STR_UPLEVEL[0], uplevel);
-          #if HAS_SD_SUPPORT
+          #if HAS_SD_SUPPORT && HAS_LCD_MENU
             // SD Card sub-menu special characters
             createChar_P(LCD_STR_REFRESH[0], refresh);
             createChar_P(LCD_STR_FOLDER[0], folder);
@@ -432,7 +440,7 @@ void LcdUI::clear_lcd() { lcd.clear(); }
       // Show the MK4duo logo with splash line 1
       // After a delay show the website URL
       //
-      logo_lines(PSTR(""));
+      logo_lines(NULL_STR);
       CENTER_OR_SCROLL(SHORT_BUILD_VERSION, BOOTSCREEN_TIMEOUT);
       CENTER_OR_SCROLL(MK4DUO_FIRMWARE_URL, BOOTSCREEN_TIMEOUT);
     }
@@ -449,9 +457,9 @@ void LcdUI::draw_kill_screen() {
   lcd_put_u8str(0, 0, status_message);
   lcd_uint_t y = 2;
   #if LCD_HEIGHT >= 4
-    lcd_put_u8str_P(0, y++, PSTR(MSG_HALTED));
+    lcd_put_u8str_P(0, y++, GET_TEXT(MSG_HALTED));
   #endif
-  lcd_put_u8str_P(0, y, PSTR(MSG_PLEASE_RESET));
+  lcd_put_u8str_P(0, y, GET_TEXT(MSG_PLEASE_RESET));
 }
 
 //
@@ -544,7 +552,7 @@ void LcdUI::draw_status_message(const bool blink) {
 
     // Draw the progress bar if the message has shown long enough
     // or if there is no message set.
-    if (printer.progress && expired(&progress_bar_ms, millis_s(PROGRESS_BAR_MSG_TIME)) || !has_status())
+    if (printer.progress && progress_bar_timer.expired(PROGRESS_BAR_MSG_TIME) || !has_status())
       return lcd_draw_progress_bar(printer.progress);
 
   #elif (HAS_LCD_FILAMENT_SENSOR && ENABLED(SDSUPPORT)) || HAS_LCD_POWER_SENSOR
@@ -552,7 +560,7 @@ void LcdUI::draw_status_message(const bool blink) {
     #if HAS_LCD_FILAMENT_SENSOR && HAS_SD_SUPPORT
       // Show Filament Diameter and Volumetric Multiplier % or Power Sensor
       // After allowing status_message to show for 5 seconds
-      if (expired(&previous_status_ms, 5000U)) {
+      if (previous_status_timer.expired(5000)) {
         lcd_put_u8str_P(PSTR("Dia "));
         lcd_put_u8str(ftostr12ns(filament_width_meas));
         lcd_put_u8str_P(PSTR(" V"));
@@ -560,15 +568,14 @@ void LcdUI::draw_status_message(const bool blink) {
           printer.isVolumetric()
             ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
             : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
-        )
-      ));
-      lcd_put_wchar('%');
-      return;
+        )));
+        lcd_put_wchar('%');
+        return;
       }
     #endif
 
     #if HAS_LCD_POWER_SENSOR
-      else if (expired(&previous_status_ms, 10000U)) {
+      else if (previous_status_timer.expired(10000)) {
         lcd_put_u8str_P(PSTR("P:"));
         lcd_put_u8str(ftostr43sign(powerManager.consumption_meas));
         lcd_put_u8str_P(PSTR("W C:"));
@@ -690,7 +697,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(&hotends[0], -1, blink);
+        _draw_heater_status(hotends[0], -1, blink);
       #endif
 
       //
@@ -698,10 +705,10 @@ void LcdUI::draw_status_screen() {
       //
       #if HOTENDS > 1
         lcd_moveto(8, 0);
-        _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
       #elif HAS_TEMP_BED0
         lcd_moveto(8, 0);
-        _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+        _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
       #endif
 
     #else // LCD_WIDTH >= 20
@@ -710,7 +717,7 @@ void LcdUI::draw_status_screen() {
       // Hotend 0 Temperature
       //
       #if HAS_TEMP_HOTEND
-        _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[0], LCD_STR_THERMOMETER[0], blink);
       #endif
 
       //
@@ -718,10 +725,10 @@ void LcdUI::draw_status_screen() {
       //
       #if HOTENDS > 1
         lcd_moveto(10, 0);
-        _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+        _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
       #elif HAS_TEMP_BED0
         lcd_moveto(10, 0);
-        _draw_heater_status(&beds[0], (
+        _draw_heater_status(beds[0], (
           #if HAS_LEVELING
             bedlevel.flag.leveling_active && blink ? '_' :
           #endif
@@ -752,11 +759,11 @@ void LcdUI::draw_status_screen() {
         #if HOTENDS > 2 || (HOTENDS > 1 && HAS_TEMP_BED0)
 
           #if HOTENDS > 2
-            _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
+            _draw_heater_status(hotends[2], LCD_STR_THERMOMETER[0], blink);
             lcd_moveto(10, 1);
           #endif
 
-          _draw_heater_status(&beds[0], (
+          _draw_heater_status(beds[0], (
             #if HAS_LEVELING
               bedlevel.flag.leveling_active && blink ? '_' :
             #endif
@@ -784,9 +791,9 @@ void LcdUI::draw_status_screen() {
 
           #else
 
-            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position[X_AXIS])), blink);
+            _draw_axis_value(X_AXIS, ftostr4sign(LOGICAL_X_POSITION(mechanics.current_position.x)), blink);
             lcd_put_wchar(' ');
-            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position[Y_AXIS])), blink);
+            _draw_axis_value(Y_AXIS, ftostr4sign(LOGICAL_Y_POSITION(mechanics.current_position.y)), blink);
 
           #endif
 
@@ -795,7 +802,7 @@ void LcdUI::draw_status_screen() {
       #endif // LCD_WIDTH >= 20
 
       lcd_moveto(LCD_WIDTH - 8, 1);
-      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
+      _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position.z)), blink);
 
       #if HAS_LEVELING && !HAS_TEMP_BED0
         lcd_put_wchar(bedlevel.flag.leveling_active || blink ? '_' : ' ');
@@ -847,14 +854,14 @@ void LcdUI::draw_status_screen() {
     // Hotend 0 Temperature
     //
     #if HAS_TEMP_HOTEND
-      _draw_heater_status(&hotends[0], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[0], LCD_STR_THERMOMETER[0], blink);
     #endif
 
     //
     // Z Coordinate
     //
     lcd_moveto(LCD_WIDTH - 9, 0);
-    _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position[Z_AXIS])), blink);
+    _draw_axis_value(Z_AXIS, ftostr52sp(LOGICAL_Z_POSITION(mechanics.current_position.z)), blink);
 
     #if HAS_LEVELING && (HOTENDS > 1 || !HAS_TEMP_BED0)
       lcd_put_wchar(LCD_WIDTH - 1, 0, bedlevel.flag.leveling_active || blink ? '_' : ' ');
@@ -867,9 +874,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 1);
     #if HOTENDS > 1
-      _draw_heater_status(&hotends[1], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[1], LCD_STR_THERMOMETER[0], blink);
     #elif HAS_TEMP_BED0
-      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
     #endif
 
     lcd_put_wchar(LCD_WIDTH - 9, 1, LCD_STR_FEEDRATE[0]);
@@ -883,9 +890,9 @@ void LcdUI::draw_status_screen() {
     //
     lcd_moveto(0, 2);
     #if HOTENDS > 2
-      _draw_heater_status(&hotends[2], LCD_STR_THERMOMETER[0], blink);
+      _draw_heater_status(hotends[2], LCD_STR_THERMOMETER[0], blink);
     #elif HOTENDS > 1 && HAS_TEMP_BED0
-      _draw_heater_status(&beds[0], LCD_STR_BEDTEMP[0], blink);
+      _draw_heater_status(beds[0], LCD_STR_BEDTEMP[0], blink);
     #else
       #define DREW_PRINT_PROGRESS
       _draw_print_progress();
@@ -922,17 +929,17 @@ void LcdUI::draw_status_screen() {
     void LcdUI::draw_hotend_status(const uint8_t row, const uint8_t hotend) {
       if (row < LCD_HEIGHT) {
         lcd_moveto(LCD_WIDTH - 9, row);
-        _draw_heater_status(&hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());
+        _draw_heater_status(hotends[hotend], LCD_STR_THERMOMETER[0], lcdui.get_blink());
       }
     }
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  void draw_menu_item_static(const uint8_t row, PGM_P pstr, const bool center/*=true*/, const bool invert/*=false*/, const char *valstr/*=NULL*/) {
-    UNUSED(invert);
+  // Draw a static item with no left-right margin required. Centered by default.
+  void MenuItem_static::draw(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_DEFAULT*/, const char * const valstr/*=nullptr*/) {
     int8_t n = LCD_WIDTH;
     lcd_moveto(0, row);
-    if (center && !valstr) {
+    if ((style & SS_CENTER) && !valstr) {
       int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
       while (--pad >= 0) { lcd_put_wchar(' '); n--; }
     }
@@ -941,53 +948,51 @@ void LcdUI::draw_status_screen() {
     for (; n > 0; --n) lcd_put_wchar(' ');
   }
 
-  void draw_menu_item(const bool sel, const uint8_t row, PGM_P pstr, const char pre_char, const char post_char) {
-    uint8_t n = LCD_WIDTH - 2;
+  // Draw a generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
-    n -= lcd_put_u8str_max_P(pstr, n);
+    uint8_t n = lcd_put_u8str_max_P(pstr, LCD_WIDTH - 2);
     for (; n; --n) lcd_put_wchar(' ');
     lcd_put_wchar(post_char);
   }
 
-  void _draw_menu_item_edit(const bool sel, const uint8_t row, PGM_P pstr, const char* const data, const bool pgm) {
-    uint8_t n = LCD_WIDTH - 2 - (pgm ? utf8_strlen_P(data) : utf8_strlen(data));
-    lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
-    n -= lcd_put_u8str_max_P(pstr, n);
-    lcd_put_wchar(':');
+  // Draw an indexed generic menu item with pre_char (if selected) and post_char
+  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char pre_char, const char post_char) {
+    lcd_put_wchar(0, row, sel ? pre_char : ' ');
+    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2);
     for (; n; --n) lcd_put_wchar(' ');
-    if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str(data);
+    lcd_put_wchar(post_char);
   }
 
-  void draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  // Draw a menu item with a (potentially) editable value
+  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+    const uint8_t vallen = data ? (pgm ? utf8_strlen_P(data) : utf8_strlen(data)) : 0;
+    lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
+    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2 - vallen);
+    if (vallen) {
+      lcd_put_wchar(':');
+      for (; n; --n) lcd_put_wchar(' ');
+      if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str(data);
+    }
+  }
+
+  // Low-level edit_screen can be used to draw an edit screen from anyplace
+  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
-    lcd_put_u8str_P(0, 1, pstr);
+    uint8_t n = lcd_put_u8str_ind_P(0, 1, pstr, itemIndex, LCD_WIDTH - 1);
     if (value != nullptr) {
       lcd_put_wchar(':');
       int len = utf8_strlen(value);
-      const lcd_uint_t valrow = (utf8_strlen_P(pstr) + 1 + len + 1) > (LCD_WIDTH - 2) ? 2 : 1;   // Value on the next row if it won't fit
-      lcd_put_wchar((LCD_WIDTH - 1) - (len + 1), valrow, ' ');                                   // Right-justified, padded, add a leading space
+      const lcd_uint_t valrow = (n < len + 1) ? 2 : 1;          // Value on the next row if it won't fit
+      lcd_put_wchar((LCD_WIDTH - 1) - (len + 1), valrow, ' ');  // Right-justified, padded, leading space
       lcd_put_u8str(value);
     }
   }
 
-  inline void draw_select_screen_prompt(PGM_P const pref, const char * const string/*=nullptr*/, PGM_P const suff/*=nullptr*/) {
-    const uint8_t plen = utf8_strlen_P(pref), slen = suff ? utf8_strlen_P(suff) : 0;
-    uint8_t row = 0, col = 0;
-    if (!string && plen + slen <= LCD_WIDTH) {
-      col = (LCD_WIDTH - plen - slen) / 2;
-      row = LCD_HEIGHT > 3 ? 1 : 0;
-    }
-    wrap_string_P(col, row, pref, true);
-    if (string) {
-      if (col) { col = 0; row++; } // Move to the start of the next line
-      wrap_string(col, row, string);
-    }
-    if (suff) wrap_string_P(col, row, suff);
-  }
-
-  void draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
-    draw_select_screen_prompt(pref, string, suff);
+  // The Select Screen is the best thing since sliced pixels
+  void MenuItem_confirm::draw_select_screen(PGM_P const yes, PGM_P const no, const bool yesno, PGM_P const pref, const char * const string, PGM_P const suff) {
+    lcdui.draw_select_screen_prompt(pref, string, suff);
     SETCURSOR(0, LCD_HEIGHT - 1);
     lcd_put_wchar(yesno ? ' ' : '['); lcd_put_u8str_P(no); lcd_put_wchar(yesno ? ' ' : ']');
     SETCURSOR_RJ(utf8_strlen_P(yes) + 2, LCD_HEIGHT - 1);
@@ -996,9 +1001,7 @@ void LcdUI::draw_status_screen() {
 
   #if HAS_SD_SUPPORT
 
-    void draw_sd_menu_item(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
-      UNUSED(pstr);
-
+    void MenuItem_sdbase::draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard, const bool isDir) {
       lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
       constexpr uint8_t maxlen = LCD_WIDTH - 2;
       uint8_t n = maxlen - lcd_put_u8str_max(lcdui.scrolled_filename(theCard, maxlen, row, sel), maxlen);
@@ -1010,39 +1013,39 @@ void LcdUI::draw_status_screen() {
 
   #if ENABLED(LCD_HAS_STATUS_INDICATORS)
 
-    static void LcdUI::update_indicators() {
+    void LcdUI::update_indicators() {
       // Set the LEDS - referred to as backlights by the LiquidTWI2 library
       static uint8_t ledsprev = 0;
       uint8_t leds = 0;
 
-      #if HAS_BEDS
-        if (beds[0].deg_target() > 0) leds |= LED_A;
+      #if MAX_BED > 0
+        if (beds[0]->deg_target() > 0) leds |= LED_A;
       #endif
 
-      if (hotends[0].deg_target() > 0) leds |= LED_B;
+      if (hotends[0]->deg_target() > 0) leds |= LED_B;
 
-      #if HAS_FANS
+      #if MAX_FAN > 0
         if (0
           #if HAS_FAN0
-            || fans[0].speed
+            || fans[0]->speed
           #endif
           #if HAS_FAN1
-            || fans[1].speed
+            || fans[1]->speed
           #endif
           #if HAS_FAN2
-            || fans[2].speed
+            || fans[2]->speed
           #endif
           #if HAS_FAN3
-            || fans[3].speed
+            || fans[3]->speed
           #endif
           #if HAS_FAN4
-            || fans[4].speed
+            || fans[4]->speed
           #endif
           #if HAS_FAN5
-            || fans[5].speed
+            || fans[5]->speed
           #endif
         ) leds |= LED_C;
-      #endif // HAS_FANS
+      #endif // MAX_FAN > 0
 
       #if HOTENDS > 1
         if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;
@@ -1167,7 +1170,6 @@ void LcdUI::draw_status_screen() {
          */
         _XLABEL(_PLOT_X, 0);
         lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x_plot))));
-
         _YLABEL(_LCD_W_POS, 0);
         lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(y_plot))));
 
@@ -1372,9 +1374,9 @@ void LcdUI::draw_status_screen() {
          * Show all values at right of screen
          */
         _XLABEL(_LCD_W_POS, 1);
-        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]))));
+        lcd_put_u8str(ftostr52(LOGICAL_X_POSITION(ubl.mesh_index_to_xpos(x_plot))));
         _YLABEL(_LCD_W_POS, 2);
-        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]))));
+        lcd_put_u8str(ftostr52(LOGICAL_Y_POSITION(ubl.mesh_index_to_ypos(y_plot))));
 
         /**
          * Show the location value

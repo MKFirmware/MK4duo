@@ -31,8 +31,6 @@
 
 #if HAS_DHT
 
-#define DHT_TIMEOUT -1
-
 constexpr millis_s  DHTMinimumReadInterval = 2000, // ms
                     DHTMaximumReadTime     = 20;   // ms
 
@@ -64,7 +62,7 @@ extern "C" void DHT_ISR() {
 }
 
 /** Public Function */
-void DHTSensor::init() { HAL::pinMode(data.pin, OUTPUT); }
+void DHTSensor::init() { /*HAL::pinMode(data.pin, OUTPUT);*/ }
 
 void DHTSensor::factory_parameters() {
   data.pin  = DHT_DATA_PIN;
@@ -101,17 +99,16 @@ void DHTSensor::print_M305() {
 
 void DHTSensor::spin() {
 
-  static millis_s min_read_ms = millis();
+  static short_timer_t min_read_timer(true);
 
-  if (!expired(&min_read_ms, DHTMinimumReadInterval)) return;
+  if (min_read_timer.pending(DHTMinimumReadInterval)) return;
 
   // Start the reading process
   HAL::pinMode(data.pin, INPUT_PULLUP);
   delay(1);
 
   // First set data line low for a period according to sensor type
-  HAL::pinMode(data.pin, OUTPUT);
-  HAL::digitalWrite(data.pin, LOW);
+  HAL::pinMode(data.pin, OUTPUT_LOW);
   switch (data.type) {
     case DHT22:
     case DHT21:

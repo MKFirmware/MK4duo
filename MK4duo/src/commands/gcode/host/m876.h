@@ -33,7 +33,7 @@
   /**
    * M876: Host Prompt Response
    */
-  inline void gcode_M876(void) {
+  inline void gcode_M876() {
     if (parser.seenval('S')) host_action.response_handler(parser.value_byte());
   }
 

@@ -51,7 +51,7 @@ class mesh_bed_leveling {
 
     static void set_z(const int8_t px, const int8_t py, const float &z) { data.z_values[px][py] = z; }
 
-    static void line_to_destination(const float fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);
+    static void line_to_destination(const feedrate_t &scaled_fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
 
     static void report_mesh();
 
@@ -84,6 +84,11 @@ class mesh_bed_leveling {
       return constrain(cy, 0, (GRID_MAX_POINTS_Y) - 2);
     }
 
+    static inline xy_int8_t cell_indexes(const float &x, const float &y) {
+      return { cell_index_x(x), cell_index_y(y) };
+    }
+    static inline xy_int8_t cell_indexes(const xy_pos_t &xy) { return cell_indexes(xy.x, xy.y); }
+
     static int8_t probe_index_x(const float &x) {
       int8_t px = (x - (MESH_MIN_X) + (MESH_X_DIST) * 0.5f) * (1.0f / (MESH_X_DIST));
       return WITHIN(px, 0, GRID_MAX_POINTS_X - 1) ? px : -1;
@@ -94,27 +99,32 @@ class mesh_bed_leveling {
       return WITHIN(py, 0, GRID_MAX_POINTS_Y - 1) ? py : -1;
     }
 
+    static inline xy_int8_t probe_indexes(const float &x, const float &y) {
+      return { probe_index_x(x), probe_index_y(y) };
+    }
+    static inline xy_int8_t probe_indexes(const xy_pos_t &xy) { return probe_indexes(xy.x, xy.y); }
+
     static float calc_z0(const float &a0, const float &a1, const float &z1, const float &a2, const float &z2) {
       const float delta_z = (z2 - z1) / (a2 - a1),
                   delta_a = a0 - a1;
       return z1 + delta_a * delta_z;
     }
 
-    static float get_z(const float &x0, const float &y0
+    static float get_z(const xy_pos_t &pos
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-        , const float &factor
+        , const float &factor=1.0f
       #endif
     ) {
-      const int8_t cx = cell_index_x(x0), cy = cell_index_y(y0);
-      const float z1 = calc_z0(x0, data.index_to_xpos[cx], data.z_values[cx][cy],     data.index_to_xpos[cx + 1], data.z_values[cx + 1][cy]),
-                  z2 = calc_z0(x0, data.index_to_xpos[cx], data.z_values[cx][cy + 1], data.index_to_xpos[cx + 1], data.z_values[cx + 1][cy + 1]),
-                  z0 = calc_z0(y0, data.index_to_ypos[cy], z1,                        data.index_to_ypos[cy + 1], z2);
+      #if DISABLED(ENABLE_LEVELING_FADE_HEIGHT)
+        constexpr float factor = 1.0f;
+      #endif
+      const xy_int8_t ind = cell_indexes(pos);
+      const float x1 = data.index_to_xpos[ind.x], x2 = data.index_to_xpos[ind.x + 1],
+                  y1 = data.index_to_xpos[ind.y], y2 = data.index_to_xpos[ind.y + 1],
+                  z1 = calc_z0(pos.x, x1, data.z_values[ind.x][ind.y    ], x2, data.z_values[ind.x + 1][ind.y    ]),
+                  z2 = calc_z0(pos.x, x1, data.z_values[ind.x][ind.y + 1], x2, data.z_values[ind.x + 1][ind.y + 1]);
 
-      return data.z_offset + z0
-        #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-          * factor
-        #endif
-      ;
+      return data.z_offset + calc_z0(pos.y, y1, z1, y2, z2) * factor;
     }
 
 };

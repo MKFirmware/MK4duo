@@ -28,7 +28,7 @@
 
 #define CODE_M851
 
-inline void gcode_M851(void) {
+inline void gcode_M851() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M851 report.
@@ -38,13 +38,13 @@ inline void gcode_M851(void) {
     }
   #endif
 
-  probe.data.offset[X_AXIS] = parser.linearval('X', probe.data.offset[X_AXIS]);
-  probe.data.offset[Y_AXIS] = parser.linearval('Y', probe.data.offset[Y_AXIS]);
+  probe.data.offset.x = parser.linearval('X', probe.data.offset.x);
+  probe.data.offset.y = parser.linearval('Y', probe.data.offset.y);
 
   if (parser.seen('Z')) {
     const float value = parser.value_linear_units();
     if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX)) {
-      probe.data.offset[Z_AXIS] = value;
+      probe.data.offset.z = value;
     }
     else {
       SERIAL_LM(ER, "?Z out of range (" STRINGIFY(Z_PROBE_OFFSET_RANGE_MIN) " to " STRINGIFY(Z_PROBE_OFFSET_RANGE_MAX));

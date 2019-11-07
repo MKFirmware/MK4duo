@@ -73,26 +73,18 @@ inline void gcode_T(const uint8_t tool_id) {
     }
   #endif
 
-  #if EXTRUDERS == 1 && ENABLED(ADVANCED_PAUSE_FEATURE)
+  if (printer.mode == PRINTER_MODE_FFF) {
+    
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      if (printer.isPrinting() && tools.extruder.previous != tool_id && tools.data.extruders == 1) {
+        commands.inject_P(PSTR("M600"));
+        tools.extruder.previous = tool_id;
+      }
+      else
+    #endif
+      tools.change(tool_id, (tool_id == tools.extruder.active) || parser.boolval('S'));
 
-    if (printer.mode == PRINTER_MODE_FFF && printer.isPrinting() && tools.extruder.previous != tool_id) {
-      commands.inject_P(PSTR("M600"));
-      tools.extruder.previous = tool_id;
-    }
-
-  #elif (EXTRUDERS > 1 && HOTENDS == 1) || (ENABLED(COLOR_MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1)
-
-    if (printer.mode == PRINTER_MODE_FFF) tools.change(tool_id);
-
-  #elif EXTRUDERS > 1 && HOTENDS > 1
-
-    if (printer.mode == PRINTER_MODE_FFF) {
-      tools.change(tool_id,
-        (tool_id == tools.extruder.active) || parser.boolval('S')
-      );
-    }
-
-  #endif
+  }
 
   if (printer.debugFeature()) {
     DEBUG_POS("AFTER", mechanics.current_position);

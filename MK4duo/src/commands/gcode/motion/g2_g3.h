@@ -42,8 +42,11 @@
  * larger segments will tend to be more efficient. Your slicer should have
  * options for G2/G3 arc generation. In future these options may be GCode tunable.
  */
-void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t clockwise) {
-
+void plan_arc(
+  const xyze_pos_t &cart,   // Destination position
+  const ab_float_t &offset, // Center of rotation relative to current_position
+  const uint8_t clockwise   // Clockwise?
+) {
   #if ENABLED(CNC_WORKSPACE_PLANES)
     AxisEnum p_axis, q_axis, l_axis;
     switch (mechanics.workspace_plane) {
@@ -57,21 +60,21 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   #endif
 
   // Radius vector from center to current location
-  float r_P = -offset[0], r_Q = -offset[1];
+  ab_float_t rvec = -offset;
 
-  const float radius = HYPOT(r_P, r_Q),
+  const float radius = HYPOT(rvec.a, rvec.b),
               #if ENABLED(AUTO_BED_LEVELING_UBL)
                 start_L  = mechanics.current_position[l_axis],
               #endif
-              center_P = mechanics.current_position[p_axis] - r_P,
-              center_Q = mechanics.current_position[q_axis] - r_Q,
+              center_P = mechanics.current_position[p_axis] - rvec.a,
+              center_Q = mechanics.current_position[q_axis] - rvec.b,
               rt_X = cart[p_axis] - center_P,
               rt_Y = cart[q_axis] - center_Q,
               linear_travel = cart[l_axis] - mechanics.current_position[l_axis],
-              extruder_travel = cart[E_AXIS] - mechanics.current_position[E_AXIS];
+              extruder_travel = cart.e - mechanics.current_position.e;
 
   // CCW angle of rotation between position and target from the circle center. Only one atan2() trig computation required.
-  float angular_travel = ATAN2(r_P * rt_Y - r_Q * rt_X, r_P * rt_X + r_Q * rt_Y);
+  float angular_travel = ATAN2(rvec.a * rt_Y - rvec.b * rt_X, rvec.a * rt_X + rvec.b * rt_Y);
   if (angular_travel < 0) angular_travel += RADIANS(360);
   #if ENABLED(MIN_ARC_SEGMENTS)
     uint16_t min_segments = CEIL((MIN_ARC_SEGMENTS) * (angular_travel / RADIANS(360)));
@@ -123,7 +126,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
    * This is important when there are successive arc motions.
    */
   // Vector rotation matrix values
-  float raw[XYZE];
+  xyze_pos_t raw;
   const float theta_per_segment = angular_travel / segments,
               linear_per_segment = linear_travel / segments,
               extruder_per_segment = extruder_travel / segments,
@@ -134,15 +137,15 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   raw[l_axis] = mechanics.current_position[l_axis];
 
   // Initialize the extruder axis
-  raw[E_AXIS] = mechanics.current_position[E_AXIS];
+  raw[E_AXIS] = mechanics.current_position.e;
 
-  const float fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
+  const feedrate_t fr_mm_s = MMS_SCALED(mechanics.feedrate_mm_s);
 
   #if ENABLED(SCARA_FEEDRATE_SCALING)
     const float inv_duration = fr_mm_s / MM_PER_ARC_SEGMENT;
   #endif
 
-  millis_s next_idle_ms = millis();
+  short_timer_t next_idle_timer(true);
 
   #if N_ARC_CORRECTION > 1
     int8_t arc_recalc_count = N_ARC_CORRECTION;
@@ -150,14 +153,14 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
 
   for (uint16_t i = 1; i < segments; i++) { // Iterate (segments-1) times
 
-    if (expired(&next_idle_ms, 200U)) printer.idle();
+    if (next_idle_timer.expired(200)) printer.idle();
 
     #if N_ARC_CORRECTION > 1
       if (--arc_recalc_count) {
-        // Apply vector rotation matrix to previous r_P / 1
-        const float r_new_Y = r_P * sin_T + r_Q * cos_T;
-        r_P = r_P * cos_T - r_Q * sin_T;
-        r_Q = r_new_Y;
+        // Apply vector rotation matrix to previous rvec.a / 1
+        const float r_new_Y = rvec.a * sin_T + rvec.b * cos_T;
+        rvec.a = rvec.a * cos_T - rvec.b * sin_T;
+        rvec.b = r_new_Y;
       }
       else
     #endif
@@ -172,13 +175,13 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
       // For now, compute both at the same time.
       const float cos_Ti = cos(i * theta_per_segment),
                   sin_Ti = sin(i * theta_per_segment);
-      r_P = -offset[0] * cos_Ti + offset[1] * sin_Ti;
-      r_Q = -offset[0] * sin_Ti - offset[1] * cos_Ti;
+      rvec.a = -offset[0] * cos_Ti + offset[1] * sin_Ti;
+      rvec.b = -offset[0] * sin_Ti - offset[1] * cos_Ti;
     }
 
     // Update raw location
-    raw[p_axis] = center_P + r_P;
-    raw[q_axis] = center_Q + r_Q;
+    raw[p_axis] = center_P + rvec.a;
+    raw[q_axis] = center_Q + rvec.b;
     #if ENABLED(AUTO_BED_LEVELING_UBL)
       raw[l_axis] = start_L;
       UNUSED(linear_per_segment);
@@ -202,7 +205,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   }
 
   // Ensure last segment arrives at target location.
-  COPY_ARRAY(raw, cart);
+  raw = cart;
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     raw[l_axis] = start_L;
   #endif
@@ -222,7 +225,7 @@ void plan_arc(const float (&cart)[XYZE], const float (&offset)[2], const uint8_t
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     raw[l_axis] = start_L;
   #endif
-  COPY_ARRAY(mechanics.current_position, raw);
+  mechanics.current_position = raw;
 
 }
 
@@ -261,8 +264,8 @@ void gcode_G2_G3(const bool clockwise) {
   if (printer.isRunning()) {
 
     #if ENABLED(SF_ARC_FIX)
-      const bool relative_mode_backup = printer.isRelativeMode();
-      printer.setRelativeMode(true);
+      const uint8_t relative_mode_backup = mechanics.axis_relative_modes;
+      mechanics.set_relative_mode(true);
     #endif
 
     commands.get_destination();
@@ -282,50 +285,48 @@ void gcode_G2_G3(const bool clockwise) {
     #endif
 
     #if ENABLED(SF_ARC_FIX)
-      printer.setRelativeMode(relative_mode_backup);
+      mechanics.axis_relative_modes = relative_mode_backup;
     #endif
 
-    float arc_offset[2] = { 0.0, 0.0 };
+    ab_float_t arc_offset = { 0, 0 };
     if (parser.seenval('R')) {
-      const float r = parser.value_linear_units(),
-                  p1 = mechanics.current_position[X_AXIS], q1 = mechanics.current_position[Y_AXIS],
-                  p2 = mechanics.destination[X_AXIS],      q2 = mechanics.destination[Y_AXIS];
-      if (r && (p2 != p1 || q2 != q1)) {
-        const float e = clockwise ^ (r < 0) ? -1 : 1,             // clockwise -1/1, counterclockwise 1/-1
-                    dx = p2 - p1, dy = q2 - q1,                   // X and Y differences
-                    d = HYPOT(dx, dy),                            // Linear distance between the points
-                    dinv = 1/d,                                   // Inverse of d
-                    h = SQRT(sq(r) - sq(d * 0.5f)),               // Distance to the arc pivot-point
-                    mx = (p1 + p2) * 0.5f, my = (q1 + q2) * 0.5f, // Point between the two points
-                    sx = -dy * dinv, sy = dx * dinv,              // Slope of the perpendicular bisector
-                    cx = mx + e * h * sx, cy = my + e * h * sy;   // Pivot-point of the arc
-        arc_offset[0] = cx - p1;
-        arc_offset[1] = cy - q1;
+      const float r = parser.value_linear_units();
+      if (r) {
+        const xy_pos_t  p1 = mechanics.current_position,
+                        p2 = mechanics.destination;
+        if (p1 != p2) {
+          const xy_pos_t d = p2 - p1, m = (p1 + p2) * 0.5f;       // XY distance and midpoint
+          const float e = clockwise ^ (r < 0) ? -1 : 1,           // clockwise -1/1, counterclockwise 1/-1
+                      len = d.magnitude(),                        // Total move length
+                      h = SQRT((r - d * 0.5f) * (r + d * 0.5f));  // Distance to the arc pivot-point
+          const xy_pos_t s = { d.x, -d.y };                       // Inverse Slope of the perpendicular bisector
+          arc_offset = m + s * RECIPROCAL(len) * e * h - p1;      // The calculated offset
+        }
       }
     }
     else {
-      if (parser.seenval('I')) arc_offset[0] = parser.value_linear_units();
-      if (parser.seenval('J')) arc_offset[1] = parser.value_linear_units();
+      if (parser.seenval('I')) arc_offset.a = parser.value_linear_units();
+      if (parser.seenval('J')) arc_offset.b = parser.value_linear_units();
     }
 
-    if (arc_offset[0] || arc_offset[1]) {
+    if (arc_offset) {
 
       #if ENABLED(ARC_P_CIRCLES)
         // P indicates number of circles to do
         int8_t circles_to_do = parser.byteval('P');
         if (!WITHIN(circles_to_do, 0, 100))
-          SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+          SERIAL_LM(ER, MSG_HOST_ERR_ARC_ARGS);
         while (circles_to_do--)
           plan_arc(mechanics.current_position, arc_offset, clockwise);
       #endif
 
       // Send an arc to the planner
       plan_arc(mechanics.destination, arc_offset, clockwise);
-      printer.reset_move_ms();
+      printer.reset_move_timer();
     }
     else {
       // Bad arguments
-      SERIAL_LM(ER, MSG_ERR_ARC_ARGS);
+      SERIAL_LM(ER, MSG_HOST_ERR_ARC_ARGS);
     }
 
     #if ENABLED(LASER) && ENABLED(LASER_FIRE_G1)
@@ -334,7 +335,7 @@ void gcode_G2_G3(const bool clockwise) {
   }
 }
 
-inline void gcode_G2(void) { gcode_G2_G3(true); }
-inline void gcode_G3(void) { gcode_G2_G3(false); }
+inline void gcode_G2() { gcode_G2_G3(true); }
+inline void gcode_G3() { gcode_G2_G3(false); }
 
 #endif // ARC_SUPPORT

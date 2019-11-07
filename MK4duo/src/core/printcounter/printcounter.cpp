@@ -90,9 +90,8 @@ void PrintCounter::initStats() {
 
 void PrintCounter::showStats() {
   char buffer[21];
-  duration_t elapsed;
 
-  SERIAL_MSG(MSG_STATS);
+  SERIAL_MSG(MSG_HOST_STATS);
 
   SERIAL_MV("Total:", data.totalPrints);
   SERIAL_MV(", Finished:", data.finishedPrints);
@@ -100,23 +99,15 @@ void PrintCounter::showStats() {
   SERIAL_EV (data.totalPrints - data.finishedPrints -
             ((isRunning() || isPaused()) ? 1 : 0));
 
-  SERIAL_MSG(MSG_STATS);
+  SERIAL_MSG(MSG_HOST_STATS);
 
-  elapsed = data.timePrint;
-  elapsed.toString(buffer);
-  SERIAL_MT("Total print time:", buffer);
+  SERIAL_MT("Total print time:", duration_t(data.timePrint).toString(buffer));
+  SERIAL_EMT(", Longest job:", duration_t(data.longestPrint).toString(buffer));
 
-  elapsed = data.longestPrint;
-  elapsed.toString(buffer);
-  SERIAL_EMT(", Longest job:", buffer);
+  SERIAL_MSG(MSG_HOST_STATS);
+  SERIAL_EMT("Power on time:", duration_t(data.timePowerOn).toString(buffer));
 
-  SERIAL_MSG(MSG_STATS);
-
-  elapsed = data.timePowerOn;
-  elapsed.toString(buffer);
-  SERIAL_EMT("Power on time:", buffer);
-
-  SERIAL_MSG(MSG_STATS);
+  SERIAL_MSG(MSG_HOST_STATS);
 
   ftostrlength(buffer, data.filamentUsed);
   SERIAL_EMT("Filament used:", buffer);
@@ -132,7 +123,7 @@ void PrintCounter::showStats() {
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
-    SERIAL_MSG(MSG_STATS);
+    SERIAL_MSG(MSG_HOST_STATS);
     SERIAL_MV("Watt/h consumed:", data.consumptionHour);
     SERIAL_EM(" Wh");
   #endif
@@ -149,6 +140,7 @@ void PrintCounter::loadStats() {
     // Check if the EEPROM block is initialized
     char value[3];
 
+    memorystore.access_start();
     memorystore.read_data(address, (uint8_t*)&value, sizeof(value));
 
     if (strncmp(statistics_version, value, 2) != 0)
@@ -200,10 +192,10 @@ void PrintCounter::saveStats() {
 
 void PrintCounter::tick() {
 
-  static millis_s update_next_ms = 0; // Max 60 seconds
-  static millis_l eeprom_next_ms = 0; // Up  60 seconds
+  static short_timer_t  update_next_timer(true);  // Max 60 seconds
+  static long_timer_t   eeprom_next_timer(true);  // Up  60 seconds
 
-  if (expired(&update_next_ms, millis_s(STATS_UPDATE_INTERVAL * 1000U))) {
+  if (update_next_timer.expired((STATS_UPDATE_INTERVAL) * 1000U)) {
     #if ENABLED(DEBUG_PRINTCOUNTER)
       debug(PSTR("tick"));
     #endif
@@ -222,7 +214,7 @@ void PrintCounter::tick() {
     #endif
   }
 
-  if (expired(&eeprom_next_ms, millis_l(STATS_SAVE_INTERVAL * 1000UL)))
+  if (eeprom_next_timer.expired((STATS_SAVE_INTERVAL) * 1000UL))
     saveStats();
 
 }
@@ -337,7 +329,7 @@ void PrintCounter::reset() {
   void PrintCounter::service_when(char buffer[], const char * const msg, const uint32_t when) {
     duration_t elapsed = when;
     elapsed.toString(buffer);
-    SERIAL_MSG(MSG_SERVICE);
+    SERIAL_MSG(MSG_HOST_SERVICE);
     SERIAL_STR(msg);
     SERIAL_EMT(" in ", buffer);
   }

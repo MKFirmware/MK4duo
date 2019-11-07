@@ -423,7 +423,7 @@ class Sd2Card : public SdSpiCard {
    * \param[in] settings SPI speed, mode, and bit order.
    * \return true for success else false.
    */
-  bool begin(uint8_t csPin = SS, SPISettings settings = SD_SCK_MHZ(50)) {
+  bool begin(uint8_t csPin = SS, SPISettings settings = SPI_FULL_SPEED) {
     return SdSpiCard::begin(&m_spi, csPin, settings);
   }
  private:

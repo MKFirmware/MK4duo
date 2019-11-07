@@ -26,20 +26,23 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_BEDS
+#if MAX_BED > 0
 
 #define CODE_M140
 
 /**
  * M140: Set Bed temperature
  */
-inline void gcode_M140(void) {
+inline void gcode_M140() {
+
+  if (printer.debugDryrun() || printer.debugSimulation()) return;
+
   const uint8_t b = parser.byteval('T');
-  if (WITHIN(b, 0 , BEDS - 1)) {
-    if (printer.debugDryrun() || printer.debugSimulation()) return;
-    if (parser.seenval('S')) beds[b].set_target_temp(parser.value_celsius());
-    if (parser.seenval('R')) beds[b].set_idle_temp(parser.value_celsius());
+  if (WITHIN(b, 0 , tools.data.beds - 1) && beds[b]) {
+    if (parser.seenval('S')) beds[b]->set_target_temp(parser.value_celsius());
+    if (parser.seenval('R')) beds[b]->set_idle_temp(parser.value_celsius());
   }
+
 }
 
 #endif

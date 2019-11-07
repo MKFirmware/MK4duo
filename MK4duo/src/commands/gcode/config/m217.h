@@ -26,13 +26,14 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
 
 #define CODE_M217
 
 /**
  * M217 - Set Park position and tool change parameters
  *
+ *  T[tools]    Tools
  *  S[linear]   Swap length
  *  E[linear]   Purge length
  *  P[linear/m] Purge speed
@@ -42,14 +43,13 @@
  *  Z[linear]   Park Z Raise
  *
  */
-inline void gcode_M217(void) {
+inline void gcode_M217() {
 
-  #define SPR_PARAM
-  #define XY_PARAM
+  if (commands.get_target_tool(217)) return;
+
+  const uint8_t t = tools.extruder.target;
 
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    #undef SPR_PARAM
-    #define SPR_PARAM "SEPR"
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
       static constexpr float max_extrude = EXTRUDE_MAXLENGTH;
     #else
@@ -57,16 +57,11 @@ inline void gcode_M217(void) {
     #endif
   #endif
 
-  #if ENABLED(NOZZLE_PARK_FEATURE)
-    #undef XY_PARAM
-    #define XY_PARAM "XY"
-  #endif
-
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M217 report.
     if (parser.seen_any()) {
       #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-        tools.print_M217();
+        extruders[t]->print_M217(t);
       #endif
       nozzle.print_M217();
       return;
@@ -74,13 +69,13 @@ inline void gcode_M217(void) {
   #endif
 
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-    if (parser.seenval('S')) { const float    v = parser.value_linear_units();  tools.data.swap_length    = constrain(v, 0,  max_extrude);  }
-    if (parser.seenval('E')) { const float    v = parser.value_linear_units();  tools.data.purge_lenght   = constrain(v, 0,  max_extrude);  }
-    if (parser.seenval('P')) { const int16_t  v = parser.value_linear_units();  tools.data.prime_speed    = constrain(v, 10, 6000);         }
-    if (parser.seenval('R')) { const int16_t  v = parser.value_linear_units();  tools.data.retract_speed  = constrain(v, 10, 6000);         }
+    if (parser.seenval('S')) { const float    v = parser.value_linear_units();  extruders[t]->data.swap_length    = constrain(v, 0,  max_extrude);  }
+    if (parser.seenval('E')) { const float    v = parser.value_linear_units();  extruders[t]->data.purge_lenght   = constrain(v, 0,  max_extrude);  }
+    if (parser.seenval('P')) { const int16_t  v = parser.value_linear_units();  extruders[t]->data.prime_speed    = constrain(v, 10, 6000);         }
+    if (parser.seenval('R')) { const int16_t  v = parser.value_linear_units();  extruders[t]->data.retract_speed  = constrain(v, 10, 6000);         }
   #endif
 
-  #if ENABLED(NOZZLE_PARK_FEATURE)
+  #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
     if (parser.seenval('X')) nozzle.data.park_point.x = parser.value_linear_units();
     if (parser.seenval('Y')) nozzle.data.park_point.y = parser.value_linear_units();
   #endif
@@ -89,4 +84,4 @@ inline void gcode_M217(void) {
 
 }
 
-#endif // ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+#endif // ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1

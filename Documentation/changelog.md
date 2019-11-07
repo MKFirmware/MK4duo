@@ -1,3 +1,38 @@
+### Version 4.4.0
+* Revision 07-11-2019
+* Start development for STM32 on board Rumba32
+*   Hardware Timer for stepper  OK
+*   Systick for temp            OK
+*   PWM Hardware                OK
+*   SD                          OK
+*   Serial                      OK
+*   EEPROM on FLASH             OK
+*   Display Nextion             OK
+*   DHT                         OK
+*   SERVO                       OK
+*   BLTOUCH                     OK
+*   DISPLAY 20x4                No Test
+*   DISPLAY Graphics            No Test
+*   Neopixel                    Not function
+*   
+* M353: Set total number Extruder, Hotend, Bed, Chamber, Fan
+*    D[int] Set number driver extruder
+*    E[int] Set number extruder
+*    H[int] Set number hotend
+*    B[int] Set number bed
+*    C[int] Set number chamber
+*    F[int] Set number fan
+*
+* M563: Set Tools heater assignment
+*
+*   T[tools]  - Set Tool
+*   D[int]    - Set Driver for tool
+*   H[bool]   - Set Hotend for tool
+*
+* Add multiple Language, max 5, for lcd..
+*
+* Fix and clear code
+
 ### Version 4.3.9
 * EEROM Version MKV72
 * New graphic for Nextion 4.3, 5.0 or 7.0 Normal and Enanched

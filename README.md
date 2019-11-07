@@ -2,14 +2,25 @@
 
 # MK4duo 3D Printer Firmware
 
+<<<<<<< HEAD
 [![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=master)](https://travis-ci.org/MKFirmware/MK4duo)
+=======
+[![Build Status](https://travis-ci.org/MKFirmware/MK4duo.svg?branch=V4_4_0_dev)](https://travis-ci.org/MKFirmware/MK4duo)
 
-## Version 4.3.9
+## Version 4.4.0 dev.
 
+Please donate to support this project https://www.paypal.me/MagoKimbra
+>>>>>>> V4_4_0_dev
+
+## Hardware Abstraction Layer (HAL)
+
+<<<<<<< HEAD
 Please donate to support this project https://www.paypal.me/MagoKimbra
 
 ## Hardware Abstraction Layer (HAL)
 
+=======
+>>>>>>> V4_4_0_dev
 MK4duo introduces a layer of abstraction so that all the existing high-level code can be built for 32-bit platforms while still retaining full 8-bit AVR compatibility.
 
 ### Current HALs
@@ -18,11 +29,14 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
   ----|-----|---------|-----|-----|----|-----|---
   [Arduino AVR](https://www.arduino.cc/)|[RAMPS 1_4](https://reprap.org/wiki/RAMPS_1.4)|ATmega2560|20MHz|256k|8k|5V|no
   [Arduino Due](https://www.arduino.cc/en/Guide/ArduinoDue)|[ULTRATRONICS](https://reprapworld.it/products/elettronica/ultratronics/ultratronics_pro_v1_0/)|[SAM3X8E](http://www.microchip.com/wwwproducts/en/ATsam3x8e) ARM-Cortex M3|84MHz|512k|64+32k|3.3V|no
+<<<<<<< HEAD
 
 ### HALs in Development
 
   name|board|processor|speed|flash|sram|logic|fpu
   ----|-----|---------|-----|-----|----|-----|---
+=======
+>>>>>>> V4_4_0_dev
   [Arduino Core STM32](https://github.com/stm32duino/Arduino_Core_STM32)|[RUMBA32](https://github.com/Aus3D/RUMBA32)|[STM32F446](https://www.st.com/en/microcontrollers-microprocessors/stm32f446.html) ARM-Cortex M4|120MHz|256k|128k|3.3V|no
 
 ### Special thanks
@@ -35,7 +49,8 @@ MK4duo introduces a layer of abstraction so that all the existing high-level cod
 
 ---
 # MK4duo 3D Printer Firmware
-  * [Configuration & Compilation](/Documentation/Compilation.md)
+  * [Configuration & Compilation AVR & DUE](/Documentation/Compilation.md)
+  * [Configuration & Compilation STM32](/Documentation/STM32.md)
   * Supported
     * [Features](/Documentation/Features.md)
     * [Hardware](/Documentation/Hardware.md)
@@ -58,7 +73,7 @@ http://www.marlinkimbra.it
 ## Quick Information
 
 The new features are:
-* A single Firmware for all types of printers; Cartesian, Delta, MORGAN SCARA, MAKERARM SCARA, CoreXY, CoreXZ & CoreYZ and their reverse.
+* A single Firmware for all types of printers; Cartesian, Delta, CoreXY, CoreXZ & CoreYZ and their reverse.
 * The possibility of having only one hotend independently from the extruders that you have.
 * The addition of the 6th extruder.
 * Management Color Mixing Extruder
@@ -123,7 +138,6 @@ The current MarlinKimbra dev team consists of:
 More features have been added by:
   - Mr.Goblin
   - [iosonopersia](https://github.com/iosonopersia)
-  - [Franco (nextime) Lanza](https://git.nexlab.net/u/nextime)
 
 ## License
 

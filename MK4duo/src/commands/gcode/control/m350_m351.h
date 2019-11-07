@@ -32,7 +32,7 @@
   #define CODE_M351
 
   // M350 Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
-  inline void gcode_M350(void) {
+  inline void gcode_M350() {
     if (parser.seen('S')) for (int i = 0; i <= 4; i++) stepper.microstep_mode(i, parser.value_byte());
     LOOP_XYZE(i) if (parser.seen(axis_codes[i])) stepper.microstep_mode(i, parser.value_byte());
     if (parser.seen('B')) stepper.microstep_mode(4, parser.value_byte());
@@ -43,7 +43,7 @@
    * M351: Toggle MS1 MS2 pins directly with axis codes X Y Z E B
    *       S# determines MS1 or MS2, X# sets the pin high/low.
    */
-  inline void gcode_M351(void) {
+  inline void gcode_M351() {
     if (parser.seen('S')) switch (parser.value_byte()) {
       case 1:
         LOOP_XYZE(i) if (parser.seen(axis_codes[i])) stepper.microstep_ms(i, parser.value_byte(), -1);
@@ -61,7 +61,7 @@
 
   #define CODE_M350
 
-  inline void gcode_M350(void) {
+  inline void gcode_M350() {
 
     if (commands.get_target_tool(350)) return;
 
@@ -78,53 +78,35 @@
         switch (i) {
           case X_AXIS:
             #if AXIS_HAS_TMC(X)
-              driver[X_DRV]->tmc->microsteps(value);
+              driver.x->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(X2)
-              driver[X2_DRV]->tmc->microsteps(value);
+              driver.x2->tmc->microsteps(value);
             #endif
             break;
           case Y_AXIS:
             #if AXIS_HAS_TMC(Y)
-              driver[Y_DRV]->tmc->microsteps(value);
+              driver.y->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Y2)
-              driver[Y2_DRV]->tmc->microsteps(value);
+              driver.y2->tmc->microsteps(value);
             #endif
             break;
           case Z_AXIS:
             #if AXIS_HAS_TMC(Z)
-              driver[Z_DRV]->tmc->microsteps(value);
+              driver.z->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z2)
-              driver[Z2_DRV]->tmc->microsteps(value);
+              driver.z2->tmc->microsteps(value);
             #endif
             #if AXIS_HAS_TMC(Z3)
-              driver[Z3_DRV]->tmc->microsteps(value);
+              driver.z3->tmc->microsteps(value);
             #endif
             break;
-          case E_AXIS: {
-            switch (TARGET_EXTRUDER) {
-              #if AXIS_HAS_TMC(E0)
-                case 0: driver[E0_DRV]->tmc->microsteps(value); break;
-              #endif
-              #if AXIS_HAS_TMC(E1)
-                case 1: driver[E1_DRV]->tmc->microsteps(value); break;
-              #endif
-              #if AXIS_HAS_TMC(E2)
-                case 2: driver[E2_DRV]->tmc->microsteps(value); break;
-              #endif
-              #if AXIS_HAS_TMC(E3)
-                case 3: driver[E3_DRV]->tmc->microsteps(value); break;
-              #endif
-              #if AXIS_HAS_TMC(E4)
-                case 4: driver[E4_DRV]->tmc->microsteps(value); break;
-              #endif
-              #if AXIS_HAS_TMC(E5)
-                case 5: driver[E5_DRV]->tmc->microsteps(value); break;
-              #endif
-            }
-          } break;
+          case E_AXIS:
+            Driver* drv = driver.e[extruders[tools.extruder.target]->get_driver()];
+            if (drv && drv->tmc) drv->tmc->microsteps(value);
+            break;
         }
       }
     }

@@ -114,7 +114,7 @@ uint8_t ServoCount = 0;             // the total number of attached servo_info
 static bool isTimerActive(timer16_Sequence_t timer) {
   // returns true if any servo is active on this timer
   for (uint8_t channel = 0; channel < SERVOS_PER_TIMER; channel++) {
-    if (SERVO(timer, channel).Pin.isActive == true)
+    if (SERVO(timer, channel).Pin.isActive)
       return true;
   }
   return false;
@@ -123,40 +123,40 @@ static bool isTimerActive(timer16_Sequence_t timer) {
 
 MKServo::MKServo() {
   if (ServoCount < MAX_SERVOS) {
-    this->index = ServoCount++;                                     // assign a servo index to this instance
-    servo_info[this->index].ticks = usToTicks(DEFAULT_PULSE_WIDTH); // store default values
+    index = ServoCount++;                                     // assign a servo index to this instance
+    servo_info[index].ticks = usToTicks(DEFAULT_PULSE_WIDTH); // store default values
   }
   else {
-    this->index = INVALID_SERVO;                                    // too many servos
+    index = INVALID_SERVO;                                    // too many servos
   }
 }
 
-int8_t MKServo::attach(const pin_t pin) {
-  return this->attach(pin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
+int8_t MKServo::attach(const pin_t inPin) {
+  return attach(inPin, MIN_PULSE_WIDTH, MAX_PULSE_WIDTH);
 }
 
-int8_t MKServo::attach(const pin_t pin, int min, int max) {
+int8_t MKServo::attach(const pin_t inPin, const int inMin, const int inMax) {
 
-  if (this->index >= MAX_SERVOS) return -1;
+  if (index >= MAX_SERVOS) return -1;
 
-  if (pin > 0) servo_info[this->index].Pin.nbr = pin;
-  HAL::pinMode(servo_info[this->index].Pin.nbr, OUTPUT); // set servo pin to output
+  if (inPin > 0) servo_info[index].Pin.nbr = inPin;
+  HAL::pinMode(servo_info[index].Pin.nbr, OUTPUT); // set servo pin to output
 
   // todo min/max check: ABS(min - MIN_PULSE_WIDTH) /4 < 128
-  this->min = (MIN_PULSE_WIDTH - min) / 4; //resolution of min/max is 4 uS
-  this->max = (MAX_PULSE_WIDTH - max) / 4;
+  min = (MIN_PULSE_WIDTH - inMin) / 4;  // resolution of min/max is 4 uS
+  max = (MAX_PULSE_WIDTH - inMax) / 4;
 
   // initialize the timer if it has not already been initialized
   timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(index);
   if (!isTimerActive(timer)) initISR(timer);
-  servo_info[this->index].Pin.isActive = true;  // this must be set after the check for isTimerActive
+  servo_info[index].Pin.isActive = true;  // this must be set after the check for isTimerActive
 
-  return this->index;
+  return index;
 }
 
 void MKServo::detach() {
-  servo_info[this->index].Pin.isActive = false;
-  digitalWrite(servo_info[this->index].Pin.nbr, LOW);
+  servo_info[index].Pin.isActive = false;
+  digitalWrite(servo_info[index].Pin.nbr, LOW);
   timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(index);
   if (!isTimerActive(timer)) finISR(timer);
 }
@@ -165,12 +165,12 @@ void MKServo::write(int value) {
   if (value < MIN_PULSE_WIDTH)  // treat values less than 544 as angles in degrees (valid values in microseconds are handled as microseconds)
     value = map(constrain(value, 0, 180), 0, 180, SERVO_MIN(), SERVO_MAX());
 
-  this->writeMicroseconds(value);
+  writeMicroseconds(value);
 }
 
 void MKServo::writeMicroseconds(int value) {
   // calculate and store the values for the given channel
-  byte channel = this->index;
+  byte channel = index;
   if (channel < MAX_SERVOS) {  // ensure channel is valid
     // ensure pulse width is valid
     value = constrain(value, SERVO_MIN(), SERVO_MAX()) - (TRIM_DURATION);
@@ -183,29 +183,29 @@ void MKServo::writeMicroseconds(int value) {
 }
 
 // return the value as degrees
-int MKServo::read() { return map(this->readMicroseconds() + 1, SERVO_MIN(), SERVO_MAX(), 0, 180); }
+int MKServo::read() { return map(readMicroseconds() + 1, SERVO_MIN(), SERVO_MAX(), 0, 180); }
 
 int MKServo::readMicroseconds() {
-  return (this->index == INVALID_SERVO) ? 0 : ticksToUs(servo_info[this->index].ticks) + TRIM_DURATION;
+  return (index == INVALID_SERVO) ? 0 : ticksToUs(servo_info[index].ticks) + TRIM_DURATION;
 }
 
-bool MKServo::attached() { return servo_info[this->index].Pin.isActive; }
+bool MKServo::attached() { return servo_info[index].Pin.isActive; }
 
-void MKServo::move(int value) {
-  if (this->attach(0) >= 0) {
-    this->write(value);
+void MKServo::move(const int value) {
+  if (attach(0) >= 0) {
+    write(value);
     HAL::delayMilliseconds(SERVO_DEACTIVATION_DELAY);
     #if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE)
-      this->detach();
+      detach();
     #endif
   }
 }
 
 void MKServo::print_M281() {
   SERIAL_LM(CFG, "Servo Angles: P<Servo> L<Low> U<Up>:");
-  SERIAL_SMV(CFG, "  M281 P", (int)this->index);
-  SERIAL_MV(" L", this->angle[0]);
-  SERIAL_MV(" U", this->angle[1]);
+  SERIAL_SMV(CFG, "  M281 P", (int)index);
+  SERIAL_MV(" L", angle[0]);
+  SERIAL_MV(" U", angle[1]);
   SERIAL_EOL();
 }
 

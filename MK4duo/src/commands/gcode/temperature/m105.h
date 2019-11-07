@@ -31,7 +31,7 @@
 /**
  * M105: Read hot end and bed temperature
  */
-inline void gcode_M105(void) {
+inline void gcode_M105() {
 
   const bool showRaw = parser.boolval('X');
 
@@ -46,7 +46,7 @@ inline void gcode_M105(void) {
       SERIAL_MV(" fr:", MMS_TO_MMM(mechanics.feedrate_mm_s));
     #endif
   #else
-    SERIAL_LM(ER, MSG_ERR_NO_THERMISTORS);
+    SERIAL_LM(ER, MSG_HOST_ERR_NO_THERMISTORS);
   #endif
 
   SERIAL_EOL();

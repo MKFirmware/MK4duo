@@ -33,8 +33,8 @@
 /**
  * M26: Set SD Card file index
  */
-inline void gcode_M26(void) {
-  if (card.isDetected() && parser.seenval('S'))
+inline void gcode_M26() {
+  if (card.isMounted() && parser.seenval('S'))
     card.setIndex(parser.value_long());
 }
 

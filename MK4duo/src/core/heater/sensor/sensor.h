@@ -35,9 +35,9 @@ typedef struct {
 
     pin_t   pin;
     int16_t type,
-            raw,
-            adcLowOffset,
-            adcHighOffset;
+            adc_raw,
+            adc_low_offset,
+            adc_high_offset;
     float   res_25,
             beta,
             pullup_res,
@@ -62,31 +62,31 @@ typedef struct {
 
       #if HAS_MAX6675 || HAS_MAX31855
         if (type == -4 || type == -3)
-          return 0.25 * raw;
+          return 0.25 * adc_raw;
       #endif
       #if HAS_AD8495
         if (type == -2)
-          return (raw * float(AD8495_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
+          return (adc_raw * float(AD8495_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
       #if HAS_AD595
         if (type == -1)
-          return (raw * float(AD595_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
+          return (adc_raw * float(AD595_MAX) / float(AD_RANGE)) * ad595_gain + ad595_offset;
       #endif
 
       if (WITHIN(type, 1, 9)) {
-        const int32_t averagedVssaReading = 2 * adcLowOffset,
-                      averagedVrefReading = AD_RANGE + 2 * adcHighOffset;
+        const int32_t adc_low = 2 * adc_low_offset,
+                      adc_max = AD_RANGE + (2 * adc_high_offset);
 
         // Calculate the resistance
-        const float denom = (float)(averagedVrefReading - raw) - 0.5;
-        if (denom <= 0.0) return ABS_ZERO;
+        const float adc_inverse = (float)(adc_max - adc_raw) - 0.5f;
+        if (adc_inverse <= 0.0) return ABS_ZERO;
 
-        const float resistance = pullup_res * ((float)(raw - averagedVssaReading) + 0.5) / denom;
+        const float resistance = pullup_res * ((float)(adc_raw - adc_low) + 0.5f) / adc_inverse;
         const float logResistance = LOG(resistance);
         const float recipT = shA + shB * logResistance + shC * logResistance * logResistance * logResistance;
 
         /*
-        SERIAL_MV("Debug denom:", denom, 5);
+        SERIAL_MV("Debug adc_inverse:", adc_inverse, 5);
         SERIAL_MV(" resistance:", resistance, 5);
         SERIAL_MV(" logResistance:", logResistance, 5);
         SERIAL_MV(" shA:", shA, 5);
@@ -113,9 +113,9 @@ typedef struct {
 
         if (type == 20) {
           for (i = 1; i < ttbllen_map; i++) {
-            if (PGM_RD_W(temptable_amplifier[i][0]) > raw) {
+            if (PGM_RD_W(temptable_amplifier[i][0]) > adc_raw) {
               celsius = PGM_RD_W(temptable_amplifier[i - 1][1]) +
-                        (raw - PGM_RD_W(temptable_amplifier[i - 1][0])) *
+                        (adc_raw - PGM_RD_W(temptable_amplifier[i - 1][0])) *
                         (float)(PGM_RD_W(temptable_amplifier[i][1]) - PGM_RD_W(temptable_amplifier[i - 1][1])) /
                         (float)(PGM_RD_W(temptable_amplifier[i][0]) - PGM_RD_W(temptable_amplifier[i - 1][0]));
               break;
@@ -162,13 +162,13 @@ typedef struct {
 
     bool set_LowOffset(const int16_t value) {
       if (!WITHIN(value, -1000, 1000)) return false;
-      adcLowOffset = value;
+      adc_low_offset = value;
       return true;
     }
 
     bool set_HighOffset(const int16_t value) {
       if (!WITHIN(value, -1000, 1000)) return false;
-      adcHighOffset = value;
+      adc_high_offset = value;
       return true;
     }
 
@@ -180,10 +180,11 @@ typedef struct {
 
       int16_t read_max6675() {
 
-        static millis_s next_max6675_ms = 0;
-        static uint16_t max6675_temp    = 2000;
+        static short_timer_t next_max6675_timer(true);
+        static uint16_t max6675_temp = 2000;
 
-        if (pending(&next_max6675_ms, MAX6675_HEAT_INTERVAL)) return int16_t(max6675_temp);
+        if (next_max6675_timer.pending(MAX6675_HEAT_INTERVAL))
+          return int16_t(max6675_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();
@@ -238,12 +239,13 @@ typedef struct {
 
       int16_t read_max31855() {
 
-        static millis_s next_max31855_ms    = 0;
+        static short_timer_t next_max31855_timer(true);
         static uint16_t last_max31855_temp  = 2000;
 
         uint32_t data = 0;
 
-        if (pending(&next_max31855_ms, MAX31855_HEAT_INTERVAL)) return int16_t(last_max31855_temp);
+        if (next_max31855_timer.pending(MAX31855_HEAT_INTERVAL))
+          return int16_t(last_max31855_temp);
 
         #if ENABLED(CPU_32_BIT)
           HAL::spiBegin();

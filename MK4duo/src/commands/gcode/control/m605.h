@@ -48,7 +48,7 @@
  *
  *    Note: the X axis should be homed after changing dual x-carriage mode.
  */
-inline void gcode_M605(void) {
+inline void gcode_M605() {
   planner.synchronize();
 
   if (parser.seen('S')) {
@@ -66,9 +66,9 @@ inline void gcode_M605(void) {
       }
       mechanics.scaled_duplication_mode = true;
       stepper.set_directions();
-      float x_jog = mechanics.current_position[X_AXIS] - .1;
+      float x_jog = mechanics.current_position.x - .1;
       for (uint8_t i = 2; --i;) {
-        planner.buffer_line(x_jog, mechanics.current_position[Y_AXIS], mechanics.current_position[Z_AXIS], mechanics.current_position[E_AXIS], mechanics.feedrate_mm_s, 0);
+        planner.buffer_line(x_jog, mechanics.current_position.y, mechanics.current_position.z, mechanics.current_position.e, mechanics.feedrate_mm_s, 0);
         x_jog += .1;
       }
       return;
@@ -90,7 +90,7 @@ inline void gcode_M605(void) {
     mechanics.active_extruder_parked = false;
     mechanics.extruder_duplication_enabled = false;
     stepper.set_directions();
-    mechanics.delayed_move_ms = 0;
+    mechanics.delayed_move_timer.stop();
   }
   else if (!parser.seen('W'))  // if no S or W parameter, the DXC mode gets reset to the user's default
     mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -106,14 +106,14 @@ inline void gcode_M605(void) {
     DEBUG_MV("\nActive Ext: ", int(tools.extruder.active));
     if (!mechanics.active_extruder_parked) DEBUG_MSG(" NOT ");
     DEBUG_EM(" parked.");
-    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position.x);
     DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
-    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position[X_AXIS]);
+    DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position.x);
     DEBUG_MV("\ninactive_extruder_x_pos: ", mechanics.inactive_extruder_x_pos);
     DEBUG_MV("\nextruder_duplication_enabled: ", int(mechanics.extruder_duplication_enabled));
     DEBUG_MV("\nduplicate_extruder_x_offset: ", mechanics.duplicate_extruder_x_offset);
     DEBUG_MV("\nduplicate_extruder_temp_offset: ", mechanics.duplicate_extruder_temp_offset);
-    DEBUG_MV("\ndelayed_move_time: ", mechanics.delayed_move_ms);
+    DEBUG_MV("\ndelayed_move_time: ", mechanics.delayed_move_timer.started());
     DEBUG_MV("\nX1 Home X: ", mechanics.x_home_pos(0));
     DEBUG_MV("\nX1_MIN_POS=", int(X1_MIN_POS));
     DEBUG_MV("\nX1_MAX_POS=", int(X1_MAX_POS));

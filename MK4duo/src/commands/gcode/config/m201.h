@@ -33,7 +33,7 @@
  *
  *       With multiple extruders use T to specify which one.
  */
-inline void gcode_M201(void) {
+inline void gcode_M201() {
 
   if (commands.get_target_tool(201)) return;
 
@@ -47,15 +47,18 @@ inline void gcode_M201(void) {
 
   LOOP_XYZE(i) {
     if (parser.seen(axis_codes[i])) {
-      const uint8_t a = i + (i == E_AXIS ? TARGET_EXTRUDER : 0);
       #if MECH(DELTA)
-        const float value = parser.value_per_axis_unit((AxisEnum)a);
+        const float value = parser.value_per_axis_unit((AxisEnum)i);
         if (i == E_AXIS)
-          mechanics.data.max_acceleration_mm_per_s2[a] = value;
+          extruders[tools.extruder.target]->data.max_acceleration_mm_per_s2 = value;
         else
           LOOP_XYZ(axis) mechanics.data.max_acceleration_mm_per_s2[axis] = value;
       #else
-        mechanics.data.max_acceleration_mm_per_s2[a] = parser.value_axis_units((AxisEnum)a);
+        const float value = parser.value_per_axis_unit((AxisEnum)i);
+        if (i == E_AXIS)
+          extruders[tools.extruder.target]->data.max_acceleration_mm_per_s2 = value;
+        else
+        mechanics.data.max_acceleration_mm_per_s2[i] = value;
       #endif
     }
   }

@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if EXTRUDERS > 0 && HAS_FILAMENT_SENSOR
+#if HAS_FILAMENT_SENSOR
 
 #define CODE_M412
 
@@ -38,7 +38,7 @@
  *  D[float]  Distance mm
  *
  */
-inline void gcode_M412(void) {
+inline void gcode_M412() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M412 report.
@@ -61,4 +61,4 @@ inline void gcode_M412(void) {
 
 }
 
-#endif // EXTRUDERS > 0 && HAS_EXT_ENCODER
+#endif // HAS_EXT_ENCODER

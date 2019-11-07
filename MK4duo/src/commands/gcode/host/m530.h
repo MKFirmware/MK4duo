@@ -31,7 +31,7 @@
 /**
  * M530: S<printing> L<layer> - Enables explicit printing mode (S1) or disables it (S0). L can set layer count
  */
-inline void gcode_M530(void) {
+inline void gcode_M530() {
 
   if (parser.seen('L')) printer.maxLayer = parser.value_long();
 

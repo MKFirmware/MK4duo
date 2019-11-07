@@ -70,7 +70,7 @@ class Power {
     #if HAS_POWER_SWITCH
       static bool powersupply_on;
       #if (POWER_TIMEOUT > 0)
-        static millis_l last_Power_On_ms;
+        static long_timer_t last_power_on_timer;
       #endif
     #endif
 
@@ -134,12 +134,6 @@ class Power {
                     raw_analog2voltage(),
                     analog2error(float current),
                     analog2efficiency(float watt);
-    #endif
-
-  private: /** Private Function */
-
-    #if HAS_POWER_SWITCH
-      static bool is_power_needed();
     #endif
 
 };

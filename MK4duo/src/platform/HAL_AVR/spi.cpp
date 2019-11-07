@@ -60,7 +60,7 @@
   void HAL::spiInit(uint8_t spiRate) { UNUSED(spiRate); }
 
   /** Soft SPI receive byte */
-  uint8_t HAL::spiReceive(void) { return softSpiBus.receive(); }
+  uint8_t HAL::spiReceive() { return softSpiBus.receive(); }
 
   /** Soft SPI read data */
   uint8_t HAL::spiReadBlock(uint8_t* buf, uint16_t nbyte) {
@@ -88,7 +88,7 @@
     #error "unexpected SPCR bits"
   #endif
 
-  void HAL::spiBegin(void) {
+  void HAL::spiBegin() {
     #if SS_PIN >= 0
       SET_INPUT(MISO_PIN);
       SET_OUTPUT(MOSI_PIN);
@@ -148,7 +148,7 @@
   }
 
   /** SPI receive a byte */
-  uint8_t HAL::spiReceive(void) {
+  uint8_t HAL::spiReceive() {
     SPDR = 0xFF;
     while (!TEST(SPSR, SPIF)) { /* Intentionally left empty */ }
     return SPDR;

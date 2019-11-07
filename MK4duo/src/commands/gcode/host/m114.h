@@ -31,7 +31,7 @@
 /**
  * M114: Report current position to host
  */
-inline void gcode_M114(void) {
+inline void gcode_M114() {
 
   if (parser.seen('D')) {
     mechanics.report_current_position_detail();

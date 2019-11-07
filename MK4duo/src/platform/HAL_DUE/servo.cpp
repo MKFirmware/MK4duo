@@ -34,27 +34,27 @@ static volatile int8_t Channel[_Nbr_16timers ]; // counter for the servo being p
 void Servo_Handler(timer16_Sequence_t timer, Tc *pTc, uint8_t channel);
 
 #if ENABLED (_useTimer1)
-  void HANDLER_FOR_TIMER1(void) {
+  void HANDLER_FOR_TIMER1() {
     Servo_Handler(_timer1, TC_FOR_TIMER1, CHANNEL_FOR_TIMER1);
   }
 #endif
 #if ENABLED (_useTimer2)
-  void HANDLER_FOR_TIMER2(void) {
+  void HANDLER_FOR_TIMER2() {
     Servo_Handler(_timer2, TC_FOR_TIMER2, CHANNEL_FOR_TIMER2);
   }
 #endif
 #if ENABLED (_useTimer3)
-  void HANDLER_FOR_TIMER3(void) {
+  void HANDLER_FOR_TIMER3() {
     Servo_Handler(_timer3, TC_FOR_TIMER3, CHANNEL_FOR_TIMER3);
   }
 #endif
 #if ENABLED (_useTimer4)
-  void HANDLER_FOR_TIMER4(void) {
+  void HANDLER_FOR_TIMER4() {
     Servo_Handler(_timer4, TC_FOR_TIMER4, CHANNEL_FOR_TIMER4);
   }
 #endif
 #if ENABLED (_useTimer5)
-  void HANDLER_FOR_TIMER5(void) {
+  void HANDLER_FOR_TIMER5() {
     Servo_Handler(_timer5, TC_FOR_TIMER5, CHANNEL_FOR_TIMER5);
   }
 #endif

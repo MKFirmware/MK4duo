@@ -23,11 +23,11 @@
 
 // Struct Nozzle data
 struct nozzle_data_t {
-  #if HOTENDS > 1
-    float hotend_offset[XYZ][HOTENDS];
+  #if MAX_HOTEND > 1
+    xyz_pos_t hotend_offset[MAX_HOTEND];
   #endif
-  #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
-    point_t park_point = { 0, 0, 0 };
+  #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
+    xyz_pos_t park_point;
   #endif
 };
 
@@ -49,11 +49,15 @@ class Nozzle {
       static void set_heating_message();
     #endif
 
-    #if ENABLED(NOZZLE_PARK_FEATURE) || EXTRUDERS > 1
+    #if ENABLED(NOZZLE_PARK_FEATURE) || MAX_EXTRUDER > 1
       static void print_M217();
     #endif
 
+<<<<<<< HEAD
     #if HOTENDS > 1
+=======
+    #if MAX_HOTEND > 1
+>>>>>>> V4_4_0_dev
       static void print_M218();
     #endif
 
@@ -69,7 +73,7 @@ class Nozzle {
     #endif
 
     #if ENABLED(NOZZLE_PARK_FEATURE)
-      static void park(const uint8_t z_action, const point_t &park_p=data.park_point);
+      static void park(const uint8_t z_action, const xyz_pos_t &park_p=data.park_point);
     #endif
 
   private: /** Private Function */
@@ -84,7 +88,7 @@ class Nozzle {
        * @param end defining the ending point
        * @param strokes number of strokes to execute
        */
-      static void stroke(const point_t &start, const point_t &end, const uint8_t &strokes) _Os;
+      static void stroke(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes) _Os;
 
       /**
        * @brief Zig-zag clean pattern
@@ -95,7 +99,7 @@ class Nozzle {
        * @param strokes number of strokes to execute
        * @param objects number of objects to create
        */
-      static void zigzag(const point_t &start, const point_t &end, const uint8_t &strokes, const uint8_t &objects) _Os;
+      static void zigzag(const xyz_pos_t &start, const xyz_pos_t &end, const uint8_t &strokes, const uint8_t &objects) _Os;
 
       /**
        * @brief Circular clean pattern
@@ -106,7 +110,7 @@ class Nozzle {
        * @param strokes number of strokes to execute
        * @param radius of circle
        */
-      static void circle(const point_t &start, const point_t &middle, const uint8_t &strokes, const float &radius) _Os;
+      static void circle(const xyz_pos_t &start, const xyz_pos_t &middle, const uint8_t &strokes, const float &radius) _Os;
 
     #endif
 

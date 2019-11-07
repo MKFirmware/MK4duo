@@ -26,14 +26,14 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#if HAS_TEMP_HOTEND
+#if MAX_HOTEND > 0
 
 #define CODE_M104
 
 /**
  * M104: Set hotend temperature
  */
-inline void gcode_M104(void) {
+inline void gcode_M104() {
 
   if (commands.get_target_tool(104)) return;
 
@@ -41,19 +41,19 @@ inline void gcode_M104(void) {
 
   if (parser.seenval('S')) {
     const int16_t temp = parser.value_celsius();
-    #if ENABLED(SINGLENOZZLE)
-      tools.singlenozzle_temp[TARGET_EXTRUDER] = temp;
-      if (TARGET_EXTRUDER != tools.extruder.active) return;
-    #endif
-    hotends[TARGET_HOTEND].set_target_temp(temp);
+    if (tools.data.hotends == 1) {
+      extruders[tools.extruder.target]->singlenozzle_temp = temp;
+      if (tools.extruder.target != tools.extruder.active) return;
+    }
+    hotends[tools.target_hotend()]->set_target_temp(temp);
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      if (mechanics.dxc_is_duplicating() && TARGET_EXTRUDER == 0)
-        hotends[1].set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
+      if (mechanics.dxc_is_duplicating() && tools.extruder.target == 0)
+        hotends[1]->set_target_temp(temp ? temp + mechanics.duplicate_extruder_temp_offset : 0);
     #endif
   }
 
-  if (parser.seenval('R')) hotends[TARGET_HOTEND].set_idle_temp(parser.value_celsius());
+  if (parser.seenval('R')) hotends[tools.target_hotend()]->set_idle_temp(parser.value_celsius());
 
   #if ENABLED(AUTOTEMP)
     planner.autotemp_M104_M109();
@@ -61,4 +61,4 @@ inline void gcode_M104(void) {
 
 }
 
-#endif
+#endif // MAX_HOTEND > 0

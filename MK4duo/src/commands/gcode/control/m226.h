@@ -31,7 +31,7 @@
 /**
  * M226: Wait until the specified pin reaches the state required (M226 P<pin> S<state>)
  */
-inline void gcode_M226(void) {
+inline void gcode_M226() {
   if (parser.seenval('P')) {
     const int pin_number = parser.value_int(),
               pin_state = parser.intval('S', -1); // required pin state - default is inverted
