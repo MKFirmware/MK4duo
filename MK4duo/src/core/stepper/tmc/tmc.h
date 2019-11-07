@@ -139,7 +139,7 @@ class TMCStorage {
 
       MKTMC(const uint8_t DRIVER_ID, Stream* SerialPort, const float RS) :
         id(DRIVER_ID),
-        TMC2208Stepper(SerialPort, RS, /*has_rx=*/true)
+        TMC2208Stepper(SerialPort, RS)
         {}
 
       MKTMC(const uint8_t DRIVER_ID, const uint16_t RX, const uint16_t TX, const float RS, const bool has_rx=true) :

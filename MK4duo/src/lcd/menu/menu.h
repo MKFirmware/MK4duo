@@ -501,8 +501,6 @@ class MenuItem_bool : MenuEditItemBase {
 void menu_main();
 void menu_move();
 
-void menu_stop_print();
-
 #if HAS_SD_SUPPORT
   void menu_sdcard();
 #endif

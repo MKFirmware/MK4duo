@@ -38,7 +38,12 @@
 inline void gcode_M36() {
   if (parser.seen('S')) {
     #if HAS_LCD_MENU
-      lcdui.goto_screen(menu_stop_print);
+      lcdui.goto_screen([]{
+        MenuItem_confirm::confirm_screen(
+          lcdui.stop_print, lcdui.goto_previous_screen,
+          GET_TEXT(MSG_ARE_YOU_SURE), (PGM_P)nullptr, PSTR("?")
+        );
+      });
     #else
       lcdui.stop_print();
     #endif

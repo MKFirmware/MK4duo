@@ -66,20 +66,22 @@ static inline void _lcd_level_bed_corners_homing() {
   lcd_draw_homing();
   if (mechanics.isHomedAll()) {
     bed_corner = 0;
-    MenuItem_confirm::select_screen(
-      GET_TEXT(MSG_BUTTON_NEXT), GET_TEXT(MSG_BUTTON_DONE),
-      _lcd_goto_next_corner,
-      []{
-        lcdui.goto_previous_screen_no_defer();
-      },
-      GET_TEXT(
-        #if ENABLED(LEVEL_CENTER_TOO)
-          MSG_LEVEL_BED_NEXT_POINT
-        #else
-          MSG_NEXT_CORNER
-        #endif
-      ), (PGM_P)nullptr, PSTR("?")
-    );
+    lcdui.goto_screen([]{
+      MenuItem_confirm::select_screen(
+        GET_TEXT(MSG_BUTTON_NEXT), GET_TEXT(MSG_BUTTON_DONE),
+        _lcd_goto_next_corner,
+        []{
+          lcdui.goto_previous_screen_no_defer();
+        },
+        GET_TEXT(
+          #if ENABLED(LEVEL_CENTER_TOO)
+            MSG_LEVEL_BED_NEXT_POINT
+          #else
+            MSG_NEXT_CORNER
+          #endif
+        ), (PGM_P)nullptr, PSTR("?")
+      );
+    });
     lcdui.set_selection(true);
     _lcd_goto_next_corner();
   }

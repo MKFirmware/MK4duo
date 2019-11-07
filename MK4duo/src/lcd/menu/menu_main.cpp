@@ -34,13 +34,6 @@
 
 bool stop_print_file;
 
-void menu_stop_print() {
-  MenuItem_confirm::confirm_screen(
-    lcdui.stop_print, lcdui.goto_previous_screen,
-    GET_TEXT(MSG_ARE_YOU_SURE), (PGM_P)nullptr, PSTR("?")
-  );
-}
-
 #if HAS_EEPROM || HAS_NEXTION_LCD
   void menu_allert(PGM_P const msg) {
     PGM_P const msg1 = msg;
@@ -118,7 +111,12 @@ void menu_main() {
 
   if (busy) {
     ACTION_ITEM(MSG_PAUSE_PRINT, lcdui.pause_print);
-    SUBMENU(MSG_STOP_PRINT, menu_stop_print);
+    SUBMENU(MSG_STOP_PRINT, []{
+      MenuItem_confirm::confirm_screen(
+        lcdui.stop_print, lcdui.goto_previous_screen,
+        GET_TEXT(MSG_ARE_YOU_SURE), (PGM_P)nullptr, PSTR("?")
+      );
+    });
     SUBMENU(MSG_TUNE, menu_tune);
   }
   else {

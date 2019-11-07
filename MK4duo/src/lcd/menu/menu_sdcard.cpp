@@ -62,14 +62,6 @@ inline void sdcard_start_selected_file() {
   lcdui.reset_status();
 }
 
-void menu_sd_confirm() {
-  MenuItem_confirm::select_screen(
-    GET_TEXT(MSG_BUTTON_PRINT), GET_TEXT(MSG_BUTTON_CANCEL),
-    sdcard_start_selected_file, lcdui.goto_previous_screen,
-    GET_TEXT(MSG_START_PRINT), card.fileName, PSTR("?")
-  );
-}
-
 class MenuItem_sdfile : public MenuItem_sdbase {
   public:
     static inline void draw(const bool sel, const uint8_t row, PGM_P const pstr, SDCard &theCard) {
@@ -82,7 +74,13 @@ class MenuItem_sdfile : public MenuItem_sdbase {
         sd_top_line = encoderTopLine;
         sd_items = screen_items;
       #endif
-      MenuItem_submenu::action(pstr, menu_sd_confirm);
+      MenuItem_submenu::action(pstr, []{
+        MenuItem_confirm::select_screen(
+          GET_TEXT(MSG_BUTTON_PRINT), GET_TEXT(MSG_BUTTON_CANCEL),
+          sdcard_start_selected_file, lcdui.goto_previous_screen,
+          GET_TEXT(MSG_START_PRINT), card.fileName, PSTR("?")
+        );
+      });
     }
 };
 
