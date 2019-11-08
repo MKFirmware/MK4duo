@@ -100,10 +100,10 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
     LOOP_EXTRUDER() {
       PGM_P const msg = GET_TEXT(MSG_FILAMENTCHANGE);
       if (thermalManager.targetTooColdToExtrude(e))
-        SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
+        SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
       else
-        SUBMENU_N_P(msg, e, []{
-          sprintf_P(cmd, PSTR("M600 B0 T%d"), MenuItemBase::itemIndex);
+        SUBMENU_N_P(e, msg, []{
+          sprintf_P(cmd, PSTR("M600 B0 T%i"), int(MenuItemBase::itemIndex));
           lcd_enqueue_one_now(cmd);
         });
     }
@@ -114,10 +114,10 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
+          SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(msg, e, []{
-            sprintf_P(cmd, PSTR("M701 T%d"), MenuItemBase::itemIndex);
+          SUBMENU_N_P(e, msg, []{
+            sprintf_P(cmd, PSTR("M701 T%i"), int(MenuItemBase::itemIndex));
             lcd_enqueue_one_now(cmd);
           });
       }
@@ -126,10 +126,10 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTUNLOAD);
         if (thermalManager.targetTooColdToExtrude(e))
-          SUBMENU_N_P(msg, e, []{ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
+          SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
-          SUBMENU_N_P(msg, e, []{
-            sprintf_P(cmd, PSTR("M702 T%d"), MenuItemBase::itemIndex);
+          SUBMENU_N_P(e, msg, []{
+            sprintf_P(cmd, PSTR("M702 T%i"), int(MenuItemBase::itemIndex));
             lcd_enqueue_one_now(cmd);
           });
       }

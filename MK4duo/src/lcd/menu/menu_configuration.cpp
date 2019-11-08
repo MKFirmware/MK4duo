@@ -115,9 +115,9 @@ void menu_tool_change() {
       EDIT_ITEM_FAST(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
       for (uint8_t h = 1; h < tools.data.hotends; h++) {
-        EDIT_ITEM_FAST_N(float52sign, MSG_X_OFFSET, h, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_N(float52sign, MSG_Y_OFFSET, h, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
-        EDIT_ITEM_FAST_N(float52sign, MSG_Z_OFFSET, h, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, h, MSG_X_OFFSET, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, h, MSG_Y_OFFSET, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
+        EDIT_ITEM_FAST_N(float52sign, h, MSG_Z_OFFSET, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
       }
     #endif
 
@@ -273,7 +273,7 @@ void menu_tool_change() {
     START_MENU();
     BACK_ITEM(MSG_MAIN);
     SUBMENU_P(PSTR("Set Focus"), menu_laser_focus);
-    SUBMENU(PSTR("Test Fire"), menu_laser_test_fire);
+    SUBMENU_P(PSTR("Test Fire"), menu_laser_test_fire);
     #if ENABLED(LASER_PERIPHERALS)
       if (laser.peripherals_ok()) {
         GCODES_ITEM_P(PSTR("Turn On Pumps/Fans"), PSTR("M80"));

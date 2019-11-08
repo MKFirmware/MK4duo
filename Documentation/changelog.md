@@ -1,5 +1,5 @@
 ### Version 4.4.0
-* Revision 07-11-2019
+* Revision 08-11-2019
 * Start development for STM32 on board Rumba32
 *   Hardware Timer for stepper  OK
 *   Systick for temp            OK

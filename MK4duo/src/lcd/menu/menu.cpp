@@ -43,11 +43,8 @@ menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
 bool screen_changed;
 
-// Menu Items of various kinds
-uint8_t MenuItemBase::itemIndex;
-
-// Value Editing
-editable_t    editable;
+uint8_t MenuItemBase::itemIndex;  // Index number for draw and action
+editable_t editable;              // Value Editing
 
 // Menu Edit Items
 PGM_P         MenuEditItemBase::editLabel;
@@ -127,10 +124,9 @@ void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   }
 }
 
-void MenuEditItemBase::init(PGM_P const el, const uint8_t idx, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
+void MenuEditItemBase::init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
   lcdui.save_previous_screen();
   lcdui.refresh();
-  MenuItemBase::init(idx);
   editLabel = el;
   editValue = ev;
   minEditValue = minv;
@@ -141,7 +137,7 @@ void MenuEditItemBase::init(PGM_P const el, const uint8_t idx, void * const ev, 
   liveEdit = le;
 }
 
-void MenuItem_bool::action(PGM_P const, const uint8_t, bool * const ptr, screenFunc_t callback) {
+void MenuItem_bool::action(PGM_P const, bool * const ptr, screenFunc_t callback) {
   *ptr ^= true; lcdui.refresh();
   if (callback) (*callback)();
 }
@@ -380,7 +376,6 @@ void lcd_line_to_z(const float &z) {
 void lcd_draw_homing() {
   constexpr uint8_t line = (LCD_HEIGHT - 1) / 2;
   if (lcdui.should_draw()) MenuItem_static::draw(line, GET_TEXT(MSG_LEVEL_BED_HOMING));
-  lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
 }
 
 //

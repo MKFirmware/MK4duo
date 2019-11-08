@@ -270,7 +270,7 @@ void menu_move() {
   #endif
 
   LOOP_EXTRUDER()
-    SUBMENU_N(MSG_MOVE_E, e, []{ _menu_move_distance(E_AXIS, lcd_move_e); });
+    SUBMENU_N(e, MSG_MOVE_E, []{ _menu_move_distance(E_AXIS, lcd_move_e); });
 
   END_MENU();
 }

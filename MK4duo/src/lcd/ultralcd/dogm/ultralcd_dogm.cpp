@@ -337,7 +337,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
         int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
         while (--pad >= 0) { lcd_put_wchar(' '); n--; }
       }
-      n -= lcd_put_u8str_max_P(pstr, n);
+      n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH) * (MENU_FONT_WIDTH);
       if (valstr) n -= lcd_put_u8str_max(valstr, n);
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
     }
@@ -346,18 +346,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   // Draw a generic menu item
   void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char post_char) {
     if (mark_as_selected(row, sel)) {
-      u8g_uint_t n = (LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
-      n -= lcd_put_u8str_max_P(pstr, n);
-      while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
-      lcd_put_wchar(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH), row_y2, post_char);
-      lcd_put_wchar(' ');
-    }
-  }
-
-  // Draw an indexed generic menu item
-  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char post_char) {
-    if (mark_as_selected(row, sel)) {
-      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, idx, (LCD_WIDTH - 2) * (MENU_FONT_WIDTH));
+      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH - 2) * (MENU_FONT_WIDTH);
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
       lcd_put_wchar(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH), row_y2, post_char);
       lcd_put_wchar(' ');
@@ -365,12 +354,12 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   // Draw a menu item with an editable value
-  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
     if (mark_as_selected(row, sel)) {
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
-      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, idx, (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH));
+      u8g_uint_t n = lcd_put_u8str_ind_P(pstr, itemIndex, (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH));
       if (vallen) {
-        lcd_put_wchar(':');
+        if (itemIndex == NO_INDEX) lcd_put_wchar(':');
         while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
         lcd_moveto(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH) * vallen, row_y2);
         if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str((char*)data);
@@ -428,8 +417,8 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
   }
 
   inline void draw_boxed_string(const u8g_uint_t x, const u8g_uint_t y, PGM_P const pstr, const bool inv) {
-    const u8g_uint_t  len = utf8_strlen_P(pstr), bw = len * (MENU_FONT_WIDTH),
-                       bx = x * (MENU_FONT_WIDTH), by = (y + 1) * (MENU_FONT_HEIGHT);
+    const u8g_uint_t  len = utf8_strlen_P(pstr),    bw = len * (MENU_FONT_WIDTH),
+                       bx = x * (MENU_FONT_WIDTH),  by = (y + 1) * (MENU_FONT_HEIGHT);
     if (inv) {
       u8g.setColorIndex(1);
       u8g.drawBox(bx - 1, by - (MENU_FONT_ASCENT) + 1, bw + 2, MENU_FONT_HEIGHT - 1);
