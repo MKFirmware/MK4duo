@@ -54,7 +54,7 @@ void menu_tmc();
 
       if (printer.isVolumetric()) {
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float43, MSG_FILAMENT_DIAM, e, &tools.data.filament_size[e], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &tools.data.filament_size[e], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
       }
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
@@ -69,8 +69,8 @@ void menu_tmc();
       ;
 
       LOOP_EXTRUDER() {
-        EDIT_ITEM_FAST_N(float3, MSG_FILAMENT_LOAD,   e, &extruders[e]->data.load_length,   0, extrude_maxlength);
-        EDIT_ITEM_FAST_N(float3, MSG_FILAMENT_UNLOAD, e, &extruders[e]->data.unload_length, 0, extrude_maxlength);
+        EDIT_ITEM_FAST_N(float3, e, MSG_FILAMENT_LOAD,    &extruders[e]->data.load_length,   0, extrude_maxlength);
+        EDIT_ITEM_FAST_N(float3, e, MSG_FILAMENT_UNLOAD,  &extruders[e]->data.unload_length, 0, extrude_maxlength);
       }
     #endif
 
@@ -125,14 +125,14 @@ void menu_advanced_temperature() {
   #if MAX_HOTEND > 0
     LOOP_HOTEND() {
       if (hotends[h]->isUsePid()) {
-        EDIT_ITEM_N(float52, MSG_PID_P, h, &hotends[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_PID_I, h, &hotends[h]->data.pid.Ki, 0.01f, 9990, []{ hotends[MenuItemBase::itemIndex]->data.pid.update(); });
-        EDIT_ITEM_N(float52, MSG_PID_D, h, &hotends[h]->data.pid.Kd, 1, 9990);
+        EDIT_ITEM_N(float52, h, MSG_PID_P, &hotends[h]->data.pid.Kp, 1, 9990);
+        EDIT_ITEM_N(float52, h, MSG_PID_I, &hotends[h]->data.pid.Ki, 0.01f, 9990, []{ hotends[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, h, MSG_PID_D, &hotends[h]->data.pid.Kd, 1, 9990);
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          EDIT_ITEM_N(float3, MSG_PID_C, h, &hotends[h]->data.pid.Kc, 1, 9990);
+          EDIT_ITEM_N(float3, h, MSG_PID_C, &hotends[h]->data.pid.Kc, 1, 9990);
         #endif
-        EDIT_ITEM_FAST_N(int3, MSG_PID_AUTOTUNE, h, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, []{
-          sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), MenuItemBase::itemIndex, autotune_temp[MenuItemBase::itemIndex]);
+        EDIT_ITEM_FAST_N(int3, h, MSG_PID_AUTOTUNE, &autotune_temp[h], 150, hotends[h]->data.temp.max - 10, []{
+          sprintf_P(cmd, PSTR("M303 U1 H%i S%i"), int(MenuItemBase::itemIndex), autotune_temp[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
       }
@@ -143,10 +143,10 @@ void menu_advanced_temperature() {
   #if MAX_BED > 0
     LOOP_BED() {
       if (beds[h]->isUsePid()) {
-        EDIT_ITEM_N(float52, MSG_BED_PID_P, h, &beds[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_BED_PID_I, h, &beds[h]->data.pid.Ki, 0.01f, 9990, []{ beds[MenuItemBase::itemIndex]->data.pid.update(); });
-        EDIT_ITEM_N(float52, MSG_BED_PID_D, h, &beds[h]->data.pid.Kd, 1, 9990);
-        EDIT_ITEM_FAST_N(int3, MSG_PID_BED_AUTOTUNE, h, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, []{
+        EDIT_ITEM_N(float52, h, MSG_BED_PID_P, &beds[h]->data.pid.Kp, 1, 9990);
+        EDIT_ITEM_N(float52, h, MSG_BED_PID_I, &beds[h]->data.pid.Ki, 0.01f, 9990, []{ beds[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, h, MSG_BED_PID_D, &beds[h]->data.pid.Kd, 1, 9990);
+        EDIT_ITEM_FAST_N(int3, h, MSG_PID_BED_AUTOTUNE, &autotune_temp_bed[h], 30, beds[h]->data.temp.max - 10, []{
           sprintf_P(cmd, PSTR("M303 U1 H-1 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_bed[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
@@ -158,10 +158,10 @@ void menu_advanced_temperature() {
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER() {
       if (chambers[h]->isUsePid()) {
-        EDIT_ITEM_N(float52, MSG_CHAMBER_PID_P, h, &chambers[h]->data.pid.Kp, 1, 9990);
-        EDIT_ITEM_N(float52, MSG_CHAMBER_PID_I, h, &chambers[h]->data.pid.Ki, 0.01f, 9990, []{ chambers[MenuItemBase::itemIndex]->data.pid.update(); });
-        EDIT_ITEM_N(float52, MSG_CHAMBER_PID_D, h, &chambers[h]->data.pid.Kd, 1, 9990);
-        EDIT_ITEM_FAST_N(int3, MSG_PID_CHAMBER_AUTOTUNE, h, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, []{
+        EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_P, &chambers[h]->data.pid.Kp, 1, 9990);
+        EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_I, &chambers[h]->data.pid.Ki, 0.01f, 9990, []{ chambers[MenuItemBase::itemIndex]->data.pid.update(); });
+        EDIT_ITEM_N(float52, h, MSG_CHAMBER_PID_D, &chambers[h]->data.pid.Kd, 1, 9990);
+        EDIT_ITEM_FAST_N(int3, h, MSG_PID_CHAMBER_AUTOTUNE, &autotune_temp_chamber[h], 30, chambers[h]->data.temp.max - 10, []{
           sprintf_P(cmd, PSTR("M303 U1 H-2 T%i S%i"), MenuItemBase::itemIndex, autotune_temp_chamber[MenuItemBase::itemIndex]);
           lcd_enqueue_one_now(cmd);
         });
@@ -191,7 +191,7 @@ void menu_advanced_temperature() {
       EDIT_ITEM_FAST(float3, MSG_VMAX_C, &mechanics.data.max_feedrate_mm_s.z, 1, 9999);
     #endif
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(float3, MSG_VMAX_E, e, &extruders[e]->data.max_feedrate_mm_s, 1, 9999);
+      EDIT_ITEM_FAST_N(float3, e, MSG_VMAX_E, &extruders[e]->data.max_feedrate_mm_s, 1, 9999);
 
     // M205 S Min Feedrate
     EDIT_ITEM_FAST(float3, MSG_VMIN, &mechanics.data.min_feedrate_mm_s, 0, 999);
@@ -212,7 +212,7 @@ void menu_advanced_temperature() {
 
     // M204 R Retract Acceleration
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(float5, MSG_A_RETRACT, e, &extruders[e]->data.retract_acceleration, 100, 99000);
+      EDIT_ITEM_FAST_N(float5, e, MSG_A_RETRACT, &extruders[e]->data.retract_acceleration, 100, 99000);
 
     // M204 T Travel Acceleration
     EDIT_ITEM_FAST(float5_25, MSG_A_TRAVEL, &mechanics.data.travel_acceleration, 25, 99000);
@@ -230,7 +230,7 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(long5_25, MSG_AMAX_E, e, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, []{
+      EDIT_ITEM_FAST_N(long5_25, e, MSG_AMAX_E, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, []{
         if (MenuItemBase::itemIndex == tools.extruder.active) planner.reset_acceleration_rates();
       });
 
@@ -264,7 +264,7 @@ void menu_advanced_temperature() {
 
       #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float3, MSG_VE_JERK, e, &extruders[e]->data.max_jerk, 1, 990);
+          EDIT_ITEM_FAST_N(float3, e, MSG_VE_JERK, &extruders[e]->data.max_jerk, 1, 990);
       #endif // DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
 
     #endif // AS_CLASSIC_JERK
@@ -289,7 +289,7 @@ void menu_advanced_temperature() {
     #endif
 
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(float51, MSG_E_STEPS, e, &extruders[e]->data.axis_steps_per_mm, 5, 9999, []{
+      EDIT_ITEM_FAST_N(float51, e, MSG_E_STEPS, &extruders[e]->data.axis_steps_per_mm, 5, 9999, []{
         if (MenuItemBase::itemIndex == tools.extruder.active)
           planner.refresh_positioning();
         else

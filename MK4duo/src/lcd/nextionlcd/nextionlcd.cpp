@@ -1511,42 +1511,33 @@ void LcdUI::stop_print() {
 
   #endif // ADVANCED_PAUSE_FEATURE
 
-  // Draw a static item with no left-right margin required. Centered by default.
+  // Draw a static line of text in the same idiom as a menu item
   void MenuItem_static::draw(const uint8_t row, PGM_P const pstr, const uint8_t style/*=SS_DEFAULT*/, const char * const valstr/*=nullptr*/) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, (style & SS_INVERT));
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr);
-    if (valstr != NULL) nexlcd.put_str(valstr);
+    nexlcd.put_str_P(pstr, itemIndex);
+    if (valstr) nexlcd.put_str(valstr);
     nexlcd.endChar();
   }
 
-  // Draw a generic menu item with pre_char (if selected) and post_char
+  // Draw a generic menu item
   void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char, const char) {
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr);
+    nexlcd.put_str_P(pstr, itemIndex);
     nexlcd.endChar();
   }
 
-  // Draw an indexed generic menu item with pre_char (if selected) and post_char
-  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char, const char) {
-    nexlcd.line_encoder_touch = true;
-    nexlcd.mark_as_selected(row, sel);
-    nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr, idx);
-    nexlcd.endChar();
-  }
-
-  // Draw a menu item with a (potentially) editable value
-  void  MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
-    const uint8_t labellen  = strlen_P(pstr) + (idx != NO_INDEX ? 2 : 0),
+  // Draw a menu item with an editable value
+  void  MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
+    const uint8_t labellen  = strlen_P(pstr) + (itemIndex != NO_INDEX ? 2 : 0),
                   vallen    = data ? (pgm ? strlen_P(data) : strlen((char*)data)) : 0;
     nexlcd.line_encoder_touch = true;
     nexlcd.mark_as_selected(row, sel);
     nexlcd.startChar(*txtmenu_list[row]);
-    nexlcd.put_str_P(pstr, idx);
+    nexlcd.put_str_P(pstr, itemIndex);
     nexlcd.setChar(':');
     nexlcd.put_space(LCD_WIDTH - labellen - vallen - 1);
     if (pgm)

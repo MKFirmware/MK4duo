@@ -147,7 +147,7 @@ extern bool         HAL_timer_is_active;
 // ------------------------
 // Hardware Timer
 // ------------------------
-extern HardwareTimer *MK_timer;
+extern HardwareTimer *MK_step_timer;
 
 // ------------------------
 // Public functions for timer
@@ -165,7 +165,7 @@ bool HAL_timer_interrupt_is_enabled();
 uint32_t HAL_timer_get_Clk_Freq();
 
 FORCE_INLINE bool HAL_timer_initialized() {
-  return MK_timer != nullptr;
+  return MK_step_timer != nullptr;
 }
 
 FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
@@ -173,12 +173,12 @@ FORCE_INLINE bool HAL_timer_interrupt_is_enabled() {
 }
 
 FORCE_INLINE hal_timer_t HAL_timer_get_current_count(const uint8_t) {
-  return HAL_timer_initialized() ? MK_timer->getCount() : 0;
+  return HAL_timer_initialized() ? MK_step_timer->getCount() : 0;
 }
 
 FORCE_INLINE void HAL_timer_set_count(const uint8_t, const hal_timer_t count) {
   if (HAL_timer_initialized()) {
-    MK_timer->setOverflow(count + 1, TICK_FORMAT);
-    if (count < MK_timer->getCount()) MK_timer->refresh(); // Generate an immediate update interrupt
+    MK_step_timer->setOverflow(count + 1, TICK_FORMAT);
+    if (count < MK_step_timer->getCount()) STEP_TIMER->EGR |= TIM_EGR_UG; // Generate an immediate update interrupt
   }
 }

@@ -37,7 +37,7 @@ bool        HAL_timer_is_active     = false;
 // ------------------------
 // Hardware Timer
 // ------------------------
-HardwareTimer *MK_timer = nullptr;
+HardwareTimer *MK_step_timer = nullptr;
 
 // ------------------------
 // Public functions
@@ -69,29 +69,31 @@ void HAL_calc_pulse_cycle() {
 
 void HAL_timer_start() {
   if (!HAL_timer_initialized()) {
-    MK_timer = new HardwareTimer(STEP_TIMER);
-    MK_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
-    MK_timer->setOverflow(HAL_TIMER_TYPE_MAX, TICK_FORMAT);
-    MK_timer->attachInterrupt(Step_Handler);
+    MK_step_timer = new HardwareTimer(STEP_TIMER);
+    MK_step_timer->setPrescaleFactor(STEPPER_TIMER_PRESCALE);
+    MK_step_timer->setOverflow(HAL_TIMER_TYPE_MAX, TICK_FORMAT);
+    MK_step_timer->attachInterrupt(Step_Handler);
+    MK_step_timer->resume();
+    HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_enable_interrupt() {
   if (HAL_timer_initialized() && !HAL_timer_is_active) {
-    MK_timer->resume();
+    MK_step_timer->attachInterrupt(Step_Handler);
     HAL_timer_is_active = true;
   }
 }
 
 void HAL_timer_disable_interrupt() {
   if (HAL_timer_initialized() && HAL_timer_is_active) {
-    MK_timer->pause();
+    MK_step_timer->detachInterrupt();
     HAL_timer_is_active = false;
   }
 }
 
 uint32_t HAL_timer_get_Clk_Freq() {
-  return HAL_timer_initialized() ? MK_timer->getTimerClkFreq() : 0;
+  return HAL_timer_initialized() ? MK_step_timer->getTimerClkFreq() : 0;
 }
 
 #endif // ARDUINO_ARCH_STM32

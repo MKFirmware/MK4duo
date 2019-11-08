@@ -89,8 +89,8 @@
     START_MENU();
     BACK_ITEM(MSG_GRADIENT);
 
-    EDIT_ITEM_N(int8, MSG_START_VTOOL, NO_ITEM, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
-    EDIT_ITEM(int8, MSG_END_VTOOL, NO_ITEM, &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM(int8, MSG_START_VTOOL, &mixer.gradient.start_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
+    EDIT_ITEM(int8, MSG_END_VTOOL,     &mixer.gradient.end_vtool, 0, MIXING_VIRTUAL_TOOLS - 1, mixer.refresh_gradient);
 
     char tmp[10];
 
@@ -111,9 +111,9 @@
 
   void _lcd_draw_mix(const uint8_t y) {
     char tmp[21];
-    sprintf_P(tmp, PSTR(MSG_MIX ":    %3d%% %3d%%"), int(mixer.mix[0]), int(mixer.mix[1]));
-    SETCURSOR(2, y);
-    LCDPRINT(tmp);
+    sprintf_P(tmp, PSTR("%3d%% %3d%%"), int(mixer.mix[0]), int(mixer.mix[1]));
+    SETCURSOR(2, y); lcd_put_u8str_P(GET_TEXT(MSG_MIX));
+    SETCURSOR_RJ(9, y); LCDPRINT(tmp);
   }
 
 #endif // HAS_GRADIENT_MIX
@@ -149,12 +149,10 @@ void lcd_mixer_mix_edit() {
 
   #if CHANNEL_MIX_EDITING
 
-    #define EDIT_COLOR(N) 
-
     START_MENU();
     BACK_ITEM(MSG_MIXER);
     LOOP_DRV_MIX() 
-      EDIT_ITEM_FAST_N(float52, MSG_MIX_COMPONENT, d, &mixer.collector[d], 0, 10);
+      EDIT_ITEM_FAST_N(float52, d, MSG_MIX_COMPONENT, &mixer.collector[d], 0, 10);
 
     ACTION_ITEM(MSG_CYCLE_MIX, _lcd_mixer_cycle_mix);
     ACTION_ITEM(MSG_COMMIT_VTOOL, _lcd_mixer_commit_vtool);

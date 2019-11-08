@@ -943,7 +943,7 @@ void LcdUI::draw_status_screen() {
       int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
       while (--pad >= 0) { lcd_put_wchar(' '); n--; }
     }
-    n -= lcd_put_u8str_max_P(pstr, n);
+    n = lcd_put_u8str_ind_P(pstr, itemIndex, n);
     if (valstr) n -= lcd_put_u8str_max(valstr, n);
     for (; n > 0; --n) lcd_put_wchar(' ');
   }
@@ -951,15 +951,7 @@ void LcdUI::draw_status_screen() {
   // Draw a generic menu item with pre_char (if selected) and post_char
   void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const char pre_char, const char post_char) {
     lcd_put_wchar(0, row, sel ? pre_char : ' ');
-    uint8_t n = lcd_put_u8str_max_P(pstr, LCD_WIDTH - 2);
-    for (; n; --n) lcd_put_wchar(' ');
-    lcd_put_wchar(post_char);
-  }
-
-  // Draw an indexed generic menu item with pre_char (if selected) and post_char
-  void MenuItemBase::_draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char pre_char, const char post_char) {
-    lcd_put_wchar(0, row, sel ? pre_char : ' ');
-    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2);
+    uint8_t n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH - 2);
     for (; n; --n) lcd_put_wchar(' ');
     lcd_put_wchar(post_char);
   }
@@ -968,9 +960,9 @@ void LcdUI::draw_status_screen() {
   void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
     const uint8_t vallen = data ? (pgm ? utf8_strlen_P(data) : utf8_strlen(data)) : 0;
     lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
-    uint8_t n = lcd_put_u8str_ind_P(pstr, idx, LCD_WIDTH - 2 - vallen);
+    uint8_t n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH - 2 - vallen);
     if (vallen) {
-      lcd_put_wchar(':');
+      if (itemIndex == NO_INDEX) lcd_put_wchar(':');
       for (; n; --n) lcd_put_wchar(' ');
       if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str(data);
     }

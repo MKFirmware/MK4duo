@@ -101,7 +101,7 @@ void menu_tune() {
   //
   #if MAX_HOTEND > 0
     LOOP_HOTEND()
-      EDIT_ITEM_FAST_N(int3, MSG_NOZZLE, h, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
+      EDIT_ITEM_FAST_N(int3, h, MSG_NOZZLE, &hotends[h]->target_temperature, 0, hotends[h]->data.temp.max - 10, watch_temp_callback_hotend);
   #endif
 
   //
@@ -109,7 +109,7 @@ void menu_tune() {
   //
   #if MAX_BED > 0
     LOOP_BED()
-      EDIT_ITEM_FAST_N(int3, MSG_BED, h, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
+      EDIT_ITEM_FAST_N(int3, h, MSG_BED, &beds[h]->target_temperature, 0, beds[h]->data.temp.max - 10, watch_temp_callback_bed);
   #endif
 
   //
@@ -117,14 +117,14 @@ void menu_tune() {
   //
   #if MAX_CHAMBER > 0
     LOOP_CHAMBER()
-      EDIT_ITEM_FAST_N(int3, MSG_CHAMBER, h, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
+      EDIT_ITEM_FAST_N(int3, h, MSG_CHAMBER, &chambers[h]->target_temperature, 0, chambers[h]->data.temp.max - 10, watch_temp_callback_chamber);
   #endif
 
   //
   // Cooler:
   //
   #if MAX_COOLER > 0
-    EDIT_ITEM_FAST_N(int3, MSG_COOLER, 0xFF, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
+    EDIT_ITEM_FAST(int3, MSG_COOLER, &coolers[0]->target_temperature, 0, coolers[0]->data.temp.max - 10, watch_temp_callback_cooler);
   #endif
 
   //
@@ -132,7 +132,7 @@ void menu_tune() {
   //
   #if MAX_FAN > 0
     LOOP_FAN()
-      EDIT_ITEM_FAST_N(percent, MSG_FAN_SPEED, f, &fans[f]->speed, 0, 255);
+      EDIT_ITEM_FAST_N(percent, f, MSG_FAN_SPEED, &fans[f]->speed, 0, 255);
   #endif
 
   //
@@ -141,7 +141,7 @@ void menu_tune() {
   //
   #if MAX_EXTRUDER > 0
     LOOP_EXTRUDER()
-      EDIT_ITEM_FAST_N(int3, MSG_FLOW, e, &extruders[e]->flow_percentage, 10, 999, []() { extruders[MenuItemBase::itemIndex]->refresh_e_factor(); });
+      EDIT_ITEM_FAST_N(int3, e, MSG_FLOW, &extruders[e]->flow_percentage, 10, 999, []() { extruders[MenuItemBase::itemIndex]->refresh_e_factor(); });
   #endif
 
   //
