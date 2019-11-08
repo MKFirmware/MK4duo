@@ -957,7 +957,7 @@ void LcdUI::draw_status_screen() {
   }
 
   // Draw a menu item with a (potentially) editable value
-  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const uint8_t idx, const char* const data, const bool pgm) {
+  void MenuEditItemBase::draw(const bool sel, const uint8_t row, PGM_P const pstr, const char* const data, const bool pgm) {
     const uint8_t vallen = data ? (pgm ? utf8_strlen_P(data) : utf8_strlen(data)) : 0;
     lcd_put_wchar(0, row, sel ? LCD_STR_ARROW_RIGHT[0] : ' ');
     uint8_t n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH - 2 - vallen);
