@@ -245,14 +245,14 @@ void AutoBedLevel::refresh_bed_level() {
 }
 
 #if ENABLED(ABL_BILINEAR_SUBDIVISION)
-  #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt[A]
-  #define ABL_BG_FACTOR(A)  bilinear_grid_factor_virt[A]
+  #define ABL_BG_SPACING(A) bilinear_grid_spacing_virt.A
+  #define ABL_BG_FACTOR(A)  bilinear_grid_factor_virt.A
   #define ABL_BG_POINTS_X   ABL_GRID_POINTS_VIRT_X
   #define ABL_BG_POINTS_Y   ABL_GRID_POINTS_VIRT_Y
   #define ABL_BG_GRID(X,Y)  z_values_virt[X][Y]
 #else
-  #define ABL_BG_SPACING(A) bilinear_grid_spacing[A]
-  #define ABL_BG_FACTOR(A)  bilinear_grid_factor[A]
+  #define ABL_BG_SPACING(A) bilinear_grid_spacing.A
+  #define ABL_BG_FACTOR(A)  bilinear_grid_factor.A
   #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
   #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
   #define ABL_BG_GRID(X,Y)  z_values[X][Y]
@@ -274,7 +274,7 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
 
   if (last_x != rx) {
     last_x = rx;
-    ratio_x = rx * ABL_BG_FACTOR(X_AXIS);
+    ratio_x = rx * ABL_BG_FACTOR(x);
     const float gx = constrain(FLOOR(ratio_x), 0, ABL_BG_POINTS_X - 1);
     ratio_x -= gx;      // Subtract whole to get the ratio within the grid box
     NOLESS(ratio_x, 0); // Never < 0.0. (> 1.0 is ok when nextx==gridx.)
@@ -286,7 +286,7 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
 
     if (last_y != ry) {
       last_y = ry;
-      ratio_y = ry * ABL_BG_FACTOR(Y_AXIS);
+      ratio_y = ry * ABL_BG_FACTOR(y);
       const float gy = constrain(FLOOR(ratio_y), 0, ABL_BG_POINTS_Y - 1);
       ratio_y -= gy;
       NOLESS(ratio_y, 0);
@@ -341,11 +341,13 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
 
 #if !IS_KINEMATIC
 
+  #define CELL_INDEX(A,V) ((V - bilinear_start.A) * ABL_BG_FACTOR(A))
+
   /**
    * Prepare a bilinear-leveled linear move on Cartesian,
    * splitting the move where it crosses mesh borders.
    */
-  void AutoBedLevel::bilinear_line_to_destination(feedrate_t scaled_fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
+  void AutoBedLevel::bilinear_line_to_destination(const feedrate_t scaled_fr_mm_s, uint16_t x_splits/*= 0xFFFF*/, uint16_t y_splits/*= 0xFFFF*/) {
 
     // Get current and destination cells for this line
     xy_int_t  c1 { CELL_INDEX(x, mechanics.current_position.x), CELL_INDEX(y, mechanics.current_position.y) },
@@ -375,7 +377,7 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
       // Split on the X grid line
       CBI(x_splits, gc.x);
       end = mechanics.destination;
-      mechanics.destination.x = bilinear_start.x + ABL_BG_SPACING(X_AXIS) * gc.x;
+      mechanics.destination.x = bilinear_start.x + ABL_BG_SPACING(x) * gc.x;
       normalized_dist = (mechanics.destination.x - mechanics.current_position.x) / (end.x - mechanics.current_position.x);
       mechanics.destination.y = LINE_SEGMENT_END(y);
     }
@@ -383,7 +385,7 @@ float AutoBedLevel::bilinear_z_offset(const xyz_pos_t &raw) {
     else if (c2.y != c1.y && TEST(y_splits, gc.y)) {
       CBI(y_splits, gc.y);
       COPY_ARRAY(end, mechanics.destination);
-      mechanics.destination.y = bilinear_start.y + ABL_BG_SPACING(Y_AXIS) * gc.y;
+      mechanics.destination.y = bilinear_start.y + ABL_BG_SPACING(y) * gc.y;
       normalized_dist = (mechanics.destination.y - mechanics.current_position.y) / (end.y - mechanics.current_position.y);
       mechanics.destination.x = LINE_SEGMENT_END(x);
     }

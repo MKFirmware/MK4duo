@@ -103,9 +103,6 @@
 
   bed_mesh_t unified_bed_leveling::z_values;
 
-  float unified_bed_leveling::_mesh_index_to_xpos[GRID_MAX_POINTS_X],
-        unified_bed_leveling::_mesh_index_to_ypos[GRID_MAX_POINTS_Y];
-
   #if HAS_LCD_MENU
     bool unified_bed_leveling::lcd_map_control = false;
   #endif
@@ -121,12 +118,6 @@
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
     ZERO(z_values);
-
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-      _mesh_index_to_xpos[x] = MESH_MIN_X + x * (MESH_X_DIST);
-    for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-      _mesh_index_to_ypos[y] = MESH_MIN_Y + y * (MESH_Y_DIST);
-
     if (was_enabled) mechanics.report_current_position();
   }
 

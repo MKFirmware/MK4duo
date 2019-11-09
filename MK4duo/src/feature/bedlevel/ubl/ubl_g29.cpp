@@ -843,12 +843,12 @@
       return thickness;
     }
 
-    void unified_bed_leveling::manually_probe_remaining_mesh(const float &rx, const float &ry, const float &z_clearance, const float &thick, const bool do_ubl_mesh_map) {
+    void unified_bed_leveling::manually_probe_remaining_mesh(const xy_pos_t &pos, const float &z_clearance, const float &thick, const bool do_ubl_mesh_map) {
 
       lcdui.capture();
 
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
-      mechanics.do_blocking_move_to(mechanics.current_position.x, mechanics.current_position.y, z_clearance);
+      mechanics.do_blocking_move_to_xy_z(mechanics.current_position, z_clearance);
 
       lcdui.return_to_status();
 
@@ -877,7 +877,7 @@
 
         if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
-        SERIAL_STR(parser.seen('B') ? PSTR(MSG_UBL_BC_INSERT) : PSTR(MSG_UBL_BC_INSERT2));
+        SERIAL_STR(parser.seen('B') ? GET_TEXT(MSG_UBL_BC_INSERT) : GET_TEXT(MSG_UBL_BC_INSERT2));
 
         const float z_step = 0.01f;                                       // existing behavior: 0.01mm per click, occasionally step
         //const float z_step = mechanics.data.axis_steps_per_mm.z;  // approx one step each click
@@ -903,7 +903,7 @@
       if (do_ubl_mesh_map) display_map(g29_map_type);  // show user where we're probing
 
       restore_ubl_active_state_and_leave();
-      mechanics.do_blocking_move_to(pos, Z_PROBE_DEPLOY_HEIGHT);
+      mechanics.do_blocking_move_to_xy_z(pos, Z_PROBE_DEPLOY_HEIGHT);
     }
 
     inline void set_message_with_feedback(PGM_P const msg_P) {
@@ -917,7 +917,7 @@
       set_message_with_feedback(GET_TEXT(MSG_EDITING_STOPPED));
     }
 
-    void unified_bed_leveling::fine_tune_mesh(const float &rx, const float &ry, const bool do_ubl_mesh_map) {
+    void unified_bed_leveling::fine_tune_mesh(const xy_pos_t &pos, const bool do_ubl_mesh_map) {
       if (!parser.seen('R'))    // fine_tune_mesh() is special. If no repetition count flag is specified
         g29_repetition_cnt = 1; // do exactly one mesh location. Otherwise use what the parser decided.
 
@@ -931,7 +931,7 @@
 
       mesh_index_pair location;
 
-      if (!mechanics.position_is_reachable(rx, ry)) {
+      if (!mechanics.position_is_reachable(pos)) {
         SERIAL_EM("(X,Y) outside printable radius.");
         return;
       }
@@ -941,7 +941,7 @@
       LCD_MESSAGEPGM(MSG_UBL_FINE_TUNE_MESH);
       lcdui.capture();                                                // Take over control of the LCD encoder
 
-      mechanics.do_blocking_move_to(pos, Z_PROBE_BETWEEN_HEIGHT);     // Move to the given XY with probe clearance
+      mechanics.do_blocking_move_to_xy_z(pos, Z_PROBE_BETWEEN_HEIGHT);     // Move to the given XY with probe clearance
 
       #if ENABLED(UBL_MESH_EDIT_MOVES_Z)
         mechanics.do_blocking_move_to_z(h_offset);                    // Move Z to the given 'H' offset
@@ -1007,7 +1007,7 @@
       if (do_ubl_mesh_map) display_map(g29_map_type);
       restore_ubl_active_state_and_leave();
 
-      mechanics.do_blocking_move_to(pos, Z_PROBE_BETWEEN_HEIGHT);
+      mechanics.do_blocking_move_to_xy_z(pos, Z_PROBE_BETWEEN_HEIGHT);
 
       LCD_MESSAGEPGM(MSG_UBL_DONE_EDITING_MESH);
       SERIAL_EM("Done Editing Mesh");
@@ -1024,7 +1024,7 @@
     bool err_flag = false;
 
     #if HAS_LCD_MENU && !HAS_NEXTION_LCD
-      set_message_with_feedback(PSTR(MSG_UBL_DOING_G29));
+      set_message_with_feedback(GET_TEXT(MSG_UBL_DOING_G29));
     #endif
 
     g29_constant = 0;

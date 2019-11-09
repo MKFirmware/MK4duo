@@ -323,7 +323,7 @@ inline void gcode_G29() {
       abl_grid_points.set(
         parser.byteval('X', GRID_MAX_POINTS_X),
         parser.byteval('Y', GRID_MAX_POINTS_Y)
-      ):
+      );
       if (parser.seenval('P')) abl_grid_points.x = abl_grid_points.y = parser.value_int();
 
       if (!WITHIN(abl_grid_points.x, 2, GRID_MAX_POINTS_X)) {
@@ -811,7 +811,7 @@ inline void gcode_G29() {
               const int ind = indexIntoAB[xx][yy];
               xyz_float_t tmp = { eqnAMatrix[ind + 0 * abl_points],
                                   eqnAMatrix[ind + 1 * abl_points], 0 };
-              apply_rotation_xyz(planner.bed_level_matrix, tmp);
+              apply_rotation_xyz(bedlevel.matrix, tmp);
               if (get_min) NOMORE(min_diff, eqnBVector[ind] - tmp.z);
               const float subval = get_min ? mean : tmp.z + min_diff,
                             diff = eqnBVector[ind] - subval;
