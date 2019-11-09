@@ -42,7 +42,7 @@
     }
     if (lcdui.should_draw()) {
       const float spm = mechanics.steps_to_mm[axis];
-      MenuEditItemBase::edit_screen(msg, ftostr54sign(spm * babystep.accum));
+      MenuEditItemBase::draw_edit_screen(msg, ftostr54sign(spm * babystep.accum));
       #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
         const bool in_view = (true
           #if HAS_GRAPHICAL_LCD

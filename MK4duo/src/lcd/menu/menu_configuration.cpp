@@ -390,16 +390,16 @@ void menu_configuration() {
 
     switch (sound.data.mode) {
       case SOUND_MODE_ON:
-        ACTION_ITEM(MSG_SOUND_MODE_ON,      []() { sound.cyclestate(); screen_changed = true; lcdui.refresh(); });
+        ACTION_ITEM(MSG_SOUND_MODE_ON,      []() { sound.cyclestate(); lcdui.screen_changed = true; lcdui.refresh(); });
         break;
       case SOUND_MODE_SILENT:
-        ACTION_ITEM(MSG_SOUND_MODE_SILENT,  []() { sound.cyclestate(); screen_changed = true; lcdui.refresh(); });
+        ACTION_ITEM(MSG_SOUND_MODE_SILENT,  []() { sound.cyclestate(); lcdui.screen_changed = true; lcdui.refresh(); });
         break;
       case SOUND_MODE_MUTE:
-        ACTION_ITEM(MSG_SOUND_MODE_MUTE,    []() { sound.cyclestate(); screen_changed = true; lcdui.refresh(); });
+        ACTION_ITEM(MSG_SOUND_MODE_MUTE,    []() { sound.cyclestate(); lcdui.screen_changed = true; lcdui.refresh(); });
         break;
       default:
-        ACTION_ITEM(MSG_SOUND_MODE_ON,      []() { sound.cyclestate(); screen_changed = true; lcdui.refresh(); });
+        ACTION_ITEM(MSG_SOUND_MODE_ON,      []() { sound.cyclestate(); lcdui.screen_changed = true; lcdui.refresh(); });
     }
 
   #endif

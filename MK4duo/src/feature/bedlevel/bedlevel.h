@@ -41,9 +41,20 @@
 #if HAS_LEVELING
 
 #if HAS_MESH
-  #define Z_VALUES(X,Y) Z_VALUES_ARR[X][Y]
-  #define _GET_MESH_POS(M) { _GET_MESH_X(M.a), _GET_MESH_Y(M.b) }
+
   typedef float bed_mesh_t[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    #include "abl/abl.h"
+  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+    #include "ubl/ubl.h"
+  #elif ENABLED(MESH_BED_LEVELING)
+    #include "mbl/mesh_bed_leveling.h"
+  #endif
+
+  #define Z_VALUES(X,Y)     Z_VALUES_ARR[X][Y]
+  #define _GET_MESH_POS(M)  { _GET_MESH_X(M.a), _GET_MESH_Y(M.b) }
+
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
@@ -63,14 +74,6 @@ struct mesh_index_pair {
   operator        xy_int8_t&()        { return pos; }
   operator const  xy_int8_t&()  const { return pos; }
 };
-
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-  #include "abl/abl.h"
-#elif ENABLED(MESH_BED_LEVELING)
-  #include "mbl/mesh_bed_leveling.h"
-#elif ENABLED(AUTO_BED_LEVELING_UBL)
-  #include "ubl/ubl.h"
-#endif
 
 union level_flag_t {
   bool all;
@@ -197,7 +200,7 @@ class Bedlevel {
 
     static inline xy_pos_t level_fulcrum() {
       #if ENABLED(Z_SAFE_HOMING)
-      return { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
+        return { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
       #else
         return { X_HOME_POS, Y_HOME_POS };
       #endif

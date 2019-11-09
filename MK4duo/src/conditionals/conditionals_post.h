@@ -79,23 +79,23 @@
   #endif
 
   // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS     (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
-  #define LEFT_PROBE_BED_POSITION   -(mechanics.data.probe_radius)
-  #define RIGHT_PROBE_BED_POSITION   (mechanics.data.probe_radius)
-  #define FRONT_PROBE_BED_POSITION  -(mechanics.data.probe_radius)
-  #define BACK_PROBE_BED_POSITION    (mechanics.data.probe_radius)
+  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
+  #define LEFT_PROBE_BED_POSITION   (-mechanics.data.probe_radius)
+  #define RIGHT_PROBE_BED_POSITION  ( mechanics.data.probe_radius)
+  #define FRONT_PROBE_BED_POSITION  (-mechanics.data.probe_radius)
+  #define BACK_PROBE_BED_POSITION   ( mechanics.data.probe_radius)
 
-  #define X_MIN_BED  -(mechanics.data.print_radius)
-  #define X_MAX_BED   (mechanics.data.print_radius)
-  #define Y_MIN_BED  -(mechanics.data.print_radius)
-  #define Y_MAX_BED   (mechanics.data.print_radius)
-  #define Z_MAX_BED   (mechanics.data.height)
+  #define X_MIN_BED   (-mechanics.data.print_radius)
+  #define X_MAX_BED   ( mechanics.data.print_radius)
+  #define Y_MIN_BED   (-mechanics.data.print_radius)
+  #define Y_MAX_BED   ( mechanics.data.print_radius)
+  #define Z_MAX_BED   ( mechanics.data.height)
   #define Z_MIN_BED   0
 
-  #define MESH_MIN_X -(mechanics.data.probe_radius)
-  #define MESH_MAX_X  (mechanics.data.probe_radius)
-  #define MESH_MIN_Y -(mechanics.data.probe_radius)
-  #define MESH_MAX_Y  (mechanics.data.probe_radius)
+  #define MESH_MIN_X  (-mechanics.data.probe_radius)
+  #define MESH_MAX_X  ( mechanics.data.probe_radius)
+  #define MESH_MIN_Y  (-mechanics.data.probe_radius)
+  #define MESH_MAX_Y  ( mechanics.data.probe_radius)
 
   #define HAS_DELTA_AUTO_CALIBRATION  (ENABLED(DELTA_AUTO_CALIBRATION_1) || ENABLED(DELTA_AUTO_CALIBRATION_2))
 
@@ -112,10 +112,10 @@
 
 #else // !MECH(DELTA)
 
-  #define LEFT_PROBE_BED_POSITION   MAX(X_CENTER - X_MAX_LENGTH / 2, x_min)
-  #define RIGHT_PROBE_BED_POSITION  MIN(probe_position_lf.x + X_MAX_LENGTH, x_max)
-  #define FRONT_PROBE_BED_POSITION  MAX(Y_CENTER - Y_MAX_LENGTH / 2, y_min)
-  #define BACK_PROBE_BED_POSITION   MIN(probe_position_lf.y + Y_MAX_LENGTH, y_max)
+  #define LEFT_PROBE_BED_POSITION   (MAX(X_CENTER - X_MAX_LENGTH / 2, x_min))
+  #define RIGHT_PROBE_BED_POSITION  (MIN(probe_position_lf.x + X_MAX_LENGTH, x_max))
+  #define FRONT_PROBE_BED_POSITION  (MAX(Y_CENTER - Y_MAX_LENGTH / 2, y_min))
+  #define BACK_PROBE_BED_POSITION   (MIN(probe_position_lf.y + Y_MAX_LENGTH, y_max))
 
   #define X_MIN_BED   (mechanics.data.base_pos.min.x)
   #define X_MAX_BED   (mechanics.data.base_pos.max.x)

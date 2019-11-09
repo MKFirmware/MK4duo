@@ -110,6 +110,8 @@ class LcdUI {
 
       static screenFunc_t currentScreen;
 
+      static bool screen_changed;
+
       // Select Screen (modal NO/YES style dialog)
       static bool selection;
 

@@ -968,8 +968,8 @@ void LcdUI::draw_status_screen() {
     }
   }
 
-  // Low-level edit_screen can be used to draw an edit screen from anyplace
-  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  // Low-level draw_edit_screen can be used to draw an edit screen from anyplace
+  void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
     uint8_t n = lcd_put_u8str_ind_P(0, 1, pstr, itemIndex, LCD_WIDTH - 1);

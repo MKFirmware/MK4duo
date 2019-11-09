@@ -105,13 +105,9 @@ void Bedlevel::unapply_leveling(xyz_pos_t &raw) {
 
     matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
-    float dx = raw.x - (X_TILT_FULCRUM),
-          dy = raw.y - (Y_TILT_FULCRUM);
-
-    apply_rotation_xyz(inverse, dx, dy, raw.z);
-
-    raw.x = dx + X_TILT_FULCRUM;
-    raw.y = dy + Y_TILT_FULCRUM;
+    xy_pos_t d = raw - level_fulcrum();
+    apply_rotation_xyz(inverse, d.x, d.y, raw.z);
+    raw = d + level_fulcrum();
 
   #elif HAS_MESH
 

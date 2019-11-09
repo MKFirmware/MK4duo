@@ -106,6 +106,7 @@ millis_l LcdUI::next_button_update_ms = 0;
   #endif
 
   screenFunc_t LcdUI::currentScreen;
+  bool LcdUI::screen_changed;
 
   #if ENABLED(ENCODER_RATE_MULTIPLIER)
     bool LcdUI::encoderRateMultiplierEnabled;

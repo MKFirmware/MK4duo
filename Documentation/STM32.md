@@ -1,6 +1,6 @@
 ## Installing STM32 Cores
 
-1- Launch Arduino.cc IDE. Click on "**File**" menu and then "**Preferences**".
+1- Launch Arduino IDE. Click on "**File**" menu and then "**Preferences**".
 
 <img align="center" src="img/preferences.png"/>
 

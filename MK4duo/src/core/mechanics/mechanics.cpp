@@ -142,7 +142,7 @@ void Mechanics::prepare_move_to_destination() {
   if (!printer.debugSimulation()) { // Simulation Mode no movement
     if (
       #if UBL_DELTA
-        ubl.prepare_segmented_line_to(destination, feedrate_mm_s)
+        ubl.line_to_destination_segmented(MMS_SCALED(feedrate_mm_s))
       #else
         mechanics.prepare_move_to_destination_mech_specific()
       #endif

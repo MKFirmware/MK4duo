@@ -1306,6 +1306,8 @@ void EEPROM::post_process() {
         SERIAL_VAL(s);
         SERIAL_EM(" mesh slots available.");
       }
+    #else
+      void ubl_invalid_slot(const int) { }
     #endif
 
     const uint16_t EEPROM::meshes_end = memorystore.capacity() - 129;

@@ -37,8 +37,8 @@
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
       for (uint8_t y = 0;  y < GRID_MAX_POINTS_Y; y++) {
         if (!isnan(z_values[x][y])) {
-          SERIAL_SMV(ECHO, "  M421 I", x);
-          SERIAL_MV(" J", y);
+          SERIAL_SMV(ECHO, "  M421 I", int(x));
+          SERIAL_MV(" J", int(y));
           SERIAL_MV(" Z", z_values[x][y], 4);
           SERIAL_EOL();
           HAL::delayMilliseconds(75);
@@ -101,7 +101,7 @@
 
   int8_t unified_bed_leveling::storage_slot;
 
-  float unified_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+  bed_mesh_t unified_bed_leveling::z_values;
 
   #if HAS_LCD_MENU
     bool unified_bed_leveling::lcd_map_control = false;
@@ -117,9 +117,6 @@
     const bool was_enabled = bedlevel.flag.leveling_active;
     bedlevel.set_bed_leveling_enabled(false);
     storage_slot = -1;
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      bedlevel.set_z_fade_height(10.0);
-    #endif
     ZERO(z_values);
     if (was_enabled) mechanics.report_current_position();
   }
@@ -190,8 +187,7 @@
     // Add XY_PROBE_OFFSET_FROM_EXTRUDER because probe_pt() subtracts these when
     // moving to the xy position to be measured. This ensures better agreement between
     // the current Z position after G28 and the mesh values.
-    const float current_xi = find_closest_x_index(mechanics.current_position.x + probe.data.offset.x),
-                current_yi = find_closest_y_index(mechanics.current_position.y + probe.data.offset.y);
+    const xy_int8_t curr = closest_indexes(xy_pos_t(mechanics.current_position) + xy_pos_t(probe.data.offset));
 
     if (!lcd) SERIAL_EOL();
     for (int8_t j = GRID_MAX_POINTS_Y - 1; j >= 0; j--) {
@@ -207,7 +203,7 @@
       for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
 
         // Opening Brace or Space
-        const bool is_current = i == current_xi && j == current_yi;
+        const bool is_current = i == curr.x && j == curr.y;
         if (human) SERIAL_CHR(is_current ? '[' : ' ');
 
         // Z Value at current I, J

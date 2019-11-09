@@ -71,7 +71,9 @@ uint8_t LcdUI::alert_level = 0,
 
   screenFunc_t  LcdUI::currentScreen;
 
-  int8_t LcdUI::manual_move_e_index = 0;
+  bool          LcdUI::screen_changed;
+
+  int8_t        LcdUI::manual_move_e_index = 0;
 
   #if HAS_SD_SUPPORT && ENABLED(SCROLL_LONG_FILENAMES)
     uint8_t LcdUI::filename_scroll_pos, LcdUI::filename_scroll_max;
@@ -1547,8 +1549,8 @@ void LcdUI::stop_print() {
     nexlcd.endChar();
   }
 
-  // Low-level edit_screen can be used to draw an edit screen from anyplace
-  void MenuEditItemBase::edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+  // Low-level draw_edit_screen can be used to draw an edit screen from anyplace
+  void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     lcdui.encoder_direction_normal();
 
     const uint8_t labellen  = strlen_P(pstr)+ (itemIndex != 0xFF ? 2 : 0),

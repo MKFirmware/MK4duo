@@ -42,7 +42,7 @@
     //  HAL::delayMilliseconds(50);
     //  lcdui.synchronize();
     //  lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
-    //  lcdui.drawing_screen = screen_changed = true;
+    //  lcdui.drawing_screen = lcdui.screen_changed = true;
     //#endif
 
     goto_screen(menu_sdcard, sd_encoder_position, sd_top_line, sd_items);
@@ -93,7 +93,7 @@ class MenuItem_sdfolder : public MenuItem_sdbase {
       card.chdir(theCard.fileName);
       encoderTopLine = 0;
       lcdui.encoderPosition = 2 * (ENCODER_STEPS_PER_MENU_ITEM);
-      screen_changed = true;
+      lcdui.screen_changed = true;
       #if HAS_GRAPHICAL_LCD
         lcdui.drawing_screen = false;
       #elif HAS_NEXTION_LCD
@@ -128,7 +128,7 @@ void menu_sdcard() {
     ACTION_ITEM_P(PSTR(LCD_STR_FOLDER ".."), []{
       lcdui.encoderPosition = card.updir() ? ENCODER_STEPS_PER_MENU_ITEM : 0;
       encoderTopLine = 0;
-      screen_changed = true;
+      lcdui.screen_changed = true;
       lcdui.refresh();
     });
   }

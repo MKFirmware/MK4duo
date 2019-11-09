@@ -102,16 +102,6 @@
   #error "DEPENDENCY ERROR: You have to set SLED_PIN to a valid pin if you enable Z_PROBE_SLED."
 #endif
 
-// Check auto bed leveling sub-options, especially probe points
-#if ABL_GRID && DISABLED(DELTA_PROBEABLE_RADIUS)
-  // Be sure points are in the right order
-  #if LEFT_PROBE_BED_POSITION > RIGHT_PROBE_BED_POSITION
-    #error "DEPENDENCY ERROR: LEFT_PROBE_BED_POSITION must be less than RIGHT_PROBE_BED_POSITION."
-  #elif FRONT_PROBE_BED_POSITION > BACK_PROBE_BED_POSITION
-    #error "DEPENDENCY ERROR: FRONT_PROBE_BED_POSITION must be less than BACK_PROBE_BED_POSITION."
-  #endif
-#endif
-
 // G38 Probe Target
 #if ENABLED(G38_PROBE_TARGET)
   #if !HAS_BED_PROBE

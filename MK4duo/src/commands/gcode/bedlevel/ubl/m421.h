@@ -41,26 +41,22 @@
  *   M421 C Q<offset>
  */
 inline void gcode_M421() {
-  int8_t ix = parser.intval('I', -1), iy = parser.intval('J', -1);
-  const bool  hasI = ix >= 0,
-              hasJ = iy >= 0,
+  xy_int8_t ij = { int8_t(parser.intval('I', -1)), int8_t(parser.intval('J', -1)) };
+  const bool  hasI = ij.x >= 0,
+              hasJ = ij.y >= 0,
               hasC = parser.seen('C'),
               hasN = parser.seen('N'),
               hasZ = parser.seen('Z'),
               hasQ = !hasZ && parser.seen('Q');
 
-  if (hasC) {
-    const mesh_index_pair location = ubl.find_closest_mesh_point_of_type(REAL, mechanics.current_position.x, mechanics.current_position.y, USE_NOZZLE_AS_REFERENCE, NULL);
-    ix = location.x_index;
-    iy = location.y_index;
-  }
+  if (hasC) ij = ubl.find_closest_mesh_point_of_type(REAL, mechanics.current_position);
 
   if (int(hasC) + int(hasI && hasJ) != 1 || !(hasZ || hasQ || hasN))
     SERIAL_LM(ER, MSG_HOST_ERR_M421_PARAMETERS);
-  else if (!WITHIN(ix, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(iy, 0, GRID_MAX_POINTS_Y - 1))
+  else if (!WITHIN(ij.x, 0, GRID_MAX_POINTS_X - 1) || !WITHIN(ij.y, 0, GRID_MAX_POINTS_Y - 1))
     SERIAL_LM(ER, MSG_HOST_ERR_MESH_XY);
   else
-    ubl.z_values[ix][iy] = hasN ? NAN : parser.value_linear_units() + (hasQ ? ubl.z_values[ix][iy] : 0);
+    ubl.z_values[ij.x][ij.y] = hasN ? NAN : parser.value_linear_units() + (hasQ ? ubl.z_values[ij.x][ij.y] : 0);
 }
 
 #endif // ENABLED(MESH_BED_LEVELING)
