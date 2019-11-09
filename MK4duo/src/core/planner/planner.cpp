@@ -144,7 +144,7 @@ void Planner::init() {
   previous_speed.reset();
   previous_nominal_speed_sqr = 0.0f;
   #if ABL_PLANAR
-    matrix.set_to_identity();
+    bedlevel.matrix.set_to_identity();
   #endif
   clear_block_buffer();
   delay_before_delivering = 0;
