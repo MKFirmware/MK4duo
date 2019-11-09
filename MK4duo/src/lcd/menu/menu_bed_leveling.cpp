@@ -146,7 +146,7 @@
     if (lcdui.should_draw()) {
       const float v = mechanics.current_position.z;
       MenuItemBase::itemIndex = NO_INDEX;
-      MenuEditItemBase::edit_screen(GET_TEXT(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
+      MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_MOVE_Z), ftostr43sign(v + (v < 0 ? -0.0001f : 0.0001f), '+'));
     }
   }
 
@@ -158,7 +158,7 @@
       char msg[10];
       sprintf_P(msg, PSTR("%i / %u"), int(manual_probe_index + 1), total_probe_points);
       MenuItemBase::itemIndex = NO_INDEX;
-      MenuEditItemBase::edit_screen(GET_TEXT(MSG_LEVEL_BED_NEXT_POINT), msg);
+      MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_LEVEL_BED_NEXT_POINT), msg);
     }
     lcdui.refresh(LCDVIEW_CALL_NO_REDRAW);
     if (!lcdui.wait_for_bl_move) lcdui.goto_screen(_lcd_level_bed_get_z);

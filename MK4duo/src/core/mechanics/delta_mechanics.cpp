@@ -1061,7 +1061,7 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
 
   #if UBL_DELTA
     // ubl segmented line will do z-only moves in single segment
-    ubl.prepare_segmented_line_to(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
+    ubl.line_to_destination_segmented(MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
   #else
     if (current_position == destination) return;
     planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);

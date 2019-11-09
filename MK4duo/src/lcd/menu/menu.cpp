@@ -41,7 +41,6 @@ typedef struct {
 } menuPosition;
 menuPosition screen_history[6];
 uint8_t screen_history_depth = 0;
-bool screen_changed;
 
 uint8_t MenuItemBase::itemIndex;  // Index number for draw and action
 editable_t editable;              // Value Editing
@@ -90,33 +89,31 @@ void MenuItem_gcode::action(PGM_P const, PGM_P const pgcode) { commands.inject_P
 /**
  * Functions for editing single values
  *
- * The "DEFINE_MENU_EDIT_ITEM" macro generates the functions needed to edit a numerical value.
+ * The "DEFINE_MENU_EDIT_ITEM" macro generates the classes needed to edit a numerical value.
  *
  * The prerequisite is that in the header the type was already declared:
  *
- *   DECLARE_MENU_EDIT_TYPE(int16_t, int3, i16tostr3, 1)
+ *   DEFINE_MENU_EDIT_ITEM_TYPE(int16_t, int3, i16tostr3, 1)
  *
- * For example, DEFINE_MENU_EDIT_ITEM(int3) expands into these functions:
+ * For example, DEFINE_MENU_EDIT_ITEM(int3) expands into:
  *
- *   bool MenuItem_int3::_edit();
- *   void MenuItem_int3::edit(); // edit int16_t (interactively)
- *   void MenuItem_int3::action(PGM_P const pstr, int16_t * const ptr, const int32_t minValue, const int32_t maxValue, const screenFunc_t callback = null, const bool live = false);
+ *   template class TMenuEditItem<MenuEditItemInfo_int3>
  *
  * You can then use one of the menu macros to present the edit interface:
  *   EDIT_ITEM(int3, MSG_SPEED, &feedrate_percentage, 10, 999)
  *
  * This expands into a more primitive menu item:
- *  _MENU_ITEM_P(int3, false, PSTR(MSG_SPEED), &feedrate_percentage, 10, 999)
+ *  _MENU_ITEM_P(int3, false, GET_TEXT(MSG_SPEED), &feedrate_percentage, 10, 999)
  *
  * ...which calls:
  *       MenuItem_int3::action(plabel, &feedrate_percentage, 10, 999)
  *       MenuItem_int3::draw(encoderLine == _thisItemNr, _lcdLineNr, plabel, &feedrate_percentage, 10, 999)
  */
-void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
+void MenuEditItemBase::edit_screen(strfunc_t strfunc, loadfunc_t loadfunc) {
   if (int32_t(lcdui.encoderPosition) < 0) lcdui.encoderPosition = 0;
   if (int32_t(lcdui.encoderPosition) > maxEditValue) lcdui.encoderPosition = maxEditValue;
   if (lcdui.should_draw())
-    edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
+    draw_edit_screen(editLabel, strfunc(lcdui.encoderPosition + minEditValue));
   if (lcdui.lcd_clicked || (liveEdit && lcdui.should_draw())) {
     if (editValue != nullptr) loadfunc(editValue, lcdui.encoderPosition + minEditValue);
     if (callbackFunc && (liveEdit || lcdui.lcd_clicked)) (*callbackFunc)();
@@ -124,7 +121,8 @@ void MenuEditItemBase::edit(strfunc_t strfunc, loadfunc_t loadfunc) {
   }
 }
 
-void MenuEditItemBase::init(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
+void MenuEditItemBase::goto_edit_screen(PGM_P const el, void * const ev, const int32_t minv, const int32_t maxv, const uint16_t ep, const screenFunc_t cs, const screenFunc_t cb, const bool le) {
+  lcdui.screen_changed = true;
   lcdui.save_previous_screen();
   lcdui.refresh();
   editLabel = el;
@@ -258,7 +256,7 @@ void scroll_screen(const uint8_t limit, const bool is_menu) {
   if (int32_t(lcdui.encoderPosition) < 0) lcdui.encoderPosition = 0;
   if (lcdui.first_page) {
     encoderLine = lcdui.encoderPosition / (ENCODER_STEPS_PER_MENU_ITEM);
-    screen_changed = false;
+    lcdui.screen_changed = false;
   }
   if (screen_items > 0 && encoderLine >= screen_items - limit) {
     encoderLine = MAX(0, screen_items - limit);
@@ -316,10 +314,10 @@ void lcd_line_to_z(const float &z) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          MenuEditItemBase::edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
+          MenuEditItemBase::draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[tools.active_hotend()].z));
         else
       #endif
-          MenuEditItemBase::edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
+          MenuEditItemBase::draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
         if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);

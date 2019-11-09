@@ -60,7 +60,7 @@ static void _lcd_mesh_fine_tune(PGM_P msg) {
   }
 
   if (lcdui.should_draw()) {
-    draw_edit_screen(msg, ftostr43sign(mesh_edit_value));
+    MenuEditItemBase::draw_edit_screen(msg, ftostr43sign(mesh_edit_value));
     #if ENABLED(MESH_EDIT_GFX_OVERLAY)
       _lcd_zoffset_overlay_gfx(mesh_edit_value);
     #endif
@@ -74,7 +74,7 @@ void _lcd_mesh_edit_NOP() {
 float lcd_mesh_edit() {
   lcdui.goto_screen(_lcd_mesh_edit_NOP);
   lcdui.refresh(LCDVIEW_CALL_REDRAW_NEXT);
-  _lcd_mesh_fine_tune(PSTR("Mesh Editor"));
+  _lcd_mesh_fine_tune(GET_TEXT(MSG_MESH_EDITOR));
   return mesh_edit_value;
 }
 
@@ -84,7 +84,7 @@ void lcd_mesh_edit_setup(const float &initial) {
 }
 
 void _lcd_z_offset_edit() {
-  _lcd_mesh_fine_tune(PSTR("Z-Offset: "));
+  _lcd_mesh_fine_tune(GET_TEXT(MSG_UBL_Z_OFFSET));
 }
 
 float lcd_z_offset_edit() {
@@ -101,14 +101,14 @@ void lcd_z_offset_edit_setup(const float &initial) {
  * UBL Build Custom Mesh Command
  */
 void _lcd_ubl_build_custom_mesh() {
-  char UBL_LCD_GCODE[20];
+  char ubl_lcd_gcode[20];
   commands.inject_P(G28_CMD);
   #if MAX_BED > 0
-    sprintf_P(UBL_LCD_GCODE, PSTR("M190 S%i"), custom_bed_temp);
-    lcd_enqueue_one_now(UBL_LCD_GCODE);
+    sprintf_P(ubl_lcd_gcode, PSTR("M190 S%i"), custom_bed_temp);
+    lcd_enqueue_one_now(ubl_lcd_gcode);
   #endif
-  sprintf_P(UBL_LCD_GCODE, PSTR("M109 S%i"), custom_hotend_temp);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  sprintf_P(ubl_lcd_gcode, PSTR("M109 S%i"), custom_hotend_temp);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
   commands.inject_P(PSTR("G29 P1"));
 }
 
@@ -135,11 +135,11 @@ void _lcd_ubl_custom_mesh() {
  * UBL Adjust Mesh Height Command
  */
 void _lcd_ubl_adjust_height_cmd() {
-  char UBL_LCD_GCODE[16];
+  char ubl_lcd_gcode[16];
   const int ind = ubl_height_amount > 0 ? 9 : 10;
-  strcpy_P(UBL_LCD_GCODE, PSTR("G29 P6 C -"));
-  sprintf_P(&UBL_LCD_GCODE[ind], PSTR(".%i"), ABS(ubl_height_amount));
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  strcpy_P(ubl_lcd_gcode, PSTR("G29 P6 C -"));
+  sprintf_P(&ubl_lcd_gcode[ind], PSTR(".%i"), ABS(ubl_height_amount));
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
@@ -181,7 +181,7 @@ void _lcd_ubl_edit_mesh() {
  * UBL Validate Custom Mesh Command
  */
 void _lcd_ubl_validate_custom_mesh() {
-  char UBL_LCD_GCODE[24];
+  char ubl_lcd_gcode[24];
   const int temp =
     #if MAX_BED > 0
       custom_bed_temp
@@ -189,9 +189,9 @@ void _lcd_ubl_validate_custom_mesh() {
       0
     #endif
   ;
-  sprintf_P(UBL_LCD_GCODE, PSTR("G26 C B%i H%i P"), temp, custom_hotend_temp);
+  sprintf_P(ubl_lcd_gcode, PSTR("G26 C B%i H%i P"), temp, custom_hotend_temp);
   lcd_enqueue_one_now_P(G28_CMD);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
@@ -219,15 +219,6 @@ void _lcd_ubl_validate_mesh() {
 }
 
 /**
- * UBL Grid Leveling Command
- */
-void _lcd_ubl_grid_level_cmd() {
-  char UBL_LCD_GCODE[10];
-  sprintf_P(UBL_LCD_GCODE, PSTR("G29 J%i"), side_points);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
-}
-
-/**
  * UBL Grid Leveling submenu
  *
  * << UBL Tools
@@ -238,7 +229,11 @@ void _lcd_ubl_grid_level() {
   START_MENU();
   BACK_ITEM(MSG_UBL_TOOLS);
   EDIT_ITEM(int3, MSG_UBL_SIDE_POINTS, &side_points, 2, 6);
-  ACTION_ITEM(MSG_UBL_MESH_LEVEL, _lcd_ubl_grid_level_cmd);
+  ACTION_ITEM(MSG_UBL_MESH_LEVEL, []{
+    char ubl_lcd_gcode[12];
+    sprintf_P(ubl_lcd_gcode, PSTR("G29 J%i"), side_points);
+    lcd_enqueue_one_now(ubl_lcd_gcode);
+  });
   END_MENU();
 }
 
@@ -263,9 +258,9 @@ void _lcd_ubl_mesh_leveling() {
  * UBL Fill-in Amount Mesh Command
  */
 void _lcd_ubl_fillin_amount_cmd() {
-  char UBL_LCD_GCODE[16];
-  sprintf_P(UBL_LCD_GCODE, PSTR("G29 P3 R C.%i"), ubl_fillin_amount);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  char ubl_lcd_gcode[18];
+  sprintf_P(ubl_lcd_gcode, PSTR("G29 P3 R C.%i"), ubl_fillin_amount);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
@@ -355,22 +350,22 @@ void _lcd_ubl_build_mesh() {
  * UBL Load Mesh Command
  */
 void _lcd_ubl_load_mesh_cmd() {
-  char UBL_LCD_GCODE[25];
-  sprintf_P(UBL_LCD_GCODE, PSTR("G29 L%i"), ubl_storage_slot);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
-  sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_LOADED), ubl_storage_slot);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  char ubl_lcd_gcode[25];
+  sprintf_P(ubl_lcd_gcode, PSTR("G29 L%i"), ubl_storage_slot);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
+  sprintf_P(ubl_lcd_gcode, GET_TEXT(MSG_MESH_LOADED), ubl_storage_slot);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
  * UBL Save Mesh Command
  */
 void _lcd_ubl_save_mesh_cmd() {
-  char UBL_LCD_GCODE[25];
-  sprintf_P(UBL_LCD_GCODE, PSTR("G29 S%i"), ubl_storage_slot);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
-  sprintf_P(UBL_LCD_GCODE, PSTR("M117 " MSG_MESH_SAVED), ubl_storage_slot);
-  lcd_enqueue_one_now(UBL_LCD_GCODE);
+  char ubl_lcd_gcode[25];
+  sprintf_P(ubl_lcd_gcode, PSTR("G29 S%i"), ubl_storage_slot);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
+  sprintf_P(ubl_lcd_gcode, GET_TEXT(MSG_MESH_SAVED), ubl_storage_slot);
+  lcd_enqueue_one_now(ubl_lcd_gcode);
 }
 
 /**
@@ -415,8 +410,8 @@ void _lcd_ubl_map_homing() {
  */
 void _lcd_ubl_map_lcd_edit_cmd() {
   char ubl_lcd_gcode[50], str[10], str2[10];
-  dtostrf(pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]), 0, 2, str);
-  dtostrf(pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]), 0, 2, str2);
+  dtostrf(ubl.mesh_index_to_xpos(x_plot), 0, 2, str);
+  dtostrf(ubl.mesh_index_to_ypos(y_plot), 0, 2, str2);
   snprintf_P(ubl_lcd_gcode, sizeof(ubl_lcd_gcode), PSTR("G29 P4 X%s Y%s R%i"), str, str2, int(n_edit_pts));
   lcd_enqueue_one_now(ubl_lcd_gcode);
 }
@@ -436,18 +431,13 @@ void ubl_map_move_to_xy() {
     }
   #endif
 
-  mechanics.destination.x = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]);
-  mechanics.destination.y = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
-
+  mechanics.destination.set(ubl.mesh_index_to_xpos(x_plot), ubl.mesh_index_to_ypos(y_plot));
   mechanics.prepare_move_to_destination();
 }
 
 /**
  * UBL LCD "radar" map
  */
-void set_current_from_steppers_for_axis(const AxisEnum axis);
-void sync_plan_position();
-
 void _lcd_do_nothing() {}
 void _lcd_hard_stop() {
   const screenFunc_t old_screen = lcdui.currentScreen;
@@ -486,9 +476,8 @@ void _lcd_ubl_output_map_lcd() {
     if (y_plot < 0) y_plot = GRID_MAX_POINTS_Y - 1;
 
     #if IS_KINEMATIC
-      const float x = pgm_read_float(&ubl.mesh_index_to_xpos[x_plot]),
-                  y = pgm_read_float(&ubl.mesh_index_to_ypos[y_plot]);
-      if (mechanics.position_is_reachable(x, y)) break; // Found a valid point
+      const xy_pos_t xy = { ubl.mesh_index_to_xpos(x_plot), ubl.mesh_index_to_ypos(y_plot) };
+      if (mechanics.position_is_reachable(xy)) break; // Found a valid point
       x_plot += (step_scaler < 0) ? -1 : 1;
     #endif
 
@@ -579,13 +568,13 @@ void _menu_ubl_tools() {
 void _lcd_ubl_step_by_step() {
   START_MENU();
   BACK_ITEM(MSG_UBL_LEVEL_BED);
-  GCODES_ITEM("1 " MSG_UBL_BUILD_COLD_MESH, PSTR("G28\nG29 P1"));
-  GCODES_ITEM("2 " MSG_UBL_SMART_FILLIN, PSTR("G29 P3 T0"));
-  SUBMENU("3 " MSG_UBL_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
-  GCODES_ITEM("4 " MSG_UBL_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
-  SUBMENU("5 " MSG_UBL_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
-  GCODES_ITEM("6 " MSG_UBL_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
-  ACTION_ITEM("7 " MSG_UBL_SAVE_MESH, _lcd_ubl_save_mesh_cmd);
+  GCODES_ITEM(MSG_UBL_1_BUILD_COLD_MESH, PSTR("G28\nG29 P1"));
+  GCODES_ITEM(MSG_UBL_2_SMART_FILLIN, PSTR("G29 P3 T0"));
+  SUBMENU(MSG_UBL_3_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
+  GCODES_ITEM(MSG_UBL_4_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
+  SUBMENU(MSG_UBL_5_VALIDATE_MESH_MENU, _lcd_ubl_validate_mesh);
+  GCODES_ITEM(MSG_UBL_6_FINE_TUNE_ALL, PSTR("G29 P4 R999 T"));
+  ACTION_ITEM(MSG_UBL_7_SAVE_MESH, _lcd_ubl_save_mesh_cmd);
   END_MENU();
 }
 
@@ -606,8 +595,10 @@ void _lcd_ubl_step_by_step() {
 void _lcd_ubl_level_bed() {
   START_MENU();
   BACK_ITEM(MSG_MOTION);
-  GCODES_ITEM(MSG_UBL_ACTIVATE_MESH, PSTR("G29 A"));
-  GCODES_ITEM(MSG_UBL_DEACTIVATE_MESH, PSTR("G29 D"));
+  if (bedlevel.flag.leveling_active)
+    GCODES_ITEM(MSG_UBL_DEACTIVATE_MESH, PSTR("G29 D"));
+  else
+    GCODES_ITEM(MSG_UBL_ACTIVATE_MESH, PSTR("G29 A"));
   SUBMENU(MSG_UBL_STEP_BY_STEP_MENU, _lcd_ubl_step_by_step);
   ACTION_ITEM(MSG_UBL_MESH_EDIT, _lcd_ubl_output_map_lcd_cmd);
   SUBMENU(MSG_UBL_STORAGE_MESH_MENU, _lcd_ubl_storage_mesh);
