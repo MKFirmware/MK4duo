@@ -103,17 +103,11 @@ void Bedlevel::unapply_leveling(xyz_pos_t &raw) {
 
   #if ABL_PLANAR
 
-    const xy_pos_t level_fulcrum = {
-      #if ENABLED(Z_SAFE_HOMING)
-        Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT
-      #else
-        X_HOME_POS, Y_HOME_POS
-      #endif
-    };
+    matrix_3x3 inverse = matrix_3x3::transpose(matrix);
 
-    xy_pos_t d = raw - level_fulcrum;
-    apply_rotation_xyz(bed_level_matrix, d.x, d.y, raw.z);
-    raw = d + level_fulcrum;
+    xy_pos_t d = raw - level_fulcrum();
+    apply_rotation_xyz(inverse, d.x, d.y, raw.z);
+    raw = d + level_fulcrum();
 
   #elif HAS_MESH
 
