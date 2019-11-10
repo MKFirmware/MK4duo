@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV76"
+#define EEPROM_VERSION "MKV77"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -118,9 +118,8 @@ typedef struct EepromDataStruct {
   //
   // Fans data
   //
-  #if MAX_FAN > 0
-    fan_data_t      fans_data[MAX_FAN];
-  #endif
+  fans_data_t     fans_data;
+  fan_data_t      fan_data[MAX_FAN];
 
   //
   // DHT sensor data
@@ -327,9 +326,8 @@ void EEPROM::post_process() {
   #if MAX_COOLER > 0
     LOOP_COOLER()   coolers[h]->init();
   #endif
-  #if MAX_FAN > 0
-    LOOP_FAN()      fans[f]->init();
-  #endif
+
+  fansManager.init();
 
   #if HAS_DHT
     dhtsensor.init();
@@ -516,11 +514,10 @@ void EEPROM::post_process() {
     //
     // Fans data
     //
-    #if MAX_FAN > 0
-      EEPROM_TEST(fans_data);
-      LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
-      EEPROM_WRITE(fan_data);
-    #endif
+    EEPROM_TEST(fans_data);
+    LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
+    EEPROM_WRITE(fansManager.data);
+    EEPROM_WRITE(fan_data);
 
     //
     // DHT sensor data
@@ -934,11 +931,12 @@ void EEPROM::post_process() {
       //
       // Fans data
       //
-      #if MAX_FAN > 0
-        EEPROM_READ(fan_data);
-        if (!flag.validating)
-          LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
-      #endif
+      EEPROM_READ(fansManager.data);
+      EEPROM_READ(fan_data);
+      if (!flag.validating) {
+        fansManager.create_object();
+        LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
+      }
 
       //
       // DHT sensor data
@@ -1394,6 +1392,9 @@ void EEPROM::reset() {
   // Call Temperature Factory parameters
   thermalManager.factory_parameters();
 
+  // Call Fans Factory parameters
+  fansManager.factory_parameters();
+
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
 
@@ -1583,10 +1584,11 @@ void EEPROM::reset() {
     /**
      * Print Fans parameters
      */
-    #if MAX_FAN > 0
-      LOOP_FAN() fans[f]->print_M106();
-    #endif
+    fansManager.print_parameters();
 
+    /**
+     * Print Endstops parameters
+     */
     endstops.print_parameters();
 
     #if HAS_LCD_MENU

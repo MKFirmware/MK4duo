@@ -87,7 +87,6 @@
 #define E0_CS_PIN             ORIG_E0_CS_PIN
 #define SOL0_PIN              ORIG_SOL0_PIN
 
-
 // E1 axis pins
 #define E1_STEP_PIN           ORIG_E1_STEP_PIN
 #define E1_DIR_PIN            ORIG_E1_DIR_PIN

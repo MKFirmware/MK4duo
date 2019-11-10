@@ -307,9 +307,9 @@ void LcdUI::draw_status_screen() {
   }
 
   const bool  blink = get_blink(),
-              draw_fan      = tools.data.fans > 0     && !(tools.data.hotends == 5 || (tools.data.hotends >= 3 && (tools.data.beds > 0 || tools.data.chambers > 0))),
-              draw_bed      = tools.data.beds > 0     && tools.data.hotends <= 4,
-              draw_chamber  = tools.data.chambers > 0 && ((tools.data.hotends <= 4 && tools.data.beds == 0) || (tools.data.hotends <= 3 && tools.data.beds > 0));
+              draw_fan      = fansManager.data.fans > 0 && !(tools.data.hotends == 5 || (tools.data.hotends >= 3 && (tools.data.beds > 0 || tools.data.chambers > 0))),
+              draw_bed      = tools.data.beds > 0       &&   tools.data.hotends <= 4,
+              draw_chamber  = tools.data.chambers > 0   && ((tools.data.hotends <= 4 && tools.data.beds == 0) || (tools.data.hotends <= 3 && tools.data.beds > 0));
 
   STATUS_BED_X      = LCD_PIXEL_WIDTH - ((STATUS_BED_BYTEWIDTH      + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0)                                        ) * 8),
   STATUS_CHAMBER_X  = LCD_PIXEL_WIDTH - ((STATUS_CHAMBER_BYTEWIDTH  + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0) + (draw_bed ? STATUS_BED_BYTEWIDTH : 0)) * 8);

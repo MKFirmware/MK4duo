@@ -35,8 +35,7 @@ uint8_t ServoCount = 0;             // the total number of attached servo_info
 #define SERVO_MAX() (MAX_PULSE_WIDTH - max * 4)   // maximum value in uS for this servo
 
 /************ static functions common to all instances ***********************/
-#define TIMER_SERVO TIM9
-static HardwareTimer TimerServo(TIMER_SERVO);
+static HardwareTimer TimerServo(SERVO_TIMER);
 static volatile int8_t timerChannel[_Nbr_16timers] = {-1};  // counter for the servo being pulsed for each timer (or -1 if refresh interval)
 volatile uint32_t CumulativeCountSinceRefresh = 0;
 

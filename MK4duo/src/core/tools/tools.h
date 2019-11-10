@@ -29,11 +29,10 @@
 
 struct tool_data_t {
   uint8_t extruders : 4;
-  uint8_t hotends   : 4;
-  uint8_t beds      : 4;
-  uint8_t chambers  : 4;
+  uint8_t hotends   : 3;
+  uint8_t beds      : 2;
+  uint8_t chambers  : 2;
   uint8_t coolers   : 1;
-  uint8_t fans      : 3;
 };
  
 struct extruder_t {

@@ -57,6 +57,32 @@ Temperature thermalManager;
 #endif
 
 /** Public Function */
+void Temperature::init() {
+
+  HAL::analogStart();
+
+  // Wait for temperature measurement to settle
+  HAL::delayMilliseconds(250);
+
+  #if ENABLED(PROBING_HEATERS_OFF)
+    paused = false;
+  #endif
+
+  // Reset Fault for all Heaters
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->ResetFault();
+  #endif
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->ResetFault();
+  #endif
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->ResetFault();
+  #endif
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->ResetFault();
+  #endif
+}
+
 void Temperature::create_object() {
 
   #if MAX_HOTEND > 0
@@ -103,43 +129,6 @@ void Temperature::create_object() {
     }
   #endif
 
-  #if MAX_FAN > 0
-    LOOP_FAN() {
-      if (!fans[f]) {
-        fans[f] = new Fan();
-        SERIAL_LMV(ECHO, "Create Fan", int(f));
-        fans_factory_parameters(f);
-        fans[f]->init();
-      }
-    }
-  #endif
-
-}
-
-void Temperature::init() {
-
-  HAL::analogStart();
-
-  // Wait for temperature measurement to settle
-  HAL::delayMilliseconds(250);
-
-  #if ENABLED(PROBING_HEATERS_OFF)
-    paused = false;
-  #endif
-
-  // Reset Fault for all Heaters
-  #if MAX_HOTEND > 0
-    LOOP_HOTEND() hotends[h]->ResetFault();
-  #endif
-  #if MAX_BED > 0
-    LOOP_BED() beds[h]->ResetFault();
-  #endif
-  #if MAX_CHAMBER > 0
-    LOOP_CHAMBER() chambers[h]->ResetFault();
-  #endif
-  #if MAX_COOLER > 0
-    LOOP_COOLER() coolers[h]->ResetFault();
-  #endif
 }
 
 void Temperature::factory_parameters() {
@@ -157,9 +146,6 @@ void Temperature::factory_parameters() {
   #endif
   #if MAX_COOLER > 0
     LOOP_COOLER()   if (coolers[h])   coolers_factory_parameters(h);
-  #endif
-  #if MAX_FAN > 0
-    LOOP_FAN()      if (fans[f])      fans_factory_parameters(f);
   #endif
 
 }
@@ -209,21 +195,6 @@ void Temperature::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
   }
 
-}
-
-void Temperature::change_number_fan(const uint8_t f) {
-  if (tools.data.fans < f) {
-    tools.data.fans = f;
-    create_object();
-  }
-  else if (tools.data.fans > f) {
-    for (uint8_t ff = f; ff < MAX_FAN; ff++) {
-      Fan * tmpfan = nullptr;
-      swap(tmpfan, fans[ff]);
-      delete(tmpfan);
-    }
-    tools.data.fans = f;
-  }
 }
 
 /**
@@ -392,9 +363,6 @@ bool Temperature::heaters_isActive() {
   #endif
   #if MAX_COOLER > 0
     LOOP_COOLER()   if (coolers[h]->isActive())   return true;
-  #endif
-  #if MAX_FAN > 0
-    LOOP_FAN()      if (fans[f]->speed > 0)       return true;
   #endif
   return false;
 }
@@ -854,50 +822,6 @@ void Temperature::report_temperatures(const bool showRaw/*=false*/) {
     #else
       heat->setPidTuned(true);
     #endif
-
-  }
-#endif
-
-#if MAX_FAN > 0
-  void Temperature::fans_factory_parameters(const uint8_t f) {
-
-    constexpr pin_t   fanCh[]   = FANS_CHANNELS;
-    constexpr int8_t  fanAuto[] = AUTO_FAN;
-
-    #if ENABLED(TACHOMETRIC)
-      constexpr pin_t tacho_temp_pin[] = { TACHO0_PIN, TACHO1_PIN, TACHO2_PIN, TACHO3_PIN, TACHO4_PIN, TACHO5_PIN };
-    #endif
-
-    Fan         *fan;
-    fan_data_t  *fdata;
-
-    fan                         = fans[f];
-    fdata                       = &fan->data;
-    fdata->ID                   = f;
-    fdata->pin                  = fanCh[f];
-    fdata->speed_limit.min      = FAN_MIN_PWM;
-    fdata->speed_limit.max      = FAN_MAX_PWM;
-    fdata->freq                 = FAN_PWM_FREQUENCY;
-    fdata->trigger_temperature  = HOTEND_AUTO_FAN_TEMPERATURE;
-    fdata->auto_monitor         = 0;
-    fdata->flag.all             = false;
-    fan->set_auto_monitor(fanAuto[f]);
-    fan->setHWinvert(FAN_INVERTED);
-    #if ENABLED(TACHOMETRIC)
-      fdata->tacho.pin          = tacho_temp_pin[f];
-    #endif
-
-    LOOP_HOTEND() {
-      if (TEST(fdata->auto_monitor, h)) {
-        fdata->speed_limit.min  = HOTEND_AUTO_FAN_MIN_SPEED;
-        fdata->speed_limit.max  = HOTEND_AUTO_FAN_SPEED;
-      }
-    }
-
-    if (TEST(fdata->auto_monitor, 7)) {
-      fdata->speed_limit.min    = CONTROLLERFAN_MIN_SPEED;
-      fdata->speed_limit.max    = CONTROLLERFAN_SPEED;
-    }
 
   }
 #endif

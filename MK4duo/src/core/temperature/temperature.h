@@ -61,14 +61,14 @@ class Temperature {
   public: /** Public Function */
 
     /**
-     * Create Object Heater and fan
-     */
-    static void create_object();
-
-    /**
      * Initialize the temperature manager
      */
     static void init();
+
+    /**
+     * Create Object Heater and fan
+     */
+    static void create_object();
 
     /**
      * Initialize to the factory parameters
@@ -79,11 +79,6 @@ class Temperature {
      * Change number heater
      */
     static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
-
-    /**
-     * Change number fan
-     */
-    static void change_number_fan(const uint8_t f);
 
     /**
      * Call periodically to HAL isr
@@ -193,13 +188,6 @@ class Temperature {
      */
     #if MAX_COOLER > 0
       static void coolers_factory_parameters(const uint8_t h);
-    #endif
-
-    /**
-     * Fans Factory parameters
-     */
-    #if MAX_FAN > 0
-      static void fans_factory_parameters(const uint8_t f);
     #endif
 
     #if ENABLED(FILAMENT_WIDTH_SENSOR)

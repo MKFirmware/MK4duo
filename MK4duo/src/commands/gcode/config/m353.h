@@ -96,7 +96,7 @@ inline void gcode_M353() {
     if (f > MAX_FAN)
       SERIAL_LM(ECHO, "Too many fans");
     else
-      thermalManager.change_number_fan(f);
+      fansManager.change_number_fan(f);
   }
 
 }

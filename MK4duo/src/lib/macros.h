@@ -253,7 +253,7 @@
 #define LOOP_BED()                LOOP_L_N(h, tools.data.beds)
 #define LOOP_CHAMBER()            LOOP_L_N(h, tools.data.chambers)
 #define LOOP_COOLER()             LOOP_L_N(h, tools.data.coolers)
-#define LOOP_FAN()                LOOP_L_N(f, tools.data.fans)
+#define LOOP_FAN()                LOOP_L_N(f, fansManager.data.fans)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
 
 // Macros for maths shortcuts

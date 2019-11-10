@@ -267,15 +267,6 @@ Heater* Commands::get_target_heater() {
 
 }
 
-bool Commands::get_target_fan(uint8_t &f) {
-  f = parser.seen('P') ? parser.value_byte() : 0;
-  if (WITHIN(f, 0 , tools.data.fans - 1)) return true;
-  else {
-    SERIAL_LM(ER, "Invalid Fan");
-    return false;
-  }
-}
-
 /** Private Function */
 void Commands::ok_to_send() {
 

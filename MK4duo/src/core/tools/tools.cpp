@@ -67,7 +67,6 @@ void Tools::factory_parameters() {
   data.beds       = BEDS;
   data.chambers   = CHAMBERS;
   data.coolers    = COOLERS;
-  data.fans       = FAN_COUNT;
 
   extruder.active = extruder.previous = extruder.target = 0;
 
@@ -86,6 +85,7 @@ void Tools::factory_parameters() {
 }
 
 void Tools::extruder_factory_parameters(const uint8_t e) {
+
   static const float  tmp_step[]        PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT_E,
                       tmp_maxfeedrate[] PROGMEM = DEFAULT_MAX_FEEDRATE_E;
 
@@ -99,20 +99,25 @@ void Tools::extruder_factory_parameters(const uint8_t e) {
   extruders[e]->data.max_feedrate_mm_s = pgm_read_float(&tmp_maxfeedrate[e < COUNT(tmp_maxfeedrate) ? e : COUNT(tmp_maxfeedrate) - 1]);
   extruders[e]->data.max_acceleration_mm_per_s2 = pgm_read_dword_near(&tmp_maxacc[e < COUNT(tmp_maxacc) ? e : COUNT(tmp_maxacc) - 1]);
   extruders[e]->data.retract_acceleration = pgm_read_dword_near(&tmp_retract[e < COUNT(tmp_retract) ? e : COUNT(tmp_retract) - 1]);
+
+  #if HAS_CLASSIC_JERK
+    extruders[e]->data.max_jerk = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
+  #endif
+
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     extruders[e]->data.load_length   = PAUSE_PARK_FAST_LOAD_LENGTH;
     extruders[e]->data.unload_length = PAUSE_PARK_UNLOAD_LENGTH;
   #endif
+
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     extruders[e]->data.filament_size = DEFAULT_NOMINAL_FILAMENT_DIA;
   #endif
-  #if HAS_CLASSIC_JERK
-    extruders[e]->data.max_jerk = pgm_read_float(&tmp_ejerk[e < COUNT(tmp_ejerk) ? e : COUNT(tmp_ejerk) - 1]);
-  #endif
+
   #if ENABLED(VOLUMETRIC_EXTRUSION)
     extruders[e]->volumetric_multiplier  = 1.0f;
     extruders[e]->data.filament_size     = DEFAULT_NOMINAL_FILAMENT_DIA;
   #endif
+
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
     extruders[e]->data.swap_length    = TOOL_CHANGE_FIL_SWAP_LENGTH;
     extruders[e]->data.purge_lenght   = TOOL_CHANGE_FIL_SWAP_PURGE;

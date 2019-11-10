@@ -348,9 +348,7 @@ void Printer::check_periodical_actions() {
     #endif
   }
 
-  #if MAX_FAN > 0
-    LOOP_FAN() fans[f]->spin();
-  #endif
+  fansManager.spin();
 
   #if HAS_POWER_SWITCH
     powerManager.spin();
@@ -733,12 +731,13 @@ bool Printer::pin_is_protected(const pin_t pin) {
 }
 
 void Printer::print_M353() {
-  SERIAL_LM(CFG, "Total number E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
-  SERIAL_SMV(CFG,"  M353 E", tools.data.extruders);
+  SERIAL_LM(CFG, "Total number D<driver extruder> E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
+  SERIAL_SMV(CFG,"  M353 D", stepper.data.drivers_e);
+  SERIAL_MV(" E", tools.data.extruders);
   SERIAL_MV(" H", tools.data.hotends);
   SERIAL_MV(" B", tools.data.beds);
   SERIAL_MV(" C", tools.data.chambers);
-  SERIAL_MV(" F", tools.data.fans);
+  SERIAL_MV(" F", fansManager.data.fans);
   SERIAL_EOL();
 }
 

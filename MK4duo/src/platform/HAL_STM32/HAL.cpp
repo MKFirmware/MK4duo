@@ -221,12 +221,7 @@ void HAL::Tick() {
   #endif
 
   // Fans set output PWM
-  #if MAX_FAN > 0
-    LOOP_FAN() {
-      if (fans[f]->kickstart) fans[f]->kickstart--;
-      fans[f]->set_output_pwm();
-    }
-  #endif
+  fansManager.set_output_pwm();
 
   // Event 100 ms
   if (cycle_100_timer.expired(100)) thermalManager.spin();
