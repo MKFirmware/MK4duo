@@ -34,7 +34,7 @@
  *      This code should ALWAYS be available for FULL SHUTDOWN!
  */
 inline void gcode_M81() {
-  thermalManager.disable_all_heaters();
+  tempManager.disable_all_heaters();
   planner.finish_and_disable();
 
   #if MAX_FAN > 0

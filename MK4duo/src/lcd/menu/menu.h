@@ -556,7 +556,7 @@ void lcd_draw_homing();
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   void lcd_pause_show_message(const PauseMessageEnum message,
                               const PauseModeEnum mode=PAUSE_MODE_SAME,
-                              const uint8_t hotend=tools.active_hotend());
+                              const uint8_t hotend=toolManager.active_hotend());
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)

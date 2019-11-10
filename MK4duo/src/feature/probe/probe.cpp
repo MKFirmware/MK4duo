@@ -239,7 +239,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   void Probe::probing_pause(const bool onoff) {
     #if ENABLED(PROBING_HEATERS_OFF)
-      thermalManager.pause(onoff);
+      tempManager.pause(onoff);
     #endif
     #if ENABLED(PROBING_FANS_OFF)
       LOOP_FAN() fans[f]->setIdle(onoff);

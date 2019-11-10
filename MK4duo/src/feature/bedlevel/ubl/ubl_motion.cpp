@@ -345,9 +345,9 @@
     if (!bedlevel.flag.leveling_active || !bedlevel.leveling_active_at_z(mechanics.destination.z)) {
       while (--segments) {
         raw += diff;
-        planner.buffer_line(raw, scaled_fr_mm_s, tools.extruder.active, segment_xyz_mm);
+        planner.buffer_line(raw, scaled_fr_mm_s, toolManager.extruder.active, segment_xyz_mm);
       }
-      planner.buffer_line(mechanics.destination, scaled_fr_mm_s, tools.extruder.active, segment_xyz_mm);
+      planner.buffer_line(mechanics.destination, scaled_fr_mm_s, toolManager.extruder.active, segment_xyz_mm);
       return false; // Did not set current from destination
     }
 
@@ -418,7 +418,7 @@
           #endif
         ;
 
-        planner.buffer_line(raw.x, raw.y, raw.z + z_cxcy, raw.e, scaled_fr_mm_s, tools.extruder.active, segment_xyz_mm);
+        planner.buffer_line(raw.x, raw.y, raw.z + z_cxcy, raw.e, scaled_fr_mm_s, toolManager.extruder.active, segment_xyz_mm);
 
         if (segments == 0)                        // done with last segment
           return false;                           // didn't set current from destination

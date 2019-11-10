@@ -50,13 +50,13 @@ inline void gcode_M203() {
       #if MECH(DELTA)
         const float value = parser.value_per_axis_unit((AxisEnum)i);
         if (i == E_AXIS)
-          extruders[tools.extruder.target]->data.max_feedrate_mm_s = value;
+          extruders[toolManager.extruder.target]->data.max_feedrate_mm_s = value;
         else
           LOOP_XYZ(axis) mechanics.data.max_feedrate_mm_s[axis] = value;
       #else
         const float value = parser.value_per_axis_unit((AxisEnum)i);
         if (i == E_AXIS)
-          extruders[tools.extruder.target]->data.max_feedrate_mm_s = value;
+          extruders[toolManager.extruder.target]->data.max_feedrate_mm_s = value;
         else
         mechanics.data.max_feedrate_mm_s[i] = parser.value_axis_units((AxisEnum)i);
       #endif

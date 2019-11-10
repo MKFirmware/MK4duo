@@ -36,9 +36,9 @@ inline void gcode_M222() {
   if (commands.get_target_tool(222)) return;
 
   if (parser.seenval('S')) {
-    extruders[tools.extruder.target]->density_percentage = parser.value_int();
+    extruders[toolManager.extruder.target]->density_percentage = parser.value_int();
     #if ENABLED(RFID_MODULE)
-      rfid522.data[tools.extruder.target].data.density = extruders[tools.extruder.target]->density_percentage;
+      rfid522.data[toolManager.extruder.target].data.density = extruders[toolManager.extruder.target]->density_percentage;
     #endif
   }
 }

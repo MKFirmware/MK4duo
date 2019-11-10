@@ -66,8 +66,8 @@ void Nozzle::factory_parameters() {
 
 #if HAS_LCD
   void Nozzle::set_heating_message() {
-    const bool heating = hotends[tools.target_hotend()]->isHeating();
-    lcdui.status_printf_P(0, PSTR("H%i " S_FMT), tools.target_hotend(), heating ? GET_TEXT(MSG_HEATING) : GET_TEXT(MSG_COOLING));
+    const bool heating = hotends[toolManager.target_hotend()]->isHeating();
+    lcdui.status_printf_P(0, PSTR("H%i " S_FMT), toolManager.target_hotend(), heating ? GET_TEXT(MSG_HEATING) : GET_TEXT(MSG_COOLING));
   }
 #endif
 

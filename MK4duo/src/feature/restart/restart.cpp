@@ -121,7 +121,7 @@ void Restart::save_job(const bool force_save/*=false*/, const bool save_count/*=
 
     // Extruders
     #if MAX_EXTRUDER > 1
-      job_info.active_extruder = tools.extruder.active;
+      job_info.active_extruder = toolManager.extruder.active;
     #endif
 
     LOOP_EXTRUDER() {

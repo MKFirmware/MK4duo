@@ -43,7 +43,7 @@ inline void gcode_M563() {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M563 report.
     if (!parser.seen("DH")) {
-      tools.print_M563();
+      toolManager.print_M563();
       return;
     }
   #endif
@@ -51,15 +51,15 @@ inline void gcode_M563() {
   if (parser.seen('D')) {
     const uint8_t d = parser.value_byte();
     if (WITHIN(d, 0, stepper.data.drivers_e - 1))
-      extruders[tools.extruder.target]->data.driver = d;
+      extruders[toolManager.extruder.target]->data.driver = d;
     else
       SERIAL_LM(ECHO, "Driver is invalid");
   }
 
   if (parser.seen('H')) {
     const uint8_t h = parser.value_byte();
-    if (WITHIN(h, 0, tools.data.hotends - 1))
-      extruders[tools.extruder.target]->data.hotend = h;
+    if (WITHIN(h, 0, tempManager.heater.hotends - 1))
+      extruders[toolManager.extruder.target]->data.hotend = h;
     else
       SERIAL_LM(ECHO, "Hotend is invalid");
   }

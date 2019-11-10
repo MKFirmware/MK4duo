@@ -160,10 +160,10 @@ void menu_info_firmware() {
   STATIC_ITEM_P(PSTR(STRING_REVISION_DATE));
   STATIC_ITEM_P(PSTR(MACHINE_NAME));
   STATIC_ITEM_P(PSTR(MK4DUO_FIRMWARE_URL));
-  VALUE_ITEM(MSG_INFO_EXTRUDERS, ui8tostr3(tools.data.extruders), SS_CENTER);
-  VALUE_ITEM(MSG_INFO_HOTENDS, ui8tostr3(tools.data.hotends), SS_CENTER);
-  VALUE_ITEM(MSG_INFO_BEDS, ui8tostr3(tools.data.beds), SS_CENTER);
-  VALUE_ITEM(MSG_INFO_CHAMBERS, ui8tostr3(tools.data.chambers), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_EXTRUDERS, ui8tostr3(toolManager.extruder.total), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_HOTENDS, ui8tostr3(tempManager.heater.hotends), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_BEDS, ui8tostr3(tempManager.heater.beds), SS_CENTER);
+  VALUE_ITEM(MSG_INFO_CHAMBERS, ui8tostr3(tempManager.heater.chambers), SS_CENTER);
   #if ENABLED(AUTO_BED_LEVELING_3POINT)
     STATIC_ITEM(MSG_3POINT_LEVELING);     // 3-Point Leveling
   #elif ENABLED(AUTO_BED_LEVELING_LINEAR)

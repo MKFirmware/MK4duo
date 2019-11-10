@@ -56,7 +56,7 @@ inline void gcode_M204() {
     mechanics.data.acceleration = parser.value_linear_units();
 
   if (parser.seen('R'))
-    extruders[tools.extruder.target]->data.retract_acceleration = parser.value_linear_units();
+    extruders[toolManager.extruder.target]->data.retract_acceleration = parser.value_linear_units();
 
   if (parser.seen('V'))
     mechanics.data.travel_acceleration = parser.value_linear_units();

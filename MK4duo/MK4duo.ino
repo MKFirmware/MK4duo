@@ -251,7 +251,7 @@
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M352 - Set driver pins and logic. X X2 Y Y2 Z Z2 Z3 T0-5 E[Enable pin] D[Dir pin] S[Step pin] L[enable logic] M[step logic]
- * M353 - Set number total Extruder. S[int] Number total extruder
+ * M353 - Set number total Tools. D[int] Set number driver extruder, E[int] Set number extruder, H[int] Set number hotend, B[int] Set number bed, C[int] Set number chamber, F[int] Set number fan
  * M355 - Turn case lights on/off
  * M380 - Activate solenoid on active extruder
  * M381 - Disable all solenoids

@@ -419,8 +419,8 @@
 /**
  * Multi-extruders support
  */
-#define XYZE_N              (uint8_t(E_AXIS) + tools.data.extruders)
-#define E_INDEX             (uint8_t(E_AXIS) + tools.extruder.active)
+#define XYZE_N              (uint8_t(E_AXIS) + toolManager.extruder.total)
+#define E_INDEX             (uint8_t(E_AXIS) + toolManager.extruder.active)
 #define E_INDEX_N(N)        (uint8_t(E_AXIS) + N)
 
 /**

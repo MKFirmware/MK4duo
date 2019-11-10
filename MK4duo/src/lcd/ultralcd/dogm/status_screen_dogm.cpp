@@ -278,8 +278,8 @@ void LcdUI::draw_status_screen() {
       strcpy(wstring, ftostr12ns(filament_width_meas));
       strcpy(mstring, i16tostr3(100.0 * (
           printer.isVolumetric()
-            ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
-            : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+            ? toolManager.volumetric_area_nominal / toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+            : toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )
       ));
     #endif
@@ -307,9 +307,9 @@ void LcdUI::draw_status_screen() {
   }
 
   const bool  blink = get_blink(),
-              draw_fan      = tools.data.fans > 0     && !(tools.data.hotends == 5 || (tools.data.hotends >= 3 && (tools.data.beds > 0 || tools.data.chambers > 0))),
-              draw_bed      = tools.data.beds > 0     && tools.data.hotends <= 4,
-              draw_chamber  = tools.data.chambers > 0 && ((tools.data.hotends <= 4 && tools.data.beds == 0) || (tools.data.hotends <= 3 && tools.data.beds > 0));
+              draw_fan      = fanManager.data.fans > 0           && !(tempManager.heater.hotends == 5 || (tempManager.heater.hotends >= 3 && (tempManager.heater.beds > 0 || tempManager.heater.chambers > 0))),
+              draw_bed      = tempManager.heater.beds > 0      &&   tempManager.heater.hotends <= 4,
+              draw_chamber  = tempManager.heater.chambers > 0  && ((tempManager.heater.hotends <= 4 && tempManager.heater.beds == 0) || (tempManager.heater.hotends <= 3 && tempManager.heater.beds > 0));
 
   STATUS_BED_X      = LCD_PIXEL_WIDTH - ((STATUS_BED_BYTEWIDTH      + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0)                                        ) * 8),
   STATUS_CHAMBER_X  = LCD_PIXEL_WIDTH - ((STATUS_CHAMBER_BYTEWIDTH  + (draw_fan ? STATUS_FAN_BYTEWIDTH : 0) + (draw_bed ? STATUS_BED_BYTEWIDTH : 0)) * 8);
@@ -326,7 +326,7 @@ void LcdUI::draw_status_screen() {
 
     #if STATUS_HEATERS_WIDTH
       // Draw all heaters (and maybe the bed) in one go
-      if (tools.data.hotends > 0 && PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1))
+      if (tempManager.heater.hotends > 0 && PAGE_CONTAINS(STATUS_HEATERS_Y, STATUS_HEATERS_Y + STATUS_HEATERS_HEIGHT - 1))
         u8g.drawBitmapP(STATUS_HEATERS_X, STATUS_HEATERS_Y, STATUS_HEATERS_BYTEWIDTH, STATUS_HEATERS_HEIGHT, status_heaters_bmp);
     #endif
 

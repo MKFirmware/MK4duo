@@ -26,8 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../MK4duo.h"
-#include "sanitycheck.h"
+#include "../../../../MK4duo.h"
 
 #if MAX_FAN > 0
   Fan* fans[MAX_FAN] = { nullptr };
@@ -83,7 +82,7 @@ void Fan::set_output_pwm() {
   const uint8_t new_Speed = isHWinvert() ? 255 - actual_speed() : actual_speed();
 
   if (USEABLE_HARDWARE_PWM(data.pin))
-    HAL::analogWrite(data.pin, new_Speed, data.freq);
+    HAL::analogWrite(data.pin, new_Speed, fanManager.data.frequency);
   else {
     // Now set the pin high (if not 0)
     if (pwm_soft_count == 0 && data.pin > NoPin && ((pwm_soft_pos = (new_Speed & SOFT_PWM_MASK)) > 0))
@@ -120,11 +119,11 @@ void Fan::spin() {
     if (TEST(data.auto_monitor, 7)) {
 
       // Check Heaters
-      if (thermalManager.heaters_isActive()) controller_fan_timer.start();
+      if (tempManager.heaters_isActive()) controller_fan_timer.start();
 
       #if HAS_MCU_TEMPERATURE
         // Check MSU
-        if (thermalManager.mcu_current_temperature >= 50) controller_fan_timer.start();
+        if (tempManager.mcu_current_temperature >= 50) controller_fan_timer.start();
       #endif
 
       // Check Motors
@@ -142,33 +141,6 @@ void Fan::spin() {
 
   speed = speed ? constrain(speed, data.speed_limit.min, data.speed_limit.max) : 0;
 
-}
-
-void Fan::print_M106() {
-  bool found_auto = false;
-  SERIAL_LM(CFG, "Fans: P<Fan> U<Pin> L<Min Speed> X<Max Speed> F<Freq> I<Hardware Inverted 0-1> H<Auto mode> T<Trig Temp>");
-  SERIAL_SMV(CFG, "  M106 P", (int)data.ID);
-  SERIAL_MV(" U", data.pin);
-  SERIAL_MV(" L", data.speed_limit.min);
-  SERIAL_MV(" X", data.speed_limit.max);
-  SERIAL_MV(" F", data.freq);
-  SERIAL_MV(" I", isHWinvert());
-  SERIAL_MSG(" H");
-  LOOP_HOTEND() {
-    if (TEST(data.auto_monitor, h)) {
-      SERIAL_VAL((int)h);
-      SERIAL_MV(" T", data.trigger_temperature);
-      found_auto = true;
-      break;
-    }
-  }
-  if (!found_auto) {
-    if (TEST(data.auto_monitor, 7))
-      SERIAL_CHR('7');
-    else
-      SERIAL_MSG("-1");
-  }
-  SERIAL_EOL();
 }
 
 #if ENABLED(TACHOMETRIC)

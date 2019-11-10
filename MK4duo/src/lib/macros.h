@@ -248,12 +248,12 @@
 #define LOOP_DRV_XYZ()            LOOP_L_N(d, XYZ)
 #define LOOP_DRV_EXT()            LOOP_L_N(d, stepper.data.drivers_e)
 #define LOOP_DRV_MIX()            LOOP_L_N(d, MIXING_STEPPERS)
-#define LOOP_EXTRUDER()           LOOP_L_N(e, tools.data.extruders)
-#define LOOP_HOTEND()             LOOP_L_N(h, tools.data.hotends)
-#define LOOP_BED()                LOOP_L_N(h, tools.data.beds)
-#define LOOP_CHAMBER()            LOOP_L_N(h, tools.data.chambers)
-#define LOOP_COOLER()             LOOP_L_N(h, tools.data.coolers)
-#define LOOP_FAN()                LOOP_L_N(f, tools.data.fans)
+#define LOOP_EXTRUDER()           LOOP_L_N(e, toolManager.extruder.total)
+#define LOOP_HOTEND()             LOOP_L_N(h, tempManager.heater.hotends)
+#define LOOP_BED()                LOOP_L_N(h, tempManager.heater.beds)
+#define LOOP_CHAMBER()            LOOP_L_N(h, tempManager.heater.chambers)
+#define LOOP_COOLER()             LOOP_L_N(h, tempManager.heater.coolers)
+#define LOOP_FAN()                LOOP_L_N(f, fanManager.data.fans)
 #define LOOP_SERVO()              LOOP_L_N(s, NUM_SERVOS)
 
 // Macros for maths shortcuts

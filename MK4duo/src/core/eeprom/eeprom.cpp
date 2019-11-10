@@ -51,7 +51,7 @@
  * Keep this data structure up to date so
  * EEPROM size is known at compile time!
  */
-#define EEPROM_VERSION "MKV76"
+#define EEPROM_VERSION "MKV77"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -64,9 +64,14 @@ typedef struct EepromDataStruct {
   uint16_t  crc;          // Data Checksum
 
   //
-  // Tool data
+  // ToolManager data
   //
   tool_data_t       tool_data;
+
+  //
+  // ThermalManager data
+  //
+  temp_data_t       temp_data;
 
   //
   // Mechanics data
@@ -118,9 +123,8 @@ typedef struct EepromDataStruct {
   //
   // Fans data
   //
-  #if MAX_FAN > 0
-    fan_data_t      fans_data[MAX_FAN];
-  #endif
+  fans_data_t     fans_data;
+  fan_data_t      fan_data[MAX_FAN];
 
   //
   // DHT sensor data
@@ -315,28 +319,16 @@ void EEPROM::post_process() {
     mechanics.recalc_delta_settings();
   #endif
 
-  #if MAX_HOTEND > 0
-    LOOP_HOTEND()   hotends[h]->init();
-  #endif
-  #if MAX_BED > 0
-    LOOP_BED()      beds[h]->init();
-  #endif
-  #if MAX_CHAMBER > 0
-    LOOP_CHAMBER()  chambers[h]->init();
-  #endif
-  #if MAX_COOLER > 0
-    LOOP_COOLER()   coolers[h]->init();
-  #endif
-  #if MAX_FAN > 0
-    LOOP_FAN()      fans[f]->init();
-  #endif
+  tempManager.init();
+
+  fanManager.init();
 
   #if HAS_DHT
     dhtsensor.init();
   #endif
 
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    tools.calculate_volumetric_multipliers();
+    toolManager.calculate_volumetric_multipliers();
   #else
     LOOP_EXTRUDER() extruders[e]->refresh_e_factor();
   #endif
@@ -449,25 +441,30 @@ void EEPROM::post_process() {
     working_crc = 0; // clear before first "real data"
 
     //
-    // Tools Data
+    // Tools data
     //
     EEPROM_TEST(tool_data);
-    EEPROM_WRITE(tools.data);
+    EEPROM_WRITE(toolManager.extruder);
 
     //
+    // ThermalManager data
+    //
+    EEPROM_TEST(temp_data);
+    EEPROM_WRITE(tempManager.heater);
+
     // Mechanics data
     //
     EEPROM_TEST(mechanics_data);
     EEPROM_WRITE(mechanics.data);
 
     //
-    // Stepper
+    // Stepper data
     //
     EEPROM_TEST(stepper_data);
     EEPROM_WRITE(stepper.data);
 
     //
-    // Driver Data
+    // Driver data
     //
     EEPROM_TEST(driver_data);
     LOOP_DRV_XYZ()  if (driver[d])    driver_data[d]    = driver[d]->data;
@@ -482,7 +479,7 @@ void EEPROM::post_process() {
     EEPROM_WRITE(endstops.data);
 
     //
-    // Nozzle Data
+    // Nozzle data
     //
     EEPROM_TEST(nozzle_data);
     EEPROM_WRITE(nozzle.data);
@@ -516,11 +513,10 @@ void EEPROM::post_process() {
     //
     // Fans data
     //
-    #if MAX_FAN > 0
-      EEPROM_TEST(fans_data);
-      LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
-      EEPROM_WRITE(fan_data);
-    #endif
+    EEPROM_TEST(fans_data);
+    LOOP_FAN() if (fans[f]) fan_data[f] = fans[f]->data;
+    EEPROM_WRITE(fanManager.data);
+    EEPROM_WRITE(fan_data);
 
     //
     // DHT sensor data
@@ -857,13 +853,16 @@ void EEPROM::post_process() {
       working_crc = 0; // Init to 0. Accumulated by EEPROM_READ
 
       //
-      // Tools Data
+      // Tools data
       //
-      EEPROM_READ(tools.data);
-      if (!flag.validating) {
-        tools.create_object();
-        thermalManager.create_object();
-      }
+      EEPROM_READ(toolManager.extruder);
+      if (!flag.validating) toolManager.create_object();
+
+      //
+      // ThermalManager data
+      //
+      EEPROM_READ(tempManager.heater);
+      if (!flag.validating) tempManager.create_object();
 
       //
       // Mechanics data
@@ -892,7 +891,7 @@ void EEPROM::post_process() {
       EEPROM_READ(endstops.data);
 
       //
-      // Nozzle Data
+      // Nozzle data
       //
       EEPROM_READ(nozzle.data);
 
@@ -934,11 +933,12 @@ void EEPROM::post_process() {
       //
       // Fans data
       //
-      #if MAX_FAN > 0
-        EEPROM_READ(fan_data);
-        if (!flag.validating)
-          LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
-      #endif
+      EEPROM_READ(fanManager.data);
+      EEPROM_READ(fan_data);
+      if (!flag.validating) {
+        fanManager.create_object();
+        LOOP_FAN() if (fans[f]) fans[f]->data = fan_data[f];
+      }
 
       //
       // DHT sensor data
@@ -1117,7 +1117,7 @@ void EEPROM::post_process() {
       if (!flag.validating) stepper.reset_drivers();
 
       //
-      // Trinamic Stepper Data
+      // Trinamic Stepper data
       //
       #if HAS_TRINAMIC
 
@@ -1389,10 +1389,13 @@ void EEPROM::reset() {
   printer.factory_parameters();
 
   // Call Tools Factory parameters
-  tools.factory_parameters();
+  toolManager.factory_parameters();
 
   // Call Temperature Factory parameters
-  thermalManager.factory_parameters();
+  tempManager.factory_parameters();
+
+  // Call Fans Factory parameters
+  fanManager.factory_parameters();
 
   // Call Mechanic Factory parameters
   mechanics.factory_parameters();
@@ -1511,7 +1514,7 @@ void EEPROM::reset() {
     /**
      * Print Hotends tools assignment
      */
-    tools.print_M563();
+    toolManager.print_M563();
 
     /**
      * Print heaters parameters
@@ -1563,7 +1566,7 @@ void EEPROM::reset() {
      * Print Tools data
      */
     #if ENABLED(TOOL_CHANGE_FIL_SWAP)
-      tools.print_M217();
+      toolManager.print_M217();
     #endif
 
     /**
@@ -1583,10 +1586,11 @@ void EEPROM::reset() {
     /**
      * Print Fans parameters
      */
-    #if MAX_FAN > 0
-      LOOP_FAN() fans[f]->print_M106();
-    #endif
+    fanManager.print_parameters();
 
+    /**
+     * Print Endstops parameters
+     */
     endstops.print_parameters();
 
     #if HAS_LCD_MENU
@@ -1746,7 +1750,7 @@ void EEPROM::reset() {
     #endif
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
-      tools.print_M200();
+      toolManager.print_M200();
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
 
     /**

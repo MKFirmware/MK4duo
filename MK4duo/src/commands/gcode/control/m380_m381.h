@@ -34,11 +34,11 @@
   /**
    * M380: Enable solenoid on the active extruder
    */
-  inline void gcode_M380() { tools.enable_solenoid_on_active_extruder(); }
+  inline void gcode_M380() { toolManager.enable_solenoid_on_active_extruder(); }
 
   /**
    * M381: Disable all solenoids
    */
-  inline void gcode_M381() { tools.disable_all_solenoids(); }
+  inline void gcode_M381() { toolManager.disable_all_solenoids(); }
 
 #endif // ENABLED(EXT_SOLENOID)

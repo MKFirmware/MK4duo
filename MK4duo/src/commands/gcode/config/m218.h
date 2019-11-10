@@ -50,14 +50,14 @@ inline void gcode_M218() {
     }
   #endif
 
-  if (tools.target_hotend() == 0) {
+  if (toolManager.target_hotend() == 0) {
     SERIAL_LM(ECHO, "Hotend 0 can't have offset");
     return;
   }
 
-  if (parser.seenval('X')) nozzle.data.hotend_offset[tools.target_hotend()].x = parser.value_linear_units();
-  if (parser.seenval('Y')) nozzle.data.hotend_offset[tools.target_hotend()].y = parser.value_linear_units();
-  if (parser.seenval('Z')) nozzle.data.hotend_offset[tools.target_hotend()].z = parser.value_linear_units();
+  if (parser.seenval('X')) nozzle.data.hotend_offset[toolManager.target_hotend()].x = parser.value_linear_units();
+  if (parser.seenval('Y')) nozzle.data.hotend_offset[toolManager.target_hotend()].y = parser.value_linear_units();
+  if (parser.seenval('Z')) nozzle.data.hotend_offset[toolManager.target_hotend()].z = parser.value_linear_units();
 
 }
 

@@ -410,7 +410,7 @@ void NextionLCD::status_screen_update() {
 
   char cmd[NEXTION_BUFFER_SIZE] = { 0 };
 
-  const uint8_t max_hotends = MIN(4, tools.data.hotends);
+  const uint8_t max_hotends = MIN(4, tempManager.heater.hotends);
 
   #if ENABLED(NEXTION_GFX)           
     static bool GfxVis = false;
@@ -464,22 +464,22 @@ void NextionLCD::status_screen_update() {
       }
     #endif
     #if MAX_BED > 0
-      if (tools.data.beds) {
+      if (tempManager.heater.beds) {
         setValue(Bed_deg, beds[0]->deg_current());
         setValue(Bed_trg, beds[0]->deg_target());
       }
     #endif
     #if MAX_CHAMBER > 0
-      if (tools.data.chambers) {
+      if (tempManager.heater.chambers) {
         setValue(Chamber_deg, chambers[0]->deg_current());
         setValue(Chamber_trg, chambers[0]->deg_target());
       }
     #endif
     #if HAS_DHT
       if (lcdui.get_blink(3))
-        setValue(DHT0, dhtsensor.Humidity + 500);
+        setValue(DHT0, dhtsensor.humidity + 500);
       else
-        setValue(DHT0, dhtsensor.Temperature);
+        setValue(DHT0, dhtsensor.temperature);
     #endif
 
     if (PreviouspercentDone != printer.progress) {
@@ -742,16 +742,16 @@ void NextionLCD::Set_font_color_pco(NexObject &nexobject, const uint16_t number)
 /** Private Function */
 void NextionLCD::set_status_page() {
   char temp[10] = { 0 };
-  const uint8_t max_hotends = MIN(4, tools.data.hotends);
+  const uint8_t max_hotends = MIN(4, tempManager.heater.hotends);
 
   #if MAX_HOTEND > 0
     for (uint8_t h = 0; h < max_hotends; h++) setValue(Hotend_deg[h], 25);
   #endif
   #if MAX_BED > 0
-    if (tools.data.beds) setValue(Bed_deg, 25);
+    if (tempManager.heater.beds) setValue(Bed_deg, 25);
   #endif
   #if MAX_CHAMBER > 0
-    if (tools.data.chambers) setValue(Chamber_deg, 25);
+    if (tempManager.heater.chambers) setValue(Chamber_deg, 25);
   #endif
   #if HAS_DHT
     setValue(DHT0, 25);
@@ -1149,8 +1149,8 @@ bool NextionLCD::getConnect(char* buffer) {
         mechanics.feedrate_mm_s = MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]);
 
         #if EXTRUDERS > 1
-          const int8_t old_extruder = tools.extruder.active;
-          if (manual_move_axis == E_AXIS) tools.extruder.active = manual_move_e_index;
+          const int8_t old_extruder = toolManager.extruder.active;
+          if (manual_move_axis == E_AXIS) toolManager.extruder.active = manual_move_e_index;
         #endif
 
         // Set movement on a single axis
@@ -1171,12 +1171,12 @@ bool NextionLCD::getConnect(char* buffer) {
 
         mechanics.feedrate_mm_s = old_feedrate;
         #if EXTRUDERS > 1
-          tools.extruder.active = old_extruder;
+          toolManager.extruder.active = old_extruder;
         #endif
 
       #else
 
-        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), tools.extruder.active);
+        planner.buffer_line(mechanics.current_position, MMM_TO_MMS(manual_feedrate_mm_m[manual_move_axis]), toolManager.extruder.active);
         manual_move_axis = (int8_t)NO_AXIS;
 
       #endif

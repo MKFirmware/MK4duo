@@ -21,16 +21,33 @@
  */
 #pragma once
 
+#include "dhtsensor/dhtsensor.h"
+#include "sensor/sensor.h"
+#include "pid/pid.h"
+#include "heater/heater.h"
+
+struct temp_data_t {
+  uint8_t hotends   : 4;
+  uint8_t beds      : 4;
+  uint8_t chambers  : 4;
+  uint8_t coolers   : 4;
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    int16_t lpq_len : 16;
+  #endif
+};
+
 /**
- * temperature.h - temperature controller
+ * tempmanager.h - temperature manager
  */
-class Temperature {
+class TempManager {
 
   public: /** Constructor */
 
-    Temperature() {};
+    TempManager() {};
 
   public: /** Public Parameters */
+
+    static temp_data_t heater;
 
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
@@ -61,14 +78,14 @@ class Temperature {
   public: /** Public Function */
 
     /**
-     * Create Object Heater and fan
-     */
-    static void create_object();
-
-    /**
      * Initialize the temperature manager
      */
     static void init();
+
+    /**
+     * Create Object Heater and fan
+     */
+    static void create_object();
 
     /**
      * Initialize to the factory parameters
@@ -79,11 +96,6 @@ class Temperature {
      * Change number heater
      */
     static void change_number_heater(const HeatertypeEnum type, const uint8_t h);
-
-    /**
-     * Change number fan
-     */
-    static void change_number_fan(const uint8_t f);
 
     /**
      * Call periodically to HAL isr
@@ -195,13 +207,6 @@ class Temperature {
       static void coolers_factory_parameters(const uint8_t h);
     #endif
 
-    /**
-     * Fans Factory parameters
-     */
-    #if MAX_FAN > 0
-      static void fans_factory_parameters(const uint8_t f);
-    #endif
-
     #if ENABLED(FILAMENT_WIDTH_SENSOR)
       static float analog2widthFil(); // Convert adc_raw Filament Width to millimeters
     #endif
@@ -214,4 +219,4 @@ class Temperature {
 
 };
 
-extern Temperature thermalManager;
+extern TempManager tempManager;

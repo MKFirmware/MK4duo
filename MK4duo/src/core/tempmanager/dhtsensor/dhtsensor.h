@@ -48,8 +48,8 @@ class DHTSensor {
 
     static dht_data_t data;
 
-    static float  Temperature,
-                  Humidity;
+    static float  temperature,
+                  humidity;
 
   private: /** Private Parameters */
 

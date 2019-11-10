@@ -345,7 +345,7 @@ void HAL::Tick() {
   // Calculation cycle temp a 100ms
   if (cycle_check_temp_timer.expired(100)) {
     // Temperature Spin
-    thermalManager.spin();
+    tempManager.spin();
     #if ENABLED(FAN_KICKSTART_TIME) && MAX_FAN > 0
       LOOP_FAN() {
         if (fans[f]->kickstart) fans[f]->kickstart--;
@@ -358,7 +358,7 @@ void HAL::Tick() {
     LOOP_HOTEND() AnalogInputValues[hotends[h]->sensor.pin] = (analogRead(hotends[h]->sensor.pin) * 16);
     Analog_is_ready = true;
     // Update the raw values if they've been read. Else we could be updating them during reading.
-    thermalManager.set_current_temp_raw();
+    tempManager.set_current_temp_raw();
   #endif
 
   endstops.Tick();

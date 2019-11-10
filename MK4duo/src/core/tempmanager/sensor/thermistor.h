@@ -19,9 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _THERMISTOR_H_
-#define _THERMISTOR_H_
+#pragma once
 
 /**
  * Standard thermistors
@@ -640,5 +638,3 @@
 #if HAS_AMPLIFIER
   #include "thermistoramplifier.h"
 #endif
-
-#endif /* _THERMISTORTABLES_H_ */

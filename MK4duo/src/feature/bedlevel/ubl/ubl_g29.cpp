@@ -95,7 +95,7 @@
    *   I #   Invalidate Invalidate the specified number of Mesh Points near the given 'X' 'Y'. If X or Y are omitted,
    *                    the nozzle location is used. If no 'I' value is given, only the point nearest to the location
    *                    is invalidated. Use 'T' to produce a map afterward. This command is useful to invalidate a
-   *                    portion of the Mesh so it can be adjusted using other UBL tools. When attempting to invalidate
+   *                    portion of the Mesh so it can be adjusted using other UBL toolManager. When attempting to invalidate
    *                    an isolated bad mesh point, the 'T' option shows the nozzle position in the Mesh with (#). You
    *                    can move the nozzle around and use this feature to select the center of the area (or cell) to
    *                    invalidate.
@@ -293,7 +293,7 @@
       planner.synchronize();
       if (mechanics.axis_unhomed_error()) mechanics.home();
       #if ENABLED(DUAL_X_CARRIAGE)
-        if (tools.extruder.active != 0) tools.change(0);
+        if (toolManager.extruder.active != 0) toolManager.change(0);
       #endif
     }
 

@@ -179,7 +179,7 @@
       }
 
       if (int32_t value = parser.longval(E_AXIS)) {
-        Driver* drv = driver.e[extruders[tools.extruder.target]->get_driver()];
+        Driver* drv = driver.e[extruders[toolManager.extruder.target]->get_driver()];
         if (drv && drv->tmc) drv->tmc->set_pwm_thrs(value);
       }
     }

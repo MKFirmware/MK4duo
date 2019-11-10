@@ -178,6 +178,8 @@
 #define ORIG_LASER_PWM_PIN         NoPin
 
 //###MISC
+#define STEP_TIMER                 TIM2
+#define SERVO_TIMER                TIM9
 #define ORIG_PS_ON_PIN             PE11
 #define ORIG_BEEPER_PIN            PE8
 #define LED_PIN                    PB14

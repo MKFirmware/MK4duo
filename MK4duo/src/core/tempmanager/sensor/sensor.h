@@ -25,9 +25,7 @@
  * sensor.h - sensor object
  */
 
-#if HAS_DHT
-  #include "../../../feature/dhtsensor/dhtsensor.h"
-#endif
+#include "thermistor.h"
 
 typedef struct {
 
@@ -101,7 +99,7 @@ typedef struct {
 
       #if HAS_DHT
         if (type == 11)
-          return dhtsensor.Temperature;
+          return dhtsensor.temperature;
       #endif
 
       #if HAS_AMPLIFIER

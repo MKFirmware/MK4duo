@@ -37,7 +37,7 @@ inline void gcode_M105() {
 
   #if HAS_HEATER
     SERIAL_STR(OK);
-    thermalManager.report_temperatures(showRaw);
+    tempManager.report_temperatures(showRaw);
     #if ENABLED(FLOWMETER_SENSOR)
       flowmeter.print_flowrate();
     #endif

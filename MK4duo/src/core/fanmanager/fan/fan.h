@@ -19,14 +19,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * fan.h
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
-
-#pragma once
 
 #if ENABLED(TACHOMETRIC)
   #include "tachometric.h"
@@ -55,7 +54,7 @@ struct fan_data_t {
                   freq;
   pin_t           pin;
   fan_flag_t      flag;
-  limit_uchar_t speed_limit;
+  limit_uchar_t   speed_limit;
   #if ENABLED(TACHOMETRIC)
     tacho_data_t  tacho;
   #endif
@@ -88,7 +87,6 @@ class Fan {
     void set_auto_monitor(const int8_t h);
     void set_output_pwm();
     void spin();
-    void print_M106();
 
     inline uint8_t actual_speed() { return ((kickstart ? data.speed_limit.max : speed) * scaled_speed) >> 7; }
     inline uint8_t percent()      { return ui8topercent(actual_speed()); }

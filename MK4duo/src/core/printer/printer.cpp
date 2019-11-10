@@ -179,9 +179,6 @@ void Printer::setup() {
   // Vital to init stepper/planner equivalent for current_position
   mechanics.sync_plan_position();
 
-  // Initialize temperature loop
-  thermalManager.init();
-
   // Initialize stepper. This enables interrupts!
   stepper.init();
 
@@ -333,7 +330,7 @@ void Printer::check_periodical_actions() {
   planner.check_axes_activity();
 
   if (!isSuspendAutoreport() && isAutoreportTemp()) {
-    thermalManager.report_temperatures();
+    tempManager.report_temperatures();
     SERIAL_EOL();
   }
 
@@ -348,9 +345,7 @@ void Printer::check_periodical_actions() {
     #endif
   }
 
-  #if MAX_FAN > 0
-    LOOP_FAN() fans[f]->spin();
-  #endif
+  fanManager.spin();
 
   #if HAS_POWER_SWITCH
     powerManager.spin();
@@ -380,7 +375,7 @@ void Printer::quickstop_stepper() {
  */
 void Printer::kill(PGM_P const lcd_msg/*=nullptr*/, const bool steppers_off/*=false*/) {
 
-  thermalManager.disable_all_heaters();
+  tempManager.disable_all_heaters();
 
   SERIAL_LM(ER, MSG_HOST_ERR_KILLED);
 
@@ -406,7 +401,7 @@ void Printer::minikill(const bool steppers_off/*=false*/) {
   for (int i = 1000; i--;) HAL::delayMicroseconds(250);
 
   // Turn off heaters again
-  thermalManager.disable_all_heaters(); 
+  tempManager.disable_all_heaters(); 
 
   // Power off all steppers (for M112) or just the E steppers
   steppers_off ? stepper.disable_all() : stepper.disable_E();
@@ -464,7 +459,7 @@ void Printer::minikill(const bool steppers_off/*=false*/) {
  */
 void Printer::stop() {
 
-  thermalManager.disable_all_heaters();
+  tempManager.disable_all_heaters();
 
   #if ENABLED(PROBING_FANS_OFF)
     LOOP_FAN() {
@@ -557,7 +552,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   sound.spin();
 
   #if HAS_MAX31855 || HAS_MAX6675
-    thermalManager.getTemperature_SPI();
+    tempManager.getTemperature_SPI();
   #endif
 
   #if HAS_DHT
@@ -667,7 +662,7 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
 
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     static long_timer_t extruder_runout_timer(true);
-    if (hotends[tools.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
+    if (hotends[toolManager.active_hotend()]->deg_current() > EXTRUDER_RUNOUT_MINTEMP
       && extruder_runout_timer.expired((EXTRUDER_RUNOUT_SECONDS) * 1000)
       && !planner.has_blocks_queued()
     ) {
@@ -692,11 +687,11 @@ void Printer::idle(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(IDLE_OOZING_PREVENT)
     static long_timer_t axis_last_activity_timer;
     if (planner.has_blocks_queued()) axis_last_activity_timer.start();
-    if (hotends[tools.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
-      if (hotends[tools.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
-        tools.IDLE_OOZING_retract(false);
+    if (hotends[toolManager.active_hotend()]->deg_current() > IDLE_OOZING_MINTEMP && !debugDryrun() && IDLE_OOZING_enabled) {
+      if (hotends[toolManager.active_hotend()]->deg_target() < IDLE_OOZING_MINTEMP)
+        toolManager.IDLE_OOZING_retract(false);
       else if (axis_last_activity_timer.expired((IDLE_OOZING_SECONDS) * 1000))
-        tools.IDLE_OOZING_retract(true);
+        toolManager.IDLE_OOZING_retract(true);
     }
   #endif
 
@@ -733,12 +728,13 @@ bool Printer::pin_is_protected(const pin_t pin) {
 }
 
 void Printer::print_M353() {
-  SERIAL_LM(CFG, "Total number E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
-  SERIAL_SMV(CFG,"  M353 E", tools.data.extruders);
-  SERIAL_MV(" H", tools.data.hotends);
-  SERIAL_MV(" B", tools.data.beds);
-  SERIAL_MV(" C", tools.data.chambers);
-  SERIAL_MV(" F", tools.data.fans);
+  SERIAL_LM(CFG, "Total number D<driver extruder> E<Extruder> H<Hotend> B<Bed> C<Chamber> <Fan>");
+  SERIAL_SMV(CFG,"  M353 D", stepper.data.drivers_e);
+  SERIAL_MV(" E", toolManager.extruder.total);
+  SERIAL_MV(" H", tempManager.heater.hotends);
+  SERIAL_MV(" B", tempManager.heater.beds);
+  SERIAL_MV(" C", tempManager.heater.chambers);
+  SERIAL_MV(" F", fanManager.data.fans);
   SERIAL_EOL();
 }
 
@@ -770,7 +766,7 @@ void Printer::print_M353() {
     #endif
 
     // Disabled Heaters and Fan
-    thermalManager.disable_all_heaters();
+    tempManager.disable_all_heaters();
     zero_fan_speed();
     setWaitForHeatUp(false);
   }
@@ -789,7 +785,7 @@ void Printer::setDebugLevel(const uint8_t newLevel) {
     debug_flag.all = newLevel;
     if (debugDryrun() || debugSimulation()) {
       // Disable all heaters in case they were on
-      thermalManager.disable_all_heaters();
+      tempManager.disable_all_heaters();
     }
   }
   SERIAL_EMV("DebugLevel:", (int)debug_flag.all);
@@ -902,12 +898,12 @@ void Printer::handle_safety_watch() {
 
   static long_timer_t safety_timer;
 
-  if (isPrinting() || isPaused() || !thermalManager.heaters_isActive())
+  if (isPrinting() || isPaused() || !tempManager.heaters_isActive())
     safety_timer.stop();
-  else if (!safety_timer.isRunning() && thermalManager.heaters_isActive())
+  else if (!safety_timer.isRunning() && tempManager.heaters_isActive())
     safety_timer.start();
   else if (safety_timer.expired(safety_time * 60000)) {
-    thermalManager.disable_all_heaters();
+    tempManager.disable_all_heaters();
     SERIAL_EM(MSG_HOST_MAX_INACTIVITY_TIME);
     lcdui.set_status_P(GET_TEXT(MSG_MAX_INACTIVITY_TIME), 99);
   }

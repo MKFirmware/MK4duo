@@ -223,7 +223,7 @@ void move_to(const float &rx, const float &ry, const float &z, const float &e_de
   }
 
   // If X or Y is involved do a 'normal' move. Otherwise retract/recover/hop.
-  const feedrate_t feed_value = has_xy_component ? G26_XY_FEEDRATE : extruders[tools.extruder.active]->data.max_feedrate_mm_s * 0.666f;
+  const feedrate_t feed_value = has_xy_component ? G26_XY_FEEDRATE : extruders[toolManager.extruder.active]->data.max_feedrate_mm_s * 0.666f;
   mechanics.destination = dest;
   mechanics.destination.e += e_delta;
   mechanics.prepare_internal_move_to_destination(feed_value);
@@ -406,7 +406,7 @@ inline bool turn_on_heaters() {
  */
 inline bool prime_nozzle() {
 
-  const feedrate_t fr_slow_e = extruders[tools.extruder.active]->data.max_feedrate_mm_s / 15.0f;
+  const feedrate_t fr_slow_e = extruders[toolManager.extruder.active]->data.max_feedrate_mm_s / 15.0f;
 
   #if HAS_LCD_MENU
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
@@ -494,7 +494,7 @@ inline void gcode_G26() {
   if (mechanics.axis_unhomed_error()) return;
 
   // Change the tool first, if specified
-  if (parser.seenval('T')) tools.change(parser.value_int());
+  if (parser.seenval('T')) toolManager.change(parser.value_int());
 
   g26_extrusion_multiplier    = EXTRUSION_MULTIPLIER;
   g26_retraction_multiplier   = RETRACTION_MULTIPLIER;
@@ -830,7 +830,7 @@ LEAVE:
     #if MAX_BED > 0
       beds[0]->set_target_temp(0);
     #endif
-    hotends[tools.active_hotend()]->set_target_temp(0);
+    hotends[toolManager.active_hotend()]->set_target_temp(0);
   }
 }
 

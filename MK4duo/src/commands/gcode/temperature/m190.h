@@ -38,7 +38,7 @@ inline void gcode_M190() {
   if (printer.debugDryrun() || printer.debugSimulation()) return;
 
   const uint8_t b = parser.byteval('T');
-  if (WITHIN(b, 0 , tools.data.beds - 1)) {
+  if (WITHIN(b, 0 , tempManager.heater.beds - 1)) {
     const bool no_wait_for_cooling = parser.seen('S');
     if (no_wait_for_cooling || parser.seen('R'))
       beds[b]->set_target_temp(parser.value_celsius());

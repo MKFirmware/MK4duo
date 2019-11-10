@@ -22,38 +22,29 @@
 #pragma once
 
 /**
- * tools.h
+ * toolmanager.h
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
+#include "extruder/extruder.h"
+
 struct tool_data_t {
-  uint8_t extruders : 4;
-  uint8_t hotends   : 4;
-  uint8_t beds      : 4;
-  uint8_t chambers  : 4;
-  uint8_t coolers   : 1;
-  uint8_t fans      : 3;
-};
- 
-struct extruder_t {
+  uint8_t total     : 4;
   uint8_t active    : 4;
   uint8_t previous  : 4;
   uint8_t target    : 4;
-  uint8_t dummy     : 4;
 };
 
-class Tools {
+class ToolManager {
 
   public: /** Constructor */
 
-    Tools() {};
+    ToolManager() {};
 
   public: /** Public Parameters */
 
-    static tool_data_t  data;
-
-    static extruder_t   extruder;
+    static tool_data_t extruder;
 
     #if ENABLED(VOLUMETRIC_EXTRUSION)
       static float  volumetric_area_nominal;              // Nominal cross-sectional area
@@ -150,4 +141,4 @@ class Tools {
 
 };
 
-extern Tools tools;
+extern ToolManager toolManager;

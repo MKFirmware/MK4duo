@@ -41,11 +41,8 @@ struct extruder_data_t {
   #if HAS_CLASSIC_JERK
     float max_jerk;
   #endif
-  #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    int16_t   lpq_len;
-  #endif
   #if ENABLED(VOLUMETRIC_EXTRUSION)
-    float filament_size;  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the tools.
+    float filament_size;  // Diameter of filament (in millimeters), typically around 1.75 or 2.85, 0 disables the volumetric calculations for the toolManager.
   #endif
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     float   load_length,

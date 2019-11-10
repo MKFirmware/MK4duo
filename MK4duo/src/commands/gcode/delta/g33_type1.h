@@ -31,7 +31,7 @@
 #define CODE_G33
 
 #if HOTENDS > 1
-  const uint8_t old_tool_index = tools.extruder.active;
+  const uint8_t old_tool_index = toolManager.extruder.active;
 #endif
 
 static void ac_home() {
@@ -42,7 +42,7 @@ static void ac_home() {
 
 static void ac_setup() {
   #if HOTENDS > 1
-    tools.change(0, true);
+    toolManager.change(0, true);
   #endif
 
   planner.synchronize();
@@ -62,7 +62,7 @@ static void ac_cleanup() {
   mechanics.clean_up_after_endstop_or_probe_move();
 
   #if HOTENDS > 1
-    tools.change(old_tool_index, true);
+    toolManager.change(old_tool_index, true);
   #endif
 }
 

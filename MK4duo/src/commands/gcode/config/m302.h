@@ -48,17 +48,17 @@
 inline void gcode_M302() {
   bool seen_S = parser.seen('S');
   if (seen_S) {
-    thermalManager.extrude_min_temp = parser.value_celsius();
-    printer.setAllowColdExtrude(thermalManager.extrude_min_temp == 0);
+    tempManager.extrude_min_temp = parser.value_celsius();
+    printer.setAllowColdExtrude(tempManager.extrude_min_temp == 0);
   }
 
   if (parser.seen('P'))
-    printer.setAllowColdExtrude((thermalManager.extrude_min_temp == 0) || parser.value_bool());
+    printer.setAllowColdExtrude((tempManager.extrude_min_temp == 0) || parser.value_bool());
   else if (!seen_S) {
     // Report current state
     SERIAL_MSG("Cold extrudes are ");
     SERIAL_STR(printer.isAllowColdExtrude() ? PSTR("en") : PSTR("dis"));
-    SERIAL_MV("abled (min temp ", thermalManager.extrude_min_temp);
+    SERIAL_MV("abled (min temp ", tempManager.extrude_min_temp);
     SERIAL_EM("C)");
   }
 }

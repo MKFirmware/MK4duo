@@ -39,7 +39,7 @@
   inline void gcode_M404() {
     if (parser.seen('W')) {
       filament_width_nominal = parser.value_linear_units();
-      tools.volumetric_area_nominal = CIRCLE_AREA(filament_width_nominal * 0.5f);
+      toolManager.volumetric_area_nominal = CIRCLE_AREA(filament_width_nominal * 0.5f);
     }
     else {
       SERIAL_EMV("Filament dia (nominal mm):", filament_width_nominal);
@@ -58,7 +58,7 @@
     }
 
     if (filwidth_delay_index[1] == -1) { // Initialize the ring buffer if not done since startup
-      const int8_t temp_ratio = thermalManager.widthFil_to_size_ratio();
+      const int8_t temp_ratio = tempManager.widthFil_to_size_ratio();
 
       for (uint8_t i = 0; i < COUNT(measurement_delay); ++i)
         measurement_delay[i] = temp_ratio;
@@ -74,7 +74,7 @@
    */
   inline void gcode_M406() {
     filament_sensor = false;
-    tools.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
+    toolManager.calculate_volumetric_multipliers();   // Restore correct 'volumetric_multiplier' value
   }
 
   /**

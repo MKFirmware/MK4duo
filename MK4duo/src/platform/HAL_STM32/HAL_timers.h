@@ -33,13 +33,12 @@
 
 // Stepper Timer
 #define STEPPER_TIMER_NUM           0                                           // Index of timer to use for stepper
-#define STEP_TIMER                  TIM5
 #define STEPPER_TIMER_PRESCALE      2                                           // Stepper prescaler 2
 #define STEPPER_TIMER_RATE          ((HAL_TIMER_RATE)/STEPPER_TIMER_PRESCALE)   // Frequency of stepper timer 45Mhz
-#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE) / 1000000UL)          // 45 Stepper timer ticks per µs
+#define STEPPER_TIMER_TICKS_PER_US  ((STEPPER_TIMER_RATE)/1000000UL)            // 45 Stepper timer ticks per µs
 #define STEPPER_TIMER_MIN_INTERVAL  1                                                         // minimum time in µs between stepper interrupts
 #define STEPPER_TIMER_MAX_INTERVAL  (STEPPER_TIMER_TICKS_PER_US * STEPPER_TIMER_MIN_INTERVAL) // maximum time in µs between stepper interrupts
-#define STEPPER_CLOCK_RATE          ((F_CPU) / 128)                                           // frequency of the clock used for stepper pulse timing
+#define STEPPER_CLOCK_RATE          ((F_CPU)/128)                                             // frequency of the clock used for stepper pulse timing
 
 #define START_STEPPER_INTERRUPT()   HAL_timer_start()
 #define ENABLE_STEPPER_INTERRUPT()  HAL_timer_enable_interrupt()

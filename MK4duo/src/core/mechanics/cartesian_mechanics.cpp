@@ -105,7 +105,7 @@ void Cartesian_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s
   if (fr_mm_s) feedrate_mm_s = fr_mm_s;
 
   REMEMBER(old_pct, feedrate_percentage, 100);
-  REMEMBER(old_fac, extruders[tools.extruder.active]->e_factor, 1.0f);
+  REMEMBER(old_fac, extruders[toolManager.extruder.active]->e_factor, 1.0f);
 
   prepare_move_to_destination();
 }
@@ -223,8 +223,8 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
-    tools.change(0, true);
+    const uint8_t old_tool_index = toolManager.extruder.active;
+    toolManager.change(0, true);
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
@@ -277,14 +277,14 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
   if (doX) {
     #if ENABLED(DUAL_X_CARRIAGE)
       // Always home the 2nd (right) extruder first
-      tools.extruder.active = 1;
+      toolManager.extruder.active = 1;
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
 
       // Home the 1st (left) extruder
-      tools.extruder.active = 0;
+      toolManager.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
@@ -340,14 +340,14 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
     if (dxc_is_duplicating()) {
 
       // Always home the 2nd (right) extruder first
-      tools.extruder.active = 1;
+      toolManager.extruder.active = 1;
       homeaxis(X_AXIS);
 
       // Remember this extruder's position for later tool change
       inactive_extruder_x_pos = current_position.x;
 
       // Home the 1st (left) extruder
-      tools.extruder.active = 0;
+      toolManager.extruder.active = 0;
       homeaxis(X_AXIS);
 
       // Consider the active extruder to be parked
@@ -384,7 +384,7 @@ void Cartesian_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Restore the active tool after homing
   #if HOTENDS > 1
-    tools.change(old_tool_index, true);
+    toolManager.change(old_tool_index, true);
   #endif
 
   lcdui.refresh();
@@ -417,7 +417,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   // Only do some things when moving towards an endstop
   const int8_t axis_home_dir =
     #if ENABLED(DUAL_X_CARRIAGE)
-      (axis == X_AXIS) ? x_home_dir(tools.extruder.active) :
+      (axis == X_AXIS) ? x_home_dir(toolManager.extruder.active) :
     #endif
     get_homedir(axis);
   const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
@@ -444,7 +444,7 @@ void Cartesian_Mechanics::do_homing_move(const AxisEnum axis, const float distan
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
+  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], toolManager.extruder.active);
 
   planner.synchronize();
 
@@ -491,7 +491,7 @@ bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(scaled_fr_mm_s, tools.extruder.active);
+        ubl.line_to_destination_cartesian(scaled_fr_mm_s, toolManager.extruder.active);
         return true;
       #else
         /**
@@ -510,7 +510,7 @@ bool Cartesian_Mechanics::prepare_move_to_destination_mech_specific() {
     }
   #endif // HAS_MESH
 
-  planner.buffer_line(destination, scaled_fr_mm_s, tools.extruder.active);
+  planner.buffer_line(destination, scaled_fr_mm_s, toolManager.extruder.active);
   return false;
 }
 
@@ -537,8 +537,8 @@ void Cartesian_Mechanics::set_axis_is_at_home(const AxisEnum axis) {
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    if (axis == X_AXIS && (tools.extruder.active == 1 || dxc_is_duplicating())) {
-      current_position.x = x_home_pos(tools.extruder.active);
+    if (axis == X_AXIS && (toolManager.extruder.active == 1 || dxc_is_duplicating())) {
+      current_position.x = x_home_pos(toolManager.extruder.active);
       return;
     }
   #endif
@@ -627,7 +627,7 @@ float Cartesian_Mechanics::z_home_pos() {
 bool Cartesian_Mechanics::position_is_reachable(const float &rx, const float &ry) {
   if (!WITHIN(ry, data.base_pos.min.y - slop, data.base_pos.max.y + slop)) return false;
   #if ENABLED(DUAL_X_CARRIAGE)
-    if (tools.extruder.active)
+    if (toolManager.extruder.active)
       return WITHIN(rx, X2_MIN_POS - slop, X2_MAX_POS + slop);
     else
       return WITHIN(rx, X1_MIN_POS - slop, X1_MAX_POS + slop);
@@ -720,16 +720,16 @@ void Cartesian_Mechanics::report_current_position_detail() {
           #define RAISED_Y raised_parked_position[Y_AXIS]
           #define RAISED_Z raised_parked_position[Z_AXIS]
 
-          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active))
-            if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     tools.extruder.active))
-                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, tools.extruder.active);
+          if (  planner.buffer_line(RAISED_X, RAISED_Y, RAISED_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active))
+            if (planner.buffer_line(   CUR_X,    CUR_Y, RAISED_Z, CUR_E, PLANNER_XY_FEEDRATE(),     toolManager.extruder.active))
+                planner.buffer_line(   CUR_X,    CUR_Y,    CUR_Z, CUR_E, data.max_feedrate_mm_s.z, toolManager.extruder.active);
           delayed_move_timer.stop();
           active_extruder_parked = false;
           if (printer.debugFeature()) DEBUG_EM("Clear active_extruder_parked");
           break;
         case DXC_SCALED_DUPLICATION_MODE:
         case DXC_DUPLICATION_MODE:
-          if (tools.extruder.active == 0) {
+          if (toolManager.extruder.active == 0) {
             if (printer.debugFeature()) {
               DEBUG_MV("Set planner X", inactive_extruder_x_pos);
               DEBUG_EMV(" ... Line to X", current_position.x + duplicate_extruder_x_offset);
@@ -893,7 +893,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
 
   const int axis_home_dir = (
     #if ENABLED(DUAL_X_CARRIAGE)
-      axis == X_AXIS ? x_home_dir(tools.extruder.active) :
+      axis == X_AXIS ? x_home_dir(toolManager.extruder.active) :
     #endif
     get_homedir(axis)
   );
@@ -1079,7 +1079,7 @@ void Cartesian_Mechanics::homeaxis(const AxisEnum axis) {
     sync_plan_position();
 
     #if ENABLED(DUAL_X_CARRIAGE)
-      const int x_axis_home_dir = x_home_dir(tools.extruder.active);
+      const int x_axis_home_dir = x_home_dir(toolManager.extruder.active);
     #else
       const int x_axis_home_dir = home_dir.x;
     #endif

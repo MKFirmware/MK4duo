@@ -49,12 +49,12 @@ void menu_tmc();
       editable.state = printer.isVolumetric();
       EDIT_ITEM(bool, MSG_VOLUMETRIC_ENABLED, &editable.state, []{
         printer.setVolumetric(editable.state);
-        tools.calculate_volumetric_multipliers;
+        toolManager.calculate_volumetric_multipliers;
       });
 
       if (printer.isVolumetric()) {
         LOOP_EXTRUDER()
-          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &tools.data.filament_size[e], 1.5f, 3.5f, tools.calculate_volumetric_multipliers);
+          EDIT_ITEM_FAST_N(float43, e, MSG_FILAMENT_DIAM, &toolManager.data.filament_size[e], 1.5f, 3.5f, toolManager.calculate_volumetric_multipliers);
       }
 
     #endif // ENABLED(VOLUMETRIC_EXTRUSION)
@@ -231,7 +231,7 @@ void menu_advanced_temperature() {
 
     LOOP_EXTRUDER()
       EDIT_ITEM_FAST_N(long5_25, e, MSG_AMAX_E, &extruders[e]->data.max_acceleration_mm_per_s2, 100, 99000, []{
-        if (MenuItemBase::itemIndex == tools.extruder.active) planner.reset_acceleration_rates();
+        if (MenuItemBase::itemIndex == toolManager.extruder.active) planner.reset_acceleration_rates();
       });
 
     END_MENU();
@@ -290,7 +290,7 @@ void menu_advanced_temperature() {
 
     LOOP_EXTRUDER()
       EDIT_ITEM_FAST_N(float51, e, MSG_E_STEPS, &extruders[e]->data.axis_steps_per_mm, 5, 9999, []{
-        if (MenuItemBase::itemIndex == tools.extruder.active)
+        if (MenuItemBase::itemIndex == toolManager.extruder.active)
           planner.refresh_positioning();
         else
           extruders[MenuItemBase::itemIndex]->steps_to_mm = RECIPROCAL(extruders[MenuItemBase::itemIndex]->data.axis_steps_per_mm);
@@ -316,9 +316,9 @@ void menu_advanced_settings() {
 
     if (printer.mode == PRINTER_MODE_FFF) {
       #if HAS_LINEAR_EXTRUDER
-        editable.uint8 = tools.data.extruders;
+        editable.uint8 = toolManager.extruder.total;
         EDIT_ITEM(uint8, MSG_MAX_EXTRUDERS, &editable.uint8, 0, MAX_EXTRUDER, []{
-          tools.change_number_extruder(editable.uint8);
+          toolManager.change_number_extruder(editable.uint8);
         });
       #endif
       SUBMENU(MSG_TEMPERATURE, menu_advanced_temperature);
