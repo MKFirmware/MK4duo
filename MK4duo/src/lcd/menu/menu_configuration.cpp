@@ -86,10 +86,10 @@ void menu_tool_change() {
     #else
       static constexpr float max_extrude_lenght = 500;
     #endif
-    EDIT_ITEM(float3, MSG_FILAMENT_SWAP_LENGTH, &tools.data.swap_length, 0, max_extrude_lenght);
+    EDIT_ITEM(float3, MSG_FILAMENT_SWAP_LENGTH, &toolManager.data.swap_length, 0, max_extrude_lenght);
     EDIT_ITEM(float3, MSG_FILAMENT_PURGE_LENGTH, &toolchange_settings.purge_lenght, 0, max_extrude_lenght);
-    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &tools.data.retract_speed, 10, 5400);
-    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_PRIME_SPD, &tools.data.prime_speed, 10, 5400);
+    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_RETRACT_SPD, &toolManager.data.retract_speed, 10, 5400);
+    EDIT_ITEM_FAST(int4, MSG_SINGLENOZZLE_PRIME_SPD, &toolManager.data.prime_speed, 10, 5400);
   #endif
   EDIT_ITEM(float3, MSG_TOOL_CHANGE_ZLIFT, &nozzle.data.park_point.z, 0, 10);
   END_MENU();
@@ -100,9 +100,9 @@ void menu_tool_change() {
   void menu_tool_offsets() {
 
     auto _recalc_offsets = []{
-      if (tools.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
+      if (toolManager.extruder.active && mechanics.axis_unhomed_error()) {  // For the 2nd extruder re-home so the next tool-change gets the new offsets.
         commands.inject_P(G28_CMD); // In future, we can babystep the 2nd extruder (if active), making homing unnecessary.
-        tools.extruder.active = 0;
+        toolManager.extruder.active = 0;
       }
     };
 
@@ -114,7 +114,7 @@ void menu_tool_change() {
       EDIT_ITEM_FAST(float52sign, MSG_Y_OFFSET, &nozzle.data.hotend_offset[1].y, -10.0, 10.0, _recalc_offsets);
       EDIT_ITEM_FAST(float52sign, MSG_Z_OFFSET, &nozzle.data.hotend_offset[1].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
     #else
-      for (uint8_t h = 1; h < tools.data.hotends; h++) {
+      for (uint8_t h = 1; h < tempManager.heater.hotends; h++) {
         EDIT_ITEM_FAST_N(float52sign, h, MSG_X_OFFSET, &nozzle.data.hotend_offset[h].x, -10.0, 10.0, _recalc_offsets);
         EDIT_ITEM_FAST_N(float52sign, h, MSG_Y_OFFSET, &nozzle.data.hotend_offset[h].y, -10.0, 10.0, _recalc_offsets);
         EDIT_ITEM_FAST_N(float52sign, h, MSG_Z_OFFSET, &nozzle.data.hotend_offset[h].z, Z_PROBE_LOW_POINT, 10.0, _recalc_offsets);
@@ -211,7 +211,7 @@ void menu_tool_change() {
     EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_ZHOP, &fwretract.data.retract_zlift, 0, 999);
     EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER, &fwretract.data.retract_recover_length, -100, 100);
     EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVERF, &fwretract.data.retract_recover_feedrate_mm_s, 1, 999);
-    if (tools.data.extruders > 1) {
+    if (toolManager.extruder.total > 1) {
       EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_SWAP, &fwretract.data.swap_retract_length, 0, 100);
       EDIT_ITEM(float52sign, MSG_CONTROL_RETRACT_RECOVER_SWAP, &fwretract.data.swap_retract_recover_length, -100, 100);
       EDIT_ITEM(float3, MSG_CONTROL_RETRACT_RECOVER_SWAPF, &fwretract.data.swap_retract_recover_feedrate_mm_s, 1, 999);
@@ -296,13 +296,13 @@ void menu_tool_change() {
       EDIT_ITEM(percent, MSG_FAN_SPEED, &lcdui.preheat_fan_speed[material], 0, 255);
     #endif
     #if MAX_HOTEND > 0
-      EDIT_ITEM(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], thermalManager.hotend_mintemp_all(), thermalManager.hotend_maxtemp_all());
+      EDIT_ITEM(int3, MSG_NOZZLE, &lcdui.preheat_hotend_temp[material], tempManager.hotend_mintemp_all(), tempManager.hotend_maxtemp_all());
     #endif
     #if MAX_BED > 0
-      EDIT_ITEM(int3, MSG_BED, &lcdui.preheat_bed_temp[material], thermalManager.bed_mintemp_all(), thermalManager.bed_maxtemp_all());
+      EDIT_ITEM(int3, MSG_BED, &lcdui.preheat_bed_temp[material], tempManager.bed_mintemp_all(), tempManager.bed_maxtemp_all());
     #endif
     #if MAX_CHAMBER > 0
-      EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], thermalManager.chamber_mintemp_all(), thermalManager.chamber_maxtemp_all());
+      EDIT_ITEM(int3, MSG_CHAMBER, &lcdui.preheat_chamber_temp[material], tempManager.chamber_mintemp_all(), tempManager.chamber_maxtemp_all());
     #endif
     #if ENABLED(EEPROM_SETTINGS)
       ACTION_ITEM(MSG_STORE_EEPROM, []{ eeprom.store(); });
@@ -349,7 +349,7 @@ void menu_configuration() {
     #endif
   }
 
-  if (tools.data.extruders > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
+  if (toolManager.extruder.total > 1) SUBMENU(MSG_TOOL_CHANGE, menu_tool_change);
 
   //
   // Set Case light on/off/brightness

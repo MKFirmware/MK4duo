@@ -191,7 +191,7 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
     }
   }
   #if ENABLED(PREVENT_COLD_EXTRUSION)
-    if (axis == E_AXIS && thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : tools.extruder.active))
+    if (axis == E_AXIS && tempManager.tooColdToExtrude(eindex >= 0 ? eindex : toolManager.extruder.active))
       BACK_ITEM(MSG_HOTEND_TOO_COLD);
     else
   #endif
@@ -262,7 +262,7 @@ void menu_move() {
 
   #if ENABLED(DONDOLO_SINGLE_MOTOR) || ENABLED(DONDOLO_DUAL_MOTOR) || ENABLED(DUAL_X_CARRIAGE)
 
-    if (tools.extruder.active)
+    if (toolManager.extruder.active)
       GCODES_ITEM(MSG_SELECT "E0", PSTR("T0"));
     else
       GCODES_ITEM(MSG_SELECT "E1", PSTR("T1"));

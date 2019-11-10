@@ -24,9 +24,8 @@
  * heater.cpp - heater object
  */
 
-#include "../../../MK4duo.h"
+#include "../../../../MK4duo.h"
 #include "sanitycheck.h"
-#include "sensor/thermistor.h"
 
 #if MAX_HOTEND > 0
   Heater* hotends[MAX_HOTEND]   = { nullptr };
@@ -230,7 +229,7 @@ void Heater::get_output() {
           #endif
           pwm_value = data.pid.spin(targetTemperature, current_temperature
             #if ENABLED(PID_ADD_EXTRUSION_RATE)
-              , id
+              , id, tempManager.heater.lpq_len
             #endif
           );
         }
@@ -246,7 +245,7 @@ void Heater::get_output() {
 
     /**
     if (printer.debugFeature() && type == IS_HOTEND) {
-      DEBUG_SMV(DEB, MSG_HOST_PID_DEBUG, tools.active_hotend());
+      DEBUG_SMV(DEB, MSG_HOST_PID_DEBUG, toolManager.active_hotend());
       DEBUG_MV(MSG_HOST_PID_DEBUG_INPUT, current_temperature);
       DEBUG_MV(MSG_HOST_PID_DEBUG_OUTPUT, pwm_value);
       DEBUG_MV(MSG_HOST_PID_DEBUG_PTERM, data.pid.Kp);
@@ -323,7 +322,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
   const bool  isHotend      = type == IS_HOTEND,
               oldReport     = printer.isAutoreportTemp();
 
-  thermalManager.disable_all_heaters(); // switch off all heaters.
+  tempManager.disable_all_heaters(); // switch off all heaters.
 
   millis_l  t1      = millis(),
             t2      = t1;
@@ -556,7 +555,7 @@ void Heater::PID_autotune(const float target_temp, const uint8_t ncycles, const 
 
   }
 
-  thermalManager.disable_all_heaters();
+  tempManager.disable_all_heaters();
 
   printer.setWaitForHeatUp(false);
   printer.setAutoreportTemp(oldReport);
@@ -584,7 +583,7 @@ void Heater::print_M301() {
     #if ENABLED(PID_ADD_EXTRUSION_RATE)
       if (type == IS_HOTEND) {
         SERIAL_MV(" C", data.pid.Kc);
-        SERIAL_MV(" L", (int)tools.data.lpq_len);
+        SERIAL_MV(" L", (int)tempManager.heater.lpq_len);
       }
     #endif
     SERIAL_EOL();

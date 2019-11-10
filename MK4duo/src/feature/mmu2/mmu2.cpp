@@ -500,7 +500,7 @@ void MMU2::tool_change(uint8_t index) {
 
     command(MMU_CMD_C0);
     extruder = index; // filament change is finished
-    tools.extruder.active = 0;
+    toolManager.extruder.active = 0;
 
     stepper.enable_E(0);
 
@@ -547,7 +547,7 @@ void MMU2::tool_change(const char* special) {
 
         stepper.enable_E(0);
         extruder = index;
-        tools.extruder.active = 0;
+        toolManager.extruder.active = 0;
       } break;
 
       case 'c': {
@@ -698,7 +698,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
+    if (tempManager.tooColdToExtrude(toolManager.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;
@@ -710,7 +710,7 @@ void MMU2::set_runout_valid(const bool valid) {
       mmu_loop();
 
       extruder = index;
-      tools.extruder.active = 0;
+      toolManager.extruder.active = 0;
 
       load_to_nozzle();
 
@@ -737,7 +737,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
+    if (tempManager.tooColdToExtrude(toolManager.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;
@@ -749,7 +749,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     stepper.enable_E(0);
     mechanics.current_position.e -= MMU2_FILAMENTCHANGE_EJECT_FEED;
-    planner.buffer_line(mechanics.current_position, 2500 / 60, tools.extruder.active);
+    planner.buffer_line(mechanics.current_position, 2500 / 60, toolManager.extruder.active);
     planner.synchronize();
     command(MMU_CMD_E0 + index);
     manage_response(false, false);
@@ -792,7 +792,7 @@ void MMU2::set_runout_valid(const bool valid) {
 
     if (!enabled) return false;
 
-    if (thermalManager.tooColdToExtrude(tools.active_hotend())) {
+    if (tempManager.tooColdToExtrude(toolManager.active_hotend())) {
       sound.playtone(200, 404);
       LCD_ALERTMESSAGEPGM(MSG_HOTEND_TOO_COLD);
       return false;
@@ -841,7 +841,7 @@ void MMU2::set_runout_valid(const bool valid) {
       #endif
 
       mechanics.current_position.e += es;
-      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), tools.extruder.active);
+      planner.buffer_line(mechanics.current_position, MMM_TO_MMS(fr), toolManager.extruder.active);
       planner.synchronize();
 
       step++;

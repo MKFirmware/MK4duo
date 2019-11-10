@@ -57,7 +57,7 @@ inline void gcode_M92() {
     if (parser.seen(axis_codes[i])) {
       const float value = MAX(parser.value_per_axis_unit((AxisEnum)i), 1.0f); // don't allow zero or negative
       if (i == E_AXIS) {
-        const uint8_t t = tools.extruder.target;
+        const uint8_t t = toolManager.extruder.target;
         if (value < 20) {
           float factor = extruders[t]->data.axis_steps_per_mm / value; // increase e constants if M92 E14 is given for netfab.
           #if HAS_CLASSIC_JERK && (DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE))

@@ -123,7 +123,7 @@ void Mechanics::set_current_from_steppers_for_axis(const AxisEnum axis) {
  * (or from wherever it has been told it is located).
  */
 void Mechanics::line_to_current_position(const feedrate_t &fr_mm_s/*=feedrate_mm_s*/) {
-  planner.buffer_line(current_position, fr_mm_s, tools.extruder.active);
+  planner.buffer_line(current_position, fr_mm_s, toolManager.extruder.active);
 }
 
 /**
@@ -172,7 +172,7 @@ void Mechanics::clean_up_after_endstop_or_probe_move() {
    * since Arduino works with limited precision real numbers).
    */
   void Mechanics::plan_cubic_move(const float offset[4]) {
-    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), tools.extruder.active);
+    Bezier::cubic_b_spline(current_position, destination, offset, MMS_SCALED(feedrate_mm_s), toolManager.extruder.active);
 
     // As far as the parser is concerned, the position is now == destination. In reality the
     // motion control system might still be processing the action and the real tool position

@@ -53,8 +53,8 @@ void AdvancedPause::do_pause_e_move(const float &length, const feedrate_t &fr_mm
   #if HAS_FILAMENT_SENSOR
     filamentrunout.reset();
   #endif
-  mechanics.current_position.e += length /extruders[tools.extruder.active]->e_factor;
-  planner.buffer_line(mechanics.current_position, fr_mm_s, tools.extruder.active);
+  mechanics.current_position.e += length /extruders[toolManager.extruder.active]->e_factor;
+  planner.buffer_line(mechanics.current_position, fr_mm_s, toolManager.extruder.active);
   planner.synchronize();
 }
 
@@ -82,7 +82,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   host_action.paused();
   host_action.prompt_open(PROMPT_INFO, PSTR("Pause"), PSTR("Dismiss"));
 
-  if (!printer.debugDryrun() && unload_length && thermalManager.tooColdToExtrude(tools.active_hotend())) {
+  if (!printer.debugDryrun() && unload_length && tempManager.tooColdToExtrude(toolManager.active_hotend())) {
     SERIAL_LM(ER, MSG_HOST_HOTEND_TOO_COLD);
 
     #if HAS_LCD_MENU
@@ -115,16 +115,16 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
   planner.synchronize();
 
   // Initial retract before move to filament change position
-  if (retract && !thermalManager.tooColdToExtrude(tools.active_hotend()))
+  if (retract && !tempManager.tooColdToExtrude(toolManager.active_hotend()))
     do_pause_e_move(retract, feedrate_t(PAUSE_PARK_RETRACT_FEEDRATE));
 
   // Park the nozzle by moving up by z_lift and then moving to (x_pos, y_pos)
   nozzle.park(2, park_point);
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = toolManager.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    toolManager.extruder.active   = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -133,7 +133,7 @@ bool AdvancedPause::pause_print(const float &retract, const xyz_pos_t &park_poin
     unload_filament(unload_length, show_lcd);
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    toolManager.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -171,9 +171,9 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = toolManager.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active    = DXC_ext;
+    toolManager.extruder.active    = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -255,7 +255,7 @@ void AdvancedPause::wait_for_confirmation(const bool is_reload/*=false*/, const 
   }
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    toolManager.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -300,7 +300,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
     hotends[h]->reset_idle_timer();
   }
 
-  if (nozzle_timed_out || thermalManager.hotEnoughToExtrude(tools.extruder.target)) {
+  if (nozzle_timed_out || tempManager.hotEnoughToExtrude(toolManager.extruder.target)) {
     // Load the new filament
     load_filament(slow_load_length, fast_load_length, purge_length, max_beep_count, true, nozzle_timed_out, PAUSE_MODE_PAUSE_PRINT DXC_PASS);
   }
@@ -312,7 +312,7 @@ void AdvancedPause::resume_print(const float &slow_load_length/*=0*/, const floa
   // Intelligent resuming
   #if ENABLED(FWRETRACT)
     // If retracted before goto pause
-    if (fwretract.retracted[tools.extruder.active])
+    if (fwretract.retracted[toolManager.extruder.active])
       do_pause_e_move(-fwretract.data.retract_length, fwretract.data.retract_feedrate_mm_s);
   #endif
 
@@ -410,7 +410,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
     PRINTER_KEEPALIVE(PausedforUser);
     printer.setWaitForUser(true);    // LCD click or M108 will clear this
 
-    const char tool = DIGIT(tools.extruder.active);
+    const char tool = DIGIT(toolManager.extruder.active);
 
     host_action.prompt_reason = PROMPT_USER_CONTINUE;
     host_action.prompt_begin(PSTR("Load Filament T"), false);
@@ -432,9 +432,9 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    const int8_t saved_ext        = tools.extruder.active;
+    const int8_t saved_ext        = toolManager.extruder.active;
     const bool saved_ext_dup_mode = mechanics.extruder_duplication_enabled;
-    tools.extruder.active = DXC_ext;
+    toolManager.extruder.active = DXC_ext;
     mechanics.extruder_duplication_enabled = false;
   #endif
 
@@ -445,7 +445,7 @@ bool AdvancedPause::load_filament(const float &slow_load_length/*=0*/, const flo
   if (fast_load_length) do_pause_e_move(fast_load_length, feedrate_t(PAUSE_PARK_FAST_LOAD_FEEDRATE));
 
   #if ENABLED(DUAL_X_CARRIAGE)
-    tools.extruder.active = saved_ext;
+    toolManager.extruder.active = saved_ext;
     mechanics.extruder_duplication_enabled = saved_ext_dup_mode;
     stepper.set_directions();
   #endif
@@ -533,14 +533,14 @@ bool AdvancedPause::unload_filament(const float &unload_length, const bool show_
   HAL::delayMilliseconds(FILAMENT_UNLOAD_DELAY);
 
   // Quickly purge
-  do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, extruders[tools.extruder.active]->data.max_feedrate_mm_s);
+  do_pause_e_move(FILAMENT_UNLOAD_RETRACT_LENGTH + FILAMENT_UNLOAD_PURGE_LENGTH, extruders[toolManager.extruder.active]->data.max_feedrate_mm_s);
 
   // Unload filament
   do_pause_e_move(unload_length, feedrate_t(PAUSE_PARK_UNLOAD_FEEDRATE));
 
   // Disable extruders steppers for manual filament changing
   #if HAS_E_STEPPER_ENABLE
-    stepper.disable_E(tools.extruder.active);
+    stepper.disable_E(toolManager.extruder.active);
     HAL::delayMilliseconds(100);
   #endif
 
@@ -579,7 +579,7 @@ bool AdvancedPause::ensure_safe_temperature(const PauseModeEnum tmode/*=PAUSE_MO
     LOOP_BED() beds[h]->wait_for_target();
   #endif
 
-  hotends[tools.active_hotend()]->wait_for_target();
+  hotends[toolManager.active_hotend()]->wait_for_target();
 
   return !printer.isWaitForHeatUp();
 }

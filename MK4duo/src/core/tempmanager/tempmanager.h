@@ -21,16 +21,33 @@
  */
 #pragma once
 
+#include "dhtsensor/dhtsensor.h"
+#include "sensor/sensor.h"
+#include "pid/pid.h"
+#include "heater/heater.h"
+
+struct temp_data_t {
+  uint8_t hotends   : 4;
+  uint8_t beds      : 4;
+  uint8_t chambers  : 4;
+  uint8_t coolers   : 4;
+  #if ENABLED(PID_ADD_EXTRUSION_RATE)
+    int16_t lpq_len : 16;
+  #endif
+};
+
 /**
- * temperature.h - temperature controller
+ * tempmanager.h - temperature manager
  */
-class Temperature {
+class TempManager {
 
   public: /** Constructor */
 
-    Temperature() {};
+    TempManager() {};
 
   public: /** Public Parameters */
+
+    static temp_data_t heater;
 
     #if HAS_MCU_TEMPERATURE
       static float    mcu_current_temperature,
@@ -202,4 +219,4 @@ class Temperature {
 
 };
 
-extern Temperature thermalManager;
+extern TempManager tempManager;

@@ -139,7 +139,7 @@ class FilamentRunoutBase {
         if (advancedpause.did_pause_print) return;
       #endif
 
-      const char tool = DIGIT(tools.extruder.active);
+      const char tool = DIGIT(toolManager.extruder.active);
       host_action.prompt_reason = PROMPT_FILAMENT_RUNOUT;
       host_action.prompt_begin(PSTR("Filament Runout T"), false);
       SERIAL_CHR(tool);
@@ -304,8 +304,8 @@ class FilamentSensorBase {
       static inline void block_completed(const block_t* const b) { UNUSED(b); }
 
       static inline void run() {
-        const bool out = read_runout_state(tools.extruder.active);
-        if (!out) filament_present(tools.extruder.active);
+        const bool out = read_runout_state(toolManager.extruder.active);
+        if (!out) filament_present(toolManager.extruder.active);
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
           static bool was_out = false;
           if (out != was_out) {
@@ -371,7 +371,7 @@ class FilamentSensorBase {
       }
 
       static inline bool has_run_out() {
-        return runout_mm_countdown[tools.extruder.active] < 0;
+        return runout_mm_countdown[toolManager.extruder.active] < 0;
       }
 
       static void filament_present(const uint8_t extruder);

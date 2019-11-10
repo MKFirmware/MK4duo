@@ -481,7 +481,7 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
 #if HAS_DHT
   FORCE_INLINE void _draw_humidity_status() {
     lcd_put_wchar(LCD_STR_BEDTEMP[0]);
-    lcd_put_u8str(i16tostr3(dhtsensor.Humidity));
+    lcd_put_u8str(i16tostr3(dhtsensor.humidity));
   }
 #endif
 
@@ -566,8 +566,8 @@ void LcdUI::draw_status_message(const bool blink) {
         lcd_put_u8str_P(PSTR(" V"));
         lcd_put_u8str(i8tostr3(100.0 * (
           printer.isVolumetric()
-            ? tools.volumetric_area_nominal / tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
-            : tools.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+            ? toolManager.volumetric_area_nominal / toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
+            : toolManager.volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         )));
         lcd_put_wchar('%');
         return;
@@ -1040,7 +1040,7 @@ void LcdUI::draw_status_screen() {
       #endif // MAX_FAN > 0
 
       #if HOTENDS > 1
-        if (thermalManager.degTargetHotend(1) > 0) leds |= LED_C;
+        if (tempManager.degTargetHotend(1) > 0) leds |= LED_C;
       #endif
 
       if (leds != ledsprev) {

@@ -99,7 +99,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
     // Change filament
     LOOP_EXTRUDER() {
       PGM_P const msg = GET_TEXT(MSG_FILAMENTCHANGE);
-      if (thermalManager.targetTooColdToExtrude(e))
+      if (tempManager.targetTooColdToExtrude(e))
         SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PauseModeEnum(editable.int8), MenuItemBase::itemIndex); });
       else
         SUBMENU_N_P(e, msg, []{
@@ -113,7 +113,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       // Load filament
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTLOAD);
-        if (thermalManager.targetTooColdToExtrude(e))
+        if (tempManager.targetTooColdToExtrude(e))
           SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_LOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
           SUBMENU_N_P(e, msg, []{
@@ -125,7 +125,7 @@ void _menu_temp_filament_op(const PauseModeEnum mode, const int8_t extruder) {
       // Unload filament
       LOOP_EXTRUDER() {
         PGM_P const msg = GET_TEXT(MSG_FILAMENTUNLOAD);
-        if (thermalManager.targetTooColdToExtrude(e))
+        if (tempManager.targetTooColdToExtrude(e))
           SUBMENU_N_P(e, msg, []{ _menu_temp_filament_op(PAUSE_MODE_UNLOAD_FILAMENT, MenuItemBase::itemIndex); });
         else
           SUBMENU_N_P(e, msg, []{
@@ -272,7 +272,7 @@ FORCE_INLINE screenFunc_t ap_message_screen(const PauseMessageEnum message) {
 void lcd_pause_show_message(
   const PauseMessageEnum message,
   const PauseModeEnum mode/*=PAUSE_MODE_SAME*/,
-  const uint8_t hotend/*=tools.target_hotend()*/
+  const uint8_t hotend/*=toolManager.target_hotend()*/
 ) {
   if (mode != PAUSE_MODE_SAME) advancedpause.mode = mode;
   hotend_status_extruder = hotend;

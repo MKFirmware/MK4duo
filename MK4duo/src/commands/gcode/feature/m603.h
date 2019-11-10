@@ -44,17 +44,17 @@
 
     // Unload length
     if (parser.seen('U')) {
-      extruders[tools.extruder.target]->data.unload_length = ABS(parser.value_axis_units(E_AXIS));
+      extruders[toolManager.extruder.target]->data.unload_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(extruders[tools.extruder.target]->data.unload_length, EXTRUDE_MAXLENGTH);
+        NOMORE(extruders[toolManager.extruder.target]->data.unload_length, EXTRUDE_MAXLENGTH);
       #endif
     }
 
     // Load length
     if (parser.seen('L')) {
-      extruders[tools.extruder.target]->data.load_length = ABS(parser.value_axis_units(E_AXIS));
+      extruders[toolManager.extruder.target]->data.load_length = ABS(parser.value_axis_units(E_AXIS));
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
-        NOMORE(extruders[tools.extruder.target]->data.load_length, EXTRUDE_MAXLENGTH);
+        NOMORE(extruders[toolManager.extruder.target]->data.load_length, EXTRUDE_MAXLENGTH);
       #endif
     }
   }

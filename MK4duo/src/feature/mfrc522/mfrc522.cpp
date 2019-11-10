@@ -122,7 +122,7 @@ void MFRC522::spin() {
           extruders[e]->density_percentage = rfid522.data[e].data.density;
           #if ENABLED(VOLUMETRIC_EXTRUSION)
             extruders[e]->data.filament_size = rfid522.data[e].data.size;
-            tools.calculate_volumetric_multipliers();
+            toolManager.calculate_volumetric_multipliers();
           #endif
           extruders[e]->refresh_e_factor();
           print_info(e);

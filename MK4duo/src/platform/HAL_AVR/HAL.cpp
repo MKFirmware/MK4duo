@@ -347,10 +347,10 @@ void HAL::Tick() {
   #endif
 
   // Fans set output PWM
-  fansManager.set_output_pwm();
+  fanManager.set_output_pwm();
 
   // Event 100 ms
-  if (cycle_100_timer.expired(100)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) tempManager.spin();
 
   // Event 1.0 Second
   if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();

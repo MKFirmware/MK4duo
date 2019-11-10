@@ -81,7 +81,7 @@ inline void gcode_M605() {
       case DXC_DUPLICATION_MODE:
         if (parser.seen('X')) mechanics.duplicate_extruder_x_offset = MAX(parser.value_linear_units(), X2_MIN_POS - mechanics.x_home_pos(0));
         if (parser.seen('R')) mechanics.duplicate_extruder_temp_offset = parser.value_celsius_diff();
-        if (tools.extruder.active != 0) tools.change(0);
+        if (toolManager.extruder.active != 0) toolManager.change(0);
         break;
       default:
         mechanics.dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -103,7 +103,7 @@ inline void gcode_M605() {
       case DXC_DUPLICATION_MODE:        DEBUG_MSG("DXC_DUPLICATION_MODE");         break;
       case DXC_SCALED_DUPLICATION_MODE: DEBUG_MSG("DXC_SCALED_DUPLICATION_MODE");  break;
     }
-    DEBUG_MV("\nActive Ext: ", int(tools.extruder.active));
+    DEBUG_MV("\nActive Ext: ", int(toolManager.extruder.active));
     if (!mechanics.active_extruder_parked) DEBUG_MSG(" NOT ");
     DEBUG_EM(" parked.");
     DEBUG_MV("\nactive_extruder_x_pos: ", mechanics.current_position.x);

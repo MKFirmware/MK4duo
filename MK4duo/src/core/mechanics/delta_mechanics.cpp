@@ -139,7 +139,7 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
     // If the move is only in Z/E don't split up the move
     if (!difference.x && !difference.y) {
-      planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active);
+      planner.buffer_line(destination, _feedrate_mm_s, toolManager.extruder.active);
       return false; // caller will update current_position
     }
 
@@ -190,12 +190,12 @@ void Delta_Mechanics::get_cartesian_from_steppers() {
 
       raw += segment_distance;
 
-      if (!planner.buffer_line(raw, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm))
+      if (!planner.buffer_line(raw, _feedrate_mm_s, toolManager.extruder.active, cartesian_segment_mm))
         break;
 
     }
 
-    planner.buffer_line(destination, _feedrate_mm_s, tools.extruder.active, cartesian_segment_mm);
+    planner.buffer_line(destination, _feedrate_mm_s, toolManager.extruder.active, cartesian_segment_mm);
 
     return false; // caller will update current_position.x
 
@@ -212,7 +212,7 @@ void Delta_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s/*=0
   if (fr_mm_s) feedrate_mm_s = fr_mm_s;
 
   REMEMBER(old_pct, feedrate_percentage, 100);
-  REMEMBER(old_fac, extruders[tools.extruder.active]->e_factor, 1.0f);
+  REMEMBER(old_fac, extruders[toolManager.extruder.active]->e_factor, 1.0f);
 
   if (is_fast)
     prepare_uninterpolated_move_to_destination();
@@ -367,8 +367,8 @@ void Delta_Mechanics::InverseTransform(const float Ha, const float Hb, const flo
 void Delta_Mechanics::Transform(const xyz_pos_t &raw) {
 
   // Delta hotend offsets must be applied in Cartesian space
-  const xyz_pos_t pos = { raw.x - nozzle.data.hotend_offset[tools.active_hotend()].x,
-                          raw.y - nozzle.data.hotend_offset[tools.active_hotend()].y,
+  const xyz_pos_t pos = { raw.x - nozzle.data.hotend_offset[toolManager.active_hotend()].x,
+                          raw.y - nozzle.data.hotend_offset[toolManager.active_hotend()].y,
                           raw.z
   };
 
@@ -466,8 +466,8 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
-    tools.change(0, true);
+    const uint8_t old_tool_index = toolManager.extruder.active;
+    toolManager.change(0, true);
   #endif
 
   setup_for_endstop_or_probe_move();
@@ -498,7 +498,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Move all carriages together linearly until an endstop is hit.
   destination.z = data.height + 10;
-  planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.extruder.active);
+  planner.buffer_line(destination, homing_feedrate_mm_s.z, toolManager.extruder.active);
   planner.synchronize();
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -511,7 +511,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
       endstops.clear_state();
     #endif
     destination.z -= 5;
-    planner.buffer_line(destination, homing_feedrate_mm_s.z, tools.extruder.active);
+    planner.buffer_line(destination, homing_feedrate_mm_s.z, toolManager.extruder.active);
     planner.synchronize();
   #endif
 
@@ -579,7 +579,7 @@ void Delta_Mechanics::home(const bool report_position/*=true*/) {
 
   // Restore the active tool after homing
   #if HOTENDS > 1
-    tools.change(old_tool_index, true);
+    toolManager.change(old_tool_index, true);
   #endif
 
   lcdui.refresh();
@@ -637,7 +637,7 @@ void Delta_Mechanics::do_homing_move(const AxisEnum axis, const float distance, 
     #if ENABLED(JUNCTION_DEVIATION)
       , delta_mm_cart
     #endif
-    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z, tools.extruder.active
+    , fr_mm_s ? fr_mm_s : homing_feedrate_mm_s.z, toolManager.extruder.active
   );
 
   planner.synchronize();
@@ -1064,7 +1064,7 @@ void Delta_Mechanics::prepare_uninterpolated_move_to_destination(const feedrate_
     ubl.line_to_destination_segmented(MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s));
   #else
     if (current_position == destination) return;
-    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), tools.extruder.active);
+    planner.buffer_line(destination, MMS_SCALED(fr_mm_s ? fr_mm_s : feedrate_mm_s), toolManager.extruder.active);
   #endif
 
   current_position = destination;

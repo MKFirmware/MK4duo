@@ -635,7 +635,7 @@ void Stepper::set_directions() {
   #endif // DISABLED(LIN_ADVANCE)
 
   #if HAS_EXT_ENCODER
-    tools.encLastDir[active_extruder] = count_direction.e;
+    toolManager.encLastDir[active_extruder] = count_direction.e;
   #endif
 
   // After changing directions, an small delay could be needed.
@@ -2237,7 +2237,7 @@ void Stepper::_set_position(const int32_t &a, const int32_t &b, const int32_t &c
     #elif ENABLED(DONDOLO_SINGLE_MOTOR)
       return 0;
     #else
-      return extruders[tools.extruder.active]->get_driver(); 
+      return extruders[toolManager.extruder.active]->get_driver(); 
     #endif
   }
 #endif

@@ -64,15 +64,15 @@ inline void gcode_M353() {
     if (e > MAX_EXTRUDER)
       SERIAL_LM(ECHO, "Too many extruders");
     else
-      tools.change_number_extruder(e);
+      toolManager.change_number_extruder(e);
   }
 
   if (parser.seen('H')) {
     const uint8_t h = parser.value_byte();
-    if (h > tools.data.extruders || h > MAX_HOTEND)
+    if (h > toolManager.extruder.total || h > MAX_HOTEND)
       SERIAL_LM(ECHO, "Too many hotends");
     else
-      thermalManager.change_number_heater(IS_HOTEND, h);
+      tempManager.change_number_heater(IS_HOTEND, h);
   }
 
   if (parser.seen('B')) {
@@ -80,7 +80,7 @@ inline void gcode_M353() {
     if (h > MAX_BED)
       SERIAL_LM(ECHO, "Too many beds");
     else
-      thermalManager.change_number_heater(IS_BED, h);
+      tempManager.change_number_heater(IS_BED, h);
   }
 
   if (parser.seen('C')) {
@@ -88,7 +88,7 @@ inline void gcode_M353() {
     if (h > MAX_CHAMBER)
       SERIAL_LM(ECHO, "Too many chambers");
     else
-      thermalManager.change_number_heater(IS_CHAMBER, h);
+      tempManager.change_number_heater(IS_CHAMBER, h);
   }
 
   if (parser.seen('F')) {
@@ -96,7 +96,7 @@ inline void gcode_M353() {
     if (f > MAX_FAN)
       SERIAL_LM(ECHO, "Too many fans");
     else
-      fansManager.change_number_fan(f);
+      fanManager.change_number_fan(f);
   }
 
 }

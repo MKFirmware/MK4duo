@@ -46,7 +46,7 @@ inline void gcode_M106() {
 
   uint8_t f = 0;
 
-  if (printer.debugSimulation() || !fansManager.get_target_fan(f)) return;
+  if (printer.debugSimulation() || !fanManager.get_target_fan(f)) return;
 
   const uint8_t new_speed = parser.byteval('S', 255);
 
@@ -66,7 +66,7 @@ inline void gcode_M106() {
     fan->set_auto_monitor(parser.value_int());
 
   if (f == 0)
-    fansManager.data.frequency  = parser.ushortval('F', fansManager.data.frequency);
+    fanManager.data.frequency  = parser.ushortval('F', fanManager.data.frequency);
 
   fan->data.speed_limit.min     = parser.byteval('L', fan->data.speed_limit.min);
   fan->data.speed_limit.max     = parser.byteval('X', fan->data.speed_limit.max);
@@ -82,7 +82,7 @@ inline void gcode_M106() {
 
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M106 report.
-    if (!parser.seen("SUIHLXFT")) fansManager.print_M106(f);
+    if (!parser.seen("SUIHLXFT")) fanManager.print_M106(f);
   #endif
 
 }
@@ -92,6 +92,6 @@ inline void gcode_M106() {
  */
 inline void gcode_M107() {
   uint8_t f = 0;
-  if (printer.debugSimulation() || !fansManager.get_target_fan(f)) return;
+  if (printer.debugSimulation() || !fanManager.get_target_fan(f)) return;
   fans[f]->speed = 0;
 }

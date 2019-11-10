@@ -47,7 +47,7 @@ inline void gcode_M217() {
 
   if (commands.get_target_tool(217)) return;
 
-  const uint8_t t = tools.extruder.target;
+  const uint8_t t = toolManager.extruder.target;
 
   #if ENABLED(TOOL_CHANGE_FIL_SWAP)
     #if ENABLED(PREVENT_LENGTHY_EXTRUDE)

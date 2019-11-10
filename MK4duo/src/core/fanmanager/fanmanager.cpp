@@ -21,7 +21,7 @@
  */
 
 /**
- * fansmanager.cpp
+ * fanmanager.cpp
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
@@ -29,17 +29,17 @@
 #include "../../../MK4duo.h"
 #include "sanitycheck.h"
 
-FansManager fansManager;
+FanManager fanManager;
 
 /** Public Parameters */
-fans_data_t FansManager::data;
+fans_data_t FanManager::data;
 
 /** Public Function */
-void FansManager::init() { LOOP_FAN() if (fans[f]) fans[f]->init(); }
+void FanManager::init() { LOOP_FAN() if (fans[f]) fans[f]->init(); }
 
-void FansManager::spin() { LOOP_FAN() if (fans[f]) fans[f]->spin(); }
+void FanManager::spin() { LOOP_FAN() if (fans[f]) fans[f]->spin(); }
 
-void FansManager::create_object() {
+void FanManager::create_object() {
   LOOP_FAN() {
     if (!fans[f]) {
       fans[f] = new Fan();
@@ -49,14 +49,14 @@ void FansManager::create_object() {
   }
 }
 
-void FansManager::factory_parameters() {
+void FanManager::factory_parameters() {
   data.fans       = FAN_COUNT;
   data.frequency  = FAN_PWM_FREQUENCY;
   create_object();
   LOOP_FAN() { if (fans[f]) fans_factory_parameters(f); }
 }
 
-void FansManager::change_number_fan(const uint8_t f) {
+void FanManager::change_number_fan(const uint8_t f) {
   if (data.fans < f) {
     data.fans = f;
     create_object();
@@ -71,7 +71,7 @@ void FansManager::change_number_fan(const uint8_t f) {
   }
 }
 
-void FansManager::set_output_pwm() {
+void FanManager::set_output_pwm() {
   LOOP_FAN() {
     if (fans[f]) {
       if (fans[f]->kickstart) fans[f]->kickstart--;
@@ -80,9 +80,9 @@ void FansManager::set_output_pwm() {
   }
 }
 
-void FansManager::print_parameters() { LOOP_FAN() if (fans[f]) print_M106(f); }
+void FanManager::print_parameters() { LOOP_FAN() if (fans[f]) print_M106(f); }
 
-void FansManager::print_M106(const uint8_t f) {
+void FanManager::print_M106(const uint8_t f) {
 
   bool found_auto = false;
 
@@ -115,12 +115,12 @@ void FansManager::print_M106(const uint8_t f) {
   SERIAL_EOL();
 }
 
-bool FansManager::fans_isActive() {
+bool FanManager::fans_isActive() {
   LOOP_FAN() if (fans[f]->speed > 0) return true;
   return false;
 }
 
-bool FansManager::get_target_fan(uint8_t& f) {
+bool FanManager::get_target_fan(uint8_t& f) {
   f = parser.seen('P') ? parser.value_byte() : 0;
   if (WITHIN(f, 0 , data.fans - 1)) return true;
   else {
@@ -130,7 +130,7 @@ bool FansManager::get_target_fan(uint8_t& f) {
 }
 
 /** Private Function */
-void FansManager::fans_factory_parameters(const uint8_t f) {
+void FanManager::fans_factory_parameters(const uint8_t f) {
 
   constexpr pin_t   fanCh[]   = FANS_CHANNELS;
   constexpr int8_t  fanAuto[] = AUTO_FAN;

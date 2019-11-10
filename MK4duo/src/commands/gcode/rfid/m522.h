@@ -44,15 +44,15 @@ inline void gcode_M522() {
     #if HAS_NEXTION_LCD
       rfid_setText("Put RFID on tag!");
     #endif
-    rfid522.Spool_must_read[tools.extruder.target] = true;
+    rfid522.Spool_must_read[toolManager.extruder.target] = true;
   }
   if (parser.seen('W')) {
-    if (rfid522.Spool_ID[tools.extruder.target] != 0) {
+    if (rfid522.Spool_ID[toolManager.extruder.target] != 0) {
       SERIAL_EM("Put RFID on tag!");
       #if HAS_NEXTION_LCD
         rfid_setText("Put RFID on tag!");
       #endif
-      rfid522.Spool_must_write[tools.extruder.target] = true;
+      rfid522.Spool_must_write[toolManager.extruder.target] = true;
     }
     else {
       SERIAL_LM(ER, "You have not read this Spool!");
@@ -62,7 +62,7 @@ inline void gcode_M522() {
     }
   }
 
-  if (parser.seen('L')) rfid522.print_info(tools.extruder.target);
+  if (parser.seen('L')) rfid522.print_info(toolManager.extruder.target);
 }
 
 #endif // RFID_MODULE

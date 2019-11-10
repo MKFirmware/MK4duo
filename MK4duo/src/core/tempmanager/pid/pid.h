@@ -51,7 +51,7 @@ struct pid_data_t {
 
     uint8_t spin(const int16_t target_temp, const float current_temp
       #if ENABLED(PID_ADD_EXTRUSION_RATE)
-        , const uint8_t tid
+        , const uint8_t tid, const int16_t lpq_len=0
       #endif
     ) {
 
@@ -74,7 +74,7 @@ struct pid_data_t {
         pid_output += dgain;
 
         #if ENABLED(PID_ADD_EXTRUSION_RATE)
-          if (tid == tools.active_hotend()) {
+          if (tid == toolManager.active_hotend()) {
             const long e_position = stepper.position(E_AXIS);
             if (e_position > last_e_position) {
               lpq[lpq_ptr] = e_position - last_e_position;
@@ -83,8 +83,8 @@ struct pid_data_t {
             else {
               lpq[lpq_ptr] = 0;
             }
-            if (++lpq_ptr >= tools.data.lpq_len) lpq_ptr = 0;
-            pid_output += (lpq[lpq_ptr] * extruders[tools.extruder.active]->steps_to_mm) * Kc;
+            if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
+            pid_output += (lpq[lpq_ptr] * extruders[toolManager.extruder.active]->steps_to_mm) * Kc;
           }
         #endif // PID_ADD_EXTRUSION_RATE
 

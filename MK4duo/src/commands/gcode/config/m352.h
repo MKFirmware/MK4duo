@@ -70,7 +70,7 @@ inline void gcode_M352() {
   }
 
   if (parser.seenval('T')) {
-    const uint8_t i = tools.extruder.target;
+    const uint8_t i = toolManager.extruder.target;
     if (driver.e[i]) {
       if (parser.seen('E')) driver.e[i]->data.pin.enable   = parser.value_pin();
       if (parser.seen('D')) driver.e[i]->data.pin.dir      = parser.value_pin();

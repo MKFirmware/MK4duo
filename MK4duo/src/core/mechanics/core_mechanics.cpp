@@ -93,7 +93,7 @@ void Core_Mechanics::internal_move_to_destination(const feedrate_t &fr_mm_s/*=0.
   if (fr_mm_s) feedrate_mm_s = fr_mm_s;
 
   REMEMBER(old_pct, feedrate_percentage, 100);
-  REMEMBER(old_fac, extruders[tools.extruder.active]->e_factor, 1.0f);
+  REMEMBER(old_fac, extruders[toolManager.extruder.active]->e_factor, 1.0f);
 
   prepare_move_to_destination();
 }
@@ -206,8 +206,8 @@ void Core_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Always home with tool 0 active
   #if HOTENDS > 1
-    const uint8_t old_tool_index = tools.extruder.active;
-    tools.change(0, true);
+    const uint8_t old_tool_index = toolManager.extruder.active;
+    toolManager.change(0, true);
   #endif
 
   setup_for_endstop_or_probe_move();
@@ -316,7 +316,7 @@ void Core_Mechanics::home(uint8_t axis_bits/*=0*/) {
 
   // Restore the active tool after homing
   #if HOTENDS > 1
-    tools.change(old_tool_index, true);
+    toolManager.change(old_tool_index, true);
   #endif
 
   lcdui.refresh();
@@ -371,7 +371,7 @@ void Core_Mechanics::do_homing_move(const AxisEnum axis, const float distance, c
   target[axis] = distance;
 
   // Set cartesian axes directly
-  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], tools.extruder.active);
+  planner.buffer_segment(target, fr_mm_s ? fr_mm_s : homing_feedrate_mm_s[axis], toolManager.extruder.active);
 
   planner.synchronize();
 
@@ -418,7 +418,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
   #if HAS_MESH
     if (bedlevel.flag.leveling_active && bedlevel.leveling_active_at_z(destination.z)) {
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.line_to_destination_cartesian(scaled_fr_mm_s, tools.extruder.active);
+        ubl.line_to_destination_cartesian(scaled_fr_mm_s, toolManager.extruder.active);
         return true;
       #else
         /**
@@ -437,7 +437,7 @@ bool Core_Mechanics::prepare_move_to_destination_mech_specific() {
     }
   #endif // HAS_MESH
 
-  planner.buffer_line(destination, scaled_fr_mm_s, tools.extruder.active);
+  planner.buffer_line(destination, scaled_fr_mm_s, toolManager.extruder.active);
   return false;
 }
 

@@ -39,7 +39,7 @@
 
     LOOP_XYZE(i) {
       if (parser.seen(axis_codes[i])) {
-        const uint8_t a = i + (i == E_AXIS ? tools.extruder.target : 0);
+        const uint8_t a = i + (i == E_AXIS ? toolManager.extruder.target : 0);
         driver[a]->data.ma = parser.value_ushort();
         externaldac.set_driver_current(a, driver[a]->data.ma);
       }
@@ -96,7 +96,7 @@
           #endif
           break;
         case E_AXIS:
-          Driver* drv = driver.e[extruders[tools.extruder.target]->get_driver()];
+          Driver* drv = driver.e[extruders[toolManager.extruder.target]->get_driver()];
           if (drv && drv->tmc) drv->tmc->rms_current(value);
           break;
       }

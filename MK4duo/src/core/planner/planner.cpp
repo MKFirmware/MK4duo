@@ -778,12 +778,12 @@ void Planner::check_axes_activity() {
    */
   void Planner::apply_retract(float &rz, float &e) {
     rz += fwretract.current_hop;
-    e -= fwretract.current_retract[tools.extruder.active];
+    e -= fwretract.current_retract[toolManager.extruder.active];
   }
 
   void Planner::unapply_retract(float &rz, float &e) {
     rz -= fwretract.current_hop;
-    e += fwretract.current_retract[tools.extruder.active];
+    e += fwretract.current_retract[toolManager.extruder.active];
   }
 
 #endif
@@ -1022,7 +1022,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
   #if ENABLED(PREVENT_COLD_EXTRUSION) || ENABLED(PREVENT_LENGTHY_EXTRUDE)
     if (de && printer.mode == PRINTER_MODE_FFF) {
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        if (thermalManager.tooColdToExtrude(extruder)) {
+        if (tempManager.tooColdToExtrude(extruder)) {
           position.e = target.e; // Behave as if the move really took place, but ignore E part
           #if HAS_POSITION_FLOAT
             position_float.e = target_float.e;
@@ -1426,7 +1426,7 @@ bool Planner::fill_block(block_t * const block, bool split_move,
         // If the index has changed (must have gone forward)...
         if (filwidth_delay_index[0] != filwidth_delay_index[1]) {
           filwidth_e_count = 0; // Reset the E movement counter
-          const int8_t meas_sample = thermalManager.widthFil_to_size_ratio();
+          const int8_t meas_sample = tempManager.widthFil_to_size_ratio();
           do {
             filwidth_delay_index[1] = (filwidth_delay_index[1] + 1) % MMD_CM; // The next unused slot
             measurement_delay[filwidth_delay_index[1]] = meas_sample;         // Store the measurement
@@ -1993,7 +1993,7 @@ void Planner::set_machine_position_mm(const float &a, const float &b, const floa
   position.set( static_cast<int32_t>(FLOOR(a * mechanics.data.axis_steps_per_mm.a + 0.5f)),
                 static_cast<int32_t>(FLOOR(b * mechanics.data.axis_steps_per_mm.b + 0.5f)),
                 static_cast<int32_t>(FLOOR(c * mechanics.data.axis_steps_per_mm.c + 0.5f)),
-                static_cast<int32_t>(FLOOR(e * extruders[tools.extruder.active]->data.axis_steps_per_mm + 0.5f)));
+                static_cast<int32_t>(FLOOR(e * extruders[toolManager.extruder.active]->data.axis_steps_per_mm + 0.5f)));
 
   #if HAS_POSITION_FLOAT
     position_float.set(a, b, c, e);
@@ -2033,12 +2033,12 @@ void Planner::set_position_mm(const float &rx, const float &ry, const float &rz,
 void Planner::set_e_position_mm(const float &e) {
 
   #if ENABLED(FWRETRACT)
-    float e_new = e - fwretract.current_retract[tools.extruder.active];
+    float e_new = e - fwretract.current_retract[toolManager.extruder.active];
   #else
     const float e_new = e;
   #endif
 
-  position.e = static_cast<int32_t>(FLOOR(e_new * extruders[tools.extruder.active]->data.axis_steps_per_mm + 0.5f));
+  position.e = static_cast<int32_t>(FLOOR(e_new * extruders[toolManager.extruder.active]->data.axis_steps_per_mm + 0.5f));
 
   #if HAS_POSITION_FLOAT
     position_float.e = e_new;
@@ -2068,7 +2068,7 @@ void Planner::reset_acceleration_rates() {
   }
   LOOP_EXTRUDER() {
     extruders[e]->max_acceleration_steps_per_s2 = extruders[e]->data.max_acceleration_mm_per_s2 * extruders[e]->data.axis_steps_per_mm;
-    if (e == tools.extruder.active) NOLESS(highest_rate, extruders[e]->max_acceleration_steps_per_s2);
+    if (e == toolManager.extruder.active) NOLESS(highest_rate, extruders[e]->max_acceleration_steps_per_s2);
   }
 
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL
@@ -2495,7 +2495,7 @@ void Planner::recalculate_trapezoids() {
             calculate_trapezoid_for_block(current_block, current_entry_speed * nomr, next_entry_speed * nomr);
             #if ENABLED(LIN_ADVANCE)
               if (current_block->use_advance_lead) {
-                const float comp = current_block->e_D_ratio * extruder_advance_K * extruders[tools.extruder.active]->data.axis_steps_per_mm;
+                const float comp = current_block->e_D_ratio * extruder_advance_K * extruders[toolManager.extruder.active]->data.axis_steps_per_mm;
                 current_block->max_adv_steps = current_nominal_speed * comp;
                 current_block->final_adv_steps = next_entry_speed * comp;
               }
@@ -2534,7 +2534,7 @@ void Planner::recalculate_trapezoids() {
       calculate_trapezoid_for_block(next_block, next_entry_speed * nomr, (MINIMUM_PLANNER_SPEED) * nomr);
       #if ENABLED(LIN_ADVANCE)
         if (next_block->use_advance_lead) {
-          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[tools.extruder.active];
+          const float comp = next_block->e_D_ratio * extruder_advance_K * mechanics.data.axis_steps_per_mm.e[toolManager.extruder.active];
           next_block->max_adv_steps = next_nominal_speed * comp;
           next_block->final_adv_steps = (MINIMUM_PLANNER_SPEED) * comp;
         }

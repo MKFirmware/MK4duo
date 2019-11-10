@@ -88,7 +88,7 @@ Power powerManager;
   #if HAS_POWER_SWITCH
 
     void Power::spin() {
-      if (thermalManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
+      if (tempManager.heaters_isActive() || stepper.driver_is_enable()) power_on();
       #if (POWER_TIMEOUT > 0)
         else if (last_power_on_timer.expired((POWER_TIMEOUT) * 1000))
           power_off();

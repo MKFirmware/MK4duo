@@ -48,7 +48,7 @@
 
 void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_hotend) {
   #if MAX_HOTEND > 0
-    hotends[hotend]->set_target_temp(MIN(thermalManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
+    hotends[hotend]->set_target_temp(MIN(tempManager.hotend_maxtemp_all(), lcdui.preheat_hotend_temp[memory]));
   #else
     UNUSED(hotend);
   #endif
@@ -62,7 +62,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
   #if MAX_FAN > 0
     #if FAN_COUNT > 1
-      fans[tools.extruder.active < FAN_COUNT ? tools.extruder.active : 0]->speed = lcdui.preheat_fan_speed[memory];
+      fans[toolManager.extruder.active < FAN_COUNT ? toolManager.extruder.active : 0]->speed = lcdui.preheat_fan_speed[memory];
     #else
       fans[0]->speed = lcdui.preheat_fan_speed[memory];
     #endif
@@ -106,7 +106,7 @@ void _lcd_preheat(const int16_t hotend, const uint8_t memory, const bool only_ho
   }
 
   void lcd_cooldown() {
-    thermalManager.disable_all_heaters();
+    tempManager.disable_all_heaters();
     printer.zero_fan_speed();
     lcdui.return_to_status();
   }

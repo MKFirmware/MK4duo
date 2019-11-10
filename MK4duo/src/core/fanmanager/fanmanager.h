@@ -22,12 +22,12 @@
 #pragma once
 
 /**
- * fansmanager.h
+ * fanmanager.h
  *
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#include "fan.h"
+#include "fan/fan.h"
 
 // Struct Fans data
 struct fans_data_t {
@@ -35,11 +35,11 @@ struct fans_data_t {
   uint16_t  frequency;
 };
 
-class FansManager {
+class FanManager {
 
   public: /** Constructor */
 
-    FansManager() {}
+    FanManager() {}
 
   public: /** Public Parameters */
 
@@ -108,4 +108,4 @@ class FansManager {
 
 };
 
-extern FansManager fansManager;
+extern FanManager fanManager;

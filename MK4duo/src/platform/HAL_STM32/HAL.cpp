@@ -221,10 +221,10 @@ void HAL::Tick() {
   #endif
 
   // Fans set output PWM
-  fansManager.set_output_pwm();
+  fanManager.set_output_pwm();
 
   // Event 100 ms
-  if (cycle_100_timer.expired(100)) thermalManager.spin();
+  if (cycle_100_timer.expired(100)) tempManager.spin();
 
   // Event 1.0 Second
   if (cycle_1s_timer.expired(1000)) printer.check_periodical_actions();
@@ -265,7 +265,7 @@ void HAL::Tick() {
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     const_cast<ADCAveragingFilter&>(filamentFilter).process_reading(analogRead(FILWIDTH_PIN));
     if (filamentFilter.IsValid())
-      thermalManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
+      tempManager.current_raw_filwidth = (filamentFilter.GetSum() / NUM_ADC_SAMPLES);
   #endif
 
   #if HAS_POWER_CONSUMPTION_SENSOR
@@ -277,7 +277,7 @@ void HAL::Tick() {
   #if HAS_MCU_TEMPERATURE
     const_cast<ADCAveragingFilter&>(mcuFilter).process_reading(analogRead(ADC_TEMPERATURE_SENSOR));
     if (mcuFilter.IsValid())
-      thermalManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
+      tempManager.mcu_current_temperature_raw = (mcuFilter.GetSum() / NUM_ADC_SAMPLES);
   #endif
 
   // Tick endstops state, if required

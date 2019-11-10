@@ -24,7 +24,7 @@
  * extruder.cpp - extruder object
  */
 
-#include "../../../MK4duo.h"
+#include "../../../../MK4duo.h"
 #include "sanitycheck.h"
 
 #if MAX_EXTRUDER > 0

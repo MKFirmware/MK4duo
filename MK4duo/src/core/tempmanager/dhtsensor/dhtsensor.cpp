@@ -26,7 +26,7 @@
  * Copyright (c) 2019 Alberto Cotronei @MagoKimbra
  */
 
-#include "../../../MK4duo.h"
+#include "../../../../MK4duo.h"
 #include "sanitycheck.h"
 
 #if HAS_DHT
@@ -39,8 +39,8 @@ DHTSensor dhtsensor;
 /** Public Parameters */
 dht_data_t DHTSensor::data;
 
-float DHTSensor::Temperature  = 25,
-      DHTSensor::Humidity     = 50;
+float DHTSensor::temperature  = 25,
+      DHTSensor::humidity     = 50;
 
 /** Private Parameters */
 uint8_t DHTSensor::read_data[5] = { 0, 0, 0, 0, 0 };
@@ -155,15 +155,15 @@ void DHTSensor::spin() {
 
 float DHTSensor::dewPoint() {
   // (1) Saturation Vapor Pressure = ESGG(T)
-  const float RATIO = 373.15 / (273.15 + Temperature);
+  const float RATIO = 373.15 / (273.15 + temperature);
   float RHS = -7.90298 * (RATIO - 1);
   RHS += 5.02808 * log10(RATIO);
   RHS += -1.3816e-7 * (POW(10, (11.344 * (1 - 1/RATIO ))) - 1) ;
   RHS += 8.1328e-3 * (POW(10, (-3.49149 * (RATIO - 1))) - 1) ;
   RHS += log10(1013.246);
 
-  // factor -3 is to adjust units - Vapor Pressure SVP * Humidity
-  const float VP = POW(10, RHS - 3) * Humidity;
+  // factor -3 is to adjust units - Vapor Pressure SVP * humidity
+  const float VP = POW(10, RHS - 3) * humidity;
 
   // (2) DEWPOINT = F(Vapor Pressure)
   float T = LOG(VP / 0.61078);   // temp var
@@ -173,7 +173,7 @@ float DHTSensor::dewPoint() {
 float DHTSensor::dewPointFast() {
 	const float a = 17.271f,
               b = 237.7f,
-              temp = (a * Temperature) / (b + Temperature) + LOG(Humidity * 0.01f),
+              temp = (a * temperature) / (b + temperature) + LOG(humidity * 0.01f),
               Td = (b * temp) / (a - temp);
   return Td;
 }
@@ -200,8 +200,8 @@ void DHTSensor::process_reading() {
     return;
 
   // Generate final results
-  Temperature = read_temperature();
-  Humidity    = read_humidity();
+  temperature = read_temperature();
+  humidity    = read_humidity();
 
 }
 

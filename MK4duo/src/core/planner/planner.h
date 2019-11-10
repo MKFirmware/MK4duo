@@ -674,7 +674,7 @@ class Planner {
         LOOP_XYZE(idx) {
           if (unit_vec[idx]) {  // Avoid divide by zero
             if (idx == E_AXIS)
-              NOMORE(limit_value, ABS(extruders[tools.extruder.active]->data.max_acceleration_mm_per_s2 / unit_vec[idx]));
+              NOMORE(limit_value, ABS(extruders[toolManager.extruder.active]->data.max_acceleration_mm_per_s2 / unit_vec[idx]));
             else
               NOMORE(limit_value, ABS(mechanics.data.max_acceleration_mm_per_s2[idx] / unit_vec[idx]));
           }

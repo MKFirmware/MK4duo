@@ -25,9 +25,6 @@
  * heater.h - heater object
  */
 
-#include "sensor/sensor.h"
-#include "pid/pid.h"
-
 union heater_flag_t {
   uint8_t all;
   struct {

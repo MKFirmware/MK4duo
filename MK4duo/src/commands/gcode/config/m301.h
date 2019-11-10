@@ -64,10 +64,12 @@ inline void gcode_M301() {
   if (parser.seen('I')) act->data.pid.Ki = parser.value_float();
   if (parser.seen('D')) act->data.pid.Kd = parser.value_float();
   #if ENABLED(PID_ADD_EXTRUSION_RATE)
-    if (parser.seen('C')) act->data.pid.Kc = parser.value_float();
-    if (parser.seen('L')) tools.data.lpq_len = parser.value_int();
-    NOMORE(tools.data.lpq_len, LPQ_MAX_LEN);
-    NOLESS(tools.data.lpq_len, 0);
+    if (act->type == IS_HOTEND) {
+      if (parser.seen('C')) act->data.pid.Kc = parser.value_float();
+      if (parser.seen('L')) tempManager.heater.lpq_len = parser.value_int();
+      if (tempManager.heater.lpq_len > LPQ_MAX_LEN) tempManager.heater.lpq_len = LPQ_MAX_LEN;
+      if (tempManager.heater.lpq_len < 0) tempManager.heater.lpq_len = 0;
+    }
   #endif
 
   act->data.pid.update();

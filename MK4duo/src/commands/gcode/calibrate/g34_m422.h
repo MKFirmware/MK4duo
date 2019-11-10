@@ -115,7 +115,7 @@ inline void gcode_G34() {
     #endif
 
     // Always home with tool 0 active
-    if (tools.data.extruders > 1) tools.change(0, true);
+    if (toolManager.extruder.total > 1) toolManager.change(0, true);
 
     #if HAS_BLTOUCH && ENABLED(BLTOUCH_HIGH_SPEED_MODE)
       // In BLTOUCH HS mode, the probe travels in a deployed state.
@@ -305,7 +305,7 @@ inline void gcode_G34() {
     SERIAL_EMV("Accuracy: ", z_maxdiff);
 
     // Restore the active tool after homing
-    if (tools.data.extruders > 1) tools.change(tools.extruder.previous, false);
+    if (toolManager.extruder.total > 1) toolManager.change(toolManager.extruder.previous, false);
 
     // Re-enable bed level correction if it had been on
     #if HAS_LEVELING && ENABLED(RESTORE_LEVELING_AFTER_G34)

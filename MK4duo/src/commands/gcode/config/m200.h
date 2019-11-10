@@ -43,7 +43,7 @@ inline void gcode_M200() {
   #if DISABLED(DISABLE_M503)
     // No arguments? Show M218 report.
     if (parser.seen_any()) {
-      tools.print_M200();
+      toolManager.print_M200();
       return;
     }
   #endif
@@ -54,9 +54,9 @@ inline void gcode_M200() {
     // for all extruders
     printer.setVolumetric(parser.value_linear_units() != 0);
     if (printer.isVolumetric())
-      extruders[tools.extruder.target]->set_filament_size(parser.value_linear_units());
+      extruders[toolManager.extruder.target]->set_filament_size(parser.value_linear_units());
   }
-  tools.calculate_volumetric_multipliers();
+  toolManager.calculate_volumetric_multipliers();
 }
 
 #endif // ENABLED(VOLUMETRIC_EXTRUSION)
