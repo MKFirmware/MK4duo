@@ -97,8 +97,8 @@ class Heater {
 
     millis_l        idle_timeout_ms;
 
-    short_timer_t   check_next_timer;
-    long_timer_t    watch_next_timer;
+    short_timer_t   next_check_timer;
+    long_timer_t    next_watch_timer;
 
     bool            Pidtuning;
 

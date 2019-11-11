@@ -57,6 +57,7 @@ void Heater::init() {
   setActive(false);
   setIdle(false);
   ResetFault();
+  next_check_timer.start();
 
   watch_target_temp     = 0;
   idle_timeout_ms       = 0;
@@ -217,7 +218,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (check_next_timer.expired(temp_check_interval))
+        else if (next_check_timer.expired(temp_check_interval))
           pwm_value = current_temperature >= targetTemperature ? data.pid.drive.max : 0;
       }
       else
@@ -233,7 +234,7 @@ void Heater::get_output() {
             #endif
           );
         }
-        else if (check_next_timer.expired(temp_check_interval)) {
+        else if (next_check_timer.expired(temp_check_interval)) {
           if (current_temperature >= targetTemperature + temp_hysteresis)
             pwm_value = 0;
           else if (current_temperature <= targetTemperature - temp_hysteresis)
@@ -300,7 +301,7 @@ void Heater::check_and_power() {
   get_output();
 
   // Make sure temperature is increasing
-  if (isThermalProtection() && watch_next_timer.isRunning() && watch_next_timer.expired(watch_period * 1000, false)) {
+  if (isThermalProtection() && next_watch_timer.isRunning() && next_watch_timer.expired(watch_period * 1000, false)) {
     if (current_temperature < watch_target_temp)
       temp_error(PSTR(MSG_HOST_HEATING_FAILED), GET_TEXT(MSG_HEATING_FAILED));
     else
@@ -723,10 +724,10 @@ void Heater::start_watching() {
   const float targetTemperature = isIdle() ? idle_temperature : target_temperature;
   if (isActive() && current_temperature < targetTemperature - (watch_increase + temp_hysteresis + 1)) {
     watch_target_temp = current_temperature + watch_increase;
-    watch_next_timer.start();
+    next_watch_timer.start();
   }
   else
-    watch_next_timer.stop();
+    next_watch_timer.stop();
 
 }
 
