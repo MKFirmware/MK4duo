@@ -29,8 +29,20 @@
 #define CODE_M220
 
 /**
- * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
+ * M220 Sxxx: Set speed percentage factor, aka "Feed Rate" (M220 S95)
+ * M220 B: backup current speed override
+ * M220 R: restore previously saved speed override
  */
 inline void gcode_M220() {
-  if (parser.seenval('S')) mechanics.feedrate_percentage = parser.value_int();
+  static int16_t backup_feedrate_percentage = 100;
+
+  if (parser.seenval('S'))
+    mechanics.feedrate_percentage = parser.value_int();
+
+  if (parser.seen('B'))
+    backup_feedrate_percentage = mechanics.feedrate_percentage;
+
+  if (parser.seen('R'))
+    mechanics.feedrate_percentage = backup_feedrate_percentage;
+
 }

@@ -212,7 +212,7 @@
  * M209 - S[1/0] enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
  * M217 - Set Park position and tool change parameters. (Requires NOZZLE_PARK_FEATURE or TOOL_CHANGE_FIL_SWAP)
  * M218 - Set hotend offset (in mm): T[tool] X[offset_on_X] Y[offset_on_Y] Z[offset_on_Z]
- * M220 - Set speed factor override percentage: S[factor in percent]
+ * M220 - Set speed factor override percentage: S[factor in percent], B to backup, R to restore currently set override
  * M221 - T[extruder] S[factor in percent] - set extrude factor override percentage
  * M222 - T[extruder] S[factor in percent] - set density extrude factor percentage for purge
  * M223 - T[extruder] S[bool] set Filrunout Logic. (Requires FILAMENT_RUNOUT_SENSOR)
