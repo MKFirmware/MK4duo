@@ -1,5 +1,5 @@
 ### Version 4.4.0
-* Revision 11-11-2019
+* Revision 12-11-2019
 * Version EEPROM MKV77
 * Start development for STM32 on board Rumba32
 *   Hardware Timer for stepper  OK
