@@ -32,6 +32,8 @@
 *
 * Add multiple Language, max 5, for lcd..
 *
+* Fix JUNCTION_DEVIATION
+*
 * Fix and clear code
 
 ### Version 4.3.9
