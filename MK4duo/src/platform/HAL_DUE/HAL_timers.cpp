@@ -114,7 +114,7 @@ uint32_t  HAL_min_pulse_cycle     = 0,
   Timer_clock4: Prescaler 128 -> 656.25kHz
 */
 
-void HAL_timer_start(const uint8_t timer_num) {
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency/*=100*/) {
 
   Tc *tc = TimerConfig[timer_num].pTimerRegs;
   IRQn_Type IRQn = TimerConfig[timer_num].IRQ_Id;
@@ -142,7 +142,7 @@ void HAL_timer_start(const uint8_t timer_num) {
   TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK1);
 
   // Set compare value
-  TC_SetRC(tc, channel, VARIANT_MCK / 2 / 100);
+  TC_SetRC(tc, channel, VARIANT_MCK / 2 / frequency);
 
   // And start timer
   TC_Start(tc, channel);

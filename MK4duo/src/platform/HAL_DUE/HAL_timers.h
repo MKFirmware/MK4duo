@@ -210,7 +210,7 @@ extern uint32_t HAL_min_pulse_cycle,
 // Public functions
 // --------------------------------------------------------------------------
 
-void HAL_timer_start(const uint8_t timer_num);
+void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency=100);
 
 void HAL_calc_pulse_cycle();
 
