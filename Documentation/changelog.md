@@ -1,6 +1,9 @@
 ### Version 4.4.0
-* Revision 11-11-2019
+*
+* Revision 13-11-2019
+*
 * Version EEPROM MKV77
+*
 * Start development for STM32 on board Rumba32
 *   Hardware Timer for stepper  OK
 *   Systick for temp            OK
@@ -31,6 +34,8 @@
 *   H[bool]   - Set Hotend for tool
 *
 * Add multiple Language, max 5, for lcd..
+*
+* Fix JUNCTION_DEVIATION
 *
 * Fix and clear code
 

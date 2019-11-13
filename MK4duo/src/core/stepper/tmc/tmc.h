@@ -31,8 +31,8 @@
 
 #include <TMCStepper.h>
 
-#if TMCSTEPPER_VERSION < 0x000502
-  #error "Update TMCStepper library to 0.5.2 or newer."
+#if TMCSTEPPER_VERSION < 0x000600
+  #error "Update TMCStepper library to 0.6.0 or newer."
 #endif
 
 #if HAVE_DRV(TMC2130)

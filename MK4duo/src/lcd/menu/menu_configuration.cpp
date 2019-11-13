@@ -362,7 +362,7 @@ void menu_configuration() {
   #endif
 
   #if HAS_LCD_CONTRAST
-    EDIT_ITEM(uint8, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcdui.refresh_contrast, true);
+    EDIT_ITEM(percent, MSG_CONTRAST, &lcdui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcdui.refresh_contrast, true);
   #endif
 
   if (printer.mode == PRINTER_MODE_FFF) {

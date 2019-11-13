@@ -662,14 +662,13 @@ class Planner {
 
     #if ENABLED(JUNCTION_DEVIATION)
 
-      FORCE_INLINE static void normalize_junction_vector(float (&vector)[XYZE]) {
-        float magnitude_sq = 0.0;
+      FORCE_INLINE static void normalize_junction_vector(xyze_float_t &vector) {
+        float magnitude_sq = 0;
         LOOP_XYZE(idx) if (vector[idx]) magnitude_sq += sq(vector[idx]);
-        const float inv_magnitude = 1.0 / SQRT(magnitude_sq);
-        LOOP_XYZE(idx) vector[idx] *= inv_magnitude;
+        vector *= RSQRT(magnitude_sq);
       }
 
-      FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, float (&unit_vec)[XYZE]) {
+      FORCE_INLINE static float limit_value_by_axis_maximum(const float &max_value, xyze_float_t &unit_vec) {
         float limit_value = max_value;
         LOOP_XYZE(idx) {
           if (unit_vec[idx]) {  // Avoid divide by zero
