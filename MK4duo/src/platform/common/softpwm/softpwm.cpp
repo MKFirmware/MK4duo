@@ -31,7 +31,7 @@
 SoftPWM softpwm;
 
 /** Private Parameters */
-volatile uint8_t soft_pwm_count = 0xff;
+volatile uint8_t soft_pwm_count = 0;
 
 uint8_t SoftPWM::used_channel = 0;
 
