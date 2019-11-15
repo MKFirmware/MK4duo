@@ -633,7 +633,11 @@ void Endstops::clamp_to_software(float target[XYZ]) {
     #if ENABLED(DEBUG_FEATURE)
       if (printer.debugFeature()) {
         SERIAL_MV("For ", axis_codes[axis]);
-        SERIAL_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
+        #if ENABLED(WORKSPACE_OFFSETS)
+          SERIAL_MV(" axis:\n data.home_offset = ", mechanics.data.home_offset[axis]);
+        #else
+          SERIAL_MSG(" axis:");
+        #endif
         SERIAL_MV("\n position_shift = ", mechanics.position_shift[axis]);
         SERIAL_MV("\n soft_endstop_min = ", soft_endstop_min[axis]);
         SERIAL_EMV("\n soft_endstop_max = ", soft_endstop_max[axis]);
