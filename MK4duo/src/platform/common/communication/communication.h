@@ -82,11 +82,17 @@ class Com {
 
 };
 
+#if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
+  #define NUM_SERIAL 2
+#else
+  #define NUM_SERIAL 1
+#endif
+
 // MACRO FOR SERIAL
 #if NUM_SERIAL > 1
   #define SERIAL_OUT(WHAT,V...) do{ \
-    if (serial_port_index == -1 || serial_port_index == 0) (void)MKSERIAL1.WHAT(V); \
-    if (serial_port_index == -1 || serial_port_index == 1) (void)MKSERIAL2.WHAT(V); \
+    if (Com::serial_port_index == -1 || Com::serial_port_index == 0) (void)MKSERIAL1.WHAT(V); \
+    if (Com::serial_port_index == -1 || Com::serial_port_index == 1) (void)MKSERIAL2.WHAT(V); \
   }while(0)
 #else
   #define SERIAL_OUT(WHAT,V...)       (void)MKSERIAL1.WHAT(V)
