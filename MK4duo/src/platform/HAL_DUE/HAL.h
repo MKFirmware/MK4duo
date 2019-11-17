@@ -143,10 +143,7 @@ typedef uint32_t  ptr_int_t;
     #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #else
     #define MKSERIAL2 MKSerial2
-    #define NUM_SERIAL 2
   #endif
-#else
-  #define NUM_SERIAL 1
 #endif
 
 // CRITICAL SECTION
