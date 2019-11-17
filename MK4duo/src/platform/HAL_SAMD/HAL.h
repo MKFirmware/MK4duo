@@ -100,19 +100,13 @@ char *dtostrf (double val, signed char width, unsigned char prec, char *sout) ;
     #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #elif SERIAL_PORT_2 == -1
     #define MKSERIAL2 SerialUSB
-    #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 0
     #define MKSERIAL2 Serial
-    #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 1
     #define MKSERIAL2 Serial1
-    #define NUM_SERIAL 2
   #elif SERIAL_PORT_2 == 2
     #define MKSERIAL2 Serial2
-    #define NUM_SERIAL 2
   #endif
-#else
-  #define NUM_SERIAL 1
 #endif
 
 #define CRITICAL_SECTION_START	uint32_t primask=__get_PRIMASK(); __disable_irq();

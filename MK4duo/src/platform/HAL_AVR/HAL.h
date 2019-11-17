@@ -115,10 +115,7 @@ typedef uint16_t  ptr_int_t;
   #elif SERIAL_PORT_2 == SERIAL_PORT_1
     #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #endif
-  #define NUM_SERIAL 2
   #define MKSERIAL2 MKSerial2
-#else
-  #define NUM_SERIAL 1
 #endif
 
 // --------------------------------------------------------------------------

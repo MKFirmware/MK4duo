@@ -48,7 +48,7 @@
   #define MKSERIAL1 Serial6
 #endif
 
-#if SERIAL_PORT_2 >= -1
+#if ENABLED(SERIAL_PORT_2) && SERIAL_PORT_2 >= -1
   #if SERIAL_PORT_2 == 0
     #error "Serial port 0 does not exist"
   #endif
@@ -57,7 +57,6 @@
   #elif SERIAL_PORT_2 == SERIAL_PORT_1
     #error "SERIAL_PORT_2 must be different than SERIAL_PORT_1"
   #endif
-  #define NUM_SERIAL 2
   #if SERIAL_PORT_2 == -1
     #define MKSERIAL2 SerialUSB
   #elif SERIAL_PORT_2 == 1
@@ -73,8 +72,6 @@
   #elif SERIAL_PORT_2 == 6
     #define MKSERIAL2 Serial6
   #endif
-#else
-  #define NUM_SERIAL 1
 #endif
 
 #if ENABLED(NEXTION) && NEXTION_SERIAL > 0
