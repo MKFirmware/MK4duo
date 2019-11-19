@@ -568,7 +568,7 @@ uint16_t SDCard::get_num_Files() {
 
   void SDCard::write_eeprom() {
     if (!isMounted()) {
-      SERIAL_LM(ER, MSG_NO_CARD);
+      SERIAL_LM(ER, "No SD Card");
       return;
     }
 

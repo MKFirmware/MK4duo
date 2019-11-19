@@ -100,6 +100,18 @@ void Host_Action::response_handler(const uint8_t response) {
   say_m876_response(msg);
 }
 
+void Host_Action::action_notify(const char * const message) {
+  print_action(PSTR("notification "), false);
+  SERIAL_MSG(message);
+  SERIAL_EOL();
+}
+
+void Host_Action::action_notify_P(PGM_P const message) {
+  print_action(PSTR("notification "), false);
+  SERIAL_STR(message);
+  SERIAL_EOL();
+}
+
 void Host_Action::filrunout(const uint8_t t) {
   print_action(PSTR("out_of_filament T"), false);
   SERIAL_EV(int(t));

@@ -185,11 +185,12 @@
  ***********************************************************************
  *                                                                     *
  * SOFT PWM frequency and values                                       *
- *    0 -  15Hz 256 values                                             *
- *    1 -  30Hz 128 values                                             *
- *    2 -  61Hz  64 values                                             *
- *    3 - 122Hz  32 values                                             *
- *    4 - 244Hz  16 values                                             *
+ *    0 -   4Hz 256 values                                             *
+ *    1 -   8Hz 128 values                                             *
+ *    2 -  16Hz  64 values                                             *
+ *    3 -  32Hz  32 values                                             *
+ *    4 -  64Hz  16 values                                             *
+ *    5 - 128Hz   8 values                                             *
  *                                                                     *
  ***********************************************************************/
 #define SOFT_PWM_SPEED 0

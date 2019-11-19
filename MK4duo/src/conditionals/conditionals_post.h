@@ -79,7 +79,7 @@
   #endif
 
   // Set the rectangle in which to probe
-  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_NOZZLE), ABS(Y_PROBE_OFFSET_FROM_NOZZLE)))
+  #define DELTA_PROBEABLE_RADIUS    (DELTA_PRINTABLE_RADIUS - HYPOT(probe.data.offset.x, probe.data.offset.y))
   #define LEFT_PROBE_BED_POSITION   (-mechanics.data.probe_radius)
   #define RIGHT_PROBE_BED_POSITION  ( mechanics.data.probe_radius)
   #define FRONT_PROBE_BED_POSITION  (-mechanics.data.probe_radius)
@@ -1231,8 +1231,8 @@
 #if SOFT_PWM_SPEED < 0
   #define SOFT_PWM_SPEED 0
 #endif
-#if SOFT_PWM_SPEED > 4
-  #define SOFT_PWM_SPEED 4
+#if SOFT_PWM_SPEED > 5
+  #define SOFT_PWM_SPEED 5
 #endif
 
 #if SOFT_PWM_SPEED == 0
@@ -1250,6 +1250,9 @@
 #elif SOFT_PWM_SPEED == 4
   #define SOFT_PWM_STEP 16
   #define SOFT_PWM_MASK 240
+#elif SOFT_PWM_SPEED == 5
+  #define SOFT_PWM_STEP 8
+  #define SOFT_PWM_MASK 224
 #endif
 
 // TEMPERATURE

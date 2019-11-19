@@ -129,9 +129,9 @@ void Endstops::factory_parameters() {
 
   setGlobally(
     #if ENABLED(ENDSTOPS_ONLY_FOR_HOMING)
-      (false)
+      false
     #else
-      (true)
+      true
     #endif
   );
 
@@ -152,7 +152,7 @@ void Endstops::factory_parameters() {
   #elif ENABLED(Z_TWO_ENDSTOPS)
     data.z2_endstop_adj = 0.0f;
   #endif
-  
+
   #if MB(ALLIGATOR_R2) || MB(ALLIGATOR_R3)
 
     setLogic(X_MIN, !X_MIN_ENDSTOP_LOGIC);
@@ -383,7 +383,7 @@ void Endstops::setup_pullup() {
 
 }
 
-// Called from HAL::Tick or HAL_temp_isr. Check endstop state if required
+// Called from HAL::Tick. Check endstop state if required
 void Endstops::Tick() {
   #if ENABLED(PINS_DEBUGGING)
     run_monitor();  // report changes in endstop status
@@ -394,7 +394,7 @@ void Endstops::Tick() {
   #endif
 }
 
-// update endstops - Called from ISR!
+// Update endstops
 void Endstops::update() {
 
   if (!abort_enabled()) return;

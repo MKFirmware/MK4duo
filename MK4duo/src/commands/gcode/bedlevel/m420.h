@@ -205,7 +205,7 @@ EXIT_M420:
     if (bedlevel.z_fade_height > 0.0)
       SERIAL_EV(bedlevel.z_fade_height);
     else
-      SERIAL_EM(MSG_LCD_OFF);
+      SERIAL_EM(MSG_HOST_OFF);
   #endif
 
   // Report change in position

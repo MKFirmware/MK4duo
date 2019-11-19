@@ -1324,9 +1324,9 @@ void LcdUI::set_alert_status_P(PGM_P const message) {
   #endif
 }
 
-void LcdUI::set_status(const char* const message, bool persist) {
-  UNUSED(persist);
+void LcdUI::set_status(const char* const message, const bool) {
   if (alert_level || !nexlcd.NextionON) return;
+  host_action.action_notify(message);
   strncpy(status_message, message, NEXTION_MAX_MESSAGE_LENGTH);
   nexlcd.setText(LcdStatus, status_message);
 }
@@ -1335,6 +1335,8 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < 0) level = alert_level = 0;
   if (level < alert_level || !nexlcd.NextionON) return;
   alert_level = level;
+
+  host_action.action_notify_P(message);
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);
@@ -1353,12 +1355,13 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
 
 #include <stdarg.h>
 
-void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
+void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   if (level < alert_level || !nexlcd.NextionON) return;
+  host_action.action_notify_P(message);
   alert_level = level;
   va_list args;
-  va_start(args, fmt);
-  vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, fmt, args);
+  va_start(args, message);
+  vsnprintf(status_message, NEXTION_MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
   nexlcd.setText(LcdStatus, status_message);
 }

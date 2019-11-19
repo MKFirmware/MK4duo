@@ -1177,8 +1177,10 @@ void LcdUI::finish_status(const bool persist) {
 
 bool LcdUI::has_status() { return (status_message[0] != '\0'); }
 
-void LcdUI::set_status(const char* const message, const bool persist) {
+void LcdUI::set_status(const char* const message, const bool persist/*=false*/) {
   if (alert_level) return;
+
+  host_action.action_notify(message);
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1204,12 +1206,13 @@ void LcdUI::set_status(const char* const message, const bool persist) {
 
 #include <stdarg.h>
 
-void LcdUI::status_printf_P(const uint8_t level, PGM_P const fmt, ...) {
+void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   if (level < alert_level) return;
+  host_action.action_notify_P(message);
   alert_level = level;
   va_list args;
-  va_start(args, fmt);
-  vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, fmt, args);
+  va_start(args, message);
+  vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, message, args);
   va_end(args);
   finish_status(level > 0);
 }
@@ -1218,6 +1221,8 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < 0) level = alert_level = 0;
   if (level < alert_level) return;
   alert_level = level;
+
+  host_action.action_notify_P(message);
 
   // Here we have a problem. The message is encoded in UTF8, so
   // arbitrarily cutting it will be a problem. We MUST be sure
@@ -1272,7 +1277,7 @@ void LcdUI::reset_status() {
     msg = print_paused;
   #if HAS_SD_SUPPORT
     else if (IS_SD_PRINTING())
-      return lcdui.set_status(card.fileName, true);
+      return set_status(card.fileName, true);
   #endif
   else if (print_job_counter.isRunning())
     msg = printing;
