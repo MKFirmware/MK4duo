@@ -1336,7 +1336,7 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
   if (level < alert_level || !nexlcd.NextionON) return;
   alert_level = level;
 
-  host_action.action_notify_P(message);
+  host_action.action_notify(message);
 
   // Get a pointer to the null terminator
   PGM_P pend = message + strlen_P(message);
@@ -1357,7 +1357,7 @@ void LcdUI::set_status_P(PGM_P const message, int8_t level/*=0*/) {
 
 void LcdUI::status_printf_P(const uint8_t level, PGM_P const message, ...) {
   if (level < alert_level || !nexlcd.NextionON) return;
-  host_action.action_notify_P(message);
+  host_action.action_notify(message);
   alert_level = level;
   va_list args;
   va_start(args, message);

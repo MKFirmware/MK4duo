@@ -100,15 +100,9 @@ void Host_Action::response_handler(const uint8_t response) {
   say_m876_response(msg);
 }
 
-void Host_Action::action_notify(const char * const message) {
+void Host_Action::action_notify(PGM_P const msg) {
   print_action(PSTR("notification "), false);
-  SERIAL_MSG(message);
-  SERIAL_EOL();
-}
-
-void Host_Action::action_notify_P(PGM_P const message) {
-  print_action(PSTR("notification "), false);
-  SERIAL_STR(message);
+  SERIAL_STR(msg);
   SERIAL_EOL();
 }
 
