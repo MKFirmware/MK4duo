@@ -32,9 +32,9 @@
 #define LCD_ALERTMESSAGEPGM(x)    LCD_ALERTMESSAGEPGM_P(GET_TEXT(x))
 
 #if ENABLED(LCD_PROGRESS_BAR) || ENABLED(SHOW_BOOTSCREEN)
-  #define LCD_SET_CHARSET(C)    set_custom_characters(C)
+  #define LCD_SET_CHARSET(C)      set_custom_characters(C)
 #else
-  #define LCD_SET_CHARSET(C)    set_custom_characters()
+  #define LCD_SET_CHARSET(C)      set_custom_characters()
 #endif
 
 #if ENABLED(REVERSE_ENCODER_DIRECTION)
@@ -228,7 +228,11 @@ class LcdUI {
     }
 
     static void clear_lcd();
-    
+
+    static void set_status(const char* const message, const bool persist=false);
+    static void set_status_P(PGM_P const message, int8_t level=0);
+    static void status_printf_P(const uint8_t level, PGM_P const message, ...);
+
     #if HAS_LCD
 
       static void init();
@@ -297,9 +301,6 @@ class LcdUI {
       static bool get_blink(uint8_t moltiplicator=1);
       static void kill_screen(PGM_P const lcd_msg);
       static void draw_kill_screen();
-      static void set_status(const char* const message, const bool persist=false);
-      static void set_status_P(PGM_P const message, int8_t level=0);
-      static void status_printf_P(const uint8_t level, PGM_P const fmt, ...);
       static void reset_status();
 
       static void pause_print();
@@ -312,9 +313,6 @@ class LcdUI {
       static inline void update() {}
       static inline void set_alert_status_P(PGM_P message) { UNUSED(message); }
       static inline void refresh() {}
-      static inline void set_status(const char* const message, const bool persist=false) { UNUSED(message); UNUSED(persist); }
-      static inline void set_status_P(PGM_P const message, const int8_t level=0) { UNUSED(message); UNUSED(level); }
-      static inline void status_printf_P(const uint8_t level, PGM_P const fmt, ...) { UNUSED(level); UNUSED(fmt); }
       static inline void return_to_status() {}
       static inline void reset_status() {}
       static inline void reset_alert_level() {}

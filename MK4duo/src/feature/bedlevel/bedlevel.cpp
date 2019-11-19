@@ -204,7 +204,7 @@ void Bedlevel::set_bed_leveling_enabled(const bool enable/*=true*/) {
     if (leveling_was_active) {
       const xyz_pos_t oldpos = mechanics.current_position;
       set_bed_leveling_enabled();
-      if (do_report && oldpos !=,mechanics.current_position)
+      if (do_report && oldpos != mechanics.current_position)
         mechanics.report_current_position();
     }
   }

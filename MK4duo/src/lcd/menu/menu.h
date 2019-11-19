@@ -88,7 +88,8 @@ class MenuItem_static : public MenuItemBase {
     static void draw(const uint8_t row, PGM_P const pstr, const uint8_t style=SS_DEFAULT, const char * const valstr=nullptr);
 };
 
-// CONFIRM_ITEM(PLABEL,Y,N,FY,FN,V...), YESNO_ITEM(PLABEL,FY,FN,V...)
+// CONFIRM_ITEM(PLABEL,Y,N,FY,FN,V...)
+// YESNO_ITEM(PLABEL,FY,FN,V...)
 class MenuItem_confirm : MenuItemBase {
   public:
     FORCE_INLINE static void draw(const bool sel, const uint8_t row, PGM_P const pstr, ...) {

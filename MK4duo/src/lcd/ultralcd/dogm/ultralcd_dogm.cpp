@@ -337,7 +337,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
         int8_t pad = (LCD_WIDTH - utf8_strlen_P(pstr)) / 2;
         while (--pad >= 0) { lcd_put_wchar(' '); n--; }
       }
-      n -= lcd_put_u8str_ind_P(pstr, itemIndex, n);
+      n = lcd_put_u8str_ind_P(pstr, itemIndex, LCD_WIDTH * (MENU_FONT_WIDTH));
       if (valstr) n -= lcd_put_u8str_max(valstr, n);
       while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
     }
@@ -359,7 +359,7 @@ void LcdUI::clear_lcd() { } // Automatically cleared by Picture Loop
       const uint8_t vallen = (pgm ? utf8_strlen_P(data) : utf8_strlen((char*)data));
       u8g_uint_t n = lcd_put_u8str_ind_P(pstr, itemIndex, (LCD_WIDTH - 2 - vallen) * (MENU_FONT_WIDTH));
       if (vallen) {
-        if (itemIndex == NO_INDEX) lcd_put_wchar(':');
+        lcd_put_wchar(':');
         while (n > MENU_FONT_WIDTH) n -= lcd_put_wchar(' ');
         lcd_moveto(LCD_PIXEL_WIDTH - (MENU_FONT_WIDTH) * vallen, row_y2);
         if (pgm) lcd_put_u8str_P(data); else lcd_put_u8str((char*)data);

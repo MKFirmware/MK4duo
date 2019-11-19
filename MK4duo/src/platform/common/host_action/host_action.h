@@ -36,6 +36,7 @@ class Host_Action {
     static void say_m876_response(PGM_P const msg);
 
     static void response_handler(const uint8_t response);
+    static void action_notify(PGM_P const msg);
 
     static void pause(const bool eol=true)  { print_action(PSTR("pause"), eol); }
     static void paused(const bool eol=true) { print_action(PSTR("paused"), eol); }
