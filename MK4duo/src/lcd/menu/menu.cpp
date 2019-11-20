@@ -150,11 +150,6 @@ void MenuItem_bool::action(PGM_P const, bool * const ptr, screenFunc_t callback)
 void LcdUI::goto_screen(screenFunc_t screen, const uint16_t encoder/*=0*/, const uint8_t top/*=0*/, const uint8_t items/*=0*/) {
   if (currentScreen != screen) {
 
-    #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-      // Shadow for editing the fade height
-      lcd_z_fade_height = bedlevel.z_fade_height;
-    #endif
-
     #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
       static short_timer_t doubleclick_expire_timer(true);
       // Going to menu_main from status screen? Remember first click time.
@@ -314,10 +309,10 @@ void lcd_line_to_z(const float &z) {
     if (lcdui.should_draw()) {
       #if ENABLED(BABYSTEP_HOTEND_Z_OFFSET)
         if (!do_probe)
-          MenuEditItemBase::draw_edit_screen(PSTR(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[toolManager.active_hotend()].z));
+          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_DXC_Z_OFFSET), ftostr43sign(nozzle.data.hotend_offset[toolManager.active_hotend()].z));
         else
       #endif
-          MenuEditItemBase::draw_edit_screen(PSTR(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
+          MenuEditItemBase::draw_edit_screen(GET_TEXT(MSG_ZPROBE_ZOFFSET), ftostr43sign(probe.data.offset.z));
 
       #if ENABLED(BABYSTEP_ZPROBE_GFX_OVERLAY)
         if (do_probe) _lcd_zoffset_overlay_gfx(probe.data.offset.z);

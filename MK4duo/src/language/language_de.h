@@ -482,7 +482,7 @@ namespace language_de {
   FSTRINGVALUE(MSG_MMU2_LOAD_ALL                    , _UxGT("Lade alle"));
   FSTRINGVALUE(MSG_MMU2_LOAD_TO_NOZZLE              , _UxGT("Düse laden"));
   FSTRINGVALUE(MSG_MMU2_EJECT_FILAMENT              , _UxGT("Filament auswerfen"));
-  FSTRINGVALUE(MSG_MMU2_EJECT_FILAMENT_N            , _UxGT("Filament ~ auswerfen"));
+  FSTRINGVALUE(MSG_MMU2_EJECT_FILAMENT_N            , _UxGT("Filament E auswerfen"));
   FSTRINGVALUE(MSG_MMU2_UNLOAD_FILAMENT             , _UxGT("Filament entladen "));
   FSTRINGVALUE(MSG_MMU2_LOADING_FILAMENT            , _UxGT("Lade Fila. %i..."));
   FSTRINGVALUE(MSG_MMU2_EJECTING_FILAMENT           , _UxGT("Fila. auswerfen..."));

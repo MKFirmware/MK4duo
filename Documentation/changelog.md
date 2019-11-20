@@ -1,6 +1,6 @@
 ### Version 4.4.0
 *
-* Revision 19-11-2019
+* Revision 20-11-2019
 *
 * Version EEPROM MKV77
 *

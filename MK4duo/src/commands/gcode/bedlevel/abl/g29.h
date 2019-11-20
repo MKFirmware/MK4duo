@@ -185,9 +185,9 @@ inline void gcode_G29() {
       ABL_VAR xy_uint8_t meshCount;
     #endif
 
-    ABL_VAR xy_int_t    probe_position_lf,
-                        probe_position_rb;
-    ABL_VAR xy_float_t  gridSpacing = { 0, 0 };
+    ABL_VAR xy_float_t  probe_position_lf,
+                        probe_position_rb,
+                        gridSpacing = { 0, 0 };
 
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       ABL_VAR bool        do_topography_map;
@@ -352,12 +352,12 @@ inline void gcode_G29() {
                   y_min = probe.min_y(), y_max = probe.max_y();
 
       probe_position_lf.set(
-        parser.seenval('L') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION,
-        parser.seenval('F') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION
+        parser.seenval('L') ? NATIVE_X_POSITION(parser.value_linear_units()) : LEFT_PROBE_BED_POSITION,
+        parser.seenval('F') ? NATIVE_Y_POSITION(parser.value_linear_units()) : FRONT_PROBE_BED_POSITION
       );
       probe_position_rb.set(
-        parser.seenval('R') ? (int)NATIVE_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION,
-        parser.seenval('B') ? (int)NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION
+        parser.seenval('R') ? NATIVE_X_POSITION(parser.value_linear_units()) : RIGHT_PROBE_BED_POSITION,
+        parser.seenval('B') ? NATIVE_Y_POSITION(parser.value_linear_units()) : BACK_PROBE_BED_POSITION
       );
 
       if (
@@ -533,7 +533,7 @@ inline void gcode_G29() {
 
         if (zig) PR_INNER_VAR = (PR_INNER_END - 1) - PR_INNER_VAR;
 
-        const xy_pos_t base = probe_position_lf.asFloat() + gridSpacing * meshCount.asFloat();
+        const xy_pos_t base = probe_position_lf + gridSpacing * meshCount.asFloat();
 
         probePos.set( FLOOR(base.x + (base.x < 0 ? 0 : 0.5)),
                       FLOOR(base.y + (base.y < 0 ? 0 : 0.5)));
@@ -615,7 +615,7 @@ inline void gcode_G29() {
 
       bool zig = PR_OUTER_END & 1;  // Always end at RIGHT and BACK_PROBE_BED_POSITION
 
-      xy_uint8_t meshCount;
+      xy_int8_t meshCount;
 
       // Outer loop is X with PROBE_Y_FIRST enabled
       // Outer loop is Y with PROBE_Y_FIRST disabled
@@ -643,7 +643,7 @@ inline void gcode_G29() {
         // Inner loop is X with PROBE_Y_FIRST disabled
         for (PR_INNER_VAR = inStart; PR_INNER_VAR != inStop; PR_INNER_VAR += inInc) {
 
-          const xy_pos_t base = probe_position_lf.asFloat() + gridSpacing * meshCount.asFloat();
+          const xy_pos_t base = probe_position_lf + gridSpacing * meshCount.asFloat();
 
           probePos.set( FLOOR(base.x + (base.x < 0 ? 0 : 0.5)),
                         FLOOR(base.y + (base.y < 0 ? 0 : 0.5)));
