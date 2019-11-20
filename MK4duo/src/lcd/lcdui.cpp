@@ -33,7 +33,7 @@ LcdUI lcdui;
 
 #if !HAS_LCD
 
-constexpr uint8_t MAX_MESSAGE_LENGTH = MAX(LONG_FILENAME_LENGTH, 30);
+#define MAX_MESSAGE_LENGTH 50
 
 void LcdUI::set_status(const char* const message, const bool)         { host_action.action_notify(message); }
 void LcdUI::set_status_P(PGM_P const message, int8_t)                 { host_action.action_notify_P(message); }
