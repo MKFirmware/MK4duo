@@ -45,6 +45,10 @@ class FanManager {
 
     static fans_data_t data;
 
+    #if DISABLED(SOFTWARE_PDM)
+      static uint8_t pwm_soft_count;
+    #endif
+
   public: /** Public Function */
 
     /**

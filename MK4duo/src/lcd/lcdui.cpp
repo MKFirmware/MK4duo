@@ -33,8 +33,18 @@ LcdUI lcdui;
 
 #if !HAS_LCD
 
+#define MAX_MESSAGE_LENGTH 50
+
 void LcdUI::set_status(const char* const message, const bool)         { host_action.action_notify(message); }
-void LcdUI::set_status_P(PGM_P const message, int8_t)                 { host_action.action_notify(message); }
-void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  { host_action.action_notify(message); }
+void LcdUI::set_status_P(PGM_P const message, int8_t)                 { host_action.action_notify_P(message); }
+
+void LcdUI::status_printf_P(const uint8_t, PGM_P const message, ...)  {
+  char status_message[MAX_MESSAGE_LENGTH + 1];
+  va_list args;
+  va_start(args, message);
+  vsnprintf_P(status_message, MAX_MESSAGE_LENGTH, message, args);
+  va_end(args);
+  host_action.action_notify(status_message);
+}
 
 #endif

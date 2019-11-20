@@ -555,18 +555,7 @@ void HAL::Tick() {
   if (printer.isStopped()) return;
 
   // Heaters set output PWM
-  #if MAX_HOTEND > 0
-    LOOP_HOTEND() hotends[h]->set_output_pwm();
-  #endif
-  #if MAX_BED > 0
-    LOOP_BED() beds[h]->set_output_pwm();
-  #endif
-  #if MAX_CHAMBER > 0
-    LOOP_CHAMBER() chambers[h]->set_output_pwm();
-  #endif
-  #if MAX_COOLER > 0
-    LOOP_COOLER() coolers[h]->set_output_pwm();
-  #endif
+  tempManager.set_output_pwm();
 
   // Fans set output PWM
   fanManager.set_output_pwm();

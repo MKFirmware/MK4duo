@@ -771,27 +771,36 @@ void Endstops::report_state() {
 
     #if HAS_LCD
       char chrX = ' ', chrY = ' ', chrZ = ' ', chrP = ' ';
-      #define _SET_STOP_CHAR(A,C) (chr## A = C)
-    #else
-      #define _SET_STOP_CHAR(A,C) ;
     #endif
 
-    #define _ENDSTOP_HIT_ECHO(A,C) do{ \
-      SERIAL_MV(STRINGIFY(A) ":", planner.triggered_position_mm(_AXIS(A))); \
-      _SET_STOP_CHAR(A,C); }while(0)
-
-    #define _ENDSTOP_HIT_TEST(A,C) \
-      if (TEST(hit_state, A##_MIN) || TEST(hit_state, A##_MAX)) \
-        _ENDSTOP_HIT_ECHO(A,C)
-
     SERIAL_SM(ECHO, MSG_HOST_ENDSTOPS_HIT);
-    _ENDSTOP_HIT_TEST(X, 'X');
-    _ENDSTOP_HIT_TEST(Y, 'Y');
-    _ENDSTOP_HIT_TEST(Z, 'Z');
-
+    if (TEST(hit_state, X_MIN) || TEST(hit_state, X_MAX)) {
+      SERIAL_MV("X:", planner.triggered_position_mm(X_AXIS));
+      #if HAS_LCD
+        chrX = 'X';
+      #endif
+    }
+    if (TEST(hit_state, Y_MIN) || TEST(hit_state, Y_MAX)) {
+      SERIAL_MV("Y:", planner.triggered_position_mm(Y_AXIS));
+      #if HAS_LCD
+        chrY = 'Y';
+      #endif
+    }
+    if (TEST(hit_state, Z_MIN) || TEST(hit_state, Z_MAX)) {
+      SERIAL_MV("Z:", planner.triggered_position_mm(Z_AXIS));
+      #if HAS_LCD
+        chrZ = 'Z';
+      #endif
+    }
+  
     #if HAS_Z_PROBE_PIN
       #define P_AXIS Z_AXIS
-      if (TEST(hit_state, Z_PROBE)) _ENDSTOP_HIT_ECHO(P, 'P');
+      if (TEST(hit_state, Z_PROBE)) {
+        SERIAL_MV("P:", planner.triggered_position_mm(Z_AXIS));
+        #if HAS_LCD
+          chrP = 'P';
+        #endif
+      }
     #endif
     SERIAL_EOL();
 

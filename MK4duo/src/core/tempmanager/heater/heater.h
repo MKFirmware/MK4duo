@@ -88,8 +88,7 @@ class Heater {
                     watch_increase;
 
     uint8_t         consecutive_low_temp,
-                    pwm_soft_pos,
-                    pwm_soft_count;
+                    pwm_soft_pos;
 
     uint16_t        watch_target_temp;
 

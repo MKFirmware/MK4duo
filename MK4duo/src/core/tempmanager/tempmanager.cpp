@@ -32,6 +32,10 @@ TempManager tempManager;
 /** Public Parameters */
 temp_data_t TempManager::heater;
 
+#if DISABLED(SOFTWARE_PDM)
+  uint8_t TempManager::pwm_soft_count = 0;
+#endif
+
 #if HAS_MCU_TEMPERATURE
   float   TempManager::mcu_current_temperature  = 0.0f,
           TempManager::mcu_highest_temperature  = 0.0f,
@@ -172,9 +176,8 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.hotends > h) {
       for (uint8_t hh = h; hh < MAX_HOTEND; hh++) {
-        Heater * tmpdriver = nullptr;
-        swap(tmpdriver, hotends[hh]);
-        delete(tmpdriver);
+        delete (hotends[hh]);
+        hotends[hh] = nullptr;
       }
       heater.hotends = h;
     }
@@ -186,9 +189,8 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.beds > h) {
       for (uint8_t hh = h; hh < MAX_BED; hh++) {
-        Heater * tmpdriver = nullptr;
-        swap(tmpdriver, beds[hh]);
-        delete(tmpdriver);
+        delete (beds[hh]);
+        beds[hh] = nullptr;
       }
       heater.beds = h;
     }
@@ -200,13 +202,33 @@ void TempManager::change_number_heater(const HeatertypeEnum type, const uint8_t 
     }
     else if (heater.chambers > h) {
       for (uint8_t hh = h; hh < MAX_CHAMBER; hh++) {
-        Heater * tmpdriver = nullptr;
-        swap(tmpdriver, chambers[hh]);
-        delete(tmpdriver);
+        delete (chambers[hh]);
+        chambers[hh] = nullptr;
       }
       heater.chambers = h;
     }
   }
+
+}
+
+void TempManager::set_output_pwm() {
+
+  #if MAX_HOTEND > 0
+    LOOP_HOTEND() hotends[h]->set_output_pwm();
+  #endif
+  #if MAX_BED > 0
+    LOOP_BED() beds[h]->set_output_pwm();
+  #endif
+  #if MAX_CHAMBER > 0
+    LOOP_CHAMBER() chambers[h]->set_output_pwm();
+  #endif
+  #if MAX_COOLER > 0
+    LOOP_COOLER() coolers[h]->set_output_pwm();
+  #endif
+
+  #if DISABLED(SOFTWARE_PDM)
+    pwm_soft_count += SOFT_PWM_STEP;
+  #endif
 
 }
 

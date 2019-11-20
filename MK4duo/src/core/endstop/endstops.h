@@ -25,19 +25,15 @@
  *  endstops.h - manages endstops
  */
 
-union endstop_flag_t {
-  bool all;
-  struct {
-    bool  Enabled         : 1;
-    bool  Globally        : 1;
-    bool  SoftEndstop     : 1;
-    bool  ProbeEnabled    : 1;
-    bool  G38EndstopHit   : 1;
-    bool  MonitorEnabled  : 1;
-    bool  bit6            : 1;
-    bool  bit7            : 1;
-  };
-  endstop_flag_t() { all = false; }
+struct endstop_flag_t {
+  bool  Enabled         : 1;
+  bool  Globally        : 1;
+  bool  SoftEndstop     : 1;
+  bool  ProbeEnabled    : 1;
+  bool  G38EndstopHit   : 1;
+  bool  MonitorEnabled  : 1;
+  bool  bit6            : 1;
+  bool  bit7            : 1;
 };
 
 #if ENABLED(SPI_ENDSTOPS)

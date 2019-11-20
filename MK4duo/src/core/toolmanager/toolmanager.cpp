@@ -132,9 +132,9 @@ void ToolManager::change_number_extruder(const uint8_t e) {
   }
   else if (extruder.total > e) {
     for (uint8_t ee = e; ee < MAX_EXTRUDER; ee++) {
-      Extruder * tmpextruder = nullptr;
-      swap(tmpextruder, extruders[ee]);
-      delete(tmpextruder);
+      SERIAL_LMV(ECHO, "Delete extruder ", ee);
+      delete (extruders[ee]);
+      extruders[ee] = nullptr;
     }
   }
 
