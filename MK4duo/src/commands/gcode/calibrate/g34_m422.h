@@ -167,7 +167,7 @@ inline void gcode_G34() {
         if (iteration == 0 || i > 0) mechanics.do_blocking_move_to_z(z_probe);
 
         // Probe a Z height for each stepper
-        const float z_probed_height = probe.check_at_point(z_auto_align_pos[i], raise_after, 0, true);
+        const float z_probed_height = probe.check_at_point(z_auto_align_pos[iprobe], raise_after, 0, true);
         if (isnan(z_probed_height)) {
           SERIAL_EM("Probing failed.");
           err_break = true;
